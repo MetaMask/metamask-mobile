@@ -57,6 +57,10 @@ const defined = <T>(value: T | null | undefined, fallback: T): T =>
 const PEPE_FIXTURE_DESCRIPTION =
   'Pepe is a deflationary memecoin launched on Ethereum in 2023 as a tribute to the Pepe the Frog internet character. There is no formal team or roadmap — the token is entirely community-driven.';
 
+/**
+ * Test-only stand-in for mainnet PEPE. Remove this record when /v2/assets
+ * returns real PEPE fields. It must not apply to any other token.
+ */
 export const PEPE_ASSET_FIXTURE: TokenAssetRecord = {
   assetId: MAINNET_PEPE_ASSET_ID,
   symbol: 'PEPE',

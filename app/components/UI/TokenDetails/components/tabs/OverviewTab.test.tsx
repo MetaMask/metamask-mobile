@@ -339,8 +339,8 @@ describe('OverviewTab', () => {
     expect(queryByText('From the route')).toBeNull();
   });
 
-  it('renders the mock description fallback when the token has none', () => {
-    const { getByTestId } = render(
+  it('hides the description section when the token and the asset record have none', () => {
+    const { queryByTestId } = render(
       <OverviewTab
         token={token}
         assetId={'eip155:1/erc20:0xabc' as never}
@@ -348,7 +348,27 @@ describe('OverviewTab', () => {
       />,
     );
 
-    expect(getByTestId(OVERVIEW_TAB_DESCRIPTION_TEST_ID)).toBeTruthy();
+    expect(queryByTestId(OVERVIEW_TAB_DESCRIPTION_TEST_ID)).toBeNull();
+  });
+
+  it('hides the description section when the text is only spaces', () => {
+    mockUseTokenAssetDetails.mockReturnValue({
+      asset: {
+        launchpadData: { description: '   ' },
+      },
+      isLoading: false,
+      isError: false,
+    });
+
+    const { queryByTestId } = render(
+      <OverviewTab
+        token={{ ...token, description: '  ' }}
+        assetId={'eip155:1/erc20:0xabc' as never}
+        currentCurrency="usd"
+      />,
+    );
+
+    expect(queryByTestId(OVERVIEW_TAB_DESCRIPTION_TEST_ID)).toBeNull();
   });
 
   it('passes the performance cells to the Performance section', () => {
