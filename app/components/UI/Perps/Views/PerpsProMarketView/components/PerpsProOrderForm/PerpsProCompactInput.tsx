@@ -36,6 +36,7 @@ import {
   normalizePerpsNumericInput,
   type PerpsInputSelection,
 } from '../../../../utils/formatUtils';
+import usePerpsProInputDisplay from './usePerpsProInputDisplay';
 
 export const getPerpsProInputAccessoryID = (testID: string) =>
   `${testID}-input-accessory`;
@@ -179,6 +180,17 @@ const PerpsProCompactInput = React.forwardRef<
     const [selection, setSelection] = useState<PerpsInputSelection | undefined>(
       undefined,
     );
+    usePerpsProInputDisplay({
+      value,
+      locale,
+      isFocused,
+      inputLocaleRef,
+      lastEmittedValueRef,
+      selectionRef,
+      shouldIgnoreNextSelectionChangeRef,
+      setDisplayValue,
+      setSelection,
+    });
     const [shouldFocusInput, setShouldFocusInput] = useState(false);
     const isInlineActive = isFocused || displayValue.length > 0;
     const usesFloatingLabel =
@@ -207,30 +219,6 @@ const PerpsProCompactInput = React.forwardRef<
     );
     const inputAccessoryViewID =
       Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
-
-    useEffect(() => {
-      if (!isFocused) {
-        lastEmittedValueRef.current = value;
-        setDisplayValue(formatPerpsInput(value, locale));
-        return;
-      }
-
-      if (value === lastEmittedValueRef.current) {
-        return;
-      }
-
-      const nextDisplayValue = formatPerpsInput(value, inputLocaleRef.current);
-      const nextSelection = {
-        start: nextDisplayValue.length,
-        end: nextDisplayValue.length,
-      };
-
-      lastEmittedValueRef.current = value;
-      selectionRef.current = nextSelection;
-      shouldIgnoreNextSelectionChangeRef.current = true;
-      setSelection(nextSelection);
-      setDisplayValue(nextDisplayValue);
-    }, [isFocused, locale, value]);
 
     useEffect(() => {
       if (isInteractionBlocked) {

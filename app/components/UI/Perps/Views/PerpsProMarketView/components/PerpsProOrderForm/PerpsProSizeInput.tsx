@@ -14,7 +14,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   Platform,
   type TextInput,
@@ -37,6 +37,7 @@ import type {
   PerpsProSizeDenomination,
   PerpsProSizeSliderModel,
 } from './PerpsProOrderForm.types';
+import usePerpsProInputDisplay from './usePerpsProInputDisplay';
 
 const ids = PerpsProOrderFormSelectorsIDs;
 
@@ -98,6 +99,17 @@ const PerpsProSizeInput = ({
   const [selection, setSelection] = useState<PerpsInputSelection | undefined>(
     undefined,
   );
+  usePerpsProInputDisplay({
+    value,
+    locale,
+    isFocused,
+    inputLocaleRef,
+    lastEmittedValueRef,
+    selectionRef,
+    shouldIgnoreNextSelectionChangeRef,
+    setDisplayValue,
+    setSelection,
+  });
   const unitLabel = getUnitLabel(denomination);
   const showUsdPrefix = denomination.unit === 'usd';
   const label = strings('perps.pro_order_form.size_unit', {
@@ -204,30 +216,6 @@ const PerpsProSizeInput = ({
       }
     }
   }, [displayValue, isDisabled, locale, onBlur, onChangeText, value]);
-
-  useEffect(() => {
-    if (!isFocused) {
-      lastEmittedValueRef.current = value;
-      setDisplayValue(formatPerpsInput(value, locale));
-      return;
-    }
-
-    if (value === lastEmittedValueRef.current) {
-      return;
-    }
-
-    const nextDisplayValue = formatPerpsInput(value, inputLocaleRef.current);
-    const nextSelection = {
-      start: nextDisplayValue.length,
-      end: nextDisplayValue.length,
-    };
-
-    lastEmittedValueRef.current = value;
-    selectionRef.current = nextSelection;
-    shouldIgnoreNextSelectionChangeRef.current = true;
-    setSelection(nextSelection);
-    setDisplayValue(nextDisplayValue);
-  }, [isFocused, locale, value]);
 
   const handleFieldPress = useCallback(() => {
     if (!isDisabled) {
