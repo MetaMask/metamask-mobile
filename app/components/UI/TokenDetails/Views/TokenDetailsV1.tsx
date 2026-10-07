@@ -277,7 +277,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     isLoading: isPriceLoading,
     timePeriod,
     setTimePeriod,
-    chartNavigationButtons,
     currentCurrency,
     hasInsufficientCoverage,
   } = useTokenPrice({ token });
@@ -404,11 +403,10 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
               scrollEnabled={!isChartBeingTouched}
               testID={TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID}
             >
-              <Price
+              <Price.Provider
                 asset={token}
                 prices={prices}
                 timePeriod={timePeriod}
-                chartNavigationButtons={chartNavigationButtons}
                 setTimePeriod={setTimePeriod}
                 currentPrice={currentPrice}
                 priceDiff={priceDiff}
@@ -417,6 +415,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 isLoading={isPriceLoading}
                 hasInsufficientCoverage={hasInsufficientCoverage}
               >
+                <Price.Header />
+
                 <Box twClassName="px-4">
                   <SecuritySocialSection
                     securityVerdict={MOCK_SECURITY_VERDICT}
@@ -433,7 +433,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                     onStatPress={handleStatPress}
                   />
                 </Box>
-              </Price>
+
+                <Price.Chart />
+              </Price.Provider>
 
               <TokenDetailsActionsSection
                 token={token}
