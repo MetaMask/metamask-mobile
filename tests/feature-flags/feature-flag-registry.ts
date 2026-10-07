@@ -6373,6 +6373,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  homeBrandRefreshSurfaces: {
+    name: 'homeBrandRefreshSurfaces',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.15.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   // Not in the production client-config response yet. inProd stays false so
   // the weekly registry sync does not treat this as removed from production.
   homeInterimHeaderNavBar: {
