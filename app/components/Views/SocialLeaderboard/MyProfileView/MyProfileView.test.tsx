@@ -208,6 +208,8 @@ describe('MyProfileView', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: jest.fn().mockResolvedValue(undefined),
     });
   });
@@ -567,6 +569,8 @@ describe('MyProfileView', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: refetchPositions,
     });
 
@@ -711,6 +715,8 @@ describe('MyProfileView', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: jest.fn().mockResolvedValue(undefined),
     });
 
@@ -752,6 +758,8 @@ describe('MyProfileView', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: jest.fn().mockResolvedValue(undefined),
     });
 
@@ -766,6 +774,30 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
     ).toBeOnTheScreen();
     expect(screen.getByTestId('position-row-DOGE')).toBeOnTheScreen();
+  });
+
+  it('shows closed empty copy when only the open fetch failed', () => {
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: 'open failed',
+      openError: 'open failed',
+      closedError: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB));
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_EMPTY),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('No closed positions')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_ERROR),
+    ).toBeNull();
   });
 
   it('opens position detail from an Open row', () => {
@@ -789,6 +821,8 @@ describe('MyProfileView', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: jest.fn().mockResolvedValue(undefined),
     });
 

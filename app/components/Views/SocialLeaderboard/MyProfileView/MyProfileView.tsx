@@ -186,7 +186,8 @@ const MyProfileView: React.FC = () => {
     closedPositions,
     isLoadingOpen,
     isLoadingClosed,
-    error: positionsError,
+    openError: openPositionsError,
+    closedError: closedPositionsError,
     refetch: refetchPositions,
   } = useTraderPositions(addressOrId ?? '');
   const openPositionsCount = useMyOpenPerpsPositionCount();
@@ -490,7 +491,11 @@ const MyProfileView: React.FC = () => {
                 isLoading={
                   activeTab === 'open' ? isLoadingOpen : isLoadingClosed
                 }
-                error={positionsError}
+                error={
+                  activeTab === 'open'
+                    ? openPositionsError
+                    : closedPositionsError
+                }
                 isClosed={activeTab === 'closed'}
                 filter={assetFilter}
                 onFilterChange={setAssetFilter}
