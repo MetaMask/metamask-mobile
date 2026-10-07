@@ -44,6 +44,7 @@ import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import {
@@ -283,6 +284,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   useBottomSheet = false,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { playImpact } = useHaptics();
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
   // Source: from route params (caller-passed) or trending session, else default
   const source =
@@ -1658,6 +1660,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         return;
       }
 
+      if (useBottomSheet && !forceTrade) {
+        playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+      }
+
       let submissionIsValid = orderValidation.isValid;
       let submissionErrors = orderValidation.errors;
       if (orderValidation.isValidating) {
@@ -1994,6 +2000,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       exceedsMaxSlippage,
       vipTier,
       useBottomSheet,
+      playImpact,
     ],
   );
 

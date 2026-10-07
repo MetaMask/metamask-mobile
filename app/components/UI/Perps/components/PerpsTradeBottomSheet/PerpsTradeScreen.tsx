@@ -22,10 +22,9 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { OrderType } from '@metamask/perps-controller';
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
 import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
@@ -306,12 +305,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onSubmit,
 }) => {
   const { navigateTo, title, banner } = usePerpsTradeSheet();
-  const { playImpact } = useHaptics();
   const [showAssetValue, setShowAssetValue] = useState(false);
-  const handleSubmit = useCallback(() => {
-    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
-    onSubmit();
-  }, [onSubmit, playImpact]);
   const directionLabel =
     direction === 'long'
       ? strings('perps.order.button.long', { asset })
@@ -819,7 +813,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               isFullWidth
               isDisabled={isSubmitDisabled}
               isLoading={isSubmitting}
-              onPress={handleSubmit}
+              onPress={onSubmit}
               testID={PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {submitLabel ?? directionLabel}
