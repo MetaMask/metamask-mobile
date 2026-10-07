@@ -28,36 +28,6 @@ export interface MembershipDetails {
   renewsOn: string;
 }
 
-/**
- * Whether a pending period-end cancellation can still be reversed.
- *
- * Resume stays available only while `cancelAtPeriodEnd` is set and
- * `currentPeriodEnd` is a valid timestamp still in the future. A missing or
- * past period end means uncancel would fail.
- *
- * @param subscription - Money Account Plus subscription, when one exists.
- * @param now - Clock used to compare `currentPeriodEnd`.
- * @returns True when the membership row should offer resume.
- */
-export const canResumeMembership = (
-  subscription: Subscription | undefined,
-  now: Date = new Date(),
-): boolean => {
-  if (
-    subscription?.cancelAtPeriodEnd !== true ||
-    !subscription.currentPeriodEnd
-  ) {
-    return false;
-  }
-
-  const periodEnd = new Date(subscription.currentPeriodEnd);
-  if (Number.isNaN(periodEnd.getTime())) {
-    return false;
-  }
-
-  return periodEnd.getTime() > now.getTime();
-};
-
 const formatRenewalDate = (date: string | undefined): string => {
   if (!date) {
     return MEMBERSHIP_UNAVAILABLE_VALUE;

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -23,17 +23,15 @@ import {
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import Engine from '../../../../../core/Engine';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { RootState } from '../../../../../reducers';
-import { ensureError } from '../../../../../util/errorUtils';
-import Logger from '../../../../../util/Logger';
 import {
   selectMoneyAccountPlusPricing,
   selectSubscriptionByProduct,
 } from '../../../../../selectors/subscriptionController';
+import { useResumeMembership } from '../../hooks/useResumeMembership';
 import { MembershipTestIds } from './Membership.testIds';
-import { canResumeMembership, getMembershipDetails } from './Membership.utils';
+import { getMembershipDetails } from './Membership.utils';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -124,14 +122,14 @@ const Membership = () => {
     () => getMembershipDetails(subscription, plusPricing),
     [plusPricing, subscription],
   );
-  const resumeAvailable = canResumeMembership(subscription);
+  const {
+    resumeMembership,
+    isResuming,
+    errorMessage: resumeErrorMessage,
+    canResume: resumeAvailable,
+  } = useResumeMembership();
   const hideMembershipAction =
     subscription?.cancelAtPeriodEnd === true && !resumeAvailable;
-  const [isResuming, setIsResuming] = useState(false);
-  const [resumeErrorMessage, setResumeErrorMessage] = useState<string | null>(
-    null,
-  );
-  const isResumingRef = useRef(false);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -148,33 +146,6 @@ const Membership = () => {
   const handleCancelMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.CANCEL_MEMBERSHIP);
   }, [navigation]);
-
-  const handleResumeMembership = useCallback(async () => {
-    if (isResumingRef.current || !subscription) {
-      return;
-    }
-
-    isResumingRef.current = true;
-    setIsResuming(true);
-    setResumeErrorMessage(null);
-
-    try {
-      await Engine.context.SubscriptionController.unCancelSubscription({
-        subscriptionId: subscription.id,
-      });
-    } catch (error) {
-      Logger.error(ensureError(error, 'Membership.unCancelSubscription'), {
-        tags: {
-          feature: 'money_account_plus',
-          operation: 'uncancel_subscription',
-        },
-      });
-      setResumeErrorMessage(strings('pro_hub.membership.resume_failed'));
-    } finally {
-      isResumingRef.current = false;
-      setIsResuming(false);
-    }
-  }, [subscription]);
 
   return (
     <View
@@ -362,9 +333,7 @@ const Membership = () => {
                   : 'pro_hub.membership.cancel_membership',
               )}
               onPress={
-                resumeAvailable
-                  ? handleResumeMembership
-                  : handleCancelMembership
+                resumeAvailable ? resumeMembership : handleCancelMembership
               }
               testID={
                 resumeAvailable
