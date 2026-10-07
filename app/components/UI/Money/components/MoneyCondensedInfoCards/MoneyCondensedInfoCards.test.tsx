@@ -6,6 +6,7 @@ import { strings } from '../../../../../../locales/i18n';
 import howItWorksImageSource from '../../../../../images/mm_how_it_works.png';
 import musdCoinImageSource from '../../../../../images/mm_usd.png';
 import whatYouGetImageSource from '../../../../../images/mm_what_you_get.png';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/GlassSurface';
 
 describe('MoneyCondensedInfoCards', () => {
   it('renders all three cards', () => {
@@ -110,5 +111,19 @@ describe('MoneyCondensedInfoCards', () => {
         getByTestId(MoneyCondensedInfoCardsTestIds.WHAT_YOU_GET_CARD),
       );
     }).not.toThrow();
+  });
+
+  describe('glass', () => {
+    it('keeps opaque cards by default', () => {
+      const { queryAllByTestId } = render(<MoneyCondensedInfoCards />);
+
+      expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
+    });
+
+    it('draws every card on glass when isGlass is set', () => {
+      const { getAllByTestId } = render(<MoneyCondensedInfoCards isGlass />);
+
+      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(3);
+    });
   });
 });

@@ -4,9 +4,9 @@ import {
   Box,
   BoxFlexDirection,
   IconName,
-  MainActionButton,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import GlassMainActionButton from '../../../../../component-library/components-temp/GlassMainActionButton';
 import { MoneyActionButtonRowTestIds } from './MoneyActionButtonRow.testIds';
 
 interface ActionButtonConfig {
@@ -18,6 +18,8 @@ interface MoneyActionButtonRowProps {
   add: ActionButtonConfig;
   transfer: ActionButtonConfig;
   card: ActionButtonConfig;
+  /** Brand refresh Liquid Glass tiles; resolved by the screen. */
+  isGlass?: boolean;
 }
 
 const styles = StyleSheet.create({
@@ -31,38 +33,42 @@ const MoneyActionButtonRow = ({
   add,
   transfer,
   card,
+  isGlass = false,
 }: MoneyActionButtonRowProps) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     twClassName="px-4 pt-4 pb-2 gap-2"
     testID={MoneyActionButtonRowTestIds.CONTAINER}
   >
-    <MainActionButton
+    <GlassMainActionButton
       iconName={IconName.Add}
       label={strings('money.action.add')}
       onPress={add.onPress}
       isDisabled={add.disabled}
       testID={MoneyActionButtonRowTestIds.ADD_BUTTON}
       twClassName="py-3"
-      style={styles.buttonContainer}
+      containerStyle={styles.buttonContainer}
+      isGlass={isGlass}
     />
-    <MainActionButton
+    <GlassMainActionButton
       iconName={IconName.Arrow2UpRight}
       label={strings('money.action.transfer')}
       onPress={transfer.onPress}
       isDisabled={transfer.disabled}
       testID={MoneyActionButtonRowTestIds.TRANSFER_BUTTON}
       twClassName="py-3"
-      style={styles.buttonContainer}
+      containerStyle={styles.buttonContainer}
+      isGlass={isGlass}
     />
-    <MainActionButton
+    <GlassMainActionButton
       iconName={IconName.Card}
       label={strings('money.action.card')}
       onPress={card.onPress}
       isDisabled={card.disabled}
       testID={MoneyActionButtonRowTestIds.CARD_BUTTON}
       twClassName="py-3"
-      style={styles.buttonContainer}
+      containerStyle={styles.buttonContainer}
+      isGlass={isGlass}
     />
   </Box>
 );

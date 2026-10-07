@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import MoneyActionButtonRow from './MoneyActionButtonRow';
 import { MoneyActionButtonRowTestIds } from './MoneyActionButtonRow.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/GlassSurface';
 
 const noop = jest.fn();
 
@@ -97,5 +98,23 @@ describe('MoneyActionButtonRow', () => {
     fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON));
 
     expect(mockCard).not.toHaveBeenCalled();
+  });
+
+  describe('glass', () => {
+    it('keeps opaque tiles by default', () => {
+      const { queryAllByTestId } = render(
+        <MoneyActionButtonRow {...defaultProps} />,
+      );
+
+      expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
+    });
+
+    it('draws every tile on glass when isGlass is set', () => {
+      const { getAllByTestId } = render(
+        <MoneyActionButtonRow {...defaultProps} isGlass />,
+      );
+
+      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(3);
+    });
   });
 });
