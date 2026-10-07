@@ -79,6 +79,7 @@ import RewardsAnimations, {
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import PerpsAccountUnsupportedModal from '../../components/PerpsAccountUnsupportedModal';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
@@ -113,6 +114,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
+import { usePerpsAccountSupport } from '../../hooks/usePerpsAccountSupport';
 import { bpsToPercent } from '../../constants/slippageConfig';
 import { FIXED_BOTTOM_CONTAINER_PADDING } from '../../constants/perpsUIConfig';
 import {
@@ -426,6 +428,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const { isInitialized } = usePerpsConnection();
   const { subscribeToPrices, updatePositionTPSL } = usePerpsTrading();
+  const {
+    isAccountUnsupportedModalVisible,
+    checkAccountSupport,
+    closeAccountUnsupportedModal,
+  } = usePerpsAccountSupport();
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
   // Get order form state from context; balanceForValidation respects custom token amount when set
@@ -1626,6 +1633,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         });
       }
 
+      if (!(await checkAccountSupport())) {
+        return;
+      }
+
       // Bail out before the pay-with-any-token deposit branch so an
       // excessive-slippage order never starts a deposit/signature flow.
       if (exceedsMaxSlippage && typeof estimatedSlippageBps === 'number') {
@@ -1992,6 +2003,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       maxSlippageSource,
       estimatedSlippageBps,
       exceedsMaxSlippage,
+      checkAccountSupport,
       vipTier,
       useBottomSheet,
     ],
@@ -3149,6 +3161,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           }
         />
       )}
+      <PerpsAccountUnsupportedModal
+        isVisible={isAccountUnsupportedModalVisible}
+        onClose={closeAccountUnsupportedModal}
+      />
     </SafeAreaView>
   );
 };

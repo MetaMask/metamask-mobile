@@ -52,6 +52,8 @@ const mockNavigate = jest.fn();
 const mockSetMaxSlippage = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
+const mockCheckAccountSupport = jest.fn();
+const mockCloseAccountUnsupportedModal = jest.fn();
 const mockShowEligibilityModal = jest.fn();
 const mockUpdatePositionTPSL = jest.fn().mockResolvedValue({ success: true });
 const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
@@ -348,6 +350,9 @@ jest.mock('../../../../hooks/usePerpsHomeActions', () => ({
     isEligibilityModalVisible: false,
     closeEligibilityModal: mockCloseEligibilityModal,
     showEligibilityModal: mockShowEligibilityModal,
+    isAccountUnsupportedModalVisible: false,
+    checkAccountSupport: mockCheckAccountSupport,
+    closeAccountUnsupportedModal: mockCloseAccountUnsupportedModal,
   }),
 }));
 
@@ -560,6 +565,7 @@ const renderMutableScaleForm = (initialProps: MutableScaleProps) => {
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCheckAccountSupport.mockResolvedValue(true);
     mockExecutionOptions = {};
     mockOrderForm.type = 'market';
     mockOrderForm.direction = 'long';
@@ -3053,6 +3059,19 @@ describe('usePerpsProOrderForm', () => {
       expect(mockShowEligibilityModal).toHaveBeenCalledWith(
         PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
       );
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
+    });
+
+    it('skips execution for an unsupported account', async () => {
+      mockCheckAccountSupport.mockResolvedValue(false);
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockCheckAccountSupport).toHaveBeenCalledTimes(1);
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(playImpact).not.toHaveBeenCalled();
     });

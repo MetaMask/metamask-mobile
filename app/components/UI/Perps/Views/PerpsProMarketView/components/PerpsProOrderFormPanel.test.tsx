@@ -150,6 +150,8 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   closeOrderType: jest.fn(),
   isEligibilityModalVisible: false,
   closeEligibilityModal: jest.fn(),
+  isAccountUnsupportedModalVisible: false,
+  closeAccountUnsupportedModal: jest.fn(),
   selectedTooltip: null as string | null,
   closeTooltip: jest.fn(),
   feeMetamaskFeeRate: 0.01,
@@ -793,5 +795,15 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(screen.getByTestId('mock-tooltip-geo_block')).toBeOnTheScreen();
+  });
+
+  it('renders the unsupported-account modal when account support is required', () => {
+    mockHookResult.isAccountUnsupportedModalVisible = true;
+
+    renderPanel();
+
+    expect(
+      screen.getByTestId('mock-tooltip-account_not_supported'),
+    ).toBeOnTheScreen();
   });
 });

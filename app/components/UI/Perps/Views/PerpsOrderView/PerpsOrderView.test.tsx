@@ -196,6 +196,15 @@ jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
   getPerpsUtmAttributionProperties: jest.fn(() => ({})),
 }));
 
+const mockCheckAccountSupport = jest.fn();
+jest.mock('../../hooks/usePerpsAccountSupport', () => ({
+  usePerpsAccountSupport: () => ({
+    isAccountUnsupportedModalVisible: false,
+    checkAccountSupport: mockCheckAccountSupport,
+    closeAccountUnsupportedModal: jest.fn(),
+  }),
+}));
+
 jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
   usePerpsNetworkManagement: () => ({
     ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
@@ -1303,6 +1312,7 @@ describe('PerpsOrderView', () => {
   beforeEach(() => {
     jest.useRealTimers();
     jest.clearAllMocks();
+    mockCheckAccountSupport.mockResolvedValue(true);
     applyDefaultHookMocks();
     jest.mocked(isHardwareAccount).mockReturnValue(false);
     mockPaymentOverride = undefined;
@@ -3432,6 +3442,27 @@ describe('PerpsOrderView', () => {
         defaultMockHooks.usePerpsTrading.placeOrder,
       ).not.toHaveBeenCalled();
     });
+  });
+
+  it('blocks order placement for an unsupported account', async () => {
+    const mockPlaceOrder = jest.fn();
+    mockCheckAccountSupport.mockResolvedValue(false);
+    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+      placeOrder: mockPlaceOrder,
+      isPlacing: false,
+    });
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    await act(async () => {
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+        ),
+      );
+    });
+
+    expect(mockCheckAccountSupport).toHaveBeenCalledTimes(1);
+    expect(mockPlaceOrder).not.toHaveBeenCalled();
   });
 
   it('handles network error during order placement', () => {
