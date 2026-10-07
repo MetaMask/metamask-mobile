@@ -52,6 +52,9 @@ import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import SocialTabFilterBar from './filters/SocialTabFilterBar';
 import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
+import { DEFAULT_FILTERS } from './filters/filterDefaults';
+import { filterSocialV1FeedPosts } from './filters/filterSocialV1FeedPosts';
+import type { SocialShellFilters } from './filters/types';
 import type {
   SocialV1FeedTab,
   SocialV1HotToken,
@@ -95,6 +98,7 @@ export interface EmptyShellTabPageProps {
   scrollTestID: string;
   onOpenFilters?: () => void;
   isFilterActive?: boolean;
+  appliedFilters?: SocialShellFilters;
 }
 
 /**
@@ -110,6 +114,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   scrollTestID,
   onOpenFilters,
   isFilterActive = false,
+  appliedFilters = DEFAULT_FILTERS,
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
@@ -138,6 +143,13 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           }),
       ),
     [isEntryHidden, posts],
+  );
+  const shellFilteredPosts = useMemo(
+    () =>
+      tab === 'following'
+        ? filterSocialV1FeedPosts(visiblePosts, appliedFilters)
+        : visiblePosts,
+    [appliedFilters, tab, visiblePosts],
   );
 
   const { colors } = useTheme();
@@ -200,7 +212,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   const filteredPosts = useMemo(() => {
     if (!activeHotTokenId) {
-      return visiblePosts;
+      return shellFilteredPosts;
     }
     if (activeTokenFeed) {
       return activeTokenFeed.posts.filter(
@@ -212,10 +224,10 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           }),
       );
     }
-    return visiblePosts.filter(
+    return shellFilteredPosts.filter(
       (post) => getSocialV1HotTokenId(post.item) === activeHotTokenId,
     );
-  }, [activeHotTokenId, activeTokenFeed, isEntryHidden, visiblePosts]);
+  }, [activeHotTokenId, activeTokenFeed, isEntryHidden, shellFilteredPosts]);
 
   const handleHotTokenPress = useCallback((token: SocialV1HotToken) => {
     setSelectedHotTokenId((current) =>
