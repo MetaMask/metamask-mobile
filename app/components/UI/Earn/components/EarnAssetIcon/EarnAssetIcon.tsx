@@ -26,7 +26,7 @@ const EarnAssetIcon = ({ asset }: { asset: EarnAsset }) => {
         <BadgeNetwork
           name={metadata.chainId}
           src={networkImageSource}
-          twClassName="rounded-1"
+          twClassName="h-5 w-5"
         />
       }
     >
