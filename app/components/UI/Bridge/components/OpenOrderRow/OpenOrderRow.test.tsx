@@ -26,7 +26,7 @@ const LIMIT_PROPS = {
     source: 'ETH',
     dest: DEST_TOKEN.symbol,
   }),
-  subtitle: strings('bridge.limit.expiry', { timeLeft: '4d left' }),
+  subtitle: strings('bridge.limit.expiry', { timeLeft: '4d' }),
   primaryValue: '$208.99',
   secondaryValue: strings('bridge.limit.limit_price', {
     symbol: DEST_TOKEN.symbol,
@@ -74,7 +74,7 @@ describe('OpenOrderRow', () => {
       'ETH → USDC',
     );
     expect(getByTestId(OpenOrderRowSelectorsIDs.SUBTITLE)).toHaveTextContent(
-      strings('bridge.limit.expiry', { timeLeft: '4d left' }),
+      strings('bridge.limit.expiry', { timeLeft: '4d' }),
     );
     expect(getByTestId(OpenOrderRowSelectorsIDs.PRIMARY)).toHaveTextContent(
       '$208.99',
