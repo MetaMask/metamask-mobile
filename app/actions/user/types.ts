@@ -40,6 +40,8 @@ export enum UserActionType {
   SET_APP_INSTALL_EVENT_FIRED = 'SET_APP_INSTALL_EVENT_FIRED',
   SET_PENDING_APP_INSTALL = 'SET_PENDING_APP_INSTALL',
   CLEAR_PENDING_APP_INSTALL = 'CLEAR_PENDING_APP_INSTALL',
+  /** Session-only mirror of wallet lock for always-on gating (not persisted). */
+  SET_IS_WALLET_LOCKED = 'SET_IS_WALLET_LOCKED',
 }
 
 // User actions
@@ -167,6 +169,11 @@ export type SetPendingAppInstallAction =
 export type ClearPendingAppInstallAction =
   Action<UserActionType.CLEAR_PENDING_APP_INSTALL>;
 
+export type SetIsWalletLockedAction =
+  Action<UserActionType.SET_IS_WALLET_LOCKED> & {
+    isWalletLocked: boolean;
+  };
+
 /**
  * User actions union type
  */
@@ -205,4 +212,5 @@ export type UserAction =
   | SetOnboardingStepperStepAction
   | SetAppInstallEventFiredAction
   | SetPendingAppInstallAction
-  | ClearPendingAppInstallAction;
+  | ClearPendingAppInstallAction
+  | SetIsWalletLockedAction;

@@ -163,7 +163,11 @@ export const createPersistController = (debounceMs: number = 200) =>
 
 type PersistedUserState = Omit<
   UserState,
-  'initialScreen' | 'isAuthChecked' | 'appServicesReady' | 'userLoggedIn'
+  | 'initialScreen'
+  | 'isAuthChecked'
+  | 'appServicesReady'
+  | 'userLoggedIn'
+  | 'isWalletLocked'
 >;
 
 const persistUserTransform = createTransform<UserState, PersistedUserState>(
@@ -173,9 +177,11 @@ const persistUserTransform = createTransform<UserState, PersistedUserState>(
       isAuthChecked,
       appServicesReady,
       userLoggedIn,
+      isWalletLocked: _omitIsWalletLocked,
       ...state
     } = inboundState;
-    // userLoggedIn is session-only; rehydrated true would claim unlocked during Login.
+    // userLoggedIn / isWalletLocked are session-only; rehydrated true would
+    // claim unlocked or locked incorrectly during Login.
     return state;
   },
   // Restore session fields to their initial values on read. Older builds
@@ -188,6 +194,7 @@ const persistUserTransform = createTransform<UserState, PersistedUserState>(
     isAuthChecked: false,
     appServicesReady: false,
     userLoggedIn: false,
+    isWalletLocked: false,
   }),
   { whitelist: ['user'] },
 );

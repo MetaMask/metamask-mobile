@@ -22,6 +22,14 @@ export const selectAppServicesReady = (state: RootState) =>
 export const selectUserLoggedIn = (state: RootState) => state.user.userLoggedIn;
 
 /**
+ * Selects whether the wallet is covered by Login / LockScreen.
+ * Session-only (not persisted). Always-on / singleton work must gate here —
+ * AppState background alone is insufficient while Login keeps the app active.
+ */
+export const selectIsWalletLocked = (state: RootState) =>
+  state.user?.isWalletLocked ?? false;
+
+/**
  * Selects the passwordSet state
  */
 export const selectPasswordSet = (state: RootState) => state.user.passwordSet;

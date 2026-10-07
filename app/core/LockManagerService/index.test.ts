@@ -4,6 +4,12 @@ import { lockApp, checkForDeeplink } from '../../actions/user';
 import Logger from '../../util/Logger';
 import ReduxService, { type ReduxStore } from '../redux';
 import Engine from '../Engine';
+import {
+  getWalletLockedAt,
+  resetWalletLockedAtForTesting,
+  setWalletLockedAt,
+} from '../../util/navigation/walletLockClock';
+import { getWalletLocked } from '../WalletLockLifecycle';
 
 jest.mock('../Engine', () => ({
   context: {
@@ -12,6 +18,10 @@ jest.mock('../Engine', () => ({
       isUnlocked: jest.fn().mockReturnValue(true),
     },
   },
+}));
+
+jest.mock('../WalletLockLifecycle', () => ({
+  getWalletLocked: jest.fn(() => false),
 }));
 
 const mockSetTimeout = jest.fn();
@@ -55,6 +65,9 @@ describe('LockManagerService', () => {
         return { remove: jest.fn() };
       },
     );
+    resetWalletLockedAtForTesting();
+    (getWalletLocked as jest.Mock).mockReturnValue(false);
+    jest.setSystemTime(1_700_000_000_000);
     lockManagerService = new LockManagerService();
   });
 
@@ -109,6 +122,7 @@ describe('LockManagerService', () => {
       lockManagerService.startListening();
       mockAppStateListener('background');
       expect(mockDispatch).not.toHaveBeenCalled();
+      expect(getWalletLockedAt()).toBeNull();
     });
 
     it('should do nothing if lockTime is 0 while going inactive.', async () => {
@@ -188,6 +202,57 @@ describe('LockManagerService', () => {
 
       expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
       expect(mockDispatch).not.toHaveBeenCalledWith(lockApp());
+      expect(getWalletLockedAt()).toBeNull();
+    });
+
+    it('keeps the restore clock and skips deeplink check while the wallet is locked', async () => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({ settings: { lockTime: 5 } }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+      lockManagerService.startListening();
+
+      await mockAppStateListener('background');
+      expect(getWalletLockedAt()).toBe(1_700_000_000_000);
+
+      (getWalletLocked as jest.Mock).mockReturnValue(true);
+      await mockAppStateListener('inactive');
+      await mockAppStateListener('active');
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(checkForDeeplink());
+      expect(getWalletLockedAt()).toBe(1_700_000_000_000);
+    });
+
+    it('stamps the restore clock when entering background and keeps it across a second background', async () => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({ settings: { lockTime: 30_000 } }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+      lockManagerService.startListening();
+
+      await mockAppStateListener('background');
+      expect(getWalletLockedAt()).toBe(1_700_000_000_000);
+
+      jest.setSystemTime(1_700_000_030_000);
+      await mockAppStateListener('background');
+
+      expect(getWalletLockedAt()).toBe(1_700_000_000_000);
+    });
+
+    it('does not overwrite a clock already running when backgrounding again', async () => {
+      setWalletLockedAt(1_600_000_000_000);
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({ settings: { lockTime: 30_000 } }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+      lockManagerService.startListening();
+
+      await mockAppStateListener('background');
+
+      expect(getWalletLockedAt()).toBe(1_600_000_000_000);
     });
 
     it('does not parse a deeplink on resume when auto-lock already locked the wallet', async () => {
@@ -211,6 +276,7 @@ describe('LockManagerService', () => {
 
       expect(mockDispatch).toHaveBeenCalledWith(lockApp());
       expect(mockDispatch).not.toHaveBeenCalledWith(checkForDeeplink());
+      expect(getWalletLockedAt()).toBe(1_700_000_000_000);
     });
 
     it('waits for an in-flight auto-lock before deciding whether to parse a deeplink', async () => {
