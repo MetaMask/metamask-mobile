@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { Theme } from '@metamask/design-tokens';
@@ -9,10 +9,17 @@ import {
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../hooks/useStyles';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import type { TokenDetailsRouteParams } from '../constants/constants';
+import type {
+  TokenDetailsRouteParams,
+  TokenDetailsVariant,
+} from '../constants/constants';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
+import { useTokenStatBarStats } from '../hooks/useTokenStatBarStats';
 import SecuritySocialSection from '../components/V1/SecuritySocialSection/SecuritySocialSection';
+import StatBar from '../components/V1/StatBar/StatBar';
+import StatExplainerSheet from '../components/V1/StatBar/StatExplainerSheet';
+import type { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
 import type { SecurityVerdict } from '../components/V1/SecurityPill/SecurityPill';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
@@ -40,9 +47,14 @@ const styleSheet = (params: { theme: Theme }) => {
 
 interface TokenDetailsV1Props {
   token: TokenDetailsRouteParams;
+  /** Asset category this page renders for, which decides the stat bar's stats. */
+  variant: TokenDetailsVariant;
 }
 
-export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
+export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
+  token,
+  variant,
+}) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -54,9 +66,22 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
     prefetchedData: token.securityData,
   });
 
+  const statBarStats = useTokenStatBarStats();
+
+  /** Which stat's explainer is open, or `null` for none. */
+  const [explainedStat, setExplainedStat] = useState<TokenStatKey | null>(null);
+
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleStatPress = useCallback((statKey: TokenStatKey) => {
+    setExplainedStat(statKey);
+  }, []);
+
+  const handleExplainerClose = useCallback(() => {
+    setExplainedStat(null);
+  }, []);
 
   return (
     <View style={styles.wrapper} testID={TOKEN_DETAILS_V1_TEST_ID}>
@@ -70,10 +95,11 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
       />
 
       {/* Owns the page gutter and the spacing between sections, so sections
-          render content only and never their own page padding. */}
+          render content only and never their own page padding. Full-bleed
+          sections sit outside it and supply their own horizontal padding. */}
       <Box
         flexDirection={BoxFlexDirection.Column}
-        twClassName="flex-1 gap-4 px-4 pt-2"
+        twClassName="gap-4 px-4 pt-2 pb-4"
       >
         <SecuritySocialSection
           securityVerdict={MOCK_SECURITY_VERDICT}
@@ -82,6 +108,20 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({ token }) => {
           contractAddress={token.isNative ? null : token.address}
         />
       </Box>
+
+      {/* Outside the gutter so its rules span the full width. */}
+      <StatBar
+        variant={variant}
+        stats={statBarStats}
+        onStatPress={handleStatPress}
+      />
+
+      {explainedStat && (
+        <StatExplainerSheet
+          statKey={explainedStat}
+          onClose={handleExplainerClose}
+        />
+      )}
     </View>
   );
 };
