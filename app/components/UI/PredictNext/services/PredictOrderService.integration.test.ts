@@ -68,6 +68,24 @@ const sellReceiptResponse = {
   netProceeds: '30.89',
 };
 
+const buyReceiptResponse = {
+  operationId: 'a1b2c3d4-3333-4444-8555-666677778888',
+  previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
+  venueId: 'kalshi',
+  marketId: 'KXTEST-26-A',
+  side: 'yes',
+  action: 'buy',
+  status: 'filled',
+  requestedMaxSpend: '20.00',
+  quotedContracts: 43,
+  venueOrderId: 'venue-order-1',
+  filledContracts: '43.00',
+  averageFillPrice: '0.4651',
+  fee: '0.86',
+  actualSpend: '20.86',
+  payoutExposure: '43.00',
+};
+
 describe('PredictNext Order Preview request', () => {
   const harnesses: ReturnType<typeof createPredictNextIntegrationHarness>[] =
     [];
@@ -323,5 +341,63 @@ describe('PredictNext Order Preview request', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     await harness.portfolioService.getPositions(KALSHI_VENUE_ID, {});
     expect(positionsCalls()).toBe(2);
+  });
+
+  it('commits a buy Preview to its receipt, and a terminal receipt invalidates the portfolio reads', async () => {
+    const harness = buildPredictNextIntegrationHarness((url, init) => {
+      if (String(url).endsWith('/orders/commit') && init?.method === 'POST') {
+        return { body: buyReceiptResponse };
+      }
+      if (String(url).endsWith('/balance')) {
+        return {
+          body: { venueId: 'kalshi', currency: 'USD', available: '79.14' },
+        };
+      }
+      return { status: 404 };
+    });
+    // Wire the Order workflow to the harness root so a terminal receipt's
+    // invalidation reaches the real portfolio service cache.
+    const orderService = new PredictOrderService({
+      messenger: getPredictOrderServiceMessenger(
+        harness.messenger as unknown as Parameters<
+          typeof getPredictOrderServiceMessenger
+        >[0],
+      ),
+      trading: harness.adapter.trading,
+      venueId: harness.adapter.venueId,
+    });
+
+    // Populate the Balance cache; the second read below must refetch
+    // only because the terminal receipt invalidated its family.
+    await harness.portfolioService.getBalance(KALSHI_VENUE_ID);
+    const balanceCalls = () =>
+      harness.fetchMock.mock.calls.filter(([url]) =>
+        String(url).endsWith('/balance'),
+      ).length;
+    expect(balanceCalls()).toBe(1);
+
+    const receipt = await orderService.commitPreview(
+      KALSHI_VENUE_ID,
+      buyReceiptResponse.previewId,
+    );
+
+    expect(receipt).toMatchObject({
+      action: 'buy',
+      status: 'filled',
+      actualSpend: '20.86',
+      payoutExposure: '43.00',
+    });
+    expect(harness.fetchMock).toHaveBeenCalledWith(
+      'https://predict.example/v1/venues/kalshi/orders/commit',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ previewId: buyReceiptResponse.previewId }),
+      }),
+    );
+
+    // Let the fire-and-forget invalidation settle before re-reading.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await harness.portfolioService.getBalance(KALSHI_VENUE_ID);
+    expect(balanceCalls()).toBe(2);
   });
 });
