@@ -17,6 +17,8 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 
+const mockCheckAccountSupport = jest.fn();
+
 // Mock dependencies
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -52,6 +54,14 @@ jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: jest.fn(() => ({
     depositWithConfirmation: jest.fn().mockReturnValue(Promise.resolve()),
   })),
+}));
+
+jest.mock('./usePerpsAccountSupport', () => ({
+  usePerpsAccountSupport: () => ({
+    isAccountUnsupportedModalVisible: false,
+    checkAccountSupport: mockCheckAccountSupport,
+    closeAccountUnsupportedModal: jest.fn(),
+  }),
 }));
 
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
@@ -122,6 +132,7 @@ describe('usePerpsHomeActions', () => {
     mockDepositWithConfirmation.mockReset();
     mockDepositWithConfirmation.mockResolvedValue(undefined);
     mockWithdrawWithConfirmation.mockResolvedValue(undefined);
+    mockCheckAccountSupport.mockResolvedValue(true);
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
     );
@@ -525,6 +536,20 @@ describe('usePerpsHomeActions', () => {
 
       expect(result.current.isProcessing).toBe(false);
       expect(result.current.error).toBeNull();
+    });
+  });
+
+  describe('handleWithdraw - unsupported account', () => {
+    it('does not start either withdrawal flow', async () => {
+      mockCheckAccountSupport.mockResolvedValue(false);
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockWithdrawWithConfirmation).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
   });
 
