@@ -29,6 +29,9 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
 import { useSharedValue } from 'react-native-reanimated';
 import {
   SafeAreaView,
@@ -206,6 +209,10 @@ import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
+
+const HEADER_FADE_HEIGHT = 16;
+const HEADER_FADE_OPACITIES = [1, 0.7, 0.35, 0];
+const HEADER_FADE_LOCATIONS = [0, 0.3, 0.7, 1];
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -938,6 +945,23 @@ const Wallet = ({
   const nativeHeaderInset = isNativeHeader
     ? safeAreaInsets.top + NATIVE_HEADER_BAR_HEIGHT
     : 0;
+  // Without the native bar (Android, iOS < 26) the interim header floats over the content on a fade.
+  const isFloatingJsHeader =
+    isInterimHeader && !isNativeHeader && !isSearchHeaderEnabled;
+  const tw = useTailwind();
+  // Seeded with the header's min height so the first frame already clears it.
+  const [floatingHeaderHeight, setFloatingHeaderHeight] = useState(() =>
+    Number(tw.style('h-14').height),
+  );
+  const headerFadeColors = useMemo(
+    () =>
+      HEADER_FADE_OPACITIES.map((opacity) =>
+        colorWithOpacity(colors.background.default, opacity),
+      ),
+    [colors.background.default],
+  );
+  const floatingHeaderInset = isFloatingJsHeader ? floatingHeaderHeight : 0;
+  const viewportTopInset = nativeHeaderInset + floatingHeaderInset;
 
   // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
   // This handles scrolling in the homepage .map() mode where TokenList can't scroll directly
@@ -977,9 +1001,10 @@ const Wallet = ({
         flexGrow: 0,
         overflow: 'visible' as const,
         paddingBottom: floatingTabBarInset,
+        paddingTop: floatingHeaderInset,
       },
     ],
-    [styles.wrapper, floatingTabBarInset],
+    [styles.wrapper, floatingTabBarInset, floatingHeaderInset],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -1049,8 +1074,8 @@ const Wallet = ({
   const homepageScrollContextValue = useMemo(
     () => ({
       subscribeToScroll,
-      viewportHeight: Math.max(0, viewportHeight - nativeHeaderInset),
-      containerScreenY: containerScreenY + nativeHeaderInset,
+      viewportHeight: Math.max(0, viewportHeight - viewportTopInset),
+      containerScreenY: containerScreenY + viewportTopInset,
       entryPoint,
       visitId,
       notifySectionViewed,
@@ -1062,13 +1087,33 @@ const Wallet = ({
       subscribeToScroll,
       viewportHeight,
       containerScreenY,
-      nativeHeaderInset,
+      viewportTopInset,
       entryPoint,
       visitId,
       notifySectionViewed,
       getViewedSectionCount,
       getVisitMaxDepth,
     ],
+  );
+
+  const renderWalletHeader = () => (
+    <WalletHeader
+      displayName={displayName}
+      navigation={navigation}
+      isMoneyAccountVisible={isMoneyAccountVisible}
+      handleSearchPress={handleSearchPress}
+      useSearchHeaderLayout={isSearchHeaderEnabled}
+      isSearchReturnTransitionActive={Boolean(homepageSearchReturnTransition)}
+      showSearchPastePill={showPastePill}
+      handleSearchPastePress={handlePastePress}
+      handleActivityPress={handleActivityPress}
+      handleCardPress={handleCardPress}
+      handleHamburgerPress={handleHamburgerPress}
+      touchAreaSlop={touchAreaSlop}
+      headerActionButtonsContainerStyle={styles.headerActionButtonsContainer}
+      headerAccountPickerStyle={styles.headerAccountPickerStyle}
+      isInterimLayout={isInterimHeader}
+    />
   );
 
   const handleBannerError = useCallback(() => {
@@ -1316,28 +1361,8 @@ const Wallet = ({
                   scrollY={homepageScrollY}
                   titleSectionHeight={accountNameSectionBottom}
                 />
-              ) : (
-                <WalletHeader
-                  displayName={displayName}
-                  navigation={navigation}
-                  isMoneyAccountVisible={isMoneyAccountVisible}
-                  handleSearchPress={handleSearchPress}
-                  useSearchHeaderLayout={isSearchHeaderEnabled}
-                  isSearchReturnTransitionActive={Boolean(
-                    homepageSearchReturnTransition,
-                  )}
-                  showSearchPastePill={showPastePill}
-                  handleSearchPastePress={handlePastePress}
-                  handleActivityPress={handleActivityPress}
-                  handleCardPress={handleCardPress}
-                  handleHamburgerPress={handleHamburgerPress}
-                  touchAreaSlop={touchAreaSlop}
-                  headerActionButtonsContainerStyle={
-                    styles.headerActionButtonsContainer
-                  }
-                  headerAccountPickerStyle={styles.headerAccountPickerStyle}
-                  isInterimLayout={isInterimHeader}
-                />
+              ) : isFloatingJsHeader ? null : (
+                renderWalletHeader()
               )}
               <View
                 ref={containerViewRef}
@@ -1350,6 +1375,28 @@ const Wallet = ({
                   });
                 }}
               >
+                {isFloatingJsHeader && (
+                  // Mounted first so assistive tech reads the header before the content.
+                  <View
+                    pointerEvents="box-none"
+                    style={tw.style('absolute left-0 right-0 top-0 z-10')}
+                    testID={WalletViewSelectorsIDs.WALLET_FLOATING_HEADER}
+                    onLayout={(e) =>
+                      setFloatingHeaderHeight(e.nativeEvent.layout.height)
+                    }
+                  >
+                    <LinearGradient
+                      pointerEvents="none"
+                      colors={headerFadeColors}
+                      locations={HEADER_FADE_LOCATIONS}
+                      style={[
+                        RNStyleSheet.absoluteFill,
+                        { bottom: -HEADER_FADE_HEIGHT },
+                      ]}
+                    />
+                    {renderWalletHeader()}
+                  </View>
+                )}
                 {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
                 <HomepageScrollContext.Provider
                   value={homepageScrollContextValue}
@@ -1368,6 +1415,7 @@ const Wallet = ({
                       scrollEventThrottle: 16,
                       refreshControl: (
                         <RefreshControl
+                          progressViewOffset={floatingHeaderInset}
                           colors={[colors.primary.default]}
                           tintColor={colors.icon.default}
                           refreshing={refreshing}

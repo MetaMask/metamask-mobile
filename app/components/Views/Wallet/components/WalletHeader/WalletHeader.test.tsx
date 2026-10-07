@@ -32,10 +32,31 @@ jest.mock('../../../../hooks/useAccountsMenuAttention', () => ({
   useAccountsMenuAttention: jest.fn(() => false),
 }));
 
+const mockBlurView = jest.fn();
+jest.mock('expo-blur', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    BlurView: (props: Record<string, unknown>) => {
+      mockBlurView(props);
+      return ReactActual.createElement(View, props);
+    },
+  };
+});
+
+const noGlass = {
+  isGlassEnabled: false,
+  glassColorScheme: 'light' as const,
+  isBlurEnabled: false,
+  blurTint: 'systemChromeMaterialLight' as const,
+};
+
 jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => ({
   useLiquidGlass: jest.fn(() => ({
     isGlassEnabled: false,
     glassColorScheme: 'light',
+    isBlurEnabled: false,
+    blurTint: 'systemChromeMaterialLight',
   })),
 }));
 
@@ -61,10 +82,7 @@ describe('WalletHeader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(useAccountsMenuAttention).mockReturnValue(false);
-    jest.mocked(useLiquidGlass).mockReturnValue({
-      isGlassEnabled: false,
-      glassColorScheme: 'light',
-    });
+    jest.mocked(useLiquidGlass).mockReturnValue(noGlass);
   });
 
   it('calls handleHamburgerPress when the menu button is pressed', () => {
@@ -238,28 +256,25 @@ describe('WalletHeader', () => {
       );
     });
 
-    it('puts the account picker and actions on Liquid Glass where available', () => {
-      jest.mocked(useLiquidGlass).mockReturnValue({
-        isGlassEnabled: true,
-        glassColorScheme: 'light',
-      });
-
+    it('puts the account picker and actions in capsules', () => {
       const { getByTestId } = renderWithProvider(
         <WalletHeader {...interimProps} />,
       );
 
       expect(
-        getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACTIONS),
+        getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ACTIONS_CAPSULE),
       ).toBeOnTheScreen();
       expect(
-        getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACCOUNT_PICKER),
+        getByTestId(
+          WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_PICKER_CAPSULE,
+        ),
       ).toBeOnTheScreen();
     });
 
     it('opens the account selector from the glass account picker', () => {
       jest.mocked(useLiquidGlass).mockReturnValue({
+        ...noGlass,
         isGlassEnabled: true,
-        glassColorScheme: 'light',
       });
       const navigate = jest.fn();
       const { getByTestId } = renderWithProvider(
@@ -274,19 +289,30 @@ describe('WalletHeader', () => {
       );
     });
 
-    it('renders a plain picker and icons without Liquid Glass', () => {
-      const { queryByTestId } = renderWithProvider(
+    it('blurs the capsules on iOS without Liquid Glass', () => {
+      jest.mocked(useLiquidGlass).mockReturnValue({
+        ...noGlass,
+        isBlurEnabled: true,
+        blurTint: 'systemChromeMaterialDark',
+      });
+
+      renderWithProvider(<WalletHeader {...interimProps} />);
+
+      expect(mockBlurView).toHaveBeenCalledTimes(2);
+      expect(mockBlurView).toHaveBeenCalledWith(
+        expect.objectContaining({ tint: 'systemChromeMaterialDark' }),
+      );
+    });
+
+    it('renders plain capsules without Liquid Glass', () => {
+      const { getByTestId } = renderWithProvider(
         <WalletHeader {...interimProps} />,
       );
 
+      expect(mockBlurView).not.toHaveBeenCalled();
       expect(
-        queryByTestId(WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACTIONS),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(
-          WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACCOUNT_PICKER,
-        ),
-      ).not.toBeOnTheScreen();
+        getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ACTIONS_CAPSULE),
+      ).toHaveStyle({ paddingLeft: 12, paddingRight: 12 });
     });
   });
 });
