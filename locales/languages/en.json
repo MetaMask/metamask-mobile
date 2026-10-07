@@ -5833,7 +5833,7 @@
     "share_account": "Share",
     "view_account": "View account on Etherscan",
     "show_private_key": "Show private key",
-    "account_copied_to_clipboard": "Public address copied to clipboard",
+    "account_copied_to_clipboard": "Token contract address copied to clipboard",
     "share_public_key": "Sharing my public key: "
   },
   "enable_nft-auto-detection": {
