@@ -54,8 +54,6 @@ const TRANSACTION_FAILED_EVENT =
 
 const WAIT_REASONS = new Set([
   'AWAITING_RELEASE',
-  // A short hourly budget is refused before the proof gate, so Claim never
-  // asks for a signature. The wait sentence is the right one.
   'VELOCITY_LIMIT_EXCEEDED',
   'RATE_LIMITED',
   'CLAIM_COOLDOWN',
@@ -70,6 +68,7 @@ const TERMINAL_REASONS = new Set(['SUSPENDED', 'UNDER_REVIEW', 'VOIDED']);
 export type ClaimToastKey = Extract<
   ReferralLocalizedTextKey,
   | 'claimSuccessToast'
+  | 'claimPartialSuccessToast'
   | 'claimFailureToast'
   | 'claimFailureRetryToast'
   | 'claimFailureWaitToast'
@@ -83,6 +82,8 @@ export interface ClaimRouteOutcome {
   /** A claim row exists, so History can show it while the voucher is open. */
   opened: boolean;
   reason?: string;
+  /** `excluded[].reason` from a claim that paid something. */
+  excludedReasons?: string[];
   /** From `Retry-After`, so Claim stays disabled until the window reopens. */
   retryAfterSeconds?: number;
 }
@@ -166,12 +167,17 @@ function toastKeyForReason(reason: string): ClaimToastKey {
 }
 
 /**
- * One toast for the press. A confirmed voucher wins. Otherwise the first
- * actionable refusal wins over a generic one.
+ * One toast for the press. A confirmed voucher wins. One that left a group
+ * for a later refill (`VELOCITY_LIMIT_DEFERRED`) uses the partial sentence.
+ * Otherwise the first actionable refusal wins over a generic one.
  */
 export function claimToastKey(outcomes: ClaimRouteOutcome[]): ClaimToastKey {
-  if (outcomes.some((outcome) => outcome.submitted)) {
-    return 'claimSuccessToast';
+  const submitted = outcomes.filter((outcome) => outcome.submitted);
+  if (submitted.length > 0) {
+    const deferred = submitted.some((outcome) =>
+      outcome.excludedReasons?.includes('VELOCITY_LIMIT_DEFERRED'),
+    );
+    return deferred ? 'claimPartialSuccessToast' : 'claimSuccessToast';
   }
 
   const reasons = outcomes
@@ -306,7 +312,13 @@ async function claimOneRoute(
     };
   }
 
-  return { route, submitted: true, opened: true };
+  const excludedReasons = body.excluded.map((entry) => entry.reason);
+  return {
+    route,
+    submitted: true,
+    opened: true,
+    ...(excludedReasons.length > 0 ? { excludedReasons } : {}),
+  };
 }
 
 export class ClaimVoucherExpiredError extends Error {

@@ -194,7 +194,7 @@ export function useClaimEarnings(
         });
 
         const key = claimToastKey(outcomes);
-        if (key === 'claimSuccessToast') {
+        if (key === 'claimSuccessToast' || key === 'claimPartialSuccessToast') {
           showToast(RewardsToastOptions.success(localizedText[key]));
           await onSubmitted?.();
         } else {

@@ -214,6 +214,19 @@ describe('isClaimSubmittable', () => {
 });
 
 describe('claimToastKey', () => {
+  it('uses the partial sentence when a paid claim deferred the rest', () => {
+    expect(
+      claimToastKey([
+        {
+          route: 'referral-trade-fee-cashback',
+          submitted: true,
+          opened: true,
+          excludedReasons: ['VELOCITY_LIMIT_DEFERRED'],
+        },
+      ]),
+    ).toBe('claimPartialSuccessToast');
+  });
+
   it('uses success when any voucher was submitted', () => {
     expect(
       claimToastKey([
@@ -395,6 +408,32 @@ describe('runEarningsClaim', () => {
         opened: true,
       },
     ]);
+  });
+
+  it('keeps a deferred group on a claim that paid in part', async () => {
+    const partial = opened();
+    partial.excluded = [
+      { type: 'SWAPS_FEE_CASHBACK', reason: 'VELOCITY_LIMIT_DEFERRED' },
+    ];
+
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xmoney',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim: async () => ({ kind: 'authorized', body: partial }),
+      canSignEarningAddress: () => true,
+      signMessage: jest.fn(),
+      submitVoucher: jest.fn().mockResolvedValue(undefined),
+    });
+
+    expect(outcomes).toEqual([
+      {
+        route: 'referral-trade-fee-cashback',
+        submitted: true,
+        opened: true,
+        excludedReasons: ['VELOCITY_LIMIT_DEFERRED'],
+      },
+    ]);
+    expect(claimToastKey(outcomes)).toBe('claimPartialSuccessToast');
   });
 
   it('re-requests only the addresses this device can sign', async () => {
