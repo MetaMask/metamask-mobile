@@ -237,6 +237,25 @@ function rebateQuoteFailure(status: number): RewardsMoneyRebateQuoteFailure {
 }
 
 /**
+ * Whether a `200` body has the fields a confirmation screen reads. A cheap
+ * shape check, so an unexpected body is a `FAILED` quote rather than a row
+ * showing `undefined`.
+ */
+function isRebateQuoteResponse(value: unknown): value is RebateQuoteResponse {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const quote = value as Record<string, unknown>;
+  return (
+    typeof quote.product === 'string' &&
+    typeof quote.eligible === 'boolean' &&
+    typeof quote.rebateBips === 'number' &&
+    Number.isFinite(quote.rebateBips) &&
+    (quote.reason === null || typeof quote.reason === 'string')
+  );
+}
+
+/**
  * Nest sends `message` as a string or a list. A rate limit sends `reason`
  * beside that message. A body that is not JSON still leaves the status.
  */
@@ -562,6 +581,14 @@ export class RewardsMoneyDataService {
   /**
    * What rebate, if any, a confirmation screen shows. Writes nothing. The
    * profile is the bearer token's; the body never names one.
+   *
+   * A refusal, or a `200` whose body is not a quote, rejects with
+   * {@link RewardsMoneyRebateQuoteError}; a `401` with
+   * {@link RewardsMoneyAuthorizationError}. A timeout or a network failure
+   * rejects with a plain `Error`.
+   *
+   * @param body - The product and, for swaps, the fee leg of the quote.
+   * @returns The rebate quote.
    */
   async getRebateQuote(body: RebateQuoteBody): Promise<RebateQuoteResponse> {
     const response = await this.#makeRequest('/earnings/rebate/quote', {
@@ -584,7 +611,20 @@ export class RewardsMoneyDataService {
       );
     }
 
-    return (await response.json()) as RebateQuoteResponse;
+    let parsed: unknown;
+    try {
+      parsed = await response.json();
+    } catch {
+      parsed = undefined;
+    }
+    if (!isRebateQuoteResponse(parsed)) {
+      throw new RewardsMoneyRebateQuoteError(
+        response.status,
+        'FAILED',
+        'Malformed rebate quote response',
+      );
+    }
+    return parsed;
   }
 
   async getClaimById(claimId: string): Promise<ClaimDto> {

@@ -565,7 +565,24 @@ describe('RewardsMoneyDataService', () => {
   });
 
   describe('getRebateQuote', () => {
-    const quote = { feeData: { metabridge: { token: 'USDC' } } };
+    const quote = {
+      feeData: {
+        metabridge: {
+          amount: '875000',
+          asset: {
+            chainId: 1,
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            assetId:
+              'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const,
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+          },
+          quoteBpsFee: 87.5,
+          baseBpsFee: 87.5,
+        },
+      },
+    };
     const response = {
       product: 'swaps' as const,
       eligible: true,
@@ -679,6 +696,134 @@ describe('RewardsMoneyDataService', () => {
       await expect(
         service.getRebateQuote({ product: 'perps' }),
       ).rejects.toBeInstanceOf(RewardsMoneyAuthorizationError);
+    });
+
+    it('reads a Retry-After given as an HTTP date', async () => {
+      jest.useFakeTimers({ now: new Date('2026-10-07T12:00:00Z') });
+      mockFetch.mockResolvedValue(
+        jsonError(
+          429,
+          { statusCode: 429, reason: 'RATE_LIMITED' },
+          { 'retry-after': 'Wed, 07 Oct 2026 12:00:30 GMT' },
+        ),
+      );
+
+      try {
+        await expect(
+          service.getRebateQuote({ product: 'perps' }),
+        ).rejects.toMatchObject({
+          failure: 'RATE_LIMITED',
+          retryAfterSeconds: 30,
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('ignores a Retry-After that is neither seconds nor a date', async () => {
+      mockFetch.mockResolvedValue(
+        jsonError(429, { statusCode: 429 }, { 'retry-after': 'soon' }),
+      );
+
+      await expect(
+        service.getRebateQuote({ product: 'perps' }),
+      ).rejects.toMatchObject({
+        failure: 'RATE_LIMITED',
+        retryAfterSeconds: undefined,
+      });
+    });
+
+    it('falls back to the body reason when there is no message', async () => {
+      mockFetch.mockResolvedValue(
+        jsonError(429, { statusCode: 429, reason: 'RATE_LIMITED' }),
+      );
+
+      await expect(
+        service.getRebateQuote({ product: 'perps' }),
+      ).rejects.toMatchObject({
+        failure: 'RATE_LIMITED',
+        detail: 'RATE_LIMITED',
+        message: 'RATE_LIMITED',
+      });
+    });
+
+    it('keeps the status when the error body is empty', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 503,
+        headers: { get: () => null },
+        text: async () => '',
+      } as unknown as Response);
+
+      await expect(
+        service.getRebateQuote({ product: 'perps' }),
+      ).rejects.toMatchObject({
+        failure: 'UNAVAILABLE',
+        detail: undefined,
+        message: 'Get rebate quote failed: 503',
+      });
+    });
+
+    it('keeps the status when the error body cannot be read', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 400,
+        headers: { get: () => null },
+        text: async () => {
+          throw new Error('stream closed');
+        },
+      } as unknown as Response);
+
+      await expect(
+        service.getRebateQuote({ product: 'perps' }),
+      ).rejects.toMatchObject({
+        failure: 'INVALID_REQUEST',
+        detail: undefined,
+      });
+    });
+
+    it.each([
+      ['an array body', []],
+      [
+        'a missing rebateBips',
+        { product: 'perps', eligible: false, reason: null },
+      ],
+      [
+        'a string rebateBips',
+        { product: 'perps', eligible: true, rebateBips: '2000', reason: null },
+      ],
+      [
+        'a non-boolean eligible',
+        { product: 'perps', eligible: 'yes', rebateBips: 2000, reason: null },
+      ],
+      [
+        'a numeric reason',
+        { product: 'perps', eligible: false, rebateBips: 0, reason: 1 },
+      ],
+    ])('refuses %s in a 200 as a FAILED quote', async (_label, body) => {
+      mockFetch.mockResolvedValue(okJson(body));
+
+      await expect(
+        service.getRebateQuote({ product: 'perps' }),
+      ).rejects.toMatchObject({
+        name: 'RewardsMoneyRebateQuoteError',
+        status: 200,
+        failure: 'FAILED',
+      });
+    });
+
+    it('refuses a 200 whose body is not JSON as a FAILED quote', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw new SyntaxError('Unexpected token');
+        },
+      } as unknown as Response);
+
+      await expect(
+        service.getRebateQuote({ product: 'perps' }),
+      ).rejects.toMatchObject({ status: 200, failure: 'FAILED' });
     });
   });
 });
