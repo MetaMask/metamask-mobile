@@ -49,6 +49,7 @@ export const KOL_EARNINGS_FIXTURE = {
   referralsRecorded: 41.75,
   tradeCommissionsRecorded: 41.8,
   availableToClaim: 342.86,
+  pausedPerpsRewards: 21.65,
   last7Days: 91.2,
   recordedEarnings: 357.31,
   tradingRebates: 7.65,

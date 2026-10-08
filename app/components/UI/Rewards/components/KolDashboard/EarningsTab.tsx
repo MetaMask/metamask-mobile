@@ -16,12 +16,12 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   SectionDivider,
   SectionHeader,
   Text,
   TextColor,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -44,6 +44,7 @@ import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
 import ClaimMoneyFallOverlay from './ClaimMoneyFallOverlay';
 import ClaimOnHoldSheet from './ClaimOnHoldSheet';
 import ClaimsPausedSheet from './ClaimsPausedSheet';
+import ClaimsPausedHistoryBanner from './ClaimsPausedHistoryBanner';
 import { EarningsHistoryRow, HistoryKindAvatar } from './EarningsHistoryRows';
 import { useClaimEligibilityFlow } from './ClaimEligibilityFlow';
 
@@ -398,13 +399,10 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
         testID={KOL_DASHBOARD_SELECTORS.HISTORY_HEADER}
       />
       <Box twClassName="px-4">
+        <ClaimsPausedHistoryBanner twClassName="mb-4" />
         <Box twClassName="gap-4" testID={KOL_DASHBOARD_SELECTORS.HISTORY_LIST}>
           {historyPreview.map((item) => (
-            <EarningsHistoryRow
-              key={item.id}
-              item={item}
-              isPaused={isClaimsPaused}
-            />
+            <EarningsHistoryRow key={item.id} item={item} />
           ))}
         </Box>
       </Box>

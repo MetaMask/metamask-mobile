@@ -12,9 +12,9 @@ import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { getEarningsHistory } from '../components/KolDashboard/rewardsUiFixtures';
+import ClaimsPausedHistoryBanner from '../components/KolDashboard/ClaimsPausedHistoryBanner';
 import { EarningsHistoryRow } from '../components/KolDashboard/EarningsHistoryRows';
 import { KOL_DASHBOARD_SELECTORS } from '../components/KolDashboard/KolDashboard.testIds';
-import { useIsClaimsPaused } from '../components/KolDashboard/rewardsClaimStore';
 import type { RewardsStackParamList } from '../types/navigation';
 
 const RewardsEarningsHistoryView: React.FC = () => {
@@ -23,7 +23,6 @@ const RewardsEarningsHistoryView: React.FC = () => {
   const { params } =
     useRoute<RouteProp<RewardsStackParamList, 'RewardsEarningsHistoryView'>>();
   const history = getEarningsHistory(Boolean(params?.hideReferrals));
-  const isPaused = useIsClaimsPaused();
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsEarningsHistoryView">
@@ -40,12 +39,9 @@ const RewardsEarningsHistoryView: React.FC = () => {
         />
         <ScrollView showsVerticalScrollIndicator={false}>
           <Box twClassName="gap-4 px-4 pb-8">
+            <ClaimsPausedHistoryBanner twClassName="mt-3" />
             {history.map((item) => (
-              <EarningsHistoryRow
-                key={item.id}
-                item={item}
-                isPaused={isPaused}
-              />
+              <EarningsHistoryRow key={item.id} item={item} />
             ))}
           </Box>
         </ScrollView>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, StyleSheet } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import EarningsTab from './EarningsTab';
 import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
@@ -113,6 +113,9 @@ describe('EarningsTab', () => {
     ).toHaveTextContent('rewards.kol.available_paused');
     expect(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_BUTTON)).toBeEnabled();
     expect(
+      queryByTestId(KOL_DASHBOARD_SELECTORS.HISTORY_PAUSED_BANNER),
+    ).toBeNull();
+    expect(
       queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_ON_HOLD_SHEET),
     ).toBeNull();
 
@@ -128,9 +131,7 @@ describe('EarningsTab', () => {
 
   it('labels the claim button Paused and opens the paused sheet', () => {
     markClaimsPaused();
-    const { getAllByTestId, getByTestId, queryByTestId } = render(
-      <EarningsTab />,
-    );
+    const { getByTestId, getByText, queryByTestId } = render(<EarningsTab />);
 
     expect(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_BUTTON)).toHaveTextContent(
       'rewards.kol.claims_paused_action',
@@ -143,8 +144,21 @@ describe('EarningsTab', () => {
       queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIMS_PAUSED_SHEET),
     ).toBeNull();
     expect(
-      getAllByTestId(KOL_DASHBOARD_SELECTORS.HISTORY_PAUSED_TAG),
-    ).toHaveLength(1);
+      queryByTestId(KOL_DASHBOARD_SELECTORS.HISTORY_PAUSED_TAG),
+    ).toBeNull();
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.HISTORY_PAUSED_BANNER),
+    ).toHaveTextContent(
+      'rewards.kol.claims_paused_bannerrewards.kol.claims_paused_learn_more',
+    );
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.HISTORY_PAUSED_LEARN_MORE),
+    ).toHaveTextContent('rewards.kol.claims_paused_learn_more');
+    expect(
+      StyleSheet.flatten(getByText(formatSignedUsd(9.15)).props.style).color,
+    ).toBe(
+      StyleSheet.flatten(getByText(formatSignedUsd(7.65)).props.style).color,
+    );
 
     fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_BUTTON));
 
@@ -156,7 +170,7 @@ describe('EarningsTab', () => {
     ).toBeNull();
   });
 
-  it('opens the history on-hold sheet when the paused Commission row is pressed', () => {
+  it('opens the reward paused sheet from the history banner', () => {
     markClaimsPaused();
     const { getByTestId, queryByTestId } = render(<EarningsTab />);
 
@@ -164,7 +178,9 @@ describe('EarningsTab', () => {
       queryByTestId(KOL_DASHBOARD_SELECTORS.HISTORY_ON_HOLD_SHEET),
     ).toBeNull();
 
-    fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.HISTORY_PAUSED_ROW));
+    fireEvent.press(
+      getByTestId(KOL_DASHBOARD_SELECTORS.HISTORY_PAUSED_LEARN_MORE),
+    );
 
     expect(
       getByTestId(KOL_DASHBOARD_SELECTORS.HISTORY_ON_HOLD_SHEET),

@@ -11352,6 +11352,8 @@
       "claims_paused_description": "You can't claim rewards right now, but your balance is safe and untouched. You'll be able to claim again once the pause is lifted.",
       "claims_paused_got_it": "Got it",
       "claims_paused_action": "Paused",
+      "claims_paused_banner": "{{amount}} of rewards paused.",
+      "claims_paused_learn_more": "Learn more",
       "history_on_hold_title": "Reward paused",
       "history_on_hold_description": "We've paused this reward while we review it. Your other rewards aren't affected, and you can still claim them as usual. You don't need to do anything.",
       "history_on_hold_got_it": "Got it",
