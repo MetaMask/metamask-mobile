@@ -206,6 +206,39 @@ const normalizePerpsLocalizedDigits = (
   return normalizedValue;
 };
 
+const isLocaleGroupedInteger = (
+  value: string,
+  localeGrouping: PerpsLocaleGrouping,
+): boolean => {
+  const { groupingSeparator, primaryGroupSize, secondaryGroupSize } =
+    localeGrouping;
+  const unsignedValue = value.replace(/^[+-]/, '');
+  const integerGroups = unsignedValue.split(groupingSeparator);
+
+  if (
+    !groupingSeparator ||
+    integerGroups.length < 2 ||
+    integerGroups.some((integerGroup) => !/^\d+$/.test(integerGroup))
+  ) {
+    return false;
+  }
+
+  const firstGroup = integerGroups[0];
+  const groupedDigits = integerGroups.slice(1);
+
+  return (
+    firstGroup.length > 0 &&
+    firstGroup.length <= secondaryGroupSize &&
+    groupedDigits.every(
+      (integerGroup, index) =>
+        integerGroup.length ===
+        (index === groupedDigits.length - 1
+          ? primaryGroupSize
+          : secondaryGroupSize),
+    )
+  );
+};
+
 /**
  * Groups and localizes an integer string without converting its value to a
  * JavaScript number.
@@ -300,8 +333,12 @@ export const normalizePerpsNumericInput = (
     decimalSeparator = commaIndex > periodIndex ? ',' : '.';
   } else if (commaIndex >= 0 && separators.decimal === ',') {
     decimalSeparator = ',';
-  } else if (periodIndex >= 0 && separators.decimal === '.') {
-    decimalSeparator = '.';
+  } else if (periodIndex >= 0) {
+    decimalSeparator =
+      separators.decimal === '.' ||
+      !isLocaleGroupedInteger(localizedValue, localeGrouping)
+        ? '.'
+        : undefined;
   } else if (localizedValue.includes(separators.decimal)) {
     decimalSeparator = separators.decimal;
   }

@@ -627,7 +627,9 @@ describe('formatUtils', () => {
       ['en-US', '1.200', '1.200'],
       ['de-DE', '1,200', '1.200'],
       ['de-DE', '1.200', '1200'],
+      ['de-DE', '1.5', '1.5'],
       ['fr-FR', '1,200', '1.200'],
+      ['fr-FR', '1.5', '1.5'],
       ['fr-FR', '1\u202f200', '1200'],
     ])('normalizes %s input "%s" to "%s"', (locale, input, expected) => {
       expect(normalizePerpsNumericInput(input, locale)).toBe(expected);
@@ -636,6 +638,7 @@ describe('formatUtils', () => {
     it('preserves partial decimal input', () => {
       expect(normalizePerpsNumericInput('1000.', 'en-US')).toBe('1000.');
       expect(normalizePerpsNumericInput('1000,', 'de-DE')).toBe('1000.');
+      expect(normalizePerpsNumericInput('1000.', 'de-DE')).toBe('1000.');
       expect(formatPerpsInput('1000.', 'en-US')).toBe('1,000.');
       expect(formatPerpsInput('1000.', 'de-DE')).toBe('1.000,');
     });
