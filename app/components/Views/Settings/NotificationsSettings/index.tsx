@@ -2,10 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import {
-  DEFAULT_DRY_RUN_PREFERENCES,
-  type NotificationPreferences,
-} from '@metamask/authenticated-user-storage';
+import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -181,12 +178,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
                 title={strings(section.titleKey)}
                 status={
                   section.showStatus
-                    ? getStatusText(
-                        preferences?.[section.type] ??
-                          (section.type === 'dryRun'
-                            ? DEFAULT_DRY_RUN_PREFERENCES
-                            : undefined),
-                      )
+                    ? getStatusText(preferences?.[section.type])
                     : undefined
                 }
                 iconName={section.iconName}

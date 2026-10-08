@@ -54,7 +54,7 @@ const notificationPreferences = {
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
   },
-  dryRun: {
+  limitOrders: {
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
   },

@@ -22,10 +22,10 @@ describe('resolveNotificationSettingsSection', () => {
     expect(result?.slug).toBe(NotificationSettingsSectionSlug.PriceAlerts);
   });
 
-  it('returns the dry run section for the kebab-case slug', () => {
-    const result = resolveNotificationSettingsSection('dry-run');
+  it('returns the limit orders section for the kebab-case slug', () => {
+    const result = resolveNotificationSettingsSection('limit-orders');
 
-    expect(result?.type).toBe('dryRun');
+    expect(result?.type).toBe('limitOrders');
     expect(result?.iconName).toBe(IconName.Notification);
   });
 

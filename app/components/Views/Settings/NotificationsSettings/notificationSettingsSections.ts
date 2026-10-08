@@ -14,7 +14,7 @@ export const NotificationSettingsSectionSlug = {
   AgenticCli: 'agentic-cli',
   Marketing: 'marketing',
   PriceAlerts: 'price-alerts',
-  DryRun: 'dry-run',
+  LimitOrders: 'limit-orders',
 } as const;
 
 export type NotificationSettingsSectionSlug =
@@ -89,10 +89,10 @@ export const NOTIFICATION_SETTINGS_SECTIONS: NotificationSettingsSectionConfig[]
       showStatus: true,
     },
     {
-      slug: NotificationSettingsSectionSlug.DryRun,
-      type: 'dryRun',
-      titleKey: 'app_settings.notifications_opts.dry_run_title',
-      descriptionKey: 'app_settings.notifications_opts.dry_run_desc',
+      slug: NotificationSettingsSectionSlug.LimitOrders,
+      type: 'limitOrders',
+      titleKey: 'app_settings.notifications_opts.limit_orders_title',
+      descriptionKey: 'app_settings.notifications_opts.limit_orders_desc',
       iconName: IconName.Notification,
       showStatus: true,
     },

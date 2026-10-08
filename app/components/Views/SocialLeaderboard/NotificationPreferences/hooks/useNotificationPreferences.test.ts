@@ -47,6 +47,10 @@ const buildStoragePreferences = (socialAIOverrides = {}) => ({
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
   },
+  limitOrders: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
   socialAI: {
     pushNotificationsEnabled: true,
     inAppNotificationsEnabled: true,

@@ -157,6 +157,10 @@ const arrangePreferences = ({
             pushNotificationsEnabled: isPushEnabled,
             inAppNotificationsEnabled: isInAppEnabled,
           },
+          limitOrders: {
+            pushNotificationsEnabled: true,
+            inAppNotificationsEnabled: true,
+          },
         }
       : undefined,
     hasNotificationPreferences: hasPreferences,

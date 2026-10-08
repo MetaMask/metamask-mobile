@@ -41,7 +41,7 @@ const MOCK_NOTIFICATION_PREFERENCES = {
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
   },
-  dryRun: {
+  limitOrders: {
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
   },
@@ -64,7 +64,7 @@ const SECTION_TITLES = {
   socialAI: 'Trading signals',
   marketing: 'Updates and rewards',
   priceAlerts: 'Price alerts',
-  dryRun: 'Dry run',
+  limitOrders: 'Limit orders',
 };
 
 const hasFetchedNotificationPreferences = () =>
@@ -138,9 +138,9 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(getByText(SECTION_TITLES.socialAI)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.priceAlerts)).toBeOnTheScreen();
-    expect(getByText(SECTION_TITLES.dryRun)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.limitOrders)).toBeOnTheScreen();
     // Wallet activity shows no channel summary; its settings are per-account.
-    expect(await findAllByText('Push, In app')).toHaveLength(1);
+    expect(await findAllByText('Push, In app')).toHaveLength(5);
     expect((await findAllByText('Off')).length).toBeGreaterThan(0);
   });
 
@@ -154,7 +154,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
     // Wallet activity shows no channel summary; its settings are per-account.
-    expect(await findAllByText('Push, In app')).toHaveLength(1);
+    expect(await findAllByText('Push, In app')).toHaveLength(4);
   });
 
   it('renders price alerts section when notifications are enabled', async () => {
@@ -165,7 +165,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.priceAlerts)).toBeOnTheScreen();
-    expect(getByText(SECTION_TITLES.dryRun)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.limitOrders)).toBeOnTheScreen();
   });
 
   it('hides notification sections when main toggle is off', async () => {
@@ -186,7 +186,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
     expect(queryByText(SECTION_TITLES.marketing)).toBeNull();
     expect(queryByText(SECTION_TITLES.priceAlerts)).toBeNull();
-    expect(queryByText(SECTION_TITLES.dryRun)).toBeNull();
+    expect(queryByText(SECTION_TITLES.limitOrders)).toBeNull();
   });
 
   it('invokes the disable controller path when the main toggle is pressed (on -> off)', async () => {
@@ -264,9 +264,9 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens the dry run section when rendered with a dry-run deeplink section', async () => {
+  it('opens the limit orders section from a limit-orders deeplink', async () => {
     const { findByTestId } = renderSettingsWithSectionRoute(undefined, {
-      section: 'dry-run',
+      section: 'limit-orders',
     });
 
     expect(

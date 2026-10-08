@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  DEFAULT_DRY_RUN_PREFERENCES,
   type AuthenticatedUserStorageServiceGetNotificationPreferencesAction,
   type NotificationPreferences as NotificationPreferencesType,
 } from '@metamask/authenticated-user-storage';
@@ -225,28 +224,6 @@ export const useNotificationStoragePreferences =
         key: NotificationPreferenceChannelKey,
         value: boolean,
       ) => {
-        if (type === 'dryRun') {
-          await updatePreferencesSection(
-            'dryRun',
-            (currentSectionPreferences) => {
-              const sectionPreferences = {
-                ...DEFAULT_DRY_RUN_PREFERENCES,
-                ...currentSectionPreferences,
-              };
-
-              if (sectionPreferences[key] === value) {
-                return currentSectionPreferences;
-              }
-
-              return {
-                ...sectionPreferences,
-                [key]: value,
-              };
-            },
-          );
-          return;
-        }
-
         await updatePreferencesSection(type, (currentSectionPreferences) => {
           if (currentSectionPreferences[key] === value) {
             return currentSectionPreferences;

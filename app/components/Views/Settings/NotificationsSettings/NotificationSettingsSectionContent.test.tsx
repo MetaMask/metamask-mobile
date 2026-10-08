@@ -53,7 +53,6 @@ const mockTrackEvent = jest.fn();
 
 const arrangePreferences = ({
   hasPreferences = true,
-  omitDryRunPreference = false,
   walletActivity = {
     pushNotificationsEnabled: true,
     inAppNotificationsEnabled: true,
@@ -61,7 +60,6 @@ const arrangePreferences = ({
   },
 }: {
   hasPreferences?: boolean;
-  omitDryRunPreference?: boolean;
   walletActivity?: WalletActivityPreference;
 } = {}) => {
   jest.mocked(useNotificationStoragePreferences).mockReturnValue({
@@ -90,14 +88,10 @@ const arrangePreferences = ({
             pushNotificationsEnabled: true,
             inAppNotificationsEnabled: true,
           },
-          ...(omitDryRunPreference
-            ? {}
-            : {
-                dryRun: {
-                  pushNotificationsEnabled: true,
-                  inAppNotificationsEnabled: true,
-                },
-              }),
+          limitOrders: {
+            pushNotificationsEnabled: true,
+            inAppNotificationsEnabled: true,
+          },
         }
       : undefined,
     hasNotificationPreferences: hasPreferences,
@@ -160,15 +154,6 @@ describe('NotificationSettingsSectionContent', () => {
 
     expect(screen.getByTestId(PUSH_TOGGLE)).toHaveProp('disabled', undefined);
     expect(screen.getByTestId(IN_APP_TOGGLE)).toHaveProp('disabled', undefined);
-  });
-
-  it('defaults missing dry run channels to enabled', () => {
-    arrangePreferences({ omitDryRunPreference: true });
-
-    renderContent({ type: 'dryRun' });
-
-    expect(screen.getByTestId(PUSH_TOGGLE)).toHaveProp('value', true);
-    expect(screen.getByTestId(IN_APP_TOGGLE)).toHaveProp('value', true);
   });
 
   it('uses the section ScrollView for static sections', () => {
@@ -339,8 +324,8 @@ describe('NotificationSettingsSectionContent', () => {
     );
   });
 
-  it('persists both dry run channels using the default settings UI', async () => {
-    renderContent({ type: 'dryRun', title: 'Dry run' });
+  it('persists both limit order channels using the default settings UI', async () => {
+    renderContent({ type: 'limitOrders', title: 'Limit orders' });
 
     await act(async () => {
       fireEvent(screen.getByTestId(PUSH_TOGGLE), 'onValueChange', false);
@@ -349,13 +334,13 @@ describe('NotificationSettingsSectionContent', () => {
 
     expect(mockUpdateSectionChannel).toHaveBeenNthCalledWith(
       1,
-      'dryRun',
+      'limitOrders',
       'pushNotificationsEnabled',
       false,
     );
     expect(mockUpdateSectionChannel).toHaveBeenNthCalledWith(
       2,
-      'dryRun',
+      'limitOrders',
       'inAppNotificationsEnabled',
       false,
     );
@@ -364,7 +349,7 @@ describe('NotificationSettingsSectionContent', () => {
         MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED,
       )
         .addProperties({
-          settings_type: 'dry_run',
+          settings_type: 'limit_orders',
           notification_channel: NotificationChannel.PUSH,
           enabled: false,
         })
@@ -375,7 +360,7 @@ describe('NotificationSettingsSectionContent', () => {
         MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED,
       )
         .addProperties({
-          settings_type: 'dry_run',
+          settings_type: 'limit_orders',
           notification_channel: NotificationChannel.IN_APP,
           enabled: false,
         })

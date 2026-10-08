@@ -74,7 +74,7 @@ const buildPreferences = (
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
   },
-  dryRun: {
+  limitOrders: {
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
   },
@@ -190,58 +190,6 @@ describe('useNotificationStoragePreferences', () => {
     );
     expect(mockCall).not.toHaveBeenCalledWith(GET_ACTION);
     expect(mockCall).toHaveBeenCalledWith(REFRESH_SOCIAL_CACHE_ACTION);
-  });
-
-  it('uses enabled defaults when disabling a dry run channel without a preference', async () => {
-    queryCache = buildPreferences({ dryRun: undefined });
-    mockUseQuery.mockReturnValue(makeQueryResult({ data: queryCache }));
-
-    const { result } = renderHook(() => useNotificationStoragePreferences());
-
-    await act(async () => {
-      await result.current.updateSectionChannel(
-        'dryRun',
-        'pushNotificationsEnabled',
-        false,
-      );
-    });
-
-    expect(queryCache?.dryRun).toEqual({
-      pushNotificationsEnabled: false,
-      inAppNotificationsEnabled: true,
-    });
-    expect(mockCall).toHaveBeenCalledWith(
-      PUT_ACTION,
-      expect.objectContaining({
-        dryRun: {
-          pushNotificationsEnabled: false,
-          inAppNotificationsEnabled: true,
-        },
-      }),
-      CLIENT_TYPE,
-    );
-  });
-
-  it('does not persist enabled defaults when enabling a missing dry run preference', async () => {
-    queryCache = buildPreferences({ dryRun: undefined });
-    mockUseQuery.mockReturnValue(makeQueryResult({ data: queryCache }));
-
-    const { result } = renderHook(() => useNotificationStoragePreferences());
-
-    await act(async () => {
-      await result.current.updateSectionChannel(
-        'dryRun',
-        'pushNotificationsEnabled',
-        true,
-      );
-    });
-
-    expect(queryCache?.dryRun).toBeUndefined();
-    expect(mockCall).not.toHaveBeenCalledWith(
-      PUT_ACTION,
-      expect.anything(),
-      CLIENT_TYPE,
-    );
   });
 
   it('fires a best-effort Social API cache refresh only after the write succeeds', async () => {
