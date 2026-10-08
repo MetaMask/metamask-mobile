@@ -1397,12 +1397,23 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   };
 
   const handleKeypadChange = useCallback(
-    ({ value }: { value: string; valueAsNumber: number }) => {
+    ({
+      value,
+      isAssetAmount,
+    }: {
+      value: string;
+      valueAsNumber: number;
+      isAssetAmount?: boolean;
+    }) => {
       inputMethodRef.current = 'keypad';
-      // Enforce digit limit (ignoring non-digits like separators)
-      const digitCount = (value.match(/\d/g) || []).length;
-      if (digitCount > MAX_PERPS_INPUT_DIGITS) {
-        return; // Ignore input that would exceed the max digit limit
+      // The digit cap applies to what the user typed. A coin entry is already
+      // capped, then converted to USD — that USD string can be longer than
+      // the cap (1 cheap coin is a long decimal) and must still commit.
+      if (!isAssetAmount) {
+        const digitCount = (value.match(/\d/g) || []).length;
+        if (digitCount > MAX_PERPS_INPUT_DIGITS) {
+          return;
+        }
       }
       commitAmount(value || '0');
     },
@@ -2493,6 +2504,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 liquidationDistance={tradeSheetLiquidationDistance}
                 amount={displayAmount}
                 tokenAmount={livePositionSize}
+                amountPrice={effectivePrice}
+                sizeDecimals={
+                  szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals
+                }
                 sliderMaximum={maxPossibleAmount}
                 isAmountDisabled={isAmountDisabled}
                 isAmountLoading={isLoadingAccount || isLoadingMarketData}
