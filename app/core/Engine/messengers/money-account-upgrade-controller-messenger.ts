@@ -6,13 +6,12 @@ import {
 import type { MoneyAccountUpgradeControllerMessenger } from '@metamask/money-account-upgrade-controller';
 import type {
   KeyringControllerGetStateAction,
-  KeyringControllerUnlockEvent,
+  KeyringControllerStateChangeEvent,
 } from '@metamask/keyring-controller';
 import type {
   RemoteFeatureFlagControllerGetStateAction,
-  RemoteFeatureFlagControllerState,
+  RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
-import type { ControllerStateChangeEvent } from '@metamask/base-controller';
 import type { RootMessenger } from '../types';
 
 /**
@@ -44,58 +43,15 @@ export function getMoneyAccountUpgradeControllerMessenger(
       'ChompApiService:getServiceDetails',
       'ChompApiService:verifyDelegation',
       'DelegationController:signDelegation',
+      'KeyringController:getState',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signPersonalMessage',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
-    ],
-    events: [],
-    messenger,
-  });
-  return messenger;
-}
-
-type InitActions =
-  | KeyringControllerGetStateAction
-  | RemoteFeatureFlagControllerGetStateAction;
-
-type InitEvents =
-  | KeyringControllerUnlockEvent
-  | ControllerStateChangeEvent<
-      'RemoteFeatureFlagController',
-      RemoteFeatureFlagControllerState
-    >;
-
-export type MoneyAccountUpgradeControllerInitMessenger = Messenger<
-  'MoneyAccountUpgradeControllerInitialization',
-  InitActions,
-  InitEvents
->;
-
-/**
- * Get a messenger restricted to the actions and events that the
- * money account upgrade controller initialization is allowed to handle.
- *
- * @param rootMessenger - The root messenger.
- * @returns The restricted init messenger.
- */
-export function getMoneyAccountUpgradeControllerInitMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<MoneyAccountUpgradeControllerInitMessenger>,
-    MessengerEvents<MoneyAccountUpgradeControllerInitMessenger>
-  >,
-): MoneyAccountUpgradeControllerInitMessenger {
-  const messenger: MoneyAccountUpgradeControllerInitMessenger = new Messenger({
-    namespace: 'MoneyAccountUpgradeControllerInitialization',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [
-      'KeyringController:getState',
       'RemoteFeatureFlagController:getState',
     ],
     events: [
-      'KeyringController:unlock',
+      'KeyringController:stateChange',
       'RemoteFeatureFlagController:stateChange',
     ],
     messenger,

@@ -88,6 +88,9 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/delegation-controller',
   '@metamask/delegation-core',
   '@metamask/delegation-deployments',
+  '@metamask/eth-block-tracker',
+  '@metamask/eth-json-rpc-middleware',
+  '@metamask/json-rpc-engine',
   '@metamask/gas-fee-controller',
   // 2.x ships ESM-only under dist/*.js.
   '@metamask/geolocation-controller',
@@ -96,6 +99,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/logging-controller',
   '@metamask/money-account-balance-service',
   '@metamask/money-account-api-data-service',
+  '@metamask/money-account-upgrade-controller',
   '@metamask/money-account-utils',
   '@metamask/multichain-account-service',
   '@metamask/multichain-network-controller',
@@ -128,6 +132,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/storage-service',
   '@metamask/subscription-controller',
   '@metamask/transaction-controller',
+  '@metamask/network-controller',
   '@metamask/transaction-pay-controller',
   // ESM-only, and reached through `@metamask/kyc-controller`'s nested v12 copy,
   // which cannot hoist onto the CJS v11 the rest of the repo resolves.

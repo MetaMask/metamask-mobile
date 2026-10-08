@@ -176,7 +176,6 @@ import {
 } from './chomp-api-service-messenger';
 import {
   getMoneyAccountUpgradeControllerMessenger,
-  getMoneyAccountUpgradeControllerInitMessenger,
 } from './money-account-upgrade-controller-messenger';
 
 /**
@@ -567,6 +566,5 @@ export const MESSENGER_FACTORIES = {
   },
   MoneyAccountUpgradeController: {
     getMessenger: getMoneyAccountUpgradeControllerMessenger,
-    getInitMessenger: getMoneyAccountUpgradeControllerInitMessenger,
   },
 } as const;

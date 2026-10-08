@@ -6,7 +6,6 @@ import type { RootState } from '../../reducers';
 import { selectPrimaryMoneyAccount } from '../../selectors/moneyAccountController';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
-import { whenMoneyAccountUpgradeReady } from '../../core/Engine/controllers/money-account-upgrade-controller-init';
 import {
   isMoneyAccountUpgradeAbortedError,
   upgradeAccountWithRetry,
@@ -105,8 +104,7 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
   // aborted. Only a run that actually ended because of its abort hands
   // over to a queued takeover signal.
   let endedByAbort = false;
-  whenMoneyAccountUpgradeReady()
-    .then(
+  Promise.resolve().then(
       async () => {
         const { MoneyAccountUpgradeController } = Engine.context;
         const accountKey = address.toLowerCase() as Hex;
@@ -155,17 +153,6 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
             MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
         });
       },
-      (error: unknown) => {
-        // The controller isn't ready: the feature flag is off, the keyring
-        // is locked, or bootstrap failed. "Not ready" is a normal state, and
-        // bootstrap failures are already reported to Sentry by the
-        // controller-init module — so we skip quietly here rather than
-        // double-reporting a Sentry error.
-        Logger.log(LOG_PREFIX, 'upgrade controller not ready; skipping', {
-          address,
-          reason: error instanceof Error ? error.message : String(error),
-        });
-      },
     )
     .catch((error: unknown) => {
       // Reached only for errors thrown by upgradeAccountWithRetry itself.
@@ -176,6 +163,16 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
       if (isMoneyAccountUpgradeAbortedError(error)) {
         endedByAbort = true;
         Logger.log(LOG_PREFIX, 'upgrade aborted; skipping', { address });
+        return;
+      }
+      if (
+        error instanceof Error &&
+        error.message.includes('is not bootstrapped')
+      ) {
+        Logger.log(LOG_PREFIX, 'upgrade controller not ready; skipping', {
+          address,
+          reason: error.message,
+        });
         return;
       }
       reportUpgradeError(error);

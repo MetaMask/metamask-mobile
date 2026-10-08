@@ -23,7 +23,14 @@ type InitFunction<Name extends MessengerClientsToInitialize> =
   MessengerClientInitFunction<
     MessengerClientsByName[Name],
     ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getMessenger']>,
-    ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getInitMessenger']>
+    'getInitMessenger' extends keyof (typeof MESSENGER_FACTORIES)[Name]
+      ? ReturnType<
+          Extract<
+            (typeof MESSENGER_FACTORIES)[Name]['getInitMessenger'],
+            (...args: never[]) => unknown
+          >
+        >
+      : void
   >;
 
 /**
@@ -74,7 +81,9 @@ export const initMessengerClients: InitMessengerClientsFunction = ({
       messengerCallbacks.getMessenger as ControllerMessengerCallback;
 
     const initMessengerCallback =
-      messengerCallbacks?.getInitMessenger as ControllerMessengerCallback;
+      'getInitMessenger' in messengerCallbacks
+        ? (messengerCallbacks.getInitMessenger as ControllerMessengerCallback)
+        : undefined;
 
     const controllerMessenger = controllerMessengerCallback(
       baseControllerMessenger,
@@ -90,7 +99,9 @@ export const initMessengerClients: InitMessengerClientsFunction = ({
     };
 
     // Initialize the messenger client
-    const { controller } = initFunction(finalInitRequest);
+    const { controller } = initFunction(
+      finalInitRequest as Parameters<typeof initFunction>[0],
+    );
 
     // Add the messenger client to the map
     partialMessengerClientsByName = {
