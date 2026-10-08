@@ -44,7 +44,7 @@ describe('enrichWithABTests', () => {
     [MetaMetricsEvents.PREDICT_HOME_VIEWED, 'entry_point'],
     [MetaMetricsEvents.POSITION_SCREEN_VIEWED, 'source'],
   ])(
-    'enriches %s when opened from the homepage breakdown',
+    'enriches %s when opened from the homepage breakdown treatment',
     (eventName, propertyName) => {
       const event = AnalyticsEventBuilder.createEventBuilder(eventName)
         .addProperties({
@@ -53,13 +53,13 @@ describe('enrichWithABTests', () => {
         .build();
 
       const result = enrichWithABTests(event, {
-        [HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY]: 'allocation',
+        [HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY]: 'treatment',
       });
 
       expect(result.properties.active_ab_tests).toEqual([
         createActiveABTestAssignment(
           HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
-          'allocation',
+          'treatment',
         ),
       ]);
     },
@@ -73,7 +73,7 @@ describe('enrichWithABTests', () => {
       .build();
 
     const result = enrichWithABTests(event, {
-      [HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY]: 'allocation',
+      [HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY]: 'treatment',
     });
 
     expect(result.properties.active_ab_tests).toBeUndefined();

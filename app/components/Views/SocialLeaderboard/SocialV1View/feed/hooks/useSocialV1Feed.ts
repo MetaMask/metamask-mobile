@@ -1,6 +1,6 @@
 import { useMemo, useSyncExternalStore } from 'react';
-import { useTraderFeed } from '../../../FeedView/hooks/useTraderFeed';
-import { toSocialFeedPosts } from '../../../../../UI/SocialFeed/utils/toSocialFeedPosts';
+import { useSocialFeed } from '../../../../../UI/SocialFeed/data/useSocialFeed';
+import type { SocialFeedSource } from '../../../../../UI/SocialFeed/data/socialFeedSource';
 import {
   getSocialV1ComposedFeedSnapshot,
   subscribeSocialV1ComposedFeed,
@@ -17,10 +17,9 @@ const TAB_AUDIENCE = {
  * V1 feed data source: live trader activity from `SocialService:fetchFeed`,
  * mapped into the V1 card model with the missing enrichment mocked and flagged.
  *
- * Delegates fetching to `useTraderFeed`, so V1 inherits V0's unlock gate,
- * telemetry and error normalisation -- and shares its query keys, which means
- * either surface warms the cache for the other. Composed posts from the
- * plus-button composer still prepend on Trending only.
+ * Delegates fetching to `useSocialFeed`, which shares its query key with V0's
+ * `useTraderFeed`, so either surface warms the cache for the other. Composed
+ * posts from the plus-button composer still prepend on Trending only.
  */
 export const useSocialV1Feed = (
   tab: SocialV1FeedTab = 'trending',
@@ -35,17 +34,23 @@ export const useSocialV1Feed = (
     getSocialV1ComposedFeedSnapshot,
   );
 
+  const source = useMemo(
+    (): SocialFeedSource => ({
+      kind: 'all',
+      audience: TAB_AUDIENCE[tab],
+    }),
+    [tab],
+  );
+
   const {
-    rows,
+    posts: livePosts,
     isLoading,
     isFetchingNextPage,
     hasNextPage,
     loadMore,
     error,
     refresh,
-  } = useTraderFeed({ audience: TAB_AUDIENCE[tab] });
-
-  const livePosts = useMemo(() => toSocialFeedPosts(rows), [rows]);
+  } = useSocialFeed(source);
 
   const pagination = {
     isLoading,
