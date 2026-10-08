@@ -1376,7 +1376,9 @@
       "error_title": "Couldn't load positions",
       "retry": "Try again",
       "posting": "Posting...",
-      "post_failed": "Couldn't create post. Try again."
+      "post_failed": "Couldn't create post. Try again.",
+      "linked_account_missing": "Your linked Social account isn't in this wallet.",
+      "showing_linked_account": "Showing positions from {{account}}"
     },
     "shell": {
       "subnav": {
