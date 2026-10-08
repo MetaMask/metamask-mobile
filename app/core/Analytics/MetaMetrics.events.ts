@@ -731,7 +731,6 @@ enum EVENT_NAME {
   REWARDS_OPT_OUT_COMPLETED = 'Rewards Opt Out Completed',
   REWARDS_OPT_OUT_FAILED = 'Rewards Opt Out Failed',
   REWARDS_PAGE_BUTTON_CLICKED = 'Rewards Page Button Clicked',
-  REWARDS_REFERRALS_VIEWED = 'Rewards Referrals Viewed',
   REWARDS_MONEY_REFERRAL_CODE_SHARED = 'Rewards Money Referral Code Shared',
   REWARDS_MONEY_REFERRAL_OFFER_INTERACTED = 'Rewards Money Referral Offer Interacted',
   REWARDS_REWARD_CLAIMED = 'Rewards Reward Claimed',
@@ -2095,7 +2094,6 @@ const events = {
   REWARDS_PAGE_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.REWARDS_PAGE_BUTTON_CLICKED,
   ),
-  REWARDS_REFERRALS_VIEWED: generateOpt(EVENT_NAME.REWARDS_REFERRALS_VIEWED),
   REWARDS_MONEY_REFERRAL_CODE_SHARED: generateOpt(
     EVENT_NAME.REWARDS_MONEY_REFERRAL_CODE_SHARED,
   ),

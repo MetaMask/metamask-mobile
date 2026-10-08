@@ -42,18 +42,6 @@ jest.mock('./Views/RewardsDashboard', () => {
   };
 });
 
-jest.mock('./Views/RewardsReferralView', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockReferralRewardsView() {
-    return ReactActual.createElement(
-      View,
-      { testID: 'rewards-referral-view' },
-      ReactActual.createElement(Text, null, 'Referral Rewards View'),
-    );
-  };
-});
-
 jest.mock('./Views/RewardsSettingsView', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -497,16 +485,16 @@ describe('RewardsNavigator', () => {
   });
 
   describe('Stack Navigator Configuration', () => {
-    it('renders the first sub-page (referral view) for users with subscription', async () => {
+    it('renders the first sub-page (settings view) for users with subscription', async () => {
       // Dashboard/onboarding routing moved up to MainNavigator. RewardsNavigator
       // now only registers the rewards sub-pages, which are present only when the
-      // user is enrolled. The referral view is the first registered screen.
+      // user is enrolled. The settings view is the first registered screen.
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
 
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {
-        expect(getByTestId('rewards-referral-view')).toBeOnTheScreen();
+        expect(getByTestId('rewards-settings-view')).toBeOnTheScreen();
       });
     });
 
@@ -532,7 +520,7 @@ describe('RewardsNavigator', () => {
       const { queryByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {
-        expect(queryByTestId('rewards-referral-view')).toBeNull();
+        expect(queryByTestId('rewards-settings-view')).toBeNull();
         expect(queryByTestId('rewards-dashboard-view')).toBeNull();
       });
     });
@@ -569,7 +557,7 @@ describe('RewardsNavigator', () => {
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {
-        expect(getByTestId('rewards-referral-view')).toBeOnTheScreen();
+        expect(getByTestId('rewards-settings-view')).toBeOnTheScreen();
       });
       expect(mockGoBack).not.toHaveBeenCalled();
     });
@@ -605,7 +593,7 @@ describe('RewardsNavigator', () => {
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       // Assert - Just verify it renders the first sub-page screen
-      expect(getByTestId('rewards-referral-view')).toBeDefined();
+      expect(getByTestId('rewards-settings-view')).toBeDefined();
     });
 
     it('does not call useGeoRewardsMetadata hook (owned by the dashboard)', () => {
@@ -652,7 +640,7 @@ describe('RewardsNavigator', () => {
 
       await waitFor(() => {
         expect(queryByTestId('rewards-update-required')).toBeNull();
-        expect(getByTestId('rewards-referral-view')).toBeOnTheScreen();
+        expect(getByTestId('rewards-settings-view')).toBeOnTheScreen();
       });
     });
   });

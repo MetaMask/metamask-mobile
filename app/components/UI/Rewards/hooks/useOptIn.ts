@@ -22,19 +22,9 @@ import { useBulkLinkState } from './useBulkLinkState';
 export interface UseOptinResult {
   /**
    * Function to initiate the optin process
-   * @param referralCode - Optional referral code to apply
-   * @param isPrefilled - Whether the referral code was prefilled
    * @param bulkLink - If true, bulk link all other account groups after opt-in succeeds
    */
-  optin: ({
-    referralCode,
-    isPrefilled,
-    bulkLink,
-  }: {
-    referralCode?: string;
-    isPrefilled?: boolean;
-    bulkLink?: boolean;
-  }) => Promise<void>;
+  optin: ({ bulkLink }: { bulkLink?: boolean }) => Promise<void>;
 
   /**
    * Loading state for optin operation
@@ -88,24 +78,12 @@ export const useOptin = (): UseOptinResult => {
   }, [sideEffectAccountGroupIdToLink, selectInternalAccountsByGroupIdSelector]);
 
   const handleOptin = useCallback(
-    async ({
-      referralCode,
-      isPrefilled,
-      bulkLink,
-    }: {
-      referralCode?: string;
-      isPrefilled?: boolean;
-      bulkLink?: boolean;
-    }) => {
+    async ({ bulkLink }: { bulkLink?: boolean }) => {
       if (!accountGroup?.id) {
         return;
       }
       const selectedAccountGroupId = accountGroup.id;
-      const referred = Boolean(referralCode);
       const metricsProps = {
-        referred,
-        referral_code_used: referralCode,
-        referral_code_input_type: isPrefilled ? 'prefill' : 'manual',
         bulk_link: bulkLink,
       };
       trackEvent(
@@ -141,7 +119,6 @@ export const useOptin = (): UseOptinResult => {
         subscriptionId = await Engine.controllerMessenger.call(
           'RewardsController:optIn',
           accountsToOptIn as InternalAccount[],
-          referralCode || undefined,
         );
 
         if (subscriptionId) {
@@ -158,10 +135,6 @@ export const useOptin = (): UseOptinResult => {
           }
           identify({
             [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.ON,
-            ...(referralCode && {
-              [UserProfileProperty.REWARDS_REFERRED]: true,
-              [UserProfileProperty.REWARDS_REFERRAL_CODE_USED]: referralCode,
-            }),
           });
           trackEvent(
             createEventBuilder(MetaMetricsEvents.REWARDS_OPT_IN_COMPLETED)
