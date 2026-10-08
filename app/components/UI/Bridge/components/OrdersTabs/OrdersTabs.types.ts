@@ -15,7 +15,9 @@ export interface OrdersTabConfig<T> {
   isFetchingNextPage?: boolean;
   onRetry?: () => void;
   /**
-   * Chain used by the All networks filter for this tab's items.
+   * Chain used by the All networks filter for this tab's items. The filter
+   * is only shown once the items span at least two of these chains, or
+   * while a network is selected. Omit to hide the filter for this tab.
    */
   getItemChainId?: (item: T) => Hex | CaipChainId | undefined;
 }
@@ -27,8 +29,8 @@ export interface OrdersTabsProps<TOpen, THistory> {
   activeTab?: OrdersTabKey;
   onTabChange?: (tab: OrdersTabKey) => void;
   /**
-   * Restricts the orders network picker to these chains.
-   * Omit to show the default allowed ranking.
+   * Restricts the orders network picker to these chains, on top of the
+   * chains the loaded items are on.
    */
   enabledChainIds?: CaipChainId[];
 }

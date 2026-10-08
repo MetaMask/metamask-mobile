@@ -4,6 +4,7 @@ import {
   TagSeverity,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { parseCaipAssetType } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
 import type { RecurringOrder } from '../../../api/recurringOrders.types';
 import {
@@ -89,6 +90,9 @@ interface CreateRecurringOrdersTabOptions {
   onRetry: () => void;
 }
 
+const getRecurringOrderChainId = (order: RecurringOrder) =>
+  parseCaipAssetType(order.src.asset.assetId).chainId;
+
 export function createRecurringOrdersTab({
   orders,
   onOrderPress,
@@ -103,6 +107,7 @@ export function createRecurringOrdersTab({
       <RecurringOrderRow order={order} onPress={onOrderPress} />
     ),
     keyExtractor: (order) => order.orderId,
+    getItemChainId: getRecurringOrderChainId,
     isLoading,
     isError,
     isFetchingNextPage,

@@ -1,18 +1,23 @@
 import React from 'react';
 import { Text } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import type { CaipChainId } from '@metamask/utils';
+import type { CaipChainId, Hex } from '@metamask/utils';
 import renderWithProvider, {
   type DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { setOrdersNetworkFilter } from '../../../../../core/redux/slices/bridge';
 import { initialState } from '../../_mocks_/initialState';
 import OrdersTabs from './OrdersTabs';
 import { OrdersTabsSelectorsIDs } from './OrdersTabs.testIds';
-import { OrdersTabKey, type OrdersTabsProps } from './OrdersTabs.types';
+import {
+  OrdersTabKey,
+  type OrdersTabConfig,
+  type OrdersTabsProps,
+} from './OrdersTabs.types';
 
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   ...jest.requireActual('../../../../../util/remoteFeatureFlag'),
@@ -24,6 +29,33 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
+
+interface ChainOrder {
+  id: string;
+  chainId: Hex;
+}
+
+const ETH_ORDER: ChainOrder = { id: 'eth-order', chainId: '0x1' };
+const ETH_ORDER_2: ChainOrder = { id: 'eth-order-2', chainId: '0x1' };
+const OPTIMISM_ORDER: ChainOrder = { id: 'optimism-order', chainId: '0xa' };
+
+function chainOrdersTab(items: ChainOrder[]): OrdersTabConfig<ChainOrder> {
+  return {
+    items,
+    renderItem: (item) => <Text testID={`order-${item.id}`}>{item.id}</Text>,
+    keyExtractor: (item) => item.id,
+    getItemChainId: (item) => item.chainId,
+  };
+}
+
+function stateWithOrdersNetworkFilter(
+  ordersNetworkFilter: CaipChainId,
+): DeepPartial<RootState> {
+  return {
+    ...initialState,
+    bridge: { ...initialState.bridge, ordersNetworkFilter },
+  };
+}
 
 function renderOrdersTabs<TOpen, THistory>(
   props: OrdersTabsProps<TOpen, THistory>,
@@ -40,60 +72,190 @@ describe('OrdersTabs', () => {
   });
 
   it('shows open orders empty copy then history empty copy after pressing History', () => {
-    const { getByTestId, getByText, queryByText, queryByTestId } =
-      renderOrdersTabs({
-        openOrders: { items: [] },
-        history: { items: [] },
-      });
+    const { getByTestId, getByText, queryByText } = renderOrdersTabs({
+      openOrders: { items: [] },
+      history: { items: [] },
+    });
 
     expect(getByTestId(OrdersTabsSelectorsIDs.EMPTY_STATE)).toBeOnTheScreen();
     expect(
       getByText(strings('bridge.orders.empty.open_orders')),
     ).toBeOnTheScreen();
-    expect(
-      getByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
-    ).toHaveTextContent(strings('bridge.all_networks'));
-    expect(
-      queryByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_AVATAR),
-    ).toBeNull();
 
     fireEvent.press(getByTestId(OrdersTabsSelectorsIDs.HISTORY_TAB));
 
     expect(getByText(strings('bridge.orders.empty.history'))).toBeOnTheScreen();
     expect(queryByText(strings('bridge.orders.empty.open_orders'))).toBeNull();
-    expect(
-      getByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
-    ).toHaveTextContent(strings('bridge.all_networks'));
   });
 
-  it('opens the swaps network picker when the All networks filter is pressed', () => {
-    const { getByTestId } = renderOrdersTabs({
-      openOrders: { items: [] },
-      history: { items: [] },
+  describe('network filter visibility', () => {
+    it('hides the network filter when there are no orders', () => {
+      const { queryByTestId } = renderOrdersTabs({
+        openOrders: chainOrdersTab([]),
+        history: chainOrdersTab([]),
+      });
+
+      expect(
+        queryByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
+      ).toBeNull();
     });
 
-    fireEvent.press(getByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON));
+    it('hides the network filter when every order is on the same network', () => {
+      const { queryByTestId } = renderOrdersTabs({
+        openOrders: chainOrdersTab([ETH_ORDER, ETH_ORDER_2]),
+        history: chainOrdersTab([]),
+      });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-      params: { enabledChainIds: undefined, filterTarget: 'orders' },
-    });
-  });
-
-  it('opens the network picker restricted to enabledChainIds', () => {
-    const enabledChainIds: CaipChainId[] = ['eip155:1', 'eip155:8453'];
-
-    const { getByTestId } = renderOrdersTabs({
-      enabledChainIds,
-      openOrders: { items: [] },
-      history: { items: [] },
+      expect(
+        queryByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
+      ).toBeNull();
     });
 
-    fireEvent.press(getByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON));
+    it('hides the network filter when orders have no chain resolver', () => {
+      const { queryByTestId } = renderOrdersTabs({
+        openOrders: { items: [ETH_ORDER, OPTIMISM_ORDER] },
+        history: { items: [] },
+      });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-      params: { enabledChainIds, filterTarget: 'orders' },
+      expect(
+        queryByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
+      ).toBeNull();
+    });
+
+    it('opens the network picker with only the networks the orders are on', () => {
+      const { getByTestId } = renderOrdersTabs({
+        openOrders: chainOrdersTab([ETH_ORDER, OPTIMISM_ORDER]),
+        history: chainOrdersTab([]),
+      });
+
+      const filterButton = getByTestId(
+        OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON,
+      );
+      expect(filterButton).toHaveTextContent(strings('bridge.all_networks'));
+
+      fireEvent.press(filterButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
+        params: {
+          enabledChainIds: ['eip155:1', 'eip155:10'],
+          filterTarget: 'orders',
+        },
+      });
+    });
+
+    it('shows the network filter once a fetched page adds a second network', () => {
+      const { queryByTestId, getByTestId, rerender } = renderOrdersTabs({
+        openOrders: chainOrdersTab([ETH_ORDER]),
+        history: chainOrdersTab([]),
+      });
+
+      expect(
+        queryByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
+      ).toBeNull();
+
+      rerender(
+        <OrdersTabs
+          openOrders={chainOrdersTab([ETH_ORDER, ETH_ORDER_2, OPTIMISM_ORDER])}
+          history={chainOrdersTab([])}
+        />,
+      );
+      fireEvent.press(
+        getByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
+        params: {
+          enabledChainIds: ['eip155:1', 'eip155:10'],
+          filterTarget: 'orders',
+        },
+      });
+    });
+
+    it('evaluates the network filter for the active tab only', () => {
+      const { getByTestId, queryByTestId } = renderOrdersTabs({
+        openOrders: chainOrdersTab([ETH_ORDER, OPTIMISM_ORDER]),
+        history: chainOrdersTab([ETH_ORDER_2]),
+      });
+
+      expect(
+        getByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(OrdersTabsSelectorsIDs.HISTORY_TAB));
+
+      expect(
+        queryByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
+      ).toBeNull();
+    });
+
+    it('ignores networks outside enabledChainIds', () => {
+      const { queryByTestId } = renderOrdersTabs({
+        enabledChainIds: ['eip155:1'],
+        openOrders: chainOrdersTab([ETH_ORDER, OPTIMISM_ORDER]),
+        history: chainOrdersTab([]),
+      });
+
+      expect(
+        queryByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
+      ).toBeNull();
+    });
+
+    it('keeps the network filter and its options after a network is selected', () => {
+      const { getByTestId, store, rerender } = renderOrdersTabs({
+        openOrders: chainOrdersTab([ETH_ORDER, OPTIMISM_ORDER]),
+        history: chainOrdersTab([]),
+      });
+
+      act(() => {
+        store.dispatch(setOrdersNetworkFilter(formatChainIdToCaip('0xa')));
+      });
+      rerender(
+        <OrdersTabs
+          openOrders={chainOrdersTab([OPTIMISM_ORDER])}
+          history={chainOrdersTab([])}
+        />,
+      );
+
+      const filterButton = getByTestId(
+        OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON,
+      );
+      expect(filterButton).toHaveTextContent('Optimism');
+
+      fireEvent.press(filterButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
+        params: {
+          enabledChainIds: ['eip155:1', 'eip155:10'],
+          filterTarget: 'orders',
+        },
+      });
+    });
+
+    it('keeps the network filter while the All networks orders reload', () => {
+      const { getByTestId, store, rerender } = renderOrdersTabs(
+        {
+          openOrders: chainOrdersTab([ETH_ORDER, OPTIMISM_ORDER]),
+          history: chainOrdersTab([]),
+        },
+        stateWithOrdersNetworkFilter(formatChainIdToCaip('0xa')),
+      );
+
+      act(() => {
+        store.dispatch(setOrdersNetworkFilter(undefined));
+      });
+      rerender(
+        <OrdersTabs
+          openOrders={{ ...chainOrdersTab([]), isLoading: true }}
+          history={chainOrdersTab([])}
+        />,
+      );
+
+      expect(
+        getByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
+      ).toHaveTextContent(strings('bridge.all_networks'));
     });
   });
 
@@ -129,26 +291,13 @@ describe('OrdersTabs', () => {
   it('hides open orders that are not on the selected network', () => {
     const { getByTestId, queryByTestId } = renderOrdersTabs(
       {
-        openOrders: {
-          items: [{ id: 'eth-order', chainId: '0x1' as const }],
-          renderItem: (item) => (
-            <Text testID="limit-open-order">{item.id}</Text>
-          ),
-          keyExtractor: (item) => item.id,
-          getItemChainId: (item) => item.chainId,
-        },
+        openOrders: chainOrdersTab([ETH_ORDER]),
         history: { items: [] },
       },
-      {
-        ...initialState,
-        bridge: {
-          ...initialState.bridge,
-          ordersNetworkFilter: formatChainIdToCaip('0xa'),
-        },
-      },
+      stateWithOrdersNetworkFilter(formatChainIdToCaip('0xa')),
     );
 
-    expect(queryByTestId('limit-open-order')).toBeNull();
+    expect(queryByTestId(`order-${ETH_ORDER.id}`)).toBeNull();
     expect(getByTestId(OrdersTabsSelectorsIDs.EMPTY_STATE)).toBeOnTheScreen();
   });
 
@@ -272,13 +421,7 @@ describe('OrdersTabs', () => {
         openOrders: { items: [] },
         history: { items: [] },
       },
-      {
-        ...initialState,
-        bridge: {
-          ...initialState.bridge,
-          ordersNetworkFilter: formatChainIdToCaip('0xa'),
-        },
-      },
+      stateWithOrdersNetworkFilter(formatChainIdToCaip('0xa')),
     );
 
     expect(
