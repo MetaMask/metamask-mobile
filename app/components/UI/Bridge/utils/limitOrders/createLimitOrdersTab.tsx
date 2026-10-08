@@ -11,6 +11,8 @@ interface CreateLimitOrdersTabOptions {
   onRetry: () => void;
 }
 
+const getLimitOrderDate = (order: LimitOrder) => order.timingData.createdAt;
+
 export function createLimitOrdersTab({
   orders,
   isLoading,
@@ -22,6 +24,7 @@ export function createLimitOrdersTab({
     items: orders,
     renderItem: (order) => <LimitOrderTabRow order={order} />,
     keyExtractor: (order) => order.id,
+    getItemDate: getLimitOrderDate,
     isLoading,
     isError,
     isFetchingNextPage,

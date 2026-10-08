@@ -9707,7 +9707,8 @@
         "history": "Order history appears here"
       },
       "error": "Orders couldn’t be loaded",
-      "try_again": "Try again"
+      "try_again": "Try again",
+      "today": "Today"
     },
     "limit": {
       "pair": "{{source}} → {{dest}}",

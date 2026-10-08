@@ -18,5 +18,8 @@ describe('createLimitOrdersTab', () => {
     expect(tab.keyExtractor?.(MOCK_LIMIT_OPEN_ORDER, 0)).toBe(
       MOCK_LIMIT_OPEN_ORDER.id,
     );
+    expect(tab.getItemDate?.(MOCK_LIMIT_OPEN_ORDER)).toBe(
+      MOCK_LIMIT_OPEN_ORDER.timingData.createdAt,
+    );
   });
 });

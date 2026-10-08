@@ -266,6 +266,46 @@ describe('OrdersTabs', () => {
     expect(getByTestId(OrdersTabsSelectorsIDs.CONTENT)).toBeOnTheScreen();
   });
 
+  it('groups items under date headers when getItemDate is provided', () => {
+    jest.useFakeTimers({ now: new Date('2026-10-07T16:00:00.000Z') });
+
+    const { getAllByTestId, getByTestId } = renderOrdersTabs({
+      openOrders: {
+        items: [
+          { id: 'today', createdAt: '2026-10-07T15:00:00.000Z' },
+          { id: 'older', createdAt: '2026-08-13T15:00:00.000Z' },
+        ],
+        renderItem: (item) => (
+          <Text testID={`order-row-${item.id}`}>{item.id}</Text>
+        ),
+        keyExtractor: (item) => item.id,
+        getItemDate: (item) => item.createdAt,
+      },
+      history: { items: [] },
+    });
+
+    const headers = getAllByTestId(OrdersTabsSelectorsIDs.DATE_SECTION_HEADER);
+    expect(headers).toHaveLength(2);
+    expect(headers[0]).toHaveTextContent(strings('bridge.orders.today'));
+    expect(headers[1]).toHaveTextContent('Aug 13, 2026');
+    expect(getByTestId('order-row-today')).toBeOnTheScreen();
+    expect(getByTestId('order-row-older')).toBeOnTheScreen();
+
+    jest.useRealTimers();
+  });
+
+  it('renders a flat list without date headers when getItemDate is omitted', () => {
+    const { queryByTestId } = renderOrdersTabs({
+      openOrders: {
+        items: ['order-1'],
+        renderItem: (item) => <Text>{item}</Text>,
+      },
+      history: { items: [] },
+    });
+
+    expect(queryByTestId(OrdersTabsSelectorsIDs.DATE_SECTION_HEADER)).toBeNull();
+  });
+
   it('shows the selected network icon and name on the filter button', () => {
     const { getByTestId } = renderOrdersTabs(
       {
