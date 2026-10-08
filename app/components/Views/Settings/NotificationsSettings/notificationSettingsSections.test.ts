@@ -22,6 +22,13 @@ describe('resolveNotificationSettingsSection', () => {
     expect(result?.slug).toBe(NotificationSettingsSectionSlug.PriceAlerts);
   });
 
+  it('returns the dry run section for the kebab-case slug', () => {
+    const result = resolveNotificationSettingsSection('dry-run');
+
+    expect(result?.type).toBe('dryRun');
+    expect(result?.iconName).toBe(IconName.Notification);
+  });
+
   it('trims and lowercases the section value', () => {
     const result = resolveNotificationSettingsSection('  Social-AI  ');
 

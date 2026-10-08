@@ -4945,7 +4945,9 @@
       "products_announcements_title": "Product announcements",
       "products_announcements_desc": "New products and features",
       "price_alerts_title": "Price alerts",
-      "price_alerts_desc": "Get notified based on the alerts you've set for a token's price"
+      "price_alerts_desc": "Get notified based on the alerts you've set for a token's price",
+      "dry_run_title": "Dry run",
+      "dry_run_desc": "Manage dry-run notifications"
     },
     "contacts_title": "Contacts",
     "contacts_desc": "Add, edit, remove, and manage your accounts.",

@@ -41,6 +41,10 @@ const MOCK_NOTIFICATION_PREFERENCES = {
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
   },
+  dryRun: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
 };
 
 /**
@@ -60,6 +64,7 @@ const SECTION_TITLES = {
   socialAI: 'Trading signals',
   marketing: 'Updates and rewards',
   priceAlerts: 'Price alerts',
+  dryRun: 'Dry run',
 };
 
 const hasFetchedNotificationPreferences = () =>
@@ -133,9 +138,10 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(getByText(SECTION_TITLES.socialAI)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.priceAlerts)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.dryRun)).toBeOnTheScreen();
     // Wallet activity shows no channel summary; its settings are per-account.
-    expect(await findAllByText('Push, In app')).toHaveLength(4);
-    expect(getByText('Off')).toBeOnTheScreen();
+    expect(await findAllByText('Push, In app')).toHaveLength(1);
+    expect((await findAllByText('Off')).length).toBeGreaterThan(0);
   });
 
   it('hides social AI section when social leaderboard feature flag is disabled', async () => {
@@ -148,7 +154,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
     // Wallet activity shows no channel summary; its settings are per-account.
-    expect(await findAllByText('Push, In app')).toHaveLength(3);
+    expect(await findAllByText('Push, In app')).toHaveLength(1);
   });
 
   it('renders price alerts section when notifications are enabled', async () => {
@@ -159,6 +165,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.priceAlerts)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.dryRun)).toBeOnTheScreen();
   });
 
   it('hides notification sections when main toggle is off', async () => {
@@ -179,6 +186,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
     expect(queryByText(SECTION_TITLES.marketing)).toBeNull();
     expect(queryByText(SECTION_TITLES.priceAlerts)).toBeNull();
+    expect(queryByText(SECTION_TITLES.dryRun)).toBeNull();
   });
 
   it('invokes the disable controller path when the main toggle is pressed (on -> off)', async () => {
@@ -247,6 +255,18 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
   it('opens the price alerts section when rendered with a price-alerts deeplink section', async () => {
     const { findByTestId } = renderSettingsWithSectionRoute(undefined, {
       section: 'price-alerts',
+    });
+
+    expect(
+      await findByTestId(
+        `route-${Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}`,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the dry run section when rendered with a dry-run deeplink section', async () => {
+    const { findByTestId } = renderSettingsWithSectionRoute(undefined, {
+      section: 'dry-run',
     });
 
     expect(

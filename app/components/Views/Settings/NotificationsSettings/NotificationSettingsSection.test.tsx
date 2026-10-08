@@ -56,6 +56,10 @@ const mockPreferences = {
     pushNotificationsEnabled: true,
     inAppNotificationsEnabled: true,
   },
+  dryRun: {
+    pushNotificationsEnabled: true,
+    inAppNotificationsEnabled: true,
+  },
 };
 
 jest.mock('../../../../selectors/notifications', () => ({

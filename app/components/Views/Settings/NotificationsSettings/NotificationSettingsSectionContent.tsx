@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { ScrollView, Switch, TouchableOpacity, View } from 'react-native';
+import { DEFAULT_DRY_RUN_PREFERENCES } from '@metamask/authenticated-user-storage';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './NotificationsSettings.styles';
@@ -54,6 +55,7 @@ const SETTINGS_TYPE_BY_SECTION: Record<NotificationPreferenceSection, string> =
     socialAI: 'social_ai',
     marketing: 'marketing',
     priceAlerts: 'price_alerts',
+    dryRun: 'dry_run',
   };
 
 const WalletActivitySectionContent = ({
@@ -224,6 +226,7 @@ const SECTION_DEFINITIONS: Record<
   perps: { layout: 'scroll' },
   agenticCli: { layout: 'scroll' },
   priceAlerts: { layout: 'scroll' },
+  dryRun: { layout: 'scroll' },
 };
 
 export interface NotificationSettingsSectionContentProps {
@@ -244,7 +247,11 @@ export const NotificationSettingsSectionContent = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { preferences, updateSectionChannel } =
     useNotificationStoragePreferences();
-  const sectionPrefs = preferences?.[type];
+  const sectionPrefs = preferences
+    ? (preferences[type] ??
+      (type === 'dryRun' ? DEFAULT_DRY_RUN_PREFERENCES : undefined))
+    : undefined;
+  const defaultChannelValue = type === 'dryRun';
   const sectionDefinition = SECTION_DEFINITIONS[type];
 
   const trackChannelUpdate = useCallback(
@@ -307,12 +314,12 @@ export const NotificationSettingsSectionContent = ({
   );
 
   const push = useOptimisticToggleValue({
-    remoteValue: sectionPrefs?.pushNotificationsEnabled ?? false,
+    remoteValue: sectionPrefs?.pushNotificationsEnabled ?? defaultChannelValue,
     onPersist: persistPush,
   });
 
   const inApp = useOptimisticToggleValue({
-    remoteValue: sectionPrefs?.inAppNotificationsEnabled ?? false,
+    remoteValue: sectionPrefs?.inAppNotificationsEnabled ?? defaultChannelValue,
     onPersist: persistInApp,
   });
 

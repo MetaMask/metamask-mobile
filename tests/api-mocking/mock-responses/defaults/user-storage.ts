@@ -54,6 +54,10 @@ const notificationPreferences = {
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
   },
+  dryRun: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
 };
 
 export const USER_STORAGE_MOCK: MockEventsObject = {

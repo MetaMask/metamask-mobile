@@ -53,6 +53,7 @@ const mockTrackEvent = jest.fn();
 
 const arrangePreferences = ({
   hasPreferences = true,
+  omitDryRunPreference = false,
   walletActivity = {
     pushNotificationsEnabled: true,
     inAppNotificationsEnabled: true,
@@ -60,6 +61,7 @@ const arrangePreferences = ({
   },
 }: {
   hasPreferences?: boolean;
+  omitDryRunPreference?: boolean;
   walletActivity?: WalletActivityPreference;
 } = {}) => {
   jest.mocked(useNotificationStoragePreferences).mockReturnValue({
@@ -88,6 +90,14 @@ const arrangePreferences = ({
             pushNotificationsEnabled: true,
             inAppNotificationsEnabled: true,
           },
+          ...(omitDryRunPreference
+            ? {}
+            : {
+                dryRun: {
+                  pushNotificationsEnabled: true,
+                  inAppNotificationsEnabled: true,
+                },
+              }),
         }
       : undefined,
     hasNotificationPreferences: hasPreferences,
@@ -150,6 +160,15 @@ describe('NotificationSettingsSectionContent', () => {
 
     expect(screen.getByTestId(PUSH_TOGGLE)).toHaveProp('disabled', undefined);
     expect(screen.getByTestId(IN_APP_TOGGLE)).toHaveProp('disabled', undefined);
+  });
+
+  it('defaults missing dry run channels to enabled', () => {
+    arrangePreferences({ omitDryRunPreference: true });
+
+    renderContent({ type: 'dryRun' });
+
+    expect(screen.getByTestId(PUSH_TOGGLE)).toHaveProp('value', true);
+    expect(screen.getByTestId(IN_APP_TOGGLE)).toHaveProp('value', true);
   });
 
   it('uses the section ScrollView for static sections', () => {
@@ -313,6 +332,50 @@ describe('NotificationSettingsSectionContent', () => {
       )
         .addProperties({
           settings_type: 'price_alerts',
+          notification_channel: NotificationChannel.IN_APP,
+          enabled: false,
+        })
+        .build(),
+    );
+  });
+
+  it('persists both dry run channels using the default settings UI', async () => {
+    renderContent({ type: 'dryRun', title: 'Dry run' });
+
+    await act(async () => {
+      fireEvent(screen.getByTestId(PUSH_TOGGLE), 'onValueChange', false);
+      fireEvent(screen.getByTestId(IN_APP_TOGGLE), 'onValueChange', false);
+    });
+
+    expect(mockUpdateSectionChannel).toHaveBeenNthCalledWith(
+      1,
+      'dryRun',
+      'pushNotificationsEnabled',
+      false,
+    );
+    expect(mockUpdateSectionChannel).toHaveBeenNthCalledWith(
+      2,
+      'dryRun',
+      'inAppNotificationsEnabled',
+      false,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED,
+      )
+        .addProperties({
+          settings_type: 'dry_run',
+          notification_channel: NotificationChannel.PUSH,
+          enabled: false,
+        })
+        .build(),
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED,
+      )
+        .addProperties({
+          settings_type: 'dry_run',
           notification_channel: NotificationChannel.IN_APP,
           enabled: false,
         })
