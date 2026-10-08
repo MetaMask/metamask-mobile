@@ -1431,7 +1431,14 @@ export type MessengerClientInitFunctionsByMessengerClientName = {
   [Name in MessengerClientsToInitialize]: MessengerClientInitFunction<
     MessengerClientsByName[Name],
     ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getMessenger']>,
-    ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getInitMessenger']>
+    'getInitMessenger' extends keyof (typeof MESSENGER_FACTORIES)[Name]
+      ? ReturnType<
+          Extract<
+            (typeof MESSENGER_FACTORIES)[Name]['getInitMessenger'],
+            (...args: never[]) => unknown
+          >
+        >
+      : void
   >;
 };
 

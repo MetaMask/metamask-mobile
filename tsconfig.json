@@ -65,7 +65,7 @@
         "node_modules/agent-device/dist/src/android-snapshot-helper.d.ts"
       ],
       "@metamask/delegation-controller/types": [
-        "node_modules/@metamask/delegation-controller/dist/types.d.cts"
+        "node_modules/@metamask/delegation-controller/dist/types.d.ts"
       ],
       "@ledgerhq/device-management-kit": [
         "node_modules/@ledgerhq/device-management-kit/lib/types/index.d.ts"
