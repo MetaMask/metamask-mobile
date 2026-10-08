@@ -79,6 +79,17 @@ import {
 import { selectMoneyEarningSectionEnabledFlag } from '../../selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/GlassSurface';
+
+let mockIsMoneyGlass = false;
+jest.mock('../../../../hooks/useIsGlassSurfaceEnabled', () => ({
+  useIsGlassSurfaceEnabled: () => mockIsMoneyGlass,
+}));
+
+let mockIsMoneyNativeHeader = false;
+jest.mock('../../components/MoneyHeader/useMoneyNativeHeader', () => ({
+  useMoneyNativeHeader: () => mockIsMoneyNativeHeader,
+}));
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -577,6 +588,48 @@ const expectTestIdBefore = (
 };
 
 describe('MoneyHomeView', () => {
+  describe('brand refresh', () => {
+    afterEach(() => {
+      mockIsMoneyGlass = false;
+      mockIsMoneyNativeHeader = false;
+    });
+
+    it('keeps the JS header and opaque surfaces by default', () => {
+      const { getByTestId, queryAllByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(getByTestId(MoneyHeaderTestIds.CONTAINER)).toBeOnTheScreen();
+      expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
+    });
+
+    it('hands the header to the native bar and lets content scroll under it', () => {
+      mockIsMoneyNativeHeader = true;
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(queryByTestId(MoneyHeaderTestIds.CONTAINER)).not.toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW).props
+          .contentInsetAdjustmentBehavior,
+      ).toBe('automatic');
+    });
+
+    it('draws the action tiles on glass when brand refresh glass is on', () => {
+      mockIsMoneyGlass = true;
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        within(
+          getByTestId(MoneyActionButtonRowTestIds.CONTAINER),
+        ).getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID),
+      ).toHaveLength(3);
+    });
+  });
+
   let defaultMoneyAccountBalance: ReturnType<typeof useMoneyAccountBalance>;
   let defaultMoneyVaultApy: ReturnType<typeof useMoneyVaultApy>;
 
@@ -1496,6 +1549,18 @@ describe('MoneyHomeView', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(getByTestId(MoneyBalanceSummaryTestIds.TITLE)).toBeOnTheScreen();
+    });
+
+    it('leaves the title to the native bar when it is on', () => {
+      mockRouteParams = { showBackButton: true };
+      mockIsMoneyNativeHeader = true;
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.TITLE),
+      ).not.toBeOnTheScreen();
+      mockIsMoneyNativeHeader = false;
     });
 
     it('keeps the title in the header as the Money tab', () => {

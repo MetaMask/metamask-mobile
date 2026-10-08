@@ -6,6 +6,9 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl, type LayoutChangeEvent } from 'react-native';
+import FloatingHeader, {
+  useFloatingHeaderInset,
+} from '../../../../../component-library/components-temp/FloatingHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Animated from 'react-native-reanimated';
@@ -30,7 +33,10 @@ import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader, {
   type MoneyHeaderProButton,
   type MoneyHeaderProps,
+  useMoneyNativeHeader,
 } from '../../components/MoneyHeader';
+import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
+import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
@@ -428,21 +434,43 @@ const MoneyHomeView = () => {
     });
   }, [navigation, isPlusSubscriber, trackButtonClicked]);
 
-  const proButton: MoneyHeaderProButton | undefined =
-    isProSubscriptionEnabled && !isPlusAccessUnknown
-      ? {
-          label: isPlusSubscriber
-            ? strings('pro_subscription.pro')
-            : strings('pro_subscription.join_pro'),
-          onPress: handleGetProPress,
-        }
-      : undefined;
+  const proButton = useMemo<MoneyHeaderProButton | undefined>(
+    () =>
+      isProSubscriptionEnabled && !isPlusAccessUnknown
+        ? {
+            label: isPlusSubscriber
+              ? strings('pro_subscription.pro')
+              : strings('pro_subscription.join_pro'),
+            onPress: handleGetProPress,
+          }
+        : undefined,
+    [
+      isProSubscriptionEnabled,
+      isPlusAccessUnknown,
+      isPlusSubscriber,
+      handleGetProPress,
+    ],
+  );
 
   // Only set when this stack was pushed over the caller's (e.g. a Rewards
   // campaign funding flow), so back returns there instead of to a tab.
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const isBrandRefresh = useSelector(selectMoneyBrandRefreshEnabled) === true;
+  const isGlass = useIsGlassSurfaceEnabled(selectMoneyBrandRefreshEnabled);
+  const isNativeHeader = useMoneyNativeHeader({
+    onMenuPress: handleMenuPress,
+    proButton,
+    onBack: isPushed ? handleBackPress : undefined,
+    isEnabled: isBrandRefresh,
+  });
+
+  const isFloatingHeader = isBrandRefresh && !isNativeHeader;
+  const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
+    useFloatingHeaderInset(isFloatingHeader, insets.top);
+  const topInset = isNativeHeader || isFloatingHeader ? 0 : insets.top;
 
   const handleTitleSectionLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -967,6 +995,7 @@ const MoneyHomeView = () => {
       key: 'condensed-info',
       node: (
         <MoneyCondensedInfoCards
+          isGlass={isGlass}
           onHowItWorksPress={() =>
             handleHowItWorksPress({
               componentName:
@@ -998,16 +1027,33 @@ const MoneyHomeView = () => {
 
   return (
     <Box
-      style={[styles.safeArea, { paddingTop: insets.top }]}
+      style={[styles.safeArea, { paddingTop: topInset }]}
       twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      <MoneyHeader {...headerProps} />
+      {isFloatingHeader ? (
+        // Mounted before the content so assistive tech reads the header first.
+        <FloatingHeader
+          onLayout={handleFloatingHeaderLayout}
+          topInset={insets.top}
+          testID={MoneyHomeViewTestIds.FLOATING_HEADER}
+        >
+          <MoneyHeader {...headerProps} isCapsule />
+        </FloatingHeader>
+      ) : (
+        !isNativeHeader && <MoneyHeader {...headerProps} />
+      )}
       <Animated.ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: 40 + floatingTabBarInset },
+          {
+            paddingTop: floatingHeaderInset,
+            paddingBottom: 40 + floatingTabBarInset,
+          },
         ]}
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
@@ -1018,6 +1064,7 @@ const MoneyHomeView = () => {
             onRefresh={handlePullRefresh}
             tintColor={colors.icon.default}
             colors={[colors.primary.default]}
+            progressViewOffset={floatingHeaderInset}
           />
         }
       >
@@ -1047,10 +1094,11 @@ const MoneyHomeView = () => {
             onApyInfoPress={handleApyInfoPress}
             privacyMode={privacyMode}
             onBalancePress={handleBalancePress}
-            showTitle={isPushed}
+            showTitle={isPushed && !isNativeHeader}
           />
         </Box>
         <MoneyActionButtonRow
+          isGlass={isGlass}
           add={{
             onPress: () =>
               handleAddPress({
@@ -1066,7 +1114,7 @@ const MoneyHomeView = () => {
           }}
           card={{ onPress: handleActionButtonCardPress }}
         />
-        <MoneyOnboardingCard />
+        <MoneyOnboardingCard isGlass={isGlass} />
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>
             {index > 0 && <Divider />}

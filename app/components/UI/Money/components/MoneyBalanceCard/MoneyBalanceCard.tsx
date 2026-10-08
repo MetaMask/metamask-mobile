@@ -28,14 +28,12 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useStyles } from '../../../../../component-library/hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import styleSheet from './MoneyBalanceCard.styles';
 import GlassSurface from '../../../../../component-library/components-temp/GlassSurface';
 import ButtonGlass from '../../../../../component-library/components-temp/ButtonGlass';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
@@ -60,7 +58,6 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const hasSeenMoneyCardRef = useRef(false);
-  const { styles } = useStyles(styleSheet, {});
   const {
     totalFiatRaw,
     totalFiatFormatted,
@@ -369,42 +366,27 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
     </>
   );
 
-  if (isGlass) {
-    return (
-      <Pressable
-        testID={containerTestId}
-        onPress={handleCardPress}
-        style={styles.glassContainer}
-      >
-        <GlassSurface
-          radiusClassName="rounded-xl"
-          isInteractive
-          hasSheen
-          testID={MoneyBalanceCardTestIds.GLASS_SURFACE}
-          style={[
-            styles.glassContent,
-            tw.style('flex-row items-center justify-between gap-3'),
-          ]}
-        >
-          {content}
-        </GlassSurface>
-      </Pressable>
-    );
-  }
-
   return (
     <Pressable
       testID={containerTestId}
       onPress={handleCardPress}
       style={({ pressed }) => [
-        styles.container,
-        tw.style(
-          'flex-row items-center justify-between gap-3 bg-muted',
-          pressed && 'opacity-80',
-        ),
+        tw.style('mx-4'),
+        !isGlass && pressed && tw.style('opacity-80'),
       ]}
     >
-      {content}
+      <GlassSurface
+        isGlass={isGlass}
+        radiusClassName="rounded-xl"
+        isInteractive
+        hasSheen
+        testID={MoneyBalanceCardTestIds.SURFACE}
+        style={tw.style(
+          'min-h-[82px] flex-row items-center justify-between gap-3 p-4',
+        )}
+      >
+        {content}
+      </GlassSurface>
     </Pressable>
   );
 };

@@ -3,7 +3,6 @@ import { Pressable } from 'react-native';
 import {
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
   FontWeight,
   Icon,
   IconColor,
@@ -18,11 +17,14 @@ import howItWorksImage from '../../../../../images/mm_how_it_works.png';
 import musdCoinImage from '../../../../../images/mm_usd.png';
 import whatYouGetImage from '../../../../../images/mm_what_you_get.png';
 import { Image, ImageProps } from 'expo-image';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import GlassSurface from '../../../../../component-library/components-temp/GlassSurface';
 
 interface MoneyCondensedInfoCardsProps {
   onHowItWorksPress?: () => void;
   onMusdPress?: () => void;
   onWhatYouGetPress?: () => void;
+  isGlass?: boolean;
 }
 
 const CondensedCard = ({
@@ -30,18 +32,18 @@ const CondensedCard = ({
   title,
   onPress,
   testID,
+  isGlass,
 }: {
   image: Pick<ImageProps, 'source' | 'style' | 'testID'>;
   title: string;
   onPress?: () => void;
   testID: string;
-}) => (
-  <Pressable onPress={onPress} testID={testID}>
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="bg-muted rounded-xl p-4 gap-4"
-    >
+  isGlass: boolean;
+}) => {
+  const tw = useTailwind();
+
+  const content = (
+    <>
       <Box
         alignItems={BoxAlignItems.Center}
         twClassName="bg-muted rounded-xl size-[78px] justify-center"
@@ -65,20 +67,36 @@ const CondensedCard = ({
           {title}
         </Text>
       </Box>
-    </Box>
-  </Pressable>
-);
+    </>
+  );
+
+  return (
+    <Pressable onPress={onPress} testID={testID}>
+      <GlassSurface
+        isGlass={isGlass}
+        radiusClassName="rounded-xl"
+        isInteractive
+        hasSheen
+        style={tw.style('flex-row items-center p-4 gap-4')}
+      >
+        {content}
+      </GlassSurface>
+    </Pressable>
+  );
+};
 
 const MoneyCondensedInfoCards = ({
   onHowItWorksPress,
   onMusdPress,
   onWhatYouGetPress,
+  isGlass = false,
 }: MoneyCondensedInfoCardsProps) => (
   <Box
     twClassName="px-4 py-3 gap-3"
     testID={MoneyCondensedInfoCardsTestIds.CONTAINER}
   >
     <CondensedCard
+      isGlass={isGlass}
       image={{
         source: howItWorksImage,
         style: { height: 58, width: 58 },
@@ -89,6 +107,7 @@ const MoneyCondensedInfoCards = ({
       testID={MoneyCondensedInfoCardsTestIds.HOW_IT_WORKS_CARD}
     />
     <CondensedCard
+      isGlass={isGlass}
       image={{
         source: musdCoinImage,
         style: { height: 48, width: 48 },
@@ -99,6 +118,7 @@ const MoneyCondensedInfoCards = ({
       testID={MoneyCondensedInfoCardsTestIds.MUSD_CARD}
     />
     <CondensedCard
+      isGlass={isGlass}
       image={{
         source: whatYouGetImage,
         style: { height: 66, width: 66 },

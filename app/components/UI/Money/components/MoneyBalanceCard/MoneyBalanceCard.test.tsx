@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { mockTheme } from '../../../../../util/theme';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/GlassSurface';
 import MoneyBalanceCard from './MoneyBalanceCard';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
@@ -1221,18 +1222,24 @@ describe('MoneyBalanceCard', () => {
 
   describe('glass', () => {
     it('keeps the opaque card by default', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyBalanceCard />,
+      );
 
+      expect(getByTestId(MoneyBalanceCardTestIds.SURFACE)).toHaveStyle({
+        backgroundColor: mockTheme.colors.background.muted,
+      });
       expect(
-        queryByTestId(MoneyBalanceCardTestIds.GLASS_SURFACE),
-      ).not.toBeOnTheScreen();
+        getByTestId(MoneyBalanceCardTestIds.SURFACE).props.isInteractive,
+      ).toBeUndefined();
+      expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
     });
 
     it('draws the card on an interactive glass surface', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard isGlass />);
 
       expect(
-        getByTestId(MoneyBalanceCardTestIds.GLASS_SURFACE).props.isInteractive,
+        getByTestId(MoneyBalanceCardTestIds.SURFACE).props.isInteractive,
       ).toBe(true);
       expect(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON)).toBeOnTheScreen();
       expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();

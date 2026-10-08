@@ -17,12 +17,15 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
 import { StepperCardProps } from './StepperCard.types';
+import GlassSurface from '../GlassSurface';
+import ButtonGlass from '../ButtonGlass';
 
 const StepperCard = ({
   steps,
   currentStep,
   onComplete,
   testID,
+  isGlass = false,
 }: StepperCardProps) => {
   const tw = useTailwind();
 
@@ -49,11 +52,8 @@ const StepperCard = ({
 
   const step = steps[currentStep];
 
-  return (
-    <Box
-      twClassName="rounded-3xl bg-muted overflow-hidden"
-      testID={getTestId('container')}
-    >
+  const content = (
+    <>
       {/* Image */}
       <Box twClassName="p-4">
         <Box testID={getTestId('step-image')} twClassName="w-full aspect-video">
@@ -107,15 +107,15 @@ const StepperCard = ({
         {/* CTAs */}
         <Box twClassName="flex-row gap-3">
           {step.secondaryCta && (
-            <Button
-              variant={ButtonVariant.Secondary}
+            <ButtonGlass
+              isGlass={isGlass}
               size={ButtonSize.Lg}
               onPress={step.secondaryCta.onPress}
               isDisabled={step.secondaryCta.disabled}
-              twClassName="flex-1"
+              containerStyle={tw.style('flex-1')}
             >
               {step.secondaryCta.text}
-            </Button>
+            </ButtonGlass>
           )}
           <Button
             variant={ButtonVariant.Primary}
@@ -129,7 +129,19 @@ const StepperCard = ({
           </Button>
         </Box>
       </Box>
-    </Box>
+    </>
+  );
+
+  return (
+    <GlassSurface
+      isGlass={isGlass}
+      radiusClassName="rounded-3xl"
+      hasSheen
+      style={tw.style('overflow-hidden')}
+      testID={getTestId('container')}
+    >
+      {content}
+    </GlassSurface>
   );
 };
 

@@ -29,9 +29,9 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
+import FloatingHeader, {
+  useFloatingHeaderInset,
+} from '../../../component-library/components-temp/FloatingHeader';
 import { useSharedValue } from 'react-native-reanimated';
 import {
   SafeAreaView,
@@ -210,9 +210,6 @@ import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
 
-const HEADER_FADE_HEIGHT = 16;
-const HEADER_FADE_OPACITIES = [1, 0.7, 0.35, 0];
-const HEADER_FADE_LOCATIONS = [0, 0.3, 0.7, 1];
 // The floating header's account capsule (h-10) sits centred in its min-h-14
 // root, so the balance cap height lands the reference gap below the capsule.
 const FLOATING_HEADER_BALANCE_INSET = Math.round(
@@ -943,19 +940,8 @@ const Wallet = ({
   // Without the native bar (Android, iOS < 26) the interim header floats over the content on a fade.
   const isFloatingJsHeader =
     isInterimHeader && !isNativeHeader && !isSearchHeaderEnabled;
-  const tw = useTailwind();
-  // Seeded with the header's min height so the first frame already clears it.
-  const [floatingHeaderHeight, setFloatingHeaderHeight] = useState(() =>
-    Number(tw.style('h-14').height),
-  );
-  const headerFadeColors = useMemo(
-    () =>
-      HEADER_FADE_OPACITIES.map((opacity) =>
-        colorWithOpacity(colors.background.default, opacity),
-      ),
-    [colors.background.default],
-  );
-  const floatingHeaderInset = isFloatingJsHeader ? floatingHeaderHeight : 0;
+  const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
+    useFloatingHeaderInset(isFloatingJsHeader);
   const viewportTopInset = nativeHeaderInset + floatingHeaderInset;
 
   // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
@@ -1372,26 +1358,13 @@ const Wallet = ({
                 }}
               >
                 {isFloatingJsHeader && (
-                  // Mounted first so assistive tech reads the header before the content.
-                  <View
-                    pointerEvents="box-none"
-                    style={tw.style('absolute left-0 right-0 top-0 z-10')}
+                  // Mounted before the content so assistive tech reads the header first.
+                  <FloatingHeader
+                    onLayout={handleFloatingHeaderLayout}
                     testID={WalletViewSelectorsIDs.WALLET_FLOATING_HEADER}
-                    onLayout={(e) =>
-                      setFloatingHeaderHeight(e.nativeEvent.layout.height)
-                    }
                   >
-                    <LinearGradient
-                      pointerEvents="none"
-                      colors={headerFadeColors}
-                      locations={HEADER_FADE_LOCATIONS}
-                      style={[
-                        RNStyleSheet.absoluteFill,
-                        { bottom: -HEADER_FADE_HEIGHT },
-                      ]}
-                    />
                     {renderWalletHeader()}
-                  </View>
+                  </FloatingHeader>
                 )}
                 {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
                 <HomepageScrollContext.Provider

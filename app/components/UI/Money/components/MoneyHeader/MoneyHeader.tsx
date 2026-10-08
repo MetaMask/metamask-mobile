@@ -10,6 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
+import GlassCapsule from '../../../../../component-library/components-temp/GlassCapsule';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 
 /** The Pro entry point, as resolved by the page that owns Pro access. */
@@ -31,6 +32,8 @@ interface MoneyHeaderCommonProps {
    * button goes and what it is called.
    */
   proButton?: MoneyHeaderProButton;
+  /** Wraps the icon buttons in glass-style capsules, as on the brand refresh. */
+  isCapsule?: boolean;
 }
 
 /**
@@ -56,7 +59,7 @@ export type MoneyHeaderProps = MoneyHeaderCommonProps &
   (MoneyHeaderPushedProps | MoneyHeaderTabProps);
 
 const MoneyHeader = (props: MoneyHeaderProps) => {
-  const { onMenuPress, proButton } = props;
+  const { onMenuPress, proButton, isCapsule = false } = props;
 
   const menuButtonProps = {
     iconName: IconName.MoreVertical,
@@ -64,6 +67,20 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
     accessibilityLabel: 'Menu',
     testID: MoneyHeaderTestIds.MENU_BUTTON,
   };
+
+  const wrapInCapsule = (button: React.ReactNode, testID: string) =>
+    isCapsule ? (
+      <GlassCapsule twClassName="w-10 justify-center" testID={testID}>
+        {button}
+      </GlassCapsule>
+    ) : (
+      button
+    );
+
+  const menuButton = wrapInCapsule(
+    <ButtonIcon {...menuButtonProps} />,
+    MoneyHeaderTestIds.MENU_CAPSULE,
+  );
 
   // "Get Pro" is a text button, so it can only go in the end accessory, which
   // takes the menu with it — the header slots the two ButtonIcon paths and the
@@ -78,8 +95,10 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
       >
         {proButton.label}
       </Button>
-      <ButtonIcon {...menuButtonProps} />
+      {menuButton}
     </Box>
+  ) : isCapsule ? (
+    menuButton
   ) : undefined;
 
   if (props.onBack) {
@@ -97,6 +116,19 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
           accessibilityLabel: strings('navigation.back'),
           testID: MoneyHeaderTestIds.BACK_BUTTON,
         }}
+        startAccessory={
+          isCapsule
+            ? wrapInCapsule(
+                <ButtonIcon
+                  iconName={IconName.ArrowLeft}
+                  onPress={props.onBack}
+                  accessibilityLabel={strings('navigation.back')}
+                  testID={MoneyHeaderTestIds.BACK_BUTTON}
+                />,
+                MoneyHeaderTestIds.BACK_CAPSULE,
+              )
+            : undefined
+        }
         endAccessory={endAccessory}
         endButtonIconProps={[menuButtonProps]}
       />
@@ -113,9 +145,7 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
       }}
       endAccessory={
         endAccessory ?? (
-          <Box twClassName="flex-row items-center gap-1">
-            <ButtonIcon {...menuButtonProps} />
-          </Box>
+          <Box twClassName="flex-row items-center gap-1">{menuButton}</Box>
         )
       }
     />

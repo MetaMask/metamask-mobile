@@ -46,14 +46,32 @@ export interface GlassSurfaceProps extends ViewProps {
    * lighter than the sheen, so the sheen cannot sit behind it.
    */
   hasSheen?: boolean;
+  isGlass?: boolean;
 }
 
-/**
- * An iOS 26 Liquid Glass surface with a hairline border. Callers decide when
- * glass applies (see `useLiquidGlass`) and keep their opaque surface
- * otherwise. `style` lays out the content on the glass.
- */
-const GlassSurface = ({
+type SurfaceProps = Omit<GlassSurfaceProps, 'isGlass'>;
+
+const OpaqueSurface = ({
+  radiusClassName,
+  containerStyle,
+  isInteractive: _isInteractive,
+  hasSheen: _hasSheen,
+  style,
+  children,
+  ...props
+}: SurfaceProps) => {
+  const tw = useTailwind();
+  return (
+    <View
+      style={[tw.style('bg-muted', radiusClassName), containerStyle, style]}
+      {...props}
+    >
+      {children}
+    </View>
+  );
+};
+
+const LiquidGlassSurface = ({
   radiusClassName,
   containerStyle,
   isInteractive = false,
@@ -61,7 +79,7 @@ const GlassSurface = ({
   style,
   children,
   ...props
-}: GlassSurfaceProps) => {
+}: SurfaceProps) => {
   const tw = useTailwind();
   const { colors, themeAppearance } = useTheme();
   const { glassColorScheme } = useLiquidGlass();
@@ -128,5 +146,12 @@ const GlassSurface = ({
     </View>
   );
 };
+
+/**
+ * An iOS 26 Liquid Glass surface with a hairline border, or the opaque muted
+ * surface when `isGlass` is false. `style` lays out the content on it.
+ */
+const GlassSurface = ({ isGlass = true, ...props }: GlassSurfaceProps) =>
+  isGlass ? <LiquidGlassSurface {...props} /> : <OpaqueSurface {...props} />;
 
 export default GlassSurface;
