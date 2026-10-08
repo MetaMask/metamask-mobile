@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Image, ActivityIndicator } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { Image } from 'react-native';
 import {
   StackActions,
   useNavigation,
@@ -11,13 +11,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
-  TextField,
   TextVariant,
   ButtonVariant,
-  IconSize,
-  Icon,
-  IconName,
-  IconColor,
 } from '@metamask/design-system-react-native';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { setCandidateSubscriptionId } from '../../../../../actions/rewards';
@@ -28,16 +23,11 @@ import {
   selectOptinAllowedForGeoLoading,
   selectCandidateSubscriptionId,
   selectOptinAllowedForGeoError,
-  selectOnboardingReferralCode,
 } from '../../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { strings } from '../../../../../../locales/i18n';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useOptin } from '../../hooks/useOptIn';
-import {
-  REFERRAL_CODE_MIN_LENGTH,
-  useValidateReferralCode,
-} from '../../hooks/useValidateReferralCode';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { isHardwareAccount } from '../../../../../util/address';
 import Engine from '../../../../../core/Engine';
@@ -48,8 +38,6 @@ import storageWrapper from '../../../../../store/storage-wrapper';
 import OnboardingStepComponent from './OnboardingStep';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsLegalDisclaimer from './RewardsLegalDisclaimer';
-import RewardsVipReferralTag from '../RewardsVipReferralTag/RewardsVipReferralTag';
-import { selectVipProgramEnabled } from '../../../../../selectors/featureFlagController/vipProgram';
 
 const OnboardingMainStep: React.FC = () => {
   const tw = useTailwind();
@@ -67,31 +55,9 @@ const OnboardingMainStep: React.FC = () => {
   const optinAllowedForGeoError = useSelector(selectOptinAllowedForGeoError);
   const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const onboardingReferralCode = useSelector(selectOnboardingReferralCode);
-  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
 
   // Opt-in hook
   const { optin, optinError, optinLoading } = useOptin();
-
-  // Referral code
-  const {
-    referralCode,
-    setReferralCode: handleReferralCodeChange,
-    isValidating: isValidatingReferralCode,
-    isValid: referralCodeIsValid,
-    isUnknownError: isUnknownErrorReferralCode,
-    isVipReferralCode,
-  } = useValidateReferralCode(
-    onboardingReferralCode
-      ? onboardingReferralCode.trim().toUpperCase()
-      : undefined,
-  );
-
-  const isPrefilledReferral = Boolean(onboardingReferralCode);
-  const [showReferralInput, setShowReferralInput] =
-    useState(isPrefilledReferral);
-  const referralCodeReadyForValidation =
-    referralCode.length >= REFERRAL_CODE_MIN_LENGTH;
 
   // Candidate subscription ID state
   const candidateSubscriptionIdLoading =
@@ -229,12 +195,8 @@ const OnboardingMainStep: React.FC = () => {
     if (!canContinue()) {
       return;
     }
-    optin({
-      referralCode,
-      isPrefilled: isPrefilledReferral,
-      bulkLink: true,
-    });
-  }, [optin, canContinue, referralCode, isPrefilledReferral]);
+    optin({ bulkLink: true });
+  }, [optin, canContinue]);
 
   // Post-opt-in: replace onboarding with dashboard so back does not return here.
   // RewardsHome registers both screens in the same stack; dashboard screen options
@@ -281,42 +243,6 @@ const OnboardingMainStep: React.FC = () => {
     return <Skeleton width="100%" height="100%" />;
   }
 
-  const renderReferralIcon = () => {
-    if (isValidatingReferralCode) {
-      return <ActivityIndicator />;
-    }
-    if (referralCodeIsValid) {
-      // A VIP referral code shows the gold VIP tag instead of the success
-      // checkmark — never both. Gated on the VIP program flag so a stale
-      // `isVipReferralCode` (validated before the flag was turned off) can't
-      // leak the pill onto onboarding.
-      if (isVipProgramEnabled && isVipReferralCode) {
-        return <RewardsVipReferralTag />;
-      }
-      return (
-        <Icon
-          name={IconName.Confirmation}
-          size={IconSize.Lg}
-          color={IconColor.SuccessDefault}
-        />
-      );
-    }
-    if (
-      referralCodeReadyForValidation &&
-      !isValidatingReferralCode &&
-      !referralCodeIsValid
-    ) {
-      return (
-        <Icon
-          name={IconName.Error}
-          size={IconSize.Lg}
-          color={IconColor.ErrorDefault}
-        />
-      );
-    }
-    return null;
-  };
-
   const renderStepImage = () => (
     <Image
       source={step1Img}
@@ -350,66 +276,6 @@ const OnboardingMainStep: React.FC = () => {
     </Box>
   );
 
-  const renderAboveCTA = () =>
-    showReferralInput ? (
-      <Box twClassName="w-full gap-2">
-        <Box twClassName="gap-1">
-          <TextField
-            placeholder={strings('rewards.onboarding.referral_placeholder')}
-            value={referralCode}
-            onChangeText={handleReferralCodeChange}
-            isDisabled={optinLoading}
-            endAccessory={renderReferralIcon()}
-            isError={
-              referralCodeReadyForValidation &&
-              !referralCodeIsValid &&
-              !isValidatingReferralCode &&
-              !isUnknownErrorReferralCode
-            }
-            inputProps={{
-              autoCapitalize: 'characters',
-              testID: 'referral-input',
-            }}
-          />
-          {referralCodeReadyForValidation &&
-            !referralCodeIsValid &&
-            !isValidatingReferralCode &&
-            !isUnknownErrorReferralCode && (
-              <Text twClassName="text-error-default">
-                {strings('rewards.onboarding.step4_referral_input_error')}
-              </Text>
-            )}
-        </Box>
-
-        {isUnknownErrorReferralCode && (
-          <RewardsErrorBanner
-            title={strings('rewards.referral_validation_unknown_error.title')}
-            description={strings(
-              'rewards.referral_validation_unknown_error.description',
-            )}
-          />
-        )}
-      </Box>
-    ) : null;
-
-  const renderBelowCTA = () => (
-    <Text
-      variant={TextVariant.BodyMd}
-      twClassName="text-text-alternative"
-      onPress={() => {
-        if (showReferralInput) {
-          handleReferralCodeChange('');
-        }
-        setShowReferralInput(!showReferralInput);
-      }}
-      testID="referral-prompt"
-    >
-      {showReferralInput
-        ? strings('rewards.onboarding.referral_hide')
-        : strings('rewards.onboarding.referral_prompt')}
-    </Text>
-  );
-
   const renderLegalDisclaimer = () => (
     <Box twClassName="w-full">
       <RewardsLegalDisclaimer
@@ -422,26 +288,15 @@ const OnboardingMainStep: React.FC = () => {
   );
 
   const geoLoading = optinAllowedForGeoLoading;
-  const isLoading = optinLoading || geoLoading || isValidatingReferralCode;
+  const isLoading = optinLoading || geoLoading;
   let onNextLoadingText = '';
   if (isLoading) {
-    if (optinLoading) {
-      onNextLoadingText = strings('rewards.onboarding.sign_up_loading');
-    } else if (isValidatingReferralCode) {
-      onNextLoadingText = strings(
-        'rewards.onboarding.step4_title_referral_validating',
-      );
-    } else {
-      onNextLoadingText = strings(
-        'rewards.onboarding.intro_confirm_geo_loading',
-      );
-    }
+    onNextLoadingText = optinLoading
+      ? strings('rewards.onboarding.sign_up_loading')
+      : strings('rewards.onboarding.intro_confirm_geo_loading');
   }
 
-  const onNextDisabled =
-    (!referralCodeIsValid && !!referralCode) ||
-    !!subscriptionId ||
-    isUnknownErrorReferralCode;
+  const onNextDisabled = !!subscriptionId;
 
   return (
     <OnboardingStepComponent
@@ -453,8 +308,6 @@ const OnboardingMainStep: React.FC = () => {
       nextButtonText={strings('rewards.onboarding.sign_up')}
       renderStepImage={renderStepImage}
       renderStepInfo={renderStepInfo}
-      renderAboveCTA={renderAboveCTA}
-      renderBelowCTA={renderBelowCTA}
       renderLegalDisclaimer={renderLegalDisclaimer}
       disableSwipe
       showProgressIndicator={false}
