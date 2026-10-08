@@ -319,7 +319,8 @@ const extractRewardsProperties = (
   _urlParams: UrlParamValues,
   _sensitiveProps: Record<string, string>,
 ): void => {
-  // Rewards route has no sensitive properties.
+  // REWARDS route may have referral or other non-sensitive parameters
+  // Currently no specific properties to extract
 };
 
 /**
