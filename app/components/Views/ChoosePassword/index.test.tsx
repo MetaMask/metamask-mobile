@@ -30,13 +30,13 @@ import type { ReduxStore } from '../../../core/redux/types';
 import { InteractionManager, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
-import { passwordRequirementsMet } from '../../../util/password';
+import { passwordPolicyMet } from '../../../util/password';
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 
 jest.mock('../../../util/password', () => ({
   ...jest.requireActual('../../../util/password'),
-  passwordRequirementsMet: jest.fn(
-    jest.requireActual('../../../util/password').passwordRequirementsMet,
+  passwordPolicyMet: jest.fn(
+    jest.requireActual('../../../util/password').passwordPolicyMet,
   ),
 }));
 
@@ -599,9 +599,7 @@ describe('ChoosePassword', () => {
     it('helper text is always visible below the password field', async () => {
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
-      const helperText = strings('choose_password.must_be_at_least', {
-        number: 8,
-      });
+      const helperText = strings('choose_password.password_policy_hint');
 
       expect(component.getByText(helperText)).toBeOnTheScreen();
 
@@ -630,9 +628,7 @@ describe('ChoosePassword', () => {
       });
 
       expect(
-        component.getByText(
-          strings('choose_password.must_be_at_least', { number: 8 }),
-        ),
+        component.getByText(strings('choose_password.password_policy_hint')),
       ).toBeOnTheScreen();
     });
 
@@ -650,9 +646,7 @@ describe('ChoosePassword', () => {
       });
 
       expect(
-        component.getByText(
-          strings('choose_password.must_be_at_least', { number: 8 }),
-        ),
+        component.getByText(strings('choose_password.password_policy_hint')),
       ).toBeOnTheScreen();
     });
 
@@ -761,10 +755,10 @@ describe('ChoosePassword', () => {
     });
 
     it('tracks WALLET_SETUP_FAILURE event when password is too short', async () => {
-      // Mock passwordRequirementsMet to return false so the failure tracking
-      // fires even with a valid-length password (required to keep the submit
+      // Mock passwordPolicyMet to return false so the failure tracking
+      // fires even with a valid password (required to keep the submit
       // button enabled while still triggering the validation branch).
-      jest.mocked(passwordRequirementsMet).mockReturnValueOnce(false);
+      jest.mocked(passwordPolicyMet).mockReturnValueOnce(false);
 
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();

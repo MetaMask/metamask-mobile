@@ -2,6 +2,7 @@ import {
   doesPasswordMatch,
   getPasswordStrengthWord,
   MIN_PASSWORD_LENGTH,
+  passwordPolicyMet,
   passwordRequirementsMet,
   shouldShowPasswordMismatchError,
 } from '.';
@@ -85,14 +86,38 @@ describe('doesPasswordMatch', () => {
 });
 
 describe('passwordRequirementsMet', () => {
-  it('should pass when password is 8 in length', () => {
-    expect(passwordRequirementsMet('lolololo')).toEqual(true);
+  it('passes when the password meets the minimum length', () => {
+    expect(passwordRequirementsMet('a'.repeat(MIN_PASSWORD_LENGTH))).toEqual(
+      true,
+    );
   });
-  it('should pass when password is gt 8 in length', () => {
+  it('passes when the password is longer than the minimum', () => {
     expect(passwordRequirementsMet('lololololol')).toEqual(true);
   });
-  it('should fail when password is lt 8 in length', () => {
+  it('fails when the password is shorter than the minimum', () => {
     expect(passwordRequirementsMet('lol')).toEqual(false);
+  });
+});
+
+describe('passwordPolicyMet', () => {
+  it.each([
+    ['Abcdefg', 'uppercase and lowercase'],
+    ['abcdef1', 'lowercase and a number'],
+    ['ABCDEF!', 'uppercase and a special character'],
+    ['123456a', 'a number and lowercase'],
+  ])('passes %s (%s)', (password) => {
+    expect(passwordPolicyMet(password)).toBe(true);
+  });
+
+  it.each([
+    ['abcdefg', 'only lowercase'],
+    ['ABCDEFG', 'only uppercase'],
+    ['1234567', 'only numbers'],
+    ['!!!!!!!', 'only special characters'],
+    ['Ab1', 'too short'],
+    ['', 'empty'],
+  ])('fails %s (%s)', (password) => {
+    expect(passwordPolicyMet(password)).toBe(false);
   });
 });
 

@@ -20,7 +20,6 @@ import { Authentication } from '../../../core';
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import { PasswordResetWarningSheetSelectorsIDs } from '../shared/PasswordResetWarningSheet/PasswordResetWarningSheet.testIds';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { Alert, InteractionManager } from 'react-native';
@@ -1800,11 +1799,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         expect(
-          getByText(
-            strings('choose_password.must_be_at_least', {
-              number: MIN_PASSWORD_LENGTH,
-            }),
-          ),
+          getByText(strings('choose_password.password_policy_hint')),
         ).toBeOnTheScreen();
       });
     });
@@ -1819,11 +1814,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       // Verify helper text is visible initially
       await waitFor(() => {
         expect(
-          getByText(
-            strings('choose_password.must_be_at_least', {
-              number: MIN_PASSWORD_LENGTH,
-            }),
-          ),
+          getByText(strings('choose_password.password_policy_hint')),
         ).toBeOnTheScreen();
       });
 
@@ -1835,11 +1826,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       // Helper text should persist even after password meets requirement
       await waitFor(() => {
         expect(
-          getByText(
-            strings('choose_password.must_be_at_least', {
-              number: MIN_PASSWORD_LENGTH,
-            }),
-          ),
+          getByText(strings('choose_password.password_policy_hint')),
         ).toBeOnTheScreen();
       });
     });
@@ -1859,11 +1846,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       // Helper text should still be visible
       await waitFor(() => {
         expect(
-          getByText(
-            strings('choose_password.must_be_at_least', {
-              number: MIN_PASSWORD_LENGTH,
-            }),
-          ),
+          getByText(strings('choose_password.password_policy_hint')),
         ).toBeOnTheScreen();
       });
 
@@ -1875,11 +1858,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       // Helper text should still be visible after blur
       await waitFor(() => {
         expect(
-          getByText(
-            strings('choose_password.must_be_at_least', {
-              number: MIN_PASSWORD_LENGTH,
-            }),
-          ),
+          getByText(strings('choose_password.password_policy_hint')),
         ).toBeOnTheScreen();
       });
     });
@@ -1905,11 +1884,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       // Helper text should still be visible but error state should be reset
       await waitFor(() => {
         expect(
-          getByText(
-            strings('choose_password.must_be_at_least', {
-              number: MIN_PASSWORD_LENGTH,
-            }),
-          ),
+          getByText(strings('choose_password.password_policy_hint')),
         ).toBeOnTheScreen();
       });
     });
@@ -2063,10 +2038,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
     it('tracks setup failure when password does not meet requirements', async () => {
       const passwordUtils = jest.requireActual('../../../util/password') as {
-        passwordRequirementsMet: (password: string) => boolean;
+        passwordPolicyMet: (password: string) => boolean;
       };
-      const passwordRequirementsMetSpy = jest
-        .spyOn(passwordUtils, 'passwordRequirementsMet')
+      const passwordPolicyMetSpy = jest
+        .spyOn(passwordUtils, 'passwordPolicyMet')
         .mockReturnValue(false);
 
       const { getByTestId } = await renderCreatePasswordUI();
@@ -2094,7 +2069,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
 
       expect(newWalletAndRestoreSpy).not.toHaveBeenCalled();
-      passwordRequirementsMetSpy.mockRestore();
+      passwordPolicyMetSpy.mockRestore();
     });
 
     it('tracks setup failure when imported seed phrase is invalid', async () => {

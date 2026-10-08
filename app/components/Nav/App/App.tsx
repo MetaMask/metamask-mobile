@@ -22,6 +22,7 @@ import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } fr
 import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
 import { withRouteMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 import DeleteWalletModal from '../../UI/DeleteWalletModal';
+import WalletLockoutModal from '../../UI/WalletLockoutModal';
 import Main from '../Main';
 import ReviewModal from '../../UI/ReviewModal';
 import OptinMetrics from '../../UI/OptinMetrics';
@@ -535,6 +536,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.MODAL.DELETE_WALLET}
       component={DeleteWalletModal}
+    />
+    <NativeStack.Screen
+      name={Routes.MODAL.WALLET_LOCKOUT}
+      component={WalletLockoutModal}
     />
     <NativeStack.Screen
       name={Routes.MODAL.MODAL_CONFIRMATION}

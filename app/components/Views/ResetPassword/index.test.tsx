@@ -42,15 +42,15 @@ import {
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import { PASSCODE_DISABLED } from '../../../constants/storage';
-import { passwordRequirementsMet } from '../../../util/password';
+import { passwordPolicyMet } from '../../../util/password';
 import Logger from '../../../util/Logger';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
 jest.mock('../../../util/password', () => ({
   ...jest.requireActual('../../../util/password'),
-  passwordRequirementsMet: jest.fn(
-    jest.requireActual('../../../util/password').passwordRequirementsMet,
+  passwordPolicyMet: jest.fn(
+    jest.requireActual('../../../util/password').passwordPolicyMet,
   ),
 }));
 
@@ -399,6 +399,11 @@ describe('ResetPassword', () => {
     mockExportSeedPhrase.mockClear();
     mockTrackEvent.mockClear();
     mockNavigation.push.mockClear();
+    jest
+      .mocked(passwordPolicyMet)
+      .mockImplementation(
+        jest.requireActual('../../../util/password').passwordPolicyMet,
+      );
   });
 
   describe('confirm current password view', () => {
@@ -529,7 +534,7 @@ describe('ResetPassword', () => {
   });
 
   describe('reset password form', () => {
-    it('shows password length error for short passwords after blur', async () => {
+    it('shows the password policy hint for a password that misses a character class', async () => {
       const component = await navigateToResetForm();
 
       const newPasswordInput = component.getByTestId(
@@ -541,13 +546,11 @@ describe('ResetPassword', () => {
       });
 
       expect(
-        component.getByText(
-          strings('reset_password.must_be_at_least', { number: 8 }),
-        ),
+        component.getByText(strings('choose_password.password_policy_hint')),
       ).toBeOnTheScreen();
     });
 
-    it('hides password length helper when password meets minimum length', async () => {
+    it('hides the password policy hint when the password meets the policy', async () => {
       const component = await navigateToResetForm();
 
       const newPasswordInput = component.getByTestId(
@@ -555,13 +558,11 @@ describe('ResetPassword', () => {
       );
 
       await act(async () => {
-        fireEvent.changeText(newPasswordInput, '12345678');
+        fireEvent.changeText(newPasswordInput, 'Abcdef1');
       });
 
       expect(
-        component.queryByText(
-          strings('reset_password.must_be_at_least', { number: 8 }),
-        ),
+        component.queryByText(strings('choose_password.password_policy_hint')),
       ).toBeNull();
     });
 
@@ -585,7 +586,7 @@ describe('ResetPassword', () => {
       });
 
       const helperText = component.getByText(
-        strings('reset_password.must_be_at_least', { number: 8 }),
+        strings('choose_password.password_policy_hint'),
       );
       expect(helperText).toBeOnTheScreen();
     });
@@ -1016,11 +1017,11 @@ describe('ResetPassword', () => {
       );
     });
 
-    it('shows alert when passwordRequirementsMet returns false on submit', async () => {
-      jest.mocked(passwordRequirementsMet).mockReturnValueOnce(false);
-
+    it('shows alert when passwordPolicyMet returns false on submit', async () => {
       const component = await navigateToResetForm(null);
       await fillResetForm(component);
+      jest.mocked(passwordPolicyMet).mockReturnValue(false);
+
       await submitResetForm(component);
 
       expect(Alert.alert).toHaveBeenCalledWith(

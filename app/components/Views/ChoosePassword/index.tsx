@@ -52,10 +52,7 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
-import {
-  passwordRequirementsMet,
-  MIN_PASSWORD_LENGTH,
-} from '../../../util/password';
+import { passwordPolicyMet } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   AccountType,
@@ -403,7 +400,7 @@ const ChoosePassword = () => {
 
     if (loading) return { valid: false, shouldTrack: false };
 
-    if (!passwordRequirementsMet(password)) {
+    if (!passwordPolicyMet(password)) {
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'import',
         error_type: strings('choose_password.password_length_error'),
@@ -814,8 +811,7 @@ const ChoosePassword = () => {
       return <OnboardingFoxLoader ref={foxRiveLoaderRef} />;
     }
 
-    const isPasswordInvalid =
-      hasSubmitted && !passwordRequirementsMet(password);
+    const isPasswordInvalid = hasSubmitted && !passwordPolicyMet(password);
     const isConfirmPasswordInvalid =
       hasSubmitted && (confirmPassword === '' || password !== confirmPassword);
 
@@ -909,9 +905,7 @@ const ChoosePassword = () => {
                   isPasswordInvalid ? HelpTextSeverity.Danger : undefined
                 }
               >
-                {strings('choose_password.must_be_at_least', {
-                  number: MIN_PASSWORD_LENGTH,
-                })}
+                {strings('choose_password.password_policy_hint')}
               </HelpText>
             </Box>
 

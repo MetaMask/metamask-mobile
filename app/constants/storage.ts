@@ -7,6 +7,7 @@ export const MIGRATION_ERROR_HAPPENED = `${prefix}migrationErrorHappened`;
 export const BIOMETRY_CHOICE_DISABLED = `${prefix}biometryChoiceDisabled`;
 
 export const PASSCODE_DISABLED = `${prefix}passcodeDisabled`;
+export const FAILED_UNLOCK_ATTEMPTS = `${prefix}failedUnlockAttempts`;
 
 // Legacy MetaMetrics and new AnalyticsController related keys
 export const PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME = `${prefix}previousAuthTypeBeforeRememberMe`;

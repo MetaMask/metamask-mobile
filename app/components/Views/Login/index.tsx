@@ -100,6 +100,13 @@ import {
   startUnlockTraces,
   type UnlockTraceTokens,
 } from '../../../core/Performance/unlockTraces';
+import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
+import {
+  isUnlockLockedOut,
+  MAX_FAILED_UNLOCK_ATTEMPTS,
+  recordFailedUnlockAttempt,
+  resetFailedUnlockAttempts,
+} from '../../../core/Authentication/unlockAttempts';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import {
   getLoginUnlockFailureErrorType,
@@ -172,6 +179,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const isLocked = Boolean(route.params?.locked);
   const loginPerformanceTags = useRef(getLoginPerformanceTags(isLocked));
 
+  const openLockoutSheet = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.WALLET_LOCKOUT,
+    });
+  }, [navigation]);
+
   useEffect(() => {
     trace({
       name: TraceName.LoginUserInteraction,
@@ -180,6 +193,18 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     });
     trackOnboarding(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, saveOnboardingEvent);
   }, [saveOnboardingEvent]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void isUnlockLockedOut().then((lockedOut) => {
+      if (!cancelled && lockedOut) {
+        openLockoutSheet();
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [openLockoutSheet]);
 
   const handleStartFoxAnimation = useCallback(() => {
     setStartFoxAnimation('Start');
@@ -265,11 +290,24 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   }, [password, navigation]);
 
-  const handlePasswordError = useCallback((loginErrorMessage: string) => {
-    setLoading(false);
-    setError(strings('login.invalid_password'));
-    void trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
-  }, []);
+  const handlePasswordError = useCallback(
+    async (loginErrorMessage: string) => {
+      setLoading(false);
+      void trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
+      const attempts = await recordFailedUnlockAttempt();
+      if (attempts >= MAX_FAILED_UNLOCK_ATTEMPTS) {
+        openLockoutSheet();
+        return;
+      }
+      const remaining = MAX_FAILED_UNLOCK_ATTEMPTS - attempts;
+      setError(
+        strings('login.invalid_password_attempts_remaining', {
+          count: remaining,
+        }),
+      );
+    },
+    [openLockoutSheet],
+  );
 
   const handleLoginError = useCallback(
     async (loginError: Error, unlockType: UnlockType) => {
@@ -282,13 +320,24 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         saveOnboardingEvent,
       });
 
+      if (
+        containsErrorMessage(
+          loginError,
+          UNLOCK_WALLET_ERROR_MESSAGES.WALLET_LOCKED_OUT,
+        )
+      ) {
+        setLoading(false);
+        openLockoutSheet();
+        return;
+      }
+
       const isWrongPasswordError =
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR) ||
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID) ||
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID_2);
 
       if (isWrongPasswordError) {
-        handlePasswordError(loginErrorMessage);
+        await handlePasswordError(loginErrorMessage);
         return;
       }
 
@@ -346,6 +395,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       handlePasswordError,
       handleVaultCorruption,
       navigation,
+      openLockoutSheet,
       saveOnboardingEvent,
     ],
   );
@@ -382,6 +432,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               captureSentryError: true,
             });
           await unlockWallet({ password });
+          await resetFailedUnlockAttempts();
           lastSubmittedPasswordRef.current = '';
           if (isSeedlessPasswordOutdated) {
             const authData = await getAuthType();
@@ -450,6 +501,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
         async () => {
           await unlockWallet();
+          await resetFailedUnlockAttempts();
         },
       );
       trackAppUnlocked({

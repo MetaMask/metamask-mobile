@@ -72,10 +72,23 @@ const mockReauthenticate = jest.fn();
 const mockRevealSRP = jest.fn();
 const mockRevealPrivateKey = jest.fn();
 const mockCheckIsSeedlessPasswordOutdated = jest.fn().mockResolvedValue(false);
+const mockIsUnlockLockedOut = jest.fn().mockResolvedValue(false);
+const mockRecordFailedUnlockAttempt = jest.fn().mockResolvedValue(1);
+const mockResetFailedUnlockAttempts = jest.fn().mockResolvedValue(undefined);
 const mockUpdateAuthPreference = jest.fn();
 
 jest.mock('../../../util/Logger');
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
+
+jest.mock('../../../core/Authentication/unlockAttempts', () => ({
+  MAX_FAILED_UNLOCK_ATTEMPTS: 5,
+  isUnlockLockedOut: (...args: unknown[]) => mockIsUnlockLockedOut(...args),
+  recordFailedUnlockAttempt: (...args: unknown[]) =>
+    mockRecordFailedUnlockAttempt(...args),
+  resetFailedUnlockAttempts: (...args: unknown[]) =>
+    mockResetFailedUnlockAttempts(...args),
+  getFailedUnlockAttempts: jest.fn(),
+}));
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -384,6 +397,9 @@ describe('Login', () => {
     mockEndTrace.mockClear();
     mockBackHandlerAddEventListener.mockClear();
     mockTrackOnboarding.mockClear();
+    mockIsUnlockLockedOut.mockResolvedValue(false);
+    mockRecordFailedUnlockAttempt.mockResolvedValue(1);
+    mockResetFailedUnlockAttempts.mockResolvedValue(undefined);
 
     BackHandler.addEventListener = mockBackHandlerAddEventListener;
 
@@ -590,9 +606,32 @@ describe('Login', () => {
         'Android Provider routines bad decrypt',
       ],
       ['error in DoCipher, status: 2', 'Android DoCipher'],
-      ['Incorrect password. Try again.', 'incorrect password'],
-    ])('displays invalid password error for %s', async (errorMessage) => {
-      mockUnlockWallet.mockRejectedValueOnce(new Error(errorMessage));
+    ])(
+      'shows attempts remaining for a wrong password (%s)',
+      async (errorMessage) => {
+        mockUnlockWallet.mockRejectedValueOnce(new Error(errorMessage));
+        const { getByTestId } = renderWithProvider(<Login />);
+        const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+        await act(async () => {
+          fireEvent.changeText(passwordInput, 'valid-password123');
+        });
+        await act(async () => {
+          fireEvent(passwordInput, 'submitEditing');
+        });
+
+        const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+        expect(errorElement).toBeOnTheScreen();
+        expect(errorElement.props.children).toEqual(
+          strings('login.invalid_password_attempts_remaining', { count: 4 }),
+        );
+      },
+    );
+
+    it('displays the error message when it is not a wrong-password failure', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(
+        new Error('Incorrect password. Try again.'),
+      );
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
 
@@ -604,10 +643,10 @@ describe('Login', () => {
       });
 
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
-      expect(errorElement).toBeOnTheScreen();
       expect(errorElement.props.children).toEqual(
-        strings('login.invalid_password'),
+        'Incorrect password. Try again.',
       );
+      expect(mockRecordFailedUnlockAttempt).not.toHaveBeenCalled();
     });
 
     it('displays generic error message for unexpected errors', async () => {
@@ -649,6 +688,80 @@ describe('Login', () => {
 
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.REHYDRATE, {
         isSeedlessPasswordOutdated: true,
+      });
+    });
+
+    it('opens the lockout sheet on the fifth failed password', async () => {
+      mockRecordFailedUnlockAttempt.mockResolvedValueOnce(5);
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          { screen: Routes.MODAL.WALLET_LOCKOUT },
+        );
+      });
+    });
+
+    it('opens the lockout sheet on mount when the wallet is already locked out', async () => {
+      mockIsUnlockLockedOut.mockResolvedValue(true);
+
+      renderWithProvider(<Login />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          { screen: Routes.MODAL.WALLET_LOCKOUT },
+        );
+      });
+    });
+
+    it('opens the lockout sheet when unlock reports the wallet is locked out', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(
+        new Error(UNLOCK_WALLET_ERROR_MESSAGES.WALLET_LOCKED_OUT),
+      );
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          { screen: Routes.MODAL.WALLET_LOCKOUT },
+        );
+      });
+      expect(mockRecordFailedUnlockAttempt).not.toHaveBeenCalled();
+    });
+
+    it('resets the failed-attempt counter after a successful unlock', async () => {
+      mockUnlockWallet.mockResolvedValueOnce(undefined);
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      await waitFor(() => {
+        expect(mockResetFailedUnlockAttempts).toHaveBeenCalledTimes(1);
       });
     });
   });

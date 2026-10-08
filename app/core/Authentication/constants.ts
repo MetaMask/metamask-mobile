@@ -17,6 +17,7 @@ export const UNLOCK_WALLET_ERROR_MESSAGES = {
   PREVIOUS_VAULT_NOT_FOUND: 'Cannot unlock without a previous vault.',
   JSON_PARSE_ERROR: 'JSON Parse error',
   PASSWORD_REQUIREMENTS_NOT_MET: 'Password requirements not met',
+  WALLET_LOCKED_OUT: 'Wallet locked out',
 
   // Android : Error when user add/remove biometric ( fingerprint/face id )
   USER_NOT_AUTHENTICATED: 'User not authenticated',

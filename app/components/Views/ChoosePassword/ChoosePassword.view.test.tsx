@@ -126,11 +126,7 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
       fireEvent.press(submitButton);
 
       expect(
-        await findByText(
-          strings('choose_password.must_be_at_least', {
-            number: MIN_PASSWORD_LENGTH,
-          }),
-        ),
+        await findByText(strings('choose_password.password_policy_hint')),
       ).toBeOnTheScreen();
     },
   );

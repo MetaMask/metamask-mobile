@@ -2,7 +2,9 @@ import SecureKeychain from '../../core/SecureKeychain';
 import Engine from '../../core/Engine';
 import { UNRECOGNIZED_PASSWORD_STRENGTH } from '../../constants/error';
 
-export const MIN_PASSWORD_LENGTH = 8;
+export const MIN_PASSWORD_LENGTH = 7;
+
+const PASSWORD_CHARACTER_CLASSES = [/[A-Z]/u, /[a-z]/u, /\d/u, /[^A-Za-z0-9]/u];
 
 /**
  * Whether to show the inline "passwords don't match" error.
@@ -35,6 +37,20 @@ export const getPasswordStrengthWord = (strength: number) => {
 
 export const passwordRequirementsMet = (password: string) =>
   password.length >= MIN_PASSWORD_LENGTH;
+
+/**
+ * Creation-time password policy: at least {@link MIN_PASSWORD_LENGTH} characters
+ * and at least two of uppercase, lowercase, digits, and special characters.
+ */
+export const passwordPolicyMet = (password: string): boolean => {
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return false;
+  }
+  const classesUsed = PASSWORD_CHARACTER_CLASSES.filter((pattern) =>
+    pattern.test(password),
+  ).length;
+  return classesUsed >= 2;
+};
 
 interface PasswordValidationResponse {
   valid: boolean;
