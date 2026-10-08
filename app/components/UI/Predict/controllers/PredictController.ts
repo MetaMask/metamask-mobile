@@ -684,22 +684,41 @@ export class PredictController extends BaseController<
   /**
    * Adds the current fee policy to provider parameters when a waiver is
    * available. A previously attached policy is removed before revalidation so
-   * stale previews cannot carry a fee waiver into submission.
+   * stale previews cannot carry a fee waiver into submission. Membership
+   * previews retain their standard fees in `originalFees`; restore those fees
+   * when the policy is no longer available so standard submissions use the
+   * correct Permit2 amount.
    *
    * @param params - Provider parameters that may contain a previous policy.
    * @returns Provider parameters with the current waiver policy, if any.
    */
   private async withPredictFeePolicy<
-    T extends { feePolicy?: PredictFeePolicy },
+    T extends {
+      feePolicy?: PredictFeePolicy;
+      fees?: OrderPreview['fees'];
+      originalFees?: OrderPreview['originalFees'];
+    },
   >(params: T): Promise<T> {
+    const previousFeePolicy = params.feePolicy;
     const paramsWithFeePolicy = { ...params };
     delete paramsWithFeePolicy.feePolicy;
 
     const feePolicy = await this.getPredictFeePolicy();
 
-    return feePolicy
-      ? { ...paramsWithFeePolicy, feePolicy }
-      : paramsWithFeePolicy;
+    if (!feePolicy) {
+      if (previousFeePolicy && params.originalFees) {
+        paramsWithFeePolicy.fees = params.originalFees;
+      } else if (previousFeePolicy) {
+        // Do not submit a stale waived fee when an older preview does not
+        // contain the standard fee snapshot needed to restore it.
+        delete paramsWithFeePolicy.fees;
+      }
+
+      delete paramsWithFeePolicy.originalFees;
+      return paramsWithFeePolicy;
+    }
+
+    return { ...paramsWithFeePolicy, feePolicy };
   }
 
   private getEvmAccountAddress(): string | undefined {

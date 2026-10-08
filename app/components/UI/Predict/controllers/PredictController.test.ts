@@ -1621,6 +1621,59 @@ describe('PredictController', () => {
       });
     });
 
+    it('restores standard fees when membership policy is unavailable at submission', async () => {
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.placeOrder.mockResolvedValue({
+            success: true as const,
+            response: {
+              id: 'order-123',
+              spentAmount: '100',
+              receivedAmount: '200',
+            },
+          });
+
+          const standardFees = {
+            metamaskFee: 0.2,
+            providerFee: 0.3,
+            totalFee: 0.5,
+            totalFeePercentage: 5,
+            collector: '0x1111111111111111111111111111111111111111',
+            executors: ['0x2222222222222222222222222222222222222222'],
+            permit2Enabled: true,
+          } as NonNullable<OrderPreview['fees']>;
+          const preview = createMockOrderPreview({
+            feePolicy: {
+              discountType: DiscountType.SUBSCRIPTION,
+              builderCode: 'predict-pro-builder',
+            },
+            fees: {
+              ...standardFees,
+              metamaskFee: 0,
+              totalFee: standardFees.providerFee,
+              totalFeePercentage: 3,
+            },
+            originalFees: standardFees,
+          });
+
+          await controller.placeOrder({ preview });
+
+          const submittedPreview =
+            mockPolymarketProvider.placeOrder.mock.calls[0][0].preview;
+          expect(submittedPreview.fees).toEqual(standardFees);
+          expect(submittedPreview.feePolicy).toBeUndefined();
+          expect(submittedPreview.originalFees).toBeUndefined();
+        },
+        {
+          mocks: {
+            getBenefits: jest
+              .fn()
+              .mockRejectedValue(new Error('Benefits unavailable')),
+          },
+        },
+      );
+    });
+
     it('retries a post-deposit order once after the first attempt fails', async () => {
       await withController(
         async ({ controller }) => {
