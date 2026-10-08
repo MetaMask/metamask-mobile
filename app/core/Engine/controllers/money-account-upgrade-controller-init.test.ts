@@ -11,36 +11,54 @@ import { moneyAccountUpgradeControllerInit } from './money-account-upgrade-contr
 
 jest.mock('@metamask/money-account-upgrade-controller');
 jest.mock('../../redux');
-jest.mock('../../Engine', () => ({ __esModule: true, default: { context: { NetworkController: { addNetwork: jest.fn() } } } }));
-jest.mock('../../../selectors/networkController', () => ({ selectEvmNetworkConfigurationsByChainId: jest.fn() }));
-jest.mock('../../../lib/Money/feature-flags', () => ({ isMoneyAccountEnabled: jest.fn() }));
+jest.mock('../../Engine', () => ({
+  __esModule: true,
+  default: { context: { NetworkController: { addNetwork: jest.fn() } } },
+}));
+jest.mock('../../../selectors/networkController', () => ({
+  selectEvmNetworkConfigurationsByChainId: jest.fn(),
+}));
+jest.mock('../../../lib/Money/feature-flags', () => ({
+  isMoneyAccountEnabled: jest.fn(),
+}));
 jest.mock('../../../util/Logger', () => ({ error: jest.fn() }));
 
 describe('moneyAccountUpgradeControllerInit', () => {
   it('constructs with v5 hooks and does not initialize', () => {
-    const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({ namespace: MOCK_ANY_NAMESPACE });
-    const controllerMessenger = getMoneyAccountUpgradeControllerMessenger(baseMessenger);
+    const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>(
+      { namespace: MOCK_ANY_NAMESPACE },
+    );
+    const controllerMessenger =
+      getMoneyAccountUpgradeControllerMessenger(baseMessenger);
     const controller = { init: jest.fn() };
-    jest.mocked(MoneyAccountUpgradeController).mockImplementation(() => controller as never);
+    jest
+      .mocked(MoneyAccountUpgradeController)
+      .mockImplementation(() => controller as never);
     jest.mocked(isMoneyAccountEnabled).mockReturnValue(true);
     jest.mocked(selectEvmNetworkConfigurationsByChainId).mockReturnValue({});
-    (ReduxService as unknown as { store: { getState: jest.Mock } }).store = { getState: jest.fn() };
+    (ReduxService as unknown as { store: { getState: jest.Mock } }).store = {
+      getState: jest.fn(),
+    };
 
     const request = {
       ...buildMessengerClientInitRequestMock(baseMessenger),
       controllerMessenger,
-      persistedState: { MoneyAccountUpgradeController: { upgradedAccounts: {} } },
+      persistedState: {
+        MoneyAccountUpgradeController: { upgradedAccounts: {} },
+      },
     };
     const result = moneyAccountUpgradeControllerInit(request);
 
     expect(result.controller).toBe(controller);
-    expect(MoneyAccountUpgradeController).toHaveBeenCalledWith(expect.objectContaining({
-      hooks: expect.objectContaining({
-        isEnabled: isMoneyAccountEnabled,
-        ensureChainConfigured: expect.any(Function),
-        onBootstrapError: expect.any(Function),
+    expect(MoneyAccountUpgradeController).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hooks: expect.objectContaining({
+          isEnabled: isMoneyAccountEnabled,
+          ensureChainConfigured: expect.any(Function),
+          onBootstrapError: expect.any(Function),
+        }),
       }),
-    }));
+    );
     expect(controller.init).not.toHaveBeenCalled();
   });
 });

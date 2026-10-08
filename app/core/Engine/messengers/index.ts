@@ -174,9 +174,7 @@ import {
   getChompApiServiceMessenger,
   getChompApiServiceInitMessenger,
 } from './chomp-api-service-messenger';
-import {
-  getMoneyAccountUpgradeControllerMessenger,
-} from './money-account-upgrade-controller-messenger';
+import { getMoneyAccountUpgradeControllerMessenger } from './money-account-upgrade-controller-messenger';
 
 /**
  * The messenger factories for the messenger clients that have been modularized.

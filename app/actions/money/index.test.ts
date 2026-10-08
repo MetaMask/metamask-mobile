@@ -35,7 +35,6 @@ jest.mock('../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
 }));
 
-
 const mockUpgradeAccount = Engine.context.MoneyAccountUpgradeController
   .upgradeAccount as jest.Mock;
 const mockSelectPrimaryMoneyAccount =

@@ -104,56 +104,55 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
   // aborted. Only a run that actually ended because of its abort hands
   // over to a queued takeover signal.
   let endedByAbort = false;
-  Promise.resolve().then(
-      async () => {
-        const { MoneyAccountUpgradeController } = Engine.context;
-        const accountKey = address.toLowerCase() as Hex;
-        const recordedBefore = Boolean(
-          MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
-        );
-        Logger.log(LOG_PREFIX, 'starting upgrade', {
-          address,
-          recordedBefore,
-        });
+  Promise.resolve()
+    .then(async () => {
+      const { MoneyAccountUpgradeController } = Engine.context;
+      const accountKey = address.toLowerCase() as Hex;
+      const recordedBefore = Boolean(
+        MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
+      );
+      Logger.log(LOG_PREFIX, 'starting upgrade', {
+        address,
+        recordedBefore,
+      });
 
-        await upgradeAccountWithRetry(
-          (upgradeAddress) =>
-            MoneyAccountUpgradeController.upgradeAccount(upgradeAddress),
-          address,
-          {
-            signal,
-            // Failures that end the run are reported by the catch below.
-            // Retried failures are reported here so they reach Sentry even
-            // when a later attempt succeeds — but capped per run, so a
-            // persistent outage cannot flood Sentry from the unbounded
-            // retry loop. Beyond the cap they are only logged locally.
-            onRetry: (error, attempt) => {
-              Logger.log(LOG_PREFIX, 'attempt failed; will retry', {
-                address,
+      await upgradeAccountWithRetry(
+        (upgradeAddress) =>
+          MoneyAccountUpgradeController.upgradeAccount(upgradeAddress),
+        address,
+        {
+          signal,
+          // Failures that end the run are reported by the catch below.
+          // Retried failures are reported here so they reach Sentry even
+          // when a later attempt succeeds — but capped per run, so a
+          // persistent outage cannot flood Sentry from the unbounded
+          // retry loop. Beyond the cap they are only logged locally.
+          onRetry: (error, attempt) => {
+            Logger.log(LOG_PREFIX, 'attempt failed; will retry', {
+              address,
+              attempt,
+            });
+            if (attempt <= MAX_REPORTED_RETRIED_FAILURES) {
+              reportUpgradeError(error, {
                 attempt,
+                willRetry: true,
+                ...(attempt === MAX_REPORTED_RETRIED_FAILURES
+                  ? { furtherRetryReportsSuppressed: true }
+                  : {}),
               });
-              if (attempt <= MAX_REPORTED_RETRIED_FAILURES) {
-                reportUpgradeError(error, {
-                  attempt,
-                  willRetry: true,
-                  ...(attempt === MAX_REPORTED_RETRIED_FAILURES
-                    ? { furtherRetryReportsSuppressed: true }
-                    : {}),
-                });
-              }
-            },
+            }
           },
-        );
+        },
+      );
 
-        Logger.log(LOG_PREFIX, 'upgrade succeeded', {
-          address,
-          recordedBefore,
-          durationMs: Date.now() - startedAt,
-          recorded:
-            MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
-        });
-      },
-    )
+      Logger.log(LOG_PREFIX, 'upgrade succeeded', {
+        address,
+        recordedBefore,
+        durationMs: Date.now() - startedAt,
+        recorded:
+          MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
+      });
+    })
     .catch((error: unknown) => {
       // Reached only for errors thrown by upgradeAccountWithRetry itself.
       // An aborted run (screen lost focus) is a normal way for the retry
