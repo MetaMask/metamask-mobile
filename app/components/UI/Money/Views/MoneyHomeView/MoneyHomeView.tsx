@@ -5,7 +5,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, type LayoutChangeEvent } from 'react-native';
+import { RefreshControl, View, type LayoutChangeEvent } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import ScrollEdgeFade from '../../../../../component-library/components-temp/ScrollEdgeFade';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Animated from 'react-native-reanimated';
@@ -464,7 +466,13 @@ const MoneyHomeView = () => {
     isEnabled: isBrandRefresh,
   });
 
-  const topInset = isNativeHeader ? 0 : insets.top;
+  const isFloatingHeader = isBrandRefresh && !isNativeHeader;
+  const tw = useTailwind();
+  const [floatingHeaderHeight, setFloatingHeaderHeight] = useState(
+    () => insets.top + Number(tw.style('h-14').height),
+  );
+  const floatingHeaderInset = isFloatingHeader ? floatingHeaderHeight : 0;
+  const topInset = isNativeHeader || isFloatingHeader ? 0 : insets.top;
 
   const handleTitleSectionLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -1025,7 +1033,22 @@ const MoneyHomeView = () => {
       twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      {!isNativeHeader && <MoneyHeader {...headerProps} />}
+      {isFloatingHeader ? (
+        <View
+          pointerEvents="box-none"
+          style={[
+            tw.style('absolute left-0 right-0 top-0 z-10'),
+            { paddingTop: insets.top },
+          ]}
+          testID={MoneyHomeViewTestIds.FLOATING_HEADER}
+          onLayout={(e) => setFloatingHeaderHeight(e.nativeEvent.layout.height)}
+        >
+          <ScrollEdgeFade />
+          <MoneyHeader {...headerProps} isCapsule />
+        </View>
+      ) : (
+        !isNativeHeader && <MoneyHeader {...headerProps} />
+      )}
       <Animated.ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
         contentInsetAdjustmentBehavior={
@@ -1033,7 +1056,10 @@ const MoneyHomeView = () => {
         }
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: 40 + floatingTabBarInset },
+          {
+            paddingTop: floatingHeaderInset,
+            paddingBottom: 40 + floatingTabBarInset,
+          },
         ]}
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
@@ -1044,6 +1070,7 @@ const MoneyHomeView = () => {
             onRefresh={handlePullRefresh}
             tintColor={colors.icon.default}
             colors={[colors.primary.default]}
+            progressViewOffset={floatingHeaderInset}
           />
         }
       >

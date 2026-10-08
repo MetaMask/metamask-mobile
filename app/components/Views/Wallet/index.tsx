@@ -29,9 +29,8 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import ScrollEdgeFade from '../../../component-library/components-temp/ScrollEdgeFade';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
 import { useSharedValue } from 'react-native-reanimated';
 import {
   SafeAreaView,
@@ -210,9 +209,6 @@ import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
 
-const HEADER_FADE_HEIGHT = 16;
-const HEADER_FADE_OPACITIES = [1, 0.7, 0.35, 0];
-const HEADER_FADE_LOCATIONS = [0, 0.3, 0.7, 1];
 // The floating header's account capsule (h-10) sits centred in its min-h-14
 // root, so the balance cap height lands the reference gap below the capsule.
 const FLOATING_HEADER_BALANCE_INSET = Math.round(
@@ -948,13 +944,6 @@ const Wallet = ({
   const [floatingHeaderHeight, setFloatingHeaderHeight] = useState(() =>
     Number(tw.style('h-14').height),
   );
-  const headerFadeColors = useMemo(
-    () =>
-      HEADER_FADE_OPACITIES.map((opacity) =>
-        colorWithOpacity(colors.background.default, opacity),
-      ),
-    [colors.background.default],
-  );
   const floatingHeaderInset = isFloatingJsHeader ? floatingHeaderHeight : 0;
   const viewportTopInset = nativeHeaderInset + floatingHeaderInset;
 
@@ -1381,15 +1370,7 @@ const Wallet = ({
                       setFloatingHeaderHeight(e.nativeEvent.layout.height)
                     }
                   >
-                    <LinearGradient
-                      pointerEvents="none"
-                      colors={headerFadeColors}
-                      locations={HEADER_FADE_LOCATIONS}
-                      style={[
-                        RNStyleSheet.absoluteFill,
-                        { bottom: -HEADER_FADE_HEIGHT },
-                      ]}
-                    />
+                    <ScrollEdgeFade />
                     {renderWalletHeader()}
                   </View>
                 )}
