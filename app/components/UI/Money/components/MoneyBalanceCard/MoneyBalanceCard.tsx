@@ -40,21 +40,17 @@ import GlassSurface from '../../../../../component-library/components-temp/Glass
 import ButtonGlass from '../../../../../component-library/components-temp/ButtonGlass';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import Logger from '../../../../../util/Logger';
 import {
   BOTTOM_SHEET_NAMES,
   SCREEN_NAMES,
   COMPONENT_NAMES,
-  MONEY_BUTTON_INTENTS,
-  MONEY_BUTTON_TYPES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
-import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
+import { useMoneyAddMoney } from '../../hooks/useMoneyAddMoney';
 
 export interface MoneyBalanceCardProps {
   isGlass?: boolean;
@@ -76,7 +72,6 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
   const { apyPercent, vaultApyQuery } = useMoneyVaultApy();
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
-  const { initiateDeposit } = useMoneyAccountDeposit();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const isOnboardingEnabled = useSelector(
     selectMoneyOnboardingStepperAnimationEnabled,
@@ -97,6 +92,9 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
   } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.WALLET_HOME,
     component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+  });
+  const { handleAddPress } = useMoneyAddMoney({
+    trackButtonClicked,
   });
 
   const isBalanceFetching = isBalanceFetchError && moneyBalanceQuery.isFetching;
@@ -190,55 +188,6 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
     navigateToGeoBlockSheet,
     navigateToMoneyHome,
     trackSurfaceClicked,
-  ]);
-
-  const handleAddPress = useCallback(async () => {
-    const redirectedToGeoBlock = !isMoneyAccountGeoEligible;
-    const redirectedToOnboarding =
-      !redirectedToGeoBlock && !hasSeenMoneyOnboarding && isOnboardingEnabled;
-
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: redirectedToOnboarding
-        ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
-        : MONEY_BUTTON_INTENTS.ADD_MONEY,
-      label_key: buttonLabelKey,
-      redirect_target: redirectedToGeoBlock
-        ? BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET
-        : redirectedToOnboarding
-          ? SCREEN_NAMES.MONEY_ONBOARDING
-          : SCREEN_NAMES.MONEY_DEPOSIT,
-    });
-
-    if (redirectedToGeoBlock) {
-      navigateToGeoBlockSheet();
-      return;
-    }
-
-    if (redirectedToOnboarding) {
-      navigation.navigate(Routes.MONEY.ONBOARDING, {
-        postOnboardingRedirect: {
-          type: MoneyPostOnboardingRedirectType.DEPOSIT,
-        },
-      });
-      return;
-    }
-
-    try {
-      await initiateDeposit();
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: '[MoneyBalanceCard] Failed to initiate deposit',
-      });
-    }
-  }, [
-    hasSeenMoneyOnboarding,
-    initiateDeposit,
-    isMoneyAccountGeoEligible,
-    isOnboardingEnabled,
-    navigation,
-    navigateToGeoBlockSheet,
-    trackButtonClicked,
   ]);
 
   const handleInfoPress = useCallback(() => {

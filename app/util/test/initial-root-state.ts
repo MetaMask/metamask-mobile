@@ -72,7 +72,6 @@ const initialRootState: RootState = {
   bridge: initialBridgeState,
   banners: {
     dismissedBanners: [],
-    lastDismissedBrazeBanner: null,
   },
   sampleCounter: initialSampleCounterState,
   card: initialCardState,

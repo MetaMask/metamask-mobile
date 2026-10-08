@@ -748,13 +748,12 @@ const Wallet = ({
     HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS,
     HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS,
   );
-
-  const balanceBreakdownLayout = isBalanceBreakdownExperimentActive
-    ? balanceBreakdownVariant.layout
-    : null;
+  const isBalanceBreakdownEnabled =
+    isBalanceBreakdownExperimentActive &&
+    balanceBreakdownVariant.showBalanceBreakdown;
   const balanceBreakdownTransactionActiveAbTests =
     getHomepageBalanceBreakdownTransactionActiveAbTests(
-      isBalanceBreakdownExperimentActive && balanceBreakdownLayout !== null,
+      isBalanceBreakdownEnabled,
       balanceBreakdownVariantName,
     );
 
@@ -1264,7 +1263,7 @@ const Wallet = ({
       </ButtonAnimated>
     ) : null;
 
-  const portfolioHeader = balanceBreakdownLayout ? (
+  const portfolioHeader = isBalanceBreakdownEnabled ? (
     <>
       {hasBannerContent ? (
         <View
@@ -1304,12 +1303,10 @@ const Wallet = ({
     </>
   );
 
-  const balanceBreakdownSectionProps = balanceBreakdownLayout
+  const balanceBreakdownSectionProps = isBalanceBreakdownEnabled
     ? {
         accountGroupBalanceProps: walletHomeAccountGroupBalanceProps,
         hideRows: inWalletHomePostOnboardingFlow,
-        layout: balanceBreakdownLayout,
-        showRowArrows: balanceBreakdownVariant.showRowArrows,
         transactionActiveAbTests: balanceBreakdownTransactionActiveAbTests,
         children: contentBeforeBalanceBreakdown,
       }
