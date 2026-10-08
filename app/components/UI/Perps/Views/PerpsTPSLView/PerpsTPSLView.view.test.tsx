@@ -177,4 +177,99 @@ describe('PerpsTPSLView', () => {
       ).toHaveTextContent('-');
     });
   });
+
+  describe('sheet variant', () => {
+    const position = {
+      ...defaultPositionForViews,
+      entryPrice: '2500',
+      liquidationPrice: '2100',
+    };
+
+    const renderSheet = (onConfirm = jest.fn().mockResolvedValue(undefined)) =>
+      renderPerpsTPSLView({
+        variant: 'sheet',
+        initialParams: {
+          asset: 'ETH',
+          currentPrice: '2500',
+          direction: 'long',
+          position,
+          initialTakeProfitPrice: '',
+          initialStopLossPrice: '',
+          leverage: 3,
+          orderType: 'market',
+          limitPrice: '',
+          amount: '1',
+          szDecimals: 2,
+          onConfirm,
+        },
+        // The form only submits against a position the live stream still holds.
+        streamOverrides: { positions: [position] },
+      });
+
+    it('renders only the Save action in the sheet header and footer', async () => {
+      renderSheet();
+
+      expect(
+        await screen.findByTestId(
+          PerpsTPSLViewSelectorsIDs.SET_BUTTON,
+          {},
+          { timeout: 10000 },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.CANCEL_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('sets a stop loss from the sheet', async () => {
+      const onConfirm = jest.fn().mockResolvedValue(undefined);
+      renderSheet(onConfirm);
+
+      fireEvent.changeText(
+        await screen.findByTestId(
+          PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
+          {},
+          { timeout: 10000 },
+        ),
+        '2300',
+      );
+      fireEvent.press(screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON));
+
+      await waitFor(() => {
+        expect(onConfirm).toHaveBeenCalledWith(
+          position,
+          undefined,
+          '2300',
+          expect.objectContaining({ direction: 'long' }),
+        );
+      });
+    });
+
+    it('shows the liquidation distance the control arm does not', async () => {
+      renderSheet();
+
+      expect(
+        await screen.findByTestId(
+          PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE,
+          {},
+          { timeout: 10000 },
+        ),
+      ).toBeOnTheScreen();
+
+      cleanup();
+      renderPerpsTPSLView({ initialParams: { position } });
+
+      await screen.findByTestId(
+        PerpsTPSLViewSelectorsIDs.SET_BUTTON,
+        {},
+        { timeout: 10000 },
+      );
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE),
+      ).toBeNull();
+    });
+  });
 });

@@ -1,66 +1,54 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import { Provider } from 'react-redux';
+import { fireEvent, render } from '@testing-library/react-native';
 import { configureStore } from '@reduxjs/toolkit';
-import MoneyActivityList from './MoneyActivityList';
+import { Provider } from 'react-redux';
+import {
+  CardProviderIds,
+  CardTransactionStatus,
+  CardTransactionType,
+  type CardTransaction,
+} from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { strings } from '../../../../../../locales/i18n';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
-import { onchainItem } from '../../types/moneyActivity';
 import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
+import { onchainItem } from '../../types/moneyActivity';
+import MoneyActivityRow from '../MoneyActivityRow/MoneyActivityRow';
+import { MoneySectionHeaderTestIds } from '../MoneySectionHeader/MoneySectionHeader.testIds';
+import MoneyActivityList from './MoneyActivityList';
 import { MoneyActivityListTestIds } from './MoneyActivityList.testIds';
-import { MoneyActivityItemTestIds } from '../MoneyActivityItem/MoneyActivityItem.testIds';
-
-const MOCK_ITEMS = MOCK_MONEY_TRANSACTIONS.map(onchainItem);
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectMoneyEnableActivityDetailsFlag: jest.fn(),
 }));
+jest.mock('../MoneyActivityRow/MoneyActivityRow', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
+}));
 
-const mockedSelectActivityDetailsFlag = jest.mocked(
+const mockSelectActivityDetailsFlag = jest.mocked(
   selectMoneyEnableActivityDetailsFlag,
 );
-
-jest.mock('../MoneyActivityItem/MoneyActivityItem', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  const mockRowPrefix = 'money-activity-item-row';
-  return {
-    __esModule: true,
-    default: ({
-      tx,
-      onPress,
-      privacyMode,
-    }: {
-      tx: { id: string; moneySubtitle?: string };
-      onPress?: (pressedTx: { id: string }) => void;
-      privacyMode?: boolean;
-    }) => (
-      <View
-        testID={`${mockRowPrefix}-${tx.id}`}
-        onPress={onPress ? () => onPress(tx) : undefined}
-      >
-        <Text>{tx.moneySubtitle ?? 'no-desc'}</Text>
-        <Text testID={`${mockRowPrefix}-${tx.id}-privacy-mode`}>
-          {String(privacyMode)}
-        </Text>
-      </View>
-    ),
-  };
-});
-
-jest.mock('../MoneySectionHeader', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ title, onPress }: { title: string; onPress?: () => void }) => (
-      <Text testID="section-header" onPress={onPress}>
-        {title}
-      </Text>
-    ),
-  };
-});
-
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
-}));
+const mockMoneyActivityRow = jest.mocked(MoneyActivityRow);
+const items = MOCK_MONEY_TRANSACTIONS.map(onchainItem);
+const cardEnrichment = {
+  id: 'card-transaction-1',
+  providerId: CardProviderIds.Baanx,
+  timestamp: 1747005600000,
+  status: CardTransactionStatus.Completed,
+  type: CardTransactionType.Purchase,
+  isDebit: true,
+  billingAmount: { value: '10.00', currency: 'USD' },
+  merchant: { name: 'Example Merchant' },
+  fundingSources: [
+    {
+      txHash: '0xsettlement-hash',
+      walletAddress: '0x0000000000000000000000000000000000000001',
+      network: 'monad',
+      amount: '10.00',
+      currency: 'USD',
+    },
+  ],
+} satisfies CardTransaction;
 
 const createMockStore = () =>
   configureStore({
@@ -69,171 +57,178 @@ const createMockStore = () =>
     },
   });
 
-const renderWithProvider = (ui: React.ReactElement) => {
-  const store = createMockStore();
-  return render(<Provider store={store}>{ui}</Provider>);
-};
+const renderList = (component: React.ReactElement) =>
+  render(<Provider store={createMockStore()}>{component}</Provider>);
 
 describe('MoneyActivityList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedSelectActivityDetailsFlag.mockReturnValue(true);
+    mockSelectActivityDetailsFlag.mockReturnValue(true);
   });
 
-  it('renders up to 5 transactions from mock data', () => {
-    const { getByTestId } = renderWithProvider(
-      <MoneyActivityList items={MOCK_ITEMS} />,
-    );
-
-    expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeOnTheScreen();
-    expect(
-      getByTestId(`${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[0].id}`),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(`${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[4].id}`),
-    ).toBeOnTheScreen();
-  });
-
-  it('does not render more than 5 items', () => {
-    const { queryByTestId } = renderWithProvider(
-      <MoneyActivityList items={MOCK_ITEMS} />,
-    );
+  it('returns no content for an empty activity list', () => {
+    const { queryByTestId } = renderList(<MoneyActivityList items={[]} />);
 
     expect(
-      queryByTestId(`${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[5].id}`),
-    ).toBeNull();
+      queryByTestId(MoneyActivityListTestIds.CONTAINER),
+    ).not.toBeOnTheScreen();
   });
 
-  it('returns null when transactions list is empty', () => {
-    const { queryByTestId } = renderWithProvider(
-      <MoneyActivityList items={[]} />,
+  it('renders the localized Activity heading', () => {
+    const { getByTestId } = renderList(
+      <MoneyActivityList items={items.slice(0, 1)} />,
     );
 
-    expect(queryByTestId(MoneyActivityListTestIds.CONTAINER)).toBeNull();
-  });
-
-  it('renders section header with Activity title', () => {
-    const { getByTestId } = renderWithProvider(
-      <MoneyActivityList items={MOCK_ITEMS} />,
+    expect(getByTestId(MoneySectionHeaderTestIds.TITLE)).toHaveTextContent(
+      strings('money.activity.title'),
     );
-
-    expect(getByTestId('section-header')).toBeOnTheScreen();
   });
 
-  it('renders View all button when onViewAllPress is provided', () => {
-    const mockPress = jest.fn();
-    const { getByTestId } = renderWithProvider(
-      <MoneyActivityList items={MOCK_ITEMS} onViewAllPress={mockPress} />,
-    );
+  it('renders at most five activity rows', () => {
+    renderList(<MoneyActivityList items={items} />);
 
-    const button = getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON);
-    expect(button).toBeOnTheScreen();
-    fireEvent.press(button);
-    expect(mockPress).toHaveBeenCalledTimes(1);
+    expect(mockMoneyActivityRow).toHaveBeenCalledTimes(5);
   });
 
-  it('does not render View all button when onViewAllPress is not provided', () => {
-    const { queryByTestId } = renderWithProvider(
-      <MoneyActivityList items={MOCK_ITEMS} />,
-    );
+  it('passes preview items to rows in source order', () => {
+    renderList(<MoneyActivityList items={items} />);
 
-    expect(queryByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON)).toBeNull();
+    expect(mockMoneyActivityRow.mock.calls[0][0].item).toBe(items[0]);
+    expect(mockMoneyActivityRow.mock.calls[4][0].item).toBe(items[4]);
   });
 
-  it('renders a non-tappable section header', () => {
-    const { getByTestId } = renderWithProvider(
-      <MoneyActivityList items={MOCK_ITEMS} onViewAllPress={jest.fn()} />,
-    );
-
-    expect(getByTestId('section-header').props.onPress).toBeUndefined();
-  });
-
-  it('hides View all with 5 or fewer transactions', () => {
-    const onViewAllPress = jest.fn();
-    const { queryByTestId } = renderWithProvider(
+  it('leaves the Activity heading non-pressable for five items', () => {
+    const onHeaderPress = jest.fn();
+    const { getByTestId, queryByTestId } = renderList(
       <MoneyActivityList
-        items={MOCK_ITEMS.slice(0, 5)}
-        onViewAllPress={onViewAllPress}
+        items={items.slice(0, 5)}
+        onHeaderPress={onHeaderPress}
       />,
     );
 
-    expect(queryByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON)).toBeNull();
+    expect(getByTestId(MoneySectionHeaderTestIds.TITLE)).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyActivityListTestIds.HEADER),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneySectionHeaderTestIds.CHEVRON),
+    ).not.toBeOnTheScreen();
+    expect(onHeaderPress).not.toHaveBeenCalled();
   });
 
-  it('renders View all with more than 5 transactions', () => {
-    const onViewAllPress = jest.fn();
-    const { getByTestId } = renderWithProvider(
-      <MoneyActivityList items={MOCK_ITEMS} onViewAllPress={onViewAllPress} />,
+  it('calls the Activity heading callback when more than five items exist', () => {
+    const onHeaderPress = jest.fn();
+    const { getByTestId } = renderList(
+      <MoneyActivityList items={items} onHeaderPress={onHeaderPress} />,
     );
 
-    fireEvent.press(getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON));
-    expect(onViewAllPress).toHaveBeenCalledTimes(1);
+    fireEvent.press(getByTestId(MoneyActivityListTestIds.HEADER));
+
+    expect(onHeaderPress).toHaveBeenCalledTimes(1);
   });
 
-  it('renders View all when more pages remain upstream even at the preview count', () => {
-    const { getByTestId } = renderWithProvider(
+  it('shows the Activity heading chevron when more than five items exist', () => {
+    const { getByTestId } = renderList(
+      <MoneyActivityList items={items} onHeaderPress={jest.fn()} />,
+    );
+
+    expect(getByTestId(MoneySectionHeaderTestIds.CHEVRON)).toBeOnTheScreen();
+  });
+
+  it('calls the Activity heading callback when upstream pagination has more items', () => {
+    const onHeaderPress = jest.fn();
+    const { getByTestId } = renderList(
       <MoneyActivityList
-        items={MOCK_ITEMS.slice(0, 5)}
+        items={items.slice(0, 5)}
         hasMore
-        onViewAllPress={jest.fn()}
+        onHeaderPress={onHeaderPress}
       />,
     );
 
-    expect(
-      getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON),
-    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId(MoneyActivityListTestIds.HEADER));
+
+    expect(onHeaderPress).toHaveBeenCalledTimes(1);
   });
 
-  it('forwards privacyMode false by default to each row', () => {
-    const { getByTestId } = renderWithProvider(
-      <MoneyActivityList items={MOCK_ITEMS} />,
+  it('leaves the Activity heading non-pressable without a callback', () => {
+    const { getByTestId, queryByTestId } = renderList(
+      <MoneyActivityList items={items} />,
     );
 
+    expect(getByTestId(MoneySectionHeaderTestIds.TITLE)).toBeOnTheScreen();
     expect(
-      getByTestId(
-        `${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[0].id}-privacy-mode`,
-      ),
-    ).toHaveTextContent('false');
+      queryByTestId(MoneyActivityListTestIds.HEADER),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneySectionHeaderTestIds.CHEVRON),
+    ).not.toBeOnTheScreen();
   });
 
-  it('forwards privacyMode true to each row when set', () => {
-    const { getByTestId } = renderWithProvider(
-      <MoneyActivityList items={MOCK_ITEMS} privacyMode />,
+  it('passes disabled privacy mode to rows by default', () => {
+    renderList(<MoneyActivityList items={items.slice(0, 1)} />);
+
+    expect(mockMoneyActivityRow.mock.calls[0][0].privacyMode).toBe(false);
+  });
+
+  it('passes enabled privacy mode to rows', () => {
+    renderList(<MoneyActivityList items={items.slice(0, 1)} privacyMode />);
+
+    expect(mockMoneyActivityRow.mock.calls[0][0].privacyMode).toBe(true);
+  });
+
+  it('passes Money address to rows', () => {
+    const moneyAddress = '0x0000000000000000000000000000000000000001';
+    renderList(
+      <MoneyActivityList
+        items={items.slice(0, 1)}
+        moneyAddress={moneyAddress}
+      />,
     );
 
-    expect(
-      getByTestId(
-        `${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[0].id}-privacy-mode`,
-      ),
-    ).toHaveTextContent('true');
+    expect(mockMoneyActivityRow.mock.calls[0][0].moneyAddress).toBe(
+      moneyAddress,
+    );
   });
 
-  it('calls onItemPress with the transaction when a row is pressed and the flag is enabled', () => {
-    mockedSelectActivityDetailsFlag.mockReturnValue(true);
+  it('passes card enrichment to rows', () => {
+    const cardEnrichmentByHash = new Map<string, CardTransaction>([
+      ['0xsettlement-hash', cardEnrichment],
+    ]);
+
+    renderList(
+      <MoneyActivityList
+        items={items.slice(0, 1)}
+        cardEnrichmentByHash={cardEnrichmentByHash}
+      />,
+    );
+
+    expect(mockMoneyActivityRow.mock.calls[0][0].cardEnrichmentByHash).toBe(
+      cardEnrichmentByHash,
+    );
+  });
+
+  it('passes the activity callback to rows when details are enabled', () => {
     const onItemPress = jest.fn();
-    const { getByTestId } = renderWithProvider(
-      <MoneyActivityList items={MOCK_ITEMS} onItemPress={onItemPress} />,
+    renderList(
+      <MoneyActivityList items={items.slice(0, 1)} onItemPress={onItemPress} />,
     );
 
-    fireEvent.press(
-      getByTestId(`${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[0].id}`),
-    );
+    mockMoneyActivityRow.mock.calls[0][0].onPress?.(MOCK_MONEY_TRANSACTIONS[0]);
 
     expect(onItemPress).toHaveBeenCalledTimes(1);
-    expect(onItemPress).toHaveBeenCalledWith(MOCK_ITEMS[0].tx);
+    expect(onItemPress).toHaveBeenCalledWith(MOCK_MONEY_TRANSACTIONS[0]);
   });
 
-  it('renders rows as non-pressable when the flag is disabled even with onItemPress provided', () => {
-    mockedSelectActivityDetailsFlag.mockReturnValue(false);
+  it('removes the activity callback from rows when details are disabled', () => {
+    mockSelectActivityDetailsFlag.mockReturnValue(false);
     const onItemPress = jest.fn();
-    const { getByTestId } = renderWithProvider(
-      <MoneyActivityList items={MOCK_ITEMS} onItemPress={onItemPress} />,
+    renderList(
+      <MoneyActivityList items={items.slice(0, 1)} onItemPress={onItemPress} />,
     );
 
-    const row = getByTestId(
-      `${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[0].id}`,
-    );
-    expect(row.props.onPress).toBeUndefined();
+    const rowOnPress = mockMoneyActivityRow.mock.calls[0][0].onPress;
+
+    expect(rowOnPress).toBeUndefined();
     expect(onItemPress).not.toHaveBeenCalled();
   });
 });

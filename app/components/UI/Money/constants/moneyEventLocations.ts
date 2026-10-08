@@ -14,8 +14,11 @@ export enum SCREEN_NAMES {
   MONEY_ACTIVITY_DETAILS = 'money_activity_details',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
   MONEY_FIRST_TIME_DEPOSIT = 'money_first_time_deposit',
-  VBA_GET_PIX_KEY = 'vba_get_pix_key',
+  VBA_CREATE_VIRTUAL_BANK_ACCOUNT = 'vba_create_virtual_bank_account',
+  VBA_KYC_EMAIL = 'vba_kyc_email',
   EARN_SECTION_LIST_VIEW = 'earn_section_list_view',
+  PRO_SUBSCRIPTION = 'pro_subscription',
+  PRO_HUB = 'pro_hub',
 }
 
 export enum BOTTOM_SHEET_NAMES {
@@ -46,9 +49,8 @@ export enum MONEY_SURFACE_TYPES {
 }
 
 export enum COMPONENT_NAMES {
-  // — Section Headers —
-  MONEY_POTENTIAL_EARNINGS_VIEW_HEADER = 'money_potential_earnings_view_header',
-  MONEY_HOW_IT_WORKS_SECTION_HEADER = 'money_how_it_works_section_header',
+  // — Money Balance Summary —
+  MONEY_BALANCE_SUMMARY_APY = 'money_balance_summary_apy',
 
   // — Onboarding —
   RIVE_ONBOARDING_STEPPER = 'rive_onboarding_stepper',
@@ -58,11 +60,17 @@ export enum COMPONENT_NAMES {
   // — Earnings —
   MONEY_EARNINGS_SECTION = 'money_earnings_section',
   MONEY_POTENTIAL_EARNINGS_SECTION = 'money_potential_earnings_section',
+  MONEY_POTENTIAL_EARNINGS_SECTION_HEADER = 'money_potential_earnings_section_header',
+  MONEY_POTENTIAL_EARNINGS_VIEW_HEADER = 'money_potential_earnings_view_header',
   MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW = 'money_potential_earnings_section_token_row',
   MONEY_POTENTIAL_EARNINGS_TOKEN_ROW = 'money_potential_earnings_token_row',
+  MONEY_POTENTIAL_EARNINGS_PROJECTED_AMOUNT = 'money_earn_crypto_projected_amount',
+
+  // — MetaMask Card —
+  MONEY_METAMASK_CARD_SECTION_HEADER = 'money_metamask_card_section_header',
 
   // — Activity —
-  MONEY_ACTIVITY_SECTION = 'money_activity_section',
+  MONEY_ACTIVITY_SECTION_HEADER = 'money_activity_section_header',
   MONEY_ACTIVITY_LIST_ITEM = 'money_activity_list_item',
 
   // — Activity Filter Buttons —
@@ -93,6 +101,7 @@ export enum COMPONENT_NAMES {
   MONEY_MORE_SHEET_CONTACT_SUPPORT = 'money_more_sheet_contact_support',
 
   // — Miscellaneous —
+  MONEY_HOW_IT_WORKS_SECTION_HEADER = 'money_how_it_works_section_header',
   MONEY_WHAT_YOU_GET_SECTION = 'money_what_you_get_section',
   MONEY_BALANCE_CARD = 'money_balance_card',
   MONEY_BALANCE_SUMMARY = 'money_balance_summary',
@@ -105,6 +114,7 @@ export enum COMPONENT_NAMES {
   MONEY_ASSET_OVERVIEW_BALANCE_CTA = 'money_asset_overview_balance_cta',
   MONEY_EARN_BANNER = 'money_earn_banner',
   MONEY_MORE = 'money_more',
+  MONEY_HEADER = 'money_header',
 
   // — How It Works / FAQ —
   FAQ_ITEM = 'money_faq_item',

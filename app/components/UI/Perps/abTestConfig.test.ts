@@ -111,11 +111,12 @@ describe('Perps abTestConfig', () => {
       ]);
     });
 
-    it('registers the close-position and trade conversion events', () => {
+    it('registers the position-management and trade conversion events', () => {
       expect(
         SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING.eventNames,
       ).toEqual([
         EVENT_NAME.PERPS_POSITION_CLOSE_TRANSACTION,
+        EVENT_NAME.PERPS_MARGIN_ADJUSTMENT_TRANSACTION,
         EVENT_NAME.PERPS_TRANSACTION_CONSIDERED,
         EVENT_NAME.PERPS_TRADE_QUOTE_RECEIVED,
         EVENT_NAME.PERPS_TRADE_TRANSACTION,
