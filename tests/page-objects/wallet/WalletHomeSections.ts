@@ -13,6 +13,7 @@ import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
 import type { AppiumElement } from '../../framework/AppiumElement';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
+import { isPerformanceSuiteActive } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import WalletHomeScroll from './WalletHomeScroll';
 
 export class WalletHomeSections {
@@ -166,7 +167,46 @@ export class WalletHomeSections {
     }
   }
 
-  async scrollAndTapPredictionsSection(): Promise<void> {
+  async scrollAndTapPredictionsSection(
+    direction: 'up' | 'down' = 'down',
+    options: {
+      overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
+    } = {},
+  ): Promise<void> {
+    if (!isPerformanceSuiteActive()) {
+      if (
+        await WalletHomeScroll.tapIfAlreadyVisible(
+          this.predictionsSectionHeader,
+          'Predictions section',
+        )
+      ) {
+        return;
+      }
+
+      const fallbackDirection = direction === 'down' ? 'up' : 'down';
+
+      await WalletHomeScroll.tryScrollDirections(
+        (scrollDirection) =>
+          WalletHomeScroll.scrollAndTapSection(
+            this.predictionsSectionHeader,
+            'Predictions section',
+            scrollDirection,
+            {
+              overshootSwipe: options.overshootSwipe ?? {
+                direction:
+                  scrollDirection === 'down'
+                    ? ('up' as const)
+                    : ('down' as const),
+                percentage: 0.15,
+              },
+              timeout: 60_000,
+            },
+          ),
+        [direction, fallbackDirection],
+      );
+      return;
+    }
+
     try {
       await WalletHomeScroll.scrollAndTapSection(
         this.predictionsSectionHeader,

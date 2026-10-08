@@ -9,6 +9,7 @@ import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/Wal
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import type { AppiumElement } from '../../framework/AppiumElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import { isPerformanceSuiteActive } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 
 class TokenOverview {
   get container(): Promise<AppiumElement> {
@@ -39,6 +40,10 @@ class TokenOverview {
    */
   get priceChartContainer(): Promise<AppiumElement> {
     const advancedChartId = TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER;
+    if (!isPerformanceSuiteActive()) {
+      return Matchers.getElementByID(advancedChartId);
+    }
+
     const legacyChartDotId = TokenOverviewSelectorsIDs.PRICE_CHART_DOT_END;
 
     if (PlatformDetector.isIOS()) {

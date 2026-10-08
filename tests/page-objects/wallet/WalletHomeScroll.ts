@@ -4,7 +4,10 @@ import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import { type AppiumElement, getDriver, wrapElement } from '../../framework';
 import { findWithSelfHealingLocator } from '../../framework/ai-locator/SelfHealingLocator.ts';
-import { getPerformanceLocatorRecovery } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
+import {
+  getPerformanceLocatorRecovery,
+  isPerformanceSuiteActive,
+} from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 
@@ -65,9 +68,12 @@ export class WalletHomeScroll {
     );
     const fingerDirection = scrollDirection === 'down' ? 'up' : 'down';
 
+    // Performance starts the drag higher so the floating tab bar does not
+    // swallow it. Smoke keeps the previous 0.75 start.
+    const fromYRatio = isPerformanceSuiteActive() ? 0.5 : 0.75;
     const fromY =
       fingerDirection === 'up'
-        ? location.y + Math.floor(size.height * 0.5)
+        ? location.y + Math.floor(size.height * fromYRatio)
         : location.y + Math.floor(size.height * 0.35);
     const toY = fingerDirection === 'up' ? fromY - travel : fromY + travel;
 
@@ -112,17 +118,24 @@ export class WalletHomeScroll {
       const scrollView = (await Promise.resolve(
         this.walletScrollView,
       )) as AppiumElement;
-      // Android reports a header behind the floating tab bar as displayed, so
-      // scrollIntoView alone stops with it unreachable.
-      await Gestures.scrollIntoViewFullyVisible(
-        await this.resolveFreshWalletHomeTarget(target),
-        {
+      const freshTarget = await this.resolveFreshWalletHomeTarget(target);
+      const scrollDirection = direction === 'down' ? 'up' : 'down';
+      if (isPerformanceSuiteActive()) {
+        // Android reports a header behind the floating tab bar as displayed, so
+        // scrollIntoView alone stops with it unreachable.
+        await Gestures.scrollIntoViewFullyVisible(freshTarget, {
           scrollableElement: scrollView,
-          direction: direction === 'down' ? 'up' : 'down',
+          direction: scrollDirection,
           percent: WALLET_HOME_SWIPE_PERCENT,
           maxScrolls: maxAttempts,
-        },
-      );
+        });
+      } else {
+        await Gestures.scrollIntoView(freshTarget, {
+          scrollableElement: scrollView,
+          direction: scrollDirection,
+          maxScrolls: maxAttempts,
+        });
+      }
       await Assertions.expectElementToBeVisible(
         await this.resolveFreshWalletHomeTarget(target),
         {

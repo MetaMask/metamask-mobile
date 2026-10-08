@@ -15,7 +15,10 @@ import Matchers from './Matchers.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import { getDriver } from './AppiumUtilities.ts';
 import { findWithSelfHealingLocator } from './ai-locator/SelfHealingLocator.ts';
-import { getPerformanceLocatorRecovery } from './ai-locator/PerformanceLocatorRecovery.ts';
+import {
+  getPerformanceLocatorRecovery,
+  isPerformanceSuiteActive,
+} from './ai-locator/PerformanceLocatorRecovery.ts';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
 
 type TapAtIndexElement =
@@ -316,6 +319,20 @@ export default class Gestures {
     options: SwipeOptions = {},
   ): Promise<void> {
     const percent = options.percentage ?? 0.75;
+
+    // Smoke keeps the previous full-gesture horizontal swipe (carousel, quotes).
+    // Performance drags inside the element so the leverage picker can snap.
+    if (
+      (direction === 'left' || direction === 'right') &&
+      !isPerformanceSuiteActive()
+    ) {
+      await AppiumGestures.swipe({
+        scrollParams: { direction },
+        percent,
+      });
+      return;
+    }
+
     await this.scrollWithinContainer(elem, direction, percent);
   }
 
