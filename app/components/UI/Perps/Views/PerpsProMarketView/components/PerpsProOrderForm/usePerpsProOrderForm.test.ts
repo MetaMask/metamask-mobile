@@ -51,6 +51,8 @@ const mockGetPerpsToastLabels = jest.fn(
   ],
 );
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockRouteParams: { stayOnCurrentScreen?: boolean } = {};
 const mockSetMaxSlippage = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
@@ -433,8 +435,8 @@ jest.mock('../../../../../Rewards/hooks/useVipTier', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate }),
-  useRoute: () => ({ params: {} }),
+  useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
 
 jest.mock('react-redux', () => ({
@@ -3720,6 +3722,18 @@ describe('usePerpsProOrderForm', () => {
 
       expect(confirmed).toHaveBeenCalledWith('long', '0.00013', 'BTC');
     });
+    it('returns to the presenting screen after a stay-on-screen order is confirmed', () => {
+      mockRouteParams.stayOnCurrentScreen = true;
+      renderProForm();
+
+      act(() => {
+        mockExecutionOptions.onSuccess?.();
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      mockRouteParams.stayOnCurrentScreen = undefined;
+    });
+
     it('shows the confirmed toast on success', () => {
       // Arrange
       renderProForm();
