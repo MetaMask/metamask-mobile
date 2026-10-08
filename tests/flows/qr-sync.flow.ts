@@ -86,7 +86,7 @@ export const applyQrSyncSrpReadyPayload = async ({
 };
 
 /**
- * New-user path: onboarding → Import SRP → extension link → inject sync-ready
+ * New-user path: onboarding → Import SRP → scan menu → extension option → inject sync-ready
  * → create password → MetaMetrics → wallet home.
  */
 export const completeNewUserQrSyncSrp = async ({
