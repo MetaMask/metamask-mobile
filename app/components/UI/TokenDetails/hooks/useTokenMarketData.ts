@@ -114,7 +114,9 @@ export const useTokenMarketData = (
       setIsLoading(false);
     } else {
       setIsLoading(true);
-      fetchMarketData(fetchId);
+      // Settles through its own try/catch/finally, so there is nothing for the
+      // effect to await or handle.
+      void fetchMarketData(fetchId);
     }
 
     return () => {
