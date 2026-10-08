@@ -1,6 +1,7 @@
 package io.metamask.nativeModules
 
 import android.app.Activity
+import android.os.IBinder
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
@@ -31,11 +32,9 @@ internal object PrivacyCover {
     private val authenticationWaiters = mutableListOf<Pair<Int, Promise>>()
 
     fun show(activity: Activity) {
-        // The IME is a separate window above this cover, and a focused field
-        // brings it back on resume. Clear focus so it stays down. `onPause` is
-        // the only caller, which is before the activity stops.
-        dismissKeyboard(activity)
         val decor = activity.window.decorView as? ViewGroup ?: return
+        val keyboardWindowToken =
+            activity.currentFocus?.windowToken ?: decor.windowToken
         val existing = overlay
         val cover = if (existing != null && existing.context === activity) {
             existing
@@ -43,6 +42,8 @@ internal object PrivacyCover {
             View(activity).apply {
                 setBackgroundResource(R.drawable.app_background)
                 isClickable = true
+                isFocusable = true
+                isFocusableInTouchMode = true
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
             }.also { overlay = it }
         }
@@ -59,18 +60,23 @@ internal object PrivacyCover {
         }
         cover.bringToFront()
         cover.visibility = View.VISIBLE
+        // The IME is a separate window above this cover. Move focus to the
+        // visible cover before hiding it so the input cannot immediately
+        // reclaim focus and reopen the keyboard on resume.
+        cover.requestFocus()
+        dismissKeyboard(activity, keyboardWindowToken)
         blockBack(activity)
     }
 
     fun isShown(): Boolean = overlay?.visibility == View.VISIBLE
 
-    private fun dismissKeyboard(activity: Activity) {
-        val focused = activity.currentFocus
-        val token = focused?.windowToken ?: activity.window.decorView.windowToken
-        focused?.clearFocus()
+    private fun dismissKeyboard(activity: Activity, windowToken: IBinder?) {
+        if (windowToken == null) {
+            return
+        }
         val inputMethodManager =
             activity.getSystemService(InputMethodManager::class.java) ?: return
-        inputMethodManager.hideSoftInputFromWindow(token, 0)
+        inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
     }
 
     fun hide() {
