@@ -1,12 +1,32 @@
-import { waitFor } from '@testing-library/react-native';
+import React from 'react';
+import { renderHook, waitFor } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getAssetId } from '@metamask/assets-controllers';
-import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 import { TokenI } from '../UI/Tokens/types';
 import useTokenHistoricalPrices, {
   hasInsufficientTimeCoverage,
   type TimePeriod,
   type TokenPrice,
 } from './useTokenHistoricalPrices';
+
+const createQueryClient = () =>
+  new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+  });
+
+const renderHistoricalPrices = (
+  callback: () => ReturnType<typeof useTokenHistoricalPrices>,
+) => {
+  const queryClient = createQueryClient();
+  return renderHook(callback, {
+    wrapper: ({ children }) =>
+      React.createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        children,
+      ),
+  });
+};
 
 jest.mock('@metamask/assets-controllers', () => ({
   ...jest.requireActual('@metamask/assets-controllers'),
@@ -154,7 +174,7 @@ describe('useTokenHistoricalPrices fetch URL', () => {
     mockGetAssetId.mockImplementation(
       jest.requireActual('@metamask/assets-controllers').getAssetId,
     );
-    renderHookWithProvider(() =>
+    renderHistoricalPrices(() =>
       useTokenHistoricalPrices({
         asset: baseAsset,
         address: baseAsset.address,
@@ -172,7 +192,7 @@ describe('useTokenHistoricalPrices fetch URL', () => {
   it('falls back to legacy URL params when getAssetId returns undefined', async () => {
     mockGetAssetId.mockReturnValue(undefined);
 
-    renderHookWithProvider(() =>
+    renderHistoricalPrices(() =>
       useTokenHistoricalPrices({
         asset: baseAsset,
         address: baseAsset.address,
@@ -216,7 +236,7 @@ describe('useTokenHistoricalPrices apiDurationMs', () => {
   } as unknown as TokenI;
 
   const renderPrices = () =>
-    renderHookWithProvider(() =>
+    renderHistoricalPrices(() =>
       useTokenHistoricalPrices({
         asset: baseAsset,
         address: baseAsset.address,

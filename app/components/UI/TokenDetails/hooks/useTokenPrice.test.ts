@@ -1,4 +1,6 @@
+import React from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { useTokenPrice } from './useTokenPrice';
 import { TokenI } from '../../Tokens/types';
@@ -41,6 +43,24 @@ jest.mock('../../../hooks/useTokenHistoricalPrices', () => jest.fn());
 jest.mock('../../Bridge/utils/exchange-rates', () => ({
   getTokenExchangeRate: jest.fn().mockResolvedValue(undefined),
 }));
+
+const renderPriceHook = <Props>(
+  hook: (props: Props) => ReturnType<typeof useTokenPrice>,
+  options?: { initialProps: Props },
+) => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+  });
+  return renderHook(hook, {
+    ...options,
+    wrapper: ({ children }) =>
+      React.createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        children,
+      ),
+  });
+};
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockIsAssetFromSearch = jest.mocked(isAssetFromSearch);
@@ -116,7 +136,7 @@ describe('useTokenPrice', () => {
       apiDurationMs: undefined,
     });
 
-    const { result } = renderHook(() => useTokenPrice({ token }));
+    const { result } = renderPriceHook(() => useTokenPrice({ token }));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(true);
@@ -150,7 +170,7 @@ describe('useTokenPrice', () => {
       apiDurationMs: undefined,
     });
 
-    const { result } = renderHook(() => useTokenPrice({ token }));
+    const { result } = renderPriceHook(() => useTokenPrice({ token }));
 
     await waitFor(() => {
       expect(result.current.currentPrice).toBe(1);
@@ -180,7 +200,7 @@ describe('useTokenPrice', () => {
       tokenDisplayData: { found: true, price: { price: 123.45 } },
     });
 
-    const { result } = renderHook(() => useTokenPrice({ token }));
+    const { result } = renderPriceHook(() => useTokenPrice({ token }));
 
     await waitFor(() => {
       expect(result.current.currentPrice).toBe(123.45);
@@ -193,7 +213,7 @@ describe('useTokenPrice', () => {
       chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
     } as TokenI;
 
-    const { result } = renderHook(() => useTokenPrice({ token }));
+    const { result } = renderPriceHook(() => useTokenPrice({ token }));
 
     await waitFor(() => {
       expect(result.current.chartNavigationButtons).toEqual([
@@ -226,7 +246,7 @@ describe('useTokenPrice', () => {
       apiDurationMs: undefined,
     });
 
-    const { result } = renderHook(() =>
+    const { result } = renderPriceHook(() =>
       useTokenPrice({ token, multichainAssetRates }),
     );
 
@@ -251,7 +271,7 @@ describe('useTokenPrice', () => {
       apiDurationMs: undefined,
     });
 
-    const { result } = renderHook(() => useTokenPrice({ token }));
+    const { result } = renderPriceHook(() => useTokenPrice({ token }));
 
     await waitFor(() => {
       expect(result.current.hasInsufficientCoverage).toBe(true);
@@ -294,7 +314,7 @@ describe('useTokenPrice', () => {
           }),
       );
 
-    const { rerender, result } = renderHook(
+    const { rerender, result } = renderPriceHook(
       ({ token }: { token: TokenI }) => useTokenPrice({ token }),
       { initialProps: { token: tokenA } },
     );
@@ -330,7 +350,7 @@ describe('useTokenPrice', () => {
       apiDurationMs: 42,
     });
 
-    const { result } = renderHook(() => useTokenPrice({ token }));
+    const { result } = renderPriceHook(() => useTokenPrice({ token }));
 
     await waitFor(() => {
       expect(result.current.historicalPricesApiMs).toBe(42);
@@ -350,7 +370,7 @@ describe('useTokenPrice', () => {
       pricePercentChange1d: 0,
     } as unknown as MarketDataDetails);
 
-    const { result } = renderHook(() => useTokenPrice({ token }));
+    const { result } = renderPriceHook(() => useTokenPrice({ token }));
 
     await waitFor(() => {
       expect(result.current.exchangeRateApiMs).not.toBeUndefined();
@@ -372,7 +392,7 @@ describe('useTokenPrice', () => {
       },
     });
 
-    const { result } = renderHook(() => useTokenPrice({ token }));
+    const { result } = renderPriceHook(() => useTokenPrice({ token }));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -390,7 +410,7 @@ describe('useTokenPrice', () => {
     setupDefaultMocks({ tokenMarketData: {} });
     mockGetTokenExchangeRate.mockRejectedValue(new Error('network error'));
 
-    const { result } = renderHook(() => useTokenPrice({ token }));
+    const { result } = renderPriceHook(() => useTokenPrice({ token }));
 
     await waitFor(() => {
       expect(result.current.exchangeRateApiMs).not.toBeUndefined();

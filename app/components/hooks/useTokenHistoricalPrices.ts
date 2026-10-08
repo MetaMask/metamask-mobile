@@ -1,10 +1,10 @@
-import { Hex, parseCaipAssetType } from '@metamask/utils';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 import { getAssetId } from '@metamask/assets-controllers';
-import { getDecimalChainId } from '../../util/networks';
-import { useState, useEffect } from 'react';
-import { TraceName, endTrace, trace } from '../../util/trace';
-import { TokenI } from '../UI/Tokens/types';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { parseCaipAssetType, type Hex } from '@metamask/utils';
+import type { TokenI } from '../UI/Tokens/types';
+import { getDecimalChainId } from '../../util/networks';
+import { TraceName, endTrace, trace } from '../../util/trace';
 
 export type TimePeriod =
   | '1h'
@@ -19,15 +19,19 @@ export type TimePeriod =
 
 export type TokenPrice = [string, number];
 
-const placeholderPrices = Array(289).fill(['0', 0] as TokenPrice);
+export const DEFAULT_HISTORICAL_TIME_PERIOD: TimePeriod = '1d';
+
+const HISTORICAL_PRICES_FETCH_TIMEOUT_MS = 3000;
+const QUERY_STALE_TIME_MS = 30_000;
+
+const HISTORICAL_PRICE_PLACEHOLDER: TokenPrice[] = Array(289).fill([
+  '0',
+  0,
+] as TokenPrice);
 
 const HOURS = 3_600_000;
 const DAYS = 24 * HOURS;
 
-/**
- * Expected durations (in ms) for each time period.
- * `null` means no coverage check (e.g. "all" has no fixed expected span).
- */
 const EXPECTED_DURATION_MS: Record<TimePeriod, number | null> = {
   '1h': 1 * HOURS,
   '1d': 1 * DAYS,
@@ -40,18 +44,8 @@ const EXPECTED_DURATION_MS: Record<TimePeriod, number | null> = {
   all: null,
 };
 
-/**
- * Minimum fraction of the requested time period that the returned data must
- * cover. Below this threshold we show the "no data" overlay instead of
- * rendering a misleading chart. 0.20 = data must span at least 20% of the
- * expected duration (e.g. ~5 h for a 1D request).
- */
 const MIN_COVERAGE_RATIO = 0.2;
 
-/**
- * Returns true when the historical-prices data covers less than
- * {@link MIN_COVERAGE_RATIO} of the requested time period.
- */
 export function hasInsufficientTimeCoverage(
   prices: TokenPrice[],
   timePeriod: TimePeriod,
@@ -65,6 +59,183 @@ export function hasInsufficientTimeCoverage(
 
   return actualSpanMs < expectedMs * MIN_COVERAGE_RATIO;
 }
+
+export interface HistoricalPricesRequest {
+  assetChainId: string;
+  assetAddress: string;
+  address: string;
+  chainId: Hex;
+  timePeriod: TimePeriod;
+  vsCurrency: string;
+  from?: number;
+  to?: number;
+}
+
+interface HistoricalPricesResult {
+  prices: TokenPrice[];
+  hasInsufficientCoverage: boolean;
+  apiDurationMs: number;
+  error?: Error;
+}
+
+const isAbortError = (error: unknown): boolean =>
+  typeof error === 'object' &&
+  error != null &&
+  'name' in error &&
+  (error as { name: string }).name === 'AbortError';
+
+const buildHistoricalPricesUrl = (request: HistoricalPricesRequest): string => {
+  const isNonEvmAsset =
+    formatChainIdToCaip(request.assetChainId as Hex) === request.assetChainId;
+
+  let caipChainId: string;
+  let assetIdentifier: string;
+
+  if (isNonEvmAsset) {
+    caipChainId = request.assetChainId;
+    assetIdentifier = request.assetAddress.split('/')[1];
+  } else {
+    const caipAssetType = getAssetId({
+      chainId: request.chainId,
+      tokenAddress: request.assetAddress,
+    });
+    if (caipAssetType) {
+      const parsedCaipAsset = parseCaipAssetType(caipAssetType);
+      caipChainId = parsedCaipAsset.chainId;
+      assetIdentifier = `${parsedCaipAsset.assetNamespace}:${parsedCaipAsset.assetReference}`;
+    } else {
+      caipChainId = `eip155:${getDecimalChainId(request.chainId)}`;
+      assetIdentifier = `erc20:${request.address}`;
+    }
+  }
+
+  const uri = new URL(
+    `https://price.api.cx.metamask.io/v3/historical-prices/${caipChainId}/${assetIdentifier}`,
+  );
+  uri.searchParams.set(
+    'timePeriod',
+    request.timePeriod === '1w' ? '7d' : request.timePeriod,
+  );
+  uri.searchParams.set('vsCurrency', request.vsCurrency);
+  if (request.from && request.to) {
+    uri.searchParams.set('from', request.from.toString());
+    uri.searchParams.set('to', request.to.toString());
+  }
+  return uri.toString();
+};
+
+const fetchHistoricalPrices = async (
+  request: HistoricalPricesRequest,
+  signal?: AbortSignal,
+): Promise<HistoricalPricesResult> => {
+  const fetchStart = Date.now();
+  const url = buildHistoricalPricesUrl(request);
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    trace({
+      name: TraceName.FetchHistoricalPrices,
+      data: { uri: url },
+    });
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(
+        () => reject(new Error('Historical prices fetch timeout')),
+        HISTORICAL_PRICES_FETCH_TIMEOUT_MS,
+      );
+    });
+
+    const response = await Promise.race([
+      fetch(url, { signal }),
+      timeoutPromise,
+    ]);
+
+    endTrace({ name: TraceName.FetchHistoricalPrices });
+
+    if (response.status === 204) {
+      return {
+        prices: [],
+        hasInsufficientCoverage: true,
+        apiDurationMs: Date.now() - fetchStart,
+      };
+    }
+
+    const data: { prices: TokenPrice[] } = await response.json();
+    const sortedPrices = [...data.prices].sort(
+      (a, b) => Number(a[0]) - Number(b[0]),
+    );
+    return {
+      prices: sortedPrices,
+      hasInsufficientCoverage: hasInsufficientTimeCoverage(
+        sortedPrices,
+        request.timePeriod,
+      ),
+      apiDurationMs: Date.now() - fetchStart,
+    };
+  } catch (error: unknown) {
+    if (signal?.aborted || isAbortError(error)) {
+      throw error;
+    }
+    return {
+      prices: HISTORICAL_PRICE_PLACEHOLDER,
+      hasInsufficientCoverage: false,
+      apiDurationMs: Date.now() - fetchStart,
+      error: error instanceof Error ? error : new Error('Unknown error'),
+    };
+  } finally {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
+  }
+};
+
+export const historicalPricesQueryOptions = (
+  request: HistoricalPricesRequest,
+) =>
+  queryOptions({
+    queryKey: [
+      'token-details',
+      'historical-prices',
+      request.chainId,
+      request.address,
+      request.assetChainId,
+      request.assetAddress,
+      request.timePeriod,
+      request.vsCurrency,
+      request.from ?? null,
+      request.to ?? null,
+    ],
+    queryFn: ({ signal }) => fetchHistoricalPrices(request, signal),
+    retry: false,
+    staleTime: QUERY_STALE_TIME_MS,
+  });
+
+const toHistoricalPricesRequest = ({
+  asset,
+  address,
+  chainId,
+  timePeriod,
+  from,
+  to,
+  vsCurrency,
+}: {
+  asset: Pick<TokenI, 'address' | 'chainId'>;
+  address: string;
+  chainId: Hex;
+  timePeriod: TimePeriod;
+  from?: number;
+  to?: number;
+  vsCurrency: string;
+}): HistoricalPricesRequest => ({
+  assetChainId: String(asset.chainId ?? ''),
+  assetAddress: asset.address,
+  address,
+  chainId,
+  timePeriod,
+  vsCurrency,
+  from,
+  to,
+});
 
 const useTokenHistoricalPrices = ({
   asset,
@@ -89,119 +260,28 @@ const useTokenHistoricalPrices = ({
   hasInsufficientCoverage: boolean;
   apiDurationMs: number | undefined;
 } => {
-  const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
-  const isNonEvmAsset = resultChainId === asset.chainId;
-  const [prices, setPrices] = useState<TokenPrice[]>(placeholderPrices);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error>();
-  const [insufficientCoverage, setInsufficientCoverage] = useState(false);
-  const [apiDurationMs, setApiDurationMs] = useState<number>();
+  const query = useQuery(
+    historicalPricesQueryOptions(
+      toHistoricalPricesRequest({
+        asset,
+        address,
+        chainId,
+        timePeriod,
+        vsCurrency,
+        from,
+        to,
+      }),
+    ),
+  );
 
-  useEffect(() => {
-    const fetchPrices = async () => {
-      setIsLoading(true);
-      setInsufficientCoverage(false);
-      setApiDurationMs(undefined);
-      const fetchStart = Date.now();
-
-      try {
-        const baseUri = 'https://price.api.cx.metamask.io/v3';
-
-        let caipChainId: string;
-        let assetIdentifier: string;
-
-        if (isNonEvmAsset) {
-          caipChainId = asset.chainId as string;
-          assetIdentifier = asset.address.split('/')[1];
-        } else {
-          // Trying to use same getAssetId logic as for spot-prices
-          const caipAssetType = getAssetId({
-            chainId,
-            tokenAddress: asset.address,
-          });
-          if (caipAssetType) {
-            const parsedCaipAsset = parseCaipAssetType(caipAssetType);
-            caipChainId = parsedCaipAsset.chainId;
-            assetIdentifier = `${parsedCaipAsset.assetNamespace}:${parsedCaipAsset.assetReference}`;
-          } else {
-            // Fallback into legacy way of building URL params
-            caipChainId = `eip155:${getDecimalChainId(chainId)}`;
-            assetIdentifier = `erc20:${address}`;
-          }
-        }
-
-        const uri = new URL(
-          `${baseUri}/historical-prices/${caipChainId}/${assetIdentifier}`,
-        );
-        uri.searchParams.set(
-          'timePeriod',
-          timePeriod === '1w' ? '7d' : timePeriod,
-        );
-        uri.searchParams.set('vsCurrency', vsCurrency);
-        if (from && to) {
-          uri.searchParams.set('from', from.toString());
-          uri.searchParams.set('to', to.toString());
-        }
-
-        trace({
-          name: TraceName.FetchHistoricalPrices,
-          data: { uri: uri.toString() },
-        });
-
-        // Add 3 second timeout to prevent infinite hang
-        const FETCH_TIMEOUT_MS = 3000;
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(
-            () => reject(new Error('Historical prices fetch timeout')),
-            FETCH_TIMEOUT_MS,
-          );
-        });
-
-        const response = await Promise.race([
-          fetch(uri.toString()),
-          timeoutPromise,
-        ]);
-
-        endTrace({ name: TraceName.FetchHistoricalPrices });
-        if (response.status === 204) {
-          setPrices([]);
-          setInsufficientCoverage(true);
-          return;
-        }
-        const data: { prices: TokenPrice[] } = await response.json();
-        const sortedPrices = [...data.prices].sort(
-          (a, b) => Number(a[0]) - Number(b[0]),
-        );
-        setPrices(sortedPrices as TokenPrice[]);
-        setInsufficientCoverage(
-          hasInsufficientTimeCoverage(sortedPrices, timePeriod),
-        );
-      } catch (e: unknown) {
-        setError(e as Error);
-      } finally {
-        setApiDurationMs(Date.now() - fetchStart);
-        setIsLoading(false);
-      }
-    };
-    fetchPrices();
-  }, [
-    address,
-    chainId,
-    timePeriod,
-    from,
-    to,
-    vsCurrency,
-    isNonEvmAsset,
-    asset.address,
-    asset.chainId,
-  ]);
+  const payload = query.data;
 
   return {
-    data: prices,
-    isLoading,
-    error,
-    hasInsufficientCoverage: insufficientCoverage,
-    apiDurationMs,
+    data: payload?.prices ?? HISTORICAL_PRICE_PLACEHOLDER,
+    isLoading: query.isPending,
+    error: payload?.error,
+    hasInsufficientCoverage: payload?.hasInsufficientCoverage ?? false,
+    apiDurationMs: payload?.apiDurationMs,
   };
 };
 
