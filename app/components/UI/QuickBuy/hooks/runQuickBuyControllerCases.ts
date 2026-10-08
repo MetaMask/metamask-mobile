@@ -4021,6 +4021,9 @@ export const runQuickBuyControllerCases = ({
             expect.objectContaining({
               status: 'pending',
               tradeInFlightChain: 'ethereum',
+              preview: expect.objectContaining({
+                chain: 'base',
+              }),
             }),
           );
           expect(buildQuickBuyToastOptions).not.toHaveBeenCalledWith(

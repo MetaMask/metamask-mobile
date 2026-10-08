@@ -1632,6 +1632,8 @@ export function useQuickBuyController(
         ? formatChainIdToCaip(sourceToken.chainId)
         : target.chain,
     );
+    const previewChain =
+      caipChainIdToTradeInFlightChain(target.chain) ?? target.chain;
     const shouldPostSwapShare = postSwapShare && Boolean(tradeInFlightChain);
     const postSwapShareSessionId = shouldPostSwapShare
       ? beginPostSwapShareSession({
@@ -1645,7 +1647,7 @@ export function useQuickBuyController(
           preview: {
             tokenSymbol: target.tokenSymbol,
             tokenAddress: target.tokenAddress,
-            chain: tradeInFlightChain ?? target.chain,
+            chain: previewChain,
             side: tradeMode,
             costLabel: tradeToastInfo.fiatAmountLabel,
             entryPriceLabel: formattedRate,
