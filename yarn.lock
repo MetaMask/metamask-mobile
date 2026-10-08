@@ -10918,20 +10918,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-utils@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/money-account-utils@npm:2.0.0"
-  dependencies:
-    "@ethersproject/abi": "npm:^5.7.0"
-    "@ethersproject/abstract-provider": "npm:^5.7.0"
-    "@ethersproject/contracts": "npm:^5.7.0"
-    "@metamask/transaction-controller": "npm:^70.0.0"
-    "@metamask/utils": "npm:^11.12.0"
-  checksum: 10/6a7b7f8f8c11a590b1a21d654c355476236c3529a6fa12e9e40504cf86b2f001cf44b7473cde2eee670b5b66f92285faa3c9c684e7afcd591d8c52753e248dde
-  languageName: node
-  linkType: hard
-
-"@metamask/money-account-utils@npm:^2.1.0":
+"@metamask/money-account-utils@npm:^2.0.0, @metamask/money-account-utils@npm:^2.1.0":
   version: 2.1.0
   resolution: "@metamask/money-account-utils@npm:2.1.0"
   dependencies:
