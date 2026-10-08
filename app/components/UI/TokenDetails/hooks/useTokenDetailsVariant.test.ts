@@ -63,14 +63,26 @@ describe('useTokenDetailsVariant', () => {
     return renderHook(() => useTokenDetailsVariant(token));
   };
 
-  it('resolves the memecoin variant when the flag is on and the token is PEPE', () => {
+  it('waits for the token API when the flag is on and the token is PEPE', () => {
+    const { result } = arrange({
+      isFlagEnabled: true,
+      isMeme: true,
+      isLoading: true,
+      asset: null,
+    });
+
+    expect(result.current).toEqual({ variant: null, isPending: true });
+    expect(mockUseTokenAssetDetails).toHaveBeenCalledWith(ASSET_ID);
+  });
+
+  it('resolves the memecoin variant when PEPE finishes loading', () => {
     const { result } = arrange({ isFlagEnabled: true, isMeme: true });
 
     expect(result.current).toEqual({
       variant: TokenDetailsVariant.Memecoin,
       isPending: false,
     });
-    expect(mockUseTokenAssetDetails).toHaveBeenCalledWith(null);
+    expect(mockUseTokenAssetDetails).toHaveBeenCalledWith(ASSET_ID);
   });
 
   it('resolves the legacy page when the flag is off', () => {

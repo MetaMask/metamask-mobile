@@ -1768,6 +1768,26 @@ describe('TokenDetails', () => {
       expect(mockTokenDetailsInlineHeader).toHaveBeenCalled();
     });
 
+    it('shows the interim shell for PEPE while the token API is pending', () => {
+      applyBaselineSelectorsWithMemeFlag(true);
+      mockUseIsMemeToken.mockReturnValue({
+        isMeme: true,
+        isLoading: false,
+        isError: false,
+        query: {},
+      });
+      mockUseTokenAssetDetails.mockReturnValue({
+        asset: null,
+        isLoading: true,
+        isError: false,
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeTruthy();
+      expect(mockTokenDetailsV1).not.toHaveBeenCalled();
+    });
+
     it('renders TokenDetailsV1 and skips the legacy header when the flag is on and the token is a meme', () => {
       applyBaselineSelectorsWithMemeFlag(true);
       mockUseIsMemeToken.mockReturnValue({
