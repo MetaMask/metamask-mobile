@@ -3334,11 +3334,9 @@
       "title": "Kazanç/Zarar Kahraman Kartı",
       "header_title": "İşleminizi paylaşın",
       "share_button": "Paylaş",
-      "share_message_with_referral_code": "MetaMask'te {{asset}} sürekli vadeli işlemleri yap. {{code}} referans kodumu kullanarak ekstra ödüller kazan. {{link}}",
       "share_message_without_referral_code": "MetaMask'te {{asset}} sürekli vadeli işlem yapın.",
       "share_failed": "Görüntü dışa aktarılamadı",
-      "export_success": "Dışa aktarılan görüntü",
-      "referral_code_text": "Referans kodumu kullanarak ekstra ödüller kazan."
+      "export_success": "Dışa aktarılan görüntü"
     },
     "market_details": {
       "fullscreen_chart": "Tam ekran grafik",
@@ -11014,15 +11012,6 @@
       "error_fetching_title": "Ödüller yüklenemedi",
       "error_fetching_description": "Bağlantınızı kontrol edin ve tekrar deneyin."
     },
-    "referral_details_error": {
-      "error_fetching_title": "Referans bilgileri yüklenemedi",
-      "error_fetching_description": "Bağlantınızı kontrol edin ve tekrar deneyin.",
-      "retry_button": "Tekrar Dene"
-    },
-    "referral_validation_unknown_error": {
-      "title": "Referans kodu doğrulanamadı",
-      "description": "Bağlantınızı kontrol edin ve tekrar deneyin."
-    },
     "active_activity_error": {
       "error_fetching_title": "Aktivite yüklenemedi",
       "error_fetching_description": "Bağlantınızı kontrol edin ve tekrar deneyin.",
@@ -11064,7 +11053,6 @@
       "progress_to_next_tier": "Sonraki aşamaya kalan: {{pointsRemaining}} puan",
       "bps_unit": "bps",
       "badge_label": "VIP {{tier}}",
-      "referral_tag_label": "VIP",
       "swaps_label": "Takas İşlemleri",
       "perps_label": "Sürekli Vadeli",
       "points_label": "Puan",
@@ -11120,9 +11108,7 @@
       "retry_button": "Tekrar Dene",
       "empty_title": "Henüz işlem yok. İşlem hareketleriniz olduğunda VIP işlemleriniz burada gösterilecek."
     },
-    "referral_title": "Referanslar",
     "referral_stats_earned_from_referrals": "Referanslardan kazanılan",
-    "referral_stats_referrals": "Referanslar",
     "loading_activity": "Aktivite yükleniyor...",
     "error_loading_activity": "Aktivite yüklenirken hata",
     "activity_empty_title": "Son aktivite yok.",
@@ -11187,8 +11173,6 @@
       "step_confirm": "Sonraki",
       "step_finish": "Başlayalım",
       "step_skip": "Atla",
-      "step4_title_referral_validating": "Referans kodu doğrulanıyor...",
-      "step4_referral_input_error": "Geçersiz referans kodu",
       "title": "Ödül kazanmaya başlayın",
       "description": "Sadece MetaMask kullanarak ödül kazanın, avantajlardan yararlanın ve daha fazla kazanç yolu keşfedin.",
       "sign_up": "Ödüllere Katılın",
@@ -11197,9 +11181,6 @@
       "legal_disclaimer_2": "Kullanım Şartları",
       "legal_disclaimer_3": ". Ödülünüzü otomatik olarak vermek için bu cihazdaki tüm hesapları dahil edeceğiz ve zincir içi faaliyetleri takip edeceğiz.",
       "legal_disclaimer_4": "Daha fazla bilgi edin",
-      "referral_prompt": "Referans kodunuz var mı?",
-      "referral_hide": "Kodu gizle",
-      "referral_placeholder": "Referans kodu (isteğe bağlı)",
       "referral_label": "Referans kodu"
     },
     "settings": {
@@ -11231,13 +11212,6 @@
       "off_device_accounts_sheet_title": "Eksik Kayıtlı Hesaplar",
       "off_device_accounts_sheet_description": "Bunlar, MetaMask’i yeniden yükledikten sonra henüz eklenmemiş bir cüzdana ait olabilir. Bu adreslerden hiçbirini tanımıyor musunuz?",
       "off_device_accounts_sheet_let_us_know": "Bize bildirin"
-    },
-    "referred_by_code": {
-      "title": "Referans Kodu",
-      "description_linked": "Size referans veren kişinin siz işlem yaptığınızda ödül kazanabilmesi için davet kodu bağlantısı şimdi bağlandı.",
-      "description_not_linked": "Arkadaşınız kodunu göndermeden mi kaydoldunuz? Aşağıya girin ve bağlanın.",
-      "input_placeholder": "Referans kodunu gir",
-      "invalid_code": "Geçersiz referans kodu"
     },
     "bonus_code": {
       "input_placeholder": "Bonus kodunu gir",
@@ -11284,22 +11258,6 @@
     },
     "ways_to_earn": {
       "title": "Kazanmanın yolları"
-    },
-    "referral": {
-      "referral_code": "Referans kodu",
-      "referral_link": "Referans bağlantısı",
-      "actions": {
-        "share_referral_link": "Bir arkadaşına öner",
-        "share_referral_subject": "MetaMask Ödüllerine katıl"
-      },
-      "info": {
-        "title": "Kodunuzu arkadaşlarınızla paylaşın",
-        "description": "Referans bonusları kampanyaya göre değişiklik gösterir. Ayrıntılar için her birini kontrol edin.",
-        "vip_title": "Referanslarınızın yaptığı her takas işleminden ve sürekli vadeli işlemden gelir payı kazanın. Oranınız, bulunduğunuz aşamaya göre yükselir.",
-        "vip_referrals_label": "Referanslar",
-        "vip_revenue_share_label": "Gelir payı"
-      },
-      "referral_code_copied": "Referans kodu panoya kopyalandı"
     },
     "link_account_group": {
       "link_account": "Hesap ekle",

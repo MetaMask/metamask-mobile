@@ -75,7 +75,7 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../components/ReferralDetails/CopyableField', () => {
+jest.mock('../components/CopyableField', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, Pressable } = jest.requireActual('react-native');
   return {

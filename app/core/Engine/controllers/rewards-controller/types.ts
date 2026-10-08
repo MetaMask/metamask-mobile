@@ -388,20 +388,6 @@ export interface MobileOptinDto {
    * @example '0x...'
    */
   signature: `0x${string}`;
-
-  /**
-   * The referral code of the user
-   * @example '123456'
-   */
-  referralCode?: string;
-}
-
-export interface ApplyReferralDto {
-  /**
-   * The referral code to apply
-   * @example 'ABC123'
-   */
-  referralCode: string;
 }
 
 export interface ApplyBonusCodeDto {
@@ -3208,7 +3194,7 @@ export interface SeasonStateDto {
 export type SeasonWayToEarnButtonActionDto = {
   /**
    * Route for in-app navigation
-   * @example { root: 'RewardsView', screen: 'RewardsReferralView' }
+   * @example { root: 'RewardsView', screen: 'RewardsSettingsView' }
    */
   route?: {
     root: string;

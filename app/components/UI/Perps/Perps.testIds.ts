@@ -1256,7 +1256,6 @@ export const PerpsHeroCardViewSelectorsIDs = {
   CAROUSEL_WRAPPER: 'perps-hero-card-view-carousel-wrapper',
   CAROUSEL: 'perps-hero-card-view-carousel',
   CARD_CONTAINER: 'perps-hero-card-view-card-container',
-  REFERRAL_CODE_TAG: 'perps-hero-card-view-referral-code-tag',
   QR_CODE: 'perps-hero-card-view-qr-code',
   ASSET_SYMBOL: 'perps-hero-card-view-asset-symbol',
   DIRECTION_BADGE: 'perps-hero-card-view-direction-badge',
@@ -1270,8 +1269,6 @@ export const PerpsHeroCardViewSelectorsIDs = {
 export const getPerpsHeroCardViewSelector = {
   cardContainer: (index: number) =>
     `${PerpsHeroCardViewSelectorsIDs.CARD_CONTAINER}-${index}`,
-  referralCodeTag: (index: number) =>
-    `${PerpsHeroCardViewSelectorsIDs.REFERRAL_CODE_TAG}-${index}`,
   qrCode: (index: number) =>
     `${PerpsHeroCardViewSelectorsIDs.QR_CODE}-${index}`,
   assetSymbol: (index: number) =>

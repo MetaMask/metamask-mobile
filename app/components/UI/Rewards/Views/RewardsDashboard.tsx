@@ -502,14 +502,6 @@ const RewardsDashboard: React.FC = () => {
         </Pressable>
       )}
       <ButtonIcon
-        iconName={IconName.UserCircleAdd}
-        onPress={() =>
-          navigateToRewardsRoute(navigation, Routes.REFERRAL_REWARDS_VIEW)
-        }
-        size={ButtonIconSize.Md}
-        testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
-      />
-      <ButtonIcon
         disabled={!subscriptionId}
         iconName={IconName.Setting}
         onPress={() =>

@@ -24,7 +24,6 @@ import { useRewardOptinSummary } from '../../hooks/useRewardOptinSummary';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectInternalAccountsByGroupId } from '../../../../../selectors/multichainAccounts/accounts';
 import RewardSettingsAccountGroup from './RewardSettingsAccountGroup';
-import ReferredByCodeSection from './ReferredByCodeSection';
 import OptOutSection from './OptOutSection';
 import { RewardSettingsAccountGroupListFlatListItem } from './types';
 import RewardsErrorBanner from '../RewardsErrorBanner';
@@ -33,8 +32,6 @@ import { useBulkLinkState } from '../../hooks/useBulkLinkState';
 import { useTheme } from '../../../../../util/theme';
 
 const INITIAL_ACCOUNTS_TO_SHOW = 2;
-const REFERRAL_INPUT_SCROLL_VIEW_POSITION = 0.2;
-const REFERRAL_INPUT_SCROLL_DELAY_MS = 100;
 
 // Separate component for progress section to prevent header remounting on progress updates
 interface AccountProgressSectionProps {
@@ -277,7 +274,6 @@ const RewardSettingsAccountGroupList: React.FC<
         }
       });
 
-      items.push({ type: 'referredByCode' });
       if (onRequestOptOut) {
         items.push({ type: 'optOut' });
       }
@@ -285,25 +281,6 @@ const RewardSettingsAccountGroupList: React.FC<
 
       return items;
     }, [byWallet, allAddresses, expandedWallets, onRequestOptOut]);
-
-  const referralSectionIndex = useMemo(
-    () => flattenedData.findIndex((item) => item.type === 'referredByCode'),
-    [flattenedData],
-  );
-
-  const handleReferralInputFocus = useCallback(() => {
-    if (referralSectionIndex < 0) {
-      return;
-    }
-
-    setTimeout(() => {
-      flashListRef.current?.scrollToIndex({
-        index: referralSectionIndex,
-        viewPosition: REFERRAL_INPUT_SCROLL_VIEW_POSITION,
-        animated: true,
-      });
-    }, REFERRAL_INPUT_SCROLL_DELAY_MS);
-  }, [referralSectionIndex]);
 
   const renderFlatListItem: ListRenderItem<RewardSettingsAccountGroupListFlatListItem> =
     useCallback(
@@ -376,10 +353,6 @@ const RewardSettingsAccountGroupList: React.FC<
               </ButtonBase>
             );
           }
-          case 'referredByCode':
-            return (
-              <ReferredByCodeSection onInputFocus={handleReferralInputFocus} />
-            );
           case 'optOut':
             return onRequestOptOut ? (
               <OptOutSection onErasePress={onRequestOptOut} />
@@ -390,13 +363,7 @@ const RewardSettingsAccountGroupList: React.FC<
             return null;
         }
       },
-      [
-        avatarAccountType,
-        handleReferralInputFocus,
-        onRequestOptOut,
-        toggleWalletExpanded,
-        tw,
-      ],
+      [avatarAccountType, onRequestOptOut, toggleWalletExpanded, tw],
     );
 
   const getItemType = useCallback(
@@ -418,10 +385,6 @@ const RewardSettingsAccountGroupList: React.FC<
 
       if (item.type === 'showMore' && item.walletId) {
         return `showMore-${item.walletId}`;
-      }
-
-      if (item.type === 'referredByCode') {
-        return 'referredByCode';
       }
 
       if (item.type === 'optOut') {
@@ -463,7 +426,6 @@ const RewardSettingsAccountGroupList: React.FC<
   const SettingsFooterSections = useCallback(
     () => (
       <Box twClassName="gap-4">
-        <ReferredByCodeSection />
         {onRequestOptOut && <OptOutSection onErasePress={onRequestOptOut} />}
         <RewardsEnvironmentToggle />
       </Box>

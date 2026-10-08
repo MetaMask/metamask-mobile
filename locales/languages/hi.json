@@ -3334,11 +3334,9 @@
       "title": "PnL हीरो कार्ड",
       "header_title": "अपना ट्रेड साझा करें",
       "share_button": "साझा करें",
-      "share_message_with_referral_code": "MetaMask पर {{asset}} ट्रेड करें। एक्स्ट्रा रिवॉर्ड कमाने के लिए मेरे रेफ़रल कोड {{code}} का उपयोग करके साइन अप करें। {{link}}",
       "share_message_without_referral_code": "MetaMask पर {{asset}} पर्प्स का ट्रेड करें।",
       "share_failed": "इमेज एक्सपोर्ट नहीं हो पाया",
-      "export_success": "एक्सपोर्ट किया गया इमेज",
-      "referral_code_text": "एक्स्ट्रा रिवॉर्ड कमाने के लिए मेरे रेफ़रल कोड का उपयोग करें।"
+      "export_success": "एक्सपोर्ट किया गया इमेज"
     },
     "market_details": {
       "fullscreen_chart": "फुलस्क्रीन चार्ट",
@@ -11014,15 +11012,6 @@
       "error_fetching_title": "रिवॉर्ड्स लोड नहीं हो सके",
       "error_fetching_description": "अपना कनेक्शन जांचें और फिर से प्रयास करें।"
     },
-    "referral_details_error": {
-      "error_fetching_title": "रेफरल विवरण लोड नहीं हो सके",
-      "error_fetching_description": "अपना कनेक्शन जांचें और फिर से प्रयास करें।",
-      "retry_button": "फिर से प्रयास करें"
-    },
-    "referral_validation_unknown_error": {
-      "title": "रेफरल कोड मान्य नहीं किया जा सका",
-      "description": "अपना कनेक्शन जांचें और फिर से प्रयास करें।"
-    },
     "active_activity_error": {
       "error_fetching_title": "गतिविधि लोड नहीं हो सकी",
       "error_fetching_description": "अपना कनेक्शन जांचें और फिर से प्रयास करें।",
@@ -11064,7 +11053,6 @@
       "progress_to_next_tier": "अगले टियर तक {{pointsRemaining}} पॉइंट्स शेष हैं",
       "bps_unit": "बीपीएस",
       "badge_label": "VIP {{tier}}",
-      "referral_tag_label": "VIP",
       "swaps_label": "स्वैप्स",
       "perps_label": "पर्प्स",
       "points_label": "पॉइंट्स",
@@ -11120,9 +11108,7 @@
       "retry_button": "फिर से प्रयास करें",
       "empty_title": "अभी तक कोई ट्रांसेक्शन नहीं हुआ है। जब आप कोई गतिविधि करेंगे, तो आपके VIP ट्रांसेक्शन यहाँ दिखाई देंगे।"
     },
-    "referral_title": "रेफरल",
     "referral_stats_earned_from_referrals": "रेफरल से अर्जित",
-    "referral_stats_referrals": "रेफरल",
     "loading_activity": "गतिविधि लोड हो रही है…",
     "error_loading_activity": "गतिविधि लोड करने में गड़बड़ी हुई",
     "activity_empty_title": "हाल ही में कोई गतिविधि नहीं।",
@@ -11187,8 +11173,6 @@
       "step_confirm": "आगे",
       "step_finish": "चलिए शुरू करें",
       "step_skip": "छोड़ें",
-      "step4_title_referral_validating": "रेफरल कोड मान्य किया जा रहा है…",
-      "step4_referral_input_error": "रेफरल कोड ग़लत है",
       "title": "रिवॉर्ड कमाना शुरू करें",
       "description": "इनाम जीतें, फ़ायदे पाएँ, और कमाने के और भी तरीके जानें—सिर्फ़ MetaMask का इस्तेमाल करके।",
       "sign_up": "रिवॉर्ड में शामिल हों",
@@ -11197,9 +11181,6 @@
       "legal_disclaimer_2": "उपयोग की शर्तों",
       "legal_disclaimer_3": "। हम इस डिवाइस पर सभी अकाउंट को ऑप्ट इन करेंगे और आपको ऑटोमैटिकली इनाम देने के लिए ऑनचेन एक्टिविटी को ट्रैक करेंगे।",
       "legal_disclaimer_4": "ज्यादा जानें",
-      "referral_prompt": "क्या आपके पास रेफ़रल कोड है?",
-      "referral_hide": "कोड छिपाएँ",
-      "referral_placeholder": "रेफरल कोड (वैकल्पिक)",
       "referral_label": "रेफरल कोड"
     },
     "settings": {
@@ -11231,13 +11212,6 @@
       "off_device_accounts_sheet_title": "गायब पंजीकृत एकाउंट्स",
       "off_device_accounts_sheet_description": "ये शायद उस वॉलेट से संबंधित हो सकते हैं जिसे MetaMask को दोबारा इंस्टॉल करने के बाद अभी तक जोड़ा नहीं गया है। क्या आप इन एड्रेस में से किसी को नहीं पहचानते हैं?",
       "off_device_accounts_sheet_let_us_know": "हमें बताएं"
-    },
-    "referred_by_code": {
-      "title": "रेफरल कोड",
-      "description_linked": "इनवाइट कोड अब लिंक हो गया है, इसलिए जब आप ट्रेड करेंगे, तो आपको रेफर करने वाले को रिवॉर्ड मिलेगा।",
-      "description_not_linked": "क्या आपने अपने दोस्त द्वारा कोड भेजने से पहले ही साइन अप कर लिया? नीचे अपना कोड दर्ज करें और आप लिंक हो जाएंगे।",
-      "input_placeholder": "रेफरल कोड दर्ज करें",
-      "invalid_code": "रेफरल कोड ग़लत है"
     },
     "bonus_code": {
       "input_placeholder": "बोनस कोड दर्ज करें",
@@ -11284,22 +11258,6 @@
     },
     "ways_to_earn": {
       "title": "कमाने के तरीके"
-    },
-    "referral": {
-      "referral_code": "रेफरल कोड",
-      "referral_link": "रेफरल लिंक",
-      "actions": {
-        "share_referral_link": "एक मित्र को रेफर करें",
-        "share_referral_subject": "MetaMask पुरस्कार में शामिल हों"
-      },
-      "info": {
-        "title": "अपना कोड दोस्तों के साथ शेयर करें",
-        "description": "रेफरल बोनस कैंपेन के हिसाब से अलग-अलग होते हैं। डिटेल्स के लिए हर एक को देखें।",
-        "vip_title": "हर स्वैप और पर्प पर, जो आपके रेफ़रल करते हैं, आप रेवेन्यू शेयर कमाएं। आपकी दर आपके टियर के साथ बढ़ती है।",
-        "vip_referrals_label": "रेफरल",
-        "vip_revenue_share_label": "रेवेन्यू शेयर"
-      },
-      "referral_code_copied": "क्लिपबोर्ड पर रेफ़रल कोड कॉपी किया गया"
     },
     "link_account_group": {
       "link_account": "अकाउंट जोड़ें",

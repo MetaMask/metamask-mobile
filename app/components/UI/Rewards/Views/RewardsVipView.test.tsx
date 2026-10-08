@@ -459,7 +459,7 @@ describe('RewardsVipView', () => {
     );
   });
 
-  it('renders the guarded VIP shell with the pilot title and invite button', () => {
+  it('renders the guarded VIP shell with the pilot title', () => {
     mockUseVipDashboard.mockReturnValue({
       dashboard: defaultDashboard,
       isLoading: false,
@@ -472,9 +472,6 @@ describe('RewardsVipView', () => {
 
     expect(getByTestId(REWARDS_VIEW_SELECTORS.VIP_VIEW)).toBeOnTheScreen();
     expect(getAllByText('Acme Rewards Beta')[0]).toBeOnTheScreen();
-    expect(
-      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.INVITE_BUTTON),
-    ).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_VIP_VIEW_TEST_IDS.TRANSACTIONS_BUTTON),
     ).toBeOnTheScreen();

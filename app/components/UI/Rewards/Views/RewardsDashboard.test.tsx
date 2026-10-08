@@ -609,9 +609,6 @@ describe('RewardsDashboard', () => {
         expect(
           getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
         ).toBeOnTheScreen();
-        expect(
-          getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON),
-        ).toBeOnTheScreen();
         expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
       });
     });
@@ -650,19 +647,6 @@ describe('RewardsDashboard', () => {
         params: undefined,
       });
     });
-
-    it('navigates to referral view when referral button is pressed', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON));
-
-      // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: Routes.REFERRAL_REWARDS_VIEW,
-        params: undefined,
-      });
-    });
-
     it('does not render the VIP button when VIP is disabled', () => {
       const { queryByTestId } = render(<RewardsDashboard />);
 
@@ -1321,34 +1305,6 @@ describe('RewardsDashboard', () => {
         }),
       );
       expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-    });
-  });
-
-  describe('referral button state', () => {
-    it('always renders the referral button as enabled regardless of subscription state', () => {
-      // Arrange - no subscriptionId
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId) return null;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        return undefined;
-      });
-
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const referralButton = getByTestId(
-        REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
-      );
-
-      // Assert - referral button is never disabled
-      expect(referralButton).not.toBeDisabled();
     });
   });
 

@@ -3334,11 +3334,9 @@
       "title": "PnL Hero Card",
       "header_title": "I-share ang iyong trade",
       "share_button": "Ibahagi",
-      "share_message_with_referral_code": "Mag-trade ng {{asset}} perps sa MetaMask. Mag-sign up gamit ang referral code kong {{code}} para makakuha ng dagdag na reward. {{link}}",
       "share_message_without_referral_code": "Mag-trade ng {{asset}} perps sa MetaMask.",
       "share_failed": "Hindi na-export ang imahe",
-      "export_success": "Na-export na imahe",
-      "referral_code_text": "Gamitin ang referral code ko para makakuha ng dagdag na reward."
+      "export_success": "Na-export na imahe"
     },
     "market_details": {
       "fullscreen_chart": "Fullscreen chart",
@@ -11014,15 +11012,6 @@
       "error_fetching_title": "Hindi mai--load ang rewards",
       "error_fetching_description": "Suriin ang iyong koneksyon at subukang muli."
     },
-    "referral_details_error": {
-      "error_fetching_title": "Hindi mai-load ang mga detalye ng referral",
-      "error_fetching_description": "Suriin ang iyong koneksyon at subukang muli.",
-      "retry_button": "Subukang muli"
-    },
-    "referral_validation_unknown_error": {
-      "title": "Hindi ma-validate ang referral code",
-      "description": "Suriin ang iyong koneksyon at subukang muli."
-    },
     "active_activity_error": {
       "error_fetching_title": "Hindi mai-load ang aktibidad",
       "error_fetching_description": "Suriin ang iyong koneksyon at subukang muli.",
@@ -11064,7 +11053,6 @@
       "progress_to_next_tier": "{{pointsRemaining}} (na) puntos pa hanggang sa susunod na tier",
       "bps_unit": "bps",
       "badge_label": "VIP {{tier}}",
-      "referral_tag_label": "VIP",
       "swaps_label": "Mga Swap",
       "perps_label": "Perps",
       "points_label": "Mga Point",
@@ -11120,9 +11108,7 @@
       "retry_button": "Subukang muli",
       "empty_title": "Wala pang mga transaksyon. Lilitaw rito ang iyong mga VIP na transaksyon kapag may aktibidad ka na."
     },
-    "referral_title": "Mga Referral",
     "referral_stats_earned_from_referrals": "Nakuha mula sa mga referral",
-    "referral_stats_referrals": "Mga Referral",
     "loading_activity": "Naglo-load ng aktibidad...",
     "error_loading_activity": "Error sa paglo-load ng aktibidad",
     "activity_empty_title": "Walang kamakailang aktibidad.",
@@ -11187,8 +11173,6 @@
       "step_confirm": "Susunod",
       "step_finish": "Tara na",
       "step_skip": "Laktawan",
-      "step4_title_referral_validating": "Bina-validate ang referral code...",
-      "step4_referral_input_error": "Hindi valid na referral code",
       "title": "Simulang makaipon ng mga reward",
       "description": "Manalo ng mga premyo, mag-claim ng perks, at alamin ang mas maraming paraan para kumita sa paggamit lang ng MetaMask.",
       "sign_up": "Sumali sa Mga Reward",
@@ -11197,9 +11181,6 @@
       "legal_disclaimer_2": "Mga Tuntunin ng Paggamit",
       "legal_disclaimer_3": ". Mag-opt in sa lahat ng account sa device na ito at subaybayan ang aktibidad sa chain para awtomatiko kang makatanggap ng reward.",
       "legal_disclaimer_4": "Matuto pa",
-      "referral_prompt": "May referral code ka ba?",
-      "referral_hide": "Itago ang code",
-      "referral_placeholder": "Referral code (opsyonal)",
       "referral_label": "Referral code"
     },
     "settings": {
@@ -11231,13 +11212,6 @@
       "off_device_accounts_sheet_title": "Mga Nawawalang Naka-enroll na Account",
       "off_device_accounts_sheet_description": "Baka bahagi ito ng wallet na hindi pa naidaragdag pagkatapos ma-reinstall ang MetaMask. Hindi mo ba kilala ang alinman sa mga address na ito?",
       "off_device_accounts_sheet_let_us_know": "Ipaalam sa amin"
-    },
-    "referred_by_code": {
-      "title": "Referral Code",
-      "description_linked": "Nai-link na ngayon ang code ng imbitasyon, kaya makakakuha ng mga reward ang nag-refer sa iyo kapag nag-trade ka.",
-      "description_not_linked": "Nakapag-sign up bago maipadala ng kaibigan mo ang kaniyang code? Ilagay iyon sa ibaba at maili-link ka.",
-      "input_placeholder": "Ilagay ang referral code",
-      "invalid_code": "Hindi valid na referral code"
     },
     "bonus_code": {
       "input_placeholder": "Maglagay ng bonus code",
@@ -11284,22 +11258,6 @@
     },
     "ways_to_earn": {
       "title": "Mga paraan para makaipon"
-    },
-    "referral": {
-      "referral_code": "Referral code",
-      "referral_link": "Referral link",
-      "actions": {
-        "share_referral_link": "Mag-refer ng kaibigan",
-        "share_referral_subject": "Sumali sa Mga Reward ng MetaMask"
-      },
-      "info": {
-        "title": "Ibahagi ang code sa mga kaibigan",
-        "description": "Nag-iiba ang mga referral bonus ayon sa campaign. Isa-isang suriin ang mga ito para sa mga detalye.",
-        "vip_title": "Makakuha ng bahagi sa kita sa bawat pag-swap at perp na magreresulta sa pag-refer mo. Tataas ang rate mo kasabay ng tier mo.",
-        "vip_referrals_label": "Mga Referral",
-        "vip_revenue_share_label": "Bahagi sa kita"
-      },
-      "referral_code_copied": "Kinopya sa clipboard ang referral code"
     },
     "link_account_group": {
       "link_account": "Magdagdag ng account",

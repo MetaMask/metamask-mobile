@@ -3334,11 +3334,9 @@
       "title": "Thẻ Anh hùng Lãi/Lỗ",
       "header_title": "Chia sẻ giao dịch của bạn",
       "share_button": "Chia sẻ",
-      "share_message_with_referral_code": "Giao dịch hợp đồng vĩnh cửu {{asset}} trên MetaMask. Đăng ký bằng mã giới thiệu {{code}} của tôi để nhận thêm phần thưởng. {{link}}",
       "share_message_without_referral_code": "Giao dịch hợp đồng vĩnh cửu {{asset}} trên MetaMask.",
       "share_failed": "Xuất hình ảnh thất bại",
-      "export_success": "Đã xuất hình ảnh",
-      "referral_code_text": "Sử dụng mã giới thiệu của tôi để nhận thêm phần thưởng."
+      "export_success": "Đã xuất hình ảnh"
     },
     "market_details": {
       "fullscreen_chart": "Biểu đồ toàn màn hình",
@@ -11014,15 +11012,6 @@
       "error_fetching_title": "Không thể tải phần thưởng",
       "error_fetching_description": "Kiểm tra kết nối của bạn và thử lại."
     },
-    "referral_details_error": {
-      "error_fetching_title": "Không thể tải chi tiết giới thiệu",
-      "error_fetching_description": "Kiểm tra kết nối của bạn và thử lại.",
-      "retry_button": "Thử lại"
-    },
-    "referral_validation_unknown_error": {
-      "title": "Không thể xác minh mã giới thiệu",
-      "description": "Kiểm tra kết nối của bạn và thử lại."
-    },
     "active_activity_error": {
       "error_fetching_title": "Không thể tải hoạt động",
       "error_fetching_description": "Kiểm tra kết nối của bạn và thử lại.",
@@ -11064,7 +11053,6 @@
       "progress_to_next_tier": "Còn {{pointsRemaining}} điểm để lên bậc tiếp theo",
       "bps_unit": "bps",
       "badge_label": "VIP {{tier}}",
-      "referral_tag_label": "VIP",
       "swaps_label": "Hoán đổi",
       "perps_label": "Vĩnh cửu",
       "points_label": "Điểm",
@@ -11120,9 +11108,7 @@
       "retry_button": "Thử lại",
       "empty_title": "Chưa có giao dịch nào. Các giao dịch VIP của bạn sẽ hiển thị tại đây khi bạn có hoạt động."
     },
-    "referral_title": "Giới thiệu",
     "referral_stats_earned_from_referrals": "Nhận được từ giới thiệu",
-    "referral_stats_referrals": "Giới thiệu",
     "loading_activity": "Đang tải hoạt động...",
     "error_loading_activity": "Lỗi khi tải hoạt động",
     "activity_empty_title": "Không có hoạt động gần đây.",
@@ -11187,8 +11173,6 @@
       "step_confirm": "Tiếp theo",
       "step_finish": "Bắt đầu",
       "step_skip": "Bỏ qua",
-      "step4_title_referral_validating": "Đang xác minh mã giới thiệu...",
-      "step4_referral_input_error": "Mã giới thiệu không hợp lệ",
       "title": "Bắt đầu kiếm phần thưởng",
       "description": "Giành giải thưởng, nhận ưu đãi và khám phá thêm nhiều cách kiếm lợi nhuận — chỉ bằng cách sử dụng MetaMask.",
       "sign_up": "Tham gia chương trình Phần thưởng",
@@ -11197,9 +11181,6 @@
       "legal_disclaimer_2": "Điều khoản sử dụng",
       "legal_disclaimer_3": ". Chúng tôi sẽ đăng ký cho tất cả các tài khoản trên thiết bị này và theo dõi hoạt động trên chuỗi để tự động tặng thưởng cho bạn.",
       "legal_disclaimer_4": "Tìm hiểu thêm",
-      "referral_prompt": "Có mã giới thiệu?",
-      "referral_hide": "Ẩn mã",
-      "referral_placeholder": "Mã giới thiệu (không bắt buộc)",
       "referral_label": "Mã giới thiệu"
     },
     "settings": {
@@ -11231,13 +11212,6 @@
       "off_device_accounts_sheet_title": "Thiếu tài khoản đã đăng ký",
       "off_device_accounts_sheet_description": "Những tài khoản này có thể thuộc về một ví chưa được thêm vào sau khi cài đặt lại MetaMask. Bạn không nhận ra bất kỳ địa chỉ nào trong số này?",
       "off_device_accounts_sheet_let_us_know": "Hãy cho chúng tôi biết"
-    },
-    "referred_by_code": {
-      "title": "Mã giới thiệu",
-      "description_linked": "Mã lời mời hiện đã được liên kết, nên người giới thiệu của bạn sẽ nhận được phần thưởng khi bạn giao dịch.",
-      "description_not_linked": "Bạn đã đăng ký trước khi bạn bè gửi mã cho bạn? Nhập mã đó vào bên dưới để được liên kết.",
-      "input_placeholder": "Nhập mã giới thiệu",
-      "invalid_code": "Mã giới thiệu không hợp lệ"
     },
     "bonus_code": {
       "input_placeholder": "Nhập mã thưởng",
@@ -11284,22 +11258,6 @@
     },
     "ways_to_earn": {
       "title": "Cách kiếm điểm"
-    },
-    "referral": {
-      "referral_code": "Mã giới thiệu",
-      "referral_link": "Liên kết giới thiệu",
-      "actions": {
-        "share_referral_link": "Giới thiệu bạn bè",
-        "share_referral_subject": "Tham gia MetaMask Phần thưởng"
-      },
-      "info": {
-        "title": "Chia sẻ mã của bạn với bạn bè",
-        "description": "Thưởng giới thiệu sẽ khác nhau tùy theo từng chiến dịch. Vui lòng kiểm tra chi tiết từng chiến dịch.",
-        "vip_title": "Nhận chia sẻ doanh thu từ mọi giao dịch hoán đổi và giao dịch hợp đồng vĩnh cửu mà người được bạn giới thiệu thực hiện. Tỷ lệ sẽ tăng theo bậc của bạn.",
-        "vip_referrals_label": "Giới thiệu",
-        "vip_revenue_share_label": "Chia sẻ doanh thu"
-      },
-      "referral_code_copied": "Đã sao chép mã giới thiệu vào bộ nhớ đệm"
     },
     "link_account_group": {
       "link_account": "Thêm tài khoản",

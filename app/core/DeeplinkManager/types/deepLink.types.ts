@@ -111,10 +111,6 @@ export interface HandleSwapUrlParams {
 /**
  * Navigation parameter interfaces for deep link routing
  */
-export interface RewardsNavigationParams {
-  referral?: string;
-}
-
 export interface PerpsNavigationParams {
   screen?: 'tabs' | 'markets' | 'asset' | 'tutorial';
   symbol?: string;

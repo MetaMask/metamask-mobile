@@ -3334,11 +3334,9 @@
       "title": "손익 히어로 카드",
       "header_title": "거래 공유",
       "share_button": "공유",
-      "share_message_with_referral_code": "MetaMask에서 {{asset}} 무기한 선물을 거래해 보세요. 이 추천 코드 {{code}}를 사용하여 가입하고 추가 리워드를 받으세요. {{link}}",
       "share_message_without_referral_code": "MetaMask에서 {{asset}} 무기한 선물을 거래하세요.",
       "share_failed": "이미지 내보내기 실패",
-      "export_success": "이미지 내보내기 완료",
-      "referral_code_text": "추천 코드를 사용하여 추가 리워드를 받으세요."
+      "export_success": "이미지 내보내기 완료"
     },
     "market_details": {
       "fullscreen_chart": "전체 화면 차트",
@@ -11014,15 +11012,6 @@
       "error_fetching_title": "보상을 불러올 수 없습니다",
       "error_fetching_description": "연결 상태를 확인하고 다시 시도하세요."
     },
-    "referral_details_error": {
-      "error_fetching_title": "추천 정보를 불러올 수 없습니다",
-      "error_fetching_description": "연결 상태를 확인하고 다시 시도하세요.",
-      "retry_button": "다시 시도"
-    },
-    "referral_validation_unknown_error": {
-      "title": "추천 코드를 확인할 수 없습니다",
-      "description": "연결 상태를 확인하고 다시 시도하세요."
-    },
     "active_activity_error": {
       "error_fetching_title": "활동 정보를 불러올 수 없습니다",
       "error_fetching_description": "연결 상태를 확인하고 다시 시도하세요.",
@@ -11064,7 +11053,6 @@
       "progress_to_next_tier": "다음 티어까지 {{pointsRemaining}}포인트 남음",
       "bps_unit": "bps",
       "badge_label": "VIP {{tier}}",
-      "referral_tag_label": "VIP",
       "swaps_label": "스왑",
       "perps_label": "무기한 선물",
       "points_label": "포인트",
@@ -11120,9 +11108,7 @@
       "retry_button": "다시 시도",
       "empty_title": "아직 트랜잭션이 없습니다. 활동이 발생하면 VIP 트랜잭션이 여기에 표시됩니다."
     },
-    "referral_title": "추천",
     "referral_stats_earned_from_referrals": "추천을 통해 적립",
-    "referral_stats_referrals": "추천",
     "loading_activity": "활동 정보를 불러오는 중...",
     "error_loading_activity": "활동 정보를 불러올 수 없습니다",
     "activity_empty_title": "최근 활동이 없습니다.",
@@ -11187,8 +11173,6 @@
       "step_confirm": "다음",
       "step_finish": "시작하기",
       "step_skip": "건너뛰기",
-      "step4_title_referral_validating": "추천 코드 확인 중...",
-      "step4_referral_input_error": "잘못된 추천 코드",
       "title": "보상 적립 시작하기",
       "description": "MetaMask를 사용하기만 해도 상품을 받고, 혜택을 청구하며, 더 많은 수익 기회를 발견할 수 있습니다.",
       "sign_up": "보상 프로그램 가입",
@@ -11197,9 +11181,6 @@
       "legal_disclaimer_2": "이용약관",
       "legal_disclaimer_3": ". 이 기기의 모든 계정을 참여 처리하고 온체인 활동을 추적하여 보상을 자동으로 지급합니다.",
       "legal_disclaimer_4": "더 보기",
-      "referral_prompt": "추천 코드가 있으세요?",
-      "referral_hide": "코드 숨기기",
-      "referral_placeholder": "추천 코드(선택 사항)",
       "referral_label": "추천 코드"
     },
     "settings": {
@@ -11231,13 +11212,6 @@
       "off_device_accounts_sheet_title": "등록된 계정 누락",
       "off_device_accounts_sheet_description": "MetaMask를 다시 설치한 후 아직 추가하지 않은 지갑의 계정일 수 있습니다. 본인의 주소가 아닌 것이 있습니까?",
       "off_device_accounts_sheet_let_us_know": "알려주세요"
-    },
-    "referred_by_code": {
-      "title": "추천 코드",
-      "description_linked": "초대 코드가 연결되었습니다. 이제 거래 시 추천인이 보상을 받게 됩니다.",
-      "description_not_linked": "친구가 코드를 보내기 전에 가입하셨나요? 아래에 입력하면 연결됩니다.",
-      "input_placeholder": "추천 코드 입력",
-      "invalid_code": "잘못된 추천 코드"
     },
     "bonus_code": {
       "input_placeholder": "보너스 코드 입력",
@@ -11284,22 +11258,6 @@
     },
     "ways_to_earn": {
       "title": "포인트를 획득하는 방법"
-    },
-    "referral": {
-      "referral_code": "추천 코드",
-      "referral_link": "추천 링크",
-      "actions": {
-        "share_referral_link": "친구 추천",
-        "share_referral_subject": "MetaMask 보상 프로그램 가입"
-      },
-      "info": {
-        "title": "친구와 코드 공유하기",
-        "description": "추천 보너스는 캠페인마다 다릅니다. 자세한 내용은 각 캠페인을 확인하세요.",
-        "vip_title": "추천한 사용자가 스왑이나 무기한 선물 거래를 할 때마다 수익 배분을 받을 수 있습니다. 수익 배분율은 티어가 올라갈수록 높아집니다.",
-        "vip_referrals_label": "추천",
-        "vip_revenue_share_label": "수익 배분"
-      },
-      "referral_code_copied": "추천 코드가 클립보드에 복사되었습니다"
     },
     "link_account_group": {
       "link_account": "계정 추가",

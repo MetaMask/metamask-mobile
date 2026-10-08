@@ -365,23 +365,6 @@ jest.mock('./RewardSettingsAccountGroup', () => {
   );
 });
 
-// Mock ReferredByCodeSection component to avoid navigation context requirement
-jest.mock('./ReferredByCodeSection', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, TouchableOpacity } = jest.requireActual('react-native');
-
-  return ({ onInputFocus }: { onInputFocus?: () => void }) =>
-    ReactActual.createElement(
-      View,
-      { testID: 'referred-by-code-section' },
-      onInputFocus &&
-        ReactActual.createElement(TouchableOpacity, {
-          testID: 'referred-by-code-focus-trigger',
-          onPress: onInputFocus,
-        }),
-    );
-});
-
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseRewardOptinSummary = useRewardOptinSummary as jest.MockedFunction<
   typeof useRewardOptinSummary
@@ -673,26 +656,9 @@ describe('RewardSettingsAccountGroupList', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('flash-list-item-referredByCode')).toBeOnTheScreen();
       expect(
         getByTestId('flash-list-item-environmentToggle'),
       ).toBeOnTheScreen();
-    });
-
-    it('scrolls to referral section on input focus', () => {
-      jest.useFakeTimers();
-      const { getByTestId } = render(<RewardSettingsAccountGroupList />);
-
-      fireEvent.press(getByTestId('referred-by-code-focus-trigger'));
-      jest.runAllTimers();
-
-      expect(mockFlashListScrollToIndex).toHaveBeenCalledWith(
-        expect.objectContaining({
-          viewPosition: 0.2,
-          animated: true,
-        }),
-      );
-      jest.useRealTimers();
     });
   });
 

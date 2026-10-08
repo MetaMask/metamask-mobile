@@ -5,7 +5,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { slideFromRightNativeOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import OnboardingNavigator from './OnboardingNavigator';
 import RewardsDashboard from './Views/RewardsDashboard';
-import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
 import RewardsVipSplashView from './Views/RewardsVipSplashView';
 import RewardsVipView from './Views/RewardsVipView';
@@ -61,8 +60,8 @@ const RewardsNavigator: React.FC = () => {
 
   useRewardsVersionGuard({ refreshKey: activeRewardsRoute });
 
-  // The tab-level data hooks (useCandidateSubscriptionId, useGeoRewardsMetadata,
-  // useReferralDetails) intentionally live on RewardsDashboard, not here.
+  // The tab-level data hooks (useCandidateSubscriptionId, useGeoRewardsMetadata)
+  // intentionally live on RewardsDashboard, not here.
   // RewardsDashboard is the Rewards tab entry and stays mounted while this pushed
   // REWARDS_FLOW stack is open, so it already populates Redux for these sub-pages
   // and keeps event-driven refetches running. Re-declaring those hooks here would
@@ -179,10 +178,6 @@ const RewardsNavigator: React.FC = () => {
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen
-        name={Routes.REFERRAL_REWARDS_VIEW}
-        component={ReferralRewardsView}
-      />
       <Stack.Screen
         name={Routes.REWARDS_SETTINGS_VIEW}
         component={RewardsSettingsView}
