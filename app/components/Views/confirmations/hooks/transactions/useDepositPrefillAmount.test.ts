@@ -24,6 +24,7 @@ import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import { resolveABTestAssignment } from '../../../../../util/abTest';
 import { MoneyAccountDepositPrefillVariant } from './abTestConfig';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
 jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
   getMoneyAccountDepositIntent: jest.fn(),
@@ -31,6 +32,11 @@ jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
 
 jest.mock('../../../../../util/abTest', () => ({
   resolveABTestAssignment: jest.fn(),
+}));
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+  useParams: jest.fn(),
 }));
 
 jest.mock(
@@ -88,6 +94,7 @@ const getMoneyAccountDepositIntentMock = jest.mocked(
   getMoneyAccountDepositIntent,
 );
 const resolveABTestAssignmentMock = jest.mocked(resolveABTestAssignment);
+const useParamsMock = jest.mocked(useParams);
 
 function mockDepositPrefillAbVariant(
   variant: MoneyAccountDepositPrefillVariant = MoneyAccountDepositPrefillVariant.Treatment,
@@ -147,6 +154,7 @@ function setupMocks(
     transactionMeta?: TransactionMeta;
     accountOverride?: string;
     availableTokenBalances?: number[];
+    availableTokensDisabled?: boolean;
     fiatPaymentSelected?: boolean;
     stablecoin?: boolean;
     depositIntent?: string;
@@ -158,6 +166,7 @@ function setupMocks(
     depositLimits = {},
     transactionMeta = makeTransactionMeta(),
     availableTokenBalances = [1000],
+    availableTokensDisabled = false,
     stablecoin = true,
     depositIntent = 'convert',
   } = overrides;
@@ -180,6 +189,7 @@ function setupMocks(
     availableTokens: availableTokenBalances.map((balance, index) => ({
       address: `${TOKEN_ADDRESS_MOCK}-${index}`,
       chainId: CHAIN_ID_MOCK,
+      disabled: availableTokensDisabled,
       fiat: { balance },
     })),
     hasTokens: availableTokenBalances.length > 0,
@@ -211,9 +221,12 @@ function runHook(options?: { autoSelectFiatPayment?: boolean }) {
 }
 
 describe('useDepositPrefillAmount', () => {
+  const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+    TransactionType.membershipSubscription;
   beforeEach(() => {
     jest.resetAllMocks();
     mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Treatment);
+    useParamsMock.mockReturnValue({});
     setupMocks();
   });
 
@@ -274,6 +287,131 @@ describe('useDepositPrefillAmount', () => {
       expect(result.current.prefillAmount).toBeDefined();
     });
 
+    it.each([
+      TransactionType.moneyAccountDeposit,
+      MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+    ])(
+      'enables explicit amount prefill for %s transactions',
+      (transactionType) => {
+        setupMocks({
+          transactionMeta: makeTransactionMeta({ type: transactionType }),
+        });
+        useParamsMock.mockReturnValue({ amount: '5' });
+
+        const { result } = runHook();
+
+        expect(result.current.prefillAmount).toBe('5');
+        expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+      },
+    );
+
+    it('prefills the explicit Money amount instead of a balance percentage', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      setupMocks({
+        transactionMeta: makeTransactionMeta({
+          type: TransactionType.moneyAccountDeposit,
+        }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual({
+        prefillAmount: '5',
+        percentage: undefined,
+        isLimitCapped: false,
+        status: DepositPrefillStatus.Prefilled,
+      });
+    });
+
+    it('prefills an explicit amount even when balance prefill flags are disabled', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Control);
+      setupMocks({
+        prefilledAmountDefault: { enabled: false },
+        prefilledAmountOverrides: {},
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.prefillAmount).toBe('5');
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+    });
+
+    it('waits for a selected payment token before preparing the explicit amount', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      setupMocks({ payToken: null });
+
+      const { result, rerender } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Loading);
+      act(() => {
+        setPayTokenWithBalance(makePayToken());
+        rerender({});
+      });
+      expect(result.current.prefillAmount).toBe('5');
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+    });
+
+    it.each(['0', '-5', 'NaN', 'Infinity'])(
+      'does not automatically quote amount %s',
+      (amount) => {
+        useParamsMock.mockReturnValue({ amount });
+
+        const { result } = runHook();
+
+        expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
+      },
+    );
+
+    it('skips explicit amount autoquote without a funded token', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      setupMocks({ payToken: null, availableTokenBalances: [] });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+    });
+
+    it('preserves the explicit amount instead of capping it to balance or deposit limits', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      setupMocks({
+        payToken: makePayToken({ balanceUsd: '2' }),
+        depositLimits: { moneyAccountDeposit: 3 },
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.prefillAmount).toBe('5');
+      expect(result.current.percentage).toBeUndefined();
+      expect(result.current.isLimitCapped).toBe(false);
+    });
+
+    it('leaves explicit fiat amounts on the input flow', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+
+      const { result } = runHook({ autoSelectFiatPayment: true });
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+    });
+
+    it('keeps perpsDeposit prefill enabled when navigation provides an explicit amount', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      setupMocks({
+        transactionMeta: makeTransactionMeta({
+          type: TransactionType.perpsDeposit,
+        }),
+        prefilledAmountDefault: { enabled: false },
+        prefilledAmountOverrides: {
+          perpsDeposit: { enabled: true },
+        },
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+      expect(result.current.prefillAmount).toBe('500');
+    });
+
     it('does not apply the money-account A/B gate for non-deposit transaction types', () => {
       mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Control);
       setupMocks({
@@ -293,6 +431,25 @@ describe('useDepositPrefillAmount', () => {
   });
 
   describe('prefillAmount computation', () => {
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
+    ])('computes 50% for stablecoin %s transactions', (transactionType) => {
+      setupMocks({
+        transactionMeta: makeTransactionMeta({ type: transactionType }),
+        stablecoin: true,
+        payToken: makePayToken({ balanceUsd: '1000' }),
+        prefilledAmountDefault: { enabled: true },
+        prefilledAmountOverrides: {},
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.prefillAmount).toBe('500');
+      expect(result.current.percentage).toBe(50);
+    });
+
     it('computes 100% for stablecoin', () => {
       setupMocks({
         stablecoin: true,
@@ -441,6 +598,71 @@ describe('useDepositPrefillAmount', () => {
 
       expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
       expect(result.current.prefillAmount).toBe('59.64');
+    });
+
+    it('skips a stablecoin whose whole balance is sub-cent dust', () => {
+      // Dust renders as $0.00 and the percentage path refuses to apply it,
+      // so a prefill here would leave the previous token's amount in place.
+      setupMocks({
+        stablecoin: true,
+        payToken: makePayToken({ balanceUsd: '0.005' }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+      expect(result.current.prefillAmount).toBeUndefined();
+      expect(result.current.percentage).toBeUndefined();
+    });
+
+    it('skips a non-stablecoin whose 50% share is sub-cent dust', () => {
+      setupMocks({
+        stablecoin: false,
+        payToken: makePayToken({ balanceUsd: '0.015' }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+      expect(result.current.prefillAmount).toBeUndefined();
+    });
+
+    it('still prefills a balance of exactly one cent', () => {
+      setupMocks({
+        stablecoin: true,
+        payToken: makePayToken({ balanceUsd: '0.01' }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+      expect(result.current.prefillAmount).toBe('0.01');
+    });
+
+    it('settles instead of loading when the balance snapshot is not numeric', () => {
+      // The snapshot on the pay token can be non-numeric while the reactive
+      // balance in the pay-with row is fine. `NaN` produces no prefill amount
+      // and is not `<= 0`, so waiting on it loaded forever.
+      setupMocks({ payToken: makePayToken({ balanceUsd: 'US$49.14' }) });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+      expect(result.current.prefillAmount).toBeUndefined();
+    });
+
+    it('settles instead of loading when every funded token is disabled', () => {
+      // Disabled tokens are excluded from automatic pay-token selection, so no
+      // pay token can arrive to prefill from.
+      setupMocks({
+        payToken: null,
+        availableTokenBalances: [1000],
+        availableTokensDisabled: true,
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
     });
 
     it('keeps loading while the pay token is still unresolved', () => {

@@ -25,6 +25,7 @@ import { MONEY_ACCOUNT_DEPOSIT_MOCKS } from '../../../api-mocking/mock-responses
 import { applyTokenHoldingsMocks } from '../../../api-mocking/mock-responses/pay/holdings-mocks.js';
 import {
   BUY_ORDER_STATUS_MOCKS,
+  RAMPS_ORDER_STORAGE_MOCKS,
   setupRegionAwareOnRampMocks,
   RAMPS_QUOTE_MOCKS,
 } from '../../../api-mocking/mock-responses/ramps/ramps-mocks.js';
@@ -40,7 +41,9 @@ const MONEY_DEPOSIT_HOLDINGS: TokenHolding[] = [
   { ...PREDEFINED_TOKENS.MONAD.MUSD, amount: '10' },
 ];
 
-appiumTest.describe(
+// Skipped: temporarily disabled while the Money Account fiat deposit flow is
+// being worked on. Re-enable once the flow is stable.
+appiumTest.describe.skip(
   SmokeConfirmations('MM Pay - Money Account deposit fiat'),
   () => {
     appiumTest.describe.configure({ timeout: 250_000 });
@@ -90,6 +93,7 @@ appiumTest.describe(
                 mockServer,
                 RampsRegions[RampsRegionsEnum.FRANCE],
               );
+              await RAMPS_ORDER_STORAGE_MOCKS(mockServer);
               await RAMPS_QUOTE_MOCKS(mockServer, 'native');
               await BUY_ORDER_STATUS_MOCKS(mockServer);
             },

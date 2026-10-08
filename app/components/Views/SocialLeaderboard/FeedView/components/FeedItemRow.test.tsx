@@ -2,7 +2,10 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import FeedItemRow from './FeedItemRow';
-import type { FeedPerpItem, FeedSpotItem } from '../types';
+import type {
+  FeedPerpItem,
+  FeedSpotItem,
+} from '../../../../UI/SocialFeed/types';
 import {
   getFeedItemTestId,
   getFeedNewPositionTestId,
@@ -352,6 +355,35 @@ describe('FeedItemRow', () => {
     expect(screen.getByText('$123,000.5')).toBeOnTheScreen();
     expect(screen.getByText('+12%')).toBeOnTheScreen();
     expect(screen.queryByTestId(getFeedNewPositionTestId('spot-1'))).toBeNull();
+  });
+
+  it('renders the Trade button by default', () => {
+    renderWithProvider(
+      <FeedItemRow
+        item={spotItem}
+        onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(getFeedTradeButtonTestId('spot-1')),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the Trade button when showTradeButton is false', () => {
+    renderWithProvider(
+      <FeedItemRow
+        item={spotItem}
+        showTradeButton={false}
+        onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryByTestId(getFeedTradeButtonTestId('spot-1'))).toBeNull();
   });
 
   it('renders the relative timestamp from the injected now', () => {

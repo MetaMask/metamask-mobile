@@ -12,6 +12,7 @@ import {
   formatCoinVolume,
   formatPositionSize,
   formatLeverage,
+  formatLiquidationDistance,
   parseCurrencyString,
   truncateToTwoDecimals,
   parsePercentageString,
@@ -22,8 +23,10 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
   formatPositiveFiat,
+  formatLimitPriceInput,
   formatPerpsPrice,
   formatPositionTriggerSummary,
+  getUniversalPriceFractionDigits,
 } from './formatUtils';
 import {
   countSignificantFigures,
@@ -635,6 +638,68 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('getUniversalPriceFractionDigits', () => {
+    it('matches the decimals shown for a mid-range price like HYPE', () => {
+      expect(getUniversalPriceFractionDigits(84.491)).toBe(3);
+    });
+
+    it('matches the decimals shown for a hundreds price like ZEC', () => {
+      expect(getUniversalPriceFractionDigits(983.81)).toBe(2);
+    });
+
+    it('uses 1 decimal for prices between $1k and $10k', () => {
+      expect(getUniversalPriceFractionDigits(3000)).toBe(1);
+    });
+
+    it('uses 0 decimals for prices above $10k', () => {
+      expect(getUniversalPriceFractionDigits(123456)).toBe(0);
+    });
+
+    it('returns 0 for zero and non-finite prices', () => {
+      expect(getUniversalPriceFractionDigits(0)).toBe(0);
+      expect(getUniversalPriceFractionDigits(Number.NaN)).toBe(0);
+      expect(getUniversalPriceFractionDigits(Number.POSITIVE_INFINITY)).toBe(0);
+    });
+
+    it('returns 2 when no universal price range matches', () => {
+      const originalRanges = [...PRICE_RANGES_UNIVERSAL];
+      PRICE_RANGES_UNIVERSAL.splice(0, PRICE_RANGES_UNIVERSAL.length, {
+        condition: () => false,
+        minimumDecimals: 0,
+        maximumDecimals: 4,
+      });
+
+      try {
+        expect(getUniversalPriceFractionDigits(12.34)).toBe(2);
+      } finally {
+        PRICE_RANGES_UNIVERSAL.splice(
+          0,
+          PRICE_RANGES_UNIVERSAL.length,
+          ...originalRanges,
+        );
+      }
+    });
+
+    it('uses maximum decimals when the matching range has no significant digits', () => {
+      const originalRanges = [...PRICE_RANGES_UNIVERSAL];
+      PRICE_RANGES_UNIVERSAL.splice(0, PRICE_RANGES_UNIVERSAL.length, {
+        condition: () => true,
+        minimumDecimals: 0,
+        maximumDecimals: 4,
+      });
+
+      try {
+        expect(getUniversalPriceFractionDigits(12.34)).toBe(4);
+      } finally {
+        PRICE_RANGES_UNIVERSAL.splice(
+          0,
+          PRICE_RANGES_UNIVERSAL.length,
+          ...originalRanges,
+        );
+      }
+    });
+  });
+
   describe('formatPnl', () => {
     it('should format positive PnL with + prefix', () => {
       expect(formatPnl(100)).toBe('+$100.00');
@@ -914,6 +979,23 @@ describe('formatUtils', () => {
         expect(formatPositionSize(0.0024, undefined)).toBe('0.0024');
         expect(formatPositionSize(44, undefined)).toBe('44');
       });
+    });
+  });
+
+  describe('formatLiquidationDistance', () => {
+    it('formats the distance from entry to liquidation as a percentage', () => {
+      expect(formatLiquidationDistance(100, 70)).toBe('30.00%');
+      expect(formatLiquidationDistance(100, 130)).toBe('30.00%');
+      expect(formatLiquidationDistance('103.02', '70.45')).toBe('31.62%');
+    });
+
+    it('returns undefined when either price is unusable', () => {
+      expect(formatLiquidationDistance(100, undefined)).toBeUndefined();
+      expect(formatLiquidationDistance(null, 70)).toBeUndefined();
+      expect(formatLiquidationDistance(100, '0')).toBeUndefined();
+      expect(formatLiquidationDistance(0, 70)).toBeUndefined();
+      expect(formatLiquidationDistance(100, 'abc')).toBeUndefined();
+      expect(formatLiquidationDistance(100, Infinity)).toBeUndefined();
     });
   });
 
@@ -2160,6 +2242,25 @@ describe('formatUtils', () => {
     it('returns null when a side has neither a count nor a usable price', () => {
       expect(formatPositionTriggerSummary({ count: 0 })).toBeNull();
       expect(formatPositionTriggerSummary({ price: '0' })).toBeNull();
+    });
+  });
+
+  describe('formatLimitPriceInput', () => {
+    it('returns empty for absent or zero input', () => {
+      expect(formatLimitPriceInput('')).toBe('');
+      expect(formatLimitPriceInput('0')).toBe('');
+    });
+
+    it('preserves a trailing decimal point while typing', () => {
+      expect(formatLimitPriceInput('12.')).toBe('$12.');
+    });
+
+    it('preserves trailing zeros after the decimal while typing', () => {
+      expect(formatLimitPriceInput('12.50')).toBe('$12.50');
+    });
+
+    it('formats a complete number', () => {
+      expect(formatLimitPriceInput('3000')).toBe('$3,000');
     });
   });
 });

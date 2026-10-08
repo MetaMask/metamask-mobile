@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { ZERO_ADDRESS, DEAD_ADDRESS } from '../../../../../constants/address';
@@ -64,6 +64,6 @@ export function useBurnAddressAlert(): Alert[] {
       ];
     }
 
-    return [];
+    return NO_ALERTS;
   }, [hasZeroAddressRecipient, hasDeadAddressRecipient]);
 }

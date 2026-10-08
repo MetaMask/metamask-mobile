@@ -34,8 +34,7 @@ const SECURITY_ALERTS_API_URL =
   'https://security-alerts.api.cx.metamask.io';
 
 const PRICE_ALERTS_API_URL =
-  process.env.PRICE_ALERTS_API_URL ??
-  'https://price-alerts.dev-api.cx.metamask.io';
+  process.env.PRICE_ALERTS_API_URL ?? 'https://price-alerts.api.cx.metamask.io';
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
@@ -138,6 +137,8 @@ export default {
   MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE: 'metamask-alternate.test-app.link',
   MM_IO_UNIVERSAL_LINK_HOST: 'link.metamask.io',
   MM_IO_UNIVERSAL_LINK_TEST_HOST: 'link-test.metamask.io',
+  MM_COM_UNIVERSAL_LINK_HOST: 'link.metamask.com',
+  MM_COM_UNIVERSAL_LINK_TEST_HOST: 'link-test.metamask.com',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
   MM_DEEP_LINK_PUBLIC_KEY_X: 'PxxYwxHYnfdrHyG9LPws2330ffAYE9a4CDD6Wx9ZwGs',
   MM_DEEP_LINK_PUBLIC_KEY_Y: 'w4ZtTHFnWyNkbgXglqJOoc-1OA5ZC4kW4GYU_QIeBNA',
@@ -257,6 +258,14 @@ export default {
     DEV: 'https://rewards.dev-api.cx.metamask.io',
     UAT: 'https://rewards.uat-api.cx.metamask.io',
     PRD: 'https://rewards.api.cx.metamask.io',
+  },
+  // Rewards Money: GH Actions use builds.yml (env set per build). Fallback
+  // mapping for local when env not set. Point at a local backend with
+  // REWARDS_MONEY_API_URL.
+  REWARDS_MONEY_API_URL: {
+    DEV: 'https://rewards-money.dev-api.cx.metamask.io',
+    UAT: 'https://rewards-money.uat-api.cx.metamask.io',
+    PRD: 'https://rewards-money.api.cx.metamask.io',
   },
   BAANX_API_URL: {
     DEV: 'https://foxdev2-ag.foxcard.io',

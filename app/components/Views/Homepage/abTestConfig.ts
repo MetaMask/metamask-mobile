@@ -1,4 +1,6 @@
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
+import { TokenDetailsSource } from '../../UI/TokenDetails/constants/constants';
 import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnalytics.types';
 import { createActiveABTestAssignment } from '../../../util/analytics/activeABTestAssignments';
 import type { TransactionActiveAbTestEntry } from '../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -303,22 +305,17 @@ export const HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING: ABTestAnaly
 // ─── Homepage balance breakdown ──────────────────────────────────────────────
 
 export const HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY =
-  'homeTMCU1209AbtestHomepageBalanceBreakdown';
+  'homeTMCU1209AbtestHomepageBalanceBreakdownV2';
 export const HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT =
   'homescreen_balance_breakdown';
 
 export enum HomepageBalanceBreakdownVariant {
   Control = 'control',
-  Icons = 'icons',
-  IconsWithArrows = 'iconsWithArrows',
-  Allocation = 'allocation',
+  Treatment = 'treatment',
 }
 
-export type HomepageBalanceBreakdownLayout = 'icons' | 'allocation';
-
 interface HomepageBalanceBreakdownVariantConfig {
-  layout: HomepageBalanceBreakdownLayout | null;
-  showRowArrows: boolean;
+  showBalanceBreakdown: boolean;
 }
 
 export const HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS: Record<
@@ -326,30 +323,18 @@ export const HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS: Record<
   HomepageBalanceBreakdownVariantConfig
 > = {
   [HomepageBalanceBreakdownVariant.Control]: {
-    layout: null,
-    showRowArrows: false,
+    showBalanceBreakdown: false,
   },
-  [HomepageBalanceBreakdownVariant.Icons]: {
-    layout: 'icons',
-    showRowArrows: false,
-  },
-  [HomepageBalanceBreakdownVariant.IconsWithArrows]: {
-    layout: 'icons',
-    showRowArrows: true,
-  },
-  [HomepageBalanceBreakdownVariant.Allocation]: {
-    layout: 'allocation',
-    showRowArrows: false,
+  [HomepageBalanceBreakdownVariant.Treatment]: {
+    showBalanceBreakdown: true,
   },
 };
 
 export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS = {
-  experimentName: 'Homepage balance breakdown',
+  experimentName: 'Homepage balance breakdown V2',
   variationNames: {
     control: 'Current homepage without balance breakdown',
-    icons: 'Primitive breakdown with icons',
-    iconsWithArrows: 'Primitive breakdown with icons and row arrows',
-    allocation: 'Primitive allocation breakdown',
+    treatment: 'Iconless balance breakdown',
   },
 } as const;
 
@@ -460,4 +445,66 @@ export const HEADER_NAV_BAR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
     flagKey: HEADER_NAV_BAR_AB_KEY,
     validVariants: Object.values(HeaderNavBarVariant),
     eventNames: [EVENT_NAME.HOME_VIEWED, EVENT_NAME.ACCOUNT_LIST_VIEWED],
+  };
+
+// ─── Perps section priority on wallet home (TAT-3597) ────────────────────────
+
+/**
+ * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
+ * sync with the flag in LD (team `perps`, ticket TAT-3597).
+ */
+export const PERPS_SECTION_PRIORITY_AB_KEY =
+  'perpsTAT3597AbtestPerpsSectionPriority';
+
+export enum PerpsSectionPriorityVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+interface PerpsSectionPriorityVariantConfig {
+  /** Permits the reorder; still gated at render time by active-trader status. */
+  perpsAboveTokensEligible: boolean;
+}
+
+export const PERPS_SECTION_PRIORITY_VARIANTS: Record<
+  PerpsSectionPriorityVariant,
+  PerpsSectionPriorityVariantConfig
+> = {
+  [PerpsSectionPriorityVariant.Control]: {
+    perpsAboveTokensEligible: false,
+  },
+  [PerpsSectionPriorityVariant.Treatment]: {
+    perpsAboveTokensEligible: true,
+  },
+};
+
+export const PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Section Priority',
+  variationNames: {
+    control: 'Tokens above Perps (current)',
+    treatment: 'Perps above Tokens when eligible',
+  },
+} as const;
+
+export const PERPS_SECTION_PRIORITY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: PERPS_SECTION_PRIORITY_AB_KEY,
+    validVariants: Object.values(PerpsSectionPriorityVariant),
+    eventNames: [
+      EVENT_NAME.HOME_VIEWED,
+      EVENT_NAME.PERPS_UI_INTERACTION,
+      EVENT_NAME.PERPS_TRADE_TRANSACTION,
+      EVENT_NAME.ACTION_BUTTON_CLICKED,
+      EVENT_NAME.TOKEN_DETAILS_OPENED,
+    ],
+    // Both guardrails fire from surfaces this experiment does not touch
+    // (asset details, navbar, the token list page). Tagging those would not
+    // bias the comparison, since it tags both arms equally, but it dilutes the
+    // metric with traffic the section order cannot influence.
+    eventPropertyRequirements: {
+      [EVENT_NAME.ACTION_BUTTON_CLICKED]: { location: ActionLocation.HOME },
+      [EVENT_NAME.TOKEN_DETAILS_OPENED]: {
+        source: TokenDetailsSource.MobileTokenList,
+      },
+    },
   };

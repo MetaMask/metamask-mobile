@@ -2,6 +2,7 @@ import React from 'react';
 import { Text } from '@metamask/design-system-react-native';
 import { act, fireEvent } from '@testing-library/react-native';
 import { PerpsMode, type PerpsMarketData } from '@metamask/perps-controller';
+import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
@@ -299,16 +300,31 @@ describe('PerpsMarketHeader', () => {
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
   });
 
-  it('renders the filled star when the market is favorited', () => {
-    const { getByTestId } = renderHeader({
-      onFavoritePress: jest.fn(),
+  it.each([
+    {
       isFavorite: true,
-    });
+      accessibilityLabel: strings('perps.market_details.remove_from_watchlist'),
+    },
+    {
+      isFavorite: false,
+      accessibilityLabel: strings('perps.market_details.add_to_watchlist'),
+    },
+  ])(
+    'exposes $accessibilityLabel when isFavorite is $isFavorite',
+    ({ isFavorite, accessibilityLabel }) => {
+      const { getByTestId } = renderHeader({
+        onFavoritePress: jest.fn(),
+        isFavorite,
+      });
 
-    expect(
-      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
-    ).toBeOnTheScreen();
-  });
+      const favoriteButton = getByTestId(
+        PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON,
+      );
+
+      expect(favoriteButton).toBeOnTheScreen();
+      expect(favoriteButton.props.accessibilityLabel).toBe(accessibilityLabel);
+    },
+  );
 
   it('fires onModeChange from the active Pro mode pill without waiting for the shimmer', () => {
     jest.useFakeTimers();
@@ -338,26 +354,18 @@ describe('PerpsMarketHeader', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('exposes accessibility labels on back, wallet, and favorite buttons', () => {
+  it('exposes accessibility labels on back and wallet buttons', () => {
     const { getByLabelText } = renderHeader({
       onBackPress: jest.fn(),
       onWalletPress: jest.fn(),
-      onFavoritePress: jest.fn(),
-      isFavorite: false,
     });
 
-    expect(getByLabelText('Back')).toBeOnTheScreen();
-    expect(getByLabelText('Perps balance')).toBeOnTheScreen();
-    expect(getByLabelText('Add to watchlist')).toBeOnTheScreen();
-  });
-
-  it('uses a state-aware accessibility label for the favorite toggle', () => {
-    const { getByLabelText } = renderHeader({
-      onFavoritePress: jest.fn(),
-      isFavorite: true,
-    });
-
-    expect(getByLabelText('Remove from watchlist')).toBeOnTheScreen();
+    expect(
+      getByLabelText(strings('perps.market_details.back')),
+    ).toBeOnTheScreen();
+    expect(
+      getByLabelText(strings('perps.market_details.wallet')),
+    ).toBeOnTheScreen();
   });
 
   it('omits end actions when their handlers are not provided', () => {

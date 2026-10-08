@@ -30,8 +30,8 @@ on:
       build_attribution:
         description: >-
           Optional analytics build attribution, exported as METAMASK_BUILD_ATTRIBUTION and inlined
-          into the rebuilt JS bundle. Set to 'nightly' for OTA pushes to nightly builds so the
-          update keeps reporting `-rc-nightly` / `-exp-nightly` instead of the Runway suffixes.
+          into the rebuilt JS bundle. Nightly OTA passes 'nightly'. Official RC OTA passes
+          'official'. Other rc values report `-rc-unofficial`.
         type: string
         required: false
         default: ''
@@ -129,8 +129,9 @@ jobs:
           echo "✅ Artifacts verified"
 
       - name: Apply build config from builds.yml
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
         run: |
-          BUILD_NAME="${{ inputs.build_name }}"
           echo "📦 Applying build config for: $BUILD_NAME"
           eval "$(node scripts/apply-build-config.js "$BUILD_NAME" --export)"
           node scripts/apply-build-config.js "$BUILD_NAME" --export-github-env >> "$GITHUB_ENV"
@@ -188,11 +189,13 @@ jobs:
           done
 
       - name: Display configuration
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
         run: |
           TARGET_RUNTIME_VERSION=$(node -p "require('./package.json').version")
           echo "🔧 Configuration:"
-          echo "  Platform: ${{ inputs.platform }}"
-          echo "  Build: ${{ inputs.build_name }}"
+          echo "  Platform: ${OTA_PUSH_PLATFORM}"
+          echo "  Build: ${BUILD_NAME}"
           echo "  Channel: ${EXPO_CHANNEL:-<not set>}"
           echo "  Channel (vars.EXPO_CHANNEL): ${{ vars.EXPO_CHANNEL }}"
           echo "  Message: ${UPDATE_MESSAGE:-<not set>}"
@@ -204,14 +207,14 @@ jobs:
           NODE_OPTIONS: '--max_old_space_size=8192'
           EXPO_DEBUG: '1'
         run: |
-          echo "🔬 Running expo export in isolation (platform: ${{ inputs.platform }}) ..."
+          echo "🔬 Running expo export in isolation (platform: ${OTA_PUSH_PLATFORM}) ..."
           echo "   METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-<not set>}"
           echo "   METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-<not set>}"
           echo "   METAMASK_BUILD_ATTRIBUTION=${METAMASK_BUILD_ATTRIBUTION:-<not set>}"
           echo "   EXPO_PROJECT_ID is set: $([[ -n "${EXPO_PROJECT_ID}" ]] && echo yes || echo NO)"
           echo "   EXPO_TOKEN is set:      $([[ -n "${EXPO_TOKEN}" ]] && echo yes || echo NO)"
           yarn expo export \
-            --platform "${{ inputs.platform }}" \
+            --platform "${OTA_PUSH_PLATFORM}" \
             --dump-sourcemap \
             --dump-assetmap \
             --output-dir /tmp/expo-export-diag 2>&1
@@ -273,7 +276,7 @@ jobs:
       - name: Update summary
         if: success()
         run: |
-          PLATFORM_LABEL=$(echo "${{ inputs.platform }}" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+          PLATFORM_LABEL=$(echo "${OTA_PUSH_PLATFORM}" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
           {
             echo "### ✅ EAS Update Published Successfully (${PLATFORM_LABEL})"
             echo
@@ -286,7 +289,7 @@ jobs:
       - name: Update summary on failure
         if: failure()
         run: |
-          PLATFORM_LABEL=$(echo "${{ inputs.platform }}" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+          PLATFORM_LABEL=$(echo "${OTA_PUSH_PLATFORM}" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
           {
             echo "### ❌ EAS Update Failed (${PLATFORM_LABEL})"
             echo

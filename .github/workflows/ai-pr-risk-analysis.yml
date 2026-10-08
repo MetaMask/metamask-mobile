@@ -7,19 +7,35 @@ on:
       - synchronize
       - reopened
       - ready_for_review
-
-concurrency:
-  group: ai-pr-risk-analysis-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: true
+      - labeled
+    branches:
+      - main
+      - 'release/**'
 
 jobs:
   analyze:
     name: Analyze
+    timeout-minutes: 10
+    # PRs to main require the auto-merge label; PRs to release/* always run.
     if: >-
       github.event_name == 'pull_request'
       && !(github.event.pull_request.head.repo.fork || github.event.repository.fork)
       && github.event.pull_request.draft == false
-      && (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'release/'))
+      && (
+        (
+          github.event.pull_request.base.ref == 'main'
+          && contains(github.event.pull_request.labels.*.name, 'auto-merge')
+          && (github.event.action != 'labeled' || github.event.label.name == 'auto-merge')
+        )
+        || (
+          startsWith(github.event.pull_request.base.ref, 'release/')
+          && github.event.action != 'labeled'
+        )
+      )
+    # Job-level so skipped runs (e.g. unrelated label events) don't cancel an in-progress analysis.
+    concurrency:
+      group: ai-pr-risk-analysis-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     permissions:
       contents: read

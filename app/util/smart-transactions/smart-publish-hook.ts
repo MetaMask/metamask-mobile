@@ -5,6 +5,7 @@ import {
   type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
 import {
+  getErrorData,
   SignedTransactionWithMetadata,
   SmartTransactionsController,
   SmartTransactionsControllerSmartTransactionEvent,
@@ -47,8 +48,6 @@ export interface SubmitSmartTransactionRequest {
 
 const DEFAULT_BATCH_STATUS_POLLING_INTERVAL = 1000;
 const LOG_PREFIX = 'STX publishHook';
-// It has to be 21000 for cancel transactions, otherwise the API would reject it.
-const CANCEL_GAS = 21000;
 export const STX_NO_HASH_ERROR =
   'Smart Transaction does not have a transaction hash, there was a problem';
 
@@ -91,7 +90,7 @@ class SmartTransactionHook {
     this.#transactions = transactions;
   }
 
-  async submit() {
+  async submit(): Promise<{ transactionHash?: string; getFeesError?: string }> {
     // Will cause TransactionController to publish to the RPC provider as normal.
     Logger.log(
       LOG_PREFIX,
@@ -115,13 +114,18 @@ class SmartTransactionHook {
       this.#transactionMeta.type,
     );
 
+    let getFeesResponse: Fees | undefined;
     try {
-      const getFeesResponse = await this.#getFees();
+      getFeesResponse = await this.#getFees();
+    } catch (error) {
       // In the event that STX health check passes, but for some reason /getFees fails, we fallback to a regular transaction
-      if (!getFeesResponse) {
-        return useRegularTransactionSubmit;
-      }
+      return {
+        ...useRegularTransactionSubmit,
+        getFeesError: getErrorData(error),
+      };
+    }
 
+    try {
       const batchStatusPollingInterval =
         this.#featureFlags?.batchStatusPollingInterval ??
         DEFAULT_BATCH_STATUS_POLLING_INTERVAL;
@@ -232,17 +236,12 @@ class SmartTransactionHook {
     }
   }
 
-  #getFees = async () => {
-    try {
-      return await this.#smartTransactionsController.getFees(
-        { ...this.#txParams, chainId: this.#chainId },
-        undefined,
-        { networkClientId: this.#transactionMeta.networkClientId },
-      );
-    } catch (error) {
-      return undefined;
-    }
-  };
+  #getFees = async () =>
+    await this.#smartTransactionsController.getFees(
+      { ...this.#txParams, chainId: this.#chainId },
+      undefined,
+      { networkClientId: this.#transactionMeta.networkClientId },
+    );
 
   #getTransactionHash = async (
     // TODO: Replace "any" with type
@@ -266,30 +265,17 @@ class SmartTransactionHook {
     return transactionHash;
   };
 
-  #applyFeeToTransaction = (fee: Fee, isCancel: boolean): TransactionParams => {
-    const unsignedTransactionWithFees = {
-      ...this.#txParams,
-      maxFeePerGas: `0x${decimalToHex(fee.maxFeePerGas)}`,
-      maxPriorityFeePerGas: `0x${decimalToHex(fee.maxPriorityFeePerGas)}`,
-      gas: isCancel
-        ? `0x${decimalToHex(CANCEL_GAS)}`
-        : this.#txParams.gas?.toString(),
-      value: this.#txParams.value,
-    };
-    if (isCancel) {
-      unsignedTransactionWithFees.to = unsignedTransactionWithFees.from;
-      unsignedTransactionWithFees.data = '0x';
-    }
+  #applyFeeToTransaction = (fee: Fee): TransactionParams => ({
+    ...this.#txParams,
+    maxFeePerGas: `0x${decimalToHex(fee.maxFeePerGas)}`,
+    maxPriorityFeePerGas: `0x${decimalToHex(fee.maxPriorityFeePerGas)}`,
+    gas: this.#txParams.gas?.toString(),
+    value: this.#txParams.value,
+  });
 
-    return unsignedTransactionWithFees;
-  };
-
-  #createSignedTransactions = async (
-    fees: Fee[],
-    isCancel: boolean,
-  ): Promise<string[]> => {
+  #createSignedTransactions = async (fees: Fee[]): Promise<string[]> => {
     const unsignedTransactions = fees.map((fee) =>
-      this.#applyFeeToTransaction(fee, isCancel),
+      this.#applyFeeToTransaction(fee),
     );
     const transactionsWithChainId = unsignedTransactions.map((tx) => ({
       ...tx,
@@ -348,7 +334,6 @@ class SmartTransactionHook {
     } else if (getFeesResponse) {
       const signed = await this.#createSignedTransactions(
         getFeesResponse.tradeTxFees?.fees ?? [],
-        false,
       );
       signedTransactionsWithMetadata = signed.map((signedTx) => ({
         tx: signedTx,
@@ -364,7 +349,6 @@ class SmartTransactionHook {
     return await this.#smartTransactionsController.submitSignedTransactions({
       signedTransactions,
       signedTransactionsWithMetadata,
-      signedCanceledTransactions: [],
       txParams: this.#txParams,
       transactionMeta: this.#transactionMeta,
       networkClientId: this.#transactionMeta.networkClientId,

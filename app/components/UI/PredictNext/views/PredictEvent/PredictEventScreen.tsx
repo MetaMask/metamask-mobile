@@ -21,7 +21,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { PREDICT_MARKET_TYPES } from '../../constants';
-import { findWinnerMarketQuotes, getEventGame } from '../../events/game';
+import {
+  findWinnerMarketQuotes,
+  getEventGame,
+  type GameSelectionQuote,
+} from '../../events/game';
 import {
   MarketFooterCard,
   MarketList,
@@ -30,11 +34,12 @@ import {
   TotalMarketGroupCard,
 } from '../../events/markets';
 import { useEvent } from '../../hooks/useEvent';
-import { useEventWithLiveGame } from '../../hooks/useEventWithLiveGame';
+import { useEventWithLiveData } from '../../hooks/useEventWithLiveData';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import type { PredictEvent, PredictMarket } from '../../types';
+import { usePredictOrderFlow } from '../PredictOrderFlow';
 import { TraceName } from '../../../../../util/trace';
 import {
   PredictGameMarketHistory,
@@ -142,6 +147,8 @@ const EventScreenLayout = ({
   );
 };
 
+const isUngroupedMarket = (market: PredictMarket) => market.group === undefined;
+
 const EventLoadedHeader = ({
   event,
   winnerQuotes,
@@ -158,22 +165,12 @@ const EventLoadedHeader = ({
   onSelectMarket: (marketId: string) => void;
 }) => {
   const game = getEventGame(event);
+  const chartMarkets = event.markets.filter(isUngroupedMarket);
+  const selectedChartMarket = chartMarkets.find(
+    (market) => market.id === selectedMarketId,
+  );
 
   const renderMarketHistory = () => {
-    if (selectedMarketId) {
-      const selectedMarket = event.markets.find(
-        (market) => market.id === selectedMarketId,
-      );
-      if (selectedMarket) {
-        return (
-          <PredictMarketHistory
-            venueId={event.venueId}
-            market={selectedMarket}
-          />
-        );
-      }
-    }
-
     if (game && winnerQuotes) {
       return (
         <PredictGameMarketHistory
@@ -192,10 +189,9 @@ const EventLoadedHeader = ({
       );
     }
 
-    if (historyMarket) {
-      return (
-        <PredictMarketHistory venueId={event.venueId} market={historyMarket} />
-      );
+    const market = selectedChartMarket ?? historyMarket;
+    if (market) {
+      return <PredictMarketHistory venueId={event.venueId} market={market} />;
     }
 
     return null;
@@ -208,14 +204,14 @@ const EventLoadedHeader = ({
       ) : (
         <StandardEventHeader event={event} />
       )}
-      {event.markets.length > 1 && !winnerQuotes ? (
+      {!game && !winnerQuotes && chartMarkets.length > 1 ? (
         <FilterButtonGroup
           value={historyMarket?.id ?? ''}
           onChange={onSelectMarket}
           variant={FilterButtonVariant.Secondary}
           testID={PredictEventScreenTestIds.MARKETS}
         >
-          {event.markets.map((market) => (
+          {chartMarkets.map((market) => (
             <FilterButton
               key={market.id}
               value={market.id}
@@ -254,7 +250,8 @@ export const PredictEventScreen = () => {
   const { venueId, eventId, titleSnapshot } =
     useRoute<RouteProp<PredictNextStackParamList, 'PredictNextEvent'>>().params;
   const query = useEvent(venueId, eventId);
-  const liveEvent = useEventWithLiveGame(venueId, query.data);
+  const liveEvent = useEventWithLiveData(venueId, query.data);
+  const { openOrderFlow } = usePredictOrderFlow();
   const [hasBlockingError, setHasBlockingError] = useState(false);
   const [selectedMarketId, setSelectedMarketId] = useState<string>();
   const [rulesTarget, setRulesTarget] = useState<RulesTarget>(null);
@@ -329,37 +326,45 @@ export const PredictEventScreen = () => {
         ...current,
         [groupKey]: marketId,
       }));
-      setSelectedMarketId(marketId);
     },
     [],
   );
-  const handleMarketSelect = useCallback(
-    (marketId: string) => {
-      setSelectedMarketId(marketId);
-      const market = liveEvent?.markets.find(
-        (candidate) => candidate.id === marketId,
-      );
-      const groupKey =
-        market?.group?.groupType === 'marketSelector'
-          ? market.group.key
-          : undefined;
-      if (groupKey !== undefined && market !== undefined) {
-        setSelectedMarketIds((current) => ({
-          ...current,
-          [groupKey]: market.id,
-        }));
-      }
-    },
-    [liveEvent?.markets],
-  );
+  const handleMarketSelect = useCallback((marketId: string) => {
+    setSelectedMarketId(marketId);
+  }, []);
   const handleRulesClose = useCallback(() => {
     setRulesTarget(null);
   }, []);
-  const handleWinnerSelect = useCallback((marketId: string) => {
-    setSelectedMarketId((current) =>
-      current === marketId ? undefined : marketId,
-    );
-  }, []);
+  const handleWinnerOrder = useCallback(
+    (quote: GameSelectionQuote) => {
+      openOrderFlow({
+        action: 'buy',
+        venueId,
+        marketId: quote.market.id,
+        side: quote.outcome.side,
+        outcomeLabel: quote.outcome.label,
+        eventTitle: liveEvent?.title ?? '',
+        eventImageUrl: liveEvent?.imageUrl,
+        askPrice: quote.outcome.askPrice,
+      });
+    },
+    [liveEvent?.title, liveEvent?.imageUrl, openOrderFlow, venueId],
+  );
+  const handleMarketOrder = useCallback(
+    (market: PredictMarket, outcome: (typeof market.outcomes)[number]) => {
+      openOrderFlow({
+        action: 'buy',
+        venueId,
+        marketId: market.id,
+        side: outcome.side,
+        outcomeLabel: outcome.label,
+        eventTitle: liveEvent?.title ?? '',
+        eventImageUrl: liveEvent?.imageUrl,
+        askPrice: outcome.askPrice,
+      });
+    },
+    [liveEvent?.title, liveEvent?.imageUrl, openOrderFlow, venueId],
+  );
   const renderMarket = useCallback(
     (projection: MarketGroupProjection) => {
       if (projection.type === 'standard') {
@@ -367,6 +372,7 @@ export const PredictEventScreen = () => {
           <MarketStandardCard
             market={projection.market}
             onRulesPress={handleMarketRulesPress}
+            onOrder={handleMarketOrder}
           />
         );
       }
@@ -386,6 +392,7 @@ export const PredictEventScreen = () => {
         onSelectMarket: (marketId: PredictMarket['id']) =>
           handleGroupMarketSelect(projection.key, marketId),
         onRulesPress: handleMarketRulesPress,
+        onOrder: handleMarketOrder,
       };
 
       return projection.marketType === PREDICT_MARKET_TYPES.TOTAL ? (
@@ -394,7 +401,12 @@ export const PredictEventScreen = () => {
         <SpreadMarketGroupCard {...groupProps} />
       );
     },
-    [handleGroupMarketSelect, handleMarketRulesPress, selectedMarketIds],
+    [
+      handleGroupMarketSelect,
+      handleMarketRulesPress,
+      handleMarketOrder,
+      selectedMarketIds,
+    ],
   );
 
   if (liveEvent) {
@@ -405,7 +417,10 @@ export const PredictEventScreen = () => {
         ? marketProjection[0].markets[0]
         : marketProjection[0]?.market;
     const historyMarket =
-      event.markets.find((market) => market.id === selectedMarketId) ??
+      event.markets.find(
+        (market) => market.id === selectedMarketId && isUngroupedMarket(market),
+      ) ??
+      event.markets.find(isUngroupedMarket) ??
       firstProjectedMarket ??
       event.markets[0];
     const rulesMarket =
@@ -427,8 +442,7 @@ export const PredictEventScreen = () => {
                 awayQuote={winnerQuotes.away}
                 homeQuote={winnerQuotes.home}
                 drawQuote={winnerQuotes.draw}
-                selectedMarketId={selectedMarketId}
-                onSelectMarket={handleWinnerSelect}
+                onOrder={handleWinnerOrder}
               />
             ) : undefined
           }

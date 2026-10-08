@@ -18,7 +18,7 @@ describe('Feature Flag Registry', () => {
         inProd: true,
         productionDefault: {
           enabled: false,
-          minimumVersion: '8.10.0',
+          minimumVersion: '8.13.0',
         },
       });
     });
@@ -61,7 +61,7 @@ describe('Feature Flag Registry', () => {
         inProd: true,
         productionDefault: {
           enabled: false,
-          minimumVersion: '8.10.0',
+          minimumVersion: '8.13.0',
         },
         status: FeatureFlagStatus.Active,
       });
@@ -153,7 +153,7 @@ describe('Feature Flag Registry', () => {
     it('keeps Perps Mobile TWAP default-off and version-gated', () => {
       expect(getRegistryEntry('perpsMobileTwap')?.productionDefault).toEqual({
         enabled: false,
-        minimumVersion: '8.10.0',
+        minimumVersion: '8.13.0',
       });
     });
 
@@ -260,6 +260,16 @@ describe('Feature Flag Registry', () => {
       });
     });
 
+    it('registers Money MFA default-off until LaunchDarkly rolls it out', () => {
+      expect(getRegistryEntry('isMoneyMfaEnabled')).toMatchObject({
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.15.0',
+        },
+      });
+    });
+
     it('registers Card Immersve catalog flags added in the 2026-09-08 prod sync', () => {
       const addedFlagNames = [
         'cardImmersve',
@@ -267,7 +277,6 @@ describe('Feature Flag Registry', () => {
         'cardImmersveConfig',
         'cardImmersveCountries',
         'cardIntercomSupport',
-        'immersveOnboardingEnabled',
         'moneyHeadlessAllProviders',
       ];
 
@@ -276,34 +285,29 @@ describe('Feature Flag Registry', () => {
       }
     });
 
-    it('registers UK migration flags off, with the schedule and sign-in routing shape', () => {
+    it('registers UK migration on for the prod window, with sign-in routing still off', () => {
       expect(getRegistryEntry('cardUkMigration')?.productionDefault).toEqual({
-        enabled: false,
+        enabled: true,
         minimumVersion: '8.13.0',
-        startDate: '',
-        endDate: '',
+        startDate: '2026-09-28T00:00:00.000Z',
+        endDate: '2026-12-29T23:59:59.999Z',
       });
       expect(getRegistryEntry('cardUkMigrationSignInRouting')).toMatchObject({
-        inProd: false,
+        inProd: true,
         productionDefault: {
           enabled: false,
-          minimumVersion: '8.13.0',
+          minimumVersion: '0.0.0',
         },
       });
     });
 
-    it('keeps Immersve onboarding and Intercom support default-off', () => {
-      expect(
-        getRegistryEntry('immersveOnboardingEnabled')?.productionDefault,
-      ).toEqual({
-        enabled: false,
-        minimumVersion: '0.0.0',
-      });
+    it('drops removed Immersve onboarding and keeps Intercom support on at 8.13.0', () => {
+      expect(getRegistryEntry('immersveOnboardingEnabled')).toBeUndefined();
       expect(
         getRegistryEntry('cardIntercomSupport')?.productionDefault,
       ).toEqual({
-        enabled: false,
-        minimumVersion: '0.0.0',
+        enabled: true,
+        minimumVersion: '8.13.0',
       });
     });
 
@@ -334,7 +338,6 @@ describe('Feature Flag Registry', () => {
 
     it('registers Home/TMCU and Social AI catalog flags added in the 2026-09-08 prod sync', () => {
       const addedFlagNames = [
-        'homeTMCU1209AbtestHomepageBalanceBreakdown',
         'homeTMCU470AbtestTrendingSections',
         'homeTMCU828AbtestOnboardingChecklistStepper',
         'aiSocialFeedEnabled',
@@ -347,6 +350,22 @@ describe('Feature Flag Registry', () => {
       expect(
         getRegistryEntry('aiSocialLeaderboardOnboaridngEnabled'),
       ).toBeUndefined();
+    });
+
+    it('pins the homepage balance breakdown A/B test to control', () => {
+      expect(
+        getRegistryEntry('homeTMCU1209AbtestHomepageBalanceBreakdownV2')
+          ?.productionDefault,
+      ).toEqual([
+        {
+          name: 'control',
+          scope: { type: 'percentage_rollout', value: 1 },
+        },
+        {
+          name: 'treatment',
+          scope: { type: 'percentage_rollout', value: 0 },
+        },
+      ]);
     });
 
     it('version-gates activity and transactions redesigns on at 8.5.0', () => {
@@ -381,7 +400,6 @@ describe('Feature Flag Registry', () => {
 
     it('pins Home and Social AI percentage A/B flags to control', () => {
       const abTestFlags = [
-        'homeTMCU1209AbtestHomepageBalanceBreakdown',
         'homeTMCU610AbtestWalletHomePostOnboardingSteps',
         'socialAiTSA531AbtestWhatsHappeningExplore',
         'socialAiTSA612AbtestQuickBuy',

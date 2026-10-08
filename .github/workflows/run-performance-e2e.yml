@@ -217,7 +217,7 @@ jobs:
           !inputs.browserstack_app_url_android_onboarding &&
           !inputs.browserstack_app_url_android_imported_wallet &&
           !inputs.source_fingerprint
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -461,8 +461,9 @@ jobs:
       - name: Delete previous performance / app-profiling comments
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
-          ALL_COMMENT_IDS=$(gh api --paginate "repos/${{ github.repository }}/issues/${{ inputs.pr_number }}/comments?per_page=100" \
+          ALL_COMMENT_IDS=$(gh api --paginate "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments?per_page=100" \
             --jq '.[] | select(.body | contains("<!-- perf-test-results -->") or contains("<!-- app-profiling-check -->")) | .id')
 
           if [ -n "$ALL_COMMENT_IDS" ]; then
@@ -478,12 +479,13 @@ jobs:
       - name: Post PR comment
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           MARKER="<!-- perf-test-results -->"
           COMMENT=$(cat performance-pr-comment.md 2>/dev/null || echo "⚠️ Performance test results are not available.")
           FULL_COMMENT="${COMMENT}"$'\n'"${MARKER}"
-          gh pr comment "${{ inputs.pr_number }}" --repo "${{ github.repository }}" --body "$FULL_COMMENT"
-          echo "Performance results posted to PR #${{ inputs.pr_number }}"
+          gh pr comment "${PR_NUMBER}" --repo "${{ github.repository }}" --body "$FULL_COMMENT"
+          echo "Performance results posted to PR #${PR_NUMBER}"
 
   slack-notification:
     name: Send Slack Notification

@@ -4,10 +4,12 @@
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
+import { LIQUIDATION_DISTANCE_DECIMALS } from '../constants/perpsConfig';
 import {
   type FiatRangeConfig,
   formatPerpsFiat,
   formatHyperLiquidPrice,
+  formatWithSignificantDigits,
   PRICE_RANGES_UNIVERSAL,
 } from '@metamask/perps-controller';
 
@@ -88,6 +90,38 @@ export const formatPositionTriggerSummary = (params: {
   }
 
   return null;
+};
+
+/**
+ * Fraction digits `PRICE_RANGES_UNIVERSAL` would use for a market price.
+ * A dollar price change should use this count so it matches the price,
+ * instead of picking a finer range from the change's own magnitude.
+ */
+export const getUniversalPriceFractionDigits = (price: number): number => {
+  const absPrice = Math.abs(price);
+  if (!Number.isFinite(absPrice) || absPrice === 0) {
+    return 0;
+  }
+
+  const rangeConfig = PRICE_RANGES_UNIVERSAL.find((range) =>
+    range.condition(absPrice),
+  );
+
+  if (!rangeConfig) {
+    return 2;
+  }
+
+  if (rangeConfig.significantDigits) {
+    const { decimals } = formatWithSignificantDigits(
+      absPrice,
+      rangeConfig.significantDigits,
+      rangeConfig.minimumDecimals,
+      rangeConfig.maximumDecimals,
+    );
+    return decimals;
+  }
+
+  return rangeConfig.maximumDecimals;
 };
 
 /**
@@ -378,6 +412,44 @@ export const formatLeverage = (leverage: string | number): string => {
 };
 
 /**
+ * Formats how far (in %) the price must move from `entryPrice` to reach
+ * `liquidationPrice`, e.g. `"30.05%"`.
+ *
+ * @returns `undefined` when either price is missing, non-finite or
+ * non-positive, so callers can hide the figure instead of showing `NaN%`.
+ * @example formatLiquidationDistance(100, 70) => "30.00%"
+ * @example formatLiquidationDistance(100, '130') => "30.00%"
+ * @example formatLiquidationDistance(100, undefined) => undefined
+ */
+export const formatLiquidationDistance = (
+  entryPrice: number | string | null | undefined,
+  liquidationPrice: number | string | null | undefined,
+): string | undefined => {
+  const entry =
+    typeof entryPrice === 'string' ? parseFloat(entryPrice) : entryPrice;
+  const liquidation =
+    typeof liquidationPrice === 'string'
+      ? parseFloat(liquidationPrice)
+      : liquidationPrice;
+
+  if (
+    entry === null ||
+    entry === undefined ||
+    liquidation === null ||
+    liquidation === undefined ||
+    !Number.isFinite(entry) ||
+    !Number.isFinite(liquidation) ||
+    entry <= 0 ||
+    liquidation <= 0
+  ) {
+    return undefined;
+  }
+
+  const distance = (Math.abs(entry - liquidation) / entry) * 100;
+  return `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
+};
+
+/**
  * Parses formatted currency strings back to numeric values
  * @param formattedValue - Formatted currency string (handles $, commas, negative values)
  * @returns Raw numeric value
@@ -583,4 +655,45 @@ export const formatDateSection = (timestamp: number): string => {
   }).format(new Date(timestamp));
 
   return `${month} ${day}`; // 'Jul, 26'
+};
+
+/**
+ * Formats a limit price for display while preserving in-progress input — a
+ * trailing "." or trailing zeros after the decimal survive, which
+ * `formatPerpsFiat` alone would collapse.
+ */
+export const formatLimitPriceInput = (price: string): string => {
+  if (!price || price === '0') {
+    return '';
+  }
+
+  if (price.endsWith('.') || /\.\d*0$/.test(price)) {
+    const parts = price.split('.');
+    const integerPart = parts[0] || '0';
+    const decimalPart = parts.length > 1 ? `.${parts[1]}` : '.';
+
+    const formatted = formatPerpsFiat(integerPart, {
+      ranges: [
+        {
+          condition: () => true,
+          threshold: 0,
+          maximumDecimals: 0,
+          minimumDecimals: 0,
+        },
+      ],
+    });
+
+    return `${formatted}${decimalPart}`;
+  }
+
+  return formatPerpsFiat(price, {
+    ranges: [
+      {
+        condition: () => true,
+        threshold: 0.00000001,
+        maximumDecimals: 7,
+        minimumDecimals: Math.min(price.split('.')[1]?.length || 0, 7),
+      },
+    ],
+  });
 };

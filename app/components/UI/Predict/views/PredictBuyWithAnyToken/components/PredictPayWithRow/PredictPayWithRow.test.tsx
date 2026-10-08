@@ -65,7 +65,17 @@ jest.mock('../../../../../../../util/address', () => ({
 
 let mockHasTransactionType = true;
 jest.mock('@metamask/transaction-controller', () => ({
-  ...jest.requireActual('@metamask/transaction-controller'),
+  CHAIN_IDS: {
+    MAINNET: '0x1',
+  },
+  TransactionStatus: {
+    confirmed: 'confirmed',
+    dropped: 'dropped',
+    failed: 'failed',
+  },
+  TransactionType: {
+    predictDepositAndOrder: 'predictDepositAndOrder',
+  },
   hasTransactionType: (transactionMeta: unknown) => {
     if (!transactionMeta) return false;
     return mockHasTransactionType;

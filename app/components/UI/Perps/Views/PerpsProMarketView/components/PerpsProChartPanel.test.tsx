@@ -1,7 +1,10 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import {
   Box,
+  ButtonIcon,
+  ButtonIconSize,
   FilterButtonVariant,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -21,6 +24,23 @@ import type { OhlcData } from '../../../components/TradingViewChart';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { playSelection } from '../../../../../../util/haptics';
 import PerpsProChartPanel from './PerpsProChartPanel';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import Routes from '../../../../../../constants/navigation/Routes';
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn().mockReturnValue({
+    navigate: jest.fn(),
+    replace: jest.fn(),
+    goBack: jest.fn(),
+  }),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
 
 jest.mock('../../../../../../util/haptics');
 
@@ -106,11 +126,6 @@ const mockPerpsOHLCVBar = ({ testID }: { testID?: string }) => (
 const mockPerpsPriceDeviationWarning = ({ testID }: { testID?: string }) => (
   <Box testID={testID} />
 );
-const mockPerpsServiceInterruptionBanner = ({
-  testID,
-}: {
-  testID?: string;
-}) => <Box testID={testID} />;
 const mockUsePerpsLiveCandles = jest.fn();
 const mockUsePerpsLiveOrders = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
@@ -207,12 +222,6 @@ jest.mock('../../../components/PerpsPriceDeviationWarning', () => ({
   __esModule: true,
   default: (props: { testID?: string }) =>
     mockPerpsPriceDeviationWarning(props),
-}));
-
-jest.mock('../../../components/PerpsServiceInterruptionBanner', () => ({
-  __esModule: true,
-  default: (props: { testID?: string }) =>
-    mockPerpsServiceInterruptionBanner(props),
 }));
 
 const getLastAdvancedChartProps = () => {
@@ -473,23 +482,46 @@ describe('PerpsProChartPanel', () => {
     expect(screen.getByText('1d')).toBeOnTheScreen();
   });
 
-  it('left-aligns the configured Pro candle periods', () => {
-    renderChartPanel();
-
-    expect(
-      screen.UNSAFE_getByType(PerpsCandlePeriodSelector).props.groupTwClassName,
-    ).toBe('gap-2 justify-start');
-  });
-
-  it('uses the Figma compact candle-period appearance', () => {
+  it('spreads the configured Pro candle periods across the chart nav width', () => {
     renderChartPanel();
 
     const selector = screen.UNSAFE_getByType(PerpsCandlePeriodSelector);
 
+    expect(selector.props.fillWidth).toBe(true);
+    expect(selector.props.groupTwClassName).toBe('gap-2');
+  });
+
+  it('separates the candle periods from the fullscreen button by 24px', () => {
+    renderChartPanel();
+
+    const chartNavRow = screen.getByTestId(
+      PerpsProMarketViewSelectorsIDs.CHART_NAV,
+    );
+
+    expect(StyleSheet.flatten(chartNavRow?.props.style)).toMatchObject({
+      flexDirection: 'row',
+      gap: 24,
+    });
+  });
+
+  it('uses the Figma candle-period appearance', () => {
+    renderChartPanel();
+
+    const selector = screen.UNSAFE_getByType(PerpsCandlePeriodSelector);
+
+    const fullscreenButton = screen
+      .UNSAFE_getAllByType(ButtonIcon)
+      .find(
+        (button) =>
+          button.props.testID ===
+          PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON,
+      );
+
     expect(selector.props.filterVariant).toBe(FilterButtonVariant.Secondary);
-    expect(selector.props.periodButtonTwClassName).toBe('h-7 rounded px-1');
-    expect(selector.props.moreButtonTwClassName).toBe('h-7 rounded px-1');
-    expect(selector.props.textVariant).toBe(TextVariant.BodyXs);
+    expect(selector.props.periodButtonTwClassName).toBe('h-8 rounded-lg px-1');
+    expect(selector.props.moreButtonTwClassName).toBe('h-8 rounded-lg px-1');
+    expect(selector.props.textVariant).toBe(TextVariant.BodySm);
+    expect(fullscreenButton?.props.size).toBe(ButtonIconSize.Sm);
   });
 
   it('forwards a selected Pro candle period', () => {
@@ -1022,5 +1054,26 @@ describe('PerpsProChartPanel', () => {
         expect.objectContaining({ currentPrice: 50500 }),
       );
     });
+  });
+
+  it('navigates to price alerts with szDecimals from market data', () => {
+    jest.mocked(useSelector).mockReturnValue(true);
+
+    renderChartPanel();
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_PRICE_ALERTS_BUTTON,
+      ),
+    );
+
+    expect(useNavigation().navigate).toHaveBeenCalledWith(
+      Routes.PERPS.PRICE_ALERTS,
+      expect.objectContaining({
+        mode: 'perps',
+        szDecimals: 2,
+        assetId: 'BTC',
+      }),
+    );
   });
 });

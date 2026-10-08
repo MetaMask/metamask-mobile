@@ -1,5 +1,8 @@
 import type { Store } from '@reduxjs/toolkit';
-import type { PerpsMode } from '@metamask/perps-controller';
+import type {
+  PerpsControllerState,
+  PerpsMode,
+} from '@metamask/perps-controller';
 import { strings } from '../../../locales/i18n';
 import Engine from '../../../app/core/Engine';
 import ReduxService from '../../../app/core/redux/ReduxService';
@@ -32,6 +35,60 @@ type ProLayoutPreferencesPatch = Record<string, unknown>;
 type WirePerpsControllerForStoreCleanup = () => void;
 
 /**
+ * Creates a typed bridge between the mocked Engine state and Redux.
+ *
+ * Staging mirrors a controller update without notifying Redux. Flushing
+ * delivers the staged state through the same reducer action used by
+ * EngineService, which lets view tests control that boundary explicitly.
+ *
+ * @param store - Redux store used by the component-view renderer.
+ * @returns State staging, flushing, synchronization, and cleanup utilities.
+ */
+export function createPerpsControllerStateHarness(store: Store) {
+  const engineWithState = Engine as unknown as EngineWithState;
+  const previousEngineState = engineWithState.state;
+
+  const stage = (patch: Partial<PerpsControllerState>): void => {
+    const backgroundState = store.getState().engine.backgroundState as Record<
+      string,
+      unknown
+    >;
+    const existingPerps =
+      (backgroundState.PerpsController as
+        | Partial<PerpsControllerState>
+        | undefined) ?? {};
+    const existingEnginePerps =
+      (engineWithState.state?.PerpsController as
+        | Partial<PerpsControllerState>
+        | undefined) ?? {};
+
+    engineWithState.state = {
+      ...(engineWithState.state ?? {}),
+      PerpsController: {
+        ...existingPerps,
+        ...existingEnginePerps,
+        ...patch,
+      },
+    };
+  };
+
+  const flush = (): void => {
+    store.dispatch(updateBgState({ key: 'PerpsController' }));
+  };
+
+  const sync = (patch: Partial<PerpsControllerState>): void => {
+    stage(patch);
+    flush();
+  };
+
+  const cleanup = (): void => {
+    engineWithState.state = previousEngineState;
+  };
+
+  return { stage, flush, sync, cleanup };
+}
+
+/**
  * Mirrors real PerpsController messengers so Pro preference / mode writes
  * update Redux selectors in component view tests.
  *
@@ -62,33 +119,7 @@ export function wirePerpsControllerForStore(
     perpsController.setProLayoutPreferences;
   const originalSetPerpsMode = perpsController.setPerpsMode;
   const originalSetVisibleCandleCount = perpsController.setVisibleCandleCount;
-
-  const syncPerpsControllerState = (patch: Record<string, unknown>): void => {
-    const engineWithState = Engine as unknown as EngineWithState;
-    const backgroundState = store.getState().engine.backgroundState as Record<
-      string,
-      unknown
-    >;
-    const existingPerps =
-      (backgroundState.PerpsController as
-        | Record<string, unknown>
-        | undefined) ?? {};
-    const existingEnginePerps =
-      (engineWithState.state?.PerpsController as
-        | Record<string, unknown>
-        | undefined) ?? {};
-
-    engineWithState.state = {
-      ...(engineWithState.state ?? {}),
-      PerpsController: {
-        ...existingPerps,
-        ...existingEnginePerps,
-        ...patch,
-      },
-    };
-
-    store.dispatch(updateBgState({ key: 'PerpsController' }));
-  };
+  const stateHarness = createPerpsControllerStateHarness(store);
 
   perpsController.setProLayoutPreferences = jest.fn((prefs) => {
     const backgroundState = store.getState().engine.backgroundState as Record<
@@ -104,26 +135,27 @@ export function wirePerpsControllerForStore(
         | Record<string, unknown>
         | undefined) ?? {};
 
-    syncPerpsControllerState({
+    stateHarness.sync({
       proLayoutPreferences: {
         ...existingPrefs,
         ...prefs,
-      },
+      } as PerpsControllerState['proLayoutPreferences'],
     });
   });
 
   perpsController.setPerpsMode = jest.fn((mode) => {
-    syncPerpsControllerState({ mode });
+    stateHarness.sync({ mode });
   });
 
   perpsController.setVisibleCandleCount = jest.fn((count: number) => {
-    syncPerpsControllerState({ visibleCandleCount: count });
+    stateHarness.sync({ visibleCandleCount: count });
   });
 
   return () => {
     perpsController.setProLayoutPreferences = originalSetProLayoutPreferences;
     perpsController.setPerpsMode = originalSetPerpsMode;
     perpsController.setVisibleCandleCount = originalSetVisibleCandleCount;
+    stateHarness.cleanup();
     if (previousStore) {
       ReduxService.store = previousStore;
     }

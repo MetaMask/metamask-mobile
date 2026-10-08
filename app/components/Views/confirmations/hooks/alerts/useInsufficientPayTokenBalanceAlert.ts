@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
@@ -28,7 +28,6 @@ import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
-import { isTransactionMarkedAsGasFeeSponsored } from '../../utils/transaction';
 import { isHardwareAccount } from '../../../../../util/address';
 
 export function useInsufficientPayTokenBalanceAlert({
@@ -139,12 +138,13 @@ export function useInsufficientPayTokenBalanceAlert({
     [balanceRaw, isMax, isPendingAlert, totalSourceAmountRaw],
   );
 
-  // Parent sponsorship does not cover hardware funding transactions.
+  // Quoted source-network fees are empty when the source is execute or
+  // sponsored, and a real amount when the payer covers native gas. Parent
+  // sponsorship does not change that. Hardware payers are never gasless.
   const isHardwarePayer = isHardwareAccount(payingAccount ?? '');
   const isGaslessSourceChain =
     !isHardwarePayer &&
     (sourceChainId === CHAIN_IDS.MONAD ||
-      isTransactionMarkedAsGasFeeSponsored(transactionMeta) ||
       (!isPostQuote && paymentOverride === PaymentOverride.MoneyAccount));
 
   // A plain ERC-20 send also yields a required token, but it is not funded
@@ -185,7 +185,7 @@ export function useInsufficientPayTokenBalanceAlert({
       !isMMPayTransaction ||
       (!isPendingAlert && isLoading)
     ) {
-      return [];
+      return NO_ALERTS;
     }
 
     if (isInsufficientForInput) {
@@ -229,7 +229,7 @@ export function useInsufficientPayTokenBalanceAlert({
       ];
     }
 
-    return [];
+    return NO_ALERTS;
   }, [
     isLoading,
     isPendingAlert,

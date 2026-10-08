@@ -103,7 +103,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -123,19 +123,26 @@ jobs:
           project-name: ${{ github.repository }}
 
       - name: Set Test Environment
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+          TEST_PLATFORM: ${{ inputs.platform }}
+          SENTRY_TARGET: ${{ inputs.sentry_target }}
+          FEATURE_FLAGS_ENV: ${{ inputs.feature_flags_environment }}
+          CI_BUILD_VARIANT: ${{ inputs.build_variant }}
+          BRANCH_NAME: ${{ inputs.branch_name }}
+          BS_APP_URL: ${{ inputs.browserstack_app_url }}
+          BS_APP_URL_ENV_NAME: BROWSERSTACK_${{ inputs.platform == 'android' && 'ANDROID' || 'IOS' }}_${{ inputs.build_type == 'onboarding' && 'CLEAN_' || '' }}APP_URL
+          QA_APP_VERSION: ${{ inputs.app_version }}
+          BS_BUILD_NAME: ${{ inputs.browserstack_build_name }}
         run: |
-          echo "Setting ${{ inputs.build_type }} test environment for device: ${{ matrix.device.name }} (${{ matrix.device.category }} Class)"
+          echo "Setting ${BUILD_TYPE} test environment for device: ${{ matrix.device.name }} (${{ matrix.device.category }} Class)"
           echo "OS Version: ${{ matrix.device.os_version }}"
-          echo "Platform: ${{ inputs.platform }}"
+          echo "Platform: ${TEST_PLATFORM}"
 
-          SENTRY_TARGET="${{ inputs.sentry_target }}"
           SENTRY_TEST_DSN="${{ secrets.MM_SENTRY_DSN_TEST }}"
           SENTRY_REAL_DSN="${{ secrets.MM_SENTRY_DSN }}"
           SELECTED_SENTRY_DSN=""
           SENTRY_ENVIRONMENT="github-actions-performance-e2e"
-          FEATURE_FLAGS_ENV="${{ inputs.feature_flags_environment }}"
-          CI_BUILD_VARIANT="${{ inputs.build_variant }}"
-          BRANCH_NAME="${{ inputs.branch_name }}"
           BROWSERSTACK_GEO_LOCATION="${BROWSERSTACK_GEO_LOCATION:-SE}"
 
           if [[ "$FEATURE_FLAGS_ENV" != "rc" && "$FEATURE_FLAGS_ENV" != "exp" && "$FEATURE_FLAGS_ENV" != "test" && "$FEATURE_FLAGS_ENV" != "dev" && "$FEATURE_FLAGS_ENV" != "prod" ]]; then
@@ -144,8 +151,8 @@ jobs:
           fi
 
           # Validate that we have a BrowserStack URL
-          if [ -z "${{ inputs.browserstack_app_url }}" ]; then
-            echo "❌ Error: No ${{ inputs.platform }} BrowserStack URL available"
+          if [ -z "${BS_APP_URL}" ]; then
+            echo "❌ Error: No ${TEST_PLATFORM} BrowserStack URL available"
             exit 1
           fi
 
@@ -190,10 +197,10 @@ jobs:
           {
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
-            echo "BROWSERSTACK_${{ inputs.platform == 'android' && 'ANDROID' || 'IOS' }}_${{ inputs.build_type == 'onboarding' && 'CLEAN_' || '' }}APP_URL=${{ inputs.browserstack_app_url }}"
-            echo "TEST_PLATFORM=${{ inputs.platform }}"
-            echo "QA_APP_VERSION=${{ inputs.app_version }}"
-            echo "BROWSERSTACK_BUILD_NAME=${{ inputs.browserstack_build_name }}"
+            echo "${BS_APP_URL_ENV_NAME}=${BS_APP_URL}"
+            echo "TEST_PLATFORM=${TEST_PLATFORM}"
+            echo "QA_APP_VERSION=${QA_APP_VERSION}"
+            echo "BROWSERSTACK_BUILD_NAME=${BS_BUILD_NAME}"
             echo "BROWSERSTACK_GEO_LOCATION=$BROWSERSTACK_GEO_LOCATION"
             echo "BROWSERSTACK_USERNAME=${{ secrets.BROWSERSTACK_USERNAME }}"
             echo "BROWSERSTACK_ACCESS_KEY=${{ secrets.BROWSERSTACK_ACCESS_KEY }}"
@@ -218,13 +225,17 @@ jobs:
         env:
           BROWSERSTACK_BUILD_NAME: ${{ inputs.browserstack_build_name }}
           GREP_TAGS: ${{ inputs.grep_tags }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+          TEST_PLATFORM: ${{ inputs.platform }}
+          BS_APP_URL: ${{ inputs.browserstack_app_url }}
+          QA_APP_VERSION: ${{ inputs.app_version }}
         working-directory: '.'
         run: |
-          echo "=== Running ${{ inputs.build_type }} Tests on ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
+          echo "=== Running ${BUILD_TYPE} Tests on ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
           echo "OS Version: ${{ matrix.device.os_version }}"
-          echo "Platform: ${{ inputs.platform }}"
-          echo "BrowserStack App URL: ${{ inputs.browserstack_app_url }}"
-          echo "QA App Version: ${{ inputs.app_version }}"
+          echo "Platform: ${TEST_PLATFORM}"
+          echo "BrowserStack App URL: ${BS_APP_URL}"
+          echo "QA App Version: ${QA_APP_VERSION}"
           echo "BrowserStack Build Name: $BROWSERSTACK_BUILD_NAME"
           echo "BrowserStack Geo Location: ${BROWSERSTACK_GEO_LOCATION:-SE}"
           if [ -n "$GREP_TAGS" ]; then
@@ -232,10 +243,10 @@ jobs:
           fi
 
           # Select base command based on build_type
-          if [ "${{ inputs.build_type }}" = "onboarding" ]; then
-            BASE_CMD="yarn run-playwright:${{ inputs.platform }}-onboarding-bs"
+          if [ "${BUILD_TYPE}" = "onboarding" ]; then
+            BASE_CMD="yarn run-playwright:${TEST_PLATFORM}-onboarding-bs"
           else
-            BASE_CMD="yarn run-playwright:${{ inputs.platform }}-bs"
+            BASE_CMD="yarn run-playwright:${TEST_PLATFORM}-bs"
           fi
 
           # Run with optional grep filter.
@@ -248,7 +259,7 @@ jobs:
             $BASE_CMD
           fi
 
-          echo "✅ ${{ inputs.build_type }} tests completed for ${{ inputs.platform }} on ${{ matrix.device.name }}"
+          echo "✅ ${BUILD_TYPE} tests completed for ${TEST_PLATFORM} on ${{ matrix.device.name }}"
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v7

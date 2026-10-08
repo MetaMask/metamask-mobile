@@ -1,6 +1,9 @@
 import {
   Box,
-  ButtonSize as ButtonSizeHero,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -14,19 +17,13 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PredictCashOutSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import Engine from '../../../../../core/Engine';
@@ -252,56 +249,24 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     });
   }, [preview, placeOrder, analyticsProperties]);
 
-  const renderCashOutButton = () => {
-    if (isLoading) {
-      return (
-        <Button
-          label={
-            <Box twClassName="flex-row items-center gap-1">
-              <ActivityIndicator size="small" />
-              <Text
-                variant={TextVariant.BodyLg}
-                twClassName="font-medium"
-                color={TextColor.PrimaryInverse}
-              >
-                {`${strings('predict.order.cashing_out_loading')}`}
-              </Text>
-            </Box>
-          }
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          onPress={onCashOut}
-          width={ButtonWidthTypes.Full}
-          style={tw.style('opacity-50')}
-          disabled
-        />
-      );
-    }
-
-    return (
-      <ButtonHero
-        testID={PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON}
-        disabled={!preview || isLoading}
-        onPress={onCashOut}
-        style={{
-          ...styles.cashOutButton,
-        }}
-        isLoading={isLoading}
-        size={ButtonSizeHero.Lg}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          style={tw.style('text-white font-medium')}
-        >
-          {strings('predict.cash_out')}
-        </Text>
-      </ButtonHero>
-    );
-  };
+  const renderCashOutButton = () => (
+    <Button
+      testID={PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON}
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Lg}
+      isFullWidth
+      isDisabled={!preview || isLoading}
+      isLoading={isLoading}
+      loadingText={strings('predict.order.cashing_out_loading')}
+      onPress={onCashOut}
+    >
+      {strings('predict.cash_out')}
+    </Button>
+  );
 
   const Wrapper = isSheetMode ? Box : SafeAreaView;
   const wrapperProps = isSheetMode
-    ? { twClassName: 'bg-background-default' }
+    ? {}
     : { style: tw.style('flex-1 bg-background-default') };
 
   return (
@@ -420,12 +385,14 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
             </Box>
           )}
           {isSheetMode && (
-            <Box twClassName="items-center gap-2 py-4">
+            // Fee summary below adds pt-4, so keep more space above than below
+            // using spacing-scale tokens.
+            <Box twClassName="items-center gap-2 pt-6 pb-2">
               {isPreviewLoading ? (
                 <>
                   <Skeleton
                     width={160}
-                    height={48}
+                    height={50}
                     style={tw.style('rounded-lg')}
                   />
                   <Skeleton
@@ -442,8 +409,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               ) : (
                 <>
                   <Text
-                    variant={TextVariant.HeadingLg}
-                    twClassName="font-medium"
+                    fontWeight={FontWeight.Medium}
+                    variant={TextVariant.AmountDisplayLg}
                   >
                     {formatPrice(currentValue, { maximumDecimals: 2 })}
                   </Text>
@@ -461,13 +428,13 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
                     })}
                   </Text>
                   <Text
-                    twClassName="font-bold"
+                    variant={TextVariant.BodyLg}
+                    twClassName="font-medium"
                     color={
                       percentPnl > 0
                         ? TextColor.SuccessDefault
                         : TextColor.ErrorDefault
                     }
-                    variant={TextVariant.BodyMd}
                   >
                     {`${signal}${formatPrice(Math.abs(cashPnl), {
                       maximumDecimals: 2,
@@ -477,19 +444,25 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               )}
             </Box>
           )}
-          {/* rewardsFeeAmountUsd intentionally omitted: sell orders do not earn rewards points */}
-          <PredictFeeSummary
-            disabled={!preview}
-            loading={isPreviewLoading}
-            total={total}
-            handleFeesInfoPress={handleFeesInfoPress}
-          />
-          <View style={styles.cashOutButtonContainer}>
-            {renderCashOutButton()}
-            <Text variant={TextVariant.BodyXs} style={styles.cashOutButtonText}>
-              {strings('predict.cash_out_info')}
-            </Text>
-          </View>
+          {/* Grouped so the container gap does not separate them, matching the buy sheet */}
+          <Box twClassName="w-full">
+            {/* rewardsFeeAmountUsd intentionally omitted: sell orders do not earn rewards points */}
+            <PredictFeeSummary
+              disabled={!preview}
+              loading={isPreviewLoading}
+              total={total}
+              handleFeesInfoPress={handleFeesInfoPress}
+            />
+            <View style={styles.cashOutButtonContainer}>
+              {renderCashOutButton()}
+              <Text
+                variant={TextVariant.BodyXs}
+                style={styles.cashOutButtonText}
+              >
+                {strings('predict.cash_out_info')}
+              </Text>
+            </View>
+          </Box>
         </View>
       </View>
       {isFeeBreakdownVisible && (

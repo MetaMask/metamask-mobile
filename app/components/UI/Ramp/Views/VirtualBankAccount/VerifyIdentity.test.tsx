@@ -10,6 +10,7 @@ import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
 jest.mock('./hooks/useKycSessionDisclaimers');
 const mockUseKycSessionDisclaimers = jest.mocked(useKycSessionDisclaimers);
 const mockRetry = jest.fn();
+const mockOnSuccess = jest.fn();
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -57,7 +58,7 @@ describe('VbaVerifyIdentity', () => {
 
   it('renders the title, steps, and continue button', () => {
     const { getByText, getByTestId } = renderWithProvider(
-      <VbaVerifyIdentity />,
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
     );
 
     expect(getByText('Verify your identity')).toBeOnTheScreen();
@@ -70,7 +71,9 @@ describe('VbaVerifyIdentity', () => {
   });
 
   it('navigates back when the header back button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+    const { getByTestId } = renderWithProvider(
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
+    );
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.BACK_BUTTON));
 
@@ -79,7 +82,7 @@ describe('VbaVerifyIdentity', () => {
 
   it('shows the legal links regardless of the data and privacy toggle state', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
-      <VbaVerifyIdentity />,
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
     );
 
     expect(
@@ -98,7 +101,9 @@ describe('VbaVerifyIdentity', () => {
   });
 
   it('keeps the data and privacy sub-topics collapsed by default', () => {
-    const { queryByText } = renderWithProvider(<VbaVerifyIdentity />);
+    const { queryByText } = renderWithProvider(
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
+    );
 
     expect(queryByText('What we collect')).not.toBeOnTheScreen();
     expect(queryByText('How we store data')).not.toBeOnTheScreen();
@@ -107,7 +112,7 @@ describe('VbaVerifyIdentity', () => {
 
   it('shows sub-topic titles but keeps their body copy folded once data and privacy opens', () => {
     const { getByText, queryByText, getByTestId } = renderWithProvider(
-      <VbaVerifyIdentity />,
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
     );
 
     fireEvent.press(
@@ -127,7 +132,7 @@ describe('VbaVerifyIdentity', () => {
 
   it('expands an individual sub-topic without affecting the others', () => {
     const { getByTestId, getByText, queryByText } = renderWithProvider(
-      <VbaVerifyIdentity />,
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
     );
 
     fireEvent.press(
@@ -155,7 +160,7 @@ describe('VbaVerifyIdentity', () => {
       .spyOn(Linking, 'openURL')
       .mockResolvedValue(undefined);
     const { getByTestId, getByText } = renderWithProvider(
-      <VbaVerifyIdentity />,
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
     );
 
     fireEvent.press(
@@ -183,7 +188,9 @@ describe('VbaVerifyIdentity', () => {
       retry: mockRetry,
     });
 
-    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+    const { getByTestId } = renderWithProvider(
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
+    );
 
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_LOADING),
@@ -202,7 +209,7 @@ describe('VbaVerifyIdentity', () => {
     });
 
     const { getByTestId, getByText } = renderWithProvider(
-      <VbaVerifyIdentity />,
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
     );
 
     expect(
@@ -216,11 +223,14 @@ describe('VbaVerifyIdentity', () => {
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('opens email collection when continue is pressed', () => {
-    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+  it('advances within the identity module when continue is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
+    );
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith('RampVbaKycEmail');
+    expect(mockOnSuccess).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

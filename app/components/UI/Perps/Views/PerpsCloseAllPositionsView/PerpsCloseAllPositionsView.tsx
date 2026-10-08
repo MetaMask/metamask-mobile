@@ -406,6 +406,9 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             accountOptedIn={accountOptedIn}
             rewardsAccount={rewardsAccount}
             enableTooltips={false}
+            testIDs={{
+              feesValue: PerpsCloseAllPositionsViewSelectorsIDs.FEES_VALUE,
+            }}
           />
         )}
       </Box>

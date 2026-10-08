@@ -29,6 +29,7 @@ import {
 } from '../../../core/Delegation';
 import { exactExecution } from '../../../core/Delegation/caveatBuilder/exactExecutionBuilder';
 import { limitedCalls } from '../../../core/Delegation/caveatBuilder/limitedCallsBuilder';
+import { redeemer } from '../../../core/Delegation/caveatBuilder/redeemerBuilder';
 import { specificActionERC20TransferBatch } from '../../../core/Delegation/caveatBuilder/specificActionERC20TransferBatchBuilder';
 import {
   Delegation,
@@ -40,6 +41,7 @@ import {
   submitRelayTransaction,
   waitForRelaySuccess,
 } from '../transaction-relay';
+import { getSentinelSigners } from '../sentinel-api';
 import { NetworkClientId } from '@metamask/network-controller';
 import { isE2ETest } from '../util';
 import {
@@ -133,12 +135,7 @@ export class Delegation7702PublishHook {
       (result) => result.chainId.toLowerCase() === chainId.toLowerCase(),
     );
 
-    const isChainSupported =
-      atomicBatchChainSupport &&
-      (!atomicBatchChainSupport.delegationAddress ||
-        atomicBatchChainSupport.isSupported);
-
-    if (!isChainSupported) {
+    if (!atomicBatchChainSupport) {
       log('Skipping as EIP-7702 is not supported', { from, chainId });
 
       if (isGaslessBridge || isSponsored) {
@@ -152,6 +149,7 @@ export class Delegation7702PublishHook {
 
     const { delegationAddress, upgradeContractAddress } =
       atomicBatchChainSupport;
+    const requiresUpgrade = !atomicBatchChainSupport.isSupported;
 
     if (
       (!selectedGasFeeToken || !gasFeeTokens?.length) &&
@@ -175,6 +173,13 @@ export class Delegation7702PublishHook {
       throw new Error('Selected gas fee token not found');
     }
 
+    const redeemers = await getSentinelSigners(chainId);
+
+    if (!redeemers.length) {
+      // Fail closed rather than sign a delegation any address could redeem.
+      throw new Error(`No relay signers found for chain ${chainId}`);
+    }
+
     const delegationEnvironment = getDeleGatorEnvironment(
       parseInt(isE2ETest(chainId) ? SEPOLIA_CHAIN_ID : chainId, 16),
     );
@@ -190,6 +195,7 @@ export class Delegation7702PublishHook {
       transactionMeta,
       gasFeeToken,
       includeTransfer,
+      redeemers,
     );
 
     const modes: ExecutionMode[] = [
@@ -223,6 +229,7 @@ export class Delegation7702PublishHook {
       transactionMeta,
       upgradeContractAddress,
       delegationAddress,
+      requiresUpgrade,
     );
 
     if (authorizationList?.length) {
@@ -285,6 +292,7 @@ export class Delegation7702PublishHook {
     transactionMeta: TransactionMeta,
     gasFeeToken: GasFeeToken | undefined,
     includeTransfer: boolean,
+    redeemers: Hex[],
   ): Promise<Delegation[][]> {
     const { chainId } = transactionMeta;
     const unsignedDelegation = this.#buildUnsignedDelegation(
@@ -292,6 +300,7 @@ export class Delegation7702PublishHook {
       transactionMeta,
       gasFeeToken,
       includeTransfer,
+      redeemers,
     );
 
     log('Signing delegation');
@@ -357,12 +366,14 @@ export class Delegation7702PublishHook {
     transactionMeta: TransactionMeta,
     gasFeeToken: GasFeeToken | undefined,
     includeTransfer: boolean,
+    redeemers: Hex[],
   ): UnsignedDelegation {
     const caveats = this.#buildCaveats(
       environment,
       transactionMeta,
       gasFeeToken,
       includeTransfer,
+      redeemers,
     );
 
     log('Caveats', caveats);
@@ -383,6 +394,7 @@ export class Delegation7702PublishHook {
     transactionMeta: TransactionMeta,
     gasFeeToken: GasFeeToken | undefined,
     includeTransfer: boolean,
+    redeemers: Hex[],
   ): Caveat[] {
     const caveatBuilder = createCaveatBuilder(environment);
 
@@ -418,6 +430,9 @@ export class Delegation7702PublishHook {
     // the relay may only execute this delegation once for security reasons
     caveatBuilder.addCaveat(limitedCalls, 1);
 
+    // only the Sentinel relay signers may submit the redeem
+    caveatBuilder.addCaveat(redeemer, redeemers);
+
     return caveatBuilder.build();
   }
 
@@ -426,13 +441,15 @@ export class Delegation7702PublishHook {
    *
    * Always retain pre-signed authorizations whose recovered signer is not the
    * transaction `from` (e.g. Money Account upgrades bundled with an EOA-paid
-   * batch). When `from` itself is not upgraded, also include a freshly signed
+   * batch). When `from` itself is not upgraded, or is upgraded to a
+   * non-MetaMask contract (`requiresUpgrade`), also include a freshly signed
    * EOA authorization — without replacing the foreign entries.
    */
   async #resolveAuthorizationList(
     transactionMeta: TransactionMeta,
     upgradeContractAddress: Hex | undefined,
     delegationAddress: Hex | undefined,
+    requiresUpgrade: boolean,
   ): Promise<AuthorizationList | undefined> {
     const { from, authorizationList: existingAuthorizationList } =
       transactionMeta.txParams;
@@ -442,7 +459,13 @@ export class Delegation7702PublishHook {
       from as Hex,
     );
 
-    if (!delegationAddress) {
+    if (!delegationAddress || requiresUpgrade) {
+      log('Including authorization as not upgraded or overwriting delegation', {
+        from,
+        delegationAddress,
+        requiresUpgrade,
+      });
+
       const fromAuthorization = await this.#buildAuthorizationList(
         transactionMeta,
         upgradeContractAddress,
