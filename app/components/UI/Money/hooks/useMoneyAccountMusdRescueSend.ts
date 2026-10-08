@@ -23,6 +23,7 @@ import Logger from '../../../../util/Logger';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import { calcTokenValue } from '../../../../util/transactions';
+import useMoneyToasts from './useMoneyToasts';
 
 const LOG_TAG = '[Money Account mUSD Rescue Send]';
 
@@ -86,6 +87,7 @@ export function useMoneyAccountMusdRescueSend() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const navigation = useNavigation<AppNavigationProp>();
+  const { showToast, MoneyToastOptions } = useMoneyToasts();
 
   const initiateRescueSend = useCallback(
     async ({
@@ -214,12 +216,19 @@ export function useMoneyAccountMusdRescueSend() {
           isMoneyConfirmationActive()
         ) {
           navigation.goBack();
+          showToast(MoneyToastOptions.send.failed());
         }
         Logger.error(errorObj, `${LOG_TAG} Rescue send initiation failed`);
         throw errorObj;
       }
     },
-    [navigation, primaryMoneyAccount, vaultConfig],
+    [
+      MoneyToastOptions.send,
+      navigation,
+      primaryMoneyAccount,
+      showToast,
+      vaultConfig,
+    ],
   );
 
   return { initiateRescueSend };
