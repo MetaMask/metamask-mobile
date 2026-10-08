@@ -142,11 +142,11 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     });
   }, [analyticsContext, openingTradeMode, target.tokenSymbol, track]);
 
-  useEffect(() => {
-    bottomSheetRef.current?.onOpenBottomSheet(() => {
-      setIsContentReady(true);
-      trackSheetViewed();
-    });
+  // The sheet animates itself open on first layout; calling onOpenBottomSheet
+  // as well restarts the slide-up from the bottom mid-animation.
+  const handleSheetOpened = useCallback(() => {
+    setIsContentReady(true);
+    trackSheetViewed();
   }, [trackSheetViewed]);
 
   // Animate the sheet down (then run the parent's onClose) and flag the content
@@ -178,7 +178,12 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     activeScreen === 'amount' || activeScreen === 'priceImpactConfirm';
 
   return (
-    <BottomSheet ref={bottomSheetRef} onClose={onClose} isFullscreen>
+    <BottomSheet
+      ref={bottomSheetRef}
+      onClose={onClose}
+      onOpen={handleSheetOpened}
+      isFullscreen
+    >
       {isContentReady ? (
         <QuickBuyProvider
           target={target}
