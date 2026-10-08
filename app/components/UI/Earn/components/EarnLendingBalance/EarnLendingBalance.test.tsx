@@ -289,7 +289,7 @@ describe('EarnLendingBalance', () => {
       { state: mockInitialState },
     );
 
-    expect(getByText(strings('earn.lending_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('earn.lending'))).toBeOnTheScreen();
     expect(
       getByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
     ).toBeOnTheScreen();
@@ -319,9 +319,81 @@ describe('EarnLendingBalance', () => {
       { state: mockInitialState },
     );
 
-    expect(queryByText(strings('earn.lending_earnings'))).not.toBeOnTheScreen();
+    expect(queryByText(strings('earn.lending'))).not.toBeOnTheScreen();
     expect(
       queryByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders stablecoin maintenance banner without a lending position', () => {
+    const emptyReceiptToken = {
+      ...mockADAIMainnet,
+      balanceMinimalUnit: '0',
+    };
+    (
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingServiceInterruptionBannerEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      earnSelectors.selectEarnOutputToken as jest.MockedFunction<
+        typeof earnSelectors.selectEarnOutputToken
+      >
+    ).mockReturnValue(emptyReceiptToken);
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      outputToken: emptyReceiptToken,
+      earnToken: mockDaiMainnet,
+    });
+
+    const { getByText } = renderWithProvider(
+      <EarnLendingBalance asset={emptyReceiptToken} />,
+      { state: mockInitialState },
+    );
+
+    expect(
+      getByText(
+        strings('earn.service_interruption_banner.maintenance_message', {
+          experienceName: 'Stablecoin Lending',
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides stablecoin maintenance banner when only pooled-staking flag is enabled', () => {
+    (
+      selectPooledStakingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingServiceInterruptionBannerEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      earnSelectors.selectEarnOutputToken as jest.MockedFunction<
+        typeof earnSelectors.selectEarnOutputToken
+      >
+    ).mockReturnValue(mockADAIMainnet);
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      outputToken: mockADAIMainnet,
+      earnToken: mockDaiMainnet,
+    });
+
+    const { queryByText } = renderWithProvider(
+      <EarnLendingBalance asset={mockADAIMainnet} />,
+      { state: mockInitialState },
+    );
+
+    expect(
+      queryByText(
+        strings('earn.service_interruption_banner.maintenance_message', {
+          experienceName: 'Stablecoin Lending',
+        }),
+      ),
     ).not.toBeOnTheScreen();
   });
 

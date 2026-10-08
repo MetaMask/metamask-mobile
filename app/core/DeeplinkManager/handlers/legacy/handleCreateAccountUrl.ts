@@ -8,6 +8,7 @@ import BigNumber from 'bignumber.js';
 import { getNativeSourceToken } from '../../../../components/UI/Bridge/utils/tokenUtils';
 import { startSwapBridgePageLoadTrace } from '../../../../components/UI/Bridge/utils/swapBridgePageLoadTrace';
 import NavigationService from '../../../NavigationService';
+import { resetSwapSessionBeforeDeeplink } from '../../utils/resetSwapSessionBeforeDeeplink';
 
 export function handleCreateAccountUrl({ path }: { path: string }) {
   const chainId = new URLSearchParams(path).get('chainId');
@@ -43,6 +44,8 @@ export function handleCreateAccountUrl({ path }: { path: string }) {
       bridgeViewMode: BridgeViewMode.Unified,
       location: MetaMetricsSwapsEventSource.MainView,
     });
+
+    resetSwapSessionBeforeDeeplink();
 
     NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,

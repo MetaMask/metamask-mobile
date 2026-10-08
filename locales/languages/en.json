@@ -687,6 +687,9 @@
     "enter_your_secret_recovery_phrase": "Enter your Secret Recovery Phrase",
     "or": "or",
     "import_wallet_from_extension": "import from the MetaMask extension",
+    "import_menu_title": "Import",
+    "import_from_srp_qr": "Import from Secret Recovery Phrase QR Code",
+    "import_from_extension_menu": "Import from the MetaMask extension",
     "metamask_password": "MetaMask password",
     "metamask_password_description": "Unlocks MetaMask on this device only.",
     "seed_phrase_required": "Secret Recovery Phrase is required",
@@ -1546,6 +1549,14 @@
       "share_profile": "Share profile",
       "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
       "posts": "Posts",
+      "section_tokens": "Tokens",
+      "section_perpetuals": "Perpetuals",
+      "empty_open": "No open positions",
+      "empty_closed": "No closed positions",
+      "empty_open_tokens": "No open tokens",
+      "empty_closed_tokens": "No closed tokens",
+      "empty_open_perps": "No open perps",
+      "empty_closed_perps": "No closed perps",
       "first_trade_prompt": "First trade?",
       "empty_title": "Your feed starts here",
       "empty_description": "Share a trade and it'll show up here for your followers",
@@ -1719,8 +1730,10 @@
     },
     "service_interruption": {
       "title": "We're experiencing an outage",
-      "description": "Some services may be unavailable while the team works on a fix.",
-      "contact_support": "Contact support"
+      "description": "Some services are temporarily unavailable. {{faqLink}}, or {{supportLink}}.",
+      "faq_link": "See your options in FAQs",
+      "contact_support": "contact support",
+      "faq_title": "Perps FAQs"
     },
     "competition_banner": {
       "title": "Competition leaderboard",
@@ -2147,8 +2160,8 @@
         "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
         "limit_price_below_trigger_warning": "Limit price is below the trigger price. Your order is unlikely to fill.",
         "limit_price_above_trigger_warning": "Limit price is above the trigger price. Your order is unlikely to fill.",
-        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
-        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order.",
+        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order.",
         "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order.",
         "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order.",
         "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
@@ -2488,7 +2501,8 @@
       "est_size": "Est. Size",
       "flip": "Reverse",
       "flipping": "Reversing...",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "below_minimum": "Position too small to reverse. Minimum order size is ${{amount}}."
     },
     "adjust_margin": {
       "title": "Adjust Margin",
@@ -2514,7 +2528,8 @@
       "perps_balance": "Perps balance",
       "liquidation_price": "Liquidation price",
       "liquidation_distance": "Liquidation distance",
-      "exceeds_available": "Amount exceeds available margin"
+      "exceeds_available": "Amount exceeds available margin",
+      "no_removable_margin": "No margin can be removed right now. This position needs its current margin to stay open."
     },
     "tpsl": {
       "title": "Auto close",
@@ -2694,6 +2709,7 @@
     },
     "position": {
       "title": "Positions",
+      "no_positions": "No open positions",
       "card": {
         "position_title": "Position",
         "pnl_label": "P&L",
@@ -2751,7 +2767,9 @@
       "margin": {
         "add_success": "Added ${{amount}} margin to {{asset}} position",
         "remove_success": "Removed ${{amount}} margin from {{asset}} position",
-        "adjustment_failed": "Margin adjustment failed"
+        "adjustment_failed": "Margin adjustment failed",
+        "remove_amount_changed_title": "Removable margin changed",
+        "remove_amount_changed": "Your position moved. You can now remove up to ${{amount}}. Check the amount and try again."
       }
     },
     "markets": {
@@ -3405,6 +3423,13 @@
       "retry": "Try again"
     },
     "home_title": "Predictions",
+    "search": {
+      "placeholder": "Search markets",
+      "idle": "Search by team, topic, or market question.",
+      "empty": "No markets found for \"{{query}}\".",
+      "error": "Search couldn’t complete.",
+      "retry": "Retry"
+    },
     "portfolio": {
       "title": "Portfolio",
       "positions": "Positions",
@@ -5676,6 +5701,7 @@
       "all": "All"
     },
     "chart_time_period_navigation": {
+      "1h": "1H",
       "1d": "1D",
       "7d": "7D",
       "1w": "1W",
@@ -8362,7 +8388,7 @@
     "claimable_bonus_tooltip_with_percentage": "{{percentage}}% annualized bonus you've earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "learn_more": "Learn more",
     "service_interruption_banner": {
-      "maintenance_message": "We're down for maintenance. We'll be back online soon."
+      "maintenance_message": "{{experienceName}} is down for maintenance and will be back online soon."
     },
     "supply": "Supply",
     "deposit": "Deposit",
@@ -8409,7 +8435,7 @@
     "withdraw_from_aave": "Withdraw from Aave",
     "deposit_more": "Deposit more",
     "earning": "Earning",
-    "lending_earnings": "Lending earnings",
+    "lending": "Lending",
     "withdrawal_time": "Withdrawal time",
     "withdrawing_to": "Withdrawing to",
     "network": "Network",
@@ -8935,7 +8961,7 @@
     "unstake": "Unstake",
     "stake_more": "Stake more",
     "claim": "Claim",
-    "your_earnings": "Your earnings",
+    "staking": "Staking",
     "annual_rate": "Annual rate",
     "lifetime_rewards": "Lifetime rewards",
     "estimated_annual_earnings": "Estimated annual earnings",
@@ -9460,6 +9486,8 @@
       "error_signing_delegations": "Could not create an order: the order couldn't be signed.",
       "error_creating_order": "Could not create an order: the order couldn't be placed.",
       "error_missing_trigger_price": "Could not create an order: the trigger price is unavailable.",
+      "unsupported_fee_token_pair": "One of the two assets must be a supported fee token. Select a supported source or destination asset to continue.",
+      "fee_tokens_unavailable": "Supported fee tokens couldn’t be loaded. Please try again.",
       "error_canceling_order": "Could not cancel your order. Please try again.",
       "order_created_title": "Order created",
       "order_created_description": "We'll let you know when it's filled.",
@@ -9676,6 +9704,7 @@
     "fee_includes": "Includes",
     "fee_percentage": "{{feePercentage}}%",
     "fee_percentage_meta_mask": "{{feePercentage}}% MetaMask fee",
+    "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "Includes {{feePercentage}}% MetaMask fee",
     "discount_badge_promo": "Promo",
     "discount_badge_dao": "DAO",
@@ -10263,8 +10292,7 @@
       "not_now_button": "Not now",
       "sign_up": {
         "title": "Let's get started",
-        "description": "Create an account with Crypto Life (CL) to set up your MetaMask Card. MetaMask does not see or store your personal data.",
-        "description_immersve": "We need a few details to set up your card.",
+        "description": "Create an account with our card provider to set up your MetaMask Card. MetaMask does not see or store your personal data.",
         "i_already_have_an_account": "I already have a MetaMask Card",
         "i_already_have_an_account_immersve": "I already have an account",
         "email_label": "Email address",
@@ -11065,6 +11093,7 @@
       "retry_button": "Retry"
     },
     "main_title": "Rewards",
+    "pro_member_badge_label": "Member",
     "vip": {
       "progress_to_next_tier": "{{pointsRemaining}} points to next tier",
       "bps_unit": "bps",
