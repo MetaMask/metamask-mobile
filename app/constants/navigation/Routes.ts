@@ -558,6 +558,7 @@ const Routes = {
   SOCIAL_PROFILE: {
     DRAWER: 'ProfileDrawer',
     MANAGE_PROFILE: 'ManageProfile',
+    MANAGE_PROFILE_FIELD: 'ManageProfileField',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {
