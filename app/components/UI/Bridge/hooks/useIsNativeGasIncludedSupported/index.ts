@@ -17,7 +17,7 @@ import { setIsNativeGasIncludedSupported } from '../../../../../core/redux/slice
  * @param chainId - Chain ID to check.
  */
 export const useIsNativeGasIncludedSupported = (
-  chainId?: Hex | CaipChainId | string,
+  chainId?: Hex | CaipChainId,
 ) => {
   const dispatch = useDispatch();
   const evmChainId = useMemo(() => {

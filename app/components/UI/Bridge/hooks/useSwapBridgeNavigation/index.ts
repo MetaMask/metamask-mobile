@@ -9,7 +9,6 @@ import {
   FeatureId,
   formatChainIdToHex,
   getNativeAssetForChainId,
-  isNativeAddress,
   isNonEvmChainId,
   MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
