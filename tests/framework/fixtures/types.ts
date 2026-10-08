@@ -111,6 +111,7 @@ export interface CurrencyRateControllerState {
 
 export interface AccountBalance {
   balance: string;
+  stakedBalance?: string;
 }
 
 export interface AccountTrackerControllerState {

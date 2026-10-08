@@ -5,6 +5,7 @@ import { PredictOrderFlowProvider } from '../views/PredictOrderFlow';
 import { PredictEventScreen } from '../views/PredictEvent/PredictEventScreen';
 import { PredictFeedScreen } from '../views/PredictFeedScreen/PredictFeedScreen';
 import { PredictPortfolioScreen } from '../views/PredictPortfolio/PredictPortfolioScreen';
+import { PredictSearchScreen } from '../views/PredictSearch/PredictSearchScreen';
 import type { PredictNextHomeParams, PredictNextStackParamList } from './types';
 import { PredictNextRoutes } from './routes';
 
@@ -36,6 +37,10 @@ const PredictNextStack = ({ initialParams }: PredictNextStackProps) => (
       <Stack.Screen
         name={PredictNextRoutes.PORTFOLIO}
         component={PredictPortfolioScreen}
+      />
+      <Stack.Screen
+        name={PredictNextRoutes.SEARCH}
+        component={PredictSearchScreen}
       />
     </Stack.Navigator>
   </PredictOrderFlowProvider>
