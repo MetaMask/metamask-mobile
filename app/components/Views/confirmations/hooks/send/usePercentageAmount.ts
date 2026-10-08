@@ -26,20 +26,6 @@ export type GasFeeEstimates = SingleChainGasFeeState['gasFeeEstimates'];
 
 const GWEI_DECIMALS = 9;
 
-const getSuggestedGasFeePerGas = (gasFeeEstimates?: GasFeeEstimates) => {
-  if (!gasFeeEstimates) {
-    return undefined;
-  }
-  if ('gasPrice' in gasFeeEstimates) {
-    return gasFeeEstimates.gasPrice;
-  }
-  if (!('medium' in gasFeeEstimates)) {
-    return undefined;
-  }
-  const { medium } = gasFeeEstimates;
-  return typeof medium === 'string' ? medium : medium.suggestedMaxFeePerGas;
-};
-
 export const getEstimatedTotalGas = (
   gasFeeEstimates: GasFeeEstimates,
   gasLimit: Hex,
@@ -111,54 +97,120 @@ export const getPercentageValueFn = ({
 };
 
 /**
- * Estimates the gas limit of a native send with the node.
- *
- * @param args - The estimate arguments.
- * @param args.asset - The native asset being sent.
- * @param args.from - The sender address.
- * @param args.networkClientId - The network client to estimate with.
- * @param args.to - The recipient address.
- * @param args.value - The amount to send, in decimal native units.
- * @returns The estimated gas limit, or `undefined` if the simulation failed.
+ * Returns a function that estimates the native Max amount for a recipient on
+ * demand, without estimating in the background.
  */
-const estimateMaxSendGasLimit = async ({
-  asset,
-  from,
-  networkClientId,
-  to,
-  value,
-}: {
-  asset: AssetType;
-  from: string;
-  networkClientId: string;
-  to: string;
-  value: string;
-}) => {
-  const transaction = prepareEVMTransaction(asset, { from, to, value });
-  const { gas, simulationFails } = await estimateGas(
-    transaction,
+export const useMaxAmount = () => {
+  const { getMaxAmount } = useMaxAmountEstimator();
+  return { getMaxAmount };
+};
+
+export const usePercentageAmount = () => {
+  const { asset, chainId, from, to } = useSendContext();
+  const { predefinedRecipient } =
+    useParams<{
+      predefinedRecipient: PredefinedRecipient;
+    }>() || {};
+  const recipient = to || predefinedRecipient?.address || from;
+  const {
+    estimateGasLimit,
+    gasFeeEstimates,
+    getLayer1GasFee,
+    getMaxAmount,
+    isEvmNativeSendType,
+    isGasSponsored,
+    isNonEvmNativeSendType,
+    maxTransactionValue,
     networkClientId,
+    rawBalanceBN,
+  } = useMaxAmountEstimator();
+
+  const estimationKey = [
+    asset?.address,
+    asset?.chainId,
+    chainId,
+    from,
+    isEvmNativeSendType,
+    isGasSponsored,
+    maxTransactionValue,
+    networkClientId,
+    recipient,
+  ].join(':');
+  const estimationKeyRef = useRef(estimationKey);
+  const { value: estimatedGasLimit } = useAsyncResult(
+    () => estimateGasLimit(recipient),
+    [estimateGasLimit, recipient],
+  );
+  const { value: estimatedLayer1GasFee } = useAsyncResult(
+    () => getLayer1GasFee(recipient),
+    [getLayer1GasFee, recipient],
+  );
+  const isCurrentEstimation = estimationKeyRef.current === estimationKey;
+  const gasLimit = isCurrentEstimation ? estimatedGasLimit : undefined;
+  const layer1GasFee = isCurrentEstimation ? estimatedLayer1GasFee : undefined;
+
+  useEffect(() => {
+    estimationKeyRef.current = estimationKey;
+  }, [estimationKey]);
+
+  const getPercentageAmount = useCallback(
+    (percentage: number) => {
+      if (isNonEvmNativeSendType && percentage === 100) return undefined;
+      return getPercentageValueFn({
+        asset: asset as AssetType,
+        gasFeeEstimates,
+        gasLimit,
+        isEvmNativeSendType,
+        layer1GasFee,
+        percentage,
+        rawBalanceBN,
+        isGasSponsored,
+      });
+    },
+    [
+      asset,
+      gasFeeEstimates,
+      gasLimit,
+      isEvmNativeSendType,
+      isNonEvmNativeSendType,
+      layer1GasFee,
+      rawBalanceBN,
+      isGasSponsored,
+    ],
   );
 
-  return simulationFails ? undefined : (gas as Hex);
+  const isGasEstimateReady = Boolean(
+    getSuggestedGasFeePerGas(gasFeeEstimates) && gasLimit,
+  );
+  const isLayer1GasFeeReady = Boolean(layer1GasFee);
+  const isMaxAmountSupported =
+    !isNonEvmNativeSendType &&
+    (!isEvmNativeSendType ||
+      isGasSponsored ||
+      (isGasEstimateReady && isLayer1GasFeeReady));
+
+  return {
+    getMaxAmount,
+    getPercentageAmount,
+    isMaxAmountSupported,
+  };
 };
 
-/**
- * Estimates the layer 1 fee of a native send.
- *
- * @param args - The estimate arguments, as accepted by `getLayer1GasFeeForSend`.
- * @returns The layer 1 fee, or `0x0` for chains without a layer 1 fee flow.
- */
-const estimateMaxSendLayer1GasFee = async (
-  args: Parameters<typeof getLayer1GasFeeForSend>[0],
-) => {
-  const layer1GasFee = await getLayer1GasFeeForSend(args);
+function getSuggestedGasFeePerGas(gasFeeEstimates?: GasFeeEstimates) {
+  if (!gasFeeEstimates) {
+    return undefined;
+  }
+  if ('gasPrice' in gasFeeEstimates) {
+    return gasFeeEstimates.gasPrice;
+  }
+  if (!('medium' in gasFeeEstimates)) {
+    return undefined;
+  }
+  const { medium } = gasFeeEstimates;
+  return typeof medium === 'string' ? medium : medium.suggestedMaxFeePerGas;
+}
 
-  // Chains without a layer 1 gas fee flow resolve to undefined.
-  return layer1GasFee ?? ('0x0' as Hex);
-};
-
-const useMaxAmountEstimator = () => {
+function useMaxAmountEstimator() {
   const { asset, chainId, from } = useSendContext();
   const { isEvmNativeSendType, isNonEvmNativeSendType } = useSendType();
   const { rawBalanceBN } = useBalance();
@@ -302,104 +354,52 @@ const useMaxAmountEstimator = () => {
     networkClientId,
     rawBalanceBN,
   };
-};
+}
 
 /**
- * Returns a function that estimates the native Max amount for a recipient on
- * demand, without estimating in the background.
+ * Estimates the gas limit of a native send with the node.
+ *
+ * @param args - The estimate arguments.
+ * @param args.asset - The native asset being sent.
+ * @param args.from - The sender address.
+ * @param args.networkClientId - The network client to estimate with.
+ * @param args.to - The recipient address.
+ * @param args.value - The amount to send, in decimal native units.
+ * @returns The estimated gas limit, or `undefined` if the simulation failed.
  */
-export const useMaxAmount = () => {
-  const { getMaxAmount } = useMaxAmountEstimator();
-  return { getMaxAmount };
-};
-
-export const usePercentageAmount = () => {
-  const { asset, chainId, from, to } = useSendContext();
-  const { predefinedRecipient } =
-    useParams<{
-      predefinedRecipient: PredefinedRecipient;
-    }>() || {};
-  const recipient = to || predefinedRecipient?.address || from;
-  const {
-    estimateGasLimit,
-    gasFeeEstimates,
-    getLayer1GasFee,
-    getMaxAmount,
-    isEvmNativeSendType,
-    isGasSponsored,
-    isNonEvmNativeSendType,
-    maxTransactionValue,
+async function estimateMaxSendGasLimit({
+  asset,
+  from,
+  networkClientId,
+  to,
+  value,
+}: {
+  asset: AssetType;
+  from: string;
+  networkClientId: string;
+  to: string;
+  value: string;
+}) {
+  const transaction = prepareEVMTransaction(asset, { from, to, value });
+  const { gas, simulationFails } = await estimateGas(
+    transaction,
     networkClientId,
-    rawBalanceBN,
-  } = useMaxAmountEstimator();
-
-  const estimationKey = [
-    asset?.address,
-    asset?.chainId,
-    chainId,
-    from,
-    isEvmNativeSendType,
-    isGasSponsored,
-    maxTransactionValue,
-    networkClientId,
-    recipient,
-  ].join(':');
-  const estimationKeyRef = useRef(estimationKey);
-  const { value: estimatedGasLimit } = useAsyncResult(
-    () => estimateGasLimit(recipient),
-    [estimateGasLimit, recipient],
-  );
-  const { value: estimatedLayer1GasFee } = useAsyncResult(
-    () => getLayer1GasFee(recipient),
-    [getLayer1GasFee, recipient],
-  );
-  const isCurrentEstimation = estimationKeyRef.current === estimationKey;
-  const gasLimit = isCurrentEstimation ? estimatedGasLimit : undefined;
-  const layer1GasFee = isCurrentEstimation ? estimatedLayer1GasFee : undefined;
-
-  useEffect(() => {
-    estimationKeyRef.current = estimationKey;
-  }, [estimationKey]);
-
-  const getPercentageAmount = useCallback(
-    (percentage: number) => {
-      if (isNonEvmNativeSendType && percentage === 100) return undefined;
-      return getPercentageValueFn({
-        asset: asset as AssetType,
-        gasFeeEstimates,
-        gasLimit,
-        isEvmNativeSendType,
-        layer1GasFee,
-        percentage,
-        rawBalanceBN,
-        isGasSponsored,
-      });
-    },
-    [
-      asset,
-      gasFeeEstimates,
-      gasLimit,
-      isEvmNativeSendType,
-      isNonEvmNativeSendType,
-      layer1GasFee,
-      rawBalanceBN,
-      isGasSponsored,
-    ],
   );
 
-  const isGasEstimateReady = Boolean(
-    getSuggestedGasFeePerGas(gasFeeEstimates) && gasLimit,
-  );
-  const isLayer1GasFeeReady = Boolean(layer1GasFee);
-  const isMaxAmountSupported =
-    !isNonEvmNativeSendType &&
-    (!isEvmNativeSendType ||
-      isGasSponsored ||
-      (isGasEstimateReady && isLayer1GasFeeReady));
+  return simulationFails ? undefined : (gas as Hex);
+}
 
-  return {
-    getMaxAmount,
-    getPercentageAmount,
-    isMaxAmountSupported,
-  };
-};
+/**
+ * Estimates the layer 1 fee of a native send.
+ *
+ * @param args - The estimate arguments, as accepted by `getLayer1GasFeeForSend`.
+ * @returns The layer 1 fee, or `0x0` for chains without a layer 1 fee flow.
+ */
+async function estimateMaxSendLayer1GasFee(
+  args: Parameters<typeof getLayer1GasFeeForSend>[0],
+) {
+  const layer1GasFee = await getLayer1GasFeeForSend(args);
+
+  // Chains without a layer 1 gas fee flow resolve to undefined.
+  return layer1GasFee ?? ('0x0' as Hex);
+}
