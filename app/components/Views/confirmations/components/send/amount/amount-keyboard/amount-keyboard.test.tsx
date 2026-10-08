@@ -177,28 +177,6 @@ describe('Amount', () => {
     expect(mockUpdateValue).toHaveBeenCalledWith('10', true);
   });
 
-  it('refreshes a selected Max amount when transaction estimation changes', () => {
-    const mockUpdateAmount = jest.fn();
-    const mockUpdateValue = jest.fn();
-    mockUseSendAmountActions.mockReturnValue({
-      getPercentageAmount: () => '8',
-      handleSubmitPress: mockHandleSubmitPress,
-      isMaxAmountSupported: true,
-    } as unknown as ReturnType<typeof useSendAmountActions>);
-    mockUseSendContext.mockReturnValue({
-      asset: MOCK_EVM_ASSET,
-      maxValueMode: true,
-      updateAsset: jest.fn(),
-      updateValue: mockUpdateValue,
-      value: '9',
-    } as unknown as ReturnType<typeof useSendContext>);
-
-    renderComponent(undefined, '9', mockUpdateAmount);
-
-    expect(mockUpdateAmount).toHaveBeenCalledWith('8');
-    expect(mockUpdateValue).toHaveBeenCalledWith('8', true);
-  });
-
   it('does not render Max when node estimation is unavailable', () => {
     mockUseSendAmountActions.mockReturnValue({
       getPercentageAmount: () => undefined,

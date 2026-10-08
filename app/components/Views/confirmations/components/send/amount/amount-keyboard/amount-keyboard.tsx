@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -47,8 +47,7 @@ export const AmountKeyboard = ({
   const { getFiatValue, getNativeValue } = useCurrencyConversions();
   const { gotToSendScreen } = useSendScreenNavigation();
   const { amountError, validateNonEvmAmountAsync } = useAmountValidation();
-  const { asset, maxValueMode, updateValue, updateTo, value } =
-    useSendContext();
+  const { asset, updateValue, updateTo } = useSendContext();
   const { getPercentageAmount, handleSubmitPress, isMaxAmountSupported } =
     useSendAmountActions();
   const { isNonEvmSendType } = useSendType();
@@ -88,26 +87,6 @@ export const AmountKeyboard = ({
       updateValue,
     ],
   );
-
-  useEffect(() => {
-    if (!maxValueMode) {
-      return;
-    }
-    const maxAmount = getPercentageAmount(100);
-    if (maxAmount === undefined || maxAmount === value) {
-      return;
-    }
-    updateAmount(fiatMode ? getFiatValue(maxAmount).toString() : maxAmount);
-    updateValue(maxAmount, true);
-  }, [
-    fiatMode,
-    getFiatValue,
-    getPercentageAmount,
-    maxValueMode,
-    updateAmount,
-    updateValue,
-    value,
-  ]);
 
   const updateToNewAmount = useCallback(
     (amt: string) => {
