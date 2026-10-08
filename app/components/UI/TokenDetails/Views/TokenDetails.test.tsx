@@ -182,6 +182,10 @@ jest.mock('../hooks/useTokenTransactions', () => ({
     mockUseTokenTransactions(...args),
 }));
 
+jest.mock('../queries/prefetchTokenDetailsQueries', () => ({
+  usePrefetchTokenDetails: () => undefined,
+}));
+
 const mockUseIsMemeToken = jest.fn((_opts: Record<string, unknown>) => ({
   isMeme: false,
   isLoading: false,

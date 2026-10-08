@@ -1,7 +1,11 @@
 import { useMemo } from 'react';
-import { queryOptions, useQuery } from '@tanstack/react-query';
+import {
+  queryOptions,
+  useQuery,
+  type QueryClient,
+} from '@tanstack/react-query';
 import type { OHLCVBar } from './AdvancedChart.types';
-import type { OHLCVTimePeriod } from './TimeRangeSelector';
+import { TIME_RANGE_CONFIGS, type OHLCVTimePeriod } from './TimeRangeSelector';
 
 const OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
 const OHLCV_FETCH_TIMEOUT_MS = 3000;
@@ -116,6 +120,27 @@ export const ohlcvChartQueryOptions = (request: UseOHLCVChartOptions) =>
     retry: false,
     staleTime: QUERY_STALE_TIME_MS,
   });
+
+export const prefetchOhlcvChart = (
+  queryClient: QueryClient,
+  assetId: string | null,
+  vsCurrency: string,
+): void => {
+  if (!assetId) {
+    return;
+  }
+  const { timePeriod, interval } = TIME_RANGE_CONFIGS['1D'];
+  queryClient
+    .query(
+      ohlcvChartQueryOptions({
+        assetId,
+        timePeriod,
+        interval,
+        vsCurrency,
+      }),
+    )
+    .catch(() => undefined);
+};
 
 export const useOHLCVChart = ({
   assetId,

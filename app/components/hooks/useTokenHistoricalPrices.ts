@@ -1,4 +1,8 @@
-import { queryOptions, useQuery } from '@tanstack/react-query';
+import {
+  queryOptions,
+  useQuery,
+  type QueryClient,
+} from '@tanstack/react-query';
 import { getAssetId } from '@metamask/assets-controllers';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { parseCaipAssetType, type Hex } from '@metamask/utils';
@@ -236,6 +240,26 @@ const toHistoricalPricesRequest = ({
   from,
   to,
 });
+
+export const prefetchHistoricalPrices = (
+  queryClient: QueryClient,
+  token: Pick<TokenI, 'address' | 'chainId'>,
+  vsCurrency: string,
+): void => {
+  queryClient
+    .query(
+      historicalPricesQueryOptions(
+        toHistoricalPricesRequest({
+          asset: token,
+          address: String(token.address ?? ''),
+          chainId: token.chainId as Hex,
+          timePeriod: DEFAULT_HISTORICAL_TIME_PERIOD,
+          vsCurrency,
+        }),
+      ),
+    )
+    .catch(() => undefined);
+};
 
 const useTokenHistoricalPrices = ({
   asset,
