@@ -4,6 +4,7 @@ import {
 } from '@metamask/money-account-upgrade-controller';
 import {
   __resetUpgradesInFlightForTesting,
+  forceUpgradeMoneyAccount,
   upgradeMoneyAccount,
 } from './index';
 import Engine from '../../core/Engine';
@@ -17,6 +18,7 @@ jest.mock('../../core/Engine', () => ({
     context: {
       MoneyAccountUpgradeController: {
         upgradeAccount: jest.fn(),
+        forceUpgradeAccount: jest.fn(),
         state: { upgradedAccounts: {} },
       },
     },
@@ -37,6 +39,8 @@ jest.mock('../../selectors/moneyAccountController', () => ({
 
 const mockUpgradeAccount = Engine.context.MoneyAccountUpgradeController
   .upgradeAccount as jest.Mock;
+const mockForceUpgradeAccount = Engine.context.MoneyAccountUpgradeController
+  .forceUpgradeAccount as jest.Mock;
 const mockSelectPrimaryMoneyAccount =
   selectPrimaryMoneyAccount as unknown as jest.Mock;
 const mockLogError = Logger.error as jest.Mock;
@@ -74,6 +78,7 @@ describe('upgradeMoneyAccount', () => {
     dispatch = jest.fn();
     getState = jest.fn().mockReturnValue({} as RootState);
     mockUpgradeAccount.mockResolvedValue(undefined);
+    mockForceUpgradeAccount.mockResolvedValue(undefined);
     Engine.context.MoneyAccountUpgradeController.state = {
       upgradedAccounts: {},
     };
@@ -601,5 +606,47 @@ describe('upgradeMoneyAccount', () => {
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
     expect(mockUpgradeAccount).toHaveBeenNthCalledWith(1, ADDRESS);
     expect(mockUpgradeAccount).toHaveBeenNthCalledWith(2, OTHER_ADDRESS);
+  });
+});
+
+describe('forceUpgradeMoneyAccount', () => {
+  it('returns registered when the controller records the address', async () => {
+    mockForceUpgradeAccount.mockImplementation(async (address: string) => {
+      Engine.context.MoneyAccountUpgradeController.state.upgradedAccounts[
+        address.toLowerCase() as `0x${string}`
+      ] = { configFingerprint: 'test', completedAt: 1 };
+    });
+
+    await expect(forceUpgradeMoneyAccount(ADDRESS)).resolves.toEqual({
+      status: 'registered',
+    });
+    expect(mockForceUpgradeAccount).toHaveBeenCalledTimes(1);
+    expect(mockForceUpgradeAccount).toHaveBeenCalledWith(ADDRESS);
+    expect(mockUpgradeAccount).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['not_recorded', undefined],
+    ['unavailable', new Error('controller is not bootstrapped')],
+  ] as const)('maps %s safely', async (status, error) => {
+    if (error) {
+      mockForceUpgradeAccount.mockRejectedValueOnce(error);
+    }
+
+    await expect(forceUpgradeMoneyAccount(ADDRESS)).resolves.toEqual({
+      status,
+    });
+  });
+
+  it('reports unexpected errors and returns failed without exposing details', async () => {
+    mockForceUpgradeAccount.mockRejectedValueOnce(new Error('network secret'));
+
+    await expect(forceUpgradeMoneyAccount(ADDRESS)).resolves.toEqual({
+      status: 'failed',
+    });
+    expect(mockLogError).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ trigger: 'manual' }),
+    );
   });
 });

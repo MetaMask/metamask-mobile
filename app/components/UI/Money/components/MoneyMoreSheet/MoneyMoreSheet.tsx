@@ -134,7 +134,7 @@ const MoneyMoreSheet = () => {
           navigation.navigate(Routes.MONEY.ADVANCED_SETTINGS as never),
         );
       },
-      testID: 'money-more-sheet-advanced-settings',
+      testID: MoneyMoreSheetTestIds.ADVANCED_SETTINGS_OPTION,
     });
   }
 

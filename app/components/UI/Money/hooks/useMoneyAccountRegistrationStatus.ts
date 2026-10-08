@@ -28,12 +28,16 @@ export const useMoneyAccountRegistrationStatus = () => {
   const record = validAddress
     ? upgradedAccounts[validAddress.toLowerCase() as `0x${string}`]
     : undefined;
-  const retry = useCallback(async () => {
-    if (!validAddress || retrying.current) return;
+  const retry = useCallback(async (): Promise<
+    ForceUpgradeResult | undefined
+  > => {
+    if (!validAddress || retrying.current) return undefined;
     retrying.current = true;
     setIsRetrying(true);
     try {
-      setRetryResult(await forceUpgradeMoneyAccount(validAddress));
+      const result = await forceUpgradeMoneyAccount(validAddress);
+      setRetryResult(result);
+      return result;
     } finally {
       retrying.current = false;
       setIsRetrying(false);

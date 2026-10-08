@@ -32,7 +32,14 @@ const MoneyAdvancedSettingsView = () => {
   const { trackScreenViewed, trackButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_ADVANCED_SETTINGS,
   });
-  const status = useMoneyAccountRegistrationStatus();
+  const {
+    address,
+    status: registrationStatus,
+    completedAt,
+    isRetrying,
+    retryResult,
+    retry: retryRegistration,
+  } = useMoneyAccountRegistrationStatus();
   useMountEffect(trackScreenViewed);
   const retry = useCallback(async () => {
     trackButtonClicked({
@@ -41,8 +48,16 @@ const MoneyAdvancedSettingsView = () => {
       component_name: COMPONENT_NAMES.MONEY_ADVANCED_SETTINGS_RETRY,
       label_key: 'money.advanced_settings.retry_button',
     });
-    await status.retry();
-  }, [status, trackButtonClicked]);
+    const result = await retryRegistration();
+    if (result) {
+      trackButtonClicked({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.RETRY_REGISTRATION,
+        component_name: COMPONENT_NAMES.MONEY_ADVANCED_SETTINGS_RETRY,
+        label_key: `money.advanced_settings.retry_${result.status}`,
+      });
+    }
+  }, [retryRegistration, trackButtonClicked]);
   return (
     <Box
       twClassName="flex-1"
@@ -65,37 +80,35 @@ const MoneyAdvancedSettingsView = () => {
       <Box twClassName="px-4 pt-6 gap-4">
         <Text variant={TextVariant.BodyMd}>
           {strings('money.advanced_settings.account_label')}:{' '}
-          {status.address ? formatAddress(status.address, 'short') : '-'}
+          {address ? formatAddress(address, 'short') : '-'}
         </Text>
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {strings('money.advanced_settings.status_label')}
         </Text>
         <Text variant={TextVariant.BodyMd}>
-          {strings(`money.advanced_settings.status_${status.status}`)}
+          {strings(`money.advanced_settings.status_${registrationStatus}`)}
         </Text>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('money.advanced_settings.status_disclaimer')}
         </Text>
-        {status.completedAt && (
+        {completedAt && (
           <Text variant={TextVariant.BodyMd}>
             {strings('money.advanced_settings.registered_on', {
-              date: new Date(status.completedAt).toLocaleDateString(),
+              date: new Date(completedAt).toLocaleDateString(),
             })}
           </Text>
         )}
         <Button
           onPress={retry}
-          isLoading={status.isRetrying}
-          isDisabled={status.isRetrying || status.status === 'unavailable'}
+          isLoading={isRetrying}
+          isDisabled={isRetrying || registrationStatus === 'unavailable'}
           testID={MoneyAdvancedSettingsViewTestIds.RETRY_BUTTON}
         >
           {strings('money.advanced_settings.retry_button')}
         </Button>
-        {status.retryResult && (
+        {retryResult && (
           <Text variant={TextVariant.BodyMd}>
-            {strings(
-              `money.advanced_settings.retry_${status.retryResult.status}`,
-            )}
+            {strings(`money.advanced_settings.retry_${retryResult.status}`)}
           </Text>
         )}
       </Box>
