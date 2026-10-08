@@ -1757,17 +1757,19 @@
         Mobile <code>8ae650bacb8417162555cbed5323232391e8115d</code> follows a
         merge of main at <code>9091a924462ec616eb802256b098663c2a3e10cd</code>.
         The conflict resolution retains both Lighter routing and venue-sized
-        Scale configuration. Yarn install, full TypeScript, 2,149 unit tests,
-        223 component-view tests, 68 integration tests and 89 config-caller
-        tests pass on both the merged old dependency and the published release.
-        Focused lint passed; the broad merge hook was stopped before completion.
-        Fresh recipes use the unchanged library <code>357d9df8</code>, dev1,
-        testnet ETH, at most $20 per case at 1x, and <code>--hud show</code>.
-        Lighter market and limit and Hyperliquid market each pass 20/20.
-        Hyperliquid limit remains failed at 16/18 because final reads returned
-        429 after successful placement and cancellation. The separate 5/5
-        read-only cleanup proof found no remaining ETH orders or positions; no
-        order was replayed. Evidence and the full hunk table are in
+        Scale configuration. Yarn install, 2,149 unit tests, 223 component-view
+        tests, 68 integration tests and 89 config-caller tests pass on both the
+        merged old dependency and the published release. Full TypeScript and 14
+        additional Engine/controller and messenger tests pass on the published
+        release with retained exit status 0. Focused lint passed; the broad
+        merge hook was stopped before completion. Fresh recipes use the
+        unchanged library <code>357d9df8</code>, dev1, testnet ETH, at most $20
+        per case at 1x, and <code>--hud show</code>. Lighter market and limit
+        and Hyperliquid market each pass 20/20. Hyperliquid limit remains failed
+        at 16/18 because final reads returned 429 after successful placement and
+        cancellation. The separate 5/5 read-only cleanup proof found no
+        remaining ETH orders or positions; no order was replayed. Evidence and
+        the full hunk table are in
         <code>goal/controller20-adoption-20261008/REPORT.md</code>,
         <code>results.json</code> and <code>patch-hunks.md</code> under the
         task's artifacts. This validation does not replace historical
