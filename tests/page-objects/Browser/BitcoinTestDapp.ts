@@ -8,6 +8,7 @@ import BrowserView from './BrowserView.js';
 import DappConnectionModal from '../MMConnect/DappConnectionModal.js';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import Utilities from '../../framework/Utilities';
 import { localDappBrowserUrl } from '../../framework/e2eWorkerPorts.ts';
 import { dataTestIds } from '@metamask/test-dapp-bitcoin';
 
@@ -128,15 +129,17 @@ class BitcoinTestDapp {
   }
 
   /**
-   * After reload, the dapp may auto-reconnect (status → Connected) or re-open
-   * the MetaMask connect sheet. Poll for Connected and periodically approve
-   * the sheet if it appears (CI Android often needs this).
+   * After reload, auto-reconnect may leave the dapp on "Not connected" without
+   * opening the native MetaMask sheet (provider registers after remount). Poll
+   * for Connected; periodically approve the native sheet when present; when
+   * still disconnected, re-drive Connect from the dapp (no extra reload).
    */
   private async waitForReconnect(
     timeoutMs = CONNECT_TIMEOUT_MS,
   ): Promise<void> {
     const deadline = Date.now() + timeoutMs;
-    let lastConnectAttemptAt = 0;
+    let lastNativeConnectAttemptAt = 0;
+    let lastDappConnectAttemptAt = 0;
     let actual: string | null = null;
 
     while (Date.now() < deadline) {
@@ -144,13 +147,25 @@ class BitcoinTestDapp {
       if (actual === 'Connected') return;
 
       // Auto-reconnect may re-open the MetaMask connect sheet after wallets register.
-      if (Date.now() - lastConnectAttemptAt >= 3_000) {
-        lastConnectAttemptAt = Date.now();
-        try {
-          await DappConnectionModal.tapConnectButton({ timeout: 1_000 });
-        } catch {
-          // Connect sheet not shown yet.
+      if (Date.now() - lastNativeConnectAttemptAt >= 3_000) {
+        lastNativeConnectAttemptAt = Date.now();
+        const connectVisible = await Utilities.isElementVisible(
+          DappConnectionModal.connectButton,
+          500,
+        );
+        if (connectVisible) {
+          await DappConnectionModal.tapConnectButton({ timeout: 5_000 });
+          continue;
         }
+      }
+
+      // Native sheet never appeared — re-open wallet selection from the dapp.
+      if (
+        actual === 'Not connected' &&
+        Date.now() - lastDappConnectAttemptAt >= 5_000
+      ) {
+        lastDappConnectAttemptAt = Date.now();
+        await this.attemptDappReconnectBestEffort();
       }
 
       await wait(POLL_MS);
@@ -159,6 +174,70 @@ class BitcoinTestDapp {
     throw new Error(
       `Timed out waiting for reconnect: expected "Connected", got "${actual}"`,
     );
+  }
+
+  /**
+   * Best-effort dapp-side reconnect after page refresh when auto-reconnect
+   * stalls on "Not connected". Waits for wallet-standard registration, then
+   * Connect → wallet option → standard → native approve. Returns without
+   * throwing so {@link waitForReconnect} can keep polling.
+   */
+  private async attemptDappReconnectBestEffort(): Promise<void> {
+    const walletOptionSelector = `button${sel(
+      walletSelectionModal.walletOption,
+    )}`;
+    const connectSelector = `button${sel(header.connect)}`;
+
+    await this.waitForBitcoinWalletRegistered(5_000);
+
+    const connectVisible = await this.evaluate<boolean>(
+      `Boolean(document.querySelector(${JSON.stringify(connectSelector)}))`,
+    ).catch(() => false);
+    if (!connectVisible) return;
+
+    const clicked = await this.evaluate<boolean>(
+      `(() => {
+        const el = document.querySelector(${JSON.stringify(connectSelector)});
+        if (!el) return false;
+        el.click();
+        return true;
+      })()`,
+    ).catch(() => false);
+    if (!clicked) return;
+
+    const outcome = await this.waitForWalletModalOutcome(
+      walletOptionSelector,
+      8_000,
+    );
+    if (outcome !== 'wallet') {
+      await this.closeWalletSelectionModalBestEffort();
+      return;
+    }
+
+    const selected = await this.evaluate<boolean>(
+      `(() => {
+        const wallet = document.querySelector(${JSON.stringify(
+          walletOptionSelector,
+        )});
+        if (!(wallet instanceof HTMLElement)) return false;
+        wallet.click();
+        const standard = document.querySelector(${JSON.stringify(
+          `button${sel(walletSelectionModal.standardButton)}`,
+        )});
+        if (!(standard instanceof HTMLElement)) return false;
+        standard.click();
+        return true;
+      })()`,
+    ).catch(() => false);
+    if (!selected) return;
+
+    const nativeConnectVisible = await Utilities.isElementVisible(
+      DappConnectionModal.connectButton,
+      8_000,
+    );
+    if (nativeConnectVisible) {
+      await DappConnectionModal.tapConnectButton({ timeout: 10_000 });
+    }
   }
 
   /**
