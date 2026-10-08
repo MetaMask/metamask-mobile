@@ -2253,6 +2253,21 @@ describe('CardHome Component', () => {
         screen.getByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
       ).toBeOnTheScreen();
     });
+
+    it('hides the instructions when the Immersve card is frozen', () => {
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.FROZEN },
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   it('shows the Enable card button for provider pending actions and resumes from it', () => {

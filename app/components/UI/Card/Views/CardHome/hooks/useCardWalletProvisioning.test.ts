@@ -1,5 +1,9 @@
 import { renderHook } from '@testing-library/react-native';
-import { useCardWalletProvisioning } from './useCardWalletProvisioning';
+import {
+  resolveWalletEntry,
+  useCardWalletProvisioning,
+  type WalletEntry,
+} from './useCardWalletProvisioning';
 import {
   CardStatus,
   CardType,
@@ -72,7 +76,7 @@ describe('useCardWalletProvisioning', () => {
     };
 
     const { result } = renderHook(() =>
-      useCardWalletProvisioning(homeData(walletProvisioning)),
+      useCardWalletProvisioning(homeData(walletProvisioning), true),
     );
 
     expect(mockUsePushProvisioning).toHaveBeenCalledWith(
@@ -85,7 +89,7 @@ describe('useCardWalletProvisioning', () => {
   });
 
   it('passes null provisioning when the provider has no card', () => {
-    renderHook(() => useCardWalletProvisioning(homeData(null)));
+    renderHook(() => useCardWalletProvisioning(homeData(null), true));
 
     expect(mockUsePushProvisioning).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -93,5 +97,63 @@ describe('useCardWalletProvisioning', () => {
         walletProvisioning: null,
       }),
     );
+  });
+});
+
+type WalletEntryInput = Parameters<typeof resolveWalletEntry>[0];
+
+const activeCard: WalletEntryInput = {
+  cardStatus: CardStatus.ACTIVE,
+  isEligibilityLoading: false,
+  canAddToWallet: false,
+  isCardInWallet: false,
+  platformWalletSupported: true,
+};
+
+describe('resolveWalletEntry', () => {
+  it.each<{ label: string; input: WalletEntryInput; expected: WalletEntry }>([
+    {
+      label: 'a frozen card',
+      input: {
+        ...activeCard,
+        cardStatus: CardStatus.FROZEN,
+        platformWalletSupported: false,
+      },
+      expected: 'none',
+    },
+    {
+      label: 'a blocked card',
+      input: { ...activeCard, cardStatus: CardStatus.BLOCKED },
+      expected: 'none',
+    },
+    {
+      label: 'an active card while eligibility is loading',
+      input: { ...activeCard, isEligibilityLoading: true },
+      expected: 'none',
+    },
+    {
+      label: 'an active card that can be added to the wallet',
+      input: { ...activeCard, canAddToWallet: true },
+      expected: 'push',
+    },
+    {
+      label: 'an active card whose platform wallet is unsupported',
+      input: { ...activeCard, platformWalletSupported: false },
+      expected: 'instructions',
+    },
+    {
+      label: 'an active card that is not yet in a supported wallet',
+      input: activeCard,
+      expected: 'instructions',
+    },
+    {
+      label: 'an active card that is already in the wallet',
+      input: { ...activeCard, isCardInWallet: true },
+      expected: 'none',
+    },
+  ])('returns $expected for $label', ({ input, expected }) => {
+    const result = resolveWalletEntry(input);
+
+    expect(result).toBe(expected);
   });
 });
