@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded `@metamask/delegation-deployments` from `^2.0.0` to `^2.1.0`
+
 ## [8.13.1]
 
 ### Fixed
