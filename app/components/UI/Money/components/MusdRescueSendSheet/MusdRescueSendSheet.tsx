@@ -189,6 +189,7 @@ const MusdRescueSendSheet = () => {
           value={amount}
           onChangeText={setAmount}
           placeholder={strings('money.musd_rescue_send.amount_label')}
+          accessibilityLabel={strings('money.musd_rescue_send.amount_label')}
           isDisabled={isSubmitting || !hasLiquidBalance}
           inputProps={{ keyboardType: 'decimal-pad' }}
           endAccessory={
@@ -216,6 +217,7 @@ const MusdRescueSendSheet = () => {
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.ErrorDefault}
+            accessibilityLiveRegion="polite"
             testID={MusdRescueSendSheetTestIds.ERROR_MESSAGE}
           >
             {errorMessage}

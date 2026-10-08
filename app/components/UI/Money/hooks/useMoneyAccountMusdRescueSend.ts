@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { ethers } from 'ethers';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -174,10 +174,12 @@ export function useMoneyAccountMusdRescueSend() {
       const isGasFeeSponsored = isMonadMainnetChainId(chainIdHex);
       const transferData = buildMusdRescueTransferData(recipient, amountRaw);
 
-      navigation.navigate(Routes.MONEY.CONFIRMATIONS_ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        params: { loader: ConfirmationLoader.Transfer },
-      });
+      navigation.dispatch(
+        StackActions.replace(Routes.MONEY.CONFIRMATIONS_ROOT, {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          params: { loader: ConfirmationLoader.Transfer },
+        }),
+      );
 
       try {
         await addTransactionBatch({

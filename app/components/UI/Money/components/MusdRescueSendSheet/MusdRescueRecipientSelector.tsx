@@ -93,6 +93,7 @@ const MusdRescueRecipientSelector = ({
         isFullWidth
         size={SelectButtonSize.Lg}
         placeholder={strings('money.musd_rescue_send.recipient_placeholder')}
+        accessibilityLabel={strings('money.musd_rescue_send.recipient_label')}
         value={selectedRecipient?.address ?? null}
         onPress={handleOpen}
         isDisabled={isDisabled}
@@ -131,7 +132,7 @@ const MusdRescueRecipientSelector = ({
                     { backgroundColor: colors.overlay.default },
                   ]}
                   onPress={handleClose}
-                  accessibilityRole="button"
+                  accessible={false}
                   testID={MusdRescueSendSheetTestIds.RECIPIENT_SHEET_BACKDROP}
                 />
 

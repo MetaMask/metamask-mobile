@@ -86,6 +86,7 @@ const mockRefreshMoneyAccountBalanceFresh = jest.mocked(
   refreshMoneyAccountBalanceFresh,
 );
 const mockNavigateToConfirmation = jest.fn();
+const mockDispatch = jest.fn();
 const mockGoBack = jest.fn();
 const mockGetCurrentRoute = NavigationService.navigation
   .getCurrentRoute as jest.MockedFunction<
@@ -142,6 +143,7 @@ beforeEach(() => {
   } as never);
   jest.mocked(useNavigation).mockReturnValue({
     navigate: mockNavigateToConfirmation,
+    dispatch: mockDispatch,
     goBack: mockGoBack,
   } as never);
   mockGetCurrentRoute.mockReturnValue(undefined);
@@ -198,12 +200,17 @@ describe('useMoneyAccountMusdRescueSend', () => {
     const batchArgs = mockAddTransactionBatch.mock.calls[0][0];
     expect(batchArgs.from).toBe(MOCK_MONEY_ADDRESS);
     expect(batchArgs.networkClientId).toBe(MOCK_NETWORK_CLIENT_ID);
-    expect(mockNavigateToConfirmation).toHaveBeenCalledWith(
-      Routes.MONEY.CONFIRMATIONS_ROOT,
-      {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        params: { loader: 'transfer' },
-      },
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'REPLACE',
+        payload: expect.objectContaining({
+          name: Routes.MONEY.CONFIRMATIONS_ROOT,
+          params: {
+            screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            params: { loader: 'transfer' },
+          },
+        }),
+      }),
     );
     expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledWith(
       MOCK_MONEY_ADDRESS,
@@ -255,7 +262,7 @@ describe('useMoneyAccountMusdRescueSend', () => {
     ).rejects.toThrow('fresh balance unavailable');
 
     expect(mockAddTransactionBatch).not.toHaveBeenCalled();
-    expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('blocks when any vmUSD-backed balance is present in the fresh canonical response', async () => {
@@ -273,7 +280,7 @@ describe('useMoneyAccountMusdRescueSend', () => {
     ).rejects.toMatchObject({ reason: 'vmusd-balance-present' });
 
     expect(mockAddTransactionBatch).not.toHaveBeenCalled();
-    expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('revalidates against the latest canonical liquid balance', async () => {
@@ -294,7 +301,7 @@ describe('useMoneyAccountMusdRescueSend', () => {
       MOCK_MONEY_ADDRESS,
     );
     expect(mockAddTransactionBatch).not.toHaveBeenCalled();
-    expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('blocks with invalid-amount for zero and negative amounts', async () => {
