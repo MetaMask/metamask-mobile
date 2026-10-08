@@ -5,7 +5,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SharePositionBottomSheet from './SharePositionBottomSheet';
 import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
 
-jest.mock('../utils/perp', () => ({
+jest.mock('../../../UI/SocialFeed/utils/perp', () => ({
   isPerpPosition: (position: { chain?: string; perpPositionType?: string }) =>
     position.perpPositionType != null || position.chain === 'hyperliquid',
 }));
@@ -49,11 +49,10 @@ const closedSpot: Position = {
   currentValueUSD: 0,
 };
 
-const mockUseComposerSharePositions = jest.fn();
+const mockUseTraderPositions = jest.fn();
 
-jest.mock('./useComposerSharePositions', () => ({
-  useComposerSharePositions: (...args: unknown[]) =>
-    mockUseComposerSharePositions(...args),
+jest.mock('../TraderProfileView/hooks', () => ({
+  useTraderPositions: (...args: unknown[]) => mockUseTraderPositions(...args),
 }));
 
 jest.mock('../TraderProfileView/components/PositionRow', () => {
@@ -119,12 +118,14 @@ describe('SharePositionBottomSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseComposerSharePositions.mockReturnValue({
+    mockUseTraderPositions.mockReturnValue({
       openPositions: [openSpot, openPerp],
       closedPositions: [closedSpot],
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetch,
     });
   });
@@ -158,12 +159,14 @@ describe('SharePositionBottomSheet', () => {
   });
 
   it('shows empty copy when both lists are empty', () => {
-    mockUseComposerSharePositions.mockReturnValue({
+    mockUseTraderPositions.mockReturnValue({
       openPositions: [],
       closedPositions: [],
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetch,
     });
 
@@ -177,12 +180,14 @@ describe('SharePositionBottomSheet', () => {
   });
 
   it('shows an error with retry', () => {
-    mockUseComposerSharePositions.mockReturnValue({
+    mockUseTraderPositions.mockReturnValue({
       openPositions: [],
       closedPositions: [],
       isLoadingOpen: false,
       isLoadingClosed: false,
-      error: new Error('network'),
+      error: 'network',
+      openError: 'network',
+      closedError: null,
       refetch: mockRefetch,
     });
 
@@ -198,12 +203,14 @@ describe('SharePositionBottomSheet', () => {
   });
 
   it('still lists positions it has when the social fetch errored', () => {
-    mockUseComposerSharePositions.mockReturnValue({
+    mockUseTraderPositions.mockReturnValue({
       openPositions: [openPerp],
       closedPositions: [],
       isLoadingOpen: false,
       isLoadingClosed: false,
-      error: new Error('network'),
+      error: 'network',
+      openError: 'network',
+      closedError: null,
       refetch: mockRefetch,
     });
 

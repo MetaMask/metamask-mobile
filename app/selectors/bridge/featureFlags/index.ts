@@ -5,12 +5,19 @@ import { selectRemoteFeatureFlags } from '../../featureFlagController';
 interface RawBridgeLimitOrderFeatureFlagValue extends Record<string, Json> {
   enabled: boolean;
   enabledChainIds: CaipChainId[];
+  baseUrl: string;
 }
 
 interface RawBridgeRecurringBuyFeatureFlagValue extends Record<string, Json> {
   enabled: boolean;
   enabledChainIds: CaipChainId[];
 }
+
+interface RawSentinelFeeTokensFeatureFlagValue extends Record<string, Json> {
+  cacheTtlMs: number;
+}
+
+export const DEFAULT_SENTINEL_FEE_TOKENS_CACHE_TTL_MS = 15 * 60 * 1000;
 
 /**
  * Builds a selector for a Bridge swap feature flag (Limit Order, Recurring
@@ -35,7 +42,7 @@ const createBridgeSwapFeatureFlagsSelector = <T extends Record<string, Json>>(
  * Provides both whether the "Limit" tab should be shown and which chains its
  * token selectors are restricted to.
  *
- * @returns `{ enabled, enabledChainIds }` for the Limit Order feature.
+ * @returns `{ enabled, enabledChainIds, baseUrl }` for the Limit Order feature.
  */
 export const selectBridgeLimitOrderFeatureFlags =
   createBridgeSwapFeatureFlagsSelector<RawBridgeLimitOrderFeatureFlagValue>(
@@ -54,6 +61,11 @@ export const selectBridgeRecurringBuyFeatureFlags =
     'swapsRecurringBuy',
   );
 
+export const selectSentinelFeeTokensFeatureFlags =
+  createBridgeSwapFeatureFlagsSelector<RawSentinelFeeTokensFeatureFlagValue>(
+    'swapsSentinelFeeTokens',
+  );
+
 /**
  * Selector for the Bridge Limit Order tab feature flag.
  * Controls visibility of the "Limit" tab in the Bridge/Swap view.
@@ -66,6 +78,17 @@ export const selectBridgeLimitOrderTabEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for the base URL of the limit orders API.
+ *
+ * @returns string - the `baseUrl` of the Limit Order feature flag, or
+ * undefined if the flag is missing.
+ */
+export const selectBridgeLimitOrderBaseUrl = createSelector(
+  selectBridgeLimitOrderFeatureFlags,
+  (flags): string | undefined => flags?.baseUrl,
+);
+
+/**
  * Selector for the Bridge Recurring Buy tab feature flag.
  * Controls visibility of the "Recurring" tab in the Bridge/Swap view.
  *
@@ -74,4 +97,22 @@ export const selectBridgeLimitOrderTabEnabledFlag = createSelector(
 export const selectBridgeRecurringBuyTabEnabledFlag = createSelector(
   selectBridgeRecurringBuyFeatureFlags,
   (flags): boolean => flags?.enabled ?? false,
+);
+
+/**
+ * Selector for the Sentinel fee-token cache TTL.
+ *
+ * @returns A positive TTL from LaunchDarkly, or the 15-minute default.
+ */
+export const selectSentinelFeeTokensCacheTtlMs = createSelector(
+  selectSentinelFeeTokensFeatureFlags,
+  (flags): number => {
+    const cacheTtlMs = flags?.cacheTtlMs;
+
+    return typeof cacheTtlMs === 'number' &&
+      Number.isFinite(cacheTtlMs) &&
+      cacheTtlMs > 0
+      ? cacheTtlMs
+      : DEFAULT_SENTINEL_FEE_TOKENS_CACHE_TTL_MS;
+  },
 );

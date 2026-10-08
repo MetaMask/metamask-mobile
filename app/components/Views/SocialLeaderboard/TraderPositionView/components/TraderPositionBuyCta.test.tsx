@@ -138,12 +138,10 @@ describe('TraderPositionBuyCta', () => {
 
   it('opens the swaps view with follow_trader attribution', () => {
     renderCta();
-    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
-      expect.objectContaining({
-        location: 'Follow Trading Token Screen',
-        sourcePage: 'follow_trader',
-      }),
-    );
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      location: 'Follow Trading Token Screen',
+      sourcePage: 'follow_trader',
+    });
   });
 
   it('labels the spot position action as Trade', () => {

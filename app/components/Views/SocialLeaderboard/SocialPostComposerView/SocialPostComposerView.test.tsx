@@ -13,14 +13,14 @@ import {
   resetSocialV1ComposedFeedStore,
 } from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
 import { isComposerCommentValid } from './commentValidation';
-import { KLIPY_STATIC_GIF_EXAMPLE } from '../utils/klipyGifComment';
+import { KLIPY_STATIC_GIF_EXAMPLE } from '../../../UI/SocialFeed/utils/klipyGifComment';
 
 jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
   __esModule: true,
   default: () => true,
 }));
 
-jest.mock('../SocialV1View/feed/components/SocialFeedPositionCard', () => {
+jest.mock('../../../UI/SocialFeed/components/SocialFeedPositionCard', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -29,14 +29,14 @@ jest.mock('../SocialV1View/feed/components/SocialFeedPositionCard', () => {
   };
 });
 
-jest.mock('../utils/perp', () => ({
+jest.mock('../../../UI/SocialFeed/utils/perp', () => ({
   isPerpPosition: (position: { chain?: string }) =>
     position.chain === 'hyperliquid',
   isClosedPosition: () => false,
   getPerpPositionDirection: () => null,
 }));
 
-jest.mock('../utils/formatters', () => ({
+jest.mock('../../../UI/SocialFeed/utils/formatters', () => ({
   formatPercent: () => '+0.02%',
   formatSignedUsd: () => '+$1',
   formatSignedAbbreviatedUsd: () => '+$1',
@@ -100,11 +100,10 @@ jest.mock('../MyProfileView/hooks', () => ({
   }),
 }));
 
-const mockUseComposerSharePositions = jest.fn();
+const mockUseTraderPositions = jest.fn();
 
-jest.mock('./useComposerSharePositions', () => ({
-  useComposerSharePositions: (...args: unknown[]) =>
-    mockUseComposerSharePositions(...args),
+jest.mock('../TraderProfileView/hooks', () => ({
+  useTraderPositions: (...args: unknown[]) => mockUseTraderPositions(...args),
 }));
 
 jest.mock('../TraderProfileView/components/PositionRow', () => {
@@ -128,7 +127,7 @@ jest.mock('../TraderProfileView/components/PositionRow', () => {
   };
 });
 
-jest.mock('../components/PositionTokenAvatar', () => ({
+jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -136,7 +135,7 @@ jest.mock('../components/PositionTokenAvatar', () => ({
 jest.mock('./GifPickerSheet', () => {
   const { Pressable, View } = jest.requireActual('react-native');
   const { KLIPY_STATIC_GIF_EXAMPLE: gifUrl } = jest.requireActual(
-    '../utils/klipyGifComment',
+    '../../../UI/SocialFeed/utils/klipyGifComment',
   );
   return {
     __esModule: true,
@@ -179,12 +178,14 @@ describe('SocialPostComposerView', () => {
       commentText: 'this is alpha',
       timestamp: 1700000000,
     });
-    mockUseComposerSharePositions.mockReturnValue({
+    mockUseTraderPositions.mockReturnValue({
       openPositions: [openSpot],
       closedPositions: [],
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetch,
     });
   });
@@ -194,7 +195,7 @@ describe('SocialPostComposerView', () => {
     jest.useRealTimers();
   });
 
-  it('keeps Post disabled until text and a position are valid', () => {
+  it('keeps Post disabled until a position is selected', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     expect(
@@ -209,6 +210,19 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     ).toBeDisabled();
+  });
+
+  it('enables Post when a position is selected, even with an empty caption', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeEnabled();
   });
 
   it('clips typed text at 250 characters', () => {

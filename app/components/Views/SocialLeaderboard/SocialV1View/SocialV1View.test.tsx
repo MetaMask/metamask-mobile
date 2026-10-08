@@ -11,8 +11,8 @@ import { SocialFeedPostingBannerSelectorsIDs } from './feed/components/SocialFee
 import {
   MOCK_SOCIAL_V1_FEED_ITEMS,
   mockOpenPerpsFeedItem,
-} from './feed/mocks/socialV1Feed.mock';
-import { getSocialFeedPositionCardTestId } from './feed/components/SocialFeedPositionCard.testIds';
+} from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
+import { getSocialFeedPositionCardTestId } from '../../../UI/SocialFeed/components/SocialFeedPositionCard.testIds';
 import {
   COMPOSER_POSTING_DELAY_MS,
   resetSocialV1ComposedFeedStore,
@@ -38,15 +38,27 @@ jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
 }));
 
-// The feed pages now fetch through `useTraderFeed`, which reads keyring state
-// and React Query. This suite is about the V1 chrome -- tabs, header, filters --
-// so stub the data source and let the feed's own suites cover it.
-// The feed now fetches through `useTraderFeed`, which needs keyring state and
-// React Query. This suite covers the V1 chrome, so stand in for the data source
-// while still driving the real composed-post store the banner tests depend on.
+// The feed pages fetch through `useSocialFeed`, which reads keyring state and
+// React Query. This suite covers the V1 chrome, so stand in for both data
+// sources while still driving the real composed-post store the banner tests
+// depend on.
 jest.mock('./feed/hooks/useSocialV1Feed', () => ({
   useSocialV1Feed: jest.requireActual('./feed/mocks/mockComposedFeedHook')
     .mockUseSocialV1Feed,
+}));
+
+jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
+  useSocialFeed: jest.fn(() => ({
+    posts: [],
+    rows: [],
+    isLoading: false,
+    isFetchingNextPage: false,
+    hasNextPage: false,
+    loadMore: jest.fn(),
+    error: null,
+    refresh: jest.fn(async () => undefined),
+    dataUpdatedAt: undefined,
+  })),
 }));
 
 const mockUseABTest = jest.fn();
@@ -69,7 +81,7 @@ jest.mock('../analytics', () => {
   };
 });
 
-jest.mock('./feed/components/SocialFeedPostShell', () => {
+jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -97,7 +109,7 @@ jest.mock('./feed/components', () => ({
   HotTokensCarousel: () => null,
 }));
 
-jest.mock('../components/PositionTokenAvatar', () => ({
+jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -303,7 +315,18 @@ describe('SocialV1View', () => {
 
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POST_COMPOSER);
+  });
+
+  it('opens Rewards from the gift button', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.REWARDS_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
   });
 
   it('consumes the focus-trending flag when the screen gains focus', () => {

@@ -103,8 +103,9 @@ describe('usePerpsMarketData', () => {
   it('should handle empty asset', () => {
     const { result } = renderHook(() => usePerpsMarketData(''));
 
-    // Should immediately return without loading
-    expect(result.current.isLoading).toBe(false);
+    // Deferred fetches pass '' until the first frame. Stay loading so the
+    // trade sheet does not treat that as a failed market.
+    expect(result.current.isLoading).toBe(true);
     expect(result.current.marketData).toBe(null);
     expect(result.current.error).toBe(null);
     expect(mockGetMarkets).not.toHaveBeenCalled();

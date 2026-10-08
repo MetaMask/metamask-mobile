@@ -47,10 +47,15 @@ import {
 } from '../../constants/events/earnEvents';
 import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
 import EarnHeaderSubtitle from '../../components/EarnHeaderSubtitle';
+import EarnMaintenanceBanner from '../../components/EarnMaintenanceBanner';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import {
   calculateAaveV3HealthFactorAfterWithdrawal,
   CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS,
@@ -101,6 +106,12 @@ const EarnWithdrawInputView = () => {
 
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
+  );
+  const isPooledStakingServiceInterruptionBannerEnabled = useSelector(
+    selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  );
+  const isStablecoinLendingServiceInterruptionBannerEnabled = useSelector(
+    selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
   );
   const { getPairedEarnTokens, getEarnToken } = useEarnTokens();
   const { outputToken: receiptToken } = getPairedEarnTokens(token);
@@ -163,6 +174,11 @@ const EarnWithdrawInputView = () => {
     }
     return undefined;
   }, [receiptTokenToUse, earnTokenFromMap]);
+  const isPooledStakingWithdrawal =
+    withdrawalToken?.isETH === true &&
+    withdrawalToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING;
+  const isStablecoinLendingWithdrawal =
+    withdrawalToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
 
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -911,6 +927,22 @@ const EarnWithdrawInputView = () => {
         includesTopInset
         style={headerSubtitle ? styles.headerWithSubtitle : undefined}
       />
+      {isPooledStakingWithdrawal &&
+        isPooledStakingServiceInterruptionBannerEnabled && (
+          <View style={styles.maintenanceBanner}>
+            <EarnMaintenanceBanner
+              experienceName={EARN_EXPERIENCES.POOLED_STAKING}
+            />
+          </View>
+        )}
+      {isStablecoinLendingWithdrawal &&
+        isStablecoinLendingServiceInterruptionBannerEnabled && (
+          <View style={styles.maintenanceBanner}>
+            <EarnMaintenanceBanner
+              experienceName={EARN_EXPERIENCES.STABLECOIN_LENDING}
+            />
+          </View>
+        )}
       <ScreenLayout style={styles.container}>
         {
           ///: BEGIN:ONLY_INCLUDE_IF(tron)

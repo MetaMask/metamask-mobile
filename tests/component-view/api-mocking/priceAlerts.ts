@@ -1,6 +1,6 @@
 /**
  * Price Alerts API mock for component view tests.
- * Intercepts GET https://price-alerts.dev-api.cx.metamask.io/v1/alerts?asset=*
+ * Intercepts GET {PRICE_ALERTS_API.URL}/v1/alerts?asset=*
  *
  * Note: api.ts uses Engine.context.AuthenticationController.getBearerToken()
  * for the Authorization header — that is already stubbed in mocks.ts.
@@ -10,6 +10,7 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock, { type Scope } from 'nock';
+import AppConstants from '../../../app/core/AppConstants';
 import {
   clearAllNockMocks,
   disableNetConnect,
@@ -22,7 +23,7 @@ import type {
   UpdatePercentAlertParams,
 } from '../../../app/components/UI/Assets/PriceAlerts/constants';
 
-const PRICE_ALERTS_ORIGIN = 'https://price-alerts.dev-api.cx.metamask.io';
+const PRICE_ALERTS_ORIGIN = AppConstants.PRICE_ALERTS_API.URL;
 const ALERTS_PATH = '/v1/alerts';
 const PERCENT_ALERTS_PATH = `${ALERTS_PATH}/percent-change`;
 
