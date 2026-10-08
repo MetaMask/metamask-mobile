@@ -1816,11 +1816,11 @@ describe('Metamask Pay Metrics', () => {
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
       TransactionType.predictDepositAndOrder,
-    ])('does not copy amount-input UI metrics onto %s', (transactionType) => {
+    ])('copies amount-input UI metrics onto %s', (transactionType) => {
       request.transactionMeta.type = transactionType;
       request.getUIMetrics = jest.fn().mockReturnValue({
         properties: {
-          mm_pay_amount_input_type: 'manual',
+          mm_pay_amount_input_type: 'prefilled_50',
           mm_pay_amount_input_prefill_presented: true,
         },
         sensitiveProperties: {},
@@ -1828,9 +1828,11 @@ describe('Metamask Pay Metrics', () => {
 
       const result = getMetaMaskPayProperties(request) as TransactionMetrics;
 
-      expect(result.properties).not.toHaveProperty('mm_pay_amount_input_type');
-      expect(result.properties).not.toHaveProperty(
-        'mm_pay_amount_input_prefill_presented',
+      expect(result.properties).toEqual(
+        expect.objectContaining({
+          mm_pay_amount_input_type: 'prefilled_50',
+          mm_pay_amount_input_prefill_presented: true,
+        }),
       );
     });
 

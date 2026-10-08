@@ -1,4 +1,12 @@
 /**
+ * Relay signer addresses returned as `cubistSigners` for every network.
+ * Required by `Delegation7702PublishHook` to build the RedeemerEnforcer caveat.
+ */
+export const TX_SENTINEL_SIGNERS_MOCK = [
+  '0xB01caEa8c6C47bbf4F4b4c5080Ca642043359C2E',
+];
+
+/**
  * TX Sentinel `/networks` response body (chainId string keys).
  * Shared by default mocks and Polygon relay E2E overrides (e.g. POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS).
  */
@@ -15,6 +23,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'ethereum-mainnet',
     explorer: 'https://etherscan.io',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: true,
     relayTransactions: true,
     hidden: false,
@@ -32,6 +41,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'optimism-mainnet',
     explorer: 'https://optimistic.etherscan.io',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: false,
     relayTransactions: false,
     hidden: false,
@@ -49,6 +59,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'ethereum-sepolia',
     explorer: 'https://sepolia.etherscan.io',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: true,
     relayTransactions: false,
     hidden: false,
@@ -66,6 +77,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'sei-mainnet',
     explorer: 'https://seiscan.io',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: false,
     relayTransactions: false,
     hidden: false,
@@ -88,6 +100,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'localhost',
     explorer: 'http://localhost:8545/explorer',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: true,
     relayTransactions: true,
     hidden: false,
@@ -105,6 +118,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'polygon-mainnet',
     explorer: 'https://polygonscan.com/',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: false,
     relayTransactions: false,
     hidden: false,
@@ -122,6 +136,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'monad-mainnet',
     explorer: 'https://monadscan.com/',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: false,
     relayTransactions: false,
     hidden: false,
@@ -139,6 +154,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'arbitrum-mainnet',
     explorer: 'https://arbiscan.io/',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: true,
     relayTransactions: false,
     hidden: false,
@@ -156,6 +172,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'avalanche-mainnet',
     explorer: 'https://avascan.info/',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: false,
     relayTransactions: false,
     hidden: false,
@@ -173,6 +190,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'bsc-mainnet',
     explorer: 'https://bscscan.com/',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: true,
     relayTransactions: true,
     hidden: false,
@@ -190,6 +208,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'linea-mainnet',
     explorer: 'https://lineascan.build',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: false,
     relayTransactions: false,
     hidden: false,
@@ -207,6 +226,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'base-mainnet',
     explorer: 'https://basescan.org',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: true,
     relayTransactions: true,
     hidden: false,

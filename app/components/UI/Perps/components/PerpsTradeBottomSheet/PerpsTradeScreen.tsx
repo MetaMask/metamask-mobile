@@ -837,6 +837,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 <Text
                   variant={TextVariant.BodyXs}
                   color={TextColor.TextAlternative}
+                  testID={PerpsTradeSheetSelectorsIDs.FEE_TEXT}
                 >
                   {strings('perps.trade_sheet.includes_fee', { feePercentage })}
                 </Text>

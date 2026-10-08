@@ -118,7 +118,7 @@ jobs:
       - name: Extract semver from branch name
         id: extract-version
         run: |
-          BRANCH_NAME="${{ github.ref_name }}"
+          BRANCH_NAME="${GITHUB_REF_NAME}"
           echo "Checking branch: $BRANCH_NAME"
           echo "branch-name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
@@ -145,7 +145,7 @@ jobs:
       - name: Find associated PR
         id: find-pr
         run: |
-          BRANCH_NAME="${{ github.ref_name }}"
+          BRANCH_NAME="${GITHUB_REF_NAME}"
           echo "Looking for PR with head branch: $BRANCH_NAME"
 
           # Find PRs where the head branch matches our release branch
