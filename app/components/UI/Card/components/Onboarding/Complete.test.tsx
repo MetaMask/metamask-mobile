@@ -93,38 +93,20 @@ jest.mock('./OnboardingStep', () => {
     );
 });
 
-// Mock design system components
+// Mock design system layout and buttons. Text renders through the real component.
 jest.mock('@metamask/design-system-react-native', () => {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
+  const { View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
 
   return {
+    ...actual,
     Box: ({
       children,
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(View, props, children),
-    Text: ({
-      children,
-      testID,
-      ...props
-    }: React.PropsWithChildren<
-      { testID?: string } & Record<string, unknown>
-    >) => React.createElement(Text, { testID, ...props }, children),
-    TextVariant: {
-      BodyMd: 'BodyMd',
-      DisplayMd: 'DisplayMd',
-    },
-    FontFamily: {
-      Default: 'default',
-      Hero: 'hero',
-    },
-    FontWeight: {
-      Regular: '400',
-      Medium: '500',
-      Bold: '700',
-    },
     Button: ({
       children,
       testID,
@@ -132,7 +114,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       isDisabled,
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) => {
-      const { TouchableOpacity } = jest.requireActual('react-native');
+      const { TouchableOpacity, Text } = jest.requireActual('react-native');
       return React.createElement(
         TouchableOpacity,
         { testID, onPress, disabled: isDisabled, ...props },

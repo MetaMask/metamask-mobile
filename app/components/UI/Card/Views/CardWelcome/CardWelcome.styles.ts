@@ -1,6 +1,5 @@
 /* eslint-disable @metamask/design-tokens/color-no-hex */
 import { Platform, StyleSheet } from 'react-native';
-import { Theme } from '@metamask/design-tokens';
 
 export const GRADIENT_COLORS = ['#1D002E', '#360853'];
 
@@ -43,7 +42,7 @@ const createScalingFunctions = (dimensions: WindowDimensions) => {
   };
 };
 
-const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
+const createStyles = (dimensions: WindowDimensions) => {
   const { screenWidth, screenHeight, scaleVertical, scaleHorizontal } =
     createScalingFunctions(dimensions);
 
@@ -82,12 +81,6 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
     },
     hiddenText: {
       opacity: 0,
-    },
-    title: {
-      color: theme.colors.accent02.light,
-    },
-    titleDescription: {
-      color: theme.colors.accent02.light,
     },
     imageContainer: {
       position: 'absolute',
