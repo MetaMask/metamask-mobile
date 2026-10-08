@@ -189,6 +189,7 @@ export const LimitOrderConfirmationModal = ({
           onPress: primaryButton.onPress,
           testID: LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON,
           isLoading: primaryButton.isLoading,
+          isDisabled: primaryButton.isDisabled,
         }}
       />
       <Box
