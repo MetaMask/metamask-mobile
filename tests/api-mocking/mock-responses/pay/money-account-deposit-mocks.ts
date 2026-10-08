@@ -225,6 +225,14 @@ const ERC20_BALANCE_OF_SELECTOR = '0x70a08231';
 const ERC20_ALLOWANCE_SELECTOR = '0xdd62ed3e';
 const ERC20_DECIMALS_SELECTOR = '0x313ce567';
 const MULTICALL3_AGGREGATE3_SELECTOR = '0x82ad56cb';
+const MUSD_MONAD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+// 10 mUSD (6 decimals) and 20 MON (18 decimals): the fiat deposit fixture
+// holdings. Direct-mUSD test funding reads these live on Monad before it
+// will submit the transfer.
+const MUSD_BALANCE_10 = `0x${(10_000_000).toString(16).padStart(64, '0')}`;
+const MON_BALANCE_20 = `0x${(20n * 10n ** 18n).toString(16)}`;
+const MONAD_GAS_LIMIT = '0x493e0';
+const MONAD_GAS_PRICE = '0x3b9aca00';
 
 const MAINNET_TX_HASH =
   '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
@@ -380,7 +388,8 @@ function resolveMonadRpcResult(body: Record<string, unknown>): unknown {
   }
 
   if (method === 'eth_call') {
-    const data = String((body?.params as Record<string, string>[])?.[0]?.data);
+    const call = (body?.params as Record<string, string>[])?.[0];
+    const data = String(call?.data);
     const selector = data.slice(0, 10);
     switch (selector) {
       case ERC20_ALLOWANCE_SELECTOR:
@@ -390,6 +399,9 @@ function resolveMonadRpcResult(body: Record<string, unknown>): unknown {
       case MULTICALL3_AGGREGATE3_SELECTOR:
         return encodeAggregate3Result(data);
       case ERC20_BALANCE_OF_SELECTOR:
+        return call?.to?.toLowerCase() === MUSD_MONAD_ADDRESS
+          ? MUSD_BALANCE_10
+          : UINT256_ZERO;
       default:
         return UINT256_ZERO;
     }
@@ -398,14 +410,47 @@ function resolveMonadRpcResult(body: Record<string, unknown>): unknown {
   if (method === 'eth_getTransactionCount') {
     return '0x0';
   }
-  if (method === 'eth_gasPrice' || method === 'eth_estimateGas') {
-    return '0x3b9aca00';
+  if (method === 'eth_estimateGas') {
+    // Gas units, not price. 1 gwei (0x3b9aca00) exceeds any block gas limit
+    // and fails publish-time validation.
+    return MONAD_GAS_LIMIT;
+  }
+  if (method === 'eth_gasPrice' || method === 'eth_maxPriorityFeePerGas') {
+    return MONAD_GAS_PRICE;
+  }
+  if (method === 'eth_getBlockByNumber') {
+    // A type-2 funding transfer reads baseFeePerGas. Falling through to `0x`
+    // marks the Money deposit failed.
+    return {
+      number: '0x1234568',
+      hash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+      parentHash:
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+      gasLimit: '0x1c9c380',
+      gasUsed: '0x94670',
+      baseFeePerGas: '0x989680',
+      timestamp: '0x68c0c0c0',
+    };
+  }
+  if (method === 'eth_feeHistory') {
+    return {
+      oldestBlock: '0x1234568',
+      baseFeePerGas: ['0x989680', '0x989680'],
+      gasUsedRatio: [0.5],
+      reward: [[MONAD_GAS_PRICE]],
+    };
+  }
+  if (method === 'eth_getCode') {
+    const address = String(
+      (body?.params as string[] | undefined)?.[0] ?? '',
+    ).toLowerCase();
+    return address === MUSD_MONAD_ADDRESS ? '0x00' : '0x';
   }
   if (method === 'eth_blockNumber') {
     return '0x1234568';
   }
   if (method === 'eth_getBalance') {
-    return '0x0';
+    return MON_BALANCE_20;
   }
   if (method === 'eth_chainId') {
     return '0x8f';
@@ -429,7 +474,21 @@ async function mockMonadRpc(mockServer: Mockttp) {
       return Boolean(url?.includes('monad') || url?.includes('8546'));
     })
     .thenCallback(async (request) => {
-      const body = (await request.body.getJson()) as Record<string, unknown>;
+      const body = (await request.body.getJson()) as
+        | Record<string, unknown>
+        | Record<string, unknown>[];
+
+      if (Array.isArray(body)) {
+        return {
+          statusCode: 200,
+          json: body.map((call) => ({
+            jsonrpc: '2.0',
+            id: call?.id ?? 1,
+            result: resolveMonadRpcResult(call),
+          })),
+        };
+      }
+
       return {
         statusCode: 200,
         json: {
