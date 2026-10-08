@@ -1,4 +1,6 @@
+import type { Identifier } from '@metamask/mfa-recovery-controller';
 import {
+  TestIdentifierAuthProvider,
   StubAuthProvider,
   SiweIdentifierAuthProvider,
   passthroughEncryptor,
@@ -8,6 +10,12 @@ const APP_ACCESS_TOKEN = 'header.eyJzdWIiOiJwcm9maWxlLTEifQ.signature';
 const fetchMock = jest.fn();
 
 global.fetch = fetchMock as unknown as typeof fetch;
+
+const createAuthParams = (identifier: Identifier) => ({
+  identifier,
+  proofPublicKey: '{"kty":"EC"}',
+  requestHash: '0xrequest',
+});
 
 describe('mfa recovery test providers', () => {
   beforeEach(() => {
@@ -26,7 +34,7 @@ describe('mfa recovery test providers', () => {
     });
 
     await expect(provider.getAuthenticatedProfileId()).resolves.toBe(
-      'profile-1',
+      'profile-13',
     );
   });
 
@@ -37,6 +45,7 @@ describe('mfa recovery test providers', () => {
     });
     const token = await provider.authorizeRecoveryRequest({
       requestHash: '0x6869',
+      audiences: ['cubist'],
       requireTwoFactor: true,
       identifiers: [
         {
@@ -58,19 +67,51 @@ describe('mfa recovery test providers', () => {
           'Content-Type': 'application/json',
           'x-api-key': 'api-key',
         },
-        body: expect.stringContaining('"user":"profile-1"'),
+        body: expect.stringContaining('"user":"profile-13"'),
       },
     );
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual(
       expect.objectContaining({
-        user: 'profile-1',
+        user: 'profile-13',
+        aud: ['cubist'],
         ext: expect.objectContaining({
-          aal: 'aal2',
-          amr: ['totp', 'passkey'],
-          requestHash: 'aGk',
-          identifiersHash: expect.any(String),
+          aal: 2,
+          request_hash: '0x6869',
+          identifiers_hash: expect.any(String),
         }),
       }),
+    );
+  });
+
+  it('sorts identifier hashes by UTF-8 bytes', async () => {
+    const provider = new StubAuthProvider({
+      accessToken: APP_ACCESS_TOKEN,
+      apiKey: 'api-key',
+    });
+
+    await provider.authorizeRecoveryRequest({
+      requestHash: '0x6869',
+      audiences: ['cubist'],
+      identifiers: [
+        {
+          type: 'passkey',
+          namespace: 'metamask.io',
+          value: 'a2V5LTE',
+          verifier: { rpId: 'metamask.io' },
+        },
+        {
+          type: 'passkey',
+          namespace: 'metamask.io',
+          value: 'Zm9vLTI',
+          verifier: { rpId: 'metamask.io' },
+        },
+      ],
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+
+    expect(body.ext.identifiers_hash).toBe(
+      '0x7443c56ffce0cdfa6ab5a651948d137c2b8a019b30eac9807ed7fe180b60ef92',
     );
   });
 
@@ -86,7 +127,7 @@ describe('mfa recovery test providers', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       'https://custom.example.com/token',
       expect.objectContaining({
-        body: JSON.stringify({ user: 'profile-1' }),
+        body: JSON.stringify({ user: 'profile-13' }),
       }),
     );
   });
@@ -126,7 +167,10 @@ describe('mfa recovery test providers', () => {
     });
 
     await expect(
-      provider.authorizeRecoveryRequest({ requestHash: '0x6869' }),
+      provider.authorizeRecoveryRequest({
+        requestHash: '0x6869',
+        audiences: ['cubist'],
+      }),
     ).rejects.toThrow('invalid access token response');
   });
 
@@ -163,6 +207,79 @@ describe('mfa recovery test providers', () => {
         signature: '0xsignature',
       },
     });
+  });
+
+  it('routes SIWE assertions through the unified identifier provider', async () => {
+    const signPersonalMessage = jest.fn().mockResolvedValue('0xsignature');
+    const provider = new TestIdentifierAuthProvider(
+      '0xabc',
+      signPersonalMessage,
+    );
+
+    const result = await provider.getKeyBoundIdentifierToken(
+      createAuthParams(provider.siweIdentifier),
+    );
+
+    expect(signPersonalMessage).toHaveBeenCalledWith({
+      from: '0xabc',
+      data: expect.stringMatching(/^0x/u),
+    });
+    expect(result.identifier).toBe(provider.siweIdentifier);
+  });
+
+  it('routes passkey assertions through the unified identifier provider', async () => {
+    const provider = new TestIdentifierAuthProvider(
+      '0xabc',
+      jest.fn().mockResolvedValue('0xsignature'),
+    );
+
+    const result = await provider.getKeyBoundIdentifierToken(
+      createAuthParams(provider.passkeyIdentifier),
+    );
+
+    expect(result.providerAssertion).toEqual(
+      expect.objectContaining({ id: provider.passkeyIdentifier.value }),
+    );
+  });
+
+  it('rejects unsupported identifier types in the unified provider', async () => {
+    const provider = new TestIdentifierAuthProvider(
+      '0xabc',
+      jest.fn().mockResolvedValue('0xsignature'),
+    );
+    const identifier = {
+      type: 'email',
+      namespace: 'example.com',
+      value: 'user@example.com',
+      verifier: {},
+    } as unknown as Identifier;
+
+    await expect(
+      provider.getKeyBoundIdentifierToken(createAuthParams(identifier)),
+    ).rejects.toThrow('Unsupported test identifier type: email');
+  });
+
+  it('keeps earlier passkeys available after rotating the current identifier', async () => {
+    const provider = new TestIdentifierAuthProvider(
+      '0xabc',
+      jest.fn().mockResolvedValue('0xsignature'),
+    );
+    const previousPasskey = provider.passkeyIdentifier;
+    const replacementPasskey = provider.createPasskeyIdentifier();
+
+    provider.setPasskeyIdentifier(replacementPasskey);
+
+    expect(provider.passkeyIdentifier).toBe(replacementPasskey);
+    await expect(
+      provider.getKeyBoundIdentifierToken(createAuthParams(previousPasskey)),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        identifier: previousPasskey,
+        providerAssertion: expect.objectContaining({
+          id: previousPasskey.value,
+        }),
+      }),
+    );
   });
 
   it('round-trips pending operations through the test encryptor', async () => {

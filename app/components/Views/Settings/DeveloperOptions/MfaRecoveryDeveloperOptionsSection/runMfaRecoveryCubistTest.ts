@@ -11,6 +11,7 @@ import {
   type LoginResponse,
 } from '@metamask/profile-sync-controller/sdk';
 import {
+  CubistEscrowProvider,
   MfaRecoveryController,
   type Identifier,
   type MfaRecoveryControllerMessenger,
@@ -24,12 +25,8 @@ import {
 } from '@metamask/messenger';
 import { bytesToHex, sha256, stringToBytes } from '@metamask/utils';
 import { authEnv } from '../../../../../core/apiEnv';
-import { CubistEscrowProvider } from './CubistEscrowProvider';
 import {
-  PasskeyIdentifierAuthProvider,
-  SIWE_CHAIN_ID,
-  SIWE_DOMAIN,
-  SiweIdentifierAuthProvider,
+  TestIdentifierAuthProvider,
   StubAuthProvider,
   passthroughEncryptor,
 } from './mfaRecoveryTestProviders';
@@ -92,6 +89,7 @@ type RootMessenger = Messenger<
 >;
 
 let lastRegisteredSecret: Uint8Array | undefined;
+let testIdentifiers: TestIdentifierAuthProvider | undefined;
 
 /** Error raised by the developer-only recovery flow. */
 export class MfaRecoveryTestError extends Error {
@@ -151,10 +149,11 @@ export async function runMfaRecoveryCubistTest(
   dependencies: MfaRecoveryTestDependencies,
   onStep: (step: MfaRecoveryTestStep) => void = () => undefined,
 ): Promise<MfaRecoveryTestResult> {
-  const { controller, siweIdentifier, passkeys } = await createRecoveryContext(
+  const { controller, identifiers } = await createRecoveryContext(
     dependencies,
     onStep,
   );
+  const { siweIdentifier, passkeyIdentifier } = identifiers;
   const newSecret = () =>
     new Uint8Array(dependencies.randomBytes(RECOVERY_SECRET_LENGTH));
   const readAndCompare = async (identifier: Identifier, secret: Uint8Array) => {
@@ -167,7 +166,6 @@ export async function runMfaRecoveryCubistTest(
 
   onStep('registering_recovery_secret');
   let secret = newSecret();
-  const passkeyIdentifier = passkeys.createIdentifier();
   await controller.register(secret, [siweIdentifier, passkeyIdentifier]);
   lastRegisteredSecret = new Uint8Array(secret);
   let result = await readAndCompare(siweIdentifier, secret);
@@ -185,12 +183,13 @@ export async function runMfaRecoveryCubistTest(
   }
   if (result.matches) {
     onStep('updating_identifiers');
-    const replacementPasskey = passkeys.createIdentifier();
+    const replacementPasskey = identifiers.createPasskeyIdentifier();
     await controller.updateIdentifiers(
       siweIdentifier,
       [siweIdentifier, replacementPasskey],
       result.epoch,
     );
+    identifiers.setPasskeyIdentifier(replacementPasskey);
     result = await readAndCompare(replacementPasskey, secret);
   }
   onStep('completed');
@@ -205,7 +204,7 @@ export async function runMfaRecoveryCubistRecover(
   const context = await createRecoveryContext(dependencies, onStep);
   const recovered = await readRecoverySecret(
     context.controller,
-    context.siweIdentifier,
+    context.identifiers.siweIdentifier,
     onStep,
   );
   const matches =
@@ -247,7 +246,6 @@ async function createRecoveryContext(
   });
 
   const accessToken1 = await authProvider.getAccessToken();
-
   onStep('requesting_oidc_token');
   const idToken = await requestOidcToken(config, accessToken1);
   onStep('creating_cubist_session');
@@ -263,22 +261,23 @@ async function createRecoveryContext(
     wrapPublicKey: config.wrapPublicKey,
     receiptPublicKey: config.receiptPublicKey,
   });
-  const siweIdentifier = createSiweIdentifier(address);
-  const siwe = new SiweIdentifierAuthProvider(address, signPersonalMessage);
-  const passkeys = new PasskeyIdentifierAuthProvider();
+  escrow.isAvailable = async () => {
+    try {
+      await client.apiClient.userGet();
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  const identifiers = getTestIdentifiers(address, signPersonalMessage);
   const controller = new MfaRecoveryController({
     messenger: getControllerMessenger(),
     authProvider,
-    identifierAuthProvider: {
-      getKeyBoundIdentifierToken: async (params) =>
-        params.identifier.type === 'passkey'
-          ? await passkeys.getKeyBoundIdentifierToken(params)
-          : await siwe.getKeyBoundIdentifierToken(params),
-    },
+    identifierAuthProvider: identifiers,
     escrows: [escrow],
     pendingOperationEncryptor: passthroughEncryptor,
   });
-  return { controller, siweIdentifier, passkeys };
+  return { controller, identifiers };
 }
 
 async function signInWithSiwe({
@@ -460,13 +459,18 @@ function getControllerMessenger(): MfaRecoveryControllerMessenger {
   });
 }
 
-function createSiweIdentifier(address: string): Identifier {
-  return {
-    type: 'siwe',
-    namespace: `${SIWE_DOMAIN}:${SIWE_CHAIN_ID}`,
-    value: address.toLowerCase(),
-    verifier: { domain: SIWE_DOMAIN, chainId: SIWE_CHAIN_ID },
-  };
+function getTestIdentifiers(
+  address: string,
+  signPersonalMessage: MfaRecoveryTestDependencies['signPersonalMessage'],
+): TestIdentifierAuthProvider {
+  if (testIdentifiers?.address === address) {
+    return testIdentifiers;
+  }
+  testIdentifiers = new TestIdentifierAuthProvider(
+    address,
+    signPersonalMessage,
+  );
+  return testIdentifiers;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

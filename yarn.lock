@@ -10821,7 +10821,7 @@ __metadata:
 
 "@metamask/mfa-recovery-controller@file:./metamask-mfa-recovery-controller-0.0.0.tgz::locator=metamask%40workspace%3A.":
   version: 0.0.0
-  resolution: "@metamask/mfa-recovery-controller@file:./metamask-mfa-recovery-controller-0.0.0.tgz#./metamask-mfa-recovery-controller-0.0.0.tgz::hash=ee6e8e&locator=metamask%40workspace%3A."
+  resolution: "@metamask/mfa-recovery-controller@file:./metamask-mfa-recovery-controller-0.0.0.tgz#./metamask-mfa-recovery-controller-0.0.0.tgz::hash=c071e8&locator=metamask%40workspace%3A."
   dependencies:
     "@cubist-labs/cubesigner-sdk": "npm:^0.4.284"
     "@metamask/base-controller": "npm:^10.0.0"
@@ -10830,7 +10830,7 @@ __metadata:
     "@noble/ciphers": "npm:^1.3.0"
     "@noble/curves": "npm:^1.9.2"
     "@noble/hashes": "npm:^1.8.0"
-  checksum: 10/b4349f495c42a37a87a4c78655e228f00f31761ae00dc6ad2ac7f59af3bc94be9e8e3cfedcb7b86dd48f318b140b61301825bfdff4d4c21ec46c8fa9f1debc19
+  checksum: 10/80614cf681b3c2b9b6fc768bd5e966daf498a40eace4de63057665f9fa57b3a1eff7c317f0bb3e8d0a0221ce61b5afd62ac7aa8ed73263fef8cae60da2a03b48
   languageName: node
   linkType: hard
 

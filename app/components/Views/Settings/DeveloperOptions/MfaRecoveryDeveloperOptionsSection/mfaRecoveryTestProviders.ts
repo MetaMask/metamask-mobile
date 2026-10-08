@@ -1,9 +1,7 @@
 import {
   base64ToBytes,
-  bytesToBase64,
   bytesToHex,
   bytesToString,
-  hexToBytes,
   sha256,
   stringToBytes,
 } from '@metamask/utils';
@@ -24,6 +22,7 @@ export const PASSKEY_RP_ID = 'metamask.io';
 export const PASSKEY_ORIGIN = 'https://metamask.io';
 const DEFAULT_TOKEN_API_HOST =
   'https://mpc-service-non-enclave.dev-api.cx.metamask.io';
+// 'http://localhost:3000';
 const TOKEN_API_KEY_HEADER = 'x-api-key';
 
 type SignPersonalMessage = (params: {
@@ -53,7 +52,7 @@ export class StubAuthProvider implements RecoveryAuthProvider {
     apiKey,
     apiHost = DEFAULT_TOKEN_API_HOST,
   }: StubAuthProviderOptions) {
-    this.#profileId = getJwtSubject(accessToken);
+    this.#profileId = getJwtSubject(accessToken) + '3';
     this.#apiKey = apiKey;
     this.#apiHost = apiHost;
   }
@@ -68,6 +67,7 @@ export class StubAuthProvider implements RecoveryAuthProvider {
 
   async authorizeRecoveryRequest(params: {
     requestHash: string;
+    audiences: string[];
     requireTwoFactor?: boolean;
     identifiers?: Identifier[];
   }): Promise<string> {
@@ -76,16 +76,22 @@ export class StubAuthProvider implements RecoveryAuthProvider {
         ? undefined
         : await hashIdentifiers(params.identifiers);
 
-    return await this.#mintToken({
-      requestHash: toBase64Url(hexToBytes(params.requestHash)),
-      ...(params.requireTwoFactor
-        ? { aal: 'aal2', amr: ['totp', 'passkey'] }
-        : {}),
-      ...(identifiersHash === undefined ? {} : { identifiersHash }),
-    });
+    return await this.#mintToken(
+      {
+        request_hash: params.requestHash,
+        ...(params.requireTwoFactor ? { aal: 2 } : {}),
+        ...(identifiersHash === undefined
+          ? {}
+          : { identifiers_hash: identifiersHash }),
+      },
+      params.audiences,
+    );
   }
 
-  async #mintToken(ext?: Record<string, unknown>): Promise<string> {
+  async #mintToken(
+    ext?: Record<string, unknown>,
+    audiences?: string[],
+  ): Promise<string> {
     const response = await fetch(
       new URL('/token', `${this.#apiHost}/`).toString(),
       {
@@ -96,6 +102,7 @@ export class StubAuthProvider implements RecoveryAuthProvider {
         },
         body: JSON.stringify({
           user: this.#profileId,
+          ...(audiences === undefined ? {} : { aud: audiences }),
           ...(ext === undefined ? {} : { ext }),
         }),
       },
@@ -229,6 +236,63 @@ export class PasskeyIdentifierAuthProvider
   }
 }
 
+export class TestIdentifierAuthProvider
+  implements RecoveryIdentifierAuthProvider
+{
+  readonly address: string;
+
+  readonly siweIdentifier: Identifier;
+
+  readonly #siwe: SiweIdentifierAuthProvider;
+
+  readonly #passkeys = new PasskeyIdentifierAuthProvider();
+
+  #passkeyIdentifier: Identifier;
+
+  constructor(address: string, signPersonalMessage: SignPersonalMessage) {
+    this.address = address;
+    this.siweIdentifier = createSiweIdentifier(address);
+    this.#siwe = new SiweIdentifierAuthProvider(address, signPersonalMessage);
+    this.#passkeyIdentifier = this.#passkeys.createIdentifier();
+  }
+
+  get passkeyIdentifier(): Identifier {
+    return this.#passkeyIdentifier;
+  }
+
+  /** Creates a new passkey without making it current. */
+  createPasskeyIdentifier(): Identifier {
+    return this.#passkeys.createIdentifier();
+  }
+
+  /** Makes a registered replacement passkey the current one. */
+  setPasskeyIdentifier(identifier: Identifier): void {
+    this.#passkeyIdentifier = identifier;
+  }
+
+  async getKeyBoundIdentifierToken(params: {
+    identifier: Identifier;
+    proofPublicKey: string;
+    requestHash: string;
+  }): Promise<{
+    identifier: Identifier;
+    proofPublicKey: string;
+    requestHash: string;
+    providerAssertion: unknown;
+  }> {
+    switch (params.identifier.type) {
+      case 'siwe':
+        return await this.#siwe.getKeyBoundIdentifierToken(params);
+      case 'passkey':
+        return await this.#passkeys.getKeyBoundIdentifierToken(params);
+      default:
+        throw new Error(
+          `Unsupported test identifier type: ${params.identifier.type}`,
+        );
+    }
+  }
+}
+
 /**
  * JSON round-trip encryptor for the developer test.
  */
@@ -251,7 +315,7 @@ async function hashIdentifiers(identifiers: Identifier[]): Promise<string> {
       verifier: identifier.verifier,
     }))
     .sort((left, right) =>
-      canonicalize(left).localeCompare(canonicalize(right)),
+      compareUtf8(canonicalize(left), canonicalize(right)),
     );
 
   return bytesToHex(
@@ -285,11 +349,22 @@ function getJwtSubject(accessToken: string): string {
   return payload.sub;
 }
 
-function toBase64Url(bytes: Uint8Array): string {
-  return bytesToBase64(bytes)
-    .replace(/\+/gu, '-')
-    .replace(/\//gu, '_')
-    .replaceAll('=', '');
+/**
+ * Compares strings by their UTF-8 bytes.
+ */
+function compareUtf8(left: string, right: string): number {
+  const leftBytes = stringToBytes(left);
+  const rightBytes = stringToBytes(right);
+  const sharedLength = Math.min(leftBytes.length, rightBytes.length);
+
+  for (let index = 0; index < sharedLength; index++) {
+    const difference = (leftBytes[index] ?? 0) - (rightBytes[index] ?? 0);
+    if (difference !== 0) {
+      return difference;
+    }
+  }
+
+  return leftBytes.length - rightBytes.length;
 }
 
 function canonicalize(value: unknown): string {
@@ -313,4 +388,13 @@ function sortKeys(value: unknown): unknown {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+function createSiweIdentifier(address: string): Identifier {
+  return {
+    type: 'siwe',
+    namespace: `${SIWE_DOMAIN}:${SIWE_CHAIN_ID}`,
+    value: address.toLowerCase(),
+    verifier: { domain: SIWE_DOMAIN, chainId: SIWE_CHAIN_ID },
+  };
 }

@@ -5,6 +5,7 @@ const mockAuth = {
 const mockJwtBearerAuth = jest.fn(() => mockAuth);
 const mockCreateOidcSession = jest.fn();
 const mockCreateClient = jest.fn();
+const mockUserGet = jest.fn();
 const mockFetch = jest.fn();
 const mockSignPersonalMessage = jest.fn();
 const mockRegister = jest.fn();
@@ -12,11 +13,18 @@ const mockUpdateRecoverySecret = jest.fn();
 const mockUpdateIdentifiers = jest.fn();
 const mockAuthenticateIdentifier = jest.fn();
 const mockGetRecoverySecret = jest.fn();
-const mockCubistEscrowProvider = jest.fn(() => ({ id: 'cubist' }));
-const mockStubAuthProvider = jest.fn(() => ({
-  getAuthenticatedProfileId: jest.fn(),
-  authorizeRecoveryRequest: jest.fn(),
+const mockCubistEscrowProvider = jest.fn(() => ({
+  id: 'cubist',
+  authAudience: 'cubist',
+  isAvailable: jest.fn(),
 }));
+const mockStubAuthProvider = jest.fn(
+  ({ accessToken }: { accessToken: string }) => ({
+    getAccessToken: jest.fn().mockResolvedValue(accessToken),
+    getAuthenticatedProfileId: jest.fn(),
+    authorizeRecoveryRequest: jest.fn(),
+  }),
+);
 const mockMfaRecoveryControllerConstructor = jest.fn(
   (_options: { authProvider: unknown }) => ({
     register: mockRegister,
@@ -26,6 +34,23 @@ const mockMfaRecoveryControllerConstructor = jest.fn(
     getRecoverySecret: mockGetRecoverySecret,
   }),
 );
+interface TestIdentifier {
+  type: string;
+  namespace: string;
+  value: string;
+  verifier: unknown;
+}
+
+interface MockControllerOptions {
+  identifierAuthProvider: {
+    getKeyBoundIdentifierToken: (params: {
+      identifier: TestIdentifier;
+      proofPublicKey: string;
+      requestHash: string;
+    }) => Promise<unknown>;
+  };
+}
+
 const mockCubistEnvironment = { SignerApiRoot: 'https://cubist.test' };
 const testDependencies = {
   address: '0xabc',
@@ -56,12 +81,10 @@ jest.doMock(
   '@metamask/mfa-recovery-controller',
   () => ({
     MfaRecoveryController: mockMfaRecoveryControllerConstructor,
+    CubistEscrowProvider: mockCubistEscrowProvider,
   }),
   { virtual: true },
 );
-jest.doMock('./CubistEscrowProvider', () => ({
-  CubistEscrowProvider: mockCubistEscrowProvider,
-}));
 jest.doMock('./mfaRecoveryTestProviders', () => ({
   ...jest.requireActual('./mfaRecoveryTestProviders'),
   StubAuthProvider: mockStubAuthProvider,
@@ -97,7 +120,10 @@ describe('Cubist recovery runner', () => {
     mockCreateOidcSession.mockResolvedValue({
       data: () => ({ token: 'session-token' }),
     });
-    mockCreateClient.mockResolvedValue({});
+    mockUserGet.mockResolvedValue({});
+    mockCreateClient.mockResolvedValue({
+      apiClient: { userGet: mockUserGet },
+    });
     mockSignPersonalMessage.mockResolvedValue('0xsignature');
     mockAuthenticateIdentifier.mockResolvedValue('identifier-session');
     currentRecoverySecret = Uint8Array.from([1, 2, 3]);
@@ -183,6 +209,86 @@ describe('Cubist recovery runner', () => {
     );
   });
 
+  it('reuses the rotated passkey across full test runs', async () => {
+    await runner.runMfaRecoveryCubistTest(testDependencies);
+    await runner.runMfaRecoveryCubistTest(testDependencies);
+
+    const firstRegistration = mockRegister.mock.calls[0]?.[1] as
+      | TestIdentifier[]
+      | undefined;
+    const firstUpdateIdentifiers = mockUpdateIdentifiers.mock.calls[0]?.[1] as
+      | TestIdentifier[]
+      | undefined;
+    const secondRegistration = mockRegister.mock.calls[1]?.[1] as
+      | TestIdentifier[]
+      | undefined;
+    const firstRegisteredPasskey = firstRegistration?.find(
+      ({ type }) => type === 'passkey',
+    );
+    const replacementPasskey = firstUpdateIdentifiers?.find(
+      ({ type }) => type === 'passkey',
+    );
+    const secondRegisteredPasskey = secondRegistration?.find(
+      ({ type }) => type === 'passkey',
+    );
+
+    if (
+      firstRegisteredPasskey === undefined ||
+      replacementPasskey === undefined ||
+      secondRegisteredPasskey === undefined
+    ) {
+      throw new Error('Expected passkey identifiers in recovery calls');
+    }
+
+    expect(mockUpdateRecoverySecret.mock.calls[0]?.[0]).toBe(
+      firstRegisteredPasskey,
+    );
+    expect(secondRegisteredPasskey.value).toBe(replacementPasskey.value);
+  });
+
+  it('reuses the SIWE provider for the same account across recovery contexts', async () => {
+    const firstSigner = jest.fn().mockResolvedValue('0xfirst-signature');
+    const secondSigner = jest.fn().mockResolvedValue('0xsecond-signature');
+    const getAuthSession = jest.fn().mockResolvedValue({
+      accessToken: 'app-token',
+    });
+
+    await runner.runMfaRecoveryCubistTest({
+      ...testDependencies,
+      getAuthSession,
+      signPersonalMessage: firstSigner,
+    });
+    await runner.runMfaRecoveryCubistTest({
+      ...testDependencies,
+      getAuthSession,
+      signPersonalMessage: secondSigner,
+    });
+
+    const firstRegistration = mockRegister.mock.calls[0]?.[1] as
+      | TestIdentifier[]
+      | undefined;
+    const siweIdentifier = firstRegistration?.find(
+      ({ type }) => type === 'siwe',
+    );
+    const secondControllerOptions = mockMfaRecoveryControllerConstructor.mock
+      .calls[1]?.[0] as unknown as MockControllerOptions | undefined;
+
+    if (siweIdentifier === undefined || secondControllerOptions === undefined) {
+      throw new Error('Expected the second recovery context');
+    }
+
+    await secondControllerOptions.identifierAuthProvider.getKeyBoundIdentifierToken(
+      {
+        identifier: siweIdentifier,
+        proofPublicKey: '{"kty":"EC"}',
+        requestHash: '0xrequest',
+      },
+    );
+
+    expect(firstSigner).toHaveBeenCalledTimes(1);
+    expect(secondSigner).not.toHaveBeenCalled();
+  });
+
   it('constructs and wires the MPC provider without a step-up dependency', async () => {
     const getAuthSession = jest.fn().mockResolvedValue({
       accessToken: 'app-token',
@@ -203,6 +309,25 @@ describe('Cubist recovery runner', () => {
       mockStubAuthProvider.mock.results[0]?.value,
     );
     expect(controllerOptions).not.toHaveProperty('stepUp');
+  });
+
+  it('checks Cubist availability through the authenticated user endpoint', async () => {
+    const getAuthSession = jest.fn().mockResolvedValue({
+      accessToken: 'app-token',
+    });
+
+    await runner.runMfaRecoveryCubistTest({
+      ...testDependencies,
+      getAuthSession,
+    });
+
+    const escrow = mockCubistEscrowProvider.mock.results[0]?.value as {
+      isAvailable: () => Promise<boolean>;
+    };
+
+    await escrow.isAvailable();
+
+    expect(mockUserGet).toHaveBeenCalledTimes(1);
   });
 
   it('signs SIWE login messages using the injected wallet', async () => {
