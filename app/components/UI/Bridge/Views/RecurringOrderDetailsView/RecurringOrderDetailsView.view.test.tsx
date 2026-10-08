@@ -28,6 +28,7 @@ import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../../api/recurringSwaps.mock';
 import {
   type GetRecurringSwapsResponse,
   RecurringOrderState,
+  RecurringSwapStatus,
 } from '../../api/recurringOrders.types';
 import { formatRecurringPriceRange } from '../../utils/recurringOrders';
 import ToastService from '../../../../../core/ToastService';
@@ -511,6 +512,35 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     expect(
       within(row).getByText(strings('bridge.recurring.failed')),
     ).toBeOnTheScreen();
+  });
+
+  it('shows submitted status and zero amounts for a submitted swap', async () => {
+    const submittedSwap = {
+      ...MOCK_RECURRING_OPEN_ORDER_SWAPS[0],
+      id: `${MOCK_RECURRING_OPEN_ORDER.id}-submitted`,
+      status: RecurringSwapStatus.Submitted,
+    };
+    clearRecurringOrdersDataServiceMock();
+    setupRecurringOrdersDataServiceMock({
+      recurringSwaps: jest.fn().mockResolvedValue({ swaps: [submittedSwap] }),
+    });
+    const renderResult = renderRecurringOrderDetailsView({
+      order: MOCK_RECURRING_OPEN_ORDER,
+    });
+
+    await openOrderDetails(renderResult);
+
+    const row = within(
+      await renderResult.findByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(submittedSwap.id),
+      ),
+    );
+    expect(row.getByText(strings('bridge.limit.submitted'))).toBeOnTheScreen();
+    expect(
+      row.queryByText(strings('bridge.recurring.filled')),
+    ).not.toBeOnTheScreen();
+    expect(row.getByText('+0 USDC')).toBeOnTheScreen();
+    expect(row.getByText('-0 ETH')).toBeOnTheScreen();
   });
 
   it('recovers swap history after the initial request fails', async () => {
