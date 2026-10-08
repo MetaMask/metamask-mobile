@@ -322,7 +322,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { onReject } = useConfirmActions();
   useEffect(
     () => () => {
-      onReject(undefined, true);
+      void onReject(undefined, true);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
@@ -1744,7 +1744,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         handleDepositConfirm(
           activeTransactionMeta,
           () => {
-            handlePlaceOrder(true);
+            void handlePlaceOrder(true);
           },
           marginRequired,
         );
@@ -2052,7 +2052,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       depositAmount.trim() !== '' &&
       activeTransactionMeta
     ) {
-      updateTokenAmountCallback(amountHuman);
+      void updateTokenAmountCallback(amountHuman);
     }
   }, [
     amountHuman,
