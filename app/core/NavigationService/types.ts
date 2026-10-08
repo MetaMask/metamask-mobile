@@ -780,6 +780,7 @@ export type RootStackParamList = {
   ProfileDrawer: undefined;
   ManageProfile: ManageProfileParams | undefined;
   ManageProfileField: ManageProfileFieldParams;
+  ManageProfileXAccount: undefined;
 
   // Sheet routes
   AccountSelector: AccountSelectorParams | undefined;

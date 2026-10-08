@@ -1,4 +1,6 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
+import { CommonActions } from '@react-navigation/native';
 import { fireEvent, within } from '@testing-library/react-native';
 
 import ManageProfileField from './ManageProfileField';
@@ -15,9 +17,22 @@ import {
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
+const mockGetState = jest.fn(() => ({
+  index: 1,
+  routes: [
+    { key: 'manage-profile', name: Routes.SOCIAL_PROFILE.MANAGE_PROFILE },
+    {
+      key: 'manage-profile-field',
+      name: Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD,
+    },
+  ],
+}));
 const mockNavigation = {
   navigate: mockNavigate,
   goBack: mockGoBack,
+  dispatch: mockDispatch,
+  getState: mockGetState,
 };
 
 let mockFieldParams: ManageProfileFieldParams = {
@@ -236,6 +251,133 @@ describe('ManageProfileField', () => {
         },
         { pop: true },
       );
+    });
+  });
+
+  describe('trading activity', () => {
+    it('opens a switch reflecting the current setting', () => {
+      const { getByTestId } = renderField({
+        field: ManageProfileFieldName.TradingActivity,
+        initialValue: false,
+      });
+
+      const control = within(
+        getByTestId(ManageProfileSelectorsIDs.FIELD_SWITCH),
+      ).getByRole('switch');
+
+      expect(control.props.value).toBe(false);
+    });
+
+    it('renders the privacy card copy and info affordance', () => {
+      const { getByTestId } = renderField({
+        field: ManageProfileFieldName.TradingActivity,
+        initialValue: false,
+      });
+
+      expect(
+        getByTestId(ManageProfileSelectorsIDs.TOGGLE_DESCRIPTION),
+      ).toHaveTextContent(
+        strings('manage_profile.trading_activity_private'),
+      );
+      expect(
+        getByTestId(ManageProfileSelectorsIDs.TOGGLE_HELPER_TEXT),
+      ).toHaveTextContent(
+        strings('manage_profile.trading_activity_footnote'),
+      );
+      expect(
+        getByTestId(ManageProfileSelectorsIDs.TOGGLE_INFO_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        StyleSheet.flatten(
+          getByTestId(ManageProfileSelectorsIDs.TOGGLE_HELPER_TEXT).props.style,
+        )?.fontSize,
+      ).toBeLessThan(
+        StyleSheet.flatten(
+          getByTestId(ManageProfileSelectorsIDs.TOGGLE_DESCRIPTION).props.style,
+        )?.fontSize,
+      );
+    });
+
+    it('opens an explanation when the info icon is pressed', () => {
+      const { getByTestId, queryByTestId } = renderField({
+        field: ManageProfileFieldName.TradingActivity,
+        initialValue: false,
+      });
+
+      expect(
+        queryByTestId(ManageProfileSelectorsIDs.TRADING_ACTIVITY_INFO_SHEET),
+      ).toBeNull();
+
+      fireEvent.press(
+        getByTestId(ManageProfileSelectorsIDs.TOGGLE_INFO_BUTTON),
+      );
+
+      const sheet = getByTestId(
+        ManageProfileSelectorsIDs.TRADING_ACTIVITY_INFO_SHEET,
+      );
+
+      expect(
+        within(sheet).getByText(
+          strings('manage_profile.show_trading_activity'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(sheet).getByText(
+          strings(
+            'manage_profile.trading_activity_info_description',
+          ),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('swaps the description and commits when toggled on', () => {
+      const { getByTestId } = renderField({
+        field: ManageProfileFieldName.TradingActivity,
+        initialValue: false,
+      });
+
+      fireEvent(
+        getByTestId(ManageProfileSelectorsIDs.FIELD_SWITCH),
+        'valueChange',
+        true,
+      );
+
+      expect(
+        getByTestId(ManageProfileSelectorsIDs.TOGGLE_DESCRIPTION),
+      ).toHaveTextContent(
+        strings('manage_profile.trading_activity_public'),
+      );
+      expect(mockDispatch).toHaveBeenCalledWith({
+        ...CommonActions.setParams({
+          fieldUpdate: {
+            field: ManageProfileFieldName.TradingActivity,
+            value: true,
+          },
+        }),
+        source: 'manage-profile',
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('offers no save button, since changes apply immediately', () => {
+      const { queryByTestId } = renderField({
+        field: ManageProfileFieldName.TradingActivity,
+        initialValue: false,
+      });
+
+      expect(queryByTestId(ManageProfileSelectorsIDs.FIELD_SAVE)).toBeNull();
+    });
+
+    it('goes back without saving again when the switch screen is closed', () => {
+      const { getByTestId } = renderField({
+        field: ManageProfileFieldName.TradingActivity,
+        initialValue: false,
+      });
+
+      fireEvent.press(getByTestId(CommonSelectorsIDs.BACK_ARROW_BUTTON));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });
