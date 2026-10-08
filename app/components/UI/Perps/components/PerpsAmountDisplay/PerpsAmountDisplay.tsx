@@ -36,6 +36,14 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
+/** Keeps a trailing decimal so an in-progress coin amount stays visible. */
+const formatTradeSheetTokenAmount = (tokenAmount: string): string => {
+  if (tokenAmount.endsWith('.')) {
+    return `${formatPositionSize(tokenAmount.slice(0, -1) || '0')}.`;
+  }
+  return formatPositionSize(tokenAmount);
+};
+
 interface PerpsAmountDisplayProps {
   amount: string;
   showWarning?: boolean;
@@ -138,7 +146,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
     // number rather than after the symbol.
     const primaryDisplayValue =
       isTokenPrimary && tokenAmount
-        ? formatPositionSize(tokenAmount)
+        ? formatTradeSheetTokenAmount(tokenAmount)
         : fiatDisplayValue;
     const primaryDisplayUnit =
       isTokenPrimary && tokenSymbol

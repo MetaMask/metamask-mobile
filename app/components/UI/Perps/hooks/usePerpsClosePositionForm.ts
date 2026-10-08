@@ -37,6 +37,7 @@ import {
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from './stream';
+import { useAssetAmountDraft } from './useAssetAmountDraft';
 import { usePerpsAbandonOrderTracking } from './usePerpsAbandonOrderTracking';
 import { usePerpsCloseInFlight } from './usePerpsClosePosition';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
@@ -44,10 +45,15 @@ import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { MAX_PERPS_INPUT_DIGITS } from '../constants/perpsConfig';
 import { selectPerpsClosePositionLimitOrderEnabledFlag } from '../selectors/featureFlags';
+import {
+  convertAssetAmountToUsd,
+  limitAssetAmountDecimals,
+} from '../utils/assetAmountInput';
 import { resolveOracleReferencePrice } from '../utils/orderUtils';
 import { toPerpsEntryAttribution } from '../utils/perpsAnalyticsAttribution';
 import {
   calculateCloseAmountFromPercentage,
+  calculatePercentageFromTokenAmount,
   formatCloseAmountUSD,
   validateCloseAmountLimits,
 } from '../utils/positionCalculations';
@@ -57,6 +63,11 @@ export interface UsePerpsClosePositionFormOptions {
   dismiss?: () => void;
   /** Applied to the confirm CTA this hook builds for the caller's footer. */
   confirmButtonTestID?: string;
+  /**
+   * Unit the size keypad is editing. Defaults to USD so the full-screen close
+   * flow is unchanged. The bottom sheet passes `'asset'` after the coin toggle.
+   */
+  amountInputUnit?: 'usd' | 'asset';
 }
 
 /** Shape `BottomSheetFooter` expects for the close CTA. */
@@ -102,6 +113,10 @@ export interface UsePerpsClosePositionFormResult {
   liveCloseAmount: string;
   closeAmountUSDString: string;
   displayUSDString: string;
+  /** Value the size keypad should edit for the active amount unit. */
+  amountKeypadValue: string;
+  /** Fractional digits the coin keypad accepts. */
+  amountKeypadDecimals: number;
   isInputFocused: boolean;
 
   handleSliderValueChange: (value: number) => void;
@@ -159,6 +174,7 @@ export function usePerpsClosePositionForm(
   // dismissal effect or invalidate handleConfirm every render.
   const dismissRef = useRef<() => void>(navigation.goBack);
   dismissRef.current = options?.dismiss ?? navigation.goBack;
+  const amountInputUnit = options?.amountInputUnit ?? 'usd';
 
   const inputMethodRef = useRef<InputMethod>('default');
   const isAmountInitializedRef = useRef(false);
@@ -420,6 +436,14 @@ export function usePerpsClosePositionForm(
     marketData?.szDecimals,
     isLoadingMarketData,
   ]);
+
+  const sizeDecimals =
+    marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
+  const { draft: assetDraft, setDraftFromKeypad } = useAssetAmountDraft({
+    isActive: amountInputUnit === 'asset',
+    usdAmount: closeAmountUSDString,
+    assetAmount: liveCloseAmount,
+  });
 
   // Use calculated USD string when not in input mode, user input when typing
   const displayUSDString =
@@ -751,6 +775,55 @@ export function usePerpsClosePositionForm(
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
       inputMethodRef.current = 'keypad';
+
+      if (amountInputUnit === 'asset') {
+        const previousValue = assetDraft;
+        let adjustedValue = value;
+
+        if (previousValue.endsWith('.') && value === previousValue) {
+          adjustedValue = value.slice(0, -1);
+        } else if (
+          previousValue.includes('.') &&
+          value.endsWith('.') &&
+          value.length === previousValue.length - 1
+        ) {
+          adjustedValue = value.replace('.', '');
+        }
+
+        adjustedValue = limitAssetAmountDecimals(adjustedValue, sizeDecimals);
+        const digitCount = (adjustedValue.match(/\d/g) || []).length;
+        if (digitCount > MAX_PERPS_INPUT_DIGITS) {
+          return;
+        }
+
+        if (!isInputFocused) {
+          setIsInputFocused(true);
+        }
+        if (!isUserInputActive) {
+          setIsUserInputActive(true);
+        }
+
+        const usd = convertAssetAmountToUsd(adjustedValue, effectivePrice);
+        setDraftFromKeypad(adjustedValue || '0', usd);
+        setCloseAmountUSDString(usd);
+
+        const numericAsset =
+          Number.parseFloat(
+            adjustedValue.endsWith('.')
+              ? adjustedValue.slice(0, -1)
+              : adjustedValue,
+          ) || 0;
+        const clampedAsset = validateCloseAmountLimits({
+          amount: numericAsset,
+          maxAmount: absSize,
+        });
+        commitClosePercentage(
+          calculatePercentageFromTokenAmount(clampedAsset, absSize),
+          { syncUsdString: false },
+        );
+        return;
+      }
+
       const previousValue = closeAmountUSDString;
       // Special handling for decimal point deletion
       // If previous value had a decimal and new value is the same, force remove the decimal
@@ -824,7 +897,19 @@ export function usePerpsClosePositionForm(
       commitClosePercentage(newPercentage, { syncUsdString: false });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [positionValue, isInputFocused, isUserInputActive, closeAmountUSDString],
+    [
+      positionValue,
+      isInputFocused,
+      isUserInputActive,
+      closeAmountUSDString,
+      amountInputUnit,
+      assetDraft,
+      sizeDecimals,
+      effectivePrice,
+      setDraftFromKeypad,
+      absSize,
+      commitClosePercentage,
+    ],
   );
 
   const handlePercentagePress = useCallback(
@@ -929,6 +1014,9 @@ export function usePerpsClosePositionForm(
     liveCloseAmount,
     closeAmountUSDString,
     displayUSDString,
+    amountKeypadValue:
+      amountInputUnit === 'asset' ? assetDraft : closeAmountUSDString,
+    amountKeypadDecimals: sizeDecimals,
     isInputFocused,
 
     handleSliderValueChange,

@@ -196,6 +196,22 @@ describe('PerpsAmountDisplay', () => {
       expect(screen.getByLabelText('Show fiat value')).toBeOnTheScreen();
     });
 
+    it('keeps a trailing decimal on an in-progress coin amount', () => {
+      render(
+        <PerpsAmountDisplay
+          amount="10"
+          tokenAmount="1."
+          tokenSymbol="ETH"
+          showTokenAmount
+          variant="tradeSheet"
+        />,
+      );
+
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent(/^1\.$/);
+    });
+
     it('omits the unit label when the trade sheet shows the fiat value', () => {
       render(
         <PerpsAmountDisplay

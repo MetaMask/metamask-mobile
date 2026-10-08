@@ -87,11 +87,16 @@ jest.mock('../../../../Base/Keypad', () => {
     __esModule: true,
     default: ({
       onChange,
+      value,
+      currency,
     }: {
       onChange: (input: { value: string; valueAsNumber: number }) => void;
+      value?: string;
+      currency?: string;
     }) =>
       ReactActual.createElement(Touchable, {
         testID: 'mock-keypad',
+        accessibilityLabel: `keypad:${currency ?? ''}:${value ?? ''}`,
         onPress: () =>
           onChange({
             value: mockKeypadValue,
@@ -371,6 +376,36 @@ describe('PerpsClosePositionBottomSheet', () => {
 
       expect(toggle).toBeOnTheScreen();
       expect(within(toggle).getByTestId('perps-swap-icon')).toBeOnTheScreen();
+    });
+
+    it('applies a keypad entry to the coin amount after the display toggle', () => {
+      const { getByLabelText, getByTestId } = renderSheet();
+
+      fireEvent.press(
+        getByLabelText(strings('perps.close_position.select_amount')),
+      );
+      expect(getByTestId('mock-keypad').props.accessibilityLabel).toBe(
+        'keypad:USD:4500.00',
+      );
+
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
+        ),
+      );
+      expect(getByTestId('mock-keypad').props.accessibilityLabel).toBe(
+        'keypad:ASSET:1.5',
+      );
+
+      mockKeypadValue = '1';
+      fireEvent.press(getByTestId('mock-keypad'));
+
+      expect(
+        getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent(/^1$/);
+      expect(
+        getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
+      ).toHaveTextContent('ETH');
     });
 
     it('swaps the primary amount between fiat and token when toggled', () => {
