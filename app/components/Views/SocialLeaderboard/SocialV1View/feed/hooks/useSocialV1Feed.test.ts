@@ -1,12 +1,11 @@
 import { act, renderHook } from '@testing-library/react-native';
 import {
-  useSocialFeed,
-  type SocialFeedState,
-} from '../../../../../UI/SocialFeed/data/useSocialFeed';
+  useTraderFeed,
+  type UseTraderFeedResult,
+} from '../../../FeedView/hooks/useTraderFeed';
 import { type TraderFeedRow } from '../../../../../UI/SocialFeed/types';
 import { mockPerpFeedItem } from '../../../../../UI/SocialFeed/mocks/coreFeed.mock';
 import { mapFeedItem } from '../../../../../UI/SocialFeed/utils/mapFeedItem';
-import { toSocialFeedPosts } from '../../../../../UI/SocialFeed/utils/toSocialFeedPosts';
 import { mockOpenPerpsFeedItem } from '../../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import {
   COMPOSER_POSTING_DELAY_MS,
@@ -16,9 +15,9 @@ import {
 } from '../store/socialV1ComposedFeedStore';
 import { useSocialV1Feed } from './useSocialV1Feed';
 
-jest.mock('../../../../../UI/SocialFeed/data/useSocialFeed');
+jest.mock('../../../FeedView/hooks/useTraderFeed');
 
-const mockUseSocialFeed = jest.mocked(useSocialFeed);
+const mockUseTraderFeed = jest.mocked(useTraderFeed);
 
 const buildRow = (positionId: string): TraderFeedRow => {
   const core = mockPerpFeedItem({ positionId });
@@ -31,11 +30,13 @@ const buildRow = (positionId: string): TraderFeedRow => {
 
 const arrangeFeed = (
   rows: TraderFeedRow[],
-  overrides: Partial<SocialFeedState> = {},
+  overrides: Partial<UseTraderFeedResult> = {},
 ) => {
-  mockUseSocialFeed.mockReturnValue({
-    posts: toSocialFeedPosts(rows),
+  mockUseTraderFeed.mockReturnValue({
     rows,
+    items: rows.map((row) => row.item),
+    sections: [],
+    hasLoadedItems: rows.length > 0,
     isLoading: false,
     isFetchingNextPage: false,
     hasNextPage: false,
@@ -104,9 +105,15 @@ describe('useSocialV1Feed', () => {
     it('reads the leaderboard scope on Trending', () => {
       renderHook(() => useSocialV1Feed('trending'));
 
-      expect(mockUseSocialFeed).toHaveBeenCalledWith({
-        kind: 'all',
+      expect(mockUseTraderFeed).toHaveBeenCalledWith({ audience: 'all' });
+    });
+
+    it('disables the data source while Trending is inactive', () => {
+      renderHook(() => useSocialV1Feed('trending', false));
+
+      expect(mockUseTraderFeed).toHaveBeenCalledWith({
         audience: 'all',
+        enabled: false,
       });
     });
 
@@ -114,8 +121,7 @@ describe('useSocialV1Feed', () => {
     it('reads the following scope on Following', () => {
       renderHook(() => useSocialV1Feed('following'));
 
-      expect(mockUseSocialFeed).toHaveBeenCalledWith({
-        kind: 'all',
+      expect(mockUseTraderFeed).toHaveBeenCalledWith({
         audience: 'following',
       });
     });

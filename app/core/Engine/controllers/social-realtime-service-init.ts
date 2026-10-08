@@ -10,10 +10,15 @@ import type {
 } from '../messengers/social-realtime-service-messenger';
 import Logger from '../../../util/Logger';
 
+export const isLocalBackendWebSocketUrl = (url: string | undefined): boolean =>
+  url?.startsWith('ws://127.0.0.1') === true ||
+  url?.startsWith('ws://localhost') === true ||
+  url?.startsWith('ws://[::1]') === true;
+
 const isSocialFeedRealtimeEnabled = (
   initMessenger: SocialRealtimeServiceInitMessenger,
 ): boolean => {
-  if (process.env.MM_BACKEND_WEBSOCKET_URL?.startsWith('ws://127.0.0.1')) {
+  if (isLocalBackendWebSocketUrl(process.env.MM_BACKEND_WEBSOCKET_URL)) {
     return true;
   }
 

@@ -98,7 +98,7 @@ describe('useTraderFeed', () => {
     const event = {
       version: 1,
       kind: 'feed-item',
-      eventId: 'social.v1.feed.all.trade.live',
+      eventId: 'social.v1.feed.trending.trade.live',
       feedItemId: 'live-position',
       revision: 1,
       occurredAt: new Date().toISOString(),
@@ -138,7 +138,7 @@ describe('useTraderFeed', () => {
     const event = {
       version: 1,
       kind: 'feed-item',
-      eventId: 'social.v1.feed.all.trade.shared',
+      eventId: 'social.v1.feed.trending.trade.shared',
       feedItemId: 'shared-position',
       revision: 1,
       occurredAt: new Date().toISOString(),
@@ -198,6 +198,21 @@ describe('useTraderFeed', () => {
       scope: 'following',
       ...expectedFeedFetchOptions,
     });
+  });
+
+  it('leaves realtime activation to the trending audience', async () => {
+    mockCall.mockResolvedValue(mockFeedResponse([mockSpotFeedItem()]));
+
+    const { result } = renderHook(
+      () => useTraderFeed({ audience: 'following' }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+
+    expect(mockRealtimeService.setActive).not.toHaveBeenCalled();
+    expect(mockRealtimeService.addListener).not.toHaveBeenCalled();
+    expect(mockRealtimeService.addReconnectListener).not.toHaveBeenCalled();
   });
 
   it('paginates using the older cursor when loadMore is called', async () => {

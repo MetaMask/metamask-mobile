@@ -304,9 +304,15 @@ export const useTraderFeed = (
     [loadedItemIds],
   );
 
-  const realtimeActive = enabled && isUnlocked && audience === 'all';
+  const ownsRealtime = audience === 'all';
+  const realtimeActive = enabled && isUnlocked && ownsRealtime;
 
   useEffect(() => {
+    if (!ownsRealtime) {
+      setRealtimeRows([]);
+      return undefined;
+    }
+
     const deactivate = () => {
       void realtimeService.setActive(false).catch(() => undefined);
     };
@@ -335,6 +341,7 @@ export const useTraderFeed = (
     enabled,
     handleRealtimeEvent,
     isUnlocked,
+    ownsRealtime,
     realtimeActive,
     realtimeService,
     refresh,

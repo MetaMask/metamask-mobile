@@ -5,7 +5,10 @@ import Logger from '../../../util/Logger';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import type { SocialRealtimeServiceInitMessenger } from '../messengers/social-realtime-service-messenger';
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
-import { socialRealtimeServiceInit } from './social-realtime-service-init';
+import {
+  isLocalBackendWebSocketUrl,
+  socialRealtimeServiceInit,
+} from './social-realtime-service-init';
 
 jest.mock('@metamask/social-controllers', () => ({
   SocialRealtimeService: jest.fn(),
@@ -54,6 +57,14 @@ describe('socialRealtimeServiceInit', () => {
     } finally {
       globalWithDev.__DEV__ = previousDev;
     }
+  });
+
+  it.each([
+    'ws://localhost:3001/v1',
+    'ws://127.0.0.1:3001/v1',
+    'ws://[::1]:3001/v1',
+  ])('recognizes a local WebSocket URL: %s', (url) => {
+    expect(isLocalBackendWebSocketUrl(url)).toBe(true);
   });
 
   it('supports the legacy remote flag wrapper', () => {
