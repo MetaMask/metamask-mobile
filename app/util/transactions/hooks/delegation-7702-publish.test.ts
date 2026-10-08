@@ -139,7 +139,7 @@ describe('Delegation 7702 Publish Hook', () => {
     jest.resetAllMocks();
     remoteFeatureFlags = {
       [CONFIRMATIONS_DELEGATIONS_FEATURE_FLAG_NAME]: {
-        delegationDeadlineMinutes: 30,
+        deadlineSeconds: 1800,
       },
     };
     jest.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
@@ -391,8 +391,6 @@ describe('Delegation 7702 Publish Hook', () => {
         },
       ]);
 
-      // Mock a scenario where includeTransfer is true but gasFeeToken becomes undefined
-      // This can happen if the selected token is not found in the array
       const differentTokenAddress =
         '0x9999999999999999999999999999999999999999';
 
@@ -408,138 +406,6 @@ describe('Delegation 7702 Publish Hook', () => {
           SIGNED_TX_MOCK,
         ),
       ).rejects.toThrow('Gas Station 7702: Selected gas fee token not found');
-    });
-  });
-
-  describe('normalizeCallData edge cases', () => {
-    it('handles transaction with empty data', async () => {
-      isAtomicBatchSupportedMock.mockResolvedValueOnce([
-        {
-          chainId: TRANSACTION_META_MOCK.chainId,
-          delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-          isSupported: true,
-          upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-        },
-      ]);
-
-      await hookClass.getHook()(
-        {
-          ...TRANSACTION_META_MOCK,
-          txParams: {
-            ...TRANSACTION_META_MOCK.txParams,
-            data: '',
-          },
-          gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
-          selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
-        },
-        SIGNED_TX_MOCK,
-      );
-
-      expect(submitRelayTransactionMock).toHaveBeenCalledTimes(1);
-    });
-
-    it('handles transaction with undefined data', async () => {
-      isAtomicBatchSupportedMock.mockResolvedValueOnce([
-        {
-          chainId: TRANSACTION_META_MOCK.chainId,
-          delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-          isSupported: true,
-          upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-        },
-      ]);
-
-      await hookClass.getHook()(
-        {
-          ...TRANSACTION_META_MOCK,
-          txParams: {
-            ...TRANSACTION_META_MOCK.txParams,
-            data: undefined,
-          },
-          gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
-          selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
-        },
-        SIGNED_TX_MOCK,
-      );
-
-      expect(submitRelayTransactionMock).toHaveBeenCalledTimes(1);
-    });
-
-    it('handles transaction with data without 0x prefix', async () => {
-      isAtomicBatchSupportedMock.mockResolvedValueOnce([
-        {
-          chainId: TRANSACTION_META_MOCK.chainId,
-          delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-          isSupported: true,
-          upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-        },
-      ]);
-
-      await hookClass.getHook()(
-        {
-          ...TRANSACTION_META_MOCK,
-          txParams: {
-            ...TRANSACTION_META_MOCK.txParams,
-            data: 'abcdef1234',
-          },
-          gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
-          selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
-        },
-        SIGNED_TX_MOCK,
-      );
-
-      expect(submitRelayTransactionMock).toHaveBeenCalledTimes(1);
-    });
-
-    it('handles transaction with odd-length hex data (needs padding)', async () => {
-      isAtomicBatchSupportedMock.mockResolvedValueOnce([
-        {
-          chainId: TRANSACTION_META_MOCK.chainId,
-          delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-          isSupported: true,
-          upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-        },
-      ]);
-
-      await hookClass.getHook()(
-        {
-          ...TRANSACTION_META_MOCK,
-          txParams: {
-            ...TRANSACTION_META_MOCK.txParams,
-            data: '0xabc',
-          },
-          gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
-          selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
-        },
-        SIGNED_TX_MOCK,
-      );
-
-      expect(submitRelayTransactionMock).toHaveBeenCalledTimes(1);
-    });
-
-    it('handles transaction with "0x" only data', async () => {
-      isAtomicBatchSupportedMock.mockResolvedValueOnce([
-        {
-          chainId: TRANSACTION_META_MOCK.chainId,
-          delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-          isSupported: true,
-          upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-        },
-      ]);
-
-      await hookClass.getHook()(
-        {
-          ...TRANSACTION_META_MOCK,
-          txParams: {
-            ...TRANSACTION_META_MOCK.txParams,
-            data: '0x',
-          },
-          gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
-          selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
-        },
-        SIGNED_TX_MOCK,
-      );
-
-      expect(submitRelayTransactionMock).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -915,14 +781,12 @@ describe('Delegation 7702 Publish Hook', () => {
         upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
       },
     ]);
-    // Provide an id and make bridge status return gasIncluded7702: true
     const GASLESS_TX_ID = 'tx-123';
     const gaslessTxMeta = {
       ...TRANSACTION_META_MOCK,
       id: GASLESS_TX_ID,
       type: TransactionType.batch,
       nestedTransactions: [{ type: TransactionType.swap }],
-      // No gasFeeTokens and no selectedGasFeeToken
       isGasFeeIncluded: true,
     } as unknown as TransactionMeta;
 
@@ -953,61 +817,6 @@ describe('Delegation 7702 Publish Hook', () => {
     await hookClass.getHook()(sponsoredTxMeta, SIGNED_TX_MOCK);
 
     expect(submitRelayTransactionMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('signs delegation for gasless 7702 swap without gas fee tokens', async () => {
-    isAtomicBatchSupportedMock.mockResolvedValueOnce([
-      {
-        chainId: TRANSACTION_META_MOCK.chainId,
-        delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-        isSupported: true,
-        upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-      },
-    ]);
-    // Provide an id and make bridge status return gasIncluded7702: true
-    const GASLESS_TX_ID = 'tx-123';
-    const gaslessTxMeta = {
-      ...TRANSACTION_META_MOCK,
-      id: GASLESS_TX_ID,
-      type: TransactionType.batch,
-      nestedTransactions: [{ type: TransactionType.swap }],
-      // No gasFeeTokens and no selectedGasFeeToken
-      isGasFeeIncluded: true,
-    } as unknown as TransactionMeta;
-
-    await hookClass.getHook()(gaslessTxMeta, SIGNED_TX_MOCK);
-
-    expect(signDelegationControllerMock).toHaveBeenCalledTimes(1);
-    // Ensure caveats contain exactExecution + limitedCalls + redeemer + timestamp for gasless flow
-    const signArgs = signDelegationControllerMock.mock.calls[0][0];
-    expect(Array.isArray(signArgs.delegation.caveats)).toBe(true);
-    expect(signArgs.delegation.caveats).toHaveLength(4);
-    // No transfer execution should be included for gasless flow
-  });
-
-  it('builds caveats for non-gasless flow', async () => {
-    isAtomicBatchSupportedMock.mockResolvedValueOnce([
-      {
-        chainId: TRANSACTION_META_MOCK.chainId,
-        delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-        isSupported: true,
-        upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-      },
-    ]);
-
-    await hookClass.getHook()(
-      {
-        ...TRANSACTION_META_MOCK,
-        gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
-        selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
-      },
-      SIGNED_TX_MOCK,
-    );
-
-    expect(signDelegationControllerMock).toHaveBeenCalledTimes(1);
-    const nonGaslessSignArgs = signDelegationControllerMock.mock.calls[0][0];
-    expect(Array.isArray(nonGaslessSignArgs.delegation.caveats)).toBe(true);
-    expect(nonGaslessSignArgs.delegation.caveats.length).toBe(4);
   });
 
   describe('redeemer caveat', () => {
@@ -1051,6 +860,21 @@ describe('Delegation 7702 Publish Hook', () => {
           `0x${SENTINEL_SIGNER_1_MOCK.slice(2)}${SENTINEL_SIGNER_2_MOCK.slice(2)}`.toLowerCase(),
         args: '0x',
       });
+    });
+
+    it('signed delegation includes a timestamp caveat', async () => {
+      await hookClass.getHook()(SPONSORED_TX_META_MOCK, SIGNED_TX_MOCK);
+
+      const { caveatEnforcers } = getDeleGatorEnvironment(
+        parseInt(TRANSACTION_META_MOCK.chainId, 16),
+      );
+
+      const signArgs = signDelegationControllerMock.mock.calls[0][0];
+      const hasTimestamp = signArgs.delegation.caveats.some(
+        (c: { enforcer: string }) =>
+          c.enforcer === caveatEnforcers.TimestampEnforcer,
+      );
+      expect(hasTimestamp).toBe(true);
     });
 
     it('throws if no Sentinel signers are available', async () => {

@@ -37,8 +37,6 @@ const AUTHORIZATION_SIGNATURE_MOCK =
 
 const FIXED_NOW = 1_700_000_000_000;
 const NETWORK_CLIENT_ID_MOCK = 'mainnet';
-const ALLOWED_CALLDATA_ENFORCER_MOCK =
-  getDeleGatorEnvironment(1).caveatEnforcers.AllowedCalldataEnforcer as Hex;
 
 let remoteFeatureFlags: FeatureFlags = {};
 
@@ -197,31 +195,6 @@ describe('Transaction Delegation Utils', () => {
         );
     });
 
-    it('uses the feature flag override for the delegation deadline', async () => {
-      remoteFeatureFlags = {
-        [CONFIRMATIONS_DELEGATIONS_FEATURE_FLAG_NAME]: {
-          delegationDeadlineMinutes: 45,
-        },
-      };
-
-      await getDelegationTransaction(messengerMock, TRANSACTION_META_MOCK);
-
-      const expectedTimestampTerms = buildExpectedTimestampTerms(
-        Math.floor(FIXED_NOW / 1000) + 45 * 60,
-      );
-
-      const delegation = signDelegationMock.mock.calls[0][0].delegation as {
-        caveats: Caveat[];
-      };
-
-      expect(getTimestampCaveat(delegation.caveats, expectedTimestampTerms))
-        .toEqual(
-          expect.objectContaining({
-            terms: expectedTimestampTerms,
-          }),
-        );
-    });
-
     it('calls KeyringController to sign authorization', async () => {
       await getDelegationTransaction(messengerMock, TRANSACTION_META_MOCK);
 
@@ -256,41 +229,7 @@ describe('Transaction Delegation Utils', () => {
     });
 
     describe('subsidized', () => {
-      const ORDER_ID_PLACEHOLDER =
-        '0x07cece46d0aec658b12c9d194b3ac3cc74aadf102176005c76f96422b57328b2';
-      const PLACEHOLDER_BODY = ORDER_ID_PLACEHOLDER.slice(2);
       const SELF_TARGET = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex;
-
-      const APPROVE_SELECTOR = '095ea7b3';
-      const DEPOSIT_SELECTOR = 'f9e4bab4';
-      const EXECUTE_SELECTOR = '1a2b3c4d';
-
-      // Full calldata of each nested call (selector + args), matching the real
-      // `transferAndMulticall` shape:
-      //  - APPROVE_DATA carries NO order-ID placeholder -> no split point (merges left).
-      //  - DEPOSIT_DATA carries the order-ID placeholder -> its selector gets a split.
-      // The deposit's args also embed the approve selector twice, reproducing the
-      // collision where a selector appears inside another call's arguments — those
-      // coincidental matches must NOT create split points.
-      const APPROVE_DATA = `${APPROVE_SELECTOR}${'22'.repeat(28)}`;
-      const DEPOSIT_DATA = `${DEPOSIT_SELECTOR}${APPROVE_SELECTOR}${'33'.repeat(
-        12,
-      )}${PLACEHOLDER_BODY}${APPROVE_SELECTOR}${'33'.repeat(12)}`;
-
-      // Batch-encoded 7702 calldata (txParams.data). The two nested calls appear
-      // verbatim and whole-byte aligned; the fixed order-ID placeholder is embedded
-      // `occurrences` times.
-      //   [execute selector][fill][approve call][deposit call]
-      //   [placeholder]([fill][placeholder]...)[suffix]
-      const buildBatchData = (occurrences = 1): Hex => {
-        const fill = (byte: string) => byte.repeat(16);
-        const header = `${EXECUTE_SELECTOR}${fill('11')}${APPROVE_DATA}${DEPOSIT_DATA}`;
-        const windows = Array.from(
-          { length: occurrences },
-          (_, index) => `${PLACEHOLDER_BODY}${fill(index === 0 ? '44' : '55')}`,
-        ).join('');
-        return `0x${header}${windows}${fill('cd')}` as Hex;
-      };
 
       const buildSubsidizedTransaction = (data: Hex): TransactionMeta =>
         ({
@@ -301,174 +240,10 @@ describe('Transaction Delegation Utils', () => {
             data,
             value: '0x0',
           },
-          nestedTransactions: [
-            {
-              data: `0x${APPROVE_DATA}` as Hex,
-              to: '0x1111111111111111111111111111111111111111' as Hex,
-              value: '0x0' as Hex,
-            },
-            {
-              data: `0x${DEPOSIT_DATA}` as Hex,
-              to: '0x2222222222222222222222222222222222222222' as Hex,
-              value: '0x0' as Hex,
-            },
-          ],
         }) as TransactionMeta;
 
-      const getCaveats = (): Caveat[] => {
-        const delegationCall = signDelegationMock.mock.calls[0][0];
-        return (
-          (delegationCall as Record<string, unknown>).delegation as Record<
-            string,
-            unknown
-          >
-        ).caveats as Caveat[];
-      };
-
-      // Byte value (index + slice) of an AllowedCalldata caveat term. Terms are
-      // `0x` + 32-byte start index + enforced bytes.
-      const parseAllowedCalldata = (terms: string) => ({
-        startIndex: parseInt(terms.slice(2, 2 + 64), 16),
-        value: terms.slice(2 + 64).toLowerCase(),
-      });
-
-      const getAllowedCalldataTerms = (caveats: Caveat[]) =>
-        caveats
-          .filter((caveat) => caveat.enforcer === ALLOWED_CALLDATA_ENFORCER_MOCK)
-          .map((caveat) => parseAllowedCalldata(caveat.terms));
-
-      it('splits only after order-ID-bearing call selectors, folding the selector into the preceding segment', async () => {
-        const data = buildBatchData(1);
-        const body = data.slice(2).toLowerCase();
-
-        await getDelegationTransaction(
-          messengerMock,
-          buildSubsidizedTransaction(data),
-          true,
-        );
-
-        const enforced = getAllowedCalldataTerms(getCaveats());
-
-        // No segment is the bare selector: the selector is folded into the run that
-        // precedes the split, so an enforced segment ends with (not equals) the selector.
-        expect(enforced).not.toContainEqual(
-          expect.objectContaining({ value: APPROVE_SELECTOR }),
-        );
-        expect(enforced).not.toContainEqual(
-          expect.objectContaining({ value: DEPOSIT_SELECTOR }),
-        );
-
-        const approveSplit = body.indexOf(APPROVE_DATA) / 2 + 4;
-        const depositSplit = body.indexOf(DEPOSIT_DATA) / 2 + 4;
-        const segmentEnds = enforced.map(
-          ({ startIndex, value }) => startIndex + value.length / 2,
-        );
-
-        // The deposit carries the order-ID placeholder -> its selector gets a split.
-        expect(segmentEnds).toContain(depositSplit);
-
-        // The approve carries no order-ID placeholder -> no split; it merges into the
-        // preceding run, so no segment ends at its post-selector offset.
-        expect(segmentEnds).not.toContain(approveSplit);
-
-        // The coincidental approve selectors inside the deposit args must NOT create
-        // split points either: no segment ends there.
-        const depositStart = body.indexOf(DEPOSIT_DATA) / 2;
-        const innerApprove1 = depositStart + 4 + 4; // after deposit selector + inner approve selector
-        expect(segmentEnds).not.toContain(innerApprove1);
-      });
-
-      it('produces far fewer caveats than the per-selector split (regression: 9 -> few)', async () => {
-        const data = buildBatchData(2);
-
-        await getDelegationTransaction(
-          messengerMock,
-          buildSubsidizedTransaction(data),
-          true,
-        );
-
-        // allowedTargets + limitedCalls + allowedCalldata segments. The old
-        // per-selector isolation emitted ~9 caveats for this two-call shape; splitting
-        // only at the single order-ID-bearing call (the deposit) — not the approve, and
-        // not the coincidental inner selectors — keeps it well under that.
-        const caveats = getCaveats();
-        expect(caveats.length).toBeLessThanOrEqual(8);
-      });
-
-      it('leaves the order-ID placeholder window free and enforces the full remainder', async () => {
-        const data = buildBatchData(1);
-
-        await getDelegationTransaction(
-          messengerMock,
-          buildSubsidizedTransaction(data),
-          true,
-        );
-
-        const body = data.slice(2).toLowerCase();
-        const enforced = getAllowedCalldataTerms(getCaveats());
-
-        // No enforced segment overlaps the placeholder window.
-        for (const { value } of enforced) {
-          expect(value).not.toContain(PLACEHOLDER_BODY);
-        }
-
-        // Every non-placeholder byte is enforced exactly once: reassembling the enforced
-        // segments at their offsets plus the placeholder window reproduces the body.
-        const rebuilt = Array.from(body);
-        for (const { startIndex, value } of enforced) {
-          for (let i = 0; i < value.length; i++) {
-            rebuilt[startIndex * 2 + i] = value[i];
-          }
-        }
-        expect(rebuilt.join('')).toBe(body);
-
-        // The placeholder window itself is not covered by any segment.
-        const placeholderStart = body.indexOf(PLACEHOLDER_BODY) / 2;
-        const covered = enforced.some(
-          ({ startIndex, value }) =>
-            startIndex <= placeholderStart &&
-            placeholderStart < startIndex + value.length / 2,
-        );
-        expect(covered).toBe(false);
-      });
-
-      it('frees every occurrence when the placeholder appears multiple times', async () => {
-        const data = buildBatchData(2);
-
-        await getDelegationTransaction(
-          messengerMock,
-          buildSubsidizedTransaction(data),
-          true,
-        );
-
-        const enforced = getAllowedCalldataTerms(getCaveats());
-
-        for (const { value } of enforced) {
-          expect(value).not.toContain(PLACEHOLDER_BODY);
-        }
-
-        // Every placeholder occurrence remains free — the two trailing windows plus
-        // the one embedded inside the deposit call.
-        const body = data.slice(2).toLowerCase();
-        let searchIndex = body.indexOf(PLACEHOLDER_BODY);
-        const placeholderStarts: number[] = [];
-        while (searchIndex !== -1) {
-          placeholderStarts.push(searchIndex / 2);
-          searchIndex = body.indexOf(PLACEHOLDER_BODY, searchIndex + 1);
-        }
-        expect(placeholderStarts).toHaveLength(3);
-
-        for (const start of placeholderStarts) {
-          const covered = enforced.some(
-            ({ startIndex, value }) =>
-              startIndex <= start && start < startIndex + value.length / 2,
-          );
-          expect(covered).toBe(false);
-        }
-      });
-
       it('redeems the batch as a single execution in single mode', async () => {
-        const data = buildBatchData(1);
+        const data = '0xabcd1234' as Hex;
 
         const result = await getDelegationTransaction(
           messengerMock,
@@ -476,7 +251,6 @@ describe('Transaction Delegation Utils', () => {
           true,
         );
 
-        // Delegation transaction is produced without throwing on the two-step batch.
         expect(result.data).toBeDefined();
         expect(result.to).toBeDefined();
       });

@@ -25,7 +25,8 @@ import {
   createDelegation,
   getDeleGatorEnvironment,
 } from '../../../core/Delegation';
-import { getDelegationCaveats, normalizeCallData } from '../caveats';
+import { getDelegationCaveats } from '../caveats';
+import { normalizeCallData } from '../subsidized-caveats';
 import {
   Delegation,
   encodeRedeemDelegations,
