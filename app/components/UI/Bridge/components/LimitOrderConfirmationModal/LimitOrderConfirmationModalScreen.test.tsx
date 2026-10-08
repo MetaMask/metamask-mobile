@@ -12,6 +12,7 @@ import { createBridgeTestState } from '../../testUtils';
 import { setLimitOrderMarketComparison } from '../../../../../core/redux/slices/bridge';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
+import { useSentinelFeeTokenValidation } from '../../hooks/useSentinelFeeTokenValidation';
 import {
   LimitOrderExecutionType,
   LimitOrderPriceComparisonDirection,
@@ -45,6 +46,10 @@ jest.mock('../../hooks/useEIP7702UpgradeFee', () => ({
 
 jest.mock('../../hooks/useFiatToUsdRate', () => ({
   useFiatToUsdRate: jest.fn(),
+}));
+
+jest.mock('../../hooks/useSentinelFeeTokenValidation', () => ({
+  useSentinelFeeTokenValidation: jest.fn(),
 }));
 
 jest.mock('../../api/limitOrders/getDelegations', () => ({
@@ -91,6 +96,9 @@ jest.mock('@metamask/design-system-react-native', () => {
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
 const mockUseEIP7702UpgradeFee = jest.mocked(useEIP7702UpgradeFee);
 const mockUseFiatToUsdRate = jest.mocked(useFiatToUsdRate);
+const mockUseSentinelFeeTokenValidation = jest.mocked(
+  useSentinelFeeTokenValidation,
+);
 const mockUseFetchLimitOrdersDelegations = jest.mocked(
   useFetchLimitOrdersDelegations,
 );
@@ -216,6 +224,10 @@ describe('LimitOrderConfirmationModalScreen', () => {
     mockUseParams.mockReturnValue(mockParams);
     // The display currency is USD unless a test says otherwise.
     mockUseFiatToUsdRate.mockReturnValue(1);
+    mockUseSentinelFeeTokenValidation.mockReturnValue({
+      isValid: true,
+      retry: jest.fn(),
+    });
     mockUseEIP7702UpgradeFee.mockReturnValue({
       status: 'ready',
       displayFee: '$1.69',
@@ -233,6 +245,25 @@ describe('LimitOrderConfirmationModalScreen', () => {
       order: { id: '2421deda-7395-4ec9-82b8-3384aa7320e4' },
     });
     mockUseCreateLimitOrder.mockReturnValue(mockCreateLimitOrder);
+  });
+
+  it('blocks confirmation for an unSentinel fee-token pair', () => {
+    mockUseSentinelFeeTokenValidation.mockReturnValue({
+      isValid: false,
+      reason: 'unsupported-pair',
+      retry: jest.fn(),
+    });
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    expect(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+    expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
   });
 
   describe('USD price notice', () => {
