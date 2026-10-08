@@ -1,11 +1,9 @@
 import { act, renderHook } from '@testing-library/react-native';
-import {
-  useTraderFeed,
-  type TraderFeedRow,
-} from '../../../FeedView/hooks/useTraderFeed';
-import { mockPerpFeedItem } from '../../../FeedView/mocks/coreFeed.mock';
-import { mapFeedItem } from '../../../FeedView/utils/mapFeedItem';
-import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
+import { useTraderFeed } from '../../../FeedView/hooks/useTraderFeed';
+import { type TraderFeedRow } from '../../../../../UI/SocialFeed/types';
+import { mockPerpFeedItem } from '../../../../../UI/SocialFeed/mocks/coreFeed.mock';
+import { mapFeedItem } from '../../../../../UI/SocialFeed/utils/mapFeedItem';
+import { mockOpenPerpsFeedItem } from '../../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import {
   COMPOSER_POSTING_DELAY_MS,
   resetSocialV1ComposedFeedStore,
@@ -83,6 +81,7 @@ describe('useSocialV1Feed', () => {
         'pos-1-1700000500',
         'pos-2-1700000500',
       ]);
+      expect(result.current.posts[0].item.variant).toBe('perpsClosed');
     });
 
     it('copies the real trader onto the post envelope', () => {

@@ -73,7 +73,7 @@ export const PerpsProInputKeyboardAccessory = ({
         <ButtonBase
           size={ButtonBaseSize.Sm}
           onPress={Keyboard.dismiss}
-          twClassName="h-10 rounded-lg bg-muted px-4"
+          twClassName="h-10 rounded-full bg-muted px-4"
           testID={`${PerpsProOrderFormSelectorsIDs.KEYBOARD_DONE}-${inputTestID}`}
         >
           {strings('perps.pro_order_form.keyboard_done')}
@@ -153,8 +153,20 @@ const PerpsProCompactInput = React.forwardRef<
     const isInputVisible = !usesFloatingLabel || isInlineActive;
     useImperativeHandle(
       ref,
-      () => ({ focus: () => inputRef.current?.focus() }),
-      [],
+      () => ({
+        focus: () => {
+          // Same guard as a tap. A disabled input never focuses or blurs, so
+          // setting isFocused here would leave the empty field expanded.
+          if (isDisabled) {
+            return;
+          }
+          // Match a tap: expand the empty inline field, then focus it once it
+          // has a real frame. Focusing the collapsed input dismisses iOS.
+          setIsFocused(true);
+          setShouldFocusInput(true);
+        },
+      }),
+      [isDisabled],
     );
     const inputAccessoryViewID =
       Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;

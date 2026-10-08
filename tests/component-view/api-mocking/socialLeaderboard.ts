@@ -8,6 +8,7 @@
  * Uses the same spy/restore pattern as api-mocking/watchlist.ts.
  */
 
+import type { FeedItem as CoreFeedItem } from '@metamask/social-controllers';
 import Engine from '../../../app/core/Engine';
 import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
 
@@ -149,6 +150,8 @@ export interface LeaderboardApiMockOptions {
   allTraders?: MockLeaderboardEntry[];
   /** Override notification preferences returned by the AUS GET action. */
   notificationPrefs?: NotificationPrefsOptions;
+  /** Items returned by `SocialService:fetchFeed`. Default: none. */
+  feedItems?: CoreFeedItem[];
 }
 
 const PERP_CHAIN = 'hyperliquid';
@@ -168,6 +171,7 @@ export function setupLeaderboardApiMock(
     perpsTraders = mockPerpsTraders,
     allTraders = mockLeaderboardTraders,
     notificationPrefs = {},
+    feedItems = [],
   } = options;
 
   const prefsResponse = buildNotificationPrefsResponse(notificationPrefs);
@@ -186,6 +190,15 @@ export function setupLeaderboardApiMock(
         { chains?: string[] } | undefined,
         ...unknown[],
       ];
+
+      if (
+        action === 'SocialService:fetchFeed' ||
+        action === 'SocialService:fetchTokenFeed'
+      ) {
+        return Promise.resolve({
+          items: action === 'SocialService:fetchFeed' ? feedItems : [],
+        }) as ReturnType<typeof Engine.controllerMessenger.call>;
+      }
 
       if (action === 'SocialService:fetchLeaderboard') {
         const chains = fetchOpts?.chains ?? [];

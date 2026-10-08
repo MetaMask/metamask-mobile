@@ -66,6 +66,9 @@ jest.mock('../../Bridge/hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
 }));
 
+jest.mock('../../Bridge/hooks/useShouldRenderMaxOption', () => ({
+  useShouldRenderMaxOption: jest.fn(() => true),
+}));
 jest.mock('../../Bridge/hooks/useInsufficientBalance', () => ({
   __esModule: true,
   default: jest.fn(),
@@ -101,6 +104,15 @@ jest.mock('../../Bridge/hooks/useIsGasIncluded7702Supported', () => ({
 
 jest.mock('../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useAddPopularNetwork', () => ({
+  useAddPopularNetwork: jest.fn(),
+}));
+
+jest.mock('../../Bridge/utils/exchange-rates', () => ({
+  ...jest.requireActual('../../Bridge/utils/exchange-rates'),
+  getTokenExchangeRate: jest.fn(),
 }));
 
 jest.mock('../../../Views/confirmations/hooks/gas/useGasFeeEstimates', () => ({

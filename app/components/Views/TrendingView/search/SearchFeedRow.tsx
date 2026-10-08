@@ -14,11 +14,13 @@ import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton
 import type { SearchFeedId } from './useExploreSearch';
 import TapView from './TapView';
 import {
+  getSearchQueryLength,
   trackExploreSearchEvent,
   type ExploreSearchInteractedProperties,
   type SearchFeedPill,
 } from './analytics';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
+import { PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH } from '../../../UI/Perps/constants/perpsAnalytics';
 import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
 import EarnSearchRow from './EarnSearchRow';
 
@@ -27,6 +29,7 @@ interface SearchFeedRowProps {
   item: unknown;
   index: number;
   searchQuery: string;
+  analyticsSearchQuery?: string;
   tabName: SearchFeedPill;
   resultCount?: number;
   onQuickTrade?: (token: TrendingAsset) => void;
@@ -90,24 +93,28 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
   item,
   index,
   searchQuery,
+  analyticsSearchQuery = searchQuery,
   tabName,
   resultCount,
   onQuickTrade,
 }) => {
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
+  const analyticsSearchQueryRef = useRef(analyticsSearchQuery);
+  analyticsSearchQueryRef.current = analyticsSearchQuery;
   const resultCountRef = useRef(resultCount);
   resultCountRef.current = resultCount;
 
   const handleTap = useCallback(() => {
     trackExploreSearchEvent({
       interaction_type: 'result_clicked',
-      search_query: searchQueryRef.current,
+      search_query: analyticsSearchQueryRef.current,
       ...(tabName === 'all' ? { section_name: feedId } : {}),
       tab_name: tabName,
       item_clicked: getItemId(feedId, item),
       position: index,
       result_count: resultCountRef.current,
+      query_length: getSearchQueryLength(searchQueryRef.current),
       ...getTokenIdentityProperties(feedId, item),
       ...getPredictMarketProperties(feedId, item),
     });
@@ -130,7 +137,10 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
         // container's px-4 to avoid indenting perps rows an extra 16px.
         return (
           <Box twClassName="-mx-4" testID={PERPS_ROW_WRAPPER_TEST_ID}>
-            <PerpsRowItem market={item as PerpsMarketData} />
+            <PerpsRowItem
+              market={item as PerpsMarketData}
+              source={PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH}
+            />
           </Box>
         );
       case 'predictions':

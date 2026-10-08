@@ -717,6 +717,7 @@ const mockCardHomeData: CardHomeData = {
   availableFundingAssets: [mockPrimaryAsset],
   card: null,
   account: null,
+  walletProvisioning: null,
   alerts: [],
   actions: [],
   delegationSettings: {
@@ -1626,7 +1627,6 @@ describe('selectCardCountryOfResidence', () => {
         ...mockCardHomeData,
         account: {
           verificationStatus: 'VERIFIED',
-          provisioningEligible: false,
           holderName: 'Test User',
           shippingAddress: null,
           countryOfResidence: 'GB',
@@ -1645,7 +1645,6 @@ describe('selectCardResidencyRegion', () => {
         ...mockCardHomeData,
         account: {
           verificationStatus: 'VERIFIED',
-          provisioningEligible: false,
           holderName: 'Test User',
           shippingAddress: null,
           countryOfResidence: 'US',
@@ -1677,7 +1676,6 @@ describe('selectIsCardResidencyBlocked', () => {
           ...mockCardHomeData,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: 'Test User',
             shippingAddress: null,
             countryOfResidence: 'GB',
@@ -1698,7 +1696,6 @@ describe('selectIsCardResidencyBlocked', () => {
           ...mockCardHomeData,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: 'Test User',
             shippingAddress: null,
             countryOfResidence: 'US',
@@ -1719,7 +1716,6 @@ describe('selectIsCardResidencyBlocked', () => {
           ...mockCardHomeData,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: 'Test User',
             shippingAddress: null,
             countryOfResidence: 'US',
@@ -1740,7 +1736,6 @@ describe('selectIsCardResidencyBlocked', () => {
           ...mockCardHomeData,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: 'Test User',
             shippingAddress: null,
             countryOfResidence: 'US',
@@ -1761,7 +1756,6 @@ describe('selectIsCardResidencyBlocked', () => {
           ...mockCardHomeData,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: 'Test User',
             shippingAddress: null,
             countryOfResidence: 'US',
@@ -1792,7 +1786,6 @@ describe('selectCardAvailableTokens residency blocking', () => {
       delegationSettings: makeVedaDelegationSettings(),
       account: {
         verificationStatus: 'VERIFIED',
-        provisioningEligible: false,
         holderName: 'Test User',
         shippingAddress: null,
         countryOfResidence: 'GB',
@@ -1834,7 +1827,6 @@ describe('selectCardAvailableTokens residency blocking', () => {
       delegationSettings: makeVedaDelegationSettings(),
       account: {
         verificationStatus: 'VERIFIED',
-        provisioningEligible: false,
         holderName: 'Test User',
         shippingAddress: null,
         countryOfResidence: 'GB',
