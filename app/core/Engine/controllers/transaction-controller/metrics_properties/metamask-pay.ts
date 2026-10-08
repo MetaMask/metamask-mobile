@@ -567,13 +567,14 @@ function addAmountInputProperties(
     return;
   }
 
-  if (
-    !hasTransactionType(transaction, [TransactionType.moneyAccountDeposit])
-  ) {
+  if (!hasTransactionType(transaction, [TransactionType.moneyAccountDeposit])) {
     return;
   }
 
-  const presented = resolveMoneyAccountDepositPrefillPresented(transaction, state);
+  const presented = resolveMoneyAccountDepositPrefillPresented(
+    transaction,
+    state,
+  );
   properties[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY] = presented;
   if (presented) {
     properties[MM_PAY_AMOUNT_INPUT_TYPE_KEY] =
