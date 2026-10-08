@@ -197,7 +197,15 @@ const HomepageBalanceBreakdownRow = ({
   );
 
   const value = showMoneyBuyButton ? (
-    <Box twClassName="h-7 w-16" />
+    <Button
+      accessible={false}
+      importantForAccessibility="no-hide-descendants"
+      pointerEvents="none"
+      twClassName="h-7 self-end px-4 opacity-0"
+      variant={ButtonVariant.Primary}
+    >
+      {moneyBuyLabel}
+    </Button>
   ) : (
     <Skeleton
       hideChildren={isLoading}
