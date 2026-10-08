@@ -207,7 +207,7 @@ function OrdersTabPanel<T>({
               {section.items.map(({ item, index }) => renderRow(item, index))}
             </Box>
           ))
-        : filteredItems.map(renderRow)}
+        : filteredItems.map((item, index) => renderRow(item, index))}
       {isFetchingNextPage ? (
         <Box alignItems={BoxAlignItems.Center} paddingVertical={4}>
           <Spinner

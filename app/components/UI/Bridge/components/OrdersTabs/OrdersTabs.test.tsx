@@ -303,7 +303,9 @@ describe('OrdersTabs', () => {
       history: { items: [] },
     });
 
-    expect(queryByTestId(OrdersTabsSelectorsIDs.DATE_SECTION_HEADER)).toBeNull();
+    expect(
+      queryByTestId(OrdersTabsSelectorsIDs.DATE_SECTION_HEADER),
+    ).toBeNull();
   });
 
   it('shows the selected network icon and name on the filter button', () => {
