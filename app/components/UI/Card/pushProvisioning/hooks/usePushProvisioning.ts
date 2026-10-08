@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Platform, type AppStateStatus } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   ProvisioningStatus,
@@ -31,6 +31,10 @@ import {
   selectGalileoGoogleWalletProvisioningEnabled,
 } from '../../../../../selectors/featureFlagController/card';
 import { strings } from '../../../../../../locales/i18n';
+
+function wasCardRemoved(result: WalletEligibility): boolean {
+  return result.existingCardStatus === 'not_found' || result.canAddCard;
+}
 
 /**
  * Hook for push provisioning cards to mobile wallets
@@ -116,56 +120,100 @@ export function usePushProvisioning(
     useState(true);
 
   const lastFourDigits = cardDetails?.panLast4;
+  const eligibilityRequestIdRef = useRef(0);
 
-  useEffect(() => {
-    let isMounted = true;
+  const refreshEligibility = useCallback(
+    async ({ silent }: { silent: boolean }) => {
+      const requestId = ++eligibilityRequestIdRef.current;
 
-    const checkEligibility = async () => {
-      setIsEligibilityCheckLoading(true);
+      if (!silent) {
+        setIsEligibilityCheckLoading(true);
+      }
+
+      const isCurrentRequest = () =>
+        requestId === eligibilityRequestIdRef.current;
 
       if (!walletAdapter || !lastFourDigits) {
-        if (isMounted) {
-          setEligibility({
-            isAvailable: false,
-            canAddCard: false,
-            ineligibilityReason: 'Wallet provider not available',
-          });
-          setIsEligibilityCheckLoading(false);
+        if (!isCurrentRequest()) {
+          return;
         }
+        setEligibility({
+          isAvailable: false,
+          canAddCard: false,
+          ineligibilityReason: 'Wallet provider not available',
+        });
+        setIsEligibilityCheckLoading(false);
         return;
       }
 
       try {
         const result = await walletAdapter.getEligibility(lastFourDigits);
-        if (isMounted) {
-          setEligibility(result);
-          setIsEligibilityCheckLoading(false);
+        if (!isCurrentRequest()) {
+          return;
+        }
+        setEligibility(result);
+        setIsEligibilityCheckLoading(false);
+        if (
+          silent &&
+          statusRef.current === 'success' &&
+          wasCardRemoved(result)
+        ) {
+          setStatus('idle');
         }
       } catch {
-        if (isMounted) {
-          setEligibility({
-            isAvailable: false,
-            canAddCard: false,
-            ineligibilityReason: 'Failed to check eligibility',
-          });
-          setIsEligibilityCheckLoading(false);
+        if (!isCurrentRequest()) {
+          return;
         }
+        setEligibility({
+          isAvailable: false,
+          canAddCard: false,
+          ineligibilityReason: 'Failed to check eligibility',
+        });
+        setIsEligibilityCheckLoading(false);
       }
-    };
+    },
+    [walletAdapter, lastFourDigits],
+  );
 
-    checkEligibility();
+  useEffect(() => {
+    refreshEligibility({ silent: false });
 
     return () => {
-      isMounted = false;
+      eligibilityRequestIdRef.current += 1;
     };
-  }, [walletAdapter, lastFourDigits]);
+  }, [refreshEligibility]);
+
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      'change',
+      (nextState: AppStateStatus) => {
+        const previousState = appStateRef.current;
+        appStateRef.current = nextState;
+
+        if (previousState !== 'background' || nextState !== 'active') {
+          return;
+        }
+        if (statusRef.current === 'provisioning') {
+          return;
+        }
+
+        refreshEligibility({ silent: true });
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [refreshEligibility]);
 
   useEffect(() => {
     if (status !== 'success') {
       return;
     }
 
-    let isMounted = true;
+    const requestId = ++eligibilityRequestIdRef.current;
 
     const recheckEligibility = async () => {
       if (!walletAdapter || !lastFourDigits) {
@@ -174,25 +222,23 @@ export function usePushProvisioning(
 
       try {
         const result = await walletAdapter.getEligibility(lastFourDigits);
-        if (isMounted) {
-          setEligibility(result);
+        if (requestId !== eligibilityRequestIdRef.current) {
+          return;
         }
+        setEligibility(result);
       } catch {
-        if (isMounted) {
-          setEligibility({
-            isAvailable: true,
-            canAddCard: false,
-            ineligibilityReason: 'Card already added to wallet',
-          });
+        if (requestId !== eligibilityRequestIdRef.current) {
+          return;
         }
+        setEligibility({
+          isAvailable: true,
+          canAddCard: false,
+          ineligibilityReason: 'Card already added to wallet',
+        });
       }
     };
 
     recheckEligibility();
-
-    return () => {
-      isMounted = false;
-    };
   }, [status, walletAdapter, lastFourDigits]);
 
   // Create service with adapters
