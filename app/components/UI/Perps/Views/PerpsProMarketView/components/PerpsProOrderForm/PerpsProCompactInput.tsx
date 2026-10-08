@@ -229,7 +229,6 @@ const PerpsProCompactInput = React.forwardRef<
       directPressPhaseRef.current = isNativeFocusedRef.current
         ? 'retap'
         : 'initial-press';
-      setIsFocused(true);
     };
     // Initial focus realigns through onFocus. Only a re-tap needs this fallback;
     // scrolling every initial press again can make adjacent Scale inputs fight.
@@ -307,17 +306,25 @@ const PerpsProCompactInput = React.forwardRef<
             style={tw`h-full min-w-0 flex-1 justify-center`}
             testID={getPerpsProCompactFieldTestId(testID)}
           >
-            <Text
-              variant={isInlineActive ? TextVariant.BodyXs : TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              numberOfLines={labelNumberOfLines}
-              accessible={false}
-              importantForAccessibility="no"
-              twClassName={isInlineActive ? undefined : 'absolute'}
-              testID={`${testID}-label`}
+            <Box
+              twClassName={
+                isInlineActive ? undefined : 'absolute inset-0 justify-center'
+              }
+              testID={`${testID}-label-container`}
             >
-              {label}
-            </Text>
+              <Text
+                variant={
+                  isInlineActive ? TextVariant.BodyXs : TextVariant.BodySm
+                }
+                color={TextColor.TextAlternative}
+                numberOfLines={labelNumberOfLines}
+                accessible={false}
+                importantForAccessibility="no"
+                testID={`${testID}-label`}
+              >
+                {label}
+              </Text>
+            </Box>
             {/* Hidden by opacity, not size, so the input never resizes on focus. */}
             <Box
               twClassName={

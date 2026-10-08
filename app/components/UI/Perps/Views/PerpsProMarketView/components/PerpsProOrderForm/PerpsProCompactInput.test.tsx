@@ -83,8 +83,13 @@ describe('PerpsProCompactInput', () => {
       );
 
       expect(mockInputFocus).not.toHaveBeenCalled();
-      expect(screen.getByTestId(`${defaultProps.testID}-label`)).toHaveStyle({
+      expect(
+        screen.getByTestId(`${defaultProps.testID}-label-container`),
+      ).toHaveStyle({
         position: 'absolute',
+        top: 0,
+        bottom: 0,
+        justifyContent: 'center',
       });
     });
 
@@ -109,7 +114,7 @@ describe('PerpsProCompactInput', () => {
         }),
       );
       expect(
-        screen.getByTestId(`${defaultProps.testID}-label`),
+        screen.getByTestId(`${defaultProps.testID}-label-container`),
       ).not.toHaveStyle({ position: 'absolute' });
     });
 
@@ -132,8 +137,11 @@ describe('PerpsProCompactInput', () => {
 
       expect(mockInputFocus).not.toHaveBeenCalled();
       expect(onFieldPress).not.toHaveBeenCalled();
-      expect(screen.getByTestId(`${defaultProps.testID}-label`)).toHaveStyle({
+      expect(
+        screen.getByTestId(`${defaultProps.testID}-label-container`),
+      ).toHaveStyle({
         position: 'absolute',
+        justifyContent: 'center',
       });
     });
   });
@@ -293,6 +301,30 @@ describe('PerpsProCompactInput', () => {
         expect(label).toHaveProp('accessible', false);
         expect(label).toHaveProp('importantForAccessibility', 'no');
         expect(input).toHaveProp('accessibilityLabel', defaultProps.label);
+      },
+    );
+
+    it.each(floatingLabelVariants)(
+      'keeps the empty %s field layout stable during native press-in',
+      (variant) => {
+        render(<PerpsProCompactInput {...defaultProps} variant={variant} />);
+        const input = screen.getByTestId(defaultProps.testID, {
+          includeHiddenElements: true,
+        });
+        const label = screen.getByTestId(`${defaultProps.testID}-label`);
+        const inactiveLabelStyle = label.props.style;
+
+        fireEvent(input, 'pressIn');
+
+        expect(label.props.style).toEqual(inactiveLabelStyle);
+        expect(
+          screen.getByTestId(`${defaultProps.testID}-label-container`),
+        ).toHaveStyle({
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          justifyContent: 'center',
+        });
       },
     );
 
