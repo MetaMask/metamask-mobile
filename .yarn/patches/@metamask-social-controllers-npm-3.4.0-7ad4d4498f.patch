@@ -1,0 +1,81 @@
+diff --git a/dist/SocialService.js b/dist/SocialService.js
+index abed16a2b88a19e065b07580e5cd6ba2b001af3e..14a113ba41b2c7d50c2a8df7d483f52f7bbc4b79 100644
+--- a/dist/SocialService.js
++++ b/dist/SocialService.js
+@@ -33,10 +33,10 @@ const PositionStruct = structType({
+     chain: string(),
+     positionAmount: number(),
+     isOpen: optional(boolean()),
+-    boughtUsd: number(),
+-    soldUsd: number(),
+-    realizedPnl: number(),
+-    costBasis: number(),
++    boughtUsd: nullable(number()),
++    soldUsd: nullable(number()),
++    realizedPnl: nullable(number()),
++    costBasis: nullable(number()),
+     trades: array(TradeStruct),
+     lastTradeAt: number(),
+     tokenImageUrl: optional(nullable(string())),
+@@ -182,6 +182,25 @@ const FeedResponseStruct = structType({
+     items: array(FeedItemStruct),
+     pagination: FeedPaginationStruct,
+ });
++const parseFeedResponse = (feedData, invalidMessage) => {
++    if (is(feedData, FeedResponseStruct)) {
++        return feedData;
++    }
++    if (typeof feedData !== 'object' ||
++        feedData === null ||
++        !('items' in feedData) ||
++        !('pagination' in feedData)) {
++        throw new Error(invalidMessage);
++    }
++    const { items, pagination } = feedData;
++    if (!Array.isArray(items) || !is(pagination, FeedPaginationStruct)) {
++        throw new Error(invalidMessage);
++    }
++    return {
++        items: items.filter((item) => is(item, FeedItemStruct)),
++        pagination,
++    };
++};
+ const FollowersResponseStruct = structType({
+     followers: array(ProfileSummaryStruct),
+     count: number(),
+@@ -460,10 +479,7 @@ export class SocialService extends BaseDataService {
+                 });
+                 _a.#throwIfNotOk(response, SocialServiceErrorMessage.FETCH_FEED_FAILED);
+                 const feedData = await response.json();
+-                if (!is(feedData, FeedResponseStruct)) {
+-                    throw new Error(SocialServiceErrorMessage.FETCH_FEED_INVALID_RESPONSE);
+-                }
+-                return feedData;
++                return parseFeedResponse(feedData, SocialServiceErrorMessage.FETCH_FEED_INVALID_RESPONSE);
+             },
+         });
+         return feedResponse;
+@@ -517,10 +533,7 @@ export class SocialService extends BaseDataService {
+                 });
+                 _a.#throwIfNotOk(response, SocialServiceErrorMessage.FETCH_TRADER_FEED_FAILED);
+                 const feedData = await response.json();
+-                if (!is(feedData, FeedResponseStruct)) {
+-                    throw new Error(SocialServiceErrorMessage.FETCH_TRADER_FEED_INVALID_RESPONSE);
+-                }
+-                return feedData;
++                return parseFeedResponse(feedData, SocialServiceErrorMessage.FETCH_TRADER_FEED_INVALID_RESPONSE);
+             },
+         });
+         return traderFeedResponse;
+@@ -575,10 +588,7 @@ export class SocialService extends BaseDataService {
+                 });
+                 _a.#throwIfNotOk(response, SocialServiceErrorMessage.FETCH_TOKEN_FEED_FAILED);
+                 const feedData = (await response.json());
+-                if (!is(feedData, FeedResponseStruct)) {
+-                    throw new Error(SocialServiceErrorMessage.FETCH_TOKEN_FEED_INVALID_RESPONSE);
+-                }
+-                return feedData;
++                return parseFeedResponse(feedData, SocialServiceErrorMessage.FETCH_TOKEN_FEED_INVALID_RESPONSE);
+             },
+         });
+         return tokenFeedResponse;
