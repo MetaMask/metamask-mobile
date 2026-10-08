@@ -422,24 +422,26 @@ export class AppLockService {
    * prompt is only safe after `onPostResume`. `onPause` rejects this wait so
    * a resume that already ended cannot start authentication.
    */
-  readonly #waitUntilAndroidAuthenticationReady = async (): Promise<boolean> => {
-    if (Platform.OS !== 'android') {
-      return true;
-    }
-    const privacyCoverModule: PrivacyCoverNativeModule | undefined =
-      NativeModules.PrivacyCoverModule;
-    if (!privacyCoverModule?.waitUntilAuthenticationReady) {
-      return true;
-    }
-    try {
-      await privacyCoverModule.waitUntilAuthenticationReady();
-      return (
-        this.#currentAppState === 'active' && this.#backgroundedAt === undefined
-      );
-    } catch {
-      return false;
-    }
-  };
+  readonly #waitUntilAndroidAuthenticationReady =
+    async (): Promise<boolean> => {
+      if (Platform.OS !== 'android') {
+        return true;
+      }
+      const privacyCoverModule: PrivacyCoverNativeModule | undefined =
+        NativeModules.PrivacyCoverModule;
+      if (!privacyCoverModule?.waitUntilAuthenticationReady) {
+        return true;
+      }
+      try {
+        await privacyCoverModule.waitUntilAuthenticationReady();
+        return (
+          this.#currentAppState === 'active' &&
+          this.#backgroundedAt === undefined
+        );
+      } catch {
+        return false;
+      }
+    };
 
   /**
    * Prompts authentication, falling back to the Login screen on failure.
