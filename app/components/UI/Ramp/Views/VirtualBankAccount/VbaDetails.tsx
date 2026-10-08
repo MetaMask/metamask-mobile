@@ -35,6 +35,9 @@ export const VbaDetailsSelectorsIDs = {
   BACK_BUTTON: 'vba-details-back-button',
   DONE_BUTTON: 'vba-details-done-button',
   PIX_CODE: 'vba-details-pix-code',
+  PIX_KEY: 'vba-details-pix-key',
+  WAITING_FOR_PIX: 'vba-details-waiting-for-pix',
+  LOAD_ERROR: 'vba-details-load-error',
   TRANSACTION_STATUS: 'vba-details-transaction-status',
 } as const;
 
@@ -291,10 +294,12 @@ const VbaDetails = () => {
               />
             </Box>
             {instructions.pixKey ? (
-              <BankDetailRow
-                label={strings('virtual_bank_account.vba_details.pix_key')}
-                value={instructions.pixKey}
-              />
+              <Box testID={VbaDetailsSelectorsIDs.PIX_KEY}>
+                <BankDetailRow
+                  label={strings('virtual_bank_account.vba_details.pix_key')}
+                  value={instructions.pixKey}
+                />
+              </Box>
             ) : null}
           </Box>
         ) : (
@@ -302,6 +307,7 @@ const VbaDetails = () => {
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             twClassName="mt-4"
+            testID={VbaDetailsSelectorsIDs.WAITING_FOR_PIX}
           >
             {strings('virtual_bank_account.vba_details.waiting_for_pix')}
           </Text>
@@ -322,6 +328,7 @@ const VbaDetails = () => {
             variant={TextVariant.BodyMd}
             color={TextColor.ErrorDefault}
             twClassName="mt-4"
+            testID={VbaDetailsSelectorsIDs.LOAD_ERROR}
           >
             {strings('virtual_bank_account.vba_details.load_error')}
           </Text>

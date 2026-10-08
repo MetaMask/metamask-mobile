@@ -36,12 +36,14 @@ describe('createAsyncBatcher', () => {
 
   it('resets the idle timer on each submit until the burst settles', async () => {
     const processor = jest.fn(async () => undefined);
-    const batcher = createAsyncBatcher<string>(processor, 30);
+    // Use a wider idle window and mid-window waits so CI scheduling jitter
+    // cannot expire the debounce between submits.
+    const batcher = createAsyncBatcher<string>(processor, 80);
 
     batcher.submit('a');
-    await wait(15);
+    await wait(25);
     batcher.submit('b');
-    await wait(15);
+    await wait(25);
     expect(processor).not.toHaveBeenCalled();
 
     await batcher.submit('c');

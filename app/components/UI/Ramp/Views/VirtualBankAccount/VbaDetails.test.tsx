@@ -3,6 +3,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { strings } from '../../../../../../locales/i18n';
 import VbaDetails, {
   pickLatestTransaction,
   VbaDetailsSelectorsIDs,
@@ -199,12 +200,14 @@ describe('VbaDetails', () => {
       instruction: 'Pay with PIX',
     });
 
-    const { getByTestId, queryByText } = renderWithProvider(<VbaDetails />);
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
     });
-    expect(queryByText('pix@example.com')).toBeNull();
+    expect(
+      queryByTestId(VbaDetailsSelectorsIDs.PIX_KEY),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows the newest transaction status when an older completed exists', async () => {
@@ -221,14 +224,20 @@ describe('VbaDetails', () => {
         getByTestId(VbaDetailsSelectorsIDs.TRANSACTION_STATUS),
       ).toBeOnTheScreen();
     });
-    expect(getByText(/Pending/)).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('virtual_bank_account.vba_details.transaction_status', {
+          status: 'Pending',
+        }),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('keeps the PIX code when listing transactions fails', async () => {
     mockGetPix.mockResolvedValue(pixInstructions);
     mockListTransactions.mockRejectedValue(new Error('tx poll failed'));
 
-    const { getByTestId, getByText, queryByText } = renderWithProvider(
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
       <VbaDetails />,
     );
 
@@ -236,7 +245,9 @@ describe('VbaDetails', () => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
     });
     expect(getByText('00020126')).toBeOnTheScreen();
-    expect(queryByText(/Couldn't refresh the deposit/)).toBeNull();
+    expect(
+      queryByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR),
+    ).not.toBeOnTheScreen();
     expect(Logger.error).toHaveBeenCalled();
   });
 
@@ -263,12 +274,10 @@ describe('VbaDetails', () => {
     setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Pending' }]);
     mockRefreshAutoramp.mockRejectedValue(new Error('refresh failed'));
 
-    const { getByText } = renderWithProvider(<VbaDetails />);
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(
-        getByText("Couldn't refresh the deposit. We'll try again."),
-      ).toBeOnTheScreen();
+      expect(getByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR)).toBeOnTheScreen();
     });
     expect(Logger.error).toHaveBeenCalled();
   });
@@ -276,11 +285,11 @@ describe('VbaDetails', () => {
   it('waits for PIX when no usable autoramp exists', async () => {
     setAutoramps([]);
 
-    const { getByText } = renderWithProvider(<VbaDetails />);
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(
-        getByText('PIX instructions appear here once the account is approved.'),
+        getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_PIX),
       ).toBeOnTheScreen();
     });
     expect(mockGetPix).not.toHaveBeenCalled();
@@ -289,11 +298,11 @@ describe('VbaDetails', () => {
   it('does nothing when no Money Account wallet is selected', async () => {
     mockWalletAddress = null;
 
-    const { getByText } = renderWithProvider(<VbaDetails />);
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(
-        getByText('PIX instructions appear here once the account is approved.'),
+        getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_PIX),
       ).toBeOnTheScreen();
     });
     expect(mockGetPix).not.toHaveBeenCalled();
@@ -303,11 +312,11 @@ describe('VbaDetails', () => {
   it('skips PIX fetch when NeoBankService is unavailable', async () => {
     delete (Engine.context as unknown as EngineContextMock).NeoBankService;
 
-    const { getByText } = renderWithProvider(<VbaDetails />);
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(
-        getByText('PIX instructions appear here once the account is approved.'),
+        getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_PIX),
       ).toBeOnTheScreen();
     });
     expect(mockGetPix).not.toHaveBeenCalled();
