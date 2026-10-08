@@ -1,127 +1,160 @@
-# Skip MFA verification for Money Account signing when `moneyDisable2faForSigning` is enabled
+# User-controlled MPC MFA for Money Account signing (`POST /v2/mpc-mfa-enabled`)
 
-When the remote flag `moneyDisable2faForSigning` is on, Money Account signing must proceed without calling the MFA kit (`verifyOrEnroll`) or attaching a verification token to the signing request. When the flag is off, signing must obtain a fresh verification token (2FA claim) through the MFA kit before the Money keyring signs. The gate lives in one shared client helper so every Money signing call site stays consistent across mobile and extension.
+Money Account MPC signing normally requires a **2FA** verification claim before the MPC service will sign. Users may **turn MFA off** for MPC signing so that only **1FA** is required on subsequent sign requests. That preference is stored by the MPC service. Changing it is asymmetric: **disabling** MFA requires a **2FA** token; **enabling** MFA requires only a **1FA** token.
 
-Status: proposed, 2026-10-07 (MFA-499). Parent: [MFA-309 Architecture scoping](https://consensyssoftware.atlassian.net/browse/MFA-309).
+Status: proposed, 2026-10-08 (MFA-499). Parent: [MFA-309 Architecture scoping](https://consensyssoftware.atlassian.net/browse/MFA-309). LaunchDarkly product name: **Disable 2FA** (user-facing toggle, not a remote kill switch).
 
 ## Context
 
-MetaMask is rolling out profile MFA (email OTP and passkey) through `AuthenticationController` and the client MFA kit (`verifyOrEnroll` / `enroll`). Sensitive operations will require a verification token whose JWT claims include `amr` (authentication method references) proving the user completed 2FA.
+Money Accounts sign via MPC-backed key material (`personal_sign`, `eth_signTypedData_v1`–`v4`; not EVM transaction signing). The MPC service enforces an assurance level on each signing request:
 
-Money Accounts sign messages only — `personal_sign` and `eth_signTypedData_v1`–`v4`. They do not sign EVM transactions (`eth_signTransaction` was removed from the Money keyring). Today, representative call sites include:
+| User MPC MFA setting | Assurance required for MPC sign |
+| -------------------- | ------------------------------- |
+| MFA **enabled** (default) | **2FA** — profile verification token (email OTP / passkey) must accompany or satisfy the MPC policy |
+| MFA **disabled** | **1FA** — base session / wallet unlock level only; no 2FA claim on each sign |
 
-- Card delegation and allowance flows (`CardController`)
-- Rewards / sweepstakes Money Account binding (`RewardsController`, `personal_sign`)
-- Money deposit and relay flows that sign typed data or messages with the Money signer
-- Future first-party flows that route signing through the Money account address
+Profile MFA is implemented client-side through `AuthenticationController` and the MFA kit (`verifyOrEnroll` / `enroll`) on mobile (`feat/mfa-shadow-mode`) and extension. Verification tokens carry JWT claims including `amr`; the MPC service maps token assurance to whether signing proceeds.
 
-The MFA kit on mobile (`feat/mfa-shadow-mode`) and the matching extension kit are the only supported way for product code to obtain a verification token. `TokenReason.operation` tags each MFA ceremony for tracing (for example `money.personal_sign`, `money.signTypedData`).
-
-Product needs a **kill switch** to bypass the 2FA claim requirement for Money Account signing during rollout, QA, incident response, and cohorts where MFA is not yet enabled. The LaunchDarkly product name is **Disable 2FA**.
+Product requirement (**MFA-499**): let the user **disable 2FA for MPC signing** from settings, while making re-enablement easy but **disabling** hard — you must prove 2FA to remove 2FA.
 
 ## Decision
 
-### 1. Remote feature flag
+### 1. MPC service API (server contract)
 
-| Field | Value |
-| ----- | ----- |
-| LaunchDarkly key | `moneyDisable2faForSigning` |
-| Shape | Version-gated: `{ "enabled": boolean, "minimumVersion": string }` |
-| Default (production) | `enabled: false` |
-| Evaluated via | `validatedVersionGatedFeatureFlag` in a selector (see `docs/readme/version-gated-feature-flags.md`) |
-
-**Semantics**
-
-- `enabled: false` (default): Money Account signing **requires** MFA verification when the profile has an active MFA credential enrolled. If no credential is enrolled, existing `verifyOrEnroll` behavior applies (setup + verify as needed).
-- `enabled: true`: Money Account signing **skips** the MFA verification step entirely. No verification token is requested, shown, or forwarded to downstream APIs.
-
-The flag is a **client-side bypass of the MFA gate only**. It does not change server-side policy; backends that independently require an MFA token must continue to enforce that policy and will reject unsigned requests.
-
-### 2. Single signing gate (client)
-
-Introduce one shared helper used by every Money Account signing entry point:
+Extend the existing endpoint:
 
 ```
-ensureMoneyAccountSigningAuthorized({ operation, methods?, verifyWith?, maxSessionAgeMs? })
-  → void   // proceeds when authorized
-  → rejects with MfaFlowError when the user cancels or verification fails
+POST /v2/mpc-mfa-enabled
+Content-Type: application/json
+Authorization: Bearer <profile access token>
 ```
 
-**Algorithm**
+**Request body**
 
-1. If `selectMoneyDisable2faForSigningEnabled` is `true`, return immediately (no MFA UI, no token).
-2. Otherwise call `verifyOrEnroll` with:
-   - `reason.operation` set to the stable operation id (see table below)
-   - `methods` / `verifyWith` from the caller or the Money signing defaults (`email_otp` at minimum; passkey when the platform adapter is available)
-   - `maxSessionAgeMs` from the caller when the downstream API requires a fresh token
-3. On success, discard the token unless a caller explicitly needs to forward it to an API. The gate exists to prove the user passed 2FA before local signing; most flows only need the ceremony, not the JWT.
+```json
+{
+  "enable": true | false
+}
+```
+
+| `enable` | Meaning | Authorization on this request |
+| -------- | ------- | ------------------------------ |
+| `false` | Turn **off** MPC MFA — future MPC signs need **1FA** only | **2FA** verification token (or equivalent AAL2 session the MPC service accepts) |
+| `true` | Turn **on** MPC MFA — future MPC signs need **2FA** | **1FA** only (base profile / wallet session) |
+
+The MPC service persists the preference per Money / MPC identity and applies it on every subsequent signing call until changed again. Exact storage and GET semantics are owned by the MPC service; clients need a way to read current state for UI and signing gates (see §3).
 
 **Rejected alternatives**
 
 | Option | Why rejected |
 | ------ | ------------ |
-| Per-flow `if (flag)` at each call site | Drifts quickly; easy to miss a new Money signing path |
-| Gate inside `MoneyKeyring` / `@metamask/eth-money-keyring` | Mixes key material with profile MFA UX; keyring packages must stay UI-agnostic |
-| Gate only in RPC middleware | Misses direct controller-to-keyring signing (Card, Rewards, Pay) that never touches RPC |
-| Server-only flag | Does not remove client MFA friction; product requirement is to skip the on-device 2FA prompt |
+| LaunchDarkly `moneyDisable2faForSigning` bypass | Product intent is a **user** setting, not ops rollout; server must enforce assurance |
+| Client-only preference in local storage | MPC service would still require 2FA; no reduction to 1FA without server state |
+| Same token level for enable and disable | Violates security requirement: disabling MFA must prove 2FA |
 
-### 3. Stable `operation` identifiers
+### 2. Client flows (Mobile + Extension)
 
-Use dotted, lower-case names for `TokenReason.operation` and analytics:
+#### 2a. Toggle MFA for MPC signing (settings)
 
-| Signing method | `operation` value |
-| -------------- | ----------------- |
+Product surface: **Disable 2FA** (when MFA is on) / enable MFA (when off) under Money or Security settings.
+
+```
+User chooses enable or disable
+  → Client obtains token at required assurance:
+       disable (enable: false) → verifyOrEnroll / 2FA ceremony → 2FA token
+       enable  (enable: true)  → existing 1FA session / base auth only
+  → POST /v2/mpc-mfa-enabled { enable }
+  → On success: refresh cached mpcMfaEnabled state; update UI
+  → On failure: show error; do not change local cache
+```
+
+`TokenReason.operation` for tracing:
+
+| Action | `operation` |
+| ------ | ----------- |
+| User disables MPC MFA | `money.mpc_mfa.disable` |
+| User enables MPC MFA | `money.mpc_mfa.enable` |
+
+#### 2b. Money Account MPC signing (runtime)
+
+Before each MPC signing request for the Money account, the client must align local MFA UX with the **user’s persisted MPC MFA setting** (from MPC service / cache):
+
+```
+resolve mpcMfaEnabled for this Money identity
+  → if true:  require 2FA via verifyOrEnroll (or valid cached verification session) before calling MPC sign
+  → if false: proceed with 1FA only — do not prompt for 2FA solely for signing
+  → invoke MPC sign with tokens the service expects for that assurance level
+```
+
+Use stable `operation` ids on any verification step tied to signing:
+
+| Signing method | `operation` |
+| -------------- | ----------- |
 | `personal_sign` | `money.personal_sign` |
-| `eth_signTypedData` / `_v1` | `money.signTypedData.v1` |
 | `eth_signTypedData_v3` | `money.signTypedData.v3` |
 | `eth_signTypedData_v4` | `money.signTypedData.v4` |
-| Unknown / internal composite | `money.sign` (fallback; prefer a specific id) |
+| (fallback) | `money.sign` |
 
-Callers pass the most specific operation id they know. The gate must not invent new ids per screen.
+**Rejected alternatives**
+
+| Option | Why rejected |
+| ------ | ------------ |
+| Per-flow signing checks without reading MPC MFA state | Drift; signing would still demand 2FA after user disabled MFA |
+| Gate only in RPC middleware | Misses controller-initiated Money MPC signs (Card, Rewards, Pay) |
+
+Implement one shared module (e.g. `ensureMoneyAccountMpcSigningAuthorized`) that reads `mpcMfaEnabled` and runs `verifyOrEnroll` only when `true`.
+
+### 3. Client state and cache
+
+| Concern | Approach |
+| ------- | -------- |
+| Source of truth | MPC service persisted flag (via `POST /v2/mpc-mfa-enabled` and any companion GET or signing metadata the service exposes) |
+| UI | Settings toggle reflects last known `mpcMfaEnabled`; disable copy matches product name **Disable 2FA** |
+| Cache | In-memory + optional short-lived cache after successful POST or profile fetch; invalidate on sign-out, wallet reset, and failed MPC sign with assurance errors |
+| Default when unknown | **Fail safe**: treat as MFA **enabled** (require 2FA for signing) until the client loads explicit `false` from the server |
 
 ### 4. Platform scope
 
-| Surface | Owner | Notes |
-| ------- | ----- | ----- |
-| MetaMask Mobile | Money + Identity | Selector under `app/selectors/featureFlagController/moneyAccount/` or `app/lib/Money/feature-flags.ts`; gate under `app/lib/Money/` or `app/util/identity/mfa/` |
-| MetaMask Extension | Money + Identity | Mirror flag selector and gate; keep `operation` strings identical for cross-client tracing |
-| `@metamask/core` controllers | N/A for this flag | Controllers remain agnostic; clients wrap signing |
+| Surface | Responsibility |
+| ------- | ---------------- |
+| **MPC service** | `POST /v2/mpc-mfa-enabled`, enforcement on sign, token assurance validation |
+| **MetaMask Mobile** | Settings UI, POST orchestration, signing gate, API client |
+| **MetaMask Extension** | Same behavior and `operation` strings as mobile |
+| **`@metamask/core`** | No change unless a shared MPC client module is introduced; controllers stay agnostic |
 
-### 5. Interaction with `isMfaKitEnabled`
+### 5. Relationship to profile MFA enrollment
 
-`isMfaKitEnabled` (non-prod / non-beta build gate for MFA screens) is **orthogonal** to `moneyDisable2faForSigning`:
+Enrolling email OTP / passkey in profile MFA settings is **orthogonal** to MPC MFA **enabled/disabled**:
 
-- When the MFA kit is disabled for the build, Money signing behaves as today (no MFA prompt). Do not conflate this with the remote kill switch.
-- When the MFA kit is enabled and `moneyDisable2faForSigning` is `false`, apply the full verification gate.
-- When both are enabled, the remote flag wins for Money signing only.
+- A user can have credentials enrolled but **disable** MPC MFA (1FA signing only).
+- Re-**enabling** MPC MFA does not require re-enrollment if credentials still exist; signing will again require `verifyOrEnroll` when `mpcMfaEnabled` is `true`.
 
 ## Consequences
 
-- **Positive**: One flag controls rollout risk; incident response can disable client-side 2FA for Money signing without redeploying every call site. Operation ids give consistent Sentry / product analytics.
-- **Negative**: While the flag is `true`, Money Account signing relies on device unlock and existing Money permissions only — equivalent to pre-MFA behavior. Must not be left enabled in production without explicit approval.
-- **Testing**: Unit-test the gate (flag on → no `verifyOrEnroll`; flag off → `verifyOrEnroll` called with correct `operation`). Integration tests mock the MFA adapter. E2E covers one representative Money signing flow per platform with flag on and off.
-- **Observability**: Log / trace `money.mfa_gate.skipped` vs `money.mfa_gate.verified` with `operation` and flag state (never log tokens or OTP).
+- **Positive**: User control with correct security asymmetry; server enforces assurance so clients cannot bypass 2FA by toggling local flags alone.
+- **Risk**: While MPC MFA is disabled, signing exposure matches 1FA-only threat model; product copy must state that clearly before `enable: false`.
+- **Testing**: Contract tests for POST body and auth headers; unit tests on signing gate (`mpcMfaEnabled` true/false/unknown); E2E: disable path shows 2FA, enable path does not, signing without 2FA prompt when disabled.
+- **Observability**: Trace `money.mpc_mfa.post` (enable value, success) and `money.mpc_sign.assurance` (required 1fa vs 2fa); never log tokens or OTP.
 
 ## Implementation scope (follow-up tickets)
 
-Not in MFA-499; listed here to bound work:
-
-1. **Flag plumbing** — Add `moneyDisable2faForSigning` to the feature-flag registry, LaunchDarkly, and `selectMoneyDisable2faForSigningEnabled`.
-2. **Signing gate module** — Implement `ensureMoneyAccountSigningAuthorized` and unit tests.
-3. **Call-site migration** — Wrap Money signing in Card, Rewards, Pay/deposit, and any other Money signer usages identified by code search for `MoneyAccount` + `sign`.
-4. **Extension parity** — Same flag and gate in extension Money signing paths.
-5. **QA presets** — Extend MFA QA presets (shadow mode) with a “Money sign with flag off/on” scenario.
+1. **MPC service** — Ship `POST /v2/mpc-mfa-enabled` with `enable: boolean` and assurance rules above; document GET or sign-time hint for current state.
+2. **Mobile API layer** — Client for `/v2/mpc-mfa-enabled` and cached `mpcMfaEnabled` selector/store.
+3. **Settings UI** — Disable 2FA / Enable MFA toggle with confirmations and copy.
+4. **Signing gate** — `ensureMoneyAccountMpcSigningAuthorized` used by all Money MPC sign call sites.
+5. **Extension parity** — Same API, settings, and gate.
 
 ## Open questions
 
-1. **Server coupling**: Do any Money APIs already require forwarding the verification JWT on sign requests? If yes, `moneyDisable2faForSigning` cannot bypass server checks — document per endpoint.
-2. **Credential absence**: Confirm product behavior when MFA is mandated globally but the user has no enrolled credential and the disable flag is off (expected: enrollment flow via `verifyOrEnroll`).
-3. **Session freshness**: Some APIs may require `maxSessionAgeMs` stricter than the default verification session TTL; callers must pass through explicit limits.
+1. **Read API**: Is there `GET /v2/mpc-mfa-enabled` (or field on an existing Money/MPC profile) for initial UI state?
+2. **Response shape**: Success body, error codes when token assurance is insufficient (e.g. 2FA required but 1FA presented).
+3. **Propagation delay**: Is the new setting effective immediately on all MPC sign replicas?
+4. **Default for existing users**: MFA enabled or disabled before first explicit POST?
 
 ## References
 
+- Jira: [MFA-499](https://consensyssoftware.atlassian.net/browse/MFA-499)
 - MFA kit (mobile): `app/util/identity/mfa/` on `feat/mfa-shadow-mode`
 - `VerificationToken` / `TokenReason`: `@metamask/profile-sync-controller/sdk`
-- Money account methods migration: `app/store/migrations/150.ts`
-- Version-gated flags: `docs/readme/version-gated-feature-flags.md`
+- Money account signing methods: `app/store/migrations/150.ts`
 - Example ADR format: `app/components/UI/PredictNext/docs/adr/0001-unified-action-discriminated-order-contract.md`
