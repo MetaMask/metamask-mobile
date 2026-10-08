@@ -2,6 +2,7 @@ import { createSelector } from 'reselect';
 import type { MoneyAccountControllerState } from '@metamask/money-account-controller';
 import { RootState } from '../../reducers';
 import { selectPrimaryHDKeyring } from '../keyringController';
+import type { MoneyAccountUpgradeControllerState } from '@metamask/money-account-upgrade-controller';
 
 /**
  * Selects the MoneyAccountController state from the root Redux state.
@@ -42,3 +43,8 @@ export const selectPrimaryMoneyAccount = createSelector(
     );
   },
 );
+
+export const selectMoneyAccountUpgradedAccounts = (
+  state: RootState,
+): MoneyAccountUpgradeControllerState['upgradedAccounts'] =>
+  state.engine.backgroundState.MoneyAccountUpgradeController.upgradedAccounts;

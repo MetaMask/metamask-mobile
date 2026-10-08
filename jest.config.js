@@ -91,6 +91,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/eth-block-tracker',
   '@metamask/eth-json-rpc-provider',
   '@metamask/eth-json-rpc-middleware',
+  '@metamask/eth-json-rpc-provider',
   '@metamask/json-rpc-engine',
   '@metamask/gas-fee-controller',
   // 2.x ships ESM-only under dist/*.js.

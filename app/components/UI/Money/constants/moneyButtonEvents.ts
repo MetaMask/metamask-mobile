@@ -17,6 +17,7 @@ export enum MONEY_BUTTON_INTENTS {
   CARD_FEES = 'card_fees',
   GET_PRO = 'get_pro',
   OPEN_PRO_HUB = 'open_pro_hub',
+  RETRY_REGISTRATION = 'retry_registration',
 }
 
 export enum MONEY_BUTTON_TYPES {

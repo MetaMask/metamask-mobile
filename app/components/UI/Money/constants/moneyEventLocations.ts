@@ -10,6 +10,7 @@ export enum SCREEN_NAMES {
   // Used for Money account withdrawals
   MONEY_TRANSFER = 'money_transfer',
   MONEY_HOW_IT_WORKS = 'money_how_it_works',
+  MONEY_ADVANCED_SETTINGS = 'money_advanced_settings',
   MONEY_ACTIVITY = 'money_activity',
   MONEY_ACTIVITY_DETAILS = 'money_activity_details',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
@@ -98,6 +99,8 @@ export enum COMPONENT_NAMES {
   MONEY_MORE_SHEET_HOW_IT_WORKS = 'money_more_sheet_how_it_works',
   MONEY_MORE_SHEET_WHAT_YOU_GET = 'money_more_sheet_what_you_get',
   MONEY_MORE_SHEET_CONTACT_SUPPORT = 'money_more_sheet_contact_support',
+  MONEY_MORE_SHEET_ADVANCED_SETTINGS = 'money_more_sheet_advanced_settings',
+  MONEY_ADVANCED_SETTINGS_RETRY = 'money_advanced_settings_retry',
 
   // — Miscellaneous —
   MONEY_HOW_IT_WORKS_SECTION_HEADER = 'money_how_it_works_section_header',
