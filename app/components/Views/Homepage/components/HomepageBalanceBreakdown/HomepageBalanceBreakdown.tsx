@@ -5,8 +5,6 @@ import AccountGroupBalance from '../../../../UI/Assets/components/Balance/Accoun
 import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../../selectors/onboarding';
 import { SLICE_ORDER } from '../../BalanceBreakdown/constants';
 import { useBalanceBreakdown } from '../../BalanceBreakdown/hooks/useBalanceBreakdown';
-import type { HomepageBalanceBreakdownLayout } from '../../abTestConfig';
-import HomepageBalanceBreakdownAllocationBar from './HomepageBalanceBreakdownAllocationBar';
 import HomepageBalanceBreakdownHero from './HomepageBalanceBreakdownHero';
 import HomepageBalanceBreakdownRow from './HomepageBalanceBreakdownRow';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
@@ -16,8 +14,6 @@ import type { TransactionActiveAbTestEntry } from '../../../../../util/transacti
 export interface HomepageBalanceBreakdownProps {
   hideRows?: boolean;
   accountGroupBalanceProps?: React.ComponentProps<typeof AccountGroupBalance>;
-  layout: HomepageBalanceBreakdownLayout;
-  showRowArrows?: boolean;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   children?: React.ReactNode;
 }
@@ -25,8 +21,6 @@ export interface HomepageBalanceBreakdownProps {
 const HomepageBalanceBreakdown = ({
   hideRows = false,
   accountGroupBalanceProps,
-  layout,
-  showRowArrows = false,
   transactionActiveAbTests,
   children,
 }: HomepageBalanceBreakdownProps) => {
@@ -37,7 +31,12 @@ const HomepageBalanceBreakdown = ({
   const isWalletHomeOnboardingActive = useSelector(
     selectShouldShowWalletHomeOnboardingSteps,
   );
-  const visibleSliceKeys = SLICE_ORDER.filter((key) => slices[key].isVisible);
+  const visibleSliceKeys = SLICE_ORDER.filter((key) => {
+    const slice = slices[key];
+    const hasBalance = slice.status === 'ready' && slice.valueFiat !== 0;
+
+    return slice.isVisible && (key === 'money' || hasBalance);
+  });
 
   return (
     <Box testID={HomepageBalanceBreakdownTestIds.CONTAINER}>
@@ -52,15 +51,10 @@ const HomepageBalanceBreakdown = ({
           testID={HomepageBalanceBreakdownTestIds.ROWS}
           twClassName="mt-3 pt-2"
         >
-          {layout === 'allocation' ? (
-            <HomepageBalanceBreakdownAllocationBar slices={slices} />
-          ) : null}
           {visibleSliceKeys.map((key) => (
             <HomepageBalanceBreakdownRow
               key={key}
-              layout={layout}
               onPress={() => openSlice(key, SLICE_ORDER.indexOf(key))}
-              showArrow={showRowArrows}
               slice={slices[key]}
               userCurrency={hero.userCurrency}
             />
