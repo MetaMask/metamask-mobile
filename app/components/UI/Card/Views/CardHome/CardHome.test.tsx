@@ -413,6 +413,7 @@ const createDefaultMoneyAccountCardLinkageMock =
     primaryMoneyAccount: undefined,
     moneyAccountCardToken: null,
     canLink: false,
+    isMoneyAccountLinkingSupported: true,
     status: 'idle' as const,
     isLinking: false,
     error: null,
@@ -7274,7 +7275,11 @@ describe('CardHome Component', () => {
 
   describe('Link Money Account content', () => {
     const setupLinkageMock = (
-      overrides: Partial<{ canLink: boolean; isLinking: boolean }> = {},
+      overrides: Partial<{
+        canLink: boolean;
+        isLinking: boolean;
+        isMoneyAccountLinkingSupported: boolean;
+      }> = {},
     ) => {
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: true,
@@ -7310,6 +7315,7 @@ describe('CardHome Component', () => {
           delegationContract: '0x9876543210987654321098765432109876543210',
         },
         canLink: true,
+        isMoneyAccountLinkingSupported: true,
         status: 'idle' as const,
         isLinking: false,
         error: null,
@@ -7355,6 +7361,24 @@ describe('CardHome Component', () => {
 
     it('hides link-mode content when Money Account linking is unavailable', () => {
       setupMockSelectors({ cardHomeDataStatus: 'success' });
+
+      render();
+
+      expect(
+        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides link-mode content when the authenticated provider does not support Money account linking', () => {
+      setupMockSelectors({ cardHomeDataStatus: 'success' });
+      mockGetCapabilities.mockReturnValue({
+        ...BAANX_CAPABILITIES,
+        supportsMoneyAccountLinking: false,
+      });
+      setupLinkageMock({
+        canLink: false,
+        isMoneyAccountLinkingSupported: false,
+      });
 
       render();
 

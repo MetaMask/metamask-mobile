@@ -142,21 +142,23 @@ jobs:
 
       - name: Determine target paths and Artifact Names
         id: determine-target-paths
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
         run: |
-          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
+          if [[ "${BUILD_TYPE}" == "flask" ]]; then
             {
               echo "apk-target-path=android/app/build/outputs/apk/flask/release"
               echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/flask/release"
               echo "artifact_name=app-flask-release"
             } >> "$GITHUB_OUTPUT"
-          elif [[ "${{ inputs.build_type }}" == "main" ]]; then
+          elif [[ "${BUILD_TYPE}" == "main" ]]; then
             {
               echo "apk-target-path=android/app/build/outputs/apk/prod/release"
               echo "test-apk-target-path=android/app/build/outputs/apk/androidTest/prod/release"
               echo "artifact_name=app-prod-release"
             } >> "$GITHUB_OUTPUT"
           else
-            echo "❌ Error: build_type ${{ inputs.build_type }} is not valid"
+            echo "❌ Error: build_type ${BUILD_TYPE} is not valid"
             exit 1
           fi
           # Captured here, pre-setup, so the reuse summary can print the same APK
@@ -328,11 +330,13 @@ jobs:
           run-id: ${{ steps.find-reusable-build.outputs.run-id }}
 
       - name: Log reused Android build source
+        env:
+          BUILD_BRANCH: ${{ steps.find-reusable-build.outputs.source-branch }}
         if: ${{ steps.download-reusable-apk.outcome == 'success' && steps.download-reusable-test-apk.outcome == 'success' }}
         run: |
           echo "Reusing Android build from run ${{ steps.find-reusable-build.outputs.run-id }}"
           echo "Source SHA: ${{ steps.find-reusable-build.outputs.source-sha }}"
-          echo "Source branch: ${{ steps.find-reusable-build.outputs.source-branch }}"
+          echo "Source branch: ${BUILD_BRANCH}"
         shell: bash
 
       - name: Compute native-build gate
@@ -556,13 +560,15 @@ jobs:
           run-id: ${{ steps.find-reusable-build-late.outputs.run-id }}
 
       - name: Log late-reused Android build source
+        env:
+          BUILD_BRANCH: ${{ steps.find-reusable-build-late.outputs.source-branch }}
         if: ${{ steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success' }}
         shell: bash
         run: |
           echo "A reusable Android build appeared while this job was setting up; skipping the native compile."
           echo "Reusing Android build from run ${{ steps.find-reusable-build-late.outputs.run-id }}"
           echo "Source SHA: ${{ steps.find-reusable-build-late.outputs.source-sha }}"
-          echo "Source branch: ${{ steps.find-reusable-build-late.outputs.source-branch }}"
+          echo "Source branch: ${BUILD_BRANCH}"
 
       # -------------------------------------------------------------------------
       # Gradle caches + native build — only on the full native-build path.
@@ -619,7 +625,7 @@ jobs:
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=4096"
           cp android/gradle.properties.github android/gradle.properties
-          yarn build:android:${{ inputs.build_type }}:e2e
+          yarn "build:android:${METAMASK_BUILD_TYPE}:e2e"
         shell: bash
         env:
           PLATFORM: android

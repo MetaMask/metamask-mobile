@@ -13,6 +13,12 @@ interface RawBridgeRecurringBuyFeatureFlagValue extends Record<string, Json> {
   enabledChainIds: CaipChainId[];
 }
 
+interface RawSentinelFeeTokensFeatureFlagValue extends Record<string, Json> {
+  cacheTtlMs: number;
+}
+
+export const DEFAULT_SENTINEL_FEE_TOKENS_CACHE_TTL_MS = 15 * 60 * 1000;
+
 /**
  * Builds a selector for a Bridge swap feature flag (Limit Order, Recurring
  * Buy/DCA, etc). Remote flag wins when present and valid; otherwise falls
@@ -55,6 +61,11 @@ export const selectBridgeRecurringBuyFeatureFlags =
     'swapsRecurringBuy',
   );
 
+export const selectSentinelFeeTokensFeatureFlags =
+  createBridgeSwapFeatureFlagsSelector<RawSentinelFeeTokensFeatureFlagValue>(
+    'swapsSentinelFeeTokens',
+  );
+
 /**
  * Selector for the Bridge Limit Order tab feature flag.
  * Controls visibility of the "Limit" tab in the Bridge/Swap view.
@@ -86,4 +97,22 @@ export const selectBridgeLimitOrderBaseUrl = createSelector(
 export const selectBridgeRecurringBuyTabEnabledFlag = createSelector(
   selectBridgeRecurringBuyFeatureFlags,
   (flags): boolean => flags?.enabled ?? false,
+);
+
+/**
+ * Selector for the Sentinel fee-token cache TTL.
+ *
+ * @returns A positive TTL from LaunchDarkly, or the 15-minute default.
+ */
+export const selectSentinelFeeTokensCacheTtlMs = createSelector(
+  selectSentinelFeeTokensFeatureFlags,
+  (flags): number => {
+    const cacheTtlMs = flags?.cacheTtlMs;
+
+    return typeof cacheTtlMs === 'number' &&
+      Number.isFinite(cacheTtlMs) &&
+      cacheTtlMs > 0
+      ? cacheTtlMs
+      : DEFAULT_SENTINEL_FEE_TOKENS_CACHE_TTL_MS;
+  },
 );

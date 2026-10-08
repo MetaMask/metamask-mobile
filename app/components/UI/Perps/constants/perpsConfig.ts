@@ -332,9 +332,6 @@ export const PERPS_ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS = 500;
  * These constants are only active when __DEV__ is true
  */
 export const DEVELOPMENT_CONFIG = {
-  // Magic number to simulate fee discount state (20% discount)
-  SimulateFeeDiscountAmount: 41,
-
   // Magic number to simulate rewards error state (set order amount to this value)
   SimulateRewardsErrorAmount: 42,
 
@@ -451,6 +448,8 @@ export const PROVIDER_CONFIG = {
   DefaultProvider: 'hyperliquid' as const,
   /** Controller mode that aggregates reads across active providers. */
   AggregatedProvider: 'aggregated' as const,
+  /** Trades from its own balance, so it has no deposit-with-order route. */
+  LighterProvider: 'lighter' as const,
 } as const;
 
 /** Network mode for perps (testnet vs mainnet). */

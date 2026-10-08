@@ -499,6 +499,10 @@ describe('CardHome', () => {
 
   describe('Money Account linking', () => {
     it('navigates to the Link Card sheet when link-mode content is pressed', async () => {
+      mockGetCapabilities.mockReturnValue({
+        ...defaultCapabilities,
+        supportsMoneyAccountLinking: true,
+      });
       const { findByTestId } = renderCardHomeView({
         overrides: linkableCardHomeOverrides,
         extraRoutes: [{ name: Routes.MONEY.MODALS.ROOT }],
