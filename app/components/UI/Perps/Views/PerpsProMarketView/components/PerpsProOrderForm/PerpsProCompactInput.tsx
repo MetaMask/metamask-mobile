@@ -269,7 +269,8 @@ const PerpsProCompactInput = React.forwardRef<
         keyboardType={keyboardType}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        // Hidden fields stay mounted; non-editable keeps Android focus search off them.
+        // Hidden fields stay mounted for iOS accessories. Non-editable keeps
+        // Android focus search off them.
         isDisabled={isInteractionBlocked}
         // A tap landing here is consumed by the input, so neither the inline
         // variant's wrapping pressable nor the stacked variant's label fires.
@@ -308,7 +309,9 @@ const PerpsProCompactInput = React.forwardRef<
           >
             <Box
               twClassName={
-                isInlineActive ? undefined : 'absolute inset-0 justify-center'
+                isInlineActive
+                  ? 'absolute inset-x-0 top-0'
+                  : 'absolute inset-0 justify-center'
               }
               testID={`${testID}-label-container`}
             >
@@ -325,13 +328,17 @@ const PerpsProCompactInput = React.forwardRef<
                 {label}
               </Text>
             </Box>
-            {/* Hidden by opacity, not size, so the input never resizes on focus. */}
+            {/* Opacity hides the empty input, but opacity 0 is also what keeps
+                this row a native view. collapsable={false} keeps that true at
+                opacity 1, so focusing cannot reparent the Android input. */}
             <Box
+              collapsable={false}
               twClassName={
                 isInlineActive
-                  ? 'w-full flex-row items-center'
-                  : 'w-full flex-row items-center opacity-0'
+                  ? 'absolute inset-x-0 bottom-0 flex-row items-center'
+                  : 'absolute inset-x-0 bottom-0 flex-row items-center opacity-0'
               }
+              testID={`${testID}-input-row`}
             >
               <Box twClassName="shrink-0">{startAccessory}</Box>
               {input}

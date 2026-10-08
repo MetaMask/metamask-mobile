@@ -115,7 +115,7 @@ describe('PerpsProCompactInput', () => {
       );
       expect(
         screen.getByTestId(`${defaultProps.testID}-label-container`),
-      ).not.toHaveStyle({ position: 'absolute' });
+      ).toHaveStyle({ position: 'absolute', top: 0 });
     });
 
     it('does not expand a disabled field when an arrow moves to it', () => {
@@ -305,18 +305,22 @@ describe('PerpsProCompactInput', () => {
     );
 
     it.each(floatingLabelVariants)(
-      'keeps the empty %s field layout stable during native press-in',
+      'keeps the empty %s native input frame stable through focus handoff',
       (variant) => {
         render(<PerpsProCompactInput {...defaultProps} variant={variant} />);
         const input = screen.getByTestId(defaultProps.testID, {
           includeHiddenElements: true,
         });
         const label = screen.getByTestId(`${defaultProps.testID}-label`);
+        const inputRow = screen.getByTestId(`${defaultProps.testID}-input-row`);
         const inactiveLabelStyle = label.props.style;
+        const inactiveInputRowStyle = inputRow.props.style;
 
         fireEvent(input, 'pressIn');
 
+        expect(inputRow).toHaveProp('collapsable', false);
         expect(label.props.style).toEqual(inactiveLabelStyle);
+        expect(inputRow.props.style).toEqual(inactiveInputRowStyle);
         expect(
           screen.getByTestId(`${defaultProps.testID}-label-container`),
         ).toHaveStyle({
@@ -325,6 +329,23 @@ describe('PerpsProCompactInput', () => {
           bottom: 0,
           justifyContent: 'center',
         });
+
+        fireEvent(input, 'focus');
+
+        expect(
+          screen.getByTestId(`${defaultProps.testID}-input-row`),
+        ).toHaveProp('collapsable', false);
+        expect(
+          screen.getByTestId(`${defaultProps.testID}-input-row`),
+        ).toHaveStyle({
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+        });
+        expect(
+          screen.getByTestId(`${defaultProps.testID}-label-container`),
+        ).toHaveStyle({ position: 'absolute', top: 0 });
       },
     );
 
