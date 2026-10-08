@@ -26,20 +26,57 @@ interface BrazeBannerCardProps {
   onDismiss: () => void;
 }
 
+/** Shared dismiss control; callers only customize its placement. */
+const BannerDismissButton = ({
+  onDismiss,
+  twClassName,
+}: {
+  onDismiss: () => void;
+  twClassName?: string;
+}) => {
+  const tw = useTailwind();
+  return (
+    <Pressable
+      testID={BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON}
+      onPress={onDismiss}
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      style={tw.style(twClassName)}
+    >
+      <Icon
+        name={IconName.Close}
+        size={IconSize.Md}
+        color={IconColor.IconAlternative}
+      />
+    </Pressable>
+  );
+};
+
 /**
  * Title + body variant. Body uses the muted `text-alternative` colour to give
  * the title visual priority. CTA label is intentionally not rendered here.
  */
-const BannerWithTitle = ({ title, body }: { title: string; body: string }) => (
-  <Box twClassName="flex-1 pr-6">
-    <Text
-      testID={BRAZE_BANNER_TEST_IDS.TITLE}
-      variant={TextVariant.BodySm}
-      fontWeight={FontWeight.Medium}
-      color={TextColor.TextDefault}
-    >
-      {title}
-    </Text>
+const BannerWithTitle = ({
+  title,
+  body,
+  onDismiss,
+}: {
+  title: string;
+  body: string;
+  onDismiss: () => void;
+}) => (
+  <Box twClassName="flex-1">
+    <Box flexDirection={BoxFlexDirection.Row} alignItems={BoxAlignItems.Center}>
+      <Text
+        testID={BRAZE_BANNER_TEST_IDS.TITLE}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
+        twClassName="flex-1"
+      >
+        {title}
+      </Text>
+      <BannerDismissButton onDismiss={onDismiss} />
+    </Box>
     <Text
       testID={BRAZE_BANNER_TEST_IDS.BODY}
       variant={TextVariant.BodySm}
@@ -57,29 +94,37 @@ const BannerWithTitle = ({ title, body }: { title: string; body: string }) => (
 const BannerWithCta = ({
   body,
   ctaLabel,
+  onDismiss,
 }: {
   body: string;
   ctaLabel: string | null;
+  onDismiss: () => void;
 }) => (
-  <Box twClassName="flex-1 pr-6">
-    <Text
-      testID={BRAZE_BANNER_TEST_IDS.BODY}
-      variant={TextVariant.BodySm}
-      color={TextColor.TextDefault}
-    >
-      {body}
-    </Text>
-    {ctaLabel && (
+  <>
+    <Box twClassName="flex-1 pr-6">
       <Text
-        testID={BRAZE_BANNER_TEST_IDS.CTA}
+        testID={BRAZE_BANNER_TEST_IDS.BODY}
         variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.PrimaryDefault}
+        color={TextColor.TextDefault}
       >
-        {ctaLabel}
+        {body}
       </Text>
-    )}
-  </Box>
+      {ctaLabel && (
+        <Text
+          testID={BRAZE_BANNER_TEST_IDS.CTA}
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.PrimaryDefault}
+        >
+          {ctaLabel}
+        </Text>
+      )}
+    </Box>
+    <BannerDismissButton
+      onDismiss={onDismiss}
+      twClassName="absolute top-3 right-3"
+    />
+  </>
 );
 
 /**
@@ -110,7 +155,7 @@ const BrazeBannerCard = ({
       alignItems={BoxAlignItems.Center}
       backgroundColor={BoxBackgroundColor.BackgroundMuted}
       gap={4}
-      twClassName="w-full rounded-xl px-4 py-3"
+      twClassName="w-full rounded-xl pl-4 pr-3 py-3"
       style={{ minHeight: BANNER_HEIGHT }}
     >
       {imageUrl && (
@@ -128,23 +173,10 @@ const BrazeBannerCard = ({
       )}
 
       {title ? (
-        <BannerWithTitle title={title} body={body} />
+        <BannerWithTitle title={title} body={body} onDismiss={onDismiss} />
       ) : (
-        <BannerWithCta body={body} ctaLabel={ctaLabel} />
+        <BannerWithCta body={body} ctaLabel={ctaLabel} onDismiss={onDismiss} />
       )}
-
-      <Pressable
-        testID={BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON}
-        onPress={onDismiss}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        style={tw.style('absolute top-3 right-4')}
-      >
-        <Icon
-          name={IconName.Close}
-          size={IconSize.Md}
-          color={IconColor.IconAlternative}
-        />
-      </Pressable>
     </Box>
   );
 };
