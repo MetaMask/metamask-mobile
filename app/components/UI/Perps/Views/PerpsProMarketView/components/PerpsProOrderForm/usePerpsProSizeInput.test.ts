@@ -43,6 +43,63 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.exactAssetAmount).toBe('0.123456');
   });
 
+  it('keeps exact base intent and its live USD projection across denomination toggles', () => {
+    const params = createParams({
+      preserveAssetIntent: true,
+      effectivePrice: 137.31,
+    });
+    const { result, rerender } = renderHook(
+      (input) => usePerpsProSizeInput(input),
+      { initialProps: params },
+    );
+    act(() => result.current.sizeInput.onToggleDenomination());
+    act(() => result.current.sizeInput.onChange('0.123456'));
+    rerender({ ...params, usdAmount: '16.95' });
+
+    act(() => result.current.sizeInput.onToggleDenomination());
+    rerender({ ...params, usdAmount: '16.95', effectivePrice: 140.13 });
+    act(() => result.current.sizeInput.onBlur());
+
+    expect(result.current.exactAssetAmount).toBe('0.123456');
+    expect(result.current.sizeInput.value).toBe('17.3');
+    expect(result.current.effectiveUsdAmount).toBe('17.3');
+    act(() => result.current.sizeInput.onToggleDenomination());
+    expect(result.current.sizeInput.value).toBe('0.123456');
+    expect(result.current.exactAssetAmount).toBe('0.123456');
+  });
+
+  it.each(['usd edit', 'slider', 'external clamp'] as const)(
+    'replaces retained base intent after a %s even while price is unavailable',
+    (change) => {
+      const params = createParams({
+        preserveAssetIntent: true,
+        effectivePrice: 137.31,
+      });
+      const { result, rerender } = renderHook(
+        (input) => usePerpsProSizeInput(input),
+        { initialProps: params },
+      );
+      act(() => result.current.sizeInput.onToggleDenomination());
+      act(() => result.current.sizeInput.onChange('0.123456'));
+      rerender({ ...params, usdAmount: '16.95' });
+      act(() => result.current.sizeInput.onToggleDenomination());
+      rerender({ ...params, usdAmount: '16.95', effectivePrice: 0 });
+
+      if (change === 'usd edit') {
+        act(() => result.current.sizeInput.onChange('10'));
+      } else if (change === 'slider') {
+        act(() => result.current.sizeSlider.onDragEnd(10));
+      }
+      rerender({ ...params, usdAmount: '10', effectivePrice: 0 });
+      rerender({ ...params, usdAmount: '10' });
+      act(() => result.current.sizeInput.onToggleDenomination());
+
+      expect(result.current.exactAssetAmount).toBeUndefined();
+      expect(result.current.effectiveUsdAmount).toBe('10');
+      expect(result.current.sizeInput.value).toBe('0.072');
+    },
+  );
+
   it('keeps a slider selection as a capped quote intent in base denomination', () => {
     const params = createParams({ preserveAssetIntent: true });
     const { result } = renderHook(() => usePerpsProSizeInput(params));
