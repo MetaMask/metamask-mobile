@@ -1444,6 +1444,7 @@ export type MessengerClientInitFunctionsByMessengerClientName = {
   >;
 };
 
+
 export interface InitMessengerClientsFunctionRequest {
   wallet: Wallet;
   baseControllerMessenger: RootExtendedMessenger;
