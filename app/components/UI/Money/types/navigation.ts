@@ -81,7 +81,6 @@ export type MoneyModalsNavigationParamList = {
   MoneyAddMoneySheet: MoneyAddMoneySheetParams | undefined;
   MoneyMoreSheet: undefined;
   MoneyTransferSheet: undefined;
-  MoneyMusdRescueSendSheet: undefined;
   MoneyApyInfoSheet: { apy?: number; variant?: 'default' | 'deposit' };
   MoneyEarningsInfoSheet: { variant: 'monthly' | 'lifetime' };
   MoneyBalanceInfoSheet: undefined;
@@ -97,6 +96,15 @@ interface MoneyPotentialEarningsParams {
 }
 
 /**
+ * Selection returned by the rescue recipient screen. Only the account *id*
+ * travels through navigation; the review screen resolves it against the
+ * current eligible same-SRP list so a stale or foreign id yields no recipient.
+ */
+export interface MoneyMusdRescueRecipientSelection {
+  recipientId: string;
+}
+
+/**
  * Feature-level Money navigation params: nested stacks, flat root screens, and
  * typed `{ screen, params }` entry points for cross-stack navigation.
  */
@@ -108,7 +116,8 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
     MoneyOnboarding: MoneyOnboardingParams | undefined;
     MoneyFirstTimeDeposit: undefined;
     MoneyPotentialEarnings: MoneyPotentialEarningsParams | undefined;
-    MoneyMusdRescueSendSheet: undefined;
+    MoneyMusdRescueSend: MoneyMusdRescueRecipientSelection | undefined;
+    MoneyMusdRescueRecipient: { selectedRecipientId?: string } | undefined;
     MoneyTransactionDetails: { transactionId: string };
     MoneyCardTransactionDetails:
       | {

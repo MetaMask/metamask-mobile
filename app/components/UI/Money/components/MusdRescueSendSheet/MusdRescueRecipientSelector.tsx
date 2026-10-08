@@ -1,212 +1,224 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Modal, Pressable, StyleSheet } from 'react-native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  ActionListItem,
   AvatarAccount,
   AvatarAccountSize,
   AvatarAccountVariant,
-  BottomSheetDialog,
-  BottomSheetHeader,
   Box,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  SelectButton,
-  SelectButtonSize,
+  BoxAlignItems,
+  BoxFlexDirection,
+  FontWeight,
+  HeaderStandard,
+  ListItemSelect,
+  SensitiveText,
+  SensitiveTextLength,
   Text,
   TextColor,
   TextVariant,
+  TextFieldSearch,
 } from '@metamask/design-system-react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
+import { formatWithThreshold } from '../../../../../util/assets';
+import I18n, { strings } from '../../../../../../locales/i18n';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
+import { MoneyNavigationParamList } from '../../types/navigation';
+import useMusdRescueRecipients from '../../hooks/useMusdRescueRecipients';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
-import type { MusdRescueRecipient } from '../../hooks/useMusdRescueRecipients';
-import { MusdRescueSendSheetTestIds } from '../MoneyTransferSheet/MoneyTransferSheet.testIds';
-
-const styles = StyleSheet.create({
-  modalRoot: {
-    flex: 1,
-  },
-});
-
-interface MusdRescueRecipientSelectorProps {
-  /** Same-SRP EVM accounts the rescue send may target. */
-  recipients: MusdRescueRecipient[];
-  /** Currently selected recipient address, if any. */
-  selectedAddress?: string;
-  /** Called with the chosen recipient's address. */
-  onSelect: (address: string) => void;
-  /** Disables the trigger while a submission is in flight. */
-  isDisabled?: boolean;
-}
+import { selectBalanceByAccountGroup } from '../../../../../selectors/assets/balances';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { MusdRescueRecipientTestIds } from './testIds';
+import Routes from '../../../../../constants/navigation/Routes';
 
 /**
- * Recipient control for the mUSD rescue send.
- *
- * Renders a `SelectButton` that opens a single-select bottom sheet listing only
- * the user's own EVM accounts on the Money Account's SRP — there is no free-text
- * address entry, so the rescue send can never leave the seed phrase.
+ * Account rows can appear under multiple groups; balance lookups are keyed by
+ * group id so each row memoizes its own selector instance.
  */
-const MusdRescueRecipientSelector = ({
-  recipients,
-  selectedAddress,
-  onSelect,
-  isDisabled = false,
-}: MusdRescueRecipientSelectorProps) => {
-  const { colors } = useTheme();
+const RecipientRow = ({
+  id,
+  address,
+  name,
+  groupName,
+  groupId,
+  isSelected,
+  avatarVariant,
+  privacyMode,
+  onPress,
+}: {
+  id: string;
+  address: string;
+  name: string;
+  groupName: string;
+  groupId: string;
+  isSelected: boolean;
+  avatarVariant: AvatarAccountVariant;
+  privacyMode: boolean;
+  onPress: (id: string) => void;
+}) => {
+  const selectBalance = useMemo(
+    () => selectBalanceByAccountGroup(groupId),
+    [groupId],
+  );
+  const groupBalance = useSelector(selectBalance);
+  const totalBalance = groupBalance?.totalBalanceInUserCurrency;
+  const userCurrency = groupBalance?.userCurrency;
+
+  const displayBalance = useMemo(() => {
+    if (totalBalance == null || !userCurrency) {
+      return undefined;
+    }
+    return formatWithThreshold(totalBalance, 0.01, I18n.locale, {
+      style: 'currency',
+      currency: userCurrency.toUpperCase(),
+    });
+  }, [totalBalance, userCurrency]);
+
+  return (
+    <ListItemSelect
+      isSelected={isSelected}
+      showSelectedIcon
+      onPress={() => onPress(id)}
+      accessibilityRole="button"
+      accessibilityState={{ selected: isSelected }}
+      testID={`${MusdRescueRecipientTestIds.ACCOUNT_OPTION}-${id}`}
+      avatar={
+        <AvatarAccount
+          address={address}
+          size={AvatarAccountSize.Md}
+          variant={avatarVariant}
+        />
+      }
+      title={
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {groupName || name || address}
+        </Text>
+      }
+      description={undefined}
+      value={
+        totalBalance ? (
+          <SensitiveText
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Long}
+          >
+            {displayBalance}
+          </SensitiveText>
+        ) : undefined
+      }
+    />
+  );
+};
+
+/**
+ * Full-screen account picker for the rescue send. Lists only the eligible
+ * same-SRP EVM accounts — there is no arbitrary-address entry, so the rescue
+ * withdrawal can never leave the seed phrase.
+ */
+const MusdRescueRecipientScreen = () => {
+  const navigation = useNavigation<AppStackNavigationProp>();
+  const insets = useSafeAreaInsets();
+  const { params } =
+    useRoute<RouteProp<MoneyNavigationParamList, 'MoneyMusdRescueRecipient'>>();
+  const { recipients } = useMusdRescueRecipients();
+
   const avatarAccountType = useSelector(selectAvatarAccountType);
+  const privacyMode = useSelector(selectPrivacyMode);
   const avatarVariant = useMemo(
     () => getAvatarAccountVariant(avatarAccountType),
     [avatarAccountType],
   );
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const selectedRecipient = useMemo(
-    () =>
-      recipients.find(
-        (recipient) =>
-          recipient.address.toLowerCase() === selectedAddress?.toLowerCase(),
-      ),
-    [recipients, selectedAddress],
-  );
+  const filteredRecipients = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) {
+      return recipients;
+    }
+    return recipients.filter(
+      (recipient) =>
+        recipient.name.toLowerCase().includes(query) ||
+        recipient.address.toLowerCase().includes(query),
+    );
+  }, [recipients, searchQuery]);
 
-  const handleOpen = useCallback(() => setIsOpen(true), []);
-  const handleClose = useCallback(() => setIsOpen(false), []);
+  const handleBack = useCallback(() => {
+    // Cancel: the review screen keeps whatever selection it had.
+    navigation.goBack();
+  }, [navigation]);
 
   const handleSelect = useCallback(
-    (recipient: MusdRescueRecipient) => {
-      onSelect(recipient.address);
-      setIsOpen(false);
+    (recipientId: string) => {
+      // Return to the existing review screen instead of pushing a new one.
+      navigation.popTo(
+        Routes.MONEY.MUSD_RESCUE_SEND,
+        { recipientId },
+        { merge: true },
+      );
     },
-    [onSelect],
+    [navigation],
   );
 
   return (
-    <>
-      <SelectButton
-        isFullWidth
-        size={SelectButtonSize.Lg}
-        placeholder={strings('money.musd_rescue_send.recipient_placeholder')}
-        accessibilityLabel={strings('money.musd_rescue_send.recipient_label')}
-        value={selectedRecipient?.address ?? null}
-        onPress={handleOpen}
-        isDisabled={isDisabled}
-        testID={MusdRescueSendSheetTestIds.RECIPIENT_SELECT}
-        textProps={{ numberOfLines: 1, ellipsizeMode: 'middle' }}
-        startAccessory={
-          selectedRecipient ? (
-            <AvatarAccount
-              address={selectedRecipient.address}
-              size={AvatarAccountSize.Sm}
-              variant={avatarVariant}
-            />
-          ) : undefined
-        }
+    <Box
+      twClassName="flex-1 bg-default"
+      style={{ paddingTop: insets.top }}
+      testID={MusdRescueRecipientTestIds.CONTAINER}
+    >
+      <HeaderStandard
+        title={strings('money.musd_rescue_send.recipient_label')}
+        onBack={handleBack}
+        backButtonProps={{ testID: MusdRescueRecipientTestIds.BACK_BUTTON }}
       />
 
-      {isOpen ? (
-        <Modal
-          visible
-          transparent
-          animationType="none"
-          statusBarTranslucent
-          onRequestClose={handleClose}
-        >
-          {/*
-            On Android a Modal is its own window, so the root SafeAreaProvider
-            reports a stale bottom inset and the last option can hide behind the
-            navigation bar. A nested provider measures this window instead.
-          */}
-          <SafeAreaProvider>
-            <GestureHandlerRootView style={styles.modalRoot}>
-              <Box twClassName="absolute inset-0">
-                <Pressable
-                  style={[
-                    StyleSheet.absoluteFill,
-                    { backgroundColor: colors.overlay.default },
-                  ]}
-                  onPress={handleClose}
-                  accessible={false}
-                  testID={MusdRescueSendSheetTestIds.RECIPIENT_SHEET_BACKDROP}
-                />
+      <Box twClassName="px-4 pb-3 pt-1">
+        <TextFieldSearch
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder={strings('money.musd_rescue_send.recipient_placeholder')}
+          onPressClearButton={() => setSearchQuery('')}
+          testID={MusdRescueRecipientTestIds.SEARCH_FIELD}
+          accessibilityLabel={strings('money.musd_rescue_send.recipient_label')}
+        />
+      </Box>
 
-                <BottomSheetDialog
-                  onClose={handleClose}
-                  testID={MusdRescueSendSheetTestIds.RECIPIENT_SHEET}
-                >
-                  <BottomSheetHeader
-                    onClose={handleClose}
-                    closeButtonProps={{
-                      testID: MusdRescueSendSheetTestIds.RECIPIENT_SHEET_CLOSE,
-                    }}
-                  >
-                    {strings('money.musd_rescue_send.recipient_sheet_title')}
-                  </BottomSheetHeader>
-                  <Box twClassName="pb-4">
-                    {recipients.map((recipient) => {
-                      const isSelected =
-                        recipient.address.toLowerCase() ===
-                        selectedAddress?.toLowerCase();
-
-                      return (
-                        <ActionListItem
-                          key={recipient.id}
-                          label={
-                            <Text variant={TextVariant.BodyMd}>
-                              {recipient.name || recipient.address}
-                            </Text>
-                          }
-                          description={
-                            recipient.name ? (
-                              <Text
-                                variant={TextVariant.BodySm}
-                                color={TextColor.TextAlternative}
-                                numberOfLines={1}
-                                ellipsizeMode="middle"
-                              >
-                                {recipient.address}
-                              </Text>
-                            ) : undefined
-                          }
-                          startAccessory={
-                            <Box twClassName="self-center">
-                              <AvatarAccount
-                                address={recipient.address}
-                                size={AvatarAccountSize.Md}
-                                variant={avatarVariant}
-                              />
-                            </Box>
-                          }
-                          endAccessory={
-                            isSelected ? (
-                              <Icon
-                                name={IconName.Check}
-                                size={IconSize.Md}
-                                color={IconColor.IconDefault}
-                              />
-                            ) : undefined
-                          }
-                          onPress={() => handleSelect(recipient)}
-                          accessibilityState={{ selected: isSelected }}
-                          testID={`${MusdRescueSendSheetTestIds.RECIPIENT_OPTION}-${recipient.address}`}
-                        />
-                      );
-                    })}
-                  </Box>
-                </BottomSheetDialog>
-              </Box>
-            </GestureHandlerRootView>
-          </SafeAreaProvider>
-        </Modal>
-      ) : null}
-    </>
+      <Box twClassName="flex-1">
+        <FlashList
+          data={filteredRecipients}
+          keyExtractor={(recipient) => recipient.id}
+          renderItem={({ item }) => (
+            <RecipientRow
+              id={item.id}
+              address={item.address}
+              name={item.name}
+              groupName={item.groupName}
+              groupId={item.groupId}
+              isSelected={item.id === params?.selectedRecipientId}
+              avatarVariant={avatarVariant}
+              privacyMode={privacyMode}
+              onPress={handleSelect}
+            />
+          )}
+          ListEmptyComponent={
+            <Box twClassName="items-center px-4 py-8">
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                testID={MusdRescueRecipientTestIds.EMPTY_STATE}
+              >
+                {strings('money.musd_rescue_send.recipient_empty')}
+              </Text>
+            </Box>
+          }
+          showsVerticalScrollIndicator={false}
+        />
+      </Box>
+    </Box>
   );
 };
 
-export default MusdRescueRecipientSelector;
+export default MusdRescueRecipientScreen;

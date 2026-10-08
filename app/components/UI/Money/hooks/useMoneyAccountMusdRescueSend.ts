@@ -1,17 +1,20 @@
 import { useCallback } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { ethers } from 'ethers';
-import { StackActions, useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
+import type { NetworkClientId } from '@metamask/network-controller';
+import { Hex, bytesToHex } from '@metamask/utils';
+import { v4 as uuidv4, parse as uuidParse } from 'uuid';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import { Hex } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { isMonadMainnetChainId } from '../../../../util/networks';
 import { refreshMoneyAccountBalanceFresh } from '../utils/invalidateMoneyAccountBalanceCaches';
-import Routes from '../../../../constants/navigation/Routes';
-import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import {
+  registerMusdRescueSendSubmission,
+  markMusdRescueSendSetupFailed,
+  isMusdRescueSendInFlight,
+} from '../utils/musdRescueInFlight';
 import {
   MUSD_DECIMALS,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
@@ -20,34 +23,23 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import NavigationService from '../../../../core/NavigationService/NavigationService';
-import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import { calcTokenValue } from '../../../../util/transactions';
 import useMoneyToasts from './useMoneyToasts';
+import { useMoneyNavigation } from './useMoneyNavigation';
 
 const LOG_TAG = '[Money Account mUSD Rescue Send]';
 
 const ERC20_TRANSFER_ABI = ['function transfer(address to, uint256 amount)'];
 
-/**
- * True when the rescue send's full-screen confirmation is the focused route.
- * Used to back out of the confirmation if transaction setup fails after it was
- * already opened.
- */
-function isMoneyConfirmationActive(): boolean {
-  return (
-    NavigationService.navigation.getCurrentRoute()?.name ===
-    Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
-  );
-}
-
 /** Names the safety gate that rejected a rescue send initiation. */
 export type MusdRescueSendBlockReason =
+  | 'in-flight'
   | 'missing-money-account'
   | 'missing-vault-config'
   | 'unsupported-chain'
   | 'invalid-recipient'
   | 'invalid-amount'
+  | 'recipient-not-same-srp'
   | 'balance-unavailable'
   | 'vmusd-balance-present'
   | 'amount-exceeds-balance';
@@ -72,32 +64,58 @@ export function buildMusdRescueTransferData(
   ]) as Hex;
 }
 
+/** Result of the preparation stage of a rescue send. */
+export interface PreparedMusdRescueSend {
+  batchId: Hex;
+  moneyAccountAddress: Hex;
+  musdAddress: Hex;
+  networkClientId: NetworkClientId;
+  chainIdHex: Hex;
+  isGasFeeSponsored: boolean;
+  transferData: Hex;
+  amountRaw: bigint;
+}
+
 /**
  * Recovery-only path for sending bare (unprocessed) mUSD out of a Money
- * Account. Builds a single ERC-20 `transfer` from the primary Money Account
- * address on the Money chain (Monad today) and feeds it to the existing
- * transaction confirmation/signing route.
+ * Account. The send is a single ERC-20 `transfer` from the primary Money
+ * Account address on the Money chain (Monad today), submitted directly with
+ * `requireApproval: false` — the rescue review screen is the user's approval,
+ * so no standard confirmation route is opened.
  *
  * Safety gates (each throws with a `reason`):
+ * - no other rescue submission may be in flight
  * - a fresh canonical liquid balance must be available
  * - amount must be positive and never exceed the liquid balance
- * - recipient must be a valid address
+ * - recipient must be a valid address on the Money Account's SRP
  */
 export function useMoneyAccountMusdRescueSend() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const navigation = useNavigation<AppNavigationProp>();
   const { showToast, MoneyToastOptions } = useMoneyToasts();
+  const { navigateToMoneyHome } = useMoneyNavigation();
 
-  const initiateRescueSend = useCallback(
+  /**
+   * Stage 1 — validate everything against fresh state and prepare the
+   * transaction. Purely async checks; no navigation, no state mutation.
+   *
+   * @param params.recipient - Recipient EVM address.
+   * @param params.amount - Human-readable mUSD amount (e.g. "10.5").
+   * @param params.sameSrpAddresses - Addresses eligible as rescue recipients.
+   * @returns The prepared transaction details for the submission stage.
+   */
+  const prepareRescueSend = useCallback(
     async ({
       recipient,
       amount,
+      sameSrpAddresses,
     }: {
       recipient: string;
       /** Human-readable mUSD amount (e.g. "10.5"). */
       amount: string;
-    }): Promise<void> => {
+      /** Lowercase-addressable list of eligible same-SRP recipient addresses. */
+      sameSrpAddresses: string[];
+    }): Promise<PreparedMusdRescueSend> => {
       const moneyAccountAddress = primaryMoneyAccount?.address;
       if (!moneyAccountAddress) {
         throw Object.assign(
@@ -124,6 +142,21 @@ export function useMoneyAccountMusdRescueSend() {
           reason: 'invalid-recipient',
         });
       }
+      // Submission-time revalidation of the recipient restriction: the review
+      // screen resolves ids against the eligible list, but that list can
+      // change between selection and Send. Imported/hardware/other-SRP
+      // addresses are never accepted here. Compare case-insensitively — the
+      // eligible list is built from checksummed internal accounts.
+      const recipientLower = recipient.toLowerCase();
+      const recipientIsSameSrp = sameSrpAddresses.some(
+        (address) => address.toLowerCase() === recipientLower,
+      );
+      if (!recipientIsSameSrp) {
+        throw Object.assign(
+          new Error(`${LOG_TAG} Recipient is not on the Money Account's SRP`),
+          { reason: 'recipient-not-same-srp' },
+        );
+      }
 
       const amountRaw = BigInt(
         calcTokenValue(amount, MUSD_DECIMALS)
@@ -137,9 +170,9 @@ export function useMoneyAccountMusdRescueSend() {
       }
 
       // Re-read the canonical balance from the API/RPC immediately before
-      // creating the confirmation transaction. This prevents a stale sheet
-      // value from being used if CHOMP processes the funds while the sheet is
-      // open. If the fresh read fails, no transaction is created.
+      // creating the transaction. This prevents a stale screen value from
+      // being used if CHOMP processes the funds while the review is open. If
+      // the fresh read fails, no transaction is created.
       const currentBalance =
         await refreshMoneyAccountBalanceFresh(moneyAccountAddress);
       const balanceRaw = BigInt(currentBalance.musdBalance);
@@ -151,10 +184,14 @@ export function useMoneyAccountMusdRescueSend() {
           { reason: 'vmusd-balance-present' },
         );
       }
-      if (amountRaw > balanceRaw) {
+      if (amountRaw !== balanceRaw) {
+        // The reviewed amount is always the full liquid balance. If the fresh
+        // read differs, the balance moved since review — fail instead of
+        // silently sending a different amount. The user re-reviews and
+        // re-confirms with the refreshed figure.
         throw Object.assign(
           new Error(
-            `${LOG_TAG} Amount ${amountRaw} exceeds current liquid mUSD balance ${balanceRaw}`,
+            `${LOG_TAG} Reviewed amount ${amountRaw} no longer matches current liquid mUSD balance ${balanceRaw}`,
           ),
           { reason: 'amount-exceeds-balance' },
         );
@@ -176,58 +213,110 @@ export function useMoneyAccountMusdRescueSend() {
       const isGasFeeSponsored = isMonadMainnetChainId(chainIdHex);
       const transferData = buildMusdRescueTransferData(recipient, amountRaw);
 
-      navigation.dispatch(
-        StackActions.replace(Routes.MONEY.CONFIRMATIONS_ROOT, {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          params: { loader: ConfirmationLoader.Transfer },
-        }),
-      );
+      return {
+        batchId: bytesToHex(new Uint8Array(uuidParse(uuidv4()))) as Hex,
+        moneyAccountAddress: moneyAccountAddress as Hex,
+        musdAddress: musdAddress as Hex,
+        networkClientId,
+        chainIdHex,
+        isGasFeeSponsored,
+        transferData,
+        amountRaw,
+      };
+    },
+    [primaryMoneyAccount, vaultConfig],
+  );
 
-      try {
-        await addTransactionBatch({
-          disableHook: true,
-          disableSequential: true,
-          disableUpgrade: true,
-          from: moneyAccountAddress as Hex,
-          isGasFeeSponsored,
-          isInternal: true,
-          networkClientId,
-          origin: ORIGIN_METAMASK,
-          skipInitialGasEstimate: true,
-          transactions: [
-            {
-              params: {
-                to: musdAddress,
-                data: transferData,
-                value: '0x0' as Hex,
-              },
-              type: TransactionType.tokenMethodTransfer,
+  /**
+   * Stage 2 — hand the prepared transaction to the controller. Fire-and-forget
+   * from the caller's perspective: navigation to Money Home happens as soon as
+   * this returns, while the promise continues in the background.
+   *
+   * @param prepared - Output of {@link prepareRescueSend}.
+   */
+  const submitRescueSend = useCallback(
+    (prepared: PreparedMusdRescueSend): void => {
+      const completion = addTransactionBatch({
+        batchId: prepared.batchId,
+        requireApproval: false,
+        disableHook: true,
+        disableSequential: true,
+        disableUpgrade: true,
+        from: prepared.moneyAccountAddress,
+        isGasFeeSponsored: prepared.isGasFeeSponsored,
+        isInternal: true,
+        networkClientId: prepared.networkClientId,
+        origin: ORIGIN_METAMASK,
+        skipInitialGasEstimate: true,
+        transactions: [
+          {
+            params: {
+              to: prepared.musdAddress,
+              data: prepared.transferData,
+              value: '0x0' as Hex,
             },
-          ],
-        });
-      } catch (error) {
-        const errorObj =
-          error instanceof Error ? error : new Error(String(error));
-        // The confirmation was opened before the batch was created, so back out
-        // of it on failure — otherwise the user is stranded on an empty
-        // confirmation loader while the sheet error renders behind it.
-        if (
-          !isUserRejectedError(error, errorObj.message) &&
-          isMoneyConfirmationActive()
-        ) {
-          navigation.goBack();
-          showToast(MoneyToastOptions.send.failed());
-        }
-        Logger.error(errorObj, `${LOG_TAG} Rescue send initiation failed`);
-        throw errorObj;
+            type: TransactionType.tokenMethodTransfer,
+          },
+        ],
+      }).then(
+        () => 'submitted' as const,
+        (error: unknown) => {
+          const errorObj =
+            error instanceof Error ? error : new Error(String(error));
+          Logger.error(errorObj, `${LOG_TAG} Rescue send submission failed`);
+          // The user is already on Money Home with a pending toast. Surface
+          // the failure through the monitor even though no transaction
+          // metadata exists for this attempt.
+          markMusdRescueSendSetupFailed(prepared.batchId);
+          throw errorObj;
+        },
+      );
+      registerMusdRescueSendSubmission({
+        batchId: prepared.batchId,
+        completion,
+      });
+    },
+    [],
+  );
+
+  const initiateRescueSend = useCallback(
+    async ({
+      recipient,
+      amount,
+      sameSrpAddresses,
+    }: {
+      recipient: string;
+      /** Human-readable mUSD amount (e.g. "10.5"). */
+      amount: string;
+      /** Lowercase-addressable list of eligible same-SRP recipient addresses. */
+      sameSrpAddresses: string[];
+    }): Promise<void> => {
+      if (isMusdRescueSendInFlight()) {
+        throw Object.assign(
+          new Error(`${LOG_TAG} Rescue send already in flight`),
+          { reason: 'in-flight' },
+        );
       }
+      const prepared = await prepareRescueSend({
+        recipient,
+        amount,
+        sameSrpAddresses,
+      });
+      // The user has confirmed on the review screen. Show the pending toast
+      // immediately, navigate home, and let the submission promise settle in
+      // the background — the global Money transaction monitor owns the
+      // success/failure toasts from here. Submission is registered before
+      // returning so a fast unmount cannot lose duplicate protection.
+      showToast(MoneyToastOptions.rescue?.inProgress() as never);
+      navigateToMoneyHome();
+      submitRescueSend(prepared);
     },
     [
-      MoneyToastOptions.send,
-      navigation,
-      primaryMoneyAccount,
+      MoneyToastOptions.rescue,
+      navigateToMoneyHome,
+      prepareRescueSend,
       showToast,
-      vaultConfig,
+      submitRescueSend,
     ],
   );
 

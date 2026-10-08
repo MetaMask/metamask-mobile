@@ -91,16 +91,13 @@ const MoneyTransferSheet = () => {
       } else if (action === 'predict') {
         initiate = initiatePredictDeposit;
       } else if (action === 'rescueSend') {
-        // The rescue sheet is a modal route, not an initiator callback: close
-        // this sheet and push the rescue sheet in the same tick so the
-        // transition matches the other rows' slide-over UX. Target the modal
-        // stack by its root route plus a `screen` param — closing this sheet
-        // pops `MoneyModals`, so the bare nested screen name would have no
-        // navigator left to resolve it.
+        // The rescue review is a full-screen route, not an initiator callback:
+        // close this sheet and push the review in the same tick so the
+        // transition matches the other rows' slide-over UX. Navigate to the
+        // root-stack screen by name — this sheet pops `MoneyModals` on close,
+        // so a nested screen name would have no navigator left to resolve it.
         sheetRef.current?.onCloseBottomSheet(() => {
-          navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-            screen: Routes.MONEY.MODALS.MUSD_RESCUE_SEND_SHEET,
-          });
+          navigation.navigate(Routes.MONEY.MUSD_RESCUE_SEND);
         });
         return;
       }
@@ -218,8 +215,11 @@ const MoneyTransferSheet = () => {
         ]
       : []),
     {
-      label: strings('money.transfer_sheet.send_external'),
-      icon: IconName.Arrow2Up,
+      label: strings('money.transfer_sheet.back_to_account'),
+      icon: IconName.Arrow2UpRight,
+      // The design system has no up-left arrow: the up-right "send" arrow is
+      // mirrored horizontally to point up-left ("send back").
+      iconProps: { style: { transform: [{ scaleX: -1 }] } },
       testID: MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW,
       onPress: isRescueSendAvailable ? handleSendExternal : undefined,
       disabled: !isRescueSendAvailable,

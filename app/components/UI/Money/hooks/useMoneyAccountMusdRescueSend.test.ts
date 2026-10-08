@@ -8,11 +8,16 @@ import Engine from '../../../../core/Engine';
 import { useMoneyAccountMusdRescueSend } from './useMoneyAccountMusdRescueSend';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import Routes from '../../../../constants/navigation/Routes';
 import { refreshMoneyAccountBalanceFresh } from '../utils/invalidateMoneyAccountBalanceCaches';
-import { useNavigation } from '@react-navigation/native';
-import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
-import NavigationService from '../../../../core/NavigationService/NavigationService';
+import {
+  flushMusdRescueInFlightForTests,
+  clearMusdRescueInFlightForTests,
+} from '../utils/musdRescueInFlight';
+
+const mockShowToast = jest.fn();
+const mockNavigateToMoneyHome = jest.fn();
+const mockRescueInProgressToast = jest.fn(() => ({ inProgress: true }));
+const mockRescueFailedToast = jest.fn(() => ({ failed: true }));
 
 jest.mock('react-redux');
 jest.mock('../../../../util/transaction-controller', () => ({
@@ -47,31 +52,23 @@ jest.mock('../utils/invalidateMoneyAccountBalanceCaches', () => ({
   refreshMoneyAccountBalanceFresh: jest.fn(),
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: jest.fn(),
-}));
-
-jest.mock('../../../../core/NavigationService/NavigationService', () => ({
+jest.mock('./useMoneyToasts', () => ({
   __esModule: true,
-  default: {
-    navigation: {
-      getCurrentRoute: jest.fn(),
-      goBack: jest.fn(),
+  default: () => ({
+    showToast: mockShowToast,
+    MoneyToastOptions: {
+      rescue: {
+        inProgress: mockRescueInProgressToast,
+        success: jest.fn(),
+        failed: mockRescueFailedToast,
+      },
     },
-  },
+  }),
 }));
 
-jest.mock('../../Earn/constants/musd', () => ({
-  MUSD_DECIMALS: 6,
-  MUSD_TOKEN: {
-    symbol: 'mUSD',
-  },
-  MUSD_MONEY_ACCOUNT_CHAIN_IDS: ['0x8f'],
-  MUSD_TOKEN_ADDRESS_BY_CHAIN: {
-    '0x8f': '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-    '0x1': '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-  } as Record<string, string>,
+jest.mock('./useMoneyNavigation', () => ({
+  __esModule: true,
+  useMoneyNavigation: () => ({ navigateToMoneyHome: mockNavigateToMoneyHome }),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -85,14 +82,6 @@ const mockFindNetworkClientIdByChainId = Engine.context.NetworkController
 const mockRefreshMoneyAccountBalanceFresh = jest.mocked(
   refreshMoneyAccountBalanceFresh,
 );
-const mockNavigateToConfirmation = jest.fn();
-const mockDispatch = jest.fn();
-const mockGoBack = jest.fn();
-const mockGetCurrentRoute = NavigationService.navigation
-  .getCurrentRoute as jest.MockedFunction<
-  typeof NavigationService.navigation.getCurrentRoute
->;
-
 const MOCK_MONEY_ADDRESS = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B' as Hex;
 const MOCK_RECIPIENT = '0x1234567890123456789012345678901234567891' as Hex;
 const MOCK_MUSD_ADDRESS = '0xacA92E438df0B2401fF60dA7E4337B687a2435DA' as Hex;
@@ -109,6 +98,11 @@ const MOCK_VAULT_CONFIG = {
 
 // 100 liquid mUSD in raw units (6 decimals).
 const LIQUID_BALANCE_RAW = '100000000';
+
+const SAME_SRP_ADDRESSES = [
+  MOCK_RECIPIENT.toLowerCase(),
+  '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B'.toLowerCase(),
+];
 
 function setupSelectors({
   // `null` means "no primary money account" — `undefined` would trip the
@@ -133,31 +127,53 @@ function setupSelectors({
   });
 }
 
+/** Default call args with the eligible same-SRP recipient list. */
+const initiate = async (
+  result: {
+    current: {
+      initiateRescueSend: (args: {
+        recipient: string;
+        amount: string;
+        sameSrpAddresses: string[];
+      }) => Promise<void>;
+    };
+  },
+  overrides: Record<string, unknown> = {},
+) =>
+  result.current.initiateRescueSend({
+    recipient: MOCK_RECIPIENT,
+    // The reviewed amount is always the full liquid balance (100 mUSD).
+    amount: '100',
+    sameSrpAddresses: SAME_SRP_ADDRESSES,
+    ...overrides,
+  } as never);
+
 beforeEach(() => {
   jest.clearAllMocks();
+  // Default: submission resolves (settled relay). Tests that need a pending
+  // submission override this mock with a never-resolving promise.
   mockAddTransactionBatch.mockResolvedValue({} as never);
   mockFindNetworkClientIdByChainId.mockReturnValue(MOCK_NETWORK_CLIENT_ID);
   mockRefreshMoneyAccountBalanceFresh.mockResolvedValue({
     musdBalance: LIQUID_BALANCE_RAW,
     vmusdValueInMusd: '0',
   } as never);
-  jest.mocked(useNavigation).mockReturnValue({
-    navigate: mockNavigateToConfirmation,
-    dispatch: mockDispatch,
-    goBack: mockGoBack,
-  } as never);
-  mockGetCurrentRoute.mockReturnValue(undefined);
   setupSelectors();
+});
+
+afterEach(async () => {
+  // Drain any registered in-flight submission so the module-level registry
+  // never leaks between tests. A never-resolving relay promise is dropped
+  // by the hard reset instead of blocking the suite.
+  await flushMusdRescueInFlightForTests();
+  clearMusdRescueInFlightForTests();
 });
 
 describe('useMoneyAccountMusdRescueSend', () => {
   it('builds a single ERC-20 transfer from the money account to the mUSD contract', async () => {
     const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
 
-    await result.current.initiateRescueSend({
-      recipient: MOCK_RECIPIENT,
-      amount: '1.5',
-    });
+    await initiate(result, { amount: '100' });
 
     expect(mockAddTransactionBatch).toHaveBeenCalledTimes(1);
     const batchArgs = mockAddTransactionBatch.mock.calls[0][0];
@@ -174,10 +190,7 @@ describe('useMoneyAccountMusdRescueSend', () => {
     const { ethers } = jest.requireActual('ethers');
     const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
 
-    await result.current.initiateRescueSend({
-      recipient: MOCK_RECIPIENT,
-      amount: '1.5',
-    });
+    await initiate(result, { amount: '100' });
 
     const { data } =
       mockAddTransactionBatch.mock.calls[0][0].transactions[0].params;
@@ -185,33 +198,19 @@ describe('useMoneyAccountMusdRescueSend', () => {
       'function transfer(address to, uint256 amount)',
     ]).decodeFunctionData('transfer', data);
     expect(decodedRecipient.toLowerCase()).toBe(MOCK_RECIPIENT.toLowerCase());
-    // 1.5 mUSD at 6 decimals.
-    expect(decodedAmount.toString()).toBe('1500000');
+    // 100 mUSD at 6 decimals.
+    expect(decodedAmount.toString()).toBe('100000000');
   });
 
-  it('signs from the money account address on the money chain with sponsorship and internal origin', async () => {
+  it('submits directly with requireApproval false from the money account on the money chain', async () => {
     const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
 
-    await result.current.initiateRescueSend({
-      recipient: MOCK_RECIPIENT,
-      amount: '1',
-    });
+    await initiate(result, { amount: '100' });
 
     const batchArgs = mockAddTransactionBatch.mock.calls[0][0];
+    expect(batchArgs.requireApproval).toBe(false);
     expect(batchArgs.from).toBe(MOCK_MONEY_ADDRESS);
     expect(batchArgs.networkClientId).toBe(MOCK_NETWORK_CLIENT_ID);
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'REPLACE',
-        payload: expect.objectContaining({
-          name: Routes.MONEY.CONFIRMATIONS_ROOT,
-          params: {
-            screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-            params: { loader: 'transfer' },
-          },
-        }),
-      }),
-    );
     expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledWith(
       MOCK_MONEY_ADDRESS,
     );
@@ -220,30 +219,68 @@ describe('useMoneyAccountMusdRescueSend', () => {
     expect(batchArgs.origin).toBe(ORIGIN_METAMASK);
     expect(batchArgs.disableHook).toBe(true);
     expect(batchArgs.skipInitialGasEstimate).toBe(true);
+    expect(batchArgs.batchId).toStrictEqual(expect.any(String));
   });
 
-  it('blocks with amount-exceeds-balance when amount exceeds the liquid balance', async () => {
+  it('shows the pending toast and navigates to money home at submission start', async () => {
     const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
 
-    await expect(
-      result.current.initiateRescueSend({
-        recipient: MOCK_RECIPIENT,
-        amount: '100.000001',
-      }),
-    ).rejects.toMatchObject({ reason: 'amount-exceeds-balance' });
+    await initiate(result, { amount: '100' });
+
+    expect(mockShowToast).toHaveBeenCalledWith(
+      mockRescueInProgressToast.mock.results[0].value,
+    );
+    expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not navigate home when preparation fails', async () => {
+    mockRefreshMoneyAccountBalanceFresh.mockRejectedValueOnce(
+      new Error('fresh balance unavailable'),
+    );
+    const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
+
+    await expect(initiate(result)).rejects.toThrow('fresh balance unavailable');
+
+    expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockAddTransactionBatch).not.toHaveBeenCalled();
+  });
+
+  it('blocks with amount-exceeds-balance when the reviewed amount no longer matches the fresh balance', async () => {
+    // Reviewed 100 mUSD; fresh balance is 0.5 mUSD — the balance moved.
+    mockRefreshMoneyAccountBalanceFresh.mockResolvedValueOnce({
+      musdBalance: '500000',
+      vmusdValueInMusd: '0',
+    } as never);
+    const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
+
+    await expect(initiate(result, { amount: '100' })).rejects.toMatchObject({
+      reason: 'amount-exceeds-balance',
+    });
 
     expect(mockAddTransactionBatch).not.toHaveBeenCalled();
+    expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
+  });
+
+  it('blocks when any vmUSD-backed balance is present in the fresh canonical response', async () => {
+    mockRefreshMoneyAccountBalanceFresh.mockResolvedValueOnce({
+      musdBalance: LIQUID_BALANCE_RAW,
+      vmusdValueInMusd: '1',
+    } as never);
+    const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
+
+    await expect(initiate(result, { amount: '100' })).rejects.toMatchObject({
+      reason: 'vmusd-balance-present',
+    });
+
+    expect(mockAddTransactionBatch).not.toHaveBeenCalled();
+    expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
   });
 
   it('allows the exact liquid balance as Max', async () => {
     const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
 
-    await expect(
-      result.current.initiateRescueSend({
-        recipient: MOCK_RECIPIENT,
-        amount: '100',
-      }),
-    ).resolves.toBeUndefined();
+    await expect(initiate(result, { amount: '100' })).resolves.toBeUndefined();
 
     expect(mockAddTransactionBatch).toHaveBeenCalledTimes(1);
   });
@@ -254,73 +291,24 @@ describe('useMoneyAccountMusdRescueSend', () => {
     );
     const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
 
-    await expect(
-      result.current.initiateRescueSend({
-        recipient: MOCK_RECIPIENT,
-        amount: '1',
-      }),
-    ).rejects.toThrow('fresh balance unavailable');
-
-    expect(mockAddTransactionBatch).not.toHaveBeenCalled();
-    expect(mockDispatch).not.toHaveBeenCalled();
-  });
-
-  it('blocks when any vmUSD-backed balance is present in the fresh canonical response', async () => {
-    mockRefreshMoneyAccountBalanceFresh.mockResolvedValueOnce({
-      musdBalance: LIQUID_BALANCE_RAW,
-      vmusdValueInMusd: '1',
-    } as never);
-    const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
-
-    await expect(
-      result.current.initiateRescueSend({
-        recipient: MOCK_RECIPIENT,
-        amount: '1',
-      }),
-    ).rejects.toMatchObject({ reason: 'vmusd-balance-present' });
-
-    expect(mockAddTransactionBatch).not.toHaveBeenCalled();
-    expect(mockDispatch).not.toHaveBeenCalled();
-  });
-
-  it('revalidates against the latest canonical liquid balance', async () => {
-    mockRefreshMoneyAccountBalanceFresh.mockResolvedValueOnce({
-      musdBalance: '500000',
-      vmusdValueInMusd: '0',
-    } as never);
-    const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
-
-    await expect(
-      result.current.initiateRescueSend({
-        recipient: MOCK_RECIPIENT,
-        amount: '1',
-      }),
-    ).rejects.toMatchObject({ reason: 'amount-exceeds-balance' });
-
-    expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledWith(
-      MOCK_MONEY_ADDRESS,
+    await expect(initiate(result, { amount: '100' })).rejects.toThrow(
+      'fresh balance unavailable',
     );
+
     expect(mockAddTransactionBatch).not.toHaveBeenCalled();
-    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
   });
 
   it('blocks with invalid-amount for zero and negative amounts', async () => {
     const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
 
-    await expect(
-      result.current.initiateRescueSend({
-        recipient: MOCK_RECIPIENT,
-        amount: '0',
-      }),
-    ).rejects.toMatchObject({ reason: 'invalid-amount' });
+    await expect(initiate(result, { amount: '0' })).rejects.toMatchObject({
+      reason: 'invalid-amount',
+    });
 
-    await expect(
-      result.current.initiateRescueSend({
-        recipient: MOCK_RECIPIENT,
-        amount: '-1',
-      }),
-    ).rejects.toMatchObject({ reason: 'invalid-amount' });
-
+    await expect(initiate(result, { amount: '-1' })).rejects.toMatchObject({
+      reason: 'invalid-amount',
+    });
     expect(mockAddTransactionBatch).not.toHaveBeenCalled();
   });
 
@@ -328,26 +316,42 @@ describe('useMoneyAccountMusdRescueSend', () => {
     const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
 
     await expect(
-      result.current.initiateRescueSend({
-        recipient: 'not-an-address',
-        amount: '1',
-      }),
+      initiate(result, { recipient: 'not-an-address' }),
     ).rejects.toMatchObject({ reason: 'invalid-recipient' });
-
     expect(mockAddTransactionBatch).not.toHaveBeenCalled();
+  });
+
+  it('blocks with recipient-not-same-srp for an address outside the eligible list', async () => {
+    const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
+
+    await expect(
+      initiate(result, {
+        recipient: '0x9999999999999999999999999999999999999999',
+      }),
+    ).rejects.toMatchObject({ reason: 'recipient-not-same-srp' });
+    expect(mockAddTransactionBatch).not.toHaveBeenCalled();
+  });
+
+  it('accepts an eligible recipient regardless of address checksum casing', async () => {
+    const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
+
+    await expect(
+      initiate(result, {
+        recipient: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
+        amount: '100',
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledTimes(1);
   });
 
   it('blocks with missing-money-account when no primary money account exists', async () => {
     setupSelectors({ moneyAccount: null });
     const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
 
-    await expect(
-      result.current.initiateRescueSend({
-        recipient: MOCK_RECIPIENT,
-        amount: '1',
-      }),
-    ).rejects.toMatchObject({ reason: 'missing-money-account' });
-
+    await expect(initiate(result)).rejects.toMatchObject({
+      reason: 'missing-money-account',
+    });
     expect(mockAddTransactionBatch).not.toHaveBeenCalled();
   });
 
@@ -357,13 +361,9 @@ describe('useMoneyAccountMusdRescueSend', () => {
     });
     const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
 
-    await expect(
-      result.current.initiateRescueSend({
-        recipient: MOCK_RECIPIENT,
-        amount: '1',
-      }),
-    ).rejects.toMatchObject({ reason: 'unsupported-chain' });
-
+    await expect(initiate(result)).rejects.toMatchObject({
+      reason: 'unsupported-chain',
+    });
     expect(mockAddTransactionBatch).not.toHaveBeenCalled();
   });
 
@@ -373,63 +373,55 @@ describe('useMoneyAccountMusdRescueSend', () => {
     });
     const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
 
-    await result.current.initiateRescueSend({
-      recipient: MOCK_RECIPIENT,
-      amount: '1',
-    });
+    await initiate(result, { amount: '100' });
 
     const batchArgs = mockAddTransactionBatch.mock.calls[0][0];
     expect(batchArgs.isGasFeeSponsored).toBe(false);
   });
 
-  it('rethrows initiation failures after logging', async () => {
+  it('keeps a second submission blocked while the first is still resolving', async () => {
+    // First submission never resolves (pending relay).
+    mockAddTransactionBatch.mockImplementationOnce(
+      () => new Promise(() => undefined) as never,
+    );
+    const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
+
+    await initiate(result, { amount: '100' });
+
+    await expect(
+      result.current.initiateRescueSend({
+        recipient: MOCK_RECIPIENT,
+        amount: '100',
+        sameSrpAddresses: SAME_SRP_ADDRESSES,
+      } as never),
+    ).rejects.toMatchObject({ reason: 'in-flight' });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledTimes(1);
+  });
+
+  it('allows a new submission after the previous attempt resolves', async () => {
+    const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
+
+    await initiate(result, { amount: '100' });
+    await flushMusdRescueInFlightForTests();
+    await initiate(result, { amount: '100' });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledTimes(2);
+  });
+
+  it('notifies the failure channel when submission fails after navigation', async () => {
     const failure = new Error('signing failed');
     mockAddTransactionBatch.mockRejectedValueOnce(failure);
     const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
 
-    await expect(
-      result.current.initiateRescueSend({
-        recipient: MOCK_RECIPIENT,
-        amount: '1',
-      }),
-    ).rejects.toBe(failure);
-  });
+    // Submission failures are handled inside the registry: the caller has
+    // already navigated home and the pending toast was already shown.
+    await expect(initiate(result, { amount: '100' })).resolves.toBeUndefined();
+    await flushMusdRescueInFlightForTests();
 
-  it('dismisses the confirmation when initiation fails with it open', async () => {
-    mockAddTransactionBatch.mockRejectedValueOnce(new Error('batch failed'));
-    mockGetCurrentRoute.mockReturnValue({
-      key: 'confirmation',
-      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    });
-    const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
-
-    await expect(
-      result.current.initiateRescueSend({
-        recipient: MOCK_RECIPIENT,
-        amount: '1',
-      }),
-    ).rejects.toThrow('batch failed');
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not dismiss a confirmation the user rejected', async () => {
-    mockAddTransactionBatch.mockRejectedValueOnce(
-      Object.assign(new Error('User rejected the request'), { code: 4001 }),
+    expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
+    expect(mockShowToast).toHaveBeenCalledWith(
+      mockRescueInProgressToast.mock.results[0].value,
     );
-    mockGetCurrentRoute.mockReturnValue({
-      key: 'confirmation',
-      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    });
-    const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
-
-    await expect(
-      result.current.initiateRescueSend({
-        recipient: MOCK_RECIPIENT,
-        amount: '1',
-      }),
-    ).rejects.toThrow('User rejected the request');
-
-    expect(mockGoBack).not.toHaveBeenCalled();
   });
 });

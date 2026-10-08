@@ -21,6 +21,10 @@ export interface MusdRescueRecipient {
   address: string;
   /** User-facing account name. */
   name: string;
+  /** User-facing account-group name. */
+  groupName: string;
+  /** Account-group id the account belongs to (for balance lookups). */
+  groupId: string;
 }
 
 export interface UseMusdRescueRecipientsResult {
@@ -68,18 +72,29 @@ const useMusdRescueRecipients = (): UseMusdRescueRecipientsResult => {
       .flatMap((group) =>
         group.accounts
           .map((accountId) => internalAccountsById[accountId])
-          .filter((account): account is InternalAccount => Boolean(account)),
+          .filter((account): account is InternalAccount => Boolean(account))
+          .map((account: InternalAccount) => ({ account, group })),
       )
       .filter(
-        (account: InternalAccount) =>
+        ({ account }: { account: InternalAccount }) =>
           isEvmAccountType(account.type) &&
           account.address.toLowerCase() !== moneyAccountAddressLower,
       )
-      .map((account: InternalAccount) => ({
-        id: account.id,
-        address: account.address,
-        name: account.metadata?.name ?? '',
-      }));
+      .map(
+        ({
+          account,
+          group,
+        }: {
+          account: InternalAccount;
+          group: (typeof walletGroups)[number];
+        }) => ({
+          id: account.id,
+          address: account.address,
+          name: account.metadata?.name ?? '',
+          groupName: group.metadata?.name ?? '',
+          groupId: group.id,
+        }),
+      );
   }, [entropyId, moneyAccountAddress, accountGroups, internalAccountsById]);
 
   return { recipients };

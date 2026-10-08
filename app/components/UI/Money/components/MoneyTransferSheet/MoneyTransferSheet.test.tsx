@@ -275,7 +275,7 @@ describe('MoneyTransferSheet', () => {
       ).toBeDisabled();
     });
 
-    it('navigates to the rescue sheet when enabled and pressed', () => {
+    it('navigates to the rescue review screen when enabled and pressed', () => {
       setupMoneyBalance();
 
       const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
@@ -283,9 +283,7 @@ describe('MoneyTransferSheet', () => {
       fireEvent.press(getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW));
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.MUSD_RESCUE_SEND_SHEET,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MUSD_RESCUE_SEND);
     });
 
     it('tracks the send-external surface click when enabled and pressed', () => {

@@ -180,16 +180,22 @@ const EXPECTED_RECIPIENTS = [
     id: 'same-srp-evm',
     address: SAME_SRP_EVM_ADDRESS,
     name: 'Account 1',
+    groupId: `${WALLET_ID}/0`,
+    groupName: 'Group 0',
   },
   {
     id: 'same-srp-evm-2',
     address: SAME_SRP_EVM_ADDRESS_2,
     name: 'Account 2',
+    groupId: `${WALLET_ID}/1`,
+    groupName: 'Group 1',
   },
   {
     id: 'same-srp-evm-3',
     address: SAME_SRP_EVM_ADDRESS_3,
     name: 'Account 3',
+    groupId: `${WALLET_ID}/1`,
+    groupName: 'Group 1',
   },
 ];
 
