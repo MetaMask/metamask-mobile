@@ -204,6 +204,19 @@ describe('VipSplashScreenLayout', () => {
     });
   });
 
+  it('renders the primary button with a pill shape', () => {
+    const { getByTestId } = render(<VipSplashScreenLayout {...defaultProps} />);
+
+    const style = getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.ACCEPT_BUTTON).props
+      .style as unknown[];
+    const className = style.find(
+      (entry): entry is string =>
+        typeof entry === 'string' && entry.includes('rounded-full'),
+    );
+
+    expect(className).toBeDefined();
+  });
+
   it('uses compact button heights on small screens', () => {
     jest.mocked(useWindowDimensions).mockReturnValue({
       width: 320,
