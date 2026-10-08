@@ -22,12 +22,12 @@ import { selectSelectedAccountGroup } from '../../../../selectors/multichainAcco
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { TokenI } from '../../Tokens/types';
-import {
-  useSwapBridgeNavigation,
-  SwapBridgeNavigationLocation,
-} from '../../Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../Bridge/hooks/useSwapBridgeNavigation';
 import { useSendNonEvmAsset } from '../../../hooks/useSendNonEvmAsset';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../../Views/confirmations/hooks/useSendNavigation';
 import {
@@ -186,7 +186,7 @@ export const useHandleOnSwap = ({
   /** Optional up-to-date token balance from Token Details balance hook */
   currentTokenBalance?: string;
   /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
-  sourcePage?: string;
+  sourcePage?: Parameters<typeof useSwapBridgeNavigation>[0]['sourcePage'];
 }) => {
   const store = useStore<RootState>();
 
@@ -196,8 +196,8 @@ export const useHandleOnSwap = ({
   const isFromBridgeAssetPicker = token.source === TokenDetailsSource.Swap;
 
   const swapLocation = isExploreTokenDetailsSource(token.source)
-    ? SwapBridgeNavigationLocation.TrendingExplore
-    : SwapBridgeNavigationLocation.TokenView;
+    ? MetaMetricsSwapsEventSource.TrendingExplore
+    : MetaMetricsSwapsEventSource.TokenView;
 
   const { goToSwaps } = useSwapBridgeNavigation({
     location: swapLocation,
@@ -217,7 +217,11 @@ export const useHandleOnSwap = ({
       : undefined;
 
     if (hasPositiveBalance(balanceForCheck)) {
-      goToSwaps(currentTokenAsBridgeToken, destTokenOverride, undefined, true);
+      goToSwaps({
+        sourceTokenOverride: currentTokenAsBridgeToken,
+        destTokenOverride,
+        scrollToTopOnNav: true,
+      });
       return;
     }
 
@@ -230,15 +234,18 @@ export const useHandleOnSwap = ({
     );
 
     if (buySourceToken) {
-      goToSwaps(
-        buySourceToken,
-        destTokenOverride ?? currentTokenAsBridgeToken,
-        undefined,
-        true,
-      );
+      goToSwaps({
+        sourceTokenOverride: buySourceToken,
+        destTokenOverride: destTokenOverride ?? currentTokenAsBridgeToken,
+        scrollToTopOnNav: true,
+      });
       return;
     }
-    goToSwaps(currentTokenAsBridgeToken, destTokenOverride, undefined, true);
+    goToSwaps({
+      sourceTokenOverride: currentTokenAsBridgeToken,
+      destTokenOverride,
+      scrollToTopOnNav: true,
+    });
   }, [goToSwaps, store, token, currentTokenBalance]);
 };
 

@@ -250,7 +250,7 @@ const mockGoBack = jest.fn();
 const mockFocusEffects: (() => void | (() => void))[] = [];
 const mockRoute = {
   params: {
-    sourcePage: 'test',
+    sourcePage: 'MainView',
   } as BridgeRouteParams,
 };
 
@@ -455,7 +455,7 @@ describe('BridgeView', () => {
     jest.clearAllMocks();
     mockFocusEffects.length = 0;
     mockRoute.params = {
-      sourcePage: 'test',
+      sourcePage: 'MainView',
     } as BridgeRouteParams;
     mockUseABTest.mockReturnValue({
       variant:
@@ -551,7 +551,7 @@ describe('BridgeView', () => {
 
   it('scrolls to top and clears the route param when requested on focus', () => {
     mockRoute.params = {
-      sourcePage: 'test',
+      sourcePage: 'MainView',
       scrollToTopOnNav: true,
     } as BridgeRouteParams;
 
@@ -1212,7 +1212,7 @@ describe('BridgeView', () => {
 
     it('displays keypad on initial focus when route requests source amount auto-focus', async () => {
       mockRoute.params = {
-        sourcePage: 'test',
+        sourcePage: 'MainView',
         autoFocusSourceAmountInput: true,
       } as BridgeRouteParams;
 
@@ -1779,7 +1779,7 @@ describe('BridgeView', () => {
     it('falls back to Redux state when deep link params are not provided', () => {
       // Ensure no deep link params are set
       mockRoute.params = {
-        sourcePage: 'test',
+        sourcePage: 'MainView',
       } as BridgeRouteParams;
 
       const { getByText } = renderScreen(
@@ -1798,7 +1798,7 @@ describe('BridgeView', () => {
   describe('location forwarding', () => {
     it('forwards route.params.location to SwapsMarketOrderConfirmButton via price impact modal navigation', async () => {
       mockRoute.params = {
-        sourcePage: 'test',
+        sourcePage: 'MainView',
         location: MetaMetricsSwapsEventSource.MainView,
       } as BridgeRouteParams;
 
@@ -2101,7 +2101,7 @@ describe('BridgeView', () => {
     it('initializes bridge view mode from route params', async () => {
       mockRoute.params = {
         bridgeViewMode: BridgeViewMode.Bridge,
-        sourcePage: 'test',
+        sourcePage: 'MainView',
         location: MetaMetricsSwapsEventSource.MainView,
       };
 
@@ -2123,7 +2123,7 @@ describe('BridgeView', () => {
     it('does not override existing bridge view mode', async () => {
       mockRoute.params = {
         bridgeViewMode: BridgeViewMode.Bridge,
-        sourcePage: 'test',
+        sourcePage: 'MainView',
         location: MetaMetricsSwapsEventSource.MainView,
       };
 
@@ -2370,7 +2370,7 @@ describe('BridgeView', () => {
 
     it('navigates to TOKEN_WARNING_MODAL with Info mode when banner is pressed', async () => {
       mockRoute.params = {
-        sourcePage: 'test',
+        sourcePage: 'MainView',
         bridgeViewMode: BridgeViewMode.Swap,
         location: MetaMetricsSwapsEventSource.MainView,
       };
@@ -2405,7 +2405,7 @@ describe('BridgeView', () => {
 
     it('passes Malicious warningType when navigating from a malicious banner', async () => {
       mockRoute.params = {
-        sourcePage: 'test',
+        sourcePage: 'MainView',
         bridgeViewMode: BridgeViewMode.Swap,
         location: MetaMetricsSwapsEventSource.MainView,
       };

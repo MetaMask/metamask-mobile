@@ -44,10 +44,7 @@ import {
   HISTORY_FUSE_OPTIONS,
 } from './UrlAutocomplete.constants';
 import { Result } from './Result';
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../Bridge/hooks/useSwapBridgeNavigation';
 import { BridgeToken } from '../Bridge/types';
 import {
   useExploreSearch,
@@ -63,6 +60,7 @@ import { isCaipChainId, parseCaipChainId, type Hex } from '@metamask/utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
 import SitesSearchFooter from '../Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 export * from './types';
 
@@ -361,7 +359,7 @@ const SearchContent: React.FC<SearchContentProps> = ({
   ]);
 
   const { goToSwaps: goToSwapsHook, networkModal } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TokenView,
+    location: MetaMetricsSwapsEventSource.TokenView,
     sourcePage: 'MainView',
   });
 
@@ -377,7 +375,9 @@ const SearchContent: React.FC<SearchContentProps> = ({
           chainId: tokenResult.chainId,
         } satisfies BridgeToken;
 
-        goToSwapsHook(bridgeToken);
+        goToSwapsHook({
+          sourceTokenOverride: bridgeToken,
+        });
       } catch {
         // Silent catch - swap navigation failed
         return;
@@ -580,7 +580,7 @@ const UrlAutocomplete = forwardRef<
   }));
 
   const { goToSwaps: goToSwapsHook, networkModal } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TokenView,
+    location: MetaMetricsSwapsEventSource.TokenView,
     sourcePage: 'MainView',
   });
 
@@ -596,7 +596,9 @@ const UrlAutocomplete = forwardRef<
           chainId: tokenResult.chainId,
         } satisfies BridgeToken;
 
-        goToSwapsHook(bridgeToken);
+        goToSwapsHook({
+          sourceTokenOverride: bridgeToken,
+        });
       } catch {
         // Silent catch - swap navigation failed
         return;

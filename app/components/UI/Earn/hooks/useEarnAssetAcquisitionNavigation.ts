@@ -6,10 +6,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { selectIsBridgeEnabledSourceFactory } from '../../../../core/redux/slices/bridge';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import { areAddressesEqual } from '../../../../util/address';
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../../Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeToken } from '../../Bridge/types';
 import { computeBuySourceToken } from '../../Bridge/utils/computeBuySourceToken';
 import { RAMPS_BUY_CUF_SURFACE } from '../../Ramp/constants/rampsBuyCufTags';
@@ -24,6 +21,7 @@ import {
   earnAssetToBridgeToken,
   requiresEarnAssetAcquisition,
 } from '../utils/earnAssets';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 export type EarnAssetAcquisitionRoute =
   | {
@@ -44,7 +42,7 @@ export type EarnAssetAcquisitionRoute =
 const useEarnAssetAcquisitionNavigation = () => {
   const store = useStore<RootState>();
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TokenView,
+    location: MetaMetricsSwapsEventSource.TokenView,
     sourcePage: Routes.EARN.MODALS.STRATEGY_SELECTION,
     skipActionButtonClickTracking: true,
   });
@@ -110,7 +108,11 @@ const useEarnAssetAcquisitionNavigation = () => {
   const navigateToEarnAssetAcquisitionRoute = useCallback(
     async (route: EarnAssetAcquisitionRoute): Promise<void> => {
       if (route.type === 'swap') {
-        goToSwaps(route.sourceToken, route.destinationToken, undefined, true);
+        goToSwaps({
+          sourceTokenOverride: route.sourceToken,
+          destTokenOverride: route.destinationToken,
+          scrollToTopOnNav: true,
+        });
         return;
       }
 

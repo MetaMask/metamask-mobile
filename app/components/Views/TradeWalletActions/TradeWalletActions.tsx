@@ -41,7 +41,10 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { BlurView } from 'expo-blur';
 import { GlassView } from 'expo-glass-effect';
-import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
+import {
+  BatchSellMetricsLocation,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
@@ -78,10 +81,7 @@ import {
 } from '../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../util/address';
 import { colorWithOpacity } from '../../../util/colors';
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
 import {
@@ -311,9 +311,8 @@ function TradeWalletActions() {
   const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.MainView,
+    location: MetaMetricsSwapsEventSource.MainView,
     sourcePage: 'MainView',
-    swapButtonEventLocationOverride: ActionLocation.NAVBAR,
   });
 
   const dismissRootModalFlow = useCallback(() => {
@@ -376,7 +375,7 @@ function TradeWalletActions() {
 
   const goToSwaps = useCallback(() => {
     postCallback.current = () => {
-      goToSwapsBase();
+      goToSwapsBase({ swapButtonClickLocationOverride: ActionLocation.NAVBAR });
     };
     handleNavigateBack();
   }, [goToSwapsBase, handleNavigateBack]);

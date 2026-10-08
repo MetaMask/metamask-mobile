@@ -8,10 +8,7 @@ import React, {
 } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { useABTest } from '../../../../../hooks/useABTest';
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeToken } from '../../../../UI/Bridge/types';
 import {
   QuickBuy,
@@ -24,6 +21,7 @@ import {
   TOP_TRADERS_BUY_ACTION_EXPOSURE_METADATA,
   TOP_TRADERS_BUY_ACTION_VARIANTS,
 } from '../../TraderPositionView/abTestConfig';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 /** Same `sourcePage` used by the trader position screen — see TraderPositionBuyCta. */
 const FOLLOW_TRADER_SWAPS_SOURCE_PAGE = 'follow_trader';
@@ -141,7 +139,7 @@ const FeedSpotBuyAction = forwardRef<
   const [swapTarget, setSwapTarget] = useState<QuickBuyTarget | null>(null);
 
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.FollowTradingFeedScreen,
+    location: MetaMetricsSwapsEventSource.FollowTradingFeedScreen,
     sourcePage: FOLLOW_TRADER_SWAPS_SOURCE_PAGE,
   });
 
@@ -171,7 +169,10 @@ const FeedSpotBuyAction = forwardRef<
     (destToken: BridgeToken) => {
       setSwapTarget(null);
       setIsQuickBuyVisible(false);
-      goToSwaps(undefined, destToken, undefined, true);
+      goToSwaps({
+        destTokenOverride: destToken,
+        scrollToTopOnNav: true,
+      });
     },
     [goToSwaps],
   );

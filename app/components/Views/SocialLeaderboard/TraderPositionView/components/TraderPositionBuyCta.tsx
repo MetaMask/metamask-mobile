@@ -10,10 +10,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { useABTest } from '../../../../../hooks/useABTest';
-import {
-  useSwapBridgeNavigation,
-  SwapBridgeNavigationLocation,
-} from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import {
   TOP_TRADERS_BUY_ACTION_AB_KEY,
   TOP_TRADERS_BUY_ACTION_EXPOSURE_METADATA,
@@ -27,6 +24,7 @@ import type {
   QuickBuyOriginalEntryPoint,
   QuickBuySheetSource,
 } from '../../../../UI/QuickBuy/analytics';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 /**
  * `sourcePage` reported to the swaps view for attribution. Snake_case matches
@@ -101,7 +99,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   const { destToken, isLoading } = useQuickBuySetup(target);
 
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.FollowTradingTokenScreen,
+    location: MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
     sourcePage: FOLLOW_TRADER_SWAPS_SOURCE_PAGE,
   });
 
@@ -116,7 +114,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
       if (destToken) {
         // Clear any pending intent so the resolver effect can't also navigate.
         setIsSwapPending(false);
-        goToSwaps(undefined, destToken, undefined, true);
+        goToSwaps({ destTokenOverride: destToken, scrollToTopOnNav: true });
         return;
       }
       // Metadata still resolving — wait for it instead of falling back so a
@@ -151,7 +149,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
     }
     if (destToken) {
       setIsSwapPending(false);
-      goToSwaps(undefined, destToken, undefined, true);
+      goToSwaps({ destTokenOverride: destToken, scrollToTopOnNav: true });
       return;
     }
     if (!isLoading) {

@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 import { useWalletHomeOnboardingTradeSwapPair } from './useWalletHomeOnboardingTradeSwapPair';
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../Bridge/hooks/useSwapBridgeNavigation';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 /**
  * Opens unified swaps from the wallet home onboarding trade step (TMCU-681) with
@@ -15,7 +13,7 @@ export function useWalletHomeOnboardingChecklistTradePress(): () => void {
   const swapPairRef = useRef(swapPair);
 
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.MainView,
+    location: MetaMetricsSwapsEventSource.MainView,
     sourcePage: 'MainView',
   });
 
@@ -27,22 +25,16 @@ export function useWalletHomeOnboardingChecklistTradePress(): () => void {
     const pair = swapPairRef.current;
 
     if (pair) {
-      goToSwaps(
-        pair.sourceToken,
-        pair.destToken,
-        undefined,
-        undefined,
-        ActionLocation.ONBOARDING_CHECKLIST,
-      );
+      goToSwaps({
+        sourceTokenOverride: pair.sourceToken,
+        destTokenOverride: pair.destToken,
+        swapButtonClickLocationOverride: ActionLocation.ONBOARDING_CHECKLIST,
+      });
       return;
     }
 
-    goToSwaps(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      ActionLocation.ONBOARDING_CHECKLIST,
-    );
+    goToSwaps({
+      swapButtonClickLocationOverride: ActionLocation.ONBOARDING_CHECKLIST,
+    });
   }, [goToSwaps]);
 }

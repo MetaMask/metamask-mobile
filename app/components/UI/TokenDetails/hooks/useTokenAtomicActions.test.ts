@@ -840,8 +840,9 @@ describe('useTokenAtomicActions - useHandleOnSwap', () => {
     result.current();
     expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
 
-    const [sourceToken, destToken] = mockGoToSwaps.mock.lastCall ?? [];
-    assertSwapCall(sourceToken, destToken);
+    const [{ sourceTokenOverride, destTokenOverride } = {}] =
+      mockGoToSwaps.mock.lastCall ?? [];
+    assertSwapCall(sourceTokenOverride, destTokenOverride);
   });
 
   // Regression tests: verify that the per-source destToken override is forwarded
@@ -865,8 +866,8 @@ describe('useTokenAtomicActions - useHandleOnSwap', () => {
 
       result.current();
 
-      const [, destToken] = mockGoToSwaps.mock.lastCall ?? [];
-      expect(destToken).toStrictEqual(
+      const [{ destTokenOverride }] = mockGoToSwaps.mock.lastCall ?? [{}];
+      expect(destTokenOverride).toStrictEqual(
         expect.objectContaining({ address: MOCK_OVERRIDE_TOKEN.address }),
       );
     });
@@ -889,8 +890,8 @@ describe('useTokenAtomicActions - useHandleOnSwap', () => {
 
       result.current();
 
-      const [, destToken] = mockGoToSwaps.mock.lastCall ?? [];
-      expect(destToken).toStrictEqual(
+      const [{ destTokenOverride }] = mockGoToSwaps.mock.lastCall ?? [{}];
+      expect(destTokenOverride).toStrictEqual(
         expect.objectContaining({ address: MOCK_OVERRIDE_TOKEN.address }),
       );
     });
@@ -904,8 +905,8 @@ describe('useTokenAtomicActions - useHandleOnSwap', () => {
 
       result.current();
 
-      const [, destToken] = mockGoToSwaps.mock.lastCall ?? [];
-      expect(destToken).toBeUndefined();
+      const [{ destTokenOverride }] = mockGoToSwaps.mock.lastCall ?? [{}];
+      expect(destTokenOverride).toBeUndefined();
     });
   });
 });
@@ -923,7 +924,7 @@ describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => 
     );
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: 'TrendingExplore',
+      location: 'Trending Explore',
       skipLocationUpdate: false,
       sourcePage: 'MainView',
       transactionActiveAbTests: undefined,
@@ -942,7 +943,7 @@ describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => 
     );
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: 'TrendingExplore',
+      location: 'Trending Explore',
       skipLocationUpdate: false,
       sourcePage: 'MainView',
       transactionActiveAbTests: undefined,
@@ -961,7 +962,7 @@ describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => 
     );
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: 'TokenView',
+      location: 'Token View',
       skipLocationUpdate: false,
       sourcePage: 'MainView',
       transactionActiveAbTests: undefined,
@@ -980,7 +981,7 @@ describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => 
     );
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: 'TokenView',
+      location: 'Token View',
       skipLocationUpdate: true,
       sourcePage: 'MainView',
       transactionActiveAbTests: undefined,
@@ -1040,8 +1041,8 @@ describe('useTokenAtomicActions - useHandleOnSwap securityData adaptation', () =
 
     result.current();
 
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      expect.objectContaining({
+    expect(mockGoToSwaps).toHaveBeenCalledWith({
+      sourceTokenOverride: expect.objectContaining({
         address: defaultToken.address,
         securityData: {
           type: SecurityDataType.Warning,
@@ -1056,10 +1057,9 @@ describe('useTokenAtomicActions - useHandleOnSwap securityData adaptation', () =
           },
         },
       }),
-      undefined,
-      undefined,
-      true,
-    );
+      destTokenOverride: undefined,
+      scrollToTopOnNav: true,
+    });
   });
 
   it('passes securityData as undefined when the token has no security data', () => {
@@ -1074,15 +1074,14 @@ describe('useTokenAtomicActions - useHandleOnSwap securityData adaptation', () =
 
     result.current();
 
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      expect.objectContaining({
+    expect(mockGoToSwaps).toHaveBeenCalledWith({
+      destTokenOverride: undefined,
+      sourceTokenOverride: expect.objectContaining({
         address: defaultToken.address,
         securityData: undefined,
       }),
-      undefined,
-      undefined,
-      true,
-    );
+      scrollToTopOnNav: true,
+    });
   });
 
   it('forwards rwaData so selectIsRwaSwap can detect the convert flow', () => {
@@ -1096,14 +1095,13 @@ describe('useTokenAtomicActions - useHandleOnSwap securityData adaptation', () =
 
     result.current();
 
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      expect.objectContaining({
+    expect(mockGoToSwaps).toHaveBeenCalledWith({
+      destTokenOverride: undefined,
+      sourceTokenOverride: expect.objectContaining({
         address: defaultToken.address,
         rwaData: { instrumentType: 'stock' },
       }),
-      undefined,
-      undefined,
-      true,
-    );
+      scrollToTopOnNav: true,
+    });
   });
 });

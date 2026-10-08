@@ -681,12 +681,13 @@ describe('TraderPositionView', () => {
         screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
       );
 
-      expect(mockGoToSwaps).toHaveBeenCalledWith(
-        undefined,
-        expect.objectContaining({ symbol: 'PEPE', chainId: '0x2105' }),
-        undefined,
-        true,
-      );
+      expect(mockGoToSwaps).toHaveBeenCalledWith({
+        destTokenOverride: expect.objectContaining({
+          symbol: 'PEPE',
+          chainId: '0x2105',
+        }),
+        scrollToTopOnNav: true,
+      });
       // Still fires CTA-clicked attribution in the treatment variant.
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
