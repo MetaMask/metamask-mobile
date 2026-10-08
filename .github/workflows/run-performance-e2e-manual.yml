@@ -60,21 +60,6 @@ on:
         required: false
         type: boolean
         default: false
-      testmu_app_url_android_onboarding:
-        description: 'Optional TestMu AI onboarding app URL (lt://...)'
-        required: false
-        type: string
-        default: ''
-      testmu_app_url_android_imported_wallet:
-        description: 'Optional TestMu AI imported-wallet app URL (lt://...)'
-        required: false
-        type: string
-        default: ''
-      he_concurrency:
-        description: 'HyperExecute autosplit concurrency'
-        required: false
-        type: string
-        default: '2'
 
 permissions:
   contents: write
@@ -118,7 +103,4 @@ jobs:
       reuse_main_builds: ${{ inputs.build_variant == 'e2e' && inputs.reuse_main_builds }}
       source_fingerprint: ${{ inputs.source_fingerprint }}
       enable_testmu_hyperexecute: ${{ inputs.enable_testmu_hyperexecute }}
-      testmu_app_url_android_onboarding: ${{ inputs.testmu_app_url_android_onboarding }}
-      testmu_app_url_android_imported_wallet: ${{ inputs.testmu_app_url_android_imported_wallet }}
-      he_concurrency: ${{ inputs.he_concurrency }}
     secrets: inherit
