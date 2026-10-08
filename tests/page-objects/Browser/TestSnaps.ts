@@ -524,6 +524,56 @@ class TestSnaps {
     );
   }
 
+  /**
+   * After re-enabling a Snap, the first Send Alert WebView taps can miss because
+   * the Snap runtime is not ready yet (post-#35803 residual). Re-tap with a
+   * short visibility probe; if still missing after a couple cycles, reload the
+   * test-snaps page once (same provider/registration recovery shape as
+   * BitcoinTestDapp / MultichainTestDApp) and continue until the enabled dialog
+   * is visible.
+   */
+  async tapSendAlertAndExpectEnabled(
+    options: { timeout?: number } = {},
+  ): Promise<void> {
+    const timeout = options.timeout ?? 60_000;
+    let firstAttempt = true;
+    let reloaded = false;
+    let attempts = 0;
+
+    await Utilities.executeWithRetry(
+      async () => {
+        attempts += 1;
+
+        if (!firstAttempt) {
+          try {
+            await this.expectEnabledSnapAlert(1_000);
+            return; // prior tap succeeded — dialog on screen
+          } catch {
+            /* not yet — re-tap or reload */
+          }
+
+          // After two failed tap cycles, reload once so the Snap client remounts
+          // against the newly enabled Snap (toggle alone is not always enough).
+          if (!reloaded && attempts >= 3) {
+            reloaded = true;
+            await this.navigateToTestSnap({ skipTabCleanup: true });
+          }
+        }
+
+        firstAttempt = false;
+        await this.tapButton('sendAlertButton');
+        await this.expectEnabledSnapAlert(8_000);
+      },
+      {
+        timeout,
+        interval: 500,
+        maxRetries: 8,
+        elemDescription: 'Send Alert button / enabled Snap alert dialog',
+        description: 'Send enabled Snap alert until dialog is visible',
+      },
+    );
+  }
+
   async selectInDropdown(
     selector: keyof typeof EntropyDropDownSelectorWebIDS,
     text: string,
