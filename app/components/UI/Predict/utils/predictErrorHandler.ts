@@ -1,6 +1,5 @@
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import {
@@ -69,33 +68,25 @@ export function isNetworkError(error: unknown): boolean {
   return NETWORK_ERROR_PATTERNS.some((pattern) => pattern.test(message));
 }
 
-export function createDepositErrorToast(
-  theme: {
-    colors: { error: { default: string }; accent04: { normal: string } };
-  },
-  onRetry?: () => void,
-) {
-  return {
-    variant: ToastVariants.Icon as const,
-    labelOptions: [
-      { label: strings('predict.deposit.error_title'), isBold: true },
-      { label: '\n', isBold: false },
-      {
-        label: strings('predict.deposit.error_description'),
-        isBold: false,
-      },
-    ],
-    iconName: IconName.Error,
-    iconColor: theme.colors.error.default,
-    backgroundColor: theme.colors.accent04.normal,
+export function showDepositErrorToast(onRetry?: () => void): void {
+  const content = {
+    title: strings('predict.deposit.error_title'),
+    description: strings('predict.deposit.error_description'),
+    severity: ToastSeverity.Danger,
     hasNoTimeout: false,
-    ...(onRetry && {
-      linkButtonOptions: {
-        label: strings('predict.deposit.try_again'),
-        onPress: onRetry,
-      },
-    }),
+    showCloseButton: false,
   };
+
+  if (onRetry) {
+    toast({
+      ...content,
+      actionButtonLabel: strings('predict.deposit.try_again'),
+      actionButtonOnPress: onRetry,
+    });
+    return;
+  }
+
+  toast(content);
 }
 
 export function parseErrorMessage({
