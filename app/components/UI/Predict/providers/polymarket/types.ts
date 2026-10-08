@@ -91,10 +91,13 @@ export interface PolymarketPositionV2 {
   token_id: string;
 }
 
+/** Activity side as returned by the Data API v2 (empty string when absent). */
+type PolymarketActivityV2Side = 'BUY' | 'SELL' | '';
+
 /** Raw Polymarket Data API v2 activity row (`GET /v2/activity`). */
 export interface PolymarketActivityV2 {
   type: string;
-  side: 'BUY' | 'SELL' | '';
+  side: PolymarketActivityV2Side;
   size?: number | string | null;
   price: number;
   usdc_size: number;

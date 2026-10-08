@@ -99,7 +99,6 @@ import {
   PendingOrderPreview,
   PlaceOrderParams,
   PredictAccountMeta,
-  PredictActivity,
   PredictActivityPage,
   PredictBalance,
   PredictBuyAttempt,

@@ -23,7 +23,6 @@ import {
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
-  PredictActivity,
   PredictActivityPage,
   PredictFees,
   PredictFilterOption,
