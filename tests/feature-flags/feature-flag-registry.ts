@@ -5558,6 +5558,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  swapsSentinelFeeTokens: {
+    name: 'swapsSentinelFeeTokens',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      cacheTtlMs: 900000,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   swapsSWAPS4135AbtestNumpadQuickAmounts: {
     name: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
     type: FeatureFlagType.Remote,
@@ -6529,6 +6539,19 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  // Not in the production client-config response yet. inProd stays false so
+  // the weekly registry sync does not treat this as removed from production.
+  homeInterimHeaderNavBar: {
+    name: 'homeInterimHeaderNavBar',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.15.0',
     },
     status: FeatureFlagStatus.Active,
   },
