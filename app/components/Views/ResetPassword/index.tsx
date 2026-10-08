@@ -46,8 +46,7 @@ import {
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import {
-  passwordRequirementsMet,
-  MIN_PASSWORD_LENGTH,
+  passwordPolicyMet,
   shouldShowPasswordMismatchError,
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
@@ -288,7 +287,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
 
   const onPressCreate = useCallback(async () => {
     if (loading) return;
-    if (!passwordRequirementsMet(password)) {
+    if (!passwordPolicyMet(password)) {
       Alert.alert('Error', strings('choose_password.password_length_error'));
       return;
     } else if (password !== confirmPassword) {
@@ -434,10 +433,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   );
 
   const isPasswordTooShort = useCallback(
-    () =>
-      !isPasswordFieldFocused &&
-      !!password &&
-      password.length < MIN_PASSWORD_LENGTH,
+    () => !isPasswordFieldFocused && !!password && !passwordPolicyMet(password),
     [isPasswordFieldFocused, password],
   );
 
@@ -475,16 +471,14 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   }, [isSeedlessOnboardingLoginFlow, learnMoreSocialLogin, onPressCreate]);
 
   const renderPasswordHelperText = () => {
-    if (password && password.length >= MIN_PASSWORD_LENGTH) return null;
+    if (password && passwordPolicyMet(password)) return null;
     const showError = isPasswordTooShort();
     return (
       <Text
         variant={TextVariant.BodySm}
         color={showError ? TextColor.ErrorDefault : TextColor.TextAlternative}
       >
-        {strings('reset_password.must_be_at_least', {
-          number: MIN_PASSWORD_LENGTH,
-        })}
+        {strings('choose_password.password_policy_hint')}
       </Text>
     );
   };
@@ -619,7 +613,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   const renderResetPassword = () => {
     const passwordsMatch = password !== '' && password === confirmPassword;
     const canSubmit =
-      passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
+      passwordsMatch && isSelected && passwordPolicyMet(password);
     const isSrp =
       authConnection !== AuthConnection.Apple &&
       authConnection !== AuthConnection.Google &&

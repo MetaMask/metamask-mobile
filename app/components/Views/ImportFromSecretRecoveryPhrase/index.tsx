@@ -40,8 +40,7 @@ import {
 } from '../../../util/validators';
 import { captureException } from '@sentry/react-native';
 import {
-  passwordRequirementsMet,
-  MIN_PASSWORD_LENGTH,
+  passwordPolicyMet,
   shouldShowPasswordMismatchError,
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -567,7 +566,7 @@ const ImportFromSecretRecoveryPhrase = () => {
       confirmPassword === '' ||
       password !== confirmPassword ||
       !learnMore ||
-      password.length < MIN_PASSWORD_LENGTH,
+      !passwordPolicyMet(password),
     [password, confirmPassword, learnMore],
   );
 
@@ -575,7 +574,7 @@ const ImportFromSecretRecoveryPhrase = () => {
     () =>
       !isPasswordFieldFocused &&
       password !== '' &&
-      password.length < MIN_PASSWORD_LENGTH,
+      !passwordPolicyMet(password),
     [isPasswordFieldFocused, password],
   );
 
@@ -600,7 +599,7 @@ const ImportFromSecretRecoveryPhrase = () => {
     if (loading) return;
     track(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
     let setupError = null;
-    if (!passwordRequirementsMet(password)) {
+    if (!passwordPolicyMet(password)) {
       setupError = strings('import_from_seed.password_length_error');
     } else if (password !== confirmPassword) {
       setupError = strings('import_from_seed.password_dont_match');
@@ -889,9 +888,7 @@ const ImportFromSecretRecoveryPhrase = () => {
                   }
                   color={TextColor.TextAlternative}
                 >
-                  {strings('choose_password.must_be_at_least', {
-                    number: MIN_PASSWORD_LENGTH,
-                  })}
+                  {strings('choose_password.password_policy_hint')}
                 </HelpText>
               </Box>
 

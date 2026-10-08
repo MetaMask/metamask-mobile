@@ -23,6 +23,7 @@ import {
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
+import { isUnlockLockedOut, resetFailedUnlockAttempts } from './unlockAttempts';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
 import {
   AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -949,6 +950,10 @@ class AuthenticationService {
       authPreference: undefined,
     },
   ) => {
+    if (await isUnlockLockedOut()) {
+      throw new Error(UNLOCK_WALLET_ERROR_MESSAGES.WALLET_LOCKED_OUT);
+    }
+
     let passwordToUse: string | undefined;
     try {
       const existingUser = selectExistingUser(ReduxService.store.getState());
@@ -1902,6 +1907,7 @@ class AuthenticationService {
     // Clear metrics opt-in UI state and reset onboarding Redux state
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     ReduxService.store.dispatch(clearOnboarding());
+    await resetFailedUnlockAttempts();
   };
 
   /**
