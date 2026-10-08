@@ -1,6 +1,46 @@
 import { BigNumber } from 'bignumber.js';
 
-const NUMERIC_AMOUNT = /^\d*\.?\d*$/;
+function isPlainDecimal(value: string): boolean {
+  let sawDigit = false;
+  let sawDot = false;
+
+  for (const char of value) {
+    if (char >= '0' && char <= '9') {
+      sawDigit = true;
+      continue;
+    }
+    if (char === '.' && !sawDot) {
+      sawDot = true;
+      continue;
+    }
+    return false;
+  }
+
+  return sawDigit;
+}
+
+function stripTrailingFractionZeros(value: string): string {
+  let end = value.length;
+  while (end > 0 && value.charAt(end - 1) === '0') {
+    end -= 1;
+  }
+  const withoutZeros = value.slice(0, end);
+  return withoutZeros.endsWith('.') ? withoutZeros.slice(0, -1) : withoutZeros;
+}
+
+function stripLeadingZeros(value: string): string {
+  let index = 0;
+  while (
+    index < value.length &&
+    value.charAt(index) === '0' &&
+    index + 1 < value.length &&
+    value.charAt(index + 1) >= '0' &&
+    value.charAt(index + 1) <= '9'
+  ) {
+    index += 1;
+  }
+  return value.slice(index);
+}
 
 /**
  * USD value of a user-typed asset amount.
@@ -51,19 +91,15 @@ export function toKeypadAssetAmount(value: string | undefined): string {
     return '0';
   }
 
-  const normalized = value.replace(/,/g, '').trim();
-  if (
-    !NUMERIC_AMOUNT.test(normalized) ||
-    normalized === '' ||
-    normalized === '.'
-  ) {
+  const normalized = value.replaceAll(',', '').trim();
+  if (!isPlainDecimal(normalized)) {
     return '0';
   }
 
   const withoutTrailingZeros = normalized.includes('.')
-    ? normalized.replace(/0+$/, '').replace(/\.$/, '')
+    ? stripTrailingFractionZeros(normalized)
     : normalized;
-  const withoutLeadingZeros = withoutTrailingZeros.replace(/^0+(?=\d)/, '');
+  const withoutLeadingZeros = stripLeadingZeros(withoutTrailingZeros);
 
   if (
     withoutLeadingZeros === '' ||
@@ -106,4 +142,50 @@ export function limitAssetAmountDecimals(
   }
 
   return `${whole}.${decimalPart.slice(0, decimals)}`;
+}
+
+/**
+ * Coin size to commit from a typed keypad value.
+ *
+ * Truncates to the market size step and clamps to the open position. Reaching
+ * the position size is a full close so the caller can omit an explicit size.
+ *
+ * @param assetAmount - In-progress coin amount, including a trailing decimal.
+ * @param sizeDecimals - Maximum fractional digits for the asset.
+ * @param maxAmount - Open position size in coin units.
+ * @returns The clamped size, and whether it closes the whole position.
+ */
+export function resolveTypedCloseAssetAmount(
+  assetAmount: string,
+  sizeDecimals: number,
+  maxAmount: number,
+): { amount: string; isEntirePosition: boolean } {
+  const normalized = assetAmount.endsWith('.')
+    ? assetAmount.slice(0, -1)
+    : assetAmount;
+  const asset = new BigNumber(normalized);
+  const max = new BigNumber(maxAmount);
+
+  if (
+    !asset.isFinite() ||
+    asset.isNegative() ||
+    asset.isZero() ||
+    !max.isFinite() ||
+    max.isLessThanOrEqualTo(0)
+  ) {
+    return { amount: '0', isEntirePosition: false };
+  }
+
+  if (asset.isGreaterThanOrEqualTo(max)) {
+    return { amount: max.toFixed(), isEntirePosition: true };
+  }
+
+  const decimals =
+    Number.isInteger(sizeDecimals) && sizeDecimals > 0 ? sizeDecimals : 0;
+  const limited = asset.decimalPlaces(decimals, BigNumber.ROUND_DOWN);
+  if (!limited.isFinite() || limited.isZero()) {
+    return { amount: '0', isEntirePosition: false };
+  }
+
+  return { amount: limited.toFixed(), isEntirePosition: false };
 }

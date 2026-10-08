@@ -378,6 +378,55 @@ describe('PerpsClosePositionBottomSheet', () => {
       expect(within(toggle).getByTestId('perps-swap-icon')).toBeOnTheScreen();
     });
 
+    it('submits the typed coin size on a market whose size step is one coin', async () => {
+      const cheapCoinPosition = {
+        ...defaultPerpsPositionMock,
+        size: '71',
+        entryPrice: String(1 / 71),
+      };
+      useRouteMock.mockReturnValue({
+        params: { position: cheapCoinPosition },
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [cheapCoinPosition],
+        isInitialLoading: false,
+      });
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: String(1 / 71), change24h: 0 },
+      });
+      usePerpsMarketDataMock.mockReturnValue({
+        marketData: { szDecimals: 0 },
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByLabelText, getByTestId } = renderSheet();
+
+      fireEvent.press(
+        getByLabelText(strings('perps.close_position.select_amount')),
+      );
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
+        ),
+      );
+      mockKeypadValue = '1';
+      fireEvent.press(getByTestId('mock-keypad'));
+      fireEvent.press(getByLabelText(strings('perps.deposit.done_button')));
+      expect(
+        getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent(/^1$/);
+      fireEvent.press(
+        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          defaultPerpsClosePositionMock.handleClosePosition,
+        ).toHaveBeenCalledWith(expect.objectContaining({ size: '1' }));
+      });
+    });
+
     it('applies a keypad entry to the coin amount after the display toggle', () => {
       const { getByLabelText, getByTestId } = renderSheet();
 

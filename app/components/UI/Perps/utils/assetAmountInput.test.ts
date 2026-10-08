@@ -3,6 +3,7 @@ import { calculatePositionSize } from '@metamask/perps-controller';
 import {
   convertAssetAmountToUsd,
   limitAssetAmountDecimals,
+  resolveTypedCloseAssetAmount,
   toKeypadAssetAmount,
 } from './assetAmountInput';
 
@@ -50,5 +51,29 @@ describe('limitAssetAmountDecimals', () => {
     expect(limitAssetAmountDecimals('1.23456', 4)).toBe('1.2345');
     expect(limitAssetAmountDecimals('1.', 4)).toBe('1.');
     expect(limitAssetAmountDecimals('1.2', 0)).toBe('1');
+  });
+});
+
+describe('resolveTypedCloseAssetAmount', () => {
+  it('keeps a typed whole coin instead of rounding it up to the next size step', () => {
+    expect(resolveTypedCloseAssetAmount('1', 0, 71)).toEqual({
+      amount: '1',
+      isEntirePosition: false,
+    });
+  });
+
+  it('truncates extra fractional digits and treats the full position as a full close', () => {
+    expect(resolveTypedCloseAssetAmount('1.239', 2, 5)).toEqual({
+      amount: '1.23',
+      isEntirePosition: false,
+    });
+    expect(resolveTypedCloseAssetAmount('5', 2, 5)).toEqual({
+      amount: '5',
+      isEntirePosition: true,
+    });
+    expect(resolveTypedCloseAssetAmount('.', 2, 5)).toEqual({
+      amount: '0',
+      isEntirePosition: false,
+    });
   });
 });

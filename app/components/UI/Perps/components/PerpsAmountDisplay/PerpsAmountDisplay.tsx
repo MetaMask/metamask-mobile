@@ -36,8 +36,20 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
-/** Keeps a trailing decimal so an in-progress coin amount stays visible. */
-const formatTradeSheetTokenAmount = (tokenAmount: string): string => {
+/**
+ * Formats a trade-sheet coin amount.
+ *
+ * An in-progress keypad draft is shown as typed. `formatPositionSize` rounds
+ * amounts at or above 1 to two decimals, which would change the digits still
+ * being entered. Idle amounts keep that display formatting.
+ */
+const formatTradeSheetTokenAmount = (
+  tokenAmount: string,
+  preserveExactAmount: boolean,
+): string => {
+  if (preserveExactAmount) {
+    return tokenAmount;
+  }
   if (tokenAmount.endsWith('.')) {
     return `${formatPositionSize(tokenAmount.slice(0, -1) || '0')}.`;
   }
@@ -146,7 +158,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
     // number rather than after the symbol.
     const primaryDisplayValue =
       isTokenPrimary && tokenAmount
-        ? formatTradeSheetTokenAmount(tokenAmount)
+        ? formatTradeSheetTokenAmount(tokenAmount, isActive)
         : fiatDisplayValue;
     const primaryDisplayUnit =
       isTokenPrimary && tokenSymbol
