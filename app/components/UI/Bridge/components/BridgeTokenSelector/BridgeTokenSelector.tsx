@@ -98,12 +98,7 @@ import { trackTokenListItemClicked } from '../../../Assets/watchlist/utils/track
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
-import {
-  ARC_HEX_CHAIN_ID,
-  isArcUsdcErc20AssetId,
-} from '../../../../../enablement/assets/arc';
-import { selectAsset } from '../../../../../selectors/assets/assets-list';
-import { ZERO_ADDRESS } from '../../../../../constants/address';
+import { isArcUsdcErc20AssetId } from '../../../../../enablement/assets/arc';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
