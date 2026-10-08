@@ -1966,9 +1966,7 @@ describe('PredictEventScreen', () => {
         details: [createEvent()],
         positionPages: [
           {
-            positions: [
-              makePredictNextPosition({ marketId: 'page-1-market' }),
-            ],
+            positions: [makePredictNextPosition({ marketId: 'page-1-market' })],
             nextCursor: 'cursor-page-2',
           },
           {
@@ -2046,9 +2044,7 @@ describe('PredictEventScreen', () => {
         details: [createEvent()],
         positionPages: [
           {
-            positions: [
-              makePredictNextPosition({ marketId: 'page-1-market' }),
-            ],
+            positions: [makePredictNextPosition({ marketId: 'page-1-market' })],
             nextCursor: 'cursor-page-2',
           },
         ],
