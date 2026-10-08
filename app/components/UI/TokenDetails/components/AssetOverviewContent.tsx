@@ -60,10 +60,7 @@ import {
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
 import { isCaipAssetType } from '@metamask/utils';
-import {
-  formatAddressToAssetId,
-  MetaMetricsSwapsEventSource,
-} from '@metamask/bridge-controller';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
 import {
@@ -93,14 +90,17 @@ import { useSpendableBalance } from '../hooks/useSpendableBalance';
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
-import { BridgeToken, BridgeViewMode } from '../../Bridge/types';
+import { BridgeToken } from '../../Bridge/types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import ModalSafeAreaProvider from '../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 import type { RecurringOrder } from '../../Bridge/api/recurringOrders.types';
 import { TokenDetailsOrdersSection } from './TokenDetailsOrdersSection';
 import { getMostRecentOrderType } from '../utils/getMostRecentOrderType';
-import { startSwapBridgePageLoadTrace } from '../../Bridge/utils/swapBridgePageLoadTrace';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../Bridge/hooks/useSwapBridgeNavigation';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -529,24 +529,28 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   );
 
   const mostRecentOrderType = getMostRecentOrderType({ recurringOrder });
+
+  const { goToSwaps } = useSwapBridgeNavigation({
+    sourcePage: 'TokenDetails',
+    location: SwapBridgeNavigationLocation.TokenView,
+  });
+
   const handleOrdersHeaderPress = useCallback(() => {
     if (!mostRecentOrderType) {
       return;
     }
 
     onExitAction?.();
-    const params = startSwapBridgePageLoadTrace({
-      sourcePage: 'TokenDetails',
-      bridgeViewMode: BridgeViewMode.Unified,
-      location: MetaMetricsSwapsEventSource.TokenView,
-      initialTab: mostRecentOrderType,
-    });
 
-    navigation.navigate(Routes.BRIDGE.ROOT, {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params,
-    });
-  }, [mostRecentOrderType, navigation, onExitAction]);
+    goToSwaps(
+      undefined,
+      undefined,
+      undefined,
+      true,
+      undefined,
+      mostRecentOrderType,
+    );
+  }, [mostRecentOrderType, onExitAction, goToSwaps]);
 
   const renderWarning = () => (
     <View style={styles.warningWrapper}>
