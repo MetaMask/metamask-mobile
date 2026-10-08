@@ -459,47 +459,56 @@ describe('Lighter Scale through the Pro market screen', () => {
     expect(controller.placeOrder).not.toHaveBeenCalled();
   });
 
-  it('submits a typed base quantity without sending a USD budget', async () => {
-    renderLighter();
-    await configureScale();
-    fireEvent.press(screen.getByTestId(FORM.SIZE_UNIT_BUTTON));
-    fireEvent.changeText(screen.getByTestId(FORM.SIZE_INPUT), '0.04');
-    fireEvent(screen.getByTestId(FORM.SIZE_INPUT), 'blur');
-    await waitFor(() =>
-      expect(screen.getByTestId(FORM.PLACE_ORDER_BUTTON)).toBeEnabled(),
-    );
+  it.each([0, 1, 2])(
+    'submits a typed base quantity after %s denomination toggles without sending a USD budget',
+    async (toggles) => {
+      renderLighter();
+      await configureScale();
+      fireEvent.press(screen.getByTestId(FORM.SIZE_UNIT_BUTTON));
+      fireEvent.changeText(screen.getByTestId(FORM.SIZE_INPUT), '0.04');
+      fireEvent(screen.getByTestId(FORM.SIZE_INPUT), 'blur');
+      for (let index = 0; index < toggles; index++) {
+        fireEvent.press(screen.getByTestId(FORM.SIZE_UNIT_BUTTON));
+      }
+      await waitFor(() =>
+        expect(screen.getByTestId(FORM.PLACE_ORDER_BUTTON)).toBeEnabled(),
+      );
 
-    expect(screen.getByTestId(FORM.SIZE_INPUT)).toHaveProp('value', '0.04');
-    expect(controller.getScalePriceLadder).toHaveBeenLastCalledWith(
-      expect.objectContaining({ sizing: { size: '0.04', skew: 1 } }),
-    );
-    fireEvent.press(screen.getByTestId(FORM.PLACE_ORDER_BUTTON));
+      expect(screen.getByTestId(FORM.SIZE_INPUT)).toHaveProp(
+        'value',
+        toggles === 1 ? '100' : '0.04',
+      );
+      expect(controller.getScalePriceLadder).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sizing: { size: '0.04', skew: 1 } }),
+      );
+      fireEvent.press(screen.getByTestId(FORM.PLACE_ORDER_BUTTON));
 
-    await waitFor(() =>
-      expect(controller.placeOrder).toHaveBeenCalledWith({
-        symbol: 'ETH',
-        providerId: 'lighter',
-        orderType: 'scale',
-        isBuy: true,
-        reduceOnly: false,
-        size: '0.04',
-        currentPrice: expect.any(Number),
-        leverage: expect.any(Number),
-        trackingData: expect.any(Object),
-        scaleMinPrice: '2200',
-        scaleMaxPrice: '2600',
-        scaleNumOrders: 3,
-        scaleSkew: 1,
-        expectedScaleLadder: {
-          prices: preview.prices,
-          ...preview.sizingPreview,
-        },
-      }),
-    );
-    expect(
-      jest.mocked(controller.placeOrder).mock.calls[0][0].usdAmount,
-    ).toBeUndefined();
-  });
+      await waitFor(() =>
+        expect(controller.placeOrder).toHaveBeenCalledWith({
+          symbol: 'ETH',
+          providerId: 'lighter',
+          orderType: 'scale',
+          isBuy: true,
+          reduceOnly: false,
+          size: '0.04',
+          currentPrice: expect.any(Number),
+          leverage: expect.any(Number),
+          trackingData: expect.any(Object),
+          scaleMinPrice: '2200',
+          scaleMaxPrice: '2600',
+          scaleNumOrders: 3,
+          scaleSkew: 1,
+          expectedScaleLadder: {
+            prices: preview.prices,
+            ...preview.sizingPreview,
+          },
+        }),
+      );
+      expect(
+        jest.mocked(controller.placeOrder).mock.calls[0][0].usdAmount,
+      ).toBeUndefined();
+    },
+  );
 
   it('renders failed partial acceptance and retains the Scale draft', async () => {
     jest.mocked(controller.placeOrder).mockResolvedValue({

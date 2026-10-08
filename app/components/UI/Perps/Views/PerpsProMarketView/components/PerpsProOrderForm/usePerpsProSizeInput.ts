@@ -149,6 +149,8 @@ export const usePerpsProSizeInput = ({
     }),
   );
   const assetDraft = assetDraftState.value;
+  const hasAssetIntent =
+    preserveAssetIntent && assetDraftState.source === 'user';
   const [isSizeFocused, setIsSizeFocused] = useState(false);
   const [sliderPreview, setSliderPreview] = useState<string | null>(null);
   const [isAtMaxAmount, setIsAtMaxAmount] = useState(false);
@@ -256,12 +258,12 @@ export const usePerpsProSizeInput = ({
       clearSliderMaxIntent();
     }
     setUsdDraft(usdAmount);
-    if (canToggleDenomination) {
-      setAssetDraftState({
-        value: getAssetFromUsd(usdAmount, effectivePrice, szDecimals),
-        source: 'canonical',
-      });
-    }
+    setAssetDraftState((previous) => ({
+      value: canToggleDenomination
+        ? getAssetFromUsd(usdAmount, effectivePrice, szDecimals)
+        : previous.value,
+      source: 'canonical',
+    }));
   }, [
     assetDraftState.source,
     canToggleDenomination,
@@ -313,6 +315,10 @@ export const usePerpsProSizeInput = ({
       clearSliderMaxIntent();
 
       if (activeDenominationUnit === 'usd') {
+        setAssetDraftState((previous) => ({
+          ...previous,
+          source: 'canonical',
+        }));
         setUsdDraft(result.value);
         commitUsdAmount(result.value || '0');
         return;
@@ -346,6 +352,10 @@ export const usePerpsProSizeInput = ({
     }
 
     if (activeDenominationUnit === 'usd') {
+      // USD is only a display projection until the user edits it.
+      if (hasAssetIntent) {
+        return;
+      }
       const finalizedDraft = finalizeNumericTextInput(usdDraft);
       setUsdDraft(finalizedDraft);
       commitUsdAmount(finalizedDraft || '0');
@@ -399,6 +409,7 @@ export const usePerpsProSizeInput = ({
     commitUsdAmount,
     activeDenominationUnit,
     effectivePrice,
+    hasAssetIntent,
     keepSizeEmpty,
     preserveAssetIntent,
     szDecimals,
@@ -420,10 +431,12 @@ export const usePerpsProSizeInput = ({
 
     if (activeDenominationUnit === 'usd') {
       const canonicalUsdDraft = finalizeNumericTextInput(usdDraft);
-      setAssetDraftState({
-        value: getAssetFromUsd(canonicalUsdDraft, effectivePrice, szDecimals),
-        source: 'canonical',
-      });
+      if (!hasAssetIntent) {
+        setAssetDraftState({
+          value: getAssetFromUsd(canonicalUsdDraft, effectivePrice, szDecimals),
+          source: 'canonical',
+        });
+      }
       setDenominationUnit('asset');
       return;
     }
@@ -443,6 +456,7 @@ export const usePerpsProSizeInput = ({
     commitUsdAmount,
     activeDenominationUnit,
     effectivePrice,
+    hasAssetIntent,
     keepSizeEmpty,
     preserveAssetIntent,
     clearSliderMaxIntent,
@@ -457,6 +471,10 @@ export const usePerpsProSizeInput = ({
 
     if (sliderPreview !== null) {
       return sliderPreview;
+    }
+
+    if (hasAssetIntent && canToggleDenomination) {
+      return getUsdFromAsset(assetDraft, effectivePrice) || '0';
     }
 
     if (activeDenominationUnit === 'usd') {
@@ -481,6 +499,7 @@ export const usePerpsProSizeInput = ({
     canToggleDenomination,
     activeDenominationUnit,
     effectivePrice,
+    hasAssetIntent,
     keepSizeEmpty,
     sliderPreview,
     usdAmount,
@@ -505,12 +524,12 @@ export const usePerpsProSizeInput = ({
       sliderAtMaxRef.current = atMax;
       setIsAtMaxAmount(atMax);
       setUsdDraft(nextUsdAmount);
-      if (canToggleDenomination) {
-        setAssetDraftState({
-          value: getAssetFromUsd(nextUsdAmount, effectivePrice, szDecimals),
-          source: 'canonical',
-        });
-      }
+      setAssetDraftState((previous) => ({
+        value: canToggleDenomination
+          ? getAssetFromUsd(nextUsdAmount, effectivePrice, szDecimals)
+          : previous.value,
+        source: 'canonical',
+      }));
       clearSliderPreview();
       return didCommitCanonicalAmount;
     },
@@ -577,7 +596,12 @@ export const usePerpsProSizeInput = ({
     }
 
     if (sliderPreview === null) {
-      return activeDenominationUnit === 'usd' ? usdDraft : assetDraft;
+      if (activeDenominationUnit === 'asset') {
+        return assetDraft;
+      }
+      return hasAssetIntent && canToggleDenomination
+        ? getUsdFromAsset(assetDraft, effectivePrice)
+        : usdDraft;
     }
     if (activeDenominationUnit === 'usd') {
       return sliderPreview;
@@ -591,6 +615,7 @@ export const usePerpsProSizeInput = ({
     canToggleDenomination,
     activeDenominationUnit,
     effectivePrice,
+    hasAssetIntent,
     keepSizeEmpty,
     sliderPreview,
     szDecimals,
@@ -653,9 +678,7 @@ export const usePerpsProSizeInput = ({
     sizeSlider,
     effectiveUsdAmount,
     exactAssetAmount:
-      preserveAssetIntent &&
-      activeDenominationUnit === 'asset' &&
-      assetDraftState.source === 'user' &&
+      hasAssetIntent &&
       sliderPreview === null &&
       !isAtMaxAmount &&
       !keepSizeEmpty
