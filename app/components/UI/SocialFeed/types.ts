@@ -74,6 +74,13 @@ interface SocialV1FeedItemBase {
 export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
   variant: 'perpsOpen';
   direction: SocialV1PerpDirection;
+  /**
+   * Tradable market id forwarded to the Perps order sheet. HIP-3 markets keep
+   * the `xyz:` prefix here; `asset.symbol` is the stripped display ticker.
+   */
+  tradeSymbol: string;
+  /** Numeric multiplier forwarded to the Perps order sheet on copy trade. */
+  leverage?: number;
   markPriceLabel?: string;
   leverageLabel?: string;
   autoCloseLabel?: string;

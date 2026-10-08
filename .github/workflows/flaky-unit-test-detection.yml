@@ -75,7 +75,7 @@ jobs:
           fetch-depth: 0
 
       - name: Fetch base branch for Stage 1 diff
-        run: git fetch --no-tags origin ${{ github.base_ref }}
+        run: git fetch --no-tags origin "$GITHUB_BASE_REF"
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
