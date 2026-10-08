@@ -140,6 +140,14 @@ jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
   }),
 }));
 
+const mockUseWalletHeaderNativeHeader = jest.fn(() => false);
+jest.mock('./components/WalletHeader/useWalletHeaderNativeHeader', () => ({
+  ...jest.requireActual(
+    './components/WalletHeader/useWalletHeaderNativeHeader',
+  ),
+  useWalletHeaderNativeHeader: () => mockUseWalletHeaderNativeHeader(),
+}));
+
 let mockDiscoveryPillsVariantName = 'control';
 let mockActionButtonsGridVariantName = 'control';
 let mockBalanceBreakdownVariantName = 'unresolved';
@@ -329,7 +337,8 @@ import {
   renderHook,
   waitFor,
 } from '@testing-library/react-native';
-import { Animated, InteractionManager } from 'react-native';
+import { Animated, InteractionManager, StyleSheet } from 'react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
@@ -354,6 +363,7 @@ import {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+import { selectInterimHeaderNavBarEnabled } from '../../../selectors/featureFlagController/interimHeaderNavBar';
 import { TabsListProps } from '../../../component-library/components-temp/Tabs';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
@@ -877,7 +887,6 @@ describe('Wallet', () => {
       expect(getAssetDetailsActionsProps()).toMatchObject({
         displayBuyButton: expect.any(Boolean),
         displaySwapsButton: expect.any(Boolean),
-        goToSwaps: expect.any(Function),
         onReceive: expect.any(Function),
         onSend: expect.any(Function),
         buyButtonActionID: 'wallet-buy-button',
@@ -1025,12 +1034,6 @@ describe('Wallet', () => {
       const passedProps = getAssetDetailsActionsProps();
       expect(passedProps.onBuy).toBeUndefined();
       expect(passedProps.buyButtonActionID).toBeDefined();
-    });
-
-    it('passes goToSwaps as a function', () => {
-      render(Wallet);
-
-      expect(typeof getAssetDetailsActionsProps().goToSwaps).toBe('function');
     });
   });
 
@@ -1954,6 +1957,7 @@ describe('MoneyBalanceCard slot', () => {
 describe('Header and Nav Bar refresh AB test', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseWalletHeaderNativeHeader.mockReturnValue(false);
     mockMoneyAccountEnabled = true;
     mockMoneyAccountVisible = true;
     mockHeaderNavBarVariantName = 'control';
@@ -1969,6 +1973,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     mockMoneyAccountVisible = false;
     mockHeaderNavBarVariantName = 'control';
     mockSearchPasteTreatment = false;
+    mockUseWalletHeaderNativeHeader.mockReturnValue(false);
   });
 
   it('leaves the control header untouched', () => {
@@ -2037,6 +2042,123 @@ describe('Header and Nav Bar refresh AB test', () => {
     ]) {
       expect(queryByTestId(removed)).not.toBeOnTheScreen();
     }
+  });
+
+  it('renders the interim header over a treatment arm when the interim flag is on', () => {
+    mockHeaderNavBarVariantName = 'searchFocused';
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback === selectInterimHeaderNavBarEnabled
+          ? true
+          : callback(mockInitialState),
+      );
+
+    const { getByTestId, queryByTestId } = render(Wallet);
+
+    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+    ).toBeOnTheScreen();
+    for (const removed of [
+      WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON,
+      WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON,
+      WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON,
+      WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING,
+    ]) {
+      expect(queryByTestId(removed)).not.toBeOnTheScreen();
+    }
+  });
+
+  it('hands the header to the native bar on iOS 26 when the interim flag is on', () => {
+    mockUseWalletHeaderNativeHeader.mockReturnValue(true);
+
+    const { getByTestId, queryByTestId } = render(Wallet);
+
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW).props
+        .contentInsetAdjustmentBehavior,
+    ).toBe('automatic');
+  });
+
+  describe('floating JS header', () => {
+    const HEADER_MIN_HEIGHT = 56;
+
+    beforeEach(() => {
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) =>
+          callback === selectInterimHeaderNavBarEnabled
+            ? true
+            : callback(mockInitialState),
+        );
+    });
+
+    it('mounts the header before the content so assistive tech reads it first', () => {
+      const { getByTestId } = render(Wallet);
+
+      const [firstChild] = getByTestId(
+        WalletViewSelectorsIDs.WALLET_CONTAINER,
+      ).children;
+      expect(typeof firstChild).not.toBe('string');
+      expect((firstChild as ReactTestInstance).props.testID).toBe(
+        WalletViewSelectorsIDs.WALLET_FLOATING_HEADER,
+      );
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
+      ).toBeOnTheScreen();
+    });
+
+    it('clears the header from the first frame using its min height', () => {
+      const { getByTestId } = render(Wallet);
+
+      const scrollView = getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
+      expect(
+        StyleSheet.flatten(scrollView.props.contentContainerStyle),
+      ).toEqual(expect.objectContaining({ paddingTop: HEADER_MIN_HEIGHT }));
+      expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(
+        HEADER_MIN_HEIGHT,
+      );
+      expect(capturedContext.containerScreenY).toBe(HEADER_MIN_HEIGHT);
+    });
+
+    it('tracks the measured header height for content and section visibility', () => {
+      const { getByTestId } = render(Wallet);
+
+      act(() => {
+        fireEvent(
+          getByTestId(WalletViewSelectorsIDs.WALLET_FLOATING_HEADER),
+          'layout',
+          { nativeEvent: { layout: { height: 72 } } },
+        );
+      });
+
+      const scrollView = getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
+      expect(
+        StyleSheet.flatten(scrollView.props.contentContainerStyle),
+      ).toEqual(expect.objectContaining({ paddingTop: 72 }));
+      expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(72);
+      expect(capturedContext.containerScreenY).toBe(72);
+    });
+
+    it('does not float the header when the native bar owns it', () => {
+      mockUseWalletHeaderNativeHeader.mockReturnValue(true);
+
+      const { getByTestId, queryByTestId } = render(Wallet);
+
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.WALLET_FLOATING_HEADER),
+      ).not.toBeOnTheScreen();
+      expect(
+        StyleSheet.flatten(
+          getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW).props
+            .contentContainerStyle,
+        ),
+      ).toEqual(expect.objectContaining({ paddingTop: 0 }));
+    });
   });
 
   const renderWithNavigationProp = () => {
