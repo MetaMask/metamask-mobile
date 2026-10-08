@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView } from 'react-native';
+import { AccessibilityInfo, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -237,6 +237,17 @@ const VbaDetails = () => {
     };
   }, [refreshDeposit]);
 
+  // Announce async load failures so VoiceOver/TalkBack users hear them even
+  // when focus is on Done or elsewhere (WCAG 4.1.3 Status Messages).
+  useEffect(() => {
+    if (!loadError) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(
+      strings('virtual_bank_account.vba_details.load_error'),
+    );
+  }, [loadError]);
+
   const handleDone = useCallback(() => {
     navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
@@ -329,6 +340,8 @@ const VbaDetails = () => {
             color={TextColor.ErrorDefault}
             twClassName="mt-4"
             testID={VbaDetailsSelectorsIDs.LOAD_ERROR}
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
           >
             {strings('virtual_bank_account.vba_details.load_error')}
           </Text>

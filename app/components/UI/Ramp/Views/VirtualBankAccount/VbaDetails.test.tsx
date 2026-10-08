@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
@@ -273,12 +274,25 @@ describe('VbaDetails', () => {
   it('shows a load error when refreshing the autoramp fails', async () => {
     setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Pending' }]);
     mockRefreshAutoramp.mockRejectedValue(new Error('refresh failed'));
+    const announceSpy = jest.spyOn(
+      AccessibilityInfo,
+      'announceForAccessibility',
+    );
 
     const { getByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR)).toBeOnTheScreen();
     });
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR).props).toEqual(
+      expect.objectContaining({
+        accessibilityRole: 'alert',
+        accessibilityLiveRegion: 'polite',
+      }),
+    );
+    expect(announceSpy).toHaveBeenCalledWith(
+      strings('virtual_bank_account.vba_details.load_error'),
+    );
     expect(Logger.error).toHaveBeenCalled();
   });
 
