@@ -3,9 +3,7 @@ import {
   CommonActions,
   StackActions,
   useNavigation,
-  type NavigationProp,
   type NavigationState,
-  type ParamListBase,
   type PartialState,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -30,6 +28,12 @@ import { applyVbaDevOverrides } from '../vbaDevOverrides';
 
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
+
+interface StackController {
+  dispatch: (action: ReturnType<typeof CommonActions.reset>) => void;
+  getParent: () => StackController | undefined;
+  getState: () => NavigationState | undefined;
+}
 
 const DEFAULT_CALLER_ROUTE = {
   name: Routes.HOME_TABS,
@@ -59,11 +63,12 @@ const getCallerRoute = (state: NavigationState) => {
 export const openAsOnlyOnboardingRoute = (
   navigation: AppNavigationProp,
   screen: VbaOnboardingScreenName,
-  params?: VbaOnboardingParamList[VbaOnboardingScreenName],
+  params?: NonNullable<VbaOnboardingParamList[VbaOnboardingScreenName]>,
 ): void => {
   const route =
     params === undefined ? { name: screen } : { name: screen, params };
-  let current: NavigationProp<ParamListBase> | undefined = navigation;
+  let current: StackController | undefined =
+    navigation as unknown as StackController;
 
   while (current) {
     const state = current.getState();
