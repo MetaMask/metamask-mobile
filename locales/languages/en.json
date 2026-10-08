@@ -749,9 +749,6 @@
     "settings_warning_short": "Unprotected",
     "help": "Support",
     "lock": "Lock",
-    "lock_title": "Do you really want to lock your wallet?",
-    "lock_ok": "Yes",
-    "lock_cancel": "No",
     "feedback": "Feedback",
     "metamask_support": "MetaMask Support",
     "public_address": "Public address"
@@ -4795,7 +4792,11 @@
     "card_update_badge": "Update",
     "settings": "Settings",
     "networks": "Networks",
-    "log_out": "Log out",
+    "lock_wallet": "Lock wallet",
+    "lock_wallet_title": "Lock your wallet?",
+    "lock_wallet_description": "Your accounts stay on this device. You'll need your password to unlock it.",
+    "lock_wallet_cancel": "Cancel",
+    "lock_wallet_confirm": "Lock",
     "notifications": "Notifications",
     "buy": "Buy",
     "scan": "Scan"
