@@ -80,6 +80,20 @@ const setAutoramps = (autoramps: TestAutoramp[]) => {
   ).autoramps = autoramps;
 };
 
+type EngineContextMock = {
+  NeoBankService?: {
+    getPixDepositInstructions: typeof mockGetPix;
+    listAutorampTransactions: typeof mockListTransactions;
+  };
+};
+
+const restoreNeoBankService = () => {
+  (Engine.context as unknown as EngineContextMock).NeoBankService = {
+    getPixDepositInstructions: mockGetPix,
+    listAutorampTransactions: mockListTransactions,
+  };
+};
+
 describe('pickLatestTransaction', () => {
   it('returns undefined for an empty list', () => {
     expect(pickLatestTransaction([])).toBeUndefined();
@@ -130,6 +144,8 @@ describe('VbaDetails', () => {
     mockListTransactions.mockResolvedValue([]);
     mockRefreshAutoramp.mockResolvedValue(approvedAutoramp);
     setAutoramps([{ ...approvedAutoramp }]);
+    // Restore after tests that `delete` NeoBankService from the shared mock.
+    restoreNeoBankService();
   });
 
   it('renders the details screen', async () => {
@@ -283,7 +299,7 @@ describe('VbaDetails', () => {
   });
 
   it('skips PIX fetch when NeoBankService is unavailable', async () => {
-    delete (Engine.context as { NeoBankService?: unknown }).NeoBankService;
+    delete (Engine.context as unknown as EngineContextMock).NeoBankService;
 
     const { getByText } = renderWithProvider(<VbaDetails />);
 
