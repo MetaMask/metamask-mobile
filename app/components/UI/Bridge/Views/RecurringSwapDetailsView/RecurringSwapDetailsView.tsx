@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { parseCaipAssetType, type CaipChainId } from '@metamask/utils';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import {
   Box,
   Button,
@@ -16,8 +15,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
-import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
 import type {
   Status,
   TokenAmount,
@@ -48,12 +45,15 @@ import {
 import { showRecurringAutoUpgradeError } from '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
-import { BridgeViewMode, type BridgeToken } from '../../types';
+import { type BridgeToken } from '../../types';
 import { getRecurringOrderTokens } from '../../utils/recurringOrders';
-import { startSwapBridgePageLoadTrace } from '../../utils/swapBridgePageLoadTrace';
 import { BridgeTabKey } from '../BridgeView/BridgeView.constants';
 import { RecurringSwapDetailsViewSelectorsIDs } from './RecurringSwapDetailsView.testIds';
 import type { RecurringSwapDetailsRouteParams } from './RecurringSwapDetailsView.types';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../hooks/useSwapBridgeNavigation';
 
 interface RecurringSwapStatusDisplay {
   status: Status;
@@ -193,37 +193,22 @@ export function RecurringSwapAgainButton({
   sourceToken: BridgeToken;
   destinationToken: BridgeToken;
 }) {
-  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { setSelectedTab, setRenderedTab } = useBridgeSession();
 
+  const { goToSwaps } = useSwapBridgeNavigation({
+    sourcePage: 'RecurringSwapDetails',
+    sourceToken,
+    destToken: destinationToken,
+    // TODO: Add a recurring source to MetaMetricsSwapsEventSource in @metamask/bridge-controller.
+    location: SwapBridgeNavigationLocation.TransactionDetails,
+  });
+
   const handleSwapAgain = useCallback(() => {
-    dispatch(setSourceAmount(undefined));
     setSelectedTab(BridgeTabKey.Market);
     setRenderedTab(BridgeTabKey.Market);
-
-    const params = startSwapBridgePageLoadTrace({
-      sourcePage: 'RecurringSwapDetails',
-      bridgeViewMode: BridgeViewMode.Unified,
-      sourceToken,
-      destToken: destinationToken,
-      // TODO: Add a recurring source to MetaMetricsSwapsEventSource in @metamask/bridge-controller.
-      location: MetaMetricsSwapsEventSource.TransactionDetails,
-      scrollToTopOnNav: true,
-    });
-
-    navigation.navigate(Routes.BRIDGE.ROOT, {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params,
-    });
-  }, [
-    destinationToken,
-    dispatch,
-    navigation,
-    setRenderedTab,
-    setSelectedTab,
-    sourceToken,
-  ]);
+    goToSwaps(undefined, undefined, undefined, true);
+  }, [setRenderedTab, setSelectedTab, goToSwaps]);
 
   return (
     <ActivityDetailsDoItAgainButton
