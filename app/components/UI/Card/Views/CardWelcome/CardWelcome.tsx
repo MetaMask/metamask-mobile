@@ -37,6 +37,8 @@ import {
   ButtonSize,
   ButtonVariant,
   ButtonBase,
+  FontFamily,
+  FontWeight,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -283,7 +285,10 @@ const CardWelcome = () => {
         >
           <Text
             style={styles.title}
-            variant={TextVariant.HeadingLg}
+            variant={TextVariant.DisplayMd}
+            fontFamily={FontFamily.Hero}
+            fontWeight={FontWeight.Regular}
+            twClassName="text-center pt-3"
             testID={CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT}
           >
             {strings('card.card_onboarding.title')}
@@ -298,6 +303,7 @@ const CardWelcome = () => {
           <Text
             variant={TextVariant.BodyMd}
             style={styles.titleDescription}
+            twClassName="text-center pt-2 px-2"
             testID={CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT}
           >
             {strings('card.card_onboarding.description')}

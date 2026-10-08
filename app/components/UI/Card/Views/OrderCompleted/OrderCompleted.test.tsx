@@ -106,8 +106,11 @@ jest.mock('@metamask/design-system-react-native', () => {
         React.createElement(RNText, {}, children || label),
       ),
     TextVariant: {
-      HeadingLg: 'HeadingLg',
+      DisplayMd: 'DisplayMd',
       BodyMd: 'BodyMd',
+    },
+    FontFamily: {
+      Hero: 'Hero',
     },
     FontWeight: {
       Regular: 'Regular',

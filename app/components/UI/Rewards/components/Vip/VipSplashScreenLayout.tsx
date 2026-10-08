@@ -106,10 +106,8 @@ const VipSplashScreenLayout: React.FC<VipSplashScreenLayoutProps> = ({
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            style={tw.style(
-              'mt-[18px] max-w-[326px] text-center leading-[22px]',
-              descriptionColorStyle,
-            )}
+            twClassName="mt-[18px] max-w-[326px] text-center"
+            style={descriptionColorStyle}
             testID={testIDs.description}
           >
             {strings('rewards.vip.splash_description')}
