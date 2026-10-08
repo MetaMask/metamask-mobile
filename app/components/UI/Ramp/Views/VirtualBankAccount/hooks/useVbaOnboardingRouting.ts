@@ -51,8 +51,12 @@ const getCallerRoute = (state: NavigationState) => {
 /**
  * Keeps exactly two root routes: the screen that opened onboarding and the
  * current onboarding destination. Back then always returns to the caller.
+ *
+ * A step change that is already inside onboarding resets that stack in place.
+ * Resetting the root route without its existing key destroys the native screen,
+ * and the splash shows through that gap.
  */
-const openAsOnlyOnboardingRoute = (
+export const openAsOnlyOnboardingRoute = (
   navigation: AppNavigationProp,
   screen: VbaOnboardingScreenName,
   params?: VbaOnboardingParamList[VbaOnboardingScreenName],
@@ -63,7 +67,20 @@ const openAsOnlyOnboardingRoute = (
 
   while (current) {
     const state = current.getState();
+    if (state?.routeNames.includes(VbaOnboardingRoutes.VENDOR_TERMS)) {
+      current.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [route],
+        }),
+      );
+      return;
+    }
+
     if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
+      const existingOnboardingRoute = state.routes.find(
+        (candidate) => candidate.name === Routes.RAMP.VBA_ONBOARDING,
+      );
       current.dispatch(
         CommonActions.reset({
           index: 1,
@@ -73,6 +90,9 @@ const openAsOnlyOnboardingRoute = (
               state,
             ) as PartialState<NavigationState>['routes'][number],
             {
+              ...(existingOnboardingRoute?.key
+                ? { key: existingOnboardingRoute.key }
+                : {}),
               name: Routes.RAMP.VBA_ONBOARDING,
               state: { index: 0, routes: [route] },
             },

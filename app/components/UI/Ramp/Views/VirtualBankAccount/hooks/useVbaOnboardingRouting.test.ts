@@ -382,11 +382,13 @@ describe('useOpenVbaOnboarding', () => {
     });
   });
 
-  it('keeps the caller while replacing the onboarding screen', () => {
-    const dispatch = jest.fn();
+  it('replaces the onboarding stack in place so the root screen stays mounted', () => {
+    const onboardingDispatch = jest.fn();
+    const parentDispatch = jest.fn();
     const onboardingNavigate = jest.fn();
     const onboardingNavigation = {
       navigate: onboardingNavigate,
+      dispatch: onboardingDispatch,
       getState: () => ({
         index: 1,
         routeNames: [
@@ -400,22 +402,13 @@ describe('useOpenVbaOnboarding', () => {
       }),
       getParent: () => ({
         navigate: jest.fn(),
-        dispatch,
+        dispatch: parentDispatch,
         getState: () => ({
           index: 1,
           routeNames: ['Home', Routes.RAMP.VBA_ONBOARDING],
           routes: [
             { key: 'home-1', name: 'Home' },
-            {
-              name: Routes.RAMP.VBA_ONBOARDING,
-              state: {
-                index: 1,
-                routes: [
-                  { name: VbaOnboardingRoutes.VENDOR_TERMS },
-                  { name: VbaOnboardingRoutes.EMAIL },
-                ],
-              },
-            },
+            { key: 'vba-1', name: Routes.RAMP.VBA_ONBOARDING },
           ],
         }),
       }),
@@ -423,25 +416,67 @@ describe('useOpenVbaOnboarding', () => {
 
     navigateToVbaOnboardingDestination(onboardingNavigation, 'email');
 
-    expect(dispatch).toHaveBeenCalledWith(
+    expect(onboardingDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'RESET',
         payload: expect.objectContaining({
-          index: 1,
-          routes: [
-            { key: 'home-1', name: 'Home' },
-            {
-              name: Routes.RAMP.VBA_ONBOARDING,
-              state: {
-                index: 0,
-                routes: [{ name: VbaOnboardingRoutes.EMAIL }],
-              },
-            },
-          ],
+          index: 0,
+          routes: [{ name: VbaOnboardingRoutes.EMAIL }],
         }),
       }),
     );
+    expect(parentDispatch).not.toHaveBeenCalled();
     expect(onboardingNavigate).not.toHaveBeenCalled();
+  });
+
+  it('resets the onboarding stack when called from the identity navigator', () => {
+    const onboardingDispatch = jest.fn();
+    const rootDispatch = jest.fn();
+    const identityNavigation = {
+      navigate: jest.fn(),
+      dispatch: jest.fn(),
+      getState: () => ({
+        index: 0,
+        routeNames: ['VbaIdentityVerificationProvider'],
+        routes: [{ name: 'VbaIdentityVerificationProvider' }],
+      }),
+      getParent: () => ({
+        navigate: jest.fn(),
+        dispatch: onboardingDispatch,
+        getState: () => ({
+          index: 0,
+          routeNames: [
+            VbaOnboardingRoutes.VENDOR_TERMS,
+            VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+          ],
+          routes: [{ name: VbaOnboardingRoutes.IDENTITY_VERIFICATION }],
+        }),
+        getParent: () => ({
+          dispatch: rootDispatch,
+          getState: () => ({
+            index: 1,
+            routeNames: ['Home', Routes.RAMP.VBA_ONBOARDING],
+            routes: [
+              { key: 'home-1', name: 'Home' },
+              { key: 'vba-1', name: Routes.RAMP.VBA_ONBOARDING },
+            ],
+          }),
+        }),
+      }),
+    } as unknown as AppNavigationProp;
+
+    navigateToVbaOnboardingDestination(identityNavigation, 'kycPending');
+
+    expect(onboardingDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 0,
+          routes: [{ name: VbaOnboardingRoutes.KYC_PENDING }],
+        }),
+      }),
+    );
+    expect(rootDispatch).not.toHaveBeenCalled();
   });
 
   it('keeps only the active caller and destination on first entry', () => {
@@ -510,6 +545,7 @@ describe('useOpenVbaOnboarding', () => {
         { name: 'Settings' },
         { name: 'Wallet' },
         {
+          key: 'vba-1',
           name: Routes.RAMP.VBA_ONBOARDING,
           state: mountedOnboardingState,
         },
@@ -540,6 +576,7 @@ describe('useOpenVbaOnboarding', () => {
           routes: [
             { name: 'Wallet' },
             {
+              key: 'vba-1',
               name: Routes.RAMP.VBA_ONBOARDING,
               state: {
                 index: 0,
