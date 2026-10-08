@@ -140,6 +140,44 @@ describe('getVbaDestinationForSnapshot', () => {
         }),
       ],
       ['kyc rejected', snapshot({ kycStatus: 'rejected' })],
+      [
+        'session closed and pending',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionClosed: true,
+          providerFlowStatus: 'abandoned',
+          kycStatus: 'pending',
+        }),
+      ],
+      [
+        'session closed and retry',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionClosed: true,
+          kycStatus: 'retry',
+        }),
+      ],
+      [
+        'session closed and approved with account ready',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionClosed: true,
+          kycStatus: 'approved',
+          autorampStatus: 'ready',
+        }),
+      ],
+      [
+        'session closed and rejected',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionClosed: true,
+          kycStatus: 'rejected',
+        }),
+      ],
     ];
 
     expect(
@@ -159,6 +197,10 @@ describe('getVbaDestinationForSnapshot', () => {
         "empty": "vendorTerms",
         "kyc rejected": "kycRejected",
         "provider done": "identityVerification",
+        "session closed and approved with account ready": "complete",
+        "session closed and pending": "kycPending",
+        "session closed and rejected": "kycRejected",
+        "session closed and retry": "kycPending",
         "session exists without vendor disclaimers recorded": "identityVerification",
         "session pending before provider terms": "identityVerification",
         "sumsub abandoned": "identityVerification",
