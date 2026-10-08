@@ -6,7 +6,6 @@ import SwiftUI
 import UIKit
 
 class MetaMaskWalletUIExtension: UIViewController, PKIssuerProvisioningExtensionAuthorizationProviding {
-    @IBOutlet weak var imageView: UIImageView?
     var completionHandler: ((PKIssuerProvisioningExtensionAuthorizationResult) -> Void)?
     private let model = AuthorizationModel()
     private var didFinish = false
@@ -29,10 +28,6 @@ class MetaMaskWalletUIExtension: UIViewController, PKIssuerProvisioningExtension
         ])
         controller.didMove(toParent: self)
         model.start()
-    }
-
-    @IBAction func done() {
-        finish(.canceled)
     }
 
     private func finish(_ result: PKIssuerProvisioningExtensionAuthorizationResult) {
