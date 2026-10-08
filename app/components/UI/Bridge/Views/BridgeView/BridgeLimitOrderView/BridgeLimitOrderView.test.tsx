@@ -13,6 +13,7 @@ import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypa
 import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssetsPriceData';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
 import { useLimitOrders } from '../../../hooks/useLimitOrders';
+import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { LimitOrderState } from '../../../api/limitOrders/getLimitOrders/types';
 import {
   LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
@@ -108,6 +109,10 @@ jest.mock('../../../hooks/useSwapsLimitOrderKeypad', () => ({
 
 jest.mock('../../../hooks/useHasMissingAssetsPriceData', () => ({
   useHasMissingAssetsPriceData: jest.fn(() => false),
+}));
+
+jest.mock('../../../hooks/useSentinelFeeTokenValidation', () => ({
+  useSentinelFeeTokenValidation: jest.fn(),
 }));
 
 const mockNavigate = jest.fn();
@@ -429,6 +434,10 @@ describe('BridgeLimitOrderView', () => {
       .mockImplementation(() => buildKeypadMock());
     jest.mocked(useHasMissingAssetsPriceData).mockReturnValue(false);
     jest.mocked(useIsHardwareWalletForBridge).mockReturnValue(false);
+    jest.mocked(useSentinelFeeTokenValidation).mockReturnValue({
+      isValid: true,
+      retry: jest.fn(),
+    });
   });
 
   it('renders the limit order container and source token input', () => {
@@ -556,6 +565,23 @@ describe('BridgeLimitOrderView', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '2';
     jest.mocked(useIsHardwareWalletForBridge).mockReturnValue(true);
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('disables the keypad confirm button for an unSentinel fee-token pair', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useSentinelFeeTokenValidation).mockReturnValue({
+      isValid: false,
+      reason: 'unsupported-pair',
+      retry: jest.fn(),
+    });
 
     const { getByTestId } = renderLimitOrderView();
 
