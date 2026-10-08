@@ -80,12 +80,12 @@ const setAutoramps = (autoramps: TestAutoramp[]) => {
   ).autoramps = autoramps;
 };
 
-type EngineContextMock = {
+interface EngineContextMock {
   NeoBankService?: {
     getPixDepositInstructions: typeof mockGetPix;
     listAutorampTransactions: typeof mockListTransactions;
   };
-};
+}
 
 const restoreNeoBankService = () => {
   (Engine.context as unknown as EngineContextMock).NeoBankService = {
