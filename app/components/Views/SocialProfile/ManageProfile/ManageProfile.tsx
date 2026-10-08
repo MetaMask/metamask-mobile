@@ -1,7 +1,11 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import {
+  type RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import {
   AvatarAccount,
   AvatarAccountSize,
@@ -21,21 +25,21 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import Routes from '../../../../constants/navigation/Routes';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
-import {
-  BIO_VALUE_MAX_WIDTH,
-  PROFILE_FIELD_MAX_LENGTH,
-  type Profile,
-} from './ManageProfile.constants';
+import { BIO_VALUE_MAX_WIDTH, type Profile } from './ManageProfile.constants';
 import ProfileRow from './ProfileRow';
 import ProfileAvatar from './ProfileAvatar';
-import ManageProfileFieldSheet, {
-  ProfileFieldControl,
-  type ProfileFieldValue,
-} from './ManageProfileFieldSheet';
+import {
+  ManageProfileFieldName,
+  type ManageProfileFieldUpdate,
+} from './ManageProfileField.types';
 
 const SECTION_TITLE_PROPS = {
   variant: TextVariant.BodySm,
@@ -43,22 +47,30 @@ const SECTION_TITLE_PROPS = {
   color: TextColor.TextAlternative,
 };
 
-/** The profile attributes that currently have an edit form. */
-const EditableField = {
-  DisplayName: 'displayName',
-  Bio: 'bio',
-  TradingActivity: 'tradingActivity',
-} as const;
-
-type EditableField = (typeof EditableField)[keyof typeof EditableField];
-
 /** Unset fields read as a muted placeholder rather than an empty row. */
 const valueOrPlaceholder = (value: string) =>
   value || strings('app_settings.manage_profile.not_set');
 
+const applyFieldUpdate = (
+  profile: Profile,
+  update: ManageProfileFieldUpdate,
+): Profile => {
+  switch (update.field) {
+    case ManageProfileFieldName.DisplayName:
+      return { ...profile, displayName: String(update.value) };
+    case ManageProfileFieldName.Bio:
+      return { ...profile, bio: String(update.value) };
+    case ManageProfileFieldName.TradingActivity:
+      return { ...profile, isTradingActivityVisible: Boolean(update.value) };
+    default:
+      return profile;
+  }
+};
+
 const ManageProfile = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<RouteProp<RootStackParamList, 'ManageProfile'>>();
 
   // TODO: replace with the real profile source. Edits live here so the rows
   // reflect them, but nothing is persisted.
@@ -72,7 +84,20 @@ const ManageProfile = () => {
     linkedSocialAccountName: '',
     linkedSocialAccountAddress: '',
   });
-  const [editingField, setEditingField] = useState<EditableField | null>(null);
+
+  const fieldUpdate = route.params?.fieldUpdate;
+  const consumedUpdate = useRef<ManageProfileFieldUpdate | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    if (!fieldUpdate || fieldUpdate === consumedUpdate.current) {
+      return;
+    }
+    consumedUpdate.current = fieldUpdate;
+    setProfile((previous) => applyFieldUpdate(previous, fieldUpdate));
+    navigation.setParams({ fieldUpdate: undefined });
+  }, [fieldUpdate, navigation]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -82,78 +107,33 @@ const ManageProfile = () => {
   const handleOpenLinkedSocialAccount = useCallback(() => undefined, []);
 
   const handleEditDisplayName = useCallback(
-    () => setEditingField(EditableField.DisplayName),
-    [],
+    () =>
+      navigation.navigate(Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD, {
+        field: ManageProfileFieldName.DisplayName,
+        initialValue: profile.displayName,
+      }),
+    [navigation, profile.displayName],
   );
   const handleEditBio = useCallback(
-    () => setEditingField(EditableField.Bio),
-    [],
+    () =>
+      navigation.navigate(Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD, {
+        field: ManageProfileFieldName.Bio,
+        initialValue: profile.bio,
+      }),
+    [navigation, profile.bio],
   );
+  const handleOpenXAccount = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL_PROFILE.X_ACCOUNT);
+  }, [navigation]);
+
   const handleEditTradingActivity = useCallback(
-    () => setEditingField(EditableField.TradingActivity),
-    [],
+    () =>
+      navigation.navigate(Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD, {
+        field: ManageProfileFieldName.TradingActivity,
+        initialValue: profile.isTradingActivityVisible,
+      }),
+    [navigation, profile.isTradingActivityVisible],
   );
-
-  const handleCloseSheet = useCallback(() => setEditingField(null), []);
-
-  const handleSaveField = useCallback(
-    (value: ProfileFieldValue) => {
-      setProfile((previous) => {
-        if (editingField === EditableField.DisplayName) {
-          return { ...previous, displayName: String(value) };
-        }
-        if (editingField === EditableField.Bio) {
-          return { ...previous, bio: String(value) };
-        }
-        if (editingField === EditableField.TradingActivity) {
-          return { ...previous, isTradingActivityVisible: Boolean(value) };
-        }
-        return previous;
-      });
-    },
-    [editingField],
-  );
-
-  const sheetProps = useMemo(() => {
-    switch (editingField) {
-      case EditableField.DisplayName:
-        return {
-          title: strings('app_settings.manage_profile.display_name'),
-          label: strings('app_settings.manage_profile.display_name'),
-          control: ProfileFieldControl.Text,
-          initialValue: profile.displayName,
-          placeholder: strings(
-            'app_settings.manage_profile.display_name_placeholder',
-          ),
-          maxLength: PROFILE_FIELD_MAX_LENGTH.displayName,
-        };
-      case EditableField.Bio:
-        return {
-          title: strings('app_settings.manage_profile.bio'),
-          label: strings('app_settings.manage_profile.bio'),
-          control: ProfileFieldControl.TextArea,
-          initialValue: profile.bio,
-          placeholder: strings('app_settings.manage_profile.bio_placeholder'),
-        };
-      case EditableField.TradingActivity:
-        return {
-          title: strings('app_settings.manage_profile.trading_activity'),
-          label: strings('app_settings.manage_profile.show_trading_activity'),
-          control: ProfileFieldControl.Switch,
-          initialValue: profile.isTradingActivityVisible,
-          describeValue: (isOn: boolean) =>
-            isOn
-              ? strings('app_settings.manage_profile.trading_activity_public')
-              : strings('app_settings.manage_profile.trading_activity_private'),
-          helperText: strings(
-            'app_settings.manage_profile.trading_activity_footnote',
-          ),
-          appliesImmediately: true,
-        };
-      default:
-        return null;
-    }
-  }, [editingField, profile]);
 
   return (
     <SafeAreaView
@@ -215,7 +195,7 @@ const ManageProfile = () => {
           />
           <ProfileRow
             showDivider
-            title={strings('app_settings.manage_profile.socials')}
+            title={strings('app_settings.manage_profile.x_account')}
             value={valueOrPlaceholder(profile.socialHandle)}
             valueStartAccessory={
               profile.socialHandle ? (
@@ -226,7 +206,8 @@ const ManageProfile = () => {
                 />
               ) : undefined
             }
-            testID={ManageProfileSelectorsIDs.SOCIALS_ROW}
+            onPress={handleOpenXAccount}
+            testID={ManageProfileSelectorsIDs.X_ACCOUNT_ROW}
           />
         </Card>
 
@@ -274,14 +255,6 @@ const ManageProfile = () => {
           />
         </Card>
       </ScrollView>
-
-      {sheetProps ? (
-        <ManageProfileFieldSheet
-          {...sheetProps}
-          onSave={handleSaveField}
-          onClose={handleCloseSheet}
-        />
-      ) : null}
     </SafeAreaView>
   );
 };

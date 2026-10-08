@@ -20,6 +20,7 @@ export interface Profile {
  */
 export const PROFILE_FIELD_MAX_LENGTH = {
   displayName: 32,
+  bio: 160,
 } as const;
 
 /** Keeps a long bio truncating to the right instead of filling the row. */

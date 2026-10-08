@@ -5,8 +5,9 @@ import { fireEvent, within } from '@testing-library/react-native';
 import ManageProfile from './ManageProfile';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
+import Routes from '../../../../constants/navigation/Routes';
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
-import { PROFILE_FIELD_MAX_LENGTH } from './ManageProfile.constants';
+import { ManageProfileFieldName } from './ManageProfileField.types';
 
 import { DEFAULT_PROFILE_AVATAR_SIZE } from './ProfileAvatar';
 import { strings } from '../../../../../locales/i18n';
@@ -16,21 +17,29 @@ const EXPECTED_VALUE_WIDTH_RATIO = 0.45;
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockSetParams = jest.fn();
+const mockNavigation = {
+  navigate: mockNavigate,
+  goBack: mockGoBack,
+  setParams: mockSetParams,
+};
+let mockRouteParams: {
+  fieldUpdate?: { field: string; value: string | boolean };
+} = {};
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      goBack: mockGoBack,
-    }),
+    useNavigation: () => mockNavigation,
+    useRoute: () => ({ params: mockRouteParams }),
   };
 });
 
 describe('ManageProfile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = {};
   });
 
   it('wraps content in SafeAreaView', () => {
@@ -107,8 +116,8 @@ describe('ManageProfile', () => {
     ],
     [ManageProfileSelectorsIDs.BIO_ROW, 'app_settings.manage_profile.bio'],
     [
-      ManageProfileSelectorsIDs.SOCIALS_ROW,
-      'app_settings.manage_profile.socials',
+      ManageProfileSelectorsIDs.X_ACCOUNT_ROW,
+      'app_settings.manage_profile.x_account',
     ],
     [
       ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW,
@@ -130,7 +139,7 @@ describe('ManageProfile', () => {
       [ManageProfileSelectorsIDs.DISPLAY_NAME_ROW],
       [ManageProfileSelectorsIDs.HANDLE_ROW],
       [ManageProfileSelectorsIDs.BIO_ROW],
-      [ManageProfileSelectorsIDs.SOCIALS_ROW],
+      [ManageProfileSelectorsIDs.X_ACCOUNT_ROW],
     ])('shows a placeholder for the unset %s value', (testID) => {
       const { getByTestId } = renderWithProvider(<ManageProfile />);
 
@@ -182,15 +191,15 @@ describe('ManageProfile', () => {
   });
 
   it('bounds a long saved value so it cannot overflow its row', () => {
-    const { getByTestId } = renderWithProvider(<ManageProfile />);
     const longName = 'Yield Whale '.repeat(10).trim();
+    mockRouteParams = {
+      fieldUpdate: {
+        field: ManageProfileFieldName.DisplayName,
+        value: longName,
+      },
+    };
 
-    fireEvent.press(getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW));
-    fireEvent.changeText(
-      getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_INPUT),
-      longName,
-    );
-    fireEvent.press(getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_SAVE));
+    const { getByTestId } = renderWithProvider(<ManageProfile />);
 
     const valueText = within(
       getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW),
@@ -214,39 +223,36 @@ describe('ManageProfile', () => {
     expect(label.props.numberOfLines).toBe(1);
   });
 
-  it('opens no sheet until an editable row is pressed', () => {
-    const { queryByTestId } = renderWithProvider(<ManageProfile />);
+  it('does not navigate until an editable row is pressed', () => {
+    renderWithProvider(<ManageProfile />);
 
-    expect(queryByTestId(ManageProfileSelectorsIDs.FIELD_SHEET)).toBeNull();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('leaves the not-yet-wired linked social account row inert', () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <ManageProfile />,
-    );
+    const { getByTestId } = renderWithProvider(<ManageProfile />);
 
     fireEvent.press(
       getByTestId(ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW),
     );
 
     expect(mockNavigate).not.toHaveBeenCalled();
-    expect(queryByTestId(ManageProfileSelectorsIDs.FIELD_SHEET)).toBeNull();
   });
 
-  it.each([
-    [ManageProfileSelectorsIDs.HANDLE_ROW],
-    [ManageProfileSelectorsIDs.SOCIALS_ROW],
-  ])('renders the %s row as read-only', (testID) => {
+  it('renders the handle row as read-only', () => {
     const { getByTestId } = renderWithProvider(<ManageProfile />);
 
     // The interactive variant renders a Pressable announced as a button; the
     // read-only variant renders a plain Box.
-    expect(getByTestId(testID).props.accessibilityRole).toBeUndefined();
+    expect(
+      getByTestId(ManageProfileSelectorsIDs.HANDLE_ROW).props.accessibilityRole,
+    ).toBeUndefined();
   });
 
   it.each([
     [ManageProfileSelectorsIDs.DISPLAY_NAME_ROW],
     [ManageProfileSelectorsIDs.BIO_ROW],
+    [ManageProfileSelectorsIDs.X_ACCOUNT_ROW],
     [ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW],
     [ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW],
   ])('keeps the %s row interactive', (testID) => {
@@ -255,103 +261,88 @@ describe('ManageProfile', () => {
     expect(getByTestId(testID).props.accessibilityRole).toBe('button');
   });
 
-  describe('display name form', () => {
-    it('opens an empty text field when the name is unset', () => {
+  describe('field navigation', () => {
+    it('navigates to the display name editor with an empty value', () => {
       const { getByTestId } = renderWithProvider(<ManageProfile />);
 
       fireEvent.press(getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW));
 
-      expect(
-        getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET),
-      ).toBeOnTheScreen();
-      // The placeholder is display-only; it must not seed the form.
-      expect(
-        getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_INPUT).props.value,
-      ).toBe('');
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD,
+        {
+          field: ManageProfileFieldName.DisplayName,
+          initialValue: '',
+        },
+      );
     });
 
-    it('seeds the field with a previously saved value', () => {
+    it('navigates to the empty X account screen', () => {
       const { getByTestId } = renderWithProvider(<ManageProfile />);
 
-      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW));
-      fireEvent.changeText(
-        getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_INPUT),
-        'Tomato Farmer',
-      );
-      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_SAVE));
-      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW));
+      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_ROW));
 
-      expect(
-        getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_INPUT).props.value,
-      ).toBe('Tomato Farmer');
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL_PROFILE.X_ACCOUNT,
+      );
     });
 
-    it('writes the edited value back to the row on save', () => {
+    it('navigates to the bio editor with an empty value', () => {
       const { getByTestId } = renderWithProvider(<ManageProfile />);
 
-      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW));
-      fireEvent.changeText(
-        getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_INPUT),
-        'Tomato Farmer',
+      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.BIO_ROW));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD,
+        {
+          field: ManageProfileFieldName.Bio,
+          initialValue: '',
+        },
       );
-      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_SAVE));
+    });
+
+    it('navigates to the trading activity editor with the switch off', () => {
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
+
+      fireEvent.press(
+        getByTestId(ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD,
+        {
+          field: ManageProfileFieldName.TradingActivity,
+          initialValue: false,
+        },
+      );
+    });
+
+    it('writes a returned display name onto the row', () => {
+      mockRouteParams = {
+        fieldUpdate: {
+          field: ManageProfileFieldName.DisplayName,
+          value: 'Tomato Farmer',
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
 
       expect(
         within(
           getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW),
         ).getByText('Tomato Farmer'),
       ).toBeOnTheScreen();
+      expect(mockSetParams).toHaveBeenCalledWith({ fieldUpdate: undefined });
     });
 
-    it('discards the edit when the sheet is closed', () => {
+    it('writes a returned bio onto the row', () => {
+      mockRouteParams = {
+        fieldUpdate: {
+          field: ManageProfileFieldName.Bio,
+          value: 'Just here for the yield.',
+        },
+      };
+
       const { getByTestId } = renderWithProvider(<ManageProfile />);
-
-      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW));
-      fireEvent.changeText(
-        getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_INPUT),
-        'Discarded',
-      );
-      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_CLOSE));
-
-      expect(
-        within(
-          getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW),
-        ).getByText(strings('app_settings.manage_profile.not_set')),
-      ).toBeOnTheScreen();
-    });
-
-    it('caps how many characters the field accepts', () => {
-      const { getByTestId } = renderWithProvider(<ManageProfile />);
-
-      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW));
-
-      expect(
-        getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_INPUT).props
-          .maxLength,
-      ).toBe(PROFILE_FIELD_MAX_LENGTH.displayName);
-    });
-  });
-
-  describe('bio form', () => {
-    it('opens an empty multiline field when the bio is unset', () => {
-      const { getByTestId } = renderWithProvider(<ManageProfile />);
-
-      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.BIO_ROW));
-
-      const input = getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_INPUT);
-      expect(input.props.value).toBe('');
-      expect(input.props.multiline).toBe(true);
-    });
-
-    it('writes the edited value back to the row on save', () => {
-      const { getByTestId } = renderWithProvider(<ManageProfile />);
-
-      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.BIO_ROW));
-      fireEvent.changeText(
-        getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_INPUT),
-        'Just here for the yield.',
-      );
-      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_SAVE));
 
       expect(
         within(getByTestId(ManageProfileSelectorsIDs.BIO_ROW)).getByText(
@@ -359,98 +350,42 @@ describe('ManageProfile', () => {
         ),
       ).toBeOnTheScreen();
     });
-  });
 
-  describe('trading activity form', () => {
-    it('opens a switch reflecting the current setting', () => {
+    it('writes a returned trading activity toggle onto the row', () => {
+      mockRouteParams = {
+        fieldUpdate: {
+          field: ManageProfileFieldName.TradingActivity,
+          value: true,
+        },
+      };
+
       const { getByTestId } = renderWithProvider(<ManageProfile />);
-
-      fireEvent.press(
-        getByTestId(ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW),
-      );
-
-      // Switch puts its `testID` on a wrapper View; the control itself is the
-      // element carrying the switch role.
-      const control = within(
-        getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_SWITCH),
-      ).getByRole('switch');
-
-      expect(control.props.value).toBe(false);
-    });
-
-    it('renders the privacy card copy and info affordance', () => {
-      const { getByTestId } = renderWithProvider(<ManageProfile />);
-
-      fireEvent.press(
-        getByTestId(ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW),
-      );
-
-      expect(
-        getByTestId(ManageProfileSelectorsIDs.TOGGLE_DESCRIPTION),
-      ).toHaveTextContent(
-        strings('app_settings.manage_profile.trading_activity_private'),
-      );
-      expect(
-        getByTestId(ManageProfileSelectorsIDs.TOGGLE_HELPER_TEXT),
-      ).toHaveTextContent(
-        strings('app_settings.manage_profile.trading_activity_footnote'),
-      );
-      expect(
-        getByTestId(ManageProfileSelectorsIDs.TOGGLE_INFO_BUTTON),
-      ).toBeOnTheScreen();
-    });
-
-    it('swaps the description when toggled on', () => {
-      const { getByTestId } = renderWithProvider(<ManageProfile />);
-
-      fireEvent.press(
-        getByTestId(ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW),
-      );
-      fireEvent(
-        getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_SWITCH),
-        'valueChange',
-        true,
-      );
-
-      expect(
-        getByTestId(ManageProfileSelectorsIDs.TOGGLE_DESCRIPTION),
-      ).toHaveTextContent(
-        strings('app_settings.manage_profile.trading_activity_public'),
-      );
-    });
-
-    it('offers no save button, since changes apply immediately', () => {
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <ManageProfile />,
-      );
-
-      fireEvent.press(
-        getByTestId(ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW),
-      );
-
-      expect(
-        queryByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_SAVE),
-      ).toBeNull();
-    });
-
-    it('applies the toggle to the row immediately, with no save step', () => {
-      const { getByTestId } = renderWithProvider(<ManageProfile />);
-
-      fireEvent.press(
-        getByTestId(ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW),
-      );
-      fireEvent(
-        getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_SWITCH),
-        'valueChange',
-        true,
-      );
-      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_CLOSE));
 
       expect(
         within(
           getByTestId(ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW),
         ).getByText(strings('app_settings.manage_profile.on')),
       ).toBeOnTheScreen();
+    });
+
+    it('reopens the display name editor with the value just applied', () => {
+      mockRouteParams = {
+        fieldUpdate: {
+          field: ManageProfileFieldName.DisplayName,
+          value: 'Tomato Farmer',
+        },
+      };
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
+
+      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD,
+        {
+          field: ManageProfileFieldName.DisplayName,
+          initialValue: 'Tomato Farmer',
+        },
+      );
     });
   });
 });
