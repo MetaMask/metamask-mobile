@@ -26,6 +26,7 @@ import {
 } from '../../../../core/XAuthService';
 import {
   selectIsConnectedToX,
+  selectProfile,
   selectXProfile,
 } from '../../../../selectors/profileController';
 
@@ -44,12 +45,14 @@ jest.mock('../../../../core/XAuthService', () => {
 jest.mock('../../../../selectors/profileController', () => ({
   selectIsConnectedToX: jest.fn(),
   selectXProfile: jest.fn(),
+  selectProfile: jest.fn(),
 }));
 
 const mockConnectX = jest.mocked(connectX);
 const mockDisconnectX = jest.mocked(disconnectX);
 const mockSelectIsConnectedToX = jest.mocked(selectIsConnectedToX);
 const mockSelectXProfile = jest.mocked(selectXProfile);
+const mockSelectProfile = jest.mocked(selectProfile);
 
 const X_PROFILE_FIXTURE: XProfile = {
   xUserId: '8472619402',
@@ -141,6 +144,7 @@ describe('ManageProfile', () => {
     jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
     mockSelectIsConnectedToX.mockReturnValue(false);
     mockSelectXProfile.mockReturnValue(undefined);
+    mockSelectProfile.mockReturnValue(undefined);
   });
 
   afterEach(() => {
@@ -281,6 +285,75 @@ describe('ManageProfile', () => {
       expect(
         getByTestId(ManageProfileSelectorsIDs.AVATAR).props.accessibilityLabel,
       ).toBe(strings('app_settings.manage_profile.avatar_accessibility_label'));
+    });
+  });
+
+  describe('store profile', () => {
+    const STORE_PROFILE_FIXTURE: Profile = {
+      ...PROFILE_FIXTURE,
+      bio: 'Here for the yield.',
+      tradingPrivacy: 'public',
+    };
+
+    it('shows the store display name, handle, bio, socials and trading activity', () => {
+      mockSelectProfile.mockReturnValue(STORE_PROFILE_FIXTURE);
+      mockConnectedToX();
+      const { getByTestId } = renderManageProfileWithToast();
+
+      expect(
+        within(
+          getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW),
+        ).getByText('Katie Delta'),
+      ).toBeOnTheScreen();
+      expect(
+        within(getByTestId(ManageProfileSelectorsIDs.HANDLE_ROW)).getByText(
+          '@katiedelta',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(getByTestId(ManageProfileSelectorsIDs.BIO_ROW)).getByText(
+          'Here for the yield.',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(getByTestId(ManageProfileSelectorsIDs.SOCIALS_ROW)).getByText(
+          '@katiedelta',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(
+          getByTestId(ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW),
+        ).getByText(strings('app_settings.manage_profile.on')),
+      ).toBeOnTheScreen();
+    });
+
+    it('lets a local display name edit override the store value', () => {
+      mockSelectProfile.mockReturnValue(STORE_PROFILE_FIXTURE);
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
+
+      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW));
+      fireEvent.changeText(
+        getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_INPUT),
+        'Local Name',
+      );
+      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.FIELD_SHEET_SAVE));
+
+      expect(
+        within(
+          getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW),
+        ).getByText('Local Name'),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows placeholders when the store has no profile', () => {
+      mockSelectProfile.mockReturnValue(undefined);
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
+
+      expect(
+        within(
+          getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW),
+        ).getByText(strings('app_settings.manage_profile.not_set')),
+      ).toBeOnTheScreen();
     });
   });
 

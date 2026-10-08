@@ -40,6 +40,7 @@ import {
 } from '../../../../core/XAuthService';
 import {
   selectIsConnectedToX,
+  selectProfile,
   selectXProfile,
 } from '../../../../selectors/profileController';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
@@ -155,23 +156,39 @@ const ManageProfile = () => {
   const { toastRef } = useContext(ToastContext);
   const isConnectedToX = useSelector(selectIsConnectedToX);
   const xProfile = useSelector(selectXProfile);
+  const storeProfile = useSelector(selectProfile);
 
-  // TODO: replace with the real profile source. Edits live here so the rows
-  // reflect them, but nothing is persisted.
-  const [profile, setProfile] = useState<Profile>({
-    image: undefined,
-    displayName: '',
-    handle: '',
-    bio: '',
-    socialHandle: '',
-    isTradingActivityVisible: false,
-  });
   const [editingField, setEditingField] = useState<EditableField | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const isConnectingRef = useRef(false);
   const [isDisconnectSheetOpen, setIsDisconnectSheetOpen] = useState(false);
 
   const xHandle = xProfile ? `@${xProfile.username}` : undefined;
+
+  // Unsaved local edits layered over the store profile. Edits only update
+  // the rows; they are not persisted to the backend yet.
+  const [edits, setEdits] = useState<Partial<Profile>>({});
+
+  /**
+   * Displayed profile: the store profile mapped to the local shape, with
+   * unsaved local edits on top. Derived from the store on every render (no
+   * syncing), so the store wins whenever it updates — e.g. right after the
+   * X connect flow populates ProfileController state.
+   */
+  const profile = useMemo<Profile>(
+    () => ({
+      image: storeProfile?.avatarUrl
+        ? { uri: storeProfile.avatarUrl }
+        : undefined,
+      displayName: storeProfile?.displayName ?? '',
+      handle: storeProfile?.username ? `@${storeProfile.username}` : '',
+      bio: storeProfile?.bio ?? '',
+      socialHandle: xHandle ?? '',
+      isTradingActivityVisible: storeProfile?.tradingPrivacy === 'public',
+      ...edits,
+    }),
+    [storeProfile, xHandle, edits],
+  );
 
   const showToast = useCallback(
     (label: string) => {
@@ -275,18 +292,18 @@ const ManageProfile = () => {
 
   const handleSaveField = useCallback(
     (value: ProfileFieldValue) => {
-      setProfile((previous) => {
-        if (editingField === EditableField.DisplayName) {
-          return { ...previous, displayName: String(value) };
-        }
-        if (editingField === EditableField.Bio) {
-          return { ...previous, bio: String(value) };
-        }
-        if (editingField === EditableField.TradingActivity) {
-          return { ...previous, isTradingActivityVisible: Boolean(value) };
-        }
-        return previous;
-      });
+      if (editingField === EditableField.DisplayName) {
+        setEdits((previous) => ({ ...previous, displayName: String(value) }));
+      }
+      if (editingField === EditableField.Bio) {
+        setEdits((previous) => ({ ...previous, bio: String(value) }));
+      }
+      if (editingField === EditableField.TradingActivity) {
+        setEdits((previous) => ({
+          ...previous,
+          isTradingActivityVisible: Boolean(value),
+        }));
+      }
     },
     [editingField],
   );
