@@ -131,6 +131,66 @@ describe('StatBar', () => {
     expect(onStatPress).toHaveBeenCalledWith(TokenStatKey.Holders);
   });
 
+  it('renders a skeleton for a stat still loading', () => {
+    const { getByTestId, queryByTestId } = render(
+      <StatBar
+        variant={TokenDetailsVariant.Memecoin}
+        stats={{ [TokenStatKey.MarketCap]: { value: null, isLoading: true } }}
+      />,
+    );
+
+    expect(
+      getByTestId(StatBarSelectors.skeleton(TokenStatKey.MarketCap)),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(StatBarSelectors.value(TokenStatKey.MarketCap)),
+    ).toBeNull();
+  });
+
+  // Market-sourced cells resolve on a different schedule from security-sourced
+  // ones, so the bar has to show both states at once.
+  it('skeletons only the loading stats, leaving the rest readable', () => {
+    const { getByTestId, queryByTestId } = render(
+      <StatBar
+        variant={TokenDetailsVariant.Memecoin}
+        stats={{
+          [TokenStatKey.MarketCap]: { value: null, isLoading: true },
+          [TokenStatKey.Holders]: { value: '12.9K' },
+        }}
+      />,
+    );
+
+    expect(
+      getByTestId(StatBarSelectors.skeleton(TokenStatKey.MarketCap)),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(StatBarSelectors.value(TokenStatKey.Holders)),
+    ).toHaveTextContent('12.9K');
+    expect(
+      queryByTestId(StatBarSelectors.skeleton(TokenStatKey.Holders)),
+    ).toBeNull();
+  });
+
+  // A refresh must not replace a figure the user is already reading with a
+  // placeholder.
+  it('keeps showing a value that is being refreshed', () => {
+    const { getByTestId, queryByTestId } = render(
+      <StatBar
+        variant={TokenDetailsVariant.Memecoin}
+        stats={{
+          [TokenStatKey.MarketCap]: { value: '$12.4M', isLoading: true },
+        }}
+      />,
+    );
+
+    expect(
+      getByTestId(StatBarSelectors.value(TokenStatKey.MarketCap)),
+    ).toHaveTextContent('$12.4M');
+    expect(
+      queryByTestId(StatBarSelectors.skeleton(TokenStatKey.MarketCap)),
+    ).toBeNull();
+  });
+
   it('renders only the stats its variant lists', () => {
     // Stands in for a future variant with a shorter bar, which is the whole
     // reason the stats are keyed off the variant rather than hardcoded.

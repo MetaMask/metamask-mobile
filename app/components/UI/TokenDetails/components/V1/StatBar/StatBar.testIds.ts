@@ -7,6 +7,7 @@ export const StatBarSelectors = {
   BAR: 'token-details-v1-stat-bar',
   cell: (key: TokenStatKey) => `token-details-v1-stat-${key}`,
   value: (key: TokenStatKey) => `token-details-v1-stat-${key}-value`,
+  skeleton: (key: TokenStatKey) => `token-details-v1-stat-${key}-skeleton`,
   label: (key: TokenStatKey) => `token-details-v1-stat-${key}-label`,
   underlineWrapper,
   /** `DottedUnderline` derives the rule's own ID from the wrapper's. */

@@ -39,7 +39,10 @@ import {
   selectNetworkConfigurationByChainId,
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
-import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
 import Price from '../../AssetOverview/Price/Price';
 import PriceChartContext, {
   PriceChartProvider,
@@ -74,6 +77,7 @@ import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescri
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
+import { useTokenMarketData } from '../hooks/useTokenMarketData';
 import { useTokenStatBarStats } from '../hooks/useTokenStatBarStats';
 import {
   MOCK_SECURITY_FACTS_EVM,
@@ -231,7 +235,18 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     prefetchedData: token.securityData,
   });
 
-  const statBarStats = useTokenStatBarStats();
+  // Resolved once here and shared with the Overview tab's market details list,
+  // so the screen does not fetch the same data from two places.
+  const selectedCurrency = useSelector(selectCurrentCurrency);
+  const { marketData, isLoading: isMarketDataLoading } =
+    useTokenMarketData(caip19AssetId);
+
+  const statBarStats = useTokenStatBarStats({
+    marketData,
+    isMarketDataLoading,
+    securityData,
+    currentCurrency: selectedCurrency,
+  });
 
   /** Which stat's explainer is open, or `null` for none. */
   const [explainedStat, setExplainedStat] = useState<TokenStatKey | null>(null);
@@ -324,6 +339,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             assetId={caip19AssetId}
             currentCurrency={currentCurrency}
             securityData={securityData}
+            marketData={marketData}
           />
         );
       }
@@ -346,7 +362,14 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       }
       return <TokenDetailsV1TabPlaceholder tab={tab} />;
     },
-    [mountedTabs, token, caip19AssetId, currentCurrency, securityData],
+    [
+      mountedTabs,
+      token,
+      caip19AssetId,
+      currentCurrency,
+      securityData,
+      marketData,
+    ],
   );
 
   const explainedSecurityCopy = explainedSecurityRow
