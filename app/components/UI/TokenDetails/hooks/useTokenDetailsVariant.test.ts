@@ -17,7 +17,7 @@ jest.mock('./useIsMemeToken', () => ({
 }));
 
 const mockUseTokenAssetDetails = jest.fn();
-jest.mock('../queries/useTokenAssetDetails', () => ({
+jest.mock('../queries/tokenAssetQuery', () => ({
   useTokenAssetDetails: (assetId: unknown) => mockUseTokenAssetDetails(assetId),
 }));
 

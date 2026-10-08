@@ -18,7 +18,7 @@ const FOUR_HOURS_SECONDS = 4 * 60 * 60;
  * 4h lookback (plus the 5m cell).
  */
 export const PERFORMANCE_CANDLE_INTERVAL = '1m';
-export const PERFORMANCE_CANDLE_TIME_PERIOD = '1d';
+export const PERFORMANCE_CANDLE_TIME_PERIOD = '1d' as const;
 
 /** Percent change values rendered by the Performance section. Null → gray dash. */
 export interface TokenPerformance {

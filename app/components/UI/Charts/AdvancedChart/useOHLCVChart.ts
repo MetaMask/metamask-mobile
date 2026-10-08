@@ -1,14 +1,26 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 import type { OHLCVBar } from './AdvancedChart.types';
-import {
-  ohlcvChartQueryOptions,
-  type OHLCVApiCandle,
-  type OHLCVApiResponse,
-  type OhlcvChartRequest,
-} from './ohlcvChartQuery';
 import type { OHLCVTimePeriod } from './TimeRangeSelector';
 
-export type { OHLCVApiCandle, OHLCVApiResponse };
+const OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
+const OHLCV_FETCH_TIMEOUT_MS = 3000;
+const QUERY_STALE_TIME_MS = 30_000;
+
+export interface OHLCVApiCandle {
+  timestamp: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+export interface OHLCVApiResponse {
+  data: OHLCVApiCandle[];
+  hasNext: boolean;
+  nextCursor: string;
+}
 
 export interface UseOHLCVChartOptions {
   assetId: string;
@@ -35,12 +47,75 @@ const mapCandle = (candle: OHLCVApiCandle): OHLCVBar => ({
   volume: candle.volume,
 });
 
-const toRequest = (options: UseOHLCVChartOptions): OhlcvChartRequest => ({
-  assetId: options.assetId,
-  timePeriod: options.timePeriod,
-  interval: options.interval,
-  vsCurrency: options.vsCurrency,
-});
+const buildOhlcvChartUrl = (request: UseOHLCVChartOptions): string => {
+  const url = new URL(`${OHLCV_BASE_URL}/${request.assetId}`);
+
+  if (request.timePeriod) {
+    url.searchParams.set('timePeriod', request.timePeriod);
+  }
+
+  if (request.interval) {
+    url.searchParams.set('interval', request.interval);
+  }
+
+  if (request.vsCurrency) {
+    url.searchParams.set('vsCurrency', request.vsCurrency);
+  }
+
+  return url.toString();
+};
+
+const fetchOHLCV = async (
+  request: UseOHLCVChartOptions,
+  signal?: AbortSignal,
+): Promise<OHLCVApiResponse> => {
+  const url = buildOhlcvChartUrl(request);
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(
+        () => reject(new Error('OHLCV fetch timeout')),
+        OHLCV_FETCH_TIMEOUT_MS,
+      );
+    });
+
+    const response = await Promise.race([
+      fetch(url, { signal }),
+      timeoutPromise,
+    ]);
+
+    if (!response.ok) {
+      throw new Error(`OHLCV API error: ${response.status}`);
+    }
+
+    return response.json();
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Unknown error');
+  } finally {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
+  }
+};
+
+export const ohlcvChartQueryOptions = (request: UseOHLCVChartOptions) =>
+  queryOptions({
+    queryKey: [
+      'token-details',
+      'ohlcv-chart',
+      request.assetId,
+      request.timePeriod,
+      request.interval ?? null,
+      request.vsCurrency ?? null,
+    ],
+    queryFn: ({ signal }) => fetchOHLCV(request, signal),
+    retry: false,
+    staleTime: QUERY_STALE_TIME_MS,
+  });
 
 export const useOHLCVChart = ({
   assetId,
@@ -49,13 +124,15 @@ export const useOHLCVChart = ({
   vsCurrency,
 }: UseOHLCVChartOptions): UseOHLCVChartResult => {
   const query = useQuery({
-    ...ohlcvChartQueryOptions(
-      toRequest({ assetId, timePeriod, interval, vsCurrency }),
-    ),
+    ...ohlcvChartQueryOptions({ assetId, timePeriod, interval, vsCurrency }),
     enabled: Boolean(assetId),
   });
 
   const response = query.data;
+  const ohlcvData = useMemo(
+    () => (response ? response.data.map(mapCandle) : []),
+    [response],
+  );
   const errorMessage =
     query.error instanceof Error
       ? query.error.message
@@ -64,7 +141,7 @@ export const useOHLCVChart = ({
         : null;
 
   return {
-    ohlcvData: response ? response.data.map(mapCandle) : [],
+    ohlcvData,
     isLoading: Boolean(assetId) && query.isPending,
     error: errorMessage,
     hasMore: response?.hasNext ?? false,

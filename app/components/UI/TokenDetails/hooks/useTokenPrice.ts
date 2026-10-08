@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
+import { Hex, type CaipChainId } from '@metamask/utils';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
 import {
   selectCurrentCurrency,
@@ -19,12 +19,78 @@ import {
   selectTokenDisplayData,
 } from '../../../../selectors/tokenSearchDiscoveryDataController';
 import { calculateAssetPrice } from '../../AssetOverview/utils/calculateAssetPrice';
+import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import { type MarketDataDetails } from '@metamask/assets-controllers';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { safeToChecksumAddress } from '../../../../util/address';
-import { spotPriceQueryOptions } from '../queries/spotPriceQuery';
+
+const SPOT_QUERY_STALE_TIME_MS = 30_000;
+
+export interface SpotPriceQueryRequest {
+  chainId: Hex | CaipChainId;
+  tokenAddress: string;
+  currency: string;
+}
+
+interface SpotPriceQueryResult {
+  marketData: MarketDataDetails;
+  apiDurationMs: number;
+}
+
+const isAbortError = (error: unknown): boolean =>
+  typeof error === 'object' &&
+  error != null &&
+  'name' in error &&
+  (error as { name: string }).name === 'AbortError';
+
+const emptyMarketData = {} as MarketDataDetails;
+
+const fetchSpotPrice = async (
+  request: SpotPriceQueryRequest,
+  signal?: AbortSignal,
+): Promise<SpotPriceQueryResult> => {
+  const fetchStart = Date.now();
+  try {
+    if (signal?.aborted) {
+      throw new DOMException('The user aborted a request.', 'AbortError');
+    }
+    const data = (await getTokenExchangeRate({
+      chainId: request.chainId,
+      tokenAddress: request.tokenAddress,
+      currency: request.currency,
+      includeMarketData: true,
+    })) as MarketDataDetails | undefined;
+
+    return {
+      marketData: data?.price ? data : emptyMarketData,
+      apiDurationMs: Date.now() - fetchStart,
+    };
+  } catch (error: unknown) {
+    if (signal?.aborted || isAbortError(error)) {
+      throw error;
+    }
+    return {
+      marketData: emptyMarketData,
+      apiDurationMs: Date.now() - fetchStart,
+    };
+  }
+};
+
+export const spotPriceQueryOptions = (request: SpotPriceQueryRequest) =>
+  queryOptions({
+    queryKey: [
+      'token-details',
+      'spot-price',
+      request.chainId,
+      request.tokenAddress,
+      request.currency,
+    ],
+    queryFn: ({ signal }) => fetchSpotPrice(request, signal),
+    retry: false,
+    staleTime: SPOT_QUERY_STALE_TIME_MS,
+  });
 
 /**
  * Time ranges where the spot-prices API provides a reliable pre-computed
@@ -140,21 +206,18 @@ export const useTokenPrice = ({
 
   const fetchedMarketData: MarketDataDetails | undefined = shouldFetchSpot
     ? spotQuery.data?.marketData
-    : ({} as MarketDataDetails);
+    : emptyMarketData;
 
   const exchangeRateApiMs = shouldFetchSpot
     ? spotQuery.data?.apiDurationMs
     : undefined;
 
   let fetchedRate: number | undefined;
-  const spotMarketData = shouldFetchSpot
-    ? spotQuery.data?.marketData
-    : undefined;
-  if (spotMarketData?.price) {
+  if (shouldFetchSpot && fetchedMarketData?.price) {
     if (isNonEvm) {
-      fetchedRate = spotMarketData.price;
+      fetchedRate = fetchedMarketData.price;
     } else if (nativeTokenConversionRate) {
-      fetchedRate = spotMarketData.price / nativeTokenConversionRate;
+      fetchedRate = fetchedMarketData.price / nativeTokenConversionRate;
     }
   }
 

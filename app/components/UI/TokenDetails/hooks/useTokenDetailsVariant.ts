@@ -4,7 +4,7 @@ import {
   TokenDetailsVariant,
   type TokenDetailsRouteParams,
 } from '../constants/constants';
-import { useTokenAssetDetails } from '../queries/useTokenAssetDetails';
+import { useTokenAssetDetails } from '../queries/tokenAssetQuery';
 import { useIsMemeToken } from './useIsMemeToken';
 import { useTokenCaipAssetId } from './useTokenCaipAssetId';
 

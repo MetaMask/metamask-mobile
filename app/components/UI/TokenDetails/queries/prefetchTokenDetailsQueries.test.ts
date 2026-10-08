@@ -30,7 +30,7 @@ describe('buildTokenDetailsPrefetchInput', () => {
       tokenAddress: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
       currency: 'usd',
     });
-    expect(input.historical?.timePeriod).toBe('1d');
+    expect(input.historical.timePeriod).toBe('1d');
     expect(input.ohlcv).toStrictEqual({
       assetId,
       timePeriod: '1d',

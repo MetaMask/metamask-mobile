@@ -1,4 +1,4 @@
-import { queryOptions } from '@tanstack/react-query';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 import { TOKEN_API_BASE_URL } from '../../Assets/watchlist/utils/getTokens';
 import {
   isHardcodedMemeAssetId,
@@ -249,3 +249,24 @@ export const tokenAssetQueryOptions = (assetId: string) =>
     retry: false,
     staleTime: QUERY_STALE_TIME_MS,
   });
+
+export interface UseTokenAssetDetailsResult {
+  asset: TokenAssetRecord | null;
+  isLoading: boolean;
+  isError: boolean;
+}
+
+export const useTokenAssetDetails = (
+  assetId: string | null,
+): UseTokenAssetDetailsResult => {
+  const query = useQuery({
+    ...tokenAssetQueryOptions(assetId ?? ''),
+    enabled: Boolean(assetId),
+  });
+
+  return {
+    asset: resolveTokenAssetDetails(assetId, query.data, query.isError),
+    isLoading: Boolean(assetId) && query.isPending,
+    isError: query.isError,
+  };
+};

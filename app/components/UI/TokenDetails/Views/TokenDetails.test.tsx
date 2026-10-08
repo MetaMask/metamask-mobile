@@ -183,7 +183,7 @@ jest.mock('../hooks/useTokenTransactions', () => ({
     mockUseTokenTransactions(...args),
 }));
 
-jest.mock('../queries/usePrefetchTokenDetails', () => ({
+jest.mock('../queries/prefetchTokenDetailsQueries', () => ({
   usePrefetchTokenDetails: () => undefined,
 }));
 
@@ -192,7 +192,7 @@ const mockUseTokenAssetDetails = jest.fn((_assetId: unknown) => ({
   isLoading: false,
   isError: false,
 }));
-jest.mock('../queries/useTokenAssetDetails', () => ({
+jest.mock('../queries/tokenAssetQuery', () => ({
   useTokenAssetDetails: (assetId: unknown) => mockUseTokenAssetDetails(assetId),
 }));
 

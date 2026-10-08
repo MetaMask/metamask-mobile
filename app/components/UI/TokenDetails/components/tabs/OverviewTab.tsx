@@ -7,7 +7,7 @@ import TokenDetailsSection from '../../../AssetOverview/TokenDetails';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { useTokenBalance } from '../../hooks/useTokenBalance';
 import { useTokenPerformance } from '../../hooks/useTokenPerformance';
-import { useTokenAssetDetails } from '../../queries/useTokenAssetDetails';
+import { useTokenAssetDetails } from '../../queries/tokenAssetQuery';
 import { useTokenDetailsActionTracking } from '../../hooks/useTokenDetailsActionTracking';
 import {
   TokenDetailsAction,
