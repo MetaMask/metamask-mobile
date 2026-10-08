@@ -41,6 +41,7 @@
       "isGasIncluded7702Supported": false,
       "isGasIncludedSTXSendBundleSupported": false,
       "isMaxSourceAmount": false,
+      "isNativeGasIncludedSupported": false,
       "isSelectingRecipient": false,
       "isSelectingToken": false,
       "isSlippageUserOverride": false,
