@@ -10,6 +10,7 @@ import {
 } from './modules/VbaStatusAdapters';
 import VbaVendorTermsAdapter from './modules/VbaVendorTermsAdapter';
 import VbaDetails from './VbaDetails';
+import VbaSourceCurrency from './VbaSourceCurrency';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from './routes';
 
 const Stack = createNativeStackNavigator<VbaOnboardingParamList>();
@@ -39,6 +40,10 @@ const VbaOnboardingNavigator = () => (
     <Stack.Screen
       name={VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR}
       component={VbaAccountProvisioningErrorAdapter}
+    />
+    <Stack.Screen
+      name={VbaOnboardingRoutes.SOURCE_CURRENCY}
+      component={VbaSourceCurrency}
     />
     <Stack.Screen
       name={VbaOnboardingRoutes.ERROR}

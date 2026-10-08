@@ -1191,6 +1191,21 @@
       "description": "Your identity is verified, but we couldn't finish creating your account.",
       "button": "Try again"
     },
+    "source_currency": {
+      "title": "Choose a currency",
+      "description": "Your identity is verified. Choose the currency you will deposit.",
+      "usd": "USD",
+      "brl": "BRL",
+      "button": "Continue",
+      "error": "Couldn't create the deposit route. Try again.",
+      "created_title": "Deposit route ready",
+      "created_description": "Deposits in this currency convert to mUSD on your Money Account.",
+      "currency_label": "Currency",
+      "route_id_label": "Route id",
+      "status_label": "Status",
+      "view_pix": "View PIX instructions",
+      "done": "Done"
+    },
     "error": {
       "title": "Couldn't continue",
       "description": "Something went wrong while checking your bank account setup. Try again.",

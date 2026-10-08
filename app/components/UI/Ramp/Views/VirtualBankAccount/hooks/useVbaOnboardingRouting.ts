@@ -141,6 +141,7 @@ export const navigateToVbaOnboardingDestination = (
     kycPending: VbaOnboardingRoutes.KYC_PENDING,
     kycRejected: VbaOnboardingRoutes.KYC_REJECTED,
     accountProvisioningError: VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR,
+    sourceCurrency: VbaOnboardingRoutes.SOURCE_CURRENCY,
     error: VbaOnboardingRoutes.ERROR,
   }[destinationId];
 
@@ -207,6 +208,8 @@ export const useOpenVbaOnboarding = (
           applyVbaDevOverrides(
             await Engine.context.RampsController.hydrateVbaOnboarding({
               walletAddress,
+              refreshKyc: true,
+              refreshAutoramps: true,
             }),
           );
         if (
