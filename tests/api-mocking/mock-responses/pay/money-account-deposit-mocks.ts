@@ -7,6 +7,71 @@ import {
 import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map';
 import { USDC_MAINNET } from '../../../constants/musd-mainnet';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
+import { createLogger } from '../../../framework/logger';
+
+const trafficLogger = createLogger({ name: 'MoneyDepositTraffic' });
+
+const DEPOSIT_TRAFFIC_TARGETS =
+  /infura\.io|tx-sentinel|relay\.link|gas\.api|on-ramp|ramps|transak|money\.api/;
+
+function proxiedTarget(url: string): string {
+  try {
+    const parsed = new URL(url);
+    return parsed.searchParams.get('url') ?? url;
+  } catch {
+    return url;
+  }
+}
+
+function summarizeRpcBody(text: string | undefined): string {
+  if (!text) return '';
+  try {
+    const body = JSON.parse(text);
+    const calls = (Array.isArray(body) ? body : [body]) as Record<
+      string,
+      unknown
+    >[];
+    return calls
+      .map((call) =>
+        call?.method
+          ? `${String(call.method)}(${JSON.stringify(call.params ?? []).slice(0, 160)})`
+          : JSON.stringify(call).slice(0, 160),
+      )
+      .join(' | ');
+  } catch {
+    return text.slice(0, 200);
+  }
+}
+
+/**
+ * Logs Pay/Ramps/RPC traffic (request methods and responses) so CI output
+ * shows which call the fiat deposit flow fails on.
+ *
+ * @param mockServer - The Mockttp server to observe.
+ */
+export async function logMoneyDepositTraffic(mockServer: Mockttp) {
+  const pending = new Map<string, string>();
+
+  await mockServer.on('request', async (request) => {
+    const target = proxiedTarget(request.url);
+    if (!DEPOSIT_TRAFFIC_TARGETS.test(target)) return;
+    const body = await request.body.getText().catch(() => undefined);
+    pending.set(
+      request.id,
+      `${request.method} ${target.split('?')[0]} ${summarizeRpcBody(body)}`,
+    );
+  });
+
+  await mockServer.on('response', async (response) => {
+    const summary = pending.get(response.id);
+    if (!summary) return;
+    pending.delete(response.id);
+    const body = await response.body.getText().catch(() => undefined);
+    trafficLogger.info(
+      `${summary} -> ${response.statusCode} ${(body ?? '').slice(0, 400)}`,
+    );
+  });
+}
 
 const MAINNET_SPOT_PRICES = {
   'eip155:1/slip44:60': {
