@@ -35,8 +35,12 @@ final class PrivacyCover: NSObject {
   private func makeWindow(for scene: UIWindowScene) -> UIWindow {
     let window = UIWindow(windowScene: scene)
     window.windowLevel = .alert + 1
+    // This window is not a sibling of the wallet's views, so VoiceOver needs
+    // the modal flag on the window itself to stay out of the app underneath.
+    window.accessibilityViewIsModal = true
     let root = UIViewController()
     root.view.backgroundColor = UIColor(named: "splashBackground") ?? .systemBackground
+    root.view.accessibilityViewIsModal = true
 
     let fox = UIImageView(image: UIImage(named: "fox-splash-screen"))
     fox.translatesAutoresizingMaskIntoConstraints = false
