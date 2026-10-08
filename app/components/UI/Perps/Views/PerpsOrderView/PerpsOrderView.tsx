@@ -231,6 +231,11 @@ interface OrderRouteParams {
   hideTPSL?: boolean;
   /** When true, the order was initiated from the token details screen */
   fromTokenDetails?: boolean;
+  /**
+   * After submit, dismiss back to the presenting screen instead of opening
+   * market details. The order still places and the same toasts still fire.
+   */
+  stayOnCurrentScreen?: boolean;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
   /** Analytics: market-list discovery section forwarded from market details */
@@ -301,6 +306,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const chartLibrary =
     route.params?.chartLibrary ?? getPerpsChartLibrary(isAdvancedChartEnabled);
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
+  const stayOnCurrentScreen = route.params?.stayOnCurrentScreen ?? false;
   const { colors } = useTheme();
   const bottomSafeAreaInset = useBottomSafeAreaInset();
 
@@ -422,6 +428,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // screen without one (back swipe, hardware back, tab switch) is emitted as an
   // abandon interaction via the focus-effect cleanup below.
   const hasPlacedOrderRef = useRef(false);
+  // Survives the abandon-tracking focus reset of `hasPlacedOrderRef`, so a
+  // stay-on-screen submit that already `goBack`'d is not popped again.
+  const hasDismissedAfterSubmitRef = useRef(false);
   const latestAbandonPropsRef = useRef<Record<string, unknown>>({});
 
   const { isInitialized } = usePerpsConnection();
@@ -552,7 +561,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const szDecimals = marketData?.szDecimals ?? defaultSzDecimals ?? null;
   const maxLeverage = marketData?.maxLeverage ?? defaultMaxLeverage ?? null;
-  const isMarketDataUnavailable = szDecimals === null || maxLeverage === null;
+  // The first frame requests no asset (`isDataReady` is still false). Treat
+  // that as loading, not a failed market, so entries without route defaults
+  // (Social copy trade) do not flash the error.
+  const isMarketDataUnavailable =
+    isDataReady && (szDecimals === null || maxLeverage === null);
   const isLoadingMarketData = isMarketDataLoading && isMarketDataUnavailable;
 
   // Check if user has an existing position for this market
@@ -1170,8 +1183,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   });
 
   // Order execution hook. Shows standard "Order submitted" toast for all order flows.
-  // Execution failures surface through the `onError` toast on the market
-  // screen, which both surfaces navigate to as soon as the order is submitted.
+  // Execution failures surface through the `onError` toast after we leave the
+  // form — market details by default, or the presenting screen when
+  // `stayOnCurrentScreen` is set.
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
       onSuccess: (_position) => {
@@ -1569,6 +1583,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { onConfirm: onDepositConfirm } = useTransactionConfirm();
   const validateOrderNow = orderValidation.validateNow;
   const navigateToMarketAfterOrder = useCallback(() => {
+    if (stayOnCurrentScreen) {
+      // A pay-token deposit already dismissed back to the presenting screen.
+      // Funds arriving later re-enter via `handlePlaceOrder(true)` so the
+      // order still places; do not goBack again or the feed (or whatever is
+      // now on top) gets popped.
+      if (hasDismissedAfterSubmitRef.current) {
+        return;
+      }
+      hasDismissedAfterSubmitRef.current = true;
+      navigation.goBack();
+      return;
+    }
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
@@ -1584,7 +1610,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       },
       pop: true,
     });
-  }, [navigation, navigationMarketData, orderForm.asset]);
+  }, [navigation, navigationMarketData, orderForm.asset, stayOnCurrentScreen]);
 
   const handlePlaceOrder = useCallback(
     async (forceTrade = false) => {
@@ -1788,6 +1814,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             }),
           );
         } else {
+          if (stayOnCurrentScreen) {
+            hasDismissedAfterSubmitRef.current = true;
+          }
           navigation.goBack();
         }
         return;
@@ -1838,8 +1867,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         }
 
         // Both the full-screen form and the Trade sheet leave as soon as the
-        // order is submitted; the "submitted" / "confirmed" / "failed" toasts
-        // then report the outcome on the market screen.
+        // order is submitted. Default is market details; `stayOnCurrentScreen`
+        // dismisses back to the presenting screen. The "submitted" /
+        // "confirmed" / "failed" toasts still report the outcome.
         navigateToMarketAfterOrder();
 
         // Execute order using the new hook
@@ -1988,6 +2018,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       onDepositConfirm,
       handleDepositConfirm,
       fromTokenDetails,
+      stayOnCurrentScreen,
       maxSlippageBps,
       maxSlippageSource,
       estimatedSlippageBps,
@@ -2235,6 +2266,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     // that is still awaiting validation from placing an order.
     isDismissedRef.current = true;
     isClosedByUserRef.current = true;
+    // Submit already dismissed the presenting modal. A second goBack here
+    // would pop the feed (or whatever is now on top).
+    if (hasDismissedAfterSubmitRef.current) {
+      return;
+    }
     if (fromTokenDetails) {
       const parentNavigation = navigation.getParent();
       if (parentNavigation?.canGoBack()) {
