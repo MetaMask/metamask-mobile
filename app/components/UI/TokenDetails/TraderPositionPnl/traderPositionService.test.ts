@@ -148,7 +148,7 @@ describe('getTraderPosition', () => {
       json: async () => {
         throw new SyntaxError('Unexpected token');
       },
-    } as Response);
+    } as unknown as Response);
 
     await expect(getTraderPosition('pos-1')).rejects.toBeInstanceOf(
       TraderPositionMalformedError,
