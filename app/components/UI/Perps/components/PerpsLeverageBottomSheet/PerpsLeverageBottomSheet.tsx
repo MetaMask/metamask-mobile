@@ -37,7 +37,10 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { usePerpsLivePrices } from '../../hooks';
-import { PerpsLeverageBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import {
+  getPerpsLeveragePickerItemTestId,
+  PerpsLeverageBottomSheetSelectorsIDs,
+} from '../../Perps.testIds';
 import { getProspectiveExecutionPrice } from '../../utils/orderSizing';
 import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 import {
@@ -622,7 +625,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                     accessibilityLabel={`${value}x`}
                     accessibilityState={{ selected: isSelected }}
                     onPress={() => handleLeveragePress(value)}
-                    testID={`${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-${value}`}
+                    testID={getPerpsLeveragePickerItemTestId(value)}
                     style={({ pressed }) =>
                       tw.style(
                         'h-10 items-center justify-center rounded-full',

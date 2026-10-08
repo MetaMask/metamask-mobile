@@ -1,7 +1,5 @@
 import { StyleSheet } from 'react-native';
 
-export const CARD_RADIUS = 12;
-
 const cardContent = {
   minHeight: 82,
   paddingHorizontal: 16,
@@ -12,11 +10,10 @@ const styleSheet = () =>
   StyleSheet.create({
     container: {
       ...cardContent,
-      borderRadius: CARD_RADIUS,
+      borderRadius: 12,
       marginHorizontal: 16,
     },
     glassContainer: {
-      borderRadius: CARD_RADIUS,
       marginHorizontal: 16,
     },
     glassContent: cardContent,

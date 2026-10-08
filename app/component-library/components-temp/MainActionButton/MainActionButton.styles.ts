@@ -7,8 +7,6 @@ import { Theme } from '../../../util/theme/models';
 // Internal dependencies.
 import { MainActionButtonStyleSheetVars } from './MainActionButton.types';
 
-export const BUTTON_RADIUS = 16;
-
 /**
  * Style sheet function for MainActionButton component.
  *
@@ -41,7 +39,7 @@ const styleSheet = (params: {
     base: Object.assign(
       {
         ...(isGlass ? {} : { backgroundColor, ...contentLayout }),
-        borderRadius: BUTTON_RADIUS,
+        borderRadius: 16,
         opacity: isDisabled && !isGlass ? 0.5 : 1,
       } as const,
       style,

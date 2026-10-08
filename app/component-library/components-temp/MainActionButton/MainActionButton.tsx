@@ -11,7 +11,7 @@ import { useAnimatedPressable, useStyles } from '../../hooks';
 
 // Internal dependencies.
 import { MainActionButtonProps } from './MainActionButton.types';
-import styleSheet, { BUTTON_RADIUS } from './MainActionButton.styles';
+import styleSheet from './MainActionButton.styles';
 import GlassSurface from '../GlassSurface';
 import {
   MAINACTIONBUTTON_CONTENT_TEST_ID,
@@ -85,7 +85,7 @@ const MainActionButton = ({
       >
         {isGlass ? (
           <GlassSurface
-            borderRadius={BUTTON_RADIUS}
+            radiusClassName="rounded-2xl"
             isInteractive={!isDisabled}
             hasSheen
             style={styles.glassContent}

@@ -21,8 +21,6 @@ import { Image, ImageProps } from 'expo-image';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import GlassSurface from '../../../../../component-library/components-temp/GlassSurface';
 
-const CARD_RADIUS = 12;
-
 interface MoneyCondensedInfoCardsProps {
   onHowItWorksPress?: () => void;
   onMusdPress?: () => void;
@@ -77,7 +75,7 @@ const CondensedCard = ({
     <Pressable onPress={onPress} testID={testID}>
       {isGlass ? (
         <GlassSurface
-          borderRadius={CARD_RADIUS}
+          radiusClassName="rounded-xl"
           isInteractive
           hasSheen
           style={tw.style('flex-row items-center p-4 gap-4')}

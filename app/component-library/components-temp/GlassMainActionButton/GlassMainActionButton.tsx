@@ -7,8 +7,6 @@ import {
 
 import GlassSurface from '../GlassSurface';
 
-// Matches the button's `rounded-2xl`.
-const BUTTON_RADIUS = 16;
 // Clears the button's own `bg-muted` so only the glass shows.
 const transparentStyle = { backgroundColor: 'transparent' };
 
@@ -34,7 +32,7 @@ const GlassMainActionButton = ({
 
   return (
     <GlassSurface
-      borderRadius={BUTTON_RADIUS}
+      radiusClassName="rounded-2xl"
       isInteractive={!props.isDisabled}
       hasSheen
       containerStyle={containerStyle}

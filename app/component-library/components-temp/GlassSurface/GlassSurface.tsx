@@ -35,7 +35,7 @@ export const GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID =
   'glass-surface-sheen-gradient';
 
 export interface GlassSurfaceProps extends ViewProps {
-  borderRadius: number;
+  radiusClassName: `rounded-${string}`;
   /** Layout for the bordered outer wrapper, e.g. margins or flex. */
   containerStyle?: StyleProp<ViewStyle>;
   /** Lets the glass react to touch; set it on pressable surfaces. */
@@ -54,7 +54,7 @@ export interface GlassSurfaceProps extends ViewProps {
  * otherwise. `style` lays out the content on the glass.
  */
 const GlassSurface = ({
-  borderRadius,
+  radiusClassName,
   containerStyle,
   isInteractive = false,
   hasSheen = false,
@@ -93,8 +93,7 @@ const GlassSurface = ({
   return (
     <View
       style={[
-        tw.style('border-muted'),
-        { borderRadius },
+        tw.style('border-muted', radiusClassName),
         borderStyle,
         containerStyle,
       ]}
@@ -104,7 +103,7 @@ const GlassSurface = ({
         colorScheme={glassColorScheme}
         isInteractive={isInteractive}
         // The native glass only takes the surface's corners when clipped.
-        style={[tw.style('overflow-hidden'), { borderRadius }, style]}
+        style={[tw.style('overflow-hidden', radiusClassName), style]}
         {...props}
       >
         {hasSheen && (

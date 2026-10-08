@@ -18,6 +18,8 @@ const setUp = (isFlagEnabled: unknown, isGlassEnabled: boolean) => {
   jest.mocked(useLiquidGlass).mockReturnValue({
     isGlassEnabled,
     glassColorScheme: 'dark',
+    isBlurEnabled: false,
+    blurTint: 'systemChromeMaterialDark',
   });
 };
 

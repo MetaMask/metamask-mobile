@@ -16,7 +16,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 jest.mock('@metamask/design-system-react-native', () => {
   const mockReact = jest.requireActual('react');
-  const { View, Pressable, Text } = jest.requireActual('react-native');
+  const { View, Text } = jest.requireActual('react-native');
   return {
     Box: ({
       children,
@@ -47,7 +47,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     FontWeight: { Medium: '500' },
     IconName: { Close: 'close' },
-    IconSize: { Sm: 'sm' },
+    IconSize: { Md: 'md' },
     IconColor: { IconAlternative: 'icon-alternative' },
   };
 });
@@ -119,12 +119,17 @@ describe('BrazeBannerCard', () => {
     expect(getByTestId(BRAZE_BANNER_TEST_IDS.IMAGE)).toBeTruthy();
   });
 
-  it('calls onDismiss when the dismiss button is pressed', () => {
-    const onDismiss = jest.fn();
-    const { getByTestId } = renderCard({ onDismiss });
-    fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
-    expect(onDismiss).toHaveBeenCalledTimes(1);
-  });
+  it.each([null, 'Banner title'])(
+    'calls onDismiss when the dismiss button is pressed with title %s',
+    (title) => {
+      const onDismiss = jest.fn();
+      const { getByTestId } = renderCard({ title, onDismiss });
+
+      fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
+
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+    },
+  );
 
   describe('glass', () => {
     it('keeps the opaque card by default', () => {

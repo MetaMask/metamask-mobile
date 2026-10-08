@@ -16,6 +16,7 @@ import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AccountsMenu from '../../Views/AccountsMenu';
 import AccountHub from '../../Views/AccountHub';
+import ProfileDrawer from '../../Views/SocialProfile/ProfileDrawer/ProfileDrawer';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
@@ -122,6 +123,7 @@ import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalStackOptions,
   slideFromRightNativeOptions,
+  slideFromLeftNativeOptions,
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -1013,6 +1015,13 @@ const MainNavigator = () => {
         component={SettingsFlow}
         options={slideFromRightNativeOptions}
       />
+      <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+        <NativeStack.Screen
+          name={Routes.SOCIAL_PROFILE.DRAWER}
+          component={ProfileDrawer}
+          options={slideFromLeftNativeOptions}
+        />
+      </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.ACCOUNT_HUB_VIEW}
         component={AccountHub}

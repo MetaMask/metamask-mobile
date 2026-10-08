@@ -1,7 +1,6 @@
 import React, { memo, useCallback, useRef } from 'react';
 import { View, type ViewStyle } from 'react-native';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { GlassView } from 'expo-glass-effect';
 import {
   BadgeStatus,
   BadgeStatusStatus,
@@ -23,8 +22,11 @@ import { strings } from '../../../../../../locales/i18n';
 import PickerAccount from '../../../../../component-library/components/Pickers/PickerAccount';
 import AddressCopy from '../../../../UI/AddressCopy';
 import CardButton from '../../../../UI/Card/components/CardButton';
-import { useLiquidGlass } from '../../../../../component-library/hooks/useLiquidGlass';
-import { formatInterimAccountName } from './useWalletHeaderNativeHeader';
+import GlassCapsule from '../../../../../component-library/components-temp/GlassCapsule';
+import {
+  formatInterimAccountName,
+  INTERIM_ACCOUNT_PICKER_CLASS,
+} from './useWalletHeaderNativeHeader';
 import WalletHeaderInterimActions, {
   WalletHeaderMenuButton,
 } from './WalletHeaderInterimActions';
@@ -46,12 +48,6 @@ interface TouchAreaSlop {
 const searchBarWrapperStyle: ViewStyle = { flex: 1 };
 const hiddenSearchBarStyle: ViewStyle = { opacity: 0 };
 const accountPickerContainerStyle: ViewStyle = { flex: 1 };
-// The glass capsule supplies the height and fill, so the picker drops its own.
-const glassAccountPickerStyle: ViewStyle = {
-  backgroundColor: 'transparent',
-  paddingVertical: 0,
-  paddingHorizontal: 12,
-};
 
 export interface WalletHeaderProps {
   displayName: string;
@@ -95,7 +91,6 @@ const WalletHeader = ({
 }: WalletHeaderProps) => {
   const tw = useTailwind();
   const hasAccountsMenuAttention = useAccountsMenuAttention();
-  const { isGlassEnabled, glassColorScheme } = useLiquidGlass();
   const searchBarRef = useRef<View>(null);
 
   const measureSearchOrigin = useCallback(
@@ -180,58 +175,34 @@ const WalletHeader = ({
       />
     );
 
-    if (!isGlassEnabled) {
-      return (
-        <HeaderRoot
-          testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
-          endAccessory={
-            <View style={headerActionButtonsContainerStyle} accessible={false}>
-              {interimActions}
-            </View>
-          }
-          twClassName="pl-1 pr-3"
-        >
-          {accountPicker}
-        </HeaderRoot>
-      );
-    }
-
-    // The native glass only takes the capsule's corners when clipped.
-    const glassCapsuleClass =
-      'h-10 flex-row items-center overflow-hidden rounded-full';
-
     return (
       <HeaderRoot
         testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
         endAccessory={
-          <GlassView
-            glassEffectStyle="regular"
-            colorScheme={glassColorScheme}
-            isInteractive
-            style={tw.style(glassCapsuleClass, 'px-2')}
-            testID={WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACTIONS}
+          <GlassCapsule
+            twClassName="px-2"
+            nonGlassClassName="px-3"
+            testID={WalletViewSelectorsIDs.WALLET_HEADER_ACTIONS_CAPSULE}
           >
             {interimActions}
-          </GlassView>
+          </GlassCapsule>
         }
         twClassName="pl-3 pr-3"
       >
         <View style={accountPickerContainerStyle}>
-          <GlassView
-            glassEffectStyle="regular"
-            colorScheme={glassColorScheme}
-            isInteractive
-            style={tw.style(glassCapsuleClass, 'mr-4 max-w-full self-start')}
-            testID={WalletViewSelectorsIDs.WALLET_HEADER_GLASS_ACCOUNT_PICKER}
+          <GlassCapsule
+            twClassName="mr-4 max-w-full self-start"
+            nonGlassClassName="px-1"
+            testID={WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_PICKER_CAPSULE}
           >
             <PickerAccount
               accountName={pickerAccountName}
               onPress={handleAccountPickerPress}
               testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
               hitSlop={touchAreaSlop}
-              style={glassAccountPickerStyle}
+              style={tw.style(INTERIM_ACCOUNT_PICKER_CLASS)}
             />
-          </GlassView>
+          </GlassCapsule>
         </View>
       </HeaderRoot>
     );

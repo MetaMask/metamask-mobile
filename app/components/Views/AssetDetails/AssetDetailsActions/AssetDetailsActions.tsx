@@ -21,12 +21,15 @@ import {
   ActionLocation,
   ActionPosition,
 } from '../../../../util/analytics/actionButtonTracking';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../../UI/Bridge/hooks/useSwapBridgeNavigation';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
   onBuy?: () => void;
-  goToSwaps: () => void;
   onSend: () => void;
   onReceive: () => void;
   // Asset context for fund flow
@@ -49,7 +52,6 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   displayBuyButton,
   displaySwapsButton,
   onBuy,
-  goToSwaps,
   onSend,
   onReceive,
   asset,
@@ -68,6 +70,11 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const { navigate } = navigation;
   const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const { goToSwaps } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.MainView,
+    sourcePage: 'MainView',
+  });
 
   // Prevent rapid navigation clicks - locks all buttons during navigation
   const navigationLockRef = useRef(false);

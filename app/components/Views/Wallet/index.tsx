@@ -29,6 +29,9 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
 import { useSharedValue } from 'react-native-reanimated';
 import {
   SafeAreaView,
@@ -156,6 +159,10 @@ import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useHomeNavBarConfig } from '../Homepage/hooks/useHomeNavBarConfig';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
+import {
+  BALANCE_DISPLAY_INK_INSET_ABOVE_CAP,
+  BALANCE_REFERENCE_SPACING,
+} from '../../UI/Assets/components/Balance/AccountGroupBalance.styles';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
@@ -167,10 +174,6 @@ import { BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID } from '../../../core/Braze/const
 import { NetworkConnectionBannerContent } from '../../UI/NetworkConnectionBanner';
 import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
 
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 import AppConstants from '../../../core/AppConstants';
@@ -206,6 +209,17 @@ import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
+
+const HEADER_FADE_HEIGHT = 16;
+const HEADER_FADE_OPACITIES = [1, 0.7, 0.35, 0];
+const HEADER_FADE_LOCATIONS = [0, 0.3, 0.7, 1];
+// The floating header's account capsule (h-10) sits centred in its min-h-14
+// root, so the balance cap height lands the reference gap below the capsule.
+const FLOATING_HEADER_BALANCE_INSET = Math.round(
+  BALANCE_REFERENCE_SPACING -
+    (56 - 40) / 2 -
+    BALANCE_DISPLAY_INK_INSET_ABOVE_CAP,
+);
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -410,24 +424,13 @@ const Wallet = ({
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const showMoneyBalanceCard =
-    isMoneyAccountVisible && !inWalletHomePostOnboardingFlow;
+    isMoneyAccountEnabled && !inWalletHomePostOnboardingFlow;
 
-  /**
-   * Provider configuration for the current selected network
-   */
-  const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
 
   const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
 
-  // Setup for AssetDetailsActions
-  const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.MainView,
-    sourcePage: 'MainView',
-  });
-
-  const onTradePrimaryPress =
-    useWalletHomeOnboardingChecklistTradePress(goToSwaps);
+  const onTradePrimaryPress = useWalletHomeOnboardingChecklistTradePress();
   const handleWalletHomeOnboardingNotificationsPrimary = useCallback(() => {
     navigation.navigate(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.NOTIFICATIONS,
@@ -745,13 +748,12 @@ const Wallet = ({
     HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS,
     HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS,
   );
-
-  const balanceBreakdownLayout = isBalanceBreakdownExperimentActive
-    ? balanceBreakdownVariant.layout
-    : null;
+  const isBalanceBreakdownEnabled =
+    isBalanceBreakdownExperimentActive &&
+    balanceBreakdownVariant.showBalanceBreakdown;
   const balanceBreakdownTransactionActiveAbTests =
     getHomepageBalanceBreakdownTransactionActiveAbTests(
-      isBalanceBreakdownExperimentActive && balanceBreakdownLayout !== null,
+      isBalanceBreakdownEnabled,
       balanceBreakdownVariantName,
     );
 
@@ -938,6 +940,23 @@ const Wallet = ({
   const nativeHeaderInset = isNativeHeader
     ? safeAreaInsets.top + NATIVE_HEADER_BAR_HEIGHT
     : 0;
+  // Without the native bar (Android, iOS < 26) the interim header floats over the content on a fade.
+  const isFloatingJsHeader =
+    isInterimHeader && !isNativeHeader && !isSearchHeaderEnabled;
+  const tw = useTailwind();
+  // Seeded with the header's min height so the first frame already clears it.
+  const [floatingHeaderHeight, setFloatingHeaderHeight] = useState(() =>
+    Number(tw.style('h-14').height),
+  );
+  const headerFadeColors = useMemo(
+    () =>
+      HEADER_FADE_OPACITIES.map((opacity) =>
+        colorWithOpacity(colors.background.default, opacity),
+      ),
+    [colors.background.default],
+  );
+  const floatingHeaderInset = isFloatingJsHeader ? floatingHeaderHeight : 0;
+  const viewportTopInset = nativeHeaderInset + floatingHeaderInset;
 
   // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
   // This handles scrolling in the homepage .map() mode where TokenList can't scroll directly
@@ -977,9 +996,10 @@ const Wallet = ({
         flexGrow: 0,
         overflow: 'visible' as const,
         paddingBottom: floatingTabBarInset,
+        paddingTop: floatingHeaderInset,
       },
     ],
-    [styles.wrapper, floatingTabBarInset],
+    [styles.wrapper, floatingTabBarInset, floatingHeaderInset],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -1049,8 +1069,8 @@ const Wallet = ({
   const homepageScrollContextValue = useMemo(
     () => ({
       subscribeToScroll,
-      viewportHeight: Math.max(0, viewportHeight - nativeHeaderInset),
-      containerScreenY: containerScreenY + nativeHeaderInset,
+      viewportHeight: Math.max(0, viewportHeight - viewportTopInset),
+      containerScreenY: containerScreenY + viewportTopInset,
       entryPoint,
       visitId,
       notifySectionViewed,
@@ -1062,13 +1082,33 @@ const Wallet = ({
       subscribeToScroll,
       viewportHeight,
       containerScreenY,
-      nativeHeaderInset,
+      viewportTopInset,
       entryPoint,
       visitId,
       notifySectionViewed,
       getViewedSectionCount,
       getVisitMaxDepth,
     ],
+  );
+
+  const renderWalletHeader = () => (
+    <WalletHeader
+      displayName={displayName}
+      navigation={navigation}
+      isMoneyAccountVisible={isMoneyAccountVisible}
+      handleSearchPress={handleSearchPress}
+      useSearchHeaderLayout={isSearchHeaderEnabled}
+      isSearchReturnTransitionActive={Boolean(homepageSearchReturnTransition)}
+      showSearchPastePill={showPastePill}
+      handleSearchPastePress={handlePastePress}
+      handleActivityPress={handleActivityPress}
+      handleCardPress={handleCardPress}
+      handleHamburgerPress={handleHamburgerPress}
+      touchAreaSlop={touchAreaSlop}
+      headerActionButtonsContainerStyle={styles.headerActionButtonsContainer}
+      headerAccountPickerStyle={styles.headerAccountPickerStyle}
+      isInterimLayout={isInterimHeader}
+    />
   );
 
   const handleBannerError = useCallback(() => {
@@ -1156,7 +1196,6 @@ const Wallet = ({
       <AssetDetailsActions
         displayBuyButton={displayBuyButton}
         displaySwapsButton={displaySwapsButton}
-        goToSwaps={goToSwaps}
         onReceive={onReceive}
         onSend={onSend}
         buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
@@ -1224,7 +1263,7 @@ const Wallet = ({
       </ButtonAnimated>
     ) : null;
 
-  const portfolioHeader = balanceBreakdownLayout ? (
+  const portfolioHeader = isBalanceBreakdownEnabled ? (
     <>
       {hasBannerContent ? (
         <View
@@ -1246,10 +1285,14 @@ const Wallet = ({
       ) : null}
       {compactHeaderAccountName}
       <Box
-        style={styles.portfolioHeaderCluster}
+        style={[
+          styles.portfolioHeaderCluster,
+          isFloatingJsHeader && { paddingTop: FLOATING_HEADER_BALANCE_INSET },
+        ]}
         paddingTop={
           isSearchHeaderEnabled && inWalletHomePostOnboardingFlow ? 4 : 0
         }
+        testID={WalletViewSelectorsIDs.WALLET_PORTFOLIO_HEADER_CLUSTER}
       >
         <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
         {walletHomeMainAssetDetailsActions}
@@ -1260,12 +1303,10 @@ const Wallet = ({
     </>
   );
 
-  const balanceBreakdownSectionProps = balanceBreakdownLayout
+  const balanceBreakdownSectionProps = isBalanceBreakdownEnabled
     ? {
         accountGroupBalanceProps: walletHomeAccountGroupBalanceProps,
         hideRows: inWalletHomePostOnboardingFlow,
-        layout: balanceBreakdownLayout,
-        showRowArrows: balanceBreakdownVariant.showRowArrows,
         transactionActiveAbTests: balanceBreakdownTransactionActiveAbTests,
         children: contentBeforeBalanceBreakdown,
       }
@@ -1316,28 +1357,8 @@ const Wallet = ({
                   scrollY={homepageScrollY}
                   titleSectionHeight={accountNameSectionBottom}
                 />
-              ) : (
-                <WalletHeader
-                  displayName={displayName}
-                  navigation={navigation}
-                  isMoneyAccountVisible={isMoneyAccountVisible}
-                  handleSearchPress={handleSearchPress}
-                  useSearchHeaderLayout={isSearchHeaderEnabled}
-                  isSearchReturnTransitionActive={Boolean(
-                    homepageSearchReturnTransition,
-                  )}
-                  showSearchPastePill={showPastePill}
-                  handleSearchPastePress={handlePastePress}
-                  handleActivityPress={handleActivityPress}
-                  handleCardPress={handleCardPress}
-                  handleHamburgerPress={handleHamburgerPress}
-                  touchAreaSlop={touchAreaSlop}
-                  headerActionButtonsContainerStyle={
-                    styles.headerActionButtonsContainer
-                  }
-                  headerAccountPickerStyle={styles.headerAccountPickerStyle}
-                  isInterimLayout={isInterimHeader}
-                />
+              ) : isFloatingJsHeader ? null : (
+                renderWalletHeader()
               )}
               <View
                 ref={containerViewRef}
@@ -1350,6 +1371,28 @@ const Wallet = ({
                   });
                 }}
               >
+                {isFloatingJsHeader && (
+                  // Mounted first so assistive tech reads the header before the content.
+                  <View
+                    pointerEvents="box-none"
+                    style={tw.style('absolute left-0 right-0 top-0 z-10')}
+                    testID={WalletViewSelectorsIDs.WALLET_FLOATING_HEADER}
+                    onLayout={(e) =>
+                      setFloatingHeaderHeight(e.nativeEvent.layout.height)
+                    }
+                  >
+                    <LinearGradient
+                      pointerEvents="none"
+                      colors={headerFadeColors}
+                      locations={HEADER_FADE_LOCATIONS}
+                      style={[
+                        RNStyleSheet.absoluteFill,
+                        { bottom: -HEADER_FADE_HEIGHT },
+                      ]}
+                    />
+                    {renderWalletHeader()}
+                  </View>
+                )}
                 {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
                 <HomepageScrollContext.Provider
                   value={homepageScrollContextValue}
@@ -1368,6 +1411,7 @@ const Wallet = ({
                       scrollEventThrottle: 16,
                       refreshControl: (
                         <RefreshControl
+                          progressViewOffset={floatingHeaderInset}
                           colors={[colors.primary.default]}
                           tintColor={colors.icon.default}
                           refreshing={refreshing}

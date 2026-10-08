@@ -8,12 +8,8 @@ import {
 
 import GlassSurface from '../GlassSurface';
 
-// The design-system Button is a full pill.
-const PILL_RADIUS = 999;
-
 export type ButtonGlassProps = ButtonBaseProps & {
   isGlass: boolean;
-  /** Layout for the button or its glass wrapper, e.g. `flex: 1` in a row. */
   containerStyle?: StyleProp<ViewStyle>;
 };
 
@@ -41,7 +37,7 @@ const ButtonGlass = ({
 
   return (
     <GlassSurface
-      borderRadius={PILL_RADIUS}
+      radiusClassName="rounded-full"
       isInteractive={!props.isDisabled}
       hasSheen
       containerStyle={containerStyle}
@@ -49,7 +45,6 @@ const ButtonGlass = ({
       <Button
         {...props}
         variant={ButtonVariant.Secondary}
-        // The glass surface draws the fill, border and press response.
         twClassName="bg-transparent border-transparent"
         isFullWidth
       />

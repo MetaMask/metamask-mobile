@@ -20,9 +20,6 @@ import { StepperCardProps } from './StepperCard.types';
 import GlassSurface from '../GlassSurface';
 import ButtonGlass from '../ButtonGlass';
 
-// Matches the opaque card's `rounded-3xl`.
-const CARD_RADIUS = 24;
-
 const StepperCard = ({
   steps,
   currentStep,
@@ -138,7 +135,7 @@ const StepperCard = ({
   if (isGlass) {
     return (
       <GlassSurface
-        borderRadius={CARD_RADIUS}
+        radiusClassName="rounded-3xl"
         hasSheen
         testID={getTestId('container')}
       >
