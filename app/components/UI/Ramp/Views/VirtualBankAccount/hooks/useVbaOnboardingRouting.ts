@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import ReduxService from '../../../../../../core/redux';
@@ -18,6 +18,7 @@ import {
   hasAcceptedVbaVendorTerms,
 } from '../vbaVendorTermsStorage';
 import { VbaOnboardingRoutes } from '../routes';
+import { applyVbaDevOverrides } from '../vbaDevOverrides';
 
 export const navigateToVbaOnboardingDestination = (
   navigation: AppNavigationProp,
@@ -59,20 +60,49 @@ const openRecoverableError = (navigation: AppNavigationProp): void => {
   navigateToVbaOnboardingDestination(navigation, 'error');
 };
 
+export interface OpenVbaOnboardingRequest {
+  source?: string;
+  /**
+   * Re-enter identity verification when hydrate still reports a rejected KYC
+   * session. Without this, Try again on the failure page routes back to itself.
+   * The retry pushes a new identity screen so SumSub mounts again instead of
+   * revealing the previous one.
+   */
+  retryRejectedKyc?: boolean;
+}
+
+const resolveOpenRequest = (
+  request: string | OpenVbaOnboardingRequest | undefined,
+  defaultSource: string,
+): { source: string; retryRejectedKyc: boolean } => {
+  if (typeof request === 'string') {
+    return { source: request, retryRejectedKyc: false };
+  }
+
+  return {
+    source: request?.source ?? defaultSource,
+    retryRejectedKyc: request?.retryRejectedKyc === true,
+  };
+};
+
 /**
  * Hydrates VBA onboarding facts and opens the first incomplete module. This is
  * the single coordinator API used for entry, retry, and module completion.
  *
  * @param defaultSource - Caller/entry point for error telemetry.
- * @returns An async callback accepting an optional `source` override.
+ * @returns An async callback. Pass a source string, or `{ retryRejectedKyc: true }` from the KYC failure page.
  */
 export const useOpenVbaOnboarding = (
   defaultSource = 'unspecified',
-): ((source?: string) => Promise<void>) => {
+): ((request?: string | OpenVbaOnboardingRequest) => Promise<void>) => {
   const navigation = useNavigation<AppNavigationProp>();
 
   return useCallback(
-    async (source: string = defaultSource): Promise<void> => {
+    async (request?: string | OpenVbaOnboardingRequest): Promise<void> => {
+      const { source, retryRejectedKyc } = resolveOpenRequest(
+        request,
+        defaultSource,
+      );
       try {
         const walletAddress = selectSelectedVbaWalletAddress(
           ReduxService.store.getState() as RootState,
@@ -83,9 +113,11 @@ export const useOpenVbaOnboarding = (
         }
 
         const accountSnapshot: RampsVbaOnboardingSnapshot =
-          await Engine.context.RampsController.hydrateVbaOnboarding({
-            walletAddress,
-          });
+          applyVbaDevOverrides(
+            await Engine.context.RampsController.hydrateVbaOnboarding({
+              walletAddress,
+            }),
+          );
         if (
           accountSnapshot.sessionExists &&
           !accountSnapshot.vendorDisclaimersComplete
@@ -114,12 +146,24 @@ export const useOpenVbaOnboarding = (
             accountSnapshot.vendorDisclaimersComplete ||
             (await hasAcceptedVbaVendorTerms(walletAddress)),
         };
-        const destinationId = getVbaDestinationForSnapshot(snapshot);
+        const hydratedDestination = getVbaDestinationForSnapshot(snapshot);
+        const destinationId =
+          retryRejectedKyc && hydratedDestination === 'kycRejected'
+            ? 'identityVerification'
+            : hydratedDestination;
         Logger.log('[vba-onboarding] resume', {
           source,
           snapshot,
           destinationId,
         });
+        if (retryRejectedKyc && destinationId === 'identityVerification') {
+          navigation.dispatch(
+            StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
+              snapshot,
+            }),
+          );
+          return;
+        }
         navigateToVbaOnboardingDestination(navigation, destinationId, snapshot);
       } catch (error) {
         Logger.error(error as Error, {

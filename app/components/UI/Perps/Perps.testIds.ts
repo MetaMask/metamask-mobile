@@ -340,6 +340,7 @@ export const PerpsCloseAllPositionsViewSelectorsIDs = {
   CLOSING_STATE: 'perps-close-all-positions-closing-state',
   KEEP_BUTTON: 'perps-close-all-positions-keep-button',
   CLOSE_ALL_BUTTON: 'perps-close-all-positions-close-all-button',
+  FEES_VALUE: 'perps-close-all-positions-fees-value',
 } as const;
 
 export const PerpsCancelAllOrdersViewSelectorsIDs = {
@@ -1035,6 +1036,7 @@ export const PerpsTradeSheetSelectorsIDs = {
   PAY_WITH_SKELETON: 'perps-trade-sheet-pay-with-skeleton',
   MARGIN_SKELETON: 'perps-trade-sheet-margin-skeleton',
   FEE_SKELETON: 'perps-trade-sheet-fee-skeleton',
+  FEE_TEXT: 'perps-trade-sheet-fee-text',
   ORDER_TYPE_BUTTON: 'perps-trade-sheet-order-type-button',
   MAX_LEVERAGE_TAG: 'perps-trade-sheet-max-leverage-tag',
   AMOUNT_TOGGLE: 'perps-trade-sheet-amount-toggle',
@@ -1394,6 +1396,7 @@ export const PerpsFlipPositionConfirmSheetSelectorsIDs = {
   FLIP_BUTTON: 'perps-flip-position-flip-button',
   EST_SIZE_VALUE: 'perps-flip-position-est-size-value',
   FEES_VALUE: 'perps-flip-position-fees-value',
+  MINIMUM_ERROR: 'perps-flip-position-minimum-error',
 } as const;
 
 // ========================================

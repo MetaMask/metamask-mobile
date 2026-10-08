@@ -66,21 +66,22 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
+  BottomSheetFooter,
+  ButtonIcon,
   ButtonSize,
-  ButtonVariant,
   FontWeight,
   HeaderStandard,
+  HelpText,
+  HelpTextSeverity,
+  IconName,
+  IconColor,
+  Checkbox,
   Label,
   Text,
   TextColor,
-  TextVariant,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
-  Checkbox,
   TextField,
+  TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
@@ -121,6 +122,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
+import ImportOptionsSheet from './ImportOptionsSheet';
 import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
 import { selectQrSyncImportMnemonic } from '../../../selectors/qrSyncController';
 import { fetchImportedWalletFundingAmountRange } from '../../../util/analytics/fundingAmountRange';
@@ -216,13 +218,14 @@ const PasswordVisibilityToggle = ({
   onToggle,
   testID,
 }: PasswordVisibilityToggleProps) => (
-  <TouchableOpacity onPress={onToggle} testID={testID}>
-    <Icon
-      name={isVisible ? IconName.Eye : IconName.EyeSlash}
-      size={IconSize.Lg}
-      color={IconColor.IconAlternative}
-    />
-  </TouchableOpacity>
+  <ButtonIcon
+    iconName={isVisible ? IconName.Eye : IconName.EyeSlash}
+    iconProps={{
+      color: IconColor.IconAlternative,
+    }}
+    onPress={onToggle}
+    testID={testID}
+  />
 );
 
 /**
@@ -281,6 +284,7 @@ const ImportFromSecretRecoveryPhrase = () => {
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
   const [slideAnim] = useState(() => new Animated.Value(0));
   const [currentInputWord, setCurrentInputWord] = useState('');
+  const [isImportMenuVisible, setIsImportMenuVisible] = useState(false);
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
@@ -402,6 +406,18 @@ const ImportFromSecretRecoveryPhrase = () => {
       },
     });
   }, [hideSeedPhraseInput, navigation]);
+
+  const onScanHeaderPress = useCallback(() => {
+    if (isAddDeviceSyncEnabled) {
+      setIsImportMenuVisible(true);
+      return;
+    }
+    onQrCodePress();
+  }, [isAddDeviceSyncEnabled, onQrCodePress]);
+
+  const onImportFromExtensionPress = useCallback(() => {
+    navigation.navigate(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET);
+  }, [navigation]);
 
   const animateToStep = useCallback(
     (nextStep: number) => {
@@ -740,7 +756,7 @@ const ImportFromSecretRecoveryPhrase = () => {
             ? [
                 {
                   iconName: IconName.Scan,
-                  onPress: onQrCodePress,
+                  onPress: onScanHeaderPress,
                   testID: ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
                 },
               ]
@@ -763,40 +779,12 @@ const ImportFromSecretRecoveryPhrase = () => {
         >
           {currentStep === 0 && (
             <Box twClassName="gap-y-2">
-              <Box twClassName="gap-y-1.5">
-                <Text
-                  variant={TextVariant.DisplayMd}
-                  color={TextColor.TextDefault}
-                  testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
-                >
-                  {strings('import_from_seed.title')}
-                </Text>
-                {isAddDeviceSyncEnabled ? (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings(
-                      'import_from_seed.enter_your_secret_recovery_phrase',
-                    )}{' '}
-                    {strings('import_from_seed.or')}{' '}
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.PrimaryDefault}
-                      accessibilityRole="link"
-                      onPress={() =>
-                        navigation.navigate(
-                          Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-                        )
-                      }
-                      testID={
-                        ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID
-                      }
-                    >
-                      {strings('import_from_seed.import_wallet_from_extension')}
-                    </Text>
-                  </Text>
-                ) : (
+              <TitleStandard
+                title={strings('import_from_seed.title')}
+                titleProps={{
+                  testID: ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID,
+                }}
+                bottomAccessory={
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
@@ -810,21 +798,21 @@ const ImportFromSecretRecoveryPhrase = () => {
                         'import_from_seed.enter_your_secret_recovery_phrase',
                       )}
                     </Text>
-                    <TouchableOpacity
-                      onPress={showWhatIsSeedPhrase}
-                      testID={
-                        ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
-                      }
-                    >
-                      <Icon
-                        name={IconName.Info}
-                        size={IconSize.Md}
-                        color={IconColor.IconAlternative}
+                    {!isAddDeviceSyncEnabled && (
+                      <ButtonIcon
+                        iconName={IconName.Info}
+                        iconProps={{
+                          color: IconColor.IconAlternative,
+                        }}
+                        onPress={showWhatIsSeedPhrase}
+                        testID={
+                          ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
+                        }
                       />
-                    </TouchableOpacity>
+                    )}
                   </Box>
-                )}
-              </Box>
+                }
+              />
               <SrpInputGrid
                 ref={srpInputGridRef}
                 seedPhrase={seedPhrase}
@@ -843,22 +831,21 @@ const ImportFromSecretRecoveryPhrase = () => {
 
           {currentStep === 1 && (
             <Box twClassName="gap-y-4 flex-grow">
-              <Box twClassName="gap-y-1">
-                <Text
-                  variant={TextVariant.DisplayMd}
-                  color={TextColor.TextDefault}
-                  testID={ChoosePasswordSelectorsIDs.TITLE_ID}
-                >
-                  {strings('import_from_seed.metamask_password')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  testID={ChoosePasswordSelectorsIDs.DESCRIPTION_ID}
-                >
-                  {strings('import_from_seed.metamask_password_description')}
-                </Text>
-              </Box>
+              <TitleStandard
+                title={strings('import_from_seed.metamask_password')}
+                titleProps={{
+                  testID: ChoosePasswordSelectorsIDs.TITLE_ID,
+                }}
+                bottomAccessory={
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                    testID={ChoosePasswordSelectorsIDs.DESCRIPTION_ID}
+                  >
+                    {strings('import_from_seed.metamask_password_description')}
+                  </Text>
+                }
+              />
 
               <Box twClassName="relative gap-2">
                 <Label
@@ -896,18 +883,16 @@ const ImportFromSecretRecoveryPhrase = () => {
                     keyboardAppearance: themeAppearance,
                   }}
                 />
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={
-                    isPasswordTooShort
-                      ? TextColor.ErrorDefault
-                      : TextColor.TextAlternative
+                <HelpText
+                  severity={
+                    isPasswordTooShort ? HelpTextSeverity.Danger : undefined
                   }
+                  color={TextColor.TextAlternative}
                 >
                   {strings('choose_password.must_be_at_least', {
                     number: MIN_PASSWORD_LENGTH,
                   })}
-                </Text>
+                </HelpText>
               </Box>
 
               <Box twClassName="relative gap-2">
@@ -948,12 +933,9 @@ const ImportFromSecretRecoveryPhrase = () => {
                   }}
                 />
                 {isError && (
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.ErrorDefault}
-                  >
+                  <HelpText severity={HelpTextSeverity.Danger}>
                     {strings('import_from_seed.password_error')}
-                  </Text>
+                  </HelpText>
                 )}
               </Box>
 
@@ -1002,38 +984,33 @@ const ImportFromSecretRecoveryPhrase = () => {
         <SafeAreaView
           edges={['bottom']}
           style={tw.style(
-            'px-4 w-full gap-y-4',
+            'w-full py-4',
             Platform.OS === 'android' ? 'mb-6' : 'mb-4',
           )}
         >
-          <Button
-            isLoading={loading}
-            isFullWidth
-            variant={ButtonVariant.Primary}
-            onPress={onPressImport}
-            size={ButtonSize.Lg}
-            isDisabled={isContinueButtonDisabled}
-            testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-          >
-            {strings('import_from_seed.import_create_password_cta')}
-          </Button>
+          <BottomSheetFooter
+            primaryButtonProps={{
+              children: strings('import_from_seed.import_create_password_cta'),
+              onPress: onPressImport,
+              isLoading: loading,
+              isDisabled: isContinueButtonDisabled,
+              testID: ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+              size: ButtonSize.Lg,
+            }}
+          />
         </SafeAreaView>
       )}
       {currentStep === 0 && (
-        <SafeAreaView
-          edges={['bottom']}
-          style={tw.style('px-4 py-4 bg-default')}
-        >
-          <Button
-            variant={ButtonVariant.Primary}
-            onPress={handleContinueImportFlow}
-            isFullWidth
-            size={ButtonSize.Lg}
-            isDisabled={isSRPContinueButtonDisabled}
-            testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
-          >
-            {strings('import_from_seed.continue')}
-          </Button>
+        <SafeAreaView edges={['bottom']} style={tw.style('py-4 bg-default')}>
+          <BottomSheetFooter
+            primaryButtonProps={{
+              children: strings('import_from_seed.continue'),
+              onPress: handleContinueImportFlow,
+              isDisabled: isSRPContinueButtonDisabled,
+              testID: ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID,
+              size: ButtonSize.Lg,
+            }}
+          />
         </SafeAreaView>
       )}
       {currentStep === 0 && isKeyboardVisible && (
@@ -1049,6 +1026,12 @@ const ImportFromSecretRecoveryPhrase = () => {
           />
         </KeyboardStickyView>
       )}
+      <ImportOptionsSheet
+        isVisible={isImportMenuVisible}
+        onClose={() => setIsImportMenuVisible(false)}
+        onSelectQrCode={onQrCodePress}
+        onSelectExtension={onImportFromExtensionPress}
+      />
       <ScreenshotDeterrent enabled isSRP />
     </Box>
   );
