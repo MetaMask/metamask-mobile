@@ -74,6 +74,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/base-controller',
   '@metamask/base-data-service',
   '@metamask/address-book-controller',
+  // 3.x ships ESM-only under dist/*.js (2.x used a CJS build).
+  '@metamask/analytics-controller',
   '@metamask/bridge-controller',
   '@metamask/bridge-status-controller',
   '@metamask/client-controller',
@@ -89,6 +91,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/delegation-core',
   '@metamask/delegation-deployments',
   '@metamask/gas-fee-controller',
+  // 2.x ships ESM-only under dist/*.js.
+  '@metamask/geolocation-controller',
   '@metamask/keyring-controller',
   '@metamask/kyc-controller',
   '@metamask/logging-controller',

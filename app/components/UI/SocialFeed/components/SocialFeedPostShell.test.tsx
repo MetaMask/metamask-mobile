@@ -2,13 +2,16 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import { View } from 'react-native';
+import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeToPerps';
 import { mockCopyCount } from '../mocks/socialV1Enrichment';
 import {
   mockClosedPerpsFeedItem,
   mockOpenPerpsFeedItem,
 } from '../mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../types';
+import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
@@ -45,15 +48,57 @@ jest.mock('./TraderAvatar', () => {
   };
 });
 
-jest.mock('./SocialFeedPositionCard', () => {
+const mockNavigate = jest.fn();
+const mockGate = jest.fn((action: () => Promise<void> | void) =>
+  Promise.resolve(action()),
+);
+const mockSelectPerpsEligibility = jest.fn(() => true);
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+jest.mock('../../Compliance', () => ({
+  useComplianceGate: () => ({ gate: mockGate }),
+}));
+
+jest.mock('../../Perps/selectors/perpsController', () => ({
+  selectPerpsEligibility: () => mockSelectPerpsEligibility(),
+}));
+
+jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => {
   const { View: MockView } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <MockView testID={testID} />,
+  };
+});
+
+jest.mock('./SocialFeedPositionCard', () => {
+  const { Pressable, View: MockView } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({ item }: { item: { id: string } }) => (
       <MockView testID={`social-feed-position-card-${item.id}`} />
     ),
-    PositionCardBody: ({ item }: { item: { id: string } }) => (
-      <MockView testID={`social-feed-position-card-${item.id}`} />
+    // Exposes the copy-trade handler the shell passes so the gate can be
+    // exercised without rendering the real card.
+    PositionCardBody: ({
+      item,
+      onCopyTrade,
+    }: {
+      item: { id: string };
+      onCopyTrade?: () => void;
+    }) => (
+      <MockView testID={`social-feed-position-card-${item.id}`}>
+        {onCopyTrade ? (
+          <Pressable
+            testID={`social-feed-position-card-copy-trade-${item.id}`}
+            onPress={onCopyTrade}
+          />
+        ) : null}
+      </MockView>
     ),
   };
 });
@@ -71,13 +116,31 @@ const basePost = (
   ...overrides,
 });
 
-const renderShell = (post: SocialV1FeedPost) => {
+const renderShell = (
+  post: SocialV1FeedPost,
+  options?: {
+    onAuthorPress?: (post: SocialV1FeedPost) => void;
+    /** `null` renders with no surface provider, so invented values stay hidden. */
+    showMockedFields?: boolean | null;
+  },
+) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
+  const showMockedFields =
+    options && 'showMockedFields' in options ? options.showMockedFields : true;
+  const shell = (
+    <SocialFeedPostShell post={post} onAuthorPress={options?.onAuthorPress} />
+  );
   return renderWithProvider(
     <QueryClientProvider client={queryClient}>
-      <SocialFeedPostShell post={post} />
+      {showMockedFields === null ? (
+        shell
+      ) : (
+        <SocialFeedSurfaceProvider showMockedFields={showMockedFields}>
+          {shell}
+        </SocialFeedSurfaceProvider>
+      )}
     </QueryClientProvider>,
   );
 };
@@ -270,6 +333,12 @@ describe('SocialFeedPostShell', () => {
       expect(screen.getByTestId(copiesTestId)).toHaveTextContent('3 copies*');
     });
 
+    it('hides the invented copy count when the surface has not opted in', () => {
+      renderShell(basePost(), { showMockedFields: null });
+
+      expect(screen.queryByTestId(copiesTestId)).toBeNull();
+    });
+
     it('says copy in the singular for a single copy', () => {
       mockedCopyCount.mockReturnValue(1);
 
@@ -337,6 +406,33 @@ describe('SocialFeedPostShell', () => {
     ).toBe('https://cdn.test/alice.png');
   });
 
+  describe('author identity press', () => {
+    it('calls onAuthorPress when the identity is pressed', () => {
+      const onAuthorPress = jest.fn();
+      const post = basePost();
+      renderShell(post, { onAuthorPress });
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-post-1`,
+        ),
+      );
+
+      expect(onAuthorPress).toHaveBeenCalledTimes(1);
+      expect(onAuthorPress).toHaveBeenCalledWith(post);
+    });
+
+    it('does not wrap the identity in a pressable when onAuthorPress is omitted', () => {
+      renderShell(basePost());
+
+      expect(
+        screen.queryByTestId(
+          `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-post-1`,
+        ),
+      ).toBeNull();
+    });
+  });
+
   it('opens the report reason sheet from the post options', () => {
     renderShell(basePost());
 
@@ -371,5 +467,65 @@ describe('SocialFeedPostShell', () => {
         `${SocialFeedPostShellSelectorsIDs.CONTAINER}-post-1`,
       ),
     ).toBeNull();
+  });
+
+  describe('copy trade', () => {
+    beforeEach(() => {
+      mockNavigate.mockClear();
+      mockGate.mockImplementation((action: () => Promise<void> | void) =>
+        Promise.resolve(action()),
+      );
+      mockSelectPerpsEligibility.mockReturnValue(true);
+    });
+
+    it('opens the perps order redirect as a bottom sheet for an open perp', async () => {
+      renderShell(basePost());
+
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+          screen: Routes.PERPS.ORDER_REDIRECT,
+          params: {
+            direction: 'short',
+            asset: 'BTC',
+            leverage: 40,
+            source: 'trader_feed',
+            useBottomSheet: true,
+            stayOnCurrentScreen: true,
+          },
+        });
+      });
+    });
+
+    it('does not wire copy trade for a closed position', () => {
+      renderShell(
+        basePost({ item: mockClosedPerpsFeedItem({ id: 'item-closed' }) }),
+      );
+
+      expect(
+        screen.queryByTestId(
+          'social-feed-position-card-copy-trade-item-closed',
+        ),
+      ).toBeNull();
+    });
+
+    it('shows the geo block instead of navigating when ineligible', async () => {
+      mockSelectPerpsEligibility.mockReturnValue(false);
+      renderShell(basePost());
+
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID),
+        ).toBeOnTheScreen();
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 });

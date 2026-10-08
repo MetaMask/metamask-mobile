@@ -13,6 +13,7 @@ import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypa
 import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssetsPriceData';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
 import { useLimitOrders } from '../../../hooks/useLimitOrders';
+import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { LimitOrderState } from '../../../api/limitOrders/getLimitOrders/types';
 import {
   LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
@@ -108,6 +109,10 @@ jest.mock('../../../hooks/useSwapsLimitOrderKeypad', () => ({
 
 jest.mock('../../../hooks/useHasMissingAssetsPriceData', () => ({
   useHasMissingAssetsPriceData: jest.fn(() => false),
+}));
+
+jest.mock('../../../hooks/useSentinelFeeTokenValidation', () => ({
+  useSentinelFeeTokenValidation: jest.fn(),
 }));
 
 const mockNavigate = jest.fn();
@@ -429,6 +434,10 @@ describe('BridgeLimitOrderView', () => {
       .mockImplementation(() => buildKeypadMock());
     jest.mocked(useHasMissingAssetsPriceData).mockReturnValue(false);
     jest.mocked(useIsHardwareWalletForBridge).mockReturnValue(false);
+    jest.mocked(useSentinelFeeTokenValidation).mockReturnValue({
+      isValid: true,
+      retry: jest.fn(),
+    });
   });
 
   it('renders the limit order container and source token input', () => {
@@ -556,6 +565,23 @@ describe('BridgeLimitOrderView', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '2';
     jest.mocked(useIsHardwareWalletForBridge).mockReturnValue(true);
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('disables the keypad confirm button for an unSentinel fee-token pair', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useSentinelFeeTokenValidation).mockReturnValue({
+      isValid: false,
+      reason: 'unsupported-pair',
+      retry: jest.fn(),
+    });
 
     const { getByTestId } = renderLimitOrderView();
 
@@ -724,7 +750,7 @@ describe('BridgeLimitOrderView', () => {
     });
   });
 
-  it('navigates to the confirmation modal with a USD price trigger when the limit is quoted in fiat', () => {
+  it('navigates to the confirmation modal with the fiat limit price as entered', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '2';
     jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
@@ -744,15 +770,21 @@ describe('BridgeLimitOrderView', () => {
       expect.objectContaining({
         screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL,
         params: expect.objectContaining({
-          // The display currency is USD in this state, so the price is sent
-          // as typed.
-          trigger: { kind: 'src_price', threshold: 'above', price: '3000' },
+          // Handed over as entered: the confirmation sheet converts it to USD
+          // with the rate live when the order is created.
+          triggerInput: {
+            executionType: LimitOrderExecutionType.SELL,
+            isLimitFiatMode: true,
+            limitPrice: '3000',
+            priceComparisonDirection:
+              LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+          },
         }),
       }),
     );
   });
 
-  it('navigates to the confirmation modal with a ratio trigger when the limit is quoted in token units', () => {
+  it('navigates to the confirmation modal with a limit price quoted in token units', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '2';
     jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
@@ -770,7 +802,12 @@ describe('BridgeLimitOrderView', () => {
       Routes.BRIDGE.MODALS.ROOT,
       expect.objectContaining({
         params: expect.objectContaining({
-          trigger: { kind: 'ratio', threshold: 'below', price: '0.04' },
+          triggerInput: expect.objectContaining({
+            isLimitFiatMode: false,
+            limitPrice: '0.04',
+            priceComparisonDirection:
+              LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+          }),
         }),
       }),
     );
