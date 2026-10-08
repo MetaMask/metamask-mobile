@@ -4,6 +4,8 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  ButtonBase,
+  ButtonBaseSize,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -114,18 +116,23 @@ const HomepageBalanceBreakdownRow = ({
       : undefined;
   const showMoneyBuyButton = slice.key === 'money';
   const moneyBuyLabel = strings('homepage.action_buttons.buy');
-  const accessibilityLabel = [
+  const rowAccessibilityLabel = [
     getSliceLabel(slice.key),
     !privacyMode && !showMoneyBuyButton && slice.status === 'ready'
       ? displayValue
       : undefined,
     !privacyMode ? percentageLabel : undefined,
     !privacyMode ? apyLabel : undefined,
+  ]
+    .filter(Boolean)
+    .join(', ');
+  const accessibilityLabel = [
+    rowAccessibilityLabel,
     showMoneyBuyButton ? moneyBuyLabel : undefined,
   ]
     .filter(Boolean)
     .join(', ');
-  const title = (
+  const titleContent = (
     <Box
       alignItems={BoxAlignItems.Center}
       flexDirection={BoxFlexDirection.Row}
@@ -190,6 +197,19 @@ const HomepageBalanceBreakdownRow = ({
       ) : null}
     </Box>
   );
+  const title = showMoneyBuyButton ? (
+    <ButtonBase
+      accessibilityLabel={rowAccessibilityLabel}
+      onPress={onPress}
+      size={ButtonBaseSize.Sm}
+      testID={HomepageBalanceBreakdownTestIds.MONEY_ROW_ACTION}
+      twClassName="min-w-0 flex-1 self-stretch justify-start rounded-none bg-transparent px-0"
+    >
+      {titleContent}
+    </ButtonBase>
+  ) : (
+    titleContent
+  );
 
   const value = showMoneyBuyButton ? (
     <HomepageBalanceBreakdownMoneyBuyButton
@@ -220,10 +240,14 @@ const HomepageBalanceBreakdownRow = ({
 
   return (
     <ListItem
-      accessible={!showMoneyBuyButton}
-      accessibilityLabel={accessibilityLabel}
-      isInteractive
-      onPress={onPress}
+      {...(showMoneyBuyButton
+        ? { accessible: false, isInteractive: false as const }
+        : {
+            accessible: true,
+            accessibilityLabel,
+            isInteractive: true as const,
+            onPress,
+          })}
       testID={HomepageBalanceBreakdownTestIds.ROW(slice.key)}
       title={title}
       twClassName="min-h-10 py-0"

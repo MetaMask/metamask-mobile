@@ -13,6 +13,7 @@ export const HomepageBalanceBreakdownTestIds = {
   VALUE: (key: SliceKey) => `homepage-balance-breakdown-value-${key}`,
   VALUE_UNDERLINE: (key: SliceKey) =>
     `homepage-balance-breakdown-value-underline-${key}`,
+  MONEY_ROW_ACTION: 'homepage-balance-breakdown-money-row-action',
   MONEY_BUY: 'homepage-balance-breakdown-money-buy',
   SKELETON: (key: SliceKey) => `homepage-balance-breakdown-skeleton-${key}`,
   APY: 'homepage-balance-breakdown-money-apy',
