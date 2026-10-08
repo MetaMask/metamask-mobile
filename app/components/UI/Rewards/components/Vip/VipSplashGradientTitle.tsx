@@ -7,17 +7,12 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import {
   VIP_SPLASH_MIN_SCREEN_HEIGHT_FOR_SMALL_STYLES,
-  VIP_SPLASH_TITLE_FONT_SIZE,
-  VIP_SPLASH_TITLE_FONT_SIZE_SMALL,
   VIP_SPLASH_TITLE_GRADIENT_COLORS,
 } from './Vip.constants';
 
 const titleColorStyle = { color: VIP_SPLASH_TITLE_GRADIENT_COLORS[0] };
 const titleFontStyle = {
-  fontFamily: 'MMPoly-Regular',
-  fontWeight: '400' as const,
   includeFontPadding: false,
-  letterSpacing: 0,
 };
 
 interface VipSplashGradientTitleProps {
@@ -30,28 +25,22 @@ const VipSplashGradientTitle: React.FC<VipSplashGradientTitleProps> = ({
   const tw = useTailwind();
   const { height: screenHeight } = useWindowDimensions();
   const title = strings('rewards.vip.splash_title');
-  const titleFontSize =
+  // 38px maps to DisplayLg (40). 28px is equidistant from HeadingLg (24) and
+  // DisplayMd (32); DisplayMd keeps the splash title on the display scale.
+  const titleVariant =
     screenHeight < VIP_SPLASH_MIN_SCREEN_HEIGHT_FOR_SMALL_STYLES
-      ? VIP_SPLASH_TITLE_FONT_SIZE_SMALL
-      : VIP_SPLASH_TITLE_FONT_SIZE;
+      ? TextVariant.DisplayMd
+      : TextVariant.DisplayLg;
   const titleStyle = tw.style(
     'text-center pt-[6px]',
     titleFontStyle,
     titleColorStyle,
-    {
-      fontSize: titleFontSize,
-      lineHeight: titleFontSize,
-    },
   );
 
   return (
     <MaskedView
       maskElement={
-        <Text
-          variant={TextVariant.DisplayMd}
-          style={titleStyle}
-          testID={testID}
-        >
+        <Text variant={titleVariant} style={titleStyle} testID={testID}>
           {title}
         </Text>
       }
@@ -64,7 +53,7 @@ const VipSplashGradientTitle: React.FC<VipSplashGradientTitleProps> = ({
         style={tw.style('items-center')}
       >
         <Text
-          variant={TextVariant.DisplayMd}
+          variant={titleVariant}
           style={[titleStyle, tw.style('opacity-0')]}
         >
           {title}

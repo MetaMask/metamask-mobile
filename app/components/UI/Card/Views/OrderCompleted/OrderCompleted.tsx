@@ -99,14 +99,7 @@ const OrderCompleted: React.FC = () => {
           />
 
           <Text
-            style={tw.style('text-center mt-6', {
-              fontFamily: 'MMPoly-Regular',
-              fontWeight: '400',
-              fontSize: 24,
-              lineHeight: 36,
-              letterSpacing: 0,
-            })}
-            twClassName="text-default"
+            twClassName="text-default text-center mt-6"
             variant={TextVariant.HeadingLg}
             testID={OrderCompletedSelectors.TITLE}
           >

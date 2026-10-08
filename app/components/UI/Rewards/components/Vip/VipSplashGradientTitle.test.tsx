@@ -2,11 +2,7 @@ import React from 'react';
 import { useWindowDimensions } from 'react-native';
 import { render } from '@testing-library/react-native';
 import VipSplashGradientTitle from './VipSplashGradientTitle';
-import {
-  VIP_SPLASH_MIN_SCREEN_HEIGHT_FOR_SMALL_STYLES,
-  VIP_SPLASH_TITLE_FONT_SIZE,
-  VIP_SPLASH_TITLE_FONT_SIZE_SMALL,
-} from './Vip.constants';
+import { VIP_SPLASH_MIN_SCREEN_HEIGHT_FOR_SMALL_STYLES } from './Vip.constants';
 
 jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
   __esModule: true,
@@ -27,12 +23,15 @@ jest.mock('@metamask/design-system-react-native', () => {
       children,
       style,
       testID,
+      variant,
     }: {
       children?: React.ReactNode;
       style?: unknown;
       testID?: string;
-    }) => ReactActual.createElement(Text, { style, testID }, children),
-    TextVariant: { DisplayMd: 'displayMd' },
+      variant?: string;
+    }) =>
+      ReactActual.createElement(Text, { style, testID, variant }, children),
+    TextVariant: { DisplayMd: 'display-md', DisplayLg: 'display-lg' },
   };
 });
 
@@ -94,22 +93,15 @@ describe('VipSplashGradientTitle', () => {
     expect(getAllByText('WELCOME\nTO GOLD FOX\nCOLLECTIVE')).toHaveLength(2);
   });
 
-  it('uses the default title font size on larger screens', () => {
+  it('uses DisplayLg on larger screens', () => {
     const { getByTestId } = render(
       <VipSplashGradientTitle testID="vip-splash-title" />,
     );
 
-    expect(getByTestId('vip-splash-title').props.style).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          fontSize: VIP_SPLASH_TITLE_FONT_SIZE,
-          lineHeight: VIP_SPLASH_TITLE_FONT_SIZE,
-        }),
-      ]),
-    );
+    expect(getByTestId('vip-splash-title').props.variant).toBe('display-lg');
   });
 
-  it('uses the smaller title font size on small screens', () => {
+  it('uses DisplayMd on small screens', () => {
     jest.mocked(useWindowDimensions).mockReturnValue({
       width: 320,
       height: VIP_SPLASH_MIN_SCREEN_HEIGHT_FOR_SMALL_STYLES - 1,
@@ -121,13 +113,6 @@ describe('VipSplashGradientTitle', () => {
       <VipSplashGradientTitle testID="vip-splash-title" />,
     );
 
-    expect(getByTestId('vip-splash-title').props.style).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          fontSize: VIP_SPLASH_TITLE_FONT_SIZE_SMALL,
-          lineHeight: VIP_SPLASH_TITLE_FONT_SIZE_SMALL,
-        }),
-      ]),
-    );
+    expect(getByTestId('vip-splash-title').props.variant).toBe('display-md');
   });
 });

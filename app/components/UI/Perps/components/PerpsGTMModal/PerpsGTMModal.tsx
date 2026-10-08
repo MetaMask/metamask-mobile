@@ -33,6 +33,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { typography } from '@metamask/design-tokens';
 import {
   createFontScaleHandler,
   hasNonLatinCharacters,
@@ -62,7 +63,7 @@ const PerpsGTMModal = () => {
 
   const handleTitleLayout = createFontScaleHandler({
     maxHeight: useSystemFont ? 100 : 120, // System fonts typically render taller
-    currentFontSize: styles.title.fontSize,
+    currentFontSize: typography.sDisplayLG.fontSize,
     setter: setTitleFontSize,
     minFontSize: useSystemFont ? 28 : 32, // Slightly smaller min for system fonts
     currentValue: titleFontSize,
@@ -70,7 +71,7 @@ const PerpsGTMModal = () => {
 
   const handleSubtitleLayout = createFontScaleHandler({
     maxHeight: useSystemFont ? 70 : 80, // System fonts typically render taller
-    currentFontSize: styles.titleDescription.fontSize,
+    currentFontSize: typography.sBodyMD.fontSize,
     setter: setSubtitleFontSize,
     minFontSize: useSystemFont ? 12 : 14, // Slightly smaller min for system fonts
     currentValue: subtitleFontSize,
@@ -121,7 +122,7 @@ const PerpsGTMModal = () => {
       <View style={styles.headerContainer}>
         <Text
           style={styles.title}
-          variant={TextVariant.HeadingLg}
+          variant={TextVariant.DisplayLg}
           onLayout={handleTitleLayout}
         >
           {titleText}

@@ -68,35 +68,39 @@ const createStyles = (
       minHeight: '80%',
     },
     title: {
-      fontSize: titleFontSize || scaleFont(useSystemFont ? 44 : 47), // Slightly smaller base for system fonts
-      lineHeight: titleFontSize
-        ? titleFontSize + 1
-        : scaleFont(useSystemFont ? 46 : 48),
       textAlign: 'center',
       paddingTop: scaleVertical(12),
-      fontFamily: useSystemFont
-        ? Platform.OS === 'ios'
-          ? 'System'
-          : 'Roboto'
-        : 'MMPoly-Regular',
-      fontWeight: useSystemFont
-        ? '700'
-        : Platform.OS === 'ios'
-          ? '900'
-          : 'normal',
+      // DisplayLg supplies the Inter size. A measured overflow can still
+      // shrink it, and scripts outside Inter fall back to the platform font.
+      ...(titleFontSize
+        ? {
+            fontSize: titleFontSize,
+            lineHeight: titleFontSize + 1,
+          }
+        : null),
+      ...(useSystemFont
+        ? {
+            fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+            fontWeight: '700' as const,
+          }
+        : null),
     },
     titleDescription: {
       paddingTop: scaleVertical(10),
       paddingHorizontal: scaleHorizontal(8),
       textAlign: 'center',
-      fontSize: subtitleFontSize || scaleFont(16),
-      lineHeight: subtitleFontSize ? subtitleFontSize + 4 : scaleFont(20),
-      fontFamily: useSystemFont
-        ? Platform.OS === 'ios'
-          ? 'System'
-          : 'Roboto'
-        : 'Inter-Regular',
-      fontWeight: '400',
+      ...(subtitleFontSize
+        ? {
+            fontSize: subtitleFontSize,
+            lineHeight: subtitleFontSize + 4,
+          }
+        : null),
+      ...(useSystemFont
+        ? {
+            fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+            fontWeight: '400' as const,
+          }
+        : null),
     },
     footerContainer: {
       display: 'flex',

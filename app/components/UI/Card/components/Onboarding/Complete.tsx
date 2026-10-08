@@ -21,8 +21,6 @@ import Logger from '../../../../../util/Logger';
 import MM_CARD_ONBOARDING_SUCCESS from '../../../../../images/mm-card-onboarding-success.png';
 import {
   Box,
-  FontFamily,
-  FontWeight,
   Text,
   TextVariant,
   Button,
@@ -128,11 +126,7 @@ const Complete = () => {
           style={tw.style('w-full h-full')}
         />
       </Box>
-      <Text
-        fontFamily={FontFamily.Accent}
-        fontWeight={FontWeight.Regular}
-        twClassName="text-[36px] text-center leading-1"
-      >
+      <Text variant={TextVariant.DisplayLg} twClassName="text-center">
         {strings('card.card_onboarding.complete.title')}
       </Text>
       <Text

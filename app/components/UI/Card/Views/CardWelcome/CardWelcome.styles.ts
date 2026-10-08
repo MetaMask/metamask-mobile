@@ -84,12 +84,6 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
       opacity: 0,
     },
     title: {
-      fontFamily: 'MMPoly-Regular',
-      fontWeight: '400',
-      // make it smaller on smaller screens
-      fontSize: isSmallScreen ? 40 : 45,
-      lineHeight: isSmallScreen ? 40 : 45, // 100% of font size
-      letterSpacing: 0,
       textAlign: 'center',
       paddingTop: scaleVertical(isSmallScreen ? 8 : 12),
       color: theme.colors.accent02.light,
