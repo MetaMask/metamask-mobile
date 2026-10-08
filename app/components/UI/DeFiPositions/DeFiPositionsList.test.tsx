@@ -323,7 +323,7 @@ describe('DeFiPositionsList', () => {
     expect(await findByText('Protocol 2')).toBeOnTheScreen();
     expect(await findByText('$100.00')).toBeOnTheScreen();
     expect(await findByText('$10.00')).toBeOnTheScreen();
-  }, 15000);
+  });
 
   it('renders the loading positions message when positions are not yet available', async () => {
     const defiPositionsModule = jest.requireMock(
