@@ -60,9 +60,11 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github-token }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+        REPOSITORY: ${{ inputs.repository }}
       run: |
         echo "SKIP=false" >> "$GITHUB_OUTPUT"
-        if gh pr view ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --json labels --jq '.labels[].name' | grep -qx "skip-smart-e2e-selection"; then
+        if gh pr view "${PR_NUMBER}" --repo "${REPOSITORY}" --json labels --jq '.labels[].name' | grep -qx "skip-smart-e2e-selection"; then
           echo "SKIP=true" >> "$GITHUB_OUTPUT"
           echo "⏭️ SKIP=true due to 'skip-smart-e2e-selection' label on PR"
         fi
@@ -83,9 +85,11 @@ runs:
     - name: Fetch base branch for comparison
       if: steps.check-skip-label.outputs.SKIP != 'true'
       shell: bash
+      env:
+        BASE_REF: ${{ inputs.base-ref || 'main' }}
       run: |
         git fetch --unshallow 2>/dev/null || true
-        git fetch origin "${{ inputs.base-ref || 'main' }}" 2>/dev/null || true
+        git fetch origin "${BASE_REF}" 2>/dev/null || true
 
     - name: Checkout AI Analyzer
       if: steps.check-skip-label.outputs.SKIP != 'true'
@@ -137,6 +141,7 @@ runs:
         AI_ANALYZER_METAMASK_SKILLS: 'true'
         PR_NUMBER: ${{ inputs.pr-number }}
         BASE_REF: ${{ inputs.base-ref }}
+        SMART_E2E_ANALYZER_REF: ${{ inputs.analyzer-ref }}
         INPUT_SKIP_SCOPE: 'true' # Skip minFile scope check for smart-e2e analysis so that all relevant tests are considered
       run: |
         if [[ -n "$BASE_REF" ]]; then
@@ -144,7 +149,7 @@ runs:
         else
           export BASE_BRANCH="origin/main"
         fi
-        echo "✅ Running shared-engine smart-e2e for PR #$PR_NUMBER (analyzer ref: ${{ inputs.analyzer-ref }}, base: $BASE_BRANCH)"
+        echo "✅ Running shared-engine smart-e2e for PR #$PR_NUMBER (analyzer ref: ${SMART_E2E_ANALYZER_REF}, base: $BASE_BRANCH)"
         node "$ACTION_PATH/scripts/run-analysis.mjs"
 
     - name: Post analysis results
@@ -237,8 +242,10 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github-token }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+        REPOSITORY: ${{ inputs.repository }}
       run: |
-        ALL_COMMENT_IDS=$(gh api "repos/${{ inputs.repository }}/issues/${{ inputs.pr-number }}/comments" \
+        ALL_COMMENT_IDS=$(gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
           --jq '.[] | select(.body | contains("<!-- smart-e2e-selection -->")) | .id')
 
         if [ -z "$ALL_COMMENT_IDS" ]; then
@@ -249,7 +256,7 @@ runs:
         echo "$ALL_COMMENT_IDS" | while read -r COMMENT_ID; do
           if [ -n "$COMMENT_ID" ]; then
             echo "🗑️ Deleting legacy comment: $COMMENT_ID"
-            gh api "repos/${{ inputs.repository }}/issues/comments/$COMMENT_ID" \
+            gh api "repos/${REPOSITORY}/issues/comments/$COMMENT_ID" \
               --method DELETE > /dev/null 2>&1 || echo "   ⚠️ Failed to delete comment $COMMENT_ID"
           fi
         done
@@ -263,17 +270,19 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github-token }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+        REPOSITORY: ${{ inputs.repository }}
       run: |
         MARKER="<!-- ai-pr-analysis:smart-e2e -->"
         BODY="${MARKER}"$'\n'"## Smart E2E Test Selection"$'\n\n'"⏭️ **Smart E2E selection skipped** - skip-smart-e2e-selection label found"$'\n\n'"All E2E tests pre-selected."
-        EXISTING_ID=$(gh api "repos/${{ inputs.repository }}/issues/${{ inputs.pr-number }}/comments" \
+        EXISTING_ID=$(gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
           --jq ".[] | select(.body | startswith(\"${MARKER}\")) | .id" | head -n 1)
 
         if [ -n "$EXISTING_ID" ]; then
-          gh api "repos/${{ inputs.repository }}/issues/comments/${EXISTING_ID}" \
+          gh api "repos/${REPOSITORY}/issues/comments/${EXISTING_ID}" \
             --method PATCH -f body="$BODY" > /dev/null
           echo "✅ Updated skip comment"
         else
-          gh pr comment ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --body "$BODY"
+          gh pr comment "${PR_NUMBER}" --repo "${REPOSITORY}" --body "$BODY"
           echo "✅ Created skip comment"
         fi

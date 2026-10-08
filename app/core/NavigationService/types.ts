@@ -773,6 +773,7 @@ export type RootStackParamList = {
   NetworkDetails: NetworkDetailsViewParams | undefined;
   BackupAndSyncSettings: undefined;
   SettingsRegionSelector: RegionSelectorParams | undefined;
+  ProfileDrawer: undefined;
 
   // Sheet routes
   AccountSelector: AccountSelectorParams | undefined;
