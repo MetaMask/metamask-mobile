@@ -8,7 +8,6 @@ import React, {
 } from 'react';
 import {
   BackHandler,
-  Platform,
   Pressable,
   StyleSheet,
   View,
@@ -65,12 +64,8 @@ import {
 import { getTabBarFloatingBottomPadding } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
 import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
 import { selectNativeTabBarEnabled } from '../../../selectors/featureFlagController/nativeTabBar';
-import { useABTest } from '../../../hooks/useABTest';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog. */
-import {
-  HEADER_NAV_BAR_AB_KEY,
-  HEADER_NAV_BAR_VARIANTS,
-} from '../Homepage/abTestConfig';
+import { useHomeNavBarConfig } from '../Homepage/hooks/useHomeNavBarConfig';
 /* eslint-enable import-x/no-restricted-paths */
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
@@ -166,23 +161,17 @@ function TradeWalletActions() {
     undefined,
   );
   const [visible, setIsVisible] = useState(true);
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const { width: windowWidth } = useWindowDimensions();
   const { height: screenHeight } = useSafeAreaFrame();
   const insets = useSafeAreaInsets();
-  const insetsTop = Platform.OS === 'android' ? insets.top : 0;
 
   const tw = useTailwind();
   const surfaceClass = 'bg-elevated1';
   const { colors } = useTheme();
   // Assignment-only read: exposure is tracked where the experiment surface is
   // owned, the wallet header and the tab bar, so this must not emit it again.
-  const { variant: headerNavBarVariant } = useABTest(
-    HEADER_NAV_BAR_AB_KEY,
-    HEADER_NAV_BAR_VARIANTS,
-    { trackExposure: false },
-  );
-  const isTradeFocusedArm =
-    headerNavBarVariant.trailingNavBarAction === 'trade';
+  const { trailingNavBarAction } = useHomeNavBarConfig();
+  const isTradeFocusedArm = trailingNavBarAction === 'trade';
   const isNativeTabBarEnabled = useSelector(selectNativeTabBarEnabled);
   // The refreshed bar's menu pops from its button; the control tray slides.
   const isSpringboardMenu = isTradeFocusedArm && isNativeTabBarEnabled;
@@ -223,8 +212,7 @@ function TradeWalletActions() {
       return undefined;
     }
     return getMorphRects({
-      // Same window-to-container correction the tray's bottom spacer makes.
-      buttonLayout: { ...buttonLayout, y: buttonLayout.y + insetsTop },
+      buttonLayout,
       containerHeight: screenHeight,
       containerWidth: windowWidth,
       horizontalInset: TRAY_HORIZONTAL_INSET,
@@ -232,7 +220,7 @@ function TradeWalletActions() {
       trayHeight,
       trayRadius: TRADE_TRAY_GLASS_RADIUS,
     });
-  }, [buttonLayout, insetsTop, screenHeight, trayHeight, windowWidth]);
+  }, [buttonLayout, screenHeight, trayHeight, windowWidth]);
 
   const backdropOpacity = useSharedValue(0);
   const backdropAnimatedStyle = useAnimatedStyle(() => ({
@@ -692,10 +680,10 @@ function TradeWalletActions() {
           {buttonLayout ? (
             <OverlayWithHole
               width={windowWidth}
-              height={windowHeight + insetsTop}
+              height={screenHeight}
               circleSize={buttonLayout.width - 1}
               circleX={buttonLayout.x + buttonLayout.width / 2}
-              circleY={buttonLayout.y + buttonLayout.height / 2 + insetsTop}
+              circleY={buttonLayout.y + buttonLayout.height / 2}
               fill={colors.overlay.default}
             />
           ) : (
@@ -726,7 +714,7 @@ function TradeWalletActions() {
           <View
             style={tw.style('pointer-events-none', {
               height: buttonLayout
-                ? screenHeight - buttonLayout.y - insetsTop
+                ? screenHeight - buttonLayout.y
                 : bottomSpacerHeight,
             })}
           />

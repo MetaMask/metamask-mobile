@@ -29,8 +29,14 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
 import { useSharedValue } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
@@ -49,6 +55,8 @@ import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 import WalletHeader from './components/WalletHeader/WalletHeader';
 import WalletHeaderCompact from './components/WalletHeader/WalletHeaderCompact';
+import { useWalletHeaderNativeHeader } from './components/WalletHeader/useWalletHeaderNativeHeader';
+import { NATIVE_HEADER_BAR_HEIGHT } from '../../hooks/useNativeHeader';
 import HomepageSearchReturnTransition from './components/HomepageSearchReturnTransition/HomepageSearchReturnTransition';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
@@ -116,9 +124,6 @@ import ErrorBoundary from '../ErrorBoundary';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import Homepage from '../Homepage';
 import {
-  HEADER_NAV_BAR_AB_KEY,
-  HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
-  HEADER_NAV_BAR_VARIANTS,
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY,
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_EXPOSURE_OPTIONS,
   HOMEPAGE_ACTION_BUTTONS_GRID_VARIANTS,
@@ -149,6 +154,8 @@ import { useABTest } from '../../../hooks';
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { useHomeNavBarConfig } from '../Homepage/hooks/useHomeNavBarConfig';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -196,6 +203,10 @@ import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
+
+const HEADER_FADE_HEIGHT = 16;
+const HEADER_FADE_OPACITIES = [1, 0.7, 0.35, 0];
+const HEADER_FADE_LOCATIONS = [0, 0.3, 0.7, 1];
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -575,27 +586,6 @@ const Wallet = ({
     };
   }, []);
 
-  // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
-  // This handles scrolling in the homepage .map() mode where TokenList can't scroll directly
-  useEffect(() => {
-    const subscription = DeviceEventEmitter.addListener(
-      'scrollToTokenIndex',
-      ({ offset }: { index: number; offset: number }) => {
-        // Add offset for content above tokens (balance, carousel, etc.)
-        // Approximate: AccountGroupBalance (~200px) + Carousel (~150px) + padding
-        const CONTENT_OFFSET_ABOVE_TOKENS = 400;
-        scrollViewRef.current?.scrollTo({
-          y: CONTENT_OFFSET_ABOVE_TOKENS + offset,
-          animated: true,
-        });
-      },
-    );
-
-    return () => {
-      subscription.remove();
-    };
-  }, []);
-
   useEffect(() => {
     // do not prompt for social login flow
     if (
@@ -745,23 +735,17 @@ const Wallet = ({
     HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS,
     HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS,
   );
-
-  const balanceBreakdownLayout = isBalanceBreakdownExperimentActive
-    ? balanceBreakdownVariant.layout
-    : null;
+  const isBalanceBreakdownEnabled =
+    isBalanceBreakdownExperimentActive &&
+    balanceBreakdownVariant.showBalanceBreakdown;
   const balanceBreakdownTransactionActiveAbTests =
     getHomepageBalanceBreakdownTransactionActiveAbTests(
-      isBalanceBreakdownExperimentActive && balanceBreakdownLayout !== null,
+      isBalanceBreakdownEnabled,
       balanceBreakdownVariantName,
     );
 
-  const { variant: headerNavBarVariant } = useABTest(
-    HEADER_NAV_BAR_AB_KEY,
-    HEADER_NAV_BAR_VARIANTS,
-    HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
-  );
-  const isCompactHeader = headerNavBarVariant.isCompactHeaderEnabled;
-  const isHeaderSearchEnabled = headerNavBarVariant.isHeaderSearchEnabled;
+  const { isCompactHeader, isInterimHeader, isHeaderSearchEnabled } =
+    useHomeNavBarConfig({ trackExposure: true });
   const avatarAccountType = useSelector(selectAvatarAccountType);
 
   const homepageScrollY = useSharedValue(0);
@@ -922,6 +906,64 @@ const Wallet = ({
     [isSearchHeaderEnabled, navigation],
   );
 
+  // iOS 26 only; elsewhere the JS `WalletHeader` renders the interim layout.
+  const isNativeHeader = useWalletHeaderNativeHeader({
+    displayName,
+    isMoneyAccountVisible,
+    handleActivityPress,
+    handleSearchPress,
+    handleHamburgerPress,
+    touchAreaSlop,
+    isEnabled:
+      isInterimHeader &&
+      !isSearchHeaderEnabled &&
+      Boolean(selectedInternalAccount),
+  });
+  const safeAreaInsets = useSafeAreaInsets();
+  // Content scrolls under the transparent bar, so sections behind it are not in view.
+  const nativeHeaderInset = isNativeHeader
+    ? safeAreaInsets.top + NATIVE_HEADER_BAR_HEIGHT
+    : 0;
+  // Without the native bar (Android, iOS < 26) the interim header floats over the content on a fade.
+  const isFloatingJsHeader =
+    isInterimHeader && !isNativeHeader && !isSearchHeaderEnabled;
+  const tw = useTailwind();
+  // Seeded with the header's min height so the first frame already clears it.
+  const [floatingHeaderHeight, setFloatingHeaderHeight] = useState(() =>
+    Number(tw.style('h-14').height),
+  );
+  const headerFadeColors = useMemo(
+    () =>
+      HEADER_FADE_OPACITIES.map((opacity) =>
+        colorWithOpacity(colors.background.default, opacity),
+      ),
+    [colors.background.default],
+  );
+  const floatingHeaderInset = isFloatingJsHeader ? floatingHeaderHeight : 0;
+  const viewportTopInset = nativeHeaderInset + floatingHeaderInset;
+
+  // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
+  // This handles scrolling in the homepage .map() mode where TokenList can't scroll directly
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      'scrollToTokenIndex',
+      ({ offset }: { index: number; offset: number }) => {
+        // Add offset for content above tokens (balance, carousel, etc.)
+        // Approximate: AccountGroupBalance (~200px) + Carousel (~150px) + padding
+        const CONTENT_OFFSET_ABOVE_TOKENS = 400;
+        scrollViewRef.current?.scrollTo({
+          // Content offsets include the bar's automatic inset, so land below it.
+          y: CONTENT_OFFSET_ABOVE_TOKENS + offset - nativeHeaderInset,
+          animated: true,
+        });
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [nativeHeaderInset]);
+
   const turnOnBasicFunctionality = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
@@ -938,9 +980,10 @@ const Wallet = ({
         flexGrow: 0,
         overflow: 'visible' as const,
         paddingBottom: floatingTabBarInset,
+        paddingTop: floatingHeaderInset,
       },
     ],
-    [styles.wrapper, floatingTabBarInset],
+    [styles.wrapper, floatingTabBarInset, floatingHeaderInset],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -1010,8 +1053,8 @@ const Wallet = ({
   const homepageScrollContextValue = useMemo(
     () => ({
       subscribeToScroll,
-      viewportHeight,
-      containerScreenY,
+      viewportHeight: Math.max(0, viewportHeight - viewportTopInset),
+      containerScreenY: containerScreenY + viewportTopInset,
       entryPoint,
       visitId,
       notifySectionViewed,
@@ -1023,12 +1066,33 @@ const Wallet = ({
       subscribeToScroll,
       viewportHeight,
       containerScreenY,
+      viewportTopInset,
       entryPoint,
       visitId,
       notifySectionViewed,
       getViewedSectionCount,
       getVisitMaxDepth,
     ],
+  );
+
+  const renderWalletHeader = () => (
+    <WalletHeader
+      displayName={displayName}
+      navigation={navigation}
+      isMoneyAccountVisible={isMoneyAccountVisible}
+      handleSearchPress={handleSearchPress}
+      useSearchHeaderLayout={isSearchHeaderEnabled}
+      isSearchReturnTransitionActive={Boolean(homepageSearchReturnTransition)}
+      showSearchPastePill={showPastePill}
+      handleSearchPastePress={handlePastePress}
+      handleActivityPress={handleActivityPress}
+      handleCardPress={handleCardPress}
+      handleHamburgerPress={handleHamburgerPress}
+      touchAreaSlop={touchAreaSlop}
+      headerActionButtonsContainerStyle={styles.headerActionButtonsContainer}
+      headerAccountPickerStyle={styles.headerAccountPickerStyle}
+      isInterimLayout={isInterimHeader}
+    />
   );
 
   const handleBannerError = useCallback(() => {
@@ -1179,7 +1243,7 @@ const Wallet = ({
       </ButtonAnimated>
     ) : null;
 
-  const portfolioHeader = balanceBreakdownLayout ? (
+  const portfolioHeader = isBalanceBreakdownEnabled ? (
     <>
       {hasBannerContent ? (
         <View
@@ -1215,12 +1279,10 @@ const Wallet = ({
     </>
   );
 
-  const balanceBreakdownSectionProps = balanceBreakdownLayout
+  const balanceBreakdownSectionProps = isBalanceBreakdownEnabled
     ? {
         accountGroupBalanceProps: walletHomeAccountGroupBalanceProps,
         hideRows: inWalletHomePostOnboardingFlow,
-        layout: balanceBreakdownLayout,
-        showRowArrows: balanceBreakdownVariant.showRowArrows,
         transactionActiveAbTests: balanceBreakdownTransactionActiveAbTests,
         children: contentBeforeBalanceBreakdown,
       }
@@ -1243,12 +1305,13 @@ const Wallet = ({
             baseStyles.flexGrow,
             { backgroundColor: colors.background.default },
           ]}
-          edges={{ top: 'additive' }}
+          // The native bar owns the top inset; content scrolls under it.
+          edges={isNativeHeader ? [] : { top: 'additive' }}
           testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
         >
           {selectedInternalAccount ? (
             <>
-              {isCompactHeader ? (
+              {isNativeHeader ? null : isCompactHeader ? (
                 <WalletHeaderCompact
                   accountAddress={selectedInternalAccount.address}
                   avatarAccountType={avatarAccountType}
@@ -1270,27 +1333,8 @@ const Wallet = ({
                   scrollY={homepageScrollY}
                   titleSectionHeight={accountNameSectionBottom}
                 />
-              ) : (
-                <WalletHeader
-                  displayName={displayName}
-                  navigation={navigation}
-                  isMoneyAccountVisible={isMoneyAccountVisible}
-                  handleSearchPress={handleSearchPress}
-                  useSearchHeaderLayout={isSearchHeaderEnabled}
-                  isSearchReturnTransitionActive={Boolean(
-                    homepageSearchReturnTransition,
-                  )}
-                  showSearchPastePill={showPastePill}
-                  handleSearchPastePress={handlePastePress}
-                  handleActivityPress={handleActivityPress}
-                  handleCardPress={handleCardPress}
-                  handleHamburgerPress={handleHamburgerPress}
-                  touchAreaSlop={touchAreaSlop}
-                  headerActionButtonsContainerStyle={
-                    styles.headerActionButtonsContainer
-                  }
-                  headerAccountPickerStyle={styles.headerAccountPickerStyle}
-                />
+              ) : isFloatingJsHeader ? null : (
+                renderWalletHeader()
               )}
               <View
                 ref={containerViewRef}
@@ -1303,6 +1347,28 @@ const Wallet = ({
                   });
                 }}
               >
+                {isFloatingJsHeader && (
+                  // Mounted first so assistive tech reads the header before the content.
+                  <View
+                    pointerEvents="box-none"
+                    style={tw.style('absolute left-0 right-0 top-0 z-10')}
+                    testID={WalletViewSelectorsIDs.WALLET_FLOATING_HEADER}
+                    onLayout={(e) =>
+                      setFloatingHeaderHeight(e.nativeEvent.layout.height)
+                    }
+                  >
+                    <LinearGradient
+                      pointerEvents="none"
+                      colors={headerFadeColors}
+                      locations={HEADER_FADE_LOCATIONS}
+                      style={[
+                        RNStyleSheet.absoluteFill,
+                        { bottom: -HEADER_FADE_HEIGHT },
+                      ]}
+                    />
+                    {renderWalletHeader()}
+                  </View>
+                )}
                 {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
                 <HomepageScrollContext.Provider
                   value={homepageScrollContextValue}
@@ -1312,12 +1378,16 @@ const Wallet = ({
                     isScrollEnabled
                     scrollViewProps={{
                       testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
+                      contentInsetAdjustmentBehavior: isNativeHeader
+                        ? 'automatic'
+                        : undefined,
                       contentContainerStyle: scrollViewContentStyle,
                       showsVerticalScrollIndicator: false,
                       onScroll: handleHomepageScroll,
                       scrollEventThrottle: 16,
                       refreshControl: (
                         <RefreshControl
+                          progressViewOffset={floatingHeaderInset}
                           colors={[colors.primary.default]}
                           tintColor={colors.icon.default}
                           refreshing={refreshing}
