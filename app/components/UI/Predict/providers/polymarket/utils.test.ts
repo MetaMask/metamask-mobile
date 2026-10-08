@@ -3156,6 +3156,37 @@ describe('polymarket utils', () => {
     });
   });
 
+  it('uses configured service fees when no membership policy is available', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ tags: [] }),
+    });
+
+    const result = await calculateFees({
+      feeCollection: {
+        enabled: true,
+        metamaskFee: 0.02,
+        providerFee: 0.03,
+        waiveList: [],
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+      marketId: 'market-1',
+      userBetAmount: 10,
+    });
+
+    expect(result).toEqual({
+      metamaskFee: 0.2,
+      providerFee: 0.3,
+      totalFee: 0.5,
+      totalFeePercentage: 5,
+      collector: '0x1111111111111111111111111111111111111111',
+      executors: [],
+      permit2Enabled: false,
+    });
+  });
+
   it('keeps the CLOB market fee in a membership preview', async () => {
     mockFetch
       .mockResolvedValueOnce({
