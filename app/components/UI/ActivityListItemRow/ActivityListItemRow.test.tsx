@@ -909,6 +909,52 @@ describe('ActivityListItemRow — row content', () => {
     expect(queryByTestId('activity-secondary-amount-0xlong')).toBeNull();
   });
 
+  it.each(['perpsCloseLong', 'perpsCloseShortStopLoss'] as const)(
+    'displays Unknown for %s without a reported amount',
+    (type) => {
+      const item = {
+        type,
+        chainId: 'eip155:421614',
+        status: 'success',
+        timestamp: 1_700_000_000_000,
+        hash: 'missing-pnl',
+        data: {
+          sourceToken: { amount: '0.008', symbol: 'ETH', direction: 'out' },
+        },
+      } as ActivityListItem;
+
+      const { getByTestId } = render(
+        <ActivityListItemRow item={item} index={0} />,
+      );
+
+      expect(
+        getByTestId('activity-primary-amount-missing-pnl'),
+      ).toHaveTextContent('Unknown');
+    },
+  );
+
+  it('preserves a reported zero closing PnL in the activity row', () => {
+    const item = {
+      type: 'perpsCloseLong',
+      chainId: 'eip155:421614',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: 'zero-pnl',
+      data: {
+        token: { amount: '0', symbol: 'USD', direction: 'in' },
+        sourceToken: { amount: '0.008', symbol: 'ETH', direction: 'out' },
+      },
+    } as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-zero-pnl')).toHaveTextContent(
+      '+$0.00',
+    );
+  });
+
   it('uses PerpsTokenLogo for market avatars', () => {
     const openLong = {
       type: 'perpsOpenLong',

@@ -1294,7 +1294,11 @@ export function useActivityListItemRowContent(
     primaryAmount = undefined;
     secondaryAmount = undefined;
   } else {
-    primaryAmount = rawPrimaryAmount;
+    primaryAmount =
+      rawPrimaryAmount ??
+      (item.type.startsWith('perpsClose')
+        ? strings('perps.transactions.unknown_pnl')
+        : undefined);
     secondaryAmount = resolveRawSecondaryAmount();
   }
 
