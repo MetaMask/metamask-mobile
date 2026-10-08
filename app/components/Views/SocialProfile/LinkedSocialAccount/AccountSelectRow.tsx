@@ -1,5 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useCallback } from 'react';
 import type { AccountGroupObject } from '@metamask/account-tree-controller';
 import {
   AvatarAccount,
@@ -12,12 +11,10 @@ import {
   SensitiveTextLength,
 } from '@metamask/design-system-react-native';
 
-import type { RootState } from '../../../../reducers';
-import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balances';
-import { selectAllAccountGroupIconSeedAddresses } from '../../../../selectors/multichainAccounts/accounts';
-import { selectPrivacyMode } from '../../../../selectors/preferencesController';
-import { formatWithThreshold } from '../../../../util/assets';
-import I18n from '../../../../../locales/i18n';
+import {
+  useAccountGroupBalance,
+  useAccountGroupIconSeedAddress,
+} from '../../../../component-library/components-temp/MultichainAccounts/useAccountGroupDisplay';
 import { LinkedSocialAccountSelectorsIDs } from './LinkedSocialAccount.testIds';
 
 interface AccountSelectRowProps {
@@ -41,41 +38,15 @@ const AccountSelectRow = ({
   showDivider = false,
   onSelect,
 }: AccountSelectRowProps) => {
-  // Read this row's icon seed from the shared map selector rather than building
-  // a per-row deep-equal selector, matching AccountCell.
-  const iconSeedAddress = useSelector(
-    (state: RootState) =>
-      selectAllAccountGroupIconSeedAddresses(state)[accountGroup.id] ?? '',
+  const iconSeedAddress = useAccountGroupIconSeedAddress(accountGroup.id);
+  const { balanceLabel, isBalanceHidden } = useAccountGroupBalance(
+    accountGroup.id,
   );
-
-  const selectBalanceForGroup = useMemo(
-    () => selectBalanceByAccountGroup(accountGroup.id),
-    [accountGroup.id],
-  );
-  const groupBalance = useSelector(selectBalanceForGroup);
-  const totalBalance = groupBalance?.totalBalanceInUserCurrency;
-  const userCurrency = groupBalance?.userCurrency;
-  const privacyMode = useSelector(selectPrivacyMode);
-
-  const displayBalance = useMemo(() => {
-    if (totalBalance == null || !userCurrency) {
-      return undefined;
-    }
-    return formatWithThreshold(totalBalance, 0.01, I18n.locale, {
-      style: 'currency',
-      currency: userCurrency.toUpperCase(),
-    });
-  }, [totalBalance, userCurrency]);
 
   const handlePress = useCallback(
     () => onSelect(accountGroup.id),
     [accountGroup.id, onSelect],
   );
-
-  // Zero balances stay blank: `selectBalanceByAccountGroup` synthesizes 0
-  // before assets load, so "$0.00" would read as a real empty wallet. Same
-  // treatment as AccountCell.
-  const balanceLabel = totalBalance ? displayBalance : undefined;
 
   return (
     <ListItem
@@ -94,7 +65,7 @@ const AccountSelectRow = ({
       description={balanceLabel}
       descriptionProps={{
         length: SensitiveTextLength.Long,
-        isHidden: privacyMode && Boolean(balanceLabel),
+        isHidden: isBalanceHidden,
       }}
       endAccessory={
         // The whole row is the control, so the radio itself is not separately
