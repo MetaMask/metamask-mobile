@@ -2493,7 +2493,8 @@
       "est_size": "Est. Size",
       "flip": "Reverse",
       "flipping": "Reversing...",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "below_minimum": "Position too small to reverse. Minimum order size is ${{amount}}."
     },
     "adjust_margin": {
       "title": "Adjust Margin",
