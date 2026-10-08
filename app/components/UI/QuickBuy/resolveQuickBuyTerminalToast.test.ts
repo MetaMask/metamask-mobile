@@ -258,7 +258,7 @@ describe('resolveQuickBuyTerminalToast', () => {
   });
 
   it('updates the post-swap share session instead of showing a toast', () => {
-    beginPostSwapShareSession({
+    const sessionId = beginPostSwapShareSession({
       target: {
         tokenAddress: '0xpepe',
         tokenSymbol: 'PEPE',
@@ -273,7 +273,11 @@ describe('resolveQuickBuyTerminalToast', () => {
         side: 'buy',
       },
     });
-    trackQuickBuyTrade('tx-1', { ...buyTrade, postSwapShare: true });
+    trackQuickBuyTrade('tx-1', {
+      ...buyTrade,
+      postSwapShare: true,
+      postSwapShareSessionId: sessionId,
+    });
     mockGetHistoryItem.mockReturnValue(
       historyItemWithStatus(StatusTypes.COMPLETE),
     );
@@ -289,7 +293,7 @@ describe('resolveQuickBuyTerminalToast', () => {
   });
 
   it('backfills the post-swap share transaction hash from bridge history', () => {
-    beginPostSwapShareSession({
+    const sessionId = beginPostSwapShareSession({
       target: {
         tokenAddress: '0xpepe',
         tokenSymbol: 'PEPE',
@@ -304,7 +308,11 @@ describe('resolveQuickBuyTerminalToast', () => {
         side: 'buy',
       },
     });
-    trackQuickBuyTrade('tx-1', { ...buyTrade, postSwapShare: true });
+    trackQuickBuyTrade('tx-1', {
+      ...buyTrade,
+      postSwapShare: true,
+      postSwapShareSessionId: sessionId,
+    });
     mockGetHistoryItem.mockReturnValue({
       ...historyItemWithStatus(StatusTypes.COMPLETE),
       reportedSubmittedTxHash: '0xbridge-hash',
@@ -316,7 +324,7 @@ describe('resolveQuickBuyTerminalToast', () => {
   });
 
   it('falls back to the source-chain hash in bridge status', () => {
-    beginPostSwapShareSession({
+    const sessionId = beginPostSwapShareSession({
       target: {
         tokenAddress: '0xpepe',
         tokenSymbol: 'PEPE',
@@ -331,7 +339,11 @@ describe('resolveQuickBuyTerminalToast', () => {
         side: 'buy',
       },
     });
-    trackQuickBuyTrade('tx-1', { ...buyTrade, postSwapShare: true });
+    trackQuickBuyTrade('tx-1', {
+      ...buyTrade,
+      postSwapShare: true,
+      postSwapShareSessionId: sessionId,
+    });
     mockGetHistoryItem.mockReturnValue({
       ...historyItemWithStatus(StatusTypes.COMPLETE),
       status: {

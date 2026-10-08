@@ -3998,7 +3998,7 @@ export const runQuickBuyControllerCases = ({
           });
         });
 
-        it('starts a post-swap share session for supported chains', async () => {
+        it('uses the source chain for the in-flight trade hash', async () => {
           mockUsableQuote();
           (
             Engine.context.BridgeStatusController.submitTx as jest.Mock
@@ -4020,7 +4020,7 @@ export const runQuickBuyControllerCases = ({
           expect(getPostSwapShareSession()).toEqual(
             expect.objectContaining({
               status: 'pending',
-              tradeInFlightChain: 'base',
+              tradeInFlightChain: 'ethereum',
             }),
           );
           expect(buildQuickBuyToastOptions).not.toHaveBeenCalledWith(
@@ -4030,6 +4030,10 @@ export const runQuickBuyControllerCases = ({
         });
 
         it('uses normal Quick Buy feedback for unsupported trade-in-flight chains', async () => {
+          mockUsePayWithTokens.mockReturnValue({
+            options: [createSourceToken({ chainId: '0xa4b1' })],
+            isLoading: false,
+          });
           mockUsableQuote();
           (
             Engine.context.BridgeStatusController.submitTx as jest.Mock

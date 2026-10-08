@@ -104,11 +104,14 @@ function emitTerminalToast(
   markQuickBuyTradeSettled(txMetaId);
 
   const isComplete = outcome === 'complete';
-  if (trade.postSwapShare) {
-    const sessionUpdated = patchPostSwapShareSession({
-      status: isComplete ? 'complete' : 'failed',
-      ...(transactionHash ? { transactionHash } : {}),
-    });
+  if (trade.postSwapShare && trade.postSwapShareSessionId) {
+    const sessionUpdated = patchPostSwapShareSession(
+      trade.postSwapShareSessionId,
+      {
+        status: isComplete ? 'complete' : 'failed',
+        ...(transactionHash ? { transactionHash } : {}),
+      },
+    );
     if (!sessionUpdated) {
       showToast(
         buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {

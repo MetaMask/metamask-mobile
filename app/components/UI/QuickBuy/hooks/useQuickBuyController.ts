@@ -1627,27 +1627,32 @@ export function useQuickBuyController(
       rate: formattedRate,
       isNonEvmSwap,
     };
-    const tradeInFlightChain = caipChainIdToTradeInFlightChain(target.chain);
+    const tradeInFlightChain = caipChainIdToTradeInFlightChain(
+      sourceToken?.chainId
+        ? formatChainIdToCaip(sourceToken.chainId)
+        : target.chain,
+    );
     const shouldPostSwapShare = postSwapShare && Boolean(tradeInFlightChain);
+    const postSwapShareSessionId = shouldPostSwapShare
+      ? beginPostSwapShareSession({
+          target,
+          tradeMode,
+          pairLabel:
+            sourceToken?.symbol && destToken?.symbol
+              ? `${sourceTokenAmount ?? ''} ${sourceToken.symbol} → ${estimatedReceiveAmount ?? ''} ${destToken.symbol}`.trim()
+              : undefined,
+          tradeInFlightChain,
+          preview: {
+            tokenSymbol: target.tokenSymbol,
+            tokenAddress: target.tokenAddress,
+            chain: tradeInFlightChain ?? target.chain,
+            side: tradeMode,
+            costLabel: tradeToastInfo.fiatAmountLabel,
+            entryPriceLabel: formattedRate,
+          },
+        })
+      : undefined;
     if (shouldPostSwapShare) {
-      const pairLabel =
-        sourceToken?.symbol && destToken?.symbol
-          ? `${sourceTokenAmount ?? ''} ${sourceToken.symbol} → ${estimatedReceiveAmount ?? ''} ${destToken.symbol}`.trim()
-          : undefined;
-      beginPostSwapShareSession({
-        target,
-        tradeMode,
-        pairLabel,
-        tradeInFlightChain,
-        preview: {
-          tokenSymbol: target.tokenSymbol,
-          tokenAddress: target.tokenAddress,
-          chain: tradeInFlightChain ?? target.chain,
-          side: tradeMode,
-          costLabel: tradeToastInfo.fiatAmountLabel,
-          entryPriceLabel: formattedRate,
-        },
-      });
       onClose();
     } else {
       onClose();
@@ -1696,9 +1701,12 @@ export function useQuickBuyController(
           ...tradeToastInfo,
           txSignature: txHash,
           postSwapShare: shouldPostSwapShare,
+          postSwapShareSessionId,
         });
-        if (shouldPostSwapShare && txHash) {
-          patchPostSwapShareSession({ transactionHash: txHash });
+        if (postSwapShareSessionId && txHash) {
+          patchPostSwapShareSession(postSwapShareSessionId, {
+            transactionHash: txHash,
+          });
         }
         // The swap may already have settled by the time submitTx resolves, in
         // which case the terminal stateChange events fired before this id was
@@ -1737,8 +1745,10 @@ export function useQuickBuyController(
       );
       // submitTx threw before publish (e.g. user rejection), so no bridge
       // history item will ever exist — surface the failure immediately.
-      const sessionUpdated = shouldPostSwapShare
-        ? patchPostSwapShareSession({ status: 'failed' })
+      const sessionUpdated = postSwapShareSessionId
+        ? patchPostSwapShareSession(postSwapShareSessionId, {
+            status: 'failed',
+          })
         : false;
       if (!sessionUpdated) {
         toastRef?.current?.showToast(

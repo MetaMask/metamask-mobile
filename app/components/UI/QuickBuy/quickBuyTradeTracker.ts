@@ -33,6 +33,8 @@ export interface TrackedQuickBuyTrade {
    * post-swap share sheet is updated instead.
    */
   postSwapShare?: boolean;
+  /** Identifies the share session created for this trade. */
+  postSwapShareSessionId?: string;
 }
 
 /**

@@ -4,6 +4,7 @@ import type { SocialPostComposerViewParams } from '../SocialPostComposerView/Soc
 export type PostSwapShareStatus = 'pending' | 'complete' | 'failed';
 
 export interface PostSwapShareSession {
+  sessionId: string;
   status: PostSwapShareStatus;
   pairLabel?: string;
   tradeInFlightChain?: string;
@@ -31,6 +32,7 @@ const bootstrap = (): StoreState => ({
 const globalScope = globalThis as unknown as Record<string, StoreState>;
 const state: StoreState = globalScope[STORE_GLOBAL_KEY] ?? bootstrap();
 globalScope[STORE_GLOBAL_KEY] = state;
+let nextSessionId = 0;
 
 const notify = () => {
   state.listeners.forEach((listener) => listener());
@@ -49,22 +51,29 @@ export const getPostSwapShareSession = (): PostSwapShareSession | null =>
   state.session;
 
 export const beginPostSwapShareSession = (
-  session: Omit<PostSwapShareSession, 'reopenRequested' | 'status'> & {
+  session: Omit<
+    PostSwapShareSession,
+    'reopenRequested' | 'sessionId' | 'status'
+  > & {
     status?: PostSwapShareStatus;
   },
-): void => {
+): string => {
+  const sessionId = String(nextSessionId++);
   state.session = {
     ...session,
+    sessionId,
     status: session.status ?? 'pending',
     reopenRequested: false,
   };
   notify();
+  return sessionId;
 };
 
 export const patchPostSwapShareSession = (
+  sessionId: string,
   patch: Partial<PostSwapShareSession>,
 ): boolean => {
-  if (!state.session) {
+  if (!state.session || state.session.sessionId !== sessionId) {
     return false;
   }
   state.session = { ...state.session, ...patch };

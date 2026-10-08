@@ -38,7 +38,7 @@ describe('postSwapShareSession', () => {
   });
 
   it('patches transaction hash onto the current session', () => {
-    beginPostSwapShareSession({
+    const sessionId = beginPostSwapShareSession({
       target,
       tradeMode: 'buy',
       preview: {
@@ -49,7 +49,7 @@ describe('postSwapShareSession', () => {
       },
     });
 
-    patchPostSwapShareSession({
+    patchPostSwapShareSession(sessionId, {
       transactionHash: '0xabc',
       status: 'complete',
     });
@@ -93,9 +93,37 @@ describe('postSwapShareSession', () => {
   });
 
   it('ignores patches when no session exists', () => {
-    patchPostSwapShareSession({ status: 'complete' });
+    patchPostSwapShareSession('missing', { status: 'complete' });
 
     expect(getPostSwapShareSession()).toBeNull();
+  });
+
+  it('ignores patches from an older share session', () => {
+    const firstSessionId = beginPostSwapShareSession({
+      target,
+      tradeMode: 'buy',
+      preview: {
+        tokenSymbol: 'PUMP',
+        tokenAddress: '0xpump',
+        chain: 'base',
+        side: 'buy',
+      },
+    });
+    beginPostSwapShareSession({
+      target,
+      tradeMode: 'sell',
+      preview: {
+        tokenSymbol: 'PUMP',
+        tokenAddress: '0xpump',
+        chain: 'base',
+        side: 'sell',
+      },
+    });
+
+    expect(
+      patchPostSwapShareSession(firstSessionId, { status: 'complete' }),
+    ).toBe(false);
+    expect(getPostSwapShareSession()?.status).toBe('pending');
   });
 
   it('ignores reopen requests when no session exists', () => {
