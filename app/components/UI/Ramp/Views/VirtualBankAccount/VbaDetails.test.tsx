@@ -130,18 +130,6 @@ describe('VbaDetails', () => {
     mockListTransactions.mockResolvedValue([]);
     mockRefreshAutoramp.mockResolvedValue(approvedAutoramp);
     setAutoramps([{ ...approvedAutoramp }]);
-    (
-      Engine.context as {
-        NeoBankService?: {
-          getPixDepositInstructions: typeof mockGetPix;
-          listAutorampTransactions: typeof mockListTransactions;
-        };
-      }
-    ).NeoBankService = {
-      getPixDepositInstructions: (...args: unknown[]) => mockGetPix(...args),
-      listAutorampTransactions: (...args: unknown[]) =>
-        mockListTransactions(...args),
-    };
   });
 
   it('renders the details screen', async () => {
