@@ -686,6 +686,20 @@ describe('formatUtils', () => {
       expect(normalizedValue).toBe('1000.');
     });
 
+    it.each([
+      ['en-US', '1.5.', '1.5'],
+      ['de-DE', '1,5,', '1.5'],
+      ['en-US', '1,200.5.', '1200.5'],
+      ['de-DE', '1.200,5,', '1200.5'],
+    ])(
+      'ignores a repeated decimal separator in %s input "%s"',
+      (locale, input, expected) => {
+        const normalizedValue = normalizePerpsNumericInput(input, locale);
+
+        expect(normalizedValue).toBe(expected);
+      },
+    );
+
     it('preserves partial decimal input', () => {
       expect(normalizePerpsNumericInput('1000.', 'en-US')).toBe('1000.');
       expect(normalizePerpsNumericInput('1000,', 'de-DE')).toBe('1000.');

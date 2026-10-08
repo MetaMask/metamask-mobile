@@ -430,18 +430,24 @@ export const normalizePerpsNumericInput = (
 
   if (commaIndex >= 0 && periodIndex >= 0) {
     decimalSeparator = commaIndex > periodIndex ? ',' : '.';
-    decimalSeparatorIndex = Math.max(commaIndex, periodIndex);
+    const lastGroupingIndex =
+      decimalSeparator === ',' ? periodIndex : commaIndex;
+    decimalSeparatorIndex = localizedValue.indexOf(
+      decimalSeparator,
+      lastGroupingIndex + 1,
+    );
   } else if (commaIndex >= 0 && separators.decimal === ',') {
     decimalSeparator = ',';
-    decimalSeparatorIndex = commaIndex;
+    decimalSeparatorIndex = localizedValue.indexOf(',');
   } else if (periodIndex >= 0) {
+    const addsGroupingCharacter = addsLocaleGroupingCharacterToPreviousDisplay(
+      localizedValue,
+      localeGrouping,
+      context,
+    );
     decimalSeparator =
       separators.decimal === '.' ||
-      addsLocaleGroupingCharacterToPreviousDisplay(
-        localizedValue,
-        localeGrouping,
-        context,
-      ) ||
+      addsGroupingCharacter ||
       (!isLocaleGroupedInteger(localizedValue, localeGrouping) &&
         !retainsLocaleGroupingFromPreviousDisplay(
           localizedValue,
@@ -450,10 +456,14 @@ export const normalizePerpsNumericInput = (
         ))
         ? '.'
         : undefined;
-    decimalSeparatorIndex = decimalSeparator ? periodIndex : -1;
+    decimalSeparatorIndex = decimalSeparator
+      ? addsGroupingCharacter
+        ? periodIndex
+        : localizedValue.indexOf('.')
+      : -1;
   } else if (localizedValue.includes(separators.decimal)) {
     decimalSeparator = separators.decimal;
-    decimalSeparatorIndex = localizedValue.lastIndexOf(separators.decimal);
+    decimalSeparatorIndex = localizedValue.indexOf(separators.decimal);
   }
 
   let sanitizedValue = '';
