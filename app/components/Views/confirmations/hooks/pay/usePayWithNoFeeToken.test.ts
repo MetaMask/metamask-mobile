@@ -13,14 +13,12 @@ import { Hex } from '@metamask/utils';
 import { RelayFixedSpreadConfig } from '../../utils/relayFixedSpread';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
-import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 
 jest.mock('../../../../../selectors/featureFlagController/confirmations');
 jest.mock('./useTransactionPayAvailableTokens');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../util/address');
 jest.mock('../transactions/useTransactionPayingAccount');
-jest.mock('../tokens/useTokenFiatRates');
 
 const STATE_MOCK = {
   engine: {
@@ -64,7 +62,6 @@ describe('usePayWithNoFeeToken', () => {
   const useTransactionPayingAccountMock = jest.mocked(
     useTransactionPayingAccount,
   );
-  const useTokenFiatRateMock = jest.mocked(useTokenFiatRate);
 
   const createMockToken = (
     address: string,
@@ -78,6 +75,7 @@ describe('usePayWithNoFeeToken', () => {
       chainId: chainId as Hex,
       symbol,
       fiat: { balance: fiatBalance },
+      balanceInSelectedCurrencyAmount: fiatBalance,
       disabled,
       balance: `${fiatBalance}`,
       decimals: 6,
@@ -98,7 +96,6 @@ describe('usePayWithNoFeeToken', () => {
     useTransactionMetadataRequestMock.mockReturnValue(undefined);
     useTransactionPayingAccountMock.mockReturnValue(undefined);
     isHardwareAccountMock.mockReturnValue(false);
-    useTokenFiatRateMock.mockReturnValue(1);
   });
 
   it('returns undefined noFeeToken when no tokens are available', () => {
@@ -163,10 +160,10 @@ describe('usePayWithNoFeeToken', () => {
     });
   });
 
-  it('prices the no-fee token balance in USD', () => {
+  it('prices the no-fee token from the USD display balance', () => {
     const token = {
       ...createMockToken('0xAAA', 'USDC', '0x1', 8),
-      balance: '10',
+      balanceInSelectedCurrencyAmount: 15,
     };
 
     selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xAAA')));
@@ -174,13 +171,11 @@ describe('usePayWithNoFeeToken', () => {
       availableTokens: [token],
       hasTokens: true,
     });
-    useTokenFiatRateMock.mockReturnValue(1.5);
 
     const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
       state: STATE_MOCK,
     });
 
-    expect(useTokenFiatRateMock).toHaveBeenCalledWith('0xAAA', '0x1', 'usd');
     expect(result.current.noFeeToken?.balanceUsd).toBe('15');
   });
 

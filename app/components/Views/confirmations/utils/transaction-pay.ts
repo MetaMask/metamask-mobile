@@ -375,28 +375,19 @@ export function getTotalPayFeesUsd(
 }
 
 /**
- * Converts a human token balance into USD.
+ * String form of a confirmation asset's display-currency balance.
  *
- * `fiat.balance` on confirmation assets stays in the user's preferred
- * currency. Pay-with rows that label the amount with `$` must use this
- * instead, so a non-USD wallet does not show that amount under a dollar sign.
- * Returns `'0'` when the balance or USD rate is missing.
+ * Pay-with rows format this amount with `$`. It is the number behind
+ * `balanceInSelectedCurrency`, which pay flows already price in USD.
+ * `fiat.balance` stays in the user's preferred currency. Returns `'0'` when
+ * the amount is missing.
  */
-export function humanBalanceToUsd(
-  humanBalance: string | undefined,
-  usdRate: number | undefined,
-): string {
-  if (humanBalance === undefined || usdRate === undefined) {
+export function payBalanceUsd(amount: number | undefined): string {
+  if (amount === undefined || !Number.isFinite(amount)) {
     return '0';
   }
 
-  const balance = new BigNumber(humanBalance);
-
-  if (!balance.isFinite()) {
-    return '0';
-  }
-
-  return balance.multipliedBy(usdRate).toString(10);
+  return String(amount);
 }
 
 /**

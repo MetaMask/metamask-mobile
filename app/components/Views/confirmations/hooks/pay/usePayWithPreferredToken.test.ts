@@ -6,7 +6,6 @@ import { usePayWithPreferredToken } from './usePayWithPreferredToken';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
-import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { AssetType } from '../../types/token';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
@@ -14,7 +13,6 @@ jest.mock('./useAutomaticTransactionPayToken');
 jest.mock('./useTransactionPayAvailableTokens');
 jest.mock('./useTransactionPayToken');
 jest.mock('./usePayTokenAccountBalance');
-jest.mock('../tokens/useTokenFiatRates');
 jest.mock('../transactions/useTransactionMetadataRequest');
 
 const TOKEN_MOCK: TransactionPaymentToken = {
@@ -44,6 +42,7 @@ const AVAILABLE_TOKEN_MOCK: AssetType = {
   balance: '12.34',
   chainId: TOKEN_MOCK.chainId,
   decimals: TOKEN_MOCK.decimals,
+  balanceInSelectedCurrencyAmount: 12.34,
   fiat: { balance: 12.34 },
   image: '',
   isETH: false,
@@ -61,7 +60,6 @@ describe('usePayWithPreferredToken', () => {
   );
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const usePayTokenAccountBalanceMock = jest.mocked(usePayTokenAccountBalance);
-  const useTokenFiatRateMock = jest.mocked(useTokenFiatRate);
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -92,7 +90,6 @@ describe('usePayWithPreferredToken', () => {
       balanceUsd: TOKEN_MOCK.balanceUsd,
       balanceRaw: TOKEN_MOCK.balanceRaw,
     });
-    useTokenFiatRateMock.mockReturnValue(1);
   });
 
   it('runs automatic token selection and returns the selected pay token', () => {
@@ -130,11 +127,15 @@ describe('usePayWithPreferredToken', () => {
   it('returns the preferred token candidate when the selected token differs', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
-        { ...AVAILABLE_TOKEN_MOCK, balance: '2', fiat: { balance: 99 } },
+        {
+          ...AVAILABLE_TOKEN_MOCK,
+          balance: '2',
+          balanceInSelectedCurrencyAmount: 12.34,
+          fiat: { balance: 99 },
+        },
       ],
       hasTokens: true,
     });
-    useTokenFiatRateMock.mockReturnValue(6.17);
     useTransactionPayTokenMock.mockReturnValue({
       payToken: OTHER_TOKEN_MOCK,
       setPayToken: setPayTokenMock,
@@ -142,11 +143,6 @@ describe('usePayWithPreferredToken', () => {
 
     const { result } = renderHook(() => usePayWithPreferredToken());
 
-    expect(useTokenFiatRateMock).toHaveBeenCalledWith(
-      TOKEN_MOCK.address,
-      TOKEN_MOCK.chainId,
-      'usd',
-    );
     expect(result.current.preferredToken).toEqual({
       address: TOKEN_MOCK.address,
       balanceUsd: '12.34',

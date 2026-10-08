@@ -8,7 +8,7 @@ import {
   formatAmountForDisplay,
   getAvailableTokens,
   getBlockedTokensForTransactionType,
-  humanBalanceToUsd,
+  payBalanceUsd,
   getRequiredBalance,
   getTokenAddress,
   getTokenTransferData,
@@ -1111,21 +1111,17 @@ describe('Transaction Pay Utils', () => {
     });
   });
 
-  describe('humanBalanceToUsd', () => {
-    it('multiplies the human balance by the USD rate', () => {
-      expect(humanBalanceToUsd('10', 1.5)).toBe('15');
+  describe('payBalanceUsd', () => {
+    it('returns the display-currency amount as a string', () => {
+      expect(payBalanceUsd(15)).toBe('15');
     });
 
-    it('returns 0 when the USD rate is missing', () => {
-      expect(humanBalanceToUsd('10', undefined)).toBe('0');
+    it('returns 0 when the amount is missing', () => {
+      expect(payBalanceUsd(undefined)).toBe('0');
     });
 
-    it('returns 0 when the balance is missing', () => {
-      expect(humanBalanceToUsd(undefined, 1.5)).toBe('0');
-    });
-
-    it('returns 0 when the balance is not a number', () => {
-      expect(humanBalanceToUsd('abc', 1.5)).toBe('0');
+    it('returns 0 when the amount is not finite', () => {
+      expect(payBalanceUsd(Number.NaN)).toBe('0');
     });
   });
 });
