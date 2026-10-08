@@ -89,6 +89,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/delegation-core',
   '@metamask/delegation-deployments',
   '@metamask/eth-block-tracker',
+  '@metamask/eth-json-rpc-provider',
   '@metamask/eth-json-rpc-middleware',
   '@metamask/json-rpc-engine',
   '@metamask/gas-fee-controller',
@@ -133,6 +134,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/subscription-controller',
   '@metamask/transaction-controller',
   '@metamask/network-controller',
+  '@metamask/remote-feature-flag-controller',
   '@metamask/transaction-pay-controller',
   // ESM-only, and reached through `@metamask/kyc-controller`'s nested v12 copy,
   // which cannot hoist onto the CJS v11 the rest of the repo resolves.

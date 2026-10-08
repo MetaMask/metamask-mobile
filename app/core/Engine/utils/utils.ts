@@ -8,6 +8,7 @@ import type {
   InitMessengerClientsFunction,
   MessengerClientInitRequest,
   MessengerClientInitFunction,
+  InitMessengerFor,
 } from '../types';
 import { MESSENGER_FACTORIES } from '../messengers';
 import { Wallet } from '@metamask/wallet';
@@ -23,14 +24,7 @@ type InitFunction<Name extends MessengerClientsToInitialize> =
   MessengerClientInitFunction<
     MessengerClientsByName[Name],
     ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getMessenger']>,
-    'getInitMessenger' extends keyof (typeof MESSENGER_FACTORIES)[Name]
-      ? ReturnType<
-          Extract<
-            (typeof MESSENGER_FACTORIES)[Name]['getInitMessenger'],
-            (...args: never[]) => unknown
-          >
-        >
-      : void
+    InitMessengerFor<Name>
   >;
 
 /**

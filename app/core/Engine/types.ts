@@ -1322,6 +1322,15 @@ type MessengerClientPersistedState = Partial<{
  */
 export type MessengerClientMessengersByName = typeof MESSENGER_FACTORIES;
 
+export type InitMessengerFor<Name extends MessengerClientsToInitialize> =
+  (typeof MESSENGER_FACTORIES)[Name] extends {
+    getInitMessenger: (...args: never[]) => infer InitMessenger;
+  }
+    ? InitMessenger extends ControllerMessenger
+      ? InitMessenger
+      : void
+    : void;
+
 /**
  * Request to initialize and return a messenger client instance.
  * Includes standard data and methods not coupled to any specific messenger client.
@@ -1431,14 +1440,7 @@ export type MessengerClientInitFunctionsByMessengerClientName = {
   [Name in MessengerClientsToInitialize]: MessengerClientInitFunction<
     MessengerClientsByName[Name],
     ReturnType<(typeof MESSENGER_FACTORIES)[Name]['getMessenger']>,
-    'getInitMessenger' extends keyof (typeof MESSENGER_FACTORIES)[Name]
-      ? ReturnType<
-          Extract<
-            (typeof MESSENGER_FACTORIES)[Name]['getInitMessenger'],
-            (...args: never[]) => unknown
-          >
-        >
-      : void
+    InitMessengerFor<Name>
   >;
 };
 
