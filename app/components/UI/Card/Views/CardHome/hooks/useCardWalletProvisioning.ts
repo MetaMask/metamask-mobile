@@ -1,7 +1,7 @@
 import { useContext, useMemo } from 'react';
+import { IconName } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
   ToastVariants,
