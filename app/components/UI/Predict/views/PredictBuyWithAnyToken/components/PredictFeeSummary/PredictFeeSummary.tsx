@@ -12,6 +12,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { DiscountType } from '@metamask/bridge-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
@@ -24,19 +25,19 @@ import {
   TextVariant as LegacyTextVariant,
 } from '../../../../../../../component-library/components/Texts/Text/Text.types';
 import AddRewardsAccount from '../../../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
+import RewardsVipBadge from '../../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../../../Rewards/components/RewardPointsAnimation';
 import { usePredictRewards } from '../../../../hooks/usePredictRewards';
 import { formatPrice } from '../../../../utils/format';
-import type { PredictDiscountType } from '../../../../types';
 
 interface PredictFeeSummaryProps {
   disabled: boolean;
   loading?: boolean;
   total: number;
   originalTotal?: number;
-  feePolicyDiscountType?: PredictDiscountType;
+  feePolicyDiscountType?: DiscountType;
   rewardsFeeAmountUsd?: number;
   rewardsLoadingOverride?: boolean;
   handleFeesInfoPress: () => void;
@@ -121,16 +122,19 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
               />
             </Box>
             <Box twClassName="flex-row items-center gap-2">
-              {feePolicyDiscountType === 'membership' &&
+              {feePolicyDiscountType === DiscountType.SUBSCRIPTION &&
                 originalTotal !== undefined && (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextAlternative}
-                    twClassName="line-through"
-                  >
-                    {formatPrice(originalTotal, { maximumDecimals: 2 })}
-                  </Text>
+                  <>
+                    <RewardsVipBadge hasProEntitlement />
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextAlternative}
+                      twClassName="line-through"
+                    >
+                      {formatPrice(originalTotal, { maximumDecimals: 2 })}
+                    </Text>
+                  </>
                 )}
               <Text
                 variant={TextVariant.BodyMd}

@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import { DiscountType } from '@metamask/bridge-controller';
 import { render, act } from '@testing-library/react-native';
 import PredictFeeBreakdownSheet from './PredictFeeBreakdownSheet';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -58,6 +59,20 @@ jest.mock(
       ReactModule.createElement(RNText, { testID: 'sheet-header' }, title);
   },
 );
+
+jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>
+    hasProEntitlement
+      ? ReactActual.createElement(
+          Text,
+          { testID: 'rewards-member-badge' },
+          'Member',
+        )
+      : null;
+});
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, string>) => {
     if (key === 'predict.fee_summary.price_details') {
@@ -302,16 +317,17 @@ describe('PredictFeeBreakdownSheet', () => {
           <PredictFeeBreakdownSheet
             ref={ref}
             {...defaultProps}
-            feePolicyDiscountType="membership"
+            feePolicyDiscountType={DiscountType.SUBSCRIPTION}
             originalTotal={10.2}
           />
         );
       };
 
-      const { getByText } = render(<TestComponent />);
+      const { getByText, getByTestId } = render(<TestComponent />);
 
       expect(getByText('$10.20')).toBeOnTheScreen();
       expect(getByText('$10.15')).toBeOnTheScreen();
+      expect(getByTestId('rewards-member-badge')).toBeOnTheScreen();
     });
   });
   describe('Bottom sheet behavior', () => {

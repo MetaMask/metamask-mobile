@@ -2086,8 +2086,8 @@ const getEffectiveFeeCollection = ({
   feeCollection?: PredictFeeCollection;
   feePolicy?: PredictFeePolicy;
 }): PredictFeeCollection | undefined => {
-  if (feePolicy?.discountType !== 'membership') {
-    return feeCollection;
+  if (!feeCollection || !feePolicy) {
+    return undefined;
   }
 
   return {
@@ -2243,7 +2243,7 @@ const calculateFeesWithOriginal = async ({
     feeCollection: effectiveFeeCollection,
   });
 
-  if (feePolicy?.discountType === 'membership') {
+  if (feePolicy) {
     return calculateMembershipFees({
       feeCollection,
       effectiveFeeCollection,

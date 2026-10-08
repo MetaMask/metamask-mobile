@@ -7,6 +7,7 @@ import {
   MOCK_ANY_NAMESPACE,
   type MockAnyNamespace,
 } from '@metamask/messenger';
+import { DiscountType } from '@metamask/bridge-controller';
 
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { NetworkState } from '@metamask/network-controller';
@@ -9346,7 +9347,7 @@ describe('PredictController', () => {
           expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
             expect.objectContaining({
               feePolicy: {
-                discountType: 'membership',
+                discountType: DiscountType.SUBSCRIPTION,
                 builderCode: 'predict-pro-builder',
               },
             }),

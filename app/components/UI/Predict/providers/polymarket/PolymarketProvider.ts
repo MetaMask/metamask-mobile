@@ -753,7 +753,7 @@ export class PolymarketProvider implements PredictProvider {
     let permit2FeeReady = false;
 
     if (
-      preview.feePolicy?.discountType !== 'membership' &&
+      !preview.feePolicy &&
       shouldUsePermit2 &&
       preview.fees &&
       preview.fees.totalFee > 0

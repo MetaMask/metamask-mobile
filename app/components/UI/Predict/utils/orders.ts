@@ -270,7 +270,7 @@ export function buildPredictFeeBreakdowns({
     total,
   });
 
-  if (preview?.feePolicy?.discountType !== 'membership') {
+  if (!preview?.feePolicy) {
     return { feeBreakdown };
   }
 
@@ -278,7 +278,7 @@ export function buildPredictFeeBreakdowns({
     return { feeBreakdown };
   }
 
-  // if feePolicy.discountType is membership and originalFees is provided,
+  // if a fee policy and originalFees are provided,
   // we need to calculate the original fee breakdown
   // this is just to show the original total fee in the UI
   // beside the waived membership total fee

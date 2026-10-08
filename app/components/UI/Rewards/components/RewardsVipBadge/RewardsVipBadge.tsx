@@ -36,18 +36,6 @@ const RewardsVipBadge: React.FC<RewardsVipBadgeProps> = ({
 }) => {
   const vipTier = useVipTier();
 
-  if (vipTier) {
-    return (
-      <RewardsDiscountBadge
-        testID="rewards-vip-badge"
-        startIcon={<VipIcon name="VipIcon" width={14} height={14} />}
-        label={strings('rewards.vip.badge_label', {
-          tier: vipTier.toString(),
-        })}
-      />
-    );
-  }
-
   if (hasProEntitlement) {
     return (
       <RewardsDiscountBadge
@@ -58,6 +46,18 @@ const RewardsVipBadge: React.FC<RewardsVipBadgeProps> = ({
         label={strings('rewards.pro_member_badge_label')}
         borderColors={MEMBER_BORDER_COLORS}
         labelStyle={styles.memberLabel}
+      />
+    );
+  }
+
+  if (vipTier) {
+    return (
+      <RewardsDiscountBadge
+        testID="rewards-vip-badge"
+        startIcon={<VipIcon name="VipIcon" width={14} height={14} />}
+        label={strings('rewards.vip.badge_label', {
+          tier: vipTier.toString(),
+        })}
       />
     );
   }

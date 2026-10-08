@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import { DiscountType } from '@metamask/bridge-controller';
 import {
   Box,
   FontWeight,
@@ -13,7 +14,7 @@ import SheetHeader from '../../../../../component-library/components/Sheet/Sheet
 import { strings } from '../../../../../../locales/i18n';
 import { formatPrice } from '../../utils/format';
 import { SLIPPAGE_BUY } from '../../providers/polymarket/constants';
-import type { PredictDiscountType } from '../../types';
+import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 
 interface FeeRowProps {
   title: string;
@@ -43,7 +44,7 @@ const FeeRow = ({ title, description, amount }: FeeRowProps) => (
 interface PredictFeeBreakdownSheetProps {
   providerFee: number;
   metamaskFee: number;
-  feePolicyDiscountType?: PredictDiscountType;
+  feePolicyDiscountType?: DiscountType;
   originalTotal?: number;
   depositFee?: number;
   sharePrice: number;
@@ -141,18 +142,21 @@ const PredictFeeBreakdownSheet = forwardRef<
             {strings('predict.fee_summary.total')}
           </Text>
           <Box twClassName="flex-row items-center gap-2">
-            {feePolicyDiscountType === 'membership' &&
+            {feePolicyDiscountType === DiscountType.SUBSCRIPTION &&
               originalTotal !== undefined && (
-                <Text
-                  color={TextColor.TextAlternative}
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Bold}
-                  twClassName="line-through"
-                >
-                  {formatPrice(originalTotal, {
-                    maximumDecimals: 2,
-                  })}
-                </Text>
+                <>
+                  <RewardsVipBadge hasProEntitlement />
+                  <Text
+                    color={TextColor.TextAlternative}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Bold}
+                    twClassName="line-through"
+                  >
+                    {formatPrice(originalTotal, {
+                      maximumDecimals: 2,
+                    })}
+                  </Text>
+                </>
               )}
             <Text
               color={TextColor.TextDefault}

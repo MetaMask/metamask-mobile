@@ -1,3 +1,4 @@
+import { DiscountType } from '@metamask/bridge-controller';
 import {
   CHAIN_IDS,
   TransactionType,
@@ -1584,7 +1585,7 @@ describe('PolymarketProvider', () => {
       preview: {
         ...basePreview,
         feePolicy: {
-          discountType: 'membership',
+          discountType: DiscountType.SUBSCRIPTION,
           builderCode: membershipBuilderCode,
         },
       },
@@ -1854,7 +1855,7 @@ describe('PolymarketProvider', () => {
           permit2Enabled: true,
         },
         feePolicy: {
-          discountType: 'membership',
+          discountType: DiscountType.SUBSCRIPTION,
           builderCode:
             '0x4444444444444444444444444444444444444444444444444444444444444444',
         },

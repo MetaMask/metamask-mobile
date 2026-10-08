@@ -1,4 +1,5 @@
 import React from 'react';
+import { DiscountType } from '@metamask/bridge-controller';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { TouchableOpacity } from 'react-native';
 import PredictFeeSummary from './PredictFeeSummary';
@@ -13,6 +14,22 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('../../../../hooks/usePredictRewards', () => ({
   usePredictRewards: jest.fn(),
 }));
+
+jest.mock(
+  '../../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { Text } = jest.requireActual('react-native');
+    return ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>
+      hasProEntitlement
+        ? ReactActual.createElement(
+            Text,
+            { testID: 'rewards-member-badge' },
+            'Member',
+          )
+        : null;
+  },
+);
 
 jest.mock('../../../../utils/format', () => ({
   formatPrice: jest.fn(
@@ -154,7 +171,7 @@ describe('PredictFeeSummary', () => {
 
   it('renders total and triggers fee info press callback', () => {
     const handleFeesInfoPress = jest.fn();
-    const { UNSAFE_getByType } = render(
+    const { UNSAFE_getByType, queryByTestId } = render(
       <PredictFeeSummary
         {...baseProps}
         handleFeesInfoPress={handleFeesInfoPress}
@@ -163,6 +180,7 @@ describe('PredictFeeSummary', () => {
 
     expect(screen.getByText('Total')).toBeOnTheScreen();
     expect(screen.getByText('$13.50')).toBeOnTheScreen();
+    expect(queryByTestId('rewards-member-badge')).not.toBeOnTheScreen();
 
     fireEvent.press(UNSAFE_getByType(TouchableOpacity));
     expect(handleFeesInfoPress).toHaveBeenCalledTimes(1);
@@ -172,13 +190,14 @@ describe('PredictFeeSummary', () => {
     render(
       <PredictFeeSummary
         {...baseProps}
-        feePolicyDiscountType="membership"
+        feePolicyDiscountType={DiscountType.SUBSCRIPTION}
         originalTotal={15}
       />,
     );
 
     expect(screen.getByText('$15.00')).toBeOnTheScreen();
     expect(screen.getByText('$13.50')).toBeOnTheScreen();
+    expect(screen.getByTestId('rewards-member-badge')).toBeOnTheScreen();
   });
 
   it('renders rewards animation in idle state for opted-in accounts', () => {

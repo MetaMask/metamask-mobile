@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
 import { Hex } from '@metamask/utils';
+import type { DiscountType } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictMarketListOrder } from '../constants/flags';
 import type { PredictPaymentMethodValue } from '../constants/eventNames';
@@ -749,10 +750,8 @@ export interface PredictFees {
   permit2Enabled?: boolean;
 }
 
-export type PredictDiscountType = 'standard' | 'membership';
-
 export interface PredictFeePolicy {
-  discountType: PredictDiscountType;
+  discountType: DiscountType.SUBSCRIPTION;
   builderCode: string;
 }
 

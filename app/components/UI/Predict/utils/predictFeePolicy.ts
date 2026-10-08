@@ -1,3 +1,4 @@
+import { DiscountType } from '@metamask/bridge-controller';
 import type { SubscriptionBenefitsResponse } from '@metamask/subscription-controller';
 import type { PredictFeePolicy } from '../types';
 
@@ -37,7 +38,7 @@ export function resolvePredictFeePolicy({
   }
 
   return {
-    discountType: 'membership',
+    discountType: DiscountType.SUBSCRIPTION,
     builderCode,
   };
 }
