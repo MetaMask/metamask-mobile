@@ -61,6 +61,21 @@ describe('backendWebSocketServiceInit', () => {
       return isEnabled;
     };
 
+    it('enables the service in development builds', () => {
+      const globalWithDev = global as unknown as { __DEV__: boolean };
+      const previousDev = globalWithDev.__DEV__;
+      globalWithDev.__DEV__ = true;
+
+      try {
+        const mocks = arrangeMocks();
+        backendWebSocketServiceInit(mocks);
+
+        expect(getIsEnabledCallback()()).toBe(true);
+      } finally {
+        globalWithDev.__DEV__ = previousDev;
+      }
+    });
+
     it.each([
       [
         'flag resolves to a bare boolean (rff v5 threshold shape)',

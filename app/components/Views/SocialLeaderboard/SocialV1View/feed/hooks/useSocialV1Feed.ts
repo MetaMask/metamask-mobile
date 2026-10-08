@@ -1,6 +1,6 @@
 import { useMemo, useSyncExternalStore } from 'react';
-import { useSocialFeed } from '../../../../../UI/SocialFeed/data/useSocialFeed';
-import type { SocialFeedSource } from '../../../../../UI/SocialFeed/data/socialFeedSource';
+import { useTraderFeed } from '../../../FeedView/hooks/useTraderFeed';
+import { toSocialFeedPosts } from '../../../../../UI/SocialFeed/utils/toSocialFeedPosts';
 import {
   getSocialV1ComposedFeedSnapshot,
   subscribeSocialV1ComposedFeed,
@@ -23,6 +23,7 @@ const TAB_AUDIENCE = {
  */
 export const useSocialV1Feed = (
   tab: SocialV1FeedTab = 'trending',
+  enabled = true,
 ): UseSocialV1FeedResult => {
   // Everything composer-related must come off this snapshot rather than a
   // direct store read: React Compiler memoizes this hook's result, so a read
@@ -34,23 +35,20 @@ export const useSocialV1Feed = (
     getSocialV1ComposedFeedSnapshot,
   );
 
-  const source = useMemo(
-    (): SocialFeedSource => ({
-      kind: 'all',
-      audience: TAB_AUDIENCE[tab],
-    }),
-    [tab],
-  );
-
   const {
-    posts: livePosts,
     isLoading,
     isFetchingNextPage,
     hasNextPage,
     loadMore,
     error,
     refresh,
-  } = useSocialFeed(source);
+    rows,
+  } = useTraderFeed({
+    audience: TAB_AUDIENCE[tab],
+    ...(enabled ? {} : { enabled: false }),
+  });
+
+  const livePosts = useMemo(() => toSocialFeedPosts(rows), [rows]);
 
   const pagination = {
     isLoading,

@@ -184,6 +184,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('ClaimsController');
     expect(engine.context).toHaveProperty('AiDigestController');
     expect(engine.context).toHaveProperty('MoneyAccountController');
+    expect(engine.context).toHaveProperty('SocialRealtimeService');
   });
 
   it('exposes v8 subscription methods after the controller upgrade', () => {

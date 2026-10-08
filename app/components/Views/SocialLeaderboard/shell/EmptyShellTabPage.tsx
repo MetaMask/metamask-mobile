@@ -137,7 +137,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     loadMore,
     error,
     refresh,
-  } = useSocialV1Feed(tab);
+  } = useSocialV1Feed(tab, isActive);
   const { isEntryHidden } = useSocialEntryModeration();
   const visiblePosts = useMemo(
     () =>
