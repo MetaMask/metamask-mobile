@@ -598,6 +598,7 @@ export class Engine {
     const networkEnablementController =
       messengerClientsByName.NetworkEnablementController;
     networkEnablementController.init();
+    messengerClientsByName.MoneyAccountUpgradeController.init();
 
     // The wallet constructs AccountsController; emit the startup breadcrumb
     // (account counts) that the deleted local init used to log.

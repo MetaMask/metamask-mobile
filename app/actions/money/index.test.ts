@@ -9,7 +9,6 @@ import {
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import { selectPrimaryMoneyAccount } from '../../selectors/moneyAccountController';
-import { whenMoneyAccountUpgradeReady } from '../../core/Engine/controllers/money-account-upgrade-controller-init';
 import type { RootState } from '../../reducers';
 
 jest.mock('../../core/Engine', () => ({
@@ -36,20 +35,12 @@ jest.mock('../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
 }));
 
-jest.mock(
-  '../../core/Engine/controllers/money-account-upgrade-controller-init',
-  () => ({
-    whenMoneyAccountUpgradeReady: jest.fn(() => Promise.resolve()),
-  }),
-);
-
 const mockUpgradeAccount = Engine.context.MoneyAccountUpgradeController
   .upgradeAccount as jest.Mock;
 const mockSelectPrimaryMoneyAccount =
   selectPrimaryMoneyAccount as unknown as jest.Mock;
 const mockLogError = Logger.error as jest.Mock;
 const mockLogLog = Logger.log as jest.Mock;
-const mockWhenReady = whenMoneyAccountUpgradeReady as jest.Mock;
 
 const ADDRESS = '0x1111111111111111111111111111111111111111' as const;
 const OTHER_ADDRESS = '0x2222222222222222222222222222222222222222' as const;
@@ -441,12 +432,14 @@ describe('upgradeMoneyAccount', () => {
 
   it('skips quietly (no Sentry error) when the controller is not ready', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
-    mockWhenReady.mockRejectedValueOnce(new Error('bootstrap not scheduled'));
+    mockUpgradeAccount.mockRejectedValueOnce(
+      new Error('controller is not bootstrapped'),
+    );
 
     dispatchUpgrade();
     await flushPromises();
 
-    expect(mockUpgradeAccount).not.toHaveBeenCalled();
+    expect(mockUpgradeAccount).toHaveBeenCalled();
     expect(mockLogError).not.toHaveBeenCalled();
     expect(mockLogLog).toHaveBeenCalledWith(
       expect.stringContaining('upgradeMoneyAccount'),
