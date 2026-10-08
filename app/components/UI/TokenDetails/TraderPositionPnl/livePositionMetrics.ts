@@ -1,4 +1,4 @@
-import { tradeTimestampToMs } from '../utils/tradeTimestamp';
+import { tradeTimestampToMs } from '../../SocialFeed/utils/tradeTimestamp';
 
 export interface LivePositionMetricsInput {
   /** Current token price in USD. */
