@@ -1,3 +1,4 @@
+import { Box } from '@metamask/design-system-react-native';
 import type { CaipAssetType } from '@metamask/utils';
 import React from 'react';
 import { SocialFeed } from '../../../SocialFeed';
@@ -9,7 +10,9 @@ interface TokenDetailsFeedTabProps {
 const TokenDetailsFeedTab: React.FC<TokenDetailsFeedTabProps> = ({
   assetId,
 }) => (
-  <SocialFeed source={{ kind: 'token', assetId }} location="token_details" />
+  <Box twClassName="pt-4">
+    <SocialFeed source={{ kind: 'token', assetId }} location="token_details" />
+  </Box>
 );
 
 export default TokenDetailsFeedTab;
