@@ -9847,10 +9847,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/cryptography@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "@metamask/cryptography@npm:1.1.1"
-  checksum: 10/e3b18153bc0ac27a7277b80829b7a0fb2708cb0a66bbe766f63decf30adb178f601978efc8cf9fca54154714c43b3cfdf96f83cab0ff1832af9f9c3c07ed887d
+"@metamask/cryptography@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "@metamask/cryptography@npm:1.1.2"
+  checksum: 10/567ab4d7a27bbf1be129a120bd0d6d1dfc1677ddc36c2e81c259bebd7824b493fbb67127b585d57f94d98463daa7f7a43296db8ff2d9ed85f440ecc7e9c83dc9
   languageName: node
   linkType: hard
 
@@ -11450,18 +11450,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-sync-controller@npm:^34.0.1":
-  version: 34.0.1
-  resolution: "@metamask/profile-sync-controller@npm:34.0.1"
+"@metamask/profile-sync-controller@npm:^34.0.3":
+  version: 34.0.3
+  resolution: "@metamask/profile-sync-controller@npm:34.0.3"
   dependencies:
     "@metamask/address-book-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/cryptography": "npm:^1.1.1"
+    "@metamask/cryptography": "npm:^1.1.2"
     "@metamask/key-tree": "npm:^10.1.1"
     "@metamask/keyring-controller": "npm:^28.1.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/seedless-onboarding-controller": "npm:^11.0.1"
+    "@metamask/seedless-onboarding-controller": "npm:^12.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.0"
     "@noble/curves": "npm:^1.9.7"
@@ -11472,7 +11472,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/ce1dccbba4b40edd10ccaa75aa02cb655ece061c6ffa6becb5f277c853b14c189d955b068797f823a2d583984413150197f29596086fd91c4221f217e976d276
+  checksum: 10/cfd1825f5c50e5fd11214dac17263a4fdf5706c1145b7c06d7ad6def11082c57c17dc911cec4af923ec83fc43c1c3a7fafc53c13f5e7dca1e0f8f3c438a9de6a
   languageName: node
   linkType: hard
 
@@ -39199,7 +39199,7 @@ __metadata:
     "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
-    "@metamask/profile-sync-controller": "npm:^34.0.1"
+    "@metamask/profile-sync-controller": "npm:^34.0.3"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^26.1.0"
     "@metamask/react-data-query": "npm:^1.0.0"
