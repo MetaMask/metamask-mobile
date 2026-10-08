@@ -171,6 +171,12 @@ const renderTicket = ({
       status: 'ready',
       providerId: activeProvider,
       supportedStrategies,
+      supportedTriggerOrderTypes: [
+        'stop_market',
+        'stop_limit',
+        'take_profit_market',
+        'take_profit_limit',
+      ],
     });
   // The ticket reads `maxLeverage` from the controller's MarketInfo (a
   // number), which is what bounds the leverage picker.
