@@ -233,7 +233,7 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
         isActive={isSelected}
         onPress={() => onChainSelect(chain.chainId)}
         size={ButtonSize.Md}
-        style={tw.style('rounded-[99px] py-2 px-4')}
+        style={tw.style('rounded-full py-2 px-4')}
       />
     );
   };
@@ -263,7 +263,7 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
           isActive={isWatchlistFilterActive}
           onPress={onWatchlistFilterPress}
           size={ButtonSize.Md}
-          style={tw.style('rounded-[99px] py-2 px-4')}
+          style={tw.style('rounded-full py-2 px-4')}
           testID="bridge-watchlist-filter-watchlist"
           accessibilityLabel={strings('perps.watchlist.filter_badge_label')}
         />
@@ -275,7 +275,7 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
           label={strings('bridge.all')}
           isActive={!selectedChainId && !isWatchlistFilterActive}
           onPress={() => onChainSelect(undefined)}
-          style={tw.style('rounded-[99px] py-2 px-4')}
+          style={tw.style('rounded-full py-2 px-4')}
           size={ButtonSize.Md}
         />
       )}
@@ -287,7 +287,7 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
           })}
           isActive={false}
           onPress={onMorePress}
-          style={tw.style('rounded-[99px] py-2 px-4')}
+          style={tw.style('rounded-full py-2 px-4')}
           size={ButtonSize.Md}
           testID="network-pills-more-button"
         />

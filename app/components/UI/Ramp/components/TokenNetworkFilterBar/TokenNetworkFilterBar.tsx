@@ -67,7 +67,7 @@ function TokenNetworkFilterBar({
         isActive={isAllSelected}
         onPress={handleAllPress}
         size={ButtonSize.Md}
-        style={tw.style('rounded-[99px] py-2 px-4')}
+        style={tw.style('rounded-full py-2 px-4')}
         accessibilityLabel={allNetworksLabel}
       />
       {networks.map((chainId) => {
@@ -112,7 +112,7 @@ function TokenNetworkFilterBar({
             isActive={isSelected}
             onPress={() => handleNetworkPress(chainId)}
             size={ButtonSize.Md}
-            style={tw.style('rounded-[99px] py-2 px-4')}
+            style={tw.style('rounded-full py-2 px-4')}
             accessibilityLabel={displayName}
           />
         );
