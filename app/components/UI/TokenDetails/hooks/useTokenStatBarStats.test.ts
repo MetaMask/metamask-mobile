@@ -143,6 +143,34 @@ describe('useTokenStatBarStats', () => {
     expect(stats[TokenStatKey.Liquidity]?.value).toBe('€280.0K');
   });
 
+  // Showing an unconverted dollar figure under a euro sign would be a wrong
+  // reading rather than a missing one, so it is withheld.
+  it('omits liquidity when the rate is underivable and the currency is not USD', () => {
+    const stats = renderStats({ marketData: null, currentCurrency: 'eur' });
+
+    expect(stats[TokenStatKey.Liquidity]?.value).toBeNull();
+  });
+
+  // A dollar is a dollar, so a user already on USD still gets their figure.
+  it('shows liquidity unconverted when the rate is underivable but the currency is USD', () => {
+    const stats = renderStats({ marketData: null, currentCurrency: 'usd' });
+
+    expect(stats[TokenStatKey.Liquidity]?.value).toBe('$560.0K');
+  });
+
+  // Liquidity cannot be labelled before the rate arrives, so it waits with the
+  // market-sourced cells rather than rendering a figure it has to correct.
+  it('marks liquidity as loading alongside the market-sourced stats', () => {
+    const stats = renderStats({
+      marketData: null,
+      isMarketDataLoading: true,
+      currentCurrency: 'eur',
+    });
+
+    expect(stats[TokenStatKey.Liquidity]?.isLoading).toBe(true);
+    expect(stats[TokenStatKey.Liquidity]?.value).toBeNull();
+  });
+
   it('falls back per stat when market data is absent entirely', () => {
     const stats = renderStats({ marketData: null });
 
@@ -196,7 +224,7 @@ describe('useTokenStatBarStats', () => {
     expect(stats[TokenStatKey.HighLow24h]?.value).toBeNull();
   });
 
-  it('marks only the market-sourced stats as loading', () => {
+  it('marks only the stats that need market data as loading', () => {
     const stats = renderStats({
       marketData: null,
       isMarketDataLoading: true,
