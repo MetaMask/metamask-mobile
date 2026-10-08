@@ -1549,6 +1549,14 @@
       "share_profile": "Share profile",
       "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
       "posts": "Posts",
+      "section_tokens": "Tokens",
+      "section_perpetuals": "Perpetuals",
+      "empty_open": "No open positions",
+      "empty_closed": "No closed positions",
+      "empty_open_tokens": "No open tokens",
+      "empty_closed_tokens": "No closed tokens",
+      "empty_open_perps": "No open perps",
+      "empty_closed_perps": "No closed perps",
       "first_trade_prompt": "First trade?",
       "empty_title": "Your feed starts here",
       "empty_description": "Share a trade and it'll show up here for your followers",
@@ -2493,7 +2501,8 @@
       "est_size": "Est. Size",
       "flip": "Reverse",
       "flipping": "Reversing...",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "below_minimum": "Position too small to reverse. Minimum order size is ${{amount}}."
     },
     "adjust_margin": {
       "title": "Adjust Margin",
@@ -2700,6 +2709,7 @@
     },
     "position": {
       "title": "Positions",
+      "no_positions": "No open positions",
       "card": {
         "position_title": "Position",
         "pnl_label": "P&L",
@@ -9694,6 +9704,7 @@
     "fee_includes": "Includes",
     "fee_percentage": "{{feePercentage}}%",
     "fee_percentage_meta_mask": "{{feePercentage}}% MetaMask fee",
+    "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "Includes {{feePercentage}}% MetaMask fee",
     "discount_badge_promo": "Promo",
     "discount_badge_dao": "DAO",
@@ -11082,6 +11093,7 @@
       "retry_button": "Retry"
     },
     "main_title": "Rewards",
+    "pro_member_badge_label": "Member",
     "vip": {
       "progress_to_next_tier": "{{pointsRemaining}} points to next tier",
       "bps_unit": "bps",

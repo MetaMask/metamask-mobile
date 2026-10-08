@@ -44,6 +44,7 @@ import {
 import {
   getPerpsProChaseFormActiveCountSelector,
   PerpsProMarketViewSelectorsIDs,
+  getPerpsProOrderFormNoticeTestId,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
@@ -202,14 +203,14 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
             severity={BannerAlertSeverity.Warning}
             title={notice.title}
             description={notice.message}
-            testID={`${ids.NOTICE}-${notice.id}`}
+            testID={getPerpsProOrderFormNoticeTestId(notice.id)}
           />
         ) : (
           <Text
             key={notice.id}
             variant={TextVariant.BodyXs}
             color={TextColor.ErrorDefault}
-            testID={`${ids.NOTICE}-${notice.id}`}
+            testID={getPerpsProOrderFormNoticeTestId(notice.id)}
           >
             {notice.message}
           </Text>
