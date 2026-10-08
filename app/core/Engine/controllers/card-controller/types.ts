@@ -105,18 +105,10 @@ export interface FetchCardHomeDataOptions {
   force?: boolean;
 }
 
-// -- Card links (CARD-585) --
-
 export type CardLinkStatus = 'onboarding' | 'active' | 'closed';
 
-/** Statuses a client may write. `closed` is a server-only write. */
 export type CardLinkWriteStatus = Exclude<CardLinkStatus, 'closed'>;
 
-/**
- * One public card link, as `GET /v1/card/links` returns it. Never carries the
- * provider cardholder ID. A `type` rather than an interface so it satisfies
- * the controller's Json state constraint.
- */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardLink = {
   provider: CardProviderId;
@@ -128,14 +120,12 @@ export type CardLink = {
   updatedAt: string;
 };
 
-/** Body of `PUT /v1/card/links/{provider}`. Built only by CardController. */
 export interface CardLinkWriteBody {
   status: CardLinkWriteStatus;
   providerCardholderId?: string;
   linkedAccountRef?: string;
 }
 
-/** Host build info sent as `x-metamask-client*` headers on card-link calls. */
 export interface CardClientInfo {
   product: string;
   version: string;
@@ -143,7 +133,6 @@ export interface CardClientInfo {
   platform: string;
 }
 
-/** Host SHA-256. Mobile passes QuickCrypto; the extension can pass `crypto.subtle`. */
 export type CardSha256 = (text: string) => Promise<Uint8Array>;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -192,14 +181,9 @@ export type CardControllerState = {
   redeemWithdrawal: Record<string, Json> | null;
   signInLink: Record<string, Json> | null;
   accountLookupCache: Record<string, Json>;
-  /**
-   * The profile's card links. `null` means not fetched yet, which is not the
-   * same as `[]` (fetched, never linked).
-   */
+  /** `null` until fetched; `[]` means never linked. */
   cardLinks: CardLink[] | null;
-  /** When `cardLinks` was last fetched; the result is reused for about 24h. */
   cardLinksFetchedAt: number | null;
-  /** The one-time seed for a pre-existing cardholder has been sent. */
   cardLinksSeeded: boolean;
 };
 

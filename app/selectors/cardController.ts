@@ -191,17 +191,13 @@ export const selectIsCardholder = createSelector(
   },
 );
 
-/** Stored card links; `null` until the first fetch. */
 export const selectCardLinks = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined): CardLink[] | null =>
     cardState?.cardLinks ?? null,
 );
 
-/**
- * The link that routing follows. During a migration a profile can hold two
- * rows: `active` wins over `onboarding`, and `closed` rows are ignored.
- */
+/** `active` wins over `onboarding`; `closed` rows are ignored. */
 const selectRoutableCardLink = createSelector(
   selectCardLinks,
   (links): CardLink | null =>
@@ -210,13 +206,11 @@ const selectRoutableCardLink = createSelector(
     null,
 );
 
-/** Whether the user has a link that should send them to a provider login. */
 export const selectHasLinkedCard = createSelector(
   selectRoutableCardLink,
   (link) => link !== null,
 );
 
-/** The provider of the link routing follows, or `null` when there is none. */
 export const selectLinkedCardProvider = createSelector(
   selectRoutableCardLink,
   (link): CardProviderId | null => link?.provider ?? null,

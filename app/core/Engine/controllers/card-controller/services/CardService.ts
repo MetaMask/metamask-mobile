@@ -9,10 +9,8 @@ const DEFAULT_TIMEOUT_MS = 15_000;
 
 const CARD_LINKS_PATH = '/v1/card/links';
 
-/** 403 body code: the version policy refused this client. Treat as flag off. */
 export const CARD_LINK_CLIENT_NOT_ALLOWED = 'CARD_LINK_CLIENT_NOT_ALLOWED';
 
-/** Reads `code` from a Card API error body (`{ code }`), if any. */
 export function getCardApiErrorBodyCode(error: unknown): string | undefined {
   if (!(error instanceof CardApiError)) return undefined;
   try {
@@ -28,7 +26,6 @@ interface CardServiceRequest {
   method: 'GET' | 'PUT';
   bearerToken?: string;
   body?: unknown;
-  /** Adds the `x-metamask-client*` headers. */
   withClientHeaders?: boolean;
 }
 
@@ -76,10 +73,6 @@ export class CardService {
     });
   }
 
-  /**
-   * `GET /v1/card/links` for the profile in the bearer token's `sub`.
-   * The body is a bare array; an empty array means never linked.
-   */
   async getCardLinks(bearerToken: string): Promise<CardLink[]> {
     const data = await this.request<unknown>({
       path: CARD_LINKS_PATH,
@@ -97,10 +90,6 @@ export class CardService {
     return data as CardLink[];
   }
 
-  /**
-   * `PUT /v1/card/links/{provider}`. Returns the row after the server's write
-   * rules (status only moves forward, cardholder ID is write-once).
-   */
   async putCardLink(
     provider: CardProviderId,
     body: CardLinkWriteBody,
@@ -143,7 +132,6 @@ export class CardService {
       throw new CardApiError(0, path, 'Card API base URL is not configured');
     }
 
-    // Never log the body or headers: they carry linkedAccountRef and the token.
     if (__DEV__) {
       Logger.log('[CardService]', 'request', path, { method, baseURL });
     }

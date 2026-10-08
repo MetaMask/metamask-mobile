@@ -31,7 +31,6 @@ const getMobileClientInfo = (): CardClientInfo => ({
   platform: Platform.OS,
 });
 
-/** The same QuickCrypto digest `pkceHelpers.ts` uses. */
 const mobileSha256: CardSha256 = async (text) =>
   new Uint8Array(
     await QuickCrypto.subtle.digest('SHA-256', new TextEncoder().encode(text)),

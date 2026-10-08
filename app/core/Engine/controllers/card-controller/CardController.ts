@@ -145,7 +145,6 @@ const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
 const ACCOUNT_LOOKUP_MISS_TTL_MS = 24 * 60 * 60 * 1000;
 const ACCOUNT_LOOKUP_TIMEOUT_MS = 2000;
 const CARD_LINKS_FRESH_MS = 24 * 60 * 60 * 1000;
-/** Server limit for `providerCardholderId` and `linkedAccountRef`. */
 const CARD_LINK_FIELD_MAX_LENGTH = 128;
 
 type RedeemFailureStage = 'estimation' | 'submit' | 'on_chain';
@@ -269,8 +268,6 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: false,
     usedInUi: false,
   },
-  // Persisted so routing works at startup before the network returns. Kept
-  // out of state logs: each row carries linkedAccountRef.
   cardLinks: {
     persist: true,
     includeInDebugSnapshot: false,
@@ -343,14 +340,8 @@ export class CardController extends BaseController<
   readonly #sha256: CardSha256 | undefined;
   #cardLinksFetchPromise: Promise<void> | null = null;
   #cardLinkSeedPromise: Promise<void> | null = null;
-  /** Bumped on reset so a response from before the reset is dropped. */
   #cardLinksGeneration = 0;
-  /** Set by a 403 CARD_LINK_CLIENT_NOT_ALLOWED: behave as flag-off this session. */
   #cardLinkClientBlocked = false;
-  /**
-   * Cardholder IDs learned at provider login, kept only until the write that
-   * sends them. The public API never returns them, so they cannot be read back.
-   */
   #pendingProviderCardholderIds: Partial<Record<CardProviderId, string>> = {};
 
   constructor({
@@ -364,7 +355,6 @@ export class CardController extends BaseController<
     state?: Partial<CardControllerState>;
     providers: Partial<Record<CardProviderId, ICardProvider>>;
     cardService: CardService;
-    /** Host SHA-256, used for `linkedAccountRef`. */
     sha256?: CardSha256;
   }) {
     super({
@@ -645,8 +635,6 @@ export class CardController extends BaseController<
       this.update((s) => {
         s.cardholderAccounts = results;
       });
-      // The seed needs both the links fetch and the label; whichever lands
-      // last sends it.
       this.#seedCardLinkIfNeededWithLogging();
     }
   }
@@ -677,13 +665,8 @@ export class CardController extends BaseController<
     return batches;
   }
 
-  // -- Card links (CARD-585) --
+  // -- Card links --
 
-  /**
-   * Whether card-link reads, writes and the seed run. Off when the
-   * `cardLinkApiEnabled` flag is off, or after Card API refused this client
-   * version this session (403 CARD_LINK_CLIENT_NOT_ALLOWED).
-   */
   #isCardLinkApiEnabled(): boolean {
     if (this.#cardLinkClientBlocked) return false;
     try {
@@ -692,24 +675,14 @@ export class CardController extends BaseController<
       );
       return readCardLinkApiEnabled(remoteFeatureFlags);
     } catch {
-      // Fail closed: an unreadable flag means today's behaviour.
       return false;
     }
   }
 
-  /**
-   * Runs a Card API call with the primary profile's bearer token. Called with
-   * no argument on purpose: an entropy-source ID returns another profile's
-   * token, and the links would be stored under the wrong person.
-   *
-   * A 401 asks for the token again and retries the call once. The controller
-   * already logs in again past 90% of the token lifetime, so near-expiry is
-   * handled there; this does not force a sign-in (`performSignIn`), which
-   * would affect every other consumer of the session.
-   */
   async #withCardLinkBearer<T>(
     call: (bearerToken: string) => Promise<T>,
   ): Promise<T> {
+    // No argument: an entropy-source ID returns another profile's token.
     const getToken = () =>
       this.messenger.call('AuthenticationController:getBearerToken');
     try {
@@ -722,10 +695,6 @@ export class CardController extends BaseController<
     }
   }
 
-  /**
-   * Classifies a failed card-link call. A 403 CARD_LINK_CLIENT_NOT_ALLOWED
-   * turns the feature off for the session. Never logs the request body.
-   */
   #handleCardLinkError(error: unknown, method: string): void {
     if (
       error instanceof CardApiError &&
@@ -756,13 +725,6 @@ export class CardController extends BaseController<
     );
   }
 
-  /**
-   * Reads the profile's card links into `cardLinks`. Runs on wallet unlock and
-   * reuses the stored result for about 24 hours unless `force` is set.
-   *
-   * Failures leave `cardLinks` untouched: a user who already has links keeps
-   * being treated as linked, and a failed read never means "no card".
-   */
   async fetchCardLinks({
     force = false,
   }: { force?: boolean } = {}): Promise<void> {
@@ -816,12 +778,6 @@ export class CardController extends BaseController<
     );
   }
 
-  /**
-   * One-time write for a user who got a card before card links existed, so
-   * an empty read does not send them to sign-up. Sends only when the fetch
-   * returned no links and the legacy `card_user` label lists an account.
-   * A negative label writes nothing: no row means not a cardholder.
-   */
   async #seedCardLinkIfNeeded(): Promise<void> {
     const { cardLinks, cardLinksSeeded, cardholderAccounts } = this.state;
     if (
@@ -850,8 +806,6 @@ export class CardController extends BaseController<
       { address: caipAccountId },
       '#seedCardLinkIfNeeded',
     );
-    // A 400 is a client bug that a retry would repeat, so it also ends the
-    // seed. Any other failure is retried on the next unlock.
     if (outcome !== 'skipped') {
       this.#trackCardLinkSeeded(outcome);
     }
@@ -863,11 +817,6 @@ export class CardController extends BaseController<
     }
   }
 
-  /**
-   * One event per seed attempt. CARD-590 deletes the legacy cardholder check
-   * only once these stay near zero, i.e. existing cardholders all have a row.
-   * Carries no address or linkedAccountRef.
-   */
   #trackCardLinkSeeded(outcome: 'written' | 'rejected' | 'failed'): void {
     try {
       analytics.trackEvent(
@@ -888,11 +837,6 @@ export class CardController extends BaseController<
     }
   }
 
-  /**
-   * Records that the user has a provider account but no card yet.
-   * Mobile calls it after SIWE succeeds in `useImmersveResumeOnboarding`.
-   * `providerCardholderId` defaults to the one learned at that login.
-   */
   async recordProviderOnboardingStarted({
     provider,
     address,
@@ -915,7 +859,6 @@ export class CardController extends BaseController<
     }
   }
 
-  /** Records that the card has been created (onboarding router `active` branch). */
   async recordCardActivated({
     provider,
   }: {
@@ -924,10 +867,6 @@ export class CardController extends BaseController<
     await this.#writeCardLink(provider, 'active', {}, 'recordCardActivated');
   }
 
-  /**
-   * Records a provider login, with the status matching the session's
-   * onboarding phase. `address` is the selected EVM account.
-   */
   async recordProviderLogin({
     provider,
     phase,
@@ -945,7 +884,6 @@ export class CardController extends BaseController<
     );
   }
 
-  /** Fire-and-forget: nothing here may throw into the login flow. */
   #recordProviderLoginWithLogging(
     provider: CardProviderId,
     phase: CardLinkWriteStatus,
@@ -966,13 +904,6 @@ export class CardController extends BaseController<
     );
   }
 
-  /**
-   * Builds the body and sends `PUT /v1/card/links/{provider}`. Never throws, so
-   * a failed write cannot block the screen that triggered it.
-   *
-   * @returns `written`, `rejected` for a 400 (logged, never retried),
-   * `failed` for anything else, or `skipped` when the feature is off.
-   */
   async #writeCardLink(
     provider: CardProviderId,
     status: CardLinkWriteStatus,
@@ -1017,10 +948,6 @@ export class CardController extends BaseController<
     }
   }
 
-  /**
-   * `'0x' + hex(sha256(lowercase address))`, after removing a CAIP-10 prefix.
-   * A pointer to the account, not proof of ownership; never logged.
-   */
   async #computeLinkedAccountRef(address: string): Promise<string | undefined> {
     if (!this.#sha256) return undefined;
     const bare = address.includes(':')

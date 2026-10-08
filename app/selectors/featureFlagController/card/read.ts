@@ -83,14 +83,6 @@ export function readCardFeatureFlag(
     : defaultCardFeatureFlag;
 }
 
-/**
- * Whether CardController reads and writes card links: the `cardLinkApi` flag
- * (LaunchDarkly `card-link-api`), a version-gated `{ enabled, minimumVersion }`.
- *
- * One switch on purpose: reads off with writes on would seed users the app
- * then ignores. Without a remote value, `MM_CARD_LINK_API_ENABLED` decides, so
- * a local build can turn it on.
- */
 export function readCardLinkApiEnabled(flags: CardRemoteFeatureFlags): boolean {
   const gated = validatedVersionGatedFeatureFlag(flags?.cardLinkApi);
   if (gated !== undefined) {

@@ -156,7 +156,6 @@ export const useImmersveOnboardingRouter = () => {
           Engine.context.CardController.markMigrationCompleted().catch(
             () => undefined,
           );
-          // Never throws: a failed card-link write must not block the flow.
           Engine.context.CardController.recordCardActivated({
             provider: CardProviderIds.Immersve,
           });
