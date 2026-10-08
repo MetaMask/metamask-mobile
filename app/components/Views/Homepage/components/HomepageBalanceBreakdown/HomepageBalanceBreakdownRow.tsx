@@ -201,6 +201,7 @@ const HomepageBalanceBreakdownRow = ({
       accessible={false}
       importantForAccessibility="no-hide-descendants"
       pointerEvents="none"
+      size={ButtonSize.Sm}
       twClassName="h-7 self-end px-4 opacity-0"
       variant={ButtonVariant.Primary}
     >
