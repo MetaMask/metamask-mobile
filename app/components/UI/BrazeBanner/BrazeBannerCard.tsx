@@ -4,7 +4,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
-  BoxBackgroundColor,
   BoxFlexDirection,
   FontWeight,
   Icon,
@@ -151,8 +150,18 @@ const BrazeBannerCard = ({
   isGlass = false,
 }: BrazeBannerCardProps) => {
   const tw = useTailwind();
-  const content = (
-    <>
+  return (
+    <GlassSurface
+      isGlass={isGlass}
+      testID={BRAZE_BANNER_TEST_IDS.CARD}
+      radiusClassName="rounded-xl"
+      isInteractive
+      hasSheen
+      style={[
+        tw.style('w-full flex-row items-center gap-4 pl-4 pr-3 py-3'),
+        { minHeight: BANNER_HEIGHT },
+      ]}
+    >
       {imageUrl && (
         <Box
           twClassName="overflow-hidden rounded-xl"
@@ -172,38 +181,7 @@ const BrazeBannerCard = ({
       ) : (
         <BannerWithCta body={body} ctaLabel={ctaLabel} onDismiss={onDismiss} />
       )}
-    </>
-  );
-
-  if (isGlass) {
-    return (
-      <GlassSurface
-        testID={BRAZE_BANNER_TEST_IDS.CARD}
-        radiusClassName="rounded-xl"
-        isInteractive
-        hasSheen
-        style={[
-          tw.style('w-full flex-row items-center gap-4 pl-4 pr-3 py-3'),
-          { minHeight: BANNER_HEIGHT },
-        ]}
-      >
-        {content}
-      </GlassSurface>
-    );
-  }
-
-  return (
-    <Box
-      testID={BRAZE_BANNER_TEST_IDS.CARD}
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      backgroundColor={BoxBackgroundColor.BackgroundMuted}
-      gap={4}
-      twClassName="w-full rounded-xl pl-4 pr-3 py-3"
-      style={{ minHeight: BANNER_HEIGHT }}
-    >
-      {content}
-    </Box>
+    </GlassSurface>
   );
 };
 

@@ -3,7 +3,6 @@ import { Pressable } from 'react-native';
 import {
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
   FontWeight,
   Icon,
   IconColor,
@@ -73,24 +72,15 @@ const CondensedCard = ({
 
   return (
     <Pressable onPress={onPress} testID={testID}>
-      {isGlass ? (
-        <GlassSurface
-          radiusClassName="rounded-xl"
-          isInteractive
-          hasSheen
-          style={tw.style('flex-row items-center p-4 gap-4')}
-        >
-          {content}
-        </GlassSurface>
-      ) : (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="bg-muted rounded-xl p-4 gap-4"
-        >
-          {content}
-        </Box>
-      )}
+      <GlassSurface
+        isGlass={isGlass}
+        radiusClassName="rounded-xl"
+        isInteractive
+        hasSheen
+        style={tw.style('flex-row items-center p-4 gap-4')}
+      >
+        {content}
+      </GlassSurface>
     </Pressable>
   );
 };

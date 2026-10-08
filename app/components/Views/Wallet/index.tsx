@@ -29,8 +29,9 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import ScrollEdgeFade from '../../../component-library/components-temp/ScrollEdgeFade';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import FloatingHeader, {
+  useFloatingHeaderInset,
+} from '../../../component-library/components-temp/FloatingHeader';
 import { useSharedValue } from 'react-native-reanimated';
 import {
   SafeAreaView,
@@ -939,12 +940,8 @@ const Wallet = ({
   // Without the native bar (Android, iOS < 26) the interim header floats over the content on a fade.
   const isFloatingJsHeader =
     isInterimHeader && !isNativeHeader && !isSearchHeaderEnabled;
-  const tw = useTailwind();
-  // Seeded with the header's min height so the first frame already clears it.
-  const [floatingHeaderHeight, setFloatingHeaderHeight] = useState(() =>
-    Number(tw.style('h-14').height),
-  );
-  const floatingHeaderInset = isFloatingJsHeader ? floatingHeaderHeight : 0;
+  const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
+    useFloatingHeaderInset(isFloatingJsHeader);
   const viewportTopInset = nativeHeaderInset + floatingHeaderInset;
 
   // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
@@ -1361,18 +1358,13 @@ const Wallet = ({
                 }}
               >
                 {isFloatingJsHeader && (
-                  // Mounted first so assistive tech reads the header before the content.
-                  <View
-                    pointerEvents="box-none"
-                    style={tw.style('absolute left-0 right-0 top-0 z-10')}
+                  // Mounted before the content so assistive tech reads the header first.
+                  <FloatingHeader
+                    onLayout={handleFloatingHeaderLayout}
                     testID={WalletViewSelectorsIDs.WALLET_FLOATING_HEADER}
-                    onLayout={(e) =>
-                      setFloatingHeaderHeight(e.nativeEvent.layout.height)
-                    }
                   >
-                    <ScrollEdgeFade />
                     {renderWalletHeader()}
-                  </View>
+                  </FloatingHeader>
                 )}
                 {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
                 <HomepageScrollContext.Provider

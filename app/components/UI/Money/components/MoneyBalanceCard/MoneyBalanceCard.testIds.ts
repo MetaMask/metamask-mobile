@@ -15,5 +15,5 @@ export const MoneyBalanceCardTestIds = {
   APY_TAG_SKELETON: 'money-balance-card-apy-tag-skeleton',
   ADD_BUTTON: 'money-balance-card-add-button',
   GET_STARTED_BUTTON: 'money-balance-card-get-started-button',
-  GLASS_SURFACE: 'money-balance-card-glass-surface',
+  SURFACE: 'money-balance-card-surface',
 } as const;

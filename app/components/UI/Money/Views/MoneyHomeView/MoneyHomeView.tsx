@@ -5,9 +5,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, View, type LayoutChangeEvent } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import ScrollEdgeFade from '../../../../../component-library/components-temp/ScrollEdgeFade';
+import { RefreshControl, type LayoutChangeEvent } from 'react-native';
+import FloatingHeader, {
+  useFloatingHeaderInset,
+} from '../../../../../component-library/components-temp/FloatingHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Animated from 'react-native-reanimated';
@@ -467,11 +468,8 @@ const MoneyHomeView = () => {
   });
 
   const isFloatingHeader = isBrandRefresh && !isNativeHeader;
-  const tw = useTailwind();
-  const [floatingHeaderHeight, setFloatingHeaderHeight] = useState(
-    () => insets.top + Number(tw.style('h-14').height),
-  );
-  const floatingHeaderInset = isFloatingHeader ? floatingHeaderHeight : 0;
+  const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
+    useFloatingHeaderInset(isFloatingHeader, insets.top);
   const topInset = isNativeHeader || isFloatingHeader ? 0 : insets.top;
 
   const handleTitleSectionLayout = useCallback(
@@ -1034,18 +1032,14 @@ const MoneyHomeView = () => {
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
       {isFloatingHeader ? (
-        <View
-          pointerEvents="box-none"
-          style={[
-            tw.style('absolute left-0 right-0 top-0 z-10'),
-            { paddingTop: insets.top },
-          ]}
+        // Mounted before the content so assistive tech reads the header first.
+        <FloatingHeader
+          onLayout={handleFloatingHeaderLayout}
+          topInset={insets.top}
           testID={MoneyHomeViewTestIds.FLOATING_HEADER}
-          onLayout={(e) => setFloatingHeaderHeight(e.nativeEvent.layout.height)}
         >
-          <ScrollEdgeFade />
           <MoneyHeader {...headerProps} isCapsule />
-        </View>
+        </FloatingHeader>
       ) : (
         !isNativeHeader && <MoneyHeader {...headerProps} />
       )}

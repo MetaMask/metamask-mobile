@@ -132,25 +132,16 @@ const StepperCard = ({
     </>
   );
 
-  if (isGlass) {
-    return (
-      <GlassSurface
-        radiusClassName="rounded-3xl"
-        hasSheen
-        testID={getTestId('container')}
-      >
-        {content}
-      </GlassSurface>
-    );
-  }
-
   return (
-    <Box
-      twClassName="rounded-3xl bg-muted overflow-hidden"
+    <GlassSurface
+      isGlass={isGlass}
+      radiusClassName="rounded-3xl"
+      hasSheen
+      style={tw.style('overflow-hidden')}
       testID={getTestId('container')}
     >
       {content}
-    </Box>
+    </GlassSurface>
   );
 };
 

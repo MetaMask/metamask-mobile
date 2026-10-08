@@ -13,7 +13,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
+import { useLiquidGlass } from '../../../../../component-library/hooks/useLiquidGlass';
 import { useNativeHeader } from '../../../../hooks/useNativeHeader';
 import type { MoneyHeaderProButton } from './MoneyHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
@@ -36,7 +36,7 @@ export const useMoneyNativeHeader = ({
   onBack,
   isEnabled,
 }: MoneyNativeHeaderParams): boolean => {
-  const { colors } = useTheme();
+  const { glassColorScheme } = useLiquidGlass();
   const tw = useTailwind();
 
   const leftItems = useCallback((): NativeStackHeaderItem[] => {
@@ -86,10 +86,10 @@ export const useMoneyNativeHeader = ({
         type: 'custom',
         hidesSharedBackground: true,
         element: (
-          <Box>
+          <Box twClassName="p-1">
             <GlassView
               glassEffectStyle="regular"
-              tintColor={colors.icon.default}
+              colorScheme={glassColorScheme}
               isInteractive
               style={tw.style('h-10 rounded-full')}
             >
@@ -103,7 +103,7 @@ export const useMoneyNativeHeader = ({
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
-                  color={TextColor.PrimaryInverse}
+                  color={TextColor.TextDefault}
                 >
                   {proButton.label}
                 </Text>
@@ -114,7 +114,7 @@ export const useMoneyNativeHeader = ({
       },
       menuItem,
     ];
-  }, [onMenuPress, proButton, colors, tw]);
+  }, [onMenuPress, proButton, glassColorScheme, tw]);
 
   return useNativeHeader({ leftItems, rightItems, isEnabled });
 };
