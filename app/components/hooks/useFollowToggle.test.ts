@@ -151,7 +151,7 @@ describe('useFollowToggle', () => {
       );
     });
 
-    it('invalidates the fetchFollowing query after a successful follow', async () => {
+    it('invalidates following and followers queries after a successful follow', async () => {
       const { result } = renderHook(() => useFollowToggle('trader-1'));
 
       await act(async () => {
@@ -161,9 +161,12 @@ describe('useFollowToggle', () => {
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
         queryKey: ['SocialService:fetchFollowing'],
       });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchMyFollowers'],
+      });
     });
 
-    it('invalidates the fetchFollowing query after a successful unfollow', async () => {
+    it('invalidates following and followers queries after a successful unfollow', async () => {
       selectorState.followingProfileIds = ['trader-1'];
 
       const { result } = renderHook(() => useFollowToggle('trader-1'));
@@ -174,6 +177,9 @@ describe('useFollowToggle', () => {
 
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
         queryKey: ['SocialService:fetchFollowing'],
+      });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchMyFollowers'],
       });
     });
 
