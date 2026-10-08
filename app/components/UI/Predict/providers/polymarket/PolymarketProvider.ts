@@ -2187,13 +2187,19 @@ export class PolymarketProvider implements PredictProvider {
 
     const pnlData = (await pnlResponse.json()) as PolymarketUserPnlV2Response;
 
-    if (!pnlData?.data || !Array.isArray(pnlData.data.points)) {
-      throw new Error('No unrealized P&L data found');
+    // Only a response that is not an object is unusable. A valid envelope
+    // whose series is missing (data: null, or points absent/not an array)
+    // simply means the user has no PnL history, so cashUpnl stays missing
+    // rather than the query erroring.
+    if (!pnlData || typeof pnlData !== 'object' || Array.isArray(pnlData)) {
+      throw new Error('Invalid unrealized P&L response');
     }
 
     // cashUpnl is the latest point's unrealized_pnl; a null value stays
     // missing — never coerce it to zero.
-    const latestPoint = pnlData.data.points.at(-1);
+    const latestPoint = Array.isArray(pnlData.data?.points)
+      ? pnlData.data.points.at(-1)
+      : undefined;
     const cashUpnl = latestPoint?.unrealized_pnl ?? undefined;
 
     // percentUpnl mirrors the portfolio header formula (getPositionsPnl):

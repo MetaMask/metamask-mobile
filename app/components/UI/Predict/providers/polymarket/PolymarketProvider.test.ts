@@ -3003,6 +3003,90 @@ describe('PolymarketProvider', () => {
       expect(result.cashUpnl).toBeUndefined();
       expect(result.percentUpnl).toBeUndefined();
     });
+
+    it('treats a null data series as a missing value, not an error', async () => {
+      // Mirrors the default E2E mock: /v2/user-pnl serves { data: null }
+      // for users with no PnL history.
+      global.fetch = jest
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ data: [{}] }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ data: null }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          text: jest
+            .fn()
+            .mockResolvedValue(
+              JSON.stringify({ data: [], pagination: { next_cursor: null } }),
+            ),
+        });
+      mockParsePolymarketPositions.mockResolvedValue([
+        createClaimPosition({ currentValue: 150, initialValue: 100 }),
+      ]);
+
+      await expect(
+        createProvider().getUnrealizedPnL({ address: signer.address }),
+      ).resolves.toEqual({
+        user: legacySafeAddress,
+        cashUpnl: undefined,
+        // (150 − 100) / 100 × 100, still derived from open positions.
+        percentUpnl: 50,
+      });
+    });
+
+    it('treats a missing points list as a missing value, not an error', async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ data: [{}] }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            data: { proxy_wallet: legacySafeAddress },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          text: jest
+            .fn()
+            .mockResolvedValue(
+              JSON.stringify({ data: [], pagination: { next_cursor: null } }),
+            ),
+        });
+      mockParsePolymarketPositions.mockResolvedValue([]);
+
+      await expect(
+        createProvider().getUnrealizedPnL({ address: signer.address }),
+      ).resolves.toEqual({
+        user: legacySafeAddress,
+        cashUpnl: undefined,
+        percentUpnl: undefined,
+      });
+    });
+
+    it('throws when the PnL body is not an object', async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ data: [{}] }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue('unauthorized'),
+        });
+
+      await expect(
+        createProvider().getUnrealizedPnL({ address: signer.address }),
+      ).rejects.toThrow('Invalid unrealized P&L response');
+    });
   });
 });
 
