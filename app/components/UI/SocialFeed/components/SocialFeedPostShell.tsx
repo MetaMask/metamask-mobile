@@ -14,8 +14,10 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Image, Pressable, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
+import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
 import { useSocialEntryOptions } from './SocialEntryOptionsBottomSheet';
 import SocialTraderIdentityRow from './SocialTraderIdentityRow';
+import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
 import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
 import { mockCopyCount } from '../mocks/socialV1Enrichment';
 import { markMocked } from '../mockMarker';
@@ -64,6 +66,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     post.reactions,
     post.userReaction ?? null,
   );
+  const { onCopyTrade, geoBlockSheet } = useCopyTradeToPerps(post.item);
 
   const chips = visibleReactions(reactions);
 
@@ -133,7 +136,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         </Text>
       ) : null}
 
-      <PositionCardBody item={post.item} />
+      <PositionCardBody item={post.item} onCopyTrade={onCopyTrade} />
 
       {post.gifUri ? (
         <Box twClassName="rounded-2xl overflow-hidden">
@@ -210,8 +213,17 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         onPick={handlePick}
       />
       {optionsSheet}
+      {geoBlockSheet}
     </Box>
   );
 };
 
-export default SocialFeedPostShell;
+const SocialFeedPostShellWithCompliance: React.FC<
+  React.ComponentProps<typeof SocialFeedPostShell>
+> = (props) => (
+  <EnsureAccessRestricted>
+    <SocialFeedPostShell {...props} />
+  </EnsureAccessRestricted>
+);
+
+export default SocialFeedPostShellWithCompliance;

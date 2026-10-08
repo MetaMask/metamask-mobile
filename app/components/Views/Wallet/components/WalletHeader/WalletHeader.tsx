@@ -17,10 +17,19 @@ import {
   IconColor as MMDSIconColor,
   IconName as MMDSIconName,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import PickerAccount from '../../../../../component-library/components/Pickers/PickerAccount';
 import AddressCopy from '../../../../UI/AddressCopy';
 import CardButton from '../../../../UI/Card/components/CardButton';
+import GlassCapsule from '../../../../../component-library/components-temp/GlassCapsule';
+import {
+  formatInterimAccountName,
+  INTERIM_ACCOUNT_PICKER_CLASS,
+} from './useWalletHeaderNativeHeader';
+import WalletHeaderInterimActions, {
+  WalletHeaderMenuButton,
+} from './WalletHeaderInterimActions';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../../../AccountSelector';
 import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAttention';
@@ -59,6 +68,8 @@ export interface WalletHeaderProps {
   touchAreaSlop: TouchAreaSlop;
   headerActionButtonsContainerStyle: ViewStyle;
   headerAccountPickerStyle: ViewStyle;
+  /** Interim brand refresh: Activity, Search and Menu only, on Liquid Glass where available. */
+  isInterimLayout?: boolean;
 }
 
 const WalletHeader = ({
@@ -76,7 +87,9 @@ const WalletHeader = ({
   navigation,
   headerActionButtonsContainerStyle,
   headerAccountPickerStyle,
+  isInterimLayout = false,
 }: WalletHeaderProps) => {
+  const tw = useTailwind();
   const hasAccountsMenuAttention = useAccountsMenuAttention();
   const searchBarRef = useRef<View>(null);
 
@@ -106,27 +119,10 @@ const WalletHeader = ({
       justifyContent={BoxJustifyContent.Center}
       twClassName="h-12"
     >
-      <BadgeWrapper
-        position={BadgeWrapperPosition.TopRight}
-        positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
-        badge={
-          hasAccountsMenuAttention ? (
-            <BadgeStatus
-              status={BadgeStatusStatus.Attention}
-              testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BADGE}
-            />
-          ) : null
-        }
-      >
-        <ButtonIcon
-          iconProps={{ color: MMDSIconColor.IconDefault }}
-          onPress={handleHamburgerPress}
-          iconName={MMDSIconName.Menu}
-          size={ButtonIconSize.Md}
-          testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
-          hitSlop={touchAreaSlop}
-        />
-      </BadgeWrapper>
+      <WalletHeaderMenuButton
+        handleHamburgerPress={handleHamburgerPress}
+        touchAreaSlop={touchAreaSlop}
+      />
     </Box>
   );
 
@@ -151,6 +147,66 @@ const WalletHeader = ({
       ...createAccountSelectorNavDetails({}),
     );
   }, [navigation]);
+
+  const pickerAccountName = isInterimLayout
+    ? formatInterimAccountName(displayName)
+    : displayName;
+
+  const accountPicker = (
+    <View style={accountPickerContainerStyle}>
+      <PickerAccount
+        accountName={pickerAccountName}
+        onPress={handleAccountPickerPress}
+        testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+        hitSlop={touchAreaSlop}
+        style={headerAccountPickerStyle}
+      />
+    </View>
+  );
+
+  if (isInterimLayout && !useSearchHeaderLayout) {
+    const interimActions = (
+      <WalletHeaderInterimActions
+        isMoneyAccountVisible={isMoneyAccountVisible}
+        handleActivityPress={handleActivityPress}
+        handleSearchPress={handleSearchPress}
+        handleHamburgerPress={handleHamburgerPress}
+        touchAreaSlop={touchAreaSlop}
+      />
+    );
+
+    return (
+      <HeaderRoot
+        testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
+        endAccessory={
+          <GlassCapsule
+            twClassName="px-2"
+            nonGlassClassName="px-3"
+            testID={WalletViewSelectorsIDs.WALLET_HEADER_ACTIONS_CAPSULE}
+          >
+            {interimActions}
+          </GlassCapsule>
+        }
+        twClassName="pl-3 pr-3"
+      >
+        <View style={accountPickerContainerStyle}>
+          <GlassCapsule
+            twClassName="mr-4 max-w-full self-start"
+            nonGlassClassName="px-1"
+            testID={WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_PICKER_CAPSULE}
+          >
+            <PickerAccount
+              accountName={pickerAccountName}
+              onPress={handleAccountPickerPress}
+              testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+              hitSlop={touchAreaSlop}
+              style={tw.style(INTERIM_ACCOUNT_PICKER_CLASS)}
+            />
+          </GlassCapsule>
+        </View>
+      </HeaderRoot>
+    );
+  }
 
   if (!useSearchHeaderLayout) {
     return (
@@ -212,15 +268,7 @@ const WalletHeader = ({
         }
         twClassName="pl-1 pr-3"
       >
-        <View style={accountPickerContainerStyle}>
-          <PickerAccount
-            accountName={displayName}
-            onPress={handleAccountPickerPress}
-            testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-            hitSlop={touchAreaSlop}
-            style={headerAccountPickerStyle}
-          />
-        </View>
+        {accountPicker}
       </HeaderRoot>
     );
   }
