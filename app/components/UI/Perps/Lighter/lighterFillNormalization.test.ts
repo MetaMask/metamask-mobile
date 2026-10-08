@@ -18,7 +18,7 @@ const createTrade = (overrides: Partial<LighterTrade> = {}): LighterTrade => ({
   ...overrides,
 });
 
-// Exercise the installed controller patch using the additional opening fill
+// Exercise the installed controller using the additional opening fill
 // observed on Lighter testnet. REST decoding is also covered by the live recipe.
 describe('Lighter fill normalization', () => {
   it('reads an additional opening fill with omitted sign flags and PnL', () => {

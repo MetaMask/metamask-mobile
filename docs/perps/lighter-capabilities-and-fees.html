@@ -88,7 +88,7 @@
   <body>
     <header>
       <p class="meta">
-        MetaMask Perps · Source update checked October 4, 2026; live evidence
+        MetaMask Perps · Source update checked October 8, 2026; live evidence
         retains its recorded build and date
       </p>
       <h1>Lighter: fees, capabilities and integration status</h1>
@@ -372,7 +372,21 @@
         not a claim that the venue cannot do it.
       </p>
       <p>
-        Latest validated runtime, October 4: Mobile
+        Latest package adoption, October 8: Mobile
+        <code>8ae650bacb8417162555cbed5323232391e8115d</code> consumes published
+        <code>@metamask/perps-controller@20.0.0</code> without a Yarn patch. All
+        444 former patch hunks are accounted for in the release; none of their
+        functionality is missing. Full TypeScript and 2,529 targeted Mobile
+        tests pass. Fresh testnet recipes with the HUD shown pass Lighter
+        market/fill/close and limit/rest/cancel, plus Hyperliquid
+        market/fill/close. Hyperliquid limit placement and cancellation were
+        confirmed, but final state reads hit a rate limit and the recipe remains
+        failed. A separate read-only proof confirmed zero ETH orders and
+        positions. Mainnet orders remain operator-executed.
+        <a href="#controller20-adoption">[C24]</a>
+      </p>
+      <p>
+        Broader advanced-order and recovery evidence, October 4: Mobile
         <code>1f5c519c72614b06409f666e78fb729c6ecaece2</code>, Core
         <code>1ffc52ade4c6966ef901466d5169b3e71601a3bc</code> patched into
         controller 19.0.0, and Scale/Chase recipe source
@@ -384,12 +398,12 @@
         controller Chase passes placement and cancellation with zero repricings.
         Each case stays within $20 at 1x and ends flat, with unchanged
         registered key identities and no new key slots. These proofs cover this
-        build; controller release and mainnet trading remain unproved. Later
-        recovery authentication after reset passed. Controlled same-account
-        Retry passed within its five-minute inspection budget; the earlier
-        60-second cases remain failed. Native iOS reinstall followed by
-        authenticated recovery without a saved signer entry is evidenced.
-        Saved-key erasure was not exercised.
+        build; they do not establish mainnet trading or revalidate every
+        advanced-order case on 20.0.0. Later recovery authentication after reset
+        passed. Controlled same-account Retry passed within its five-minute
+        inspection budget; the earlier 60-second cases remain failed. Native iOS
+        reinstall followed by authenticated recovery without a saved signer
+        entry is evidenced. Saved-key erasure was not exercised.
         <a href="#current-source-state">[C22, C23]</a>
       </p>
       <p>
@@ -407,22 +421,21 @@
         <a href="https://github.com/MetaMask/core/pull/10638"
           >#10638 recovery and advanced orders</a
         >
-        targets main.
+        merged on October 5 and is included in published controller 20.0.0.
         <a href="https://github.com/MetaMask/core/pull/10618">#10618</a> is
         closed as superseded; #10629 was closed. The branch incorporates the
         safeguards merged in #10644 on October 2. Mobile
         <a href="https://github.com/MetaMask/metamask-mobile/pull/37161"
           >#37161</a
         >
-        is the matching integration and carries <code>[NOT-READY]</code>. Human
-        review and merge wait for Core merge and a published controller version.
-        Replace the local patch with that release, reduce the Mobile diff and
-        revalidate before requesting review. The Mobile size limit is waived for
-        this change. The controller integration passes 13 Scale integration
-        cases, 77 tests across seven Perps integration suites and full Mobile
-        TypeScript checks. Earlier counts retain their recorded revisions.
-        Publication in an open PR does not establish a released controller
-        package, enabled production feature or live pass.
+        is the matching integration and still carries <code>[NOT-READY]</code>.
+        The local branch has merged main and adopted the release, removing the
+        8.6 MB patch. These updates are not yet pushed, so the remote PR still
+        has its earlier dependency and merge conflict. Publication is held at
+        the operator's request. Final review and CI apply to the updated PR
+        after publication; local validation is recorded in [C24]. The Mobile
+        size limit is waived. A published controller does not establish an
+        enabled production feature or a mainnet trading pass.
       </p>
       <p>
         Inspected source includes bounded key recovery, standalone triggers,
@@ -802,7 +815,7 @@
                 take_profit_market and take_profit_limit.
               </td>
               <td>
-                Implemented in local Core #10638 source for active markets:
+                Included in published controller 20.0.0 for active markets:
                 stop_market, stop_limit, take_profit_market and
                 take_profit_limit. Trigger markets use IOC execution; trigger
                 limits use GTT. Pending triggers retain the signer's 28-day
@@ -1052,28 +1065,31 @@
         <li>
           <a href="https://github.com/MetaMask/core/pull/10187">Core #10187</a>
           merged on September 16. The initial integration consumed published
-          17.2.0; the current checkout consumes controller 19.0.0 after Mobile
-          #37025 merged.
+          17.2.0. Mobile #37025 migrated the controller integration; the current
+          local checkout consumes published controller 20.0.0.
         </li>
         <li>
           The current <code>package.json</code> and
-          <code>yarn.lock</code> resolve controller 19.0.0 with a local Yarn
-          patch for wallet-key recovery, stream failures/history, unknown
-          closing-fill PnL, capability gating, native standalone triggers,
-          position protection and non-financial dispatch reconciliation. Core
-          #10605 is merged. Core
+          <code>yarn.lock</code> resolve plain controller 20.0.0. The old Yarn
+          patch is removed. Its wallet-key recovery, stream failures/history,
+          unknown closing-fill PnL, capability gating, native standalone
+          triggers, position protection and non-financial dispatch
+          reconciliation changes are included in the release. Core #10605 is
+          merged. Core
           <a href="https://github.com/MetaMask/core/pull/10638">#10638</a>
-          consolidates recovery and advanced orders against main, superseding
-          #10618 and #10629. It incorporates safeguards merged in #10644 on
-          October 2. Its source waits for exact margin and native-edit execution
-          without resubmitting. The latest live trading proofs use [C22];
-          historical settlement source [C19] remains separate from earlier
-          runtime [C17]. Mobile
+          merged on October 5, consolidating recovery and advanced orders and
+          superseding #10618 and #10629. It incorporates safeguards merged in
+          #10644 on October 2. Its source waits for exact margin and native-edit
+          execution without resubmitting. Broader advanced-order proofs use
+          [C22]; released-package basic-order proofs use [C24]. Historical
+          settlement source [C19] remains separate from earlier runtime [C17].
+          Mobile
           <a href="https://github.com/MetaMask/metamask-mobile/pull/37161"
             >#37161</a
           >
-          includes the matching package patch. Final-source basic orders, native
-          edit, standalone stops, Scale UI and bounded controller Chase
+          still shows the earlier package patch until the local adoption is
+          published. Historical final-source basic orders, native edit,
+          standalone stops, Scale UI and bounded controller Chase
           placement/cancellation pass on testnet. The original Scale layout is
           restored; unrequested controls are removed. The reusable Perps recipe
           library
@@ -1092,21 +1108,27 @@
             >#31</a
           >
           is also merged and reconciles exact Scale children and Chase
-          cancellation results. Fresh basic proofs use recipe source 495087c7;
-          Scale and Chase proofs use successor 357d9df8. Earlier [C21]
-          restart/reconnect passes remain historical. Later recovery
-          authentication after reset and controlled same-account Retry pass.
-          Retry used a fixed five-minute inspection budget; the prior 60-second
-          cases remain failed. Native iOS reinstall followed by authenticated
-          recovery without a saved signer entry is evidenced separately [C23].
-          Saved-key erasure was not exercised. Core source [C22] is
-          live-validated for the stated trading cases, but its controller
-          package is not yet released. Mobile stays
-          <code>[NOT-READY]</code> for human review and merge until Core merges
-          and a new controller version is published. Replace the local patch
-          with that release, reduce the Mobile diff and revalidate. Mobile size
-          is waived, not a release blocker. No <code>.yalc</code> package or
-          <code>yalc.lock</code> is committed.
+          cancellation results. Recipe
+          <a
+            href="https://github.com/MetaMask/experimental-metamask-recipe-perps/pull/32"
+            >#32</a
+          >
+          merged on October 4 and includes the recipe source used in [C24].
+          October 4 basic proofs use recipe source 495087c7; Scale and Chase
+          proofs use successor 357d9df8. Earlier [C21] restart/reconnect passes
+          remain historical. Later recovery authentication after reset and
+          controlled same-account Retry pass. Retry used a fixed five-minute
+          inspection budget; the prior 60-second cases remain failed. Native iOS
+          reinstall followed by authenticated recovery without a saved signer
+          entry is evidenced separately [C23]. Saved-key erasure was not
+          exercised. Controller 20.0.0 is now published, and the local Mobile
+          adoption has fresh basic-order proof and passing static checks [C24].
+          Advanced-order and recovery passes retain their recorded builds.
+          Mobile stays
+          <code>[NOT-READY]</code> while publication is held and the updated PR
+          awaits its final review and CI. Mobile size is waived, not a release
+          blocker. No <code>.yalc</code> package or <code>yalc.lock</code> is
+          committed.
         </li>
         <li>
           The historical September 19 CI snapshot was not green. TypeScript,
@@ -1696,9 +1718,10 @@
           inspection budget; the prior 60-second cases remain failed. Native iOS
           reinstall followed by authenticated recovery without a saved signer
           entry is evidenced separately [C23]. Saved-key erasure was not
-          exercised. Earlier [C21] passes retain their own revisions. Core human
-          approval and the controller release remain pending; Mobile human
-          review and merge are held with <code>[NOT-READY]</code>.
+          exercised. Earlier [C21] passes retain their own revisions. At the
+          time of this evidence, Core approval and the controller release were
+          pending. The later release and local Mobile adoption are recorded in
+          [C24]; Mobile still carries <code>[NOT-READY]</code>.
         </li>
         <li>
           C23 · October 4 iOS testnet reinstall and recovery evidence for a
@@ -1723,6 +1746,34 @@
           >.
         </li>
       </ul>
+      <p id="controller20-adoption">
+        C24 · October 8 released-controller adoption. Core #10638 merged at
+        <code>bf084f6218570290f94875c0129db0821d7a51e5</code>; npm controller
+        20.0.0 records source commit
+        <code>b2aebcb681e4c7a267ad4c90380d8e60399459cc</code>. Registry
+        integrity checks pass, and all 372 installed package files match the
+        tarball. Of 444 old patch hunks, 438 match exactly and six retain the
+        changes with updated README text or regenerated source maps. Local
+        Mobile <code>8ae650bacb8417162555cbed5323232391e8115d</code> follows a
+        merge of main at <code>9091a924462ec616eb802256b098663c2a3e10cd</code>.
+        The conflict resolution retains both Lighter routing and venue-sized
+        Scale configuration. Yarn install, full TypeScript, 2,149 unit tests,
+        223 component-view tests, 68 integration tests and 89 config-caller
+        tests pass on both the merged old dependency and the published release.
+        Focused lint passed; the broad merge hook was stopped before completion.
+        Fresh recipes use the unchanged library <code>357d9df8</code>, dev1,
+        testnet ETH, at most $20 per case at 1x, and <code>--hud show</code>.
+        Lighter market and limit and Hyperliquid market each pass 20/20.
+        Hyperliquid limit remains failed at 16/18 because final reads returned
+        429 after successful placement and cancellation. The separate 5/5
+        read-only cleanup proof found no remaining ETH orders or positions; no
+        order was replayed. Evidence and the full hunk table are in
+        <code>goal/controller20-adoption-20261008/REPORT.md</code>,
+        <code>results.json</code> and <code>patch-hunks.md</code> under the
+        task's artifacts. This validation does not replace historical
+        advanced-order or reinstall evidence and does not claim mainnet trading
+        or production rollout.
+      </p>
       <p id="mobile-sources">
         Historical Mobile audit snapshot:
         <code>18764146836007e1a789dbd7fc164f5d93c05403</code>.
