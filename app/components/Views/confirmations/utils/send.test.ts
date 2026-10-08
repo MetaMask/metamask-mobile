@@ -7,8 +7,6 @@ import {
 import ppomUtil from '../../../../lib/ppom/ppom-util';
 // eslint-disable-next-line import-x/no-namespace
 import * as TransactionUtils from '../../../../util/transaction-controller';
-// eslint-disable-next-line import-x/no-namespace
-import * as EngineNetworkUtils from '../../../../util/networks/engineNetworkUtils';
 import { AssetType, TokenStandard } from '../types/token';
 import { InitSendLocation } from '../constants/send';
 import {
@@ -18,9 +16,7 @@ import {
   formatToFixedDecimals,
   fromBNWithDecimals,
   fromHexWithDecimals,
-  fromTokenMinUnits,
   getFractionLength,
-  getLayer1GasFeeForSend,
   handleSendPageNavigation,
   isValidPositiveNumericString,
   normalizeAmount,
@@ -390,57 +386,6 @@ describe('fromHexWithDecimals', () => {
     expect(fromHexWithDecimals('0xa12', 5).toString()).toEqual('0.02578');
     expect(fromHexWithDecimals('0x5', 0).toString()).toEqual('5');
     expect(fromHexWithDecimals('0x0', 2).toString()).toEqual('0');
-  });
-});
-
-describe('fromTokenMinUnits', () => {
-  it('converts hex to string with decimals correctly', () => {
-    expect(fromTokenMinUnits('0', 5).toString()).toEqual('0x0');
-    expect(fromTokenMinUnits('1000', 2).toString()).toEqual('0x186a0');
-    expect(fromTokenMinUnits('2500', 18).toString()).toEqual(
-      '0x878678326eac900000',
-    );
-  });
-});
-
-describe('getLayer1GasFeeForSend', () => {
-  it('call transaction-controller function getLayer1GasFee', () => {
-    const mockGetLayer1GasFee = jest
-      .spyOn(EngineNetworkUtils, 'fetchEstimatedMultiLayerL1Fee')
-      .mockImplementation(() => Promise.resolve('0x186a0'));
-    getLayer1GasFeeForSend({
-      asset: { decimals: 2, isNative: true } as unknown as AssetType,
-      chainId: '0x1',
-      from: '0x123',
-      networkClientId: 'mainnet',
-      to: '0x456',
-      value: '10',
-    });
-    expect(mockGetLayer1GasFee).toHaveBeenCalledWith(undefined, {
-      txParams: expect.objectContaining({ to: '0x456' }),
-      chainId: '0x1',
-      networkClientId: 'mainnet',
-    });
-  });
-
-  it('converts fractional values to minimal units', () => {
-    const mockGetLayer1GasFee = jest
-      .spyOn(EngineNetworkUtils, 'fetchEstimatedMultiLayerL1Fee')
-      .mockImplementation(() => Promise.resolve('0x186a0'));
-
-    getLayer1GasFeeForSend({
-      asset: { decimals: 18, isNative: true } as unknown as AssetType,
-      chainId: '0xa',
-      from: '0x123',
-      to: '0x456',
-      value: '12.5',
-    });
-
-    expect(mockGetLayer1GasFee).toHaveBeenCalledWith(undefined, {
-      txParams: expect.objectContaining({ value: '0xad78ebc5ac620000' }),
-      chainId: '0xa',
-      networkClientId: undefined,
-    });
   });
 });
 

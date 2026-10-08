@@ -18,7 +18,6 @@ import {
 import { useSendContext } from '../../context/send-context';
 import { useSendMetricsContext } from '../../context/send-context/send-metrics-context';
 import { useSendType } from './useSendType';
-import { useMaxAmount, usePercentageAmount } from './usePercentageAmount';
 import { useSendExitMetrics } from './metrics/useSendExitMetrics';
 import {
   classifyNonEvmSendError,
@@ -35,42 +34,14 @@ interface SnapConfirmSendResult {
   transactionId?: string;
 }
 
-/**
- * Cancel and back actions for the Send flow, without any gas estimation.
- */
-export const useSendNavigationActions = () => {
-  const navigation = useNavigation<AppNavigationProp>();
-  const { captureSendExit } = useSendExitMetrics();
-
-  const handleCancelPress = useCallback(() => {
-    captureSendExit();
-
-    // Exit the whole Send flow (main stack), not just the nested send screen.
-    const parentNavigation = navigation.getParent();
-    if (parentNavigation) {
-      parentNavigation.goBack();
-      return;
-    }
-    navigation.goBack();
-  }, [captureSendExit, navigation]);
-
-  const handleBackPress = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
-  return { handleCancelPress, handleBackPress };
-};
-
-const useSendActionsWithMax = (
-  getMaxAmount: ReturnType<typeof useMaxAmount>['getMaxAmount'],
-) => {
+export const useSendActions = () => {
   const { asset, chainId, fromAccount, from, maxValueMode, to, value } =
     useSendContext();
   const { chainIdCaip } = useSendMetricsContext();
   const navigation = useNavigation<AppNavigationProp>();
-  const { isEvmNativeSendType, isEvmSendType } = useSendType();
+  const { isEvmSendType } = useSendType();
+  const { captureSendExit } = useSendExitMetrics();
   const { captureSendFailed } = useNonEvmSendMetrics();
-  const navigationActions = useSendNavigationActions();
   const handleSubmitPress = useCallback(
     async (recipientAddress?: string) => {
       if (!chainId || !asset) {
@@ -81,21 +52,12 @@ const useSendActionsWithMax = (
       // so we use the passed recipientAddress or fall back to the context value
       const toAddress = recipientAddress || to;
       if (isEvmSendType) {
-        const maxAmount =
-          maxValueMode && isEvmNativeSendType
-            ? await getMaxAmount(toAddress as string)
-            : undefined;
-        if (maxValueMode && isEvmNativeSendType && maxAmount === undefined) {
-          Alert.alert(strings('send.transaction_error'));
-          return;
-        }
-
-        await submitEvmTransaction({
+        submitEvmTransaction({
           asset: asset as AssetType,
           chainId: chainId as Hex,
           from: from as Hex,
           to: toAddress as Hex,
-          value: maxAmount ?? normalizeAmount(value),
+          value: normalizeAmount(value),
         });
         navigation.navigate(
           Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
@@ -174,8 +136,6 @@ const useSendActionsWithMax = (
       navigation,
       fromAccount,
       from,
-      getMaxAmount,
-      isEvmNativeSendType,
       isEvmSendType,
       maxValueMode,
       to,
@@ -184,18 +144,21 @@ const useSendActionsWithMax = (
     ],
   );
 
-  return { ...navigationActions, handleSubmitPress };
-};
+  const handleCancelPress = useCallback(() => {
+    captureSendExit();
 
-export const useSendActions = () => {
-  const { getMaxAmount } = useMaxAmount();
-  return useSendActionsWithMax(getMaxAmount);
-};
+    // Exit the whole Send flow (main stack), not just the nested send screen.
+    const parentNavigation = navigation.getParent();
+    if (parentNavigation) {
+      parentNavigation.goBack();
+      return;
+    }
+    navigation.goBack();
+  }, [captureSendExit, navigation]);
 
-export const useSendAmountActions = () => {
-  const { getMaxAmount, getPercentageAmount, isMaxAmountSupported } =
-    usePercentageAmount();
-  const actions = useSendActionsWithMax(getMaxAmount);
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
-  return { ...actions, getPercentageAmount, isMaxAmountSupported };
+  return { handleSubmitPress, handleCancelPress, handleBackPress };
 };

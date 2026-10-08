@@ -14,12 +14,13 @@ import { getFractionLength } from '../../../../utils/send.ts';
 import { useAmountSelectionMetrics } from '../../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../../hooks/send/useAmountValidation';
 import { useCurrencyConversions } from '../../../../hooks/send/useCurrencyConversions';
+import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount';
 import { useSendType } from '../../../../hooks/send/useSendType';
 import { useUnreliableNetworkAlert } from '../../../../hooks/send/alerts/useUnreliableNetworkAlert';
 import { useSendContext } from '../../../../context/send-context';
 import { type PredefinedRecipient } from '../../../../utils/send';
 import { useSendScreenNavigation } from '../../../../hooks/send/useSendScreenNavigation';
-import { useSendAmountActions } from '../../../../hooks/send/useSendActions';
+import { useSendActions } from '../../../../hooks/send/useSendActions';
 import { EditAmountKeyboard } from '../../../edit-amount-keyboard';
 import { AmountAlerts } from '../amount-alerts';
 import { styleSheet } from './amount-keyboard.styles';
@@ -46,10 +47,10 @@ export const AmountKeyboard = ({
 }) => {
   const { getFiatValue, getNativeValue } = useCurrencyConversions();
   const { gotToSendScreen } = useSendScreenNavigation();
+  const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
   const { amountError, validateNonEvmAmountAsync } = useAmountValidation();
   const { asset, updateValue, updateTo } = useSendContext();
-  const { getPercentageAmount, handleSubmitPress, isMaxAmountSupported } =
-    useSendAmountActions();
+  const { handleSubmitPress } = useSendActions();
   const { isNonEvmSendType } = useSendType();
   const { alert: unreliableNetworkAlert } = useUnreliableNetworkAlert();
   const isNFT = asset?.standard === TokenStandard.ERC1155;
@@ -66,10 +67,7 @@ export const AmountKeyboard = ({
 
   const updateToPercentageAmount = useCallback(
     (percentage: number) => {
-      const percentageAmount = getPercentageAmount(percentage);
-      if (percentageAmount === undefined) {
-        return;
-      }
+      const percentageAmount = getPercentageAmount(percentage) ?? '0';
       updateAmount(
         fiatMode ? getFiatValue(percentageAmount).toString() : percentageAmount,
       );
