@@ -3843,6 +3843,87 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('limit orders', () => {
+    it('forwards attached Lighter limit protection without a position update', async () => {
+      mockOrderForm.type = 'limit';
+      mockOrderForm.limitPrice = '85000';
+      mockOrderForm.takeProfitPrice = '95000';
+      mockOrderForm.stopLossPrice = '83000';
+      const { result } = renderProForm(
+        true,
+        true,
+        'lighter',
+        false,
+        {},
+        {},
+        {
+          ...market,
+          providerId: 'lighter',
+        },
+      );
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'limit',
+          price: '85000',
+          providerId: 'lighter',
+          takeProfitPrice: '95000',
+          stopLossPrice: '83000',
+        }),
+      );
+      expect(mockUpdatePositionTPSL).not.toHaveBeenCalled();
+      expect(mockClearPendingTradeConfiguration).toHaveBeenCalled();
+      act(() => {
+        mockExecutionOptions.onSuccess?.(undefined, {
+          success: true,
+          orderId: 'lighter-attached-limit',
+          submittedSize: '0.0011',
+        });
+      });
+      expect(limitConfirmed).toHaveBeenCalledWith('long', '0.0011', 'BTC');
+      expect(confirmed).not.toHaveBeenCalled();
+    });
+
+    it('preserves the attached limit draft when Lighter rejects placement', async () => {
+      mockOrderForm.type = 'limit';
+      mockOrderForm.limitPrice = '85000';
+      mockOrderForm.takeProfitPrice = '95000';
+      mockOrderForm.stopLossPrice = '83000';
+      mockExecuteOrder.mockResolvedValueOnce({
+        success: false,
+        error: 'rejected',
+      });
+      const { result } = renderProForm(
+        true,
+        true,
+        'lighter',
+        false,
+        {},
+        {},
+        {
+          ...market,
+          providerId: 'lighter',
+        },
+      );
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+      act(() => {
+        mockExecutionOptions.onError?.('rejected');
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(mockUpdatePositionTPSL).not.toHaveBeenCalled();
+      expect(mockClearPendingTradeConfiguration).not.toHaveBeenCalled();
+      expect(mockUpdateOrderForm).not.toHaveBeenCalled();
+      expect(limitConfirmed).not.toHaveBeenCalled();
+      expect(limitCreationFailed).toHaveBeenCalledWith('rejected');
+    });
+
     it('sets the limit price and the fixed limit slippage on OrderParams', async () => {
       // Arrange
       mockOrderForm.type = 'limit';
