@@ -76,6 +76,11 @@ import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import Routes from '../../../../constants/navigation/Routes';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
+import {
+  QuickBuy,
+  TOP_TRADERS_QUICK_BUY_FEATURES,
+  type QuickBuyTarget,
+} from '../../../UI/QuickBuy';
 
 const LANDING_INDEX = 0;
 
@@ -367,6 +372,15 @@ const SocialV1View: React.FC = () => {
     Boolean(route.params?.showNotificationsBanner),
   );
 
+  // The spot QuickBuy sheet is hosted here, outside the PagerView, because the
+  // design-system BottomSheet is a plain `absolute inset-0` view with no portal:
+  // inside a pager page it would be clipped by the collapsing header block and
+  // painted over by the page's own scroll content.
+  const [quickBuyTarget, setQuickBuyTarget] = useState<QuickBuyTarget | null>(
+    null,
+  );
+  const closeQuickBuy = useCallback(() => setQuickBuyTarget(null), []);
+
   useEffect(() => {
     if (!showNotificationsBanner) {
       return undefined;
@@ -631,6 +645,7 @@ const SocialV1View: React.FC = () => {
                         appliedFilters={
                           tab === 'following' ? applied.following : undefined
                         }
+                        onQuickBuy={setQuickBuyTarget}
                       />
                     )}
                   </View>
@@ -650,6 +665,15 @@ const SocialV1View: React.FC = () => {
             onClose={closeSheet}
           />
         ) : null}
+
+        <QuickBuy.Root
+          isVisible={quickBuyTarget !== null}
+          target={quickBuyTarget}
+          onClose={closeQuickBuy}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          initialTradeMode="buy"
+          analyticsContext={{ source: 'trader_feed' }}
+        />
       </SafeAreaView>
     </SocialEntryOptionsProvider>
   );

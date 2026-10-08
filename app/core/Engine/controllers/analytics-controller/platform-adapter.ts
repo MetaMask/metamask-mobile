@@ -2,6 +2,7 @@ import type {
   AnalyticsPlatformAdapter,
   AnalyticsEventProperties,
   AnalyticsUserTraits,
+  AnalyticsContext,
 } from '@metamask/analytics-controller';
 import {
   createClient,
@@ -9,6 +10,7 @@ import {
   CountFlushPolicy,
   TimerFlushPolicy,
   type SegmentClient,
+  type SegmentEvent,
   type Plugin,
 } from '@segment/analytics-react-native';
 import { segmentPersistor } from '../../../../util/analytics/SegmentPersistor';
@@ -35,6 +37,71 @@ export const normalizeProxyUrl = (
   // (end of query). This strips base64 padding without touching `=` separators.
   return url.replace(/[=]+(?=&|$)/g, '');
 };
+
+type OutboundSegmentContext = NonNullable<SegmentEvent['context']> & {
+  eventsConfigVersion?: string;
+};
+
+function booleanCategoryPreferences(
+  preferences: NonNullable<
+    NonNullable<AnalyticsContext['consent']>['categoryPreferences']
+  >,
+): Record<string, boolean> {
+  return Object.fromEntries(
+    Object.entries(preferences).filter(
+      (entry): entry is [string, boolean] => typeof entry[1] === 'boolean',
+    ),
+  );
+}
+
+/**
+ * Segment's track/screen/identify enrichment is the only place context can
+ * ride along. Consent and the events-config version belong on the event
+ * context so they are not stored as event properties.
+ */
+function mergeAnalyticsContext(
+  context?: AnalyticsContext,
+): ((event: SegmentEvent) => SegmentEvent) | undefined {
+  if (!context) {
+    return undefined;
+  }
+
+  return (event: SegmentEvent): SegmentEvent => {
+    const existingContext = event.context ?? {};
+    const existingConsent =
+      existingContext.consent && typeof existingContext.consent === 'object'
+        ? existingContext.consent
+        : undefined;
+    const controllerPreferences = context.consent?.categoryPreferences;
+    const categoryPreferences = controllerPreferences
+      ? {
+          ...existingConsent?.categoryPreferences,
+          ...booleanCategoryPreferences(controllerPreferences),
+        }
+      : existingConsent?.categoryPreferences;
+    const nextContext: OutboundSegmentContext = {
+      ...existingContext,
+      ...(categoryPreferences
+        ? {
+            consent: {
+              ...existingConsent,
+              categoryPreferences,
+            },
+          }
+        : {}),
+      ...(context.eventsConfigVersion === undefined
+        ? {}
+        : { eventsConfigVersion: context.eventsConfigVersion }),
+    };
+
+    return {
+      ...event,
+      // eventsConfigVersion rides on the Segment event context so destinations
+      // can see which classification version produced the consent flags.
+      context: nextContext as SegmentEvent['context'],
+    };
+  };
+}
 
 const getSegmentClient = (): SegmentClient => {
   const config: Config = {
@@ -79,25 +146,54 @@ export const createPlatformAdapter = (
   });
 
   return {
-    track(eventName: string, properties?: AnalyticsEventProperties): void {
-      if (properties) {
+    track(
+      eventName: string,
+      properties?: AnalyticsEventProperties,
+      context?: AnalyticsContext,
+    ): void {
+      const enrichment = mergeAnalyticsContext(context);
+      if (properties && enrichment) {
+        // Segment returns a promise. The adapter contract is void, so the
+        // result is explicitly ignored.
+        void client.track(eventName, properties, enrichment);
+      } else if (properties) {
         client.track(eventName, properties);
+      } else if (enrichment) {
+        void client.track(eventName, undefined, enrichment);
       } else {
         client.track(eventName);
       }
     },
 
-    identify(userId: string, traits?: AnalyticsUserTraits): void {
-      if (traits !== undefined) {
+    identify(
+      userId: string,
+      traits?: AnalyticsUserTraits,
+      context?: AnalyticsContext,
+    ): void {
+      const enrichment = mergeAnalyticsContext(context);
+      if (traits !== undefined && enrichment) {
+        void client.identify(userId, traits, enrichment);
+      } else if (traits !== undefined) {
         client.identify(userId, traits);
+      } else if (enrichment) {
+        void client.identify(userId, undefined, enrichment);
       } else {
         client.identify(userId);
       }
     },
 
-    view(name: string, properties?: AnalyticsEventProperties): void {
-      if (properties !== undefined) {
+    view(
+      name: string,
+      properties?: AnalyticsEventProperties,
+      context?: AnalyticsContext,
+    ): void {
+      const enrichment = mergeAnalyticsContext(context);
+      if (properties !== undefined && enrichment) {
+        void client.screen(name, properties, enrichment);
+      } else if (properties !== undefined) {
         client.screen(name, properties);
+      } else if (enrichment) {
+        void client.screen(name, undefined, enrichment);
       } else {
         client.screen(name);
       }
