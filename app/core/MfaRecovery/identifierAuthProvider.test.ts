@@ -18,8 +18,7 @@ const googleIdentifier: Identifier = {
   verifier: { auds: ['client-id'] },
 };
 
-const toBase64Url = (value: string) =>
-  Buffer.from(value).toString('base64url');
+const toBase64Url = (value: string) => Buffer.from(value).toString('base64url');
 
 const buildIdToken = (claims: Record<string, unknown>) =>
   `${toBase64Url('{"alg":"RS256"}')}.${toBase64Url(JSON.stringify(claims))}.signature`;
