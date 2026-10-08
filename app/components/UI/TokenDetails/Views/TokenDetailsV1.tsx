@@ -56,9 +56,10 @@ import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
 import { SECURITY_EXPLAINER_KEYS } from '../components/V1/SecurityTab/SecurityTab.constants';
 import type { SecurityRowKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import StatBar from '../components/V1/StatBar/StatBar';
-import StatExplainerSheet from '../components/V1/StatBar/StatExplainerSheet';
+import { STAT_EXPLAINER_KEYS } from '../components/V1/StatBar/StatBar.constants';
 import type { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
 import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExplainerSheet';
+import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.types';
 import OverviewTab from '../components/tabs/OverviewTab';
 import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
 import TokenDetailsV1TabBar, {
@@ -248,16 +249,28 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     currentCurrency: selectedCurrency,
   });
 
-  /** Which stat's explainer is open, or `null` for none. */
-  const [explainedStat, setExplainedStat] = useState<TokenStatKey | null>(null);
+  /**
+   * Copy for whichever definition sheet is open, or `null` for none.
+   *
+   * The stat bar and the Security tab render the same sheet, so they share one
+   * piece of state rather than a key each: two keys would let both mount at
+   * once. It is held here rather than inside `SecurityTab` because the sheet
+   * has to mount outside the page `ScrollView` — see the note on
+   * `SecurityTabProps.onExplain`.
+   */
+  const [explainerCopy, setExplainerCopy] = useState<ExplainerCopy | null>(
+    null,
+  );
 
   const handleStatPress = useCallback((statKey: TokenStatKey) => {
-    setExplainedStat(statKey);
+    setExplainerCopy(STAT_EXPLAINER_KEYS[statKey]);
   }, []);
 
-  const handleExplainerClose = useCallback(() => {
-    setExplainedStat(null);
+  const handleSecurityRowPress = useCallback((rowKey: SecurityRowKey) => {
+    setExplainerCopy(SECURITY_EXPLAINER_KEYS[rowKey]);
   }, []);
+
+  const handleExplainerClose = useCallback(() => setExplainerCopy(null), []);
 
   const isNativeToken = Boolean(token.isETH || token.isNative);
   const hasBalanceValue = useMemo(() => {
@@ -319,14 +332,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const { activeTab, activateTab, mountedTabs, swipeGesture } =
     useTokenDetailsV1Tabs({ onTabChange: clampScrollToTabBar });
 
-  /**
-   * Security row whose definition is open, held here rather than inside
-   * `SecurityTab` because the sheet it drives has to mount outside the page
-   * `ScrollView` — see the note on `SecurityTabProps.onExplain`.
-   */
-  const [explainedSecurityRow, setExplainedSecurityRow] =
-    useState<SecurityRowKey | null>(null);
-
   const renderTabPage = useCallback(
     (tab: TokenDetailsV1TabKey) => {
       if (!mountedTabs.has(tab)) {
@@ -356,7 +361,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 ? MOCK_SECURITY_FACTS_SOLANA
                 : MOCK_SECURITY_FACTS_EVM
             }
-            onExplain={setExplainedSecurityRow}
+            onExplain={handleSecurityRowPress}
           />
         );
       }
@@ -369,15 +374,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       currentCurrency,
       securityData,
       marketData,
+      handleSecurityRowPress,
     ],
-  );
-
-  const explainedSecurityCopy = explainedSecurityRow
-    ? SECURITY_EXPLAINER_KEYS[explainedSecurityRow]
-    : null;
-  const handleSecurityExplainerClose = useCallback(
-    () => setExplainedSecurityRow(null),
-    [],
   );
 
   const currentPriceUsd = useMemo(() => {
@@ -537,11 +535,11 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             nearest positioned ancestor instead of being portalled, so mounting
             one inside the scroll content would clip it to the viewport and
             scroll it away with the page. */}
-        {explainedSecurityCopy && (
+        {explainerCopy && (
           <TokenExplainerSheet
-            title={strings(explainedSecurityCopy.title)}
-            description={strings(explainedSecurityCopy.description)}
-            onClose={handleSecurityExplainerClose}
+            title={strings(explainerCopy.title)}
+            description={strings(explainerCopy.description)}
+            onClose={handleExplainerClose}
           />
         )}
 
@@ -556,13 +554,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             currentCurrency={currentCurrency ?? 'usd'}
             securityData={securityData}
             networkName={networkConfigurationByChainId?.name}
-          />
-        )}
-
-        {explainedStat && (
-          <StatExplainerSheet
-            statKey={explainedStat}
-            onClose={handleExplainerClose}
           />
         )}
       </View>
