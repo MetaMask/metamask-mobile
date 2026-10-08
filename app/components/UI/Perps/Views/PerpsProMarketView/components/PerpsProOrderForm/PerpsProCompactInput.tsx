@@ -32,7 +32,6 @@ import {
 import { usePerpsLocale } from '../../../../hooks/usePerpsLocale';
 import {
   formatPerpsInput,
-  getPerpsFormattedInputSelection,
   normalizePerpsNumericInput,
   type PerpsInputSelection,
 } from '../../../../utils/formatUtils';
@@ -180,10 +179,13 @@ const PerpsProCompactInput = React.forwardRef<
     const [selection, setSelection] = useState<PerpsInputSelection | undefined>(
       undefined,
     );
-    usePerpsProInputDisplay({
+    const handleChangeText = usePerpsProInputDisplay({
       value,
+      displayValue,
       locale,
       isFocused,
+      isDisabled,
+      onChangeText,
       inputLocaleRef,
       lastEmittedValueRef,
       selectionRef,
@@ -256,32 +258,6 @@ const PerpsProCompactInput = React.forwardRef<
         return;
       }
       onFocus?.();
-    };
-    const handleChangeText = (nextValue: string) => {
-      const canonicalValue = normalizePerpsNumericInput(
-        nextValue,
-        inputLocaleRef.current,
-      );
-      const nextDisplayValue = formatPerpsInput(
-        canonicalValue,
-        inputLocaleRef.current,
-      );
-      const nextSelection = getPerpsFormattedInputSelection({
-        previousDisplayValue: displayValue,
-        nextDisplayValue: nextValue,
-        nextFormattedValue: nextDisplayValue,
-        previousSelection: selectionRef.current,
-        locale: inputLocaleRef.current,
-      });
-
-      setDisplayValue(nextDisplayValue);
-      lastEmittedValueRef.current = canonicalValue;
-      if (nextSelection) {
-        selectionRef.current = nextSelection;
-        setSelection(nextSelection);
-        shouldIgnoreNextSelectionChangeRef.current = true;
-      }
-      onChangeText(canonicalValue);
     };
     const handleSelectionChange = (event: TextInputSelectionChangeEvent) => {
       if (shouldIgnoreNextSelectionChangeRef.current) {

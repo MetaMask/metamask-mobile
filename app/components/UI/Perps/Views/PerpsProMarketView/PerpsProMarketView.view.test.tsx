@@ -57,6 +57,7 @@ import {
   getPerpsProTwapValueSelector,
 } from '../../Perps.testIds';
 import {
+  formatPerpsInput,
   formatProOrderCardTimestamp,
   normalizePerpsNumericInput,
 } from '../../utils/formatUtils';
@@ -2928,7 +2929,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         );
         expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
         expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
-        expect(sizeInput).toHaveProp('value', '3,000');
+        expect(sizeInput).toHaveProp('value', formatPerpsInput('3000'));
       });
     },
   );
@@ -2951,7 +2952,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       await waitFor(() => {
         const marginCappedAmount = Number(
-          screen.getByTestId(ids.SIZE_INPUT).props.value,
+          normalizePerpsNumericInput(
+            screen.getByTestId(ids.SIZE_INPUT).props.value,
+          ),
         );
         expect(marginCappedAmount).toBeGreaterThan(0);
         expect(marginCappedAmount).toBeLessThan(2500);
@@ -2967,7 +2970,10 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'dragEnd', 2500);
 
       await waitFor(() =>
-        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '2,500'),
+        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+          'value',
+          formatPerpsInput('2500'),
+        ),
       );
     },
   );

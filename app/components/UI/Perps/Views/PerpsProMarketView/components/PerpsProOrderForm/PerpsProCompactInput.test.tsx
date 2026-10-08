@@ -238,6 +238,35 @@ describe('PerpsProCompactInput', () => {
     expect(onChangeText).not.toHaveBeenCalled();
   });
 
+  it('restores the controlled value when the parent rejects an edit', () => {
+    const onChangeText = jest.fn();
+    const RejectingInput = () => {
+      const [value, setValue] = React.useState('1.23');
+      const handleChangeText = (nextValue: string) => {
+        onChangeText(nextValue);
+        if ((nextValue.split('.')[1]?.length ?? 0) <= 2) {
+          setValue(nextValue);
+        }
+      };
+
+      return (
+        <PerpsProCompactInput
+          {...defaultProps}
+          value={value}
+          onChangeText={handleChangeText}
+        />
+      );
+    };
+    render(<RejectingInput />);
+    const input = screen.getByTestId(defaultProps.testID);
+
+    fireEvent(input, 'focus');
+    fireEvent.changeText(input, '1.234');
+
+    expect(onChangeText).toHaveBeenLastCalledWith('1.234');
+    expect(input).toHaveProp('value', '1.23');
+  });
+
   describe('onFieldPress', () => {
     it('uses onFocus instead of reporting a second alignment for an initial direct input tap', () => {
       const onFieldPress = jest.fn();

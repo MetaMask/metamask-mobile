@@ -168,6 +168,33 @@ describe('PerpsProSizeInput', () => {
     expect(onChangeText).toHaveBeenLastCalledWith('1000');
   });
 
+  it('restores the controlled value when the parent rejects an edit', () => {
+    const onChangeText = jest.fn();
+    const RejectingInput = () => {
+      const [value, setValue] = React.useState('1.23');
+      const handleChangeText = (nextValue: string) => {
+        onChangeText(nextValue);
+        if ((nextValue.split('.')[1]?.length ?? 0) <= 2) {
+          setValue(nextValue);
+        }
+      };
+
+      return (
+        <PerpsProSizeInput
+          {...createProps({ value, onChangeText: handleChangeText })}
+        />
+      );
+    };
+    render(<RejectingInput />);
+    const input = screen.getByTestId(ids.SIZE_INPUT);
+
+    fireEvent(input, 'focus');
+    fireEvent.changeText(input, '1.234');
+
+    expect(onChangeText).toHaveBeenLastCalledWith('1.234');
+    expect(input).toHaveProp('value', '1.23');
+  });
+
   it('resumes external value updates after blurring while disabled', () => {
     const onBlur = jest.fn();
     const { rerender } = renderInput({ value: '100', onBlur });
@@ -194,7 +221,20 @@ describe('PerpsProSizeInput', () => {
 
   it('ignores stale native selection after live grouping inserts a separator', () => {
     const onChangeText = jest.fn();
-    renderInput({ value: '100', onChangeText });
+    const ControlledInput = () => {
+      const [value, setValue] = React.useState('100');
+      const handleChangeText = (nextValue: string) => {
+        onChangeText(nextValue);
+        setValue(nextValue);
+      };
+
+      return (
+        <PerpsProSizeInput
+          {...createProps({ value, onChangeText: handleChangeText })}
+        />
+      );
+    };
+    render(<ControlledInput />);
     const input = screen.getByTestId(ids.SIZE_INPUT);
 
     fireEvent(input, 'focus');

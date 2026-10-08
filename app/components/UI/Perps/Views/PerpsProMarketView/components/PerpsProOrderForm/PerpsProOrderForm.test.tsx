@@ -421,11 +421,24 @@ describe('PerpsProOrderForm', () => {
 
     it('keeps the limit price cursor at the end after live grouping inserts a separator', () => {
       const onLimitPriceChange = jest.fn();
-      renderForm({
-        orderType: 'limit',
-        limitPrice: '100',
-        onLimitPriceChange,
-      });
+      const ControlledForm = () => {
+        const [limitPrice, setLimitPrice] = React.useState('100');
+        const handleLimitPriceChange = (nextValue: string) => {
+          onLimitPriceChange(nextValue);
+          setLimitPrice(nextValue);
+        };
+
+        return (
+          <PerpsProOrderForm
+            {...createProps({
+              orderType: 'limit',
+              limitPrice,
+              onLimitPriceChange: handleLimitPriceChange,
+            })}
+          />
+        );
+      };
+      render(<ControlledForm />);
       const input = getMountedInput(ids.LIMIT_PRICE_INPUT);
 
       fireEvent(input, 'focus');
