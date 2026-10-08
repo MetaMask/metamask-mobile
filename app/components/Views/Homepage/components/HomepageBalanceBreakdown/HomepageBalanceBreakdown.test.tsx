@@ -24,6 +24,8 @@ import { createActiveABTestAssignment } from '../../../../../util/analytics/acti
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
+const mockInitiateMoneyDeposit = jest.fn();
+const mockTrackMoneyButtonClicked = jest.fn();
 const mockNavigateToPerpsHome = jest.fn();
 const mockUsePerpsNavigationHandlers = jest.fn((_options?: unknown) => ({
   navigateToPerpsHome: mockNavigateToPerpsHome,
@@ -75,6 +77,18 @@ jest.mock('../../context/HomepageScrollContext', () => ({
 jest.mock('../../../../UI/Money/hooks/useMoneyNavigation', () => ({
   useMoneyNavigation: () => ({
     navigateToMoneyHome: mockNavigateToMoneyHome,
+  }),
+}));
+
+jest.mock('../../../../UI/Money/hooks/useMoneyAccount', () => ({
+  useMoneyAccountDeposit: () => ({
+    initiateDeposit: mockInitiateMoneyDeposit,
+  }),
+}));
+
+jest.mock('../../../../UI/Money/hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: () => ({
+    trackButtonClicked: mockTrackMoneyButtonClicked,
   }),
 }));
 
@@ -164,6 +178,7 @@ const breakdown: BreakdownData = {
 describe('HomepageBalanceBreakdown', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockInitiateMoneyDeposit.mockResolvedValue(undefined);
     I18n.locale = 'en-US';
     mockPrivacyMode = false;
     mockIsWalletHomeOnboardingActive = false;
@@ -221,6 +236,21 @@ describe('HomepageBalanceBreakdown', () => {
     expect(getByTestId(HomepageBalanceBreakdownTestIds.APY)).toHaveTextContent(
       '4.1% APY',
     );
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
+        .accessibilityLabel,
+    ).toBe('Money, 20%, 4.1% APY, Buy');
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
+        .accessible,
+    ).toBe(false);
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY).props.accessible,
+    ).toBe(true);
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY).props
+        .accessibilityLabel,
+    ).toBe('Money, 20%, 4.1% APY, Buy');
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.PERCENTAGE('money')),
     ).toHaveTextContent('20%');
@@ -410,15 +440,27 @@ describe('HomepageBalanceBreakdown', () => {
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
         .accessibilityLabel,
-    ).toBe('Money, 0%');
+    ).toBe('Money, 0%, Buy');
   });
 
-  it('opens Money when the Buy button is pressed', () => {
+  it('initiates a Money deposit when the Buy button is pressed', () => {
     const { getByTestId } = render(<HomepageBalanceBreakdown />);
 
     fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY));
 
-    expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
+    expect(mockInitiateMoneyDeposit).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the geo-block sheet when Buy is pressed by an ineligible user', () => {
+    mockIsMoneyAccountGeoEligible = false;
+    const { getByTestId } = render(<HomepageBalanceBreakdown />);
+
+    fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+    });
+    expect(mockInitiateMoneyDeposit).not.toHaveBeenCalled();
   });
 
   it('keeps a settled non-zero debt row visible', () => {
@@ -657,6 +699,10 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')).props
         .accessibilityLabel,
     ).toBe('Tokens');
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
+        .accessibilityLabel,
+    ).toBe('Money, Buy');
   });
 
   it('does not render rows during the onboarding checklist flow', () => {

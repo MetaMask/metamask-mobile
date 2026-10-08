@@ -24,9 +24,48 @@ import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useTheme } from '../../../../../util/theme';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import DottedUnderline from '../../../../UI/DottedUnderline';
+import {
+  COMPONENT_NAMES,
+  SCREEN_NAMES,
+} from '../../../../UI/Money/constants/moneyEvents';
+import { useMoneyAddMoney } from '../../../../UI/Money/hooks/useMoneyAddMoney';
+import { useMoneyAnalytics } from '../../../../UI/Money/hooks/useMoneyAnalytics';
 import type { SliceData } from '../../BalanceBreakdown/types';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
 import { getSliceLabel } from './homepageBalanceBreakdown.constants';
+
+interface HomepageBalanceBreakdownMoneyBuyButtonProps {
+  accessibilityLabel: string;
+  label: string;
+}
+
+const HomepageBalanceBreakdownMoneyBuyButton = ({
+  accessibilityLabel,
+  label,
+}: HomepageBalanceBreakdownMoneyBuyButtonProps) => {
+  const { trackButtonClicked } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.WALLET_HOME,
+    component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+  });
+  const { handleAddPress } = useMoneyAddMoney({
+    buttonLabelKey: 'homepage.action_buttons.buy',
+    logTag: '[HomepageBalanceBreakdownRow]',
+    trackButtonClicked,
+  });
+
+  return (
+    <Button
+      accessibilityLabel={accessibilityLabel}
+      onPress={handleAddPress}
+      size={ButtonSize.Sm}
+      testID={HomepageBalanceBreakdownTestIds.MONEY_BUY}
+      twClassName="h-7 self-end px-4"
+      variant={ButtonVariant.Primary}
+    >
+      {label}
+    </Button>
+  );
+};
 
 export interface HomepageBalanceBreakdownRowProps {
   slice: SliceData;
@@ -74,18 +113,18 @@ const HomepageBalanceBreakdownRow = ({
       ? strings('money.apy_label', { percentage: formattedMoneyApy })
       : undefined;
   const showMoneyBuyButton = slice.key === 'money';
-  const accessibilityLabel = privacyMode
-    ? getSliceLabel(slice.key)
-    : [
-        getSliceLabel(slice.key),
-        !showMoneyBuyButton && slice.status === 'ready'
-          ? displayValue
-          : undefined,
-        percentageLabel,
-        apyLabel,
-      ]
-        .filter(Boolean)
-        .join(', ');
+  const moneyBuyLabel = strings('homepage.action_buttons.buy');
+  const accessibilityLabel = [
+    getSliceLabel(slice.key),
+    !privacyMode && !showMoneyBuyButton && slice.status === 'ready'
+      ? displayValue
+      : undefined,
+    !privacyMode ? percentageLabel : undefined,
+    !privacyMode ? apyLabel : undefined,
+    showMoneyBuyButton ? moneyBuyLabel : undefined,
+  ]
+    .filter(Boolean)
+    .join(', ');
   const title = (
     <Box
       alignItems={BoxAlignItems.Center}
@@ -153,15 +192,10 @@ const HomepageBalanceBreakdownRow = ({
   );
 
   const value = showMoneyBuyButton ? (
-    <Button
-      onPress={onPress}
-      size={ButtonSize.Sm}
-      testID={HomepageBalanceBreakdownTestIds.MONEY_BUY}
-      twClassName="h-7 self-end px-4"
-      variant={ButtonVariant.Primary}
-    >
-      {strings('homepage.action_buttons.buy')}
-    </Button>
+    <HomepageBalanceBreakdownMoneyBuyButton
+      accessibilityLabel={accessibilityLabel}
+      label={moneyBuyLabel}
+    />
   ) : (
     <Skeleton
       hideChildren={isLoading}
@@ -186,6 +220,7 @@ const HomepageBalanceBreakdownRow = ({
 
   return (
     <ListItem
+      accessible={!showMoneyBuyButton}
       accessibilityLabel={accessibilityLabel}
       isInteractive
       onPress={onPress}
