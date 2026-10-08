@@ -15,6 +15,12 @@ import {
   RiveErrorType,
 } from '../../../../../__mocks__/rive-app-react-native';
 
+const mockTrackCardLinkRoutingDisagreement = jest.fn();
+jest.mock('../../util/trackCardLinkRoutingDisagreement', () => ({
+  trackCardLinkRoutingDisagreement: (...args: unknown[]) =>
+    mockTrackCardLinkRoutingDisagreement(...args),
+}));
+
 const mockUseCardPostAuthRedirect = jest.fn();
 
 jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
@@ -81,6 +87,8 @@ const createTestStore = (
   initialState: {
     cardholderAccounts?: string[];
     signInLink?: Record<string, unknown> | null;
+    cardLinks?: Record<string, unknown>[] | null;
+    cardLinkApiEnabled?: boolean;
   } = {},
 ) =>
   configureStore({
@@ -91,12 +99,34 @@ const createTestStore = (
             CardController: {
               cardholderAccounts: initialState.cardholderAccounts ?? [],
               signInLink: initialState.signInLink ?? null,
+              cardLinks: initialState.cardLinks ?? null,
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                cardLinkApi: {
+                  enabled: initialState.cardLinkApiEnabled ?? false,
+                  minimumVersion: '0.0.0',
+                },
+              },
             },
           },
         },
       ) => state,
     },
   });
+
+const cardLinkRow = (
+  provider: 'baanx' | 'immersve',
+  status: 'onboarding' | 'active' | 'closed',
+) => ({
+  provider,
+  status,
+  linkedAccountRef: null,
+  closedReason: null,
+  migratedToProvider: null,
+  linkedAt: '2026-09-01T00:00:00.000Z',
+  updatedAt: '2026-09-01T00:00:00.000Z',
+});
 
 describe('CardWelcome', () => {
   let store: ReturnType<typeof createTestStore>;
@@ -352,6 +382,82 @@ describe('CardWelcome', () => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
+    });
+
+    describe('when cardLinkApi is on', () => {
+      it('navigates to authentication for a linked user without the card_user label', () => {
+        store = createTestStore({
+          cardLinkApiEnabled: true,
+          cardholderAccounts: [],
+          cardLinks: [cardLinkRow('immersve', 'active')],
+        });
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <CardWelcome />
+          </Provider>,
+        );
+
+        fireEvent.press(
+          getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.AUTHENTICATION,
+          undefined,
+        );
+        expect(mockTrackCardLinkRoutingDisagreement).toHaveBeenCalledWith(
+          expect.objectContaining({
+            source: 'card_links',
+            hasCard: true,
+            disagreesWithLegacy: true,
+          }),
+          'card_welcome',
+        );
+      });
+
+      it('lets the stored links override the card_user label', () => {
+        store = createTestStore({
+          cardLinkApiEnabled: true,
+          cardholderAccounts: ['eip155:0:0x1234567890abcdef'],
+          cardLinks: [cardLinkRow('baanx', 'closed')],
+        });
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <CardWelcome />
+          </Provider>,
+        );
+
+        fireEvent.press(
+          getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.ONBOARDING.ROOT,
+          undefined,
+        );
+      });
+
+      it('falls back to the card_user label when there are no links yet', () => {
+        store = createTestStore({
+          cardLinkApiEnabled: true,
+          cardholderAccounts: ['eip155:0:0x1234567890abcdef'],
+          cardLinks: [],
+        });
+        const { getByTestId } = render(
+          <Provider store={store}>
+            <CardWelcome />
+          </Provider>,
+        );
+
+        fireEvent.press(
+          getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.AUTHENTICATION,
+          undefined,
+        );
+      });
     });
 
     it('navigates to authentication when a sign-in link exists (non-cardholder)', () => {
