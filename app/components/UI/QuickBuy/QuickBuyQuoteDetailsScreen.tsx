@@ -55,6 +55,10 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
     setActiveScreen,
   } = useQuickBuyContext();
 
+  const isRewardsTierBadge =
+    discountBadge?.type === DiscountType.VIP ||
+    discountBadge?.type === DiscountType.SUBSCRIPTION;
+
   // No quote to detail yet: show an actionable empty state instead of a table
   // of dashes. The rate pill is reachable pre-quote (it shows an estimate), so
   // tapping it must not land the user on an empty details screen.
@@ -209,11 +213,16 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
                 alignItems={BoxAlignItems.Center}
                 gap={1}
               >
-                {discountBadge?.type === DiscountType.VIP ? (
-                  <RewardsVipBadge />
-                ) : null}
-                {discountBadge && discountBadge.type !== DiscountType.VIP ? (
-                  <RewardsDiscountBadge label={discountBadge.label ?? ''} />
+                {discountBadge ? (
+                  isRewardsTierBadge ? (
+                    <RewardsVipBadge
+                      hasProEntitlement={
+                        discountBadge.type === DiscountType.SUBSCRIPTION
+                      }
+                    />
+                  ) : (
+                    <RewardsDiscountBadge label={discountBadge.label} />
+                  )
                 ) : null}
                 {baseFeePercentage ? (
                   <Text
