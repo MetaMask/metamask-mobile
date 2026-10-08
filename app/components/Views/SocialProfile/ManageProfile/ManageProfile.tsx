@@ -1,7 +1,11 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import {
+  type RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import {
   AvatarAccount,
   AvatarAccountSize,
@@ -21,13 +25,21 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import Routes from '../../../../constants/navigation/Routes';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
 import { BIO_VALUE_MAX_WIDTH, type Profile } from './ManageProfile.constants';
 import ProfileRow from './ProfileRow';
 import ProfileAvatar from './ProfileAvatar';
+import {
+  ManageProfileFieldName,
+  type ManageProfileFieldUpdate,
+} from './ManageProfileField.types';
 
 const SECTION_TITLE_PROPS = {
   variant: TextVariant.BodySm,
@@ -39,8 +51,22 @@ const SECTION_TITLE_PROPS = {
 const valueOrPlaceholder = (value: string) =>
   value || strings('manage_profile.not_set');
 
-// TODO: replace with the real profile source. Rows stay read-only until the
-// field editors exist.
+const applyFieldUpdate = (
+  profile: Profile,
+  update: ManageProfileFieldUpdate,
+): Profile => {
+  switch (update.field) {
+    case ManageProfileFieldName.DisplayName:
+      return { ...profile, displayName: update.value };
+    case ManageProfileFieldName.Bio:
+      return { ...profile, bio: update.value };
+    default:
+      return profile;
+  }
+};
+
+// TODO: replace with the real profile source. Edits live here so the rows
+// reflect them, but nothing is persisted.
 const EMPTY_PROFILE: Profile = {
   image: undefined,
   displayName: '',
@@ -54,11 +80,43 @@ const EMPTY_PROFILE: Profile = {
 const ManageProfile = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const profile = EMPTY_PROFILE;
+  const route = useRoute<RouteProp<RootStackParamList, 'ManageProfile'>>();
+  const [profile, setProfile] = useState<Profile>(EMPTY_PROFILE);
+
+  const fieldUpdate = route.params?.fieldUpdate;
+  const consumedUpdate = useRef<ManageProfileFieldUpdate | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    if (!fieldUpdate || fieldUpdate === consumedUpdate.current) {
+      return;
+    }
+    consumedUpdate.current = fieldUpdate;
+    setProfile((previous) => applyFieldUpdate(previous, fieldUpdate));
+    navigation.setParams({ fieldUpdate: undefined });
+  }, [fieldUpdate, navigation]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleEditDisplayName = useCallback(
+    () =>
+      navigation.navigate(Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD, {
+        field: ManageProfileFieldName.DisplayName,
+        initialValue: profile.displayName,
+      }),
+    [navigation, profile.displayName],
+  );
+  const handleEditBio = useCallback(
+    () =>
+      navigation.navigate(Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD, {
+        field: ManageProfileFieldName.Bio,
+        initialValue: profile.bio,
+      }),
+    [navigation, profile.bio],
+  );
 
   return (
     <SafeAreaView
@@ -101,6 +159,7 @@ const ManageProfile = () => {
           <ProfileRow
             title={strings('manage_profile.display_name')}
             value={valueOrPlaceholder(profile.displayName)}
+            onPress={handleEditDisplayName}
             testID={ManageProfileSelectorsIDs.DISPLAY_NAME_ROW}
           />
           <ProfileRow
@@ -114,6 +173,7 @@ const ManageProfile = () => {
             title={strings('manage_profile.bio')}
             value={valueOrPlaceholder(profile.bio)}
             valueMaxWidth={BIO_VALUE_MAX_WIDTH}
+            onPress={handleEditBio}
             testID={ManageProfileSelectorsIDs.BIO_ROW}
           />
           <ProfileRow
