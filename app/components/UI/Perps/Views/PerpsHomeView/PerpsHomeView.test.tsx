@@ -1,5 +1,11 @@
 import React from 'react';
-import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  render,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE, PerpsMode } from '@metamask/perps-controller';
@@ -14,6 +20,7 @@ import {
   selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
   selectPerpsProModeEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
 import { selectIsFirstTimePerpsUser } from '../../selectors/perpsController';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
@@ -147,6 +154,7 @@ jest.mock(
 const mockNavigateBack = jest.fn();
 const mockNavigateToWallet = jest.fn();
 const mockNavigateToMarketList = jest.fn();
+const mockNavigateToMarketDetails = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
@@ -158,7 +166,7 @@ jest.mock('../../hooks', () => ({
   usePerpsMeasurement: jest.fn(),
   usePerpsNavigation: jest.fn(() => ({
     navigateTo: jest.fn(),
-    navigateToMarketDetails: jest.fn(),
+    navigateToMarketDetails: mockNavigateToMarketDetails,
     navigateToMarketList: mockNavigateToMarketList,
     navigateToWallet: mockNavigateToWallet,
     navigateBack: mockNavigateBack,
@@ -724,6 +732,41 @@ describe('PerpsHomeView', () => {
     );
   });
 
+  it('does not render the outage banner when the flag is off', () => {
+    // Arrange & Act
+    const { queryByTestId } = render(<PerpsHomeView />);
+
+    // Assert
+    expect(
+      queryByTestId(PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER),
+    ).toBeNull();
+  });
+
+  it('pins the outage banner above the header and hands it the status-bar inset', () => {
+    // Arrange
+    mockUseSelector.mockImplementation(
+      (selector: unknown) =>
+        selector === selectPerpsServiceInterruptionBannerEnabledFlag,
+    );
+
+    // Act
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Assert - the banner owns the inset, so the header no longer applies it
+    // and the banner does not scroll with the content.
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER),
+    ).toBeTruthy();
+    expect(
+      within(
+        getByTestId(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT),
+      ).queryByTestId(PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER),
+    ).toBeNull();
+    expect(flattenStyle(getByTestId('perps-home'))).not.toHaveProperty(
+      'marginTop',
+    );
+  });
+
   it('enables mode-toggle haptics for the Lite mode header', () => {
     // Arrange
     mockUseSelector.mockImplementation(
@@ -1143,6 +1186,20 @@ describe('PerpsHomeView', () => {
 
     expect(UNSAFE_getByType('PerpsMarketBalanceActions' as never)).toBeTruthy();
     expect(UNSAFE_getByType('PerpsRecentActivityList' as never)).toBeTruthy();
+  });
+
+  it('renders the Activity preview aggregated without an Aggregated toggle', () => {
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      recentActivity: [{ id: '1' }],
+    });
+
+    const { UNSAFE_getByType } = render(<PerpsHomeView />);
+
+    const activityList = UNSAFE_getByType('PerpsRecentActivityList' as never);
+    expect(activityList.props).not.toHaveProperty('onAggregateFillsChange');
+    expect(activityList.props).not.toHaveProperty('aggregateFills');
+    expect(mockUsePerpsHomeData).toHaveBeenCalledWith({});
   });
 
   it('shows watchlist section when watchlist markets exist', () => {
@@ -1849,6 +1906,36 @@ describe('PerpsHomeView', () => {
         defaultMarketTypeFilter: 'new',
         source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       });
+    });
+
+    it('navigates to market details with source_section=recently_added when a tile is pressed', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsRecentlyAddedEnabledFlag,
+      );
+      const recentlyAddedMarket = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        price: '$50000',
+        change24h: '+$1250',
+        change24hPercent: '+2.5%',
+        volume: '$1.2B',
+        listedAt: Date.now() - 3 * 60 * 60 * 1000,
+      };
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [recentlyAddedMarket],
+      });
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(getByTestId('perps-recently-added-tile-BTC'));
+
+      expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
+        recentlyAddedMarket,
+        PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        undefined,
+        'recently_added',
+      );
     });
   });
 });

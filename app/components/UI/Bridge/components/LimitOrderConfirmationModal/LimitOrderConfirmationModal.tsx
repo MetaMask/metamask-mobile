@@ -32,6 +32,7 @@ export const LimitOrderConfirmationModal = ({
   costTolerance,
   delegationFee,
   feeToken,
+  usdExchangeRate,
   primaryButton,
   error,
   onClose,
@@ -85,6 +86,22 @@ export const LimitOrderConfirmationModal = ({
             }}
             severity={BannerAlertSeverity.Danger}
             description={error}
+          />
+        </Box>
+      )}
+      {usdExchangeRate && (
+        <Box paddingHorizontal={3} paddingBottom={2}>
+          <BannerAlert
+            descriptionProps={{
+              variant: TextVariant.BodySm,
+              color: TextColor.TextDefault,
+            }}
+            severity={BannerAlertSeverity.Info}
+            description={strings('bridge.limit.usd_price_notice', {
+              rate: usdExchangeRate.rate,
+              currency: usdExchangeRate.currency,
+            })}
+            testID={LimitOrderConfirmationModalSelectorsIDs.USD_PRICE_NOTICE}
           />
         </Box>
       )}
@@ -172,6 +189,7 @@ export const LimitOrderConfirmationModal = ({
           onPress: primaryButton.onPress,
           testID: LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON,
           isLoading: primaryButton.isLoading,
+          isDisabled: primaryButton.isDisabled,
         }}
       />
       <Box

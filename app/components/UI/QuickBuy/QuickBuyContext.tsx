@@ -1,18 +1,18 @@
-import React, { createContext, useCallback, useState } from 'react';
+import React, { createContext, useCallback, useMemo, useState } from 'react';
 import {
   useQuickBuyController,
   type UseQuickBuyControllerResult,
 } from './hooks/useQuickBuyController';
-import { useQuickBuyQuickAmountPreferences } from './hooks/useQuickBuyQuickAmountPreferences';
-import type {
-  QuickBuyAmountTuple,
-  QuickBuySellPercentTuple,
+import {
+  getDefaultSellQuickPercentages,
+  type QuickBuySellPercentTuple,
 } from './utils/quickBuyQuickAmounts';
 import type {
   QuickBuyAnalyticsContext,
   QuickBuyFeatures,
   QuickBuyScreen,
   QuickBuyTarget,
+  QuickBuyTradeMode,
 } from './types';
 
 export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
@@ -22,13 +22,7 @@ export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
   onClose: () => void;
   activeScreen: QuickBuyScreen;
   setActiveScreen: (screen: QuickBuyScreen) => void;
-  buyQuickAmounts: QuickBuyAmountTuple;
   sellQuickPercentages: QuickBuySellPercentTuple;
-  isQuickAmountPreferencesLoaded: boolean;
-  saveQuickAmountPreferences: (next: {
-    buyAmounts: QuickBuyAmountTuple;
-    sellPercentages: QuickBuySellPercentTuple;
-  }) => Promise<void>;
   /**
    * Called by the Buy button. When the high-price-impact modal feature is
    * enabled and the active quote exceeds the error threshold, this navigates
@@ -47,6 +41,7 @@ interface QuickBuyProviderProps {
   target: QuickBuyTarget;
   onClose: () => void;
   features: QuickBuyFeatures;
+  initialTradeMode?: QuickBuyTradeMode;
   analyticsContext?: QuickBuyAnalyticsContext;
   activeScreen: QuickBuyScreen;
   setActiveScreen: (screen: QuickBuyScreen) => void;
@@ -57,12 +52,18 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   target,
   onClose,
   features,
+  initialTradeMode,
   analyticsContext,
   activeScreen,
   setActiveScreen,
   children,
 }) => {
-  const controller = useQuickBuyController(target, onClose, analyticsContext);
+  const controller = useQuickBuyController(
+    target,
+    onClose,
+    analyticsContext,
+    initialTradeMode,
+  );
   // Open the keypad by default so the sheet matches the taller Figma layout
   // (footer + keypad visible together).
   //
@@ -74,23 +75,13 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   // dimmed/inert alongside the rest of the sheet instead, which keeps the height
   // constant no matter when the flag settles.
   const [isKeypadOpen, setIsKeypadOpen] = useState(true);
-  const {
-    currentCurrency,
-    usdToCurrentCurrencyRate,
-    isPriceImpactError,
-    isPresetAddFundsMode,
-    handleConfirm,
-  } = controller;
+  const { isPriceImpactError, isPresetAddFundsMode, handleConfirm } =
+    controller;
 
-  const {
-    buyAmounts: buyQuickAmounts,
-    sellPercentages: sellQuickPercentages,
-    savePreferences: saveQuickAmountPreferences,
-    isLoaded: isQuickAmountPreferencesLoaded,
-  } = useQuickBuyQuickAmountPreferences({
-    currentCurrency,
-    usdToCurrentCurrencyRate,
-  });
+  const sellQuickPercentages = useMemo(
+    () => getDefaultSellQuickPercentages(),
+    [],
+  );
 
   const handleBuy = useCallback(async () => {
     if (!isPresetAddFundsMode && isPriceImpactError) {
@@ -126,10 +117,7 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     onClose,
     activeScreen,
     setActiveScreen,
-    buyQuickAmounts,
     sellQuickPercentages,
-    isQuickAmountPreferencesLoaded,
-    saveQuickAmountPreferences,
     handleBuy,
     isKeypadOpen,
     setIsKeypadOpen,

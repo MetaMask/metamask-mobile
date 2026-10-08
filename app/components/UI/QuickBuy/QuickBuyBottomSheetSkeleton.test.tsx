@@ -8,11 +8,11 @@ describe('QuickBuyBottomSheetSkeleton', () => {
     expect(screen.getByTestId('quick-buy-content-loading')).toBeOnTheScreen();
   });
 
-  it('renders the trade-mode toggle skeleton', () => {
+  it('fills the sheet so the amount area centers like the real content', () => {
     render(<QuickBuyBottomSheetSkeleton />);
-    expect(
-      screen.getByTestId('quick-buy-skeleton-trade-mode'),
-    ).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-content-loading')).toHaveStyle({
+      flexGrow: 1,
+    });
   });
 
   it('renders the keypad placeholder', () => {
@@ -23,13 +23,6 @@ describe('QuickBuyBottomSheetSkeleton', () => {
   it('renders the pay-with pill skeleton', () => {
     render(<QuickBuyBottomSheetSkeleton />);
     expect(screen.getByTestId('quick-buy-skeleton-pay-with')).toBeOnTheScreen();
-  });
-
-  it('renders the confirm-button skeleton', () => {
-    render(<QuickBuyBottomSheetSkeleton />);
-    expect(
-      screen.getByTestId('quick-buy-skeleton-confirm-button'),
-    ).toBeOnTheScreen();
   });
 
   it('does not render the old USD preset buttons', () => {

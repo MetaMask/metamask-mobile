@@ -65,6 +65,8 @@ import {
 } from '../../../../tests/component-view/api-mocking/accounts-transactions';
 import { strings } from '../../../../locales/i18n';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { PERPS_AGGREGATE_FILLS } from '../../../constants/storage';
 import { ACTIVITY_TYPE_FILTER_LABEL_KEY } from './components/ActivityTypeFilterSheet';
 import { PERPS_ACTIVITY_FILTER_LABEL_KEY } from './components/PerpsActivityFilterSheet';
 import { ActivityTypeFilter, PerpsActivityFilter } from './types';
@@ -78,6 +80,7 @@ const ACTIVITY_DETAILS_NETWORK_ROW = 'activity-details-network-row';
 const ACTIVITY_DETAILS_FEE_ROW = 'activity-details-fee-row';
 const ACTIVITY_DETAILS_TOTAL_ROW = 'activity-details-total-row';
 const ACTIVITY_LIST_LOADING_INDICATOR = 'activity-list-loading';
+const AGGREGATED_CHECKBOX_CHECK_ICON = `${ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX}-check-icon`;
 
 const monToBaseBridgeState = (
   transaction: ReturnType<typeof buildPendingLocalBridgeMonToBaseTransaction>,
@@ -228,6 +231,21 @@ const emptyActivityStateFunded = () =>
   } as never);
 
 describeForPlatforms('ActivityScreen', () => {
+  afterEach(() => {
+    clearAccountsTransactionsApiMocks();
+  });
+
+  const waitForActivityListLoaded = async (
+    queryByTestId: (testId: string) => unknown,
+  ) => {
+    await waitFor(
+      () => {
+        expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
+      },
+      { timeout: 10000 },
+    );
+  };
+
   it('updates the selected type filter through the real screen controls', async () => {
     const { getByTestId, getAllByText, findByTestId } =
       renderActivityScreenView();
@@ -367,47 +385,46 @@ describeForPlatforms('ActivityScreen', () => {
       const { getByTestId, findByTestId, queryByTestId } =
         renderActivityScreenView({ state });
 
+      await waitForActivityListLoaded(queryByTestId);
+
       fireEvent.press(
         getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
       );
       fireEvent.press(await findByTestId(networkOptionTestId('eip155:1')));
 
-      await waitFor(() => {
-        expect(
-          getByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
-        ).toBeOnTheScreen();
-        expect(
-          queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
-        ).not.toBeOnTheScreen();
-      });
+      await waitForActivityListLoaded(queryByTestId);
+      expect(
+        await findByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
+      ).not.toBeOnTheScreen();
 
       fireEvent.press(
         getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
       );
       fireEvent.press(await findByTestId(networkOptionTestId('eip155:59144')));
 
-      await waitFor(() => {
-        expect(
-          getByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
-        ).toBeOnTheScreen();
-        expect(
-          queryByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
-        ).not.toBeOnTheScreen();
-      });
+      await waitForActivityListLoaded(queryByTestId);
+      expect(
+        await findByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
+      ).not.toBeOnTheScreen();
 
       fireEvent.press(
         getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
       );
       fireEvent.press(await findByTestId(networkOptionTestId('eip155:1')));
 
-      await waitFor(() => {
-        expect(
-          getByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
-        ).toBeOnTheScreen();
-        expect(
-          queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
-        ).not.toBeOnTheScreen();
-      });
+      await waitForActivityListLoaded(queryByTestId);
+      expect(
+        await findByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
+      ).not.toBeOnTheScreen();
     } finally {
       clearAccountsTransactionsApiMocks();
     }
@@ -463,6 +480,78 @@ describeForPlatforms('ActivityScreen', () => {
         getAllByText(perpsFilterLabel(PerpsActivityFilter.Deposits)).length,
       ).toBeGreaterThan(0);
     });
+  });
+
+  it('shows the Aggregated checkbox on Perps Trades and hides it on Deposits', async () => {
+    const { getByTestId, queryByTestId, findByTestId } =
+      renderActivityScreenView();
+
+    fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+    fireEvent.press(await findByTestId(optionTestId(ActivityTypeFilter.Perps)));
+
+    expect(
+      await findByTestId(ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.PERPS_FILTER_CHIP));
+    fireEvent.press(
+      await findByTestId(perpsOptionTestId(PerpsActivityFilter.Deposits)),
+    );
+
+    await waitFor(() => {
+      expect(
+        queryByTestId(ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX),
+      ).toBeNull();
+    });
+  });
+
+  it('saves the Aggregated choice when switching Perps Trades to individual fills', async () => {
+    const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+    try {
+      const { getByTestId, queryByTestId, findByTestId } =
+        renderActivityScreenView();
+      fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+      fireEvent.press(
+        await findByTestId(optionTestId(ActivityTypeFilter.Perps)),
+      );
+      expect(
+        await findByTestId(AGGREGATED_CHECKBOX_CHECK_ICON),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        getByTestId(ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX),
+      );
+
+      await waitFor(() => {
+        expect(queryByTestId(AGGREGATED_CHECKBOX_CHECK_ICON)).toBeNull();
+      });
+      expect(setItemSpy).toHaveBeenCalledWith(PERPS_AGGREGATE_FILLS, 'false');
+    } finally {
+      setItemSpy.mockRestore();
+    }
+  });
+
+  it('restores a saved individual-fills choice on Perps Trades', async () => {
+    const getItemSyncSpy = jest
+      .spyOn(StorageWrapper, 'getItemSync')
+      .mockImplementation((key: string) =>
+        key === PERPS_AGGREGATE_FILLS ? 'false' : null,
+      );
+    try {
+      const { getByTestId, queryByTestId, findByTestId } =
+        renderActivityScreenView();
+      fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+      fireEvent.press(
+        await findByTestId(optionTestId(ActivityTypeFilter.Perps)),
+      );
+
+      expect(
+        await findByTestId(ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(AGGREGATED_CHECKBOX_CHECK_ICON)).toBeNull();
+    } finally {
+      getItemSyncSpy.mockRestore();
+    }
   });
 
   it('navigates back to home tabs when opened as the root activity route', async () => {
@@ -648,9 +737,11 @@ describeForPlatforms('ActivityScreen — empty state', () => {
     );
 
     await waitFor(
-      async () => {
-        expect(await findByText(predictionsDescription)).toBeOnTheScreen();
-        expect(await findByText(makePredictionLabel)).toBeOnTheScreen();
+      () => {
+        const emptyState = getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE);
+        const scope = within(emptyState);
+        expect(scope.getByText(predictionsDescription)).toBeOnTheScreen();
+        expect(scope.getByText(makePredictionLabel)).toBeOnTheScreen();
       },
       { timeout: 10000 },
     );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { act, render, waitFor } from '@testing-library/react-native';
 import {
   useNavigation,
   useRoute,
@@ -18,6 +18,12 @@ import {
   startPerpsTradeSheetInteractiveTrace,
 } from '../utils/perpsTradeSheetInteractiveTrace';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
+
+// Legacy deposit lifecycle cases retain the Hyperliquid route. Lighter routing
+// is covered with real Redux state in PerpsOrderRedirect.view.test.tsx.
+jest.mock('react-redux', () => ({
+  useSelector: () => 'hyperliquid',
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -290,6 +296,75 @@ describe('PerpsOrderRedirect', () => {
     });
   });
 
+  it('forces the trade bottom sheet when the route asks for it', async () => {
+    mockUseRoute.mockReturnValue({
+      key: 'test',
+      name: 'PerpsOrderRedirect',
+      params: {
+        direction: 'long',
+        asset: 'ETH',
+        leverage: 8,
+        useBottomSheet: true,
+      },
+    } as never);
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: true,
+      isInitialized: true,
+    } as never);
+    mockUsePerpsScreenVsBottomSheetAbTest.mockReturnValue({
+      useBottomSheet: false,
+    });
+    mockDepositWithOrder.mockResolvedValue(undefined);
+    (StackActions.replace as jest.Mock).mockReturnValue({ type: 'REPLACE' });
+
+    render(<PerpsOrderRedirect />);
+
+    await waitFor(() => {
+      expect(StackActions.replace).toHaveBeenCalledWith(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        expect.objectContaining({
+          leverage: 8,
+          useBottomSheet: true,
+          forceBottomSheet: true,
+        }),
+      );
+    });
+  });
+
+  it('forwards stayOnCurrentScreen onto the confirmation screen', async () => {
+    mockUseRoute.mockReturnValue({
+      key: 'test',
+      name: 'PerpsOrderRedirect',
+      params: {
+        direction: 'long',
+        asset: 'ETH',
+        leverage: 8,
+        useBottomSheet: true,
+        stayOnCurrentScreen: true,
+      },
+    } as never);
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: true,
+      isInitialized: true,
+    } as never);
+    mockUsePerpsScreenVsBottomSheetAbTest.mockReturnValue({
+      useBottomSheet: false,
+    });
+    mockDepositWithOrder.mockResolvedValue(undefined);
+    (StackActions.replace as jest.Mock).mockReturnValue({ type: 'REPLACE' });
+
+    render(<PerpsOrderRedirect />);
+
+    await waitFor(() => {
+      expect(StackActions.replace).toHaveBeenCalledWith(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        expect.objectContaining({
+          stayOnCurrentScreen: true,
+        }),
+      );
+    });
+  });
+
   it('forwards the treatment assignment from Token Details', async () => {
     mockUsePerpsConnection.mockReturnValue({
       isConnected: true,
@@ -308,12 +383,80 @@ describe('PerpsOrderRedirect', () => {
         Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         expect.objectContaining({
           useBottomSheet: true,
+          forceBottomSheet: true,
         }),
       );
     });
     expect(startPerpsTradeSheetInteractiveTrace).toHaveBeenCalledWith(
       PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
     );
+  });
+
+  it('forwards a caller source instead of the asset-detail default', async () => {
+    mockUseRoute.mockReturnValue({
+      key: 'test',
+      name: 'PerpsOrderRedirect',
+      params: {
+        direction: 'long',
+        asset: 'xyz:TSLA',
+        source: 'trader_feed',
+        useBottomSheet: true,
+      },
+    } as never);
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: true,
+      isInitialized: true,
+    } as never);
+    mockDepositWithOrder.mockResolvedValue(undefined);
+    (StackActions.replace as jest.Mock).mockReturnValue({ type: 'REPLACE' });
+
+    render(<PerpsOrderRedirect />);
+
+    await waitFor(() => {
+      expect(StackActions.replace).toHaveBeenCalledWith(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        expect.objectContaining({
+          asset: 'xyz:TSLA',
+          source: 'trader_feed',
+        }),
+      );
+    });
+    expect(startPerpsTradeSheetInteractiveTrace).toHaveBeenCalledWith(
+      'trader_feed',
+    );
+  });
+
+  it('dismisses a sheet entry when the Perps connection never becomes ready', () => {
+    jest.useFakeTimers();
+    try {
+      mockUseRoute.mockReturnValue({
+        key: 'test',
+        name: 'PerpsOrderRedirect',
+        params: {
+          direction: 'long',
+          asset: 'ETH',
+          useBottomSheet: true,
+        },
+      } as never);
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isInitialized: false,
+      } as never);
+
+      render(<PerpsOrderRedirect />);
+
+      act(() => {
+        jest.advanceTimersByTime(15_000);
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        mockToastOptions.accountManagement.oneClickTrade.txCreationFailed,
+      );
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockDepositWithOrder).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('ends the Trade sheet interactive span when depositWithOrder fails under treatment', async () => {

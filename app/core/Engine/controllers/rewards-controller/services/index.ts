@@ -28,6 +28,7 @@ export type {
   RewardsDataServiceGetPredictThePitchPrizePoolAction,
   RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction,
   RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction,
   RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction,
   RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction,
   RewardsDataServiceRegisterMoneyAccountBindingAction,

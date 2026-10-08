@@ -8,7 +8,7 @@ import {
   resetSocialV1ComposedFeedStore,
   submitSocialV1ComposedPost,
 } from '../store/socialV1ComposedFeedStore';
-import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
+import { mockOpenPerpsFeedItem } from '../../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import SocialFeedPostingBanner from './SocialFeedPostingBanner';
 import { SocialFeedPostingBannerSelectorsIDs } from './SocialFeedPostingBanner.testIds';
 
@@ -75,8 +75,7 @@ describe('SocialFeedPostingBanner', () => {
       id: 'composed-1',
       authorHandle: 'giga-whale',
       timestampMs: 1_000_000,
-      likeCount: 0,
-      commentCount: 0,
+      reactions: [],
       item: mockOpenPerpsFeedItem({ comment: 'this is alpha' }),
     });
 
@@ -95,8 +94,7 @@ describe('SocialFeedPostingBanner', () => {
       id: 'composed-1',
       authorHandle: 'giga-whale',
       timestampMs: 1_000_000,
-      likeCount: 0,
-      commentCount: 0,
+      reactions: [],
       item: mockOpenPerpsFeedItem({ comment: 'this is alpha' }),
     });
 

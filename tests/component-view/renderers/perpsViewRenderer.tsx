@@ -61,6 +61,8 @@ import {
 } from '../../../app/components/UI/Perps/utils/perpsCufTrace';
 import {
   type AccountState,
+  type CandleData,
+  CandlePeriod,
   type PerpsMarketData,
   type Position,
   type PriceUpdate,
@@ -126,6 +128,7 @@ const testHardwareWalletValue: HardwareWalletContextValue = {
   setTargetWalletType: (): void => undefined,
   setPendingOperationAddress: (): void => undefined,
   showHardwareWalletError: (): void => undefined,
+  cancelConnectionFlow: (): void => undefined,
   showAwaitingConfirmation: (): void => undefined,
   hideAwaitingConfirmation: (): void => undefined,
   qr: {
@@ -270,8 +273,12 @@ function topOfBookChannel() {
   };
 }
 
-/** Focused-price channel: usePerpsLiveFocusedPrice calls subscribeToSymbol (e.g. PerpsMarketDetailsView, PerpsOrderView) */
-function focusedPriceChannel() {
+/**
+ * Focused-price channel. `cachedFocusedPrice` is only what
+ * `getSnapshot()` returns. The live subscription still starts empty so a
+ * cached quote is not also the first focused tick.
+ */
+function focusedPriceChannel(cachedFocusedPrice: PriceUpdate | null = null) {
   return {
     subscribe: (): (() => void) => noopUnsubscribe,
     subscribeToSymbol: (params: {
@@ -283,17 +290,68 @@ function focusedPriceChannel() {
       }
       return noopUnsubscribe;
     },
-    getSnapshot: () => null,
+    getSnapshot: () => cachedFocusedPrice,
   };
 }
 
-/** Prices channel: usePerpsLivePrices calls subscribeToSymbols */
-const pricesChannel = (initialPrices: Record<string, PriceUpdate> = {}) => {
+/**
+ * Candles channel. The cached series is a synchronous read for the trade
+ * sheet header. It is not pushed through the live candle subscription.
+ */
+function candlesChannel(
+  cachedCandles: CandleData | null,
+  chartCacheFresh: boolean,
+) {
+  return {
+    subscribe: (): (() => void) => noopUnsubscribe,
+    getSnapshot: () => cachedCandles,
+    getCachedData: (
+      symbol: string,
+      interval: CandlePeriod,
+    ): CandleData | null =>
+      cachedCandles?.symbol === symbol && cachedCandles.interval === interval
+        ? cachedCandles
+        : null,
+    isChartCacheFresh: (data: CandleData): boolean =>
+      chartCacheFresh && data === cachedCandles,
+    refresh: async (): Promise<void> => undefined,
+    clearCache: (): void => undefined,
+  };
+}
+
+/**
+ * Prices channel. `cachedPrices` is the all-mids map `getSnapshotForSymbol`
+ * reads during render. `initialPrices` is what `usePerpsLivePrices` receives.
+ * Keeping them separate lets a test show a cached header before any live tick.
+ * A later `emit` updates both, matching a price that has now been delivered.
+ */
+const pricesChannel = (
+  initialPrices: Record<string, PriceUpdate> = {},
+  cachedPrices: Record<string, PriceUpdate> = {},
+) => {
   const channel =
     mutableChannelWithInitialValue<Record<string, PriceUpdate>>(initialPrices);
+  const priceCache = new Map<string, PriceUpdate>(Object.entries(cachedPrices));
+  for (const [symbol, update] of Object.entries(initialPrices)) {
+    if (!priceCache.has(symbol)) {
+      priceCache.set(symbol, update);
+    }
+  }
+
+  const emit = (data: Record<string, PriceUpdate> | null) => {
+    if (data) {
+      for (const [symbol, update] of Object.entries(data)) {
+        priceCache.set(symbol, update);
+      }
+    }
+    channel.emit(data);
+  };
 
   return {
     ...channel,
+    emit,
+    getSnapshotForSymbol: (symbol: string): PriceUpdate | null =>
+      priceCache.get(symbol) ?? null,
     subscribeToSymbols: (params?: {
       callback?: (data: Record<string, PriceUpdate> | null) => void;
     }): (() => void) => {
@@ -331,8 +389,10 @@ const typedMarkets = (markets: unknown[]): PerpsMarketData[] =>
 const typedAccount = (account: unknown): AccountState =>
   account as AccountState;
 
-const createPricesChannel = (prices?: Record<string, PriceUpdate>) =>
-  pricesChannel(prices);
+const createPricesChannel = (
+  prices?: Record<string, PriceUpdate>,
+  cachedPrices?: Record<string, PriceUpdate>,
+) => pricesChannel(prices, cachedPrices);
 
 const createAccountChannel = (account: unknown) =>
   mutableChannelWithInitialValue(typedAccount(account));
@@ -372,6 +432,20 @@ export interface PerpsStreamOverrides {
   orders?: unknown[];
   /** When set, usePerpsLivePrices() receives these prices on first subscription. */
   prices?: Record<string, PriceUpdate>;
+  /**
+   * All-mids entries for `prices.getSnapshotForSymbol`. Not delivered to
+   * `usePerpsLivePrices` until `emitPrices`.
+   */
+  cachedPrices?: Record<string, PriceUpdate>;
+  /** Candle series for `candles.getCachedData`. Not a live candle subscription. */
+  cachedCandles?: CandleData | null;
+  /**
+   * `candles.isChartCacheFresh` for `cachedCandles`. Defaults to true when a
+   * series is seeded, otherwise false.
+   */
+  chartCacheFresh?: boolean;
+  /** `focusedPrice.getSnapshot()` only. The live focused subscription stays empty. */
+  cachedFocusedPrice?: PriceUpdate | null;
 }
 
 /** Creates a minimal stream manager double so views using usePerpsStream() render without WebSocket. */
@@ -386,7 +460,13 @@ function createTestStreamManager(
   const account = createAccountChannel(
     streamOverrides?.account ?? initialAccount,
   );
-  const prices = createPricesChannel(streamOverrides?.prices);
+  const prices = createPricesChannel(
+    streamOverrides?.prices,
+    streamOverrides?.cachedPrices,
+  );
+  const cachedCandles = streamOverrides?.cachedCandles ?? null;
+  const chartCacheFresh =
+    streamOverrides?.chartCacheFresh ?? cachedCandles != null;
 
   const streamManager = {
     prices,
@@ -397,8 +477,10 @@ function createTestStreamManager(
     marketData,
     oiCaps: noopChannel(),
     topOfBook: topOfBookChannel(),
-    focusedPrice: focusedPriceChannel(),
-    candles: noopChannel(),
+    focusedPrice: focusedPriceChannel(
+      streamOverrides?.cachedFocusedPrice ?? null,
+    ),
+    candles: candlesChannel(cachedCandles, chartCacheFresh),
     clearAllChannels: (): void => undefined,
   } as unknown as PerpsStreamManager;
 
@@ -917,21 +999,33 @@ const defaultTPSLParams = {
 };
 
 /**
+ * Hoisted so the sheet arm keeps a stable component identity across renders
+ * rather than remounting on every call.
+ */
+const PerpsTPSLSheetView = () => <PerpsTPSLView variant="sheet" />;
+
+/**
  * Renders PerpsTPSLView. Use in PerpsTPSLView.view.test.tsx.
+ *
+ * `variant` selects the A/B arm: omit it for the full-screen control, or pass
+ * `sheet` for the bottom-sheet treatment.
  */
 export function renderPerpsTPSLView(
   options: {
     overrides?: DeepPartial<RootState>;
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
+    variant?: 'screen' | 'sheet';
   } = {},
 ) {
   const initialParams = {
     ...defaultTPSLParams,
     ...options.initialParams,
   };
+  const Component =
+    options.variant === 'sheet' ? PerpsTPSLSheetView : PerpsTPSLView;
   return renderPerpsView(
-    PerpsTPSLView as unknown as React.ComponentType,
+    Component as unknown as React.ComponentType,
     Routes.PERPS.TPSL,
     { ...options, initialParams, streamOverrides: options.streamOverrides },
   );

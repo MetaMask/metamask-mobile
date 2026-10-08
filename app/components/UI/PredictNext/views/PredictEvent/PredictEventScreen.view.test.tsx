@@ -1020,11 +1020,14 @@ describe('PredictEventScreen', () => {
     );
   });
 
-  it('loads selected grouped Market history for a Game Event', async () => {
+  it('keeps winner Market history when a grouped Game line is selected', async () => {
     resolveEventForRoute(makePredictNextCompositeGameEvent());
     const view = renderPredictEventScreen(routeParams);
 
     await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
+    ).not.toBeOnTheScreen();
     messengerCall.mockClear();
 
     fireEvent.press(
@@ -1040,27 +1043,18 @@ describe('PredictEventScreen', () => {
         ),
       ).toHaveProp('accessibilityState', { selected: true }),
     );
-    await waitFor(() =>
-      expect(messengerCall).toHaveBeenCalledWith(
-        'PredictMarketDataService:getMarketHistory',
-        venueId,
-        'nfl-total-220-5',
-        'ALL',
-      ),
+    expect(messengerCall).not.toHaveBeenCalledWith(
+      'PredictMarketDataService:getMarketHistory',
+      venueId,
+      'nfl-total-220-5',
+      'ALL',
     );
     expect(
-      view.queryByTestId(
-        `${PredictMarketHistoryTestIds.CHART}-line-nfl-composite-yes`,
-      ),
-    ).not.toBeOnTheScreen();
-    expect(
-      view.queryByTestId(
-        `${PredictMarketHistoryTestIds.CHART}-line-nfl-composite-home-yes`,
-      ),
-    ).not.toBeOnTheScreen();
+      view.getByTestId(PredictMarketHistoryTestIds.CHART),
+    ).toBeOnTheScreen();
   });
 
-  it('updates grouped history when a Game has no winner pair', async () => {
+  it('keeps the default grouped history when a Game has no winner pair', async () => {
     const event = makePredictNextCompositeGameEvent();
     resolveEventForRoute({
       ...event,
@@ -1071,6 +1065,9 @@ describe('PredictEventScreen', () => {
     const view = renderPredictEventScreen(routeParams);
 
     await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
+    ).not.toBeOnTheScreen();
     messengerCall.mockClear();
 
     fireEvent.press(
@@ -1080,12 +1077,17 @@ describe('PredictEventScreen', () => {
     );
 
     await waitFor(() =>
-      expect(messengerCall).toHaveBeenCalledWith(
-        'PredictMarketDataService:getMarketHistory',
-        venueId,
-        'nfl-total-220-5',
-        'ALL',
-      ),
+      expect(
+        view.getByTestId(
+          MarketGroupCardTestIds.option('nfl-total-points', 'nfl-total-220-5'),
+        ),
+      ).toHaveProp('accessibilityState', { selected: true }),
+    );
+    expect(messengerCall).not.toHaveBeenCalledWith(
+      'PredictMarketDataService:getMarketHistory',
+      venueId,
+      'nfl-total-220-5',
+      'ALL',
     );
   });
 
@@ -1160,12 +1162,15 @@ describe('PredictEventScreen', () => {
     ).toHaveTextContent('Total points');
   });
 
-  it('synchronizes grouped selection with non-Game Market history', async () => {
+  it('does not reload history when a grouped non-Game line is selected', async () => {
     const event = makePredictNextTotalsEvent();
     resolveEventForRoute(event);
     const view = renderPredictEventScreen(routeParams);
 
     await view.findByTestId(MarketGroupCardTestIds.card('nfl-total-points'));
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
+    ).not.toBeOnTheScreen();
     messengerCall.mockClear();
 
     fireEvent.press(
@@ -1175,32 +1180,32 @@ describe('PredictEventScreen', () => {
     );
 
     await waitFor(() =>
-      expect(messengerCall).toHaveBeenCalledWith(
-        'PredictMarketDataService:getMarketHistory',
-        venueId,
-        'nfl-total-220-5',
-        'ALL',
-      ),
-    );
-  });
-
-  it('synchronizes non-Game Market history selection with a grouped card', async () => {
-    const event = makePredictNextTotalsEvent();
-    resolveEventForRoute(event);
-    const view = renderPredictEventScreen(routeParams);
-
-    await view.findByTestId(MarketGroupCardTestIds.card('nfl-total-points'));
-    fireEvent.press(
-      view.getByTestId(PredictEventScreenTestIds.market('nfl-total-220-5')),
-    );
-
-    await waitFor(() =>
       expect(
         view.getByTestId(
           MarketGroupCardTestIds.option('nfl-total-points', 'nfl-total-220-5'),
         ),
       ).toHaveProp('accessibilityState', { selected: true }),
     );
+    expect(messengerCall).not.toHaveBeenCalledWith(
+      'PredictMarketDataService:getMarketHistory',
+      venueId,
+      'nfl-total-220-5',
+      'ALL',
+    );
+  });
+
+  it('omits the top Market filter for grouped-only Events', async () => {
+    const event = makePredictNextTotalsEvent();
+    resolveEventForRoute(event);
+    const view = renderPredictEventScreen(routeParams);
+
+    await view.findByTestId(MarketGroupCardTestIds.card('nfl-total-points'));
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.MARKETS),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.market('nfl-total-220-5')),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders a grouped Market without a selector when it has one option', async () => {
@@ -1647,18 +1652,18 @@ describe('PredictEventScreen', () => {
     ).toHaveTextContent('Q4 · 01:12');
   });
 
-  it('watches the Event for live Game updates and stops on unmount', async () => {
+  it('watches the Event for live updates and stops on unmount', async () => {
     resolveEvent(createGameEvent());
     const view = renderPredictEventScreen(routeParams);
     await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER);
 
-    expectMessengerCalledWith('PredictLiveDataService:watchGames', venueId, [
+    expectMessengerCalledWith('PredictLiveDataService:watchEvents', venueId, [
       eventId,
     ]);
 
     view.unmount();
 
-    expectMessengerCalledWith('PredictLiveDataService:unwatchGames', venueId, [
+    expectMessengerCalledWith('PredictLiveDataService:unwatchEvents', venueId, [
       eventId,
     ]);
   });
