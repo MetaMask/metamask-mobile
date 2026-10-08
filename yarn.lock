@@ -12125,7 +12125,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/social-controllers@npm:^3.4.0":
+"@metamask/social-controllers@npm:3.4.0":
   version: 3.4.0
   resolution: "@metamask/social-controllers@npm:3.4.0"
   dependencies:
@@ -12136,6 +12136,20 @@ __metadata:
     "@metamask/profile-sync-controller": "npm:^33.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
   checksum: 10/fc4e93a7c5f041868fdb3a097fda58f4d2b3caa6139d0bfc241d1e364491ec5701973f505f53cc2aa2424bff287032fc223a540e9ecf43bd15a2eff273d215bc
+  languageName: node
+  linkType: hard
+
+"@metamask/social-controllers@patch:@metamask/social-controllers@npm%3A3.4.0#~/.yarn/patches/@metamask-social-controllers-npm-3.4.0-7ad4d4498f.patch":
+  version: 3.4.0
+  resolution: "@metamask/social-controllers@patch:@metamask/social-controllers@npm%3A3.4.0#~/.yarn/patches/@metamask-social-controllers-npm-3.4.0-7ad4d4498f.patch::version=3.4.0&hash=bba00d"
+  dependencies:
+    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/base-data-service": "npm:^2.0.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^33.0.0"
+    "@metamask/superstruct": "npm:^3.4.1"
+  checksum: 10/b9ffe77df542720a78deacc3cf90dfc8384f8cd8ed0418aaecf774f00390e0f6513e12b0c379fd13e860b9e12348ba734914364fc24be406f85e1e977f4e5ece
   languageName: node
   linkType: hard
 
@@ -39221,7 +39235,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": "npm:^17.2.0"
     "@metamask/snaps-sdk": "npm:^12.1.0"
     "@metamask/snaps-utils": "npm:^12.6.0"
-    "@metamask/social-controllers": "npm:^3.4.0"
+    "@metamask/social-controllers": "patch:@metamask/social-controllers@npm%3A3.4.0#~/.yarn/patches/@metamask-social-controllers-npm-3.4.0-7ad4d4498f.patch"
     "@metamask/solana-wallet-snap": "npm:^7.0.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
