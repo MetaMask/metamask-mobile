@@ -8939,7 +8939,23 @@
       "title": "More",
       "how_it_works": "How it works",
       "what_you_get": "Benefits",
-      "contact_support": "Contact support"
+      "contact_support": "Contact support",
+      "advanced_settings": "Advanced settings"
+    },
+    "advanced_settings": {
+      "title": "Advanced settings",
+      "account_label": "Account",
+      "status_label": "Registration status",
+      "status_registered": "Registered on this device",
+      "status_not_registered": "Not registered on this device",
+      "status_unavailable": "Unavailable while wallet is locked",
+      "status_disclaimer": "This record is local to this device and current configuration. It is not a live check.",
+      "registered_on": "Registered on {{date}}",
+      "retry_button": "Retry registration",
+      "retry_registered": "Registration succeeded.",
+      "retry_not_recorded": "Registration completed, but no local record was found. Try again.",
+      "retry_unavailable": "Registration is unavailable. Check your connection or VPN.",
+      "retry_failed": "Registration failed. Check your connection or VPN, then try again or contact support."
     },
     "transfer_sheet": {
       "title": "Send funds to",

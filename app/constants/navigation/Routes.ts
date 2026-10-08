@@ -516,6 +516,7 @@ const Routes = {
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
+    ADVANCED_SETTINGS: 'MoneyAdvancedSettings',
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
     ONBOARDING: 'MoneyOnboarding',
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',

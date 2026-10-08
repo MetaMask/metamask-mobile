@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
@@ -25,6 +26,7 @@ import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import useMountEffect from '../../hooks/useMountEffect';
+import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -48,6 +50,7 @@ const MoneyMoreSheet = () => {
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MORE_SHEET,
   });
   const { openSupportWithConsent } = useSupportConsent();
+  const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
 
   useMountEffect(trackBottomSheetViewed);
 
@@ -118,6 +121,22 @@ const MoneyMoreSheet = () => {
       testID: MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION,
     },
   ];
+  if (isMoneyAccountVisible) {
+    options.push({
+      label: strings('money.more_sheet.advanced_settings'),
+      icon: IconName.Setting,
+      onPress: () => {
+        trackSurfaceClicked({
+          component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_ADVANCED_SETTINGS,
+          redirect_target: SCREEN_NAMES.MONEY_ADVANCED_SETTINGS,
+        });
+        closeAndNavigate(() =>
+          navigation.navigate(Routes.MONEY.ADVANCED_SETTINGS as never),
+        );
+      },
+      testID: 'money-more-sheet-advanced-settings',
+    });
+  }
 
   return (
     <BottomSheet

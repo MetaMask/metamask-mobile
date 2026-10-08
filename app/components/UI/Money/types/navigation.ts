@@ -51,6 +51,7 @@ export type MoneyScreensStackParamList = {
   MoneyHome: MoneyHomeParams | undefined;
   MoneyActivity: undefined;
   MoneyHowItWorks: undefined;
+  MoneyAdvancedSettings: undefined;
 };
 
 /**
