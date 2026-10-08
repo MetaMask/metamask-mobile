@@ -22,7 +22,6 @@ const scale = Math.min(widthScale, heightScale);
 const conservativeScale = Math.min(scale, 1.2); // Cap scaling at 120%
 
 // Platform-aware responsive scaling functions
-const scaleSize = (size: number) => Math.ceil(size * conservativeScale);
 const scaleFont = (size: number) => Math.ceil(size * conservativeScale);
 
 // For vertical spacing, use percentage of available height instead of pure scaling
@@ -105,7 +104,6 @@ const createStyles = (
       paddingBottom: scaleVertical(12),
     },
     tryNowButton: {
-      borderRadius: scaleSize(12),
       backgroundColor: isDarkMode
         ? importedColors.white
         : importedColors.btnBlack,
@@ -116,7 +114,6 @@ const createStyles = (
       fontSize: scaleFont(16),
     },
     notNowButton: {
-      borderRadius: scaleSize(12),
       backgroundColor: theme.colors.background.default,
       borderWidth: 1,
       borderColor: importedColors.transparent,
