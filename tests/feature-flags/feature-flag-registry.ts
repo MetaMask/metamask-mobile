@@ -6543,12 +6543,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  // Not in the production client-config response yet. inProd stays false so
-  // the weekly registry sync does not treat this as removed from production.
   homeInterimHeaderNavBar: {
     name: 'homeInterimHeaderNavBar',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
       minimumVersion: '8.15.0',
@@ -8241,17 +8239,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         value: 'treatment',
       },
     ],
-    status: FeatureFlagStatus.Active,
-  },
-
-  homeInterimHeaderNavBar: {
-    name: 'homeInterimHeaderNavBar',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '8.15.0',
-    },
     status: FeatureFlagStatus.Active,
   },
 
