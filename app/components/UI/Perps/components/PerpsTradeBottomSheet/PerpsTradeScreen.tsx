@@ -521,7 +521,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                       variant={TextVariant.BodyMd}
                       fontWeight={FontWeight.Medium}
                       color={
-                        limitPrice ? TextColor.TextDefault : TextColor.TextMuted
+                        limitPrice
+                          ? TextColor.TextDefault
+                          : TextColor.ErrorDefault
                       }
                     >
                       {limitPriceDisplay}
