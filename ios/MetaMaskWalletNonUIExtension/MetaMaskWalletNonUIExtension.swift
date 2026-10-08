@@ -1,6 +1,7 @@
 import Foundation
 import os
 import PassKit
+import UIKit
 import WatchConnectivity
 
 private let log = Logger(subsystem: "io.metamask.MetaMask", category: "WalletExtension")
@@ -106,7 +107,7 @@ enum WalletExtensionPasses {
             cards: snapshot.cards,
             installed: remote ? installed.watch : installed.phone
         )
-        guard let art = makeCardArt() else { return [] }
+        guard let art = CardArt.load() else { return [] }
         return cards.compactMap { card in
             guard let configuration = configuration(for: card) else { return nil }
             return PKIssuerProvisioningExtensionPaymentPassEntry(
@@ -125,16 +126,34 @@ enum WalletExtensionPasses {
         nonceSignature: Data
     ) async -> PKAddPaymentPassRequest? {
         let deadline = Date().addingTimeInterval(18)
-        guard let snapshot = readSnapshot() else { return nil }
-        guard await FlagsClient.isEnabled(snapshot: snapshot) else { return nil }
-        guard let card = ProvisioningLogic.card(matching: identifier, in: snapshot.cards) else { return nil }
-        guard let tokens = await SessionRefresh.usableTokens(snapshot: snapshot, deadline: deadline) else { return nil }
-        guard let base = URL(string: snapshot.apiBaseUrl) else { return nil }
+        guard let snapshot = readSnapshot() else {
+            log.error("Provisioning snapshot unavailable")
+            return nil
+        }
+        guard await FlagsClient.isEnabled(snapshot: snapshot) else {
+            log.error("Provisioning flag disabled")
+            return nil
+        }
+        guard let card = ProvisioningLogic.card(matching: identifier, in: snapshot.cards) else {
+            log.error("Provisioning card not found")
+            return nil
+        }
+        guard let tokens = await SessionRefresh.usableTokens(snapshot: snapshot, deadline: deadline) else {
+            log.error("Provisioning session unavailable")
+            return nil
+        }
+        guard let base = URL(string: snapshot.apiBaseUrl) else {
+            log.error("Provisioning configuration invalid")
+            return nil
+        }
         let http = ProviderHTTP()
         do {
             let payload: ProvisioningPayload
             if snapshot.providerId == "baanx" {
-                guard let clientKey = snapshot.baanxClientKey else { return nil }
+                guard let clientKey = snapshot.baanxClientKey else {
+                    log.error("Provisioning configuration invalid")
+                    return nil
+                }
                 payload = try await BaanxClient.provision(
                     certificates: certificates,
                     nonce: nonce,
@@ -161,14 +180,16 @@ enum WalletExtensionPasses {
                 let activation = Data(base64Encoded: payload.activationData),
                 let ephemeral = Data(base64Encoded: payload.ephemeralPublicKey)
             else {
+                log.error("Provisioning payload decode failed")
                 return nil
             }
             request.encryptedPassData = encrypted
             request.activationData = activation
             request.ephemeralPublicKey = ephemeral
+            log.info("Provisioning request created")
             return request
         } catch {
-            log.error("Provisioning request failed")
+            logProvisioningFailure(error)
             return nil
         }
     }
@@ -202,5 +223,38 @@ enum WalletExtensionPasses {
             configuration.primaryAccountIdentifier = identifier
         }
         return configuration
+    }
+}
+
+private enum CardArt {
+    static let assetName = "MetaMaskCardArt"
+    static let width = 1536
+    static let height = 969
+
+    static func load() -> CGImage? {
+        guard let image = UIImage(named: assetName), let art = image.cgImage else {
+            log.error("Card art unavailable")
+            return nil
+        }
+        guard art.width == width, art.height == height else {
+            log.error("Card art malformed")
+            return nil
+        }
+        return art
+    }
+}
+
+private func logProvisioningFailure(_ error: Error) {
+    guard let providerError = error as? ProviderClientError else {
+        log.error("Provisioning request failed")
+        return
+    }
+    switch providerError {
+    case let .http(status, errorCode):
+        log.error("Provisioning provider request failed status=\(status, privacy: .public) code=\(errorCode ?? "none", privacy: .public)")
+    case .invalidResponse:
+        log.error("Provisioning provider response invalid")
+    case .timeout:
+        log.error("Provisioning provider request timed out")
     }
 }

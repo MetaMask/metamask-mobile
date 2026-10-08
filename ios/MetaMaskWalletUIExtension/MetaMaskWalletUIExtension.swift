@@ -1,14 +1,18 @@
 import Combine
 import CoreText
 import LocalAuthentication
+import os
 import PassKit
 import SwiftUI
 import UIKit
+
+private let authLog = Logger(subsystem: "io.metamask.MetaMask", category: "WalletExtension")
 
 class MetaMaskWalletUIExtension: UIViewController, PKIssuerProvisioningExtensionAuthorizationProviding {
     var completionHandler: ((PKIssuerProvisioningExtensionAuthorizationResult) -> Void)?
     private let model = AuthorizationModel()
     private var didFinish = false
+    private var didStartAuthorization = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,6 +31,12 @@ class MetaMaskWalletUIExtension: UIViewController, PKIssuerProvisioningExtension
             controller.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
         controller.didMove(toParent: self)
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        guard !didStartAuthorization else { return }
+        didStartAuthorization = true
         model.start()
     }
 
@@ -174,11 +184,15 @@ final class AuthorizationModel: ObservableObject {
         context.localizedCancelTitle = NSLocalizedString("Close", comment: "")
         var error: NSError?
         guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else {
+            logVerificationOutcome(error)
             await MainActor.run { phase = .verificationFailed }
             return
         }
         let success = await withCheckedContinuation { continuation in
-            context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: NSLocalizedString("Verify it's you", comment: "")) { ok, _ in
+            context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: NSLocalizedString("Verify it's you", comment: "")) { ok, evalError in
+                if !ok {
+                    logVerificationOutcome(evalError)
+                }
                 continuation.resume(returning: ok)
             }
         }
@@ -221,6 +235,14 @@ final class AuthorizationModel: ObservableObject {
 
 extension Notification.Name {
     static let walletExtensionAuthorized = Notification.Name("walletExtensionAuthorized")
+}
+
+private func logVerificationOutcome(_ error: Error?) {
+    if let code = (error as? LAError)?.code.rawValue {
+        authLog.error("Verification failed code=\(code, privacy: .public)")
+    } else {
+        authLog.error("Verification failed code=unknown")
+    }
 }
 
 struct AuthorizationView: View {
@@ -325,13 +347,14 @@ struct AuthorizationView: View {
         Button(action: action) {
             Text(title)
                 .font(WalletFont.button)
+                .foregroundStyle(Color.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
+                .background(WalletColor.primary)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .contentShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
-        .foregroundStyle(Color.white)
-        .background(WalletColor.primary)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private func secondaryButton(_ title: String, action: @escaping () -> Void) -> some View {

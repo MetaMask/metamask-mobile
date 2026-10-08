@@ -1,7 +1,4 @@
 import Foundation
-#if canImport(CoreGraphics)
-import CoreGraphics
-#endif
 
 struct ProvisioningPayload: Equatable {
     var encryptedPassData: String
@@ -10,7 +7,7 @@ struct ProvisioningPayload: Equatable {
 }
 
 enum ProviderClientError: Error, Equatable {
-    case http(Int)
+    case http(Int, errorCode: String?)
     case invalidResponse
     case timeout
 }
@@ -42,10 +39,21 @@ struct ProviderHTTP {
             throw ProviderClientError.invalidResponse
         }
         guard (200..<300).contains(http.statusCode) else {
-            throw ProviderClientError.http(http.statusCode)
+            throw ProviderClientError.http(http.statusCode, errorCode: safeProviderErrorCode(data))
         }
         return data
     }
+}
+
+func safeProviderErrorCode(_ data: Data) -> String? {
+    guard
+        let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        let code = json["errorCode"] as? String,
+        code.range(of: #"\A[A-Z0-9_]{1,64}\z"#, options: .regularExpression) != nil
+    else {
+        return nil
+    }
+    return code
 }
 
 enum BaanxClient {
@@ -237,9 +245,8 @@ enum ImmersveClient {
         guard certificates.count >= 2, !nonce.isEmpty, !nonceSignature.isEmpty else {
             throw ProviderClientError.invalidResponse
         }
-        let chain = Data(certificates.flatMap { [UInt8]($0) }).base64EncodedString()
-        let body: [String: String] = [
-            "certChain": chain,
+        let body: [String: Any] = [
+            "certChain": certificates.map { $0.base64EncodedString() },
             "nonce": nonce.base64EncodedString(),
             "nonceSignature": nonceSignature.base64EncodedString(),
         ]
@@ -339,26 +346,3 @@ func jwtExpiryMilliseconds(_ jwt: String) -> Double? {
     }
     return exp * 1000
 }
-
-#if canImport(CoreGraphics)
-func makeCardArt() -> CGImage? {
-    let width = 1536
-    let height = 969
-    guard let context = CGContext(
-        data: nil,
-        width: width,
-        height: height,
-        bitsPerComponent: 8,
-        bytesPerRow: 0,
-        space: CGColorSpaceCreateDeviceRGB(),
-        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-    ) else {
-        return nil
-    }
-    context.setFillColor(CGColor(red: 0.07, green: 0.09, blue: 0.12, alpha: 1))
-    context.fill(CGRect(x: 0, y: 0, width: width, height: height))
-    context.setFillColor(CGColor(red: 0.96, green: 0.45, blue: 0.09, alpha: 1))
-    context.fillEllipse(in: CGRect(x: 96, y: height - 280, width: 160, height: 160))
-    return context.makeImage()
-}
-#endif

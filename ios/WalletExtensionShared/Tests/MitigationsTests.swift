@@ -1,4 +1,5 @@
 @testable import WalletExtensionShared
+import ImageIO
 import XCTest
 
 final class MitigationsTests: XCTestCase {
@@ -207,6 +208,89 @@ final class MitigationsTests: XCTestCase {
         }
     }
 
+    func testImmersveProvisionSendsEachCertificateAsBase64() async throws {
+        let leaf = Data([0x01, 0x02, 0x03])
+        let intermediate = Data([0x0A, 0x0B])
+        let nonce = Data([0x11])
+        let signature = Data([0x22, 0x33])
+        var captured: Data?
+        MockURLProtocol.handler = { request in
+            captured = self.requestBody(request)
+            let response = [
+                "encryptedPassData": "enc",
+                "activationData": "act",
+                "ephemeralPublicKey": "epk",
+            ]
+            return (200, try JSONSerialization.data(withJSONObject: response))
+        }
+        defer { MockURLProtocol.handler = nil }
+
+        let payload = try await provisionImmersve(
+            certificates: [leaf, intermediate],
+            nonce: nonce,
+            nonceSignature: signature
+        )
+
+        XCTAssertEqual(payload.encryptedPassData, "enc")
+        let json = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: XCTUnwrap(captured)) as? [String: Any]
+        )
+        XCTAssertEqual(
+            json["certChain"] as? [String],
+            [leaf.base64EncodedString(), intermediate.base64EncodedString()]
+        )
+        XCTAssertEqual(json["nonce"] as? String, nonce.base64EncodedString())
+        XCTAssertEqual(json["nonceSignature"] as? String, signature.base64EncodedString())
+    }
+
+    func testImmersveProvisionKeepsSafeProviderErrorCode() async {
+        MockURLProtocol.handler = { _ in
+            (400, Data(#"{"errorCode":"APPLE_PAY_PAYLOAD_INVALID","message":"do-not-log"}"#.utf8))
+        }
+        defer { MockURLProtocol.handler = nil }
+
+        do {
+            _ = try await provisionImmersve()
+            XCTFail("invalid payload was accepted")
+        } catch let error as ProviderClientError {
+            XCTAssertEqual(error, .http(400, errorCode: "APPLE_PAY_PAYLOAD_INVALID"))
+        } catch {
+            XCTFail("unexpected error \(error)")
+        }
+    }
+
+    func testProviderErrorDropsUnsafeErrorCode() async {
+        MockURLProtocol.handler = { _ in
+            (403, Data(#"{"errorCode":"Bearer secret-token"}"#.utf8))
+        }
+        defer { MockURLProtocol.handler = nil }
+
+        do {
+            _ = try await provisionImmersve()
+            XCTFail("provider error was accepted")
+        } catch let error as ProviderClientError {
+            XCTAssertEqual(error, .http(403, errorCode: nil))
+        } catch {
+            XCTFail("unexpected error \(error)")
+        }
+    }
+
+    func testBundledCardArtIsAppleIssuerSize() throws {
+        let url = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent(
+                "MetaMaskWalletNonUIExtension/Media.xcassets/MetaMaskCardArt.imageset/MetaMaskCardArt.png"
+            )
+        let source = try XCTUnwrap(CGImageSourceCreateWithURL(url as CFURL, nil))
+        let properties = try XCTUnwrap(
+            CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+        )
+        XCTAssertEqual((properties[kCGImagePropertyPixelWidth] as? NSNumber)?.intValue, 1536)
+        XCTAssertEqual((properties[kCGImagePropertyPixelHeight] as? NSNumber)?.intValue, 969)
+    }
+
     func testRefreshLockBlocksAnotherProcess() throws {
         let directory = try makeDirectory()
         let bundles = Bundle.allBundles.filter { $0.bundlePath.hasSuffix(".xctest") }
@@ -330,6 +414,50 @@ final class MitigationsTests: XCTestCase {
                     localizedDescription: "MetaMask Card ending in 4242"
                 ),
             ]
+        )
+    }
+
+    private func requestBody(_ request: URLRequest) -> Data? {
+        if let body = request.httpBody {
+            return body
+        }
+        guard let stream = request.httpBodyStream else { return nil }
+        stream.open()
+        defer { stream.close() }
+        var data = Data()
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 4096)
+        defer { buffer.deallocate() }
+        while stream.hasBytesAvailable {
+            let count = stream.read(buffer, maxLength: 4096)
+            if count <= 0 { break }
+            data.append(buffer, count: count)
+        }
+        return data
+    }
+
+    private func activeTokens() -> CardTokenSet {
+        CardTokenSet(
+            accessToken: "live",
+            refreshToken: "refresh",
+            accessTokenExpiresAt: Date().timeIntervalSince1970 * 1000 + 60_000,
+            location: "us",
+            providerUserId: "user-1"
+        )
+    }
+
+    private func provisionImmersve(
+        certificates: [Data] = [Data([0x01, 0x02]), Data([0x03])],
+        nonce: Data = Data([0x11]),
+        nonceSignature: Data = Data([0x22])
+    ) async throws -> ProvisioningPayload {
+        try await ImmersveClient.provision(
+            cardId: "card-1",
+            certificates: certificates,
+            nonce: nonce,
+            nonceSignature: nonceSignature,
+            tokens: activeTokens(),
+            baseURL: URL(string: "https://api.immersve.com")!,
+            http: mockHTTP()
         )
     }
 
