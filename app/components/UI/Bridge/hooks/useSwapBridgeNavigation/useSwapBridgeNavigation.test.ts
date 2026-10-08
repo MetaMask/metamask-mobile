@@ -38,6 +38,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 const mockGetIsBridgeEnabledSource = jest.fn(() => true);
 const mockSetIsDestTokenManuallySet = jest.fn();
 const mockSetDestToken = jest.fn();
+const mockResetBridgeState = jest.fn();
 jest.mock('../../../../../core/redux/slices/bridge', () => {
   const actual = jest.requireActual('../../../../../core/redux/slices/bridge');
   return {
@@ -52,6 +53,10 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     setDestToken: (...args: unknown[]) => {
       mockSetDestToken(...args);
       return actual.setDestToken(...args);
+    },
+    resetBridgeState: (...args: unknown[]) => {
+      mockResetBridgeState(...args);
+      return actual.resetBridgeState(...args);
     },
   };
 });
@@ -469,6 +474,27 @@ describe('useSwapBridgeNavigation', () => {
 
     expect(mockSetIsDestTokenManuallySet).toHaveBeenCalledWith(false);
     expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears the previous bridge session before navigating to swaps', () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useSwapBridgeNavigation({
+          location: mockLocation,
+          sourcePage: mockSourcePage,
+        }),
+      { state: initialState },
+    );
+
+    result.current.goToSwaps();
+
+    expect(mockResetBridgeState).toHaveBeenCalledTimes(1);
+    expect(mockResetBridgeState.mock.invocationCallOrder[0]).toBeLessThan(
+      mockNavigate.mock.invocationCallOrder[0],
+    );
+    expect(mockResetBridgeState.mock.invocationCallOrder[0]).toBeLessThan(
+      mockSetDestToken.mock.invocationCallOrder[0],
+    );
   });
 
   it('sets isDestTokenManuallySet when an explicit dest token is provided', () => {
