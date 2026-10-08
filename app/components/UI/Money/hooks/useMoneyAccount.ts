@@ -1,10 +1,12 @@
 import { useCallback } from 'react';
+import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { bytesToHex, Hex } from '@metamask/utils';
 import { v4 as uuidv4, parse as uuidParse } from 'uuid';
+import { TransactionType } from '@metamask/transaction-controller';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -45,6 +47,8 @@ export {
 const LOG_TAG = '[Money Account]';
 
 export interface InitiateDepositOptions {
+  /** Initial editable deposit amount in USD, automatically quoted for token deposits. */
+  amount?: string;
   preferredPaymentToken?: {
     address: Hex;
     chainId: Hex;
@@ -52,11 +56,14 @@ export interface InitiateDepositOptions {
   intent?: MoneyAccountDepositIntent;
   autoSelectFiatPayment?: boolean;
   replaceConfirmation?: boolean;
+  forceBottomSheet?: boolean;
+  bottomSheetHeightPercentage?: number;
   /**
    * Where the deposit was started from. Carried to the confirmation so it can
    * land somewhere other than the Money tab — see `navigateOnConfirm`.
    */
   launchedFrom?: ConfirmationLaunchSource;
+  transactionType?: TransactionType;
   onDepositSetupFailure?: (error: Error) => void;
 }
 
@@ -75,10 +82,12 @@ function waitForNextFrame(): Promise<void> {
   });
 }
 
-function isMoneyConfirmationActive(): boolean {
+function isMoneyConfirmationActive(forceBottomSheet = false): boolean {
   return (
     NavigationService.navigation.getCurrentRoute()?.name ===
-    Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
+    (forceBottomSheet
+      ? Routes.CONFIRMATION_REQUEST_MODAL
+      : Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS)
   );
 }
 
@@ -149,13 +158,27 @@ export function useMoneyAccountDeposit() {
         setMoneyAccountDepositIntent(batchId, options.intent);
       }
 
+      const explicitAmount = new BigNumber(options?.amount ?? '0');
+      const shouldQuoteExplicitAmount =
+        explicitAmount.isFinite() &&
+        explicitAmount.gt(0) &&
+        options?.intent !== 'card' &&
+        !options?.autoSelectFiatPayment;
+
       const confirmationParams = {
-        loader: isDepositPrefillEnabled(options?.intent)
+        amount: options?.amount,
+        loader: (
+          options?.amount !== undefined
+            ? shouldQuoteExplicitAmount
+            : isDepositPrefillEnabled(options?.intent)
+        )
           ? ConfirmationLoader.PrefillCustomAmount
           : ConfirmationLoader.AdvancedCustomAmount,
         preferredPaymentToken,
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
         launchedFrom: options?.launchedFrom,
+        forceBottomSheet: options?.forceBottomSheet,
+        bottomSheetHeightPercentage: options?.bottomSheetHeightPercentage,
       };
 
       // Navigate early for better UX; recover on failure below.
@@ -203,14 +226,23 @@ export function useMoneyAccountDeposit() {
             },
           ],
           skipInitialGasEstimate: true,
-          transactions: [approveTx, depositTx],
+          transactions: [
+            approveTx,
+            { ...depositTx, type: options?.transactionType ?? depositTx.type },
+          ],
         });
       } catch (error) {
         const errorObj = ensureError(error, `${LOG_TAG} Deposit setup failed`);
         clearMoneyAccountDepositIntent(batchId);
         if (!isUserRejectedError(error, errorObj.message)) {
-          if (isMoneyConfirmationActive()) {
-            navigation.goBack();
+          if (isMoneyConfirmationActive(options?.forceBottomSheet)) {
+            if (options?.forceBottomSheet) {
+              // The container ref routes Back to the focused confirmation,
+              // not the nested navigator that initiated the deposit.
+              NavigationService.navigation.goBack();
+            } else {
+              navigation.goBack();
+            }
           }
           showToast(
             MoneyToastOptions.deposit.failed({ intent: options?.intent }),

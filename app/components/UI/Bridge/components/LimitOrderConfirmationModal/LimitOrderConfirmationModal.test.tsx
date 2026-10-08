@@ -195,6 +195,32 @@ describe('LimitOrderConfirmationModal', () => {
     expect(getByText('Something went wrong')).toBeOnTheScreen();
   });
 
+  it('does not display the USD price notice without a USD exchange rate', () => {
+    const { queryByTestId } = render(
+      <LimitOrderConfirmationModal {...buildProps()} />,
+    );
+
+    expect(
+      queryByTestId(LimitOrderConfirmationModalSelectorsIDs.USD_PRICE_NOTICE),
+    ).toBeNull();
+  });
+
+  it('displays the USD price notice with the USD exchange rate', () => {
+    const { getByTestId } = render(
+      <LimitOrderConfirmationModal
+        {...buildProps({
+          usdExchangeRate: { rate: '85.05', currency: 'RUB' },
+        })}
+      />,
+    );
+
+    expect(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.USD_PRICE_NOTICE),
+    ).toHaveTextContent(
+      'Prices are shown in your selected currency, but your order is placed in USD based on the exchange rate at order creation. Current rate: 1 USD = 85.05 RUB.',
+    );
+  });
+
   it('fires the primary button onPress handler when pressed', () => {
     const onPress = jest.fn();
     const { getByTestId } = render(

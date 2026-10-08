@@ -1342,6 +1342,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   }
                 >
                   <View
+                    accessible={true}
                     style={
                       [
                         {
@@ -1356,6 +1357,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                         undefined,
                       ]
                     }
+                    testID="snaps-ui-image"
                   >
                     <RNSVGSvgView
                       bbHeight="100%"
@@ -1378,7 +1380,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                           },
                         ]
                       }
-                      testID="snaps-ui-image"
                       width="100%"
                       xml="<svg />"
                     >
@@ -2480,6 +2481,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                       }
                     >
                       <View
+                        accessible={true}
                         style={
                           [
                             {
@@ -2494,6 +2496,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                             undefined,
                           ]
                         }
+                        testID="snaps-ui-image"
                       >
                         <RNSVGSvgView
                           align="xMidYMid"
@@ -2520,7 +2523,6 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                               },
                             ]
                           }
-                          testID="snaps-ui-image"
                           vbHeight={32}
                           vbWidth={32}
                           width="100%"

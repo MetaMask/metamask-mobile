@@ -7,6 +7,8 @@ import {
   NavigationHelpers,
 } from '@react-navigation/native';
 
+import { IconName } from '@metamask/design-system-react-native';
+
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
@@ -17,6 +19,7 @@ import TabBarFloating, {
   type TabBarFloatingTrailingAction,
 } from './TabBarFloating';
 import {
+  FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY,
   TAB_BAR_FLOATING_HEIGHT,
   TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
   TAB_BAR_FLOATING_TEST_IDS,
@@ -41,6 +44,15 @@ jest.mock('../../../../components/UI/Money/hooks/useMoneyNavigation', () => ({
     navigateToMoneyHome: mockNavigateToMoneyHome,
   }),
 }));
+
+const mockNavigateToSocialTab = jest.fn();
+jest.mock(
+  '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  () => ({
+    navigateToSocialTab: (...args: unknown[]) =>
+      mockNavigateToSocialTab(...args),
+  }),
+);
 
 // The trade button reaches the root modal stack through the hook, not the
 // bar's tab-navigator prop.
@@ -141,6 +153,12 @@ describe('TabBarFloating', () => {
   });
 
   afterAll(() => jest.useRealTimers());
+
+  it('uses the filled people glyph for the selected Social tab', () => {
+    expect(FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY[TabBarIconKey.Social]).toBe(
+      IconName.PeopleFilled,
+    );
+  });
 
   it('renders the pill, the four treatment tabs, and the search button', () => {
     const { getByTestId } = renderBar();
@@ -348,12 +366,14 @@ describe('TabBarFloating', () => {
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
   });
 
-  it('navigates to the social tab route from the Social tab', () => {
+  it('selects the Social tab through the onboarding-aware tab helper', () => {
     const { getByTestId } = renderBar();
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Social}`));
 
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.SOCIAL.TAB);
+    expect(mockNavigateToSocialTab).toHaveBeenCalledWith(navigation.navigate, {
+      source: 'nav_tab',
+    });
   });
 
   it('routes Money through the money navigation hook', () => {

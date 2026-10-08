@@ -826,12 +826,14 @@ describe('MainNavigator', () => {
         Routes.SOCIAL.V1,
         Routes.SOCIAL.POST_COMPOSER,
         Routes.SOCIAL.MY_PROFILE,
+        Routes.SOCIAL.V1_PROFILE,
         Routes.SOCIAL.FOLLOW_CONNECTIONS,
         Routes.SOCIAL.PROFILES_TO_FOLLOW,
         Routes.SOCIAL.MANAGE_PROFILE,
         Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
         Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
         Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
+        Routes.SOCIAL.PROFILE_ONBOARDING,
       ]);
       const v1Screen = (group?.children ?? []).find(
         (child): child is ReactTestInstance =>
@@ -911,20 +913,23 @@ describe('MainNavigator', () => {
       expect(groupedScreenNames(group)).not.toContain(Routes.TRANSACTIONS_VIEW);
     });
 
-    it('shares slide-from-right options on one Group for the VBA screens', () => {
-      const { root } = renderWithProvider(<MainNavigator />, {
+    it('registers one feature-level VBA onboarding route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
       });
 
-      const group = findGroupContaining(root, Routes.RAMP.GET_PIX_KEY);
+      const vbaScreen = getScreenProps(container).find(
+        ({ name }) => name === Routes.RAMP.VBA_ONBOARDING,
+      );
 
-      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
-      expect(groupedScreenNames(group)).toEqual([
-        Routes.RAMP.VBA_KYC_EMAIL,
-        Routes.RAMP.GET_PIX_KEY,
-        Routes.RAMP.VBA_VERIFY_IDENTITY,
-      ]);
-      expect(groupedScreenNames(group)).not.toContain(Routes.BRIDGE.ROOT);
+      expect(vbaScreen).toEqual(
+        expect.objectContaining({
+          name: Routes.RAMP.VBA_ONBOARDING,
+          options: expect.objectContaining({
+            headerShown: false,
+          }),
+        }),
+      );
     });
 
     it('shares slide-from-right options on one Group for trending and RWA full views', () => {
@@ -1730,6 +1735,13 @@ describe('MainNavigator', () => {
     expect(myProfileScreen).toBeDefined();
     expect(myProfileScreen?.component.name).toBe('MyProfileView');
 
+    const v1ProfileScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.V1_PROFILE,
+    );
+
+    expect(v1ProfileScreen).toBeDefined();
+    expect(v1ProfileScreen?.component.name).toBe('MyProfileView');
+
     const followConnectionsScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.FOLLOW_CONNECTIONS,
     );
@@ -1800,6 +1812,7 @@ describe('MainNavigator', () => {
     expect(screenNames).not.toContain(Routes.SOCIAL.V1);
     expect(screenNames).not.toContain(Routes.SOCIAL.POST_COMPOSER);
     expect(screenNames).not.toContain(Routes.SOCIAL.MY_PROFILE);
+    expect(screenNames).not.toContain(Routes.SOCIAL.V1_PROFILE);
     expect(screenNames).not.toContain(Routes.SOCIAL.FOLLOW_CONNECTIONS);
     expect(screenNames).not.toContain(Routes.SOCIAL.PROFILES_TO_FOLLOW);
     expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE);
@@ -1810,11 +1823,15 @@ describe('MainNavigator', () => {
     expect(screenNames).not.toContain(
       Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
     );
+    expect(screenNames).not.toContain(Routes.SOCIAL.PROFILE_ONBOARDING);
     expect(screenNames).toContain(Routes.SOCIAL.V0);
   });
 
   describe('Rewards route placement across the Header & NavBar arms', () => {
-    const stateForArm = (headerNavBarVariant?: string) => ({
+    const stateForArm = (
+      headerNavBarVariant?: string,
+      socialV1Variant?: string,
+    ) => ({
       ...initialRootState,
       engine: {
         ...initialRootState.engine,
@@ -1832,6 +1849,9 @@ describe('MainNavigator', () => {
               },
               ...(headerNavBarVariant
                 ? { homeTMCU1276AbtestHeaderNavBar: headerNavBarVariant }
+                : {}),
+              ...(socialV1Variant
+                ? { socialAiTSA1122AbtestSocialBundleV1: socialV1Variant }
                 : {}),
             },
           },
@@ -1927,6 +1947,86 @@ describe('MainNavigator', () => {
         expect(
           renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
         ).toBe(trailingAction);
+      },
+    );
+
+    const stateForInterim = (headerNavBarVariant: string) => {
+      const state = stateForArm(headerNavBarVariant);
+      const { RemoteFeatureFlagController } = state.engine.backgroundState;
+      return {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...RemoteFeatureFlagController.remoteFeatureFlags,
+                homeInterimHeaderNavBar: {
+                  enabled: true,
+                  minimumVersion: '0.0.1',
+                },
+              },
+            },
+          },
+        },
+      };
+    };
+
+    it.each(['control', 'searchFocused'])(
+      'keeps Rewards as a tab with no Social tab when the interim flag is on over %s',
+      (arm) => {
+        const state = stateForInterim(arm);
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        const tabs = homeTabNames(container, state);
+        expect(tabs).toContain(Routes.REWARDS_VIEW);
+        expect(tabs).not.toContain(Routes.SOCIAL.TAB);
+        expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
+      },
+    );
+
+    it('hands the trade button to the floating bar when the interim flag is on', () => {
+      const state = stateForInterim('control');
+      const container = renderWithProvider(<MainNavigator />, { state });
+
+      expect(
+        renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
+      ).toBe('trade');
+    });
+
+    const socialTabComponentName = (
+      container: { root: ReactTestInstance },
+      state: ReturnType<typeof stateForArm>,
+    ): string | undefined =>
+      renderHomeTabs(container, state).findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'TabScreen' &&
+          node.props?.name === Routes.SOCIAL.TAB,
+      )[0]?.props?.component?.name;
+
+    it.each(['searchFocused', 'tradeFocused'])(
+      'mounts Social V1 as the Social tab in %s when TSA-1122 is treatment',
+      (arm) => {
+        const state = stateForArm(arm, 'treatment');
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        const componentName = socialTabComponentName(container, state);
+
+        expect(componentName).toBe('SocialV1View');
+      },
+    );
+
+    it.each(['searchFocused', 'tradeFocused'])(
+      'mounts Social V0 as the Social tab in %s when TSA-1122 is control',
+      (arm) => {
+        const state = stateForArm(arm, 'control');
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        const componentName = socialTabComponentName(container, state);
+
+        expect(componentName).toBe('SocialV0View');
       },
     );
   });

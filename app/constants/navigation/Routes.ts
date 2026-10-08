@@ -41,9 +41,7 @@ const Routes = {
     KYC_WEBVIEW: 'RampKycWebview',
     ENTER_ADDRESS: 'RampEnterAddress',
     // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
-    GET_PIX_KEY: 'RampGetPixKey',
-    VBA_VERIFY_IDENTITY: 'RampVbaVerifyIdentity',
-    VBA_KYC_EMAIL: 'RampVbaKycEmail',
+    VBA_ONBOARDING: 'RampVbaOnboarding',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
@@ -206,7 +204,6 @@ const Routes = {
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
-    SOCIAL_LOGIN_SUCCESS_NEW_USER: 'SocialLoginSuccessNewUser',
     MANUAL_BACKUP: {
       STEP_1: 'ManualBackupStep1',
       STEP_2: 'ManualBackupStep2',
@@ -215,7 +212,6 @@ const Routes = {
     IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
     CHOOSE_PASSWORD: 'ChoosePassword',
     OPTIN_METRICS: 'OptinMetrics',
-    SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'SocialLoginSuccessExistingUser',
     ONBOARDING_OAUTH_REHYDRATE: 'OnboardingOAuthRehydrate',
     REHYDRATE: 'Rehydrate',
     WALLET_CREATION_ERROR: 'WalletCreationError',
@@ -350,6 +346,7 @@ const Routes = {
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     RECURRING_ORDER_DETAILS: 'RecurringOrderDetails',
     RECURRING_SWAP_DETAILS: 'RecurringSwapDetails',
+    SWAPS_LIMIT_ORDER_ACTIVITY: 'SwapsLimitOrderActivity',
     HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
     HW_QR_SCANNER: 'HwQrScanner',
     MODALS: {
@@ -383,6 +380,8 @@ const Routes = {
         'SwapsLimitOrderCustomCostToleranceModal',
       LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
       LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL: 'LimitOrderCostToleranceInfoModal',
+      OPEN_LIMIT_ORDER_DETAILS_MODAL: 'OpenLimitOrderDetailsModal',
+      CANCEL_LIMIT_ORDER_MODAL: 'CancelLimitOrderModal',
       RECURRING_INTERVAL_MODAL: 'RecurringIntervalModal',
       RECURRING_REPEAT_INFO_MODAL: 'RecurringRepeatInfoModal',
       RECURRING_PRICE_RANGE_MODAL: 'RecurringPriceRangeModal',
@@ -395,6 +394,7 @@ const Routes = {
     ROOT: 'Perps',
     PERPS_TAB: 'PerpsTradingView', // Redirect to wallet home and select perps tab
     ORDER_REDIRECT: 'PerpsOrderRedirect', // Redirect for one-click trade from token details
+    BALANCE_ORDER: 'PerpsBalanceOrder',
     WITHDRAW: 'PerpsWithdraw',
     POSITIONS: 'PerpsPositions',
     PERPS_HOME: 'PerpsMarketListView', // Home screen (positions, orders, watchlist, markets)
@@ -428,6 +428,8 @@ const Routes = {
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
     FUNDING_TRANSACTION: 'PerpsFundingTransaction',
+    PRICE_ALERTS: 'PerpsPriceAlerts',
+    CREATE_PRICE_ALERT: 'PerpsCreatePriceAlert',
   },
   MARKET_INSIGHTS: {
     ROOT: 'MarketInsights',
@@ -439,6 +441,7 @@ const Routes = {
     V0: 'SocialV0View',
     PROFILE: 'TraderProfileView',
     MY_PROFILE: 'MyProfileView',
+    V1_PROFILE: 'SocialV1ProfileView',
     FOLLOW_CONNECTIONS: 'FollowConnectionsView',
     PROFILES_TO_FOLLOW: 'ProfilesToFollowView',
     MANAGE_PROFILE: 'ManageProfileView',
@@ -449,6 +452,7 @@ const Routes = {
     ONBOARDING: 'SocialLeaderboardOnboarding',
     V1: 'SocialV1View',
     POST_COMPOSER: 'SocialPostComposerView',
+    PROFILE_ONBOARDING: 'SocialProfileOnboardingView',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
   PREDICT: {
@@ -550,6 +554,9 @@ const Routes = {
     ADDRESS_LIST: 'MultichainAddressList',
     PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
+  },
+  SOCIAL_PROFILE: {
+    DRAWER: 'ProfileDrawer',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {

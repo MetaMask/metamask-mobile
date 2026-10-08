@@ -1,6 +1,16 @@
-import React, { startTransition, useCallback, useEffect, useMemo } from 'react';
+import React, {
+  startTransition,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import {
+  type RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
@@ -21,7 +31,10 @@ import {
   resetBridgeState,
   resetBridgeTokenInputs,
   selectBridgeViewMode,
+  selectDestAddress,
   selectDestToken,
+  selectSlippage,
+  selectSourceAmount,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { BridgeViewMode } from '../../types';
@@ -35,21 +48,70 @@ import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import BridgeMarketView from './BridgeMarketView';
 import BridgeLimitOrderView from './BridgeLimitOrderView';
 import BridgeRecurringBuyView from './BridgeRecurringBuyView';
+import type { QuoteParams } from '../../providers/SwapQuotesProvider/utils';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 
 const BridgeView = () => {
-  const { selectedTab, renderedTab, setSelectedTab, setRenderedTab } =
-    useBridgeSession();
+  const {
+    selectedTab,
+    renderedTab,
+    setSelectedTab,
+    setRenderedTab,
+    setQuoteParams,
+  } = useBridgeSession();
   const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const dispatch = useDispatch();
   const bridgeViewMode = useSelector(selectBridgeViewMode);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
+  const sourceAmount = useSelector(selectSourceAmount);
+  const slippage = useSelector(selectSlippage);
+  const walletAddress = useSelector(selectSourceWalletAddress);
+  const destAddress = useSelector(selectDestAddress);
+
   const isLimitOrderTabEnabled = useSelector(
     selectBridgeLimitOrderTabEnabledFlag,
   );
   const isRecurringBuyTabEnabled = useSelector(
     selectBridgeRecurringBuyTabEnabledFlag,
   );
+  const initialTab = route.params?.initialTab;
+
+  useLayoutEffect(() => {
+    if (!initialTab) {
+      return;
+    }
+
+    setSelectedTab(initialTab);
+    setRenderedTab(initialTab);
+    navigation.setParams({ initialTab: undefined });
+  }, [initialTab, navigation, setRenderedTab, setSelectedTab]);
+
+  const quoteParams = useMemo(
+    (): QuoteParams => ({
+      srcToken: sourceToken,
+      destToken,
+      srcAmount: sourceAmount,
+      slippage,
+      walletAddress,
+      destWalletAddress: destAddress,
+    }),
+    [
+      sourceToken,
+      destToken,
+      sourceAmount,
+      slippage,
+      walletAddress,
+      destAddress,
+    ],
+  );
+
+  // Update BridgeSessionProvider's quote params
+  useEffect(() => {
+    setQuoteParams(quoteParams);
+  }, [quoteParams, setQuoteParams]);
 
   let headerTitle: string;
   if (bridgeViewMode === BridgeViewMode.Bridge) {

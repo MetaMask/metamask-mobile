@@ -55,6 +55,14 @@ import {
   clearRecurringOrdersDataServiceMock,
   setupRecurringOrdersDataServiceMock,
 } from '../../../../../../tests/component-view/api-mocking/recurringOrders';
+import {
+  clearLimitOrdersDataServiceMock,
+  setupLimitOrdersDataServiceMock,
+} from '../../../../../../tests/component-view/api-mocking/limitOrders';
+import {
+  clearSentinelFeeTokensDataServiceMock,
+  setupSentinelFeeTokensDataServiceMock,
+} from '../../../../../../tests/component-view/api-mocking/sentinelFeeTokens';
 import { merge } from 'lodash';
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -112,6 +120,8 @@ const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
 describeForPlatforms('BridgeView', () => {
   beforeEach(() => {
     setupRecurringOrdersDataServiceMock();
+    setupLimitOrdersDataServiceMock();
+    setupSentinelFeeTokensDataServiceMock();
     // testSetup.js mocks Date.now to always return 123, which breaks lodash debounce
     // (timeSinceLastCall = 123 - 123 = 0 never reaches the wait threshold).
     // Restore it to a real implementation so debounce-based tests work correctly.
@@ -120,6 +130,8 @@ describeForPlatforms('BridgeView', () => {
 
   afterEach(() => {
     clearRecurringOrdersDataServiceMock();
+    clearLimitOrdersDataServiceMock();
+    clearSentinelFeeTokensDataServiceMock();
     jest.restoreAllMocks();
   });
 
@@ -179,6 +191,81 @@ describeForPlatforms('BridgeView', () => {
       expect(
         queryByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
       ).not.toBeOnTheScreen();
+    });
+
+    it('revalidates the limit order after selecting a Sentinel fee token', async () => {
+      setupSentinelFeeTokensDataServiceMock({
+        'eip155:1': [
+          {
+            assetId:
+              'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            symbol: 'DUM8',
+          },
+        ],
+      });
+      const { getByTestId, queryByTestId, store } = renderBridgeView({
+        deterministicFiat: true,
+        overrides: {
+          bridge: {
+            ...DEFAULT_BRIDGE,
+          },
+        },
+      });
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      act(() => {
+        store.dispatch(setDestToken(USDT_DEST));
+        store.dispatch(setSourceAmount('1'));
+      });
+      await waitFor(() => {
+        expect(
+          getByTestId(
+            BridgeViewSelectorsIDs.LIMIT_FEE_TOKEN_UNSUPPORTED_BANNER,
+          ),
+        ).toBeOnTheScreen();
+      });
+      expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeDisabled();
+
+      act(() => {
+        store.dispatch(setDestToken(USDC_DEST));
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(
+            BridgeViewSelectorsIDs.LIMIT_FEE_TOKEN_UNSUPPORTED_BANNER,
+          ),
+        ).not.toBeOnTheScreen();
+      });
+    });
+
+    it('blocks limit order creation when Sentinel fee tokens cannot be loaded', async () => {
+      setupSentinelFeeTokensDataServiceMock(
+        new Error('Sentinel fee tokens unavailable'),
+      );
+      const { findByTestId, getByTestId, store } = renderBridgeView({
+        deterministicFiat: true,
+        overrides: {
+          bridge: {
+            ...DEFAULT_BRIDGE,
+          },
+        },
+      });
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      act(() => {
+        store.dispatch(setDestToken(USDC_DEST));
+        store.dispatch(setSourceAmount('1'));
+      });
+
+      expect(
+        await findByTestId(
+          BridgeViewSelectorsIDs.LIMIT_FEE_TOKENS_UNAVAILABLE_BANNER,
+          {},
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
+      expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeDisabled();
     });
 
     it('labels the limit and recurring tabs, then switches to the recurring tab and replaces the market content', async () => {
@@ -575,6 +662,25 @@ describeForPlatforms('BridgeView', () => {
                 },
               },
             },
+            AssetsController: {
+              assetsInfo: {
+                'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': {
+                  type: 'erc20',
+                  symbol: 'USDC',
+                  name: 'USD Coin',
+                  decimals: 6,
+                },
+              },
+              assetsPrice: {
+                'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': {
+                  assetPriceType: 'fungible',
+                  id: 'usdc',
+                  price: 1,
+                  usdPrice: 1,
+                  lastUpdated: 1700000000000,
+                },
+              },
+            },
           },
         },
       } as unknown as DeepPartial<RootState>)
@@ -608,12 +714,14 @@ describeForPlatforms('BridgeView', () => {
       bridgeControllerState.quotes = [quoteWithTrade];
     }
 
-    const { getByTestId, getByText, queryByText } = renderComponentViewScreen(
-      BridgeView as unknown as React.ComponentType,
-      { name: Routes.BRIDGE.BRIDGE_VIEW },
-      { state },
-    );
+    const { getByTestId, getByText, queryByText, findByText } =
+      renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+      );
 
+    expect(await findByText('1 USDC')).toBeOnTheScreen();
     await waitFor(() => {
       expect(
         getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_INPUT).props.value,

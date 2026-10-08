@@ -14,7 +14,10 @@ import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { analytics } from '../../../../util/analytics/analytics';
 import { getAccountCompositionTraits } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import Logger from '../../../../util/Logger';
+import { syncBrazeEventBlocklist } from '../../../Braze';
+import { BRAZE_EVENT_BLOCKLIST_FLAG_KEY } from '../../../../selectors/featureFlagController/brazeEventBlocklist';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
+import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
@@ -43,6 +46,7 @@ jest.mock('../../../../util/test/utils', () => ({
 
 jest.mock('../../../Braze', () => ({
   getBrazePlugin: jest.fn().mockReturnValue({ name: 'braze' }),
+  syncBrazeEventBlocklist: jest.fn(),
 }));
 
 jest.mock('../../../../util/analytics/appVersionSegmentPlugin', () =>
@@ -74,6 +78,7 @@ const mockGetAccountCompositionTraits = jest.mocked(
   getAccountCompositionTraits,
 );
 const mockLoggerError = jest.mocked(Logger.error);
+const mockSyncBrazeEventBlocklist = jest.mocked(syncBrazeEventBlocklist);
 
 function buildInitMessengerMock(): jest.Mocked<AnalyticsControllerInitMessenger> {
   return {
@@ -117,6 +122,28 @@ function getAccountsSubscribeCallback(
   );
   if (!subscribeCall) throw new Error('AccountsController subscribe not found');
   return subscribeCall[1] as (accounts: InternalAccounts) => void;
+}
+
+function getRemoteFeatureFlagSubscribeCallback(
+  initMessengerMock: jest.Mocked<AnalyticsControllerInitMessenger>,
+): (state: RemoteFeatureFlagControllerState) => void {
+  const subscribeCall = initMessengerMock.subscribe.mock.calls.find(
+    ([event]) => event === 'RemoteFeatureFlagController:stateChange',
+  );
+  if (!subscribeCall) {
+    throw new Error('RemoteFeatureFlagController subscribe not found');
+  }
+  return subscribeCall[1] as (state: RemoteFeatureFlagControllerState) => void;
+}
+
+function buildRemoteFeatureFlagState(
+  remoteFeatureFlags: RemoteFeatureFlagControllerState['remoteFeatureFlags'] = {},
+): RemoteFeatureFlagControllerState {
+  return {
+    remoteFeatureFlags,
+    localOverrides: {},
+    cacheTimestamp: 0,
+  };
 }
 
 function buildMockAccounts(
@@ -188,6 +215,45 @@ describe('analyticsControllerInit', () => {
       );
     });
 
+    it('keeps persisted marketing consent and eventsConfig while forcing the MMKV analyticsId', () => {
+      analyticsControllerInit(
+        getInitRequestMock({
+          analyticsId: 'mmkv-analytics-id',
+          persistedState: {
+            AnalyticsController: {
+              analyticsId: 'persisted-analytics-id',
+              optedIn: true,
+              consentDecisionMade: true,
+              optedInToMarketing: true,
+              marketingConsentDecisionMade: true,
+              marketingCampaignCookieId: 'cookie',
+              eventsConfig: {
+                schemaVersion: '1',
+                version: '2',
+                timestamp: 1,
+                events: { 'Swap Completed': ['marketing'] },
+              },
+            },
+          },
+        }),
+      );
+
+      expect(AnalyticsController).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isGeolocationEnabled: false,
+          state: expect.objectContaining({
+            analyticsId: 'mmkv-analytics-id',
+            optedIn: true,
+            consentDecisionMade: true,
+            optedInToMarketing: true,
+            marketingConsentDecisionMade: true,
+            marketingCampaignCookieId: 'cookie',
+            eventsConfig: expect.objectContaining({ version: '2' }),
+          }),
+        }),
+      );
+    });
+
     it('uses persisted optedIn state when available', () => {
       analyticsControllerInit(
         getInitRequestMock({
@@ -207,6 +273,56 @@ describe('analyticsControllerInit', () => {
 
       const controllerMock = jest.mocked(AnalyticsController);
       expect(controllerMock.mock.results[0].value.init).toHaveBeenCalled();
+    });
+  });
+
+  describe('Braze event blocklist', () => {
+    const flagValue = {
+      enabled: true,
+      minimumVersion: '8.14.0',
+      blockedEvents: ['App Opened'],
+    };
+
+    it('syncs the current remote flag value on init', () => {
+      const initMessenger = buildInitMessengerMock();
+      initMessenger.call.mockReturnValue(
+        buildRemoteFeatureFlagState({
+          [BRAZE_EVENT_BLOCKLIST_FLAG_KEY]: flagValue,
+        }),
+      );
+
+      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+
+      expect(initMessenger.call).toHaveBeenCalledWith(
+        'RemoteFeatureFlagController:getState',
+      );
+      expect(mockSyncBrazeEventBlocklist).toHaveBeenCalledWith(flagValue);
+    });
+
+    it('subscribes to RemoteFeatureFlagController:stateChange', () => {
+      const initMessenger = buildInitMessengerMock();
+
+      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+
+      expect(initMessenger.subscribe).toHaveBeenCalledWith(
+        'RemoteFeatureFlagController:stateChange',
+        expect.any(Function),
+      );
+    });
+
+    it('syncs the blocklist when remote feature flags change', () => {
+      const initMessenger = buildInitMessengerMock();
+      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+      mockSyncBrazeEventBlocklist.mockClear();
+
+      const callback = getRemoteFeatureFlagSubscribeCallback(initMessenger);
+      callback(
+        buildRemoteFeatureFlagState({
+          [BRAZE_EVENT_BLOCKLIST_FLAG_KEY]: flagValue,
+        }),
+      );
+
+      expect(mockSyncBrazeEventBlocklist).toHaveBeenCalledWith(flagValue);
     });
   });
 
