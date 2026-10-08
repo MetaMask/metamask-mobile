@@ -2700,6 +2700,7 @@
     },
     "position": {
       "title": "Positions",
+      "no_positions": "No open positions",
       "card": {
         "position_title": "Position",
         "pnl_label": "P&L",
