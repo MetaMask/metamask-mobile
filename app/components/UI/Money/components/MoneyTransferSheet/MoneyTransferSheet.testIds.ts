@@ -16,8 +16,6 @@ export const MusdRescueSendSheetTestIds = {
   RECIPIENT_SHEET_CLOSE: 'musd-rescue-send-recipient-sheet-close',
   RECIPIENT_OPTION: 'musd-rescue-send-recipient-option',
   AMOUNT_INPUT: 'musd-rescue-send-amount-input',
-  MAX_BUTTON: 'musd-rescue-send-max-button',
-  MAX_BUTTON_WRAPPER: 'musd-rescue-send-max-button-wrapper',
   SEND_BUTTON: 'musd-rescue-send-send-button',
   LIQUID_BALANCE: 'musd-rescue-send-liquid-balance',
   ERROR_MESSAGE: 'musd-rescue-send-error-message',

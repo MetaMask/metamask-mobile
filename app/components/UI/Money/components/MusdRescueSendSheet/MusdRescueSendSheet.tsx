@@ -5,7 +5,6 @@ import {
   BottomSheetHeader,
   Box,
   Button,
-  ButtonBaseSize,
   ButtonVariant,
   TextField,
   Text,
@@ -44,7 +43,6 @@ const MusdRescueSendSheet = () => {
   useMountEffect(trackBottomSheetViewed);
 
   const [recipient, setRecipient] = useState('');
-  const [amount, setAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   // Set synchronously on entry so a second tap cannot start a second
@@ -52,8 +50,7 @@ const MusdRescueSendSheet = () => {
   const isSubmitInFlightRef = useRef(false);
 
   const isBalanceUnavailable = isBalanceLoading || isBalanceFetchError;
-  const hasLiquidBalance = Boolean(liquidMusd?.gt(0));
-  const maxAmount = liquidMusd?.toString() ?? '';
+  const amount = liquidMusd?.toString() ?? '';
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -62,12 +59,6 @@ const MusdRescueSendSheet = () => {
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
-
-  const handleMax = useCallback(() => {
-    if (maxAmount) {
-      setAmount(maxAmount);
-    }
-  }, [maxAmount]);
 
   const handleSendInner = useCallback(async () => {
     setErrorMessage(undefined);
@@ -187,30 +178,10 @@ const MusdRescueSendSheet = () => {
         <TextField
           testID={MusdRescueSendSheetTestIds.AMOUNT_INPUT}
           value={amount}
-          onChangeText={setAmount}
           placeholder={strings('money.musd_rescue_send.amount_label')}
           accessibilityLabel={strings('money.musd_rescue_send.amount_label')}
-          isDisabled={isSubmitting || !hasLiquidBalance}
+          isDisabled
           inputProps={{ keyboardType: 'decimal-pad' }}
-          endAccessory={
-            // The design-system Button aligns itself to the top of the field's
-            // cross axis (`self-start`), so wrap it in a full-height,
-            // vertically-centered Box to keep "Max" optically centered.
-            <Box
-              twClassName="h-12 justify-center"
-              testID={MusdRescueSendSheetTestIds.MAX_BUTTON_WRAPPER}
-            >
-              <Button
-                variant={ButtonVariant.Tertiary}
-                size={ButtonBaseSize.Sm}
-                onPress={handleMax}
-                testID={MusdRescueSendSheetTestIds.MAX_BUTTON}
-                isDisabled={!hasLiquidBalance}
-              >
-                {strings('money.musd_rescue_send.max')}
-              </Button>
-            </Box>
-          }
         />
 
         {errorMessage ? (

@@ -149,27 +149,18 @@ describe('MusdRescueSendSheet', () => {
     expect(mockInitiateRescueSend).not.toHaveBeenCalled();
   });
 
-  it('fills the exact liquid balance on Max', () => {
+  it('displays the exact liquid balance in a disabled amount field', () => {
     setupBalance({ liquidMusd: '99.123456' });
 
     const { getByTestId, getByDisplayValue } = renderWithProvider(
       <MusdRescueSendSheet />,
     );
 
-    fireEvent.press(getByTestId(MusdRescueSendSheetTestIds.MAX_BUTTON));
-
-    // value lives on the inner TextInput of the TextField.
     expect(getByDisplayValue('99.123456')).toBeOnTheScreen();
-  });
-
-  it('centers the Max action within the amount field', () => {
-    const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
-
-    // The design-system Button aligns to the top of the field, so Max is
-    // wrapped in a full-height Box that centers it vertically.
     expect(
-      getByTestId(MusdRescueSendSheetTestIds.MAX_BUTTON_WRAPPER),
-    ).toBeOnTheScreen();
+      getByTestId(MusdRescueSendSheetTestIds.AMOUNT_INPUT).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
   });
 
   it('lists only the same-SRP accounts in the recipient sheet', () => {
@@ -214,63 +205,22 @@ describe('MusdRescueSendSheet', () => {
   it('does not enable Send until a recipient is selected', () => {
     const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
 
-    fireEvent.changeText(
-      getByTestId(MusdRescueSendSheetTestIds.AMOUNT_INPUT),
-      '1',
-    );
-
     expect(
       getByTestId(MusdRescueSendSheetTestIds.SEND_BUTTON).props
         .accessibilityState?.disabled,
     ).toBe(true);
   });
 
-  it('rejects an amount above the liquid balance', async () => {
-    const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
-
-    selectRecipient(getByTestId);
-    fireEvent.changeText(
-      getByTestId(MusdRescueSendSheetTestIds.AMOUNT_INPUT),
-      '99.000001',
-    );
-    fireEvent.press(getByTestId(MusdRescueSendSheetTestIds.SEND_BUTTON));
-
-    expect(
-      getByTestId(MusdRescueSendSheetTestIds.ERROR_MESSAGE).props.children,
-    ).toBe(strings('money.musd_rescue_send.error_insufficient_balance'));
-    expect(mockInitiateRescueSend).not.toHaveBeenCalled();
-  });
-
-  it('rejects a zero amount with an error message', async () => {
-    const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
-
-    selectRecipient(getByTestId);
-    fireEvent.changeText(
-      getByTestId(MusdRescueSendSheetTestIds.AMOUNT_INPUT),
-      '0',
-    );
-    fireEvent.press(getByTestId(MusdRescueSendSheetTestIds.SEND_BUTTON));
-
-    expect(
-      getByTestId(MusdRescueSendSheetTestIds.ERROR_MESSAGE).props.children,
-    ).toBe(strings('money.musd_rescue_send.error_invalid_amount'));
-    expect(mockInitiateRescueSend).not.toHaveBeenCalled();
-  });
-
-  it('initiates the send with the selected recipient and amount', async () => {
+  it('initiates the send with the selected recipient and full liquid balance', async () => {
     const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
 
     selectRecipient(getByTestId, 1);
-    fireEvent.changeText(
-      getByTestId(MusdRescueSendSheetTestIds.AMOUNT_INPUT),
-      '1.5',
-    );
     fireEvent.press(getByTestId(MusdRescueSendSheetTestIds.SEND_BUTTON));
 
     await waitFor(() => {
       expect(mockInitiateRescueSend).toHaveBeenCalledWith({
         recipient: RECIPIENT_B,
-        amount: '1.5',
+        amount: '99',
       });
     });
   });
@@ -280,10 +230,6 @@ describe('MusdRescueSendSheet', () => {
     const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
 
     selectRecipient(getByTestId);
-    fireEvent.changeText(
-      getByTestId(MusdRescueSendSheetTestIds.AMOUNT_INPUT),
-      '1',
-    );
     fireEvent.press(getByTestId(MusdRescueSendSheetTestIds.SEND_BUTTON));
 
     await waitFor(() => {
@@ -303,10 +249,6 @@ describe('MusdRescueSendSheet', () => {
     const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
 
     selectRecipient(getByTestId);
-    fireEvent.changeText(
-      getByTestId(MusdRescueSendSheetTestIds.AMOUNT_INPUT),
-      '1',
-    );
     fireEvent.press(getByTestId(MusdRescueSendSheetTestIds.SEND_BUTTON));
 
     await waitFor(() => {
@@ -320,10 +262,6 @@ describe('MusdRescueSendSheet', () => {
     const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
 
     selectRecipient(getByTestId);
-    fireEvent.changeText(
-      getByTestId(MusdRescueSendSheetTestIds.AMOUNT_INPUT),
-      '1',
-    );
     fireEvent.press(getByTestId(MusdRescueSendSheetTestIds.SEND_BUTTON));
 
     await waitFor(() => {
@@ -334,14 +272,6 @@ describe('MusdRescueSendSheet', () => {
         }),
       );
     });
-  });
-
-  it('renders the localized Max label instead of a hard-coded string', () => {
-    const { getByTestId } = renderWithProvider(<MusdRescueSendSheet />);
-
-    expect(
-      getByTestId(MusdRescueSendSheetTestIds.MAX_BUTTON),
-    ).toHaveTextContent(strings('money.musd_rescue_send.max'));
   });
 
   it('uses a decimal keypad on the amount field', () => {
