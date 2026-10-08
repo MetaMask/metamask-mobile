@@ -3280,7 +3280,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-wallet (0.1.15):
+  - react-native-wallet (0.1.24):
     - boost
     - DoubleConversion
     - fast_float
@@ -5330,7 +5330,7 @@ SPEC CHECKSUMS:
   react-native-tcp-socket: 120072c8020262032773f80f0daaf3964aaa08a1
   react-native-video: f8e9788554c53a1852166cd119d6e7c324b16dfe
   react-native-view-shot: 39463aa6cfaeab0a3533cc63f869d52d025ef2ff
-  react-native-wallet: e082f2023e0fc86b51ac6c0a7596dcdf17ee30b0
+  react-native-wallet: 482212e527215cb70adce3a091ec3507e5b82ae4
   react-native-webview-mm: 7aecbcdea6e0a0172f11dcbfd97e6921781b32a8
   React-NativeModulesApple: 70b1879ac2b642ef784fb6d43360c40803b0a142
   React-networking: 49160c13f35f3eb93791d062c330caea323bde87

@@ -12,9 +12,11 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import ProviderSelection from './ProviderSelection';
+import { createNestedTokenSelectionNavDetails } from '../../TokenSelection';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
@@ -140,9 +142,7 @@ function ProviderSelectionModal() {
   const handleDismiss = useCallback(
     (hasPendingAction?: boolean) => {
       if (!hasPendingAction && skipQuotes) {
-        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-          screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
-        });
+        navigateWithDetails(navigation, createNestedTokenSelectionNavDetails());
       }
     },
     [navigation, skipQuotes],

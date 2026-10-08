@@ -1117,17 +1117,20 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Tài khoản ngân hàng",
       "title": "Nhận Khóa Pix của bạn",
       "description": "Gửi tiền trực tiếp vào Money Account của bạn từ bất kỳ tài khoản ngân hàng nào.",
-      "benefit_deposit_pix": "Gửi tiền bằng",
-      "benefit_payments": "Gửi các khoản thanh toán trong nước và quốc tế",
-      "agreements_disclosures_title": "Thỏa thuận và thông tin công bố",
+      "benefit_receive_title": "Receive money locally",
+      "benefit_receive_description": "Use account details designed for your region",
+      "benefit_add_money_title": "Add money with ease",
+      "benefit_add_money_description": "Transfer directly from your bank account",
+      "benefit_currencies_title": "Manage multiple currencies",
+      "benefit_currencies_description": "Keep supported balances together in one place",
       "disclaimers_error": "Không thể tải các điều khoản và điều kiện.",
       "disclaimers_retry": "Thử lại",
-      "agreement_text": "Bằng việc tiếp tục, bạn đồng ý với các điều khoản và điều kiện ở trên.",
-      "powered_by_moonpay": "Được cung cấp bởi MoonPay.",
+      "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
+      "agreement_separator": " và ",
       "button": "Đồng ý và tiếp tục"
     },
     "verify_identity": {
@@ -1158,9 +1161,38 @@
       "error_description": "Chúng tôi không thể bắt đầu quá trình xác minh danh tính của bạn. Hãy thử lại.",
       "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.",
       "email_not_set_error": "Thiếu email. Hãy quay lại và nhập email của bạn."
+    },
+    "kyc_pending": {
+      "title": "Đang xác minh",
+      "description": "We're still reviewing your identity. This usually takes a few minutes.",
+      "button": "Kiểm tra trạng thái"
+    },
+    "kyc_rejected": {
+      "title": "Verification unsuccessful",
+      "description": "We couldn't verify your identity. You can try again or contact support.",
+      "button": "Thử lại"
+    },
+    "account_provisioning_error": {
+      "title": "Couldn't create your account",
+      "description": "Your identity is verified, but we couldn't finish creating your account.",
+      "button": "Thử lại"
+    },
+    "error": {
+      "title": "Couldn't continue",
+      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "button": "Thử lại"
     }
   },
   "social_leaderboard": {
+    "entry_options": {
+      "title": "Tùy chọn",
+      "report": "Report"
+    },
+    "feed_sort": {
+      "title": "Sort",
+      "most_recent": "Most recent",
+      "popular": "Phổ biến"
+    },
     "top_traders_view": {
       "notifications_banner": {
         "description": "Bạn sẽ nhận được thông báo khi những nhà giao dịch mà bạn theo dõi thực hiện giao dịch. Hãy bật thông báo trong phần cài đặt trên thiết bị của bạn.",
@@ -1282,6 +1314,12 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "Vị thế",
       "chip_gif": "GIF",
+      "gifs_title": "GIFs",
+      "gifs_close": "Close GIFs",
+      "gifs_search_placeholder": "Search GIFs",
+      "gifs_empty": "No GIFs found",
+      "gifs_error": "Couldn't load GIFs",
+      "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
       "share_position_title": "Share a position",
@@ -1310,10 +1348,14 @@
       },
       "filters": {
         "title": "Filters",
-        "show_results": "Show results",
+        "show_results": "Áp dụng",
+        "apply": "Áp dụng",
+        "reset": "Đặt lại",
         "section": {
-          "type": "Nhập",
-          "trader_cohort": "Trader cohort",
+          "type": "Tài sản",
+          "asset_type": "Asset type",
+          "verification": "Verification",
+          "trader_cohort": "Nhà giao dịch",
           "timeframe": "Khung thời gian",
           "network": "Mạng",
           "market_cap": "Vốn hóa thị trường",
@@ -1325,13 +1367,19 @@
           "perps": "Vĩnh cửu",
           "predictions": "Dự đoán"
         },
+        "verification": {
+          "all": "Tất cả",
+          "verified": "Đã xác minh",
+          "unverified": "Unverified"
+        },
         "trader_cohort": {
           "all": "Tất cả",
           "following": "Đang theo dõi",
           "shrimp": "Shrimp",
           "dolphin": "Dolphin",
           "whale": "Whale",
-          "kol": "KOL"
+          "kol": "KOL",
+          "verified": "Đã xác minh"
         },
         "timeframe": {
           "1h": "1H",
@@ -2046,7 +2094,7 @@
         "scale_price_above_warning": "Phạm vi giá của bạn cao hơn giá hiện tại và có thể khớp ngay lập tức dưới dạng lệnh Taker, đồng thời phát sinh phí Taker.",
         "scale_price_below_warning": "Phạm vi giá của bạn thấp hơn giá hiện tại và có thể khớp ngay lập tức dưới dạng lệnh Taker, đồng thời phát sinh phí Taker.",
         "scale_price_above_partial_warning": "Một phần phạm vi giá của bạn cao hơn giá hiện tại và có thể khớp ngay lập tức dưới dạng lệnh Taker.",
-        "scale_price_below_partial_warning": "Một phần phạm vi giá của bạn thấp hơn giá hiện tại và có thể khớp ngay lập tức dưới dạng lệnh Taker, đồng thời phát sinh phí Taker.",
+        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order.",
         "trigger_must_be_above_mid": "Giá kích hoạt phải cao hơn giá trung bình",
         "trigger_must_be_below_mid": "Giá kích hoạt phải thấp hơn giá trung bình",
         "trigger_orders_unavailable": "Các lệnh kích hoạt tạm thời không khả dụng. Hãy chọn lệnh thị trường.",
@@ -3340,17 +3388,40 @@
       "predict_balance": "Dự đoán số dư",
       "total": "Tổng cộng",
       "price_details": "Chi tiết giá",
-      "confirm": "Xác nhận",
       "terms": "Bằng cách tiếp tục, bạn chấp nhận các điều khoản của nền tảng.",
       "learn_more": "Tìm hiểu thêm",
       "submitting": "Đang gửi lệnh của bạn…",
-      "success_title": "Đã gửi lệnh",
       "done": "Hoàn tất",
       "close": "Đóng",
       "delete": "Xóa",
       "expired": "Báo giá này đã hết hạn. Làm mới để nhận báo giá mới.",
       "refresh": "Làm mới",
-      "retry": "Thử lại"
+      "retry": "Thử lại",
+      "review": "Review order"
+    },
+    "order_approval": {
+      "title": "Xem lại đơn hàng của bạn",
+      "expires_at": "Quote expires at {{time}}",
+      "approve": "Approve & submit",
+      "edit_order": "Edit order"
+    },
+    "order_receipt": {
+      "filled_title": "Đã khớp lệnh",
+      "partial_title": "Order partially filled",
+      "partial_description": "{{filled}} of {{quoted}} contracts filled. The remaining {{remainder}} were canceled and won't be placed.",
+      "position_context": "You now own {{contracts}} {{outcome}} contracts",
+      "filled_contracts": "Đã khớp",
+      "average_fill_price": "Giá khớp lệnh trung bình",
+      "actual_spend": "Spent",
+      "payout_exposure": "Payout exposure",
+      "not_filled_title": "Order not filled",
+      "not_filled_description": "The market is moving fast, so we couldn't buy at {{price}}. No money left your balance.",
+      "rejected_title": "Order rejected",
+      "rejected_description": "The venue refused this order. Nothing was filled and your balance is untouched.",
+      "reconciling_title": "Still confirming your order",
+      "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
+      "keep_checking": "Keep checking",
+      "requote": "Thử lại"
     }
   },
   "predict": {
@@ -4151,6 +4222,7 @@
     "display_nft_media_cta": "Bật Hiển thị phương tiện NFT",
     "display_media_nft_warning": "Việc hiển thị dữ liệu và phương tiện NFT có thể làm lộ địa chỉ IP của bạn với các máy chủ tập trung. Chỉ nhập NFT nếu bạn hiểu rõ những rủi ro đi kèm.",
     "nfts_autodetect_title": "Tự động phát hiện NFT",
+    "nfts_unavailable_title": "NFTs are not available",
     "nfts_autodetect_cta": "Bật tính năng tự động phát hiện NFT",
     "turn_on_network_check_cta": "Bật kiểm tra thông tin mạng",
     "display_nft_media_cta_new_1": "Để xem một NFT, hãy bật Hiển thị phương tiện NFT trong",
@@ -4318,7 +4390,7 @@
     "privacy_policy_button": "Chính sách Quyền riêng tư",
     "agree": "Tôi đồng ý",
     "decline": "Không, cảm ơn",
-    "description_title": "Cải thiện MetaMask",
+    "description_title": "Giúp chúng tôi cải thiện MetaMask",
     "description_content_1": "Chúng tôi muốn yêu cầu các quyền sau. Bạn có thể từ chối hoặc xóa dữ liệu sử dụng của mình bất cứ lúc nào.",
     "description_content_2": "Khi thu thập số liệu, chúng tôi sẽ luôn cam kết điều này...",
     "description_content_3": "Tìm hiểu cách chúng tôi bảo vệ quyền riêng tư của bạn khi thu thập dữ liệu sử dụng cho hồ sơ của bạn.",
@@ -4364,17 +4436,18 @@
   },
   "basic_functionality_migration": {
     "title": "Chúng tôi đã cập nhật cài đặt",
-    "social_title": "Cập nhật về quyền riêng tư và sản phẩm",
-    "social_body_1": "Chúng tôi đang cập nhật cách MetaMask hoạt động đối với tính năng đăng nhập qua mạng xã hội. Để mang lại trải nghiệm liền mạch trên MetaMask, thông tin định danh đăng nhập qua mạng xã hội (email hoặc tên người dùng) của bạn giờ đây sẽ được liên kết an toàn với hồ sơ người dùng và các địa chỉ tài khoản liên quan. Trong khuôn khổ cập nhật này, Chức năng cơ bản và các cài đặt mặc định khác sẽ luôn được bật.",
-    "social_body_2_prefix": "Chúng tôi không bao giờ bán dữ liệu của bạn cho bên thứ ba. Đọc thêm về dữ liệu chúng tôi thu thập và lý do thu thập trong",
-    "social_body_2_middle": " và nội dung được cập nhật trong ",
+    "social_title": "Updates for social login",
+    "social_body_1": "Because you sign in with Google, Apple or Telegram, your email (or Telegram handle) is now saved to your MetaMask profile with your wallet addresses. This keeps your account working consistently across MetaMask features. Basic Functionality stays on for social login accounts.",
+    "social_body_2_prefix": "Your keys are still only yours. Read more in our",
+    "social_body_2_middle": " và ",
     "social_body_2_suffix": ".",
     "blog_post_link": "bài đăng blog",
     "privacy_notice_link": "Thông báo về quyền riêng tư",
-    "toast_description": "Chức năng cơ bản hiện bao gồm các API của bên thứ ba. Chức năng này được bật dựa trên cài đặt trước đây của bạn. Bạn có thể điều chỉnh bất cứ lúc nào trong",
-    "toast_description_disabled": "Chức năng cơ bản hiện bao gồm các API của bên thứ ba. Chức năng này được tắt dựa trên cài đặt trước đây của bạn. Bạn có thể điều chỉnh bất cứ lúc nào trong",
-    "settings_link": "Cài đặt > Quyền riêng tư.",
-    "accept_and_close": "Chấp nhận và đóng"
+    "toast_description": "Your privacy toggles are now one setting, Basic Functionality. It’s turned on based on your previous settings. Adjust anytime in",
+    "toast_description_disabled": "Your privacy toggles are now one setting, Basic Functionality. It’s turned off based on your previous settings. Adjust anytime in",
+    "settings_link": "Cài đặt > Quyền riêng tư. ",
+    "learn_more_link": "Tìm hiểu thêm.",
+    "accept_and_close": "Tiếp tục"
   },
   "onboarding_interest_questionnaire": {
     "title": "Bạn sẽ sử dụng MetaMask vào việc gì?",
@@ -5140,7 +5213,7 @@
       },
       "identity": {
         "title": "Danh tính",
-        "description": "Xóa phiên xác thực đã được lưu. Hãy sử dụng sau khi chuyển đổi MM_DEV_API_ENV — nếu không, JWT được tạo từ môi trường triển khai sẽ tiếp tục được cung cấp cho các thành phần sử dụng API của môi trường thử nghiệm cho đến khi hết hạn. Hiện tại MM_DEV_API_ENV: {{env}}.",
+        "description": "Clears the persisted authentication session. Use this after toggling MM_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_API_ENV: {{env}}.",
         "clear_auth_session_button": "Xóa phiên xác thực đã lưu"
       },
       "notifications": {
@@ -7173,6 +7246,12 @@
     "order_status_cancelled": "Đã hủy",
     "webview_no_url_provided": "Không có URL nào được cung cấp để tiếp tục",
     "webview_error_no_address_provided": "Không có địa chỉ ví nào được cung cấp để tiếp tục",
+    "checkout_link_expired": "The checkout link has expired. Go back and try again.",
+    "checkout_link_expired_cta": "Quay lại",
+    "checkout_payment_failed": "The payment could not be completed. Please try again.",
+    "checkout_guest_limit_reached_description": "You have reached the limit for guest checkout. Continue with your {{provider}} account to finish this purchase.",
+    "checkout_continue_with_provider_account": "Continue with your {{provider}} account",
+    "google_pay_unavailable": "Google Pay isn't available on this device. Choose another payment method to continue.",
     "settings_modal": {
       "title": "Cài đặt",
       "use_new_buy_experience": "Thêm nhiều cách để mua",
@@ -8484,7 +8563,6 @@
       "add": "Thêm",
       "convert_cta": "Chuyển đổi tiền mã hóa của bạn",
       "no_fee": "Không tốn phí",
-      "view_all": "Xem tất cả",
       "view_potential_earnings": "Xem thu nhập tiềm năng"
     },
     "metamask_card": {
@@ -8494,13 +8572,11 @@
       "virtual_card": "Thẻ ảo",
       "metal_card": "Thẻ kim loại",
       "cashback": "Hoàn tiền {{percentage}}% bằng mUSD",
-      "get_now": "Nhận",
       "link_title": "Liên kết thẻ",
       "link_subtitle": "Chi tiêu số dư của bạn và sinh lời trên các giao dịch mua sắm.",
       "link_subtitle_no_apy": "Chi tiêu số dư của bạn và sinh lời trên các giao dịch mua sắm.",
       "link_bullet_cashback": "Nhận hoàn tiền {{percentage}}% bằng mUSD",
       "link_bullet_apy": "Sinh lời lên đến ~{{apy}}% APY",
-      "link_card": "Liên kết thẻ",
       "link_pending_title": "Đang liên kết thẻ của bạn",
       "link_success_title": "Thẻ của bạn đã sẵn sàng để sử dụng",
       "link_error": "Đã xảy ra lỗi khi liên kết thẻ của bạn",
@@ -8522,7 +8598,6 @@
       "unlink_card_sheet_another_money_account": "Money Account khác",
       "unlink_card_sheet_keep_linked": "Giữ liên kết",
       "unlink_card_sheet_unlink_account": "Hủy liên kết tài khoản",
-      "manage_card": "Quản lý",
       "verification_pending": "Xác minh danh tính của bạn đang được xem xét. Quá trình này thường mất chưa đến 12 giờ."
     },
     "what_you_get": {
@@ -9231,6 +9306,8 @@
       "limit": "Giới hạn",
       "recurring": "Định kỳ"
     },
+    "generic_error_toast_title": "Đã xảy ra sự cố",
+    "generic_error_toast_body": "Please try again in a few minutes.",
     "orders": {
       "tabs": {
         "open_orders": "Lệnh mở",
@@ -9290,15 +9367,21 @@
       "trigger_condition": "Điều kiện kích hoạt",
       "expiry_label": "Ngày hết hạn",
       "confirm_order": "Xác nhận lệnh",
-      "status": "Status",
+      "status": "Trạng thái",
       "in_progress": "In progress",
-      "submitted": "Submitted",
-      "cancel_order": "Cancel order",
-      "cancel_order_confirmation": "Do you really want to cancel your order?",
+      "submitted": "Đã gửi",
+      "cancel_order": "Hủy lệnh",
+      "cancel_order_confirmation": "Bạn có thực sự muốn hủy lệnh không?",
       "edit_cost_tolerance": "Sửa mức chênh lệch chi phí cho phép",
       "try_again": "Thử lại",
       "error_calculation_network_fees": "Không thể tính phí mạng.",
-      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details."
+      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details.",
+      "error_signing_delegations": "Could not create an order: the order couldn't be signed.",
+      "error_creating_order": "Could not create an order: the order couldn't be placed.",
+      "error_missing_trigger_price": "Could not create an order: the trigger price is unavailable.",
+      "order_created_title": "Đã tạo lệnh",
+      "order_created_description": "Chúng tôi sẽ thông báo cho bạn khi lệnh được khớp.",
+      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
     },
     "recurring": {
       "you_get": "Bạn nhận",
@@ -10391,7 +10474,7 @@
         },
         "unverified": {
           "title": "Yêu cầu xác minh",
-          "description": "You need to complete identity verification before enabling your card. Contact support team at {{email}} for assistance."
+          "description": "You need to complete identity verification before enabling your card. Contact the support team at {{email}} for assistance."
         },
         "error": {
           "title": "Trạng thái xác minh không khả dụng",
@@ -10712,8 +10795,8 @@
       "sign_in_help_got_it": "Tôi đã hiểu",
       "errors": {
         "invalid_credentials": "Thông tin đăng nhập không hợp lệ",
-        "invalid_otp_code": "Incorrect code. Try again.",
-        "unknown_error": "Unknown error. Try again later.",
+        "invalid_otp_code": "Incorrect code, try again",
+        "unknown_error": "Unknown error, try again later",
         "email_required": "Yêu cầu nhập email",
         "password_required": "Yêu cầu nhập mật khẩu",
         "email_invalid": "Địa chỉ email không hợp lệ",

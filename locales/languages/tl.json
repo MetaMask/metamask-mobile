@@ -1117,17 +1117,20 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Bank account",
       "title": "Kunin ang iyong Pix Key",
       "description": "Magpadala ng mga pondo direkta sa iyong Money account mula sa alinmang bank account.",
-      "benefit_deposit_pix": "Magdeposito gamit ang",
-      "benefit_payments": "Magpadala ng lokal at internasyonal na mga bayad",
-      "agreements_disclosures_title": "Mga kasunduan at pagpapahayag",
+      "benefit_receive_title": "Receive money locally",
+      "benefit_receive_description": "Use account details designed for your region",
+      "benefit_add_money_title": "Add money with ease",
+      "benefit_add_money_description": "Transfer directly from your bank account",
+      "benefit_currencies_title": "Manage multiple currencies",
+      "benefit_currencies_description": "Keep supported balances together in one place",
       "disclaimers_error": "Hindi mai-load ang mga tuntunin at kundisyon.",
       "disclaimers_retry": "Subukang muli",
-      "agreement_text": "Sa pagpapatuloy, sumasang-ayon ka sa mga tuntunin at kondisyon na nasa itaas.",
-      "powered_by_moonpay": "Pinapagana ng MoonPay.",
+      "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
+      "agreement_separator": " at ",
       "button": "Sumang-ayon at magpatuloy"
     },
     "verify_identity": {
@@ -1158,9 +1161,38 @@
       "error_description": "Hindi namin masimulan ang pag-verify ng pagkakakilanlan mo. Subukan ulit.",
       "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.",
       "email_not_set_error": "Walang nakalagay na email. Bumalik at ilagay ang email mo."
+    },
+    "kyc_pending": {
+      "title": "Kasalukuyan ang pag-verify",
+      "description": "We're still reviewing your identity. This usually takes a few minutes.",
+      "button": "Suriin ang katayuan"
+    },
+    "kyc_rejected": {
+      "title": "Verification unsuccessful",
+      "description": "We couldn't verify your identity. You can try again or contact support.",
+      "button": "Subukang muli"
+    },
+    "account_provisioning_error": {
+      "title": "Couldn't create your account",
+      "description": "Your identity is verified, but we couldn't finish creating your account.",
+      "button": "Subukang muli"
+    },
+    "error": {
+      "title": "Couldn't continue",
+      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "button": "Subukang muli"
     }
   },
   "social_leaderboard": {
+    "entry_options": {
+      "title": "Mga Opsyon",
+      "report": "Report"
+    },
+    "feed_sort": {
+      "title": "Sort",
+      "most_recent": "Most recent",
+      "popular": "Sikat"
+    },
     "top_traders_view": {
       "notifications_banner": {
         "description": "Makakatanggap ka ng mga alerto kapag kumilos ang mga trader na pina-follow mo. I-on ang mga notipikasyon sa mga setting ng iyong device.",
@@ -1282,6 +1314,12 @@
       "character_count": "{{count}}/{{limit}}",
       "chip_position": "Posisyon",
       "chip_gif": "GIF",
+      "gifs_title": "GIFs",
+      "gifs_close": "Close GIFs",
+      "gifs_search_placeholder": "Search GIFs",
+      "gifs_empty": "No GIFs found",
+      "gifs_error": "Couldn't load GIFs",
+      "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
       "share_position_title": "Share a position",
@@ -1310,10 +1348,14 @@
       },
       "filters": {
         "title": "Filters",
-        "show_results": "Show results",
+        "show_results": "Ilapat",
+        "apply": "Ilapat",
+        "reset": "I-reset",
         "section": {
           "type": "Uri",
-          "trader_cohort": "Trader cohort",
+          "asset_type": "Asset type",
+          "verification": "Verification",
+          "trader_cohort": "Mga Trader",
           "timeframe": "Time frame",
           "network": "Network",
           "market_cap": "Market cap",
@@ -1325,13 +1367,19 @@
           "perps": "Perps",
           "predictions": "Mga prediksyon"
         },
+        "verification": {
+          "all": "Lahat",
+          "verified": "Na-verify",
+          "unverified": "Unverified"
+        },
         "trader_cohort": {
           "all": "Lahat",
           "following": "Following",
           "shrimp": "Shrimp",
           "dolphin": "Dolphin",
           "whale": "Whale",
-          "kol": "KOL"
+          "kol": "KOL",
+          "verified": "Na-verify"
         },
         "timeframe": {
           "1h": "1H",
@@ -1551,7 +1599,7 @@
       "select_quote_title": "Pumili ng quote",
       "rate": "Singil",
       "get_new_quote": "Kumuha ng bagong quote",
-      "available_balance": "{{amount}} available",
+      "available_balance": "{{amount}} Available",
       "toggle_amount_display": "Magpalipat-lipat sa pagitan ng token at halaga ng dollar",
       "includes_mm_fee": "Kabilang ang {{fee}}% na bayad sa MetaMask",
       "pay_with_no_tokens": "Walang available na token na pambayad",
@@ -2046,7 +2094,7 @@
         "scale_price_above_warning": "Mas mataas sa current price ang saklaw ng presyo mo at posible itong ma-fill kaagad bilang taker order at mapatawan ng bayad sa taker.",
         "scale_price_below_warning": "Mas mababa sa current price ang saklaw ng presyo mo at posible itong ma-fill kaagad bilang taker order at mapatawan ng bayad sa taker.",
         "scale_price_above_partial_warning": "Mas mataas sa current price ang isang bahagi ng saklaw ng presyo mo at posible itong ma-fill kaagad bilang taker order.",
-        "scale_price_below_partial_warning": "Mas mababa sa current price ang isang bahagi ng saklaw ng presyo mo at posible itong ma-fill kaagad bilang taker order at mapatawan ng bayad sa taker.",
+        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order.",
         "trigger_must_be_above_mid": "Dapat na mas mataas sa mid price ang trigger price",
         "trigger_must_be_below_mid": "Dapat na mas mababa sa mid price ang trigger price",
         "trigger_orders_unavailable": "Pansamantalang hindi available ang mga na-trigger na order. Pumili ng market order.",
@@ -3340,17 +3388,40 @@
       "predict_balance": "Hulaan ang balanse",
       "total": "Kabuuan",
       "price_details": "Mga detalye ng presyo",
-      "confirm": "Kumpirmahin",
       "terms": "Sa pagpapatuloy, tinatanggap mo ang mga tuntunin ng platform.",
       "learn_more": "Matuto pa",
       "submitting": "Isinusumite ang order mo...",
-      "success_title": "Naisumite ang order",
       "done": "Tapos na",
       "close": "Isara",
       "delete": "Tanggalin",
       "expired": "Nag-expire na ang quote na ito. Mag-refresh para makakuha ng panibago.",
       "refresh": "I-refresh",
-      "retry": "Subukang muli"
+      "retry": "Subukang muli",
+      "review": "Review order"
+    },
+    "order_approval": {
+      "title": "Suriin ang order mo",
+      "expires_at": "Quote expires at {{time}}",
+      "approve": "Approve & submit",
+      "edit_order": "Edit order"
+    },
+    "order_receipt": {
+      "filled_title": "Na-fill ang order",
+      "partial_title": "Order partially filled",
+      "partial_description": "{{filled}} of {{quoted}} contracts filled. The remaining {{remainder}} were canceled and won't be placed.",
+      "position_context": "You now own {{contracts}} {{outcome}} contracts",
+      "filled_contracts": "Na-fill",
+      "average_fill_price": "Avg. na fill price",
+      "actual_spend": "Spent",
+      "payout_exposure": "Payout exposure",
+      "not_filled_title": "Order not filled",
+      "not_filled_description": "The market is moving fast, so we couldn't buy at {{price}}. No money left your balance.",
+      "rejected_title": "Order rejected",
+      "rejected_description": "The venue refused this order. Nothing was filled and your balance is untouched.",
+      "reconciling_title": "Still confirming your order",
+      "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
+      "keep_checking": "Keep checking",
+      "requote": "Subukang muli"
     }
   },
   "predict": {
@@ -4151,6 +4222,7 @@
     "display_nft_media_cta": "I-on ang I-display ng NFT media",
     "display_media_nft_warning": "Ang pagpapakita ng media at data ng NFT ay maaaring maglantad sa iyong IP address sa mga sentralisadong server. Mag-import lang ng NFT kung nauunawaan mo ang mga kaugnay na panganib.",
     "nfts_autodetect_title": "Auto-detection ng NFT",
+    "nfts_unavailable_title": "NFTs are not available",
     "nfts_autodetect_cta": "Paganahin ang autodetection ng NFT",
     "turn_on_network_check_cta": "I-on ang pagsusuri ng ng detalye ng network",
     "display_nft_media_cta_new_1": "Para makita ang NFT, i-on ang Display NFT media sa",
@@ -4318,7 +4390,7 @@
     "privacy_policy_button": "Patakaran sa Pagkapribado",
     "agree": "Sang-ayon ako",
     "decline": "Salamat na lang",
-    "description_title": "Pahusayin ang MetaMask",
+    "description_title": "Tulungan kaming mapahusay ang MetaMask",
     "description_content_1": "Nais naming humiling ng mga pahintulot na ito. Maaari kang tumangging pumayag o tanggalin ang iyong data ng paggamit anumang oras.",
     "description_content_2": "Kapag kami ay nangangalap ng metrics, ito ay palaging...",
     "description_content_3": "Matuto kung paano namin pinoprotektahan ang iyong privacy habang nangongolekta ng data ng paggamit para sa iyong profile.",
@@ -4364,17 +4436,18 @@
   },
   "basic_functionality_migration": {
     "title": "In-update namin ang mga setting namin",
-    "social_title": "Mga update sa pagkapribado at produkto",
-    "social_body_1": "Ina-update namin kung paano gumagana ang MetaMask para sa social login. Para paganahin ang mahusay na karanasan sa MetaMask, ang iyong pagkakakilanlan na social login (email or handle) ay ligtas na ngayon ili-link sa iyong your user profile at nauugnay na mga account addresse. Bilang bahagi ng update na ito, laging pagaganahin ang Basic Functionality at iba pang mga default na setting.",
-    "social_body_2_prefix": "Hindi namin ibebenta ang iyong data sa mga third party. Basahin pa ang tungkol sa kung ano ang kinokolekta namin at bakit sa aming",
-    "social_body_2_middle": " at na-update ",
+    "social_title": "Updates for social login",
+    "social_body_1": "Because you sign in with Google, Apple or Telegram, your email (or Telegram handle) is now saved to your MetaMask profile with your wallet addresses. This keeps your account working consistently across MetaMask features. Basic Functionality stays on for social login accounts.",
+    "social_body_2_prefix": "Your keys are still only yours. Read more in our",
+    "social_body_2_middle": " at ",
     "social_body_2_suffix": ".",
     "blog_post_link": "blog post",
     "privacy_notice_link": "Patakaran sa Pagkapribado",
-    "toast_description": "Kasama na ngayon sa basic na functionality ang mga third-party na API. Naka-on ito batay sa mga nakaraang setting mo. I-adjust anumang oras sa",
-    "toast_description_disabled": "Kasama na ngayon sa basic na functionality ang mga third-party na API. Naka-off ito batay sa mga nakaraang setting mo. I-adjust anumang oras sa",
-    "settings_link": "Mga Setting > Pagkapribado.",
-    "accept_and_close": "Tanggapin at isara"
+    "toast_description": "Your privacy toggles are now one setting, Basic Functionality. It’s turned on based on your previous settings. Adjust anytime in",
+    "toast_description_disabled": "Your privacy toggles are now one setting, Basic Functionality. It’s turned off based on your previous settings. Adjust anytime in",
+    "settings_link": "Mga Setting > Pagkapribado. ",
+    "learn_more_link": "Matuto pa.",
+    "accept_and_close": "Magpatuloy"
   },
   "onboarding_interest_questionnaire": {
     "title": "Paano mo gagamitin ang MetaMask?",
@@ -5140,7 +5213,7 @@
       },
       "identity": {
         "title": "Pagkakakilanlan",
-        "description": "Binubura ang naka-save na sesyon ng pagpapatunay. Gamitin ito pagkatapos i-toggle ang MM_DEV_API_ENV — kung hindi, patuloy na ibibigay ang JWT na ginawa para sa production sa mga consumer ng dev-API hanggang sa mag-expire ito. Kasalukuyang MM_DEV_API_ENV: {{env}}.",
+        "description": "Clears the persisted authentication session. Use this after toggling MM_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_API_ENV: {{env}}.",
         "clear_auth_session_button": "Burahin ang naka-save na sesyon ng pagpapatunay"
       },
       "notifications": {
@@ -7173,6 +7246,12 @@
     "order_status_cancelled": "Nakansela",
     "webview_no_url_provided": "Walang ibinigay na URL para magpatuloy",
     "webview_error_no_address_provided": "Walang ibinigay na address ng wallet para magpatuloy",
+    "checkout_link_expired": "The checkout link has expired. Go back and try again.",
+    "checkout_link_expired_cta": "Bumalik",
+    "checkout_payment_failed": "The payment could not be completed. Please try again.",
+    "checkout_guest_limit_reached_description": "You have reached the limit for guest checkout. Continue with your {{provider}} account to finish this purchase.",
+    "checkout_continue_with_provider_account": "Continue with your {{provider}} account",
+    "google_pay_unavailable": "Google Pay isn't available on this device. Choose another payment method to continue.",
     "settings_modal": {
       "title": "Mga Setting",
       "use_new_buy_experience": "Mas maraming paraan para bumili",
@@ -8484,7 +8563,6 @@
       "add": "Idagdag",
       "convert_cta": "I-convert ang iyong crypto",
       "no_fee": "Walang bayarin",
-      "view_all": "Tingnan lahat",
       "view_potential_earnings": "Tingnan ang potensyal na kikitain"
     },
     "metamask_card": {
@@ -8494,13 +8572,11 @@
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "cashback": "Ibabalik na {{percentage}}% mUSD",
-      "get_now": "Kunin ang",
       "link_title": "I-link ang card",
       "link_subtitle": "Gastusin ang balanse mo at kumita sa mga pagbili.",
       "link_subtitle_no_apy": "Gastusin ang balanse mo at kumita sa mga pagbili.",
       "link_bullet_cashback": "Makakuha ng {{percentage}}% mUSD pabalik",
       "link_bullet_apy": "Kumita ng hanggang ~{{apy}}% APY",
-      "link_card": "I-link ang card",
       "link_pending_title": "Pag-link ng card mo",
       "link_success_title": "Handa nang gamitin ang card mo",
       "link_error": "Nagkaproblema sa pag-link ng card mo",
@@ -8522,7 +8598,6 @@
       "unlink_card_sheet_another_money_account": "iba pang Money account",
       "unlink_card_sheet_keep_linked": "Panatilihing naka-link",
       "unlink_card_sheet_unlink_account": "I-unlink ang account",
-      "manage_card": "Pamahalaan",
       "verification_pending": "Sinusuri ang pag-verify ng pagkakakilanlan mo. Karaniwan itong tumatagal nang wala pang 12 oras."
     },
     "what_you_get": {
@@ -9231,6 +9306,8 @@
       "limit": "Limit",
       "recurring": "Umuulit"
     },
+    "generic_error_toast_title": "Mayroong nang mali",
+    "generic_error_toast_body": "Please try again in a few minutes.",
     "orders": {
       "tabs": {
         "open_orders": "Mga bukas na order",
@@ -9290,15 +9367,21 @@
       "trigger_condition": "Kondisyon ng trigger",
       "expiry_label": "Mag-e-expire",
       "confirm_order": "Kumpirmahin ang order",
-      "status": "Status",
+      "status": "Katayuan",
       "in_progress": "In progress",
-      "submitted": "Submitted",
-      "cancel_order": "Cancel order",
-      "cancel_order_confirmation": "Do you really want to cancel your order?",
+      "submitted": "Naisumite",
+      "cancel_order": "Kanselahin ang order",
+      "cancel_order_confirmation": "Gusto mo ba talagang kanselahin ang iyong order?",
       "edit_cost_tolerance": "I-edit ang tolerance sa gastos",
       "try_again": "Subukang muli",
       "error_calculation_network_fees": "Hindi makalkula ang bayad sa network.",
-      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details."
+      "error_fetching_delegations": "Could not create an order: unable to fetch delegation details.",
+      "error_signing_delegations": "Could not create an order: the order couldn't be signed.",
+      "error_creating_order": "Could not create an order: the order couldn't be placed.",
+      "error_missing_trigger_price": "Could not create an order: the trigger price is unavailable.",
+      "order_created_title": "Nagawa na ang order",
+      "order_created_description": "Ipapaalam namin sa iyo kapag na-fill na ito.",
+      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
     },
     "recurring": {
       "you_get": "Makakakuha ka ng",
@@ -10391,7 +10474,7 @@
         },
         "unverified": {
           "title": "Kinakailangan ang pag-verify",
-          "description": "You need to complete identity verification before enabling your card. Contact support team at {{email}} for assistance."
+          "description": "You need to complete identity verification before enabling your card. Contact the support team at {{email}} for assistance."
         },
         "error": {
           "title": "Hindi available ang katayuan ng pag-verify",
@@ -10712,8 +10795,8 @@
       "sign_in_help_got_it": "Nakuha ko",
       "errors": {
         "invalid_credentials": "Di-wastong mga detalye ng login",
-        "invalid_otp_code": "Incorrect code. Try again.",
-        "unknown_error": "Unknown error. Try again later.",
+        "invalid_otp_code": "Incorrect code, try again",
+        "unknown_error": "Unknown error, try again later",
         "email_required": "Kinakailangan ang email",
         "password_required": "Kinakailangan ang password",
         "email_invalid": "Di-wastong email address",

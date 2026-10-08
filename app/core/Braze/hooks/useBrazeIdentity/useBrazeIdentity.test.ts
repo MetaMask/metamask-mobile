@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useBrazeIdentity } from './useBrazeIdentity';
-import { setBrazeUser, clearBrazeUser, refreshBrazeBanners } from '../..';
+import { setBrazeUser, clearBrazeUser } from '../..';
 import { registerBrazePush } from '../../registerPush';
 import { retryPendingBrazePushUnregistration } from '../../unregisterPush';
 import { hasPendingBrazePushUnregistrationSync } from '../../pushRegistrationState';
@@ -19,7 +19,6 @@ jest.mock('react-redux', () => ({
 jest.mock('../..', () => ({
   setBrazeUser: jest.fn(),
   clearBrazeUser: jest.fn(),
-  refreshBrazeBanners: jest.fn(),
 }));
 
 jest.mock('../../registerPush', () => ({
@@ -36,7 +35,6 @@ jest.mock('../../pushRegistrationState', () => ({
 
 const mockSetBrazeUser = jest.mocked(setBrazeUser);
 const mockClearBrazeUser = jest.mocked(clearBrazeUser);
-const mockRefreshBrazeBanners = jest.mocked(refreshBrazeBanners);
 const mockRegisterBrazePush = jest.mocked(registerBrazePush);
 const mockRetryPendingBrazePushUnregistration = jest.mocked(
   retryPendingBrazePushUnregistration,
@@ -118,6 +116,7 @@ describe('useBrazeIdentity', () => {
     mockIsPushEnabled = false;
     mockFcmToken = '';
     jest.clearAllMocks();
+    setBrazeResetInProgress(false);
     mockClearBrazeUser.mockResolvedValue(true);
     mockRetryPendingBrazePushUnregistration.mockResolvedValue(true);
     mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
@@ -136,7 +135,7 @@ describe('useBrazeIdentity', () => {
     });
   });
 
-  it('calls setBrazeUser and refreshes banners when signed in with a canonical profile ID', async () => {
+  it('calls setBrazeUser when signed in with a canonical profile ID', async () => {
     mockIsSignedIn = true;
     mockCanonicalProfileId = 'canonical-123';
     renderHook(() => useBrazeIdentity());
@@ -145,7 +144,6 @@ describe('useBrazeIdentity', () => {
       expect(mockSetBrazeUser).toHaveBeenCalledTimes(1);
     });
     expect(mockSetBrazeUser).toHaveBeenCalledWith('canonical-123');
-    expect(mockRefreshBrazeBanners).toHaveBeenCalledTimes(1);
     expect(mockClearBrazeUser).not.toHaveBeenCalled();
   });
 
@@ -155,7 +153,6 @@ describe('useBrazeIdentity', () => {
     renderHook(() => useBrazeIdentity());
 
     expect(mockSetBrazeUser).not.toHaveBeenCalled();
-    expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
   });
 
   it('suppresses the sign-in branch while a wallet reset is in progress', async () => {
@@ -169,7 +166,6 @@ describe('useBrazeIdentity', () => {
       expect(mockRetryPendingBrazePushUnregistration).not.toHaveBeenCalled(),
     );
     expect(mockSetBrazeUser).not.toHaveBeenCalled();
-    expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
   });
 
   it('identifies normally once the reset flag is cleared', async () => {
@@ -255,27 +251,19 @@ describe('useBrazeIdentity', () => {
     await waitFor(() => expect(mockClearBrazeUser).toHaveBeenCalledTimes(1));
   });
 
-  it('re-identifies and refreshes when the canonical profile ID changes', async () => {
+  it('re-identifies when the canonical profile ID changes', async () => {
     mockIsSignedIn = true;
     mockCanonicalProfileId = 'canonical-123';
     const { rerender } = renderHook(() => useBrazeIdentity());
 
     await waitFor(() => expect(mockSetBrazeUser).toHaveBeenCalledTimes(1));
     expect(mockSetBrazeUser).toHaveBeenCalledWith('canonical-123');
-    expect(mockRefreshBrazeBanners).toHaveBeenCalledTimes(1);
 
     mockCanonicalProfileId = 'canonical-456';
     rerender({});
 
     await waitFor(() => expect(mockSetBrazeUser).toHaveBeenCalledTimes(2));
     expect(mockSetBrazeUser).toHaveBeenLastCalledWith('canonical-456');
-    expect(mockRefreshBrazeBanners).toHaveBeenCalledTimes(2);
-  });
-
-  it('does not call refreshBrazeBanners when not signed in', () => {
-    renderHook(() => useBrazeIdentity());
-
-    expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
   });
 
   it('identifies the user without registering while launch unregistration remains pending', async () => {

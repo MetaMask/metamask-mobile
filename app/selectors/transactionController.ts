@@ -28,6 +28,7 @@ type LocalTransaction = TransactionMeta | SmartTransaction;
 const MONEY_DEPOSIT_TYPES = [TransactionType.moneyAccountDeposit];
 const MONEY_WITHDRAW_TYPES = [TransactionType.moneyAccountWithdraw];
 const EMPTY_TRANSACTIONS: TransactionMeta[] = [];
+const EMPTY_BATCH_TRANSACTION_COUNTS: Record<string, number> = {};
 
 function isTerminalFailedStatus(status: unknown): boolean {
   return (
@@ -138,6 +139,14 @@ export const selectTransactions = createSelector(
   selectTransactionControllerState,
   (transactionControllerState) =>
     transactionControllerState?.transactions ?? EMPTY_TRANSACTIONS,
+);
+
+/** Expected leg count per in-flight batch, keyed by batch ID. */
+export const selectBatchTransactionCounts = createSelector(
+  selectTransactionControllerState,
+  (transactionControllerState) =>
+    transactionControllerState?.batchTransactionCounts ??
+    EMPTY_BATCH_TRANSACTION_COUNTS,
 );
 
 const selectTransactionBatchesStrict = createSelector(

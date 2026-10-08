@@ -14,9 +14,19 @@ import { OrdersTabsSelectorsIDs } from './OrdersTabs.testIds';
 
 interface OrdersEmptyStateProps {
   description: string;
+  actionButtonText?: string;
+  onAction?: () => void;
+  testID?: string;
+  actionButtonTestID?: string;
 }
 
-export function OrdersEmptyState({ description }: OrdersEmptyStateProps) {
+export function OrdersEmptyState({
+  description,
+  actionButtonText,
+  onAction,
+  testID = OrdersTabsSelectorsIDs.EMPTY_STATE,
+  actionButtonTestID,
+}: OrdersEmptyStateProps) {
   const tw = useTailwind();
   const emptyStateIcon = useAssetFromTheme(
     emptyStatePerpsLight,
@@ -30,7 +40,7 @@ export function OrdersEmptyState({ description }: OrdersEmptyStateProps) {
       twClassName="grow"
     >
       <TabEmptyState
-        testID={OrdersTabsSelectorsIDs.EMPTY_STATE}
+        testID={testID}
         icon={
           <Image
             source={emptyStateIcon}
@@ -40,6 +50,11 @@ export function OrdersEmptyState({ description }: OrdersEmptyStateProps) {
           />
         }
         description={description}
+        actionButtonText={actionButtonText}
+        onAction={onAction}
+        actionButtonProps={
+          actionButtonTestID ? { testID: actionButtonTestID } : undefined
+        }
       />
     </Box>
   );

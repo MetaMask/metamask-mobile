@@ -98,6 +98,12 @@ export interface ConfirmationParams {
   maxValueMode?: boolean;
   forceBottomSheet?: boolean;
   payWithOption?: PayWithOption;
+  /**
+   * Set by callers that navigate from an already-presented modal stack, where
+   * the confirmation arrives as a sheet rather than filling the window. The
+   * navbar uses this to skip the top inset and show a drag handle.
+   */
+  sheetPresentation?: boolean;
   preferredPaymentToken?: {
     address: Hex;
     chainId: Hex;

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { AlertKeys } from '../../constants/alerts';
 import { useTransferRecipient } from '../transactions/useTransferRecipient';
 import { useAddressPoisoningDetection } from '../send/useAddressPoisoningDetection';
@@ -14,7 +14,7 @@ export function useAddressPoisoningAlert(): Alert[] {
 
   return useMemo(() => {
     if (!isPoisoningSuspect || !bestMatch || !toAddress) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [

@@ -25,6 +25,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { useRampsProviders } from '../../../hooks/useRampsProviders';
 import { useRampsTokens } from '../../../hooks/useRampsTokens';
 import { createProviderSelectionModalNavigationDetails } from '../ProviderSelectionModal';
+import { createNestedTokenSelectionNavDetails } from '../../TokenSelection';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS } from './TokenNotAvailableModal.testIds';
@@ -90,9 +91,9 @@ function TokenNotAvailableModal() {
           { pop: true },
         );
       } else {
-        navigation.navigate(
-          Routes.RAMP.TOKEN_SELECTION,
-          { screen: Routes.RAMP.TOKEN_SELECTION_ROOT },
+        navigateWithDetails(
+          navigation,
+          createNestedTokenSelectionNavDetails(),
           { pop: true },
         );
       }
@@ -160,9 +161,9 @@ function TokenNotAvailableModal() {
             { pop: true },
           );
         } else {
-          navigation.navigate(
-            Routes.RAMP.TOKEN_SELECTION,
-            { screen: Routes.RAMP.TOKEN_SELECTION_ROOT },
+          navigateWithDetails(
+            navigation,
+            createNestedTokenSelectionNavDetails(),
             { pop: true },
           );
         }

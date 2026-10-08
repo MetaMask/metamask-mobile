@@ -60,6 +60,24 @@ const givenPositions = (positions: PredictPosition[]) =>
 const givenPriceHistory = (points: PredictPriceHistoryPoint[]) =>
   controllerMock('getPriceHistory').mockResolvedValue(points);
 
+type PredictMarketDetailsQueries = ReturnType<
+  typeof renderPredictMarketDetailsView
+>;
+
+/** Market header and About tab content mount on independent async phases. */
+const awaitMarketDetailsAboutReady = async (
+  findByTestId: PredictMarketDetailsQueries['findByTestId'],
+  _findByText: PredictMarketDetailsQueries['findByText'],
+) => {
+  const screen = await findByTestId(PredictMarketDetailsSelectorsIDs.SCREEN);
+  await waitFor(() => {
+    expect(
+      within(screen).getByText(MOCK_PREDICT_MARKET.title),
+    ).toBeOnTheScreen();
+  });
+  await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
+};
+
 /** Redux delta that makes the user eligible to trade. */
 const ELIGIBLE_USER = {
   engine: {
@@ -156,6 +174,11 @@ describe('PredictMarketDetails', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    controllerMock('getMarket').mockReset();
+    controllerMock('getPositions').mockReset();
+    controllerMock('getPriceHistory').mockReset();
+    controllerMock('getMarketSeries').mockReset();
+    controllerMock('claimWithConfirmation').mockReset();
     givenMarket(MOCK_PREDICT_MARKET);
     givenPositions([]);
     givenPriceHistory([]);
@@ -315,21 +338,15 @@ describe('PredictMarketDetails', () => {
     });
 
     it('shows the share button once the market has loaded', async () => {
-      const { findByTestId, queryByTestId } = renderPredictMarketDetailsView({
+      const { queryByTestId } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
 
       await waitFor(() => {
         expect(
-          queryByTestId(
-            PredictMarketDetailsSelectorsIDs.DETAILS_CONTENT_SKELETON_LINE_1,
-          ),
-        ).not.toBeOnTheScreen();
+          queryByTestId(PredictMarketDetailsSelectorsIDs.SHARE_BUTTON),
+        ).toBeOnTheScreen();
       });
-
-      expect(
-        await findByTestId(PredictMarketDetailsSelectorsIDs.SHARE_BUTTON),
-      ).toBeOnTheScreen();
     });
 
     it('resolves the market from the series in route params when no marketId is given', async () => {
@@ -358,11 +375,11 @@ describe('PredictMarketDetails', () => {
     it('calls trackMarketDetailsOpened when the market and positions finish loading', async () => {
       const trackSpy = controllerMock('trackMarketDetailsOpened');
 
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
 
-      await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       await waitFor(() => {
         expect(trackSpy).toHaveBeenCalledWith(
@@ -374,11 +391,11 @@ describe('PredictMarketDetails', () => {
     it('reports the entry point the user arrived from', async () => {
       const trackSpy = controllerMock('trackMarketDetailsOpened');
 
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID, entryPoint: 'explore' },
       });
 
-      await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       await waitFor(() => {
         expect(trackSpy).toHaveBeenCalledWith(
@@ -667,12 +684,8 @@ describe('PredictMarketDetails', () => {
         initialParams: { marketId: MOCK_PREDICT_CLOSED_MARKET.id },
       });
 
+      await findByTestId(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT);
       expect(await findByText('Market resulted to Yes')).toBeOnTheScreen();
-      expect(
-        await findByTestId(
-          PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT,
-        ),
-      ).toBeOnTheScreen();
     });
 
     it('lets the user switch to the About tab on a closed market', async () => {

@@ -5,9 +5,12 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -15,6 +18,8 @@ import {
 import React, { useCallback } from 'react';
 import { Pressable, StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { useSocialEntryOptions } from '../../components/SocialEntryOptionsBottomSheet';
+import { getSocialEntryOptionsTriggerTestId } from '../../components/SocialEntryOptionsBottomSheet.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import PerpBadges from '../../components/PerpBadges';
@@ -54,12 +59,18 @@ export interface FeedItemRowProps {
   onTradePress: (item: FeedItem) => void;
   onPositionPress: (item: FeedItem) => void;
   onTraderPress: (item: FeedItem) => void;
+  /** Live stream rows omit the Trade CTA; defaults to showing it. */
+  showTradeButton?: boolean;
+  /** Match V1 position card border/fill on the compact trade card. */
+  usePositionCardChrome?: boolean;
   /**
    * Wall-clock instant used to format the relative timestamp. Parent should
    * bump this after pull-to-refresh so memoized rows recompute even when the
    * feed payload is unchanged. Defaults to `Date.now()`.
    */
   now?: number;
+  /** When true, shows the overflow menu that currently only offers Report. */
+  showOptionsMenu?: boolean;
 }
 
 /**
@@ -72,8 +83,12 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   onTradePress,
   onPositionPress,
   onTraderPress,
+  showTradeButton = true,
+  usePositionCardChrome = false,
   now,
+  showOptionsMenu = false,
 }) => {
+  const { open: openOptions, sheet: optionsSheet } = useSocialEntryOptions();
   const handleTradePress = useCallback(() => {
     onTradePress(item);
   }, [item, onTradePress]);
@@ -101,6 +116,10 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
     (item.isClosed ?? action === 'closed')
       ? null
       : NEW_POSITION_LABEL_KEYS[assetClass];
+
+  const tradeCardTwClassName = usePositionCardChrome
+    ? 'bg-background-alternative rounded-2xl p-3 border border-muted'
+    : 'bg-muted rounded-2xl p-3';
 
   return (
     <Box twClassName="px-4 py-3 gap-4" testID={getFeedItemTestId(item.id)}>
@@ -149,14 +168,27 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
           </Box>
         </TouchableOpacity>
 
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Sm}
-          onPress={handleTradePress}
-          testID={getFeedTradeButtonTestId(item.id)}
-        >
-          {strings('social_leaderboard.feed.trade')}
-        </Button>
+        {showTradeButton ? (
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Sm}
+            onPress={handleTradePress}
+            testID={getFeedTradeButtonTestId(item.id)}
+          >
+            {strings('social_leaderboard.feed.trade')}
+          </Button>
+        ) : null}
+        {showOptionsMenu ? (
+          <ButtonIcon
+            iconName={IconName.MoreHorizontal}
+            size={ButtonIconSize.Md}
+            onPress={openOptions}
+            accessibilityLabel={strings(
+              'social_leaderboard.entry_options.title',
+            )}
+            testID={getSocialEntryOptionsTriggerTestId(item.id)}
+          />
+        ) : null}
       </Box>
 
       <Pressable
@@ -170,7 +202,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={3}
-          twClassName="bg-muted rounded-2xl p-3"
+          twClassName={tradeCardTwClassName}
         >
           <PositionTokenAvatar
             position={item.tokenAvatar}
@@ -244,6 +276,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
           ) : null}
         </Box>
       </Pressable>
+      {showOptionsMenu ? optionsSheet : null}
     </Box>
   );
 };

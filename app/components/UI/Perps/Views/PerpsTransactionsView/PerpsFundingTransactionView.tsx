@@ -2,7 +2,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import { BigNumber } from 'bignumber.js';
-import React, { useLayoutEffect } from 'react';
+import React from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
@@ -47,12 +47,6 @@ const PerpsFundingTransactionView: React.FC = () => {
 
   // Get transaction from route params
   const transaction = route.params?.transaction as PerpsTransaction;
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
 
   // Check if transaction exists before proceeding
   if (!transaction) {
