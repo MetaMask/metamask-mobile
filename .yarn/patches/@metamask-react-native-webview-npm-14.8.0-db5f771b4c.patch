@@ -1,8 +1,8 @@
 diff --git a/package.json b/package.json
-index 6b9ca814f3e2b4630e81371235f6ad942d5eac3f..1d7129b41beb19c53b3fbe277b9670ff72b30d6d 100644
+index 8b49694fb0fc30a5550aeaca4c4f86cf66445e3c..4975e3d411b2a182c79ef650803f809ae1e2f6ad 100644
 --- a/package.json
 +++ b/package.json
-@@ -95,6 +95,14 @@
+@@ -98,6 +98,14 @@
      "jsSrcsDir": "./src",
      "android": {
        "javaPackageName": "com.reactnativecommunity.webview"
@@ -16,4 +16,4 @@ index 6b9ca814f3e2b4630e81371235f6ad942d5eac3f..1d7129b41beb19c53b3fbe277b9670ff
 +      }
      }
    },
-   "packageManager": "yarn@1.22.19"
+   "packageManager": "yarn@4.16.0+sha256.ba05224324578801b9cc98170d64aa50b9a36733b440fb0942306da3fbbdc7d1",
