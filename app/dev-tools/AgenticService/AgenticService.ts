@@ -47,6 +47,8 @@ import { importNewSecretRecoveryPhrase } from '../../actions/multiSrp';
 import { bufferToHex, privateToAddress } from 'ethereumjs-util';
 import Authentication from '../../core/Authentication';
 import { emitStepHud } from './AgentStepHud';
+import { BottomSheet as DesignSystemBottomSheet } from '@metamask/design-system-react-native';
+import ComponentLibraryBottomSheet from '../../component-library/components/BottomSheets/BottomSheet';
 import { Wallet as EthersWallet } from 'ethers';
 import PerpsConnectionManager from '../../components/UI/Perps/services/PerpsConnectionManager';
 import { getStreamManagerInstance } from '../../components/UI/Perps/providers/PerpsStreamManager';
@@ -58,6 +60,7 @@ import { getStreamManagerInstance } from '../../components/UI/Perps/providers/Pe
  * via __REACT_DEVTOOLS_GLOBAL_HOOK__.
  */
 interface FiberNode {
+  type?: unknown;
   child: FiberNode | null;
   sibling: FiberNode | null;
   return: FiberNode | null;
@@ -112,6 +115,7 @@ interface AgenticHudStep {
   error?: string;
   nodeId?: string;
   debug?: { nodeId?: string; proofTarget?: unknown };
+  placement?: 'top' | 'bottom';
 }
 
 interface AgenticBridge {
@@ -412,6 +416,24 @@ function walkFiberRoots(visitor: (rootFiber: FiberNode) => boolean): boolean {
     if (found) return true;
   }
   return false;
+}
+
+const BOTTOM_SHEET_TYPES = new Set<unknown>([
+  DesignSystemBottomSheet,
+  ComponentLibraryBottomSheet,
+]);
+
+/**
+ * True while a bottom sheet is mounted on a visible route, whether it is its
+ * own route or rendered inline by a screen (e.g. the Perps close-all sheet).
+ */
+function isBottomSheetShown(): boolean {
+  return walkFiberRoots((rootFiber) =>
+    walkFiber(
+      rootFiber,
+      (f) => BOTTOM_SHEET_TYPES.has(f.type) && !isFiberInactive(f),
+    ),
+  );
 }
 
 // ─── Shared helpers ─────────────────────────────────────────────────────────
@@ -1477,7 +1499,10 @@ const AgenticService = {
         return { switched: true, ...toAccountSummary(target) };
       },
       showStep: (step: AgenticHudStep) => {
-        emitStepHud(step);
+        emitStepHud({
+          ...step,
+          placement: isBottomSheetShown() ? 'top' : 'bottom',
+        });
       },
       hideStep: () => {
         emitStepHud(null);

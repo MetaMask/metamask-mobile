@@ -12,6 +12,8 @@ import AgenticService, {
 } from './AgenticService';
 import Engine from '../../core/Engine';
 import { emitStepHud } from './AgentStepHud';
+import { BottomSheet as DesignSystemBottomSheet } from '@metamask/design-system-react-native';
+import ComponentLibraryBottomSheet from '../../component-library/components/BottomSheets/BottomSheet';
 import { Platform } from 'react-native';
 import type {
   NavigationContainerRef,
@@ -731,6 +733,7 @@ describe('AgenticService.install', () => {
     const mockEmit = jest.mocked(emitStepHud);
 
     it('showStep emits step data to the HUD bus', () => {
+      installFiberHook(makeFiber({}));
       bridge().showStep({
         id: 'run 1/2',
         status: 'running',
@@ -743,7 +746,39 @@ describe('AgenticService.install', () => {
         status: 'running',
         intent: 'Navigate to market',
         progress: { current: 1, total: 2 },
+        placement: 'bottom',
       });
+    });
+
+    it.each([
+      ['design-system', DesignSystemBottomSheet],
+      ['component-library', ComponentLibraryBottomSheet],
+    ])(
+      'places the HUD at the top while a %s bottom sheet is shown',
+      (_, type) => {
+        installFiberHook(makeFiber({ child: makeFiber({ type }) }));
+
+        bridge().showStep({ id: 'run 1/1', intent: 'Close-all preview' });
+
+        expect(mockEmit).toHaveBeenLastCalledWith(
+          expect.objectContaining({ placement: 'top' }),
+        );
+      },
+    );
+
+    it('keeps the HUD at the bottom when the sheet is under a hidden route', () => {
+      const hiddenRoute = makeFiber({ activityState: 0 });
+      hiddenRoute.child = makeFiber({
+        type: DesignSystemBottomSheet,
+        return: hiddenRoute,
+      });
+      installFiberHook(hiddenRoute);
+
+      bridge().showStep({ id: 'run 1/1', intent: 'Wallet home' });
+
+      expect(mockEmit).toHaveBeenLastCalledWith(
+        expect.objectContaining({ placement: 'bottom' }),
+      );
     });
 
     it('hideStep emits null to the HUD bus', () => {

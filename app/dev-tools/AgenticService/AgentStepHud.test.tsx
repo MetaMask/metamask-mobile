@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act } from '@testing-library/react-native';
+import { render, act, screen } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import { FullWindowOverlay } from 'react-native-screens';
 import AgentStepHud, { emitStepHud } from './AgentStepHud';
@@ -145,5 +145,20 @@ describe('AgentStepHud', () => {
     });
 
     expect(FullWindowOverlay).toHaveBeenCalled();
+  });
+
+  it.each([
+    [undefined, { bottom: 0 }],
+    ['bottom' as const, { bottom: 0 }],
+    ['top' as const, { top: 0 }],
+  ])('sits where the step placement %s says', (placement, position) => {
+    Platform.OS = 'android';
+    render(<AgentStepHud />);
+
+    act(() => {
+      emitStepHud({ id: 'step-1', intent: 'Placement', placement });
+    });
+
+    expect(screen.root).toHaveStyle(position);
   });
 });
