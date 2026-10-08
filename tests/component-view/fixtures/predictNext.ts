@@ -370,6 +370,15 @@ export const ncaaEvents = [
 export const messengerCall = Engine.controllerMessenger
   .call as unknown as jest.Mock;
 
+/** One cursor-addressable Positions page: `cursor` is the incoming page
+ * cursor (absent for the first page) and `nextCursor` links to the next
+ * page, mirroring `PredictPositionsPage`. */
+export interface PredictNextPositionsPageFixture {
+  cursor?: string;
+  positions: readonly unknown[];
+  nextCursor?: string;
+}
+
 /**
  * Composes the real Order workflow service the way the Engine init does,
  * against whatever `globalThis.fetch` is installed when called: the concrete
@@ -580,12 +589,16 @@ export const configurePredictNextFeeds = ({
   ncaa = ncaaEvents,
   details,
   positions,
+  positionPages,
   activity,
 }: {
   nfl?: readonly PredictEvent[] | Error;
   ncaa?: readonly PredictEvent[] | Error;
   details?: readonly PredictEvent[] | Error;
   positions?: readonly unknown[] | Error;
+  /** Cursor-addressable Positions pages, for tests that exercise
+   * pagination; `positions` is ignored when this is set. */
+  positionPages?: readonly PredictNextPositionsPageFixture[];
   activity?: readonly unknown[] | Error;
 } = {}) => {
   const defaultDetails = [
@@ -594,7 +607,7 @@ export const configurePredictNextFeeds = ({
   ];
 
   messengerCall.mockImplementation(
-    (action: string, _venueId: string, resourceId: string) => {
+    (action: string, _venueId: string, resourceId: string, cursor?: string) => {
       if (action === 'PredictPortfolioService:getBalance') {
         return Promise.resolve({
           venueId: 'kalshi',
@@ -604,6 +617,19 @@ export const configurePredictNextFeeds = ({
       }
 
       if (action === 'PredictPortfolioService:getPositions') {
+        if (positionPages) {
+          const page = positionPages.find(
+            (candidate) => candidate.cursor === cursor,
+          );
+          if (!page) {
+            return Promise.reject(new Error('Unknown Positions page'));
+          }
+          return Promise.resolve({
+            venueId: 'kalshi',
+            positions: page.positions,
+            ...(page.nextCursor ? { nextCursor: page.nextCursor } : {}),
+          });
+        }
         return positions instanceof Error
           ? Promise.reject(positions)
           : Promise.resolve({

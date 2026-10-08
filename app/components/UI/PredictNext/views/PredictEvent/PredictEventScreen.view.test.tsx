@@ -1961,6 +1961,118 @@ describe('PredictEventScreen', () => {
       ).toHaveTextContent('Yes');
     });
 
+    it('walks later Positions pages for held Positions beyond the first page', async () => {
+      configurePredictNextFeeds({
+        details: [createEvent()],
+        positionPages: [
+          {
+            positions: [
+              makePredictNextPosition({ marketId: 'page-1-market' }),
+            ],
+            nextCursor: 'cursor-page-2',
+          },
+          {
+            cursor: 'cursor-page-2',
+            positions: [
+              makePredictNextPosition({
+                marketId: 'market-1',
+                side: 'yes',
+                shares: '75.00',
+                context: {
+                  eventId: 'unrelated-event',
+                  eventTitle: 'Unrelated Event title',
+                  marketQuestion: 'Will it happen?',
+                  outcomeId: 'yes',
+                  outcomeLabel: 'Lakers',
+                },
+              }),
+            ],
+          },
+        ],
+      });
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+      const view = renderPredictEventScreen(routeParams);
+
+      expect(
+        await view.findByTestId(PredictEventScreenTestIds.POSITIONS_SECTION),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(
+          PredictEventScreenTestIds.positionRow('market-1', 'yes'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(
+          PredictEventScreenTestIds.positionCashOut('market-1', 'yes'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('stops walking venue-wide Positions pages at the screen bound', async () => {
+      const fillerPages = Array.from({ length: 8 }, (_, index) => ({
+        ...(index > 0 ? { cursor: `cursor-page-${index + 1}` } : {}),
+        positions: [makePredictNextPosition({ marketId: `filler-${index}` })],
+        nextCursor: `cursor-page-${index + 2}`,
+      }));
+      configurePredictNextFeeds({
+        details: [createEvent()],
+        positionPages: fillerPages,
+      });
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+      const view = renderPredictEventScreen(routeParams);
+      await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      // Five pages in total (the initial read plus four walks) even though
+      // the fixture keeps serving cursors: the walk must not exceed its
+      // bound, so the sixth page's cursor is never requested.
+      const walkedCalls = messengerCall.mock.calls.filter(
+        ([action, , , cursor]) =>
+          action === 'PredictPortfolioService:getPositions' &&
+          cursor !== undefined,
+      );
+      expect(walkedCalls).toHaveLength(4);
+      expect(
+        view.queryByTestId(PredictEventScreenTestIds.POSITIONS_SECTION),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('stops the page walk when a later Positions page fails', async () => {
+      configurePredictNextFeeds({
+        details: [createEvent()],
+        positionPages: [
+          {
+            positions: [
+              makePredictNextPosition({ marketId: 'page-1-market' }),
+            ],
+            nextCursor: 'cursor-page-2',
+          },
+        ],
+      });
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+      const view = renderPredictEventScreen(routeParams);
+      await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      // Exactly one walk attempt: the failed page is never retried mid-visit.
+      const walkedCalls = messengerCall.mock.calls.filter(
+        ([action, , , cursor]) =>
+          action === 'PredictPortfolioService:getPositions' &&
+          cursor !== undefined,
+      );
+      expect(walkedCalls).toHaveLength(1);
+      expect(
+        view.queryByTestId(PredictEventScreenTestIds.POSITIONS_SECTION),
+      ).not.toBeOnTheScreen();
+    });
+
     it('updates the mounted Position read after a Cash Out fills', async () => {
       // Real services over the stubbed transport: the Positions read the
       // section observes runs through the real Portfolio service cache and

@@ -79,6 +79,11 @@ type RulesTarget =
 type WinnerQuotes = NonNullable<ReturnType<typeof findWinnerMarketQuotes>>;
 
 const PAGE_PARAMS = { limit: PORTFOLIO_PAGE_LIMIT };
+/** Upper bound on venue-wide Positions pages walked for one Event visit.
+ * The backend offers no Event-scoped Positions filter, so the first page
+ * alone cannot prove an Event has no held Position; the walk instead ends
+ * at the backend's exhausted cursor or at this bound. */
+const EVENT_POSITIONS_MAX_PAGES = 5;
 
 const getProjectionKey = (projection: MarketGroupProjection) =>
   projection.type === 'group' ? projection.key : projection.market.id;
@@ -329,6 +334,26 @@ export const PredictEventScreen = () => {
     setSelectedMarketIds({});
     setRulesTarget(null);
   }, [eventId]);
+  // The Positions read is venue-wide and cursor-paginated, and the backend
+  // offers no Event-scoped Positions filter, so page 1 alone cannot prove
+  // this Event has no held Position. Walk the shared cache forward within a
+  // small bound so a Position past page 1 still reaches "Your positions".
+  // The walk ends at the backend's exhausted cursor, at the page bound, or
+  // at the first failed page (a failed next page parks the read in the
+  // error state until the next successful refetch) — it never retries
+  // mid-visit, because fetchNextPage resolves rather than rejects on a
+  // failed page.
+  useEffect(() => {
+    if (
+      positionsQuery.isError ||
+      !positionsQuery.hasNextPage ||
+      positionsQuery.isFetchingNextPage ||
+      (positionsQuery.data?.pages.length ?? 0) >= EVENT_POSITIONS_MAX_PAGES
+    ) {
+      return;
+    }
+    positionsQuery.fetchNextPage().catch(() => undefined);
+  }, [positionsQuery]);
   const handleBack = useCallback(
     () =>
       navigation.canGoBack()
