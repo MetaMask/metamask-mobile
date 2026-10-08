@@ -7,7 +7,10 @@ import Engine from '../../../Engine';
 import {
   selectIsCardAuthenticated,
   selectCardholderAccounts,
+  selectCardEntryRouting,
 } from '../../../../selectors/cardController';
+import { trackCardLinkRoutingDisagreement } from '../../../../components/UI/Card/util/trackCardLinkRoutingDisagreement';
+import { switchToLinkedCardAccount } from './switchToLinkedCardAccount';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
 
@@ -42,10 +45,13 @@ export const handleCardHome = () => {
     const state = ReduxService.store.getState();
     const cardholderAccounts = selectCardholderAccounts(state);
     const isAuthenticated = selectIsCardAuthenticated(state);
-    const hasCardLinkedAccount = cardholderAccounts.length > 0;
+    const routing = selectCardEntryRouting(state);
+    const hasCardLinkedAccount = routing.hasCard;
+    const shouldSwitchAccount = hasCardLinkedAccount && !isAuthenticated;
+    trackCardLinkRoutingDisagreement(routing, 'deeplink_card_home');
 
     if (isAuthenticated || hasCardLinkedAccount) {
-      if (hasCardLinkedAccount && !isAuthenticated) {
+      if (shouldSwitchAccount && routing.source === 'legacy') {
         const firstCardholderAddress = cardholderAccounts
           .map((id) =>
             isCaipAccountId(id) ? parseCaipAccountId(id).address : null,
@@ -76,7 +82,11 @@ export const handleCardHome = () => {
       }
 
       DevLogger.log('[handleCardHome] Navigating to Card Home');
-      navigateToCardHome();
+      if (shouldSwitchAccount && routing.source === 'card_links') {
+        switchToLinkedCardAccount().finally(navigateToCardHome);
+      } else {
+        navigateToCardHome();
+      }
     } else {
       DevLogger.log(
         '[handleCardHome] User not authenticated and no card-linked account, navigating to Card Welcome',
