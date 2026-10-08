@@ -28,6 +28,9 @@ import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 export const getPerpsProInputAccessoryID = (testID: string) =>
   `${testID}-input-accessory`;
 
+export const getPerpsProCompactFieldTestId = (testID: string): string =>
+  `${testID}-field`;
+
 export interface PerpsProInputKeyboardAccessoryProps {
   inputTestID: string;
   onPrevious?: () => void;
@@ -267,7 +270,7 @@ const PerpsProCompactInput = React.forwardRef<
             accessibilityRole={isInlineActive ? undefined : 'button'}
             accessibilityLabel={isInlineActive ? undefined : label}
             style={tw`h-full min-w-0 flex-1 justify-center`}
-            testID={`${testID}-field`}
+            testID={getPerpsProCompactFieldTestId(testID)}
           >
             <Text
               variant={isInlineActive ? TextVariant.BodyXs : TextVariant.BodySm}

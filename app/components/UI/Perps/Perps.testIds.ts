@@ -814,6 +814,9 @@ export const PerpsProOrderFormSelectorsIDs = {
   CHASE_REFERENCE_PRICE: 'perps-pro-chase-reference-price',
 };
 
+export const getPerpsProOrderFormNoticeTestId = (noticeId: string): string =>
+  `${PerpsProOrderFormSelectorsIDs.NOTICE}-${noticeId}`;
+
 // ========================================
 // PERPS MARKET HEADER SELECTORS
 // ========================================
@@ -1197,6 +1200,9 @@ export const PerpsLeverageBottomSheetSelectorsIDs = {
   DESCRIPTION: 'perps-leverage-description',
   SET_BUTTON: 'perps-leverage-set-button',
 } as const;
+
+export const getPerpsLeveragePickerItemTestId = (leverage: number): string =>
+  `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-${leverage}`;
 
 export const PerpsAdjustMarginActionSheetSelectorsIDs = {
   ADD_MARGIN_OPTION: 'perps-adjust-margin-add-btn',
