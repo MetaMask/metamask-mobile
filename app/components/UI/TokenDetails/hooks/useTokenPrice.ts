@@ -1,5 +1,9 @@
 import { useMemo, useState } from 'react';
-import { queryOptions, useQuery } from '@tanstack/react-query';
+import {
+  queryOptions,
+  useQuery,
+  type QueryClient,
+} from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { Hex, type CaipChainId } from '@metamask/utils';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
@@ -91,6 +95,55 @@ export const spotPriceQueryOptions = (request: SpotPriceQueryRequest) =>
     retry: false,
     staleTime: SPOT_QUERY_STALE_TIME_MS,
   });
+
+const shouldFetchSpotPrice = ({
+  chainId,
+  tokenAddress,
+  marketDataMissing,
+  hasNativeConversionRate,
+}: {
+  chainId: Hex | CaipChainId;
+  tokenAddress: string | null | undefined;
+  marketDataMissing: boolean;
+  hasNativeConversionRate: boolean;
+}): boolean =>
+  marketDataMissing &&
+  Boolean(tokenAddress) &&
+  (isNonEvmChainId(chainId) || hasNativeConversionRate);
+
+export const prefetchSpotPrice = (
+  queryClient: QueryClient,
+  token: Pick<TokenI, 'address' | 'chainId'>,
+  currency: string,
+  marketDataMissing: boolean,
+  hasNativeConversionRate: boolean,
+): void => {
+  const chainId = token.chainId as Hex;
+  const isNonEvmToken = formatChainIdToCaip(chainId) === token.chainId;
+  const tokenAddress = !isNonEvmToken
+    ? safeToChecksumAddress(token.address)
+    : token.address;
+  if (
+    !shouldFetchSpotPrice({
+      chainId,
+      tokenAddress,
+      marketDataMissing,
+      hasNativeConversionRate,
+    }) ||
+    !tokenAddress
+  ) {
+    return;
+  }
+  queryClient
+    .query(
+      spotPriceQueryOptions({
+        chainId,
+        tokenAddress,
+        currency,
+      }),
+    )
+    .catch(() => undefined);
+};
 
 /**
  * Time ranges where the spot-prices API provides a reliable pre-computed
@@ -190,10 +243,12 @@ export const useTokenPrice = ({
   const nativeTokenConversionRate =
     nativeCurrency && conversionRateByTicker?.[nativeCurrency]?.conversionRate;
 
-  const shouldFetchSpot =
-    marketDataRate === undefined &&
-    Boolean(itemAddress) &&
-    (isNonEvm || Boolean(nativeTokenConversionRate));
+  const shouldFetchSpot = shouldFetchSpotPrice({
+    chainId,
+    tokenAddress: itemAddress,
+    marketDataMissing: marketDataRate === undefined,
+    hasNativeConversionRate: Boolean(nativeTokenConversionRate),
+  });
 
   const spotQuery = useQuery({
     ...spotPriceQueryOptions({

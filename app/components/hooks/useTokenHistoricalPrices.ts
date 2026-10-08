@@ -1,4 +1,8 @@
-import { queryOptions, useQuery } from '@tanstack/react-query';
+import {
+  queryOptions,
+  useQuery,
+  type QueryClient,
+} from '@tanstack/react-query';
 import { getAssetId } from '@metamask/assets-controllers';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { parseCaipAssetType, type Hex } from '@metamask/utils';
@@ -210,6 +214,53 @@ export const historicalPricesQueryOptions = (
     staleTime: QUERY_STALE_TIME_MS,
   });
 
+const toHistoricalPricesRequest = ({
+  asset,
+  address,
+  chainId,
+  timePeriod,
+  from,
+  to,
+  vsCurrency,
+}: {
+  asset: Pick<TokenI, 'address' | 'chainId'>;
+  address: string;
+  chainId: Hex;
+  timePeriod: TimePeriod;
+  from?: number;
+  to?: number;
+  vsCurrency: string;
+}): HistoricalPricesRequest => ({
+  assetChainId: String(asset.chainId ?? ''),
+  assetAddress: asset.address,
+  address,
+  chainId,
+  timePeriod,
+  vsCurrency,
+  from,
+  to,
+});
+
+export const prefetchHistoricalPrices = (
+  queryClient: QueryClient,
+  token: Pick<TokenI, 'address' | 'chainId'>,
+  vsCurrency: string,
+): void => {
+  queryClient
+    .query(
+      historicalPricesQueryOptions(
+        toHistoricalPricesRequest({
+          asset: token,
+          address: String(token.address ?? ''),
+          chainId: token.chainId as Hex,
+          timePeriod: DEFAULT_HISTORICAL_TIME_PERIOD,
+          vsCurrency,
+        }),
+      ),
+    )
+    .catch(() => undefined);
+};
+
 const useTokenHistoricalPrices = ({
   asset,
   address,
@@ -234,16 +285,17 @@ const useTokenHistoricalPrices = ({
   apiDurationMs: number | undefined;
 } => {
   const query = useQuery(
-    historicalPricesQueryOptions({
-      assetChainId: String(asset.chainId ?? ''),
-      assetAddress: asset.address,
-      address,
-      chainId,
-      timePeriod,
-      vsCurrency,
-      from,
-      to,
-    }),
+    historicalPricesQueryOptions(
+      toHistoricalPricesRequest({
+        asset,
+        address,
+        chainId,
+        timePeriod,
+        vsCurrency,
+        from,
+        to,
+      }),
+    ),
   );
 
   const payload = query.data;

@@ -15,8 +15,9 @@ import {
  *
  * Two mocks deliberately stay with their own stories rather than moving here,
  * to keep this story's diff free of unrelated churn:
- * `MOCK_TOKEN_AGE_LABEL` in `Views/TokenDetailsV1.tsx` belongs to ASSETS-4016.
- * The overview description block hides when no description text is present.
+ * `MOCK_TOKEN_AGE_LABEL` in `Views/TokenDetailsV1.tsx` belongs to ASSETS-4016,
+ * and `MOCK_TOKEN_DESCRIPTION` in `components/tabs/OverviewTab.tsx` belongs to
+ * ASSETS-4020.
  *
  * TODO(ASSETS-4022): replace with real data derived from `TokenSecurityData`.
  * The open questions blocking that, none of which affect layout:

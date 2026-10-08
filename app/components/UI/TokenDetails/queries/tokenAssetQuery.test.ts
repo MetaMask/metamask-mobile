@@ -1,4 +1,3 @@
-import { MAINNET_PEPE_ASSET_ID } from '../hooks/useIsMemeToken';
 import {
   fetchTokenAsset,
   PEPE_ASSET_FIXTURE,
@@ -91,7 +90,7 @@ describe('fetchTokenAsset', () => {
 describe('resolveTokenAssetDetails', () => {
   it('returns the fixture when the PEPE request fails', () => {
     const result = resolveTokenAssetDetails(
-      MAINNET_PEPE_ASSET_ID,
+      PEPE_ASSET_FIXTURE.assetId,
       undefined,
       true,
     );
@@ -101,10 +100,10 @@ describe('resolveTokenAssetDetails', () => {
 
   it('keeps fixture fields when the PEPE payload has null content', () => {
     const result = resolveTokenAssetDetails(
-      MAINNET_PEPE_ASSET_ID,
+      PEPE_ASSET_FIXTURE.assetId,
       {
         ...otherAsset,
-        assetId: MAINNET_PEPE_ASSET_ID,
+        assetId: PEPE_ASSET_FIXTURE.assetId,
         symbol: 'PEPE',
         launchpadData: {
           ...otherAsset.launchpadData,

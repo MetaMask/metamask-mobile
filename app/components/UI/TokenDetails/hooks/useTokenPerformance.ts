@@ -17,8 +17,8 @@ const FOUR_HOURS_SECONDS = 4 * 60 * 60;
  * 1-minute OHLCV candles. `1d` is the smallest time period that covers a full
  * 4h lookback (plus the 5m cell).
  */
-export const PERFORMANCE_CANDLE_INTERVAL = '1m';
-export const PERFORMANCE_CANDLE_TIME_PERIOD = '1d' as const;
+const PERFORMANCE_CANDLE_INTERVAL = '1m';
+const PERFORMANCE_CANDLE_TIME_PERIOD = '1d';
 
 /** Percent change values rendered by the Performance section. Null → gray dash. */
 export interface TokenPerformance {

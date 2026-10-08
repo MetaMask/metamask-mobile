@@ -1,9 +1,9 @@
-import { queryOptions, useQuery } from '@tanstack/react-query';
-import { TOKEN_API_BASE_URL } from '../../Assets/watchlist/utils/getTokens';
 import {
-  isHardcodedMemeAssetId,
-  MAINNET_PEPE_ASSET_ID,
-} from '../hooks/useIsMemeToken';
+  queryOptions,
+  useQuery,
+  type QueryClient,
+} from '@tanstack/react-query';
+import { TOKEN_API_BASE_URL } from '../../Assets/watchlist/utils/getTokens';
 
 export const TOKEN_ASSETS_V2_PATH = '/v2/assets';
 
@@ -56,6 +56,9 @@ const defined = <T>(value: T | null | undefined, fallback: T): T =>
 
 const PEPE_FIXTURE_DESCRIPTION =
   'Pepe is a deflationary memecoin launched on Ethereum in 2023 as a tribute to the Pepe the Frog internet character. There is no formal team or roadmap — the token is entirely community-driven.';
+
+const MAINNET_PEPE_ASSET_ID =
+  'eip155:1/erc20:0x6982508145454ce325ddbe47a25d4ec3d2311933';
 
 /**
  * Test-only stand-in for mainnet PEPE. Remove this record when /v2/assets
@@ -198,7 +201,7 @@ export const resolveTokenAssetDetails = (
   record: TokenAssetRecord | null | undefined,
   isError: boolean,
 ): TokenAssetRecord | null => {
-  if (!isHardcodedMemeAssetId(assetId)) {
+  if (assetId !== MAINNET_PEPE_ASSET_ID) {
     return isError ? null : (record ?? null);
   }
   if (isError || record == null) {
@@ -249,6 +252,16 @@ export const tokenAssetQueryOptions = (assetId: string) =>
     retry: false,
     staleTime: QUERY_STALE_TIME_MS,
   });
+
+export const prefetchTokenAsset = (
+  queryClient: QueryClient,
+  assetId: string | null,
+): void => {
+  if (!assetId) {
+    return;
+  }
+  queryClient.query(tokenAssetQueryOptions(assetId)).catch(() => undefined);
+};
 
 export interface UseTokenAssetDetailsResult {
   asset: TokenAssetRecord | null;
