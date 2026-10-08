@@ -21,6 +21,20 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 jest.mock('../SocialV1View/feed/hooks/useSocialV1Feed');
 
+jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
+  useSocialFeed: jest.fn(() => ({
+    posts: [],
+    rows: [],
+    isLoading: false,
+    isFetchingNextPage: false,
+    hasNextPage: false,
+    loadMore: jest.fn(),
+    error: null,
+    refresh: jest.fn(async () => undefined),
+    dataUpdatedAt: undefined,
+  })),
+}));
+
 jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => ({ profile: null }),
 }));
