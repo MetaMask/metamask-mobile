@@ -24,14 +24,6 @@ const tokenAssetsMarketDataRegex =
 const tokenV3AssetsRegex =
   /^https:\/\/tokens\.api\.cx\.metamask\.io\/v3\/assets\?.*$/;
 
-// Matches the v2 assets endpoint used by Token Details prefetching and the
-// memecoin TDP routing gate (tokenAssetQuery) when the memecoin flag is on.
-// An empty array settles the route on the legacy Token Details page for every
-// non-meme asset, which is what smoke tests exercise.
-// e.g. https://token.api.cx.metamask.io/v2/assets?assetIds=eip155:1/erc20:0x...&includeLaunchpadData=true&includeRwaData=true&includeMarketData=true
-const tokenV2AssetsRegex =
-  /^https:\/\/token\.api\.cx\.metamask\.io\/v2\/assets\?.*$/;
-
 const tokenV2SupportedNetworksRegex =
   /^https:\/\/tokens?\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/;
 
@@ -92,11 +84,6 @@ export const TOKEN_API_MOCKS: MockEventsObject = {
     },
     {
       urlEndpoint: tokenV3AssetsRegex,
-      responseCode: 200,
-      response: [],
-    },
-    {
-      urlEndpoint: tokenV2AssetsRegex,
       responseCode: 200,
       response: [],
     },
