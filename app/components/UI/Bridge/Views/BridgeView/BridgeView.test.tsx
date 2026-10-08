@@ -316,6 +316,13 @@ jest.mock('../../hooks/useLimitOrders', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useSentinelFeeTokenValidation', () => ({
+  useSentinelFeeTokenValidation: jest.fn(() => ({
+    isValid: true,
+    retry: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
   const { useBridgeQuoteData } = jest.requireMock(
     '../../hooks/useBridgeQuoteData',

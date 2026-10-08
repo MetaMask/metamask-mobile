@@ -562,9 +562,10 @@ jobs:
       - name: Pin bundle size baseline SHA
         if: github.event_name == 'pull_request'
         shell: bash
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
           set -euo pipefail
-          BASE_REF='${{ github.event.pull_request.base.ref }}'
           # PR checkout is the merge ref (fetch-depth: 2); first parent is the base tip.
           MERGE_BASE_SHA="$(git rev-parse HEAD^1)"
           echo "Merge-base pinned (${BASE_REF}, HEAD): ${MERGE_BASE_SHA}"

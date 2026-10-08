@@ -27,7 +27,7 @@ Work lands in the PR stages below. Tick items off as they merge.
 | Empty feed on a host page                                   | Show a "No trades yet" message.                                                                                                                                                  |
 | Posts from the composer                                     | Only prepended to Trending. Filtered feeds show server data only.                                                                                                                |
 | Analytics                                                   | `<SocialFeed>` takes a `location` prop that is attached to every feed event.                                                                                                     |
-| Host page layout                                            | Preview (a few posts plus "See all"). Host pages already own a scroll container; the full infinite list lives on a dedicated screen.                                             |
+| Host page layout                                            | The embedded feed is the infinite list. No preview and no "See all" screen. The host page already scrolls, so the feed does not add its own scroll view.                         |
 | Native assets (ETH, SOL) on Token details                   | The global feed filtered to the asset's chain (`/feed?scope=leaderboard&chains=<CAIP-2>`), read from the CAIP-19 asset id.                                                       |
 | Perp sources built from feed rows                           | Keyed on `tokenSymbol` (the raw market id), because global-feed perp rows can have an empty `tokenAddress`.                                                                      |
 
@@ -66,15 +66,14 @@ export type SocialFeedSource =
 
 - `token` takes a CAIP-19 asset id because Token details already has one, and it carries chain, address and the Solana form in one value. A native asset (`slip44`) resolves to the global feed filtered to its chain; unsupported chains have no feed.
 - `perp` is separate from `token` for caller ergonomics (the Perps page has a symbol, not a chain); internally it becomes a token-route request on `hyperliquid`.
-- The union is plain JSON, so it doubles as a navigation param for the "See all" screen.
+- The union is plain JSON, so a later screen can take the same object as a navigation param.
 
 Layers, top to bottom:
 
-1. `<SocialFeed source location maxItems />` — the drop-in. No scroll container; self-gates on the feature flag; shows skeleton, error/retry, "No trades yet", then posts and "See all".
-2. `SocialFeedScreen` — route that takes `{ source, location }` and renders the full infinite list with pull-to-refresh.
-3. `SocialFeedPostList` / `SocialFeedPostShell` — presentational cards.
-4. `useSocialFeed(source, options)` — data hook: posts plus pagination state.
-5. `toSocialFeedRequest(source)` / `socialFeedQueries` — identifier normalisation, query keys, fetchers.
+1. `<SocialFeed source location />` — the drop-in. No scroll container of its own; self-gates on the feature flag; shows skeleton, error/retry, "No trades yet", then every loaded page. Loads the next page when its footer comes into view inside the host scroll.
+2. `SocialFeedPostList` / `SocialFeedPostShell` — presentational cards.
+3. `useSocialFeed(source, options)` — data hook: posts plus pagination state.
+4. `toSocialFeedRequest(source)` / `socialFeedQueries` — identifier normalisation, query keys, fetchers.
 
 ## PR stages
 
@@ -110,13 +109,14 @@ Mostly file moves; no behaviour change. The move is its own commit so it can be 
 - [x] `showMockedFields: true` on the Social V1 screens above. Copy trade stays visible everywhere, and missing stats keep their em dash everywhere.
 - [ ] `location` is plumbed through (`social_trending`, `social_following`, `social_live_trades`, `my_profile`, `social_post_composer`, `trader_profile`, `token_details`, `perps_market_details`, `social_feed_screen`) but not sent yet. Feed cards fire no events today; tracking waits on a product event spec.
 
-### PR 4 — `<SocialFeed>` drop-in and "See all" screen
+### PR 4 — `<SocialFeed>` drop-in, infinite in place
 
-- [ ] `<SocialFeed source location maxItems title />` (preview; requests `pageSize = maxItems`).
-- [ ] `SocialFeedScreen` route with `{ source, location }` params; FlashList + `onEndReached` + pull-to-refresh.
-- [ ] Rewrite `EmptyShellTabPage` as a composition on `useSocialFeed`: the selected hot-token chip becomes a `source`, and `HotTokensCarousel` becomes selection-only (drops `onTokenFeedChange` and the page's manual state syncing).
-- [ ] Perp chips use the server feed through the `perp` source, instead of filtering loaded posts on the client. Chips need the row's `tokenSymbol` passed through to `socialFeedSourceFromAsset`.
-- [ ] Move `useSocialV1Feed` onto `useSocialFeed({ kind: 'all' })`; composed posts stay a Trending-only layer.
+No "See all" screen and no new route. Perps market details and Token details already scroll, so a feed with its own scroll view would nest two scrollers. `<SocialFeed>` renders posts only. A footer sentinel calls `loadMore` when the host scroll brings it on screen, the same way Trending already pages from its own scroll end.
+
+- [x] `<SocialFeed source location title />`. Requests a normal page, then the next page when the footer is visible. Shows skeleton, error/retry, "No trades yet", then every loaded post. Mounts `SocialFeedSurfaceProvider` so invented values stay hidden. No `maxItems`. Hidden entirely while the social flag is off.
+- [x] Rewrite `EmptyShellTabPage` as a composition on `useSocialFeed`: the selected hot-token chip becomes a `source`, and `HotTokensCarousel` becomes selection-only (drops `onTokenFeedChange` and the page's manual state syncing).
+- [x] Perp chips use the server feed through the `perp` source, instead of filtering loaded posts on the client. The chip's avatar chain and `symbol` (the raw market id) go to `socialFeedSourceFromAsset`.
+- [x] Move `useSocialV1Feed` onto `useSocialFeed({ kind: 'all' })`; composed posts stay a Trending-only layer.
 
 ### PR 5 — Related perp markets
 
@@ -131,8 +131,8 @@ Mostly file moves; no behaviour change. The move is its own commit so it can be 
 
 ### PR 6 — Host integrations
 
-- [ ] Perps market details: `<SocialFeed source={{ kind: 'perp', symbol }} location="perps_market_details" />`, behind the social and perps feature flags.
-- [ ] Token details: `<SocialFeed source={{ kind: 'token', assetId }} location="token_details" />`, behind the social feature flag. Native assets show their chain's feed; unsupported chains show nothing. The section title for a native asset should read as the chain's activity, since posts are not specific to ETH or SOL.
+- [ ] Perps market details: `<SocialFeed source={{ kind: 'perp', symbol }} location="perps_market_details" />` at the bottom of the existing scroll, behind the social and perps feature flags.
+- [ ] Token details: `<SocialFeed source={{ kind: 'token', assetId }} location="token_details" />` in the existing scroll, behind the social feature flag. Native assets show their chain's feed; unsupported chains show nothing. The section title for a native asset should read as the chain's activity, since posts are not specific to ETH or SOL.
 - [ ] Trader profile: `<SocialFeed source={{ kind: 'trader', addressOrId }} location="trader_profile" />`.
 - [ ] Component view tests on each host covering loading, empty, error and populated states.
 
