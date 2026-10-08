@@ -137,8 +137,14 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
     Record<string, unknown> | undefined
   >();
 
+  // Presence, not truthiness: the caller passes `null` while its own request is
+  // still in flight, and treating that as "nothing supplied" would fire the
+  // duplicate fetch this prop exists to avoid. Only `undefined` means no caller
+  // is driving this.
+  const isMarketDataProvided = providedMarketData !== undefined;
+
   useEffect(() => {
-    if (providedMarketData || cachedMarketData) return;
+    if (isMarketDataProvided || cachedMarketData) return;
 
     const plainTokenAddress = isCaipAssetType(asset.address)
       ? parseCaipAssetType(asset.address).assetReference
@@ -182,7 +188,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
     asset.chainId,
     cachedMarketData,
     currentCurrency,
-    providedMarketData,
+    isMarketDataProvided,
   ]);
 
   const marketData =
