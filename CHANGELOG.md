@@ -172,6 +172,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the converting toast appearing before hardware wallet signing finished for Money Account deposits (#36342)
 - Fixed the Perps watchlist star not updating after removing a market (#36376)
 
+## [8.13.1]
+
+### Fixed
+
+- Fixed Money Account upgrade calling the dev CHOMP API before feature flags load (#37013)
+
 ## [8.13.0]
 
 ### Added
@@ -14248,7 +14254,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.14.0...HEAD
-[8.14.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.0...v8.14.0
+[8.14.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.1...v8.14.0
+[8.13.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.0...v8.13.1
 [8.13.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.12.1...v8.13.0
 [8.12.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.12.0...v8.12.1
 [8.12.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.11.0...v8.12.0
