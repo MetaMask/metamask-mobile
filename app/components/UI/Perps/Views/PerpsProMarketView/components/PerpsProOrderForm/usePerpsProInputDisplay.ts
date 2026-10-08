@@ -2,8 +2,16 @@ import {
   type Dispatch,
   type RefObject,
   type SetStateAction,
+  useCallback,
   useEffect,
+  useRef,
+  useState,
 } from 'react';
+import {
+  type TextInput,
+  type TextInputSelectionChangeEvent,
+} from 'react-native';
+import { usePerpsLocale } from '../../../../hooks/usePerpsLocale';
 import {
   formatPerpsInput,
   getPerpsFormattedInputSelection,
@@ -11,7 +19,7 @@ import {
   type PerpsInputSelection,
 } from '../../../../utils/formatUtils';
 
-interface UsePerpsProInputDisplayOptions {
+interface SyncPerpsProInputDisplayOptions {
   value: string;
   displayValue: string;
   locale: string;
@@ -24,7 +32,7 @@ interface UsePerpsProInputDisplayOptions {
   setSelection: Dispatch<SetStateAction<PerpsInputSelection | undefined>>;
 }
 
-interface UpdatePerpsProInputDisplayOptions {
+interface ApplyPerpsProInputDisplayChangeOptions {
   nextValue: string;
   displayValue: string;
   onChangeText: (value: string) => void;
@@ -34,6 +42,16 @@ interface UpdatePerpsProInputDisplayOptions {
   shouldIgnoreNextSelectionChangeRef: RefObject<boolean>;
   setDisplayValue: Dispatch<SetStateAction<string>>;
   setSelection: Dispatch<SetStateAction<PerpsInputSelection | undefined>>;
+}
+
+interface UsePerpsProInputDisplayOptions {
+  value: string;
+  onChangeText: (value: string) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  isDisabled: boolean;
+  inputRef?: RefObject<TextInput | null>;
+  allowDisabledBlurCallbacks?: boolean;
 }
 
 const syncPerpsProInputDisplay = ({
@@ -47,7 +65,7 @@ const syncPerpsProInputDisplay = ({
   shouldIgnoreNextSelectionChangeRef,
   setDisplayValue,
   setSelection,
-}: UsePerpsProInputDisplayOptions) => {
+}: SyncPerpsProInputDisplayOptions) => {
   if (!isFocused) {
     lastEmittedValueRef.current = value;
     const nextDisplayValue = formatPerpsInput(value, locale);
@@ -79,7 +97,7 @@ const syncPerpsProInputDisplay = ({
  * Applies a native text-change event to the localized display state.
  * Transient refs are updated here from the input event, never during render.
  */
-export const updatePerpsProInputDisplay = ({
+const applyPerpsProInputDisplayChange = ({
   nextValue,
   displayValue,
   onChangeText,
@@ -89,7 +107,7 @@ export const updatePerpsProInputDisplay = ({
   shouldIgnoreNextSelectionChangeRef,
   setDisplayValue,
   setSelection,
-}: UpdatePerpsProInputDisplayOptions) => {
+}: ApplyPerpsProInputDisplayChangeOptions) => {
   const canonicalValue = normalizePerpsNumericInput(
     nextValue,
     inputLocaleRef.current,
@@ -118,16 +136,28 @@ export const updatePerpsProInputDisplay = ({
 
 const usePerpsProInputDisplay = ({
   value,
-  displayValue,
-  locale,
-  isFocused,
-  inputLocaleRef,
-  lastEmittedValueRef,
-  selectionRef,
-  shouldIgnoreNextSelectionChangeRef,
-  setDisplayValue,
-  setSelection,
+  onChangeText,
+  onFocus,
+  onBlur,
+  isDisabled,
+  inputRef: externalInputRef,
+  allowDisabledBlurCallbacks = false,
 }: UsePerpsProInputDisplayOptions) => {
+  const locale = usePerpsLocale();
+  const inputLocaleRef = useRef(locale);
+  const internalInputRef = useRef<TextInput>(null);
+  const inputRef = externalInputRef ?? internalInputRef;
+  const selectionRef = useRef<PerpsInputSelection | undefined>(undefined);
+  const lastEmittedValueRef = useRef(value);
+  const shouldIgnoreNextSelectionChangeRef = useRef(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [displayValue, setDisplayValue] = useState(() =>
+    formatPerpsInput(value, locale),
+  );
+  const [selection, setSelection] = useState<PerpsInputSelection | undefined>(
+    undefined,
+  );
+
   useEffect(() => {
     syncPerpsProInputDisplay({
       value,
@@ -153,6 +183,101 @@ const usePerpsProInputDisplay = ({
     shouldIgnoreNextSelectionChangeRef,
     value,
   ]);
+
+  const captureInputLocale = useCallback(() => {
+    if (!isFocused) {
+      inputLocaleRef.current = locale;
+    }
+  }, [isFocused, locale]);
+
+  const handleChangeText = useCallback(
+    (nextValue: string) => {
+      if (isDisabled) {
+        return;
+      }
+
+      applyPerpsProInputDisplayChange({
+        nextValue,
+        displayValue,
+        onChangeText,
+        inputLocaleRef,
+        lastEmittedValueRef,
+        selectionRef,
+        shouldIgnoreNextSelectionChangeRef,
+        setDisplayValue,
+        setSelection,
+      });
+    },
+    [displayValue, isDisabled, onChangeText],
+  );
+
+  const handleSelectionChange = useCallback(
+    (event: TextInputSelectionChangeEvent) => {
+      if (shouldIgnoreNextSelectionChangeRef.current) {
+        shouldIgnoreNextSelectionChangeRef.current = false;
+        return;
+      }
+
+      selectionRef.current = event.nativeEvent.selection;
+      setSelection(event.nativeEvent.selection);
+    },
+    [],
+  );
+
+  const handleFocus = useCallback(() => {
+    if (isDisabled) {
+      return;
+    }
+
+    inputLocaleRef.current = locale;
+    setIsFocused(true);
+    onFocus?.();
+  }, [isDisabled, locale, onFocus]);
+
+  const handleBlur = useCallback(() => {
+    const hasExternalValueUpdate = value !== lastEmittedValueRef.current;
+    const canonicalValue = hasExternalValueUpdate
+      ? value
+      : normalizePerpsNumericInput(displayValue, inputLocaleRef.current);
+    setIsFocused(false);
+    selectionRef.current = undefined;
+    shouldIgnoreNextSelectionChangeRef.current = false;
+    setSelection(undefined);
+    setDisplayValue(formatPerpsInput(canonicalValue, locale));
+
+    if (!isDisabled || allowDisabledBlurCallbacks) {
+      onBlur?.();
+
+      if (!hasExternalValueUpdate && canonicalValue !== value) {
+        onChangeText(canonicalValue);
+      }
+    }
+  }, [
+    allowDisabledBlurCallbacks,
+    displayValue,
+    isDisabled,
+    locale,
+    onBlur,
+    onChangeText,
+    value,
+  ]);
+
+  return {
+    captureInputLocale,
+    displayValue,
+    inputProps: {
+      isDisabled,
+      onBlur: handleBlur,
+      onChangeText: handleChangeText,
+      onFocus: handleFocus,
+      onSelectionChange: handleSelectionChange,
+      selection,
+      value: displayValue,
+    },
+    inputRef,
+    isFocused,
+    setIsFocused,
+  };
 };
 
 export default usePerpsProInputDisplay;

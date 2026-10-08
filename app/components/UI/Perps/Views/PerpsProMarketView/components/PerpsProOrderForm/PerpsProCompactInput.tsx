@@ -19,8 +19,6 @@ import {
   Platform,
   Pressable,
   type KeyboardTypeOptions,
-  type TextInput,
-  type TextInputSelectionChangeEvent,
   type View,
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -29,15 +27,7 @@ import {
   getPerpsProCompactInputRowTestId,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
-import { usePerpsLocale } from '../../../../hooks/usePerpsLocale';
-import {
-  formatPerpsInput,
-  normalizePerpsNumericInput,
-  type PerpsInputSelection,
-} from '../../../../utils/formatUtils';
-import usePerpsProInputDisplay, {
-  updatePerpsProInputDisplay,
-} from './usePerpsProInputDisplay';
+import usePerpsProInputDisplay from './usePerpsProInputDisplay';
 
 export const getPerpsProInputAccessoryID = (testID: string) =>
   `${testID}-input-accessory`;
@@ -166,55 +156,41 @@ const PerpsProCompactInput = React.forwardRef<
     ref,
   ) => {
     const tw = useTailwind();
-    const locale = usePerpsLocale();
-    const inputLocaleRef = useRef(locale);
-    const inputRef = useRef<TextInput>(null);
     const isNativeFocusedRef = useRef(false);
     const directPressPhaseRef = useRef<DirectPressPhase>('idle');
-    const selectionRef = useRef<PerpsInputSelection | undefined>(undefined);
-    const lastEmittedValueRef = useRef(value);
-    const shouldIgnoreNextSelectionChangeRef = useRef(false);
-    const [isFocused, setIsFocused] = useState(false);
-    const [displayValue, setDisplayValue] = useState(() =>
-      formatPerpsInput(value, locale),
-    );
-    const [selection, setSelection] = useState<PerpsInputSelection | undefined>(
-      undefined,
-    );
-    usePerpsProInputDisplay({
-      value,
+    const isInteractionBlocked = isDisabled || isHidden;
+    const {
+      captureInputLocale,
       displayValue,
-      locale,
+      inputProps,
+      inputRef,
       isFocused,
-      inputLocaleRef,
-      lastEmittedValueRef,
-      selectionRef,
-      shouldIgnoreNextSelectionChangeRef,
-      setDisplayValue,
-      setSelection,
+      setIsFocused,
+    } = usePerpsProInputDisplay({
+      value,
+      onChangeText,
+      onFocus: () => {
+        isNativeFocusedRef.current = true;
+        if (directPressPhaseRef.current === 'initial-press') {
+          // Scale fields scroll on focus. Wait for release so that scroll cannot
+          // cancel Android's in-flight native focus handoff.
+          directPressPhaseRef.current = 'initial-focused';
+          return;
+        }
+        onFocus?.();
+      },
+      onBlur: () => {
+        isNativeFocusedRef.current = false;
+        directPressPhaseRef.current = 'idle';
+        onBlur?.();
+      },
+      isDisabled: isInteractionBlocked,
+      allowDisabledBlurCallbacks: true,
     });
-    const handleChangeText = (nextValue: string) => {
-      if (isDisabled) {
-        return;
-      }
-
-      updatePerpsProInputDisplay({
-        nextValue,
-        displayValue,
-        onChangeText,
-        inputLocaleRef,
-        lastEmittedValueRef,
-        selectionRef,
-        shouldIgnoreNextSelectionChangeRef,
-        setDisplayValue,
-        setSelection,
-      });
-    };
     const [shouldFocusInput, setShouldFocusInput] = useState(false);
     const isInlineActive = isFocused || displayValue.length > 0;
     const usesFloatingLabel =
       variant === 'inline' || variant === 'inline-labeled';
-    const isInteractionBlocked = isDisabled || isHidden;
     useImperativeHandle(
       ref,
       () => ({
@@ -224,9 +200,7 @@ const PerpsProCompactInput = React.forwardRef<
           if (isInteractionBlocked) {
             return;
           }
-          if (!isFocused) {
-            inputLocaleRef.current = locale;
-          }
+          captureInputLocale();
           directPressPhaseRef.current = 'idle';
           // Match a tap: expand the empty inline field, then focus it once it
           // has a real frame. Focusing the collapsed input dismisses iOS.
@@ -234,7 +208,7 @@ const PerpsProCompactInput = React.forwardRef<
           setShouldFocusInput(true);
         },
       }),
-      [isFocused, isInteractionBlocked, locale],
+      [captureInputLocale, isInteractionBlocked, setIsFocused],
     );
     const inputAccessoryViewID =
       Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
@@ -252,7 +226,7 @@ const PerpsProCompactInput = React.forwardRef<
         setShouldFocusInput(false);
         inputRef.current?.focus();
       }
-    }, [isInteractionBlocked, shouldFocusInput]);
+    }, [inputRef, isInteractionBlocked, setIsFocused, shouldFocusInput]);
 
     const hiddenProps = isHidden
       ? ({
@@ -262,47 +236,6 @@ const PerpsProCompactInput = React.forwardRef<
           style: { height: 0, overflow: 'hidden' as const, opacity: 0 },
         } as const)
       : undefined;
-    const handleFocus = () => {
-      isNativeFocusedRef.current = true;
-      // Native focus starts a new editing session. Capture the locale here
-      // even when imperative focus already expanded the inline field.
-      inputLocaleRef.current = locale;
-      setIsFocused(true);
-      if (directPressPhaseRef.current === 'initial-press') {
-        // Scale fields scroll on focus. Wait for release so that scroll cannot
-        // cancel Android's in-flight native focus handoff.
-        directPressPhaseRef.current = 'initial-focused';
-        return;
-      }
-      onFocus?.();
-    };
-    const handleSelectionChange = (event: TextInputSelectionChangeEvent) => {
-      if (shouldIgnoreNextSelectionChangeRef.current) {
-        shouldIgnoreNextSelectionChangeRef.current = false;
-        return;
-      }
-
-      selectionRef.current = event.nativeEvent.selection;
-      setSelection(event.nativeEvent.selection);
-    };
-    const handleBlur = () => {
-      isNativeFocusedRef.current = false;
-      directPressPhaseRef.current = 'idle';
-      const hasExternalValueUpdate = value !== lastEmittedValueRef.current;
-      const canonicalValue = hasExternalValueUpdate
-        ? value
-        : normalizePerpsNumericInput(displayValue, inputLocaleRef.current);
-      setIsFocused(false);
-      selectionRef.current = undefined;
-      shouldIgnoreNextSelectionChangeRef.current = false;
-      setSelection(undefined);
-      setDisplayValue(formatPerpsInput(canonicalValue, locale));
-      onBlur?.();
-
-      if (!hasExternalValueUpdate && canonicalValue !== value) {
-        onChangeText(canonicalValue);
-      }
-    };
     const handleFieldPressIn = () => {
       if (isInteractionBlocked) {
         return;
@@ -335,9 +268,7 @@ const PerpsProCompactInput = React.forwardRef<
         onFieldPress?.();
         return;
       }
-      if (!isFocused) {
-        inputLocaleRef.current = locale;
-      }
+      captureInputLocale();
       // Pressable.onPress runs after release, so native onFocus can realign
       // immediately without arming the direct-input press delay.
       directPressPhaseRef.current = 'idle';
@@ -348,16 +279,8 @@ const PerpsProCompactInput = React.forwardRef<
     const input = (
       <Input
         ref={inputRef}
-        value={displayValue}
-        onChangeText={handleChangeText}
-        selection={selection}
-        onSelectionChange={handleSelectionChange}
+        {...inputProps}
         keyboardType={keyboardType}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        // Hidden fields stay mounted for iOS accessories. Non-editable keeps
-        // Android focus search off them.
-        isDisabled={isInteractionBlocked}
         // A tap landing here is consumed by the input, so neither the inline
         // variant's wrapping pressable nor the stacked variant's label fires.
         onPressIn={handleFieldPressIn}

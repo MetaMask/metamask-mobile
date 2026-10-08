@@ -14,31 +14,18 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useRef, useState } from 'react';
-import {
-  Platform,
-  type TextInput,
-  type TextInputSelectionChangeEvent,
-  type View,
-} from 'react-native';
+import React, { useCallback } from 'react';
+import { Platform, type TextInput, type View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsSlider from '../../../../components/PerpsSlider';
-import { usePerpsLocale } from '../../../../hooks/usePerpsLocale';
-import {
-  formatPerpsInput,
-  normalizePerpsNumericInput,
-  type PerpsInputSelection,
-} from '../../../../utils/formatUtils';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
 import type {
   PerpsProSizeDenomination,
   PerpsProSizeSliderModel,
 } from './PerpsProOrderForm.types';
-import usePerpsProInputDisplay, {
-  updatePerpsProInputDisplay,
-} from './usePerpsProInputDisplay';
+import usePerpsProInputDisplay from './usePerpsProInputDisplay';
 
 const ids = PerpsProOrderFormSelectorsIDs;
 
@@ -86,49 +73,14 @@ const PerpsProSizeInput = ({
 }: PerpsProSizeInputProps) => {
   const tw = useTailwind();
   const { playImpact, playSelection } = useHaptics();
-  const locale = usePerpsLocale();
-  const inputLocaleRef = useRef(locale);
-  const internalInputRef = useRef<TextInput>(null);
-  const inputRef = externalInputRef ?? internalInputRef;
-  const selectionRef = useRef<PerpsInputSelection | undefined>(undefined);
-  const lastEmittedValueRef = useRef(value);
-  const shouldIgnoreNextSelectionChangeRef = useRef(false);
-  const [isFocused, setIsFocused] = useState(false);
-  const [displayValue, setDisplayValue] = useState(() =>
-    formatPerpsInput(value, locale),
-  );
-  const [selection, setSelection] = useState<PerpsInputSelection | undefined>(
-    undefined,
-  );
-  usePerpsProInputDisplay({
+  const { captureInputLocale, inputProps, inputRef } = usePerpsProInputDisplay({
     value,
-    displayValue,
-    locale,
-    isFocused,
-    inputLocaleRef,
-    lastEmittedValueRef,
-    selectionRef,
-    shouldIgnoreNextSelectionChangeRef,
-    setDisplayValue,
-    setSelection,
+    onChangeText,
+    onFocus,
+    onBlur,
+    isDisabled,
+    inputRef: externalInputRef,
   });
-  const handleChangeText = (nextValue: string) => {
-    if (isDisabled) {
-      return;
-    }
-
-    updatePerpsProInputDisplay({
-      nextValue,
-      displayValue,
-      onChangeText,
-      inputLocaleRef,
-      lastEmittedValueRef,
-      selectionRef,
-      shouldIgnoreNextSelectionChangeRef,
-      setDisplayValue,
-      setSelection,
-    });
-  };
   const unitLabel = getUnitLabel(denomination);
   const showUsdPrefix = denomination.unit === 'usd';
   const label = strings('perps.pro_order_form.size_unit', {
@@ -145,12 +97,10 @@ const PerpsProSizeInput = ({
     if (isDisabled) {
       return;
     }
-    if (!isFocused) {
-      inputLocaleRef.current = locale;
-    }
+    captureInputLocale();
     inputRef.current?.focus();
     onFieldPress?.();
-  }, [inputRef, isDisabled, isFocused, locale, onFieldPress]);
+  }, [captureInputLocale, inputRef, isDisabled, onFieldPress]);
 
   const handleToggleDenomination = useCallback(() => {
     if (!canPressDenominationToggle) {
@@ -160,49 +110,6 @@ const PerpsProSizeInput = ({
     playSelection().catch(() => undefined);
     onToggleDenomination?.();
   }, [canPressDenominationToggle, onToggleDenomination, playSelection]);
-
-  const handleSelectionChange = useCallback(
-    (event: TextInputSelectionChangeEvent) => {
-      if (shouldIgnoreNextSelectionChangeRef.current) {
-        shouldIgnoreNextSelectionChangeRef.current = false;
-        return;
-      }
-
-      selectionRef.current = event.nativeEvent.selection;
-      setSelection(event.nativeEvent.selection);
-    },
-    [],
-  );
-
-  const handleFocus = useCallback(() => {
-    if (!isDisabled) {
-      if (!isFocused) {
-        inputLocaleRef.current = locale;
-      }
-      setIsFocused(true);
-      onFocus?.();
-    }
-  }, [isDisabled, isFocused, locale, onFocus]);
-
-  const handleBlur = useCallback(() => {
-    const hasExternalValueUpdate = value !== lastEmittedValueRef.current;
-    const canonicalValue = hasExternalValueUpdate
-      ? value
-      : normalizePerpsNumericInput(displayValue, inputLocaleRef.current);
-    setIsFocused(false);
-    selectionRef.current = undefined;
-    shouldIgnoreNextSelectionChangeRef.current = false;
-    setSelection(undefined);
-    setDisplayValue(formatPerpsInput(canonicalValue, locale));
-
-    if (!isDisabled) {
-      onBlur?.();
-
-      if (!hasExternalValueUpdate && canonicalValue !== value) {
-        onChangeText(canonicalValue);
-      }
-    }
-  }, [displayValue, isDisabled, locale, onBlur, onChangeText, value]);
 
   const handleFieldPress = useCallback(() => {
     if (!isDisabled) {
@@ -284,13 +191,7 @@ const PerpsProSizeInput = ({
             ) : null}
             <Input
               ref={inputRef}
-              value={displayValue}
-              onChangeText={handleChangeText}
-              selection={selection}
-              onSelectionChange={handleSelectionChange}
-              onFocus={handleFocus}
-              onBlur={handleBlur}
-              isDisabled={isDisabled}
+              {...inputProps}
               // A tap landing here is consumed by the input, so the wrapping
               // ButtonBase never fires.
               onPressIn={handleFieldPress}
