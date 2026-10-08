@@ -1,20 +1,17 @@
-import type { TopTrader } from '../../../../Homepage/Sections/TopTraders/types';
 import { DEFAULT_FILTERS } from './filterDefaults';
 import { filterLeaderboardTraders } from './filterLeaderboardTraders';
 import type { SocialShellFilters } from './types';
 
+interface TestTrader {
+  id: string;
+  isFollowing: boolean;
+  pnl30d?: number | null;
+  pnlValue?: number;
+}
+
 const trader = (
-  overrides: Partial<TopTrader> & Pick<TopTrader, 'id'>,
-): TopTrader => ({
-  address: '0x1',
-  rank: 1,
-  overallRank: 1,
-  username: overrides.id,
-  percentageChange: 10,
-  pnlValue: 1_000,
-  winRatePercent: 50,
-  pnlPerChain: {},
-  followerCount: 0,
+  overrides: Partial<TestTrader> & Pick<TestTrader, 'id'>,
+): TestTrader => ({
   isFollowing: false,
   pnl30d: 50_000,
   ...overrides,
