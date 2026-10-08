@@ -14,7 +14,7 @@ import {
   TitleAlert,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '../../../../../locales/i18n';
 import { PasswordResetWarningSheetSelectorsIDs } from './PasswordResetWarningSheet.testIds';
 
 export interface PasswordResetWarningSheetProps {
@@ -24,8 +24,8 @@ export interface PasswordResetWarningSheetProps {
 }
 
 /**
- * Warning bottom sheet shown before creating a wallet with an SRP, reminding
- * the user that MetaMask cannot reset the password they just chose.
+ * Warning bottom sheet shown before creating or importing a wallet with an
+ * SRP, reminding the user that MetaMask cannot reset the password they just chose.
  */
 const PasswordResetWarningSheet = ({
   isVisible,

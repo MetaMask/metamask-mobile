@@ -8,7 +8,6 @@ import React, {
 } from 'react';
 import {
   Alert,
-  TouchableOpacity,
   Animated,
   Dimensions,
   Keyboard,
@@ -60,12 +59,10 @@ import { strings } from '../../../../locales/i18n';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
-import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   BottomSheetFooter,
   ButtonIcon,
   ButtonSize,
@@ -75,7 +72,6 @@ import {
   HelpTextSeverity,
   IconName,
   IconColor,
-  Checkbox,
   Label,
   Text,
   TextColor,
@@ -91,6 +87,7 @@ import { passcodeType } from '../../../util/authentication';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
+import PasswordResetWarningSheet from '../shared/PasswordResetWarningSheet/PasswordResetWarningSheet';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
 import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
@@ -277,7 +274,8 @@ const ImportFromSecretRecoveryPhrase = () => {
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState<string[]>(['']);
   const [currentStep, setCurrentStep] = useState(0);
-  const [learnMore, setLearnMore] = useState(false);
+  const [isWarningSheetVisible, setIsWarningSheetVisible] = useState(false);
+  const pendingParsedSeedRef = useRef<string | null>(null);
   const [showPasswordIndex, setShowPasswordIndex] = useState<number[]>([0, 1]);
   const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
 
@@ -566,9 +564,8 @@ const ImportFromSecretRecoveryPhrase = () => {
       password === '' ||
       confirmPassword === '' ||
       password !== confirmPassword ||
-      !learnMore ||
       password.length < MIN_PASSWORD_LENGTH,
-    [password, confirmPassword, learnMore],
+    [password, confirmPassword],
   );
 
   const isPasswordTooShort = useMemo(
@@ -588,7 +585,7 @@ const ImportFromSecretRecoveryPhrase = () => {
     });
   };
 
-  const onPressImport = async () => {
+  const getParsedSeedForImport = async (): Promise<string | null> => {
     // Drop blank grid slots before parsing (e.g. trailing empty after Space)
     const trimmedSeedPhrase = seedPhrase
       .map((item) => item.trim())
@@ -597,9 +594,7 @@ const ImportFromSecretRecoveryPhrase = () => {
     const vaultSeed = await parseVaultValue(password, trimmedSeedPhrase);
     const parsedSeed = parseSeedPhrase(vaultSeed || trimmedSeedPhrase);
 
-    if (loading) return;
-    track(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
-    let setupError = null;
+    let setupError: string | null = null;
     if (!passwordRequirementsMet(password)) {
       setupError = strings('import_from_seed.password_length_error');
     } else if (password !== confirmPassword) {
@@ -617,8 +612,15 @@ const ImportFromSecretRecoveryPhrase = () => {
         wallet_setup_type: 'import',
         error_type: setupError,
       });
-      return;
+      return null;
     }
+
+    return parsedSeed;
+  };
+
+  const runWalletImport = async (parsedSeed: string) => {
+    if (loading) return;
+    track(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
 
     setLoading(true);
     // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
@@ -719,6 +721,28 @@ const ImportFromSecretRecoveryPhrase = () => {
     }
   };
 
+  const onPressCreatePassword = async () => {
+    if (loading) return;
+
+    const parsedSeed = await getParsedSeedForImport();
+    if (!parsedSeed) return;
+
+    pendingParsedSeedRef.current = parsedSeed;
+    Keyboard.dismiss();
+    setIsWarningSheetVisible(true);
+  };
+
+  const onDismissWarningSheet = () => {
+    setIsWarningSheetVisible(false);
+  };
+
+  const onConfirmWarningSheet = () => {
+    const parsedSeed = pendingParsedSeedRef.current;
+    setIsWarningSheetVisible(false);
+    if (!parsedSeed) return;
+    void runWalletImport(parsedSeed);
+  };
+
   const isError = shouldShowPasswordMismatchError(password, confirmPassword);
 
   const showWhatIsSeedPhrase = () => {
@@ -727,16 +751,6 @@ const ImportFromSecretRecoveryPhrase = () => {
     });
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SEEDPHRASE_MODAL,
-    });
-  };
-
-  const learnMoreLink = () => {
-    navigation.push('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: RESET_PASSWORD_GUIDE_URL,
-        title: 'support.metamask.io',
-      },
     });
   };
 
@@ -938,44 +952,6 @@ const ImportFromSecretRecoveryPhrase = () => {
                   </HelpText>
                 )}
               </Box>
-
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Start}
-                justifyContent={BoxJustifyContent.Start}
-                twClassName="gap-2 mt-2 mb-4 bg-background-section rounded-lg p-4"
-              >
-                <Checkbox
-                  onChange={() => setLearnMore(!learnMore)}
-                  isSelected={learnMore}
-                  testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
-                  accessibilityLabel={
-                    ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
-                  }
-                />
-                <TouchableOpacity
-                  onPress={() => setLearnMore(!learnMore)}
-                  testID={ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID}
-                  style={tw.style(
-                    'flex-row items-start justify-start flex-wrap w-[90%] -mt-1.5',
-                  )}
-                >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                  >
-                    {strings('import_from_seed.learn_more')}
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.PrimaryDefault}
-                      onPress={learnMoreLink}
-                      testID={ImportFromSeedSelectorsIDs.LEARN_MORE_LINK_ID}
-                    >
-                      {' ' + strings('reset_password.learn_more')}
-                    </Text>
-                  </Text>
-                </TouchableOpacity>
-              </Box>
             </Box>
           )}
         </Animated.View>
@@ -991,7 +967,7 @@ const ImportFromSecretRecoveryPhrase = () => {
           <BottomSheetFooter
             primaryButtonProps={{
               children: strings('import_from_seed.import_create_password_cta'),
-              onPress: onPressImport,
+              onPress: onPressCreatePassword,
               isLoading: loading,
               isDisabled: isContinueButtonDisabled,
               testID: ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
@@ -1031,6 +1007,11 @@ const ImportFromSecretRecoveryPhrase = () => {
         onClose={() => setIsImportMenuVisible(false)}
         onSelectQrCode={onQrCodePress}
         onSelectExtension={onImportFromExtensionPress}
+      />
+      <PasswordResetWarningSheet
+        isVisible={isWarningSheetVisible}
+        onConfirm={onConfirmWarningSheet}
+        onDismiss={onDismissWarningSheet}
       />
       <ScreenshotDeterrent enabled isSRP />
     </Box>
