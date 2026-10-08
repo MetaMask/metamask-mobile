@@ -1,9 +1,10 @@
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
+import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
 import { useSocialFeedSurface } from '../SocialFeedSurface';
 import type { SocialV1FeedItem } from '../types';
 import { mockedFieldLabel } from '../utils/mockedFieldLabel';
-import { shouldShowCopyTradeCta } from '../utils/copyTrade';
+import { isCopyTradeable } from '../utils/copyTrade';
 import CopyTradeButton from './CopyTradeButton';
 import FeedPost from './FeedPost';
 import PositionCardHeader from './PositionCardHeader';
@@ -27,6 +28,11 @@ export interface SocialFeedPositionCardProps {
 
 export interface PositionCardBodyProps {
   item: SocialV1FeedItem;
+  /**
+   * Spot callers receive the feed item so they can open QuickBuy. Perps callers
+   * may ignore the argument; the card and post shell pass the handler from
+   * `useCopyTradeToPerps`.
+   */
   onCopyTrade?: (item: SocialV1FeedItem) => void;
 }
 
@@ -139,7 +145,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
             costRow,
           ];
 
-    const showCopyTrade = shouldShowCopyTradeCta(item, Boolean(onCopyTrade));
+    const showCopyTrade = isCopyTradeable(item);
 
     return (
       <PositionCardShell>
@@ -161,8 +167,8 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
         <PositionCardStats rows={stats} cardId={item.id} />
         {showCopyTrade ? (
           <CopyTradeButton
-            testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
             onPress={onCopyTrade ? () => onCopyTrade(item) : undefined}
+            testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
           />
         ) : null}
       </PositionCardShell>
@@ -196,16 +202,23 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
 const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
   item,
   now,
-}) => (
-  <FeedPost
-    id={item.id}
-    author={item.author}
-    timestamp={item.timestamp}
-    comment={item.comment}
-    now={now}
-  >
-    <PositionCardBody item={item} />
-  </FeedPost>
-);
+}) => {
+  const { onCopyTrade, geoBlockSheet } = useCopyTradeToPerps(item);
+
+  return (
+    <>
+      <FeedPost
+        id={item.id}
+        author={item.author}
+        timestamp={item.timestamp}
+        comment={item.comment}
+        now={now}
+      >
+        <PositionCardBody item={item} onCopyTrade={onCopyTrade} />
+      </FeedPost>
+      {geoBlockSheet}
+    </>
+  );
+};
 
 export default SocialFeedPositionCard;

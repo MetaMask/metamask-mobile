@@ -1,5 +1,6 @@
 import React, { type ComponentType } from 'react';
 import { act, render } from '@testing-library/react-native';
+import VbaKycRejected from '../VbaKycRejected';
 import VbaOnboardingStub, {
   type VbaOnboardingStubVariant,
 } from '../VbaOnboardingStub';
@@ -12,11 +13,13 @@ import {
 } from './VbaStatusAdapters';
 
 jest.mock('../VbaOnboardingStub');
+jest.mock('../VbaKycRejected');
 jest.mock('../hooks/useVbaOnboardingRouting');
 
 const mockVbaOnboardingStub = jest.mocked(VbaOnboardingStub);
+const mockVbaKycRejected = jest.mocked(VbaKycRejected);
 const mockUseOpenVbaOnboarding = jest.mocked(useOpenVbaOnboarding);
-const mockAdvance = jest.fn<Promise<void>, []>();
+const mockAdvance = jest.fn<Promise<void>, [unknown?]>();
 
 interface AdapterCase {
   Adapter: ComponentType;
@@ -29,11 +32,6 @@ const adapterCases: AdapterCase[] = [
     Adapter: VbaKycPendingAdapter,
     source: 'kyc_pending-retry',
     variant: 'kyc_pending',
-  },
-  {
-    Adapter: VbaKycRejectedAdapter,
-    source: 'kyc_rejected-retry',
-    variant: 'kyc_rejected',
   },
   {
     Adapter: VbaAccountProvisioningErrorAdapter,
@@ -53,6 +51,7 @@ describe('VbaStatusAdapters', () => {
     mockAdvance.mockResolvedValue(undefined);
     mockUseOpenVbaOnboarding.mockReturnValue(mockAdvance);
     mockVbaOnboardingStub.mockImplementation(() => <></>);
+    mockVbaKycRejected.mockImplementation(() => <></>);
   });
 
   it.each(adapterCases)(
@@ -68,4 +67,14 @@ describe('VbaStatusAdapters', () => {
       expect(mockAdvance).toHaveBeenCalledTimes(1);
     },
   );
+
+  it('reopens identity verification from the KYC failure page', async () => {
+    render(<VbaKycRejectedAdapter />);
+    const rejectedProps = mockVbaKycRejected.mock.calls[0][0];
+
+    await act(rejectedProps.onRetry);
+
+    expect(mockUseOpenVbaOnboarding).toHaveBeenCalledWith('kyc_rejected-retry');
+    expect(mockAdvance).toHaveBeenCalledWith({ retryRejectedKyc: true });
+  });
 });

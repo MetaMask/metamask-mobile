@@ -83,6 +83,7 @@ describe('useSocialV1Feed', () => {
         'pos-1-1700000500',
         'pos-2-1700000500',
       ]);
+      expect(result.current.posts[0].item.variant).toBe('perpsClosed');
     });
 
     it('copies the real trader onto the post envelope', () => {
