@@ -108,4 +108,22 @@ describe('PillToggleCardList', () => {
 
     expect(getAllByTestId('card-list-skeleton').length).toBeGreaterThan(0);
   });
+
+  it('leaves horizontal padding to each row', () => {
+    const { getByTestId } = render(
+      <PillToggleCardList<Row>
+        tabs={tabs}
+        isLoading={false}
+        renderItem={renderItem}
+        Skeleton={Skeleton}
+        idPrefix="test"
+        testIdPrefix="toggle-list"
+        listTestId="card-flash"
+      />,
+    );
+
+    expect(
+      getByTestId('card-flash').props.contentContainerStyle,
+    ).toBeUndefined();
+  });
 });
