@@ -10,6 +10,7 @@ import VbaDetails, {
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 const mockGetPix = jest.fn();
 const mockListTransactions = jest.fn();
 const mockRefreshAutoramp = jest.fn();
@@ -19,6 +20,7 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
+    goBack: mockGoBack,
   }),
 }));
 
@@ -309,5 +311,16 @@ describe('VbaDetails', () => {
       ).toBeOnTheScreen();
     });
     expect(mockGetPix).not.toHaveBeenCalled();
+  });
+
+  it('returns to the caller when back is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(mockGetPix).toHaveBeenCalledWith('ar-1');
+    });
+
+    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });

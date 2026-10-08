@@ -32,6 +32,7 @@ const TERMINAL_TRANSACTION_STATUSES = new Set([
 
 export const VbaDetailsSelectorsIDs = {
   CONTAINER: 'vba-details-container',
+  BACK_BUTTON: 'vba-details-back-button',
   DONE_BUTTON: 'vba-details-done-button',
   PIX_CODE: 'vba-details-pix-code',
   TRANSACTION_STATUS: 'vba-details-transaction-status',
@@ -199,7 +200,14 @@ const VbaDetails = () => {
 
   useEffect(() => {
     let cancelled = false;
+    let inFlight = false;
     const tick = async () => {
+      // Skip while a previous poll is still running so a slower earlier
+      // response cannot overwrite a newer PIX code or deposit status.
+      if (cancelled || inFlight) {
+        return;
+      }
+      inFlight = true;
       try {
         await refreshDeposit();
         if (!cancelled) {
@@ -212,6 +220,8 @@ const VbaDetails = () => {
         Logger.error(error as Error, {
           message: 'VbaDetails: deposit refresh failed',
         });
+      } finally {
+        inFlight = false;
       }
     };
     void tick();
@@ -231,6 +241,8 @@ const VbaDetails = () => {
     });
   }, [navigation]);
 
+  const handleBack = useCallback(() => navigation.goBack(), [navigation]);
+
   const transactionLabel =
     transactionStatus === 'Completed'
       ? strings('virtual_bank_account.vba_details.transaction_completed')
@@ -241,7 +253,11 @@ const VbaDetails = () => {
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard includesTopInset />
+      <HeaderStandard
+        onBack={handleBack}
+        backButtonProps={{ testID: VbaDetailsSelectorsIDs.BACK_BUTTON }}
+        includesTopInset
+      />
       <ScrollView
         contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
         testID={VbaDetailsSelectorsIDs.CONTAINER}

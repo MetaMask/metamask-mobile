@@ -140,7 +140,9 @@ import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsOutreachBanner from '../../components/PerpsOutreachBanner';
 import PerpsProducts from '../../components/PerpsProducts';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
-import PerpsRecentlyAddedSection from '../../components/PerpsRecentlyAddedSection';
+import PerpsRecentlyAddedSection, {
+  RECENTLY_ADDED_SOURCE_SECTION,
+} from '../../components/PerpsRecentlyAddedSection';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import {
   isPerpsTopMoversSectionVisible,
@@ -594,9 +596,11 @@ const PerpsHomeView = () => {
       perpsNavigation.navigateToMarketDetails(
         market,
         PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        transactionActiveAbTests,
+        RECENTLY_ADDED_SOURCE_SECTION,
       );
     },
-    [perpsNavigation],
+    [perpsNavigation, transactionActiveAbTests],
   );
 
   const handleRecentlyAddedHeaderPress = useCallback(() => {
