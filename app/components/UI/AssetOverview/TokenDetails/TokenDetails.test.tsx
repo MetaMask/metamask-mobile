@@ -475,7 +475,7 @@ describe('TokenDetails', () => {
 
   // Token Details V1 resolves market data once for the whole screen and passes
   // it down, so this component must not duplicate the request.
-  it('should not fetch market data when it is supplied by the caller', async () => {
+  it('does not fetch market data when it is supplied by the caller', async () => {
     jest.clearAllMocks();
 
     jest.spyOn(reactRedux, 'useSelector').mockImplementation(
@@ -503,7 +503,7 @@ describe('TokenDetails', () => {
       { state: initialState },
     );
 
-    expect(getByText('Market details')).toBeDefined();
+    expect(getByText('Market details')).toBeOnTheScreen();
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(handleFetch).not.toHaveBeenCalled();
   });
@@ -511,7 +511,7 @@ describe('TokenDetails', () => {
   // The caller passes null while its own request is in flight. Fetching here
   // would race it with an identical request, which is what the prop exists to
   // prevent — so presence of the prop, not its value, has to gate the fetch.
-  it('should not fetch market data when the caller supplies null', async () => {
+  it('does not fetch market data when the caller supplies null', async () => {
     jest.clearAllMocks();
 
     jest.spyOn(reactRedux, 'useSelector').mockImplementation(
@@ -530,13 +530,13 @@ describe('TokenDetails', () => {
       { state: initialState },
     );
 
-    expect(getByText('Token details')).toBeDefined();
+    expect(getByText('Token details')).toBeOnTheScreen();
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(handleFetch).not.toHaveBeenCalled();
   });
 
   // Omitting the prop entirely is the legacy page, which still owns its fetch.
-  it('should still fetch market data when no caller supplies it', async () => {
+  it('fetches market data when no caller supplies it', async () => {
     jest.clearAllMocks();
 
     jest.mocked(handleFetch).mockResolvedValue({});
@@ -561,7 +561,7 @@ describe('TokenDetails', () => {
 
   // Supplied data is already in the selected currency, so applying the native
   // conversion rate on top of it would inflate every figure.
-  it('should render supplied market data without applying the conversion rate', () => {
+  it('renders supplied market data without applying the conversion rate', () => {
     jest.clearAllMocks();
 
     jest.spyOn(reactRedux, 'useSelector').mockImplementation(
@@ -590,6 +590,6 @@ describe('TokenDetails', () => {
     );
 
     // 5M as given, not 5M multiplied by the ETH rate.
-    expect(getByText('$5.00M')).toBeDefined();
+    expect(getByText('$5.00M')).toBeOnTheScreen();
   });
 });
