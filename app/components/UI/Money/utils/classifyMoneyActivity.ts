@@ -10,6 +10,7 @@ import {
   isPerpsPredictMoneyDeposit,
   isPerpsPredictMoneyWithdraw,
 } from './moneyTransactionGuards';
+import { isFiatVaultOnlyFailure } from './fiatVaultFailureSuppression';
 import type {
   MoneyActivityTitleKey,
   MoneyActivityTransactionMeta,
@@ -20,6 +21,12 @@ export type MoneyActivityStatus = 'pending' | 'confirmed' | 'failed';
 export function getMoneyActivityStatus(
   tx: TransactionMeta,
 ): MoneyActivityStatus {
+  // Fiat leg settled but the sponsored vault batch threw — CHOMP auto-vaults
+  // the idle mUSD, so the deposit is safe and must not render as failed.
+  if (isFiatVaultOnlyFailure(tx)) {
+    return 'confirmed';
+  }
+
   switch (tx.status) {
     // `approved`/`signed` = user has confirmed but the tx is held by the
     // MetaMask Pay publish hook while a cross-chain payment (e.g. bridge)
