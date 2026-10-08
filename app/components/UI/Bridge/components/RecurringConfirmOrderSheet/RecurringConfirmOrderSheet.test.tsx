@@ -139,6 +139,7 @@ function renderSheet({
     setRenderedTab: jest.fn(),
     latestSourceBalance,
     quoteParams: {},
+    setQuoteParams: jest.fn(),
   });
   return renderWithProvider(
     <RecurringConfirmOrderSheet

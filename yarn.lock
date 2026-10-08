@@ -9847,6 +9847,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/cryptography@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "@metamask/cryptography@npm:1.1.2"
+  checksum: 10/567ab4d7a27bbf1be129a120bd0d6d1dfc1677ddc36c2e81c259bebd7824b493fbb67127b585d57f94d98463daa7f7a43296db8ff2d9ed85f440ecc7e9c83dc9
+  languageName: node
+  linkType: hard
+
 "@metamask/delegation-controller@npm:^3.0.2":
   version: 3.0.2
   resolution: "@metamask/delegation-controller@npm:3.0.2"
@@ -9889,10 +9896,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/delegation-deployments@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/delegation-deployments@npm:2.0.0"
-  checksum: 10/7f2712ab5e48551880f2ce49d6bd6434b7587772b5053504b1186ae1a894313e9a30ef7ba94cceb7ee80a91c31764ca1a92aec9d8a30de925524a6314f163a7d
+"@metamask/delegation-deployments@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "@metamask/delegation-deployments@npm:2.1.0"
+  checksum: 10/6dc1d0494ed4d97008e36877b0afcee2691f78c3b1803cd21b6607ad8af2f1612bb55fb3d39ffd1174485dcf4b57ebc8b156d3e5e2c2e3bdec8bba21ec6d5d43
   languageName: node
   linkType: hard
 
@@ -11443,29 +11450,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-sync-controller@npm:^33.0.0":
-  version: 33.0.0
-  resolution: "@metamask/profile-sync-controller@npm:33.0.0"
+"@metamask/profile-sync-controller@npm:^34.0.3":
+  version: 34.0.3
+  resolution: "@metamask/profile-sync-controller@npm:34.0.3"
   dependencies:
     "@metamask/address-book-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/cryptography": "npm:^1.1.2"
     "@metamask/key-tree": "npm:^10.1.1"
     "@metamask/keyring-controller": "npm:^28.1.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/seedless-onboarding-controller": "npm:^11.0.1"
+    "@metamask/seedless-onboarding-controller": "npm:^12.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.0"
-    "@noble/ciphers": "npm:^1.3.0"
-    "@noble/curves": "npm:^1.9.2"
+    "@noble/curves": "npm:^1.9.7"
     "@noble/hashes": "npm:^1.8.0"
     "@signinwithethereum/siwe": "npm:^4.2.1"
-    immer: "npm:^9.0.21"
+    immer: "npm:^11.1.18"
     loglevel: "npm:^1.8.1"
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/2672dab497875e0cbcd21d788cadb9ac277f36f8da9e3eabfae0333e950abde1da8d585c3993103df6b1692d432c0188bb6ba91409d0e4b8297750f57467c9a0
+  checksum: 10/cfd1825f5c50e5fd11214dac17263a4fdf5706c1145b7c06d7ad6def11082c57c17dc911cec4af923ec83fc43c1c3a7fafc53c13f5e7dca1e0f8f3c438a9de6a
   languageName: node
   linkType: hard
 
@@ -12125,7 +12132,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/social-controllers@npm:^3.4.0":
+"@metamask/social-controllers@npm:3.4.0":
   version: 3.4.0
   resolution: "@metamask/social-controllers@npm:3.4.0"
   dependencies:
@@ -12136,6 +12143,20 @@ __metadata:
     "@metamask/profile-sync-controller": "npm:^33.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
   checksum: 10/fc4e93a7c5f041868fdb3a097fda58f4d2b3caa6139d0bfc241d1e364491ec5701973f505f53cc2aa2424bff287032fc223a540e9ecf43bd15a2eff273d215bc
+  languageName: node
+  linkType: hard
+
+"@metamask/social-controllers@patch:@metamask/social-controllers@npm%3A3.4.0#~/.yarn/patches/@metamask-social-controllers-npm-3.4.0-7ad4d4498f.patch":
+  version: 3.4.0
+  resolution: "@metamask/social-controllers@patch:@metamask/social-controllers@npm%3A3.4.0#~/.yarn/patches/@metamask-social-controllers-npm-3.4.0-7ad4d4498f.patch::version=3.4.0&hash=bba00d"
+  dependencies:
+    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/base-data-service": "npm:^2.0.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^33.0.0"
+    "@metamask/superstruct": "npm:^3.4.1"
+  checksum: 10/b9ffe77df542720a78deacc3cf90dfc8384f8cd8ed0418aaecf774f00390e0f6513e12b0c379fd13e860b9e12348ba734914364fc24be406f85e1e977f4e5ece
   languageName: node
   linkType: hard
 
@@ -39121,7 +39142,7 @@ __metadata:
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/core-backend": "npm:^11.0.0"
     "@metamask/delegation-controller": "npm:^3.0.2"
-    "@metamask/delegation-deployments": "npm:^2.0.0"
+    "@metamask/delegation-deployments": "npm:^2.1.0"
     "@metamask/design-system-react-native": "npm:^0.51.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.12.0"
     "@metamask/design-tokens": "npm:^11.1.0"
@@ -39192,7 +39213,7 @@ __metadata:
     "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
-    "@metamask/profile-sync-controller": "npm:^33.0.0"
+    "@metamask/profile-sync-controller": "npm:^34.0.3"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^26.1.0"
     "@metamask/react-data-query": "npm:^1.0.0"
@@ -39221,7 +39242,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": "npm:^17.2.0"
     "@metamask/snaps-sdk": "npm:^12.1.0"
     "@metamask/snaps-utils": "npm:^12.6.0"
-    "@metamask/social-controllers": "npm:^3.4.0"
+    "@metamask/social-controllers": "patch:@metamask/social-controllers@npm%3A3.4.0#~/.yarn/patches/@metamask-social-controllers-npm-3.4.0-7ad4d4498f.patch"
     "@metamask/solana-wallet-snap": "npm:^7.0.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"

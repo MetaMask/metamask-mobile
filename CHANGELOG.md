@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded `@metamask/delegation-deployments` from `^2.0.0` to `^2.1.0`
+
+## [8.13.1]
+
+### Fixed
+
+- Fixed Money Account upgrade calling the dev CHOMP API before feature flags load (#37013)
+
 ## [8.13.0]
 
 ### Added
@@ -14082,7 +14092,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.1...HEAD
+[8.13.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.0...v8.13.1
 [8.13.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.12.1...v8.13.0
 [8.12.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.12.0...v8.12.1
 [8.12.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.11.0...v8.12.0
