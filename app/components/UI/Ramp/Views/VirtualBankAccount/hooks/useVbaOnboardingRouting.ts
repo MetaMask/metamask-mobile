@@ -110,6 +110,9 @@ export const useOpenVbaOnboarding = (
         }
         const snapshot: VbaOnboardingSnapshot = {
           ...accountSnapshot,
+          sessionClosed:
+            (accountSnapshot as { sessionClosed?: boolean }).sessionClosed ??
+            false,
           vendorTermsAcceptedLocally:
             accountSnapshot.vendorDisclaimersComplete ||
             (await hasAcceptedVbaVendorTerms(walletAddress)),

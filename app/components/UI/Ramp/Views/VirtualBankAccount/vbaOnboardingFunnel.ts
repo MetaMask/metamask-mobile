@@ -39,10 +39,12 @@ export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
   {
     id: 'identityVerification',
     isComplete: (snapshot) =>
-      snapshot.sessionDisclaimersComplete &&
-      snapshot.kycStatus !== 'retry' &&
-      (snapshot.kycStatus === 'approved' ||
-        snapshot.providerFlowStatus === 'submitted'),
+      // A finalized session cannot relaunch the provider flow.
+      snapshot.sessionClosed ||
+      (snapshot.sessionDisclaimersComplete &&
+        snapshot.kycStatus !== 'retry' &&
+        (snapshot.kycStatus === 'approved' ||
+          snapshot.providerFlowStatus === 'submitted')),
   },
 ];
 
@@ -81,6 +83,7 @@ export const getVbaDestinationForSnapshot = (
   }
 
   if (
+    snapshot.sessionClosed ||
     snapshot.kycStatus === 'pending' ||
     (snapshot.providerFlowStatus === 'submitted' &&
       snapshot.kycStatus !== 'retry')

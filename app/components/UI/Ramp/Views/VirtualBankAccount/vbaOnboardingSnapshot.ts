@@ -5,6 +5,11 @@ import type { VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot } from '@metam
  */
 export type VbaOnboardingSnapshot = RampsVbaOnboardingSnapshot & {
   vendorTermsAcceptedLocally: boolean;
+  /**
+   * Whether idOS has finalized the session. Set by ramps-controller once that
+   * package reports it. Older controllers omit the field, which stays open.
+   */
+  sessionClosed: boolean;
 };
 
 export const EMPTY_VBA_ONBOARDING_SNAPSHOT: VbaOnboardingSnapshot = {
@@ -12,6 +17,7 @@ export const EMPTY_VBA_ONBOARDING_SNAPSHOT: VbaOnboardingSnapshot = {
   sessionExists: false,
   vendorDisclaimersComplete: false,
   sessionDisclaimersComplete: false,
+  sessionClosed: false,
   providerFlowStatus: 'not_started',
   kycStatus: 'none',
   autorampStatus: 'not_ready',
