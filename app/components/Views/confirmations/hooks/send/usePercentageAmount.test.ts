@@ -13,11 +13,8 @@ import { AssetType } from '../../types/token';
 // eslint-disable-next-line import-x/no-namespace
 import * as SendUtils from '../../utils/send';
 import { estimateGas } from '../../../../../util/transaction-controller';
-import {
-  GasFeeEstimates,
-  useMaxAmount,
-  usePercentageAmount,
-} from './usePercentageAmount';
+import { useMaxAmount, usePercentageAmount } from './usePercentageAmount';
+import { GasFeeEstimates } from './useSendMaxGas';
 import { useBalance } from './useBalance';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useIsNetworkGasSponsored } from '../../../../UI/Bridge/hooks/useIsNetworkGasSponsored';
