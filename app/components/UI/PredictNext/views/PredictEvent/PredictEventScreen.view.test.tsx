@@ -2035,13 +2035,6 @@ describe('PredictEventScreen', () => {
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
       });
-      // eslint-disable-next-line no-console
-      console.log(
-        'SPYCALLS',
-        JSON.stringify(
-          (globalThis as { __spyCalls?: string[] }).__spyCalls?.slice(0, 8),
-        ),
-      );
 
       fireEvent.press(
         view.getByTestId(
