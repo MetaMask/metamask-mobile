@@ -11,3 +11,6 @@
  * Segment property: `previous_leverage`.
  */
 export const PERPS_ANALYTICS_PREVIOUS_LEVERAGE = 'previous_leverage' as const;
+
+/** Perps market-details `source` when opened from Explore omni-search. */
+export const PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH = 'explore_search' as const;
