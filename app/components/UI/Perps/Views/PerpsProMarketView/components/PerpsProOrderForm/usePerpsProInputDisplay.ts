@@ -111,6 +111,10 @@ const applyPerpsProInputDisplayChange = ({
   const canonicalValue = normalizePerpsNumericInput(
     nextValue,
     inputLocaleRef.current,
+    {
+      previousDisplayValue: displayValue,
+      previousSelection: selectionRef.current,
+    },
   );
   const nextDisplayValue = formatPerpsInput(
     canonicalValue,
@@ -159,6 +163,10 @@ const usePerpsProInputDisplay = ({
   );
 
   useEffect(() => {
+    if (!isFocused) {
+      inputLocaleRef.current = locale;
+    }
+
     syncPerpsProInputDisplay({
       value,
       displayValue,

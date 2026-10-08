@@ -635,6 +635,57 @@ describe('formatUtils', () => {
       expect(normalizePerpsNumericInput(input, locale)).toBe(expected);
     });
 
+    it.each([
+      ['appending', '1.2000', '12000'],
+      ['backspacing', '1.20', '120'],
+    ])(
+      'preserves a German grouping period while %s a live-formatted integer',
+      (_operation, nextValue, expected) => {
+        const context = {
+          previousDisplayValue: '1.200',
+          previousSelection: { start: 5, end: 5 },
+        };
+
+        const normalizedValue = normalizePerpsNumericInput(
+          nextValue,
+          'de-DE',
+          context,
+        );
+
+        expect(normalizedValue).toBe(expected);
+      },
+    );
+
+    it('treats a selected German grouped value replaced with a period as decimal input', () => {
+      const context = {
+        previousDisplayValue: '1.200',
+        previousSelection: { start: 0, end: 5 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.5',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1.5');
+    });
+
+    it('treats a new period after a German grouped integer as a decimal', () => {
+      const context = {
+        previousDisplayValue: '1.000',
+        previousSelection: { start: 5, end: 5 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.000.',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1000.');
+    });
+
     it('preserves partial decimal input', () => {
       expect(normalizePerpsNumericInput('1000.', 'en-US')).toBe('1000.');
       expect(normalizePerpsNumericInput('1000,', 'de-DE')).toBe('1000.');
