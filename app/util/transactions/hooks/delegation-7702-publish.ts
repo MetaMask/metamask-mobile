@@ -29,6 +29,7 @@ import {
 } from '../../../core/Delegation';
 import { exactExecution } from '../../../core/Delegation/caveatBuilder/exactExecutionBuilder';
 import { limitedCalls } from '../../../core/Delegation/caveatBuilder/limitedCallsBuilder';
+import { redeemer } from '../../../core/Delegation/caveatBuilder/redeemerBuilder';
 import { specificActionERC20TransferBatch } from '../../../core/Delegation/caveatBuilder/specificActionERC20TransferBatchBuilder';
 import {
   Delegation,
@@ -40,6 +41,7 @@ import {
   submitRelayTransaction,
   waitForRelaySuccess,
 } from '../transaction-relay';
+import { getSentinelSigners } from '../sentinel-api';
 import { NetworkClientId } from '@metamask/network-controller';
 import { isE2ETest } from '../util';
 import {
@@ -171,6 +173,13 @@ export class Delegation7702PublishHook {
       throw new Error('Selected gas fee token not found');
     }
 
+    const redeemers = await getSentinelSigners(chainId);
+
+    if (!redeemers.length) {
+      // Fail closed rather than sign a delegation any address could redeem.
+      throw new Error(`No relay signers found for chain ${chainId}`);
+    }
+
     const delegationEnvironment = getDeleGatorEnvironment(
       parseInt(isE2ETest(chainId) ? SEPOLIA_CHAIN_ID : chainId, 16),
     );
@@ -186,6 +195,7 @@ export class Delegation7702PublishHook {
       transactionMeta,
       gasFeeToken,
       includeTransfer,
+      redeemers,
     );
 
     const modes: ExecutionMode[] = [
@@ -282,6 +292,7 @@ export class Delegation7702PublishHook {
     transactionMeta: TransactionMeta,
     gasFeeToken: GasFeeToken | undefined,
     includeTransfer: boolean,
+    redeemers: Hex[],
   ): Promise<Delegation[][]> {
     const { chainId } = transactionMeta;
     const unsignedDelegation = this.#buildUnsignedDelegation(
@@ -289,6 +300,7 @@ export class Delegation7702PublishHook {
       transactionMeta,
       gasFeeToken,
       includeTransfer,
+      redeemers,
     );
 
     log('Signing delegation');
@@ -354,12 +366,14 @@ export class Delegation7702PublishHook {
     transactionMeta: TransactionMeta,
     gasFeeToken: GasFeeToken | undefined,
     includeTransfer: boolean,
+    redeemers: Hex[],
   ): UnsignedDelegation {
     const caveats = this.#buildCaveats(
       environment,
       transactionMeta,
       gasFeeToken,
       includeTransfer,
+      redeemers,
     );
 
     log('Caveats', caveats);
@@ -380,6 +394,7 @@ export class Delegation7702PublishHook {
     transactionMeta: TransactionMeta,
     gasFeeToken: GasFeeToken | undefined,
     includeTransfer: boolean,
+    redeemers: Hex[],
   ): Caveat[] {
     const caveatBuilder = createCaveatBuilder(environment);
 
@@ -414,6 +429,9 @@ export class Delegation7702PublishHook {
 
     // the relay may only execute this delegation once for security reasons
     caveatBuilder.addCaveat(limitedCalls, 1);
+
+    // only the Sentinel relay signers may submit the redeem
+    caveatBuilder.addCaveat(redeemer, redeemers);
 
     return caveatBuilder.build();
   }
