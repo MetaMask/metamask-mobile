@@ -70,6 +70,8 @@ jest.mock('@metamask/design-system-react-native', () => {
     FontWeight: { Bold: 'Bold' },
     ButtonVariant: { Secondary: 'Secondary' },
     ButtonSize: { Lg: 'Lg' },
+    SectionDivider: (props: { [key: string]: unknown }) =>
+      ReactActual.createElement(View, props),
   };
 });
 
