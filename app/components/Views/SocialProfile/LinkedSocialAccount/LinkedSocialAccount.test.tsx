@@ -61,11 +61,12 @@ const UNPAIRED_GROUP_ID = `entropy:${UNPAIRED_ENTROPY_ID}/0`;
 const entropyWallet = (
   entropySourceId: string,
   groups: AccountGroupObject[],
+  name = entropySourceId,
 ): AccountWalletObject =>
   ({
     ...createMockWallet(`entropy:${entropySourceId}`, entropySourceId, groups),
     type: AccountWalletType.Entropy,
-    metadata: { name: entropySourceId, entropy: { id: entropySourceId } },
+    metadata: { name, entropy: { id: entropySourceId } },
   }) as unknown as AccountWalletObject;
 
 const session = (identifierId: string, pairedIdentifierIds: string[] = []) => ({
@@ -93,9 +94,9 @@ const buildState = ({
 
   const state = createMockState(
     [
-      entropyWallet(PRIMARY_ENTROPY_ID, primaryGroups),
-      entropyWallet(PAIRED_ENTROPY_ID, pairedGroups),
-      entropyWallet(UNPAIRED_ENTROPY_ID, unpairedGroups),
+      entropyWallet(PRIMARY_ENTROPY_ID, primaryGroups, 'Wallet 1'),
+      entropyWallet(PAIRED_ENTROPY_ID, pairedGroups, 'Wallet 2'),
+      entropyWallet(UNPAIRED_ENTROPY_ID, unpairedGroups, 'Other wallet'),
     ],
     createMockInternalAccountsFromGroups([
       ...primaryGroups,
@@ -169,6 +170,33 @@ describe('LinkedSocialAccount', () => {
     fireEvent.press(getByTestId(CommonSelectorsIDs.BACK_ARROW_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('groups accounts under their wallet', () => {
+    const { getByTestId, queryByText } = renderWithProvider(
+      <LinkedSocialAccount />,
+      { state: buildState() },
+    );
+
+    const primaryWallet = getByTestId(
+      LinkedSocialAccountSelectorsIDs.walletSection(
+        `entropy:${PRIMARY_ENTROPY_ID}`,
+      ),
+    );
+    const pairedWallet = getByTestId(
+      LinkedSocialAccountSelectorsIDs.walletSection(
+        `entropy:${PAIRED_ENTROPY_ID}`,
+      ),
+    );
+
+    expect(within(primaryWallet).getByText('Wallet 1')).toBeOnTheScreen();
+    expect(within(primaryWallet).getByText('Account 1')).toBeOnTheScreen();
+    expect(within(primaryWallet).getByText('Account 2')).toBeOnTheScreen();
+    expect(within(primaryWallet).queryByText('Paired account')).toBeNull();
+
+    expect(within(pairedWallet).getByText('Wallet 2')).toBeOnTheScreen();
+    expect(within(pairedWallet).getByText('Paired account')).toBeOnTheScreen();
+    expect(queryByText('Other wallet')).toBeNull();
   });
 
   it('lists the account groups of the primary SRP and the SRPs paired to it', () => {
