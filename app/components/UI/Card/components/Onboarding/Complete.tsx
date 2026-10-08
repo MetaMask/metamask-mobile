@@ -126,7 +126,7 @@ const Complete = () => {
           style={tw.style('w-full h-full')}
         />
       </Box>
-      <Text variant={TextVariant.DisplayLg} twClassName="text-center">
+      <Text variant={TextVariant.DisplayMd} twClassName="text-center">
         {strings('card.card_onboarding.complete.title')}
       </Text>
       <Text

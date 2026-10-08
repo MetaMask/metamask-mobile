@@ -1,18 +1,6 @@
 import React from 'react';
-import { useWindowDimensions } from 'react-native';
 import { render } from '@testing-library/react-native';
 import VipSplashGradientTitle from './VipSplashGradientTitle';
-import { VIP_SPLASH_MIN_SCREEN_HEIGHT_FOR_SMALL_STYLES } from './Vip.constants';
-
-jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
-    width: 375,
-    height: 812,
-    scale: 2,
-    fontScale: 1,
-  })),
-}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -29,9 +17,8 @@ jest.mock('@metamask/design-system-react-native', () => {
       style?: unknown;
       testID?: string;
       variant?: string;
-    }) =>
-      ReactActual.createElement(Text, { style, testID, variant }, children),
-    TextVariant: { DisplayMd: 'display-md', DisplayLg: 'display-lg' },
+    }) => ReactActual.createElement(Text, { style, testID, variant }, children),
+    TextVariant: { DisplayMd: 'display-md' },
   };
 });
 
@@ -68,51 +55,20 @@ jest.mock('@react-native-masked-view/masked-view', () => {
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     if (key === 'rewards.vip.splash_title') {
-      return 'WELCOME\nTO GOLD FOX\nCOLLECTIVE';
+      return 'Welcome to Gold Fox Collective';
     }
     return key;
   }),
 }));
 
 describe('VipSplashGradientTitle', () => {
-  beforeEach(() => {
-    jest.mocked(useWindowDimensions).mockReturnValue({
-      width: 375,
-      height: 812,
-      scale: 2,
-      fontScale: 1,
-    });
-  });
-
-  it('renders the shared splash title with the provided testID', () => {
+  it('renders the shared splash title with DisplayMd', () => {
     const { getAllByText, getByTestId } = render(
       <VipSplashGradientTitle testID="vip-splash-title" />,
     );
 
     expect(getByTestId('vip-splash-title')).toBeOnTheScreen();
-    expect(getAllByText('WELCOME\nTO GOLD FOX\nCOLLECTIVE')).toHaveLength(2);
-  });
-
-  it('uses DisplayLg on larger screens', () => {
-    const { getByTestId } = render(
-      <VipSplashGradientTitle testID="vip-splash-title" />,
-    );
-
-    expect(getByTestId('vip-splash-title').props.variant).toBe('display-lg');
-  });
-
-  it('uses DisplayMd on small screens', () => {
-    jest.mocked(useWindowDimensions).mockReturnValue({
-      width: 320,
-      height: VIP_SPLASH_MIN_SCREEN_HEIGHT_FOR_SMALL_STYLES - 1,
-      scale: 2,
-      fontScale: 1,
-    });
-
-    const { getByTestId } = render(
-      <VipSplashGradientTitle testID="vip-splash-title" />,
-    );
-
     expect(getByTestId('vip-splash-title').props.variant).toBe('display-md');
+    expect(getAllByText('Welcome to Gold Fox Collective')).toHaveLength(2);
   });
 });

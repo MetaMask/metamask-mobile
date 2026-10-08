@@ -283,7 +283,7 @@ const CardWelcome = () => {
         >
           <Text
             style={styles.title}
-            variant={TextVariant.DisplayLg}
+            variant={TextVariant.DisplayMd}
             testID={CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT}
           >
             {strings('card.card_onboarding.title')}

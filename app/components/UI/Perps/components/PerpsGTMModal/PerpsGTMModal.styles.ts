@@ -34,13 +34,7 @@ const scaleVertical = (size: number) => {
 
 const scaleHorizontal = (size: number) => Math.ceil(size * widthScale);
 
-const createStyles = (
-  theme: Theme,
-  isDarkMode: boolean,
-  titleFontSize?: number | null,
-  subtitleFontSize?: number | null,
-  useSystemFont?: boolean,
-) =>
+const createStyles = (theme: Theme, isDarkMode: boolean) =>
   StyleSheet.create({
     pageContainer: {
       flex: 1,
@@ -70,37 +64,11 @@ const createStyles = (
     title: {
       textAlign: 'center',
       paddingTop: scaleVertical(12),
-      // DisplayLg supplies the Inter size. A measured overflow can still
-      // shrink it, and scripts outside Inter fall back to the platform font.
-      ...(titleFontSize
-        ? {
-            fontSize: titleFontSize,
-            lineHeight: titleFontSize + 1,
-          }
-        : null),
-      ...(useSystemFont
-        ? {
-            fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
-            fontWeight: '700' as const,
-          }
-        : null),
     },
     titleDescription: {
       paddingTop: scaleVertical(10),
       paddingHorizontal: scaleHorizontal(8),
       textAlign: 'center',
-      ...(subtitleFontSize
-        ? {
-            fontSize: subtitleFontSize,
-            lineHeight: subtitleFontSize + 4,
-          }
-        : null),
-      ...(useSystemFont
-        ? {
-            fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
-            fontWeight: '400' as const,
-          }
-        : null),
     },
     footerContainer: {
       display: 'flex',

@@ -1719,7 +1719,7 @@
     "available_balance": "Available balance",
     "margin_used": "Margin used",
     "gtm_content": {
-      "title": "PERPS ARE HERE",
+      "title": "Perps are here",
       "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
       "not_now": "Not now",
       "try_now": "Get started"
@@ -8699,10 +8699,10 @@
         "failed": "mUSD conversion failed"
       },
       "education": {
-        "heading": "GET {{percentage}}% ON\nSTABLECOINS",
+        "heading": "Get {{percentage}}% on stablecoins",
         "description": "Convert your stablecoins to mUSD and earn a {{percentage}}% annualized bonus.",
         "terms_apply": "Terms apply.",
-        "primary_button": "Get Started",
+        "primary_button": "Get started",
         "secondary_button": "Not now",
         "checklist": {
           "dollar_backed": "Dollar-backed",
@@ -10449,7 +10449,7 @@
       "payment_creation_error": "Failed to create payment. Try again."
     },
     "order_completed": {
-      "title": "YOUR CARD\nIS ORDERED",
+      "title": "Your card is ordered",
       "subtitle": "It should arrive in 4 to 6 weeks.",
       "description": "Set up your virtual card and add it to your digital wallet to start earning mUSD back.",
       "set_up_card_button": "Set up card",
@@ -10492,7 +10492,7 @@
       "try_again": "Try again"
     },
     "card_onboarding": {
-      "title": "Spend\nand Earn",
+      "title": "Spend and earn",
       "description": "The MetaMask Card is the fast and\neasy way to spend your crypto and\nearn up to 3% mUSD back.",
       "apply_now_button": "Set up now",
       "login_button": "Log in",
@@ -11316,7 +11316,7 @@
       "points_from_referrals_label": "Points from referrals",
       "referrals_label": "VIP Referrals",
       "tier_benefits_title": "Tier benefits",
-      "splash_title": "WELCOME\nTO GOLD FOX\nCOLLECTIVE",
+      "splash_title": "Welcome to Gold Fox Collective",
       "splash_description": "Unlock exclusive perks, early features, and curated rewards. By invitation only.",
       "splash_accept_invite": "Accept invite",
       "splash_not_now": "Not now",

@@ -397,12 +397,7 @@ const EarnMusdConversionEducationView = () => {
       testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.CONTAINER}
     >
       <Box twClassName="px-4 items-center">
-        <Text
-          variant={TextVariant.DisplayLg}
-          twClassName="text-center py-4"
-          numberOfLines={2}
-          adjustsFontSizeToFit
-        >
+        <Text variant={TextVariant.DisplayMd} twClassName="text-center py-4">
           {strings('earn.musd_conversion.education.heading', {
             percentage: MUSD_CONVERSION_APY,
           })}

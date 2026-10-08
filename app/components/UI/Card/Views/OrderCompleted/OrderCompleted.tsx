@@ -8,7 +8,6 @@ import {
   Box,
   Text,
   TextVariant,
-  FontWeight,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -100,14 +99,13 @@ const OrderCompleted: React.FC = () => {
 
           <Text
             twClassName="text-default text-center mt-6"
-            variant={TextVariant.HeadingLg}
+            variant={TextVariant.DisplayMd}
             testID={OrderCompletedSelectors.TITLE}
           >
             {strings('card.order_completed.title')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Regular}
             twClassName="text-alternative text-center mt-3"
             testID={OrderCompletedSelectors.SUBTITLE}
           >
@@ -115,7 +113,6 @@ const OrderCompleted: React.FC = () => {
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Regular}
             twClassName="text-alternative text-center mt-2 px-4"
             testID={OrderCompletedSelectors.DESCRIPTION}
           >
