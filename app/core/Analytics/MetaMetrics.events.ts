@@ -703,6 +703,7 @@ enum EVENT_NAME {
   CARD_REDEEM_PROCESS_STARTED = 'Card Redeem Process Started',
   CARD_REDEEM_PROCESS_COMPLETED = 'Card Redeem Process Completed',
   CARD_REDEEM_PROCESS_FAILED = 'Card Redeem Process Failed',
+  CARD_LINK_SEEDED = 'Card Link Seeded',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -2027,6 +2028,7 @@ const events = {
   CARD_REDEEM_PROCESS_FAILED: generateOpt(
     EVENT_NAME.CARD_REDEEM_PROCESS_FAILED,
   ),
+  CARD_LINK_SEEDED: generateOpt(EVENT_NAME.CARD_LINK_SEEDED),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
     EVENT_NAME.REWARDS_ACCOUNT_LINKING_STARTED,

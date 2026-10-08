@@ -58,12 +58,6 @@ export interface SupportedChain {
 export interface CardFeatureFlag {
   constants?: Record<string, string>;
   chains?: Record<string, SupportedChain>;
-  /**
-   * Turns card-link reads, writes and the one-time seed on or off together.
-   * One key on purpose: reads off with writes on would seed users the app
-   * then ignores.
-   */
-  cardLinkApiEnabled?: boolean;
 }
 
 export interface CardProgramIdOption {

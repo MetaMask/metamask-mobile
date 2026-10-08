@@ -575,21 +575,39 @@ describe('card feature flag readers', () => {
       }
     });
 
-    it('reads cardFeature.cardLinkApiEnabled when it is a boolean', () => {
+    it('reads the version-gated cardLinkApi flag when present', () => {
       process.env.MM_CARD_LINK_API_ENABLED = 'true';
       expect(
-        readCardLinkApiEnabled({ cardFeature: { cardLinkApiEnabled: true } }),
+        readCardLinkApiEnabled({
+          cardLinkApi: { enabled: true, minimumVersion: '0.0.0' },
+        }),
       ).toBe(true);
       expect(
-        readCardLinkApiEnabled({ cardFeature: { cardLinkApiEnabled: false } }),
+        readCardLinkApiEnabled({
+          cardLinkApi: { enabled: false, minimumVersion: '0.0.0' },
+        }),
       ).toBe(false);
     });
 
-    it('falls back to MM_CARD_LINK_API_ENABLED when the remote key is absent', () => {
+    it('is off when the app is below cardLinkApi.minimumVersion', () => {
       process.env.MM_CARD_LINK_API_ENABLED = 'true';
-      expect(readCardLinkApiEnabled({ cardFeature: { constants: {} } })).toBe(
-        true,
-      );
+      expect(
+        readCardLinkApiEnabled({
+          cardLinkApi: { enabled: true, minimumVersion: '99.0.0' },
+        }),
+      ).toBe(false);
+    });
+
+    it('ignores cardFeature.cardLinkApiEnabled', () => {
+      delete process.env.MM_CARD_LINK_API_ENABLED;
+      expect(
+        readCardLinkApiEnabled({ cardFeature: { cardLinkApiEnabled: true } }),
+      ).toBe(false);
+    });
+
+    it('falls back to MM_CARD_LINK_API_ENABLED when the remote flag is absent', () => {
+      process.env.MM_CARD_LINK_API_ENABLED = 'true';
+      expect(readCardLinkApiEnabled({})).toBe(true);
       delete process.env.MM_CARD_LINK_API_ENABLED;
       expect(readCardLinkApiEnabled({})).toBe(false);
     });

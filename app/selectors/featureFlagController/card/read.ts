@@ -84,17 +84,17 @@ export function readCardFeatureFlag(
 }
 
 /**
- * Whether CardController reads and writes card links (`cardFeature.cardLinkApiEnabled`).
+ * Whether CardController reads and writes card links: the `cardLinkApi` flag
+ * (LaunchDarkly `card-link-api`), a version-gated `{ enabled, minimumVersion }`.
  *
- * A boolean on the remote flag wins, including an explicit `false`. Without
- * one, `MM_CARD_LINK_API_ENABLED` decides, so a local build can turn it on
- * before the remote key exists.
+ * One switch on purpose: reads off with writes on would seed users the app
+ * then ignores. Without a remote value, `MM_CARD_LINK_API_ENABLED` decides, so
+ * a local build can turn it on.
  */
 export function readCardLinkApiEnabled(flags: CardRemoteFeatureFlags): boolean {
-  const remote = (flags?.cardFeature as CardFeatureFlag | undefined)
-    ?.cardLinkApiEnabled;
-  if (typeof remote === 'boolean') {
-    return remote;
+  const gated = validatedVersionGatedFeatureFlag(flags?.cardLinkApi);
+  if (gated !== undefined) {
+    return gated;
   }
   return process.env.MM_CARD_LINK_API_ENABLED === 'true';
 }

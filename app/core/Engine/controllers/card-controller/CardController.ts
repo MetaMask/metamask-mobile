@@ -700,8 +700,12 @@ export class CardController extends BaseController<
   /**
    * Runs a Card API call with the primary profile's bearer token. Called with
    * no argument on purpose: an entropy-source ID returns another profile's
-   * token, and the links would be stored under the wrong person. A 401 gets a
-   * fresh token and one retry of the same call.
+   * token, and the links would be stored under the wrong person.
+   *
+   * A 401 asks for the token again and retries the call once. The controller
+   * already logs in again past 90% of the token lifetime, so near-expiry is
+   * handled there; this does not force a sign-in (`performSignIn`), which
+   * would affect every other consumer of the session.
    */
   async #withCardLinkBearer<T>(
     call: (bearerToken: string) => Promise<T>,
@@ -848,10 +852,38 @@ export class CardController extends BaseController<
     );
     // A 400 is a client bug that a retry would repeat, so it also ends the
     // seed. Any other failure is retried on the next unlock.
+    if (outcome !== 'skipped') {
+      this.#trackCardLinkSeeded(outcome);
+    }
     if (generation !== this.#cardLinksGeneration) return;
     if (outcome === 'written' || outcome === 'rejected') {
       this.update((s) => {
         s.cardLinksSeeded = true;
+      });
+    }
+  }
+
+  /**
+   * One event per seed attempt. CARD-590 deletes the legacy cardholder check
+   * only once these stay near zero, i.e. existing cardholders all have a row.
+   * Carries no address or linkedAccountRef.
+   */
+  #trackCardLinkSeeded(outcome: 'written' | 'rejected' | 'failed'): void {
+    try {
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.CARD_LINK_SEEDED,
+        )
+          .addProperties({ provider: CardProviderIds.Baanx, outcome })
+          .build(),
+      );
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card' },
+        context: {
+          name: 'CardController',
+          data: { method: '#trackCardLinkSeeded' },
+        },
       });
     }
   }

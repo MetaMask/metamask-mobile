@@ -15,8 +15,17 @@ import Logger from '../../../../util/Logger';
 jest.mock('./CardTokenStore');
 jest.mock('./CardOnboardingStore');
 jest.mock('../../../../util/Logger');
+const mockTrackEvent = jest.fn();
 jest.mock('../../../../util/analytics/analytics', () => ({
-  analytics: { trackEvent: jest.fn() },
+  analytics: {
+    trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
+  },
+}));
+jest.mock('../../../../util/remoteFeatureFlag', () => ({
+  validatedVersionGatedFeatureFlag: (flag?: { enabled?: boolean }) =>
+    flag && typeof flag === 'object' && 'enabled' in flag
+      ? (flag.enabled ?? false)
+      : undefined,
 }));
 jest.mock('../../../redux', () => ({
   __esModule: true,
@@ -75,7 +84,7 @@ function setup({
         case 'RemoteFeatureFlagController:getState':
           return {
             remoteFeatureFlags: {
-              cardFeature: { cardLinkApiEnabled: flagEnabled },
+              cardLinkApi: { enabled: flagEnabled, minimumVersion: '0.0.0' },
             },
           };
         case 'AuthenticationController:getBearerToken':
@@ -326,6 +335,42 @@ describe('CardController card links', () => {
       expect(controller.state.cardLinks).toStrictEqual([
         link({ provider: 'baanx', status: 'active' }),
       ]);
+    });
+
+    it('tracks Card Link Seeded with the outcome and no account data', async () => {
+      const { controller } = setup({
+        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
+      });
+
+      await controller.fetchCardLinks();
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      const [event] = mockTrackEvent.mock.calls[0];
+      expect(event.name).toBe('Card Link Seeded');
+      expect(event.properties).toStrictEqual({
+        provider: 'baanx',
+        outcome: 'written',
+      });
+    });
+
+    it('tracks a failed seed attempt', async () => {
+      const { controller, cardService } = setup({
+        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
+      });
+      cardService.putCardLink.mockRejectedValue(apiError(503));
+
+      await controller.fetchCardLinks();
+
+      const [event] = mockTrackEvent.mock.calls[0];
+      expect(event.properties).toMatchObject({ outcome: 'failed' });
+    });
+
+    it('does not track a seed event when no seed is needed', async () => {
+      const { controller } = setup({ state: { cardholderAccounts: [] } });
+
+      await controller.fetchCardLinks();
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
     it('never seeds twice', async () => {
