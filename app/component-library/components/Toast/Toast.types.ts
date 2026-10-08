@@ -1,5 +1,6 @@
 // Third party dependencies.
 import { ImageSourcePropType } from 'react-native';
+import { IconName as DesignSystemIconName } from '@metamask/design-system-react-native';
 
 // External Dependencies.
 import { AvatarAccountType } from '../Avatars/Avatar/variants/AvatarAccount';
@@ -110,7 +111,8 @@ interface AppToastOption extends BaseToastVariants {
 
 interface IconToastOption extends BaseToastVariants {
   variant: ToastVariants.Icon;
-  iconName: IconName;
+  /** Legacy names stay valid. Prefer the design-system IconName. */
+  iconName: IconName | DesignSystemIconName;
   iconColor?: string;
   backgroundColor?: string;
 }
