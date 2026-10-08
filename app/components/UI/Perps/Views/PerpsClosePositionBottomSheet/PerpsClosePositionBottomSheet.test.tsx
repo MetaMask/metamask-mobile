@@ -1,3 +1,4 @@
+import { Text, TextColor } from '@metamask/design-system-react-native';
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
@@ -573,17 +574,24 @@ describe('PerpsClosePositionBottomSheet', () => {
       ).toHaveTextContent(strings('perps.order.set_price'));
     });
 
-    it('explains the disabled Close button while the limit price is unset', () => {
+    it('colors Set price as an error when the limit price is unset', () => {
       const utils = renderSheet();
 
       toggleOrderType(utils);
       fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
 
       expect(
-        utils.getByText(
+        utils.queryByText(
           strings('perps.order.validation.please_set_a_limit_price'),
         ),
-      ).toBeOnTheScreen();
+      ).toBeNull();
+      const setPriceText = utils
+        .UNSAFE_getAllByType(Text)
+        .find(
+          (text) => text.props.children === strings('perps.order.set_price'),
+        );
+
+      expect(setPriceText?.props.color).toBe(TextColor.ErrorDefault);
     });
 
     it('shows the review state when the limit order flag is off despite a remembered limit type', () => {
@@ -612,7 +620,7 @@ describe('PerpsClosePositionBottomSheet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('reopens the limit price keypad when the limit price row is pressed after Done', () => {
+    it('reopens the limit price keypad when Set price is pressed after Done', () => {
       const utils = renderSheet();
 
       toggleOrderType(utils);
@@ -620,11 +628,7 @@ describe('PerpsClosePositionBottomSheet', () => {
 
       expect(utils.queryByTestId('mock-keypad')).toBeNull();
 
-      fireEvent.press(
-        utils.getByTestId(
-          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW,
-        ),
-      );
+      fireEvent.press(utils.getByText(strings('perps.order.set_price')));
 
       expect(utils.getByTestId('mock-keypad')).toBeOnTheScreen();
     });

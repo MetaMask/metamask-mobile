@@ -83,7 +83,7 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
             {isEmptyInReview ? (
               <Text
                 variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
+                color={TextColor.ErrorDefault}
                 testID={
                   PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
                 }

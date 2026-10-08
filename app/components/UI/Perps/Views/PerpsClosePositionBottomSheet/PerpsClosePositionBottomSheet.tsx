@@ -172,25 +172,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   // standalone `$` and shows only the numeric portion next to it.
   const hasLimitPriceValue = Boolean(limitPriceInput.formattedLimitPrice);
 
-  const footerMessages = useMemo(() => {
-    const needsLimitPrice =
-      effectiveOrderType === 'limit' &&
-      !hasLimitPriceValue &&
-      !isEditingLimitPrice;
-
-    return needsLimitPrice
-      ? [
-          ...displayedErrors,
-          strings('perps.order.validation.please_set_a_limit_price'),
-        ]
-      : displayedErrors;
-  }, [
-    displayedErrors,
-    effectiveOrderType,
-    hasLimitPriceValue,
-    isEditingLimitPrice,
-  ]);
-
   if (isMarginInfoVisible) {
     return (
       <BottomSheet
@@ -287,7 +268,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           {/* One BodySm line stays reserved so an error appearing while the
               user drags the slider does not resize the sheet under them. */}
           <PerpsValidationErrors
-            errors={footerMessages}
+            errors={displayedErrors}
             alignment="start"
             twClassName="min-h-[22px] justify-center px-4"
           />
