@@ -29,10 +29,6 @@ import {
   nativeBalanceChangeBuilder,
 } from './nativeBalanceChangeBuilder';
 import { redeemer, redeemerBuilder } from './redeemerBuilder';
-import {
-  specificActionERC20TransferBatch,
-  specificActionERC20TransferBatchBuilder,
-} from './specificActionERC20TransferBatchBuilder';
 
 export { CaveatBuilder, resolveCaveats } from './caveatBuilder';
 export type { CaveatBuilderConfig, Caveats } from './caveatBuilder';
@@ -52,10 +48,6 @@ export const createCaveatBuilder = (
     .extend(exactExecutionBatch, exactExecutionBatchBuilder)
     .extend(limitedCalls, limitedCallsBuilder)
     .extend(nativeBalanceChange, nativeBalanceChangeBuilder)
-    .extend(
-      specificActionERC20TransferBatch,
-      specificActionERC20TransferBatchBuilder,
-    )
     .extend(redeemer, redeemerBuilder);
   return caveatBuilder;
 };

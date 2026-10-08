@@ -6,7 +6,9 @@ import {
 import { SignMessenger, getDelegationTransaction } from './delegation';
 import { MOCK_ANY_NAMESPACE, Messenger } from '@metamask/messenger';
 import { Hex } from '@metamask/utils';
-import { type Caveat } from '../../core/Delegation';
+import { type FeatureFlags } from '@metamask/remote-feature-flag-controller';
+import { getDeleGatorEnvironment, type Caveat } from '../../core/Delegation';
+import { CONFIRMATIONS_DELEGATIONS_FEATURE_FLAG_NAME } from './caveats';
 
 const mockGetNonceLock = jest.fn();
 
@@ -33,7 +35,22 @@ const NONCE_MOCK = 123;
 const AUTHORIZATION_SIGNATURE_MOCK =
   '0xf85c827a6994663f3ad617193148711d28f5334ee4ed070166028080a040e292da533253143f134643a03405f1af1de1d305526f44ed27e62061368d4ea051cfb0af34e491aa4d6796dececf95569088322e116c4b2f312bb23f20699269';
 
+const FIXED_NOW = 1_700_000_000_000;
 const NETWORK_CLIENT_ID_MOCK = 'mainnet';
+const ALLOWED_CALLDATA_ENFORCER_MOCK =
+  getDeleGatorEnvironment(1).caveatEnforcers.AllowedCalldataEnforcer as Hex;
+
+let remoteFeatureFlags: FeatureFlags = {};
+
+/**
+ * Expected TimestampEnforcer terms with afterThreshold = 0.
+ *
+ * @param beforeThreshold - Unix timestamp in seconds.
+ * @returns Packed uint128 afterThreshold + uint128 beforeThreshold.
+ */
+function buildExpectedTimestampTerms(beforeThreshold: number): Hex {
+  return `0x${'0'.repeat(32)}${beforeThreshold.toString(16).padStart(32, '0')}`;
+}
 
 const TRANSACTION_META_MOCK = {
   chainId: '0x1' as Hex,
@@ -56,6 +73,9 @@ describe('Transaction Delegation Utils', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    remoteFeatureFlags = {};
+
+    jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW);
 
     messengerMock = new Messenger({
       namespace: MOCK_ANY_NAMESPACE,
@@ -69,6 +89,11 @@ describe('Transaction Delegation Utils', () => {
     messengerMock.registerActionHandler(
       'KeyringController:signEip7702Authorization',
       sign7702Mock,
+    );
+
+    messengerMock.registerActionHandler(
+      'RemoteFeatureFlagController:getState',
+      () => ({ cacheTimestamp: 0, remoteFeatureFlags }),
     );
 
     signDelegationMock.mockResolvedValue(DELEGATION_SIGNATURE_MOCK);
@@ -87,6 +112,13 @@ describe('Transaction Delegation Utils', () => {
       releaseLock: jest.fn(),
     });
   });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  const getTimestampCaveat = (caveats: Caveat[], terms: string) =>
+    caveats.find((caveat) => caveat.terms === terms);
 
   describe('getDelegationTransaction', () => {
     it('returns delegation data', async () => {
@@ -148,6 +180,46 @@ describe('Transaction Delegation Utils', () => {
         chainId: TRANSACTION_META_MOCK.chainId,
         delegation: expect.any(Object),
       });
+
+      const expectedTimestampTerms = buildExpectedTimestampTerms(
+        Math.floor(FIXED_NOW / 1000) + 30 * 60,
+      );
+
+      const delegation = signDelegationMock.mock.calls[0][0].delegation as {
+        caveats: Caveat[];
+      };
+
+      expect(getTimestampCaveat(delegation.caveats, expectedTimestampTerms))
+        .toEqual(
+          expect.objectContaining({
+            terms: expectedTimestampTerms,
+          }),
+        );
+    });
+
+    it('uses the feature flag override for the delegation deadline', async () => {
+      remoteFeatureFlags = {
+        [CONFIRMATIONS_DELEGATIONS_FEATURE_FLAG_NAME]: {
+          delegationDeadlineMinutes: 45,
+        },
+      };
+
+      await getDelegationTransaction(messengerMock, TRANSACTION_META_MOCK);
+
+      const expectedTimestampTerms = buildExpectedTimestampTerms(
+        Math.floor(FIXED_NOW / 1000) + 45 * 60,
+      );
+
+      const delegation = signDelegationMock.mock.calls[0][0].delegation as {
+        caveats: Caveat[];
+      };
+
+      expect(getTimestampCaveat(delegation.caveats, expectedTimestampTerms))
+        .toEqual(
+          expect.objectContaining({
+            terms: expectedTimestampTerms,
+          }),
+        );
     });
 
     it('calls KeyringController to sign authorization', async () => {
@@ -262,9 +334,8 @@ describe('Transaction Delegation Utils', () => {
 
       const getAllowedCalldataTerms = (caveats: Caveat[]) =>
         caveats
-          .map((c) => c.terms)
-          .filter((terms) => terms.length > 2 + 64)
-          .map(parseAllowedCalldata);
+          .filter((caveat) => caveat.enforcer === ALLOWED_CALLDATA_ENFORCER_MOCK)
+          .map((caveat) => parseAllowedCalldata(caveat.terms));
 
       it('splits only after order-ID-bearing call selectors, folding the selector into the preceding segment', async () => {
         const data = buildBatchData(1);
@@ -321,7 +392,7 @@ describe('Transaction Delegation Utils', () => {
         // only at the single order-ID-bearing call (the deposit) — not the approve, and
         // not the coincidental inner selectors — keeps it well under that.
         const caveats = getCaveats();
-        expect(caveats.length).toBeLessThanOrEqual(7);
+        expect(caveats.length).toBeLessThanOrEqual(8);
       });
 
       it('leaves the order-ID placeholder window free and enforces the full remainder', async () => {

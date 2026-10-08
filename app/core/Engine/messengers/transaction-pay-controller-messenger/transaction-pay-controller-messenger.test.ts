@@ -112,4 +112,17 @@ describe('getTransactionPayControllerInitMessenger', () => {
 
     expect(result).toBeInstanceOf(Messenger);
   });
+
+  it('delegates RemoteFeatureFlagController:getState for the delegation deadline', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerInitMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining(['RemoteFeatureFlagController:getState']),
+      }),
+    );
+  });
 });

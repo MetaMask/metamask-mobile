@@ -17,20 +17,15 @@ import { recoverAuthorizationAddress } from 'viem/utils';
 import {
   ANY_BENEFICIARY,
   BATCH_DEFAULT_MODE,
-  Caveat,
   DeleGatorEnvironment,
   ExecutionMode,
   ExecutionStruct,
   SINGLE_DEFAULT_MODE,
   UnsignedDelegation,
-  createCaveatBuilder,
   createDelegation,
   getDeleGatorEnvironment,
 } from '../../../core/Delegation';
-import { exactExecution } from '../../../core/Delegation/caveatBuilder/exactExecutionBuilder';
-import { limitedCalls } from '../../../core/Delegation/caveatBuilder/limitedCallsBuilder';
-import { redeemer } from '../../../core/Delegation/caveatBuilder/redeemerBuilder';
-import { specificActionERC20TransferBatch } from '../../../core/Delegation/caveatBuilder/specificActionERC20TransferBatchBuilder';
+import { getDelegationCaveats, normalizeCallData } from '../caveats';
 import {
   Delegation,
   encodeRedeemDelegations,
@@ -53,10 +48,8 @@ import { prefixError } from '../error-prefix';
 
 // Test chain ID (Sepolia) used in E2E tests to match the delegation package's test contract configuration
 const SEPOLIA_CHAIN_ID = '0xaa36a7';
-const EMPTY_HEX = '0x';
 const POLLING_INTERVAL_MS = 1000; // 1 Second
 const ERROR_PREFIX = 'Gas Station 7702: ';
-
 const EMPTY_RESULT = {
   transactionHash: undefined,
 };
@@ -190,22 +183,22 @@ export class Delegation7702PublishHook {
       throw new Error('Gas fee token not found');
     }
 
-    const delegations = await this.#buildDelegation(
-      delegationEnvironment,
+    const executions = this.#buildExecutions(
       transactionMeta,
       gasFeeToken,
       includeTransfer,
+    );
+
+    const delegations = await this.#buildDelegation(
+      delegationEnvironment,
+      transactionMeta,
+      executions[0],
       redeemers,
     );
 
     const modes: ExecutionMode[] = [
       includeTransfer ? BATCH_DEFAULT_MODE : SINGLE_DEFAULT_MODE,
     ];
-    const executions = this.#buildExecutions(
-      transactionMeta,
-      gasFeeToken,
-      includeTransfer,
-    );
 
     const transactionData = encodeRedeemDelegations({
       delegations,
@@ -290,16 +283,14 @@ export class Delegation7702PublishHook {
   async #buildDelegation(
     delegationEnvironment: DeleGatorEnvironment,
     transactionMeta: TransactionMeta,
-    gasFeeToken: GasFeeToken | undefined,
-    includeTransfer: boolean,
+    executions: ExecutionStruct[],
     redeemers: Hex[],
   ): Promise<Delegation[][]> {
     const { chainId } = transactionMeta;
     const unsignedDelegation = this.#buildUnsignedDelegation(
       delegationEnvironment,
       transactionMeta,
-      gasFeeToken,
-      includeTransfer,
+      executions,
       redeemers,
     );
 
@@ -335,7 +326,7 @@ export class Delegation7702PublishHook {
   ): ExecutionStruct[][] {
     const { txParams } = transactionMeta;
     const { data, to, value } = txParams;
-    const normalizedData = this.#normalizeCallData(data);
+    const normalizedData = normalizeCallData(data);
     const userExecution: ExecutionStruct = {
       target: to as Hex,
       value: BigInt((value as Hex) ?? '0x0'),
@@ -364,17 +355,16 @@ export class Delegation7702PublishHook {
   #buildUnsignedDelegation(
     environment: DeleGatorEnvironment,
     transactionMeta: TransactionMeta,
-    gasFeeToken: GasFeeToken | undefined,
-    includeTransfer: boolean,
+    executions: ExecutionStruct[],
     redeemers: Hex[],
   ): UnsignedDelegation {
-    const caveats = this.#buildCaveats(
+    const caveats = getDelegationCaveats({
       environment,
-      transactionMeta,
-      gasFeeToken,
-      includeTransfer,
+      executions,
+      messenger: this.#messenger,
       redeemers,
-    );
+      transactionMeta,
+    });
 
     log('Caveats', caveats);
 
@@ -387,53 +377,6 @@ export class Delegation7702PublishHook {
     log('Delegation', delegation);
 
     return delegation;
-  }
-
-  #buildCaveats(
-    environment: DeleGatorEnvironment,
-    transactionMeta: TransactionMeta,
-    gasFeeToken: GasFeeToken | undefined,
-    includeTransfer: boolean,
-    redeemers: Hex[],
-  ): Caveat[] {
-    const caveatBuilder = createCaveatBuilder(environment);
-
-    const { txParams } = transactionMeta;
-    const { to, value, data } = txParams;
-    const normalizedData = this.#normalizeCallData(data);
-
-    if (includeTransfer && gasFeeToken !== undefined) {
-      const { tokenAddress, recipient, amount } = gasFeeToken;
-
-      // contract deployments can't be delegated
-      if (to !== undefined) {
-        caveatBuilder.addCaveat(
-          specificActionERC20TransferBatch,
-          tokenAddress,
-          recipient,
-          amount,
-          to,
-          (value as Hex) ?? '0x0',
-          normalizedData,
-        );
-      }
-    } else if (to !== undefined) {
-      // contract deployments can't be delegated
-      caveatBuilder.addCaveat(
-        exactExecution,
-        to,
-        value ?? '0x0',
-        normalizedData,
-      );
-    }
-
-    // the relay may only execute this delegation once for security reasons
-    caveatBuilder.addCaveat(limitedCalls, 1);
-
-    // only the Sentinel relay signers may submit the redeem
-    caveatBuilder.addCaveat(redeemer, redeemers);
-
-    return caveatBuilder.build();
   }
 
   /**
@@ -582,31 +525,5 @@ export class Delegation7702PublishHook {
       recipient,
       amount,
     ]) as Hex;
-  }
-
-  #normalizeCallData(data: unknown): Hex {
-    if (typeof data !== 'string' || data.length === 0) {
-      return EMPTY_HEX;
-    }
-
-    const hasHexPrefix = data.slice(0, 2).toLowerCase() === '0x';
-    const normalizedData = data.toLowerCase();
-    const prefixed = hasHexPrefix
-      ? `0x${normalizedData.slice(2)}`
-      : `0x${normalizedData}`;
-    const hexBody = prefixed.slice(2);
-
-    if (hexBody.length === 0) {
-      return EMPTY_HEX;
-    }
-
-    if (hexBody.length % 2 !== 0) {
-      // The EVM works with byte arrays, and each byte is represented by exactly
-      // two hexadecimal characters. Ensure the hex string is byte-aligned by
-      // prefixing a leading zero.
-      return this.#normalizeCallData(`0x0${hexBody}`);
-    }
-
-    return prefixed as Hex;
   }
 }
