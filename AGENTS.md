@@ -133,15 +133,15 @@ See detailed setup documentation:
 
 ### AI Tooling — Developer Usage Collection
 
-Tool/skill usage is automatically recorded to a local CSV log at `~/.tool-usage-collection/metamask-mobile-events.log` across three collection paths: Yarn scripts, Claude Code skills, and Cursor skills. This is developer-only, stored locally, and never sent anywhere.
+Tool and skill usage is recorded locally by [`@metamask/tooling-insight`](https://github.com/MetaMask/tooling-insight#readme). The log file is `~/.tool-usage-collection/<origin-repo>-events.log`, where `<origin-repo>` is the last path segment of `git remote get-url origin` with a trailing `.git` removed. This repository writes `~/.tool-usage-collection/metamask-mobile-events.log`. Collection is developer-only and stays on the machine.
 
-To opt out, set `TOOL_USAGE_COLLECTION_OPT_IN=false` in your shell profile. Collection is also automatically disabled in CI (`CI` env var set).
+To opt out, set `TOOL_USAGE_COLLECTION_OPT_IN=false` in your shell profile. Collection is also skipped when `CI` is set. `TOOL_USAGE_COLLECTION_LOG_PATH` overrides the log file.
 
-| Path              | Mechanism                                                            | Tokens |
-| ----------------- | -------------------------------------------------------------------- | ------ |
-| `yarn <script>`   | Yarn Berry plugin (`wrapScriptExecution`) → CSV log append           | 0      |
-| Claude Code skill | `PreToolUse` hook in `.claude/settings.json` → pure-shell dispatcher | 0      |
-| Cursor skill      | `preToolUse` hook in `.cursor/hooks.json` → pure-shell dispatcher    | 0      |
+| Path              | Mechanism                                                                      | Tokens |
+| ----------------- | ------------------------------------------------------------------------------ | ------ |
+| `yarn <script>`   | Yarn plugin from `@metamask/tooling-insight`                                   | 0      |
+| Claude Code skill | `PreToolUse` hook in `.claude/settings.json` → `tooling-insight-claude`        | 0      |
+| Cursor skill      | `preToolUse` hook in `.cursor/hooks.json` → `tooling-insight-cursor-pre-tool`  | 0      |
 
 Inspect your local activity:
 
@@ -149,7 +149,7 @@ Inspect your local activity:
 tail -20 ~/.tool-usage-collection/metamask-mobile-events.log
 ```
 
-See [`scripts/tooling/README.md`](./scripts/tooling/README.md) for full implementation details.
+See the package README for the host stub, hook commands, and log path.
 
 ## Key Patterns
 
