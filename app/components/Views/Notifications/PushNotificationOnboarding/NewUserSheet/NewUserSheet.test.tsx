@@ -6,23 +6,23 @@ import { NewUserSheetSelectorsIDs } from './NewUserSheet.testIds';
 
 const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const MockReact = jest.requireActual('react');
-    const MockBottomSheet = MockReact.forwardRef(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ({ children }: any, ref: any) => {
-        MockReact.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: mockOnCloseBottomSheet,
-        }));
-        return children;
-      },
-    );
-    MockBottomSheet.displayName = 'MockBottomSheet';
-    return { __esModule: true, default: MockBottomSheet };
-  },
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const MockReact = jest.requireActual('react');
+  const MockBottomSheet = MockReact.forwardRef(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ({ children }: any, ref: any) => {
+      MockReact.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: mockOnCloseBottomSheet,
+      }));
+      return children;
+    },
+  );
+  MockBottomSheet.displayName = 'MockBottomSheet';
+  return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
+    BottomSheet: MockBottomSheet,
+  };
+});
 
 jest.mock('@react-native-masked-view/masked-view', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -82,11 +82,11 @@ describe('NewUserSheet', () => {
   });
 
   it('closes when the close button is pressed', () => {
-    const { getAllByRole } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <NewUserSheet {...defaultProps} />,
     );
 
-    fireEvent.press(getAllByRole('button')[0]);
+    fireEvent.press(getByTestId(NewUserSheetSelectorsIDs.CLOSE_BUTTON));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
   });
