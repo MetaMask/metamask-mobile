@@ -1,6 +1,10 @@
-import { useContext, useMemo } from 'react';
-import { IconName } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../../../util/theme';
+import React, { useContext, useMemo } from 'react';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   ToastContext,
@@ -17,7 +21,6 @@ import type { CardHomeData } from '../../../../../../core/Engine/controllers/car
 export function useCardWalletProvisioning(
   data: CardHomeData | null | undefined,
 ) {
-  const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const walletProvisioning = data?.walletProvisioning ?? null;
 
@@ -52,7 +55,7 @@ export function useCardWalletProvisioning(
     userAddress: userAddressForProvisioning,
     onSuccess: () => {
       toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
+        variant: ToastVariants.Plain,
         labelOptions: [
           {
             label: strings('card.push_provisioning.success_message', {
@@ -60,14 +63,19 @@ export function useCardWalletProvisioning(
             }),
           },
         ],
-        iconName: IconName.Confirmation,
-        iconColor: theme.colors.success.default,
+        startAccessory: (
+          <Icon
+            name={IconName.Confirmation}
+            color={IconColor.SuccessDefault}
+            size={IconSize.Lg}
+          />
+        ),
         hasNoTimeout: false,
       });
     },
     onError: (provisioningError: ProvisioningError) => {
       toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
+        variant: ToastVariants.Plain,
         labelOptions: [
           {
             label:
@@ -75,8 +83,13 @@ export function useCardWalletProvisioning(
               strings('card.push_provisioning.error_unknown'),
           },
         ],
-        iconName: IconName.Danger,
-        iconColor: theme.colors.error.default,
+        startAccessory: (
+          <Icon
+            name={IconName.Danger}
+            color={IconColor.ErrorDefault}
+            size={IconSize.Lg}
+          />
+        ),
         hasNoTimeout: false,
       });
     },

@@ -14,12 +14,6 @@ jest.mock('../../../pushProvisioning', () => ({
   getWalletName: () => 'Apple Wallet',
 }));
 
-jest.mock('../../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: { success: { default: 'green' }, error: { default: 'red' } },
-  }),
-}));
-
 jest.mock('../../../../../../component-library/components/Toast', () => {
   const react = jest.requireActual<typeof import('react')>('react');
   return {
