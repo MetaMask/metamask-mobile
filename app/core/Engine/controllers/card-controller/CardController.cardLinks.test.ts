@@ -134,14 +134,21 @@ function setup({
 
   const baanx = {
     id: 'baanx',
-    capabilities: {},
+    capabilities: { authMethod: 'email_password' },
     submitCredentials: jest.fn(),
     ...provider,
   } as unknown as ICardProvider;
 
   const controller = new CardController({
     messenger,
-    providers: { baanx, immersve: { ...baanx, id: 'immersve' } },
+    providers: {
+      baanx,
+      immersve: {
+        ...baanx,
+        id: 'immersve',
+        capabilities: { authMethod: 'siwe' },
+      } as unknown as ICardProvider,
+    },
     cardService: cardService as unknown as CardService,
     state: { ...defaultCardControllerState, ...state },
     sha256: withSha256 ? testSha256 : undefined,
@@ -716,6 +723,191 @@ describe('CardController card links', () => {
         link({ provider: 'baanx', status: 'closed' }),
         link({ provider: 'immersve', status: 'active' }),
       ]);
+    });
+  });
+
+  describe('findLinkedAccountAddress', () => {
+    it('returns the account whose hash matches the routable link', async () => {
+      const { controller } = setup({
+        state: {
+          cardLinks: [
+            link({
+              provider: 'immersve',
+              linkedAccountRef: refFor(SELECTED_ADDRESS),
+            }),
+          ],
+        },
+      });
+
+      expect(await controller.findLinkedAccountAddress()).toBe(
+        SELECTED_ADDRESS,
+      );
+    });
+
+    it('returns null when no account matches', async () => {
+      const { controller } = setup({
+        state: {
+          cardLinks: [link({ linkedAccountRef: refFor(CARDHOLDER_ADDRESS) })],
+        },
+      });
+
+      expect(await controller.findLinkedAccountAddress()).toBeNull();
+    });
+
+    it('ignores a closed row', async () => {
+      const { controller } = setup({
+        state: {
+          cardLinks: [
+            link({
+              status: 'closed',
+              linkedAccountRef: refFor(SELECTED_ADDRESS),
+            }),
+          ],
+        },
+      });
+
+      expect(await controller.findLinkedAccountAddress()).toBeNull();
+    });
+
+    it('returns null when cardLinkApi is off', async () => {
+      const { controller } = setup({
+        flagEnabled: false,
+        state: {
+          cardLinks: [link({ linkedAccountRef: refFor(SELECTED_ADDRESS) })],
+        },
+      });
+
+      expect(await controller.findLinkedAccountAddress()).toBeNull();
+    });
+  });
+
+  describe('resolveSignIn with a card link', () => {
+    const resolve = (controller: CardController) =>
+      controller.resolveSignIn({
+        country: 'US',
+        candidateAddresses: [SELECTED_ADDRESS],
+        deviceAddresses: [SELECTED_ADDRESS],
+      });
+
+    it('resolves an Immersve link to SIWE for the linked account', async () => {
+      const { controller } = setup({
+        state: {
+          cardLinks: [
+            link({ provider: 'baanx', status: 'closed' }),
+            link({
+              provider: 'immersve',
+              linkedAccountRef: refFor(SELECTED_ADDRESS),
+            }),
+          ],
+        },
+      });
+
+      expect(await resolve(controller)).toStrictEqual({
+        kind: 'wallet',
+        option: { providerId: 'immersve', method: 'siwe' },
+        address: SELECTED_ADDRESS,
+        source: 'card_link',
+      });
+    });
+
+    it('offers only the linked provider when its account is not on this device', async () => {
+      const { controller } = setup({
+        state: {
+          cardLinks: [
+            link({
+              provider: 'immersve',
+              linkedAccountRef: refFor(CARDHOLDER_ADDRESS),
+            }),
+          ],
+        },
+      });
+
+      expect(await resolve(controller)).toStrictEqual({
+        kind: 'unresolved',
+        options: [{ providerId: 'immersve', method: 'siwe' }],
+        reason: 'no_match',
+      });
+    });
+
+    it('resolves a Baanx link to Baanx email login', async () => {
+      const { controller } = setup({
+        state: { cardLinks: [link({ provider: 'baanx' })] },
+      });
+
+      expect(await resolve(controller)).toStrictEqual({
+        kind: 'email',
+        option: { providerId: 'baanx', method: 'email_password' },
+      });
+    });
+
+    it('ignores the link when cardLinkApi is off', async () => {
+      const { controller } = setup({
+        flagEnabled: false,
+        state: {
+          cardLinks: [
+            link({
+              provider: 'immersve',
+              linkedAccountRef: refFor(SELECTED_ADDRESS),
+            }),
+          ],
+        },
+      });
+
+      expect(await resolve(controller)).not.toMatchObject({
+        source: 'card_link',
+      });
+    });
+  });
+
+  describe('Card Link Missed At Login', () => {
+    const loginBaanx = async (state: Partial<CardControllerState>) => {
+      const submitCredentials = jest.fn().mockResolvedValue({
+        done: true,
+        tokenSet: {
+          accessToken: 'at',
+          accessTokenExpiresAt: Date.now() + 60_000,
+          location: 'international',
+        },
+      });
+      const { controller } = setup({ provider: { submitCredentials }, state });
+      jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
+      (controller as unknown as { currentSession: unknown }).currentSession = {
+        id: 's',
+        currentStep: { type: 'email_password' },
+        _metadata: {},
+      };
+      await controller.submitCredentials({
+        type: 'email_password',
+        email: 'e',
+        password: 'p',
+      });
+      await flush();
+    };
+
+    const missedEvents = () =>
+      mockTrackEvent.mock.calls.filter(
+        ([event]) => event.name === 'Card Link Missed At Login',
+      );
+
+    it('tracks a Baanx login when the read returned no links', async () => {
+      await loginBaanx({ cardLinks: [] });
+
+      expect(missedEvents()).toHaveLength(1);
+      expect(missedEvents()[0][0].properties).toStrictEqual({
+        provider: 'baanx',
+      });
+    });
+
+    it('does not track when links were never fetched', async () => {
+      await loginBaanx({ cardLinks: null });
+
+      expect(missedEvents()).toHaveLength(0);
+    });
+
+    it('does not track when the profile already has a link', async () => {
+      await loginBaanx({ cardLinks: [link()] });
+
+      expect(missedEvents()).toHaveLength(0);
     });
   });
 
