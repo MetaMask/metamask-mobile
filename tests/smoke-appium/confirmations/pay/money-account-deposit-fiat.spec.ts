@@ -41,9 +41,7 @@ const MONEY_DEPOSIT_HOLDINGS: TokenHolding[] = [
   { ...PREDEFINED_TOKENS.MONAD.MUSD, amount: '10' },
 ];
 
-// Skipped: temporarily disabled while the Money Account fiat deposit flow is
-// being worked on. Re-enable once the flow is stable.
-appiumTest.describe.skip(
+appiumTest.describe(
   SmokeConfirmations('MM Pay - Money Account deposit fiat'),
   () => {
     appiumTest.describe.configure({ timeout: 250_000 });
