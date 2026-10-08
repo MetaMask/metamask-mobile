@@ -208,7 +208,10 @@ class Browser {
    * field — bulk fill is fast for long URLs; fill('\n') would wipe the URL and
    * tapKeyboardReturnKey('Go') is too slow on iOS CI.
    */
-  private async navigateToUrlViaUrlBarAppium(url: string): Promise<void> {
+  private async navigateToUrlViaUrlBarAppium(
+    url: string,
+    options: { skipUrlEditorDismissal?: boolean } = {},
+  ): Promise<void> {
     await this.focusUrlBarAppium();
 
     await Gestures.replaceText(this.urlBarTextInput, url, {
@@ -221,8 +224,11 @@ class Browser {
       await Gestures.appendText(this.urlBarTextInput, '\n');
     }
 
-    // Dismiss the editor so subsequent reads/taps see the page.
-    await this.dismissUrlEditorIfOpen();
+    // Cancel resets the bar to the current URL when navigation has not
+    // committed yet. Callers that wait for the page first opt out.
+    if (!options.skipUrlEditorDismissal) {
+      await this.dismissUrlEditorIfOpen();
+    }
   }
 
   /**
@@ -238,9 +244,12 @@ class Browser {
     await sleep(settleMs);
   }
 
-  private async typeUrlAppium(url: string): Promise<void> {
+  private async typeUrlAppium(
+    url: string,
+    options: { skipUrlEditorDismissal?: boolean } = {},
+  ): Promise<void> {
     if (this.requiresUrlBarNavigation(url)) {
-      await this.navigateToUrlViaUrlBarAppium(url);
+      await this.navigateToUrlViaUrlBarAppium(url, options);
       return;
     }
     await this.navigateToUrlViaDeeplink(url);
@@ -548,7 +557,7 @@ class Browser {
       await this.closeAllBrowserTabsIfOpen();
     }
 
-    await this.typeUrlAppium(url);
+    await this.typeUrlAppium(url, options);
 
     // After URL-bar navigation, `onSubmitEditing` may leave the URL editor
     // focused so top-bar actions stay hidden. Deeplink navigation does not

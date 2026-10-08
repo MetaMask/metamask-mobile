@@ -52,7 +52,11 @@ class BitcoinTestDapp {
     await navigateToBrowserView();
     await dismissPushNotificationExistingUserSheet();
     await BrowserView.tapUrlInputBox();
-    await BrowserView.navigateToURL(getBitcoinTestDappBaseUrl());
+    // http:// goes through the URL bar. Tapping Cancel before the WebView
+    // commits leaves getContexts empty, so wait for the header first.
+    await BrowserView.navigateToURL(getBitcoinTestDappBaseUrl(), {
+      skipUrlEditorDismissal: true,
+    });
     await this.waitForDappLoaded();
   }
 
@@ -130,9 +134,9 @@ class BitcoinTestDapp {
 
   /**
    * After reload, auto-reconnect may leave the dapp on "Not connected" without
-   * opening the native MetaMask sheet (provider registers after remount). Poll
-   * for Connected; periodically approve the native sheet when present; when
-   * still disconnected, re-drive Connect from the dapp (no extra reload).
+   * opening the native MetaMask sheet. Poll for Connected, approve the native
+   * sheet when it is already visible, and otherwise re-drive Connect after a
+   * provider-ready remount.
    */
   private async waitForReconnect(
     timeoutMs = CONNECT_TIMEOUT_MS,
@@ -146,26 +150,17 @@ class BitcoinTestDapp {
       actual = await this.getConnectionStatus();
       if (actual === 'Connected') return;
 
-      // Auto-reconnect may re-open the MetaMask connect sheet after wallets register.
       if (Date.now() - lastNativeConnectAttemptAt >= 3_000) {
         lastNativeConnectAttemptAt = Date.now();
-        const connectVisible = await Utilities.isElementVisible(
-          DappConnectionModal.connectButton,
-          500,
-        );
-        if (connectVisible) {
-          await DappConnectionModal.tapConnectButton({ timeout: 5_000 });
-          continue;
-        }
+        await this.approveReconnectSheetIfVisible(deadline);
       }
 
-      // Native sheet never appeared — re-open wallet selection from the dapp.
       if (
         actual === 'Not connected' &&
         Date.now() - lastDappConnectAttemptAt >= 5_000
       ) {
         lastDappConnectAttemptAt = Date.now();
-        await this.attemptDappReconnectBestEffort();
+        await this.attemptDappReconnectBestEffort(deadline);
       }
 
       await wait(POLL_MS);
@@ -177,78 +172,95 @@ class BitcoinTestDapp {
   }
 
   /**
-   * Best-effort dapp-side reconnect after page refresh when auto-reconnect
-   * stalls on "Not connected". Waits for wallet-standard registration, then
-   * Connect → wallet option → standard → native approve. Returns without
-   * throwing so {@link waitForReconnect} can keep polling.
+   * Approves the native connect sheet only when it is already on screen.
+   * A missing or stale button returns without throwing so {@link waitForReconnect}
+   * keeps polling until its deadline.
    */
-  private async attemptDappReconnectBestEffort(): Promise<void> {
+  private async approveReconnectSheetIfVisible(
+    deadline: number,
+  ): Promise<void> {
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) return;
+
+    const connectVisible = await Utilities.isElementVisible(
+      DappConnectionModal.connectButton,
+      Math.min(500, remainingMs),
+    );
+    if (!connectVisible) return;
+
+    const tapTimeoutMs = deadline - Date.now();
+    if (tapTimeoutMs <= 0) return;
+
+    try {
+      await DappConnectionModal.tapConnectButton({
+        timeout: Math.min(1_000, tapTimeoutMs),
+      });
+    } catch {
+      // The sheet disappeared between the visibility check and the tap.
+    }
+  }
+
+  /**
+   * Best-effort dapp-side reconnect when auto-reconnect stalls on "Not
+   * connected". Waits for wallet-standard registration, remounts so the dapp's
+   * one-shot mount effect sees that provider, then Connect → wallet option →
+   * standard → native approve. Returns without throwing, and stops at
+   * {@link deadline}, so {@link waitForReconnect} can keep polling.
+   */
+  private async attemptDappReconnectBestEffort(
+    deadline: number,
+  ): Promise<void> {
+    const remainingMs = (): number => deadline - Date.now();
+    if (remainingMs() <= 0) return;
+
     const walletOptionSelector = `button${sel(
       walletSelectionModal.walletOption,
     )}`;
+    const standardSelector = `button${sel(
+      walletSelectionModal.standardButton,
+    )}`;
     const connectSelector = `button${sel(header.connect)}`;
 
-    await this.waitForBitcoinWalletRegistered(5_000);
-
-    const connectVisible = await this.evaluate<boolean>(
-      `Boolean(document.querySelector(${JSON.stringify(connectSelector)}))`,
-    ).catch(() => false);
-    if (!connectVisible) return;
-
-    const clicked = await this.evaluate<boolean>(
-      `(() => {
-        const el = document.querySelector(${JSON.stringify(connectSelector)});
-        if (!el) return false;
-        el.click();
-        return true;
-      })()`,
-    ).catch(() => false);
-    if (!clicked) return;
-
-    const outcome = await this.waitForWalletModalOutcome(
-      walletOptionSelector,
-      8_000,
+    const registered = await this.waitForBitcoinWalletRegistered(
+      Math.min(5_000, remainingMs()),
     );
-    if (outcome !== 'wallet') {
+    if (!registered || remainingMs() <= 0) return;
+
+    try {
+      await this.reloadDapp(remainingMs());
+      if (remainingMs() <= 0) return;
+
+      await this.click(connectSelector, Math.min(5_000, remainingMs()));
+      const outcome = await this.waitForWalletModalOutcome(
+        walletOptionSelector,
+        Math.min(8_000, remainingMs()),
+      );
+      if (outcome !== 'wallet') {
+        await this.closeWalletSelectionModalBestEffort();
+        return;
+      }
+
+      await this.click(walletOptionSelector, Math.min(5_000, remainingMs()));
+      await this.click(standardSelector, Math.min(5_000, remainingMs()));
+    } catch {
       await this.closeWalletSelectionModalBestEffort();
       return;
     }
 
-    const selected = await this.evaluate<boolean>(
-      `(() => {
-        const wallet = document.querySelector(${JSON.stringify(
-          walletOptionSelector,
-        )});
-        if (!(wallet instanceof HTMLElement)) return false;
-        wallet.click();
-        const standard = document.querySelector(${JSON.stringify(
-          `button${sel(walletSelectionModal.standardButton)}`,
-        )});
-        if (!(standard instanceof HTMLElement)) return false;
-        standard.click();
-        return true;
-      })()`,
-    ).catch(() => false);
-    if (!selected) return;
-
-    const nativeConnectVisible = await Utilities.isElementVisible(
-      DappConnectionModal.connectButton,
-      8_000,
-    );
-    if (nativeConnectVisible) {
-      await DappConnectionModal.tapConnectButton({ timeout: 10_000 });
-    }
+    await this.approveReconnectSheetIfVisible(deadline);
   }
 
   /**
    * Reloads the Bitcoin test dapp and waits for the header. Does not approve a
    * reconnect sheet — callers that need that should use {@link reload}.
    */
-  private async reloadDapp(): Promise<void> {
+  private async reloadDapp(
+    timeoutMs = DAPP_LOAD_TIMEOUT_MS,
+  ): Promise<void> {
     // IIFE: iOS evaluateInWebView wraps as `return (${expression})`.
     await this.evaluate('(() => { location.reload(); return true; })()');
     ChromeCdpHelpers.resetMetaMaskWebViewCache();
-    await this.waitForDappLoaded();
+    await this.waitForDappLoaded(timeoutMs);
   }
 
   /**
