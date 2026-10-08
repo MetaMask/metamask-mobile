@@ -240,6 +240,9 @@ const RecurringConfirmOrderSheet = ({
       : strings('bridge.recurring.confirm');
   const { discountBadge, infoText, infoSuffix, baseFeePercentage } =
     useFeeDisclaimer({ activeQuote });
+  const isRewardsTierBadge =
+    discountBadge?.type === DiscountType.VIP ||
+    discountBadge?.type === DiscountType.SUBSCRIPTION;
   const showQuoteSkeletons = isLoading;
   const hasFeeDisclaimer =
     Boolean(infoText) || Boolean(infoSuffix) || Boolean(discountBadge);
@@ -511,11 +514,16 @@ const RecurringConfirmOrderSheet = ({
           twClassName="flex-wrap"
           testID={RecurringConfirmOrderSheetSelectorsIDs.FEE_DISCLAIMER}
         >
-          {discountBadge?.type === DiscountType.VIP ? (
-            <RewardsVipBadge />
-          ) : null}
-          {discountBadge && discountBadge.type !== DiscountType.VIP ? (
-            <RewardsDiscountBadge label={discountBadge.label} />
+          {discountBadge ? (
+            isRewardsTierBadge ? (
+              <RewardsVipBadge
+                hasProEntitlement={
+                  discountBadge.type === DiscountType.SUBSCRIPTION
+                }
+              />
+            ) : (
+              <RewardsDiscountBadge label={discountBadge.label} />
+            )
           ) : null}
           {infoText ? (
             <Text

@@ -50,6 +50,45 @@ export type RewardsMoneyControllerValidateReferralCodeAction = {
   handler: RewardsMoneyController['validateReferralCode'];
 };
 
+/**
+ * Rebate a swaps confirmation screen should show. The bridge quote decides
+ * fee-token eligibility. Not cached: the rate has to disappear the moment
+ * an operator ends the window, and a different quote can name a different
+ * fee token.
+ *
+ * Pass the `quote` of the bridge `QuoteResponse`, not the response. Only
+ * its `feeData.metabridge` is sent.
+ *
+ * A refusal rejects with `RewardsMoneyRebateQuoteError`, a `401` with
+ * `RewardsMoneyAuthorizationError`. A timeout or a network failure rejects
+ * with a plain `Error`.
+ *
+ * @param quote - The bridge quote the confirmation screen holds.
+ * @returns The rebate to show; `eligible: false` means no rebate row.
+ */
+export type RewardsMoneyControllerGetSwapsRebateQuoteAction = {
+  type: `RewardsMoneyController:getSwapsRebateQuote`;
+  handler: RewardsMoneyController['getSwapsRebateQuote'];
+};
+
+/**
+ * Rebate a perps confirmation screen should show. `trade` is optional and
+ * the server drops it today; the answer does not depend on it. A trade the
+ * server would refuse (see {@link PerpsRebateTrade}) is left out rather
+ * than sent, so it cannot turn the quote into a `400`.
+ *
+ * A refusal rejects with `RewardsMoneyRebateQuoteError`, a `401` with
+ * `RewardsMoneyAuthorizationError`. A timeout or a network failure rejects
+ * with a plain `Error`.
+ *
+ * @param trade - What the user is about to trade, when known.
+ * @returns The rebate to show; `eligible: false` means no rebate row.
+ */
+export type RewardsMoneyControllerGetPerpsRebateQuoteAction = {
+  type: `RewardsMoneyController:getPerpsRebateQuote`;
+  handler: RewardsMoneyController['getPerpsRebateQuote'];
+};
+
 export type RewardsMoneyControllerGetEarningsSummaryAction = {
   type: `RewardsMoneyController:getEarningsSummary`;
   handler: RewardsMoneyController['getEarningsSummary'];
@@ -88,6 +127,8 @@ export type RewardsMoneyControllerMethodActions =
   | RewardsMoneyControllerGetReferralFunnelAction
   | RewardsMoneyControllerGetReferralCodesAction
   | RewardsMoneyControllerValidateReferralCodeAction
+  | RewardsMoneyControllerGetSwapsRebateQuoteAction
+  | RewardsMoneyControllerGetPerpsRebateQuoteAction
   | RewardsMoneyControllerGetEarningsSummaryAction
   | RewardsMoneyControllerGetEarningsLedgerAction
   | RewardsMoneyControllerGetClaimHistoryAction
