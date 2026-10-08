@@ -5,7 +5,7 @@ import Engine from '../../../../../core/Engine';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { toAssetId } from '../../../Bridge/hooks/useAssetMetadata/utils';
 
-interface CounterTokenSnapshot {
+interface OutputTokenSnapshot {
   chainId?: Hex;
   token?: {
     address?: string;
@@ -16,24 +16,25 @@ interface CounterTokenSnapshot {
 }
 
 /**
- * Registers the lending counter-token in unified assets state after a
- * first-time deposit/withdrawal, so the asset overview can resolve it
- * immediately. Failures are logged and swallowed — confirmation is never
- * blocked by token registration.
+ * Registers the lending output token (the receipt token received from a
+ * deposit/withdrawal) in unified assets state after a first-time
+ * deposit/withdrawal, so the asset overview can resolve it immediately.
+ * Failures are logged and swallowed — confirmation is never blocked by token
+ * registration.
  */
-export const registerLendingCounterToken = (
+export const registerLendingOutputToken = (
   accountId: string,
-  tokenSnapshot: CounterTokenSnapshot | undefined,
+  tokenSnapshot: OutputTokenSnapshot | undefined,
   contextSymbol: string,
 ): void => {
   try {
-    const counterTokenChainId = tokenSnapshot?.chainId as Hex;
-    const counterTokenAddress = tokenSnapshot?.token?.address || '';
+    const outputTokenChainId = tokenSnapshot?.chainId as Hex;
+    const outputTokenAddress = tokenSnapshot?.token?.address || '';
     // toAssetId embeds the address verbatim, so checksum it first to match
     // the normalized (checksummed) ids AssetsController stores.
     const checksummedAddress =
-      safeToChecksumAddress(counterTokenAddress) ?? counterTokenAddress;
-    const caipChainId = toEvmCaipChainId(counterTokenChainId);
+      safeToChecksumAddress(outputTokenAddress) ?? outputTokenAddress;
+    const caipChainId = toEvmCaipChainId(outputTokenChainId);
     const caipAssetType = toAssetId(checksummedAddress, caipChainId);
 
     if (caipAssetType) {
@@ -42,13 +43,13 @@ export const registerLendingCounterToken = (
         symbol: tokenSnapshot?.token?.symbol || '',
         address: checksummedAddress,
         name: tokenSnapshot?.token?.name || '',
-        chainId: counterTokenChainId,
+        chainId: outputTokenChainId,
       }).catch(console.error);
     }
   } catch (error) {
     console.error(
       error,
-      `error adding counter-token for ${contextSymbol} on confirmation`,
+      `error adding output token for ${contextSymbol} on confirmation`,
     );
   }
 };

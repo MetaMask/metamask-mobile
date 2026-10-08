@@ -34,7 +34,7 @@ import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
 import {
   parseFloatSafe,
   doesTokenRequireAllowanceReset,
-  registerLendingCounterToken,
+  registerLendingOutputToken,
 } from '../../utils';
 import ConfirmationFooter from './components/ConfirmationFooter';
 import DepositInfoSection from './components/DepositInfoSection';
@@ -433,7 +433,7 @@ const EarnLendingDepositConfirmationView = () => {
           endTrace({ name: TraceName.EarnLendingDepositTxConfirmed });
 
           if (!outputToken && selectedAccount?.id) {
-            registerLendingCounterToken(
+            registerLendingOutputToken(
               selectedAccount.id,
               tokenSnapshot,
               earnToken?.symbol || earnToken?.ticker || '',

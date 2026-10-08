@@ -529,7 +529,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     ).toHaveBeenCalledTimes(1);
   });
 
-  it('should handle error adding counter-token on confirmation', async () => {
+  it('should handle error adding output token on confirmation', async () => {
     // Update the mock to return no earnToken
     (useEarnToken as jest.Mock).mockReturnValueOnce({
       earnTokenPair: {

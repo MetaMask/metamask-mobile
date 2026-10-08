@@ -47,7 +47,7 @@ import {
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import useEarnToken from '../../hooks/useEarnToken';
 import { EarnTokenDetails } from '../../types/lending.types';
-import { registerLendingCounterToken } from '../../utils';
+import { registerLendingOutputToken } from '../../utils';
 import { SimulatedAaveV3HealthFactorAfterWithdrawal } from '../../utils/tempLending';
 import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
 import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc20TokenHero';
@@ -343,7 +343,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
         'TransactionController:transactionConfirmed',
         () => {
           if (!earnToken && selectedAccount?.id) {
-            registerLendingCounterToken(
+            registerLendingOutputToken(
               selectedAccount.id,
               tokenSnapshot,
               outputToken?.symbol || outputToken?.ticker || '',
