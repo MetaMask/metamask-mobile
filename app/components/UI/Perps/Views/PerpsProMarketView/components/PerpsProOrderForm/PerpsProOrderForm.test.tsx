@@ -1274,11 +1274,11 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.CHASE_REFERENCE_PRICE)).toBeOnTheScreen();
     });
 
-    it('renders the order type row at the Figma 54px height', () => {
+    it('renders the order type row at 48px', () => {
       renderForm();
 
       expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveStyle({
-        height: 54,
+        height: 48,
       });
     });
 
@@ -1626,6 +1626,27 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
 
       expect(onDirectionChange).toHaveBeenCalledWith('short');
+    });
+
+    it('tints the selected direction and leaves the other one muted', () => {
+      const { rerender } = renderForm({ direction: 'long' });
+      const colourOf = (key: string) =>
+        StyleSheet.flatten(screen.getByText(strings(key)).props.style).color;
+
+      const longSelected = colourOf('perps.market.long');
+      const shortMuted = colourOf('perps.market.short');
+
+      rerender(<PerpsProOrderForm {...createProps({ direction: 'short' })} />);
+      const longMuted = colourOf('perps.market.long');
+      const shortSelected = colourOf('perps.market.short');
+
+      // The Secondary variant appends `text-default` to the label, so a colour
+      // passed the obvious way is silently overridden and both labels render
+      // as plain body text.
+      expect(longSelected).not.toBe(longMuted);
+      expect(shortSelected).not.toBe(shortMuted);
+      expect(longSelected).not.toBe(shortSelected);
+      expect(longMuted).toBe(shortMuted);
     });
   });
 

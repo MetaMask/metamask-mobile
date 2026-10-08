@@ -2,11 +2,10 @@ import {
   BannerAlert,
   BannerAlertSeverity,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
   HeaderStandardAnimated,
+  IconColor,
   IconName,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -72,10 +71,16 @@ import {
   useSocialShellFilters,
 } from '../shell/filters';
 import LiveTradesView from '../LiveTradesView';
-import { SocialEntryOptionsProvider } from '../components/SocialEntryOptionsBottomSheet';
+import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
+import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import Routes from '../../../../constants/navigation/Routes';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
+import {
+  QuickBuy,
+  TOP_TRADERS_QUICK_BUY_FEATURES,
+  type QuickBuyTarget,
+} from '../../../UI/QuickBuy';
 
 const LANDING_INDEX = 0;
 
@@ -136,7 +141,10 @@ const getTabAnalyticsValue = (tab: SocialShellTab) => {
 const SocialV1View: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteProp<RootStackParamList, 'SocialV1View'>>();
+  const route =
+    useRoute<
+      RouteProp<RootStackParamList, 'SocialV1View' | 'SocialLeaderboardTab'>
+    >();
   const { profile: myProfile } = useMyProfile();
   const { track } = useSocialLeaderboardAnalytics();
   const pagerRef = useRef<PagerView>(null);
@@ -349,7 +357,12 @@ const SocialV1View: React.FC = () => {
   }, [navigation]);
 
   const handleOpenComposer = useCallback(() => {
+    playSelection().catch(() => undefined);
     navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
+  }, [navigation]);
+
+  const handleOpenRewards = useCallback(() => {
+    navigation.navigate(Routes.REWARDS_VIEW);
   }, [navigation]);
 
   // One-shot nudge shown when onboarding reports the user tapped "Allow
@@ -358,6 +371,15 @@ const SocialV1View: React.FC = () => {
   const [showNotificationsBanner, setShowNotificationsBanner] = useState(
     Boolean(route.params?.showNotificationsBanner),
   );
+
+  // The spot QuickBuy sheet is hosted here, outside the PagerView, because the
+  // design-system BottomSheet is a plain `absolute inset-0` view with no portal:
+  // inside a pager page it would be clipped by the collapsing header block and
+  // painted over by the page's own scroll content.
+  const [quickBuyTarget, setQuickBuyTarget] = useState<QuickBuyTarget | null>(
+    null,
+  );
+  const closeQuickBuy = useCallback(() => setQuickBuyTarget(null), []);
 
   useEffect(() => {
     if (!showNotificationsBanner) {
@@ -489,26 +511,35 @@ const SocialV1View: React.FC = () => {
                 'social_leaderboard.my_profile.open_profile',
               )}
             >
-              <ProfileAvatar
-                imageUrl={myProfile?.imageUrl}
-                avatarPresetId={myProfile?.avatarPresetId}
-                size="sm"
-              />
+              <SocialHeaderGlassSurface twClassName="w-10 justify-center">
+                <ProfileAvatar
+                  imageUrl={myProfile?.imageUrl}
+                  avatarPresetId={myProfile?.avatarPresetId}
+                  size="sm"
+                />
+              </SocialHeaderGlassSurface>
             </Pressable>
           }
           endAccessory={
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={1}
-            >
+            <SocialHeaderGlassSurface twClassName="gap-1 px-1">
               <ButtonIcon
-                iconName={IconName.Add}
+                iconName={IconName.Gift}
+                iconProps={{ color: IconColor.IconDefault }}
+                size={ButtonIconSize.Md}
+                onPress={handleOpenRewards}
+                accessibilityLabel={strings(
+                  'wallet.rewards_accessibility_label',
+                )}
+                testID={SocialV1ViewSelectorsIDs.REWARDS_BUTTON}
+              />
+              <ButtonIcon
+                iconName={IconName.Edit}
+                iconProps={{ color: IconColor.IconDefault }}
                 size={ButtonIconSize.Md}
                 onPress={handleOpenComposer}
                 testID={SocialV1ViewSelectorsIDs.PLUS_BUTTON}
               />
-            </Box>
+            </SocialHeaderGlassSurface>
           }
           testID={SocialV1ViewSelectorsIDs.HEADER}
         />
@@ -591,6 +622,7 @@ const SocialV1View: React.FC = () => {
                         pageRef={pageRef}
                         onOpenFilters={handleOpenLiveTradesFilters}
                         isFilterActive={hasActiveFilters('liveTrades')}
+                        appliedFilters={applied.liveTrades}
                       />
                     ) : (
                       <EmptyShellTabPage
@@ -610,6 +642,7 @@ const SocialV1View: React.FC = () => {
                             : undefined
                         }
                         isFilterActive={hasActiveFilters('following')}
+                        onQuickBuy={setQuickBuyTarget}
                       />
                     )}
                   </View>
@@ -629,6 +662,15 @@ const SocialV1View: React.FC = () => {
             onClose={closeSheet}
           />
         ) : null}
+
+        <QuickBuy.Root
+          isVisible={quickBuyTarget !== null}
+          target={quickBuyTarget}
+          onClose={closeQuickBuy}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          initialTradeMode="buy"
+          analyticsContext={{ source: 'trader_feed' }}
+        />
       </SafeAreaView>
     </SocialEntryOptionsProvider>
   );

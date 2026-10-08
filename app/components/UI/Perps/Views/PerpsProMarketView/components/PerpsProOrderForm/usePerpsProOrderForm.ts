@@ -85,6 +85,7 @@ import {
   usePerpsChaseOrders,
 } from '../../../../hooks/usePerpsChaseOrders';
 import { usePerpsOICap } from '../../../../hooks/usePerpsOICap';
+import { usePerpsScreenVsBottomSheetAbTest } from '../../../../hooks/usePerpsScreenVsBottomSheetAbTest';
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
 import {
@@ -599,6 +600,11 @@ export const usePerpsProOrderForm = ({
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const source = route.params?.source;
   const sourceSection = route.params?.source_section;
+  const stayOnCurrentScreen = Boolean(
+    route.params &&
+      'stayOnCurrentScreen' in route.params &&
+      route.params.stayOnCurrentScreen,
+  );
 
   const isAdvancedChartEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
@@ -613,6 +619,11 @@ export const usePerpsProOrderForm = ({
   const { playImpact } = useHaptics();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { updatePositionTPSL } = usePerpsTrading();
+  // Tracks exposure. The positions panel on this same screen reads the
+  // experiment too, but `useABTest` emits once per session per assignment, so
+  // this cannot double-count — and silencing it here would drop exposure
+  // entirely whenever that panel is absent.
+  const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
   const {
     orderForm,
@@ -1927,6 +1938,12 @@ export const usePerpsProOrderForm = ({
               orderForm.asset,
             );
       showToast(toast);
+      // Lighter copy trade has no sheet. The balance-order screen was opened
+      // over the feed; after the order is in, return there instead of leaving
+      // the trader on the order form.
+      if (stayOnCurrentScreen) {
+        navigation.goBack();
+      }
     },
     onError: (error) => {
       if (
@@ -2821,6 +2838,7 @@ export const usePerpsProOrderForm = ({
       amount: effectiveUsdAmount,
       szDecimals,
       enableHaptics: true,
+      ...(useBottomSheet ? { useBottomSheet: true } : {}),
       onConfirm: async (
         _position?: Position,
         takeProfitPrice?: string,
@@ -2848,6 +2866,7 @@ export const usePerpsProOrderForm = ({
     setTakeProfitPrice,
     setStopLossPrice,
     szDecimals,
+    useBottomSheet,
   ]);
 
   const onLeverageConfirm = useCallback(
@@ -3609,13 +3628,20 @@ export const usePerpsProOrderForm = ({
         : undefined;
     }
 
-    // Only a field the user has finished editing may speak, so a half-typed
-    // price is not judged mid-keystroke.
-    const visibleIssues = orderValidation.fieldIssues.filter((fieldIssue) =>
-      fieldIssue.field === 'triggerPrice'
+    // A 95% band miss already disables Place. Show it without waiting for
+    // blur so the CTA is not dead with no copy. Other issues still wait so
+    // a half-typed or empty price is not judged mid-keystroke.
+    const visibleIssues = orderValidation.fieldIssues.filter((fieldIssue) => {
+      if (
+        fieldIssue.field === 'limitPrice' &&
+        fieldIssue.issue.code === 'too_far'
+      ) {
+        return true;
+      }
+      return fieldIssue.field === 'triggerPrice'
         ? hasBlurredTriggerPrice
-        : hasBlurredLimitPrice,
-    );
+        : hasBlurredLimitPrice;
+    });
     // A blocking issue explains why the order cannot be placed, so it outranks
     // advice about a price that would place fine. Ordering by field instead
     // would let a trigger warning hide the empty limit price holding the CTA

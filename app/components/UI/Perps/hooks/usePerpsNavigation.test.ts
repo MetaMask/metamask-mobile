@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import { AnimationDuration } from '@metamask/design-tokens';
 import { useSelector } from 'react-redux';
 import {
   PerpsMode,
@@ -24,6 +25,9 @@ import {
   failPerpsTradeSheetInteractiveTrace,
   startPerpsTradeSheetInteractiveTrace,
 } from '../utils/perpsTradeSheetInteractiveTrace';
+import { claimPrewarmedDepositOrder } from '../utils/prewarmedDepositOrder';
+import { trackStashedPrewarmTransactionAdded } from '../utils/unclaimedPrewarmTransactionMetrics';
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -41,6 +45,7 @@ const mockTrack = jest.fn();
 const mockWithPendingTransactionActiveAbTests = jest.fn(
   (_tests: unknown, fn: () => Promise<unknown>) => fn(),
 );
+const mockRegisterTransactionAbTestAttributionForIds = jest.fn();
 
 jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: jest.fn(),
@@ -71,8 +76,21 @@ jest.mock(
       tests: unknown,
       fn: () => Promise<unknown>,
     ) => mockWithPendingTransactionActiveAbTests(tests, fn),
+    registerTransactionAbTestAttributionForIds: (
+      ids: string[],
+      tests: unknown,
+    ) => mockRegisterTransactionAbTestAttributionForIds(ids, tests),
   }),
 );
+
+jest.mock('../utils/prewarmedDepositOrder', () => ({
+  ...jest.requireActual('../utils/prewarmedDepositOrder'),
+  claimPrewarmedDepositOrder: jest.fn(),
+}));
+
+jest.mock('../utils/unclaimedPrewarmTransactionMetrics', () => ({
+  trackStashedPrewarmTransactionAdded: jest.fn(),
+}));
 
 describe('usePerpsNavigation', () => {
   const mockNavigate = jest.fn();
@@ -82,6 +100,10 @@ describe('usePerpsNavigation', () => {
   const mockDispatch = jest.fn();
   const mockGetState = jest.fn();
   let mockActiveProvider: PerpsActiveProviderMode | undefined;
+  let mockSelectedAccountAddress: string | undefined;
+  const mockClaimPrewarmedDepositOrder = jest.mocked(
+    claimPrewarmedDepositOrder,
+  );
   const mockUseNavigation = useNavigation as jest.MockedFunction<
     typeof useNavigation
   >;
@@ -102,6 +124,8 @@ describe('usePerpsNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockActiveProvider = undefined;
+    mockSelectedAccountAddress = '0xabc';
+    mockClaimPrewarmedDepositOrder.mockReturnValue(undefined);
     mockCanGoBack.mockReturnValue(true);
     // Default to Pro mode inactive, matching the existing navigateToHome
     // assertions below which expect the Perps Home screen target.
@@ -109,6 +133,8 @@ describe('usePerpsNavigation', () => {
       if (selector === selectPerpsProModeEnabledFlag) return false;
       if (selector === selectPerpsMode) return PerpsMode.Lite;
       if (selector === selectPerpsProvider) return mockActiveProvider;
+      if (selector === selectPerpsSelectedAccountAddress)
+        return mockSelectedAccountAddress;
       return undefined;
     });
     mockDepositWithOrder.mockResolvedValue({ result: Promise.resolve('') });
@@ -274,6 +300,28 @@ describe('usePerpsNavigation', () => {
       });
     });
 
+    it('navigates to market details with source_section', () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+      const mockMarket = { symbol: 'DOGE' } as Partial<
+        Parameters<typeof result.current.navigateToMarketDetails>[0]
+      >;
+
+      result.current.navigateToMarketDetails(
+        mockMarket as Parameters<
+          typeof result.current.navigateToMarketDetails
+        >[0],
+        'perps_home',
+        undefined,
+        'recently_added',
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_DETAILS, {
+        market: mockMarket,
+        source: 'perps_home',
+        source_section: 'recently_added',
+      });
+    });
+
     it('navigates to perps home without source', () => {
       const { result } = renderHook(() => usePerpsNavigation());
 
@@ -390,6 +438,7 @@ describe('usePerpsNavigation', () => {
         StackActions.push(Routes.PERPS.MARKET_LIST, {
           ...params,
           animation: 'slide_from_bottom',
+          animationDuration: AnimationDuration.Promptly,
           replaceOnSelect: true,
         }),
       );
@@ -413,6 +462,117 @@ describe('usePerpsNavigation', () => {
           },
         );
       });
+    });
+
+    it('reuses a prewarmed transaction instead of creating one', async () => {
+      mockClaimPrewarmedDepositOrder.mockReturnValue(
+        Promise.resolve('prewarmed-tx'),
+      );
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = { direction: 'long' as const, asset: 'BTC' };
+
+      result.current.navigateToOrder(params);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          {
+            ...params,
+            showPerpsHeader:
+              CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+          },
+        );
+      });
+      expect(mockDepositWithOrder).not.toHaveBeenCalled();
+      expect(trackStashedPrewarmTransactionAdded).toHaveBeenCalledWith(
+        'prewarmed-tx',
+      );
+    });
+
+    it('binds AB test attribution to the prewarmed transaction', async () => {
+      mockClaimPrewarmedDepositOrder.mockReturnValue(
+        Promise.resolve('prewarmed-tx'),
+      );
+      const transactionActiveAbTests = [{ key: 'test', value: 'treatment' }];
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToOrder({
+        direction: 'long',
+        asset: 'BTC',
+        transactionActiveAbTests,
+      });
+
+      await waitFor(() => {
+        expect(
+          mockRegisterTransactionAbTestAttributionForIds,
+        ).toHaveBeenCalledWith(['prewarmed-tx'], transactionActiveAbTests);
+      });
+      expect(trackStashedPrewarmTransactionAdded).toHaveBeenCalledWith(
+        'prewarmed-tx',
+      );
+      expect(
+        mockRegisterTransactionAbTestAttributionForIds.mock
+          .invocationCallOrder[0],
+      ).toBeLessThan(
+        jest.mocked(trackStashedPrewarmTransactionAdded).mock
+          .invocationCallOrder[0],
+      );
+    });
+
+    it('claims for the order provider so a pending switch never reuses a prewarm', () => {
+      // Active Lighter with an explicit Hyperliquid order is the case that has
+      // to switch provider before depositing.
+      mockActiveProvider = 'lighter';
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToOrder({
+        direction: 'long',
+        asset: 'BTC',
+        providerId: 'hyperliquid',
+      });
+
+      expect(mockClaimPrewarmedDepositOrder).toHaveBeenCalledWith({
+        accountAddress: '0xabc',
+        providerId: 'hyperliquid',
+      });
+    });
+
+    it('creates the transaction when claiming a prewarm fails', async () => {
+      mockClaimPrewarmedDepositOrder.mockReturnValue(
+        Promise.reject(new Error('prewarm gone')),
+      );
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToOrder({ direction: 'long', asset: 'BTC' });
+
+      await waitFor(() => {
+        expect(mockDepositWithOrder).toHaveBeenCalledTimes(1);
+      });
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalled();
+      });
+    });
+
+    it('creates the transaction when no prewarm is available', async () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToOrder({ direction: 'long', asset: 'BTC' });
+
+      await waitFor(() => {
+        expect(mockDepositWithOrder).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('creates the transaction when no account address is available', async () => {
+      mockSelectedAccountAddress = undefined;
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToOrder({ direction: 'long', asset: 'BTC' });
+
+      await waitFor(() => {
+        expect(mockDepositWithOrder).toHaveBeenCalledTimes(1);
+      });
+      expect(mockClaimPrewarmedDepositOrder).not.toHaveBeenCalled();
     });
 
     it('switches to Lighter before routing an explicit order while aggregated', async () => {
@@ -619,6 +779,7 @@ describe('usePerpsNavigation', () => {
           {
             ...params,
             useBottomSheet: true,
+            forceBottomSheet: true,
             showPerpsHeader: false,
           },
         );

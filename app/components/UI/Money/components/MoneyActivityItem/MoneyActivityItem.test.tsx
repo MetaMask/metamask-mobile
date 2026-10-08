@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
+import MONEY_ACTIVITY_TRANSACTIONS from '../../__fixtures__/moneyActivityTransactions';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import {
   type MoneyTransactionDisplayInfo,
@@ -20,9 +20,9 @@ const mockUseMoneyTransactionDisplayInfo = jest.mocked(
   useMoneyTransactionDisplayInfo,
 );
 const mockGetNetworkImageSource = jest.mocked(getNetworkImageSource);
-const transaction = MOCK_MONEY_TRANSACTIONS[6];
-const pendingTransaction = MOCK_MONEY_TRANSACTIONS[0];
-const failedTransaction = MOCK_MONEY_TRANSACTIONS[3];
+const transaction = MONEY_ACTIVITY_TRANSACTIONS[6];
+const pendingTransaction = MONEY_ACTIVITY_TRANSACTIONS[0];
+const failedTransaction = MONEY_ACTIVITY_TRANSACTIONS[3];
 const moneyAddress = '0x0000000000000000000000000000000000000001';
 
 const mockDisplayInfo = (

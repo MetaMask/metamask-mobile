@@ -48,6 +48,8 @@ import {
 } from '../../../components/Views/confirmations/constants/confirmations';
 import { getPostQuoteTransactionType } from '../../../components/Views/confirmations/utils/transaction';
 
+const STX_GET_FEES_ERROR_METRIC_NAME = 'stx_get_fees_error';
+
 const TRANSACTION_SUBMISSION_METHOD_METRIC_NAME =
   'transaction_submission_method';
 
@@ -171,6 +173,7 @@ function publishHook({
       }).getHook();
 
       const result = await hook(transactionMeta, signedTransactionInHex);
+
       if (result?.transactionHash) {
         try {
           store.dispatch(
@@ -206,6 +209,26 @@ function publishHook({
         transactionController: getTransactionController(),
         transactionMeta,
       });
+
+      if (result?.getFeesError) {
+        try {
+          store.dispatch(
+            updateConfirmationMetric({
+              id: transactionMeta.id,
+              params: {
+                properties: {
+                  [STX_GET_FEES_ERROR_METRIC_NAME]: result.getFeesError,
+                },
+              },
+            }),
+          );
+        } catch (e) {
+          console.error(
+            'Failed to record stx_get_fees_error metrics fragment',
+            e,
+          );
+        }
+      }
 
       if (result?.transactionHash) {
         try {

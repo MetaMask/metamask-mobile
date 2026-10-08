@@ -26,6 +26,12 @@ export interface PersistedLocalMoneyFlow {
   address: string;
   /** Epoch milliseconds when that transaction was confirmed locally. */
   confirmedAt: number;
+  /**
+   * Confirmed receipt block. While the post-confirm fresh window is open,
+   * Money balance UI queries include this as `minBlock` so API reads must
+   * reach that block (or fall back to RPC).
+   */
+  minBlock?: number;
 }
 
 export interface MoneyBalanceSliceState {
