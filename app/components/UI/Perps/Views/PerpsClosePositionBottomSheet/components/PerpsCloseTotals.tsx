@@ -44,7 +44,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
 
     <KeyValueRow
       variant={KeyValueRowVariant.Summary}
-      twClassName="mt-2"
+      twClassName="mt-0.5"
       keyLabel={strings('perps.close_position.included_pnl')}
       value={`${pnl < 0 ? '-' : '+'}${formatSummaryFiat(
         Math.abs(pnl),
