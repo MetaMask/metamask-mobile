@@ -12,16 +12,50 @@ import { VbaOnboardingRoutes } from '../routes';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
+const callerRoute = { key: 'home-1', name: 'Home' };
+const mainNavigatorState = () => ({
+  index: 0,
+  routeNames: ['Home', 'RampVbaOnboarding'],
+  routes: [callerRoute],
+});
 const navigation = {
   navigate: mockNavigate,
   dispatch: mockDispatch,
+  getState: mainNavigatorState,
 } as unknown as AppNavigationProp;
+
+const expectResetTo = (screenRoute: { name: string; params?: unknown }) => {
+  expect(mockDispatch).toHaveBeenCalledWith(
+    expect.objectContaining({
+      type: 'RESET',
+      payload: expect.objectContaining({
+        index: 1,
+        routes: [
+          callerRoute,
+          {
+            name: Routes.RAMP.VBA_ONBOARDING,
+            state: {
+              index: 0,
+              routes: [screenRoute],
+            },
+          },
+        ],
+      }),
+    }),
+  );
+  expect(mockNavigate).not.toHaveBeenCalled();
+};
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     dispatch: mockDispatch,
+    getState: () => ({
+      index: 0,
+      routeNames: ['Home', 'RampVbaOnboarding'],
+      routes: [{ key: 'home-1', name: 'Home' }],
+    }),
   }),
 }));
 
@@ -88,12 +122,7 @@ describe('useOpenVbaOnboarding', () => {
     await result.current();
 
     expect(mockHydrate).toHaveBeenCalledWith({ walletAddress: '0xabc' });
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      state: {
-        index: 0,
-        routes: [{ name: VbaOnboardingRoutes.VENDOR_TERMS }],
-      },
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.VENDOR_TERMS });
   });
 
   it('opens at email when vendor terms are accepted locally', async () => {
@@ -103,12 +132,7 @@ describe('useOpenVbaOnboarding', () => {
     await result.current();
 
     expect(mockHasAcceptedVbaVendorTerms).toHaveBeenCalledWith('0xabc');
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      state: {
-        index: 0,
-        routes: [{ name: VbaOnboardingRoutes.EMAIL }],
-      },
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.EMAIL });
   });
 
   it('navigates to the VBA details screen when the autoramp is ready', async () => {
@@ -125,12 +149,7 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      state: {
-        index: 0,
-        routes: [{ name: VbaOnboardingRoutes.DETAILS }],
-      },
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.DETAILS });
   });
 
   it('opens identity verification when a session exists without recorded vendor disclaimers', async () => {
@@ -150,21 +169,14 @@ describe('useOpenVbaOnboarding', () => {
     expect(mockRecordVendorDisclaimers).toHaveBeenCalledWith({
       disclaimerIds: ['privacy', 'terms'],
     });
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      state: {
-        index: 0,
-        routes: [
-          {
-            name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
-            params: {
-              snapshot: {
-                ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
-                sessionExists: true,
-                vendorTermsAcceptedLocally: true,
-              },
-            },
-          },
-        ],
+    expectResetTo({
+      name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+      params: {
+        snapshot: {
+          ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+          sessionExists: true,
+          vendorTermsAcceptedLocally: true,
+        },
       },
     });
   });
@@ -181,23 +193,16 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      state: {
-        index: 0,
-        routes: [
-          {
-            name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
-            params: {
-              snapshot: {
-                ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
-                sessionExists: true,
-                vendorDisclaimersComplete: true,
-                vendorTermsAcceptedLocally: true,
-                kycStatus: 'pending',
-              },
-            },
-          },
-        ],
+    expectResetTo({
+      name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+      params: {
+        snapshot: {
+          ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          vendorTermsAcceptedLocally: true,
+          kycStatus: 'pending',
+        },
       },
     });
   });
@@ -216,12 +221,7 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      state: {
-        index: 0,
-        routes: [{ name: VbaOnboardingRoutes.KYC_PENDING }],
-      },
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.KYC_PENDING });
   });
 
   it('opens the KYC failure page when verification is rejected', async () => {
@@ -234,12 +234,7 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      state: {
-        index: 0,
-        routes: [{ name: VbaOnboardingRoutes.KYC_REJECTED }],
-      },
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.KYC_REJECTED });
   });
 
   it('opens identity verification when retrying a still-rejected KYC session', async () => {
@@ -282,12 +277,7 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      state: {
-        index: 0,
-        routes: [{ name: VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR }],
-      },
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR });
   });
 
   it('opens the error screen when hydrate throws', async () => {
@@ -297,12 +287,7 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      state: {
-        index: 0,
-        routes: [{ name: VbaOnboardingRoutes.ERROR }],
-      },
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.ERROR });
   });
 
   it('opens the error screen when no wallet address is selected', async () => {
@@ -313,12 +298,7 @@ describe('useOpenVbaOnboarding', () => {
     await result.current();
 
     expect(mockHydrate).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      state: {
-        index: 0,
-        routes: [{ name: VbaOnboardingRoutes.ERROR }],
-      },
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.ERROR });
   });
 
   it('logs failures with the default source when none is supplied', async () => {
@@ -380,12 +360,7 @@ describe('useOpenVbaOnboarding', () => {
   it('navigates to a provided VBA destination', () => {
     navigateToVbaOnboardingDestination(navigation, 'vendorTerms');
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      state: {
-        index: 0,
-        routes: [{ name: VbaOnboardingRoutes.VENDOR_TERMS }],
-      },
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.VENDOR_TERMS });
   });
 
   it('passes the hydrated snapshot only to the identity module', () => {
@@ -401,16 +376,9 @@ describe('useOpenVbaOnboarding', () => {
       snapshot,
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      state: {
-        index: 0,
-        routes: [
-          {
-            name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
-            params: { snapshot },
-          },
-        ],
-      },
+    expectResetTo({
+      name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+      params: { snapshot },
     });
   });
 
