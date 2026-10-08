@@ -4,8 +4,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  ButtonBase,
-  ButtonBaseSize,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -132,7 +130,7 @@ const HomepageBalanceBreakdownRow = ({
   ]
     .filter(Boolean)
     .join(', ');
-  const titleContent = (
+  const title = (
     <Box
       alignItems={BoxAlignItems.Center}
       flexDirection={BoxFlexDirection.Row}
@@ -197,25 +195,9 @@ const HomepageBalanceBreakdownRow = ({
       ) : null}
     </Box>
   );
-  const title = showMoneyBuyButton ? (
-    <ButtonBase
-      accessibilityLabel={rowAccessibilityLabel}
-      onPress={onPress}
-      size={ButtonBaseSize.Sm}
-      testID={HomepageBalanceBreakdownTestIds.MONEY_ROW_ACTION}
-      twClassName="min-w-0 flex-1 self-stretch justify-start rounded-none bg-transparent px-0"
-    >
-      {titleContent}
-    </ButtonBase>
-  ) : (
-    titleContent
-  );
 
   const value = showMoneyBuyButton ? (
-    <HomepageBalanceBreakdownMoneyBuyButton
-      accessibilityLabel={accessibilityLabel}
-      label={moneyBuyLabel}
-    />
+    <Box twClassName="h-7 w-16" />
   ) : (
     <Skeleton
       hideChildren={isLoading}
@@ -238,22 +220,33 @@ const HomepageBalanceBreakdownRow = ({
     </Skeleton>
   );
 
-  return (
+  const listItem = (
     <ListItem
-      {...(showMoneyBuyButton
-        ? { accessible: false, isInteractive: false as const }
-        : {
-            accessible: true,
-            accessibilityLabel,
-            isInteractive: true as const,
-            onPress,
-          })}
+      accessibilityLabel={
+        showMoneyBuyButton ? rowAccessibilityLabel : accessibilityLabel
+      }
+      isInteractive
+      onPress={onPress}
       testID={HomepageBalanceBreakdownTestIds.ROW(slice.key)}
       title={title}
       twClassName="min-h-10 py-0"
       value={value}
       variant={ListItemVariant.OneLine}
     />
+  );
+
+  return showMoneyBuyButton ? (
+    <Box twClassName="relative">
+      {listItem}
+      <Box twClassName="absolute inset-y-0 right-4 justify-center">
+        <HomepageBalanceBreakdownMoneyBuyButton
+          accessibilityLabel={accessibilityLabel}
+          label={moneyBuyLabel}
+        />
+      </Box>
+    </Box>
+  ) : (
+    listItem
   );
 };
 

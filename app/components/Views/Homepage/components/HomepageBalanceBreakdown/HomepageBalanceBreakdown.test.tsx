@@ -237,17 +237,9 @@ describe('HomepageBalanceBreakdown', () => {
       '4.1% APY',
     );
     expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.MONEY_ROW_ACTION).props
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
         .accessibilityLabel,
     ).toBe('Money, 20%, 4.1% APY');
-    expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
-        .accessible,
-    ).toBe(false);
-    expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.MONEY_ROW_ACTION).props
-        .accessible,
-    ).toBe(true);
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY).props.accessible,
     ).toBe(true);
@@ -442,7 +434,7 @@ describe('HomepageBalanceBreakdown', () => {
       height: 28,
     });
     expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.MONEY_ROW_ACTION).props
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
         .accessibilityLabel,
     ).toBe('Money, 0%');
   });
@@ -557,9 +549,7 @@ describe('HomepageBalanceBreakdown', () => {
       />,
     );
 
-    fireEvent.press(
-      getByTestId(HomepageBalanceBreakdownTestIds.MONEY_ROW_ACTION),
-    );
+    fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')));
     fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')));
     fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.ROW('perps')));
     fireEvent.press(
@@ -658,9 +648,7 @@ describe('HomepageBalanceBreakdown', () => {
     mockIsMoneyAccountGeoEligible = false;
     const { getByTestId } = render(<HomepageBalanceBreakdown />);
 
-    fireEvent.press(
-      getByTestId(HomepageBalanceBreakdownTestIds.MONEY_ROW_ACTION),
-    );
+    fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
@@ -708,7 +696,7 @@ describe('HomepageBalanceBreakdown', () => {
         .accessibilityLabel,
     ).toBe('Tokens');
     expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.MONEY_ROW_ACTION).props
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
         .accessibilityLabel,
     ).toBe('Money');
   });
