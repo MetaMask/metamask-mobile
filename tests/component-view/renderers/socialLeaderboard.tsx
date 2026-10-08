@@ -22,7 +22,17 @@ import {
   type SocialLeaderboardPresetOptions,
 } from '../presets/socialLeaderboard';
 import SocialProfileOnboardingView from '../../../app/components/Views/SocialLeaderboard/ProfileOnboarding';
+import SocialV1View from '../../../app/components/Views/SocialLeaderboard/SocialV1View';
+import { AccessRestrictedProvider } from '../../../app/components/UI/Compliance';
 import { createStateFixture } from '../stateFixture';
+
+function SocialV1ViewWithCompliance() {
+  return (
+    <AccessRestrictedProvider>
+      <SocialV1View />
+    </AccessRestrictedProvider>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Shared types
@@ -151,6 +161,27 @@ export function renderSocialProfileOnboarding(
 // ---------------------------------------------------------------------------
 // Settings TopTradersSection – privacy opt-in/out toggle
 // ---------------------------------------------------------------------------
+
+/**
+ * Renders Social V1 with extra routes so copy-trade navigation can be
+ * asserted. Wraps the access-restricted modal the compliance gate shows.
+ */
+export function renderSocialV1ViewWithRoutes(
+  extraRoutes: { name: string; Component?: React.ComponentType<object> }[],
+  options: RenderSocialLeaderboardOptions = {},
+) {
+  const { presetOptions, overrides } = options;
+  const builder = initialStateSocialLeaderboard(presetOptions);
+  if (overrides) builder.withOverrides(overrides);
+  const state = builder.build();
+
+  return renderScreenWithRoutes(
+    SocialV1ViewWithCompliance as unknown as React.ComponentType,
+    { name: Routes.SOCIAL.V1 },
+    extraRoutes,
+    { state },
+  );
+}
 
 /**
  * Renders the Security & Privacy `TopTradersSection` toggle in isolation.

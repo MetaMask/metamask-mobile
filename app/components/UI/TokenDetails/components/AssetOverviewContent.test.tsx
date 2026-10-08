@@ -15,7 +15,6 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { strings } from '../../../../../locales/i18n';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 // eslint-disable-next-line import-x/no-namespace
@@ -23,7 +22,16 @@ import * as TokenDetailsActionsModule from './TokenDetailsActions';
 import { MOCK_RECURRING_OPEN_ORDER } from '../../Bridge/api/recurringOrders.mock';
 import { RecurringOrderDetailsViewSelectorsIDs } from '../../Bridge/Views/RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
 import { BridgeTabKey } from '../../Bridge/Views/BridgeView/BridgeView.constants';
-import { BridgeViewMode } from '../../Bridge/types';
+import { SwapBridgeNavigationLocation } from '../../Bridge/hooks/useSwapBridgeNavigation';
+
+const mockGoToSwaps = jest.fn();
+const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
+  goToSwaps: mockGoToSwaps,
+}));
+jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
+  ...jest.requireActual('../../Bridge/hooks/useSwapBridgeNavigation'),
+  useSwapBridgeNavigation: (args: unknown) => mockUseSwapBridgeNavigation(args),
+}));
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -683,16 +691,18 @@ describe('AssetOverviewContent', () => {
       fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.ORDERS_HEADER));
 
       expect(onExitAction).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
-        screen: Routes.BRIDGE.BRIDGE_VIEW,
-        params: expect.objectContaining({
-          sourcePage: 'TokenDetails',
-          bridgeViewMode: BridgeViewMode.Unified,
-          location: MetaMetricsSwapsEventSource.TokenView,
-          initialTab: BridgeTabKey.Recurring,
-          swapViewTraceId: expect.any(String),
-        }),
+      expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+        sourcePage: 'TokenDetails',
+        location: SwapBridgeNavigationLocation.TokenView,
       });
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        undefined,
+        undefined,
+        undefined,
+        true,
+        undefined,
+        BridgeTabKey.Recurring,
+      );
     });
 
     it('exits the current action and opens recurring order details on row press', () => {
