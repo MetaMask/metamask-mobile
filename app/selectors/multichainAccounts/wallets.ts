@@ -1,6 +1,10 @@
 import { selectAccountTreeControllerState } from './accountTreeController';
 import { createDeepEqualSelector } from '../util';
-import { AccountWalletType } from '@metamask/account-api';
+import {
+  AccountWalletType,
+  toMultichainAccountWalletId,
+} from '@metamask/account-api';
+import { selectProfileEntropySourceIds } from '../identity';
 
 export const selectWallets = createDeepEqualSelector(
   [selectAccountTreeControllerState],
@@ -19,8 +23,23 @@ export const selectMultichainWallets = createDeepEqualSelector(
     wallets.filter((wallet) => wallet.type === AccountWalletType.Entropy),
 );
 
-/** Account groups of the first entropy wallet, in tree order. Empty when none exists. */
-export const selectFirstEntropyWalletAccountGroups = createDeepEqualSelector(
-  [selectMultichainWallets],
-  (wallets) => Object.values(wallets[0]?.groups ?? {}),
+/**
+ * Visible account groups of the SRPs that belong to the wallet's profile (the
+ * primary SRP and those paired to it), in tree order. Hidden groups are
+ * excluded.
+ *
+ * This selector is exclusively used for the social profile feature
+ */
+export const selectProfileAccountGroups = createDeepEqualSelector(
+  [selectMultichainWallets, selectProfileEntropySourceIds],
+  (wallets, profileEntropySourceIds) => {
+    const profileWalletIds = new Set<string>(
+      profileEntropySourceIds.map(toMultichainAccountWalletId),
+    );
+
+    return wallets
+      .filter((wallet) => profileWalletIds.has(wallet.id))
+      .flatMap((wallet) => Object.values(wallet.groups))
+      .filter((group) => !group.metadata.hidden);
+  },
 );

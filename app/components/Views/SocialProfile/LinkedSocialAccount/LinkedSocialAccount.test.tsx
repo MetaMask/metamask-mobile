@@ -12,11 +12,14 @@ import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import { LinkedSocialAccountSelectorsIDs } from './LinkedSocialAccount.testIds';
 import {
   createMockAccountGroup,
+  createMockHiddenAccountGroup,
   createMockInternalAccountsFromGroups,
   createMockState,
   createMockWallet,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { strings } from '../../../../../locales/i18n';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
+import type { RootState } from '../../../../reducers';
 
 const mockGoBack = jest.fn();
 
@@ -42,39 +45,101 @@ jest.mock('../../../../selectors/assets/balances', () => ({
   }),
 }));
 
-const ENTROPY_GROUP_IDS = ['entropy-group-1', 'entropy-group-2'];
-const OTHER_GROUP_ID = 'other-group-1';
+const PRIMARY_ENTROPY_ID = 'primary-entropy';
+const PAIRED_ENTROPY_ID = 'paired-entropy';
+const UNPAIRED_ENTROPY_ID = 'unpaired-entropy';
+
+const PRIMARY_GROUP_IDS = [
+  `entropy:${PRIMARY_ENTROPY_ID}/0`,
+  `entropy:${PRIMARY_ENTROPY_ID}/1`,
+];
+const HIDDEN_GROUP_ID = `entropy:${PRIMARY_ENTROPY_ID}/2`;
+const PAIRED_GROUP_ID = `entropy:${PAIRED_ENTROPY_ID}/0`;
+const UNPAIRED_GROUP_ID = `entropy:${UNPAIRED_ENTROPY_ID}/0`;
 
 /** `createMockWallet` builds a keyring wallet; the screen only reads entropy ones. */
-const asEntropyWallet = (wallet: AccountWalletObject): AccountWalletObject =>
-  ({ ...wallet, type: AccountWalletType.Entropy }) as AccountWalletObject;
+const entropyWallet = (
+  entropySourceId: string,
+  groups: AccountGroupObject[],
+): AccountWalletObject =>
+  ({
+    ...createMockWallet(`entropy:${entropySourceId}`, entropySourceId, groups),
+    type: AccountWalletType.Entropy,
+    metadata: { name: entropySourceId, entropy: { id: entropySourceId } },
+  }) as unknown as AccountWalletObject;
+
+const session = (identifierId: string, pairedIdentifierIds: string[] = []) => ({
+  profile: {
+    identifierId,
+    canonicalProfileId: 'canonical-profile',
+    pairedIdentifierIds: pairedIdentifierIds.map((id) => ({ id, type: 'SRP' })),
+  },
+});
 
 const buildState = ({
-  includeSecondWallet = true,
-}: { includeSecondWallet?: boolean } = {}) => {
-  const entropyGroups: AccountGroupObject[] = [
-    createMockAccountGroup(ENTROPY_GROUP_IDS[0], 'Account 1'),
-    createMockAccountGroup(ENTROPY_GROUP_IDS[1], 'Account 2'),
+  selectedAccountGroupId = PRIMARY_GROUP_IDS[0],
+}: { selectedAccountGroupId?: string } = {}) => {
+  const primaryGroups = [
+    createMockAccountGroup(PRIMARY_GROUP_IDS[0], 'Account 1'),
+    createMockAccountGroup(PRIMARY_GROUP_IDS[1], 'Account 2'),
+    createMockHiddenAccountGroup(HIDDEN_GROUP_ID, 'Hidden account'),
   ];
-  const otherGroups: AccountGroupObject[] = [
-    createMockAccountGroup(OTHER_GROUP_ID, 'Imported account'),
+  const pairedGroups = [
+    createMockAccountGroup(PAIRED_GROUP_ID, 'Paired account'),
   ];
-
-  const wallets = [
-    asEntropyWallet(createMockWallet('wallet-1', 'Wallet 1', entropyGroups)),
-    ...(includeSecondWallet
-      ? [asEntropyWallet(createMockWallet('wallet-2', 'Wallet 2', otherGroups))]
-      : []),
+  const unpairedGroups = [
+    createMockAccountGroup(UNPAIRED_GROUP_ID, 'Unpaired account'),
   ];
 
-  const allGroups = includeSecondWallet
-    ? [...entropyGroups, ...otherGroups]
-    : entropyGroups;
-
-  return createMockState(
-    wallets,
-    createMockInternalAccountsFromGroups(allGroups),
+  const state = createMockState(
+    [
+      entropyWallet(PRIMARY_ENTROPY_ID, primaryGroups),
+      entropyWallet(PAIRED_ENTROPY_ID, pairedGroups),
+      entropyWallet(UNPAIRED_ENTROPY_ID, unpairedGroups),
+    ],
+    createMockInternalAccountsFromGroups([
+      ...primaryGroups,
+      ...pairedGroups,
+      ...unpairedGroups,
+    ]),
   );
+  const { backgroundState } = state.engine;
+
+  return {
+    ...state,
+    engine: {
+      ...state.engine,
+      backgroundState: {
+        ...backgroundState,
+        AccountTreeController: {
+          ...backgroundState.AccountTreeController,
+          selectedAccountGroup: selectedAccountGroupId,
+        },
+        AuthenticationController: {
+          ...backgroundState.AuthenticationController,
+          isSignedIn: true,
+          srpSessionData: {
+            [PRIMARY_ENTROPY_ID]: session('primary-identifier', [
+              'paired-identifier',
+            ]),
+            [PAIRED_ENTROPY_ID]: session('paired-identifier'),
+            [UNPAIRED_ENTROPY_ID]: session('unpaired-identifier'),
+          },
+        },
+        KeyringController: {
+          ...backgroundState.KeyringController,
+          isUnlocked: true,
+          keyrings: [
+            {
+              type: ExtendedKeyringTypes.hd,
+              accounts: [],
+              metadata: { id: PRIMARY_ENTROPY_ID, name: '' },
+            },
+          ],
+        },
+      },
+    },
+  } as unknown as RootState;
 };
 
 describe('LinkedSocialAccount', () => {
@@ -106,12 +171,12 @@ describe('LinkedSocialAccount', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('lists the account groups of the first entropy wallet', () => {
+  it('lists the account groups of the primary SRP and the SRPs paired to it', () => {
     const { getByTestId } = renderWithProvider(<LinkedSocialAccount />, {
       state: buildState(),
     });
 
-    ENTROPY_GROUP_IDS.forEach((groupId) => {
+    [...PRIMARY_GROUP_IDS, PAIRED_GROUP_ID].forEach((groupId) => {
       expect(
         getByTestId(LinkedSocialAccountSelectorsIDs.accountRow(groupId)),
       ).toBeOnTheScreen();
@@ -124,31 +189,45 @@ describe('LinkedSocialAccount', () => {
     });
 
     const row = getByTestId(
-      LinkedSocialAccountSelectorsIDs.accountRow(ENTROPY_GROUP_IDS[0]),
+      LinkedSocialAccountSelectorsIDs.accountRow(PRIMARY_GROUP_IDS[0]),
     );
 
     expect(within(row).getByText('Account 1')).toBeOnTheScreen();
   });
 
-  it('excludes account groups from other wallets', () => {
+  it('excludes account groups from SRPs not paired to the profile', () => {
     const { queryByTestId } = renderWithProvider(<LinkedSocialAccount />, {
       state: buildState(),
     });
 
     expect(
-      queryByTestId(LinkedSocialAccountSelectorsIDs.accountRow(OTHER_GROUP_ID)),
+      queryByTestId(
+        LinkedSocialAccountSelectorsIDs.accountRow(UNPAIRED_GROUP_ID),
+      ),
+    ).toBeNull();
+  });
+
+  it('excludes hidden account groups', () => {
+    const { queryByTestId } = renderWithProvider(<LinkedSocialAccount />, {
+      state: buildState(),
+    });
+
+    expect(
+      queryByTestId(
+        LinkedSocialAccountSelectorsIDs.accountRow(HIDDEN_GROUP_ID),
+      ),
     ).toBeNull();
   });
 
   it('renders the formatted fiat balance for a funded account', () => {
-    mockBalances[ENTROPY_GROUP_IDS[0]] = 10000;
+    mockBalances[PRIMARY_GROUP_IDS[0]] = 10000;
 
     const { getByTestId } = renderWithProvider(<LinkedSocialAccount />, {
       state: buildState(),
     });
 
     const row = getByTestId(
-      LinkedSocialAccountSelectorsIDs.accountRow(ENTROPY_GROUP_IDS[0]),
+      LinkedSocialAccountSelectorsIDs.accountRow(PRIMARY_GROUP_IDS[0]),
     );
 
     expect(within(row).getByText('$10,000.00')).toBeOnTheScreen();
@@ -160,7 +239,7 @@ describe('LinkedSocialAccount', () => {
     });
 
     const row = getByTestId(
-      LinkedSocialAccountSelectorsIDs.accountRow(ENTROPY_GROUP_IDS[1]),
+      LinkedSocialAccountSelectorsIDs.accountRow(PRIMARY_GROUP_IDS[1]),
     );
 
     expect(within(row).queryByText('$0.00')).toBeNull();
@@ -173,9 +252,22 @@ describe('LinkedSocialAccount', () => {
 
     expect(
       getByTestId(
-        LinkedSocialAccountSelectorsIDs.accountRow(ENTROPY_GROUP_IDS[0]),
+        LinkedSocialAccountSelectorsIDs.accountRow(PRIMARY_GROUP_IDS[0]),
       ).props.accessibilityState,
     ).toEqual({ checked: true });
+  });
+
+  it('selects nothing when the active account group is not eligible', () => {
+    const { getByTestId } = renderWithProvider(<LinkedSocialAccount />, {
+      state: buildState({ selectedAccountGroupId: UNPAIRED_GROUP_ID }),
+    });
+
+    [...PRIMARY_GROUP_IDS, PAIRED_GROUP_ID].forEach((groupId) => {
+      expect(
+        getByTestId(LinkedSocialAccountSelectorsIDs.accountRow(groupId)).props
+          .accessibilityState,
+      ).toEqual({ checked: false });
+    });
   });
 
   it('moves the selection when another account is pressed', () => {
@@ -185,18 +277,18 @@ describe('LinkedSocialAccount', () => {
 
     fireEvent.press(
       getByTestId(
-        LinkedSocialAccountSelectorsIDs.accountRow(ENTROPY_GROUP_IDS[1]),
+        LinkedSocialAccountSelectorsIDs.accountRow(PRIMARY_GROUP_IDS[1]),
       ),
     );
 
     expect(
       getByTestId(
-        LinkedSocialAccountSelectorsIDs.accountRow(ENTROPY_GROUP_IDS[1]),
+        LinkedSocialAccountSelectorsIDs.accountRow(PRIMARY_GROUP_IDS[1]),
       ).props.accessibilityState,
     ).toEqual({ checked: true });
     expect(
       getByTestId(
-        LinkedSocialAccountSelectorsIDs.accountRow(ENTROPY_GROUP_IDS[0]),
+        LinkedSocialAccountSelectorsIDs.accountRow(PRIMARY_GROUP_IDS[0]),
       ).props.accessibilityState,
     ).toEqual({ checked: false });
   });
@@ -208,7 +300,7 @@ describe('LinkedSocialAccount', () => {
 
     expect(
       getByTestId(
-        LinkedSocialAccountSelectorsIDs.accountRow(ENTROPY_GROUP_IDS[0]),
+        LinkedSocialAccountSelectorsIDs.accountRow(PRIMARY_GROUP_IDS[0]),
       ).props.accessibilityRole,
     ).toBe('radio');
   });

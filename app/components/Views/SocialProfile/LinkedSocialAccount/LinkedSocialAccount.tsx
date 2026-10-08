@@ -9,7 +9,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
-import { selectFirstEntropyWalletAccountGroups } from '../../../../selectors/multichainAccounts/wallets';
+import { selectProfileAccountGroups } from '../../../../selectors/multichainAccounts/wallets';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
@@ -20,18 +20,24 @@ const LinkedSocialAccount = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
 
-  // Scoped to the first entropy wallet: accounts from imported or hardware
-  // wallets are not eligible to be linked.
-  const accountGroups = useSelector(selectFirstEntropyWalletAccountGroups);
+  // Scoped to the profile's SRPs (primary and paired): accounts from other
+  // SRPs, imported or hardware wallets, and hidden accounts are not eligible
+  // to be linked.
+  const accountGroups = useSelector(selectProfileAccountGroups);
   const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const avatarVariant = getAvatarAccountVariant(avatarAccountType);
 
   // TODO: lift to the real profile source; selecting currently only moves the
-  // radio on this screen. Defaults to the active account group.
+  // radio on this screen. Defaults to the active account group when it is
+  // eligible, otherwise nothing is selected.
   const [linkedAccountGroupId, setLinkedAccountGroupId] = useState<
     string | undefined
-  >(selectedAccountGroupId ?? accountGroups[0]?.id);
+  >(() =>
+    accountGroups.some((group) => group.id === selectedAccountGroupId)
+      ? (selectedAccountGroupId ?? undefined)
+      : undefined,
+  );
 
   const handleBack = useCallback(() => {
     navigation.goBack();

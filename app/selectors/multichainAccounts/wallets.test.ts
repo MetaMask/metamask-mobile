@@ -1,5 +1,5 @@
 import {
-  selectFirstEntropyWalletAccountGroups,
+  selectProfileAccountGroups,
   selectMultichainWallets,
   selectWallets,
 } from './wallets';
@@ -259,91 +259,135 @@ describe('selectMultichainWallets', () => {
   });
 });
 
-describe('selectFirstEntropyWalletAccountGroups', () => {
-  const GROUP_A = 'entropy:wallet1/0' as const;
-  const GROUP_B = 'entropy:wallet1/1' as const;
-  const GROUP_C = 'entropy:wallet2/0' as const;
+describe('selectProfileAccountGroups', () => {
+  const PRIMARY = 'primary-entropy';
+  const PAIRED = 'paired-entropy';
+  const UNPAIRED = 'unpaired-entropy';
 
-  const buildGroup = (id: string, name: string) =>
+  const buildGroup = (id: string, name: string, hidden = false) =>
     ({
       id,
-      type: AccountGroupType.SingleAccount,
+      type: AccountGroupType.MultichainAccount,
       accounts: ['account1' as const],
-      metadata: { name, pinned: false, hidden: false, lastSelected: 0 },
+      metadata: { name, pinned: false, hidden, lastSelected: 0 },
     }) as unknown as AccountGroupObject;
 
   const buildEntropyWallet = (
-    id: string,
-    name: string,
-    groups: Record<string, AccountGroupObject>,
+    entropySourceId: string,
+    groups: AccountGroupObject[],
   ) =>
     ({
-      id,
+      id: `entropy:${entropySourceId}`,
       type: AccountWalletType.Entropy,
       status: 'ready',
-      metadata: { name, entropy: { id: name } },
-      groups,
+      metadata: { name: entropySourceId, entropy: { id: entropySourceId } },
+      groups: Object.fromEntries(groups.map((group) => [group.id, group])),
     }) as unknown as AccountWalletObject;
 
-  it('returns the groups of the first entropy wallet only', () => {
-    const mockState = createMockState({
-      accountTree: {
-        wallets: {
-          [MULTICHAIN_WALLET_ID_1]: buildEntropyWallet(
-            MULTICHAIN_WALLET_ID_1,
-            'Wallet 1',
-            {
-              [GROUP_A]: buildGroup(GROUP_A, 'Account 1'),
-              [GROUP_B]: buildGroup(GROUP_B, 'Account 2'),
-            },
-          ),
-          [MULTICHAIN_WALLET_ID_2]: buildEntropyWallet(
-            MULTICHAIN_WALLET_ID_2,
-            'Wallet 2',
-            { [GROUP_C]: buildGroup(GROUP_C, 'Account 3') },
-          ),
-        },
-      },
-      selectedAccountGroup: '',
-    });
-
-    const result = selectFirstEntropyWalletAccountGroups(mockState);
-
-    expect(result.map((group) => group.id)).toEqual([GROUP_A, GROUP_B]);
+  const session = (identifierId: string, pairedIdentifierIds?: string[]) => ({
+    profile: {
+      identifierId,
+      canonicalProfileId: 'canonical',
+      ...(pairedIdentifierIds && {
+        pairedIdentifierIds: pairedIdentifierIds.map((id) => ({
+          id,
+          type: 'SRP',
+        })),
+      }),
+    },
   });
 
-  it('skips non-entropy wallets when picking the first wallet', () => {
-    const mockState = createMockState({
-      accountTree: {
-        wallets: {
-          [WALLET_ID_1]: {
-            id: WALLET_ID_1,
-            type: AccountWalletType.Keyring,
-            status: 'ready',
-            metadata: {
-              name: 'Imported',
-              keyring: { type: mockKeyringTypes.HD_KEY_TREE },
+  const buildState = ({
+    wallets,
+    srpSessionData,
+  }: {
+    wallets: AccountWalletObject[];
+    srpSessionData?: Record<string, ReturnType<typeof session>>;
+  }) =>
+    ({
+      engine: {
+        backgroundState: {
+          AccountTreeController: {
+            accountTree: {
+              wallets: Object.fromEntries(
+                wallets.map((wallet) => [wallet.id, wallet]),
+              ),
             },
-            groups: { [GROUP_C]: buildGroup(GROUP_C, 'Imported account') },
-          } as unknown as AccountWalletObject,
-          [MULTICHAIN_WALLET_ID_1]: buildEntropyWallet(
-            MULTICHAIN_WALLET_ID_1,
-            'Wallet 1',
-            { [GROUP_A]: buildGroup(GROUP_A, 'Account 1') },
-          ),
+          },
+          AuthenticationController: { isSignedIn: true, srpSessionData },
+          KeyringController: {
+            isUnlocked: true,
+            keyrings: [
+              {
+                type: 'HD Key Tree',
+                accounts: [],
+                metadata: { id: PRIMARY, name: '' },
+              },
+            ],
+          },
         },
       },
-      selectedAccountGroup: '',
+    }) as unknown as RootState;
+
+  const wallets = [
+    buildEntropyWallet(PRIMARY, [
+      buildGroup(`entropy:${PRIMARY}/0`, 'Primary 1'),
+      buildGroup(`entropy:${PRIMARY}/1`, 'Primary 2'),
+    ]),
+    buildEntropyWallet(PAIRED, [buildGroup(`entropy:${PAIRED}/0`, 'Paired')]),
+    buildEntropyWallet(UNPAIRED, [
+      buildGroup(`entropy:${UNPAIRED}/0`, 'Unpaired'),
+    ]),
+  ];
+
+  it('returns the groups of the primary SRP and the SRPs paired to it', () => {
+    const state = buildState({
+      wallets,
+      srpSessionData: {
+        [PRIMARY]: session('primary-identifier', ['paired-identifier']),
+        [PAIRED]: session('paired-identifier'),
+        [UNPAIRED]: session('unpaired-identifier'),
+      },
     });
 
-    const result = selectFirstEntropyWalletAccountGroups(mockState);
-
-    expect(result.map((group) => group.id)).toEqual([GROUP_A]);
+    expect(selectProfileAccountGroups(state).map((group) => group.id)).toEqual([
+      `entropy:${PRIMARY}/0`,
+      `entropy:${PRIMARY}/1`,
+      `entropy:${PAIRED}/0`,
+    ]);
   });
 
-  it('returns an empty array when no entropy wallet exists', () => {
-    const mockState = createMockState({ accountTree: { wallets: {} } });
+  it('excludes hidden account groups', () => {
+    const state = buildState({
+      wallets: [
+        buildEntropyWallet(PRIMARY, [
+          buildGroup(`entropy:${PRIMARY}/0`, 'Visible'),
+          buildGroup(`entropy:${PRIMARY}/1`, 'Hidden', true),
+        ]),
+      ],
+      srpSessionData: { [PRIMARY]: session('primary-identifier') },
+    });
 
-    expect(selectFirstEntropyWalletAccountGroups(mockState)).toEqual([]);
+    expect(selectProfileAccountGroups(state).map((group) => group.id)).toEqual([
+      `entropy:${PRIMARY}/0`,
+    ]);
+  });
+
+  it('returns only the primary SRP groups when there is no session data', () => {
+    const state = buildState({ wallets });
+
+    expect(selectProfileAccountGroups(state).map((group) => group.id)).toEqual([
+      `entropy:${PRIMARY}/0`,
+      `entropy:${PRIMARY}/1`,
+    ]);
+  });
+
+  it('returns an empty array when the profile SRPs have no wallet', () => {
+    const state = buildState({
+      wallets: [],
+      srpSessionData: { [PRIMARY]: session('primary-identifier') },
+    });
+
+    expect(selectProfileAccountGroups(state)).toEqual([]);
   });
 });
