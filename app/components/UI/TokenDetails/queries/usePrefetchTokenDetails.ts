@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import type { Hex } from '@metamask/utils';
+import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
 import {
   selectCurrentCurrency,
@@ -23,6 +24,7 @@ export const usePrefetchTokenDetails = (
 ): void => {
   const queryClient = useQueryClient();
   const assetId = useTokenCaipAssetId(token);
+  const isMemecoinTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const allTokenMarketData = useSelector(selectTokenMarketData);
@@ -44,7 +46,15 @@ export const usePrefetchTokenDetails = (
       ? rawNativeConversionRate
       : undefined;
 
+  // The prefetch only warms the cache for the memecoin Token Details page.
+  // With the flag off the legacy page fetches through its own hooks, so
+  // skipping the prefetch avoids firing the /v2/assets request for every
+  // token the user opens.
   useEffect(() => {
+    if (!isMemecoinTdpEnabled) {
+      return;
+    }
+
     prefetchTokenDetailsQueries(
       queryClient,
       buildTokenDetailsPrefetchInput({
@@ -57,6 +67,7 @@ export const usePrefetchTokenDetails = (
     );
   }, [
     queryClient,
+    isMemecoinTdpEnabled,
     token,
     assetId,
     currentCurrency,
