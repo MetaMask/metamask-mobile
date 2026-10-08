@@ -219,10 +219,11 @@ describe('ManageProfile', () => {
   it.each([[ManageProfileSelectorsIDs.HANDLE_ROW]])(
     'renders the %s row as read-only',
     (testID) => {
-    const { getByTestId } = renderWithProvider(<ManageProfile />);
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
 
-    expect(getByTestId(testID).props.accessibilityRole).toBeUndefined();
-  });
+      expect(getByTestId(testID).props.accessibilityRole).toBeUndefined();
+    },
+  );
 
   it.each([
     [ManageProfileSelectorsIDs.DISPLAY_NAME_ROW],
