@@ -7,11 +7,15 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import { EarnTokenDetails } from '../../types/lending.types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { analytics } from '../../../../../util/analytics/analytics';
 import { fireEvent } from '@testing-library/react-native';
 import { View } from 'react-native';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { EVENT_LOCATIONS } from '../../constants/events/earnEvents';
 
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.mocked(analytics.trackEvent);
 
 const STATE_MOCK = {
   engine: {
@@ -34,6 +38,12 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
 
 jest.mock('../../../../../selectors/earnController', () => ({
   ...jest.requireActual('../../../../../selectors/earnController'),
@@ -138,7 +148,7 @@ describe('Earnings', () => {
   it('renders pooled-staking earnings', () => {
     const { getByText, queryByText } = render();
 
-    expect(getByText(strings('stake.your_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.staking'))).toBeOnTheScreen();
     expect(getByText(strings('stake.annual_rate'))).toBeOnTheScreen();
     expect(getByText(strings('stake.lifetime_rewards'))).toBeOnTheScreen();
     expect(
@@ -213,7 +223,7 @@ describe('Earnings', () => {
       <View testID="lending-action" />,
     );
 
-    expect(getByText(strings('earn.lending_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('earn.lending'))).toBeOnTheScreen();
     expect(getByTestId('lending-action')).toBeOnTheScreen();
     expect(
       queryByText(strings('earn.view_earnings_history.lending')),
@@ -281,9 +291,9 @@ describe('Earnings', () => {
 
     const { getByText, getByTestId } = render();
 
-    fireEvent.press(getByTestId('annual-rate-tooltip'));
+    fireEvent.press(getByTestId(EARNINGS_TEST_IDS.ANNUAL_RATE_PRESSABLE));
 
-    expect(getByText(strings('earn.lending_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('earn.lending'))).toBeOnTheScreen();
     expect(mockNavigate).toHaveBeenCalledWith('EarnModals', {
       screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
       params: {
@@ -321,9 +331,18 @@ describe('Earnings', () => {
 
     const { getByText, getByTestId } = render();
 
-    fireEvent.press(getByTestId('annual-rate-tooltip'));
+    fireEvent.press(getByTestId(EARNINGS_TEST_IDS.ANNUAL_RATE_PRESSABLE));
 
-    expect(getByText(strings('stake.your_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.staking'))).toBeOnTheScreen();
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: MetaMetricsEvents.TOOLTIP_OPENED.category,
+        properties: expect.objectContaining({
+          location: EVENT_LOCATIONS.STAKING_EARNINGS,
+          tooltip_name: 'Annual Rate',
+        }),
+      }),
+    );
     expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
       params: {
