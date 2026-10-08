@@ -17,6 +17,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useLaunchSumSub } from './hooks/useLaunchSumSub';
 import type { VbaIdentityVerificationCompletion } from './modules/types';
@@ -50,12 +51,28 @@ const VbaSumSubKyc = ({
 }: VbaSumSubKycProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { needsMoreInfo, hasError, retry } = useLaunchSumSub(
+  const { isLaunching, needsMoreInfo, hasError, retry } = useLaunchSumSub(
     onSubmitted,
     initialNeedsMoreInfo,
   );
 
-  const handleBack = useCallback(() => navigation.goBack(), [navigation]);
+  const handleBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
+    const parent = navigation.getParent();
+    if (parent?.canGoBack()) {
+      parent.goBack();
+      return;
+    }
+
+    navigation.navigate(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+  }, [navigation]);
 
   return (
     <SafeAreaView
@@ -63,13 +80,15 @@ const VbaSumSubKyc = ({
       style={tw.style('flex-1 bg-default')}
       testID={VbaSumSubKycSelectorsIDs.CONTAINER}
     >
-      {needsMoreInfo || hasError ? (
+      {isLaunching ? null : (
         <HeaderStandard
           onBack={handleBack}
-          backButtonProps={{ testID: VbaSumSubKycSelectorsIDs.BACK_BUTTON }}
+          backButtonProps={{
+            testID: VbaSumSubKycSelectorsIDs.BACK_BUTTON,
+          }}
           includesTopInset
         />
-      ) : null}
+      )}
       {needsMoreInfo ? (
         <Box
           flexDirection={BoxFlexDirection.Column}
