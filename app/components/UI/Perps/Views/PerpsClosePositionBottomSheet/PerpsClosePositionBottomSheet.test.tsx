@@ -361,6 +361,20 @@ describe('PerpsClosePositionBottomSheet', () => {
       ).toHaveTextContent('-$150 (-10.34%)');
     });
 
+    it('keeps the percentage sign aligned with the loss when a limit price wipes out the effective margin', () => {
+      mockKeypadValue = '1000';
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByTestId('mock-keypad'));
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
+      const pnlRow = utils.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
+      );
+      expect(pnlRow).toHaveTextContent('-$2,850 (-183.87%)');
+    });
+
     it('renders the fiat/token display toggle', () => {
       const { getByTestId } = renderSheet();
 
