@@ -36,7 +36,9 @@ import type {
   PerpsProSizeDenomination,
   PerpsProSizeSliderModel,
 } from './PerpsProOrderForm.types';
-import usePerpsProInputDisplay from './usePerpsProInputDisplay';
+import usePerpsProInputDisplay, {
+  updatePerpsProInputDisplay,
+} from './usePerpsProInputDisplay';
 
 const ids = PerpsProOrderFormSelectorsIDs;
 
@@ -98,13 +100,11 @@ const PerpsProSizeInput = ({
   const [selection, setSelection] = useState<PerpsInputSelection | undefined>(
     undefined,
   );
-  const handleChangeText = usePerpsProInputDisplay({
+  usePerpsProInputDisplay({
     value,
     displayValue,
     locale,
     isFocused,
-    isDisabled,
-    onChangeText,
     inputLocaleRef,
     lastEmittedValueRef,
     selectionRef,
@@ -112,6 +112,23 @@ const PerpsProSizeInput = ({
     setDisplayValue,
     setSelection,
   });
+  const handleChangeText = (nextValue: string) => {
+    if (isDisabled) {
+      return;
+    }
+
+    updatePerpsProInputDisplay({
+      nextValue,
+      displayValue,
+      onChangeText,
+      inputLocaleRef,
+      lastEmittedValueRef,
+      selectionRef,
+      shouldIgnoreNextSelectionChangeRef,
+      setDisplayValue,
+      setSelection,
+    });
+  };
   const unitLabel = getUnitLabel(denomination);
   const showUsdPrefix = denomination.unit === 'usd';
   const label = strings('perps.pro_order_form.size_unit', {

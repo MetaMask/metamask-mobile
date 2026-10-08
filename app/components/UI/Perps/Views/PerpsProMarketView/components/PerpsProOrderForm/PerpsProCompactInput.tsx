@@ -35,7 +35,9 @@ import {
   normalizePerpsNumericInput,
   type PerpsInputSelection,
 } from '../../../../utils/formatUtils';
-import usePerpsProInputDisplay from './usePerpsProInputDisplay';
+import usePerpsProInputDisplay, {
+  updatePerpsProInputDisplay,
+} from './usePerpsProInputDisplay';
 
 export const getPerpsProInputAccessoryID = (testID: string) =>
   `${testID}-input-accessory`;
@@ -179,13 +181,11 @@ const PerpsProCompactInput = React.forwardRef<
     const [selection, setSelection] = useState<PerpsInputSelection | undefined>(
       undefined,
     );
-    const handleChangeText = usePerpsProInputDisplay({
+    usePerpsProInputDisplay({
       value,
       displayValue,
       locale,
       isFocused,
-      isDisabled,
-      onChangeText,
       inputLocaleRef,
       lastEmittedValueRef,
       selectionRef,
@@ -193,6 +193,23 @@ const PerpsProCompactInput = React.forwardRef<
       setDisplayValue,
       setSelection,
     });
+    const handleChangeText = (nextValue: string) => {
+      if (isDisabled) {
+        return;
+      }
+
+      updatePerpsProInputDisplay({
+        nextValue,
+        displayValue,
+        onChangeText,
+        inputLocaleRef,
+        lastEmittedValueRef,
+        selectionRef,
+        shouldIgnoreNextSelectionChangeRef,
+        setDisplayValue,
+        setSelection,
+      });
+    };
     const [shouldFocusInput, setShouldFocusInput] = useState(false);
     const isInlineActive = isFocused || displayValue.length > 0;
     const usesFloatingLabel =

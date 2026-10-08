@@ -2,7 +2,6 @@ import {
   type Dispatch,
   type RefObject,
   type SetStateAction,
-  useCallback,
   useEffect,
 } from 'react';
 import {
@@ -17,8 +16,6 @@ interface UsePerpsProInputDisplayOptions {
   displayValue: string;
   locale: string;
   isFocused: boolean;
-  isDisabled: boolean;
-  onChangeText: (value: string) => void;
   inputLocaleRef: RefObject<string>;
   lastEmittedValueRef: RefObject<string>;
   selectionRef: RefObject<PerpsInputSelection | undefined>;
@@ -27,7 +24,17 @@ interface UsePerpsProInputDisplayOptions {
   setSelection: Dispatch<SetStateAction<PerpsInputSelection | undefined>>;
 }
 
-type PerpsProInputChangeHandler = (nextValue: string) => void;
+interface UpdatePerpsProInputDisplayOptions {
+  nextValue: string;
+  displayValue: string;
+  onChangeText: (value: string) => void;
+  inputLocaleRef: RefObject<string>;
+  lastEmittedValueRef: RefObject<string>;
+  selectionRef: RefObject<PerpsInputSelection | undefined>;
+  shouldIgnoreNextSelectionChangeRef: RefObject<boolean>;
+  setDisplayValue: Dispatch<SetStateAction<string>>;
+  setSelection: Dispatch<SetStateAction<PerpsInputSelection | undefined>>;
+}
 
 const syncPerpsProInputDisplay = ({
   value,
@@ -68,12 +75,13 @@ const syncPerpsProInputDisplay = ({
   setDisplayValue(nextDisplayValue);
 };
 
-const usePerpsProInputDisplay = ({
-  value,
+/**
+ * Applies a native text-change event to the localized display state.
+ * Transient refs are updated here from the input event, never during render.
+ */
+export const updatePerpsProInputDisplay = ({
+  nextValue,
   displayValue,
-  locale,
-  isFocused,
-  isDisabled,
   onChangeText,
   inputLocaleRef,
   lastEmittedValueRef,
@@ -81,15 +89,51 @@ const usePerpsProInputDisplay = ({
   shouldIgnoreNextSelectionChangeRef,
   setDisplayValue,
   setSelection,
-}: UsePerpsProInputDisplayOptions): PerpsProInputChangeHandler => {
+}: UpdatePerpsProInputDisplayOptions) => {
+  const canonicalValue = normalizePerpsNumericInput(
+    nextValue,
+    inputLocaleRef.current,
+  );
+  const nextDisplayValue = formatPerpsInput(
+    canonicalValue,
+    inputLocaleRef.current,
+  );
+  const nextSelection = getPerpsFormattedInputSelection({
+    previousDisplayValue: displayValue,
+    nextDisplayValue: nextValue,
+    nextFormattedValue: nextDisplayValue,
+    previousSelection: selectionRef.current,
+    locale: inputLocaleRef.current,
+  });
+
+  setDisplayValue(nextDisplayValue);
+  lastEmittedValueRef.current = canonicalValue;
+  if (nextSelection) {
+    selectionRef.current = nextSelection;
+    setSelection(nextSelection);
+    shouldIgnoreNextSelectionChangeRef.current = true;
+  }
+  onChangeText(canonicalValue);
+};
+
+const usePerpsProInputDisplay = ({
+  value,
+  displayValue,
+  locale,
+  isFocused,
+  inputLocaleRef,
+  lastEmittedValueRef,
+  selectionRef,
+  shouldIgnoreNextSelectionChangeRef,
+  setDisplayValue,
+  setSelection,
+}: UsePerpsProInputDisplayOptions) => {
   useEffect(() => {
     syncPerpsProInputDisplay({
       value,
       displayValue,
       locale,
       isFocused,
-      isDisabled,
-      onChangeText,
       inputLocaleRef,
       lastEmittedValueRef,
       selectionRef,
@@ -101,62 +145,14 @@ const usePerpsProInputDisplay = ({
     displayValue,
     inputLocaleRef,
     isFocused,
-    isDisabled,
     lastEmittedValueRef,
     locale,
-    onChangeText,
     selectionRef,
     setDisplayValue,
     setSelection,
     shouldIgnoreNextSelectionChangeRef,
     value,
   ]);
-
-  return useCallback(
-    (nextValue: string) => {
-      if (isDisabled) {
-        return;
-      }
-
-      const canonicalValue = normalizePerpsNumericInput(
-        nextValue,
-        inputLocaleRef.current,
-      );
-      const nextDisplayValue = formatPerpsInput(
-        canonicalValue,
-        inputLocaleRef.current,
-      );
-      const nextSelection = getPerpsFormattedInputSelection({
-        previousDisplayValue: displayValue,
-        nextDisplayValue: nextValue,
-        nextFormattedValue: nextDisplayValue,
-        previousSelection: selectionRef.current,
-        locale: inputLocaleRef.current,
-      });
-
-      setDisplayValue(nextDisplayValue);
-      // This ref records the pending controlled value across the parent render.
-      // eslint-disable-next-line react-compiler/react-compiler
-      lastEmittedValueRef.current = canonicalValue;
-      if (nextSelection) {
-        selectionRef.current = nextSelection;
-        setSelection(nextSelection);
-        shouldIgnoreNextSelectionChangeRef.current = true;
-      }
-      onChangeText(canonicalValue);
-    },
-    [
-      displayValue,
-      inputLocaleRef,
-      isDisabled,
-      lastEmittedValueRef,
-      onChangeText,
-      selectionRef,
-      setDisplayValue,
-      setSelection,
-      shouldIgnoreNextSelectionChangeRef,
-    ],
-  );
 };
 
 export default usePerpsProInputDisplay;
