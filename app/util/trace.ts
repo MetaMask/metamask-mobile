@@ -2,7 +2,6 @@ import {
   startSpan as sentryStartSpan,
   startSpanManual,
   setMeasurement,
-  Scope,
 } from '@sentry/react-native';
 import {
   type StartSpanOptions,
@@ -1367,9 +1366,7 @@ function startSpan<T>(
     forceTransaction,
   };
 
-  return withIsolationScope((scope) => {
-    setScopeTags(scope, request);
-
+  return withIsolationScope(() => {
     if (forceTransaction && !parentSpan) {
       return startNewTrace(() => callback(spanOptions));
     }
@@ -1387,23 +1384,6 @@ function getTraceKey(request: TraceRequest | EndTraceRequest) {
   const id = getTraceId(request);
 
   return [name, id].join(':');
-}
-
-/**
- * Initialise the isolated Sentry scope created for each trace.
- * Includes setting all non-numeric tags.
- *
- * @param scope - The Sentry scope to initialise.
- * @param request - The trace request.
- */
-function setScopeTags(scope: Scope, request: TraceRequest) {
-  const tags = request.tags ?? {};
-
-  for (const [key, value] of Object.entries(tags)) {
-    if (typeof value !== 'number') {
-      scope.setTag(key, value);
-    }
-  }
 }
 
 /**

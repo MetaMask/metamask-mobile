@@ -90,6 +90,7 @@ export interface SentinelNetwork {
   network: string;
   explorer: string;
   confirmations: boolean;
+  cubistSigners?: Hex[];
   smartTransactions: boolean;
   relayTransactions: boolean;
   hidden: boolean;
@@ -195,6 +196,19 @@ export async function isSendBundleSupported(chainId: Hex): Promise<boolean> {
   const network = await getSentinelNetworkFlags(chainId);
 
   return Boolean(network?.sendBundle);
+}
+
+/**
+ * Returns the addresses the Sentinel relay submits transactions from on a given chain.
+ *
+ * @param chainId - The chain ID to get the signers for.
+ * @returns A promise that resolves to the signer addresses, or an empty array if none are available.
+ */
+export async function getSentinelSigners(chainId: Hex): Promise<Hex[]> {
+  const network = await getSentinelNetworkFlags(chainId);
+  const signers = network?.cubistSigners;
+
+  return Array.isArray(signers) ? signers : [];
 }
 
 /**
