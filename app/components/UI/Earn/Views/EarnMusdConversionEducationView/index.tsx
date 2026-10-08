@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
   heading: {
-    fontFamily: 'MMPoly-Regular',
+    fontFamily: 'GrotzecCond-Bold',
     fontSize: 40,
     lineHeight: 40,
     paddingVertical: 16,

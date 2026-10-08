@@ -84,7 +84,7 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
       opacity: 0,
     },
     title: {
-      fontFamily: 'MMPoly-Regular',
+      fontFamily: 'GrotzecCond-Bold',
       fontWeight: '400',
       // make it smaller on smaller screens
       fontSize: isSmallScreen ? 40 : 45,

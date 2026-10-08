@@ -14,7 +14,7 @@ import {
 
 const titleColorStyle = { color: VIP_SPLASH_TITLE_GRADIENT_COLORS[0] };
 const titleFontStyle = {
-  fontFamily: 'MMPoly-Regular',
+  fontFamily: 'GrotzecCond-Bold',
   fontWeight: '400' as const,
   includeFontPadding: false,
   letterSpacing: 0,

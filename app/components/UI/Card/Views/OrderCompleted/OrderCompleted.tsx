@@ -100,7 +100,7 @@ const OrderCompleted: React.FC = () => {
 
           <Text
             style={tw.style('text-center mt-6', {
-              fontFamily: 'MMPoly-Regular',
+              fontFamily: 'GrotzecCond-Bold',
               fontWeight: '400',
               fontSize: 24,
               lineHeight: 36,

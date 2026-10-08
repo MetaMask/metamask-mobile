@@ -78,7 +78,7 @@ const createStyles = (
         ? Platform.OS === 'ios'
           ? 'System'
           : 'Roboto'
-        : 'MMPoly-Regular',
+        : 'GrotzecCond-Bold',
       fontWeight: useSystemFont
         ? '700'
         : Platform.OS === 'ios'
