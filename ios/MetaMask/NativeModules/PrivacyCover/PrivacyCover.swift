@@ -19,6 +19,10 @@ final class PrivacyCover: NSObject {
   }
 
   @objc func show(in host: UIWindow?) {
+    // The keyboard window sits above this cover and comes back on foreground
+    // while the field is still first responder. Resign here. `inactive` does
+    // not call show, so Control Center and Face ID keep the keyboard.
+    dismissKeyboard()
     let scene = coverWindow?.windowScene ?? host?.windowScene
     guard let scene else {
       return
@@ -30,6 +34,15 @@ final class PrivacyCover: NSObject {
 
   @objc func hide() {
     coverWindow?.isHidden = true
+  }
+
+  private func dismissKeyboard() {
+    _ = UIApplication.shared.sendAction(
+      #selector(UIResponder.resignFirstResponder),
+      to: nil,
+      from: nil,
+      for: nil
+    )
   }
 
   private func makeWindow(for scene: UIWindowScene) -> UIWindow {

@@ -3,6 +3,7 @@ package io.metamask.nativeModules
 import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
@@ -30,6 +31,10 @@ internal object PrivacyCover {
     private val authenticationWaiters = mutableListOf<Pair<Int, Promise>>()
 
     fun show(activity: Activity) {
+        // The IME is a separate window above this cover, and a focused field
+        // brings it back on resume. Clear focus so it stays down. `onPause` is
+        // the only caller, which is before the activity stops.
+        dismissKeyboard(activity)
         val decor = activity.window.decorView as? ViewGroup ?: return
         val existing = overlay
         val cover = if (existing != null && existing.context === activity) {
@@ -58,6 +63,15 @@ internal object PrivacyCover {
     }
 
     fun isShown(): Boolean = overlay?.visibility == View.VISIBLE
+
+    private fun dismissKeyboard(activity: Activity) {
+        val focused = activity.currentFocus
+        val token = focused?.windowToken ?: activity.window.decorView.windowToken
+        focused?.clearFocus()
+        val inputMethodManager =
+            activity.getSystemService(InputMethodManager::class.java) ?: return
+        inputMethodManager.hideSoftInputFromWindow(token, 0)
+    }
 
     fun hide() {
         // A dismiss queued while the activity is pausing belongs to a resume
