@@ -472,4 +472,73 @@ describe('TokenDetails', () => {
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(handleFetch).not.toHaveBeenCalled();
   });
+
+  // Token Details V1 resolves market data once for the whole screen and passes
+  // it down, so this component must not duplicate the request.
+  it('should not fetch market data when it is supplied by the caller', async () => {
+    jest.clearAllMocks();
+
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
+        selectTokenMarketData: null,
+        selectConversionRateBySymbol: mockExchangeRate,
+        selectNativeCurrencyByChainId: 'ETH',
+        isEvmNetwork: true,
+      }),
+    );
+
+    const { getByText } = renderWithProvider(
+      <TokenDetails
+        asset={mockDAI}
+        marketData={
+          {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 0,
+            marketCap: 5_000_000,
+          } as never
+        }
+      />,
+      { state: initialState },
+    );
+
+    expect(getByText('Market details')).toBeDefined();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(handleFetch).not.toHaveBeenCalled();
+  });
+
+  // Supplied data is already in the selected currency, so applying the native
+  // conversion rate on top of it would inflate every figure.
+  it('should render supplied market data without applying the conversion rate', () => {
+    jest.clearAllMocks();
+
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
+        selectTokenMarketData: null,
+        selectConversionRateBySymbol: mockExchangeRate,
+        selectNativeCurrencyByChainId: 'ETH',
+        isEvmNetwork: true,
+      }),
+    );
+
+    const { getByText } = renderWithProvider(
+      <TokenDetails
+        asset={mockDAI}
+        marketData={
+          {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 0,
+            marketCap: 5_000_000,
+          } as never
+        }
+      />,
+      { state: initialState },
+    );
+
+    // 5M as given, not 5M multiplied by the ETH rate.
+    expect(getByText('$5.00M')).toBeDefined();
+  });
 });
