@@ -31,5 +31,7 @@ export interface UseIsMemeTokenResult {
 export const useIsMemeToken = ({
   assetId,
 }: UseIsMemeTokenOptions): UseIsMemeTokenResult => ({
-  isMeme: Boolean(assetId && HARDCODED_MEME_ASSET_IDS.has(assetId)),
+  isMeme: Boolean(
+    assetId && HARDCODED_MEME_ASSET_IDS.has(assetId.toLowerCase()),
+  ),
 });

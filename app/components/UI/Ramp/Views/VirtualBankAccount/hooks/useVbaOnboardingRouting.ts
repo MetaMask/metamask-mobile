@@ -1,5 +1,11 @@
 import { useCallback } from 'react';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import {
+  CommonActions,
+  StackActions,
+  useNavigation,
+  type NavigationState,
+  type PartialState,
+} from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import ReduxService from '../../../../../../core/redux';
@@ -17,8 +23,97 @@ import {
   getVbaVendorTermsAcceptance,
   hasAcceptedVbaVendorTerms,
 } from '../vbaVendorTermsStorage';
-import { VbaOnboardingRoutes } from '../routes';
+import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
 import { applyVbaDevOverrides } from '../vbaDevOverrides';
+
+type VbaOnboardingScreenName =
+  (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
+
+interface StackController {
+  dispatch: (action: ReturnType<typeof CommonActions.reset>) => void;
+  getParent: () => StackController | undefined;
+  getState: () => NavigationState | undefined;
+}
+
+const DEFAULT_CALLER_ROUTE = {
+  name: Routes.HOME_TABS,
+  params: {
+    screen: Routes.MONEY.ROOT,
+    params: { screen: Routes.MONEY.HOME },
+  },
+};
+
+const getCallerRoute = (state: NavigationState) => {
+  const activeRoute = state.routes[state.index];
+  if (activeRoute?.name !== Routes.RAMP.VBA_ONBOARDING) {
+    return activeRoute ?? DEFAULT_CALLER_ROUTE;
+  }
+
+  return state.routes[state.index - 1] ?? DEFAULT_CALLER_ROUTE;
+};
+
+/**
+ * Keeps exactly two root routes: the screen that opened onboarding and the
+ * current onboarding destination. Back then always returns to the caller.
+ *
+ * A step change that is already inside onboarding resets that stack in place.
+ * Resetting the root route without its existing key destroys the native screen,
+ * and the splash shows through that gap.
+ */
+export const openAsOnlyOnboardingRoute = (
+  navigation: AppNavigationProp,
+  screen: VbaOnboardingScreenName,
+  params?: NonNullable<VbaOnboardingParamList[VbaOnboardingScreenName]>,
+): void => {
+  const route =
+    params === undefined ? { name: screen } : { name: screen, params };
+  let current: StackController | undefined =
+    navigation as unknown as StackController;
+
+  while (current) {
+    const state = current.getState();
+    if (state?.routeNames.includes(VbaOnboardingRoutes.VENDOR_TERMS)) {
+      current.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [route],
+        }),
+      );
+      return;
+    }
+
+    if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
+      const existingOnboardingRoute = state.routes.find(
+        (candidate) => candidate.name === Routes.RAMP.VBA_ONBOARDING,
+      );
+      current.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [
+            // A live route has `stale: false`, which PartialState will not accept.
+            getCallerRoute(
+              state,
+            ) as PartialState<NavigationState>['routes'][number],
+            {
+              ...(existingOnboardingRoute?.key
+                ? { key: existingOnboardingRoute.key }
+                : {}),
+              name: Routes.RAMP.VBA_ONBOARDING,
+              state: { index: 0, routes: [route] },
+            },
+          ],
+        }),
+      );
+      return;
+    }
+
+    const parent = current.getParent();
+    if (!parent || parent === current) {
+      break;
+    }
+    current = parent;
+  }
+};
 
 export const navigateToVbaOnboardingDestination = (
   navigation: AppNavigationProp,
@@ -26,20 +121,16 @@ export const navigateToVbaOnboardingDestination = (
   snapshot?: VbaOnboardingSnapshot,
 ): void => {
   if (destinationId === 'complete') {
-    navigation.navigate(Routes.RAMP.VBA_ONBOARDING, {
-      screen: VbaOnboardingRoutes.DETAILS,
-    });
+    openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.DETAILS);
     return;
   }
   if (destinationId === 'identityVerification') {
-    navigation.navigate(
-      Routes.RAMP.VBA_ONBOARDING,
+    openAsOnlyOnboardingRoute(
+      navigation,
       snapshot
-        ? {
-            screen: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
-            params: { snapshot },
-          }
-        : { screen: VbaOnboardingRoutes.ERROR },
+        ? VbaOnboardingRoutes.IDENTITY_VERIFICATION
+        : VbaOnboardingRoutes.ERROR,
+      snapshot ? { snapshot } : undefined,
     );
     return;
   }
@@ -53,7 +144,7 @@ export const navigateToVbaOnboardingDestination = (
     error: VbaOnboardingRoutes.ERROR,
   }[destinationId];
 
-  navigation.navigate(Routes.RAMP.VBA_ONBOARDING, { screen });
+  openAsOnlyOnboardingRoute(navigation, screen);
 };
 
 const openRecoverableError = (navigation: AppNavigationProp): void => {
