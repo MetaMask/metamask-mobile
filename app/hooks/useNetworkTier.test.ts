@@ -94,4 +94,52 @@ describe('useNetworkTier', () => {
 
     expect(result.current).toBe('NONE');
   });
+
+  it('returns NONE for unknown type when internet is not reachable', () => {
+    mockNetInfoState({
+      type: 'unknown',
+      isInternetReachable: false,
+      details: {},
+    });
+
+    const { result } = renderHook(() => useNetworkTier());
+
+    expect(result.current).toBe('NONE');
+  });
+
+  it('returns NONE for cellular when internet is not reachable', () => {
+    mockNetInfoState({
+      type: 'cellular',
+      isInternetReachable: false,
+      details: { cellularGeneration: '5g' },
+    });
+
+    const { result } = renderHook(() => useNetworkTier());
+
+    expect(result.current).toBe('NONE');
+  });
+
+  it('returns WIFI when wifi reachability is still null', () => {
+    mockNetInfoState({
+      type: 'wifi',
+      isInternetReachable: null,
+      details: {},
+    });
+
+    const { result } = renderHook(() => useNetworkTier());
+
+    expect(result.current).toBe('WIFI');
+  });
+
+  it('returns null for cellular without generation in details', () => {
+    mockNetInfoState({
+      type: 'cellular',
+      isInternetReachable: true,
+      details: {},
+    });
+
+    const { result } = renderHook(() => useNetworkTier());
+
+    expect(result.current).toBeNull();
+  });
 });

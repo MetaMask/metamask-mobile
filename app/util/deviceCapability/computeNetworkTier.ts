@@ -9,19 +9,21 @@ interface ComputeNetworkTierInput {
 /**
  * Maps NetInfo fields to a network tier.
  *
- * Returns `null` when the connection type cannot be placed (unknown, vpn,
- * bluetooth, wimax, other, or cellular with no generation).
+ * Explicit unreachability (`type === 'none'` or `isInternetReachable === false`)
+ * returns `'NONE'` before unknown-type checks. Returns `null` when the
+ * connection type cannot be placed (unknown, vpn, bluetooth, wimax, other, or
+ * cellular with no generation).
  */
 export function computeNetworkTier(
   input: ComputeNetworkTierInput,
 ): NetworkTier | null {
   const { type, cellularGeneration, isInternetReachable } = input;
 
-  if (type === null || type === 'unknown') {
-    return null;
-  }
   if (type === 'none' || isInternetReachable === false) {
     return 'NONE';
+  }
+  if (type === null || type === 'unknown') {
+    return null;
   }
   if (type === 'wifi' || type === 'ethernet') {
     return 'WIFI';

@@ -24,7 +24,9 @@ const tier = useNetworkTier(); // 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | '
 
 Maps `useNetInfo()` in the calling component. No extra NetInfo listener. Network changes, so this is a hook, not `getNetworkTier()`.
 
-`null` means unknown — do not treat it as offline or low-end. `'NONE'` means we know there is no usable internet (`type === 'none'` or `isInternetReachable === false`). `vpn` / `bluetooth` / `wimax` / `other` / cellular with no generation are `null`.
+These tiers are **transport / generation heuristics**, not measured network quality. `WIFI` does not guarantee a fast or unmetered link, and `4g` / `5g` ignore congestion, signal strength, and latency — do not treat `WIFI` / `FAST_CELLULAR` as proof that network-heavy work is cheap.
+
+`null` means unknown — do not treat it as offline or low-end. `'NONE'` means we know there is no usable internet (`type === 'none'` or `isInternetReachable === false`). Explicit unreachability wins over `type === 'unknown'` / `null`. `vpn` / `bluetooth` / `wimax` / `other` / cellular with no generation are `null`.
 
 **Note:** Keep the two values separate. Do not fold them into one “worst of RAM and network” flag — a short 3G blip would make a high-RAM phone look constrained.
 
