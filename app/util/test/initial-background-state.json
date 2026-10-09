@@ -978,6 +978,8 @@
   "AiDigestController": {},
   "RampsController": {
     "autoramps": [],
+    "moneyAccountWalletRegistrations": [],
+    "vbaAutorampListFetchedAt": null,
     "userRegion": null,
     "countries": {
       "data": [],

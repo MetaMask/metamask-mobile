@@ -7,6 +7,7 @@ import {
   playSuccessNotification,
 } from '../../../util/haptics';
 import type { Theme } from '../../../util/theme/models';
+import { patchPostSwapShareSession } from '../../Views/SocialLeaderboard/PostSwapShareBottomSheet';
 import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
 import {
   getTrackedQuickBuyTrade,
@@ -16,6 +17,11 @@ import {
 
 type TerminalOutcome = 'complete' | 'failed';
 
+interface BridgeTerminalResolution {
+  outcome: TerminalOutcome;
+  transactionHash?: string;
+}
+
 /**
  * Authoritative terminal status from `BridgeStatusController`. Covers EVM swaps
  * (marked `COMPLETE` on `TransactionController:transactionConfirmed`) and all
@@ -23,14 +29,28 @@ type TerminalOutcome = 'complete' | 'failed';
  */
 function resolveFromBridgeStatus(
   txMetaId: string,
-): TerminalOutcome | undefined {
+): BridgeTerminalResolution | undefined {
   const historyItem =
     Engine.context.BridgeStatusController.getBridgeHistoryItemByTxMetaId(
       txMetaId,
     );
   const status = historyItem?.status?.status;
-  if (status === StatusTypes.COMPLETE) return 'complete';
-  if (status === StatusTypes.FAILED) return 'failed';
+  if (status === StatusTypes.COMPLETE) {
+    return {
+      outcome: 'complete',
+      transactionHash:
+        historyItem?.reportedSubmittedTxHash ??
+        historyItem?.status?.srcChain?.txHash,
+    };
+  }
+  if (status === StatusTypes.FAILED) {
+    return {
+      outcome: 'failed',
+      transactionHash:
+        historyItem?.reportedSubmittedTxHash ??
+        historyItem?.status?.srcChain?.txHash,
+    };
+  }
   return undefined;
 }
 
@@ -79,18 +99,35 @@ function emitTerminalToast(
   outcome: TerminalOutcome,
   showToast: ToastRef['showToast'],
   theme: Theme,
+  transactionHash?: string,
 ): boolean {
   markQuickBuyTradeSettled(txMetaId);
 
   const isComplete = outcome === 'complete';
-  showToast(
-    buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
-      trade,
-      theme,
-    }),
-  );
-  // Terminal feedback pairs with the toast: success buzz on settlement, error
-  // buzz on failure — fires even if the user navigated away.
+  if (trade.postSwapShare && trade.postSwapShareSessionId) {
+    const sessionUpdated = patchPostSwapShareSession(
+      trade.postSwapShareSessionId,
+      {
+        status: isComplete ? 'complete' : 'failed',
+        ...(transactionHash ? { transactionHash } : {}),
+      },
+    );
+    if (!sessionUpdated) {
+      showToast(
+        buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
+          trade,
+          theme,
+        }),
+      );
+    }
+  } else {
+    showToast(
+      buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
+        trade,
+        theme,
+      }),
+    );
+  }
   if (isComplete) {
     playSuccessNotification();
   } else {
@@ -124,7 +161,10 @@ export function resolveQuickBuyTerminalToast(
     return false;
   }
 
-  let outcome = resolveFromBridgeStatus(txMetaId);
+  const bridgeResolution = resolveFromBridgeStatus(txMetaId);
+  let outcome = bridgeResolution?.outcome;
+  const transactionHash =
+    bridgeResolution?.transactionHash ?? trade.txSignature;
   if (!outcome && trade.isNonEvmSwap) {
     outcome = resolveFromMultichain(trade.txSignature ?? txMetaId);
   }
@@ -132,5 +172,12 @@ export function resolveQuickBuyTerminalToast(
     return false;
   }
 
-  return emitTerminalToast(txMetaId, trade, outcome, showToast, theme);
+  return emitTerminalToast(
+    txMetaId,
+    trade,
+    outcome,
+    showToast,
+    theme,
+    transactionHash,
+  );
 }
