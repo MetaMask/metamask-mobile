@@ -19,6 +19,45 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountGroupId } from '@metamask/account-api';
 import { useBulkLinkState } from './useBulkLinkState';
 
+const hasSideEffectAccounts = (
+  sideEffectAccountGroupId: string | undefined,
+  sideEffectAccounts: InternalAccount[],
+): boolean =>
+  Boolean(sideEffectAccountGroupId) && sideEffectAccounts.length > 0;
+
+/**
+ * Prefer the first account group in the wallet when it has accounts.
+ * Otherwise opt in the currently selected group.
+ */
+const selectAccountsToOptIn = (
+  sideEffectAccountGroupId: string | undefined,
+  sideEffectAccounts: InternalAccount[],
+  activeGroupAccounts: InternalAccount[],
+): InternalAccount[] => {
+  if (hasSideEffectAccounts(sideEffectAccountGroupId, sideEffectAccounts)) {
+    return sideEffectAccounts;
+  }
+  return activeGroupAccounts;
+};
+
+/**
+ * After opt-in, link the selected group when it is not the group that was
+ * just opted in. When there is no side-effect group, link that id if present.
+ */
+const selectAccountGroupToLinkAfterOptIn = (
+  sideEffectAccountGroupId: string | undefined,
+  sideEffectAccounts: InternalAccount[],
+  selectedAccountGroupId: string,
+): string | undefined => {
+  if (!hasSideEffectAccounts(sideEffectAccountGroupId, sideEffectAccounts)) {
+    return sideEffectAccountGroupId;
+  }
+  if (sideEffectAccountGroupId !== selectedAccountGroupId) {
+    return selectedAccountGroupId;
+  }
+  return undefined;
+};
+
 export interface UseOptinResult {
   /**
    * Function to initiate the optin process
@@ -101,20 +140,18 @@ export const useOptin = (): UseOptinResult => {
         // Cancel any running bulk link operation to prevent errors during opt-in
         cancelBulkLink();
 
-        // Make sure to always opt in the first account group in the wallet first
-        // Then link the side effect account group (currently selected) if it exists
-
-        const accountsToOptIn =
-          sideEffectAccountGroupIdToLink && sideEffectAccounts.length > 0
-            ? sideEffectAccounts
-            : activeGroupAccounts;
-
-        const accountGroupToLinkAfterOptIn =
-          sideEffectAccountGroupIdToLink && sideEffectAccounts.length > 0
-            ? sideEffectAccountGroupIdToLink !== selectedAccountGroupId
-              ? selectedAccountGroupId
-              : undefined
-            : sideEffectAccountGroupIdToLink;
+        // Opt in the first account group in the wallet, then link the
+        // currently selected group when it is a different group.
+        const accountsToOptIn = selectAccountsToOptIn(
+          sideEffectAccountGroupIdToLink,
+          sideEffectAccounts,
+          activeGroupAccounts,
+        );
+        const accountGroupToLinkAfterOptIn = selectAccountGroupToLinkAfterOptIn(
+          sideEffectAccountGroupIdToLink,
+          sideEffectAccounts,
+          selectedAccountGroupId,
+        );
 
         subscriptionId = await Engine.controllerMessenger.call(
           'RewardsController:optIn',

@@ -195,7 +195,8 @@ const OnboardingMainStep: React.FC = () => {
     if (!canContinue()) {
       return;
     }
-    optin({ bulkLink: true });
+    // Errors are stored on the hook and shown in the opt-in banner.
+    void optin({ bulkLink: true });
   }, [optin, canContinue]);
 
   // Post-opt-in: replace onboarding with dashboard so back does not return here.
