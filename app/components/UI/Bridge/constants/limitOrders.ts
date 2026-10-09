@@ -22,10 +22,10 @@ export enum LimitOrderPriceComparisonDirection {
 export const LIMIT_ORDER_BUTTON_PRICE_PRESETS = [5, 10];
 
 /**
- * Upper bound for the custom percent offset a user can type into the custom
- * preset input. Values above this are clamped on commit.
+ * Maximum number of digits a user can type into the custom percent preset
+ * input, which makes 99999 the largest value it can hold.
  */
-export const LIMIT_ORDER_CUSTOM_PERCENT_MAX = 99;
+export const LIMIT_ORDER_CUSTOM_PERCENT_MAX_INPUT_LENGTH = 5;
 
 /**
  * Inclusive percent band around market at which the trigger-price warning is

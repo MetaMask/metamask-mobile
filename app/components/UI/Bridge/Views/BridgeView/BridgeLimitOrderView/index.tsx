@@ -65,6 +65,10 @@ import {
 } from '../../../constants/limitOrders';
 import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrderPriceAdjust';
 import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypad';
+import {
+  useScrollIntoViewAboveKeypad,
+  type MeasureInWindow,
+} from '../../../hooks/useScrollIntoViewAboveKeypad';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import {
   formatMinimumReceived,
@@ -96,6 +100,7 @@ const BridgeLimitOrderViewContent = () => {
   const inputRef = useRef<TokenInputAreaRef>(null);
   const limitPriceInputRef = useRef<InputSectionRef>(null);
   const customPercentInputRef = useRef<ButtonPricePresetsSectionRef>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   const { latestSourceBalance } = useBridgeSession();
   const [activeOrdersTab, setActiveOrdersTab] = useState(
     OrdersTabKey.OpenOrders,
@@ -198,6 +203,25 @@ const BridgeLimitOrderViewContent = () => {
     sourceAmountInput,
   });
 
+  const measureCustomPercentInput = useCallback<MeasureInWindow>(
+    (callback) => customPercentInputRef.current?.measureInWindow(callback),
+    [],
+  );
+
+  // The keypad is laid over the screen and can cover the custom percent input
+  // on short devices, so the input is scrolled above it.
+  const {
+    keypadLayoutProps,
+    keypadOverlap,
+    onScroll: trackScrollOffset,
+    onScrollViewLayout,
+    onContentSizeChange,
+  } = useScrollIntoViewAboveKeypad({
+    isTargetActive: isCustomActive && isCustomPercentFocused,
+    scrollViewRef,
+    measureTarget: measureCustomPercentInput,
+  });
+
   // Limit orders are not quoted, so the destination amount is derived from the
   // amount being paid and the price the order would trigger at.
   const destTokenAmount = useMemo(
@@ -289,7 +313,10 @@ const BridgeLimitOrderViewContent = () => {
   });
 
   const handleOrdersScroll = useCallback(
-    ({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      trackScrollOffset(event);
+
+      const { nativeEvent } = event;
       const distanceFromBottom =
         nativeEvent.contentSize.height -
         nativeEvent.layoutMeasurement.height -
@@ -306,7 +333,7 @@ const BridgeLimitOrderViewContent = () => {
 
       historyQuery.fetchNextPage();
     },
-    [activeOrdersTab, historyQuery, openOrdersQuery],
+    [activeOrdersTab, historyQuery, openOrdersQuery, trackScrollOffset],
   );
 
   const handleOrdersRefresh = useCallback(async () => {
@@ -471,9 +498,14 @@ const BridgeLimitOrderViewContent = () => {
         testID={BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER}
       >
         <ScrollView
+          ref={scrollViewRef}
           testID={BridgeViewSelectorsIDs.LIMIT_ORDER_SCROLL}
           style={tw.style('flex-1 min-h-0')}
-          contentContainerStyle={tw.style('grow')}
+          contentContainerStyle={tw.style('grow', {
+            paddingBottom: keypadOverlap,
+          })}
+          onLayout={onScrollViewLayout}
+          onContentSizeChange={onContentSizeChange}
           showsVerticalScrollIndicator={false}
           onScrollBeginDrag={dismissInputAndKeypad}
           onScroll={handleOrdersScroll}
@@ -597,6 +629,7 @@ const BridgeLimitOrderViewContent = () => {
         <SwapsKeypad
           ref={keypadRef}
           onChange={handleKeypadChange}
+          {...keypadLayoutProps}
           {...keypadProps}
         >
           {isAmountFocused && sourceAmount && sourceAmount !== '0' ? (

@@ -1,5 +1,11 @@
 import React from 'react';
-import { RefreshControl } from 'react-native';
+import {
+  RefreshControl,
+  StyleSheet,
+  type LayoutChangeEvent,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
 import { FeatureId } from '@metamask/bridge-controller';
 import { fireEvent, act } from '@testing-library/react-native';
@@ -135,7 +141,15 @@ jest.mock('../../../components/SwapsKeypad', () => {
   return {
     SwapsKeypad: ReactActual.forwardRef(
       (
-        { children }: { children?: React.ReactNode },
+        {
+          children,
+          onLayout,
+          onClose,
+        }: {
+          children?: React.ReactNode;
+          onLayout?: (event: LayoutChangeEvent) => void;
+          onClose?: () => void;
+        },
         ref: React.Ref<unknown>,
       ) => {
         ReactActual.useImperativeHandle(ref, () => ({
@@ -144,7 +158,15 @@ jest.mock('../../../components/SwapsKeypad', () => {
           isOpen: jest.fn(() => false),
         }));
 
-        return <View testID="mock-swaps-keypad">{children}</View>;
+        return (
+          <View
+            testID="mock-swaps-keypad"
+            onLayout={onLayout}
+            onTouchEnd={onClose}
+          >
+            {children}
+          </View>
+        );
       },
     ),
   };
@@ -481,13 +503,18 @@ describe('BridgeLimitOrderView', () => {
     expect(getByTestId('limit-dest-token-amount')).toHaveTextContent('6000');
   });
 
-  it('renders a zero destination amount before a source amount is entered', () => {
-    mockSourceAmount = '';
+  it.each([{ sourceAmount: '' }, { sourceAmount: '0' }])(
+    'leaves the destination amount undefined when the source amount is "$sourceAmount"',
+    ({ sourceAmount }) => {
+      mockSourceAmount = sourceAmount;
 
-    const { getByTestId } = renderLimitOrderView();
+      const { getByTestId } = renderLimitOrderView();
 
-    expect(getByTestId('limit-dest-token-amount')).toHaveTextContent('0');
-  });
+      // Undefined lets the input fall back to its muted "0" placeholder
+      // instead of rendering a real zero value.
+      expect(getByTestId('limit-dest-token-amount')).toHaveTextContent('');
+    },
+  );
 
   it('flips the tokens with the destination amount as the new source amount', () => {
     mockSourceAmount = '2';
@@ -757,6 +784,66 @@ describe('BridgeLimitOrderView', () => {
 
     expect(mockHandleCustomPress).toHaveBeenCalledTimes(1);
     expect(mockFocusCustomPercent).toHaveBeenCalledTimes(1);
+  });
+
+  describe('keypad overlap', () => {
+    const layoutEvent = (layout: { y?: number; height?: number }) => ({
+      nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 0, ...layout } },
+    });
+
+    const getContentPaddingBottom = (scroll: { props: unknown }) =>
+      StyleSheet.flatten(
+        (scroll.props as { contentContainerStyle?: StyleProp<ViewStyle> })
+          .contentContainerStyle,
+      )?.paddingBottom;
+
+    it('pads the scroll content by the part of it the keypad covers', () => {
+      const { getByTestId } = renderLimitOrderView();
+      const scroll = getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_SCROLL);
+
+      expect(getContentPaddingBottom(scroll)).toBe(0);
+
+      act(() => {
+        fireEvent(scroll, 'layout', layoutEvent({ height: 600 }));
+        fireEvent(
+          getByTestId('mock-swaps-keypad'),
+          'layout',
+          layoutEvent({ y: 350, height: 300 }),
+        );
+      });
+
+      expect(
+        getContentPaddingBottom(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_SCROLL),
+        ),
+      ).toBe(250);
+    });
+
+    it('removes the padding when the keypad closes', () => {
+      const { getByTestId } = renderLimitOrderView();
+
+      act(() => {
+        fireEvent(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_SCROLL),
+          'layout',
+          layoutEvent({ height: 600 }),
+        );
+        fireEvent(
+          getByTestId('mock-swaps-keypad'),
+          'layout',
+          layoutEvent({ y: 350, height: 300 }),
+        );
+      });
+      act(() => {
+        fireEvent(getByTestId('mock-swaps-keypad'), 'touchEnd');
+      });
+
+      expect(
+        getContentPaddingBottom(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_SCROLL),
+        ),
+      ).toBe(0);
+    });
   });
 
   it('renders the price adjust card without banner spacing before banners report layout height', () => {
