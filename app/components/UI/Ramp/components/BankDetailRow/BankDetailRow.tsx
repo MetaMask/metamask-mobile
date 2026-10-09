@@ -11,6 +11,7 @@ import Icon, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './BankDetailRow.styles';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { strings } from '../../../../../../locales/i18n';
 import { BANK_DETAIL_ROW_TEST_IDS } from './BankDetailRow.testIds';
 
 interface BankDetailRowProps {
@@ -40,6 +41,10 @@ const BankDetailRow: React.FC<BankDetailRowProps> = ({ label, value }) => {
           {value}
         </Text>
         <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={strings('deposit.bank_details.copy_value', {
+            label,
+          })}
           onPress={handleCopyToClipboard(value)}
           testID={BANK_DETAIL_ROW_TEST_IDS.COPY_BUTTON}
         >

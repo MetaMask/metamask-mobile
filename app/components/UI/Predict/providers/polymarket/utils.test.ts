@@ -31,6 +31,8 @@ import {
   fetchEventsFromPolymarketApi,
   fetchMarketsFromPolymarketApi,
   fetchRelatedTagsFromPolymarketApi,
+  mapPolymarketActivityV2,
+  mapPolymarketPositionsV2,
   normalizeRelatedTagsToFilterOptions,
   getAllowance,
   getClobMarketInfo,
@@ -53,7 +55,9 @@ import type {
   PolymarketApiEvent,
   PolymarketApiMarket,
   PolymarketApiTeam,
+  PolymarketActivityV2,
   PolymarketPosition,
+  PolymarketPositionV2,
 } from './types';
 
 const mockSignTypedMessage = jest.fn();
@@ -3581,6 +3585,77 @@ describe('polymarket utils', () => {
     ]);
   });
 
+  it('drops an event when every market version is v2', () => {
+    const event: PolymarketApiEvent = {
+      id: 'v2-event',
+      slug: 'v2-event',
+      title: 'V2 Event',
+      description: 'V2 event description',
+      icon: '',
+      closed: false,
+      series: [],
+      markets: [
+        {
+          conditionId: 'v2-condition',
+          version: 'v2',
+        } as PolymarketApiEvent['markets'][number],
+      ],
+      tags: [],
+      liquidity: 0,
+      volume: 0,
+    };
+
+    expect(parsePolymarketEvents([event], 'trending')).toEqual([]);
+  });
+
+  it('keeps CTF markets when an event also contains a v2 market', () => {
+    const event: PolymarketApiEvent = {
+      id: 'mixed-event',
+      slug: 'mixed-event',
+      title: 'Mixed Event',
+      description: 'Mixed event description',
+      icon: '',
+      closed: false,
+      series: [],
+      markets: [
+        {
+          conditionId: 'ctf-condition',
+          question: 'CTF question',
+          description: 'CTF market',
+          icon: '',
+          image: '',
+          groupItemTitle: 'Yes',
+          status: 'open',
+          volumeNum: 10,
+          liquidity: 10,
+          negRisk: false,
+          clobTokenIds: '["yes","no"]',
+          outcomes: '["Yes","No"]',
+          outcomePrices: '["0.6","0.4"]',
+          closed: false,
+          active: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
+          version: 'v1',
+        },
+        {
+          conditionId: 'v2-condition',
+          version: 'v2',
+        } as PolymarketApiEvent['markets'][number],
+      ],
+      tags: [],
+      liquidity: 10,
+      volume: 10,
+    };
+
+    const [market] = parsePolymarketEvents([event], 'trending');
+
+    expect(market.outcomes.map((outcome) => outcome.id)).toEqual([
+      'ctf-condition',
+    ]);
+  });
+
   it('falls back to question when a spread market is missing group item title', () => {
     const marketWithoutGroupItemTitle = {
       conditionId: 'spread-condition',
@@ -3785,5 +3860,145 @@ describe('polymarket utils', () => {
     expect(parsePolymarketEvents([event], 'crypto')[0]).not.toHaveProperty(
       'twapWindowSeconds',
     );
+  });
+});
+
+describe('mapPolymarketPositionsV2', () => {
+  const row: PolymarketPositionV2 = {
+    condition_id: '0xcondition',
+    event_id: 'event-1',
+    icon: 'icon.png',
+    title: 'Market',
+    slug: 'market-slug',
+    event_slug: 'event-slug',
+    current_size: 20,
+    outcome: 'Yes',
+    outcome_index: 1,
+    unrealized_pnl: 5,
+    current_price: 0.75,
+    current_value: 15,
+    entry_cost_usdc: 10,
+    avg_price: 0.5,
+    redeemable: true,
+    negative_risk: true,
+    realized_pnl: 2,
+    end_date: '2026-12-31',
+    token_id: 'token-1',
+  };
+
+  it('maps snake_case v2 fields to the v1-shaped camelCase DTO', () => {
+    expect(mapPolymarketPositionsV2([row])).toEqual([
+      {
+        conditionId: '0xcondition',
+        eventId: 'event-1',
+        icon: 'icon.png',
+        title: 'Market',
+        slug: 'market-slug',
+        eventSlug: 'event-slug',
+        size: 20,
+        outcome: 'Yes',
+        outcomeIndex: 1,
+        cashPnl: 5,
+        curPrice: 0.75,
+        currentValue: 15,
+        percentPnl: 50,
+        initialValue: 10,
+        avgPrice: 0.5,
+        redeemable: true,
+        negativeRisk: true,
+        realizedPnl: 2,
+        endDate: '2026-12-31',
+        asset: 'token-1',
+      },
+    ]);
+  });
+
+  it('derives percentPnl with the portfolio formula and guards a zero cost basis', () => {
+    expect(
+      mapPolymarketPositionsV2([
+        { ...row, current_value: 12, entry_cost_usdc: 8 },
+      ])[0].percentPnl,
+    ).toBe(50);
+    expect(
+      mapPolymarketPositionsV2([{ ...row, entry_cost_usdc: 0 }])[0].percentPnl,
+    ).toBe(0);
+  });
+
+  it('coerces a missing unrealized_pnl to zero cashPnl', () => {
+    expect(
+      mapPolymarketPositionsV2([{ ...row, unrealized_pnl: null }])[0].cashPnl,
+    ).toBe(0);
+  });
+
+  it('coerces missing current_size/current_price to zero so live-sync math stays finite', () => {
+    // `size`/`cur_price` are v1 names; v2 sends `current_size`/`current_price`.
+    // Mapping a missing field to undefined previously poisoned the live-price
+    // sync (size * bestBid === NaN) into an infinite render loop.
+    const mapped = mapPolymarketPositionsV2([
+      {
+        ...row,
+        current_size: undefined as unknown as number,
+        current_price: undefined as unknown as number,
+      },
+    ])[0];
+    expect(mapped.size).toBe(0);
+    expect(mapped.curPrice).toBe(0);
+  });
+});
+
+describe('mapPolymarketActivityV2', () => {
+  const row: PolymarketActivityV2 = {
+    type: 'TRADE',
+    side: 'BUY',
+    size: 20,
+    price: 0.5,
+    usdc_size: 10,
+    timestamp: 1700000000,
+    transaction_hash: '0xabc',
+    condition_id: '0xcondition',
+    outcome_index: 0,
+    title: 'Market',
+    outcome: 'Yes',
+    icon: 'icon.png',
+    slug: 'market-slug',
+    event_slug: 'event-slug',
+    token_id: 'token-1',
+  };
+
+  it('maps snake_case v2 fields to the v1-shaped camelCase DTO', () => {
+    expect(mapPolymarketActivityV2([row])).toEqual([
+      {
+        type: 'TRADE',
+        side: 'BUY',
+        size: 20,
+        price: 0.5,
+        usdcSize: 10,
+        timestamp: 1700000000,
+        transactionHash: '0xabc',
+        conditionId: '0xcondition',
+        outcomeIndex: 0,
+        title: 'Market',
+        outcome: 'Yes',
+        icon: 'icon.png',
+        slug: 'market-slug',
+        eventSlug: 'event-slug',
+      },
+    ]);
+  });
+
+  it('drops lost redeems (zero payout) but keeps winning redeems', () => {
+    // The last row simulates a malformed row with no payout field at all.
+    const rows = [
+      row,
+      { ...row, type: 'REDEEM', usdc_size: 0 },
+      { ...row, type: 'REDEEM', usdc_size: 25 },
+      { ...row, type: 'REDEEM', usdc_size: undefined },
+    ] as PolymarketActivityV2[];
+
+    const mapped = mapPolymarketActivityV2(rows);
+
+    expect(mapped).toHaveLength(2);
+    expect(mapped[0]).toMatchObject({ type: 'TRADE' });
+    expect(mapped[1]).toMatchObject({ type: 'REDEEM', usdcSize: 25 });
   });
 });

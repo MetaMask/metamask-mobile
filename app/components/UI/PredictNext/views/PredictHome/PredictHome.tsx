@@ -1,12 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { type LayoutChangeEvent } from 'react-native';
-import {
-  type RouteProp,
-  useFocusEffect,
-  useIsFocused,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
@@ -37,7 +31,6 @@ import {
   type PredictMarket,
   type PredictOutcome,
 } from '../../types';
-import Engine from '../../../../../core/Engine';
 import { TraceName } from '../../../../../util/trace';
 import { BalanceSummary } from './internal/BalanceSummary';
 import { FeedPreviewSection } from './internal/FeedPreviewSection';
@@ -62,9 +55,6 @@ const FEED_SECTION_IDS: readonly FeedScreenId[] = [
 export const PredictHome = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
-  const route =
-    useRoute<RouteProp<PredictNextStackParamList, 'PredictNextHome'>>();
-  const entryPoint = route.params?.entryPoint;
   const isFocused = useIsFocused();
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
@@ -133,18 +123,6 @@ export const PredictHome = () => {
     },
   });
 
-  useFocusEffect(
-    useCallback(() => {
-      Engine.context.PredictController.trackHomeViewed({ entryPoint });
-
-      return () => {
-        if (entryPoint) {
-          navigation.setParams({ entryPoint: undefined });
-        }
-      };
-    }, [entryPoint, navigation]),
-  );
-
   const homeTitle = strings('predict_next.home_title');
 
   const handleTitleLayout = useCallback(
@@ -190,6 +168,7 @@ export const PredictHome = () => {
     (event: PredictEvent, market: PredictMarket, outcome: PredictOutcome) => {
       openOrderFlow({
         action: 'buy',
+        eventId: event.id,
         venueId: event.venueId,
         marketId: market.id,
         side: outcome.side,

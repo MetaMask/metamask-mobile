@@ -32,7 +32,7 @@ describe('LimitOrderRow', () => {
         }),
       ),
     ).toBeOnTheScreen();
-    expect(getByText('0.1 ETH')).toBeOnTheScreen();
+    expect(getByText('0.10 ETH')).toBeOnTheScreen();
     expect(
       getByText(
         strings('bridge.limit.limit_price', {
@@ -45,8 +45,8 @@ describe('LimitOrderRow', () => {
   it('renders a filled order with the amounts actually swapped', () => {
     const { getByText } = renderLimitOrderRow(MOCK_LIMIT_FILLED_ORDER);
 
-    expect(getByText('+220 USDC')).toBeOnTheScreen();
-    expect(getByText('-0.1 ETH')).toBeOnTheScreen();
+    expect(getByText('+220.00 USDC')).toBeOnTheScreen();
+    expect(getByText('-0.10 ETH')).toBeOnTheScreen();
     expect(getByText(strings('bridge.limit.filled'))).toBeOnTheScreen();
   });
 
