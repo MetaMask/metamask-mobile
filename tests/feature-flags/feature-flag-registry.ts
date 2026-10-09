@@ -4110,35 +4110,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnMUSD1442AbtestTokenDetailsBalanceMoneyDepositButton: {
-    name: 'earnMUSD1442AbtestTokenDetailsBalanceMoneyDepositButton',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          type: 'percentage_rollout',
-          value: 1,
-        },
-        thresholdName: 'control',
-        thresholdVersion: 2,
-        value: 'control',
-      },
-      {
-        name: 'treatment',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0,
-        },
-        thresholdName: 'treatment',
-        thresholdVersion: 2,
-        value: 'treatment',
-      },
-    ],
-    status: FeatureFlagStatus.Active,
-  },
-
   earnMoneyCardTiltAnimationEnabled: {
     name: 'earnMoneyCardTiltAnimationEnabled',
     type: FeatureFlagType.Remote,
