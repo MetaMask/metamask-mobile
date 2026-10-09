@@ -48,8 +48,6 @@ import {
   DeFiPositionsControllerV2State,
   DeFiPositionsControllerV2Events,
   DeFiPositionsControllerV2Actions,
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerState,
   MultichainBalancesController,
   MultichainBalancesControllerEvents,
@@ -69,7 +67,6 @@ import {
   CodefiTokenPricesServiceV2,
   TokenDetectionControllerEvents,
   TokenDetectionControllerActions,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 import {
   AssetsController,
@@ -77,7 +74,6 @@ import {
   AssetsControllerEvents,
   AssetsControllerState,
 } from '@metamask/assets-controller';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   MultichainTransactionsController,
   MultichainTransactionsControllerState,
@@ -86,7 +82,6 @@ import {
   MultichainTransactionsControllerEvents,
   MultichainTransactionsControllerActions,
 } from './messengers/multichain-transactions-controller-messenger/types';
-///: END:ONLY_INCLUDE_IF
 import {
   AddressBookController,
   AddressBookControllerActions,
@@ -190,14 +185,11 @@ import {
   PermissionControllerActions,
   PermissionControllerEvents,
   PermissionControllerState,
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SubjectMetadataController,
   SubjectMetadataControllerActions,
   SubjectMetadataControllerEvents,
   SubjectMetadataControllerState,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   SnapController,
   ExecutionService,
@@ -223,7 +215,6 @@ import {
   ExecutionServiceActions,
   ExecutionServiceEvents,
 } from '@metamask/snaps-controllers';
-///: END:ONLY_INCLUDE_IF
 import {
   LoggingController,
   LoggingControllerActions,
@@ -248,7 +239,6 @@ import {
   type SmartTransactionsControllerEvents,
   SmartTransactionsControllerState,
 } from '@metamask/smart-transactions-controller';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   AuthenticationController,
   UserStorageController,
@@ -266,7 +256,6 @@ import type {
   NotificationServicesPushControllerState,
 } from '@metamask/notification-services-controller/push-services';
 
-///: END:ONLY_INCLUDE_IF
 import {
   BackendWebSocketService,
   BackendWebSocketServiceActions,
@@ -666,7 +655,6 @@ interface SubscriptionControllerRegisterAddressAction {
   handler: (caipAccountId: string) => Promise<void>;
 }
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // TODO: Abstract this into controller utils for SnapsController
 type SnapsGlobalActions =
   | SnapControllerActions
@@ -679,7 +667,6 @@ type SnapsGlobalEvents =
   | SnapRegistryControllerEvents
   | SubjectMetadataControllerEvents
   | PhishingControllerEvents;
-///: END:ONLY_INCLUDE_IF
 
 export type GlobalActions =
   | SamplePetnamesControllerActions
@@ -700,7 +687,6 @@ export type GlobalActions =
   | SignatureControllerActions
   | LoggingControllerActions
   | AnalyticsControllerActions
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalActions
   | SnapInterfaceControllerActions
   | AuthenticationController.Actions
@@ -710,18 +696,15 @@ export type GlobalActions =
   | CronjobControllerActions
   | WebSocketServiceActions
   | ExecutionServiceActions
-  ///: END:ONLY_INCLUDE_IF
   | BackendWebSocketServiceActions
   | AccountActivityServiceActions
   | OHLCVServiceActions
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
   | MultichainAssetsControllerActions
   | MultichainAssetsRatesControllerActions
   | MultichainTransactionsControllerActions
   | MultichainAccountServiceActions
   | SnapAccountServiceActions
-  ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | AccountTreeControllerActions
   | PreferencesControllerActions
@@ -817,7 +800,6 @@ export type GlobalEvents =
   | NetworkEnablementControllerEvents
   | NetworkConnectionBannerControllerEvents
   | PermissionControllerEvents
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalEvents
   | SnapInterfaceControllerEvents
   | AuthenticationController.Events
@@ -826,18 +808,15 @@ export type GlobalEvents =
   | NotificationServicesPushControllerEvents
   | CronjobControllerEvents
   | ExecutionServiceEvents
-  ///: END:ONLY_INCLUDE_IF
   | BackendWebSocketServiceEvents
   | AccountActivityServiceEvents
   | OHLCVServiceEvents
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
   | MultichainAssetsControllerEvents
   | MultichainAssetsRatesControllerEvents
   | MultichainTransactionsControllerEvents
   | MultichainAccountServiceEvents
   | SnapAccountServiceEvents
-  ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
   | AnalyticsControllerEvents
@@ -1000,7 +979,6 @@ export type MessengerClients = {
   ShieldApiService: ShieldApiService;
   ClaimsController: ClaimsController;
   ClaimsService: ClaimsService;
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   ExecutionService: ExecutionService;
   SnapController: SnapController;
   SnapRegistryController: SnapRegistryController;
@@ -1012,11 +990,9 @@ export type MessengerClients = {
   SnapInterfaceController: SnapInterfaceController;
   CronjobController: CronjobController;
   WebSocketService: WebSocketService;
-  ///: END:ONLY_INCLUDE_IF
   BackendWebSocketService: BackendWebSocketService;
   AccountActivityService: AccountActivityService;
   OHLCVService: OHLCVService;
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
   MultichainAssetsRatesController: MultichainAssetsRatesController;
   MultichainAssetsController: MultichainAssetsController;
@@ -1024,7 +1000,6 @@ export type MessengerClients = {
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
   SnapAccountService: SnapAccountService;
-  ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
   BridgeController: BridgeController;
@@ -1114,7 +1089,6 @@ export type EngineState = {
   ClaimsController: ClaimsControllerState;
   DeFiPositionsController: DeFiPositionsControllerState;
   DeFiPositionsControllerV2: DeFiPositionsControllerV2State;
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SnapController: PersistedSnapControllerState;
   SnapRegistryController: SnapRegistryControllerState;
   SubjectMetadataController: SubjectMetadataControllerState;
@@ -1124,7 +1098,6 @@ export type EngineState = {
   NotificationServicesPushController: NotificationServicesPushControllerState;
   SnapInterfaceController: SnapInterfaceControllerState;
   CronjobController: CronjobControllerState;
-  ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
   LoggingController: LoggingControllerState;
@@ -1133,12 +1106,10 @@ export type EngineState = {
   AccountTreeController: AccountTreeControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
   SignatureController: SignatureControllerState;
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesControllerState;
   MultichainAssetsController: MultichainAssetsControllerState;
   MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
   MultichainTransactionsController: MultichainTransactionsControllerState;
-  ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataControllerState;
   MultichainNetworkController: MultichainNetworkControllerState;
   BridgeController: BridgeControllerState;
@@ -1199,7 +1170,6 @@ export type MessengerClientsToInitialize =
   | 'AssetsController'
   | 'NetworkConnectionBannerController'
   | 'SentinelApiService'
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'
   | 'CronjobController'
   | 'ExecutionService'
@@ -1212,11 +1182,9 @@ export type MessengerClientsToInitialize =
   | 'AppMetadataController'
   | 'SubjectMetadataController'
   | 'UserStorageController'
-  ///: END:ONLY_INCLUDE_IF
   | 'BackendWebSocketService'
   | 'AccountActivityService'
   | 'OHLCVService'
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
   | 'MultichainAssetsRatesController'
   | 'MultichainBalancesController'
@@ -1224,7 +1192,6 @@ export type MessengerClientsToInitialize =
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
   | 'SnapAccountService'
-  ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'MoneyAccountController'
   | 'MoneyAccountBalanceService'
@@ -1374,14 +1341,12 @@ export type MessengerClientInitRequest<
    */
   analyticsId: string;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   /**
    * Remove an account from all controllers that manage accounts.
    *
    * @param address - The address of the account to remove.
    */
   removeAccount(address: string): Promise<void>;
-  ///: END:ONLY_INCLUDE_IF
 
   /**
    * The initial state of the keyring controller, if applicable.
@@ -1438,9 +1403,7 @@ export interface InitMessengerClientsFunctionRequest {
   analyticsId: string;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
   tokenListService: TokenListService;
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   removeAccount: (address: string) => Promise<void>;
-  ///: END:ONLY_INCLUDE_IF
   persistedState: MessengerClientPersistedState;
 }
 

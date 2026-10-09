@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { isSnapKeyring } from '@metamask/eth-snap-keyring/v2';
 import { SnapId } from '@metamask/snaps-sdk';
 import Engine from '../../../core/Engine';
@@ -34,4 +33,3 @@ export const getAccountsBySnapId = async (
     return [];
   }
 };
-///: END:ONLY_INCLUDE_IF

@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import React, {
   useEffect,
   useRef,
@@ -223,4 +222,3 @@ export default function KeyringSnapRemovalWarning({
     </BottomSheet>
   );
 }
-///: END:ONLY_INCLUDE_IF

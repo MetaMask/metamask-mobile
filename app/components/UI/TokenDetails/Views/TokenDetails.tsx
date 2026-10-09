@@ -419,11 +419,9 @@ const TokenDetails: React.FC<{
     fiatBalance,
     balanceFiatUsd,
     tokenFormattedBalance,
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     stakedTrxAsset,
     inLockPeriodBalance,
     readyForWithdrawalBalance,
-    ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token, { calculateUsdBalance: true });
 
   const hasBalanceValue = Boolean(balance) && balance !== '0';
@@ -617,11 +615,9 @@ const TokenDetails: React.FC<{
         isPricePositive={chartPricePositive}
         onPerpsMarketResolved={onPerpsMarketResolved}
         recurringOrder={latestOpenRecurringOrder}
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
         readyForWithdrawalBalance={readyForWithdrawalBalance}
-        ///: END:ONLY_INCLUDE_IF
       />
       {(txLoading || hasTransactions) && (
         <ActivityHeader

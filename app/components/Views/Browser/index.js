@@ -51,10 +51,8 @@ import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
 import { MAX_BROWSER_TABS, MAX_MOUNTED_TABS } from './constants';
 import { getMountedTabIds } from './utils';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import DiscoveryTab from '../DiscoveryTab/DiscoveryTab';
-///: END:ONLY_INCLUDE_IF
 
 /**
  * Component that wraps all the browser

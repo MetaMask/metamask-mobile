@@ -76,14 +76,12 @@ import { trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 import { formatChainIdForAnalytics } from '../../utils';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
 import useTronUnstake from '../../hooks/useTronUnstake';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
 import ResourceToggle from '../../components/Tron/ResourceToggle';
 import { handleTronStakingNavigationResult } from '../../utils/tron';
 import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
 import { ComputeFeeResult } from '../../utils/tron-staking-snap';
-///: END:ONLY_INCLUDE_IF
 
 export const EARN_WITHDRAW_INPUT_VIEW_BACK_BUTTON_TEST_ID =
   'earn-withdraw-input-header-back-button';
@@ -118,7 +116,6 @@ const EarnWithdrawInputView = () => {
 
   const earnTokenFromMap = getEarnToken(token);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const {
     isTronEnabled,
     resourceType,
@@ -131,31 +128,21 @@ const EarnWithdrawInputView = () => {
     tronAccountId,
   } = useTronUnstake({ token });
   const { apyPercent: tronApyPercent } = useTronStakeApy();
-  ///: END:ONLY_INCLUDE_IF
 
   // Flag to conditionally show Tron-specific UI
   let showTronUnstakingUI = false;
   let isTronValidating = false;
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   showTronUnstakingUI = isTronEnabled;
   isTronValidating = isTronUnstakeValidating;
-  ///: END:ONLY_INCLUDE_IF
 
   // Receipt token represents the staked position (stETH, aUSDC, sTRX)
   // For Tron, tronWithdrawalToken acts as the receipt token with staked balance
   const receiptTokenToUse: EarnTokenDetails | undefined = React.useMemo(() => {
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (tronWithdrawalToken) {
       return tronWithdrawalToken;
     }
-    ///: END:ONLY_INCLUDE_IF
     return receiptToken as EarnTokenDetails | undefined;
-  }, [
-    receiptToken,
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    tronWithdrawalToken,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
+  }, [receiptToken, tronWithdrawalToken]);
   const stakingExperienceType =
     receiptTokenToUse?.experience.type ?? EARN_EXPERIENCES.POOLED_STAKING;
 
@@ -267,7 +254,6 @@ const EarnWithdrawInputView = () => {
 
   // Debounced fee computation that reacts to amount/resourceType changes from any input method.
   // resourceType is captured implicitly via tronValidateUnstakeAmount's dependency on it.
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   useEffect(() => {
     if (!isTronEnabled || !isNonZeroAmount) return undefined;
 
@@ -278,7 +264,6 @@ const EarnWithdrawInputView = () => {
 
     return () => clearTimeout(timer);
   }, [amountToken, isTronEnabled, isNonZeroAmount, tronValidateUnstakeAmount]);
-  ///: END:ONLY_INCLUDE_IF
 
   const [maxRiskAwareWithdrawalAmount, setMaxRiskAwareWithdrawalAmount] =
     useState<string | undefined>(undefined);
@@ -634,7 +619,6 @@ const EarnWithdrawInputView = () => {
   // TODO: think about if we could rely on receiptToken experience instead here
   // should we be able to, consider the implications of not being able to
   const handleWithdrawPress = useCallback(async () => {
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTronEnabled) {
       const result = await tronConfirmUnstake?.(amountToken);
       handleTronStakingNavigationResult(
@@ -645,7 +629,6 @@ const EarnWithdrawInputView = () => {
       );
       return;
     }
-    ///: END:ONLY_INCLUDE_IF
     if (
       withdrawalToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
     ) {
@@ -656,13 +639,11 @@ const EarnWithdrawInputView = () => {
       return handleUnstakeWithdrawalFlow();
     }
   }, [
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     isTronEnabled,
     tronConfirmUnstake,
     amountToken,
     navigation,
     tronAccountId,
-    ///: END:ONLY_INCLUDE_IF
     withdrawalToken?.experience?.type,
     handleLendingWithdrawalFlow,
     handleUnstakeWithdrawalFlow,
@@ -733,12 +714,10 @@ const EarnWithdrawInputView = () => {
       return strings('earn.amount_exceeds_safe_withdrawal_limit');
     }
 
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     // Tron unstaking confirms directly without a review screen
     if (showTronUnstakingUI) {
       return strings('stake.unstake');
     }
-    ///: END:ONLY_INCLUDE_IF
 
     return strings('stake.review');
   }, [
@@ -746,9 +725,7 @@ const EarnWithdrawInputView = () => {
     isOverMaximum.isOverMaximumToken,
     isOverMaximum.isOverMaximumEth,
     isWithdrawingMoreThanAvailableForLendingToken,
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     showTronUnstakingUI,
-    ///: END:ONLY_INCLUDE_IF
     withdrawalToken?.ticker,
     withdrawalToken?.symbol,
   ]);
@@ -883,7 +860,6 @@ const EarnWithdrawInputView = () => {
     [handleKeypadChange],
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const shouldShowTronWithdrawButton =
     isTronEnabled && isPreviewVisible && isNonZeroAmount;
 
@@ -893,7 +869,6 @@ const EarnWithdrawInputView = () => {
     isOverMaximum.isOverMaximumEth ||
     isSubmittingStakeWithdrawalTransaction ||
     isTronUnstakeValidating;
-  ///: END:ONLY_INCLUDE_IF
 
   const isWithdrawButtonDisabled =
     (showTronUnstakingUI
@@ -944,13 +919,9 @@ const EarnWithdrawInputView = () => {
           </View>
         )}
       <ScreenLayout style={styles.container}>
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(tron)
-          isTronEnabled && (
-            <ResourceToggle value={resourceType} onChange={setResourceType} />
-          )
-          ///: END:ONLY_INCLUDE_IF
-        }
+        {isTronEnabled && (
+          <ResourceToggle value={resourceType} onChange={setResourceType} />
+        )}
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollViewContent}
@@ -984,17 +955,13 @@ const EarnWithdrawInputView = () => {
             </View>
           )}
         </ScrollView>
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(tron)
-          isTronEnabled && isPreviewVisible && isNonZeroAmount && (
-            <TronStakePreview
-              stakeAmount={amountToken}
-              fee={tronPreview?.fee as ComputeFeeResult}
-              mode="unstake"
-            />
-          )
-          ///: END:ONLY_INCLUDE_IF
-        }
+        {isTronEnabled && isPreviewVisible && isNonZeroAmount && (
+          <TronStakePreview
+            stakeAmount={amountToken}
+            fee={tronPreview?.fee as ComputeFeeResult}
+            mode="unstake"
+          />
+        )}
         {!isPreviewVisible && (
           <>
             <QuickAmounts
@@ -1013,25 +980,21 @@ const EarnWithdrawInputView = () => {
             />
           </>
         )}
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(tron)
-          shouldShowTronWithdrawButton && (
-            <View style={styles.reviewButtonContainer}>
-              <Button
-                testID={EarnWithdrawInputViewTestIds.REVIEW_BUTTON}
-                label={buttonLabel}
-                size={ButtonSize.Lg}
-                labelTextVariant={TextVariant.BodyMDMedium}
-                variant={ButtonVariants.Primary}
-                loading={isSubmittingStakeWithdrawalTransaction}
-                isDisabled={isTronWithdrawButtonDisabled}
-                width={ButtonWidthTypes.Full}
-                onPress={handleWithdrawPress}
-              />
-            </View>
-          )
-          ///: END:ONLY_INCLUDE_IF
-        }
+        {shouldShowTronWithdrawButton && (
+          <View style={styles.reviewButtonContainer}>
+            <Button
+              testID={EarnWithdrawInputViewTestIds.REVIEW_BUTTON}
+              label={buttonLabel}
+              size={ButtonSize.Lg}
+              labelTextVariant={TextVariant.BodyMDMedium}
+              variant={ButtonVariants.Primary}
+              loading={isSubmittingStakeWithdrawalTransaction}
+              isDisabled={isTronWithdrawButtonDisabled}
+              width={ButtonWidthTypes.Full}
+              onPress={handleWithdrawPress}
+            />
+          </View>
+        )}
         {!isTronEnabled && (
           <View style={styles.reviewButtonContainer}>
             <Button

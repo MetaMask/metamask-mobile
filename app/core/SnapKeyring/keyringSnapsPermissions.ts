@@ -6,12 +6,10 @@ import { KeyringRpcMethod } from '@metamask/keyring-api';
  */
 const PORTFOLIO_ORIGINS: string[] = [
   'https://portfolio.metamask.io',
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   'https://dev.portfolio.metamask.io',
   'https://stage.portfolio.metamask.io',
   'https://ramps-dev.portfolio.metamask.io',
   'https://portfolio-builds.metafi-dev.codefi.network',
-  ///: END:ONLY_INCLUDE_IF
 ];
 
 /**

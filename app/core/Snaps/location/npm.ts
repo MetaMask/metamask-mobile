@@ -1,5 +1,4 @@
 /* eslint-disable import-x/prefer-default-export */
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { VirtualFile } from '@metamask/snaps-utils';
 import { assert, getErrorMessage } from '@metamask/utils';
 import { NativeModules } from 'react-native';
@@ -123,4 +122,3 @@ export class NpmLocation extends BaseNpmLocation {
     }
   }
 }
-///: END:ONLY_INCLUDE_IF

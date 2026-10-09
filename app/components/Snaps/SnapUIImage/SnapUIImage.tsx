@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { isValidUrl } from '@metamask/snaps-utils';
 import React from 'react';
 import { StyleProp, View, ViewStyle, ImageStyle } from 'react-native';
@@ -129,4 +128,3 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
     </View>
   );
 };
-///: END:ONLY_INCLUDE_IF

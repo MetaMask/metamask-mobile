@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { Component } from 'react';
 import { View } from 'react-native';
 import { WebViewMessageEvent, WebView } from '@metamask/react-native-webview';
@@ -145,4 +144,3 @@ export class SnapsExecutionWebView extends Component {
     );
   }
 }
-///: END:ONLY_INCLUDE_IF

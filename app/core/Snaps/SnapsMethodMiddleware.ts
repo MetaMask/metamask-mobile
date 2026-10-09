@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   createSnapsMethodMiddleware,
   type PermittedRpcMethodHooks,
@@ -73,4 +72,3 @@ const snapMethodMiddlewareBuilder = (
   );
 
 export default snapMethodMiddlewareBuilder;
-///: END:ONLY_INCLUDE_IF

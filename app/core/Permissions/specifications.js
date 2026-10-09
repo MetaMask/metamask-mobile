@@ -1,9 +1,7 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   caveatSpecifications as snapsCaveatsSpecifications,
   endowmentCaveatSpecifications as snapsEndowmentCaveatSpecifications,
 } from '@metamask/snaps-rpc-methods';
-///: END:ONLY_INCLUDE_IF
 import { RestrictedMethods } from './constants';
 import {
   caip25CaveatBuilder,
@@ -68,10 +66,8 @@ export const getCaveatSpecifications = ({
     isNonEvmScopeSupported,
     getNonEvmAccountAddresses,
   }),
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   ...snapsCaveatsSpecifications,
   ...snapsEndowmentCaveatSpecifications,
-  ///: END:ONLY_INCLUDE_IF
 });
 
 /**
@@ -163,7 +159,6 @@ export const unrestrictedMethods = Object.freeze([
   'wallet_sendCalls',
   'wallet_getCallsStatus',
   'wallet_getCapabilities',
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   'wallet_getAllSnaps',
   'wallet_getSnaps',
   'wallet_requestSnaps',
@@ -192,5 +187,4 @@ export const unrestrictedMethods = Object.freeze([
   'snap_closeWebSocket',
   'snap_getWebSockets',
   'snap_messengerCall',
-  ///: END:ONLY_INCLUDE_IF
 ]);

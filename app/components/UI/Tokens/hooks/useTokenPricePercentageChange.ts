@@ -20,9 +20,7 @@ export const useTokenPricePercentageChange = (
 ): number | undefined => {
   const multiChainMarketData = useSelector(selectTokenMarketData);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
-  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
   const tokenPercentageChange = asset?.address
     ? multiChainMarketData?.[asset?.chainId as Hex]?.[asset.address as Hex]

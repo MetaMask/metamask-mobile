@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { useEffect, useState } from 'react';
 import ApprovalModal from '../ApprovalModal';
 import useApprovalRequest, {
@@ -118,8 +117,6 @@ const InstallSnapApproval = () => {
       setInstallState(SnapInstallState.SnapInstallError);
     }
   };
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 
   if (!approvalRequest || installState === undefined) return null;
 
@@ -170,8 +167,6 @@ const InstallSnapApproval = () => {
             error={installError}
           />
         );
-      ///: END:ONLY_INCLUDE_IF
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       default:
         return null;
     }
@@ -191,4 +186,3 @@ const InstallSnapApproval = () => {
 };
 
 export default InstallSnapApproval;
-///: END:ONLY_INCLUDE_IF

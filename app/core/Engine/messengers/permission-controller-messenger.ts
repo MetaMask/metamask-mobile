@@ -52,11 +52,9 @@ export function getPermissionControllerMessenger(
       'ApprovalController:hasRequest',
       'ApprovalController:acceptRequest',
       'ApprovalController:rejectRequest',
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       'SnapController:getPermittedSnaps',
       'SnapController:installSnaps',
       'SubjectMetadataController:getSubjectMetadata',
-      ///: END:ONLY_INCLUDE_IF
     ],
     events: [],
     messenger,
