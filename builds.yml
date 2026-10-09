@@ -415,6 +415,25 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_main
 
+  # Same as main-e2e but compiled in Debug so AppDelegate's `#if DEBUG` path routes
+  # custom-scheme deeplinks to React Native (Release hands them to a keyless Branch).
+  # iOS simulator only; built on demand via build-ios-e2e-debug.yml.
+  main-e2e-debug:
+    github_environment: build-e2e
+    signing: *signing_uat
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'e2e'
+      METAMASK_BUILD_TYPE: 'main'
+      RAMP_INTERNAL_BUILD: 'true'
+      RAMP_DEV_BUILD: 'true'
+      HAS_TEST_OVERRIDES: 'true'
+      IGNORE_BOXLOGS_DEVELOPMENT: 'true'
+      IS_SIM_BUILD: 'true'
+      CONFIGURATION: 'Debug'
+    secrets: *secrets
+    code_fencing: *code_fencing_main
+
   # Experimental builds
   main-exp:
     github_environment: build-exp

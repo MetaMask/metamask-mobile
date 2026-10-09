@@ -17,6 +17,13 @@ on:
         required: false
         default: 'e2e'
         type: string
+      configuration:
+        description: >-
+          Xcode build configuration. 'Debug' takes the `#if DEBUG` AppDelegate path so custom-scheme
+          deeplinks reach React Native without a Branch key; the artifact is suffixed `-debug`.
+        required: false
+        default: 'Release'
+        type: string
       source-fingerprint:
         description: >-
           Canonical @expo/fingerprint hash for this commit, computed once in
@@ -64,6 +71,8 @@ jobs:
           vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
       IOS_APP_CACHE_VERSION: 2
+      FLAVOR_SUFFIX: ${{ inputs.configuration == 'Debug' && '-debug' || '' }}
+      IOS_APP_PATH: ios/build/Build/Products/${{ inputs.configuration }}-iphonesimulator/MetaMask.app
       XCODE_CACHE_VERSION: 1
       RCT_NO_LAUNCH_PACKAGER: 1
       XCODE_BUILD_SETTINGS: 'COMPILER_INDEX_STORE_ENABLE=NO'
@@ -83,7 +92,7 @@ jobs:
       MM_SECURITY_ALERTS_API_ENABLED: 'true'
       YARN_ENABLE_GLOBAL_CACHE: 'true'
       MM_POOLED_STAKING_ENABLED: 'true'
-      E2E_BUILD_METADATA_ARTIFACT: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-ios-build-metadata
+      E2E_BUILD_METADATA_ARTIFACT: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.configuration == 'Debug' && '-debug' || '' }}-ios-build-metadata
       FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
       FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -139,7 +148,7 @@ jobs:
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
-          artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
+          artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ env.FLAVOR_SUFFIX }}-MetaMask.app"]'
           metadata-artifact-name: ${{ inputs.use-main-builds-for-test-only-prs != true && env.E2E_BUILD_METADATA_ARTIFACT || '' }}
           github-token: ${{ github.token }}
           main-branch-only: ${{ inputs.use-main-builds-for-test-only-prs }}
@@ -167,7 +176,7 @@ jobs:
           EXPECTED_METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
           EXPECTED_RUN_ID: ${{ steps.find-reusable-build.outputs.run-id }}
           EXPECTED_HEAD_SHA: ${{ steps.find-reusable-build.outputs.source-sha }}
-          EXPECTED_ARTIFACTS: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
+          EXPECTED_ARTIFACTS: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ env.FLAVOR_SUFFIX }}-MetaMask.app"]'
           METADATA_FILE: .e2e-reusable-metadata/ios/ios.json
         run: |
           set -euo pipefail
@@ -208,8 +217,8 @@ jobs:
         continue-on-error: true
         uses: actions/download-artifact@v7
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
-          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ env.FLAVOR_SUFFIX }}-MetaMask.app
+          path: ${{ env.IOS_APP_PATH }}
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
           run-id: ${{ steps.find-reusable-build.outputs.run-id }}
@@ -238,8 +247,8 @@ jobs:
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
           path: |
-            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-${{ github.ref_name }}-${{ inputs.build_type }}-${{ inputs.metamask_environment }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
+            ${{ env.IOS_APP_PATH }}
+          key: ios-app-${{ github.ref_name }}-${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ env.FLAVOR_SUFFIX }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
 
       - name: Restore iOS app matching fingerprint from main cache (Cirrus)
         id: ios-app-cache-restore-main
@@ -248,8 +257,8 @@ jobs:
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
           path: |
-            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-main-${{ inputs.build_type }}-${{ inputs.metamask_environment }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
+            ${{ env.IOS_APP_PATH }}
+          key: ios-app-main-${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ env.FLAVOR_SUFFIX }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
 
       - name: Compute native-build gate
         id: gate
@@ -444,7 +453,7 @@ jobs:
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
-          artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
+          artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ env.FLAVOR_SUFFIX }}-MetaMask.app"]'
           metadata-artifact-name: ${{ inputs.use-main-builds-for-test-only-prs != true && env.E2E_BUILD_METADATA_ARTIFACT || '' }}
           github-token: ${{ github.token }}
           main-branch-only: ${{ inputs.use-main-builds-for-test-only-prs }}
@@ -474,7 +483,7 @@ jobs:
           EXPECTED_METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
           EXPECTED_RUN_ID: ${{ steps.find-reusable-build-late.outputs.run-id }}
           EXPECTED_HEAD_SHA: ${{ steps.find-reusable-build-late.outputs.source-sha }}
-          EXPECTED_ARTIFACTS: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
+          EXPECTED_ARTIFACTS: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ env.FLAVOR_SUFFIX }}-MetaMask.app"]'
           METADATA_FILE: .e2e-reusable-metadata/ios-late/ios.json
         run: |
           set -euo pipefail
@@ -518,7 +527,7 @@ jobs:
       - name: Clear any stale iOS app before the late download
         if: ${{ steps.validate-late-metadata.outputs.valid == 'true' }}
         shell: bash
-        run: rm -rf ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+        run: rm -rf ${{ env.IOS_APP_PATH }}
 
       - name: Download late reusable iOS build
         id: download-late-app
@@ -526,8 +535,8 @@ jobs:
         continue-on-error: true
         uses: actions/download-artifact@v7
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
-          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ env.FLAVOR_SUFFIX }}-MetaMask.app
+          path: ${{ env.IOS_APP_PATH }}
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
           run-id: ${{ steps.find-reusable-build-late.outputs.run-id }}
@@ -553,6 +562,8 @@ jobs:
           PLATFORM: ios
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
           METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
+          BUILD_CONFIG_NAME: ${{ inputs.configuration == 'Debug' && 'main-e2e-debug' || '' }}
+          FORCE_BUNDLING: ${{ inputs.configuration == 'Debug' && '1' || '' }} # Debug skips JS bundling by default; embed it so the app runs without Metro
           HAS_TEST_OVERRIDES: true
           IS_SIM_BUILD: 'true' # Ensures simulator build (.app) not device build (.ipa)
           IGNORE_BOXLOGS_DEVELOPMENT: true
@@ -578,9 +589,10 @@ jobs:
           echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
           yarn build:repack:ios
-          echo "📦 Final app size: $(du -sh "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app" | cut -f1)"
+          echo "📦 Final app size: $(du -sh "${{ env.IOS_APP_PATH }}" | cut -f1)"
         env:
           PLATFORM: ios
+          IOS_CONFIGURATION: ${{ inputs.configuration }}
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
           METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
           HAS_TEST_OVERRIDES: true
@@ -626,8 +638,8 @@ jobs:
           APP_DOWNLOAD_OUTCOME: ${{ steps.download-reusable-app.outcome }}
           BRANCH_CACHE_HIT: ${{ steps.ios-app-cache-restore.outputs.cache-hit }}
           MAIN_CACHE_HIT: ${{ steps.ios-app-cache-restore-main.outputs.cache-hit }}
-          BRANCH_CACHE_KEY: ios-app-${{ github.ref_name }}-${{ inputs.build_type }}-${{ inputs.metamask_environment }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
-          MAIN_CACHE_KEY: ios-app-main-${{ inputs.build_type }}-${{ inputs.metamask_environment }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
+          BRANCH_CACHE_KEY: ios-app-${{ github.ref_name }}-${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ env.FLAVOR_SUFFIX }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
+          MAIN_CACHE_KEY: ios-app-main-${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ env.FLAVOR_SUFFIX }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
           LATE_LOOKUP_OUTCOME: ${{ steps.find-reusable-build-late.outcome }}
           LATE_REUSABLE_FOUND: ${{ steps.find-reusable-build-late.outputs.found }}
           LATE_REUSABLE_RUN_ID: ${{ steps.find-reusable-build-late.outputs.run-id }}
@@ -713,7 +725,7 @@ jobs:
       # directory lookup on the test runner. actions/upload-artifact also strips execute permissions.
       - name: Fix iOS bundle executable case and permissions before upload
         run: |
-          APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
+          APP_PATH="${{ env.IOS_APP_PATH }}"
           BUNDLE_EXEC=$(/usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null)
           if [ -z "$BUNDLE_EXEC" ]; then
             echo "Could not read CFBundleExecutable from Info.plist"
@@ -747,7 +759,7 @@ jobs:
           GITHUB_REF_NAME_VALUE: ${{ github.ref_name }}
           GITHUB_EVENT_NAME_VALUE: ${{ github.event_name }}
           GITHUB_RUN_ID_VALUE: ${{ github.run_id }}
-          ARTIFACT_NAMES: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
+          ARTIFACT_NAMES: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ env.FLAVOR_SUFFIX }}-MetaMask.app"]'
         run: |
           set -euo pipefail
           mkdir -p .e2e-build-metadata
@@ -794,8 +806,8 @@ jobs:
         id: upload-app
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
-          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ env.FLAVOR_SUFFIX }}-MetaMask.app
+          path: ${{ env.IOS_APP_PATH }}
           retention-days: 7
           if-no-files-found: error
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}

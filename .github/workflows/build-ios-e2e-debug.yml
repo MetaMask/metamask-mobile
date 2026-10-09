@@ -1,0 +1,27 @@
+name: Build iOS E2E Debug App (manual)
+
+# On-demand Debug-configuration iOS e2e simulator app, for tests that navigate by
+# custom-scheme deeplink. Release e2e builds route those URLs to a keyless Branch SDK.
+# Download the `main-e2e-debug-MetaMask.app` artifact from the run.
+
+on:
+  workflow_dispatch:
+  # TEMPORARY: lets this PR exercise the workflow before it exists on main. Remove before merge.
+  # pull_request (not push) because the AWS signing role only trusts PR-scoped OIDC tokens.
+  pull_request:
+    paths:
+      - .github/workflows/build-ios-e2e-debug.yml
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+
+jobs:
+  build-ios-e2e-debug:
+    name: Build iOS E2E Debug App
+    uses: ./.github/workflows/build-ios-e2e.yml
+    with:
+      build_type: main
+      configuration: Debug
+    secrets: inherit
