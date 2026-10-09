@@ -9398,9 +9398,6 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Истекает: {{timeLeft}}",
-      "days_left": "{{count}}d left",
-      "hours_left": "{{count}}h left",
-      "minutes_left": "{{count}}m left",
       "limit_price": "Лимитная цена {{symbol}}",
       "not_enough_gas": "Недостаточно газа",
       "filled": "Выполнен",

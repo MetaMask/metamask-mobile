@@ -1,4 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { Pressable } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   BannerAlert,
   BannerAlertSeverity,
@@ -14,12 +17,15 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useTheme } from '../../../../../util/theme';
+import DottedUnderline from '../../../DottedUnderline';
 import { LimitOrderCostToleranceTooltip } from '../LimitOrderCostToleranceTooltip';
 import { DetailRow } from './DetailRow';
 import { TokenAmountValue } from './TokenAmountValue';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
-import { LIMIT_ORDER_DEFAULT_METAMASK_FEE } from '../../constants/limitOrders';
 
 export const LimitOrderConfirmationModal = ({
   sourceToken,
@@ -39,12 +45,21 @@ export const LimitOrderConfirmationModal = ({
   goBack,
   testID = LimitOrderConfirmationModalSelectorsIDs.SHEET,
 }: LimitOrderConfirmationModalProps) => {
+  const tw = useTailwind();
+  const { colors } = useTheme();
+  const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const initialCostToleranceRef = useRef(costTolerance);
 
   const closeSheet = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
+
+  const handleFeeDisclaimerPress = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL,
+    });
+  }, [navigation]);
 
   // If the user edits the cost tolerance while this sheet is still mounted,
   // that quote is stale until a new one is fetched, so close the sheet rather
@@ -198,16 +213,23 @@ export const LimitOrderConfirmationModal = ({
         paddingBottom={4}
         twClassName="pt-1"
       >
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextAlternative}
-          twClassName="text-center"
+        <Pressable
+          onPress={handleFeeDisclaimerPress}
+          accessibilityRole="button"
+          accessibilityLabel={strings('bridge.limit.includes_metamask_fee')}
+          style={({ pressed }) => pressed && tw.style('opacity-50')}
           testID={LimitOrderConfirmationModalSelectorsIDs.FEE_DISCLAIMER}
         >
-          {strings('bridge.fee_disclaimer', {
-            feePercentage: LIMIT_ORDER_DEFAULT_METAMASK_FEE,
-          })}
-        </Text>
+          <DottedUnderline color={colors.text.alternative}>
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              {strings('bridge.limit.includes_metamask_fee')}
+            </Text>
+          </DottedUnderline>
+        </Pressable>
       </Box>
     </BottomSheet>
   );

@@ -905,7 +905,7 @@ describe('BridgeLimitOrderView', () => {
       screen: Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_EXPIRATION_MODAL,
       params: {
         selectedMinutes: 60,
-        onConfirm: expect.any(Function),
+        onSelect: expect.any(Function),
       },
     });
   });
@@ -973,16 +973,16 @@ describe('BridgeLimitOrderView', () => {
     );
   });
 
-  it('saves the selected expiration in minutes when the modal confirms', () => {
+  it('saves the selected expiration in minutes when the modal selects an option', () => {
     const { getByTestId, getByText, queryByText } = renderLimitOrderView();
 
     fireEvent(getByTestId('limit-order-details-expiration-row'), 'touchEnd');
 
     const navigateConfig = mockNavigate.mock.calls[0][1] as {
-      params: { onConfirm: (minutes: number) => void };
+      params: { onSelect: (minutes: number) => void };
     };
     act(() => {
-      navigateConfig.params.onConfirm(10080);
+      navigateConfig.params.onSelect(10080);
     });
 
     expect(
