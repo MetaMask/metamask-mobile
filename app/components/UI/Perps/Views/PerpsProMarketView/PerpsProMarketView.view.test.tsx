@@ -1168,6 +1168,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           symbol: 'ETH',
           orderType: 'chase',
         });
+      });
+      await waitFor(() => {
         expect(screen.queryByTestId(rowSelector)).not.toBeOnTheScreen();
       });
       fireEvent.press(

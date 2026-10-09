@@ -14,6 +14,10 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
+import {
+  formatAddressToAssetId,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -71,9 +75,12 @@ import { getSwapsLimitOrderDestTokenAmount } from '../../../utils/limitOrders/ge
 import { strings } from '../../../../../../../locales/i18n';
 import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssetsPriceData';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
+import { useLimitOrderMinAmount } from '../../../hooks/useLimitOrderMinAmount';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
 import { createLimitOrdersTab } from '../../../utils/limitOrders/createLimitOrdersTab';
 import { getLimitOrderDelegationsParams } from '../../../utils/limitOrders/getLimitOrderDelegationsParams';
+import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
+import { LimitOrderFeeTokenErrorBanner } from './LimitOrderFeeTokenErrorBanner';
 
 const formatTokenAmountValue = (
   amount: string | undefined,
@@ -112,6 +119,22 @@ const BridgeLimitOrderViewContent = () => {
     sourceAmount,
     isSourceNetworkGasSponsored,
   } = useLimitOrderSwapInputs();
+  const orderChainId = sourceToken
+    ? formatChainIdToCaip(sourceToken.chainId)
+    : undefined;
+  const sourceAssetId = sourceToken
+    ? (formatAddressToAssetId(sourceToken.address, sourceToken.chainId) ??
+      undefined)
+    : undefined;
+  const destinationAssetId = destToken
+    ? (formatAddressToAssetId(destToken.address, destToken.chainId) ??
+      undefined)
+    : undefined;
+  const feeTokenValidation = useSentinelFeeTokenValidation({
+    chainId: orderChainId,
+    sourceAssetId,
+    destinationAssetId,
+  });
   const openOrdersQuery = useLimitOrders({
     walletAddress,
     states: OPEN_LIMIT_ORDER_STATES,
@@ -211,6 +234,21 @@ const BridgeLimitOrderViewContent = () => {
 
   const [hasVisibleBanner, setHasVisibleBanner] = useState(false);
   const isMissingPrice = useHasMissingAssetsPriceData();
+  const { isBelowMinAmount, minAmountUsd } = useLimitOrderMinAmount({
+    sourceToken,
+    sourceAmount,
+  });
+  const isCreateOrderDisabled =
+    isMissingPrice ||
+    isHardwareWallet ||
+    isBelowMinAmount ||
+    !feeTokenValidation.isValid;
+  const createOrderLabel =
+    isBelowMinAmount && minAmountUsd !== undefined
+      ? strings('bridge.limit.min_order_amount', {
+          amount: formatAmountWithLocaleSeparators(String(minAmountUsd)),
+        })
+      : strings('bridge.limit.create_order');
   const [expirationMinutes, setExpirationMinutes] =
     useState<SwapsLimitOrderExpirationMinutes>(
       SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
@@ -365,6 +403,10 @@ const BridgeLimitOrderViewContent = () => {
   }${formatAmountWithLocaleSeparators(value)}`;
 
   const handleCreateOrderPress = useCallback(() => {
+    if (!feeTokenValidation.isValid) {
+      return;
+    }
+
     dismissInputAndKeypad();
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL,
@@ -397,6 +439,7 @@ const BridgeLimitOrderViewContent = () => {
     expiration,
     executionType,
     expirationMinutes,
+    feeTokenValidation.isValid,
     isLimitFiatMode,
     limitPrice,
     navigation,
@@ -517,6 +560,10 @@ const BridgeLimitOrderViewContent = () => {
                   <TokenWarningBanner />
                   <DestAssetRequireActivateBanner />
                   <MissingAssetsPriceDataBanner />
+                  <LimitOrderFeeTokenErrorBanner
+                    reason={feeTokenValidation.reason}
+                    onRetry={feeTokenValidation.retry}
+                  />
                 </SwapsBanners>
               </Box>
             </Box>
@@ -542,9 +589,9 @@ const BridgeLimitOrderViewContent = () => {
         </ScrollView>
 
         <BridgeLimitOrderFooterView
-          ctaDisabled={isMissingPrice || isHardwareWallet}
+          ctaDisabled={isCreateOrderDisabled}
           onCTAPress={handleCreateOrderPress}
-          ctaLabel={strings('bridge.limit.create_order')}
+          ctaLabel={createOrderLabel}
         />
 
         <SwapsKeypad
@@ -555,9 +602,9 @@ const BridgeLimitOrderViewContent = () => {
           {isAmountFocused && sourceAmount && sourceAmount !== '0' ? (
             <SwapsLimitOrderConfirmButton
               onPress={handleCreateOrderPress}
-              label={strings('bridge.limit.create_order')}
+              label={createOrderLabel}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
-              disabled={isMissingPrice || isHardwareWallet}
+              disabled={isCreateOrderDisabled}
             />
           ) : isAmountFocused ? (
             <GaslessQuickPickOptions

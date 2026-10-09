@@ -12,7 +12,9 @@ import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrder
 import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypad';
 import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssetsPriceData';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
+import { useLimitOrderMinAmount } from '../../../hooks/useLimitOrderMinAmount';
 import { useLimitOrders } from '../../../hooks/useLimitOrders';
+import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { LimitOrderState } from '../../../api/limitOrders/getLimitOrders/types';
 import {
   LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
@@ -110,6 +112,10 @@ jest.mock('../../../hooks/useHasMissingAssetsPriceData', () => ({
   useHasMissingAssetsPriceData: jest.fn(() => false),
 }));
 
+jest.mock('../../../hooks/useSentinelFeeTokenValidation', () => ({
+  useSentinelFeeTokenValidation: jest.fn(),
+}));
+
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -144,8 +150,17 @@ jest.mock('../../../components/SwapsKeypad', () => {
   };
 });
 
+jest.mock('../../../hooks/useLimitOrderMinAmount', () => ({
+  useLimitOrderMinAmount: jest.fn(),
+}));
+
+const mockBridgeLimitOrderFooterView = jest.fn();
+
 jest.mock('./BridgeLimitOrderFooterView', () => ({
-  BridgeLimitOrderFooterView: () => null,
+  BridgeLimitOrderFooterView: (props: unknown) => {
+    mockBridgeLimitOrderFooterView(props);
+    return null;
+  },
 }));
 
 jest.mock('../../../components/SwapsInputs', () => {
@@ -429,6 +444,14 @@ describe('BridgeLimitOrderView', () => {
       .mockImplementation(() => buildKeypadMock());
     jest.mocked(useHasMissingAssetsPriceData).mockReturnValue(false);
     jest.mocked(useIsHardwareWalletForBridge).mockReturnValue(false);
+    jest.mocked(useLimitOrderMinAmount).mockReturnValue({
+      minAmountUsd: 50,
+      isBelowMinAmount: false,
+    });
+    jest.mocked(useSentinelFeeTokenValidation).mockReturnValue({
+      isValid: true,
+      retry: jest.fn(),
+    });
   });
 
   it('renders the limit order container and source token input', () => {
@@ -563,6 +586,82 @@ describe('BridgeLimitOrderView', () => {
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
         .accessibilityState?.disabled,
     ).toBe(true);
+  });
+
+  it('disables the keypad confirm button for an unSentinel fee-token pair', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useSentinelFeeTokenValidation).mockReturnValue({
+      isValid: false,
+      reason: 'unsupported-pair',
+      retry: jest.fn(),
+    });
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('disables the keypad confirm button and shows the minimum when the amount is below it', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '0.001';
+    jest.mocked(useLimitOrderMinAmount).mockReturnValue({
+      minAmountUsd: 50,
+      isBelowMinAmount: true,
+    });
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+    ).toHaveTextContent(
+      strings('bridge.limit.min_order_amount', { amount: '50' }),
+    );
+  });
+
+  it('checks the source token and amount against the minimum', () => {
+    mockSourceAmount = '0.001';
+
+    renderLimitOrderView();
+
+    expect(useLimitOrderMinAmount).toHaveBeenCalledWith({
+      sourceToken: mockSourceToken,
+      sourceAmount: '0.001',
+    });
+  });
+
+  it('disables the footer confirm button and shows the minimum when the amount is below it', () => {
+    jest.mocked(useLimitOrderMinAmount).mockReturnValue({
+      minAmountUsd: 1,
+      isBelowMinAmount: true,
+    });
+
+    renderLimitOrderView();
+
+    expect(mockBridgeLimitOrderFooterView).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        ctaDisabled: true,
+        ctaLabel: strings('bridge.limit.min_order_amount', { amount: '1' }),
+      }),
+    );
+  });
+
+  it('enables the footer confirm button with the create order label when the amount meets the minimum', () => {
+    renderLimitOrderView();
+
+    expect(mockBridgeLimitOrderFooterView).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        ctaDisabled: false,
+        ctaLabel: strings('bridge.limit.create_order'),
+      }),
+    );
   });
 
   it('composes the token warning, activation, hardware wallet, and missing price banners', () => {

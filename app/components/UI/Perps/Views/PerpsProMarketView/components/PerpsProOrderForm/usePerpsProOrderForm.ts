@@ -604,6 +604,11 @@ export const usePerpsProOrderForm = ({
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const source = route.params?.source;
   const sourceSection = route.params?.source_section;
+  const stayOnCurrentScreen = Boolean(
+    route.params &&
+      'stayOnCurrentScreen' in route.params &&
+      route.params.stayOnCurrentScreen,
+  );
 
   const isAdvancedChartEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
@@ -1937,6 +1942,12 @@ export const usePerpsProOrderForm = ({
               orderForm.asset,
             );
       showToast(toast);
+      // Lighter copy trade has no sheet. The balance-order screen was opened
+      // over the feed; after the order is in, return there instead of leaving
+      // the trader on the order form.
+      if (stayOnCurrentScreen) {
+        navigation.goBack();
+      }
     },
     onError: (error) => {
       if (
