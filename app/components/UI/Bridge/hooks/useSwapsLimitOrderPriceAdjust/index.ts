@@ -5,7 +5,11 @@ import { selectCurrentCurrency } from '../../../../../selectors/currencyRateCont
 import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
 import type { BridgeToken } from '../../types';
 import { formatTokenInputAmountFromFiat } from '../../utils/sourceAmountInputMode';
-import { formatLimitOrderFiatPriceFromTokenAmount } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
+import {
+  formatLimitOrderFiatInputPriceFromTokenAmount,
+  formatLimitOrderFiatPriceFromTokenAmount,
+  roundLimitOrderMarketFiatToInput,
+} from '../../utils/limitOrders/formatLimitOrderFiatPrice';
 import {
   getIsSwapsLimitOrderStablecoin,
   getSwapsLimitOrderDefaultPriceMode,
@@ -210,7 +214,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
                 tokenFiatRate: counterFiatRate,
                 tokenDecimals: counterToken?.decimals,
               })
-            : formatLimitOrderFiatPriceFromTokenAmount(
+            : formatLimitOrderFiatInputPriceFromTokenAmount(
                 currentLimitPrice,
                 counterFiatRate,
               ),
@@ -235,20 +239,23 @@ export const useSwapsLimitOrderPriceAdjust = ({
   const limitFiat = isLimitFiatMode
     ? limitPrice
     : formatLimitOrderFiatPriceFromTokenAmount(limitPrice, counterFiatRate);
+  const comparisonMarketFiat = isLimitFiatMode
+    ? roundLimitOrderMarketFiatToInput(quotedFiatRate)
+    : quotedFiatRate;
   const marketComparison = getSwapsLimitOrderPriceMarketComparison({
     limitFiat,
-    marketFiat: quotedFiatRate,
+    marketFiat: comparisonMarketFiat,
   });
   const isTriggerPriceNearMarket =
     hasUserEditedLimitPrice &&
     isSwapsLimitOrderPriceWithinMarketPercent({
       price: limitFiat,
-      marketPrice: quotedFiatRate,
+      marketPrice: comparisonMarketFiat,
       percent: LIMIT_ORDER_NEAR_MARKET_PERCENT,
     });
   const priceComparisonDirection = getSwapsLimitOrderPriceComparisonDirection({
     limitFiat,
-    marketFiat: quotedFiatRate,
+    marketFiat: comparisonMarketFiat,
     executionType,
   });
 

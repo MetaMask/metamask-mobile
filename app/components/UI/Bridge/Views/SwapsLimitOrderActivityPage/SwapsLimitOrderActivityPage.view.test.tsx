@@ -276,7 +276,7 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
     const networkFeeRow = await findByTestId(NETWORK_FEE_ROW);
 
     expect(
-      within(getByTestId(TRIGGER_CONDITION_ROW)).getByText('$2160'),
+      within(getByTestId(TRIGGER_CONDITION_ROW)).getByText('$2,160.00'),
     ).toBeOnTheScreen();
     expect(within(networkFeeRow).getByText('$1.23')).toBeOnTheScreen();
     // 0.1 ETH at $2160.
