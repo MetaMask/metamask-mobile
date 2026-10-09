@@ -260,6 +260,15 @@ export const useVbaHomeCard = (): VbaHomeCard => {
   });
 
   const [hasAcceptedVendorTerms, setHasAcceptedVendorTerms] = useState(false);
+  // Tracks the wallet the acceptance value was read for, so a wallet switch
+  // resets to not accepted during the render itself (not one frame later in
+  // an effect) and the first render for a new wallet never sees the
+  // previous wallet's value.
+  const [termsWalletAddress, setTermsWalletAddress] = useState(walletAddress);
+  if (termsWalletAddress !== walletAddress) {
+    setTermsWalletAddress(walletAddress);
+    setHasAcceptedVendorTerms(false);
+  }
 
   useEffect(() => {
     let cancelled = false;
