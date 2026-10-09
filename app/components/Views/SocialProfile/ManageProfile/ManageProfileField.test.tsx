@@ -276,14 +276,10 @@ describe('ManageProfileField', () => {
 
       expect(
         getByTestId(ManageProfileSelectorsIDs.TOGGLE_DESCRIPTION),
-      ).toHaveTextContent(
-        strings('manage_profile.trading_activity_private'),
-      );
+      ).toHaveTextContent(strings('manage_profile.trading_activity_private'));
       expect(
         getByTestId(ManageProfileSelectorsIDs.TOGGLE_HELPER_TEXT),
-      ).toHaveTextContent(
-        strings('manage_profile.trading_activity_footnote'),
-      );
+      ).toHaveTextContent(strings('manage_profile.trading_activity_footnote'));
       expect(
         getByTestId(ManageProfileSelectorsIDs.TOGGLE_INFO_BUTTON),
       ).toBeOnTheScreen();
@@ -323,9 +319,7 @@ describe('ManageProfileField', () => {
       ).toBeOnTheScreen();
       expect(
         within(sheet).getByText(
-          strings(
-            'manage_profile.trading_activity_info_description',
-          ),
+          strings('manage_profile.trading_activity_info_description'),
         ),
       ).toBeOnTheScreen();
     });
@@ -344,9 +338,7 @@ describe('ManageProfileField', () => {
 
       expect(
         getByTestId(ManageProfileSelectorsIDs.TOGGLE_DESCRIPTION),
-      ).toHaveTextContent(
-        strings('manage_profile.trading_activity_public'),
-      );
+      ).toHaveTextContent(strings('manage_profile.trading_activity_public'));
       expect(mockDispatch).toHaveBeenCalledWith({
         ...CommonActions.setParams({
           fieldUpdate: {

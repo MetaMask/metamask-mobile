@@ -141,9 +141,7 @@ const ProfileToggleCard = ({
             </BottomSheetHeader>
             <Box twClassName="px-4 pb-4" style={styles.sheetContent}>
               <Text variant={TextVariant.BodyMd}>
-                {strings(
-                  'manage_profile.trading_activity_info_description',
-                )}
+                {strings('manage_profile.trading_activity_info_description')}
               </Text>
             </Box>
           </BottomSheet>
