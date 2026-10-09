@@ -3,6 +3,7 @@ import React, { useLayoutEffect, useState, type FC } from 'react';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
+import { useTokenBalance } from '../hooks/useTokenBalance';
 import { MOCK_TRADER_POSITION_PNL } from './mockTraderPositionPnl';
 
 interface TraderPositionPnlSectionProps {
@@ -27,6 +28,8 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
     token,
     source: 'asset_details',
   });
+  const { balance } = useTokenBalance(token);
+  const hasTokenBalance = balance !== undefined && Number(balance) > 0;
 
   useLayoutEffect(() => {
     setIsExpanded(false);
@@ -45,8 +48,8 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
       <TokenDetailsStickyFooter
         token={token}
         securityData={securityData}
-        currentTokenBalance={token.balance ?? undefined}
-        hasTokenBalance={Boolean(token.balance && token.balance !== '0')}
+        currentTokenBalance={balance}
+        hasTokenBalance={hasTokenBalance}
         onQuickBuyPress={onQuickBuyPress}
         quickBuyEntrypointLayout="buy_sell"
         onOpenQuickBuy={openQuickBuy}
