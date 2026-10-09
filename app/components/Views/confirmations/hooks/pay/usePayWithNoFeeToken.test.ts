@@ -75,6 +75,7 @@ describe('usePayWithNoFeeToken', () => {
       chainId: chainId as Hex,
       symbol,
       fiat: { balance: fiatBalance },
+      balanceInSelectedCurrencyAmount: fiatBalance,
       disabled,
       balance: `${fiatBalance}`,
       decimals: 6,
@@ -157,6 +158,25 @@ describe('usePayWithNoFeeToken', () => {
       chainId: '0x1',
       symbol: 'USDT',
     });
+  });
+
+  it('prices the no-fee token from the USD display balance', () => {
+    const token = {
+      ...createMockToken('0xAAA', 'USDC', '0x1', 8),
+      balanceInSelectedCurrencyAmount: 15,
+    };
+
+    selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xAAA')));
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [token],
+      hasTokens: true,
+    });
+
+    const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
+      state: STATE_MOCK,
+    });
+
+    expect(result.current.noFeeToken?.balanceUsd).toBe('15');
   });
 
   it('hides no-fee tokens for hardware wallet payers', () => {

@@ -20,6 +20,11 @@ export interface AssetType extends TokenI {
   standard?: TokenStandard;
   description?: string;
   balanceInSelectedCurrency?: string;
+  /**
+   * Unformatted balance in the same currency as `balanceInSelectedCurrency`.
+   * Pay-with rows reformat this number; the string is display-only.
+   */
+  balanceInSelectedCurrencyAmount?: number;
   type?: string;
   fiat?: {
     balance?: number;

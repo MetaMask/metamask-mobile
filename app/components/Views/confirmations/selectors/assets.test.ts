@@ -433,11 +433,15 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
 
     it('displays zero fiat for a zero balance with no price', () => {
       expect(findPricelessToken('0')?.balanceInSelectedCurrency).toBe('chf:0');
+      expect(findPricelessToken('0')?.balanceInSelectedCurrencyAmount).toBe(0);
     });
 
     it('displays no fiat for a non-zero balance with no price', () => {
       expect(
         findPricelessToken('5')?.balanceInSelectedCurrency,
+      ).toBeUndefined();
+      expect(
+        findPricelessToken('5')?.balanceInSelectedCurrencyAmount,
       ).toBeUndefined();
     });
   });
@@ -463,6 +467,9 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
       expect(findBaseUsdc()?.balanceInSelectedCurrency).toBe(
         `chf:${BALANCE * PREFERRED_RATE}`,
       );
+      expect(findBaseUsdc()?.balanceInSelectedCurrencyAmount).toBe(
+        BALANCE * PREFERRED_RATE,
+      );
     });
 
     it('formats the balance from usdPrice when overridden to USD', () => {
@@ -470,6 +477,9 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
       // CHF amount with a dollar sign.
       expect(findBaseUsdc('USD')?.balanceInSelectedCurrency).toBe(
         `USD:${BALANCE * USD_RATE}`,
+      );
+      expect(findBaseUsdc('USD')?.balanceInSelectedCurrencyAmount).toBe(
+        BALANCE * USD_RATE,
       );
     });
 
@@ -519,6 +529,7 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
       );
 
       expect(mainnetUsdc?.balanceInSelectedCurrency).toBe('USD:100');
+      expect(mainnetUsdc?.balanceInSelectedCurrencyAmount).toBe(100);
     });
   });
 
