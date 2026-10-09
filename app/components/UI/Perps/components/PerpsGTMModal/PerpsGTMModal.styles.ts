@@ -105,7 +105,6 @@ const createStyles = (
       paddingBottom: scaleVertical(12),
     },
     tryNowButton: {
-      borderRadius: scaleSize(12),
       backgroundColor: isDarkMode
         ? importedColors.white
         : importedColors.btnBlack,
