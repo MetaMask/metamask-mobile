@@ -16,6 +16,7 @@ import {
 import { type OrdinaryOrderType } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
 import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
@@ -42,6 +43,7 @@ const LIMIT_PRESET_TEST_IDS = {
 const PerpsClosePositionBottomSheet: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const { fireImpact } = useHaptics();
 
   const dismiss = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -112,9 +114,10 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   });
 
   const handleLimitPriceDone = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
     limitPriceInput.trackInputMethod();
     setIsLimitPriceKeypadOpen(false);
-  }, [limitPriceInput]);
+  }, [limitPriceInput, fireImpact]);
 
   const handleOrderTypeChange = useCallback(
     (value: string) => {
@@ -141,15 +144,17 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   }, [handleAmountPress, isEditingLimitPrice]);
 
   const handleLimitPriceRowPress = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
     handleDonePress();
     setIsLimitPriceKeypadOpen(true);
-  }, [handleDonePress]);
+  }, [handleDonePress, fireImpact]);
 
   // Two order types, so the header control swaps between them on tap rather
   // than opening a picker.
   const handleOrderTypeToggle = useCallback(() => {
+    fireImpact(ImpactMoment.TabChange);
     handleOrderTypeChange(effectiveOrderType === 'market' ? 'limit' : 'market');
-  }, [effectiveOrderType, handleOrderTypeChange]);
+  }, [effectiveOrderType, handleOrderTypeChange, fireImpact]);
 
   const handleMarginTooltipPress = useCallback(() => {
     setIsMarginInfoVisible(true);

@@ -284,7 +284,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   useBottomSheet = false,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const { playImpact } = useHaptics();
+  const { fireImpact } = useHaptics();
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
   // Source: from route params (caller-passed) or trending session, else default
   const source =
@@ -1417,10 +1417,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   };
 
   const handleTradeSheetLimitPricePress = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
     setIsInputFocused(false);
     setIsLimitPriceFocused(true);
     tradeSheetLimitPriceInputMethodRef.current = null;
-  }, []);
+  }, [fireImpact]);
 
   const handleTradeSheetLimitPriceChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
@@ -1491,6 +1492,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   );
 
   const handleTradeSheetLimitPriceDone = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
     const inputMethod = tradeSheetLimitPriceInputMethodRef.current;
     if (inputMethod) {
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -1505,12 +1507,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       tradeSheetLimitPriceInputMethodRef.current = null;
     }
     setIsLimitPriceFocused(false);
-  }, [orderForm.asset, orderForm.direction, track]);
+  }, [orderForm.asset, orderForm.direction, fireImpact, track]);
 
   // The sheet only offers market and limit, so the header control swaps
   // between them on tap rather than opening a second bottom sheet.
   const handleTradeSheetOrderTypeToggle = useCallback(() => {
     const nextType = orderForm.type === 'limit' ? 'market' : 'limit';
+
+    fireImpact(ImpactMoment.TabChange);
 
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
@@ -1540,6 +1544,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     orderForm.asset,
     orderForm.direction,
     orderForm.type,
+    fireImpact,
     setLimitPrice,
     setOrderType,
     track,
@@ -1661,7 +1666,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       }
 
       if (useBottomSheet && !forceTrade) {
-        playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+        fireImpact(ImpactMoment.PrimaryCTA);
       }
 
       let submissionIsValid = orderValidation.isValid;
@@ -2000,7 +2005,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       exceedsMaxSlippage,
       vipTier,
       useBottomSheet,
-      playImpact,
+      fireImpact,
     ],
   );
 

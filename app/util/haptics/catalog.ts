@@ -132,4 +132,6 @@ export interface HapticsPlayer {
   playWarningNotification: () => Promise<void>;
   playImpact: (moment: HapticImpactMoment) => Promise<void>;
   playSelection: () => Promise<void>;
+  /** Fire-and-forget `playImpact` — swallows rejection so a haptics failure never blocks the caller. */
+  fireImpact: (moment: HapticImpactMoment) => void;
 }

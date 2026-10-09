@@ -11,6 +11,8 @@ import PerpsTradeScreen from './PerpsTradeScreen';
 import type PerpsSlider from '../PerpsSlider';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
+jest.mock('../../../../../util/haptics');
+
 const mockNavigateTo = jest.fn();
 let mockLivePriceHeaderProps:
   | { currentPrice: number; percentChange24h: number | null }

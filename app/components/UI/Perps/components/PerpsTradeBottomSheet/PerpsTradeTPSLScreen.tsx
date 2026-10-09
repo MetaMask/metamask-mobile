@@ -223,7 +223,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
   onSave,
 }) => {
   const { goBack } = usePerpsTradeSheet();
-  const { playImpact } = useHaptics();
+  const { fireImpact } = useHaptics();
   const [isUpdating, setIsUpdating] = useState(false);
   const [focusedInput, setFocusedInput] = useState<TPSLInput | null>(null);
   const inputRefs = useRef<Record<TPSLInput, TextInput | null>>({
@@ -411,6 +411,11 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
     setFocusedInput(null);
   }, [focusedInput]);
 
+  const handleDonePillPress = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
+    dismissKeypad();
+  }, [dismissKeypad, fireImpact]);
+
   const handleTakeProfitClear = useCallback(() => {
     dismissKeypad();
     handleTakeProfitOff();
@@ -543,7 +548,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
       return;
     }
 
-    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+    fireImpact(ImpactMoment.PrimaryCTA);
     dismissKeypad();
     setIsUpdating(true);
     try {
@@ -560,7 +565,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
     goBack,
     isUpdating,
     onSave,
-    playImpact,
+    fireImpact,
     hasChanges,
     isValid,
     stopLossPrice,
@@ -912,7 +917,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
                 twClassName="flex-1 px-1"
-                onPress={dismissKeypad}
+                onPress={handleDonePillPress}
                 testID={PerpsTPSLViewSelectorsIDs.DONE_BUTTON}
               >
                 {strings('perps.tpsl.done')}

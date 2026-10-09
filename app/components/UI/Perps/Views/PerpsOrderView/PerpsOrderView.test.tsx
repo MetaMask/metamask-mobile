@@ -44,7 +44,7 @@ import {
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
-import { ImpactMoment, playImpact } from '../../../../../util/haptics';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import {
   usePerpsLiveAccount,
   usePerpsLiquidationPrice,
@@ -2063,8 +2063,8 @@ describe('PerpsOrderView', () => {
       });
 
       expect(placeOrder).toHaveBeenCalledTimes(1);
-      expect(playImpact).toHaveBeenCalledTimes(1);
-      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+      expect(fireImpact).toHaveBeenCalledTimes(1);
+      expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     });
 
     it('stays silent on the full-screen surface', async () => {
@@ -2080,7 +2080,7 @@ describe('PerpsOrderView', () => {
       });
 
       expect(placeOrder).toHaveBeenCalledTimes(1);
-      expect(playImpact).not.toHaveBeenCalled();
+      expect(fireImpact).not.toHaveBeenCalled();
     });
 
     it('stays silent when the tap only flushes a stuck slider drag', async () => {
@@ -2096,7 +2096,7 @@ describe('PerpsOrderView', () => {
       });
 
       expect(placeOrder).not.toHaveBeenCalled();
-      expect(playImpact).not.toHaveBeenCalled();
+      expect(fireImpact).not.toHaveBeenCalled();
     });
   });
 
@@ -6734,7 +6734,7 @@ describe('PerpsOrderView', () => {
         // event payload is verified separately by the slippage recipe and the
         // `eventNames` constants tests.)
         expect(mockPlaceOrder).not.toHaveBeenCalled();
-        expect(playImpact).not.toHaveBeenCalled();
+        expect(fireImpact).not.toHaveBeenCalled();
         // The i18n mock returns the key for untranslated strings, so the copy
         // choice per surface is observable through the toast argument.
         expect(mockValidationError).toHaveBeenCalledWith(expectedCopyKey);

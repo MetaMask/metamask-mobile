@@ -14,7 +14,7 @@ import {
   PerpsTPSLViewSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
-import { ImpactMoment, playImpact } from '../../../../../util/haptics';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { CommonActions } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { PayWithSectionConfig } from '../../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
@@ -379,11 +379,21 @@ describe('PerpsTradeNestedScreens', () => {
           onBack: mockGoBack,
           onClose: mockClose,
           onConfirmComplete: mockGoBack,
-          onConfirm,
+          onConfirm: expect.any(Function),
           leverage: 3,
           maxLeverage: 40,
         }),
       );
+
+      (
+        mockLeverageSheetProps?.onConfirm as (
+          leverage: number,
+          inputMethod?: 'slider' | 'preset',
+        ) => void
+      )(5, 'preset');
+
+      expect(onConfirm).toHaveBeenCalledWith(5, 'preset');
+      expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     });
   });
 
@@ -501,8 +511,8 @@ describe('PerpsTradeNestedScreens', () => {
       expect(onSave).toHaveBeenCalledWith('110', '90');
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
-    expect(playImpact).toHaveBeenCalledTimes(1);
-    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    expect(fireImpact).toHaveBeenCalledTimes(1);
+    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
   });
 
   it('does not play a haptic when Save has nothing to commit', () => {
@@ -512,7 +522,7 @@ describe('PerpsTradeNestedScreens', () => {
 
     fireEvent.press(screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON));
 
-    expect(playImpact).not.toHaveBeenCalled();
+    expect(fireImpact).not.toHaveBeenCalled();
     expect(onSave).not.toHaveBeenCalled();
   });
 
@@ -635,6 +645,7 @@ describe('PerpsTradeNestedScreens', () => {
     expect(
       screen.queryByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
     ).not.toBeOnTheScreen();
+    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
   });
 
   it('shows expected profit and loss for populated fields', () => {
