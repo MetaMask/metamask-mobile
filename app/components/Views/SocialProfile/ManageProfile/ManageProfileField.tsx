@@ -58,9 +58,15 @@ const ManageProfileField = () => {
   );
 
   const handleSave = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL_PROFILE.MANAGE_PROFILE, {
-      fieldUpdate: { field, value: draft },
-    });
+    // `navigate` pushes in React Navigation 7. `pop` returns to the Manage
+    // profile already on the stack so its in-memory edits stay put.
+    navigation.navigate(
+      Routes.SOCIAL_PROFILE.MANAGE_PROFILE,
+      {
+        fieldUpdate: { field, value: draft },
+      },
+      { pop: true },
+    );
   }, [draft, field, navigation]);
 
   const title =
