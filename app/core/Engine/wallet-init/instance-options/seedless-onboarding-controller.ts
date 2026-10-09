@@ -1,4 +1,5 @@
 import type { Json } from '@metamask/utils';
+import type { RecoveryIdentifierAuthProvider } from '@metamask/mfa-recovery-controller';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import type { WalletOptions } from '@metamask/wallet';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
@@ -6,6 +7,10 @@ import type {
   EncryptionKey,
   KeyDerivationOptions,
 } from '../../../Encryptor/types';
+import {
+  createMoneyMfaOidcIdentifierAuthProvider,
+  type CreateMoneyMfaOidcIdentifierAuthProviderOptions,
+} from '../../../MfaRecovery';
 import AuthTokenHandler from '../../../OAuthService/AuthTokenHandler';
 import { web3AuthNetwork } from '../../../OAuthService/OAuthLoginHandlers/constants';
 
@@ -129,4 +134,22 @@ export function getSeedlessOnboardingControllerInstanceOptions(): SeedlessOnboar
     renewRefreshToken: AuthTokenHandler.renewRefreshToken,
     revokeRefreshToken: AuthTokenHandler.revokeRefreshToken,
   };
+}
+
+/**
+ * Seedless Google/Apple OIDC `identifierAuthProvider` for
+ * `@metamask/mfa-recovery-controller` ([MFA-703](https://consensyssoftware.atlassian.net/browse/MFA-703)).
+ *
+ * Seedless is the first consumer path: this wraps the same OAuth login handlers
+ * Seedless uses, gated by `isMoneyMfaEnabled`. Inject into
+ * `MfaRecoveryController` when that controller is constructed (AuthToken /
+ * Cubist escrow remain separate follow-ups).
+ *
+ * @param options - Remote flag reader and optional login override for tests.
+ * @returns A {@link RecoveryIdentifierAuthProvider} backed by Seedless OIDC.
+ */
+export function getSeedlessOidcIdentifierAuthProvider(
+  options: CreateMoneyMfaOidcIdentifierAuthProviderOptions,
+): RecoveryIdentifierAuthProvider {
+  return createMoneyMfaOidcIdentifierAuthProvider(options);
 }
