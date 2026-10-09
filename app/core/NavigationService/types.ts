@@ -774,6 +774,7 @@ export type RootStackParamList = {
   BackupAndSyncSettings: undefined;
   SettingsRegionSelector: RegionSelectorParams | undefined;
   ProfileDrawer: undefined;
+  ManageProfile: undefined;
 
   // Sheet routes
   AccountSelector: AccountSelectorParams | undefined;
