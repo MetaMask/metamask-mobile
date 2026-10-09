@@ -7,6 +7,8 @@ export interface AccountListCellProps {
   isSelected: boolean;
   onSelectAccount: (accountGroup: AccountGroupObject) => void;
   showCheckbox?: boolean;
+  showBalance?: boolean;
+  nonTokenBalance?: number | null;
   chainId?: string;
   hideMenu?: boolean;
 }

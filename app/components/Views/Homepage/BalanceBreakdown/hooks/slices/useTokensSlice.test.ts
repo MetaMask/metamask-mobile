@@ -1,7 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useAccountGroupBalanceFetchState } from '../../../../../UI/Assets/components/Balance/useAccountGroupBalanceFetchState';
-import { useNetworkEnablement } from '../../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useTokensSlice } from './useTokensSlice';
 
 const mockBalanceSelector = jest.fn();
@@ -19,20 +18,14 @@ jest.mock('../../../../../../selectors/assets/balances', () => ({
 jest.mock(
   '../../../../../UI/Assets/components/Balance/useAccountGroupBalanceFetchState',
 );
-jest.mock('../../../../../hooks/useNetworkEnablement/useNetworkEnablement');
-
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseAccountGroupBalanceFetchState = jest.mocked(
   useAccountGroupBalanceFetchState,
 );
-const mockUseNetworkEnablement = jest.mocked(useNetworkEnablement);
 
 describe('useTokensSlice', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseNetworkEnablement.mockReturnValue({
-      popularNetworks: ['eip155:1'],
-    } as unknown as ReturnType<typeof useNetworkEnablement>);
     mockUseSelector.mockImplementation((selector) => {
       if (selector === mockBalanceSelector) {
         return {

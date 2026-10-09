@@ -112,7 +112,8 @@ const HomepageBalanceBreakdownRow = ({
     formattedMoneyApy !== undefined
       ? strings('money.apy_label', { percentage: formattedMoneyApy })
       : undefined;
-  const showMoneyBuyButton = slice.key === 'money';
+  const showMoneyBuyButton =
+    slice.key === 'money' && !(slice.status === 'ready' && slice.valueFiat > 0);
   const moneyBuyLabel = strings('homepage.action_buttons.buy');
   const rowAccessibilityLabel = [
     getSliceLabel(slice.key),
