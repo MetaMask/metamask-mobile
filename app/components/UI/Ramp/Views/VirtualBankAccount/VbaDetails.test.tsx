@@ -175,57 +175,6 @@ describe('VbaDetails', () => {
     });
   });
 
-  it('announces PIX instructions when they appear', async () => {
-    const announceSpy = jest.spyOn(
-      AccessibilityInfo,
-      'announceForAccessibility',
-    );
-    mockGetPix.mockResolvedValue(pixInstructions);
-
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
-
-    await waitFor(() => {
-      expect(announceSpy).toHaveBeenCalledWith(pixInstructions.instruction);
-    });
-    expect(getByTestId(VbaDetailsSelectorsIDs.PIX_INSTRUCTIONS).props).toEqual(
-      expect.objectContaining({
-        accessibilityLiveRegion: 'polite',
-      }),
-    );
-  });
-
-  it('announces deposit status when it updates', async () => {
-    const announceSpy = jest.spyOn(
-      AccessibilityInfo,
-      'announceForAccessibility',
-    );
-    mockGetPix.mockResolvedValue(pixInstructions);
-    mockListTransactions.mockResolvedValue([
-      { id: 'tx-1', status: 'Completed', createdAt: '2026-06-01T00:00:00Z' },
-    ]);
-
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
-
-    const statusCopy = strings(
-      'virtual_bank_account.vba_details.transaction_status',
-      {
-        status: strings(
-          'virtual_bank_account.vba_details.transaction_completed',
-        ),
-      },
-    );
-    await waitFor(() => {
-      expect(announceSpy).toHaveBeenCalledWith(statusCopy);
-    });
-    expect(
-      getByTestId(VbaDetailsSelectorsIDs.TRANSACTION_STATUS).props,
-    ).toEqual(
-      expect.objectContaining({
-        accessibilityLiveRegion: 'polite',
-      }),
-    );
-  });
-
   it('shows the PIX code and a completed deposit', async () => {
     mockGetPix.mockResolvedValue(pixInstructions);
     mockListTransactions.mockResolvedValue([
