@@ -13,6 +13,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import BalanceEmptyState from '../../../../UI/BalanceEmptyState';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -38,8 +39,10 @@ const HomepageBalanceBreakdownHero = ({
     isLoading,
     percentText,
     privacyMode,
+    skipBalanceAnimation,
     shouldShowEmptyState,
     togglePrivacy,
+    zeroBalance,
   } = useHomepageBalanceBreakdownHero(hero);
 
   if (!isLoading && shouldShowEmptyState) {
@@ -64,8 +67,8 @@ const HomepageBalanceBreakdownHero = ({
       testID={HomepageBalanceBreakdownTestIds.HERO}
       twClassName="mx-4 h-auto self-stretch flex-col items-start justify-start overflow-visible rounded-none bg-transparent p-0"
     >
-      <Skeleton hideChildren={isLoading}>
-        <Animated.View style={animatedBalanceStyle}>
+      <Animated.View style={animatedBalanceStyle}>
+        {privacyMode ? (
           <SensitiveText
             color={
               hero.isPartiallyLoaded || hero.hasErroredSlice
@@ -79,10 +82,24 @@ const HomepageBalanceBreakdownHero = ({
           >
             {displayBalance}
           </SensitiveText>
-        </Animated.View>
-      </Skeleton>
+        ) : (
+          <AnimatedBalanceText
+            accessible={false}
+            color={
+              hero.isPartiallyLoaded || hero.hasErroredSlice
+                ? TextColor.TextMuted
+                : TextColor.TextDefault
+            }
+            isLoading={isLoading}
+            loadingValue={zeroBalance}
+            testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+            value={displayBalance}
+            animated={!skipBalanceAnimation}
+          />
+        )}
+      </Animated.View>
 
-      {hero.delta && amountText ? (
+      {!isLoading && hero.delta && amountText ? (
         <Skeleton hideChildren={isLoading}>
           <Box
             alignItems={BoxAlignItems.Center}
