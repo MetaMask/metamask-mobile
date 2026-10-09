@@ -2421,6 +2421,9 @@
       "out_of_range": "Enter a value between {{min}}% and {{max}}%",
       "slippage": "Slippage",
       "exceeds_max": "Estimated slippage ({{est}}%) exceeds your max slippage ({{max}}%). Increase the cap or reduce the order size.",
+      "insufficient_depth": "Unable to confirm enough visible liquidity to fill this market order. Try again when market data is available, reduce the size, or use a limit order.",
+      "cannot_fill": "This market order cannot fill within your max slippage. Increase max slippage, reduce the size, or use a limit order.",
+      "cannot_fill_reduce_size": "This market order cannot fill within your max slippage. Reduce the size or use a limit order.",
       "exceeds_max_reduce_size": "Estimated slippage ({{est}}%) exceeds your max slippage ({{max}}%). Reduce the order size."
     },
     "price_deviation_warning": {
@@ -2685,7 +2688,7 @@
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Deposit failed",
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
-      "insufficientLiquidity": "Insufficient liquidity to execute order. Try using a limit order or retry in a moment.",
+      "insufficientLiquidity": "Insufficient liquidity to execute order. Increase max slippage, reduce the order size, or use a limit order.",
       "connectionTimeout": "Connection timed out. Please check your network and try again.",
       "clientReinitializing": "Service is reinitializing. Please wait a moment and try again.",
       "transferFailed": "Unable to transfer funds. Please try again.",

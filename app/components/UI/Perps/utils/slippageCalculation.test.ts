@@ -1,5 +1,8 @@
 import type { OrderBookData, OrderBookLevel } from '@metamask/perps-controller';
-import { calculateEstimatedSlippageBps } from './slippageCalculation';
+import {
+  calculateEstimatedSlippageBps,
+  calculateMarketOrderLiquidity,
+} from './slippageCalculation';
 
 const level = (price: number, size: number): OrderBookLevel => ({
   price: String(price),
@@ -150,5 +153,185 @@ describe('calculateEstimatedSlippageBps', () => {
     });
     expect(result).not.toBeNull();
     expect(result as number).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe('calculateMarketOrderLiquidity', () => {
+  it.each([true, false])('rejects insufficient depth for buy=%s', (isBuy) => {
+    const orderBook = buildBook(100, [level(100, 0.5)], [level(100, 0.5)]);
+
+    const result = calculateMarketOrderLiquidity({
+      orderBook,
+      sizeUsd: 100,
+      isBuy,
+      maxSlippageBps: 300,
+    });
+
+    expect(result.canFillWithinSlippage).toBe(false);
+    expect(result.estimatedSlippageBps).toBeNull();
+  });
+
+  it.each([true, false])(
+    'rejects the worst level even when VWAP is within the cap, buy=%s',
+    (isBuy) => {
+      const orderBook = buildBook(
+        100,
+        [level(100, 0.9), level(110, 1)],
+        [level(100, 0.9), level(90, 1)],
+      );
+
+      const result = calculateMarketOrderLiquidity({
+        orderBook,
+        sizeUsd: 100,
+        isBuy,
+        maxSlippageBps: 300,
+      });
+
+      expect(result.estimatedSlippageBps).toBeCloseTo(100);
+      expect(result.worstSlippageBps).toBeCloseTo(1000);
+      expect(result.canFillWithinSlippage).toBe(false);
+    },
+  );
+
+  it.each([true, false])(
+    'accepts a fill exactly at the limit, buy=%s',
+    (isBuy) => {
+      const orderBook = buildBook(100, [level(103, 10)], [level(97, 10)]);
+
+      const result = calculateMarketOrderLiquidity({
+        orderBook,
+        sizeUsd: 100,
+        isBuy,
+        maxSlippageBps: 300,
+        szDecimals: 2,
+      });
+
+      expect(result.canFillWithinSlippage).toBe(true);
+      expect(result.worstSlippageBps).toBe(300);
+    },
+  );
+
+  it('uses the submission mid instead of the independent book mid', () => {
+    const orderBook = buildBook(105, [level(104, 10)], []);
+
+    const result = calculateMarketOrderLiquidity({
+      orderBook,
+      currentPrice: 100,
+      sizeUsd: 100,
+      isBuy: true,
+      maxSlippageBps: 300,
+    });
+
+    expect(result.canFillWithinSlippage).toBe(false);
+    expect(result.worstSlippageBps).toBe(400);
+  });
+
+  it('checks the rounded submitted quantity rather than unrounded USD size', () => {
+    const orderBook = buildBook(100, [level(100, 1.001)], []);
+
+    const result = calculateMarketOrderLiquidity({
+      orderBook,
+      sizeUsd: 100.1,
+      isBuy: true,
+      maxSlippageBps: 300,
+      szDecimals: 2,
+    });
+
+    expect(result.canFillWithinSlippage).toBe(false);
+  });
+
+  it('uses the exact position size for a full reduce-only close', () => {
+    const orderBook = buildBook(100, [], [level(100, 0.5)]);
+
+    const result = calculateMarketOrderLiquidity({
+      orderBook,
+      sizeUsd: 100,
+      isBuy: false,
+      maxSlippageBps: 300,
+      szDecimals: 2,
+      reduceOnly: true,
+      size: '0.5',
+    });
+
+    expect(result.canFillWithinSlippage).toBe(true);
+  });
+
+  it.each([true, false])(
+    'checks fractional MAX depth and worst level for a full close, buy=%s',
+    (isBuy) => {
+      const params = {
+        sizeUsd: 50,
+        currentPrice: 100,
+        isBuy,
+        maxSlippageBps: 300,
+        szDecimals: 3,
+        reduceOnly: true,
+        size: '0.509',
+      };
+      const shallow = [level(100, 0.5)];
+      const outsideCap = [...shallow, level(isBuy ? 104 : 96, 0.009)];
+      const sufficient = [level(100, 0.509)];
+
+      for (const levels of [shallow, outsideCap]) {
+        const result = calculateMarketOrderLiquidity({
+          ...params,
+          orderBook: buildBook(100, levels, levels),
+        });
+        expect(result.canFillWithinSlippage).toBe(false);
+      }
+      expect(
+        calculateMarketOrderLiquidity({
+          ...params,
+          orderBook: buildBook(100, sufficient, sufficient),
+        }).canFillWithinSlippage,
+      ).toBe(true);
+    },
+  );
+
+  it('skips nonpositive prices instead of allowing a zero-price sell level', () => {
+    const orderBook = buildBook(
+      100,
+      [],
+      [level(0, 10), level(-1, 10), level(100, 1)],
+    );
+
+    const result = calculateMarketOrderLiquidity({
+      orderBook,
+      sizeUsd: 100,
+      isBuy: false,
+      maxSlippageBps: 300,
+    });
+
+    expect(result.canFillWithinSlippage).toBe(true);
+    expect(result.worstSlippageBps).toBe(0);
+  });
+
+  it('stops after the required quantity and ignores deeper out-of-cap levels', () => {
+    const orderBook = buildBook(100, [level(100, 1), level(200, 10)], []);
+
+    const result = calculateMarketOrderLiquidity({
+      orderBook,
+      sizeUsd: 100,
+      isBuy: true,
+      maxSlippageBps: 300,
+    });
+
+    expect(result.canFillWithinSlippage).toBe(true);
+    expect(result.worstSlippageBps).toBe(0);
+  });
+  it('returns unavailable for a reduce-only quantity below the venue increment', () => {
+    const orderBook = buildBook(100, [], [level(100, 1)]);
+
+    const result = calculateMarketOrderLiquidity({
+      orderBook,
+      sizeUsd: 0.1,
+      isBuy: false,
+      maxSlippageBps: 300,
+      szDecimals: 2,
+      reduceOnly: true,
+    });
+
+    expect(result.canFillWithinSlippage).toBeNull();
+    expect(result.estimatedSlippageBps).toBeNull();
   });
 });
