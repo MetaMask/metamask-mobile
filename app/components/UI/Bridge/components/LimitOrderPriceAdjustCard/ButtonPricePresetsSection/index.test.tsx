@@ -129,6 +129,10 @@ describe('ButtonPricePresetsSection', () => {
     expect(onCustomInputPress).toHaveBeenCalledTimes(1);
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('focuses the custom input as soon as custom mode becomes active', () => {
     const focusSpy = jest.spyOn(TextInput.prototype, 'focus');
     const { rerender, getByTestId } = renderPresetsSection();
@@ -141,8 +145,6 @@ describe('ButtonPricePresetsSection', () => {
       getByTestId(LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM_INPUT),
     ).toBeOnTheScreen();
     expect(focusSpy).toHaveBeenCalledTimes(1);
-
-    focusSpy.mockRestore();
   });
 
   describe('measureInWindow', () => {

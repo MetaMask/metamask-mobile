@@ -17,6 +17,11 @@ import type {
  */
 export const KEYPAD_TARGET_MARGIN = 12;
 
+/**
+ * Allowance for sub-pixel rounding when comparing reported content heights.
+ */
+const CONTENT_SIZE_TOLERANCE = 1;
+
 export type MeasureInWindow = (
   callback: (x: number, y: number, width: number, height: number) => void,
 ) => void;
@@ -50,6 +55,22 @@ export const useScrollIntoViewAboveKeypad = ({
   const scrollOffsetRef = useRef(0);
   const [viewportHeight, setViewportHeight] = useState(0);
   const [keypadTop, setKeypadTop] = useState<number>();
+  const [contentHeight, setContentHeight] = useState(0);
+
+  const baseContentHeightRef = useRef<number | undefined>(undefined);
+  const keypadOverlapRef = useRef(0);
+
+  const handleContentSizeChange = useCallback(
+    (_width: number, height: number) => {
+      // Only a size reported without padding is a baseline; once the padding is
+      // applied the size is the baseline plus the padding.
+      if (keypadOverlapRef.current === 0) {
+        baseContentHeightRef.current = height;
+      }
+      setContentHeight(height);
+    },
+    [],
+  );
 
   const handleScrollViewLayout = useCallback((event: LayoutChangeEvent) => {
     setViewportHeight(event.nativeEvent.layout.height);
@@ -76,8 +97,22 @@ export const useScrollIntoViewAboveKeypad = ({
   const keypadOverlap =
     keypadTop === undefined ? 0 : Math.max(viewportHeight - keypadTop, 0);
 
+  keypadOverlapRef.current = keypadOverlap;
+
   useEffect(() => {
     if (!isTargetActive || keypadTop === undefined) {
+      return;
+    }
+
+    // The padding is applied in the same commit that sets `keypadTop`, but the
+    // native content only grows afterwards. Scrolling before that would be
+    // clamped to the old range, so wait for the content size to catch up; the
+    // size change re-runs this effect.
+    const baseContentHeight = baseContentHeightRef.current;
+    if (
+      baseContentHeight !== undefined &&
+      contentHeight < baseContentHeight + keypadOverlap - CONTENT_SIZE_TOLERANCE
+    ) {
       return;
     }
 
@@ -97,10 +132,18 @@ export const useScrollIntoViewAboveKeypad = ({
           }
         });
       });
-  }, [isTargetActive, keypadTop, measureTarget, scrollViewRef]);
+  }, [
+    contentHeight,
+    isTargetActive,
+    keypadOverlap,
+    keypadTop,
+    measureTarget,
+    scrollViewRef,
+  ]);
 
   return {
     keypadOverlap,
+    onContentSizeChange: handleContentSizeChange,
     keypadLayoutProps: {
       onLayout: handleKeypadLayout,
       onClose: handleKeypadClose,

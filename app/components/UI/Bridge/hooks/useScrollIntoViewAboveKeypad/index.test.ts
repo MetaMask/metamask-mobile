@@ -154,6 +154,87 @@ describe('useScrollIntoViewAboveKeypad', () => {
     expect(scrollTo).toHaveBeenCalledTimes(2);
   });
 
+  describe('content size', () => {
+    it('waits for the content to grow by the keypad overlap before scrolling', () => {
+      const { result, scrollTo } = setup({ targetTop: SCROLL_VIEW_TOP + 500 });
+
+      act(() => {
+        result.current.onScrollViewLayout(createLayoutEvent({ height: 600 }));
+        result.current.onContentSizeChange(0, 700);
+      });
+      act(() => {
+        result.current.keypadLayoutProps.onLayout(
+          createLayoutEvent({ y: 350 }),
+        );
+      });
+
+      // The padding is rendered but the native content has not grown yet.
+      expect(result.current.keypadOverlap).toBe(250);
+      expect(scrollTo).not.toHaveBeenCalled();
+
+      act(() => {
+        result.current.onContentSizeChange(0, 950);
+      });
+
+      expect(scrollTo).toHaveBeenCalledTimes(1);
+    });
+
+    it('scrolls straight away when no padding is needed', () => {
+      const { result, scrollTo } = setup({ targetTop: SCROLL_VIEW_TOP + 640 });
+
+      act(() => {
+        result.current.onScrollViewLayout(createLayoutEvent({ height: 600 }));
+        result.current.onContentSizeChange(0, 700);
+      });
+      // The keypad starts below the scroll view, so no padding is added.
+      act(() => {
+        result.current.keypadLayoutProps.onLayout(
+          createLayoutEvent({ y: 650 }),
+        );
+      });
+
+      expect(result.current.keypadOverlap).toBe(0);
+      expect(scrollTo).toHaveBeenCalledTimes(1);
+    });
+
+    it('measures a new baseline once the keypad closes', () => {
+      const { result, scrollTo } = setup({ targetTop: SCROLL_VIEW_TOP + 500 });
+
+      act(() => {
+        result.current.onScrollViewLayout(createLayoutEvent({ height: 600 }));
+        result.current.onContentSizeChange(0, 700);
+      });
+      act(() => {
+        result.current.keypadLayoutProps.onLayout(
+          createLayoutEvent({ y: 350 }),
+        );
+      });
+      act(() => {
+        result.current.onContentSizeChange(0, 950);
+      });
+      act(() => {
+        result.current.keypadLayoutProps.onClose();
+      });
+      act(() => {
+        result.current.onContentSizeChange(0, 800);
+      });
+      scrollTo.mockClear();
+      act(() => {
+        result.current.keypadLayoutProps.onLayout(
+          createLayoutEvent({ y: 350 }),
+        );
+      });
+
+      expect(scrollTo).not.toHaveBeenCalled();
+
+      act(() => {
+        result.current.onContentSizeChange(0, 1050);
+      });
+
+      expect(scrollTo).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('keypadOverlap', () => {
     it('is zero while the keypad is closed', () => {
       const { result } = setup();

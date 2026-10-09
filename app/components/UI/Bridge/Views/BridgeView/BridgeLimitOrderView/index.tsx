@@ -215,6 +215,7 @@ const BridgeLimitOrderViewContent = () => {
     keypadOverlap,
     onScroll: trackScrollOffset,
     onScrollViewLayout,
+    onContentSizeChange,
   } = useScrollIntoViewAboveKeypad({
     isTargetActive: isCustomActive && isCustomPercentFocused,
     scrollViewRef,
@@ -504,6 +505,7 @@ const BridgeLimitOrderViewContent = () => {
             paddingBottom: keypadOverlap,
           })}
           onLayout={onScrollViewLayout}
+          onContentSizeChange={onContentSizeChange}
           showsVerticalScrollIndicator={false}
           onScrollBeginDrag={dismissInputAndKeypad}
           onScroll={handleOrdersScroll}
