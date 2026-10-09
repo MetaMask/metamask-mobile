@@ -4,7 +4,7 @@ import {
   toMultichainAccountWalletId,
 } from '@metamask/account-api';
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -105,7 +105,7 @@ const BalanceDisplay = ({
   }, [totalBalance, userCurrency]);
 
   return (
-    <TouchableOpacity onPress={onSelectAccount}>
+    <Pressable onPress={onSelectAccount}>
       <View style={styles.balanceContainer}>
         {/* Keep zero balances blank. `selectBalanceByAccountGroup` synthesizes
             0 before assets load, so "$0.00" reads as a real empty wallet.
@@ -131,7 +131,7 @@ const BalanceDisplay = ({
           />
         )}
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
@@ -252,7 +252,7 @@ const BalanceEndContainer = ({
         />
       )}
       {!hideMenu && (
-        <TouchableOpacity
+        <Pressable
           testID={AccountCellIds.MENU}
           style={styles.menuButton}
           onPress={handleMenuPress}
@@ -262,7 +262,7 @@ const BalanceEndContainer = ({
             size={IconSize.Md}
             color={IconColor.IconAlternative}
           />
-        </TouchableOpacity>
+        </Pressable>
       )}
     </>
   );
@@ -344,7 +344,7 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
-      <TouchableOpacity
+      <Pressable
         onPress={onSelectAccount}
         style={styles.mainTouchable}
         testID={AccountCellIds.SELECT}
@@ -376,7 +376,7 @@ const AccountCell = ({
             />
           ) : null}
         </View>
-      </TouchableOpacity>
+      </Pressable>
       <View style={styles.endContainer}>
         {endContainer || (
           <BalanceEndContainer
