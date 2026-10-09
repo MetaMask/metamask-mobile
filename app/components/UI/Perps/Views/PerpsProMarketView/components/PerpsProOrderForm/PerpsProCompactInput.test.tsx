@@ -1,7 +1,11 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Keyboard, Pressable, Text } from 'react-native';
-import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
+import {
+  getPerpsProCompactInputLabelContainerTestId,
+  getPerpsProCompactInputRowTestId,
+  PerpsProOrderFormSelectorsIDs,
+} from '../../../../Perps.testIds';
 import PerpsProCompactInput, {
   getPerpsProInputAccessoryID,
   PerpsProInputKeyboardAccessory,
@@ -84,7 +88,9 @@ describe('PerpsProCompactInput', () => {
 
       expect(mockInputFocus).not.toHaveBeenCalled();
       expect(
-        screen.getByTestId(`${defaultProps.testID}-label-container`),
+        screen.getByTestId(
+          getPerpsProCompactInputLabelContainerTestId(defaultProps.testID),
+        ),
       ).toHaveStyle({
         position: 'absolute',
         top: 0,
@@ -114,7 +120,9 @@ describe('PerpsProCompactInput', () => {
         }),
       );
       expect(
-        screen.getByTestId(`${defaultProps.testID}-label-container`),
+        screen.getByTestId(
+          getPerpsProCompactInputLabelContainerTestId(defaultProps.testID),
+        ),
       ).toHaveStyle({ position: 'absolute', top: 0 });
     });
 
@@ -138,7 +146,9 @@ describe('PerpsProCompactInput', () => {
       expect(mockInputFocus).not.toHaveBeenCalled();
       expect(onFieldPress).not.toHaveBeenCalled();
       expect(
-        screen.getByTestId(`${defaultProps.testID}-label-container`),
+        screen.getByTestId(
+          getPerpsProCompactInputLabelContainerTestId(defaultProps.testID),
+        ),
       ).toHaveStyle({
         position: 'absolute',
         justifyContent: 'center',
@@ -312,7 +322,9 @@ describe('PerpsProCompactInput', () => {
           includeHiddenElements: true,
         });
         const label = screen.getByTestId(`${defaultProps.testID}-label`);
-        const inputRow = screen.getByTestId(`${defaultProps.testID}-input-row`);
+        const inputRow = screen.getByTestId(
+          getPerpsProCompactInputRowTestId(defaultProps.testID),
+        );
         const inactiveLabelStyle = label.props.style;
         const inactiveInputRowStyle = inputRow.props.style;
 
@@ -322,7 +334,9 @@ describe('PerpsProCompactInput', () => {
         expect(label.props.style).toEqual(inactiveLabelStyle);
         expect(inputRow.props.style).toEqual(inactiveInputRowStyle);
         expect(
-          screen.getByTestId(`${defaultProps.testID}-label-container`),
+          screen.getByTestId(
+            getPerpsProCompactInputLabelContainerTestId(defaultProps.testID),
+          ),
         ).toHaveStyle({
           position: 'absolute',
           top: 0,
@@ -333,10 +347,14 @@ describe('PerpsProCompactInput', () => {
         fireEvent(input, 'focus');
 
         expect(
-          screen.getByTestId(`${defaultProps.testID}-input-row`),
+          screen.getByTestId(
+            getPerpsProCompactInputRowTestId(defaultProps.testID),
+          ),
         ).toHaveProp('collapsable', false);
         expect(
-          screen.getByTestId(`${defaultProps.testID}-input-row`),
+          screen.getByTestId(
+            getPerpsProCompactInputRowTestId(defaultProps.testID),
+          ),
         ).toHaveStyle({
           position: 'absolute',
           left: 0,
@@ -344,7 +362,9 @@ describe('PerpsProCompactInput', () => {
           bottom: 0,
         });
         expect(
-          screen.getByTestId(`${defaultProps.testID}-label-container`),
+          screen.getByTestId(
+            getPerpsProCompactInputLabelContainerTestId(defaultProps.testID),
+          ),
         ).toHaveStyle({ position: 'absolute', top: 0 });
       },
     );

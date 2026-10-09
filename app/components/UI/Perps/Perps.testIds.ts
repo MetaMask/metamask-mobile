@@ -817,6 +817,13 @@ export const PerpsProOrderFormSelectorsIDs = {
 export const getPerpsProOrderFormNoticeTestId = (noticeId: string): string =>
   `${PerpsProOrderFormSelectorsIDs.NOTICE}-${noticeId}`;
 
+export const getPerpsProCompactInputLabelContainerTestId = (
+  testID: string,
+): string => `${testID}-label-container`;
+
+export const getPerpsProCompactInputRowTestId = (testID: string): string =>
+  `${testID}-input-row`;
+
 // ========================================
 // PERPS MARKET HEADER SELECTORS
 // ========================================

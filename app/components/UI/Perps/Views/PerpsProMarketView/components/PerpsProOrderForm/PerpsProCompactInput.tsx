@@ -23,7 +23,11 @@ import {
   type View,
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
+import {
+  getPerpsProCompactInputLabelContainerTestId,
+  getPerpsProCompactInputRowTestId,
+  PerpsProOrderFormSelectorsIDs,
+} from '../../../../Perps.testIds';
 
 export const getPerpsProInputAccessoryID = (testID: string) =>
   `${testID}-input-accessory`;
@@ -313,7 +317,7 @@ const PerpsProCompactInput = React.forwardRef<
                   ? 'absolute inset-x-0 top-0'
                   : 'absolute inset-0 justify-center'
               }
-              testID={`${testID}-label-container`}
+              testID={getPerpsProCompactInputLabelContainerTestId(testID)}
             >
               <Text
                 variant={
@@ -338,7 +342,7 @@ const PerpsProCompactInput = React.forwardRef<
                   ? 'absolute inset-x-0 bottom-0 flex-row items-center'
                   : 'absolute inset-x-0 bottom-0 flex-row items-center opacity-0'
               }
-              testID={`${testID}-input-row`}
+              testID={getPerpsProCompactInputRowTestId(testID)}
             >
               <Box twClassName="shrink-0">{startAccessory}</Box>
               {input}
