@@ -229,12 +229,47 @@ export function getVbaHomeCard({
 }
 
 /**
+ * Reads local vendor-terms acceptance for `walletAddress` and reports the
+ * result unless the caller has already cancelled.
+ *
+ * @param walletAddress - Wallet the acceptance was stored under.
+ * @param onAccepted - Receives whether that wallet has accepted terms.
+ * @returns Cleanup that ignores a late resolution.
+ */
+const readVendorTermsAcceptance = (
+  walletAddress: string,
+  onAccepted: (accepted: boolean) => void,
+): (() => void) => {
+  let isCancelled = false;
+  hasAcceptedVbaVendorTerms(walletAddress)
+    .then((accepted) => {
+      if (!isCancelled) {
+        onAccepted(accepted);
+      }
+    })
+    .catch((error) => {
+      Logger.error(error as Error, {
+        tags: { feature: 'money-home' },
+        context: {
+          name: 'useVbaHomeCard',
+          data: { step: 'hasAcceptedVbaVendorTerms' },
+        },
+      });
+    });
+  return () => {
+    isCancelled = true;
+  };
+};
+
+/**
  * Source of truth for the single VBA identity-status card on Money home.
  * Reads Redux only — no navigation, no UI, and no network on load.
  *
- * The local vendor-terms acceptance lives in async storage, not Redux; it is
- * read on mount (and per wallet change) and treated as not accepted while
- * loading.
+ * The local vendor-terms acceptance lives in async storage, not Redux. It is
+ * read on mount and on wallet change, and treated as not accepted while that
+ * read is in flight. A later focus re-reads it without clearing the current
+ * value, so a host that stays mounted picks up an acceptance written while
+ * the screen was blurred.
  *
  * @example
  * const card = useVbaHomeCard();
@@ -271,31 +306,27 @@ export const useVbaHomeCard = (): VbaHomeCard => {
   }
 
   useEffect(() => {
-    let cancelled = false;
-    // Treat as not accepted while the read is in flight.
+    // Treat as not accepted while the first read for this wallet is in flight.
     setHasAcceptedVendorTerms(false);
     if (!walletAddress) {
       return undefined;
     }
-    hasAcceptedVbaVendorTerms(walletAddress)
-      .then((accepted) => {
-        if (!cancelled) {
-          setHasAcceptedVendorTerms(accepted);
-        }
-      })
-      .catch((error) => {
-        Logger.error(error as Error, {
-          tags: { feature: 'money-home' },
-          context: {
-            name: 'useVbaHomeCard',
-            data: { step: 'hasAcceptedVbaVendorTerms' },
-          },
-        });
-      });
-    return () => {
-      cancelled = true;
-    };
+    return readVendorTermsAcceptance(walletAddress, setHasAcceptedVendorTerms);
   }, [walletAddress]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!walletAddress) {
+        return undefined;
+      }
+      // Keep the current value until this read resolves so a refocus does not
+      // flash `get_started` for a wallet that already accepted terms.
+      return readVendorTermsAcceptance(
+        walletAddress,
+        setHasAcceptedVendorTerms,
+      );
+    }, [walletAddress]),
+  );
 
   return useMemo(
     () =>

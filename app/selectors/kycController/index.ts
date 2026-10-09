@@ -54,6 +54,5 @@ export const selectKycProviderFlowStatus = createSelector(
 export const selectKycVendorDisclaimersAccepted = createSelector(
   selectKycControllerState,
   (kycControllerState): KycVendorDisclaimersAccepted =>
-    kycControllerState?.vendorDisclaimersAccepted ??
-    DEFAULT_KYC_CONTROLLER_STATE.vendorDisclaimersAccepted,
+    kycControllerState.vendorDisclaimersAccepted,
 );

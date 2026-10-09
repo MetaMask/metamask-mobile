@@ -92,8 +92,10 @@ describe('kycController selectors', () => {
       );
     });
 
-    it('falls back to the controller defaults when absent', () => {
-      const state = createMockRootState({});
+    it('returns the default disclaimers when the controller state is missing', () => {
+      const state = {
+        engine: { backgroundState: {} },
+      } as unknown as RootState;
 
       expect(selectKycVendorDisclaimersAccepted(state)).toEqual(
         getDefaultKycVendorDisclaimersAccepted(),

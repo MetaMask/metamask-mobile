@@ -416,6 +416,7 @@ describe('useVbaHomeCard', () => {
     mockUseSelector.mockImplementation((selector) =>
       selector(undefined as never),
     );
+    mockUseFocusEffect.mockImplementation(() => undefined);
     mockHydrateVbaOnboarding.mockResolvedValue({} as VbaOnboardingSnapshot);
   });
 
@@ -498,6 +499,29 @@ describe('useVbaHomeCard', () => {
       2,
       OTHER_WALLET,
     );
+  });
+
+  it('re-reads local terms on focus after they are accepted', async () => {
+    setupSelectors();
+    let cardFocusCallback: () => undefined | (() => void) = () => undefined;
+    mockUseFocusEffect.mockImplementation((callback) => {
+      cardFocusCallback = callback as typeof cardFocusCallback;
+    });
+
+    const { result } = renderHook(() => useVbaHomeCard());
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(result.current).toEqual({ type: 'get_started' });
+
+    mockHasAcceptedVbaVendorTerms.mockResolvedValue(true);
+    await act(async () => {
+      cardFocusCallback();
+      await Promise.resolve();
+    });
+
+    expect(result.current).toEqual({ type: 'finish_verification' });
+    expect(mockHasAcceptedVbaVendorTerms).toHaveBeenCalledTimes(2);
   });
 });
 
