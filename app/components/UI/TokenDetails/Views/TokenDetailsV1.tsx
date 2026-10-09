@@ -43,6 +43,7 @@ import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Price from '../../AssetOverview/Price/Price';
 import PriceChartContext, {
   PriceChartProvider,
@@ -61,6 +62,7 @@ import type { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
 import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExplainerSheet';
 import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.types';
 import OverviewTab from '../components/tabs/OverviewTab';
+import TokenDetailsFeedTab from '../components/tabs/FeedTab';
 import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
 import TokenDetailsV1TabBar, {
   HIDDEN_TAB_PAGE_STYLE,
@@ -331,6 +333,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 
   const { activeTab, activateTab, mountedTabs, swipeGesture } =
     useTokenDetailsV1Tabs({ onTabChange: clampScrollToTabBar });
+  const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
 
   const renderTabPage = useCallback(
     (tab: TokenDetailsV1TabKey) => {
@@ -365,6 +368,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           />
         );
       }
+      if (tab === 'feed' && socialEnabled && caip19AssetId) {
+        return <TokenDetailsFeedTab assetId={caip19AssetId} />;
+      }
       return <TokenDetailsV1TabPlaceholder tab={tab} />;
     },
     [
@@ -375,6 +381,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       securityData,
       marketData,
       handleSecurityRowPress,
+      socialEnabled,
     ],
   );
 
