@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
+import { formatFiat } from './fiat';
 import type { TraderPosition } from './types';
 import { useTraderPosition } from './useTraderPosition';
 import { useUnrealizedPnl } from './useUnrealizedPnl';
@@ -78,5 +79,85 @@ describe('useUnrealizedPnl', () => {
     expect(result.current.hasPosition).toBe(false);
     expect(result.current.valueFormatted).toBeNull();
     expect(result.current.percentFormatted).toBeNull();
+  });
+
+  it('passes loading and error through when there is no position', () => {
+    mockUseTraderPosition.mockReturnValue({
+      position: null,
+      isLoading: true,
+      error: 'network down',
+      refetch: jest.fn(),
+    });
+
+    const { result } = renderHook(() => useUnrealizedPnl('pos-1'));
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.error).toBe('network down');
+    expect(result.current.hasPosition).toBe(false);
+  });
+
+  it('hides the value when unrealized USD is unavailable', () => {
+    mockUseTraderPosition.mockReturnValue({
+      position: { ...position, perpPositionType: 'long' },
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    const { result } = renderHook(() => useUnrealizedPnl('pos-1'));
+
+    expect(result.current.hasPosition).toBe(true);
+    expect(result.current.valueFormatted).toBeNull();
+    expect(result.current.percentFormatted).toBeNull();
+    expect(result.current.isProfit).toBe(false);
+  });
+
+  it('formats a loss without converting the percent', () => {
+    mockUseTraderPosition.mockReturnValue({
+      position: { ...position, currentValueUSD: 40 },
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    const { result } = renderHook(() => useUnrealizedPnl('pos-1'));
+
+    expect(result.current.isProfit).toBe(false);
+    expect(result.current.valueFormatted).toBe(formatFiat(-60, 'USD'));
+    expect(result.current.percentFormatted).toContain('60');
+  });
+
+  it('omits the percent when cost basis is zero', () => {
+    mockUseTraderPosition.mockReturnValue({
+      position: { ...position, costBasis: 0, currentValueUSD: 10 },
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    const { result } = renderHook(() => useUnrealizedPnl('pos-1'));
+
+    expect(result.current.percentFormatted).toBeNull();
+    expect(result.current.valueFormatted).toBe(formatFiat(10, 'USD'));
+  });
+
+  it('converts unrealized USD into the selected currency', () => {
+    mockUseUsdToFiatRate.mockReturnValue({ currency: 'EUR', rate: 2 });
+
+    const { result } = renderHook(() => useUnrealizedPnl('pos-1'));
+
+    expect(result.current.currency).toBe('EUR');
+    expect(result.current.valueFormatted).toBe(formatFiat(100, 'EUR'));
+    expect(result.current.fellBackToUsd).toBe(false);
+  });
+
+  it('keeps USD when the selected currency has no rate', () => {
+    mockUseUsdToFiatRate.mockReturnValue({ currency: 'EUR', rate: undefined });
+
+    const { result } = renderHook(() => useUnrealizedPnl('pos-1'));
+
+    expect(result.current.fellBackToUsd).toBe(true);
+    expect(result.current.currency).toBe('USD');
+    expect(result.current.valueFormatted).toBe(formatFiat(50, 'USD'));
   });
 });
