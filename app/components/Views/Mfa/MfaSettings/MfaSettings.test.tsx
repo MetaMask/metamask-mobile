@@ -102,11 +102,65 @@ describe('MfaSettings', () => {
     );
   });
 
-  it('clears the verification session from QA', () => {
+  it('clears the verification session from QA', async () => {
     const { getByText } = renderSettings();
 
-    fireEvent.press(getByText('Clear verification session'));
+    await act(async () => {
+      fireEvent.press(getByText('Clear verification session'));
+    });
 
     expect(mockAdapter.clearVerificationSession).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['Verify with email, max 30s old', 'qa.verifyEmailFresh'],
+    ['Require email, no verification', 'qa.requireEmail'],
+    ['Enroll email', 'qa.enrollEmail'],
+    ['Email and passkey (no passkey adapter yet)', 'qa.emailAndPasskey'],
+  ])('starts the "%s" QA preset', async (label, operation) => {
+    const { getByText } = renderSettings();
+
+    await act(async () => {
+      fireEvent.press(getByText(label));
+    });
+
+    expect(mockStartMfaFlow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reason: expect.objectContaining({ operation }),
+      }),
+    );
+  });
+
+  it('describes the token a QA preset resolved with', async () => {
+    mockStartMfaFlow.mockResolvedValue({
+      credentials: [],
+      token: {
+        accessToken: 'token',
+        expiresIn: 3600,
+        obtainedAt: 0,
+        claims: { sub: 'profile', amr: ['email_otp'], exp: 0 },
+      },
+    });
+    const { getByText, getByTestId } = renderSettings();
+
+    await act(async () => {
+      fireEvent.press(getByText('Verify with email'));
+    });
+
+    expect(getByTestId(MfaSettingsSelectorsIDs.QA_RESULT)).toHaveTextContent(
+      /token amr=email_otp/,
+    );
+  });
+
+  it('stays usable when refreshing or setting up email fails', async () => {
+    mockAdapter.refreshEnrolledCredentials.mockRejectedValue(new Error('down'));
+    mockStartMfaFlow.mockRejectedValue(new MfaFlowError('flow_cancelled'));
+    const { getByTestId } = renderSettings();
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaSettingsSelectorsIDs.EMAIL_BUTTON));
+    });
+
+    expect(getByTestId(MfaSettingsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 });
