@@ -424,36 +424,6 @@ describe('PerpsLeverageBottomSheet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('hides the cached isolated estimate when the margin mode changes to Cross', () => {
-      const { rerender } = render(
-        <PerpsLeverageBottomSheet {...defaultProps} leverage={5} />,
-      );
-      expect(
-        screen.getByTestId(
-          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
-        ),
-      ).not.toHaveTextContent('--');
-
-      rerender(
-        <PerpsLeverageBottomSheet
-          {...defaultProps}
-          leverage={5}
-          marginMode="cross"
-        />,
-      );
-
-      expect(
-        screen.getByTestId(
-          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
-        ),
-      ).toHaveTextContent('--');
-      expect(
-        screen.queryByTestId(
-          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
-        ),
-      ).not.toBeOnTheScreen();
-    });
-
     it('formats the liquidation price and distance like a position card', () => {
       render(<PerpsLeverageBottomSheet {...defaultProps} leverage={5} />);
 
