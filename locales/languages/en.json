@@ -1127,19 +1127,24 @@
   "virtual_bank_account": {
     "create_virtual_bank_account": {
       "navbar_title": "Bank account",
-      "title": "Activate your Virtual Bank Account",
-      "description": "Get account details tailored to your region, making it easier to add, hold, receive, and send money.",
-      "benefit_receive_title": "Receive money locally",
-      "benefit_receive_description": "Use account details designed for your region",
-      "benefit_add_money_title": "Add money with ease",
-      "benefit_add_money_description": "Transfer directly from your bank account",
-      "benefit_currencies_title": "Manage multiple currencies",
-      "benefit_currencies_description": "Keep supported balances together in one place",
+      "title": "Add funds right from your bank",
+      "description": "Get virtual account details so you can receive funds directly from your local bank.",
+      "feature_no_fees_title": "No fees to add funds",
+      "feature_no_fees_description": "We don’t charge to deposit. Your bank may.",
+      "feature_arrives_title": "Arrives in [timeframe by region]",
+      "feature_arrives_description": "Funds land as soon as your transfer clears.",
+      "feature_set_up_title": "Set up once, use anytime",
+      "feature_set_up_description": "Save it as a payee in your banking app.",
+      "feature_earn_title": "Starts earning straight away",
+      "feature_earn_description": "Deposits earn {{percentage}}% APY as mUSD.",
+      "feature_earn_description_no_apy": "Deposits earn APY as mUSD.",
       "disclaimers_error": "Couldn't load the terms and conditions.",
       "disclaimers_retry": "Try again",
       "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
       "agreement_separator": " and ",
-      "button": "Activate Virtual Bank Account"
+      "agreement_suffix": ".",
+      "powered_by": "Powered by",
+      "button": "Get account details"
     },
     "verify_identity": {
       "title": "Verify your identity",
@@ -1167,7 +1172,7 @@
       "button": "Continue",
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again."
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Add funds right from your bank and try again."
     },
     "sumsub_kyc": {
       "more_info_title": "More information needed",
@@ -4854,7 +4859,13 @@
     "display_name_placeholder": "Enter a display name",
     "bio_placeholder": "Tell people about your trading style",
     "bio_helper": "Shown on your profile.",
-    "bio_character_count": "{{count}}/{{limit}}"
+    "bio_character_count": "{{count}}/{{limit}}",
+    "show_trading_activity": "Show trading activity",
+    "trading_activity_public": "Public and available to copy",
+    "trading_activity_private": "Private and unavailable to copy",
+    "trading_activity_info": "More information about trading activity",
+    "trading_activity_info_description": "When this is on, other traders can see and copy your trades. You earn 15% of the fees from those copy trades. Turn it off to keep your positions, performance, and stats private.",
+    "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way."
   },
   "profile_drawer": {
     "close": "Close",
