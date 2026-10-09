@@ -785,6 +785,9 @@ describe('usePredictPlaceOrder', () => {
       act(() => {
         pendingOrder = result.current.placeOrder(mockOrderParams);
       });
+      await act(async () => {
+        await Promise.resolve();
+      });
       const isLoadingDuringRefetch = result.current.isLoading;
       const refetchCallsDuringRefetch = mockRefetchBalance.mock.calls.length;
       const orderCallsDuringRefetch = mockPlaceOrder.mock.calls.length;

@@ -1,6 +1,8 @@
+import { DiscountType } from '@metamask/bridge-controller';
 import { Side, type OrderPreview } from '../types';
 import {
   buildPredictFeeBreakdownAmounts,
+  buildPredictFeeBreakdowns,
   calculateMaxBetAmount,
   estimatePredictSellNetValue,
   generateOrderId,
@@ -128,6 +130,11 @@ describe('orders utils', () => {
       expect(roundUpToCents(10.01)).toBe(10.01);
     });
 
+    it('returns positive zero for zero input', () => {
+      expect(Object.is(roundUpToCents(0), -0)).toBe(false);
+      expect(roundUpToCents(0)).toBe(0);
+    });
+
     it('keeps cent values with floating-point representation noise unchanged', () => {
       expect(roundUpToCents(10000.1 + 0.04)).toBe(10000.14);
     });
@@ -192,6 +199,123 @@ describe('orders utils', () => {
       expect(getPredictBuyAllInCost(preview)).toBe(10.34);
     });
 
+    it('builds effective and original membership BUY fee breakdowns', () => {
+      const result = buildPredictFeeBreakdowns({
+        preview: {
+          ...preview,
+          feePolicy: {
+            discountType: DiscountType.SUBSCRIPTION,
+            builderCode: 'predict-pro-builder',
+          },
+          originalFees: {
+            ...(preview.fees ?? {}),
+            metamaskFee: 0.2,
+            providerFee: 0.222,
+            marketFee: 0.003,
+            totalFee: 0.422,
+            totalFeePercentage: 4.22,
+            collector: '0x0',
+          },
+        },
+        side: Side.BUY,
+        order: 10,
+        metamaskFee: 0,
+        total: 10.23,
+      });
+
+      expect(result.feeBreakdown).toEqual({
+        order: 10,
+        metamaskFee: 0,
+        exchangeFee: 0.23,
+        total: 10.23,
+      });
+      expect(result.originalFeeBreakdown).toEqual({
+        order: 10,
+        metamaskFee: 0.2,
+        exchangeFee: 0.23,
+        total: 10.43,
+      });
+    });
+
+    it('builds only the effective breakdown for a standard preview', () => {
+      expect(
+        buildPredictFeeBreakdowns({
+          preview,
+          side: Side.BUY,
+          order: 10,
+          metamaskFee: preview.fees?.metamaskFee ?? 0,
+          total: 10.34,
+        }),
+      ).toEqual({
+        feeBreakdown: {
+          order: 10,
+          metamaskFee: 0.12,
+          exchangeFee: 0.22,
+          total: 10.34,
+        },
+        originalFeeBreakdown: undefined,
+      });
+    });
+
+    it('builds effective and original membership SELL fee breakdowns', () => {
+      const result = buildPredictFeeBreakdowns({
+        preview: {
+          ...preview,
+          side: Side.SELL,
+          feePolicy: {
+            discountType: DiscountType.SUBSCRIPTION,
+            builderCode: 'predict-pro-builder',
+          },
+          originalFees: {
+            ...(preview.fees ?? {}),
+            metamaskFee: 0.2,
+            providerFee: 0.222,
+            marketFee: 0.003,
+            totalFee: 0.422,
+            totalFeePercentage: 4.22,
+            collector: '0x0',
+          },
+        },
+        side: Side.SELL,
+        order: 20,
+        metamaskFee: 0,
+        total: 19.77,
+      });
+
+      expect(result.feeBreakdown).toEqual({
+        order: 20,
+        metamaskFee: 0,
+        exchangeFee: 0.23,
+        total: 19.77,
+      });
+      expect(result.originalFeeBreakdown).toEqual({
+        order: 20,
+        metamaskFee: 0.2,
+        exchangeFee: 0.23,
+        total: 19.57,
+      });
+    });
+
+    it('keeps provider and market fees in a membership all-in cost', () => {
+      expect(
+        getPredictBuyAllInCost({
+          ...preview,
+          feePolicy: {
+            discountType: DiscountType.SUBSCRIPTION,
+            builderCode: 'predict-pro-builder',
+          },
+          fees: {
+            ...(preview.fees ?? {}),
+            metamaskFee: 0,
+            providerFee: preview.fees?.providerFee ?? 0,
+            collector: preview.fees?.collector ?? '0x0',
+            totalFee: 0.222,
+            totalFeePercentage: 2.22,
+          },
+        }),
+      ).toBe(10.23);
+    });
+
     it('returns zero all-in cost when preview is missing', () => {
       expect(getPredictBuyAllInCost(null)).toBe(0);
     });
@@ -200,6 +324,27 @@ describe('orders utils', () => {
       const result = getPredictSellNetProceeds(preview);
 
       expect(result).toBe(19.66);
+    });
+
+    it('keeps provider and market fees in membership sell proceeds', () => {
+      expect(
+        getPredictSellNetProceeds({
+          ...preview,
+          side: Side.SELL,
+          feePolicy: {
+            discountType: DiscountType.SUBSCRIPTION,
+            builderCode: 'predict-pro-builder',
+          },
+          fees: {
+            ...(preview.fees ?? {}),
+            metamaskFee: 0,
+            providerFee: preview.fees?.providerFee ?? 0,
+            collector: preview.fees?.collector ?? '0x0',
+            totalFee: 0.222,
+            totalFeePercentage: 2.22,
+          },
+        }),
+      ).toBe(19.77);
     });
 
     it('returns zero proceeds when preview is missing', () => {

@@ -144,6 +144,7 @@ export function buildProtocolUnsignedOrder({
   preview,
   makerAddress,
   signerAddress,
+  builderCode,
   signatureType = SignatureType.POLY_GNOSIS_SAFE,
   nowInSeconds = Math.floor(Date.now() / 1000),
 }: {
@@ -151,6 +152,7 @@ export function buildProtocolUnsignedOrder({
   preview: OrderPreview;
   makerAddress: string;
   signerAddress: string;
+  builderCode?: string;
   signatureType?: SignatureType;
   nowInSeconds?: number;
 }): ProtocolUnsignedOrder {
@@ -166,7 +168,7 @@ export function buildProtocolUnsignedOrder({
   ).toString();
   const takerAmount = getTakerAmountWithSlippage(preview);
   const side = preview.side === Side.BUY ? UtilsSide.BUY : UtilsSide.SELL;
-  const builder = protocol.order.getBuilderCode();
+  const builder = builderCode ?? protocol.order.getBuilderCode();
 
   if (!builder) {
     throw new Error('Missing Polymarket CLOB v2 builder code');

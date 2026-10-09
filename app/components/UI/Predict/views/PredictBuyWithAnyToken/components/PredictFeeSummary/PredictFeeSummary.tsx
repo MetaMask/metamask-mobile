@@ -12,6 +12,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { DiscountType } from '@metamask/bridge-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
@@ -24,6 +25,7 @@ import {
   TextVariant as LegacyTextVariant,
 } from '../../../../../../../component-library/components/Texts/Text/Text.types';
 import AddRewardsAccount from '../../../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
+import RewardsVipBadge from '../../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../../../Rewards/components/RewardPointsAnimation';
@@ -34,6 +36,8 @@ interface PredictFeeSummaryProps {
   disabled: boolean;
   loading?: boolean;
   total: number;
+  originalTotal?: number;
+  feePolicyDiscountType?: DiscountType;
   rewardsFeeAmountUsd?: number;
   rewardsLoadingOverride?: boolean;
   handleFeesInfoPress: () => void;
@@ -44,6 +48,8 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
   loading = false,
   handleFeesInfoPress,
   total,
+  originalTotal,
+  feePolicyDiscountType,
   rewardsFeeAmountUsd,
   rewardsLoadingOverride = false,
 }) => {
@@ -115,13 +121,29 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
                 color={IconColor.IconAlternative}
               />
             </Box>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-            >
-              {formatPrice(total, { maximumDecimals: 2 })}
-            </Text>
+            <Box twClassName="flex-row items-center gap-2">
+              {feePolicyDiscountType === DiscountType.SUBSCRIPTION &&
+                originalTotal !== undefined && (
+                  <>
+                    <RewardsVipBadge hasProEntitlement />
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextAlternative}
+                      twClassName="line-through"
+                    >
+                      {formatPrice(originalTotal, { maximumDecimals: 2 })}
+                    </Text>
+                  </>
+                )}
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
+                {formatPrice(total, { maximumDecimals: 2 })}
+              </Text>
+            </Box>
           </Box>
         </TouchableOpacity>
 
