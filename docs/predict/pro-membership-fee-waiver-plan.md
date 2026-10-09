@@ -18,6 +18,20 @@ Pro membership is a fee-waiver benefit, not a client-side permission system.
   protocol's default builder code.
 - The backend validates the benefit and owns allowance consumption.
 
+## Feature flag
+
+The waiver is gated by the version-gated remote flag
+`predictSubscriptionFeeWaiverEnabled` (`{ enabled, minimumVersion }`). It is
+resolved as `isMembershipFeeWaiverEnabled` in `resolvePredictFeatureFlags` and
+defaults to off when missing, malformed, or below the minimum version.
+
+When the flag is off, `PredictController` does not call
+`SubscriptionController:getBenefits` and every order uses standard fees.
+
+For local development, set `MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED="true"`
+in `.js.env` and restart Metro to skip the remote flag check. The benefits
+lookup and eligibility rules still apply.
+
 ## End-to-end flow
 
 ### Order Preview
@@ -25,7 +39,9 @@ Pro membership is a fee-waiver benefit, not a client-side permission system.
 ```mermaid
 flowchart TD
   A[Predict screen] --> B[Request order preview]
-  B --> C[Get subscription benefits]
+  B --> FF{Fee waiver flag on<br/>or env override?}
+  FF -->|No| F
+  FF -->|Yes| C[Get subscription benefits]
   C --> D{Waiver appears available?}
   D -->|Yes| E[Subscription policy<br/>MetaMask fee = 0<br/>use member builderCode]
   D -->|No or request fails| F[No fee policy<br/>use standard fees and default builder]

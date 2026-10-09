@@ -697,7 +697,18 @@ describe('PredictSellPreview', () => {
 
     it('shows the original total and member badge for a membership fee waiver', () => {
       mockPreview = {
-        ...mockPreview,
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'outcome-token-789',
+        timestamp: Date.now(),
+        side: 'SELL',
+        sharePrice: 0.5,
+        maxAmountSpent: 100,
+        minAmountReceived: 60,
+        slippage: 0.005,
+        tickSize: 0.01,
+        minOrderSize: 1,
+        negRisk: false,
         fees: {
           ...mockFees,
           metamaskFee: 0,
