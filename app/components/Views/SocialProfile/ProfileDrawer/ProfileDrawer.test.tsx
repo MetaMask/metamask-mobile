@@ -114,9 +114,7 @@ describe('ProfileDrawer', () => {
       getByTestId(ProfileDrawerSelectorsIDs.CREATE_PROFILE_AVATAR),
     ).toBeOnTheScreen();
     expect(
-      within(createProfile).getByText(
-        strings('app_settings.profile_drawer.create_profile'),
-      ),
+      within(createProfile).getByText(strings('profile_drawer.create_profile')),
     ).toBeOnTheScreen();
   });
 
@@ -173,23 +171,17 @@ describe('ProfileDrawer', () => {
   it.each([
     [
       ProfileDrawerSelectorsIDs.NOTIFICATIONS_ROW,
-      'app_settings.profile_drawer.notifications',
+      'profile_drawer.notifications',
     ],
-    [
-      ProfileDrawerSelectorsIDs.ACTIVITY_ROW,
-      'app_settings.profile_drawer.activity',
-    ],
+    [ProfileDrawerSelectorsIDs.ACTIVITY_ROW, 'profile_drawer.activity'],
     [
       ProfileDrawerSelectorsIDs.SUBSCRIPTIONS_ROW,
-      'app_settings.profile_drawer.subscriptions',
+      'profile_drawer.subscriptions',
     ],
-    [
-      ProfileDrawerSelectorsIDs.SETTINGS_ROW,
-      'app_settings.profile_drawer.settings',
-    ],
+    [ProfileDrawerSelectorsIDs.SETTINGS_ROW, 'profile_drawer.settings'],
     [
       ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW,
-      'app_settings.profile_drawer.help_and_support',
+      'profile_drawer.help_and_support',
     ],
   ])('renders the %s menu row with its label', (testID, labelKey) => {
     const { getByTestId } = renderWithProvider(<ProfileDrawer />);
@@ -234,7 +226,7 @@ describe('ProfileDrawer', () => {
     expect(within(notificationsRow).queryByText('99+')).toBeNull();
     expect(
       within(notificationsRow).getByText(
-        strings('app_settings.profile_drawer.notifications'),
+        strings('profile_drawer.notifications'),
       ),
     ).toBeOnTheScreen();
   });
@@ -296,7 +288,7 @@ describe('ProfileDrawer', () => {
 
     expect(
       within(notificationsRow).getByText(
-        strings('app_settings.profile_drawer.notifications'),
+        strings('profile_drawer.notifications'),
       ),
     ).toBeOnTheScreen();
     expect(within(notificationsRow).queryByText('0')).toBeNull();

@@ -45,7 +45,7 @@ describe('ManageProfile', () => {
     const header = getByTestId(ManageProfileSelectorsIDs.HEADER);
     expect(header).toBeOnTheScreen();
     expect(
-      within(header).getByText(strings('app_settings.manage_profile.header')),
+      within(header).getByText(strings('manage_profile.header')),
     ).toBeOnTheScreen();
   });
 
@@ -88,35 +88,22 @@ describe('ManageProfile', () => {
   it('renders the About and Privacy section headers', () => {
     const { getByText } = renderWithProvider(<ManageProfile />);
 
-    expect(
-      getByText(strings('app_settings.manage_profile.about')),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('app_settings.manage_profile.privacy')),
-    ).toBeOnTheScreen();
+    expect(getByText(strings('manage_profile.about'))).toBeOnTheScreen();
+    expect(getByText(strings('manage_profile.privacy'))).toBeOnTheScreen();
   });
 
   it.each([
-    [
-      ManageProfileSelectorsIDs.DISPLAY_NAME_ROW,
-      'app_settings.manage_profile.display_name',
-    ],
-    [
-      ManageProfileSelectorsIDs.HANDLE_ROW,
-      'app_settings.manage_profile.handle',
-    ],
-    [ManageProfileSelectorsIDs.BIO_ROW, 'app_settings.manage_profile.bio'],
-    [
-      ManageProfileSelectorsIDs.X_ACCOUNT_ROW,
-      'app_settings.manage_profile.x_account',
-    ],
+    [ManageProfileSelectorsIDs.DISPLAY_NAME_ROW, 'manage_profile.display_name'],
+    [ManageProfileSelectorsIDs.HANDLE_ROW, 'manage_profile.handle'],
+    [ManageProfileSelectorsIDs.BIO_ROW, 'manage_profile.bio'],
+    [ManageProfileSelectorsIDs.X_ACCOUNT_ROW, 'manage_profile.x_account'],
     [
       ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW,
-      'app_settings.manage_profile.trading_activity',
+      'manage_profile.trading_activity',
     ],
     [
       ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW,
-      'app_settings.manage_profile.linked_social_account',
+      'manage_profile.linked_social_account',
     ],
   ])('renders the %s row with its label', (testID, labelKey) => {
     const { getByTestId } = renderWithProvider(<ManageProfile />);
@@ -136,7 +123,7 @@ describe('ManageProfile', () => {
 
       expect(
         within(getByTestId(testID)).getByText(
-          strings('app_settings.manage_profile.not_set'),
+          strings('manage_profile.not_set'),
         ),
       ).toBeOnTheScreen();
     });
@@ -147,7 +134,7 @@ describe('ManageProfile', () => {
       expect(
         within(
           getByTestId(ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW),
-        ).getByText(strings('app_settings.manage_profile.no_linked_account')),
+        ).getByText(strings('manage_profile.no_linked_account')),
       ).toBeOnTheScreen();
     });
 
@@ -157,7 +144,7 @@ describe('ManageProfile', () => {
       expect(
         within(
           getByTestId(ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW),
-        ).getByText(strings('app_settings.manage_profile.off')),
+        ).getByText(strings('manage_profile.off')),
       ).toBeOnTheScreen();
     });
 
@@ -166,7 +153,7 @@ describe('ManageProfile', () => {
 
       expect(
         getByTestId(ManageProfileSelectorsIDs.AVATAR).props.accessibilityLabel,
-      ).toBe(strings('app_settings.manage_profile.avatar_accessibility_label'));
+      ).toBe(strings('manage_profile.avatar_accessibility_label'));
     });
   });
 
@@ -175,7 +162,7 @@ describe('ManageProfile', () => {
 
     const bioValue = within(
       getByTestId(ManageProfileSelectorsIDs.BIO_ROW),
-    ).getByText(strings('app_settings.manage_profile.not_set'));
+    ).getByText(strings('manage_profile.not_set'));
 
     expect(bioValue.props.numberOfLines).toBe(1);
     expect(bioValue).toHaveStyle({ maxWidth: 120 });
@@ -186,7 +173,7 @@ describe('ManageProfile', () => {
 
     const valueText = within(
       getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW),
-    ).getByText(strings('app_settings.manage_profile.not_set'));
+    ).getByText(strings('manage_profile.not_set'));
 
     expect(valueText.props.numberOfLines).toBe(1);
     expect(valueText).toHaveStyle({
@@ -201,7 +188,7 @@ describe('ManageProfile', () => {
 
     const label = within(
       getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW),
-    ).getByText(strings('app_settings.manage_profile.display_name'));
+    ).getByText(strings('manage_profile.display_name'));
 
     expect(label.props.numberOfLines).toBe(1);
   });

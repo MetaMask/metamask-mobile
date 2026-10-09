@@ -37,7 +37,7 @@ const SECTION_TITLE_PROPS = {
 
 /** Unset fields read as a muted placeholder rather than an empty row. */
 const valueOrPlaceholder = (value: string) =>
-  value || strings('app_settings.manage_profile.not_set');
+  value || strings('manage_profile.not_set');
 
 // TODO: replace with the real profile source. Rows stay read-only until the
 // field editors exist.
@@ -49,7 +49,6 @@ const EMPTY_PROFILE: Profile = {
   socialHandle: '',
   isTradingActivityVisible: false,
   linkedSocialAccountName: '',
-  linkedSocialAccountAddress: '',
 };
 
 const ManageProfile = () => {
@@ -68,7 +67,7 @@ const ManageProfile = () => {
       testID={ManageProfileSelectorsIDs.SAFE_AREA}
     >
       <HeaderStandard
-        title={strings('app_settings.manage_profile.header')}
+        title={strings('manage_profile.header')}
         onBack={handleBack}
         includesTopInset
         testID={ManageProfileSelectorsIDs.HEADER}
@@ -87,39 +86,39 @@ const ManageProfile = () => {
             imageProps={{ contentFit: 'contain' }}
             accessibilityLabel={
               profile.displayName ||
-              strings('app_settings.manage_profile.avatar_accessibility_label')
+              strings('manage_profile.avatar_accessibility_label')
             }
             testID={ManageProfileSelectorsIDs.AVATAR}
           />
         </Box>
 
         <SectionHeader
-          title={strings('app_settings.manage_profile.about')}
+          title={strings('manage_profile.about')}
           titleProps={SECTION_TITLE_PROPS}
           testID={ManageProfileSelectorsIDs.ABOUT_SECTION}
         />
         <Card twClassName="mx-4 overflow-hidden p-0">
           <ProfileRow
-            title={strings('app_settings.manage_profile.display_name')}
+            title={strings('manage_profile.display_name')}
             value={valueOrPlaceholder(profile.displayName)}
             testID={ManageProfileSelectorsIDs.DISPLAY_NAME_ROW}
           />
           <ProfileRow
             showDivider
-            title={strings('app_settings.manage_profile.handle')}
+            title={strings('manage_profile.handle')}
             value={valueOrPlaceholder(profile.handle)}
             testID={ManageProfileSelectorsIDs.HANDLE_ROW}
           />
           <ProfileRow
             showDivider
-            title={strings('app_settings.manage_profile.bio')}
+            title={strings('manage_profile.bio')}
             value={valueOrPlaceholder(profile.bio)}
             valueMaxWidth={BIO_VALUE_MAX_WIDTH}
             testID={ManageProfileSelectorsIDs.BIO_ROW}
           />
           <ProfileRow
             showDivider
-            title={strings('app_settings.manage_profile.x_account')}
+            title={strings('manage_profile.x_account')}
             value={valueOrPlaceholder(profile.socialHandle)}
             valueStartAccessory={
               profile.socialHandle ? (
@@ -135,17 +134,17 @@ const ManageProfile = () => {
         </Card>
 
         <SectionHeader
-          title={strings('app_settings.manage_profile.privacy')}
+          title={strings('manage_profile.privacy')}
           titleProps={SECTION_TITLE_PROPS}
           testID={ManageProfileSelectorsIDs.PRIVACY_SECTION}
         />
         <Card twClassName="mx-4 overflow-hidden p-0">
           <ProfileRow
-            title={strings('app_settings.manage_profile.trading_activity')}
+            title={strings('manage_profile.trading_activity')}
             value={
               profile.isTradingActivityVisible
-                ? strings('app_settings.manage_profile.on')
-                : strings('app_settings.manage_profile.off')
+                ? strings('manage_profile.on')
+                : strings('manage_profile.off')
             }
             valueStartAccessory={
               <Icon
@@ -158,10 +157,10 @@ const ManageProfile = () => {
           />
           <ProfileRow
             showDivider
-            title={strings('app_settings.manage_profile.linked_social_account')}
+            title={strings('manage_profile.linked_social_account')}
             value={
               profile.linkedSocialAccountName ||
-              strings('app_settings.manage_profile.no_linked_account')
+              strings('manage_profile.no_linked_account')
             }
             valueStartAccessory={
               profile.linkedSocialAccountAddress ? (
