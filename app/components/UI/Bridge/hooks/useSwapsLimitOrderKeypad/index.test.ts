@@ -136,7 +136,7 @@ describe('useSwapsLimitOrderKeypad', () => {
     expect(result.current.keypadProps).toEqual({
       value: '250',
       currency: 'SWAPS_FIAT_INPUT',
-      decimals: 18,
+      decimals: 2,
     });
   });
 

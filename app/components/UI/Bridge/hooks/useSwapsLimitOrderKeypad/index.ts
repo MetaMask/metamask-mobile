@@ -5,7 +5,7 @@ import type { SwapsKeypadRef } from '../../components/SwapsKeypad/types';
 import { useSourceAmountCursor } from '../useSourceAmountCursor';
 import type { useSourceAmountInput } from '../useSourceAmountInput';
 import type { BridgeToken } from '../../types';
-import { LIMIT_ORDER_FIAT_PRICE_DECIMALS } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
+import { FIAT_INPUT_DECIMALS } from '../../utils/sourceAmountInputMode';
 
 export enum LimitOrderKeypadField {
   Amount = 'amount',
@@ -42,7 +42,7 @@ export const useSwapsLimitOrderKeypad = ({
   );
 
   const limitPriceDecimals = isLimitFiatMode
-    ? LIMIT_ORDER_FIAT_PRICE_DECIMALS
+    ? FIAT_INPUT_DECIMALS
     : (nativeToken?.decimals ?? Infinity);
 
   const {
