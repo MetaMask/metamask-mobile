@@ -9,6 +9,17 @@ import {
 import type { TraceContext } from '@metamask/controller-utils';
 import { MessengerClientInitFunction } from '../types';
 import { trace, TraceOperation, type TraceRequest } from '../../../util/trace';
+import { ApiEnv, getApiEnv } from '../../apiEnv';
+
+/**
+ * Money API cluster for this build. Matches the bearer token from
+ * `AuthenticationController`, which also reads `getApiEnv()`.
+ */
+const MONEY_ACCOUNT_ENV_BY_API_ENV: Record<ApiEnv, Env> = {
+  [ApiEnv.Dev]: Env.DEV,
+  [ApiEnv.Uat]: Env.UAT,
+  [ApiEnv.Prod]: Env.PRD,
+};
 
 /**
  * Adapter that bridges the service's trace interface to the mobile Sentry
@@ -39,7 +50,8 @@ const sentryTrace: MoneyAccountApiDataServiceTraceCallback = async <T>(
  * Initialize the money account API data service.
  *
  * Used as the Money API source behind
- * `MoneyAccountBalanceService:fetchBalanceWithFallback`.
+ * `MoneyAccountBalanceService:fetchBalanceWithFallback`. The host follows
+ * `MM_API_ENV` so the request uses the same cluster as the bearer token.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the service.
@@ -51,7 +63,7 @@ export const moneyAccountApiDataServiceInit: MessengerClientInitFunction<
 > = ({ controllerMessenger }) => {
   const controller = new MoneyAccountApiDataService({
     messenger: controllerMessenger,
-    env: Env.PRD,
+    env: MONEY_ACCOUNT_ENV_BY_API_ENV[getApiEnv()],
     trace: sentryTrace,
   });
 

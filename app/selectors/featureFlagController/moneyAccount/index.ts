@@ -1,4 +1,6 @@
+import { getMoneyAccountPremiumVaultConfig } from '@metamask/money-account-utils';
 import { createSelector } from 'reselect';
+
 import { selectRemoteFeatureFlags } from '..';
 import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 import type { Hex } from '@metamask/utils';
@@ -112,4 +114,17 @@ export const getMoneyAccountVaultConfig = (
 export const selectMoneyAccountVaultConfig = createSelector(
   selectRemoteFeatureFlags,
   getMoneyAccountVaultConfig,
+);
+
+/**
+ * Premium Money Account vault contracts from `moneyAccountPremiumVaultConfig`.
+ * `boringVault` is the pvmUSD share token. Missing or malformed flags yield
+ * undefined.
+ */
+export const selectMoneyAccountPremiumVaultConfig = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    getMoneyAccountPremiumVaultConfig(
+      remoteFeatureFlags as Record<string, unknown>,
+    ),
 );

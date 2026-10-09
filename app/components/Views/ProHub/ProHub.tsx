@@ -34,6 +34,8 @@ import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
 } from '../../../hooks/useMoneyAccountPlusAccess';
+import useMoneyPremiumAccountInterest from '../../UI/Money/hooks/useMoneyPremiumAccountInterest';
+import useMoneyPremiumVaultRate from '../../UI/Money/hooks/useMoneyPremiumVaultRate';
 import PhysicalCardBanner from './components/PhysicalCardBanner';
 import MemberPricingOnTrades from './components/MemberPricingOnTrades';
 
@@ -106,6 +108,9 @@ const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const proAccess = useMoneyAccountPlusAccess();
+  const { sinceInceptionInterest } = useMoneyPremiumAccountInterest();
+  const { ratePercentFormatted } = useMoneyPremiumVaultRate();
+  const moneyBalanceApy = ratePercentFormatted ?? '—';
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -191,9 +196,9 @@ const ProHub = () => {
                 <StatRow
                   iconName={IconName.TrendUp}
                   label={strings('pro_hub.money_balance', {
-                    apy: formatPercent(MOCK_PRO_HUB_STATS.moneyBalanceApy),
+                    apy: moneyBalanceApy,
                   })}
-                  value={MOCK_PRO_HUB_STATS.moneyBalance}
+                  value={sinceInceptionInterest}
                   testID={ProHubTestIds.MONEY_BALANCE_ROW}
                 />
                 <StatRow
