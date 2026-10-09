@@ -633,6 +633,33 @@ describe('PerpsClosePositionBottomSheet', () => {
       expect(utils.getByTestId('mock-keypad')).toBeOnTheScreen();
     });
 
+    it("announces the row's state to assistive tech, not just its label", () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
+      expect(
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW,
+        ).props.accessibilityLabel,
+      ).toBe(
+        `${strings('perps.order.limit_price')}, ${strings(
+          'perps.order.set_price',
+        )}`,
+      );
+
+      fireEvent.press(utils.getByText(strings('perps.order.set_price')));
+      fireEvent.press(utils.getByTestId('mock-keypad'));
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
+      expect(
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW,
+        ).props.accessibilityLabel,
+      ).toBe(`${strings('perps.order.limit_price')}, $3,100`);
+    });
+
     it('reopens on the last selected order type', () => {
       const firstOpen = renderSheet();
 
@@ -847,9 +874,27 @@ describe('PerpsClosePositionBottomSheet', () => {
       toggleOrderType(utils);
       fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
 
+      const confirmButton = getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+      );
+      expect(confirmButton).toBeDisabled();
+      expect(confirmButton.props.accessibilityHint).toBe(
+        strings('perps.order.validation.please_set_a_limit_price'),
+      );
+    });
+
+    it('has no accessibility hint once a limit price is entered', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByTestId('mock-keypad'));
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
       expect(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON),
-      ).toBeDisabled();
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ).props.accessibilityHint,
+      ).toBeUndefined();
     });
 
     it('submits the close and dismisses the sheet', async () => {
