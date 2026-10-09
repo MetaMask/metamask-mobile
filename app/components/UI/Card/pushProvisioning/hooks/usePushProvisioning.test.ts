@@ -1,6 +1,30 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import { usePushProvisioning } from './usePushProvisioning';
+
+interface FocusEffectHarness {
+  latest?: () => void | (() => void);
+}
+
+jest.mock('@react-navigation/native', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const harness: FocusEffectHarness = {};
+  (
+    globalThis as { __pushProvisioningFocusHarness?: FocusEffectHarness }
+  ).__pushProvisioningFocusHarness = harness;
+  return {
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      React.useEffect(() => {
+        harness.latest = effect;
+        return effect();
+      }, [effect]);
+    },
+  };
+});
+
+const getFocusEffect = () =>
+  (globalThis as { __pushProvisioningFocusHarness?: FocusEffectHarness })
+    .__pushProvisioningFocusHarness?.latest;
 import { ProvisioningError, ProvisioningErrorCode } from '../types';
 
 let mockAppleProvisioningEnabled = true;
@@ -194,6 +218,37 @@ describe('usePushProvisioning', () => {
       await waitFor(() => {
         expect(mockWalletAdapter.getEligibility).toHaveBeenCalledWith('1234');
       });
+
+      unmount();
+    });
+
+    it('re-checks eligibility when the screen regains focus', async () => {
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(mockWalletAdapter.getEligibility).toHaveBeenCalledTimes(1);
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      mockWalletAdapter.getEligibility.mockClear();
+      mockWalletAdapter.getEligibility.mockResolvedValue({
+        isAvailable: true,
+        canAddCard: false,
+        existingCardStatus: 'active',
+      });
+
+      await act(async () => {
+        getFocusEffect()?.();
+      });
+
+      await waitFor(() => {
+        expect(mockWalletAdapter.getEligibility).toHaveBeenCalledWith('1234');
+        expect(result.current.isCardInWallet).toBe(true);
+        expect(result.current.canAddToWallet).toBe(false);
+      });
+      expect(result.current.isLoading).toBe(false);
 
       unmount();
     });

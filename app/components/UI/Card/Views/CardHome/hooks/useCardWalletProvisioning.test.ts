@@ -94,8 +94,12 @@ function renderProvisioning(
   toastRef: React.RefObject<ToastRef | null> = {
     current: { showToast, closeToast },
   },
+  options?: {
+    onSuccess?: () => void;
+    showSuccessToast?: boolean;
+  },
 ) {
-  return renderHook(() => useCardWalletProvisioning(data), {
+  return renderHook(() => useCardWalletProvisioning(data, options), {
     wrapper: ({ children }) =>
       React.createElement(
         ToastContext.Provider,
@@ -127,6 +131,37 @@ describe('useCardWalletProvisioning', () => {
       }),
     );
     expect(result.current.isCardInWallet).toBe(false);
+  });
+
+  it('runs the caller success callback after showing the toast', () => {
+    const onSuccess = jest.fn();
+
+    renderProvisioning(homeData(walletProvisioning), undefined, { onSuccess });
+
+    const passedOptions = mockUsePushProvisioning.mock.calls[0][0] as {
+      onSuccess: () => void;
+    };
+    passedOptions.onSuccess();
+
+    expect(showToast).toHaveBeenCalledTimes(1);
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips the success toast when the caller handles success', () => {
+    const onSuccess = jest.fn();
+
+    renderProvisioning(homeData(walletProvisioning), undefined, {
+      onSuccess,
+      showSuccessToast: false,
+    });
+
+    const passedOptions = mockUsePushProvisioning.mock.calls[0][0] as {
+      onSuccess: () => void;
+    };
+    passedOptions.onSuccess();
+
+    expect(showToast).not.toHaveBeenCalled();
+    expect(onSuccess).toHaveBeenCalledTimes(1);
   });
 
   it('passes null provisioning when the provider has no card', () => {

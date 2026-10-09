@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import { Linking, Platform, RefreshControl, ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
 import {
   Box,
@@ -22,6 +22,7 @@ import {
   Spinner,
 } from '@metamask/design-system-react-native';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
+import { useApplePaySplashPrompt } from '../ApplePaySplash/useApplePaySplashPrompt';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
@@ -95,6 +96,8 @@ import {
 } from '../../constants';
 import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline';
 import { CardHomeSelectors } from './CardHome.testIds';
+
+const APPLE_PAY_LEARN_MORE_URL = 'https://metamask.io/card';
 import CardAlertSection from './components/CardAlertSection';
 import CardActionsButtons from './components/CardActionsButtons';
 import CardBalanceDisplay from './components/CardBalanceDisplay';
@@ -238,6 +241,10 @@ const CardHome = () => {
     canAddToWallet,
     isCardInWallet,
   } = useCardWalletProvisioning(data);
+  useApplePaySplashPrompt({
+    canAddToWallet,
+    isPushProvisioningLoading,
+  });
   const platformWallet = getWalletTypeForPlatform();
   const platformWalletSupported =
     platformWallet === 'apple_wallet'
@@ -246,6 +253,9 @@ const CardHome = () => {
   const showDigitalWalletInstructions =
     !platformWalletSupported ||
     (!isPushProvisioningLoading && !canAddToWallet && !isCardInWallet);
+  const handleLearnMoreAboutApplePay = useCallback(() => {
+    Linking.openURL(APPLE_PAY_LEARN_MORE_URL).catch(() => undefined);
+  }, []);
 
   const { canEnableCard, enableCard, provisioningView } =
     useCardEnableCard(data);
@@ -865,6 +875,17 @@ const CardHome = () => {
                 borderRadius={4}
               />
             )}
+            {Platform.OS === 'ios' && (
+              <Button
+                variant={ButtonVariant.Tertiary}
+                size={ButtonSize.Sm}
+                isFullWidth
+                onPress={handleLearnMoreAboutApplePay}
+                testID={CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON}
+              >
+                {strings('card.apple_pay_usage.learn_more')}
+              </Button>
+            )}
           </Box>
         )}
 
@@ -928,6 +949,8 @@ const CardHome = () => {
             onDigitalWalletInstructions={
               actions.digitalWalletInstructionsAction
             }
+            showHowToUseApplePay={isCardInWallet}
+            onHowToUseApplePay={actions.howToUseApplePayAction}
             showUnlinkMoneyAccount={canUnlinkMoneyAccount}
             onUnlinkMoneyAccount={() =>
               actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)

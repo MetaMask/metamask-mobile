@@ -19,6 +19,8 @@ export interface CardSliceState {
   cardArrivalAnimationSeen: boolean;
   /** Armed by the developer-options reset; consumed on arrival, not persisted. */
   cardArrivalPreviewRequested: boolean;
+  /** One-time Apple Pay availability splash on Card Home. */
+  applePaySplashSeen: boolean;
 }
 
 export const initialState: CardSliceState = {
@@ -32,6 +34,7 @@ export const initialState: CardSliceState = {
   pendingMoneyAccountCardLink: null,
   cardArrivalAnimationSeen: false,
   cardArrivalPreviewRequested: false,
+  applePaySplashSeen: false,
 };
 
 const name = 'card';
@@ -78,6 +81,9 @@ const slice = createSlice({
     },
     setCardArrivalPreviewRequested: (state, action: PayloadAction<boolean>) => {
       state.cardArrivalPreviewRequested = action.payload;
+    },
+    setApplePaySplashSeen: (state, action: PayloadAction<boolean>) => {
+      state.applePaySplashSeen = action.payload;
     },
   },
 });
@@ -129,6 +135,11 @@ export const selectCardArrivalPreviewRequested = createSelector(
   (card) => card.cardArrivalPreviewRequested,
 );
 
+export const selectApplePaySplashSeen = createSelector(
+  selectCardState,
+  (card) => card?.applePaySplashSeen ?? false,
+);
+
 // Actions
 export const {
   resetCardState,
@@ -141,4 +152,5 @@ export const {
   setPendingMoneyAccountCardLink,
   setCardArrivalAnimationSeen,
   setCardArrivalPreviewRequested,
+  setApplePaySplashSeen,
 } = actions;

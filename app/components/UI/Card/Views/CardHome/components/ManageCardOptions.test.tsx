@@ -1,4 +1,5 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import ManageCardOptions from './ManageCardOptions';
 import { CardHomeSelectors } from '../CardHome.testIds';
@@ -293,6 +294,56 @@ describe('ManageCardOptions digital wallet instructions gating', () => {
     expect(
       queryByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
     ).not.toBeOnTheScreen();
+  });
+
+  it('shows how to use Apple Wallet when the card is in the wallet', () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+    const onHowToUseApplePay = jest.fn();
+    const { getByTestId } = render(
+      <ManageCardOptions
+        card={CARD}
+        account={{ verificationStatus: 'VERIFIED' } as never}
+        capabilities={buildCapabilities({ supportsFundingLimits: true })}
+        isMetalCardCheckoutEnabled={false}
+        isAuthenticated
+        isLoading={false}
+        hasSetupActions={false}
+        hasAlertOnlyState={false}
+        hasSetupAlerts={false}
+        userLocation="international"
+        isFrozen={false}
+        isFreezeLoading={false}
+        isPinLoading={false}
+        cardDetailsVisible={false}
+        onViewCardDetails={jest.fn()}
+        onViewPin={jest.fn()}
+        onSetPin={jest.fn()}
+        onToggleFreeze={jest.fn()}
+        onManageSpendingLimit={jest.fn()}
+        showDigitalWalletInstructions={false}
+        onDigitalWalletInstructions={jest.fn()}
+        showHowToUseApplePay
+        onHowToUseApplePay={onHowToUseApplePay}
+        onContactDetails={jest.fn()}
+        showUnlinkMoneyAccount={false}
+        onUnlinkMoneyAccount={jest.fn()}
+        onOrderMetalCard={jest.fn()}
+        isSpendingLimitActive
+        onChangeAsset={jest.fn()}
+        hasPriorityTokenBalance={false}
+        onCashback={jest.fn()}
+        onTravel={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(getByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM));
+
+    expect(onHowToUseApplePay).toHaveBeenCalledTimes(1);
+    Object.defineProperty(Platform, 'OS', {
+      value: originalPlatform,
+      writable: true,
+    });
   });
 });
 

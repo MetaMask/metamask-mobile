@@ -5369,7 +5369,9 @@
         "unlink_money_account_button": "Unlink Money Account from Card",
         "unlink_money_account_disabled_hint": "No active linkage to remove.",
         "reset_card_arrival_description": "Clear the card arrival animation state so the reveal plays again the next time you open the Card dashboard.",
-        "reset_card_arrival_button": "Reset arrival animation"
+        "reset_card_arrival_button": "Reset arrival animation",
+        "reset_apple_pay_splash_description": "Show the Apple Pay availability splash again the next time you open Card Home while signed in.",
+        "reset_apple_pay_splash_button": "Reset Apple Pay splash"
       },
       "identity": {
         "title": "Identity",
@@ -11284,6 +11286,28 @@
       "didnt_receive_code": "Didn't receive the code? ",
       "resend_verification": "Resend it",
       "resend_cooldown": "Resend available in {{seconds}} seconds"
+    },
+    "apple_pay_splash": {
+      "title": "Your iPhone is now your MetaMask card.",
+      "lockup_label": "MetaMask and Apple Pay",
+      "close": "Close"
+    },
+    "apple_pay_usage": {
+      "learn_more": "Learn more about Apple Pay",
+      "row_title": "How to use Apple Wallet",
+      "title": "Using Apple Pay",
+      "instructions": "Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while on other apps. Try it now.",
+      "marks": "Use Apple Pay anywhere you see these marks below.",
+      "marks_label": "Contactless and Apple Pay",
+      "continue": "Continue"
+    },
+    "apple_pay_confirmation": {
+      "title": "You're all set",
+      "subtitle": "Your card has been added to Apple Wallet.",
+      "description": "Apple Pay is an easy, secure way to pay with your card on all your Apple devices—in-store, online, or in-app.",
+      "symbols": "Use Apple Pay wherever you see these symbols",
+      "marks_label": "Contactless and Apple Pay",
+      "done": "Done"
     },
     "push_provisioning": {
       "add_to_wallet": "Add to {{walletName}}",

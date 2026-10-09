@@ -38,12 +38,16 @@ jest.mock('@react-navigation/native-stack', () => {
         name: string;
         options?: {
           headerShown?: boolean;
+          animation?: string;
         };
         component?: React.ComponentType;
       }) => (
         <View testID={`screen-${name}`}>
           <Text>{name}</Text>
           {options?.headerShown === false && <Text>no-header</Text>}
+          {options?.animation ? (
+            <Text>{`${name}-animation:${options.animation}`}</Text>
+          ) : null}
           {(name === 'CardHome' || name === 'CardModals') && Component ? (
             <Component />
           ) : null}
@@ -197,6 +201,8 @@ jest.mock('../../../../selectors/cardController', () => ({
 jest.mock('../../../../constants/navigation/Routes', () => ({
   CARD: {
     HOME: 'CardHome',
+    APPLE_PAY_SPLASH: 'CardApplePaySplash',
+    APPLE_PAY_CONFIRMATION: 'CardApplePayConfirmation',
     WELCOME: 'CardWelcome',
     CHOOSE_YOUR_CARD: 'ChooseYourCard',
     REVIEW_ORDER: 'ReviewOrder',
@@ -229,6 +235,7 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
       DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
+      APPLE_PAY_USAGE: 'CardApplePayUsageSheet',
     },
   },
 }));
@@ -345,6 +352,14 @@ describe('CardRoutes', () => {
       const { getAllByText } = renderWithProviders(<CardRoutes />);
 
       expect(getAllByText('headerShown: false').length).toBeGreaterThan(0);
+    });
+
+    it('slides the Apple Pay splash in from the bottom', () => {
+      const { getByText } = renderWithProviders(<CardRoutes />);
+
+      expect(
+        getByText('CardApplePaySplash-animation:slide_from_bottom'),
+      ).toBeOnTheScreen();
     });
   });
 

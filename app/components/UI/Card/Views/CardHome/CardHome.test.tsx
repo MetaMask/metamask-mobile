@@ -65,7 +65,7 @@ jest.mock('@tanstack/react-query', () => ({
 
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { Alert, Linking } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
@@ -142,6 +142,7 @@ jest.mock('@react-navigation/native', () => {
       goBack: mockGoBack,
       setOptions: mockSetNavigationOptions,
       dispatch: mockNavigationDispatch,
+      addListener: jest.fn(() => jest.fn()),
     }),
     useRoute: () => ({
       params: {},
@@ -2253,6 +2254,70 @@ describe('CardHome Component', () => {
       expect(
         screen.getByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Apple Pay learn more', () => {
+    const originalPlatform = Platform.OS;
+
+    beforeEach(() => {
+      Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+      setupMockSelectors({
+        isAuthenticated: true,
+        activeProviderId: 'baanx',
+      });
+      setupLoadCardDataMock({ isAuthenticated: true });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+    });
+
+    it('opens the Apple Pay learn-more page from the Add to Apple Wallet section', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+        isCardInWallet: false,
+      });
+
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON),
+      );
+
+      expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io/card');
+    });
+
+    it('hides learn more when the card cannot be added to Apple Wallet', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: false,
+        isCardInWallet: false,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON),
+      ).toBeNull();
     });
   });
 
