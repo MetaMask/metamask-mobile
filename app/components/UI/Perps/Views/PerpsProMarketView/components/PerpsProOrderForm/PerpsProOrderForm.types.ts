@@ -1,3 +1,4 @@
+import type { PerpsFeeDiscountKind } from '../../../../utils/feeDiscount';
 import type { OrderType } from '@metamask/perps-controller';
 import type { Ref } from 'react';
 import type { View } from 'react-native';
@@ -57,6 +58,7 @@ export interface PerpsProOrderSummaryProps {
   fee?: number;
   originalFee?: number;
   feeDiscountPercentage?: number;
+  feeDiscountKind?: PerpsFeeDiscountKind;
   onSlippagePress?: () => void;
   onFeesInfoPress?: () => void;
   /**

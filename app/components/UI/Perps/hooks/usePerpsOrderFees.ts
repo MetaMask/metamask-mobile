@@ -1,3 +1,7 @@
+import {
+  getPerpsFeeDiscount,
+  type PerpsFeeDiscountKind,
+} from '../utils/feeDiscount';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
@@ -12,11 +16,11 @@ import {
   EstimatedPointsDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import {
-  BASIS_POINTS_DIVISOR,
   BUILDER_FEE_CONFIG,
   PerpsMeasurementName,
   PERFORMANCE_CONFIG,
   formatAccountToCaipAccountId,
+  type PerpsFeeSource,
   type OrderType,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
@@ -60,6 +64,9 @@ export interface OrderFeesResult {
   originalMetamaskFeeRate?: number;
   /** Fee discount percentage applied (e.g., 30 for 30% off) */
   feeDiscountPercentage?: number;
+  feeDiscountKind?: PerpsFeeDiscountKind;
+  /** Attribution from the same Core snapshot used to price this preview. */
+  feeSource?: PerpsFeeSource;
   /** Estimated points to be earned from this trade */
   estimatedPoints?: number;
   /** Bonus multiplier in basis points (100 = 1%) */
@@ -250,6 +257,7 @@ export function usePerpsOrderFees({
   const [error, setError] = useState<string | null>(null);
 
   // State for rewards data
+  const [feeSource, setFeeSource] = useState<PerpsFeeSource>();
   const [feeDiscountPercentage, setFeeDiscountPercentage] = useState<
     number | undefined
   >();
@@ -368,6 +376,7 @@ export function usePerpsOrderFees({
       discountPercentage?: number,
       points?: number,
       bonusBipsValue?: number,
+      source?: PerpsFeeSource,
     ) => {
       setProtocolFeeRate(protocolRate);
       setOriginalMetamaskFeeRate(originalMetamaskRate);
@@ -379,6 +388,7 @@ export function usePerpsOrderFees({
           : undefined,
       );
       setFeeDiscountPercentage(discountPercentage);
+      setFeeSource(source);
       setEstimatedPoints(points);
       setBonusBips(bonusBipsValue);
     },
@@ -397,6 +407,7 @@ export function usePerpsOrderFees({
     setOriginalMetamaskFeeRate(0);
     setTotalFeeRate(0);
     setFeeDiscountPercentage(undefined);
+    setFeeSource(undefined);
     setEstimatedPoints(undefined);
     setBonusBips(undefined);
   }, []);
@@ -440,29 +451,29 @@ export function usePerpsOrderFees({
           return;
         }
 
-        // Step 3: calculateFees already prices the MetaMask fee from the
-        // controller's fee resolution (rewards/VIP or subscription), so its rate
-        // is what the order is charged. Derive the undiscounted rate and the
-        // discount from it instead of applying the rewards discount again.
-        const resolvedMetamaskRate = coreFeesResult.metamaskFeeRate;
-        const undiscountedMetamaskRate =
-          coreFeesResult.chargesMetamaskBuilderFee
-            ? BUILDER_FEE_CONFIG.MaxFeeDecimal
-            : resolvedMetamaskRate;
-        const discountPercentage = coreFeesResult.chargesMetamaskBuilderFee
-          ? Math.round(
-              (1 - resolvedMetamaskRate / undiscountedMetamaskRate) *
-                BASIS_POINTS_DIVISOR,
-            ) / 100
-          : undefined;
+        // Core already applied the winning source. Mobile only derives presentation.
+        const source = coreFeesResult.feeSource;
+        const originalRate =
+          coreFeesResult.chargesMetamaskBuilderFee === false
+            ? coreFeesResult.metamaskFeeRate
+            : BUILDER_FEE_CONFIG.MaxFeeDecimal;
+        const { percentage: discountPercentage } = getPerpsFeeDiscount({
+          feeSource: source,
+          currentFeeRate: coreFeesResult.metamaskFeeRate,
+          originalFeeRate: originalRate,
+        });
+
+        if (!isComponentMounted) return;
 
         // Step 4: Handle points estimation if user has address and valid amount
         let pointsResult: { points?: number; bonusBips?: number } = {};
         if (selectedAddress && Number.parseFloat(amount) > 0) {
-          const actualFeeUSD = Number.parseFloat(amount) * resolvedMetamaskRate;
-          DevLogger.log('Rewards: Calculating points with resolved fee', {
-            metamaskFeeRate: resolvedMetamaskRate,
+          const actualFeeUSD =
+            Number.parseFloat(amount) * coreFeesResult.metamaskFeeRate;
+          DevLogger.log('Rewards: Calculating points with discounted fee', {
+            originalRate,
             discountPercentage,
+            adjustedRate: coreFeesResult.metamaskFeeRate,
             amount: Number.parseFloat(amount),
             actualFeeUSD,
           });
@@ -478,11 +489,12 @@ export function usePerpsOrderFees({
         // Step 5: Update all state with actual values (all rates are defined)
         updateFeeState(
           coreFeesResult.protocolFeeRate,
-          undiscountedMetamaskRate,
-          resolvedMetamaskRate,
+          originalRate,
+          coreFeesResult.metamaskFeeRate,
           discountPercentage,
           pointsResult.points,
           pointsResult.bonusBips,
+          source,
         );
       } catch (fetchError) {
         if (isComponentMounted) {
@@ -546,6 +558,12 @@ export function usePerpsOrderFees({
       // Rewards data
       originalMetamaskFeeRate,
       feeDiscountPercentage,
+      feeSource,
+      feeDiscountKind: getPerpsFeeDiscount({
+        feeSource,
+        currentFeeRate: metamaskFeeRate,
+        originalFeeRate: originalMetamaskFeeRate,
+      }).kind,
       estimatedPoints,
       bonusBips,
     };
@@ -558,6 +576,7 @@ export function usePerpsOrderFees({
     error,
     originalMetamaskFeeRate,
     feeDiscountPercentage,
+    feeSource,
     estimatedPoints,
     bonusBips,
   ]);

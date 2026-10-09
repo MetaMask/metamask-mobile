@@ -56,7 +56,11 @@ export interface PerpsTransaction {
     size: string;
     entryPrice: string;
     points: string;
-    pnl: string;
+    /**
+     * Realized PnL reported by the venue. Absent means unknown, never zero;
+     * only a reported `'0'` is zero.
+     */
+    pnl?: string;
     fee: string;
     action: string;
     feeToken: string;

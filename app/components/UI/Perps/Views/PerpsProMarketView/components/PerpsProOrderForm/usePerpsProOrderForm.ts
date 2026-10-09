@@ -1,3 +1,4 @@
+import type { PerpsFeeDiscountKind } from '../../../../utils/feeDiscount';
 import {
   BASIS_POINTS_DIVISOR,
   DECIMAL_PRECISION_CONFIG,
@@ -557,6 +558,7 @@ export interface UsePerpsProOrderFormResult {
   feeProtocolFeeRate: number | undefined;
   feeOriginalMetamaskFeeRate: number | undefined;
   feeDiscountPercentage: number | undefined;
+  feeDiscountKind: PerpsFeeDiscountKind;
 }
 
 /**
@@ -3316,6 +3318,7 @@ export const usePerpsProOrderForm = ({
       originalFee: hasValidAmount ? undiscountedEstimatedFees : undefined,
       feeDiscountPercentage: feeResults.feeDiscountPercentage,
       onFeesInfoPress: () => setSelectedTooltip('fees'),
+      feeDiscountKind: feeResults.feeDiscountKind,
       twapSummary: isTwapOrder
         ? {
             runtime: twapRuntimeSummary,
@@ -3339,6 +3342,7 @@ export const usePerpsProOrderForm = ({
     estimatedFees,
     undiscountedEstimatedFees,
     feeResults.feeDiscountPercentage,
+    feeResults.feeDiscountKind,
     onSlippagePress,
     isPositionModifyPreviewEnabled,
     positionModifySummaryDisplay,
@@ -4024,6 +4028,7 @@ export const usePerpsProOrderForm = ({
     feeProtocolFeeRate: feeResults.protocolFeeRate,
     feeOriginalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
     feeDiscountPercentage: feeResults.feeDiscountPercentage,
+    feeDiscountKind: feeResults.feeDiscountKind,
   };
 };
 

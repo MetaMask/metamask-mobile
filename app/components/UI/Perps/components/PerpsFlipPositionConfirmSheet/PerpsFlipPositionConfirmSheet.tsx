@@ -191,6 +191,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
     feeResults.metamaskFee,
     feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
+    feeResults.feeDiscountKind,
     feeResults.protocolFeeRate,
     markPrice,
     price,
@@ -325,6 +326,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
               </Text>
               <PerpsFeesDisplay
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+                feeDiscountKind={feeResults.feeDiscountKind}
                 fee={
                   !hasValidAmount || feeResults.isLoadingMetamaskFee
                     ? undefined

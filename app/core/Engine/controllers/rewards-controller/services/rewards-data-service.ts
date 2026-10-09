@@ -1,4 +1,5 @@
 import type { Messenger } from '@metamask/messenger';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import { getVersion } from 'react-native-device-info';
 import type {
   LoginResponseDto,
@@ -56,6 +57,7 @@ import type {
   VipTransactionType,
   PaginatedVipTransactionsDto,
   VipTransactionsLastUpdatedDto,
+  TradingFeeGrantResponseDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -111,6 +113,67 @@ const SERVICE_NAME = 'RewardsDataService';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
+
+// Temporary development-only response for demonstrating the trading-fee grant
+// UI before GET /trading-fee-grants is available.
+const MOCK_TRADING_FEE_GRANT_RESPONSE: TradingFeeGrantResponseDto = {
+  grant: {
+    programId: 'perps-builder-fee-experiment',
+    hyperliquid: {
+      builderCode: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+      builderFeeBips: '2.5',
+    },
+    expiresAt: '2026-12-01T00:00:00.000Z',
+  },
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function hasExactKeys(
+  value: Record<string, unknown>,
+  expectedKeys: string[],
+): boolean {
+  const keys = Object.keys(value);
+  return (
+    keys.length === expectedKeys.length &&
+    expectedKeys.every((key) => Object.hasOwn(value, key))
+  );
+}
+
+function isTradingFeeGrantResponse(
+  value: unknown,
+): value is TradingFeeGrantResponseDto {
+  if (!isRecord(value) || !hasExactKeys(value, ['grant'])) {
+    return false;
+  }
+  if (value.grant === null) {
+    return true;
+  }
+  if (
+    !isRecord(value.grant) ||
+    !hasExactKeys(value.grant, ['programId', 'hyperliquid', 'expiresAt']) ||
+    typeof value.grant.programId !== 'string' ||
+    typeof value.grant.expiresAt !== 'string' ||
+    !Number.isFinite(Date.parse(value.grant.expiresAt)) ||
+    !isRecord(value.grant.hyperliquid) ||
+    !hasExactKeys(value.grant.hyperliquid, ['builderCode', 'builderFeeBips']) ||
+    typeof value.grant.hyperliquid.builderCode !== 'string' ||
+    typeof value.grant.hyperliquid.builderFeeBips !== 'string'
+  ) {
+    return false;
+  }
+
+  const feeString = value.grant.hyperliquid.builderFeeBips;
+  const fee = Number(feeString);
+  return (
+    /^(?:0|[1-9]\d{0,2})(?:\.\d{1,2})?$/u.test(feeString) &&
+    Number.isFinite(fee) &&
+    fee >= 0 &&
+    fee <= 999.99
+  );
+}
 
 // Auth endpoint action types
 
@@ -403,6 +466,11 @@ export interface RewardsDataServiceGetVipFeesAction {
   handler: RewardsDataService['getVipFees'];
 }
 
+export interface RewardsDataServiceGetTradingFeeGrantsAction {
+  type: `${typeof SERVICE_NAME}:getTradingFeeGrants`;
+  handler: RewardsDataService['getTradingFeeGrants'];
+}
+
 export interface RewardsDataServiceGetVipTransactionsAction {
   type: `${typeof SERVICE_NAME}:getVipTransactions`;
   handler: RewardsDataService['getVipTransactions'];
@@ -457,6 +525,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetVIPDashboardAction
   | RewardsDataServiceGetVipEquityMultiplierAction
   | RewardsDataServiceGetVipRefereeDashboardAction
+  | RewardsDataServiceGetTradingFeeGrantsAction
   | RewardsDataServiceGetVipFeesAction
   | RewardsDataServiceGetVipTransactionsAction
   | RewardsDataServiceLookupVipTransactionAction
@@ -488,9 +557,12 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsDataServiceRegisterMoneyAccountBindingAction;
 
+type AllowedActions =
+  AuthenticationController.AuthenticationControllerGetBearerTokenAction;
+
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
-  RewardsDataServiceActions,
+  RewardsDataServiceActions | AllowedActions,
   never
 >;
 
@@ -756,6 +828,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getVipFees`,
       this.getVipFees.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getTradingFeeGrants`,
+      this.getTradingFeeGrants.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getVipTransactions`,
@@ -1804,6 +1880,46 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as VipFeesResponseDto;
+  }
+
+  /**
+   * Fetch the active profile's trading-fee grant using Profile Sync auth.
+   * The token is checked again after the request so a response cannot cross a
+   * profile-switch boundary.
+   */
+  async getTradingFeeGrants(): Promise<TradingFeeGrantResponseDto> {
+    if (__DEV__ && process.env.NODE_ENV !== 'test') {
+      return MOCK_TRADING_FEE_GRANT_RESPONSE;
+    }
+
+    const token = await this.#messenger.call(
+      'AuthenticationController:getBearerToken',
+    );
+    if (!token) {
+      throw new Error('Profile Sync bearer token is required');
+    }
+
+    const response = await this.makeRequest('/trading-fee-grants', {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      throw new Error(`Get trading fee grants failed: ${response.status}`);
+    }
+
+    const result: unknown = await response.json();
+    if (!isTradingFeeGrantResponse(result)) {
+      throw new Error('Invalid trading fee grant response');
+    }
+
+    const currentToken = await this.#messenger.call(
+      'AuthenticationController:getBearerToken',
+    );
+    if (currentToken !== token) {
+      throw new Error('Profile changed during trading fee grant request');
+    }
+
+    return result;
   }
 
   async getVipTransactions(

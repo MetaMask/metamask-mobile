@@ -21,7 +21,36 @@ describe('FeesTooltipContent', () => {
     protocolFeeRate: 0.00045,
     originalMetamaskFeeRate: 0.015,
     feeDiscountPercentage: 25,
+    feeDiscountKind: 'vip' as const,
   };
+
+  it('explains the promotional discount without VIP branding', () => {
+    const { getByText, queryByTestId, queryByText } = render(
+      <FeesTooltipContent
+        testID="fees-tooltip"
+        data={{ ...mockData, feeDiscountKind: 'promotional' }}
+      />,
+    );
+
+    expect(
+      getByText('Promotional discount: 25% off the MetaMask fee.'),
+    ).toBeTruthy();
+    expect(queryByTestId('rewards-vip-badge')).toBeNull();
+    expect(queryByTestId('vip-discount-icon')).toBeNull();
+    expect(queryByText(/as a VIP/)).toBeNull();
+  });
+
+  it('does not claim VIP eligibility when attribution is unknown', () => {
+    const { getByText, queryByTestId } = render(
+      <FeesTooltipContent
+        testID="fees-tooltip"
+        data={{ ...mockData, feeDiscountKind: undefined }}
+      />,
+    );
+
+    expect(getByText("You're saving 25% on the MetaMask fee.")).toBeTruthy();
+    expect(queryByTestId('rewards-vip-badge')).toBeNull();
+  });
 
   it('displays fee information correctly', () => {
     // Arrange & Act
