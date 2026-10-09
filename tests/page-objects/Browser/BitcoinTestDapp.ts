@@ -130,9 +130,10 @@ class BitcoinTestDapp {
 
   /**
    * After reload, auto-reconnect may leave the dapp on "Not connected" without
-   * opening the native MetaMask sheet (provider registers after remount). Poll
-   * for Connected; periodically approve the native sheet when present; when
-   * still disconnected, re-drive Connect from the dapp (no extra reload).
+   * opening the native MetaMask sheet. Poll for Connected, approve the native
+   * sheet when it is visible, and otherwise re-drive Connect from the dapp.
+   * "No wallet available" means the mount captured wallets=[] — reload once
+   * while the header is still readable so the next mount sees the provider.
    */
   private async waitForReconnect(
     timeoutMs = CONNECT_TIMEOUT_MS,
@@ -149,23 +150,28 @@ class BitcoinTestDapp {
       // Auto-reconnect may re-open the MetaMask connect sheet after wallets register.
       if (Date.now() - lastNativeConnectAttemptAt >= 3_000) {
         lastNativeConnectAttemptAt = Date.now();
-        const connectVisible = await Utilities.isElementVisible(
-          DappConnectionModal.connectButton,
-          500,
-        );
-        if (connectVisible) {
-          await DappConnectionModal.tapConnectButton({ timeout: 5_000 });
-          continue;
+        const lookBudget = Math.min(500, deadline - Date.now());
+        if (lookBudget > 0) {
+          const connectVisible = await Utilities.isElementVisible(
+            DappConnectionModal.connectButton,
+            lookBudget,
+          );
+          const tapBudget = Math.min(5_000, deadline - Date.now());
+          if (connectVisible && tapBudget > 0) {
+            await DappConnectionModal.tapConnectButton({ timeout: tapBudget });
+            continue;
+          }
         }
       }
 
       // Native sheet never appeared — re-open wallet selection from the dapp.
       if (
         actual === 'Not connected' &&
-        Date.now() - lastDappConnectAttemptAt >= 5_000
+        Date.now() - lastDappConnectAttemptAt >= 5_000 &&
+        deadline - Date.now() > 0
       ) {
         lastDappConnectAttemptAt = Date.now();
-        await this.attemptDappReconnectBestEffort();
+        await this.attemptDappReconnectBestEffort(deadline);
       }
 
       await wait(POLL_MS);
@@ -177,67 +183,158 @@ class BitcoinTestDapp {
   }
 
   /**
-   * Best-effort dapp-side reconnect after page refresh when auto-reconnect
-   * stalls on "Not connected". Waits for wallet-standard registration, then
-   * Connect → wallet option → standard → native approve. Returns without
-   * throwing so {@link waitForReconnect} can keep polling.
+   * Re-drive Connect from the dapp after refresh. Returns without throwing so
+   * {@link waitForReconnect} can keep polling. Each wait uses only the time
+   * left until `deadline`.
+   *
+   * The dapp captures wallets once at mount. An empty modal is followed by one
+   * reload while the header is still readable. The wallet option and the
+   * standard button are clicked separately, because the standard control
+   * renders after the wallet click.
    */
-  private async attemptDappReconnectBestEffort(): Promise<void> {
+  private async attemptDappReconnectBestEffort(
+    deadline: number,
+  ): Promise<void> {
+    const remaining = () => Math.max(0, deadline - Date.now());
     const walletOptionSelector = `button${sel(
       walletSelectionModal.walletOption,
     )}`;
+    const standardSelector = `button${sel(walletSelectionModal.standardButton)}`;
     const connectSelector = `button${sel(header.connect)}`;
 
-    await this.waitForBitcoinWalletRegistered(5_000);
+    if (remaining() <= 0 || !(await this.clickInPage(connectSelector))) {
+      return;
+    }
 
-    const connectVisible = await this.evaluate<boolean>(
-      `Boolean(document.querySelector(${JSON.stringify(connectSelector)}))`,
-    ).catch(() => false);
-    if (!connectVisible) return;
-
-    const clicked = await this.evaluate<boolean>(
-      `(() => {
-        const el = document.querySelector(${JSON.stringify(connectSelector)});
-        if (!el) return false;
-        el.click();
-        return true;
-      })()`,
-    ).catch(() => false);
-    if (!clicked) return;
-
-    const outcome = await this.waitForWalletModalOutcome(
+    let outcome = await this.waitForWalletModalOutcome(
       walletOptionSelector,
-      8_000,
+      Math.min(8_000, remaining()),
     );
+
+    if (outcome === 'empty') {
+      const stillLoaded = await this.getConnectionStatus();
+      if (!stillLoaded || remaining() <= 0) {
+        return;
+      }
+
+      const registered = await this.waitForBitcoinWalletRegistered(
+        Math.min(5_000, remaining()),
+      );
+      await this.closeWalletSelectionModalBestEffort();
+      if (!registered || remaining() <= 0) {
+        return;
+      }
+
+      const reloaded = await this.reloadDappWithin(
+        Math.min(10_000, remaining()),
+      );
+      if (!reloaded || !(await this.clickInPage(connectSelector))) {
+        return;
+      }
+
+      outcome = await this.waitForWalletModalOutcome(
+        walletOptionSelector,
+        Math.min(8_000, remaining()),
+      );
+    }
+
     if (outcome !== 'wallet') {
       await this.closeWalletSelectionModalBestEffort();
       return;
     }
 
-    const selected = await this.evaluate<boolean>(
-      `(() => {
-        const wallet = document.querySelector(${JSON.stringify(
-          walletOptionSelector,
-        )});
-        if (!(wallet instanceof HTMLElement)) return false;
-        wallet.click();
-        const standard = document.querySelector(${JSON.stringify(
-          `button${sel(walletSelectionModal.standardButton)}`,
-        )});
-        if (!(standard instanceof HTMLElement)) return false;
-        standard.click();
-        return true;
-      })()`,
-    ).catch(() => false);
-    if (!selected) return;
+    if (!(await this.clickInPage(walletOptionSelector))) {
+      await this.closeWalletSelectionModalBestEffort();
+      return;
+    }
 
+    const standardReady = await this.waitForCss(
+      standardSelector,
+      Math.min(8_000, remaining()),
+    );
+    if (!standardReady || !(await this.clickInPage(standardSelector))) {
+      await this.closeWalletSelectionModalBestEffort();
+      return;
+    }
+
+    const nativeBudget = Math.min(5_000, remaining());
+    if (nativeBudget <= 0) {
+      return;
+    }
     const nativeConnectVisible = await Utilities.isElementVisible(
       DappConnectionModal.connectButton,
-      8_000,
+      nativeBudget,
     );
-    if (nativeConnectVisible) {
-      await DappConnectionModal.tapConnectButton({ timeout: 10_000 });
+    const tapBudget = Math.min(5_000, remaining());
+    if (nativeConnectVisible && tapBudget > 0) {
+      await DappConnectionModal.tapConnectButton({ timeout: tapBudget });
     }
+  }
+
+  /** Clicks a dapp element. Returns false when the element is not in the page. */
+  private async clickInPage(cssSelector: string): Promise<boolean> {
+    const clicked = await this.evaluate<boolean>(
+      `(() => {
+        const el = document.querySelector(${JSON.stringify(cssSelector)});
+        if (!(el instanceof HTMLElement)) return false;
+        el.click();
+        return true;
+      })()`,
+    );
+    return clicked === true;
+  }
+
+  /**
+   * Polls until `cssSelector` is in the page, or `timeoutMs` elapses.
+   * Resolves false on timeout instead of throwing, so reconnect can keep polling.
+   */
+  private async waitForCss(
+    cssSelector: string,
+    timeoutMs: number,
+  ): Promise<boolean> {
+    if (timeoutMs <= 0) {
+      return false;
+    }
+    const end = Date.now() + timeoutMs;
+    let found = false;
+    await Utilities.waitUntil(
+      async () => {
+        const present = await this.evaluate<boolean>(
+          `Boolean(document.querySelector(${JSON.stringify(cssSelector)}))`,
+        );
+        found = present === true;
+        return found || Date.now() >= end;
+      },
+      { interval: POLL_MS, timeout: timeoutMs },
+    );
+    return found;
+  }
+
+  /**
+   * Reloads the dapp and waits until the header is readable, bounded by
+   * `timeoutMs`. Returns false when the page does not come back in time.
+   */
+  private async reloadDappWithin(timeoutMs: number): Promise<boolean> {
+    if (timeoutMs <= 0) {
+      return false;
+    }
+    const reloaded = await this.evaluate<boolean>(
+      '(() => { location.reload(); return true; })()',
+    );
+    if (reloaded !== true) {
+      return false;
+    }
+    ChromeCdpHelpers.resetMetaMaskWebViewCache();
+    const end = Date.now() + timeoutMs;
+    let loaded = false;
+    await Utilities.waitUntil(
+      async () => {
+        loaded = Boolean(await this.getConnectionStatus());
+        return loaded || Date.now() >= end;
+      },
+      { interval: POLL_MS, timeout: timeoutMs },
+    );
+    return loaded;
   }
 
   /**
