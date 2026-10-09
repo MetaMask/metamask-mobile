@@ -59,6 +59,7 @@ const testDependencies = {
 };
 let currentRecoverySecret = Uint8Array.from([1, 2, 3]);
 let currentRecoveryEpoch = 1;
+let isRegistered = false;
 
 jest.doMock('@metamask/profile-sync-controller/sdk', () => ({
   AuthType: { SiWE: 'SiWE' },
@@ -128,13 +129,22 @@ describe('Cubist recovery runner', () => {
     mockAuthenticateIdentifier.mockResolvedValue('identifier-session');
     currentRecoverySecret = Uint8Array.from([1, 2, 3]);
     currentRecoveryEpoch = 1;
-    mockGetRecoverySecret.mockImplementation(async () => ({
-      recoverySecret: new Uint8Array(currentRecoverySecret),
-      epoch: currentRecoveryEpoch,
-    }));
+    isRegistered = false;
+    mockGetRecoverySecret.mockImplementation(async () => {
+      if (!isRegistered) {
+        throw Object.assign(new Error('identifier is not registered'), {
+          code: 'escrow_request_failed',
+        });
+      }
+      return {
+        recoverySecret: new Uint8Array(currentRecoverySecret),
+        epoch: currentRecoveryEpoch,
+      };
+    });
     mockRegister.mockImplementation(async (recoverySecret: Uint8Array) => {
       currentRecoverySecret = new Uint8Array(recoverySecret);
       currentRecoveryEpoch = 1;
+      isRegistered = true;
     });
     mockUpdateRecoverySecret.mockImplementation(
       async (
@@ -143,7 +153,7 @@ describe('Cubist recovery runner', () => {
         _expectedEpoch: number,
       ) => {
         currentRecoverySecret = new Uint8Array(recoverySecret);
-        currentRecoveryEpoch = 2;
+        currentRecoveryEpoch += 1;
       },
     );
     mockUpdateIdentifiers.mockImplementation(
@@ -152,7 +162,7 @@ describe('Cubist recovery runner', () => {
         _identifiers: unknown[],
         _expectedEpoch: number,
       ) => {
-        currentRecoveryEpoch = 3;
+        currentRecoveryEpoch += 1;
       },
     );
   });
@@ -175,6 +185,8 @@ describe('Cubist recovery runner', () => {
       'signing_in',
       'requesting_oidc_token',
       'creating_cubist_session',
+      'authenticating_identifier',
+      'reading_recovery_secret',
       'registering_recovery_secret',
       'authenticating_identifier',
       'reading_recovery_secret',
@@ -219,31 +231,66 @@ describe('Cubist recovery runner', () => {
     const firstUpdateIdentifiers = mockUpdateIdentifiers.mock.calls[0]?.[1] as
       | TestIdentifier[]
       | undefined;
-    const secondRegistration = mockRegister.mock.calls[1]?.[1] as
-      | TestIdentifier[]
-      | undefined;
     const firstRegisteredPasskey = firstRegistration?.find(
       ({ type }) => type === 'passkey',
     );
     const replacementPasskey = firstUpdateIdentifiers?.find(
       ({ type }) => type === 'passkey',
     );
-    const secondRegisteredPasskey = secondRegistration?.find(
-      ({ type }) => type === 'passkey',
-    );
 
     if (
       firstRegisteredPasskey === undefined ||
-      replacementPasskey === undefined ||
-      secondRegisteredPasskey === undefined
+      replacementPasskey === undefined
     ) {
       throw new Error('Expected passkey identifiers in recovery calls');
     }
 
+    expect(mockRegister).toHaveBeenCalledTimes(1);
     expect(mockUpdateRecoverySecret.mock.calls[0]?.[0]).toBe(
       firstRegisteredPasskey,
     );
-    expect(secondRegisteredPasskey.value).toBe(replacementPasskey.value);
+    expect(mockUpdateRecoverySecret.mock.calls[1]?.[0]).toEqual(
+      expect.objectContaining({ type: 'siwe', value: '0xabc' }),
+    );
+    expect(mockUpdateIdentifiers.mock.calls[1]?.[1]).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'siwe', value: '0xabc' }),
+        expect.objectContaining({ type: 'passkey' }),
+      ]),
+    );
+  });
+
+  it('skips registration when recovery is already readable', async () => {
+    isRegistered = true;
+    currentRecoverySecret = Uint8Array.from([9, 8, 7]);
+    currentRecoveryEpoch = 4;
+
+    const steps: string[] = [];
+    const result = await runner.runMfaRecoveryCubistTest(
+      testDependencies,
+      (step) => steps.push(step),
+    );
+
+    expect(mockRegister).not.toHaveBeenCalled();
+    expect(result).toEqual({ epoch: 6, matches: true });
+    expect(steps).toEqual([
+      'signing_in',
+      'requesting_oidc_token',
+      'creating_cubist_session',
+      'authenticating_identifier',
+      'reading_recovery_secret',
+      'updating_recovery_secret',
+      'authenticating_identifier',
+      'reading_recovery_secret',
+      'updating_identifiers',
+      'authenticating_identifier',
+      'reading_recovery_secret',
+      'completed',
+    ]);
+    expect(mockUpdateRecoverySecret.mock.calls[0]?.[0]).toEqual(
+      expect.objectContaining({ type: 'siwe', value: '0xabc' }),
+    );
+    expect(mockUpdateRecoverySecret.mock.calls[0]?.[2]).toBe(4);
   });
 
   it('reuses the SIWE provider for the same account across recovery contexts', async () => {
@@ -375,6 +422,8 @@ describe('Cubist recovery runner', () => {
   });
 
   it('requests an OIDC token for recovery without registering a new secret', async () => {
+    isRegistered = true;
+
     const result = await runner.runMfaRecoveryCubistRecover(testDependencies);
 
     expect(result.matches).toBeUndefined();

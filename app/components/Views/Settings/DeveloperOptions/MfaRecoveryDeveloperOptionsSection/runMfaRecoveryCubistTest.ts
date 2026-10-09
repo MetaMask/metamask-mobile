@@ -164,22 +164,40 @@ export async function runMfaRecoveryCubistTest(
     };
   };
 
-  onStep('registering_recovery_secret');
-  let secret = newSecret();
-  await controller.register(secret, [siweIdentifier, passkeyIdentifier]);
-  lastRegisteredSecret = new Uint8Array(secret);
-  let result = await readAndCompare(siweIdentifier, secret);
+  let secret: Uint8Array;
+  let result: MfaRecoveryTestResult;
+  // Prefer SIWE for mutations when recovery already exists — the local passkey
+  // may not match the enrolled one after a prior run or process restart.
+  let mutationIdentifier: Identifier = passkeyIdentifier;
+
+  try {
+    const recovered = await readRecoverySecret(
+      controller,
+      siweIdentifier,
+      onStep,
+    );
+    secret = new Uint8Array(recovered.recoverySecret);
+    lastRegisteredSecret = new Uint8Array(secret);
+    result = { epoch: recovered.epoch, matches: true };
+    mutationIdentifier = siweIdentifier;
+  } catch {
+    onStep('registering_recovery_secret');
+    secret = newSecret();
+    await controller.register(secret, [siweIdentifier, passkeyIdentifier]);
+    lastRegisteredSecret = new Uint8Array(secret);
+    result = await readAndCompare(siweIdentifier, secret);
+  }
 
   if (result.matches) {
     onStep('updating_recovery_secret');
     secret = newSecret();
     await controller.updateRecoverySecret(
-      passkeyIdentifier,
+      mutationIdentifier,
       secret,
       result.epoch,
     );
     lastRegisteredSecret = new Uint8Array(secret);
-    result = await readAndCompare(passkeyIdentifier, secret);
+    result = await readAndCompare(mutationIdentifier, secret);
   }
   if (result.matches) {
     onStep('updating_identifiers');
@@ -261,14 +279,7 @@ async function createRecoveryContext(
     wrapPublicKey: config.wrapPublicKey,
     receiptPublicKey: config.receiptPublicKey,
   });
-  escrow.isAvailable = async () => {
-    try {
-      await client.apiClient.userGet();
-      return true;
-    } catch {
-      return false;
-    }
-  };
+
   const identifiers = getTestIdentifiers(address, signPersonalMessage);
   const controller = new MfaRecoveryController({
     messenger: getControllerMessenger(),
