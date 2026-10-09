@@ -16,7 +16,10 @@ export interface UseDebouncedUpdateParams {
   debounceWait: number;
   quoteRequestIndex?: number;
   quoteRequestCount?: number;
-  genericQuoteRequest?: GenericQuoteRequest;
+  genericQuoteRequest?: Partial<GenericQuoteRequest> & {
+    walletAddress: string;
+  };
+  isActive: boolean;
   /**
    * The raw source input amount before normalization into {@link GenericQuoteRequest.srcTokenAmount}
    */
@@ -41,8 +44,6 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     }
   }, []);
 
-  useEffect(() => cancelOwnedTrace, [cancelOwnedTrace]);
-
   const {
     genericQuoteRequest,
     featureId,
@@ -50,7 +51,13 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     quoteRequestCount = 1,
     debounceWait,
     rawSrcAmount: srcAmount,
+    isActive,
   } = params;
+
+  useEffect(
+    () => (isActive ? cancelOwnedTrace : undefined),
+    [cancelOwnedTrace, isActive],
+  );
 
   const metricsContext = useUnifiedSwapBridgeContext(featureId);
 
@@ -86,24 +93,17 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     [metricsContext, quoteRequestIndex, quoteRequestCount, genericQuoteRequest],
   );
 
-  const {
-    srcChainId,
-    destChainId,
-    srcTokenAddress,
-    destTokenAddress,
-    walletAddress,
-  } = genericQuoteRequest ?? {};
+  const { srcChainId, destChainId } = genericQuoteRequest ?? {};
 
   const debouncedUpdateQuoteParams = useMemo(() => {
     const debounced = debounce(
       (requestOptions: UpdateQuoteParamsOptions = {}) => {
         if (
-          !srcTokenAddress ||
-          !destTokenAddress ||
-          srcAmount === undefined ||
-          !destChainId ||
-          !walletAddress
+          !genericQuoteRequest ||
+          // if quoteRequest has no src amount, don't trace
+          !isValidQuoteRequest(genericQuoteRequest, true)
         ) {
+          cancelOwnedTrace();
           return updateQuoteParams(requestOptions);
         }
 
@@ -131,19 +131,13 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
       requestOptions: UpdateQuoteParamsOptions = {},
     ) => {
       if (
-        !srcTokenAddress ||
-        !destTokenAddress ||
-        // Checks if the input field has been cleared
-        srcAmount === undefined ||
-        !destChainId ||
-        !walletAddress
+        !genericQuoteRequest ||
+        !isValidQuoteRequest(genericQuoteRequest, false)
       ) {
         debounced.cancel();
         cancelOwnedTrace();
         return;
       }
-
-      cancelOwnedTrace();
 
       debounced(requestOptions);
     };
@@ -158,20 +152,22 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     cancelOwnedTrace,
     destChainId,
     srcChainId,
-    destTokenAddress,
-    srcTokenAddress,
     srcAmount,
     updateQuoteParams,
-    walletAddress,
     debounceWait,
+    genericQuoteRequest,
   ]);
 
-  useEffect(
-    () => () => {
+  // Pass quoteParams to the bridge-controller
+  useEffect(() => {
+    if (!isActive) return;
+
+    debouncedUpdateQuoteParams();
+
+    return () => {
       debouncedUpdateQuoteParams.cancel();
-    },
-    [debouncedUpdateQuoteParams],
-  );
+    };
+  }, [debouncedUpdateQuoteParams, isActive]);
 
   return useMemo(
     () => debouncedUpdateQuoteParams,

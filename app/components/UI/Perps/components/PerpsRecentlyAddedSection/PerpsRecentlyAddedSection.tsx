@@ -21,6 +21,9 @@ import { selectPerpsShowFullAssetNamesFlag } from '../../selectors/featureFlags'
 import styleSheet from './PerpsRecentlyAddedSection.styles';
 import type { PerpsRecentlyAddedSectionProps } from './PerpsRecentlyAddedSection.types';
 
+/** `source_section` value for market-details navigation from this rail. */
+export const RECENTLY_ADDED_SOURCE_SECTION = 'recently_added';
+
 const PerpsRecentlyAddedTile: React.FC<{
   market: PerpsMarketData;
   onPress: (market: PerpsMarketData) => void;
