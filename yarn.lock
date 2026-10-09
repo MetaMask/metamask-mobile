@@ -2730,6 +2730,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cubist-labs/cubesigner-sdk@npm:^0.4.284":
+  version: 0.4.284
+  resolution: "@cubist-labs/cubesigner-sdk@npm:0.4.284"
+  dependencies:
+    "@hpke/core": "npm:^1.2.7"
+    openapi-fetch: "npm:0.8.2"
+    zod: "npm:^4.3.6"
+  dependenciesMeta:
+    "@hpke/core":
+      optional: true
+  checksum: 10/cb98a4b0062dedc7bb4754ca96b49c5f8057ad91a8f7719f33090ccb6df32005d22efcf62ee848aaa690bba41b0ddb2d7f5fb980c6f612a76747ce63f373fd64
+  languageName: node
+  linkType: hard
+
 "@dabh/diagnostics@npm:^2.0.8":
   version: 2.0.8
   resolution: "@dabh/diagnostics@npm:2.0.8"
@@ -7165,6 +7179,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@hpke/common@npm:^1.10.0":
+  version: 1.10.1
+  resolution: "@hpke/common@npm:1.10.1"
+  checksum: 10/5279be394dbab880bbb5635de493e2bcd688bb16789026257a8a101c309432af03b202f9748c568467be9e0d5f2342cd7f8c80511374bab4ef098fd5dfd20922
+  languageName: node
+  linkType: hard
+
+"@hpke/core@npm:^1.2.7":
+  version: 1.9.0
+  resolution: "@hpke/core@npm:1.9.0"
+  dependencies:
+    "@hpke/common": "npm:^1.10.0"
+  checksum: 10/e859c8a41ee2b92968415184dd42be305fdbba315b2b60c930e3c1f764bee6fbb819a1ef5a3e6541173233afe44beb59806f0c3ccccb89aa6dc0c2e2cd84ac02
+  languageName: node
+  linkType: hard
+
 "@httptoolkit/httpolyglot@npm:^2.2.1":
   version: 2.2.1
   resolution: "@httptoolkit/httpolyglot@npm:2.2.1"
@@ -10803,6 +10833,21 @@ __metadata:
   version: 3.1.1
   resolution: "@metamask/metamask-eth-abis@npm:3.1.1"
   checksum: 10/2d456882c5180eaf02d07f578ee8b8806d18639349d086a6b3b68c87e7ea294749efc332bfe7c1d5fb700933e71f31a46d3cd07b94c4e91c80faea5f9729bf0d
+  languageName: node
+  linkType: hard
+
+"@metamask/mfa-recovery-controller@file:./metamask-mfa-recovery-controller-0.0.0.tgz::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/mfa-recovery-controller@file:./metamask-mfa-recovery-controller-0.0.0.tgz#./metamask-mfa-recovery-controller-0.0.0.tgz::hash=4c5e76&locator=metamask%40workspace%3A."
+  dependencies:
+    "@cubist-labs/cubesigner-sdk": "npm:^0.4.284"
+    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/utils": "npm:^12.0.0"
+    "@noble/ciphers": "npm:^1.3.0"
+    "@noble/curves": "npm:^1.9.2"
+    "@noble/hashes": "npm:^1.8.0"
+  checksum: 10/3747f1559dcbe1325ac07c83a2b80d6d54daf2e58848dfcccbb5cfa1983099954a2f8b675331a4e0bed5d86874c5661161de3780e79b5f57f0f04cefdc434ce0
   languageName: node
   linkType: hard
 
@@ -39186,6 +39231,7 @@ __metadata:
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/messenger-cli": "npm:^0.2.0"
     "@metamask/metamask-eth-abis": "npm:3.1.1"
+    "@metamask/mfa-recovery-controller": ./metamask-mfa-recovery-controller-0.0.0.tgz
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
@@ -42102,6 +42148,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"openapi-fetch@npm:0.8.2":
+  version: 0.8.2
+  resolution: "openapi-fetch@npm:0.8.2"
+  dependencies:
+    openapi-typescript-helpers: "npm:^0.0.5"
+  checksum: 10/28da01ec9c748e1fa085e9d79d991c852c1291f33e103d8b1f1b17e5c2b51c41d94b56a7ed676e4485e83cd557df8e187374092bdf0b310d4504404aa49e5bc5
+  languageName: node
+  linkType: hard
+
 "openapi-fetch@npm:^0.13.5":
   version: 0.13.7
   resolution: "openapi-fetch@npm:0.13.7"
@@ -42115,6 +42170,13 @@ __metadata:
   version: 0.0.15
   resolution: "openapi-typescript-helpers@npm:0.0.15"
   checksum: 10/63f8f0b8464aed3e5c6910428bd14839bd5c1dd6ddf841bcea9d5f536a6e03e942a028202920da1a8b1ed9e4304c6fca14943d01a8adff2942d1254a229b8c70
+  languageName: node
+  linkType: hard
+
+"openapi-typescript-helpers@npm:^0.0.5":
+  version: 0.0.5
+  resolution: "openapi-typescript-helpers@npm:0.0.5"
+  checksum: 10/1c1024e552af9f3bdf3ab7a76bd7208f783f9af53b9cfebc86984e700e85df071a73cf5f560cb295a547a0dc88ccd87a689a7fd286781e3b04716af8aa583898
   languageName: node
   linkType: hard
 
@@ -53492,6 +53554,13 @@ __metadata:
   version: 4.4.3
   resolution: "zod@npm:4.4.3"
   checksum: 10/804b9a42aa8f35f2b3c5a8dff906291cb749115f83ee2afe3576d70b5b5c53c965365c7f4967690647a9c54af9838ff232a85ff9577a0a36c44b68bc6cdefe36
+  languageName: node
+  linkType: hard
+
+"zod@npm:^4.3.6":
+  version: 4.6.5
+  resolution: "zod@npm:4.6.5"
+  checksum: 10/db004952e4dc6eab38b70f0cdef9251a65da84f5d08c5a0ef85e2590cfa9c477544ce734161ff5c05f89a15f0967137607a7feb16716195e04965f030db47213
   languageName: node
   linkType: hard
 

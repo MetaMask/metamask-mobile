@@ -1,9 +1,11 @@
 /**
  * Mobile MFA recovery adapters.
  *
- * Today this package only exposes the OIDC `identifierAuthProvider` used by
- * `@metamask/mfa-recovery-controller` (MetaMask/core#10022). Engine wiring,
- * AuthToken / 2FA step-up, and seedless TOPRF unlock are intentionally deferred.
+ * Exposes the Seedless Google/Apple OIDC `identifierAuthProvider` for
+ * `@metamask/mfa-recovery-controller` (MetaMask/core#10022, MFA-703).
+ * Prefer `getSeedlessOidcIdentifierAuthProvider` from the Seedless wallet-init
+ * options module as the first consumer path. Full Engine
+ * `MfaRecoveryController` init (AuthToken, Cubist escrow) is deferred.
  */
 
 export {

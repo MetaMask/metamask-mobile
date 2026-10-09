@@ -17,19 +17,16 @@ export interface CreateMoneyMfaOidcIdentifierAuthProviderOptions {
 }
 
 /**
- * Production `identifierAuthProvider` for MFA recovery ([MFA-703](https://consensyssoftware.atlassian.net/browse/MFA-703)).
+ * Production Seedless OIDC `identifierAuthProvider` for MFA recovery
+ * ([MFA-703](https://consensyssoftware.atlassian.net/browse/MFA-703)).
  *
- * Wraps {@link createOidcIdentifierAuthProvider} and gates it with
- * {@link isMoneyMfaEnabled} (`isMoneyMfaEnabled` remote flag /
- * `MM_MONEY_MFA_ENABLED`).
- *
- * **In scope:** Google/Apple OIDC key-bound token for the recovery controller.
- * **Out of scope (later tickets):** Engine / `MfaRecoveryController` init,
- * AuthController AuthToken issuance, 2FA step-up, TOPRF, and SRP decrypt.
+ * Wraps Seedless Google/Apple login ({@link createOidcIdentifierAuthProvider})
+ * and gates it with {@link isMoneyMfaEnabled}. This is the first consumer path
+ * for `@metamask/mfa-recovery-controller`; passkey/SIWE and full Engine
+ * `MfaRecoveryController` init (AuthToken, Cubist escrow) follow later.
  *
  * @param options - Flag reader and optional login override for tests.
- * @returns A {@link RecoveryIdentifierAuthProvider} ready to inject into the
- * recovery controller when that package is wired.
+ * @returns A {@link RecoveryIdentifierAuthProvider} for Seedless OIDC.
  */
 export function createMoneyMfaOidcIdentifierAuthProvider({
   getRemoteFeatureFlags,
