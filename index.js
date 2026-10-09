@@ -38,6 +38,7 @@ import {
   handleCustomError,
   setReactNativeDefaultHandler,
 } from './app/core/ErrorHandler';
+import AppLockService from './app/core/AppLock/AppLockService';
 
 import { enableFreeze } from 'react-native-screens';
 
@@ -46,6 +47,10 @@ if (__DEV__) {
 }
 
 enableFreeze(true);
+
+// Subscribe to AppState before Engine and any screen hooks do, so the privacy
+// screen is raised first when the app backgrounds.
+AppLockService.initialize();
 
 // Setup Sentry
 setupSentry(__DEV__);

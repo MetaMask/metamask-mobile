@@ -19,6 +19,10 @@
 		15D158ED210BD912006982B5 /* Metamask.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 15D158EC210BD8C8006982B5 /* Metamask.ttf */; };
 		2EF2825B2B0FF86900D7B4B1 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
 		2EF2825E2B0FF86900D7B4B1 /* RCTMinimizer.m in Sources */ = {isa = PBXBuildFile; fileRef = CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */; };
+		A1C0FFEE0000000100000002 /* PrivacyCoverModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A1C0FFEE0000000100000001 /* PrivacyCoverModule.m */; };
+		A1C0FFEE0000000100000003 /* PrivacyCoverModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A1C0FFEE0000000100000001 /* PrivacyCoverModule.m */; };
+		A1C0FFEE0000000100000006 /* PrivacyCover.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C0FFEE0000000100000005 /* PrivacyCover.swift */; };
+		A1C0FFEE0000000100000007 /* PrivacyCover.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C0FFEE0000000100000005 /* PrivacyCover.swift */; };
 		2EF282612B0FF86900D7B4B1 /* LinkPresentation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F961A36A28105CF9007442B5 /* LinkPresentation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		2EF282622B0FF86900D7B4B1 /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
 		2EF282632B0FF86900D7B4B1 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */; };
@@ -180,6 +184,8 @@
 		AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = MetaMask/SplashScreen.storyboard; sourceTree = "<group>"; };
 		AA9EDF17249955C7005D89EE /* MetaMaskDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = MetaMaskDebug.entitlements; path = MetaMask/MetaMaskDebug.entitlements; sourceTree = "<group>"; };
 		B0EF7FA827BD16EA00D48B4E /* ThemeColors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = ThemeColors.xcassets; sourceTree = "<group>"; };
+		A1C0FFEE0000000100000001 /* PrivacyCoverModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = PrivacyCoverModule.m; path = MetaMask/NativeModules/PrivacyCover/PrivacyCoverModule.m; sourceTree = "<group>"; };
+		A1C0FFEE0000000100000005 /* PrivacyCover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PrivacyCover.swift; path = MetaMask/NativeModules/PrivacyCover/PrivacyCover.swift; sourceTree = "<group>"; };
 		B4A2E0110100000100000C06 /* BrazePushModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = BrazePushModule.m; path = MetaMask/NativeModules/BrazePush/BrazePushModule.m; sourceTree = "<group>"; };
 		B848D40B87744D32949BDC25 /* Inter-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-Regular.ttf"; path = "../app/fonts/Inter-Regular.ttf"; sourceTree = "<group>"; };
 		BF485CDA047B4D52852B87F5 /* EvilIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = EvilIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf"; sourceTree = "<group>"; };
@@ -301,6 +307,7 @@
 			isa = PBXGroup;
 			children = (
 				B4A2E0110100000100000C07 /* BrazePush */,
+				A1C0FFEE0000000100000004 /* PrivacyCover */,
 				CF9895742A3B48DC00B4C9B5 /* RCTMinimizer */,
 			);
 			name = NativeModules;
@@ -438,6 +445,15 @@
 				089A67E20C8950FFA11688EA /* MetaMask-Flask */,
 			);
 			name = ExpoModulesProviders;
+			sourceTree = "<group>";
+		};
+		A1C0FFEE0000000100000004 /* PrivacyCover */ = {
+			isa = PBXGroup;
+			children = (
+				A1C0FFEE0000000100000005 /* PrivacyCover.swift */,
+				A1C0FFEE0000000100000001 /* PrivacyCoverModule.m */,
+			);
+			name = PrivacyCover;
 			sourceTree = "<group>";
 		};
 		B4A2E0110100000100000C07 /* BrazePush */ = {
@@ -941,6 +957,8 @@
 				2EF2832A2B17EBD600D7B4B1 /* RnTar.swift in Sources */,
 				2EF283372B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */,
 				CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */,
+				A1C0FFEE0000000100000006 /* PrivacyCover.swift in Sources */,
+				A1C0FFEE0000000100000002 /* PrivacyCoverModule.m in Sources */,
 				A1987088D4835E5FCCABC418 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -957,6 +975,8 @@
 				2EF2832C2B17EBD600D7B4B1 /* RnTar.swift in Sources */,
 				2EF283392B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */,
 				2EF2825E2B0FF86900D7B4B1 /* RCTMinimizer.m in Sources */,
+				A1C0FFEE0000000100000007 /* PrivacyCover.swift in Sources */,
+				A1C0FFEE0000000100000003 /* PrivacyCoverModule.m in Sources */,
 				F23972D16903249A8EC120BD /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

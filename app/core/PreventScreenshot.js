@@ -27,6 +27,11 @@ export const CAPTURE_KEYS = {
   // overlapping mounts internally before calling through to here.
   credentialScreens: 'metamask-credential-screens',
   onboarding: 'metamask-onboarding',
+  // Held from LOGIN until LOGOUT on Android 12 and older, where FLAG_SECURE is
+  // the only way to blank the Recents card. Set while the app is in the
+  // foreground: applying the flag from a background event lands after Android
+  // has already snapshotted. Android 13+ uses setRecentsScreenshotEnabled.
+  unlockedWallet: 'metamask-unlocked-wallet',
   // Callers that don't pass a key get their own bucket rather than joining an
   // existing owner's, so an unqualified allow() can never release someone
   // else's block. CardScreenshotDeterrent relies on this.

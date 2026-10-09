@@ -5929,6 +5929,17 @@ describe('Authentication', () => {
       });
     });
 
+    it('leaves the current route in place when navigationBehavior is preserve', async () => {
+      await Authentication.unlockWallet({
+        password: passwordToUse,
+        navigationBehavior: 'preserve',
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(setExistingUser(true));
+      expect(mockNavigateToPostUnlockHome).not.toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
     it('navigates to the post-unlock home destination when a password is provided', async () => {
       // Call unlockWallet with a password.
       await Authentication.unlockWallet({ password: passwordToUse });
@@ -6790,6 +6801,74 @@ describe('Authentication', () => {
         expect(mockSupportedAuthenticationTypesAsync).toHaveBeenCalledTimes(1);
         expect(mockGetEnrolledLevelAsync).toHaveBeenCalledTimes(1);
       });
+    });
+  });
+
+  describe('tryBiometricUnlock', () => {
+    let checkIsSeedlessPasswordOutdatedSpy: jest.SpyInstance;
+    let unlockWalletSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      checkIsSeedlessPasswordOutdatedSpy = jest
+        .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
+        .mockResolvedValue(false);
+      unlockWalletSpy = jest
+        .spyOn(Authentication, 'unlockWallet')
+        .mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+      checkIsSeedlessPasswordOutdatedSpy.mockRestore();
+      unlockWalletSpy.mockRestore();
+    });
+
+    it('checks seedless password status without cache and without Sentry capture', async () => {
+      await Authentication.tryBiometricUnlock();
+
+      expect(checkIsSeedlessPasswordOutdatedSpy).toHaveBeenCalledWith({
+        skipCache: true,
+        captureSentryError: false,
+      });
+    });
+
+    it('unlocks the wallet when the seedless password is current', async () => {
+      await Authentication.tryBiometricUnlock();
+
+      expect(unlockWalletSpy).toHaveBeenCalledWith();
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('preserves the current route when resume asks it to', async () => {
+      await Authentication.tryBiometricUnlock({
+        navigationBehavior: 'preserve',
+      });
+
+      expect(unlockWalletSpy).toHaveBeenCalledWith({
+        navigationBehavior: 'preserve',
+      });
+    });
+
+    it('resets to the rehydrate screen without unlocking when the seedless password is outdated', async () => {
+      checkIsSeedlessPasswordOutdatedSpy.mockResolvedValue(true);
+
+      await Authentication.tryBiometricUnlock();
+
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [
+          {
+            name: Routes.ONBOARDING.REHYDRATE,
+            params: { isSeedlessPasswordOutdated: true },
+          },
+        ],
+      });
+      expect(unlockWalletSpy).not.toHaveBeenCalled();
+    });
+
+    it('rejects with the unlock error when unlockWallet fails', async () => {
+      const error = new Error('biometric cancelled');
+      unlockWalletSpy.mockRejectedValue(error);
+
+      await expect(Authentication.tryBiometricUnlock()).rejects.toBe(error);
     });
   });
 });

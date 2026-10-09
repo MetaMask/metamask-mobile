@@ -157,7 +157,6 @@ async function connectToChannel({
       try {
         // We cannot request permissions if the user is on the login screen or the account connect screen otherwise it will kill other permissions requests.
         const skipRoutes: readonly string[] = [
-          Routes.LOCK_SCREEN,
           Routes.ONBOARDING.LOGIN,
           Routes.SHEET.ACCOUNT_CONNECT,
         ];

@@ -1,0 +1,192 @@
+package io.metamask.nativeModules
+
+import android.app.Activity
+import android.os.IBinder
+import android.view.View
+import android.view.ViewGroup
+import android.view.accessibility.AccessibilityNodeInfo
+import android.view.inputmethod.InputMethodManager
+import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
+import androidx.core.view.ViewCompat
+import com.facebook.react.bridge.Promise
+import io.metamask.R
+
+/**
+ * The Android privacy cover. [io.metamask.MainActivity] shows it from `onPause`
+ * and [PrivacyCoverModule] hides it once resume routing resolves.
+ *
+ * Theme fill plus the centered splash fox, matching the iOS cover. Recents stays
+ * a blank card: Android 13+ uses `setRecentsScreenshotEnabled`, older versions
+ * hold FLAG_SECURE from login until logout. The snapshot is taken before
+ * `onPause`, so this view is what the user sees on the way back in.
+ */
+internal object PrivacyCover {
+    private var overlay: View? = null
+    /** Consumes system back while the cover is visible so the screen underneath stays put. */
+    private var backCallback: OnBackPressedCallback? = null
+    private var backCallbackActivity: Activity? = null
+    /**
+     * Accessibility importance of each decor child hidden while the cover is up.
+     * Restored from [hide].
+     */
+    private val obscuredAccessibility = mutableListOf<Pair<View, Int>>()
+    /** Bumped on every pause so a stale resume cannot start authentication. */
+    private var authenticationEpoch = 0
+    /** Set to [authenticationEpoch] only while `onPostResume` is the latest lifecycle event. */
+    private var resumedEpoch: Int? = null
+    private val authenticationWaiters = mutableListOf<Pair<Int, Promise>>()
+
+    fun show(activity: Activity) {
+        val decor = activity.window.decorView as? ViewGroup ?: return
+        val keyboardWindowToken =
+            activity.currentFocus?.windowToken ?: decor.windowToken
+        val existing = overlay
+        val cover = if (existing != null && existing.context === activity) {
+            existing
+        } else {
+            View(activity).apply {
+                setBackgroundResource(R.drawable.app_background)
+                isClickable = true
+                isFocusable = true
+                isFocusableInTouchMode = true
+            }.also { overlay = it }
+        }
+
+        if (cover.parent !== decor) {
+            (cover.parent as? ViewGroup)?.removeView(cover)
+            decor.addView(
+                cover,
+                FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                ),
+            )
+        }
+        cover.bringToFront()
+        cover.visibility = View.VISIBLE
+        // The IME is a separate window above this cover. Move focus to the
+        // visible cover before hiding it so the input cannot immediately
+        // reclaim focus and reopen the keyboard on resume.
+        cover.requestFocus()
+        dismissKeyboard(activity, keyboardWindowToken)
+        // NO_HIDE_DESCENDANTS on the cover would hide the fox and leave the
+        // wallet readable. Hide the siblings instead, and let TalkBack land here.
+        blockAccessibility(decor, cover)
+        blockBack(activity)
+    }
+
+    fun isShown(): Boolean = overlay?.visibility == View.VISIBLE
+
+    private fun dismissKeyboard(activity: Activity, windowToken: IBinder?) {
+        if (windowToken == null) {
+            return
+        }
+        val inputMethodManager =
+            activity.getSystemService(InputMethodManager::class.java) ?: return
+        inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
+    }
+
+    fun hide() {
+        // A dismiss queued while the activity is pausing belongs to a resume
+        // that is no longer current. Dropping it here keeps the cover up.
+        if (resumedEpoch == null) {
+            return
+        }
+        overlay?.visibility = View.GONE
+        restoreAccessibility()
+        backCallback?.isEnabled = false
+    }
+
+    /**
+     * TalkBack has no modal-window flag. Mark every other decor child
+     * unimportant, and announce the cover by the app name. The cover is shown
+     * whether or not the vault is locked, so this does not say "locked".
+     */
+    private fun blockAccessibility(decor: ViewGroup, cover: View) {
+        restoreAccessibility()
+        cover.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+        cover.contentDescription = cover.context.getString(R.string.app_name)
+        ViewCompat.setAccessibilityPaneTitle(cover, cover.contentDescription)
+        for (index in 0 until decor.childCount) {
+            val child = decor.getChildAt(index)
+            if (child === cover) {
+                continue
+            }
+            obscuredAccessibility.add(child to child.importantForAccessibility)
+            child.importantForAccessibility =
+                View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+        }
+        cover.performAccessibilityAction(
+            AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS,
+            null,
+        )
+    }
+
+    private fun restoreAccessibility() {
+        obscuredAccessibility.forEach { (view, importance) ->
+            view.importantForAccessibility = importance
+        }
+        obscuredAccessibility.clear()
+        overlay?.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+    }
+
+    /**
+     * Registered after React Native's own back callback, so while it is enabled
+     * the dispatcher delivers back here first and the screen underneath does not move.
+     */
+    private fun blockBack(activity: Activity) {
+        val componentActivity = activity as? ComponentActivity ?: return
+        if (backCallback == null || backCallbackActivity !== componentActivity) {
+            backCallback?.remove()
+            val callback = object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    // The privacy cover is up. Drop the press.
+                }
+            }
+            componentActivity.onBackPressedDispatcher.addCallback(componentActivity, callback)
+            backCallback = callback
+            backCallbackActivity = componentActivity
+        } else {
+            backCallback?.isEnabled = true
+        }
+    }
+
+    /**
+     * Authentication may start. Resolves waiters for this resume only.
+     * Call from [android.app.Activity.onPostResume].
+     */
+    fun markAuthenticationReady() {
+        resumedEpoch = authenticationEpoch
+        val ready = authenticationWaiters.filter { it.first == authenticationEpoch }
+        authenticationWaiters.removeAll { it.first == authenticationEpoch }
+        ready.forEach { it.second.resolve(null) }
+    }
+
+    /**
+     * Invalidates the current resume. Pending authentication waits fail and
+     * must be requested again after the next [markAuthenticationReady].
+     * Call from [android.app.Activity.onPause] before `super.onPause()`.
+     */
+    fun markAuthenticationUnavailable() {
+        resumedEpoch = null
+        authenticationEpoch += 1
+        val waiting = authenticationWaiters.toList()
+        authenticationWaiters.clear()
+        waiting.forEach { (_, promise) ->
+            promise.reject(
+                "ACTIVITY_PAUSED",
+                "The activity paused before authentication could start",
+            )
+        }
+    }
+
+    fun waitUntilAuthenticationReady(promise: Promise) {
+        if (resumedEpoch == authenticationEpoch) {
+            promise.resolve(null)
+            return
+        }
+        authenticationWaiters.add(authenticationEpoch to promise)
+    }
+}

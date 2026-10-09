@@ -145,11 +145,11 @@ export function useBasicFunctionalityConsolidation(): void {
       });
   }, [completedOnboarding, dispatch, isUnlocked, shouldRunConsolidation]);
 
-  // `isUnlocked` is not enough on its own to keep the notice off the lock
-  // screen, since the keyring unlocks before Login hands the session over.
-  // Mounting on the wallet stack is what guarantees the handoff has happened;
-  // `isUnlocked` covers LockScreen, which covers the wallet without
-  // unmounting it. Clearing the ref while locked lets it present on unlock.
+  // `isUnlocked` is not enough on its own to keep the notice off the login
+  // handoff, since the keyring unlocks before Login hands the session over.
+  // Mounting on the wallet stack is what guarantees the handoff has happened.
+  // Clearing the ref while locked lets it present on unlock. The privacy
+  // screen covers the wallet while the vault is locked; it does not unmount it.
   useEffect(() => {
     if (!shouldShowBottomSheet || !isUnlocked) {
       hasPresentedBottomSheet.current = false;

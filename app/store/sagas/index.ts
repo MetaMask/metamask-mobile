@@ -1,7 +1,6 @@
 import {
   fork,
   take,
-  cancel,
   put,
   call,
   all,
@@ -20,10 +19,10 @@ import {
   CheckForDeeplinkAction,
 } from '../../actions/user';
 import { NavigationActionType } from '../../actions/navigation';
-import { EventChannel, Task, eventChannel } from 'redux-saga';
+import { Task } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
-import LockManagerService from '../../core/LockManagerService';
+import AppLockService from '../../core/AppLock/AppLockService';
 import {
   overrideXMLHttpRequest,
   restoreXMLHttpRequest,
@@ -47,9 +46,6 @@ import UrlParser from 'url-parse';
 import { isSDKServiceDeeplink } from '../../core/DeeplinkManager/util/deeplinks';
 import { rewardsBulkLinkSaga } from './rewardsBulkLinkAccountGroups';
 import Authentication from '../../core/Authentication';
-import { AppState, AppStateStatus } from 'react-native';
-import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { providerErrors } from '@metamask/rpc-errors';
 import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMarketingConsent';
 import { promptIosGoogleWarningSheetSaga } from './onboarding/legacyIosGoogleReminder';
 import {
@@ -165,122 +161,6 @@ export function* parseDeeplinkAfterNavReady(
 }
 
 /**
- * Creates a channel to listen to app state changes.
- */
-function appStateListenerChannel() {
-  return eventChannel<AppStateStatus>((emitter) => {
-    const appStateListener = AppState.addEventListener('change', emitter);
-    return () => {
-      appStateListener.remove();
-    };
-  });
-}
-
-/**
- * Checks seedless password status and performs the correct auth flow.
- */
-async function tryBiometricUnlock(): Promise<void> {
-  if (
-    await Authentication.checkIsSeedlessPasswordOutdated({
-      skipCache: true,
-      captureSentryError: false,
-    })
-  ) {
-    NavigationService.navigation?.reset({
-      routes: [
-        {
-          name: Routes.ONBOARDING.REHYDRATE,
-          params: { isSeedlessPasswordOutdated: true },
-        },
-      ],
-    });
-    return;
-  }
-
-  // Prompt authentication.
-  await Authentication.unlockWallet();
-}
-
-/**
- * Prompts authentication, falling back to the Login screen on failure. The
- * lock screen has no affordances of its own, so every path off it runs this.
- */
-async function promptUnlockFromLockScreen(): Promise<void> {
-  // This is in a try catch since errors are not propogated in event channels.
-  try {
-    await tryBiometricUnlock();
-  } catch (error) {
-    // Navigate to login.
-    NavigationService.navigation?.reset({
-      routes: [{ name: Routes.ONBOARDING.LOGIN }],
-    });
-    trackErrorAsAnalytics(
-      'Lockscreen: Authentication failed',
-      (error as Error)?.message,
-    );
-  }
-}
-
-/**
- * Listens to app state changes and prompts authentication when the app is foregrounded.
- */
-export function* appStateListenerTask() {
-  // The lock can land after the app is already foregrounded: Android delivers a
-  // pending background timer and the `active` event together on resume, in no
-  // guaranteed order. Waiting on the channel here would block on an `active`
-  // event that has already been and gone, stranding the user on the lock
-  // screen, so prompt straight away instead.
-  if (AppState.currentState === 'active') {
-    yield call(promptUnlockFromLockScreen);
-    return;
-  }
-
-  // Create channel to listen to app state changes.
-  const channel: EventChannel<AppStateStatus> = yield call(
-    appStateListenerChannel,
-  );
-
-  try {
-    while (true) {
-      const appState: AppStateStatus = yield take(channel);
-      if (appState === 'active') {
-        yield call(promptUnlockFromLockScreen);
-        // Close channel once authentication is prompted.
-        channel.close();
-      }
-    }
-  } finally {
-    // Unconditionally close channel to prevent memory leaks.
-    channel.close();
-  }
-}
-
-export function* appLockStateMachine() {
-  while (true) {
-    yield take(UserActionType.LOCKED_APP);
-
-    // Reject any pending confirmations so the user doesn't see a stale confirmation after unlock.
-    try {
-      const { ApprovalController } = Engine.context;
-      if (ApprovalController) {
-        ApprovalController.clearRequests(providerErrors.userRejectedRequest());
-      }
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'Failed to reject pending approvals on app lock',
-      );
-    }
-
-    // Navigate to lock screen.
-    NavigationService.navigation?.navigate(Routes.LOCK_SCREEN);
-
-    // App state listener for prompting authentication when the app is foregrounded.
-    yield call(appStateListenerTask);
-  }
-}
-
-/**
  * Automatically requests authentication on app start.
  */
 export function* requestAuthOnAppStart() {
@@ -296,7 +176,7 @@ export function* requestAuthOnAppStart() {
       }
     }
 
-    yield call(tryBiometricUnlock);
+    yield call(Authentication.tryBiometricUnlock);
   } catch (_) {
     // If authentication fails, navigate to login screen
     // TODO: Consolidate error handling in future PRs. For now, we'll rely on the Login screen to handle triaging specific errors.
@@ -308,22 +188,16 @@ export function* requestAuthOnAppStart() {
 
 /**
  * The state machine for detecting when the app is logged vs logged out.
- * While on the Wallet screen, this state machine
- * will "listen" to the app lock state machine.
+ * `AppLockService` owns the background / foreground lifecycle (privacy screen,
+ * auto-lock timer, and resume authentication); this saga only scopes its
+ * auto-lock behavior to the logged-in session.
  */
 export function* authStateMachine() {
-  // Start when the user is logged in.
   while (true) {
     yield take(UserActionType.LOGIN);
-    // Listen to the app once it enters the locked state.
-    const appLockStateMachineTask: Task<void> = yield fork(appLockStateMachine);
-    // Handles locking the app when the app is backgrounded.
-    LockManagerService.startListening();
-    // Listen to app lock behavior.
+    AppLockService.start();
     yield take(UserActionType.LOGOUT);
-    LockManagerService.stopListening();
-    // Cancels appLockStateMachineTask, which also cancels nested sagas once logged out.
-    yield cancel(appLockStateMachineTask);
+    AppLockService.stop();
   }
 }
 
@@ -422,22 +296,23 @@ export function* handleDeeplinkSaga() {
       continue;
     }
 
-    // Resume can deliver the URL while Auto-lock is still scheduled or
-    // in-flight. Parsing now would clear the pending link, then the lock
-    // would reset navigation to Home.
-    if (LockManagerService.isAutoLockPending()) {
+    // Resume can deliver the URL while a lock decision is open or the unlock
+    // prompt has not finished. Parsing now would clear the pending link, then
+    // the lock or the post-unlock navigation would replace it.
+    if (AppLockService.isAutoLockPending()) {
       continue;
     }
 
-    // Password and biometric unlock dispatch SET_COMPLETED_ONBOARDING from the
-    // login or lock screen, before navigateToPostUnlockHome reads the pending
-    // link. Consuming it here clears the URL, then the home reset replaces any
-    // navigation this parse managed to start.
+    // Password unlock dispatches SET_COMPLETED_ONBOARDING from the Login
+    // screen, before navigateToPostUnlockHome reads the pending link.
+    // Consuming it here clears the URL, then the home reset replaces any
+    // navigation this parse managed to start. Resume biometric unlock is
+    // covered by `isAutoLockPending` above, which stays set until that
+    // prompt settles.
     const currentRouteName = NavigationService.getCurrentRoute()?.name;
     if (
       value.type === SET_COMPLETED_ONBOARDING &&
-      (currentRouteName === Routes.ONBOARDING.LOGIN ||
-        currentRouteName === Routes.LOCK_SCREEN)
+      currentRouteName === Routes.ONBOARDING.LOGIN
     ) {
       continue;
     }
