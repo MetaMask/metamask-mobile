@@ -1,6 +1,9 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeWalletPlatform } from '../../tags.js';
-import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import {
+  loginToAppPlaywright,
+  waitForWalletHomePlaywright,
+} from '../../flows/wallet.flow.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
@@ -45,6 +48,7 @@ appiumTest.describe(
           },
           async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
+            await waitForWalletHomePlaywright();
 
             await WalletView.tapOnNewTokensSection();
             await TokensFullView.waitForVisible();
