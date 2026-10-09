@@ -17,7 +17,10 @@ import {
   getVbaDestinationForSnapshot,
   type VbaOnboardingDestinationId,
 } from '../vbaOnboardingFunnel';
-import type { VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot } from '@metamask/ramps-controller';
+import {
+  buildBrazilMusdAutorampRequest,
+  type VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot,
+} from '@metamask/ramps-controller';
 import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
 import {
   getVbaVendorTermsAcceptance,
@@ -162,6 +165,50 @@ export interface OpenVbaOnboardingRequest {
   retryRejectedKyc?: boolean;
 }
 
+/**
+ * v27 hydrate only reads status. Main still opens a BRL to mUSD route, so
+ * register the wallet when needed and create that autoramp here.
+ */
+const provisionBrazilMusdAutoramp = async (
+  walletAddress: string,
+  snapshot: RampsVbaOnboardingSnapshot,
+): Promise<RampsVbaOnboardingSnapshot> => {
+  if (
+    snapshot.kycStatus !== 'approved' ||
+    (snapshot.autorampStatus !== 'needs_wallet_registration' &&
+      snapshot.autorampStatus !== 'needs_source_currency')
+  ) {
+    return snapshot;
+  }
+
+  if (snapshot.autorampStatus === 'needs_wallet_registration') {
+    const registration =
+      await Engine.context.RampsController.registerMoneyAccountWallet({
+        address: walletAddress,
+      });
+    if (registration.type === 'lookupUnavailable') {
+      return { ...snapshot, autorampStatus: 'retryable_failure' };
+    }
+  }
+
+  try {
+    await Engine.context.RampsController.createAutoramp(
+      buildBrazilMusdAutorampRequest(walletAddress),
+    );
+  } catch (error) {
+    Logger.error(error as Error, {
+      tags: { feature: 'vba-onboarding' },
+      context: {
+        name: 'provisionBrazilMusdAutoramp',
+        data: { autorampStatus: snapshot.autorampStatus },
+      },
+    });
+    return { ...snapshot, autorampStatus: 'retryable_failure' };
+  }
+
+  return { ...snapshot, autorampStatus: 'ready' };
+};
+
 const resolveOpenRequest = (
   request: string | OpenVbaOnboardingRequest | undefined,
   defaultSource: string,
@@ -201,10 +248,16 @@ export const resolveVbaOnboarding = async (
       return { status: 'error' };
     }
 
-    const accountSnapshot: RampsVbaOnboardingSnapshot = applyVbaDevOverrides(
+    const hydratedSnapshot = applyVbaDevOverrides(
       await Engine.context.RampsController.hydrateVbaOnboarding({
         walletAddress,
+        refreshKyc: true,
+        refreshAutoramps: true,
       }),
+    );
+    const accountSnapshot = await provisionBrazilMusdAutoramp(
+      walletAddress,
+      hydratedSnapshot,
     );
     if (
       accountSnapshot.sessionExists &&
