@@ -59,6 +59,11 @@ on:
         required: false
         type: string
         default: ''
+      enable_testmu_hyperexecute:
+        description: 'Also run Android performance specs on TestMu HyperExecute next to BrowserStack. Scheduled runs stay BrowserStack-only. Pull requests always use TestMu only.'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -157,5 +162,6 @@ jobs:
       # fingerprint-based reuse (and fresh-build fallback) can run.
       reuse_main_builds: ${{ needs.detect-changes.outputs.reuse_main_builds == 'true' && inputs.build_variant == 'e2e' }}
       source_fingerprint: ${{ inputs.source_fingerprint }}
+      enable_testmu_hyperexecute: ${{ inputs.enable_testmu_hyperexecute }}
       collect_hermes_cpuprofiles: true
     secrets: inherit

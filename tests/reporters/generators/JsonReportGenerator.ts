@@ -159,9 +159,11 @@ export class JsonReportGenerator {
         /[^a-zA-Z0-9]/g,
         '_',
       );
+      const providerSuffix =
+        deviceData.device.provider === 'testmu' ? '-testmu' : '';
       const jsonPath = path.join(
         reportsDir,
-        `performance-metrics-${testName}-${safeDeviceName}-${deviceData.device.osVersion}.json`,
+        `performance-metrics-${testName}-${safeDeviceName}-${deviceData.device.osVersion}${providerSuffix}.json`,
       );
       fs.writeFileSync(jsonPath, JSON.stringify(deviceData.metrics, null, 2));
       logger.info(`Device-specific report saved: ${jsonPath}`);
@@ -203,7 +205,14 @@ export class JsonReportGenerator {
       failedTestsByTeam,
     };
 
-    const failedTestsPath = path.join(reportsDir, 'failed-tests-by-team.json');
+    const failedTestsFileName = Object.values(failedTestsByTeam).some((team) =>
+      team.tests.some((test) =>
+        test.projectName.toLowerCase().includes('testmu'),
+      ),
+    )
+      ? 'failed-tests-by-team-testmu.json'
+      : 'failed-tests-by-team.json';
+    const failedTestsPath = path.join(reportsDir, failedTestsFileName);
     fs.writeFileSync(
       failedTestsPath,
       JSON.stringify(failedTestsReport, null, 2),

@@ -1,0 +1,241 @@
+name: Performance Test Runner — TestMu AI HyperExecute (Reusable)
+
+# Runs the same Android performance specs as BrowserStack, orchestrated by
+# TestMu HyperExecute. BrowserStack jobs stay in performance-test-runner.yml.
+
+on:
+  workflow_call:
+    inputs:
+      platform:
+        required: true
+        type: string
+        description: 'Platform to test (android)'
+      build_type:
+        required: true
+        type: string
+        description: 'Build type (imported-wallet/onboarding)'
+      device_matrix:
+        required: true
+        type: string
+        description: 'JSON string of device matrix'
+      testmu_app_url:
+        required: true
+        type: string
+        description: 'TestMu AI app URL (lt://...)'
+      app_version:
+        required: true
+        type: string
+        description: 'App version'
+      branch_name:
+        required: true
+        type: string
+        description: 'Branch name used for performance observability'
+      testmu_build_name:
+        required: true
+        type: string
+        description: 'Unified TestMu AI build name for all sessions'
+      sentry_target:
+        required: false
+        type: string
+        default: test
+        description: 'Sentry DSN target: test or real'
+      build_variant:
+        required: false
+        type: string
+        default: e2e
+        description: 'App build variant used for performance observability'
+      feature_flags_environment:
+        required: false
+        type: string
+        default: rc
+        description: 'client-config API environment (rc, exp, test). Independent of build_variant.'
+      grep_tags:
+        required: false
+        type: string
+        default: ''
+        description: 'Optional grep pattern to filter tests. Empty runs all tests.'
+      he_concurrency:
+        required: false
+        type: string
+        default: '2'
+        description: 'HyperExecute autosplit concurrency'
+      he_region:
+        required: false
+        type: string
+        default: 'us'
+        description: 'HyperExecute region (us or eu)'
+      collect_hermes_cpuprofiles:
+        required: false
+        type: boolean
+        default: false
+        description: >-
+          Harvest Hermes .cpuprofile artifacts after each performance spec.
+          True for schedule/manual; false (default) for PR runs.
+    secrets:
+      LT_USERNAME:
+        required: true
+      LT_ACCESS_KEY:
+        required: true
+      MM_TEST_ACCOUNT_SRP:
+        required: true
+      TEST_SRP_1:
+        required: true
+      TEST_SRP_2:
+        required: true
+      TEST_SRP_3:
+        required: true
+      TEST_SRP_4:
+        required: true
+      E2E_PASSWORD:
+        required: true
+      MM_SENTRY_DSN_TEST:
+        required: false
+      MM_SENTRY_DSN:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  run-tests:
+    name: '[TestMu/HE] ${{ inputs.build_type }} on ${{ inputs.platform }} - ${{ matrix.device.name }}'
+    runs-on: ubuntu-latest
+    timeout-minutes: 200
+    strategy:
+      fail-fast: false
+      matrix:
+        device: ${{ fromJson(inputs.device_matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set Test Environment
+        run: |
+          echo "Setting TestMu HyperExecute ${{ inputs.build_type }} environment for device: ${{ matrix.device.name }}"
+
+          SENTRY_TARGET="${{ inputs.sentry_target }}"
+          SENTRY_TEST_DSN="${{ secrets.MM_SENTRY_DSN_TEST }}"
+          SENTRY_REAL_DSN="${{ secrets.MM_SENTRY_DSN }}"
+          SELECTED_SENTRY_DSN=""
+          SENTRY_ENVIRONMENT="github-actions-performance-e2e-testmu-he"
+          FEATURE_FLAGS_ENV="${{ inputs.feature_flags_environment }}"
+          CI_BUILD_VARIANT="${{ inputs.build_variant }}"
+          BRANCH_NAME="${{ inputs.branch_name }}"
+          TESTMU_GEO_LOCATION="${TESTMU_GEO_LOCATION:-SE}"
+
+          if [[ "$FEATURE_FLAGS_ENV" != "rc" && "$FEATURE_FLAGS_ENV" != "exp" && "$FEATURE_FLAGS_ENV" != "test" && "$FEATURE_FLAGS_ENV" != "dev" && "$FEATURE_FLAGS_ENV" != "prod" ]]; then
+            echo "Invalid feature_flags_environment '$FEATURE_FLAGS_ENV'. Expected rc, exp, test, dev, or prod."
+            exit 1
+          fi
+
+          if [ -z "${{ inputs.testmu_app_url }}" ]; then
+            echo "No ${{ inputs.platform }} TestMu AI app URL available"
+            exit 1
+          fi
+
+          case "$SENTRY_TARGET" in
+            real)
+              SELECTED_SENTRY_DSN="$SENTRY_REAL_DSN"
+              SENTRY_ENVIRONMENT="github-actions-performance-e2e-testmu-he-real"
+              ;;
+            test)
+              SELECTED_SENTRY_DSN="$SENTRY_TEST_DSN"
+              ;;
+            *)
+              echo "Invalid sentry_target '$SENTRY_TARGET'. Expected 'test' or 'real'."
+              exit 1
+              ;;
+          esac
+
+          RELEASE_VERSION=""
+          if [[ "$BRANCH_NAME" =~ ^release/(.+)$ ]]; then
+            RELEASE_VERSION="${BASH_REMATCH[1]}"
+          fi
+          if [[ "$CI_BUILD_VARIANT" == "rc" ]]; then
+            SENTRY_ENVIRONMENT="${SENTRY_ENVIRONMENT}-rc"
+          fi
+
+          SENTRY_RELEASE="mm-mobile-perf-${CI_BUILD_VARIANT}-${{ github.sha }}"
+          if [[ "$CI_BUILD_VARIANT" == "rc" && -n "$RELEASE_VERSION" ]]; then
+            SENTRY_RELEASE="mm-mobile-rc-${RELEASE_VERSION}"
+          fi
+
+          {
+            echo "BUILD_TYPE=${{ inputs.build_type }}"
+            echo "TESTMU_DEVICE=${{ matrix.device.name }}"
+            echo "TESTMU_OS_VERSION=${{ matrix.device.os_version }}"
+            echo "TESTMU_ANDROID_APP_URL=${{ inputs.testmu_app_url }}"
+            if [ "${{ inputs.build_type }}" = "onboarding" ]; then
+              echo "TESTMU_ANDROID_CLEAN_APP_URL=${{ inputs.testmu_app_url }}"
+              echo "TESTMU_ANDROID_ONBOARDING_PERF_APP_URL=${{ inputs.testmu_app_url }}"
+              echo "TESTMU_ANDROID_SEEDLESS_PERF_APP_URL=${{ inputs.testmu_app_url }}"
+            fi
+            echo "TEST_PLATFORM=${{ inputs.platform }}"
+            echo "QA_APP_VERSION=${{ inputs.app_version }}"
+            echo "TESTMU_BUILD_NAME=${{ inputs.testmu_build_name }}-HyperExecute"
+            echo "TESTMU_GEO_LOCATION=$TESTMU_GEO_LOCATION"
+            echo "LT_USERNAME=${{ secrets.LT_USERNAME }}"
+            echo "LT_ACCESS_KEY=${{ secrets.LT_ACCESS_KEY }}"
+            echo "MM_TEST_ACCOUNT_SRP=${{ secrets.MM_TEST_ACCOUNT_SRP }}"
+            echo "TEST_SRP_1=${{ secrets.TEST_SRP_1 }}"
+            echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
+            echo "TEST_SRP_3=${{ secrets.TEST_SRP_3 }}"
+            echo "TEST_SRP_4=${{ secrets.TEST_SRP_4 }}"
+            echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
+            echo "E2E_PERFORMANCE_SENTRY_DSN=$SELECTED_SENTRY_DSN"
+            echo "E2E_PERFORMANCE_SENTRY_ENVIRONMENT=$SENTRY_ENVIRONMENT"
+            echo "E2E_PERFORMANCE_SENTRY_RELEASE=$SENTRY_RELEASE"
+            echo "E2E_PERFORMANCE_BUILD_VARIANT=$FEATURE_FLAGS_ENV"
+            echo "E2E_PERFORMANCE_CI_BUILD_VARIANT=$CI_BUILD_VARIANT"
+            echo "E2E_PERFORMANCE_RELEASE_VERSION=$RELEASE_VERSION"
+            echo "E2E_PERFORMANCE_GITHUB_REF_NAME=$BRANCH_NAME"
+            echo "E2E_PERFORMANCE_CLOUD_PROVIDER=testmu"
+            echo "DISABLE_VIDEO_DOWNLOAD=true"
+            echo "HE_CONCURRENCY=${{ inputs.he_concurrency }}"
+            echo "HE_REGION=${{ inputs.he_region }}"
+            echo "COLLECT_HERMES_CPUPROFILES=${{ inputs.collect_hermes_cpuprofiles == true && 'true' || 'false' }}"
+          } >> "$GITHUB_ENV"
+
+      - name: Run Tests via HyperExecute
+        id: he-run
+        continue-on-error: true
+        env:
+          GREP_TAGS: ${{ inputs.grep_tags }}
+        run: |
+          echo "=== [TestMu AI / HyperExecute] ${{ inputs.build_type }} on ${{ matrix.device.name }} ==="
+          chmod +x ./tests/scripts/run-testmu-hyperexecute.sh
+          ./tests/scripts/run-testmu-hyperexecute.sh
+
+      - name: Resolve artifact name
+        id: artifact-name
+        if: always()
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+          DEVICE_NAME: ${{ matrix.device.name }}
+          OS_VERSION: ${{ matrix.device.os_version }}
+        run: |
+          SUITE="${BUILD_TYPE/onboarding/onboarding-flow}"
+          echo "name=testmu-he-${PLATFORM}-${SUITE}-test-results-${DEVICE_NAME}-${OS_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: ${{ steps.artifact-name.outputs.name }}
+          path: |
+            tests/reporters/reports
+            tests/test-reports/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      # Prefixed testmu-he- so the hermes-cpuprofiles-* pattern used by
+      # analyze-app-profiling keeps matching BrowserStack profiles only.
+      - name: Upload Hermes CPU profiles
+        uses: actions/upload-artifact@v7
+        if: ${{ always() && inputs.collect_hermes_cpuprofiles == true }}
+        with:
+          name: testmu-he-hermes-cpuprofiles-${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || inputs.build_type }}-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          path: tests/reporters/reports/hermes-cpuprofiles/
+          if-no-files-found: ignore
+          retention-days: 14

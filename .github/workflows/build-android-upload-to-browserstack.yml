@@ -65,6 +65,21 @@ on:
           run without requiring a fingerprint, then upload them to BrowserStack
           as-is. This mode is intended for test-only changes.
         default: false
+      upload_to_browserstack:
+        required: false
+        type: boolean
+        description: >-
+          When true, upload the staged APKs to BrowserStack. Pull-request
+          performance runs set this false and upload to TestMu only.
+        default: true
+      upload_to_testmu:
+        required: false
+        type: boolean
+        description: >-
+          When true, upload the same staged APKs to TestMu AI. Requires
+          LT_USERNAME and LT_ACCESS_KEY. A TestMu failure does not fail the
+          job when BrowserStack upload is also enabled.
+        default: false
       runner_provider:
         description: >-
           Runner provider forwarded from the caller. Leave empty to defer to the repo
@@ -91,6 +106,18 @@ on:
       without-srp-version:
         description: 'App version for without-SRP build'
         value: ${{ jobs.upload-to-browserstack.outputs.without-srp-version }}
+      with-srp-testmu-url:
+        description: 'TestMu AI app URL for the with-SRP APK'
+        value: ${{ jobs.upload-to-browserstack.outputs.with-srp-testmu-url }}
+      without-srp-testmu-url:
+        description: 'TestMu AI app URL for the without-SRP APK'
+        value: ${{ jobs.upload-to-browserstack.outputs.without-srp-testmu-url }}
+      with-srp-testmu-version:
+        description: 'App version recorded for the with-SRP TestMu upload'
+        value: ${{ jobs.upload-to-browserstack.outputs.with-srp-testmu-version }}
+      without-srp-testmu-version:
+        description: 'App version recorded for the without-SRP TestMu upload'
+        value: ${{ jobs.upload-to-browserstack.outputs.without-srp-testmu-version }}
   workflow_dispatch:
     inputs:
       description:
@@ -575,7 +602,7 @@ jobs:
     secrets: inherit
 
   upload-to-browserstack:
-    name: Upload APKs to BrowserStack
+    name: ${{ inputs.upload_to_browserstack && 'Upload APKs to BrowserStack' || 'Upload APKs to TestMu AI' }}
     # Namespace uses metamask-android-build (JDK + /opt/android-sdk). ci-linux
     # does not have that image; setup-e2e-env skips JDK when provider=namespace.
     # current keeps today's split: Cirrus lg for fingerprint-repack, ubuntu-latest
@@ -630,6 +657,10 @@ jobs:
       without-srp-app-id: ${{ steps.browserstack-upload.outputs.without-srp-app-id }}
       with-srp-version: ${{ steps.browserstack-upload.outputs.with-srp-version }}
       without-srp-version: ${{ steps.browserstack-upload.outputs.without-srp-version }}
+      with-srp-testmu-url: ${{ steps.testmu-upload.outputs.with-srp-testmu-url }}
+      without-srp-testmu-url: ${{ steps.testmu-upload.outputs.without-srp-testmu-url }}
+      with-srp-testmu-version: ${{ steps.testmu-upload.outputs.with-srp-testmu-version }}
+      without-srp-testmu-version: ${{ steps.testmu-upload.outputs.without-srp-testmu-version }}
 
     steps:
       - name: Checkout (repack path, Namespace)
@@ -851,6 +882,7 @@ jobs:
 
       - name: Upload APKs to BrowserStack
         id: browserstack-upload
+        if: inputs.upload_to_browserstack
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
@@ -982,3 +1014,83 @@ jobs:
             echo "❌ Both APK uploads failed. Failing step."
             exit 1
           fi
+
+      - name: Checkout TestMu upload scripts (Namespace)
+        if: >-
+          inputs.upload_to_testmu &&
+          env.RESOLVED_RUNNER_PROVIDER == 'namespace' &&
+          !(needs.resolve-fingerprint-reuse.outputs.found == 'true' && inputs.main_branch_only != true)
+        continue-on-error: ${{ inputs.upload_to_browserstack }}
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+
+      - name: Checkout TestMu upload scripts
+        if: >-
+          inputs.upload_to_testmu &&
+          env.RESOLVED_RUNNER_PROVIDER != 'namespace' &&
+          !(needs.resolve-fingerprint-reuse.outputs.found == 'true' && inputs.main_branch_only != true)
+        continue-on-error: ${{ inputs.upload_to_browserstack }}
+        uses: actions/checkout@v6
+
+      - name: Upload APKs to TestMu AI
+        id: testmu-upload
+        if: inputs.upload_to_testmu
+        continue-on-error: ${{ inputs.upload_to_browserstack }}
+        env:
+          LT_USERNAME: ${{ secrets.LT_USERNAME }}
+          LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
+          FINGERPRINT_REUSED: ${{ needs.resolve-fingerprint-reuse.outputs.found }}
+          REUSED_SOURCE_SHA: ${{ needs.resolve-fingerprint-reuse.outputs.source-sha }}
+          MAIN_BRANCH_ONLY: ${{ inputs.main_branch_only }}
+          FRESH_WITH_SRP_VERSION: ${{ needs.build-with-srp.outputs.semantic_version }}
+          FRESH_WITHOUT_SRP_VERSION: ${{ needs.build-without-srp.outputs.semantic_version }}
+        run: |
+          set -euo pipefail
+          if [ -z "$LT_USERNAME" ] || [ -z "$LT_ACCESS_KEY" ]; then
+            echo "LT_USERNAME and LT_ACCESS_KEY are required to upload APKs to TestMu AI"
+            exit 1
+          fi
+
+          if [ "$FINGERPRINT_REUSED" = "true" ]; then
+            if [ "$MAIN_BRANCH_ONLY" = "true" ]; then
+              WITH_SRP_VERSION="fingerprint-reuse-as-is-${REUSED_SOURCE_SHA:0:7}"
+              WITHOUT_SRP_VERSION="fingerprint-reuse-as-is-${REUSED_SOURCE_SHA:0:7}"
+            else
+              WITH_SRP_VERSION="fingerprint-reuse-repack-${REUSED_SOURCE_SHA:0:7}"
+              WITHOUT_SRP_VERSION="fingerprint-reuse-repack-${REUSED_SOURCE_SHA:0:7}"
+            fi
+          else
+            WITH_SRP_VERSION="${FRESH_WITH_SRP_VERSION}"
+            WITHOUT_SRP_VERSION="${FRESH_WITHOUT_SRP_VERSION}"
+          fi
+
+          chmod +x tests/scripts/upload-testmu-app.sh tests/scripts/verify-testmu-app-url.sh
+
+          upload_one() {
+            local label="$1"
+            local apk_dir="$2"
+            local custom_id="$3"
+            local url_key="$4"
+            local version_key="$5"
+            local version="$6"
+            local apk
+            apk="$(find "$apk_dir" -name '*.apk' -type f -print -quit)"
+            if [ -z "$apk" ]; then
+              echo "No APK found in $apk_dir for $label"
+              return 1
+            fi
+            echo "Uploading $label APK to TestMu AI: $apk"
+            local app_url
+            # errexit is disabled inside functions called via `||`, so check each step explicitly.
+            app_url="$(./tests/scripts/upload-testmu-app.sh "$apk" "$custom_id")" || return 1
+            ./tests/scripts/verify-testmu-app-url.sh "$app_url" || return 1
+            {
+              echo "$url_key=$app_url"
+              echo "$version_key=$version"
+            } >> "$GITHUB_OUTPUT"
+            echo "TestMu $label URL: $app_url"
+          }
+
+          FAILED=0
+          upload_one "with-SRP" artifacts/with-srp "metamask-android-with-srp" "with-srp-testmu-url" "with-srp-testmu-version" "$WITH_SRP_VERSION" || FAILED=1
+          upload_one "without-SRP" artifacts/without-srp "metamask-android-without-srp" "without-srp-testmu-url" "without-srp-testmu-version" "$WITHOUT_SRP_VERSION" || FAILED=1
+          exit "$FAILED"

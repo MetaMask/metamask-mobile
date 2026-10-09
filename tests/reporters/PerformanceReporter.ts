@@ -10,6 +10,7 @@ import {
 import { getTeamInfoFromTags } from '../framework/utils/teams';
 import { DeviceInfoExtractor } from './utils/DeviceInfoExtractor';
 import { BrowserStackEnricher } from './providers/browserstack/BrowserStackEnricher';
+import { TestMuAIEnricher } from './providers/testmu/TestMuAIEnricher';
 import { HtmlReportGenerator } from './generators/HtmlReportGenerator';
 import { CsvReportGenerator } from './generators/CsvReportGenerator';
 import { JsonReportGenerator } from './generators/JsonReportGenerator';
@@ -131,6 +132,11 @@ class PerformanceReporter {
 
     const summary = this.calculateSummary();
     const isBrowserStackRun = this.detectBrowserStackRun();
+    const isTestMuRun = this.detectTestMuRun();
+
+    if (this.sessions.length > 0 && isTestMuRun) {
+      await this.enrichSessionsWithTestMuData();
+    }
 
     if (this.sessions.length > 0 && isBrowserStackRun) {
       await this.enrichSessionsWithProviderData();
@@ -502,6 +508,31 @@ class PerformanceReporter {
     return isBrowserStackRun;
   }
 
+  private detectTestMuRun(): boolean {
+    return this.sessions.some((session) =>
+      (session.projectName ?? '').toLowerCase().includes('testmu'),
+    );
+  }
+
+  private async enrichSessionsWithTestMuData(): Promise<void> {
+    logger.info(
+      `Fetching TestMu AI video URLs and app metrics for ${this.sessions.length} sessions`,
+    );
+
+    const enricher = new TestMuAIEnricher();
+
+    for (const session of this.sessions) {
+      if (!enricher.canHandle(session.projectName ?? '')) {
+        continue;
+      }
+      try {
+        await enricher.enrichSession(session);
+      } catch (error) {
+        logger.error(`Error enriching TestMu session for ${session.testTitle}`);
+      }
+    }
+  }
+
   private async enrichSessionsWithProviderData(): Promise<void> {
     logger.info(
       `Fetching video URLs, profiling and network logs for ${this.sessions.length} sessions`,
@@ -581,6 +612,8 @@ class PerformanceReporter {
     const testName = (this.metrics[0]?.testName ?? 'Unknown')
       .replace(/[^a-zA-Z0-9]/g, '_')
       .substring(0, 30);
+    const providerSuffix =
+      this.metrics[0]?.device?.provider === 'testmu' ? '-testmu' : '';
     const timestamp = new Date()
       .toISOString()
       .replace(/:/g, '-')
@@ -612,7 +645,7 @@ class PerformanceReporter {
       const html = htmlGenerator.generate(reportData);
       const reportPath = path.join(
         reportsDir,
-        `performance-report-${testName}-${timestamp}.html`,
+        `performance-report-${testName}${providerSuffix}-${timestamp}.html`,
       );
       fs.writeFileSync(reportPath, html);
       logger.info(`Performance report generated: ${reportPath}`);
@@ -622,7 +655,7 @@ class PerformanceReporter {
       const csv = csvGenerator.generate(reportData);
       const csvPath = path.join(
         reportsDir,
-        `performance-report-${testName}-${timestamp}.csv`,
+        `performance-report-${testName}${providerSuffix}-${timestamp}.csv`,
       );
       fs.writeFileSync(csvPath, csv);
       logger.info(`Performance CSV report saved: ${csvPath}`);
