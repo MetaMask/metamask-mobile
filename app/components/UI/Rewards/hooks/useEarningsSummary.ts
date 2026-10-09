@@ -119,10 +119,14 @@ export const useEarningsSummary = (
           dispatch(setEarningsSummaryError({ profileId, error: true }));
           if (!followUp) {
             armBusyRefetch(error, () => {
-              void fetchRef.current({ forceFresh: true, followUp: true });
+              // The slice already holds the error, and this retry has no caller.
+              void fetchRef
+                .current({ forceFresh: true, followUp: true })
+                .catch(() => undefined);
             });
           }
         }
+        throw error;
       } finally {
         leaveEarningsSummaryFlight(profileId);
         isLoadingRef.current = false;
@@ -135,7 +139,9 @@ export const useEarningsSummary = (
 
   useFocusEffect(
     useCallback(() => {
-      void fetchEarningsSummary();
+      // The error is already on the slice. A focus refresh has no caller to
+      // tell, so the rejection stops here.
+      void fetchEarningsSummary().catch(() => undefined);
     }, [fetchEarningsSummary]),
   );
 
