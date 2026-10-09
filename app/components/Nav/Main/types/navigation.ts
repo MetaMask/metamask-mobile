@@ -193,6 +193,7 @@ export type TransactionsHomeParamList = {
 export type RewardsHomeParamList = {
   RewardsOnboardingFlow: undefined;
   RewardsDashboard: undefined;
+  RewardsMoneyDashboard: undefined;
 };
 
 /**

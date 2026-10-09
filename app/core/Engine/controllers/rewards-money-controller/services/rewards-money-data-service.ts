@@ -14,6 +14,7 @@ import type {
   ReferralFunnelDto,
   ReferralMeDto,
   ReferrerOriginType,
+  RegisterRefereeDto,
 } from '../types';
 import {
   canChangeRewardsMoneyEnvUrl,
@@ -105,6 +106,33 @@ export class RewardsMoneyRebateQuoteError extends Error {
   }
 }
 
+/**
+ * A non-OK Rewards Money response whose status and body the caller has to act
+ * on. Register refuses a referee with a 403 or 409 that carries the product
+ * reason, so the status cannot be flattened into a generic Error.
+ */
+export class RewardsMoneyHttpError extends Error {
+  readonly status: number;
+
+  readonly bodyText: string | undefined;
+
+  /** Seconds from a `Retry-After` header, when the refusal carried one. */
+  readonly retryAfterSeconds: number | undefined;
+
+  constructor(
+    message: string,
+    status: number,
+    bodyText?: string,
+    retryAfterSeconds?: number,
+  ) {
+    super(message);
+    this.name = 'RewardsMoneyHttpError';
+    this.status = status;
+    this.bodyText = bodyText;
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
 // ─── Action types ─────────────────────────────────────────────────────────────
 
 export interface RewardsMoneyDataServiceGetReferralMeAction {
@@ -125,6 +153,11 @@ export interface RewardsMoneyDataServiceGetReferralCodesAction {
 export interface RewardsMoneyDataServiceValidateReferralCodeAction {
   type: `${typeof SERVICE_NAME}:validateReferralCode`;
   handler: RewardsMoneyDataService['validateReferralCode'];
+}
+
+export interface RewardsMoneyDataServiceRegisterRefereeAction {
+  type: `${typeof SERVICE_NAME}:registerReferee`;
+  handler: RewardsMoneyDataService['registerReferee'];
 }
 
 export interface RewardsMoneyDataServiceGetEarningsSummaryAction {
@@ -182,6 +215,7 @@ export type RewardsMoneyDataServiceActions =
   | RewardsMoneyDataServiceGetReferralFunnelAction
   | RewardsMoneyDataServiceGetReferralCodesAction
   | RewardsMoneyDataServiceValidateReferralCodeAction
+  | RewardsMoneyDataServiceRegisterRefereeAction
   | RewardsMoneyDataServiceGetEarningsSummaryAction
   | RewardsMoneyDataServiceGetEarningsLedgerAction
   | RewardsMoneyDataServiceGetClaimHistoryAction
@@ -213,6 +247,12 @@ function trimTrailingSlashes(url: string): string {
   }
   return url.slice(0, end);
 }
+
+/**
+ * A `503` whose `Retry-After` is at most this is waited out once. A busy pod
+ * sends 2. A JWKS outage can send up to 30, which is left to the caller.
+ */
+const BUSY_READ_RETRY_MAX_SECONDS = 5;
 
 /** `Retry-After` is delta-seconds. An HTTP-date is accepted too. */
 function retryAfterSeconds(header: string | null): number | undefined {
@@ -359,6 +399,10 @@ export class RewardsMoneyDataService {
       this.validateReferralCode.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:registerReferee`,
+      this.registerReferee.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getEarningsSummary`,
       this.getEarningsSummary.bind(this),
     );
@@ -431,8 +475,13 @@ export class RewardsMoneyDataService {
     return defaultUrl;
   }
 
+  /**
+   * Loads the signed-in profile's referral persona.
+   *
+   * @returns The referral-me payload.
+   */
   async getReferralMe(): Promise<ReferralMeDto> {
-    const response = await this.#makeRequest('/referral/me', { method: 'GET' });
+    const response = await this.#read('/referral/me');
 
     if (!response.ok) {
       throw new Error(`Get referral me failed: ${response.status}`);
@@ -442,9 +491,7 @@ export class RewardsMoneyDataService {
   }
 
   async getReferralFunnel(): Promise<ReferralFunnelDto> {
-    const response = await this.#makeRequest('/referral/me/funnel', {
-      method: 'GET',
-    });
+    const response = await this.#read('/referral/me/funnel');
 
     if (!response.ok) {
       throw new Error(`Get referral funnel failed: ${response.status}`);
@@ -454,9 +501,7 @@ export class RewardsMoneyDataService {
   }
 
   async getReferralCodes(): Promise<OwnReferralCodesDto> {
-    const response = await this.#makeRequest('/referral/me/referral-code', {
-      method: 'GET',
-    });
+    const response = await this.#read('/referral/me/referral-code');
 
     if (!response.ok) {
       throw new Error(`Get referral codes failed: ${response.status}`);
@@ -480,19 +525,54 @@ export class RewardsMoneyDataService {
     );
 
     if (!response.ok) {
-      throw new Error(`Validate referral code failed: ${response.status}`);
+      let bodyText: string | undefined;
+      try {
+        bodyText = await response.text();
+      } catch {
+        bodyText = undefined;
+      }
+      throw new RewardsMoneyHttpError(
+        `Validate referral code failed: ${response.status}`,
+        response.status,
+        bodyText,
+        retryAfterSeconds(response.headers?.get('retry-after') ?? null),
+      );
     }
 
     return (await response.json()) as { success: boolean };
+  }
+
+  /**
+   * Enrols the session profile under a referrer's code. The server identifies
+   * the referee from the bearer token, so the body carries the code alone.
+   */
+  async registerReferee(params: RegisterRefereeDto): Promise<void> {
+    const response = await this.#makeRequest('/wr/referral/referee', {
+      method: 'POST',
+      body: JSON.stringify({ code: params.code }),
+    });
+
+    if (!response.ok) {
+      let bodyText: string | undefined;
+      try {
+        bodyText = await response.text();
+      } catch {
+        bodyText = undefined;
+      }
+      throw new RewardsMoneyHttpError(
+        `Register referee failed: ${response.status}`,
+        response.status,
+        bodyText,
+        retryAfterSeconds(response.headers?.get('retry-after') ?? null),
+      );
+    }
   }
 
   async getEarningsSummary(
     originTypes?: EarningOriginType[],
   ): Promise<EarningsSummaryDto> {
     const query = buildOriginTypeQuery(originTypes);
-    const response = await this.#makeRequest(`/earnings/summary${query}`, {
-      method: 'GET',
-    });
+    const response = await this.#read(`/earnings/summary${query}`);
 
     if (!response.ok) {
       throw new Error(`Get earnings summary failed: ${response.status}`);
@@ -520,10 +600,7 @@ export class RewardsMoneyDataService {
       }
     }
 
-    const response = await this.#makeRequest(
-      `/earnings/ledger?${params.toString()}`,
-      { method: 'GET' },
-    );
+    const response = await this.#read(`/earnings/ledger?${params.toString()}`);
 
     if (!response.ok) {
       throw new Error(`Get earnings ledger failed: ${response.status}`);
@@ -555,9 +632,8 @@ export class RewardsMoneyDataService {
       params.append('from_day', fromDay);
     }
 
-    const response = await this.#makeRequest(
+    const response = await this.#read(
       `/referral/me/commissions?${params.toString()}`,
-      { method: 'GET' },
     );
 
     if (!response.ok) {
@@ -578,9 +654,8 @@ export class RewardsMoneyDataService {
       params.append('cursor', cursor);
     }
 
-    const response = await this.#makeRequest(
+    const response = await this.#read(
       `/earnings/claim/me?${params.toString()}`,
-      { method: 'GET' },
     );
 
     if (!response.ok) {
@@ -640,15 +715,38 @@ export class RewardsMoneyDataService {
   }
 
   async getClaimById(claimId: string): Promise<ClaimDto> {
-    const response = await this.#makeRequest(`/earnings/claim/${claimId}`, {
-      method: 'GET',
-    });
+    const response = await this.#read(`/earnings/claim/${claimId}`);
 
     if (!response.ok) {
       throw new Error(`Get claim by id failed: ${response.status}`);
     }
 
     return (await response.json()) as ClaimDto;
+  }
+
+  /**
+   * One idempotent GET. A `503` whose `Retry-After` is
+   * {@link BUSY_READ_RETRY_MAX_SECONDS} or less is waited out and tried once
+   * more. A `429` is not retried: its window is 30 seconds.
+   */
+  async #read(endpoint: string): Promise<Response> {
+    const response = await this.#makeRequest(endpoint, { method: 'GET' });
+    if (response.status !== 503) {
+      return response;
+    }
+    const waitSeconds = retryAfterSeconds(
+      response.headers?.get('retry-after') ?? null,
+    );
+    if (
+      waitSeconds === undefined ||
+      waitSeconds > BUSY_READ_RETRY_MAX_SECONDS
+    ) {
+      return response;
+    }
+    await new Promise((resolve) => {
+      setTimeout(resolve, waitSeconds * 1000);
+    });
+    return this.#makeRequest(endpoint, { method: 'GET' });
   }
 
   async #makeRequest(
@@ -696,10 +794,10 @@ export class RewardsMoneyDataService {
         signal: controller.signal,
       });
 
-      if (
-        authenticated &&
-        (response.status === 401 || response.status === 403)
-      ) {
+      // 401 only. The API answers a refused registration with 403 carrying the
+      // product reason (self-referral, KOL, active trader), and that has to
+      // reach the endpoint rather than read as a dead bearer token.
+      if (authenticated && response.status === 401) {
         throw new RewardsMoneyAuthorizationError(
           `Authorization failed: ${response.status}`,
         );

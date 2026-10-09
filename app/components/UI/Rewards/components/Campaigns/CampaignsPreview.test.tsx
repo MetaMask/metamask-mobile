@@ -155,6 +155,56 @@ describe('CampaignsPreview', () => {
     expect(UNSAFE_getByType(Skeleton)).toBeDefined();
   });
 
+  it('renders loading skeleton while campaigns are fetching for the first time', () => {
+    mockUseRewardCampaigns.mockReturnValue({
+      ...mockHookDefaults,
+      hasLoaded: false,
+      isLoading: true,
+    });
+
+    const { Skeleton } = jest.requireActual(
+      '@metamask/design-system-react-native',
+    );
+    const { UNSAFE_getByType } = render(<CampaignsPreview />);
+
+    expect(UNSAFE_getByType(Skeleton)).toBeDefined();
+  });
+
+  it('retries the campaigns fetch from the error banner', () => {
+    const fetchCampaigns = jest.fn();
+    mockUseRewardCampaigns.mockReturnValue({
+      ...mockHookDefaults,
+      hasError: true,
+      hasLoaded: true,
+      fetchCampaigns,
+    });
+
+    const { getByText } = render(<CampaignsPreview />);
+
+    fireEvent.press(getByText('rewards.campaigns_view.retry_button'));
+
+    expect(fetchCampaigns).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps featured tiles instead of the error banner when campaigns already loaded', () => {
+    const activeCampaign = createTestCampaign({
+      id: 'active-1',
+      name: 'Active Campaign',
+      featured: true,
+    });
+    mockUseRewardCampaigns.mockReturnValue({
+      ...mockHookDefaults,
+      campaigns: [activeCampaign],
+      hasError: true,
+      hasLoaded: true,
+    });
+
+    const { getByText, queryByText } = render(<CampaignsPreview />);
+
+    expect(getByText('Active Campaign')).toBeOnTheScreen();
+    expect(queryByText('rewards.campaigns_view.error_title')).toBeNull();
+  });
+
   it('renders error banner when there is an error and no featured campaigns', () => {
     mockUseRewardCampaigns.mockReturnValue({
       ...mockHookDefaults,
@@ -184,7 +234,7 @@ describe('CampaignsPreview', () => {
     expect(UNSAFE_queryByType(Skeleton)).toBeNull();
   });
 
-  it('renders the section title when a featured active campaign exists', () => {
+  it('renders the preview when a featured active campaign exists', () => {
     const activeCampaign = createTestCampaign({
       id: 'active-1',
       name: 'Active Campaign',
@@ -200,6 +250,7 @@ describe('CampaignsPreview', () => {
     expect(
       getByTestId(REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW),
     ).toBeOnTheScreen();
+    expect(getByText('Active Campaign')).toBeOnTheScreen();
     expect(getByText('Campaigns')).toBeOnTheScreen();
   });
 

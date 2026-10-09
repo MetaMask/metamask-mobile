@@ -40,6 +40,7 @@ export const shouldHideRewardsTabBar = (route: HomeTabRoute): boolean => {
   return !(
     !active ||
     active === Routes.REWARDS_DASHBOARD ||
+    active === Routes.REWARDS_MONEY_DASHBOARD ||
     active === Routes.REWARDS_ONBOARDING_FLOW
   );
 };
