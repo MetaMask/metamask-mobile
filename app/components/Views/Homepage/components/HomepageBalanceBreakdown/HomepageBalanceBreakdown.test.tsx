@@ -350,9 +350,7 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { UNSAFE_getByType } = render(
-      <HomepageBalanceBreakdown />,
-    );
+    const { UNSAFE_getByType } = render(<HomepageBalanceBreakdown />);
 
     expect(UNSAFE_getByType(Laminar).props.style).toEqual(
       expect.objectContaining({ color: mockTheme.colors.text.muted }),
@@ -369,9 +367,7 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { UNSAFE_getByType } = render(
-      <HomepageBalanceBreakdown />,
-    );
+    const { UNSAFE_getByType } = render(<HomepageBalanceBreakdown />);
 
     expect(UNSAFE_getByType(Laminar).props.style).toEqual(
       expect.objectContaining({ color: mockTheme.colors.text.muted }),
@@ -387,9 +383,7 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { getByTestId, queryByTestId } = render(
-      <HomepageBalanceBreakdown layout="icons" />,
-    );
+    const { getByTestId, queryByTestId } = render(<HomepageBalanceBreakdown />);
 
     expect(
       getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
@@ -400,9 +394,7 @@ describe('HomepageBalanceBreakdown', () => {
   });
 
   it('rolls every aggregate balance update', () => {
-    const { rerender, UNSAFE_getByType } = render(
-      <HomepageBalanceBreakdown layout="icons" />,
-    );
+    const { rerender, UNSAFE_getByType } = render(<HomepageBalanceBreakdown />);
 
     expect(UNSAFE_getByType(Laminar).props.text).toBe('50.00');
 
@@ -413,7 +405,7 @@ describe('HomepageBalanceBreakdown', () => {
         totalFiat: 75,
       },
     });
-    rerender(<HomepageBalanceBreakdown layout="icons" />);
+    rerender(<HomepageBalanceBreakdown />);
 
     expect(UNSAFE_getByType(Laminar).props.text).toBe('75.00');
   });
@@ -753,11 +745,11 @@ describe('HomepageBalanceBreakdown', () => {
     mockPrivacyMode = true;
 
     const { getByTestId, UNSAFE_queryAllByType, rerender } = render(
-      <HomepageBalanceBreakdown layout="icons" />,
+      <HomepageBalanceBreakdown />,
     );
 
     mockPrivacyMode = false;
-    rerender(<HomepageBalanceBreakdown layout="icons" />);
+    rerender(<HomepageBalanceBreakdown />);
 
     expect(
       getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
@@ -769,7 +761,7 @@ describe('HomepageBalanceBreakdown', () => {
     mockPrivacyMode = true;
 
     const { getByLabelText, getByTestId, queryByTestId } = render(
-      <HomepageBalanceBreakdown layout="allocation" />,
+      <HomepageBalanceBreakdown />,
     );
 
     expect(

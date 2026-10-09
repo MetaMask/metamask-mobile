@@ -84,6 +84,7 @@ const HomepageBalanceBreakdownHero = ({
           </SensitiveText>
         ) : (
           <AnimatedBalanceText
+            accessible={false}
             color={
               hero.isPartiallyLoaded || hero.hasErroredSlice
                 ? TextColor.TextMuted
@@ -98,7 +99,7 @@ const HomepageBalanceBreakdownHero = ({
         )}
       </Animated.View>
 
-      {hero.delta && amountText ? (
+      {!isLoading && hero.delta && amountText ? (
         <Skeleton hideChildren={isLoading}>
           <Box
             alignItems={BoxAlignItems.Center}

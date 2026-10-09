@@ -153,12 +153,26 @@ describe('AnimatedNumericText', () => {
     expect(getByLabelText('12.')).toBeOnTheScreen();
   });
 
-  it('allows a parent display to own accessibility', () => {
-    const { queryByLabelText } = render(
-      <AnimatedNumericText accessible={false} value="12." />,
+  it('can defer accessibility to an interactive parent', () => {
+    const { queryByLabelText, getByTestId } = render(
+      <AnimatedNumericText
+        accessible={false}
+        testID="animated-numeric-text"
+        value="12."
+      />,
     );
 
+    expect(getByTestId('animated-numeric-text').props.accessible).toBe(false);
+    expect(
+      getByTestId('animated-numeric-text').props.accessibilityLabel,
+    ).toBeUndefined();
+  });
+
     expect(queryByLabelText('12.')).toBeNull();
+    expect(getByTestId('animated-numeric-text').props.accessible).toBe(false);
+    expect(
+      getByTestId('animated-numeric-text').props.accessibilityLabel,
+    ).toBeUndefined();
   });
 
   it('renders high-precision values without numeric conversion', () => {

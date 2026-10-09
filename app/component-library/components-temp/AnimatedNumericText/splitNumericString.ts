@@ -11,7 +11,7 @@ export interface SplitNumericString {
  * three digits so ticker suffixes such as "1INCH" are not consumed.
  */
 const NUMERIC_RUN_PATTERN =
-  /\d+(?:(?:[.,]\d*)|(?:[ '\u00A0\u2019\u202F]\d{3}))*/u;
+  /\d+(?:(?:[.,]\d*)|(?:[ '\u00A0\u202F\u2007\u2009\u2019]\d{3}))*/u;
 
 /**
  * Splits a display string into the part worth animating and the static text
