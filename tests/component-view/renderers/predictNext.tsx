@@ -12,7 +12,6 @@ import { PredictOrderFlowProvider } from '../../../app/components/UI/PredictNext
 import type {
   PredictNextEventParams,
   PredictNextFeedParams,
-  PredictNextHomeParams,
   PredictNextPortfolioParams,
   PredictNextSearchParams,
 } from '../../../app/components/UI/PredictNext/navigation/types';
@@ -47,10 +46,7 @@ export const renderPredictOrderFlow = (Component: React.ComponentType) =>
     { state: initialStatePredictNext().build() },
   );
 
-export const renderPredictNext = (
-  initialParams?: PredictNextHomeParams,
-  privacyMode = false,
-) =>
+export const renderPredictNext = (privacyMode = false) =>
   renderScreenWithRoutes(
     HomeScreen,
     { name: PredictNextRoutes.HOME },
@@ -61,7 +57,6 @@ export const renderPredictNext = (
       { name: PredictNextRoutes.SEARCH, Component: SearchScreen },
     ],
     { state: initialStatePredictNext(privacyMode).build() },
-    initialParams ? { ...initialParams } : undefined,
   );
 
 export const renderPredictSearchScreen = (

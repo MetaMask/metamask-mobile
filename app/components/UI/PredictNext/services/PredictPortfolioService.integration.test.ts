@@ -1,4 +1,7 @@
+import { hashKey } from '@tanstack/query-core';
+import type { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
 import { buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
+import { portfolioQueryFamilies } from '../queries/portfolioQueries';
 import { KALSHI_VENUE_ID } from '../types';
 
 const position = {
@@ -216,5 +219,129 @@ describe('PredictNext account-scoped Portfolio reads', () => {
     ).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
 
     expect(harness.fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  describe('invalidation', () => {
+    const positionsHash = hashKey([
+      'PredictPortfolioService:getPositions',
+      KALSHI_VENUE_ID,
+      { limit: 20 },
+    ]);
+    const [, positionsFamily] = portfolioQueryFamilies(KALSHI_VENUE_ID);
+    /** Real-timer poll so fire-and-forget cache updates can settle without
+     * assuming microtask timing. */
+    const until = async (
+      condition: () => boolean,
+      timeoutMs = 1_000,
+    ): Promise<void> => {
+      const deadline = Date.now() + timeoutMs;
+      while (!condition()) {
+        if (Date.now() > deadline) {
+          throw new Error('Timed out waiting for the cache update');
+        }
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+    };
+
+    /** Collects the granular cache updates published for one query hash. */
+    const collectCacheUpdates = (
+      harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+      hash: string,
+    ): DataServiceGranularCacheUpdatedPayload[] => {
+      const updates: DataServiceGranularCacheUpdatedPayload[] = [];
+      harness.messenger.subscribe(
+        `PredictPortfolioService:cacheUpdated:${hash}`,
+        (payload) => updates.push(payload),
+      );
+      return updates;
+    };
+
+    /** Waits until the latest cache update carries the given body fragment:
+     * the invalidation dispatch itself also publishes (with the stale
+     * data), and notifications flush asynchronously, so event counts
+     * cannot identify the refresh. */
+    const untilCacheCarries = async (
+      updates: DataServiceGranularCacheUpdatedPayload[],
+      fragment: string,
+    ): Promise<void> =>
+      until(() =>
+        JSON.stringify(updates[updates.length - 1]?.state ?? {}).includes(
+          fragment,
+        ),
+      );
+
+    it('republishes fresh reads after invalidateQueries', async () => {
+      let positionsBody: unknown = {
+        venueId: 'kalshi',
+        positions: [position],
+      };
+      const harness = buildPredictNextIntegrationHarness((url) =>
+        String(url).includes('/venues/kalshi/positions')
+          ? { body: positionsBody }
+          : { status: 404 },
+      );
+
+      // Cache listeners see the pre-trade snapshot from the populate read.
+      const updates = collectCacheUpdates(harness, positionsHash);
+
+      const dateNow = jest.spyOn(Date, 'now');
+      dateNow.mockReturnValue(1_000);
+      await harness.messenger.call(
+        'PredictPortfolioService:getPositions',
+        KALSHI_VENUE_ID,
+        { limit: 20 },
+      );
+      const firstSnapshot = updates[0]?.state?.queries[0]?.state;
+
+      // The venue now reports a changed Position list: the invalidation
+      // refetch must observe it and publish it to cache listeners.
+      positionsBody = {
+        venueId: 'kalshi',
+        positions: [{ ...position, shares: '37.50' }],
+      };
+      // A later wall clock stamps the refresh's dataUpdatedAt: the UI cache
+      // hydrates a service snapshot only when it is strictly newer.
+      dateNow.mockReturnValue(61_000);
+
+      await harness.messenger.call(
+        'PredictPortfolioService:invalidateQueries',
+        { queryKey: positionsFamily },
+      );
+      dateNow.mockRestore();
+
+      await untilCacheCarries(updates, '37.50');
+      const latest = updates[updates.length - 1];
+      expect(latest.type).toBe('updated');
+      expect(latest.state?.queries[0]?.queryHash).toBe(positionsHash);
+      expect(latest.state?.queries[0]?.state.data).toMatchObject({
+        pages: [{ positions: [{ shares: '37.50' }] }],
+      });
+      // Newer dataUpdatedAt is the property the UI cache's newer-data
+      // hydration applies: without it the mounted reads never update.
+      expect(latest.state?.queries[0]?.state.dataUpdatedAt).toBeGreaterThan(
+        firstSnapshot?.dataUpdatedAt ?? 0,
+      );
+    });
+
+    it('does not fetch families with no cached entries', async () => {
+      const harness = buildPredictNextIntegrationHarness((url) =>
+        String(url).includes('/venues/kalshi/positions')
+          ? { body: { venueId: 'kalshi', positions: [] } }
+          : { status: 404 },
+      );
+
+      await harness.messenger.call(
+        'PredictPortfolioService:invalidateQueries',
+        { queryKey: positionsFamily },
+      );
+      // Keyless filters match every read; with an empty cache that is
+      // still nothing.
+      await harness.messenger.call(
+        'PredictPortfolioService:invalidateQueries',
+        {},
+      );
+
+      expect(harness.fetchMock).not.toHaveBeenCalled();
+    });
   });
 });
