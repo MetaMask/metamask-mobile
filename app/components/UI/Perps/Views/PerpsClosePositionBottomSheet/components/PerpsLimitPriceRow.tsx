@@ -66,7 +66,11 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
     <>
       <TouchableOpacity
         accessibilityRole="button"
-        accessibilityLabel={strings('perps.order.limit_price')}
+        accessibilityLabel={`${strings('perps.order.limit_price')}, ${
+          isEmptyInReview
+            ? strings('perps.order.set_price')
+            : `$${hasValue ? value : EMPTY_LIMIT_PRICE_DISPLAY}`
+        }`}
         onPress={onPress}
         testID={PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW}
       >
@@ -83,7 +87,7 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
             {isEmptyInReview ? (
               <Text
                 variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
+                color={TextColor.ErrorDefault}
                 testID={
                   PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
                 }

@@ -175,25 +175,10 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   // `formatLimitPriceInput` already prefixes `$`, so the row keeps a
   // standalone `$` and shows only the numeric portion next to it.
   const hasLimitPriceValue = Boolean(limitPriceInput.formattedLimitPrice);
-
-  const footerMessages = useMemo(() => {
-    const needsLimitPrice =
-      effectiveOrderType === 'limit' &&
-      !hasLimitPriceValue &&
-      !isEditingLimitPrice;
-
-    return needsLimitPrice
-      ? [
-          ...displayedErrors,
-          strings('perps.order.validation.please_set_a_limit_price'),
-        ]
-      : displayedErrors;
-  }, [
-    displayedErrors,
-    effectiveOrderType,
-    hasLimitPriceValue,
-    isEditingLimitPrice,
-  ]);
+  const needsLimitPriceHint =
+    effectiveOrderType === 'limit' &&
+    !hasLimitPriceValue &&
+    !isEditingLimitPrice;
 
   if (isMarginInfoVisible) {
     return (
@@ -295,13 +280,20 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           {/* One BodySm line stays reserved so an error appearing while the
               user drags the slider does not resize the sheet under them. */}
           <PerpsValidationErrors
-            errors={footerMessages}
+            errors={displayedErrors}
             alignment="start"
             twClassName="min-h-[22px] justify-center px-4"
           />
 
           <BottomSheetFooter
-            primaryButtonProps={confirmButtonProps}
+            primaryButtonProps={{
+              ...confirmButtonProps,
+              ...(needsLimitPriceHint && {
+                accessibilityHint: strings(
+                  'perps.order.validation.please_set_a_limit_price',
+                ),
+              }),
+            }}
             twClassName="pt-3"
           />
 
