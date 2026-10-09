@@ -555,7 +555,7 @@ describe('usePerpsCloseAllCalculations', () => {
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
       expect(result.current.totalFees).toBeCloseTo(47.95);
-      expect(result.current.avgFeeDiscountPercentage).toBeCloseTo(10);
+      expect(result.current.avgFeeDiscountPercentage).toBe(10);
       expect(mockGetPerpsDiscount).not.toHaveBeenCalled();
     });
 
@@ -585,7 +585,7 @@ describe('usePerpsCloseAllCalculations', () => {
       await waitFor(() => expect(result.current.isLoading).toBe(false));
 
       expect(result.current.totalFees).toBeCloseTo(200);
-      expect(result.current.avgFeeDiscountPercentage).toBeCloseTo(65);
+      expect(result.current.avgFeeDiscountPercentage).toBe(65);
     });
 
     it('does not consult Mobile rewards hydration for a default quote', async () => {

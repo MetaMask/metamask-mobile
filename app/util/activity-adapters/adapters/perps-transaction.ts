@@ -277,8 +277,10 @@ export function mapPerpsTransaction({
     }
     // Sign follows the displayed amount: opens show the fee paid (negative),
     // closes show net PnL which can be either sign (liquidations negative).
+    // A close whose venue omitted realized PnL has no quote amount to show.
     const direction: TokenAmount['direction'] = fill.isPositive ? 'in' : 'out';
     const isOpen = kind === 'perpsOpenLong' || kind === 'perpsOpenShort';
+    const quoteAmountKnown = isOpen || fill.pnl !== undefined;
     return {
       type: kind,
       chainId,
@@ -286,7 +288,13 @@ export function mapPerpsTransaction({
       timestamp,
       hash: id,
       data: {
-        token: toToken(fill.amountNumber, direction, quoteAsset),
+        token: quoteAmountKnown
+          ? toToken(fill.amountNumber, direction, quoteAsset)
+          : {
+              symbol: quoteAsset.symbol,
+              assetId: quoteAsset.assetId,
+              direction,
+            },
         // Position leg (e.g. "2.01 ETH") — rows render it as the subtitle.
         sourceToken: {
           amount: fill.size,

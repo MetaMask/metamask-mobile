@@ -353,9 +353,11 @@ export function aggregateFillsByOrderWithIds(
     );
     const latestFill = fillsOldestFirst[fillsOldestFirst.length - 1];
 
-    // Sum sizes, PnLs, and fees
+    // Sum sizes and fees. Realized PnL stays unknown unless every fill reports
+    // one: a missing amount is not zero, so a partial sum would look known.
     let totalSize = BigNumber(0);
     let totalPnl = BigNumber(0);
+    let aggregatedPnlKnown = true;
     let totalFee = BigNumber(0);
     let totalNotional = BigNumber(0); // For VWAP calculation: sum of (size * price)
 
@@ -367,13 +369,17 @@ export function aggregateFillsByOrderWithIds(
     for (const fill of fillsOldestFirst) {
       const size = BigNumber(fill.size);
       const price = BigNumber(fill.price);
-      const pnl = BigNumber(fill.pnl || '0');
       const fee = BigNumber(fill.fee || '0');
 
       totalSize = totalSize.plus(size);
-      totalPnl = totalPnl.plus(pnl);
       totalFee = totalFee.plus(fee);
       totalNotional = totalNotional.plus(size.times(price));
+
+      if (fill.pnl === undefined) {
+        aggregatedPnlKnown = false;
+      } else {
+        totalPnl = totalPnl.plus(fill.pnl);
+      }
 
       // Preserve detailedOrderType from any fill that has it
       if (fill.detailedOrderType && !aggregatedDetailedOrderType) {
@@ -398,7 +404,7 @@ export function aggregateFillsByOrderWithIds(
       side: latestFill.side,
       size: totalSize.toString(),
       price: vwapPrice.toString(),
-      pnl: totalPnl.toString(),
+      ...(aggregatedPnlKnown ? { pnl: totalPnl.toString() } : {}),
       direction: latestFill.direction,
       fee: totalFee.toString(),
       feeToken: latestFill.feeToken,
@@ -623,21 +629,27 @@ export function transformFillsToTransactions(
       displayAmount = `-$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
       isPositive = false; // Fee is always a cost
     } else if (isClosed || isSell || isFlipped || isAutoDeleveraging) {
-      // For closing positions: show PnL minus fee
-      const pnlValue = BigNumber(fill.pnl || 0);
-      const feeValue = BigNumber(fill.fee || 0);
-      amountBN = pnlValue.minus(feeValue);
-      const netPnL = amountBN.toNumber();
-      // For display, show + for positive, - for negative, nothing for 0
-      if (netPnL > 0) {
-        displayAmount = `+$${Math.abs(netPnL).toFixed(2)}`;
-        isPositive = true;
-      } else if (netPnL < 0) {
-        displayAmount = `-$${Math.abs(netPnL).toFixed(2)}`;
-        isPositive = false;
+      if (pnl === undefined) {
+        // The venue omitted realized PnL. Leave the row blank rather than
+        // presenting that omission as a zero result.
+        displayAmount = '';
       } else {
-        displayAmount = `$${Math.abs(netPnL).toFixed(2)}`;
-        isPositive = true; // Treat break-even as positive (green)
+        // For closing positions: show PnL minus fee
+        const pnlValue = BigNumber(pnl);
+        const feeValue = BigNumber(fill.fee || 0);
+        amountBN = pnlValue.minus(feeValue);
+        const netPnL = amountBN.toNumber();
+        // For display, show + for positive, - for negative, nothing for 0
+        if (netPnL > 0) {
+          displayAmount = `+$${Math.abs(netPnL).toFixed(2)}`;
+          isPositive = true;
+        } else if (netPnL < 0) {
+          displayAmount = `-$${Math.abs(netPnL).toFixed(2)}`;
+          isPositive = false;
+        } else {
+          displayAmount = `$${Math.abs(netPnL).toFixed(2)}`;
+          isPositive = true; // Treat break-even as positive (green)
+        }
       }
     } else {
       // Fallback: show order size value

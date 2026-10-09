@@ -56,6 +56,13 @@ describe('transactionTransforms', () => {
       ...overrides,
     });
 
+    const readAggregatedPnl = (fill: OrderFill): number => {
+      if (fill.pnl === undefined) {
+        throw new Error('expected aggregated pnl');
+      }
+      return parseFloat(fill.pnl);
+    };
+
     describe('split stop loss aggregation (bug fix)', () => {
       it('aggregates split stop loss fills into single fill with combined PnL', () => {
         // Simulating the reported bug: stop loss split into two fills
@@ -90,7 +97,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBeCloseTo(0.24213, 5);
-        expect(parseFloat(result[0].pnl)).toBeCloseTo(716, 0);
+        expect(readAggregatedPnl(result[0])).toBeCloseTo(716, 0);
         expect(parseFloat(result[0].fee)).toBeCloseTo(25, 0);
         expect(result[0].detailedOrderType).toBe('Stop Market');
         expect(result[0].direction).toBe('Close Long');
@@ -119,7 +126,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(1.0);
-        expect(parseFloat(result[0].pnl)).toBe(1000);
+        expect(readAggregatedPnl(result[0])).toBe(1000);
         expect(parseFloat(result[0].fee)).toBe(20);
         expect(result[0].detailedOrderType).toBe('Take Profit Market');
       });
@@ -191,7 +198,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(0.2);
-        expect(parseFloat(result[0].pnl)).toBe(200);
+        expect(readAggregatedPnl(result[0])).toBe(200);
       });
     });
 
@@ -284,7 +291,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBeCloseTo(43.23, 2);
-        expect(parseFloat(result[0].pnl)).toBeCloseTo(-9, 2);
+        expect(readAggregatedPnl(result[0])).toBeCloseTo(-9, 2);
         expect(result[0].startPosition).toBe('37.66');
         expect(result[0].direction).toBe('Long > Short');
       });
@@ -488,7 +495,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBeCloseTo(0.4, 5);
-        expect(parseFloat(result[0].pnl)).toBeCloseTo(6, 5);
+        expect(readAggregatedPnl(result[0])).toBeCloseTo(6, 5);
         expect(parseFloat(result[0].fee)).toBeCloseTo(0.06, 5);
         expect(result[0].timestamp).toBe(1754639277416);
       });
@@ -541,7 +548,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(200);
-        expect(parseFloat(result[0].pnl)).toBe(100);
+        expect(readAggregatedPnl(result[0])).toBe(100);
       });
 
       it('aggregates Auto-Deleveraging fills', () => {
@@ -565,7 +572,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(1.0);
-        expect(parseFloat(result[0].pnl)).toBe(-200);
+        expect(readAggregatedPnl(result[0])).toBe(-200);
       });
     });
 
@@ -744,7 +751,48 @@ describe('transactionTransforms', () => {
           throw new Error('Aggregated close fill not found');
         }
         expect(parseFloat(aggregatedClose.size)).toBe(1.0);
-        expect(parseFloat(aggregatedClose.pnl)).toBe(200);
+        expect(readAggregatedPnl(aggregatedClose)).toBe(200);
+      });
+    });
+
+    describe('omitted realized pnl', () => {
+      it('sums pnl when every fill reports one, including zero', () => {
+        const fill1 = createFill({ pnl: '0', size: '1', fee: '1' });
+        const fill2 = createFill({
+          pnl: '0',
+          size: '1',
+          fee: '1',
+          timestamp: 1700000000500,
+        });
+
+        const result = aggregateFillsByOrder([fill1, fill2]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].pnl).toBe('0');
+      });
+
+      it('omits aggregated pnl when any fill omits it', () => {
+        const known = createFill({ pnl: '100', size: '1' });
+        const unknown = createFill({
+          pnl: undefined,
+          size: '1',
+          timestamp: 1700000000500,
+        });
+
+        const result = aggregateFillsByOrder([known, unknown]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].pnl).toBeUndefined();
+        expect(parseFloat(result[0].size)).toBe(2);
+      });
+
+      it('keeps an omitted pnl on a fill that is not aggregated', () => {
+        const fill = createFill({ pnl: undefined });
+
+        const result = aggregateFillsByOrder([fill]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].pnl).toBeUndefined();
       });
     });
   });
@@ -802,6 +850,48 @@ describe('transactionTransforms', () => {
       expect(result[0].fill.amount).toBe('$0.00');
       expect(result[0].fill.amountNumber).toBe(0);
       expect(result[0].fill.isPositive).toBe(true);
+    });
+
+    it('keeps a reported zero pnl on a close', () => {
+      const closeFill = {
+        ...mockFill,
+        direction: 'Close Long',
+        pnl: '0',
+        fee: '0',
+      };
+
+      const result = transformFillsToTransactions([closeFill]);
+
+      expect(result[0].fill?.pnl).toBe('0');
+      expect(result[0].fill?.amount).toBe('$0.00');
+    });
+
+    it('leaves the close amount blank when realized pnl is omitted', () => {
+      const closeFill = {
+        ...mockFill,
+        direction: 'Close Long',
+        pnl: undefined,
+        fee: '5',
+      };
+
+      const result = transformFillsToTransactions([closeFill]);
+
+      expect(result[0].fill?.pnl).toBeUndefined();
+      expect(result[0].fill?.amount).toBe('');
+    });
+
+    it('shows the open fee when realized pnl is omitted', () => {
+      const openFill = {
+        ...mockFill,
+        direction: 'Open Long',
+        pnl: undefined,
+        fee: '10',
+      };
+
+      const result = transformFillsToTransactions([openFill]);
+
+      expect(result[0].fill?.pnl).toBeUndefined();
+      expect(result[0].fill?.amount).toBe('-$10.00');
     });
 
     it('should handle flipped positions correctly', () => {

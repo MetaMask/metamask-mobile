@@ -594,7 +594,7 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.totalFee).toBe(90); // 45 protocol + 45 metamask
       expect(result.current.protocolFee).toBe(45);
       expect(result.current.metamaskFee).toBe(45);
-      expect(result.current.feeDiscountPercentage).toBeCloseTo(55);
+      expect(result.current.feeDiscountPercentage).toBe(55);
       expect(result.current.feeDiscountKind).toBe('generic');
       expect(result.current.estimatedPoints).toBeUndefined();
       expect(result.current.bonusBips).toBeUndefined();
@@ -626,7 +626,7 @@ describe('usePerpsOrderFees', () => {
 
       expect(result.current.totalFee).toBeGreaterThan(0);
       expect(result.current.originalMetamaskFeeRate).toBe(0.001);
-      expect(result.current.feeDiscountPercentage).toBeCloseTo(10);
+      expect(result.current.feeDiscountPercentage).toBe(10);
       expect(
         mockEngineContext.RewardsController.getPerpsDiscountForAccount,
       ).not.toHaveBeenCalled();

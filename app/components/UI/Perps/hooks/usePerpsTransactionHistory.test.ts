@@ -1410,9 +1410,6 @@ describe('usePerpsTransactionHistory', () => {
             feeToken: f.feeToken,
             action: 'Closed',
             liquidation: undefined,
-            isLiquidation: false,
-            isTakeProfit: f.detailedOrderType === 'Take Profit',
-            isStopLoss: f.detailedOrderType === 'Stop Loss',
             fillType:
               f.detailedOrderType === 'Stop Loss'
                 ? FillType.StopLoss

@@ -223,6 +223,46 @@ describe('mapPerpsTransaction', () => {
       expect(result?.type).toBe('perpsCloseLong');
     });
 
+    it('omits the quote amount when a close fill has no realized pnl', () => {
+      const transaction = fillTx('Closed long', FillType.Standard, 0, false);
+      if (!transaction.fill) {
+        throw new Error('expected fill');
+      }
+
+      const result = mapPerpsTransaction({
+        transaction: {
+          ...transaction,
+          fill: { ...transaction.fill, pnl: undefined },
+        },
+        chainId: ARBITRUM,
+      });
+
+      expect(result?.type).toBe('perpsCloseLong');
+      expect(tokenOf(result)?.amount).toBeUndefined();
+    });
+
+    it('keeps the fee amount when an open fill omits realized pnl', () => {
+      const transaction = fillTx(
+        'Opened long',
+        FillType.Standard,
+        43.99,
+        false,
+      );
+      if (!transaction.fill) {
+        throw new Error('expected fill');
+      }
+
+      const result = mapPerpsTransaction({
+        transaction: {
+          ...transaction,
+          fill: { ...transaction.fill, pnl: undefined },
+        },
+        chainId: ARBITRUM,
+      });
+
+      expect(tokenOf(result)?.amount).toBe('43.99');
+    });
+
     it('returns null for unknown fill shortTitle', () => {
       const result = mapPerpsTransaction({
         transaction: fillTx('Whatever', FillType.Standard),
