@@ -16,6 +16,8 @@ import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AccountsMenu from '../../Views/AccountsMenu';
 import AccountHub from '../../Views/AccountHub';
+import ProfileDrawer from '../../Views/SocialProfile/ProfileDrawer/ProfileDrawer';
+import ManageProfile from '../../Views/SocialProfile/ManageProfile/ManageProfile';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
@@ -95,11 +97,7 @@ import TabBarFloating, {
 } from '../../../component-library/components/Navigation/TabBarFloating';
 import { TAB_BAR_FLOATING_HEIGHT } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 import { getTabBarFloatingBottomPadding } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
-import {
-  HEADER_NAV_BAR_AB_KEY,
-  HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
-  HEADER_NAV_BAR_VARIANTS,
-} from '../../Views/Homepage/abTestConfig';
+import { useHomeNavBarConfig } from '../../Views/Homepage/hooks/useHomeNavBarConfig';
 import {
   SOCIAL_V1_AB_KEY,
   SOCIAL_V1_VARIANTS,
@@ -126,6 +124,7 @@ import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalStackOptions,
   slideFromRightNativeOptions,
+  slideFromLeftNativeOptions,
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -601,17 +600,13 @@ const HomeTabs = () => {
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
 
-  const { variant: headerNavBarVariant } = useABTest(
-    HEADER_NAV_BAR_AB_KEY,
-    HEADER_NAV_BAR_VARIANTS,
-    HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
-  );
+  const homeNavBarConfig = useHomeNavBarConfig({ trackExposure: true });
   const { variant: socialV1Variant } = useABTest(
     SOCIAL_V1_AB_KEY,
     SOCIAL_V1_VARIANTS,
     SOCIAL_V1_ASSIGNMENT_OPTIONS,
   );
-  const isFloatingTabBar = headerNavBarVariant.isCompactHeaderEnabled;
+  const isFloatingTabBar = homeNavBarConfig.isRefreshedNavBar;
   const isNativeTabBar = useIsNativeTabBar();
   const safeAreaInsets = useSafeAreaInsets();
   const nativeTabBarInset =
@@ -620,7 +615,8 @@ const HomeTabs = () => {
   const [floatingTabBarHeight, setFloatingTabBarHeight] = useState(0);
   const isSocialTabEnabled = useSelector(selectSocialLeaderboardEnabled);
 
-  const showSocialTab = isFloatingTabBar && isSocialTabEnabled;
+  const showSocialTab =
+    homeNavBarConfig.isSocialTabAllowed && isSocialTabEnabled;
   // Same TSA-1122 destination as the homepage Top Traders carousel: V1 for
   // treatment, legacy V0 for control. Exposure is recorded when the surface
   // itself mounts, not when the tab slot is registered.
@@ -644,7 +640,7 @@ const HomeTabs = () => {
       trackMoneyTabPress,
     });
   const systemSlotTab = useNativeSystemSlotTab(
-    headerNavBarVariant.trailingNavBarAction,
+    homeNavBarConfig.trailingNavBarAction,
   );
 
   // Control only: a modal trigger the bar handles itself.
@@ -696,7 +692,7 @@ const HomeTabs = () => {
           descriptors={descriptors}
           navigation={navigation}
           onHeightChange={setFloatingTabBarHeight}
-          trailingAction={headerNavBarVariant.trailingNavBarAction}
+          trailingAction={homeNavBarConfig.trailingNavBarAction}
         />
       ) : (
         <TabBar
@@ -1020,6 +1016,17 @@ const MainNavigator = () => {
         component={SettingsFlow}
         options={slideFromRightNativeOptions}
       />
+      <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+        <NativeStack.Screen
+          name={Routes.SOCIAL_PROFILE.DRAWER}
+          component={ProfileDrawer}
+          options={slideFromLeftNativeOptions}
+        />
+        <NativeStack.Screen
+          name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE}
+          component={ManageProfile}
+        />
+      </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.ACCOUNT_HUB_VIEW}
         component={AccountHub}

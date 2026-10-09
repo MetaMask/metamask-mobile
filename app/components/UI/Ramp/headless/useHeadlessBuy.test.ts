@@ -441,8 +441,7 @@ describe('useHeadlessBuy', () => {
       });
       const { result } = renderHook(() => useHeadlessBuy());
       const callbacks = buildCallbacks();
-      let started: ReturnType<typeof result.current.startHeadlessBuy> =
-        undefined;
+      let started: ReturnType<typeof result.current.startHeadlessBuy>;
       act(() => {
         started = result.current.startHeadlessBuy(baseStartParams, callbacks);
       });
@@ -462,8 +461,7 @@ describe('useHeadlessBuy', () => {
       });
       const { result } = renderHook(() => useHeadlessBuy());
       const callbacks = buildCallbacks();
-      let started: ReturnType<typeof result.current.startHeadlessBuy> =
-        undefined;
+      let started: ReturnType<typeof result.current.startHeadlessBuy>;
       act(() => {
         started = result.current.startHeadlessBuy(baseStartParams, callbacks);
       });
@@ -492,8 +490,7 @@ describe('useHeadlessBuy', () => {
           throw new Error('consumer onError blew up');
         }),
       };
-      let started: ReturnType<typeof result.current.startHeadlessBuy> =
-        undefined;
+      let started: ReturnType<typeof result.current.startHeadlessBuy>;
       act(() => {
         started = result.current.startHeadlessBuy(baseStartParams, callbacks);
       });

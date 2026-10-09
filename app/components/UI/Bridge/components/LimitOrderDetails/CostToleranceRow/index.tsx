@@ -53,7 +53,7 @@ const CostToleranceRow: React.FC<CostToleranceRowProps> = ({
         >
           <Text
             variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
+            color={TextColor.TextDefault}
             testID={CostToleranceRowSelectorsIDs.VALUE}
           >
             {value}

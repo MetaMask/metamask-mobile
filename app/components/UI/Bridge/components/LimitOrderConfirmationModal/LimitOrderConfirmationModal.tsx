@@ -115,7 +115,7 @@ export const LimitOrderConfirmationModal = ({
             token={destToken}
           />
         </DetailRow>
-        <Box twClassName="mx-4 my-2 h-px bg-muted" />
+        <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
         <DetailRow label={strings('bridge.limit.trigger_condition')}>
           <Box alignItems={BoxAlignItems.End} twClassName="shrink">
             <TokenAmountValue amount={triggerPrice} token={triggerToken} />
@@ -138,7 +138,7 @@ export const LimitOrderConfirmationModal = ({
             {expiry}
           </Text>
         </DetailRow>
-        <Box twClassName="mx-4 my-2 h-px bg-muted" />
+        <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
         <DetailRow
           label={strings('bridge.cost_tolerance')}
           labelAccessory={
@@ -163,7 +163,7 @@ export const LimitOrderConfirmationModal = ({
         {(delegationFee.status === 'ready' ||
           delegationFee.status === 'error') && (
           <>
-            <Box twClassName="mx-4 my-2 h-px bg-muted" />
+            <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
             <DetailRow
               label={strings('bridge.limit.est_network_fee')}
               testID={LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE}
@@ -189,6 +189,7 @@ export const LimitOrderConfirmationModal = ({
           onPress: primaryButton.onPress,
           testID: LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON,
           isLoading: primaryButton.isLoading,
+          isDisabled: primaryButton.isDisabled,
         }}
       />
       <Box

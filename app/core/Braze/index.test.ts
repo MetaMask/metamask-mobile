@@ -201,22 +201,28 @@ describe('Braze service', () => {
   });
 
   describe('dismissBrazeBanner', () => {
-    it('logs the dismissed event with the supplied properties', () => {
-      dismissBrazeBanner({ banner_id: 'campaign-xyz', placement_id: 'home' });
+    it('calls Braze.dismissBanner with the placement ID', () => {
+      dismissBrazeBanner('placement-1', { campaign_name: 'campaign-abc' });
+
+      expect(Braze.dismissBanner).toHaveBeenCalledWith('placement-1');
+    });
+
+    it('logs a custom dismissed event with the supplied properties', () => {
+      dismissBrazeBanner('placement-1', { campaign_name: 'campaign-abc' });
 
       expect(Braze.logCustomEvent).toHaveBeenCalledWith(
         BANNER_EVENT_DISMISSED,
-        {
-          banner_id: 'campaign-xyz',
-          placement_id: 'home',
-        },
+        { campaign_name: 'campaign-abc' },
       );
+      expect(Braze.requestImmediateDataFlush).toHaveBeenCalled();
     });
 
-    it('requests an immediate data flush after logging the event', () => {
-      dismissBrazeBanner({ banner_id: 'campaign-xyz' });
+    it('skips the custom dismissed event when properties is null', () => {
+      dismissBrazeBanner('placement-1', null);
 
-      expect(Braze.requestImmediateDataFlush).toHaveBeenCalledTimes(1);
+      expect(Braze.dismissBanner).toHaveBeenCalledWith('placement-1');
+      expect(Braze.logCustomEvent).not.toHaveBeenCalled();
+      expect(Braze.requestImmediateDataFlush).not.toHaveBeenCalled();
     });
   });
 });

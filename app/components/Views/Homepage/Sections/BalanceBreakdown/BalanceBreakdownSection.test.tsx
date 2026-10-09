@@ -22,32 +22,24 @@ describe('BalanceBreakdownSection', () => {
     jest.clearAllMocks();
   });
 
-  it.each(['icons', 'allocation'] as const)(
-    'renders the %s treatment with section-local spacing',
-    (layout) => {
-      const children = <></>;
-      const { getByTestId } = render(
-        <BalanceBreakdownSection
-          accountGroupBalanceProps={{}}
-          hideRows
-          layout={layout}
-        >
-          {children}
-        </BalanceBreakdownSection>,
-      );
+  it('renders the balance breakdown with section-local spacing', () => {
+    const children = <></>;
+    const { getByTestId } = render(
+      <BalanceBreakdownSection accountGroupBalanceProps={{}} hideRows>
+        {children}
+      </BalanceBreakdownSection>,
+    );
 
-      expect(getByTestId(BALANCE_BREAKDOWN_SECTION_TEST_ID)).toHaveStyle({
-        paddingBottom: 4,
-      });
-      expect(getByTestId('homepage-balance-breakdown-mock')).toBeOnTheScreen();
-      expect(mockHomepageBalanceBreakdown).toHaveBeenCalledWith(
-        expect.objectContaining({
-          accountGroupBalanceProps: {},
-          children,
-          hideRows: true,
-          layout,
-        }),
-      );
-    },
-  );
+    expect(getByTestId(BALANCE_BREAKDOWN_SECTION_TEST_ID)).toHaveStyle({
+      paddingBottom: 4,
+    });
+    expect(getByTestId('homepage-balance-breakdown-mock')).toBeOnTheScreen();
+    expect(mockHomepageBalanceBreakdown).toHaveBeenCalledWith(
+      expect.objectContaining({
+        accountGroupBalanceProps: {},
+        children,
+        hideRows: true,
+      }),
+    );
+  });
 });
