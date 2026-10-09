@@ -567,7 +567,7 @@ describe('getTransactionControllerHooks', () => {
     });
 
     const hooks = getTransactionControllerHooks(buildRequest());
-    await hooks.publish?.(MOCK_TRANSACTION_META);
+    await publish(hooks, MOCK_TRANSACTION_META);
 
     expect(store.dispatch).toHaveBeenCalledTimes(1);
     expect(updateConfirmationMetric).toHaveBeenCalledWith({
