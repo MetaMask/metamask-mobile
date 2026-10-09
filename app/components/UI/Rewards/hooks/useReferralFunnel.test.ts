@@ -57,7 +57,7 @@ describe('useReferralFunnel', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       setReferralFunnelLoading({ profileId: PROFILE_A, loading: true }),
     );
-    expect(mockDispatch).toHaveBeenCalledWith(
+    expect(mockDispatch).not.toHaveBeenCalledWith(
       setReferralFunnelError({ profileId: PROFILE_A, error: false }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
@@ -89,6 +89,9 @@ describe('useReferralFunnel', () => {
     renderHook(() => useReferralFunnel(PROFILE_A));
     await flushPromises();
 
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      setReferralFunnelError({ profileId: PROFILE_A, error: false }),
+    );
     expect(mockDispatch).toHaveBeenCalledWith(
       setReferralFunnelError({ profileId: PROFILE_A, error: true }),
     );

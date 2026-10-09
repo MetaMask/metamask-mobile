@@ -30,8 +30,10 @@ export const useReferralFunnel = (
       }
       isLoadingRef.current = true;
 
+      // Leave a previous error set while this request is in flight. The
+      // Performance banner reads that flag, and clearing it here unmounts the
+      // banner for the whole retry. A success clears it with the new funnel.
       dispatch(setReferralFunnelLoading({ profileId, loading: true }));
-      dispatch(setReferralFunnelError({ profileId, error: false }));
 
       try {
         const funnel: ReferralFunnelDto = await Engine.controllerMessenger.call(
