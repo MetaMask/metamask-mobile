@@ -54,6 +54,7 @@ const SETTINGS_TYPE_BY_SECTION: Record<NotificationPreferenceSection, string> =
     socialAI: 'social_ai',
     marketing: 'marketing',
     priceAlerts: 'price_alerts',
+    limitOrders: 'limit_orders',
   };
 
 const WalletActivitySectionContent = ({
@@ -224,6 +225,7 @@ const SECTION_DEFINITIONS: Record<
   perps: { layout: 'scroll' },
   agenticCli: { layout: 'scroll' },
   priceAlerts: { layout: 'scroll' },
+  limitOrders: { layout: 'scroll' },
 };
 
 export interface NotificationSettingsSectionContentProps {

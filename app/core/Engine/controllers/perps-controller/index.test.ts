@@ -236,6 +236,10 @@ function buildSeedPrefs(
       inAppNotificationsEnabled: false,
       pushNotificationsEnabled: false,
     },
+    limitOrders: {
+      inAppNotificationsEnabled: false,
+      pushNotificationsEnabled: false,
+    },
     socialAI: {
       inAppNotificationsEnabled: false,
       pushNotificationsEnabled: false,

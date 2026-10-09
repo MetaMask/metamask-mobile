@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import { useQueryClient } from '@tanstack/react-query';
-import type {
-  AuthenticatedUserStorageServiceGetNotificationPreferencesAction,
-  NotificationPreferences as NotificationPreferencesType,
+import {
+  type AuthenticatedUserStorageServiceGetNotificationPreferencesAction,
+  type NotificationPreferences as NotificationPreferencesType,
 } from '@metamask/authenticated-user-storage';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';

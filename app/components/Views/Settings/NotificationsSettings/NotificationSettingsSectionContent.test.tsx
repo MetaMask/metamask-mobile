@@ -88,6 +88,10 @@ const arrangePreferences = ({
             pushNotificationsEnabled: true,
             inAppNotificationsEnabled: true,
           },
+          limitOrders: {
+            pushNotificationsEnabled: true,
+            inAppNotificationsEnabled: true,
+          },
         }
       : undefined,
     hasNotificationPreferences: hasPreferences,
@@ -313,6 +317,50 @@ describe('NotificationSettingsSectionContent', () => {
       )
         .addProperties({
           settings_type: 'price_alerts',
+          notification_channel: NotificationChannel.IN_APP,
+          enabled: false,
+        })
+        .build(),
+    );
+  });
+
+  it('persists both limit order channels using the default settings UI', async () => {
+    renderContent({ type: 'limitOrders', title: 'Limit orders' });
+
+    await act(async () => {
+      fireEvent(screen.getByTestId(PUSH_TOGGLE), 'onValueChange', false);
+      fireEvent(screen.getByTestId(IN_APP_TOGGLE), 'onValueChange', false);
+    });
+
+    expect(mockUpdateSectionChannel).toHaveBeenNthCalledWith(
+      1,
+      'limitOrders',
+      'pushNotificationsEnabled',
+      false,
+    );
+    expect(mockUpdateSectionChannel).toHaveBeenNthCalledWith(
+      2,
+      'limitOrders',
+      'inAppNotificationsEnabled',
+      false,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED,
+      )
+        .addProperties({
+          settings_type: 'limit_orders',
+          notification_channel: NotificationChannel.PUSH,
+          enabled: false,
+        })
+        .build(),
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED,
+      )
+        .addProperties({
+          settings_type: 'limit_orders',
           notification_channel: NotificationChannel.IN_APP,
           enabled: false,
         })

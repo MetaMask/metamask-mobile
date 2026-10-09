@@ -22,6 +22,13 @@ describe('resolveNotificationSettingsSection', () => {
     expect(result?.slug).toBe(NotificationSettingsSectionSlug.PriceAlerts);
   });
 
+  it('returns the limit orders section for the kebab-case slug', () => {
+    const result = resolveNotificationSettingsSection('limit-orders');
+
+    expect(result?.type).toBe('limitOrders');
+    expect(result?.iconName).toBe(IconName.Notification);
+  });
+
   it('trims and lowercases the section value', () => {
     const result = resolveNotificationSettingsSection('  Social-AI  ');
 

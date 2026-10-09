@@ -56,6 +56,10 @@ const mockPreferences = {
     pushNotificationsEnabled: true,
     inAppNotificationsEnabled: true,
   },
+  limitOrders: {
+    pushNotificationsEnabled: true,
+    inAppNotificationsEnabled: true,
+  },
 };
 
 jest.mock('../../../../selectors/notifications', () => ({

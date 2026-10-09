@@ -74,6 +74,10 @@ const buildPreferences = (
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
   },
+  limitOrders: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
   socialAI: {
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,

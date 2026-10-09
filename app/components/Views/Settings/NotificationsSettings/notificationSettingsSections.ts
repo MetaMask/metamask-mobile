@@ -14,6 +14,7 @@ export const NotificationSettingsSectionSlug = {
   AgenticCli: 'agentic-cli',
   Marketing: 'marketing',
   PriceAlerts: 'price-alerts',
+  LimitOrders: 'limit-orders',
 } as const;
 
 export type NotificationSettingsSectionSlug =
@@ -84,6 +85,14 @@ export const NOTIFICATION_SETTINGS_SECTIONS: NotificationSettingsSectionConfig[]
       type: 'priceAlerts',
       titleKey: 'app_settings.notifications_opts.price_alerts_title',
       descriptionKey: 'app_settings.notifications_opts.price_alerts_desc',
+      iconName: IconName.Notification,
+      showStatus: true,
+    },
+    {
+      slug: NotificationSettingsSectionSlug.LimitOrders,
+      type: 'limitOrders',
+      titleKey: 'app_settings.notifications_opts.limit_orders_title',
+      descriptionKey: 'app_settings.notifications_opts.limit_orders_desc',
       iconName: IconName.Notification,
       showStatus: true,
     },

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -40,7 +41,6 @@ import {
   BoxAlignItems,
   IconSize,
 } from '@metamask/design-system-react-native';
-import { NotificationPreferences } from '@metamask/authenticated-user-storage';
 
 interface NotificationRowProps {
   title: string;

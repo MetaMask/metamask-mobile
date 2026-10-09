@@ -14,6 +14,16 @@
       "./app/*/index.js"
     ]
   },
+  "previewBuilds": {
+    "@metamask/authenticated-user-storage": {
+      "type": "breaking",
+      "previewVersion": "4.1.0-preview-1a7a6d6d6"
+    },
+    "@metamask/notification-services-controller": {
+      "type": "breaking",
+      "previewVersion": "29.0.3-preview-1a7a6d6d6"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/MetaMask/metamask-mobile.git"
@@ -192,6 +202,7 @@
     ]
   },
   "resolutions": {
+    "@metamask/authenticated-user-storage@npm:^4.1.0": "npm:@metamask-previews/authenticated-user-storage@4.1.0-preview-1a7a6d6d6",
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
     "@metamask/network-controller": "36.0.0",

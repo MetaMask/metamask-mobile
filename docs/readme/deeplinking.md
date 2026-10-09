@@ -267,6 +267,7 @@ set:
 https://link.metamask.io/notifications-settings
 https://link.metamask.io/notifications-settings?section=wallet-activity
 https://link.metamask.io/notifications-settings?section=price-alerts
+https://link.metamask.io/notifications-settings?section=limit-orders
 ```
 
 Contract:
@@ -274,8 +275,8 @@ Contract:
 - `section` is optional. A missing, empty, or unknown value opens the main
   notification settings page.
 - Supported `section` values: `wallet-activity`, `perps`, `social-ai`,
-  `agentic-cli`, `marketing`, `price-alerts`. CamelCase type names
-  (`walletActivity`, `priceAlerts`) are accepted as aliases.
+  `agentic-cli`, `marketing`, `price-alerts`, `limit-orders`. CamelCase type names
+  (`walletActivity`, `priceAlerts`, `limitOrders`) are accepted as aliases.
 - If notifications are turned off, the main settings page is shown so the user
   can enable them. After enabling, a still-pending valid `section` opens that
   preference screen.
@@ -988,7 +989,7 @@ The `deposit` / `metamask://deposit` deeplink is **deprecated** and no longer op
 | `rewards`                | Rewards program             | `handleRewardsUrl`               | Params: `referral` (referral code)                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `trending`               | Explore / Trending          | `handleTrendingUrl`              | Params: `tab=now\|macro\|rwas\|crypto\|sports\|sites`, `screen=stocks\|trending-tokens\|sites\|favorite-sites\|search`, `q`/`query` (prefills search when `screen=search`), `chainId` (CAIP, e.g. `eip155:4663`; chain-filters the trending tokens list when `screen=trending-tokens`; invalid values are dropped), `timeframe=5m\|1h\|6h\|24h` (preselects the trending tokens time filter) (unknown values fall back to Explore) |
 | `privacy`                | Security & Privacy settings | `handlePrivacyUrl`               | Params: `setting=metametrics\|data-collection` (scrolls to that section; unknown values fall back to `metametrics`)                                                                                                                                                                                                                                                                                                                |
-| `notifications-settings` | Notification settings       | `handleNotificationsSettingsUrl` | Params: `section=wallet-activity\|perps\|social-ai\|agentic-cli\|marketing\|price-alerts` (opens that preference section; unknown or missing values land on the main notification settings page)                                                                                                                                                                                                                                   |
+| `notifications-settings` | Notification settings       | `handleNotificationsSettingsUrl` | Params: `section=wallet-activity\|perps\|social-ai\|agentic-cli\|marketing\|price-alerts\|limit-orders` (opens that preference section; unknown or missing values land on the main notification settings page)                                                                                                                                                                                                                     |
 | `wc`                     | WalletConnect               | Recursive `parse()` call         |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `onboarding`             | Fast onboarding             | `handleFastOnboarding`           |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `enable-card-button`     | Enable card feature         | `handleEnableCardButton`         |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
