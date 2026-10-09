@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import NavigationService from '../../../../../core/NavigationService';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Image, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
@@ -29,14 +29,11 @@ import {
   PERPS_GTM_WHATS_NEW_MODAL,
 } from '../../constants/perpsConfig';
 import {
+  FontFamily,
   FontWeight,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  createFontScaleHandler,
-  hasNonLatinCharacters,
-} from '../../utils/textUtils';
 
 const PerpsGTMModal = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -44,37 +41,7 @@ const PerpsGTMModal = () => {
   const theme = useTheme();
 
   const isDarkMode = useColorScheme() === 'dark';
-  const [titleFontSize, setTitleFontSize] = useState<number | null>(null);
-  const [subtitleFontSize, setSubtitleFontSize] = useState<number | null>(null);
-
-  const titleText = strings('perps.gtm_content.title');
-  const subtitleText = strings('perps.gtm_content.title_description');
-  const useSystemFont =
-    hasNonLatinCharacters(titleText) || hasNonLatinCharacters(subtitleText);
-
-  const styles = createStyles(
-    theme,
-    isDarkMode,
-    titleFontSize,
-    subtitleFontSize,
-    useSystemFont,
-  );
-
-  const handleTitleLayout = createFontScaleHandler({
-    maxHeight: useSystemFont ? 100 : 120, // System fonts typically render taller
-    currentFontSize: styles.title.fontSize,
-    setter: setTitleFontSize,
-    minFontSize: useSystemFont ? 28 : 32, // Slightly smaller min for system fonts
-    currentValue: titleFontSize,
-  });
-
-  const handleSubtitleLayout = createFontScaleHandler({
-    maxHeight: useSystemFont ? 70 : 80, // System fonts typically render taller
-    currentFontSize: styles.titleDescription.fontSize,
-    setter: setSubtitleFontSize,
-    minFontSize: useSystemFont ? 12 : 14, // Slightly smaller min for system fonts
-    currentValue: subtitleFontSize,
-  });
+  const styles = createStyles(theme, isDarkMode);
 
   const handleClose = async () => {
     await StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true');
@@ -120,18 +87,18 @@ const PerpsGTMModal = () => {
       {/* Header Section */}
       <View style={styles.headerContainer}>
         <Text
-          style={styles.title}
-          variant={TextVariant.HeadingLg}
-          onLayout={handleTitleLayout}
+          variant={TextVariant.DisplayMd}
+          fontFamily={FontFamily.Hero}
+          fontWeight={FontWeight.Regular}
+          twClassName="text-center pt-3"
         >
-          {titleText}
+          {strings('perps.gtm_content.title')}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
-          style={styles.titleDescription}
-          onLayout={handleSubtitleLayout}
+          twClassName="text-center pt-2 px-2"
         >
-          {subtitleText}
+          {strings('perps.gtm_content.title_description')}
         </Text>
       </View>
 
@@ -171,7 +138,6 @@ const PerpsGTMModal = () => {
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
-              style={styles.notNowButtonText}
             >
               {strings('perps.gtm_content.not_now')}
             </Text>

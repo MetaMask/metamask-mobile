@@ -23,7 +23,6 @@ const conservativeScale = Math.min(scale, 1.2); // Cap scaling at 120%
 
 // Platform-aware responsive scaling functions
 const scaleSize = (size: number) => Math.ceil(size * conservativeScale);
-const scaleFont = (size: number) => Math.ceil(size * conservativeScale);
 
 // For vertical spacing, use percentage of available height instead of pure scaling
 const scaleVertical = (size: number) => {
@@ -34,13 +33,7 @@ const scaleVertical = (size: number) => {
 
 const scaleHorizontal = (size: number) => Math.ceil(size * widthScale);
 
-const createStyles = (
-  theme: Theme,
-  isDarkMode: boolean,
-  titleFontSize?: number | null,
-  subtitleFontSize?: number | null,
-  useSystemFont?: boolean,
-) =>
+const createStyles = (theme: Theme, isDarkMode: boolean) =>
   StyleSheet.create({
     pageContainer: {
       flex: 1,
@@ -67,37 +60,6 @@ const createStyles = (
       minWidth: '80%',
       minHeight: '80%',
     },
-    title: {
-      fontSize: titleFontSize || scaleFont(useSystemFont ? 44 : 47), // Slightly smaller base for system fonts
-      lineHeight: titleFontSize
-        ? titleFontSize + 1
-        : scaleFont(useSystemFont ? 46 : 48),
-      textAlign: 'center',
-      paddingTop: scaleVertical(12),
-      fontFamily: useSystemFont
-        ? Platform.OS === 'ios'
-          ? 'System'
-          : 'Roboto'
-        : 'MMPoly-Regular',
-      fontWeight: useSystemFont
-        ? '700'
-        : Platform.OS === 'ios'
-          ? '900'
-          : 'normal',
-    },
-    titleDescription: {
-      paddingTop: scaleVertical(10),
-      paddingHorizontal: scaleHorizontal(8),
-      textAlign: 'center',
-      fontSize: subtitleFontSize || scaleFont(16),
-      lineHeight: subtitleFontSize ? subtitleFontSize + 4 : scaleFont(20),
-      fontFamily: useSystemFont
-        ? Platform.OS === 'ios'
-          ? 'System'
-          : 'Roboto'
-        : 'Inter-Regular',
-      fontWeight: '400',
-    },
     footerContainer: {
       display: 'flex',
       rowGap: scaleVertical(8),
@@ -112,18 +74,12 @@ const createStyles = (
     },
     tryNowButtonText: {
       color: isDarkMode ? importedColors.btnBlack : importedColors.white,
-      fontWeight: '600',
-      fontSize: scaleFont(16),
     },
     notNowButton: {
       borderRadius: scaleSize(12),
       backgroundColor: theme.colors.background.default,
       borderWidth: 1,
       borderColor: importedColors.transparent,
-    },
-    notNowButtonText: {
-      fontWeight: '500',
-      fontSize: scaleFont(16),
     },
   });
 

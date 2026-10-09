@@ -1,6 +1,5 @@
 /* eslint-disable @metamask/design-tokens/color-no-hex */
 import { Platform, StyleSheet } from 'react-native';
-import { Theme } from '@metamask/design-tokens';
 
 export const GRADIENT_COLORS = ['#1D002E', '#360853'];
 
@@ -43,7 +42,7 @@ const createScalingFunctions = (dimensions: WindowDimensions) => {
   };
 };
 
-const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
+const createStyles = (dimensions: WindowDimensions) => {
   const { screenWidth, screenHeight, scaleVertical, scaleHorizontal } =
     createScalingFunctions(dimensions);
 
@@ -82,29 +81,6 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
     },
     hiddenText: {
       opacity: 0,
-    },
-    title: {
-      fontFamily: 'MMPoly-Regular',
-      fontWeight: '400',
-      // make it smaller on smaller screens
-      fontSize: isSmallScreen ? 40 : 45,
-      lineHeight: isSmallScreen ? 40 : 45, // 100% of font size
-      letterSpacing: 0,
-      textAlign: 'center',
-      paddingTop: scaleVertical(isSmallScreen ? 8 : 12),
-      color: theme.colors.accent02.light,
-    },
-    titleDescription: {
-      // make it smaller on smaller screens
-      fontSize: isSmallScreen ? 14 : 16,
-      paddingTop: scaleVertical(10),
-      paddingHorizontal: scaleHorizontal(8),
-      textAlign: 'center',
-      fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto', // Default system font
-      fontWeight: '500',
-      lineHeight: 24, // Line Height BodyMd
-      letterSpacing: 0,
-      color: theme.colors.accent02.light,
     },
     imageContainer: {
       position: 'absolute',

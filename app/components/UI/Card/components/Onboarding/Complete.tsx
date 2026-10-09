@@ -129,9 +129,10 @@ const Complete = () => {
         />
       </Box>
       <Text
-        fontFamily={FontFamily.Accent}
+        variant={TextVariant.DisplayMd}
+        fontFamily={FontFamily.Hero}
         fontWeight={FontWeight.Regular}
-        twClassName="text-[36px] text-center leading-1"
+        twClassName="text-center"
       >
         {strings('card.card_onboarding.complete.title')}
       </Text>

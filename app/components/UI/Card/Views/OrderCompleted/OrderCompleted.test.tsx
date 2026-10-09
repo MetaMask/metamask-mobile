@@ -76,22 +76,18 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('@metamask/design-system-react-native', () => {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
-  const { View, Text: RNText } = jest.requireActual('react-native');
-
-  const { TouchableOpacity } = jest.requireActual('react-native');
+  const { View, Text: RNText, TouchableOpacity } =
+    jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
 
   return {
+    ...actual,
     HeaderStandard: () => null,
     Box: ({
       children,
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(View, props, children),
-    Text: ({
-      children,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) =>
-      React.createElement(RNText, props, children),
     Button: ({
       children,
       onPress,
@@ -105,23 +101,6 @@ jest.mock('@metamask/design-system-react-native', () => {
         { onPress, disabled: disabled || isDisabled, ...props },
         React.createElement(RNText, {}, children || label),
       ),
-    TextVariant: {
-      HeadingLg: 'HeadingLg',
-      BodyMd: 'BodyMd',
-    },
-    FontWeight: {
-      Regular: 'Regular',
-    },
-    ButtonVariant: {
-      Primary: 'Primary',
-      Secondary: 'Secondary',
-      Link: 'Link',
-    },
-    ButtonSize: {
-      Sm: 'Sm',
-      Md: 'Md',
-      Lg: 'Lg',
-    },
   };
 });
 

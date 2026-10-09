@@ -8,6 +8,7 @@ import {
   Box,
   Text,
   TextVariant,
+  FontFamily,
   FontWeight,
   Button,
   ButtonVariant,
@@ -99,22 +100,16 @@ const OrderCompleted: React.FC = () => {
           />
 
           <Text
-            style={tw.style('text-center mt-6', {
-              fontFamily: 'MMPoly-Regular',
-              fontWeight: '400',
-              fontSize: 24,
-              lineHeight: 36,
-              letterSpacing: 0,
-            })}
-            twClassName="text-default"
-            variant={TextVariant.HeadingLg}
+            variant={TextVariant.DisplayMd}
+            fontFamily={FontFamily.Hero}
+            fontWeight={FontWeight.Regular}
+            twClassName="text-default text-center mt-6"
             testID={OrderCompletedSelectors.TITLE}
           >
             {strings('card.order_completed.title')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Regular}
             twClassName="text-alternative text-center mt-3"
             testID={OrderCompletedSelectors.SUBTITLE}
           >
@@ -122,7 +117,6 @@ const OrderCompleted: React.FC = () => {
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Regular}
             twClassName="text-alternative text-center mt-2 px-4"
             testID={OrderCompletedSelectors.DESCRIPTION}
           >

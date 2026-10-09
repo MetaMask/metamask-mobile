@@ -58,173 +58,6 @@ jest.mock('../../util/cardTokenVault', () => ({
   getCardBaanxToken: jest.fn(),
 }));
 
-// Mock OnboardingStep component
-jest.mock('./OnboardingStep', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-
-  return ({
-    title,
-    description,
-    formFields,
-    actions,
-  }: {
-    title: string;
-    description: string;
-    formFields: React.ReactNode;
-    actions: React.ReactNode;
-  }) =>
-    React.createElement(
-      View,
-      { testID: 'onboarding-step' },
-      React.createElement(Text, { testID: 'onboarding-step-title' }, title),
-      React.createElement(
-        Text,
-        { testID: 'onboarding-step-description' },
-        description,
-      ),
-      React.createElement(
-        View,
-        { testID: 'onboarding-step-form-fields' },
-        formFields,
-      ),
-      React.createElement(View, { testID: 'onboarding-step-actions' }, actions),
-    );
-});
-
-// Mock design system components
-jest.mock('@metamask/design-system-react-native', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-
-  return {
-    Box: ({
-      children,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) =>
-      React.createElement(View, props, children),
-    Text: ({
-      children,
-      testID,
-      ...props
-    }: React.PropsWithChildren<
-      { testID?: string } & Record<string, unknown>
-    >) => React.createElement(Text, { testID, ...props }, children),
-    TextVariant: {
-      BodyMd: 'BodyMd',
-      DisplayLg: 'DisplayLg',
-    },
-    FontFamily: {
-      Accent: 'accent',
-      Default: 'default',
-      Hero: 'hero',
-    },
-    FontWeight: {
-      Regular: '400',
-      Medium: '500',
-      Bold: '700',
-    },
-    Button: ({
-      children,
-      testID,
-      onPress,
-      isDisabled,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) => {
-      const { TouchableOpacity } = jest.requireActual('react-native');
-      return React.createElement(
-        TouchableOpacity,
-        { testID, onPress, disabled: isDisabled, ...props },
-        React.createElement(Text, {}, children),
-      );
-    },
-    ButtonVariant: {
-      Primary: 'Primary',
-      Secondary: 'Secondary',
-      Link: 'Link',
-    },
-    ButtonSize: {
-      Sm: 'Sm',
-      Md: 'Md',
-      Lg: 'Lg',
-    },
-  };
-});
-
-// Mock useTailwind hook
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn(() => ({})),
-  }),
-}));
-
-// Mock Button component
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-
-  const ButtonVariants = {
-    Primary: 'primary',
-    Secondary: 'secondary',
-  };
-
-  const ButtonSize = {
-    Sm: 'sm',
-    Md: 'md',
-    Lg: 'lg',
-  };
-
-  const ButtonWidthTypes = {
-    Full: 'full',
-    Auto: 'auto',
-  };
-
-  // Mock Button component to match the actual component structure
-  const Button = ({
-    label,
-    onPress,
-    variant,
-    size,
-    width,
-    disabled,
-    testID,
-    ...props
-  }: {
-    label: string;
-    onPress?: () => void;
-    variant?: string;
-    size?: string;
-    width?: string;
-    disabled?: boolean;
-    testID?: string;
-  }) =>
-    React.createElement(
-      TouchableOpacity,
-      {
-        testID: testID || 'button',
-        onPress: disabled ? undefined : onPress,
-        disabled,
-        ...props,
-      },
-      React.createElement(Text, { testID: 'button-label' }, label),
-    );
-
-  Button.ButtonVariants = ButtonVariants;
-  Button.ButtonSize = ButtonSize;
-  Button.ButtonWidthTypes = ButtonWidthTypes;
-
-  return {
-    __esModule: true,
-    default: Button,
-    ButtonVariants,
-    ButtonSize,
-    ButtonWidthTypes,
-  };
-});
-
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -249,6 +82,7 @@ describe('Complete Component', () => {
 
     (useNavigation as jest.Mock).mockReturnValue({
       dispatch: mockNavigationDispatch,
+      goBack: jest.fn(),
     });
 
     // Default: no route params
@@ -305,33 +139,24 @@ describe('Complete Component', () => {
     it('renders the Complete component', () => {
       const { getByTestId } = render(<Complete />);
 
-      expect(getByTestId('onboarding-step')).toBeTruthy();
+      expect(getByTestId('onboarding-step-form')).toBeTruthy();
+      expect(getByTestId('complete-confirm-button')).toBeTruthy();
     });
 
     it('renders with empty title and description props to OnboardingStep', () => {
-      const { getByTestId } = render(<Complete />);
+      const { getByTestId, queryByTestId } = render(<Complete />);
 
-      // OnboardingStep receives empty strings for title and description
-      // as they are now rendered inside formFields
-      const title = getByTestId('onboarding-step-title');
-      expect(title).toBeTruthy();
-      expect(title.props.children).toBe('');
-
-      const description = getByTestId('onboarding-step-description');
-      expect(description).toBeTruthy();
-      expect(description.props.children).toBe('');
+      expect(getByTestId('onboarding-step-title')).toHaveTextContent('');
+      expect(queryByTestId('onboarding-step-description')).toBeNull();
     });
 
     it('renders OnboardingStep with correct structure', () => {
-      const { getByTestId } = render(<Complete />);
+      const { getByTestId, getByText } = render(<Complete />);
 
-      const formFields = getByTestId('onboarding-step-form-fields');
-      expect(formFields).toBeTruthy();
-      // formFields now contains the image, title, and description
-      expect(formFields.props.children).not.toBeNull();
-
-      const actions = getByTestId('onboarding-step-actions');
-      expect(actions).toBeTruthy();
+      expect(getByTestId('onboarding-step-form')).toBeTruthy();
+      expect(getByText('Complete')).toBeTruthy();
+      expect(getByText('Your card setup is complete!')).toBeTruthy();
+      expect(getByTestId('onboarding-step-actions')).toBeTruthy();
     });
   });
 
@@ -415,7 +240,7 @@ describe('Complete Component', () => {
     it('uses navigation hook', () => {
       render(<Complete />);
 
-      expect(useNavigation).toHaveBeenCalledTimes(1);
+      expect(useNavigation).toHaveBeenCalled();
     });
 
     it('dispatches replace action to correct route on continue', async () => {
@@ -437,41 +262,23 @@ describe('Complete Component', () => {
 
   describe('OnboardingStep Integration', () => {
     it('passes correct props to OnboardingStep', () => {
-      const { getByTestId } = render(<Complete />);
+      const { getByTestId, queryByTestId, getByText } = render(<Complete />);
 
-      const onboardingStep = getByTestId('onboarding-step');
-      expect(onboardingStep).toBeTruthy();
-
-      // Verify title and description are empty strings (content is in formFields)
-      const title = getByTestId('onboarding-step-title');
-      expect(title.props.children).toBe('');
-
-      const description = getByTestId('onboarding-step-description');
-      expect(description.props.children).toBe('');
-
-      // Verify form fields contain content (image, title, and description)
-      const formFields = getByTestId('onboarding-step-form-fields');
-      expect(formFields.props.children).not.toBeNull();
-
-      // Verify actions are passed
-      const actions = getByTestId('onboarding-step-actions');
-      expect(actions).toBeTruthy();
+      expect(getByTestId('onboarding-step-title')).toHaveTextContent('');
+      expect(queryByTestId('onboarding-step-description')).toBeNull();
+      expect(getByTestId('onboarding-step-form')).toBeTruthy();
+      expect(getByText('Complete')).toBeTruthy();
+      expect(getByText('Your card setup is complete!')).toBeTruthy();
+      expect(getByTestId('onboarding-step-actions')).toBeTruthy();
     });
 
     it('renders correct OnboardingStep structure', () => {
-      const { getByTestId } = render(<Complete />);
+      const { getByTestId, queryByTestId } = render(<Complete />);
 
-      const onboardingStep = getByTestId('onboarding-step');
-      const title = getByTestId('onboarding-step-title');
-      const description = getByTestId('onboarding-step-description');
-      const formFields = getByTestId('onboarding-step-form-fields');
-      const actions = getByTestId('onboarding-step-actions');
-
-      expect(onboardingStep).toBeTruthy();
-      expect(title).toBeTruthy();
-      expect(description).toBeTruthy();
-      expect(formFields).toBeTruthy();
-      expect(actions).toBeTruthy();
+      expect(getByTestId('onboarding-step-title')).toBeTruthy();
+      expect(queryByTestId('onboarding-step-description')).toBeNull();
+      expect(getByTestId('onboarding-step-form')).toBeTruthy();
+      expect(getByTestId('onboarding-step-actions')).toBeTruthy();
     });
   });
 
@@ -495,17 +302,13 @@ describe('Complete Component', () => {
     it('renders empty OnboardingStep title prop', () => {
       const { getByTestId } = render(<Complete />);
 
-      // Title is now rendered in formFields, not passed to OnboardingStep
-      const title = getByTestId('onboarding-step-title');
-      expect(title.props.children).toBe('');
+      expect(getByTestId('onboarding-step-title')).toHaveTextContent('');
     });
 
     it('renders empty OnboardingStep description prop', () => {
-      const { getByTestId } = render(<Complete />);
+      const { queryByTestId } = render(<Complete />);
 
-      // Description is now rendered in formFields, not passed to OnboardingStep
-      const description = getByTestId('onboarding-step-description');
-      expect(description.props.children).toBe('');
+      expect(queryByTestId('onboarding-step-description')).toBeNull();
     });
 
     it('renders translated button label', () => {
