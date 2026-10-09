@@ -208,6 +208,7 @@ const profile: UseMyProfileResult['profile'] = {
   handle: 'giga-whale.metamask',
   bio: 'Trading in the open. Copy my moves or fade them — either way we learn.',
   imageUrl: null,
+  avatarPresetId: 'fox-emoji',
   rankingTag: 'whale',
   xHandle: 'giga-whale',
   followerCount: 4,
@@ -287,13 +288,21 @@ describe('MyProfileView', () => {
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY),
-    ).toHaveTextContent('Giga Whale');
+    ).toHaveTextContent(/Giga Whale/);
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_WIN_RATE),
     ).toHaveTextContent('*60%');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_PNL),
     ).toHaveTextContent('*+$7,100');
+  });
+
+  it('renders the owner avatar preset in the compact header', () => {
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_AVATAR),
+    ).toHaveTextContent('🦊');
   });
 
   it('keeps the top inset on the animated header', () => {

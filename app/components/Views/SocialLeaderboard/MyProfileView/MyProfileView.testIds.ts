@@ -2,6 +2,7 @@ export const MyProfileViewSelectorsIDs = {
   CONTAINER: 'my-profile-view-container',
   HEADER: 'my-profile-view-header',
   HEADER_COMPACT_IDENTITY: 'my-profile-view-header-compact-identity',
+  HEADER_COMPACT_AVATAR: 'my-profile-view-header-compact-avatar',
   COMPACT_STATS: 'my-profile-view-compact-stats',
   HEADER_COMPACT_WIN_RATE: 'my-profile-view-header-compact-win-rate',
   HEADER_COMPACT_PNL: 'my-profile-view-header-compact-pnl',

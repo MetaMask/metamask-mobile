@@ -376,6 +376,16 @@ const MyProfileView: React.FC = () => {
                 traderName={displayProfile.displayName}
                 traderImageUrl={displayProfile.imageUrl}
                 traderAddress={displayProfile.linkedAccountAddress ?? undefined}
+                avatar={
+                  isOwner ? (
+                    <ProfileAvatar
+                      imageUrl={displayProfile.imageUrl}
+                      avatarPresetId={displayProfile.avatarPresetId}
+                      size="xs"
+                      testID={MyProfileViewSelectorsIDs.HEADER_COMPACT_AVATAR}
+                    />
+                  ) : undefined
+                }
                 variant="compact"
                 testID={MyProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
               />
