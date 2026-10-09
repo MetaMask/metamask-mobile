@@ -10,6 +10,7 @@ export interface AnimatedBalanceTextProps {
   testID?: string;
   value: string;
   animated?: boolean;
+  accessible?: boolean;
 }
 
 /**
@@ -23,6 +24,7 @@ const AnimatedBalanceText = ({
   testID,
   value,
   animated,
+  accessible,
 }: AnimatedBalanceTextProps) => {
   const [animatedValue, setAnimatedValue] = useState(loadingValue);
 
@@ -33,6 +35,7 @@ const AnimatedBalanceText = ({
   return (
     <AnimatedNumericText
       animated={animated}
+      accessible={accessible}
       color={isLoading ? TextColor.TextMuted : color}
       testID={testID}
       value={animatedValue}

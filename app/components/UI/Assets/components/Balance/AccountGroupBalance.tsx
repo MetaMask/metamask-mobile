@@ -196,6 +196,7 @@ const AccountGroupBalance = ({
           </SensitiveText>
         ) : (
           <AnimatedBalanceText
+            accessible={false}
             key={groupBalance?.groupId ?? 'loading'}
             isLoading={isLoading}
             loadingValue={zeroBalance}

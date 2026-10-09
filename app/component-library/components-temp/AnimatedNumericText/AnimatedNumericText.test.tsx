@@ -76,10 +76,7 @@ describe('AnimatedNumericText', () => {
 
   it('rolls a bulk amount replacement through Laminar', () => {
     const { getByTestId, rerender, UNSAFE_getByType } = render(
-      <AnimatedNumericText
-        testID="animated-numeric-text"
-        value="0.00"
-      />,
+      <AnimatedNumericText testID="animated-numeric-text" value="0.00" />,
     );
 
     rerender(
@@ -100,10 +97,7 @@ describe('AnimatedNumericText', () => {
 
   it('renders grouping spaces', () => {
     const { getByTestId } = render(
-      <AnimatedNumericText
-        testID="animated-numeric-text"
-        value="12 345 678"
-      />,
+      <AnimatedNumericText testID="animated-numeric-text" value="12 345 678" />,
     );
 
     expect(getByTestId('animated-numeric-text')).toHaveTextContent(
@@ -132,6 +126,21 @@ describe('AnimatedNumericText', () => {
     );
 
     expect(getByLabelText('12.')).toBeOnTheScreen();
+  });
+
+  it('can defer accessibility to an interactive parent', () => {
+    const { getByTestId } = render(
+      <AnimatedNumericText
+        accessible={false}
+        value="12.00"
+        testID="animated-numeric-text"
+      />,
+    );
+
+    expect(getByTestId('animated-numeric-text').props.accessible).toBe(false);
+    expect(
+      getByTestId('animated-numeric-text').props.accessibilityLabel,
+    ).toBeUndefined();
   });
 
   it('passes high-precision values to Laminar without numeric conversion', () => {
