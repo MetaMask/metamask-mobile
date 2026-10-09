@@ -7,8 +7,12 @@ jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () =>
-      MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
+    default: ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>
+      MockReact.createElement(View, {
+        testID: hasProEntitlement
+          ? 'rewards-member-badge'
+          : 'rewards-vip-badge',
+      }),
   };
 });
 
@@ -144,6 +148,78 @@ describe('PerpsFeesDisplay', () => {
       expect(getByTestId('rewards-vip-badge')).toBeTruthy();
       expect(getByTestId('fee-original')).toBeTruthy();
       expect(getByTestId('fee')).toBeTruthy();
+    });
+  });
+
+  describe('Fee source badge selection', () => {
+    it('renders the member badge (not VIP) when feeSource is subscription', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PerpsFeesDisplay
+          fee={8.5}
+          originalFee={10}
+          feeDiscountPercentage={15}
+          feeSource="subscription"
+        />,
+      );
+
+      expect(getByTestId('rewards-member-badge')).toBeTruthy();
+      expect(queryByTestId('rewards-vip-badge')).toBeNull();
+    });
+
+    it('does not show a badge or strikethrough for a subscription without a discount percentage', () => {
+      const { queryByTestId } = render(
+        <PerpsFeesDisplay
+          fee={8.5}
+          originalFee={10}
+          feeSource="subscription"
+          testID="fee"
+        />,
+      );
+
+      expect(queryByTestId('rewards-member-badge')).toBeNull();
+      expect(queryByTestId('rewards-vip-badge')).toBeNull();
+      expect(queryByTestId('fee-original')).toBeNull();
+    });
+
+    it('renders the VIP badge when feeSource is rewards and a discount applies', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PerpsFeesDisplay
+          fee={8.5}
+          originalFee={10}
+          feeDiscountPercentage={15}
+          feeSource="rewards"
+        />,
+      );
+
+      expect(getByTestId('rewards-vip-badge')).toBeTruthy();
+      expect(queryByTestId('rewards-member-badge')).toBeNull();
+    });
+
+    it('renders the VIP badge (not member) when feeSource is default and a discount is present', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PerpsFeesDisplay
+          fee={8.5}
+          originalFee={10}
+          feeDiscountPercentage={15}
+          feeSource="default"
+        />,
+      );
+
+      expect(queryByTestId('rewards-member-badge')).toBeNull();
+      expect(getByTestId('rewards-vip-badge')).toBeTruthy();
+    });
+
+    it('falls back to discount-based VIP badge when feeSource is omitted', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PerpsFeesDisplay
+          fee={8.5}
+          originalFee={10}
+          feeDiscountPercentage={15}
+        />,
+      );
+
+      expect(getByTestId('rewards-vip-badge')).toBeTruthy();
+      expect(queryByTestId('rewards-member-badge')).toBeNull();
     });
   });
 });

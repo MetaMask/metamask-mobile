@@ -225,6 +225,7 @@ const PerpsProOrderFormPanel = ({
     feeProtocolFeeRate,
     feeOriginalMetamaskFeeRate,
     feeDiscountPercentage,
+    feeSource,
   } = usePerpsProOrderForm({
     market,
     isTriggeredOrdersEnabled: areTriggeredOrdersEnabled,
@@ -479,6 +480,7 @@ const PerpsProOrderFormPanel = ({
                     protocolFeeRate: feeProtocolFeeRate,
                     originalMetamaskFeeRate: feeOriginalMetamaskFeeRate,
                     feeDiscountPercentage,
+                    feeSource,
                   }
                 : undefined
             }

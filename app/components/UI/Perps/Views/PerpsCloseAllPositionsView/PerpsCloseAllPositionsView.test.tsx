@@ -102,6 +102,7 @@ describe('PerpsCloseAllPositionsView', () => {
     receiveAmount: 1090,
     totalEstimatedPoints: 50,
     avgFeeDiscountPercentage: 5,
+    feeSource: undefined,
     avgBonusBips: 10,
     avgMetamaskFeeRate: 0.01,
     avgProtocolFeeRate: 0.00045,

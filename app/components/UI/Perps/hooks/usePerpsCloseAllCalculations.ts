@@ -6,6 +6,7 @@ import {
   formatAccountToCaipAccountId,
   type Position,
   type FeeCalculationResult,
+  type PerpsFeeSource,
 } from '@metamask/perps-controller';
 import type {
   EstimatePointsDto,
@@ -31,6 +32,12 @@ export interface CloseAllCalculationsResult {
   totalEstimatedPoints: number | undefined;
   /** Average fee discount percentage across all positions (undefined when unavailable) */
   avgFeeDiscountPercentage: number | undefined;
+  /**
+   * Fee source behind the summary discount, considering only positions whose
+   * fee was actually reduced. `subscription` when any position was, otherwise
+   * `rewards` when any position was, otherwise undefined.
+   */
+  feeSource: PerpsFeeSource | undefined;
   /** Average bonus multiplier in basis points (undefined when unavailable) */
   avgBonusBips: number | undefined;
   /** Average MetaMask fee rate across all positions (undefined when unavailable) */
@@ -353,12 +360,33 @@ export function usePerpsCloseAllCalculations({
         totalFees: undefined,
         totalEstimatedPoints: undefined,
         avgFeeDiscountPercentage: undefined,
+        feeSource: undefined,
         avgBonusBips: undefined,
         avgMetamaskFeeRate: undefined,
         avgProtocolFeeRate: undefined,
         avgOriginalMetamaskFeeRate: undefined,
         shouldShowRewards: false,
       };
+    }
+
+    // Attribute the summary discount only to sources that actually reduced a
+    // position's fee; `default` and a 0% `rewards` win carry no discount.
+    const discountingSources = new Set<PerpsFeeSource>();
+    perPositionResults.forEach(({ fees }) => {
+      if (
+        fees.feeSource !== undefined &&
+        fees.feeSource !== 'default' &&
+        (fees.metamaskFeeDiscountBips ?? 0) > 0
+      ) {
+        discountingSources.add(fees.feeSource);
+      }
+    });
+    // Membership wins over VIP, matching RewardsVipBadge.
+    let feeSource: PerpsFeeSource | undefined;
+    if (discountingSources.has('subscription')) {
+      feeSource = 'subscription';
+    } else if (discountingSources.has('rewards')) {
+      feeSource = 'rewards';
     }
 
     // Sum fees and points
@@ -437,6 +465,7 @@ export function usePerpsCloseAllCalculations({
       totalFees,
       totalEstimatedPoints,
       avgFeeDiscountPercentage,
+      feeSource,
       avgBonusBips,
       avgMetamaskFeeRate,
       avgProtocolFeeRate,
@@ -461,6 +490,7 @@ export function usePerpsCloseAllCalculations({
     receiveAmount,
     totalEstimatedPoints: aggregatedResults.totalEstimatedPoints,
     avgFeeDiscountPercentage: aggregatedResults.avgFeeDiscountPercentage,
+    feeSource: aggregatedResults.feeSource,
     avgBonusBips: aggregatedResults.avgBonusBips,
     avgMetamaskFeeRate: aggregatedResults.avgMetamaskFeeRate,
     avgProtocolFeeRate: aggregatedResults.avgProtocolFeeRate,

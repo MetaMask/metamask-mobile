@@ -311,7 +311,9 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
               testID={PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER}
             >
               {(feeResults.feeDiscountPercentage ?? 0) > 0 ? (
-                <RewardsVipBadge />
+                <RewardsVipBadge
+                  hasProEntitlement={feeResults.feeSource === 'subscription'}
+                />
               ) : null}
               <Text
                 variant={TextVariant.BodyXs}

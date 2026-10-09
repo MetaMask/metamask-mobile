@@ -97,6 +97,7 @@ const PerpsClosePositionView: React.FC = () => {
       totalFees={summaryFees}
       originalTotalFees={feeResults.undiscountedTotalFee}
       feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+      feeSource={feeResults.feeSource}
       metamaskFeeRate={feeResults.metamaskFeeRate}
       protocolFeeRate={feeResults.protocolFeeRate}
       originalMetamaskFeeRate={feeResults.originalMetamaskFeeRate}

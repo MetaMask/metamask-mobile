@@ -21,7 +21,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { OrderType } from '@metamask/perps-controller';
+import type { OrderType, PerpsFeeSource } from '@metamask/perps-controller';
 import React, { useState } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -103,6 +103,7 @@ interface PerpsTradeScreenProps {
   isPayWithDisabled: boolean;
   feePercentage?: string;
   feeDiscountPercentage?: number;
+  feeSource?: PerpsFeeSource;
   isSubmitting: boolean;
   isSubmitDisabled: boolean;
   submitLabel?: string;
@@ -305,6 +306,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   isPayWithDisabled,
   feePercentage,
   feeDiscountPercentage,
+  feeSource,
   isSubmitting,
   isSubmitDisabled,
   submitLabel,
@@ -888,7 +890,11 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 justifyContent={BoxJustifyContent.Center}
                 gap={2}
               >
-                {(feeDiscountPercentage ?? 0) > 0 ? <RewardsVipBadge /> : null}
+                {(feeDiscountPercentage ?? 0) > 0 ? (
+                  <RewardsVipBadge
+                    hasProEntitlement={feeSource === 'subscription'}
+                  />
+                ) : null}
                 <Text
                   variant={TextVariant.BodyXs}
                   color={TextColor.TextAlternative}
