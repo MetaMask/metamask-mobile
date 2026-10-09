@@ -35,6 +35,14 @@ import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
+import MoneyVbaGetStartedCard from '../../components/MoneyVbaGetStartedCard';
+import MoneyVbaAccountReadyCard from '../../components/MoneyVbaAccountReadyCard';
+import MoneyVbaKycPendingCard from '../../components/MoneyVbaKycPendingCard';
+import MoneyVbaFinishVerificationCard from '../../components/MoneyVbaFinishVerificationCard';
+import {
+  useVbaHomeCard,
+  useVbaHomeCardRefresh,
+} from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
@@ -195,6 +203,11 @@ const MoneyHomeView = () => {
   }, [refetchBalance, refetchInterest, refreshMusdFiatRate]);
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
+
+  // At most one VBA identity-status card; `kyc_decision` (design pending) and
+  // `none` render nothing. The focus refresh is the one-shot KYC session GET.
+  const vbaHomeCard = useVbaHomeCard();
+  useVbaHomeCardRefresh();
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
     overrideToUsd: true,
@@ -1064,6 +1077,14 @@ const MoneyHomeView = () => {
           }}
           card={{ onPress: handleActionButtonCardPress }}
         />
+        {vbaHomeCard.type === 'get_started' && <MoneyVbaGetStartedCard />}
+        {vbaHomeCard.type === 'account_is_ready' && (
+          <MoneyVbaAccountReadyCard />
+        )}
+        {vbaHomeCard.type === 'kyc_pending' && <MoneyVbaKycPendingCard />}
+        {vbaHomeCard.type === 'finish_verification' && (
+          <MoneyVbaFinishVerificationCard />
+        )}
         <MoneyOnboardingCard />
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>

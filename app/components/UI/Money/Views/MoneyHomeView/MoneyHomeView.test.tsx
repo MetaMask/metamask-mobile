@@ -19,6 +19,10 @@ import { MoneyBalanceSummaryTestIds } from '../../components/MoneyBalanceSummary
 import { MoneyActionButtonRowTestIds } from '../../components/MoneyActionButtonRow/MoneyActionButtonRow.testIds';
 import { MoneyEarningsTestIds } from '../../components/MoneyEarnings/MoneyEarnings.testIds';
 import { MoneyOnboardingCardTestIds } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard.testIds';
+import { MoneyVbaGetStartedCardTestIds } from '../../components/MoneyVbaGetStartedCard/MoneyVbaGetStartedCard.testIds';
+import { MoneyVbaAccountReadyCardTestIds } from '../../components/MoneyVbaAccountReadyCard/MoneyVbaAccountReadyCard.testIds';
+import { MoneyVbaKycPendingCardTestIds } from '../../components/MoneyVbaKycPendingCard/MoneyVbaKycPendingCard.testIds';
+import { MoneyVbaFinishVerificationCardTestIds } from '../../components/MoneyVbaFinishVerificationCard/MoneyVbaFinishVerificationCard.testIds';
 import { MoneyHowItWorksTestIds } from '../../components/MoneyHowItWorks/MoneyHowItWorks.testIds';
 import { MoneyPotentialEarningsTestIds } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings.testIds';
 import { MoneyMetaMaskCardTestIds } from '../../components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
@@ -79,6 +83,12 @@ import {
 import { selectMoneyEarningSectionEnabledFlag } from '../../selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
+import {
+  useVbaHomeCard,
+  useVbaHomeCardRefresh,
+  type VbaHomeCard,
+} from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
+import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -365,6 +375,7 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
     trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
     trackActivitySurfaceClicked: jest.fn(),
     trackScreenViewed: mockTrackScreenViewed,
+    trackComponentViewed: jest.fn(),
   })),
 }));
 
@@ -384,6 +395,21 @@ jest.mock('../../hooks/useOnboardingStep', () => ({
     isVisible: true,
   })),
   STEPPER_IDS: { MONEY: 'money-home-onboarding-stepper' },
+}));
+
+const mockOpenVbaOnboarding = jest.fn();
+jest.mock(
+  '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
+  () => ({
+    useOpenVbaOnboarding: jest.fn(() => mockOpenVbaOnboarding),
+  }),
+);
+
+const mockUseVbaHomeCard = jest.mocked(useVbaHomeCard);
+const mockUseVbaHomeCardRefresh = jest.mocked(useVbaHomeCardRefresh);
+jest.mock('../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard', () => ({
+  useVbaHomeCard: jest.fn(),
+  useVbaHomeCardRefresh: jest.fn(),
 }));
 
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
@@ -636,6 +662,10 @@ describe('MoneyHomeView', () => {
     mockGetLinkFlowRedirectTarget.mockReturnValue(undefined);
     mockUseMoneyAccountCardLinkage.mockReturnValue(createLinkageMock());
 
+    // Default to no VBA card so variant tests cannot leak into others.
+    mockUseVbaHomeCard.mockReturnValue({ type: 'none' });
+    mockOpenVbaOnboarding.mockClear();
+
     mockUseMoneyAccountInfo.mockReturnValue({
       hasMoneyAccount: true,
       primaryMoneyAccount: {
@@ -750,6 +780,107 @@ describe('MoneyHomeView', () => {
     const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(queryByTestId(MoneyEarningsTestIds.CONTAINER)).not.toBeOnTheScreen();
+  });
+
+  describe('VBA identity-status card', () => {
+    const VBA_CARD_CONTAINERS = [
+      MoneyVbaGetStartedCardTestIds.CONTAINER,
+      MoneyVbaAccountReadyCardTestIds.CONTAINER,
+      MoneyVbaKycPendingCardTestIds.CONTAINER,
+      MoneyVbaFinishVerificationCardTestIds.CONTAINER,
+    ];
+
+    const expectOnlyVbaCard = (
+      rendered: ReturnType<typeof renderWithProvider>,
+      containerTestId: string,
+    ) => {
+      expect(rendered.getByTestId(containerTestId)).toBeOnTheScreen();
+      VBA_CARD_CONTAINERS.filter(
+        (testId) => testId !== containerTestId,
+      ).forEach((testId) => {
+        expect(rendered.queryByTestId(testId)).not.toBeOnTheScreen();
+      });
+    };
+
+    it('renders the get_started card', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'get_started',
+      } as VbaHomeCard);
+
+      expectOnlyVbaCard(
+        renderWithProvider(<MoneyHomeView />),
+        MoneyVbaGetStartedCardTestIds.CONTAINER,
+      );
+    });
+
+    it('renders the account_is_ready card', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'account_is_ready',
+      } as VbaHomeCard);
+
+      expectOnlyVbaCard(
+        renderWithProvider(<MoneyHomeView />),
+        MoneyVbaAccountReadyCardTestIds.CONTAINER,
+      );
+    });
+
+    it('renders the kyc_pending card', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'kyc_pending',
+      } as VbaHomeCard);
+
+      expectOnlyVbaCard(
+        renderWithProvider(<MoneyHomeView />),
+        MoneyVbaKycPendingCardTestIds.CONTAINER,
+      );
+    });
+
+    it('renders the finish_verification card', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'finish_verification',
+      } as VbaHomeCard);
+
+      expectOnlyVbaCard(
+        renderWithProvider(<MoneyHomeView />),
+        MoneyVbaFinishVerificationCardTestIds.CONTAINER,
+      );
+    });
+
+    it('renders the VBA card above the onboarding card', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'get_started',
+      } as VbaHomeCard);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expectTestIdBefore(
+        getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW),
+        MoneyVbaGetStartedCardTestIds.CONTAINER,
+        MoneyOnboardingCardTestIds.CONTAINER,
+      );
+    });
+
+    it('renders no VBA card for the none variant', () => {
+      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      VBA_CARD_CONTAINERS.forEach((testId) => {
+        expect(queryByTestId(testId)).not.toBeOnTheScreen();
+      });
+    });
+
+    it('renders no VBA card for the kyc_decision stub', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'kyc_decision',
+      } as VbaHomeCard);
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      VBA_CARD_CONTAINERS.forEach((testId) => {
+        expect(queryByTestId(testId)).not.toBeOnTheScreen();
+      });
+    });
   });
 
   describe('time to content telemetry', () => {
