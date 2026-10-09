@@ -499,11 +499,28 @@ test('aggregator skips duplicate profile names without changing scenario identit
   );
 });
 
-test('findSkillAnalyzer locates the analyzer installed by yarn skills', () => {
-  assert.match(
-    findSkillAnalyzer(),
-    /mms-swaps-cpu-profile-audit\/scripts\/analyze-cpuprofile\.cjs$/,
-  );
+test('findSkillAnalyzer locates a bundled analyzer and rejects a tree without one', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-analyzer-root-'));
+  try {
+    assert.throws(
+      () => findSkillAnalyzer(root),
+      /mms-swaps-cpu-profile-audit analyzer not found/,
+    );
+    // Last candidate, so a hit proves the search does not stop at the first path.
+    const analyzer = path.join(
+      root,
+      '.agents',
+      'skills',
+      'mms-swaps-cpu-profile-audit',
+      'scripts',
+      'analyze-cpuprofile.cjs',
+    );
+    fs.mkdirSync(path.dirname(analyzer), { recursive: true });
+    fs.writeFileSync(analyzer, '');
+    assert.equal(findSkillAnalyzer(root), analyzer);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test('runSkillAnalyzer compacts canonical skill timing output', () => {

@@ -129,6 +129,122 @@ function baselineCoverageNote(meta) {
 }
 
 /**
+ * Issue outcome recorded by the GitHub sync. Absent when the sync did not
+ * run (branch run, manual re-analysis, or the flag was off).
+ */
+function issueSlackSuffix(issue) {
+  if (!issue) {
+    return '';
+  }
+  if (issue.error) {
+    return ` · GitHub issue not created (${issue.error})`;
+  }
+  return ` · <${issue.url}|#${issue.number}> ${issue.created ? 'opened' : 'already open, referenced'}`;
+}
+
+function issueMarkdownSuffix(issue) {
+  if (!issue) {
+    return '';
+  }
+  if (issue.error) {
+    return ` — GitHub issue not created (${issue.error})`;
+  }
+  return ` — [#${issue.number}](${issue.url}) ${issue.created ? 'opened' : 'already open, referenced'}`;
+}
+
+/**
+ * Slack user-group mention for the scenario's owning team. A team with no
+ * group id stays plain text, so the message does not invent a ping.
+ */
+function slackOwnerMention(scenario) {
+  const team = scenarioTeam(displayName(scenario));
+  if (!team.id) {
+    return team.handle;
+  }
+  return `<!subteam^${team.id}|${team.handle}>`;
+}
+
+function openedBugs(exception) {
+  return exception.findings.filter(
+    (finding) => finding.issue?.created && finding.issue?.url,
+  );
+}
+
+/**
+ * A finding is tracked only after issue sync stored a URL. The digest is
+ * also built when `--github-issues` is off or a create/comment failed, so
+ * the headline must not claim a bug that was never opened.
+ */
+function everyFindingHasBug(findings) {
+  return (
+    findings.length > 0 &&
+    findings.every((finding) => Boolean(finding.issue?.url))
+  );
+}
+
+function multiScenarioHeadline(exception, slack) {
+  const count = exception.findings.length;
+  const crossed = slack
+    ? `*${count} scenarios* each exceeded ${exception.meta.thresholdRatio}× their recent median.`
+    : `${count} scenarios each crossed the threshold.`;
+  return everyFindingHasBug(exception.findings)
+    ? `${crossed} Each one is tracked on its own bug.`
+    : crossed;
+}
+
+function findingComparison(finding) {
+  const [current, baseline] = formatDurationsAlike([
+    finding.jsWorkMs,
+    finding.baselineMedianJsWorkMs,
+  ]);
+  return `${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs)`;
+}
+
+/**
+ * Message for #metamask-performance when this run opened a bug. The owning
+ * team is mentioned. A referenced issue, or a run with no issue, returns
+ * null so that channel stays quiet.
+ */
+export function buildPerformanceChannelSlack(exception) {
+  const opened = openedBugs(exception);
+  if (opened.length === 0) {
+    return null;
+  }
+  const { meta } = exception;
+  const lines = [];
+  if (opened.length > 1) {
+    lines.push(
+      '*App profiling: bugs opened for review*',
+      '',
+      `${opened.length} scenarios exceeded ${meta.thresholdRatio}× their recent median JS work. A bug is open for each owning team.`,
+      '',
+    );
+    for (const finding of opened) {
+      lines.push(
+        `• *${displayName(finding.scenario)}* — JS work ${findingComparison(finding)} · ${slackOwnerMention(finding.scenario)} · Bug: <${finding.issue.url}|#${finding.issue.number}>`,
+      );
+    }
+  } else {
+    const finding = opened[0];
+    lines.push(
+      '*App profiling: bug opened for review*',
+      '',
+      `*${displayName(finding.scenario)}* is over ${meta.thresholdRatio}× its recent median JS work. A bug is open for the owning team.`,
+      '',
+      `• JS work: ${findingComparison(finding)}`,
+      `• Owner: ${slackOwnerMention(finding.scenario)}`,
+      `• Bug: <${finding.issue.url}|#${finding.issue.number}>`,
+    );
+  }
+  lines.push(
+    '',
+    `_Performance run:_ <${meta.runUrl}|${meta.runId}>`,
+    '_Source:_ Hermes CPU sampling only. JS work is sampled JS self time, not test duration.',
+  );
+  return lines.join('\n');
+}
+
+/**
  * A clean run still reports. Silence is indistinguishable from a job that
  * stopped running, so the all-clear is the signal that the check is alive.
  */
@@ -150,7 +266,7 @@ export function buildScheduledExceptionSlack(exception) {
     `_Baseline:_ median of the previous ${exception.meta.baselinePreviousRuns} scheduled runs (~6h and ~12h)`,
     '',
     sharedRun
-      ? `*Slow run:* ${exception.findings.length} scenarios exceeded ${exception.meta.thresholdRatio}× their recent median in the same run. Treat this as one run-level anomaly, not ${exception.findings.length} regressions.`
+      ? multiScenarioHeadline(exception, true)
       : `*Possible regression:* one scenario exceeded ${exception.meta.thresholdRatio}× its recent median.`,
     '_Owners are named for routing; no team is notified._',
     '',
@@ -161,7 +277,7 @@ export function buildScheduledExceptionSlack(exception) {
       finding.baselineMedianJsWorkMs,
     ]);
     lines.push(
-      `• *${displayName(finding.scenario)}* — JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs) · owner ${finding.owner}`,
+      `• *${displayName(finding.scenario)}* — JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs) · owner ${finding.owner}${issueSlackSuffix(finding.issue)}`,
     );
   }
   lines.push(
@@ -189,7 +305,7 @@ export function buildScheduledExceptionMarkdown(exception) {
   }
   lines.push(
     exception.findings.length > 1
-      ? `${exception.findings.length} scenarios crossed the threshold in one run; this is reported as one run-level anomaly.`
+      ? multiScenarioHeadline(exception, false)
       : 'One scenario crossed the notification threshold.',
     '',
   );
@@ -199,7 +315,7 @@ export function buildScheduledExceptionMarkdown(exception) {
       finding.baselineMedianJsWorkMs,
     ]);
     lines.push(
-      `- ${displayName(finding.scenario)} — JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs), owner ${finding.owner}`,
+      `- ${displayName(finding.scenario)} — JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs), owner ${finding.owner}${issueMarkdownSuffix(finding.issue)}`,
     );
   }
   return lines.join('\n');

@@ -26,48 +26,77 @@ import path from 'path';
 const SCENARIO_ARTIFACT_PREFIX = 'hermes-profile-';
 // Mirrors the ownership tags on tests/performance/**/*.spec.ts. Slack group
 // ids come from tests/scripts/weekly-app-profiling-report.mjs, plus Earn's id
-// documented in tests/teams-config.js.
+// documented in tests/teams-config.js. `githubLabel` is the repo `team-*`
+// label that routes an issue to that team; `githubTeam` is the MetaMask org
+// team slug mentioned in the issue body.
 const SCENARIO_TEAMS = [
   {
     pattern: /\bPerps\b/i,
     handle: 'mm-perps-engineering-team',
     id: 'S094DMAQNCV',
+    githubLabel: 'team-perps',
+    githubTeam: 'MetaMask/perps',
   },
-  { pattern: /\bPredict\b/i, handle: 'team-predict', id: 'S095BEYMASG' },
+  {
+    pattern: /\bPredict\b/i,
+    handle: 'team-predict',
+    id: 'S095BEYMASG',
+    githubLabel: 'team-predict',
+    githubTeam: 'MetaMask/predict',
+  },
   {
     pattern: /(?:Cross-chain swap|Swap flow)/i,
     handle: 'swap-bridge-dev-team',
     id: 'S04NGHK3U9Z',
+    githubLabel: 'team-swaps-and-bridge',
+    githubTeam: 'MetaMask/swaps-engineers',
   },
   {
     pattern: /(?:Asset View|Aggregated Balance)/i,
     handle: 'assets-dev-team',
     id: 'S09C9U4K953',
+    githubLabel: 'team-assets',
+    githubTeam: 'MetaMask/metamask-assets',
   },
-  { pattern: /\bMoney Home\b/i, handle: 'mm-earn-team', id: 'S052NJFKX6Y' },
+  {
+    pattern: /\bMoney Home\b/i,
+    handle: 'mm-earn-team',
+    id: 'S052NJFKX6Y',
+    githubLabel: 'team-earn',
+    githubTeam: 'MetaMask/metamask-earn',
+  },
   {
     pattern: /^Import SRP with/i,
     handle: 'accounts-team',
     id: 'S05NSFC03GF',
+    githubLabel: 'team-accounts',
+    githubTeam: 'MetaMask/accounts-team',
   },
   {
     pattern:
       /(?:Account creation after fresh install|Fresh SRP wallet creation|Onboarding Import SRP|Seedless Onboarding)/i,
     handle: 'metamask-onboarding-team',
     id: 'S090QC71NQ2',
+    githubLabel: 'team-onboarding',
+    githubTeam: 'MetaMask/web3auth',
   },
   {
     pattern: /(?:Cold Start|Measure Warm Start)/i,
     handle: 'metamask-mobile-platform',
     id: 'S04EF225J1M',
+    githubLabel: 'team-mobile-platform',
+    githubTeam: 'MetaMask/mobile-platform',
   },
   // The Rewards scenario is currently tagged @performance-team, which has no
-  // Slack group id in tests/teams-config.js. Keep the owner visible without
-  // pretending this plain-text fallback will notify a Slack user group.
+  // Slack group id in tests/teams-config.js and no `team-*` label. Keep the
+  // owner visible without pretending this plain-text fallback will notify a
+  // Slack user group or route a GitHub issue.
   {
     pattern: /Rewards tab time-to-content/i,
     handle: 'performance-team',
     id: null,
+    githubLabel: null,
+    githubTeam: null,
   },
 ];
 
@@ -76,6 +105,8 @@ function scenarioTeam(scenario) {
     SCENARIO_TEAMS.find(({ pattern }) => pattern.test(scenario)) || {
       handle: 'performance-team',
       id: null,
+      githubLabel: null,
+      githubTeam: null,
     }
   );
 }
