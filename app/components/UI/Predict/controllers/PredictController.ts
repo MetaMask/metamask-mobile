@@ -576,6 +576,7 @@ export class PredictController extends BaseController<
 
     this.provider = new PolymarketProvider({
       getFeatureFlags: () => this.resolveFeatureFlags(),
+      getSelectedAddress: () => this.getEvmAccountAddress(),
     });
 
     this.analytics = new PredictAnalytics({

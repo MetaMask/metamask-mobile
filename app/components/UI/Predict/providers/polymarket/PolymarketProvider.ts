@@ -28,6 +28,7 @@ import {
 } from '../../constants/eventNames';
 import { filterSupportedLeagues } from '../../constants/sports';
 import { getPrimarySportsCardOutcomes } from '../../utils/sports';
+import { resolveReferencePriceWindow } from '../../utils/referencePriceWindow';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
@@ -265,6 +266,7 @@ export class PolymarketProvider implements PredictProvider {
   readonly name = 'Polymarket';
   readonly chainId = POLYGON_MAINNET_CHAIN_ID;
   readonly #getFeatureFlags: () => PredictFeatureFlags;
+  readonly #getSelectedAddress: () => string | undefined;
 
   #apiKeysByProtocolAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, CachedAccountState> = new Map();
@@ -280,10 +282,13 @@ export class PolymarketProvider implements PredictProvider {
 
   constructor({
     getFeatureFlags,
+    getSelectedAddress = () => undefined,
   }: {
     getFeatureFlags: () => PredictFeatureFlags;
+    getSelectedAddress?: () => string | undefined;
   }) {
     this.#getFeatureFlags = getFeatureFlags;
+    this.#getSelectedAddress = getSelectedAddress;
   }
 
   #getAccountStateCacheKey(ownerAddress: string): string {
@@ -1339,6 +1344,7 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<CryptoPriceHistoryPoint[]> {
     const { symbol, eventStartTime, variant, endDate, twapWindowSeconds } =
       params;
+    const referenceWindow = resolveReferencePriceWindow(twapWindowSeconds);
 
     try {
       const normalizedSymbol = symbol.trim().toUpperCase();
@@ -1355,9 +1361,9 @@ export class PolymarketProvider implements PredictProvider {
       if (endDate) {
         searchParams.set('endDate', endDate);
       }
-      if (twapWindowSeconds !== undefined) {
+      if (referenceWindow !== undefined) {
         searchParams.set('twapEnabled', 'true');
-        searchParams.set('twapLookbackSeconds', twapWindowSeconds.toString());
+        searchParams.set('twapLookbackSeconds', referenceWindow.toString());
       }
 
       const response = await fetchWithTimeout(
@@ -1421,6 +1427,10 @@ export class PolymarketProvider implements PredictProvider {
   public async getCryptoTargetPrice(
     params: GetCryptoTargetPriceParams,
   ): Promise<number | null> {
+    const referenceWindow = resolveReferencePriceWindow(
+      params.twapWindowSeconds,
+    );
+
     try {
       const { CRYPTO_PRICE_ENDPOINT } = getPolymarketEndpoints();
       const queryParams = new URLSearchParams({
@@ -1429,12 +1439,9 @@ export class PolymarketProvider implements PredictProvider {
         variant: params.variant,
         endDate: params.endDate,
       });
-      if (params.twapWindowSeconds !== undefined) {
+      if (referenceWindow !== undefined) {
         queryParams.set('twapEnabled', 'true');
-        queryParams.set(
-          'twapLookbackSeconds',
-          params.twapWindowSeconds.toString(),
-        );
+        queryParams.set('twapLookbackSeconds', referenceWindow.toString());
       }
 
       const response = await fetchWithTimeout(
@@ -3389,16 +3396,43 @@ export class PolymarketProvider implements PredictProvider {
     callback: CryptoPriceUpdateCallback,
     options?: CryptoPriceSubscriptionOptions,
   ): () => void {
-    return options
-      ? WebSocketManager.getInstance().subscribeToCryptoPrices(
-          symbols,
-          callback,
-          options,
-        )
-      : WebSocketManager.getInstance().subscribeToCryptoPrices(
-          symbols,
-          callback,
-        );
+    const websocketManager = WebSocketManager.getInstance();
+    let cancelled = false;
+    let unsubscribe = () => {
+      cancelled = true;
+    };
+    const address = this.#getSelectedAddress();
+    if (!address) {
+      DevLogger.log(
+        'PolymarketProvider: PolyBolt crypto prices need a selected account',
+      );
+      return unsubscribe;
+    }
+
+    this.getApiKey({ address })
+      .then((credentials) => {
+        if (cancelled) {
+          return;
+        }
+
+        websocketManager.useCryptoFeed({
+          mode: 'polybolt',
+          credentials,
+        });
+        unsubscribe = options
+          ? websocketManager.subscribeToCryptoPrices(symbols, callback, options)
+          : websocketManager.subscribeToCryptoPrices(symbols, callback);
+      })
+      .catch((error: unknown) => {
+        DevLogger.log('PolymarketProvider: PolyBolt API key request failed', {
+          error,
+        });
+      });
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }
 
   public subscribeToConnectionStatus(
