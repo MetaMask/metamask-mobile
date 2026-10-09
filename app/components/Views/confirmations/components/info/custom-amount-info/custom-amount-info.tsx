@@ -16,6 +16,7 @@ import { AlertMessage } from '../../alerts/alert-message';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import { MembershipInfo } from '../../../external/subscriptions/components/membership-info';
+import { useConfirmationFirstFrame } from '../../../context/confirmation-first-frame-context';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import {
   DepositKeyboard,
@@ -76,6 +77,7 @@ import {
 } from '../../custom-amount/custom-amount-buy';
 import { CustomAmountTotals } from '../../custom-amount/custom-amount-totals';
 import { CustomAmountConfirmButton } from '../../custom-amount/custom-amount-confirm-button';
+import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import {
   Button,
   ButtonSize,
@@ -115,6 +117,10 @@ export interface CustomAmountInfoProps {
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
+  CustomAmountInfoWrapper,
+);
+
+const CustomAmountInfoInternal: React.FC<CustomAmountInfoProps> = memo(
   ({
     autoSelectFiatPayment,
     children,
@@ -137,8 +143,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isAddMusdIntent =
       isMoneyAccountDeposit &&
       getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
-
-    useClearConfirmationOnBackSwipe();
 
     // Pre-warm the Transak partner API key so the fiat fee estimate's native
     // buy-quote lookup succeeds on first load, showing the real native fee
@@ -452,6 +456,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const hasBlockingAlert = hasAlert && !headlessBuyError;
 
+    const isAmountLoading =
+      !hasAccountNoFunds &&
+      stage !== CustomAmountStage.AmountInput &&
+      (isPrefillPending || isDepositPrefillLoading);
+
     // Keep payment details fixed while the amount update prepares the request.
     // Once quote loading takes over, reopening a picker is safe and keeps the
     // loading screen responsive.
@@ -464,11 +473,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             amountFiat={amountFiat}
             currency={currency}
             hasAlert={hasAlert}
-            isLoading={
-              !hasAccountNoFunds &&
-              stage !== CustomAmountStage.AmountInput &&
-              (isPrefillPending || isDepositPrefillLoading)
-            }
+            isLoading={isAmountLoading}
             // Editable amounts remain an escape hatch from stalled quotes.
             onPress={isMembershipSubscription ? undefined : handleAmountPress}
             disabled={!hasPaymentOption}
@@ -486,7 +491,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             (isMembershipSubscription ? (
               <MembershipInfo amountFiat={amountFiat} />
             ) : isMoneyAccountDeposit ? (
-              <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
+              // Projecting an unresolved amount would flash a $0 APY line.
+              isAmountLoading ? (
+                <BalanceProjectionSkeleton />
+              ) : (
+                <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
+              )
             ) : (
               <PayTokenAmount
                 amountHuman={amountHuman}
@@ -598,6 +608,72 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
   },
 );
 
+function CustomAmountInfoWrapper(props: CustomAmountInfoProps) {
+  // Rejection must work while the deferred amount/selection hooks are absent.
+  useClearConfirmationOnBackSwipe();
+
+  // Only present when the confirmation opts into first-frame deferral.
+  const firstFrame = useConfirmationFirstFrame();
+
+  // This is pending initialization, not disabled prefill. The live stage and
+  // input hooks mount with their real settings, so no temporary keyboard/$0
+  // state or early user input can be overwritten by delayed selection.
+  if (firstFrame && !firstFrame.isFirstFrameComplete) {
+    return <CustomAmountInitializationShell {...props} />;
+  }
+
+  return <CustomAmountInfoInternal {...props} />;
+}
+
+function CustomAmountInitializationShell({
+  disablePay,
+  footerText,
+  hideAccountSelector,
+  hidePayTokenAmount,
+  supportAccountSelection,
+}: CustomAmountInfoProps) {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <View style={styles.container} testID="custom-amount-initialization-shell">
+      <View style={styles.inputContainer}>
+        <CustomAmountSkeleton />
+        {!hidePayTokenAmount && <BalanceProjectionSkeleton />}
+      </View>
+      <View style={styles.shellBottomBlock}>
+        <View>
+          {supportAccountSelection && !hideAccountSelector && (
+            <PayAccountSelector />
+          )}
+          {!disablePay && (
+            <PayWithRowSkeleton label={strings('confirm.label.pay_with')} />
+          )}
+          <CustomAmountTotals stage={CustomAmountStage.Loading} />
+        </View>
+        {footerText && (
+          <Text
+            color={TextColor.TextAlternative}
+            style={styles.footerText}
+            variant={TextVariant.BodySm}
+          >
+            {footerText}
+          </Text>
+        )}
+        <Button
+          isDisabled
+          isFullWidth
+          size={ButtonSize.Lg}
+          style={styles.disabledButton}
+          testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
+          variant={ButtonVariant.Primary}
+        >
+          {strings('confirm.deposit_edit_amount_done')}
+        </Button>
+      </View>
+    </View>
+  );
+}
+
 export function CustomAmountInfoSkeleton() {
   const { styles } = useStyles(styleSheet, {});
 
@@ -682,6 +758,19 @@ export function AdvancedCustomAmountInfoSkeleton() {
         )}
         <DepositKeyboardSkeleton />
       </View>
+    </View>
+  );
+}
+
+function BalanceProjectionSkeleton() {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <View
+      style={styles.balanceProjectionSkeleton}
+      testID="balance-projection-skeleton"
+    >
+      <Skeleton height={20} width={160} />
     </View>
   );
 }

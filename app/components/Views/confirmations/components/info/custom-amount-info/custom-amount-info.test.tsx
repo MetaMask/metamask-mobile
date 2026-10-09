@@ -55,6 +55,8 @@ import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { mockTheme } from '../../../../../../util/theme';
+import { useAutomaticTransactionPayToken } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import { ConfirmationFirstFrameProvider } from '../../../context/confirmation-first-frame-context';
 import { DepositPrefillStatus } from '../../../hooks/transactions/useDepositPrefillAmount';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
@@ -467,6 +469,125 @@ describe('CustomAmountInfo', () => {
     setControllerTransactions([]);
   });
 
+  describe('first-frame deferral', () => {
+    let frames: FrameRequestCallback[];
+
+    beforeEach(() => {
+      frames = [];
+      jest
+        .spyOn(global, 'requestAnimationFrame')
+        .mockImplementation((callback) => {
+          frames.push(callback);
+          return frames.length;
+        });
+      jest.spyOn(global, 'cancelAnimationFrame').mockImplementation(jest.fn());
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    function createDeferredCustomAmountInfo(
+      props: CustomAmountInfoProps = {},
+      transactionId = 'transaction-1',
+    ) {
+      return (
+        <ConfirmationFirstFrameProvider enabled transactionId={transactionId}>
+          {createCustomAmountInfo(props)}
+        </ConfirmationFirstFrameProvider>
+      );
+    }
+
+    function renderDeferred(props: CustomAmountInfoProps = {}) {
+      return renderWithProvider(createDeferredCustomAmountInfo(props), {
+        state: merge(
+          {},
+          simpleSendTransactionControllerMock,
+          transactionApprovalControllerMock,
+          otherControllersMock,
+        ),
+      });
+    }
+
+    it('renders immediately without a first-frame provider', () => {
+      const { getByText, queryByTestId } = render();
+
+      expect(
+        queryByTestId('custom-amount-initialization-shell'),
+      ).not.toBeOnTheScreen();
+      expect(getByText('123.45')).toBeOnTheScreen();
+      expect(requestAnimationFrame).not.toHaveBeenCalled();
+    });
+
+    it('shows account and local placeholders without mounting payment, amount or submit hooks', () => {
+      const { getByTestId, getByText, queryByText } = renderDeferred({
+        supportAccountSelection: true,
+      });
+
+      expect(
+        getByTestId('custom-amount-initialization-shell'),
+      ).toBeOnTheScreen();
+      expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
+      expect(getByText(strings('confirm.label.pay_with'))).toBeOnTheScreen();
+      expect(getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+      expect(
+        getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).toBeDisabled();
+      expect(queryByText('123.45')).not.toBeOnTheScreen();
+      expect(useAutomaticTransactionPayToken).not.toHaveBeenCalled();
+      expect(useTransactionCustomAmountMock).not.toHaveBeenCalled();
+      expect(useConfirmActionsMock).not.toHaveBeenCalled();
+      expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledTimes(1);
+      expect(requestAnimationFrame).toHaveBeenCalledTimes(1);
+    });
+
+    it('mounts the live amount and automatic selection only after the frame yield', () => {
+      const { getByText, queryByTestId } = renderDeferred();
+
+      act(() => frames[0](16));
+      expect(useTransactionCustomAmountMock).not.toHaveBeenCalled();
+      expect(useAutomaticTransactionPayToken).not.toHaveBeenCalled();
+
+      act(() => frames[1](32));
+
+      expect(requestAnimationFrame).toHaveBeenCalledTimes(2);
+      expect(
+        queryByTestId('custom-amount-initialization-shell'),
+      ).not.toBeOnTheScreen();
+      expect(getByText('123.45')).toBeOnTheScreen();
+      expect(useTransactionCustomAmountMock).toHaveBeenCalled();
+      expect(useAutomaticTransactionPayToken).toHaveBeenCalled();
+    });
+
+    it('does not start initialization after dismissal during the frame yield', () => {
+      const { unmount } = renderDeferred();
+      act(() => frames[0](16));
+
+      unmount();
+      act(() => frames[1](32));
+
+      expect(cancelAnimationFrame).toHaveBeenCalledWith(2);
+      expect(useAutomaticTransactionPayToken).not.toHaveBeenCalled();
+      expect(useTransactionCustomAmountMock).not.toHaveBeenCalled();
+    });
+
+    it('restarts with placeholders when a different transaction replaces a ready one', () => {
+      const { getByTestId, rerender } = renderDeferred();
+      act(() => frames[0](16));
+      act(() => frames[1](32));
+      useTransactionCustomAmountMock.mockClear();
+      jest.mocked(useAutomaticTransactionPayToken).mockClear();
+
+      rerender(createDeferredCustomAmountInfo({}, 'next-transaction'));
+
+      expect(
+        getByTestId('custom-amount-initialization-shell'),
+      ).toBeOnTheScreen();
+      expect(useTransactionCustomAmountMock).not.toHaveBeenCalled();
+      expect(useAutomaticTransactionPayToken).not.toHaveBeenCalled();
+    });
+  });
+
   it('renders amount', () => {
     const { getByText } = render();
 
@@ -506,6 +627,25 @@ describe('CustomAmountInfo', () => {
       expect.objectContaining({ amountFiat: '123.45', projectedYears: 1 }),
       undefined,
     );
+  });
+
+  it('renders a balance projection skeleton while the Money deposit amount is loading', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0x123' },
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        depositPrefillStatus: DepositPrefillStatus.Loading,
+      }),
+    );
+
+    const { getByTestId } = render({
+      transactionType: TransactionType.moneyAccountDeposit,
+    });
+
+    expect(getByTestId('balance-projection-skeleton')).toBeOnTheScreen();
+    expect(BalanceProjection).not.toHaveBeenCalled();
   });
 
   it('can prepare a fixed membership amount without displaying the keypad', async () => {
