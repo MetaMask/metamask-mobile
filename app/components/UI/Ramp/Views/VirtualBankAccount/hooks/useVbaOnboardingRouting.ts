@@ -160,19 +160,35 @@ export interface OpenVbaOnboardingRequest {
    * revealing the previous one.
    */
   retryRejectedKyc?: boolean;
+  /**
+   * Checked right before every navigation. Return false to skip it, for
+   * example when the caller unmounted while hydrate was in flight.
+   */
+  shouldNavigate?: (destinationId: VbaOnboardingDestinationId) => boolean;
 }
+
+const alwaysNavigate = (): boolean => true;
 
 const resolveOpenRequest = (
   request: string | OpenVbaOnboardingRequest | undefined,
   defaultSource: string,
-): { source: string; retryRejectedKyc: boolean } => {
+): {
+  source: string;
+  retryRejectedKyc: boolean;
+  shouldNavigate: (destinationId: VbaOnboardingDestinationId) => boolean;
+} => {
   if (typeof request === 'string') {
-    return { source: request, retryRejectedKyc: false };
+    return {
+      source: request,
+      retryRejectedKyc: false,
+      shouldNavigate: alwaysNavigate,
+    };
   }
 
   return {
     source: request?.source ?? defaultSource,
     retryRejectedKyc: request?.retryRejectedKyc === true,
+    shouldNavigate: request?.shouldNavigate ?? alwaysNavigate,
   };
 };
 
@@ -190,7 +206,7 @@ export const useOpenVbaOnboarding = (
 
   return useCallback(
     async (request?: string | OpenVbaOnboardingRequest): Promise<void> => {
-      const { source, retryRejectedKyc } = resolveOpenRequest(
+      const { source, retryRejectedKyc, shouldNavigate } = resolveOpenRequest(
         request,
         defaultSource,
       );
@@ -199,7 +215,9 @@ export const useOpenVbaOnboarding = (
           ReduxService.store.getState() as RootState,
         );
         if (!walletAddress) {
-          openRecoverableError(navigation);
+          if (shouldNavigate('error')) {
+            openRecoverableError(navigation);
+          }
           return;
         }
 
@@ -247,6 +265,9 @@ export const useOpenVbaOnboarding = (
           snapshot,
           destinationId,
         });
+        if (!shouldNavigate(destinationId)) {
+          return;
+        }
         if (retryRejectedKyc && destinationId === 'identityVerification') {
           navigation.dispatch(
             StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
@@ -264,7 +285,9 @@ export const useOpenVbaOnboarding = (
             data: { source },
           },
         });
-        openRecoverableError(navigation);
+        if (shouldNavigate('error')) {
+          openRecoverableError(navigation);
+        }
       }
     },
     [navigation, defaultSource],

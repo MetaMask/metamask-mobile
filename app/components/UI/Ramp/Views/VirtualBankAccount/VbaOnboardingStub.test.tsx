@@ -23,7 +23,6 @@ describe('VbaOnboardingStub', () => {
   });
 
   it.each([
-    ['kyc_pending', 'vba-onboarding-stub-container-kyc_pending'],
     [
       'account_provisioning_error',
       'vba-onboarding-stub-container-account_provisioning_error',
@@ -42,7 +41,10 @@ describe('VbaOnboardingStub', () => {
 
   it('reports continue to its adapter', async () => {
     const { getByTestId } = renderWithProvider(
-      <VbaOnboardingStub variant="kyc_pending" onContinue={mockOnContinue} />,
+      <VbaOnboardingStub
+        variant="account_provisioning_error"
+        onContinue={mockOnContinue}
+      />,
     );
 
     fireEvent.press(getByTestId(VbaOnboardingStubSelectorsIDs.CONTINUE_BUTTON));

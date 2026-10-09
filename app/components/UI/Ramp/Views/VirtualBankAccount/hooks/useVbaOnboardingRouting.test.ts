@@ -357,6 +357,89 @@ describe('useOpenVbaOnboarding', () => {
     );
   });
 
+  describe('shouldNavigate guard', () => {
+    const pendingSnapshot = {
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'submitted' as const,
+      kycStatus: 'pending' as const,
+    };
+
+    it('skips the hydrated destination when the guard returns false', async () => {
+      mockHydrate.mockResolvedValue(pendingSnapshot);
+      const shouldNavigate = jest.fn().mockReturnValue(false);
+      const { result } = renderHook(() => useOpenVbaOnboarding());
+
+      await result.current({ shouldNavigate });
+
+      expect(shouldNavigate).toHaveBeenCalledWith('kycPending');
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('opens the hydrated destination when the guard returns true', async () => {
+      mockHydrate.mockResolvedValue(pendingSnapshot);
+      const shouldNavigate = jest.fn().mockReturnValue(true);
+      const { result } = renderHook(() => useOpenVbaOnboarding());
+
+      await result.current({ shouldNavigate });
+
+      expect(shouldNavigate).toHaveBeenCalledWith('kycPending');
+      expectResetTo({ name: VbaOnboardingRoutes.KYC_PENDING });
+    });
+
+    it('skips the identity verification push when the guard returns false', async () => {
+      mockHydrate.mockResolvedValue({
+        ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+        sessionExists: true,
+        vendorDisclaimersComplete: true,
+        sessionDisclaimersComplete: true,
+        kycStatus: 'rejected',
+      });
+      const shouldNavigate = jest.fn().mockReturnValue(false);
+      const { result } = renderHook(() => useOpenVbaOnboarding());
+
+      await result.current({ retryRejectedKyc: true, shouldNavigate });
+
+      expect(shouldNavigate).toHaveBeenCalledWith('identityVerification');
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('skips the error screen for a missing wallet when the guard returns false', async () => {
+      mockGetState.mockReturnValue({ address: null });
+      const shouldNavigate = jest.fn().mockReturnValue(false);
+      const { result } = renderHook(() => useOpenVbaOnboarding());
+
+      await result.current({ shouldNavigate });
+
+      expect(shouldNavigate).toHaveBeenCalledWith('error');
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('skips the error screen after a hydrate failure when the guard returns false', async () => {
+      mockHydrate.mockRejectedValue(new Error('hydrate failed'));
+      const shouldNavigate = jest.fn().mockReturnValue(false);
+      const { result } = renderHook(() => useOpenVbaOnboarding());
+
+      await result.current({ shouldNavigate });
+
+      expect(Logger.error).toHaveBeenCalled();
+      expect(shouldNavigate).toHaveBeenCalledWith('error');
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('navigates when a request object omits the guard', async () => {
+      mockHydrate.mockResolvedValue(pendingSnapshot);
+      const { result } = renderHook(() => useOpenVbaOnboarding());
+
+      await result.current({ source: 'no-guard' });
+
+      expectResetTo({ name: VbaOnboardingRoutes.KYC_PENDING });
+    });
+  });
+
   it('navigates to a provided VBA destination', () => {
     navigateToVbaOnboardingDestination(navigation, 'vendorTerms');
 

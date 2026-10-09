@@ -1178,9 +1178,9 @@
       "retry": "Try again"
     },
     "kyc_pending": {
-      "title": "Verification in progress",
-      "description": "We're still reviewing your identity. This usually takes a few minutes.",
-      "button": "Check status"
+      "title": "Verifying your identity",
+      "description": "Most checks finish in about 10 seconds. You can come back later, we'll let you know when your check is complete.",
+      "button": "Come back later"
     },
     "kyc_rejected": {
       "title": "Verification unsuccessful",
