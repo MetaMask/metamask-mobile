@@ -1634,6 +1634,8 @@
       "trading_activity_on": "On",
       "linked_social_account": "Linked social account",
       "save": "Save",
+      "save_error": "Couldn't save changes. Check your connection and try again.",
+      "username_unavailable": "This handle is unavailable. Choose another one.",
       "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
       "socials_helper": "Your X handle appears on posts and your profile.",
       "show_trading_activity": "Show trading activity",

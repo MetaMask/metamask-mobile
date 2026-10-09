@@ -11374,6 +11374,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/profile-controller@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@metamask/profile-controller@npm:1.0.1"
+  dependencies:
+    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/base-data-service": "npm:^2.1.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^34.0.0"
+    "@metamask/superstruct": "npm:^3.4.1"
+    "@metamask/utils": "npm:^12.0.0"
+  checksum: 10/d187b630ef6a7098925c4b5838ba6e46e910ede060ce207672c0478203403ecf23662ff55c0d98a3457e2dc085c898d7f5953565de484ce7cc19097b2575eadd
+  languageName: node
+  linkType: hard
+
 "@metamask/profile-metrics-controller@npm:^5.1.0":
   version: 5.1.0
   resolution: "@metamask/profile-metrics-controller@npm:5.1.0"
@@ -39177,6 +39192,7 @@ __metadata:
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
+    "@metamask/profile-controller": "npm:^1.0.1"
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
     "@metamask/profile-sync-controller": "npm:^34.0.3"
     "@metamask/providers": "npm:^18.3.1"

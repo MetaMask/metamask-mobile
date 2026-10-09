@@ -11,15 +11,49 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { Switch } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
+import { useMyProfile } from '../../MyProfileView/hooks';
 import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileTradingActivitySelectorsIDs } from '../ManageProfileView.testIds';
+import { useProfileController } from '../hooks/useProfileController';
 
 const ManageProfileTradingActivityView: React.FC = () => {
   const { brandColors, colors } = useTheme();
+  const { profile: localProfile } = useMyProfile();
+  const { isControllerBacked, profile, updateProfile } = useProfileController();
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const isTradingActivityPublic = isControllerBacked
+    ? profile?.tradingPrivacy === 'public'
+    : (localProfile?.shareTradingActivity ?? true);
+
+  const handleTradingActivityChange = useCallback(
+    async (value: boolean): Promise<void> => {
+      if (!isControllerBacked) {
+        return;
+      }
+
+      setIsUpdating(true);
+      setErrorMessage(null);
+
+      try {
+        await updateProfile({
+          trading_privacy: value ? 'public' : 'private',
+        });
+      } catch {
+        setErrorMessage(
+          strings('social_leaderboard.manage_profile.save_error'),
+        );
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [isControllerBacked, updateProfile],
+  );
 
   return (
     <ManageProfileScreenChrome
@@ -57,9 +91,12 @@ const ManageProfileTradingActivityView: React.FC = () => {
               />
             </Box>
             <Switch
-              value
-              disabled
-              accessibilityState={{ disabled: true }}
+              value={isTradingActivityPublic}
+              disabled={!isControllerBacked || isUpdating}
+              onValueChange={handleTradingActivityChange}
+              accessibilityState={{
+                disabled: !isControllerBacked || isUpdating,
+              }}
               accessibilityLabel={strings(
                 'social_leaderboard.manage_profile.show_trading_activity',
               )}
@@ -87,6 +124,11 @@ const ManageProfileTradingActivityView: React.FC = () => {
             'social_leaderboard.manage_profile.trading_activity_footnote',
           )}
         </Text>
+        {errorMessage ? (
+          <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+            {errorMessage}
+          </Text>
+        ) : null}
       </Box>
     </ManageProfileScreenChrome>
   );
