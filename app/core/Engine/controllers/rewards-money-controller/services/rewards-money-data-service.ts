@@ -329,22 +329,6 @@ const BUSY_READ_RETRY_MAX_SECONDS = 5;
 /** Spread retries so a shed wave does not return in the same instant. */
 const BUSY_RETRY_JITTER_MS = 1000;
 
-/** `Retry-After` is delta-seconds. An HTTP-date is accepted too. */
-function retryAfterSeconds(header: string | null): number | undefined {
-  if (!header) {
-    return undefined;
-  }
-  const seconds = Number(header);
-  if (Number.isFinite(seconds) && seconds >= 0) {
-    return Math.max(1, Math.ceil(seconds));
-  }
-  const at = Date.parse(header);
-  if (Number.isNaN(at)) {
-    return undefined;
-  }
-  return Math.max(1, Math.ceil((at - Date.now()) / 1000));
-}
-
 /**
  * Wait for a short busy refusal, plus up to a second of jitter. `undefined`
  * means the header was missing: jitter alone, so a registration the server
