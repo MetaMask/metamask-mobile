@@ -275,7 +275,6 @@ const ImportFromSecretRecoveryPhrase = () => {
   const [seedPhrase, setSeedPhrase] = useState<string[]>(['']);
   const [currentStep, setCurrentStep] = useState(0);
   const [isWarningSheetVisible, setIsWarningSheetVisible] = useState(false);
-  const pendingParsedSeedRef = useRef<string | null>(null);
   const [showPasswordIndex, setShowPasswordIndex] = useState<number[]>([0, 1]);
   const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
 
@@ -727,7 +726,6 @@ const ImportFromSecretRecoveryPhrase = () => {
     const parsedSeed = await getParsedSeedForImport();
     if (!parsedSeed) return;
 
-    pendingParsedSeedRef.current = parsedSeed;
     Keyboard.dismiss();
     setIsWarningSheetVisible(true);
   };
@@ -736,11 +734,11 @@ const ImportFromSecretRecoveryPhrase = () => {
     setIsWarningSheetVisible(false);
   };
 
-  const onConfirmWarningSheet = () => {
-    const parsedSeed = pendingParsedSeedRef.current;
+  const onConfirmWarningSheet = async () => {
     setIsWarningSheetVisible(false);
+    const parsedSeed = await getParsedSeedForImport();
     if (!parsedSeed) return;
-    void runWalletImport(parsedSeed);
+    await runWalletImport(parsedSeed);
   };
 
   const isError = shouldShowPasswordMismatchError(password, confirmPassword);

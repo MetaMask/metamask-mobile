@@ -371,6 +371,7 @@ app/components/Views/Onboarding                             @MetaMask/web3auth
 app/components/Views/OnboardingSheet                        @MetaMask/web3auth
 app/components/Views/OnboardingSuccess                      @MetaMask/web3auth
 app/components/Views/ChoosePassword                         @MetaMask/web3auth
+app/components/Views/shared/PasswordResetWarningSheet   @MetaMask/web3auth
 app/components/Views/ManualBackupStep1                      @MetaMask/web3auth
 app/components/Views/ManualBackupStep2                      @MetaMask/web3auth
 app/components/Views/ManualBackupStep3                      @MetaMask/web3auth

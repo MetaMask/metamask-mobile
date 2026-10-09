@@ -1623,7 +1623,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       getByRole,
       getByTestId,
       queryByTestId,
-      queryByText,
     } = renderScreen(
       ImportFromSecretRecoveryPhrase,
       { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
@@ -1651,7 +1650,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       getByRole,
       getByTestId,
       queryByTestId,
-      queryByText,
     };
   };
 
@@ -1954,13 +1952,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('does not render the password recovery acknowledgement row', async () => {
-      const { getByTestId, queryByTestId, queryByText } =
-        await renderCreatePasswordUI();
+      const { getByTestId, queryByTestId } = await renderCreatePasswordUI();
 
       expect(
         queryByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID),
       ).toBeNull();
-      expect(queryByText(strings('import_from_seed.learn_more'))).toBeNull();
       expect(
         getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
       ).toBeOnTheScreen();
