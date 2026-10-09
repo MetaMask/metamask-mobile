@@ -90,7 +90,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBeCloseTo(0.24213, 5);
-        expect(parseFloat(result[0].pnl)).toBeCloseTo(716, 0);
+        expect(parseFloat(result[0].pnl ?? '')).toBeCloseTo(716, 0);
         expect(parseFloat(result[0].fee)).toBeCloseTo(25, 0);
         expect(result[0].detailedOrderType).toBe('Stop Market');
         expect(result[0].direction).toBe('Close Long');
@@ -119,7 +119,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(1.0);
-        expect(parseFloat(result[0].pnl)).toBe(1000);
+        expect(parseFloat(result[0].pnl ?? '')).toBe(1000);
         expect(parseFloat(result[0].fee)).toBe(20);
         expect(result[0].detailedOrderType).toBe('Take Profit Market');
       });
@@ -191,7 +191,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(0.2);
-        expect(parseFloat(result[0].pnl)).toBe(200);
+        expect(parseFloat(result[0].pnl ?? '')).toBe(200);
       });
     });
 
@@ -284,7 +284,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBeCloseTo(43.23, 2);
-        expect(parseFloat(result[0].pnl)).toBeCloseTo(-9, 2);
+        expect(parseFloat(result[0].pnl ?? '')).toBeCloseTo(-9, 2);
         expect(result[0].startPosition).toBe('37.66');
         expect(result[0].direction).toBe('Long > Short');
       });
@@ -488,7 +488,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBeCloseTo(0.4, 5);
-        expect(parseFloat(result[0].pnl)).toBeCloseTo(6, 5);
+        expect(parseFloat(result[0].pnl ?? '')).toBeCloseTo(6, 5);
         expect(parseFloat(result[0].fee)).toBeCloseTo(0.06, 5);
         expect(result[0].timestamp).toBe(1754639277416);
       });
@@ -541,7 +541,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(200);
-        expect(parseFloat(result[0].pnl)).toBe(100);
+        expect(parseFloat(result[0].pnl ?? '')).toBe(100);
       });
 
       it('aggregates Auto-Deleveraging fills', () => {
@@ -565,7 +565,7 @@ describe('transactionTransforms', () => {
 
         expect(result).toHaveLength(1);
         expect(parseFloat(result[0].size)).toBe(1.0);
-        expect(parseFloat(result[0].pnl)).toBe(-200);
+        expect(parseFloat(result[0].pnl ?? '')).toBe(-200);
       });
     });
 
@@ -744,7 +744,7 @@ describe('transactionTransforms', () => {
           throw new Error('Aggregated close fill not found');
         }
         expect(parseFloat(aggregatedClose.size)).toBe(1.0);
-        expect(parseFloat(aggregatedClose.pnl)).toBe(200);
+        expect(parseFloat(aggregatedClose.pnl ?? '')).toBe(200);
       });
     });
   });
