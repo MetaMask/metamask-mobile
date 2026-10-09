@@ -462,6 +462,7 @@ jest.mock('../../app/core/Engine', () => {
           status: 'unlocked',
           providerId: 'hyperliquid',
         }),
+        previewPositionModify: jest.fn().mockResolvedValue({ status: 'none' }),
         subscribeToPrices: jest.fn(() => () => undefined),
         subscribeToOrderBook: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),

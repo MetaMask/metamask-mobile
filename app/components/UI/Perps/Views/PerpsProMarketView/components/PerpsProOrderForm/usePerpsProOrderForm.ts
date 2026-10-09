@@ -2012,7 +2012,10 @@ export const usePerpsProOrderForm = ({
     takeProfitPrice: orderForm.takeProfitPrice,
     stopLossPrice: orderForm.stopLossPrice,
     liquidationPrice:
-      positionModifySummaryDisplay.tpslLiquidationPrice ?? liquidationPrice,
+      marginMode === 'cross'
+        ? ''
+        : (positionModifySummaryDisplay.tpslLiquidationPrice ??
+          liquidationPrice),
     marketPrice: assetData.price,
   });
   const standardOrderToastOptions =
@@ -3425,10 +3428,12 @@ export const usePerpsProOrderForm = ({
         positionModifySummaryDisplay.currentMarginDisplay,
         positionModifySummaryDisplay.resultingMarginDisplay,
       );
-      liquidationPriceDisplay = formatBeforeAfter(
-        positionModifySummaryDisplay.currentLiquidationDisplay,
-        positionModifySummaryDisplay.resultingLiquidationDisplay,
-      );
+      if (marginMode !== 'cross') {
+        liquidationPriceDisplay = formatBeforeAfter(
+          positionModifySummaryDisplay.currentLiquidationDisplay,
+          positionModifySummaryDisplay.resultingLiquidationDisplay,
+        );
+      }
     }
 
     return {
@@ -3458,6 +3463,7 @@ export const usePerpsProOrderForm = ({
     effectiveMarginRequired,
     hasValidAmount,
     liquidationPrice,
+    marginMode,
     estimatedSlippagePctDisplay,
     maxSlippageBps,
     resolvedMaxSlippageBps,
