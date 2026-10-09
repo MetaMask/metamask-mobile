@@ -61,13 +61,13 @@ class SettingsView {
   }
 
   get alertButton(): Promise<AppiumElement> {
-    // Case-insensitive: Android AlertDialog may show "YES" vs locale "Yes".
-    const yes = CommonSelectorsText.YES_ALERT_BUTTON.replace(
+    // Case-insensitive: Android AlertDialog may show "LOCK" vs locale "Lock".
+    const lock = CommonSelectorsText.LOCK_ALERT_BUTTON.replace(
       /[.*+?^${}()|[\]\\]/g,
       '\\$&',
     );
-    const yesPattern = new RegExp(`^${yes}$`, 'i');
-    return Matchers.getElementByText(yesPattern);
+    const lockPattern = new RegExp(`^${lock}$`, 'i');
+    return Matchers.getElementByText(lockPattern);
   }
 
   get scrollViewIdentifier(): ScrollContainer {
@@ -161,9 +161,9 @@ class SettingsView {
     });
   }
 
-  async tapYesAlertButton(): Promise<void> {
+  async tapLockAlertButton(): Promise<void> {
     await Gestures.waitAndTap(this.alertButton, {
-      elemDescription: 'Settings - Alert Yes Button',
+      elemDescription: 'Settings - Alert Lock Button',
       timeout: 30_000,
       delay: 0,
       checkEnabled: false,

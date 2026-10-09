@@ -751,31 +751,31 @@ describe('AccountsMenu', () => {
       });
     });
 
-    describe('Log Out Row', () => {
-      it('render Log Out row', () => {
+    describe('Lock Wallet Row', () => {
+      it('renders Lock wallet row', () => {
         const { getByText, getByTestId } = render(<AccountsMenu />);
 
-        expect(getByText('accounts_menu.log_out')).toBeOnTheScreen();
+        expect(getByText('accounts_menu.lock_wallet')).toBeOnTheScreen();
         expect(getByTestId(AccountsMenuSelectorsIDs.LOCK)).toBeOnTheScreen();
       });
 
-      it('show confirmation alert when Log Out is pressed', () => {
+      it('shows confirmation alert with title and description when Lock wallet is pressed', () => {
         const { getByTestId } = render(<AccountsMenu />);
-        const logOutButton = getByTestId(AccountsMenuSelectorsIDs.LOCK);
+        const lockWalletButton = getByTestId(AccountsMenuSelectorsIDs.LOCK);
 
-        fireEvent.press(logOutButton);
+        fireEvent.press(lockWalletButton);
 
         expect(mockAlert).toHaveBeenCalledWith(
-          'drawer.lock_title',
-          '',
+          'accounts_menu.lock_wallet_title',
+          'accounts_menu.lock_wallet_description',
           [
             {
-              text: 'drawer.lock_cancel',
+              text: 'accounts_menu.lock_wallet_cancel',
               onPress: expect.any(Function),
               style: 'cancel',
             },
             {
-              text: 'drawer.lock_ok',
+              text: 'accounts_menu.lock_wallet_confirm',
               onPress: expect.any(Function),
             },
           ],
@@ -785,9 +785,9 @@ describe('AccountsMenu', () => {
 
       it('call Authentication.lockApp when confirmation is accepted', async () => {
         const { getByTestId } = render(<AccountsMenu />);
-        const logOutButton = getByTestId(AccountsMenuSelectorsIDs.LOCK);
+        const lockWalletButton = getByTestId(AccountsMenuSelectorsIDs.LOCK);
 
-        fireEvent.press(logOutButton);
+        fireEvent.press(lockWalletButton);
 
         // Get the onPress callback from the OK button
         const alertCall = mockAlert.mock.calls[0];
@@ -804,10 +804,10 @@ describe('AccountsMenu', () => {
 
       it('track NAVIGATION_TAPS_LOGOUT event only when logout is confirmed', async () => {
         const { getByTestId } = render(<AccountsMenu />);
-        const logOutButton = getByTestId(AccountsMenuSelectorsIDs.LOCK);
+        const lockWalletButton = getByTestId(AccountsMenuSelectorsIDs.LOCK);
 
         // Press the logout button
-        fireEvent.press(logOutButton);
+        fireEvent.press(lockWalletButton);
 
         // At this point, analytics NOT be tracked yet (just showing alert)
         expect(mockCreateEventBuilder).not.toHaveBeenCalledWith('Logout');

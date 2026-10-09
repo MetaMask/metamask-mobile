@@ -21,5 +21,5 @@ export const CommonSelectorsIDs = {
 export const CommonSelectorsText = {
   OK_ALERT_BUTTON: enContent.template_confirmation.ok,
   CANCEL_BUTTON: enContent.template_confirmation.cancel,
-  YES_ALERT_BUTTON: enContent.drawer.lock_ok,
+  LOCK_ALERT_BUTTON: enContent.accounts_menu.lock_wallet_confirm,
 };

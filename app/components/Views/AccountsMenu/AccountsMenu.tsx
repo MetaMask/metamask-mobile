@@ -229,18 +229,18 @@ const AccountsMenu = () => {
     await Authentication.lockApp({ reset: false, locked: false });
   }, []);
 
-  const onPressLogOut = useCallback(() => {
+  const onPressLockWallet = useCallback(() => {
     Alert.alert(
-      strings('drawer.lock_title'),
-      '',
+      strings('accounts_menu.lock_wallet_title'),
+      strings('accounts_menu.lock_wallet_description'),
       [
         {
-          text: strings('drawer.lock_cancel'),
+          text: strings('accounts_menu.lock_wallet_cancel'),
           onPress: () => null,
           style: 'cancel',
         },
         {
-          text: strings('drawer.lock_ok'),
+          text: strings('accounts_menu.lock_wallet_confirm'),
           onPress: async () => {
             trackEvent(
               createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_LOGOUT).build(),
@@ -492,7 +492,7 @@ const AccountsMenu = () => {
 
         {separator}
 
-        {/* Log Out Row */}
+        {/* Lock Wallet Row */}
         <ActionListItem
           startAccessory={
             <Icon
@@ -501,9 +501,9 @@ const AccountsMenu = () => {
               color={IconColor.ErrorDefault}
             />
           }
-          label={strings('accounts_menu.log_out')}
+          label={strings('accounts_menu.lock_wallet')}
           labelTextProps={{ color: TextColor.ErrorDefault }}
-          onPress={onPressLogOut}
+          onPress={onPressLockWallet}
           testID={AccountsMenuSelectorsIDs.LOCK}
         />
       </ScrollView>
