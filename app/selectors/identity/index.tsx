@@ -5,6 +5,7 @@ import {
   UserStorageController,
 } from '@metamask/profile-sync-controller';
 import { selectPrimaryHDKeyring } from '../keyringController';
+import { createDeepEqualSelector } from '../util';
 
 type AuthenticationState =
   AuthenticationController.AuthenticationControllerState;
@@ -55,6 +56,52 @@ export const selectCanonicalProfileId = createSelector(
       authenticationControllerState.srpSessionData?.[primaryEntropySourceId]
         ?.profile?.canonicalProfileId || undefined
     );
+  },
+);
+
+/**
+ * Selector that returns the entropy source IDs of the SRPs that belong to the
+ * wallet's profile: the primary SRP (the one carrying `canonicalProfileId`)
+ * first, followed by every SRP paired to it.
+ *
+ * A secondary SRP is paired when its session `identifierId` appears in the
+ * primary session's `pairedIdentifierIds`. `canonicalProfileId` is not used
+ * for this: the AuthenticationController propagates it to every session,
+ * including SRPs the server skipped while pairing.
+ *
+ * Falls back to the primary SRP alone when it has no session yet (signed out
+ * or not paired). Returns an empty array when the wallet is locked, because
+ * the primary HD keyring is unknown.
+ */
+export const selectProfileEntropySourceIds = createDeepEqualSelector(
+  selectAuthenticationControllerState,
+  selectPrimaryHDKeyring,
+  (
+    authenticationControllerState: AuthenticationState,
+    primaryHdKeyring,
+  ): string[] => {
+    const primaryEntropySourceId = primaryHdKeyring?.metadata?.id;
+    if (!primaryEntropySourceId) {
+      return [];
+    }
+
+    const srpSessionData = authenticationControllerState.srpSessionData ?? {};
+    const pairedIdentifierIds = new Set(
+      (
+        srpSessionData[primaryEntropySourceId]?.profile?.pairedIdentifierIds ??
+        []
+      ).map((identifier) => identifier.id),
+    );
+
+    const pairedEntropySourceIds = Object.entries(srpSessionData)
+      .filter(
+        ([entropySourceId, session]) =>
+          entropySourceId !== primaryEntropySourceId &&
+          pairedIdentifierIds.has(session?.profile?.identifierId),
+      )
+      .map(([entropySourceId]) => entropySourceId);
+
+    return [primaryEntropySourceId, ...pairedEntropySourceIds];
   },
 );
 

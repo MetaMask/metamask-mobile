@@ -786,6 +786,7 @@ export type RootStackParamList = {
   ManageProfile: ManageProfileParams | undefined;
   ManageProfileField: ManageProfileFieldParams;
   ManageProfileXAccount: undefined;
+  LinkedSocialAccount: undefined;
 
   // Sheet routes
   AccountSelector: AccountSelectorParams | undefined;
