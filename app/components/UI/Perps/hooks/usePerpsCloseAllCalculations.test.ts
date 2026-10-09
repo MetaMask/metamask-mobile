@@ -571,6 +571,77 @@ describe('usePerpsCloseAllCalculations', () => {
     });
   });
 
+  describe('Fee source attribution', () => {
+    const twoPositions = [
+      createMockPosition({ symbol: 'BTC' }),
+      createMockPosition({ symbol: 'ETH' }),
+    ];
+    const twoPrices = { BTC: { price: '51000' }, ETH: { price: '51000' } };
+    const subscriptionFees = createMockFeeResult({
+      feeSource: 'subscription',
+      metamaskFeeDiscountBips: 10000,
+    });
+    const rewardsFees = createMockFeeResult({
+      feeSource: 'rewards',
+      metamaskFeeDiscountBips: 2000,
+    });
+    const defaultFees = createMockFeeResult({
+      feeSource: 'default',
+      metamaskFeeDiscountBips: 0,
+    });
+    const zeroRewardsFees = createMockFeeResult({
+      feeSource: 'rewards',
+      metamaskFeeDiscountBips: 0,
+    });
+
+    const renderWithFees = async (
+      first: FeeCalculationResult,
+      second: FeeCalculationResult,
+    ) => {
+      mockCalculateFees
+        .mockResolvedValueOnce(first)
+        .mockResolvedValueOnce(second);
+      const hook = renderHook(() =>
+        usePerpsCloseAllCalculations({
+          positions: twoPositions,
+          priceData: twoPrices,
+        }),
+      );
+      await waitFor(() => expect(hook.result.current.isLoading).toBe(false));
+      return hook.result;
+    };
+
+    it('attributes to subscription when the other position paid the default fee', async () => {
+      const result = await renderWithFees(subscriptionFees, defaultFees);
+
+      expect(result.current.feeSource).toBe('subscription');
+    });
+
+    it('attributes to rewards when the other position paid the default fee', async () => {
+      const result = await renderWithFees(defaultFees, rewardsFees);
+
+      expect(result.current.feeSource).toBe('rewards');
+    });
+
+    it('attributes to subscription when subscription and rewards both discounted', async () => {
+      const result = await renderWithFees(rewardsFees, subscriptionFees);
+
+      expect(result.current.feeSource).toBe('subscription');
+    });
+
+    it('ignores a rewards win that carried no discount', async () => {
+      const result = await renderWithFees(zeroRewardsFees, subscriptionFees);
+
+      expect(result.current.feeSource).toBe('subscription');
+    });
+
+    it('reports no source when no position was discounted', async () => {
+      const result = await renderWithFees(defaultFees, zeroRewardsFees);
+
+      expect(result.current.feeSource).toBeUndefined();
+    });
+  });
+
   describe('Points Estimation', () => {
     it('estimates points for single position with correct coin parameter', async () => {
       // Arrange

@@ -169,15 +169,16 @@ describe('FeesTooltipContent', () => {
       expect(queryByText(/as a VIP/)).toBeNull();
     });
 
-    it('shows the strikethrough original fee without a discount percentage', () => {
+    it('shows no badge, strikethrough or saving message without a discount percentage', () => {
       // Arrange & Act
-      const { getByTestId, getByText, queryByText } = render(
+      const { getByText, queryByTestId, queryByText } = render(
         <FeesTooltipContent testID="fees-tooltip" data={memberData} />,
       );
 
       // Assert
-      expect(getByTestId('rewards-member-badge')).toBeTruthy();
-      expect(getByText('1.000%')).toBeTruthy();
+      expect(queryByTestId('rewards-member-badge')).toBeNull();
+      expect(queryByTestId('rewards-vip-badge')).toBeNull();
+      expect(queryByText('1.000%')).toBeNull();
       expect(getByText('0.500%')).toBeTruthy();
       expect(queryByText(/saving/i)).toBeNull();
     });

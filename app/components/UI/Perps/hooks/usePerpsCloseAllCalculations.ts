@@ -33,8 +33,9 @@ export interface CloseAllCalculationsResult {
   /** Average fee discount percentage across all positions (undefined when unavailable) */
   avgFeeDiscountPercentage: number | undefined;
   /**
-   * Fee source when every position reports the same one. Undefined when they
-   * differ, so the summary does not badge a source that covers only part of the close.
+   * Fee source behind the summary discount, considering only positions whose
+   * fee was actually reduced. `subscription` when any position was, otherwise
+   * `rewards` when any position was, otherwise undefined.
    */
   feeSource: PerpsFeeSource | undefined;
   /** Average bonus multiplier in basis points (undefined when unavailable) */
@@ -368,16 +369,25 @@ export function usePerpsCloseAllCalculations({
       };
     }
 
-    // Badge the summary only when every position was priced from the same source.
-    const reportedSources = perPositionResults.map(
-      (result) => result.fees.feeSource,
-    );
-    const [firstSource] = reportedSources;
-    const sourcesAgree = reportedSources.every(
-      (source) => source === firstSource,
-    );
-    const feeSource: PerpsFeeSource | undefined =
-      sourcesAgree && firstSource !== undefined ? firstSource : undefined;
+    // Attribute the summary discount only to sources that actually reduced a
+    // position's fee; `default` and a 0% `rewards` win carry no discount.
+    const discountingSources = new Set<PerpsFeeSource>();
+    perPositionResults.forEach(({ fees }) => {
+      if (
+        fees.feeSource !== undefined &&
+        fees.feeSource !== 'default' &&
+        (fees.metamaskFeeDiscountBips ?? 0) > 0
+      ) {
+        discountingSources.add(fees.feeSource);
+      }
+    });
+    // Membership wins over VIP, matching RewardsVipBadge.
+    let feeSource: PerpsFeeSource | undefined;
+    if (discountingSources.has('subscription')) {
+      feeSource = 'subscription';
+    } else if (discountingSources.has('rewards')) {
+      feeSource = 'rewards';
+    }
 
     // Sum fees and points
     const totalFees = perPositionResults.reduce(

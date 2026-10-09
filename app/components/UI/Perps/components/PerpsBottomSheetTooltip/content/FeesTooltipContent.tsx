@@ -22,9 +22,9 @@ interface FeesTooltipContentProps extends TooltipContentProps {
     originalMetamaskFeeRate?: number;
     feeDiscountPercentage?: number;
     /**
-     * Winning source of the fee resolution. `subscription` renders the
-     * member badge; otherwise a positive `feeDiscountPercentage` renders
-     * the VIP badge.
+     * Winning source of the fee resolution. Only picks the badge and saving
+     * message variant shown when `feeDiscountPercentage` is positive:
+     * `subscription` shows the member variant, anything else the VIP one.
      */
     feeSource?: PerpsFeeSource;
     bridgeFeeFormatted?: string;

@@ -18,15 +18,16 @@ import {
 interface PerpsFeesDisplayProps {
   /**
    * MetaMask fee discount in whole percentage points. When defined and
-   * positive, a VIP badge is rendered and (if `originalFee` is also provided)
-   * the pre-discount fee is shown struck-through.
+   * positive, a discount badge (VIP or member, see `feeSource`) is rendered
+   * and (if `originalFee` is also provided) the pre-discount fee is shown
+   * struck-through.
    */
   feeDiscountPercentage?: number;
   /**
-   * Winning source of the fee resolution this quote was priced from.
-   * `subscription` renders the member badge; `rewards` (with a positive
-   * `feeDiscountPercentage`) renders the VIP badge instead. When omitted,
-   * the VIP badge falls back to `feeDiscountPercentage` alone.
+   * Winning source of the fee resolution this quote was priced from. Only
+   * picks the badge variant shown when `feeDiscountPercentage` is positive:
+   * `subscription` renders the member badge, anything else (or omitted) the
+   * VIP badge.
    */
   feeSource?: PerpsFeeSource;
   /**
