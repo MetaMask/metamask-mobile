@@ -477,7 +477,12 @@ describe('Lighter Scale through the Pro market screen', () => {
       );
       await act(async () => {
         mounted.stream.emitPrices({
-          ETH: { symbol: 'ETH', price: '2501', timestamp: Date.now() },
+          ETH: {
+            symbol: 'ETH',
+            price: '2501',
+            timestamp: Date.now(),
+            isTradable: true,
+          },
         });
       });
       expect(controller.getScalePriceLadder).toHaveBeenCalledTimes(
@@ -499,7 +504,12 @@ describe('Lighter Scale through the Pro market screen', () => {
       ).not.toHaveProperty('usdAmount');
       await act(async () => {
         mounted.stream.emitPrices({
-          ETH: { symbol: 'ETH', price: '2502', timestamp: Date.now() },
+          ETH: {
+            symbol: 'ETH',
+            price: '2502',
+            timestamp: Date.now(),
+            isTradable: true,
+          },
         });
       });
       const onAccountInvalidated = jest.fn();

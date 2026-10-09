@@ -1200,7 +1200,9 @@ export const usePerpsProOrderForm = ({
     const maxPrice = Number(scaleEndPrice);
     const count = Number(scaleTotalOrders);
     const skew = Number(scaleSizeSkew);
-    const exposure = new BigNumber(scaleBaseSize ?? scaleUsdAmount ?? '');
+    const amount = scaleBaseSize ?? scaleUsdAmount;
+    if (amount === undefined) return undefined;
+    const exposure = new BigNumber(amount);
     if (
       !isScaleOrder ||
       !scaleProviderId ||
@@ -1227,7 +1229,7 @@ export const usePerpsProOrderForm = ({
       providerId: scaleProviderId,
       sizing:
         scaleBaseSize === undefined
-          ? { usdAmount: scaleUsdAmount, skew }
+          ? { usdAmount: amount, skew }
           : { size: scaleBaseSize, skew },
     };
   }, [
