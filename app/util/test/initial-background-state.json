@@ -965,6 +965,7 @@
   "RampsController": {
     "autoramps": [],
     "userRegion": null,
+    "vbaAutorampListFetchedAt": null,
     "countries": {
       "data": [],
       "selected": null,
@@ -990,6 +991,7 @@
       "isLoading": false,
       "error": null
     },
+    "moneyAccountWalletRegistrations": [],
     "nativeProviders": {
       "transak": {
         "buyQuote": {
