@@ -45,16 +45,24 @@ export const qrSyncControllerInit: MessengerClientInitFunction<
     controller.importRemainingSecrets.bind(controller),
   );
   controllerMessenger.registerActionHandler(
-    'QrSyncController:enrichProvisioningEntry',
-    controller.enrichProvisioningEntry.bind(controller),
-  );
-  controllerMessenger.registerActionHandler(
     'QrSyncController:markProvisioningFailed',
     controller.markProvisioningFailed.bind(controller),
   );
   controllerMessenger.registerActionHandler(
     'QrSyncController:completeProvisioning',
     controller.completeProvisioning.bind(controller),
+  );
+  controllerMessenger.registerActionHandler(
+    'QrSyncController:resetState',
+    controller.resetState.bind(controller),
+  );
+  controllerMessenger.registerActionHandler(
+    'QrSyncController:handleScannedQrPayload',
+    controller.handleScannedQrPayload.bind(controller),
+  );
+  controllerMessenger.registerActionHandler(
+    'QrSyncController:hasPendingSecretImports',
+    controller.hasPendingSecretImports.bind(controller),
   );
 
   if (hasTestOverrides) {

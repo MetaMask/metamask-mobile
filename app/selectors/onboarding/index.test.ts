@@ -5,6 +5,7 @@ import {
   selectWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingStepsEligible,
   selectShouldShowWalletHomeOnboardingSteps,
+  selectPushNotificationOsPromptRequested,
 } from '.';
 import { RootState } from '../../reducers';
 import { AccountType } from '../../constants/onboarding';
@@ -39,6 +40,10 @@ describe('Onboarding selectors', () => {
     expect(
       selectOnboardingAccountType(stateWithoutAccountType),
     ).toBeUndefined();
+  });
+
+  it('returns undefined for selectOnboardingAccountType when onboarding is missing', () => {
+    expect(selectOnboardingAccountType({} as RootState)).toBeUndefined();
   });
 
   it('returns null for selectPendingSocialLoginMarketingConsentBackfill when not set', () => {
@@ -87,6 +92,28 @@ describe('Onboarding selectors', () => {
           suppressedReason: 'flow_completed',
         }),
       ).toBe(false);
+    });
+
+    it('selectPushNotificationOsPromptRequested is false when onboarding slice is missing', () => {
+      const state = {} as RootState;
+      expect(selectPushNotificationOsPromptRequested(state)).toBe(false);
+    });
+
+    it('selectPushNotificationOsPromptRequested is false for legacy state without the field', () => {
+      const state = {
+        onboarding: { completedOnboarding: true },
+      } as RootState;
+      expect(selectPushNotificationOsPromptRequested(state)).toBe(false);
+    });
+
+    it('selectPushNotificationOsPromptRequested is true once the OS push request happened', () => {
+      const state = {
+        onboarding: {
+          completedOnboarding: true,
+          pushNotificationOsPromptRequested: true,
+        },
+      } as RootState;
+      expect(selectPushNotificationOsPromptRequested(state)).toBe(true);
     });
 
     it('selectShouldShowWalletHomeOnboardingSteps is true when eligible and not suppressed', () => {

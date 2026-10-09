@@ -12,11 +12,11 @@ import { selectContractExchangeRatesByChainId } from '../../../../../selectors/t
 import { safeToChecksumAddress } from '../../../../../util/address';
 import {
   balanceToFiat,
-  hexToBN,
+  hexToBigInt,
   renderFromTokenMinimalUnit,
   renderFromWei,
   weiToFiat,
-} from '../../../../../util/number';
+} from '../../../../../util/number/bigint';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { getEvmHexChainId } from '../utils';
@@ -95,15 +95,15 @@ export default function useBalance(asset?: Asset) {
       return defaultReturn;
     }
 
-    balance = renderFromWei(
-      accountsByChainId[hexChainId][selectedAddress]?.balance,
-    );
+    const accountBalance =
+      accountsByChainId[hexChainId][selectedAddress]?.balance;
 
-    balanceBN = hexToBN(
-      accountsByChainId[hexChainId][selectedAddress]?.balance,
-    );
+    balance = renderFromWei(accountBalance);
 
-    balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);
+    // Legacy hexToBN(undefined) returned BN(0); preserve that for missing balances.
+    balanceBN = hexToBigInt(accountBalance ?? '0x0');
+
+    balanceFiat = weiToFiat(balanceBN, conversionRate ?? null, currentCurrency);
   } else if (asset.address) {
     const assetAddress = safeToChecksumAddress(asset.address);
     const exchangeRate = tokenExchangeRates?.[assetAddress as Hex]?.price;
@@ -125,7 +125,7 @@ export default function useBalance(asset?: Asset) {
     );
     balanceBN =
       assetAddress && chainBalances && assetAddress in chainBalances
-        ? hexToBN(chainBalances[assetAddress])
+        ? hexToBigInt(chainBalances[assetAddress])
         : null;
   }
 

@@ -1,0 +1,142 @@
+import {
+  Box,
+  BoxFlexDirection,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
+import React, { useCallback, useMemo } from 'react';
+import { strings } from '../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../util/haptics';
+import { getQuickBuyPercentPillTestId } from '../QuickBuySheet.testIds';
+import { useQuickBuyContext } from '../useQuickBuyContext';
+import { resolveSellQuickPercentages } from '../utils/quickBuyQuickAmounts';
+
+/**
+ * ButtonBase renders labels with `numberOfLines: 1` and `ellipsizeMode: 'clip'`
+ * — overflow is cut off with no ellipsis, so at large OS font scales a pill can
+ * silently lose part of its amount label.
+ *
+ * `maxFontSizeMultiplier: 1` pins the label to the size the four-pill row was
+ * designed around, so the OS text-size setting can no longer overflow it. The
+ * cap is deliberately one-directional: a user who picks a *smaller* system
+ * font still gets a smaller label, which only ever helps the fit.
+ *
+ * Per-`Text` auto-shrink (`adjustsFontSizeToFit`) is intentionally not used
+ * here — it sizes each label against its own pill, so one long amount in the
+ * row would render visibly smaller than its neighbours. `tail` replaces the
+ * inherited `clip` instead, so a label that somehow still overflows shows an
+ * ellipsis rather than a plausible-looking wrong number.
+ */
+const QUICK_AMOUNT_PILL_TEXT_PROPS = {
+  maxFontSizeMultiplier: 1,
+  numberOfLines: 1,
+  ellipsizeMode: 'tail',
+} as const;
+
+/**
+ * Shared quick-amount chrome.
+ * ButtonSize.Md (40px) matches the Figma height. `rounded-xl` is 12px, matching
+ * the keypad keys, and overrides ButtonBase's pill radius. px-2 overrides the
+ * default 16px horizontal padding so all four labels fit on one row without
+ * clipping.
+ */
+const QUICK_AMOUNT_PILL_PROPS = {
+  variant: ButtonVariant.Secondary,
+  size: ButtonSize.Md,
+  textProps: QUICK_AMOUNT_PILL_TEXT_PROPS,
+} as const;
+
+const QUICK_AMOUNT_PILL_TW_CLASS = 'min-w-0 flex-1 rounded-xl px-2';
+
+export interface QuickBuyQuickAmountsProps {
+  /** When true, appends a primary Done pill (keyboard-open row above the keypad). */
+  showDone?: boolean;
+  onDonePress?: () => void;
+}
+
+const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
+  showDone = false,
+  onDonePress,
+}) => {
+  const { playImpact } = useHaptics();
+  const {
+    sellQuickPercentages,
+    hasSourcePrice,
+    isSliderDisabled,
+    isMaxAmountAllowed,
+    handleSliderChange,
+    handleSliderDragEnd,
+    setIsKeypadOpen,
+  } = useQuickBuyContext();
+
+  const percentAmounts = useMemo(
+    () =>
+      resolveSellQuickPercentages(
+        sellQuickPercentages,
+        strings('social_leaderboard.quick_buy.max'),
+      ).filter((option) => isMaxAmountAllowed || option.percent < 100),
+    [sellQuickPercentages, isMaxAmountAllowed],
+  );
+
+  // Selecting a preset amount commits the value and dismisses the keypad. The
+  // keypad only returns when the user taps the amount headline (see
+  // QuickBuyAmount).
+  const dismissKeypad = useCallback(() => {
+    setIsKeypadOpen(false);
+  }, [setIsKeypadOpen]);
+
+  const handlePercentPress = useCallback(
+    (percent: number) => {
+      playImpact(ImpactMoment.QuickAmountSelection);
+      dismissKeypad();
+      if (!hasSourcePrice) {
+        handleSliderChange(percent);
+        return;
+      }
+      handleSliderChange(percent);
+      handleSliderDragEnd(percent);
+    },
+    [
+      dismissKeypad,
+      hasSourcePrice,
+      handleSliderChange,
+      handleSliderDragEnd,
+      playImpact,
+    ],
+  );
+
+  const doneButton =
+    showDone && onDonePress ? (
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Md}
+        onPress={onDonePress}
+        twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
+        textProps={QUICK_AMOUNT_PILL_TEXT_PROPS}
+        testID="quick-buy-keypad-done"
+      >
+        Done
+      </Button>
+    ) : null;
+
+  return (
+    <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 py-1">
+      {percentAmounts.map((option) => (
+        <Button
+          key={option.percent}
+          {...QUICK_AMOUNT_PILL_PROPS}
+          onPress={() => handlePercentPress(option.percent)}
+          isDisabled={isSliderDisabled}
+          twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
+          testID={getQuickBuyPercentPillTestId(option.percent)}
+        >
+          {option.label}
+        </Button>
+      ))}
+      {doneButton}
+    </Box>
+  );
+};
+
+export default QuickBuyQuickAmounts;

@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectIsAssetsUnifyStateEnabled } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import { removeEvmToken, removeNonEvmToken } from '../util';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { getDecimalChainId } from '../../../../util/networks';
@@ -25,10 +24,6 @@ export const useRemoveToken = () => {
   const currentChainId = useSelector(selectChainId);
   const selectInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
-  );
-
-  const isAssetsUnifyStateEnabled = useSelector(
-    selectIsAssetsUnifyStateEnabled,
   );
 
   const [removeTokenState, setRemoveTokenState] = useState<RemoveTokenState>({
@@ -70,9 +65,7 @@ export const useRemoveToken = () => {
         });
       }
 
-      if (isAssetsUnifyStateEnabled) {
-        handleHideToken();
-      }
+      handleHideToken();
     }
 
     // Defer the state reset until after the async operations and handleHideToken()
@@ -86,7 +79,6 @@ export const useRemoveToken = () => {
     trackEvent,
     createEventBuilder,
     selectInternalAccountByScope,
-    isAssetsUnifyStateEnabled,
     handleHideToken,
   ]);
 

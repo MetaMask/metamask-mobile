@@ -1,5 +1,6 @@
 import '../../../../tests/component-view/mocks';
 import {
+  renderWalletHomepageSearch,
   renderWalletView,
   renderWalletViewWithRoutes,
 } from '../../../../tests/component-view/renderers/wallet';
@@ -8,14 +9,91 @@ import { renderComponentViewScreen } from '../../../../tests/component-view/rend
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { MoneyBalanceCardTestIds } from '../../UI/Money/components/MoneyBalanceCard/MoneyBalanceCard.testIds';
 import { WalletHomeOnboardingStepsSelectors } from '../../UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.testIds';
-import { WALLET_HOME_ONBOARDING_VISIBLE_STEPS } from '../../UI/WalletHomeOnboardingSteps/walletHomeOnboardingStepsModel';
+import { walletHomeOnboardingVisibleSteps } from '../../UI/WalletHomeOnboardingSteps/walletHomeOnboardingStepsModel';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import Routes from '../../../constants/navigation/Routes';
+import ClipboardManager from '../../../core/ClipboardManager';
+// eslint-disable-next-line import-x/no-restricted-paths -- test-only reset for the homepage paste module state
+import { resetHomepageSearchPasteStateForTests } from '../TrendingView/search/useHomepageSearchPaste';
+import {
+  clearTrendingApiMocks,
+  mockRwaTokensData,
+  mockTrendingTokensData,
+  setupTrendingApiFetchMock,
+} from '../../../../tests/component-view/api-mocking/trending';
+import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
+import { strings } from '../../../../locales/i18n';
 import Wallet from './index';
 import React from 'react';
 
+const PASTED_ADDRESS = '0x1111111111111111111111111111111111111111';
+// Kept local so this Wallet view test does not import the Trending route module.
+const HOMEPAGE_SEARCH_AB_KEY = 'homeTMCU1384AbtestHomepageSearch';
+
+const walletHomeOverrides = (variant?: 'control' | 'treatment') => ({
+  overrides: {
+    settings: {
+      basicFunctionalityEnabled: true,
+    },
+    engine: {
+      backgroundState: {
+        MultichainNetworkController: {
+          isEvmSelected: true,
+        },
+        EarnController: {
+          pooled_staking: { isEligible: false },
+          lending: { positions: [], markets: [] },
+        },
+        RewardsController: {
+          activeAccount: null,
+        },
+        PreferencesController: {
+          tokenSortConfig: {
+            key: 'tokenFiatAmount',
+            order: 'dsc',
+            sortCallback: 'stringNumeric',
+          },
+        },
+        ...(variant
+          ? {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [HOMEPAGE_SEARCH_AB_KEY]: variant,
+                },
+              },
+            }
+          : {}),
+      },
+    },
+  } as unknown as Record<string, unknown>,
+});
+
+const restoreHomepageSearchClipboard = () => {
+  jest.mocked(Clipboard.hasString).mockReset();
+  jest
+    .mocked(Clipboard.hasString)
+    .mockImplementation(() => Promise.resolve(false));
+  jest.mocked(Clipboard.getString).mockReset();
+  jest
+    .mocked(Clipboard.getString)
+    .mockImplementation(() => Promise.resolve(''));
+  jest.mocked(Clipboard.setString).mockReset();
+  resetHomepageSearchPasteStateForTests();
+};
+
 describeForPlatforms('Wallet', () => {
+  beforeEach(() => {
+    // Clipboard mocks and consumed paste revisions are module singletons
+    // shared by the iOS and Android suites in this file.
+    restoreHomepageSearchClipboard();
+  });
+
+  afterEach(() => {
+    restoreHomepageSearchClipboard();
+  });
+
   it('renders wallet home with minimal state and shows key UI elements', () => {
     const { getByTestId } = renderWalletView({
       overrides: {
@@ -26,6 +104,10 @@ describeForPlatforms('Wallet', () => {
           backgroundState: {
             MultichainNetworkController: {
               isEvmSelected: true,
+            },
+            EarnController: {
+              pooled_staking: { isEligible: false },
+              lending: { positions: [], markets: [] },
             },
             RewardsController: {
               activeAccount: null,
@@ -76,6 +158,10 @@ describeForPlatforms('Wallet', () => {
             MultichainNetworkController: {
               isEvmSelected: true,
             },
+            EarnController: {
+              pooled_staking: { isEligible: false },
+              lending: { positions: [], markets: [] },
+            },
             RewardsController: {
               activeAccount: null,
             },
@@ -100,6 +186,121 @@ describeForPlatforms('Wallet', () => {
     ).toBeOnTheScreen();
   });
 
+  it('opens Explore search from the control header without a paste action', async () => {
+    jest.mocked(Clipboard.hasString).mockResolvedValue(true);
+
+    const { getByTestId, findByTestId, queryByTestId } =
+      renderWalletViewWithRoutes({
+        extraRoutes: [{ name: Routes.EXPLORE_SEARCH }],
+        ...walletHomeOverrides('control'),
+      });
+
+    const searchButton = getByTestId(
+      WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON,
+    );
+
+    expect(searchButton).toHaveAccessibleName(
+      strings('wallet.search_accessibility_label'),
+    );
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_CLIPBOARD_BUTTON),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(searchButton);
+
+    expect(
+      await findByTestId(`route-${Routes.EXPLORE_SEARCH}`),
+    ).toBeOnTheScreen();
+    expect(Clipboard.hasString).not.toHaveBeenCalled();
+  });
+
+  it('opens Explore search from the treatment header when the clipboard is empty', async () => {
+    let resolveHasString: (hasClipboardString: boolean) => void = () =>
+      undefined;
+    const hasString = new Promise<boolean>((resolve) => {
+      resolveHasString = resolve;
+    });
+    jest.mocked(Clipboard.hasString).mockReturnValue(hasString);
+
+    const { getByTestId, findByTestId, queryByTestId } =
+      renderWalletViewWithRoutes({
+        extraRoutes: [{ name: Routes.EXPLORE_SEARCH }],
+        ...walletHomeOverrides('treatment'),
+      });
+
+    const searchButton = getByTestId(
+      WalletViewSelectorsIDs.HOMEPAGE_SEARCH_BUTTON,
+    );
+
+    await waitFor(() => {
+      expect(Clipboard.hasString).toHaveBeenCalled();
+    });
+
+    await act(async () => {
+      resolveHasString(false);
+      await hasString;
+    });
+
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_CLIPBOARD_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(searchButton).toHaveAccessibleName(
+      strings('wallet.homepage_search_placeholder'),
+    );
+
+    fireEvent.press(searchButton);
+
+    expect(
+      await findByTestId(`route-${Routes.EXPLORE_SEARCH}`),
+    ).toBeOnTheScreen();
+  });
+
+  it('pastes the clipboard address into Explore search and loads that result', async () => {
+    setupTrendingApiFetchMock(
+      mockTrendingTokensData,
+      undefined,
+      mockRwaTokensData,
+      [
+        {
+          assetId: `eip155:1/erc20:${PASTED_ADDRESS}`,
+          name: 'Clipboard Token',
+          symbol: 'CLIP',
+          decimals: 18,
+          price: '1.00',
+        },
+      ],
+    );
+
+    try {
+      await ClipboardManager.setString(PASTED_ADDRESS);
+      jest.mocked(Clipboard.hasString).mockResolvedValue(true);
+      jest.mocked(Clipboard.getString).mockResolvedValue(PASTED_ADDRESS);
+
+      const { findByTestId, findByText, findByDisplayValue, queryByTestId } =
+        renderWalletHomepageSearch(walletHomeOverrides('treatment'));
+
+      fireEvent.press(
+        await findByTestId(
+          WalletViewSelectorsIDs.HOMEPAGE_SEARCH_CLIPBOARD_BUTTON,
+        ),
+      );
+
+      expect(await findByDisplayValue(PASTED_ADDRESS)).toBeOnTheScreen();
+      expect(await findByText('Clipboard Token')).toBeOnTheScreen();
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_CLIPBOARD_BUTTON),
+      ).not.toBeOnTheScreen();
+    } finally {
+      clearTrendingApiMocks();
+    }
+  });
+
   const defaultWalletOverrides = {
     overrides: {
       settings: {
@@ -109,6 +310,10 @@ describeForPlatforms('Wallet', () => {
         backgroundState: {
           MultichainNetworkController: {
             isEvmSelected: true,
+          },
+          EarnController: {
+            pooled_staking: { isEligible: false },
+            lending: { positions: [], markets: [] },
           },
           RewardsController: {
             activeAccount: null,
@@ -135,12 +340,19 @@ describeForPlatforms('Wallet', () => {
     fireEvent.press(addressCopyButton);
   });
 
-  it('account picker in header is pressable', () => {
-    const { getByTestId } = renderWalletView(defaultWalletOverrides);
+  it('opens the account selector when the account picker is pressed', async () => {
+    const { getByTestId, findByTestId } = renderWalletViewWithRoutes({
+      extraRoutes: [{ name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR }],
+      ...defaultWalletOverrides,
+    });
 
-    const accountPicker = getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON);
-    expect(accountPicker).toBeOnTheScreen();
-    fireEvent.press(accountPicker);
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
+
+    expect(
+      await findByTestId(
+        `route-${Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR}`,
+      ),
+    ).toBeOnTheScreen();
   });
 
   const walletStateOverrides = {
@@ -151,6 +363,10 @@ describeForPlatforms('Wallet', () => {
       backgroundState: {
         MultichainNetworkController: {
           isEvmSelected: true,
+        },
+        EarnController: {
+          pooled_staking: { isEligible: false },
+          lending: { positions: [], markets: [] },
         },
         RewardsController: {
           activeAccount: null,
@@ -176,7 +392,7 @@ describeForPlatforms('Wallet', () => {
     return renderComponentViewScreen(
       Wallet as unknown as React.ComponentType,
       { name: Routes.WALLET_VIEW },
-      { state },
+      { state, routeMessenger: createMockRouteMessenger() },
     );
   };
 
@@ -289,7 +505,11 @@ describeForPlatforms('Wallet', () => {
     });
 
     it('shows the Money balance card after the user skips the last checklist step', () => {
-      const lastStepIndex = WALLET_HOME_ONBOARDING_VISIBLE_STEPS.length - 1;
+      // This preset leaves `pushNotificationOsPromptRequested` unset, so the notifications
+      // step is part of the flow (TMCU-924).
+      const lastStepIndex =
+        walletHomeOnboardingVisibleSteps({ includeNotificationsStep: true })
+          .length - 1;
       const { getByTestId, queryByTestId } = renderMoneyAccountVisibleWallet({
         walletHomeOnboardingSteps: {
           suppressedReason: null,

@@ -78,7 +78,6 @@ jest.mock('@react-navigation/native-stack', () => {
   };
 });
 
-// Mock LockManagerService - must use inline jest.fn() to avoid hoisting issues
 jest.mock('../../../../core/LockManagerService', () => ({
   __esModule: true,
   default: {
@@ -86,13 +85,6 @@ jest.mock('../../../../core/LockManagerService', () => ({
     startListening: jest.fn(),
   },
 }));
-
-// Get references to the mock functions for assertions
-const mockLockManagerService = jest.requireMock(
-  '../../../../core/LockManagerService',
-).default;
-const mockStopListening = mockLockManagerService.stopListening;
-const mockStartListening = mockLockManagerService.startListening;
 
 // Mock navigation components
 jest.mock('../components/Onboarding/SignUp', () => 'SignUp');
@@ -1057,51 +1049,6 @@ describe('OnboardingNavigator', () => {
       expect(stackNavigator?.props.initialRouteName).toBe(
         Routes.CARD.ONBOARDING.VERIFYING_VERIFF_KYC,
       );
-    });
-  });
-
-  describe('Auto-lock Management', () => {
-    beforeEach(() => {
-      mockStopListening.mockClear();
-      mockStartListening.mockClear();
-    });
-
-    it('disables auto-lock when component mounts', () => {
-      mockUseSelector.mockReturnValue(null);
-      mockUseCardSDK.mockReturnValue({
-        user: null,
-        isLoading: false,
-        sdk: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
-        fetchUserData: jest.fn(),
-        isReturningSession: false,
-      });
-
-      renderWithNavigation(<OnboardingNavigator />);
-
-      expect(mockStopListening).toHaveBeenCalledTimes(1);
-    });
-
-    it('re-enables auto-lock when component unmounts', () => {
-      mockUseSelector.mockReturnValue(null);
-      mockUseCardSDK.mockReturnValue({
-        user: null,
-        isLoading: false,
-        sdk: null,
-        setUser: jest.fn(),
-        logoutFromProvider: jest.fn(),
-        fetchUserData: jest.fn(),
-        isReturningSession: false,
-      });
-
-      const { unmount } = renderWithNavigation(<OnboardingNavigator />);
-
-      expect(mockStartListening).not.toHaveBeenCalled();
-
-      unmount();
-
-      expect(mockStartListening).toHaveBeenCalledTimes(1);
     });
   });
 

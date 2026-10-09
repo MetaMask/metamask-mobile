@@ -182,6 +182,10 @@ export function usePredictPlaceOrder(
 
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
+      // Disable the CTA before the pre-submit balance refresh.
+      setIsLoading(true);
+      setError(undefined);
+
       const { side } = orderParams.preview;
 
       const buyTotalAmount =
@@ -204,6 +208,7 @@ export function usePredictPlaceOrder(
 
       // Check if user has sufficient balance for the bet amount
       if (side === Side.BUY && latestBalance < buyTotalAmount) {
+        setIsLoading(false);
         if (isDepositPending) {
           toastRef?.current?.showToast({
             variant: ToastVariants.Icon,
@@ -240,9 +245,6 @@ export function usePredictPlaceOrder(
       }
 
       try {
-        setIsLoading(true);
-        setError(undefined);
-
         const orderResult = await withPendingTransactionActiveAbTests(
           transactionActiveAbTests,
           () =>

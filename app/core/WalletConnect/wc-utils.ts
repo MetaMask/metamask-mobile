@@ -16,6 +16,7 @@ import { parseRelayParams } from '@walletconnect/utils';
 import qs from 'qs';
 import Routes from '../../../app/constants/navigation/Routes';
 import { store } from '../../../app/store';
+import type { WC2Metadata } from '../../actions/sdk/state';
 import {
   selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -468,3 +469,18 @@ export const isEIP155Scope = (scope: CaipChainId): boolean => {
   const { namespace } = parseCaipChainId(scope);
   return isEIP155NameSpace(namespace);
 };
+
+/**
+ * Whether a permission-request origin belongs to the active WalletConnect flow.
+ *
+ * `wc2Metadata.id` stores the WC pairing topic (permission origin), not the
+ * dapp URL. Stale metadata must not classify unrelated in-app browser requests
+ * as WalletConnect.
+ */
+export const isWalletConnectPermissionOrigin = (
+  origin: string,
+  wc2Metadata?: Partial<WC2Metadata>,
+): boolean =>
+  Boolean(
+    wc2Metadata?.id && wc2Metadata.id.length > 0 && origin === wc2Metadata.id,
+  );

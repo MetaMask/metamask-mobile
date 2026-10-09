@@ -1,10 +1,11 @@
-import { ACTIONS, PROTOCOLS } from '../../../constants/deeplinks';
+import { ACTIONS, PREFIXES, PROTOCOLS } from '../../../constants/deeplinks';
 import Device from '../../../util/device';
 import ReduxService from '../../redux';
 import { isE2EOrExpEnvironment } from '../../../util/test/utils';
 import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
 import { OAUTH_CONFIG } from './config';
+import { buildTypeMapping, resolveOAuthConfigKey } from './oauthBuildType';
 import { Env as ProfileSyncEnv } from '@metamask/profile-sync-controller/sdk';
 import {
   DEFAULT_LEGACY_IOS_GOOGLE_CONFIG_ENABLED,
@@ -14,53 +15,14 @@ import {
 export const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
-/**
- * Mapping of old Build Type to new BuildType formatting for oauth config
- * Main -> main_prod
- * QA -> main_uat
- * Debug -> main_dev
- * flask -> flask_prod
- * flask QA -> flask_uat
- * flask Debug -> flask_dev
- *
- * new build types
- * main_beta -> main_prod
- * main_rc -> main_prod
- *
- * @param buildType - The build type to map
- * @param isDev - Whether the build is a development build
- * @returns The mapped build type
- */
-const buildTypeMapping = (buildType: string, isDev: boolean) => {
-  switch (buildType) {
-    case 'qa':
-      return 'main_uat';
-    case 'main':
-      return isE2EOrExpEnvironment
-        ? 'main_uat'
-        : isDev
-          ? 'main_dev'
-          : 'main_prod';
-    case 'flask':
-      return isE2EOrExpEnvironment
-        ? 'flask_uat'
-        : isDev
-          ? 'flask_dev'
-          : 'flask_prod';
-    default:
-      return 'development';
-  }
-};
-
-const BuildType = buildTypeMapping(
-  AppConstants.METAMASK_BUILD_TYPE || 'main',
-  AppConstants.IS_DEV || process.env.METAMASK_ENVIRONMENT === 'dev',
-);
+/** OAuth config key: env override or build-type mapping */
+const BuildType = resolveOAuthConfigKey();
 
 export const getBuildType = () =>
   buildTypeMapping(
     AppConstants.METAMASK_BUILD_TYPE || 'main',
     AppConstants.IS_DEV || process.env.METAMASK_ENVIRONMENT === 'dev',
+    isE2EOrExpEnvironment,
   );
 
 const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG[BuildType];
@@ -96,8 +58,10 @@ export const AppleWebClientId = CURRENT_OAUTH_CONFIG.ANDROID_APPLE_CLIENT_ID;
 
 // Use universal link for OAuth redirect
 export const GoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
-export const AppRedirectUri = GoogleRedirectUri;
-export const TelegramRedirectUri = AppRedirectUri;
+export const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH_REDIRECT}`;
+export const TelegramRedirectUri = Device.isAndroid()
+  ? `${PROTOCOLS.METAMASK}://${ACTIONS.OAUTH_REDIRECT}`
+  : AppRedirectUri;
 export const AppleServerRedirectUri = `${CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL}/api/v1/oauth/callback`;
 
 export const shouldUseLegacyIosGoogleConfig = () => {

@@ -16,7 +16,11 @@ import { selectSelectedInternalAccountAddress } from '../../../../../selectors/a
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
-export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
+export function useTokenWithBalance(
+  tokenAddress: Hex,
+  chainId: Hex,
+  accountAddress?: Hex,
+) {
   const transactionMeta = useTransactionMetadataRequest();
   const fromAddress = transactionMeta?.txParams?.from as Hex | undefined;
 
@@ -30,7 +34,7 @@ export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
     (internalAccounts.find((a) => a.type === 'eip155:eoa')?.address as Hex) ??
     selectedAddress;
 
-  const selectedEvmAddress = fromAddress ?? globalEvmAddress;
+  const selectedEvmAddress = accountAddress ?? fromAddress ?? globalEvmAddress;
 
   const fiatFormatter = useFiatFormatter();
   const nativeTokenAddress = getNativeTokenAddress(chainId);

@@ -1,7 +1,9 @@
 import React from 'react';
 import { View } from 'react-native';
 
-import Badge from '../../../../component-library/components/Badges/Badge';
+import Badge, {
+  BadgeVariant,
+} from '../../../../component-library/components/Badges/Badge';
 import Avatar, { AvatarVariant } from '../../../components/Avatars/Avatar';
 import BadgeWrapper from '../../../components/Badges/BadgeWrapper';
 import Text, { TextVariant } from '../../../components/Texts/Text';
@@ -27,7 +29,12 @@ const AccountBase = ({
   <View style={styles.body} testID={ACCOUNT_BASE_TEST_ID}>
     <View style={styles.container}>
       <BadgeWrapper
-        badgeElement={<Badge {...badgeProps} />}
+        badgeElement={
+          badgeProps.variant !== BadgeVariant.Network ||
+          badgeProps.imageSource ? (
+            <Badge {...badgeProps} />
+          ) : undefined
+        }
         style={styles.badgeWrapper}
         testID={ACCOUNT_BALANCE_AVATAR_TEST_ID}
       >

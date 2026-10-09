@@ -1,6 +1,6 @@
 # Perps Screens & Views Documentation
 
-Complete architectural reference for all 17 Perps screens in MetaMask Mobile.
+Complete architectural reference for all 18 Perps screens in MetaMask Mobile.
 
 ## Table of Contents
 
@@ -9,18 +9,19 @@ Complete architectural reference for all 17 Perps screens in MetaMask Mobile.
 3. [PerpsMarketListView](#perpsmarketlistview) - Market browser
 4. [PerpsMarketDetailsView](#perpsmarketdetailsview) - Market detail
 5. [PerpsOrderView](#perpsorderview) - Order entry
-6. [PerpsPositionsView](#perpspositionsview) - Positions list
-7. [PerpsClosePositionView](#perpsclosepositio nview) - Close position
-8. [PerpsAdjustMarginView](#perpsadjustmarginview) - Adjust margin
-9. [PerpsCloseAllPositionsView](#perpsclosealpositionsview) - Close all
-10. [PerpsCancelAllOrdersView](#perpcancelallordersview) - Cancel all
-11. [PerpsTPSLView](#perpstpslview) - TP/SL management
-12. [PerpsTransactionsView](#perpstransactionsview) - Transaction history
-13. [PerpsWithdrawView](#perpswithdrawview) - Withdrawal
-14. [PerpsHeroCardView](#perpsherocardview) - Hero cards
-15. [PerpsEmptyState](#perpsemptystate) - Empty states
-16. [PerpsRedirect](#perpsredirect) - Routing logic
-17. [HIP3DebugView](#hip3debugview) - Debug tools
+6. [PerpsBalanceOrderView](#perpsbalanceorderview) - Funded Lighter order entry
+7. [PerpsPositionsView](#perpspositionsview) - Positions list
+8. [PerpsClosePositionView](#perpsclosepositio nview) - Close position
+9. [PerpsAdjustMarginView](#perpsadjustmarginview) - Adjust margin
+10. [PerpsCloseAllPositionsView](#perpsclosealpositionsview) - Close all
+11. [PerpsCancelAllOrdersView](#perpcancelallordersview) - Cancel all
+12. [PerpsTPSLView](#perpstpslview) - TP/SL management
+13. [PerpsTransactionsView](#perpstransactionsview) - Transaction history
+14. [PerpsWithdrawView](#perpswithdrawview) - Withdrawal
+15. [PerpsHeroCardView](#perpsherocardview) - Hero cards
+16. [PerpsEmptyState](#perpsemptystate) - Empty states
+17. [PerpsRedirect](#perpsredirect) - Routing logic
+18. [HIP3DebugView](#hip3debugview) - Debug tools
 
 ---
 
@@ -205,9 +206,11 @@ usePerpsMarketStats → Statistics
 usePerpsPositionData → Existing position
 usePerpsDataMonitor → Data consistency
     ↓
-Render: Chart + Stats + Tabs
+Render: Chart (position TP/SL/liq plus resting Limit lines) + Stats + Tabs
     ↓
 User actions:
+  ├─ Chart overlay: Entry / TP / SL / Liq from the open position, plus
+     a Limit line per resting (non-trigger) limit order
   ├─ Trade → PerpsOrderView
   ├─ Manage position → PerpsClosePositionView or PerpsTPSLView
   └─ View orders → Market orders tab
@@ -288,7 +291,71 @@ User action:
 
 ---
 
-## PerpsPositionsView
+## PerpsBalanceOrderView
+
+**Location:** `app/components/UI/Perps/Views/PerpsBalanceOrderView/PerpsBalanceOrderView.tsx`
+
+### Purpose & User Journey
+
+Feature-gated Lighter order entry for users with an existing venue balance. It reuses the Pro order form without creating a deposit transaction or changing the user's Lite/Pro preference.
+
+### Navigation
+
+- **Route:** `Routes.PERPS.BALANCE_ORDER`
+- **From:** Lite market Long/Short actions and the token-details order redirect when Lighter is active
+- **Params:** Standard `PerpsOrderRouteParams`, including direction, asset, optional provider ID, source, and optional limit price
+- **Back:** Returns to the previous Lite or token-details screen
+
+### testIDs
+
+| Constant                                      | testID                      |
+| --------------------------------------------- | --------------------------- |
+| `PerpsBalanceOrderViewSelectorsIDs.CONTAINER` | `perps-balance-order`       |
+| `PerpsBalanceOrderViewSelectorsIDs.BACK`      | `perps-balance-order-back`  |
+| `PerpsBalanceOrderViewSelectorsIDs.ERROR`     | `perps-balance-order-error` |
+
+---
+
+## Pro mode — open order edit (TAT-3642)
+
+**Location:** `app/components/UI/Perps/Views/PerpsProMarketView/` (orders tab within Pro market view)
+
+### Purpose & User Journey
+
+In Perps Pro mode, users can edit the **limit price** or **size** of eligible open limit orders in place (venue `modify`, not cancel+replace). Tapping the price/size row or the Edit button opens a bottom sheet; confirm applies an optimistic patch, calls `editOrder`, and rolls back on failure.
+
+### Key Components Used
+
+| Component                    | Purpose                                                                                          |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ |
+| `PerpsProOrderCard`          | Order row with tappable price/size rows and edit affordances                                     |
+| `PerpsProOrderEditSheets`    | Renders limit-price or size sheet from shared edit state                                         |
+| `PerpsLimitPriceBottomSheet` | Limit price keypad (also used by `PerpsOrderView`; resting-order margin validation when editing) |
+| `PerpsOrderSizeBottomSheet`  | Size keypad with minimum-notional and incremental-margin checks                                  |
+
+### Hooks Consumed
+
+| Hook                               | Purpose                                                   |
+| ---------------------------------- | --------------------------------------------------------- |
+| `usePerpsProOrderEdit`             | Sheet state, confirm handler, optimistic apply/rollback   |
+| `usePerpsProPositionsPanelActions` | Wires panel handlers and portal `renderOrderEditSheets()` |
+
+### testIDs (`Perps.testIds.ts`)
+
+| Constant                                                | testID                              |
+| ------------------------------------------------------- | ----------------------------------- |
+| `PerpsProMarketViewSelectorsIDs.ORDER_EDIT`             | `perps-pro-market-order-edit`       |
+| `PerpsProMarketViewSelectorsIDs.ORDER_PRICE_EDIT`       | `perps-pro-market-order-price-edit` |
+| `PerpsProMarketViewSelectorsIDs.ORDER_SIZE_EDIT`        | `perps-pro-market-order-size-edit`  |
+| `PerpsOrderSizeBottomSheetSelectorsIDs.SIZE_DISPLAY`    | `perps-order-size-display`          |
+| `PerpsOrderSizeBottomSheetSelectorsIDs.CONFIRM_BUTTON`  | `perps-order-size-confirm-button`   |
+| `PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON` | `perps-limit-price-confirm-button`  |
+
+### Eligibility
+
+`isLimitOrderEditable` — open, unfilled, non-trigger limits only. Size edit is additionally blocked when TP/SL children are attached.
+
+---
 
 **Location:** `app/components/UI/Perps/Views/PerpsPositionsView/PerpsPositionsView.tsx`
 

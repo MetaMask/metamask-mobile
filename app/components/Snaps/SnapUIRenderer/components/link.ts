@@ -1,6 +1,7 @@
 import { LinkElement, JSXElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { NonEmptyArray } from '@metamask/utils';
+import { TextColor } from '@metamask/design-system-react-native';
 import { mapTextToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
 
@@ -8,8 +9,6 @@ export const link: UIComponentFactory<LinkElement> = ({
   element: e,
   ...params
 }) => {
-  const linkColor = params.theme.colors.info.default;
-
   const processedChildren = getJsxChildren(e).map((child) => {
     if (typeof child === 'string') {
       return child;
@@ -32,7 +31,7 @@ export const link: UIComponentFactory<LinkElement> = ({
     element: 'SnapUILink',
     children: mapTextToTemplate(
       processedChildren as NonEmptyArray<string | JSXElement>,
-      { ...params, textColor: linkColor },
+      { ...params, textColor: TextColor.PrimaryDefault },
     ),
     props: {
       href: e.props.href,

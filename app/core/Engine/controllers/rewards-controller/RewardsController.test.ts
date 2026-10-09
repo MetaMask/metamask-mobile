@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { waitFor } from '@testing-library/react-native';
 import {
   RewardsController,
   getRewardsControllerDefaultState,
@@ -172,6 +173,10 @@ const mockSignBitcoinRewardsMessage =
 const mockSignTronRewardsMessage =
   signTronRewardsMessage as jest.MockedFunction<typeof signTronRewardsMessage>;
 const MockRewardsDataServiceClass = jest.mocked(RewardsDataService);
+
+// Fixed reference instant for test data, so timestamps never depend on the
+// wall clock (Date.now() is mocked, new Date() is not).
+const FIXED_NOW_ISO = '2024-06-01T12:00:00.000Z';
 
 // Test constants - CAIP-10 format addresses
 const CAIP_ACCOUNT_1: CaipAccountId = 'eip155:1:0x123' as CaipAccountId;
@@ -393,6 +398,7 @@ describe('RewardsController', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.resetAllMocks();
     jest.restoreAllMocks();
   });
@@ -1565,9 +1571,16 @@ describe('RewardsController', () => {
   });
 
   describe('addPointsEstimateToHistory', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     it('adds entry to history with basic request/response fields', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request = {
@@ -1591,13 +1604,10 @@ describe('RewardsController', () => {
       expect(entry.requestAccount).toBe(CAIP_ACCOUNT_1);
       expect(entry.responsePointsEstimate).toBe(100);
       expect(entry.responseBonusBips).toBe(200);
-
-      jest.useRealTimers();
     });
 
     it('flattens swap context fields into history entry', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const mockSwapContext = {
@@ -1646,13 +1656,10 @@ describe('RewardsController', () => {
       expect(entry.requestSwapFeeAssetId).toBe('eip155:1/slip44:60');
       expect(entry.requestSwapFeeAssetAmount).toBe('5000000000000000');
       expect(entry.requestSwapFeeAssetUsdPrice).toBe('2500.00');
-
-      jest.useRealTimers();
     });
 
     it('flattens single perps context fields into history entry', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const mockPerpsContext = {
@@ -1681,13 +1688,10 @@ describe('RewardsController', () => {
       expect(entry.requestPerpsType).toBe('CLOSE_POSITION');
       expect(entry.requestPerpsCoin).toBe('BTC');
       expect(entry.requestPerpsUsdFeeValue).toBe('15.75');
-
-      jest.useRealTimers();
     });
 
     it('excludes perps context fields when perpsContext is an array', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const mockPerpsContextArray = [
@@ -1727,13 +1731,10 @@ describe('RewardsController', () => {
       // Basic fields should still be present
       expect(entry.requestActivityType).toBe('PERPS');
       expect(entry.responsePointsEstimate).toBe(300);
-
-      jest.useRealTimers();
     });
 
     it('flattens predict context fields into history entry', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request = {
@@ -1762,13 +1763,10 @@ describe('RewardsController', () => {
       expect(entry.requestPredictFeeAssetId).toBe('eip155:8453/slip44:60');
       expect(entry.requestPredictFeeAssetAmount).toBe('1000000000000000');
       expect(entry.requestPredictFeeAssetUsdPrice).toBe('2500.00');
-
-      jest.useRealTimers();
     });
 
     it('flattens shield context fields into history entry', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request = {
@@ -1797,13 +1795,10 @@ describe('RewardsController', () => {
       expect(entry.requestShieldFeeAssetId).toBe('eip155:1/slip44:60');
       expect(entry.requestShieldFeeAssetAmount).toBe('2000000000000000');
       expect(entry.requestShieldFeeAssetUsdPrice).toBe('2500.00');
-
-      jest.useRealTimers();
     });
 
     it('limits history to 50 entries', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request = {
@@ -1824,13 +1819,10 @@ describe('RewardsController', () => {
       }
 
       expect(controller.state.pointsEstimateHistory).toHaveLength(50);
-
-      jest.useRealTimers();
     });
 
     it('adds new entries at the beginning (most recent first)', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request1 = {
@@ -1873,13 +1865,10 @@ describe('RewardsController', () => {
       expect(entries[1].timestamp).toBe(now);
       expect(entries[1].requestActivityType).toBe('SWAP');
       expect(entries[1].responsePointsEstimate).toBe(100);
-
-      jest.useRealTimers();
     });
 
     it('preserves oldest entries within limit when trimming', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request = {
@@ -1909,8 +1898,6 @@ describe('RewardsController', () => {
       // Oldest kept entry should be the 6th one added (indices 5-54 are kept)
       expect(entries[49].responsePointsEstimate).toBe(6);
       expect(entries[49].timestamp).toBe(now + 5);
-
-      jest.useRealTimers();
     });
   });
 
@@ -2070,7 +2057,7 @@ describe('RewardsController', () => {
           cursor: null,
         };
 
-        const now = new Date();
+        const now = new Date(FIXED_NOW_ISO);
         const olderTimestamp = new Date(now.getTime() - 5000); // 5 seconds ago
         const newerTimestamp = new Date(now.getTime() - 1000); // 1 second ago
 
@@ -2138,7 +2125,7 @@ describe('RewardsController', () => {
           cursor: null,
         };
 
-        const now = new Date();
+        const now = new Date(FIXED_NOW_ISO);
         const olderTimestamp = new Date(now.getTime() - 5000); // 5 seconds ago
         const newerTimestamp = new Date(now.getTime() - 1000); // 1 second ago
 
@@ -2204,11 +2191,11 @@ describe('RewardsController', () => {
             {
               id: 'event-1',
               type: 'SWAP' as const,
-              timestamp: new Date(),
+              timestamp: new Date(FIXED_NOW_ISO),
               value: 50,
               bonus: { bips: 0, bonuses: [] },
               accountAddress: '0x123',
-              updatedAt: new Date(),
+              updatedAt: new Date(FIXED_NOW_ISO),
               payload: null,
             },
           ],
@@ -2262,7 +2249,7 @@ describe('RewardsController', () => {
           cursor: null,
         };
 
-        const now = new Date();
+        const now = new Date(FIXED_NOW_ISO);
         const earliestTimestamp = new Date(now.getTime() - 10000); // 10 seconds ago
         const middleTimestamp = new Date(now.getTime() - 5000); // 5 seconds ago
         const latestTimestamp = new Date(now.getTime() - 1000); // 1 second ago
@@ -2345,7 +2332,7 @@ describe('RewardsController', () => {
           cursor: null,
         };
 
-        const now = new Date();
+        const now = new Date(FIXED_NOW_ISO);
         const eventTimestamp = new Date(now.getTime() - 1000);
         const cachedTimestamp = new Date(now.getTime() - 5000);
 
@@ -2406,7 +2393,7 @@ describe('RewardsController', () => {
           cursor: null,
         };
 
-        const now = new Date();
+        const now = new Date(FIXED_NOW_ISO);
         const eventTimestamp = new Date(now.getTime() - 1000); // 1 second ago
         const cachedTimestamp = new Date(now.getTime() - 1500); // 1.5 seconds ago
 
@@ -2467,7 +2454,7 @@ describe('RewardsController', () => {
           cursor: null,
         };
 
-        const now = new Date();
+        const now = new Date(FIXED_NOW_ISO);
         const eventTimestamp = new Date(now.getTime() - 5000); // 5 seconds ago (oldest)
         const newerBalanceTimestamp = new Date(now.getTime() - 1000); // 1 second ago
         const newerSeasonStatusTimestamp = new Date(now.getTime() - 2000); // 2 seconds ago
@@ -2527,7 +2514,7 @@ describe('RewardsController', () => {
           cursor: null,
         };
 
-        const now = new Date();
+        const now = new Date(FIXED_NOW_ISO);
         const olderTimestamp = new Date(now.getTime() - 5000);
         const newerTimestamp = new Date(now.getTime() - 1000);
 
@@ -2720,12 +2707,18 @@ describe('RewardsController', () => {
             })),
             has_more: oldPointsEvents.has_more,
             cursor: oldPointsEvents.cursor,
-            lastFetched: Date.now() - 10000, // Stale data
+            // Older than the 1 minute cache threshold, so the read is served
+            // from cache and a background refresh is kicked off.
+            lastFetched: Date.now() - 90000,
           };
         });
 
-        // Mock the messenger to return fresh data
-        mockMessenger.call.mockResolvedValue(freshPointsEvents);
+        // Mock the messenger so the background refresh reports a newer
+        // last-updated timestamp and then returns the fresh page.
+        mockMessenger.call.mockImplementation(((action: string) =>
+          action === 'RewardsDataService:getPointsEventsLastUpdated'
+            ? Promise.resolve(new Date('2024-01-01T11:00:00Z'))
+            : Promise.resolve(freshPointsEvents)) as any);
 
         // Act
         const result = await testableController.getPointsEvents(mockRequest);
@@ -2733,8 +2726,15 @@ describe('RewardsController', () => {
         // Assert
         expect(result).toEqual(oldPointsEvents); // Should return stale data immediately
 
-        // Wait for SWR background refresh
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        // Wait for the SWR background refresh to write the fresh page to cache.
+        // The write happens immediately before the swrCallback, so once it lands
+        // the publish decision has already been made.
+        await waitFor(() =>
+          expect(
+            testableController.state.pointsEvents['current:sub-123']
+              .lastFetched,
+          ).toBe(Date.now()),
+        );
 
         // Verify that the pointsEventsUpdated event was NOT emitted
         expect(mockMessenger.publish).not.toHaveBeenCalledWith(
@@ -2764,7 +2764,9 @@ describe('RewardsController', () => {
             results: [],
             has_more: false,
             cursor: null,
-            lastFetched: Date.now() - 10000, // Stale data
+            // Older than the 1 minute cache threshold, so a background refresh
+            // is kicked off.
+            lastFetched: Date.now() - 90000,
           };
         });
 
@@ -2777,8 +2779,13 @@ describe('RewardsController', () => {
         // Assert
         expect(result).toEqual(emptyPointsEvents); // Should return stale data immediately
 
-        // Wait for SWR background refresh
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        // Wait for the SWR background refresh to write the fresh page to cache.
+        await waitFor(() =>
+          expect(
+            testableController.state.pointsEvents['current:sub-123']
+              .lastFetched,
+          ).toBe(Date.now()),
+        );
 
         // Verify that the pointsEventsUpdated event was NOT emitted
         expect(mockMessenger.publish).not.toHaveBeenCalledWith(
@@ -2836,22 +2843,22 @@ describe('RewardsController', () => {
 
         // Mock the messenger to return fresh data and last updated timestamp
         mockMessenger.call
-          .mockResolvedValueOnce(new Date()) // Second call for getPointsEventsLastUpdated
+          .mockResolvedValueOnce(new Date(FIXED_NOW_ISO)) // Second call for getPointsEventsLastUpdated
           .mockResolvedValueOnce(freshPointsEvents); // First call for getPointsEvents
 
         // Act
         await testableController.getPointsEvents(mockRequest);
 
-        // Wait for SWR background refresh
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Verify that the pointsEventsUpdated event was emitted
-        expect(mockLogger.log).toHaveBeenCalledWith(
-          'RewardsController: Emitting pointsEventsUpdated event due to new points events',
-          {
-            seasonId: 'current',
-            subscriptionId: 'sub-123',
-          },
+        // Verify that the pointsEventsUpdated event was emitted by the SWR
+        // background refresh.
+        await waitFor(() =>
+          expect(mockLogger.log).toHaveBeenCalledWith(
+            'RewardsController: Emitting pointsEventsUpdated event due to new points events',
+            {
+              seasonId: 'current',
+              subscriptionId: 'sub-123',
+            },
+          ),
         );
       });
     });
@@ -2926,11 +2933,11 @@ describe('RewardsController', () => {
             {
               id: 'fresh-event-1',
               type: 'PERPS' as const,
-              timestamp: new Date(),
+              timestamp: new Date(FIXED_NOW_ISO),
               value: 200,
               bonus: { bips: 0, bonuses: [] },
               accountAddress: '0x123',
-              updatedAt: new Date(),
+              updatedAt: new Date(FIXED_NOW_ISO),
               payload: null,
             },
           ],
@@ -3091,11 +3098,11 @@ describe('RewardsController', () => {
             {
               id: 'typed-event-1',
               type: 'SWAP' as const,
-              timestamp: new Date(),
+              timestamp: new Date(FIXED_NOW_ISO),
               value: 200,
               bonus: { bips: 0, bonuses: [] },
               accountAddress: '0x123',
-              updatedAt: new Date(),
+              updatedAt: new Date(FIXED_NOW_ISO),
               payload: null,
             },
           ],
@@ -3997,51 +4004,6 @@ describe('RewardsController', () => {
       });
 
       expect(defaultController.isVipFeatureEnabled()).toBe(true);
-    });
-  });
-
-  describe('isFirstPredictOnUsFeatureEnabled', () => {
-    it('returns true when neither rewards nor First Predict On Us is disabled', () => {
-      const enabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => false,
-        isFirstPredictOnUsDisabled: () => false,
-      });
-
-      expect(enabledController.isFirstPredictOnUsFeatureEnabled()).toBe(true);
-    });
-
-    it('returns false when First Predict On Us is disabled via isFirstPredictOnUsDisabled callback', () => {
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => false,
-        isFirstPredictOnUsDisabled: () => true,
-      });
-
-      expect(disabledController.isFirstPredictOnUsFeatureEnabled()).toBe(false);
-    });
-
-    it('returns false when rewards is disabled even if First Predict On Us is enabled', () => {
-      const controller = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => true,
-        isFirstPredictOnUsDisabled: () => false,
-      });
-
-      expect(controller.isFirstPredictOnUsFeatureEnabled()).toBe(false);
-    });
-
-    it('defaults to enabled when isFirstPredictOnUsDisabled is not provided', () => {
-      const defaultController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => false,
-      });
-
-      expect(defaultController.isFirstPredictOnUsFeatureEnabled()).toBe(true);
     });
   });
 
@@ -7419,6 +7381,7 @@ describe('RewardsController', () => {
         earned: 5555555,
         threshold: 7777777,
         percent: 71.4,
+        lifetimeQualifyingPoints: null,
       },
       tiers: [
         {
@@ -7435,6 +7398,7 @@ describe('RewardsController', () => {
         },
       ],
       localizedText: {
+        equityLifetimePointsDescription: 'Lifetime total: {points}',
         periodTitle: 'Jun 1 - Jun 30',
         memberIdTitle: 'Member ID',
         transactionsTitle: 'Transactions',
@@ -7458,6 +7422,8 @@ describe('RewardsController', () => {
         equityLockedDescription: 'Body copy',
         equityUnlockedTitle: 'VIP allocation unlocked',
         equityUnlockedDescription: 'Unlocked body copy',
+        equityMultiplierFailedTitle: 'Estimate failed',
+        equityMultiplierFailedDescription: 'Estimate failed body copy',
       },
       ...overrides,
     });
@@ -7715,6 +7681,220 @@ describe('RewardsController', () => {
       expect(
         controller.state.subscriptions[mockSubscriptionId].features.vip.enabled,
       ).toBe(false);
+    });
+  });
+
+  describe('getVipEquityMultiplier', () => {
+    const mockSubscriptionId = 'sub-equity';
+    const mockHoldingsUsd = '5000000';
+
+    const createMockEquityMultiplier = (overrides = {}) => ({
+      available: true as const,
+      multiplier: '1.0889',
+      state: 'active' as const,
+      progressPercent: 44.444444,
+      capUsd: '10000000',
+      tierNumber: 6,
+      tierName: 'VIP 6',
+      computedAt: '2099-06-30T14:52:00.000Z',
+      localizedText: {
+        title: 'Estimated equity multiplier',
+        description: '1.09x active. Accumulate more mUSD to increase.',
+      },
+      ...overrides,
+    });
+
+    const createController = (isVipDisabled = () => false) =>
+      new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled,
+      });
+
+    it('returns the fetched multiplier for the requested holdings', async () => {
+      const payload = createMockEquityMultiplier();
+      controller = createController();
+      mockMessenger.call.mockResolvedValue(payload);
+
+      const result = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(result).toEqual(payload);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVipEquityMultiplier',
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+    });
+
+    it('returns null without calling the data service when VIP is disabled', async () => {
+      controller = createController(() => true);
+      mockMessenger.call.mockClear();
+
+      const result = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getVipEquityMultiplier',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('serves a cached payload for repeated identical holdings', async () => {
+      controller = createController();
+      mockMessenger.call.mockResolvedValue(createMockEquityMultiplier());
+
+      await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+      mockMessenger.call.mockClear();
+      const second = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(second).toEqual(createMockEquityMultiplier());
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('refetches when the holdings amount changes', async () => {
+      controller = createController();
+      mockMessenger.call.mockImplementation(((...args: any[]) =>
+        Promise.resolve(
+          createMockEquityMultiplier({ capUsd: args[2] as string }),
+        )) as any);
+
+      const first = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+      const second = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        '7000000',
+      );
+
+      expect(first?.available === true && first.capUsd).toBe(mockHoldingsUsd);
+      expect(second?.available === true && second.capUsd).toBe('7000000');
+    });
+
+    it('refetches once the holdings-keyed cache entry expires', async () => {
+      controller = createController();
+      mockMessenger.call.mockResolvedValue(createMockEquityMultiplier());
+
+      await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      // Cache TTL is 5 minutes; advance past it.
+      jest.spyOn(Date, 'now').mockReturnValue(123 + 1000 * 60 * 5 + 1);
+      mockMessenger.call.mockClear();
+
+      await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVipEquityMultiplier',
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+    });
+
+    it('dedupes concurrent requests for the same holdings', async () => {
+      controller = createController();
+      let resolveFetch:
+        | ((value: ReturnType<typeof createMockEquityMultiplier>) => void)
+        | undefined;
+      mockMessenger.call.mockImplementation(
+        (() =>
+          new Promise((resolve) => {
+            resolveFetch = resolve;
+          })) as any,
+      );
+
+      const first = controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+      const second = controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      resolveFetch?.(createMockEquityMultiplier());
+      const [firstResult, secondResult] = await Promise.all([first, second]);
+
+      expect(firstResult).toEqual(secondResult);
+      expect(
+        mockMessenger.call.mock.calls.filter(
+          ([action]) => action === 'RewardsDataService:getVipEquityMultiplier',
+        ),
+      ).toHaveLength(1);
+    });
+
+    it('does not cache an unavailable response payload of null', async () => {
+      controller = createController();
+      mockMessenger.call.mockResolvedValue(null);
+
+      const result = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+      mockMessenger.call.mockClear();
+      mockMessenger.call.mockResolvedValue(null);
+      await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVipEquityMultiplier',
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+    });
+
+    it('logs and rethrows when the equity multiplier call fails', async () => {
+      controller = createController();
+      mockLogger.log.mockClear();
+      mockMessenger.call.mockRejectedValue(new Error('Equity API failed'));
+
+      await expect(
+        controller.getVipEquityMultiplier(mockSubscriptionId, mockHoldingsUsd),
+      ).rejects.toThrow('Equity API failed');
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get VIP equity multiplier:',
+        'Equity API failed',
+      );
+    });
+
+    it('allows a retry after a failed request', async () => {
+      controller = createController();
+      mockMessenger.call.mockRejectedValueOnce(new Error('transient'));
+
+      await expect(
+        controller.getVipEquityMultiplier(mockSubscriptionId, mockHoldingsUsd),
+      ).rejects.toThrow('transient');
+
+      mockMessenger.call.mockResolvedValue(createMockEquityMultiplier());
+      const retried = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(retried).toEqual(createMockEquityMultiplier());
     });
   });
 
@@ -10213,7 +10393,7 @@ describe('RewardsController', () => {
       const seasonState: SeasonStateDto = {
         balance: 50,
         currentTierId: 'tier-1',
-        updatedAt: new Date(),
+        updatedAt: new Date(FIXED_NOW_ISO),
       };
 
       // Act
@@ -10246,7 +10426,7 @@ describe('RewardsController', () => {
       const seasonState: SeasonStateDto = {
         balance: 0,
         currentTierId: 'bronze',
-        updatedAt: new Date(),
+        updatedAt: new Date(FIXED_NOW_ISO),
       };
 
       // Act
@@ -10276,7 +10456,7 @@ describe('RewardsController', () => {
       const seasonState: SeasonStateDto = {
         balance: largeBalance,
         currentTierId: 'platinum',
-        updatedAt: new Date(),
+        updatedAt: new Date(FIXED_NOW_ISO),
       };
 
       // Act
@@ -10625,9 +10805,15 @@ describe('RewardsController', () => {
                 referrals: 3,
                 referralsCap: 7,
               },
-              pointsAllocation: { earned: 0, threshold: 1, percent: 0 },
+              pointsAllocation: {
+                earned: 0,
+                threshold: 1,
+                lifetimeQualifyingPoints: null,
+                percent: 0,
+              },
               tiers: [],
               localizedText: {
+                equityLifetimePointsDescription: 'Lifetime total: {points}',
                 periodTitle: 'Jun 1 - Jun 30',
                 memberIdTitle: 'Member ID',
                 transactionsTitle: 'Transactions',
@@ -10651,6 +10837,8 @@ describe('RewardsController', () => {
                 equityLockedDescription: 'Body copy',
                 equityUnlockedTitle: 'VIP allocation unlocked',
                 equityUnlockedDescription: 'Unlocked body copy',
+                equityMultiplierFailedTitle: 'Estimate failed',
+                equityMultiplierFailedDescription: 'Estimate failed body copy',
               },
               lastFetched: 123,
             },
@@ -13759,15 +13947,18 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      // Act
-      const result = await testController.getCandidateSubscriptionId();
+      try {
+        // Act
+        const result = await testController.getCandidateSubscriptionId();
 
-      // Assert
-      expect(result).toBe(mockSubscriptionId);
-      expect(delaysCalled.length).toBe(2); // Should add delay between accounts 0-1 and 1-2
-
-      // Restore original setTimeout
-      global.setTimeout = originalSetTimeout;
+        // Assert
+        expect(result).toBe(mockSubscriptionId);
+        expect(delaysCalled.length).toBe(2); // Should add delay between accounts 0-1 and 1-2
+      } finally {
+        // Restore original setTimeout even if an assertion fails, so the stub
+        // cannot leak into later tests.
+        global.setTimeout = originalSetTimeout;
+      }
     });
 
     describe('candidate subscription ID coverage', () => {
@@ -17503,7 +17694,10 @@ describe('RewardsController', () => {
       campaignParticipantStatus: {},
       campaigns: {},
       clientVersionRequirements: null,
-      firstPredictOnUs: null,
+      moneyAccountSweepstakesDrawProof: {},
+      moneyAccountSweepstakesPrizePool: {},
+      moneyAccountSweepstakesStats: {},
+      moneyAccountSweepstakesVolumeStats: {},
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -17512,6 +17706,7 @@ describe('RewardsController', () => {
       ondoCampaignPortfolio: {},
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
+      perpsTradingCampaignPrizePool: {},
       perpsTradingCampaignVolume: {},
       predictThePitchLeaderboard: {},
       predictThePitchLeaderboardPositions: {},
@@ -17542,7 +17737,10 @@ describe('RewardsController', () => {
       campaignParticipantStatus: {},
       campaigns: {},
       clientVersionRequirements: null,
-      firstPredictOnUs: null,
+      moneyAccountSweepstakesDrawProof: {},
+      moneyAccountSweepstakesPrizePool: {},
+      moneyAccountSweepstakesStats: {},
+      moneyAccountSweepstakesVolumeStats: {},
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -17551,6 +17749,7 @@ describe('RewardsController', () => {
       ondoCampaignPortfolio: {},
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
+      perpsTradingCampaignPrizePool: {},
       perpsTradingCampaignVolume: {},
       predictThePitchLeaderboard: {},
       predictThePitchLeaderboardPositions: {},
@@ -17586,7 +17785,10 @@ describe('RewardsController', () => {
       campaignParticipantStatus: {},
       campaigns: {},
       clientVersionRequirements: null,
-      firstPredictOnUs: null,
+      moneyAccountSweepstakesDrawProof: {},
+      moneyAccountSweepstakesPrizePool: {},
+      moneyAccountSweepstakesStats: {},
+      moneyAccountSweepstakesVolumeStats: {},
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -17595,6 +17797,7 @@ describe('RewardsController', () => {
       ondoCampaignPortfolio: {},
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
+      perpsTradingCampaignPrizePool: {},
       perpsTradingCampaignVolume: {},
       predictThePitchLeaderboard: {},
       predictThePitchLeaderboardPositions: {},
@@ -19884,14 +20087,14 @@ describe('RewardsController', () => {
         expect(result).toBe('stale-value');
 
         // Wait for SWR background refresh
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
+        await waitFor(() =>
+          expect(mockSwrCallback).toHaveBeenCalledWith(
+            'stale-value',
+            'fresh-value',
+          ),
+        );
         expect(mockFetchFresh).toHaveBeenCalled();
         expect(mockWriteCache).toHaveBeenCalledWith('test-key', 'fresh-value');
-        expect(mockSwrCallback).toHaveBeenCalledWith(
-          'stale-value',
-          'fresh-value',
-        );
       });
     });
 
@@ -21130,6 +21333,458 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('optInToCampaigns', () => {
+    let batchMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockSubscriptionId = 'sub123';
+    const campaignA = 'campaign-a';
+    const campaignB = 'campaign-b';
+    const mockStatus = { optedIn: true, participantCount: 42 };
+
+    beforeEach(() => {
+      batchMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns optedIn false for every id when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result = await disabledController.optInToCampaigns(
+        [campaignA, campaignB],
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual({
+        [campaignA]: { optedIn: false, participantCount: 0 },
+        [campaignB]: { optedIn: false, participantCount: 0 },
+      });
+      expect(batchMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:optInToCampaign',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('opts into each campaign then publishes campaignOptedIn once', async () => {
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call.mockResolvedValue(mockStatus);
+
+      const result = await ctrl.optInToCampaigns(
+        [campaignA, campaignB],
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual({
+        [campaignA]: mockStatus,
+        [campaignB]: mockStatus,
+      });
+      expect(batchMessenger.call).toHaveBeenCalledTimes(2);
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignA,
+      );
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignB,
+      );
+
+      const campaignOptedInCalls = batchMessenger.publish.mock.calls.filter(
+        ([event]) => event === 'RewardsController:campaignOptedIn',
+      );
+      expect(campaignOptedInCalls).toHaveLength(1);
+      expect(campaignOptedInCalls[0][1]).toEqual({
+        campaignId: campaignA,
+        subscriptionId: mockSubscriptionId,
+      });
+    });
+
+    it('re-seeds participant status cache so post-batch refetches hit cache', async () => {
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call.mockResolvedValue(mockStatus);
+
+      await ctrl.optInToCampaigns([campaignA, campaignB], mockSubscriptionId);
+
+      expect(
+        ctrl.state.campaignParticipantStatus[
+          `${mockSubscriptionId}:${campaignA}`
+        ],
+      ).toEqual(
+        expect.objectContaining({
+          optedIn: true,
+          participantCount: 42,
+        }),
+      );
+      expect(
+        ctrl.state.campaignParticipantStatus[
+          `${mockSubscriptionId}:${campaignB}`
+        ],
+      ).toEqual(
+        expect.objectContaining({
+          optedIn: true,
+          participantCount: 42,
+        }),
+      );
+    });
+
+    it('does not publish campaignOptedIn when every campaign was already opted in', async () => {
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          campaignParticipantStatus: {
+            [`${mockSubscriptionId}:${campaignA}`]: {
+              optedIn: true,
+              participantCount: 1,
+              lastFetched: Date.now(),
+            },
+            [`${mockSubscriptionId}:${campaignB}`]: {
+              optedIn: true,
+              participantCount: 1,
+              lastFetched: Date.now(),
+            },
+          },
+        },
+      });
+      batchMessenger.call.mockResolvedValue(mockStatus);
+
+      await ctrl.optInToCampaigns([campaignA, campaignB], mockSubscriptionId);
+
+      expect(batchMessenger.publish).not.toHaveBeenCalledWith(
+        'RewardsController:campaignOptedIn',
+        expect.anything(),
+      );
+    });
+
+    it('retries a failing campaign then succeeds without aborting the batch', async () => {
+      jest.useFakeTimers();
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call
+        .mockResolvedValueOnce(mockStatus)
+        .mockRejectedValueOnce(new Error('network'))
+        .mockRejectedValueOnce(new Error('network'))
+        .mockResolvedValueOnce(mockStatus);
+
+      const resultPromise = ctrl.optInToCampaigns(
+        [campaignA, campaignB],
+        mockSubscriptionId,
+      );
+      await jest.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result).toEqual({
+        [campaignA]: mockStatus,
+        [campaignB]: mockStatus,
+      });
+      expect(batchMessenger.call).toHaveBeenCalledTimes(4);
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignA,
+      );
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignB,
+      );
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        3,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignB,
+      );
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        4,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignB,
+      );
+      jest.useRealTimers();
+    });
+
+    it('continues the batch and does not throw when one campaign fails all retries', async () => {
+      jest.useFakeTimers();
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call
+        .mockResolvedValueOnce(mockStatus)
+        .mockRejectedValue(new Error('network'));
+
+      const resultPromise = ctrl.optInToCampaigns(
+        [campaignA, campaignB],
+        mockSubscriptionId,
+      );
+      await jest.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result).toEqual({
+        [campaignA]: mockStatus,
+        [campaignB]: { optedIn: false, participantCount: 0 },
+      });
+      // A once + B three attempts
+      expect(batchMessenger.call).toHaveBeenCalledTimes(4);
+
+      const campaignOptedInCalls = batchMessenger.publish.mock.calls.filter(
+        ([event]) => event === 'RewardsController:campaignOptedIn',
+      );
+      expect(campaignOptedInCalls).toHaveLength(1);
+      expect(campaignOptedInCalls[0][1]).toEqual({
+        campaignId: campaignA,
+        subscriptionId: mockSubscriptionId,
+      });
+      jest.useRealTimers();
+    });
+
+    it('retries when a campaign returns optedIn false then succeeds', async () => {
+      jest.useFakeTimers();
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call
+        .mockResolvedValueOnce({ optedIn: false, participantCount: 0 })
+        .mockResolvedValueOnce(mockStatus);
+
+      const resultPromise = ctrl.optInToCampaigns(
+        [campaignA],
+        mockSubscriptionId,
+      );
+      await jest.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result).toEqual({ [campaignA]: mockStatus });
+      expect(batchMessenger.call).toHaveBeenCalledTimes(2);
+      jest.useRealTimers();
+    });
+  });
+
+  describe('registerMoneyAccountBinding', () => {
+    let bindingMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockSubscriptionId = 'sub123';
+    const mockAddress = '0xABCDEF1234567890abcdef1234567890ABCDEF12';
+
+    beforeEach(() => {
+      bindingMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns bound without calling the data service when rewards is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result = await disabledController.registerMoneyAccountBinding(
+        mockAddress,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBe('bound');
+      expect(bindingMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('signs the binding message with the money account and caches the bound result', async () => {
+      const mockTimestamp = 1758700000000;
+      const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(mockTimestamp);
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      bindingMessenger.call.mockImplementation(((action: string) =>
+        Promise.resolve(
+          action === 'KeyringController:signPersonalMessage'
+            ? '0xsignature'
+            : 'bound',
+        )) as unknown as RewardsControllerMessenger['call']);
+
+      const first = await ctrl.registerMoneyAccountBinding(
+        mockAddress,
+        mockSubscriptionId,
+      );
+      const second = await ctrl.registerMoneyAccountBinding(
+        mockAddress,
+        mockSubscriptionId,
+      );
+
+      const expectedMessage = `metamask-rewards:money-account-binding:${mockSubscriptionId}:${mockAddress.toLowerCase()}:${mockTimestamp}`;
+      expect(first).toBe('bound');
+      expect(second).toBe('bound');
+      expect(bindingMessenger.call).toHaveBeenCalledTimes(2);
+      expect(bindingMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'KeyringController:signPersonalMessage',
+        {
+          data: '0x' + Buffer.from(expectedMessage, 'utf8').toString('hex'),
+          from: mockAddress,
+        },
+      );
+      expect(bindingMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsDataService:registerMoneyAccountBinding',
+        mockSubscriptionId,
+        mockAddress,
+        mockTimestamp,
+        '0xsignature',
+      );
+      dateNowSpy.mockRestore();
+    });
+
+    it('does not call the data service when signing fails', async () => {
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      bindingMessenger.call.mockRejectedValue(new Error('sign failed'));
+
+      await expect(
+        ctrl.registerMoneyAccountBinding(mockAddress, mockSubscriptionId),
+      ).rejects.toThrow('sign failed');
+
+      expect(bindingMessenger.call).toHaveBeenCalledTimes(1);
+      expect(bindingMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        expect.objectContaining({ from: mockAddress }),
+      );
+    });
+
+    it('retries once with the server timestamp when the first bind is out of window', async () => {
+      const clientTimestamp = 1758700000000;
+      const serverTimestamp = 1758700800000;
+      const dateNowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(clientTimestamp);
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      let bindCalls = 0;
+      bindingMessenger.call.mockImplementation(((action: string) => {
+        if (action === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature');
+        }
+        bindCalls += 1;
+        if (bindCalls === 1) {
+          return Promise.reject(
+            new InvalidTimestampError('Invalid timestamp', serverTimestamp),
+          );
+        }
+        return Promise.resolve('bound');
+      }) as unknown as RewardsControllerMessenger['call']);
+
+      const result = await ctrl.registerMoneyAccountBinding(
+        mockAddress,
+        mockSubscriptionId,
+      );
+
+      const retryMessage = `metamask-rewards:money-account-binding:${mockSubscriptionId}:${mockAddress.toLowerCase()}:${serverTimestamp}`;
+      expect(result).toBe('bound');
+      expect(bindCalls).toBe(2);
+      expect(bindingMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        {
+          data: '0x' + Buffer.from(retryMessage, 'utf8').toString('hex'),
+          from: mockAddress,
+        },
+      );
+      expect(bindingMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:registerMoneyAccountBinding',
+        mockSubscriptionId,
+        mockAddress,
+        serverTimestamp,
+        '0xsignature',
+      );
+      dateNowSpy.mockRestore();
+    });
+
+    it('does not retry InvalidTimestampError beyond one attempt', async () => {
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      bindingMessenger.call.mockImplementation(((action: string) => {
+        if (action === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature');
+        }
+        return Promise.reject(
+          new InvalidTimestampError('Invalid timestamp', 1758700800000),
+        );
+      }) as unknown as RewardsControllerMessenger['call']);
+
+      await expect(
+        ctrl.registerMoneyAccountBinding(mockAddress, mockSubscriptionId),
+      ).rejects.toThrow(InvalidTimestampError);
+
+      const bindCalls = bindingMessenger.call.mock.calls.filter(
+        (call) => call[0] === 'RewardsDataService:registerMoneyAccountBinding',
+      );
+      expect(bindCalls).toHaveLength(2);
+    });
+
+    it('caches conflict results so subsequent calls do not re-POST', async () => {
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      bindingMessenger.call.mockImplementation(((action: string) =>
+        Promise.resolve(
+          action === 'KeyringController:signPersonalMessage'
+            ? '0xsignature'
+            : 'conflict',
+        )) as unknown as RewardsControllerMessenger['call']);
+
+      const first = await ctrl.registerMoneyAccountBinding(
+        mockAddress,
+        mockSubscriptionId,
+      );
+      const second = await ctrl.registerMoneyAccountBinding(
+        mockAddress.toLowerCase(),
+        mockSubscriptionId,
+      );
+
+      expect(first).toBe('conflict');
+      expect(second).toBe('conflict');
+      expect(bindingMessenger.call).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('getCampaignParticipantStatus', () => {
     let campaignParticipantMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockSubscriptionId = 'sub123';
@@ -21835,136 +22490,6 @@ describe('RewardsController', () => {
       expect(result).toEqual(mockRequirements);
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getClientVersionRequirements',
-      );
-    });
-  });
-
-  describe('getFirstPredictOnUs', () => {
-    const mockFirstPredictOnUs = {
-      name: 'First Predict On Us',
-      image: {
-        lightModeUrl: 'https://images.example.com/light.png',
-        darkModeUrl: 'https://images.example.com/dark.png',
-      },
-      localizedText: {
-        cta: 'Predict now',
-        description: 'Your first prediction is on us.',
-      },
-      usdAmount: 5,
-      markets: [{ eventId: '30615', conditionId: '0xabc' }],
-      termsUrl: 'https://example.com/terms',
-    };
-
-    it('fetches first predict on us from the data service', async () => {
-      mockMessenger.call.mockResolvedValue(mockFirstPredictOnUs);
-
-      const result = await controller.getFirstPredictOnUs();
-
-      expect(result).toEqual(mockFirstPredictOnUs);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
-      );
-      expect(controller.state.firstPredictOnUs).toEqual({
-        data: mockFirstPredictOnUs,
-        lastFetched: 123,
-      });
-    });
-
-    it('returns cached result on subsequent calls', async () => {
-      mockMessenger.call.mockResolvedValue(mockFirstPredictOnUs);
-
-      const firstResult = await controller.getFirstPredictOnUs();
-
-      jest.clearAllMocks();
-
-      const secondResult = await controller.getFirstPredictOnUs();
-
-      expect(secondResult).toEqual(firstResult);
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
-      );
-    });
-
-    it('returns cached null when no visible entry exists', async () => {
-      mockMessenger.call.mockResolvedValue(null);
-
-      const firstResult = await controller.getFirstPredictOnUs();
-
-      jest.clearAllMocks();
-
-      const secondResult = await controller.getFirstPredictOnUs();
-
-      expect(firstResult).toBeNull();
-      expect(secondResult).toBeNull();
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
-      );
-    });
-
-    it('refetches cached first predict on us after 1 minute', async () => {
-      const staleFetchedAt = 0;
-      const refetchedAt = 1000 * 61;
-      jest.spyOn(Date, 'now').mockReturnValue(refetchedAt);
-
-      const cachedController = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          firstPredictOnUs: {
-            data: mockFirstPredictOnUs,
-            lastFetched: staleFetchedAt,
-          },
-        },
-      });
-      const updatedFirstPredictOnUs = {
-        ...mockFirstPredictOnUs,
-        usdAmount: 10,
-      };
-      mockMessenger.call.mockResolvedValue(updatedFirstPredictOnUs);
-
-      const result = await cachedController.getFirstPredictOnUs();
-
-      expect(result).toEqual(updatedFirstPredictOnUs);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
-      );
-      expect(cachedController.state.firstPredictOnUs).toEqual({
-        data: updatedFirstPredictOnUs,
-        lastFetched: refetchedAt,
-      });
-    });
-
-    it('returns null when rewards feature is disabled', async () => {
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => true,
-      });
-
-      mockMessenger.call.mockResolvedValue(mockFirstPredictOnUs);
-
-      const result = await disabledController.getFirstPredictOnUs();
-
-      expect(result).toBeNull();
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
-      );
-    });
-
-    it('returns null when First Predict On Us is disabled via isFirstPredictOnUsDisabled callback', async () => {
-      const firstPredictOnUsDisabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isFirstPredictOnUsDisabled: () => true,
-      });
-
-      mockMessenger.call.mockResolvedValue(mockFirstPredictOnUs);
-
-      const result =
-        await firstPredictOnUsDisabledController.getFirstPredictOnUs();
-
-      expect(result).toBeNull();
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getFirstPredictOnUs',
       );
     });
   });
@@ -22769,6 +23294,94 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching Perps Trading campaign participant outcome',
       );
+    });
+  });
+
+  describe('getPerpsTradingCampaignPrizePool', () => {
+    const PERPS_CAMPAIGN_ID = 'perps-campaign-prize-1';
+    const mockPerpsPrizePool = {
+      totalVolumeUsd: 7500000,
+      unlockedPoolUsd: 15000,
+      thresholdsUsd: [0, 5000000],
+      poolScheduleUsd: [10000, 15000],
+      computedAt: '2026-07-15T00:00:00.000Z',
+    };
+
+    let perpsMessenger: jest.Mocked<RewardsControllerMessenger>;
+
+    beforeEach(() => {
+      perpsMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('fetches, caches in state, and serves the cached value within the TTL', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      perpsMessenger.call.mockResolvedValueOnce(mockPerpsPrizePool);
+
+      await expect(
+        ctrl.getPerpsTradingCampaignPrizePool(PERPS_CAMPAIGN_ID),
+      ).resolves.toEqual(mockPerpsPrizePool);
+
+      expect(perpsMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getPerpsTradingCampaignPrizePool',
+        PERPS_CAMPAIGN_ID,
+      );
+      expect(
+        ctrl.state.perpsTradingCampaignPrizePool[PERPS_CAMPAIGN_ID],
+      ).toMatchObject(mockPerpsPrizePool);
+
+      perpsMessenger.call.mockClear();
+
+      await expect(
+        ctrl.getPerpsTradingCampaignPrizePool(PERPS_CAMPAIGN_ID),
+      ).resolves.toEqual(mockPerpsPrizePool);
+      expect(perpsMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('returns an empty prize pool without calling the API when rewards are disabled', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      await expect(
+        ctrl.getPerpsTradingCampaignPrizePool(PERPS_CAMPAIGN_ID),
+      ).resolves.toEqual({
+        totalVolumeUsd: 0,
+        unlockedPoolUsd: 0,
+        thresholdsUsd: [],
+        poolScheduleUsd: [],
+        computedAt: null,
+      });
+      expect(perpsMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('clears the cached prize pool on resetState', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      perpsMessenger.call.mockResolvedValueOnce(mockPerpsPrizePool);
+      await ctrl.getPerpsTradingCampaignPrizePool(PERPS_CAMPAIGN_ID);
+
+      ctrl.resetState();
+
+      expect(ctrl.state.perpsTradingCampaignPrizePool).toEqual({});
     });
   });
 

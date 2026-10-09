@@ -43,6 +43,9 @@ jest.mock('@metamask/keyring-api', () => ({
   TrxScope: {
     Mainnet: 'tron:mainnet',
   },
+  XlmScope: {
+    Pubnet: 'stellar:pubnet',
+  },
 }));
 
 describe('useNetworksToUse', () => {
@@ -151,6 +154,16 @@ describe('useNetworksToUse', () => {
     metadata: {},
   } as unknown as InternalAccount;
 
+  const emptyNetworksByNamespaceResult = {
+    networks: [],
+    selectedNetworks: [],
+    selectedCount: 0,
+    areAllNetworksSelected: false,
+    areAnyNetworksSelected: false,
+    networkCount: 0,
+    totalEnabledNetworksCount: 0,
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -163,15 +176,9 @@ describe('useNetworksToUse', () => {
     });
 
     // Set fresh default mock for each test
-    mockUseNetworksByCustomNamespace.mockReturnValue({
-      networks: [],
-      selectedNetworks: [],
-      selectedCount: 0,
-      areAllNetworksSelected: false,
-      areAnyNetworksSelected: false,
-      networkCount: 0,
-      totalEnabledNetworksCount: 0,
-    });
+    mockUseNetworksByCustomNamespace.mockReturnValue(
+      emptyNetworksByNamespaceResult,
+    );
   });
 
   describe('when multichain is disabled', () => {
@@ -269,7 +276,7 @@ describe('useNetworksToUse', () => {
         });
     });
 
-    it('calls useNetworksByCustomNamespace for EVM, Solana, Bitcoin and Tron networks', () => {
+    it('calls useNetworksByCustomNamespace for EVM, Solana, Bitcoin, Tron and Stellar networks', () => {
       // Arrange
       const props = {
         networks: mockDefaultNetworks,
@@ -281,7 +288,7 @@ describe('useNetworksToUse', () => {
       renderHook(() => useNetworksToUse(props));
 
       // Assert
-      expect(mockUseNetworksByCustomNamespace).toHaveBeenCalledTimes(4);
+      expect(mockUseNetworksByCustomNamespace).toHaveBeenCalledTimes(5);
       expect(mockUseNetworksByCustomNamespace).toHaveBeenCalledWith({
         networkType: NetworkType.Popular,
         namespace: KnownCaipNamespace.Eip155,
@@ -297,6 +304,10 @@ describe('useNetworksToUse', () => {
       expect(mockUseNetworksByCustomNamespace).toHaveBeenCalledWith({
         networkType: NetworkType.Popular,
         namespace: KnownCaipNamespace.Tron,
+      });
+      expect(mockUseNetworksByCustomNamespace).toHaveBeenCalledWith({
+        networkType: NetworkType.Popular,
+        namespace: KnownCaipNamespace.Stellar,
       });
     });
 
@@ -479,6 +490,9 @@ describe('useNetworksToUse', () => {
 
       // Reset and setup new mocks for this specific test
       mockUseNetworksByCustomNamespace.mockReset();
+      mockUseNetworksByCustomNamespace.mockReturnValue(
+        emptyNetworksByNamespaceResult,
+      );
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: mockEvmNetworks, // EVM networks available
@@ -560,6 +574,9 @@ describe('useNetworksToUse', () => {
 
       // Reset and setup new mocks for this specific test
       mockUseNetworksByCustomNamespace.mockReset();
+      mockUseNetworksByCustomNamespace.mockReturnValue(
+        emptyNetworksByNamespaceResult,
+      );
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: [], // No EVM networks
@@ -640,6 +657,9 @@ describe('useNetworksToUse', () => {
 
       // Reset and setup new mocks for this specific test
       mockUseNetworksByCustomNamespace.mockReset();
+      mockUseNetworksByCustomNamespace.mockReturnValue(
+        emptyNetworksByNamespaceResult,
+      );
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: [], // No EVM networks
@@ -723,6 +743,9 @@ describe('useNetworksToUse', () => {
 
       // Reset and setup new mocks for this specific test
       mockUseNetworksByCustomNamespace.mockReset();
+      mockUseNetworksByCustomNamespace.mockReturnValue(
+        emptyNetworksByNamespaceResult,
+      );
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: mockEvmNetworks,
@@ -800,6 +823,9 @@ describe('useNetworksToUse', () => {
 
       // Reset and setup new mocks for this specific test
       mockUseNetworksByCustomNamespace.mockReset();
+      mockUseNetworksByCustomNamespace.mockReturnValue(
+        emptyNetworksByNamespaceResult,
+      );
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: mockEvmNetworks,
@@ -869,6 +895,9 @@ describe('useNetworksToUse', () => {
 
       // Reset and setup new mocks for this specific test
       mockUseNetworksByCustomNamespace.mockReset();
+      mockUseNetworksByCustomNamespace.mockReturnValue(
+        emptyNetworksByNamespaceResult,
+      );
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: mockEvmNetworks,
@@ -937,6 +966,9 @@ describe('useNetworksToUse', () => {
 
       // Reset and setup new mocks for this specific test
       mockUseNetworksByCustomNamespace.mockReset();
+      mockUseNetworksByCustomNamespace.mockReturnValue(
+        emptyNetworksByNamespaceResult,
+      );
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: mockEvmNetworks,
@@ -1416,6 +1448,9 @@ describe('useNetworksToUse', () => {
 
       // Reset and setup new mocks for this specific test
       mockUseNetworksByCustomNamespace.mockReset();
+      mockUseNetworksByCustomNamespace.mockReturnValue(
+        emptyNetworksByNamespaceResult,
+      );
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: [],
@@ -1499,6 +1534,9 @@ describe('useNetworksToUse', () => {
 
       // Reset and setup new mocks for this specific test
       mockUseNetworksByCustomNamespace.mockReset();
+      mockUseNetworksByCustomNamespace.mockReturnValue(
+        emptyNetworksByNamespaceResult,
+      );
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: mockEvmNetworks,
@@ -1573,6 +1611,9 @@ describe('useNetworksToUse', () => {
 
       // Reset and setup new mocks for this specific test
       mockUseNetworksByCustomNamespace.mockReset();
+      mockUseNetworksByCustomNamespace.mockReturnValue(
+        emptyNetworksByNamespaceResult,
+      );
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: [],
@@ -1647,6 +1688,9 @@ describe('useNetworksToUse', () => {
 
       // Reset and setup new mocks for this specific test
       mockUseNetworksByCustomNamespace.mockReset();
+      mockUseNetworksByCustomNamespace.mockReturnValue(
+        emptyNetworksByNamespaceResult,
+      );
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: mockEvmNetworks,
@@ -1722,6 +1766,9 @@ describe('useNetworksToUse', () => {
 
       // Reset and setup new mocks for this specific test
       mockUseNetworksByCustomNamespace.mockReset();
+      mockUseNetworksByCustomNamespace.mockReturnValue(
+        emptyNetworksByNamespaceResult,
+      );
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: [],
@@ -1802,6 +1849,9 @@ describe('useNetworksToUse', () => {
 
       // Reset and setup new mocks for this specific test
       mockUseNetworksByCustomNamespace.mockReset();
+      mockUseNetworksByCustomNamespace.mockReturnValue(
+        emptyNetworksByNamespaceResult,
+      );
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: [],
@@ -1885,6 +1935,9 @@ describe('useNetworksToUse', () => {
 
       // Reset and setup new mocks for this specific test
       mockUseNetworksByCustomNamespace.mockReset();
+      mockUseNetworksByCustomNamespace.mockReturnValue(
+        emptyNetworksByNamespaceResult,
+      );
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: mockEvmNetworks,

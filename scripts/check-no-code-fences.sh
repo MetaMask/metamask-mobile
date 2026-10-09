@@ -12,7 +12,8 @@ code-fence marker is found under the given path (defaults to the repo root).
 Code fencing (the @metamask/build-utils Metro transform that stripped these
 comment markers at build time) has been removed from this codebase in favor
 of runtime feature gating (see app/util/environment.ts for flask/beta, and
-INCLUDE_SAMPLE_FEATURE + lazy `require()` for dev-only features). Do not
+an inlined env check + lazy `require()` for opt-in features, e.g.
+INCLUDE_SAMPLE_FEATURE and MM_PERPS_LIGHTER_PROVIDER_ENABLED). Do not
 reintroduce fence markers — gate the feature at runtime instead.
 USAGE
 }
@@ -47,36 +48,29 @@ cd "$SEARCH_PATH"
 # colon after `///`, and `END:ONLY_INCLUDE_IF(...)` with trailing params).
 PATTERN='///:?[[:space:]]*(BEGIN|END):ONLY_INCLUDE_IF'
 
-# Only scan git-tracked files so generated/ignored artifacts (coverage
-# reports, node_modules, build output, etc.) never trip this check.
-FILE_LIST="$(mktemp)"
-GREP_STDERR="$(mktemp)"
-trap 'rm -f "$FILE_LIST" "$GREP_STDERR"' EXIT
-
-# Exclude this script and its own test file, which intentionally contains
-# fence-marker strings as test fixtures (see tests/scripts/check-no-code-fences.test.ts).
-#
-# Fail loudly (rather than silently reporting "OK") if `git ls-files` itself
-# can't run, e.g. because $SEARCH_PATH isn't a git repo.
-if ! git ls-files -z -- \
-  ':!:scripts/check-no-code-fences.sh' \
-  ':!:tests/scripts/check-no-code-fences.test.ts' \
-  > "$FILE_LIST"; then
-  echo "ERROR: 'git ls-files' failed — is '$SEARCH_PATH' a git repository?"
+# Fail loudly (rather than silently reporting "OK") if $SEARCH_PATH isn't a
+# git work tree.
+if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+  echo "ERROR: '$SEARCH_PATH' is not inside a git repository."
   exit 1
 fi
 
-# `grep` exits 1 for a batch with no matches, which is the expected "all clear"
-# case here, and GNU xargs reports that as 123 while BSD xargs may report 1.
-# Since neither status distinguishes "no matches" from a real failure portably,
-# detect real failures from grep's stderr instead of its exit status.
+# `git grep` only scans tracked files, so generated/ignored artifacts (coverage
+# reports, node_modules, build output, etc.) never trip this check, and it
+# skips submodules (e.g. ios/branch-ios-sdk) and tracked files missing from the
+# work tree. It exits 0 on a match, 1 on no match, and >1 on error.
+#
+# Exclude this script and its own test file, which intentionally contains
+# fence-marker strings as test fixtures (see tests/scripts/check-no-code-fences.test.ts).
 set +e
-matches=$(xargs -0 grep -lIE "$PATTERN" < "$FILE_LIST" 2>"$GREP_STDERR")
+matches=$(git grep -lIE "$PATTERN" -- . \
+  ':!:scripts/check-no-code-fences.sh' \
+  ':!:tests/scripts/check-no-code-fences.test.ts')
+grep_status=$?
 set -e
 
-if [[ -s "$GREP_STDERR" ]]; then
-  echo "ERROR: grep failed while scanning for code-fence markers."
-  cat "$GREP_STDERR"
+if [[ $grep_status -gt 1 ]]; then
+  echo "ERROR: git grep failed (exit $grep_status) while scanning for code-fence markers."
   exit 1
 fi
 

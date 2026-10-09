@@ -40,8 +40,6 @@ import {
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import useCurrencyRatePolling from '../../hooks/AssetPolling/useCurrencyRatePolling';
-import useTokenRatesPolling from '../../hooks/AssetPolling/useTokenRatesPolling';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 
 const styles = StyleSheet.create({
@@ -71,9 +69,6 @@ const TransactionsView = ({
   const enabledNetworksByNamespace = useSelector(
     selectEnabledNetworksByNamespace,
   );
-
-  useCurrencyRatePolling();
-  useTokenRatesPolling();
 
   const selectedAddress = toChecksumHexAddress(
     selectedInternalAccount?.address,

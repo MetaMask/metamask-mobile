@@ -59,10 +59,6 @@ jest.mock('../../../../../../component-library/hooks/useStyles', () => ({
   }),
 }));
 
-jest.mock('../../../../../../util/theme/themeUtils', () => ({
-  useElevatedSurface: () => 'surface-elevated',
-}));
-
 jest.mock('../../../../../../component-library/components/Icons/Icon', () => {
   const RN = jest.requireActual('react-native');
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -100,7 +96,21 @@ jest.mock(
 );
 
 jest.mock('@metamask/transaction-controller', () => ({
-  ...jest.requireActual('@metamask/transaction-controller'),
+  CHAIN_IDS: {
+    BSC: '0x38',
+    LINEA_MAINNET: '0xe708',
+    MAINNET: '0x1',
+    MONAD: '0x8f',
+  },
+  TransactionStatus: {
+    confirmed: 'confirmed',
+    dropped: 'dropped',
+    failed: 'failed',
+  },
+  TransactionType: {
+    predictDeposit: 'predictDeposit',
+    simpleSend: 'simpleSend',
+  },
   hasTransactionType: (meta: { type?: string } | undefined, types: string[]) =>
     meta?.type ? types.includes(meta.type) : false,
 }));

@@ -116,7 +116,7 @@ describe('VipTierRow', () => {
       getByTestId(VIP_TIER_ROW_TEST_IDS.CURRENT_TIER_GRADIENT).props.end,
     ).toEqual({ x: 0, y: 1 });
     expect(getByTestId(VIP_TIER_ROW_TEST_IDS.THRESHOLDS)).toHaveTextContent(
-      /321k points/,
+      /321K points/,
     );
     expect(getByText('Revenue share')).toBeOnTheScreen();
     expect(getByText('Swap fees')).toBeOnTheScreen();
@@ -211,7 +211,7 @@ describe('VipTierRow', () => {
 
     const maintainRow = getByTestId(VIP_TIER_ROW_TEST_IDS.MAINTAIN_THRESHOLD);
     expect(maintainRow).toBeOnTheScreen();
-    expect(maintainRow).toHaveTextContent(/30k points/);
+    expect(maintainRow).toHaveTextContent(/30K points/);
 
     const orderedDetailRows = collectOrderedTestIds(toJSON(), [
       VIP_TIER_ROW_TEST_IDS.REVENUE_SHARE_FEE,

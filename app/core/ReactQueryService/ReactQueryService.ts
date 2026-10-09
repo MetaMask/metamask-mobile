@@ -14,20 +14,23 @@ import { MessengerActions, MessengerEvents } from '@metamask/messenger';
 import Engine from '../Engine/Engine';
 import { RootMessenger } from '../Engine/types';
 import { DATA_SERVICES } from '../../constants/data-services';
+import { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
 
 type ActionType = MessengerActions<RootMessenger>['type'];
 type EventType = MessengerEvents<RootMessenger>['type'];
 
-type JsonSubscriptionCallback = (data: Json) => void;
+type DataServiceHandler = (
+  data: DataServiceGranularCacheUpdatedPayload,
+) => void;
 
 const adapter = {
   call: async (method: string, ...params: Json[]) =>
     // @ts-expect-error Target requires 1 element(s) but source may have fewer.
     Engine.controllerMessenger.call(method as ActionType, ...params) as Json,
-  subscribe: (event: string, callback: JsonSubscriptionCallback) => {
+  subscribe: (event: string, callback: DataServiceHandler) => {
     Engine.controllerMessenger.subscribe(event as EventType, callback);
   },
-  unsubscribe: (event: string, callback: JsonSubscriptionCallback) => {
+  unsubscribe: (event: string, callback: DataServiceHandler) => {
     Engine.controllerMessenger.unsubscribe(event as EventType, callback);
   },
 };
@@ -47,7 +50,7 @@ export class ReactQueryService {
           // On mobile, failures are often due to network drops.
           retry: 2,
           // Keep data in memory for longer.
-          cacheTime: 1000 * 60 * 60 * 24, // 24 hours
+          gcTime: 1000 * 60 * 60 * 24, // 24 hours
         },
       },
     });

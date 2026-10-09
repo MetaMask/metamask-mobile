@@ -5,4 +5,4 @@ export const TradingSignalsSetupBottomSheetSelectorsIDs = {
   IN_APP_TOGGLE: 'trading-signals-setup-bottom-sheet-in-app-toggle',
   THRESHOLD_OPTION: (amount: number) =>
     `trading-signals-setup-threshold-${amount}`,
-};
+} as const;

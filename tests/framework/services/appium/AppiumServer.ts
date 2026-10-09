@@ -48,7 +48,11 @@ export function getAppiumServerUrl(): string {
  * Set explicitly via SKIP_APPIUM_STOP (e.g. Android CI keeps one server per job).
  */
 export function shouldSkipAppiumStop(): boolean {
-  return process.env.SKIP_APPIUM_STOP === 'true';
+  if (process.env.SKIP_APPIUM_STOP === 'true') {
+    return true;
+  }
+  const workers = Number(process.env.E2E_WORKERS ?? 1);
+  return Number.isInteger(workers) && workers > 1;
 }
 
 /**
@@ -99,7 +103,7 @@ export async function startAppiumServer(
       'yarn',
       [
         'appium',
-        '--allow-insecure=chromedriver_autodownload,adb_shell',
+        '--allow-insecure=uiautomator2:chromedriver_autodownload,uiautomator2:adb_shell',
         '--port',
         String(port),
         '--address',

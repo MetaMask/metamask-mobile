@@ -10,6 +10,7 @@ import type {
 } from '@metamask/utils';
 import type { Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
 import { type WalletKitTypes } from '@reown/walletkit';
+import type { OriginMetadata } from '@metamask/snaps-sdk';
 
 /**
  * A namespace slice in WalletConnect's approved namespaces map.
@@ -71,6 +72,21 @@ export type RpcResponse<
  * Fixed context fields every adapter receives alongside the request.
  */
 interface AdapterRequestContext {
+  /**
+   * Unspoofable identifier of the requesting WalletConnect session: the
+   * wallet-generated channel id, mirroring how EVM permissions are keyed.
+   * Threaded through to Snaps as the request origin so every session stays
+   * a distinct principal.
+   *
+   * This is intentionally NOT the dapp's self-reported URL (unverifiable on
+   * remote transports, must never influence Snap display or security logic
+   * as if verified) and NOT a shared transport-wide constant (would collapse
+   * all WalletConnect dapps into one principal). The self-reported URL will
+   * travel separately with explicit unverified framing once the Snaps
+   * platform supports origin metadata (WPC-1194 / WPC-1195).
+   */
+  origin: string;
+  originMetadata: OriginMetadata;
   connectedAddresses: CaipAccountId[];
   scope: CaipChainId;
   requestId: number;

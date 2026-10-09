@@ -231,4 +231,21 @@ describe('PredictPositionsView component view', () => {
       await findByTestId(getRouteProbeTestId(Routes.PREDICT.MARKET_LIST)),
     ).toBeOnTheScreen();
   });
+
+  it('navigates to the Predict market list when the user presses back from the root positions screen', async () => {
+    mockPredictData({});
+    const { findByTestId } = renderPredictPositionsViewWithRoutes({
+      extraRoutes: [{ name: Routes.PREDICT.MARKET_LIST }],
+    });
+
+    await findByTestId(PredictPositionsViewSelectorsIDs.CONTAINER);
+
+    fireEvent.press(
+      await findByTestId(PredictPositionsViewSelectorsIDs.BACK_BUTTON),
+    );
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.PREDICT.MARKET_LIST)),
+    ).toBeOnTheScreen();
+  });
 });

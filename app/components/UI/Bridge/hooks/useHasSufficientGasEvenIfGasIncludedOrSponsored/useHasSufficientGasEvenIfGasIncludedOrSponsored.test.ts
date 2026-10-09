@@ -2,7 +2,12 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useHasSufficientGasEvenIfGasIncludedOrSponsored } from './index';
 import { useLatestBalance } from '../useLatestBalance';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
-import { ChainId } from '@metamask/bridge-controller';
+import {
+  ChainId,
+  formatChainIdToCaip,
+  getNativeAssetForChainId,
+  toBridgeAssetV2,
+} from '@metamask/bridge-controller';
 import { BigNumber } from 'ethers';
 
 // Mock dependencies
@@ -28,13 +33,18 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
     });
     it('returns true when user has sufficient gas balance', () => {
       const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+        chainId: 'eip155:1',
         quote: {
           gasIncluded: false,
           gasIncluded7702: false,
-          srcChainId: '0x1',
-        },
-        gasFee: {
-          total: { amount: '0.001' }, // 0.001 ETH
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0.001',
+                asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
+              },
+            ],
+          },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -57,13 +67,18 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
 
     it('returns false when user has insufficient gas balance', () => {
       const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+        chainId: 'eip155:1',
         quote: {
           gasIncluded: false,
           gasIncluded7702: false,
-          srcChainId: '0x1',
-        },
-        gasFee: {
-          total: { amount: '0.01' }, // 0.01 ETH
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0.01',
+                asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
+              },
+            ],
+          },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -86,13 +101,18 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
 
     it('handles scientific notation in total gas fee', () => {
       const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+        chainId: 'eip155:1',
         quote: {
           gasIncluded: false,
           gasIncluded7702: false,
-          srcChainId: '0x1',
-        },
-        gasFee: {
-          total: { amount: '9.200359292e-8' }, // Scientific notation
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '9.200359292e-8',
+                asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
+              },
+            ],
+          },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -116,13 +136,18 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
 
     it('returns null when gas token balance is not available', () => {
       const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+        chainId: 'eip155:1',
         quote: {
           gasIncluded: false,
           gasIncluded7702: false,
-          srcChainId: '0x1',
-        },
-        gasFee: {
-          total: { amount: '0.001' },
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0.001',
+                asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
+              },
+            ],
+          },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -141,13 +166,18 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
 
     it('returns null when gas fee amount is not available', () => {
       const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+        chainId: 'eip155:1',
         quote: {
           gasIncluded: false,
           gasIncluded7702: false,
-          srcChainId: '0x1',
-        },
-        gasFee: {
-          total: undefined,
+          feeData: {
+            network: [
+              {
+                normalizedAmount: undefined,
+                asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
+              },
+            ],
+          },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -169,13 +199,18 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
 
     it('returns null when gas token balance atomicBalance is not available', () => {
       const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+        chainId: 'eip155:1',
         quote: {
           gasIncluded: false,
           gasIncluded7702: false,
-          srcChainId: '0x1',
-        },
-        gasFee: {
-          total: { amount: '0.001' },
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0.001',
+                asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
+              },
+            ],
+          },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -199,16 +234,20 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
   describe('for Solana', () => {
     it('returns true when user has sufficient SOL balance', () => {
       const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         quote: {
           gasIncluded: false,
           gasIncluded7702: false,
-          srcChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        },
-        gasFee: {
-          total: { amount: '0.001' }, // 0.001 SOL
-        },
-        totalNetworkFee: {
-          amount: '0.02',
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0.001',
+                asset: toBridgeAssetV2(
+                  getNativeAssetForChainId(ChainId.SOLANA),
+                ),
+              },
+            ],
+          },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -231,16 +270,21 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
 
     it('returns false when user has insufficient SOL balance', () => {
       const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         quote: {
           gasIncluded: false,
           gasIncluded7702: false,
           srcChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        },
-        gasFee: {
-          total: { amount: '0.01' }, // 0.01 SOL
-        },
-        totalNetworkFee: {
-          amount: '0.01',
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0.01',
+                asset: toBridgeAssetV2(
+                  getNativeAssetForChainId(ChainId.SOLANA),
+                ),
+              },
+            ],
+          },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -265,14 +309,16 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
   describe('for Bitcoin', () => {
     it('uses totalNetworkFee to validate BTC gas balance', () => {
       const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+        chainId: formatChainIdToCaip(ChainId.BTC),
         quote: {
-          srcChainId: ChainId.BTC,
-        },
-        gasFee: {
-          total: { amount: '0' },
-        },
-        totalNetworkFee: {
-          amount: '0.0001',
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0.0001',
+                asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.BTC)),
+              },
+            ],
+          },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -294,13 +340,17 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
 
     it('falls back to gasFee.total.amount when totalNetworkFee is unavailable', () => {
       const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+        chainId: formatChainIdToCaip(ChainId.BTC),
         quote: {
-          srcChainId: ChainId.BTC,
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0.0001',
+                asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.BTC)),
+              },
+            ],
+          },
         },
-        gasFee: {
-          total: { amount: '0.0001' },
-        },
-        totalNetworkFee: undefined,
       } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
       mockUseLatestBalance.mockReturnValue({

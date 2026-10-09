@@ -98,7 +98,7 @@ const createCryptoUpDownMarket = (
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
 const CANCEL_TEXT = 'Cancel';
-const RETRY_TEXT = 'Retry';
+const RETRY_TEXT = 'Try again';
 
 interface PredictRootRouteParams {
   screen?: string;
@@ -588,6 +588,40 @@ describe('PredictFeed', () => {
   });
 
   describe('market feed data', () => {
+    it('shows skeleton loaders while trending markets are loading', async () => {
+      (
+        Engine.context.PredictController.getMarkets as jest.Mock
+      ).mockImplementation(() => new Promise(() => undefined));
+
+      const { findByTestId } = renderPredictFeedView();
+
+      await layoutPredictFeed({ findByTestId });
+
+      expect(
+        await findByTestId(
+          getPredictFeedSelector.skeletonLoading('trending', 1),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the empty state when trending markets resolve to an empty list', async () => {
+      (
+        Engine.context.PredictController.getMarkets as jest.Mock
+      ).mockResolvedValue({ markets: [], nextCursor: null });
+
+      const { findByTestId } = renderPredictFeedView();
+
+      await layoutPredictFeed({ findByTestId });
+
+      expect(
+        await findByTestId(
+          getPredictFeedSelector.emptyState('trending'),
+          {},
+          { timeout: 10000 },
+        ),
+      ).toBeOnTheScreen();
+    });
+
     it('shows complete market data for every loaded trending market', async () => {
       const getMarketsSpy = jest.spyOn(
         Engine.context.PredictController,
@@ -725,6 +759,7 @@ describe('PredictFeed', () => {
         findByTestId,
       } = renderPredictFeedViewWithRoutes({
         overrides: predictUpDownFlagOverrides,
+        // Default probe is enough — we only assert navigation occurred.
         extraRoutes: [{ name: Routes.PREDICT.ROOT }],
       });
 
@@ -734,20 +769,30 @@ describe('PredictFeed', () => {
         'btc',
       );
 
-      const searchResult = await findByTestId(
-        getPredictSearchSelector.resultCard(0),
-        {},
-        { timeout: 3000 },
-      );
-      expect(searchResult).toBeOnTheScreen();
+      // The Up/Down live card re-renders every second via a shared
+      // useSyncExternalStore clock, adding re-render pressure between the
+      // search debounce, the query fetch, and FlashList's first item render.
+      // Under contended CI runners these awaits need generous budgets
+      // (see also the re-query note before the press below).
+      expect(
+        await findByTestId(
+          getPredictSearchSelector.resultCard(0),
+          {},
+          { timeout: 10000 },
+        ),
+      ).toBeOnTheScreen();
       expect(
         await findByTestId(
           PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE,
+          {},
+          { timeout: 10000 },
         ),
       ).toBeOnTheScreen();
       expect(await findAllByText('BTC Up or Down - 5 Minutes')).toHaveLength(1);
 
-      fireEvent.press(searchResult);
+      // Re-query immediately before press: the live card clock re-renders every
+      // second, so a held element reference can go stale under CI load.
+      fireEvent.press(getByTestId(getPredictSearchSelector.resultCard(0)));
 
       expect(
         await findByTestId(`route-${Routes.PREDICT.ROOT}`),
@@ -823,6 +868,15 @@ describe('PredictFeed', () => {
 
       const { findByTestId, findByText } = renderPredictFeedViewWithRoutes({
         extraRoutes: [{ name: Routes.PREDICT.MODALS.ROOT }],
+        overrides: {
+          engine: {
+            backgroundState: {
+              PredictController: {
+                eligibility: { status: 'ineligible' as const, country: 'US' },
+              },
+            },
+          },
+        },
       });
 
       await findByTestId(PredictBalanceSelectorsIDs.BALANCE_CARD);
@@ -869,7 +923,7 @@ describe('PredictFeed', () => {
       searchMarketsSpy.mockRestore();
     });
 
-    it('calls searchMarkets again when the user presses Retry after an error', async () => {
+    it('calls searchMarkets again when the user presses Try again after an error', async () => {
       const searchMarketsSpy = jest.spyOn(
         Engine.context.PredictController,
         'searchMarkets',
@@ -894,7 +948,7 @@ describe('PredictFeed', () => {
       // Make subsequent calls succeed so the retry completes quickly.
       searchMarketsSpy.mockResolvedValue({ markets: [], totalResults: 0 });
 
-      fireEvent.press(await findByText('Retry'));
+      fireEvent.press(await findByText(RETRY_TEXT));
 
       await waitFor(() => {
         expect(searchMarketsSpy.mock.calls.length).toBeGreaterThan(

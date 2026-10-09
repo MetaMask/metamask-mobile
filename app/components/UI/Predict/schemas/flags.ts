@@ -3,6 +3,7 @@ import {
   boolean,
   defaulted,
   literal,
+  enums,
   number,
   object,
   optional,
@@ -15,10 +16,13 @@ import compareVersions from 'compare-versions';
 import { HexSchema } from './common';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_PREDICT_FEED_BANNER_FLAG,
   DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
-  DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
+  PREDICT_MARKET_LIST_ORDERS,
   PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
 } from '../constants/flags';
 import {
@@ -34,6 +38,17 @@ const PredictFeedCarouselCompositionSchema = union([
   literal('query-results'),
   literal('live-now'),
 ]);
+
+const NonNegativeIntegerSchema = refine(
+  number(),
+  'non-negative integer',
+  (value) => Number.isInteger(value) && value >= 0,
+);
+
+const PredictFeedCarouselPrioritySlotSchema = type({
+  seriesId: string(),
+  index: NonNegativeIntegerSchema,
+});
 
 const SemanticVersionSchema = refine(
   string(),
@@ -58,6 +73,14 @@ export const PredictFeedCarouselSchema = defaulted(
     ),
     title: optional(string()),
     deeplink: optional(string()),
+    priorityOrder: defaulted(
+      array(string()),
+      () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.priorityOrder,
+    ),
+    prioritySlots: defaulted(
+      array(PredictFeedCarouselPrioritySlotSchema),
+      () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.prioritySlots,
+    ),
     contentSource: defaulted(
       type({
         composition: defaulted(
@@ -80,10 +103,30 @@ export const PredictFeedCarouselSchema = defaulted(
   () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
 );
 
+const PredictHiddenMarketsEntrySchema = type({
+  category: string(),
+  marketIds: defaulted(array(string()), () => []),
+  slugs: defaulted(array(string()), () => []),
+});
+
+export const PredictHiddenMarketsSchema = defaulted(
+  type({
+    enabled: defaulted(boolean(), () => DEFAULT_HIDDEN_MARKETS_FLAG.enabled),
+    minimumVersion: defaulted(
+      MinimumVersionSchema,
+      () => DEFAULT_HIDDEN_MARKETS_FLAG.minimumVersion,
+    ),
+    hidden: defaulted(
+      array(PredictHiddenMarketsEntrySchema),
+      () => DEFAULT_HIDDEN_MARKETS_FLAG.hidden,
+    ),
+  }),
+  () => DEFAULT_HIDDEN_MARKETS_FLAG,
+);
+
 const PredictFeedBannerPositionSchema = union([
   literal(PredictFeedBannerPosition.AfterBalance),
   literal(PredictFeedBannerPosition.AfterFeaturedCarousel),
-  literal(PredictFeedBannerPosition.AfterWorldCupBanner),
   literal(PredictFeedBannerPosition.BeforePortfolio),
   literal(PredictFeedBannerPosition.AfterPortfolio),
   literal(PredictFeedBannerPosition.AfterLiveNow),
@@ -142,66 +185,6 @@ export const PredictFeeCollectionSchema = defaulted(
   () => DEFAULT_FEE_COLLECTION_FLAG,
 );
 
-export const PredictWorldCupStageSchema = object({
-  key: string(),
-  labelKey: optional(string()),
-  label: optional(string()),
-  eventIds: defaulted(array(string()), () => []),
-});
-
-// Uses `type()` (not strict `object()`) so unknown keys in the remote
-// feature-flag payload are tolerated rather than throwing. Remote config is
-// managed independently of client releases, so a legacy/extra key (e.g. the
-// previously-supported `seriesId`) must not cause `parse()` to fall back to the
-// disabled default and silently turn World Cup off for everyone.
-export const PredictWorldCupSchema = defaulted(
-  type({
-    enabled: defaulted(boolean(), () => DEFAULT_PREDICT_WORLD_CUP_FLAG.enabled),
-    minimumVersion: defaulted(
-      string(),
-      () => DEFAULT_PREDICT_WORLD_CUP_FLAG.minimumVersion,
-    ),
-    showMainFeedBanner: defaulted(
-      boolean(),
-      () => DEFAULT_PREDICT_WORLD_CUP_FLAG.showMainFeedBanner,
-    ),
-    showMainFeedTab: defaulted(
-      boolean(),
-      () => DEFAULT_PREDICT_WORLD_CUP_FLAG.showMainFeedTab,
-    ),
-    showWorldCupScreen: defaulted(
-      boolean(),
-      () => DEFAULT_PREDICT_WORLD_CUP_FLAG.showWorldCupScreen,
-    ),
-    showHubV2: defaulted(
-      boolean(),
-      () => DEFAULT_PREDICT_WORLD_CUP_FLAG.showHubV2,
-    ),
-    showHubBanner: defaulted(
-      boolean(),
-      () => DEFAULT_PREDICT_WORLD_CUP_FLAG.showHubBanner,
-    ),
-    tagSlug: defaulted(string(), () => DEFAULT_PREDICT_WORLD_CUP_FLAG.tagSlug),
-    gamesTagId: defaulted(
-      string(),
-      () => DEFAULT_PREDICT_WORLD_CUP_FLAG.gamesTagId,
-    ),
-    winnerEventId: defaulted(
-      string(),
-      () => DEFAULT_PREDICT_WORLD_CUP_FLAG.winnerEventId,
-    ),
-    bannerImage: optional(
-      object({
-        url: string(),
-        width: number(),
-        height: number(),
-      }),
-    ),
-    stages: defaulted(array(PredictWorldCupStageSchema), () => []),
-  }),
-  () => DEFAULT_PREDICT_WORLD_CUP_FLAG,
-);
-
 export const PredictWimbledonTabSchema = defaulted(
   type({
     enabled: defaulted(boolean(), () => DEFAULT_WIMBLEDON_TAB_FLAG.enabled),
@@ -215,4 +198,76 @@ export const PredictWimbledonTabSchema = defaulted(
     ),
   }),
   () => DEFAULT_WIMBLEDON_TAB_FLAG,
+);
+
+export const PredictSportsFeedChipSchema = type({
+  id: string(),
+  kind: enums(['games', 'props', 'tag']),
+  titleKey: optional(string()),
+  label: optional(string()),
+  tagSlug: optional(string()),
+  queryParams: optional(string()),
+  order: optional(enums(PREDICT_MARKET_LIST_ORDERS)),
+  startTimeMinMinutesAgo: optional(union([number(), literal(null)])),
+  filterByVolume: optional(number()),
+});
+
+export const PredictSportsFeedTabSchema = type({
+  id: string(),
+  titleKey: optional(string()),
+  label: optional(string()),
+  tagSlug: optional(string()),
+  defaultFilterId: optional(string()),
+  chips: defaulted(array(PredictSportsFeedChipSchema), () => []),
+});
+
+export const PredictSportsFeedSchema = defaulted(
+  type({
+    enabled: defaulted(
+      boolean(),
+      () => DEFAULT_PREDICT_SPORTS_FEED_FLAG.enabled,
+    ),
+    minimumVersion: defaulted(
+      string(),
+      () => DEFAULT_PREDICT_SPORTS_FEED_FLAG.minimumVersion,
+    ),
+    tabs: defaulted(
+      array(PredictSportsFeedTabSchema),
+      () => DEFAULT_PREDICT_SPORTS_FEED_FLAG.tabs,
+    ),
+  }),
+  () => DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+);
+
+const NonEmptyStringSchema = refine(
+  string(),
+  'non-empty string',
+  (value) => value.trim().length > 0,
+);
+
+export const PredictHomeCategorySchema = type({
+  id: NonEmptyStringSchema,
+  tagSlug: NonEmptyStringSchema,
+  titleKey: optional(string()),
+  label: optional(string()),
+  iconName: optional(string()),
+  enabled: defaulted(optional(boolean()), () => true),
+});
+
+export const PredictHomeCategoriesSchema = defaulted(
+  type({
+    enabled: defaulted(
+      boolean(),
+      () => DEFAULT_PREDICT_HOME_CATEGORIES_FLAG.enabled,
+    ),
+    minimumVersion: defaulted(
+      string(),
+      () => DEFAULT_PREDICT_HOME_CATEGORIES_FLAG.minimumVersion,
+    ),
+    categories: defaulted(
+      array(PredictHomeCategorySchema),
+      () => DEFAULT_PREDICT_HOME_CATEGORIES_FLAG.categories,
+    ),
+  }),
+  () => DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
 );

@@ -3,6 +3,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { generateStablecoinLendingDepositConfirmationState } from '../../../__mocks__/controllers/transaction-batch-mock';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
+import { useConfirmReject } from '../../../hooks/useConfirmReject';
 import { getNavbar } from '../../UI/navbar/navbar';
 import TransactionBatch from './transaction-batch';
 
@@ -36,6 +37,10 @@ jest.mock('../../../../../../core/Engine', () => ({
 
 jest.mock('../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useConfirmReject', () => ({
+  useConfirmReject: jest.fn(),
 }));
 
 jest.mock('../../../components/UI/navbar/navbar', () => ({
@@ -81,6 +86,7 @@ describe('BatchTransaction', () => {
   const mockSetConfirmationMetric = jest.fn();
   const mockGetNavbar = jest.mocked(getNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
+  const mockUseConfirmReject = jest.mocked(useConfirmReject);
   const mockUseConfirmationMetricEvents = jest.mocked(
     useConfirmationMetricEvents,
   );
@@ -91,6 +97,7 @@ describe('BatchTransaction', () => {
       onReject: jest.fn(),
       onConfirm: jest.fn(),
     });
+    mockUseConfirmReject.mockReturnValue({ onReject: jest.fn() });
 
     mockUseConfirmationMetricEvents.mockReturnValue({
       trackAdvancedDetailsToggledEvent: mockTrackAdvancedDetailsToggledEvent,
@@ -105,6 +112,7 @@ describe('BatchTransaction', () => {
       onConfirm: jest.fn(),
       onReject: mockOnReject,
     }));
+    mockUseConfirmReject.mockImplementation(() => ({ onReject: mockOnReject }));
 
     renderWithProvider(<TransactionBatch />, {
       state: generateStablecoinLendingDepositConfirmationState,

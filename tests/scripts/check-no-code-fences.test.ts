@@ -128,6 +128,33 @@ describe('check-no-code-fences.sh', () => {
     expect(result.output).toContain('OK: no code-fence markers found.');
   });
 
+  it('passes when the tree contains an uninitialized submodule', () => {
+    const repo = createRepo();
+    mkdirSync(path.join(repo, 'vendor/submodule'), { recursive: true });
+    runGit(repo, [
+      'update-index',
+      '--add',
+      '--cacheinfo',
+      `160000,${'a'.repeat(40)},vendor/submodule`,
+    ]);
+    runGit(repo, ['commit', '-m', 'add submodule']);
+
+    const result = runChecker(repo);
+
+    expect(result.status).toBe(0);
+    expect(result.output).toContain('OK: no code-fence markers found.');
+  });
+
+  it('passes when a tracked file is missing from the working tree', () => {
+    const repo = createRepo();
+    rmSync(path.join(repo, 'app/sample.ts'));
+
+    const result = runChecker(repo);
+
+    expect(result.status).toBe(0);
+    expect(result.output).toContain('OK: no code-fence markers found.');
+  });
+
   it('errors loudly instead of reporting success when the path is not a git repository', () => {
     const notARepo = mkdtempSync(path.join(tmpdir(), 'fence-checker-not-repo-'));
     tempRepos.push(notARepo);

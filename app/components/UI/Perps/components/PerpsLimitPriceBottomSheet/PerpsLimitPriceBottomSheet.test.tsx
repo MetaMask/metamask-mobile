@@ -26,6 +26,10 @@ jest.mock('../../hooks/stream', () => ({
     bestBid: '2995',
     bestAsk: '3005',
   })),
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: { spendableBalance: '1000' },
+    isInitialLoading: false,
+  })),
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -588,6 +592,21 @@ describe('PerpsLimitPriceBottomSheet', () => {
         screen.queryByText('perps.order.limit_price_modal.title'),
       ).toBeNull();
     });
+
+    it('reseeds the keypad when the target order limit price changes while open', () => {
+      const { rerender } = render(
+        <PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="160.71" />,
+      );
+
+      fireEvent.press(screen.getByTestId('keypad-button-1'));
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('160.711');
+
+      rerender(
+        <PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="200.5" />,
+      );
+
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('200.5');
+    });
   });
 
   describe('Accessibility', () => {
@@ -802,7 +821,9 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
       // Assert - the too-far warning is shown, market price is hidden, and Set is disabled
       expect(
-        screen.getByText('perps.order.limit_price_modal.limit_price_too_far'),
+        screen.getByText(
+          /perps\.order\.limit_price_modal\.limit_price_too_far/,
+        ),
       ).toBeOnTheScreen();
       expect(screen.queryByText(/ETH-USD/)).toBeNull();
       expect(
@@ -825,7 +846,9 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
       // Assert
       expect(
-        screen.getByText('perps.order.limit_price_modal.limit_price_too_far'),
+        screen.getByText(
+          /perps\.order\.limit_price_modal\.limit_price_too_far/,
+        ),
       ).toBeOnTheScreen();
       expect(screen.queryByText(/ETH-USD/)).toBeNull();
       expect(
@@ -882,9 +905,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
       ).toBeEnabled();
     });
 
-    it('does not apply the deviation block when opening a normal limit order', () => {
-      // Arrange - same far-off price, but not closing a position. Opening a
-      // normal limit order must not be blocked by this close-only validation.
+    it('blocks an opening price outside the venue deviation band', () => {
       render(
         <PerpsLimitPriceBottomSheet
           {...defaultProps}
@@ -893,15 +914,16 @@ describe('PerpsLimitPriceBottomSheet', () => {
         />,
       );
 
-      // Assert - no too-far warning and Set is enabled
       expect(
-        screen.queryByText('perps.order.limit_price_modal.limit_price_too_far'),
-      ).toBeNull();
+        screen.getByText(
+          /perps\.order\.limit_price_modal\.limit_price_too_far/,
+        ),
+      ).toBeOnTheScreen();
       expect(
         screen.getByTestId(
           PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
         ),
-      ).toBeEnabled();
+      ).toBeDisabled();
     });
   });
 });

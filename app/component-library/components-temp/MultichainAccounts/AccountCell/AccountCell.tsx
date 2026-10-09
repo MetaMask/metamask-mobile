@@ -104,6 +104,10 @@ const BalanceEndContainer = ({
     <>
       <TouchableOpacity onPress={onSelectAccount}>
         <View style={styles.balanceContainer}>
+          {/* Keep zero balances blank. `selectBalanceByAccountGroup` synthesizes
+              0 before assets load, so "$0.00" reads as a real empty wallet.
+              Product keeps the amount empty until a loaded non-zero balance
+              exists so users do not think funds disappeared. */}
           <SensitiveText
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}

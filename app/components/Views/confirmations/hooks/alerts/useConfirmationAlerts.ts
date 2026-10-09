@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import useBlockaidAlerts from './useBlockaidAlerts';
 import useDomainMismatchAlerts from './useDomainMismatchAlerts';
 import { useGasEstimateFailedAlert } from './useGasEstimateFailedAlert';
+import { useGasLimitBelowMinimumAlert } from './useGasLimitBelowMinimumAlert';
 import { useGasSponsorshipWarningAlert } from './useGasSponsorshipWarningAlert';
 import { useInsufficientBalanceAlert } from './useInsufficientBalanceAlert';
 import { useAccountTypeUpgrade } from './useAccountTypeUpgrade';
@@ -11,9 +12,6 @@ import { Alert } from '../../types/alerts';
 import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
-import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
-import { useInsufficientPerpsBalanceAlert } from './useInsufficientPerpsBalanceAlert';
-import { useInsufficientMoneyAccountBalanceAlert } from './useInsufficientMoneyAccountBalanceAlert';
 import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
@@ -34,6 +32,7 @@ function useSignatureAlerts(): Alert[] {
 
 function useTransactionAlerts(): Alert[] {
   const gasEstimateFailedAlert = useGasEstimateFailedAlert();
+  const gasLimitBelowMinimumAlert = useGasLimitBelowMinimumAlert();
   const gasSponsorshipWarningAlert = useGasSponsorshipWarningAlert();
   const insufficientBalanceAlert = useInsufficientBalanceAlert();
   const signedOrSubmittedAlert = useSignedOrSubmittedAlert();
@@ -42,10 +41,6 @@ function useTransactionAlerts(): Alert[] {
   const insufficientPayTokenBalanceAlert =
     useInsufficientPayTokenBalanceAlert();
   const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
-  const insufficientPredictBalanceAlert = useInsufficientPredictBalanceAlert();
-  const insufficientPerpsBalanceAlert = useInsufficientPerpsBalanceAlert();
-  const insufficientMoneyAccountBalanceAlert =
-    useInsufficientMoneyAccountBalanceAlert();
   const fiatBuyLimitAlert = useFiatBuyLimitAlert();
   const burnAddressAlert = useBurnAddressAlert();
   const headlessBuyErrorAlert = useHeadlessBuyErrorAlert();
@@ -59,6 +54,7 @@ function useTransactionAlerts(): Alert[] {
   return useMemo(
     () => [
       ...gasEstimateFailedAlert,
+      ...gasLimitBelowMinimumAlert,
       ...gasSponsorshipWarningAlert,
       ...insufficientBalanceAlert,
       ...batchedUnusedApprovalsAlert,
@@ -66,9 +62,6 @@ function useTransactionAlerts(): Alert[] {
       ...signedOrSubmittedAlert,
       ...insufficientPayTokenBalanceAlert,
       ...noPayTokenQuotesAlert,
-      ...insufficientPredictBalanceAlert,
-      ...insufficientPerpsBalanceAlert,
-      ...insufficientMoneyAccountBalanceAlert,
       ...fiatBuyLimitAlert,
       ...burnAddressAlert,
       ...headlessBuyErrorAlert,
@@ -81,6 +74,7 @@ function useTransactionAlerts(): Alert[] {
     ],
     [
       gasEstimateFailedAlert,
+      gasLimitBelowMinimumAlert,
       gasSponsorshipWarningAlert,
       insufficientBalanceAlert,
       batchedUnusedApprovalsAlert,
@@ -88,9 +82,6 @@ function useTransactionAlerts(): Alert[] {
       signedOrSubmittedAlert,
       insufficientPayTokenBalanceAlert,
       noPayTokenQuotesAlert,
-      insufficientPredictBalanceAlert,
-      insufficientPerpsBalanceAlert,
-      insufficientMoneyAccountBalanceAlert,
       fiatBuyLimitAlert,
       burnAddressAlert,
       headlessBuyErrorAlert,

@@ -36,11 +36,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Bridge/utils/formatNetworkFee.test.ts',
   'app/components/UI/Bridge/utils/formatNetworkFee.ts',
   'app/components/UI/Bridge/utils/transaction-history.ts',
-  'app/components/UI/Card/hooks/useAssetBalances.tsx',
-  'app/components/UI/Card/hooks/useCardDelegation.test.ts',
-  'app/components/UI/Card/hooks/useCardDelegation.ts',
-  'app/components/UI/Card/hooks/useNeedsGasFaucet.ts',
-  'app/components/UI/Card/sdk/CardSDK.ts',
   'app/components/UI/Earn/Views/EarnInputView/EarnInputView.test.tsx',
   'app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/Erc20TokenHero/index.tsx',
   'app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/index.tsx',
@@ -65,27 +60,9 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Money/utils/moneyActivityFiat.ts',
   'app/components/UI/MultichainBridgeTransactionListItem/MultichainBridgeTransactionListItem.tsx',
   'app/components/UI/Notification/TransactionNotification/index.js',
-  'app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.test.tsx',
-  'app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.tsx',
-  'app/components/UI/Ramp/Aggregator/Views/OrdersList/OrdersList.tsx',
-  'app/components/UI/Ramp/Aggregator/Views/SendTransaction/SendTransaction.tsx',
-  'app/components/UI/Ramp/Aggregator/components/OrderDetails.tsx',
-  'app/components/UI/Ramp/Aggregator/components/OrderListItem/OrderListItem.tsx',
-  'app/components/UI/Ramp/Aggregator/components/Quote/Quote.tsx',
-  'app/components/UI/Ramp/Aggregator/hooks/useBalance.test.ts',
-  'app/components/UI/Ramp/Aggregator/hooks/useBalance.ts',
-  'app/components/UI/Ramp/Aggregator/hooks/useERC20GasLimitEstimation.ts',
-  'app/components/UI/Ramp/Aggregator/hooks/useHandleSuccessfulOrder.ts',
-  'app/components/UI/Ramp/Aggregator/hooks/useIntentAmount.ts',
-  'app/components/UI/Ramp/Aggregator/utils/index.ts',
-  'app/components/UI/Ramp/utils/depositUtils.ts',
-  'app/components/UI/Ramp/utils/getOrderAmount.ts',
-  'app/components/UI/Ramp/utils/v2OrderToast.ts',
   'app/components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.test.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.tsx',
-  'app/components/UI/Stake/components/StakingConfirmation/YouReceiveCard/YouReceiveCard.test.tsx',
-  'app/components/UI/Stake/components/StakingConfirmation/YouReceiveCard/YouReceiveCard.tsx',
   'app/components/UI/Stake/hooks/useBalance.ts',
   'app/components/UI/UrlAutocomplete/Result.tsx',
   'app/components/Views/GasEducationCarousel/index.js',
@@ -98,9 +75,7 @@ const utilNumberImportBurndownFiles = [
   'app/components/Views/confirmations/components/info/typed-sign-v3v4/simulation/components/native-value-display/native-value-display.tsx',
   'app/components/Views/confirmations/components/info/typed-sign-v3v4/simulation/components/value-display/value-display.tsx',
   'app/components/Views/confirmations/components/transactions/custom-amount/custom-amount.tsx',
-  'app/components/Views/confirmations/context/send-context/utils.ts',
   'app/components/Views/confirmations/external/staking/hooks/useStakingDetails.ts',
-  'app/components/Views/confirmations/hooks/earn/useCustomAmount.tsx',
   'app/components/Views/confirmations/hooks/gas/useCancelSpeedupGas/useCancelSpeedupGas.ts',
   'app/components/Views/confirmations/hooks/send/useBalance.ts',
   'app/components/Views/confirmations/hooks/send/useCurrencyConversions.ts',
@@ -166,6 +141,9 @@ module.exports = {
         'app/components/hooks/useOTAUpdates.ts',
         'app/components/Nav/Main/index.js',
         'app/components/Nav/App/App.tsx',
+        // Card: capabilities are re-read from Engine when providerId/location
+        // change; Engine.context is a module singleton, not a reactive dep.
+        'app/components/UI/Card/hooks/useCardCapabilities.ts',
       ],
       rules: {
         'react-hooks/exhaustive-deps': 'off',
@@ -260,6 +238,56 @@ module.exports = {
           //     "PropertyDefinition[accessibility='private'], MethodDefinition[accessibility='private'], TSParameterProperty[accessibility='private']",
           //   message: 'Use a hash name instead.',
           // },
+        ],
+      },
+    },
+    // MMQA-2174 / MMQA-2173: re-apply after *.{ts,tsx} override which replaces no-restricted-syntax
+    {
+      files: ['tests/page-objects/**/*.{js,ts}', 'tests/flows/**/*.{js,ts}'],
+      excludedFiles: [
+        'tests/page-objects/**/*.test.ts',
+        'tests/page-objects/**/*.test.js',
+        'tests/flows/**/*.test.ts',
+        'tests/flows/**/*.test.js',
+      ],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          {
+            selector: "Identifier[name='FrameworkDetector']",
+            message:
+              'Do not use FrameworkDetector in POs/flows. Use Gestures/Assertions/Matchers.',
+          },
+        ],
+      },
+    },
+    {
+      files: ['tests/smoke-appium/**/*.{js,ts}'],
+      excludedFiles: ['tests/smoke-appium/**/*.test.ts'],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          {
+            selector: "Identifier[name='FrameworkDetector']",
+            message:
+              'Do not use FrameworkDetector in specs. Use Gestures/Assertions/Matchers.',
+          },
         ],
       },
     },
@@ -611,6 +639,12 @@ module.exports = {
               ['builtin', 'external'],
               ['internal', 'parent', 'sibling', 'index'],
             ],
+            pathGroups: [
+              {
+                pattern: '#*/**',
+                group: 'internal',
+              },
+            ],
             alphabetize: { order: 'asc', caseInsensitive: true },
             'newlines-between': 'always',
           },
@@ -897,5 +931,5 @@ module.exports = {
     'no-loss-of-precision': 'off',
   },
 
-  ignorePatterns: ['wdio.conf.js', 'app/util/termsOfUse/termsOfUseContent.ts'],
+  ignorePatterns: ['app/util/termsOfUse/termsOfUseContent.ts'],
 };

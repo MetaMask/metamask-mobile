@@ -9,21 +9,16 @@ import {
   selectPredictFeaturedCarouselEnabledFlag,
   selectPredictFeatureFlags,
   selectPredictFeeCollectionFlag,
-  selectPredictGtmOnboardingModalEnabledFlag,
   selectPredictHomeFeaturedVariant,
   selectPredictHomeRedesignEnabledFlag,
   selectPredictHotTabFlag,
   selectPredictPortfolioEnabledFlag,
   selectPredictSportCardLivePricesEnabledFlag,
+  selectPredictHomeCategoriesConfig,
+  selectPredictSportsFeedConfig,
   selectPredictUpDownEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
   selectPredictWimbledonTabFlag,
-  selectPredictWorldCupConfig,
-  selectPredictWorldCupHubBannerEnabledFlag,
-  selectPredictWorldCupHubV2EnabledFlag,
-  selectPredictWorldCupMainFeedBannerEnabledFlag,
-  selectPredictWorldCupMainFeedTabEnabledFlag,
-  selectPredictWorldCupScreenEnabledFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
@@ -39,7 +34,8 @@ import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag'
 import {
   DEFAULT_PREDICT_FEED_BANNER_FLAG,
   DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
-  DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
 import {
@@ -1110,54 +1106,6 @@ describe('Predict Feature Flag Selectors', () => {
     });
   });
 
-  describe('selectPredictGtmOnboardingModalEnabledFlag', () => {
-    it('returns version-gated flag value when remote flag is set', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
-      const stateWithRemoteFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictGtmOnboardingModalEnabled: {
-                  enabled: true,
-                  minimumVersion: '1.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result =
-        selectPredictGtmOnboardingModalEnabledFlag(stateWithRemoteFlag);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when env var not set and no remote flag', () => {
-      delete process.env.MM_PREDICT_GTM_MODAL_ENABLED;
-      const stateWithoutRemoteFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictGtmOnboardingModalEnabled: null,
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPredictGtmOnboardingModalEnabledFlag(
-        stateWithoutRemoteFlag,
-      );
-
-      expect(result).toBe(false);
-    });
-  });
-
   describe('selectPredictHomeFeaturedVariant', () => {
     it('returns carousel by default', () => {
       const result = selectPredictHomeFeaturedVariant(mockedEmptyFlagsState);
@@ -1560,37 +1508,27 @@ describe('Predict Feature Flag Selectors', () => {
     });
   });
 
-  describe('selectPredictWorldCupConfig', () => {
-    it('returns default disabled config when flag is missing', () => {
-      expect(selectPredictWorldCupConfig(mockedEmptyFlagsState)).toEqual(
-        DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  describe('selectPredictHomeCategoriesConfig', () => {
+    it('returns bundled categories when flag is missing', () => {
+      expect(selectPredictHomeCategoriesConfig(mockedEmptyFlagsState)).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
       );
-      expect(
-        selectPredictWorldCupMainFeedBannerEnabledFlag(mockedEmptyFlagsState),
-      ).toBe(false);
-      expect(
-        selectPredictWorldCupMainFeedTabEnabledFlag(mockedEmptyFlagsState),
-      ).toBe(false);
-      expect(
-        selectPredictWorldCupScreenEnabledFlag(mockedEmptyFlagsState),
-      ).toBe(false);
     });
 
-    it('returns normalized config and gated booleans when enabled', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
+    it('returns remote categories when flag is valid', () => {
+      const remoteCategories = {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        categories: [
+          { id: 'tech', tagSlug: 'tech', label: 'Tech', enabled: true },
+        ],
+      };
       const state = {
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                predictWorldCup: {
-                  enabled: true,
-                  minimumVersion: '1.0.0',
-                  showMainFeedBanner: true,
-                  showMainFeedTab: true,
-                  showWorldCupScreen: true,
-                  stages: [{ key: 'final', eventIds: ['10'] }],
-                },
+                predictHomeCategories: remoteCategories,
               },
               cacheTimestamp: 0,
             },
@@ -1598,33 +1536,72 @@ describe('Predict Feature Flag Selectors', () => {
         },
       };
 
-      expect(selectPredictWorldCupConfig(state)).toEqual({
-        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
-        enabled: true,
-        minimumVersion: '1.0.0',
-        showMainFeedBanner: true,
-        showMainFeedTab: true,
-        showWorldCupScreen: true,
-        stages: [{ key: 'final', eventIds: ['10'] }],
-      });
-      expect(selectPredictWorldCupMainFeedBannerEnabledFlag(state)).toBe(true);
-      expect(selectPredictWorldCupMainFeedTabEnabledFlag(state)).toBe(true);
-      expect(selectPredictWorldCupScreenEnabledFlag(state)).toBe(true);
+      expect(selectPredictHomeCategoriesConfig(state)).toEqual(
+        remoteCategories,
+      );
+    });
+  });
+
+  describe('selectPredictSportsFeedConfig', () => {
+    it('returns bundled sports config when flag is missing', () => {
+      expect(selectPredictSportsFeedConfig(mockedEmptyFlagsState)).toEqual(
+        DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+      );
     });
 
-    it('returns default config when version requirement is not met', () => {
+    it('returns remote sports config when enabled and version requirement is met', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const remoteSportsFeed = {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        tabs: [
+          {
+            id: 'soccer',
+            titleKey: 'predict.feed.tabs.soccer',
+            tagSlug: 'soccer',
+            chips: [
+              {
+                id: 'games',
+                kind: 'games',
+                titleKey: 'predict.feed.filters.games',
+              },
+              {
+                id: 'mls',
+                kind: 'tag',
+                titleKey: 'predict.feed.filters.mls',
+                tagSlug: 'mls',
+              },
+            ],
+          },
+        ],
+      };
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictSportsFeed: JSON.parse(JSON.stringify(remoteSportsFeed)),
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(selectPredictSportsFeedConfig(state)).toEqual(remoteSportsFeed);
+    });
+
+    it('returns bundled sports config when version requirement is not met', () => {
       mockHasMinimumRequiredVersion.mockReturnValue(false);
       const state = {
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                predictWorldCup: {
+                predictSportsFeed: {
                   enabled: true,
                   minimumVersion: '99.0.0',
-                  showMainFeedBanner: true,
-                  showMainFeedTab: true,
-                  showWorldCupScreen: true,
+                  tabs: [],
                 },
               },
               cacheTimestamp: 0,
@@ -1633,147 +1610,9 @@ describe('Predict Feature Flag Selectors', () => {
         },
       };
 
-      expect(selectPredictWorldCupConfig(state)).toEqual(
-        DEFAULT_PREDICT_WORLD_CUP_FLAG,
+      expect(selectPredictSportsFeedConfig(state)).toEqual(
+        DEFAULT_PREDICT_SPORTS_FEED_FLAG,
       );
-    });
-  });
-
-  describe('selectPredictWorldCupHubV2EnabledFlag', () => {
-    const buildWorldCupState = <T>(predictWorldCup: T) => ({
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: { predictWorldCup },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-    });
-
-    beforeEach(() => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
-    });
-
-    it('returns true only when enabled, showWorldCupScreen and showHubV2 are all true', () => {
-      const state = buildWorldCupState({
-        enabled: true,
-        minimumVersion: '1.0.0',
-        showWorldCupScreen: true,
-        showHubV2: true,
-      });
-
-      expect(selectPredictWorldCupHubV2EnabledFlag(state)).toBe(true);
-    });
-
-    it('returns false when showWorldCupScreen is false even if showHubV2 is true', () => {
-      const state = buildWorldCupState({
-        enabled: true,
-        minimumVersion: '1.0.0',
-        showWorldCupScreen: false,
-        showHubV2: true,
-      });
-
-      expect(selectPredictWorldCupHubV2EnabledFlag(state)).toBe(false);
-    });
-
-    it('returns false when showHubV2 is false', () => {
-      const state = buildWorldCupState({
-        enabled: true,
-        minimumVersion: '1.0.0',
-        showWorldCupScreen: true,
-        showHubV2: false,
-      });
-
-      expect(selectPredictWorldCupHubV2EnabledFlag(state)).toBe(false);
-    });
-
-    it('returns false when the World Cup feature is disabled', () => {
-      const state = buildWorldCupState({
-        enabled: false,
-        minimumVersion: '1.0.0',
-        showWorldCupScreen: true,
-        showHubV2: true,
-      });
-
-      expect(selectPredictWorldCupHubV2EnabledFlag(state)).toBe(false);
-    });
-  });
-
-  describe('selectPredictWorldCupHubBannerEnabledFlag', () => {
-    const buildWorldCupState = <T>(predictWorldCup: T) => ({
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: { predictWorldCup },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-    });
-
-    beforeEach(() => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
-    });
-
-    it('returns true only when enabled, showWorldCupScreen, showHubV2 and showHubBanner are all true', () => {
-      const state = buildWorldCupState({
-        enabled: true,
-        minimumVersion: '1.0.0',
-        showWorldCupScreen: true,
-        showHubV2: true,
-        showHubBanner: true,
-      });
-
-      expect(selectPredictWorldCupHubBannerEnabledFlag(state)).toBe(true);
-    });
-
-    it('returns false when showWorldCupScreen is false even if showHubBanner is true', () => {
-      const state = buildWorldCupState({
-        enabled: true,
-        minimumVersion: '1.0.0',
-        showWorldCupScreen: false,
-        showHubV2: true,
-        showHubBanner: true,
-      });
-
-      expect(selectPredictWorldCupHubBannerEnabledFlag(state)).toBe(false);
-    });
-
-    it('returns false when showHubV2 is false even if showHubBanner is true', () => {
-      const state = buildWorldCupState({
-        enabled: true,
-        minimumVersion: '1.0.0',
-        showWorldCupScreen: true,
-        showHubV2: false,
-        showHubBanner: true,
-      });
-
-      expect(selectPredictWorldCupHubBannerEnabledFlag(state)).toBe(false);
-    });
-
-    it('returns false when showHubBanner is false', () => {
-      const state = buildWorldCupState({
-        enabled: true,
-        minimumVersion: '1.0.0',
-        showWorldCupScreen: true,
-        showHubV2: true,
-        showHubBanner: false,
-      });
-
-      expect(selectPredictWorldCupHubBannerEnabledFlag(state)).toBe(false);
-    });
-
-    it('returns false when the World Cup feature is disabled', () => {
-      const state = buildWorldCupState({
-        enabled: false,
-        minimumVersion: '1.0.0',
-        showWorldCupScreen: true,
-        showHubV2: true,
-        showHubBanner: true,
-      });
-
-      expect(selectPredictWorldCupHubBannerEnabledFlag(state)).toBe(false);
     });
   });
 
@@ -2195,6 +2034,14 @@ describe('Predict Feature Flag Selectors', () => {
       mode: 'custom',
       title: '  Wimbledon  ',
       deeplink: '  https://link.metamask.io/predict?feed=sports&tab=tennis  ',
+      priorityOrder: [' 10684 ', '10684', ' ', '10683'],
+      prioritySlots: [
+        { seriesId: ' 10684 ', index: 1 },
+        { seriesId: '10684', index: 2 },
+        { seriesId: ' ', index: 3 },
+        { seriesId: '10683', index: 1 },
+        { seriesId: '10192', index: 3 },
+      ],
       contentSource: {
         composition: 'query-results',
         queryParams: '  ?tag_slug=tennis&order=volume24hr  ',
@@ -2219,6 +2066,11 @@ describe('Predict Feature Flag Selectors', () => {
         ...validFlag,
         title: 'Wimbledon',
         deeplink: 'https://link.metamask.io/predict?feed=sports&tab=tennis',
+        priorityOrder: ['10684', '10683'],
+        prioritySlots: [
+          { seriesId: '10684', index: 1 },
+          { seriesId: '10192', index: 3 },
+        ],
         contentSource: {
           composition: 'query-results',
           queryParams: 'tag_slug=tennis&order=volume24hr',
@@ -2266,9 +2118,53 @@ describe('Predict Feature Flag Selectors', () => {
       expect(result).toBe(DEFAULT_PREDICT_FEED_CAROUSEL_FLAG);
     });
 
+    it('applies priorityOrder in live mode', () => {
+      const result = selectPredictFeedCarouselConfig(
+        createState({
+          enabled: true,
+          minimumVersion: '1.0.0',
+          mode: 'live',
+          priorityOrder: [' 10684 ', '10684', ' ', '10683'],
+        }),
+      );
+
+      expect(result).toStrictEqual({
+        ...DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+        enabled: true,
+        minimumVersion: '1.0.0',
+        mode: 'live',
+        priorityOrder: ['10684', '10683'],
+        prioritySlots: [],
+      });
+    });
+
+    it('applies prioritySlots in live mode without priorityOrder', () => {
+      const result = selectPredictFeedCarouselConfig(
+        createState({
+          enabled: true,
+          minimumVersion: '1.0.0',
+          mode: 'live',
+          prioritySlots: [
+            { seriesId: ' 10684 ', index: 1 },
+            { seriesId: '10684', index: 2 },
+            { seriesId: ' ', index: 3 },
+            { seriesId: '10192', index: 1 },
+          ],
+        }),
+      );
+
+      expect(result).toStrictEqual({
+        ...DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+        enabled: true,
+        minimumVersion: '1.0.0',
+        mode: 'live',
+        prioritySlots: [{ seriesId: '10684', index: 1 }],
+      });
+    });
+
     it.each([
       { ...validFlag, enabled: false },
-      { ...validFlag, mode: 'live' },
+      { ...validFlag, mode: 'live', priorityOrder: [], prioritySlots: [] },
       { ...validFlag, deeplink: 'https://example.com/predict' },
       { ...validFlag, deeplink: 'metamask://connect?channelId=test' },
       {
@@ -2289,6 +2185,8 @@ describe('Predict Feature Flag Selectors', () => {
           excludedMarketIds: ['market-1', 2],
         },
       },
+      { ...validFlag, priorityOrder: ['10684', 2] },
+      { ...validFlag, prioritySlots: [{ seriesId: '10684', index: -1 }] },
       { ...validFlag, minimumVersion: 'not-semver' },
       { ...validFlag, minimumVersion: '99.0.0' },
     ])('returns live mode for unavailable or malformed config %#', (flag) => {

@@ -22,6 +22,7 @@ import {
 } from '@metamask/transaction-controller';
 import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
 import AppConstants from '../../core/AppConstants';
+import { isUUID } from '../../core/SDKConnect/utils/isUUID';
 import { validateWithSecurityAlertsAPI } from './security-alerts-api';
 import { Messenger } from '@metamask/messenger';
 import { SignatureStateChange } from '@metamask/signature-controller';
@@ -300,11 +301,56 @@ function normalizeSignatureRequest(request: PPOMRequest): PPOMRequest {
   };
 }
 
+/**
+ * Whether a request origin identifies a path where the wallet cannot verify
+ * the dapp's identity: a remote transport prefix (WalletConnect `wc::`,
+ * MetaMask SDK v1 `MMSDKREMOTE::`, MetaMask Connect / MWP `MMSDKCONNECTV2::`),
+ * a bare connection/channel UUID (the SDK v1 / MWP request origin once the
+ * transport prefix is stripped), or the `deeplink` / `qr-code` placeholders.
+ *
+ * On these paths any URL accompanying the origin is self-reported by the
+ * sender, and the rest of the value (connection ids, placeholders) is
+ * meaningless to the scan.
+ */
+function isUnverifiableOrigin(origin: string): boolean {
+  return (
+    origin.startsWith(WALLET_CONNECT_ORIGIN) ||
+    origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN) ||
+    origin.startsWith(AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN) ||
+    origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK ||
+    origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE ||
+    isUUID(origin)
+  );
+}
+
+/**
+ * Remove the origin from the scan request when it comes from an unverifiable
+ * path. Blockaid treats the URL as a core heuristic that can flip a scan
+ * verdict between malicious and benign, so a self-reported (spoofable) origin
+ * must never reach it. Previously the transport prefix was stripped and the
+ * remaining self-reported domain was still sent.
+ *
+ * This is a defense-in-depth net for origins that carry a transport marker.
+ * Call sites where the transport is known but the origin is a bare
+ * self-reported URL (indistinguishable from a verified hostname here) must
+ * drop the origin themselves: see `WalletConnect2Session.handleSendTransaction`,
+ * the signature handlers in `RPCMethodMiddleware`, and
+ * `BackgroundBridge.validateSecurity`.
+ */
+function sanitizeRequestOrigin(request: PPOMRequest): PPOMRequest {
+  if (request.origin && isUnverifiableOrigin(request.origin)) {
+    delete request.origin;
+  }
+  return request;
+}
+
 function normalizeRequest(
   request: PPOMRequest,
   transactionMeta?: TransactionMeta,
 ): PPOMRequest {
   let normalizedRequest = cloneDeep(request);
+
+  normalizedRequest = sanitizeRequestOrigin(normalizedRequest);
 
   normalizedRequest = normalizeSignatureRequest(normalizedRequest);
 
@@ -323,11 +369,6 @@ function normalizeTransactionRequest(
   if (request.method !== METHOD_SEND_TRANSACTION) {
     return request;
   }
-
-  request.origin = request.origin
-    ?.replace(WALLET_CONNECT_ORIGIN, '')
-    ?.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '')
-    ?.replace(AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN, '');
 
   const txParams = (
     Array.isArray(request.params) ? request.params[0] : {}

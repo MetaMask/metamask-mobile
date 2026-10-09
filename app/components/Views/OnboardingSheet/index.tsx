@@ -2,7 +2,6 @@ import React, { useCallback, useRef } from 'react';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
@@ -26,12 +25,16 @@ import {
   IconName,
   IconSize,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
   BottomSheet,
   BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 
 export interface OnboardingSheetParams {
   onPressCreate?: () => void;
@@ -47,6 +50,12 @@ type OnboardingSheetRouteProp = RouteProp<
   'OnboardingSheet'
 >;
 
+/**
+ * Joins a label with non-breaking spaces so an inline link wraps to the next
+ * line as a whole instead of splitting across lines mid-phrase.
+ */
+const noWrap = (label: string) => label.replace(/ /gu, '\u00A0');
+
 const OnboardingSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
@@ -59,8 +68,20 @@ const OnboardingSheet = () => {
     onPressContinueWithTelegram,
     createWallet = false,
   } = params ?? {};
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
+
+  // Sheet CTAs are the first paint destination after Create/Import wallet.
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.ONBOARDING_SHEET,
+    contentReady: true,
+    isEmpty: false,
+  });
+  useNavigationPerformance({
+    destinationScreenId: OnboardingScreenIds.ONBOARDING_SHEET,
+    destinationReady: true,
+  });
+
   const onPressCreateAction = () => {
     if (onPressCreate) {
       onPressCreate();
@@ -111,16 +132,10 @@ const OnboardingSheet = () => {
     goTo(url, strings('onboarding.privacy_notice'));
   };
 
-  const { themeAppearance } = useTheme();
-  const surfaceClass = useElevatedSurface();
   const isDark = themeAppearance === AppThemeKey.dark;
 
   return (
-    <BottomSheet
-      goBack={navigation.goBack}
-      ref={sheetRef}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet goBack={navigation.goBack} ref={sheetRef}>
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
@@ -242,25 +257,23 @@ const OnboardingSheet = () => {
           twClassName="mt-6 text-center"
         >
           {strings('onboarding.by_continuing')}{' '}
-          <Text
+          <TextButton
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
-            color={TextColor.PrimaryDefault}
             onPress={onPressTermsOfUse}
             testID="terms-of-use-link"
           >
-            {strings('onboarding.terms_of_use')}
-          </Text>{' '}
+            {noWrap(strings('onboarding.terms_of_use'))}
+          </TextButton>{' '}
           {strings('onboarding.and')}{' '}
-          <Text
+          <TextButton
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
-            color={TextColor.PrimaryDefault}
             onPress={onPressPrivacyNotice}
             testID="privacy-notice-link"
           >
-            {strings('onboarding.privacy_notice')}
-          </Text>
+            {noWrap(strings('onboarding.privacy_notice'))}
+          </TextButton>
         </Text>
       </Box>
     </BottomSheet>

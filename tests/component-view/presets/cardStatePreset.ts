@@ -21,7 +21,6 @@ const defaultCardHomeData = {
   },
   account: {
     verificationStatus: 'VERIFIED',
-    provisioningEligible: false,
     holderName: 'Test User',
     shippingAddress: {
       line1: '123 Main St',
@@ -48,6 +47,7 @@ const defaultCardHomeData = {
   fundingAssets: [],
   availableFundingAssets: [],
   alerts: [],
+  walletProvisioning: null,
   // 'add_funds' action causes ADD_FUNDS_BUTTON to render
   actions: [{ type: 'add_funds', enabled: true }],
   delegationSettings: null,
@@ -85,7 +85,6 @@ export const initialStateCard = () =>
             cardHomeData: defaultCardHomeData,
             cardHomeDataStatus: 'success',
             selectedCountry: null,
-            selectedCardProgramId: null,
           },
           MoneyAccountController: { moneyAccounts: {} },
           RemoteFeatureFlagController: {

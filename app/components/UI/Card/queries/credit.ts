@@ -4,6 +4,10 @@ import type {
   CreditWalletResponse,
   CreditWithdrawEstimationResponse,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  REDEEM_STALE_TIME_MS,
+  shouldRetryRedeemQuery,
+} from './redeemQueryDefaults';
 
 export const creditKeys = {
   all: () => ['card', 'credit'] as const,
@@ -17,7 +21,8 @@ export const creditWalletOptions = () =>
     queryKey: creditKeys.wallet(),
     queryFn: async (): Promise<CreditWalletResponse> =>
       Engine.context.CardController.getCreditWallet(),
-    staleTime: 0,
+    staleTime: REDEEM_STALE_TIME_MS,
+    retry: shouldRetryRedeemQuery,
   });
 
 export const creditWithdrawEstimationOptions = () =>
@@ -26,5 +31,6 @@ export const creditWithdrawEstimationOptions = () =>
     queryFn: async (): Promise<CreditWithdrawEstimationResponse> =>
       Engine.context.CardController.getCreditWithdrawEstimation(),
     enabled: false,
-    staleTime: 0,
+    staleTime: REDEEM_STALE_TIME_MS,
+    retry: shouldRetryRedeemQuery,
   });

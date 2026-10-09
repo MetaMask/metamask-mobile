@@ -113,6 +113,10 @@ export function parseErrorMessage({
   if (parsedErrorMessage) {
     return parsedErrorMessage;
   }
+  // Never surface raw PREDICT_* codes to users.
+  if (typeof errorMessage === 'string' && errorMessage.startsWith('PREDICT_')) {
+    return errorMessages[PREDICT_ERROR_CODES.UNKNOWN_ERROR];
+  }
   return errorMessage;
 }
 

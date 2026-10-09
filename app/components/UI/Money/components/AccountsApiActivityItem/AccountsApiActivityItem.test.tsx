@@ -5,6 +5,11 @@ import type { Hex } from '@metamask/utils';
 import AccountsApiActivityItem from './AccountsApiActivityItem';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
+import {
+  CardTransactionStatus,
+  CardTransactionType,
+  type CardTransaction,
+} from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectMoneyEnableActivityDetailsFlag: jest.fn(),
@@ -64,6 +69,19 @@ const cashback: AccountsApiActivity = {
   receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0' as Hex,
 };
 
+const enrichment: CardTransaction = {
+  id: 'baanx-1',
+  providerId: 'baanx',
+  timestamp: card.time,
+  status: CardTransactionStatus.Completed,
+  type: CardTransactionType.Purchase,
+  isDebit: true,
+  billingAmount: { value: '5.38', currency: 'USD' },
+  originalAmount: { value: '27.50', currency: 'BRL' },
+  merchant: { name: 'Coffee Shop' },
+  fundingSources: [],
+};
+
 interface CapturedRowProps {
   id: string;
   chainId: string;
@@ -112,6 +130,18 @@ describe('AccountsApiActivityItem', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
       activity: card,
+      enrichment: undefined,
+    });
+  });
+
+  it('navigates with enrichment when enrichment is defined', () => {
+    render(<AccountsApiActivityItem activity={card} enrichment={enrichment} />);
+
+    lastRowProps().onPress?.(card.hash);
+
+    expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
+      activity: card,
+      enrichment,
     });
   });
 
@@ -122,6 +152,7 @@ describe('AccountsApiActivityItem', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
       activity: cashback,
+      enrichment: undefined,
     });
   });
 

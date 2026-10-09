@@ -21,7 +21,9 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       # Invoked directly rather than through `yarn test:no-code-fences`: the
       # checker only needs `git` and `grep`, so it can skip the Node/Yarn setup

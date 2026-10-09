@@ -4,7 +4,7 @@ import type { Position } from '@metamask/social-controllers';
 import TraderPositionBuyCta from './TraderPositionBuyCta';
 import { useABTest } from '../../../../../hooks/useABTest';
 import { useSwapBridgeNavigation } from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
-import { useQuickBuySetup } from './QuickBuy/hooks/useQuickBuySetup';
+import { useQuickBuySetup } from '../../../../UI/QuickBuy/hooks/useQuickBuySetup';
 import {
   TOP_TRADERS_BUY_ACTION_AB_KEY,
   TOP_TRADERS_BUY_ACTION_EXPOSURE_METADATA,
@@ -31,11 +31,11 @@ jest.mock('../../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
   },
 }));
 
-jest.mock('./QuickBuy/hooks/useQuickBuySetup', () => ({
+jest.mock('../../../../UI/QuickBuy/hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
 
-jest.mock('./QuickBuy', () => ({
+jest.mock('../../../../UI/QuickBuy', () => ({
   __esModule: true,
   default: (props: unknown) => mockTraderPositionQuickBuy(props),
   positionToQuickBuyTarget: (position: {
@@ -138,12 +138,10 @@ describe('TraderPositionBuyCta', () => {
 
   it('opens the swaps view with follow_trader attribution', () => {
     renderCta();
-    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
-      expect.objectContaining({
-        location: 'Follow Trading Token Screen',
-        sourcePage: 'follow_trader',
-      }),
-    );
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      location: 'Follow Trading Token Screen',
+      sourcePage: 'follow_trader',
+    });
   });
 
   it('labels the spot position action as Trade', () => {

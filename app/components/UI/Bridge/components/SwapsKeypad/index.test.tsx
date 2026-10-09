@@ -412,5 +412,36 @@ describe('SwapsKeypad', () => {
         expect.objectContaining({ isInteractable: false }),
       );
     });
+
+    it('renders BottomSheetDialog as interactable when isInteractable is true', () => {
+      renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        isInteractable: true,
+      });
+
+      expect(mockBottomSheetDialogProps).toHaveBeenCalledWith(
+        expect.objectContaining({ isInteractable: true }),
+      );
+    });
+
+    it('notifies onClose when the dialog closes', () => {
+      const onClose = jest.fn();
+      const { ref } = renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        onClose,
+      });
+
+      act(() => {
+        ref.current?.close();
+      });
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
   });
 });

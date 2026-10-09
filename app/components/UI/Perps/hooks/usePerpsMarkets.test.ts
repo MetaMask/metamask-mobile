@@ -3,6 +3,9 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsMarkets, parseVolume } from './usePerpsMarkets';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 
+let mockMarketContextReady = true;
+let mockMarketIdentityKey = 'testnet|hyperliquid|0';
+
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -13,15 +16,23 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
+jest.mock('./usePerpsMarketContext', () => ({
+  usePerpsMarketContext: jest.fn(() => ({
+    identityKey: mockMarketIdentityKey,
+    isReady: mockMarketContextReady,
+  })),
+}));
 
 // Mock PerpsStreamManager
 const mockSubscribe = jest.fn();
 const mockRefresh = jest.fn();
+const mockUnsubscribe = jest.fn();
 let mockChannelMarketsSnapshot: PerpsMarketData[] | null | undefined;
 const mockMarketData = {
   subscribe: mockSubscribe,
   refresh: mockRefresh,
   getSnapshot: () => mockChannelMarketsSnapshot,
+  getLastDeliveredAt: jest.fn((): number | null => Date.now()),
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -60,13 +71,15 @@ describe('usePerpsMarkets', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockChannelMarketsSnapshot = undefined;
+    mockMarketContextReady = true;
+    mockMarketIdentityKey = 'testnet|hyperliquid|0';
 
     // Set up default mock behavior
     mockSubscribe.mockImplementation(({ callback }) => {
       // Simulate immediate callback with data
       setTimeout(() => callback(mockMarketDataArray), 0);
       // Return unsubscribe function
-      return jest.fn();
+      return mockUnsubscribe;
     });
     mockRefresh.mockResolvedValue(undefined);
   });
@@ -114,6 +127,42 @@ describe('usePerpsMarkets', () => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isRefreshing).toBe(false);
       expect(result.current.error).toBeNull();
+    });
+
+    it('waits to subscribe when the selected market context is not ready', () => {
+      mockMarketContextReady = false;
+      mockSubscribe.mockImplementation(() => mockUnsubscribe);
+
+      const { result } = renderHook(() => usePerpsMarkets());
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.hasResolvedInitialData).toBe(false);
+      expect(mockSubscribe).not.toHaveBeenCalled();
+    });
+
+    it('keeps resident markets visible while the connection generation changes', () => {
+      mockChannelMarketsSnapshot = mockMarketDataArray;
+      mockSubscribe.mockImplementation(() => mockUnsubscribe);
+      const { result, rerender } = renderHook(() => usePerpsMarkets());
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.markets).toHaveLength(2);
+      expect(mockSubscribe).toHaveBeenCalledTimes(1);
+
+      mockMarketContextReady = false;
+      rerender(undefined);
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasResolvedInitialData).toBe(true);
+      expect(result.current.markets).toHaveLength(2);
+      expect(mockSubscribe).toHaveBeenCalledTimes(1);
+      expect(mockUnsubscribe).not.toHaveBeenCalled();
+
+      mockMarketContextReady = true;
+      rerender(undefined);
+
+      expect(mockSubscribe).toHaveBeenCalledTimes(1);
+      expect(mockUnsubscribe).not.toHaveBeenCalled();
     });
   });
 
@@ -217,6 +266,21 @@ describe('usePerpsMarkets', () => {
       // Assert
       expect(result.current.markets).toEqual([]);
       expect(result.current.error).toBeNull();
+      expect(result.current.hasResolvedInitialData).toBe(true);
+    });
+
+    it('returns to unresolved when the current market channel is cleared', async () => {
+      const { result } = renderHook(() => usePerpsMarkets());
+
+      await waitFor(() => {
+        expect(result.current.hasResolvedInitialData).toBe(true);
+      });
+
+      const subscriberCallback = mockSubscribe.mock.calls[0][0].callback;
+      mockMarketData.getLastDeliveredAt.mockReturnValueOnce(null);
+      act(() => subscriberCallback([]));
+
+      expect(result.current.hasResolvedInitialData).toBe(false);
     });
   });
 

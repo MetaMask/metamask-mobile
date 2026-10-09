@@ -219,21 +219,15 @@ Events are defined in `analytics/events.ts` following the event builder pattern:
 
 ### Privacy Considerations
 
-> [!WARNING] > **Critical Privacy Risk**: Even when using `addSensitiveProperties` for anonymous events, linking sensitive data in the same event creates significant privacy risks.
->
-> **Example Risk**: Sending a name and address in the same anonymous event allows correlation between the two pieces of data, even if the user identity is unknown.
->
-> **Best Practice**: Avoid tracking multiple sensitive data points in the same event. Instead, track aggregate data, metadata, or separate events for different sensitive information.
+> [!WARNING]
+> Put only aggregate or public metadata on events. A name and an address on the same event can be correlated even without a user id. New tracking uses `addProperties` only.
 
-**Safe Tracking Examples:**
+**Safe tracking examples:**
 
-- ✅ `totalPetNames` (aggregate count)
-- ✅ `chainId` (public network info)
+- `totalPetNames` (aggregate count)
+- `chainId` (public network info)
 
-**Unsafe Tracking Examples:**
-
-- ❌ Name
-- ❌ Address
+Keep names, addresses, and other personal data off event properties.
 
 ## Performance Tracing
 
@@ -322,7 +316,7 @@ INCLUDE_SAMPLE_FEATURE=true yarn start:android
 
 #### How It Works
 
-1. **Runtime Gating**: The handful of integration points that pull in real Sample Feature code (`MainNavigator.js`, `DeveloperOptions/index.tsx`, `Engine.ts`) check `process.env.INCLUDE_SAMPLE_FEATURE === 'true'` and `require(...)` the feature lazily inside that branch, e.g.:
+1. **Runtime Gating**: The handful of integration points that pull in real Sample Feature code (`MainNavigator.js`, `DeveloperOptions/index.tsx`, `Engine.ts`, `reducers/index.ts`) check `process.env.INCLUDE_SAMPLE_FEATURE === 'true'` and `require(...)` the feature lazily inside that branch, e.g.:
    ```typescript
    const SampleFeature =
      process.env.INCLUDE_SAMPLE_FEATURE === 'true'
@@ -330,7 +324,7 @@ INCLUDE_SAMPLE_FEATURE=true yarn start:android
        : null;
    ```
 2. **Babel Env Inlining**: `transform-inline-environment-variables` (see `babel.config.js`) inlines `process.env.INCLUDE_SAMPLE_FEATURE` to a literal at bundle time, so terser can fold the comparison and drop the unreachable `require(...)` call.
-3. **Zero Production Impact**: When `INCLUDE_SAMPLE_FEATURE` is not set, `@metamask/sample-controllers` and the `app/features/SampleFeature/` component tree are dead-code-eliminated from the bundle. Lightweight, always-safe integration points (route names, analytics enum entries, TypeScript types, the Redux reducer) are registered unconditionally since they carry no meaningful bundle weight.
+3. **Zero Production Impact**: When `INCLUDE_SAMPLE_FEATURE` is not set, `@metamask/sample-controllers` and the `app/features/SampleFeature/` component tree are dead-code-eliminated from the bundle, and the `SamplePetnamesController` and `sampleCounter` reducer are never added to app state. Lightweight, always-safe integration points (route names, analytics enum entries, trace names, TypeScript types) are defined unconditionally since they carry no meaningful bundle weight.
 
 #### Default Behavior
 
@@ -457,7 +451,7 @@ yarn jest app/features/SampleFeature --testMatch="**/*.test.ts?(x)"
 
 ### End-to-End Testing
 
-Comprehensive E2E tests written in TypeScript demonstrating best practices for Detox testing.
+Comprehensive E2E tests written in TypeScript demonstrating best practices for Appium smoke testing.
 
 > [!NOTE]
 > These e2e tests are for local development only and are not included in CI pipelines since this is a sample feature.
@@ -524,7 +518,7 @@ See [`app/features/SampleFeature/e2e/README.md`](./e2e/README.md) for:
 
 - Page Object Model for maintainable tests
 - Text-based selectors for resilient element targeting
-- Proper async handling with Detox waitFor utilities
+- Proper async handling with Assertions wait helpers
 - Integration with main app E2E page objects
 - TypeScript for type-safe test code
 

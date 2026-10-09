@@ -70,7 +70,6 @@ describe('e2eBridgeQrSync deep link', () => {
 
     expect(applyTestSyncReadyPayload).toHaveBeenCalledWith({
       mnemonic: 'one two three',
-      isPrimary: true,
       walletName: 'Ext',
       accountName: 'Acc',
     });
@@ -88,7 +87,6 @@ describe('e2eBridgeQrSync deep link', () => {
 
     expect(applyTestSyncReadyPayload).toHaveBeenCalledWith({
       mnemonic: 'alpha',
-      isPrimary: true,
       walletName: undefined,
       accountName: undefined,
     });
@@ -106,13 +104,12 @@ describe('e2eBridgeQrSync deep link', () => {
 
     expect(applyTestSyncReadyPayload).toHaveBeenCalledWith({
       mnemonic: 'nested',
-      isPrimary: false,
       walletName: undefined,
       accountName: undefined,
     });
   });
 
-  it('defaults isPrimary to true when the query param is missing or empty', () => {
+  it('parses mnemonic with optional walletName and accountName params', () => {
     const applyTestSyncReadyPayload = jest.fn();
     registerE2EQrSyncDeepLinkHandler(() =>
       buildController(applyTestSyncReadyPayload),
@@ -127,13 +124,11 @@ describe('e2eBridgeQrSync deep link', () => {
 
     expect(applyTestSyncReadyPayload).toHaveBeenNthCalledWith(1, {
       mnemonic: 'only',
-      isPrimary: true,
       walletName: undefined,
       accountName: undefined,
     });
     expect(applyTestSyncReadyPayload).toHaveBeenNthCalledWith(2, {
       mnemonic: 'empty',
-      isPrimary: true,
       walletName: undefined,
       accountName: undefined,
     });
@@ -250,7 +245,6 @@ describe('e2eBridgeQrSync deep link', () => {
     expect(applyTestSyncReadyPayload).toHaveBeenCalledTimes(1);
     expect(applyTestSyncReadyPayload).toHaveBeenCalledWith({
       mnemonic: 'live',
-      isPrimary: true,
       walletName: undefined,
       accountName: undefined,
     });
@@ -273,7 +267,6 @@ describe('e2eBridgeQrSync deep link', () => {
 
     expect(applyTestSyncReadyPayload).toHaveBeenCalledWith({
       mnemonic: 'initial',
-      isPrimary: true,
       walletName: undefined,
       accountName: undefined,
     });

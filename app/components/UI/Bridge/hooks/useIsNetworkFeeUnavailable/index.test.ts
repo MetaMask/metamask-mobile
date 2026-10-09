@@ -1,36 +1,49 @@
-import { ChainId } from '@metamask/bridge-controller';
+import {
+  ChainId,
+  formatChainIdToCaip,
+  DeepPartial,
+  toBridgeAssetV2,
+  getNativeAssetForChainId,
+} from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { isQuoteNetworkFeeUnavailable } from '.';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
+import { mergeWith } from 'lodash';
 
 type ActiveQuote = ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
 const createQuote = (
-  overrides: Partial<NonNullable<ActiveQuote>> = {},
+  overrides: DeepPartial<NonNullable<ActiveQuote>> = {},
 ): ActiveQuote =>
-  ({
-    ...mockQuoteWithMetadata,
-    ...overrides,
-    quote: {
-      ...mockQuoteWithMetadata.quote,
-      srcChainId: ChainId.BTC,
-      ...overrides.quote,
+  mergeWith(
+    {},
+    mockQuoteWithMetadata,
+    {
+      chainId: formatChainIdToCaip(ChainId.BTC),
+      quote: {
+        feeData: {
+          network: [
+            {
+              normalizedAmount: '0.0001',
+              asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.BTC)),
+            },
+          ],
+        },
+      },
     },
-    totalNetworkFee: {
-      ...mockQuoteWithMetadata.totalNetworkFee,
-      amount: '0.0001',
-      ...overrides.totalNetworkFee,
-    },
-  }) as ActiveQuote;
+    overrides,
+    (_, srcValue) => srcValue,
+  );
 
 describe('isQuoteNetworkFeeUnavailable', () => {
   it('returns true for a BTC quote with zero network fee', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: '0',
+          quote: {
+            feeData: {
+              network: [{ normalizedAmount: '0' }],
+            },
           },
         }),
       ),
@@ -41,9 +54,10 @@ describe('isQuoteNetworkFeeUnavailable', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: '-0.0001',
+          quote: {
+            feeData: {
+              network: [{ normalizedAmount: '-0.0001' }],
+            },
           },
         }),
       ),
@@ -54,10 +68,11 @@ describe('isQuoteNetworkFeeUnavailable', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: undefined,
-          } as unknown as NonNullable<ActiveQuote>['totalNetworkFee'],
+          quote: {
+            feeData: {
+              network: [{ normalizedAmount: undefined }],
+            },
+          },
         }),
       ),
     ).toBe(true);
@@ -67,17 +82,15 @@ describe('isQuoteNetworkFeeUnavailable', () => {
     expect(isQuoteNetworkFeeUnavailable(createQuote())).toBe(false);
   });
 
-  it('returns false for a non-BTC/non-Tron quote with zero network fee', () => {
+  it('returns false for a non-BTC/non-Tron/non-Stellar quote with zero network fee', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
+          chainId: formatChainIdToCaip(1),
           quote: {
-            ...mockQuoteWithMetadata.quote,
-            srcChainId: 1,
-          },
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: '0',
+            feeData: {
+              network: [{ normalizedAmount: '0' }],
+            },
           },
         }),
       ),
@@ -88,13 +101,11 @@ describe('isQuoteNetworkFeeUnavailable', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
+          chainId: formatChainIdToCaip(ChainId.TRON),
           quote: {
-            ...mockQuoteWithMetadata.quote,
-            srcChainId: ChainId.TRON,
-          },
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: '0',
+            feeData: {
+              network: [{ normalizedAmount: '0' }],
+            },
           },
         }),
       ),
@@ -105,13 +116,11 @@ describe('isQuoteNetworkFeeUnavailable', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
+          chainId: formatChainIdToCaip(ChainId.TRON),
           quote: {
-            ...mockQuoteWithMetadata.quote,
-            srcChainId: ChainId.TRON,
-          },
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: '-1',
+            feeData: {
+              network: [{ normalizedAmount: '-1' }],
+            },
           },
         }),
       ),
@@ -122,14 +131,13 @@ describe('isQuoteNetworkFeeUnavailable', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
+          chainId: formatChainIdToCaip(ChainId.TRON),
           quote: {
             ...mockQuoteWithMetadata.quote,
-            srcChainId: ChainId.TRON,
+            feeData: {
+              network: [{ normalizedAmount: undefined }],
+            },
           },
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: undefined,
-          } as unknown as NonNullable<ActiveQuote>['totalNetworkFee'],
         }),
       ),
     ).toBe(true);
@@ -139,10 +147,65 @@ describe('isQuoteNetworkFeeUnavailable', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
+          chainId: formatChainIdToCaip(ChainId.TRON),
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('returns true for a Stellar quote with zero network fee', () => {
+    expect(
+      isQuoteNetworkFeeUnavailable(
+        createQuote({
+          chainId: formatChainIdToCaip(ChainId.STELLAR),
           quote: {
             ...mockQuoteWithMetadata.quote,
-            srcChainId: ChainId.TRON,
+            feeData: {
+              network: [{ normalizedAmount: '0' }],
+            },
           },
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('returns true for a Stellar quote with negative network fee', () => {
+    expect(
+      isQuoteNetworkFeeUnavailable(
+        createQuote({
+          chainId: formatChainIdToCaip(ChainId.STELLAR),
+          quote: {
+            ...mockQuoteWithMetadata.quote,
+            feeData: {
+              network: [{ normalizedAmount: '-1' }],
+            },
+          },
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('returns true for a Stellar quote with missing network fee amount', () => {
+    expect(
+      isQuoteNetworkFeeUnavailable(
+        createQuote({
+          chainId: formatChainIdToCaip(ChainId.STELLAR),
+          quote: {
+            ...mockQuoteWithMetadata.quote,
+            feeData: {
+              network: [{ normalizedAmount: undefined }],
+            },
+          },
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false for a Stellar quote with positive network fee', () => {
+    expect(
+      isQuoteNetworkFeeUnavailable(
+        createQuote({
+          chainId: formatChainIdToCaip(ChainId.STELLAR),
         }),
       ),
     ).toBe(false);
@@ -152,10 +215,7 @@ describe('isQuoteNetworkFeeUnavailable', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
-          quote: {
-            ...mockQuoteWithMetadata.quote,
-            srcChainId: undefined,
-          } as unknown as NonNullable<ActiveQuote>['quote'],
+          chainId: null as never,
         }),
       ),
     ).toBe(false);

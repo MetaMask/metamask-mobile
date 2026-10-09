@@ -36,7 +36,7 @@ describe('useFiatFormatter', () => {
     const formattedResult = formatter(amount);
 
     expect(selectCurrentCurrency).toHaveBeenCalledTimes(1);
-    expect(formatFiat).toHaveBeenCalledWith(amount, 'USD');
+    expect(formatFiat).toHaveBeenCalledWith(amount, 'USD', undefined);
     expect(formattedResult).toBe('$1,000');
   });
 
@@ -51,7 +51,7 @@ describe('useFiatFormatter', () => {
     formatter(amount);
 
     expect(selectCurrentCurrency).toHaveBeenCalledTimes(1);
-    expect(formatFiat).toHaveBeenCalledWith(amount, 'EUR');
+    expect(formatFiat).toHaveBeenCalledWith(amount, 'EUR', undefined);
   });
 
   it('overrides the currency from Redux when currency parameter is provided', () => {
@@ -65,7 +65,22 @@ describe('useFiatFormatter', () => {
     formatter(amount);
 
     expect(selectCurrentCurrency).toHaveBeenCalledTimes(1);
-    expect(formatFiat).toHaveBeenCalledWith(amount, 'GBP');
+    expect(formatFiat).toHaveBeenCalledWith(amount, 'GBP', undefined);
+  });
+
+  it('forwards fractionDigits to formatFiat when provided', () => {
+    mockSelectCurrentCurrency.mockReturnValue('USD');
+    mockFormatFiat.mockReturnValue('$1,000.00');
+
+    const { result } = renderHook(() =>
+      useFiatFormatter({ fractionDigits: 2 }),
+    );
+    const formatter = result.current;
+
+    const amount = new BigNumber(1000);
+    formatter(amount);
+
+    expect(formatFiat).toHaveBeenCalledWith(amount, 'USD', 2);
   });
 
   it('passes the correct currency to formatFiat for each call', () => {
@@ -81,7 +96,17 @@ describe('useFiatFormatter', () => {
     formatter(new BigNumber(200));
 
     expect(formatFiat).toHaveBeenCalledTimes(2);
-    expect(formatFiat).toHaveBeenNthCalledWith(1, new BigNumber(100), 'JPY');
-    expect(formatFiat).toHaveBeenNthCalledWith(2, new BigNumber(200), 'JPY');
+    expect(formatFiat).toHaveBeenNthCalledWith(
+      1,
+      new BigNumber(100),
+      'JPY',
+      undefined,
+    );
+    expect(formatFiat).toHaveBeenNthCalledWith(
+      2,
+      new BigNumber(200),
+      'JPY',
+      undefined,
+    );
   });
 });

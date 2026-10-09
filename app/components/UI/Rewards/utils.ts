@@ -17,7 +17,6 @@ import { isSolanaAccount } from '../../../core/Multichain/utils';
 import { getAddressAccountType } from '../../../util/address';
 import Routes from '../../../constants/navigation/Routes';
 import type { RewardsStackParamList } from './types/navigation';
-import { isBetaBuild } from '../../../util/environment';
 
 // Initialize dayjs with relativeTime plugin
 dayjs.extend(relativeTime);
@@ -111,8 +110,6 @@ export enum RewardsMetricsButtons {
   OPT_OUT = 'opt_out',
   OPT_OUT_CANCEL = 'opt_out_cancel',
   VISIT_APP_STORE = 'visit_app_store',
-  BUY_MUSD = 'buy_musd',
-  SWAP_TO_MUSD = 'swap_to_musd',
   COPY_WINNER_VERIFICATION_CODE = 'copy_winner_verification_code',
 }
 
@@ -223,15 +220,7 @@ export const exitRewardsFlow = (
   });
 };
 
-/**
- * Resolves the "Contact support" URL used for beta builds only.
- *
- * Extracted as its own function (rather than inlined at each call site) so the
- * branch that depends on it — direct beta Intercom link vs. the support-consent
- * flow — can be exercised in both directions from unit tests via module mocking.
- */
-export const getBetaSupportUrl = (): string =>
-  isBetaBuild ? 'https://intercom.help/internal-beta-testing/en/' : '';
+export { getBetaSupportUrl } from '../../../util/support/betaSupportUrl';
 
 // Referral URL builder
 export const REFERRAL_LINK_PATH = 'link.metamask.io/rewards?referral=';

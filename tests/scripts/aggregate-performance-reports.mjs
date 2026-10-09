@@ -15,12 +15,19 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * Get build variant and display type from environment (rc = normal, exp = experimental).
+ * Get build variant and display type from environment.
  * @returns {{ buildVariant: string, buildType: string }}
  */
 function getBuildTypeInfo() {
   const variant = (process.env.BUILD_VARIANT || 'rc').toLowerCase();
-  const buildType = variant === 'exp' ? 'Experimental' : 'Normal';
+  let buildType = 'Normal';
+  if (variant === 'exp') {
+    buildType = 'Experimental';
+  } else if (variant === 'rc') {
+    buildType = 'RC';
+  } else if (variant === 'e2e') {
+    buildType = 'E2E';
+  }
   return { buildVariant: variant, buildType };
 }
 
@@ -98,6 +105,86 @@ function findAppProfilingFiles(dir, profilingFiles = []) {
     }
   }
   return profilingFiles;
+}
+
+/**
+ * Recursively find Hermes CPU profile artifacts.
+ * @param {string} dir
+ * @param {string[]} profileFiles
+ * @returns {string[]}
+ */
+function findHermesCpuProfileFiles(dir, profileFiles = []) {
+  if (!fs.existsSync(dir)) {
+    return profileFiles;
+  }
+
+  const entries = fs.readdirSync(dir);
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry);
+    if (fs.statSync(fullPath).isDirectory()) {
+      findHermesCpuProfileFiles(fullPath, profileFiles);
+    } else if (
+      entry.endsWith('.cpuprofile') &&
+      fullPath.split(path.sep).includes('hermes-cpuprofiles')
+    ) {
+      profileFiles.push(fullPath);
+    }
+  }
+  return profileFiles;
+}
+
+/**
+ * Copy Hermes `.cpuprofile` files into aggregated-reports so a single
+ * artifact download is enough for per-scenario CPU-profile analysis.
+ * @param {string[]} searchDirs
+ * @param {string} outputDir
+ * @returns {number}
+ */
+function collectHermesCpuProfiles(searchDirs, outputDir) {
+  const profilesOutputDir = path.join(outputDir, 'hermes-cpuprofiles');
+  const usedNames = new Map();
+  let copiedCount = 0;
+
+  if (fs.existsSync(profilesOutputDir)) {
+    fs.rmSync(profilesOutputDir, { recursive: true, force: true });
+  }
+
+  const profileFiles = [];
+  searchDirs.forEach((dir) => {
+    if (fs.existsSync(dir)) {
+      findHermesCpuProfileFiles(dir, profileFiles);
+    }
+  });
+
+  if (profileFiles.length === 0) {
+    console.log('ℹ️ No Hermes CPU profile artifacts found to collect');
+    return 0;
+  }
+
+  fs.mkdirSync(profilesOutputDir, { recursive: true });
+
+  for (const sourcePath of profileFiles) {
+    const fileName = path.basename(sourcePath);
+    const collisionCount = usedNames.get(fileName) ?? 0;
+    usedNames.set(fileName, collisionCount + 1);
+
+    if (collisionCount > 0) {
+      console.warn(
+        `⚠️ Skipping duplicate Hermes profile name instead of changing its scenario identity: ${fileName}`,
+      );
+      continue;
+    }
+
+    const destPath = path.join(profilesOutputDir, fileName);
+    fs.copyFileSync(sourcePath, destPath);
+    copiedCount += 1;
+    console.log(`📦 Collected Hermes CPU profile: ${destPath}`);
+  }
+
+  console.log(
+    `✅ Collected ${copiedCount} Hermes CPU profile(s) into ${profilesOutputDir}`,
+  );
+  return copiedCount;
 }
 
 /**
@@ -1726,6 +1813,7 @@ function aggregateReports() {
     // Always collect profiling sidecars, including after aggregation failure,
     // so per-job app-profiling artifacts still land in aggregated-reports.
     collectAppProfilingArtifacts(searchDirs, outputDir);
+    collectHermesCpuProfiles(searchDirs, outputDir);
   }
 }
 
@@ -1737,7 +1825,9 @@ export {
   aggregateReports,
   findJsonFiles,
   findAppProfilingFiles,
+  findHermesCpuProfileFiles,
   collectAppProfilingArtifacts,
+  collectHermesCpuProfiles,
   extractPlatformScenarioAndDevice,
   processTestReport,
   generateHtmlReport,

@@ -20,6 +20,14 @@ import type { PostTradeBottomSheetParams } from '../components/PostTradeBottomSh
 import type { BatchSellPriceImpactInfoModalParams } from '../components/BatchSellPriceImpactInfoModal/BatchSellPriceImpactInfoModal.types';
 import type { BatchSellNetworkFeeInfoModalParams } from '../components/BatchSellNetworkFeeInfoModal/BatchSellNetworkFeeInfoModal.types';
 import type { BatchSellMinimumReceivedInfoModalParams } from '../components/BatchSellMinimumReceivedInfoModal/BatchSellMinimumReceivedInfoModal.types';
+import type { NetworkListModalParams } from '../components/BridgeTokenSelector/NetworkListModal';
+import type { SwapsLimitOrderExpirationModalParams } from '../components/SwapsLimitOrderExpirationModal/types';
+import type { LimitOrderConfirmationModalParams } from '../components/LimitOrderConfirmationModal/types';
+import type { OpenLimitOrderDetailsModalParams } from '../components/OpenLimitOrderDetailsModal/types';
+import type { CancelLimitOrderModalParams } from '../components/CancelLimitOrderModal/types';
+import type { RecurringOrderDetailsRouteParams } from '../Views/RecurringOrderDetailsView/RecurringOrderDetailsView.types';
+import type { RecurringSwapDetailsRouteParams } from '../Views/RecurringSwapDetailsView/RecurringSwapDetailsView.types';
+import type { SwapsLimitOrderActivityPageRouteParams } from '../Views/SwapsLimitOrderActivityPage/SwapsLimitOrderActivityPage.types';
 
 /**
  * Param list for screens inside the Bridge screen stack (`BridgeScreenStack`).
@@ -32,8 +40,14 @@ export type BridgeScreensStackParamList = {
   BatchSellTokenSelect: BatchSellTokenSelectRouteParams | undefined;
   BatchSellReview: undefined;
   QuoteSelectorView: undefined;
+  RecurringOrderDetails: RecurringOrderDetailsRouteParams;
+  RecurringSwapDetails: RecurringSwapDetailsRouteParams;
+  SwapsLimitOrderActivity: SwapsLimitOrderActivityPageRouteParams;
   HardwareWalletsSwaps: HardwareWalletsSwapsRouteParams | undefined;
   HwQrScanner: HwQrScannerRouteParams | undefined;
+  BridgeModals:
+    | NavigatorScreenParams<BridgeModalsNavigationParamList>
+    | undefined;
 };
 
 /**
@@ -52,7 +66,7 @@ export type BridgeModalsNavigationParamList = {
   BlockaidModal: BlockaidModalParams;
   RecipientSelectorModal: undefined;
   MarketClosedModal: undefined;
-  NetworkListModal: undefined;
+  NetworkListModal: NetworkListModalParams | undefined;
   PriceImpactModal: PriceImpactModalRouterParams;
   MissingPriceModal: MissingPriceModalParams;
   TokenWarningModal: TokenWarningModalParams;
@@ -66,6 +80,18 @@ export type BridgeModalsNavigationParamList = {
     | BatchSellMinimumReceivedInfoModalParams
     | undefined;
   BatchSellPriceImpactInfoModal: BatchSellPriceImpactInfoModalParams;
+  SwapsLimitOrderExpirationModal: SwapsLimitOrderExpirationModalParams;
+  SwapsLimitOrderDefaultCostToleranceModal: undefined;
+  SwapsLimitOrderCustomCostToleranceModal: undefined;
+  LimitOrderConfirmationModal: LimitOrderConfirmationModalParams;
+  LimitOrderCostToleranceInfoModal: undefined;
+  OpenLimitOrderDetailsModal: OpenLimitOrderDetailsModalParams;
+  CancelLimitOrderModal: CancelLimitOrderModalParams;
+  RecurringIntervalModal: undefined;
+  RecurringRepeatInfoModal: undefined;
+  RecurringPriceRangeModal: undefined;
+  RecurringConfirmOrderModal: undefined;
+  RecurringDelegationFeeInfoModal: undefined;
 };
 
 /**

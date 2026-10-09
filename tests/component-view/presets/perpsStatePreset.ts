@@ -1,3 +1,4 @@
+import { DEFAULT_PRO_LAYOUT_PREFERENCES } from '@metamask/perps-controller';
 import { createStateFixture } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
@@ -18,10 +19,7 @@ const defaultPerpsControllerState = {
   accountState: null,
   perpsBalances: {},
   proLayoutPreferences: {
-    orderBookExpanded: false,
-    chartExpanded: false,
-    orderBookPosition: 'left' as const,
-    orderFormPosition: 'right' as const,
+    ...DEFAULT_PRO_LAYOUT_PREFERENCES,
   },
   selectedPaymentToken: null,
   activeProvider: 'hyperliquid' as const,
@@ -31,13 +29,18 @@ const defaultPerpsControllerState = {
 
 const defaultConfirmationTransactionId = 'perps-cv-confirmation-tx';
 
+interface InitialStatePerpsOptions {
+  mode?: 'lite' | 'pro';
+}
+
 /**
  * Returns a StateFixtureBuilder with minimal state for Perps views.
  * Use .withOverrides() to set PerpsController.isEligible, etc.
  */
-export const initialStatePerps = () =>
+export const initialStatePerps = (options: InitialStatePerpsOptions = {}) =>
   createStateFixture()
     .withMinimalAccounts()
+    .withAccountTreeForSelectedAccount()
     .withMinimalKeyringController()
     .withMinimalTokenRates()
     .withMinimalMultichainBalances()
@@ -55,11 +58,18 @@ export const initialStatePerps = () =>
         enabled: true,
         minimumVersion: '0.0.0',
       },
+      perpsMobileChase: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
     } as Record<string, unknown>)
     .withOverrides({
       engine: {
         backgroundState: {
-          PerpsController: defaultPerpsControllerState,
+          PerpsController: {
+            ...defaultPerpsControllerState,
+            mode: options.mode ?? defaultPerpsControllerState.mode,
+          },
           NetworkController: {
             providerConfig: { chainId: '0x1', type: 'mainnet' },
             selectedNetworkClientId: 'mainnet',
@@ -154,6 +164,9 @@ export const initialStatePerps = () =>
               },
             },
           },
+          AssetsController: {
+            selectedCurrency: 'usd',
+          },
           GasFeeController: {
             gasFeeEstimatesByChainId: {},
           },
@@ -177,3 +190,8 @@ export const initialStatePerps = () =>
         },
       },
     } as unknown as DeepPartial<RootState>);
+
+/**
+ * Returns the Perps state fixture configured for the Pro interface.
+ */
+export const initialStatePerpsPro = () => initialStatePerps({ mode: 'pro' });

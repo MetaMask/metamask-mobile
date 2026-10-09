@@ -1,9 +1,13 @@
 import { CompletedRequest, Mockttp } from 'mockttp';
-import { getMockOnChainNotificationsConfig } from '@metamask/notification-services-controller/notification-services/mocks';
+import {
+  getMockOnChainNotificationsConfig,
+  getMockUpdateOnChainNotifications,
+} from '@metamask/notification-services-controller/notification-services/mocks';
 import { getDecodedProxiedURL } from './helpers';
 import { createLogger } from '../../../framework/logger';
 
 const GET_CONFIG_URL = getMockOnChainNotificationsConfig().url;
+const UPDATE_CONFIG_URL = getMockUpdateOnChainNotifications().url;
 
 const logger = createLogger({
   name: 'MockttpNotificationTriggerServer',
@@ -41,6 +45,24 @@ export class MockttpNotificationTriggerServer {
     };
   };
 
+  // Per-address upsert the controller performs when accounts are
+  // enabled/disabled (and on first-time setup). Mirrors the real endpoint,
+  // which upserts rather than replacing the whole subscription list.
+  readonly updateConfig = async (
+    request: Pick<CompletedRequest, 'body'>,
+    statusCode: number = 204,
+  ) => {
+    const requestBody = (await request.body.getJson()) as NotificationConfig[];
+
+    for (const { address, enabled } of requestBody) {
+      this.notificationConfigs.set(address.toLowerCase(), enabled);
+    }
+
+    return {
+      statusCode,
+    };
+  };
+
   setupServer = async (server: Mockttp) => {
     // Mobile uses a API url proxy, where all subsequent calls need to pulled out from this proxy API
     await server
@@ -56,6 +78,24 @@ export class MockttpNotificationTriggerServer {
           )}`,
         );
         return this.getConfig(request);
+      });
+
+    // The update endpoint URL is a prefix of the query endpoint URL, so the
+    // query rule above must not be shadowed by this one.
+    await server
+      .forPost('/proxy')
+      .matching((request) => {
+        const url = getDecodedProxiedURL(request.url);
+        return url.includes(UPDATE_CONFIG_URL) && !url.includes(GET_CONFIG_URL);
+      })
+      .asPriority(999)
+      .thenCallback((request) => {
+        logger.debug(
+          `Mocking ${request.method} request to: ${getDecodedProxiedURL(
+            request.url,
+          )}`,
+        );
+        return this.updateConfig(request);
       });
   };
 

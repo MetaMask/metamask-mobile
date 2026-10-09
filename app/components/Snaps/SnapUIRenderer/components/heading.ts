@@ -1,17 +1,17 @@
 import { HeadingElement } from '@metamask/snaps-sdk/jsx';
+import { TextVariant } from '@metamask/design-system-react-native';
 import { UIComponentFactory } from './types';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
 
 export const generateSize = (size: HeadingElement['props']['size']) => {
   switch (size) {
     case 'sm':
-      return TextVariant.HeadingSM;
+      return TextVariant.HeadingSm;
     case 'md':
-      return TextVariant.HeadingMD;
+      return TextVariant.HeadingMd;
     case 'lg':
-      return TextVariant.HeadingLG;
+      return TextVariant.HeadingLg;
     default:
-      return TextVariant.HeadingSM;
+      return TextVariant.HeadingSm;
   }
 };
 

@@ -10,6 +10,8 @@ export interface TimerLike {
   id: string;
   threshold: number | null;
   baseThreshold: number | null;
+  /** Defaults to true when omitted. */
+  includeInTotal?: boolean;
   hasThreshold(): boolean;
   getDuration(): number | null;
 }

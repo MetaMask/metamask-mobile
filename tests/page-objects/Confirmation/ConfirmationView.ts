@@ -1,15 +1,15 @@
 import { ConfirmationTopSheetSelectorsIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import Matchers from '../../framework/Matchers';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 
 class ConfirmationView {
-  get securityAlertBanner(): EncapsulatedElementType {
+  get securityAlertBanner(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER,
     );
   }
 
-  get securityAlertResponseFailedBanner(): EncapsulatedElementType {
+  get securityAlertResponseFailedBanner(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_RESPONSE_FAILED_BANNER,
     );

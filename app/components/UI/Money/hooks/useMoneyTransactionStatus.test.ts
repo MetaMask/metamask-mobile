@@ -22,6 +22,7 @@ import { shouldShowMoneyFirstTimeDepositAnimation } from '../utils/firstTimeDepo
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { isHardwareAccount } from '../../../../util/address';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 
@@ -81,6 +82,10 @@ jest.mock('../../../../selectors/accountsController', () => ({
     metadata: { name: 'Account 1' },
   })),
 }));
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  isHardwareAccount: jest.fn(() => false),
+}));
 jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: jest.fn(() => ({
     colors: {
@@ -115,7 +120,6 @@ const mockUnsubscribe = jest.fn<
   void,
   [string, TransactionStatusUpdatedHandler | TransactionConfirmedHandler]
 >();
-
 const mockNavigate = jest.fn();
 
 Object.defineProperty(Engine, 'controllerMessenger', {
@@ -125,16 +129,33 @@ Object.defineProperty(Engine, 'controllerMessenger', {
 });
 
 const mockControllerTransactions: TransactionMeta[] = [];
+const mockTransactionPayData: Record<
+  string,
+  {
+    accountOverride?: string;
+    quotes?: unknown[];
+    fiatPayment?: { selectedPaymentMethodId?: string };
+  }
+> = {};
 
-Object.defineProperty(Engine, 'context', {
-  value: {
-    TransactionController: {
-      state: { transactions: mockControllerTransactions },
-    },
-  },
-  writable: true,
-  configurable: true,
-});
+jest.mock('../../../../selectors/transactionPayController', () => ({
+  ...jest.requireActual('../../../../selectors/transactionPayController'),
+  selectAccountOverrideByTransactionId: (_state: unknown, id: string) =>
+    mockTransactionPayData[id]?.accountOverride,
+  selectTransactionPayFiatPaymentByTransactionId: (
+    _state: unknown,
+    id: string,
+  ) => mockTransactionPayData[id]?.fiatPayment,
+  selectTransactionPayRawQuotesByTransactionId: (_state: unknown, id: string) =>
+    mockTransactionPayData[id]?.quotes,
+}));
+
+jest.mock('../../../../selectors/transactionController', () => ({
+  selectTransactions: () => mockControllerTransactions,
+  selectBatchTransactionCounts: () => ({}),
+  selectTransactionMetadataById: (_state: unknown, id: string) =>
+    mockControllerTransactions.find((tx) => tx.id === id),
+}));
 
 const mockUseMoneyToasts = jest.mocked(useMoneyToasts);
 
@@ -270,6 +291,10 @@ describe('useMoneyTransactionStatus', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockControllerTransactions.length = 0;
+    Object.keys(mockTransactionPayData).forEach((key) => {
+      delete mockTransactionPayData[key];
+    });
+    (isHardwareAccount as jest.Mock).mockReturnValue(false);
 
     Object.assign(NavigationService.navigation, { navigate: mockNavigate });
     mockUseMoneyToasts.mockReturnValue({
@@ -346,6 +371,47 @@ describe('useMoneyTransactionStatus', () => {
 
       jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
 
+      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledWith(baseInProgressToast);
+    });
+
+    it('hardware payer: approved does not show in-progress until funding legs are signed', () => {
+      (isHardwareAccount as jest.Mock).mockReturnValue(true);
+      const parentId = 'hw-deposit-parent';
+      const fundingId = 'hw-funding-leg';
+      const parent = buildTxMeta({
+        id: parentId,
+        type: TransactionType.moneyAccountDeposit,
+        status: TransactionStatus.approved,
+        requiredTransactionIds: [fundingId],
+        txParams: {
+          from: '0xMoneyAccount',
+          data: encodeDepositData(BigInt(1)),
+        },
+      });
+      const funding = buildTxMeta({
+        id: fundingId,
+        type: TransactionType.simpleSend,
+        status: TransactionStatus.unapproved,
+        txParams: { from: '0xLedger', data: '0x' },
+      });
+      mockControllerTransactions.push(parent, funding);
+      mockTransactionPayData[parentId] = {
+        accountOverride: '0xLedger',
+        quotes: [{}],
+      };
+
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({ transactionMeta: parent });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+
+      funding.status = TransactionStatus.signed;
+      statusUpdatedHandler({ transactionMeta: funding });
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
       expect(depositInProgressFn).toHaveBeenCalledTimes(1);
       expect(mockShowToast).toHaveBeenCalledWith(baseInProgressToast);
     });
@@ -801,7 +867,7 @@ describe('useMoneyTransactionStatus', () => {
           nestedTransactions: [
             {
               type: TransactionType.tokenMethodTransfer,
-              data: encodeTransferData(RECIPIENT_ADDRESS),
+              data: encodeTransferData(RECIPIENT_ADDRESS, BigInt(50_000_000)),
             },
           ],
         } as unknown as Partial<TransactionMeta>),
@@ -815,6 +881,32 @@ describe('useMoneyTransactionStatus', () => {
         expect.anything(),
         expect.stringMatching(/^0x1111/i),
       );
+    });
+
+    it('confirmed → success amount is the transfer amount, not the teller share amount', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            // Share amount for $2.00 at a vault rate of ~1.005 — decoding this
+            // param is the bug that showed "$1.99" for a $2.00 send.
+            data: encodeWithdrawData(BigInt(1_990_050)),
+          },
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(RECIPIENT_ADDRESS, BigInt(2_000_000)),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0].amountFiat).toBe('$2.00');
     });
 
     it('falls back to a shortened address when the recipient is not an internal account', () => {
@@ -976,7 +1068,7 @@ describe('useMoneyTransactionStatus', () => {
       );
     });
 
-    it('falls back to "your account" when the nested transfer tx is absent', () => {
+    it('falls back to "your account" with no amount when the nested transfer tx is absent', () => {
       const { confirmedHandler } = renderAndGetHandlers();
 
       confirmedHandler(
@@ -994,6 +1086,7 @@ describe('useMoneyTransactionStatus', () => {
       expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe(
         'your account',
       );
+      expect(withdrawSuccessFn.mock.calls[0][0].amountFiat).toBeUndefined();
     });
 
     it('failed → withdraw failed toast', () => {
@@ -1555,7 +1648,13 @@ describe('useMoneyTransactionStatus', () => {
             from: '0x0',
             data: encodeWithdrawData(BigInt(50_000_000)),
           },
-        }),
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(RECIPIENT_ADDRESS, BigInt(50_000_000)),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
       );
 
       expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
@@ -1617,6 +1716,117 @@ describe('useMoneyTransactionStatus', () => {
       expect(depositSuccessFn).toHaveBeenCalledWith(
         expect.objectContaining({ amountFiat: undefined, intent: 'convert' }),
       );
+    });
+  });
+
+  describe('hardware payer deferral', () => {
+    const parentId = 'hw-parent';
+    const legA = 'hw-leg-a';
+
+    const seedHardwareDeposit = (
+      requiredTransactionIds: string[],
+      overrides: Partial<TransactionMeta> = {},
+    ) => {
+      (isHardwareAccount as jest.Mock).mockImplementation(
+        (address: string) => address === '0xLedger',
+      );
+      const parent = buildTxMeta({
+        id: parentId,
+        type: TransactionType.moneyAccountDeposit,
+        status: TransactionStatus.approved,
+        requiredTransactionIds,
+        txParams: {
+          from: '0xMoneyAccount',
+          data: encodeDepositData(BigInt(1)),
+        },
+        ...overrides,
+      });
+      mockControllerTransactions.push(parent);
+      mockTransactionPayData[parentId] = {
+        accountOverride: '0xLedger',
+        quotes: [{}],
+      };
+      return parent;
+    };
+
+    const seedLeg = (id: string) => {
+      const leg = buildTxMeta({
+        id,
+        type: TransactionType.simpleSend,
+        status: TransactionStatus.unapproved,
+        txParams: { from: '0xLedger', data: '0x' },
+      });
+      mockControllerTransactions.push(leg);
+      return leg;
+    };
+
+    it('shows nothing when the deposit is rejected on the device, even if a leg later signs', () => {
+      const parent = seedHardwareDeposit([legA]);
+      const leg = seedLeg(legA);
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({ transactionMeta: parent });
+      parent.status = TransactionStatus.rejected;
+      statusUpdatedHandler({ transactionMeta: parent });
+      leg.status = TransactionStatus.signed;
+      statusUpdatedHandler({ transactionMeta: leg });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('shows only the failed toast when the deposit fails before signing completes', () => {
+      const parent = seedHardwareDeposit([legA]);
+      seedLeg(legA);
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({ transactionMeta: parent });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+      parent.status = TransactionStatus.failed;
+      statusUpdatedHandler({ transactionMeta: parent });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(depositFailedFn).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('schedules the toast once, even when several signed events arrive', () => {
+      const parent = seedHardwareDeposit([legA]);
+      const leg = seedLeg(legA);
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({ transactionMeta: parent });
+      leg.status = TransactionStatus.signed;
+      statusUpdatedHandler({ transactionMeta: leg });
+      leg.status = TransactionStatus.submitted;
+      statusUpdatedHandler({ transactionMeta: leg });
+      parent.status = TransactionStatus.submitted;
+      statusUpdatedHandler({ transactionMeta: parent });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not close a toast that was never shown when a first deposit confirms while waiting', () => {
+      jest
+        .mocked(shouldShowMoneyFirstTimeDepositAnimation)
+        .mockReturnValueOnce(true);
+      const parent = seedHardwareDeposit([legA]);
+      seedLeg(legA);
+      const { statusUpdatedHandler, confirmedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({ transactionMeta: parent });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+      parent.status = TransactionStatus.confirmed;
+      confirmedHandler(parent);
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(mockCloseToast).not.toHaveBeenCalled();
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(depositSuccessFn).not.toHaveBeenCalled();
     });
   });
 
@@ -1782,7 +1992,7 @@ describe('useMoneyTransactionStatus', () => {
       expect(depositSuccessFn.mock.calls[0][0].amountFiat).toContain('7.77');
     });
 
-    it('decodes amount from nested withdraw tx data on confirmation', () => {
+    it('decodes amount from the nested transfer tx data on withdraw confirmation', () => {
       const { confirmedHandler } = renderAndGetHandlers();
 
       confirmedHandler(
@@ -1791,7 +2001,14 @@ describe('useMoneyTransactionStatus', () => {
           nestedTransactions: [
             {
               type: TransactionType.moneyAccountWithdraw,
-              data: encodeWithdrawData(BigInt(33_330_000)) as `0x${string}`,
+              data: encodeWithdrawData(BigInt(33_100_000)) as `0x${string}`,
+            },
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(
+                RECIPIENT_ADDRESS,
+                BigInt(33_330_000),
+              ) as `0x${string}`,
             },
           ],
         }),
@@ -1870,6 +2087,36 @@ describe('useMoneyTransactionStatus', () => {
         } as unknown as Partial<TransactionMeta>),
       );
 
+      expect(mockFlushState).toHaveBeenCalledTimes(1);
+    });
+
+    it('flushes for a leg funding a Money deposit, not for other parents', () => {
+      mockControllerTransactions.push(
+        buildTxMeta({
+          id: 'hw-parent',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.approved,
+          requiredTransactionIds: ['hw-leg'],
+        }),
+        buildTxMeta({
+          id: 'perps-parent',
+          type: TransactionType.perpsDeposit,
+          status: TransactionStatus.approved,
+          requiredTransactionIds: ['perps-leg'],
+        }),
+      );
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+      const leg = (id: string) =>
+        buildTxMeta({
+          id,
+          type: TransactionType.simpleSend,
+          status: TransactionStatus.signed,
+        });
+
+      statusUpdatedHandler({ transactionMeta: leg('perps-leg') });
+      expect(mockFlushState).not.toHaveBeenCalled();
+
+      statusUpdatedHandler({ transactionMeta: leg('hw-leg') });
       expect(mockFlushState).toHaveBeenCalledTimes(1);
     });
 

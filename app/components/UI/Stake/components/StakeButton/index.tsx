@@ -41,6 +41,7 @@ import BigNumber from 'bignumber.js';
 import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
 import useEarnToken from '../../../Earn/hooks/useEarnToken';
 import { EarnTokenDetails } from '../../../Earn/types/lending.types';
+import { formatEarnRatePercentage } from '../../../Earn/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './StakeButton.styles';
 interface StakeButtonContentProps {
@@ -60,9 +61,11 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
     selectStablecoinLendingEnabledFlag,
   );
 
+  let isTronStakingAvailable = false;
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const isTronNative =
     earnToken?.isNative && isTronChainId(earnToken.chainId as Hex);
+  isTronStakingAvailable = Boolean(isTronNative && isTrxStakingEnabled);
   const { apyPercent: tronApyPercent } = useTronStakeApy();
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, earnToken?.chainId as Hex),
@@ -71,9 +74,14 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
   const primaryExperienceType = useSelector((state: RootState) =>
     earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, earnToken),
   );
+  const isStakingExperience =
+    primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING ||
+    primaryExperienceType === EARN_EXPERIENCES.TRX_STAKING;
 
   const areEarnExperiencesDisabled =
-    !isPooledStakingEnabled && !isStablecoinLendingEnabled;
+    !isPooledStakingEnabled &&
+    !isStablecoinLendingEnabled &&
+    !isTronStakingAvailable;
 
   const handleStakeRedirect = async () => {
     if (isTronNative && isTrxStakingEnabled) {
@@ -87,7 +95,7 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
             text: 'Stake',
             token: earnToken.symbol,
             network: network?.name,
-            experience: EARN_EXPERIENCES.POOLED_STAKING,
+            experience: EARN_EXPERIENCES.TRX_STAKING,
           })
           .build(),
       );
@@ -136,7 +144,7 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
   });
 
   const onEarnButtonPress = async () => {
-    if (primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (isStakingExperience) {
       return handleStakeRedirect();
     }
 
@@ -155,10 +163,9 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
     return <></>;
 
   const renderEarnButtonText = () => {
-    const ctaLabel =
-      primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING
-        ? strings('stake.stake')
-        : strings('stake.earn');
+    const ctaLabel = isStakingExperience
+      ? strings('stake.stake')
+      : strings('stake.earn');
 
     if (isTronNative && isTrxStakingEnabled && tronApyPercent) {
       return `${ctaLabel} ${tronApyPercent}`;
@@ -167,7 +174,7 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
     const aprNumber = Number(earnToken?.experience?.apr);
     const aprText =
       Number.isFinite(aprNumber) && aprNumber > 0
-        ? ` ${aprNumber.toFixed(1)}%`
+        ? ` ${formatEarnRatePercentage(aprNumber)}%`
         : '';
     return `${ctaLabel}${aprText}`;
   };

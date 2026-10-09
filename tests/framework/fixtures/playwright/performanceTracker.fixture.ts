@@ -12,10 +12,10 @@ import {
 } from '../../quality-gates';
 import { getTeamInfoFromTags } from '../../utils/teams';
 import { publishPerformanceScenarioToSentry } from '../../../reporters/providers/sentry/PerformanceSentryPublisher';
-import type { TestLevelFixtures } from './types.ts';
-import { createPlaywrightLogger } from '../../playwrightLogger.ts';
+import type { TestLevelFixtures, WorkerLevelFixtures } from './types.ts';
+import { createAppiumLogger } from '../../appiumLogger.ts';
 
-const logger = createPlaywrightLogger('performanceTracker');
+const logger = createAppiumLogger('performanceTracker');
 
 function getSessionIdFromAnnotations(
   annotations?: { type: string; description?: string }[],
@@ -25,7 +25,7 @@ function getSessionIdFromAnnotations(
 
 export const performanceTrackerFixture = {
   performanceTracker: async (
-    { deviceProvider }: Pick<TestLevelFixtures, 'deviceProvider'>,
+    { deviceProvider }: Pick<WorkerLevelFixtures, 'deviceProvider'>,
     use: (performanceTracker: PerformanceTracker) => Promise<void>,
     testInfo: TestInfo,
   ) => {

@@ -1,14 +1,12 @@
 /**
- * Method to shuffles an array of string.
+ * Fisher–Yates shuffle (does not mutate the input).
  *
- * The previous method was replaced according to the following tutorial.
- * https://javascript.info/array-methods#shuffle-an-array
+ * @see https://javascript.info/array-methods#shuffle-an-array
  *
- * @param array - Array of string.
- * @returns Array of string.
+ * @param array - Array to shuffle.
+ * @returns A new shuffled array.
  */
-
-export const shuffle = (array: string[]): string[] => {
+export const shuffle = <T>(array: T[]): T[] => {
   const shuffledArray = [...array];
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -17,6 +15,68 @@ export const shuffle = (array: string[]): string[] => {
     [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
   }
   return shuffledArray;
+};
+
+const SRP_GRID_ROW_COUNT = 4;
+const SRP_GRID_COLUMN_COUNT = 3;
+const DEFAULT_MISSING_WORD_COUNT = 3;
+const UNIQUE_MISSING_WORD_MAX_ATTEMPTS = 50;
+
+/**
+ * Picks grid indexes whose seed words will be removed for SRP confirmation.
+ *
+ * BIP-39 allows the same word more than once in a phrase. The confirmation UI
+ * must still show distinct button labels, so selected words are required to be
+ * unique. Retries the existing row/column sampling until they are; falls back
+ * to a unique-word scan if random attempts keep colliding.
+ *
+ * @param words - Full seed phrase as an ordered word list (typically 12).
+ * @param missingCount - Number of words to remove (default 3).
+ * @returns Indexes into `words` for the empty confirmation slots.
+ */
+export const pickUniqueMissingWordSlots = (
+  words: string[],
+  missingCount: number = DEFAULT_MISSING_WORD_COUNT,
+): number[] => {
+  if (!words.length || missingCount <= 0) {
+    return [];
+  }
+
+  const count = Math.min(missingCount, words.length);
+
+  for (let attempt = 0; attempt < UNIQUE_MISSING_WORD_MAX_ATTEMPTS; attempt++) {
+    const selectedRows = shuffle(
+      Array.from({ length: SRP_GRID_ROW_COUNT }, (_, row) => row),
+    ).slice(0, count);
+    const emptySlotsIndexes = selectedRows.map((row) => {
+      const col = shuffle(
+        Array.from({ length: SRP_GRID_COLUMN_COUNT }, (_, i) => i),
+      )[0];
+      return row * SRP_GRID_COLUMN_COUNT + col;
+    });
+    const removedWords = emptySlotsIndexes.map((index) => words[index]);
+    if (new Set(removedWords).size === removedWords.length) {
+      return emptySlotsIndexes;
+    }
+  }
+
+  const selected: number[] = [];
+  const usedWords = new Set<string>();
+  for (const index of shuffle(
+    Array.from({ length: words.length }, (_, i) => i),
+  )) {
+    const word = words[index];
+    if (usedWords.has(word)) {
+      continue;
+    }
+    usedWords.add(word);
+    selected.push(index);
+    if (selected.length === count) {
+      return selected;
+    }
+  }
+
+  return Array.from({ length: count }, (_, i) => i);
 };
 
 /**

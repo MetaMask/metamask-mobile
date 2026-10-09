@@ -1,10 +1,10 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 import { PostTradeBottomSheetTestIds } from '../../../app/components/UI/Bridge/components/PostTradeBottomSheet/PostTradeBottomSheet.testIds';
 
 class PostTradeBottomSheet {
-  get viewActivityButton(): EncapsulatedElementType {
+  get viewActivityButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PostTradeBottomSheetTestIds.VIEW_ACTIVITY_BUTTON,
     );

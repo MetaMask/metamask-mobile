@@ -46,6 +46,12 @@ jest.mock('../../../util/test/utils', () => ({
   isTestEnvironment: true,
 }));
 
+const mockLighterSignerModuleLoaded = jest.fn();
+jest.mock('../../UI/Perps/Lighter/LighterSignerWebView', () => {
+  mockLighterSignerModuleLoaded();
+  return { LighterSignerWebView: () => null };
+});
+
 describe('Root', () => {
   /** Must match `testID` on the `View` returned by `jest.mock('../../Nav/App')`. */
   const mockedAppTestId = 'mock-app';
@@ -79,5 +85,11 @@ describe('Root', () => {
     });
     const { queryByTestId } = render(<Root foxCode="" />);
     expect(queryByTestId(mockedAppTestId)).toBeNull();
+  });
+
+  it('does not load the embedded Lighter signer when MM_PERPS_LIGHTER_PROVIDER_ENABLED is unset', () => {
+    render(<Root foxCode="" />);
+
+    expect(mockLighterSignerModuleLoaded).not.toHaveBeenCalled();
   });
 });

@@ -44,6 +44,10 @@ import {
   DeFiPositionsControllerState,
   DeFiPositionsControllerEvents,
   DeFiPositionsControllerActions,
+  DeFiPositionsControllerV2,
+  DeFiPositionsControllerV2State,
+  DeFiPositionsControllerV2Events,
+  DeFiPositionsControllerV2Actions,
   MultichainBalancesControllerState,
   MultichainBalancesController,
   MultichainBalancesControllerEvents,
@@ -84,6 +88,12 @@ import {
   AddressBookControllerEvents,
   AddressBookControllerState,
 } from '@metamask/address-book-controller';
+import type {
+  NetworkConnectionBannerController,
+  NetworkConnectionBannerControllerState,
+  NetworkConnectionBannerControllerActions,
+  NetworkConnectionBannerControllerEvents,
+} from '@metamask/network-connection-banner-controller';
 import {
   ConnectivityController,
   ConnectivityControllerActions,
@@ -142,6 +152,9 @@ import {
   TransakService,
   TransakServiceActions,
   TransakServiceEvents,
+  NeoBankService,
+  NeoBankServiceActions,
+  NeoBankServiceEvents,
 } from '@metamask/ramps-controller';
 import {
   TransactionController,
@@ -338,6 +351,16 @@ import type {
   RewardsControllerEvents,
   RewardsControllerActions,
 } from './controllers/rewards-controller/types';
+import { RewardsMoneyController } from './controllers/rewards-money-controller/RewardsMoneyController';
+import {
+  RewardsMoneyDataService,
+  RewardsMoneyDataServiceActions,
+} from './controllers/rewards-money-controller/services/rewards-money-data-service';
+import type {
+  RewardsMoneyControllerState,
+  RewardsMoneyControllerEvents,
+  RewardsMoneyControllerActions,
+} from './controllers/rewards-money-controller/types';
 import {
   PredictController,
   PredictControllerState,
@@ -345,6 +368,47 @@ import {
   PredictControllerEvents,
 } from '../../components/UI/Predict/controllers/PredictController';
 import { CardController } from './controllers/card-controller/CardController';
+import { UiSlotsController } from './controllers/ui-slots-controller/UiSlotsController';
+import type {
+  UiSlotsControllerActions,
+  UiSlotsControllerEvents,
+  UiSlotsControllerState,
+} from './controllers/ui-slots-controller/types';
+import type {
+  PredictLiveDataService,
+  PredictLiveDataServiceActions,
+  PredictLiveDataServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictLiveDataService';
+import {
+  PredictMarketDataService,
+  type PredictMarketDataServiceActions,
+  type PredictMarketDataServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictMarketDataService';
+import {
+  PredictPortfolioService,
+  type PredictPortfolioServiceActions,
+  type PredictPortfolioServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictPortfolioService';
+import {
+  PredictOrderService,
+  type PredictOrderServiceActions,
+  type PredictOrderServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictOrderService';
+import {
+  RecurringOrdersDataService,
+  type RecurringOrdersDataServiceActions,
+  type RecurringOrdersDataServiceEvents,
+} from '../../components/UI/Bridge/services/RecurringOrdersDataService';
+import {
+  LimitOrdersDataService,
+  type LimitOrdersDataServiceActions,
+  type LimitOrdersDataServiceEvents,
+} from '../../components/UI/Bridge/services/LimitOrdersDataService';
+import {
+  SentinelFeeTokensDataService,
+  type SentinelFeeTokensDataServiceActions,
+  type SentinelFeeTokensDataServiceEvents,
+} from '../../components/UI/Bridge/services/SentinelFeeTokensDataService';
 import type {
   CardControllerState,
   CardControllerActions,
@@ -384,6 +448,34 @@ import type {
   StorageServiceEvents,
 } from '@metamask/storage-service';
 import {
+  SubscriptionController,
+  type SubscriptionControllerActions,
+  type SubscriptionControllerEvents,
+  type SubscriptionControllerState,
+  SubscriptionDelegationService,
+  SubscriptionService,
+  type SubscriptionServiceActions,
+  type SubscriptionServiceEvents,
+} from '@metamask/subscription-controller';
+import {
+  ShieldController,
+  type ShieldControllerActions,
+  type ShieldControllerEvents,
+  type ShieldControllerState,
+  ShieldApiService,
+  type ShieldApiServiceActions,
+  type ShieldApiServiceEvents,
+} from '@metamask/shield-controller';
+import {
+  ClaimsController,
+  type ClaimsControllerActions,
+  type ClaimsControllerStateChangeEvent,
+  type ClaimsControllerState,
+  ClaimsService,
+  type ClaimsServiceActions,
+  type ClaimsServiceEvents,
+} from '@metamask/claims-controller';
+import {
   AccountTreeController,
   AccountTreeControllerState,
   AccountTreeControllerActions,
@@ -420,7 +512,6 @@ import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
 } from '@metamask/base-controller';
-import type { NFTDetectionControllerState } from '@metamask/assets-controllers/dist/NftDetectionController.cjs';
 import {
   ProfileMetricsController,
   ProfileMetricsControllerActions,
@@ -436,12 +527,12 @@ import {
 
 type NftDetectionControllerActions = ControllerGetStateAction<
   'NftDetectionController',
-  NFTDetectionControllerState
+  NftDetectionController['state']
 >;
 
 type NftDetectionControllerEvents = ControllerStateChangeEvent<
   'NftDetectionController',
-  NFTDetectionControllerState
+  NftDetectionController['state']
 >;
 import {
   TransactionPayController,
@@ -490,6 +581,15 @@ import {
   ComplianceServiceEvents,
 } from '@metamask/compliance-controller';
 import {
+  KycController,
+  KycControllerActions,
+  KycControllerEvents,
+  KycControllerState,
+  KycService,
+  KycServiceActions,
+  KycServiceEvents,
+} from '@metamask/kyc-controller';
+import {
   ChompApiService,
   ChompApiServiceActions,
   type ChompApiServiceEvents,
@@ -511,8 +611,13 @@ type RequiredControllers = Omit<
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
+  | 'RewardsMoneyDataService'
   | 'StorageService'
+  | 'SubscriptionService'
+  | 'ShieldApiService'
+  | 'ClaimsService'
   | 'ComplianceService'
+  | 'KycService'
   | 'ChompApiService'
 >;
 
@@ -524,13 +629,31 @@ type OptionalControllers = Pick<
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
+  | 'RewardsMoneyDataService'
   | 'StorageService'
+  | 'SubscriptionService'
+  | 'ShieldApiService'
+  | 'ClaimsService'
   | 'ComplianceService'
+  | 'KycService'
   | 'ChompApiService'
 >;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
+
+/**
+ * Declared structurally to match `PerpsControllerAllowedActions`, which lists
+ * this action so clients that do expose it can serve it. Our
+ * `SubscriptionController` does not, so nothing delegates it and
+ * `RewardsIntegrationService` keeps using its injected `subscription`
+ * dependency. Remove once `@metamask/subscription-controller` exposes the
+ * action itself.
+ */
+interface SubscriptionControllerRegisterAddressAction {
+  type: `SubscriptionController:registerAddress`;
+  handler: (caipAccountId: string) => Promise<void>;
+}
 
 // TODO: Abstract this into controller utils for SnapsController
 type SnapsGlobalActions =
@@ -559,6 +682,7 @@ export type GlobalActions =
   | KeyringControllerActions
   | NetworkControllerActions
   | NetworkEnablementControllerActions
+  | NetworkConnectionBannerControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
   | LoggingControllerActions
@@ -606,16 +730,34 @@ export type GlobalActions =
   | GeolocationApiServiceActions
   | PerpsControllerActions
   | PredictControllerActions
+  | PredictMarketDataServiceActions
+  | PredictLiveDataServiceActions
+  | PredictPortfolioServiceActions
+  | PredictOrderServiceActions
+  | RecurringOrdersDataServiceActions
+  | LimitOrdersDataServiceActions
+  | SentinelFeeTokensDataServiceActions
   | CardControllerActions
+  | UiSlotsControllerActions
   | QrSyncControllerActions
   | QrSyncProvisioningServiceActions
   | ClientControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
+  | RewardsMoneyControllerActions
+  | RewardsMoneyDataServiceActions
   | AppMetadataControllerActions
   | MultichainRoutingServiceActions
   | DeFiPositionsControllerActions
+  | DeFiPositionsControllerV2Actions
   | StorageServiceActions
+  | SubscriptionControllerActions
+  | SubscriptionControllerRegisterAddressAction
+  | SubscriptionServiceActions
+  | ShieldControllerActions
+  | ShieldApiServiceActions
+  | ClaimsControllerActions
+  | ClaimsServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
   | NftDetectionControllerActions
@@ -630,7 +772,10 @@ export type GlobalActions =
   | AuthenticatedUserStorageActions
   | ComplianceControllerActions
   | ComplianceServiceActions
+  | KycControllerActions
+  | KycServiceActions
   | TransakServiceActions
+  | NeoBankServiceActions
   | ConfigRegistryControllerActions
   | ConfigRegistryApiServiceActions
   | ChompApiServiceActions
@@ -653,6 +798,7 @@ export type GlobalEvents =
   | KeyringControllerEvents
   | NetworkControllerEvents
   | NetworkEnablementControllerEvents
+  | NetworkConnectionBannerControllerEvents
   | PermissionControllerEvents
   | SnapsGlobalEvents
   | SnapInterfaceControllerEvents
@@ -675,6 +821,12 @@ export type GlobalEvents =
   | LoggingControllerEvents
   | AnalyticsControllerEvents
   | StorageServiceEvents
+  | SubscriptionControllerEvents
+  | SubscriptionServiceEvents
+  | ShieldControllerEvents
+  | ShieldApiServiceEvents
+  | ClaimsControllerStateChangeEvent
+  | ClaimsServiceEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
@@ -699,13 +851,23 @@ export type GlobalEvents =
   | GeolocationControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
+  | PredictMarketDataServiceEvents
+  | PredictLiveDataServiceEvents
+  | PredictPortfolioServiceEvents
+  | PredictOrderServiceEvents
+  | RecurringOrdersDataServiceEvents
+  | LimitOrdersDataServiceEvents
+  | SentinelFeeTokensDataServiceEvents
   | CardControllerEvents
+  | UiSlotsControllerEvents
   | QrSyncControllerEvents
   | ClientControllerEvents
   | RewardsControllerEvents
+  | RewardsMoneyControllerEvents
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
+  | DeFiPositionsControllerV2Events
   | AccountTreeControllerEvents
   | DelegationControllerEvents
   | NftDetectionControllerEvents
@@ -720,7 +882,10 @@ export type GlobalEvents =
   | AuthenticatedUserStorageEvents
   | ComplianceControllerEvents
   | ComplianceServiceEvents
+  | KycControllerEvents
+  | KycServiceEvents
   | TransakServiceEvents
+  | NeoBankServiceEvents
   | ChompApiServiceEvents
   | MoneyAccountUpgradeControllerEvents
   | SentinelApiServiceEvents;
@@ -771,6 +936,7 @@ export type MessengerClients = {
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
   ConnectivityController: ConnectivityController;
+  NetworkConnectionBannerController: NetworkConnectionBannerController;
   ConfigRegistryController: ConfigRegistryController;
   ConfigRegistryApiService: ConfigRegistryApiService;
   SentinelApiService: SentinelApiService;
@@ -800,11 +966,19 @@ export type MessengerClients = {
   TokenRatesController: TokenRatesController;
   TokensController: TokensController;
   DeFiPositionsController: DeFiPositionsController;
+  DeFiPositionsControllerV2: DeFiPositionsControllerV2;
   TransactionController: TransactionController;
   TransactionPayController: TransactionPayController;
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
   StorageService: StorageService;
+  SubscriptionController: SubscriptionController;
+  SubscriptionDelegationService: SubscriptionDelegationService;
+  SubscriptionService: SubscriptionService;
+  ShieldController: ShieldController;
+  ShieldApiService: ShieldApiService;
+  ClaimsController: ClaimsController;
+  ClaimsService: ClaimsService;
   ExecutionService: ExecutionService;
   SnapController: SnapController;
   SnapRegistryController: SnapRegistryController;
@@ -838,12 +1012,22 @@ export type MessengerClients = {
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
   PredictController: PredictController;
+  PredictMarketDataService: PredictMarketDataService;
+  PredictLiveDataService: PredictLiveDataService;
+  PredictPortfolioService: PredictPortfolioService;
+  PredictOrderService: PredictOrderService;
+  RecurringOrdersDataService: RecurringOrdersDataService;
+  LimitOrdersDataService: LimitOrdersDataService;
+  SentinelFeeTokensDataService: SentinelFeeTokensDataService;
   CardController: CardController;
+  UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
   QrSyncProvisioningService: QrSyncProvisioningService;
   ClientController: ClientController;
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
+  RewardsMoneyController: RewardsMoneyController;
+  RewardsMoneyDataService: RewardsMoneyDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
   DelegationController: DelegationController;
@@ -857,7 +1041,10 @@ export type MessengerClients = {
   AuthenticatedUserStorageService: AuthenticatedUserStorageService;
   ComplianceService: ComplianceService;
   ComplianceController: ComplianceController;
+  KycService: KycService;
+  KycController: KycController;
   TransakService: TransakService;
+  NeoBankService: NeoBankService;
   ChompApiService: ChompApiService;
   MoneyAccountUpgradeController: MoneyAccountUpgradeController;
 };
@@ -879,6 +1066,7 @@ export type EngineState = {
   AssetsController: AssetsControllerState;
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
+  NetworkConnectionBannerController: NetworkConnectionBannerControllerState;
   ConfigRegistryController: ConfigRegistryControllerState;
   NftController: NftControllerState;
   CurrencyRateController: CurrencyRateState;
@@ -896,7 +1084,11 @@ export type EngineState = {
   SmartTransactionsController: SmartTransactionsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
+  SubscriptionController: SubscriptionControllerState;
+  ShieldController: ShieldControllerState;
+  ClaimsController: ClaimsControllerState;
   DeFiPositionsController: DeFiPositionsControllerState;
+  DeFiPositionsControllerV2: DeFiPositionsControllerV2State;
   SnapController: PersistedSnapControllerState;
   SnapRegistryController: SnapRegistryControllerState;
   SubjectMetadataController: SubjectMetadataControllerState;
@@ -928,9 +1120,11 @@ export type EngineState = {
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
   CardController: CardControllerState;
+  UiSlotsController: UiSlotsControllerState;
   QrSyncController: QrSyncControllerState;
   ClientController: ClientControllerState;
   RewardsController: RewardsControllerState;
+  RewardsMoneyController: RewardsMoneyControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
   // Only registered when INCLUDE_SAMPLE_FEATURE=true.
   SamplePetnamesController?: SamplePetnamesControllerState;
@@ -940,6 +1134,7 @@ export type EngineState = {
   AiDigestController: AiDigestControllerState;
   SocialController: SocialControllerState;
   ComplianceController: ComplianceControllerState;
+  KycController: KycControllerState;
   MoneyAccountUpgradeController: MoneyAccountUpgradeControllerState;
 };
 
@@ -973,8 +1168,7 @@ export type MessengerClientsToInitialize =
   | 'AccountTrackerController'
   | 'AssetsContractController'
   | 'AssetsController'
-  | 'ConfigRegistryController'
-  | 'ConfigRegistryApiService'
+  | 'NetworkConnectionBannerController'
   | 'SentinelApiService'
   | 'AuthenticationController'
   | 'CronjobController'
@@ -1006,6 +1200,7 @@ export type MessengerClientsToInitialize =
   | 'AccountTreeController'
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
+  | 'DeFiPositionsControllerV2'
   | 'GeolocationController'
   | 'GeolocationApiService'
   | 'MultichainNetworkController'
@@ -1023,7 +1218,15 @@ export type MessengerClientsToInitialize =
   | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
+  | 'PredictMarketDataService'
+  | 'PredictLiveDataService'
+  | 'PredictPortfolioService'
+  | 'PredictOrderService'
+  | 'RecurringOrdersDataService'
+  | 'LimitOrdersDataService'
+  | 'SentinelFeeTokensDataService'
   | 'CardController'
+  | 'UiSlotsController'
   | 'QrSyncController'
   | 'QrSyncProvisioningService'
   | 'ClientController'
@@ -1033,9 +1236,12 @@ export type MessengerClientsToInitialize =
   | 'NetworkEnablementController'
   | 'RewardsController'
   | 'RewardsDataService'
+  | 'RewardsMoneyController'
+  | 'RewardsMoneyDataService'
   | 'RampsController'
   | 'RampsService'
   | 'TransakService'
+  | 'NeoBankService'
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController'
@@ -1049,6 +1255,8 @@ export type MessengerClientsToInitialize =
   | 'AuthenticatedUserStorageService'
   | 'ComplianceService'
   | 'ComplianceController'
+  | 'KycService'
+  | 'KycController'
   | 'ChompApiService'
   | 'MoneyAccountUpgradeController';
 

@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
-import type BN4 from 'bnjs4';
 import { useRampSDK } from '../sdk';
-import { toTokenMinimalUnit } from '../../../../../util/number';
+import { toTokenMinimalUnit } from '../../../../../util/number/bigint';
 import { FiatCurrency } from '@consensys/on-ramp-sdk';
 import parseAmount from '../../../../../util/parseAmount';
 
@@ -12,7 +11,7 @@ import parseAmount from '../../../../../util/parseAmount';
  *
  * @param setAmount - A state setter function to update the amount as a string.
  * @param setAmountNumber - A state setter function to update the amount as a number.
- * @param setAmountBNMinimalUnit - A state setter function to update the amount in minimal unit as a BN (BigNumber).
+ * @param setAmountBNMinimalUnit - A state setter function to update the amount in minimal unit as a bigint.
  * @param currentFiatCurrency - The current fiat currency.
  *
  * @returns {void} - This hook does not return a value. It performs side effects by setting the amount in different formats based on the intent and the current fiat currency.
@@ -21,7 +20,7 @@ export default function useIntentAmount(
   setAmount: (amount: React.SetStateAction<string>) => void,
   setAmountNumber: (amount: React.SetStateAction<number>) => void,
   setAmountBNMinimalUnit: (
-    amount: React.SetStateAction<BN4 | undefined>,
+    amount: React.SetStateAction<bigint | undefined>,
   ) => void,
   currentFiatCurrency: FiatCurrency | null,
 ) {
@@ -53,7 +52,7 @@ export default function useIntentAmount(
               toTokenMinimalUnit(
                 `${parsedAmount}`,
                 selectedAsset?.decimals ?? 0,
-              ) as BN4,
+              ),
             );
           }
         }

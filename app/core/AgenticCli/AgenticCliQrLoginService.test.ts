@@ -107,7 +107,7 @@ const mockConnectionRequest = (
     publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
     channel: 'handshake:aabbccdd-1122-3344-5566-778899aabbcc',
     mode: 'trusted',
-    expiresAt: Date.now() + 600_000,
+    expiresAt: 1_722_470_400_000 + 600_000,
   },
   metadata: {
     dapp: {
@@ -139,7 +139,7 @@ const loadAgenticCliQrLogin = (
 
 describe('AgenticCliQrLoginService', () => {
   const originalFetch = global.fetch;
-  const originalMmDevApiEnv = process.env.MM_DEV_API_ENV;
+  const originalApiEnv = process.env.MM_API_ENV;
 
   const createMockConnection = (): jest.Mocked<Connection> =>
     ({
@@ -151,7 +151,7 @@ describe('AgenticCliQrLoginService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env.MM_DEV_API_ENV = 'dev';
+    process.env.MM_API_ENV = 'dev';
     mockGetBearerToken.mockResolvedValue('hydra-token');
     mockIsUnlocked.mockReturnValue(true);
     (AgenticCliDashboardWebviewService.open as jest.Mock).mockResolvedValue(
@@ -165,10 +165,10 @@ describe('AgenticCliQrLoginService', () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
-    if (originalMmDevApiEnv === undefined) {
-      delete process.env.MM_DEV_API_ENV;
+    if (originalApiEnv === undefined) {
+      delete process.env.MM_API_ENV;
     } else {
-      process.env.MM_DEV_API_ENV = originalMmDevApiEnv;
+      process.env.MM_API_ENV = originalApiEnv;
     }
   });
 
@@ -230,17 +230,71 @@ describe('AgenticCliQrLoginService', () => {
       type: 'auth-token',
       token: 'cli-token',
     });
+    expect(conn.client.sendResponse).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'pairing-cancelled' }),
+    );
     expect(showSimpleNotification).toHaveBeenCalledWith({
       id: '11111111-2222-3333-4444-555555555555-cli-link-success',
       autodismiss: 3000,
       title: 'sdk_connect_v2.show_cli_link_success.title',
+      description: '',
       status: 'success',
-      description: 'sdk_connect_v2.show_cli_link_success.description',
     });
     expect(store.dispatch).toHaveBeenCalledTimes(1);
     expect(mockMaybePromptPushPermissionAfterCliLogin).toHaveBeenCalledTimes(1);
     expect(cleanupConnection).toHaveBeenCalledWith(conn);
     expect(setStage).toHaveBeenCalledWith('send-auth-token-to-cli');
+  });
+
+  it('sends pairing-cancelled to CLI before cleanup when dashboard WebView is cancelled', async () => {
+    const { handleAgenticCliQrLogin } = loadAgenticCliQrLogin('main_prod');
+    const conn = createMockConnection();
+    const cleanupConnection = jest.fn().mockResolvedValue(undefined);
+    (AgenticCliDashboardWebviewService.open as jest.Mock).mockRejectedValue(
+      new Error('WebView closed'),
+    );
+
+    await expect(
+      handleAgenticCliQrLogin({
+        connReq: mockConnectionRequest({ name: 'agentic-cli' }),
+        conn,
+        setStage: jest.fn(),
+        cleanupConnection,
+      }),
+    ).rejects.toThrow('WebView closed');
+
+    expect(conn.client.sendResponse).toHaveBeenCalledWith({
+      type: 'pairing-cancelled',
+    });
+    expect(conn.client.sendResponse).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'auth-token' }),
+    );
+    expect(cleanupConnection).toHaveBeenCalledWith(conn);
+    expect(showSimpleNotification).not.toHaveBeenCalled();
+    expect(mockMaybePromptPushPermissionAfterCliLogin).not.toHaveBeenCalled();
+  });
+
+  it('still cleans up when sending pairing-cancelled fails', async () => {
+    const { handleAgenticCliQrLogin } = loadAgenticCliQrLogin('main_prod');
+    const conn = createMockConnection();
+    const cleanupConnection = jest.fn().mockResolvedValue(undefined);
+    (AgenticCliDashboardWebviewService.open as jest.Mock).mockRejectedValue(
+      new Error('Request rejected'),
+    );
+    (conn.client.sendResponse as jest.Mock).mockRejectedValue(
+      new Error('relay down'),
+    );
+
+    await expect(
+      handleAgenticCliQrLogin({
+        connReq: mockConnectionRequest({ name: 'agentic-cli' }),
+        conn,
+        setStage: jest.fn(),
+        cleanupConnection,
+      }),
+    ).rejects.toThrow('Request rejected');
+
+    expect(cleanupConnection).toHaveBeenCalledWith(conn);
   });
 
   it('uses dev auth API and develop dashboard for main_dev builds', async () => {
@@ -287,8 +341,8 @@ describe('AgenticCliQrLoginService', () => {
     });
   });
 
-  it('uses prod auth API when MM_DEV_API_ENV is prod', async () => {
-    process.env.MM_DEV_API_ENV = 'prod';
+  it('uses prod auth API when MM_API_ENV is prod', async () => {
+    process.env.MM_API_ENV = 'prod';
     const { handleAgenticCliQrLogin } = loadAgenticCliQrLogin('main_prod');
     const conn = createMockConnection();
 

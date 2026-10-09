@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import ListItemMultiSelect from '../../../../../component-library/components/List/ListItemMultiSelect';
 import { Image } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useAssetFromTheme } from '../../../../../util/theme';
 import emptyStateDefiLight from '../../../../../images/empty-state-defi-light.png';
@@ -55,6 +55,43 @@ interface Props {
   isLoading?: boolean;
 }
 
+interface SearchTokenResultRowProps {
+  item: ImportAsset;
+  isSelected: boolean;
+  isAlreadyAdded: boolean;
+  networkName?: string;
+  onSelect: (asset: ImportAsset) => void;
+}
+
+const getTokenSearchRowKey = (token: ImportAsset) =>
+  `${token.chainId}-${token.address.toLowerCase()}`;
+
+const SearchTokenResultRow = React.memo(
+  ({
+    item,
+    isSelected,
+    isAlreadyAdded,
+    networkName,
+    onSelect,
+  }: SearchTokenResultRowProps) => {
+    const tw = useTailwind();
+    const isDisabled = isAlreadyAdded;
+
+    return (
+      <ListItemMultiSelect
+        isSelected={isSelected || isAlreadyAdded}
+        isDisabled={isDisabled}
+        gap={20}
+        style={tw.style('flex-1 py-0')}
+        onPress={() => !isDisabled && onSelect(item)}
+        testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
+      >
+        <AddAssetTokenRow asset={item} networkName={networkName} />
+      </ListItemMultiSelect>
+    );
+  },
+);
+
 const TokenSkeleton = () => {
   const tw = useTailwind();
 
@@ -101,6 +138,36 @@ const SearchTokenResults = ({
     emptyStateDefiDark,
   );
 
+  const selectedAddresses = useMemo(
+    () => new Set(selectedAsset.map((token) => token.address)),
+    [selectedAsset],
+  );
+
+  const keyExtractor = useCallback(
+    (item: ImportAsset) => getTokenSearchRowKey(item),
+    [],
+  );
+
+  const renderItem = useCallback<ListRenderItem<ImportAsset>>(
+    ({ item }) => {
+      const { address } = item;
+      const isSelected = selectedAddresses.has(address);
+      const isAlreadyAdded =
+        alreadyAddedTokens?.has(address.toLowerCase()) ?? false;
+
+      return (
+        <SearchTokenResultRow
+          item={item}
+          isSelected={isSelected}
+          isAlreadyAdded={isAlreadyAdded}
+          networkName={networkName}
+          onSelect={handleSelectAsset}
+        />
+      );
+    },
+    [selectedAddresses, alreadyAddedTokens, networkName, handleSelectAsset],
+  );
+
   // Show skeleton loaders when loading
   if (isLoading) {
     return (
@@ -136,32 +203,8 @@ const SearchTokenResults = ({
   return (
     <FlashList
       data={searchResults}
-      renderItem={({ item, index }) => {
-        const { address } = item || {};
-        const isOnSelected = selectedAsset.some(
-          (token) => token.address === address,
-        );
-        const isSelected = selectedAsset && isOnSelected;
-
-        // Check if token is already added
-        const isAlreadyAdded = alreadyAddedTokens?.has(address.toLowerCase());
-        const isDisabled = isAlreadyAdded;
-
-        return (
-          <ListItemMultiSelect
-            isSelected={isSelected || isAlreadyAdded}
-            isDisabled={isDisabled}
-            gap={20}
-            style={tw.style('flex-1 py-0')}
-            key={`search-result-${index}`}
-            onPress={() => !isDisabled && handleSelectAsset(item)}
-            testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
-          >
-            <AddAssetTokenRow asset={item} networkName={networkName} />
-          </ListItemMultiSelect>
-        );
-      }}
-      keyExtractor={(_, index) => `token-search-row-${index}`}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
     />
   );
 };

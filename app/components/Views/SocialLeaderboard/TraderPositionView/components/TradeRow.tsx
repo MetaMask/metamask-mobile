@@ -13,11 +13,21 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Trade } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
-import { formatUsd, formatTradeTime } from '../../utils/formatters';
+import {
+  formatUsd,
+  formatTradeTime,
+} from '../../../../UI/SocialFeed/utils/formatters';
 import PerpBadges from '../../components/PerpBadges';
-import { getPerpTradeDirection, isPerpTrade } from '../../utils/perp';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
+import {
+  getPerpTradeDirection,
+  isPerpTrade,
+} from '../../../../UI/SocialFeed/utils/perp';
+import {
+  getTradeActionI18nKey,
+  type TradeAction,
+} from '../../../../UI/SocialFeed/utils/tradeAction';
+
+import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 
 const AVATAR_SIZE = 32;
 /** How long the highlight lingers before fading out, ms. */
@@ -25,6 +35,11 @@ const EMPHASIS_FADE_MS = 1600;
 
 export interface TradeRowProps {
   trade: Trade;
+  /**
+   * Where this fill sits in the position's lifecycle, as provided by the API.
+   * Missing lifecycle metadata falls back to a neutral trade label.
+   */
+  action?: TradeAction;
   traderImageUrl?: string;
   traderAddress?: string;
   /** When provided, the row is tappable (e.g. to focus the chart on this trade). */
@@ -38,6 +53,7 @@ export interface TradeRowProps {
 
 const TradeRow: React.FC<TradeRowProps> = ({
   trade,
+  action,
   traderImageUrl,
   traderAddress,
   onPress,
@@ -62,14 +78,9 @@ const TradeRow: React.FC<TradeRowProps> = ({
   const isPerp = isPerpTrade(trade);
   const perpDirection = getPerpTradeDirection(trade);
 
-  // Perp fills read as "opened"/"closed" (vs spot "bought"/"sold").
-  const actionLabel = isPerp
-    ? isEntry
-      ? strings('social_leaderboard.trader_position.opened')
-      : strings('social_leaderboard.trader_position.closed_action')
-    : isEntry
-      ? strings('social_leaderboard.trader_position.bought')
-      : strings('social_leaderboard.trader_position.sold');
+  const actionLabel = strings(
+    getTradeActionI18nKey('trader_position', isPerp, action),
+  );
 
   return (
     <Pressable

@@ -1,0 +1,450 @@
+# Per-scenario Hermes CPU-profile analysis
+#
+# Downloads Hermes CPU profiles from a performance E2E run, groups every
+# segment and retry by scenario, symbolicates with verified same-run Android
+# sourcemaps when available, then emits deterministic skill timing. Claude
+# adds optional short context only. BrowserStack app-profiling metrics are
+# intentionally not used.
+#
+# Cadence:
+# - After a *scheduled* 6-hour performance run: collect `report.json`, compare
+#   the run with the median of the previous two scheduled ticks (~6h and
+#   ~12h), and post either the scenarios that
+#   crossed the 1.5× threshold or a one-line all-clear, so a quiet channel
+#   always means the check stopped running. No per-scenario profile zips.
+#   Findings also get an optional Slack proposal from the pinned
+#   `mms-profiling-regression-proposal` skill (MetaMask/skills#179). The model
+#   only sees Evidence JSON from this job; it does not classify.
+# - After a *manually dispatched* performance run: full digest + Slack
+#   (#metamask-performance on main; personal DM on a branch).
+# - Monday 09:00 UTC: week-over-week exception report (this completed UTC
+#   week vs the week before). Slack lists only regressions / spikes / new
+#   hot frames. Stable scenarios are omitted. On main this posts to
+#   #metamask-performance.
+#
+# `lookback_hours` remains available on workflow_dispatch for an ad-hoc
+# window. `--weekly` is the Monday path.
+#
+# NOTE: GitHub only offers `workflow_dispatch` for workflows that already exist
+# on the default branch. After this lands on `main`, run it from Actions.
+# It does not run on pull requests.
+
+name: Analyze App Profiling
+
+on:
+  schedule:
+    # Monday after the previous UTC week has closed (Mon 00:00 → Mon 00:00).
+    - cron: '0 9 * * 1'
+  workflow_run:
+    workflows: ['Run Performance E2E Tests Manually']
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Performance workflow run id (blank = latest successful scheduled run on main)'
+        required: false
+        type: string
+        default: ''
+      lookback_hours:
+        description: 'Analyze every scheduled run in the last N hours and report medians (blank = single run)'
+        required: false
+        type: string
+        default: ''
+      weekly:
+        description: 'Build the Monday week-over-week exception report instead of a single run'
+        required: false
+        type: boolean
+        default: false
+      max_runs_per_week:
+        description: 'Weekly only: cap uncollected runs re-analyzed per week (blank = every run)'
+        required: false
+        type: string
+        default: ''
+      max_analysis_minutes:
+        description: 'Weekly only: wall clock spent rebuilding uncollected runs (blank = 25)'
+        required: false
+        type: string
+        default: ''
+      scenario:
+        description: 'Optional exact scenario title filter (blank = all scenarios in the run)'
+        required: false
+        type: string
+        default: ''
+      skip_ai:
+        description: 'Skip Claude analysis (Hermes summaries only)'
+        required: false
+        type: boolean
+        default: false
+      post_to_slack:
+        description: 'Send the analysis summary to Slack (#metamask-performance on main)'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+env:
+  # A workflow_run listener always runs from the default branch, so
+  # `github.ref` would route a chained branch run to the channel. The branch
+  # that actually produced the profiles is the one that decides.
+  SLACK_TARGET: >-
+    ${{ ((github.event_name == 'workflow_run' && github.event.workflow_run.head_branch) || github.ref_name) == 'main'
+        && 'C0C3WSWNKS5'
+        || 'UEYQL2PEV' }}
+
+concurrency:
+  # Weekly jobs share one group. Per-run collection keys on the performance
+  # run so a chain and a dispatch of the same id collapse.
+  group: analyze-app-profiling-${{ github.event_name == 'schedule' && 'weekly' || github.event.inputs.weekly == 'true' && 'weekly' || github.event.workflow_run.id || github.event.inputs.run_id || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  # A failed performance suite produces no analysis, so without this the
+  # chained run would simply go quiet and look like nothing was ever requested.
+  report-upstream-failure:
+    name: Report unsuccessful performance run
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.event == 'workflow_dispatch' &&
+      github.event.workflow_run.conclusion != 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Post Slack failure notice
+        continue-on-error: true
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          # Link to the performance run that failed, not to this reporter.
+          GITHUB_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          GITHUB_RUN_LABEL: 'Failed performance run'
+          PERFORMANCE_RUN_ID: ${{ github.event.workflow_run.id }}
+          PERFORMANCE_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/analyze-app-profiling
+          {
+            echo "*Hermes CPU-profile analysis did not run*"
+            echo
+            echo "The performance suite finished as \`${PERFORMANCE_CONCLUSION}\`, so there are no profiles to analyze."
+            echo
+            echo "_Performance run:_ \`${PERFORMANCE_RUN_ID}\`"
+            echo "_Retry the analysis:_ Actions → Analyze App Profiling → \`run_id\` = \`${PERFORMANCE_RUN_ID}\` (useful when only some scenarios failed)."
+          } > /tmp/analyze-app-profiling/upstream-failure.md
+          node .github/scripts/qa-automation/performance-tests/post-app-profiling-slack.mjs \
+            /tmp/analyze-app-profiling/upstream-failure.md
+
+  analyze:
+    name: Analyze per-scenario profiling
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       (github.event.workflow_run.event == 'workflow_dispatch' ||
+        github.event.workflow_run.event == 'schedule'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    outputs:
+      scenario-matrix: ${{ steps.scenario-matrix.outputs.matrix }}
+      upload-profiles: ${{ steps.flags.outputs.upload-profiles }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup JavaScript dependencies
+        uses: ./.github/actions/setup-ci-js-deps
+
+      - name: Load MetaMask performance analysis skills
+        run: yarn skills
+
+      # Decision rules for the optional findings proposal live in
+      # MetaMask/skills, not in this repo. Pin the SHA so a skills `main`
+      # bump cannot change Slack copy until we review it.
+      # https://github.com/MetaMask/skills/pull/179
+      - name: Pin profiling regression proposal skill
+        continue-on-error: true
+        env:
+          SKILLS_REF: d384dd6713c575be5201aab29b542ed358949ab3
+        run: |
+          set -euo pipefail
+          SKILLS_DIR="$RUNNER_TEMP/metamask-skills"
+          git clone --filter=blob:none https://github.com/MetaMask/skills.git "$SKILLS_DIR"
+          git -C "$SKILLS_DIR" checkout "$SKILLS_REF"
+          "$SKILLS_DIR/tools/install" \
+            --repo metamask-mobile \
+            --target "$GITHUB_WORKSPACE" \
+            --source "$SKILLS_DIR" \
+            --include performance/profiling-regression-proposal
+
+      - name: Analyze app profiling
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+          # A chained run analyzes the performance run that just finished.
+          RUN_ID: ${{ inputs.run_id || github.event.workflow_run.id }}
+          LOOKBACK_HOURS: ${{ inputs.lookback_hours }}
+          SCENARIO: ${{ inputs.scenario }}
+          SKIP_AI: ${{ inputs.skip_ai }}
+          WEEKLY: ${{ github.event_name == 'schedule' || github.event.inputs.weekly == 'true' }}
+          SCHEDULED_EXCEPTION: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event == 'schedule' }}
+          MAX_RUNS_PER_WEEK: ${{ inputs.max_runs_per_week }}
+          MAX_ANALYSIS_MINUTES: ${{ inputs.max_analysis_minutes }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/analyze-app-profiling
+          ARGS=(
+            node .github/scripts/qa-automation/performance-tests/analyze-app-profiling.mjs
+            --out-dir /tmp/analyze-app-profiling
+            --repo "${GITHUB_REPOSITORY}"
+          )
+          if [ "${WEEKLY}" = "true" ]; then
+            ARGS+=(--weekly --skip-ai --skip-scenario-artifacts)
+            if [ -n "${MAX_RUNS_PER_WEEK}" ]; then
+              ARGS+=(--max-runs-per-week "${MAX_RUNS_PER_WEEK}")
+            fi
+            if [ -n "${MAX_ANALYSIS_MINUTES}" ]; then
+              ARGS+=(--max-analysis-minutes "${MAX_ANALYSIS_MINUTES}")
+            fi
+          elif [ -n "${LOOKBACK_HOURS}" ]; then
+            ARGS+=(--lookback-hours "${LOOKBACK_HOURS}")
+          elif [ -n "${RUN_ID}" ]; then
+            ARGS+=(--run "${RUN_ID}")
+            if [ "${SCHEDULED_EXCEPTION}" = "true" ]; then
+              ARGS+=(--scheduled-exception)
+            fi
+          fi
+          if [ -n "${SCENARIO}" ] && [ "${WEEKLY}" != "true" ]; then
+            ARGS+=(--scenario "${SCENARIO}")
+          fi
+          if [ "${SKIP_AI}" = "true" ] || [ "${WEEKLY}" = "true" ]; then
+            ARGS+=(--skip-ai)
+          fi
+          "${ARGS[@]}"
+
+      - name: Record upload flags
+        id: flags
+        env:
+          WEEKLY: ${{ github.event_name == 'schedule' || github.event.inputs.weekly == 'true' }}
+          SCHEDULED_EXCEPTION: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event == 'schedule' }}
+        run: |
+          set -euo pipefail
+          UPLOAD_PROFILES=true
+          if [ "${WEEKLY}" = "true" ] || [ "${SCHEDULED_EXCEPTION}" = "true" ]; then
+            UPLOAD_PROFILES=false
+          fi
+          # Digests are read within days. A collected report is the history the
+          # Monday job compares against, so it has to outlive two whole weeks.
+          RETENTION_DAYS=7
+          if [ "${SCHEDULED_EXCEPTION}" = "true" ]; then
+            RETENTION_DAYS=21
+          fi
+          echo "upload-profiles=${UPLOAD_PROFILES}" >> "$GITHUB_OUTPUT"
+          echo "retention-days=${RETENTION_DAYS}" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare scenario artifact matrix
+        id: scenario-matrix
+        run: |
+          set -euo pipefail
+          echo "matrix=$(jq -c . /tmp/analyze-app-profiling/scenario-artifacts.json)" >> "$GITHUB_OUTPUT"
+
+      # The linked report is published by `publish-summary`, once artifact ids
+      # exist. This only covers the case where that job never runs.
+      - name: Write job summary
+        if: failure()
+        run: |
+          if [ -f /tmp/analyze-app-profiling/github-summary.md ]; then
+            cat /tmp/analyze-app-profiling/github-summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No analysis summary was produced." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload analysis artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: app-profiling-analysis
+          path: |
+            /tmp/analyze-app-profiling/*.md
+            /tmp/analyze-app-profiling/report.json
+            /tmp/analyze-app-profiling/notification.json
+            /tmp/analyze-app-profiling/ai-proposal-evidence.json
+            /tmp/analyze-app-profiling/slack-cards.json
+            /tmp/analyze-app-profiling/scenario-artifacts.json
+            /tmp/analyze-app-profiling/scenarios/
+          if-no-files-found: ignore
+          retention-days: ${{ steps.flags.outputs.retention-days || 7 }}
+
+      - name: Cache scenario profile bundles
+        if: success() && steps.flags.outputs.upload-profiles == 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: /tmp/analyze-app-profiling/scenario-artifacts/
+          key: app-profiling-scenarios-${{ github.run_id }}
+
+      # Without this, a broken analyzer or a missing artifact is indistinguishable
+      # from a run that was never requested.
+      - name: Post Slack analysis failure
+        if: >-
+          failure() &&
+          !(github.event_name == 'workflow_run' &&
+            github.event.workflow_run.event == 'schedule')
+        continue-on-error: true
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_RUN_LABEL: 'Failed analysis job'
+          ANALYZED_RUN_ID: ${{ inputs.run_id || github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/analyze-app-profiling
+          {
+            echo "*Hermes CPU-profile analysis failed*"
+            echo
+            echo "The performance suite finished, but this analysis job failed, so no digest was produced."
+            echo
+            echo "_Performance run analyzed:_ \`${ANALYZED_RUN_ID:-latest successful scheduled run}\`"
+            echo "_Check the failed job below for the failing step._"
+          } > /tmp/analyze-app-profiling/analysis-failure.md
+          node .github/scripts/qa-automation/performance-tests/post-app-profiling-slack.mjs \
+            /tmp/analyze-app-profiling/analysis-failure.md
+
+  upload-scenario-profiles:
+    name: Upload ${{ matrix.scenario }}
+    needs: analyze
+    if: >-
+      needs.analyze.result == 'success' &&
+      needs.analyze.outputs.upload-profiles == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.analyze.outputs.scenario-matrix) }}
+    steps:
+      - name: Restore scenario profile bundles
+        uses: actions/cache/restore@v6
+        with:
+          path: /tmp/analyze-app-profiling/scenario-artifacts/
+          key: app-profiling-scenarios-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      - name: Upload scenario profile artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifactName }}
+          path: ${{ matrix.path }}
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-summary:
+    name: Post profiling summary
+    needs:
+      - analyze
+      - upload-scenario-profiles
+    if: always() && needs.analyze.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Download analysis summary
+        uses: actions/download-artifact@v8
+        with:
+          name: app-profiling-analysis
+          path: /tmp/analyze-app-profiling
+
+      # Scenario names in the run report become the download for that
+      # scenario's profiles. Artifact ids do not exist before this job.
+      - name: Write job summary with per-scenario downloads
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          node .github/scripts/qa-automation/performance-tests/link-scenario-artifacts.mjs \
+            /tmp/analyze-app-profiling/github-summary.md \
+            /tmp/analyze-app-profiling/github-summary-linked.md \
+            --style markdown --optional
+          cat /tmp/analyze-app-profiling/github-summary-linked.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Post Slack summary
+        if: >-
+          needs.upload-scenario-profiles.result != 'failure' &&
+          (
+            github.event_name == 'schedule' ||
+            (github.event_name == 'workflow_dispatch' && inputs.post_to_slack) ||
+            (github.event_name == 'workflow_run' &&
+             (
+               (github.event.workflow_run.event == 'workflow_dispatch' &&
+                needs.upload-scenario-profiles.result == 'success') ||
+               github.event.workflow_run.event == 'schedule'
+             ))
+          )
+        continue-on-error: true
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          node .github/scripts/qa-automation/performance-tests/post-app-profiling-slack.mjs \
+            /tmp/analyze-app-profiling/slack.md
+
+  report-scenario-upload-failure:
+    name: Report scenario artifact upload failure
+    needs:
+      - analyze
+      - upload-scenario-profiles
+    if: >-
+      always() &&
+      needs.analyze.result == 'success' &&
+      needs.upload-scenario-profiles.result == 'failure' &&
+      (github.event_name != 'workflow_dispatch' || inputs.post_to_slack)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Post Slack artifact failure notice
+        continue-on-error: true
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_RUN_LABEL: 'Failed scenario artifact upload'
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/analyze-app-profiling
+          {
+            echo "*Hermes scenario artifacts failed to publish*"
+            echo
+            echo "The profiles were analyzed, but one or more per-scenario downloads failed to upload, so no incomplete digest was sent."
+            echo
+            echo "_Check the failed upload job below._"
+          } > /tmp/analyze-app-profiling/artifact-failure.md
+          node .github/scripts/qa-automation/performance-tests/post-app-profiling-slack.mjs \
+            /tmp/analyze-app-profiling/artifact-failure.md

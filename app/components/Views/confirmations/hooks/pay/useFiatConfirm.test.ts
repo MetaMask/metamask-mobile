@@ -145,6 +145,31 @@ describe('useFiatConfirm', () => {
       expect(startHeadlessBuyMock).not.toHaveBeenCalled();
     });
 
+    it('clears the preparing spinner when startHeadlessBuy throws before a session exists', () => {
+      startHeadlessBuyMock.mockImplementation(() => {
+        throw new Error(
+          'Token with asset ID "eip155:143/erc20:0xabc" not found',
+        );
+      });
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1' },
+        caipAssetId: 'eip155:143/erc20:0xabc',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      expect(setIsHeadlessBuyInProgressMock).toHaveBeenCalledWith(false);
+      expect(setHeadlessBuyErrorMock).toHaveBeenCalledWith(
+        expect.stringContaining('not found'),
+      );
+    });
+
     it('calls startHeadlessBuy with correct params when all data present', () => {
       const mockQuote = { id: 'quote-1', provider: 'test' };
 
@@ -176,6 +201,40 @@ describe('useFiatConfirm', () => {
           onError: expect.any(Function),
           onClose: expect.any(Function),
         }),
+      );
+    });
+
+    it('uses the fee-on-top amount for a Brazil Transak aggregator checkout', () => {
+      const rampsQuote = {
+        provider: '/providers/transak',
+        providerInfo: { type: 'aggregator' },
+        quote: {
+          amountIn: 15,
+          amountOut: 14.2,
+          paymentMethod: '/payments/debit-credit-card',
+          providerFee: 0.8,
+        },
+      };
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: '/payments/debit-credit-card',
+        amountFiat: '15',
+        rampsQuote,
+        caipAssetId:
+          'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      expect(startHeadlessBuyMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          amount: 52,
+          quote: rampsQuote,
+        }),
+        expect.any(Object),
       );
     });
 

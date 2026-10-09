@@ -63,11 +63,15 @@ export class Logger {
   ): string {
     const levelStr = this.colorize(`[${level.toUpperCase()}]`, color);
     const prefixStr = this.colorize(`[${this.prefix}]`, 'cyan');
+    const workerScope = resolveE2eLogWorkerScope();
+    const workerStr = workerScope
+      ? this.colorize(`[${workerScope}]`, 'magenta')
+      : '';
     const nameStr = this.colorize(`[${this.name}]`, 'gray');
 
     return `${prefixStr} ${levelStr}${
-      this.name !== '' ? ` ${nameStr}` : ''
-    } ${message}`;
+      workerStr ? ` ${workerStr}` : ''
+    }${this.name !== '' ? ` ${nameStr}` : ''} ${message}`;
   }
 
   private log(
@@ -130,4 +134,25 @@ export const logger = new Logger();
 
 export function createLogger(options: LoggerOptions): Logger {
   return new Logger(options);
+}
+
+/**
+ * Worker tag for interleaved N=2 logs. Read at log time so `beforeAll` lines
+ * pick up Playwright's `TEST_PARALLEL_INDEX` even when the device fixture has
+ * not exported `E2E_WORKER_INDEX` yet. Omitted in globalSetup (no worker index).
+ */
+export function resolveE2eLogWorkerScope(
+  env: Record<string, string | undefined> = process.env,
+): string | undefined {
+  const raw = env.E2E_WORKER_INDEX?.trim() || env.TEST_PARALLEL_INDEX?.trim();
+  if (!raw) {
+    return undefined;
+  }
+  const workerIndex = Number(raw);
+  if (!Number.isInteger(workerIndex) || workerIndex < 0) {
+    return undefined;
+  }
+
+  const serial = env.ANDROID_SERIAL?.trim();
+  return serial ? `w${workerIndex} ${serial}` : `w${workerIndex}`;
 }

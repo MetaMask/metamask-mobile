@@ -1,7 +1,6 @@
 export const PredictFeedBannerPosition = {
   AfterBalance: 'after-balance',
   AfterFeaturedCarousel: 'after-featured-carousel',
-  AfterWorldCupBanner: 'after-world-cup-banner',
   BeforePortfolio: 'before-portfolio',
   AfterPortfolio: 'after-portfolio',
   AfterLiveNow: 'after-live-now',

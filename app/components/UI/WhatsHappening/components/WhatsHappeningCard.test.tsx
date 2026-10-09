@@ -13,10 +13,23 @@ const mockCreateEventBuilder = jest.fn((eventName: string) => ({
   build: jest.fn(() => ({ category: eventName })),
 }));
 
+const mockEndTrace = jest.fn();
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
+}));
+
 let capturedOnVisible: (() => void) | null = null;
+let capturedViewportContext: { emitTrace?: boolean } | undefined;
 jest.mock('../../MarketInsights/hooks/useViewportTracking', () => ({
-  useViewportTracking: (onVisible: () => void) => {
+  useViewportTracking: (
+    onVisible: () => void,
+    _areaThreshold?: number,
+    context?: { emitTrace?: boolean },
+  ) => {
     capturedOnVisible = onVisible;
+    capturedViewportContext = context;
     return { ref: { current: null }, onLayout: jest.fn() };
   },
 }));
@@ -100,6 +113,7 @@ describe('WhatsHappeningCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     capturedOnVisible = null;
+    capturedViewportContext = undefined;
   });
 
   it('renders title and description', () => {
@@ -284,6 +298,50 @@ describe('WhatsHappeningCard', () => {
     expect(() =>
       fireEvent.press(screen.getByText(baseItem.title)),
     ).not.toThrow();
+  });
+
+  it('ends carousel time to content when the first card commits', () => {
+    renderWithProvider(
+      <WhatsHappeningCard
+        item={baseItem}
+        cardIndex={0}
+        source="explore"
+        carouselTraceId="explore:carousel"
+      />,
+    );
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: "What's Happening Carousel Load",
+      id: 'explore:carousel',
+      data: {
+        result: 'success',
+        success: true,
+        content_state: 'filled',
+      },
+    });
+  });
+
+  it('does not end carousel time to content for later cards', () => {
+    renderWithProvider(
+      <WhatsHappeningCard
+        item={baseItem}
+        cardIndex={1}
+        source="explore"
+        carouselTraceId="explore:carousel"
+      />,
+    );
+
+    expect(mockEndTrace).not.toHaveBeenCalled();
+  });
+
+  it('does not emit Market Insights viewport spans', () => {
+    renderWithProvider(
+      <WhatsHappeningCard item={baseItem} cardIndex={0} source="homepage" />,
+    );
+
+    expect(capturedViewportContext).toEqual(
+      expect.objectContaining({ emitTrace: false }),
+    );
   });
 
   it('tracks Whats Happening Card Scrolled to View when card becomes visible', () => {

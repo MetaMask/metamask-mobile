@@ -5,9 +5,12 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -15,13 +18,16 @@ import {
 import React, { useCallback } from 'react';
 import { Pressable, StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
+import { useSocialEntryOptions } from '../../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
+import { getSocialEntryOptionsTriggerTestId } from '../../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet.testIds';
+
+import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import PerpBadges from '../../components/PerpBadges';
-import PositionTokenAvatar from '../../components/PositionTokenAvatar';
-import type { FeedAction, FeedItem } from '../types';
+import PositionTokenAvatar from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
+import type { FeedItem } from '../../../../UI/SocialFeed/types';
 import FeedSubHeaderText from './FeedSubHeaderText';
-import { formatFeedTimestamp } from '../../utils/formatters';
+import { formatFeedTimestamp } from '../../../../UI/SocialFeed/utils/formatters';
+import { getTradeActionI18nKey } from '../../../../UI/SocialFeed/utils/tradeAction';
 import {
   getFeedItemTestId,
   getFeedNewPositionTestId,
@@ -32,13 +38,12 @@ import {
 
 const AVATAR_SIZE = 24;
 
-// Open actions map to an intentional state label shown when the right column
-// would otherwise be blank. Closed actions (`sold`/`closed`) have no entry, so
-// their empty rows stay blank.
-const NEW_POSITION_LABEL_KEYS: Partial<Record<FeedAction, string>> = {
-  bought: 'social_leaderboard.feed.new_position.bought',
-  opened: 'social_leaderboard.feed.new_position.opened',
-};
+// The lifecycle stage reads differently per asset class: a trader opens a perp
+// position but buys a token. One canonical action, two vocabularies.
+const NEW_POSITION_LABEL_KEYS = {
+  spot: 'social_leaderboard.feed.new_position.spot',
+  perps: 'social_leaderboard.feed.new_position.perps',
+} as const;
 
 const styles = StyleSheet.create({
   // Keep the tappable trader identity flexible so the Trade button retains its
@@ -54,6 +59,18 @@ export interface FeedItemRowProps {
   onTradePress: (item: FeedItem) => void;
   onPositionPress: (item: FeedItem) => void;
   onTraderPress: (item: FeedItem) => void;
+  /** Live stream rows omit the Trade CTA; defaults to showing it. */
+  showTradeButton?: boolean;
+  /** Match V1 position card border/fill on the compact trade card. */
+  usePositionCardChrome?: boolean;
+  /**
+   * Wall-clock instant used to format the relative timestamp. Parent should
+   * bump this after pull-to-refresh so memoized rows recompute even when the
+   * feed payload is unchanged. Defaults to `Date.now()`.
+   */
+  now?: number;
+  /** When true, shows the overflow moderation menu. */
+  showOptionsMenu?: boolean;
 }
 
 /**
@@ -66,7 +83,20 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   onTradePress,
   onPositionPress,
   onTraderPress,
+  showTradeButton = true,
+  usePositionCardChrome = false,
+  now,
+  showOptionsMenu = false,
 }) => {
+  const {
+    open: openOptions,
+    sheet: optionsSheet,
+    isHidden,
+  } = useSocialEntryOptions({
+    postId: item.id,
+    authorId: item.traderId,
+    authorHandle: item.username,
+  });
   const handleTradePress = useCallback(() => {
     onTradePress(item);
   }, [item, onTradePress]);
@@ -79,15 +109,29 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
     onTraderPress(item);
   }, [item, onTraderPress]);
 
-  const actionLabel = strings(`social_leaderboard.feed.action.${item.action}`);
-  const timeLabel = formatFeedTimestamp(item.timestamp);
+  const isPerp = item.type === 'perps';
+  const assetClass = isPerp ? 'perps' : 'spot';
+  const action = item.action;
+  const actionLabel = strings(getTradeActionI18nKey('feed', isPerp, action));
+  const timeLabel = formatFeedTimestamp(item.timestamp, now);
   const symbol = item.type === 'spot' ? item.tokenSymbol : item.marketSymbol;
 
-  // For open rows whose value/P&L hasn't arrived yet, surface an intentional
-  // state label ("Holding" for spot, "Open" for perps) instead of a blank right
-  // column. The row is an entry that hasn't been exited, so there's no realized
-  // P&L to show yet.
-  const newPositionLabelKey = NEW_POSITION_LABEL_KEYS[item.action] ?? null;
+  // For rows whose value/P&L hasn't arrived yet, surface an intentional state
+  // label ("Holding" for spot, "Open" for perps) instead of a blank right
+  // column. A reduce still leaves the position open, so it qualifies; only a
+  // full close does not, and its row stays blank.
+  const newPositionLabelKey =
+    (item.isClosed ?? action === 'closed')
+      ? null
+      : NEW_POSITION_LABEL_KEYS[assetClass];
+
+  const tradeCardTwClassName = usePositionCardChrome
+    ? 'bg-background-alternative rounded-2xl p-3 border border-muted'
+    : 'bg-muted rounded-2xl p-3';
+
+  if (isHidden) {
+    return null;
+  }
 
   return (
     <Box twClassName="px-4 py-3 gap-4" testID={getFeedItemTestId(item.id)}>
@@ -136,14 +180,27 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
           </Box>
         </TouchableOpacity>
 
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Sm}
-          onPress={handleTradePress}
-          testID={getFeedTradeButtonTestId(item.id)}
-        >
-          {strings('social_leaderboard.feed.trade')}
-        </Button>
+        {showTradeButton ? (
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Sm}
+            onPress={handleTradePress}
+            testID={getFeedTradeButtonTestId(item.id)}
+          >
+            {strings('social_leaderboard.feed.trade')}
+          </Button>
+        ) : null}
+        {showOptionsMenu ? (
+          <ButtonIcon
+            iconName={IconName.MoreHorizontal}
+            size={ButtonIconSize.Md}
+            onPress={openOptions}
+            accessibilityLabel={strings(
+              'social_leaderboard.entry_options.title',
+            )}
+            testID={getSocialEntryOptionsTriggerTestId(item.id)}
+          />
+        ) : null}
       </Box>
 
       <Pressable
@@ -157,7 +214,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={3}
-          twClassName="bg-muted rounded-2xl p-3"
+          twClassName={tradeCardTwClassName}
         >
           <PositionTokenAvatar
             position={item.tokenAvatar}
@@ -231,6 +288,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
           ) : null}
         </Box>
       </Pressable>
+      {showOptionsMenu ? optionsSheet : null}
     </Box>
   );
 };

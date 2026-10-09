@@ -26,17 +26,27 @@ interface OndoAfterHoursSheetProps {
   onClose: () => void;
   onConfirm?: () => void;
   nextOpenAt: Date | null;
+  title?: string;
+  content?: string;
+  confirmLabel?: string;
+  testID?: string;
 }
 
 const OndoAfterHoursSheet: React.FC<OndoAfterHoursSheetProps> = ({
   onClose,
   onConfirm,
   nextOpenAt,
+  title = strings('rewards.ondo_campaign_after_hours_trading.title'),
+  content = strings('rewards.ondo_campaign_after_hours_trading.content'),
+  confirmLabel = strings(
+    'rewards.ondo_campaign_after_hours_trading.got_it_button',
+  ),
+  testID = 'ondo-after-hours-sheet',
 }) => {
   const countdownText = nextOpenAt ? formatTimeRemaining(nextOpenAt) : null;
 
   return (
-    <BottomSheet onClose={onClose}>
+    <BottomSheet onClose={onClose} testID={testID}>
       <Box twClassName="px-4 pb-4">
         {/* Header row: spacer + close button */}
         <Box
@@ -49,7 +59,7 @@ const OndoAfterHoursSheet: React.FC<OndoAfterHoursSheetProps> = ({
             iconName={IconName.Close}
             iconProps={{ color: IconColor.IconDefault }}
             onPress={onClose}
-            testID="ondo-after-hours-sheet-close"
+            testID={`${testID}-close`}
           />
         </Box>
 
@@ -63,9 +73,9 @@ const OndoAfterHoursSheet: React.FC<OndoAfterHoursSheetProps> = ({
           <Text
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}
-            testID="ondo-after-hours-sheet-title"
+            testID={`${testID}-title`}
           >
-            {strings('rewards.ondo_campaign_after_hours_trading.title')}
+            {title}
           </Text>
         </Box>
 
@@ -95,10 +105,10 @@ const OndoAfterHoursSheet: React.FC<OndoAfterHoursSheetProps> = ({
         <Box twClassName="mb-6">
           <Text
             variant={TextVariant.BodyMd}
-            testID="ondo-after-hours-sheet-description"
+            testID={`${testID}-description`}
             twClassName="text-center"
           >
-            {strings('rewards.ondo_campaign_after_hours_trading.content')}
+            {content}
           </Text>
         </Box>
 
@@ -108,9 +118,9 @@ const OndoAfterHoursSheet: React.FC<OndoAfterHoursSheetProps> = ({
           size={ButtonSize.Lg}
           onPress={onConfirm ?? onClose}
           twClassName="w-full"
-          testID="ondo-after-hours-sheet-got-it"
+          testID={`${testID}-got-it`}
         >
-          {strings('rewards.ondo_campaign_after_hours_trading.got_it_button')}
+          {confirmLabel}
         </Button>
       </Box>
     </BottomSheet>

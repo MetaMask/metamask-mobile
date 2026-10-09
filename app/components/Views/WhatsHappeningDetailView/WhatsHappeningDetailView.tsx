@@ -14,10 +14,15 @@ import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import type { Article } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../UI/WhatsHappening/types';
 import { strings } from '../../../../locales/i18n';
+import { endTrace, TraceName } from '../../../util/trace';
 import { useWhatsHappening } from '../../UI/WhatsHappening/hooks';
+import {
+  getWhatsHappeningTraceEndData,
+  getWhatsHappeningTraceId,
+} from '../../UI/WhatsHappening/utils/whatsHappeningPerformance';
 import WhatsHappeningExpandedCardSkeleton from './components/WhatsHappeningExpandedCardSkeleton';
 import {
-  MAX_ITEMS_DISPLAYED,
+  SKELETON_CARD_COUNT,
   WhatsHappeningInteractionType,
   WhatsHappeningSource,
   WhatsHappeningView,
@@ -43,7 +48,7 @@ export const CARD_WIDTH = SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - GAP;
 const SNAP_INTERVAL = CARD_WIDTH + GAP;
 
 const SKELETON_KEYS = Array.from(
-  { length: MAX_ITEMS_DISPLAYED },
+  { length: SKELETON_CARD_COUNT },
   (_, i) => `skeleton-${i}`,
 );
 
@@ -70,10 +75,10 @@ const WhatsHappeningDetailView = () => {
     route.params?.source ?? WhatsHappeningSource.Unknown;
   const outdatedItemId = route.params?.outdatedItemId;
 
-  const { items, isLoading, error, refresh } = useWhatsHappening(
-    MAX_ITEMS_DISPLAYED,
-    { outdatedItemId },
-  );
+  const { items, isLoading, error, refresh } = useWhatsHappening({
+    outdatedItemId,
+    telemetryContext: { source, stage: 'expanded' },
+  });
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [cardHeight, setCardHeight] = useState(0);
@@ -245,9 +250,30 @@ const WhatsHappeningDetailView = () => {
 
   const hasError = !isLoading && items.length === 0 && !!error;
 
+  useEffect(() => {
+    if (cardHeight <= 0 || items.length === 0) {
+      return;
+    }
+
+    endTrace({
+      name: TraceName.WhatsHappeningViewLoad,
+      id: getWhatsHappeningTraceId(source, 'expanded'),
+      data: getWhatsHappeningTraceEndData('success'),
+    });
+  }, [cardHeight, items.length, source]);
+
   return (
-    <SafeAreaView style={tw`flex-1 bg-default`}>
+    // The top edge is deliberately off: a native SafeAreaView top padding is
+    // recalculated as the view is attached, which lands after this screen's
+    // `slide_from_right` push and visibly drops the header into place. The top
+    // inset comes from `includesTopInset` (JS `marginTop` off the already
+    // resolved provider) instead, matching PerpsMarketDetailsView.
+    <SafeAreaView
+      edges={['bottom', 'left', 'right']}
+      style={tw`flex-1 bg-default`}
+    >
       <HeaderStandard
+        includesTopInset
         title={strings('whats_happening.title')}
         onBack={handleBackPress}
         backButtonProps={{ testID: 'whats-happening-detail-back-button' }}

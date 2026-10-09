@@ -2,25 +2,21 @@ import type { Mockttp } from 'mockttp';
 
 import Assertions from '../../../framework/Assertions.js';
 import Gestures from '../../../framework/Gestures.js';
+import Matchers from '../../../framework/Matchers.js';
 import { PlatformDetector } from '../../../framework/PlatformLocator.js';
-import { asPlaywrightElement } from '../../../framework/EncapsulatedElement.js';
-import PlaywrightAssertions from '../../../framework/PlaywrightAssertions.js';
-import PlaywrightMatchers from '../../../framework/PlaywrightMatchers.js';
 import { sleep } from '../../../framework/Utilities.js';
 import {
   getDriver,
   withImplicitWait,
-} from '../../../framework/PlaywrightUtilities.js';
+} from '../../../framework/AppiumUtilities.js';
 import { ChoosePasswordSelectorsIDs } from '../../../../app/components/Views/ChoosePassword/ChoosePassword.testIds.js';
 import { OnboardingSelectorIDs } from '../../../../app/components/Views/Onboarding/Onboarding.testIds.js';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { createOAuthMockttpService } from '../../../api-mocking/seedless-onboarding/index.js';
 import { E2EOAuthHelpers } from '../../../module-mocking/oauth/index.js';
 import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
-import { remoteFeaturePredictGtmOnboardingModalDisabled } from '../../../api-mocking/mock-responses/feature-flags-mocks.js';
 import {
   dismissExperienceEnhancerModal,
-  dismisspredictionsModalPlaywright,
   dismissPushNotificationExistingUserSheet,
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
@@ -28,9 +24,7 @@ import {
 
 import OnboardingView from '../../../page-objects/Onboarding/OnboardingView.js';
 import OnboardingSheet from '../../../page-objects/Onboarding/OnboardingSheet.js';
-import SocialLoginView from '../../../page-objects/Onboarding/SocialLoginView.js';
 import CreatePasswordView from '../../../page-objects/Onboarding/CreatePasswordView.js';
-import OnboardingSuccessView from '../../../page-objects/Onboarding/OnboardingSuccessView.js';
 import MetaMetricsOptInView from '../../../page-objects/Onboarding/MetaMetricsOptInView.js';
 import ExperienceEnhancerBottomSheet from '../../../page-objects/Onboarding/ExperienceEnhancerBottomSheet.js';
 import OnboardingInterestQuestionnaireView from '../../../page-objects/Onboarding/OnboardingInterestQuestionnaireView.js';
@@ -61,14 +55,16 @@ const IOS_ONBOARDING_INDICATOR_IDS = [
   OnboardingSelectorIDs.SCREEN_TITLE,
 ] as const;
 
+interface AppiumElement {
+  isVisible: () => Promise<boolean>;
+}
+
 const isOnboardingIndicatorVisible = async (
   testId: string,
 ): Promise<boolean> => {
   try {
     return await withImplicitWait(500, async () => {
-      const el = await PlaywrightMatchers.getElementById(testId, {
-        exact: true,
-      });
+      const el = (await Matchers.getElementByID(testId)) as AppiumElement;
       return await el.isVisible();
     });
   } catch {
@@ -111,9 +107,7 @@ const isCreatePasswordIndicatorVisible = async (
 ): Promise<boolean> => {
   try {
     return await withImplicitWait(500, async () => {
-      const el = await PlaywrightMatchers.getElementById(testId, {
-        exact: true,
-      });
+      const el = (await Matchers.getElementByID(testId)) as AppiumElement;
       return await el.isVisible();
     });
   } catch {
@@ -151,18 +145,6 @@ const waitForCreatePasswordScreenPlaywright = async (
   );
 };
 
-/**
- * Disable Predict GTM full-screen modal so post-onboarding actions (accounts
- * menu → lock) are not blocked. Matches qr-sync / add-srp seedless smoke setup.
- */
-const disablePredictGtmOnboardingModal = async (
-  mockServer: Mockttp,
-): Promise<void> => {
-  await setupRemoteFeatureFlagsMock(mockServer, {
-    ...remoteFeaturePredictGtmOnboardingModalDisabled(),
-  });
-};
-
 export async function setupGoogleNewUserOAuthMock(
   mockServer: Mockttp,
 ): Promise<void> {
@@ -171,7 +153,6 @@ export async function setupGoogleNewUserOAuthMock(
   const oAuthMockttpService = createOAuthMockttpService();
   oAuthMockttpService.configureGoogleNewUser();
   await oAuthMockttpService.setup(mockServer);
-  await disablePredictGtmOnboardingModal(mockServer);
 }
 
 export async function setupGoogleExistingUserOAuthMock(
@@ -192,7 +173,6 @@ export async function setupAppleNewUserOAuthMock(
   const oAuthMockttpService = createOAuthMockttpService();
   oAuthMockttpService.configureAppleNewUser();
   await oAuthMockttpService.setup(mockServer);
-  await disablePredictGtmOnboardingModal(mockServer);
 }
 
 export async function setupAppleExistingUserOAuthMock(
@@ -205,11 +185,31 @@ export async function setupAppleExistingUserOAuthMock(
   await oAuthMockttpService.setup(mockServer);
 }
 
+export async function setupTelegramNewUserOAuthMock(
+  mockServer: Mockttp,
+): Promise<void> {
+  E2EOAuthHelpers.reset();
+  E2EOAuthHelpers.configureTelegramNewUser();
+  const oAuthMockttpService = createOAuthMockttpService();
+  oAuthMockttpService.configureTelegramNewUser();
+  await oAuthMockttpService.setup(mockServer);
+  // main-e2e does not bake MM_TELEGRAM_LOGIN_ENABLED; e2e/test LD defaults
+  // Telegram off. Override the client-config mock so the onboarding sheet
+  // renders the Telegram button.
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    telegram_login_enabled: true,
+  });
+}
+
+type SocialLoginProvider = 'google' | 'apple' | 'telegram';
+
 /**
- * Social login new user onboarding flow (Appium smoke).
+ * Social login new-user smoke.
+ * After OAuth, create-wallet new users go directly to create-password.
+ * This helper only drives the device path.
  */
 export const completeSocialLoginOnboarding = async (
-  provider: 'google' | 'apple',
+  provider: SocialLoginProvider,
 ): Promise<void> => {
   await waitForOnboardingScreenPlaywright(resolveE2EWaitTimeoutMs(60_000));
 
@@ -221,13 +221,17 @@ export const completeSocialLoginOnboarding = async (
 
   if (provider === 'google') {
     await OnboardingSheet.tapGoogleLoginButton();
-  } else {
+  } else if (provider === 'apple') {
     await OnboardingSheet.tapAppleLoginButton();
-  }
-
-  if (PlatformDetector.isIOS()) {
-    await SocialLoginView.isIosNewUserScreenVisible();
-    await SocialLoginView.tapIosNewUserSetPinButton();
+  } else {
+    await Assertions.expectElementToBeVisible(
+      OnboardingSheet.telegramLoginButton,
+      {
+        description:
+          'Telegram login button should be visible when telegram_login_enabled is mocked true',
+      },
+    );
+    await OnboardingSheet.tapTelegramLoginButton();
   }
 
   await waitForCreatePasswordScreenPlaywright(resolveE2EWaitTimeoutMs(60_000));
@@ -275,24 +279,11 @@ export const completeSocialLoginOnboarding = async (
     // Only appears for ~25% of users based on deterministic rollout
   }
 
-  try {
-    await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
-      description: 'Onboarding success screen should be visible',
-      timeout: 30000,
-    });
-    await OnboardingSuccessView.tapDone();
-  } catch {
-    // May go directly to home in some flows
-  }
-
   // iOS may have wallet-screen in the tree with displayed === false while child
   // indicators (wallet-header-root, etc.) are visible — same check as login flows.
   await dismissPushNotificationExistingUserSheet();
   await dismissExperienceEnhancerModal();
   await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(60_000));
-  // Predict GTM can still appear if remote flags race the mock; dismiss if present
-  // so accounts-menu → lock is not blocked (Android lock/unlock / reset smokes).
-  await dismisspredictionsModalPlaywright();
 };
 
 export const completeGoogleNewUserOnboarding = (): Promise<void> =>
@@ -300,6 +291,9 @@ export const completeGoogleNewUserOnboarding = (): Promise<void> =>
 
 export const completeAppleNewUserOnboarding = (): Promise<void> =>
   completeSocialLoginOnboarding('apple');
+
+export const completeTelegramNewUserOnboarding = (): Promise<void> =>
+  completeSocialLoginOnboarding('telegram');
 
 /**
  * Confirms the native lock alert. On iOS the confirm button can go stale before
@@ -353,7 +347,7 @@ const confirmLockAlert = async (): Promise<void> => {
 };
 
 /**
- * Locks the app from Settings.
+ * Locks the app from wallet home (Account Menu → Lock).
  */
 export const lockApp = async (): Promise<void> => {
   await TabBarComponent.tapAccountsMenu();
@@ -374,13 +368,10 @@ export const lockApp = async (): Promise<void> => {
 export const unlockApp = async (
   password: string = TEST_PASSWORD,
 ): Promise<void> => {
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(LoginView.container),
-    {
-      description: 'Login screen should be visible before unlock',
-      timeout: 30_000,
-    },
-  );
+  await Assertions.expectElementToBeVisible(LoginView.container, {
+    description: 'Login screen should be visible before unlock',
+    timeout: 30_000,
+  });
   await LoginView.enterPassword(password);
   await LoginView.tapLoginButton();
   await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(60_000));
@@ -395,6 +386,10 @@ export const loginWithFixturePassword = async (): Promise<void> => {
 
 /**
  * Resets the wallet from the login screen.
+ *
+ * After confirm, wait via {@link waitForOnboardingScreenPlaywright} — on iOS
+ * `onboarding-screen` can exist in the hierarchy while `isDisplayed` stays
+ * false (child CTAs / title are the reliable readiness signal).
  */
 export const resetWallet = async (): Promise<void> => {
   await Assertions.expectElementToBeVisible(LoginView.container, {
@@ -412,8 +407,5 @@ export const resetWallet = async (): Promise<void> => {
 
   await ForgotPasswordModal.tapYesResetWalletButton();
 
-  await Assertions.expectElementToBeVisible(OnboardingView.container, {
-    description: 'Onboarding screen should be visible after wallet reset',
-    timeout: 30000,
-  });
+  await waitForOnboardingScreenPlaywright(resolveE2EWaitTimeoutMs(60_000));
 };

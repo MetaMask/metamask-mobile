@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import SnapDialogApproval from './index';
+import SnapDialogApproval from './SnapDialogApproval';
 import Engine from '../../../core/Engine';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { DIALOG_APPROVAL_TYPES } from '@metamask/snaps-rpc-methods';

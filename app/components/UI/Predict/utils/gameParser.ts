@@ -277,6 +277,26 @@ const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
     teamOrder: 'home-away',
     tagSlug: 'fifa-world-cup',
   },
+  usc: {
+    pattern: /^usc-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'uefa-super-cup',
+  },
+  efa: {
+    pattern: /^efa-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'fa-cup',
+  },
+  clf: {
+    pattern: /^clf-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'clf',
+  },
+  saf1: {
+    pattern: /^saf1-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'saf1',
+  },
   atp: {
     pattern: /^atp-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
     teamOrder: 'home-away',
@@ -325,6 +345,23 @@ const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
 
 export function getPolymarketTeamLeague(league: PredictSportsLeague): string {
   return LEAGUE_SLUG_CONFIGS[league].teamsApiLeague ?? league;
+}
+
+const PREDICT_LEAGUE_BY_TEAM_API_LEAGUE = new Map(
+  (Object.keys(LEAGUE_SLUG_CONFIGS) as PredictSportsLeague[]).map((league) => [
+    getPolymarketTeamLeague(league).toLowerCase(),
+    league,
+  ]),
+);
+
+export function getPredictSportsLeagueFromTeamApi(
+  apiLeague?: string,
+): PredictSportsLeague | undefined {
+  if (!apiLeague) {
+    return undefined;
+  }
+
+  return PREDICT_LEAGUE_BY_TEAM_API_LEAGUE.get(apiLeague.toLowerCase());
 }
 
 export type TeamLookup = (

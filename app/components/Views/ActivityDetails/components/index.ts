@@ -34,8 +34,9 @@ export {
 } from './ActivityDetailsFees';
 export {
   ActivityDetailsPayFeesAndTotal,
-  hasActivityPayFiat,
+  useActivityPayFiat,
 } from './ActivityDetailsPayFees';
+export { ActivityDetailsPayNetworkRow } from './ActivityDetailsPayNetworkRow';
 export {
   ActivityDetailsFooter,
   ActivityDetailsBlockExplorerButton,
@@ -43,4 +44,4 @@ export {
   ActivityDetailsDoItAgainButton,
   ActivityDetailsWebviewButton,
 } from './ActivityDetailsFooter';
-export { formatActivityTokenAmount } from './activityTokenFormat';
+export { useFormatActivityTokenAmount } from './activityTokenFormat';

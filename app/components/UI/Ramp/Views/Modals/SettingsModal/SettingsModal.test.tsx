@@ -128,6 +128,7 @@ jest.mock('../../../hooks/useRampsProviders', () => ({
   useRampsProviders: () => ({
     selectedProvider: mockSelectedProvider,
     setSelectedProvider: mockSetSelectedProvider,
+    setSelectedProviderForAsset: jest.fn(),
   }),
 }));
 
