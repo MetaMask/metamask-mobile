@@ -1,4 +1,5 @@
 import {
+  caipChainIdToTradeInFlightChain,
   chainNameToId,
   getPositionNetworkBadge,
   isSupportedChain,
@@ -86,6 +87,26 @@ describe('isSupportedChain', () => {
 
   it('is case-insensitive — returns true for mixed-case input', () => {
     expect(isSupportedChain('BASE')).toBe(true);
+  });
+});
+
+describe('caipChainIdToTradeInFlightChain', () => {
+  it.each([
+    ['eip155:1', 'ethereum'],
+    ['eip155:8453', 'base'],
+    ['eip155:56', 'bsc'],
+    ['eip155:4663', 'robinhood'],
+    ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', 'solana'],
+  ])('maps %s to %s', (chainId, expected) => {
+    expect(caipChainIdToTradeInFlightChain(chainId)).toBe(expected);
+  });
+
+  it('returns undefined for a CAIP chain the swap-comment API does not accept', () => {
+    expect(caipChainIdToTradeInFlightChain('eip155:42161')).toBeUndefined();
+  });
+
+  it('returns undefined for an unknown chain id', () => {
+    expect(caipChainIdToTradeInFlightChain('eip155:999')).toBeUndefined();
   });
 });
 
