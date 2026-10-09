@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
@@ -25,6 +25,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
+import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGroupBalanceChange';
@@ -101,6 +102,7 @@ const AccountGroupBalance = ({
     [chainIdsForBalance],
   );
   const privacyMode = useSelector(selectPrivacyMode);
+  const previousPrivacyMode = useRef(privacyMode);
   const groupBalance = useSelector(groupBalanceSelector) as {
     groupId: string;
     totalBalanceInUserCurrency: number;
@@ -128,6 +130,8 @@ const AccountGroupBalance = ({
   const totalBalance = groupBalance?.totalBalanceInUserCurrency ?? 0;
   const userCurrency = groupBalance?.userCurrency || 'USD';
   const displayBalance = formatCurrency(totalBalance, userCurrency);
+  const zeroBalance = formatCurrency(0, userCurrency);
+  const skipBalanceAnimation = previousPrivacyMode.current && !privacyMode;
 
   const isLoading = !groupBalance || !hasBalanceFetched;
   const awaitBalanceForPostOnboardingSteps =
@@ -166,6 +170,10 @@ const AccountGroupBalance = ({
       walletHomeOnboardingSkipInitialBalanceWait,
   });
 
+  useEffect(() => {
+    previousPrivacyMode.current = privacyMode;
+  }, [privacyMode]);
+
   const renderBalanceOrEmpty = () =>
     !isLoading && shouldShowEmptyState ? (
       <BalanceEmptyState
@@ -177,16 +185,25 @@ const AccountGroupBalance = ({
         testID="balance-container"
         style={styles.balanceContainer}
       >
-        <Skeleton hideChildren={isLoading}>
+        {privacyMode ? (
           <SensitiveText
-            isHidden={privacyMode}
+            isHidden
             length={SensitiveTextLength.Long}
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
             variant={TextVariant.DisplayLg}
           >
             {displayBalance}
           </SensitiveText>
-        </Skeleton>
+        ) : (
+          <AnimatedBalanceText
+            key={groupBalance?.groupId ?? 'loading'}
+            isLoading={isLoading}
+            loadingValue={zeroBalance}
+            testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+            value={displayBalance}
+            animated={!skipBalanceAnimation}
+          />
+        )}
 
         {balanceChange1d && (
           <Skeleton hideChildren={isLoading}>

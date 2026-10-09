@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { Laminar } from 'react-native-laminar';
 import { useSelector } from 'react-redux';
 import I18n from '../../../../../../locales/i18n';
 import HomepageBalanceBreakdown from './HomepageBalanceBreakdown';
@@ -349,11 +350,13 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { getByTestId } = render(<HomepageBalanceBreakdown />);
+    const { UNSAFE_getByType } = render(
+      <HomepageBalanceBreakdown />,
+    );
 
-    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toHaveStyle({
-      color: mockTheme.colors.text.muted,
-    });
+    expect(UNSAFE_getByType(Laminar).props.style).toEqual(
+      expect.objectContaining({ color: mockTheme.colors.text.muted }),
+    );
   });
 
   it('mutes an incomplete aggregate without treating an error as loading', () => {
@@ -366,11 +369,53 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { getByTestId } = render(<HomepageBalanceBreakdown />);
+    const { UNSAFE_getByType } = render(
+      <HomepageBalanceBreakdown />,
+    );
 
-    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toHaveStyle({
-      color: mockTheme.colors.text.muted,
+    expect(UNSAFE_getByType(Laminar).props.style).toEqual(
+      expect.objectContaining({ color: mockTheme.colors.text.muted }),
+    );
+  });
+
+  it('shows a muted zero without a delta while the aggregate is loading', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      hero: {
+        ...breakdown.hero,
+        status: 'loading',
+      },
     });
+
+    const { getByTestId, queryByTestId } = render(
+      <HomepageBalanceBreakdown layout="icons" />,
+    );
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('USD 0.00');
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.HERO_DELTA_AMOUNT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('rolls every aggregate balance update', () => {
+    const { rerender, UNSAFE_getByType } = render(
+      <HomepageBalanceBreakdown layout="icons" />,
+    );
+
+    expect(UNSAFE_getByType(Laminar).props.text).toBe('50.00');
+
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      hero: {
+        ...breakdown.hero,
+        totalFiat: 75,
+      },
+    });
+    rerender(<HomepageBalanceBreakdown layout="icons" />);
+
+    expect(UNSAFE_getByType(Laminar).props.text).toBe('75.00');
   });
 
   it('renders the experiment empty state for a settled zero portfolio', () => {
@@ -702,6 +747,31 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')).props
         .accessibilityLabel,
     ).toBe('Tokens');
+  });
+
+  it('displays the balance without animation when returning from privacy mode', () => {
+    mockPrivacyMode = true;
+
+    const { getByTestId, UNSAFE_queryAllByType, rerender } = render(
+      <HomepageBalanceBreakdown layout="icons" />,
+    );
+
+    mockPrivacyMode = false;
+    rerender(<HomepageBalanceBreakdown layout="icons" />);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('USD 50.00');
+    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(0);
+  });
+
+  it('does not expose proportional allocation while privacy mode is enabled', () => {
+    mockPrivacyMode = true;
+
+    const { getByLabelText, getByTestId, queryByTestId } = render(
+      <HomepageBalanceBreakdown layout="allocation" />,
+    );
+
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
         .accessibilityLabel,

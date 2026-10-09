@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 
+import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import AccountGroupBalance from './AccountGroupBalance';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -137,6 +138,9 @@ describe('AccountGroupBalance', () => {
     );
     expect(style.marginBottom).toBe(10);
     expect(style.marginTop).toBeUndefined();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('$0.00');
   });
 
   it('renders formatted balance when balance data is fetched', () => {
@@ -159,6 +163,42 @@ describe('AccountGroupBalance', () => {
 
     const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
     expect(el).toBeOnTheScreen();
+  });
+
+  it('primes zero while loading and rolls each completed value update', () => {
+    const { rerender, getByTestId } = renderWithProvider(
+      <AnimatedBalanceText
+        isLoading
+        loadingValue="$0.00"
+        testID="animated-balance-text"
+        value="$123.45"
+      />,
+      { state: testState },
+    );
+
+    expect(getByTestId('animated-balance-text')).toHaveTextContent('0.00');
+
+    rerender(
+      <AnimatedBalanceText
+        isLoading={false}
+        loadingValue="$0.00"
+        testID="animated-balance-text"
+        value="$123.45"
+      />,
+    );
+
+    expect(getByTestId('animated-balance-text')).toHaveTextContent('123.45');
+
+    rerender(
+      <AnimatedBalanceText
+        isLoading={false}
+        loadingValue="$0.00"
+        testID="animated-balance-text"
+        value="$456.78"
+      />,
+    );
+
+    expect(getByTestId('animated-balance-text')).toHaveTextContent('456.78');
   });
 
   it('renders empty state when fetched account group balance is zero', () => {
