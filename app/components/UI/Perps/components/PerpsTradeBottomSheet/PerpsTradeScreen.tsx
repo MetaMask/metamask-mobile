@@ -890,8 +890,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 justifyContent={BoxJustifyContent.Center}
                 gap={2}
               >
-                {feeSource === 'subscription' ||
-                (feeDiscountPercentage ?? 0) > 0 ? (
+                {(feeDiscountPercentage ?? 0) > 0 ? (
                   <RewardsVipBadge
                     hasProEntitlement={feeSource === 'subscription'}
                   />

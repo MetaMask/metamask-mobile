@@ -325,7 +325,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
               </Text>
               <PerpsFeesDisplay
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-                feeSource={rewardsState.feeSource}
+                feeSource={feeResults.feeSource}
                 fee={
                   !hasValidAmount || feeResults.isLoadingMetamaskFee
                     ? undefined

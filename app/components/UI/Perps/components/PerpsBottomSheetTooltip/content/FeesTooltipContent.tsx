@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { Image, View } from 'react-native';
 import type { PerpsFeeSource } from '@metamask/perps-controller';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
@@ -7,6 +7,7 @@ import { TooltipContentProps } from './types';
 import createStyles from './FeesTooltipContent.styles';
 import { formatFeeRate } from '../../../hooks/usePerpsOrderFees';
 import VipIcon from '../../../../../../images/rewards/vip.svg';
+import foxIcon from '../../../../../../images/fox.png';
 import RewardsVipBadge from '../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 import {
   Text,
@@ -38,26 +39,26 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
   const originalFee = formatFeeRate(data?.originalMetamaskFeeRate);
   const discountPercentage = data?.feeDiscountPercentage;
 
-  const isMember = data?.feeSource === 'subscription';
   const hasDiscount =
     discountPercentage !== undefined && discountPercentage > 0;
-  // Members always get a reduced fee, even when no rewards discount
-  // percentage is reported, so strike through whenever the original is higher.
-  const showStrikethrough =
-    hasDiscount ||
-    (isMember &&
-      data?.originalMetamaskFeeRate !== undefined &&
-      data?.metamaskFeeRate !== undefined &&
-      data.originalMetamaskFeeRate > data.metamaskFeeRate);
+  const isSubscriptionDiscount = data?.feeSource === 'subscription';
 
   return (
     <View testID={testID}>
       {hasDiscount && (
         <View style={styles.discountBanner}>
-          {!isMember && <VipIcon name="VipIcon" width={14} height={14} />}
+          {isSubscriptionDiscount ? (
+            <Image
+              source={foxIcon}
+              style={styles.memberIcon}
+              resizeMode="contain"
+            />
+          ) : (
+            <VipIcon name="VipIcon" width={14} height={14} />
+          )}
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings(
-              isMember
+              isSubscriptionDiscount
                 ? 'perps.tooltips.fees.member_discount_message'
                 : 'perps.tooltips.fees.discount_message',
               {
@@ -73,10 +74,10 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
           {strings('perps.tooltips.fees.metamask_fee')}
         </Text>
         <View style={styles.feeValueContainer}>
-          {isMember || hasDiscount ? (
-            <RewardsVipBadge hasProEntitlement={isMember} />
+          {hasDiscount ? (
+            <RewardsVipBadge hasProEntitlement={isSubscriptionDiscount} />
           ) : null}
-          {showStrikethrough && (
+          {hasDiscount && (
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextMuted}

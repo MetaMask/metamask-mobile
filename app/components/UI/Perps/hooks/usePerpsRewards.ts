@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import type { PerpsFeeSource } from '@metamask/perps-controller';
 import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 import { OrderFeesResult } from './usePerpsOrderFees';
 import { usePerpsRewardAccountOptedIn } from './usePerpsRewardAccountOptedIn';
@@ -27,11 +26,6 @@ interface UsePerpsRewardsResult {
   bonusBips: number | undefined;
   /** Fee discount percentage */
   feeDiscountPercentage: number | undefined;
-  /**
-   * Fee source whose rate the MetaMask fee was priced from. `subscription`
-   * should surface a member badge; `rewards` should surface a VIP badge.
-   */
-  feeSource: PerpsFeeSource | undefined;
   /** Error state */
   hasError: boolean;
   /** Whether this is a refresh operation (points value changed) */
@@ -131,7 +125,6 @@ export const usePerpsRewards = ({
     estimatedPoints: feeResults.estimatedPoints,
     bonusBips: feeResults.bonusBips,
     feeDiscountPercentage: feeResults.feeDiscountPercentage,
-    feeSource: feeResults.feeSource,
     hasError,
     isRefresh,
     accountOptedIn,

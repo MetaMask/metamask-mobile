@@ -62,22 +62,16 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  // `subscription` always wins a member badge, regardless of discount size.
-  // `rewards` (or an unknown source, for callers not yet passing `feeSource`)
-  // falls back to the discount-based VIP badge.
-  const showMemberBadge = feeSource === 'subscription';
-  const showVipBadge =
-    !showMemberBadge &&
-    feeDiscountPercentage !== undefined &&
-    feeDiscountPercentage > 0;
+  const hasDiscount =
+    feeDiscountPercentage !== undefined && feeDiscountPercentage > 0;
 
   const showStrikethrough = useMemo(
     () =>
-      (showVipBadge || showMemberBadge) &&
+      hasDiscount &&
       originalFee !== undefined &&
       fee !== undefined &&
       originalFee > fee,
-    [showVipBadge, showMemberBadge, originalFee, fee],
+    [hasDiscount, originalFee, fee],
   );
 
   const feeText = useMemo(() => {
@@ -92,9 +86,9 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
 
   return (
     <View style={styles.feeRowContent}>
-      {showMemberBadge || showVipBadge ? (
+      {hasDiscount ? (
         <View style={styles.vipBadgeContainer}>
-          <RewardsVipBadge hasProEntitlement={showMemberBadge} />
+          <RewardsVipBadge hasProEntitlement={feeSource === 'subscription'} />
         </View>
       ) : null}
       {originalFeeText !== undefined ? (

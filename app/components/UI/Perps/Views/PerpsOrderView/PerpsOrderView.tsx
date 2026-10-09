@@ -2534,7 +2534,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 isPayWithDisabled={isPayWithDisabled}
                 feePercentage={feePercentage}
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-                feeSource={rewardsState.feeSource}
+                feeSource={feeResults.feeSource}
                 isSubmitting={isPlacingOrder}
                 isSubmitDisabled={submitDisabled}
                 submitLabel={placeOrderLabel}
@@ -2877,7 +2877,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               ) : (
                 <PerpsFeesDisplay
                   feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-                  feeSource={rewardsState.feeSource}
+                  feeSource={feeResults.feeSource}
                   fee={hasValidAmount ? feesToDisplay : undefined}
                   originalFee={
                     hasValidAmount ? undiscountedFeesToDisplay : undefined

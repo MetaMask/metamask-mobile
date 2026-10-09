@@ -166,8 +166,8 @@ describe('PerpsFeesDisplay', () => {
       expect(queryByTestId('rewards-vip-badge')).toBeNull();
     });
 
-    it('shows strikethrough alongside the member badge even without feeDiscountPercentage', () => {
-      const { getByTestId, queryByTestId } = render(
+    it('does not show a badge or strikethrough for a subscription without a discount percentage', () => {
+      const { queryByTestId } = render(
         <PerpsFeesDisplay
           fee={8.5}
           originalFee={10}
@@ -176,9 +176,9 @@ describe('PerpsFeesDisplay', () => {
         />,
       );
 
-      expect(getByTestId('rewards-member-badge')).toBeTruthy();
-      expect(getByTestId('fee-original')).toBeTruthy();
+      expect(queryByTestId('rewards-member-badge')).toBeNull();
       expect(queryByTestId('rewards-vip-badge')).toBeNull();
+      expect(queryByTestId('fee-original')).toBeNull();
     });
 
     it('renders the VIP badge when feeSource is rewards and a discount applies', () => {
