@@ -25,10 +25,7 @@ import { SecurityTabSelectors } from '../components/V1/SecurityTab/SecurityTab.t
 import { SecurityStatKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import { TokenExplainerSheetSelectors } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.testIds';
 import { SecuritySocialSectionSelectors } from '../components/V1/SecuritySocialSection/SecuritySocialSection.testIds';
-import {
-  StatBarSelectors,
-  StatExplainerSheetSelectors,
-} from '../components/V1/StatBar/StatBar.testIds';
+import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
 import { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSocialFeed } from '../../SocialFeed';
@@ -103,6 +100,13 @@ jest.mock('../hooks/useTokenPrice', () => ({
     currentCurrency: 'usd',
     hasInsufficientCoverage: false,
   }),
+}));
+
+// Stubbed for the same reason as `useTokenPrice`: this is a view test, and no
+// case here asserts anything about market data. It also keeps the suite off
+// React Query, which the real hook needs a provider for.
+jest.mock('../hooks/useTokenMarketData', () => ({
+  useTokenMarketData: () => ({ marketData: null, isLoading: false }),
 }));
 
 // Echoes the prefetched security data so tests can supply security data at
@@ -853,7 +857,7 @@ describe('TokenDetailsV1', () => {
       />,
     );
 
-    expect(queryByTestId(StatExplainerSheetSelectors.SHEET)).toBeNull();
+    expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
   });
 
   it('opens the explainer for the stat whose label was tapped', () => {
@@ -868,11 +872,11 @@ describe('TokenDetailsV1', () => {
 
     // Asserts the copy, not just that a sheet opened: the press has to carry
     // which stat it was through to the sheet.
-    expect(getByTestId(StatExplainerSheetSelectors.TITLE)).toHaveTextContent(
+    expect(getByTestId(TokenExplainerSheetSelectors.TITLE)).toHaveTextContent(
       'Holders',
     );
     expect(
-      getByTestId(StatExplainerSheetSelectors.DESCRIPTION),
+      getByTestId(TokenExplainerSheetSelectors.DESCRIPTION),
     ).toHaveTextContent('Number of unique addresses holding this token.');
   });
 
@@ -885,8 +889,8 @@ describe('TokenDetailsV1', () => {
     );
 
     fireEvent.press(getByTestId(StatBarSelectors.label(TokenStatKey.Tax)));
-    fireEvent.press(getByTestId(StatExplainerSheetSelectors.GOT_IT_BUTTON));
+    fireEvent.press(getByTestId(TokenExplainerSheetSelectors.GOT_IT_BUTTON));
 
-    expect(queryByTestId(StatExplainerSheetSelectors.SHEET)).toBeNull();
+    expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
   });
 });
