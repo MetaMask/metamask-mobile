@@ -18,8 +18,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import AppConstants from '../../../../../core/AppConstants';
 import Routes from '../../../../../constants/navigation/Routes';
+import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { strings } from '../../../../../../locales/i18n';
 import { useLaunchSumSub } from './hooks/useLaunchSumSub';
 import type { VbaIdentityVerificationCompletion } from './modules/types';
@@ -84,7 +84,7 @@ const VbaSumSubKyc = ({
   }, [navigation]);
 
   const handleHelp = useCallback(() => {
-    Linking.openURL(AppConstants.URLS.SUPPORT).catch(() => undefined);
+    Linking.openURL(METAMASK_SUPPORT_URL).catch(() => undefined);
   }, []);
 
   if (needsMoreInfo) {

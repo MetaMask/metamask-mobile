@@ -200,7 +200,7 @@ const VbaOnboardingError = ({
         />
         {items.length > 0 ? (
           <Box
-            twClassName="mt-[26px] overflow-hidden rounded-3xl bg-muted"
+            twClassName="mt-6 overflow-hidden rounded-3xl bg-muted"
             testID={VbaOnboardingErrorSelectorsIDs.LIST}
           >
             {items.map((item) => (
