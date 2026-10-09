@@ -5,8 +5,12 @@ import { Provider } from 'react-redux';
 import { PRODUCT_TYPES } from '@metamask/subscription-controller';
 import Engine from '../../../../../../core/Engine';
 import type { RootState } from '../../../../../../reducers';
-import { selectIsSignedIn } from '../../../../../../selectors/identity';
+import {
+  selectCanonicalProfileId,
+  selectIsSignedIn,
+} from '../../../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
+import { selectSeedlessOnboardingUserId } from '../../../../../../selectors/seedlessOnboardingController';
 import configureStore from '../../../../../../util/test/configureStore';
 import { useMoneyAccountPlusTrialEligibility } from './useMoneyAccountPlusTrialEligibility';
 
@@ -21,6 +25,14 @@ jest.mock('../../../../../../core/Engine', () => ({
 jest.mock('../../../../../../selectors/identity', () => ({
   ...jest.requireActual('../../../../../../selectors/identity'),
   selectIsSignedIn: jest.fn(),
+  selectCanonicalProfileId: jest.fn(),
+}));
+
+jest.mock('../../../../../../selectors/seedlessOnboardingController', () => ({
+  ...jest.requireActual(
+    '../../../../../../selectors/seedlessOnboardingController',
+  ),
+  selectSeedlessOnboardingUserId: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/keyringController', () => ({
@@ -30,6 +42,10 @@ jest.mock('../../../../../../selectors/keyringController', () => ({
 
 const mockSelectIsSignedIn = jest.mocked(selectIsSignedIn);
 const mockSelectIsUnlocked = jest.mocked(selectIsUnlocked);
+const mockSelectCanonicalProfileId = jest.mocked(selectCanonicalProfileId);
+const mockSelectSeedlessOnboardingUserId = jest.mocked(
+  selectSeedlessOnboardingUserId,
+);
 const mockIsUserEligibleForTrial = jest.mocked(
   Engine.context.SubscriptionController.isUserEligibleForTrial,
 );
@@ -61,6 +77,8 @@ describe('useMoneyAccountPlusTrialEligibility', () => {
     jest.clearAllMocks();
     mockSelectIsSignedIn.mockReturnValue(true);
     mockSelectIsUnlocked.mockReturnValue(true);
+    mockSelectCanonicalProfileId.mockReturnValue('profile-a');
+    mockSelectSeedlessOnboardingUserId.mockReturnValue('social-user-a');
   });
 
   it('returns true when the controller reports a Money Account Plus trial', async () => {
@@ -89,6 +107,73 @@ describe('useMoneyAccountPlusTrialEligibility', () => {
 
   it('returns false and skips the controller when the wallet is locked', () => {
     mockSelectIsUnlocked.mockReturnValue(false);
+
+    const { result } = renderEligibility();
+
+    expect(result.current.isEligibleForTrial).toBe(false);
+    expect(mockIsUserEligibleForTrial).not.toHaveBeenCalled();
+  });
+
+  it('returns false after the wallet locks when the previous check was eligible', async () => {
+    mockIsUserEligibleForTrial.mockResolvedValue(true);
+
+    const { result, rerender } = renderEligibility();
+
+    await waitFor(() => {
+      expect(result.current.isEligibleForTrial).toBe(true);
+    });
+
+    mockSelectIsUnlocked.mockReturnValue(false);
+    rerender(undefined);
+
+    expect(result.current.isEligibleForTrial).toBe(false);
+    expect(mockIsUserEligibleForTrial).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns false when the signed-in profile changes until that profile is checked', async () => {
+    mockIsUserEligibleForTrial.mockResolvedValue(true);
+
+    const { result, rerender } = renderEligibility();
+
+    await waitFor(() => {
+      expect(result.current.isEligibleForTrial).toBe(true);
+    });
+
+    mockSelectCanonicalProfileId.mockReturnValue('profile-b');
+    mockIsUserEligibleForTrial.mockResolvedValue(false);
+    rerender(undefined);
+
+    expect(result.current.isEligibleForTrial).toBe(false);
+
+    await waitFor(() => {
+      expect(mockIsUserEligibleForTrial).toHaveBeenCalledTimes(2);
+    });
+    expect(result.current.isEligibleForTrial).toBe(false);
+  });
+
+  it('returns false when the social login user changes until that user is checked', async () => {
+    mockIsUserEligibleForTrial.mockResolvedValue(true);
+
+    const { result, rerender } = renderEligibility();
+
+    await waitFor(() => {
+      expect(result.current.isEligibleForTrial).toBe(true);
+    });
+
+    mockSelectSeedlessOnboardingUserId.mockReturnValue('social-user-b');
+    mockIsUserEligibleForTrial.mockResolvedValue(false);
+    rerender(undefined);
+
+    expect(result.current.isEligibleForTrial).toBe(false);
+
+    await waitFor(() => {
+      expect(mockIsUserEligibleForTrial).toHaveBeenCalledTimes(2);
+    });
+    expect(result.current.isEligibleForTrial).toBe(false);
+  });
+
+  it('returns false and skips the controller when the profile id is missing', () => {
+    mockSelectCanonicalProfileId.mockReturnValue(undefined);
 
     const { result } = renderEligibility();
 
