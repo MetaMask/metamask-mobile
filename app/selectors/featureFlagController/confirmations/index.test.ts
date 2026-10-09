@@ -30,6 +30,7 @@ import {
   getPreferredTokensForTransactionType,
   selectRelayFixedSpread,
   selectRelayAtomicMaxEnabled,
+  selectPerpsMoneyAccountNoFeeRouteEnabled,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -753,6 +754,75 @@ describe('selectMetaMaskPayFlags extended flags', () => {
         perpsDeposit: 25000,
       });
     });
+  });
+});
+
+describe('selectPerpsMoneyAccountNoFeeRouteEnabled', () => {
+  const perpsRoute = ['monad', 'musd', 'hyperliquid', 'hypercore_usdc'];
+
+  function stateWithFixedSpread(flag: unknown) {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_relay_fixed_spread: flag,
+      };
+
+    return state as unknown as RootState;
+  }
+
+  it('returns true when the perps route is listed', () => {
+    expect(
+      selectPerpsMoneyAccountNoFeeRouteEnabled(
+        stateWithFixedSpread({
+          chains: { monad: '0x8f', hyperliquid: '0x539' },
+          tokens: {
+            musd: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+            hypercore_usdc: '0x00000000000000000000000000000000',
+          },
+          routes: [['eth', 'eth_usdc', 'monad', 'musd'], perpsRoute],
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('returns true when the flag is a JSON string containing the route', () => {
+    expect(
+      selectPerpsMoneyAccountNoFeeRouteEnabled(
+        stateWithFixedSpread(
+          JSON.stringify({
+            routes: [perpsRoute],
+          }),
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false when the flag is absent', () => {
+    expect(
+      selectPerpsMoneyAccountNoFeeRouteEnabled(
+        mockedEmptyFlagsState as unknown as RootState,
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false when other routes are listed without the perps route', () => {
+    expect(
+      selectPerpsMoneyAccountNoFeeRouteEnabled(
+        stateWithFixedSpread({
+          routes: [['eth', 'eth_usdc', 'monad', 'musd']],
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false when the route aliases do not match exactly', () => {
+    expect(
+      selectPerpsMoneyAccountNoFeeRouteEnabled(
+        stateWithFixedSpread({
+          routes: [['monad', 'musd', 'hyperliquid', 'hypercore_usdt']],
+        }),
+      ),
+    ).toBe(false);
   });
 });
 

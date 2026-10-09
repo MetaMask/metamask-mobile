@@ -774,6 +774,7 @@ export type RootStackParamList = {
   BackupAndSyncSettings: undefined;
   SettingsRegionSelector: RegionSelectorParams | undefined;
   ProfileDrawer: undefined;
+  ManageProfile: undefined;
 
   // Sheet routes
   AccountSelector: AccountSelectorParams | undefined;
@@ -1068,6 +1069,8 @@ export type RootStackParamList = {
     | undefined;
   ConfirmationPayWithNetworkModal: undefined;
   SmartAccountOptIn: undefined;
+  MfaFlow: undefined;
+  MfaSettings: undefined;
   ProSubscription: { source?: string; initialPlan?: string } | undefined;
   ProHub: { source?: string } | undefined;
   ProHubMembership: undefined;

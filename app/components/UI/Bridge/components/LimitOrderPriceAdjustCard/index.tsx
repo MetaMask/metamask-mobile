@@ -51,7 +51,7 @@ export const LimitOrderPriceAdjustCard = ({
     onStartShouldSetResponder={() => true}
     onResponderRelease={onDismissKeypad}
   >
-    <Box twClassName="relative flex-grow-0 rounded-lg bg-section p-3 gap-1">
+    <Box twClassName="relative flex-grow-0 rounded-2xl bg-section p-3 gap-1">
       <InputSection
         ref={limitPriceInputRef}
         executionType={orderSide}
