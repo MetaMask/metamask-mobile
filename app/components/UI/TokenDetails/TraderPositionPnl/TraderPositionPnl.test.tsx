@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, within } from '@testing-library/react-native';
+import { Text, TextColor } from '@metamask/design-system-react-native';
 import TraderPositionPnl from './TraderPositionPnl';
 
 const defaultPnl = {
@@ -104,7 +105,7 @@ describe('TraderPositionPnl', () => {
   });
 
   it('uses the error color for negative PnL', () => {
-    const { getByTestId } = render(
+    const { getByTestId, UNSAFE_getAllByType } = render(
       <TraderPositionPnl
         positionValue="$65.01"
         pnl={{
@@ -115,8 +116,16 @@ describe('TraderPositionPnl', () => {
       />,
     );
 
-    expect(
-      getByTestId('token-details-trader-position-pnl-unrealized-pnl-value'),
-    ).toHaveTextContent('-$15.01 (-16.99%)');
+    const pnlValue = getByTestId(
+      'token-details-trader-position-pnl-unrealized-pnl-value',
+    );
+    const pnlValueText = UNSAFE_getAllByType(Text).find(
+      (textElement) =>
+        textElement.props.testID ===
+        'token-details-trader-position-pnl-unrealized-pnl-value',
+    );
+
+    expect(pnlValue).toHaveTextContent('-$15.01 (-16.99%)');
+    expect(pnlValueText?.props.color).toBe(TextColor.ErrorDefault);
   });
 });

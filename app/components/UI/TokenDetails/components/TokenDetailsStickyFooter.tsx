@@ -78,6 +78,12 @@ const styles = StyleSheet.create({
     paddingLeft: 0,
     paddingRight: 0,
   },
+  expandedDetailsMeasurement: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    opacity: 0,
+  },
 });
 
 const BALANCE_THRESHOLD_USD = 100;
@@ -528,11 +534,23 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const positionContent = traderPositionPnl ? (
     <>
       <TraderPositionPnl {...traderPositionPnl} />
+      <View
+        pointerEvents="none"
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={styles.expandedDetailsMeasurement}
+        onLayout={handleExpandedDetailsLayout}
+      >
+        <Box twClassName="rounded-lg bg-muted p-3">
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('social_leaderboard.trader_position.expanded_placeholder')}
+          </Text>
+        </Box>
+      </View>
       <Animated.View style={expandedDetailsStyle}>
         <Box
           testID="token-details-trader-position-pnl-expanded-placeholder"
           twClassName="rounded-lg bg-muted p-3"
-          onLayout={handleExpandedDetailsLayout}
         >
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings('social_leaderboard.trader_position.expanded_placeholder')}
