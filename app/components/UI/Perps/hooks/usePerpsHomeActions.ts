@@ -22,6 +22,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events
 import { selectPayQuoteConfig } from '../../../../selectors/featureFlagController/confirmations';
 import { RootState } from '../../../../reducers';
 import { usePerpsWithdrawConfirmation } from './usePerpsWithdrawConfirmation';
+import { isUserRejectedError } from '../utils/isUserRejectedError';
 import { useComplianceGate } from '../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import {
@@ -181,14 +182,17 @@ export const usePerpsHomeActions = (
             );
             setError(errorObj);
 
-            Logger.error(errorObj, {
-              tags: {
-                feature: PERPS_CONSTANTS.FeatureName,
-                component: 'usePerpsHomeActions',
-                action: 'financial_deposit',
-                operation: 'financial_operations',
-              },
-            });
+            // User cancelling the confirmation is expected, not an error worth reporting
+            if (!isUserRejectedError(err, errorObj.message)) {
+              Logger.error(errorObj, {
+                tags: {
+                  feature: PERPS_CONSTANTS.FeatureName,
+                  component: 'usePerpsHomeActions',
+                  action: 'financial_deposit',
+                  operation: 'financial_operations',
+                },
+              });
+            }
 
             onError?.(errorObj, 'deposit');
           },
@@ -253,14 +257,17 @@ export const usePerpsHomeActions = (
       const errorObj = ensureError(err, 'usePerpsHomeActions.handleWithdraw');
       setError(errorObj);
 
-      Logger.error(errorObj, {
-        tags: {
-          feature: PERPS_CONSTANTS.FeatureName,
-          component: 'usePerpsHomeActions',
-          action: 'financial_withdrawal',
-          operation: 'financial_operations',
-        },
-      });
+      // User cancelling the confirmation is expected, not an error worth reporting
+      if (!isUserRejectedError(err, errorObj.message)) {
+        Logger.error(errorObj, {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            component: 'usePerpsHomeActions',
+            action: 'financial_withdrawal',
+            operation: 'financial_operations',
+          },
+        });
+      }
 
       if (onError) {
         onError(errorObj, 'withdraw');

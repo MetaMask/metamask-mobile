@@ -22,7 +22,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../selec
 import { useTraderPositions } from '../TraderProfileView/hooks';
 import PositionRow from '../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../TraderProfileView/components/Skeletons';
-import { isPerpPosition } from '../utils/perp';
+import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
 
 const styles = StyleSheet.create({
@@ -53,12 +53,14 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
     closedPositions,
     isLoadingOpen,
     isLoadingClosed,
-    error,
+    openError,
+    closedError,
     refetch,
   } = useTraderPositions(address);
 
   const isLoading = tab === 'open' ? isLoadingOpen : isLoadingClosed;
   const positions = tab === 'open' ? openPositions : closedPositions;
+  const error = tab === 'open' ? openError : closedError;
   const bothEmpty =
     !isLoadingOpen &&
     !isLoadingClosed &&
