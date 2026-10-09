@@ -402,7 +402,7 @@
     "@metamask/sdk-communication-layer": "0.33.1",
     "@metamask/seedless-onboarding-controller": "11.0.1",
     "@metamask/selected-network-controller": "^26.1.4",
-    "@metamask/sentinel-api-service": "^1.0.1",
+    "@metamask/sentinel-api-service": "^2.1.0",
     "@metamask/shield-controller": "^7.0.1",
     "@metamask/signature-controller": "^39.2.0",
     "@metamask/slip44": "^4.2.0",
