@@ -1,5 +1,11 @@
 import { useCallback } from 'react';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import {
+  CommonActions,
+  StackActions,
+  useNavigation,
+  type NavigationState,
+  type PartialState,
+} from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import ReduxService from '../../../../../../core/redux';
@@ -11,14 +17,106 @@ import {
   getVbaDestinationForSnapshot,
   type VbaOnboardingDestinationId,
 } from '../vbaOnboardingFunnel';
-import type { VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot } from '@metamask/ramps-controller';
+import {
+  buildBrazilMusdAutorampRequest,
+  type VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot,
+} from '@metamask/ramps-controller';
 import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
 import {
   getVbaVendorTermsAcceptance,
   hasAcceptedVbaVendorTerms,
 } from '../vbaVendorTermsStorage';
-import { VbaOnboardingRoutes } from '../routes';
+import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
 import { applyVbaDevOverrides } from '../vbaDevOverrides';
+
+type VbaOnboardingScreenName =
+  (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
+
+interface StackController {
+  dispatch: (action: ReturnType<typeof CommonActions.reset>) => void;
+  getParent: () => StackController | undefined;
+  getState: () => NavigationState | undefined;
+}
+
+const DEFAULT_CALLER_ROUTE = {
+  name: Routes.HOME_TABS,
+  params: {
+    screen: Routes.MONEY.ROOT,
+    params: { screen: Routes.MONEY.HOME },
+  },
+};
+
+const getCallerRoute = (state: NavigationState) => {
+  const activeRoute = state.routes[state.index];
+  if (activeRoute?.name !== Routes.RAMP.VBA_ONBOARDING) {
+    return activeRoute ?? DEFAULT_CALLER_ROUTE;
+  }
+
+  return state.routes[state.index - 1] ?? DEFAULT_CALLER_ROUTE;
+};
+
+/**
+ * Keeps exactly two root routes: the screen that opened onboarding and the
+ * current onboarding destination. Back then always returns to the caller.
+ *
+ * A step change that is already inside onboarding resets that stack in place.
+ * Resetting the root route without its existing key destroys the native screen,
+ * and the splash shows through that gap.
+ */
+export const openAsOnlyOnboardingRoute = (
+  navigation: AppNavigationProp,
+  screen: VbaOnboardingScreenName,
+  params?: NonNullable<VbaOnboardingParamList[VbaOnboardingScreenName]>,
+): void => {
+  const route =
+    params === undefined ? { name: screen } : { name: screen, params };
+  let current: StackController | undefined =
+    navigation as unknown as StackController;
+
+  while (current) {
+    const state = current.getState();
+    if (state?.routeNames.includes(VbaOnboardingRoutes.VENDOR_TERMS)) {
+      current.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [route],
+        }),
+      );
+      return;
+    }
+
+    if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
+      const existingOnboardingRoute = state.routes.find(
+        (candidate) => candidate.name === Routes.RAMP.VBA_ONBOARDING,
+      );
+      current.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [
+            // A live route has `stale: false`, which PartialState will not accept.
+            getCallerRoute(
+              state,
+            ) as PartialState<NavigationState>['routes'][number],
+            {
+              ...(existingOnboardingRoute?.key
+                ? { key: existingOnboardingRoute.key }
+                : {}),
+              name: Routes.RAMP.VBA_ONBOARDING,
+              state: { index: 0, routes: [route] },
+            },
+          ],
+        }),
+      );
+      return;
+    }
+
+    const parent = current.getParent();
+    if (!parent || parent === current) {
+      break;
+    }
+    current = parent;
+  }
+};
 
 export const navigateToVbaOnboardingDestination = (
   navigation: AppNavigationProp,
@@ -26,20 +124,16 @@ export const navigateToVbaOnboardingDestination = (
   snapshot?: VbaOnboardingSnapshot,
 ): void => {
   if (destinationId === 'complete') {
-    navigation.navigate(Routes.RAMP.VBA_ONBOARDING, {
-      screen: VbaOnboardingRoutes.DETAILS,
-    });
+    openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.DETAILS);
     return;
   }
   if (destinationId === 'identityVerification') {
-    navigation.navigate(
-      Routes.RAMP.VBA_ONBOARDING,
+    openAsOnlyOnboardingRoute(
+      navigation,
       snapshot
-        ? {
-            screen: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
-            params: { snapshot },
-          }
-        : { screen: VbaOnboardingRoutes.ERROR },
+        ? VbaOnboardingRoutes.IDENTITY_VERIFICATION
+        : VbaOnboardingRoutes.ERROR,
+      snapshot ? { snapshot } : undefined,
     );
     return;
   }
@@ -53,7 +147,7 @@ export const navigateToVbaOnboardingDestination = (
     error: VbaOnboardingRoutes.ERROR,
   }[destinationId];
 
-  navigation.navigate(Routes.RAMP.VBA_ONBOARDING, { screen });
+  openAsOnlyOnboardingRoute(navigation, screen);
 };
 
 const openRecoverableError = (navigation: AppNavigationProp): void => {
@@ -71,6 +165,50 @@ export interface OpenVbaOnboardingRequest {
   retryRejectedKyc?: boolean;
 }
 
+/**
+ * v27 hydrate only reads status. Main still opens a BRL to mUSD route, so
+ * register the wallet when needed and create that autoramp here.
+ */
+const provisionBrazilMusdAutoramp = async (
+  walletAddress: string,
+  snapshot: RampsVbaOnboardingSnapshot,
+): Promise<RampsVbaOnboardingSnapshot> => {
+  if (
+    snapshot.kycStatus !== 'approved' ||
+    (snapshot.autorampStatus !== 'needs_wallet_registration' &&
+      snapshot.autorampStatus !== 'needs_source_currency')
+  ) {
+    return snapshot;
+  }
+
+  if (snapshot.autorampStatus === 'needs_wallet_registration') {
+    const registration =
+      await Engine.context.RampsController.registerMoneyAccountWallet({
+        address: walletAddress,
+      });
+    if (registration.type === 'lookupUnavailable') {
+      return { ...snapshot, autorampStatus: 'retryable_failure' };
+    }
+  }
+
+  try {
+    await Engine.context.RampsController.createAutoramp(
+      buildBrazilMusdAutorampRequest(walletAddress),
+    );
+  } catch (error) {
+    Logger.error(error as Error, {
+      tags: { feature: 'vba-onboarding' },
+      context: {
+        name: 'provisionBrazilMusdAutoramp',
+        data: { autorampStatus: snapshot.autorampStatus },
+      },
+    });
+    return { ...snapshot, autorampStatus: 'retryable_failure' };
+  }
+
+  return { ...snapshot, autorampStatus: 'ready' };
+};
+
 const resolveOpenRequest = (
   request: string | OpenVbaOnboardingRequest | undefined,
   defaultSource: string,
@@ -85,9 +223,91 @@ const resolveOpenRequest = (
   };
 };
 
+export type ResolvedVbaOnboarding =
+  | {
+      status: 'ready';
+      destinationId: VbaOnboardingDestinationId;
+      snapshot: VbaOnboardingSnapshot;
+    }
+  | { status: 'error' };
+
 /**
- * Hydrates VBA onboarding facts and opens the first incomplete module. This is
- * the single coordinator API used for entry, retry, and module completion.
+ * Hydrates VBA onboarding facts and picks the next destination. Does not
+ * navigate. A missing wallet or a thrown hydrate returns `{ status: 'error' }`.
+ *
+ * @param source - Caller/entry point for error telemetry.
+ */
+export const resolveVbaOnboarding = async (
+  source: string,
+): Promise<ResolvedVbaOnboarding> => {
+  try {
+    const walletAddress = selectSelectedVbaWalletAddress(
+      ReduxService.store.getState() as RootState,
+    );
+    if (!walletAddress) {
+      return { status: 'error' };
+    }
+
+    const hydratedSnapshot = applyVbaDevOverrides(
+      await Engine.context.RampsController.hydrateVbaOnboarding({
+        walletAddress,
+        refreshKyc: true,
+        refreshAutoramps: true,
+      }),
+    );
+    const accountSnapshot = await provisionBrazilMusdAutoramp(
+      walletAddress,
+      hydratedSnapshot,
+    );
+    if (
+      accountSnapshot.sessionExists &&
+      !accountSnapshot.vendorDisclaimersComplete
+    ) {
+      try {
+        const vendorTermsAcceptance =
+          await getVbaVendorTermsAcceptance(walletAddress);
+        if (vendorTermsAcceptance?.disclaimerIds.length) {
+          await Engine.context.KycController.recordVendorDisclaimers({
+            disclaimerIds: vendorTermsAcceptance.disclaimerIds,
+          });
+        }
+      } catch (error) {
+        Logger.error(error as Error, {
+          tags: { feature: 'vba-onboarding' },
+          context: {
+            name: 'useOpenVbaOnboarding',
+            data: { source, step: 'recordVendorDisclaimers' },
+          },
+        });
+      }
+    }
+    const snapshot: VbaOnboardingSnapshot = {
+      ...accountSnapshot,
+      vendorTermsAcceptedLocally:
+        accountSnapshot.vendorDisclaimersComplete ||
+        (await hasAcceptedVbaVendorTerms(walletAddress)),
+    };
+    return {
+      status: 'ready',
+      destinationId: getVbaDestinationForSnapshot(snapshot),
+      snapshot,
+    };
+  } catch (error) {
+    Logger.error(error as Error, {
+      tags: { feature: 'vba-onboarding' },
+      context: {
+        name: 'useOpenVbaOnboarding',
+        data: { source },
+      },
+    });
+    return { status: 'error' };
+  }
+};
+
+/**
+ * Hydrates VBA onboarding facts and opens the first incomplete module. Used
+ * for in-flow retry and module completion. Cold entry opens the loading screen
+ * first and calls {@link resolveVbaOnboarding} there.
  *
  * @param defaultSource - Caller/entry point for error telemetry.
  * @returns An async callback. Pass a source string, or `{ retryRejectedKyc: true }` from the KYC failure page.
@@ -103,74 +323,41 @@ export const useOpenVbaOnboarding = (
         request,
         defaultSource,
       );
-      try {
-        const walletAddress = selectSelectedVbaWalletAddress(
-          ReduxService.store.getState() as RootState,
-        );
-        if (!walletAddress) {
-          openRecoverableError(navigation);
-          return;
-        }
+      const resolved = await resolveVbaOnboarding(source);
+      if (resolved.status === 'error') {
+        openRecoverableError(navigation);
+        return;
+      }
 
-        const accountSnapshot: RampsVbaOnboardingSnapshot =
-          applyVbaDevOverrides(
-            await Engine.context.RampsController.hydrateVbaOnboarding({
-              walletAddress,
-            }),
-          );
-        if (
-          accountSnapshot.sessionExists &&
-          !accountSnapshot.vendorDisclaimersComplete
-        ) {
-          try {
-            const vendorTermsAcceptance =
-              await getVbaVendorTermsAcceptance(walletAddress);
-            if (vendorTermsAcceptance?.disclaimerIds.length) {
-              await Engine.context.KycController.recordVendorDisclaimers({
-                disclaimerIds: vendorTermsAcceptance.disclaimerIds,
-              });
-            }
-          } catch (error) {
-            Logger.error(error as Error, {
-              tags: { feature: 'vba-onboarding' },
-              context: {
-                name: 'useOpenVbaOnboarding',
-                data: { source, step: 'recordVendorDisclaimers' },
-              },
-            });
-          }
-        }
-        const snapshot: VbaOnboardingSnapshot = {
-          ...accountSnapshot,
-          vendorTermsAcceptedLocally:
-            accountSnapshot.vendorDisclaimersComplete ||
-            (await hasAcceptedVbaVendorTerms(walletAddress)),
-        };
-        const hydratedDestination = getVbaDestinationForSnapshot(snapshot);
+      try {
         const destinationId =
-          retryRejectedKyc && hydratedDestination === 'kycRejected'
+          retryRejectedKyc && resolved.destinationId === 'kycRejected'
             ? 'identityVerification'
-            : hydratedDestination;
+            : resolved.destinationId;
         Logger.log('[vba-onboarding] resume', {
           source,
-          snapshot,
+          snapshot: resolved.snapshot,
           destinationId,
         });
         if (retryRejectedKyc && destinationId === 'identityVerification') {
           navigation.dispatch(
             StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
-              snapshot,
+              snapshot: resolved.snapshot,
             }),
           );
           return;
         }
-        navigateToVbaOnboardingDestination(navigation, destinationId, snapshot);
+        navigateToVbaOnboardingDestination(
+          navigation,
+          destinationId,
+          resolved.snapshot,
+        );
       } catch (error) {
         Logger.error(error as Error, {
           tags: { feature: 'vba-onboarding' },
           context: {
             name: 'useOpenVbaOnboarding',
-            data: { source },
+            data: { source, step: 'navigate' },
           },
         });
         openRecoverableError(navigation);

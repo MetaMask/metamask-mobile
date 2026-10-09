@@ -27,6 +27,7 @@ import {
 } from '../../../../../util/trace';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 import { useSwapsFeatureId } from '../useSwapsFeatureId';
+import { useSwapQuotes } from '../useSwapQuotes';
 
 const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
@@ -351,6 +352,46 @@ export const runQuoteRequestCases = ({
         }),
       );
     });
+
+    it('does not end a quote trace on unmount when the quote source is inactive', async () => {
+      if (isCombinedQuoteHook) {
+        const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
+        mockUseSwapsFeatureId
+          .mockReturnValueOnce(FeatureId.UNIFIED_SWAP_BRIDGE)
+          .mockReturnValueOnce(FeatureId.UNIFIED_SWAP_BRIDGE);
+
+        const { result, unmount } = renderUseBridgeQuoteRequest();
+
+        expect(result.current).toBeUndefined();
+        expect(mockTrace).not.toHaveBeenCalled();
+
+        mockEndTrace.mockClear();
+        unmount();
+
+        expect(mockUseSwapsFeatureId).toHaveBeenCalledTimes(2);
+      } else {
+        const mockUseSwapQuotes = jest.mocked(useSwapQuotes);
+        mockUseSwapQuotes.mockReturnValueOnce(
+          {} as NonNullable<ReturnType<typeof useSwapQuotes>>,
+        );
+
+        const { result, unmount } = renderUseBridgeQuoteRequest();
+        await act(async () => {
+          result.current();
+          await result.current.flush?.();
+        });
+
+        expect(mockTrace).toHaveBeenCalled();
+
+        mockEndTrace.mockClear();
+        unmount();
+
+        expect(mockUseSwapQuotes).toHaveBeenCalledTimes(1);
+      }
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
     it('marks manually requested quote refreshes in the quote trace', async () => {
       const { result } = renderUseBridgeQuoteRequest();
 
@@ -597,7 +638,18 @@ export const runQuoteRequestCases = ({
         jest.advanceTimersByTime(debounceMs);
       });
 
-      expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+      if (isCombinedQuoteHook) {
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            srcTokenAmount: '0',
+          }),
+          mockContext,
+          0,
+          1,
+        );
+      } else {
+        expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+      }
       expect(mockTrace).not.toHaveBeenCalled();
     });
 
@@ -727,7 +779,11 @@ export const runQuoteRequestCases = ({
           await result.current.flush?.();
         });
 
-        expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+        if (isCombinedQuoteHook && !omitWallet) {
+          expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledTimes(1);
+        } else {
+          expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+        }
       },
     );
 
@@ -741,15 +797,64 @@ export const runQuoteRequestCases = ({
         jest.advanceTimersByTime(debounceMs);
       });
 
-      expect(mockTrace).toHaveBeenCalled();
       expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
-      expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.SwapQuoteFetch,
-        id: expect.any(String),
-        timestamp: expect.any(Number),
-        data: { result: 'cancelled' },
-      });
+      if (isCombinedQuoteHook) {
+        expect(mockTrace).not.toHaveBeenCalled();
+        expect(mockEndTrace).not.toHaveBeenCalled();
+      } else {
+        expect(mockTrace).toHaveBeenCalled();
+        expect(mockEndTrace).toHaveBeenCalledWith({
+          name: TraceName.SwapQuoteFetch,
+          id: expect.any(String),
+          timestamp: expect.any(Number),
+          data: { result: 'cancelled' },
+        });
+      }
     });
+
+    it.each(['0', ''])(
+      'cancels an in-flight quote trace when source amount becomes %s',
+      async (clearedSourceAmount) => {
+        const { result, rerender } = renderUseBridgeQuoteRequest({
+          sourceAmount: '1',
+        });
+
+        await act(async () => {
+          result.current();
+          await result.current.flush?.();
+        });
+
+        const startedTraceId = mockTrace.mock.calls[0][0].id as string;
+        mockEndTrace.mockClear();
+        spyUpdateBridgeQuoteRequestParams.mockClear();
+
+        jest
+          .spyOn(bridgeSlice, 'selectSourceAmount')
+          .mockReturnValue(clearedSourceAmount);
+        rerender?.(undefined);
+
+        await act(async () => {
+          result.current();
+          jest.advanceTimersByTime(debounceMs);
+        });
+
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            srcTokenAmount: '0',
+          }),
+          mockContext,
+          0,
+          1,
+        );
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.SwapQuoteFetch,
+            id: startedTraceId,
+            data: { result: 'cancelled' },
+          }),
+        );
+      },
+    );
 
     it('converts source amount to wei with 18 decimals', async () => {
       const { result } = renderUseBridgeQuoteRequest({

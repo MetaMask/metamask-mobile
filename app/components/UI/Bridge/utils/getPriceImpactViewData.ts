@@ -78,6 +78,8 @@ export function parsePriceImpact(priceImpactStr: string | undefined): number {
 /**
  * Returns true when the price impact meets or exceeds the error threshold,
  * falling back to AppConstants when the feature flag is not set.
+ *
+ * @deprecated Use useBridgeQuoteContext or useSwapQuotes shouldShowPriceImpactError instead.
  */
 export function exceedsPriceImpactErrorThreshold(
   priceImpact: number,

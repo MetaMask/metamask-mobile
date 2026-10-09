@@ -502,6 +502,9 @@ export default reducer;
 const selectBridgeState = (state: RootState) => state[name];
 
 // Derived selectors using createSelector
+/**
+ * @deprecated Use BridgeSessionProvider.quoteParams instead
+ */
 export const selectSourceAmount = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.sourceAmount,
@@ -786,11 +789,18 @@ export const selectEnabledSourceChains = createSelector(
 );
 
 // Combined selectors for related state
+
+/**
+ * @deprecated Use BridgeSessionProvider.quoteParams instead
+ */
 export const selectSourceToken = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.sourceToken,
 );
 
+/**
+ * @deprecated Use BridgeSessionProvider.quoteParams instead
+ */
 export const selectDestToken = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destToken,
@@ -820,6 +830,9 @@ export const selectSelectedDestChainId = createSelector(
   },
 );
 
+/**
+ * @deprecated Use BridgeSessionProvider.quoteParams instead
+ */
 export const selectSlippage = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.slippage,
@@ -840,6 +853,9 @@ export const selectLimitOrderMarketComparison = createSelector(
   (bridgeState) => bridgeState.limitOrderMarketComparison,
 );
 
+/**
+ * @deprecated Use BridgeSessionProvider.quoteParams instead
+ */
 export const selectDestAddress = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAddress,
