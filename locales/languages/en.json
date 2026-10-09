@@ -8142,13 +8142,13 @@
     "method_email": "Email",
     "method_passkey": "Passkey",
     "intro": {
-      "title": "Secure your account",
-      "description": "Set up the following to continue.",
+      "title": "Set up 2-step verification",
+      "description": "We’ll set up a few ways to confirm it’s you. You’ll use them to approve important actions, and if you lose access to one, you can use another.",
+      "list_title": "You’ll set up",
       "continue": "Get started"
     },
     "picker": {
-      "title": "Confirm it's you",
-      "description": "Choose how you want to verify."
+      "title": "Confirm with 2-step verification"
     },
     "email_entry": {
       "title": "Enter your email",
