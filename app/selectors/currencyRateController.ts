@@ -9,6 +9,7 @@ import {
 } from './networkController';
 import { isTestNet } from '../../app/util/networks';
 import { Hex } from '@metamask/utils';
+import { getUsdToFiatConversionRate } from '../components/UI/Money/utils/moneyActivityFiat';
 import {
   getCurrencyRateControllerCurrentCurrency,
   getCurrencyRateControllerCurrencyRates,
@@ -93,6 +94,32 @@ export const selectUsdConversionRate = createSelector(
   getCurrencyRateControllerCurrentCurrency,
   (currencyRates, currentCurrency) =>
     currencyRates?.[currentCurrency]?.usdConversionRate,
+);
+
+/**
+ * USD into the selected fiat currency.
+ *
+ * `selectConversionRateBySymbol(state, 'usd')` looks up a `usd` ticker the
+ * rate map does not have. `selectUsdConversionRate` indexes that map by
+ * currency code (`eur`) while it is keyed by ticker (`ETH`). Neither is a
+ * USD→fiat rate. This divides ETH's selected-currency rate by its USD rate,
+ * the same ratio as `getUsdToFiatConversionRate`. USD is 1. A missing or
+ * non-positive rate is null, not 0.
+ */
+export const selectUsdToFiatRate = createSelector(
+  getCurrencyRateControllerCurrencyRates,
+  getCurrencyRateControllerCurrentCurrency,
+  (currencyRates, currentCurrency): number | null => {
+    if (!currentCurrency || currentCurrency.toLowerCase() === 'usd') {
+      return 1;
+    }
+
+    const rate = getUsdToFiatConversionRate(currencyRates);
+    if (rate == null || !Number.isFinite(rate) || rate <= 0) {
+      return null;
+    }
+    return rate;
+  },
 );
 
 export const selectUSDConversionRateByChainId = createSelector(

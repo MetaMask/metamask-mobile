@@ -3,7 +3,10 @@ import {
   makeSelectUSDConversionRateByChainId,
   selectConversionRate,
   selectConversionRateByChainId,
+  selectConversionRateBySymbol,
   selectCurrencyRateForChainId,
+  selectUsdConversionRate,
+  selectUsdToFiatRate,
   selectUSDConversionRateByChainId,
 } from './currencyRateController';
 import { isTestNet } from '../../app/util/networks';
@@ -381,6 +384,81 @@ describe('CurrencyRateController Selectors', () => {
       const result = selectUSDConversionRateForChain(state);
 
       expect(result).toBe(3000);
+    });
+  });
+
+  describe('selectUsdToFiatRate', () => {
+    const eurState = {
+      engine: {
+        backgroundState: {
+          CurrencyRateController: {
+            currentCurrency: 'eur',
+            currencyRates: {
+              ETH: {
+                conversionRate: 3200,
+                usdConversionRate: 3500,
+                conversionDate: 0,
+              },
+            },
+          },
+        },
+      },
+    } as MockRootState;
+
+    it('does not read a USD to EUR rate from selectConversionRateBySymbol', () => {
+      const result = selectConversionRateBySymbol(eurState, 'usd');
+
+      expect(result).toBe(0);
+    });
+
+    it('does not read a USD to EUR rate from selectUsdConversionRate', () => {
+      const result = selectUsdConversionRate(eurState);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns EUR per USD from the ETH ticker rates', () => {
+      const result = selectUsdToFiatRate(eurState);
+
+      expect(result).toBeCloseTo(3200 / 3500, 6);
+    });
+
+    it('returns 1 when the selected currency is USD', () => {
+      const state = {
+        ...eurState,
+        engine: {
+          backgroundState: {
+            CurrencyRateController: {
+              currentCurrency: 'usd',
+              currencyRates:
+                eurState.engine.backgroundState.CurrencyRateController
+                  .currencyRates,
+            },
+          },
+        },
+      } as MockRootState;
+
+      const result = selectUsdToFiatRate(state);
+
+      expect(result).toBe(1);
+    });
+
+    it('returns null when the ETH rates are missing', () => {
+      const state = {
+        ...eurState,
+        engine: {
+          backgroundState: {
+            CurrencyRateController: {
+              currentCurrency: 'eur',
+              currencyRates: {},
+            },
+          },
+        },
+      } as MockRootState;
+
+      const result = selectUsdToFiatRate(state);
+
+      expect(result).toBeNull();
     });
   });
 });
