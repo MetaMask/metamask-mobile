@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getAssetId } from '@metamask/assets-controllers';
 import { TokenI } from '../UI/Tokens/types';
@@ -18,14 +18,17 @@ const renderHistoricalPrices = (
   callback: () => ReturnType<typeof useTokenHistoricalPrices>,
 ) => {
   const queryClient = createQueryClient();
-  return renderHook(callback, {
-    wrapper: ({ children }) =>
-      React.createElement(
-        QueryClientProvider,
-        { client: queryClient },
-        children,
-      ),
-  });
+  return {
+    ...renderHook(callback, {
+      wrapper: ({ children }) =>
+        React.createElement(
+          QueryClientProvider,
+          { client: queryClient },
+          children,
+        ),
+    }),
+    queryClient,
+  };
 };
 
 jest.mock('@metamask/assets-controllers', () => ({
@@ -308,5 +311,40 @@ describe('useTokenHistoricalPrices apiDurationMs', () => {
     );
 
     jest.useRealTimers();
+  });
+
+  it('keeps previously fetched prices when a refetch fails', async () => {
+    mockFetch.mockResolvedValue({
+      status: 200,
+      json: async () => ({
+        prices: [
+          ['1', 100],
+          ['2', 101],
+        ],
+      }),
+    });
+
+    const { result, queryClient } = renderPrices();
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([
+        ['1', 100],
+        ['2', 101],
+      ]);
+    });
+
+    mockFetch.mockRejectedValue(new Error('network error'));
+    await act(async () => {
+      await queryClient.refetchQueries({
+        queryKey: ['token-details', 'historical-prices'],
+      });
+    });
+
+    expect(result.current.data).toEqual([
+      ['1', 100],
+      ['2', 101],
+    ]);
+    expect(result.current.isLoading).toBe(false);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 });

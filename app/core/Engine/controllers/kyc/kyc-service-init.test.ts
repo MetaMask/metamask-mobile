@@ -74,7 +74,7 @@ describe('kycServiceInit', () => {
 
     expect(controller).toMatchObject({
       baseUrl: 'https://kyc-api.uat-api.cx.metamask.io',
-      idosEnclaveBaseUrl: 'https://enclave.staging.sandbox.fractal.id',
+      idosEnclaveBaseUrl: 'https://enclave.tee.staging.idos.network',
       idosRelayBaseUrl: 'https://relay.staging.idos.network',
     });
   });

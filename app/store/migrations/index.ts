@@ -154,6 +154,7 @@ import migration150 from './150';
 import migration151 from './151';
 import migration152 from './152';
 import migration153 from './153';
+import migration154 from './154';
 
 // Add migrations above this line
 import { ControllerStorage } from '../persistConfig';
@@ -327,6 +328,7 @@ export const migrationList: MigrationsList = {
   151: migration151,
   152: migration152,
   153: migration153,
+  154: migration154,
 };
 
 // Enable both synchronous and asynchronous migrations
@@ -376,9 +378,7 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
     } catch (error) {
       captureException(
         new Error(
-          `inflateFromControllers: Critical error loading controller data: ${String(
-            error,
-          )}`,
+          `inflateFromControllers: Critical error loading controller data: ${String(error)}`,
         ),
       );
 
@@ -441,9 +441,7 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
     } catch (error) {
       captureException(
         new Error(
-          `deflateToControllersAndStrip: Critical error during deflation: ${String(
-            error,
-          )}`,
+          `deflateToControllersAndStrip: Critical error during deflation: ${String(error)}`,
         ),
       );
 

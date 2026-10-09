@@ -51,15 +51,18 @@ const renderPriceHook = <Props>(
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: Infinity } },
   });
-  return renderHook(hook, {
-    ...options,
-    wrapper: ({ children }) =>
-      React.createElement(
-        QueryClientProvider,
-        { client: queryClient },
-        children,
-      ),
-  });
+  return {
+    ...renderHook(hook, {
+      ...options,
+      wrapper: ({ children }) =>
+        React.createElement(
+          QueryClientProvider,
+          { client: queryClient },
+          children,
+        ),
+    }),
+    queryClient,
+  };
 };
 
 const mockUseSelector = jest.mocked(useSelector);
@@ -416,5 +419,37 @@ describe('useTokenPrice', () => {
       expect(result.current.exchangeRateApiMs).not.toBeUndefined();
     });
     expect(result.current.exchangeRateApiMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it('keeps the previously fetched price when a refetch fails', async () => {
+    const token = {
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      chainId: '0x1',
+    } as TokenI;
+
+    setupDefaultMocks({ tokenMarketData: {} });
+    mockGetTokenExchangeRate.mockResolvedValueOnce({
+      price: 1.5,
+      pricePercentChange1d: 0,
+    } as unknown as MarketDataDetails);
+
+    const { result, queryClient } = renderPriceHook(() =>
+      useTokenPrice({ token }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.currentPrice).toBe(1.5);
+    });
+
+    mockGetTokenExchangeRate.mockRejectedValueOnce(new Error('network error'));
+    await act(async () => {
+      await queryClient.refetchQueries({
+        queryKey: ['token-details', 'spot-price'],
+      });
+    });
+
+    expect(result.current.currentPrice).toBe(1.5);
+    expect(result.current.isLoading).toBe(false);
+    expect(mockGetTokenExchangeRate).toHaveBeenCalledTimes(2);
   });
 });

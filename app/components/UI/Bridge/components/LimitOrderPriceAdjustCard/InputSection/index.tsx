@@ -165,7 +165,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
             }}
             disabled={!onQuoteUnitPress}
             style={tw.style(
-              'flex-row items-center gap-0.5 rounded-md bg-muted px-2 py-0.5',
+              'flex-row items-center gap-0.5 rounded-2xl bg-muted px-2 py-0.5',
             )}
           >
             <Text
