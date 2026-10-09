@@ -901,6 +901,8 @@ describe('PerpsOrderView', () => {
     });
 
     it.each([
+      { useBottomSheet: false, direction: 'long' as const, shallow: null },
+      { useBottomSheet: true, direction: 'long' as const, shallow: null },
       { useBottomSheet: false, direction: 'long' as const, shallow: true },
       { useBottomSheet: false, direction: 'short' as const, shallow: true },
       { useBottomSheet: true, direction: 'long' as const, shallow: true },
@@ -927,9 +929,13 @@ describe('PerpsOrderView', () => {
         );
         jest
           .mocked(Engine.context.PerpsController.subscribeToOrderBook)
-          .mockImplementation(({ callback }) => {
+          .mockImplementation(({ callback, onError }) => {
             deliver = callback;
-            callback(blockedBook);
+            if (shallow === null) {
+              onError?.(new Error('order book unavailable'));
+            } else {
+              callback(blockedBook);
+            }
             return () => undefined;
           });
         const { stream } = renderPerpsOrderView({
@@ -953,7 +959,7 @@ describe('PerpsOrderView', () => {
         await waitForDeferredOrderData();
         emitEthPrice(stream);
         const message = strings(
-          shallow
+          shallow !== false
             ? 'perps.slippage.insufficient_depth'
             : useBottomSheet
               ? 'perps.slippage.cannot_fill_reduce_size'

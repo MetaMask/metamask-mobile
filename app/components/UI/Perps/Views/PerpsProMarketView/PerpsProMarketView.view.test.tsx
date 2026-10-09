@@ -3832,6 +3832,7 @@ describe('Pro market order liquidity', () => {
                 markPrice: '100',
                 percentChange24h: '0',
                 timestamp: Date.now(),
+                isTradable: true,
               },
             },
           },
@@ -3887,7 +3888,7 @@ describe('Pro market order liquidity', () => {
     },
   );
 
-  it.each([true, false])(
+  it.each([true, false, null])(
     'blocks shallow=%s and submits after visible depth recovers',
     async (shallow) => {
       const level = (price: number, size: number): OrderBookLevel => ({
@@ -3912,9 +3913,13 @@ describe('Pro market order liquidity', () => {
       let deliver: ((book: OrderBookData) => void) | undefined;
       jest
         .mocked(Engine.context.PerpsController.subscribeToOrderBook)
-        .mockImplementation(({ callback }) => {
+        .mockImplementation(({ callback, onError }) => {
           deliver = callback;
-          callback(blockedBook);
+          if (shallow === null) {
+            onError?.(new Error('order book unavailable'));
+          } else {
+            callback(blockedBook);
+          }
           return () => undefined;
         });
       const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
@@ -3923,7 +3928,7 @@ describe('Pro market order liquidity', () => {
 
       fireEvent.changeText(input, '100');
       const message = strings(
-        shallow
+        shallow !== false
           ? 'perps.slippage.insufficient_depth'
           : 'perps.slippage.cannot_fill',
       );
