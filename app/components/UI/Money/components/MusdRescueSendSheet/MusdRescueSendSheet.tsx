@@ -223,17 +223,20 @@ const MusdRescueSendScreen = () => {
       />
 
       <Box twClassName="flex-1 gap-6 px-4 pt-8">
-        <Text
-          variant={TextVariant.DisplayMd}
-          fontWeight={FontWeight.Medium}
-          adjustsFontSizeToFit
-          numberOfLines={1}
-          testID={MusdRescueSendTestIds.AMOUNT}
-          accessibilityLabel={strings('money.musd_rescue_send.receive_label')}
-        >
-          {amountFiat ??
-            strings('money.musd_rescue_send.error_balance_unavailable')}
-        </Text>
+        <Box twClassName="flex-1 items-center justify-center">
+          <Text
+            variant={TextVariant.DisplayLg}
+            fontWeight={FontWeight.Bold}
+            adjustsFontSizeToFit
+            numberOfLines={1}
+            twClassName="w-full text-center"
+            testID={MusdRescueSendTestIds.AMOUNT}
+            accessibilityLabel={strings('money.musd_rescue_send.receive_label')}
+          >
+            {amountFiat ??
+              strings('money.musd_rescue_send.error_balance_unavailable')}
+          </Text>
+        </Box>
 
         <BannerAlert
           severity={BannerAlertSeverity.Info}
