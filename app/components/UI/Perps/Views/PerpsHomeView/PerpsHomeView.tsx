@@ -56,6 +56,7 @@ import {
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import { usePerpsNetworkManagement } from '../../hooks/usePerpsNetworkManagement';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import PerpsAccountUnsupportedModal from '../../components/PerpsAccountUnsupportedModal';
 import { BigNumber } from 'bignumber.js';
 import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
 import {
@@ -267,6 +268,8 @@ const PerpsHomeView = () => {
     isEligible,
     isEligibilityModalVisible,
     closeEligibilityModal,
+    isAccountUnsupportedModalVisible,
+    closeAccountUnsupportedModal,
   } = usePerpsHomeActions({
     buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
   });
@@ -1306,6 +1309,11 @@ const PerpsHomeView = () => {
           </Modal>
         </View>
       )}
+
+      <PerpsAccountUnsupportedModal
+        isVisible={isAccountUnsupportedModalVisible}
+        onClose={closeAccountUnsupportedModal}
+      />
 
       {/* Close All / Cancel All Geo-Block Modal */}
       {isCloseAllGeoBlockVisible && (

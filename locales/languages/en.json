@@ -2930,6 +2930,10 @@
         "title": "Perps unavailable in your region",
         "content": "Perps trading isn't available in your location due to local restrictions or sanctions."
       },
+      "account_not_supported": {
+        "title": "Account not supported",
+        "content": "Hyperliquid multi-sig accounts aren't currently supported by MetaMask."
+      },
       "receive": {
         "title": "Receive",
         "content": "The amount of USDC you'll receive in your wallet after withdrawal. You'll receive USDC on the Arbitrum network."
