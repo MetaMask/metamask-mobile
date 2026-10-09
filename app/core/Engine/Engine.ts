@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   AppState,
   AppStateStatus,
