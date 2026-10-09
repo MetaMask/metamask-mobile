@@ -11,6 +11,7 @@ import {
   ButtonIconSize,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   HeaderStandard,
   IconName,
   ListItem,
@@ -82,7 +83,7 @@ const VbaDetails = () => {
         contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
         testID={VbaDetailsSelectorsIDs.CONTAINER}
       >
-        <Box alignItems={BoxAlignItems.Center} twClassName="mt-2 w-full">
+        <Box alignItems={BoxAlignItems.Center} twClassName="w-full">
           <Image
             source={vbaPixLogo}
             accessibilityIgnoresInvertColors
@@ -103,13 +104,22 @@ const VbaDetails = () => {
         >
           {strings('virtual_bank_account.vba_details.description')}
         </Text>
-        <Box twClassName="mt-6 overflow-hidden rounded-3xl bg-muted">
+        <Box twClassName="mt-6 overflow-hidden rounded-xl bg-muted">
           {SAMPLE_PIX_DETAILS.map((detail) => (
             <ListItem
               key={detail.id}
               title={strings(detail.label)}
+              titleProps={{
+                variant: TextVariant.BodySm,
+                fontWeight: FontWeight.Regular,
+                color: TextColor.TextAlternative,
+              }}
               description={detail.value}
-              descriptionProps={{ numberOfLines: 1 }}
+              descriptionProps={{
+                variant: TextVariant.BodyMd,
+                color: TextColor.TextDefault,
+                numberOfLines: 1,
+              }}
               endAccessory={
                 <ButtonIcon
                   iconName={IconName.Copy}
@@ -126,9 +136,9 @@ const VbaDetails = () => {
           ))}
         </Box>
       </ScrollView>
-      <Box twClassName="gap-4 px-4 pb-4">
+      <Box twClassName="gap-4 px-4 pb-2 pt-4">
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}
           twClassName="text-center"
         >
