@@ -288,6 +288,42 @@ export class WalletHomeScroll {
     }
     throw lastError;
   }
+
+  /**
+   * Best-effort scroll-and-tap: returns false when every scroll direction fails
+   * so callers can fall back to an alternate locator without try/catch.
+   */
+  async scrollAndTapSectionIfPossible(
+    target: Promise<AppiumElement>,
+    description: string,
+    options: {
+      timeout?: number;
+      tapTimeout?: number;
+      overshootPercentage?: number;
+    } = {},
+  ): Promise<boolean> {
+    const {
+      timeout = 15_000,
+      tapTimeout = 30_000,
+      overshootPercentage = 0.15,
+    } = options;
+
+    try {
+      await this.tryScrollDirections((direction) =>
+        this.scrollAndTapSection(target, description, direction, {
+          timeout,
+          tapTimeout,
+          overshootSwipe: {
+            direction: direction === 'down' ? 'up' : 'down',
+            percentage: overshootPercentage,
+          },
+        }),
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }
 
 export default new WalletHomeScroll();
