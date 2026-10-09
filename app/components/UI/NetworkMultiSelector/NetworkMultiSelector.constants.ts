@@ -42,4 +42,5 @@ export enum NetworkToCaipChainId {
   LINEA_SEPOLIA = 'eip155:59141',
   SEI = 'eip155:1329',
   ROBINHOOD = 'eip155:4663',
+  PHAROS = 'eip155:1672',
 }
