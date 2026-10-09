@@ -1,5 +1,8 @@
 import { act, renderHook } from '@testing-library/react-native';
-import { resetPerpsSizeDenominationForTests } from '../../../../utils/perpsSizeDenomination';
+import {
+  resetPerpsSizeDenominationForTests,
+  writePerpsSizeDenomination,
+} from '../../../../utils/perpsSizeDenomination';
 import {
   usePerpsProSizeInput,
   type UsePerpsProSizeInputParams,
@@ -57,6 +60,67 @@ describe('usePerpsProSizeInput', () => {
       unit: 'asset',
       symbol: 'ETH',
     });
+  });
+
+  it('shows the USD amount until a persisted coin unit can be priced', () => {
+    writePerpsSizeDenomination('asset');
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      {
+        initialProps: createParams({ usdAmount: '100', effectivePrice: 0 }),
+      },
+    );
+
+    expect(result.current.sizeInput.value).toBe('100');
+    expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
+    expect(result.current.effectiveUsdAmount).toBe('100');
+    expect(result.current.sizeInput.canToggleDenomination).toBe(false);
+
+    act(() => {
+      result.current.sizeInput.onFocus();
+    });
+    rerender(createParams({ usdAmount: '100', effectivePrice: 50 }));
+
+    expect(result.current.sizeInput.value).toBe('2');
+    expect(result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'BTC',
+    });
+    expect(result.current.effectiveUsdAmount).toBe('100');
+  });
+
+  it('keeps a pre-price USD edit visible until blur projects it into coin', () => {
+    writePerpsSizeDenomination('asset');
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      {
+        initialProps: createParams({ usdAmount: '100', effectivePrice: 0 }),
+      },
+    );
+
+    act(() => {
+      result.current.sizeInput.onFocus();
+      result.current.sizeInput.onChange('40');
+    });
+
+    expect(result.current.sizeInput.value).toBe('40');
+    expect(result.current.effectiveUsdAmount).toBe('40');
+
+    rerender(createParams({ usdAmount: '40', effectivePrice: 25 }));
+
+    expect(result.current.sizeInput.value).toBe('40');
+    expect(result.current.sizeInput.denomination.unit).toBe('usd');
+
+    act(() => {
+      result.current.sizeInput.onBlur();
+    });
+
+    expect(result.current.sizeInput.value).toBe('1.6');
+    expect(result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'BTC',
+    });
+    expect(result.current.effectiveUsdAmount).toBe('40');
   });
 
   it('keeps an empty USD draft while committing zero', () => {
