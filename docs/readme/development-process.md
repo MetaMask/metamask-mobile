@@ -80,4 +80,4 @@ To see Cursor-created worktrees: `git worktree list` (they appear as paths under
 
 ## AI tooling usage collection
 
-Usage of Yarn scripts, Claude Code skills, and Cursor skills is automatically recorded to a local SQLite database on your machine — never sent outside. See [`scripts/tooling/README.md`](../../scripts/tooling/README.md) for details.
+Usage of Yarn scripts, Claude Code skills, and Cursor skills is recorded by [`@metamask/tooling-insight`](https://github.com/MetaMask/tooling-insight#readme). The log is `~/.tool-usage-collection/<origin-repo>-events.log`. This repository's `origin` writes `metamask-mobile-events.log`.

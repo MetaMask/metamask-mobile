@@ -133,23 +133,7 @@ See detailed setup documentation:
 
 ### AI Tooling — Developer Usage Collection
 
-Tool/skill usage is automatically recorded to a local CSV log at `~/.tool-usage-collection/metamask-mobile-events.log` across three collection paths: Yarn scripts, Claude Code skills, and Cursor skills. This is developer-only, stored locally, and never sent anywhere.
-
-To opt out, set `TOOL_USAGE_COLLECTION_OPT_IN=false` in your shell profile. Collection is also automatically disabled in CI (`CI` env var set).
-
-| Path              | Mechanism                                                            | Tokens |
-| ----------------- | -------------------------------------------------------------------- | ------ |
-| `yarn <script>`   | Yarn Berry plugin (`wrapScriptExecution`) → CSV log append           | 0      |
-| Claude Code skill | `PreToolUse` hook in `.claude/settings.json` → pure-shell dispatcher | 0      |
-| Cursor skill      | `preToolUse` hook in `.cursor/hooks.json` → pure-shell dispatcher    | 0      |
-
-Inspect your local activity:
-
-```bash
-tail -20 ~/.tool-usage-collection/metamask-mobile-events.log
-```
-
-See [`scripts/tooling/README.md`](./scripts/tooling/README.md) for full implementation details.
+See [`@metamask/tooling-insight`](https://github.com/MetaMask/tooling-insight#readme).
 
 ## Key Patterns
 
