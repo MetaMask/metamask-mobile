@@ -97,15 +97,11 @@ class EarnLendingView {
       description: 'Withdraw button should be mounted on the lending balance',
     });
 
-    await Gestures.scrollToElement(
-      this.withdrawButton,
-      Matchers.scrollContainer('transactions-container'),
-      {
-        direction: 'down',
-        scrollAmount: 200,
-        elemDescription: 'Scroll to Withdraw button',
-      },
-    );
+    await Gestures.scrollToElement(this.withdrawButton, undefined, {
+      direction: 'down',
+      scrollAmount: 200,
+      elemDescription: 'Scroll to Withdraw button',
+    });
   }
 
   async tapConfirm(timeout?: number): Promise<void> {
