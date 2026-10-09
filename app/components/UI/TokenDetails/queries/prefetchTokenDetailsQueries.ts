@@ -12,10 +12,10 @@ import {
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import { safeToChecksumAddress } from '../../../../util/address';
 import type { RootState } from '../../../../reducers';
+import { resolveOhlcvChartAssetId } from '../../AssetOverview/Price/resolveOhlcvChartAssetId';
 import { prefetchOhlcvChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { prefetchHistoricalPrices } from '../../../hooks/useTokenHistoricalPrices';
 import type { TokenDetailsRouteParams } from '../constants/constants';
-import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { prefetchSpotPrice } from '../hooks/useTokenPrice';
 import type { TokenI } from '../../Tokens/types';
 
@@ -42,7 +42,10 @@ export const usePrefetchTokenDetails = (
   token: TokenDetailsRouteParams,
 ): void => {
   const queryClient = useQueryClient();
-  const assetId = useTokenCaipAssetId(token);
+  // Share the chart's asset id. `useTokenCaipAssetId` prefers the route
+  // `caipAssetId` unchanged, and trending passes that id in lowercase while
+  // the chart checksums `token.address`.
+  const assetId = resolveOhlcvChartAssetId(token.address, token.chainId);
   const isMemecoinTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRateByTicker = useSelector(selectCurrencyRates);
