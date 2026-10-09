@@ -49,16 +49,21 @@ describe('seedless password-change fault profiles', () => {
     expect(spec.instruction).toBe(PasswordSyncInstruction.InSync);
   });
 
-  it('assigns every PasswordSyncInstruction to at least one profile', () => {
+  it('assigns every single-device PasswordSyncInstruction to at least one profile', () => {
     const instructions = new Set(
       Object.values(SEEDLESS_PASSWORD_CHANGE_FAULT_SPECS).map(
         (spec) => spec.instruction,
       ),
     );
-
-    expect(instructions).toEqual(
-      new Set(Object.values(PasswordSyncInstruction)),
+    // WalletResetRequired also needs a password change on another device.
+    const singleDeviceInstructions = Object.values(
+      PasswordSyncInstruction,
+    ).filter(
+      (instruction) =>
+        instruction !== PasswordSyncInstruction.WalletResetRequired,
     );
+
+    expect(instructions).toEqual(new Set(singleDeviceInstructions));
   });
 
   it('marks only remote hops as HTTP injection', () => {
