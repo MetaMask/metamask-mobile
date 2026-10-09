@@ -94,7 +94,8 @@ export const COHORT_OPTIONS_LEADERBOARD: SocialTraderCohort[] = [
   'shrimp',
   'dolphin',
   'whale',
-  'verified',
+  // TODO: add `verified` once the leaderboard payload has a real verified field
+  // (the row badge is mocked today).
 ];
 
 /** @deprecated Use COHORT_OPTIONS_LIVE_TRADES. Kept for existing imports. */
@@ -132,12 +133,9 @@ export const VERIFICATION_LABEL_KEY: Record<SocialFilterVerification, string> =
     unverified: 'social_leaderboard.shell.filters.verification.unverified',
   };
 
-export const TIMEFRAME_OPTIONS: SocialFilterTimeframe[] = [
-  '1h',
-  '24h',
-  '7d',
-  '30d',
-];
+/** Windows the leaderboard API already returns (`7d` / `30d`). */
+// TODO: add `1h` / `24h` when the leaderboard endpoint exposes those windows.
+export const TIMEFRAME_OPTIONS: SocialFilterTimeframe[] = ['7d', '30d'];
 
 export const TIMEFRAME_LABEL_KEY: Record<SocialFilterTimeframe, string> = {
   '1h': 'social_leaderboard.shell.filters.timeframe.1h',

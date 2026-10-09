@@ -1091,6 +1091,7 @@
       "bank_name": "Bank name",
       "beneficiary_address": "Beneficiary address",
       "bank_address": "Bank address",
+      "copy_value": "Copy {{label}}",
       "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
       "error_message": "We were unable to confirm your bank transfer. Please try again.",
       "cancel_order_error": "We were unable to cancel your order. Please try again."
@@ -1126,19 +1127,24 @@
   "virtual_bank_account": {
     "create_virtual_bank_account": {
       "navbar_title": "Bank account",
-      "title": "Activate your Virtual Bank Account",
-      "description": "Get account details tailored to your region, making it easier to add, hold, receive, and send money.",
-      "benefit_receive_title": "Receive money locally",
-      "benefit_receive_description": "Use account details designed for your region",
-      "benefit_add_money_title": "Add money with ease",
-      "benefit_add_money_description": "Transfer directly from your bank account",
-      "benefit_currencies_title": "Manage multiple currencies",
-      "benefit_currencies_description": "Keep supported balances together in one place",
+      "title": "Add funds right from your bank",
+      "description": "Get virtual account details so you can receive funds directly from your local bank.",
+      "feature_no_fees_title": "No fees to add funds",
+      "feature_no_fees_description": "We don’t charge to deposit. Your bank may.",
+      "feature_arrives_title": "Arrives in [timeframe by region]",
+      "feature_arrives_description": "Funds land as soon as your transfer clears.",
+      "feature_set_up_title": "Set up once, use anytime",
+      "feature_set_up_description": "Save it as a payee in your banking app.",
+      "feature_earn_title": "Starts earning straight away",
+      "feature_earn_description": "Deposits earn {{percentage}}% APY as mUSD.",
+      "feature_earn_description_no_apy": "Deposits earn APY as mUSD.",
       "disclaimers_error": "Couldn't load the terms and conditions.",
       "disclaimers_retry": "Try again",
       "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
       "agreement_separator": " and ",
-      "button": "Activate Virtual Bank Account"
+      "agreement_suffix": ".",
+      "powered_by": "Powered by",
+      "button": "Get account details"
     },
     "verify_identity": {
       "title": "Verify your identity",
@@ -1166,7 +1172,7 @@
       "button": "Continue",
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again."
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Add funds right from your bank and try again."
     },
     "sumsub_kyc": {
       "more_info_title": "More information needed",
@@ -1197,9 +1203,16 @@
       "button": "Try again"
     },
     "vba_details": {
-      "title": "Virtual bank account",
-      "description": "Your account is ready. Details for adding and receiving money will appear here.",
-      "button": "Done"
+      "title": "Add Brazilian real",
+      "description": "Send BRL with PIX. It converts to mUSD on your Money Account. This screen checks for the deposit every few seconds.",
+      "button": "Done",
+      "autoramp_status": "Account status: {{status}}",
+      "waiting_for_pix": "PIX instructions appear here once the account is approved.",
+      "br_code": "PIX code",
+      "pix_key": "PIX key",
+      "transaction_status": "Deposit: {{status}}",
+      "transaction_completed": "Completed. mUSD is on its way to your Money Account.",
+      "load_error": "Couldn't refresh the deposit. We'll try again."
     }
   },
   "social_leaderboard": {
@@ -1350,7 +1363,7 @@
       }
     },
     "composer": {
-      "placeholder": "Share your thoughts",
+      "placeholder": "Share your thoughts about a position",
       "post": "Post",
       "close": "Close composer",
       "character_count": "{{count}}/{{limit}}",
@@ -1376,7 +1389,18 @@
       "error_title": "Couldn't load positions",
       "retry": "Try again",
       "posting": "Posting...",
-      "post_failed": "Couldn't create post. Try again."
+      "post_failed": "Couldn't create post. Try again.",
+      "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
+    },
+    "post_swap_share": {
+      "in_progress": "In progress...",
+      "complete": "Swap complete",
+      "failed": "Swap failed",
+      "share_and_earn_title": "Share and earn",
+      "share_and_earn_body": "Earn 15% of the post-rebate fee when someone copies your trade.",
+      "share_this_trade": "Share this trade",
+      "try_again": "Try again",
+      "close": "Close"
     },
     "shell": {
       "subnav": {
@@ -3120,7 +3144,8 @@
       "isolated_title": "Isolated",
       "isolated_description": "Each position uses only its allocated margin. If it's used up, that position liquidates, others are unaffected. You can adjust margin per position.",
       "cross_title": "Cross",
-      "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon."
+      "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon.",
+      "cross_description_available": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance."
     },
     "cross_position": {
       "badge": "Cross",
@@ -8128,6 +8153,76 @@
     "unrecognized_chain_ticker": "It looks like this network's symbol doesn't match this chain ID.",
     "unrecognized_chain_id": "We don't recognize this network. Be sure the chain ID is correct before you continue."
   },
+  "mfa": {
+    "progress": "Step {{current}} of {{total}}",
+    "method_email": "Email",
+    "method_passkey": "Passkey",
+    "intro": {
+      "title": "Secure your account",
+      "description": "Set up the following to continue.",
+      "continue": "Get started"
+    },
+    "picker": {
+      "title": "Confirm it's you",
+      "description": "Choose how you want to verify."
+    },
+    "email_entry": {
+      "title": "Enter your email",
+      "description": "We'll send a verification code to this address.",
+      "placeholder": "Email address",
+      "invalid": "Enter a valid email address.",
+      "continue": "Continue"
+    },
+    "otp": {
+      "title": "Enter the code",
+      "description_with_email": "We sent a 6-digit code to {{email}}.",
+      "description": "We sent a 6-digit code to your email.",
+      "sending": "Sending code...",
+      "send_in": "Sending a new code in {{seconds}}s",
+      "resend": "Resend code",
+      "resend_in": "Resend code in {{seconds}}s",
+      "resent": "We sent you a new code.",
+      "submit": "Verify"
+    },
+    "passkey": {
+      "title_setup": "Create a passkey",
+      "title_verify": "Use your passkey",
+      "description": "Your device will ask you to confirm.",
+      "continue": "Continue"
+    },
+    "success": {
+      "title": "You're all set",
+      "done": "Done"
+    },
+    "failure": {
+      "title": "Something went wrong",
+      "retry": "Try again",
+      "close": "Close"
+    },
+    "errors": {
+      "invalid_code": "That code is incorrect. Try again.",
+      "too_many_attempts": "Too many attempts. Request a new code.",
+      "invalid_passkey": "Your passkey couldn't be verified. Try again.",
+      "passkey_cancelled": "Passkey request was cancelled.",
+      "email_taken": "This email is already in use. Try a different one.",
+      "cooldown": "Too many requests. Wait a moment and try again.",
+      "limit_reached": "You've reached the limit for this method.",
+      "multi_primary_srp": "Verification isn't available yet for wallets with more than one Secret Recovery Phrase.",
+      "signed_out": "Sign in to continue.",
+      "unsupported": "This method isn't supported on this device.",
+      "flow_in_progress": "Another verification is already in progress.",
+      "generic": "Something went wrong. Try again."
+    },
+    "settings": {
+      "title": "Verification methods",
+      "description": "Used to confirm it's you before sensitive actions.",
+      "manage": "Manage",
+      "email_linked": "Linked to your sign-in",
+      "email_pending": "Setup not finished",
+      "set_up": "Set up",
+      "finish_setup": "Finish setup"
+    }
+  },
   "media_player": {
     "loading": "Loading...",
     "not_found": "Media not found"
@@ -9624,6 +9719,20 @@
     "deposit_edit_amount_musd_conversion": "Convert to mUSD",
     "preparing_order": "Preparing order"
   },
+  "confirm_membership": {
+    "title": "Confirm membership",
+    "plan_name": "Orange (Monthly)",
+    "confirm_and_pay": "Confirm and pay",
+    "start_trial": "Start your free trial",
+    "billed_on": "Billed on",
+    "disclaimer": {
+      "part1": "By clicking \"{{confirmAndPay}}\", you authorize MetaMask to charge {{monthlyAmount}}/month. Renews on {{renewDate}}. Cancel anytime. You also accept the ",
+      "terms_of_use": "Terms of Use",
+      "part2": " and ",
+      "privacy_policy": "Privacy Policy",
+      "part3": "."
+    }
+  },
   "change_in_simulation_modal": {
     "title": "Results have changed",
     "description": "Estimated changes for this transaction have been updated. Review them closely before proceeding.",
@@ -9663,10 +9772,7 @@
     },
     "limit": {
       "pair": "{{source}} → {{dest}}",
-      "expiry": "Expiry: {{timeLeft}}",
-      "days_left": "{{count}}d left",
-      "hours_left": "{{count}}h left",
-      "minutes_left": "{{count}}m left",
+      "expiry": "Expires after: {{timeLeft}}",
       "limit_price": "{{symbol}} limit price",
       "not_enough_gas": "Not enough gas",
       "filled": "Filled",
@@ -9691,8 +9797,8 @@
       "trigger_price_near_market": "Trigger price is only {{percent}}% from market, your order may fill instantly.",
       "market": "Market",
       "custom": "Custom",
-      "expires": "Expires",
-      "expiration": "Expiration",
+      "expires": "Expires after",
+      "expiration": "Expires after",
       "expiration_option": {
         "minutes": "{{count}} minutes",
         "hour": "{{count}} hour",
@@ -9702,18 +9808,22 @@
         "month": "{{count}} month"
       },
       "est_network_fee": "Delegation fee (one time)",
+      "includes_metamask_fee": "Includes MetaMask fee",
+      "account_upgrade_fee_info_title": "Account upgrade fee",
+      "account_upgrade_fee_info_body": "Upgrading to a smart account lets you execute limit orders. Like all on-chain actions, this has a small network fee.",
       "create_order": "Create Order",
+      "min_order_amount": "Min. order amount is ${{amount}}",
       "paying": "Paying",
       "receiving": "Receiving",
       "trigger_condition": "Trigger condition",
-      "expiry_label": "Expiry",
+      "expiry_label": "Expires after",
       "confirm_order": "Confirm order",
       "status": "Status",
       "in_progress": "In progress",
       "submitted": "Submitted",
       "cancel_order": "Cancel order",
       "cancel_order_confirmation": "Do you really want to cancel your order?",
-      "edit_cost_tolerance": "Edit cost tolerance",
+      "edit_cost_tolerance": "Edit price tolerance",
       "try_again": "Try again",
       "error_calculation_network_fees": "Couldn't calculate the network fee.",
       "error_fetching_delegations": "Could not create an order: unable to fetch delegation details.",
@@ -9734,7 +9844,8 @@
       "expired_at_status": "Expired (at {{date}})",
       "date_created": "Date created",
       "order_type": "Order type",
-      "order_type_limit": "Limit"
+      "order_type_limit": "Limit",
+      "create_new_order": "Create new order"
     },
     "recurring": {
       "you_get": "You get",
@@ -10028,11 +10139,11 @@
     },
     "submit": "Submit",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
-    "cost_tolerance": "Cost Tolerance",
-    "cost_tolerance_tooltip_content": "Includes slippage, price impact, network fees, and the MetaMask fee. You'll receive no less than {{minReceivedPercentage}}% of the displayed output amount.",
+    "cost_tolerance": "Price Tolerance",
+    "cost_tolerance_tooltip_content": "Includes slippage, price impact, and network fees.",
     "default_cost_tolerance_description": "Your limit order won't go through if we can't execute within {{costTolerance}}% of the displayed output amount.",
-    "exceeding_lower_cost_tolerance_error": "Enter a cost tolerance greater than {{value}}%",
-    "exceeding_upper_cost_tolerance_error": "Enter a cost tolerance lower than {{value}}%",
+    "exceeding_lower_cost_tolerance_error": "Enter a price tolerance greater than {{value}}%",
+    "exceeding_upper_cost_tolerance_error": "Enter a price tolerance lower than {{value}}%",
     "confirm": "Confirm",
     "exceeding_upper_slippage_warning": "High slippage, this may result in an unfavourable swap",
     "exceeding_lower_slippage_warning": "Low slippage, this may result in an unfavourable swap",
@@ -11196,6 +11307,7 @@
       "error_card_suspended": "Your card in {{walletName}} has been suspended. Contact support for assistance.",
       "error_card_not_eligible": "This card is not eligible for mobile wallet provisioning.",
       "error_encryption_failed": "Failed to encrypt card data. Try again.",
+      "error_provider_unavailable": "The card provider is temporarily unavailable. Try again.",
       "error_invalid_card_data": "Invalid card data. Verify your card details and try again.",
       "error_card_not_found": "Card not found. Try again.",
       "error_card_provider_not_found": "Card provider is not available for your region.",
@@ -12518,7 +12630,9 @@
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Upgrade",
+    "join_error": "We couldn't start your Pro membership. Try again.",
     "join_orange": "Join Orange",
+    "insufficient_balance": "Your Money account doesn't have enough balance to start Pro.",
     "enable_stripe_test_clocks": "Enable Stripe Test clocks (for development and testing only)",
     "pro": "Orange",
     "pricing": {

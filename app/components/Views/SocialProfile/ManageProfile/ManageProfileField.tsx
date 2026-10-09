@@ -155,9 +155,7 @@ const ManageProfileField = () => {
             <ProfileToggleCard
               label={label}
               description={description}
-              helperText={strings(
-                'manage_profile.trading_activity_footnote',
-              )}
+              helperText={strings('manage_profile.trading_activity_footnote')}
               isOn={draft === true}
               onValueChange={handleToggle}
             />
@@ -169,9 +167,7 @@ const ManageProfileField = () => {
                   <TextArea
                     value={textValue}
                     onChangeText={handleChangeText}
-                    placeholder={strings(
-                      'manage_profile.bio_placeholder',
-                    )}
+                    placeholder={strings('manage_profile.bio_placeholder')}
                     maxLength={PROFILE_FIELD_MAX_LENGTH.bio}
                     autoFocus
                     testID={ManageProfileSelectorsIDs.FIELD_INPUT}
@@ -193,13 +189,10 @@ const ManageProfileField = () => {
                       color={TextColor.TextAlternative}
                       testID={ManageProfileSelectorsIDs.BIO_CHARACTER_COUNT}
                     >
-                      {strings(
-                        'manage_profile.bio_character_count',
-                        {
-                          count: textValue.length,
-                          limit: PROFILE_FIELD_MAX_LENGTH.bio,
-                        },
-                      )}
+                      {strings('manage_profile.bio_character_count', {
+                        count: textValue.length,
+                        limit: PROFILE_FIELD_MAX_LENGTH.bio,
+                      })}
                     </Text>
                   </Box>
                 </>

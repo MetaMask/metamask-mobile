@@ -1,4 +1,11 @@
 import { useMemo } from 'react';
+import type {
+  TokenSecurityData,
+  TokenSecurityFinancialStats,
+} from '@metamask/assets-controllers';
+import type { FungibleAssetPrice } from '@metamask/assets-controller';
+import i18n from '../../../../../locales/i18n';
+import { getTop10HoldingPct } from '../../SecurityTrust/utils/securityUtils';
 import {
   TokenStatKey,
   type TokenStatValues,
@@ -7,83 +14,194 @@ import {
   getLiquidityToMarketCapRatio,
   isLowLiquidityToMarketCapRatio,
 } from '../utils/liquidityToMarketCap';
+import {
+  formatCompactFiat,
+  formatCompactNumber,
+  formatPercent,
+  formatPriceRange,
+  formatTaxPair,
+} from '../utils/statBarFormat';
+
+/** The one currency the security data's USD figures need no conversion for. */
+const USD_CURRENCY_CODE = 'usd';
 
 /**
- * Stand-in figures for the stats Liq/MC is derived from. The prototype's own
- * numbers put liquidity at nearly five times market cap, which no real token
- * reaches, so these are plausible memecoin values instead: thin enough to sit
- * in the amber band and keep that state visible while the data is mocked.
+ * Widened past `string` on purpose: the currency selector resolves to nothing
+ * until the controller has state, and a stat bar must not crash the screen
+ * over a missing display currency.
  */
-const MOCK_LIQUIDITY_USD = 560_000;
-const MOCK_MARKET_CAP_USD = 12_400_000;
+const isUsdCurrency = (currencyCode: string | undefined): boolean =>
+  currencyCode?.toLowerCase() === USD_CURRENCY_CODE;
 
-const MOCK_LIQUIDITY_TO_MARKET_CAP_RATIO = getLiquidityToMarketCapRatio(
-  MOCK_LIQUIDITY_USD,
-  MOCK_MARKET_CAP_USD,
-);
+/** Top 10 share reads as a headline figure, so one decimal is enough. */
+const TOP_10_DECIMALS = 1;
+/** Liq/MC sits in single-digit percentages, where the second decimal carries. */
+const LIQUIDITY_TO_MARKET_CAP_DECIMALS = 2;
+
+export interface UseTokenStatBarStatsParams {
+  /** Resolved by `useTokenMarketData`, in the user's selected currency. */
+  marketData: FungibleAssetPrice | null;
+  /** True while the market-data fetch is in flight. */
+  isMarketDataLoading: boolean;
+  securityData?: TokenSecurityData | null;
+  currentCurrency: string;
+}
 
 /**
- * Stand-in values, including the null circulating supply that demonstrates the
- * gray-dash rule.
+ * Total value locked across the token's pools, in USD.
+ *
+ * `reserveUSD` counts both sides of each pool, which is the convention the
+ * Liq/MC bands in `liquidityToMarketCap` are stated in.
  */
-const MOCK_STATS: TokenStatValues = {
-  [TokenStatKey.MarketCap]: { value: '$12.4M' },
-  [TokenStatKey.Liquidity]: { value: '$560.0K' },
-  [TokenStatKey.Volume24h]: { value: '$48.3M' },
-  [TokenStatKey.Holders]: { value: '12.9K' },
-  [TokenStatKey.Top10]: { value: '18.4%' },
-  [TokenStatKey.LiquidityToMarketCap]: {
-    value:
-      MOCK_LIQUIDITY_TO_MARKET_CAP_RATIO == null
-        ? null
-        : `${(MOCK_LIQUIDITY_TO_MARKET_CAP_RATIO * 100).toFixed(2)}%`,
-    isWarning: isLowLiquidityToMarketCapRatio(
-      MOCK_LIQUIDITY_TO_MARKET_CAP_RATIO,
-    ),
-  },
-  [TokenStatKey.Tax]: { value: '0% / 0%' },
-  [TokenStatKey.HighLow24h]: { value: '$0.043120 / $0.039812' },
-  [TokenStatKey.CirculatingSupply]: { value: null },
+const getLiquidityUsd = (
+  financialStats: TokenSecurityFinancialStats | null | undefined,
+): number | null => {
+  const markets = financialStats?.markets;
+  if (!markets?.length) {
+    return null;
+  }
+
+  return markets.reduce((total, market) => total + (market.reserveUSD ?? 0), 0);
+};
+
+/**
+ * Units of the selected currency per US dollar, derived from the two prices
+ * the API returns for the same token.
+ *
+ * The security data reports liquidity in USD while everything from the price
+ * API follows the user's selected currency, so the two cannot sit side by side
+ * untouched. Rather than pulling in a currency-rate selector, this reads the
+ * rate out of `price` over `usdPrice`, which describes the same asset at the
+ * same moment. Returns null when the rate cannot be derived, so the caller
+ * decides whether to show an unconverted figure or nothing.
+ */
+const getUsdToSelectedCurrencyRate = (
+  marketData: FungibleAssetPrice | null,
+): number | null => {
+  const { price, usdPrice } = marketData ?? {};
+
+  if (
+    price == null ||
+    usdPrice == null ||
+    !Number.isFinite(price) ||
+    !Number.isFinite(usdPrice) ||
+    usdPrice <= 0
+  ) {
+    return null;
+  }
+
+  return price / usdPrice;
 };
 
 /**
  * Formatted statistics for the Token Details V1 stat bar.
  *
- * TODO(ASSETS-4019): return real values. The hook will take the token and its
- * security data, both of which `TokenDetailsV1` already holds, and draw on two
- * sources.
+ * Draws on two sources. Market cap, 24h volume, the 24h high/low range and
+ * circulating supply come from the price API via `useTokenMarketData`.
+ * Holders, top 10 share and tax come from the Blockaid security data. Liq/MC
+ * spans both and is therefore absent whenever either side is.
  *
- * MCap, 24h Vol, 24h high/low and Circulating supply come from the unified
- * `AssetsController`, through `getAssetsPrice` in `app/selectors/assets`, keyed
- * by the CAIP-19 asset ID `useTokenCaipAssetId` returns: `marketCap`,
- * `totalVolume`, `high1d`/`low1d` and `circulatingSupply`. Every field on
- * `FungibleAssetPrice` is optional, so each stat falls back to the gray dash on
- * its own rather than the bar emptying as a unit. Do not reach for
- * `selectTokenMarketData`: `TokenRatesController` is deprecated via the
- * `assetsUnifyState` flag's `deprecatedControllers` list, and once listed it
- * never initialises, so that selector returns nothing rather than failing
- * loudly. `ShareTokenBottomSheet` still reads it and is not a model to copy.
+ * Liquidity reads from the security data but needs the price API too: Blockaid
+ * reports it in USD while the rest of the bar follows the selected currency,
+ * so for anyone not already on USD it cannot be labelled until the rate
+ * arrives. It therefore loads and falls back on the market-data schedule.
  *
- * Holders, Top 10, Liquidity and Tax come from the security data:
- * `financialStats.holdersCount`, `financialStats.topHolders[]` summed over
- * `holdingPercentage`, `financialStats.markets[]` summed over `reserveUSD`, and
- * `fees.buy`/`fees.sell`.
+ * Every field on both sources is optional, so each stat falls back to the gray
+ * dash on its own rather than the bar emptying as a unit.
  *
- * Liq/MC spans both sources, so it is absent whenever either side is. Build its
- * denominator as `circulatingSupply * usdPrice` rather than reading `marketCap`
- * directly: `reserveUSD` is USD while `marketCap` follows the user's selected
- * currency, and dividing across the two scales the ratio by the exchange rate
- * without looking wrong. Feed the result to `getLiquidityToMarketCapRatio`,
- * which already encodes the amber threshold.
- *
- * Still unverified: whether `assetsPrice` is populated for a token the user
- * does not hold. If it only covers tracked assets, this needs the same kind of
- * fetch fallback `ShareTokenBottomSheet` uses for market data.
+ * Liq/MC is computed entirely in USD — summed `reserveUSD` over
+ * `circulatingSupply * usdPrice` — rather than dividing by `marketCap`, which
+ * follows the selected currency and would scale the ratio by the exchange rate
+ * without ever looking wrong.
  *
  * Liq/MC, Top 10 and Holders also render on the Security tab, so ASSETS-4056
  * requires both places to read the same computed value. Keeping the
- * computation behind this hook gives that work one place to land instead of
- * leaving it inlined in the view.
+ * computation here gives that work one place to land.
  */
-export const useTokenStatBarStats = (): TokenStatValues =>
-  useMemo(() => MOCK_STATS, []);
+export const useTokenStatBarStats = ({
+  marketData,
+  isMarketDataLoading,
+  securityData,
+  currentCurrency,
+}: UseTokenStatBarStatsParams): TokenStatValues =>
+  useMemo(() => {
+    const { locale } = i18n;
+    const financialStats = securityData?.financialStats;
+
+    const liquidityUsd = getLiquidityUsd(financialStats);
+    // A rate of 1 is only correct for a user already on USD. For anyone else
+    // an underivable rate means the figure cannot be labelled, so liquidity
+    // waits on the market data rather than showing dollars wearing a euro sign.
+    const usdToSelected =
+      getUsdToSelectedCurrencyRate(marketData) ??
+      (isUsdCurrency(currentCurrency) ? 1 : null);
+    const liquidityInSelectedCurrency =
+      liquidityUsd == null || usdToSelected == null
+        ? null
+        : liquidityUsd * usdToSelected;
+
+    const { circulatingSupply, usdPrice } = marketData ?? {};
+    const marketCapUsd =
+      circulatingSupply != null && usdPrice != null
+        ? circulatingSupply * usdPrice
+        : null;
+
+    const liquidityToMarketCapRatio = getLiquidityToMarketCapRatio(
+      liquidityUsd,
+      marketCapUsd,
+    );
+
+    return {
+      [TokenStatKey.MarketCap]: {
+        value: formatCompactFiat(marketData?.marketCap, currentCurrency),
+        isLoading: isMarketDataLoading,
+      },
+      // Security-sourced, but its conversion rate is not, so it waits on the
+      // market data the same way the cells above it do.
+      [TokenStatKey.Liquidity]: {
+        value: formatCompactFiat(liquidityInSelectedCurrency, currentCurrency),
+        isLoading: isMarketDataLoading,
+      },
+      [TokenStatKey.Volume24h]: {
+        value: formatCompactFiat(marketData?.totalVolume, currentCurrency),
+        isLoading: isMarketDataLoading,
+      },
+      [TokenStatKey.Holders]: {
+        value: formatCompactNumber(financialStats?.holdersCount),
+      },
+      [TokenStatKey.Top10]: {
+        value: formatPercent(
+          getTop10HoldingPct(financialStats),
+          TOP_10_DECIMALS,
+        ),
+      },
+      [TokenStatKey.LiquidityToMarketCap]: {
+        value: formatPercent(
+          liquidityToMarketCapRatio == null
+            ? null
+            : liquidityToMarketCapRatio * 100,
+          LIQUIDITY_TO_MARKET_CAP_DECIMALS,
+        ),
+        isWarning: isLowLiquidityToMarketCapRatio(liquidityToMarketCapRatio),
+        isLoading: isMarketDataLoading,
+      },
+      [TokenStatKey.Tax]: {
+        value: formatTaxPair(securityData?.fees?.buy, securityData?.fees?.sell),
+      },
+      [TokenStatKey.HighLow24h]: {
+        value: formatPriceRange(
+          marketData?.high1d,
+          marketData?.low1d,
+          currentCurrency,
+          locale,
+        ),
+        isLoading: isMarketDataLoading,
+      },
+      [TokenStatKey.CirculatingSupply]: {
+        value: formatCompactNumber(marketData?.circulatingSupply),
+        isLoading: isMarketDataLoading,
+      },
+    };
+  }, [marketData, isMarketDataLoading, securityData, currentCurrency]);
+
+export default useTokenStatBarStats;

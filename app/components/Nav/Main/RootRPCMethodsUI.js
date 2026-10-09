@@ -8,6 +8,7 @@ import ConnectApproval from '../../Approvals/ConnectApproval';
 import PermissionApproval from '../../Approvals/PermissionApproval';
 import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
 import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
+import ConfirmMembershipApproval from '../../Approvals/ConfirmMembershipApproval';
 import { ConfirmRoot } from '../../../components/Views/confirmations/components/confirm';
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -28,6 +29,7 @@ const RootRPCMethodsUI = (props) => (
     <PermissionApproval navigation={props.navigation} />
     <FlowLoaderModal />
     <TemplateConfirmationModal />
+    <ConfirmMembershipApproval />
     {
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     }
