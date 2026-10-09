@@ -1,4 +1,5 @@
 import { ImageSourcePropType } from 'react-native';
+import { RpcEndpointType } from '@metamask/network-controller';
 import { TabBarProps } from '@tommasini/react-native-scrollable-tab-view';
 
 export interface Network {
@@ -16,6 +17,15 @@ export interface Network {
    * Not supported by Infura
    */
   warning?: boolean;
+  /**
+   * `RpcEndpointType.Infura` when the network comes from the Config Registry
+   * and its default provider is an Infura provider. Must be passed to
+   * `NetworkController.addNetwork` along with `networkClientId` so the
+   * controller rebuilds the URL with the real Infura project ID instead of
+   * calling the `{infuraProjectId}` placeholder URL verbatim.
+   */
+  rpcEndpointType?: RpcEndpointType;
+  networkClientId?: string;
 }
 
 export interface ExtendedNetwork extends Network {
