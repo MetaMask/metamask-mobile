@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import {
+  StackActions,
+  useNavigation,
+  useNavigationState,
+  useRoute,
+} from '@react-navigation/native';
 import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import { useActiveMfaFlow } from '../../../../util/identity/mfa/engine/useActiveMfaFlow';
-import { useParams } from '../../../../util/navigation/navUtils';
 import type { MfaFlowState } from '../../../../util/identity/mfa/engine/types';
 import { MfaFlowSelectorsIDs } from '../Mfa.testIds';
 import IntroStep from './steps/IntroStep';
@@ -16,7 +20,6 @@ import CodeStep from './steps/CodeStep';
 import PasskeyStep from './steps/PasskeyStep';
 import SuccessStep from './steps/SuccessStep';
 import FailureStep from './steps/FailureStep';
-import { getMfaFlowId } from './flowId';
 
 const getProgressTitle = ({ step, progress }: MfaFlowState) =>
   progress.total > 1 && step.name !== 'success' && step.name !== 'failure'
@@ -24,49 +27,50 @@ const getProgressTitle = ({ step, progress }: MfaFlowState) =>
     : undefined;
 
 /**
- * Full-screen modal for one MFA flow, the one whose id is in its route params:
- * each flow opens its own modal (see `MfaFlowLauncher`). Leaving it cancels
- * that flow; it closes itself once the flow settles.
+ * Full-screen modal for MFA flows. While on the stack it shows the running
+ * flow and closes itself once none runs; leaving it cancels the flow. Once off
+ * the stack it keeps its last step while it animates away, and a new flow
+ * opens a new modal.
  */
 const MfaFlowHost = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const { flowId } = useParams<{ flowId: string }>();
+  const { key } = useRoute();
+  const isOnStack = useNavigationState((navState) =>
+    navState.routes.some((route) => route.key === key),
+  );
   const active = useActiveMfaFlow();
-  const own =
-    active && getMfaFlowId(active.flow) === flowId ? active : undefined;
-  const [isClosing, setIsClosing] = useState(false);
+  const isRunning = active !== undefined;
 
-  // Keep the last step on screen while the modal animates away. The flow has
-  // settled by then, so it ignores any action.
-  const [shown, setShown] = useState(own);
-  if (own && own.state !== shown?.state) {
-    setShown(own);
+  const [shown, setShown] = useState<typeof active>();
+  // Remounts the steps for each flow, so nothing typed carries over.
+  const [flowCount, setFlowCount] = useState(0);
+  if (isOnStack && active && active.state !== shown?.state) {
+    if (active.flow !== shown?.flow) {
+      setFlowCount(flowCount + 1);
+    }
+    setShown(active);
   }
   const flow = shown?.flow;
   const state = shown?.state;
 
   useEffect(
     () =>
-      navigation.addListener('beforeRemove', () => {
-        setIsClosing(true);
-        flow?.dispatch({ type: 'cancel' });
-      }),
+      navigation.addListener('beforeRemove', () =>
+        flow?.dispatch({ type: 'cancel' }),
+      ),
     [navigation, flow],
   );
 
-  // Fallback for removals that skip `beforeRemove`. Nothing to update on
-  // unmount: only the flow needs cancelling.
-  useEffect(() => () => flow?.dispatch({ type: 'cancel' }), [flow]);
-
-  // `goBack` removes this modal even when a newer one is on top of it.
-  const isRunning = own !== undefined;
   useEffect(() => {
-    if (!isRunning && !isClosing) {
-      setIsClosing(true);
-      navigation.goBack();
+    if (isOnStack && !isRunning) {
+      // Removes this modal, even when another screen sits on top of it.
+      navigation.dispatch({
+        ...StackActions.pop(),
+        target: navigation.getState()?.key,
+      });
     }
-  }, [isRunning, isClosing, navigation]);
+  }, [isOnStack, isRunning, navigation]);
 
   if (!flow || !state) {
     return null;
@@ -74,7 +78,7 @@ const MfaFlowHost = () => {
 
   const { step } = state;
   const shared = {
-    key: 'purpose' in step ? `${step.name}-${step.purpose}` : step.name,
+    key: `${flowCount}-${'purpose' in step ? `${step.name}-${step.purpose}` : step.name}`,
     state,
     reason: flow.reason,
     onAction: flow.dispatch,

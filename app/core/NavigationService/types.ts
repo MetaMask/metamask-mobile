@@ -1068,7 +1068,7 @@ export type RootStackParamList = {
     | undefined;
   ConfirmationPayWithNetworkModal: undefined;
   SmartAccountOptIn: undefined;
-  MfaFlow: { flowId: string };
+  MfaFlow: undefined;
   MfaSettings: undefined;
   ProSubscription: { source?: string; initialPlan?: string } | undefined;
   ProHub: { source?: string } | undefined;

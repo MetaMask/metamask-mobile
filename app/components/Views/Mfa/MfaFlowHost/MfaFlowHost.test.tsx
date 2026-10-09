@@ -15,13 +15,17 @@ import type {
 } from '../../../../util/identity/mfa/engine/types';
 import { MfaFlowSelectorsIDs } from '../Mfa.testIds';
 import MfaFlowHost from './MfaFlowHost';
-import { getMfaFlowId } from './flowId';
 
-const mockGoBack = jest.fn();
+const mockRemoveSelf = jest.fn();
 const mockBeforeRemove: { listener?: () => void } = {};
+// The stack around the modal, whose route key is 'mfa'.
+const mockNavState: { routes: { key: string }[] } = { routes: [] };
 const mockNavigation = {
-  goBack: (...args: unknown[]) => mockGoBack(...args),
-  isFocused: () => true,
+  dispatch: (...args: unknown[]) => {
+    mockNavState.routes = [];
+    mockRemoveSelf(...args);
+  },
+  getState: () => ({ key: 'stack' }),
   addListener: (event: string, listener: () => void) => {
     if (event === 'beforeRemove') {
       mockBeforeRemove.listener = listener;
@@ -29,11 +33,12 @@ const mockNavigation = {
     return () => undefined;
   },
 };
-const mockRoute: { params: { flowId: string } } = { params: { flowId: '' } };
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => mockNavigation,
-  useRoute: () => mockRoute,
+  useRoute: () => ({ key: 'mfa' }),
+  useNavigationState: (select: (state: typeof mockNavState) => unknown) =>
+    select(mockNavState),
 }));
 
 const activeEmail: EnrolledCredential = {
@@ -97,22 +102,13 @@ const start = async (
   return { outcome };
 };
 
-/**
- * Renders the modal the launcher would open for the running flow, or for no
- * flow at all.
- *
- * @returns The render result.
- */
-const renderHost = () => {
-  const flow = getActiveMfaFlow();
-  mockRoute.params = { flowId: flow ? getMfaFlowId(flow) : 'none' };
-  return renderWithProvider(<MfaFlowHost />, { state: {} });
-};
+const renderHost = () => renderWithProvider(<MfaFlowHost />, { state: {} });
 
 describe('MfaFlowHost', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockBeforeRemove.listener = undefined;
+    mockNavState.routes = [{ key: 'mfa' }];
   });
 
   afterEach(async () => {
@@ -170,7 +166,12 @@ describe('MfaFlowHost', () => {
       ok: true,
       value: { credentials: [activeEmail] },
     });
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockRemoveSelf).toHaveBeenCalledTimes(1);
+    expect(mockRemoveSelf).toHaveBeenCalledWith({
+      type: 'POP',
+      payload: { count: 1 },
+      target: 'stack',
+    });
   });
 
   it('shows the intro, sets up email, then verifies it and returns the token', async () => {
@@ -240,25 +241,13 @@ describe('MfaFlowHost', () => {
     });
 
     expect(await outcome).toEqual({ ok: false, code: 'flow_cancelled' });
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('cancels the flow when the screen goes away', async () => {
-    const { outcome } = await start(
-      { kind: 'enroll', method: 'email_otp' },
-      createController(),
-    );
-    const { unmount } = renderHost();
-
-    await act(async () => unmount());
-
-    expect(await outcome).toEqual({ ok: false, code: 'flow_cancelled' });
+    expect(mockRemoveSelf).toHaveBeenCalledTimes(1);
   });
 
   it('closes itself when no flow is running', async () => {
     renderHost();
 
-    await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mockRemoveSelf).toHaveBeenCalledTimes(1));
   });
 
   it('cancels as soon as the screen starts going away, without going back twice', async () => {
@@ -268,10 +257,13 @@ describe('MfaFlowHost', () => {
     );
     renderHost();
 
-    await act(async () => mockBeforeRemove.listener?.());
+    await act(async () => {
+      mockNavState.routes = [];
+      mockBeforeRemove.listener?.();
+    });
 
     expect(await outcome).toEqual({ ok: false, code: 'flow_cancelled' });
-    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockRemoveSelf).not.toHaveBeenCalled();
   });
 
   it('keeps the last step on screen while it closes', async () => {
@@ -292,19 +284,18 @@ describe('MfaFlowHost', () => {
     ).toBeOnTheScreen();
   });
 
-  it('never shows or cancels a flow started after its own', async () => {
+  it('leaves a newer flow alone while it is still closing', async () => {
     const first = await start(
       { kind: 'enroll', method: 'email_otp' },
       createController(),
     );
     const { getByTestId, queryByText, unmount } = renderHost();
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CLOSE_BUTTON));
+    });
+    expect(await first.outcome).toEqual({ ok: false, code: 'flow_cancelled' });
 
     await act(async () => {
-      getActiveMfaFlow()?.dispatch({ type: 'cancel' });
-      expect(await first.outcome).toEqual({
-        ok: false,
-        code: 'flow_cancelled',
-      });
       startMfaFlow({
         request: { kind: 'verifyOrEnroll', methods: ['email_otp'] },
         reason: { operation: 'next', description: 'Next reason' },
@@ -313,38 +304,45 @@ describe('MfaFlowHost', () => {
       }).catch(() => undefined);
     });
     const next = getActiveMfaFlow();
-
     expect(queryByText('Next reason')).toBeNull();
     expect(
       getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-emailEntry`),
     ).toBeOnTheScreen();
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
 
     await act(async () => unmount());
 
     expect(getActiveMfaFlow()).toBe(next);
   });
 
-  it('starts the next flow in its own modal, from a clean step', async () => {
+  it('shows a flow that starts before it begins closing, from a clean step', async () => {
     const first = await start(
       { kind: 'enroll', method: 'email_otp' },
       createController(),
     );
-    const firstHost = renderHost();
+    const { getByTestId } = renderHost();
     fireEvent.changeText(
-      firstHost.getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT),
+      getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT),
       'typed@b.co',
     );
+    let second: ReturnType<typeof getActiveMfaFlow>;
+
     await act(async () => {
-      fireEvent.press(firstHost.getByTestId(MfaFlowSelectorsIDs.CLOSE_BUTTON));
+      getActiveMfaFlow()?.dispatch({ type: 'cancel' });
+      expect(await first.outcome).toEqual({
+        ok: false,
+        code: 'flow_cancelled',
+      });
+      startMfaFlow({
+        request: { kind: 'enroll', method: 'email_otp' },
+        reason: { operation: 'next' },
+        platform: 'mobile',
+        controller: createController(),
+      }).catch(() => undefined);
+      second = getActiveMfaFlow();
     });
-    expect(await first.outcome).toEqual({ ok: false, code: 'flow_cancelled' });
 
-    await start({ kind: 'enroll', method: 'email_otp' }, createController());
-    const nextHost = renderHost();
-
-    expect(
-      nextHost.getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT).props.value,
-    ).toBe('');
+    expect(getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT).props.value).toBe('');
+    expect(mockRemoveSelf).not.toHaveBeenCalled();
+    expect(getActiveMfaFlow()).toBe(second);
   });
 });
