@@ -145,6 +145,7 @@ const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
 const ACCOUNT_LOOKUP_MISS_TTL_MS = 24 * 60 * 60 * 1000;
 const ACCOUNT_LOOKUP_TIMEOUT_MS = 2000;
 const CARD_LINKS_FRESH_MS = 24 * 60 * 60 * 1000;
+const CARD_LINKS_FETCH_ATTEMPTS = 3;
 const CARD_LINK_FIELD_MAX_LENGTH = 128;
 
 type RedeemFailureStage = 'estimation' | 'submit' | 'on_chain';
@@ -341,6 +342,7 @@ export class CardController extends BaseController<
   #cardLinksFetchPromise: Promise<void> | null = null;
   #cardLinkSeedPromise: Promise<void> | null = null;
   #cardLinksGeneration = 0;
+  #cardLinksWriteRevision = 0;
   #cardLinkClientBlocked = false;
   #pendingProviderCardholderIds: Partial<Record<CardProviderId, string>> = {};
 
@@ -746,8 +748,9 @@ export class CardController extends BaseController<
     await this.#cardLinksFetchPromise;
   }
 
-  async #doFetchCardLinks(): Promise<void> {
+  async #doFetchCardLinks(attempt = 0): Promise<void> {
     const generation = this.#cardLinksGeneration;
+    const writeRevision = this.#cardLinksWriteRevision;
     let links: CardLink[];
     try {
       links = await this.#withCardLinkBearer((token) =>
@@ -758,6 +761,14 @@ export class CardController extends BaseController<
       return;
     }
     if (generation !== this.#cardLinksGeneration) return;
+    if (writeRevision !== this.#cardLinksWriteRevision) {
+      // This GET started before a write, so its body is the pre-write list.
+      // Applying it would replace the write and start the 24h freshness window.
+      if (attempt + 1 < CARD_LINKS_FETCH_ATTEMPTS) {
+        await this.#doFetchCardLinks(attempt + 1);
+      }
+      return;
+    }
 
     this.update((s) => {
       s.cardLinks = links;
@@ -938,6 +949,7 @@ export class CardController extends BaseController<
             link,
           ];
         });
+        this.#cardLinksWriteRevision += 1;
       }
       return 'written';
     } catch (error) {

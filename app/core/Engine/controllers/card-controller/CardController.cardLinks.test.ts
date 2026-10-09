@@ -156,6 +156,14 @@ const flush = () =>
     setImmediate(resolve);
   });
 
+function deferred<T>() {
+  let resolve: (value: T) => void = () => undefined;
+  const promise = new Promise<T>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+}
+
 describe('CardController card links', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -263,6 +271,69 @@ describe('CardController card links', () => {
       });
       await fresh.controller.fetchCardLinks({ force: true });
       expect(fresh.cardService.getCardLinks).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not let an in-flight GET replace a newer write', async () => {
+      const { controller, cardService } = setup({
+        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
+      });
+      const stale = deferred<CardLink[]>();
+      const current = [
+        link({ provider: 'immersve', status: 'active' }),
+        link(),
+      ];
+      cardService.getCardLinks
+        .mockImplementationOnce(() => stale.promise)
+        .mockResolvedValueOnce(current);
+
+      const pending = controller.fetchCardLinks();
+      await flush();
+      await controller.recordCardActivated({ provider: 'immersve' });
+      stale.resolve([]);
+      await pending;
+
+      expect(cardService.getCardLinks).toHaveBeenCalledTimes(2);
+      expect(cardService.putCardLink).toHaveBeenCalledTimes(1);
+      expect(controller.state.cardLinks).toStrictEqual(current);
+    });
+
+    it('keeps the write when the read after it fails', async () => {
+      const { controller, cardService } = setup({
+        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
+      });
+      const stale = deferred<CardLink[]>();
+      cardService.getCardLinks
+        .mockImplementationOnce(() => stale.promise)
+        .mockRejectedValueOnce(apiError(503));
+
+      const pending = controller.fetchCardLinks();
+      await flush();
+      await controller.recordCardActivated({ provider: 'immersve' });
+      stale.resolve([]);
+      await pending;
+
+      expect(controller.state.cardLinks).toStrictEqual([
+        link({ provider: 'immersve', status: 'active' }),
+      ]);
+      expect(controller.state.cardLinksFetchedAt).toBeNull();
+      expect(cardService.putCardLink).toHaveBeenCalledTimes(1);
+    });
+
+    it('still stores a GET that overlaps a failed write', async () => {
+      const { controller, cardService } = setup();
+      const pendingGet = deferred<CardLink[]>();
+      const links = [link()];
+      cardService.getCardLinks.mockImplementationOnce(() => pendingGet.promise);
+      cardService.putCardLink.mockRejectedValueOnce(apiError(503));
+
+      const pending = controller.fetchCardLinks();
+      await flush();
+      await controller.recordCardActivated({ provider: 'immersve' });
+      pendingGet.resolve(links);
+      await pending;
+
+      expect(cardService.getCardLinks).toHaveBeenCalledTimes(1);
+      expect(controller.state.cardLinks).toStrictEqual(links);
     });
 
     it('shares one in-flight request between concurrent callers', async () => {
