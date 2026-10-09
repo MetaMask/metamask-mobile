@@ -399,10 +399,9 @@ const EarnMusdConversionEducationView = () => {
     >
       <Box twClassName="px-4 items-center">
         <Text
-          variant={TextVariant.DisplayMd}
           fontFamily={FontFamily.Hero}
           fontWeight={FontWeight.Regular}
-          twClassName="text-center py-4"
+          twClassName="text-center py-4 text-[60px] leading-[60px] tracking-[-1.2px]"
         >
           {strings('earn.musd_conversion.education.heading', {
             percentage: MUSD_CONVERSION_APY,

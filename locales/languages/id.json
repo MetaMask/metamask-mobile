@@ -1705,7 +1705,7 @@
     "available_balance": "Saldo tersedia",
     "margin_used": "Margin yang digunakan",
     "gtm_content": {
-      "title": "PERP TELAH HADIR",
+      "title": "Perp telah hadir",
       "title_description": "Posisi long atau short dengan leverage hingga 40x. Danai akun Anda dalam satu klik.",
       "not_now": "Tidak sekarang",
       "try_now": "Mulai"
@@ -8460,7 +8460,7 @@
         "failed": "Konversi mUSD gagal"
       },
       "education": {
-        "heading": "DAPATKAN {{percentage}}% PADA\nSTABLECOIN",
+        "heading": "Dapatkan {{percentage}}% pada stablecoin",
         "description": "Konversikan stablecoin Anda ke mUSD dan dapatkan bonus tahunan sebesar {{percentage}}%.",
         "terms_apply": "Syarat berlaku.",
         "primary_button": "Mulai",
@@ -10208,11 +10208,11 @@
       "payment_creation_error": "Gagal membuat pembayaran. Coba lagi."
     },
     "order_completed": {
-      "title": "KARTU ANDA\nSUDAH DIPESAN",
+      "title": "Kartu Anda sudah dipesan",
       "subtitle": "Kartu akan tiba dalam waktu 4 sampai 6 minggu.",
       "description": "Atur kartu virtual Anda dan tambahkan ke dompet digital untuk mulai mendapatkan pengembalian mUSD.",
       "set_up_card_button": "Atur kartu",
-      "back_to_card_button": "Kembali ke Kartu"
+      "back_to_card_button": "Kembali ke kartu"
     },
     "recurring_fee_modal": {
       "title": "Biaya berulang",
@@ -10251,7 +10251,7 @@
       "try_again": "Coba lagi"
     },
     "card_onboarding": {
-      "title": "Gunakan\ndan Dapatkan",
+      "title": "Gunakan dan dapatkan",
       "description": "Kartu MetaMask merupakan cara cepat dan mudah untuk menggunakan kripto dan mendapatkan pengembalian hingga 3% mUSD.",
       "apply_now_button": "Atur sekarang",
       "login_button": "Masuk",
@@ -11075,7 +11075,7 @@
       "points_from_referrals_label": "Poin dari referensi",
       "referrals_label": "Referensi VIP",
       "tier_benefits_title": "Manfaat tingkatan",
-      "splash_title": "SELAMAT DATANG\nDI GOLD FOX\nCOLLECTIVE",
+      "splash_title": "Selamat datang di Gold Fox Collective",
       "splash_description": "Dapatkan keuntungan eksklusif, fitur-fitur awal, dan reward pilihan. Hanya dengan undangan.",
       "splash_accept_invite": "Terima undangan",
       "splash_not_now": "Tidak sekarang",

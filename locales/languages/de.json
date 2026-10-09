@@ -1705,7 +1705,7 @@
     "available_balance": "Verfügbares Guthaben",
     "margin_used": "Verwendete Margin",
     "gtm_content": {
-      "title": "PERPS SIND DA",
+      "title": "Perps sind da",
       "title_description": "Gehen Sie Long- oder Short-Positionen mit bis zu 40-fachem Hebel ein. Finanzieren Sie Ihr Konto mit nur einem Klick.",
       "not_now": "Nicht jetzt",
       "try_now": "Erste Schritte"
@@ -8460,7 +8460,7 @@
         "failed": "mUSD-Konvertierung fehlgeschlagen"
       },
       "education": {
-        "heading": "ERHALTEN SIE {{percentage}} % AUF\nSTABILECOINS",
+        "heading": "Erhalten Sie {{percentage}} % auf Stablecoins",
         "description": "Wandeln Sie Ihre Stablecoins in mUSD um und erhalten Sie einen annualisierten Bonus von {{percentage}} %.",
         "terms_apply": "Es gelten die Nutzungsbedingungen.",
         "primary_button": "Erste Schritte",
@@ -10208,7 +10208,7 @@
       "payment_creation_error": "Die Zahlung konnte nicht erstellt werden. Versuchen Sie es erneut."
     },
     "order_completed": {
-      "title": "IHRE KARTE\nWURDE BESTELLT",
+      "title": "Ihre Karte wurde bestellt",
       "subtitle": "Sie sollte in 4 bis 6 Wochen eintreffen.",
       "description": "Richten Sie Ihre virtuelle Karte ein und fügen Sie sie Ihrer digitalen Wallet hinzu, um mUSD zurückzuerhalten.",
       "set_up_card_button": "Karte einrichten",
@@ -10251,7 +10251,7 @@
       "try_again": "Erneut versuchen"
     },
     "card_onboarding": {
-      "title": "Ausgeben\nund verdienen",
+      "title": "Ausgeben und verdienen",
       "description": "Die MetaMask-Karte ist der schnelle und\neinfache Weg, Ihre Kryptowährung auszugeben und\nbis zu 3 % mUSD zurückzuerhalten.",
       "apply_now_button": "Jetzt einrichten",
       "login_button": "Anmelden",
@@ -11075,7 +11075,7 @@
       "points_from_referrals_label": "Punkte aus Empfehlungen",
       "referrals_label": "VIP-Empfehlungen",
       "tier_benefits_title": "Vorteile der Stufe",
-      "splash_title": "WILLKOMMEN \nBEIM GOLD FOX\nCOLLECTIVE",
+      "splash_title": "Willkommen beim Gold Fox Collective",
       "splash_description": "Schalten Sie exklusive Vorteile, frühe Funktionen und besondere Belohnungen frei. Nur auf Einladung.",
       "splash_accept_invite": "Einladung annehmen",
       "splash_not_now": "Nicht jetzt",

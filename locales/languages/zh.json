@@ -10208,7 +10208,7 @@
       "payment_creation_error": "无法创建付款，请重试。"
     },
     "order_completed": {
-      "title": "您的卡\n已订购成功",
+      "title": "您的卡已订购成功",
       "subtitle": "预计在 4 到 6 周内送达。",
       "description": "设置您的虚拟卡并将其添加到您的数字钱包，即可开始赚取mUSD返现。",
       "set_up_card_button": "设置卡",
@@ -11075,7 +11075,7 @@
       "points_from_referrals_label": "通过推荐所获积分",
       "referrals_label": "VIP 推荐",
       "tier_benefits_title": "等级权益",
-      "splash_title": "欢迎来到 GOLD FOX COLLECTIVE",
+      "splash_title": "欢迎来到 Gold Fox Collective",
       "splash_description": "解锁专属权益、抢先体验功能及精选奖励。仅限受邀用户。",
       "splash_accept_invite": "接受邀请",
       "splash_not_now": "暂时不",

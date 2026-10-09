@@ -51,7 +51,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
-      'card.order_completed.title': 'YOUR CARD\nIS ORDERED',
+      'card.order_completed.title': 'Your card is ordered',
       'card.order_completed.subtitle': 'It should arrive in 4 to 6 weeks.',
       'card.order_completed.description':
         'Set up your virtual card and add it to your digital wallet to start earning cashback.',

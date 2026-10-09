@@ -1705,7 +1705,7 @@
     "available_balance": "Saldo disponível",
     "margin_used": "Margem usada",
     "gtm_content": {
-      "title": "OS PERPS CHEGARAM",
+      "title": "Os Perps chegaram",
       "title_description": "Opere long ou short com alavancagem de até 40x. Deposite em sua conta com apenas um clique.",
       "not_now": "Agora não",
       "try_now": "Comece já"
@@ -8460,7 +8460,7 @@
         "failed": "Falha ao converter mUSD"
       },
       "education": {
-        "heading": "RECEBA {{percentage}}% EM \nSTABLECOINS",
+        "heading": "Receba {{percentage}}% em stablecoins",
         "description": "Converta suas moedas estáveis em mUSD e ganhe um bônus anualizado de {{percentage}}%.",
         "terms_apply": "Sujeito a termos e condições.",
         "primary_button": "Comece já",
@@ -10208,11 +10208,11 @@
       "payment_creation_error": "Falha ao criar o pagamento. Tente novamente."
     },
     "order_completed": {
-      "title": "SEU CARTÃO\nFOI SOLICITADO",
+      "title": "Seu cartão foi solicitado",
       "subtitle": "Ele deverá chegar em 4 a 6 semanas.",
       "description": "Configure seu cartão virtual e adicione-o à sua carteira digital para começar a ganhar cashback em mUSD.",
       "set_up_card_button": "Configurar cartão",
-      "back_to_card_button": "Voltar ao Cartão"
+      "back_to_card_button": "Voltar ao cartão"
     },
     "recurring_fee_modal": {
       "title": "Taxa recorrente",
@@ -10251,7 +10251,7 @@
       "try_again": "Tentar novamente"
     },
     "card_onboarding": {
-      "title": "Gaste\ne Ganhe",
+      "title": "Gaste e ganhe",
       "description": "O Cartão MetaMask é a maneira rápida e\nfácil de gastar suas criptomoedas e\nganhar até 3% de cashback.",
       "apply_now_button": "Configure já",
       "login_button": "Fazer login",
@@ -11075,7 +11075,7 @@
       "points_from_referrals_label": "Pontos de indicações",
       "referrals_label": "Indicações VIP",
       "tier_benefits_title": "Benefícios de nível",
-      "splash_title": "BOAS-VINDAS\nAO GOLD FOX\nCOLLECTIVE",
+      "splash_title": "Boas-vindas ao Gold Fox Collective",
       "splash_description": "Desbloqueie vantagens exclusivas, acesso antecipado a recursos e recompensas selecionadas. Somente por convite.",
       "splash_accept_invite": "Aceitar convite",
       "splash_not_now": "Agora não",

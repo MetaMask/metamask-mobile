@@ -1705,7 +1705,7 @@
     "available_balance": "Solde disponible",
     "margin_used": "Marge utilisée",
     "gtm_content": {
-      "title": "LES PERPS SONT ENFIN DISPONIBLES",
+      "title": "Les Perps sont enfin disponibles",
       "title_description": "Prenez des positions longues ou courtes avec un effet de levier allant jusqu’à 40x. Approvisionnez votre compte en un seul clic.",
       "not_now": "Pas maintenant",
       "try_now": "Commencer"
@@ -8460,7 +8460,7 @@
         "failed": "Échec de la conversion en mUSD"
       },
       "education": {
-        "heading": "OBTENEZ {{percentage}} % SUR LES\nSTABLECOINS",
+        "heading": "Obtenez {{percentage}} % sur les stablecoins",
         "description": "Convertissez vos stablecoins en mUSD et gagnez un bonus annualisé de {{percentage}} %.",
         "terms_apply": "Des conditions s’appliquent.",
         "primary_button": "Commencer",
@@ -10208,7 +10208,7 @@
       "payment_creation_error": "Échec de la création du paiement. Veuillez réessayer."
     },
     "order_completed": {
-      "title": "VOTRE CARTE\nA ÉTÉ COMMANDÉE",
+      "title": "Votre carte a été commandée",
       "subtitle": "Elle devrait arriver dans 4 à 6 semaines.",
       "description": "Configurez votre carte virtuelle et ajoutez-la à votre portefeuille numérique pour commencer à gagner du cashback en mUSD.",
       "set_up_card_button": "Configurer la carte",
@@ -10251,7 +10251,7 @@
       "try_again": "Réessayez"
     },
     "card_onboarding": {
-      "title": "Dépensez\net gagnez",
+      "title": "Dépensez et gagnez",
       "description": "MetaMask Card est un moyen de paiement rapide et facile à utiliser\nqui vous permet non seulement de dépenser vos cryptomonnaies,\nmais aussi de gagner jusqu’à 3 % de cashback en mUSD.",
       "apply_now_button": "Configurer maintenant",
       "login_button": "Se connecter",
@@ -11075,7 +11075,7 @@
       "points_from_referrals_label": "Points de parrainages",
       "referrals_label": "Parrainages VIP",
       "tier_benefits_title": "Avantages par niveau",
-      "splash_title": "BIENVENUE\nCHEZ GOLD FOX\nCOLLECTIVE",
+      "splash_title": "Bienvenue chez Gold Fox Collective",
       "splash_description": "Bénéficiez d’avantages exclusifs, de fonctionnalités en avant-première et de récompenses privilégiées. Sur invitation uniquement.",
       "splash_accept_invite": "Accepter l’invite",
       "splash_not_now": "Pas maintenant",

@@ -1705,7 +1705,7 @@
     "available_balance": "Saldo disponible",
     "margin_used": "Margen utilizado",
     "gtm_content": {
-      "title": "LLEGARON LOS PERPS",
+      "title": "Llegaron los Perps",
       "title_description": "Opera en largo o corto con un apalancamiento de hasta 40x. Deposita fondos en tu cuenta con un solo clic.",
       "not_now": "Ahora no",
       "try_now": "Comenzar"
@@ -8460,7 +8460,7 @@
         "failed": "Conversión de mUSD fallida"
       },
       "education": {
-        "heading": "OBTÉN {{percentage}} % EN\nMONEDAS ESTABLES",
+        "heading": "Obtén {{percentage}} % en monedas estables",
         "description": "Convierte tus monedas estables a mUSD y gana un bono anualizado del {{percentage}} %.",
         "terms_apply": "Se aplican términos y condiciones.",
         "primary_button": "Comenzar",
@@ -10208,7 +10208,7 @@
       "payment_creation_error": "Error al crear el pago. Inténtalo de nuevo."
     },
     "order_completed": {
-      "title": "TU TARJETA\nHA SIDO SOLICITADA",
+      "title": "Tu tarjeta ha sido solicitada",
       "subtitle": "Debería llegar en un plazo de 4 a 6 semanas.",
       "description": "Configura tu tarjeta virtual y añádela a tu billetera digital para comenzar a ganar cashback en mUSD.",
       "set_up_card_button": "Configurar tarjeta",
@@ -10251,7 +10251,7 @@
       "try_again": "Inténtalo de nuevo"
     },
     "card_onboarding": {
-      "title": "Gasta\ny gana",
+      "title": "Gasta y gana",
       "description": "La tarjeta MetaMask es la forma rápida y\nfácil de gastar tus criptomonedas y\nganar hasta un 3 % de cashback en mUSD.",
       "apply_now_button": "Configurar ahora",
       "login_button": "Iniciar sesión",
@@ -11075,7 +11075,7 @@
       "points_from_referrals_label": "Puntos por referidos",
       "referrals_label": "Referidos VIP",
       "tier_benefits_title": "Beneficios del nivel",
-      "splash_title": "BIENVENIDO\nA GOLD FOX\nCOLLECTIVE",
+      "splash_title": "Bienvenido a Gold Fox Collective",
       "splash_description": "Desbloquea ventajas exclusivas, funciones anticipadas y recompensas seleccionadas. Solo por invitación.",
       "splash_accept_invite": "Aceptar invitación",
       "splash_not_now": "Ahora no",

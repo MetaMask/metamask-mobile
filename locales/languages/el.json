@@ -1705,7 +1705,7 @@
     "available_balance": "Διαθέσιμο υπόλοιπο",
     "margin_used": "Περιθώριο που χρησιμοποιείται",
     "gtm_content": {
-      "title": "ΤΑ ΣΥΜΒΟΛΑΙΑ ΑΟΡΙΣΤΟΥ ΔΙΑΡΚΕΙΑΣ (PERPS) ΕΙΝΑΙ ΕΔΩ",
+      "title": "Τα συμβόλαια αορίστου διάρκειας (Perps) είναι εδώ",
       "title_description": "Επενδύστε σε θέσεις long ή short με μόχλευση έως και 40x. Χρηματοδοτήστε τον λογαριασμό σας με ένα κλικ.",
       "not_now": "Όχι τώρα",
       "try_now": "Ξεκινήστε"
@@ -8460,7 +8460,7 @@
         "failed": "Η μετατροπή σε mUSD απέτυχε"
       },
       "education": {
-        "heading": "ΚΕΡΔΙΣΤΕ {{percentage}}% ΣΤΑ\nSTABLECOINS",
+        "heading": "Κερδίστε {{percentage}}% στα stablecoins",
         "description": "Μετατρέψτε τα stablecoins σας σε mUSD και κερδίστε {{percentage}}% ως ετήσιο μπόνους.",
         "terms_apply": "Ισχύουν όροι.",
         "primary_button": "Ξεκινήστε",
@@ -10208,11 +10208,11 @@
       "payment_creation_error": "Δεν ήταν δυνατή η δημιουργία της πληρωμής. Προσπαθήστε ξανά."
     },
     "order_completed": {
-      "title": "Η ΔΙΑΔΙΚΑΣΙΑ ΕΚΔΟΣΗΣ ΤΗΣ ΚΑΡΤΑΣ ΣΑΣ\nΕΧΕΙ ΟΛΟΚΛΗΡΩΘΕΙ",
+      "title": "Η διαδικασία έκδοσης της κάρτας σας έχει ολοκληρωθεί",
       "subtitle": "Θα φτάσει σε 4 έως 6 εβδομάδες.",
       "description": "Ρυθμίστε την εικονική σας κάρτα και προσθέστε την στο ψηφιακό σας πορτοφόλι για να ξεκινήσετε να κερδίζετε mUSD.",
       "set_up_card_button": "Ρύθμιση κάρτας",
-      "back_to_card_button": "Πίσω στην Κάρτα"
+      "back_to_card_button": "Πίσω στην κάρτα"
     },
     "recurring_fee_modal": {
       "title": "Επαναλαμβανόμενη χρέωση",
@@ -10251,7 +10251,7 @@
       "try_again": "Προσπαθήστε ξανά"
     },
     "card_onboarding": {
-      "title": "Ξοδέψτε \nκαι Κερδίστε",
+      "title": "Ξοδέψτε και κερδίστε",
       "description": "Η MetaMask Card είναι ο γρήγορος και \nεύκολος τρόπος να ξοδεύετε τα κρυπτονομίσματά σας και \nνα κερδίζετε έως και 3% ως απόδοση σε mUSD.",
       "apply_now_button": "Ρύθμιση τώρα",
       "login_button": "Σύνδεση",
@@ -11075,7 +11075,7 @@
       "points_from_referrals_label": "Πόντοι από παραπομπές",
       "referrals_label": "VIP παραπομπές",
       "tier_benefits_title": "Οφέλη επιπέδου",
-      "splash_title": "ΚΑΛΩΣ ΗΡΘΑΤΕ\nΣΤΟ GOLD FOX \nCOLLECTIVE",
+      "splash_title": "Καλώς ήρθατε στο Gold Fox Collective",
       "splash_description": "Ξεκλειδώστε αποκλειστικά προνόμια, πρώιμη πρόσβαση σε λειτουργίες και επιλεγμένες ανταμοιβές. Μόνο με πρόσκληση.",
       "splash_accept_invite": "Αποδοχή πρόσκλησης",
       "splash_not_now": "Όχι τώρα",

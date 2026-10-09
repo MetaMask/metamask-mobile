@@ -14,6 +14,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       variant,
       fontFamily,
       fontWeight,
+      twClassName,
     }: {
       children?: React.ReactNode;
       style?: unknown;
@@ -21,13 +22,13 @@ jest.mock('@metamask/design-system-react-native', () => {
       variant?: string;
       fontFamily?: string;
       fontWeight?: string;
+      twClassName?: string;
     }) =>
       ReactActual.createElement(
         Text,
-        { style, testID, variant, fontFamily, fontWeight },
+        { style, testID, variant, fontFamily, fontWeight, twClassName },
         children,
       ),
-    TextVariant: { DisplayMd: 'displayMd' },
     FontFamily: { Hero: 'hero' },
     FontWeight: { Regular: 'regular' },
   };
@@ -73,7 +74,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 describe('VipSplashGradientTitle', () => {
-  it('renders the shared splash title with DisplayMd and Hero', () => {
+  it('renders the shared splash title with Hero at the marketing size', () => {
     const { getAllByText, getByTestId } = render(
       <VipSplashGradientTitle testID="vip-splash-title" />,
     );
@@ -81,9 +82,12 @@ describe('VipSplashGradientTitle', () => {
     const title = getByTestId('vip-splash-title');
 
     expect(title).toBeOnTheScreen();
-    expect(title.props.variant).toBe('displayMd');
+    expect(title.props.variant).toBeUndefined();
     expect(title.props.fontFamily).toBe('hero');
     expect(title.props.fontWeight).toBe('regular');
+    expect(title.props.twClassName).toContain('text-[60px]');
+    expect(title.props.twClassName).toContain('leading-[60px]');
+    expect(title.props.twClassName).toContain('tracking-[-1.2px]');
     expect(getAllByText('Welcome to Gold Fox Collective')).toHaveLength(2);
   });
 });

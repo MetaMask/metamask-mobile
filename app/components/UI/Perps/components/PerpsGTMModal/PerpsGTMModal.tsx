@@ -87,10 +87,9 @@ const PerpsGTMModal = () => {
       {/* Header Section */}
       <View style={styles.headerContainer}>
         <Text
-          variant={TextVariant.DisplayMd}
           fontFamily={FontFamily.Hero}
           fontWeight={FontWeight.Regular}
-          twClassName="text-center pt-3"
+          twClassName="text-center pt-3 text-[60px] leading-[60px] tracking-[-1.2px]"
         >
           {strings('perps.gtm_content.title')}
         </Text>

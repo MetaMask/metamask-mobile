@@ -8460,7 +8460,7 @@
         "failed": "mUSD 전환 실패"
       },
       "education": {
-        "heading": "스테이블 코인\n{{percentage}}% 혜택",
+        "heading": "스테이블 코인 {{percentage}}% 혜택",
         "description": "스테이블코인을 mUSD로 전환하면 연 {{percentage}}% 보너스를 받을 수 있습니다.",
         "terms_apply": "약관이 적용됩니다.",
         "primary_button": "시작하기",
@@ -10208,7 +10208,7 @@
       "payment_creation_error": "결제를 생성하지 못했습니다. 다시 시도해 주세요."
     },
     "order_completed": {
-      "title": "카드 주문이\n완료되었습니다",
+      "title": "카드 주문이 완료되었습니다",
       "subtitle": "4~6주 내에 배송될 예정입니다.",
       "description": "가상 카드를 설정하고 디지털 지갑에 추가하여 mUSD 캐시백을 받으세요.",
       "set_up_card_button": "카드 설정",
@@ -10251,7 +10251,7 @@
       "try_again": "다시 시도"
     },
     "card_onboarding": {
-      "title": "결제와 동시에\n수익 창출",
+      "title": "결제와 동시에 수익 창출",
       "description": "MetaMask 카드로 암호자산을\n쉽고 빠르게 결제에 사용하고 최대 \n3% mUSD 캐시백을 받을 수 있습니다.",
       "apply_now_button": "설정하기",
       "login_button": "로그인",
@@ -11075,7 +11075,7 @@
       "points_from_referrals_label": "추천으로 얻은 포인트",
       "referrals_label": "VIP 추천",
       "tier_benefits_title": "티어 혜택",
-      "splash_title": "골드 폭스 컬렉티브에\n오신 것을 \n환영합니다",
+      "splash_title": "골드 폭스 컬렉티브에 오신 것을 환영합니다",
       "splash_description": "독점적 혜택, 우선 이용 가능한 기능, 엄선된 보상을 만나보세요. 초대받은 사용자만 이용할 수 있습니다.",
       "splash_accept_invite": "초대 수락",
       "splash_not_now": "나중에",

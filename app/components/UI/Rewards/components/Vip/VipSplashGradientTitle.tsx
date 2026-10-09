@@ -5,7 +5,6 @@ import {
   FontFamily,
   FontWeight,
   Text,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
@@ -25,10 +24,9 @@ const VipSplashGradientTitle: React.FC<VipSplashGradientTitleProps> = ({
     <MaskedView
       maskElement={
         <Text
-          variant={TextVariant.DisplayMd}
           fontFamily={FontFamily.Hero}
           fontWeight={FontWeight.Regular}
-          twClassName="text-center"
+          twClassName="text-center text-[60px] leading-[60px] tracking-[-1.2px]"
           testID={testID}
         >
           {title}
@@ -43,10 +41,9 @@ const VipSplashGradientTitle: React.FC<VipSplashGradientTitleProps> = ({
         style={tw.style('items-center')}
       >
         <Text
-          variant={TextVariant.DisplayMd}
           fontFamily={FontFamily.Hero}
           fontWeight={FontWeight.Regular}
-          twClassName="text-center opacity-0"
+          twClassName="text-center opacity-0 text-[60px] leading-[60px] tracking-[-1.2px]"
         >
           {title}
         </Text>
