@@ -1,6 +1,7 @@
 import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import QuickCrypto from 'react-native-quick-crypto';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import {
@@ -21,6 +22,7 @@ import {
 } from './constants';
 import {
   buildMarketListQueryParams,
+  buildPolyHmacSignature,
   calculateConservativeBuyMarketFee,
   calculateConservativeSellMarketFee,
   clearClobMarketInfoCache,
@@ -153,6 +155,25 @@ const buyPreview: OrderPreview = {
 };
 
 describe('polymarket utils', () => {
+  describe('buildPolyHmacSignature', () => {
+    it('creates a URL-safe SHA-256 signature with native crypto', async () => {
+      const secret = 'c2VjcmV0';
+
+      const result = await buildPolyHmacSignature(
+        secret,
+        1_700_000_000,
+        'GET',
+        '/orders',
+      );
+
+      expect(QuickCrypto.createHmac).toHaveBeenCalledWith(
+        'sha256',
+        Buffer.from(secret, 'base64'),
+      );
+      expect(result).toBe('5pq6uRxdFFvJzbzIJRObr9401649NDsVtb6H2TgxZRY=');
+    });
+  });
+
   describe('getPredictPositionStatus', () => {
     it.each([
       {

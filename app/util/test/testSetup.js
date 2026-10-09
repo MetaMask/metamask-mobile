@@ -99,6 +99,10 @@ const createMockUuid = () => {
 jest.mock('react-native-quick-crypto', () => ({
   __esModule: true,
   default: {
+    createHmac: jest.fn((algorithm, key) => {
+      const nodeCrypto = jest.requireActual('crypto');
+      return nodeCrypto.createHmac(algorithm, key);
+    }),
     randomBytes: jest.fn((size) =>
       Buffer.from(Array.from({ length: size }, (_, i) => (i % 255) + 1)),
     ),

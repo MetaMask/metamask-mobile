@@ -1,6 +1,6 @@
 import { encode } from '@metamask/abi-utils';
+import { keccak256 } from '@metamask/native-utils';
 import { getChecksumAddress } from '@metamask/utils';
-import { keccak } from 'ethereumjs-util';
 import { getCaveatArrayPacketHash, type Caveat } from './caveat';
 import { resolveCaveats, type Caveats } from './caveatBuilder';
 import { concat, toFunctionSelector, toHex, type Hex } from './utils';
@@ -150,7 +150,7 @@ export const getDelegationHashOffchain = (input: Delegation): Hex => {
       delegationStruct.salt,
     ],
   );
-  return toHex(keccak(Buffer.from(encoded)));
+  return toHex(keccak256(encoded));
 };
 
 interface BaseCreateDelegationOptions {
