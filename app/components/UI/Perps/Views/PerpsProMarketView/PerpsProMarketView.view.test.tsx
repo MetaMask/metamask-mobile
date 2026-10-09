@@ -3864,7 +3864,9 @@ describe('Pro market order liquidity', () => {
           expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled(),
         );
         expect(screen.queryByText(message)).not.toBeOnTheScreen();
-        fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
+        await act(async () => {
+          fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
+        });
         await waitFor(() =>
           expect(placeOrder).toHaveBeenCalledWith(
             expect.objectContaining({
