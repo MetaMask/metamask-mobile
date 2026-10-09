@@ -6,6 +6,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  SectionDivider,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -15,11 +16,10 @@ interface OptOutSectionProps {
 
 const OptOutSection: React.FC<OptOutSectionProps> = ({ onErasePress }) => (
   <>
-    {/* Divider */}
-    <Box twClassName="my-4 border-b border-border-muted" />
+    <SectionDivider marginVertical={8} />
 
-    <Box testID="opt-out-section" twClassName="gap-4 flex-col px-4">
-      <Box twClassName="gap-2 mt-2">
+    <Box testID="opt-out-section" twClassName="flex-col px-4">
+      <Box twClassName="gap-2 pb-2">
         <Text variant={TextVariant.HeadingMd}>
           {strings('rewards.optout.title')}
         </Text>
@@ -32,16 +32,18 @@ const OptOutSection: React.FC<OptOutSectionProps> = ({ onErasePress }) => (
         </Text>
       </Box>
 
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        onPress={onErasePress}
-        isDanger
-        twClassName="w-full"
-        testID="opt-out-erase-button"
-      >
-        {strings('rewards.optout.erase_button')}
-      </Button>
+      <Box twClassName="pt-3">
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          onPress={onErasePress}
+          isDanger
+          twClassName="w-full"
+          testID="opt-out-erase-button"
+        >
+          {strings('rewards.optout.erase_button')}
+        </Button>
+      </Box>
     </Box>
   </>
 );

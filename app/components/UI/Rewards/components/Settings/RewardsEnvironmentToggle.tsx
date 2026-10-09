@@ -8,6 +8,7 @@ import {
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
+  SectionDivider,
   Text,
   TextColor,
   TextVariant,
@@ -95,13 +96,12 @@ const RewardsEnvironmentToggle: React.FC = () => {
 
   return (
     <>
-      {/* Divider */}
-      <Box twClassName="my-4 border-b border-border-muted" />
+      <SectionDivider marginVertical={8} />
       <Box
         testID="rewards-environment-toggle"
         twClassName="gap-4 flex-col px-4"
       >
-        <Text variant={TextVariant.HeadingMd} twClassName="mt-2">
+        <Text variant={TextVariant.HeadingMd}>
           {strings('rewards.settings.environment_selector')}
         </Text>
         <Button

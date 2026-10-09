@@ -21,6 +21,7 @@ const Tab: React.FC<TabProps> = ({
   testID,
   onLayout,
   endAccessory,
+  isFullWidth = false,
   ...pressableProps
 }) => {
   const tw = useTailwind();
@@ -39,7 +40,8 @@ const Tab: React.FC<TabProps> = ({
     <View
       ref={viewRef}
       onLayout={handleOnLayout}
-      style={tw.style('flex-shrink-0')}
+      style={tw.style(isFullWidth ? 'flex-1' : 'flex-shrink-0')}
+      testID={testID ? `${testID}-container` : undefined}
     >
       <Pressable
         style={tw.style(

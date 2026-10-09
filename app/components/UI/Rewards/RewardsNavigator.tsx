@@ -7,6 +7,9 @@ import OnboardingNavigator from './OnboardingNavigator';
 import RewardsDashboard from './Views/RewardsDashboard';
 import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
+import RewardsTradingCommissionsView from './Views/RewardsTradingCommissionsView';
+import RewardsTradingRebatesView from './Views/RewardsTradingRebatesView';
+import RewardsEarningsHistoryView from './Views/RewardsEarningsHistoryView';
 import RewardsVipSplashView from './Views/RewardsVipSplashView';
 import RewardsVipView from './Views/RewardsVipView';
 import RewardsVipRefereeSplashView from './Views/RewardsVipRefereeSplashView';
@@ -186,6 +189,21 @@ const RewardsNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.REWARDS_SETTINGS_VIEW}
         component={RewardsSettingsView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_TRADING_COMMISSIONS_VIEW}
+        component={RewardsTradingCommissionsView}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_TRADING_REBATES_VIEW}
+        component={RewardsTradingRebatesView}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_EARNINGS_HISTORY_VIEW}
+        component={RewardsEarningsHistoryView}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <Stack.Screen
         name={Routes.REWARDS_VIP_SPLASH_VIEW}

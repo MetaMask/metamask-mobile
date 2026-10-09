@@ -70,11 +70,13 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('./BenefitCard', () => {
+jest.mock('./BenefitPreviewCard', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
+    BENEFIT_PREVIEW_CARD_WIDTH: 210,
+    BENEFIT_PREVIEW_CARD_HEIGHT: 248,
     default: ({ benefit }: { benefit: TestBenefit }) =>
       ReactActual.createElement(
         Text,
@@ -153,7 +155,9 @@ describe('BenefitsPreview', () => {
 
       const { getByTestId, queryByTestId } = render(<BenefitsPreview />);
 
-      expect(getByTestId('benefits-preview-skeleton')).toBeOnTheScreen();
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_SKELETON),
+      ).toBeOnTheScreen();
       expect(queryByTestId('benefit-empty-list')).toBeNull();
     });
 
@@ -166,7 +170,9 @@ describe('BenefitsPreview', () => {
 
       const { getByTestId, queryByTestId } = render(<BenefitsPreview />);
 
-      expect(getByTestId('benefits-preview-skeleton')).toBeOnTheScreen();
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_SKELETON),
+      ).toBeOnTheScreen();
       expect(queryByTestId('benefit-card-1')).toBeNull();
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS),
@@ -221,6 +227,16 @@ describe('BenefitsPreview', () => {
       ).toBeOnTheScreen();
       expect(getByText('Benefit One')).toBeOnTheScreen();
       expect(getByText('Benefit Two')).toBeOnTheScreen();
+    });
+
+    it('lays the benefit cards out in a snapping horizontal carousel', () => {
+      const { getByTestId } = render(<BenefitsPreview />);
+
+      const carousel = getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS);
+
+      expect(carousel.props.horizontal).toBe(true);
+      expect(carousel.props.snapToInterval).toBe(222);
+      expect(carousel.props.snapToAlignment).toBe('start');
     });
 
     it('limits preview to the first three benefits', () => {

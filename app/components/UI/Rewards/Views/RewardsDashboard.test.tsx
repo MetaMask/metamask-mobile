@@ -4,10 +4,17 @@ import { useSelector } from 'react-redux';
 import RewardsDashboard from './RewardsDashboard';
 import Routes from '../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
+import { KOL_DASHBOARD_SELECTORS } from '../components/KolDashboard/KolDashboard.testIds';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
 import { handleDeeplink } from '../../../../core/DeeplinkManager';
+import {
+  resetClaimableRewards,
+  resetClaimOnHold,
+  resetClaimsPaused,
+  resetTaxFormPending,
+} from '../components/KolDashboard/rewardsClaimStore';
 
 // Mock dependencies
 const mockDispatch = jest.fn();
@@ -255,6 +262,154 @@ jest.mock('../components/Benefits/BenefitsPreview', () => ({
   },
 }));
 
+jest.mock('../components/KolDashboard/ReferralHeroCard', () => ({
+  __esModule: true,
+  default: function MockReferralHeroCard({
+    onViewEarnings,
+  }: {
+    onViewEarnings: () => void;
+  }) {
+    const ReactActual = jest.requireActual('react');
+    const { Pressable } = jest.requireActual('react-native');
+    return ReactActual.createElement(Pressable, {
+      testID: 'referral-hero-card',
+      onPress: onViewEarnings,
+    });
+  },
+}));
+
+const mockRewardsDashboardTabsProps = jest.fn();
+jest.mock('../components/KolDashboard/RewardsDashboardTabs', () => ({
+  __esModule: true,
+  default: function MockRewardsDashboardTabs(props: Record<string, unknown>) {
+    mockRewardsDashboardTabsProps(props);
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.createElement(View, {
+      testID: 'rewards-dashboard-tabs',
+    });
+  },
+}));
+
+jest.mock('../components/KolDashboard/RewardsPreviewSheet', () => {
+  const { KOL_DASHBOARD_SELECTORS: selectors } = jest.requireActual(
+    '../components/KolDashboard/KolDashboard.testIds',
+  );
+  return {
+    __esModule: true,
+    default: function MockRewardsPreviewSheet({
+      isVisible,
+      onSelect,
+    }: {
+      isVisible: boolean;
+      onSelect: (action: string) => void;
+    }) {
+      const ReactActual = jest.requireActual('react');
+      const { Pressable, View } = jest.requireActual('react-native');
+      if (!isVisible) {
+        return null;
+      }
+      return ReactActual.createElement(
+        View,
+        { testID: selectors.PREVIEW_SHEET },
+        ReactActual.createElement(Pressable, {
+          testID: selectors.PREVIEW_MAIN_DASHBOARD,
+          onPress: () => onSelect('mainDashboard'),
+        }),
+        ReactActual.createElement(Pressable, {
+          testID: selectors.PREVIEW_INVITED_EXISTING_USER,
+          onPress: () => onSelect('invitedExistingUser'),
+        }),
+        ReactActual.createElement(Pressable, {
+          testID: selectors.PREVIEW_CLAIMS_ON_HOLD,
+          onPress: () => onSelect('claimsOnHold'),
+        }),
+        ReactActual.createElement(Pressable, {
+          testID: selectors.PREVIEW_CLAIMS_PAUSED,
+          onPress: () => onSelect('claimsPaused'),
+        }),
+        ReactActual.createElement(Pressable, {
+          testID: selectors.PREVIEW_RESET_CLAIM,
+          onPress: () => onSelect('resetClaim'),
+        }),
+      );
+    },
+  };
+});
+
+jest.mock('../components/KolDashboard/ReferralInviteSheet', () => ({
+  __esModule: true,
+  default: function MockReferralInviteSheet({
+    isVisible,
+    referralCode,
+    onAccept,
+    onDecline,
+    onClose,
+  }: {
+    isVisible: boolean;
+    referralCode: string;
+    onAccept: (code: string) => void;
+    onDecline: () => void;
+    onClose: () => void;
+  }) {
+    const ReactActual = jest.requireActual('react');
+    const { Pressable, View } = jest.requireActual('react-native');
+    if (!isVisible) {
+      return null;
+    }
+    return ReactActual.createElement(
+      View,
+      { testID: 'referral-invite-sheet' },
+      ReactActual.createElement(Pressable, {
+        key: 'accept',
+        testID: 'referral-invite-accept',
+        onPress: () => onAccept(referralCode),
+      }),
+      ReactActual.createElement(Pressable, {
+        key: 'decline',
+        testID: 'referral-invite-decline',
+        onPress: onDecline,
+      }),
+      ReactActual.createElement(Pressable, {
+        key: 'close',
+        testID: 'referral-invite-close',
+        onPress: onClose,
+      }),
+    );
+  },
+}));
+
+const mockShowToast = jest.fn();
+jest.mock('../hooks/useRewardsToast', () => ({
+  __esModule: true,
+  default: () => ({
+    showToast: mockShowToast,
+    RewardsToastOptions: {
+      success: (title: string) => ({ variant: 'success', title }),
+    },
+  }),
+}));
+
+jest.mock('../components/KolDashboard/EarningsTab', () => ({
+  __esModule: true,
+  default: function MockEarningsTab() {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.createElement(View, { testID: 'earnings-tab' });
+  },
+}));
+
+const mockPerformanceTabProps = jest.fn();
+jest.mock('../components/KolDashboard/PerformanceTab', () => ({
+  __esModule: true,
+  default: function MockPerformanceTab(props: Record<string, unknown>) {
+    mockPerformanceTabProps(props);
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.createElement(View, { testID: 'performance-tab' });
+  },
+}));
+
 // Mock hooks
 jest.mock('../hooks/useRewardOptinSummary', () => ({
   useRewardOptinSummary: jest.fn(),
@@ -419,6 +574,10 @@ describe('RewardsDashboard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetClaimableRewards();
+    resetTaxFormPending();
+    resetClaimOnHold();
+    resetClaimsPaused();
 
     // Configure mocks before passing them to the mock hook factory
     // so the hook receives already-configured references
@@ -513,10 +672,10 @@ describe('RewardsDashboard', () => {
   describe('rendering', () => {
     it('renders main title', () => {
       // Act
-      const { getByText } = render(<RewardsDashboard />);
+      const { getByTestId } = render(<RewardsDashboard />);
 
       // Assert
-      expect(getByText('Rewards')).toBeTruthy();
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
     });
 
     it('mounts campaign outcome toast hooks on render', () => {
@@ -540,8 +699,17 @@ describe('RewardsDashboard', () => {
       expect(getByTestId(REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW)).toBeTruthy();
       expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
       expect(getByTestId('campaigns-preview')).toBeTruthy();
-      expect(getByTestId('earn-rewards-preview')).toBeTruthy();
+      expect(getByTestId('referral-hero-card')).toBeTruthy();
       expect(getByTestId('benefits-preview')).toBeTruthy();
+    });
+
+    it('shows the earnings tab when an earnings total on the hero card is pressed', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+
+      fireEvent.press(getByTestId('referral-hero-card'));
+
+      expect(getByTestId('earnings-tab')).toBeOnTheScreen();
+      expect(queryByTestId('campaigns-preview')).not.toBeOnTheScreen();
     });
 
     it('calls modal hooks when component is rendered', () => {
@@ -564,12 +732,13 @@ describe('RewardsDashboard', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders HeaderRoot with title Rewards', () => {
+    it('renders the standard header with title Rewards', () => {
       // Act
-      const { getByText } = render(<RewardsDashboard />);
+      const { getByTestId, getAllByText } = render(<RewardsDashboard />);
 
       // Assert
-      expect(getByText('Rewards')).toBeOnTheScreen();
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
+      expect(getAllByText('Rewards').length).toBeGreaterThan(0);
     });
 
     it('renders no back button as a tab, even though canGoBack is true', () => {
@@ -608,9 +777,6 @@ describe('RewardsDashboard', () => {
 
         expect(
           getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON),
         ).toBeOnTheScreen();
         expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
       });
@@ -651,16 +817,18 @@ describe('RewardsDashboard', () => {
       });
     });
 
-    it('navigates to referral view when referral button is pressed', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON));
+    it('shows the performance tab when that tab is selected', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      const { onChangeTab } = mockRewardsDashboardTabsProps.mock.calls[
+        mockRewardsDashboardTabsProps.mock.calls.length - 1
+      ][0] as { onChangeTab: (tab: string) => void };
 
-      // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: Routes.REFERRAL_REWARDS_VIEW,
-        params: undefined,
+      act(() => {
+        onChangeTab('performance');
       });
+
+      expect(getByTestId('performance-tab')).toBeOnTheScreen();
+      expect(queryByTestId('earnings-tab')).toBeNull();
     });
 
     it('does not render the VIP button when VIP is disabled', () => {
@@ -1324,9 +1492,8 @@ describe('RewardsDashboard', () => {
     });
   });
 
-  describe('referral button state', () => {
-    it('always renders the referral button as enabled regardless of subscription state', () => {
-      // Arrange - no subscriptionId
+  describe('performance tab', () => {
+    it('can open the performance tab when the user is not opted in', () => {
       mockSelectRewardsSubscriptionId.mockReturnValue(null);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
@@ -1341,14 +1508,16 @@ describe('RewardsDashboard', () => {
         return undefined;
       });
 
-      // Act
       const { getByTestId } = render(<RewardsDashboard />);
-      const referralButton = getByTestId(
-        REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
-      );
+      const { onChangeTab } = mockRewardsDashboardTabsProps.mock.calls[
+        mockRewardsDashboardTabsProps.mock.calls.length - 1
+      ][0] as { onChangeTab: (tab: string) => void };
 
-      // Assert - referral button is never disabled
-      expect(referralButton).not.toBeDisabled();
+      act(() => {
+        onChangeTab('performance');
+      });
+
+      expect(getByTestId('performance-tab')).toBeOnTheScreen();
     });
   });
 
@@ -2162,6 +2331,273 @@ describe('RewardsDashboard', () => {
 
       // Assert
       expect(mockControllerMessengerCall).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('referral invite personas', () => {
+    type GetByTestId = ReturnType<typeof render>['getByTestId'];
+
+    const longPressTitle = (getByTestId: GetByTestId) => {
+      fireEvent(getByTestId(REWARDS_VIEW_SELECTORS.TITLE), 'longPress');
+    };
+
+    const openInviteSheet = (getByTestId: GetByTestId) => {
+      longPressTitle(getByTestId);
+      fireEvent.press(
+        getByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_INVITED_EXISTING_USER),
+      );
+    };
+
+    const acceptInvite = (getByTestId: GetByTestId) => {
+      openInviteSheet(getByTestId);
+      fireEvent.press(getByTestId('referral-invite-accept'));
+    };
+
+    it('renders the KOL dashboard with no invite sheet by default', () => {
+      // Act
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+
+      // Assert
+      expect(getByTestId('referral-hero-card')).toBeOnTheScreen();
+      expect(queryByTestId('referral-invite-sheet')).toBeNull();
+    });
+
+    it('opens the preview sheet from the hidden long press on the title', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+
+      longPressTitle(getByTestId);
+
+      expect(
+        getByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_SHEET),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('referral-invite-sheet')).toBeNull();
+      expect(getByTestId('referral-hero-card')).toBeOnTheScreen();
+    });
+
+    it('opens the invite sheet from Invited existing user', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+
+      openInviteSheet(getByTestId);
+
+      expect(queryByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_SHEET)).toBeNull();
+      expect(getByTestId('referral-invite-sheet')).toBeOnTheScreen();
+      expect(getByTestId('referral-hero-card')).toBeOnTheScreen();
+    });
+
+    it('restores the KOL dashboard from Main dashboard', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      acceptInvite(getByTestId);
+      longPressTitle(getByTestId);
+
+      fireEvent.press(
+        getByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_MAIN_DASHBOARD),
+      );
+
+      expect(getByTestId('referral-hero-card')).toBeOnTheScreen();
+      expect(queryByTestId(KOL_DASHBOARD_SELECTORS.INVITED_HERO)).toBeNull();
+      expect(queryByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_SHEET)).toBeNull();
+    });
+
+    it('opens the Claims tab without the on-hold sheet or earnings dot', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      longPressTitle(getByTestId);
+
+      fireEvent.press(
+        getByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_CLAIMS_ON_HOLD),
+      );
+
+      expect(queryByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_SHEET)).toBeNull();
+      expect(
+        queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIM_ON_HOLD_SHEET),
+      ).toBeNull();
+      expect(getByTestId('earnings-tab')).toBeOnTheScreen();
+      expect(mockRewardsDashboardTabsProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          activeTab: 'earnings',
+          showEarningsDot: false,
+        }),
+      );
+    });
+
+    it('opens the Claims tab without the paused sheet or earnings dot', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      longPressTitle(getByTestId);
+
+      fireEvent.press(
+        getByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_CLAIMS_PAUSED),
+      );
+
+      expect(queryByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_SHEET)).toBeNull();
+      expect(
+        queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIMS_PAUSED_SHEET),
+      ).toBeNull();
+      expect(getByTestId('earnings-tab')).toBeOnTheScreen();
+      expect(mockRewardsDashboardTabsProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          activeTab: 'earnings',
+          showEarningsDot: false,
+        }),
+      );
+    });
+
+    it('opens the Claims tab from Reset claim', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      longPressTitle(getByTestId);
+
+      fireEvent.press(getByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_RESET_CLAIM));
+
+      expect(queryByTestId(KOL_DASHBOARD_SELECTORS.PREVIEW_SHEET)).toBeNull();
+      expect(getByTestId('earnings-tab')).toBeOnTheScreen();
+      expect(mockRewardsDashboardTabsProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({ activeTab: 'earnings' }),
+      );
+    });
+
+    it('swaps the referral card for the referred card on accept', () => {
+      // Arrange
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+
+      // Act
+      acceptInvite(getByTestId);
+
+      // Assert
+      expect(
+        getByTestId(KOL_DASHBOARD_SELECTORS.INVITED_HERO),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('referral-hero-card')).toBeNull();
+      expect(queryByTestId('referral-invite-sheet')).toBeNull();
+    });
+
+    it('opens the referral activated splash on accept', () => {
+      // Arrange
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      // Act
+      acceptInvite(getByTestId);
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_REFERRAL_ACCEPTED_SPLASH_VIEW,
+      );
+    });
+
+    it('keeps the performance tab for a referred user', () => {
+      const { getByTestId } = render(<RewardsDashboard />);
+      acceptInvite(getByTestId);
+
+      const { onChangeTab } = mockRewardsDashboardTabsProps.mock.calls[
+        mockRewardsDashboardTabsProps.mock.calls.length - 1
+      ][0] as { onChangeTab: (tab: string) => void };
+      act(() => {
+        onChangeTab('performance');
+      });
+
+      expect(getByTestId('performance-tab')).toBeOnTheScreen();
+    });
+
+    it('opens performance without referrals for a referred user', () => {
+      const { getByTestId } = render(<RewardsDashboard />);
+      acceptInvite(getByTestId);
+
+      const { onChangeTab } = mockRewardsDashboardTabsProps.mock.calls[
+        mockRewardsDashboardTabsProps.mock.calls.length - 1
+      ][0] as { onChangeTab: (tab: string) => void };
+      act(() => {
+        onChangeTab('performance');
+      });
+
+      expect(mockPerformanceTabProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({ hideReferrals: true }),
+      );
+    });
+
+    it('keeps both tabs for a referred user', () => {
+      // Arrange
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      // Act
+      acceptInvite(getByTestId);
+
+      // Assert
+      expect(mockRewardsDashboardTabsProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({ activeTab: 'waysToEarn' }),
+      );
+      expect(getByTestId('rewards-dashboard-tabs')).toBeOnTheScreen();
+    });
+
+    it('replaces campaigns and benefits with an opt-in empty state', () => {
+      // Arrange
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+
+      // Act
+      acceptInvite(getByTestId);
+
+      // Assert
+      expect(queryByTestId('campaigns-preview')).toBeNull();
+      expect(queryByTestId('benefits-preview')).toBeNull();
+      expect(
+        getByTestId(KOL_DASHBOARD_SELECTORS.INVITED_OPT_IN_SECTION),
+      ).toBeOnTheScreen();
+    });
+
+    it('reveals campaigns and benefits after opt-in', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      acceptInvite(getByTestId);
+
+      fireEvent.press(
+        getByTestId(KOL_DASHBOARD_SELECTORS.INVITED_OPT_IN_BUTTON),
+      );
+
+      expect(
+        queryByTestId(KOL_DASHBOARD_SELECTORS.INVITED_OPT_IN_SECTION),
+      ).toBeNull();
+      expect(getByTestId('campaigns-preview')).toBeOnTheScreen();
+      expect(getByTestId('benefits-preview')).toBeOnTheScreen();
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'success',
+          title: 'rewards.kol.invited_opt_in_success_toast',
+        }),
+      );
+    });
+
+    it('returns to the KOL dashboard on decline', () => {
+      // Arrange
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      openInviteSheet(getByTestId);
+
+      // Act
+      fireEvent.press(getByTestId('referral-invite-decline'));
+
+      // Assert
+      expect(queryByTestId('referral-invite-sheet')).toBeNull();
+      expect(getByTestId('referral-hero-card')).toBeOnTheScreen();
+      expect(queryByTestId(KOL_DASHBOARD_SELECTORS.INVITED_HERO)).toBeNull();
+    });
+
+    it('hides the invite without changing persona when the sheet is dismissed', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      acceptInvite(getByTestId);
+      openInviteSheet(getByTestId);
+
+      fireEvent.press(getByTestId('referral-invite-close'));
+
+      expect(queryByTestId('referral-invite-sheet')).toBeNull();
+      expect(
+        getByTestId(KOL_DASHBOARD_SELECTORS.INVITED_HERO),
+      ).toBeOnTheScreen();
+    });
+
+    it('returns to the KOL dashboard when declining after a previous accept', () => {
+      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      acceptInvite(getByTestId);
+      openInviteSheet(getByTestId);
+
+      fireEvent.press(getByTestId('referral-invite-decline'));
+
+      expect(queryByTestId('referral-invite-sheet')).toBeNull();
+      expect(getByTestId('referral-hero-card')).toBeOnTheScreen();
+      expect(queryByTestId(KOL_DASHBOARD_SELECTORS.INVITED_HERO)).toBeNull();
     });
   });
 });

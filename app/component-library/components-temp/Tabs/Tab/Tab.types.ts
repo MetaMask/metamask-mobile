@@ -30,4 +30,11 @@ export interface TabProps extends PressableProps {
    * Optional content rendered after the label (indicator, tag, icon, etc.)
    */
   endAccessory?: ReactNode;
+  /**
+   * Whether the tab stretches to share the row's width with its siblings
+   * instead of hugging its label
+   *
+   * @default false
+   */
+  isFullWidth?: boolean;
 }

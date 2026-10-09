@@ -472,6 +472,16 @@ const ChoosePassword = () => {
     });
   }, [navigation]);
 
+  /**
+   * Shows the invite as the last onboarding step, so the wallet opens only
+   * once the user has moved past it.
+   */
+  const continueToInviteStep = useCallback(() => {
+    navigation.navigate(Routes.ONBOARDING.INVITE, {
+      onComplete: onContinueNavigation,
+    });
+  }, [navigation, onContinueNavigation]);
+
   const handlePostWalletCreation = useCallback(
     async (authType: AuthData, isMarketingOptedIn: boolean) => {
       dispatch(passwordSetAction());
@@ -536,11 +546,11 @@ const ChoosePassword = () => {
       const accountType = reduxAccountType;
       if (shouldShowQuestionnaire) {
         navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
-          onComplete: onContinueNavigation,
+          onComplete: continueToInviteStep,
           ...(accountType && { accountType }),
         });
       } else {
-        onContinueNavigation();
+        continueToInviteStep();
       }
     },
     [
@@ -550,7 +560,7 @@ const ChoosePassword = () => {
       reduxAccountType,
       shouldShowQuestionnaire,
       navigation,
-      onContinueNavigation,
+      continueToInviteStep,
       tryExportSeedPhrase,
       password,
     ],
