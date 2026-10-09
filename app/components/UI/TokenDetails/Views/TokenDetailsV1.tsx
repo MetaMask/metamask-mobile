@@ -541,6 +541,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
         <TraderPositionPnlSection
           token={token}
           tokenKey={traderPositionTokenKey}
+          securityData={securityData}
         />
 
         {/* Both sheets sit outside the ScrollView on purpose: the design

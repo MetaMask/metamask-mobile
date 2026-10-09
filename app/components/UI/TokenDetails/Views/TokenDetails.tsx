@@ -60,7 +60,6 @@ import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import { TokenDetailsV1 } from './TokenDetailsV1';
-import TokenDetailsPagePending from './TokenDetailsPagePending';
 import {
   TokenDetailsSource,
   TokenDetailsAction,
@@ -933,16 +932,12 @@ export const TokenDetailsLegacyRouteWrapper: React.FC = () => {
  * Reads the token from React Navigation route.params and picks the page to
  * render. Swapping component types rather than returning early keeps the two
  * pages' hooks fully independent: neither page's hooks run for the other, and
- * a variant resolving asynchronously remounts instead of changing hook order.
+ * Swapping component types keeps the two pages' hooks fully independent.
  */
 export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
   const token = route.params as TokenDetailsRouteParams;
-  const { variant, isPending } = useTokenDetailsVariant(token);
-
-  if (isPending) {
-    return <TokenDetailsPagePending token={token} />;
-  }
+  const variant = useTokenDetailsVariant(token);
 
   return variant ? (
     <TokenDetailsV1 token={token} variant={variant} />

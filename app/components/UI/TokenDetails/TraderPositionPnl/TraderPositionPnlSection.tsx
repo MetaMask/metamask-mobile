@@ -1,3 +1,4 @@
+import type { TokenSecurityData } from '@metamask/assets-controllers';
 import React, { useLayoutEffect, useState, type FC } from 'react';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
@@ -7,6 +8,7 @@ import { MOCK_TRADER_POSITION_PNL } from './mockTraderPositionPnl';
 interface TraderPositionPnlSectionProps {
   token: TokenDetailsRouteParams;
   tokenKey: string;
+  securityData?: TokenSecurityData | null;
 }
 
 /**
@@ -18,6 +20,7 @@ interface TraderPositionPnlSectionProps {
 const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
   token,
   tokenKey,
+  securityData,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { onQuickBuyPress, openQuickBuy, quickBuySheet } = useStickyQuickBuy({
@@ -41,6 +44,7 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
     <>
       <TokenDetailsStickyFooter
         token={token}
+        securityData={securityData}
         currentTokenBalance={token.balance ?? undefined}
         hasTokenBalance={Boolean(token.balance && token.balance !== '0')}
         onQuickBuyPress={onQuickBuyPress}

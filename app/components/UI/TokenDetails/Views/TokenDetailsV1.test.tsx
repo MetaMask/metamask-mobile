@@ -400,6 +400,21 @@ describe('TokenDetailsV1', () => {
     );
   });
 
+  it('passes token security data to the sticky footer', () => {
+    render(
+      <TokenDetailsV1
+        token={{ ...baseToken, securityData: securityDataWithLinks }}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps[0]).toEqual(
+      expect.objectContaining({
+        securityData: securityDataWithLinks,
+      }),
+    );
+  });
+
   it('renders the price hero, tab bar and Overview panel by default', () => {
     const { getByTestId, getByText } = render(
       <TokenDetailsV1
