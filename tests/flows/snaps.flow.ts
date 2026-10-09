@@ -7,9 +7,8 @@ import SnapSettingsView from '../page-objects/Settings/SnapSettingsView';
 import TrendingView from '../page-objects/Trending/TrendingView';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import WalletView from '../page-objects/wallet/WalletView';
-import { navigateToBrowserView, waitForTestSnapsToLoad } from './browser.flow';
+import { navigateToBrowserView } from './browser.flow';
 import { loginToAppPlaywright } from './wallet.flow';
-import { TEST_SNAPS_URL } from '../selectors/Browser/TestSnaps.selectors';
 
 /**
  * Logs in with the e2e wallet fixture and navigates to the test-snaps page.
@@ -45,7 +44,11 @@ export const navigateFromBrowserToSnapSettings = async (): Promise<void> => {
 /**
  * Navigate from Snap Settings back to the in-app browser (test-snaps page).
  * Walks back through Snap Settings → Settings → Account menu → Explore →
- * Browser, then selects the test-snaps tab by host a11y label.
+ * Browser, then reloads test-snaps via URL navigation.
+ *
+ * Prefer `navigateToTestSnap` over `selectTabByPartialUrl`: the tab overview
+ * path flakes on iOS (Opened tabs residual while waiting for Snap alerts) and
+ * a fresh page load remounts the Snap client after enable/disable.
  */
 export const navigateFromSnapSettingsToBrowser = async (): Promise<void> => {
   await SnapSettingsView.tapBackButton();
@@ -64,6 +67,5 @@ export const navigateFromSnapSettingsToBrowser = async (): Promise<void> => {
 
   await TabBarComponent.tapExploreButton();
   await TrendingView.tapBrowserButton();
-  await BrowserView.selectTabByPartialUrl(new URL(TEST_SNAPS_URL).origin);
-  await waitForTestSnapsToLoad();
+  await TestSnaps.navigateToTestSnap({ skipTabCleanup: true });
 };
