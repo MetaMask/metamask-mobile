@@ -9395,6 +9395,9 @@ describe('PredictController', () => {
     });
 
     it('passes the resolved membership fee policy to the provider', async () => {
+      const previousFeeWaiverOverride =
+        process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+      delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
       mockPolymarketProvider.previewOrder.mockResolvedValue(
         createMockOrderPreview({ side: Side.BUY }),
       );
@@ -9402,40 +9405,52 @@ describe('PredictController', () => {
         .fn()
         .mockResolvedValue(ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS);
 
-      await withController(
-        async ({ controller }) => {
-          await controller.previewOrder({
-            marketId: 'market-1',
-            outcomeId: 'outcome-1',
-            outcomeTokenId: 'token-1',
-            side: Side.BUY,
-            size: 100,
-          });
+      try {
+        await withController(
+          async ({ controller }) => {
+            await controller.previewOrder({
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+              side: Side.BUY,
+              size: 100,
+            });
 
-          expect(getBenefits).toHaveBeenCalledTimes(1);
-          expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
-            expect.objectContaining({
-              feePolicy: {
-                discountType: DiscountType.SUBSCRIPTION,
-                builderCode: 'predict-pro-builder',
-              },
-            }),
-          );
-        },
-        {
-          mocks: {
-            getBenefits,
-            getRemoteFeatureFlagState: jest
-              .fn()
-              .mockReturnValue(
-                REMOTE_FEATURE_FLAG_STATE_WITH_SUBSCRIPTION_FEE_WAIVER,
-              ),
+            expect(getBenefits).toHaveBeenCalledTimes(1);
+            expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
+              expect.objectContaining({
+                feePolicy: {
+                  discountType: DiscountType.SUBSCRIPTION,
+                  builderCode: 'predict-pro-builder',
+                },
+              }),
+            );
           },
-        },
-      );
+          {
+            mocks: {
+              getBenefits,
+              getRemoteFeatureFlagState: jest
+                .fn()
+                .mockReturnValue(
+                  REMOTE_FEATURE_FLAG_STATE_WITH_SUBSCRIPTION_FEE_WAIVER,
+                ),
+            },
+          },
+        );
+      } finally {
+        if (previousFeeWaiverOverride === undefined) {
+          delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+        } else {
+          process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED =
+            previousFeeWaiverOverride;
+        }
+      }
     });
 
     it('skips the membership fee waiver when the remote flag is disabled', async () => {
+      const previousFeeWaiverOverride =
+        process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+      delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
       mockPolymarketProvider.previewOrder.mockResolvedValue(
         createMockOrderPreview({ side: Side.BUY }),
       );
@@ -9443,25 +9458,78 @@ describe('PredictController', () => {
         .fn()
         .mockResolvedValue(ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS);
 
-      await withController(
-        async ({ controller }) => {
-          await controller.previewOrder({
-            marketId: 'market-1',
-            outcomeId: 'outcome-1',
-            outcomeTokenId: 'token-1',
-            side: Side.BUY,
-            size: 100,
-          });
+      try {
+        await withController(
+          async ({ controller }) => {
+            await controller.previewOrder({
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+              side: Side.BUY,
+              size: 100,
+            });
 
-          expect(getBenefits).not.toHaveBeenCalled();
-          expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
-            expect.not.objectContaining({
-              feePolicy: expect.anything(),
-            }),
-          );
-        },
-        { mocks: { getBenefits } },
+            expect(getBenefits).not.toHaveBeenCalled();
+            expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
+              expect.not.objectContaining({
+                feePolicy: expect.anything(),
+              }),
+            );
+          },
+          { mocks: { getBenefits } },
+        );
+      } finally {
+        if (previousFeeWaiverOverride === undefined) {
+          delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+        } else {
+          process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED =
+            previousFeeWaiverOverride;
+        }
+      }
+    });
+
+    it('applies the membership fee waiver when the env override is true and the remote flag is disabled', async () => {
+      const previousFeeWaiverOverride =
+        process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+      process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED = 'true';
+      mockPolymarketProvider.previewOrder.mockResolvedValue(
+        createMockOrderPreview({ side: Side.BUY }),
       );
+      const getBenefits = jest
+        .fn()
+        .mockResolvedValue(ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS);
+
+      try {
+        await withController(
+          async ({ controller }) => {
+            await controller.previewOrder({
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+              side: Side.BUY,
+              size: 100,
+            });
+
+            expect(getBenefits).toHaveBeenCalledTimes(1);
+            expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
+              expect.objectContaining({
+                feePolicy: {
+                  discountType: DiscountType.SUBSCRIPTION,
+                  builderCode: 'predict-pro-builder',
+                },
+              }),
+            );
+          },
+          { mocks: { getBenefits } },
+        );
+      } finally {
+        if (previousFeeWaiverOverride === undefined) {
+          delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+        } else {
+          process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED =
+            previousFeeWaiverOverride;
+        }
+      }
     });
 
     it('handles preview errors', async () => {
