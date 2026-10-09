@@ -20,7 +20,7 @@ export interface MembershipPricing {
 
 export interface MembershipDetails {
   plan: string;
-  earnedThisMonth: string;
+  lifetimeEarnings: string;
   total: string;
   totalOriginal?: string;
   savingsNote?: string;
@@ -28,7 +28,11 @@ export interface MembershipDetails {
   renewsOn: string;
 }
 
-const formatRenewalDate = (date: string): string => {
+const formatRenewalDate = (date: string | undefined): string => {
+  if (!date) {
+    return MEMBERSHIP_UNAVAILABLE_VALUE;
+  }
+
   const renewalDate = new Date(date);
   if (Number.isNaN(renewalDate.getTime())) {
     return MEMBERSHIP_UNAVAILABLE_VALUE;
@@ -111,7 +115,7 @@ export const getMembershipDetails = (
   if (subscription === undefined) {
     return {
       plan: MEMBERSHIP_UNAVAILABLE_VALUE,
-      earnedThisMonth: MEMBERSHIP_UNAVAILABLE_VALUE,
+      lifetimeEarnings: MEMBERSHIP_UNAVAILABLE_VALUE,
       total: MEMBERSHIP_UNAVAILABLE_VALUE,
       payingWith: MEMBERSHIP_UNAVAILABLE_VALUE,
       renewsOn: MEMBERSHIP_UNAVAILABLE_VALUE,
@@ -142,8 +146,8 @@ export const getMembershipDetails = (
         );
 
   return {
-    plan: `${strings('pro_subscription.pro')} (${intervalLabel})`,
-    earnedThisMonth: MEMBERSHIP_UNAVAILABLE_VALUE,
+    plan: intervalLabel,
+    lifetimeEarnings: MEMBERSHIP_UNAVAILABLE_VALUE,
     total,
     payingWith: formatPaymentMethod(subscription),
     renewsOn: formatRenewalDate(subscription.currentPeriodEnd),

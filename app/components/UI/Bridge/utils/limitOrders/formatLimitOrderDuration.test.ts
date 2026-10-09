@@ -54,7 +54,7 @@ describe('formatLimitOrderTimeLeft', () => {
         '2026-09-27T12:00:00.000Z',
         new Date('2026-09-20T12:00:00.000Z'),
       ),
-    ).toBe('7d left');
+    ).toBe('7d');
   });
 
   it('formats the hours remaining for a sub-day expiry', () => {
@@ -63,7 +63,7 @@ describe('formatLimitOrderTimeLeft', () => {
         '2026-09-20T14:30:00.000Z',
         new Date('2026-09-20T12:00:00.000Z'),
       ),
-    ).toBe('2h left');
+    ).toBe('2h');
   });
 
   it('formats the minutes remaining for a sub-hour expiry', () => {
@@ -72,7 +72,7 @@ describe('formatLimitOrderTimeLeft', () => {
         '2026-09-20T12:10:00.000Z',
         new Date('2026-09-20T12:00:00.000Z'),
       ),
-    ).toBe('10m left');
+    ).toBe('10m');
   });
 
   it('rounds a partial minute up so it still counts', () => {
@@ -81,7 +81,7 @@ describe('formatLimitOrderTimeLeft', () => {
         '2026-09-20T12:00:30.000Z',
         new Date('2026-09-20T12:00:00.000Z'),
       ),
-    ).toBe('1m left');
+    ).toBe('1m');
   });
 
   it('clamps to zero once the order has already expired', () => {
@@ -90,6 +90,6 @@ describe('formatLimitOrderTimeLeft', () => {
         '2026-09-06T12:00:00.000Z',
         new Date('2026-09-20T12:00:00.000Z'),
       ),
-    ).toBe('0m left');
+    ).toBe('0m');
   });
 });

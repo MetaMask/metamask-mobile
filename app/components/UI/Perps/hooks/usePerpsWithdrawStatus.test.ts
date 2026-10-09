@@ -56,6 +56,7 @@ describe('usePerpsWithdrawStatus', () => {
           inProgress: jest.fn(() => ({}) as PerpsToastOptions),
           takingLonger: {} as PerpsToastOptions,
           tradeCanceled: {} as PerpsToastOptions,
+          orderNotPlaced: {} as PerpsToastOptions,
           error: {} as PerpsToastOptions,
         },
         oneClickTrade: {

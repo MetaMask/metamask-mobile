@@ -74,6 +74,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/base-controller',
   '@metamask/base-data-service',
   '@metamask/address-book-controller',
+  // 3.x ships ESM-only under dist/*.js (2.x used a CJS build).
+  '@metamask/analytics-controller',
   '@metamask/bridge-controller',
   '@metamask/bridge-status-controller',
   '@metamask/client-controller',
@@ -81,16 +83,24 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/client-utils',
   '@metamask/claims-controller',
   '@metamask/config-registry-controller',
+  // ESM-only; pulled in via network-controller → subscription-controller.
+  '@metamask/connectivity-controller',
   '@metamask/controller-utils',
   '@metamask/core-backend',
+  '@metamask/cryptography',
   '@metamask/delegation-controller',
   '@metamask/delegation-core',
   '@metamask/delegation-deployments',
   '@metamask/gas-fee-controller',
+  // 2.x ships ESM-only under dist/*.js.
+  '@metamask/geolocation-controller',
   '@metamask/keyring-controller',
   '@metamask/kyc-controller',
   '@metamask/logging-controller',
   '@metamask/money-account-balance-service',
+  // 5.x ships ESM-only under dist/*.js (3.x used CJS).
+  '@metamask/money-account-upgrade-controller',
+  '@metamask/money-account-api-data-service',
   '@metamask/money-account-utils',
   '@metamask/multichain-account-service',
   '@metamask/multichain-network-controller',

@@ -1,11 +1,13 @@
 import { act, renderHook } from '@testing-library/react-native';
 import {
-  useTraderFeed,
-  type TraderFeedRow,
-} from '../../../FeedView/hooks/useTraderFeed';
-import { mockPerpFeedItem } from '../../../FeedView/mocks/coreFeed.mock';
-import { mapFeedItem } from '../../../FeedView/utils/mapFeedItem';
-import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
+  useSocialFeed,
+  type SocialFeedState,
+} from '../../../../../UI/SocialFeed/data/useSocialFeed';
+import { type TraderFeedRow } from '../../../../../UI/SocialFeed/types';
+import { mockPerpFeedItem } from '../../../../../UI/SocialFeed/mocks/coreFeed.mock';
+import { mapFeedItem } from '../../../../../UI/SocialFeed/utils/mapFeedItem';
+import { toSocialFeedPosts } from '../../../../../UI/SocialFeed/utils/toSocialFeedPosts';
+import { mockOpenPerpsFeedItem } from '../../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import {
   COMPOSER_POSTING_DELAY_MS,
   resetSocialV1ComposedFeedStore,
@@ -14,9 +16,9 @@ import {
 } from '../store/socialV1ComposedFeedStore';
 import { useSocialV1Feed } from './useSocialV1Feed';
 
-jest.mock('../../../FeedView/hooks/useTraderFeed');
+jest.mock('../../../../../UI/SocialFeed/data/useSocialFeed');
 
-const mockUseTraderFeed = jest.mocked(useTraderFeed);
+const mockUseSocialFeed = jest.mocked(useSocialFeed);
 
 const buildRow = (positionId: string): TraderFeedRow => {
   const core = mockPerpFeedItem({ positionId });
@@ -29,13 +31,11 @@ const buildRow = (positionId: string): TraderFeedRow => {
 
 const arrangeFeed = (
   rows: TraderFeedRow[],
-  overrides: Partial<ReturnType<typeof useTraderFeed>> = {},
+  overrides: Partial<SocialFeedState> = {},
 ) => {
-  mockUseTraderFeed.mockReturnValue({
+  mockUseSocialFeed.mockReturnValue({
+    posts: toSocialFeedPosts(rows),
     rows,
-    items: rows.map((row) => row.item),
-    sections: [],
-    hasLoadedItems: rows.length > 0,
     isLoading: false,
     isFetchingNextPage: false,
     hasNextPage: false,
@@ -83,6 +83,7 @@ describe('useSocialV1Feed', () => {
         'pos-1-1700000500',
         'pos-2-1700000500',
       ]);
+      expect(result.current.posts[0].item.variant).toBe('perpsClosed');
     });
 
     it('copies the real trader onto the post envelope', () => {
@@ -102,14 +103,20 @@ describe('useSocialV1Feed', () => {
     it('reads the leaderboard scope on Trending', () => {
       renderHook(() => useSocialV1Feed('trending'));
 
-      expect(mockUseTraderFeed).toHaveBeenCalledWith({ audience: 'all' });
+      expect(mockUseSocialFeed).toHaveBeenCalledWith({
+        kind: 'all',
+        audience: 'all',
+      });
     });
 
     // Following must hit its own scope, or both tabs would render one list.
     it('reads the following scope on Following', () => {
       renderHook(() => useSocialV1Feed('following'));
 
-      expect(mockUseTraderFeed).toHaveBeenCalledWith({ audience: 'following' });
+      expect(mockUseSocialFeed).toHaveBeenCalledWith({
+        kind: 'all',
+        audience: 'following',
+      });
     });
 
     // Without these forwarded, the feed stops after page one and a failed

@@ -29,6 +29,8 @@ const DEFAULT_TEST_ID_PREFIX = 'pill-toggle-card-list';
 /**
  * Pill selector + card list composition. The active pill's `items` are passed
  * to {@link CardList}. Used for perps "stocks vs commodities vs forex" toggles.
+ * Rows are design-system ListItems, which already include `px-4`, so this
+ * list does not add a second horizontal inset.
  */
 function PillToggleCardList<T>({
   tabs,
@@ -66,6 +68,7 @@ function PillToggleCardList<T>({
         Skeleton={Skeleton}
         idPrefix={idPrefix}
         listTestId={listTestId}
+        horizontalInset={false}
       />
     </Box>
   );

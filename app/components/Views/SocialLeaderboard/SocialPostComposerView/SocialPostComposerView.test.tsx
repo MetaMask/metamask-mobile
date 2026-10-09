@@ -13,14 +13,14 @@ import {
   resetSocialV1ComposedFeedStore,
 } from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
 import { isComposerCommentValid } from './commentValidation';
-import { KLIPY_STATIC_GIF_EXAMPLE } from '../utils/klipyGifComment';
+import { KLIPY_STATIC_GIF_EXAMPLE } from '../../../UI/SocialFeed/utils/klipyGifComment';
 
 jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
   __esModule: true,
   default: () => true,
 }));
 
-jest.mock('../SocialV1View/feed/components/SocialFeedPositionCard', () => {
+jest.mock('../../../UI/SocialFeed/components/SocialFeedPositionCard', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -29,14 +29,14 @@ jest.mock('../SocialV1View/feed/components/SocialFeedPositionCard', () => {
   };
 });
 
-jest.mock('../utils/perp', () => ({
+jest.mock('../../../UI/SocialFeed/utils/perp', () => ({
   isPerpPosition: (position: { chain?: string }) =>
     position.chain === 'hyperliquid',
   isClosedPosition: () => false,
   getPerpPositionDirection: () => null,
 }));
 
-jest.mock('../utils/formatters', () => ({
+jest.mock('../../../UI/SocialFeed/utils/formatters', () => ({
   formatPercent: () => '+0.02%',
   formatSignedUsd: () => '+$1',
   formatSignedAbbreviatedUsd: () => '+$1',
@@ -47,6 +47,7 @@ jest.mock('../utils/formatters', () => ({
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+let mockRouteParams: unknown;
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockCreateSwapComment = jest.fn();
 const mockInvalidateQueries = jest.fn().mockResolvedValue(undefined);
@@ -83,6 +84,7 @@ jest.mock('@react-navigation/native', () => {
       isFocused: jest.fn(() => true),
       addListener: jest.fn(() => jest.fn()),
     }),
+    useRoute: () => ({ params: mockRouteParams }),
   };
 });
 
@@ -127,7 +129,7 @@ jest.mock('../TraderProfileView/components/PositionRow', () => {
   };
 });
 
-jest.mock('../components/PositionTokenAvatar', () => ({
+jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -135,7 +137,7 @@ jest.mock('../components/PositionTokenAvatar', () => ({
 jest.mock('./GifPickerSheet', () => {
   const { Pressable, View } = jest.requireActual('react-native');
   const { KLIPY_STATIC_GIF_EXAMPLE: gifUrl } = jest.requireActual(
-    '../utils/klipyGifComment',
+    '../../../UI/SocialFeed/utils/klipyGifComment',
   );
   return {
     __esModule: true,
@@ -171,6 +173,7 @@ jest.mock('../../../../core/ReactQueryService', () => ({
 describe('SocialPostComposerView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = undefined;
     jest.useFakeTimers();
     resetSocialV1ComposedFeedStore();
     mockCreateSwapComment.mockResolvedValue({
@@ -184,6 +187,8 @@ describe('SocialPostComposerView', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetch,
     });
   });
@@ -455,5 +460,56 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.getByTestId(SharePositionBottomSheetSelectorsIDs.SHEET),
     ).toBeOnTheScreen();
+  });
+
+  it('posts tradeInFlight without a position picker or trending overlay', async () => {
+    mockRouteParams = {
+      tradeInFlight: {
+        transactionHash: '0xabc',
+        chain: 'base',
+        tokenAddress: '0xpump',
+      },
+      preview: {
+        tokenSymbol: 'PUMP',
+        tokenAddress: '0xpump',
+        chain: 'base',
+        side: 'buy',
+        costLabel: '$329.47',
+      },
+    };
+
+    renderWithProvider(
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <SocialPostComposerView />
+      </ToastContext.Provider>,
+    );
+
+    expect(
+      screen.queryByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeEnabled();
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockCreateSwapComment).toHaveBeenCalledWith({
+        commentText: '',
+        tradeInFlight: {
+          transactionHash: '0xabc',
+          chain: 'base',
+          tokenAddress: '0xpump',
+        },
+        source: 'metamask-mobile',
+      });
+    });
+
+    expect(getSocialV1PendingPost()).toBeNull();
+    expect(getSocialV1ComposedPosts()).toHaveLength(0);
+    expect(mockShowToast).toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalled();
   });
 });

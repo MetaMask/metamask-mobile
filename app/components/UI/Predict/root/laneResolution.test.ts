@@ -67,8 +67,8 @@ describe('temporary Predict lane resolution', () => {
     const result = resolvePredictMarketListLane(config(false, true), {
       transactionActiveAbTests: [
         createActiveABTestAssignment(
-          'homeTMCU1209AbtestHomepageBalanceBreakdown',
-          'icons',
+          'homeTMCU1209AbtestHomepageBalanceBreakdownV2',
+          'treatment',
         ),
       ],
     });

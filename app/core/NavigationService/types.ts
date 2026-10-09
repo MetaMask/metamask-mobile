@@ -5,6 +5,7 @@ import type {
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
+import type { SocialPostComposerViewParams } from '../../components/Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 import type { NavigationAnalyticsRouteParams } from '../../util/analytics/navigationAnalyticsAttribution';
 
 // ============================================================================
@@ -74,6 +75,10 @@ import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/O
 import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../components/Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire.types.ts';
 import type { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher/QRTabSwitcher';
+import type {
+  ManageProfileFieldParams,
+  ManageProfileParams,
+} from '../../components/Views/SocialProfile/ManageProfile/ManageProfileField.types';
 
 // Perps navigation params
 import type {
@@ -315,11 +320,6 @@ interface OnboardingSuccessFlowParamList {
   SecuritySettings: undefined;
 }
 
-/** Onboarding social-login screens share AccountStatus params plus trace context. */
-type SocialLoginRouteParams = AccountStatusParams & {
-  previous_screen?: string;
-};
-
 /** Import SRP screen params from onboarding entry points. */
 interface ImportFromSecretRecoveryPhraseParams {
   previous_screen?: string;
@@ -359,6 +359,8 @@ type TraderPositionViewParams =
        * deeplink (e.g. `follow_newtrade_perp_long`). Attached to the
        * destination screen's analytics event for click attribution. */
       notificationSubtype?: string;
+      /** Whether this position was opened from the Social V1 surface. */
+      isSocialV1?: boolean;
     }
   | {
       /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
@@ -381,6 +383,8 @@ type TraderPositionViewParams =
        * deeplink (e.g. `follow_newtrade_perp_long`). Attached to the
        * destination screen's analytics event for click attribution. */
       notificationSubtype?: string;
+      /** Whether this position was opened from the Social V1 surface. */
+      isSocialV1?: boolean;
     };
 
 /**
@@ -723,7 +727,6 @@ export type RootStackParamList = {
   Onboarding: undefined;
   Login: undefined;
   OnboardingNav: undefined;
-  SocialLoginSuccessNewUser: SocialLoginRouteParams | undefined;
   ManualBackupStep1: ManualBackupStep1Params | undefined;
   ManualBackupStep2: ManualBackupStep2Params | undefined;
   ManualBackupStep3: ManualBackupStep3Params;
@@ -734,7 +737,6 @@ export type RootStackParamList = {
   OptinMetrics: OptinMetricsRouteParams | undefined;
   OnboardingInterestQuestionnaire: OnboardingInterestQuestionnaireRouteParams;
   OnboardingCryptoExperienceQuestionnaire: OnboardingCryptoExperienceQuestionnaireRouteParams;
-  SocialLoginSuccessExistingUser: SocialLoginRouteParams | undefined;
   AccountAlreadyExists: AccountStatusParams | undefined;
   AccountNotFound: AccountStatusParams | undefined;
   /** OAuth unlock screen nested in OnboardingNav (see Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE). */
@@ -780,6 +782,9 @@ export type RootStackParamList = {
   NetworkDetails: NetworkDetailsViewParams | undefined;
   BackupAndSyncSettings: undefined;
   SettingsRegionSelector: RegionSelectorParams | undefined;
+  ProfileDrawer: undefined;
+  ManageProfile: ManageProfileParams | undefined;
+  ManageProfileField: ManageProfileFieldParams;
 
   // Sheet routes
   AccountSelector: AccountSelectorParams | undefined;
@@ -1029,7 +1034,7 @@ export type RootStackParamList = {
         showNotificationsBanner?: boolean;
       }
     | undefined;
-  SocialPostComposerView: undefined;
+  SocialPostComposerView: SocialPostComposerViewParams | undefined;
   SocialProfileOnboardingView: undefined;
   MyProfileView: SocialV1ProfileViewParams | undefined;
   SocialV1ProfileView: SocialV1ProfileViewParams | undefined;
@@ -1074,6 +1079,8 @@ export type RootStackParamList = {
     | undefined;
   ConfirmationPayWithNetworkModal: undefined;
   SmartAccountOptIn: undefined;
+  MfaFlow: undefined;
+  MfaSettings: undefined;
   ProSubscription: { source?: string; initialPlan?: string } | undefined;
   ProHub: { source?: string } | undefined;
   ProHubMembership: undefined;

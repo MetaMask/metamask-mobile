@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   parseCaipAccountId,
@@ -21,11 +20,11 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import type { TokenAmount } from '../../../../../util/activity-adapters';
 import { formatTimestampToDateTime } from '../../../../../util/date';
 import { useParams } from '../../../../../util/navigation/navUtils';
-/* eslint-disable import-x/no-restricted-paths -- reuse the shared Activity Details presentation and transaction enrichment */
+import { useFormatters } from '../../../../hooks/useFormatters';
+/* eslint-disable import-x/no-restricted-paths -- reuse the shared Activity Details presentation */
 import {
   ActivityDetailRow,
   ActivityDetailSection,
@@ -33,76 +32,115 @@ import {
   ActivityDetailsBlockExplorerButton,
   ActivityDetailsDoItAgainButton,
   ActivityDetailsDualAmountHeader,
-  ActivityDetailsFeesAndTotal,
+  ActivityDetailsFeeValue,
   ActivityDetailsNetworkValue,
   ActivityDetailsTemplateFrame,
   ActivityDetailsTransactionId,
 } from '../../../../Views/ActivityDetails/components';
-import { useActivityDetailsItem } from '../../../../Views/ActivityDetails/hooks/useActivityDetailsItem';
 import { useActivityNetworkName } from '../../../../Views/ActivityDetails/hooks/useActivityNetworkName';
 /* eslint-enable import-x/no-restricted-paths */
+import type { CreatedLimitOrderTransaction } from '../../api/limitOrders/create/schema';
 import { LimitOrderState } from '../../api/limitOrders/getLimitOrders/types';
 import { TokenAmountValue } from '../../components/LimitOrderConfirmationModal/TokenAmountValue';
-import { getTriggerPrice } from '../../components/OpenLimitOrderDetailsModal/utils';
-import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
+import { getUsdTriggerPrice } from '../../components/OpenLimitOrderDetailsModal/utils';
 import { useLimitOrder } from '../../hooks/useLimitOrder';
+import { useTokenUsdRate } from '../../hooks/useTokenFiatRate';
+import type { BridgeToken } from '../../types';
+import { formatLimitOrderAmount } from '../../utils/limitOrders/formatLimitOrderAmount';
 import { getLimitOrderTokens } from '../../utils/limitOrders/getLimitOrderTokens';
 import { SwapsLimitOrderActivityPageSelectorsIDs } from './SwapsLimitOrderActivityPage.testIds';
 import type { SwapsLimitOrderActivityPageRouteParams } from './SwapsLimitOrderActivityPage.types';
 import {
+  getLimitOrderActivityNetworkFee,
   getLimitOrderActivityStatus,
   getLimitOrderActivityTitle,
   getLimitOrderActivityTransaction,
+  getLimitOrderActivityUsdValue,
 } from './SwapsLimitOrderActivityPage.utils';
 
 function LimitOrderFeesAndTotal({
   chainId,
-  txHash,
+  transaction,
   sourceToken,
 }: {
   chainId: CaipChainId;
-  txHash: string;
-  sourceToken: TokenAmount;
+  transaction: CreatedLimitOrderTransaction;
+  sourceToken: BridgeToken;
 }) {
-  const { item } = useActivityDetailsItem(txHash, chainId);
+  const { formatCurrencyWithMinThreshold } = useFormatters();
+  const sourceTokenUsdRate = useTokenUsdRate(sourceToken);
+  const networkFee = getLimitOrderActivityNetworkFee(transaction);
+  const totalUsd = getLimitOrderActivityUsdValue(
+    transaction.src.amount,
+    transaction.src.asset.decimals,
+    sourceTokenUsdRate,
+  );
+  const total =
+    totalUsd === undefined
+      ? undefined
+      : formatCurrencyWithMinThreshold(totalUsd, 'usd');
 
-  if (!item) {
+  if (!networkFee && !total) {
     return null;
   }
 
   return (
     <>
       <SectionDivider marginVertical={0} />
-      <Box testID={SwapsLimitOrderActivityPageSelectorsIDs.FEES_AND_TOTAL}>
-        <ActivityDetailsFeesAndTotal item={item} token={sourceToken} fiatOnly />
-      </Box>
+      <ActivityDetailSection
+        testID={SwapsLimitOrderActivityPageSelectorsIDs.FEES_AND_TOTAL}
+      >
+        {networkFee ? (
+          <ActivityDetailRow
+            label={strings('activity_details.network_fee')}
+            value={
+              <ActivityDetailsFeeValue
+                fee={{
+                  type: 'base',
+                  amount: networkFee.amount,
+                  decimals: networkFee.asset.decimals,
+                  symbol: networkFee.asset.symbol,
+                  assetId: networkFee.asset.assetId,
+                }}
+                value={
+                  formatCurrencyWithMinThreshold(
+                    Number(networkFee.usd),
+                    'usd',
+                  ) ||
+                  formatLimitOrderAmount(
+                    networkFee.amount,
+                    networkFee.asset.decimals,
+                  )
+                }
+                chainId={chainId}
+              />
+            }
+            testID={SwapsLimitOrderActivityPageSelectorsIDs.NETWORK_FEE_ROW}
+          />
+        ) : null}
+        <ActivityDetailRow
+          label={strings('activity_details.total_amount')}
+          value={total}
+          testID={SwapsLimitOrderActivityPageSelectorsIDs.TOTAL_ROW}
+        />
+      </ActivityDetailSection>
     </>
   );
-}
-
-function handleDuplicateOrder() {
-  // TODO: Prefill the limit order form from this order once duplicating is supported.
-  // eslint-disable-next-line no-console
-  console.log('Will duplicate order');
 }
 
 function SwapsLimitOrderActivityPage() {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { order } = useParams<SwapsLimitOrderActivityPageRouteParams>();
-  const currentCurrency = useSelector(selectCurrentCurrency);
   const { sourceToken, destinationToken } = getLimitOrderTokens(order);
   const chainId = parseCaipAssetType(
     order.src.asset.assetId as CaipAssetType,
   ).chainId;
   const networkName = useActivityNetworkName(chainId);
-  const fiatToUsdRate = useFiatToUsdRate(sourceToken.chainId);
-  const { triggerPrice, triggerToken } = getTriggerPrice(
+  const { triggerPrice, triggerToken } = getUsdTriggerPrice(
     order,
     sourceToken,
     destinationToken,
-    currentCurrency,
-    fiatToUsdRate,
   );
   // The orders list carries neither the transaction nor the amounts a fill
   // actually moved, so the order is fetched on its own for them.
@@ -253,11 +291,11 @@ function SwapsLimitOrderActivityPage() {
                     }
                   />
                 </ActivityDetailSection>
-                {txHash ? (
+                {isFilled && transaction ? (
                   <LimitOrderFeesAndTotal
                     chainId={chainId}
-                    txHash={txHash}
-                    sourceToken={sentToken}
+                    transaction={transaction}
+                    sourceToken={sourceToken}
                   />
                 ) : null}
               </>
@@ -270,8 +308,8 @@ function SwapsLimitOrderActivityPage() {
                 />
               ) : (
                 <ActivityDetailsDoItAgainButton
-                  label={strings('bridge.limit.duplicate_order')}
-                  onPress={handleDuplicateOrder}
+                  label={strings('bridge.limit.create_new_order')}
+                  onPress={handleBack}
                 />
               )
             }

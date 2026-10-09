@@ -65,6 +65,10 @@ jest.mock('../useSwapsFeatureId', () => ({
   useSwapsFeatureId: jest.fn(),
 }));
 
+jest.mock('../useSwapQuotes', () => ({
+  useSwapQuotes: jest.fn().mockReturnValue(null),
+}));
+
 runQuoteRequestCases({
   name: 'useBridgeQuoteRequest',
   debounceMs: DEBOUNCE_WAIT,
