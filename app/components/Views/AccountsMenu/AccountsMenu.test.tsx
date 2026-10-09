@@ -130,13 +130,22 @@ jest.mock('../../../selectors/identity', () => ({
   selectIsBackupAndSyncEnabled: jest.fn(),
 }));
 
-// Mirrors the Rewards utils.ts mocking shape: mocking the helper (rather than
-// the inline `///: ONLY_INCLUDE_IF(beta)` fence) lets Jest exercise both the
-// beta and consent branches, since babel-jest leaves the fence as a comment.
+// Mirrors the Rewards utils.ts mocking shape: mocking the helper lets Jest
+// exercise both the beta and consent branches.
 const mockGetBetaSupportUrl = jest.fn();
 jest.mock('./AccountsMenu.utils', () => ({
   getBetaSupportUrl: () => mockGetBetaSupportUrl(),
 }));
+
+jest.mock('../../../util/environment', () => ({
+  ...jest.requireActual('../../../util/environment'),
+  isFlaskBuild: false,
+  isBetaBuild: false,
+}));
+const mockEnvironment = jest.requireMock('../../../util/environment') as {
+  isFlaskBuild: boolean;
+  isBetaBuild: boolean;
+};
 
 const mockUseCardUkMigrationUpdateBadge = jest.mocked(
   useCardUkMigrationUpdateBadge,
@@ -149,6 +158,8 @@ describe('AccountsMenu', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockEnvironment.isFlaskBuild = false;
+    mockEnvironment.isBetaBuild = false;
     mockUseCardUkMigrationUpdateBadge.mockReturnValue(null);
     mockActiveProviderId = 'baanx';
     mockUseCardUkMigrationState.mockReturnValue({
@@ -621,13 +632,29 @@ describe('AccountsMenu', () => {
 
   describe('RESOURCES Section', () => {
     describe('About MetaMask Row', () => {
-      it('render About MetaMask row', () => {
+      it('render About MetaMask row with the default (main) title', () => {
         const { getByText, getByTestId } = render(<AccountsMenu />);
 
-        expect(getByText('app_settings.info_title_beta')).toBeOnTheScreen();
+        expect(getByText('app_settings.info_title')).toBeOnTheScreen();
         expect(
           getByTestId(AccountsMenuSelectorsIDs.ABOUT_METAMASK),
         ).toBeOnTheScreen();
+      });
+
+      it('render the flask title on flask builds', () => {
+        mockEnvironment.isFlaskBuild = true;
+
+        const { getByText } = render(<AccountsMenu />);
+
+        expect(getByText('app_settings.info_title_flask')).toBeOnTheScreen();
+      });
+
+      it('render the beta title on beta builds', () => {
+        mockEnvironment.isBetaBuild = true;
+
+        const { getByText } = render(<AccountsMenu />);
+
+        expect(getByText('app_settings.info_title_beta')).toBeOnTheScreen();
       });
 
       it('navigate to CompanySettings when About MetaMask is pressed', () => {
