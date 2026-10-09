@@ -4,10 +4,14 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
   HeaderStandard,
+  IconColor,
+  IconName,
   SectionDivider,
   Spinner,
   Text,
@@ -36,6 +40,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import { playSelection } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
@@ -231,6 +236,10 @@ const MyProfileView: React.FC = () => {
       initialTab: 'following',
     });
   }, [isOwner, navigation]);
+  const handleOpenComposer = useCallback(() => {
+    playSelection().catch(() => undefined);
+    navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
+  }, [navigation]);
   const handleShareFirstTrade = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
   }, [navigation]);
@@ -354,6 +363,20 @@ const MyProfileView: React.FC = () => {
           title=""
           onBack={handleBack}
           backButtonProps={{ testID: MyProfileViewSelectorsIDs.BACK_BUTTON }}
+          endAccessory={
+            isOwner && displayProfile ? (
+              <ButtonIcon
+                iconName={IconName.Edit}
+                iconProps={{ color: IconColor.IconDefault }}
+                size={ButtonIconSize.Md}
+                onPress={handleOpenComposer}
+                accessibilityLabel={strings(
+                  'social_leaderboard.my_profile.create_post',
+                )}
+                testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
+              />
+            ) : undefined
+          }
           testID={MyProfileViewSelectorsIDs.HEADER}
         />
 
