@@ -189,12 +189,15 @@ const renderComponent = (routeParams: SetupOptions = {}) => {
   return { wrapper, ...nav };
 };
 
-const revealSeedPhrase = (wrapper: ReturnType<typeof renderWithProvider>) => {
-  // fireEvent already flushes the reveal. An async act waits on a timer that
-  // testSetup freezes via Date.now, so the press sits until Jest's timeout.
-  fireEvent.press(
-    wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
-  );
+const revealSeedPhrase = async (
+  wrapper: ReturnType<typeof renderWithProvider>,
+) => {
+  // Wrap in act so the seedPhraseHidden state update flushes before assert.
+  await act(async () => {
+    fireEvent.press(
+      wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
+    );
+  });
   expect(
     wrapper.getByTestId(`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-0`),
   ).toBeOnTheScreen();
@@ -245,7 +248,7 @@ describe('ManualBackupStep1', () => {
   });
 
   describe('seed phrase reveal', () => {
-    it('reveals seed phrase words after pressing the blur overlay', () => {
+    it('reveals seed phrase words after pressing the blur overlay', async () => {
       const { wrapper } = renderComponent();
 
       expect(
@@ -255,7 +258,7 @@ describe('ManualBackupStep1', () => {
         wrapper.getByText(strings('manual_backup_step_1.reveal')),
       ).toBeOnTheScreen();
 
-      revealSeedPhrase(wrapper);
+      await revealSeedPhrase(wrapper);
     });
 
     it('displays the concealer with blur overlay before reveal', () => {
@@ -290,7 +293,7 @@ describe('ManualBackupStep1', () => {
     it('navigates to ManualBackupStep2 after reveal and continue', async () => {
       const { wrapper, navigate } = renderComponent();
 
-      revealSeedPhrase(wrapper);
+      await revealSeedPhrase(wrapper);
 
       fireEvent.press(
         wrapper.getByText(strings('manual_backup_step_1.continue')),
@@ -527,7 +530,7 @@ describe('ManualBackupStep1', () => {
       mockHasFunds.mockReturnValue(false);
       const { wrapper, navigate } = renderOnboarding();
 
-      revealSeedPhrase(wrapper);
+      await revealSeedPhrase(wrapper);
 
       fireEvent.press(
         wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON),
