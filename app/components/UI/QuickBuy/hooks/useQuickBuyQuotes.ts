@@ -56,6 +56,9 @@ import {
 } from '../utils/streamQuickBuyQuotes';
 import { parseCaipAssetType } from '@metamask/utils';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
+import { useBridgeSession } from '../../Bridge/hooks/useBridgeSession';
+import { useSwapQuotes } from '../../Bridge/hooks/useSwapQuotes';
+import type { QuoteParams } from '../../Bridge/providers/SwapQuotesProvider/utils';
 
 export type QuickBuyQuote = QuoteResponse;
 
@@ -67,7 +70,7 @@ export interface QuickBuyQuotesAnalyticsContext {
   /** USD amount the user has selected; used as `amount_usd`. */
   amountUsd?: number;
   /** Entry surface for FeatureId mapping on fetchQuotes. */
-  source?: QuickBuySheetSource;
+  source: QuickBuySheetSource;
   /** Trade-screen entry attribution when hosted on TraderPositionView. */
   originalEntryPoint?: QuickBuyOriginalEntryPoint;
 }
@@ -81,7 +84,7 @@ interface UseQuickBuyQuotesParams {
   destToken: BridgeToken | undefined;
   sourceTokenAmount: string | undefined;
   insufficientBalance?: boolean;
-  analyticsContext?: QuickBuyQuotesAnalyticsContext;
+  analyticsContext: QuickBuyQuotesAnalyticsContext;
   /** When set, overrides the recommended quote with the quote matching this requestId. */
   selectedQuoteRequestId?: string;
   /**
@@ -214,6 +217,9 @@ const selectQuoteMetadataDeps = createSelector(
   }),
 );
 
+/**
+ * @deprecated Use useSwapQuotes instead
+ */
 export function useQuickBuyQuotes({
   sourceToken,
   destToken,
@@ -318,7 +324,43 @@ export function useQuickBuyQuotes({
     settledRequestParamsKeyRef.current = null;
   }, []);
 
+  const maybeSwapQuotes = useSwapQuotes();
+  const isBridgeControllerActive = Boolean(maybeSwapQuotes);
+  const { setQuoteParams } = useBridgeSession();
+
+  // If migrated, set swap quoteParams to trigger quote polling
+  useEffect(() => {
+    if (isBridgeControllerActive) {
+      const quoteParams: QuoteParams = {
+        srcToken: sourceToken,
+        destToken,
+        srcAmount: sourceTokenAmount,
+        slippage,
+        walletAddress,
+        destWalletAddress: destAddress,
+        gasIncluded,
+        gasIncluded7702,
+      };
+      setQuoteParams(quoteParams);
+    }
+  }, [
+    isBridgeControllerActive,
+    sourceToken,
+    destToken,
+    sourceTokenAmount,
+    slippage,
+    walletAddress,
+    destAddress,
+    gasIncluded,
+    gasIncluded7702,
+    setQuoteParams,
+  ]);
+
   const fetchQuotes = useCallback(async () => {
+    if (isBridgeControllerActive) {
+      return;
+    }
+
     abortControllerRef.current?.abort();
 
     if (
@@ -504,6 +546,7 @@ export function useQuickBuyQuotes({
       fireReceived(0);
     }
   }, [
+    isBridgeControllerActive,
     sourceToken,
     destToken,
     sourceTokenAmount,
@@ -530,6 +573,9 @@ export function useQuickBuyQuotes({
     nonSlippageRequestParamsKey,
   );
   useEffect(() => {
+    if (isBridgeControllerActive) {
+      return;
+    }
     const previousSlippage = previousSlippageRef.current;
     const previousNonSlippageRequestParamsKey =
       previousNonSlippageRequestParamsKeyRef.current;
@@ -552,6 +598,7 @@ export function useQuickBuyQuotes({
       debouncedFetchQuotes.cancel();
     };
   }, [
+    isBridgeControllerActive,
     debouncedFetchQuotes,
     isSlippageUserOverride,
     nonSlippageRequestParamsKey,
@@ -565,13 +612,21 @@ export function useQuickBuyQuotes({
   // debounce. The initial render is a no-op (token unchanged from its initial).
   const prevImmediateFetchTokenRef = useRef(immediateFetchToken);
   useEffect(() => {
+    if (isBridgeControllerActive) {
+      return;
+    }
     if (prevImmediateFetchTokenRef.current === immediateFetchToken) {
       return;
     }
     prevImmediateFetchTokenRef.current = immediateFetchToken;
     debouncedFetchQuotes.cancel();
     fetchQuotes();
-  }, [immediateFetchToken, debouncedFetchQuotes, fetchQuotes]);
+  }, [
+    isBridgeControllerActive,
+    immediateFetchToken,
+    debouncedFetchQuotes,
+    fetchQuotes,
+  ]);
 
   // Auto-refresh quotes on a fixed interval indefinitely.
   // `refreshCount` starts at 0 and increments on each successful fetch, so
