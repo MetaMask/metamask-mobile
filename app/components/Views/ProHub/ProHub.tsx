@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -34,9 +35,9 @@ import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
 } from '../../../hooks/useMoneyAccountPlusAccess';
+import { selectIsMoneyAccountPlusTrialing } from '../../../selectors/subscriptionController';
 import PhysicalCardBanner from './components/PhysicalCardBanner';
 import MemberPricingOnTrades from './components/MemberPricingOnTrades';
-import { useIsMoneyAccountPlusTrialing } from './hooks/useIsMoneyAccountPlusTrialing';
 
 interface MembershipBannerProps {
   testID: string;
@@ -124,7 +125,7 @@ const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const proAccess = useMoneyAccountPlusAccess();
-  const isTrialing = useIsMoneyAccountPlusTrialing();
+  const isTrialing = useSelector(selectIsMoneyAccountPlusTrialing);
 
   const handleBack = useCallback(() => {
     navigation.goBack();

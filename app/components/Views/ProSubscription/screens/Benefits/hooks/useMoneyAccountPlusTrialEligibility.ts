@@ -42,9 +42,6 @@ export function useMoneyAccountPlusTrialEligibility(): MoneyAccountPlusTrialElig
     refetchOnReconnect: false,
   });
 
-  // eslint-disable-next-line no-console
-  console.log('Free trial eligibility data', data, isSignedIn, isUnlocked);
-
   return {
     isEligibleForTrial: data === true,
   };

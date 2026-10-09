@@ -1,5 +1,13 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Provider } from 'react-redux';
+import {
+  PRODUCT_TYPES,
+  SUBSCRIPTION_STATUSES,
+  type Subscription,
+} from '@metamask/subscription-controller';
+import type { RootState } from '../../../reducers';
+import configureStore from '../../../util/test/configureStore';
 import ProHub from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
 import {
@@ -16,7 +24,6 @@ import {
   MoneyAccountPlusBenefitsStatus,
   useMoneyAccountPlusBenefits,
 } from './hooks/useMoneyAccountPlusBenefits';
-import { useIsMoneyAccountPlusTrialing } from './hooks/useIsMoneyAccountPlusTrialing';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -55,16 +62,39 @@ jest.mock('./hooks/useMoneyAccountPlusBenefits', () => ({
   useMoneyAccountPlusBenefits: jest.fn(),
 }));
 
-const mockUseIsMoneyAccountPlusTrialing = jest.mocked(
-  useIsMoneyAccountPlusTrialing,
-);
-jest.mock('./hooks/useIsMoneyAccountPlusTrialing', () => ({
-  useIsMoneyAccountPlusTrialing: jest.fn(),
-}));
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const renderProHub = () => render(<ProHub />);
+const createPlusSubscription = (status: Subscription['status']): Subscription =>
+  ({
+    id: 'sub-plus',
+    products: [{ name: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS }],
+    status,
+  }) as Subscription;
+
+const createState = (isTrialing: boolean): RootState =>
+  ({
+    engine: {
+      backgroundState: {
+        SubscriptionController: {
+          subscriptions: [
+            createPlusSubscription(
+              isTrialing
+                ? SUBSCRIPTION_STATUSES.trialing
+                : SUBSCRIPTION_STATUSES.active,
+            ),
+          ],
+          trialedProducts: isTrialing ? [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS] : [],
+        },
+      },
+    },
+  }) as unknown as RootState;
+
+const renderProHub = ({ isTrialing = false } = {}) =>
+  render(
+    <Provider store={configureStore(createState(isTrialing))}>
+      <ProHub />
+    </Provider>,
+  );
 
 /**
  * Escapes all regex special characters so a plain string can be used
@@ -94,7 +124,6 @@ describe('ProHub', () => {
       resetsOn: 'Sep 15',
       retry: jest.fn(),
     });
-    mockUseIsMoneyAccountPlusTrialing.mockReturnValue(false);
   });
 
   // ── Access guard ───────────────────────────────────────────────────────────
@@ -222,9 +251,7 @@ describe('ProHub', () => {
     });
 
     it('shows a lock instead of the mUSD back amount during a free trial', () => {
-      mockUseIsMoneyAccountPlusTrialing.mockReturnValue(true);
-
-      const { getByTestId, queryByText } = renderProHub();
+      const { getByTestId, queryByText } = renderProHub({ isTrialing: true });
 
       const musdBackRow = getByTestId(ProHubTestIds.MUSD_BACK_ROW);
       const lock = getByTestId(`${ProHubTestIds.MUSD_BACK_ROW}-lock`);
@@ -343,9 +370,7 @@ describe('ProHub', () => {
     });
 
     it('shows unlock copy and does not navigate when the banner is pressed during a free trial', () => {
-      mockUseIsMoneyAccountPlusTrialing.mockReturnValue(true);
-
-      const { getByTestId } = renderProHub();
+      const { getByTestId } = renderProHub({ isTrialing: true });
 
       const banner = getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER);
 
