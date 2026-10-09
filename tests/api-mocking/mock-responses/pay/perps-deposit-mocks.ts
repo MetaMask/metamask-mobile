@@ -13,6 +13,10 @@ import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map';
 import { USDC_MAINNET } from '../../../constants/musd-mainnet';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
 import { mockMoneyAccountApis } from './money-account-deposit-mocks';
+import {
+  dataApiJsonResponse,
+  getProxiedDataApiUrl,
+} from '../polymarket/polymarket-mocks';
 
 const MAINNET_SPOT_PRICES = {
   'eip155:1/slip44:60': {
@@ -499,13 +503,12 @@ async function mockPredictActivity(mockServer: Mockttp) {
     .forGet('/proxy')
     .asPriority(1001)
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
+      const url = getProxiedDataApiUrl(request.url) ?? '';
       return Boolean(url.includes('data-api.polymarket.com/activity'));
     })
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: [],
-    }));
+    .thenCallback((request) =>
+      dataApiJsonResponse(request.url, 'activity', []),
+    );
 }
 
 async function mockAccountsApiTransactions(mockServer: Mockttp) {
