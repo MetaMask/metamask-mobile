@@ -5,6 +5,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   ProvisioningStatus,
@@ -103,49 +104,61 @@ export function usePushProvisioning(
     useState(true);
 
   const lastFourDigits = walletProvisioning?.lastFour;
+  const checkedLastFourRef = useRef<string | undefined>(undefined);
 
-  useEffect(() => {
-    let isMounted = true;
+  // Card Home and the splash each own a hook instance. Recheck when this
+  // screen is focused so a card added on the splash is reflected after return.
+  // Skip the loading flag when the same card was already checked, so the
+  // button does not disappear during that refresh.
+  useFocusEffect(
+    useCallback(() => {
+      let isCurrent = true;
 
-    const checkEligibility = async () => {
-      setIsEligibilityCheckLoading(true);
-
-      if (!walletAdapter || !lastFourDigits) {
-        if (isMounted) {
-          setEligibility({
-            isAvailable: false,
-            canAddCard: false,
-            ineligibilityReason: 'Wallet provider not available',
-          });
-          setIsEligibilityCheckLoading(false);
+      const checkEligibility = async () => {
+        if (checkedLastFourRef.current !== lastFourDigits) {
+          setIsEligibilityCheckLoading(true);
         }
-        return;
-      }
 
-      try {
-        const result = await walletAdapter.getEligibility(lastFourDigits);
-        if (isMounted) {
-          setEligibility(result);
-          setIsEligibilityCheckLoading(false);
+        if (!walletAdapter || !lastFourDigits) {
+          if (isCurrent) {
+            setEligibility({
+              isAvailable: false,
+              canAddCard: false,
+              ineligibilityReason: 'Wallet provider not available',
+            });
+            setIsEligibilityCheckLoading(false);
+            checkedLastFourRef.current = lastFourDigits;
+          }
+          return;
         }
-      } catch {
-        if (isMounted) {
-          setEligibility({
-            isAvailable: false,
-            canAddCard: false,
-            ineligibilityReason: 'Failed to check eligibility',
-          });
-          setIsEligibilityCheckLoading(false);
+
+        try {
+          const result = await walletAdapter.getEligibility(lastFourDigits);
+          if (isCurrent) {
+            setEligibility(result);
+            setIsEligibilityCheckLoading(false);
+            checkedLastFourRef.current = lastFourDigits;
+          }
+        } catch {
+          if (isCurrent) {
+            setEligibility({
+              isAvailable: false,
+              canAddCard: false,
+              ineligibilityReason: 'Failed to check eligibility',
+            });
+            setIsEligibilityCheckLoading(false);
+            checkedLastFourRef.current = lastFourDigits;
+          }
         }
-      }
-    };
+      };
 
-    checkEligibility();
+      checkEligibility();
 
-    return () => {
-      isMounted = false;
-    };
-  }, [walletAdapter, lastFourDigits]);
+      return () => {
+        isCurrent = false;
+      };
+    }, [walletAdapter, lastFourDigits]),
+  );
 
   useEffect(() => {
     if (status !== 'success') {

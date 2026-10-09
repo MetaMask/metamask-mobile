@@ -5,6 +5,8 @@ import {
 } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
+import ApplePaySplash from '../Views/ApplePaySplash';
+import ApplePayConfirmation from '../Views/ApplePayConfirmation';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
 import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
@@ -45,8 +47,10 @@ import ContactDetails from '../Views/ContactDetails/ContactDetails';
 import CreditBalanceTooltipSheet from '../components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet';
 import CreditRefundTooltipSheet from '../components/CreditRefundTooltipSheet/CreditRefundTooltipSheet';
 import DigitalWalletInstructionsSheet from '../components/DigitalWalletInstructionsSheet';
+import ApplePayUsageSheet from '../components/ApplePayUsageSheet';
 import {
   clearNativeStackNavigatorOptions,
+  fullScreenModalSlideFromBottomNativeOptions,
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import type {
@@ -92,6 +96,15 @@ const MainRoutes = () => {
       screenOptions={mainScreenOptions}
     >
       <ScreensStack.Screen name={Routes.CARD.HOME} component={CardHome} />
+      <ScreensStack.Screen
+        name={Routes.CARD.APPLE_PAY_SPLASH}
+        component={ApplePaySplash}
+        options={fullScreenModalSlideFromBottomNativeOptions}
+      />
+      <ScreensStack.Screen
+        name={Routes.CARD.APPLE_PAY_CONFIRMATION}
+        component={ApplePayConfirmation}
+      />
       <ScreensStack.Screen name={Routes.CARD.WELCOME} component={CardWelcome} />
       <ScreensStack.Screen
         name={Routes.CARD.CHOOSE_YOUR_CARD}
@@ -230,6 +243,10 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS}
       component={DigitalWalletInstructionsSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.APPLE_PAY_USAGE}
+      component={ApplePayUsageSheet}
     />
   </ModalsStack.Navigator>
 );

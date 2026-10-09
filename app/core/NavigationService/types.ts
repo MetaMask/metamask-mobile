@@ -1163,6 +1163,8 @@ export type RootStackParamList = {
   // Card routes
   CardScreens: NavigatorScreenParams<CardRootParamList> | undefined;
   CardHome: CardScreensStackParamList['CardHome'];
+  CardApplePaySplash: CardScreensStackParamList['CardApplePaySplash'];
+  CardApplePayConfirmation: CardScreensStackParamList['CardApplePayConfirmation'];
   CardWelcome: CardScreensStackParamList['CardWelcome'];
   CardAuthentication: CardScreensStackParamList['CardAuthentication'];
   CardSpendingLimit: CardScreensStackParamList['CardSpendingLimit'];
@@ -1208,6 +1210,7 @@ export type RootStackParamList = {
   CardCreditRefundTooltipModal: CardModalsNavigationParamList['CardCreditRefundTooltipModal'];
   CardUnlinkMoneyAccountSheet: CardModalsNavigationParamList['CardUnlinkMoneyAccountSheet'];
   CardDigitalWalletInstructionsModal: CardModalsNavigationParamList['CardDigitalWalletInstructionsModal'];
+  CardApplePayUsageSheet: CardModalsNavigationParamList['CardApplePayUsageSheet'];
   CardRevokeAllowanceSheet: CardModalsNavigationParamList['CardRevokeAllowanceSheet'];
 
   // Send routes

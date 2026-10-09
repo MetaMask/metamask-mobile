@@ -20,6 +20,10 @@ import type { CardHomeData } from '../../../../../../core/Engine/controllers/car
 
 export function useCardWalletProvisioning(
   data: CardHomeData | null | undefined,
+  options?: {
+    onSuccess?: () => void;
+    showSuccessToast?: boolean;
+  },
 ) {
   const { toastRef } = useContext(ToastContext);
   const walletProvisioning = data?.walletProvisioning ?? null;
@@ -54,24 +58,27 @@ export function useCardWalletProvisioning(
     walletProvisioning,
     userAddress: userAddressForProvisioning,
     onSuccess: () => {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
-        labelOptions: [
-          {
-            label: strings('card.push_provisioning.success_message', {
-              walletName: getWalletName(),
-            }),
-          },
-        ],
-        startAccessory: (
-          <Icon
-            name={IconName.Confirmation}
-            color={IconColor.SuccessDefault}
-            size={IconSize.Lg}
-          />
-        ),
-        hasNoTimeout: false,
-      });
+      if (options?.showSuccessToast !== false) {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Plain,
+          labelOptions: [
+            {
+              label: strings('card.push_provisioning.success_message', {
+                walletName: getWalletName(),
+              }),
+            },
+          ],
+          startAccessory: (
+            <Icon
+              name={IconName.Confirmation}
+              color={IconColor.SuccessDefault}
+              size={IconSize.Lg}
+            />
+          ),
+          hasNoTimeout: false,
+        });
+      }
+      options?.onSuccess?.();
     },
     onError: (provisioningError: ProvisioningError) => {
       toastRef?.current?.showToast({
