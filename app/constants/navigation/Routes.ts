@@ -557,6 +557,7 @@ const Routes = {
   },
   SOCIAL_PROFILE: {
     DRAWER: 'ProfileDrawer',
+    MANAGE_PROFILE: 'ManageProfile',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {
@@ -653,6 +654,10 @@ const Routes = {
   AGENTIC_CLI_APPROVAL: {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
+  },
+  MFA: {
+    FLOW: 'MfaFlow',
+    SETTINGS: 'MfaSettings',
   },
   PRO_SUBSCRIPTION: {
     /** Root screen for the MetaMask Pro subscription flow. */

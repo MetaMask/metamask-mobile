@@ -293,6 +293,21 @@ function mapSpotFeedItem(
 }
 
 /**
+ * Market cap (USD) on the triggering spot fill, or `null` for perps and for
+ * fills that omitted it. Used by Social V1 Following / Live market-cap filters.
+ */
+export function readTriggeringTradeMarketCapUsd(
+  coreItem: CoreFeedItem,
+): number | null {
+  if (isPerpPosition(coreItem)) {
+    return null;
+  }
+  const timestampMs = tradeTimestampToMs(coreItem.timestamp);
+  const trade = findTriggeringTrade(coreItem.trades ?? [], timestampMs);
+  return trade?.marketCap ?? null;
+}
+
+/**
  * Maps a core `SocialService` feed item (`Position` + `actor` + `timestamp`)
  * into the presentation `FeedItem` consumed by `FeedItemRow`.
  *

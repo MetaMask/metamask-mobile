@@ -1091,6 +1091,7 @@
       "bank_name": "Bank name",
       "beneficiary_address": "Beneficiary address",
       "bank_address": "Bank address",
+      "copy_value": "Copy {{label}}",
       "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
       "error_message": "We were unable to confirm your bank transfer. Please try again.",
       "cancel_order_error": "We were unable to cancel your order. Please try again."
@@ -1197,9 +1198,16 @@
       "button": "Try again"
     },
     "vba_details": {
-      "title": "Virtual bank account",
-      "description": "Your account is ready. Details for adding and receiving money will appear here.",
-      "button": "Done"
+      "title": "Add Brazilian real",
+      "description": "Send BRL with PIX. It converts to mUSD on your Money Account. This screen checks for the deposit every few seconds.",
+      "button": "Done",
+      "autoramp_status": "Account status: {{status}}",
+      "waiting_for_pix": "PIX instructions appear here once the account is approved.",
+      "br_code": "PIX code",
+      "pix_key": "PIX key",
+      "transaction_status": "Deposit: {{status}}",
+      "transaction_completed": "Completed. mUSD is on its way to your Money Account.",
+      "load_error": "Couldn't refresh the deposit. We'll try again."
     }
   },
   "social_leaderboard": {
@@ -1350,7 +1358,7 @@
       }
     },
     "composer": {
-      "placeholder": "Share your thoughts",
+      "placeholder": "Share your thoughts about a position",
       "post": "Post",
       "close": "Close composer",
       "character_count": "{{count}}/{{limit}}",
@@ -1376,7 +1384,18 @@
       "error_title": "Couldn't load positions",
       "retry": "Try again",
       "posting": "Posting...",
-      "post_failed": "Couldn't create post. Try again."
+      "post_failed": "Couldn't create post. Try again.",
+      "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
+    },
+    "post_swap_share": {
+      "in_progress": "In progress...",
+      "complete": "Swap complete",
+      "failed": "Swap failed",
+      "share_and_earn_title": "Share and earn",
+      "share_and_earn_body": "Earn 15% of the post-rebate fee when someone copies your trade.",
+      "share_this_trade": "Share this trade",
+      "try_again": "Try again",
+      "close": "Close"
     },
     "shell": {
       "subnav": {
@@ -3120,7 +3139,8 @@
       "isolated_title": "Isolated",
       "isolated_description": "Each position uses only its allocated margin. If it's used up, that position liquidates, others are unaffected. You can adjust margin per position.",
       "cross_title": "Cross",
-      "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon."
+      "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon.",
+      "cross_description_available": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance."
     },
     "cross_position": {
       "badge": "Cross",
@@ -4815,17 +4835,33 @@
     "scan": "Scan",
     "activity": "Activity"
   },
+  "manage_profile": {
+    "header": "Manage profile",
+    "about": "About",
+    "privacy": "Privacy",
+    "display_name": "Display name",
+    "handle": "Handle",
+    "bio": "Bio",
+    "x_account": "X account",
+    "trading_activity": "Trading activity",
+    "linked_social_account": "Linked social account",
+    "on": "On",
+    "off": "Off",
+    "not_set": "Not set",
+    "no_linked_account": "None",
+    "avatar_accessibility_label": "Your profile picture"
+  },
+  "profile_drawer": {
+    "close": "Close",
+    "scan": "Scan QR code",
+    "create_profile": "Create profile",
+    "notifications": "Notifications",
+    "activity": "Activity",
+    "subscriptions": "Subscriptions",
+    "settings": "Settings",
+    "help_and_support": "Help and support"
+  },
   "app_settings": {
-    "profile_drawer": {
-      "close": "Close",
-      "scan": "Scan QR code",
-      "create_profile": "Create profile",
-      "notifications": "Notifications",
-      "activity": "Activity",
-      "subscriptions": "Subscriptions",
-      "settings": "Settings",
-      "help_and_support": "Help and support"
-    },
     "enabling_notifications": "Enabling notifications...",
     "updating_notifications": "Updating notifications...",
     "updating_account_settings": "Updating account settings...",
@@ -8101,6 +8137,67 @@
     "unrecognized_chain_ticker": "It looks like this network's symbol doesn't match this chain ID.",
     "unrecognized_chain_id": "We don't recognize this network. Be sure the chain ID is correct before you continue."
   },
+  "mfa": {
+    "progress": "Step {{current}} of {{total}}",
+    "method_email": "Email",
+    "method_passkey": "Passkey",
+    "intro": {
+      "title": "Secure your account",
+      "description": "Set up the following to continue.",
+      "continue": "Get started"
+    },
+    "picker": {
+      "title": "Confirm it's you",
+      "description": "Choose how you want to verify."
+    },
+    "email_entry": {
+      "title": "Enter your email",
+      "description": "We'll send a verification code to this address.",
+      "placeholder": "Email address",
+      "invalid": "Enter a valid email address.",
+      "continue": "Continue"
+    },
+    "otp": {
+      "title": "Enter the code",
+      "description_with_email": "We sent a 6-digit code to {{email}}.",
+      "description": "We sent a 6-digit code to your email.",
+      "sending": "Sending code...",
+      "send_in": "Sending a new code in {{seconds}}s",
+      "resend": "Resend code",
+      "resend_in": "Resend code in {{seconds}}s",
+      "resent": "We sent you a new code.",
+      "submit": "Verify"
+    },
+    "passkey": {
+      "title_setup": "Create a passkey",
+      "title_verify": "Use your passkey",
+      "description": "Your device will ask you to confirm.",
+      "continue": "Continue"
+    },
+    "success": {
+      "title": "You're all set",
+      "done": "Done"
+    },
+    "failure": {
+      "title": "Something went wrong",
+      "retry": "Try again",
+      "close": "Close"
+    },
+    "errors": {
+      "invalid_code": "That code is incorrect. Try again.",
+      "too_many_attempts": "Too many attempts. Request a new code.",
+      "invalid_passkey": "Your passkey couldn't be verified. Try again.",
+      "passkey_cancelled": "Passkey request was cancelled.",
+      "email_taken": "This email is already in use. Try a different one.",
+      "cooldown": "Too many requests. Wait a moment and try again.",
+      "limit_reached": "You've reached the limit for this method.",
+      "multi_primary_srp": "Verification isn't available yet for wallets with more than one Secret Recovery Phrase.",
+      "signed_out": "Sign in to continue.",
+      "unsupported": "This method isn't supported on this device.",
+      "flow_in_progress": "Another verification is already in progress.",
+      "generic": "Something went wrong. Try again."
+    }
+  },
   "media_player": {
     "loading": "Loading...",
     "not_found": "Media not found"
@@ -9597,6 +9694,20 @@
     "deposit_edit_amount_musd_conversion": "Convert to mUSD",
     "preparing_order": "Preparing order"
   },
+  "confirm_membership": {
+    "title": "Confirm membership",
+    "plan_name": "Orange (Monthly)",
+    "confirm_and_pay": "Confirm and pay",
+    "start_trial": "Start your free trial",
+    "billed_on": "Billed on",
+    "disclaimer": {
+      "part1": "By clicking \"{{confirmAndPay}}\", you authorize MetaMask to charge {{monthlyAmount}}/month. Renews on {{renewDate}}. Cancel anytime. You also accept the ",
+      "terms_of_use": "Terms of Use",
+      "part2": " and ",
+      "privacy_policy": "Privacy Policy",
+      "part3": "."
+    }
+  },
   "change_in_simulation_modal": {
     "title": "Results have changed",
     "description": "Estimated changes for this transaction have been updated. Review them closely before proceeding.",
@@ -9676,6 +9787,7 @@
       },
       "est_network_fee": "Delegation fee (one time)",
       "create_order": "Create Order",
+      "min_order_amount": "Min. order amount is ${{amount}}",
       "paying": "Paying",
       "receiving": "Receiving",
       "trigger_condition": "Trigger condition",
@@ -9707,7 +9819,8 @@
       "expired_at_status": "Expired (at {{date}})",
       "date_created": "Date created",
       "order_type": "Order type",
-      "order_type_limit": "Limit"
+      "order_type_limit": "Limit",
+      "create_new_order": "Create new order"
     },
     "recurring": {
       "you_get": "You get",
@@ -11169,6 +11282,7 @@
       "error_card_suspended": "Your card in {{walletName}} has been suspended. Contact support for assistance.",
       "error_card_not_eligible": "This card is not eligible for mobile wallet provisioning.",
       "error_encryption_failed": "Failed to encrypt card data. Try again.",
+      "error_provider_unavailable": "The card provider is temporarily unavailable. Try again.",
       "error_invalid_card_data": "Invalid card data. Verify your card details and try again.",
       "error_card_not_found": "Card not found. Try again.",
       "error_card_provider_not_found": "Card provider is not available for your region.",
