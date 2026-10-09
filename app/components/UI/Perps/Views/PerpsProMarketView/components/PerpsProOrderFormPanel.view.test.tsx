@@ -25,13 +25,17 @@ import {
   openMarginModeSheet,
   resetMarginModeControllerMocks,
 } from '../../../../../../../tests/component-view/helpers/perpsMarginModeTestHelpers';
-import { wirePerpsControllerForStore } from '../../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import {
+  createPerpsControllerStateHarness,
+  wirePerpsControllerForStore,
+} from '../../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import { strings } from '../../../../../../../locales/i18n';
 import Engine from '../../../../../../core/Engine';
 import Routes from '../../../../../../constants/navigation/Routes';
 import PerpsTPSLView from '../../PerpsTPSLView/PerpsTPSLView';
 import {
   PerpsMarginModeBottomSheetSelectorsIDs as marginIds,
+  PerpsOrderTypeBottomSheetSelectorsIDs as orderTypeIds,
   PerpsProOrderFormSelectorsIDs as formIds,
   PerpsTPSLViewSelectorsIDs as tpslIds,
 } from '../../../Perps.testIds';
@@ -276,6 +280,232 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
       strings('perps.pro_order_form.isolated'),
     );
+  });
+
+  it('shows the Cross warning instead of submitting an existing Cross position when the flag is off', async () => {
+    const { store } = renderPerpsCrossMarginOrderFormPanel({
+      crossMarginEnabled: false,
+      streamOverrides: {
+        account: createFundedAccountForViews('1000'),
+        positions: [
+          createLongPositionForViews({
+            providerId: 'hyperliquid',
+            leverage: { type: 'cross', value: 3 },
+          }),
+        ],
+      },
+      extraRoutes: [{ name: Routes.PERPS.MODALS.ROOT }],
+    });
+    unwire = wirePerpsControllerForStore(store);
+
+    fireEvent.changeText(await screen.findByTestId(formIds.SIZE_INPUT), '100');
+    fireEvent(screen.getByTestId(formIds.SIZE_INPUT), 'blur');
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(formIds.PLACE_ORDER_BUTTON));
+
+    expect(
+      await screen.findByTestId(`route-${Routes.PERPS.MODALS.ROOT}`),
+    ).toBeOnTheScreen();
+    expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+  });
+
+  it.each(['unavailable', 'rejected'] as const)(
+    'keeps Cross disabled but allows an isolated order when the venue lock is %s',
+    async (result) => {
+      const readLock = jest.mocked(
+        Engine.context.PerpsController.getMarginModeLock,
+      );
+      if (result === 'rejected') {
+        readLock.mockRejectedValue(new Error('Venue read failed'));
+      } else {
+        readLock.mockResolvedValue({
+          status: 'unavailable',
+          providerId: 'hyperliquid',
+          reason: 'provider_unavailable',
+        });
+      }
+      const { store } = renderPerpsCrossMarginOrderFormPanel({
+        streamOverrides: { account: createFundedAccountForViews('1000') },
+      });
+      unwire = wirePerpsControllerForStore(store);
+      // The helper awaits successful reads; rejection is owned by the hook.
+      await openMarginModeSheet(result !== 'rejected');
+      await waitFor(() =>
+        expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeDisabled(),
+      );
+
+      fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+
+      expect(screen.getByTestId(marginIds.CONTAINER)).toBeOnTheScreen();
+      fireEvent.press(screen.getByTestId(marginIds.ISOLATED_OPTION));
+      await waitFor(() =>
+        expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
+      );
+      fireEvent.changeText(screen.getByTestId(formIds.SIZE_INPUT), '100');
+      fireEvent(screen.getByTestId(formIds.SIZE_INPUT), 'blur');
+      await waitFor(() =>
+        expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
+      );
+      fireEvent.press(screen.getByTestId(formIds.PLACE_ORDER_BUTTON));
+
+      await waitFor(() =>
+        expect(Engine.context.PerpsController.placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({ marginMode: 'isolated' }),
+        ),
+      );
+    },
+  );
+
+  it('uses the Cross resting-order lock in the picker and submitted order', async () => {
+    jest
+      .mocked(Engine.context.PerpsController.getMarginModeLock)
+      .mockResolvedValue({
+        status: 'locked',
+        providerId: 'hyperliquid',
+        marginMode: 'cross',
+        reason: 'open_order',
+      });
+    const { store } = renderPerpsCrossMarginOrderFormPanel({
+      streamOverrides: { account: createFundedAccountForViews('1000') },
+    });
+    unwire = wirePerpsControllerForStore(store);
+    await openMarginModeSheet();
+
+    expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+      strings('perps.margin_mode.cross_title'),
+    );
+    expect(screen.getByTestId(marginIds.ISOLATED_OPTION)).toBeDisabled();
+    fireEvent.press(screen.getByTestId(marginIds.ISOLATED_OPTION));
+    expect(screen.getByTestId(marginIds.CONTAINER)).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+    await waitFor(() =>
+      expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
+    );
+    fireEvent.changeText(screen.getByTestId(formIds.SIZE_INPUT), '100');
+    fireEvent(screen.getByTestId(formIds.SIZE_INPUT), 'blur');
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(formIds.PLACE_ORDER_BUTTON));
+
+    await waitFor(() =>
+      expect(Engine.context.PerpsController.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ marginMode: 'cross' }),
+      ),
+    );
+  });
+
+  it('re-reads the venue lock after placement before the picker is reopened', async () => {
+    const { store } = renderPerpsCrossMarginOrderFormPanel({
+      streamOverrides: { account: createFundedAccountForViews('1000') },
+    });
+    unwire = wirePerpsControllerForStore(store);
+    await openMarginModeSheet();
+    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+    await waitFor(() =>
+      expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
+    );
+    // Resting-order acceptance runs onSuccess immediately; market orders wait
+    // for their fill to arrive on the position stream before that callback.
+    fireEvent.press(screen.getByTestId(formIds.ORDER_TYPE_BUTTON));
+    fireEvent.press(await screen.findByTestId(orderTypeIds.LIMIT_OPTION));
+    fireEvent.changeText(
+      await screen.findByTestId(formIds.LIMIT_PRICE_INPUT, {
+        includeHiddenElements: true,
+      }),
+      '2400',
+    );
+    fireEvent(
+      screen.getByTestId(formIds.LIMIT_PRICE_INPUT, {
+        includeHiddenElements: true,
+      }),
+      'blur',
+    );
+    fireEvent.changeText(screen.getByTestId(formIds.SIZE_INPUT), '100');
+    fireEvent(screen.getByTestId(formIds.SIZE_INPUT), 'blur');
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.PLACE_ORDER_BUTTON)).toBeEnabled(),
+    );
+    const readLock = jest.mocked(
+      Engine.context.PerpsController.getMarginModeLock,
+    );
+    readLock.mockClear().mockResolvedValue({
+      status: 'locked',
+      providerId: 'hyperliquid',
+      marginMode: 'cross',
+      reason: 'open_order',
+    });
+
+    fireEvent.press(screen.getByTestId(formIds.PLACE_ORDER_BUTTON));
+
+    await waitFor(() =>
+      expect(Engine.context.PerpsController.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ orderType: 'limit', marginMode: 'cross' }),
+      ),
+    );
+    await waitFor(() =>
+      expect(readLock).toHaveBeenCalledWith({
+        symbol: 'ETH',
+        providerId: 'hyperliquid',
+      }),
+    );
+    expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen();
+    await openMarginModeSheet();
+    expect(screen.getByTestId(marginIds.ISOLATED_OPTION)).toBeDisabled();
+  });
+
+  it('uses the selected provider metadata and ignores another provider position with the same symbol', async () => {
+    jest
+      .mocked(Engine.context.PerpsController.getMarkets)
+      .mockResolvedValue([
+        { ...crossMarginMarketInfo, providerId: 'lighter', onlyIsolated: true },
+        crossMarginMarketInfo,
+      ]);
+    renderPerpsCrossMarginOrderFormPanel({
+      streamOverrides: {
+        positions: [createLongPositionForViews({ providerId: 'lighter' })],
+      },
+    });
+
+    await openMarginModeSheet();
+    await waitFor(() =>
+      expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+
+    await waitFor(() =>
+      expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
+    );
+    expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+      strings('perps.margin_mode.cross_title'),
+    );
+  });
+
+  it('forgets the selected Cross mode after the Perps network changes', async () => {
+    const { store } = renderPerpsCrossMarginOrderFormPanel();
+    const controllerState = createPerpsControllerStateHarness(store);
+    unwire = controllerState.cleanup;
+    await openMarginModeSheet();
+    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+    await waitFor(() =>
+      expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),
+    );
+    expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+      strings('perps.margin_mode.cross_title'),
+    );
+
+    act(() => controllerState.sync({ isTestnet: true }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+        strings('perps.pro_order_form.isolated'),
+      ),
+    );
+    expect(
+      screen.getByTestId(formIds.MARGIN_MODE_BUTTON),
+    ).not.toHaveTextContent(strings('perps.margin_mode.cross_title'));
   });
 
   it.each(blockedMarkets)('keeps Cross unavailable for $name', async (gate) => {

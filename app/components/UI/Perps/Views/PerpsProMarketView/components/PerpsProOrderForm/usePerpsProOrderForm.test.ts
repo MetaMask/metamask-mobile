@@ -558,28 +558,32 @@ const renderProForm = (
   const refreshChaseCapability =
     chaseGate.refresh ?? jest.fn().mockResolvedValue('hyperliquid');
 
-  return renderHook(() =>
-    usePerpsProOrderForm({
-      market: formMarket,
-      isTriggeredOrdersEnabled,
-      isTwapEnabled,
-      isTwapAvailabilityPending,
-      resolvedTwapProviderId,
-      checkTwapOrderSupport,
-      scaleProviderId: scaleOptions.providerId ?? 'hyperliquid',
-      isScaleOrdersEnabled: scaleOptions.enabled ?? true,
-      isScaleOrderSupportPending: scaleOptions.pending ?? false,
-      checkScaleOrderSupport,
-      isChaseEnabled: chaseGate.isEnabled ?? true,
-      isChaseAvailabilityPending: chaseGate.isPending ?? false,
-      refreshChaseCapability,
-      chaseProviderId:
-        chaseGate.isEnabled === false
-          ? null
-          : (chaseGate.providerId ?? 'hyperliquid'),
-      isScreenFocused: chaseGate.isScreenFocused ?? true,
-      isCrossMarginAvailable,
-    }),
+  return renderHook(
+    ({
+      currentMarket = formMarket,
+    }: { currentMarket?: PerpsMarketData } = {}) =>
+      usePerpsProOrderForm({
+        market: currentMarket,
+        isTriggeredOrdersEnabled,
+        isTwapEnabled,
+        isTwapAvailabilityPending,
+        resolvedTwapProviderId,
+        checkTwapOrderSupport,
+        scaleProviderId: scaleOptions.providerId ?? 'hyperliquid',
+        isScaleOrdersEnabled: scaleOptions.enabled ?? true,
+        isScaleOrderSupportPending: scaleOptions.pending ?? false,
+        checkScaleOrderSupport,
+        isChaseEnabled: chaseGate.isEnabled ?? true,
+        isChaseAvailabilityPending: chaseGate.isPending ?? false,
+        refreshChaseCapability,
+        chaseProviderId:
+          chaseGate.isEnabled === false
+            ? null
+            : (chaseGate.providerId ?? 'hyperliquid'),
+        isScreenFocused: chaseGate.isScreenFocused ?? true,
+        isCrossMarginAvailable,
+      }),
+    { initialProps: {} },
   );
 };
 
@@ -3822,6 +3826,192 @@ describe('usePerpsProOrderForm', () => {
         ).toBe(false);
       },
     );
+
+    it('preserves the Cross pick through a metadata refetch while holding submission', async () => {
+      const { result, rerender } = renderWithCrossMargin();
+      act(() => result.current.onMarginModeSelect('cross'));
+
+      mockMarketDataLoading = true;
+      rerender({});
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(result.current.marginMode).toBe('cross');
+      expect(result.current.isCrossMarginAvailableForMarket).toBe(false);
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+
+      mockMarketDataLoading = false;
+      mockMarginModeLock = null;
+      rerender({});
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(result.current.marginMode).toBe('cross');
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+
+      mockMarginModeLock = { status: 'unlocked', providerId: 'hyperliquid' };
+      rerender({});
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ marginMode: 'cross' }),
+      );
+    });
+
+    it('preserves the Cross pick while missing metadata holds submission', async () => {
+      const { result, rerender } = renderWithCrossMargin();
+      act(() => result.current.onMarginModeSelect('cross'));
+
+      mockMarketData = null;
+      mockMarketDataError = 'offline';
+      rerender({});
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(result.current.marginMode).toBe('cross');
+      expect(result.current.isCrossMarginAvailableForMarket).toBe(false);
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it.each(['pending', 'restricted'] as const)(
+      'stops a deferred compliance submission when reloaded metadata is %s',
+      async (phase) => {
+        let continuePlacement: (() => Promise<unknown>) | undefined;
+        mockComplianceGate.mockImplementationOnce((action) => {
+          continuePlacement = action;
+          return Promise.resolve();
+        });
+        const { result, rerender } = renderWithCrossMargin();
+        act(() => result.current.onMarginModeSelect('cross'));
+        await act(async () => result.current.onPlaceOrderPress());
+
+        mockMarketDataLoading = true;
+        rerender({});
+        if (phase === 'restricted') {
+          mockMarketData = {
+            szDecimals: 3,
+            maxLeverage: 40,
+            onlyIsolated: true,
+          };
+          mockMarketDataLoading = false;
+          rerender({});
+        }
+        await act(async () => continuePlacement?.());
+
+        expect(result.current.marginMode).toBe(
+          phase === 'pending' ? 'cross' : 'isolated',
+        );
+        expect(mockExecuteOrder).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each(['pending', 'restricted'] as const)(
+      'stops a submission when reloaded metadata is %s after validation starts',
+      async (phase) => {
+        let resolveValidation: (value: {
+          errors: string[];
+          warnings: string[];
+          fieldIssues: OrderFormFieldIssue[];
+          isValid: boolean;
+        }) => void = () => undefined;
+        mockValidation.validateNow.mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveValidation = resolve;
+          }),
+        );
+        const { result, rerender } = renderWithCrossMargin();
+        act(() => result.current.onMarginModeSelect('cross'));
+        let pendingSubmission: Promise<void> | undefined;
+        await act(async () => {
+          pendingSubmission = result.current.onPlaceOrderPress();
+        });
+        expect(mockValidation.validateNow).toHaveBeenCalledTimes(1);
+
+        mockMarketDataLoading = true;
+        rerender({});
+        if (phase === 'restricted') {
+          mockMarketData = {
+            szDecimals: 3,
+            maxLeverage: 40,
+            onlyIsolated: true,
+          };
+          mockMarketDataLoading = false;
+          rerender({});
+        }
+        await act(async () => {
+          resolveValidation({
+            errors: [],
+            warnings: [],
+            fieldIssues: [],
+            isValid: true,
+          });
+          await pendingSubmission;
+        });
+
+        expect(result.current.marginMode).toBe(
+          phase === 'pending' ? 'cross' : 'isolated',
+        );
+        expect(mockExecuteOrder).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each([
+      { onlyIsolated: true as const },
+      { marginMode: 'noCross' as const },
+      { marginMode: 'strictIsolated' as const },
+    ])(
+      'drops the Cross pick when fresh metadata restricts Cross: %j',
+      (restriction) => {
+        const { result, rerender } = renderWithCrossMargin();
+        act(() => result.current.onMarginModeSelect('cross'));
+
+        mockMarketDataLoading = true;
+        rerender({});
+        mockMarketData = { szDecimals: 3, maxLeverage: 40, ...restriction };
+        mockMarketDataLoading = false;
+        rerender({});
+
+        expect(result.current.marginMode).toBe('isolated');
+        expect(result.current.isCrossMarginAvailableForMarket).toBe(false);
+
+        mockMarketData = { szDecimals: 3, maxLeverage: 40 };
+        rerender({});
+
+        expect(result.current.marginMode).toBe('isolated');
+      },
+    );
+
+    it('preserves the Cross pick when the default provider id hydrates', () => {
+      const { result, rerender } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        { ...market, providerId: undefined },
+        true,
+      );
+      act(() => result.current.onMarginModeSelect('cross'));
+
+      mockMarketDataLoading = true;
+      rerender({ currentMarket: market });
+      mockMarketDataLoading = false;
+      rerender({ currentMarket: market });
+
+      expect(result.current.marginMode).toBe('cross');
+    });
+
+    it('drops the Cross pick when the same symbol changes provider', () => {
+      const { result, rerender } = renderWithCrossMargin();
+      act(() => result.current.onMarginModeSelect('cross'));
+
+      rerender({ currentMarket: { ...market, providerId: 'lighter' } });
+      rerender({ currentMarket: market });
+
+      expect(result.current.marginMode).toBe('isolated');
+    });
 
     it('still shows the unsupported warning for a cross position on an isolated-only asset', async () => {
       mockMarketData = { szDecimals: 3, maxLeverage: 40, onlyIsolated: true };

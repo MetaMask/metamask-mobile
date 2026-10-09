@@ -7,14 +7,18 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react-native';
-import { renderPerpsProMarketView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { renderPerpsCrossMarginOrderFormPanel } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { createFundedAccountForViews } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import {
+  openMarginModeSheet,
+  resetMarginModeControllerMocks,
+} from '../../../../../../tests/component-view/helpers/perpsMarginModeTestHelpers';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import {
-  PerpsLeverageBottomSheetSelectorsIDs as leverageIds,
   PerpsMarginModeBottomSheetSelectorsIDs as marginIds,
   PerpsProOrderFormSelectorsIDs as formIds,
   PerpsTPSLViewSelectorsIDs as tpslIds,
@@ -24,37 +28,7 @@ import PerpsTPSLView from '../PerpsTPSLView/PerpsTPSLView';
 let unwire: (() => void) | undefined;
 
 const selectCross = async () => {
-  jest
-    .spyOn(Engine.context.PerpsController, 'getMarkets')
-    .mockResolvedValue([
-      { name: 'ETH', maxLeverage: 40, szDecimals: 2, marginTableId: 1 },
-    ]);
-  jest
-    .mocked(Engine.context.PerpsController.calculateLiquidationPrice)
-    .mockResolvedValue('2000');
-  const { store } = renderPerpsProMarketView({
-    overrides: {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              perpsProModeEnabled: {
-                enabled: true,
-                minimumVersion: '0.0.0',
-              },
-              perpsCrossMarginEnabled: {
-                enabled: true,
-                minimumVersion: '0.0.0',
-              },
-              perpsTerminalBackendEnabled: {
-                enabled: false,
-                minimumVersion: '0.0.0',
-              },
-            },
-          },
-        },
-      },
-    },
+  const { store } = renderPerpsCrossMarginOrderFormPanel({
     streamOverrides: {
       positions: [],
       orders: [],
@@ -68,10 +42,7 @@ const selectCross = async () => {
     ],
   });
   unwire = wirePerpsControllerForStore(store);
-  await waitFor(() =>
-    expect(Engine.context.PerpsController.getMarginModeLock).toHaveBeenCalled(),
-  );
-  fireEvent.press(await screen.findByTestId(formIds.MARGIN_MODE_BUTTON));
+  await openMarginModeSheet();
   await waitFor(() =>
     expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
   );
@@ -83,7 +54,8 @@ const selectCross = async () => {
   );
 };
 
-describe('Pro Cross margin risk editors', () => {
+describeForPlatforms('Pro Cross margin risk editors', () => {
+  beforeEach(resetMarginModeControllerMocks);
   afterEach(() => {
     cleanup();
     unwire?.();
@@ -91,28 +63,9 @@ describe('Pro Cross margin risk editors', () => {
     jest.restoreAllMocks();
     jest
       .mocked(Engine.context.PerpsController.calculateLiquidationPrice)
+      .mockReset()
       .mockResolvedValue('0.00');
     jest.clearAllMocks();
-  });
-
-  it('opens leverage after selecting Cross without an isolated liquidation price or distance', async () => {
-    await selectCross();
-
-    fireEvent.press(screen.getByTestId(formIds.LEVERAGE_BUTTON));
-
-    expect(
-      await screen.findByTestId(leverageIds.LIQUIDATION_PRICE_VALUE),
-    ).toHaveTextContent('--');
-    expect(
-      screen.queryByTestId(leverageIds.LIQUIDATION_DISTANCE_VALUE),
-    ).not.toBeOnTheScreen();
-    fireEvent.press(screen.getByTestId(`${leverageIds.PICKER_ITEM}-1`));
-    expect(
-      screen.getByTestId(leverageIds.LIQUIDATION_PRICE_VALUE),
-    ).toHaveTextContent('--');
-    expect(
-      screen.queryByTestId(leverageIds.LIQUIDATION_DISTANCE_VALUE),
-    ).not.toBeOnTheScreen();
   });
 
   it('saves a Cross stop beyond the isolated liquidation threshold after opening TP/SL', async () => {

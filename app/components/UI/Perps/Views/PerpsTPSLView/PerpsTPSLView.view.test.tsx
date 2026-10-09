@@ -20,6 +20,10 @@ import Engine from '../../../../../core/Engine';
 describe('PerpsTPSLView', () => {
   afterEach(() => {
     cleanup();
+    jest
+      .mocked(Engine.context.PerpsController.calculateLiquidationPrice)
+      .mockReset()
+      .mockResolvedValue('0.00');
   });
 
   it('renders back button, TPSL screen container, and Set button when params are provided', async () => {
@@ -128,9 +132,6 @@ describe('PerpsTPSLView', () => {
       ).toBeDisabled(),
     );
     expect(onConfirm).not.toHaveBeenCalled();
-    jest
-      .mocked(Engine.context.PerpsController.calculateLiquidationPrice)
-      .mockResolvedValue('0.00');
   });
 
   it('sets a custom take profit for an existing long position', async () => {

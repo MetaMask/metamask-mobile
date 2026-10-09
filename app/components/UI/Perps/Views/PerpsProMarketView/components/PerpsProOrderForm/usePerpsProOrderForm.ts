@@ -908,22 +908,38 @@ export const usePerpsProOrderForm = ({
     !!marketData &&
     !marketData.onlyIsolated &&
     !marketData.marginMode;
-  // A pick only applies to the market, Perps account and network it was made
-  // in, while Cross stays available; any change falls back to isolated until
-  // the trader picks again.
+  // Loading is temporary uncertainty, not a change to the trader's choice.
+  // Clear the choice only when the gate or fresh metadata rules out Cross.
+  const isCrossMarginUnsupported =
+    !isCrossMarginAvailable ||
+    (!isMarketDataLoading &&
+      !!marketData &&
+      !!(marketData.onlyIsolated || marketData.marginMode));
+  // An omitted provider in this eligible flow means the default Hyperliquid
+  // route, so hydrating its id does not change the selection context.
   const perpsAccountAddress = useSelector(selectPerpsSelectedAccountAddress);
-  const marginModeContextKey = `${symbol}:${perpsAccountAddress}:${network}:${isCrossMarginAvailableForMarket}`;
+  const marginModeContextKey = JSON.stringify([
+    symbol,
+    market.providerId ?? PROVIDER_CONFIG.DefaultProvider,
+    perpsAccountAddress,
+    network,
+  ]);
   const [marginModeSelection, setMarginModeSelection] = useState<{
     contextKey: string;
     marginMode: MarginMode;
   } | null>(null);
-  // Forget the pick on a context change, so switching back does not revive it.
+  // Forget the pick on a context change or restriction, so switching back
+  // does not revive it. A metadata reload in the same context keeps it.
   useEffect(() => {
     setMarginModeSelection((selection) =>
-      selection?.contextKey === marginModeContextKey ? selection : null,
+      !isCrossMarginUnsupported &&
+      selection?.contextKey === marginModeContextKey
+        ? selection
+        : null,
     );
-  }, [marginModeContextKey]);
+  }, [marginModeContextKey, isCrossMarginUnsupported]);
   const selectedMarginMode: MarginMode =
+    !isCrossMarginUnsupported &&
     marginModeSelection?.contextKey === marginModeContextKey
       ? marginModeSelection.marginMode
       : 'isolated';
@@ -962,16 +978,12 @@ export const usePerpsProOrderForm = ({
   // default.
   const resolveOrderMarginMode = useCallback(
     (position?: Position | null): MarginMode | undefined =>
-      isCrossMarginAvailableForMarket
+      !isCrossMarginUnsupported
         ? (position?.leverage?.type ??
           venueLockedMarginMode ??
           selectedMarginMode)
         : undefined,
-    [
-      isCrossMarginAvailableForMarket,
-      venueLockedMarginMode,
-      selectedMarginMode,
-    ],
+    [isCrossMarginUnsupported, venueLockedMarginMode, selectedMarginMode],
   );
   const marginMode =
     resolveOrderMarginMode(currentMarketPosition) ?? 'isolated';
@@ -982,12 +994,16 @@ export const usePerpsProOrderForm = ({
     (!!currentMarketPosition ||
       venueLockedMarginMode !== undefined ||
       !isMarginModeLockResolved);
-  // Hold submission while the read is in flight: after an account or network
-  // switch the picked mode may conflict with what the venue now binds to the
-  // market. An `unavailable` answer does not hold it; the venue re-checks the
-  // mode at submit.
+  // Keep the displayed choice through a metadata reload, but hold submission
+  // until the current restrictions and the subsequent venue read arrive.
+  // An `unavailable` lock answer does not hold it; the venue re-checks at submit.
   const isMarginModeLockPending =
-    isCrossMarginAvailableForMarket && isMarginModeLockReadPending;
+    isCrossMarginAvailable &&
+    (isMarketDataLoading || !marketData || isMarginModeLockReadPending);
+  const isMarginModeLockPendingRef = useRef(isMarginModeLockPending);
+  useLayoutEffect(() => {
+    isMarginModeLockPendingRef.current = isMarginModeLockPending;
+  }, [isMarginModeLockPending]);
 
   const prices = usePerpsLivePrices({ symbols: [symbol], throttleMs: 1000 });
   const currentPrice = prices[symbol];
@@ -1599,8 +1615,16 @@ export const usePerpsProOrderForm = ({
           selectedAddress: normalizedSelectedAddress,
           providerId: chaseProviderId,
           network,
+          marginMode,
+          marginModeContextKey,
+          isCrossMarginUnsupported,
         })
-      : orderForm.type;
+      : JSON.stringify({
+          type: orderForm.type,
+          marginMode,
+          marginModeContextKey,
+          isCrossMarginUnsupported,
+        });
   const currentComplianceState =
     orderForm.type === 'chase'
       ? JSON.stringify({
@@ -2124,7 +2148,7 @@ export const usePerpsProOrderForm = ({
     expectedLifecycleGeneration: number,
     expectedComplianceState: string,
   ) => {
-    if (isSubmittingRef.current) {
+    if (isSubmittingRef.current || isMarginModeLockPendingRef.current) {
       return;
     }
 
@@ -2166,7 +2190,9 @@ export const usePerpsProOrderForm = ({
     const isCurrentLifecycle = () =>
       lifecycleGenerationRef.current === expectedLifecycleGeneration;
     const isCurrentSubmission = () =>
-      isCurrentLifecycle() && submissionStateRef.current === expectedState;
+      isCurrentLifecycle() &&
+      !isMarginModeLockPendingRef.current &&
+      submissionStateRef.current === expectedState;
     if (!isCurrentSubmission()) {
       if (isCurrentLifecycle() && isChaseSubmission) {
         reportChaseSubmissionChanged();
@@ -2548,6 +2574,7 @@ export const usePerpsProOrderForm = ({
 
         const latestScale = latestScaleValidation.snapshot;
         if (
+          isMarginModeLockPendingRef.current ||
           latestScale.isReduceOnlyPositionLoading ||
           (latestScale.reduceOnly && !latestScale.reduceOnlyValidation.isValid)
         ) {
