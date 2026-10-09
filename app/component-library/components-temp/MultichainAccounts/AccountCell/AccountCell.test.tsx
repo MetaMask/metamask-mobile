@@ -42,16 +42,6 @@ const mockMoneyAccountBalance: {
   totalFiatRaw: undefined,
 };
 
-let mockBalanceBreakdownEnabled = false;
-
-jest.mock('../../../../hooks/useABTest', () => ({
-  useABTest: () => ({
-    variant: { showBalanceBreakdown: mockBalanceBreakdownEnabled },
-    variantName: mockBalanceBreakdownEnabled ? 'treatment' : 'control',
-    isActive: mockBalanceBreakdownEnabled,
-  }),
-}));
-
 jest.mock('../../../../components/UI/Money/hooks/useMoneyAccountInfo', () => ({
   __esModule: true,
   default: () => mockMoneyAccountInfo,
@@ -122,6 +112,9 @@ const renderAccountCell = (
     avatarAccountType?: AvatarAccountType;
     onSelectAccount?: () => void;
     privacyMode?: boolean;
+    showBalance?: boolean;
+    showMoneyBalance?: boolean;
+    nonTokenBalance?: number | null;
   } = {},
 ) => {
   const { privacyMode = false, ...componentProps } = props;
@@ -163,7 +156,6 @@ describe('AccountCell', () => {
     jest.clearAllMocks();
     mockBalance.value = 0;
     mockBalance.currency = 'usd';
-    mockBalanceBreakdownEnabled = false;
     mockMoneyAccountInfo.isMoneyAccountFeatureEnabled = false;
     mockMoneyAccountInfo.hasMoneyAccount = false;
     mockMoneyAccountInfo.primaryMoneyAccount = undefined;
@@ -174,6 +166,14 @@ describe('AccountCell', () => {
   it('displays account name', () => {
     const { getByText } = renderAccountCell();
     expect(getByText('Test Account Group')).toBeTruthy();
+  });
+
+  it('does not mount balance display when balance fetching is disabled', () => {
+    const { queryByTestId } = renderAccountCell({
+      showBalance: false,
+    });
+
+    expect(queryByTestId(AccountCellIds.BALANCE)).toBeNull();
   });
 
   it('displays account name when selected', () => {
@@ -197,7 +197,6 @@ describe('AccountCell', () => {
       'Test Account Group',
       ['account-1'],
     );
-    mockBalanceBreakdownEnabled = true;
     mockMoneyAccountInfo.isMoneyAccountFeatureEnabled = true;
     mockMoneyAccountInfo.hasMoneyAccount = true;
     mockMoneyAccountInfo.primaryMoneyAccount = {
@@ -219,8 +218,7 @@ describe('AccountCell', () => {
     expect(getByText('$103.00')).toBeTruthy();
   });
 
-  it('does not include the Money Account balance in another account group', () => {
-    mockBalanceBreakdownEnabled = true;
+  it('includes the Money Account balance in every account group', () => {
     mockMoneyAccountInfo.isMoneyAccountFeatureEnabled = true;
     mockMoneyAccountInfo.hasMoneyAccount = true;
     mockMoneyAccountInfo.primaryMoneyAccount = {
@@ -237,16 +235,15 @@ describe('AccountCell', () => {
 
     const { getByText } = renderAccountCell();
 
-    expect(getByText('$100.00')).toBeTruthy();
+    expect(getByText('$103.00')).toBeTruthy();
   });
 
-  it('does not include the Money Account balance when its feature flag is disabled', () => {
+  it('includes the Money Account balance when the balance card has a value', () => {
     const moneyAccountGroup = createMockAccountGroup(
       'entropy:test-entropy-id/0',
       'Test Account Group',
       ['account-1'],
     );
-    mockBalanceBreakdownEnabled = true;
     mockMoneyAccountInfo.hasMoneyAccount = true;
     mockMoneyAccountInfo.primaryMoneyAccount = {
       options: {
@@ -260,12 +257,31 @@ describe('AccountCell', () => {
     mockMoneyAccountBalance.totalFiatRaw = '3';
     mockBalance.value = 100;
 
-    const { getByText, queryByText } = renderAccountCell({
+    const { getByText } = renderAccountCell({
       accountGroup: moneyAccountGroup,
     });
 
-    expect(getByText('$100.00')).toBeTruthy();
-    expect(queryByText('$103.00')).toBeNull();
+    expect(getByText('$103.00')).toBeTruthy();
+  });
+
+  it('includes the aggregate non-token balance in every account group', () => {
+    mockBalance.value = 100;
+
+    const { getByText } = renderAccountCell({ nonTokenBalance: 900 });
+
+    expect(getByText('$1,000.00')).toBeTruthy();
+  });
+
+  it('keeps the aggregate balance blank while non-token balances are loading', () => {
+    mockMoneyAccountInfo.hasMoneyAccount = true;
+    mockMoneyAccountInfo.primaryMoneyAccount = {
+      address: '0x0000000000000000000000000000000000000001',
+    };
+    mockBalance.value = 100;
+
+    const { queryByText } = renderAccountCell({ nonTokenBalance: null });
+
+    expect(queryByText('$100.00')).toBeNull();
   });
 
   it('keeps the Money Account group balance blank while Money balance is unavailable', () => {
@@ -274,7 +290,6 @@ describe('AccountCell', () => {
       'Test Account Group',
       ['account-1'],
     );
-    mockBalanceBreakdownEnabled = true;
     mockMoneyAccountInfo.isMoneyAccountFeatureEnabled = true;
     mockMoneyAccountInfo.hasMoneyAccount = true;
     mockMoneyAccountInfo.primaryMoneyAccount = {

@@ -16,6 +16,10 @@ import { PermissionSummaryBottomSheetSelectorsIDs } from '../../MultichainAccoun
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 
+jest.mock('../../../hooks/useNonTokenBalance', () => ({
+  useAccountListNonTokenBalance: jest.fn(() => () => undefined),
+}));
+
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
   tw.style = jest.fn(() => ({}));

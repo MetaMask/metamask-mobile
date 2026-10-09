@@ -80,6 +80,7 @@ const MultichainAccountSelectorList = ({
   testID = MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   listRef,
   showCheckbox = false,
+  showBalance = true,
   showFooter = true,
   setKeyboardAvoidingViewEnabled,
   accountSections: accountSectionsProp,
@@ -91,6 +92,7 @@ const MultichainAccountSelectorList = ({
   showExternalAccountOnEmptySearch = false,
   onSelectExternalAccount,
   selectedExternalAddress,
+  getNonTokenBalance,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
@@ -393,8 +395,10 @@ const MultichainAccountSelectorList = ({
                 isSelected={isSelected}
                 onSelectAccount={handleSelectAccount}
                 showCheckbox={showCheckbox}
+                showBalance={showBalance}
                 chainId={chainId}
                 hideMenu={hideAccountCellMenu}
+                nonTokenBalance={getNonTokenBalance?.(item.data.id)}
               />
             );
           }
@@ -435,10 +439,12 @@ const MultichainAccountSelectorList = ({
         handleSelectExternalAccount,
         avatarAccountType,
         showCheckbox,
+        showBalance,
         showFooter,
         chainId,
         hideAccountCellMenu,
         selectedExternalAddress,
+        getNonTokenBalance,
       ],
     );
 

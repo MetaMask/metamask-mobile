@@ -1,30 +1,23 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import type { CaipChainId } from '@metamask/utils';
 import {
   selectAccountGroupBalanceForEmptyState,
   selectBalanceBySelectedAccountGroup,
   selectBalanceChangeBySelectedAccountGroup,
 } from '../../../../../../selectors/assets/balances';
 import { useAccountGroupBalanceFetchState } from '../../../../../UI/Assets/components/Balance/useAccountGroupBalanceFetchState';
-import { useNetworkEnablement } from '../../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import type { BalanceSlice } from '../../types';
 
 export function useTokensSlice(): BalanceSlice {
-  const { popularNetworks } = useNetworkEnablement();
-  const chainIdsKey = (popularNetworks ?? []).join(',');
-  const chainIds = useMemo<CaipChainId[]>(
-    () => (chainIdsKey ? (chainIdsKey.split(',') as CaipChainId[]) : []),
-    [chainIdsKey],
-  );
-
+  // No network list is passed intentionally: this uses all enabled networks,
+  // matching the account-list balance and the aggregate-balance requirement.
   const balanceSelector = useMemo(
-    () => selectBalanceBySelectedAccountGroup(chainIds),
-    [chainIds],
+    () => selectBalanceBySelectedAccountGroup(),
+    [],
   );
   const balanceChangeSelector = useMemo(
-    () => selectBalanceChangeBySelectedAccountGroup('1d', chainIds),
-    [chainIds],
+    () => selectBalanceChangeBySelectedAccountGroup('1d'),
+    [],
   );
 
   const groupBalance = useSelector(balanceSelector);

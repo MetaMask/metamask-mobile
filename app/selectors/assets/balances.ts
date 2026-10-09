@@ -291,6 +291,8 @@ export const selectBalanceForAllWallets = (popularChainIds?: CaipChainId[]) =>
       ),
   );
 
+const selectAllBalancesForAccountRows = selectBalanceForAllWallets();
+
 export const selectBalanceForAllWalletsAndChains = createSelector(
   [selectAssetsControllerStateForBalances, selectAccountTreeStateForBalances],
   (assetsControllerState, accountTreeState) =>
@@ -302,20 +304,24 @@ export const selectBalanceForAllWalletsAndChains = createSelector(
 );
 
 export const selectBalanceByAccountGroup = (groupId: string) =>
-  createSelector([selectBalanceForAllWalletsAndChains], (allBalances) => {
-    const walletId = groupId.split('/')[0];
-    const wallet = allBalances.wallets[walletId] ?? null;
-    const { userCurrency } = allBalances;
-    if (!wallet?.groups[groupId]) {
-      return {
-        walletId,
-        groupId,
-        totalBalanceInUserCurrency: 0,
-        userCurrency,
-      };
-    }
-    return wallet.groups[groupId];
-  });
+  createSelector(
+    // Account-list rows use all enabled networks (no popular-network filter).
+    [selectAllBalancesForAccountRows],
+    (allBalances) => {
+      const walletId = groupId.split('/')[0];
+      const wallet = allBalances.wallets[walletId] ?? null;
+      const { userCurrency } = allBalances;
+      if (!wallet?.groups[groupId]) {
+        return {
+          walletId,
+          groupId,
+          totalBalanceInUserCurrency: 0,
+          userCurrency,
+        };
+      }
+      return wallet.groups[groupId];
+    },
+  );
 
 export const selectBalanceByWallet = (walletId: string) =>
   createSelector([selectBalanceForAllWallets()], (allBalances) => {
