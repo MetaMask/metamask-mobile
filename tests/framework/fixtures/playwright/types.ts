@@ -44,7 +44,8 @@ export interface WorkerLevelFixtures {
 
 export interface TestLevelFixtures {
   /**
-   * Automatically captures a Hermes `.cpuprofile` for performance specs.
+   * Opt-in Hermes `.cpuprofile` harvest for performance specs
+   * (`COLLECT_HERMES_CPUPROFILES=true`).
    */
   appProfiling: void;
 

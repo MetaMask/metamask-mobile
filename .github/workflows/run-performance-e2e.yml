@@ -94,6 +94,13 @@ on:
         required: false
         type: string
         default: '2'
+      collect_hermes_cpuprofiles:
+        description: >-
+          Harvest Hermes .cpuprofile artifacts for analyze-app-profiling.
+          True for schedule/manual; false (default) for PR runs.
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -384,6 +391,7 @@ jobs:
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       browserstack_build_name: ${{ needs.prepare.outputs.android_build_name }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
     secrets: inherit
 
   run-ios-onboarding-tests:
@@ -403,6 +411,7 @@ jobs:
       app_version: Manual-Input
       browserstack_build_name: ${{ needs.prepare.outputs.ios_build_name }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
     secrets: inherit
 
   # =============================================================================
@@ -436,6 +445,7 @@ jobs:
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       browserstack_build_name: ${{ needs.prepare.outputs.android_build_name }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
     secrets: inherit
 
   run-ios-imported-wallet-tests:
@@ -455,6 +465,7 @@ jobs:
       app_version: Manual-Input
       browserstack_build_name: ${{ needs.prepare.outputs.ios_build_name }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
     secrets: inherit
 
   run-android-onboarding-tests-testmu:
