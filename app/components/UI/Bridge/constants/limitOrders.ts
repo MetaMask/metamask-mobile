@@ -1,3 +1,5 @@
+import { EthScope } from '@metamask/keyring-api';
+import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import { LimitOrderState } from '../api/limitOrders/getLimitOrders/types';
@@ -87,3 +89,23 @@ export const HISTORY_LIMIT_ORDER_STATES = [
 ];
 
 export const LOAD_MORE_LIMIT_ORDERSSCROLL_THRESHOLD = 200;
+
+/**
+ * Per-chain limit order settings, keyed by CAIP-2 chain ID, with
+ * '*' as the fallback for chains without an entry of their own.
+ */
+export const LIMIT_ORDERS_CHAIN_CONFIG: Partial<
+  Record<
+    CaipChainId | '*',
+    {
+      minAmountUSD: number;
+    }
+  >
+> = {
+  [EthScope.Mainnet]: {
+    minAmountUSD: 50,
+  },
+  '*': {
+    minAmountUSD: 1,
+  },
+};
