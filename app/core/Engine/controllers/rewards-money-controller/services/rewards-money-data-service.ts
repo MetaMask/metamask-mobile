@@ -325,22 +325,6 @@ function trimTrailingSlashes(url: string): string {
  */
 const BUSY_READ_RETRY_MAX_SECONDS = 5;
 
-/** `Retry-After` is delta-seconds. An HTTP-date is accepted too. */
-function retryAfterSeconds(header: string | null): number | undefined {
-  if (!header) {
-    return undefined;
-  }
-  const seconds = Number(header);
-  if (Number.isFinite(seconds) && seconds >= 0) {
-    return Math.max(1, Math.ceil(seconds));
-  }
-  const at = Date.parse(header);
-  if (Number.isNaN(at)) {
-    return undefined;
-  }
-  return Math.max(1, Math.ceil((at - Date.now()) / 1000));
-}
-
 /**
  * The quote failures a confirmation screen branches on. Anything else,
  * including a 500, stays `FAILED` so a shed is not reported as a validation

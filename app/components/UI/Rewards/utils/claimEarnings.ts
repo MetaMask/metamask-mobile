@@ -37,6 +37,8 @@ const RETRY_REASONS = new Set([
   'ADDRESS_SCREENING_UNAVAILABLE',
   'PAIRING_PENDING',
   'PROOF_UNAVAILABLE',
+  // The pod has no usable login keys. The token may be fine; ask again.
+  'JWKS_UNAVAILABLE',
   'SIGN_FAILED',
   'BATCH_NOT_SUBMITTED',
   'VOUCHER_EXPIRED',
@@ -74,6 +76,10 @@ export type ClaimToastKey = Extract<
   | 'claimFailureWaitToast'
   | 'claimFailureMinimumToast'
   | 'claimFailureAddressBlockedToast'
+  | 'claimFailureTooLargeToast'
+  | 'claimFailureNoEligibleBalanceToast'
+  | 'claimFailureUnavailableToast'
+  | 'claimFailureContactSupportToast'
 >;
 
 export interface ClaimRouteOutcome {
@@ -154,6 +160,21 @@ function toastKeyForReason(reason: string): ClaimToastKey {
   if (reason === 'BELOW_MINIMUM') {
     return 'claimFailureMinimumToast';
   }
+  if (reason === 'CLAIM_TOO_LARGE') {
+    return 'claimFailureTooLargeToast';
+  }
+  if (reason === 'NO_ELIGIBLE_BALANCE') {
+    return 'claimFailureNoEligibleBalanceToast';
+  }
+  if (
+    reason === 'EARNING_ADDRESS_UNSCREENABLE' ||
+    reason === 'TAX_DETERMINATION_REQUIRED'
+  ) {
+    return 'claimFailureUnavailableToast';
+  }
+  if (reason === 'EARNING_ADDRESS_MISSING') {
+    return 'claimFailureContactSupportToast';
+  }
   if (TERMINAL_REASONS.has(reason)) {
     return 'claimFailureToast';
   }
@@ -167,9 +188,11 @@ function toastKeyForReason(reason: string): ClaimToastKey {
 }
 
 /**
- * One toast for the press. A confirmed voucher wins. One that left a group
- * for a later refill (`VELOCITY_LIMIT_DEFERRED`) uses the partial sentence.
- * Otherwise the first actionable refusal wins over a generic one.
+ * One toast for the press. A confirmed voucher wins: a group left for a later
+ * refill (`VELOCITY_LIMIT_DEFERRED`) uses the partial sentence, and any other
+ * paid claim uses success, including one that also left money in `excluded[]`.
+ * Refusal sentences apply only when nothing was paid, and a specific one wins
+ * over the generic failure sentence.
  */
 export function claimToastKey(outcomes: ClaimRouteOutcome[]): ClaimToastKey {
   const submitted = outcomes.filter((outcome) => outcome.submitted);

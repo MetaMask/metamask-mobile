@@ -451,18 +451,20 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   );
   const { fetchEarningsSummary } = useEarningsSummary(profileId);
   const retrySummary = useCallback(() => {
-    void fetchEarningsSummary({ forceFresh: true });
+    void Promise.resolve(fetchEarningsSummary({ forceFresh: true })).catch(
+      () => undefined,
+    );
   }, [fetchEarningsSummary]);
   const last7 = useLast7DaysEarnings(profileId);
   const historyList = useEarningsHistory(profileId);
   const inFlight = useInFlightClaims(profileId);
   const { claim, isClaiming, isClaimWaiting } = useClaimEarnings(profileId, {
     variant,
+    summary: earningsSummaryEntry?.data ?? null,
     onOpened: () => {
       inFlight.refresh().catch(() => undefined);
     },
-    onSubmitted: () =>
-      fetchEarningsSummary({ forceFresh: true }).catch(() => undefined),
+    onSubmitted: () => fetchEarningsSummary({ forceFresh: true }),
   });
 
   if (!localizedText) {

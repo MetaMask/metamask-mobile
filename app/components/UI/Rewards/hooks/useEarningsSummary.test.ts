@@ -108,8 +108,11 @@ describe('useEarningsSummary', () => {
   it('records a failure as an error and settles loading', async () => {
     mockEngineCall.mockRejectedValue(new Error('network'));
 
-    renderHook(() => useEarningsSummary(PROFILE_A));
+    const { result } = renderHook(() => useEarningsSummary(PROFILE_A));
     await flushPromises();
+    await expect(
+      result.current.fetchEarningsSummary({ forceFresh: true }),
+    ).rejects.toThrow('network');
 
     expect(mockDispatch).toHaveBeenCalledWith(
       setEarningsSummaryError({ profileId: PROFILE_A, error: true }),

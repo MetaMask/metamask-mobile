@@ -330,6 +330,86 @@ describe('claimToastKey', () => {
       ]),
     ).toBe('claimFailureRetryToast');
   });
+
+  it('uses the retry sentence when login keys are unavailable', () => {
+    expect(
+      claimToastKey([
+        {
+          route: 'referral-trade-fee-cashback',
+          submitted: false,
+          opened: false,
+          reason: 'JWKS_UNAVAILABLE',
+        },
+      ]),
+    ).toBe('claimFailureRetryToast');
+  });
+
+  it.each([
+    ['NO_ELIGIBLE_BALANCE', 'claimFailureNoEligibleBalanceToast'],
+    ['EARNING_ADDRESS_UNSCREENABLE', 'claimFailureUnavailableToast'],
+    ['EARNING_ADDRESS_MISSING', 'claimFailureContactSupportToast'],
+    ['TAX_DETERMINATION_REQUIRED', 'claimFailureUnavailableToast'],
+  ] as const)(
+    'uses the %s sentence when the claim pays nothing',
+    (reason, toast) => {
+      expect(
+        claimToastKey([
+          {
+            route: 'referral-trade-fee-cashback',
+            submitted: false,
+            opened: false,
+            reason,
+          },
+        ]),
+      ).toBe(toast);
+    },
+  );
+
+  it('uses the too-large sentence when a day cannot fit any claim', () => {
+    expect(
+      claimToastKey([
+        {
+          route: 'referral-trade-fee-cashback',
+          submitted: false,
+          opened: false,
+          reason: 'CLAIM_TOO_LARGE',
+        },
+      ]),
+    ).toBe('claimFailureTooLargeToast');
+  });
+
+  it('uses the partial sentence before the too-large one when both groups were left', () => {
+    expect(
+      claimToastKey([
+        {
+          route: 'referral-trade-fee-cashback',
+          submitted: true,
+          opened: true,
+          excludedReasons: ['CLAIM_TOO_LARGE', 'VELOCITY_LIMIT_DEFERRED'],
+        },
+      ]),
+    ).toBe('claimPartialSuccessToast');
+  });
+
+  it('uses success when a paid claim also left an unpayable group', () => {
+    for (const reason of [
+      'CLAIM_TOO_LARGE',
+      'EARNING_ADDRESS_MISSING',
+      'EARNING_ADDRESS_UNSCREENABLE',
+      'TAX_DETERMINATION_REQUIRED',
+    ]) {
+      expect(
+        claimToastKey([
+          {
+            route: 'referral-trade-fee-cashback',
+            submitted: true,
+            opened: true,
+            excludedReasons: [reason],
+          },
+        ]),
+      ).toBe('claimSuccessToast');
+    }
+  });
 });
 
 describe('evmAddressFromEarningAddress', () => {

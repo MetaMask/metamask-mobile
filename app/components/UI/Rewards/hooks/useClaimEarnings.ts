@@ -57,11 +57,18 @@ export function useClaimEarnings(
     variant,
     onOpened,
     onSubmitted,
+    summary: liveSummary = null,
   }: {
     variant?: ReferralVariant;
     onOpened?: () => void;
-    /** Runs after a confirmed claim, before Claim is enabled again. */
+    /**
+     * Runs after a confirmed claim, before Claim is enabled again. A rejection
+     * means the balance on screen is still the pre-claim one, so Claim stays
+     * disabled until `summary` is replaced.
+     */
     onSubmitted?: () => void | Promise<void>;
+    /** The summary currently on screen. A new object releases a failed refresh. */
+    summary?: EarningsSummaryDto | null;
   } = {},
 ): {
   claim: (summary: EarningsSummaryDto) => Promise<void>;
@@ -84,6 +91,21 @@ export function useClaimEarnings(
   );
   const isClaimingRef = useRef(false);
   const claimWaitingUntilRef = useRef<number | null>(null);
+  /** The summary object Claim was pressed against, when its refresh failed. */
+  const claimedSummaryRef = useRef<EarningsSummaryDto | null>(null);
+  const refreshHoldRef = useRef(false);
+
+  useEffect(() => {
+    if (!refreshHoldRef.current) {
+      return;
+    }
+    if (!liveSummary || liveSummary === claimedSummaryRef.current) {
+      return;
+    }
+    refreshHoldRef.current = false;
+    isClaimingRef.current = false;
+    setIsClaiming(false);
+  }, [liveSummary]);
 
   useEffect(() => {
     if (claimWaitingUntil === null) {
@@ -115,6 +137,7 @@ export function useClaimEarnings(
       }
       isClaimingRef.current = true;
       setIsClaiming(true);
+      let refreshHold = false;
 
       const fail = (key: ReturnType<typeof claimToastKey>) => {
         showToast(RewardsToastOptions.error(localizedText[key]));
@@ -194,11 +217,24 @@ export function useClaimEarnings(
         });
 
         const key = claimToastKey(outcomes);
+        const paid = outcomes.some((outcome) => outcome.submitted);
         if (key === 'claimSuccessToast' || key === 'claimPartialSuccessToast') {
           showToast(RewardsToastOptions.success(localizedText[key]));
-          await onSubmitted?.();
         } else {
           showToast(RewardsToastOptions.error(localizedText[key]));
+        }
+        // Refresh after a paid claim, including one that left money in
+        // `excluded[]`. The success toast already won. A failed refresh leaves
+        // the pre-claim balance on screen, so Claim stays disabled until a
+        // later summary replaces it.
+        if (paid) {
+          try {
+            await onSubmitted?.();
+          } catch {
+            refreshHold = true;
+            refreshHoldRef.current = true;
+            claimedSummaryRef.current = summary;
+          }
         }
         if (outcomes.some((outcome) => outcome.opened)) {
           onOpened?.();
@@ -216,8 +252,10 @@ export function useClaimEarnings(
       } catch {
         fail('claimFailureToast');
       } finally {
-        isClaimingRef.current = false;
-        setIsClaiming(false);
+        if (!refreshHold) {
+          isClaimingRef.current = false;
+          setIsClaiming(false);
+        }
       }
     },
     [

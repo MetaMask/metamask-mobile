@@ -115,6 +115,14 @@ const localizedText = {
   claimFailureWaitToast: 'Try again shortly',
   claimFailureMinimumToast: 'Earn at least $1',
   claimFailureAddressBlockedToast: 'Address blocked',
+  claimFailureTooLargeToast:
+    'This amount is too large to claim in the app right now. Please contact support.',
+  claimFailureNoEligibleBalanceToast:
+    "There's nothing ready to claim right now.",
+  claimFailureUnavailableToast:
+    "These earnings can't be claimed right now. They stay in your balance.",
+  claimFailureContactSupportToast:
+    "These earnings can't be claimed right now. They stay in your balance. Please contact support.",
 } as ReferralLocalizedText;
 
 const vaultConfig = {
@@ -209,6 +217,8 @@ describe('useClaimEarnings', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    onOpened.mockReset();
+    onSubmitted.mockReset();
     global.requestAnimationFrame = (callback: FrameRequestCallback) => {
       callback(0);
       return 0;
@@ -400,6 +410,41 @@ describe('useClaimEarnings', () => {
       releaseRefresh();
       await claimPromise;
     });
+
+    expect(result.current.isClaiming).toBe(false);
+  });
+
+  it('keeps Claim disabled when the summary refresh fails', async () => {
+    const stale = summary(ONE_DOLLAR);
+    onSubmitted.mockRejectedValue(new Error('network'));
+    const { result, rerender } = renderHook(
+      ({ current }: { current: EarningsSummaryDto }) =>
+        useClaimEarnings(PROFILE_ID, {
+          variant: 'REFEREE',
+          onOpened,
+          onSubmitted,
+          summary: current,
+        }),
+      { initialProps: { current: stale } },
+    );
+
+    await act(async () => {
+      await result.current.claim(stale);
+    });
+
+    expect(mockSuccessToast).toHaveBeenCalledWith(
+      localizedText.claimSuccessToast,
+    );
+    expect(mockErrorToast).not.toHaveBeenCalled();
+    expect(result.current.isClaiming).toBe(true);
+
+    mockEngineCall.mockClear();
+    await act(async () => {
+      await result.current.claim(stale);
+    });
+    expect(mockEngineCall).not.toHaveBeenCalled();
+
+    rerender({ current: summary('0') });
 
     expect(result.current.isClaiming).toBe(false);
   });
@@ -638,6 +683,82 @@ describe('useClaimEarnings', () => {
     );
     expect(onOpened).not.toHaveBeenCalled();
   });
+
+  it('shows the retry toast when login keys are unavailable', async () => {
+    mockEngineCall.mockRejectedValue(
+      new RewardsMoneyClaimRefusalError(503, 'JWKS_UNAVAILABLE', 30),
+    );
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(mockErrorToast).toHaveBeenCalledWith(
+      localizedText.claimFailureRetryToast,
+    );
+    expect(onSubmitted).not.toHaveBeenCalled();
+  });
+
+  it('shows the too-large toast when nothing else fits the treasury', async () => {
+    mockEngineCall.mockRejectedValue(
+      new RewardsMoneyClaimRefusalError(422, 'CLAIM_TOO_LARGE'),
+    );
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(mockErrorToast).toHaveBeenCalledWith(
+      localizedText.claimFailureTooLargeToast,
+    );
+    expect(onSubmitted).not.toHaveBeenCalled();
+  });
+
+  it('shows the success toast and still refreshes when a paid claim left an oversized group', async () => {
+    mockEngineCall.mockResolvedValue({
+      kind: 'authorized',
+      body: {
+        ...authorized().body,
+        excluded: [{ type: 'SWAPS_FEE_CASHBACK', reason: 'CLAIM_TOO_LARGE' }],
+      },
+    });
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(mockSuccessToast).toHaveBeenCalledWith(
+      localizedText.claimSuccessToast,
+    );
+    expect(mockErrorToast).not.toHaveBeenCalled();
+    expect(onSubmitted).toHaveBeenCalledTimes(1);
+    expect(onOpened).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['NO_ELIGIBLE_BALANCE', 'claimFailureNoEligibleBalanceToast'],
+    ['EARNING_ADDRESS_UNSCREENABLE', 'claimFailureUnavailableToast'],
+    ['EARNING_ADDRESS_MISSING', 'claimFailureContactSupportToast'],
+    ['TAX_DETERMINATION_REQUIRED', 'claimFailureUnavailableToast'],
+  ] as const)(
+    'shows the %s toast when the route refuses the claim',
+    async (reason, toast) => {
+      mockEngineCall.mockRejectedValue(
+        new RewardsMoneyClaimRefusalError(422, reason),
+      );
+      const { result } = renderClaim();
+
+      await act(async () => {
+        await result.current.claim(summary(ONE_DOLLAR));
+      });
+
+      expect(mockErrorToast).toHaveBeenCalledWith(localizedText[toast]);
+      expect(onSubmitted).not.toHaveBeenCalled();
+    },
+  );
 
   it('shows the minimum toast when the route refuses a sub-dollar claim', async () => {
     mockEngineCall.mockRejectedValue(
