@@ -7,6 +7,8 @@ export interface SecurityState {
   dataCollectionForMarketing: boolean | null;
   isNFTAutoDetectionModalViewed: boolean;
   osAuthEnabled: boolean;
+  shouldShowConsentSheet: boolean;
+  dataSharingPreference: boolean | null;
 }
 
 export const initialState: Readonly<SecuritySettingsState> = {
@@ -14,6 +16,8 @@ export const initialState: Readonly<SecuritySettingsState> = {
   dataCollectionForMarketing: null,
   isNFTAutoDetectionModalViewed: false,
   osAuthEnabled: true, // Default to enabled (biometric-first)
+  shouldShowConsentSheet: true,
+  dataSharingPreference: null,
 };
 
 const securityReducer = (
@@ -40,6 +44,16 @@ const securityReducer = (
       return {
         ...state,
         osAuthEnabled: action.enabled,
+      };
+    case ActionType.SET_SHOULD_SHOW_CONSENT_SHEET:
+      return {
+        ...state,
+        shouldShowConsentSheet: action.shouldShow,
+      };
+    case ActionType.SET_DATA_SHARING_PREFERENCE:
+      return {
+        ...state,
+        dataSharingPreference: action.preference,
       };
     default:
       return state;

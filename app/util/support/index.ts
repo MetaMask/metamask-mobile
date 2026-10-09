@@ -1,9 +1,11 @@
 import { getVersion } from 'react-native-device-info';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Engine from '../../core/Engine';
+import ReduxService from '../../core/redux';
 import Logger from '../Logger';
 import { METAMASK_SUPPORT_URL } from '../../constants/urls';
 import Routes from '../../constants/navigation/Routes';
+import { selectSavedSupportDataSharingPreference } from '../../selectors/security';
 
 // Query param names must match the extension implementation (see
 // https://github.com/MetaMask/metamask-extension/pull/44482) so the CS support
@@ -149,13 +151,57 @@ export const rejectSupportConsent = async (
 };
 
 /**
+ * Reads the support data sharing choice the user saved via "Save my
+ * preference" on the consent sheet.
+ *
+ * @returns `true` (share) or `false` (don't share) when a choice is saved and
+ * "Remember my support preference" is on, otherwise `null` (ask again).
+ */
+export const getSavedSupportDataSharingPreference = (): boolean | null => {
+  try {
+    return selectSavedSupportDataSharingPreference(
+      ReduxService.store.getState(),
+    );
+  } catch {
+    // Store not initialized yet: fall back to asking for consent.
+    return null;
+  }
+};
+
+/**
+ * Opens support immediately when the user has saved a data-sharing choice.
+ *
+ * @returns `true` when a saved preference was found and support opening was
+ * started, otherwise `false` so the caller can show the consent UI.
+ */
+export const openSupportWithSavedPreference = (
+  open: OpenSupportUrl,
+  baseUrl?: string,
+  onOpenSupport?: () => void,
+): boolean => {
+  const savedPreference = getSavedSupportDataSharingPreference();
+  if (savedPreference === true) {
+    // eslint-disable-next-line no-void -- Support opening handles its own errors.
+    void confirmSupportConsent(open, baseUrl, onOpenSupport);
+    return true;
+  }
+  if (savedPreference === false) {
+    // eslint-disable-next-line no-void -- Support opening handles its own errors.
+    void rejectSupportConsent(open, baseUrl, onOpenSupport);
+    return true;
+  }
+  return false;
+};
+
+/**
  * Shows the support consent sheet, then opens the support URL via the
  * caller-provided `open` function (e.g. navigating to SimpleWebview,
  * `Linking.openURL`, or an in-app browser), keeping each entry point's
  * existing opening mechanism intact.
  *
- * The consent choice is not persisted: the sheet is shown on every call,
- * matching the extension's behavior (see extension PR #44482).
+ * When the user has a saved preference (see
+ * `getSavedSupportDataSharingPreference`), the sheet is skipped and the saved
+ * choice is applied directly.
  *
  * Shared by `useSupportConsent` (function components) and class components
  * that cannot use hooks (e.g. `ErrorBoundary`, `AppInformation`).
@@ -177,6 +223,10 @@ export const navigateToSupportConsent = (
   baseUrl?: string,
   onOpenSupport?: () => void,
 ): void => {
+  if (openSupportWithSavedPreference(open, baseUrl, onOpenSupport)) {
+    return;
+  }
+
   navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
     screen: Routes.MODAL.SUPPORT_CONSENT_SHEET,
     params: {
