@@ -663,11 +663,19 @@ export class PredictController extends BaseController<
 
   /**
    * Resolves the current Predict membership fee hint through the scoped
-   * messenger. Benefit lookup failures never grant a fee waiver.
+   * messenger. The waiver is skipped when
+   * `predictSubscriptionFeeWaiverEnabled` is off. Benefit lookup failures
+   * never grant a fee waiver.
    *
    * @returns The fail-closed Predict fee policy.
    */
   private async getPredictFeePolicy(): Promise<PredictFeePolicy | undefined> {
+    const { isMembershipFeeWaiverEnabled } = this.resolveFeatureFlags();
+
+    if (!isMembershipFeeWaiverEnabled) {
+      return undefined;
+    }
+
     try {
       const benefits = await this.messenger.call(
         'SubscriptionController:getBenefits',

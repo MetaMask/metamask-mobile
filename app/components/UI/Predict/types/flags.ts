@@ -178,6 +178,7 @@ export interface PredictFeatureFlags {
   predictPortfolioEnabled: boolean;
   predictHomeRedesignEnabled: boolean;
   predictSportCardLivePricesEnabled: boolean;
+  isMembershipFeeWaiverEnabled: boolean;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {

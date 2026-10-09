@@ -112,6 +112,40 @@ const REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN = {
   },
 };
 
+const REMOTE_FEATURE_FLAG_STATE_WITH_SUBSCRIPTION_FEE_WAIVER = {
+  ...DEFAULT_REMOTE_FEATURE_FLAG_STATE,
+  remoteFeatureFlags: {
+    ...DEFAULT_REMOTE_FEATURE_FLAG_STATE.remoteFeatureFlags,
+    predictSubscriptionFeeWaiverEnabled: {
+      enabled: true,
+      minimumVersion: '0.0.0',
+    },
+  },
+};
+
+const ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS = {
+  eligible: true,
+  billingPeriodId: 'period-1',
+  products: {
+    swaps: {
+      feeBips: null,
+      remainingMicroUsd: null,
+      exhausted: false,
+    },
+    perps: {
+      builderFeeBips: null,
+      builderCode: null,
+      remainingMicroUsd: null,
+      exhausted: false,
+    },
+    predict: {
+      builderCode: 'predict-pro-builder',
+      remainingTxCount: 2,
+      exhausted: false,
+    },
+  },
+} satisfies SubscriptionBenefitsResponse;
+
 const DEFAULT_NETWORK_CLIENT = {
   blockTracker: {
     checkForLatestBlock: jest.fn().mockResolvedValue(undefined),
@@ -9364,28 +9398,9 @@ describe('PredictController', () => {
       mockPolymarketProvider.previewOrder.mockResolvedValue(
         createMockOrderPreview({ side: Side.BUY }),
       );
-      const getBenefits = jest.fn().mockResolvedValue({
-        eligible: true,
-        billingPeriodId: 'period-1',
-        products: {
-          swaps: {
-            feeBips: null,
-            remainingMicroUsd: null,
-            exhausted: false,
-          },
-          perps: {
-            builderFeeBips: null,
-            builderCode: null,
-            remainingMicroUsd: null,
-            exhausted: false,
-          },
-          predict: {
-            builderCode: 'predict-pro-builder',
-            remainingTxCount: 2,
-            exhausted: false,
-          },
-        },
-      } satisfies SubscriptionBenefitsResponse);
+      const getBenefits = jest
+        .fn()
+        .mockResolvedValue(ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS);
 
       await withController(
         async ({ controller }) => {
@@ -9397,12 +9412,51 @@ describe('PredictController', () => {
             size: 100,
           });
 
+          expect(getBenefits).toHaveBeenCalledTimes(1);
           expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
             expect.objectContaining({
               feePolicy: {
                 discountType: DiscountType.SUBSCRIPTION,
                 builderCode: 'predict-pro-builder',
               },
+            }),
+          );
+        },
+        {
+          mocks: {
+            getBenefits,
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(
+                REMOTE_FEATURE_FLAG_STATE_WITH_SUBSCRIPTION_FEE_WAIVER,
+              ),
+          },
+        },
+      );
+    });
+
+    it('skips the membership fee waiver when the remote flag is disabled', async () => {
+      mockPolymarketProvider.previewOrder.mockResolvedValue(
+        createMockOrderPreview({ side: Side.BUY }),
+      );
+      const getBenefits = jest
+        .fn()
+        .mockResolvedValue(ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS);
+
+      await withController(
+        async ({ controller }) => {
+          await controller.previewOrder({
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+            side: Side.BUY,
+            size: 100,
+          });
+
+          expect(getBenefits).not.toHaveBeenCalled();
+          expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
+            expect.not.objectContaining({
+              feePolicy: expect.anything(),
             }),
           );
         },
