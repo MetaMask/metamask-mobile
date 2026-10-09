@@ -15,11 +15,19 @@ import {
 } from './Benefits.constants';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { useSubscriptionPricing } from './hooks/useSubscriptionPricing';
+import { useMoneyAccountPlusTrialEligibility } from './hooks/useMoneyAccountPlusTrialEligibility';
 import { formatSubscriptionFiat } from './utils/formatSubscriptionFiat';
-import type { MoneyAccountPlusPricingView } from './utils/mapMoneyAccountPlusPricing';
+import type {
+  MoneyAccountPlusPricingView,
+  PlanPricingView,
+} from './utils/mapMoneyAccountPlusPricing';
 
 jest.mock('./hooks/useSubscriptionPricing', () => ({
   useSubscriptionPricing: jest.fn(),
+}));
+
+jest.mock('./hooks/useMoneyAccountPlusTrialEligibility', () => ({
+  useMoneyAccountPlusTrialEligibility: jest.fn(),
 }));
 
 const mockIsProduction = jest.fn();
@@ -28,24 +36,31 @@ jest.mock('../../../../../util/environment', () => ({
 }));
 
 const mockUseSubscriptionPricing = jest.mocked(useSubscriptionPricing);
+const mockUseMoneyAccountPlusTrialEligibility = jest.mocked(
+  useMoneyAccountPlusTrialEligibility,
+);
 const mockRetry = jest.fn();
+
+const MONTHLY_PLAN: PlanPricingView = {
+  interval: RECURRING_INTERVALS.month,
+  currency: 'usd',
+  unitAmount: 499,
+  unitDecimals: 2,
+  amount: 4.99,
+};
+
+const ANNUAL_PLAN: PlanPricingView = {
+  interval: RECURRING_INTERVALS.year,
+  currency: 'usd',
+  unitAmount: 4999,
+  unitDecimals: 2,
+  amount: 49.99,
+};
 
 const READY_PLUS_PRICING: MoneyAccountPlusPricingView = {
   status: 'ready',
-  monthly: {
-    interval: RECURRING_INTERVALS.month,
-    currency: 'usd',
-    unitAmount: 499,
-    unitDecimals: 2,
-    amount: 4.99,
-  },
-  annual: {
-    interval: RECURRING_INTERVALS.year,
-    currency: 'usd',
-    unitAmount: 4999,
-    unitDecimals: 2,
-    amount: 49.99,
-  },
+  monthly: MONTHLY_PLAN,
+  annual: ANNUAL_PLAN,
   savings: {
     amount: 9.89,
     equivalentMonthly: 49.99 / 12,
@@ -83,6 +98,9 @@ describe('Benefits', () => {
     jest.clearAllMocks();
     mockIsProduction.mockReturnValue(false);
     mockPricingState();
+    mockUseMoneyAccountPlusTrialEligibility.mockReturnValue({
+      isEligibleForTrial: false,
+    });
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
@@ -240,6 +258,59 @@ describe('Benefits', () => {
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
         strings('pro_subscription.join_orange'),
       );
+    });
+  });
+
+  describe('Free trial', () => {
+    const trialPricing: MoneyAccountPlusPricingView = {
+      ...READY_PLUS_PRICING,
+      monthly: { ...MONTHLY_PLAN, trialPeriodDays: 7 },
+      annual: { ...ANNUAL_PLAN, trialPeriodDays: 7 },
+    };
+
+    it('shows trial copy when the controller reports the user is eligible', () => {
+      mockUseMoneyAccountPlusTrialEligibility.mockReturnValue({
+        isEligibleForTrial: true,
+      });
+      mockPricingState({ plusPricing: trialPricing });
+
+      const { getByTestId } = renderBenefits();
+
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('annual')),
+      ).toHaveTextContent(
+        strings('pro_subscription.plans.trial', { days: '7' }),
+      );
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('monthly')),
+      ).toHaveTextContent(
+        strings('pro_subscription.plans.trial', { days: '7' }),
+      );
+      expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
+        strings('pro_subscription.start_free_trial'),
+      );
+      expect(
+        getByTestId(BenefitsTestIds.FREE_TRIAL_DESCRIPTION),
+      ).toHaveTextContent(strings('pro_subscription.free_trial_description'));
+    });
+
+    it('hides trial copy when the controller reports the user is not eligible', () => {
+      mockPricingState({ plusPricing: trialPricing });
+
+      const { getByTestId, queryByTestId } = renderBenefits();
+
+      expect(
+        queryByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('annual')),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('monthly')),
+      ).not.toBeOnTheScreen();
+      expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
+        strings('pro_subscription.join_orange'),
+      );
+      expect(
+        queryByTestId(BenefitsTestIds.FREE_TRIAL_DESCRIPTION),
+      ).not.toBeOnTheScreen();
     });
   });
 

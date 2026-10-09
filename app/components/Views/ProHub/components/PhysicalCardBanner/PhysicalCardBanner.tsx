@@ -18,16 +18,24 @@ import { strings } from '../../../../../../locales/i18n';
 import { ProHubTestIds } from '../../ProHub.testIds';
 
 interface PhysicalCardBannerProps {
-  onPress: () => void;
+  onPress?: () => void;
+  isTrialing?: boolean;
+  cashbackRate: string;
 }
 
-const PhysicalCardBanner = ({ onPress }: PhysicalCardBannerProps) => (
-  <TouchableOpacity
-    onPress={onPress}
-    accessibilityRole="button"
-    accessibilityLabel={strings('pro_hub.physical_card.title')}
-    testID={ProHubTestIds.PHYSICAL_CARD_BANNER}
-  >
+const PhysicalCardBanner = ({
+  onPress,
+  isTrialing = false,
+  cashbackRate,
+}: PhysicalCardBannerProps) => {
+  const title = isTrialing
+    ? strings('pro_hub.physical_card.trial_title', { rate: cashbackRate })
+    : strings('pro_hub.physical_card.title');
+  const description = isTrialing
+    ? strings('pro_hub.physical_card.trial_description')
+    : strings('pro_hub.physical_card.description');
+
+  const content = (
     <Card twClassName="w-full bg-background-subsection border-0 rounded-xl p-4">
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -43,26 +51,51 @@ const PhysicalCardBanner = ({ onPress }: PhysicalCardBannerProps) => (
             color={TextColor.TextDefault}
             testID={ProHubTestIds.PHYSICAL_CARD_TITLE}
           >
-            {strings('pro_hub.physical_card.title')}
+            {title}
           </Text>
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
             testID={ProHubTestIds.PHYSICAL_CARD_DESCRIPTION}
           >
-            {strings('pro_hub.physical_card.description')}
+            {description}
           </Text>
         </Box>
 
-        <Icon
-          name={IconName.ArrowRight}
-          size={IconSize.Sm}
-          color={IconColor.IconAlternative}
-          twClassName="shrink-0"
-        />
+        {isTrialing ? null : (
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+            twClassName="shrink-0"
+          />
+        )}
       </Box>
     </Card>
-  </TouchableOpacity>
-);
+  );
+
+  if (isTrialing || onPress === undefined) {
+    return (
+      <Box
+        accessible
+        accessibilityLabel={title}
+        testID={ProHubTestIds.PHYSICAL_CARD_BANNER}
+      >
+        {content}
+      </Box>
+    );
+  }
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      testID={ProHubTestIds.PHYSICAL_CARD_BANNER}
+    >
+      {content}
+    </TouchableOpacity>
+  );
+};
 
 export default PhysicalCardBanner;
