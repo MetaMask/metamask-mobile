@@ -122,12 +122,6 @@ const Logger = jest.requireMock('../../../util/Logger');
 
 jest.mock('../../UI/OnboardingFoxLoader/OnboardingFoxLoader');
 
-// Revealing the phrase tracks an onboarding event. The real tracker lazy-loads
-// Engine, which pulls the controller graph in and blows the 5s Jest timeout.
-jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
-  jest.fn(),
-);
-
 jest.mock('../../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
   jest.fn(),
 );
@@ -193,6 +187,9 @@ const revealSeedPhrase = async (
   wrapper: ReturnType<typeof renderWithProvider>,
 ) => {
   // Wrap in act so the seedPhraseHidden state update flushes before assert.
+  // waitFor is unsafe here: testSetup mocks Date.now to a constant, so
+  // waitFor's timeout never elapses and a missed update hangs until Jest's
+  // test timeout (seen as flaky 15s failures in CI).
   await act(async () => {
     fireEvent.press(
       wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
