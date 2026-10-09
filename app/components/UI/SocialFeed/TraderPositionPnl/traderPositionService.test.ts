@@ -1,4 +1,5 @@
 import {
+  getOpenPositionPnl,
   getTraderPosition,
   TraderPositionHttpError,
   TraderPositionMalformedError,
@@ -59,6 +60,24 @@ const jsonResponse = (status: number, body: unknown): Response =>
     status,
     json: async () => body,
   }) as Response;
+
+const readyPnl = {
+  pnlStatus: 'ready',
+  positionId: '1700000000.000',
+  positionAmount: 90,
+  positionStats: {
+    boughtUSD: 200000,
+    soldUSD: 0,
+    realizedGainsUSD: 10,
+    holdingsCostBasisUSD: 100,
+    receivedCostBasisUSD: 0,
+    holdingReceivedCostBasisUSD: 0,
+    isOpen: true,
+  },
+};
+
+const openPnlUrl =
+  'https://social.test/api/v1/accounts/eip155%3A1%3A0xabc/assets/eip155%3A1%2Ferc20%3A0x6982508145454ce325ddbe47a25d4ec3d2311933/open-position-pnl';
 
 describe('getTraderPosition', () => {
   beforeEach(() => {
@@ -127,6 +146,62 @@ describe('getTraderPosition', () => {
       name: 'TraderPositionHttpError',
       status: 503,
     });
+  });
+
+  it('loads the open position using the CAIP-19 asset id', async () => {
+    mockFetch.mockResolvedValue(jsonResponse(200, readyPnl));
+
+    const position = await getOpenPositionPnl({
+      accountAddress: '0xAbC',
+      tokenAddress: '0x6982508145454CE325dDbE47a25d4ec3d2311933',
+      chainId: '0x1',
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      openPnlUrl,
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer test-token' },
+      }),
+    );
+    expect(position?.costBasis).toBe(100);
+    expect(position?.realizedPnl).toBe(10);
+    expect(position?.positionAmount).toBe(90);
+    expect(position?.currentValueUSD).toBeNull();
+    expect(position?.trades).toEqual([{ timestamp: 1700000000 }]);
+  });
+
+  it('returns null when the wallet has no open position in the token', async () => {
+    mockFetch.mockResolvedValue(
+      jsonResponse(404, { errorMessage: 'Open position not found' }),
+    );
+
+    await expect(
+      getOpenPositionPnl({
+        accountAddress: '0xabc',
+        tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+        chainId: '0x1',
+      }),
+    ).resolves.toBeNull();
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns null while the account PnL is still backfilling', async () => {
+    mockFetch.mockResolvedValue(
+      jsonResponse(200, {
+        pnlStatus: 'backfilling',
+        positionId: null,
+        positionAmount: null,
+        positionStats: null,
+      }),
+    );
+
+    await expect(
+      getOpenPositionPnl({
+        accountAddress: '0xabc',
+        tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+        chainId: '0x1',
+      }),
+    ).resolves.toBeNull();
   });
 
   it('rethrows an aborted request', async () => {

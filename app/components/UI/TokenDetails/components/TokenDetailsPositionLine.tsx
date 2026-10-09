@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable } from 'react-native';
 import {
   Box,
@@ -17,20 +17,31 @@ import { strings } from '../../../../../locales/i18n';
 import {
   convertUsdToFiat,
   formatFiat,
+  useOpenPositionId,
   useTraderPosition,
   useUnrealizedPnl,
   useUsdToFiatRate,
   type TraderPosition,
+  type UnrealizedPnlView,
 } from '../../SocialFeed/TraderPositionPnl';
-import { EM_DASH, formatHoldDuration } from '../../SocialFeed/utils/formatters';
+import { computeUnrealizedPnl } from '../../SocialFeed/TraderPositionPnl/unrealizedPnl';
+import {
+  EM_DASH,
+  formatHoldDuration,
+  formatPercent,
+} from '../../SocialFeed/utils/formatters';
 import { tradeTimestampToMs } from '../../SocialFeed/utils/tradeTimestamp';
 
 export const TOKEN_DETAILS_POSITION_LINE_TEST_ID =
   'token-details-position-line';
 
 interface TokenDetailsPositionLineProps {
-  /** Unresolved until Social confirms how a wallet + token maps to an id. */
+  /** Skips the open-positions lookup when the caller already has an id. */
   positionId?: string;
+  /** Token contract used to find this wallet's open position. */
+  tokenAddress?: string;
+  /** Chain id for the token, for example `0x1`. */
+  chainId?: string;
   /** Wallet token value in USD. Shown even when the endpoint has no position. */
   balanceFiatUsd?: number;
 }
@@ -70,14 +81,70 @@ const DetailRow = ({ label, value }: { label: string; value: string }) => (
  * "Your position" is always shown. Unrealised PnL is the second row when a
  * spot position exists.
  */
+const EMPTY_PNL: UnrealizedPnlView = {
+  valueFormatted: null,
+  percentFormatted: null,
+  isProfit: false,
+  currency: 'usd',
+  isLoading: false,
+  error: null,
+  hasPosition: false,
+  fellBackToUsd: false,
+};
+
 const TokenDetailsPositionLine: React.FC<TokenDetailsPositionLineProps> = ({
   positionId,
+  tokenAddress,
+  chainId,
   balanceFiatUsd,
 }) => {
   const [expanded, setExpanded] = useState(false);
-  const pnl = useUnrealizedPnl(positionId);
-  const { position } = useTraderPosition(positionId);
+  const { position: openPosition, isResolving } = useOpenPositionId({
+    positionId,
+    tokenAddress,
+    chainId,
+  });
+  const idPnl = useUnrealizedPnl(positionId);
+  const { position: idPosition } = useTraderPosition(positionId);
   const { currency, rate } = useUsdToFiatRate();
+  const loaded = positionId ? idPosition : openPosition;
+  const position = useMemo(() => {
+    if (
+      loaded != null &&
+      loaded.currentValueUSD == null &&
+      balanceFiatUsd != null
+    ) {
+      return { ...loaded, currentValueUSD: balanceFiatUsd };
+    }
+    return loaded;
+  }, [balanceFiatUsd, loaded]);
+  const openPnl = useMemo((): UnrealizedPnlView => {
+    if (positionId || position == null) {
+      return { ...EMPTY_PNL, currency, isLoading: isResolving };
+    }
+    const unrealized = computeUnrealizedPnl(position);
+    if (unrealized.usd == null) {
+      return {
+        ...EMPTY_PNL,
+        currency,
+        isLoading: isResolving,
+        hasPosition: true,
+      };
+    }
+    const converted = convertUsdToFiat(unrealized.usd, currency, rate);
+    return {
+      valueFormatted: formatFiat(converted.amount, converted.currency),
+      percentFormatted:
+        unrealized.percent == null ? null : formatPercent(unrealized.percent),
+      isProfit: unrealized.usd > 0,
+      currency: converted.currency,
+      isLoading: isResolving,
+      error: null,
+      hasPosition: true,
+      fellBackToUsd: converted.fellBackToUsd,
+    };
+  }, [currency, isResolving, position, positionId, rate]);
+  const pnl = positionId ? idPnl : openPnl;
 
   const value =
     balanceFiatUsd == null
@@ -167,7 +234,7 @@ const TokenDetailsPositionLine: React.FC<TokenDetailsPositionLineProps> = ({
             </Text>
           </Box>
         )}
-        {pnl.isLoading && (
+        {(isResolving || pnl.isLoading) && (
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings('asset_overview.position_pnl.loading')}
           </Text>

@@ -23,6 +23,7 @@ import {
   TOKEN_BALANCE_URL,
   WHY_TRANSACTION_TAKE_TIME_URL,
 } from '../constants/urls';
+import { socialApiUrl } from './apiEnv';
 
 const DEVELOPMENT = 'development';
 
@@ -251,8 +252,7 @@ export default {
     'https://signature-insights.api.cx.metamask.io/v1',
   DIGEST_API_URL:
     process.env.DIGEST_API_URL ?? 'https://digest.api.cx.metamask.io/api/v1',
-  SOCIAL_API_URL:
-    process.env.SOCIAL_API_URL ?? 'https://social.api.cx.metamask.io',
+  SOCIAL_API_URL: socialApiUrl(),
   // Rewards/Baanx: GH Actions use builds.yml (env set per build). Fallback mapping for local when env not set.
   REWARDS_API_URL: {
     DEV: 'https://rewards.dev-api.cx.metamask.io',
