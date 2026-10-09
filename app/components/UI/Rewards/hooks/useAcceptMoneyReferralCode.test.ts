@@ -181,6 +181,7 @@ describe('useAcceptMoneyReferralCode', () => {
     expect(typeof result.current.acceptReferralCode).toBe('function');
     expect(result.current.isLoading).toBe(false);
     expect(result.current.errorMessage).toBe('');
+    expect(result.current.acceptBlockedUntil).toBeNull();
     expect(typeof result.current.clearError).toBe('function');
   });
 
@@ -380,6 +381,112 @@ describe('useAcceptMoneyReferralCode', () => {
       );
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('shows too many tries and blocks accept until Retry-After elapses', async () => {
+      jest.useFakeTimers();
+      try {
+        mockMessenger({
+          registerError: new RewardsMoneyHttpError(
+            'Register referee failed: 429',
+            429,
+            'Too many requests',
+            2,
+          ),
+        });
+
+        const { result } = renderAcceptHook();
+        let accepted: boolean | undefined;
+        await act(async () => {
+          accepted = await result.current.acceptReferralCode(CODE);
+        });
+
+        expect(accepted).toBe(false);
+        expect(result.current.errorMessage).toBe(
+          strings('rewards.error_messages.rate_limited'),
+        );
+        expect(result.current.acceptBlockedUntil).toBe(Date.now() + 2000);
+        expect(mockGoBack).not.toHaveBeenCalled();
+        expect(callsFor('RewardsMoneyController:getReferralMe')).toHaveLength(
+          0,
+        );
+
+        act(() => {
+          result.current.clearError();
+        });
+        expect(result.current.errorMessage).toBe(
+          strings('rewards.error_messages.rate_limited'),
+        );
+
+        await act(async () => {
+          accepted = await result.current.acceptReferralCode('OTHER');
+        });
+        expect(accepted).toBe(false);
+        expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
+          1,
+        );
+
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(2000);
+        });
+
+        expect(result.current.acceptBlockedUntil).toBeNull();
+        expect(result.current.errorMessage).toBe('');
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('blocks accept when validation itself is rate limited', async () => {
+      jest.useFakeTimers();
+      try {
+        mockMessenger({
+          validateError: new RewardsMoneyHttpError(
+            'Validate referral code failed: 429',
+            429,
+            'Too many requests',
+            12,
+          ),
+        });
+
+        const { result, unmount } = renderAcceptHook();
+        let accepted: boolean | undefined;
+        await act(async () => {
+          accepted = await result.current.acceptReferralCode(CODE);
+        });
+
+        expect(accepted).toBe(false);
+        expect(result.current.errorMessage).toBe(
+          strings('rewards.error_messages.rate_limited'),
+        );
+        expect(result.current.acceptBlockedUntil).toBe(Date.now() + 12000);
+        unmount();
+        expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
+          0,
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('shows too many tries without blocking when a 429 has no Retry-After', async () => {
+      mockMessenger({
+        registerError: new RewardsMoneyHttpError(
+          'Register referee failed: 429',
+          429,
+          'Too many requests',
+        ),
+      });
+
+      const { result } = renderAcceptHook();
+      await act(async () => {
+        await result.current.acceptReferralCode(CODE);
+      });
+
+      expect(result.current.errorMessage).toBe(
+        strings('rewards.error_messages.rate_limited'),
+      );
+      expect(result.current.acceptBlockedUntil).toBeNull();
     });
 
     it('clears the field error when asked', async () => {

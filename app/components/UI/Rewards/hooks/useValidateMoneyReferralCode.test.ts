@@ -4,6 +4,7 @@ import {
   useValidateMoneyReferralCode,
 } from './useValidateMoneyReferralCode';
 import Engine from '../../../../core/Engine';
+import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services';
 
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
@@ -90,6 +91,21 @@ describe('useValidateMoneyReferralCode', () => {
     await act(async () => {
       const error = await result.current.validateCode('KOL1');
       expect(error).toBe('Invalid referral code. Check and try again.');
+    });
+  });
+
+  it('rethrows a 429 from validateCode so accept can read Retry-After', async () => {
+    const refusal = new RewardsMoneyHttpError(
+      'Validate referral code failed: 429',
+      429,
+      'Too many requests',
+      12,
+    );
+    mockEngineCall.mockRejectedValueOnce(refusal);
+    const { result } = renderHook(() => useValidateMoneyReferralCode());
+
+    await act(async () => {
+      await expect(result.current.validateCode('KOL1')).rejects.toBe(refusal);
     });
   });
 

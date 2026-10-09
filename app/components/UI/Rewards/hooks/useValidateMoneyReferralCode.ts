@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
+import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services';
 
 export const MONEY_REFERRAL_CODE_DEBOUNCE_MS = 1000;
 export const MONEY_REFERRAL_CODE_MIN_LENGTH = 3;
@@ -97,7 +98,12 @@ export const useValidateMoneyReferralCode = (
         return strings('rewards.error_messages.invalid_referral_code');
       }
       return '';
-    } catch {
+    } catch (error) {
+      // A miss-budget refusal has to reach accept with its Retry-After. Every
+      // other failure is still "validation could not run".
+      if (error instanceof RewardsMoneyHttpError && error.status === 429) {
+        throw error;
+      }
       return MONEY_REFERRAL_CODE_UNKNOWN_ERROR;
     }
   }, []);

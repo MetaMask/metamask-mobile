@@ -125,6 +125,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     acceptReferralCode,
     isLoading: isAccepting,
     errorMessage: registerError,
+    acceptBlockedUntil,
     clearError,
   } = useAcceptMoneyReferralCode();
 
@@ -143,8 +144,14 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
 
   // A code that could not be validated is still offered to the server, which
   // is the authority on it; a rejected one would only be refused again.
+  const isRateLimited =
+    acceptBlockedUntil !== null && Date.now() < acceptBlockedUntil;
   const canAccept =
-    hasCodeToValidate && !isValidating && !isRejectedCode && !isAccepting;
+    hasCodeToValidate &&
+    !isValidating &&
+    !isRejectedCode &&
+    !isAccepting &&
+    !isRateLimited;
 
   const handleChangeReferralCode = useCallback(
     (code: string) => {
