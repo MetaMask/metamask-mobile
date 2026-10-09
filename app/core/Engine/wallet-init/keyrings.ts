@@ -58,10 +58,8 @@ export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
  * @param messenger - Needed by some builders that interact with the shared bus.
  * TODO: Remove this parameter when we remove the DMK feature flag.
  * @param useDmk - Whether to use the DMK Ledger bridge for Ledger keyrings.
- * Resolved once in `initializeWallet` from persisted RemoteFeatureFlagController
- * state via `isDmkEnabled` (the `ledgerDmk` flag; `LEDGER_FORCE_DMK` env var
- * overrides) and threaded via `getKeyringControllerInstanceOptions`; the
- * adapter factory reads the same flag in `useAdapterLifecycle`.
+ * Seeded in `initializeWallet`; adapter creation reads the same value via
+ * `getLedgerDmkMode`.
  * @returns The keyring builders to register with the `KeyringController`.
  */
 export function getKeyringBuilders(
@@ -88,11 +86,9 @@ export function getKeyringBuilders(
 
   keyrings.push(qrKeyringBuilder);
 
-  // Bridge type is fixed at Engine init: the `useDmk` param is resolved once
-  // in `initializeWallet` from persisted feature-flag state (`isDmkEnabled`
-  // honors the `LEDGER_FORCE_DMK` env override there) and threaded through
-  // `getKeyringControllerInstanceOptions`. The adapter factory must use the
-  // same decision so discovery/connect share one DMK instance.
+  // Bridge type is fixed at Engine init; adapter creation reads the same
+  // seeded value (`getLedgerDmkMode`) so discovery/connect share one DMK
+  // instance.
   const ledgerBridge = useDmk
     ? new LedgerDmkBridge({ transportFactory: RNBleTransportFactory })
     : new LedgerMobileBridge(new LedgerTransportMiddleware());

@@ -1,7 +1,9 @@
 import type {
   FetchFeedParams,
+  FetchOrderCommitParams,
   FetchOrderPreviewParams,
   FetchPortfolioPageParams,
+  FetchSearchParams,
   PredictEntityId,
   PredictFeedId,
   PredictMarketHistoryRange,
@@ -45,16 +47,27 @@ export interface PredictApiReadTransport {
     range: PredictMarketHistoryRange,
     options?: PredictReadOptions,
   ): Promise<unknown>;
+  searchEvents(
+    venueId: PredictVenueId,
+    params: FetchSearchParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
   fetchOrderPreview(
     venueId: PredictVenueId,
     params: FetchOrderPreviewParams,
     options?: PredictReadOptions,
   ): Promise<unknown>;
+  commitOrder(
+    venueId: PredictVenueId,
+    params: FetchOrderCommitParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
 }
 
-type PredictApiReadQueryParams = FetchFeedParams & {
-  range?: PredictMarketHistoryRange;
-};
+type PredictApiReadQueryParams = FetchFeedParams &
+  Partial<FetchSearchParams> & {
+    range?: PredictMarketHistoryRange;
+  };
 
 export interface PredictApiReadClientOptions {
   baseUrl?: string;
@@ -173,6 +186,14 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     );
   }
 
+  searchEvents(
+    venueId: PredictVenueId,
+    params: FetchSearchParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(['v1', 'venues', venueId, 'search'], params, options);
+  }
+
   fetchOrderPreview(
     venueId: PredictVenueId,
     params: FetchOrderPreviewParams,
@@ -180,6 +201,23 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   ): Promise<unknown> {
     return this.#postAuthenticated(
       ['v1', 'venues', venueId, 'orders', 'preview'],
+      params,
+      options,
+    );
+  }
+
+  /**
+   * Commits an approved Order Preview. The body carries the Preview
+   * reference only; the backend derives every executable detail from the
+   * stored Preview and derives identity from the bearer token.
+   */
+  commitOrder(
+    venueId: PredictVenueId,
+    params: FetchOrderCommitParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#postAuthenticated(
+      ['v1', 'venues', venueId, 'orders', 'commit'],
       params,
       options,
     );
@@ -244,7 +282,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
 
   async #postAuthenticated(
     segments: readonly string[],
-    body: FetchOrderPreviewParams,
+    body: FetchOrderPreviewParams | FetchOrderCommitParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
     const bearerToken = await this.#resolveBearerToken();
@@ -253,7 +291,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
 
   async #post(
     segments: readonly string[],
-    body: FetchOrderPreviewParams,
+    body: FetchOrderPreviewParams | FetchOrderCommitParams,
     bearerToken: string,
     options?: PredictReadOptions,
   ): Promise<unknown> {

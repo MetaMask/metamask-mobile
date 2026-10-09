@@ -419,6 +419,38 @@ describe('BridgeMarketViewFooter', () => {
       },
     );
 
+    it('shows no-fee copy without a fee percentage for subscription discount', async () => {
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          quote: {
+            feeData: {
+              metabridge: [
+                {
+                  quoteBpsFee: 0.004156,
+                  baseBpsFee: 87.5,
+                  discountType: 'subscription',
+                },
+              ],
+            },
+          } as unknown as QuoteResponse['quote'],
+        },
+      }));
+
+      const { getByTestId } = renderFooter(buildActiveQuoteState());
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-vip-badge')).toBeTruthy();
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.FEE_DISCLAIMER),
+        ).toHaveTextContent(`0.875%${strings('bridge.no_fees_with_orange')}`);
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.FEE_DISCLAIMER),
+        ).not.toHaveTextContent('MetaMask fee');
+      });
+    });
+
     it('shows no MM fee disclaimer when dest token is mUSD and fee is zero', async () => {
       const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
 

@@ -100,6 +100,7 @@ jest.mock('../../app/core/Engine', () => {
         setPrivacyMode: jest.fn(),
       },
       CardController: {
+        state: { activeProviderId: 'baanx' },
         fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
         getContactDetails: jest.fn().mockResolvedValue({
           email: 'cardholder@example.com',
@@ -116,7 +117,7 @@ jest.mock('../../app/core/Engine', () => {
           supportsFundingLimits: true,
           fundingChains: ['eip155:59144'],
           supportsFreeze: true,
-          supportsPushProvisioning: false,
+          pushProvisioning: { applePay: false, googlePay: false },
           onboarding: { requiresEmail: true },
           supportsPinView: true,
           supportsCashback: true,

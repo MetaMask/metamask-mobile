@@ -108,6 +108,7 @@ export const useInitialBridgeTokens = ({
 
   return {
     includeAssets: includeAssetsObject,
+    tokensWithBalance,
     fetchPopularTokens,
     balancesByAssetId,
     searchIncludeAssets,

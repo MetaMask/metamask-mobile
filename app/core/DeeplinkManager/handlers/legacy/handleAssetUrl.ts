@@ -13,6 +13,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../NavigationService';
 import Logger from '../../../../util/Logger';
 import { TokenDetailsSource } from '../../../../components/UI/TokenDetails/constants/constants';
+import { PriceAlertAnalytics } from '../../../../components/UI/Assets/PriceAlerts/constants';
 import { MetaMetricsEvents } from '../../../Analytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
@@ -106,7 +107,9 @@ const parseSource = (value: string | null): TokenDetailsSource | undefined =>
  * epoch in seconds or milliseconds, or an ISO-8601 string. Returns undefined
  * when absent/unparseable or when the timestamp is in the future.
  */
-const parseTimeToOpenSeconds = (value: string | null): number | undefined => {
+export const parseTimeToOpenSeconds = (
+  value: string | null,
+): number | undefined => {
   if (!value) return undefined;
   const numeric = Number(value);
   let triggeredMs: number;
@@ -145,6 +148,7 @@ const trackPriceAlertNotificationOpened = (
           asset_id: urlParams.get('assetId'),
           token_symbol: token?.ticker || token?.symbol,
           alert_type: urlParams.get('alert_type'),
+          alert_market_type: PriceAlertAnalytics.MARKET_TYPE.SPOT,
           price_at_trigger: Number.parseFloat(
             urlParams.get('price_at_trigger') as string,
           ),

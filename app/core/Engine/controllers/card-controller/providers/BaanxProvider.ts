@@ -29,7 +29,8 @@ import {
   caipChainIdToNetwork,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
 } from '../../../../../components/UI/Card/constants';
-import { isAccountEligibleForProvisioning } from '../../../../../components/UI/Card/pushProvisioning/constants';
+import { isAccountEligibleForProvisioning } from './utils/provisioningEligibility';
+import { buildBaanxCardholderName } from './utils/cardholderName';
 import {
   generatePKCEPair,
   generateState,
@@ -49,6 +50,8 @@ import {
   CardFundingAsset,
   CardHomeData,
   CardProviderCapabilities,
+  ApplePayProvisioningParams,
+  CardWalletProvisioningInfo,
   CardSecureView,
   CardSecureViewParams,
   AuthTokenValidity,
@@ -370,7 +373,7 @@ export class BaanxProvider implements ICardProvider {
     supportsFundingLimits: true,
     fundingChains: ['eip155:59144', 'eip155:8453'],
     supportsFreeze: true,
-    supportsPushProvisioning: true,
+    pushProvisioning: { applePay: true, googlePay: true },
     onboarding: {
       type: 'steps',
       steps: [
@@ -554,6 +557,24 @@ export class BaanxProvider implements ICardProvider {
     }
   }
 
+  /**
+   * Signals Exodus that this Baanx user started Immersve onboarding and wants
+   * their Exodus account closed (`POST /v1/user/closure`). A 400 means the
+   * closure was already requested and is treated as success.
+   */
+  async requestAccountClosure(tokens: CardAuthTokens): Promise<void> {
+    try {
+      const userId =
+        tokens.providerUserId ?? (await this.getUserDetails(tokens)).id;
+      await this.service.post('/v1/user/closure', { userId }, tokens);
+    } catch (error) {
+      if (error instanceof CardApiError && error.statusCode === 400) {
+        return;
+      }
+      throw mapApiError(error, 'requestAccountClosure');
+    }
+  }
+
   // -- Card Home Data --
 
   async getCardHomeData(
@@ -647,9 +668,8 @@ export class BaanxProvider implements ICardProvider {
             tokens.location as CardLocation,
           )
         : null;
-      const account = user
-        ? this.mapAccountStatus(user, cardDetailsResponse)
-        : null;
+      const account = user ? this.mapAccountStatus(user) : null;
+      const walletProvisioning = this.mapWalletProvisioning(user, card);
       const alerts = this.buildAlerts(primaryFundingAsset, card, account);
       const actions = this.buildActions(primaryFundingAsset, card, account);
 
@@ -664,6 +684,7 @@ export class BaanxProvider implements ICardProvider {
         availableFundingAssets,
         card,
         account,
+        walletProvisioning,
         alerts,
         actions,
         delegationSettings,
@@ -998,12 +1019,7 @@ export class BaanxProvider implements ICardProvider {
   }
 
   async createApplePayProvisioningRequest(
-    params: {
-      leafCertificate: string;
-      intermediateCertificate: string;
-      nonce: string;
-      nonceSignature: string;
-    },
+    params: ApplePayProvisioningParams,
     tokens: CardAuthTokens,
   ): Promise<{
     encryptedPassData: string;
@@ -1020,7 +1036,11 @@ export class BaanxProvider implements ICardProvider {
       encryptedPassData?: string;
       activationData?: string;
       ephemeralPublicKey?: string;
-    }>('/v1/card/wallet/provision/apple', params, tokens);
+    }>(
+      '/v1/card/wallet/provision/apple',
+      this.toBaanxApplePayWire(params),
+      tokens,
+    );
 
     const data = response.data || response;
     if (
@@ -1231,6 +1251,7 @@ export class BaanxProvider implements ICardProvider {
         availableFundingAssets: fundingAssets,
         card: null,
         account: null,
+        walletProvisioning: null,
         alerts: [],
         actions: [{ type: 'add_funds', enabled: true }],
         delegationSettings: null,
@@ -1282,6 +1303,7 @@ export class BaanxProvider implements ICardProvider {
       availableFundingAssets: fundingAssets,
       card: null,
       account: null,
+      walletProvisioning: null,
       alerts: [],
       actions: [{ type: 'add_funds', enabled: true }],
       delegationSettings: null,
@@ -1992,16 +2014,51 @@ export class BaanxProvider implements ICardProvider {
     };
   }
 
-  private mapAccountStatus(
-    user: UserResponse,
-    card: CardDetailsResponse | null,
-  ): CardAccountStatus {
+  private mapWalletProvisioning(
+    user: UserResponse | null,
+    card: CardDetails | null,
+  ): CardWalletProvisioningInfo | null {
+    if (!user || !card) {
+      return null;
+    }
+
     return {
-      verificationStatus: user.verificationState ?? null,
-      provisioningEligible:
-        !!card &&
+      eligible:
         card.status === CardStatus.ACTIVE &&
         isAccountEligibleForProvisioning(user.createdAt),
+      cardholderName: buildBaanxCardholderName(user),
+      lastFour: card.lastFour,
+      network: 'MASTERCARD',
+    };
+  }
+
+  private toBaanxApplePayWire(params: ApplePayProvisioningParams): {
+    leafCertificate: string;
+    intermediateCertificate: string;
+    nonce: string;
+    nonceSignature: string;
+  } {
+    if (params.certificates.length < 2) {
+      throw new CardProviderError(
+        CardProviderErrorCode.InvalidRequest,
+        'Apple Pay certificate chain must include a leaf and intermediate',
+      );
+    }
+
+    const toHex = (value: string) =>
+      Buffer.from(value, 'base64').toString('hex');
+
+    return {
+      leafCertificate: toHex(params.certificates[0]),
+      intermediateCertificate: toHex(params.certificates[1]),
+      nonce: toHex(params.nonce),
+      nonceSignature: toHex(params.nonceSignature),
+    };
+  }
+
+  private mapAccountStatus(user: UserResponse): CardAccountStatus {
+    return {
+      verificationStatus: user.verificationState ?? null,
       holderName: user.firstName
         ? `${user.firstName} ${user.lastName ?? ''}`.trim()
         : null,

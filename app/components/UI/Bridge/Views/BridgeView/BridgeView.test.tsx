@@ -47,6 +47,7 @@ import { useABTest } from '../../../../../hooks/useABTest';
 import { Button } from '@metamask/design-system-react-native';
 import { FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
 import { BridgeSessionProvider } from '../../providers/BridgeSessionProvider';
+import { BridgeTabKey } from './BridgeView.constants';
 import BridgeViewContent from '.';
 
 // Mock the account-tree-controller file that imports the problematic module
@@ -300,6 +301,25 @@ jest.mock('../../hooks/useRecurringOrders', () => ({
     isFetchingNextPage: false,
     fetchNextPage: jest.fn(),
     refetch: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useLimitOrders', () => ({
+  useLimitOrders: jest.fn(() => ({
+    orders: [],
+    isLoading: false,
+    isError: false,
+    hasNextPage: false,
+    isFetchingNextPage: false,
+    fetchNextPage: jest.fn(),
+    refetch: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useSentinelFeeTokenValidation', () => ({
+  useSentinelFeeTokenValidation: jest.fn(() => ({
+    isValid: true,
+    retry: jest.fn(),
   })),
 }));
 
@@ -1782,12 +1802,8 @@ describe('BridgeView', () => {
         location: MetaMetricsSwapsEventSource.MainView,
       } as BridgeRouteParams;
 
-      // A priceImpact above the error threshold causes handleContinue to
-      // navigate to the PriceImpactModal — the location value is embedded in
-      // the navigation params, making this the easiest observable side-effect
-      // to assert for location forwarding.
-      // The component reads activeQuote.quote.priceData.priceImpact.amount (raw decimal),
-      // so we must override it alongside the formatted display string.
+      // shouldShowPriceImpactError causes handleContinue to navigate to the
+      // PriceImpactModal. The location value is embedded in the navigation params.
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -1796,13 +1812,14 @@ describe('BridgeView', () => {
             ...mockQuoteWithMetadata,
             quote: {
               ...mockQuoteWithMetadata.quote,
-              priceData: { priceImpact: { amount: '0.30' } }, // 0.30 > danger threshold 0.25
+              priceData: { priceImpact: { amount: '0.30' } },
             },
           },
           formattedQuoteData: {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '30%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const testState = createBridgeTestState(
@@ -2567,6 +2584,30 @@ describe('BridgeView', () => {
         await Promise.resolve();
       });
     };
+
+    it('opens the initial tab requested by the route', async () => {
+      mockRoute.params = {
+        sourcePage: 'TokenDetails',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.TokenView,
+        initialTab: BridgeTabKey.Recurring,
+      };
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(mockSetParams).toHaveBeenCalledWith({
+        initialTab: undefined,
+      });
+    });
 
     it('navigates to the next tab on a left swipe', async () => {
       const { getByTestId, queryByTestId } = renderScreen(

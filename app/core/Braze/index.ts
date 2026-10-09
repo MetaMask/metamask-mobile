@@ -9,6 +9,7 @@ import {
   BANNER_EVENT_DISPLAY,
 } from '../../constants/engagement';
 import { hasPendingBrazePushUnregistrationSync } from './pushRegistrationState';
+import { getBrazeBlockedEventNames } from '../../selectors/featureFlagController/brazeEventBlocklist';
 
 let brazePlugin: BrazePlugin | undefined;
 
@@ -29,6 +30,33 @@ export function getBrazePlugin(): BrazePlugin {
     });
   }
   return brazePlugin;
+}
+
+/**
+ * Apply the LaunchDarkly Braze event blocklist to the Segment plugin.
+ *
+ * A missing, disabled, or malformed flag clears the blocklist so events are
+ * sent. Called on analytics init and whenever remote flags change.
+ *
+ * @param flagValue - Raw `brazeEventBlocklist` variation.
+ */
+export function syncBrazeEventBlocklist(flagValue: unknown): void {
+  try {
+    getBrazePlugin().setBlockedEvents(getBrazeBlockedEventNames(flagValue));
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      '[Braze] Failed to sync event blocklist from remote config',
+    );
+    try {
+      getBrazePlugin().setBlockedEvents([]);
+    } catch (resetError) {
+      Logger.error(
+        resetError as Error,
+        '[Braze] Failed to clear event blocklist after a sync error',
+      );
+    }
+  }
 }
 
 /**
@@ -126,17 +154,27 @@ export function refreshBrazeBanners(
 }
 
 /**
- * Log the Braze banner dismissal event with the supplied properties and flush immediately.
+ * Dismiss the cached banner for a placement via the Braze SDK and log the
+ * `Banner Dismissed` custom event used for campaign targeting.
+ *
+ * Braze records the SDK dismissal and applies campaign re-eligibility on the
+ * backend. The custom event is skipped when `properties` is null (no
+ * `campaign_name`). Safe to call more than once for the same banner.
  */
-export function dismissBrazeBanner(properties: {
-  [key: string]: unknown;
-}): void {
+export function dismissBrazeBanner(
+  placementId: string,
+  properties: { [key: string]: unknown } | null,
+): void {
   try {
-    Logger.log('[Braze] Dismissing banner', properties);
-    Braze.logCustomEvent(BANNER_EVENT_DISMISSED, properties);
-    Braze.requestImmediateDataFlush();
+    Logger.log('[Braze] Dismissing banner', { placementId, properties });
+    Braze.dismissBanner(placementId);
+
+    if (properties) {
+      Braze.logCustomEvent(BANNER_EVENT_DISMISSED, properties);
+      Braze.requestImmediateDataFlush();
+    }
   } catch (error) {
-    Logger.error(error as Error, '[Braze] Failed to log banner dismissal');
+    Logger.error(error as Error, '[Braze] Failed to dismiss banner');
   }
 }
 

@@ -17,6 +17,8 @@ import {
 import { TokenI } from '../../Tokens/types';
 import {
   PERPS_ADL_URL,
+  PERPS_LEARN_MORE_URL,
+  PERPS_TROUBLESHOOT_URL,
   METAMASK_SUPPORT_URL,
 } from '../../../../constants/urls';
 import { DAY } from '../../../../constants/time';
@@ -195,6 +197,20 @@ export const CHASE_RETAINED_STATUSES: ReadonlySet<ChaseOrder['status']> =
 export const LIQUIDATION_DISTANCE_DECIMALS = 2;
 
 /**
+ * Share of position notional kept back from the removable-margin maximum.
+ * The exchange re-checks the transfer requirement at the mark price it sees on
+ * submit, and isolated margin moves 1:1 with that price, so a max computed from
+ * the last position snapshot with no headroom is rejected on any adverse tick.
+ */
+export const MARGIN_REMOVAL_PRICE_MOVE_BUFFER = 0.01;
+
+/**
+ * How long a remove-margin form trusts a fresh read that stopped a removal
+ * over the live stream. Later submissions are still re-checked before sending.
+ */
+export const MARGIN_REMOVAL_FRESH_LIMIT_HOLD_MS = 10_000;
+
+/**
  * TP/SL View UI configuration
  * Controls the Take Profit / Stop Loss screen behavior and display options
  */
@@ -223,6 +239,10 @@ export const TP_SL_VIEW_CONFIG = {
   // default USD configuration which only allows 2 decimal places
   KeypadCurrencyCode: 'USD_PERPS' as const,
   KeypadDecimals: 5,
+
+  // Longest wait for a sheet close animation before confirming anyway.
+  // Comfortably past the animation, short enough not to read as a hang.
+  DismissTimeoutMs: 1000,
 } as const;
 
 /**
@@ -290,6 +310,18 @@ export const MARKET_DATA_FETCH_RETRY_CONFIG = {
   RetryDelayMs: 1000,
 } as const;
 
+/**
+ * Longest a filled market close keeps its market locked while the positions
+ * stream catches up. Bounded so a stalled stream cannot block closing.
+ */
+export const PERPS_CLOSE_STREAM_CONFIRM_TIMEOUT_MS = 10_000;
+
+/**
+ * Longest a pay-with-token order waits, after its deposit confirms on-chain,
+ * for HyperLiquid to credit the Perps balance before giving up on the order.
+ */
+export const PERPS_PAY_WITH_TOKEN_CREDIT_TIMEOUT_MS = 90_000;
+
 /** Extra capability requests after transient provider unavailability. */
 export const PERPS_ORDER_CAPABILITIES_MAX_RETRIES = 2;
 
@@ -301,9 +333,6 @@ export const PERPS_ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS = 500;
  * These constants are only active when __DEV__ is true
  */
 export const DEVELOPMENT_CONFIG = {
-  // Magic number to simulate fee discount state (20% discount)
-  SimulateFeeDiscountAmount: 41,
-
   // Magic number to simulate rewards error state (set order amount to this value)
   SimulateRewardsErrorAmount: 42,
 
@@ -355,6 +384,18 @@ export const SUPPORT_CONFIG = {
   Url: METAMASK_SUPPORT_URL,
   TitleKey: 'perps.support.title',
   DescriptionKey: 'perps.support.description',
+} as const;
+
+/**
+ * Service interruption (outage) banner configuration
+ * The FAQ link points users at the Perps help-center hub while trading is
+ * degraded. The support link opens the Perps troubleshoot article through
+ * the consent flow, separate from the general contact-support button.
+ */
+export const SERVICE_INTERRUPTION_CONFIG = {
+  FaqUrl: PERPS_LEARN_MORE_URL,
+  FaqTitleKey: 'perps.service_interruption.faq_title',
+  SupportUrl: PERPS_TROUBLESHOOT_URL,
 } as const;
 
 /**
@@ -410,6 +451,8 @@ export const PROVIDER_CONFIG = {
   DefaultProvider: 'hyperliquid' as const,
   /** Controller mode that aggregates reads across active providers. */
   AggregatedProvider: 'aggregated' as const,
+  /** Trades from its own balance, so it has no deposit-with-order route. */
+  LighterProvider: 'lighter' as const,
 } as const;
 
 /** Network mode for perps (testnet vs mainnet). */

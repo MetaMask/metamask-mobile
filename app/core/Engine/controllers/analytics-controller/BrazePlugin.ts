@@ -23,6 +23,7 @@ export class BrazePlugin extends EventPlugin {
   private currentLanguage: string | undefined;
   private lastSentLanguage: string | undefined;
   private readonly sentTraitFingerprints = new Map<string, string>();
+  private blockedEvents = new Set<string>();
 
   /**
    * Set the Braze profile ID used for `Braze.changeUser()`.
@@ -89,6 +90,16 @@ export class BrazePlugin extends EventPlugin {
   }
 
   /**
+   * Replace the event names that must not be forwarded to Braze.
+   * An empty list forwards every event. Segment still receives the event.
+   *
+   * @param eventNames - Event names to drop before `Braze.logCustomEvent`.
+   */
+  setBlockedEvents(eventNames: string[]): void {
+    this.blockedEvents = new Set(eventNames);
+  }
+
+  /**
    * Set the app language on Braze using the native setLanguage API.
    *
    * Always stores the value so it can be sent when a profileId becomes
@@ -130,6 +141,10 @@ export class BrazePlugin extends EventPlugin {
 
   track(event: TrackEventType): TrackEventType | undefined {
     if (this.brazeProfileId === undefined) {
+      return event;
+    }
+
+    if (this.blockedEvents.has(event.event)) {
       return event;
     }
 
