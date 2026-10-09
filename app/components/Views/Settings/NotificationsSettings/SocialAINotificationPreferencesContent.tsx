@@ -27,7 +27,7 @@ import {
 } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
-import TraderAvatar from '../../Homepage/Sections/TopTraders/components/TraderAvatar';
+import TraderAvatar from '../../../UI/SocialFeed/components/TraderAvatar';
 import {
   PreferencesSkeleton,
   TradersFollowedSkeleton,

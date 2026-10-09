@@ -49,9 +49,10 @@ marketDataQueries.getVenueStatus(venueId);
 marketDataQueries.getFeed(venueId, feedId, params);
 marketDataQueries.getEvent(venueId, eventId);
 marketDataQueries.getMarketHistory(venueId, marketId, range);
+marketDataQueries.searchEvents(venueId, { q, limit });
 ```
 
-All descriptors have Venue-qualified keys, semantic invalidation families, explicit `venue` scope, and centralized stale-time policy. Market-history identity is additionally Market-qualified, while range is part of the exact query key and omitted from its invalidation family. The first price-bearing Event list/detail, Market history, and Venue Status policy is one minute, with no background polling.
+All descriptors have Venue-qualified keys, semantic invalidation families, explicit `venue` scope, and centralized stale-time policy. Market-history identity is additionally Market-qualified, while range is part of the exact query key and omitted from its invalidation family. Search keys carry the trimmed query text and limit; the invalidation family is Venue-wide. The first price-bearing Event list/detail, Market history, and Venue Status policy is one minute, with no background polling.
 
 ## Portfolio
 
@@ -67,6 +68,14 @@ The implemented write contract is one authenticated route: `POST /v1/venues/{ven
 - `reconciliation_required` means the submission outcome is ambiguous and the backend resolves it by looking up the stable `client_order_id` or the resulting Venue Order; the UI renders it as in-progress and the keep-checking affordance re-POSTs the same Commit. A verified venue absence re-arms exactly one submission; there is never a blind second Order.
 - Pre-operation failures (expired Preview, untradeable Market, insufficient Balance, unavailable venue) are canonical error codes and never create an operation; once an operation exists, every outcome — including rejection and zero Fill — is a receipt, never an error.
 - A terminal receipt invalidates the authoritative Balance, Positions, and Activity reads. Mobile persists nothing about the operation: after a screen closure or app restart the outcome surfaces through those authoritative reads (restart-observation persistence is descoped on PRED-1194).
+
+## Order preview and commit (action contract, PRED-1195)
+
+The same route pair serves both Order Actions (ADR-0001). A sell Preview request carries `action: 'sell'` plus `contracts` — a positive-integer decimal string, whole contracts only — while a buy request keeps the exact PRED-1194 body with no `action` key. Version tolerance: deployments skew, and a strict backend schema rejects unknown keys, so an old client must keep working against a new backend and vice versa; a buy response that omits `action` parses as the buy variant (normalized to `action: 'buy'`), an explicit `action: 'sell'` parses as the sell variant, and a response carrying the other action's fields fails validation (absent, not null).
+
+- The sell Preview reports `requestedContracts`, `estimatedContracts`, `averagePrice`, `limitPrice`, `fee` with its `feeBreakdown`, `estimatedProceeds` (gross), `estimatedNetProceeds` (Proceeds minus Fee), and `expiresAt`. `limitPrice` is a shared field on both Preview actions — the worst ask consumed on a buy, the worst bid on a sell: the Immediate Order's price floor — and the mobile buy schema masks it rather than rejecting it. Buy-only fields (`requestedAmount`, `orderAmount`, `totalDebit`, `potentialPayout`, `potentialProfit`) are absent, not null.
+- The sell Receipt reports `quotedContracts` and, once the Venue reports fills, `filledContracts`, `averageFillPrice`, `fee`, `actualProceeds`, and `netProceeds` — fill fields are projected as fixed-point decimal strings, identical across actions (`filledContracts: '7.00'`). `requestedMaxSpend`, `actualSpend`, and `payoutExposure` are absent on sell receipts.
+- Over-selling a Position fails closed with the canonical `insufficient_position` code; a failed position read reports `position_unavailable`. The backend ownership check validates the requested count against venue position evidence at preview and commit, but it is not a reservation — concurrent sells of the shared venue account can jointly exceed the position until fills settle. `reconciliation_required` observation and the idempotent re-POST of the same `previewId` are identical for both actions.
 
 ## Runtime boundary
 

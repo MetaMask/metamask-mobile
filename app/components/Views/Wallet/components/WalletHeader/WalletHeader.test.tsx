@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import WalletHeader, { type WalletHeaderProps } from './WalletHeader';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
@@ -31,22 +30,16 @@ jest.mock('../../../../hooks/useAccountsMenuAttention', () => ({
   useAccountsMenuAttention: jest.fn(() => false),
 }));
 
-jest.mock('../../../AccountSelector', () => ({
-  createAccountSelectorNavDetails: jest.fn(() => [
-    'AccountSelector',
-    { screen: 'AccountSelector' },
-  ]),
-}));
-
 const touchAreaSlop = { top: 8, bottom: 8, left: 8, right: 8 };
 
 const defaultProps: WalletHeaderProps = {
   displayName: 'Account 1',
-  navigation: {
-    navigate: jest.fn(),
-  } as unknown as NavigationProp<ParamListBase>,
+  navigation: {},
   isMoneyAccountVisible: false,
   handleSearchPress: jest.fn(),
+  useSearchHeaderLayout: true,
+  showSearchPastePill: false,
+  handleSearchPastePress: jest.fn(),
   handleActivityPress: jest.fn(),
   handleCardPress: jest.fn(),
   handleHamburgerPress: jest.fn(),
@@ -61,27 +54,6 @@ describe('WalletHeader', () => {
     jest.mocked(useAccountsMenuAttention).mockReturnValue(false);
   });
 
-  it('renders the header root and account picker', () => {
-    const { getByTestId } = renderWithProvider(
-      <WalletHeader {...defaultProps} />,
-    );
-
-    expect(
-      getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
-    ).toBeOnTheScreen();
-    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
-  });
-
-  it('calls handleSearchPress when the search button is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <WalletHeader {...defaultProps} />,
-    );
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON));
-
-    expect(defaultProps.handleSearchPress).toHaveBeenCalledTimes(1);
-  });
-
   it('calls handleHamburgerPress when the menu button is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <WalletHeader {...defaultProps} />,
@@ -92,19 +64,6 @@ describe('WalletHeader', () => {
     );
 
     expect(defaultProps.handleHamburgerPress).toHaveBeenCalledTimes(1);
-  });
-
-  it('navigates to the account selector when the account picker is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <WalletHeader {...defaultProps} />,
-    );
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
-
-    expect(defaultProps.navigation.navigate).toHaveBeenCalledWith(
-      'AccountSelector',
-      { screen: 'AccountSelector' },
-    );
   });
 
   describe('when the Money account is visible', () => {

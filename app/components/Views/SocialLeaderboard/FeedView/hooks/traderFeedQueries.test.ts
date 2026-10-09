@@ -1,14 +1,23 @@
 import type { QueryClient } from '@tanstack/react-query';
-import { FEED_CAIP2_CHAINS } from '../feed-constants';
-import { mockFeedResponse, mockSpotFeedItem } from '../mocks/coreFeed.mock';
+import { FEED_CAIP2_CHAINS } from '../../../../UI/SocialFeed/data/feed-constants';
 import {
+  mockFeedResponse,
+  mockSpotFeedItem,
+} from '../../../../UI/SocialFeed/mocks/coreFeed.mock';
+import {
+  buildSocialFeedQueryKey,
   FEED_PAGE_LIMIT,
+} from '../../../../UI/SocialFeed/data/socialFeedQueries';
+import {
+  toFeedScope,
+  toSocialFeedRequest,
+} from '../../../../UI/SocialFeed/data/socialFeedSource';
+import {
   PREFETCH_FEED_AUDIENCES,
   buildTraderFeedQueryKey,
   fetchTraderFeedPage,
   getTraderFeedNextPageParam,
   prefetchTraderFeeds,
-  toFeedScope,
 } from './traderFeedQueries';
 
 const expectedFeedFetchOptions = {
@@ -52,8 +61,20 @@ describe('traderFeedQueries', () => {
     it('returns the SocialService fetchFeed key for the given scope', () => {
       expect(buildTraderFeedQueryKey('following')).toEqual([
         'SocialService:fetchFeed',
-        { scope: 'following', chains: FEED_CAIP2_CHAINS },
+        {
+          scope: 'following',
+          chains: FEED_CAIP2_CHAINS,
+          limit: FEED_PAGE_LIMIT,
+        },
       ]);
+    });
+
+    it('matches the useSocialFeed key for the global feed, so both share a cache', () => {
+      const request = toSocialFeedRequest({ kind: 'all', audience: 'all' });
+
+      expect(buildTraderFeedQueryKey('leaderboard')).toEqual(
+        request && buildSocialFeedQueryKey(request, FEED_PAGE_LIMIT),
+      );
     });
   });
 

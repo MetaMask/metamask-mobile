@@ -296,6 +296,38 @@ describe('PerpsOrderRedirect', () => {
     });
   });
 
+  it('forwards stayOnCurrentScreen onto the confirmation screen', async () => {
+    mockUseRoute.mockReturnValue({
+      key: 'test',
+      name: 'PerpsOrderRedirect',
+      params: {
+        direction: 'long',
+        asset: 'ETH',
+        useBottomSheet: true,
+        stayOnCurrentScreen: true,
+      },
+    } as never);
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: true,
+      isInitialized: true,
+    } as never);
+    mockDepositWithOrder.mockResolvedValue(undefined);
+    (StackActions.replace as jest.Mock).mockReturnValue({ type: 'REPLACE' });
+
+    render(<PerpsOrderRedirect />);
+
+    await waitFor(() => {
+      expect(StackActions.replace).toHaveBeenCalledWith(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        expect.objectContaining({
+          useBottomSheet: true,
+          forceBottomSheet: true,
+          stayOnCurrentScreen: true,
+        }),
+      );
+    });
+  });
+
   it('forwards the treatment assignment from Token Details', async () => {
     mockUsePerpsConnection.mockReturnValue({
       isConnected: true,
@@ -314,6 +346,7 @@ describe('PerpsOrderRedirect', () => {
         Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         expect.objectContaining({
           useBottomSheet: true,
+          forceBottomSheet: true,
         }),
       );
     });
