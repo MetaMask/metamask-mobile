@@ -1,22 +1,44 @@
 import type {
-  FetchEventsParams,
+  FetchFeedParams,
+  FetchSearchParams,
   PredictEntityId,
   PredictEvent,
-  PredictEventSummary,
+  PredictFeed,
+  PredictFeedId,
+  PredictMarketHistory,
+  PredictMarketHistoryRange,
   PredictQueryDescriptor,
+  PredictSearchResults,
   PredictVenueId,
-  PaginatedResult,
+  PredictVenueStatus,
 } from '../types';
 
-export const MARKET_DATA_EVENTS_STALE_TIME = 60_000;
-export const MARKET_DATA_EVENT_STALE_TIME = 5 * 60_000;
+export const MARKET_DATA_VENUE_STATUS_STALE_TIME = 60_000;
+export const MARKET_DATA_FEED_STALE_TIME = 60_000;
+export const MARKET_DATA_EVENT_STALE_TIME = 60_000;
+export const MARKET_DATA_MARKET_HISTORY_STALE_TIME = 60_000;
+export const MARKET_DATA_SEARCH_STALE_TIME = 60_000;
+
+export type FeedParams = Omit<FetchFeedParams, 'cursor'>;
 
 export interface MarketDataQueries {
-  getEvents(
+  /** Builds the Venue Status query descriptor. */
+  getVenueStatus(
     venueId: PredictVenueId,
-    params: FetchEventsParams,
   ): PredictQueryDescriptor<
-    ['PredictMarketDataService:getEvents', PredictVenueId, FetchEventsParams]
+    ['PredictMarketDataService:getVenueStatus', PredictVenueId]
+  >;
+  getFeed(
+    venueId: PredictVenueId,
+    feedId: PredictFeedId,
+    params: FeedParams,
+  ): PredictQueryDescriptor<
+    [
+      'PredictMarketDataService:getFeed',
+      PredictVenueId,
+      PredictFeedId,
+      FeedParams,
+    ]
   >;
   getEvent(
     venueId: PredictVenueId,
@@ -24,22 +46,66 @@ export interface MarketDataQueries {
   ): PredictQueryDescriptor<
     ['PredictMarketDataService:getEvent', PredictVenueId, PredictEntityId]
   >;
+  getMarketHistory(
+    venueId: PredictVenueId,
+    marketId: PredictEntityId,
+    range: PredictMarketHistoryRange,
+  ): PredictQueryDescriptor<
+    [
+      'PredictMarketDataService:getMarketHistory',
+      PredictVenueId,
+      PredictEntityId,
+      PredictMarketHistoryRange,
+    ]
+  >;
+  searchEvents(
+    venueId: PredictVenueId,
+    params: FetchSearchParams,
+  ): PredictQueryDescriptor<
+    ['PredictMarketDataService:searchEvents', PredictVenueId, FetchSearchParams]
+  >;
 }
 
-export type GetEventsResult = PaginatedResult<PredictEventSummary>;
+export type GetVenueStatusResult = PredictVenueStatus;
+export type GetFeedResult = PredictFeed;
 export type GetEventResult = PredictEvent;
+export type GetMarketHistoryResult = PredictMarketHistory;
+export type SearchEventsResult = PredictSearchResults;
 
 export const marketDataQueries: MarketDataQueries = {
-  getEvents: (venueId, params) => ({
-    queryKey: ['PredictMarketDataService:getEvents', venueId, params],
-    family: ['PredictMarketDataService:getEvents', venueId],
-    staleTime: MARKET_DATA_EVENTS_STALE_TIME,
+  getVenueStatus: (venueId) => ({
+    queryKey: ['PredictMarketDataService:getVenueStatus', venueId],
+    family: ['PredictMarketDataService:getVenueStatus', venueId],
+    staleTime: MARKET_DATA_VENUE_STATUS_STALE_TIME,
+    scope: 'venue',
+  }),
+  getFeed: (venueId, feedId, params) => ({
+    queryKey: ['PredictMarketDataService:getFeed', venueId, feedId, params],
+    family: ['PredictMarketDataService:getFeed', venueId, feedId],
+    staleTime: MARKET_DATA_FEED_STALE_TIME,
     scope: 'venue',
   }),
   getEvent: (venueId, eventId) => ({
     queryKey: ['PredictMarketDataService:getEvent', venueId, eventId],
     family: ['PredictMarketDataService:getEvent', venueId],
     staleTime: MARKET_DATA_EVENT_STALE_TIME,
+    scope: 'venue',
+  }),
+  getMarketHistory: (venueId, marketId, range) => ({
+    queryKey: [
+      'PredictMarketDataService:getMarketHistory',
+      venueId,
+      marketId,
+      range,
+    ],
+    family: ['PredictMarketDataService:getMarketHistory', venueId, marketId],
+    staleTime: MARKET_DATA_MARKET_HISTORY_STALE_TIME,
+    scope: 'venue',
+  }),
+  searchEvents: (venueId, params) => ({
+    queryKey: ['PredictMarketDataService:searchEvents', venueId, params],
+    family: ['PredictMarketDataService:searchEvents', venueId],
+    staleTime: MARKET_DATA_SEARCH_STALE_TIME,
     scope: 'venue',
   }),
 };

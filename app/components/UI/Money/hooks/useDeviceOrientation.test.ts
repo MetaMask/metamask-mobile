@@ -30,6 +30,11 @@ jest.mock('react-native-device-info', () => ({
   getTotalMemorySync: () => mockGetTotalMemorySync(),
 }));
 
+const mockUseIsFocused = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useIsFocused: () => mockUseIsFocused(),
+}));
+
 const TWO_GB = 2 * 1024 * 1024 * 1024;
 const FOUR_GB = 4 * 1024 * 1024 * 1024;
 const G = 9.81;
@@ -422,6 +427,7 @@ describe('useDeviceOrientation', () => {
     jest.clearAllMocks();
     mockSubscribe.mockReturnValue({ unsubscribe: mockUnsubscribe });
     mockGetTotalMemorySync.mockReturnValue(FOUR_GB);
+    mockUseIsFocused.mockReturnValue(true);
   });
 
   // The test setup pins `Platform.OS` to 'ios', so the hook normalizes with the
@@ -431,8 +437,9 @@ describe('useDeviceOrientation', () => {
   const heldAt = (thetaDegrees: number, phiDegrees: number) =>
     asIosReading(gravityAtPitchAndRoll(thetaDegrees, phiDegrees));
 
-  const lastEmission = (onOrientation: jest.Mock): [number, number] =>
+  const lastEmission = (onOrientation: jest.Mock): [number, number, number] =>
     onOrientation.mock.calls[onOrientation.mock.calls.length - 1] as [
+      number,
       number,
       number,
     ];
@@ -453,6 +460,46 @@ describe('useDeviceOrientation', () => {
     renderHook(() => useDeviceOrientation(jest.fn(), { enabled: false }));
 
     expect(mockSubscribe).not.toHaveBeenCalled();
+  });
+
+  it('does not subscribe while the screen is not focused', () => {
+    mockUseIsFocused.mockReturnValue(false);
+
+    renderHook(() => useDeviceOrientation(jest.fn(), { enabled: true }));
+
+    expect(mockSubscribe).not.toHaveBeenCalled();
+  });
+
+  it('does not read device memory while the screen is not focused', () => {
+    mockUseIsFocused.mockReturnValue(false);
+
+    renderHook(() => useDeviceOrientation(jest.fn(), { enabled: true }));
+
+    expect(mockGetTotalMemorySync).not.toHaveBeenCalled();
+  });
+
+  it('unsubscribes when the screen loses focus', () => {
+    const { rerender } = renderHook(() =>
+      useDeviceOrientation(jest.fn(), { enabled: true }),
+    );
+    expect(mockSubscribe).toHaveBeenCalledTimes(1);
+
+    mockUseIsFocused.mockReturnValue(false);
+    rerender({});
+
+    expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('resubscribes when the screen regains focus', () => {
+    mockUseIsFocused.mockReturnValue(false);
+    const { rerender } = renderHook(() =>
+      useDeviceOrientation(jest.fn(), { enabled: true }),
+    );
+
+    mockUseIsFocused.mockReturnValue(true);
+    rerender({});
+
+    expect(mockSubscribe).toHaveBeenCalledTimes(1);
   });
 
   it('subscribes when enabled flips from false to true', () => {
@@ -619,10 +666,32 @@ describe('useDeviceOrientation', () => {
     );
   });
 
+  it('reports the 60Hz sample rate alongside each reading', () => {
+    mockGetTotalMemorySync.mockReturnValue(FOUR_GB);
+    const onOrientation = jest.fn();
+    renderHook(() => useDeviceOrientation(onOrientation, { enabled: true }));
+    const observer = mockSubscribe.mock.calls[0][0];
+
+    observer.next(pitchedAt(20));
+
+    expect(lastEmission(onOrientation)[2]).toBe(60);
+  });
+
+  it('reports the 30Hz sample rate alongside each reading on a low-end device', () => {
+    mockGetTotalMemorySync.mockReturnValue(TWO_GB);
+    const onOrientation = jest.fn();
+    renderHook(() => useDeviceOrientation(onOrientation, { enabled: true }));
+    const observer = mockSubscribe.mock.calls[0][0];
+
+    observer.next(pitchedAt(20));
+
+    expect(lastEmission(onOrientation)[2]).toBe(30);
+  });
+
   it('does not resubscribe when only the callback identity changes', () => {
     const { rerender } = renderHook<
       void,
-      { cb: (x: number, y: number) => void }
+      { cb: (x: number, y: number, hz: number) => void }
     >(({ cb }) => useDeviceOrientation(cb, { enabled: true }), {
       initialProps: { cb: jest.fn() },
     });

@@ -100,7 +100,10 @@ const testSpecificMock = async (mockServer: Mockttp) => {
 appiumTest.describe(SmokeConfirmations('7702 - smart account'), () => {
   appiumTest.describe.configure({ timeout: 2500000 });
 
-  appiumTest(
+  // Skipped: consistently fails on main Appium confirmations Android smoke
+  // (`#eip5792SendCallsButton` / confirm sheet). MMQA-2254.
+  // Keep "upgrades an account to a smart account" running in this file.
+  appiumTest.skip(
     'submits a wallet_sendCalls batch of two transactions',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(

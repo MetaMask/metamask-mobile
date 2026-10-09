@@ -6,7 +6,16 @@ import { TraceName, endTrace, trace } from '../../util/trace';
 import { TokenI } from '../UI/Tokens/types';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
-export type TimePeriod = '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y' | 'all';
+export type TimePeriod =
+  | '1h'
+  | '1d'
+  | '1w'
+  | '7d'
+  | '1m'
+  | '3m'
+  | '1y'
+  | '3y'
+  | 'all';
 
 export type TokenPrice = [string, number];
 
@@ -20,6 +29,7 @@ const DAYS = 24 * HOURS;
  * `null` means no coverage check (e.g. "all" has no fixed expected span).
  */
 const EXPECTED_DURATION_MS: Record<TimePeriod, number | null> = {
+  '1h': 1 * HOURS,
   '1d': 1 * DAYS,
   '1w': 7 * DAYS,
   '7d': 7 * DAYS,
@@ -77,6 +87,7 @@ const useTokenHistoricalPrices = ({
   isLoading: boolean;
   error: Error | undefined;
   hasInsufficientCoverage: boolean;
+  apiDurationMs: number | undefined;
 } => {
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
   const isNonEvmAsset = resultChainId === asset.chainId;
@@ -84,11 +95,14 @@ const useTokenHistoricalPrices = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error>();
   const [insufficientCoverage, setInsufficientCoverage] = useState(false);
+  const [apiDurationMs, setApiDurationMs] = useState<number>();
 
   useEffect(() => {
     const fetchPrices = async () => {
       setIsLoading(true);
       setInsufficientCoverage(false);
+      setApiDurationMs(undefined);
+      const fetchStart = Date.now();
 
       try {
         const baseUri = 'https://price.api.cx.metamask.io/v3';
@@ -165,6 +179,7 @@ const useTokenHistoricalPrices = ({
       } catch (e: unknown) {
         setError(e as Error);
       } finally {
+        setApiDurationMs(Date.now() - fetchStart);
         setIsLoading(false);
       }
     };
@@ -186,6 +201,7 @@ const useTokenHistoricalPrices = ({
     isLoading,
     error,
     hasInsufficientCoverage: insufficientCoverage,
+    apiDurationMs,
   };
 };
 

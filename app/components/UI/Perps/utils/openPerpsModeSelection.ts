@@ -17,6 +17,19 @@ export interface PerpsModeSelectionRouteParams {
 }
 
 /**
+ * `screen_type` for Lite/Pro chooser impressions (`PERPS_SCREEN_VIEWED`).
+ * Not yet in `@metamask/perps-controller` `PERPS_EVENT_VALUE.SCREEN_TYPE`.
+ */
+export const PERPS_MODE_SELECTION_SCREEN_TYPE = 'mode_selection' as const;
+
+/**
+ * `interaction_type` for Lite/Pro chooser dismiss without selection.
+ * Not yet in `@metamask/perps-controller` `PERPS_EVENT_VALUE.INTERACTION_TYPE`.
+ */
+export const PERPS_MODE_SELECTION_DISMISSED =
+  'mode_selection_dismissed' as const;
+
+/**
  * Minimal navigation surface so callers can pass `AppNavigationProp`, root
  * `useNavigation()` results, or test doubles without fighting the
  * `getState(): State | undefined` override on MetaMask's navigation types.

@@ -1,6 +1,5 @@
 import { createSelector } from 'reselect';
 import {
-  selectLocalOverrides,
   selectRawFeatureFlags,
   selectRemoteFeatureFlags,
 } from '../../../../../selectors/featureFlagController';
@@ -46,19 +45,6 @@ export const selectPredictEnabledFlag = createSelector(
 
     // Default to `true` if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
-  },
-);
-
-export const selectPredictGtmOnboardingModalEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PREDICT_GTM_MODAL_ENABLED === 'true';
-    const remoteFlag = unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
-      remoteFeatureFlags?.predictGtmOnboardingModalEnabled,
-    );
-
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 
@@ -131,9 +117,7 @@ export const selectPredictHotTabFlag = createSelector(
 
 export const selectPredictFeatureFlags = createSelector(
   selectRawFeatureFlags,
-  selectLocalOverrides,
-  (remoteFeatureFlags, localOverrides) =>
-    resolvePredictFeatureFlags({ remoteFeatureFlags, localOverrides }),
+  (remoteFeatureFlags) => resolvePredictFeatureFlags({ remoteFeatureFlags }),
 );
 
 export const selectExtendedSportsMarketsLeagues = createSelector(
@@ -169,6 +153,11 @@ export const selectPredictUpDownEnabledFlag = createSelector(
 export const selectPredictSportsFeedConfig = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.predictSportsFeed,
+);
+
+export const selectPredictHomeCategoriesConfig = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictHomeCategories,
 );
 
 export const selectPredictWimbledonTabFlag = createSelector(
@@ -236,11 +225,47 @@ export const selectPredictFeedCarouselConfig = createSelector(
       DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
     );
 
-    if (
-      parsedFlag.mode !== 'custom' ||
-      !validatedVersionGatedFeatureFlag(parsedFlag)
-    ) {
+    if (!validatedVersionGatedFeatureFlag(parsedFlag)) {
       return DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
+    }
+
+    const priorityOrder = [
+      ...new Set(
+        parsedFlag.priorityOrder.map((id) => id.trim()).filter(Boolean),
+      ),
+    ];
+    const seenSlotSeries = new Set<string>();
+    const seenSlotIndexes = new Set<number>();
+    const prioritySlots = parsedFlag.prioritySlots.flatMap((slot) => {
+      const seriesId = slot.seriesId.trim();
+      if (
+        !seriesId ||
+        !Number.isInteger(slot.index) ||
+        slot.index < 0 ||
+        seenSlotSeries.has(seriesId) ||
+        seenSlotIndexes.has(slot.index)
+      ) {
+        return [];
+      }
+
+      seenSlotSeries.add(seriesId);
+      seenSlotIndexes.add(slot.index);
+      return [{ seriesId, index: slot.index }];
+    });
+
+    if (parsedFlag.mode !== 'custom') {
+      if (priorityOrder.length === 0 && prioritySlots.length === 0) {
+        return DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
+      }
+
+      return {
+        ...DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+        enabled: true,
+        minimumVersion: parsedFlag.minimumVersion,
+        mode: 'live',
+        priorityOrder,
+        prioritySlots,
+      };
     }
 
     const title = parsedFlag.title?.trim() || undefined;
@@ -254,6 +279,8 @@ export const selectPredictFeedCarouselConfig = createSelector(
       ...parsedFlag,
       title,
       deeplink,
+      priorityOrder,
+      prioritySlots,
       contentSource: {
         ...parsedFlag.contentSource,
         queryParams: parsedFlag.contentSource.queryParams

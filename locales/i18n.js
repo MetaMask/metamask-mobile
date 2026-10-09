@@ -99,10 +99,13 @@ export const isRTL = false; // currentLocale.indexOf('jaJp') === 0;
 
 // Set locale
 export async function setLocale(locale) {
+  const localeChanged = I18n.locale !== locale;
   I18n.locale = locale;
   // Platform.OS === 'ios' && getLocaleData(locale);
   await StorageWrapper.setItem(LANGUAGE, locale);
-  I18nEvents.emit('localeChanged', locale);
+  if (localeChanged) {
+    I18nEvents.emit('localeChanged', locale);
+  }
 }
 
 /**
@@ -142,8 +145,9 @@ export function strings(name, params = {}) {
 // Allow persist locale after app closed
 async function getUserPreferableLocale() {
   const locale = await StorageWrapper.getItem(LANGUAGE);
-  if (locale) {
+  if (locale && I18n.locale !== locale) {
     I18n.locale = locale;
+    I18nEvents.emit('localeChanged', locale);
   }
 }
 

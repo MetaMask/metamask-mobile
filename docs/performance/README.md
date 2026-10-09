@@ -47,6 +47,7 @@ Always measure on **Android** (more sensitive, more representative) with the **p
 - **[anti-patterns.md](./anti-patterns.md)** — the catalogue: selectors, Redux/`useSelector`, Context, hook deps, unstable hook returns, lists, layout animations, eager-work-on-mount, streaming, bundle/barrel, memory.
 - **[tools.md](./tools.md)** — symptom-first decision tree + when/how to use each tool (Perf Monitor, RN DevTools, Flashlight, `trace()`, Reassure, E2E gates, Release Profiler, Sentry).
 - **[measuring.md](./measuring.md)** — the power-user scenario, TTI via `trace()`, render-regression tests, FPS benchmarking, CI gates.
+- **[native-crypto.md](./native-crypto.md)** — the native secp256k1 patch in `shimPerf.js` and the `@noble/curves` single-copy invariant it depends on. **Read this before bumping a dependency that does elliptic-curve work.**
 - **[react-compiler.md](./react-compiler.md)** — automatic memoization: how it's set up here and how to opt a feature in.
 
 ## Deep dives & references
@@ -55,6 +56,7 @@ Always measure on **Android** (more sensitive, more representative) with the **p
 - [Release build profiler](../readme/release-build-profiler.md)
 - [Animations](../readme/animations.md)
 - [`app/util/trace.ts`](../../app/util/trace.ts) — the `trace()`/`TraceName` instrumentation API
+- [Deeplink Sentry Performance](../engagement/deeplink-sentry-performance.md) — Processed / Navigated CUF catalog
 - The `mms-performance` AI skill (via `yarn skills`) — the codebase-verified playbook
 - Internal: the **Performance Guide for Engineers** (Confluence, TL1 space) for tool walkthrough recordings, and the **Power-user SRPs** page for ready-made test wallets — ask the Mobile Platform team
 - [Callstack — The Ultimate Guide to React Native Optimization](https://www.callstack.com/ebooks/the-ultimate-guide-to-react-native-optimization)

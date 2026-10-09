@@ -11,8 +11,10 @@ import { CardService } from './services/CardService';
 import { CardProviderIds } from './provider-types';
 import { getDefaultCardApiBaseUrlForMetaMaskEnv } from '../../../../components/UI/Card/util/mapCardApiUrl';
 import {
-  resolveCardFeatureFlag,
+  readCardFeatureFlag,
+  readCardProviderConfig,
   type CardFeatureFlag,
+  type ImmersveProgramConfig,
 } from '../../../../selectors/featureFlagController/card';
 
 /**
@@ -27,10 +29,17 @@ export const cardControllerInit: MessengerClientInitFunction<
 > = (request) => {
   const { controllerMessenger, persistedState } = request;
 
+  const getRemoteFeatureFlags = () =>
+    controllerMessenger.call('RemoteFeatureFlagController:getState')
+      .remoteFeatureFlags;
+
   const getCardFeatureFlag = (): CardFeatureFlag =>
-    resolveCardFeatureFlag(
-      controllerMessenger.call('RemoteFeatureFlagController:getState')
-        .remoteFeatureFlags?.cardFeature as CardFeatureFlag | undefined,
+    readCardFeatureFlag(getRemoteFeatureFlags());
+
+  const getImmersveConfig = (): ImmersveProgramConfig =>
+    readCardProviderConfig<ImmersveProgramConfig>(
+      getRemoteFeatureFlags(),
+      CardProviderIds.Immersve,
     );
 
   const baanxConfig = resolveBaanxConfig();
@@ -43,10 +52,10 @@ export const cardControllerInit: MessengerClientInitFunction<
   const immersveProvider = new ImmersveProvider({
     service: new ImmersveService({
       getBaseUrl: () =>
-        getCardFeatureFlag()?.immersve?.apiBaseUrl || immersveConfig.baseUrl,
+        getImmersveConfig().apiBaseUrl || immersveConfig.baseUrl,
     }),
     config: immersveConfig,
-    getCardFeatureFlag,
+    getProgramConfig: getImmersveConfig,
   });
 
   const cardService = new CardService({

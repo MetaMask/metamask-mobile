@@ -80,7 +80,7 @@ describe('activity adapter fees', () => {
         hash: '0xhash',
         status: 'success',
         timestamp: 1,
-        type: 'swapIncomplete',
+        type: 'swap',
       };
 
       expect(mergeActivityItemSponsoredFees(sourceItem, targetItem)).toBe(

@@ -34,7 +34,7 @@ import {
   selectIsCardholder,
 } from '../../../../../selectors/cardController';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
-import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import { selectMoneyEnableMoneyAccountFlag } from '../../../Money/selectors/featureFlags';
 import musdImage from '../../../../../images/rewards/rewards-musd-earn.png';
 import cardImage from '../../../../../images/rewards/rewards-card-earn.png';
@@ -151,7 +151,7 @@ const EarnRewardsPreview: React.FC = () => {
     geoLocation !== undefined &&
     geoLocation !== UK_COUNTRY_CODE;
   const showMusdSkeleton = isMoneyAccountEnabled && isMusdGeoLoading;
-  const { apyPercent } = useMoneyAccountBalance();
+  const { apyPercent } = useMoneyVaultApy();
 
   // Card check — subtitle varies by cardholder status; card is always rendered
   const isCardholder = useSelector(selectIsCardholder);

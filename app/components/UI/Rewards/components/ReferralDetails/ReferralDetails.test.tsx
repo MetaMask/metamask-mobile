@@ -1,6 +1,16 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+import {
+  selectReferralCode,
+  selectReferralCount,
+  selectReferralDetailsError,
+  selectReferralDetailsLoading,
+  selectSeasonStartDate,
+  selectSeasonStatusError,
+  selectSeasonStatusLoading,
+  selectSeasonWaysToEarn,
+} from '../../../../../reducers/rewards/selectors';
 import ReferralDetails from './ReferralDetails';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Share from 'react-native-share';
@@ -148,31 +158,14 @@ describe('ReferralDetails', () => {
 
     // Mock useSelector to return different values based on the selector
     mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-      // Mock different selectors based on their function
-      switch (selector.toString()) {
-        case 'selectReferralCode':
-          return 'REFER123';
-        case 'selectReferralCount':
-          return 5;
-        case 'selectSeasonStatusLoading':
-          return false;
-        case 'selectReferralDetailsLoading':
-          return false;
-        case 'selectReferralDetailsError':
-          return false;
-        case 'selectSeasonWaysToEarn':
-          return mockSeasonWaysToEarn;
-        default:
-          // Default fallback values
-          if (selector.name === 'selectReferralCode') return 'REFER123';
-          if (selector.name === 'selectReferralCount') return 5;
-          if (selector.name === 'selectSeasonStatusLoading') return false;
-          if (selector.name === 'selectReferralDetailsLoading') return false;
-          if (selector.name === 'selectReferralDetailsError') return false;
-          if (selector.name === 'selectSeasonWaysToEarn')
-            return mockSeasonWaysToEarn;
-          return null;
-      }
+      // Compare by reference — createSelector results are named "memoized"
+      if (selector === selectReferralCode) return 'REFER123';
+      if (selector === selectReferralCount) return 5;
+      if (selector === selectSeasonStatusLoading) return false;
+      if (selector === selectReferralDetailsLoading) return false;
+      if (selector === selectReferralDetailsError) return false;
+      if (selector === selectSeasonWaysToEarn) return mockSeasonWaysToEarn;
+      return null;
     });
 
     mockUseReferralDetails.mockReturnValue({
@@ -241,12 +234,12 @@ describe('ReferralDetails', () => {
       const error = false;
 
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectReferralCode') return referralCode;
-        if (selector.name === 'selectReferralDetailsLoading') return loading;
-        if (selector.name === 'selectReferralDetailsError') return error;
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectSeasonStatusError') return false;
-        if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
+        if (selector === selectReferralCode) return referralCode;
+        if (selector === selectReferralDetailsLoading) return loading;
+        if (selector === selectReferralDetailsError) return error;
+        if (selector === selectReferralCount) return 5;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
         return null;
       });
 
@@ -269,12 +262,12 @@ describe('ReferralDetails', () => {
       const error = true;
 
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectReferralCode') return referralCode;
-        if (selector.name === 'selectReferralDetailsLoading') return loading;
-        if (selector.name === 'selectReferralDetailsError') return error;
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectSeasonStatusError') return false;
-        if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
+        if (selector === selectReferralCode) return referralCode;
+        if (selector === selectReferralDetailsLoading) return loading;
+        if (selector === selectReferralDetailsError) return error;
+        if (selector === selectReferralCount) return 5;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return '2024-01-01';
         return null;
       });
 
@@ -294,11 +287,11 @@ describe('ReferralDetails', () => {
       // Arrange
       const referralCode = 'COPY123';
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectReferralCode') return referralCode;
+        if (selector === selectReferralCode) return referralCode;
         // Default values for other selectors
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
+        if (selector === selectReferralCount) return 5;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectReferralDetailsLoading) return false;
         return null;
       });
 
@@ -312,11 +305,11 @@ describe('ReferralDetails', () => {
     it('should handle null referral code gracefully', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectReferralCode') return null;
+        if (selector === selectReferralCode) return null;
         // Default values for other selectors
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
+        if (selector === selectReferralCount) return 5;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectReferralDetailsLoading) return false;
         return null;
       });
 
@@ -328,11 +321,11 @@ describe('ReferralDetails', () => {
       // Arrange
       const referralCode = 'TEST456';
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectReferralCode') return referralCode;
+        if (selector === selectReferralCode) return referralCode;
         // Default values for other selectors
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
+        if (selector === selectReferralCount) return 5;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectReferralDetailsLoading) return false;
         return null;
       });
 
@@ -346,11 +339,11 @@ describe('ReferralDetails', () => {
     it('should handle empty string referral code', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectReferralCode') return '';
+        if (selector === selectReferralCode) return '';
         // Default values for other selectors
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
+        if (selector === selectReferralCount) return 5;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectReferralDetailsLoading) return false;
         return null;
       });
 
@@ -364,11 +357,11 @@ describe('ReferralDetails', () => {
       // Arrange
       const referralCode = 'SHARE123';
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectReferralCode') return referralCode;
+        if (selector === selectReferralCode) return referralCode;
         // Default values for other selectors
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
+        if (selector === selectReferralCount) return 5;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectReferralDetailsLoading) return false;
         return null;
       });
 
@@ -382,11 +375,11 @@ describe('ReferralDetails', () => {
     it('should render when share functionality is not available', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectReferralCode') return null;
+        if (selector === selectReferralCode) return null;
         // Default values for other selectors
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
+        if (selector === selectReferralCount) return 5;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectReferralDetailsLoading) return false;
         return null;
       });
 
@@ -399,11 +392,11 @@ describe('ReferralDetails', () => {
     it('should handle season status loading state', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectSeasonStatusLoading') return true;
+        if (selector === selectSeasonStatusLoading) return true;
         // Default values for other selectors
-        if (selector.name === 'selectReferralCode') return 'REFER123';
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
+        if (selector === selectReferralCode) return 'REFER123';
+        if (selector === selectReferralCount) return 5;
+        if (selector === selectReferralDetailsLoading) return false;
         return null;
       });
 
@@ -417,11 +410,11 @@ describe('ReferralDetails', () => {
     it('should handle referral details loading state', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectReferralDetailsLoading') return true;
+        if (selector === selectReferralDetailsLoading) return true;
         // Default values for other selectors
-        if (selector.name === 'selectReferralCode') return 'REFER123';
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
+        if (selector === selectReferralCode) return 'REFER123';
+        if (selector === selectReferralCount) return 5;
+        if (selector === selectSeasonStatusLoading) return false;
         return null;
       });
 
@@ -435,11 +428,11 @@ describe('ReferralDetails', () => {
     it('should handle both loading states simultaneously', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectSeasonStatusLoading') return true;
-        if (selector.name === 'selectReferralDetailsLoading') return true;
+        if (selector === selectSeasonStatusLoading) return true;
+        if (selector === selectReferralDetailsLoading) return true;
         // Default values for other selectors
-        if (selector.name === 'selectReferralCode') return 'REFER123';
-        if (selector.name === 'selectReferralCount') return 5;
+        if (selector === selectReferralCode) return 'REFER123';
+        if (selector === selectReferralCount) return 5;
         return null;
       });
 
@@ -456,10 +449,10 @@ describe('ReferralDetails', () => {
     it('should handle null/undefined selector values', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectReferralCode') return null;
-        if (selector.name === 'selectReferralCount') return undefined;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
+        if (selector === selectReferralCode) return null;
+        if (selector === selectReferralCount) return undefined;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectReferralDetailsLoading) return false;
         return null;
       });
 
@@ -470,10 +463,10 @@ describe('ReferralDetails', () => {
     it('should handle zero values correctly', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectReferralCode') return 'REFER123';
-        if (selector.name === 'selectReferralCount') return 0;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
+        if (selector === selectReferralCode) return 'REFER123';
+        if (selector === selectReferralCount) return 0;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectReferralDetailsLoading) return false;
         return null;
       });
 
@@ -497,11 +490,11 @@ describe('ReferralDetails', () => {
     it('should show referral details error banner when referral details error occurs and not loading with no referral code', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectReferralDetailsError') return true;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
-        if (selector.name === 'selectReferralCode') return null;
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
+        if (selector === selectReferralDetailsError) return true;
+        if (selector === selectReferralDetailsLoading) return false;
+        if (selector === selectReferralCode) return null;
+        if (selector === selectReferralCount) return 5;
+        if (selector === selectSeasonStatusLoading) return false;
         return null;
       });
 
@@ -522,11 +515,11 @@ describe('ReferralDetails', () => {
     it('should not show referral details error when still loading', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectReferralDetailsError') return true;
-        if (selector.name === 'selectReferralDetailsLoading') return true;
-        if (selector.name === 'selectReferralCode') return null;
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
+        if (selector === selectReferralDetailsError) return true;
+        if (selector === selectReferralDetailsLoading) return true;
+        if (selector === selectReferralCode) return null;
+        if (selector === selectReferralCount) return 5;
+        if (selector === selectSeasonStatusLoading) return false;
         return null;
       });
 
@@ -542,11 +535,11 @@ describe('ReferralDetails', () => {
     it('should not show referral details error when referral code exists', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectReferralDetailsError') return true;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
-        if (selector.name === 'selectReferralCode') return 'REFER123';
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
+        if (selector === selectReferralDetailsError) return true;
+        if (selector === selectReferralDetailsLoading) return false;
+        if (selector === selectReferralCode) return 'REFER123';
+        if (selector === selectReferralCount) return 5;
+        if (selector === selectSeasonStatusLoading) return false;
         return null;
       });
 
@@ -567,11 +560,11 @@ describe('ReferralDetails', () => {
       });
 
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectReferralDetailsError') return true;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
-        if (selector.name === 'selectReferralCode') return null;
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
+        if (selector === selectReferralDetailsError) return true;
+        if (selector === selectReferralDetailsLoading) return false;
+        if (selector === selectReferralCode) return null;
+        if (selector === selectReferralCount) return 5;
+        if (selector === selectSeasonStatusLoading) return false;
         return null;
       });
 
@@ -602,11 +595,11 @@ describe('ReferralDetails', () => {
     it('should maintain accessibility when error banners are shown', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectReferralDetailsError') return true;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
-        if (selector.name === 'selectReferralCode') return null;
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
+        if (selector === selectReferralDetailsError) return true;
+        if (selector === selectReferralDetailsLoading) return false;
+        if (selector === selectReferralCode) return null;
+        if (selector === selectReferralCount) return 5;
+        if (selector === selectSeasonStatusLoading) return false;
         return null;
       });
 

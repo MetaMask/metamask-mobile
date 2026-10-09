@@ -66,6 +66,7 @@ const PredictFeedView: React.FC = () => {
   const {
     status,
     titleKey,
+    label,
     header,
     tabs,
     showTabBar,
@@ -80,6 +81,8 @@ const PredictFeedView: React.FC = () => {
   } = usePredictFeedConfig(feedId, { initialTabId, initialFilterId });
 
   const isReady = status === 'ready';
+  const title =
+    label ?? (titleKey ? strings(titleKey, { defaultValue: feedId }) : feedId);
   const showSportsLiveFirst =
     feedId === 'sports' && activeFilter?.showLiveFirst === true;
 
@@ -297,7 +300,7 @@ const PredictFeedView: React.FC = () => {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <Box twClassName="flex-1 px-4">
+        <Box twClassName={`flex-1 px-4 ${showFilterBar ? 'pt-1' : ''}`}>
           {Array.from({ length: INITIAL_SKELETON_COUNT }).map((_, index) => (
             <PredictMarketSkeleton
               key={`skeleton-${index}`}
@@ -334,7 +337,7 @@ const PredictFeedView: React.FC = () => {
             color={TextColor.PrimaryAlternative}
           >
             {strings('predict.search_empty_state', {
-              category: titleKey ? strings(titleKey) : '',
+              category: title ?? '',
             })}
           </Text>
         </Box>
@@ -353,7 +356,11 @@ const PredictFeedView: React.FC = () => {
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.7}
           ListFooterComponent={renderFooter}
-          contentContainerStyle={tw.style('px-4 pb-4')}
+          contentContainerStyle={tw.style(
+            'px-4 pb-4',
+            // Chip row is pb-3 (12px); 4px here makes 16px to the first card.
+            showFilterBar && 'pt-1',
+          )}
           showsVerticalScrollIndicator={false}
         />
       </Box>
@@ -373,7 +380,7 @@ const PredictFeedView: React.FC = () => {
     >
       <HeaderStandard
         includesTopInset
-        title={titleKey ? strings(titleKey) : undefined}
+        title={title}
         onBack={header?.showBackButton ? handleBack : undefined}
         backButtonProps={{ testID: PredictMarketListSelectorsIDs.BACK_BUTTON }}
         endButtonIconProps={
@@ -406,6 +413,10 @@ const PredictFeedView: React.FC = () => {
             activeChipKey={activeFilterId ?? ''}
             onChipSelect={handleFilterSelect}
             testID={PredictFeedViewSelectorsIDs.FILTERS}
+            // No tabs: flush under the header like Explore Trending.
+            // With tabs: 16px (pt-4) between the tab underline and chips.
+            // pb-3 = 12px between chips and the first feed card.
+            containerTwClassName={showTabBar ? 'pt-4 pb-3' : 'pb-3'}
           />
         )}
 

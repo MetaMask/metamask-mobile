@@ -2,23 +2,14 @@ name: Flaky test report
 
 on:
   schedule:
-    # Once every day from Monday-Friday at 08:00 UTC
-    - cron: '0 8 * * 1-5'
     # 10:00 UTC (Europe morning), Monday–Friday — Playwright test health report
     - cron: '0 10 * * 1-5'
     # 15:00 UTC (US morning), Monday–Friday — Playwright test health report
     - cron: '0 15 * * 1-5'
   workflow_dispatch:
     inputs:
-      job:
-        description: Which test report to generate
-        type: choice
-        options:
-          - detox
-          - appium
-        default: detox
       lookback_days:
-        description: Number of days of main CI runs to scan (Appium report only)
+        description: Number of days of main CI runs to scan
         type: string
         default: '1'
 
@@ -27,24 +18,7 @@ permissions:
   actions: read
 
 jobs:
-  flaky-test-report:
-    if: >-
-      (github.event_name == 'workflow_dispatch' && inputs.job == 'detox') ||
-      (github.event_name == 'schedule' && github.event.schedule == '0 8 * * 1-5')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Generate flaky test report
-        uses: MetaMask/github-tools/.github/actions/flaky-test-report@v1
-        with:
-          repository: ${{ github.event.repository.name }}
-          workflow-id: ci.yml
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          slack-webhook-flaky-tests: ${{ secrets.SLACK_WEBHOOK_FLAKY_TESTS }}
-
   playwright-test-health-report:
-    if: >-
-      (github.event_name == 'workflow_dispatch' && inputs.job == 'appium') ||
-      (github.event_name == 'schedule' && (github.event.schedule == '0 10 * * 1-5' || github.event.schedule == '0 15 * * 1-5'))
     runs-on: ubuntu-latest
     steps:
       - name: Generate Playwright test health report

@@ -3,11 +3,17 @@ import { type FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import FCMService from '../../../../util/notifications/services/FCMService';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { PressActionId } from '../../../../util/notifications';
+import { unregisterBrazePush } from '../../../Braze/unregisterPush';
 import {
   WALLET_ACTIVITY_NOTIFICATION_TYPE,
   createSubscribeToPushNotifications,
+  deleteRegToken,
   shouldDisplayForegroundPushNotification,
 } from './push-utils';
+
+jest.mock('../../../Braze/unregisterPush', () => ({
+  unregisterBrazePush: jest.fn().mockResolvedValue(true),
+}));
 
 jest.mock('../../../../util/notifications/services/FCMService', () => ({
   __esModule: true,
@@ -51,6 +57,36 @@ const setAppState = (state: AppStateStatus) => {
     configurable: true,
   });
 };
+
+describe('deleteRegToken', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.resetAllMocks();
+    jest.mocked(unregisterBrazePush).mockResolvedValue(true);
+    jest.mocked(FCMService.deleteRegToken).mockResolvedValue(true);
+  });
+
+  it('unregisters Braze push before deleting the FCM token', async () => {
+    const result = await deleteRegToken();
+
+    expect(result).toBe(true);
+    expect(unregisterBrazePush).toHaveBeenCalled();
+    expect(FCMService.deleteRegToken).toHaveBeenCalled();
+    expect(
+      jest.mocked(unregisterBrazePush).mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      jest.mocked(FCMService.deleteRegToken).mock.invocationCallOrder[0],
+    );
+  });
+
+  it('deletes the FCM token while Braze unregistration is pending retry', async () => {
+    jest.mocked(unregisterBrazePush).mockResolvedValue(false);
+
+    await expect(deleteRegToken()).resolves.toBe(true);
+
+    expect(FCMService.deleteRegToken).toHaveBeenCalled();
+  });
+});
 
 describe('shouldDisplayForegroundPushNotification', () => {
   afterEach(() => {
@@ -100,6 +136,7 @@ describe('createSubscribeToPushNotifications', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
     mockListen.mockResolvedValue(jest.fn());
     mockDisplay.mockResolvedValue(undefined);
     setAppState('active');
@@ -146,6 +183,21 @@ describe('createSubscribeToPushNotifications', () => {
         notification_type: 'platform',
       },
     });
+  });
+
+  it('displays notifications without an invalid data field', async () => {
+    const handler = await getForegroundHandler();
+    const payload = createRemoteMessage();
+
+    await handler(payload);
+
+    expect(mockDisplay).toHaveBeenCalledWith({
+      pressActionId: PressActionId.OPEN_NOTIFICATIONS_VIEW,
+      id: undefined,
+      title: 'You received ETH',
+      body: '0.05 ETH',
+    });
+    expect(mockDisplay.mock.calls[0][0]).not.toHaveProperty('data');
   });
 
   it('does not display notifications without a title', async () => {

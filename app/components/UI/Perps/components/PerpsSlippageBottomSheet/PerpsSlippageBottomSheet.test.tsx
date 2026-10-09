@@ -102,6 +102,15 @@ describe('PerpsSlippageBottomSheet', () => {
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
 
+  it('closes without saving when Set is tapped without changes', () => {
+    render(<PerpsSlippageBottomSheet {...defaultProps} />);
+
+    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.SET));
+
+    expect(defaultProps.onSave).not.toHaveBeenCalled();
+    expect(defaultProps.onClose).toHaveBeenCalled();
+  });
+
   it('opens custom slippage sheet when edit chip is pressed', () => {
     render(<PerpsSlippageBottomSheet {...defaultProps} />);
 

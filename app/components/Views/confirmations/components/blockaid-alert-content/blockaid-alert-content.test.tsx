@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import BlockaidAlertContent from './blockaid-alert-content';
+import { BlockaidAlertContentTestIds } from './blockaid-alert-content.testIds';
 // TODO: Remove legacy import
 import {
   SecurityAlertResponse,
@@ -39,7 +40,6 @@ const MAINNET_STATE = networkStateWith(MAINNET_CHAIN_ID, 'Ethereum');
 
 describe('BlockaidAlertContent', () => {
   const DETAILS_ACCORDION_TITLE = 'See details';
-  const REPORT_LINK_TEXT = 'Report an issue';
   const ALERT_DETAILS_MOCK = ['Detail 1', 'Detail 2'];
   const BLOCK_NUMBER_MOCK = 12345;
   const REQUEST_MOCK = {
@@ -74,7 +74,50 @@ describe('BlockaidAlertContent', () => {
 
     expect(getByText(DETAILS_ACCORDION_TITLE)).toBeDefined();
     expect(
-      getByText('If you approve this request, you might lose your assets.'),
+      getByText(
+        'Security partners found risk signals in this request. Review before continuing.',
+      ),
+    ).toBeDefined();
+  });
+
+  it('injects the marketplace name for marketplace farming reasons', () => {
+    const { getByText } = renderWithProvider(
+      <BlockaidAlertContent
+        alertDetails={ALERT_DETAILS_MOCK}
+        securityAlertResponse={{
+          ...mockSecurityAlertResponse,
+          reason: Reason.seaportFarming,
+        }}
+        onContactUsClicked={mockOnContactUsClicked}
+      />,
+      { state: MAINNET_STATE },
+    );
+
+    expect(
+      getByText(
+        "You're giving an address flagged by security partners permission to move your assets listed on OpenSea.",
+      ),
+    ).toBeDefined();
+  });
+
+  it('uses the amount description variant when a sending fiat total is available', () => {
+    const { getByText } = renderWithProvider(
+      <BlockaidAlertContent
+        alertDetails={ALERT_DETAILS_MOCK}
+        securityAlertResponse={{
+          ...mockSecurityAlertResponse,
+          reason: Reason.transferFarming,
+        }}
+        sendingFiatTotal="$1,234.56"
+        onContactUsClicked={mockOnContactUsClicked}
+      />,
+      { state: MAINNET_STATE },
+    );
+
+    expect(
+      getByText(
+        "You're sending assets to an address flagged by security partners. If this is a scam, your $1,234.56 can't be recovered.",
+      ),
     ).toBeDefined();
   });
 
@@ -129,7 +172,7 @@ describe('BlockaidAlertContent', () => {
   });
 
   it('calls onContactUsClicked when report link is clicked', async () => {
-    const { getByText } = renderWithProvider(
+    const { getByText, getByTestId } = renderWithProvider(
       <BlockaidAlertContent
         alertDetails={ALERT_DETAILS_MOCK}
         securityAlertResponse={mockSecurityAlertResponse}
@@ -143,9 +186,10 @@ describe('BlockaidAlertContent', () => {
       fireEvent.press(accordionTitle);
     });
 
-    const reportLink = getByText(REPORT_LINK_TEXT);
     await act(async () => {
-      fireEvent.press(reportLink);
+      fireEvent.press(
+        getByTestId(BlockaidAlertContentTestIds.REPORT_ISSUE_BUTTON),
+      );
     });
 
     expect(mockOnContactUsClicked).toHaveBeenCalled();

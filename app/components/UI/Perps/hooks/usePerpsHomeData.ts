@@ -27,6 +27,7 @@ import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
 import { usePerpsConnection } from './usePerpsConnection';
 import { getSuggestedWatchlistMarkets } from '../utils/marketUtils';
+import { filterMarketsByCategory } from '../utils/marketCategoryMapping';
 import { isRecentlyListed } from '../utils/time';
 import { useNowOnScreenFocus } from './useNowOnScreenFocus';
 
@@ -194,7 +195,10 @@ export const usePerpsHomeData = ({
   const perpsMarkets = useMemo(
     () =>
       sortMarkets({
-        markets: allMarkets.filter((m) => !m.marketType && !m.isHip3),
+        markets: filterMarketsByCategory(
+          allMarkets,
+          MarketCategory.CryptoCurrency,
+        ),
         sortBy,
         direction,
       }).slice(0, trendingLimit),
@@ -364,7 +368,10 @@ export const usePerpsHomeData = ({
     if (!searchQuery.trim()) {
       return perpsMarkets;
     }
-    return filteredData.markets.filter((m) => !m.marketType && !m.isHip3);
+    return filterMarketsByCategory(
+      filteredData.markets,
+      MarketCategory.CryptoCurrency,
+    );
   }, [searchQuery, perpsMarkets, filteredData.markets]);
 
   const searchedStocksMarkets = useMemo(() => {

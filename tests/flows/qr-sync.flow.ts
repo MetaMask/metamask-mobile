@@ -12,19 +12,16 @@ import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInVie
 import AddDeviceToWalletView from '../page-objects/Onboarding/AddDeviceToWalletView';
 import AddWalletView from '../page-objects/Onboarding/AddWalletView';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
-import WalletView from '../page-objects/wallet/WalletView';
-import { FrameworkDetector } from '../framework/FrameworkDetector';
 import type CommandQueueServer from '../framework/fixtures/CommandQueueServer';
 import { E2ECommandTypes } from '../framework/types';
 import { sleep } from '../framework/Utilities';
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
-import OnboardingSuccessView from '../page-objects/Onboarding/OnboardingSuccessView';
 import {
   closeOnboardingModals,
   dismissExperienceEnhancerModal,
   dismissOnboardingInterestQuestionnaire,
   dismissPushNotificationExistingUserSheet,
-  loginToApp,
+  ensureAccountListOpenPlaywright,
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
 } from './wallet.flow';
@@ -89,7 +86,7 @@ export const applyQrSyncSrpReadyPayload = async ({
 };
 
 /**
- * New-user path: onboarding → Import SRP → extension link → inject sync-ready
+ * New-user path: onboarding → Import SRP → scan menu → extension option → inject sync-ready
  * → create password → MetaMetrics → wallet home.
  */
 export const completeNewUserQrSyncSrp = async ({
@@ -157,18 +154,6 @@ export const completeNewUserQrSyncSrp = async ({
     } catch {
       // Optional post-metrics sheet
     }
-    try {
-      await Assertions.expectElementToBeVisible(
-        OnboardingSuccessView.container,
-        {
-          description: 'Onboarding success may appear after QR sync import',
-          timeout: 5_000,
-        },
-      );
-      await OnboardingSuccessView.tapDone();
-    } catch {
-      // Some builds go straight to wallet home
-    }
     await dismissPushNotificationExistingUserSheet();
     await dismissExperienceEnhancerModal();
     await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(60_000));
@@ -188,18 +173,9 @@ export const completeExistingUserQrSyncSrp = async ({
   mnemonic?: string;
   commandQueueServer?: CommandQueueServer;
 } = {}): Promise<void> => {
-  if (FrameworkDetector.isAppium()) {
-    await loginToAppPlaywright({ scenarioType: 'e2e' });
-  } else {
-    await loginToApp();
-  }
-  await WalletView.tapIdenticon();
-  await Assertions.expectElementToBeVisible(
-    AccountListBottomSheet.accountList,
-    {
-      description: 'Account list should be visible',
-    },
-  );
+  await loginToAppPlaywright({ scenarioType: 'e2e' });
+  // Retry open — first post-login tap can no-op while wallet chrome settles.
+  await ensureAccountListOpenPlaywright();
   await AccountListBottomSheet.tapAddWalletButton();
   await AddWalletView.expectScreenVisible();
   await AddWalletView.tapLinkMetaMaskExtension();

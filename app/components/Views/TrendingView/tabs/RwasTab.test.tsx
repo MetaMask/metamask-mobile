@@ -43,6 +43,21 @@ jest.mock('../../../UI/Predict', () => ({
   selectPredictEnabledFlag: jest.fn(() => false),
 }));
 
+const mockOpenQuickBuy = jest.fn();
+jest.mock('../../../UI/Trending/contexts', () => ({
+  useTrendingQuickBuySheet: () => ({
+    openQuickBuy: mockOpenQuickBuy,
+    closeQuickBuy: jest.fn(),
+    isQuickBuyOpen: false,
+  }),
+}));
+
+jest.mock('../../../../hooks/useABTest', () => ({
+  useABTest: () => ({
+    variant: { showQuickTradeButton: true },
+  }),
+}));
+
 jest.mock('../feeds/perps/usePerpsFeed');
 jest.mock('../feeds/stocks/useStocksFeed', () => ({
   useStocksFeed: jest.fn(),

@@ -18,10 +18,30 @@ export interface PredictFeedBannerConfig extends VersionGatedFeatureFlag {
   dismissible: boolean;
 }
 
+export interface PredictFeedCarouselPrioritySlot {
+  seriesId: string;
+  /** 0-based index in the composed rail. */
+  index: number;
+}
+
 export interface PredictFeedCarouselConfig extends VersionGatedFeatureFlag {
   mode: 'live' | 'custom';
   title?: string;
   deeplink?: string;
+  /**
+   * Series IDs pinned to the front of the Live Now carousel, first = highest
+   * priority. Unknown IDs are ignored. Empty keeps the default composition
+   * order (sports interleaved with crypto).
+   */
+  priorityOrder: string[];
+  /**
+   * Series IDs inserted at a specific 0-based index in the Live Now rail.
+   * The occupant and everything after it shift right; nothing is replaced.
+   * Slots win over `priorityOrder` for the same series. First entry wins for
+   * a duplicate series or index. Unknown IDs are ignored (no hole). Indexes
+   * past the rail length append. Empty keeps `priorityOrder` / default order.
+   */
+  prioritySlots: PredictFeedCarouselPrioritySlot[];
   contentSource: {
     /** `live-now` reuses PRED-834 composition; `query-results` renders results directly. */
     composition: 'query-results' | 'live-now';
@@ -45,6 +65,18 @@ export interface PredictMarketHighlight {
 
 export interface PredictMarketHighlightsFlag extends VersionGatedFeatureFlag {
   highlights: PredictMarketHighlight[];
+}
+
+export interface PredictHiddenMarketsEntry {
+  category: string;
+  /** IDs matching `PredictMarket.id` (Polymarket event ids) to hide. */
+  marketIds: string[];
+  /** Slugs matching `PredictMarket.slug` (Polymarket event slugs) to hide. */
+  slugs: string[];
+}
+
+export interface PredictHiddenMarketsFlag extends VersionGatedFeatureFlag {
+  hidden: PredictHiddenMarketsEntry[];
 }
 
 export interface PredictExtendedSportsMarketsFlag
@@ -99,6 +131,36 @@ export interface PredictSportsFeedConfig extends VersionGatedFeatureFlag {
   tabs: PredictSportsFeedTabConfig[];
 }
 
+/**
+ * A single Predict home "Categories" tile, remotely configurable (PRED-1226).
+ *
+ * `id` is the stable analytics identifier and the feed id used to navigate to
+ * `PredictFeedView`. Every non-`sports` id resolves to a generic tag-filtered
+ * category feed (Politics/Crypto pattern) built from `tagSlug`; `sports` keeps
+ * the dedicated sports feed.
+ */
+export interface PredictHomeCategoryConfig {
+  id: string;
+  /** Polymarket Gamma `tag_slug` used to filter the category feed. */
+  tagSlug: string;
+  /** i18n key for the tile / feed title. Optional; omitted copy falls back to `predict.category.<id>`. */
+  titleKey?: string;
+  /** Literal label; preferred over `titleKey` so new tiles need no i18n release. */
+  label?: string;
+  /**
+   * Component-library `IconName`. Unknown names fall back to a default icon
+   * on the client rather than crashing.
+   */
+  iconName?: string;
+  /** Defaults to `true`. Disabled tiles are removed from the rail. */
+  enabled?: boolean;
+}
+
+export interface PredictHomeCategoriesConfig extends VersionGatedFeatureFlag {
+  /** Array order is display order. */
+  categories: PredictHomeCategoryConfig[];
+}
+
 export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
   liveSportsLeagues: string[];
@@ -106,10 +168,12 @@ export interface PredictFeatureFlags {
   enabledSportsMarketTypes: string[];
   nonRegTimeSportsMarketTypes: string[];
   marketHighlightsFlag: PredictMarketHighlightsFlag;
+  hiddenMarketsFlag: PredictHiddenMarketsFlag;
   fakOrdersEnabled: boolean;
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;
   predictSportsFeed: PredictSportsFeedConfig;
+  predictHomeCategories: PredictHomeCategoriesConfig;
   predictWimbledonTab: PredictWimbledonTabFlag;
   predictPortfolioEnabled: boolean;
   predictHomeRedesignEnabled: boolean;

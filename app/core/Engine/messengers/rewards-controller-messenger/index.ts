@@ -67,7 +67,6 @@ import {
   RewardsDataServiceGetVipTransactionsLastUpdatedAction,
   RewardsDataServicePostBenefitImpressionAction,
   RewardsDataServiceGetClientVersionRequirementsAction,
-  RewardsDataServiceGetFirstPredictOnUsAction,
   RewardsDataServiceGetOndoCampaignLeaderboardAction,
   RewardsDataServiceGetOndoCampaignLeaderboardPositionAction,
   RewardsDataServiceGetOndoCampaignPortfolioPositionAction,
@@ -78,12 +77,19 @@ import {
   RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction,
   RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction,
   RewardsDataServiceGetPerpsTradingCampaignVolumeAction,
+  RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction,
   RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction,
   RewardsDataServiceGetPredictThePitchLeaderboardAction,
   RewardsDataServiceGetPredictThePitchLeaderboardPositionAction,
   RewardsDataServiceGetPredictThePitchPositionsAction,
   RewardsDataServiceGetPredictThePitchParticipantOutcomeAction,
   RewardsDataServiceGetPredictThePitchPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction,
+  RewardsDataServiceRegisterMoneyAccountBindingAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -129,7 +135,6 @@ type AllowedActions =
   | RewardsDataServiceOptInToCampaignAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
-  | RewardsDataServiceGetFirstPredictOnUsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
@@ -140,6 +145,7 @@ type AllowedActions =
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
   | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
+  | RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction
   | RewardsDataServiceGetVIPDashboardAction
   | RewardsDataServiceGetVipEquityMultiplierAction
   | RewardsDataServiceGetVipRefereeDashboardAction
@@ -152,7 +158,13 @@ type AllowedActions =
   | RewardsDataServiceGetPredictThePitchLeaderboardPositionAction
   | RewardsDataServiceGetPredictThePitchPositionsAction
   | RewardsDataServiceGetPredictThePitchParticipantOutcomeAction
-  | RewardsDataServiceGetPredictThePitchPrizePoolAction;
+  | RewardsDataServiceGetPredictThePitchPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction
+  | RewardsDataServiceRegisterMoneyAccountBindingAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -239,7 +251,6 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getVipTransactionsLastUpdated',
       'RewardsDataService:postBenefitImpression',
       'RewardsDataService:getClientVersionRequirements',
-      'RewardsDataService:getFirstPredictOnUs',
       'RewardsDataService:getOndoCampaignLeaderboard',
       'RewardsDataService:getOndoCampaignLeaderboardPosition',
       'RewardsDataService:getOndoCampaignPortfolioPosition',
@@ -250,12 +261,19 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPerpsTradingCampaignLeaderboard',
       'RewardsDataService:getPerpsTradingCampaignLeaderboardPosition',
       'RewardsDataService:getPerpsTradingCampaignVolume',
+      'RewardsDataService:getPerpsTradingCampaignPrizePool',
       'RewardsDataService:getPerpsTradingCampaignParticipantOutcome',
       'RewardsDataService:getPredictThePitchLeaderboard',
       'RewardsDataService:getPredictThePitchLeaderboardPosition',
       'RewardsDataService:getPredictThePitchPositions',
       'RewardsDataService:getPredictThePitchParticipantOutcome',
       'RewardsDataService:getPredictThePitchPrizePool',
+      'RewardsDataService:getMoneyAccountSweepstakesStatsMe',
+      'RewardsDataService:getMoneyAccountSweepstakesPrizePool',
+      'RewardsDataService:getMoneyAccountSweepstakesVolumeStats',
+      'RewardsDataService:getMoneyAccountSweepstakesDrawProof',
+      'RewardsDataService:getMoneyAccountSweepstakesParticipantOutcome',
+      'RewardsDataService:registerMoneyAccountBinding',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

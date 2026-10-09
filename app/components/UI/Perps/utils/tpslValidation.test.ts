@@ -1,4 +1,5 @@
 import {
+  isPositiveTriggerPrice,
   isValidTakeProfitPrice,
   isValidStopLossPrice,
   isStopLossSafeFromLiquidation,
@@ -23,6 +24,138 @@ import {
 // tests have been moved to formatUtils.test.ts since the implementations now live in formatUtils.ts
 
 describe('TPSL Validation Utilities', () => {
+  describe('non-positive trigger prices', () => {
+    it('rejects a non-positive take profit trigger price', () => {
+      // Arrange - a short whose take profit return overshoots 100% x leverage
+      const shortParams = { currentPrice: 2392.5, direction: 'short' as const };
+
+      // Act
+      const negativeResult = isValidTakeProfitPrice('-37482.5', shortParams);
+      const zeroResult = isValidTakeProfitPrice('0', shortParams);
+
+      // Assert - both would be rejected by the protocol, so the form must be invalid
+      expect(negativeResult).toBe(false);
+      expect(zeroResult).toBe(false);
+    });
+
+    it('rejects a non-positive stop loss trigger price', () => {
+      // Arrange - a long stop loss sits below current price, where negatives also "pass" direction checks
+      const longParams = { currentPrice: 2392.5, direction: 'long' as const };
+
+      // Act
+      const negativeResult = isValidStopLossPrice('-0.00464', longParams);
+      const zeroResult = isValidStopLossPrice('0', longParams);
+
+      // Assert
+      expect(negativeResult).toBe(false);
+      expect(zeroResult).toBe(false);
+    });
+
+    it('keeps a valid sub-cent trigger price accepted', () => {
+      // Arrange - small-tick markets are the ones that produced the reported failures
+      const shortParams = {
+        currentPrice: 0.00232,
+        direction: 'short' as const,
+      };
+
+      // Act
+      const result = isValidTakeProfitPrice('0.00116', shortParams);
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it('treats empty and unparseable prices as nothing to validate', () => {
+      // Arrange
+      const prices = ['', undefined, 'invalid'];
+
+      // Act
+      const results = prices.map((price) => isPositiveTriggerPrice(price));
+
+      // Assert
+      expect(results).toEqual([true, true, true]);
+    });
+
+    it('strips currency formatting before comparing against zero', () => {
+      // Arrange
+      const formattedNegative = '-$1,250.75';
+
+      // Act
+      const result = isPositiveTriggerPrice(formattedNegative);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('reports a short take profit below zero through validateTPSLPrices', () => {
+      // Arrange
+      const params = { currentPrice: 2392.5, direction: 'short' as const };
+
+      // Act
+      const result = validateTPSLPrices('-37482.5', undefined, params);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('reports a non-positive trigger price before the reference price resolves', () => {
+      // Arrange - spot price has not streamed in yet, so the direction rules cannot apply
+      const unresolvedParams = { currentPrice: 0, direction: undefined };
+
+      // Act
+      const takeProfitResult = validateTPSLPrices(
+        '-37482.5',
+        undefined,
+        unresolvedParams,
+      );
+      const stopLossResult = validateTPSLPrices(
+        undefined,
+        '0',
+        unresolvedParams,
+      );
+
+      // Assert
+      expect(takeProfitResult).toBe(false);
+      expect(stopLossResult).toBe(false);
+    });
+
+    it('flags a non-positive trigger price in the order form warnings before the market price resolves', () => {
+      // Arrange - marketPrice of 0 previously short-circuited both warning checks
+      const input = {
+        orderType: 'market' as const,
+        direction: 'short' as const,
+        takeProfitPrice: '-37482.5',
+        stopLossPrice: '0',
+        liquidationPrice: '3123.4',
+        marketPrice: 0,
+      };
+
+      // Act
+      const warnings = getPerpsOrderTpSlWarnings(input);
+
+      // Assert
+      expect(warnings.isTakeProfitPriceInvalid).toBe(true);
+      expect(warnings.isStopLossPriceInvalid).toBe(true);
+    });
+
+    it('flags a non-positive take profit in the order form warnings', () => {
+      // Arrange
+      const input = {
+        orderType: 'market' as const,
+        direction: 'short' as const,
+        takeProfitPrice: '-37482.5',
+        liquidationPrice: '3123.4',
+        marketPrice: 2392.5,
+      };
+
+      // Act
+      const warnings = getPerpsOrderTpSlWarnings(input);
+
+      // Assert
+      expect(warnings.isTakeProfitPriceInvalid).toBe(true);
+    });
+  });
+
   describe('isValidTakeProfitPrice', () => {
     describe('Long positions', () => {
       const params = { currentPrice: 100, direction: 'long' as const };
@@ -784,6 +917,25 @@ describe('TPSL Validation Utilities', () => {
         expect(calculatePriceForRoE(-100, false, params)).toBe('90');
       });
 
+      it('should cap only loss-side stop loss RoE', () => {
+        const oneXParams = { ...params, leverage: 1 };
+
+        const gainSidePrice = calculatePriceForRoE(99, false, oneXParams);
+        const shortGainSidePrice = calculatePriceForRoE(99, false, {
+          ...oneXParams,
+          direction: 'short',
+        });
+        const cappedLossSidePrice = calculatePriceForRoE(
+          -100,
+          false,
+          oneXParams,
+        );
+
+        expect(gainSidePrice).toBe('199');
+        expect(shortGainSidePrice).toBe('1');
+        expect(cappedLossSidePrice).toBe('1');
+      });
+
       it('should handle different leverage values', () => {
         const lowLeverageParams = { ...params, leverage: 1 };
         const highLeverageParams = { ...params, leverage: 50 };
@@ -1377,6 +1529,12 @@ describe('TPSL Validation Utilities', () => {
       expect(formatRoEPercentageDisplay('invalid', false)).toBe('');
       expect(formatRoEPercentageDisplay('++5', true)).toBe(''); // Invalid pattern not preserved
       expect(formatRoEPercentageDisplay('++5', false)).toBe(''); // Clean up when unfocused
+    });
+
+    it('omits the sign when includeSign is false', () => {
+      expect(formatRoEPercentageDisplay('10', false, false)).toBe('10');
+      expect(formatRoEPercentageDisplay('-10', false, false)).toBe('10');
+      expect(formatRoEPercentageDisplay('10.5', false, false)).toBe('10.50');
     });
   });
 

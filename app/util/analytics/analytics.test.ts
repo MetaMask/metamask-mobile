@@ -64,6 +64,11 @@ jest.mock('./whenEngineReady', () => ({
 
 jest.mock('../Logger');
 
+jest.mock('../../components/UI/Perps/utils/perpsModeAnalytics', () => ({
+  PERPS_MODE_ANALYTICS_PROPERTY: 'perps_mode',
+  getPerpsModeAnalyticsProperties: jest.fn(() => ({ perps_mode: 'lite' })),
+}));
+
 import { analytics } from './analytics';
 import { getAnalyticsId as getAnalyticsIdFromStorage } from './analyticsId';
 import { store } from '../../store';
@@ -73,6 +78,7 @@ import {
   selectAnalyticsOptedIn,
 } from '../../selectors/analyticsController';
 import Logger from '../Logger';
+import { getPerpsModeAnalyticsProperties } from '../../components/UI/Perps/utils/perpsModeAnalytics';
 
 const mockedGetAnalyticsIdFromStorage =
   getAnalyticsIdFromStorage as jest.MockedFunction<
@@ -119,6 +125,48 @@ describe('analytics', () => {
       );
     });
 
+    it('injects Lite/Pro mode onto Perps events before queueing', () => {
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        'Perp Screen Viewed',
+      )
+        .addProperties({ screen_type: 'trading' })
+        .build();
+
+      analytics.trackEvent(event);
+
+      expect(getPerpsModeAnalyticsProperties).toHaveBeenCalled();
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'trackEvent',
+        expect.objectContaining({
+          name: 'Perp Screen Viewed',
+          properties: expect.objectContaining({
+            perps_mode: 'lite',
+            screen_type: 'trading',
+          }),
+        }),
+      );
+    });
+
+    it('injects Lite/Pro mode onto Perps Asset Viewed companion events', () => {
+      const event = AnalyticsEventBuilder.createEventBuilder('Asset Viewed')
+        .addProperties({ trade_type: 'Perps', screen_type: 'asset_details' })
+        .build();
+
+      analytics.trackEvent(event);
+
+      expect(getPerpsModeAnalyticsProperties).toHaveBeenCalled();
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'trackEvent',
+        expect.objectContaining({
+          name: 'Asset Viewed',
+          properties: expect.objectContaining({
+            perps_mode: 'lite',
+            trade_type: 'Perps',
+          }),
+        }),
+      );
+    });
+
     it('enriches allowlisted events before queueing them', () => {
       mockedStore.getState.mockReturnValue({
         ...initialRootState,
@@ -130,7 +178,7 @@ describe('analytics', () => {
               ...initialRootState.engine.backgroundState
                 .RemoteFeatureFlagController,
               remoteFeatureFlags: {
-                cardCARD338AbtestAttentionBadge: 'withBadge',
+                assetsASSETS3205AbtestAmbientPriceColor: 'treatment',
               },
               localOverrides: {},
             },
@@ -139,7 +187,7 @@ describe('analytics', () => {
       } as ReturnType<typeof store.getState>);
 
       const event = AnalyticsEventBuilder.createEventBuilder(
-        'Card Button Viewed',
+        'Token Details Opened',
       )
         .addProperties({ source: 'wallet' })
         .build();
@@ -149,14 +197,15 @@ describe('analytics', () => {
       expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
         'trackEvent',
         expect.objectContaining({
-          name: 'Card Button Viewed',
+          name: 'Token Details Opened',
           properties: {
             source: 'wallet',
             active_ab_tests: [
               {
-                key: 'cardCARD338AbtestAttentionBadge',
-                value: 'withBadge',
-                key_value_pair: 'cardCARD338AbtestAttentionBadge=withBadge',
+                key: 'assetsASSETS3205AbtestAmbientPriceColor',
+                value: 'treatment',
+                key_value_pair:
+                  'assetsASSETS3205AbtestAmbientPriceColor=treatment',
               },
             ],
           },
@@ -301,6 +350,63 @@ describe('analytics', () => {
 
       expect(mockedLoggerLog).toHaveBeenCalledWith(
         'Analytics: Unhandled error in optOut',
+        error,
+      );
+    });
+  });
+
+  describe('marketing consent', () => {
+    it('queues optInToMarketing', () => {
+      analytics.optInToMarketing();
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'optInToMarketing',
+      );
+    });
+
+    it('queues optOutOfMarketing', () => {
+      analytics.optOutOfMarketing();
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'optOutOfMarketing',
+      );
+    });
+
+    it('queues resetMarketingConsentDecision', () => {
+      analytics.resetMarketingConsentDecision();
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'resetMarketingConsentDecision',
+      );
+    });
+
+    it('maps a true marketing preference to optInToMarketing', async () => {
+      await analytics.setDataCollectionForMarketing(true);
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'optInToMarketing',
+      );
+      expect(
+        mockQueueManagerFromFactory.queueOperation,
+      ).not.toHaveBeenCalledWith('optOutOfMarketing');
+    });
+
+    it('maps a false marketing preference to optOutOfMarketing', async () => {
+      await analytics.setDataCollectionForMarketing(false);
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'optOutOfMarketing',
+      );
+      expect(
+        mockQueueManagerFromFactory.queueOperation,
+      ).not.toHaveBeenCalledWith('optInToMarketing');
+    });
+
+    it('rejects when the marketing opt-out queue operation rejects', async () => {
+      const error = new Error('Queue operation failed');
+      mockQueueManagerFromFactory.queueOperation.mockRejectedValue(error);
+
+      await expect(analytics.setDataCollectionForMarketing(false)).rejects.toBe(
         error,
       );
     });

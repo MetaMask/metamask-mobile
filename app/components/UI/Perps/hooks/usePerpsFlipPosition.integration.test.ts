@@ -12,14 +12,14 @@
  * `orderLifecycleFlow.integration.test.ts`.
  *
  * Setup is delegated to the perps integration harness — see
- * `tests/integration/harnesses/perps.ts` (rules + factory) and
+ * `tests/integration/harnesses/perps/perps.ts` (rules + factory) and
  * `tests/integration/AGENTS.md` (framework overview).
  */
 
 // Side-effect import: triggers the standard jest.mock(...) declarations
 // for the perps I/O boundary. Must come before any import of the code
 // under test (the harness import handles both).
-import { buildPerpsIntegrationHarness } from '../../../../../tests/integration/harnesses/perps';
+import { buildPerpsIntegrationHarness } from '../../../../../tests/integration/harnesses/perps/perps';
 import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
 
 describe('Perps reverse position validation — integration', () => {

@@ -98,7 +98,7 @@ const createCryptoUpDownMarket = (
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
 const CANCEL_TEXT = 'Cancel';
-const RETRY_TEXT = 'Retry';
+const RETRY_TEXT = 'Try again';
 
 interface PredictRootRouteParams {
   screen?: string;
@@ -769,16 +769,23 @@ describe('PredictFeed', () => {
         'btc',
       );
 
+      // The Up/Down live card re-renders every second via a shared
+      // useSyncExternalStore clock, adding re-render pressure between the
+      // search debounce, the query fetch, and FlashList's first item render.
+      // Under contended CI runners these awaits need generous budgets
+      // (see also the re-query note before the press below).
       expect(
         await findByTestId(
           getPredictSearchSelector.resultCard(0),
           {},
-          { timeout: 3000 },
+          { timeout: 10000 },
         ),
       ).toBeOnTheScreen();
       expect(
         await findByTestId(
           PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE,
+          {},
+          { timeout: 10000 },
         ),
       ).toBeOnTheScreen();
       expect(await findAllByText('BTC Up or Down - 5 Minutes')).toHaveLength(1);
@@ -861,6 +868,15 @@ describe('PredictFeed', () => {
 
       const { findByTestId, findByText } = renderPredictFeedViewWithRoutes({
         extraRoutes: [{ name: Routes.PREDICT.MODALS.ROOT }],
+        overrides: {
+          engine: {
+            backgroundState: {
+              PredictController: {
+                eligibility: { status: 'ineligible' as const, country: 'US' },
+              },
+            },
+          },
+        },
       });
 
       await findByTestId(PredictBalanceSelectorsIDs.BALANCE_CARD);
@@ -907,7 +923,7 @@ describe('PredictFeed', () => {
       searchMarketsSpy.mockRestore();
     });
 
-    it('calls searchMarkets again when the user presses Retry after an error', async () => {
+    it('calls searchMarkets again when the user presses Try again after an error', async () => {
       const searchMarketsSpy = jest.spyOn(
         Engine.context.PredictController,
         'searchMarkets',
@@ -932,7 +948,7 @@ describe('PredictFeed', () => {
       // Make subsequent calls succeed so the retry completes quickly.
       searchMarketsSpy.mockResolvedValue({ markets: [], totalResults: 0 });
 
-      fireEvent.press(await findByText('Retry'));
+      fireEvent.press(await findByText(RETRY_TEXT));
 
       await waitFor(() => {
         expect(searchMarketsSpy.mock.calls.length).toBeGreaterThan(

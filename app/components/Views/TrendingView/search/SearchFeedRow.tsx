@@ -1,7 +1,9 @@
 import React, { useCallback, useRef } from 'react';
+import { Box } from '@metamask/design-system-react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
+import { PredictEventProperties } from '../../../UI/Predict/constants/eventNames';
 import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import { TokenSearchRowItem } from '../feeds/tokens/TokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
@@ -11,18 +13,30 @@ import { SiteRowItem } from '../feeds/sites/SiteRowItem';
 import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import type { SearchFeedId } from './useExploreSearch';
 import TapView from './TapView';
-import { trackExploreSearchEvent, type SearchFeedPill } from './analytics';
+import {
+  getSearchQueryLength,
+  trackExploreSearchEvent,
+  type ExploreSearchInteractedProperties,
+  type SearchFeedPill,
+} from './analytics';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
+import { PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH } from '../../../UI/Perps/constants/perpsAnalytics';
+import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
+import EarnSearchRow from './EarnSearchRow';
 
 interface SearchFeedRowProps {
   feedId: SearchFeedId;
   item: unknown;
   index: number;
   searchQuery: string;
+  analyticsSearchQuery?: string;
   tabName: SearchFeedPill;
   resultCount?: number;
   onQuickTrade?: (token: TrendingAsset) => void;
 }
+
+export const PERPS_ROW_WRAPPER_TEST_ID = 'search-feed-row-perps-wrapper';
+export const EARN_ROW_WRAPPER_TEST_ID = 'search-feed-row-earn-wrapper';
 
 export const getItemId = (feedId: SearchFeedId, item: unknown): string => {
   switch (feedId) {
@@ -35,7 +49,42 @@ export const getItemId = (feedId: SearchFeedId, item: unknown): string => {
       return (item as PredictMarketType).id ?? '';
     case 'sites':
       return (item as SiteData).url ?? '';
+    case 'earn':
+      return (item as EarnSearchItem).id;
   }
+};
+
+export const getTokenIdentityProperties = (
+  feedId: SearchFeedId,
+  item: unknown,
+): Pick<ExploreSearchInteractedProperties, 'token_name' | 'token_symbol'> => {
+  if (feedId !== 'tokens' && feedId !== 'stocks') {
+    return {};
+  }
+  const { name, symbol } = item as TrendingAsset;
+  return {
+    ...(name ? { token_name: name } : {}),
+    ...(symbol ? { token_symbol: symbol } : {}),
+  };
+};
+
+export const getPredictMarketProperties = (
+  feedId: SearchFeedId,
+  item: unknown,
+): Pick<
+  ExploreSearchInteractedProperties,
+  'market_id' | 'market_slug' | 'market_tags' | 'market_title'
+> => {
+  if (feedId !== 'predictions') {
+    return {};
+  }
+  const { id, slug, tags, title } = item as PredictMarketType;
+  return {
+    ...(id ? { [PredictEventProperties.MARKET_ID]: id } : {}),
+    ...(slug ? { [PredictEventProperties.MARKET_SLUG]: slug } : {}),
+    ...(tags ? { [PredictEventProperties.MARKET_TAGS]: tags } : {}),
+    ...(title ? { [PredictEventProperties.MARKET_TITLE]: title } : {}),
+  };
 };
 
 /** Renders a search-result row for any feed and tracks taps with analytics. */
@@ -44,24 +93,30 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
   item,
   index,
   searchQuery,
+  analyticsSearchQuery = searchQuery,
   tabName,
   resultCount,
   onQuickTrade,
 }) => {
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
+  const analyticsSearchQueryRef = useRef(analyticsSearchQuery);
+  analyticsSearchQueryRef.current = analyticsSearchQuery;
   const resultCountRef = useRef(resultCount);
   resultCountRef.current = resultCount;
 
   const handleTap = useCallback(() => {
     trackExploreSearchEvent({
       interaction_type: 'result_clicked',
-      search_query: searchQueryRef.current,
+      search_query: analyticsSearchQueryRef.current,
       ...(tabName === 'all' ? { section_name: feedId } : {}),
       tab_name: tabName,
       item_clicked: getItemId(feedId, item),
       position: index,
       result_count: resultCountRef.current,
+      query_length: getSearchQueryLength(searchQueryRef.current),
+      ...getTokenIdentityProperties(feedId, item),
+      ...getPredictMarketProperties(feedId, item),
     });
   }, [feedId, tabName, item, index]);
 
@@ -78,11 +133,30 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
           />
         );
       case 'perps':
-        return <PerpsRowItem market={item as PerpsMarketData} />;
+        // ListItem owns its own px-4 for the pressed state, so cancel the list
+        // container's px-4 to avoid indenting perps rows an extra 16px.
+        return (
+          <Box twClassName="-mx-4" testID={PERPS_ROW_WRAPPER_TEST_ID}>
+            <PerpsRowItem
+              market={item as PerpsMarketData}
+              source={PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH}
+            />
+          </Box>
+        );
       case 'predictions':
         return <PredictionSearchRowItem market={item as PredictMarketType} />;
       case 'sites':
         return <SiteRowItem site={item as SiteData} />;
+      case 'earn':
+        return (
+          <Box twClassName="-mx-4" testID={EARN_ROW_WRAPPER_TEST_ID}>
+            <EarnSearchRow
+              item={item as EarnSearchItem}
+              position={index + 1}
+              resultCount={tabName === 'earn' ? resultCount : undefined}
+            />
+          </Box>
+        );
     }
   })();
 
@@ -100,6 +174,7 @@ export const SearchFeedSkeleton: React.FC<{ feedId: SearchFeedId }> = ({
     case 'tokens':
     case 'stocks':
     case 'perps':
+    case 'earn':
     default:
       return <TrendingTokensSkeleton />;
   }

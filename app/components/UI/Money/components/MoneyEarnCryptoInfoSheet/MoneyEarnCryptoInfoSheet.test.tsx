@@ -5,7 +5,7 @@ import MoneyEarnCryptoInfoSheet from './MoneyEarnCryptoInfoSheet';
 import { MoneyEarnCryptoInfoSheetTestIds } from './MoneyEarnCryptoInfoSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
@@ -25,7 +25,7 @@ jest.mock('../../hooks/useMoneyNavigation', () => ({
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
 
-jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -118,7 +118,7 @@ describe('MoneyEarnCryptoInfoSheet', () => {
       isOnboardingRedirectNeeded: false,
       navigateToMoneyHome: mockNavigateToMoneyHome,
     });
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+    (useMoneyVaultApy as jest.Mock).mockReturnValue({
       apyPercent: 4,
     });
   });
@@ -230,7 +230,7 @@ describe('MoneyEarnCryptoInfoSheet', () => {
   });
 
   it('renders the body when APY is unavailable', () => {
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+    (useMoneyVaultApy as jest.Mock).mockReturnValue({
       apyPercent: undefined,
     });
     const { getByTestId, getByText } = renderWithProvider(

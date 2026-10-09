@@ -22,8 +22,15 @@ import {
   PriceAlertAnalytics,
 } from '../../constants';
 import { useSubmitPriceAlert } from '../../api';
+import { useSubmitPerpAlert } from '../../perpApi';
 import { type SaveAlert } from '../../hooks/useAlertSaveFlow';
-import { getKeypadDecimalPlaces, KEYPAD_EMPTY, toKeypadString } from './utils';
+import {
+  formatKeypadDisplay,
+  getKeypadDecimalPlaces,
+  getPerpsKeypadDecimalPlaces,
+  KEYPAD_EMPTY,
+  toKeypadString,
+} from './utils';
 
 interface AbsolutePriceAlertFormProps {
   assetId: string;
@@ -33,6 +40,13 @@ interface AbsolutePriceAlertFormProps {
   saveAlert: SaveAlert;
   editingAlert?: AbsolutePriceAlert;
   existingAbsoluteAlerts?: AbsolutePriceAlert[];
+  /**
+   * When provided the form submits to the perpetuals price-alerts endpoint
+   * using this market identifier instead of the CAIP-19 `assetId`.
+   */
+  marketId?: string;
+  /** Hyperliquid size decimals; when set, keypad uses `6 - szDecimals`. */
+  szDecimals?: number;
 }
 
 const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
@@ -43,12 +57,14 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   saveAlert,
   editingAlert,
   existingAbsoluteAlerts,
+  marketId,
+  szDecimals,
 }) => {
   const isEditing = Boolean(editingAlert);
   const [targetAmount, setTargetAmount] = useState(() =>
     editingAlert
-      ? toKeypadString(editingAlert.threshold)
-      : toKeypadString(currentPrice),
+      ? toKeypadString(editingAlert.threshold, szDecimals)
+      : toKeypadString(currentPrice, szDecimals),
   );
   const [isRecurring, setIsRecurring] = useState(
     editingAlert?.recurring ?? true,
@@ -91,37 +107,67 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
 
   const currencySymbol = CURRENCY_SYMBOLS[currentCurrency.toLowerCase()] ?? '';
   const isEmpty = targetAmount === KEYPAD_EMPTY;
+  const formattedTargetAmount = marketId
+    ? formatKeypadDisplay(targetAmount)
+    : targetAmount;
   const displayText = isEmpty
     ? currencySymbol
-    : `${currencySymbol}${targetAmount}`;
+    : `${currencySymbol}${formattedTargetAmount}`;
 
-  const { submit, isSubmitting } = useSubmitPriceAlert(editingAlert);
+  // Always call both hooks; only one will be active depending on mode.
+  const { submit: spotSubmit, isSubmitting: isSpotSubmitting } =
+    useSubmitPriceAlert(editingAlert);
+  const { submit: perpSubmit, isSubmitting: isPerpSubmitting } =
+    useSubmitPerpAlert(editingAlert);
+  const isSubmitting = marketId ? isPerpSubmitting : isSpotSubmitting;
 
   const handleSave = useCallback(async () => {
     if (!hasValidTarget) return;
 
-    await saveAlert({
-      submit: () =>
-        submit({
-          asset: assetId,
-          threshold: targetPrice,
-          recurring: isRecurring,
-        }),
-      editingAlert,
-      patch: { threshold: targetPrice, recurring: isRecurring },
-      analyticsProperties: {
-        alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
-        alert_value: targetPrice,
-        alert_recurring: isRecurring,
-      },
-    });
+    const analyticsProperties = {
+      alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
+      alert_value: targetPrice,
+      alert_recurring: isRecurring,
+      alert_market_type: marketId
+        ? PriceAlertAnalytics.MARKET_TYPE.PERPS
+        : PriceAlertAnalytics.MARKET_TYPE.SPOT,
+    };
+    const patch = { threshold: targetPrice, recurring: isRecurring };
+
+    if (marketId) {
+      await saveAlert({
+        submit: () =>
+          perpSubmit({
+            marketId,
+            threshold: targetPrice,
+            recurring: isRecurring,
+          }),
+        editingAlert,
+        patch,
+        analyticsProperties,
+      });
+    } else {
+      await saveAlert({
+        submit: () =>
+          spotSubmit({
+            asset: assetId,
+            threshold: targetPrice,
+            recurring: isRecurring,
+          }),
+        editingAlert,
+        patch,
+        analyticsProperties,
+      });
+    }
   }, [
     assetId,
+    marketId,
     editingAlert,
     hasValidTarget,
     isRecurring,
     saveAlert,
-    submit,
+    spotSubmit,
+    perpSubmit,
     targetPrice,
   ]);
 
@@ -132,9 +178,11 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   const handleQuickPercentagePress = useCallback(
     (percentage: number) => {
       if (currentPrice <= 0) return;
-      setTargetAmount(toKeypadString(currentPrice * (1 + percentage / 100)));
+      setTargetAmount(
+        toKeypadString(currentPrice * (1 + percentage / 100), szDecimals),
+      );
     },
-    [currentPrice],
+    [currentPrice, szDecimals],
   );
 
   const saveButtonLabel = isDuplicateThreshold
@@ -153,7 +201,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
           variant={ButtonVariant.Secondary}
           onPress={() => handleQuickPercentagePress(percentage)}
           testID={`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-${percentage}`}
-          twClassName="flex-1"
+          twClassName="flex-1 rounded-xl"
         >
           {strings('price_alerts.quick_percentage', {
             percentage: percentage > 0 ? `+${percentage}` : percentage,
@@ -169,7 +217,11 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
       onRecurringChange={setIsRecurring}
       keypadValue={targetAmount}
       onKeypadChange={handleKeypadChange}
-      keypadDecimals={getKeypadDecimalPlaces(currentPrice)}
+      keypadDecimals={
+        szDecimals === undefined
+          ? getKeypadDecimalPlaces(currentPrice)
+          : getPerpsKeypadDecimalPlaces(szDecimals)
+      }
       saveButtonLabel={saveButtonLabel}
       onSave={handleSave}
       isSubmitting={isSubmitting}

@@ -10,6 +10,14 @@ import PredictScreenStack, { PredictModalStack } from './index';
 let mockPayWithAnyTokenEnabled = false;
 let mockPredictPortfolioEnabled = true;
 let mockPredictHomeRedesignEnabled = false;
+const mockPredictConfig = {
+  enabled: false,
+  venues: {
+    polymarket: { enabled: true },
+    kalshi: { enabled: false },
+  },
+  venueSelection: { enabled: false },
+};
 
 const mockSelectPredictWithAnyTokenEnabledFlag = jest.fn(
   () => mockPayWithAnyTokenEnabled,
@@ -32,6 +40,10 @@ jest.mock('../selectors/featureFlags', () => ({
     mockSelectPredictPortfolioEnabledFlag(),
   selectPredictHomeRedesignEnabledFlag: () =>
     mockSelectPredictHomeRedesignEnabledFlag(),
+}));
+
+jest.mock('../../PredictNext/selectors/predictConfig', () => ({
+  selectPredictConfig: () => mockPredictConfig,
 }));
 
 jest.mock('../contexts', () => {
@@ -96,11 +108,6 @@ jest.mock('../views/PredictSellPreview/PredictSellPreview', () => {
 jest.mock('../views/PredictUnavailableModal', () => {
   const { View } = jest.requireActual('react-native');
   return () => <View testID="predict-unavailable-modal" />;
-});
-
-jest.mock('../components/PredictGTMModal', () => {
-  const { View } = jest.requireActual('react-native');
-  return () => <View testID="predict-gtm-modal" />;
 });
 
 jest.mock('../views/PredictAddFundsModal/PredictAddFundsModal', () => {
@@ -281,6 +288,9 @@ describe('PredictScreenStack', () => {
 describe('PredictModalStack', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPayWithAnyTokenEnabled = false;
+    mockPredictPortfolioEnabled = true;
+    mockPredictHomeRedesignEnabled = false;
     navigationRef = React.createRef();
   });
 
@@ -288,16 +298,6 @@ describe('PredictModalStack', () => {
     renderWithNavigation(<PredictModalStack />);
 
     expect(screen.getByTestId('predict-unavailable-modal')).toBeOnTheScreen();
-  });
-
-  it('navigates to GTM_MODAL', async () => {
-    renderWithNavigation(<PredictModalStack />);
-
-    await act(async () => {
-      navigationRef.current?.navigate(Routes.PREDICT.MODALS.GTM_MODAL);
-    });
-
-    expect(screen.getByTestId('predict-gtm-modal')).toBeOnTheScreen();
   });
 
   it('navigates to ADD_FUNDS_SHEET', async () => {

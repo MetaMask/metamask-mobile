@@ -5,9 +5,10 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useSelector } from 'react-redux';
 import { selectIsIpfsGatewayEnabled } from '../../../../../selectors/preferencesController';
 import {
+  FontWeight,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import EarnDepositTokenListItem from '.';
 
 jest.mock('react-redux', () => ({
@@ -43,16 +44,18 @@ describe('EarnDepositTokenListItem', () => {
     },
     primaryText: {
       value: `3.0% ${strings('stake.apr')}`,
-      variant: TextVariant.BodyMDBold,
-      color: TextColor.Success,
+      variant: TextVariant.BodyMd,
+      fontWeight: FontWeight.Bold,
+      color: TextColor.SuccessDefault,
     },
     onPress: jest.fn(),
   };
 
   const secondaryText = {
     value: '10,100.00 USDC',
-    variant: TextVariant.BodySMBold,
-    color: TextColor.Alternative,
+    variant: TextVariant.BodySm,
+    fontWeight: FontWeight.Bold,
+    color: TextColor.TextAlternative,
   };
 
   it('renders primary and secondary text', () => {

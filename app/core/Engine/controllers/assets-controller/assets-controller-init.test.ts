@@ -19,6 +19,7 @@ import {
 import { store } from '../../../../store';
 import { trace } from '../../../../util/trace';
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
+import { createApiPlatformClient } from '@metamask/core-backend';
 
 jest.mock('@metamask/assets-controller');
 jest.mock('@metamask/core-backend', () => ({
@@ -144,6 +145,46 @@ function getInitRequestMock(overrides?: {
     >
   >;
 }
+
+describe('API platform client bearer token retrieval', () => {
+  // Placed before the `assetsControllerInit` suite so the module-level
+  // `apiClient` singleton is created with this block's init messenger, which
+  // resolves a known bearer token via its registered action handler.
+  const BEARER_TOKEN = 'mock-bearer-token';
+  const ORIGINAL_DISABLE_AUTH = process.env.MM_BACKEND_DISABLE_AUTH;
+
+  let getBearerToken: () => Promise<string | undefined>;
+
+  beforeAll(() => {
+    assetsControllerInit(getInitRequestMock());
+    getBearerToken = jest.mocked(createApiPlatformClient).mock.calls[0][0]
+      .getBearerToken as () => Promise<string | undefined>;
+  });
+
+  afterEach(() => {
+    if (ORIGINAL_DISABLE_AUTH === undefined) {
+      delete process.env.MM_BACKEND_DISABLE_AUTH;
+    } else {
+      process.env.MM_BACKEND_DISABLE_AUTH = ORIGINAL_DISABLE_AUTH;
+    }
+  });
+
+  describe('when backend auth is enabled', () => {
+    it('returns the AuthenticationController bearer token', async () => {
+      process.env.MM_BACKEND_DISABLE_AUTH = 'false';
+
+      await expect(getBearerToken()).resolves.toBe(BEARER_TOKEN);
+    });
+  });
+
+  describe('when backend auth is disabled', () => {
+    it('omits the bearer token', async () => {
+      process.env.MM_BACKEND_DISABLE_AUTH = 'true';
+
+      await expect(getBearerToken()).resolves.toBeUndefined();
+    });
+  });
+});
 
 describe('assetsControllerInit', () => {
   beforeEach(() => {

@@ -9,10 +9,6 @@ import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { strings } from '../../../../../../../locales/i18n';
 import { TouchableOpacity, View } from 'react-native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconColor,
   IconName,
@@ -20,6 +16,12 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import styleSheet from './gas-fee-token-list-item.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 export interface GasFeeTokenListItemProps {
   isSelected?: boolean;
@@ -98,7 +100,8 @@ function ListItem({
           <View style={styles.gasFeeTokenListItemSymbol}>
             <Text
               testID={`gas-fee-token-list-item-symbol-${leftPrimary}`}
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               style={styles.gasFeeTokenListItemSymbolText}
             >
               {leftPrimary}
@@ -107,8 +110,9 @@ function ListItem({
           </View>
           <Text
             testID={`gas-fee-token-list-item-balance-${leftPrimary}`}
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
           >
             {leftSecondary}
           </Text>
@@ -117,14 +121,16 @@ function ListItem({
       <View style={styles.gasFeeTokenListItemAmountContainer}>
         <Text
           testID={`gas-fee-token-list-item-amount-fiat-${leftPrimary}`}
-          variant={TextVariant.BodySMMedium}
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
         >
           {rightPrimary}
         </Text>
         <Text
           testID={`gas-fee-token-list-item-amount-token-${leftPrimary}`}
-          variant={TextVariant.BodySMMedium}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
         >
           {rightSecondary}
         </Text>
@@ -142,7 +148,11 @@ function WarningIndicator({ text }: { text: string }) {
         size={IconSize.Xs}
         color={IconColor.Muted}
       />
-      <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextMuted}
+      >
         {text}
       </Text>
     </View>

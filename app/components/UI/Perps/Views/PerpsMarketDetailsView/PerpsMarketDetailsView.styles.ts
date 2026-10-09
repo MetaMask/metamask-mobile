@@ -51,7 +51,22 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
     chartSection: {
       paddingTop: 0,
       marginTop: 16,
+      marginBottom: 16,
       position: 'relative',
+    },
+    chartTouchContainer: {
+      width: '100%',
+      position: 'relative',
+    },
+    // Invisible strip over the chart's left edge. iOS starts its back swipe
+    // from screen-left, which otherwise steals horizontal chart gestures.
+    chartEdgeGuard: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 15,
+      zIndex: 10,
     },
     tabsSection: {
       paddingVertical: 8,

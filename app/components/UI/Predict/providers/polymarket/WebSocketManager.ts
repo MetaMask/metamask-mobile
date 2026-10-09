@@ -2,6 +2,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import {
   ConnectionStatus,
   ConnectionStatusCallback,
+  CryptoPriceSubscriptionOptions,
   CryptoPriceUpdate,
   CryptoPriceUpdateCallback,
   GameUpdate,
@@ -17,7 +18,6 @@ import { GameCache } from './GameCache';
 import { POLYMARKET_PROVIDER_ID } from './constants';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
-import { trace, endTrace, TraceName } from '../../../../../util/trace';
 import { OrderBook } from './types';
 
 type WebSocketChannel = 'sports' | 'market' | 'rtds';
@@ -31,6 +31,10 @@ const PING_INTERVAL_MS = 50000;
 
 const RTDS_WS_URL = 'wss://ws-live-data.polymarket.com';
 const RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC = 'crypto_prices_chainlink';
+const RTDS_CRYPTO_PRICES_TWAP_TOPICS = {
+  30: 'crypto_prices_twap_thirty',
+  60: 'crypto_prices_twap_sixty',
+} as const;
 const RTDS_PING_INTERVAL_MS = 5000;
 // Crypto price ticks (RTDS chainlink) can arrive many times per second per
 // symbol, while the UI only needs a few updates per second. Each flush fans
@@ -44,6 +48,14 @@ const MARKET_PRICE_EMIT_THROTTLE_MS = 250;
 const HEARTBEAT_CHECK_INTERVAL_MS = 5000;
 const MARKET_STALE_THRESHOLD_MS = 60000;
 const RTDS_STALE_THRESHOLD_MS = 15000;
+const SPORTS_STALE_THRESHOLD_MS = 60000;
+/**
+ * Upper bound for sports reconnect backoff. Sports reconnects indefinitely
+ * while game subscriptions exist (unlike market/RTDS which stop after
+ * MAX_RECONNECT_ATTEMPTS), so this delay cap bounds the retry rate instead.
+ * See PRED-1334.
+ */
+const MAX_RECONNECT_DELAY_MS = 30000;
 
 type GameUpdateCallback = (update: GameUpdate) => void;
 type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
@@ -127,11 +139,41 @@ interface RtdsWebSocketEvent {
     timestamp?: number;
     value?: number;
     full_accuracy_value?: string;
+    window_s?: number;
     data?: {
       timestamp?: number;
       value?: number;
     }[];
   };
+}
+
+const getRtdsTopic = (options?: CryptoPriceSubscriptionOptions): string =>
+  options?.twapWindowSeconds
+    ? RTDS_CRYPTO_PRICES_TWAP_TOPICS[options.twapWindowSeconds]
+    : RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC;
+
+const getCryptoSubscriptionKey = (
+  symbols: string[],
+  options?: CryptoPriceSubscriptionOptions,
+): string =>
+  `${getRtdsTopic(options)}|${[...symbols]
+    .sort((a, b) => a.localeCompare(b))
+    .join(',')}`;
+
+const parseCryptoSubscriptionKey = (key: string) => {
+  const separatorIndex = key.indexOf('|');
+  return {
+    topic: key.slice(0, separatorIndex),
+    symbols: key
+      .slice(separatorIndex + 1)
+      .split(',')
+      .filter(Boolean),
+  };
+};
+
+interface RtdsSubscription {
+  topic: string;
+  type: string;
 }
 
 export class WebSocketManager {
@@ -174,6 +216,9 @@ export class WebSocketManager {
   private sportsPingInterval: ReturnType<typeof setInterval> | null = null;
   private marketPingInterval: ReturnType<typeof setInterval> | null = null;
 
+  private sportsLastMessageAt = 0;
+  private sportsHeartbeatInterval: ReturnType<typeof setInterval> | null = null;
+  private sportsHeartbeatTimeouts = 0;
   private marketLastMessageAt = 0;
   private marketHeartbeatInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -189,6 +234,8 @@ export class WebSocketManager {
   private rtdsLastMessageAt = 0;
   private rtdsHeartbeatInterval: ReturnType<typeof setInterval> | null = null;
   private cryptoPriceBuffer: Map<string, CryptoPriceUpdate> = new Map();
+  private latestCryptoObservationByTopicAndSymbol: Map<string, number> =
+    new Map();
   private throttleTimer: ReturnType<typeof setInterval> | null = null;
 
   private appStateSubscription: { remove: () => void } | null = null;
@@ -301,6 +348,7 @@ export class WebSocketManager {
       this.sportsWs.onopen = () => {
         this.sportsReconnectAttempts = 0;
         this.startSportsPing();
+        this.startSportsHeartbeat();
         this.emitConnectionStatusIfChanged();
       };
 
@@ -359,6 +407,9 @@ export class WebSocketManager {
   }
 
   private handleSportsMessage = (event: WebSocketMessageEvent): void => {
+    // Any byte from the server (game data or PONG) proves the socket is alive.
+    this.sportsLastMessageAt = Date.now();
+
     const data = this.parseSportsMessageData(event.data);
 
     if (!data) {
@@ -410,16 +461,19 @@ export class WebSocketManager {
       return;
     }
 
-    if (this.sportsReconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-      return;
-    }
-
     if (this.sportsReconnectTimeout) {
       return;
     }
 
+    // Unlike market/RTDS, sports reconnects indefinitely while game
+    // subscriptions exist. Giving up permanently left scores frozen until the
+    // app was fully restarted (PRED-1334); the capped delay bounds the retry
+    // rate instead of an attempt budget.
     const attemptNumber = this.sportsReconnectAttempts + 1;
-    const delay = RECONNECT_DELAY_MS * attemptNumber;
+    const delay = Math.min(
+      RECONNECT_DELAY_MS * attemptNumber,
+      MAX_RECONNECT_DELAY_MS,
+    );
 
     this.sportsReconnectTimeout = setTimeout(() => {
       this.sportsReconnectTimeout = null;
@@ -443,8 +497,63 @@ export class WebSocketManager {
     }
   }
 
+  /**
+   * Detects a silently-dead sports socket. The sports server streams game
+   * updates for every live game worldwide and never sends a close frame when
+   * the connection dies half-open (network switch, NAT timeout), so without
+   * this check the client keeps a dead socket and scores freeze until the app
+   * is restarted (PRED-1334). The sports stream is chatty whenever any game is
+   * live, so a SPORTS_STALE_THRESHOLD_MS silence window reliably indicates a
+   * dead socket; forcing a reconnect is cheap because the stream needs no
+   * subscribe handshake.
+   */
+  private startSportsHeartbeat(): void {
+    this.sportsLastMessageAt = Date.now();
+    this.sportsHeartbeatInterval = setInterval(() => {
+      if (this.sportsWs?.readyState !== WebSocket.OPEN) {
+        return;
+      }
+      const sinceLast = Date.now() - this.sportsLastMessageAt;
+      if (sinceLast > SPORTS_STALE_THRESHOLD_MS) {
+        DevLogger.log(
+          'WebSocketManager: sports WebSocket stale, forcing reconnect',
+          { sinceLast, threshold: SPORTS_STALE_THRESHOLD_MS },
+        );
+        this.sportsHeartbeatTimeouts++;
+        // Only the second timeout in a staleness episode reaches Sentry: the
+        // first is usually a transient blip, and since sports reconnects
+        // indefinitely a persistent outage would otherwise emit one error per
+        // reconnect cycle.
+        if (this.sportsHeartbeatTimeouts === 2) {
+          Logger.error(
+            new Error('WebSocketManager: sports WebSocket heartbeat timeout'),
+            this.getErrorContext('sportsHeartbeat', 'sports', {
+              sinceLastMessageMs: sinceLast,
+              thresholdMs: SPORTS_STALE_THRESHOLD_MS,
+              heartbeatTimeouts: this.sportsHeartbeatTimeouts,
+            }),
+          );
+        } else {
+          DevLogger.log(
+            'WebSocketManager: sports WebSocket stale (transient timeout)',
+            { sinceLast, threshold: SPORTS_STALE_THRESHOLD_MS },
+          );
+        }
+        this.sportsWs.close();
+      }
+    }, HEARTBEAT_CHECK_INTERVAL_MS);
+  }
+
+  private stopSportsHeartbeat(): void {
+    if (this.sportsHeartbeatInterval) {
+      clearInterval(this.sportsHeartbeatInterval);
+      this.sportsHeartbeatInterval = null;
+    }
+  }
+
   private cleanupSportsConnection(): void {
     this.stopSportsPing();
+    this.stopSportsHeartbeat();
 
     if (this.sportsReconnectTimeout) {
       clearTimeout(this.sportsReconnectTimeout);
@@ -471,6 +580,7 @@ export class WebSocketManager {
   private disconnectSports(): void {
     this.cleanupSportsConnection();
     this.sportsReconnectAttempts = 0;
+    this.sportsHeartbeatTimeouts = 0;
   }
 
   subscribeToMarketPrices(
@@ -794,10 +904,13 @@ export class WebSocketManager {
   subscribeToCryptoPrices(
     symbols: string[],
     callback: CryptoPriceUpdateCallback,
+    options?: CryptoPriceSubscriptionOptions,
   ): () => void {
-    const subscriptionKey = [...symbols]
-      .sort((a, b) => a.localeCompare(b))
-      .join(',');
+    const subscriptionKey = getCryptoSubscriptionKey(symbols, options);
+    const topic = getRtdsTopic(options);
+    const topicAlreadySubscribed = Array.from(
+      this.cryptoPriceSubscriptions.keys(),
+    ).some((key) => parseCryptoSubscriptionKey(key).topic === topic);
 
     let callbacks = this.cryptoPriceSubscriptions.get(subscriptionKey);
     if (!callbacks) {
@@ -806,7 +919,9 @@ export class WebSocketManager {
     }
     callbacks.add(callback);
 
-    this.ensureRtdsConnection(symbols);
+    this.ensureRtdsConnection(
+      topicAlreadySubscribed ? [] : [{ topic, type: 'update' }],
+    );
 
     return () => {
       const _callbacks = this.cryptoPriceSubscriptions.get(subscriptionKey);
@@ -814,12 +929,11 @@ export class WebSocketManager {
         _callbacks.delete(callback);
         if (_callbacks.size === 0) {
           this.cryptoPriceSubscriptions.delete(subscriptionKey);
-          const remainingSymbols = this.getSubscribedCryptoSymbols();
-          const symbolsToUnsubscribe = symbols.filter(
-            (symbol) => !remainingSymbols.has(symbol),
-          );
-          if (symbolsToUnsubscribe.length > 0) {
-            this.sendRtdsUnsubscribe(new Set(symbolsToUnsubscribe));
+          const topicStillSubscribed = Array.from(
+            this.cryptoPriceSubscriptions.keys(),
+          ).some((key) => parseCryptoSubscriptionKey(key).topic === topic);
+          if (!topicStillSubscribed) {
+            this.sendRtdsUnsubscribe([{ topic, type: 'update' }]);
           }
         }
       }
@@ -1202,11 +1316,9 @@ export class WebSocketManager {
     this.orderbookPendingEmit.clear();
   }
 
-  private ensureRtdsConnection(symbols?: string[]): void {
+  private ensureRtdsConnection(subscriptions: RtdsSubscription[]): void {
     if (this.rtdsWs?.readyState === WebSocket.OPEN) {
-      this.sendRtdsSubscribe(
-        new Set(symbols?.length ? symbols : this.getSubscribedCryptoSymbols()),
-      );
+      this.sendRtdsSubscribe(subscriptions);
       return;
     }
     if (this.rtdsWs?.readyState === WebSocket.CONNECTING) {
@@ -1261,8 +1373,6 @@ export class WebSocketManager {
   private handleRtdsMessage = (event: WebSocketMessageEvent): void => {
     this.rtdsLastMessageAt = Date.now();
 
-    let traceStarted = false;
-
     try {
       if (event.data === 'pong' || event.data === '') {
         return;
@@ -1271,7 +1381,10 @@ export class WebSocketManager {
       const data: RtdsWebSocketEvent = JSON.parse(event.data);
 
       if (
-        data.topic !== RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC ||
+        (data.topic !== RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC &&
+          !Object.values(RTDS_CRYPTO_PRICES_TWAP_TOPICS).includes(
+            data.topic as (typeof RTDS_CRYPTO_PRICES_TWAP_TOPICS)[30 | 60],
+          )) ||
         data.type !== 'update' ||
         !data.payload
       ) {
@@ -1279,24 +1392,47 @@ export class WebSocketManager {
       }
 
       const { symbol, timestamp, value } = data.payload;
+      const twapWindowSeconds =
+        data.topic === RTDS_CRYPTO_PRICES_TWAP_TOPICS[30]
+          ? 30
+          : data.topic === RTDS_CRYPTO_PRICES_TWAP_TOPICS[60]
+            ? 60
+            : undefined;
       if (
         typeof symbol !== 'string' ||
         typeof timestamp !== 'number' ||
-        typeof value !== 'number'
+        typeof value !== 'number' ||
+        (twapWindowSeconds !== undefined &&
+          data.payload.window_s !== twapWindowSeconds)
       ) {
         return;
       }
+      if (!this.hasCryptoPriceSubscription(data.topic, symbol)) {
+        return;
+      }
 
-      trace({ name: TraceName.CryptoUpDownWsMessage, op: 'rtds.message' });
-      traceStarted = true;
+      const bufferKey = `${data.topic}|${symbol}`;
+      const latestObservation = twapWindowSeconds
+        ? this.latestCryptoObservationByTopicAndSymbol.get(bufferKey)
+        : undefined;
+      if (
+        typeof latestObservation === 'number' &&
+        timestamp <= latestObservation
+      ) {
+        return;
+      }
+      if (twapWindowSeconds) {
+        this.latestCryptoObservationByTopicAndSymbol.set(bufferKey, timestamp);
+      }
 
       const update: CryptoPriceUpdate = {
         symbol,
         price: value,
         timestamp,
+        ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
       };
 
-      this.cryptoPriceBuffer.set(update.symbol, update);
+      this.cryptoPriceBuffer.set(bufferKey, update);
       this.ensureThrottleTimer();
     } catch (error) {
       DevLogger.log('WebSocketManager: Failed to parse RTDS message', {
@@ -1306,10 +1442,6 @@ export class WebSocketManager {
         this.toError(error),
         this.getErrorContext('handleRtdsMessage', 'rtds'),
       );
-    } finally {
-      if (traceStarted) {
-        endTrace({ name: TraceName.CryptoUpDownWsMessage });
-      }
     }
   };
 
@@ -1332,17 +1464,16 @@ export class WebSocketManager {
       return;
     }
 
-    let traceStarted = false;
-
     try {
-      trace({ name: TraceName.CryptoUpDownBufferFlush, op: 'rtds.flush' });
-      traceStarted = true;
-
       this.cryptoPriceSubscriptions.forEach((callbacks, key) => {
-        const subscribedSymbols = new Set(key.split(','));
+        const { topic, symbols } = parseCryptoSubscriptionKey(key);
+        const subscribedSymbols = new Set(symbols);
 
-        this.cryptoPriceBuffer.forEach((update, symbol) => {
-          if (subscribedSymbols.has(symbol)) {
+        this.cryptoPriceBuffer.forEach((update, bufferKey) => {
+          const separatorIndex = bufferKey.indexOf('|');
+          const updateTopic = bufferKey.slice(0, separatorIndex);
+          const symbol = bufferKey.slice(separatorIndex + 1);
+          if (topic === updateTopic && subscribedSymbols.has(symbol)) {
             callbacks.forEach((callback) => {
               try {
                 callback(update);
@@ -1367,45 +1498,39 @@ export class WebSocketManager {
       });
     } finally {
       this.cryptoPriceBuffer.clear();
-      if (traceStarted) {
-        endTrace({ name: TraceName.CryptoUpDownBufferFlush });
-      }
     }
   }
 
-  private getSubscribedCryptoSymbols(): Set<string> {
-    const allSymbols = new Set<string>();
+  private hasCryptoPriceSubscription(topic: string, symbol: string): boolean {
+    let isSubscribed = false;
     this.cryptoPriceSubscriptions.forEach((_, key) => {
-      key.split(',').forEach((symbol) => {
-        if (symbol) {
-          allSymbols.add(symbol);
-        }
-      });
+      const parsedSubscription = parseCryptoSubscriptionKey(key);
+      if (
+        parsedSubscription.topic === topic &&
+        parsedSubscription.symbols.includes(symbol)
+      ) {
+        isSubscribed = true;
+      }
     });
-    return allSymbols;
+    return isSubscribed;
   }
 
-  private getRtdsCryptoSubscriptions(symbols: Set<string>): {
-    topic: string;
-    type: string;
-    filters: string;
-  }[] {
-    return Array.from(symbols)
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b))
-      .map((symbol) => ({
-        topic: RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC,
-        type: 'update',
-        filters: JSON.stringify({ symbol }),
-      }));
+  private getRtdsCryptoSubscriptions(): RtdsSubscription[] {
+    const subscriptions = new Map<string, RtdsSubscription>();
+    this.cryptoPriceSubscriptions.forEach((_, key) => {
+      const { topic } = parseCryptoSubscriptionKey(key);
+      subscriptions.set(topic, { topic, type: 'update' });
+    });
+    return Array.from(subscriptions.values()).sort((a, b) =>
+      a.topic.localeCompare(b.topic),
+    );
   }
 
-  private sendRtdsSubscribe(symbols: Set<string>): void {
+  private sendRtdsSubscribe(subscriptions: RtdsSubscription[]): void {
     if (this.rtdsWs?.readyState !== WebSocket.OPEN) {
       return;
     }
 
-    const subscriptions = this.getRtdsCryptoSubscriptions(symbols);
     if (subscriptions.length === 0) {
       return;
     }
@@ -1417,12 +1542,11 @@ export class WebSocketManager {
     this.rtdsWs.send(msg);
   }
 
-  private sendRtdsUnsubscribe(symbols: Set<string>): void {
+  private sendRtdsUnsubscribe(subscriptions: RtdsSubscription[]): void {
     if (this.rtdsWs?.readyState !== WebSocket.OPEN) {
       return;
     }
 
-    const subscriptions = this.getRtdsCryptoSubscriptions(symbols);
     if (subscriptions.length === 0) {
       return;
     }
@@ -1436,10 +1560,10 @@ export class WebSocketManager {
   }
 
   private resubscribeAllRtds(): void {
-    const allSymbols = this.getSubscribedCryptoSymbols();
+    const subscriptions = this.getRtdsCryptoSubscriptions();
 
-    if (allSymbols.size > 0) {
-      this.sendRtdsSubscribe(allSymbols);
+    if (subscriptions.length > 0) {
+      this.sendRtdsSubscribe(subscriptions);
     }
   }
 
@@ -1538,6 +1662,7 @@ export class WebSocketManager {
       this.throttleTimer = null;
     }
     this.cryptoPriceBuffer.clear();
+    this.latestCryptoObservationByTopicAndSymbol.clear();
 
     if (this.rtdsReconnectTimeout) {
       clearTimeout(this.rtdsReconnectTimeout);

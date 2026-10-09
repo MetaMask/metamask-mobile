@@ -6,6 +6,7 @@ import { tokenMatchesQuery } from './tokenUtils';
 
 export interface FilterWatchlistBridgeTokensOptions {
   selectedChainId?: CaipChainId;
+  allowedChainIds?: CaipChainId[];
   searchQuery?: string;
 }
 
@@ -15,9 +16,20 @@ export interface FilterWatchlistBridgeTokensOptions {
  */
 export const filterWatchlistBridgeTokens = (
   tokens: readonly (BridgeToken & { assetId: string })[],
-  { selectedChainId, searchQuery }: FilterWatchlistBridgeTokensOptions,
+  {
+    selectedChainId,
+    allowedChainIds,
+    searchQuery,
+  }: FilterWatchlistBridgeTokensOptions,
 ): BridgeToken[] => {
   let filtered = [...tokens];
+
+  if (allowedChainIds) {
+    const allowedSet = new Set(allowedChainIds);
+    filtered = filtered.filter((token) =>
+      allowedSet.has(getCaipChainIdFromAssetId(String(token.assetId))),
+    );
+  }
 
   if (selectedChainId) {
     filtered = filtered.filter(

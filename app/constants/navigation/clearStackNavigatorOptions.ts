@@ -36,8 +36,28 @@ export const addDeviceVerificationCodeScreenOptions: NativeStackNavigationOption
     ...clearNativeStackNavigatorOptions,
   };
 
+/**
+ * Static transparent overlay: no stack animation, transparent background, and the
+ * presenting screen stays mounted. The common pairing of
+ * {@link clearNativeStackNavigatorOptions} and {@link transparentModalScreenOptions}
+ * for bottom sheets and modal stacks registered on a native stack.
+ */
+export const transparentModalStackOptions: NativeStackNavigationOptions = {
+  ...clearNativeStackNavigatorOptions,
+  ...transparentModalScreenOptions,
+};
+
 export const slideFromRightNativeOptions: NativeStackNavigationOptions = {
   animation: 'ios_from_right',
+};
+
+/**
+ * Pushes the screen in from the left. `animationMatchesGesture` makes the iOS
+ * swipe-to-dismiss follow the same direction.
+ */
+export const slideFromLeftNativeOptions: NativeStackNavigationOptions = {
+  animation: 'slide_from_left',
+  animationMatchesGesture: true,
 };
 
 export const fadeNativeOptions: NativeStackNavigationOptions = {

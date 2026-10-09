@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -43,7 +43,7 @@ import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
-import TrendingQuickBuy from '../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
+import { useTrendingQuickBuySheet } from '../../../UI/Trending/contexts';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
   EXPLORE_QUICK_BUY_AB_KEY,
@@ -119,10 +119,7 @@ const RwasTabContent: React.FC<TabProps> = ({
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-
-  const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
-    null,
-  );
+  const { openQuickBuy } = useTrendingQuickBuySheet();
 
   const { variant: quickBuyVariant } = useABTest(
     EXPLORE_QUICK_BUY_AB_KEY,
@@ -156,11 +153,13 @@ const RwasTabContent: React.FC<TabProps> = ({
           })
         }
         onQuickTrade={
-          quickBuyVariant.showQuickTradeButton ? setQuickTradeToken : undefined
+          quickBuyVariant.showQuickTradeButton
+            ? (token) => openQuickBuy(token, 'explore_rwas')
+            : undefined
         }
       />
     ),
-    [quickBuyVariant.showQuickTradeButton],
+    [openQuickBuy, quickBuyVariant.showQuickTradeButton],
   );
 
   const showStocks = stocks.isLoading || stocks.data.length > 0;
@@ -258,12 +257,6 @@ const RwasTabContent: React.FC<TabProps> = ({
       >
         <ExploreSectionList sections={sections} />
       </ExploreScroll>
-
-      <TrendingQuickBuy
-        token={quickTradeToken}
-        onClose={() => setQuickTradeToken(null)}
-        source="explore_rwas"
-      />
     </View>
   );
 };

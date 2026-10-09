@@ -24,11 +24,13 @@ import {
   BoxFlexDirection,
   Button,
   ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
   IconName,
   IconColor,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -56,7 +58,11 @@ import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import { isSRPLengthValid, SPACE_CHAR } from '../../../util/srp/srpInputUtils';
+import {
+  getTrimmedSeedPhraseWords,
+  isSRPLengthValid,
+  SPACE_CHAR,
+} from '../../../util/srp/srpInputUtils';
 import {
   validateSRP,
   validateCompleteness,
@@ -191,16 +197,14 @@ const ImportNewSecretRecoveryPhrase = () => {
   );
 
   const onSubmit = useCallback(async () => {
-    const phrase = seedPhrase
-      .map((item) => item.trim())
-      .filter((item) => item !== '')
-      .join(SPACE_CHAR);
+    const trimmedWords = getTrimmedSeedPhraseWords(seedPhrase);
+    const phrase = trimmedWords.join(SPACE_CHAR);
 
     setError('');
 
-    const invalidWords = Array(seedPhrase.length).fill(false);
-    let validationResult = validateSRP(seedPhrase, invalidWords);
-    validationResult = validateCompleteness(validationResult, seedPhrase);
+    const invalidWords = Array(trimmedWords.length).fill(false);
+    let validationResult = validateSRP(trimmedWords, invalidWords);
+    validationResult = validateCompleteness(validationResult, trimmedWords);
     validationResult = validateCase(validationResult, phrase);
     validationResult = validateWords(validationResult);
     validationResult = validateMnemonic(validationResult, phrase);
@@ -294,7 +298,7 @@ const ImportNewSecretRecoveryPhrase = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
+            twClassName="gap-0.5"
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -304,8 +308,10 @@ const ImportNewSecretRecoveryPhrase = () => {
             </Text>
             <ButtonIcon
               iconName={IconName.Info}
+              size={ButtonIconSize.Xs}
               iconProps={{
                 color: IconColor.IconAlternative,
+                size: IconSize.Sm,
               }}
               onPress={showWhatIsSeedPhrase}
               testID="info-icon"

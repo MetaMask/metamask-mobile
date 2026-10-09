@@ -11,6 +11,7 @@ import {
 } from './constants';
 import { WhatsHappeningSelectorsIDs } from './WhatsHappening.testIds';
 
+const mockTrace = jest.fn();
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn((eventName: string) => ({
@@ -18,6 +19,11 @@ const mockCreateEventBuilder = jest.fn((eventName: string) => ({
     build: jest.fn(() => ({ category: eventName, properties })),
   })),
   build: jest.fn(() => ({ category: eventName })),
+}));
+
+jest.mock('../../../util/trace', () => ({
+  ...jest.requireActual('../../../util/trace'),
+  trace: (...args: unknown[]) => mockTrace(...args),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -95,6 +101,21 @@ describe('WhatsHappeningSection', () => {
     });
   });
 
+  it('passes carousel telemetry context to the feed observer', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
+
+    expect(mockUseWhatsHappening).toHaveBeenCalledWith({
+      enabled: true,
+      telemetryContext: { source: 'homepage', stage: 'carousel' },
+    });
+  });
+
   it('returns null when feature flag is disabled', () => {
     mockSelectWhatsHappeningEnabled.mockImplementation(() => false);
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
@@ -151,7 +172,7 @@ describe('WhatsHappeningSection', () => {
     expect(screen.getByText(mockItem.title)).toBeOnTheScreen();
   });
 
-  it('renders the AI Generated label as a section subtitle when items are available', () => {
+  it('renders the AI generated label as a section subtitle when items are available', () => {
     mockUseWhatsHappening.mockReturnValue({
       items: [mockItem],
       isLoading: false,
@@ -159,7 +180,7 @@ describe('WhatsHappeningSection', () => {
       refresh: jest.fn(),
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
-    expect(screen.getByText('AI Generated')).toBeOnTheScreen();
+    expect(screen.getByText('AI generated')).toBeOnTheScreen();
     expect(
       screen.getByTestId(WhatsHappeningSelectorsIDs.AI_GENERATED_LABEL),
     ).toBeOnTheScreen();
@@ -199,7 +220,7 @@ describe('WhatsHappeningSection', () => {
     expect(screen.queryByTestId('mock-ai-disclaimer-bottom-sheet')).toBeNull();
   });
 
-  it('does not render the AI Generated label while loading', () => {
+  it('does not render the AI generated label while loading', () => {
     mockUseWhatsHappening.mockReturnValue({
       items: [],
       isLoading: true,
@@ -207,7 +228,7 @@ describe('WhatsHappeningSection', () => {
       refresh: jest.fn(),
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
-    expect(screen.queryByText('AI Generated')).toBeNull();
+    expect(screen.queryByText('AI generated')).toBeNull();
   });
 
   it('renders error state when fetch fails', () => {
@@ -249,6 +270,17 @@ describe('WhatsHappeningSection', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
       initialIndex: 0,
       source: 'homepage',
+    });
+    expect(mockTrace).toHaveBeenCalledWith({
+      name: "What's Happening View Load",
+      op: 'whats_happening.load',
+      id: 'homepage:expanded',
+      tags: {
+        feature: 'whats_happening',
+        source: 'homepage',
+        stage: 'expanded',
+        cache_state: 'warm',
+      },
     });
   });
 

@@ -33,7 +33,7 @@ import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.config.js';
 import { hasTestOverrides } from './app/util/test/utils.js';
-import { Performance } from './app/core/Performance';
+import { Performance, initializeAppProfiling } from './app/core/Performance';
 import {
   handleCustomError,
   setReactNativeDefaultHandler,
@@ -52,6 +52,10 @@ setupSentry(__DEV__);
 
 // Setup Performance observers
 Performance.setupPerformanceObservers();
+
+// Arm Hermes CPU profiling for the whole process. No-op outside the
+// BrowserStack performance APKs, where IS_PERFORMANCE_TEST is baked in.
+initializeAppProfiling();
 
 // Ignore all logs
 LogBox.ignoreAllLogs();
@@ -105,7 +109,6 @@ LogBox.ignoreLogs([
   "ViewPropTypes will be removed from React Native, along with all other PropTypes. We recommend that you migrate away from PropTypes and switch to a type system like TypeScript. If you need to continue using ViewPropTypes, migrate to the 'deprecated-react-native-prop-types' package.",
   'ReactImageView: Image source "null"',
   'Warning: componentWillReceiveProps has been renamed',
-  'You passed a server string as an argument to one of the react-native-keychain functions',
 ]);
 
 const IGNORE_BOXLOGS_DEVELOPMENT = process.env.IGNORE_BOXLOGS_DEVELOPMENT;

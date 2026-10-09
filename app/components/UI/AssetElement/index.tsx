@@ -7,7 +7,7 @@ import {
 } from '../../../component-library/components/Texts/Text';
 import SkeletonText from '../Ramp/Aggregator/components/SkeletonText';
 import { TokenI } from '../Tokens/types';
-import { getAssetTestId } from '../../../../tests/selectors/Wallet/WalletView.selectors';
+import { getAssetTestId } from './AssetElement.testIds';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';

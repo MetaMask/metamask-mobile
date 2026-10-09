@@ -17,17 +17,18 @@ import {
   selectIsMoneyAccountDelegatedForCard,
   selectIsCardResidencyBlocked,
   selectMoneyAccountVedaTokenConfig,
+  selectCardActiveProviderId,
 } from '../../../../selectors/cardController';
 import {
   selectPendingMoneyAccountCardLink,
   setPendingMoneyAccountCardLink,
 } from '../../../../core/redux/slices/card';
-import { selectIsMoneyAccountGeoEligible } from '../../Money/selectors/eligibility';
-import { selectMoneyEnableMoneyAccountFlag } from '../../Money/selectors/featureFlags';
+import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
 import { resolveMoneyAccountCardToken } from '../../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import Routes from '../../../../constants/navigation/Routes';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { FundingStatus } from '../types';
+import { useCardCapabilities } from './useCardCapabilities';
 import { useMoneyAccountCardLinkage } from './useMoneyAccountCardLinkage';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
@@ -35,6 +36,10 @@ import {
   CardFlow,
   CardLinkingFailureReason,
 } from '../util/metrics';
+import {
+  BOTTOM_SHEET_NAMES,
+  SCREEN_NAMES,
+} from '../../Money/constants/moneyEventLocations';
 
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
@@ -66,6 +71,12 @@ jest.mock('../../../../core/Engine', () => ({
       },
     },
   },
+}));
+
+jest.mock('./useCardCapabilities', () => ({
+  useCardCapabilities: jest.fn(() => ({
+    supportsMoneyAccountLinking: true,
+  })),
 }));
 
 jest.mock('./useCardDelegation', () => {
@@ -128,7 +139,12 @@ jest.mock('../../../../util/theme', () => {
   };
 });
 
+jest.mock('../../Money/selectors/visibility', () => ({
+  selectIsMoneyAccountVisible: jest.fn(),
+}));
+
 const mockUseSelector = useSelector as unknown as jest.Mock;
+const mockUseCardCapabilities = jest.mocked(useCardCapabilities);
 const mockResolveMoneyAccountCardToken =
   resolveMoneyAccountCardToken as jest.Mock;
 const mockTrackEvent = jest.fn();
@@ -223,9 +239,8 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
     if (selector === selectPrimaryMoneyAccount)
       return state.primaryMoneyAccount;
     if (selector === selectMoneyAccountVaultConfig) return state.vaultConfig;
-    if (selector === selectMoneyEnableMoneyAccountFlag)
+    if (selector === selectIsMoneyAccountVisible)
       return state.isMoneyAccountVisible;
-    if (selector === selectIsMoneyAccountGeoEligible) return true;
     if (selector === selectIsCardAuthenticated)
       return state.isCardAuthenticated;
     if (selector === selectIsCardVerified) return state.isCardVerified;
@@ -245,6 +260,7 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
     if (selector === selectMoneyAccountVedaTokenConfig) return state.vedaConfig;
     if (selector === selectIsCardResidencyBlocked)
       return state.isResidencyBlocked;
+    if (selector === selectCardActiveProviderId) return 'baanx';
     return undefined;
   });
 };
@@ -274,6 +290,9 @@ describe('useMoneyAccountCardLinkage', () => {
     mockToastRef = { current: { showToast: mockShowToast } };
 
     mockResolveMoneyAccountCardToken.mockReturnValue(MOCK_TOKEN);
+    mockUseCardCapabilities.mockReturnValue({
+      supportsMoneyAccountLinking: true,
+    } as ReturnType<typeof useCardCapabilities>);
     applySelectorMocks(buildSelectors());
     // Default: no in-flight linkage. Singleflight-specific tests override
     // this within their own `it` blocks.
@@ -326,7 +345,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(result.current.canLink).toBe(false);
     });
 
-    it('reports canLink=false when the feature flag is off', () => {
+    it('reports canLink=false when the Money account is not visible', () => {
       applySelectorMocks(buildSelectors({ isMoneyAccountVisible: false }));
       const { result } = renderLinkageHook();
       expect(result.current.canLink).toBe(false);
@@ -493,6 +512,71 @@ describe('useMoneyAccountCardLinkage', () => {
       );
       const { result } = renderLinkageHook();
       expect(result.current.isLinking).toBe(true);
+    });
+  });
+
+  describe('money account linking capability', () => {
+    const ORIGIN = {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    } as const;
+
+    const unsupportedCapabilities = {
+      supportsMoneyAccountLinking: false,
+    } as ReturnType<typeof useCardCapabilities>;
+
+    it('refuses linking when the authenticated provider cannot link a Money account', () => {
+      mockUseCardCapabilities.mockReturnValue(unsupportedCapabilities);
+      const { result } = renderLinkageHook();
+
+      expect(result.current.isMoneyAccountLinkingSupported).toBe(false);
+      expect(result.current.canLink).toBe(false);
+      expect(result.current.getLinkFlowRedirectTarget()).toBeUndefined();
+
+      act(() => {
+        result.current.startLinkFlow(ORIGIN);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast.mock.calls[0][0]).toMatchObject({
+        labelOptions: [{ label: 'Something went wrong linking your card' }],
+      });
+    });
+
+    it('keeps linking supported for an unauthenticated session', () => {
+      applySelectorMocks(buildSelectors({ isCardAuthenticated: false }));
+      mockUseCardCapabilities.mockReturnValue(unsupportedCapabilities);
+      const { result } = renderLinkageHook();
+
+      expect(result.current.isMoneyAccountLinkingSupported).toBe(true);
+      expect(result.current.getLinkFlowRedirectTarget()).toBe(
+        SCREEN_NAMES.CARD_HOME,
+      );
+    });
+
+    it('refuses linking when an authenticated session has no capabilities', () => {
+      mockUseCardCapabilities.mockReturnValue(null);
+      const { result } = renderLinkageHook();
+
+      expect(result.current.isMoneyAccountLinkingSupported).toBe(false);
+      expect(result.current.canLink).toBe(false);
+    });
+
+    it('clears a pending link without opening the sheet when linking is unsupported', () => {
+      mockUseCardCapabilities.mockReturnValue(unsupportedCapabilities);
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+        }),
+      );
+      renderLinkageHook();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingMoneyAccountCardLink(null),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
   });
 
@@ -879,6 +963,54 @@ describe('useMoneyAccountCardLinkage', () => {
     });
   });
 
+  describe('getLinkFlowRedirectTarget', () => {
+    it('returns the link sheet for an authenticated verified card ready to link', () => {
+      const { result } = renderLinkageHook();
+
+      const redirectTarget = result.current.getLinkFlowRedirectTarget();
+
+      expect(redirectTarget).toBe(BOTTOM_SHEET_NAMES.CARD_LINK_SHEET);
+    });
+
+    it.each([
+      {
+        name: 'authentication',
+        selectors: { isCardAuthenticated: false, isCardholder: true },
+      },
+      {
+        name: 'onboarding',
+        selectors: { isCardAuthenticated: false, isCardholder: false },
+      },
+    ])('returns Card Home for the $name branch', ({ selectors }) => {
+      applySelectorMocks(buildSelectors(selectors));
+      const { result } = renderLinkageHook();
+
+      const redirectTarget = result.current.getLinkFlowRedirectTarget();
+
+      expect(redirectTarget).toBe(SCREEN_NAMES.CARD_HOME);
+    });
+
+    it('returns no target while linkage is in progress', () => {
+      applySelectorMocks(
+        buildSelectors({ moneyAccountCardLinkInProgress: true }),
+      );
+      const { result } = renderLinkageHook();
+
+      const redirectTarget = result.current.getLinkFlowRedirectTarget();
+
+      expect(redirectTarget).toBeUndefined();
+    });
+
+    it('returns no target for an authenticated card that is not VERIFIED', () => {
+      applySelectorMocks(buildSelectors({ isCardVerified: false }));
+      const { result } = renderLinkageHook();
+
+      const redirectTarget = result.current.getLinkFlowRedirectTarget();
+
+      expect(redirectTarget).toBeUndefined();
+    });
+  });
+
   describe('resume effect (pendingMoneyAccountCardLink)', () => {
     it('clears the pending flag without opening the sheet when authenticated but not VERIFIED', () => {
       applySelectorMocks(
@@ -1206,6 +1338,7 @@ describe('useMoneyAccountCardLinkage', () => {
         MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_COMPLETED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
         entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
         is_revoke: false,
@@ -1309,6 +1442,7 @@ describe('useMoneyAccountCardLinkage', () => {
         MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_FAILED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
         entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
         reason: CardLinkingFailureReason.CONTROLLER_FAILED,
@@ -1321,39 +1455,6 @@ describe('useMoneyAccountCardLinkage', () => {
         labelOptions: [{ label: 'Something went wrong linking your card' }],
         hasNoTimeout: false,
       });
-    });
-
-    it('shows the different-card conflict toast when the controller rejects with MoneyAccountLinkedToDifferentCard', async () => {
-      const { CardProviderError: MockedCardProviderError } = jest.requireMock(
-        '../../../../core/Engine/controllers/card-controller/provider-types',
-      );
-      mockLinkMoneyAccountCard.mockRejectedValueOnce(
-        new MockedCardProviderError(
-          'money_account_linked_to_different_card',
-          'Money Account is already linked to a different card account',
-        ),
-      );
-
-      const { result } = renderLinkageHook();
-
-      let returned: boolean | undefined;
-      await act(async () => {
-        returned = await result.current.confirmLinkInBackground();
-      });
-
-      expect(returned).toBe(false);
-      expect(result.current.status).toBe('error');
-      expect(mockShowToast).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          labelOptions: [
-            {
-              label:
-                'This wallet is already linked to a different MetaMask Card',
-            },
-          ],
-          hasNoTimeout: false,
-        }),
-      );
     });
 
     it('sets status=cancelled and shows NO error toast on UserCancelledError', async () => {
@@ -1375,6 +1476,7 @@ describe('useMoneyAccountCardLinkage', () => {
         MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_FAILED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
         entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
         reason: CardLinkingFailureReason.USER_CANCELLED,
@@ -1405,6 +1507,7 @@ describe('useMoneyAccountCardLinkage', () => {
         MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_STARTED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
         entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
         reason: CardLinkingFailureReason.PRECONDITION_FAILED,
@@ -1428,6 +1531,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(returned).toBe(false);
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
         entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
         reason: CardLinkingFailureReason.RESIDENCY_BLOCKED,
@@ -1449,6 +1553,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(returned).toBe(false);
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
         entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
         reason: CardLinkingFailureReason.PRECONDITION_FAILED,

@@ -41,10 +41,12 @@ on:
         type: boolean
         default: false
       runner_provider:
-        description: Runner provider forwarded from the caller
+        description: >-
+          Runner provider forwarded from the caller. Leave empty to defer to the repo
+          NAMESPACE_RUNNER_* Actions variables (see .github/CONTRIBUTING.md).
         required: false
         type: string
-        default: current
+        default: ''
 
 permissions:
   contents: read
@@ -53,31 +55,64 @@ permissions:
 jobs:
   testflight-upload-summary:
     name: TestFlight upload summary
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
     steps:
       - name: Display TestFlight upload summary
+        env:
+          SOURCE_BRANCH: ${{ inputs.source_branch }}
+          BUILD_NAME: ${{ inputs.build_name }}
+          BUILD_COMMIT_SHA: ${{ inputs.build_commit_sha }}
+          BUILD_VERSION: ${{ inputs.build_version }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          TESTFLIGHT_GROUP: ${{ inputs.testflight_group }}
         run: |
           {
             echo "### 📲 TestFlight Upload"
             echo ""
             echo "| Field | Value |"
             echo "| --- | --- |"
-            echo "| **Source branch** | \`${{ inputs.source_branch }}\` |"
-            echo "| **Build name** | \`${{ inputs.build_name }}\` |"
-            echo "| **Build commit SHA** | \`${{ inputs.build_commit_sha }}\` |"
-            echo "| **Build version** | \`${{ inputs.build_version }}\` |"
-            echo "| **Build number** | \`${{ inputs.build_number }}\` |"
-            echo "| **TestFlight group** | ${{ inputs.testflight_group }} |"
-            echo "| **Workflow branch ref** | \`${{ github.ref_name }}\` |"
+            echo "| **Source branch** | \`${SOURCE_BRANCH}\` |"
+            echo "| **Build name** | \`${BUILD_NAME}\` |"
+            echo "| **Build commit SHA** | \`${BUILD_COMMIT_SHA}\` |"
+            echo "| **Build version** | \`${BUILD_VERSION}\` |"
+            echo "| **Build number** | \`${BUILD_NUMBER}\` |"
+            echo "| **TestFlight group** | ${TESTFLIGHT_GROUP} |"
+            echo "| **Workflow branch ref** | \`${GITHUB_REF_NAME}\` |"
           } >> "$GITHUB_STEP_SUMMARY"
 
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: [testflight-upload-summary]
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' }}
+    # iOS/macOS only ever runs on Namespace or Cirrus; there is no GitHub-hosted macOS arm.
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ios-build-tahoe-slim' || 'ghcr.io/cirruslabs/macos-runner:tahoe-xl'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
     steps:
+      - name: Checkout repository (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          fetch-depth: 1
+
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 1
 
@@ -89,7 +124,7 @@ jobs:
           bundler-cache: true
 
       - name: Download iOS IPA artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ios-ipa-${{ inputs.build_name }}
 
@@ -157,13 +192,19 @@ jobs:
             "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
 
       - name: Upload to TestFlight
+        env:
+          TF_ENVIRONMENT: ${{ inputs.environment }}
+          TF_SOURCE_BRANCH: ${{ inputs.source_branch }}
+          TF_IPA_PATH: ${{ steps.ipa.outputs.path }}
+          TF_GROUP: ${{ inputs.testflight_group }}
+          TF_DISTRIBUTE_EXTERNAL: ${{ inputs.distribute_external }}
         run: |
           bash scripts/upload-to-testflight.sh \
-            "github_actions_main-${{ inputs.environment }}" \
-            "${{ inputs.source_branch }}" \
-            "${{ steps.ipa.outputs.path }}" \
-            "${{ inputs.testflight_group }}" \
-            "${{ inputs.distribute_external }}"
+            "github_actions_main-${TF_ENVIRONMENT}" \
+            "${TF_SOURCE_BRANCH}" \
+            "${TF_IPA_PATH}" \
+            "${TF_GROUP}" \
+            "${TF_DISTRIBUTE_EXTERNAL}"
 
       - name: Cleanup API Key
         if: always()

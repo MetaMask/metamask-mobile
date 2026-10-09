@@ -1,64 +1,113 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useMoneyNavigation } from '../../../../UI/Money/hooks/useMoneyNavigation';
-import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
+import { selectIsMoneyAccountGeoEligible } from '../../../../UI/Money/selectors/eligibility';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { usePerpsNavigationHandlers } from '../../Sections/Perpetuals/hooks/usePerpsNavigationHandlers';
 import type { SliceKey } from '../../BalanceBreakdown/types';
+import { useHomepageScrollContext } from '../../context/HomepageScrollContext';
+import { HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT } from '../../abTestConfig';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import {
-  BalanceBreakdownEventProperties,
-  BalanceBreakdownEventSource,
-} from './balanceBreakdownEvents';
+  createNavigationAnalyticsContext,
+  NavigationAnalyticsAttribution,
+} from '../../../../../util/analytics/navigationAnalyticsAttribution';
 
-export function useHomepageBalanceBreakdownNavigation() {
+const BALANCE_BREAKDOWN_SECTION_NAMES: Record<SliceKey, string> = {
+  money: 'money',
+  tokens: 'tokens',
+  perps: 'perpetuals',
+  predict: 'predictions',
+  defi: 'defi',
+};
+
+interface UseHomepageBalanceBreakdownNavigationArgs {
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+}
+
+export function useHomepageBalanceBreakdownNavigation({
+  transactionActiveAbTests,
+}: UseHomepageBalanceBreakdownNavigationArgs = {}) {
   const navigation = useNavigation();
+  const { entryPoint, appSessionId, visitId } = useHomepageScrollContext();
   const { navigateToMoneyHome } = useMoneyNavigation();
-  const { handleViewAllPerps } = usePerpsNavigationHandlers();
+  const isMoneyAccountGeoEligible = useSelector(
+    selectIsMoneyAccountGeoEligible,
+  );
+  const { navigateToPerpsHome } = usePerpsNavigationHandlers({
+    transactionActiveAbTests,
+  });
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const openSlice = useCallback(
-    (key: SliceKey) => {
+    (key: SliceKey, position: number) => {
+      const analyticsContext = createNavigationAnalyticsContext(
+        NavigationAnalyticsAttribution.HomepageBalanceBreakdown,
+      );
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.BALANCE_BREAKDOWN_SLICE_TAPPED)
+        createEventBuilder(MetaMetricsEvents.HOME_VIEWED)
           .addProperties({
-            [BalanceBreakdownEventProperties.Slice]: key,
-            [BalanceBreakdownEventProperties.Source]:
-              BalanceBreakdownEventSource.Homepage,
+            interaction_type: 'balance_breakdown_row_tapped',
+            location: 'home',
+            section_name: BALANCE_BREAKDOWN_SECTION_NAMES[key],
+            position,
+            entry_point: entryPoint,
+            app_session_id: appSessionId,
+            visit_number: visitId,
           })
           .build(),
       );
 
       switch (key) {
         case 'money':
-          navigateToMoneyHome();
+          if (isMoneyAccountGeoEligible) {
+            navigateToMoneyHome({ analyticsContext });
+          } else {
+            navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+              screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+            });
+          }
           break;
         case 'tokens':
-          navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
+          navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW, {
+            analyticsContext,
+          });
           break;
         case 'perps':
-          handleViewAllPerps();
+          navigateToPerpsHome(analyticsContext);
           break;
         case 'predict':
           navigation.navigate(Routes.PREDICT.ROOT, {
             screen: Routes.PREDICT.MARKET_LIST,
             params: {
-              entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+              entryPoint: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
+              ...(transactionActiveAbTests?.length
+                ? { transactionActiveAbTests }
+                : {}),
             },
           });
           break;
         case 'defi':
-          navigation.navigate(Routes.WALLET.DEFI_FULL_VIEW);
+          navigation.navigate(Routes.WALLET.DEFI_FULL_VIEW, {
+            analyticsContext,
+          });
           break;
       }
     },
     [
       createEventBuilder,
-      handleViewAllPerps,
+      entryPoint,
+      appSessionId,
+      isMoneyAccountGeoEligible,
+      navigateToPerpsHome,
       navigateToMoneyHome,
       navigation,
       trackEvent,
+      transactionActiveAbTests,
+      visitId,
     ],
   );
 

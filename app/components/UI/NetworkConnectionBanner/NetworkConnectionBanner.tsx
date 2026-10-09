@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useAppTheme } from '../../../util/theme';
 import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
 import { strings } from '../../../../locales/i18n';
-import { NetworkConnectionBannerState } from '../../../reducers/networkConnectionBanner';
+import type { FailedNetwork } from '@metamask/network-connection-banner-controller';
 import BannerBase from '../../../component-library/components/Banners/Banner/foundation/BannerBase';
 import { Theme } from '../../../util/theme/models';
 import Animated, {
@@ -14,7 +14,6 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import { Platform, Pressable } from 'react-native';
 import {
   FontWeight,
   Icon,
@@ -67,13 +66,10 @@ const SpinningIcon = ({ twClassName, ...iconProps }: IconProps) => {
 
 const PrimaryMessage = ({
   primaryMessageKey,
-  networkConnectionBannerState,
+  network,
 }: {
   primaryMessageKey: string;
-  networkConnectionBannerState: Exclude<
-    NetworkConnectionBannerState,
-    { visible: false }
-  >;
+  network: FailedNetwork;
 }) => (
   <Text
     variant={TextVariant.BodyXs}
@@ -82,7 +78,7 @@ const PrimaryMessage = ({
     numberOfLines={2}
   >
     {strings(primaryMessageKey, {
-      networkName: networkConnectionBannerState.networkName,
+      networkName: network.name,
     })}
   </Text>
 );
@@ -98,71 +94,57 @@ const SecondaryMessage = ({ content }: { content: React.ReactNode }) => (
 );
 
 /**
- * Shared button component for action links in the banner
+ * Shared button component for action links in the banner.
+ *
+ * Rendered as a nested `Text` rather than a `Pressable`/`TextButton` so it
+ * participates in the surrounding paragraph's line layout. A `Pressable`
+ * renders a `View`, and on iOS a `View` nested inside a `Text` becomes an
+ * opaque text attachment: it can't be broken across lines, is baseline-aligned
+ * by its bottom edge, and pushes any trailing text (the ".") onto the previous
+ * line. Android lays inline views out closer to real text, which is why the
+ * old per-platform `translate-y` offsets only ever looked right there.
  */
 const ActionButton = ({
   isLowerCase,
-  isOnlyChild,
   onPress,
   text,
 }: {
   isLowerCase: boolean;
-  isOnlyChild: boolean;
   onPress: () => void;
   text: string;
 }) => {
   const tw = useTailwind();
+  const [isPressed, setIsPressed] = useState(false);
 
-  // Not using TextButton directly because the extra Text around it seems to
-  // create extra vertical spacing in between lines on Android
   return (
-    <Pressable
+    <Text
       accessibilityRole="button"
-      style={({ pressed }) =>
-        tw.style(
-          'flex-row items-center',
-          pressed ? 'bg-pressed' : 'bg-transparent',
-          // Not sure why there are differences between platforms here, and
-          // why the spacing changes when other text around the button is
-          // present.
-          !isOnlyChild &&
-            (Platform.OS === 'ios'
-              ? 'translate-y-[12px]'
-              : 'translate-y-[6px]'),
-        )
-      }
+      suppressHighlighting
       onPress={onPress}
-    >
-      {({ pressed }) => (
-        <Text
-          variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Medium}
-          style={tw.style(
-            'inline-block vertical-align-middle',
-            pressed
-              ? 'text-primary-default-pressed underline'
-              : 'text-primary-default no-underline',
-          )}
-        >
-          {isLowerCase ? text[0].toLowerCase() + text.slice(1) : text}
-        </Text>
+      onPressIn={() => setIsPressed(true)}
+      onPressOut={() => setIsPressed(false)}
+      variant={TextVariant.BodyXs}
+      fontWeight={FontWeight.Medium}
+      style={tw.style(
+        isPressed
+          ? 'text-primary-default-pressed underline'
+          : 'text-primary-default no-underline',
       )}
-    </Pressable>
+    >
+      {isLowerCase ? text[0].toLowerCase() + text.slice(1) : text}
+    </Text>
   );
 };
 
 const UpdateRpcButton = ({
   isLowerCase,
-  isOnlyChild,
   updateRpc,
 }: {
   isLowerCase: boolean;
-  isOnlyChild: boolean;
   updateRpc: () => void;
 }) => (
   <ActionButton
     isLowerCase={isLowerCase}
-    isOnlyChild={isOnlyChild}
     onPress={updateRpc}
     text={strings('network_connection_banner.update_rpc')}
   />
@@ -170,16 +152,13 @@ const UpdateRpcButton = ({
 
 const SwitchToInfuraButton = ({
   isLowerCase,
-  isOnlyChild,
   switchToInfura,
 }: {
   isLowerCase: boolean;
-  isOnlyChild: boolean;
   switchToInfura: () => Promise<void>;
 }) => (
   <ActionButton
     isLowerCase={isLowerCase}
-    isOnlyChild={isOnlyChild}
     onPress={switchToInfura}
     text={strings('network_connection_banner.switch_to_metamask_default_rpc')}
   />
@@ -187,10 +166,8 @@ const SwitchToInfuraButton = ({
 
 const getBannerContent = (
   theme: Theme,
-  networkConnectionBannerState: Exclude<
-    NetworkConnectionBannerState,
-    { visible: false }
-  >,
+  status: 'degraded' | 'unavailable',
+  network: FailedNetwork,
   updateRpc: () => void,
   switchToInfura: () => Promise<void>,
 ): {
@@ -200,32 +177,26 @@ const getBannerContent = (
   icon: BannerIcon;
 } => {
   // Check if we have an Infura endpoint available to switch to
-  const hasInfuraEndpoint =
-    networkConnectionBannerState.infuraNetworkClientId !== undefined;
+  const hasInfuraEndpoint = network.switchableInfuraNetworkClientId !== null;
 
-  if (networkConnectionBannerState.status === 'degraded') {
+  if (status === 'degraded') {
     const primaryMessage = (
       <PrimaryMessage
         primaryMessageKey="network_connection_banner.still_connecting_network"
-        networkConnectionBannerState={networkConnectionBannerState}
+        network={network}
       />
     );
 
     let secondaryMessage: React.ReactNode = null;
-    if (!networkConnectionBannerState.isInfuraEndpoint) {
+    if (!network.isInfuraEndpoint) {
       // For custom endpoints, show either "Switch to MetaMask default RPC" or "Update RPC"
       const buttonContent = hasInfuraEndpoint ? (
         <SwitchToInfuraButton
           isLowerCase={false}
-          isOnlyChild
           switchToInfura={switchToInfura}
         />
       ) : (
-        <UpdateRpcButton
-          isLowerCase={false}
-          isOnlyChild
-          updateRpc={updateRpc}
-        />
+        <UpdateRpcButton isLowerCase={false} updateRpc={updateRpc} />
       );
       secondaryMessage = <SecondaryMessage content={buttonContent} />;
     }
@@ -245,12 +216,12 @@ const getBannerContent = (
   const primaryMessage = (
     <PrimaryMessage
       primaryMessageKey="network_connection_banner.unable_to_connect_network"
-      networkConnectionBannerState={networkConnectionBannerState}
+      network={network}
     />
   );
 
   let secondaryMessageContent: React.ReactNode;
-  if (networkConnectionBannerState.isInfuraEndpoint) {
+  if (network.isInfuraEndpoint) {
     // Already on Infura, just show connectivity message
     secondaryMessageContent = strings(
       'network_connection_banner.check_network_connectivity',
@@ -263,7 +234,6 @@ const getBannerContent = (
         <SwitchToInfuraButton
           key="switchToInfura"
           isLowerCase
-          isOnlyChild={false}
           switchToInfura={switchToInfura}
         />
         {'.'}
@@ -274,12 +244,7 @@ const getBannerContent = (
     secondaryMessageContent = (
       <>
         {strings('network_connection_banner.check_network_connectivity_or')}{' '}
-        <UpdateRpcButton
-          key="updateRpc"
-          isLowerCase
-          isOnlyChild={false}
-          updateRpc={updateRpc}
-        />
+        <UpdateRpcButton key="updateRpc" isLowerCase updateRpc={updateRpc} />
         {'.'}
       </>
     );
@@ -308,34 +273,20 @@ type NetworkConnectionBannerData = ReturnType<
 >;
 
 export const NetworkConnectionBannerContent = ({
-  networkConnectionBannerState,
-  updateRpc,
+  network,
+  status,
   switchToInfura,
+  updateRpc,
 }: NetworkConnectionBannerData) => {
   const theme = useAppTheme();
   const tw = useTailwind();
 
-  const handleUpdateRpc = useCallback(() => {
-    if (networkConnectionBannerState.visible) {
-      updateRpc(
-        networkConnectionBannerState.rpcUrl,
-        networkConnectionBannerState.status,
-        networkConnectionBannerState.chainId,
-      );
-    }
-  }, [networkConnectionBannerState, updateRpc]);
-
-  if (!networkConnectionBannerState.visible) {
+  if ((status !== 'degraded' && status !== 'unavailable') || !network) {
     return null;
   }
 
   const { primaryMessage, secondaryMessage, backgroundColor, icon } =
-    getBannerContent(
-      theme,
-      networkConnectionBannerState,
-      handleUpdateRpc,
-      switchToInfura,
-    );
+    getBannerContent(theme, status, network, updateRpc, switchToInfura);
 
   return (
     <BannerBase

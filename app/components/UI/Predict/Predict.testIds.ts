@@ -228,6 +228,8 @@ export const PredictCryptoUpDownDetailsSelectorsIDs = {
   SCROLL_VIEW: 'predict-crypto-up-down-details-scroll-view',
   TITLE_SECTION: 'predict-crypto-up-down-details-title-section',
   PRICE_SUMMARY: 'predict-crypto-up-down-details-price-summary',
+  TWAP_INFO_BUTTON: 'predict-crypto-up-down-details-twap-info-button',
+  TWAP_INFO_SHEET: 'predict-crypto-up-down-details-twap-info-sheet',
 } as const;
 
 export const PredictCryptoUpDownPositionsSelectorsIDs = {
@@ -305,6 +307,9 @@ export const PredictBuyPreviewSelectorsIDs = {
   // Inline error banners (sheet mode)
   PRICE_CHANGED_BANNER: 'predict-buy-preview-price-changed-banner',
   ORDER_FAILED_BANNER: 'predict-buy-preview-order-failed-banner',
+  PAYMENT_FAILED_BANNER: 'predict-buy-preview-payment-failed-banner',
+  PAYMENT_FAILED_ADD_FUNDS_BUTTON:
+    'predict-buy-preview-payment-failed-add-funds',
 } as const;
 
 // ========================================
@@ -348,6 +353,12 @@ export const PredictUnavailableSelectorsIDs = {
   BUTTON_TEXT: enContent.predict.unavailable.button,
 } as const;
 
+export const PredictConnectionErrorSelectorsIDs = {
+  TITLE_TEXT: enContent.predict.error.title,
+  DESCRIPTION_TEXT: enContent.predict.error.description,
+  RETRY_TEXT: enContent.predict.error.retry,
+} as const;
+
 // ========================================
 // PREDICT ACTIVITY DETAILS SELECTORS
 // ========================================
@@ -356,7 +367,14 @@ export const PredictActivityDetailsSelectorsIDs = {
   BACK_BUTTON: 'predict-activity-details-back-button',
   CONTAINER: 'predict-activity-details-container',
   TITLE_TEXT: 'predict-activity-details-title',
+  AMOUNT_SECTION: 'predict-activity-details-amount-section',
   AMOUNT_DISPLAY: 'predict-activity-details-amount',
+  MARKET_SECTION: 'predict-activity-details-market-section',
+  SECTION_DIVIDER: 'predict-activity-details-section-divider',
+  TRANSACTION_SECTION: 'predict-activity-details-transaction-section',
+  NET_PNL_DIVIDER: 'predict-activity-details-net-pnl-divider',
+  MARKET_LABEL: 'predict-activity-details-market-label',
+  MARKET_VALUE: 'predict-activity-details-market-value',
 } as const;
 
 // ========================================

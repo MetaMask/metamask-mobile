@@ -26,14 +26,29 @@ export function getBridgeDestinationTxHash(
  * land on different history items. Empty for indexer-only rows, which have no
  * local transaction.
  */
-export function getBridgeExplorerSheetTx(
-  item: Extract<ActivityListItem, { type: 'bridge' }>,
-): { evmTxMeta?: TransactionMeta; multiChainTx?: Transaction } {
-  if (item.raw?.type === 'localTransaction') {
-    return { evmTxMeta: item.raw.data.initialTransaction };
+export function getKeyringTransactionByHash(
+  transactions: Transaction[] | undefined,
+  hash?: string,
+) {
+  if (!hash) {
+    return undefined;
   }
-  if (item.raw?.type === 'keyringTransaction') {
-    return { multiChainTx: item.raw.data };
+
+  const normalizedHash = hash.toLowerCase();
+  return transactions?.find(
+    (transaction) => transaction.id?.toLowerCase() === normalizedHash,
+  );
+}
+
+export function getBridgeExplorerSheetTx(
+  transactionMeta?: TransactionMeta,
+  keyringTransaction?: Transaction,
+): { evmTxMeta?: TransactionMeta; multiChainTx?: Transaction } {
+  if (transactionMeta) {
+    return { evmTxMeta: transactionMeta };
+  }
+  if (keyringTransaction) {
+    return { multiChainTx: keyringTransaction };
   }
   return {};
 }
@@ -41,12 +56,8 @@ export function getBridgeExplorerSheetTx(
 export function getBridgeHistoryItem(
   item: Extract<ActivityListItem, { type: 'bridge' }>,
   bridgeHistory: Record<string, BridgeHistoryItem>,
+  transactionMeta?: TransactionMeta,
 ) {
-  const transactionMeta =
-    item.raw?.type === 'localTransaction'
-      ? item.raw.data.initialTransaction
-      : undefined;
-
   return findBridgeHistoryItem({
     bridgeHistory,
     transactionMetaId: transactionMeta?.id,

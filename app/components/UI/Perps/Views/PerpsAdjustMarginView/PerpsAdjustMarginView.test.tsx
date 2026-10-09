@@ -201,13 +201,18 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('../../../../../util/haptics', () => ({
-  playImpact: jest.fn(),
-  ImpactMoment: {
-    SliderGrip: 'SliderGrip',
-    SliderTick: 'SliderTick',
-  },
-}));
+jest.mock('../../../../../util/haptics', () => {
+  const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
+  return {
+    playImpact: mockPlayImpact,
+    useHaptics: () => ({ playImpact: mockPlayImpact }),
+    ImpactMoment: {
+      PrimaryCTA: 'PrimaryCTA',
+      SliderGrip: 'SliderGrip',
+      SliderTick: 'SliderTick',
+    },
+  };
+});
 
 describe('PerpsAdjustMarginView', () => {
   const mockPosition: Position = {
@@ -265,6 +270,7 @@ describe('PerpsAdjustMarginView', () => {
       mockRouteParams = {
         position: mockPosition,
         mode: 'add',
+        enableHaptics: true,
       };
     });
 
@@ -317,6 +323,22 @@ describe('PerpsAdjustMarginView', () => {
   });
 
   describe('remove mode', () => {
+    const removeModeData = {
+      position: mockPosition,
+      isLoading: false,
+      currentMargin: 500,
+      positionValue: 5000,
+      maxAmount: 200, // Max removable margin
+      currentLiquidationPrice: 1900,
+      newLiquidationPrice: 1900,
+      currentLiquidationDistance: 5,
+      newLiquidationDistance: 5,
+      spendableBalance: 1000,
+      currentPrice: 2000,
+      isAddMode: false,
+      positionLeverage: 10,
+    };
+
     beforeEach(() => {
       mockRouteParams = {
         position: mockPosition,
@@ -324,21 +346,7 @@ describe('PerpsAdjustMarginView', () => {
       };
 
       // Override mock for remove mode
-      mockUsePerpsAdjustMarginData.mockReturnValue({
-        position: mockPosition,
-        isLoading: false,
-        currentMargin: 500,
-        positionValue: 5000,
-        maxAmount: 200, // Max removable margin
-        currentLiquidationPrice: 1900,
-        newLiquidationPrice: 1900,
-        currentLiquidationDistance: 5,
-        newLiquidationDistance: 5,
-        spendableBalance: 1000,
-        currentPrice: 2000,
-        isAddMode: false,
-        positionLeverage: 10,
-      });
+      mockUsePerpsAdjustMarginData.mockReturnValue(removeModeData);
     });
 
     it('renders remove margin title', () => {
@@ -370,6 +378,159 @@ describe('PerpsAdjustMarginView', () => {
       expect(
         screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON),
       ).toHaveTextContent('perps.adjust_margin.reduce_margin');
+    });
+
+    it('explains and disables removal when no margin can be removed', () => {
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        ...removeModeData,
+        hasValidPositionData: true,
+        maxAmount: 0.004,
+      });
+
+      render(<PerpsAdjustMarginView />);
+      fireEvent.press(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      );
+
+      expect(
+        screen.getByTestId(
+          PerpsAdjustMarginViewSelectorsIDs.NO_REMOVABLE_MARGIN,
+        ),
+      ).toHaveTextContent('perps.adjust_margin.no_removable_margin');
+      expect(screen.queryByTestId('mock-keypad')).not.toBeOnTheScreen();
+      expect(
+        (
+          screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
+            .props as { isDisabled?: boolean }
+        ).isDisabled,
+      ).toBe(true);
+      expect(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON)
+          .props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+
+    it('keeps a Max amount submittable after the offered max ticks down within the exchange limit', async () => {
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        ...removeModeData,
+        exchangeMaxAmount: 250,
+      });
+      const { rerender } = render(<PerpsAdjustMarginView />);
+      act(() => {
+        (
+          screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
+            .props as { onValueChange: (v: number) => void }
+        ).onValueChange(100);
+      });
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        ...removeModeData,
+        maxAmount: 199.99,
+        exchangeMaxAmount: 249.99,
+      });
+
+      rerender(<PerpsAdjustMarginView />);
+      fireEvent.press(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON),
+      );
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(
+        screen.queryByText('perps.errors.marginValidation.exceedsMaxRemovable'),
+      ).not.toBeOnTheScreen();
+      expect(mockHandleRemoveMargin).toHaveBeenCalledWith('ETH', 200);
+    });
+
+    const renderRemoveWithNoLimitLeft = (before: () => void) => {
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        ...removeModeData,
+        hasValidPositionData: true,
+      });
+      const { rerender } = render(<PerpsAdjustMarginView />);
+      act(before);
+      expect(
+        screen.queryByTestId(
+          PerpsAdjustMarginViewSelectorsIDs.NO_REMOVABLE_MARGIN,
+        ),
+      ).not.toBeOnTheScreen();
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        ...removeModeData,
+        hasValidPositionData: true,
+        maxAmount: 0,
+        exchangeMaxAmount: 0,
+      });
+      rerender(<PerpsAdjustMarginView />);
+    };
+
+    it('explains a zero limit instead of an error on a retained amount', () => {
+      renderRemoveWithNoLimitLeft(() => {
+        (
+          screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
+            .props as { onValueChange: (v: number) => void }
+        ).onValueChange(50);
+      });
+      const confirmButton = screen.getByTestId(
+        PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON,
+      );
+      fireEvent.press(confirmButton);
+
+      expect(
+        screen.getByTestId(
+          PerpsAdjustMarginViewSelectorsIDs.NO_REMOVABLE_MARGIN,
+        ),
+      ).toHaveTextContent('perps.adjust_margin.no_removable_margin');
+      expect(
+        screen.queryByText('perps.errors.marginValidation.exceedsMaxRemovable'),
+      ).not.toBeOnTheScreen();
+      expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+      expect(mockHandleRemoveMargin).not.toHaveBeenCalled();
+    });
+
+    it('closes an open keypad once no margin can be removed', () => {
+      renderRemoveWithNoLimitLeft(() => {
+        fireEvent.press(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+        );
+      });
+
+      expect(screen.queryByTestId('mock-keypad')).not.toBeOnTheScreen();
+    });
+
+    it('sets the amount to the new safe max when removable margin shrank before submit', () => {
+      render(<PerpsAdjustMarginView />);
+      const options = mockUsePerpsMarginAdjustment.mock.calls[0][0] as {
+        onAmountChanged?: (maxAmount: number) => void;
+      };
+
+      act(() => {
+        options.onAmountChanged?.(150);
+      });
+
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      ).toHaveTextContent('150.00');
+    });
+
+    it('keeps the slider within the fresh limit while the live snapshot still shows more', () => {
+      render(<PerpsAdjustMarginView />);
+      const options = mockUsePerpsMarginAdjustment.mock.calls[0][0] as {
+        onAmountChanged?: (maxAmount: number) => void;
+      };
+      act(() => {
+        options.onAmountChanged?.(150);
+      });
+
+      act(() => {
+        (
+          screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.SLIDER)
+            .props as { onValueChange: (v: number) => void }
+        ).onValueChange(100);
+      });
+
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      ).toHaveTextContent('150.00');
     });
   });
 
@@ -505,6 +666,74 @@ describe('PerpsAdjustMarginView', () => {
       );
       expect(confirmButton.props.accessibilityState?.busy).not.toBe(true);
       expect(confirmButton).toHaveTextContent('perps.adjust_margin.add_margin');
+    });
+  });
+
+  describe('stale position', () => {
+    const enterMarginAmount = () => {
+      fireEvent.press(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      );
+      const keypad = screen.getByTestId('mock-keypad');
+      act(() => {
+        (
+          keypad.props as { onChange: (data: { value: string }) => void }
+        ).onChange({ value: '100' });
+      });
+      // The confirm CTA is hidden while the keypad is up.
+      fireEvent.press(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.DONE_BUTTON),
+      );
+    };
+
+    beforeEach(() => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+    });
+
+    it('enables the margin CTA while the live position is still open', () => {
+      // Arrange
+      render(<PerpsAdjustMarginView />);
+
+      // Act
+      enterMarginAmount();
+
+      // Assert
+      expect(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON)
+          .props.accessibilityState?.disabled,
+      ).not.toBe(true);
+    });
+
+    it('disables the margin CTA once the live stream drops the position', () => {
+      // Arrange
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        position: null,
+        isLoading: false,
+        currentMargin: 500,
+        positionValue: 5000,
+        maxAmount: 1000,
+        currentLiquidationPrice: 1900,
+        newLiquidationPrice: 1900,
+        currentLiquidationDistance: 5,
+        newLiquidationDistance: 5,
+        spendableBalance: 1000,
+        currentPrice: 2000,
+        isAddMode: true,
+        positionLeverage: 10,
+      });
+      render(<PerpsAdjustMarginView />);
+
+      // Act
+      enterMarginAmount();
+
+      // Assert
+      expect(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON)
+          .props.accessibilityState?.disabled,
+      ).toBe(true);
     });
   });
 
@@ -681,12 +910,14 @@ describe('PerpsAdjustMarginView', () => {
       });
 
       expect(mockHandleAddMargin).toHaveBeenCalledWith('ETH', 250);
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('removes margin on confirm in remove mode', async () => {
       mockRouteParams = {
         position: mockPosition,
         mode: 'remove',
+        enableHaptics: true,
       };
       mockUsePerpsAdjustMarginData.mockReturnValue({
         position: mockPosition,
@@ -724,6 +955,8 @@ describe('PerpsAdjustMarginView', () => {
       });
 
       expect(mockHandleRemoveMargin).toHaveBeenCalledWith('ETH', 100);
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     });
 
     it('does not submit when amount is zero', () => {
@@ -740,6 +973,7 @@ describe('PerpsAdjustMarginView', () => {
 
       expect(mockHandleAddMargin).not.toHaveBeenCalled();
       expect(mockHandleRemoveMargin).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('does not remove margin when amount exceeds max removable', async () => {
@@ -1106,6 +1340,24 @@ describe('PerpsAdjustMarginView', () => {
 
       fireEvent.press(iconButtons[2]);
       expect(screen.getByText('liquidation_distance')).toBeOnTheScreen();
+    });
+
+    it('renders the liquidation distance with two decimal digits', () => {
+      // Arrange - default mock supplies a 5% distance against a non-zero liquidation price
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+
+      // Act
+      render(<PerpsAdjustMarginView />);
+
+      // Assert - matches the position card, which also renders two decimals
+      expect(
+        screen.getByTestId(
+          PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).toHaveTextContent('5.00%');
     });
 
     it('shows fallback display when liquidation price is zero', () => {

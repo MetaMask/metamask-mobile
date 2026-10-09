@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ActivityIndicator,
@@ -25,20 +25,21 @@ import {
   ButtonIcon,
   ButtonIconSize,
   HeaderStandard,
+  Icon,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../../component-library/components/Toast';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
+import { formatPerpsPrice } from '../../../../Perps/utils/formatUtils';
 import {
   type AbsolutePriceAlert,
   type Alert,
@@ -54,12 +55,19 @@ import {
   updateAlertByType,
 } from '../../api';
 import {
+  deletePerpAlert,
+  fetchPerpAlerts,
+  perpAlertsQueryKey,
+  updatePerpAlert,
+} from '../../perpApi';
+import {
   formatPercentAlertSubtitle,
   formatPercentAlertTitle,
 } from '../../utils';
 import useInFlightIds from '../../hooks/useInFlightIds';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { FeatureNotificationsGate } from '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate';
 
 const styles = StyleSheet.create({
   switchDisabled: { opacity: 0.5 },
@@ -75,11 +83,24 @@ const analyticsPropsForAlert = (priceAlert: Alert) =>
       }
     : { alert_type: PriceAlertAnalytics.TYPE.THRESHOLD };
 
+/**
+ * Ensures every alert returned by the perp-alerts API carries
+ * `type: 'absolute_price'`. The API only supports absolute-price alerts and
+ * may omit the discriminator field; without it the duplicate-threshold filter
+ * in `AbsolutePriceAlertForm` silently skips all perp alerts.
+ *
+ * Applied consistently in the query `queryFn` AND in the delete-failure
+ * refetch path so the cache always contains normalised data.
+ */
+function normalisePerpAlerts(data: Alert[], isPerps: boolean): Alert[] {
+  if (!isPerps) return data;
+  return data.map((a) => ({ ...a, type: 'absolute_price' as const }));
+}
+
 const ManagePriceAlertsView: React.FC = () => {
   const tw = useTailwind();
   const { colors, brandColors } = useTheme();
   const queryClient = useQueryClient();
-  const { toastRef } = useContext(ToastContext);
   const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<
@@ -88,8 +109,17 @@ const ManagePriceAlertsView: React.FC = () => {
         'ManagePriceAlerts'
       >
     >();
-  const { symbol, ticker, currentPrice, currentCurrency, assetId } =
-    route.params;
+  const {
+    symbol,
+    ticker,
+    currentPrice,
+    currentCurrency,
+    assetId,
+    mode,
+    marketId,
+    szDecimals,
+  } = route.params;
+  const isPerpsMode = mode === 'perps';
   const displayTicker = ticker || symbol;
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -107,20 +137,27 @@ const ManagePriceAlertsView: React.FC = () => {
     ids: togglingIds,
   } = useInFlightIds();
 
+  const effectiveQueryKey = isPerpsMode
+    ? perpAlertsQueryKey(marketId ?? '')
+    : priceAlertsQueryKey(assetId);
+
   const {
     data: alerts = [],
     isLoading,
     isError,
   } = useQuery({
-    queryKey: priceAlertsQueryKey(assetId),
+    queryKey: effectiveQueryKey,
     queryFn: async (): Promise<Alert[]> => {
-      const response = await fetchAlerts(assetId);
+      const response = isPerpsMode
+        ? await fetchPerpAlerts(marketId ?? '')
+        : await fetchAlerts(assetId);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return (await response.json()) as Alert[];
+      const data = (await response.json()) as Alert[];
+      return normalisePerpAlerts(data, isPerpsMode);
     },
     retry: false,
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
   });
 
   useEffect(() => {
@@ -129,21 +166,26 @@ const ManagePriceAlertsView: React.FC = () => {
     }
     hasResolvedInitialFetch.current = true;
     if (isError) {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Danger,
-        iconColor: colors.error.default,
-        labelOptions: [{ label: strings('price_alerts.fetch_error') }],
+      toast({
+        title: strings('price_alerts.fetch_error'),
+        severity: ToastSeverity.Danger,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
       navigation.goBack();
     } else if (alerts.length === 0) {
-      navigation.replace(Routes.CREATE_PRICE_ALERT, {
+      const createRoute = isPerpsMode
+        ? Routes.PERPS.CREATE_PRICE_ALERT
+        : Routes.CREATE_PRICE_ALERT;
+      navigation.replace(createRoute, {
         symbol,
         ticker,
         currentPrice,
         currentCurrency,
         assetId,
+        mode,
+        marketId,
+        szDecimals,
       });
     }
   }, [
@@ -156,8 +198,10 @@ const ManagePriceAlertsView: React.FC = () => {
     currentPrice,
     currentCurrency,
     assetId,
-    toastRef,
-    colors,
+    isPerpsMode,
+    mode,
+    marketId,
+    szDecimals,
   ]);
 
   const handleBack = useCallback(() => {
@@ -166,12 +210,15 @@ const ManagePriceAlertsView: React.FC = () => {
 
   const handleNavigateToCreate = useCallback(
     (editingAlert?: Alert) => {
-      navigation.navigate(Routes.CREATE_PRICE_ALERT, {
+      const navParams = {
         symbol,
         ticker,
         currentPrice,
         currentCurrency,
         assetId,
+        mode,
+        marketId,
+        szDecimals,
         fromManage: true,
         existingAbsoluteAlerts: alerts.filter(
           (a): a is AbsolutePriceAlert => a.type === 'absolute_price',
@@ -180,7 +227,12 @@ const ManagePriceAlertsView: React.FC = () => {
           (a): a is PercentChangeAlert => a.type === 'percent_change',
         ),
         editingAlert,
-      });
+      };
+      if (isPerpsMode) {
+        navigation.navigate(Routes.PERPS.CREATE_PRICE_ALERT, navParams);
+      } else {
+        navigation.navigate(Routes.CREATE_PRICE_ALERT, navParams);
+      }
     },
     [
       navigation,
@@ -189,6 +241,10 @@ const ManagePriceAlertsView: React.FC = () => {
       currentPrice,
       currentCurrency,
       assetId,
+      mode,
+      marketId,
+      isPerpsMode,
+      szDecimals,
       alerts,
     ],
   );
@@ -198,21 +254,26 @@ const ManagePriceAlertsView: React.FC = () => {
       if (isDeleteInFlight(id)) return;
       startDelete(id);
 
-      const queryKey = priceAlertsQueryKey(assetId);
+      const queryKey = effectiveQueryKey;
       const previous = queryClient.getQueryData<Alert[]>(queryKey) ?? [];
       const target = previous.find((a) => a.id === id);
 
       try {
         if (!target) throw new Error('Alert not found');
-        const response = await deleteAlertByType(target);
+        const response = isPerpsMode
+          ? await deletePerpAlert(id)
+          : await deleteAlertByType(target);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
             .addProperties({
               interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.DELETED,
-              asset_id: assetId,
+              asset_id: isPerpsMode ? (marketId ?? '') : assetId,
               token_symbol: displayTicker,
+              alert_market_type: isPerpsMode
+                ? PriceAlertAnalytics.MARKET_TYPE.PERPS
+                : PriceAlertAnalytics.MARKET_TYPE.SPOT,
               ...analyticsPropsForAlert(target),
               alert_value: target.threshold,
               alert_recurring: target.recurring,
@@ -223,28 +284,32 @@ const ManagePriceAlertsView: React.FC = () => {
 
         const next = previous.filter((a) => a.id !== id);
         queryClient.setQueryData(queryKey, next);
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Trash,
-          iconColor: colors.text.default,
-          labelOptions: [{ label: strings('price_alerts.delete_success') }],
+        toast({
+          title: strings('price_alerts.delete_success'),
+          startAccessory: <Icon name={IconName.Trash} size={IconSize.Lg} />,
           hasNoTimeout: false,
+          showCloseButton: false,
         });
         if (next.length === 0) {
           navigation.goBack();
         }
       } catch {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Danger,
-          iconColor: colors.error.default,
-          labelOptions: [{ label: strings('price_alerts.delete_error') }],
+        toast({
+          title: strings('price_alerts.delete_error'),
+          severity: ToastSeverity.Danger,
           hasNoTimeout: false,
+          showCloseButton: false,
         });
-        const response = await fetchAlerts(assetId).catch(() => null);
+        const refetchFn = isPerpsMode
+          ? () => fetchPerpAlerts(marketId ?? '')
+          : () => fetchAlerts(assetId);
+        const response = await refetchFn().catch(() => null);
         if (response?.ok) {
           const body = (await response.json().catch(() => [])) as Alert[];
-          queryClient.setQueryData(queryKey, body);
+          queryClient.setQueryData(
+            queryKey,
+            normalisePerpAlerts(body, isPerpsMode),
+          );
         } else {
           queryClient.setQueryData(queryKey, previous);
         }
@@ -255,9 +320,10 @@ const ManagePriceAlertsView: React.FC = () => {
     [
       navigation,
       assetId,
+      marketId,
+      isPerpsMode,
+      effectiveQueryKey,
       queryClient,
-      toastRef,
-      colors,
       displayTicker,
       trackEvent,
       createEventBuilder,
@@ -272,7 +338,7 @@ const ManagePriceAlertsView: React.FC = () => {
       if (isToggleInFlight(id)) return;
       startToggle(id);
 
-      const queryKey = priceAlertsQueryKey(assetId);
+      const queryKey = effectiveQueryKey;
       const previous = queryClient.getQueryData<Alert[]>(queryKey) ?? [];
       const toggled = previous.find((a) => a.id === id);
       queryClient.setQueryData(
@@ -282,17 +348,20 @@ const ManagePriceAlertsView: React.FC = () => {
 
       try {
         if (!toggled) throw new Error('Alert not found');
-        const response = await updateAlertByType(toggled, {
-          active: newValue,
-        });
+        const response = isPerpsMode
+          ? await updatePerpAlert(id, { active: newValue })
+          : await updateAlertByType(toggled, { active: newValue });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
             .addProperties({
               interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
-              asset_id: assetId,
+              asset_id: isPerpsMode ? (marketId ?? '') : assetId,
               token_symbol: displayTicker,
+              alert_market_type: isPerpsMode
+                ? PriceAlertAnalytics.MARKET_TYPE.PERPS
+                : PriceAlertAnalytics.MARKET_TYPE.SPOT,
               ...analyticsPropsForAlert(toggled),
               alert_value: toggled.threshold,
               alert_recurring: toggled.recurring,
@@ -304,12 +373,11 @@ const ManagePriceAlertsView: React.FC = () => {
             .build(),
         );
       } catch {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Danger,
-          iconColor: colors.error.default,
-          labelOptions: [{ label: strings('price_alerts.toggle_error') }],
+        toast({
+          title: strings('price_alerts.toggle_error'),
+          severity: ToastSeverity.Danger,
           hasNoTimeout: false,
+          showCloseButton: false,
         });
         queryClient.setQueryData(
           queryKey,
@@ -321,9 +389,10 @@ const ManagePriceAlertsView: React.FC = () => {
     },
     [
       assetId,
+      marketId,
+      isPerpsMode,
+      effectiveQueryKey,
       queryClient,
-      toastRef,
-      colors,
       displayTicker,
       trackEvent,
       createEventBuilder,
@@ -341,11 +410,13 @@ const ManagePriceAlertsView: React.FC = () => {
       item.type === 'percent_change'
         ? formatPercentAlertTitle(item)
         : strings('price_alerts.reaches_threshold', {
-            threshold: formatPriceWithSubscriptNotation(
-              item.threshold,
-              currentCurrency,
-              { maximumFractionDigits: 15 },
-            ),
+            threshold: isPerpsMode
+              ? formatPerpsPrice(item.threshold)
+              : formatPriceWithSubscriptNotation(
+                  item.threshold,
+                  currentCurrency,
+                  { maximumFractionDigits: 15 },
+                ),
           });
 
     const subtitle =
@@ -449,16 +520,19 @@ const ManagePriceAlertsView: React.FC = () => {
         )}
 
         {!isLoading && alerts.length > 0 && (
-          <View style={tw.style('px-4 pb-4 pt-2')}>
-            <Button
-              variant={ButtonVariant.Primary}
-              onPress={() => handleNavigateToCreate()}
-              testID={ManagePriceAlertsTestIds.ADD_ALERT_BUTTON}
-              twClassName="w-full"
-            >
-              {strings('price_alerts.add_alert')}
-            </Button>
-          </View>
+          <>
+            <View style={tw.style('px-4 pb-4 pt-2')}>
+              <Button
+                variant={ButtonVariant.Primary}
+                onPress={() => handleNavigateToCreate()}
+                testID={ManagePriceAlertsTestIds.ADD_ALERT_BUTTON}
+                twClassName="w-full"
+              >
+                {strings('price_alerts.add_alert')}
+              </Button>
+            </View>
+            <FeatureNotificationsGate feature="priceAlerts" />
+          </>
         )}
       </Box>
     </SafeAreaView>

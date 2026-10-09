@@ -7,6 +7,7 @@ import {
 import {
   useIsTransactionPayQuoteLoading,
   useTransactionPayPrimaryRequiredToken,
+  useTransactionPayQuoteError,
   useTransactionPayQuotesLastUpdated,
   useTransactionPayQuotesRaw,
 } from '../pay/useTransactionPayData';
@@ -23,12 +24,16 @@ const useTransactionPayQuotesLastUpdatedMock = jest.mocked(
 const useTransactionPayPrimaryRequiredTokenMock = jest.mocked(
   useTransactionPayPrimaryRequiredToken,
 );
+const useTransactionPayQuoteErrorMock = jest.mocked(
+  useTransactionPayQuoteError,
+);
 
 interface StateOptions {
   isQuotesLoading?: boolean;
   quotes?: unknown[];
   quotesLastUpdated?: number | undefined;
   amountRaw?: string | undefined;
+  quoteError?: { message: string };
 }
 
 function setupState({
@@ -36,6 +41,7 @@ function setupState({
   quotes = [],
   quotesLastUpdated = undefined,
   amountRaw = '1000',
+  quoteError,
 }: StateOptions = {}) {
   useIsTransactionPayQuoteLoadingMock.mockReturnValue(isQuotesLoading);
   useTransactionPayQuotesRawMock.mockReturnValue(
@@ -45,6 +51,9 @@ function setupState({
   useTransactionPayPrimaryRequiredTokenMock.mockReturnValue({
     amountRaw,
   } as ReturnType<typeof useTransactionPayPrimaryRequiredToken>);
+  useTransactionPayQuoteErrorMock.mockReturnValue(
+    quoteError as ReturnType<typeof useTransactionPayQuoteError>,
+  );
 }
 
 type HookOptions = Parameters<typeof useCustomAmountStage>[0];
@@ -91,12 +100,14 @@ describe('useCustomAmountStage', () => {
       const { result } = runHook();
 
       expect(result.current.stage).toBe(CustomAmountStage.AmountInput);
+      expect(result.current.isAmountUpdating).toBe(false);
     });
 
     it('starts in Loading for an add-mUSD intent', () => {
       const { result } = runHook({ isAddMusdIntent: true });
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
+      expect(result.current.isAmountUpdating).toBe(true);
     });
 
     it('starts in Loading when deposit prefill is enabled', () => {
@@ -132,6 +143,7 @@ describe('useCustomAmountStage', () => {
       const { result } = runDerived();
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
+      expect(result.current.isAmountUpdating).toBe(false);
     });
 
     it('derives ShowTotals once quotes are present', () => {
@@ -184,6 +196,7 @@ describe('useCustomAmountStage', () => {
       });
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
+      expect(result.current.isAmountUpdating).toBe(true);
     });
   });
 
@@ -234,6 +247,19 @@ describe('useCustomAmountStage', () => {
       });
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
+      expect(result.current.isAmountUpdating).toBe(true);
+    });
+
+    it('reports quote fetching rather than an amount update when quotes are already loading', () => {
+      setupState({ isQuotesLoading: true });
+      const { result } = runHook();
+
+      act(() => {
+        result.current.setStage(CustomAmountStage.Loading);
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
+      expect(result.current.isAmountUpdating).toBe(false);
     });
 
     it('clears a Loading commit immediately when the current amount was prefetched', () => {
@@ -307,6 +333,66 @@ describe('useCustomAmountStage', () => {
       expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
     });
 
+    it('leaves the Loading override when the quote fetch settles with an error', () => {
+      // Regression (infinite loader): a failed fetch stores no quotes, so
+      // `hasFreshQuote` can never fire. Holding the override also suppresses
+      // the blocking quote-error alert, leaving skeletons and no way forward.
+      const { result, setOptions } = runHook({ isDepositPrefillEnabled: true });
+
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
+
+      setupState({
+        quoteError: { message: '400 - Amount must be greater than 0' },
+      });
+      act(() => {
+        setOptions({});
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.NoQuote);
+    });
+
+    it('holds the Loading override when a previous quote error is still present', () => {
+      // The override exists to cover the commit→fetch window. A leftover
+      // quoteError from the prior amount is not proof this fetch settled.
+      const previousError = { message: '400 - Amount must be greater than 0' };
+      setupState({ quoteError: previousError });
+
+      const { result, setOptions } = runHook();
+
+      act(() => {
+        result.current.setStage(CustomAmountStage.Loading);
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
+
+      setupState({ quoteError: previousError });
+      act(() => {
+        setOptions({});
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
+    });
+
+    it('leaves the Loading override when a new quote error replaces the previous one', () => {
+      const previousError = { message: 'previous quote failed' };
+      setupState({ quoteError: previousError });
+
+      const { result, setOptions } = runHook();
+
+      act(() => {
+        result.current.setStage(CustomAmountStage.Loading);
+      });
+
+      setupState({
+        quoteError: { message: '400 - Amount must be greater than 0' },
+      });
+      act(() => {
+        setOptions({});
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.NoQuote);
+    });
+
     it('leaves the Loading override once the quote fetch takes over', () => {
       const { result, setOptions } = runHook();
 
@@ -322,6 +408,7 @@ describe('useCustomAmountStage', () => {
       });
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
+      expect(result.current.isAmountUpdating).toBe(false);
     });
   });
 
@@ -337,6 +424,7 @@ describe('useCustomAmountStage', () => {
       });
 
       expect(view.result.current.stage).toBe(CustomAmountStage.ShowTotals);
+      expect(view.result.current.isAmountUpdating).toBe(false);
     });
 
     it('never derives NoQuote even after a settled empty fetch', () => {

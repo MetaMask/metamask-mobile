@@ -40,17 +40,53 @@ _Avoid_: Venue Account, sub-wallet
 
 ### Core Data Model
 
+**Feed**:
+A product-owned, ordered selection of Events for a navigation surface. A Feed may represent a Category, curated collection, or supported filter combination.
+_Avoid_: Venue series, raw Event query, client-side category
+
+**Feed Screen**:
+A product navigation surface that presents one or more related Feeds. Each selectable tab on a Feed Screen identifies one Feed; the first tab is the default when no tab is requested.
+_Avoid_: Feed, Competition screen, backend Feed hierarchy
+
 **Event**:
-A product grouping of one or more related binary Markets on a single topic, such as "2026 NBA Finals" or "Will ETH hit $5k?". A Venue's recurring series is a separate grouping and is not a canonical Event.
-_Avoid_: Market, PredictMarket
+A grouping of one or more related binary Markets with one parent Venue Event, such as "2026 NBA Finals" or "Will ETH hit $5k?". An immutable Game detail read may append validated Markets from authoritative sibling Venue Events while retaining the requested Event as its parent. An Event may have one Category and one Series.
+_Avoid_: Market, PredictMarket, synthetic parent Event, client-side Event join
+
+**Event Screen**:
+A product navigation surface that presents one immutable Event identified by its Venue and Event identities.
+_Avoid_: Event Detail, Event Details Screen
 
 **Market**:
 A single binary question within an Event, resolved as Yes or No, such as "Lakers to win Game 7".
 _Avoid_: Outcome, PredictOutcome, condition
 
+**Market Group**:
+Optional backend-owned metadata on a Market that tells the Event Screen how related Markets can be presented together. The backend supplies the key, group type, Market type, option, and display order. Mobile never derives these values from display text or identifiers.
+_Avoid_: Client-created group, parsed line, local display order
+
 **Outcome**:
-One side of a binary Market, representing a tradeable position, usually labeled Yes or No but sometimes using a custom label. An Outcome has a Venue-qualified identifier that may be native to the Venue or deterministically derived by the adapter when the Venue exposes only a side label; this identifier is not necessarily a token identifier.
+One side of a binary Market, representing a tradeable position, usually labeled Yes or No but sometimes using a custom label. An Outcome may have a Game Selection when it authoritatively represents the home Team, away Team, or draw.
 _Avoid_: OutcomeToken, token, share
+
+**Category**:
+An Event's primary MetaMask product classification, such as Sports, Crypto, or Politics. Subjects such as Trump are Topics, not peer Categories.
+_Avoid_: Tag, Topic, Venue category array
+
+**Series**:
+A Venue-backed grouping of related Events. A Series is optional on an Event and is either a Collection Series or a Rolling Series.
+_Avoid_: Feed, Category, synthetic singleton Series
+
+**Collection Series**:
+A Series whose Events are independently current or browsable, such as NFL Games.
+_Avoid_: Current Event Series
+
+**Rolling Series**:
+A Series for which Predict follows one backend-selected current Event at a time, such as five-minute Bitcoin up-or-down Events.
+_Avoid_: Current Event wrapper, rotating Event identity
+
+**Market Lifecycle**:
+The progression of a Market through initialized, active, inactive, closed, determined, disputed, amended, and finalized states.
+_Avoid_: Simplified browse status, Event status
 
 **Position**:
 A Predict User's holdings in a specific Outcome, measured in shares.
@@ -61,6 +97,10 @@ A request to buy or sell Outcome shares at a specified price.
 _Avoid_: Trade, transaction
 
 ### Order Lifecycle
+
+**Order Action**:
+The direction of an Order: buy opens or extends a Position, sell reduces or closes one. Every Order has exactly one Action, independent of the Outcome side it transacts.
+_Avoid_: Side, direction, transaction type
 
 **Active Order**:
 An Order currently being processed through the placement pipeline, including preview, optional funding, placement, and confirmation.
@@ -75,19 +115,43 @@ An accepted Order that can remain open on the Venue order book until filled, can
 _Avoid_: Active Order; the latter describes the app workflow, not Venue order-book state
 
 **Order Preview**:
-A short-lived, venue-bound price quote showing estimated cost, fees, and potential return before an Order is placed. It has an expiry and cannot be trusted after it expires.
+A short-lived, venue-bound price quote of an Order's estimated execution values before it is placed: for a buy, estimated cost, fees, and potential return; for a sell, contracts offered, estimated Proceeds, and estimated Net Proceeds. It has an expiry and cannot be trusted after it expires.
 _Avoid_: Unbound estimate, mutable order payload
 
+**Total Debit**:
+The total settlement-currency amount expected to be charged to a Venue Account for an Order: the Order amount plus the estimated Fee. The entered USD amount caps the Order amount; the Fee is added on top.
+_Avoid_: Order total, total cost, spend
+
+**Proceeds**:
+The gross settlement-currency amount a sell Order receives for the contracts it sells, before fees. An Order Preview estimates Proceeds from current Bid liquidity; the Order Receipt reports actual Proceeds.
+_Avoid_: Payout, total credit, spend
+
+**Net Proceeds**:
+A sell Order's Proceeds minus its Fee: the amount actually credited to a Venue Account. The sell counterpart of Total Debit.
+_Avoid_: Proceeds without qualifier, take-home amount
+
+**Fee**:
+The estimated charge for executing an Order, added on top of the Order amount to produce the Total Debit. A Fee is composed of backend-owned components (today venue and MetaMask components) and is reported by the backend; the client never calculates it.
+_Avoid_: Kalshi fee as the total Fee, gas
+
+**Commit**:
+The user-approved submission of one Order Preview for execution. Commit sends only the Preview's opaque reference; the quoted Market, Outcome, spend, quantity, and price cannot change at commit time. Repeated commits for one operation converge on one Order Receipt.
+_Avoid_: New order request, order-details echo, re-quote at submit time
+
 **Order Receipt**:
-The canonical result returned after a Venue accepts, rejects, or fills a submitted Order. It includes the venue order identifier, status, spent and received amounts, and transaction hashes when applicable.
+The canonical result returned after a Venue accepts, rejects, or fills a submitted Order. It includes the venue order identifier, status, spent and received amounts, and transaction hashes when applicable. Receipt statuses are `pending`, `submitted`, `filled`, `partially_filled`, `not_filled`, `rejected`, and `reconciliation_required`; `pending` and `submitted` are in-progress statuses the backend reports while the operation is still being worked, observed by committing the same Order Preview again.
 _Avoid_: Order Result, raw venue response
 
+**Reconciliation**:
+The resolution of an ambiguous Order submission by looking up the stable Venue operation reference or the resulting Venue Order. Reconciliation determines the outcome; it never places a second Order.
+_Avoid_: Retry, resubmit, duplicate order
+
 **Fill**:
-Execution of some or all of an Order against another order. Activity should be derived from Fills rather than inferring execution from Order creation records.
-_Avoid_: Order when referring to execution
+Execution of some or all of an Order against another order. A Fill carries an Outcome side but never claims whether the User bought or sold — the Venue's canonical fields do not distinguish the two directions of the same exposure (buying Yes and selling No are economically identical). Activity should be derived from Fills rather than inferring execution from Order creation records.
+_Avoid_: Order when referring to execution, Bought/Sold as Fill attributes
 
 **Cash Out**:
-Selling an existing Position before Market resolution.
+Selling an existing Position before Market resolution by quoting and submitting an Immediate sell Order. A Cash Out may reduce the Position or close it entirely.
 _Avoid_: Sell, exit, withdraw
 
 **Claim**:
@@ -97,6 +161,10 @@ _Avoid_: Redeem, collect
 **Settlement**:
 A payout or portfolio adjustment produced when a resolved Market is finalized by a Venue. A Settlement may be automatic, as with Kalshi, or may follow an explicit Claim, as with Polymarket.
 _Avoid_: Claim when no user action is required, payout without context
+
+**Activity**:
+The ordered, paginated projection of a Predict User's Fills and Settlements at one Venue. Activity is derived from executions and settlements, never from Order creation records. The Portfolio screen presents it under the accepted display label "History", which remains a display label and not a domain term.
+_Avoid_: History as a domain term, Transactions, Trades
 
 ### Financial Terms
 
@@ -120,9 +188,21 @@ _Avoid_: UI request, transient loading state
 The Predict User's available settlement-currency amount in a Venue Account, ready for placing Orders.
 _Avoid_: Funds, wallet balance, raw token amount
 
+**Ask Price**:
+The lowest currently available per-share price to buy an Outcome, expressed in settlement currency. A missing Ask Price means no current buy quote; it does not mean zero.
+_Avoid_: Price, buy price, Yes ask
+
+**Bid Price**:
+The highest currently available per-share price to sell an Outcome, expressed in settlement currency. A missing Bid Price means no current sell quote; it does not mean zero.
+_Avoid_: Price, sell price, Yes bid
+
 **Volume**:
-Total settlement currency traded on a Market or Event across all users.
-_Avoid_: Liquidity
+Total number of contracts (shares) traded on a Market or Event across all users. This is the backend's share volume, sourced from Kalshi `volume_fp`; REST and streamed quotes report the same unit. Settlement-currency value traded is Dollar Volume, a separate backend field not yet served to mobile.
+_Avoid_: Liquidity, Dollar Volume
+
+**24-Hour Volume**:
+Number of contracts traded on a Market or Event during the trailing 24-hour window at the backend observation time.
+_Avoid_: Daily Volume, total Volume
 
 **Liquidity**:
 The depth of available orders in a Market order book; higher liquidity means less price slippage.
@@ -142,13 +222,25 @@ _Avoid_: Event without qualifier, UI event, overlay
 
 ### Sports Terms
 
+**Sport**:
+A product classification for one kind of athletic competition, such as American football.
+_Avoid_: Sports Category, Venue sport label
+
+**Competition**:
+A league or tournament within a Sport, such as the NFL or college football.
+_Avoid_: League when the contest is a tournament, Venue competition label
+
 **Game**:
-A sports contest represented as optional metadata on an Event, including scheduled time, live status, score, period, league, and participating Teams.
+A sports contest represented as optional metadata on an Event, including status, score, period, clock, and participating Teams. Game status is distinct from Market Lifecycle.
 _Avoid_: Match, fixture, raw sports payload
 
 **Team**:
-A participant in a sports Game, including canonical display metadata such as name, abbreviation, logo, and color.
+The home or away participant in a Game, including canonical display metadata such as name, abbreviation, logo, and color.
 _Avoid_: Team DTO, venue team
+
+**Game Selection**:
+An Outcome's authoritative association with the home Team, away Team, or draw. It complements the Outcome's Yes or No side and must not be inferred from display text.
+_Avoid_: Team side, parsed Outcome label
 
 ### Venue Terms
 
@@ -163,6 +255,14 @@ _Avoid_: Provider feature
 **Venue Status**:
 A dynamic availability projection for a Venue, such as available, degraded, or unavailable. It is distinct from static Venue Capabilities and from user-specific Account Readiness.
 _Avoid_: Capability, feature flag
+
+**Active Venue**:
+The Venue whose Predict experience is currently shown. The Active Venue may come from a regional default or a valid Venue Selection Preference.
+_Avoid_: Provider, selected provider, current market source
+
+**Venue Selection Preference**:
+A Predict User's explicit settings choice of Active Venue. It overrides regional defaulting only while that Venue remains selectable; it is not proof of eligibility or availability.
+_Avoid_: Provider toggle, eligibility, Venue Status
 
 **Remote Venue Adapter**:
 A mobile Venue Adapter implementation that translates canonical Predict calls into requests to a MetaMask Predict backend. The backend owns volatile Venue protocol logic and Venue credentials; mobile retains user intent, confirmation, and wallet signing.
@@ -179,23 +279,41 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - Account Readiness is assessed for a Predict User at a Venue and may depend on Funding Wallet context for wallet-scoped Venues.
 - Account Setup can change Account Readiness from setup-required to ready.
 - Account Readiness is distinct from Balance and Venue Status; a Predict User can be ready with zero Balance, or funded while a Venue is unavailable.
-- Each Event originates from exactly one Venue and contains one or more Markets.
-- A Venue's recurring Series is distinct from the canonical Event grouping.
+- A Feed contains zero or more Events and owns their membership, ordering, and pagination semantics.
+- A Feed Screen contains one or more ordered tabs, and each tab identifies exactly one Feed.
+- Each Event has one parent Venue Event and contains one or more Markets. A Game detail response may append validated Markets from authoritative sibling Venue Events without changing the parent identity.
+- An Event Screen presents exactly one immutable Event and never rotates to another Event from the same Series.
+- Each Event may have one primary Category and one Series.
+- A Category is product-owned and is distinct from Venue tags and future Topics.
+- A Series groups related Events; Predict does not fabricate a singleton Series for an Event without a meaningful Series.
+- A Collection Series may have multiple simultaneous or upcoming Events.
+- A Rolling Series selects one current Event at a time without changing that Event's identity.
 - Each Market contains exactly two Outcomes, typically Yes and No.
+- Each Market may have one Market Group. The backend owns this metadata, and mobile does not derive it.
 - Each Position is tied to exactly one Outcome.
 - Each Order targets exactly one Outcome and may produce zero or more Fills.
+- An Order has one Action — buy or sell — chosen when its Preview is requested and bound to its Commit.
+- A sell Order may not sell more contracts than the Position it reduces; the backend validates against authoritative Venue evidence.
 - An Immediate Order does not remain open; a Resting Order may later be cancelled or amended when the Venue supports those capabilities.
 - Each submitted Order may produce one Order Receipt.
 - A Funding Plan is prepared before confirmation and references a durable Venue Operation.
 - A Deposit increases Venue Account Balance.
 - A Withdraw decreases Venue Account Balance.
 - A Settlement records winnings paid after a Market is finalized.
+- Activity contains Fills and Settlements; Order creation records never appear as Activity.
 - A Cash Out reduces or closes a Position; it is not a Withdraw.
 - A crypto up/down Market compares asset prices against a Reference Price.
 - A Live Update refreshes the current understanding of an existing domain object; it is not a separate Event or Order.
 - A Service Event is not a prediction-market Event; always use the qualifier for internal messages.
-- A sports Event may have one Game, and a Game has participating Teams.
-- Extended sports child Events are represented as additional Markets grouped under one canonical parent Event, with child provenance preserved in metadata.
+- Exactly one Venue is the Active Venue for a rendered Predict experience.
+- Without a valid Venue Selection Preference, US geolocation defaults the Active Venue to Kalshi and non-US geolocation defaults it to Polymarket.
+- A valid Venue Selection Preference takes precedence over regional defaulting, but does not override eligibility, Venue Status, or rollout controls.
+- A sports Event may have one Sports context containing one Sport, an optional Competition, and an optional Game.
+- Game Events and Game-specific prop Events may carry a Game; season props and futures have no Game.
+- A Game has one home Team and one away Team in the initial canonical model.
+- Game status and Market Lifecycle are independent and must not be derived from one another.
+- An Outcome may have one Game Selection of home, away, or draw; its Yes or No side remains unchanged.
+- Sports Event composition preserves the requested parent identity and source boundaries. Only a Game detail read may append validated sibling Markets; Predict never creates a synthetic parent Event.
 
 ## Flagged Ambiguities
 
@@ -209,6 +327,7 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - "target price" is legacy UI language for a crypto up/down Reference Price.
 - "event" is overloaded. Event is a product grouping of Markets; Service Event is an internal observation message.
 - "pending order" is ambiguous. Use Active Order for app workflow state and Resting Order for accepted order-book state.
+- "selected provider" conflates product choice with implementation language. Use Active Venue for the rendered Venue and Venue Selection Preference for an explicit settings choice.
 
 ## Venue Terminology Mapping
 
@@ -217,7 +336,10 @@ _Avoid_: New Venue, backend provider, opaque proxy
 | Predict User   | Wallet owner / user                        | Kalshi member, one real person                      |
 | Funding Wallet | Owner wallet                               | User-controlled payout/deposit wallet               |
 | Venue Account  | Safe / deposit wallet                      | MetaMask ISV sub-account                            |
+| Feed           | Product-owned projection                   | Product-owned projection                            |
 | Event          | Event                                      | Event                                               |
+| Category       | Product mapping from category/tags         | Product mapping, usually from Series metadata       |
+| Series         | Optional selected Series                   | Series                                              |
 | Market         | Market / Condition                         | Market / Contract                                   |
 | Outcome        | Outcome token                              | Yes/No side                                         |
 | Position       | Position                                   | Position                                            |

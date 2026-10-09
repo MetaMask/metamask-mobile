@@ -136,45 +136,42 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
    */
   const navigateToAddBookmark = useCallback(() => {
     navigation.navigate('AddBookmarkView', {
-      screen: 'AddBookmark',
-      params: {
-        title: title || '',
-        url: maskedActiveUrl,
-        onAddBookmark: async ({
-          name,
-          url: urlToAdd,
-        }: {
-          name: string;
-          url: string;
-        }) => {
-          dispatch(addBookmark({ name, url: urlToAdd }));
-          // iOS Spotlight integration
-          if (Device.isIos()) {
-            const thumbnailUri =
-              (icon as { uri?: string })?.uri ||
-              (favicon as { uri?: string })?.uri ||
-              '';
-            const item = {
-              uniqueIdentifier: activeUrl,
-              title: name || getMaskedUrl(urlToAdd, sessionENSNames),
-              contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
-              keywords: [
-                ...(name ? name.split(' ').filter(Boolean) : []),
-                urlToAdd,
-                'dapp',
-              ],
-              thumbnail: {
-                uri: thumbnailUri,
-              },
-            };
-            try {
-              SearchApi.indexSpotlightItem(item);
-            } catch (e: unknown) {
-              const searchApiError = e as Error;
-              Logger.error(searchApiError, 'Error adding to spotlight');
-            }
+      title: title || '',
+      url: maskedActiveUrl,
+      onAddBookmark: async ({
+        name,
+        url: urlToAdd,
+      }: {
+        name: string;
+        url: string;
+      }) => {
+        dispatch(addBookmark({ name, url: urlToAdd }));
+        // iOS Spotlight integration
+        if (Device.isIos()) {
+          const thumbnailUri =
+            (icon as { uri?: string })?.uri ||
+            (favicon as { uri?: string })?.uri ||
+            '';
+          const item = {
+            uniqueIdentifier: activeUrl,
+            title: name || getMaskedUrl(urlToAdd, sessionENSNames),
+            contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
+            keywords: [
+              ...(name ? name.split(' ').filter(Boolean) : []),
+              urlToAdd,
+              'dapp',
+            ],
+            thumbnail: {
+              uri: thumbnailUri,
+            },
+          };
+          try {
+            SearchApi.indexSpotlightItem(item);
+          } catch (e: unknown) {
+            const searchApiError = e as Error;
+            Logger.error(searchApiError, 'Error adding to spotlight');
           }
-        },
+        }
       },
     });
 

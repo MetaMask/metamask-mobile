@@ -1,0 +1,49 @@
+export const QuickBuySheetSelectorsIDs = {
+  CONTENT_CONTAINER: 'quick-buy-content-container',
+  CONTENT_LOADING: 'quick-buy-content-loading',
+  AMOUNT_CONTAINER: 'quick-buy-amount-container',
+  AMOUNT_AREA: 'quick-buy-amount-area',
+  AMOUNT_AREA_PRESSABLE: 'quick-buy-amount-area-pressable',
+  PAY_WITH_BUTTON: 'quick-buy-pay-with-button',
+  PAY_WITH_HEADER: 'quick-buy-pay-with-header',
+  PAY_WITH_BACK: 'quick-buy-pay-with-back',
+  NETWORK_LIST_HEADER: 'quick-buy-network-list-header',
+  NETWORK_LIST_BACK: 'quick-buy-network-list-back',
+  CONFIRM_BUTTON: 'quick-buy-confirm-button',
+  RATE_TAG: 'quick-buy-rate-tag',
+  GAS_FEE_DEDUCTION: 'quick-buy-gas-fee-deduction',
+  GASLESS_FEE_TOKEN: 'quick-buy-gasless-fee-token',
+  EST_RECEIVE_LOADING: 'quick-buy-est-receive-loading',
+  EST_RECEIVE_LABEL_LOADING: 'quick-buy-est-receive-label-loading',
+  RATE_TAG_PRESSABLE: 'quick-buy-rate-tag-pressable',
+  RATE_ROW: 'quick-buy-rate-row',
+  EDIT_SLIPPAGE: 'quick-buy-edit-slippage',
+  CLOSE_BUTTON: 'quick-buy-close-button',
+  SETTINGS_BUTTON: 'quick-buy-settings-button',
+  SUB_SCREEN_BACK: 'quick-buy-sub-screen-back-button',
+  SUB_SCREEN_CLOSE: 'quick-buy-sub-screen-close-button',
+  PRICE_IMPACT_DESCRIPTION: 'price-impact-description',
+  KEYPAD: 'quick-buy-keypad',
+  KEYPAD_REVEAL: 'quick-buy-keypad-reveal',
+  KEYPAD_KEY_1: 'keypad-key-1',
+  PERCENT_PILL_PREFIX: 'quick-buy-percent-pill-',
+  PAY_WITH_ROW_PREFIX: 'quick-buy-pay-with-row-',
+  CHAIN_FILTER_PREFIX: 'quick-buy-chain-filter-',
+  TRADE_MODE_TOGGLE: 'quick-buy-trade-mode-toggle',
+  TRADE_MODE_BUY: 'quick-buy-trade-mode-buy',
+  TRADE_MODE_SELL: 'quick-buy-trade-mode-sell',
+  DISABLED_AMOUNT: 'quick-buy-disabled-amount',
+  DISABLED_KEYPAD: 'quick-buy-disabled-keypad',
+  DISABLED_FOOTER: 'quick-buy-disabled-footer',
+} as const;
+
+export type QuickBuySheetSelectorsIDsType = typeof QuickBuySheetSelectorsIDs;
+
+export const getQuickBuyPercentPillTestId = (percent: number | string) =>
+  `${QuickBuySheetSelectorsIDs.PERCENT_PILL_PREFIX}${percent}`;
+
+export const getQuickBuyPayWithRowTestId = (address: string, chainId: string) =>
+  `${QuickBuySheetSelectorsIDs.PAY_WITH_ROW_PREFIX}${address.toLowerCase()}:${chainId}`;
+
+export const getQuickBuyChainFilterTestId = (chainId: string | null) =>
+  `${QuickBuySheetSelectorsIDs.CHAIN_FILTER_PREFIX}${chainId ?? 'all'}`;

@@ -22,6 +22,7 @@ import {
   isLimitOrderEditable,
   isLimitOrderSizeEditable,
 } from '../utils/orderUtils';
+import { ImpactMoment, useHaptics } from '../../../../util/haptics';
 import { usePerpsLivePositions } from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsSelector } from './usePerpsSelector';
@@ -62,6 +63,7 @@ export const usePerpsProOrderEdit = ({
   const { editOrder } = usePerpsTrading();
   const stream = usePerpsStream();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const { playImpact } = useHaptics();
 
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [editingOrderSheet, setEditingOrderSheet] =
@@ -146,12 +148,13 @@ export const usePerpsProOrderEdit = ({
       runGatedEligibleAction(
         PERPS_EVENT_VALUE.SOURCE.MODIFY_POSITION_ACTION,
         () => {
+          playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
           setEditingOrder(order);
           setEditingOrderSheet(field);
         },
       );
     },
-    [editingOrderId, isMutationBlocked, runGatedEligibleAction],
+    [editingOrderId, isMutationBlocked, playImpact, runGatedEligibleAction],
   );
 
   const handleEditOrderPrice = useCallback(
@@ -208,6 +211,7 @@ export const usePerpsProOrderEdit = ({
       const previousValue = getOrderEditPreviousValue(orderToEdit, field);
       const optimisticEdit = buildOrderOptimisticEdit(field, newValue);
 
+      playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
       isSubmittingEditRef.current = true;
       closeEditSheet();
       setEditingOrderId(orderToEdit.orderId);
@@ -278,6 +282,7 @@ export const usePerpsProOrderEdit = ({
       editingOrderLeverage,
       isMutationBlocked,
       PerpsToastOptions,
+      playImpact,
       showToast,
       stream,
     ],

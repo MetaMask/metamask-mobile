@@ -31,6 +31,9 @@ export const PERPS_CUF_END_REASON = {
   ORDER_FAILED: 'order_failed',
   REQUEST_FAILED: 'request_failed',
   EXCEPTION: 'exception',
+  /** The venue had already filled, closed or liquidated the position, so the
+   * request could not apply. A benign race, not a close/update failure. */
+  ALREADY_CLOSED: 'already_closed',
   STREAM_TIMEOUT: 'stream_timeout',
   /** A newer operation of the same flow replaced this one before it confirmed. */
   SUPERSEDED: 'superseded',

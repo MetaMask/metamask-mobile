@@ -43,6 +43,42 @@ describe('PredictBuyErrorBanner', () => {
     ).toHaveTextContent('Try again');
   });
 
+  it('renders the payment_failed variant with an Add funds action', () => {
+    const onActionPress = jest.fn();
+    renderWithProvider(
+      <PredictBuyErrorBanner
+        variant="payment_failed"
+        title="Payment didn't go through"
+        description="We couldn't convert your USDC."
+        actionLabel="Add funds"
+        onActionPress={onActionPress}
+        actionTestID="payment-failed-add-funds"
+        testID="payment-failed-banner"
+      />,
+    );
+
+    expect(screen.getByTestId('payment-failed-banner')).toBeOnTheScreen();
+    expect(screen.getByTestId('payment-failed-banner-title')).toHaveTextContent(
+      "Payment didn't go through",
+    );
+    expect(screen.getByTestId('payment-failed-add-funds')).toBeOnTheScreen();
+  });
+
+  it('does not render an action button when action props are omitted', () => {
+    renderWithProvider(
+      <PredictBuyErrorBanner
+        variant="payment_failed"
+        title="Payment didn't go through"
+        description="Try again"
+        testID="payment-failed-banner"
+      />,
+    );
+
+    expect(
+      screen.queryByTestId('payment-failed-banner-action'),
+    ).not.toBeOnTheScreen();
+  });
+
   it('falls back to a default testID prefix when none is provided', () => {
     renderWithProvider(
       <PredictBuyErrorBanner

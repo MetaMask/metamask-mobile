@@ -212,7 +212,7 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
     throw new Error(
       '[number] while converting number ' +
         tokenValue +
-        ' to token minimal util,  too many decimal points',
+        ' to token minimal util, too many decimal points',
     );
   }
   let whole = comps[0],

@@ -1,30 +1,18 @@
-import {
-  encapsulated,
-  EncapsulatedElementType,
-  asPlaywrightElement,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import Assertions from '../../framework/Assertions';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
+import { sleep, type AppiumElement } from '../../framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
-import { sleep } from '../../framework';
 
 class SwitchChainModal {
-  get connectButton(): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementById(CommonSelectorsIDs.CONNECT_BUTTON, {
-          exact: true,
-        }),
-    });
+  get connectButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(CommonSelectorsIDs.CONNECT_BUTTON);
   }
 
-  getNetworkText(network: string): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          `//android.widget.TextView[@text="Requesting for ${network}"]`,
-        ),
-    });
+  getNetworkText(network: string): Promise<AppiumElement> {
+    return Matchers.getElementByNativeXPath(
+      `//android.widget.TextView[@text="Requesting for ${network}"]`,
+    );
   }
 
   async tapConnectButton({
@@ -34,28 +22,17 @@ class SwitchChainModal {
     shouldCooldown?: boolean;
     timeToCooldown?: number;
   } = {}): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const element = await asPlaywrightElement(this.connectButton);
-        await element.waitForDisplayed({
-          timeoutMsg: 'SwitchChainModal: connect button not visible',
-        });
-        await element.click();
-        if (shouldCooldown) {
-          await sleep(timeToCooldown);
-        }
-      },
+    await Gestures.waitAndTap(this.connectButton, {
+      elemDescription: 'SwitchChainModal connect button',
     });
+    if (shouldCooldown) {
+      await sleep(timeToCooldown);
+    }
   }
 
   async assertNetworkText(network: string): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const element = await asPlaywrightElement(this.getNetworkText(network));
-        await element.waitForDisplayed({
-          timeoutMsg: `SwitchChainModal: network text "${network}" not visible`,
-        });
-      },
+    await Assertions.expectElementToBeVisible(this.getNetworkText(network), {
+      description: `SwitchChainModal: network text "${network}" not visible`,
     });
   }
 }

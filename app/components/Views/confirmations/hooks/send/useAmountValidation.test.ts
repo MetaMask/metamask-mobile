@@ -19,6 +19,20 @@ import { AssetType, TokenStandard } from '../../types/token';
 import * as SendContext from '../../context/send-context/send-context';
 import { validateAmountMultichain } from '../../utils/multichain-snaps';
 
+// Execute debounced functions immediately in tests so waitFor assertions
+// don't time out waiting for the 300ms delay.
+const mockDebounce = jest.fn((fn: (...args: unknown[]) => unknown) => {
+  const immediate = (...args: unknown[]) => fn(...args);
+  immediate.cancel = jest.fn();
+  return immediate;
+});
+
+jest.mock('lodash', () => ({
+  ...jest.requireActual('lodash'),
+  debounce: (...args: unknown[]) =>
+    mockDebounce(...(args as Parameters<typeof mockDebounce>)),
+}));
+
 const MOCK_ADDRESS_1 = '0x0dcd5d886577d5081b0c52e242ef29e70be3e7bc';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -401,6 +415,46 @@ describe('useAmountValidation', () => {
     await waitFor(() =>
       expect(result.current.amountError).toEqual('Insufficient funds'),
     );
+  });
+
+  it('snap validation is debounced with 300ms delay', async () => {
+    mockValidateAmountMultichain.mockResolvedValue({ errors: [] });
+    mockDebounce.mockClear();
+
+    jest.spyOn(SendContext, 'useSendContext').mockReturnValue({
+      asset: {
+        ...SOLANA_ASSET,
+        rawBalance: '0xde0b6b3a7640000',
+      },
+      from: MOCK_ADDRESS_1,
+      fromAccount: { id: 'solana-account-id' },
+      value: '1',
+    } as unknown as SendContext.SendContextType);
+
+    renderHookWithProvider(() => useAmountValidation(), {
+      state: solanaSendStateMock,
+    });
+
+    await waitFor(() => {
+      expect(mockDebounce).toHaveBeenCalledWith(expect.any(Function), 300);
+    });
+  });
+
+  it('snap is never called for EVM send flows', async () => {
+    jest.spyOn(SendContext, 'useSendContext').mockReturnValue({
+      asset: EVM_NATIVE_ASSET,
+      from: MOCK_ADDRESS_1,
+      value: 'abc',
+    } as unknown as SendContext.SendContextType);
+
+    const { result } = renderHookWithProvider(() => useAmountValidation(), {
+      state: evmSendStateMock,
+    });
+
+    await waitFor(() =>
+      expect(result.current.amountError).toEqual('Invalid value'),
+    );
+    expect(mockValidateAmountMultichain).not.toHaveBeenCalled();
   });
 
   it('returns insufficient balance to cover fees error when snap returns InsufficientBalanceToCoverFee', async () => {

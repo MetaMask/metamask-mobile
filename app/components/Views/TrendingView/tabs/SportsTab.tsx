@@ -5,6 +5,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -123,6 +124,7 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
 
 const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const tw = useTailwind();
+  const floatingTabBarInset = useFloatingTabBarInset();
   const navigation = useNavigation<AppNavigationProp>();
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const { colors } = useTheme();
@@ -234,7 +236,9 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       ListFooterComponent={listFooter}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={tw.style('pt-3 pb-4')}
+      contentContainerStyle={tw.style(
+        `pt-3 pb-[${16 + floatingTabBarInset}px]`,
+      )}
       testID={`all-sports-list-${activeKey}`}
       refreshControl={
         <RefreshControl

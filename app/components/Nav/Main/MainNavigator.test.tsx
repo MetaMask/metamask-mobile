@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-deprecated -- Screen children are typed with react-test-renderer */
 import React from 'react';
 import MainNavigator from './MainNavigator';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -5,6 +6,16 @@ import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
 import { ReactTestInstance } from 'react-test-renderer';
 import { mockTheme } from '../../../util/theme';
+import AddBookmark from '../../Views/AddBookmark';
+import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
+import NftDetails from '../../Views/NftDetails';
+import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
+import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
+import OfflineMode from '../../Views/OfflineMode';
+import {
+  slideFromRightNativeOptions,
+  transparentModalStackOptions,
+} from '../../../constants/navigation/clearStackNavigatorOptions';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
@@ -14,6 +25,7 @@ jest.mock('@react-navigation/native-stack', () => ({
   createNativeStackNavigator: jest.fn().mockReturnValue({
     Navigator: 'Navigator',
     Screen: 'Screen',
+    Group: 'Group',
   }),
 }));
 
@@ -24,12 +36,60 @@ jest.mock('@react-navigation/bottom-tabs', () => ({
   }),
 }));
 
+const NATIVE_TAB_INSET_PROBE_TEST_ID = 'native-tab-inset-probe';
+jest.mock('@react-navigation/bottom-tabs/unstable', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text, View } = jest.requireActual('react-native');
+  const { useFloatingTabBarInset } = jest.requireActual(
+    '../../../component-library/components/Navigation/TabBarFloating',
+  );
+  // Rendered inside the navigator, so it reads the inset the tab scenes get.
+  const InsetProbe = () =>
+    ReactActual.createElement(
+      Text,
+      { testID: 'native-tab-inset-probe' },
+      String(useFloatingTabBarInset()),
+    );
+  // A host view, so the render result's `root` spans every screen.
+  const Navigator = ({ children }: { children?: React.ReactNode }) =>
+    ReactActual.createElement(
+      View,
+      null,
+      children,
+      ReactActual.createElement(InsetProbe),
+    );
+  Navigator.displayName = 'NativeTabNavigator';
+  return {
+    createNativeBottomTabNavigator: jest.fn().mockReturnValue({
+      Navigator,
+      Screen: 'NativeTabScreen',
+    }),
+  };
+});
+
+let mockIsNativeTabBar = false;
+jest.mock('./HomeTabs/useIsNativeTabBar', () => ({
+  useIsNativeTabBar: () => mockIsNativeTabBar,
+}));
+
+jest.mock(
+  '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  }),
+);
+
 // RewardsHome resolves the candidate subscription id for both the dashboard and
 // onboarding branches. Mock it so the regression test can assert the call
 // without exercising the real async fetch.
 const mockUseCandidateSubscriptionId = jest.fn();
 jest.mock('../../UI/Rewards/hooks/useCandidateSubscriptionId', () => ({
   useCandidateSubscriptionId: () => mockUseCandidateSubscriptionId(),
+}));
+
+jest.mock('../../UI/Rewards/hooks/useRewardsTabPerformance', () => ({
+  useRewardsTabPerformance: jest.fn(),
 }));
 
 const mockSelectPerpsEnabledFlag = jest.fn();
@@ -59,6 +119,22 @@ jest.mock('../../UI/Predict', () => {
   };
 });
 
+jest.mock('../../UI/Trending/contexts', () => {
+  const { Fragment } = jest.requireActual('react');
+  return {
+    TrendingQuickBuySheetProvider: ({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) => jest.requireActual('react').createElement(Fragment, null, children),
+    useTrendingQuickBuySheet: () => ({
+      openQuickBuy: jest.fn(),
+      closeQuickBuy: jest.fn(),
+      isQuickBuyOpen: false,
+    }),
+  };
+});
+
 jest.mock('../../UI/MarketInsights', () => ({
   MarketInsightsView: () => 'MarketInsightsView',
   selectMarketInsightsEnabled: (state: unknown) =>
@@ -75,6 +151,8 @@ jest.mock('../../UI/Money/Views/MoneyFirstTimeDepositView', () => ({
   default: () => null,
 }));
 
+jest.mock('../../Views/Settings/SecuritySettings', () => () => null);
+
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../UI/Money/components/MoneyTabPressTracker', () => ({
@@ -84,14 +162,15 @@ jest.mock('../../UI/Money/components/MoneyTabPressTracker', () => ({
 
 const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
+  ...jest.requireActual('../../UI/Money/selectors/featureFlags'),
   selectMoneyEnableMoneyAccountFlag: (state: unknown) =>
     mockSelectMoneyEnableMoneyAccountFlag(state),
 }));
 
-const mockSelectIsMoneyAccountGeoEligible = jest.fn().mockReturnValue(true);
-jest.mock('../../UI/Money/selectors/eligibility', () => ({
-  selectIsMoneyAccountGeoEligible: (state: unknown) =>
-    mockSelectIsMoneyAccountGeoEligible(state),
+const mockSelectIsMoneyAccountVisible = jest.fn().mockReturnValue(false);
+jest.mock('../../UI/Money/selectors/visibility', () => ({
+  selectIsMoneyAccountVisible: (state: unknown) =>
+    mockSelectIsMoneyAccountVisible(state),
 }));
 
 describe('MainNavigator', () => {
@@ -99,6 +178,8 @@ describe('MainNavigator', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsNativeTabBar = false;
+    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -209,19 +290,17 @@ describe('MainNavigator', () => {
       )[0];
 
       // Then every screen in the wallet tab stack, including pushed screens,
-      // inherits the themed content background (native-stack uses contentStyle).
+      // inherits the themed content background (native-stack uses contentStyle)
+      // and the hidden header, so pushed screens need no options of their own.
       expect(stackNavigator?.props?.screenOptions).toEqual(
         expect.objectContaining({
+          headerShown: false,
           contentStyle: {
             backgroundColor: mockTheme.colors.background.default,
           },
         }),
       );
-      expect(revealPrivateCredentialScreen?.props?.options).toEqual(
-        expect.objectContaining({
-          headerShown: false,
-        }),
-      );
+      expect(revealPrivateCredentialScreen?.props?.options).toBeUndefined();
     });
 
     it.each([
@@ -342,6 +421,127 @@ describe('MainNavigator', () => {
     });
   });
 
+  describe('Native tab bar (iOS 26)', () => {
+    const renderHomeTabs = () => {
+      const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+      const homeScreen = mainRoot.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'Screen' && node.props?.name === 'Home',
+      )[0];
+      const HomeTabs = homeScreen?.props?.component as React.ComponentType<
+        Record<string, unknown>
+      >;
+      return renderWithProvider(<HomeTabs route={{ params: {} }} />, {
+        state: initialRootState,
+      });
+    };
+
+    const findNativeScreens = (root: ReactTestInstance) =>
+      root.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'NativeTabScreen',
+      );
+
+    beforeEach(() => {
+      mockIsNativeTabBar = true;
+    });
+
+    it('renders native tab screens instead of the JS navigator', () => {
+      const { root } = renderHomeTabs();
+
+      expect(findNativeScreens(root).length).toBeGreaterThan(0);
+      expect(
+        root.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabNavigator' ||
+            node.type?.toString?.() === 'TabScreen',
+        ),
+      ).toHaveLength(0);
+    });
+
+    it('registers the visible tabs plus the system search slot, not Browser or Trade', () => {
+      const { root } = renderHomeTabs();
+
+      expect(
+        findNativeScreens(root).map((screen) => screen.props.name),
+      ).toEqual([
+        Routes.WALLET.HOME,
+        Routes.TRENDING_VIEW,
+        Routes.TRANSACTIONS_VIEW,
+        Routes.REWARDS_VIEW,
+        'SearchTab',
+      ]);
+    });
+
+    it('gives every tab a title, an icon and press listeners', () => {
+      const { root } = renderHomeTabs();
+      const homeScreen = findNativeScreens(root).find(
+        (screen) => screen.props.name === Routes.WALLET.HOME,
+      );
+
+      expect(homeScreen?.props.options).toMatchObject({ title: 'Home' });
+      expect(typeof homeScreen?.props.options.tabBarIcon).toBe('function');
+      expect(typeof homeScreen?.props.listeners).toBe('function');
+    });
+
+    it('hides the bar on Rewards sub-pages through a stable style identity', () => {
+      const { root } = renderHomeTabs();
+      const rewardsScreen = findNativeScreens(root).find(
+        (screen) => screen.props.name === Routes.REWARDS_VIEW,
+      );
+      const resolveOptions = rewardsScreen?.props.options as (args: {
+        route: unknown;
+      }) => { tabBarStyle?: { display: string } };
+
+      const onDashboard = resolveOptions({
+        route: {
+          name: Routes.REWARDS_VIEW,
+          state: {
+            routes: [
+              {
+                name: Routes.REWARDS_VIEW,
+                state: {
+                  index: 0,
+                  routes: [{ name: Routes.REWARDS_DASHBOARD }],
+                },
+              },
+            ],
+          },
+        },
+      });
+      const onSubPage = resolveOptions({
+        route: {
+          name: Routes.REWARDS_VIEW,
+          state: {
+            routes: [
+              {
+                name: Routes.REWARDS_VIEW,
+                state: {
+                  index: 0,
+                  routes: [{ name: 'OndoCampaignDetails' }],
+                },
+              },
+            ],
+          },
+        },
+      });
+
+      expect(onDashboard.tabBarStyle).toBeUndefined();
+      expect(onSubPage.tabBarStyle).toEqual({ display: 'none' });
+    });
+
+    it('reports the native bar height so scroll views clear it', () => {
+      const { getByTestId } = renderHomeTabs();
+
+      // Mocked safe-area bottom is 0, so the padding floor (16) plus the bar (62).
+      expect(getByTestId(NATIVE_TAB_INSET_PROBE_TEST_ID)).toHaveTextContent(
+        '78',
+      );
+    });
+  });
+
   it('includes SampleFeature screen in the navigation stack', () => {
     // Given the initial app state
     // When rendering the MainNavigator
@@ -352,15 +552,13 @@ describe('MainNavigator', () => {
     // Then it should contain the SampleFeature screen with correct configuration
     interface ScreenChild {
       name: string;
-      component: { name: string };
+      component: React.ComponentType;
     }
-    const screenProps: ScreenChild[] = container.root.children
-      .filter(
-        (child): child is ReactTestInstance =>
-          typeof child === 'object' &&
-          'type' in child &&
-          'props' in child &&
-          child.type?.toString() === 'Screen',
+    const screenProps: ScreenChild[] = container.root
+      .findAll(
+        (child: ReactTestInstance) =>
+          child.type?.toString?.() === 'Screen' &&
+          typeof child.props?.name === 'string',
       )
       .map((child) => ({
         name: child.props.name,
@@ -372,7 +570,7 @@ describe('MainNavigator', () => {
     );
 
     expect(sampleFeatureScreen).toBeDefined();
-    expect(sampleFeatureScreen?.component.name).toBe('SampleFeatureFlow');
+    expect(sampleFeatureScreen?.component).toBe(SampleFeature);
   });
 
   it('includes FeatureFlagOverride screen when METAMASK_ENVIRONMENT is not production', () => {
@@ -389,13 +587,11 @@ describe('MainNavigator', () => {
       name: string;
       component: { name: string };
     }
-    const screenProps: ScreenChild[] = container.root.children
-      .filter(
-        (child): child is ReactTestInstance =>
-          typeof child === 'object' &&
-          'type' in child &&
-          'props' in child &&
-          child.type?.toString() === 'Screen',
+    const screenProps: ScreenChild[] = container.root
+      .findAll(
+        (child: ReactTestInstance) =>
+          child.type?.toString?.() === 'Screen' &&
+          typeof child.props?.name === 'string',
       )
       .map((child) => ({
         name: child.props.name,
@@ -425,13 +621,11 @@ describe('MainNavigator', () => {
           contentStyle?: unknown;
         };
       }
-      return container.root.children
-        .filter(
-          (child): child is ReactTestInstance =>
-            typeof child === 'object' &&
-            'type' in child &&
-            'props' in child &&
-            child.type?.toString() === 'Screen',
+      return container.root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
         )
         .map((child) => ({
           name: child.props.name,
@@ -439,6 +633,28 @@ describe('MainNavigator', () => {
           options: child.props.options,
         })) as ScreenChild[];
     };
+
+    const groupedScreenNames = (group?: ReactTestInstance): string[] =>
+      (group?.children ?? [])
+        .filter(
+          (child): child is ReactTestInstance =>
+            typeof child === 'object' &&
+            'props' in child &&
+            typeof child.props?.name === 'string',
+        )
+        .map((child) => child.props.name as string);
+
+    // Look the Group up by a route it owns rather than by position, so adding
+    // another Group to MainNavigator does not silently repoint these tests.
+    const findGroupContaining = (
+      root: ReactTestInstance,
+      screenName: string,
+    ): ReactTestInstance | undefined =>
+      root
+        .findAll(
+          (node: ReactTestInstance) => node.type?.toString?.() === 'Group',
+        )
+        .find((group) => groupedScreenNames(group).includes(screenName));
 
     it('includes Home screen', () => {
       const container = renderWithProvider(<MainNavigator />, {
@@ -488,6 +704,249 @@ describe('MainNavigator', () => {
       );
 
       expect(cashTokensScreen).toBeDefined();
+    });
+
+    it('shares slide-from-right options on one Group for wallet full views', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.WALLET.TOKENS_FULL_VIEW);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.WALLET.TOKENS_FULL_VIEW,
+        Routes.WALLET.DEFI_FULL_VIEW,
+        Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+        Routes.WALLET.WATCHLIST_FULL_VIEW,
+      ]);
+    });
+
+    it('shares slide-from-right options on one Group for the explore pushes', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.EXPLORE_SEARCH);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.EXPLORE_SEARCH,
+        Routes.SITES_FULL_VIEW,
+        Routes.WHATS_HAPPENING_DETAIL,
+      ]);
+    });
+
+    it('shares slide-from-right options on one Group for the nft screens', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, 'NftDetails');
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        'NftDetails',
+        'NftDetailsFullImage',
+        Routes.WALLET.NFTS_FULL_VIEW,
+      ]);
+    });
+
+    it('shares slide-from-right options on one Group for the reward benefits', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.REWARD_BENEFIT_FULL_VIEW);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.REWARD_BENEFIT_FULL_VIEW,
+        Routes.REWARD_BENEFITS_FULL_VIEW,
+      ]);
+    });
+
+    it('keeps the reward benefits out of the nft group', () => {
+      // The two clusters are adjacent and share options, but they are separate
+      // products and must not collapse into one group.
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const nftGroup = findGroupContaining(root, 'NftDetails');
+
+      expect(groupedScreenNames(nftGroup)).not.toContain(
+        Routes.REWARD_BENEFIT_FULL_VIEW,
+      );
+    });
+
+    it('keeps BROWSER.HOME out of the explore group', () => {
+      // BROWSER.HOME is also registered as a hidden tab in HomeTabs, so it is a
+      // duplicate route name rather than an Explore sub-page.
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.BROWSER.HOME);
+
+      expect(group).toBeUndefined();
+    });
+
+    it('shares slide-from-right options on one Group for Social V1 screens', () => {
+      const stateWithSocialV1 = {
+        ...initialRootState,
+        engine: {
+          ...initialRootState.engine,
+          backgroundState: {
+            ...initialRootState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...initialRootState.engine.backgroundState
+                  .RemoteFeatureFlagController.remoteFeatureFlags,
+                aiSocialLeaderboardEnabled: {
+                  enabled: true,
+                  minimumVersion: '0.0.1',
+                },
+                socialAiTSA1122AbtestSocialBundleV1: 'treatment',
+              },
+            },
+          },
+        },
+      };
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: stateWithSocialV1,
+      });
+
+      const group = findGroupContaining(root, Routes.SOCIAL.V1);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.SOCIAL.V1,
+        Routes.SOCIAL.POST_COMPOSER,
+        Routes.SOCIAL.MY_PROFILE,
+        Routes.SOCIAL.V1_PROFILE,
+        Routes.SOCIAL.FOLLOW_CONNECTIONS,
+        Routes.SOCIAL.PROFILES_TO_FOLLOW,
+        Routes.SOCIAL.MANAGE_PROFILE,
+        Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
+        Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
+        Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
+        Routes.SOCIAL.PROFILE_ONBOARDING,
+      ]);
+      const v1Screen = (group?.children ?? []).find(
+        (child): child is ReactTestInstance =>
+          typeof child === 'object' &&
+          'props' in child &&
+          child.props?.name === Routes.SOCIAL.V1,
+      );
+      expect(v1Screen?.props?.options?.freezeOnBlur).toBe(false);
+      expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.V0);
+      expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.PROFILE);
+    });
+
+    it('shares slide-from-right options on one Group for Social leaderboard screens', () => {
+      const stateWithSocialLeaderboard = {
+        ...initialRootState,
+        engine: {
+          ...initialRootState.engine,
+          backgroundState: {
+            ...initialRootState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...initialRootState.engine.backgroundState
+                  .RemoteFeatureFlagController.remoteFeatureFlags,
+                aiSocialLeaderboardEnabled: {
+                  enabled: true,
+                  minimumVersion: '0.0.1',
+                },
+                socialAiTSA1122AbtestSocialBundleV1: 'control',
+              },
+            },
+          },
+        },
+      };
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: stateWithSocialLeaderboard,
+      });
+
+      const group = findGroupContaining(root, Routes.SOCIAL.PROFILE);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.SOCIAL.PROFILE,
+        Routes.SOCIAL.POSITION,
+        Routes.SOCIAL.ONBOARDING,
+      ]);
+      expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.V0);
+      expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.V1);
+      expect(groupedScreenNames(group)).not.toContain(
+        Routes.SOCIAL.TRADING_SIGNALS_SETUP,
+      );
+    });
+
+    it('shares slide-from-right options on one Group for Money push screens', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.MONEY.ROOT);
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.MONEY.ROOT,
+        Routes.MONEY.CONFIRMATIONS_ROOT,
+        Routes.MONEY.POTENTIAL_EARNINGS,
+        Routes.MONEY.TRANSACTION_DETAILS,
+        Routes.MONEY.CARD_TRANSACTION_DETAILS,
+      ]);
+      expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.ONBOARDING);
+      expect(groupedScreenNames(group)).not.toContain(
+        Routes.MONEY.FIRST_TIME_DEPOSIT,
+      );
+      expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.MODALS.ROOT);
+      expect(groupedScreenNames(group)).not.toContain(Routes.TRANSACTIONS_VIEW);
+    });
+
+    it('registers one feature-level VBA onboarding route', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const vbaScreen = getScreenProps(container).find(
+        ({ name }) => name === Routes.RAMP.VBA_ONBOARDING,
+      );
+
+      expect(vbaScreen).toEqual(
+        expect.objectContaining({
+          name: Routes.RAMP.VBA_ONBOARDING,
+          options: expect.objectContaining({
+            headerShown: false,
+          }),
+        }),
+      );
+    });
+
+    it('shares slide-from-right options on one Group for trending and RWA full views', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(
+        root,
+        Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+      );
+
+      expect(group?.props?.screenOptions).toEqual(slideFromRightNativeOptions);
+      expect(groupedScreenNames(group)).toEqual([
+        Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+        Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+      ]);
     });
 
     it('includes Bridge routes', () => {
@@ -616,13 +1075,11 @@ describe('MainNavigator', () => {
         name: string;
         component: { name: string };
       }
-      return container.root.children
-        .filter(
-          (child): child is ReactTestInstance =>
-            typeof child === 'object' &&
-            'type' in child &&
-            'props' in child &&
-            child.type?.toString() === 'Screen',
+      return container.root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
         )
         .map((child) => ({
           name: child.props.name,
@@ -864,13 +1321,11 @@ describe('MainNavigator', () => {
           contentStyle?: unknown;
         };
       }
-      return container.root.children
-        .filter(
-          (child): child is ReactTestInstance =>
-            typeof child === 'object' &&
-            'type' in child &&
-            'props' in child &&
-            child.type?.toString() === 'Screen',
+      return container.root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
         )
         .map((child) => ({
           name: child.props.name,
@@ -1004,7 +1459,6 @@ describe('MainNavigator', () => {
       const screen = screenProps?.find((s) => s?.name === 'ConfirmAddAsset');
 
       expect(screen).toBeDefined();
-      expect(screen?.options?.headerShown).toBe(false);
       expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
@@ -1089,7 +1543,6 @@ describe('MainNavigator', () => {
       );
 
       expect(screen).toBeDefined();
-      expect(screen?.options?.headerShown).toBe(false);
       expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
@@ -1202,8 +1655,6 @@ describe('MainNavigator', () => {
       );
 
       expect(screen).toBeDefined();
-      expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
     it('includes Benefit detail full view route', () => {
@@ -1217,12 +1668,10 @@ describe('MainNavigator', () => {
       );
 
       expect(screen).toBeDefined();
-      expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('ios_from_right');
     });
   });
 
-  it('includes SocialTradersView screen when Social Leaderboard remote flag is enabled', () => {
+  it('includes Social screens when Social Leaderboard remote flag is enabled', () => {
     const stateWithSocialLeaderboard = {
       ...initialRootState,
       engine: {
@@ -1239,6 +1688,7 @@ describe('MainNavigator', () => {
                 enabled: true,
                 minimumVersion: '0.0.1',
               },
+              socialAiTSA1122AbtestSocialBundleV1: 'treatment',
             },
           },
         },
@@ -1253,13 +1703,11 @@ describe('MainNavigator', () => {
       name: string;
       component: { name: string };
     }
-    const screenProps: ScreenChild[] = container.root.children
-      .filter(
-        (child): child is ReactTestInstance =>
-          typeof child === 'object' &&
-          'type' in child &&
-          'props' in child &&
-          child.type?.toString() === 'Screen',
+    const screenProps: ScreenChild[] = container.root
+      .findAll(
+        (child: ReactTestInstance) =>
+          child.type?.toString?.() === 'Screen' &&
+          typeof child.props?.name === 'string',
       )
       .map((child) => ({
         name: child.props.name,
@@ -1267,13 +1715,321 @@ describe('MainNavigator', () => {
       }));
 
     const topTradersScreen = screenProps?.find(
-      (screen) => screen?.name === Routes.SOCIAL_LEADERBOARD.VIEW,
+      (screen) => screen?.name === Routes.SOCIAL.V0,
     );
 
     expect(topTradersScreen).toBeDefined();
-    expect(topTradersScreen?.component.name).toBe('SocialTradersView');
+    expect(topTradersScreen?.component.name).toBe('SocialV0View');
+
+    const bundleV1Screen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.V1,
+    );
+
+    expect(bundleV1Screen).toBeDefined();
+    expect(bundleV1Screen?.component.name).toBe('SocialV1View');
+
+    const myProfileScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.MY_PROFILE,
+    );
+
+    expect(myProfileScreen).toBeDefined();
+    expect(myProfileScreen?.component.name).toBe('MyProfileView');
+
+    const v1ProfileScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.V1_PROFILE,
+    );
+
+    expect(v1ProfileScreen).toBeDefined();
+    expect(v1ProfileScreen?.component.name).toBe('MyProfileView');
+
+    const followConnectionsScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.FOLLOW_CONNECTIONS,
+    );
+
+    expect(followConnectionsScreen).toBeDefined();
+    expect(followConnectionsScreen?.component.name).toBe(
+      'FollowConnectionsView',
+    );
+
+    const profilesToFollowScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.PROFILES_TO_FOLLOW,
+    );
+
+    expect(profilesToFollowScreen).toBeDefined();
+    expect(profilesToFollowScreen?.component.name).toBe('ProfilesToFollowView');
+
+    const postComposerScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.POST_COMPOSER,
+    );
+
+    expect(postComposerScreen).toBeDefined();
+    expect(postComposerScreen?.component.name).toBe('SocialPostComposerView');
+
+    const manageProfileScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.MANAGE_PROFILE,
+    );
+
+    expect(manageProfileScreen).toBeDefined();
+    expect(manageProfileScreen?.component.name).toBe('ManageProfileView');
   });
 
+  it('omits Social V1 screens for the control variant', () => {
+    const stateWithSocialV1Control = {
+      ...initialRootState,
+      engine: {
+        ...initialRootState.engine,
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            ...initialRootState.engine.backgroundState
+              .RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController.remoteFeatureFlags,
+              aiSocialLeaderboardEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.1',
+              },
+              socialAiTSA1122AbtestSocialBundleV1: 'control',
+            },
+          },
+        },
+      },
+    };
+
+    const { root } = renderWithProvider(<MainNavigator />, {
+      state: stateWithSocialV1Control,
+    });
+
+    const screenNames = root
+      .findAll(
+        (child: ReactTestInstance) =>
+          child.type?.toString?.() === 'Screen' &&
+          typeof child.props?.name === 'string',
+      )
+      .map((child) => child.props.name);
+
+    expect(screenNames).not.toContain(Routes.SOCIAL.V1);
+    expect(screenNames).not.toContain(Routes.SOCIAL.POST_COMPOSER);
+    expect(screenNames).not.toContain(Routes.SOCIAL.MY_PROFILE);
+    expect(screenNames).not.toContain(Routes.SOCIAL.V1_PROFILE);
+    expect(screenNames).not.toContain(Routes.SOCIAL.FOLLOW_CONNECTIONS);
+    expect(screenNames).not.toContain(Routes.SOCIAL.PROFILES_TO_FOLLOW);
+    expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE);
+    expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR);
+    expect(screenNames).not.toContain(
+      Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
+    );
+    expect(screenNames).not.toContain(
+      Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
+    );
+    expect(screenNames).not.toContain(Routes.SOCIAL.PROFILE_ONBOARDING);
+    expect(screenNames).toContain(Routes.SOCIAL.V0);
+  });
+
+  describe('Rewards route placement across the Header & NavBar arms', () => {
+    const stateForArm = (
+      headerNavBarVariant?: string,
+      socialV1Variant?: string,
+    ) => ({
+      ...initialRootState,
+      engine: {
+        ...initialRootState.engine,
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            ...initialRootState.engine.backgroundState
+              .RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController.remoteFeatureFlags,
+              aiSocialLeaderboardEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.1',
+              },
+              ...(headerNavBarVariant
+                ? { homeTMCU1276AbtestHeaderNavBar: headerNavBarVariant }
+                : {}),
+              ...(socialV1Variant
+                ? { socialAiTSA1122AbtestSocialBundleV1: socialV1Variant }
+                : {}),
+            },
+          },
+        },
+      },
+    });
+
+    const rootStackScreenNames = (container: {
+      root: ReactTestInstance;
+    }): string[] =>
+      container.root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
+        )
+        .map((child) => child.props.name);
+
+    const renderHomeTabs = (
+      container: { root: ReactTestInstance },
+      state: ReturnType<typeof stateForArm>,
+    ): ReactTestInstance => {
+      const HomeTabs = container.root.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'Screen' && node.props?.name === 'Home',
+      )[0]?.props?.component;
+      return renderWithProvider(<HomeTabs route={{ params: {} }} />, { state })
+        .root;
+    };
+
+    const homeTabNames = (
+      container: { root: ReactTestInstance },
+      state: ReturnType<typeof stateForArm>,
+    ): string[] =>
+      renderHomeTabs(container, state)
+        .findAll(
+          (node: ReactTestInstance) => node.type?.toString?.() === 'TabScreen',
+        )
+        .map((node) => node.props.name);
+
+    const renderedTabBar = (
+      root: ReactTestInstance,
+    ): React.ReactElement<{ trailingAction?: string }> =>
+      root
+        .findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabNavigator',
+        )[0]
+        ?.props?.tabBar({
+          state: { routes: [{ name: Routes.WALLET.HOME }], index: 0 },
+          descriptors: {},
+          navigation: {},
+        });
+
+    it.each(['searchFocused', 'tradeFocused'])(
+      'pushes Rewards onto the root stack in %s, where it is no longer a tab',
+      (arm) => {
+        const state = stateForArm(arm);
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
+
+        const tabs = homeTabNames(container, state);
+        expect(tabs).toContain(Routes.SOCIAL.TAB);
+        expect(tabs).not.toContain(Routes.REWARDS_VIEW);
+        expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
+      },
+    );
+
+    it('keeps the root-stack fallback in control, where the nearer tab wins', () => {
+      const state = stateForArm('control');
+      const container = renderWithProvider(<MainNavigator />, { state });
+
+      // Registered in both arms so the route always resolves. Control also has
+      // the tab, and the tab navigator is nearer the caller, so it takes it.
+      expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
+
+      const tabs = homeTabNames(container, state);
+      expect(tabs).toContain(Routes.REWARDS_VIEW);
+      expect(tabs).toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
+      expect(tabs).not.toContain(Routes.SOCIAL.TAB);
+    });
+
+    it.each([
+      ['searchFocused', 'search'],
+      ['tradeFocused', 'trade'],
+    ])(
+      'hands the %s arm trailing action to the floating bar',
+      (arm, trailingAction) => {
+        const state = stateForArm(arm);
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        expect(
+          renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
+        ).toBe(trailingAction);
+      },
+    );
+
+    const stateForInterim = (headerNavBarVariant: string) => {
+      const state = stateForArm(headerNavBarVariant);
+      const { RemoteFeatureFlagController } = state.engine.backgroundState;
+      return {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...RemoteFeatureFlagController.remoteFeatureFlags,
+                homeInterimHeaderNavBar: {
+                  enabled: true,
+                  minimumVersion: '0.0.1',
+                },
+              },
+            },
+          },
+        },
+      };
+    };
+
+    it.each(['control', 'searchFocused'])(
+      'keeps Rewards as a tab with no Social tab when the interim flag is on over %s',
+      (arm) => {
+        const state = stateForInterim(arm);
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        const tabs = homeTabNames(container, state);
+        expect(tabs).toContain(Routes.REWARDS_VIEW);
+        expect(tabs).not.toContain(Routes.SOCIAL.TAB);
+        expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
+      },
+    );
+
+    it('hands the trade button to the floating bar when the interim flag is on', () => {
+      const state = stateForInterim('control');
+      const container = renderWithProvider(<MainNavigator />, { state });
+
+      expect(
+        renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
+      ).toBe('trade');
+    });
+
+    const socialTabComponentName = (
+      container: { root: ReactTestInstance },
+      state: ReturnType<typeof stateForArm>,
+    ): string | undefined =>
+      renderHomeTabs(container, state).findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'TabScreen' &&
+          node.props?.name === Routes.SOCIAL.TAB,
+      )[0]?.props?.component?.name;
+
+    it.each(['searchFocused', 'tradeFocused'])(
+      'mounts Social V1 as the Social tab in %s when TSA-1122 is treatment',
+      (arm) => {
+        const state = stateForArm(arm, 'treatment');
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        const componentName = socialTabComponentName(container, state);
+
+        expect(componentName).toBe('SocialV1View');
+      },
+    );
+
+    it.each(['searchFocused', 'tradeFocused'])(
+      'mounts Social V0 as the Social tab in %s when TSA-1122 is control',
+      (arm) => {
+        const state = stateForArm(arm, 'control');
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        const componentName = socialTabComponentName(container, state);
+
+        expect(componentName).toBe('SocialV0View');
+      },
+    );
+  });
   describe('Inner navigator component rendering', () => {
     const getScreenComponent = (
       root: ReactTestInstance,
@@ -1328,20 +2084,34 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('renders AddBookmarkView navigator', () => {
+      it('points the AddBookmarkView route straight at the screen', () => {
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-        const Component = getScreenComponent(root, 'AddBookmarkView');
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+        expect(getScreenComponent(root, 'AddBookmarkView')).toBe(AddBookmark);
       });
 
-      it('renders OfflineModeView navigator', () => {
+      it('points the OfflineModeView route straight at the screen', () => {
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-        const Component = getScreenComponent(root, 'OfflineModeView');
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+        expect(getScreenComponent(root, 'OfflineModeView')).toBe(OfflineMode);
+      });
+
+      it('keeps the offline navbar options on the OfflineModeView route', () => {
+        // The deleted wrapper applied these per-screen; losing them in the move
+        // would draw a native header over the offline screen.
+        const { root } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+
+        const screen = root.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'Screen' &&
+            node.props?.name === 'OfflineModeView',
+        )[0];
+
+        expect(screen?.props?.options).toBe(OfflineMode.navigationOptions);
       });
 
       it('renders NotificationsModeView navigator', () => {
@@ -1352,20 +2122,20 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('renders NftDetailsModeView navigator', () => {
+      it('points the NftDetails route straight at the screen', () => {
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-        const Component = getScreenComponent(root, 'NftDetails');
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+        expect(getScreenComponent(root, 'NftDetails')).toBe(NftDetails);
       });
 
-      it('renders NftDetailsFullImageModeView navigator', () => {
+      it('points the NftDetailsFullImage route straight at the screen', () => {
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-        const Component = getScreenComponent(root, 'NftDetailsFullImage');
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+        expect(getScreenComponent(root, 'NftDetailsFullImage')).toBe(
+          NftDetailsFullImage,
+        );
       });
 
       it('renders SetPasswordFlow navigator', () => {
@@ -1376,7 +2146,7 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('renders AssetNavigator', () => {
+      it('renders AssetStackFlow under the Asset route', () => {
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
@@ -1404,22 +2174,28 @@ describe('MainNavigator', () => {
         );
       });
 
-      it('hides the header for the root REWARDS_FLOW route', () => {
-        // The flow renders its own headers, so the outer root-stack screen must
-        // not draw one on top.
+      it('inherits the hidden header for the root REWARDS_FLOW route', () => {
+        // The flow renders its own headers. MainNavigator already defaults
+        // headerShown to false, so this screen does not need to repeat it.
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
 
+        const mainNavigator = root.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'Navigator' &&
+            node.props?.initialRouteName === 'Home',
+        )[0];
         const rewardsFlowScreen = root.findAll(
           (node: ReactTestInstance) =>
             node.type?.toString?.() === 'Screen' &&
             node.props?.name === Routes.REWARDS_FLOW,
         )[0];
 
-        expect(rewardsFlowScreen?.props?.options).toEqual(
+        expect(mainNavigator?.props?.screenOptions).toEqual(
           expect.objectContaining({ headerShown: false }),
         );
+        expect(rewardsFlowScreen?.props?.options).toBeUndefined();
       });
     });
 
@@ -1444,13 +2220,10 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('renders ExploreHome', () => {
-        const Component = getScreenComponent(
-          homeTabsRoot,
-          Routes.TRENDING_VIEW,
-          'TabScreen',
-        );
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+      it('points the TrendingView tab straight at the Explore feed', () => {
+        expect(
+          getScreenComponent(homeTabsRoot, Routes.TRENDING_VIEW, 'TabScreen'),
+        ).toBe(ExploreFeed);
       });
 
       it('renders BrowserFlow', () => {
@@ -1582,6 +2355,9 @@ describe('MainNavigator', () => {
           Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
         );
         expect(screenNames).not.toContain(
+          Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+        );
+        expect(screenNames).not.toContain(
           Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
         );
         expect(screenNames).not.toContain(
@@ -1615,12 +2391,51 @@ describe('MainNavigator', () => {
         expect(screenNames).toEqual(
           expect.arrayContaining([
             Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+            Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
             Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
             Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
             Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
             Routes.MODAL.REWARDS_SELECT_SHEET,
           ]),
         );
+      });
+
+      it('shares overlay options on one Group for the rewards sheets', () => {
+        const { root } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const screenNamesIn = (group?: ReactTestInstance): string[] =>
+          (group?.children ?? [])
+            .filter(
+              (child): child is ReactTestInstance =>
+                typeof child === 'object' &&
+                'props' in child &&
+                typeof child.props?.name === 'string',
+            )
+            .map((child) => child.props.name as string);
+        // Look the Group up by a route it owns rather than by position, so
+        // adding another Group to MainNavigator does not repoint this test.
+        const group = root
+          .findAll(
+            (node: ReactTestInstance) => node.type?.toString?.() === 'Group',
+          )
+          .find((candidate) =>
+            screenNamesIn(candidate).includes(
+              Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+            ),
+          );
+
+        expect(group?.props?.screenOptions).toEqual(
+          transparentModalStackOptions,
+        );
+        expect(screenNamesIn(group)).toEqual([
+          Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+          Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+          Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
+          Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
+          Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
+          Routes.MODAL.REWARDS_SELECT_SHEET,
+        ]);
       });
     });
 
@@ -1667,18 +2482,19 @@ describe('MainNavigator', () => {
         expect(RevealPrivateCredential).toBeTruthy();
       });
 
-      it('renders AssetStackFlow inside AssetNavigator', () => {
+      it('registers the asset detail screens directly under the Asset route', () => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-        const AssetNavigator = getScreenComponent(mainRoot, 'Asset');
-        const { root: assetNavRoot } = renderInner(AssetNavigator);
+        // AssetStackFlow sits on the Asset route itself. There is no
+        // intermediate AssetStackFlow route to hop through.
+        const AssetStackFlow = getScreenComponent(mainRoot, 'Asset');
+        const { root: assetStackRoot } = renderInner(AssetStackFlow);
 
-        const AssetStackFlow = getScreenComponent(
-          assetNavRoot,
-          'AssetStackFlow',
-        );
-        expect(renderInner(AssetStackFlow).toJSON()).toBeTruthy();
+        expect(getScreenComponent(assetStackRoot, 'Asset')).toBeTruthy();
+        expect(
+          getScreenComponent(assetStackRoot, Routes.SECURITY_TRUST),
+        ).toBeTruthy();
       });
 
       it('renders SnapsSettingsStack inside SettingsFlow', () => {
@@ -1726,21 +2542,36 @@ describe('MainNavigator', () => {
           .map((child) => child.props.name as string);
       };
 
-      it('includes Money route when feature flag is enabled', () => {
-        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+      it('includes Money route when account is visible', () => {
+        mockSelectIsMoneyAccountVisible.mockReturnValue(true);
 
         const tabScreenNames = getHomeTabsScreenNames();
 
         expect(tabScreenNames).toContain(Routes.MONEY.ROOT);
-        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
       });
 
-      it('excludes Money route when feature flag is disabled', () => {
-        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+      it('excludes Money route when account is not visible', () => {
+        mockSelectIsMoneyAccountVisible.mockReturnValue(false);
 
         const tabScreenNames = getHomeTabsScreenNames();
 
         expect(tabScreenNames).not.toContain(Routes.MONEY.ROOT);
+      });
+
+      it('gives the Money slot to Activity in regions without Money', () => {
+        mockSelectIsMoneyAccountVisible.mockReturnValue(false);
+
+        const tabScreenNames = getHomeTabsScreenNames();
+
+        expect(tabScreenNames).toContain(Routes.TRANSACTIONS_VIEW);
+      });
+
+      it('keeps Activity out of the tab set when Money is available', () => {
+        mockSelectIsMoneyAccountVisible.mockReturnValue(true);
+
+        const tabScreenNames = getHomeTabsScreenNames();
+
+        expect(tabScreenNames).not.toContain(Routes.TRANSACTIONS_VIEW);
       });
     });
   });

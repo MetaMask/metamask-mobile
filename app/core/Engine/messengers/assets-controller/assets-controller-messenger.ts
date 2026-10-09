@@ -13,8 +13,10 @@ import { RootMessenger } from '../../types';
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   // core#9388: RPC balance refresh on account-group switch / tree updates
   'AccountTreeController:selectedAccountGroupChange',
-  // core#9478: use exported :stateChange (not local :stateChanged aliases)
-  'AccountTreeController:stateChange',
+  // core#9892: start asset tracking only after the account tree is fully built
+  'AccountTreeController:initialized',
+  // Stop asset tracking when the account tree is cleared
+  'AccountTreeController:uninitialized',
   // core#9388: RPC balance refresh when enabling custom RPC networks (e.g. DXC)
   // StakedBalanceDataSource also listens to this
   'NetworkEnablementController:stateChange',
@@ -74,6 +76,9 @@ export function getAssetsControllerMessenger(
       'PermissionController:getPermissions',
       'PhishingController:bulkScanTokens',
       'RemoteFeatureFlagController:getState',
+      'AccountTreeController:isInitialized',
+      'ClientController:getState',
+      'KeyringController:isUnlocked',
     ],
     events: [...ASSETS_CONTROLLER_DELEGATED_EVENTS],
     messenger,

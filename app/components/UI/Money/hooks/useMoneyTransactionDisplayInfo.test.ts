@@ -65,6 +65,7 @@ function makeState(
     tokens?: TransactionMeta[];
   } = {},
 ): ProviderValues['state'] {
+  const ethRate = overrides.currencyRates?.ETH;
   return {
     engine: {
       backgroundState: {
@@ -77,6 +78,34 @@ function makeState(
         },
         TokensController: {
           allTokens: {},
+        },
+        AssetsController: {
+          selectedCurrency: overrides.currentCurrency ?? 'usd',
+          assetsInfo: ethRate
+            ? {
+                'eip155:1/slip44:60': {
+                  type: 'native',
+                  symbol: 'ETH',
+                  name: 'Ether',
+                  decimals: 18,
+                },
+              }
+            : {},
+          assetsPrice: ethRate
+            ? {
+                'eip155:1/slip44:60': {
+                  assetPriceType: 'fungible',
+                  price: ethRate.conversionRate,
+                  usdPrice: ethRate.usdConversionRate,
+                  lastUpdated: 1700000000000,
+                },
+              }
+            : {},
+          assetsBalance: {},
+          customAssets: {},
+        },
+        AccountsController: {
+          internalAccounts: { accounts: {}, selectedAccount: '' },
         },
         NetworkController: {
           networkConfigurationsByChainId: {
@@ -677,6 +706,7 @@ describe('useMoneyTransactionDisplayInfo — description', () => {
     const tx = makeTx(TransactionType.moneyAccountDeposit, {
       metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
     });
+    const usdcAssetId = `eip155:1/erc20:${USDC_ADDRESS.toLowerCase()}`;
     const stateWithUsdc = {
       engine: {
         backgroundState: {
@@ -694,6 +724,34 @@ describe('useMoneyTransactionDisplayInfo — description', () => {
                   },
                 ],
               },
+            },
+          },
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              [usdcAssetId]: {
+                type: 'erc20',
+                symbol: 'USDC',
+                name: 'USD Coin',
+                decimals: 6,
+              },
+            },
+            assetsBalance: {
+              'wallet-1': { [usdcAssetId]: { amount: '1' } },
+            },
+            customAssets: {},
+            assetsPrice: {},
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                'wallet-1': {
+                  id: 'wallet-1',
+                  address: '0xSomeWallet',
+                  type: 'eip155:eoa',
+                },
+              },
+              selectedAccount: 'wallet-1',
             },
           },
           NetworkController: {
@@ -737,6 +795,7 @@ const musedTx: TransactionMeta = {
 } as unknown as TransactionMeta;
 
 function musedMarketState(tokenPrice: number) {
+  const musdAssetId = `eip155:143/erc20:${MUSD_TOKEN_ADDRESS.toLowerCase()}`;
   return {
     engine: {
       backgroundState: {
@@ -758,6 +817,39 @@ function musedMarketState(tokenPrice: number) {
           },
         },
         TokensController: { allTokens: {} },
+        AssetsController: {
+          selectedCurrency: 'usd',
+          assetsInfo: {
+            'eip155:143/slip44:60': {
+              type: 'native',
+              symbol: 'ETH',
+              name: 'Ether',
+              decimals: 18,
+            },
+            [musdAssetId]: {
+              type: 'erc20',
+              symbol: 'mUSD',
+              name: 'MetaMask USD',
+              decimals: 6,
+            },
+          },
+          assetsPrice: {
+            'eip155:143/slip44:60': {
+              assetPriceType: 'fungible',
+              price: 3000,
+              usdPrice: 3000,
+              lastUpdated: 1700000000000,
+            },
+            [musdAssetId]: {
+              assetPriceType: 'fungible',
+              price: tokenPrice * 3000,
+              usdPrice: tokenPrice * 3000,
+              lastUpdated: 1700000000000,
+            },
+          },
+          assetsBalance: {},
+          customAssets: {},
+        },
         NetworkController: {
           networkConfigurationsByChainId: {
             [MUSD_CHAIN_ID]: { nativeCurrency: 'ETH' },
@@ -803,6 +895,27 @@ describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
             },
           },
           TokensController: { allTokens: {} },
+          AssetsController: {
+            selectedCurrency: 'eur',
+            assetsInfo: {
+              'eip155:143/slip44:60': {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ether',
+                decimals: 18,
+              },
+            },
+            assetsPrice: {
+              'eip155:143/slip44:60': {
+                assetPriceType: 'fungible',
+                price: 2300,
+                usdPrice: 2500,
+                lastUpdated: 1700000000000,
+              },
+            },
+            assetsBalance: {},
+            customAssets: {},
+          },
           NetworkController: {
             networkConfigurationsByChainId: {
               [MUSD_CHAIN_ID]: { nativeCurrency: 'ETH' },

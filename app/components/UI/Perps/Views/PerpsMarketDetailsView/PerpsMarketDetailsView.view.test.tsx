@@ -25,20 +25,29 @@ import {
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsMarketDetailsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
-import { getModifyActionLabels } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import {
+  createPerpsControllerStateHarness,
+  getModifyActionLabels,
+} from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
+import EngineService from '../../../../../core/EngineService';
 import MarketInsightsView from '../../../MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { analytics } from '../../../../../util/analytics/analytics';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
+  PerpsProMarketViewSelectorsIDs,
+  PerpsModeToggleSelectorsIDs,
   PerpsBottomSheetTooltipSelectorsIDs,
   PerpsPositionCardSelectorsIDs,
   PerpsTutorialSelectorsIDs,
-  getPerpsCandlePeriodSelector,
-  getPerpsCandlePeriodBottomSheetSelector,
 } from '../../Perps.testIds';
+import {
+  getCandlePeriodSelectorSelectors as getPerpsCandlePeriodSelector,
+  getCandlePeriodBottomSheetSelectors as getPerpsCandlePeriodBottomSheetSelector,
+} from '../../../Charts/CandlePeriodSelector';
 import { strings } from '../../../../../../locales/i18n';
 
 const CANDLE_SELECTOR_BASE =
@@ -49,7 +58,7 @@ const MORE_CANDLE_SHEET_BASE =
 function renderEligibleNoPositionPerpsDetails(
   params?: Partial<Parameters<typeof renderPerpsMarketDetailsView>[0]>,
 ) {
-  renderPerpsMarketDetailsView({
+  return renderPerpsMarketDetailsView({
     streamOverrides: { positions: [] },
     overrides: {
       engine: {
@@ -484,6 +493,21 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('Header and chart actions', () => {
+    const cleanupCallbacks: (() => void)[] = [];
+
+    afterEach(() => {
+      while (cleanupCallbacks.length > 0) {
+        cleanupCallbacks.pop()?.();
+      }
+
+      const toggleWatchlistMarket = Engine.context.PerpsController
+        .toggleWatchlistMarket as jest.Mock;
+      const getWatchlistMarkets = Engine.context.PerpsController
+        .getWatchlistMarkets as jest.Mock;
+      toggleWatchlistMarket.mockReset().mockResolvedValue(undefined);
+      getWatchlistMarkets.mockReset().mockReturnValue([]);
+    });
+
     it('renders back button and fullscreen chart button', async () => {
       renderEligibleNoPositionPerpsDetails();
 
@@ -509,6 +533,271 @@ describe('PerpsMarketDetailsView', () => {
       ).toHaveTextContent('ETH-USD perp');
     });
 
+    it('opens the market list when the header identity is pressed', async () => {
+      renderPerpsMarketDetailsView({
+        streamOverrides: { positions: [] },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+            },
+          },
+        },
+        extraRoutes: [{ name: Routes.PERPS.MARKET_LIST }],
+      });
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON,
+        ),
+      );
+
+      expect(
+        await screen.findByTestId(`route-${Routes.PERPS.MARKET_LIST}`),
+      ).toBeOnTheScreen();
+    });
+
+    it('toggles watchlist when the header favorite button is pressed', async () => {
+      const toggleWatchlistMarket = Engine.context.PerpsController
+        .toggleWatchlistMarket as jest.Mock;
+      const getWatchlistMarkets = Engine.context.PerpsController
+        .getWatchlistMarkets as jest.Mock;
+      getWatchlistMarkets.mockReturnValue([]);
+
+      renderEligibleNoPositionPerpsDetails();
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(toggleWatchlistMarket).toHaveBeenCalledWith('ETH');
+      });
+    });
+
+    it('switches from removing to adding after the watchlist state updates', async () => {
+      let watchlist = ['ETH'];
+      const toggleStates: boolean[] = [];
+      const persistResolvers: (() => void)[] = [];
+      const persistPromises: Promise<void>[] = [];
+      const toggleWatchlistMarket = Engine.context.PerpsController
+        .toggleWatchlistMarket as jest.Mock;
+      const getWatchlistMarkets = Engine.context.PerpsController
+        .getWatchlistMarkets as jest.Mock;
+      getWatchlistMarkets.mockImplementation(() => watchlist);
+
+      const { store } = renderEligibleNoPositionPerpsDetails({
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                isEligible: true,
+                isTestnet: false,
+                watchlistMarkets: {
+                  testnet: [],
+                  mainnet: ['ETH'],
+                },
+              },
+            },
+          },
+        },
+      });
+      const stateHarness = createPerpsControllerStateHarness(store);
+      cleanupCallbacks.push(stateHarness.cleanup);
+      const flushStateSpy = jest
+        .spyOn(EngineService, 'flushState')
+        .mockImplementation(stateHarness.flush);
+      cleanupCallbacks.push(() => flushStateSpy.mockRestore());
+
+      toggleWatchlistMarket.mockImplementation((symbol: string) => {
+        toggleStates.push(watchlist.includes(symbol));
+        watchlist = watchlist.includes(symbol)
+          ? watchlist.filter((marketSymbol) => marketSymbol !== symbol)
+          : [...watchlist, symbol];
+
+        stateHarness.stage({
+          isTestnet: false,
+          watchlistMarkets: {
+            testnet: [],
+            mainnet: watchlist,
+          },
+        });
+
+        const persistPromise = new Promise<void>((resolve) => {
+          persistResolvers.push(resolve);
+        });
+        persistPromises.push(persistPromise);
+        return persistPromise;
+      });
+
+      const favoriteButton = await screen.findByTestId(
+        PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
+      );
+      expect(
+        screen.getByLabelText(
+          strings('perps.market_details.remove_from_watchlist'),
+        ),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(favoriteButton);
+
+      await waitFor(() => {
+        expect(
+          screen.getByLabelText(
+            strings('perps.market_details.add_to_watchlist'),
+          ),
+        ).toBeOnTheScreen();
+      });
+      expect(toggleStates).toEqual([true]);
+
+      fireEvent.press(
+        screen.getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(toggleStates).toEqual([true, false]);
+        expect(
+          screen.getByLabelText(
+            strings('perps.market_details.remove_from_watchlist'),
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      await act(async () => {
+        persistResolvers.forEach((resolve) => resolve());
+        await Promise.all(persistPromises);
+      });
+    });
+
+    it('restores the filled star after watchlist persistence reverts', async () => {
+      let watchlist = ['ETH'];
+      let resolvePersist: () => void = () => undefined;
+      let persistPromise: Promise<void> = Promise.resolve();
+      const toggleWatchlistMarket = Engine.context.PerpsController
+        .toggleWatchlistMarket as jest.Mock;
+      const getWatchlistMarkets = Engine.context.PerpsController
+        .getWatchlistMarkets as jest.Mock;
+      getWatchlistMarkets.mockImplementation(() => watchlist);
+
+      const { store } = renderEligibleNoPositionPerpsDetails({
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                isEligible: true,
+                isTestnet: false,
+                watchlistMarkets: {
+                  testnet: [],
+                  mainnet: ['ETH'],
+                },
+              },
+            },
+          },
+        },
+      });
+      const stateHarness = createPerpsControllerStateHarness(store);
+      cleanupCallbacks.push(stateHarness.cleanup);
+      const flushStateSpy = jest
+        .spyOn(EngineService, 'flushState')
+        .mockImplementation(stateHarness.flush);
+      cleanupCallbacks.push(() => flushStateSpy.mockRestore());
+
+      toggleWatchlistMarket.mockImplementation(() => {
+        watchlist = [];
+        stateHarness.stage({
+          isTestnet: false,
+          watchlistMarkets: {
+            testnet: [],
+            mainnet: watchlist,
+          },
+        });
+        persistPromise = new Promise<void>((resolve) => {
+          resolvePersist = () => {
+            watchlist = ['ETH'];
+            stateHarness.stage({
+              isTestnet: false,
+              watchlistMarkets: {
+                testnet: [],
+                mainnet: watchlist,
+              },
+            });
+            resolve();
+          };
+        });
+        return persistPromise;
+      });
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
+        ),
+      );
+
+      expect(
+        await screen.findByLabelText(
+          strings('perps.market_details.add_to_watchlist'),
+        ),
+      ).toBeOnTheScreen();
+
+      await act(async () => {
+        resolvePersist();
+        await persistPromise;
+      });
+
+      expect(
+        await screen.findByLabelText(
+          strings('perps.market_details.remove_from_watchlist'),
+        ),
+      ).toBeOnTheScreen();
+      expect(flushStateSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('shows Lite header actions without the Pro wallet button', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsProModeEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+        extraRoutes: [{ name: Routes.PERPS.MARKET_LIST }],
+      });
+
+      expect(
+        await screen.findByTestId(PerpsMarketHeaderSelectorsIDs.BACK_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON),
+      );
+
+      expect(
+        await screen.findByTestId(`route-${Routes.PERPS.MARKET_LIST}`),
+      ).toBeOnTheScreen();
+    });
+
     it('renders live price, 24h change, and fullscreen button inside the market summary row', async () => {
       renderEligibleNoPositionPerpsDetails();
 
@@ -525,7 +814,7 @@ describe('PerpsMarketDetailsView', () => {
         ),
       ).toBeOnTheScreen();
       expect(
-        within(marketSummary).getByTestId(
+        screen.getByTestId(
           PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
         ),
       ).toBeOnTheScreen();
@@ -609,16 +898,16 @@ describe('PerpsMarketDetailsView', () => {
         },
       });
 
-      const period3mButton = await screen.findByTestId(
-        getPerpsCandlePeriodSelector.periodButton(CANDLE_SELECTOR_BASE, '3m'),
+      const period1hButton = await screen.findByTestId(
+        getPerpsCandlePeriodSelector.periodButton(CANDLE_SELECTOR_BASE, '1h'),
       );
-      expect(period3mButton).toBeOnTheScreen();
+      expect(period1hButton).toBeOnTheScreen();
 
-      fireEvent.press(period3mButton);
+      fireEvent.press(period1hButton);
 
       expect(
         store.getState().settings.perpsChartPreferences.preferredCandlePeriod,
-      ).toBe('3m');
+      ).toBe('1h');
     });
 
     it('opens more candle periods bottom sheet and selects a period', async () => {
@@ -741,13 +1030,24 @@ describe('PerpsMarketDetailsView', () => {
       });
     };
 
+    // The entry card replaces a skeleton only after the AiDigestController fetch
+    // resolves, so it needs the same explicit timeout AssetOverviewContent's CV
+    // test uses for this card. The 1s default is not enough on a loaded CV shard.
+    const findInsightsEntryCard = () =>
+      screen.findByTestId(
+        MarketInsightsSelectorsIDs.ENTRY_CARD,
+        {},
+        { timeout: 15000 },
+      );
+
+    const openInsightsFromEntryCard = async () => {
+      fireEvent.press(await findInsightsEntryCard());
+    };
+
     it('opens market insights from Perps and hides Long/Short when position is open', async () => {
       renderPerpsInsightsJourney({ hasPosition: true });
 
-      const entryCard = await screen.findByTestId(
-        MarketInsightsSelectorsIDs.ENTRY_CARD,
-      );
-      fireEvent.press(entryCard);
+      await openInsightsFromEntryCard();
 
       expect(
         await screen.findByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER),
@@ -775,9 +1075,7 @@ describe('PerpsMarketDetailsView', () => {
     it('shows Long/Short in market insights when there is no position', async () => {
       renderPerpsInsightsJourney({ hasPosition: false });
 
-      fireEvent.press(
-        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-      );
+      await openInsightsFromEntryCard();
 
       expect(
         await screen.findByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON),
@@ -793,19 +1091,30 @@ describe('PerpsMarketDetailsView', () => {
         insightsFlagEnabled: false,
       });
 
-      await waitFor(() => {
-        expect(
-          screen.queryByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-        ).not.toBeOnTheScreen();
-      });
+      // Assert the absence only once the view is mounted and no skeleton is
+      // pending, otherwise the expectation passes before insights could render.
+      expect(
+        await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      await waitFor(
+        () => {
+          expect(
+            screen.queryByTestId(
+              MarketInsightsSelectorsIDs.ENTRY_CARD_SKELETON,
+            ),
+          ).toBeNull();
+        },
+        { timeout: 15000 },
+      );
+      expect(
+        screen.queryByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
+      ).toBeNull();
     });
 
     it('shows sources bottom sheet when tapping a trend item from Perps insights', async () => {
       renderPerpsInsightsJourney({ hasPosition: true });
 
-      fireEvent.press(
-        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-      );
+      await openInsightsFromEntryCard();
 
       const trendItem = await screen.findByTestId(
         `${MarketInsightsSelectorsIDs.TREND_ITEM}-0`,
@@ -822,9 +1131,7 @@ describe('PerpsMarketDetailsView', () => {
       try {
         renderPerpsInsightsJourney({ hasPosition: true });
 
-        fireEvent.press(
-          await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-        );
+        await openInsightsFromEntryCard();
         const thumbsUp = await screen.findByTestId(
           MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON,
         );
@@ -850,9 +1157,7 @@ describe('PerpsMarketDetailsView', () => {
     it('shows feedback bottom sheet on thumbs down from Perps insights', async () => {
       renderPerpsInsightsJourney({ hasPosition: true });
 
-      fireEvent.press(
-        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-      );
+      await openInsightsFromEntryCard();
       fireEvent.press(
         await screen.findByTestId(
           MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON,

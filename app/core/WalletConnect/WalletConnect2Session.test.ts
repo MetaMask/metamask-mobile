@@ -17,6 +17,15 @@ import DevLogger from '../SDKConnect/utils/DevLogger';
 import { getGlobalNetworkClientId } from '../../util/networks/global-network';
 import { Hex, CaipChainId } from '@metamask/utils';
 import WalletConnectPort from '../BackgroundBridge/WalletConnectPort';
+import { addTransaction } from '../../util/transaction-controller';
+import ppomUtil from '../../../app/lib/ppom/ppom-util';
+import { updateConfirmationMetric } from '../redux/slices/confirmationMetrics';
+import { getOriginProvenance, RemoteTransport } from '../OriginProvenance';
+
+jest.mock('../../util/transaction-controller', () => ({
+  ...jest.requireActual('../../util/transaction-controller'),
+  addTransaction: jest.fn().mockRejectedValue(new Error('not mocked')),
+}));
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -35,6 +44,13 @@ jest.mock('../AppConstants', () => ({
     chainChanged: 'metamask_chainChanged',
     accountsChanged: 'metamask_accountsChanged',
     unlockStateChanged: 'metamask_unlockStateChanged',
+  },
+  REQUEST_SOURCES: {
+    SDK_REMOTE_CONN: 'MetaMask-SDK-Remote-Conn',
+    MM_CONNECT: 'MetaMask-Connect',
+    WC: 'WalletConnect',
+    WC2: 'WalletConnectV2',
+    IN_APP_BROWSER: 'In-App-Browser',
   },
 }));
 
@@ -329,6 +345,25 @@ describe('WalletConnect2Session', () => {
     expect((session as any).topicByRequestId).toEqual({
       '1': mockSession.topic,
     });
+  });
+
+  it('stamps the connection provenance on construction and drops it on removeListeners', async () => {
+    // The channelId is the unspoofable connection identity; the peer
+    // metadata is self-reported by the dapp and display-only.
+    expect(getOriginProvenance('test-channel')).toStrictEqual({
+      connectionId: 'test-channel',
+      transport: RemoteTransport.WalletConnect,
+      isVerified: false,
+      selfReported: {
+        url: 'https://example.com',
+        name: 'Test App',
+        icon: undefined,
+      },
+    });
+
+    await session.removeListeners();
+
+    expect(getOriginProvenance('test-channel')).toBeUndefined();
   });
 
   it('normalizes URLs without protocol for legacy session compatibility', () => {
@@ -1099,6 +1134,79 @@ describe('WalletConnect2Session', () => {
 
       // Verify that handleSwitchToChain was called
       expect(handleSwitchToChainSpy).toHaveBeenCalled();
+    });
+
+    it('omits the self-reported origin from the security scan and records the WC transport for eth_sendTransaction', async () => {
+      jest.mock('./wc-utils', () => jest.requireActual('./wc-utils'));
+
+      const addTransactionMock = addTransaction as jest.MockedFunction<
+        typeof addTransaction
+      >;
+      addTransactionMock.mockClear();
+      addTransactionMock.mockResolvedValueOnce({
+        result: Promise.resolve('0xhash'),
+        transactionMeta: { id: 'wc-tx-id-1' },
+      } as unknown as Awaited<ReturnType<typeof addTransaction>>);
+      const validateRequestSpy = jest
+        .spyOn(ppomUtil, 'validateRequest')
+        .mockResolvedValue(undefined);
+
+      const requestId = 333333;
+      const request: WalletKitTypes.SessionRequest = {
+        id: requestId,
+        topic: mockSession.topic,
+        params: {
+          request: {
+            method: 'eth_sendTransaction',
+            params: [
+              {
+                from: '0x1234567890abcdef1234567890abcdef12345678',
+                to: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+                value: '0x16345785d8a0000',
+                gas: '0x5208',
+                gasPrice: '0x4a817c800',
+                data: '0x',
+              },
+            ],
+          },
+          chainId: testChainCaip,
+        },
+        verifyContext: {
+          verified: {
+            origin: 'https://example.com',
+            validation: 'UNKNOWN',
+            verifyUrl: '',
+          },
+        },
+      };
+
+      await buildCase(request, testChainId, testChainCaip);
+
+      // The transaction itself keeps the (unverified) origin for display and
+      // analytics purposes.
+      expect(addTransactionMock).toHaveBeenCalledTimes(1);
+
+      // Security invariant: the request sent to PPOM/Blockaid must not carry
+      // the dapp's self-reported origin. It is unverifiable over
+      // WalletConnect and the URL is a core Blockaid heuristic that can flip
+      // a scan verdict between malicious and benign.
+      expect(validateRequestSpy).toHaveBeenCalledTimes(1);
+      const [ppomRequest] = validateRequestSpy.mock.calls[0];
+      expect(ppomRequest).not.toHaveProperty('origin');
+
+      // The transport is recorded keyed by transaction id so the
+      // confirmation UI shows "External app" instead of the self-reported
+      // domain (useIsExternalAppRequest).
+      expect(store.dispatch).toHaveBeenCalledWith(
+        updateConfirmationMetric({
+          id: 'wc-tx-id-1',
+          params: {
+            properties: { request_source: 'WalletConnect' },
+          },
+        }),
+      );
+
+      validateRequestSpy.mockRestore();
     });
 
     it('rejects eth_sendTransaction with extraneous top-level param key', async () => {

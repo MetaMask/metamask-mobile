@@ -42,6 +42,7 @@ import { captureException } from '@sentry/react-native';
 import {
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
+  shouldShowPasswordMismatchError,
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import type {
@@ -65,32 +66,34 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
+  BottomSheetFooter,
+  ButtonIcon,
   ButtonSize,
-  ButtonVariant,
   FontWeight,
   HeaderStandard,
+  HelpText,
+  HelpTextSeverity,
+  IconName,
+  IconColor,
+  Checkbox,
   Label,
   Text,
   TextColor,
-  TextVariant,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
-  Checkbox,
   TextField,
+  TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
 import type { AuthData } from '../../../core/Authentication/Authentication';
-import Engine from '../../../core/Engine';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passcodeType } from '../../../util/authentication';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
+import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
@@ -106,21 +109,22 @@ import {
   ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
+import { useMessenger } from '../../../hooks/useMessenger';
+import { RouteMessengerInstance } from './messenger';
 import {
   TraceName,
   endTrace,
   trace,
   TraceOperation,
   TraceContext,
+  getTraceContext,
 } from '../../../util/trace';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
+import ImportOptionsSheet from './ImportOptionsSheet';
 import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
-import {
-  selectQrSyncImportMnemonic,
-  selectQrSyncPrimaryMnemonic,
-} from '../../../selectors/qrSyncController';
+import { selectQrSyncImportMnemonic } from '../../../selectors/qrSyncController';
 import { fetchImportedWalletFundingAmountRange } from '../../../util/analytics/fundingAmountRange';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
@@ -138,7 +142,6 @@ interface HandleWalletImportFailureParams {
   track: TrackFn;
   navigation: NativeStackNavigationProp<ParamListBase>;
   isMetricsEnabled: () => boolean;
-  onboardingTraceCtx?: TraceContext;
 }
 
 function handleWalletImportFailure({
@@ -146,18 +149,21 @@ function handleWalletImportFailure({
   track,
   navigation,
   isMetricsEnabled,
-  onboardingTraceCtx,
 }: HandleWalletImportFailureParams) {
   track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
     wallet_setup_type: 'import',
     error_type: importError.toString(),
   });
 
-  if (onboardingTraceCtx) {
+  // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+  const journeyCtx = getTraceContext({
+    name: TraceName.OnboardingJourneyOverall,
+  });
+  if (journeyCtx) {
     trace({
       name: TraceName.OnboardingPasswordSetupError,
       op: TraceOperation.OnboardingUserJourney,
-      parentContext: onboardingTraceCtx,
+      parentContext: journeyCtx,
       tags: { errorMessage: importError.toString() },
     });
     endTrace({ name: TraceName.OnboardingPasswordSetupError });
@@ -197,7 +203,6 @@ function handleWalletImportFailure({
 
 interface ImportFromSecretRecoveryPhraseRouteParams {
   qrSyncImport?: boolean;
-  onboardingTraceCtx?: TraceContext;
   oauthLoginSuccess?: boolean;
   previous_screen?: string;
 }
@@ -213,13 +218,14 @@ const PasswordVisibilityToggle = ({
   onToggle,
   testID,
 }: PasswordVisibilityToggleProps) => (
-  <TouchableOpacity onPress={onToggle} testID={testID}>
-    <Icon
-      name={isVisible ? IconName.Eye : IconName.EyeSlash}
-      size={IconSize.Lg}
-      color={IconColor.IconAlternative}
-    />
-  </TouchableOpacity>
+  <ButtonIcon
+    iconName={isVisible ? IconName.Eye : IconName.EyeSlash}
+    iconProps={{
+      color: IconColor.IconAlternative,
+    }}
+    onPress={onToggle}
+    testID={testID}
+  />
 );
 
 /**
@@ -229,15 +235,14 @@ const PasswordVisibilityToggle = ({
  */
 const ImportFromSecretRecoveryPhrase = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
+  const messenger = useMessenger<RouteMessengerInstance>();
   const route =
     useRoute<
       RouteProp<{ params: ImportFromSecretRecoveryPhraseRouteParams }, 'params'>
     >();
   const dispatch = useDispatch();
   const isQrSyncImport = Boolean(route?.params?.qrSyncImport);
-  const qrSyncPrimaryMnemonic = useSelector(selectQrSyncPrimaryMnemonic);
-  const qrSyncImportMnemonic = useSelector(selectQrSyncImportMnemonic);
-  const qrSyncMnemonic = qrSyncImportMnemonic ?? qrSyncPrimaryMnemonic;
+  const qrSyncMnemonic = useSelector(selectQrSyncImportMnemonic);
   const walletSetupCompletedAttributionProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
@@ -256,6 +261,18 @@ const ImportFromSecretRecoveryPhrase = () => {
     null,
   );
   const [loading, setLoading] = useState(false);
+
+  useOnboardingLoadingStallTracker({
+    isLoading: loading,
+    screen: ONBOARDING_LOADING_STALL_SCREEN.IMPORT_SRP,
+    properties: {
+      wallet_setup_type: 'import',
+    },
+    saveOnboardingEvent: (event) => {
+      dispatch(saveEvent([event]));
+    },
+  });
+
   const [error, setError] = useState('');
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState<string[]>(['']);
@@ -267,6 +284,7 @@ const ImportFromSecretRecoveryPhrase = () => {
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
   const [slideAnim] = useState(() => new Animated.Value(0));
   const [currentInputWord, setCurrentInputWord] = useState('');
+  const [isImportMenuVisible, setIsImportMenuVisible] = useState(false);
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
@@ -288,9 +306,8 @@ const ImportFromSecretRecoveryPhrase = () => {
   });
 
   const isSRPContinueButtonDisabled = useMemo(() => {
-    const updatedSeedPhrase = [...seedPhrase];
-    const updatedSeedPhraseLength = updatedSeedPhrase.filter(
-      (word) => word !== '',
+    const updatedSeedPhraseLength = seedPhrase.filter(
+      (word) => word.trim() !== '',
     ).length;
     return !SRP_LENGTHS.includes(updatedSeedPhraseLength);
   }, [seedPhrase]);
@@ -309,9 +326,9 @@ const ImportFromSecretRecoveryPhrase = () => {
   // Ownership marker: this screen is also reachable outside onboarding (e.g. the QR device-sync
   // flow in AddDeviceToWallet). Onboarding traces must only be ended by the flow that owns them,
   // so gate cleanup on the explicit PREVIOUS_SCREEN === ONBOARDING marker set by
-  // Onboarding.onPressImport. Do NOT infer ownership from route.params.onboardingTraceCtx:
-  // buffered tracing (consent not yet decided) legitimately returns undefined for a trace that is
-  // still owned by onboarding.
+  // Onboarding.onPressImport. Do NOT infer ownership from getTraceContext: buffered tracing
+  // (consent not yet decided) legitimately returns undefined for a trace that is still owned
+  // by onboarding.
   const isOnboardingFlow = route?.params?.[PREVIOUS_SCREEN] === ONBOARDING;
 
   // Fix 2: if the user leaves this screen without completing the import, close the spans this
@@ -390,6 +407,18 @@ const ImportFromSecretRecoveryPhrase = () => {
     });
   }, [hideSeedPhraseInput, navigation]);
 
+  const onScanHeaderPress = useCallback(() => {
+    if (isAddDeviceSyncEnabled) {
+      setIsImportMenuVisible(true);
+      return;
+    }
+    onQrCodePress();
+  }, [isAddDeviceSyncEnabled, onQrCodePress]);
+
+  const onImportFromExtensionPress = useCallback(() => {
+    navigation.navigate(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET);
+  }, [navigation]);
+
   const animateToStep = useCallback(
     (nextStep: number) => {
       if (isTestEnvironment) {
@@ -420,7 +449,9 @@ const ImportFromSecretRecoveryPhrase = () => {
 
   const onBackPress = () => {
     if (isQrSyncImport) {
-      Engine.context.QrSyncController.resetState();
+      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+        () => undefined,
+      );
     }
     if (currentStep === 0 || (isQrSyncImport && currentStep === 1)) {
       navigation.goBack();
@@ -487,13 +518,11 @@ const ImportFromSecretRecoveryPhrase = () => {
   };
 
   const validateSeedPhrase = () => {
-    // Trim each word before joining to ensure proper validation
-    const phrase = seedPhrase
+    const trimmedWords = seedPhrase
       .map((item) => item.trim())
-      .filter((item) => item !== '')
-      .join(SPACE_CHAR);
-    const seedPhraseLength = seedPhrase.length;
-    if (!SRP_LENGTHS.includes(seedPhraseLength)) {
+      .filter((item) => item !== '');
+    const phrase = trimmedWords.join(SPACE_CHAR);
+    if (!SRP_LENGTHS.includes(trimmedWords.length)) {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
@@ -519,13 +548,15 @@ const ImportFromSecretRecoveryPhrase = () => {
       return;
     }
     animateToStep(currentStep + 1);
-    // Start the trace when moving to the password setup step
-    const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
-    if (onboardingTraceCtx) {
+    // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+    const journeyCtx = getTraceContext({
+      name: TraceName.OnboardingJourneyOverall,
+    });
+    if (journeyCtx) {
       passwordSetupAttemptTraceCtxRef.current = trace({
         name: TraceName.OnboardingPasswordSetupAttempt,
         op: TraceOperation.OnboardingUserJourney,
-        parentContext: onboardingTraceCtx,
+        parentContext: journeyCtx,
       });
     }
   };
@@ -558,9 +589,10 @@ const ImportFromSecretRecoveryPhrase = () => {
   };
 
   const onPressImport = async () => {
-    // Trim each word before joining for processing
+    // Drop blank grid slots before parsing (e.g. trailing empty after Space)
     const trimmedSeedPhrase = seedPhrase
       .map((item) => item.trim())
+      .filter((item) => item !== '')
       .join(SPACE_CHAR);
     const vaultSeed = await parseVaultValue(password, trimmedSeedPhrase);
     const parsedSeed = parseSeedPhrase(vaultSeed || trimmedSeedPhrase);
@@ -589,7 +621,10 @@ const ImportFromSecretRecoveryPhrase = () => {
     }
 
     setLoading(true);
-    const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
+    // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+    const journeyCtx = getTraceContext({
+      name: TraceName.OnboardingJourneyOverall,
+    });
     const oauthLoginSuccess = route?.params?.oauthLoginSuccess || false;
 
     let authData: AuthData;
@@ -597,7 +632,7 @@ const ImportFromSecretRecoveryPhrase = () => {
       trace({
         name: TraceName.OnboardingSRPAccountImportTime,
         op: TraceOperation.OnboardingUserJourney,
-        parentContext: onboardingTraceCtx,
+        parentContext: journeyCtx,
         tags: {
           is_social_login: oauthLoginSuccess,
           account_type: oauthLoginSuccess ? 'social_import' : 'srp_import',
@@ -628,7 +663,6 @@ const ImportFromSecretRecoveryPhrase = () => {
         track,
         navigation,
         isMetricsEnabled,
-        onboardingTraceCtx,
       });
       return;
     }
@@ -685,8 +719,7 @@ const ImportFromSecretRecoveryPhrase = () => {
     }
   };
 
-  const isError =
-    password !== '' && confirmPassword !== '' && password !== confirmPassword;
+  const isError = shouldShowPasswordMismatchError(password, confirmPassword);
 
   const showWhatIsSeedPhrase = () => {
     track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
@@ -723,7 +756,7 @@ const ImportFromSecretRecoveryPhrase = () => {
             ? [
                 {
                   iconName: IconName.Scan,
-                  onPress: onQrCodePress,
+                  onPress: onScanHeaderPress,
                   testID: ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
                 },
               ]
@@ -746,40 +779,12 @@ const ImportFromSecretRecoveryPhrase = () => {
         >
           {currentStep === 0 && (
             <Box twClassName="gap-y-2">
-              <Box twClassName="gap-y-1.5">
-                <Text
-                  variant={TextVariant.DisplayMd}
-                  color={TextColor.TextDefault}
-                  testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
-                >
-                  {strings('import_from_seed.title')}
-                </Text>
-                {isAddDeviceSyncEnabled ? (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings(
-                      'import_from_seed.enter_your_secret_recovery_phrase',
-                    )}{' '}
-                    {strings('import_from_seed.or')}{' '}
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.PrimaryDefault}
-                      accessibilityRole="link"
-                      onPress={() =>
-                        navigation.navigate(
-                          Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-                        )
-                      }
-                      testID={
-                        ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID
-                      }
-                    >
-                      {strings('import_from_seed.import_wallet_from_extension')}
-                    </Text>
-                  </Text>
-                ) : (
+              <TitleStandard
+                title={strings('import_from_seed.title')}
+                titleProps={{
+                  testID: ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID,
+                }}
+                bottomAccessory={
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
@@ -793,21 +798,21 @@ const ImportFromSecretRecoveryPhrase = () => {
                         'import_from_seed.enter_your_secret_recovery_phrase',
                       )}
                     </Text>
-                    <TouchableOpacity
-                      onPress={showWhatIsSeedPhrase}
-                      testID={
-                        ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
-                      }
-                    >
-                      <Icon
-                        name={IconName.Info}
-                        size={IconSize.Md}
-                        color={IconColor.IconAlternative}
+                    {!isAddDeviceSyncEnabled && (
+                      <ButtonIcon
+                        iconName={IconName.Info}
+                        iconProps={{
+                          color: IconColor.IconAlternative,
+                        }}
+                        onPress={showWhatIsSeedPhrase}
+                        testID={
+                          ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
+                        }
                       />
-                    </TouchableOpacity>
+                    )}
                   </Box>
-                )}
-              </Box>
+                }
+              />
               <SrpInputGrid
                 ref={srpInputGridRef}
                 seedPhrase={seedPhrase}
@@ -826,22 +831,21 @@ const ImportFromSecretRecoveryPhrase = () => {
 
           {currentStep === 1 && (
             <Box twClassName="gap-y-4 flex-grow">
-              <Box twClassName="gap-y-1">
-                <Text
-                  variant={TextVariant.DisplayMd}
-                  color={TextColor.TextDefault}
-                  testID={ChoosePasswordSelectorsIDs.TITLE_ID}
-                >
-                  {strings('import_from_seed.metamask_password')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  testID={ChoosePasswordSelectorsIDs.DESCRIPTION_ID}
-                >
-                  {strings('import_from_seed.metamask_password_description')}
-                </Text>
-              </Box>
+              <TitleStandard
+                title={strings('import_from_seed.metamask_password')}
+                titleProps={{
+                  testID: ChoosePasswordSelectorsIDs.TITLE_ID,
+                }}
+                bottomAccessory={
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                    testID={ChoosePasswordSelectorsIDs.DESCRIPTION_ID}
+                  >
+                    {strings('import_from_seed.metamask_password_description')}
+                  </Text>
+                }
+              />
 
               <Box twClassName="relative gap-2">
                 <Label
@@ -879,18 +883,16 @@ const ImportFromSecretRecoveryPhrase = () => {
                     keyboardAppearance: themeAppearance,
                   }}
                 />
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={
-                    isPasswordTooShort
-                      ? TextColor.ErrorDefault
-                      : TextColor.TextAlternative
+                <HelpText
+                  severity={
+                    isPasswordTooShort ? HelpTextSeverity.Danger : undefined
                   }
+                  color={TextColor.TextAlternative}
                 >
                   {strings('choose_password.must_be_at_least', {
                     number: MIN_PASSWORD_LENGTH,
                   })}
-                </Text>
+                </HelpText>
               </Box>
 
               <Box twClassName="relative gap-2">
@@ -931,12 +933,9 @@ const ImportFromSecretRecoveryPhrase = () => {
                   }}
                 />
                 {isError && (
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.ErrorDefault}
-                  >
+                  <HelpText severity={HelpTextSeverity.Danger}>
                     {strings('import_from_seed.password_error')}
-                  </Text>
+                  </HelpText>
                 )}
               </Box>
 
@@ -985,38 +984,33 @@ const ImportFromSecretRecoveryPhrase = () => {
         <SafeAreaView
           edges={['bottom']}
           style={tw.style(
-            'px-4 w-full gap-y-4',
+            'w-full py-4',
             Platform.OS === 'android' ? 'mb-6' : 'mb-4',
           )}
         >
-          <Button
-            isLoading={loading}
-            isFullWidth
-            variant={ButtonVariant.Primary}
-            onPress={onPressImport}
-            size={ButtonSize.Lg}
-            isDisabled={isContinueButtonDisabled}
-            testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-          >
-            {strings('import_from_seed.import_create_password_cta')}
-          </Button>
+          <BottomSheetFooter
+            primaryButtonProps={{
+              children: strings('import_from_seed.import_create_password_cta'),
+              onPress: onPressImport,
+              isLoading: loading,
+              isDisabled: isContinueButtonDisabled,
+              testID: ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+              size: ButtonSize.Lg,
+            }}
+          />
         </SafeAreaView>
       )}
       {currentStep === 0 && (
-        <SafeAreaView
-          edges={['bottom']}
-          style={tw.style('px-4 py-4 bg-default')}
-        >
-          <Button
-            variant={ButtonVariant.Primary}
-            onPress={handleContinueImportFlow}
-            isFullWidth
-            size={ButtonSize.Lg}
-            isDisabled={isSRPContinueButtonDisabled}
-            testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
-          >
-            {strings('import_from_seed.continue')}
-          </Button>
+        <SafeAreaView edges={['bottom']} style={tw.style('py-4 bg-default')}>
+          <BottomSheetFooter
+            primaryButtonProps={{
+              children: strings('import_from_seed.continue'),
+              onPress: handleContinueImportFlow,
+              isDisabled: isSRPContinueButtonDisabled,
+              testID: ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID,
+              size: ButtonSize.Lg,
+            }}
+          />
         </SafeAreaView>
       )}
       {currentStep === 0 && isKeyboardVisible && (
@@ -1032,6 +1026,12 @@ const ImportFromSecretRecoveryPhrase = () => {
           />
         </KeyboardStickyView>
       )}
+      <ImportOptionsSheet
+        isVisible={isImportMenuVisible}
+        onClose={() => setIsImportMenuVisible(false)}
+        onSelectQrCode={onQrCodePress}
+        onSelectExtension={onImportFromExtensionPress}
+      />
       <ScreenshotDeterrent enabled isSRP />
     </Box>
   );

@@ -1,7 +1,11 @@
+import { AppState, type AppStateStatus } from 'react-native';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   trace,
   endTrace,
+  getPerformanceTimestamp,
   getTraceContext,
+  setTraceMeasurement,
   TraceName,
   TraceOperation,
   type TraceContext,
@@ -11,10 +15,18 @@ import {
   RAMPS_BUY_CUF_FEATURE,
   RAMPS_BUY_CUF_TAG,
   RAMPS_BUY_CUF_SURFACE,
+  RAMPS_BUY_CUF_PATH,
   RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
+  RAMPS_BUY_CUF_LOG_MARKER,
   RAMPS_BUY_CUF_TIMEOUT_MS,
+  RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
   type RampsBuyCufSurface,
 } from '../constants/rampsBuyCufTags';
+import {
+  getRampsBuyLifecycleContext,
+  settleRampsBuyForegroundOnSpan,
+} from './rampsBuyLifecycleContext';
 import type { BuyFlowOrigin } from '../Views/BuildQuote/BuildQuote';
 
 const CUF_META = {
@@ -25,6 +37,13 @@ const pendingChildMeta = new Map<string, Record<string, TraceValue>>();
 let parentOpId: string | null = null;
 let parentSpan: TraceContext;
 let parentTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let appStateSubscription: ReturnType<typeof AppState.addEventListener> | null =
+  null;
+let currentAppState: AppStateStatus = AppState.currentState;
+let foregroundSegmentStartedAt: number | null = null;
+let foregroundActiveMs = 0;
+let backgroundCount = 0;
+let resumeCount = 0;
 let cufOpCounter = 0;
 
 function nextCufOpId(name: TraceName): string {
@@ -37,21 +56,92 @@ function clearStaleParentState(): void {
     clearTimeout(parentTimeoutId);
     parentTimeoutId = null;
   }
+  appStateSubscription?.remove();
+  appStateSubscription = null;
+  currentAppState = AppState.currentState;
+  foregroundSegmentStartedAt = null;
+  foregroundActiveMs = 0;
+  backgroundCount = 0;
+  resumeCount = 0;
   parentOpId = null;
   parentSpan = undefined;
 }
 
-function resolveParentContext(): TraceContext {
+function pauseForegroundSegment(now = getPerformanceTimestamp()): void {
+  if (foregroundSegmentStartedAt === null) {
+    return;
+  }
+  foregroundActiveMs += Math.max(0, now - foregroundSegmentStartedAt);
+  foregroundSegmentStartedAt = null;
+}
+
+function startForegroundSegment(now = getPerformanceTimestamp()): void {
+  if (foregroundSegmentStartedAt === null) {
+    foregroundSegmentStartedAt = now;
+  }
+}
+
+function handleAppStateChange(nextState: AppStateStatus): void {
+  // iOS `inactive` also covers Face ID, permission prompts, and the
+  // notification shade. Only `background` means the user left the app.
+  if (nextState === 'background' && currentAppState !== 'background') {
+    pauseForegroundSegment();
+    backgroundCount += 1;
+    endOpenRampsBuyCufChildrenByName(TraceName.RampBuyQuoteFetch, {
+      [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+      [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.APP_BACKGROUNDED,
+    });
+  } else if (
+    nextState === 'active' &&
+    currentAppState === 'background' &&
+    foregroundSegmentStartedAt === null
+  ) {
+    if (backgroundCount > 0) {
+      resumeCount += 1;
+    }
+    startForegroundSegment();
+  }
+  currentAppState = nextState;
+}
+
+function startLifecycleAccounting(startTime?: number): void {
+  currentAppState = AppState.currentState;
+  // `inactive` and `unknown` are still in the app. Only a start that is
+  // already `background` waits for the first `active` event.
+  if (currentAppState !== 'background') {
+    startForegroundSegment(startTime);
+  }
+  appStateSubscription = AppState.addEventListener(
+    'change',
+    handleAppStateChange,
+  );
+}
+
+/** True if Buy E2E parent is still open (incl. consent-buffered starts). */
+function hasLiveParent(): boolean {
+  if (!parentOpId) {
+    return false;
+  }
+
+  if (parentSpan === undefined) {
+    return true;
+  }
+
   if (
-    !parentOpId ||
     getTraceContext({
       name: TraceName.RampBuyToOrderDetails,
       id: parentOpId,
     }) === undefined
   ) {
-    if (parentOpId) {
-      clearStaleParentState();
-    }
+    clearStaleParentState();
+    return false;
+  }
+
+  return true;
+}
+
+function resolveParentContext(): TraceContext {
+  if (!hasLiveParent()) {
     return undefined;
   }
   return parentSpan;
@@ -63,8 +153,21 @@ export function buildRampsBuyCufStartTags(
   return {
     [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
     [RAMPS_BUY_CUF_TAG.RAMP_TYPE]: 'UNIFIED_BUY_2',
+    [RAMPS_BUY_CUF_TAG.LIFECYCLE_CONTEXT]: getRampsBuyLifecycleContext(),
     ...extra,
   };
+}
+
+export function logRampsBuyCufSpan(
+  phase: 'started' | 'completed',
+  name: TraceName,
+  fields?: Record<string, TraceValue>,
+): void {
+  DevLogger?.log?.(
+    `${RAMPS_BUY_CUF_LOG_MARKER} ${name} ${phase} ${JSON.stringify(
+      fields ?? {},
+    )}`,
+  );
 }
 
 function withStartSpanAttributes(
@@ -102,7 +205,7 @@ export function startRampsBuyCufTrace({
   startTime,
   data,
 }: StartRampsBuyCufTraceOptions = {}): string {
-  if (resolveParentContext() && parentOpId) {
+  if (hasLiveParent() && parentOpId) {
     return parentOpId;
   }
 
@@ -113,15 +216,18 @@ export function startRampsBuyCufTrace({
   });
 
   parentOpId = opId;
+  logRampsBuyCufSpan('started', TraceName.RampBuyToOrderDetails, startTags);
   parentSpan = trace({
     name: TraceName.RampBuyToOrderDetails,
     id: opId,
     op: TraceOperation.RampOperation,
     startTime,
     forceTransaction: true,
+    maxLifetimeMs: RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
     data: withStartSpanAttributes(startTags, data),
     tags: startTags,
   });
+  startLifecycleAccounting(startTime);
 
   endRampsBuyCufTraceAfter(
     {
@@ -152,14 +258,32 @@ export function endRampsBuyCufTrace({
     return;
   }
 
+  pauseForegroundSegment(timestamp);
+  const measuredForegroundMs = Math.round(foregroundActiveMs);
+  const lifecycleData = {
+    [RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS]: measuredForegroundMs,
+    [RAMPS_BUY_CUF_TAG.BACKGROUND_COUNT]: backgroundCount,
+    [RAMPS_BUY_CUF_TAG.RESUME_COUNT]: resumeCount,
+  };
+  setTraceMeasurement(
+    { name: TraceName.RampBuyToOrderDetails, id: targetId },
+    RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
+    measuredForegroundMs,
+    'millisecond',
+  );
   abandonOpenChildTraces(RAMPS_BUY_CUF_END_REASON.ABANDONED);
   clearStaleParentState();
+  const endData = { ...data, ...lifecycleData };
+  logRampsBuyCufSpan('completed', TraceName.RampBuyToOrderDetails, endData);
   endTrace({
     name: TraceName.RampBuyToOrderDetails,
     id: targetId,
-    data,
+    data: endData,
     timestamp,
   });
+  if (data?.[RAMPS_BUY_CUF_TAG.SUCCESS] !== false) {
+    settleRampsBuyForegroundOnSpan(TraceName.RampBuyToOrderDetails);
+  }
 }
 
 export function endRampsBuyCufTraceAfter(
@@ -213,10 +337,142 @@ export function startRampsBuyCufChildTrace({
     op: TraceOperation.RampOperation,
     parentContext,
     startTime,
+    maxLifetimeMs: RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
     data: withStartSpanAttributes(startTags, data),
     tags: startTags,
   });
   return opId;
+}
+
+export interface StartRampsBuyQuoteFetchTraceOptions {
+  tags?: Record<string, TraceValue>;
+  startTime?: number;
+  data?: Record<string, TraceValue>;
+}
+
+export function buildRampsBuyQuoteFetchStartTags(
+  providers?: string[],
+): Record<string, TraceValue> | undefined {
+  if (providers?.length !== 1) {
+    return undefined;
+  }
+
+  return { [RAMPS_BUY_CUF_TAG.PROVIDER]: providers[0] };
+}
+
+export interface BuildRampsBuyQuoteFetchCufCompletionParams {
+  isQueryError: boolean;
+  response?: {
+    success?: {
+      provider?: string;
+      quote?: unknown;
+    }[];
+  } | null;
+  requestedProviders?: string[];
+}
+
+/**
+ * Provider errors arrive in a successful HTTP response, so query status alone
+ * cannot distinguish a usable quote from a provider-level miss.
+ */
+export function buildRampsBuyQuoteFetchCufCompletion({
+  isQueryError,
+  response,
+  requestedProviders,
+}: BuildRampsBuyQuoteFetchCufCompletionParams): Record<string, TraceValue> {
+  const singleProvider =
+    requestedProviders?.length === 1 ? requestedProviders[0] : undefined;
+  const providerData: Record<string, TraceValue> = singleProvider
+    ? { [RAMPS_BUY_CUF_TAG.PROVIDER]: singleProvider }
+    : {};
+
+  if (isQueryError) {
+    return {
+      [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+      [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+      ...providerData,
+    };
+  }
+
+  const successQuotes = response?.success ?? [];
+  const usableQuotes = singleProvider
+    ? successQuotes.filter(({ provider }) => provider === singleProvider)
+    : successQuotes;
+
+  if (usableQuotes.length === 0) {
+    return {
+      [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+      [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.NO_QUOTE,
+      ...providerData,
+    };
+  }
+
+  const isCustomAction =
+    (usableQuotes[0].quote as { isCustomAction?: boolean } | undefined)
+      ?.isCustomAction === true;
+
+  return {
+    [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+    ...providerData,
+    ...(isCustomAction
+      ? {
+          [RAMPS_BUY_CUF_TAG.PATH]: RAMPS_BUY_CUF_PATH.CUSTOM_ACTION,
+          [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: true,
+        }
+      : { [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: false }),
+  };
+}
+
+/**
+ * Start Buy Quote Fetch CUF.
+ *
+ * Always a transaction, even when a parent CUF is live. A child span is only
+ * flushed inside its parent's envelope, so nesting would withhold every quote
+ * fetch until `RampBuyToOrderDetails` ends (order details reached, or the
+ * 5 minute timeout) and drop it entirely if the app dies first. That loss
+ * skews toward abandoned sessions, which is the population the quote SLO
+ * measures. `parentContext` is still passed so the trace waterfall is intact.
+ */
+export function startRampsBuyQuoteFetchTrace({
+  tags,
+  startTime,
+  data,
+}: StartRampsBuyQuoteFetchTraceOptions = {}): string {
+  endOpenRampsBuyCufChildrenByName(TraceName.RampBuyQuoteFetch, {
+    [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+    [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
+  });
+
+  const opId = nextCufOpId(TraceName.RampBuyQuoteFetch);
+  const startTags = buildRampsBuyCufStartTags(tags);
+  const parentContext = resolveParentContext();
+  pendingChildMeta.set(opId, { [CUF_META.NAME]: TraceName.RampBuyQuoteFetch });
+  trace({
+    name: TraceName.RampBuyQuoteFetch,
+    id: opId,
+    op: TraceOperation.RampOperation,
+    parentContext,
+    forceTransaction: true,
+    startTime,
+    data: withStartSpanAttributes(startTags, data),
+    tags: startTags,
+  });
+  return opId;
+}
+
+export interface EndRampsBuyQuoteFetchTraceOptions {
+  id: string;
+  data?: Record<string, TraceValue>;
+  timestamp?: number;
+}
+
+/** End Buy Quote Fetch CUF by op id. */
+export function endRampsBuyQuoteFetchTrace({
+  id,
+  data,
+  timestamp,
+}: EndRampsBuyQuoteFetchTraceOptions): void {
+  endRampsBuyCufChildTrace({ id, data, timestamp });
 }
 
 export interface EndRampsBuyCufChildTraceOptions {

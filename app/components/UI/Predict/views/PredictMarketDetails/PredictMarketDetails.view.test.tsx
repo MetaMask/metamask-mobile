@@ -37,10 +37,11 @@ import {
   buildMockPredictPosition,
 } from '../../../../../../tests/component-view/fixtures/predict';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from '../../components/PredictGameDetailsContent/PredictGameDetailsContent.testIds';
-import type {
-  PredictMarket,
-  PredictPosition,
-  PredictPriceHistoryPoint,
+import {
+  PredictPositionStatus,
+  type PredictMarket,
+  type PredictPosition,
+  type PredictPriceHistoryPoint,
 } from '../../types';
 
 const MARKET_ID = MOCK_PREDICT_MARKET.id;
@@ -59,12 +60,36 @@ const givenPositions = (positions: PredictPosition[]) =>
 const givenPriceHistory = (points: PredictPriceHistoryPoint[]) =>
   controllerMock('getPriceHistory').mockResolvedValue(points);
 
+type PredictMarketDetailsQueries = ReturnType<
+  typeof renderPredictMarketDetailsView
+>;
+
+/** Market header and About tab content mount on independent async phases. */
+const awaitMarketDetailsAboutReady = async (
+  findByTestId: PredictMarketDetailsQueries['findByTestId'],
+  _findByText: PredictMarketDetailsQueries['findByText'],
+) => {
+  const screen = await findByTestId(PredictMarketDetailsSelectorsIDs.SCREEN);
+  await waitFor(() => {
+    expect(
+      within(screen).getByText(MOCK_PREDICT_MARKET.title),
+    ).toBeOnTheScreen();
+  });
+  await waitFor(() => {
+    expect(
+      within(screen).getByTestId(
+        PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
+      ),
+    ).toBeOnTheScreen();
+  });
+};
+
 /** Redux delta that makes the user eligible to trade. */
 const ELIGIBLE_USER = {
   engine: {
     backgroundState: {
       PredictController: {
-        eligibility: { eligible: true, country: 'US' },
+        eligibility: { status: 'eligible' as const, country: 'US' },
       },
     },
   },
@@ -78,7 +103,7 @@ const ELIGIBLE_USER_WITH_BUY_SHEET = {
   engine: {
     backgroundState: {
       PredictController: {
-        eligibility: { eligible: true, country: 'US' },
+        eligibility: { status: 'eligible' as const, country: 'US' },
       },
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
@@ -155,6 +180,11 @@ describe('PredictMarketDetails', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    controllerMock('getMarket').mockReset();
+    controllerMock('getPositions').mockReset();
+    controllerMock('getPriceHistory').mockReset();
+    controllerMock('getMarketSeries').mockReset();
+    controllerMock('claimWithConfirmation').mockReset();
     givenMarket(MOCK_PREDICT_MARKET);
     givenPositions([]);
     givenPriceHistory([]);
@@ -290,6 +320,15 @@ describe('PredictMarketDetails', () => {
         renderPredictMarketDetailsViewWithRoutes({
           initialParams: { marketId: MARKET_ID },
           extraRoutes: [{ name: Routes.PREDICT.MODALS.ROOT }],
+          overrides: {
+            engine: {
+              backgroundState: {
+                PredictController: {
+                  eligibility: { status: 'ineligible' as const, country: 'US' },
+                },
+              },
+            },
+          },
         });
 
       fireEvent.press(await findByText(/Yes.*¢/));
@@ -305,13 +344,15 @@ describe('PredictMarketDetails', () => {
     });
 
     it('shows the share button once the market has loaded', async () => {
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { queryByTestId } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
 
-      expect(
-        await findByTestId(PredictMarketDetailsSelectorsIDs.SHARE_BUTTON),
-      ).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(
+          queryByTestId(PredictMarketDetailsSelectorsIDs.SHARE_BUTTON),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('resolves the market from the series in route params when no marketId is given', async () => {
@@ -340,9 +381,11 @@ describe('PredictMarketDetails', () => {
     it('calls trackMarketDetailsOpened when the market and positions finish loading', async () => {
       const trackSpy = controllerMock('trackMarketDetailsOpened');
 
-      renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
+
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       await waitFor(() => {
         expect(trackSpy).toHaveBeenCalledWith(
@@ -354,9 +397,11 @@ describe('PredictMarketDetails', () => {
     it('reports the entry point the user arrived from', async () => {
       const trackSpy = controllerMock('trackMarketDetailsOpened');
 
-      renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID, entryPoint: 'explore' },
       });
+
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       await waitFor(() => {
         expect(trackSpy).toHaveBeenCalledWith(
@@ -389,9 +434,11 @@ describe('PredictMarketDetails', () => {
     it('shows volume, end date and the resolution provider for the loaded market', async () => {
       givenMarket({ ...MOCK_PREDICT_MARKET, endDate: '2026-12-31' });
 
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
+
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       const aboutTab = await findByTestId(
         PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
@@ -409,9 +456,11 @@ describe('PredictMarketDetails', () => {
     });
 
     it('shows N/A as the end date when the market has none', async () => {
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
+
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       const aboutTab = await findByTestId(
         PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
@@ -426,7 +475,7 @@ describe('PredictMarketDetails', () => {
           extraRoutes: [{ name: Routes.WEBVIEW.MAIN }],
         });
 
-      await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
       fireEvent.press(await findByText('Polymarket'));
 
       expect(
@@ -475,7 +524,8 @@ describe('PredictMarketDetails', () => {
       );
       // The current value stays behind a skeleton until the sell-order preview
       // query settles, which happens after the tab content is already on screen.
-      await findByText('$60');
+      // Display is cash-out proceeds after fees ($60 gross → $57.60 net).
+      await findByText('$57.60');
 
       const positionsTab = getByTestId(
         PredictMarketDetailsSelectorsIDs.POSITIONS_TAB_CONTENT,
@@ -483,7 +533,7 @@ describe('PredictMarketDetails', () => {
       expect(
         within(positionsTab).getByText('$50 on Yes to win $50'),
       ).toBeOnTheScreen();
-      expect(within(positionsTab).getByText('$60')).toBeOnTheScreen();
+      expect(within(positionsTab).getByText('$57.60')).toBeOnTheScreen();
       expect(
         within(positionsTab).getByTestId(
           PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON,
@@ -518,6 +568,8 @@ describe('PredictMarketDetails', () => {
         initialParams: { marketId: MOCK_PREDICT_MULTI_OUTCOME_MARKET.id },
       });
 
+      await findByTestId(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT);
+
       fireEvent.press(
         await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB),
       );
@@ -545,10 +597,30 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { findByText } = renderPredictMarketDetailsView({
-        initialParams: { marketId: MARKET_ID },
+      const { findByTestId, findByText, queryByTestId } =
+        renderPredictMarketDetailsView({
+          initialParams: { marketId: MARKET_ID },
+        });
+
+      await findByTestId(PredictMarketDetailsSelectorsIDs.SCREEN);
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(
+            PredictMarketDetailsSelectorsIDs.DETAILS_CONTENT_SKELETON_LINE_1,
+          ),
+        ).not.toBeOnTheScreen();
       });
 
+      await waitFor(() => {
+        expect(
+          queryByTestId(
+            PredictMarketDetailsSelectorsIDs.DETAILS_BUTTONS_SKELETON_BUTTON_1,
+          ),
+        ).not.toBeOnTheScreen();
+      });
+
+      expect(await findByText(MOCK_PREDICT_MARKET.title)).toBeOnTheScreen();
       expect(await findByText('Yes • 0¢')).toBeOnTheScreen();
       expect(await findByText('No • 0¢')).toBeOnTheScreen();
     });
@@ -618,16 +690,14 @@ describe('PredictMarketDetails', () => {
     it('shows the resolved outcome and opens on the Outcomes tab', async () => {
       givenMarket(MOCK_PREDICT_CLOSED_MARKET);
 
-      const { findByTestId, findByText } = renderPredictMarketDetailsView({
+      const { findByTestId, getByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MOCK_PREDICT_CLOSED_MARKET.id },
       });
 
-      expect(await findByText('Market resulted to Yes')).toBeOnTheScreen();
-      expect(
-        await findByTestId(
-          PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT,
-        ),
-      ).toBeOnTheScreen();
+      await findByTestId(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT);
+      await waitFor(() => {
+        expect(getByText('Market resulted to Yes')).toBeOnTheScreen();
+      });
     });
 
     it('lets the user switch to the About tab on a closed market', async () => {
@@ -636,6 +706,8 @@ describe('PredictMarketDetails', () => {
       const { findByTestId } = renderPredictMarketDetailsView({
         initialParams: { marketId: MOCK_PREDICT_CLOSED_MARKET.id },
       });
+
+      await findByTestId(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT);
 
       fireEvent.press(
         await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB),
@@ -653,6 +725,7 @@ describe('PredictMarketDetails', () => {
           marketId: MOCK_PREDICT_CLOSED_MARKET.id,
           claimable: true,
           percentPnl: 42,
+          status: PredictPositionStatus.WON,
         }),
       ]);
       const claimSpy = controllerMock('claimWithConfirmation');
@@ -725,6 +798,9 @@ describe('PredictMarketDetails', () => {
       const { findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
+
+      await findByText('1D');
+      await findByText('MAX');
 
       fireEvent.press(await findByText('1W'));
 

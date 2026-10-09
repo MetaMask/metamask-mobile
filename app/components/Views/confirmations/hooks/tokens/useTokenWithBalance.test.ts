@@ -3,6 +3,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useTokenWithBalance } from './useTokenWithBalance';
 import { merge } from 'lodash';
 import {
+  accountMock,
   otherControllersMock,
   tokenAddress1Mock,
 } from '../../__mocks__/controllers/other-controllers-mock';
@@ -28,9 +29,14 @@ const marketDataMock = {
   },
 };
 
-function runHook(tokenAddress: Hex, chainId: Hex, extraState = {}) {
+function runHook(
+  tokenAddress: Hex,
+  chainId: Hex,
+  extraState = {},
+  accountAddress?: Hex,
+) {
   return renderHookWithProvider(
-    () => useTokenWithBalance(tokenAddress, chainId),
+    () => useTokenWithBalance(tokenAddress, chainId, accountAddress),
     {
       state: merge({}, otherControllersMock, marketDataMock, extraState),
     },
@@ -52,6 +58,8 @@ describe('useTokenWithBalance', () => {
       balanceRaw: '100',
       chainId: '0x1',
       decimals: 4,
+      image: undefined,
+      name: 'T1',
       symbol: 'T1',
       tokenFiatAmount: 100,
     });
@@ -86,6 +94,21 @@ describe('useTokenWithBalance', () => {
     const { result } = runHook(NATIVE_TOKEN_ADDRESS, '0x1');
 
     expect(result.current?.balanceRaw).toBe('0');
+  });
+
+  it('uses explicit account address before txParams.from for balance lookup', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      txParams: { from: '0xDifferentAddress' },
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+
+    const { result } = runHook(
+      NATIVE_TOKEN_ADDRESS,
+      '0x1',
+      {},
+      accountMock as Hex,
+    );
+
+    expect(result.current?.balance).toBe('2');
   });
 
   it('falls back to global account when txParams.from is not set', () => {

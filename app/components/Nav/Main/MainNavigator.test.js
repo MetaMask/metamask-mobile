@@ -39,6 +39,7 @@ describe('MainNavigator Route Constants', () => {
     expect(Routes.RAMP.SETTINGS).toBeDefined();
     expect(Routes.RAMP.TOKEN_SELECTION).toBeDefined();
     expect(Routes.RAMP.ORDER_DETAILS).toBeDefined();
+    expect(Routes.RAMP.VBA_ONBOARDING).toBeDefined();
   });
 
   it('has deposit routes defined', () => {
@@ -185,6 +186,7 @@ describe('Route Constants Validation', () => {
       Routes.MODAL.WALLET_ACTIONS,
       Routes.MODAL.ROOT_MODAL_FLOW,
       Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
     ];
 
     modalRoutes.forEach((route) => {

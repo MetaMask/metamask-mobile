@@ -14,7 +14,10 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import { formatCompactUsd, formatUsd } from '../../utils/formatUtils';
-import { computePrizePoolProgress } from '../../utils/prizePoolUtils';
+import {
+  computePrizePoolProgress,
+  hasPrizePoolContent,
+} from '../../utils/prizePoolUtils';
 
 export const CAMPAIGN_PRIZE_POOL_TEST_IDS = {
   CONTAINER: 'campaign-prize-pool-container',
@@ -24,14 +27,20 @@ export const CAMPAIGN_PRIZE_POOL_TEST_IDS = {
   ERROR_BANNER: 'campaign-prize-pool-error-banner',
 } as const;
 
-export interface CampaignPrizePoolMilestone {
+export interface CampaignPrizePoolSchedule {
+  totalVolumeUsd: number;
+  unlockedPoolUsd: number;
+  thresholdsUsd: readonly number[];
+  poolScheduleUsd: readonly number[];
+}
+
+interface CampaignPrizePoolMilestone {
   threshold: number;
   prize: number;
 }
 
 interface CampaignPrizePoolProps {
-  milestones: readonly CampaignPrizePoolMilestone[];
-  currentVolume: number | null;
+  prizePool: CampaignPrizePoolSchedule | null;
   isLoading: boolean;
   hasError: boolean;
   refetch: () => void;
@@ -42,24 +51,43 @@ const EMPTY_MILESTONE: CampaignPrizePoolMilestone = {
   prize: 0,
 };
 
+const buildMilestones = (
+  prizePool: CampaignPrizePoolSchedule | null,
+): CampaignPrizePoolMilestone[] => {
+  if (!prizePool) {
+    return [EMPTY_MILESTONE];
+  }
+
+  const milestones = prizePool.thresholdsUsd.map((threshold, index) => ({
+    threshold,
+    prize: prizePool.poolScheduleUsd[index] ?? prizePool.unlockedPoolUsd,
+  }));
+
+  if (!milestones.some((milestone) => milestone.threshold === 0)) {
+    milestones.unshift({
+      threshold: 0,
+      prize: prizePool.poolScheduleUsd[0] ?? prizePool.unlockedPoolUsd,
+    });
+  }
+
+  return milestones;
+};
+
 const CampaignPrizePool: React.FC<CampaignPrizePoolProps> = ({
-  milestones,
-  currentVolume,
+  prizePool,
   isLoading,
   hasError,
   refetch,
 }) => {
   const tw = useTailwind();
-  const showSkeleton = isLoading && currentVolume == null;
-  const showError = hasError && currentVolume == null;
+  const currentVolume = prizePool?.totalVolumeUsd ?? null;
+  const showSkeleton = isLoading && prizePool == null;
+  const showError = hasError && prizePool == null;
 
-  const sortedMilestones = useMemo(
-    () =>
-      milestones.length > 0
-        ? [...milestones].sort((a, b) => a.threshold - b.threshold)
-        : [EMPTY_MILESTONE],
-    [milestones],
-  );
+  const sortedMilestones = useMemo(() => {
+    const milestones = buildMilestones(prizePool);
+    return [...milestones].sort((a, b) => a.threshold - b.threshold);
+  }, [prizePool]);
 
   const { progress, currentPrize, nextPrize, nextThreshold, isMaxTier } =
     useMemo(
@@ -98,6 +126,15 @@ const CampaignPrizePool: React.FC<CampaignPrizePoolProps> = ({
         <Skeleton style={tw.style('h-3 w-40 rounded')} />
       </Box>
     );
+  }
+
+  // No data, and nothing in flight or failed to explain its absence. Rendering
+  // the ladder here would state a $0 prize pool as fact, which is a claim about
+  // the campaign rather than a missing value.
+  if (
+    !hasPrizePoolContent({ hasData: prizePool != null, isLoading, hasError })
+  ) {
+    return null;
   }
 
   return (

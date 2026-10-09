@@ -67,9 +67,7 @@ describe('useSeasonStatus', () => {
   const mockUseDispatch = useDispatch as jest.MockedFunction<
     typeof useDispatch
   >;
-  const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
-    typeof Engine.controllerMessenger.call
-  >;
+  const mockEngineCall = Engine.controllerMessenger.call as jest.Mock;
   const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
     typeof useFocusEffect
   >;
@@ -84,11 +82,12 @@ describe('useSeasonStatus', () => {
 
   const mockSubscriptionId = 'test-subscription-id';
   const mockSeasonId = 'test-season-id';
+  const FIXED_NOW = new Date('2025-01-01T12:00:00.000Z').getTime();
   const mockSeasonMetadata: SeasonDtoState = {
     id: mockSeasonId,
     name: 'Test Season',
-    startDate: Date.now() - 86400000,
-    endDate: Date.now() + 86400000,
+    startDate: FIXED_NOW - 86400000,
+    endDate: FIXED_NOW + 86400000,
     tiers: [],
     activityTypes: [],
     waysToEarn: [],
@@ -98,15 +97,15 @@ describe('useSeasonStatus', () => {
     season: {
       id: mockSeasonId,
       name: 'Test Season',
-      startDate: Date.now() - 86400000,
-      endDate: Date.now() + 86400000,
+      startDate: FIXED_NOW - 86400000,
+      endDate: FIXED_NOW + 86400000,
       tiers: [],
       activityTypes: [],
       waysToEarn: [],
     },
     balance: {
       total: 1000,
-      updatedAt: Date.now(),
+      updatedAt: FIXED_NOW,
     },
     tier: {
       currentTier: {
@@ -207,7 +206,7 @@ describe('useSeasonStatus', () => {
   });
 
   describe('fetchSeasonStatus - no subscriptionId', () => {
-    it('sets season status to null and loading to false when subscriptionId is missing', async () => {
+    it('skips fetch when subscriptionId is missing', async () => {
       mockUseSelector.mockReturnValue(null);
 
       const { result } = renderHook(() => useSeasonStatus({}));
@@ -216,12 +215,11 @@ describe('useSeasonStatus', () => {
         await result.current.fetchSeasonStatus();
       });
 
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatus(null));
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
+      expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockEngineCall).not.toHaveBeenCalled();
     });
 
-    it('sets season status to null and loading to false when subscriptionId is undefined', async () => {
+    it('skips fetch when subscriptionId is undefined', async () => {
       mockUseSelector.mockReturnValue(undefined);
 
       const { result } = renderHook(() => useSeasonStatus({}));
@@ -230,8 +228,7 @@ describe('useSeasonStatus', () => {
         await result.current.fetchSeasonStatus();
       });
 
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatus(null));
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
+      expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockEngineCall).not.toHaveBeenCalled();
     });
   });
@@ -249,7 +246,6 @@ describe('useSeasonStatus', () => {
         await result.current.fetchSeasonStatus();
       });
 
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:hasActiveSeason',
       );
@@ -257,16 +253,38 @@ describe('useSeasonStatus', () => {
         'RewardsController:getSeasonMetadata',
         'current',
       );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSeasonStatusLoading({
+          subscriptionId: mockSubscriptionId,
+          seasonId: mockSeasonId,
+          loading: true,
+        }),
+      );
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getSeasonStatus',
         mockSubscriptionId,
         mockSeasonId,
       );
       expect(mockDispatch).toHaveBeenCalledWith(
-        setSeasonStatus(mockSeasonStatus),
+        setSeasonStatus({
+          subscriptionId: mockSubscriptionId,
+          status: mockSeasonStatus,
+        }),
       );
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusError(null));
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSeasonStatusError({
+          subscriptionId: mockSubscriptionId,
+          seasonId: mockSeasonId,
+          error: null,
+        }),
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSeasonStatusLoading({
+          subscriptionId: mockSubscriptionId,
+          seasonId: mockSeasonId,
+          loading: false,
+        }),
+      );
     });
   });
 
@@ -283,7 +301,6 @@ describe('useSeasonStatus', () => {
         await result.current.fetchSeasonStatus();
       });
 
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:hasActiveSeason',
       );
@@ -291,16 +308,38 @@ describe('useSeasonStatus', () => {
         'RewardsController:getSeasonMetadata',
         'previous',
       );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSeasonStatusLoading({
+          subscriptionId: mockSubscriptionId,
+          seasonId: mockSeasonId,
+          loading: true,
+        }),
+      );
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getSeasonStatus',
         mockSubscriptionId,
         mockSeasonId,
       );
       expect(mockDispatch).toHaveBeenCalledWith(
-        setSeasonStatus(mockSeasonStatus),
+        setSeasonStatus({
+          subscriptionId: mockSubscriptionId,
+          status: mockSeasonStatus,
+        }),
       );
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusError(null));
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSeasonStatusError({
+          subscriptionId: mockSubscriptionId,
+          seasonId: mockSeasonId,
+          error: null,
+        }),
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSeasonStatusLoading({
+          subscriptionId: mockSubscriptionId,
+          seasonId: mockSeasonId,
+          loading: false,
+        }),
+      );
     });
   });
 
@@ -316,14 +355,12 @@ describe('useSeasonStatus', () => {
         await result.current.fetchSeasonStatus();
       });
 
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
       expect(mockHandleRewardsErrorMessage).toHaveBeenCalledWith(
         expect.any(Error),
       );
-      expect(mockDispatch).toHaveBeenCalledWith(
-        setSeasonStatusError('Error message'),
-      );
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
+      // seasonId never resolved — keyed loading/error reducers are skipped
+      expect(setSeasonStatusLoading).not.toHaveBeenCalled();
+      expect(setSeasonStatusError).not.toHaveBeenCalled();
     });
   });
 
@@ -332,7 +369,8 @@ describe('useSeasonStatus', () => {
       const mockError = new Error('Network error');
       mockEngineCall
         .mockResolvedValueOnce(true) // hasActiveSeason
-        .mockRejectedValueOnce(mockError); // getSeasonMetadata fails
+        .mockResolvedValueOnce(mockSeasonMetadata) // getSeasonMetadata
+        .mockRejectedValueOnce(mockError); // getSeasonStatus fails
 
       const { result } = renderHook(() => useSeasonStatus({}));
 
@@ -340,19 +378,36 @@ describe('useSeasonStatus', () => {
         await result.current.fetchSeasonStatus();
       });
 
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSeasonStatusLoading({
+          subscriptionId: mockSubscriptionId,
+          seasonId: mockSeasonId,
+          loading: true,
+        }),
+      );
       expect(mockHandleRewardsErrorMessage).toHaveBeenCalledWith(mockError);
       expect(mockDispatch).toHaveBeenCalledWith(
-        setSeasonStatusError('Error message'),
+        setSeasonStatusError({
+          subscriptionId: mockSubscriptionId,
+          seasonId: mockSeasonId,
+          error: 'Error message',
+        }),
       );
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSeasonStatusLoading({
+          subscriptionId: mockSubscriptionId,
+          seasonId: mockSeasonId,
+          loading: false,
+        }),
+      );
     });
 
     it('handles AuthorizationFailedError and resets rewards state', async () => {
       const mockError = new AuthorizationFailedError('Authorization failed');
       mockEngineCall
         .mockResolvedValueOnce(true) // hasActiveSeason
-        .mockRejectedValueOnce(mockError); // getSeasonMetadata fails
+        .mockResolvedValueOnce(mockSeasonMetadata) // getSeasonMetadata
+        .mockRejectedValueOnce(mockError); // getSeasonStatus fails
 
       const { result } = renderHook(() => useSeasonStatus({}));
 
@@ -360,19 +415,58 @@ describe('useSeasonStatus', () => {
         await result.current.fetchSeasonStatus();
       });
 
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSeasonStatusLoading({
+          subscriptionId: mockSubscriptionId,
+          seasonId: mockSeasonId,
+          loading: true,
+        }),
+      );
       expect(mockDispatch).toHaveBeenCalledWith(resetRewardsState());
       expect(mockDispatch).toHaveBeenCalledWith(
         setCandidateSubscriptionId('retry'),
       );
       expect(mockHandleRewardsErrorMessage).toHaveBeenCalledWith(mockError);
       expect(mockDispatch).toHaveBeenCalledWith(
-        setSeasonStatusError('Error message'),
+        setSeasonStatusError({
+          subscriptionId: mockSubscriptionId,
+          seasonId: mockSeasonId,
+          error: 'Error message',
+        }),
       );
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSeasonStatusLoading({
+          subscriptionId: mockSubscriptionId,
+          seasonId: mockSeasonId,
+          loading: false,
+        }),
+      );
     });
 
     it('sets loading to false even when error occurs', async () => {
+      const mockError = new Error('Network error');
+      mockEngineCall
+        .mockResolvedValueOnce(true) // hasActiveSeason
+        .mockResolvedValueOnce(mockSeasonMetadata) // getSeasonMetadata
+        .mockRejectedValueOnce(mockError); // getSeasonStatus fails
+
+      const { result } = renderHook(() => useSeasonStatus({}));
+
+      await act(async () => {
+        await result.current.fetchSeasonStatus();
+      });
+
+      // Verify loading is set to false in finally block
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSeasonStatusLoading({
+          subscriptionId: mockSubscriptionId,
+          seasonId: mockSeasonId,
+          loading: false,
+        }),
+      );
+    });
+
+    it('skips keyed loading/error when metadata fetch fails before seasonId', async () => {
       const mockError = new Error('Network error');
       mockEngineCall
         .mockResolvedValueOnce(true) // hasActiveSeason
@@ -384,13 +478,14 @@ describe('useSeasonStatus', () => {
         await result.current.fetchSeasonStatus();
       });
 
-      // Verify loading is set to false in finally block
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
+      expect(mockHandleRewardsErrorMessage).toHaveBeenCalledWith(mockError);
+      expect(setSeasonStatusLoading).not.toHaveBeenCalled();
+      expect(setSeasonStatusError).not.toHaveBeenCalled();
     });
   });
 
   describe('fetchSeasonStatus - loading state management', () => {
-    it('sets loading to true at start and false after completion', async () => {
+    it('sets loading to true after seasonId is known and false after completion', async () => {
       mockEngineCall
         .mockResolvedValueOnce(true) // hasActiveSeason
         .mockResolvedValueOnce(mockSeasonMetadata) // getSeasonMetadata
@@ -403,15 +498,28 @@ describe('useSeasonStatus', () => {
       });
 
       // Verify loading states are managed correctly
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(true));
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSeasonStatusLoading({
+          subscriptionId: mockSubscriptionId,
+          seasonId: mockSeasonId,
+          loading: true,
+        }),
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSeasonStatusLoading({
+          subscriptionId: mockSubscriptionId,
+          seasonId: mockSeasonId,
+          loading: false,
+        }),
+      );
     });
 
     it('sets loading to false even when error occurs', async () => {
       const mockError = new Error('Network error');
       mockEngineCall
         .mockResolvedValueOnce(true) // hasActiveSeason
-        .mockRejectedValueOnce(mockError); // getSeasonMetadata fails
+        .mockResolvedValueOnce(mockSeasonMetadata) // getSeasonMetadata
+        .mockRejectedValueOnce(mockError); // getSeasonStatus fails
 
       const { result } = renderHook(() => useSeasonStatus({}));
 
@@ -420,7 +528,13 @@ describe('useSeasonStatus', () => {
       });
 
       // Verify loading is set to false after error
-      expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setSeasonStatusLoading({
+          subscriptionId: mockSubscriptionId,
+          seasonId: mockSeasonId,
+          loading: false,
+        }),
+      );
     });
   });
 
@@ -441,7 +555,10 @@ describe('useSeasonStatus', () => {
 
       expect(mockEngineCall).toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalledWith(
-        setSeasonStatus(mockSeasonStatus),
+        setSeasonStatus({
+          subscriptionId: mockSubscriptionId,
+          status: mockSeasonStatus,
+        }),
       );
     });
   });

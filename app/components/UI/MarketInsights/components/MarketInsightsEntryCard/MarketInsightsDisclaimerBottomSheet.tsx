@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { Modal, View } from 'react-native';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -47,26 +48,28 @@ const MarketInsightsDisclaimerBottomSheet: React.FC<
         statusBarTranslucent
         onRequestClose={handleClose}
       >
-        <BottomSheet ref={bottomSheetRef} onClose={onClose}>
-          <BottomSheetHeader onClose={handleClose}>
-            {strings('market_insights.disclaimer_modal.title')}
-          </BottomSheetHeader>
+        <ModalSafeAreaProvider testID="market-insights-disclaimer-safe-area-provider">
+          <BottomSheet ref={bottomSheetRef} onClose={onClose}>
+            <BottomSheetHeader onClose={handleClose}>
+              {strings('market_insights.disclaimer_modal.title')}
+            </BottomSheetHeader>
 
-          <Box paddingHorizontal={4}>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('market_insights.disclaimer_modal.body')}
-            </Text>
-          </Box>
+            <Box paddingHorizontal={4}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('market_insights.disclaimer_modal.body')}
+              </Text>
+            </Box>
 
-          <BottomSheetFooter
-            buttonsAlignment={ButtonsAlignment.Horizontal}
-            primaryButtonProps={primaryButtonProps}
-            twClassName="pt-6"
-          />
-        </BottomSheet>
+            <BottomSheetFooter
+              buttonsAlignment={ButtonsAlignment.Horizontal}
+              primaryButtonProps={primaryButtonProps}
+              twClassName="pt-6"
+            />
+          </BottomSheet>
+        </ModalSafeAreaProvider>
       </Modal>
     </View>
   );

@@ -329,6 +329,7 @@ const defaultDashboard: VipDashboardState = {
     earned: 5_555_555,
     threshold: 7_777_777,
     percent: 71.4,
+    lifetimeQualifyingPoints: null,
   },
   tiers: [
     {
@@ -357,6 +358,7 @@ const defaultDashboard: VipDashboardState = {
     },
   ],
   localizedText: {
+    equityLifetimePointsDescription: 'Lifetime total: {points}',
     periodTitle: 'Jun 1 - Jun 30',
     memberIdTitle: 'Member ID',
     transactionsTitle: 'Transactions',
@@ -769,6 +771,7 @@ describe('RewardsVipView', () => {
         ...defaultDashboard,
         program: { id: 'mock-vip-program', name: 'Acme Rewards Beta — Custom' },
         localizedText: {
+          equityLifetimePointsDescription: 'Lifetime total: {points}',
           memberIdTitle: 'Member ID',
           transactionsTitle: 'Transactions',
           swapsFeeTitle: 'Swap fees',

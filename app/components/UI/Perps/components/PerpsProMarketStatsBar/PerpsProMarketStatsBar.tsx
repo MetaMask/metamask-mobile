@@ -99,9 +99,31 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   nextFundingTime,
   fundingIntervalHours,
   testID = PerpsProMarketViewSelectorsIDs.STATS_BAR,
+  onResolvedStateChange,
 }) => {
   const { styles } = useStyles(createStyles, {});
   const marketStats = usePerpsMarketStats(symbol);
+
+  useEffect(() => {
+    if (marketStats.hasError) {
+      onResolvedStateChange?.(symbol, 'error');
+      return;
+    }
+    if (marketStats.dataSymbol !== symbol) {
+      onResolvedStateChange?.(symbol, 'loading');
+      return;
+    }
+    onResolvedStateChange?.(
+      symbol,
+      marketStats.hasLiveData ? 'content' : 'loading',
+    );
+  }, [
+    marketStats.dataSymbol,
+    marketStats.hasError,
+    marketStats.hasLiveData,
+    onResolvedStateChange,
+    symbol,
+  ]);
 
   // Live funding + mark/oracle, throttled to match PerpsMarketStatisticsCard.
   const livePrices = usePerpsLivePrices({
@@ -146,20 +168,35 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   const fundingValue = `${fundingRateDisplay} / ${fundingCountdown}`;
 
   const fundingValueColor: TextColor = useMemo(() => {
-    const rate = liveFunding ?? parseFloat(marketStats.fundingRate ?? '');
-    if (isNaN(rate) || rate === 0) return TextColor.TextDefault;
-    if (rate > 0) return TextColor.SuccessDefault;
-    return TextColor.ErrorDefault;
+    if (liveFunding !== undefined) {
+      if (liveFunding === 0) return TextColor.TextDefault;
+      return liveFunding > 0
+        ? TextColor.SuccessDefault
+        : TextColor.ErrorDefault;
+    }
+
+    if (
+      !marketStats.fundingRate ||
+      marketStats.fundingRate === FUNDING_RATE_CONFIG.ZeroDisplay
+    ) {
+      return TextColor.TextDefault;
+    }
+
+    return marketStats.fundingRate.startsWith('-')
+      ? TextColor.ErrorDefault
+      : TextColor.SuccessDefault;
   }, [liveFunding, marketStats.fundingRate]);
 
-  // PriceUpdate exposes a single markPrice field. Lite's statistics card uses
-  // it as "Oracle price"; Pro Figma shows both Mark and Oracle, so both read
-  // markPrice until a distinct oraclePx is streamed.
-  const markPriceDisplay = formatLivePrice(livePriceUpdate?.markPrice);
+  // Mark and oracle are two distinct values and must come from two distinct
+  // fields (TAT-4024). In PriceUpdate, `price` is the live mark (the
+  // activeAssetCtx midPx/markPx that live PnL and position value track), while
+  // `markPrice` is populated by the controller from the exchange's oraclePx —
+  // the same field Lite's statistics card renders as "Oracle price".
+  const markPriceDisplay = formatLivePrice(livePriceUpdate?.price);
   const oraclePriceDisplay = formatLivePrice(livePriceUpdate?.markPrice);
 
   return (
-    <Box testID={testID} twClassName="border-t border-b border-border-muted">
+    <Box testID={testID} twClassName="border-b border-border-muted">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

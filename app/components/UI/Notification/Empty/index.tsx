@@ -8,6 +8,7 @@ import {
   IconName,
   IconSize,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 const Empty = ({ testID }: { testID?: string }) => (
@@ -21,7 +22,11 @@ const Empty = ({ testID }: { testID?: string }) => (
     <Text style={styles.text} variant={TextVariant.HeadingMd}>
       {strings('notifications.empty.title')}
     </Text>
-    <Text style={styles.text} variant={TextVariant.BodyMd}>
+    <Text
+      style={styles.text}
+      variant={TextVariant.BodyMd}
+      color={TextColor.TextAlternative}
+    >
       {strings('notifications.empty.message')}
     </Text>
   </View>
