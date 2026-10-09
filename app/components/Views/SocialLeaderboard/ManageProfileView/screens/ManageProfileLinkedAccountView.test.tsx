@@ -3,8 +3,10 @@ import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
+  MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA,
   internalAccount1,
   internalAccount2,
+  internalSolanaAccount1,
 } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
@@ -96,5 +98,26 @@ describe('ManageProfileLinkedAccountView', () => {
     expect(updateProfile).toHaveBeenCalledWith({
       linked_addresses: [`eip155:1:${internalAccount1.address}`],
     });
+  });
+
+  it('does not list non-EVM accounts', () => {
+    renderWithProvider(<ManageProfileLinkedAccountView />, {
+      state: {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA,
+          },
+        },
+      },
+    });
+
+    expect(
+      screen.queryByTestId(
+        `${ManageProfileLinkedAccountSelectorsIDs.ACCOUNT_ROW}-${internalSolanaAccount1.id}`,
+      ),
+    ).toBeNull();
   });
 });

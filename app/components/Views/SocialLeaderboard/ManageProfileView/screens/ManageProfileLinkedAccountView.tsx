@@ -21,7 +21,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import {
-  selectInternalAccounts,
+  selectInternalEvmAccounts,
   selectSelectedInternalAccount,
 } from '../../../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
@@ -45,7 +45,7 @@ const getLinkedEvmAddress = (linkedAddress: string): string | undefined => {
 };
 
 const ManageProfileLinkedAccountView: React.FC = () => {
-  const accounts = useSelector(selectInternalAccounts);
+  const accounts = useSelector(selectInternalEvmAccounts);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const avatarVariant = getAvatarAccountVariant(avatarAccountType);
