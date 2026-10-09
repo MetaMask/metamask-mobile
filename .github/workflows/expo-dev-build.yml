@@ -94,7 +94,7 @@ jobs:
             exit 1
           fi
           # builds.yml isn't tracked by @expo/fingerprint, but the main-dev-expo entry
-          # (signing, CONFIGURATION, IS_DEVICE_BUILD, code_fencing, ...) affects the
+          # (signing, CONFIGURATION, IS_DEVICE_BUILD, ...) affects the
           # binary, so fold a short hash of it into the gate key.
           BUILDS_HASH="$(sha256sum builds.yml | cut -c1-8)"
           GATE_KEY="${FINGERPRINT}-${BUILDS_HASH}"
