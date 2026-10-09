@@ -5,7 +5,10 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import type { RecurringOrder } from '../../../api/recurringOrders.types';
+import {
+  type RecurringOrder,
+  RecurringOrderState,
+} from '../../../api/recurringOrders.types';
 import {
   formatRecurringInterval,
   formatRecurringTokenAmount,
@@ -17,7 +20,7 @@ import type { OrdersTabConfig } from '../../../components/OrdersTabs';
 import { RecurringOrderDetailsViewSelectorsIDs } from '../../RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
 
 function getStatusTag(order: RecurringOrder) {
-  if (order.status === 'completed') {
+  if (order.state === RecurringOrderState.Completed) {
     return (
       <Tag severity={TagSeverity.Neutral}>
         {strings('bridge.recurring.completed')}
@@ -25,10 +28,18 @@ function getStatusTag(order: RecurringOrder) {
     );
   }
 
-  if (order.status === 'cancelled') {
+  if (order.state === RecurringOrderState.Cancelled) {
     return (
       <Tag severity={TagSeverity.Danger}>
         {strings('bridge.recurring.cancelled')}
+      </Tag>
+    );
+  }
+
+  if (order.state === RecurringOrderState.Expired) {
+    return (
+      <Tag severity={TagSeverity.Neutral}>
+        {strings('bridge.limit.expired')}
       </Tag>
     );
   }
@@ -45,11 +56,11 @@ export function RecurringOrderRow({ order, onPress }: RecurringOrderRowProps) {
   const { sourceToken, destinationToken } = getRecurringOrderTokens(order);
   const interval = formatRecurringInterval(order.schedule);
   const totalReceived = formatRecurringTokenAmount(
-    order.destFilled.amount,
+    order.fillData.dest.amount,
     order.dest.asset.decimals,
   );
   const filledPercent = getRecurringOrderFilledPercent(order);
-  const isOpen = order.status === 'open';
+  const isOpen = order.state === RecurringOrderState.Open;
 
   return (
     <OpenOrderRow
@@ -71,10 +82,8 @@ export function RecurringOrderRow({ order, onPress }: RecurringOrderRowProps) {
       onPress={() => onPress(order)}
       testID={
         isOpen
-          ? RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(order.orderId)
-          : RecurringOrderDetailsViewSelectorsIDs.HISTORY_ORDER_ROW(
-              order.orderId,
-            )
+          ? RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(order.id)
+          : RecurringOrderDetailsViewSelectorsIDs.HISTORY_ORDER_ROW(order.id)
       }
     />
   );
@@ -102,7 +111,7 @@ export function createRecurringOrdersTab({
     renderItem: (order) => (
       <RecurringOrderRow order={order} onPress={onOrderPress} />
     ),
-    keyExtractor: (order) => order.orderId,
+    keyExtractor: (order) => order.id,
     isLoading,
     isError,
     isFetchingNextPage,
