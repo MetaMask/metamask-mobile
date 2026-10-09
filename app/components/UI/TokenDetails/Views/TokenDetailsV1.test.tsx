@@ -253,6 +253,11 @@ jest.mock('../hooks/useStickyQuickBuy', () => ({
   }),
 }));
 
+const mockUseTokenBalance = jest.fn();
+jest.mock('../hooks/useTokenBalance', () => ({
+  useTokenBalance: (...args: unknown[]) => mockUseTokenBalance(...args),
+}));
+
 const mockStickyFooterProps: Record<string, unknown>[] = [];
 
 jest.mock('../components/TokenDetailsStickyFooter', () => {
@@ -317,6 +322,7 @@ describe('TokenDetailsV1', () => {
     useSelector.mockImplementation(() => undefined);
     mockCurrentPrice = 1;
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
+    mockUseTokenBalance.mockReturnValue({ balance: undefined });
     mockOverviewProps.length = 0;
     mockStickyFooterProps.length = 0;
   });
@@ -383,19 +389,39 @@ describe('TokenDetailsV1', () => {
   });
 
   it('configures the sticky footer with buy and sell actions', () => {
+    mockUseTokenBalance.mockReturnValue({ balance: '2.5' });
+
     render(
       <TokenDetailsV1
-        token={baseToken}
+        token={{ ...baseToken, balance: '0' }}
         variant={TokenDetailsVariant.Memecoin}
       />,
     );
 
     expect(mockStickyFooterProps[0]).toEqual(
       expect.objectContaining({
-        currentTokenBalance: undefined,
-        hasTokenBalance: false,
+        currentTokenBalance: '2.5',
+        hasTokenBalance: true,
         quickBuyEntrypointLayout: 'buy_sell',
         onOpenQuickBuy: expect.any(Function),
+      }),
+    );
+  });
+
+  it('does not show sell when the live balance is zero despite a stale route balance', () => {
+    mockUseTokenBalance.mockReturnValue({ balance: '0' });
+
+    render(
+      <TokenDetailsV1
+        token={{ ...baseToken, balance: '4' }}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps[0]).toEqual(
+      expect.objectContaining({
+        currentTokenBalance: '0',
+        hasTokenBalance: false,
       }),
     );
   });
