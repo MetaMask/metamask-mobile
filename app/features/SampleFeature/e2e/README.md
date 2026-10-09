@@ -32,10 +32,10 @@ e2e/
 ## Important: Feature Flag Requirement
 
 > [!CRITICAL]
-> The Sample Feature uses code fencing and requires the `INCLUDE_SAMPLE_FEATURE=true` environment variable to be included in builds.
+> The Sample Feature is runtime-gated and requires the `INCLUDE_SAMPLE_FEATURE=true` environment variable to be included in builds.
 > **E2E tests will fail if the Sample Feature is not included in the build!**
 
-The Sample Feature is completely removed from production builds using code fencing (see [Build Configuration](../README.md#build-configuration)). This means:
+The Sample Feature is dead-code-eliminated from production builds via runtime gating (see [Build Configuration](../README.md#build-level-feature-selection-runtime-gating)). This means:
 
 - Without the flag: The feature code doesn't exist in the app bundle
 - With the flag: The feature code is included and can be tested

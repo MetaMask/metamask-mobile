@@ -30,7 +30,7 @@ jest.mock('../../../../../core/Engine', () => ({
 import { trace } from '../../../../../util/trace';
 
 const mockAssignPetname = Engine.context.SamplePetnamesController
-  .assignPetname as jest.Mock;
+  ?.assignPetname as jest.Mock;
 
 describe('useSamplePetNamesForm', () => {
   const chainId: Hex = '0x1';

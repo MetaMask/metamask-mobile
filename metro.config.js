@@ -136,6 +136,13 @@ module.exports = function (baseConfig) {
        */
       const isE2EMockOAuth = process.env.E2E_MOCK_OAUTH === 'true';
 
+      // The lazy require in Root/index.tsx is constant-folded away in release
+      // builds, but dev builds skip constant folding, so the embedded Lighter
+      // signer (~10 MB of inlined WASM) must also be resolved to an empty
+      // module here to keep it out of bundles that don't opt in.
+      const isLighterSignerEnabled =
+        process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true';
+
       const e2eMocksSeedlessController = hasTestOverrides;
       const e2eMocksOAuthHandlers = hasTestOverrides || isE2EMockOAuth;
 
@@ -240,6 +247,14 @@ module.exports = function (baseConfig) {
               // because no importer uses the module's exports — the DMK
               // closure only reads the global Reflect, patched at startup.
               if (moduleName === 'reflect-metadata') {
+                return {
+                  type: 'empty',
+                };
+              }
+              if (
+                !isLighterSignerEnabled &&
+                moduleName.endsWith('/Lighter/LighterSignerWebView')
+              ) {
                 return {
                   type: 'empty',
                 };

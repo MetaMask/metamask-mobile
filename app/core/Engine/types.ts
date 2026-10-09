@@ -1,11 +1,13 @@
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import {
+// The `SamplePetnamesController` is only registered when
+// `INCLUDE_SAMPLE_FEATURE=true` (see Engine.ts and messengers/index.ts), so
+// this import must stay `import type` to avoid pulling the runtime module
+// into production bundles.
+import type {
   SamplePetnamesController,
   SamplePetnamesControllerState,
   SamplePetnamesControllerActions,
   SamplePetnamesControllerEvents,
 } from '@metamask/sample-controllers';
-///: END:ONLY_INCLUDE_IF
 import { ExtendedMessenger } from '../ExtendedMessenger';
 import {
   AccountTrackerController,
@@ -680,9 +682,7 @@ type SnapsGlobalEvents =
 ///: END:ONLY_INCLUDE_IF
 
 export type GlobalActions =
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerActions
-  ///: END:ONLY_INCLUDE_IF
   | AccountTrackerControllerActions
   | AssetsControllerActions
   | NftControllerActions
@@ -800,9 +800,7 @@ export type GlobalActions =
   | SentinelApiServiceActions;
 
 export type GlobalEvents =
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerEvents
-  ///: END:ONLY_INCLUDE_IF
   | AccountTrackerControllerEvents
   | AssetsControllerEvents
   | NftControllerEvents
@@ -951,9 +949,8 @@ export const getRootMessenger = (): RootMessenger =>
 // Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MessengerClients = {
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  SamplePetnamesController: SamplePetnamesController;
-  ///: END:ONLY_INCLUDE_IF
+  // Only registered when INCLUDE_SAMPLE_FEATURE=true.
+  SamplePetnamesController?: SamplePetnamesController;
   AccountsController: AccountsController;
   AccountTreeController: AccountTreeController;
   AccountTrackerController: AccountTrackerController;
@@ -1158,9 +1155,8 @@ export type EngineState = {
   RewardsController: RewardsControllerState;
   RewardsMoneyController: RewardsMoneyControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  SamplePetnamesController: SamplePetnamesControllerState;
-  ///: END:ONLY_INCLUDE_IF
+  // Only registered when INCLUDE_SAMPLE_FEATURE=true.
+  SamplePetnamesController?: SamplePetnamesControllerState;
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
   ProfileMetricsController: ProfileMetricsControllerState;
@@ -1197,9 +1193,7 @@ export type ControllerMessenger = Messenger<
  * Specify messenger clients to initialize.
  */
 export type MessengerClientsToInitialize =
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | 'SamplePetnamesController'
-  ///: END:ONLY_INCLUDE_IF
   | 'AccountTrackerController'
   | 'AssetsContractController'
   | 'AssetsController'
@@ -1314,7 +1308,7 @@ type MessengerClientPersistedState = Partial<{
   [Name in Exclude<
     MessengerClientName,
     (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
-  >]: Partial<MessengerClientsByName[Name]['state']>;
+  >]: Partial<NonNullable<MessengerClientsByName[Name]>['state']>;
 }>;
 
 /**

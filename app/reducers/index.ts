@@ -34,9 +34,7 @@ import bridgeReducer from '../core/redux/slices/bridge';
 import performanceReducer, {
   PerformanceState,
 } from '../core/redux/slices/performance';
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import sampleCounterReducer from '../features/SampleFeature/reducers/sample-counter';
-///: END:ONLY_INCLUDE_IF
+import type { SampleCounterState } from '../features/SampleFeature/reducers/sample-counter';
 import cardReducer from '../core/redux/slices/card';
 import moneyBalanceReducer from '../core/redux/slices/moneyBalance';
 import rewardsReducer, { RewardsState } from './rewards';
@@ -127,9 +125,8 @@ export interface RootState {
   card: StateFromReducer<typeof cardReducer>;
   moneyBalance: StateFromReducer<typeof moneyBalanceReducer>;
   performance?: PerformanceState;
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  sampleCounter: StateFromReducer<typeof sampleCounterReducer>;
-  ///: END:ONLY_INCLUDE_IF
+  // Only registered when INCLUDE_SAMPLE_FEATURE=true.
+  sampleCounter?: SampleCounterState;
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
   attribution: StateFromReducer<typeof attributionReducer>;
@@ -138,6 +135,16 @@ export interface RootState {
     typeof terminalOrderAnalyticsReducer
   >;
 }
+
+// Only enabled in dev/test builds via `INCLUDE_SAMPLE_FEATURE=true`; otherwise
+// the reducer is dead-code-eliminated and never added to persisted state.
+const sampleCounterReducer:
+  | Reducer<SampleCounterState | undefined>
+  | undefined =
+  process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the sample feature out of prod bundles
+      require('../features/SampleFeature/reducers/sample-counter').default
+    : undefined;
 
 const baseReducers = {
   legalNotices: legalNoticesReducer,
@@ -173,9 +180,7 @@ const baseReducers = {
   card: cardReducer,
   moneyBalance: moneyBalanceReducer,
   confirmationMetrics: confirmationMetricsReducer,
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  sampleCounter: sampleCounterReducer,
-  ///: END:ONLY_INCLUDE_IF
+  ...(sampleCounterReducer && { sampleCounter: sampleCounterReducer }),
   qrKeyringScanner: qrKeyringScannerReducer,
   cronjobController: cronjobControllerReducer,
   rewards: rewardsReducer,
