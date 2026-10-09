@@ -1,6 +1,7 @@
 import QuickCrypto from 'react-native-quick-crypto';
 import type { Hex } from '@metamask/utils';
-import { KeyringTypes } from '@metamask/keyring-controller';
+import { HdKeyring } from '@metamask/eth-hd-keyring';
+import SimpleKeyring from '@metamask/eth-simple-keyring';
 import type {
   LighterCreateClientParams,
   LighterSignerBridge,
@@ -350,10 +351,10 @@ const getStoredKeyIndices = (
     NonNullable<LighterSignerBridge['getStoredKeyIndices']>
   >[0],
   allowSoftwareRecovery = false,
+  deadline = Date.now() + LIGHTER_SIGNER_TIMEOUT_MS,
 ): Promise<number[]> =>
   withOwnership(async (owner, retired) => {
     const { assertWallet } = captureWalletBinding(params, owner);
-    const deadline = Date.now() + LIGHTER_SIGNER_TIMEOUT_MS;
     const stored: number[] = [];
     for (const apiKeyIndex of new Set(params.apiKeyIndices)) {
       const clientParams = { ...params, apiKeyIndex, nonce: 0 };
@@ -399,16 +400,24 @@ export const lighterSignerBridge = {
     apiKeyIndices: number[];
     walletAddress?: string;
   }): Promise<number[]> =>
-    withOwnership(async (owner) => {
+    withOwnership(async (owner, retired) => {
+      const deadline = Date.now() + LIGHTER_SIGNER_TIMEOUT_MS;
       const { address, assertWallet } = captureWalletBinding(params, owner);
-      const canDerive = await Engine.context.KeyringController.withKeyring(
-        { address: address as Hex },
-        async ({ keyring }) =>
-          keyring.type === KeyringTypes.hd ||
-          keyring.type === KeyringTypes.simple,
+      const canDerive = await timeoutAfter(
+        Promise.race([
+          Engine.context.KeyringController.withKeyring(
+            { address: address as Hex },
+            async ({ keyring }) =>
+              keyring.type === HdKeyring.type ||
+              keyring.type === SimpleKeyring.type,
+          ),
+          retired,
+        ]),
+        deadline - Date.now(),
+        'Lighter signer key discovery timed out',
       );
       assertWallet();
-      const stored = await getStoredKeyIndices(params, canDerive);
+      const stored = await getStoredKeyIndices(params, canDerive, deadline);
       assertWallet();
       return canDerive
         ? [...new Set([...stored, ...params.apiKeyIndices])]
