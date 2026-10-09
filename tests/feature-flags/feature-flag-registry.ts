@@ -4675,6 +4675,19 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  // Not in the production client-config response yet. inProd stays false so
+  // the weekly registry sync does not treat this as removed from production.
+  isMoneyMfaEnabled: {
+    name: 'isMoneyMfaEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.15.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyHeadlessAllProviders: {
     name: 'moneyHeadlessAllProviders',
     type: FeatureFlagType.Remote,
@@ -6554,13 +6567,26 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  homeTMCU1209AbtestHomepageBalanceBreakdown: {
-    name: 'homeTMCU1209AbtestHomepageBalanceBreakdown',
+  homeTMCU1209AbtestHomepageBalanceBreakdownV2: {
+    name: 'homeTMCU1209AbtestHomepageBalanceBreakdownV2',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: {
-      enabled: false,
-    },
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+      },
+    ],
     status: FeatureFlagStatus.Active,
   },
 

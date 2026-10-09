@@ -260,6 +260,16 @@ describe('Feature Flag Registry', () => {
       });
     });
 
+    it('registers Money MFA default-off until LaunchDarkly rolls it out', () => {
+      expect(getRegistryEntry('isMoneyMfaEnabled')).toMatchObject({
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.15.0',
+        },
+      });
+    });
+
     it('registers Card Immersve catalog flags added in the 2026-09-08 prod sync', () => {
       const addedFlagNames = [
         'cardImmersve',
@@ -328,7 +338,6 @@ describe('Feature Flag Registry', () => {
 
     it('registers Home/TMCU and Social AI catalog flags added in the 2026-09-08 prod sync', () => {
       const addedFlagNames = [
-        'homeTMCU1209AbtestHomepageBalanceBreakdown',
         'homeTMCU470AbtestTrendingSections',
         'homeTMCU828AbtestOnboardingChecklistStepper',
         'aiSocialFeedEnabled',
@@ -341,6 +350,22 @@ describe('Feature Flag Registry', () => {
       expect(
         getRegistryEntry('aiSocialLeaderboardOnboaridngEnabled'),
       ).toBeUndefined();
+    });
+
+    it('pins the homepage balance breakdown A/B test to control', () => {
+      expect(
+        getRegistryEntry('homeTMCU1209AbtestHomepageBalanceBreakdownV2')
+          ?.productionDefault,
+      ).toEqual([
+        {
+          name: 'control',
+          scope: { type: 'percentage_rollout', value: 1 },
+        },
+        {
+          name: 'treatment',
+          scope: { type: 'percentage_rollout', value: 0 },
+        },
+      ]);
     });
 
     it('version-gates activity and transactions redesigns on at 8.5.0', () => {

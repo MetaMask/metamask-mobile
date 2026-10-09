@@ -1,22 +1,79 @@
 /**
- * Controller-backed Card Provider Adapter
+ * Controller-backed card provisioning adapter.
  *
- * Implementation of ICardProviderAdapter that delegates to CardController
- * instead of directly using CardSDK. Used after the SDK-to-Controller migration.
+ * Forwards raw PassKit values to CardController. Each provider adapts them.
  */
 
 import {
   ProvisioningError,
   ProvisioningErrorCode,
-  type CardProviderId,
   type ApplePayEncryptedPayload,
+  type WalletType,
 } from '../../types';
 import type { ICardProviderAdapter } from './ICardProviderAdapter';
 import Engine from '../../../../../../core/Engine';
 import { strings } from '../../../../../../../locales/i18n';
+import {
+  CardProviderError,
+  CardProviderErrorCode,
+  type CardProviderId,
+} from '../../../../../../core/Engine/controllers/card-controller/provider-types';
+
+function mapProviderError(error: unknown): ProvisioningError {
+  if (error instanceof ProvisioningError) {
+    return error;
+  }
+
+  if (error instanceof CardProviderError) {
+    switch (error.code) {
+      case CardProviderErrorCode.InvalidRequest:
+        return new ProvisioningError(
+          ProvisioningErrorCode.ENCRYPTION_FAILED,
+          strings('card.push_provisioning.error_encryption_failed'),
+          error,
+        );
+      case CardProviderErrorCode.Forbidden:
+        return new ProvisioningError(
+          ProvisioningErrorCode.CARD_NOT_ELIGIBLE,
+          strings('card.push_provisioning.error_card_not_eligible'),
+          error,
+        );
+      case CardProviderErrorCode.ServerError:
+        return new ProvisioningError(
+          ProvisioningErrorCode.PROVIDER_UNAVAILABLE,
+          strings('card.push_provisioning.error_provider_unavailable'),
+          error,
+        );
+      case CardProviderErrorCode.InvalidCredentials:
+        return new ProvisioningError(
+          ProvisioningErrorCode.UNKNOWN_ERROR,
+          strings('card.push_provisioning.error_unknown'),
+          error,
+        );
+      default:
+        return new ProvisioningError(
+          ProvisioningErrorCode.ENCRYPTION_FAILED,
+          strings('card.push_provisioning.error_encryption_failed'),
+          error,
+        );
+    }
+  }
+
+  return new ProvisioningError(
+    ProvisioningErrorCode.ENCRYPTION_FAILED,
+    strings('card.push_provisioning.error_encryption_failed'),
+    error instanceof Error ? error : undefined,
+  );
+}
 
 export class ControllerCardAdapter implements ICardProviderAdapter {
-  readonly providerId: CardProviderId = 'galileo';
+  get providerId(): CardProviderId {
+    return Engine.context.CardController.state.activeProviderId ?? 'baanx';
+  }
+
+  supportsWallet(walletType: WalletType): boolean {
+    return walletType === 'apple_wallet' || walletType === 'google_wallet';
+  }
 
   async getOpaquePaymentCard(): Promise<{ opaquePaymentCard: string }> {
     try {
@@ -32,12 +89,7 @@ export class ControllerCardAdapter implements ICardProviderAdapter {
 
       return { opaquePaymentCard: response.opaquePaymentCard };
     } catch (error) {
-      if (error instanceof ProvisioningError) throw error;
-      throw new ProvisioningError(
-        ProvisioningErrorCode.ENCRYPTION_FAILED,
-        strings('card.push_provisioning.error_encryption_failed'),
-        error instanceof Error ? error : undefined,
-      );
+      throw mapProviderError(error);
     }
   }
 
@@ -71,12 +123,7 @@ export class ControllerCardAdapter implements ICardProviderAdapter {
         ephemeralPublicKey: response.ephemeralPublicKey,
       };
     } catch (error) {
-      if (error instanceof ProvisioningError) throw error;
-      throw new ProvisioningError(
-        ProvisioningErrorCode.ENCRYPTION_FAILED,
-        strings('card.push_provisioning.error_encryption_failed'),
-        error instanceof Error ? error : undefined,
-      );
+      throw mapProviderError(error);
     }
   }
 }
