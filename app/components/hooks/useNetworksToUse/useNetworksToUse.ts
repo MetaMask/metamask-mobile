@@ -6,7 +6,7 @@ import {
   NetworkType,
   ProcessedNetwork,
 } from '../useNetworksByNamespace/useNetworksByNamespace';
-import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -23,15 +23,18 @@ interface UseNetworksToUseReturn {
   solanaNetworks: ProcessedNetwork[];
   bitcoinNetworks: ProcessedNetwork[];
   tronNetworks: ProcessedNetwork[];
+  stellarNetworks: ProcessedNetwork[];
   selectedEvmAccount: InternalAccount | null;
   selectedSolanaAccount: InternalAccount | null;
   selectedBitcoinAccount: InternalAccount | null;
   selectedTronAccount: InternalAccount | null;
+  selectedStellarAccount: InternalAccount | null;
   areAllNetworksSelectedCombined: boolean;
   areAllEvmNetworksSelected: boolean;
   areAllSolanaNetworksSelected: boolean;
   areAllBitcoinNetworksSelected: boolean;
   areAllTronNetworksSelected: boolean;
+  areAllStellarNetworksSelected: boolean;
 }
 
 /**
@@ -58,6 +61,9 @@ export const useNetworksToUse = ({
 
   const selectedTronAccount =
     useSelector(selectSelectedInternalAccountByScope)(TrxScope.Mainnet) || null;
+
+  const selectedStellarAccount =
+    useSelector(selectSelectedInternalAccountByScope)(XlmScope.Pubnet) || null;
 
   const {
     networks: evmNetworks = [],
@@ -91,6 +97,14 @@ export const useNetworksToUse = ({
     namespace: KnownCaipNamespace.Tron,
   });
 
+  const {
+    networks: stellarNetworks = [],
+    areAllNetworksSelected: areAllStellarNetworksSelected = false,
+  } = useNetworksByCustomNamespace({
+    networkType,
+    namespace: KnownCaipNamespace.Stellar,
+  });
+
   // Helper functions to make network selection logic more readable
   const hasSelectedAccounts = useMemo(
     () => ({
@@ -98,12 +112,14 @@ export const useNetworksToUse = ({
       solana: !!selectedSolanaAccount,
       bitcoin: !!selectedBitcoinAccount,
       tron: !!selectedTronAccount,
+      stellar: !!selectedStellarAccount,
     }),
     [
       selectedEvmAccount,
       selectedSolanaAccount,
       selectedBitcoinAccount,
       selectedTronAccount,
+      selectedStellarAccount,
     ],
   );
 
@@ -121,6 +137,7 @@ export const useNetworksToUse = ({
       hasSelectedAccounts.solana,
       hasSelectedAccounts.bitcoin,
       hasSelectedAccounts.tron,
+      hasSelectedAccounts.stellar,
     ].some(Boolean);
 
     if (anySelectedAccount) {
@@ -129,6 +146,7 @@ export const useNetworksToUse = ({
         hasSelectedAccounts.solana ? solanaNetworks : [],
         hasSelectedAccounts.bitcoin ? bitcoinNetworks : [],
         hasSelectedAccounts.tron ? tronNetworks : [],
+        hasSelectedAccounts.stellar ? stellarNetworks : [],
       ]);
     }
 
@@ -139,12 +157,14 @@ export const useNetworksToUse = ({
     hasSelectedAccounts.solana,
     hasSelectedAccounts.bitcoin,
     hasSelectedAccounts.tron,
+    hasSelectedAccounts.stellar,
     networks,
     combineAvailableNetworks,
     evmNetworks,
     solanaNetworks,
     bitcoinNetworks,
     tronNetworks,
+    stellarNetworks,
   ]);
 
   const areAllNetworksSelectedCombined = useMemo(() => {
@@ -167,6 +187,10 @@ export const useNetworksToUse = ({
       accountSelectionFlags.push(areAllTronNetworksSelected);
     }
 
+    if (hasSelectedAccounts.stellar) {
+      accountSelectionFlags.push(areAllStellarNetworksSelected);
+    }
+
     // If any accounts are selected, all their networks must be selected
     // If no accounts are selected, fallback to original areAllNetworksSelected
     return accountSelectionFlags.length > 0
@@ -179,6 +203,7 @@ export const useNetworksToUse = ({
     areAllSolanaNetworksSelected,
     areAllBitcoinNetworksSelected,
     areAllTronNetworksSelected,
+    areAllStellarNetworksSelected,
   ]);
 
   return {
@@ -187,14 +212,17 @@ export const useNetworksToUse = ({
     solanaNetworks,
     bitcoinNetworks,
     tronNetworks,
+    stellarNetworks,
     selectedEvmAccount,
     selectedSolanaAccount,
     selectedBitcoinAccount,
     selectedTronAccount,
+    selectedStellarAccount,
     areAllNetworksSelectedCombined,
     areAllEvmNetworksSelected,
     areAllSolanaNetworksSelected,
     areAllBitcoinNetworksSelected,
     areAllTronNetworksSelected,
+    areAllStellarNetworksSelected,
   };
 };

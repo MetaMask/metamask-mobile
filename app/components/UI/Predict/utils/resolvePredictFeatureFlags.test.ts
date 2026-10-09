@@ -2,8 +2,10 @@ import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeature
 import {
   DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
   DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
-  DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
 import { DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES } from '../constants/sports';
@@ -34,13 +36,15 @@ describe('resolvePredictFeatureFlags', () => {
       enabledSportsMarketTypes: [],
       nonRegTimeSportsMarketTypes: DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
       marketHighlightsFlag: DEFAULT_MARKET_HIGHLIGHTS_FLAG,
+      hiddenMarketsFlag: DEFAULT_HIDDEN_MARKETS_FLAG,
       fakOrdersEnabled: false,
       predictWithAnyTokenEnabled: false,
       predictUpDownEnabled: false,
       predictPortfolioEnabled: false,
       predictHomeRedesignEnabled: false,
       predictSportCardLivePricesEnabled: true,
-      predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+      predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+      predictHomeCategories: DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
       predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
     });
   });
@@ -71,7 +75,7 @@ describe('resolvePredictFeatureFlags', () => {
     expect(result.liveSportsLeagues).toEqual([]);
   });
 
-  it('uses local overrides instead of remote flags when both are provided', () => {
+  it('resolves the effective flag value (overrides already merged by the controller)', () => {
     mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
       Boolean(
         flag &&
@@ -83,9 +87,6 @@ describe('resolvePredictFeatureFlags', () => {
 
     const result = resolvePredictFeatureFlags({
       remoteFeatureFlags: {
-        predictFakOrders: { enabled: true, minimumVersion: '1.0.0' },
-      },
-      localOverrides: {
         predictFakOrders: { enabled: false, minimumVersion: '1.0.0' },
       },
     });
@@ -150,6 +151,103 @@ describe('resolvePredictFeatureFlags', () => {
     });
 
     expect(result.marketHighlightsFlag).toEqual(DEFAULT_MARKET_HIGHLIGHTS_FLAG);
+  });
+
+  describe('hiddenMarketsFlag', () => {
+    it('uses hidden markets flag when version-gated validation returns true', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementationOnce(() => true);
+
+      const hiddenMarkets = {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        hidden: [
+          {
+            category: 'ending-soon',
+            marketIds: ['event-1'],
+            slugs: ['guinea-bissau-election'],
+          },
+        ],
+      };
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHiddenMarkets: hiddenMarkets,
+        },
+      });
+
+      expect(result.hiddenMarketsFlag).toEqual(hiddenMarkets);
+    });
+
+    it('fills missing entry arrays with empty defaults', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementationOnce(() => true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHiddenMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            hidden: [{ category: 'ending-soon', slugs: ['stale-market'] }],
+          },
+        },
+      });
+
+      expect(result.hiddenMarketsFlag.hidden).toEqual([
+        { category: 'ending-soon', marketIds: [], slugs: ['stale-market'] },
+      ]);
+    });
+
+    it('falls back to default hidden markets flag when validation returns false', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementationOnce(() => false);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHiddenMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            hidden: [{ category: 'ending-soon', marketIds: ['event-1'] }],
+          },
+        },
+      });
+
+      expect(result.hiddenMarketsFlag).toEqual(DEFAULT_HIDDEN_MARKETS_FLAG);
+    });
+
+    it('falls back to default hidden markets flag when schema parsing fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementationOnce(() => true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHiddenMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            hidden: [{ marketIds: 'not-an-array' }],
+          },
+        },
+      });
+
+      expect(result.hiddenMarketsFlag).toEqual(DEFAULT_HIDDEN_MARKETS_FLAG);
+    });
+
+    it('resolves hidden markets flag from wrapped progressive rollout shape', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementationOnce(() => true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHiddenMarkets: {
+            name: 'group-a',
+            value: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+              hidden: [{ category: 'ending-soon', marketIds: ['event-1'] }],
+            },
+          },
+        },
+      });
+
+      expect(result.hiddenMarketsFlag.hidden).toEqual([
+        { category: 'ending-soon', marketIds: ['event-1'], slugs: [] },
+      ]);
+    });
   });
 
   it('parses feeCollection from wrapped progressive rollout shape', () => {
@@ -256,106 +354,6 @@ describe('resolvePredictFeatureFlags', () => {
     });
   });
 
-  describe('predictWorldCup', () => {
-    it('returns default disabled config when flag is missing', () => {
-      const result = resolvePredictFeatureFlags({});
-
-      expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
-    });
-
-    it('falls back to default disabled config when version gate fails', () => {
-      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (flag && typeof flag === 'object' && 'tagSlug' in flag) {
-          return false;
-        }
-        return undefined;
-      });
-
-      const result = resolvePredictFeatureFlags({
-        remoteFeatureFlags: {
-          predictWorldCup: {
-            enabled: true,
-            minimumVersion: '99.0.0',
-            showMainFeedBanner: true,
-            showMainFeedTab: true,
-            showWorldCupScreen: true,
-            stages: [{ key: 'final', eventIds: ['1'] }],
-          },
-        },
-      });
-
-      expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
-    });
-
-    it('parses config with defaults when version gate passes', () => {
-      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (flag && typeof flag === 'object' && 'tagSlug' in flag) {
-          return true;
-        }
-        return undefined;
-      });
-
-      const result = resolvePredictFeatureFlags({
-        remoteFeatureFlags: {
-          predictWorldCup: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-            showMainFeedBanner: true,
-            showMainFeedTab: true,
-            showWorldCupScreen: true,
-            bannerImage: {
-              url: 'https://example.com/banner.png',
-              width: 400,
-              height: 200,
-            },
-            stages: [
-              {
-                key: 'group_stage',
-                labelKey: 'predict.world_cup.stages.group_stage',
-                eventIds: ['100', '101'],
-              },
-            ],
-          },
-        },
-      });
-
-      expect(result.predictWorldCup).toEqual({
-        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
-        enabled: true,
-        minimumVersion: '1.0.0',
-        showMainFeedBanner: true,
-        showMainFeedTab: true,
-        showWorldCupScreen: true,
-        bannerImage: {
-          url: 'https://example.com/banner.png',
-          width: 400,
-          height: 200,
-        },
-        stages: [
-          {
-            key: 'group_stage',
-            labelKey: 'predict.world_cup.stages.group_stage',
-            eventIds: ['100', '101'],
-          },
-        ],
-      });
-    });
-
-    it('falls back to default when schema parsing fails', () => {
-      const result = resolvePredictFeatureFlags({
-        remoteFeatureFlags: {
-          predictWorldCup: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-            showMainFeedBanner: 'yes',
-          },
-        },
-      });
-
-      expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
-    });
-  });
-
   describe('predictWimbledonTab', () => {
     it('returns default disabled flag when flag is missing', () => {
       const result = resolvePredictFeatureFlags({});
@@ -428,6 +426,214 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.predictWimbledonTab).toEqual(DEFAULT_WIMBLEDON_TAB_FLAG);
+    });
+  });
+
+  describe('predictHomeCategories', () => {
+    const remoteCategories = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+      categories: [
+        { id: 'tech', tagSlug: 'tech', label: 'Tech', iconName: 'Data' },
+        { id: 'sports', tagSlug: 'sports', enabled: false },
+        { id: 'culture', tagSlug: 'pop-culture', label: 'Culture' },
+      ],
+    };
+
+    it('returns bundled categories when flag is missing', () => {
+      expect(resolvePredictFeatureFlags({}).predictHomeCategories).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
+    });
+
+    const passCategoriesVersionGate = () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        flag && typeof flag === 'object' && 'categories' in flag
+          ? Boolean((flag as { enabled?: boolean }).enabled)
+          : undefined,
+      );
+    };
+
+    it('returns remote categories in LD order with defaulted enabled flags', () => {
+      passCategoriesVersionGate();
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: { predictHomeCategories: remoteCategories },
+      });
+
+      expect(result.predictHomeCategories.categories).toEqual([
+        {
+          id: 'tech',
+          tagSlug: 'tech',
+          label: 'Tech',
+          iconName: 'Data',
+          enabled: true,
+        },
+        { id: 'sports', tagSlug: 'sports', enabled: false },
+        {
+          id: 'culture',
+          tagSlug: 'pop-culture',
+          label: 'Culture',
+          enabled: true,
+        },
+      ]);
+    });
+
+    it('falls back to bundled categories when version requirement is not met', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        flag && typeof flag === 'object' && 'categories' in flag
+          ? false
+          : undefined,
+      );
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeCategories: {
+            ...remoteCategories,
+            minimumVersion: '99.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomeCategories).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
+    });
+
+    it('falls back to bundled categories when the flag is disabled', () => {
+      passCategoriesVersionGate();
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeCategories: { ...remoteCategories, enabled: false },
+        },
+      });
+
+      expect(result.predictHomeCategories).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
+    });
+
+    it('falls back to bundled categories when an entry is missing id or tagSlug', () => {
+      passCategoriesVersionGate();
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeCategories: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            categories: [{ id: 'tech', label: 'Tech' }],
+          },
+        },
+      });
+
+      expect(result.predictHomeCategories).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
+    });
+
+    it('falls back to bundled categories when every entry is disabled', () => {
+      passCategoriesVersionGate();
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeCategories: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            categories: [{ id: 'tech', tagSlug: 'tech', enabled: false }],
+          },
+        },
+      });
+
+      expect(result.predictHomeCategories).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
+    });
+  });
+
+  describe('predictSportsFeed', () => {
+    it('returns bundled config when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictSportsFeed).toEqual(
+        DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+      );
+    });
+
+    it('falls back to bundled config when version gate fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'tabs' in flag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictSportsFeed: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+            tabs: [],
+          },
+        },
+      });
+
+      expect(result.predictSportsFeed).toEqual(
+        DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+      );
+    });
+
+    it('uses remote sports feed config when version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'tabs' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const remoteSportsFeed = {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        tabs: [
+          {
+            id: 'soccer',
+            titleKey: 'predict.feed.tabs.soccer',
+            tagSlug: 'soccer',
+            chips: [
+              {
+                id: 'games',
+                kind: 'games',
+                titleKey: 'predict.feed.filters.games',
+              },
+              {
+                id: 'mls',
+                kind: 'tag',
+                titleKey: 'predict.feed.filters.mls',
+                tagSlug: 'mls',
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictSportsFeed: remoteSportsFeed,
+        },
+      });
+
+      expect(result.predictSportsFeed).toEqual(remoteSportsFeed);
+    });
+
+    it('falls back to bundled config when schema parsing fails', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictSportsFeed: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            tabs: [{ chips: [] }],
+          },
+        },
+      });
+
+      expect(result.predictSportsFeed).toEqual(
+        DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+      );
     });
   });
 
@@ -788,13 +994,6 @@ describe('resolvePredictFeatureFlags', () => {
       const result = resolvePredictFeatureFlags({
         remoteFeatureFlags: {
           predictExtendedSportsMarkets: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-            leagues: ['nba', 'ucl'],
-          },
-        },
-        localOverrides: {
-          predictExtendedSportsMarkets: {
             enabled: false,
             minimumVersion: '1.0.0',
             leagues: ['nba', 'ucl'],
@@ -945,6 +1144,13 @@ describe('resolvePredictFeatureFlags', () => {
               'spreads',
               'totals',
               'first_half_moneyline',
+              'first_half_spreads',
+              'team_totals_home',
+              'team_totals_away',
+              'anytime_touchdowns',
+              'first_touchdowns',
+              'rushing_yards',
+              'receiving_yards',
               'soccer_halftime_result',
               'soccer_player_goals',
               'points',
@@ -958,6 +1164,13 @@ describe('resolvePredictFeatureFlags', () => {
         'spreads',
         'totals',
         'first_half_moneyline',
+        'first_half_spreads',
+        'team_totals_home',
+        'team_totals_away',
+        'anytime_touchdowns',
+        'first_touchdowns',
+        'rushing_yards',
+        'receiving_yards',
         'soccer_halftime_result',
         'soccer_player_goals',
       ]);
@@ -976,14 +1189,6 @@ describe('resolvePredictFeatureFlags', () => {
 
       const result = resolvePredictFeatureFlags({
         remoteFeatureFlags: {
-          predictExtendedSportsMarkets: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-            leagues: ['nba'],
-            enabledSportsMarketTypes: ['moneyline', 'spreads'],
-          },
-        },
-        localOverrides: {
           predictExtendedSportsMarkets: {
             enabled: true,
             minimumVersion: '1.0.0',

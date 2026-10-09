@@ -50,9 +50,6 @@ const styleSheet = (params: {
       ...baseFooterStyle,
       paddingBottom: basePaddingBottom,
     },
-    linkText: {
-      textDecorationLine: 'underline',
-    },
     bottomTextContainer: {
       flexDirection: 'column',
       justifyContent: 'center',

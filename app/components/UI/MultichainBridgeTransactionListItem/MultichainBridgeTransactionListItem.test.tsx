@@ -9,7 +9,7 @@ import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { StatusTypes } from '@metamask/bridge-controller';
 import { MonetizedPrimitive } from '../../../core/Analytics/MetaMetrics.types';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../core/Analytics/events/transactions';
 
@@ -260,7 +260,7 @@ describe('MultichainBridgeTransactionListItem', () => {
   });
 
   describe('analytics tracking', () => {
-    it('tracks Transaction Detail List Item Clicked for a bridge transaction', () => {
+    it('tracks Activity Details Opened for a bridge transaction', () => {
       const { getByTestId } = renderWithProvider(
         <MultichainBridgeTransactionListItem
           transaction={mockTransaction}
@@ -274,7 +274,7 @@ describe('MultichainBridgeTransactionListItem', () => {
       fireEvent.press(getByTestId('transaction-item-0'));
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+        ACTIVITY_DETAIL_EVENTS.OPENED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         transaction_type: 'bridge',

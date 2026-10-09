@@ -62,6 +62,14 @@ describe('middlewares', () => {
       expect(result).toBe(true);
     });
 
+    it('returns true for a wrapped Ledger rejection', () => {
+      const result = containsUserRejectedError(
+        'MetaMask Pay: Relay: Ledger: User rejected action on device',
+      );
+
+      expect(result).toBe(true);
+    });
+
     it('returns true for error message containing "user denied"', () => {
       const result = containsUserRejectedError(
         'MetaMask Message Signature: User denied message signature.',

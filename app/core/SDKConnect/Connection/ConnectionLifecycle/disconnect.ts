@@ -1,4 +1,5 @@
 import { MessageType } from '@metamask/sdk-communication-layer';
+import { removeOriginProvenance } from '../../../OriginProvenance';
 import DevLogger from '../../utils/DevLogger';
 import { Connection } from '../Connection';
 
@@ -29,6 +30,11 @@ async function disconnect({
   }
   if (terminated) {
     instance.remote.disconnect();
+    // The connection is permanently closed: drop the provenance stamped in
+    // setupBridge (mirrors WalletConnect2Session.removeListeners and
+    // RPCBridgeAdapter.dispose). Non-terminal disconnects keep the stamp
+    // because the connection can resume.
+    removeOriginProvenance(instance.channelId);
   }
   return terminated;
 }

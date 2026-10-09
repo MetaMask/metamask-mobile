@@ -2,7 +2,11 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { Hex, Json } from '@metamask/utils';
 import { RootState } from '../../../reducers';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  hasTransactionType,
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import {
   getRelayFixedSpreadFromConfig,
   RelayFixedSpreadConfig,
@@ -103,8 +107,13 @@ export interface MetaMaskPayFiatFlags {
   maxDelayMinutesForPaymentMethods: number;
 }
 
-export interface MetaMaskPayHardwareFlags {
-  enabled: boolean;
+export interface PayHardwareConfig {
+  enabled?: boolean;
+}
+
+export interface PayHardwareFlags {
+  default: PayHardwareConfig;
+  overrides?: Record<string, PayHardwareConfig>;
 }
 
 export const selectMetaMaskPayFlags = createSelector(
@@ -341,15 +350,47 @@ export const selectMetaMaskPayFiatFlags = createSelector(
   },
 );
 
+interface RawPayHardwareFlag {
+  default?: PayHardwareConfig;
+  overrides?: Record<string, PayHardwareConfig>;
+}
+
 export const selectMetaMaskPayHardwareFlags = createSelector(
   selectRemoteFeatureFlags,
-  (featureFlags): MetaMaskPayHardwareFlags => {
+  (featureFlags): PayHardwareFlags => {
     const raw = featureFlags?.confirmations_pay_hardware as
-      | Record<string, Json>
+      | RawPayHardwareFlag
       | undefined;
 
     return {
-      enabled: (raw?.enabled as boolean) ?? PAY_HARDWARE_ENABLED_DEFAULT,
+      default: {
+        enabled: raw?.default?.enabled ?? PAY_HARDWARE_ENABLED_DEFAULT,
+      },
+      overrides: raw?.overrides,
+    };
+  },
+);
+
+/**
+ * Resolves the effective hardware wallet config for a given transaction type.
+ * If the type has an override entry, unset properties fall back to default.
+ */
+export const selectPayHardwareConfig = createSelector(
+  [
+    selectMetaMaskPayHardwareFlags,
+    (_state: RootState, transactionType?: string) => transactionType,
+  ],
+  (flags, transactionType): PayHardwareConfig => {
+    const override = transactionType
+      ? flags.overrides?.[transactionType]
+      : undefined;
+
+    if (!override) {
+      return flags.default;
+    }
+
+    return {
+      enabled: override.enabled ?? flags.default.enabled,
     };
   },
 );
@@ -362,3 +403,34 @@ export const selectRelayFixedSpread = createSelector(
       'confirmations_relay_fixed_spread',
     ),
 );
+
+/** Resolves the Core atomic-max gate, including nested transaction overrides. */
+export function selectRelayAtomicMaxEnabled(
+  state: RootState,
+  transaction?: TransactionMeta,
+): boolean {
+  const featureFlags = selectRemoteFeatureFlags(state);
+  const extended = featureFlags?.confirmations_pay_extended as
+    | {
+        payStrategies?: {
+          relay?: {
+            atomicMaxEnabled?: {
+              default?: boolean;
+              transactionTypes?: Partial<Record<TransactionType, boolean>>;
+            };
+          };
+        };
+      }
+    | undefined;
+  const config = extended?.payStrategies?.relay?.atomicMaxEnabled;
+
+  for (const [type, enabled] of Object.entries(
+    config?.transactionTypes ?? {},
+  )) {
+    if (hasTransactionType(transaction, [type as TransactionType])) {
+      return enabled;
+    }
+  }
+
+  return config?.default ?? false;
+}

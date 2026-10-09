@@ -11,10 +11,14 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { AssetType } from '../../types/token';
 import { Hex } from '@metamask/utils';
 import { RelayFixedSpreadConfig } from '../../utils/relayFixedSpread';
+import { isHardwareAccount } from '../../../../../util/address';
+import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 
 jest.mock('../../../../../selectors/featureFlagController/confirmations');
 jest.mock('./useTransactionPayAvailableTokens');
 jest.mock('../transactions/useTransactionMetadataRequest');
+jest.mock('../../../../../util/address');
+jest.mock('../transactions/useTransactionPayingAccount');
 
 const STATE_MOCK = {
   engine: {
@@ -54,6 +58,10 @@ describe('usePayWithNoFeeToken', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const isHardwareAccountMock = jest.mocked(isHardwareAccount);
+  const useTransactionPayingAccountMock = jest.mocked(
+    useTransactionPayingAccount,
+  );
 
   const createMockToken = (
     address: string,
@@ -85,6 +93,8 @@ describe('usePayWithNoFeeToken', () => {
       hasTokens: false,
     });
     useTransactionMetadataRequestMock.mockReturnValue(undefined);
+    useTransactionPayingAccountMock.mockReturnValue(undefined);
+    isHardwareAccountMock.mockReturnValue(false);
   });
 
   it('returns undefined noFeeToken when no tokens are available', () => {
@@ -147,6 +157,26 @@ describe('usePayWithNoFeeToken', () => {
       chainId: '0x1',
       symbol: 'USDT',
     });
+  });
+
+  it('hides no-fee tokens for hardware wallet payers', () => {
+    const token = createMockToken('0xAAA', 'USDC', '0x1', 100);
+    selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xAAA')));
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [token],
+      hasTokens: true,
+    });
+    useTransactionPayingAccountMock.mockReturnValue('0xHardware' as Hex);
+    isHardwareAccountMock.mockReturnValue(true);
+
+    const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
+      state: STATE_MOCK,
+    });
+
+    expect(result.current.noFeeToken).toBeUndefined();
+    expect(result.current.isNoFeeToken('0xAAA', '0x1')).toBe(false);
+    expect(result.current.renderNoFeeTag(token)).toBeNull();
+    expect(result.current.renderNoFeeTagForToken('0xAAA', '0x1')).toBeNull();
   });
 
   it('excludes the specified token from results', () => {

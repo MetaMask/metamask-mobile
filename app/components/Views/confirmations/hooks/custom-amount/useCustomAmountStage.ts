@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import {
   useIsTransactionPayQuoteLoading,
   useTransactionPayPrimaryRequiredToken,
+  useTransactionPayQuoteError,
   useTransactionPayQuotesLastUpdated,
   useTransactionPayQuotesRaw,
 } from '../pay/useTransactionPayData';
@@ -18,25 +19,28 @@ export enum CustomAmountStage {
  * Owns the rendering state machine for `CustomAmountInfo`.
  *
  * Stage is computed from two layers: a stateful override (`AmountInput` when
- * the keyboard is open, `Loading` while an amount update is in flight) set by
- * the component via `setStage`; and a pure derivation from reactive inputs
- * (quotes, prefill flags) used whenever the override is `null`.
+ * the keyboard is open, `Loading` while an amount update is in flight) set via
+ * `setStage`; and a pure derivation from reactive inputs (quotes, prefill flags)
+ * used whenever the override is `null`.
  * The hook reads quote state itself so the component renders purely
  * off the returned `stage`.
  *
  * @param options.amountFiat - Current fiat amount; detects a no-op re-commit
  * (unchanged amount → skip the loading window, no fetch will follow).
  * @param options.hasAccountNoFunds - Whether the account-no-funds alert is active.
+ * @param options.hasPrefetchedQuote - Whether the current amount already has a quote.
  * @param options.isAddMusdIntent - Whether this is an add-mUSD deposit.
  * @param options.isDepositPrefillEnabled - Whether deposit prefill is enabled.
  * @param options.isDepositPrefillLoading - Whether a deposit prefill is loading.
  * @param options.skipDepositPrefill - Whether deposit prefill is skipped.
- * @returns The current stage and a setter to override it.
+ * @returns The current stage, whether the amount is updating, and a setter to
+ * override the stage.
  */
 export function useCustomAmountStage({
   amountFiat,
   disablePay,
   hasAccountNoFunds,
+  hasPrefetchedQuote = false,
   isAddMusdIntent,
   isDepositPrefillEnabled,
   isDepositPrefillLoading,
@@ -45,11 +49,13 @@ export function useCustomAmountStage({
   amountFiat: string;
   disablePay: boolean | undefined;
   hasAccountNoFunds: boolean;
+  hasPrefetchedQuote?: boolean;
   isAddMusdIntent: boolean;
   isDepositPrefillEnabled: boolean;
   isDepositPrefillLoading: boolean;
   skipDepositPrefill: boolean;
 }): {
+  isAmountUpdating: boolean;
   stage: CustomAmountStage;
   setStage: Dispatch<SetStateAction<CustomAmountStage | null>>;
 } {
@@ -64,6 +70,7 @@ export function useCustomAmountStage({
   const isQuotesLoading = useIsTransactionPayQuoteLoading();
   const quotesLastUpdated = useTransactionPayQuotesLastUpdated();
   const quotes = useTransactionPayQuotesRaw();
+  const quoteError = useTransactionPayQuoteError();
   const hasQuotes = Boolean(quotes?.length);
   const requiredToken = useTransactionPayPrimaryRequiredToken();
   const hasAmount = Boolean(
@@ -74,6 +81,9 @@ export function useCustomAmountStage({
   // quote, not a stale one predating the amount update.
   const loadingBaselineRef = useRef<number | undefined>(undefined);
   const wasLoadingRef = useRef(false);
+  // Quote error present when this Loading cycle armed. A leftover error from
+  // the previous amount must not count as this fetch settling.
+  const quoteErrorAtArmRef = useRef<typeof quoteError>(undefined);
   // `amountFiat` from the previous commit, to recognise a no-op re-commit.
   const lastCommittedFiatRef = useRef<string | undefined>(undefined);
 
@@ -94,6 +104,7 @@ export function useCustomAmountStage({
   useEffect(() => {
     if (stageOverride !== CustomAmountStage.Loading) {
       wasLoadingRef.current = false;
+      quoteErrorAtArmRef.current = undefined;
       return;
     }
 
@@ -103,14 +114,29 @@ export function useCustomAmountStage({
       wasLoadingRef.current = true;
       loadingBaselineRef.current = quotesLastUpdated;
       lastCommittedFiatRef.current = amountFiat;
+      quoteErrorAtArmRef.current = quoteError;
 
       // `disablePay` flows are direct transfers: no pay token, no quote, and the
       // required-token amount may never resolve. There is nothing to await once
       // the amount is committed, so settle on the arm frame itself — the settle
       // branch below is never re-entered when no reactive input changes.
-      if (isNoOpRecommit || disablePay) {
+      if (isNoOpRecommit || disablePay || hasPrefetchedQuote) {
         setStage(null);
       }
+      return;
+    }
+
+    // A failed quote fetch carries no quotes, so `hasFreshQuote` can never
+    // fire and the override would hold the loader forever. Only an error that
+    // appeared after this cycle armed is that failure — a leftover error from
+    // the previous amount would otherwise clear during the commit→fetch window
+    // before `isQuotesLoading` is true.
+    if (
+      quoteError &&
+      quoteError !== quoteErrorAtArmRef.current &&
+      !isQuotesLoading
+    ) {
+      setStage(null);
       return;
     }
 
@@ -130,8 +156,10 @@ export function useCustomAmountStage({
     amountFiat,
     disablePay,
     hasAmount,
+    hasPrefetchedQuote,
     hasQuotes,
     isQuotesLoading,
+    quoteError,
     quotesLastUpdated,
   ]);
 
@@ -155,21 +183,25 @@ export function useCustomAmountStage({
     }
   }, [isDepositPrefillEnabled, skipDepositPrefill]);
 
-  // All hooks have run, so we can early-return. The override wins while set.
+  // The override wins while set. Otherwise derive from reactive inputs: stay
+  // in Loading while quotes fetch or a prefill preload resolves, show totals
+  // when quotes exist, or fall through to NoQuote after a settled empty fetch.
+  let stage: CustomAmountStage;
   if (stageOverride !== null) {
-    return { setStage, stage: stageOverride };
+    stage = stageOverride;
+  } else if (
+    (isQuotesLoading && !hasPrefetchedQuote) ||
+    isAwaitingPrefillResult
+  ) {
+    stage = CustomAmountStage.Loading;
+  } else if (showTotals) {
+    stage = CustomAmountStage.ShowTotals;
+  } else {
+    stage = CustomAmountStage.NoQuote;
   }
 
-  // Derive from reactive inputs. Stay in Loading while quotes fetch or a
-  // prefill preload resolves; otherwise show totals when quotes exist, or fall
-  // through to NoQuote when a settled fetch produced none.
-  if (isQuotesLoading || isAwaitingPrefillResult) {
-    return { setStage, stage: CustomAmountStage.Loading };
-  }
+  const isAmountUpdating =
+    stage === CustomAmountStage.Loading && !isQuotesLoading;
 
-  if (showTotals) {
-    return { setStage, stage: CustomAmountStage.ShowTotals };
-  }
-
-  return { setStage, stage: CustomAmountStage.NoQuote };
+  return { isAmountUpdating, setStage, stage };
 }

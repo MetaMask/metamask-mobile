@@ -88,7 +88,7 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                   [
                     {
                       "color": "#131416",
-                      "fontFamily": "Geist-Medium",
+                      "fontFamily": "Inter-Medium",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -198,11 +198,11 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                       readOnly={true}
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "transparent",
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#131416",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Inter-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -219,7 +219,7 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                 style={
                   {
                     "color": "#ca3542",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Inter-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
@@ -423,11 +423,11 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
                       readOnly={true}
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "transparent",
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#131416",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Inter-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -633,11 +633,11 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
                       readOnly={true}
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "transparent",
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#131416",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Inter-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -843,11 +843,11 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
                       readOnly={true}
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "transparent",
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#131416",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Inter-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -960,7 +960,7 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                   [
                     {
                       "color": "#131416",
-                      "fontFamily": "Geist-Medium",
+                      "fontFamily": "Inter-Medium",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -1070,11 +1070,11 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                       readOnly={true}
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "transparent",
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#131416",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Inter-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,

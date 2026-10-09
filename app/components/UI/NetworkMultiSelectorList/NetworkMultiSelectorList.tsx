@@ -59,7 +59,6 @@ import { strings } from '../../../../locales/i18n';
 import TagColored, {
   TagColor,
 } from '../../../component-library/components-temp/TagColored';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 const SELECTION_DEBOUNCE_DELAY = 150;
 
@@ -106,7 +105,6 @@ const NetworkMultiSelectList = ({
 
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const surfaceClass = useElevatedSurface();
 
   const processedNetworks = useMemo(
     (): ProcessedNetwork[] =>
@@ -268,7 +266,7 @@ const NetworkMultiSelectList = ({
             isSelected={isSelected}
             title={
               isGasSponsored ? (
-                <Box twClassName="flex-row gap-2 items-center">
+                <Box twClassName="flex-row items-center gap-1">
                   <Text
                     variant={TextVariant.BodyMd}
                     numberOfLines={1}
@@ -310,7 +308,7 @@ const NetworkMultiSelectList = ({
             disabled={isDisabled}
             showButtonIcon={showButtonIcon}
             buttonProps={createButtonProps(network)}
-            style={tw.style(`${surfaceClass} items-center`)}
+            style={tw.style('items-center')}
             testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM(
               caipChainId,
               isSelected,
@@ -340,7 +338,6 @@ const NetworkMultiSelectList = ({
       isGasFeesSponsoredNetworkEnabled,
       isHardwareWallet,
       styles.noNetworkFeeContainer,
-      surfaceClass,
       tw,
       styles.networkNameText,
     ],

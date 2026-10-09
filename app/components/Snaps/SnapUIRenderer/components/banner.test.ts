@@ -42,9 +42,9 @@ describe('banner component', () => {
               element: 'Text',
               props: {
                 color: undefined,
-                variant: 'sBodyMD',
+                variant: 'body-md',
+                fontWeight: 'regular',
                 style: {
-                  fontWeight: '400',
                   textAlign: 'left',
                 },
               },
@@ -53,11 +53,11 @@ describe('banner component', () => {
           ],
           props: {
             color: undefined,
+            fontWeight: 'regular',
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
-            variant: 'sBodyMD',
+            variant: 'body-md',
           },
         },
       ],
@@ -93,9 +93,9 @@ describe('banner component', () => {
               element: 'Text',
               props: {
                 color: undefined,
-                variant: 'sBodyMD',
+                variant: 'body-md',
+                fontWeight: 'regular',
                 style: {
-                  fontWeight: '400',
                   textAlign: 'left',
                 },
               },
@@ -104,11 +104,11 @@ describe('banner component', () => {
           ],
           props: {
             color: undefined,
+            fontWeight: 'regular',
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
-            variant: 'sBodyMD',
+            variant: 'body-md',
           },
         },
       ],
@@ -144,9 +144,9 @@ describe('banner component', () => {
               element: 'Text',
               props: {
                 color: undefined,
-                variant: 'sBodyMD',
+                variant: 'body-md',
+                fontWeight: 'regular',
                 style: {
-                  fontWeight: '400',
                   textAlign: 'left',
                 },
               },
@@ -155,9 +155,9 @@ describe('banner component', () => {
           ],
           props: {
             color: undefined,
-            variant: 'sBodyMD',
+            variant: 'body-md',
+            fontWeight: 'regular',
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
           },

@@ -55,7 +55,13 @@ import InputDisplay from '../../components/InputDisplay';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import useEarnInputHandlers from '../../hooks/useEarnInput';
 import useEarnTokens from '../../hooks/useEarnTokens';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import EarnMaintenanceBanner from '../../components/EarnMaintenanceBanner';
+import {
+  selectPooledStakingEnabledFlag,
+  selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import {
   EARN_LENDING_ACTIONS,
   EarnTokenDetails,
@@ -74,6 +80,7 @@ import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsL
 import {
   doesTokenRequireAllowanceReset,
   formatChainIdForAnalytics,
+  formatEarnRatePercentage,
 } from '../../utils';
 import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
@@ -111,8 +118,17 @@ const EarnInputView = () => {
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token?.chainId as Hex),
   );
+
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
+  );
+  const isPooledStakingServiceInterruptionBannerEnabled = useSelector(
+    selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  );
+  const isStablecoinLendingServiceInterruptionBannerEnabled = useSelector(
+    selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
   );
 
   // if token is ETH, use 1 as the exchange rate
@@ -127,6 +143,7 @@ const EarnInputView = () => {
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const { getEarnToken } = useEarnTokens();
 
+  let tronApyPercent: string | null = null;
   const {
     isTronNative,
     isTronEnabled,
@@ -138,13 +155,20 @@ const EarnInputView = () => {
     confirmStake: tronConfirmStake,
     tronAccountId,
   } = useTronStake({ token });
-  useTronStakeApy();
+  tronApyPercent = useTronStakeApy().apyPercent;
 
   // Flag to conditionally show Tron-specific UI (false in non-Tron builds)
   let showTronStakingUI = false;
   showTronStakingUI = isTronEnabled;
 
   const earnToken = getEarnToken(token);
+  const stakingExperienceType =
+    earnToken?.experience.type ?? EARN_EXPERIENCES.POOLED_STAKING;
+  const isPooledStakingExperience =
+    earnToken?.isETH &&
+    earnToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING;
+  const isStablecoinLendingExperience =
+    earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
 
   const endpoint = useSelector((state: RootState) =>
     selectDefaultEndpointByChainId(state, earnToken?.chainId as Hex),
@@ -250,7 +274,10 @@ const EarnInputView = () => {
   const navigateToLearnMoreModal = useCallback(() => {
     const tokenExperience = earnToken?.experience?.type;
 
-    if (tokenExperience === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (
+      tokenExperience === EARN_EXPERIENCES.POOLED_STAKING ||
+      tokenExperience === EARN_EXPERIENCES.TRX_STAKING
+    ) {
       trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
 
       // Navigate to TRX staking learn more modal
@@ -305,7 +332,7 @@ const EarnInputView = () => {
               amount: value,
               is_max: false,
               mode: !isFiat ? 'native' : 'fiat',
-              experience: EARN_EXPERIENCES.POOLED_STAKING,
+              experience: stakingExperienceType,
             })
             .build(),
         );
@@ -321,6 +348,7 @@ const EarnInputView = () => {
       network?.name,
       balanceValue,
       isFiat,
+      stakingExperienceType,
     ],
   );
 
@@ -533,7 +561,7 @@ const EarnInputView = () => {
             tokens_to_stake_usd_value: amountFiatNumber,
             estimated_gas_fee: formatEther(estimatedGasFeeWei.toString()),
             estimated_gas_percentage_of_deposit: `${getDepositTxGasPercentage()}%`,
-            experience: EARN_EXPERIENCES.POOLED_STAKING,
+            experience: stakingExperienceType,
           })
           .build(),
       );
@@ -560,7 +588,7 @@ const EarnInputView = () => {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
       tokens_to_stake_native_value: amountToken,
       tokens_to_stake_usd_value: amountFiatNumber,
-      experience: EARN_EXPERIENCES.POOLED_STAKING,
+      experience: stakingExperienceType,
     };
 
     if (isStakingDepositRedesignedEnabled) {
@@ -635,6 +663,7 @@ const EarnInputView = () => {
     earnToken?.chainId,
     earnToken?.isETH,
     earnToken?.experience?.type,
+    stakingExperienceType,
     estimatedGasFeeWei,
     getDepositTxGasPercentage,
     isHighGasCostImpact,
@@ -718,7 +747,7 @@ const EarnInputView = () => {
             location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
             is_max: true,
             mode: !isFiat ? 'native' : 'fiat',
-            experience: EARN_EXPERIENCES.POOLED_STAKING,
+            experience: stakingExperienceType,
           })
           .build(),
       );
@@ -733,6 +762,7 @@ const EarnInputView = () => {
     network?.name,
     balanceValue,
     isFiat,
+    stakingExperienceType,
   ]);
 
   // Right action press: act as "Done" in TRON editing with non-zero amount; otherwise behave as Max
@@ -839,7 +869,7 @@ const EarnInputView = () => {
           .addProperties({
             selected_provider: EVENT_PROVIDERS.CONSENSYS,
             location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-            experience: EARN_EXPERIENCES.POOLED_STAKING,
+            experience: stakingExperienceType,
             token: token.symbol,
           })
           .build(),
@@ -853,19 +883,31 @@ const EarnInputView = () => {
     createEventBuilder,
     token.symbol,
     navigation,
+    stakingExperienceType,
   ]);
 
   const handleInfoPress = useCallback(() => {
+    const apr =
+      stakingExperienceType === EARN_EXPERIENCES.TRX_STAKING
+        ? (tronApyPercent ?? undefined)
+        : earnToken?.experience?.apr !== undefined
+          ? `${formatEarnRatePercentage(earnToken.experience.apr)}%`
+          : undefined;
+    const tooltipName =
+      stakingExperienceType === EARN_EXPERIENCES.STABLECOIN_LENDING
+        ? 'Lending Historic Market APY Graph'
+        : 'Staking Historic Market APY Graph';
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.TOOLTIP_OPENED)
         .addProperties({
           selected_provider: EVENT_PROVIDERS.CONSENSYS,
           text: 'Tooltip Opened',
           location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-          tooltip_name: 'Lending Historic Market APY Graph',
-          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          tooltip_name: tooltipName,
+          experience: stakingExperienceType,
           token: token.symbol,
-          apr: `${earnToken?.experience.apr}%`,
+          apr,
         })
         .build(),
     );
@@ -874,8 +916,10 @@ const EarnInputView = () => {
     trackEvent,
     createEventBuilder,
     token.symbol,
-    earnToken?.experience.apr,
+    earnToken?.experience?.apr,
     navigateToLearnMoreModal,
+    stakingExperienceType,
+    tronApyPercent,
   ]);
 
   const headerTitle = useMemo(() => {
@@ -947,7 +991,19 @@ const EarnInputView = () => {
     earnToken?.experience.type,
   ]);
 
+  const isPooledStakingReviewButtonDisabled =
+    isPooledStakingExperience &&
+    (!isPooledStakingEnabled ||
+      isPooledStakingServiceInterruptionBannerEnabled);
+
+  const isStablecoinLendingReviewButtonDisabled =
+    isStablecoinLendingExperience &&
+    (!isStablecoinLendingEnabled ||
+      isStablecoinLendingServiceInterruptionBannerEnabled);
+
   const isReviewButtonDisabled =
+    isStablecoinLendingReviewButtonDisabled ||
+    isPooledStakingReviewButtonDisabled ||
     isOverMaximum.isOverMaximumToken ||
     isOverMaximum.isOverMaximumEth ||
     !isNonZeroAmount ||
@@ -984,6 +1040,22 @@ const EarnInputView = () => {
         }
         includesTopInset
       />
+      {isPooledStakingExperience &&
+        isPooledStakingServiceInterruptionBannerEnabled && (
+          <View style={styles.maintenanceBanner}>
+            <EarnMaintenanceBanner
+              experienceName={EARN_EXPERIENCES.POOLED_STAKING}
+            />
+          </View>
+        )}
+      {isStablecoinLendingExperience &&
+        isStablecoinLendingServiceInterruptionBannerEnabled && (
+          <View style={styles.maintenanceBanner}>
+            <EarnMaintenanceBanner
+              experienceName={EARN_EXPERIENCES.STABLECOIN_LENDING}
+            />
+          </View>
+        )}
       {isTronEnabled && (
         <ResourceToggle value={resourceType} onChange={setResourceType} />
       )}

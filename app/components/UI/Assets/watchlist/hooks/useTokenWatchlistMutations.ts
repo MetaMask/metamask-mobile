@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CaipAssetType } from '@metamask/utils';
 
+import { syncPriceAlertsWatchlistMirror } from '../../PriceAlerts/syncWatchlistMirror';
 import {
   EMPTY_BLOB,
   readFromTokenWatchList,
@@ -11,7 +12,8 @@ import { createAsyncBatcher } from '../utils/createAsyncBatcher';
 import type { WatchlistTokenMetadata } from '../utils/getTokens';
 import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
 
-export type WatchlistAddInput = CaipAssetType | CaipAssetType[];
+export type WatchlistAddEntry = CaipAssetType | WatchlistTokenMetadata;
+export type WatchlistAddInput = WatchlistAddEntry | WatchlistAddEntry[];
 export type WatchlistRemoveInput = CaipAssetType | CaipAssetType[];
 export type WatchlistUpdateListInput = CaipAssetType[];
 
@@ -36,6 +38,16 @@ const toStrings = (input: readonly CaipAssetType[]): string[] =>
 
 const asArray = <T>(value: T | T[]): T[] =>
   Array.isArray(value) ? value : [value];
+
+const toAddedAssetIds = (input: WatchlistAddInput): string[] =>
+  asArray<WatchlistAddEntry>(input).map((entry) =>
+    typeof entry === 'string' ? entry : String(entry.assetId),
+  );
+
+const toAddedTokens = (input: WatchlistAddInput): WatchlistTokenMetadata[] =>
+  asArray<WatchlistAddEntry>(input).filter(
+    (entry): entry is WatchlistTokenMetadata => typeof entry !== 'string',
+  );
 
 const mergeAssets = (
   base: readonly string[],
@@ -75,13 +87,9 @@ const resolveOptimisticBaseAssets = (
  * asset before `getTokens` resolves) are omitted until the settled refetch.
  */
 const applyOptimisticToHydrated = (
-  hydrated: WatchlistTokenMetadata[] | undefined,
+  hydrated: readonly WatchlistTokenMetadata[],
   newAssetIds: readonly string[],
-): WatchlistTokenMetadata[] | undefined => {
-  if (hydrated === undefined) {
-    return undefined;
-  }
-
+): WatchlistTokenMetadata[] => {
   const byId = new Map(
     hydrated.map((token) => [String(token.assetId).toLowerCase(), token]),
   );
@@ -108,13 +116,16 @@ const applyOp = (acc: string[], op: WatchlistOp): string[] => {
 export const tokenWatchlistBatcher = createAsyncBatcher<WatchlistOp>(
   async (ops) => {
     const current = await readFromTokenWatchList();
+    const nextAssets = ops.reduce<string[]>(
+      (acc, op) => applyOp(acc, op),
+      [...current.assets],
+    );
     await writeToTokenWatchList({
       ...current,
-      assets: ops.reduce<string[]>(
-        (acc, op) => applyOp(acc, op),
-        [...current.assets],
-      ),
+      assets: nextAssets,
     });
+    // Soft-fail mirror — never rolls back a successful real-watchlist write.
+    await syncPriceAlertsWatchlistMirror(current.assets, nextAssets);
   },
 );
 
@@ -127,19 +138,15 @@ interface InvalidateOnSettledOptions {
 
 const useWatchlistMutation = <TInput>({
   applyOptimistic,
+  optimisticTokens,
   toOp,
   invalidateOnSettled = { blob: true, hydrated: true },
   shouldInvalidateHydrated,
 }: {
   applyOptimistic: (current: readonly string[], input: TInput) => string[];
+  optimisticTokens?: (input: TInput) => readonly WatchlistTokenMetadata[];
   toOp: (input: TInput) => WatchlistOp;
   invalidateOnSettled?: InvalidateOnSettledOptions;
-  /**
-   * Optional gate for hydrated invalidation. Used by add to skip refetch when
-   * the added IDs were already removed before the mutation settled (quick
-   * watch→unwatch), which would otherwise race a late getTokens result back
-   * into the list.
-   */
   shouldInvalidateHydrated?: (input: TInput) => boolean;
 }) => {
   const queryClient = useQueryClient();
@@ -165,13 +172,22 @@ const useWatchlistMutation = <TInput>({
         input,
       );
 
-      queryClient.setQueryData<WatchlistBlob>(tokenWatchlistQueryKeys.blob, {
-        assets: nextAssets,
-        version: 1,
-      });
+      queryClient.setQueryData<WatchlistBlob>(
+        tokenWatchlistQueryKeys.blob,
+        () => ({
+          assets: nextAssets,
+          version: 1,
+        }),
+      );
       queryClient.setQueryData<WatchlistTokenMetadata[]>(
         tokenWatchlistQueryKeys.hydrated,
-        (old) => applyOptimisticToHydrated(old, nextAssets) ?? old,
+        (old) => {
+          if (old === undefined) {
+            return old;
+          }
+          const tokens = [...(optimisticTokens?.(input) ?? []), ...old];
+          return applyOptimisticToHydrated(tokens, nextAssets);
+        },
       );
 
       return { prevBlob, prevHydrated };
@@ -209,7 +225,7 @@ const useWatchlistMutation = <TInput>({
 };
 
 /**
- * Append one or more `CaipAssetType` ids to the watchlist. Performs
+ * Append one or more {@link WatchlistAddEntry} to the watchlist. Performs
  * optimistic cache updates with rollback and enqueues an `add` op into
  * the shared {@link tokenWatchlistBatcher}.
  */
@@ -218,8 +234,9 @@ export const useTokenWatchlistAddItemMutation = () => {
 
   return useWatchlistMutation<WatchlistAddInput>({
     applyOptimistic: (current, input) =>
-      mergeAssets(current, toStrings(asArray(input))),
-    toOp: (input) => ({ kind: 'add', ids: toStrings(asArray(input)) }),
+      mergeAssets(current, toAddedAssetIds(input)),
+    optimisticTokens: toAddedTokens,
+    toOp: (input) => ({ kind: 'add', ids: toAddedAssetIds(input) }),
     // Blob is already correct after onMutate; hydrated needs getTokens for metadata.
     invalidateOnSettled: { blob: false, hydrated: true },
     shouldInvalidateHydrated: (input) => {
@@ -230,7 +247,7 @@ export const useTokenWatchlistAddItemMutation = () => {
       if (blob === undefined) {
         return true;
       }
-      const addedIds = toStrings(asArray(input));
+      const addedIds = toAddedAssetIds(input);
       // Skip refetch if every added id was already removed (quick toggle).
       return addedIds.some((id) =>
         blob.assets.some((asset) => asset.toLowerCase() === id.toLowerCase()),

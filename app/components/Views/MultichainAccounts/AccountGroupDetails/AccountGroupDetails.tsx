@@ -125,6 +125,10 @@ export const AccountGroupDetails = () => {
     [account],
   );
 
+  const endShowAccountAddressListTrace = useCallback(() => {
+    endTrace({ name: TraceName.ShowAccountAddressList });
+  }, []);
+
   const navigateToAddressList = useCallback(() => {
     // Start the trace before navigating to the address list to include the
     // navigation and render times in the trace.
@@ -136,20 +140,23 @@ export const AccountGroupDetails = () => {
       },
     });
 
-    navigateWithDetails(
-      navigation,
-      createAddressListNavigationDetails({
-        groupId: id,
-        title: `${strings('multichain_accounts.address_list.addresses')} / ${
-          metadata.name
-        }`,
-        source: AddressListViewedSource.ACCOUNT_DETAILS,
-        onLoad: () => {
-          endTrace({ name: TraceName.ShowAccountAddressList });
-        },
-      }),
-    );
-  }, [id, metadata.name, navigation]);
+    try {
+      navigateWithDetails(
+        navigation,
+        createAddressListNavigationDetails({
+          groupId: id,
+          title: `${strings('multichain_accounts.address_list.addresses')} / ${
+            metadata.name
+          }`,
+          source: AddressListViewedSource.ACCOUNT_DETAILS,
+          onLoad: endShowAccountAddressListTrace,
+        }),
+      );
+    } catch (error) {
+      endShowAccountAddressListTrace();
+      throw error;
+    }
+  }, [endShowAccountAddressListTrace, id, metadata.name, navigation]);
 
   const navigateToSmartAccount = useCallback(() => {
     navigation.navigate('SmartAccountDetails', { account });

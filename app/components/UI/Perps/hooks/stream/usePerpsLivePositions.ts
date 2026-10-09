@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { type Position, type PriceUpdate } from '@metamask/perps-controller';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
+import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_POSITIONS: Position[] = [];
@@ -20,6 +22,8 @@ export interface UsePerpsLivePositionsReturn {
   positions: Position[];
   /** Whether we're waiting for the first real WebSocket data (not cached) */
   isInitialLoading: boolean;
+  /** Deliveries accepted by this selected-account subscription. */
+  deliveryRevision?: number;
 }
 
 /**
@@ -104,6 +108,7 @@ export function usePerpsLivePositions(
 ): UsePerpsLivePositionsReturn {
   const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
+  const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const initialChannelPositions = stream.positions.getSnapshot();
   const [isInitialLoading, setIsInitialLoading] = useState(() => {
     if (
@@ -116,6 +121,8 @@ export function usePerpsLivePositions(
     return !hasCached;
   });
   const hasReceivedFirstUpdate = useRef(false);
+  const [deliveryRevision, setDeliveryRevision] = useState(0);
+  const acceptedDeliveryRef = useRef(false);
 
   // Store raw positions and price data in state
   const [rawPositions, setRawPositions] = useState<Position[]>(() => {
@@ -125,26 +132,33 @@ export function usePerpsLivePositions(
       EMPTY_POSITIONS;
     return cached;
   });
+  const [rawPositionsAddress, setRawPositionsAddress] =
+    useState(selectedAddress);
   const [priceData, setPriceData] = useState<Record<string, PriceUpdate>>({});
 
   // Derive enriched positions synchronously to avoid one-frame flash
   // where isInitialLoading is false but positions haven't been enriched yet
   const positions = useMemo(() => {
+    if (rawPositionsAddress !== selectedAddress) {
+      return EMPTY_POSITIONS;
+    }
     if (rawPositions.length === 0) {
       return EMPTY_POSITIONS;
     }
     return enrichPositionsWithLivePnL(rawPositions, priceData);
-  }, [rawPositions, priceData]);
+  }, [rawPositions, priceData, rawPositionsAddress, selectedAddress]);
 
   // Subscribe to position updates
   useEffect(() => {
     const unsubscribe = stream.positions.subscribe({
       callback: (newPositions) => {
+        acceptedDeliveryRef.current = false;
         if (newPositions === null) {
           // Cleared on account switch — show skeleton until first update for new account
           hasReceivedFirstUpdate.current = false;
           setIsInitialLoading(true);
           setRawPositions(EMPTY_POSITIONS);
+          setRawPositionsAddress(selectedAddress);
           return;
         }
 
@@ -158,6 +172,14 @@ export function usePerpsLivePositions(
         }
 
         setRawPositions(newPositions);
+        setRawPositionsAddress(selectedAddress);
+        acceptedDeliveryRef.current = true;
+      },
+      onDelivery: (source) => {
+        if (source === 'fresh' && acceptedDeliveryRef.current) {
+          setDeliveryRevision((revision) => revision + 1);
+        }
+        acceptedDeliveryRef.current = false;
       },
       throttleMs,
     });
@@ -165,7 +187,7 @@ export function usePerpsLivePositions(
     return () => {
       unsubscribe();
     };
-  }, [stream, throttleMs]);
+  }, [selectedAddress, stream, throttleMs]);
 
   // Derive the unique set of symbols from the current positions so we only
   // subscribe to the prices we actually need (instead of the full price channel).
@@ -218,6 +240,8 @@ export function usePerpsLivePositions(
 
   return {
     positions,
-    isInitialLoading,
+    isInitialLoading:
+      rawPositionsAddress !== selectedAddress || isInitialLoading,
+    deliveryRevision,
   };
 }

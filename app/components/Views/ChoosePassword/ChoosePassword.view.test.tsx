@@ -97,9 +97,9 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
   });
 
   itEach(socialLoginProviders)(
-    'keeps submit disabled for $label login until matching passwords meet minimum length',
+    'validates short passwords on submit for $label login',
     async ({ provider }) => {
-      const { findByTestId } = renderChoosePasswordForSocialLogin({
+      const { findByTestId, findByText } = renderChoosePasswordForSocialLogin({
         routeParams: {
           oauthLoginSuccess: true,
           provider,
@@ -110,7 +110,7 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
 
-      expect(submitButton).toBeDisabled();
+      expect(submitButton).toBeEnabled();
 
       fireEvent.changeText(
         await findByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
@@ -123,9 +123,15 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
         'short',
       );
 
-      await waitFor(() => {
-        expect(submitButton).toBeDisabled();
-      });
+      fireEvent.press(submitButton);
+
+      expect(
+        await findByText(
+          strings('choose_password.must_be_at_least', {
+            number: MIN_PASSWORD_LENGTH,
+          }),
+        ),
+      ).toBeOnTheScreen();
     },
   );
 
@@ -149,19 +155,22 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
         ),
         `${VALID_PASSWORD}x`,
       );
+      const submitButton = await findByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+
+      fireEvent.press(submitButton);
 
       expect(
         await findByText(strings('choose_password.password_error')),
       ).toBeOnTheScreen();
 
-      expect(
-        await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
-      ).toBeDisabled();
+      expect(submitButton).toBeEnabled();
     },
   );
 
   itEach(socialLoginProviders)(
-    'enables submit for $label login when passwords match and meet minimum length',
+    'keeps submit enabled for $label login when passwords match',
     async ({ provider }) => {
       const { findByTestId } = renderChoosePasswordForSocialLogin({
         routeParams: {

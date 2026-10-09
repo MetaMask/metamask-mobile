@@ -5,9 +5,11 @@ import {
 import {
   DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
   DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
-  DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
 import {
@@ -21,12 +23,15 @@ import {
 import {
   parse,
   PredictFeeCollectionSchema,
+  PredictHiddenMarketsSchema,
+  PredictHomeCategoriesSchema,
+  PredictSportsFeedSchema,
   PredictWimbledonTabSchema,
-  PredictWorldCupSchema,
 } from '../schemas';
 import {
   PredictExtendedSportsMarketsFlag,
   PredictFeatureFlags,
+  PredictHiddenMarketsFlag,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
   PredictWimbledonTabFlag,
@@ -35,7 +40,6 @@ import { unwrapRemoteFeatureFlag } from './flags';
 
 export interface RawFeatureFlags {
   remoteFeatureFlags?: Record<string, unknown>;
-  localOverrides?: Record<string, unknown>;
 }
 
 function resolveVersionGatedBooleanFlag(
@@ -51,7 +55,9 @@ function resolveVersionGatedBooleanFlag(
 
 /**
  * Resolves the Predict feature flags used by both the controller and selectors.
- * Local overrides take precedence over remote values when both are present.
+ *
+ * Reads the effective flag values from `remoteFeatureFlags`, which already has
+ * `localOverrides` applied, so the dev override screen still works.
  *
  * @param rawState - Raw RemoteFeatureFlagController state slices used by Predict.
  * @returns The normalized Predict feature flag set.
@@ -61,7 +67,6 @@ export function resolvePredictFeatureFlags(
 ): PredictFeatureFlags {
   const flags = {
     ...(rawState.remoteFeatureFlags ?? {}),
-    ...(rawState.localOverrides ?? {}),
   };
 
   const liveSportsFlag =
@@ -82,6 +87,23 @@ export function resolvePredictFeatureFlags(
     )
       ? rawMarketHighlightsFlag
       : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
+
+  const rawHiddenMarketsFlag =
+    unwrapRemoteFeatureFlag<PredictHiddenMarketsFlag>(
+      flags.predictHiddenMarkets,
+    );
+  const parsedHiddenMarketsFlag = rawHiddenMarketsFlag
+    ? parse(
+        rawHiddenMarketsFlag,
+        PredictHiddenMarketsSchema,
+        DEFAULT_HIDDEN_MARKETS_FLAG,
+      )
+    : DEFAULT_HIDDEN_MARKETS_FLAG;
+  const hiddenMarketsFlag =
+    rawHiddenMarketsFlag &&
+    validatedVersionGatedFeatureFlag(parsedHiddenMarketsFlag)
+      ? parsedHiddenMarketsFlag
+      : DEFAULT_HIDDEN_MARKETS_FLAG;
 
   const feeCollection = parse(
     unwrapRemoteFeatureFlag<PredictFeatureFlags['feeCollection']>(
@@ -134,18 +156,34 @@ export function resolvePredictFeatureFlags(
     flags.predictSportCardLivePrices,
     true,
   );
-  const parsedPredictWorldCup = parse(
-    unwrapRemoteFeatureFlag<PredictFeatureFlags['predictWorldCup']>(
-      flags.predictWorldCup,
+  const parsedPredictSportsFeed = parse(
+    unwrapRemoteFeatureFlag<PredictFeatureFlags['predictSportsFeed']>(
+      flags.predictSportsFeed,
     ),
-    PredictWorldCupSchema,
-    DEFAULT_PREDICT_WORLD_CUP_FLAG,
+    PredictSportsFeedSchema,
+    DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   );
-  const predictWorldCup = validatedVersionGatedFeatureFlag(
-    parsedPredictWorldCup,
+  const predictSportsFeed = validatedVersionGatedFeatureFlag(
+    parsedPredictSportsFeed,
   )
-    ? parsedPredictWorldCup
-    : DEFAULT_PREDICT_WORLD_CUP_FLAG;
+    ? parsedPredictSportsFeed
+    : DEFAULT_PREDICT_SPORTS_FEED_FLAG;
+  const parsedPredictHomeCategories = parse(
+    unwrapRemoteFeatureFlag<PredictFeatureFlags['predictHomeCategories']>(
+      flags.predictHomeCategories,
+    ),
+    PredictHomeCategoriesSchema,
+    DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+  );
+  // An enabled flag with no renderable tiles would blank the Categories
+  // section, so treat it like an invalid payload and keep the bundled rail.
+  const predictHomeCategories =
+    validatedVersionGatedFeatureFlag(parsedPredictHomeCategories) &&
+    parsedPredictHomeCategories.categories.some(
+      (category) => category.enabled !== false,
+    )
+      ? parsedPredictHomeCategories
+      : DEFAULT_PREDICT_HOME_CATEGORIES_FLAG;
   const parsedPredictWimbledonTab = parse(
     unwrapRemoteFeatureFlag<PredictWimbledonTabFlag>(flags.predictWimbledon),
     PredictWimbledonTabSchema,
@@ -164,13 +202,15 @@ export function resolvePredictFeatureFlags(
     enabledSportsMarketTypes,
     nonRegTimeSportsMarketTypes,
     marketHighlightsFlag,
+    hiddenMarketsFlag,
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
     predictUpDownEnabled,
     predictPortfolioEnabled,
     predictHomeRedesignEnabled,
     predictSportCardLivePricesEnabled,
-    predictWorldCup,
+    predictSportsFeed,
+    predictHomeCategories,
     predictWimbledonTab,
   };
 }

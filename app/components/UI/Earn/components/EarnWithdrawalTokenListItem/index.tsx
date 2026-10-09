@@ -3,21 +3,19 @@ import styleSheet from './EarnWithdrawalTokenListItem.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { EarnNetworkAvatar } from '../EarnNetworkAvatar';
 import { TouchableOpacity, View } from 'react-native';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import Text, {
+import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { selectNetworkName } from '../../../../../selectors/networkInfos';
-import { useSelector } from 'react-redux';
+} from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { strings } from '../../../../../../locales/i18n';
 import { EarnTokenDetails } from '../../types/lending.types';
+import { formatEarnRatePercentage } from '../../utils';
 
 export interface EarnWithdrawalTokenListItemProps {
   earnToken: EarnTokenDetails;
@@ -30,8 +28,6 @@ const EarnWithdrawalTokenListItem = ({
 }: EarnWithdrawalTokenListItemProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const networkName = useSelector(selectNetworkName);
-
   return (
     earnToken && (
       <TouchableOpacity
@@ -40,14 +36,15 @@ const EarnWithdrawalTokenListItem = ({
       >
         <View style={styles.left}>
           <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                name={networkName}
-                imageSource={getNetworkImageSource({
-                  chainId: earnToken?.chainId ?? '',
-                })}
+            position={BadgeWrapperPosition.BottomRight}
+            badge={
+              <BadgeNetwork
+                twClassName="h-4 w-4 rounded bg-default"
+                src={
+                  getNetworkImageSource({
+                    chainId: earnToken?.chainId ?? '',
+                  }) as React.ComponentProps<typeof BadgeNetwork>['src']
+                }
               />
             }
           >
@@ -56,35 +53,38 @@ const EarnWithdrawalTokenListItem = ({
           <View style={styles.textContainer}>
             <Text
               numberOfLines={1}
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               ellipsizeMode="tail"
             >
               {earnToken.name}
             </Text>
             <Text
-              variant={TextVariant.BodySMMedium}
-              color={TextColor.Alternative}
-            >{`${strings('earn.earning')} ${parseFloat(
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >{`${strings('earn.earning')} ${formatEarnRatePercentage(
               earnToken?.experience?.apr ?? '0',
-            ).toFixed(1)}%`}</Text>
+            )}%`}</Text>
           </View>
         </View>
         <View style={styles.right}>
           {/* Only show token balance if exchange rates aren't available */}
           {earnToken?.balanceFiat !== 'tokenRateUndefined' ? (
             <>
-              <Text variant={TextVariant.BodyMDMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {earnToken.balanceFiat}
               </Text>
               <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
               >
                 {earnToken.balanceFormatted}
               </Text>
             </>
           ) : (
-            <Text variant={TextVariant.BodyMDMedium}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {earnToken.balanceFormatted}
             </Text>
           )}

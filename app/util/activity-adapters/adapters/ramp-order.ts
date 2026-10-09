@@ -16,7 +16,7 @@ import {
   toRampOrderToken,
 } from './ramp-order-helpers';
 
-export interface MapRampOrderArgs {
+interface MapRampOrderArgs {
   order: FiatOrder;
 }
 
@@ -83,7 +83,6 @@ export function mapRampOrder({
     status: mapRampOrderStatus(order.state),
     timestamp: order.createdAt,
     hash,
-    raw: { type: 'rampOrder', data: order },
     data: {
       from: order.account,
       token: toRampOrderToken(order, isSell ? 'out' : 'in'),

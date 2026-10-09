@@ -41,6 +41,12 @@ const PROXIED_RPC_CONFIGS: {
     chainId: '0x53a',
     netVersion: '1338',
   },
+  // OpenRPC wallet_addEthereumChain example (api-specs) uses Gnosis RPC.
+  {
+    url: 'https://rpc.gnosischain.com',
+    chainId: '0x64',
+    netVersion: '100',
+  },
 ];
 
 const findRpcConfig = (urlParam: string | null) =>
@@ -48,7 +54,7 @@ const findRpcConfig = (urlParam: string | null) =>
 
 /**
  * TestSpecificMock that intercepts custom-RPC provider calls
- * (eth.llamarpc.com, rpc.atlantischain.network) through the mobile
+ * (eth.llamarpc.com, rpc.atlantischain.network, rpc.gnosischain.com) through the mobile
  * proxy, returning static responses per JSON-RPC method.
  */
 export const CUSTOM_RPC_PROVIDER_MOCKS: TestSpecificMock = async (

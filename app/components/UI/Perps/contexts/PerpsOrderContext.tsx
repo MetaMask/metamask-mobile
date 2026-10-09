@@ -16,8 +16,10 @@ interface PerpsOrderProviderProps {
   initialAsset?: string;
   initialDirection?: 'long' | 'short';
   initialAmount?: string;
+  fallbackAmount?: string;
   initialLeverage?: number;
   initialType?: OrderType;
+  initialSzDecimals?: number;
   existingPosition?: Position;
   /** When paying with a custom token, the selected token amount in USD; caps maxPossibleAmount and amount handlers */
   effectiveAvailableBalance?: number;
@@ -28,8 +30,10 @@ export const PerpsOrderProvider = ({
   initialAsset,
   initialDirection,
   initialAmount,
+  fallbackAmount,
   initialLeverage,
   initialType,
+  initialSzDecimals,
   existingPosition,
   effectiveAvailableBalance,
 }: PerpsOrderProviderProps) => {
@@ -37,8 +41,10 @@ export const PerpsOrderProvider = ({
     initialAsset,
     initialDirection,
     initialAmount,
+    fallbackAmount,
     initialLeverage: initialLeverage ?? existingPosition?.leverage?.value,
     initialType,
+    initialSzDecimals,
     effectiveAvailableBalance,
   });
 

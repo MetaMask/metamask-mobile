@@ -1,5 +1,9 @@
 import { createLogger, LogLevel } from '../../../framework/logger.js';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
+import {
+  POLYGON_PUSD_TOKEN_ADDRESS,
+  USDC_CONTRACT_ADDRESS,
+} from '../../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
 
 const logger = createLogger({
   name: 'PredictHelpers',
@@ -40,6 +44,16 @@ export const remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke =
           leagues: [],
           enabledSportsMarketTypes: [],
         },
+        '8.4.0': {
+          enabled: false,
+          leagues: [],
+          enabledSportsMarketTypes: [],
+        },
+        '8.10.0': {
+          enabled: false,
+          leagues: [],
+          enabledSportsMarketTypes: [],
+        },
         '7.82.0': {
           enabled: false,
           leagues: [],
@@ -62,6 +76,17 @@ export const remoteFeatureFlagWithdrawAnyTokenDisabled = () => ({
         },
       },
     },
+  },
+});
+
+/**
+ * Keeps Polygon Predict collateral classified as USD-pegged in E2E.
+ * The production stableTokens flag replaces the app fallback, but currently
+ * omits Polygon. Without a fiat rate, confirmation amount input stays at zero.
+ */
+export const remoteFeatureFlagPolygonStableTokensForPredictSmoke = () => ({
+  stableTokens: {
+    '0x89': [USDC_CONTRACT_ADDRESS, POLYGON_PUSD_TOKEN_ADDRESS],
   },
 });
 

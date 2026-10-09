@@ -5,7 +5,11 @@ export {
   PredictFeeCollectionSchema,
   PredictFeedBannerSchema,
   PredictFeedCarouselSchema,
+  PredictHiddenMarketsSchema,
+  PredictHomeCategoriesSchema,
+  PredictHomeCategorySchema,
+  PredictSportsFeedSchema,
+  PredictSportsFeedTabSchema,
+  PredictSportsFeedChipSchema,
   PredictWimbledonTabSchema,
-  PredictWorldCupSchema,
-  PredictWorldCupStageSchema,
 } from './flags';

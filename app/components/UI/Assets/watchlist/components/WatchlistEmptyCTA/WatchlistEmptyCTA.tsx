@@ -124,6 +124,7 @@ const WatchlistEmptyCTA: React.FC<WatchlistEmptyCTAProps> = ({ source }) => {
           createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
             .addProperties({
               source,
+              asset_id: String(token.assetId),
               asset_type: getWatchlistAssetType(String(token.assetId)),
               has_balance: token.isInWallet,
             })

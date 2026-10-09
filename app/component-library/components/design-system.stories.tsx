@@ -134,7 +134,7 @@ const WalletHome: React.FC = () => {
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
             >
-              <Icon name={IconName.Receive} />
+              <Icon name={IconName.Received} />
               <Text fontWeight={FontWeight.Medium}>Receive</Text>
             </Box>
           </ButtonBase>

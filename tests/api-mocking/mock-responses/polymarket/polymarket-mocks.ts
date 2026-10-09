@@ -202,6 +202,25 @@ export const POLYMARKET_GEO_BLOCKED_MOCKS = async (mockServer: Mockttp) => {
 };
 
 /**
+ * Mock for Polymarket geoblock endpoint returning a failed / incomplete check.
+ * Used to exercise degraded-access UI that must not be described as a
+ * geo-restriction. Registered at priority 1000 so it wins over the eligible
+ * geoblock mock that POLYMARKET_COMPLETE_MOCKS registers at the default 999.
+ */
+export const POLYMARKET_GEO_UNAVAILABLE_MOCKS = async (mockServer: Mockttp) => {
+  await setupMockRequest(
+    mockServer,
+    {
+      requestMethod: 'GET',
+      url: 'https://polymarket.com/api/geoblock',
+      responseCode: 500,
+      response: { error: 'geoblock unavailable' },
+    },
+    1000,
+  );
+};
+
+/**
  * Mock for Polymarket geoblock endpoint returning eligible region.
  * Reuses POLYMARKET_GEOBLOCK_ELIGIBLE from defaults so there is a single source of truth.
  */
@@ -374,16 +393,24 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
         }));
       }
 
+      // Keep test-only active winnings inside the homepage display limit,
+      // including when the request omits the redeemable parameter.
+      const activePositions = showWinningsAsActive
+        ? [...winnings, ...POLYMARKET_CURRENT_POSITIONS_RESPONSE]
+        : POLYMARKET_CURRENT_POSITIONS_RESPONSE;
       const allPositions =
         redeemable === undefined
-          ? [
-              ...POLYMARKET_CURRENT_POSITIONS_RESPONSE,
-              ...POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
-              ...winnings,
-            ]
-          : showWinningsAsActive
-            ? [...POLYMARKET_CURRENT_POSITIONS_RESPONSE, ...winnings]
-            : POLYMARKET_CURRENT_POSITIONS_RESPONSE;
+          ? showWinningsAsActive
+            ? [
+                ...activePositions,
+                ...POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
+              ]
+            : [
+                ...activePositions,
+                ...POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
+                ...winnings,
+              ]
+          : activePositions;
 
       let filteredPositions = allPositions;
       if (eventId) {
@@ -1467,6 +1494,14 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
       };
     });
 
+  // PredictHome Popular Today / feed chips fetch related tags for slug "all".
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /^https:\/\/gamma-api\.polymarket\.com\/tags\/slug\/[^/]+\/related-tags\/tags/,
+    responseCode: 200,
+    response: [],
+  });
+
   // Also mock the search endpoint for market feeds
   await mockServer
     .forGet('/proxy')
@@ -1572,8 +1607,13 @@ export const POLYMARKET_TRANSACTION_SENTINEL_MOCKS = async (
           };
         }
 
-        const transactions = body?.params?.[0]?.transactions || [];
-        const firstTx = transactions[0] || {};
+        const requestedTransactions = body?.params?.[0]?.transactions;
+        const txList =
+          Array.isArray(requestedTransactions) &&
+          requestedTransactions.length > 0
+            ? requestedTransactions
+            : [{}];
+        const firstTx = txList[0] || {};
         const fromAddress =
           firstTx.from?.toLowerCase() || USER_WALLET_ADDRESS.toLowerCase();
 
@@ -1581,7 +1621,21 @@ export const POLYMARKET_TRANSACTION_SENTINEL_MOCKS = async (
         // The response includes gas estimates and state diffs
         return {
           statusCode: 200,
-          json: createTransactionSentinelResponse(fromAddress),
+          json: {
+            jsonrpc: '2.0',
+            result: {
+              transactions: txList.map(
+                (tx: Record<string, unknown>) =>
+                  createTransactionSentinelResponse(
+                    ((tx.from as string) || fromAddress) as string,
+                    ((tx.data as string) || '0x') as string,
+                  ).result.transactions[0],
+              ),
+              blockNumber: '0x4a9637e',
+              id: 'd1574ab9-ecba-4e33-bf48-b04388a25589',
+            },
+            id: '7',
+          },
         };
       } catch (error) {
         // Return a basic success response if parsing fails

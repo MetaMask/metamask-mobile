@@ -417,9 +417,7 @@ export const BrowserPure = (props) => {
     // 1. No tabs exist, OR
     // 2. Active tab was closed (activeTabId not in tabs)
     if (tabs.length === 0 || !activeTabExists) {
-      navigation.navigate(Routes.TRENDING_VIEW, {
-        screen: Routes.TRENDING_FEED,
-      });
+      navigation.navigate(Routes.TRENDING_VIEW);
     }
   }, [tabs, activeTabId, setShouldShowTabs, navigation]);
 
@@ -464,11 +462,16 @@ export const BrowserPure = (props) => {
               isInTabsView={shouldShowTabs}
               homePageUrl={homePageUrl()}
               fromTrending={route.params?.fromTrending}
+              fromExploreSearch={route.params?.fromExploreSearch}
               fromPerps={route.params?.fromPerps}
               fromBenefit={route.params?.fromBenefit}
               fromCard={route.params?.fromCard}
               fromWhatsHappening={route.params?.fromWhatsHappening}
+              fromMarketInsights={route.params?.fromMarketInsights}
               fromMoney={route.params?.fromMoney}
+              fromEarnStrategySelection={
+                route.params?.fromEarnStrategySelection
+              }
             />
           ) : (
             <DiscoveryTab
@@ -489,11 +492,14 @@ export const BrowserPure = (props) => {
       updateTabInfo,
       showTabsView,
       route.params?.fromTrending,
+      route.params?.fromExploreSearch,
       route.params?.fromPerps,
       route.params?.fromBenefit,
       route.params?.fromCard,
       route.params?.fromWhatsHappening,
+      route.params?.fromMarketInsights,
       route.params?.fromMoney,
+      route.params?.fromEarnStrategySelection,
     ],
   );
 

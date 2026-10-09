@@ -1,8 +1,18 @@
 import React from 'react';
 import { cloneDeep } from 'lodash';
-import { BackHandler, ScrollView } from 'react-native';
+import { act, fireEvent } from '@testing-library/react-native';
+import { BackHandler, ScrollView, StyleSheet } from 'react-native';
+import { BottomSheet } from '@metamask/design-system-react-native';
+import { Severity } from '../../types/alerts';
+import {
+  useSafeAreaFrame,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   generateContractInteractionState,
+  batchApprovalConfirmation,
+  getAppStateForConfirmation,
+  mockTxId,
   personalSignatureConfirmationState,
   stakingClaimConfirmationState,
   stakingDepositConfirmationState,
@@ -10,14 +20,30 @@ import {
   typedSignV1ConfirmationState,
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { ConfirmationUIType } from '../../ConfirmationView.testIds';
+import { TraceName, endTrace, trace } from '../../../../../util/trace';
 import { Confirm, ConfirmationLoader } from './confirm-component';
+import { TransactionType } from '@metamask/transaction-controller';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
+import { useConfirmReject } from '../../hooks/useConfirmReject';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
+import styleSheet from './confirm-component.styles';
+import { mockTheme } from '../../../../../util/theme';
+import Engine from '../../../../../core/Engine';
 
+jest.mock('../../hooks/useConfirmReject');
+// Confirm renders the footer, which still depends on the full useConfirmActions
+// chain (useTransactionConfirm -> useFiatConfirm -> ramps -> react-query).
 jest.mock('../../hooks/useConfirmActions');
+
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
@@ -43,6 +69,10 @@ jest.mock('../../hooks/ui/useFullScreenConfirmation');
 jest.mock('../../hooks/pay/useTransactionPayAutoFiatSubmission');
 jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
+}));
+
+jest.mock('../info/money-account-deposit-info', () => ({
+  MoneyAccountDepositInfo: () => null,
 }));
 
 const mockSetOptions = jest.fn();
@@ -76,6 +106,7 @@ jest.mock('react-native-safe-area-context', () => {
 });
 
 jest.mock('../../../../../core/Engine', () => ({
+  state: {},
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
     KeyringController: {
@@ -152,12 +183,28 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
 
 describe('Confirm', () => {
   const useConfirmActionsMock = jest.mocked(useConfirmActions);
+  const useConfirmRejectMock = jest.mocked(useConfirmReject);
   const mockOnReject = jest.fn();
   const useParamsMock = jest.mocked(useParams);
+  const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+    TransactionType.membershipSubscription;
+
+  const mockGeneralAlert = [
+    {
+      key: 'membership-alert',
+      title: 'Membership alert',
+      severity: Severity.Danger,
+      message: 'Generic membership alert',
+    },
+  ];
 
   beforeEach(() => {
-    useConfirmActionsMock.mockReturnValue({
+    useParamsMock.mockReturnValue({});
+    useConfirmRejectMock.mockReturnValue({
       onReject: mockOnReject,
+    });
+    useConfirmActionsMock.mockReturnValue({
+      onReject: jest.fn(),
       onConfirm: jest.fn(),
     });
 
@@ -179,6 +226,190 @@ describe('Confirm', () => {
       state: typedSignV1ConfirmationState,
     });
     expect(getByTestId('modal-confirmation-container')).toBeDefined();
+  });
+
+  it('hides the generic alert banner for nested membership batch confirmations', () => {
+    jest.mocked(useConfirmationAlerts).mockReturnValue(mockGeneralAlert);
+
+    const membershipBatchConfirmation = cloneDeep(batchApprovalConfirmation);
+    membershipBatchConfirmation.nestedTransactions = [
+      ...(membershipBatchConfirmation.nestedTransactions ?? []),
+      {
+        type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+        to: '0x0000000000000000000000000000000000000001',
+        data: '0x',
+        value: '0x0',
+      },
+    ];
+
+    const { queryByTestId } = renderWithProvider(<Confirm />, {
+      state: getAppStateForConfirmation(membershipBatchConfirmation),
+    });
+
+    expect(queryByTestId('security-alert-banner-0')).toBeNull();
+  });
+
+  it('keeps the generic alert banner eligible for regular transaction controls', () => {
+    jest.mocked(useConfirmationAlerts).mockReturnValue(mockGeneralAlert);
+
+    const { getByTestId } = renderWithProvider(<Confirm />, {
+      state: generateContractInteractionState,
+    });
+
+    expect(getByTestId('security-alert-banner-0')).toBeOnTheScreen();
+  });
+
+  describe('forced bottom sheet', () => {
+    beforeEach(() => {
+      jest.mocked(useSafeAreaFrame).mockReturnValue({
+        width: 400,
+        height: 800,
+        x: 0,
+        y: 0,
+      });
+      jest.mocked(useSafeAreaInsets).mockReturnValue({
+        top: 40,
+        bottom: 20,
+        left: 0,
+        right: 0,
+      });
+    });
+
+    it.each([
+      [ConfirmationLoader.CustomAmount, 'custom-amount-skeleton'],
+      [
+        ConfirmationLoader.AdvancedCustomAmount,
+        'advanced-custom-amount-info-skeleton',
+      ],
+      [
+        ConfirmationLoader.PrefillCustomAmount,
+        'prefill-custom-amount-info-skeleton',
+      ],
+    ])(
+      'renders %s skeleton inside the non-dismissible sheet',
+      (loader, skeletonTestId) => {
+        useParamsMock.mockReturnValue({ forceBottomSheet: true, loader });
+        const initialState = cloneDeep(typedSignV1ConfirmationState);
+        const state = {
+          ...initialState,
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine.backgroundState,
+              ApprovalController: {
+                ...initialState.engine.backgroundState.ApprovalController,
+                pendingApprovals: {},
+                pendingApprovalCount: 0,
+              },
+            },
+          },
+        };
+
+        const { getByTestId, UNSAFE_getByType } = renderWithProvider(
+          <Confirm />,
+          { state },
+        );
+
+        expect(getByTestId(skeletonTestId)).toBeOnTheScreen();
+        expect(UNSAFE_getByType(BottomSheet).props.isInteractable).toBe(false);
+        expect(mockSetOptions).not.toHaveBeenCalledWith(
+          expect.objectContaining({ gestureEnabled: true }),
+        );
+        expect(
+          StyleSheet.flatten(
+            getByTestId('confirm-loader-bottom-sheet').props
+              .contentContainerStyle,
+          ),
+        ).toMatchObject({ minHeight: 444, flexGrow: 1 });
+        expect(
+          StyleSheet.flatten(
+            getByTestId('confirm-loader-bottom-sheet').props.style,
+          ),
+        ).not.toHaveProperty('height');
+      },
+    );
+
+    it.each([
+      [undefined, 480],
+      [70, 560],
+      [100, 760],
+    ])(
+      'uses percentage %s as a minimum bounded by the safe area',
+      (percentage, height) => {
+        useParamsMock.mockReturnValue({
+          forceBottomSheet: true,
+          bottomSheetHeightPercentage: percentage,
+        });
+
+        const { UNSAFE_getByType } = renderWithProvider(<Confirm />, {
+          state: typedSignV1ConfirmationState,
+        });
+
+        expect(UNSAFE_getByType(BottomSheet).props.twClassName).toBe(
+          `min-h-[${height}px]`,
+        );
+      },
+    );
+
+    it('keeps the same sheet mounted when an approval arrives', async () => {
+      useParamsMock.mockReturnValue({
+        forceBottomSheet: true,
+        loader: ConfirmationLoader.CustomAmount,
+      });
+      const initialState = cloneDeep(typedSignV1ConfirmationState);
+      const approvals = initialState.engine.backgroundState.ApprovalController;
+      const state = {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            ApprovalController: {
+              ...approvals,
+              pendingApprovals: {},
+              pendingApprovalCount: 0,
+            },
+          },
+        },
+      };
+      const { store, UNSAFE_getByType, queryByTestId } = renderWithProvider(
+        <Confirm />,
+        { state },
+      );
+      const sheet = UNSAFE_getByType(BottomSheet);
+
+      await act(async () => {
+        Object.assign(Engine.state, { ApprovalController: approvals });
+        store.dispatch({
+          type: 'UPDATE_BG_STATE',
+          payload: { key: 'ApprovalController' },
+        });
+      });
+
+      expect(UNSAFE_getByType(BottomSheet)).toBe(sheet);
+      expect(sheet.props.isInteractable).toBe(true);
+      expect(queryByTestId('confirm-loader-bottom-sheet')).toBeNull();
+      fireEvent(sheet, 'close');
+      expect(mockOnReject).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('leaves native ScrollView flex defaults intact for fullscreen and sheets', () => {
+    const fullscreen = styleSheet({
+      theme: mockTheme,
+      vars: { isFullScreenConfirmation: true },
+    });
+    const sheet = styleSheet({
+      theme: mockTheme,
+      vars: { isFullScreenConfirmation: false, expandToSheetHeight: true },
+    });
+
+    expect(fullscreen.scrollView).not.toHaveProperty('flexGrow');
+    expect(sheet.scrollView).not.toHaveProperty('flexGrow');
+    expect(fullscreen.scrollViewContent.flexGrow).toBe(1);
+    expect(sheet.scrollViewContent.flexGrow).toBe(1);
+    expect(fullscreen.confirmContainer).not.toHaveProperty('flexGrow');
+    expect(sheet.confirmContainer.flexGrow).toBe(1);
   });
 
   it('renders a flat confirmation for specified type(s): staking deposit', () => {
@@ -229,7 +460,7 @@ describe('Confirm', () => {
     expect(getAllByText('Message')).toHaveLength(2);
     expect(getByText('Hi, Alice!')).toBeDefined();
     expect(getAllByRole('button')).toHaveLength(2);
-    expect(queryByText('This is a deceptive request')).toBeNull();
+    expect(queryByText('Risk signals detected')).toBeNull();
   });
 
   it('renders information for staking deposit', async () => {
@@ -326,7 +557,9 @@ describe('Confirm', () => {
     const backHandlerCallback = jest.mocked(BackHandler.addEventListener).mock
       .calls[0][1];
 
-    expect(backHandlerCallback()).toBe(true);
+    expect(
+      backHandlerCallback({ type: 'hardwareBackPress', timeStamp: 0 }),
+    ).toBe(true);
   });
 
   it('displays alternate loader if specified', () => {
@@ -614,5 +847,68 @@ describe('Confirm', () => {
 
     const bottomSheet = getByTestId('modal-confirmation-container');
     expect(bottomSheet).toBeDefined();
+  });
+
+  describe('confirmation load trace', () => {
+    const traceMock = jest.mocked(trace);
+    const endTraceMock = jest.mocked(endTrace);
+
+    it('records the load trace when a full screen confirmation paints', () => {
+      jest.mocked(useFullScreenConfirmation).mockReturnValue({
+        isFullScreenConfirmation: true,
+      });
+
+      const { getByTestId } = renderWithProvider(<Confirm />, {
+        state: generateContractInteractionState,
+      });
+
+      expect(traceMock).not.toHaveBeenCalled();
+
+      fireEvent(getByTestId(ConfirmationUIType.FLAT), 'layout');
+
+      expect(traceMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.TransactionConfirmationLoad,
+          id: mockTxId,
+          forceTransaction: true,
+        }),
+      );
+      expect(endTraceMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.TransactionConfirmationLoad,
+          id: mockTxId,
+        }),
+      );
+    });
+
+    it('records the load trace when a modal confirmation paints', () => {
+      jest.mocked(useFullScreenConfirmation).mockReturnValue({
+        isFullScreenConfirmation: false,
+      });
+
+      const { getByTestId } = renderWithProvider(<Confirm />, {
+        state: generateContractInteractionState,
+      });
+
+      fireEvent(getByTestId('transaction'), 'layout');
+
+      expect(traceMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.TransactionConfirmationLoad,
+          id: mockTxId,
+        }),
+      );
+    });
+
+    it('does not record the load trace for signature confirmations', () => {
+      const { getByTestId } = renderWithProvider(<Confirm />, {
+        state: personalSignatureConfirmationState,
+      });
+
+      fireEvent(getByTestId('personal_sign'), 'layout');
+
+      expect(traceMock).not.toHaveBeenCalled();
+      expect(endTraceMock).not.toHaveBeenCalled();
+    });
   });
 });

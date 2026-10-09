@@ -223,6 +223,25 @@ describe('PredictGameDetailsContent utils', () => {
       expect(mockLoggerLog).not.toHaveBeenCalled();
       expect(mockLoggerError).not.toHaveBeenCalled();
     });
+
+    it.each([
+      ['team_totals-0', 'Patriots Totals'],
+      ['team_totals_home-0', 'Patriots Totals'],
+      ['team_totals_away-0', 'Broncos Totals'],
+    ])(
+      'does not warn for dynamic NFL team totals subgroup key %s',
+      (type, title) => {
+        const mockLoggerError = jest.mocked(Logger.error);
+        const mockLoggerLog = jest.mocked(Logger.log);
+
+        expect(getSportsMarketTypeLabelForGame(type, title, mockGame)).toBe(
+          title,
+        );
+
+        expect(mockLoggerLog).not.toHaveBeenCalled();
+        expect(mockLoggerError).not.toHaveBeenCalled();
+      },
+    );
   });
 
   describe('getSportsMarketTypeLabelForGame', () => {

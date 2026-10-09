@@ -79,7 +79,13 @@ export interface PolymarketApiMarket {
   orderPriceMinTickSize: number | null;
   events?: PolymarketApiEvent[];
   umaResolutionStatus: string;
+  /** Gamma protocol version. `v2` is Protocol V2. A missing value is CTF. */
+  version?: string;
   line?: number;
+  cryptoMarketConfig?: {
+    twapEnabled?: boolean;
+    twapLookbackSeconds?: number | null;
+  } | null;
 }
 
 export interface PolymarketApiSeries {

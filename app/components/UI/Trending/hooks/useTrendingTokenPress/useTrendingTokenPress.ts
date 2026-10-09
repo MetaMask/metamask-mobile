@@ -1,16 +1,12 @@
 import { useCallback } from 'react';
 import { StackActions, useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
-import { isCaipChainId, type CaipChainId } from '@metamask/utils';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { getAssetNavigationParams } from '../../components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { getPriceChangeFieldKey } from '../../components/TrendingTokenRowItem/utils';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
-import { useAddPopularNetwork } from '../../../../hooks/useAddPopularNetwork';
-import { PopularList } from '../../../../../util/networks/customNetworks';
+import { useAddNetworkIfMissingMutation } from '../../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import {
   TimeOption,
   PriceChangeOption,
@@ -40,10 +36,7 @@ export const useTrendingTokenPress = ({
 }): { onPress: () => Promise<void> } => {
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const networkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
-  const { addPopularNetwork } = useAddPopularNetwork();
+  const { mutate: addNetworkIfMissing } = useAddNetworkIfMissingMutation();
 
   const onPress = useCallback(async () => {
     if (
@@ -63,8 +56,6 @@ export const useTrendingTokenPress = ({
       transactionActiveAbTests,
     );
     if (!assetParams) return;
-
-    const caipChainId = token.assetId.split('/')[0];
 
     if (index !== undefined && filterContext) {
       const key = getPriceChangeFieldKey(selectedTimeOption);
@@ -86,25 +77,12 @@ export const useTrendingTokenPress = ({
       });
     }
 
-    const isNetworkAdded = isCaipChainId(caipChainId)
-      ? Boolean(networkConfigurations[caipChainId as CaipChainId])
-      : true;
-
-    if (!isNetworkAdded) {
-      const popularNetwork = PopularList.find(
-        (n) => n.chainId === assetParams.chainId,
-      );
-      if (popularNetwork) {
-        try {
-          await addPopularNetwork(popularNetwork);
-        } catch (error) {
-          console.error('Failed to add network:', error);
-          return;
-        }
-      }
-    }
-
-    navigation.dispatch(StackActions.push('Asset', assetParams));
+    // Navigate only once the chain is in the user's network list, otherwise
+    // Token Details has no price, balance or gas estimates to show.
+    addNetworkIfMissing(assetParams.chainId, {
+      onSuccess: () =>
+        navigation.dispatch(StackActions.push('Asset', assetParams)),
+    });
   }, [
     token,
     index,
@@ -113,8 +91,7 @@ export const useTrendingTokenPress = ({
     transactionActiveAbTests,
     selectedTimeOption,
     navigation,
-    networkConfigurations,
-    addPopularNetwork,
+    addNetworkIfMissing,
     trackEvent,
     createEventBuilder,
   ]);

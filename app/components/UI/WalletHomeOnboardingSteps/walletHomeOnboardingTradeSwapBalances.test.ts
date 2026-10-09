@@ -13,10 +13,42 @@ import {
 } from './walletHomeOnboardingTradeSwapAssets';
 
 const ACCOUNT = '0xAccount1' as Hex;
+const ACCOUNT_ID = 'account1';
+const NATIVE_ETH_ASSET_ID = 'eip155:1/slip44:60';
+const MUSD_ASSET_ID = `eip155:1/erc20:${MAINNET_MUSD_TOKEN_ADDRESS}`;
 
 function buildStateWithMainnetBalances(
   mainnetBalances: Record<string, string>,
 ): RootState {
+  const assetsInfo: Record<string, object> = {};
+  const accountBalances: Record<string, { amount: string }> = {};
+
+  // TokenBalancesController keys were checksummed. Only seed mUSD in the
+  // unified controller when the checksummed lookup address is present so the
+  // lowercase-key case still falls through to ETH → BTC.
+  if (mainnetBalances[MAINNET_MUSD_TOKEN_BALANCE_LOOKUP_ADDRESS]) {
+    assetsInfo[MUSD_ASSET_ID] = {
+      type: 'erc20',
+      symbol: 'mUSD',
+      name: 'MetaMask USD',
+      decimals: 6,
+    };
+    accountBalances[MUSD_ASSET_ID] = { amount: '1' };
+  }
+
+  if (mainnetBalances[MAINNET_NATIVE_ETH_TOKEN_ADDRESS]) {
+    assetsInfo[NATIVE_ETH_ASSET_ID] = {
+      type: 'native',
+      symbol: 'ETH',
+      name: 'Ether',
+      decimals: 18,
+    };
+    accountBalances[NATIVE_ETH_ASSET_ID] = {
+      amount:
+        mainnetBalances[MAINNET_NATIVE_ETH_TOKEN_ADDRESS] === '0x0' ? '0' : '1',
+    };
+  }
+
   return {
     engine: {
       backgroundState: {
@@ -27,13 +59,21 @@ function buildStateWithMainnetBalances(
             },
           },
         },
+        AssetsController: {
+          assetsInfo,
+          assetsBalance: { [ACCOUNT_ID]: accountBalances },
+          customAssets: {},
+          assetsPrice: {},
+          selectedCurrency: 'usd',
+        },
         AccountsController: {
           internalAccounts: {
-            selectedAccount: 'account1',
+            selectedAccount: ACCOUNT_ID,
             accounts: {
-              account1: {
-                id: 'account1',
+              [ACCOUNT_ID]: {
+                id: ACCOUNT_ID,
                 address: ACCOUNT,
+                type: 'eip155:eoa',
               },
             },
           },

@@ -76,4 +76,73 @@ describe('InfoRowOrigin', () => {
       expect(queryByText(origin)).not.toBeOnTheScreen();
     },
   );
+
+  // WalletConnect / SDK v1 / MetaMask Connect transactions carry the dapp's
+  // self-reported domain as `origin`, which is unverifiable and must not be
+  // presented as if the wallet had verified it. The transport is stored in
+  // the confirmationMetrics slice keyed by transaction id (transactions
+  // cannot carry client-only fields on TransactionMeta), and the row must
+  // read it and render "External app" instead of the self-reported domain.
+  it.each([
+    ['WalletConnect', 'WalletConnect'],
+    ['SDK v1', 'MetaMask-SDK-Remote-Conn'],
+    ['MetaMask Connect', 'MetaMask-Connect'],
+  ])(
+    'renders "External app" for %s transactions with a self-reported domain origin',
+    (_label, requestSource) => {
+      const selfReportedOrigin = 'https://innocent-looking.example';
+      const externalAppConfirmationState = merge(
+        {},
+        generateContractInteractionState,
+        {
+          engine: {
+            backgroundState: {
+              ApprovalController: {
+                pendingApprovals: {
+                  [mockTxId]: { origin: selfReportedOrigin },
+                },
+              },
+              TransactionController: {
+                transactions: [{ id: mockTxId, origin: selfReportedOrigin }],
+              },
+            },
+          },
+          confirmationMetrics: {
+            metricsById: {
+              [mockTxId]: {
+                properties: { request_source: requestSource },
+              },
+            },
+          },
+        },
+      );
+
+      const { getByText, queryByText } = renderWithProvider(<OriginRow />, {
+        state: externalAppConfirmationState,
+      });
+
+      expect(getByText('Request from')).toBeOnTheScreen();
+      expect(getByText('External app')).toBeOnTheScreen();
+      expect(queryByText(selfReportedOrigin)).not.toBeOnTheScreen();
+    },
+  );
+
+  it('keeps the verified origin when no external transport is recorded', () => {
+    const inAppBrowserState = merge({}, generateContractInteractionState, {
+      confirmationMetrics: {
+        metricsById: {
+          [mockTxId]: {
+            properties: { request_source: 'In-App-Browser' },
+          },
+        },
+      },
+    });
+
+    const { getByText } = renderWithProvider(<OriginRow />, {
+      state: inAppBrowserState,
+    });
+
+    expect(getByText('Request from')).toBeOnTheScreen();
+    expect(getByText('metamask.github.io')).toBeOnTheScreen();
+  });
 });

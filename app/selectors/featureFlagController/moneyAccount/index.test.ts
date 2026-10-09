@@ -3,11 +3,15 @@ import {
   selectMoneyAccountWithdrawEnabledFlag,
   selectMoneyAccountVaultConfig,
   selectMoneyAccountDepositQuotePipelineEnabled,
+  selectMoneyMovementBrazilNeobankEnabled,
+  isVbaGeoBypassEnabled,
   selectMoneyOnboardingStepperAnimationEnabled,
   MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY,
   MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY,
+  MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY,
   DEV_VAULT_CONFIG,
 } from './index';
+import { getVersion } from 'react-native-device-info';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('99.0.0'),
@@ -21,6 +25,13 @@ jest.mock(
 );
 
 describe('Money Account feature flag selectors', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.resetAllMocks();
+    // Re-establish implementations wiped by resetAllMocks.
+    jest.mocked(getVersion).mockReturnValue('99.0.0');
+  });
+
   describe('selectMoneyAccountDepositEnabledFlag', () => {
     it('returns true when moneyAccountDepositEnabled is true', () => {
       const result = selectMoneyAccountDepositEnabledFlag.resultFunc({
@@ -92,6 +103,90 @@ describe('Money Account feature flag selectors', () => {
       });
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectMoneyMovementBrazilNeobankEnabled', () => {
+    it('uses the camelCased key as served by client-config-api-mobile', () => {
+      expect(MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY).toBe(
+        'moneyMovementBrazilNeobank',
+      );
+    });
+
+    it('returns true when enabled and the minimum version passes', () => {
+      const result = selectMoneyMovementBrazilNeobankEnabled.resultFunc({
+        [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '0.0.0',
+        },
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the flag serves enabled: false', () => {
+      const result = selectMoneyMovementBrazilNeobankEnabled.resultFunc({
+        [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the minimum version requirement fails', () => {
+      const result = selectMoneyMovementBrazilNeobankEnabled.resultFunc({
+        [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '999.0.0',
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the flag is absent or malformed', () => {
+      expect(selectMoneyMovementBrazilNeobankEnabled.resultFunc({})).toBe(
+        false,
+      );
+      expect(
+        selectMoneyMovementBrazilNeobankEnabled.resultFunc({
+          [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: 'not-an-object',
+        }),
+      ).toBe(false);
+      expect(
+        selectMoneyMovementBrazilNeobankEnabled.resultFunc({
+          // Missing minimumVersion — no longer a valid version-gated shape.
+          [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: { enabled: true },
+        }),
+      ).toBe(false);
+    });
+  });
+
+  describe('isVbaGeoBypassEnabled', () => {
+    const originalBypass = process.env.MM_MONEY_VBA_GEO_BYPASS;
+
+    afterEach(() => {
+      if (originalBypass === undefined) {
+        delete process.env.MM_MONEY_VBA_GEO_BYPASS;
+      } else {
+        process.env.MM_MONEY_VBA_GEO_BYPASS = originalBypass;
+      }
+    });
+
+    it('returns true only when the bypass env var is "true"', () => {
+      process.env.MM_MONEY_VBA_GEO_BYPASS = 'true';
+
+      expect(isVbaGeoBypassEnabled()).toBe(true);
+    });
+
+    it('returns false when the bypass env var is unset or not "true"', () => {
+      delete process.env.MM_MONEY_VBA_GEO_BYPASS;
+      expect(isVbaGeoBypassEnabled()).toBe(false);
+
+      process.env.MM_MONEY_VBA_GEO_BYPASS = 'false';
+      expect(isVbaGeoBypassEnabled()).toBe(false);
     });
   });
 

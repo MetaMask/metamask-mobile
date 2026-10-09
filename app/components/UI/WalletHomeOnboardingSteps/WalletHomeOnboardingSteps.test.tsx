@@ -5,19 +5,18 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { WalletHomeOnboardingStepsSelectors } from './WalletHomeOnboardingSteps.testIds';
 import {
-  __clearLastMockedMethods,
-  __getLastMockedMethods,
-  __mockRiveFireState,
-} from '../../../__mocks__/rive-react-native';
+  __mockRiveTriggerInput,
+  __resetRiveMocks,
+} from '../../../__mocks__/rive-app-react-native';
 import {
   WALLET_HOME_ONBOARDING_CHECKLIST_COMPLETE_TRANSITION_MS,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
-  WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
   WALLET_HOME_ONBOARDING_CHECKLIST_STEP_FULL_TRANSITION_MS,
   WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS,
 } from './walletHomeOnboardingChecklistRive';
 import { walletHomeOnboardingProgressRatioForStep } from './walletHomeOnboardingStepsModel';
+import { markPushNotificationOsPromptRequested } from '../../../actions/onboarding';
 import { strings } from '../../../../locales/i18n';
 import { animateWalletHomeOnboardingProgressRatio } from './walletHomeOnboardingProgressAnimation';
 
@@ -62,8 +61,7 @@ async function flushWalletHomeStepTransition() {
 describe('WalletHomeOnboardingSteps', () => {
   beforeEach(() => {
     jest.useFakeTimers({ legacyFakeTimers: false });
-    __clearLastMockedMethods();
-    __mockRiveFireState.mockClear();
+    __resetRiveMocks();
     mockUseIsFocused.mockReturnValue(true);
     animateProgressRatioSpy.mockClear();
     animateProgressRatioSpy.mockImplementation(
@@ -88,6 +86,7 @@ describe('WalletHomeOnboardingSteps', () => {
       suppressedReason: null;
       stepIndex: number;
     };
+    pushNotificationOsPromptRequested?: boolean;
   }) =>
     renderWithProvider(<WalletHomeOnboardingSteps testID="steps-root" />, {
       state: {
@@ -407,8 +406,9 @@ describe('WalletHomeOnboardingSteps', () => {
       jest.advanceTimersByTime(60);
     });
 
-    expect(__mockRiveFireState).toHaveBeenCalledWith(
-      WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+    // Nitro binds the state machine via the `stateMachineName` prop, so
+    // triggerInput only receives the trigger name.
+    expect(__mockRiveTriggerInput).toHaveBeenCalledWith(
       WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
     );
 
@@ -577,8 +577,8 @@ describe('WalletHomeOnboardingSteps', () => {
     ).toBe(2);
   });
 
-  it('shows first-step shell with awaiting hero and disabled primary when isAwaitingBalance', () => {
-    const { getByTestId } = renderWithProvider(
+  it('shows first-step shell without a loading indicator when isAwaitingBalance', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <WalletHomeOnboardingSteps testID="steps-root" isAwaitingBalance />,
       {
         state: {
@@ -594,8 +594,10 @@ describe('WalletHomeOnboardingSteps', () => {
       },
     );
 
-    expect(getByTestId('steps-root-hero-awaiting-balance')).toBeOnTheScreen();
     expect(getByTestId('steps-root-hero-fund')).toBeOnTheScreen();
+    expect(
+      queryByTestId('steps-root-hero-awaiting-balance'),
+    ).not.toBeOnTheScreen();
     expect(getByTestId(primaryTestId)).toBeDisabled();
   });
 
@@ -610,12 +612,10 @@ describe('WalletHomeOnboardingSteps', () => {
 
   it('fires checklist Rive outro before advancing from fund step', async () => {
     const { getByTestId, store } = renderSteps();
-    const fundStepRiveMethods = __getLastMockedMethods();
 
     fireEvent.press(getByTestId(primaryTestId));
 
-    expect(fundStepRiveMethods?.fireState).toHaveBeenCalledWith(
-      WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+    expect(__mockRiveTriggerInput).toHaveBeenCalledWith(
       WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
     );
     expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
@@ -734,9 +734,142 @@ describe('WalletHomeOnboardingSteps', () => {
         expect.objectContaining({ stepIndex: 1 }),
       );
       expect(
-        progressAnimationCalls(walletHomeOnboardingProgressRatioForStep(1))
+        progressAnimationCalls(walletHomeOnboardingProgressRatioForStep(1, 3))
           .length,
       ).toBeGreaterThan(0);
+    });
+
+    it('spreads progress over two steps when the notifications step is dropped', async () => {
+      const { getByTestId, getByText, store } = renderSteps({
+        pushNotificationOsPromptRequested: true,
+      });
+
+      expect(getByText('1/2')).toBeOnTheScreen();
+
+      animateProgressRatioSpy.mockClear();
+      fireEvent.press(getByTestId(primaryTestId));
+
+      await flushWalletHomeStepTransition();
+
+      expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+        expect.objectContaining({ stepIndex: 1 }),
+      );
+      expect(
+        progressAnimationCalls(walletHomeOnboardingProgressRatioForStep(1, 2))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+  });
+
+  describe('notifications step visibility (TMCU-924)', () => {
+    it('shows the notifications step when the OS push request has not happened', () => {
+      const { getByTestId, getByText } = renderSteps({
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 2 },
+      });
+
+      expect(getByTestId('steps-root-hero-notifications')).toBeOnTheScreen();
+      expect(getByText('3/3')).toBeOnTheScreen();
+    });
+
+    it('drops the notifications step once the OS push request has happened', () => {
+      const { getByTestId, queryByTestId, getByText } = renderSteps({
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 1 },
+        pushNotificationOsPromptRequested: true,
+      });
+
+      expect(getByTestId('steps-root-hero-trade')).toBeOnTheScreen();
+      expect(queryByTestId('steps-root-hero-notifications')).toBeNull();
+      expect(getByText('2/2')).toBeOnTheScreen();
+    });
+
+    it('completes the flow from the trade step when the notifications step is dropped', async () => {
+      const { getByTestId, store } = renderSteps({
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 1 },
+        pushNotificationOsPromptRequested: true,
+      });
+
+      fireEvent.press(
+        getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+      );
+      await flushWalletHomeStepTransition();
+
+      await waitFor(() => {
+        expect(
+          store.getState().onboarding.walletHomeOnboardingSteps
+            ?.suppressedReason,
+        ).toBe('flow_completed');
+      });
+    });
+
+    it('completes the flow instead of stepping backwards when the notifications step is dropped after the user reached it', async () => {
+      const { store } = renderSteps({
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 2 },
+        pushNotificationOsPromptRequested: true,
+      });
+
+      await waitFor(() => {
+        expect(
+          store.getState().onboarding.walletHomeOnboardingSteps
+            ?.suppressedReason,
+        ).toBe('flow_completed');
+      });
+      expect(
+        store.getState().onboarding.walletHomeOnboardingSteps?.stepIndex,
+      ).toBe(2);
+    });
+
+    it('completes the flow without painting the previous step when the OS push request lands mid-flow', async () => {
+      const { getByTestId, queryByTestId, store } = renderSteps({
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 2 },
+      });
+
+      expect(getByTestId('steps-root-hero-notifications')).toBeOnTheScreen();
+
+      await act(async () => {
+        store.dispatch(markPushNotificationOsPromptRequested());
+      });
+
+      // No frame of the trade step (and no live trade CTA) while the flow winds down.
+      expect(queryByTestId('steps-root-hero-trade')).toBeNull();
+      expect(queryByTestId('steps-root-hero-notifications')).toBeNull();
+      await waitFor(() => {
+        expect(
+          store.getState().onboarding.walletHomeOnboardingSteps
+            ?.suppressedReason,
+        ).toBe('flow_completed');
+      });
+    });
+
+    it('keeps the step counter within the visible steps when the flag flips mid-flow', async () => {
+      const { getByText, queryByText, store } = renderSteps({
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 1 },
+      });
+
+      expect(getByText('2/3')).toBeOnTheScreen();
+
+      await act(async () => {
+        store.dispatch(markPushNotificationOsPromptRequested());
+      });
+
+      expect(getByText('2/2')).toBeOnTheScreen();
+      expect(queryByText('2/3')).toBeNull();
+    });
+
+    it('clamps an out-of-range persisted step while the notifications step is still shown', async () => {
+      const { getByTestId, store } = renderSteps({
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 7 },
+      });
+
+      expect(getByTestId('steps-root-hero-notifications')).toBeOnTheScreen();
+
+      await waitFor(() => {
+        expect(
+          store.getState().onboarding.walletHomeOnboardingSteps?.stepIndex,
+        ).toBe(2);
+      });
+      expect(
+        store.getState().onboarding.walletHomeOnboardingSteps?.suppressedReason,
+      ).toBeNull();
     });
   });
 });

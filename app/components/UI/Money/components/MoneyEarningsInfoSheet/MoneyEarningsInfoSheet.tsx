@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -6,8 +6,8 @@ import {
   BottomSheet,
   BottomSheetHeader,
   Text,
+  TextColor,
   TextVariant,
-  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -38,7 +38,6 @@ const VARIANT_CONFIG = {
 } as const;
 
 const MoneyEarningsInfoSheet = () => {
-  const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { variant } = useParams<MoneyEarningsInfoSheetParams>();
@@ -54,22 +53,23 @@ const MoneyEarningsInfoSheet = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleClose = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-  }, []);
-
   return (
     <BottomSheet
-      ref={sheetRef}
       goBack={handleGoBack}
       testID={MoneyEarningsInfoSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeader>
         <Text variant={TextVariant.HeadingSm}>{strings(config.titleKey)}</Text>
       </BottomSheetHeader>
       <View style={styles.content}>
-        <Text variant={TextVariant.BodyMd}>{strings(config.bodyKey)}</Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          testID={MoneyEarningsInfoSheetTestIds.BODY}
+        >
+          {strings(config.bodyKey)}
+        </Text>
       </View>
     </BottomSheet>
   );

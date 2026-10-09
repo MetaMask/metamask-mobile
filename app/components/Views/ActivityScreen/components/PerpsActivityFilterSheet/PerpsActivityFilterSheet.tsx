@@ -16,7 +16,7 @@ export const PERPS_ACTIVITY_FILTER_LABEL_KEY: Record<
   string
 > = {
   [PerpsActivityFilter.Trades]: 'activity_view.perps_filter.trades',
-  [PerpsActivityFilter.Order]: 'activity_view.perps_filter.order',
+  [PerpsActivityFilter.Orders]: 'activity_view.perps_filter.order',
   [PerpsActivityFilter.Fundings]: 'activity_view.perps_filter.fundings',
   [PerpsActivityFilter.Deposits]: 'activity_view.perps_filter.deposits',
 };

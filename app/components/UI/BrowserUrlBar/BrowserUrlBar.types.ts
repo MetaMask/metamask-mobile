@@ -16,6 +16,16 @@ export type BrowserUrlBarRef = {
   blur: () => void;
   focus: () => void;
   setNativeProps: (props: object) => void;
+  /**
+   * Skip the next TextInput blur unfocus. Used when tapping autocomplete
+   * results so onPress still fires after pressIn.
+   */
+  suppressNextBlur: () => void;
+  /**
+   * Leave edit mode without resetting the URL to the previous page
+   * (unlike `hide` / Cancel). Used after submitting a new navigation.
+   */
+  dismissEditing: () => void;
 };
 
 /**

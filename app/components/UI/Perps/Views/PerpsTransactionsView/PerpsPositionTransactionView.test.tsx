@@ -44,11 +44,6 @@ jest.mock('../../hooks', () => ({
   usePerpsBlockExplorerUrl: jest.fn(),
 }));
 
-// Mock the navbar utilities
-jest.mock('../../../Navbar', () => ({
-  getPerpsTransactionsDetailsNavbar: jest.fn(() => ({ title: 'Test Title' })),
-}));
-
 jest.mock('../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(),
   selectSelectedInternalAccountId: jest.fn(() => undefined),
@@ -469,14 +464,6 @@ describe('PerpsPositionTransactionView', () => {
     });
 
     expect(getByText('Transaction not found')).toBeOnTheScreen();
-  });
-
-  it('should set navigation title from fill shortTitle', () => {
-    renderWithProvider(<PerpsPositionTransactionView />, {
-      state: mockInitialState,
-    });
-
-    expect(mockSetOptions).toHaveBeenCalled();
   });
 
   it('should handle missing fill data gracefully', () => {

@@ -24,7 +24,7 @@ const bannerConfig = {
   id: MESSAGE_ID,
   title: 'Service update',
   description: 'Some Predict markets are temporarily unavailable.',
-  position: PredictFeedBannerPosition.AfterWorldCupBanner,
+  position: PredictFeedBannerPosition.AfterFeaturedCarousel,
   severity: PredictFeedBannerSeverity.Warning,
   dismissible: true,
 };
@@ -45,7 +45,6 @@ const createState = (
   },
   banners: {
     dismissedBanners,
-    lastDismissedBrazeBanner: null,
   },
 });
 
@@ -53,7 +52,7 @@ describe('PredictFeedBanner', () => {
   it('renders remote content when the flag and position are enabled', () => {
     const { getByTestId } = renderWithProvider(
       <PredictFeedBanner
-        position={PredictFeedBannerPosition.AfterWorldCupBanner}
+        position={PredictFeedBannerPosition.AfterFeaturedCarousel}
       />,
       { state: createState() },
     );
@@ -69,7 +68,7 @@ describe('PredictFeedBanner', () => {
   it('does not render when the feature flag is disabled', () => {
     const { queryByTestId } = renderWithProvider(
       <PredictFeedBanner
-        position={PredictFeedBannerPosition.AfterWorldCupBanner}
+        position={PredictFeedBannerPosition.AfterFeaturedCarousel}
       />,
       { state: createState({ ...bannerConfig, enabled: false }) },
     );
@@ -93,7 +92,7 @@ describe('PredictFeedBanner', () => {
   it('does not render a close button for a non-dismissible message', () => {
     const { queryByTestId } = renderWithProvider(
       <PredictFeedBanner
-        position={PredictFeedBannerPosition.AfterWorldCupBanner}
+        position={PredictFeedBannerPosition.AfterFeaturedCarousel}
       />,
       { state: createState({ ...bannerConfig, dismissible: false }) },
     );
@@ -106,7 +105,7 @@ describe('PredictFeedBanner', () => {
   it('persists dismissal by message ID and hides the banner', () => {
     const { getByTestId, queryByTestId, store } = renderWithProvider(
       <PredictFeedBanner
-        position={PredictFeedBannerPosition.AfterWorldCupBanner}
+        position={PredictFeedBannerPosition.AfterFeaturedCarousel}
       />,
       { state: createState() },
     );
@@ -124,7 +123,7 @@ describe('PredictFeedBanner', () => {
   it('does not render a previously dismissed message', () => {
     const { queryByTestId } = renderWithProvider(
       <PredictFeedBanner
-        position={PredictFeedBannerPosition.AfterWorldCupBanner}
+        position={PredictFeedBannerPosition.AfterFeaturedCarousel}
       />,
       {
         state: createState(undefined, [
@@ -141,7 +140,7 @@ describe('PredictFeedBanner', () => {
   it('renders a new message ID after an older message was dismissed', () => {
     const { getByTestId } = renderWithProvider(
       <PredictFeedBanner
-        position={PredictFeedBannerPosition.AfterWorldCupBanner}
+        position={PredictFeedBannerPosition.AfterFeaturedCarousel}
       />,
       {
         state: createState(undefined, [

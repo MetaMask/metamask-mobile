@@ -114,20 +114,10 @@ jest.mock('../../../../selectors/networkController', () => ({
 
 let mockBottomSheetEnabled = false;
 let mockProviderMounted = false;
-let mockTransactionsRedesignEnabled = false;
 
 jest.mock('../selectors/featureFlags', () => ({
   selectPredictBottomSheetEnabledFlag: jest.fn(() => mockBottomSheetEnabled),
 }));
-
-jest.mock(
-  '../../../../selectors/featureFlagController/activityRedesign',
-  () => ({
-    selectIsTransactionsRedesignEnabled: jest.fn(
-      () => mockTransactionsRedesignEnabled,
-    ),
-  }),
-);
 
 jest.mock('../contexts/PredictPreviewSheetContext', () => ({
   shouldSuppressLegacyOrderFailureToast: jest.fn(() => mockProviderMounted),
@@ -148,7 +138,6 @@ describe('usePredictToastRegistrations', () => {
 
     mockBottomSheetEnabled = false;
     mockProviderMounted = false;
-    mockTransactionsRedesignEnabled = false;
     mockWithdrawTransaction = { amount: 123.45 };
 
     mockDeposit.mockResolvedValue(undefined);
@@ -205,8 +194,7 @@ describe('usePredictToastRegistrations', () => {
       });
     });
 
-    it('tracks to the redesigned details screen when the redesign is enabled', () => {
-      mockTransactionsRedesignEnabled = true;
+    it('tracks to the redesigned details screen when deposit metadata includes chainId', () => {
       jest
         .mocked(selectTransactionMetadataById)
         .mockReturnValue({ chainId: '0x89' } as unknown as ReturnType<
@@ -1092,6 +1080,68 @@ describe('usePredictToastRegistrations', () => {
           variant: 'Icon',
           iconName: 'Error',
           hasNoTimeout: false,
+        }),
+      );
+    });
+
+    it('shows a persistent balance message after a post-deposit order failure', () => {
+      mockBottomSheetEnabled = true;
+      mockProviderMounted = true;
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+          amount: 25,
+          isPostDepositOrderFailure: true,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hasNoTimeout: true,
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'predict.order.prediction_not_placed',
+            }),
+            expect.objectContaining({
+              label:
+                'predict.order.post_deposit_order_failed:{"amount":"$25.00"}',
+            }),
+          ]),
+        }),
+      );
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          closeButtonOptions: expect.anything(),
+          linkButtonOptions: expect.anything(),
+        }),
+      );
+    });
+
+    it('shows the funds fallback when the deposited amount is unavailable', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+          isPostDepositOrderFailure: true,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'predict.order.post_deposit_order_failed_fallback',
+            }),
+          ]),
         }),
       );
     });

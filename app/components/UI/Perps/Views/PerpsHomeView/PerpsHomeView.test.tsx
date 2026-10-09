@@ -1,7 +1,18 @@
 import React from 'react';
-import { act, render, fireEvent } from '@testing-library/react-native';
+import {
+  act,
+  render,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import PerpsHomeView from './PerpsHomeView';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
+import { PERPS_EVENT_VALUE, PerpsMode } from '@metamask/perps-controller';
+import {
+  FIXED_BOTTOM_CONTAINER_BASE_HEIGHT,
+  FIXED_BOTTOM_CONTAINER_PADDING,
+} from '../../constants/perpsUIConfig';
 import {
   selectPerpsFeedbackEnabledFlag,
   selectPerpsProductsEnabledFlag,
@@ -9,6 +20,7 @@ import {
   selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
   selectPerpsProModeEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
 import { selectIsFirstTimePerpsUser } from '../../selectors/perpsController';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
@@ -69,6 +81,9 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
+const mockPerpsModeToggle = jest.fn();
+let mockPerpsModeValue = PerpsMode.Lite;
+
 // Stub the reusable Lite/Pro toggle so this view test focuses on header wiring
 // (its analytics/design-system internals are covered by its own unit tests).
 jest.mock('../../components/PerpsModeToggle', () => {
@@ -79,20 +94,41 @@ jest.mock('../../components/PerpsModeToggle', () => {
   );
   return {
     __esModule: true,
-    default: ({ onChange }: { onChange?: (mode: string) => void }) =>
-      ReactActual.createElement(TouchableOpacity, {
+    default: ({
+      onChange,
+      variant,
+      enableHaptics,
+    }: {
+      onChange?: (mode: string) => void;
+      variant?: string;
+      enableHaptics?: boolean;
+    }) => {
+      mockPerpsModeToggle({ variant, enableHaptics });
+      return ReactActual.createElement(TouchableOpacity, {
         testID: SelectorsIDs.CONTAINER,
         // Simulate the user switching to Pro from the stubbed toggle.
         onPress: () => onChange?.('pro'),
-      }),
+      });
+    },
     PerpsMode: { Lite: 'lite', Pro: 'pro' },
   };
 });
 
 // Mock Redux - default feedback disabled
 const mockUseSelector = jest.fn<unknown, [unknown]>(() => false);
+// Individual tests replace mockUseSelector wholesale with boolean-returning
+// implementations, so selectors that must yield a collection are answered here
+// rather than in each override.
+const mockRewardsCampaigns: unknown[] = [];
 jest.mock('react-redux', () => ({
-  useSelector: (selector: unknown) => mockUseSelector(selector),
+  useSelector: (selector: unknown) => {
+    const { selectCampaigns } = jest.requireActual(
+      '../../../../../reducers/rewards/selectors',
+    );
+    return selector === selectCampaigns
+      ? mockRewardsCampaigns
+      : mockUseSelector(selector);
+  },
   useDispatch: () => jest.fn(),
 }));
 
@@ -118,17 +154,19 @@ jest.mock(
 const mockNavigateBack = jest.fn();
 const mockNavigateToWallet = jest.fn();
 const mockNavigateToMarketList = jest.fn();
+const mockNavigateToMarketDetails = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
 const mockSetPerpsMode = jest.fn();
 const mockUsePerpsHomeSectionTracking = jest.fn();
 jest.mock('../../hooks', () => ({
+  useBottomSafeAreaInset: jest.fn(() => 0),
   usePerpsHomeData: jest.fn(),
   usePerpsMeasurement: jest.fn(),
   usePerpsNavigation: jest.fn(() => ({
     navigateTo: jest.fn(),
-    navigateToMarketDetails: jest.fn(),
+    navigateToMarketDetails: mockNavigateToMarketDetails,
     navigateToMarketList: mockNavigateToMarketList,
     navigateToWallet: mockNavigateToWallet,
     navigateBack: mockNavigateBack,
@@ -145,9 +183,16 @@ jest.mock('../../hooks', () => ({
   })),
   usePerpsHomeSectionTracking: () => mockUsePerpsHomeSectionTracking(),
   usePerpsMode: jest.fn(() => ({
-    mode: 'lite',
+    mode: mockPerpsModeValue,
     setMode: mockSetPerpsMode,
   })),
+}));
+
+const mockHasCompletedPerpsModeSelection = jest.fn(() =>
+  Promise.resolve(false),
+);
+jest.mock('../../utils/perpsModeSelectionStorage', () => ({
+  hasCompletedPerpsModeSelection: () => mockHasCompletedPerpsModeSelection(),
 }));
 
 // Mock direct import of usePerpsCategories (used for sections_displayed gating)
@@ -191,6 +236,24 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
   })),
+}));
+
+const mockUsePerpsOutreachCampaign = jest.fn(
+  (): {
+    campaign: {
+      id: string;
+      title: string;
+      body: string;
+      imageUrl: string;
+    } | null;
+    dismiss: () => void;
+  } => ({
+    campaign: null,
+    dismiss: jest.fn(),
+  }),
+);
+jest.mock('../../hooks/usePerpsOutreachCampaign', () => ({
+  usePerpsOutreachCampaign: () => mockUsePerpsOutreachCampaign(),
 }));
 
 jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
@@ -250,12 +313,14 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: (className: string) => ({ testID: className }),
   }),
+  Theme: { Light: 'light', Dark: 'dark' },
+  ThemeProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 // Mock design system - needed because real module requires tailwind setup
 jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity } = jest.requireActual('react-native');
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   return {
     ...jest.requireActual('@metamask/design-system-react-native'),
     ButtonIcon: ({
@@ -264,7 +329,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     }: {
       testID?: string;
       onPress?: () => void;
-    }) => React.createElement(TouchableOpacity, { testID, onPress }),
+    }) => ReactActual.createElement(TouchableOpacity, { testID, onPress }),
     Box: 'Box',
   };
 });
@@ -456,6 +521,18 @@ jest.mock('../../../../UI/WhatsHappening', () => {
     return <View testID="whats-happening-section" />;
   };
 });
+jest.mock('../../../../UI/WhatsHappening/hooks', () => {
+  const actual = jest.requireActual('../../../../UI/WhatsHappening/hooks');
+  return {
+    ...actual,
+    useWhatsHappening: jest.fn(() => ({
+      items: [],
+      isLoading: true,
+      error: null,
+      refresh: jest.fn(),
+    })),
+  };
+});
 jest.mock(
   '../../../../../selectors/featureFlagController/whatsHappening',
   () => ({
@@ -513,6 +590,35 @@ const mockScrollTracking = () => ({
 const mockUsePerpsLiveAccount = jest.requireMock('../../hooks/stream')
   .usePerpsLiveAccount as jest.Mock;
 
+const mockUseBottomSafeAreaInset = jest.requireMock('../../hooks')
+  .useBottomSafeAreaInset as jest.Mock;
+
+// Stand-in for a real Android gesture navigation bar (24dp), so a regression that
+// drops the inset from a layout calculation changes the asserted value.
+const NAVIGATION_BAR_INSET = 24;
+
+const fundedAccount = {
+  account: {
+    totalBalance: '100',
+    spendableBalance: '100',
+    withdrawableBalance: '100',
+    unrealizedPnl: '0',
+    returnOnEquity: '0',
+  },
+  isInitialLoading: false,
+};
+
+// Children such as PerpsCompetitionBanner resolve storage in an async effect
+// after the first render; flush it so assertions run on a settled tree.
+const settleAsyncChildren = async () => {
+  await act(async () => {
+    await Promise.resolve();
+  });
+};
+
+const flattenStyle = (node: { props: Record<string, unknown> }) =>
+  StyleSheet.flatten(node.props.style as StyleProp<ViewStyle>);
+
 describe('PerpsHomeView', () => {
   const mockDefaultData = {
     positions: [],
@@ -536,10 +642,19 @@ describe('PerpsHomeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Pin the default inset so a mockReturnValue set by one test cannot leak
+    // into later ones (clearAllMocks resets call state, not return values).
+    mockUseBottomSafeAreaInset.mockReturnValue(0);
+    mockUsePerpsOutreachCampaign.mockReturnValue({
+      campaign: null,
+      dismiss: jest.fn(),
+    });
+    mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
     mockNavigateBack.mockClear();
     mockNavigateToWallet.mockClear();
     mockNavigateToMarketList.mockClear();
     mockRouteParams = { source: 'main_action_button' };
+    mockPerpsModeValue = PerpsMode.Lite;
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
     mockUsePerpsHomeSectionTracking.mockReturnValue(mockScrollTracking());
     mockUsePerpsTopMovers.mockReturnValue({
@@ -588,7 +703,71 @@ describe('PerpsHomeView', () => {
     expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
-  it('renders the Lite/Pro toggle in the header when the Pro mode flag is enabled', () => {
+  it('gives the header the status-bar inset when no outreach banner is shown', () => {
+    // Arrange & Act
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Assert
+    expect(flattenStyle(getByTestId('perps-home'))).toHaveProperty('marginTop');
+  });
+
+  it('hands the status-bar inset to the outreach banner above the header', () => {
+    // Arrange
+    mockUsePerpsOutreachCampaign.mockReturnValue({
+      campaign: {
+        id: 'mobile-outreach-2026-09',
+        title: "You're a top perp trader",
+        body: 'Shape what we build next.',
+        imageUrl: 'https://metamask.io/images/mobile-perps-outreach.png',
+      },
+      dismiss: jest.fn(),
+    });
+
+    // Act
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Assert
+    expect(flattenStyle(getByTestId('perps-home'))).not.toHaveProperty(
+      'marginTop',
+    );
+  });
+
+  it('does not render the outage banner when the flag is off', () => {
+    // Arrange & Act
+    const { queryByTestId } = render(<PerpsHomeView />);
+
+    // Assert
+    expect(
+      queryByTestId(PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER),
+    ).toBeNull();
+  });
+
+  it('pins the outage banner above the header and hands it the status-bar inset', () => {
+    // Arrange
+    mockUseSelector.mockImplementation(
+      (selector: unknown) =>
+        selector === selectPerpsServiceInterruptionBannerEnabledFlag,
+    );
+
+    // Act
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Assert - the banner owns the inset, so the header no longer applies it
+    // and the banner does not scroll with the content.
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER),
+    ).toBeTruthy();
+    expect(
+      within(
+        getByTestId(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT),
+      ).queryByTestId(PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER),
+    ).toBeNull();
+    expect(flattenStyle(getByTestId('perps-home'))).not.toHaveProperty(
+      'marginTop',
+    );
+  });
+
+  it('enables mode-toggle haptics for the Lite mode header', () => {
     // Arrange
     mockUseSelector.mockImplementation(
       (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
@@ -597,7 +776,7 @@ describe('PerpsHomeView', () => {
     // Act
     const { getByTestId } = render(<PerpsHomeView />);
 
-    // Assert - back/search remain and the toggle is shown centered
+    // Assert - back/search remain and the active-mode pill sits in endAccessory
     expect(
       getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
     ).toBeTruthy();
@@ -605,6 +784,27 @@ describe('PerpsHomeView', () => {
     expect(
       getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+    expect(mockPerpsModeToggle).toHaveBeenCalledWith({
+      variant: 'active',
+      enableHaptics: true,
+    });
+  });
+
+  it('enables mode-toggle haptics for the Pro mode header', () => {
+    // Arrange
+    mockPerpsModeValue = PerpsMode.Pro;
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
+    );
+
+    // Act
+    render(<PerpsHomeView />);
+
+    // Assert
+    expect(mockPerpsModeToggle).toHaveBeenCalledWith({
+      variant: 'active',
+      enableHaptics: true,
+    });
   });
 
   it('does not render the Lite/Pro toggle when the Pro mode flag is disabled', () => {
@@ -619,20 +819,48 @@ describe('PerpsHomeView', () => {
     expect(queryByTestId(PerpsModeToggleSelectorsIDs.CONTAINER)).toBeNull();
   });
 
-  it('navigates to the default Pro market when the header toggle switches to Pro', () => {
+  it('opens the mode selection sheet when the header toggle is pressed', async () => {
     // Arrange
     mockUseSelector.mockImplementation(
       (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
     );
     const { getByTestId } = render(<PerpsHomeView />);
 
-    // Act - stubbed toggle switches to Pro on press
+    // Act
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
 
-    // Assert - persists the new mode and resets onto the default (BTC)
-    // market, discarding Perps Home from history so it stays unreachable
-    // via back navigation while Pro mode is active.
-    expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
+    // Assert — chooser opens once while selection is incomplete
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.MODE_SELECTION,
+        params: {
+          entry: 'home',
+          source: 'perps_home',
+        },
+      });
+    });
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
+    expect(mockReset).not.toHaveBeenCalled();
+  });
+
+  it('does not open the mode selection sheet when the user has already completed it', async () => {
+    mockHasCompletedPerpsModeSelection.mockResolvedValue(true);
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
+    );
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
+
+    await waitFor(() => {
+      expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.MODALS.ROOT,
+      expect.objectContaining({
+        screen: Routes.PERPS.MODALS.MODE_SELECTION,
+      }),
+    );
     expect(mockReset).toHaveBeenCalledWith({
       index: 0,
       routes: [
@@ -644,13 +872,9 @@ describe('PerpsHomeView', () => {
         }),
       ],
     });
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.PERPS.MARKET_DETAILS,
-      expect.anything(),
-    );
   });
 
-  it('routes first-time users to the Perps tutorial when the header toggle switches mode', () => {
+  it('opens the mode selection sheet for first-time users from the header toggle', async () => {
     // Arrange
     mockUseSelector.mockImplementation(
       (selector: unknown) =>
@@ -662,24 +886,21 @@ describe('PerpsHomeView', () => {
     // Act
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
 
-    // Assert - mode is persisted, but onboarding is not skipped. The
-    // tutorial redirect still points at the default Pro market (not Perps
-    // Home) so completing onboarding doesn't violate the Pro-mode invariant
-    // (TAT-3612).
-    expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
-      source: 'perps_home',
-      redirectScreen: Routes.PERPS.MARKET_DETAILS,
-      redirectParams: {
-        market: { symbol: 'BTC' },
-        source: 'perps_home',
-      },
+    // Assert — first-time tutorial continues from the chooser after select
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.MODE_SELECTION,
+        params: {
+          entry: 'home',
+          source: 'perps_home',
+        },
+      });
     });
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.PERPS.MARKET_DETAILS,
+      Routes.PERPS.TUTORIAL,
       expect.anything(),
     );
-    expect(mockReset).not.toHaveBeenCalled();
   });
 
   it('navigates to market list view with search enabled when search button is pressed', () => {
@@ -967,6 +1188,20 @@ describe('PerpsHomeView', () => {
     expect(UNSAFE_getByType('PerpsRecentActivityList' as never)).toBeTruthy();
   });
 
+  it('renders the Activity preview aggregated without an Aggregated toggle', () => {
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      recentActivity: [{ id: '1' }],
+    });
+
+    const { UNSAFE_getByType } = render(<PerpsHomeView />);
+
+    const activityList = UNSAFE_getByType('PerpsRecentActivityList' as never);
+    expect(activityList.props).not.toHaveProperty('onAggregateFillsChange');
+    expect(activityList.props).not.toHaveProperty('aggregateFills');
+    expect(mockUsePerpsHomeData).toHaveBeenCalledWith({});
+  });
+
   it('shows watchlist section when watchlist markets exist', () => {
     // Arrange
     mockUsePerpsHomeData.mockReturnValue({
@@ -1212,6 +1447,62 @@ describe('PerpsHomeView', () => {
         getByTestId(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON),
       ).toBeTruthy();
     });
+
+    it('adds the system navigation bar inset to the fixed footer padding', async () => {
+      mockUseBottomSafeAreaInset.mockReturnValue(NAVIGATION_BAR_INSET);
+      mockUsePerpsLiveAccount.mockReturnValue(fundedAccount);
+
+      const { getByTestId } = render(<PerpsHomeView />);
+      await settleAsyncChildren();
+
+      expect(
+        flattenStyle(getByTestId(PerpsHomeViewSelectorsIDs.FIXED_FOOTER)),
+      ).toEqual(
+        expect.objectContaining({
+          paddingBottom: FIXED_BOTTOM_CONTAINER_PADDING + NAVIGATION_BAR_INSET,
+        }),
+      );
+    });
+
+    it('reserves scroll space for the navigation bar inset below the fixed footer', async () => {
+      mockUseBottomSafeAreaInset.mockReturnValue(NAVIGATION_BAR_INSET);
+      mockUsePerpsLiveAccount.mockReturnValue(fundedAccount);
+
+      const { getByTestId } = render(<PerpsHomeView />);
+      await settleAsyncChildren();
+
+      expect(
+        flattenStyle(getByTestId(PerpsHomeViewSelectorsIDs.BOTTOM_SPACER)),
+      ).toEqual(
+        expect.objectContaining({
+          height:
+            FIXED_BOTTOM_CONTAINER_BASE_HEIGHT +
+            NAVIGATION_BAR_INSET +
+            FIXED_BOTTOM_CONTAINER_PADDING,
+        }),
+      );
+    });
+  });
+
+  describe('scroll content bottom padding', () => {
+    it('adds the system navigation bar inset when no fixed footer is rendered', async () => {
+      mockUseBottomSafeAreaInset.mockReturnValue(NAVIGATION_BAR_INSET);
+      mockUsePerpsLiveAccount.mockReturnValue(fundedAccount);
+
+      const { getByTestId } = render(<PerpsHomeView />);
+      await settleAsyncChildren();
+
+      const contentContainerStyle = StyleSheet.flatten(
+        getByTestId(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT).props
+          .contentContainerStyle as StyleProp<ViewStyle>,
+      );
+
+      expect(contentContainerStyle).toEqual(
+        expect.objectContaining({
+          paddingBottom: FIXED_BOTTOM_CONTAINER_PADDING + NAVIGATION_BAR_INSET,
+        }),
+      );
+    });
   });
 
   describe('header', () => {
@@ -1248,6 +1539,10 @@ describe('PerpsHomeView', () => {
 
     interface TrackingOptions {
       properties?: Record<string, unknown>;
+      navigationAnalyticsContext?: {
+        id: string;
+        attribution: string;
+      };
     }
 
     const getBaseEventProperties = (
@@ -1262,6 +1557,27 @@ describe('PerpsHomeView', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
+    });
+
+    it('delegates source attribution to Perps event tracking', () => {
+      mockRouteParams = {
+        analyticsContext: {
+          id: 'balance-breakdown-navigation',
+          attribution: 'homescreen_balance_breakdown',
+        },
+      };
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.source).toBe('main_action_button');
+      expect(mockUsePerpsEventTracking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          navigationAnalyticsContext: mockRouteParams.analyticsContext,
+        }),
+      );
     });
 
     it('includes sections_displayed containing balance and explore sections when markets exist', () => {
@@ -1590,6 +1906,36 @@ describe('PerpsHomeView', () => {
         defaultMarketTypeFilter: 'new',
         source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       });
+    });
+
+    it('navigates to market details with source_section=recently_added when a tile is pressed', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsRecentlyAddedEnabledFlag,
+      );
+      const recentlyAddedMarket = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        price: '$50000',
+        change24h: '+$1250',
+        change24hPercent: '+2.5%',
+        volume: '$1.2B',
+        listedAt: Date.now() - 3 * 60 * 60 * 1000,
+      };
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [recentlyAddedMarket],
+      });
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(getByTestId('perps-recently-added-tile-BTC'));
+
+      expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
+        recentlyAddedMarket,
+        PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        undefined,
+        'recently_added',
+      );
     });
   });
 });

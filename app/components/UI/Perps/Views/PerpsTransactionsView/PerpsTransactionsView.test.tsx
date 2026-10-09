@@ -20,7 +20,7 @@ import {
 import type { CaipAccountId } from '@metamask/utils';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../../../util/test/network';
-import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
+import { ACTIVITY_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
@@ -47,6 +47,7 @@ jest.mock('../../hooks', () => ({
   usePerpsConnection: jest.fn(),
   usePerpsTransactionHistory: jest.fn(),
   usePerpsEventTracking: jest.fn(),
+  usePerpsNetwork: jest.fn(() => 'mainnet'),
 }));
 
 // Mock the asset metadata hook to avoid network calls
@@ -254,9 +255,12 @@ describe('PerpsTransactionsView', () => {
 
     await waitFor(() => {
       // The hook is called with skipInitialFetch: false when connected
-      expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith({
-        skipInitialFetch: false,
-      });
+      expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skipInitialFetch: false,
+          aggregateFills: true,
+        }),
+      );
     });
   });
 
@@ -300,9 +304,12 @@ describe('PerpsTransactionsView', () => {
     });
 
     // The hook is called with skipInitialFetch: true when not connected
-    expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith({
-      skipInitialFetch: true,
-    });
+    expect(mockUsePerpsTransactionHistory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skipInitialFetch: true,
+        aggregateFills: true,
+      }),
+    );
   });
 
   it('should switch between filter tabs', async () => {
@@ -1010,7 +1017,7 @@ describe('PerpsTransactionsView', () => {
   });
 
   describe('Analytics Tracking', () => {
-    it('tracks Transaction Detail List Item Clicked when a transaction item is pressed', async () => {
+    it('tracks Activity Details Opened when a transaction item is pressed', async () => {
       const component = renderWithProvider(<PerpsTransactionsView />, {
         state: mockInitialState,
       });
@@ -1032,7 +1039,7 @@ describe('PerpsTransactionsView', () => {
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+        ACTIVITY_DETAIL_EVENTS.OPENED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({

@@ -67,6 +67,65 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
   // encounter the screen (dismissOnboardingInterestQuestionnaire uses Playwright
   // APIs that are not available under Detox).
   tradeTO880AbtestOnboardingInterestQuestion: 'control',
+  // Production serves a threshold array. Pin a boolean so AccountActivity
+  // subscribe tests do not depend on canonical or MetaMetrics IDs.
+  backendWebSocketConnection: true,
+  // 2026-10-06 prod sync turned these on at versions the 8.14.0 E2E build
+  // meets. Keep the registry at the prod values; pin the pre-sync UI here so
+  // smoke tests do not pick up the new chrome, account set, or notices.
+  mobileUxBftcOnsolidation: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  earnHomeSectionEnabled: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  earnExploreSectionEnabled: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  earnTradeMenuRowRedesignEnabled: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  earnMoneyAssetOverviewFooterCtaEnabled: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  earnMoneyCardFlipAnimationEnabled: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  earnMoneyBalanceAnimationEnabled: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  brazeBannerHomeMinVersion: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  stellarAccounts: {
+    enabled: false,
+    minimumVersion: '0.0.1',
+  },
+  nativeTabBarEnabled: true,
+  // predictHomeRedesign stays at the prod value. Predict smoke waits for
+  // predict-home-container, which only mounts when the redesign is enabled.
+  cardUkMigration: {
+    enabled: false,
+    minimumVersion: '8.13.0',
+    startDate: '',
+    endDate: '',
+  },
+  cardIntercomSupport: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+  crossmintApplePayCheckout: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
 };
 
 /**
@@ -106,11 +165,16 @@ export const createRemoteFeatureFlagsMock = (
         !Array.isArray(existingFlag) &&
         !Array.isArray(flagValue)
       ) {
-        // Deep merge for nested objects
-        existingObj[flagName] = deepMerge(
-          existingFlag as Record<string, unknown>,
-          flagValue as Record<string, unknown>,
-        );
+        const existingRecord = existingFlag as Record<string, unknown>;
+        const overrideRecord = flagValue as Record<string, unknown>;
+        // Versioned client-config flags must not deep-merge with RC/test fixtures:
+        // newer registry `versions` keys (e.g. 8.9.0) would otherwise outrank a flat
+        // or older versioned override and change Pay confirmation UI under E2E.
+        if ('versions' in existingRecord || 'versions' in overrideRecord) {
+          existingObj[flagName] = flagValue;
+        } else {
+          existingObj[flagName] = deepMerge(existingRecord, overrideRecord);
+        }
       } else {
         // Replace simple values, arrays, or when types don't match
         existingObj[flagName] = flagValue;

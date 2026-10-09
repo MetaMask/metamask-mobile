@@ -17,13 +17,16 @@ import Routes from '../../../../constants/navigation/Routes';
 import { IconName } from '../../Icons/Icon';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { getDecimalChainId } from '../../../../util/networks';
 import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
+import { buildBottomNavClickedProperties } from '../../../../core/Analytics/events/navigation';
 import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies.
 import { TabBarProps, TabBarIconKey } from './TabBar.types';
 import {
+  BOTTOM_NAV_NAME_BY_TAB_BAR_ICON_KEY,
   ICON_BY_TAB_BAR_ICON_KEY,
   LABEL_BY_TAB_BAR_ICON_KEY,
 } from './TabBar.constants';
@@ -33,7 +36,6 @@ import { useMoneyNavigation } from '../../../../components/UI/Money/hooks/useMon
 const FILLED_ICONS: Partial<Record<TabBarIconKey, IconName>> = {
   [TabBarIconKey.Wallet]: IconName.HomeFilled,
   [TabBarIconKey.Activity]: IconName.ClockFilled,
-  [TabBarIconKey.Trending]: IconName.Search,
   [TabBarIconKey.Rewards]: IconName.MetamaskFoxFilled,
   [TabBarIconKey.Money]: IconName.MusdFilled,
 };
@@ -75,6 +77,15 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
           previousTabIndexRef.current = index;
         }
         callback?.();
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.NAVIGATION_DRAWER)
+            .addProperties(
+              buildBottomNavClickedProperties(
+                BOTTOM_NAV_NAME_BY_TAB_BAR_ICON_KEY[tabBarIconKey],
+              ),
+            )
+            .build(),
+        );
         switch (rootScreenName) {
           case Routes.WALLET_VIEW:
             navigation.navigate(Routes.WALLET.HOME, {
@@ -100,7 +111,12 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             });
             break;
           case Routes.TRANSACTIONS_VIEW:
-            navigation.navigate(Routes.TRANSACTIONS_VIEW);
+            navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+              screen: Routes.TRANSACTIONS_VIEW,
+              params: {
+                entryPoint: ActivityScreenEntryPoint.BottomNavClick,
+              },
+            });
             break;
           case Routes.REWARDS_VIEW:
             navigation.navigate(Routes.REWARDS_VIEW);

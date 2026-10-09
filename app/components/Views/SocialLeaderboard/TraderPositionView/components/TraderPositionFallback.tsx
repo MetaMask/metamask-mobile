@@ -6,6 +6,7 @@ import {
   TextVariant,
   TextColor,
   BoxAlignItems,
+  BoxJustifyContent,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -16,6 +17,11 @@ import { useAssetFromTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import {
+  getFollowTradingHomeRoute,
+  isSocialV1Treatment,
+} from '../../Onboarding/socialLeaderboardOnboardingNavigation';
+import { navigateToSocialV1Profile } from '../../navigation/navigateToSocialV1Profile';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 import errorStateLight from '../../../../../images/error-state-no-connection-light.png';
 import errorStateDark from '../../../../../images/error-state-no-connection-dark.png';
@@ -40,12 +46,19 @@ const TraderPositionFallback: React.FC<TraderPositionFallbackProps> = ({
 
   const handlePrimaryAction = useCallback(() => {
     if (traderId) {
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
-        traderId,
-        traderName: traderName ?? '',
-      });
+      if (isSocialV1Treatment()) {
+        navigateToSocialV1Profile(navigation, {
+          traderId,
+          traderName: traderName ?? '',
+        });
+      } else {
+        navigation.navigate(Routes.SOCIAL.PROFILE, {
+          traderId,
+          traderName: traderName ?? '',
+        });
+      }
     } else {
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.VIEW);
+      navigation.navigate(getFollowTradingHomeRoute());
     }
   }, [navigation, traderId, traderName]);
 
@@ -58,8 +71,10 @@ const TraderPositionFallback: React.FC<TraderPositionFallbackProps> = ({
   return (
     <Box
       alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
       gap={3}
       padding={4}
+      twClassName="flex-1"
       testID={TraderPositionViewSelectorsIDs.FALLBACK}
     >
       <Image

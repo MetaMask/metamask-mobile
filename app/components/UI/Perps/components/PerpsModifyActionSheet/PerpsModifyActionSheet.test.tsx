@@ -4,10 +4,6 @@ import PerpsModifyActionSheet from './PerpsModifyActionSheet';
 import { type Position } from '@metamask/perps-controller';
 import { PerpsModifyActionSheetSelectorsIDs } from '../../Perps.testIds';
 
-jest.mock('../../../../../util/theme/themeUtils', () => ({
-  useElevatedSurface: () => 'bg-default',
-}));
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => {
     const translations: Record<string, string> = {

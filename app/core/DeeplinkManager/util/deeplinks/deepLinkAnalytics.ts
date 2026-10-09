@@ -488,6 +488,8 @@ const routeExtractors: Record<
   [DeepLinkRoute.SDK_MMSDK]: extractInvalidProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
   [DeepLinkRoute.MONEY]: extractInvalidProperties,
+  [DeepLinkRoute.PRIVACY]: extractInvalidProperties,
+  [DeepLinkRoute.NOTIFICATIONS_SETTINGS]: extractInvalidProperties,
 };
 
 /**
@@ -586,6 +588,7 @@ export const mapSupportedActionToRoute = (
     case ACTIONS.PERPS:
     case ACTIONS.PERPS_MARKETS:
     case ACTIONS.PERPS_ASSET:
+    case ACTIONS.PERPS_OUTREACH:
       return DeepLinkRoute.PERPS;
     case ACTIONS.SEND:
       return DeepLinkRoute.TRANSACTION;
@@ -643,6 +646,10 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SDK_MMSDK;
     case ACTIONS.MONEY:
       return DeepLinkRoute.MONEY;
+    case ACTIONS.PRIVACY:
+      return DeepLinkRoute.PRIVACY;
+    case ACTIONS.NOTIFICATIONS_SETTINGS:
+      return DeepLinkRoute.NOTIFICATIONS_SETTINGS;
     default:
       return DeepLinkRoute.INVALID;
   }
@@ -709,6 +716,10 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.AGENTIC_CLI;
       case 'money':
         return DeepLinkRoute.MONEY;
+      case 'privacy':
+        return DeepLinkRoute.PRIVACY;
+      case 'notifications-settings':
+        return DeepLinkRoute.NOTIFICATIONS_SETTINGS;
       case undefined: // Empty path (no segments after filtering)
         return DeepLinkRoute.HOME;
       default:

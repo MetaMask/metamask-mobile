@@ -1,4 +1,4 @@
-import { TrxScope } from '@metamask/keyring-api';
+import { BtcScope, TrxScope } from '@metamask/keyring-api';
 import type { CaipChainId } from '@metamask/utils';
 import { ProcessedNetwork } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { getNetworkImageSource } from '../../../../util/networks';
@@ -125,6 +125,15 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
     }),
   },
   {
+    id: NetworkToCaipChainId.STELLAR,
+    name: 'Stellar',
+    caipChainId: NetworkToCaipChainId.STELLAR,
+    isSelected: false,
+    imageSource: getNetworkImageSource({
+      chainId: NetworkToCaipChainId.STELLAR,
+    }),
+  },
+  {
     id: NetworkToCaipChainId.ROBINHOOD,
     name: 'Robinhood Chain',
     caipChainId: NetworkToCaipChainId.ROBINHOOD,
@@ -133,6 +142,13 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
       chainId: NetworkToCaipChainId.ROBINHOOD,
     }),
   },
+  {
+    id: BtcScope.Mainnet,
+    name: 'Bitcoin',
+    caipChainId: BtcScope.Mainnet,
+    isSelected: false,
+    imageSource: getNetworkImageSource({ chainId: BtcScope.Mainnet }),
+  },
 ];
 
 /**
@@ -140,9 +156,12 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
  */
 export const RWA_NETWORKS_LIST: ProcessedNetwork[] =
   TRENDING_NETWORKS_LIST.filter((n) =>
-    [NetworkToCaipChainId.ETHEREUM, NetworkToCaipChainId.BNB].includes(
-      n.caipChainId as NetworkToCaipChainId,
-    ),
+    [
+      NetworkToCaipChainId.ETHEREUM,
+      NetworkToCaipChainId.BNB,
+      // TODO: re-enable Robinhood RWA when cleared for release (#35854).
+      // NetworkToCaipChainId.ROBINHOOD,
+    ].includes(n.caipChainId as NetworkToCaipChainId),
   );
 
 export const RWA_CHAIN_IDS: CaipChainId[] = RWA_NETWORKS_LIST.map(

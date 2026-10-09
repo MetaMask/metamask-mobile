@@ -45,7 +45,7 @@ jest.mock('../../hooks/useMoneyDepositTokens', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
   default: () => ({ apyDecimal: 0.04, apyPercent: 4 }),
 }));

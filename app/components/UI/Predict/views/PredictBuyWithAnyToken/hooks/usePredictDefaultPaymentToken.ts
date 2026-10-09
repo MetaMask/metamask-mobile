@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { BigNumber } from 'bignumber.js';
+import { useIsMoneyAccountPaymentOverride } from '../../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride';
 import { usePredictBalance } from '../../../hooks/usePredictBalance';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
@@ -23,9 +24,13 @@ export function usePredictDefaultPaymentToken() {
   const { activeOrder } = usePredictActiveOrder();
   const tokens = useAccountTokens();
   const hasInitializedRef = useRef(false);
+  // Paying from the Money Account owns the payment selection, so the
+  // highest-balance default must not overwrite it.
+  const isMoneyAccountSelected = useIsMoneyAccountPaymentOverride();
 
   useEffect(() => {
     if (hasInitializedRef.current) return;
+    if (isMoneyAccountSelected) return;
     if (isBalanceLoading) return;
     if (activeOrder?.state !== ActiveOrderState.PREVIEW) return;
 
@@ -61,6 +66,7 @@ export function usePredictDefaultPaymentToken() {
   }, [
     predictBalance,
     isBalanceLoading,
+    isMoneyAccountSelected,
     tokens,
     onPaymentTokenChange,
     resetSelectedPaymentToken,

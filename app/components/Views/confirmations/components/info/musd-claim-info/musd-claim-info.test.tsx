@@ -4,16 +4,14 @@ import {
   TransactionControllerState,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Interface } from '@ethersproject/abi';
 
 import { stakingClaimConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { MusdClaimInfo } from './musd-claim-info';
-import {
-  DISTRIBUTOR_CLAIM_ABI,
-  MERKL_CLAIM_CHAIN_ID,
-} from '../../../../../UI/Earn/components/MerklRewards/constants';
+
+// Linea mainnet — the chain historical mUSD bonus claims were made on
+const MERKL_CLAIM_CHAIN_ID = '0xe708';
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
@@ -60,16 +58,6 @@ jest.mock('../../UI/animated-pulse', () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-jest.mock(
-  '../../../../../UI/Earn/components/MerklRewards/merkl-client',
-  () => ({
-    ...jest.requireActual(
-      '../../../../../UI/Earn/components/MerklRewards/merkl-client',
-    ),
-    getClaimedAmountFromContract: jest.fn().mockResolvedValue('0'),
-  }),
-);
-
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -83,19 +71,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const USER_ADDRESS = '0x1234567890123456789012345678901234567890';
-const TOKEN_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
-
-const encodeClaimData = (amount: string): string => {
-  const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
-  return contractInterface.encodeFunctionData('claim', [
-    [USER_ADDRESS],
-    [TOKEN_ADDRESS],
-    [amount],
-    [[]],
-  ]);
-};
-
-const claimData = encodeClaimData('10010000'); // 10.01 mUSD (6 decimals)
 
 const musdClaimConfirmationState = merge({}, stakingClaimConfirmationState, {
   engine: {
@@ -106,7 +81,6 @@ const musdClaimConfirmationState = merge({}, stakingClaimConfirmationState, {
             type: TransactionType.musdClaim,
             chainId: MERKL_CLAIM_CHAIN_ID,
             txParams: {
-              data: claimData,
               from: USER_ADDRESS,
             },
           },

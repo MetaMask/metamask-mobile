@@ -6,6 +6,7 @@ import {
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
+  setCampaignsFetching,
 } from '../../../../reducers/rewards';
 import {
   selectCampaigns,
@@ -15,8 +16,15 @@ import {
 } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
-import type { CampaignDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  CampaignType,
+  type CampaignDto,
+} from '../../../../core/Engine/controllers/rewards-controller/types';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
+import {
+  buildMoneyAccountSweepstakesTileCampaign,
+  getMoneyAccountSweepstakesSeries,
+} from '../utils/moneyAccountSweepstakesSeries';
 
 interface CategorizedCampaigns {
   active: CampaignDto[];
@@ -59,6 +67,7 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
       dispatch(setCampaigns([]));
       dispatch(setCampaignsLoading(false));
       dispatch(setCampaignsError(false));
+      dispatch(setCampaignsFetching(false));
       return;
     }
 
@@ -68,6 +77,7 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
 
     try {
       isLoadingRef.current = true;
+      dispatch(setCampaignsFetching(true));
       if (!hasLoadedRef.current) {
         dispatch(setCampaignsLoading(true));
       }
@@ -82,6 +92,7 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
     } finally {
       isLoadingRef.current = false;
       dispatch(setCampaignsLoading(false));
+      dispatch(setCampaignsFetching(false));
     }
   }, [dispatch, subscriptionId]);
 
@@ -92,7 +103,29 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
     const upcoming: CampaignDto[] = [];
     const previous: CampaignDto[] = [];
 
+    const series = getMoneyAccountSweepstakesSeries(campaignsList);
+    const seriesTile = buildMoneyAccountSweepstakesTileCampaign(series);
+    let seriesPlaced = false;
+
     campaignsList.forEach((campaign) => {
+      if (campaign.type === CampaignType.MONEY_ACCOUNT_SWEEPSTAKES) {
+        if (!seriesPlaced && seriesTile && series.seriesStatus) {
+          seriesPlaced = true;
+          switch (series.seriesStatus) {
+            case 'active':
+              active.push(seriesTile);
+              break;
+            case 'upcoming':
+              upcoming.push(seriesTile);
+              break;
+            case 'previous':
+              previous.push(seriesTile);
+              break;
+          }
+        }
+        return;
+      }
+
       const status = getCampaignStatus(campaign);
       switch (status) {
         case 'active':

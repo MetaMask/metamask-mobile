@@ -11,10 +11,10 @@ import Routes from '../../../constants/navigation/Routes';
 /**
  * Component View tests for ImportNewSecretRecoveryPhrase (multi-SRP import flow).
  *
- * Mirrors (partial): tests/smoke-appium/accounts/import-srp.spec.ts
- * — screen render, disabled import button, and SRP validation error.
+ * Covers screen render / validation from accounts import-srp Appium;
+ * former google-login-add-srp Appium smoke removed. Successful vault import
+ * remains on SmokeAccounts import-srp.
  *
- * Run: yarn jest -c jest.config.view.js ImportNewSecretRecoveryPhrase.view.test.tsx --runInBand
  */
 
 function renderImportNewSRP() {
@@ -45,6 +45,19 @@ describeForPlatforms('ImportNewSecretRecoveryPhrase component views', () => {
       ),
     ).toBeOnTheScreen();
     expect(await findByTestId(ImportSRPIDs.IMPORT_BUTTON)).toBeDisabled();
+  });
+
+  it('renders the SRP info icon at 16px next to the subtitle', async () => {
+    const { findByTestId } = renderImportNewSRP();
+
+    const infoIcon = await findByTestId('info-icon');
+
+    expect(infoIcon).toHaveStyle({ height: 20, width: 20 });
+    expect(infoIcon.children[0]).toEqual(
+      expect.objectContaining({
+        props: expect.objectContaining({ size: 'sm' }),
+      }),
+    );
   });
 
   it('shows a validation error when an invalid SRP is submitted', async () => {

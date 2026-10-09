@@ -44,6 +44,12 @@ describe('FastOnboarding Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRoute.params = {};
+    mockNavigation.setParams.mockImplementation((nextParams) => {
+      mockRoute.params = {
+        ...mockRoute.params,
+        ...nextParams,
+      };
+    });
   });
 
   it('renders without crashing', () => {
@@ -174,5 +180,80 @@ describe('FastOnboarding Component', () => {
       expect(mockProps.onPressContinueWithGoogle).not.toHaveBeenCalled();
       expect(mockProps.onPressContinueWithApple).not.toHaveBeenCalled();
     });
+  });
+
+  it('clears deeplink params after starting social login', () => {
+    // Arrange
+    mockRoute.params = { onboardingType: 'google', existing: 'false' };
+
+    // Act
+    render(<FastOnboarding {...mockProps} />);
+
+    // Assert
+    expect(mockNavigation.setParams).toHaveBeenCalledWith({
+      onboardingType: undefined,
+      existing: undefined,
+    });
+  });
+
+  it('does not start social login again when remounted after deeplink params are cleared', () => {
+    // Arrange
+    mockRoute.params = { onboardingType: 'google', existing: 'false' };
+
+    // Act
+    const { unmount } = render(<FastOnboarding {...mockProps} />);
+    unmount();
+    render(<FastOnboarding {...mockProps} />);
+
+    // Assert
+    expect(mockProps.onPressContinueWithGoogle).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not start social login again when handlers change while deeplink params remain', () => {
+    // Arrange
+    mockRoute.params = { onboardingType: 'apple', existing: 'false' };
+    mockNavigation.setParams.mockImplementation(() => undefined);
+    const firstAppleHandler = jest.fn();
+    const secondAppleHandler = jest.fn();
+
+    // Act
+    const { rerender } = render(
+      <FastOnboarding
+        {...mockProps}
+        onPressContinueWithApple={firstAppleHandler}
+      />,
+    );
+    rerender(
+      <FastOnboarding
+        {...mockProps}
+        onPressContinueWithApple={secondAppleHandler}
+      />,
+    );
+
+    // Assert
+    expect(firstAppleHandler).toHaveBeenCalledTimes(1);
+    expect(secondAppleHandler).not.toHaveBeenCalled();
+  });
+
+  it('starts social login when the same deeplink arrives again after params are cleared', () => {
+    // Arrange
+    mockRoute.params = { onboardingType: 'google', existing: 'false' };
+    const { rerender } = render(<FastOnboarding {...mockProps} />);
+    rerender(<FastOnboarding {...mockProps} />);
+    mockRoute.params = { onboardingType: 'google', existing: 'false' };
+
+    // Act
+    rerender(<FastOnboarding {...mockProps} />);
+
+    // Assert
+    expect(mockProps.onPressContinueWithGoogle).toHaveBeenCalledTimes(2);
+    expect(mockProps.onPressContinueWithGoogle).toHaveBeenNthCalledWith(
+      1,
+      true,
+    );
+    expect(mockProps.onPressContinueWithGoogle).toHaveBeenNthCalledWith(
+      2,
+      true,
+    );
   });
 });

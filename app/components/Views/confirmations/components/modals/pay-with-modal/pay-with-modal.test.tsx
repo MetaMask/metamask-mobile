@@ -39,6 +39,7 @@ import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/us
 const mockAddTokens = jest.fn().mockResolvedValue(undefined);
 const mockRenderNoFeeTag = jest.fn(() => null);
 const mockEnsurePayToken = jest.fn().mockResolvedValue(undefined);
+const mockClearPaymentOverride = jest.fn();
 const mockFindNetworkClientIdByChainId = jest
   .fn()
   .mockReturnValue('network-client-1');
@@ -62,6 +63,9 @@ jest.mock('../../../hooks/pay/usePayWithNoFeeToken', () => ({
     renderNoFeeTag: mockRenderNoFeeTag,
     renderNoFeeTagForToken: () => null,
   }),
+}));
+jest.mock('../../../hooks/pay/sections/useClearPaymentOverride', () => ({
+  useClearPaymentOverride: () => mockClearPaymentOverride,
 }));
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
@@ -315,6 +319,42 @@ describe('PayWithModal', () => {
         address: TOKENS_MOCK[1].address,
         chainId: TOKENS_MOCK[1].chainId,
       });
+    });
+
+    it('does not call setPayToken when the selected token matches the current payToken', async () => {
+      const { findByText } = render();
+
+      fireEvent.press(await findByText('Native Token 1'));
+
+      expect(setPayTokenMock).not.toHaveBeenCalled();
+    });
+
+    it('clears paymentOverride when a new token is selected', async () => {
+      const { findByText } = render();
+
+      fireEvent.press(await findByText('Test Token 1'));
+
+      await waitFor(() => {
+        expect(mockClearPaymentOverride).toHaveBeenCalled();
+      });
+    });
+
+    it('clears paymentOverride when the selected token matches the current payToken', async () => {
+      const { findByText } = render();
+
+      fireEvent.press(await findByText('Native Token 1'));
+
+      await waitFor(() => {
+        expect(mockClearPaymentOverride).toHaveBeenCalled();
+      });
+    });
+
+    it('does not clear paymentOverride until a token is selected', async () => {
+      const { findByText } = render();
+
+      await findByText('Test Token 1');
+
+      expect(mockClearPaymentOverride).not.toHaveBeenCalled();
     });
 
     it('calls onPerpsPaymentTokenChange via close callback when type is perpsDepositAndOrder', async () => {

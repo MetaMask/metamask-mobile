@@ -2,7 +2,10 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { isRelaySupported } from '../../../../../util/transactions/transaction-relay';
 import { Hex } from '@metamask/utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { isHardwareAccount } from '../../../../../util/address';
+import { isAtomicBatchSupported } from '../../../../../util/transaction-controller';
+import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { useGaslessSupportedSmartTransactions } from './useGaslessSupportedSmartTransactions';
 
 /**
@@ -19,6 +22,7 @@ import { useGaslessSupportedSmartTransactions } from './useGaslessSupportedSmart
  */
 export function useIsGaslessSupported() {
   const transactionMeta = useTransactionMetadataRequest();
+  const payingAccount = useTransactionPayingAccount();
 
   const { chainId, txParams } = transactionMeta ?? {};
 
@@ -37,9 +41,31 @@ export function useIsGaslessSupported() {
         return undefined;
       }
 
-      return isRelaySupported(chainId as Hex);
-    }, [chainId, shouldCheck7702Eligibility]);
+      if (!chainId || !payingAccount) {
+        return false;
+      }
 
+      const relaySupported = await isRelaySupported(chainId as Hex);
+      if (
+        !relaySupported ||
+        chainId.toLowerCase() !== CHAIN_IDS.MONAD.toLowerCase()
+      ) {
+        return relaySupported;
+      }
+
+      const atomicBatchSupport = await isAtomicBatchSupported({
+        address: payingAccount,
+        chainIds: [chainId as Hex],
+      });
+      const chainSupport = atomicBatchSupport.find(
+        (result) => result.chainId.toLowerCase() === chainId.toLowerCase(),
+      );
+
+      return Boolean(chainSupport);
+    }, [chainId, payingAccount, shouldCheck7702Eligibility]);
+
+  // Keyed on the signer, not the payer: a hardware payer funding a Money
+  // Account deposit must not strip sponsorship from the Money Account tx.
   const fromAddress = txParams?.from;
   const isHardwareWallet = Boolean(
     fromAddress && isHardwareAccount(fromAddress),

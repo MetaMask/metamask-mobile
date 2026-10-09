@@ -44,6 +44,17 @@ import { showV2OrderToast } from '../../utils/v2OrderToast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
+import { endRampsBuyCufTrace } from '../../utils/rampsBuyCufTrace';
+import {
+  RAMPS_BUY_CUF_BOUNDARY,
+  RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_TAG,
+} from '../../constants/rampsBuyCufTags';
+import { useRampScreenPerformance } from '../../hooks/useRampScreenPerformance';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+} from '../../constants/rampScreenPerformance';
 
 export const createRampsOrderDetailsNavDetails =
   createNavigationDetails<RampsOrderDetailsParams>(
@@ -92,6 +103,14 @@ const OrderDetails = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const hasFetchedFromCallback = useRef(false);
 
+  useRampScreenPerformance({
+    screenId: RAMP_V2_SCREEN_ID.ORDER_DETAILS,
+    contentReady: !isLoading && Boolean(order || error),
+    contentState: error
+      ? RAMP_SCREEN_CONTENT_STATE.ERROR
+      : RAMP_SCREEN_CONTENT_STATE.POPULATED,
+  });
+
   const executeCallbackFetch = useCallback(
     async (
       providerCode: string,
@@ -107,6 +126,12 @@ const OrderDetails = () => {
           walletAddress,
         );
         if (!fetchedOrder || isBailedOrderStatus(fetchedOrder.status)) {
+          endRampsBuyCufTrace({
+            data: {
+              [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+              [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.BAILED,
+            },
+          });
           resetWithRoutes(navigation, {
             index: 0,
             routes: getNavigateAfterExternalBrowserRoutes({
@@ -193,6 +218,7 @@ const OrderDetails = () => {
   ]);
 
   const hasTrackedScreenView = useRef(false);
+  const hasEndedBuyCuf = useRef(false);
   useEffect(() => {
     if (order && !hasTrackedScreenView.current) {
       hasTrackedScreenView.current = true;
@@ -206,6 +232,20 @@ const OrderDetails = () => {
       );
     }
   }, [order, createEventBuilder, trackEvent]);
+
+  useEffect(() => {
+    if (!order || hasEndedBuyCuf.current) {
+      return;
+    }
+    hasEndedBuyCuf.current = true;
+    endRampsBuyCufTrace({
+      data: {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        [RAMPS_BUY_CUF_TAG.BOUNDARY]: RAMPS_BUY_CUF_BOUNDARY.ORDER_DETAILS,
+        orderId: order.providerOrderId,
+      },
+    });
+  }, [order]);
 
   const handleOnRefresh = useCallback(async () => {
     if (!order) return;
@@ -236,12 +276,22 @@ const OrderDetails = () => {
     }
   }, [order, refreshOrder]);
 
+  // Preserve prior mount-only semantics: evaluate once on first effect run.
+  // Marking the ref before the condition matters — callback success clears
+  // callback params via setParams while the order may still be pending; if we
+  // only marked the ref when refreshing, that transition would spuriously
+  // call handleOnRefresh.
+  const hasAttemptedInitialPendingRefreshRef = useRef(false);
+
   useEffect(() => {
+    if (hasAttemptedInitialPendingRefreshRef.current) {
+      return;
+    }
+    hasAttemptedInitialPendingRefreshRef.current = true;
     if (isPending && !hasCallbackParams) {
       handleOnRefresh();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isPending, hasCallbackParams, handleOnRefresh]);
 
   useEffect(() => {
     if (

@@ -46,6 +46,7 @@ import {
 import { useMusdConversionFlowData } from '../../hooks/useMusdConversionFlowData';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../Ramp/constants/rampsBuyCufTags';
 import { RampIntent } from '../../../Ramp/types';
 import { EARN_TEST_IDS } from '../../constants/testIds';
 import { MusdNavigationTarget } from '../../types/musd.types';
@@ -325,7 +326,7 @@ const EarnMusdConversionEducationView = () => {
           const rampIntent: RampIntent = {
             assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId],
           };
-          goToBuy(rampIntent);
+          goToBuy(rampIntent, { surface: RAMPS_BUY_CUF_SURFACE.DEEP_LINK });
           return;
         }
 

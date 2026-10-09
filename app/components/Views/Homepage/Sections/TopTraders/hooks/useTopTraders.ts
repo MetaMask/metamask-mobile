@@ -21,6 +21,7 @@ export interface UseTopTradersResult {
   traders: TopTrader[];
   isLoading: boolean;
   isFetching: boolean;
+  hasFetched: boolean;
   error: string | null;
   refresh: () => Promise<void>;
   toggleFollow: (
@@ -66,10 +67,18 @@ export const useTopTraders = (
     fetchOptions,
   ];
 
-  const { data, isLoading, isFetching, error, refetch } =
+  // Pause while locked so queryFn never reaches SocialService.#getAuthHeaders →
+  // AuthenticationController.getBearerToken (throws "wallet is locked").
+  // Also disable automatic focus/reconnect refetches: ReactQueryService wires
+  // AppState → focusManager, and react-data-query uses staleTime: 0, so a
+  // foreground/reconnect can otherwise run queryFn before React commits
+  // enabled:false after background auto-lock. Unlock flips enabled true and fetches.
+  const { data, isLoading, isFetching, isFetched, error, refetch } =
     useQuery<LeaderboardResponse>({
       queryKey,
       enabled: (options?.enabled ?? true) && isUnlocked,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     });
 
   const leaderboardQueryParams = useMemo(
@@ -112,10 +121,12 @@ export const useTopTraders = (
       // (e.g. 20.98 → "20.98%"); do not multiply by 100.
       percentageChange: (is30d ? entry.roiPercent30d : entry.roiPercent7d) ?? 0,
       pnlValue: (is30d ? entry.pnl30d : entry.pnl7d) ?? 0,
+      pnl30d: entry.pnl30d ?? null,
       winRatePercent: toWholePercent(
         is30d ? entry.winRate30d : entry.winRate7d,
       ),
       pnlPerChain: entry.pnlPerChain ?? {},
+      followerCount: entry.followerCount ?? 0,
       isFollowing: isFollowing(entry.profileId),
     }));
   }, [data, isFollowing, timeframe]);
@@ -140,14 +151,18 @@ export const useTopTraders = (
     }
   }, [refetch, leaderboardQueryParams]);
 
-  return {
-    traders,
-    isLoading,
-    isFetching,
-    error: formatSocialQueryErrorMessage(error),
-    refresh,
-    toggleFollow,
-  };
+  return useMemo(
+    () => ({
+      traders,
+      isLoading,
+      isFetching,
+      hasFetched: isFetched,
+      error: formatSocialQueryErrorMessage(error),
+      refresh,
+      toggleFollow,
+    }),
+    [traders, isLoading, isFetching, isFetched, error, refresh, toggleFollow],
+  );
 };
 
 export default useTopTraders;

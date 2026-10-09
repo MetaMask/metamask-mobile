@@ -7,6 +7,9 @@ const styleSheet = () =>
       flexDirection: 'row',
       alignItems: 'center',
     },
+    networkAvatar: {
+      marginRight: 4,
+    },
   });
 
 export default styleSheet;

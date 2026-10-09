@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import {
   PERPS_CONSTANTS,
@@ -8,6 +8,7 @@ import {
 } from '@metamask/perps-controller';
 import PerpsPositionCard from './PerpsPositionCard';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
@@ -251,12 +252,147 @@ describe('PerpsPositionCard', () => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
       }
+      if (selector === selectPerpsCrossMarginEnabledFlag) {
+        return true;
+      }
       if (selector === selectPrivacyMode) {
         return false;
       }
       return undefined;
     });
   });
+
+  it('falls back to the isolated presentation when the Cross margin flag is off', () => {
+    // Arrange - eligible and privacy off, but the Cross margin flag is off
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      if (selector === selectPerpsCrossMarginEnabledFlag) {
+        return false;
+      }
+      if (selector === selectPrivacyMode) {
+        return false;
+      }
+      return undefined;
+    });
+    const cross = {
+      ...mockPosition,
+      leverage: { type: 'cross' as const, value: 3 },
+      liquidationPrice: null,
+    };
+
+    // Act
+    render(<PerpsPositionCard position={cross} onMarginPress={jest.fn()} />);
+
+    // Assert - no Cross affordances, and margin editing is restored
+    expect(
+      screen.queryByTestId('cross-margin-tag-lite-ETH'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('cross-liquidation-info-lite-ETH'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON),
+    ).toBeOnTheScreen();
+  });
+
+  it.each([null, '1800'])(
+    'renders Cross liquidation %s without a margin action',
+    (liquidationPrice) => {
+      const cross = {
+        ...mockPosition,
+        leverage: { type: 'cross' as const, value: 3 },
+        liquidationPrice,
+      };
+      const onMarginPress = jest.fn();
+
+      render(
+        <PerpsPositionCard position={cross} onMarginPress={onMarginPress} />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER),
+      );
+
+      expect(screen.getByTestId('cross-margin-tag-lite-ETH')).toBeOnTheScreen();
+      expect(onMarginPress).not.toHaveBeenCalled();
+      expect(
+        screen.getByTestId('cross-liquidation-info-lite-ETH'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+        ),
+      ).toHaveTextContent(
+        liquidationPrice === null
+          ? 'perps.cross_position.no_liquidation_price'
+          : '$1,800',
+      );
+      expect(
+        screen.queryByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.cross_position.margin_used'),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  it('retains the isolated margin edit action', () => {
+    const onMarginPress = jest.fn();
+    render(
+      <PerpsPositionCard
+        position={mockPosition}
+        onMarginPress={onMarginPress}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER),
+    );
+
+    expect(onMarginPress).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByTestId('cross-liquidation-info-lite-ETH'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it.each([null, '1800'])(
+    'masks Cross liquidation %s in privacy mode',
+    (liquidationPrice) => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(
+        (selector: unknown) =>
+          selector === selectPrivacyMode ||
+          selector === selectPerpsCrossMarginEnabledFlag,
+      );
+
+      render(
+        <PerpsPositionCard
+          position={{
+            ...mockPosition,
+            leverage: { type: 'cross', value: 3 },
+            liquidationPrice,
+          }}
+        />,
+      );
+
+      expect(screen.getByTestId('cross-margin-tag-lite-ETH')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+        ),
+      ).toHaveTextContent('•'.repeat(6));
+      expect(
+        screen.queryByText('perps.cross_position.no_liquidation_price'),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByText('$1,800')).not.toBeOnTheScreen();
+    },
+  );
 
   describe('Component Rendering', () => {
     it('renders position card with all sections', () => {
@@ -371,6 +507,23 @@ describe('PerpsPositionCard', () => {
       expect(
         screen.getByText('perps.order.tp $2.1946, perps.order.sl $2.1234'),
       ).toBeOnTheScreen();
+    });
+
+    it('renders the take profit order count in the auto close row when several take profit orders exist', () => {
+      const litPosition: Position = {
+        ...mockPosition,
+        symbol: 'LIT',
+        takeProfitPrice: '2.1946',
+        takeProfitCount: 3,
+        stopLossPrice: '2.1234',
+        stopLossCount: 1,
+      };
+
+      render(<PerpsPositionCard position={litPosition} szDecimals={2} />);
+
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.AUTO_CLOSE_VALUE),
+      ).toHaveTextContent('perps.order.tp 3 orders, perps.order.sl $2.1234');
     });
 
     it('renders SHORT position correctly', () => {
@@ -489,6 +642,56 @@ describe('PerpsPositionCard', () => {
       expect(
         screen.getByText(PERPS_CONSTANTS.FallbackPriceDisplay),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Liquidation Distance Display', () => {
+    it('renders the distance to liquidation with two decimal digits', () => {
+      // Arrange - liquidation at 1800 is exactly 10% below a 2000 current price
+      // Act
+      render(<PerpsPositionCard position={mockPosition} currentPrice={2000} />);
+
+      // Assert
+      expect(
+        screen.getByTestId(
+          PerpsPositionCardSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).toHaveTextContent('10.00%');
+    });
+
+    it('keeps sub-one-percent distances visible instead of collapsing them to zero', () => {
+      // Arrange - 0.4% away; whole-number rounding would render this as 0%
+      const positionNearLiquidation = {
+        ...mockPosition,
+        liquidationPrice: '1992.00',
+      };
+
+      // Act
+      render(
+        <PerpsPositionCard
+          position={positionNearLiquidation}
+          currentPrice={2000}
+        />,
+      );
+
+      // Assert
+      expect(
+        screen.getByTestId(
+          PerpsPositionCardSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).toHaveTextContent('0.40%');
+    });
+
+    it('omits the distance when no current price is available', () => {
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Assert
+      expect(
+        screen.queryByTestId(
+          PerpsPositionCardSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).toBeNull();
     });
   });
 

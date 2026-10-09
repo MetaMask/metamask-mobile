@@ -62,14 +62,18 @@ export function useTokenBalance(
       : undefined,
   );
 
+  const isTronNative = isTronNativeToken(token);
   const {
     stakedTrxForEnergy,
     stakedTrxForBandwidth,
     trxInLockPeriod,
     trxReadyForWithdrawal,
-  } = useSelector(selectTronSpecialAssetsBySelectedAccountGroup);
-
-  const isTronNative = isTronNativeToken(token);
+  } =
+    useSelector((state: RootState) =>
+      isTronNative
+        ? selectTronSpecialAssetsBySelectedAccountGroup(state)
+        : undefined,
+    ) ?? {};
 
   const totalStaked =
     (Number(stakedTrxForEnergy?.balance) || 0) +

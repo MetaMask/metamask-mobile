@@ -11,7 +11,7 @@ import {
   QuoteSortMetadata,
   SellOrder,
 } from '@consensys/on-ramp-sdk/dist/API';
-import { renderNumber } from '../../../../../util/number';
+import { renderNumber } from '../../../../../util/number/bigint';
 import { RampType } from '../types';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';

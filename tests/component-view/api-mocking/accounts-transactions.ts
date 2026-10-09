@@ -24,6 +24,8 @@ export interface MockAccountsApiTransaction {
   from: string;
   to: string;
   value: string;
+  gasUsed?: number;
+  effectiveGasPrice?: number;
   valueTransfers?: unknown[];
   isError?: boolean;
   transactionCategory?: string;

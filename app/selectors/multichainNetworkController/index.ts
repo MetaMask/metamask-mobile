@@ -9,12 +9,19 @@ import {
 } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
 import { CaipChainId, Json } from '@metamask/utils';
-import { BtcScope, SolScope, EthScope, TrxScope } from '@metamask/keyring-api';
+import {
+  BtcScope,
+  SolScope,
+  EthScope,
+  TrxScope,
+  XlmScope,
+} from '@metamask/keyring-api';
 import { RootState } from '../../reducers';
 import imageIcons from '../../images/image-icons';
 import { createDeepEqualSelector } from '../util';
 import { selectIsSolanaTestnetEnabled } from '../featureFlagController/solanaTestnet';
 import { selectIsBitcoinTestnetEnabled } from '../featureFlagController/bitcoinTestnet';
+import { selectIsStellarAccountsEnabled } from '../featureFlagController/stellarAccountsEnabled';
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController ??
@@ -44,14 +51,17 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     selectMultichainNetworkControllerState,
     selectIsSolanaTestnetEnabled,
     selectIsBitcoinTestnetEnabled,
+    selectIsStellarAccountsEnabled,
   ],
   (
     multichainNetworkControllerState: MultichainNetworkControllerState,
     isSolanaTestnetEnabled: Json,
     isBitcoinTestnetEnabled: Json,
+    selectIsStellarAccountsEnabled: Json,
   ) => {
     const isSolanaTestnetEnabledBoolean = Boolean(isSolanaTestnetEnabled);
     const isBitcoinTestnetEnabledBoolean = Boolean(isBitcoinTestnetEnabled);
+    const isStellarAccountsEnabled = Boolean(selectIsStellarAccountsEnabled);
     const extendedNonEvmData: Record<
       CaipChainId,
       {
@@ -124,6 +134,12 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
         ticker: MULTICHAIN_NETWORK_TICKER[TrxScope.Shasta],
         isTestnet: true,
       },
+      [XlmScope.Pubnet]: {
+        decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[XlmScope.Pubnet] ?? 7,
+        imageSource: imageIcons.STELLAR,
+        ticker: MULTICHAIN_NETWORK_TICKER[XlmScope.Pubnet] ?? 'XLM',
+        isTestnet: false,
+      },
     };
 
     const networks: Record<CaipChainId, MultichainNetworkConfiguration> =
@@ -141,6 +157,7 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
       // TODO: Uncomment these when we have a FF to enable them
       // TrxScope.Nile,
       // TrxScope.Shasta,
+      ...(isStellarAccountsEnabled ? [XlmScope.Pubnet] : []),
     ];
 
     const nonEvmNetworks: Record<CaipChainId, MultichainNetworkConfiguration> =
@@ -308,6 +325,14 @@ export const getActiveNetworksByScopes = createDeepEqualSelector(
       return [
         {
           caipChainId: TrxScope.Shasta,
+        },
+      ];
+    }
+
+    if (account.scopes.includes(XlmScope.Pubnet)) {
+      return [
+        {
+          caipChainId: XlmScope.Pubnet,
         },
       ];
     }

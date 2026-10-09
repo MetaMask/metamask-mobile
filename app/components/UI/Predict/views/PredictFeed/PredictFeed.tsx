@@ -68,7 +68,6 @@ import PredictWithdrawUnavailableSheet, {
 } from '../../components/PredictWithdrawUnavailableSheet';
 import PredictOffline from '../../components/PredictOffline';
 import FeaturedCarousel from '../../components/FeaturedCarousel';
-import PredictWorldCupMainFeedBanner from '../../components/PredictWorldCupMainFeedBanner';
 import PredictFeedBanner from '../../components/PredictFeedBanner';
 import {
   selectPredictFeaturedCarouselEnabledFlag,
@@ -216,11 +215,6 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
           position={PredictFeedBannerPosition.AfterFeaturedCarousel}
           containerClassName="px-4 pb-3"
         />
-        <PredictWorldCupMainFeedBanner variant="compact" />
-        <PredictFeedBanner
-          position={PredictFeedBannerPosition.AfterWorldCupBanner}
-          containerClassName="px-4 pb-3"
-        />
       </Animated.View>
       <View
         ref={tabBarRef}
@@ -273,6 +267,7 @@ interface PredictTabContentProps {
   headerHidden: boolean;
   customQueryParams?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  onInteractiveChange?: (isInteractive: boolean) => void;
 }
 
 const PredictTabContent: React.FC<PredictTabContentProps> = ({
@@ -285,6 +280,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   headerHidden,
   customQueryParams,
   transactionActiveAbTests,
+  onInteractiveChange,
 }) => {
   const tw = useTailwind();
   const listRef = useRef<PredictFlashListRef>(null);
@@ -323,6 +319,18 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Same gate as the skeleton branch below. The feed TTI span must end when
+  // this tab can show list/empty/error, not when the screen merely mounts.
+  const isShowingInitialSkeleton =
+    !hasEverBeenActive || (isFetching && !isRefreshing && !isFetchingMore);
+
+  useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+    onInteractiveChange?.(!isShowingInitialSkeleton);
+  }, [isActive, isShowingInitialSkeleton, onInteractiveChange]);
 
   const contentInsetTop = headerHeight + tabBarHeight;
   const currentPaddingTop = headerHidden ? tabBarHeight : contentInsetTop;
@@ -399,7 +407,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     [tw, contentInsetTop, headerHidden, tabBarHeight],
   );
 
-  if (!hasEverBeenActive || (isFetching && !isRefreshing && !isFetchingMore)) {
+  if (isShowingInitialSkeleton) {
     return (
       <Box twClassName="flex-1 px-4" style={{ paddingTop: currentPaddingTop }}>
         <PredictMarketSkeleton
@@ -480,6 +488,7 @@ interface PredictFeedTabsProps {
   headerHidden: boolean;
   initialPage: number;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  onActiveTabInteractiveChange: (isInteractive: boolean) => void;
 }
 
 const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
@@ -493,6 +502,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   headerHidden,
   initialPage,
   transactionActiveAbTests,
+  onActiveTabInteractiveChange,
 }) => {
   const tw = useTailwind();
   const pagerRef = useRef<PagerView>(null);
@@ -533,6 +543,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
             headerHidden={headerHidden}
             customQueryParams={tab.customQueryParams}
             transactionActiveAbTests={transactionActiveAbTests}
+            onInteractiveChange={onActiveTabInteractiveChange}
           />
         </View>
       ))}
@@ -564,6 +575,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
 
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
+  const [isActiveTabInteractive, setIsActiveTabInteractive] = useState(false);
 
   const {
     isSearchVisible,
@@ -585,12 +597,15 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
 
   const sessionManager = PredictFeedSessionManager.getInstance();
 
+  // End on the active tab's data, not mount. `!isSearchVisible` is already
+  // true on first paint, so using it alone closed this span at ~0ms.
   usePredictMeasurement({
     traceName: TraceName.PredictFeedView,
-    conditions: [!isSearchVisible],
+    conditions: [!isSearchVisible, isActiveTabInteractive],
     debugContext: {
       entryPoint: feedEntryPoint,
       isSearchVisible,
+      isActiveTabInteractive,
     },
   });
 
@@ -720,6 +735,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
               headerHidden={headerHidden}
               initialPage={activeIndex}
               transactionActiveAbTests={transactionActiveAbTests}
+              onActiveTabInteractiveChange={setIsActiveTabInteractive}
             />
           )}
         </Box>

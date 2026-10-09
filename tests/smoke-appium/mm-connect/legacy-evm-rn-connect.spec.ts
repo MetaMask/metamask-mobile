@@ -1,14 +1,14 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeMMConnect } from '../../tags.js';
 
-import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import {
+  loginToAppPlaywright,
+  unlockIfLockScreenVisible,
+} from '../../flows/wallet.flow.js';
 import RNPlaygroundDapp from '../../page-objects/MMConnect/RNPlaygroundDapp.js';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
 import SignModal from '../../page-objects/MMConnect/SignModal.js';
-import {
-  unlockIfLockScreenVisible,
-  ensurePlaygroundInstalled,
-} from './utils.js';
+import { ensurePlaygroundInstalled } from './utils.js';
 import { sleep } from '../../framework/index.js';
 
 /**

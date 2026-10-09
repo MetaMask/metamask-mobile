@@ -1,6 +1,9 @@
 import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useBridgeHistoryItemBySrcTxHash } from '.';
+import {
+  findBridgeHistoryItemBySrcTxHash,
+  useBridgeHistoryItemBySrcTxHash,
+} from '.';
 import { cloneDeep } from 'lodash';
 
 describe('useBridgeHistoryItemBySrcTxHash', () => {
@@ -31,6 +34,30 @@ describe('useBridgeHistoryItemBySrcTxHash', () => {
       initialState.engine.backgroundState.BridgeStatusController.txHistory[
         'test-tx-id'
       ],
+    );
+  });
+
+  it('indexes EVM transaction hashes case-insensitively for constant-time lookup', () => {
+    const state = cloneDeep(initialState);
+    const bridgeHistoryItem =
+      state.engine.backgroundState.BridgeStatusController.txHistory[
+        'test-tx-id'
+      ];
+    bridgeHistoryItem.status.srcChain.txHash = '0xAbC';
+
+    const { result } = renderHookWithProvider(
+      () => useBridgeHistoryItemBySrcTxHash(),
+      { state },
+    );
+
+    expect(
+      findBridgeHistoryItemBySrcTxHash(
+        result.current.bridgeHistoryItemsBySrcTxHash,
+        '0xaBc',
+      ),
+    ).toBe(bridgeHistoryItem);
+    expect(result.current.bridgeHistoryItemsBySrcTxHash['0xabc']).toBe(
+      bridgeHistoryItem,
     );
   });
 });
