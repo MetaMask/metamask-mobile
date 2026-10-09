@@ -35,7 +35,7 @@ const PredictPositionsListSkeleton = () => {
           testID={PredictPositionsListSelectorsIDs.SKELETON_ROW}
           twClassName="flex-row items-start gap-4 py-2"
         >
-          <Skeleton width={40} height={40} style={tw.style('rounded-full')} />
+          <Skeleton width={40} height={40} style={tw.style('rounded-[10px]')} />
           <Box twClassName="flex-1 gap-2">
             <Skeleton width="100%" height={18} style={tw.style('rounded-md')} />
             <Skeleton width="70%" height={16} style={tw.style('rounded-md')} />

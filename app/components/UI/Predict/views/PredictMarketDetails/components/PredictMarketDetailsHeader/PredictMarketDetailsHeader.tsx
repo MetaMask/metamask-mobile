@@ -1,16 +1,14 @@
 import React, { memo } from 'react';
-import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../../../locales/i18n';
 import {
-  Box,
   ButtonIcon,
   ButtonIconSize,
   HeaderSubpage,
   IconName,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import AvatarPredict from '../../../../components/AvatarPredict';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../Predict.testIds';
 import PredictDetailsHeaderSkeleton from '../../../../components/PredictDetailsHeaderSkeleton';
 import PredictShareButton from '../../../../components/PredictShareButton/PredictShareButton';
@@ -32,7 +30,6 @@ const PredictMarketDetailsHeader = memo(
     image,
     onBackPress,
   }: PredictMarketDetailsHeaderProps) => {
-    const tw = useTailwind();
     const insets = useSafeAreaInsets();
 
     if (isLoading) {
@@ -58,17 +55,7 @@ const PredictMarketDetailsHeader = memo(
           <PredictShareButton marketId={market?.id} marketSlug={market?.slug} />
         }
         avatar={
-          <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
-            {imageUri ? (
-              <Image
-                source={{ uri: imageUri }}
-                style={tw.style('w-full h-full')}
-                contentFit="cover"
-              />
-            ) : (
-              <Box twClassName="w-full h-full bg-muted" />
-            )}
-          </Box>
+          <AvatarPredict src={imageUri ? { uri: imageUri } : undefined} />
         }
         title={title || market?.title || ''}
         titleProps={{ variant: TextVariant.HeadingMd }}

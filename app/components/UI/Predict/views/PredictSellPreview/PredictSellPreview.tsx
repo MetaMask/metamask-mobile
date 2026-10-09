@@ -19,7 +19,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PredictCashOutSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -57,6 +56,7 @@ import {
 import { SLIPPAGE_SELL } from '../../providers/polymarket/constants';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
+import AvatarPredict from '../../components/AvatarPredict';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import PredictFeeSummary from '../PredictBuyWithAnyToken/components/PredictFeeSummary/PredictFeeSummary';
 import styleSheet from './PredictSellPreview.styles';
@@ -362,9 +362,10 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
           )}
           {!isSheetMode && (
             <Box twClassName="flex-row items-center gap-4">
-              <Box twClassName="w-10 h-10 self-start mt-1">
-                <Image source={{ uri: icon }} style={styles.positionIcon} />
-              </Box>
+              <AvatarPredict
+                src={icon ? { uri: icon } : undefined}
+                twClassName="mt-1 self-start"
+              />
               <Box twClassName="flex-col gap-1 flex-1">
                 <Text variant={TextVariant.HeadingSm}>{outcomeTitle}</Text>
                 <Text
