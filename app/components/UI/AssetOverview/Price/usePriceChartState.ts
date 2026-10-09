@@ -119,7 +119,7 @@ const getChangePercentColor = (
 };
 
 export interface UsePriceChartStateParams {
-  asset: TokenI;
+  asset: TokenI & { caipAssetId?: string };
   currentPrice: number;
   currentCurrency: string;
   priceDiff: number;
@@ -351,8 +351,13 @@ export const usePriceChartState = ({
   );
 
   const assetId = useMemo(
-    () => resolveOhlcvChartAssetId(asset.address, asset.chainId),
-    [asset.address, asset.chainId],
+    () =>
+      resolveOhlcvChartAssetId({
+        caipAssetId: asset.caipAssetId,
+        address: asset.address,
+        chainId: asset.chainId,
+      }),
+    [asset.caipAssetId, asset.address, asset.chainId],
   );
   const config = TIME_RANGE_CONFIGS[timeRange];
   const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];

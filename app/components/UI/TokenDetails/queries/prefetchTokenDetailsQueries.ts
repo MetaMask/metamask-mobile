@@ -42,10 +42,7 @@ export const usePrefetchTokenDetails = (
   token: TokenDetailsRouteParams,
 ): void => {
   const queryClient = useQueryClient();
-  // Share the chart's asset id. `useTokenCaipAssetId` prefers the route
-  // `caipAssetId` unchanged, and trending passes that id in lowercase while
-  // the chart checksums `token.address`.
-  const assetId = resolveOhlcvChartAssetId(token.address, token.chainId);
+  const assetId = resolveOhlcvChartAssetId(token);
   const isMemecoinTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRateByTicker = useSelector(selectCurrencyRates);
