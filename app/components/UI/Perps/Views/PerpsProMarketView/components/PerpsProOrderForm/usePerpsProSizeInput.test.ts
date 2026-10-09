@@ -123,6 +123,35 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.effectiveUsdAmount).toBe('40');
   });
 
+  it('keeps a focused USD edit in USD after its echo and the price arrive separately', () => {
+    writePerpsSizeDenomination('asset');
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      {
+        initialProps: createParams({ usdAmount: '100', effectivePrice: 0 }),
+      },
+    );
+
+    act(() => {
+      result.current.sizeInput.onFocus();
+      result.current.sizeInput.onChange('40');
+    });
+    rerender(createParams({ usdAmount: '40', effectivePrice: 0 }));
+    rerender(createParams({ usdAmount: '40', effectivePrice: 25 }));
+
+    expect(result.current.sizeInput.value).toBe('40');
+    expect(result.current.sizeInput.denomination.unit).toBe('usd');
+    expect(result.current.effectiveUsdAmount).toBe('40');
+
+    act(() => {
+      result.current.sizeInput.onChange('405');
+    });
+
+    expect(result.current.sizeInput.value).toBe('405');
+    expect(result.current.sizeInput.denomination.unit).toBe('usd');
+    expect(result.current.effectiveUsdAmount).toBe('405');
+  });
+
   it('keeps an empty USD draft while committing zero', () => {
     const params = createParams();
     const { result } = renderHook(() => usePerpsProSizeInput(params));

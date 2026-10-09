@@ -191,6 +191,10 @@ export const usePerpsProSizeInput = ({
   // balance / payment-token caps) can be distinguished from our own setAmount
   // echoes and from live price ticks that should keep a dirty asset draft.
   const pendingInternalUsdRef = useRef<string | null>(null);
+  // A USD edit made before the price loads still matches usdAmount after the
+  // parent echoes it. Remember the edit so that echo is not treated as a clean
+  // draft and swapped to coin while the field is focused.
+  const usdFallbackEditRef = useRef(false);
 
   const clearSliderPreview = useCallback(() => {
     sliderPreviewRef.current = null;
@@ -253,11 +257,13 @@ export const usePerpsProSizeInput = ({
         priceReady &&
         assetDraftState.source === 'canonical' &&
         pendingInternalUsdRef.current === null;
-      // The first projection also runs while focused. The placeholder was never
-      // a coin amount, so leaving it in place shows 0 for a non-zero order.
+      // The first projection can run while focused when the user has not typed.
+      // An in-progress USD edit stays in USD until blur, even after its echo
+      // makes the draft match the canonical amount.
       const shouldProjectInitialAssetDraft =
         canSyncAssetDraft &&
         !assetDraftState.projected &&
+        !usdFallbackEditRef.current &&
         isCanonicalUsdDraft(usdDraft, usdAmount);
       const shouldRefreshProjectedAssetDraft =
         canSyncAssetDraft && assetDraftState.projected && !isSizeFocused;
@@ -318,6 +324,7 @@ export const usePerpsProSizeInput = ({
       clearSliderMaxIntent();
     }
     setUsdDraft(usdAmount);
+    usdFallbackEditRef.current = false;
     if (priceReady) {
       setAssetDraftState({
         value: getAssetFromUsd(usdAmount, effectivePrice, szDecimals),
@@ -380,6 +387,9 @@ export const usePerpsProSizeInput = ({
       clearSliderMaxIntent();
 
       if (!showsAssetSize) {
+        if (activeDenominationUnit === 'asset') {
+          usdFallbackEditRef.current = true;
+        }
         setUsdDraft(result.value);
         commitUsdAmount(result.value || '0');
         return;
@@ -397,6 +407,7 @@ export const usePerpsProSizeInput = ({
       }
     },
     [
+      activeDenominationUnit,
       assetDraft,
       clearSliderMaxIntent,
       clearSliderPreview,
@@ -412,6 +423,7 @@ export const usePerpsProSizeInput = ({
 
   const onBlur = useCallback(() => {
     setIsSizeFocused(false);
+    usdFallbackEditRef.current = false;
     if (keepSizeEmpty) {
       return;
     }
