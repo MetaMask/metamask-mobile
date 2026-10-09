@@ -14,9 +14,7 @@ export const ImportFromSeedSelectorsIDs = {
     'import-from-seed-screen-confirm-password-visibility-id',
   BACK_BUTTON_ID: 'import-from-seed-screen-back-button-id',
   QR_CODE_BUTTON_ID: 'import-from-seed-screen-qr-code-button-id',
-  LEARN_MORE_LINK_ID: 'import-from-seed-screen-learn-more-link-id',
   CONTINUE_BUTTON_ID: 'import-from-seed-screen-continue-button-id',
-  CHECKBOX_TEXT_ID: 'import-from-seed-screen-checkbox-text-id',
   WHAT_IS_SEEDPHRASE_LINK_ID: 'import-from-seed-screen-seedphrase-link-id',
   IMPORT_FROM_EXTENSION_LINK_ID:
     'import-from-seed-screen-import-from-extension-link-id',

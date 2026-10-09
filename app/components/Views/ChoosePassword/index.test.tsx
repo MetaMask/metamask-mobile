@@ -19,7 +19,7 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
-import { PasswordResetWarningSheetSelectorsIDs } from './PasswordResetWarningSheet.testIds';
+import { PasswordResetWarningSheetSelectorsIDs } from '../shared/PasswordResetWarningSheet/PasswordResetWarningSheet.testIds';
 import Device from '../../../util/device';
 import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';

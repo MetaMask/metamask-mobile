@@ -693,7 +693,6 @@
     "re_enter_password": "비밀번호를 다시 입력하세요",
     "use_at_least_8_characters": "8자 이상이어야 합니다",
     "unlock_with_face_id": "페이스 ID로 잠금 해제하시겠습니까?",
-    "learn_more": "이 비밀번호를 잊으면 MetaMask는 복구할 수 없습니다.",
     "learn_more_social_login": "이 비밀번호를 잊으면 지갑에 영구적으로 접근할 수 없게 됩니다. MetaMask는 비밀번호를 초기화해 드릴 수 없습니다.",
     "seed_phrase_length_error": "비밀복구구문은 12, 15, 18, 21 또는 24개 단어로 구성되어야 합니다",
     "continue": "계속",
