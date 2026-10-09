@@ -56,6 +56,16 @@ export enum COMPONENT_NAMES {
   /** The Stepper Card component on Money Home screen (add funds, get/link card). */
   MONEY_ONBOARDING_CARD = 'money_onboarding_card',
 
+  // — VBA Home Cards —
+  /** GET_STARTED VBA identity-status card on Money Home (Figma node 2267-17522). */
+  MONEY_VBA_GET_STARTED_CARD = 'money_vba_get_started_card',
+  /** ACCOUNT_IS_READY VBA identity-status card on Money Home (Figma node 2158-5306). */
+  MONEY_VBA_ACCOUNT_READY_CARD = 'money_vba_account_ready_card',
+  /** KYC_PENDING VBA identity-status card on Money Home (Figma node 2254-13372). */
+  MONEY_VBA_KYC_PENDING_CARD = 'money_vba_kyc_pending_card',
+  /** FINISH_VERIFICATION VBA identity-status card on Money Home (Figma node 2267-18364). */
+  MONEY_VBA_FINISH_VERIFICATION_CARD = 'money_vba_finish_verification_card',
+
   // — Earnings —
   MONEY_EARNINGS_SECTION = 'money_earnings_section',
   MONEY_POTENTIAL_EARNINGS_SECTION = 'money_potential_earnings_section',

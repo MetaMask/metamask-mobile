@@ -9118,6 +9118,28 @@
         }
       }
     },
+    "vba_home_card": {
+      "get_started": {
+        "title": "Set up your Money account",
+        "description": "Verify your identity to open your Money account.",
+        "cta": "Get started"
+      },
+      "account_is_ready": {
+        "title": "You're verified",
+        "description": "Your identity is verified. Finish setting up your Money account.",
+        "cta": "Finish setup"
+      },
+      "kyc_pending": {
+        "title": "Verifying your identity",
+        "description": "We're reviewing your details. Check the status of your verification.",
+        "cta": "Check status"
+      },
+      "finish_verification": {
+        "title": "Finish verifying your identity",
+        "description": "You're almost done. Pick up where you left off.",
+        "cta": "Resume"
+      }
+    },
     "first_time_deposit": {
       "title": "First deposit, done",
       "content": "It’s in your Money account —\n and already earning.",
@@ -9460,6 +9482,28 @@
       "excluded_from_gradual_rollout": {
         "title": "Money Account is on its way",
         "description": "We're rolling out Money Account gradually to ensure everything works smoothly. Check back soon."
+      }
+    },
+    "vba_card": {
+      "get_started": {
+        "title": "Set up your Money account",
+        "description": "Verify your identity to open your Money account.",
+        "cta": "Get started"
+      },
+      "account_is_ready": {
+        "title": "Identity verified",
+        "description": "You're verified. Finish setting up your Money account to start using it.",
+        "cta": "Continue setup"
+      },
+      "kyc_pending": {
+        "title": "Verification in progress",
+        "description": "We're reviewing your identity. Check your verification status for updates.",
+        "cta": "View status"
+      },
+      "finish_verification": {
+        "title": "Finish verification",
+        "description": "You're almost done. Pick up where you left off to finish setting up your Money account.",
+        "cta": "Resume"
       }
     }
   },
