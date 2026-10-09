@@ -275,7 +275,7 @@ export interface UseQuickBuyControllerResult {
 export function useQuickBuyController(
   target: QuickBuyTarget,
   onClose: () => void,
-  analyticsContext?: QuickBuyAnalyticsContext,
+  analyticsContext: QuickBuyAnalyticsContext,
   initialTradeMode: QuickBuyTradeMode = 'buy',
   postSwapShare = false,
 ): UseQuickBuyControllerResult {
@@ -285,7 +285,7 @@ export function useQuickBuyController(
   const { toastRef } = useContext(ToastContext);
   const { goToBuy } = useRampNavigation();
 
-  const traderAddress = analyticsContext?.traderAddress ?? '';
+  const traderAddress = analyticsContext.traderAddress ?? '';
   const caip19 = useMemo(
     () => toAssetId(target.tokenAddress, target.chain) ?? '',
     [target.chain, target.tokenAddress],

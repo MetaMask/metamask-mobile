@@ -29,6 +29,7 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
 }));
 
 const mockTrack = jest.fn();
+const sheetAnalyticsContext = { source: 'profile_position' as const };
 
 jest.mock('../../Views/SocialLeaderboard/analytics', () => {
   const actual = jest.requireActual('../../Views/SocialLeaderboard/analytics');
@@ -349,6 +350,7 @@ describe('QuickBuy.Root', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
 
@@ -364,6 +366,7 @@ describe('QuickBuy.Root', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
 
@@ -381,6 +384,7 @@ describe('QuickBuy.Root', () => {
           )}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
 
@@ -398,6 +402,7 @@ describe('QuickBuy.Root', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
 
@@ -415,6 +420,7 @@ describe('QuickBuy.Root', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
       act(() => {
@@ -440,6 +446,7 @@ describe('QuickBuy.Root', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
       act(() => {
@@ -459,6 +466,7 @@ describe('QuickBuy.Root', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
       act(() => {
@@ -478,6 +486,7 @@ describe('QuickBuy.Root', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
       act(() => {
@@ -499,6 +508,7 @@ describe('QuickBuy.Root', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
       act(() => {

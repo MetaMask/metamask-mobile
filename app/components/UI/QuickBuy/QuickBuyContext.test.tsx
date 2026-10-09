@@ -149,6 +149,7 @@ function renderProvider(
       target={mockTarget}
       onClose={jest.fn()}
       features={features}
+      analyticsContext={{ source: 'profile_position' }}
       activeScreen="amount"
       setActiveScreen={setActiveScreen}
     >

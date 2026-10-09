@@ -2067,6 +2067,7 @@ export const runQuickBuyControllerCases = ({
           jest.fn(),
           {
             tokenPriceFiat: 0.95625,
+            source: 'market_insights' as const,
           },
         );
 
@@ -3702,7 +3703,9 @@ export const runQuickBuyControllerCases = ({
         it('reports submit execution time from the start timestamp', async () => {
           mockSuccessfulSubmit();
           const submitStartedAtRef = { current: null as number | null };
-          const analytics = mockUseQuickBuyAnalytics('', '');
+          const analytics = mockUseQuickBuyAnalytics('', '', {
+            source: 'market_insights' as const,
+          });
           mockUseQuickBuyAnalytics.mockReturnValue({
             ...analytics,
             refs: {

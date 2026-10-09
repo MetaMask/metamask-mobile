@@ -225,12 +225,17 @@ const setupSelectors = () => {
 
 type QuickBuyQuotesParams = Parameters<typeof useQuickBuyQuotes>[0];
 
-function quotesParams(params: QuickBuyQuotesParams): QuickBuyQuotesParams {
+function quotesParams(
+  params: Omit<QuickBuyQuotesParams, 'analyticsContext'> & {
+    analyticsContext?: Partial<QuickBuyQuotesParams['analyticsContext']>;
+  },
+): QuickBuyQuotesParams {
+  const { analyticsContext, ...rest } = params;
   return {
-    ...params,
+    ...rest,
     analyticsContext: {
-      source: 'leaderboard',
-      ...params.analyticsContext,
+      ...analyticsContext,
+      source: analyticsContext?.source ?? 'leaderboard',
     },
   };
 }

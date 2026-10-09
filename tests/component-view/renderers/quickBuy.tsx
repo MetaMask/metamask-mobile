@@ -42,7 +42,7 @@ function QuickBuySheetHarness({
 }: {
   target: QuickBuyTarget;
   onClose: () => void;
-  analyticsContext?: QuickBuyAnalyticsContext;
+  analyticsContext: QuickBuyAnalyticsContext;
   initialTradeMode?: QuickBuyTradeMode;
   features?: QuickBuyFeatures;
 }) {
@@ -64,7 +64,7 @@ export const renderQuickBuySheet = ({
   overrides,
   target = DEFAULT_QUICK_BUY_TARGET,
   onClose = () => undefined,
-  analyticsContext,
+  analyticsContext = { source: 'asset_details' },
   initialTradeMode,
   features,
   extraRoutes,

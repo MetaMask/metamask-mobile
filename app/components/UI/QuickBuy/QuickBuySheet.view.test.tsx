@@ -13,9 +13,9 @@ import {
 } from '@metamask/bridge-controller';
 import { Text, TextColor } from '@metamask/design-system-react-native';
 import Engine from '../../../core/Engine';
+import { strings } from '../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import {
-  QUICK_BUY_QUOTE_TOTAL_FOR_10_USD,
   clearQuickBuyApiMocks,
   createQuickBuyFetchedQuote,
   setupQuickBuyApiMock,
@@ -267,16 +267,23 @@ describeForPlatforms('QuickBuySheet', () => {
 
     await selectQuarterBuy(screen);
 
+    // "No quotes" is the settled empty result. A missing quote total is also
+    // true while the fetch is still in flight, so waiting on that would assert
+    // disabled during load.
     await waitFor(
       () => {
-        expect(screen.queryByText(QUICK_BUY_QUOTE_TOTAL_FOR_10_USD)).toBeNull();
+        const confirm = screen.getByTestId(
+          QuickBuySheetSelectorsIDs.CONFIRM_BUTTON,
+        );
+        expect(
+          within(confirm).getByText(
+            strings('social_leaderboard.quick_buy.no_quotes'),
+          ),
+        ).toBeOnTheScreen();
+        expect(confirm).toBeDisabled();
       },
       { timeout: WAIT_MS },
     );
-    expect(
-      screen.getByTestId(QuickBuySheetSelectorsIDs.CONFIRM_BUTTON).props
-        .accessibilityState?.disabled,
-    ).toBe(true);
   });
 
   it('keeps confirm disabled when fetchQuotes rejects', async () => {

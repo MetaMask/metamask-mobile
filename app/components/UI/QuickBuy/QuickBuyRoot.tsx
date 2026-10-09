@@ -45,11 +45,12 @@ import type {
 } from './types';
 import { SwapsFeatureIdProvider } from '../Bridge/providers/SwapsFeatureIdProvider';
 import { getQuickBuyFeatureId } from './utils/getQuickBuyFeatureId';
+import { getQuickBuyEntryPoint } from './utils/getQuickBuyEntryPoint';
 import { setTokenSelectorNetworkFilter } from '../../../core/redux/slices/bridge';
 import { BridgeSessionProvider } from '../Bridge/providers/BridgeSessionProvider';
 import { SwapQuotesProvider } from '../Bridge/providers/SwapQuotesProvider';
-import { FeatureId } from '@metamask/bridge-controller';
-import { QUICK_BUY_SOURCE_TO_FEATURE_ID } from './analytics/quickBuyEvents';
+import Engine from '../../../core/Engine';
+import { TokenDetailsSource } from '../TokenDetails/constants/constants';
 
 export type { QuickBuyRootProps } from './types';
 
@@ -83,7 +84,7 @@ interface QuickBuyRootInnerProps {
   onClose: () => void;
   features: QuickBuyFeatures;
   initialTradeMode?: QuickBuyRootProps['initialTradeMode'];
-  analyticsContext?: QuickBuyAnalyticsContext;
+  analyticsContext: QuickBuyAnalyticsContext;
   postSwapShare?: boolean;
   children?: React.ReactNode;
 }
@@ -238,17 +239,28 @@ const QuickBuyRoot: React.FC<QuickBuyRootProps> = ({
   postSwapShare,
   children,
 }) => {
+  useEffect(() => {
+    if (!isVisible || !target) {
+      return;
+    }
+    // When Token Details page is opened from the Bridge asset picker, skip updating
+    // the location on the bridge controller to preserve the original entry-point
+    // location from the session that opened QuickBuy (e.g. "Main View").
+    const isFromBridgeAssetPicker = target.source === TokenDetailsSource.Swap;
+    if (isFromBridgeAssetPicker) {
+      return;
+    }
+    const location = getQuickBuyEntryPoint(analyticsContext.source);
+    Engine.context.BridgeController.setLocation(location);
+  }, [analyticsContext.source, isVisible, target]);
+
   if (!isVisible || !target) {
     return null;
   }
 
   return (
     <BridgeSessionProvider
-      featureId={
-        (analyticsContext?.source &&
-          QUICK_BUY_SOURCE_TO_FEATURE_ID[analyticsContext?.source]) ??
-        FeatureId.QUICK_BUY_TOKEN_DETAILS
-      }
+      featureId={getQuickBuyFeatureId(analyticsContext.source)}
     >
       <SwapQuotesProvider>
         <QuickBuyRootInner

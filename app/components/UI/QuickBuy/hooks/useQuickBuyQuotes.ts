@@ -70,7 +70,7 @@ export interface QuickBuyQuotesAnalyticsContext {
   /** USD amount the user has selected; used as `amount_usd`. */
   amountUsd?: number;
   /** Entry surface for FeatureId mapping on fetchQuotes. */
-  source?: QuickBuySheetSource;
+  source: QuickBuySheetSource;
   /** Trade-screen entry attribution when hosted on TraderPositionView. */
   originalEntryPoint?: QuickBuyOriginalEntryPoint;
 }
@@ -84,7 +84,7 @@ interface UseQuickBuyQuotesParams {
   destToken: BridgeToken | undefined;
   sourceTokenAmount: string | undefined;
   insufficientBalance?: boolean;
-  analyticsContext?: QuickBuyQuotesAnalyticsContext;
+  analyticsContext: QuickBuyQuotesAnalyticsContext;
   /** When set, overrides the recommended quote with the quote matching this requestId. */
   selectedQuoteRequestId?: string;
   /**

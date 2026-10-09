@@ -316,7 +316,7 @@ runQuickBuyControllerCases({
         useQuickBuyController(
           target ?? defaultTarget,
           onClose ?? jest.fn(),
-          analyticsContext,
+          analyticsContext ?? { source: 'profile_position' },
           initialTradeMode,
           postSwapShare,
         ),
@@ -388,14 +388,16 @@ runQuickBuyControllerCases({
     analyticsContext?: QuickBuyAnalyticsContext,
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
     initialTradeMode?: 'buy' | 'sell',
+    postSwapShare?: boolean,
   ) => {
     const utils = renderHook(
       () =>
         useQuickBuyController(
           target ?? defaultTarget,
           onClose ?? jest.fn(),
-          analyticsContext,
+          analyticsContext ?? { source: 'profile_position' },
           initialTradeMode,
+          postSwapShare,
         ),
       {
         initialProps,
@@ -452,7 +454,9 @@ describe('formattedPriceImpact', () => {
     } as unknown as ReturnType<typeof useSwapQuotes>);
 
     const { result } = renderHook(() =>
-      useQuickBuyController(defaultTarget, jest.fn()),
+      useQuickBuyController(defaultTarget, jest.fn(), {
+        source: 'profile_position',
+      }),
     );
 
     expect(result.current.formattedPriceImpact).toBe('-0.20%');
