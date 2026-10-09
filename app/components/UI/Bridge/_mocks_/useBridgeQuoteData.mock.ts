@@ -26,5 +26,6 @@ export const mockUseBridgeQuoteData: ReturnType<
   quotesLoadingStatus: RequestStatus.FETCHED,
   blockaidError: null,
   shouldShowPriceImpactWarning: false,
+  shouldShowPriceImpactError: false,
   validQuotes: [mockQuoteWithMetadata],
 };
