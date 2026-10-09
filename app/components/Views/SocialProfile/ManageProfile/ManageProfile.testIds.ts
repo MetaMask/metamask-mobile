@@ -11,4 +11,10 @@ export const ManageProfileSelectorsIDs = {
   X_ACCOUNT_ROW: 'manage-profile-x-account-row',
   TRADING_ACTIVITY_ROW: 'manage-profile-trading-activity-row',
   LINKED_SOCIAL_ACCOUNT_ROW: 'manage-profile-linked-social-account-row',
+  FIELD_SCREEN: 'manage-profile-field-screen',
+  FIELD_HEADER: 'manage-profile-field-header',
+  FIELD_INPUT: 'manage-profile-field-input',
+  BIO_HELPER: 'manage-profile-bio-helper',
+  BIO_CHARACTER_COUNT: 'manage-profile-bio-character-count',
+  FIELD_SAVE: 'manage-profile-field-save',
 };

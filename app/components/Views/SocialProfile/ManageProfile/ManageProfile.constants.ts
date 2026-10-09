@@ -18,5 +18,14 @@ export interface Profile {
   linkedSocialAccountAddress?: CaipAccountId;
 }
 
+/**
+ * Caps what a user can type. Values from elsewhere may be longer, so rows
+ * truncate independently of this.
+ */
+export const PROFILE_FIELD_MAX_LENGTH = {
+  displayName: 32,
+  bio: 160,
+} as const;
+
 /** Keeps a long bio truncating to the right instead of filling the row. */
 export const BIO_VALUE_MAX_WIDTH = 120;
