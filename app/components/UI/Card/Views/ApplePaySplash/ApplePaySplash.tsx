@@ -47,7 +47,7 @@ const ApplePaySplash = () => {
   }, [navigation]);
 
   const handleAddToWallet = useCallback(() => {
-    initiateProvisioning();
+    void initiateProvisioning();
   }, [initiateProvisioning]);
 
   const lockupWidth = Math.min(LOCKUP_WIDTH, screenWidth - 112);
