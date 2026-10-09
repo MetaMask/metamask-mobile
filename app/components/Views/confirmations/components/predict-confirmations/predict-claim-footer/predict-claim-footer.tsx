@@ -16,13 +16,14 @@ import { PredictPosition } from '../../../../../UI/Predict';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
-import ButtonHero from '../../../../../../component-library/components-temp/Buttons/ButtonHero';
 import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Text,
   TextVariant,
   TextColor,
   FontWeight,
-  ButtonBaseSize,
 } from '@metamask/design-system-react-native';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useConfirmationContext } from '../../../context/confirmation-context';
@@ -93,14 +94,15 @@ export function PredictClaimFooter({
       ) : (
         <SingleWin wonPositions={wonPositions} />
       )}
-      <ButtonHero
+      <Button
         testID={PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON}
-        onPress={handlePress}
-        size={ButtonBaseSize.Lg}
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Lg}
         isFullWidth
+        onPress={handlePress}
       >
         {strings('confirm.predict_claim.button_label')}
-      </ButtonHero>
+      </Button>
       <Text
         variant={TextVariant.BodyXs}
         color={TextColor.TextAlternative}
