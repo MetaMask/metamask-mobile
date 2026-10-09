@@ -267,9 +267,7 @@ const readVendorTermsAcceptance = (
  *
  * The local vendor-terms acceptance lives in async storage, not Redux. It is
  * read on mount and on wallet change, and treated as not accepted while that
- * read is in flight. A later focus re-reads it without clearing the current
- * value, so a host that stays mounted picks up an acceptance written while
- * the screen was blurred.
+ * read is in flight.
  *
  * @example
  * const card = useVbaHomeCard();
@@ -313,20 +311,6 @@ export const useVbaHomeCard = (): VbaHomeCard => {
     }
     return readVendorTermsAcceptance(walletAddress, setHasAcceptedVendorTerms);
   }, [walletAddress]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!walletAddress) {
-        return undefined;
-      }
-      // Keep the current value until this read resolves so a refocus does not
-      // flash `get_started` for a wallet that already accepted terms.
-      return readVendorTermsAcceptance(
-        walletAddress,
-        setHasAcceptedVendorTerms,
-      );
-    }, [walletAddress]),
-  );
 
   return useMemo(
     () =>
