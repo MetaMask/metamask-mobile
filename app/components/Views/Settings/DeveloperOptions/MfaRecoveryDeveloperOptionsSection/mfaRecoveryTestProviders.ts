@@ -52,7 +52,7 @@ export class StubAuthProvider implements RecoveryAuthProvider {
     apiKey,
     apiHost = DEFAULT_TOKEN_API_HOST,
   }: StubAuthProviderOptions) {
-    this.#profileId = getJwtSubject(accessToken) + '3';
+    this.#profileId = getJwtSubject(accessToken);
     this.#apiKey = apiKey;
     this.#apiHost = apiHost;
   }
