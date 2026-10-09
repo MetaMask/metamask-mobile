@@ -80,6 +80,17 @@ jest.mock('../TraderProfileView/hooks', () => ({
   ) => mockUseTraderPositions(addressOrId, options),
 }));
 
+jest.mock('../../../UI/SocialFeed/components/TraderAvatar', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return ({
+    testID,
+  }: {
+    testID?: string;
+  }) => ReactActual.createElement(View, { testID });
+});
+
 jest.mock('../TraderProfileView/components/PositionRow', () => {
   const { Pressable, Text } = jest.requireActual('react-native');
   return {
