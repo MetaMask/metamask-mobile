@@ -124,7 +124,7 @@ describe('PerpsProSizeInput', () => {
     expect(input).toHaveProp('value', '1.200');
   });
 
-  it('keeps a German grouping period while appending to a live-formatted integer', () => {
+  it('keeps German grouping on the first append before native selection is reported', () => {
     jest.mocked(usePerpsLocale).mockReturnValue('de-DE');
     const onChangeText = jest.fn();
     const ControlledInput = () => {
@@ -143,14 +143,12 @@ describe('PerpsProSizeInput', () => {
     render(<ControlledInput />);
     const input = screen.getByTestId(ids.SIZE_INPUT);
     fireEvent(input, 'focus');
-    fireEvent(input, 'selectionChange', {
-      nativeEvent: { selection: { start: 5, end: 5 } },
-    });
 
     fireEvent.changeText(input, '1.2000');
 
     expect(onChangeText).toHaveBeenLastCalledWith('12000');
     expect(input).toHaveProp('value', '12.000');
+    expect(input).toHaveProp('selection', { start: 6, end: 6 });
   });
 
   it('preserves grouped magnitude when deleting a German decimal separator', () => {

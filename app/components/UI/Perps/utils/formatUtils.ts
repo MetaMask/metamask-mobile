@@ -407,6 +407,32 @@ const normalizePerpsNumericValue = (value: string, locale?: string): string => {
   return normalizePerpsCanonicalValue(sanitizedValue) ?? value;
 };
 
+const getPerpsPreviousSelection = ({
+  previousDisplayValue,
+  nextDisplayValue,
+  previousSelection,
+}: {
+  previousDisplayValue: string;
+  nextDisplayValue: string;
+  previousSelection?: PerpsInputSelection;
+}): PerpsInputSelection | undefined => {
+  if (previousSelection) {
+    return previousSelection;
+  }
+
+  if (
+    nextDisplayValue.startsWith(previousDisplayValue) ||
+    previousDisplayValue.startsWith(nextDisplayValue)
+  ) {
+    return {
+      start: previousDisplayValue.length,
+      end: previousDisplayValue.length,
+    };
+  }
+
+  return undefined;
+};
+
 export const normalizePerpsNumericInput = (
   value: string,
   locale?: string,
@@ -416,8 +442,18 @@ export const normalizePerpsNumericInput = (
     return value;
   }
 
-  if (context?.previousSelection) {
-    const normalizedEdit = normalizePerpsNumericEdit(value, locale, context);
+  if (context) {
+    const previousSelection = getPerpsPreviousSelection({
+      previousDisplayValue: context.previousDisplayValue,
+      nextDisplayValue: value,
+      previousSelection: context.previousSelection,
+    });
+    const normalizedEdit = previousSelection
+      ? normalizePerpsNumericEdit(value, locale, {
+          ...context,
+          previousSelection,
+        })
+      : undefined;
 
     if (normalizedEdit !== undefined) {
       return normalizedEdit;
@@ -565,7 +601,7 @@ const getPerpsDisplayEdit = (
   previousDisplayValue: string,
   nextDisplayValue: string,
   previousSelection: PerpsInputSelection,
-): PerpsDisplayEdit => {
+): PerpsDisplayEdit | undefined => {
   const selectionStart = clampInputCursor(
     previousSelection.start,
     previousDisplayValue.length,
@@ -623,35 +659,7 @@ const getPerpsDisplayEdit = (
     }
   }
 
-  let sharedPrefixLength = 0;
-  while (
-    sharedPrefixLength < previousDisplayValue.length &&
-    sharedPrefixLength < nextDisplayValue.length &&
-    previousDisplayValue[sharedPrefixLength] ===
-      nextDisplayValue[sharedPrefixLength]
-  ) {
-    sharedPrefixLength += 1;
-  }
-
-  let sharedSuffixLength = 0;
-  while (
-    sharedSuffixLength < previousDisplayValue.length - sharedPrefixLength &&
-    sharedSuffixLength < nextDisplayValue.length - sharedPrefixLength &&
-    previousDisplayValue[
-      previousDisplayValue.length - sharedSuffixLength - 1
-    ] === nextDisplayValue[nextDisplayValue.length - sharedSuffixLength - 1]
-  ) {
-    sharedSuffixLength += 1;
-  }
-
-  return {
-    start: sharedPrefixLength,
-    end: previousDisplayValue.length - sharedSuffixLength,
-    insertedValue: nextDisplayValue.slice(
-      sharedPrefixLength,
-      nextDisplayValue.length - sharedSuffixLength,
-    ),
-  };
+  return undefined;
 };
 
 /**
@@ -702,6 +710,11 @@ function normalizePerpsNumericEdit(
     normalizedValue,
     previousSelection,
   );
+
+  if (!edit) {
+    return undefined;
+  }
+
   const canonicalStart = mapFormattedPerpsCursorToCanonical({
     canonicalValue: previousCanonicalValue,
     formattedValue: normalizedPreviousDisplay,
@@ -739,8 +752,17 @@ const getPerpsDisplayCursorAfterEdit = (
     previousSelection,
   );
 
+  if (edit) {
+    return clampInputCursor(
+      edit.start + edit.insertedValue.length,
+      nextDisplayValue.length,
+    );
+  }
+
   return clampInputCursor(
-    edit.start + edit.insertedValue.length,
+    previousSelection.start +
+      nextDisplayValue.length -
+      previousDisplayValue.length,
     nextDisplayValue.length,
   );
 };
@@ -758,19 +780,28 @@ export const getPerpsFormattedInputSelection = ({
   previousSelection?: PerpsInputSelection;
   locale?: string;
 }): PerpsInputSelection | undefined => {
-  if (!previousSelection) {
+  const resolvedPreviousSelection = getPerpsPreviousSelection({
+    previousDisplayValue,
+    nextDisplayValue,
+    previousSelection,
+  });
+
+  if (!resolvedPreviousSelection) {
     return undefined;
   }
 
   const nextCanonicalValue = normalizePerpsNumericInput(
     nextDisplayValue,
     locale,
-    { previousDisplayValue, previousSelection },
+    {
+      previousDisplayValue,
+      previousSelection: resolvedPreviousSelection,
+    },
   );
   const nextDisplayCursor = getPerpsDisplayCursorAfterEdit(
     previousDisplayValue,
     nextDisplayValue,
-    previousSelection,
+    resolvedPreviousSelection,
   );
   const nextCanonicalCursor = mapFormattedPerpsCursorToCanonical({
     canonicalValue: nextCanonicalValue,

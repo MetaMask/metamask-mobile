@@ -656,6 +656,59 @@ describe('formatUtils', () => {
       },
     );
 
+    it.each([
+      ['appending', '1.2000', '12000'],
+      ['backspacing', '1.20', '120'],
+    ])(
+      'infers an end edit when %s a German grouped integer without selection context',
+      (_operation, nextValue, expected) => {
+        const context = {
+          previousDisplayValue: '1.200',
+        };
+
+        const normalizedValue = normalizePerpsNumericInput(
+          nextValue,
+          'de-DE',
+          context,
+        );
+
+        expect(normalizedValue).toBe(expected);
+      },
+    );
+
+    it('parses a whole German replacement independently when selection context is missing', () => {
+      const context = {
+        previousDisplayValue: '1.234,50',
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.234.567',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1234567');
+    });
+
+    it('falls back to standalone parsing when the reported selection cannot explain the edit', () => {
+      const nextValue = '1.234.50';
+      const context = {
+        previousDisplayValue: '1.234,50',
+        previousSelection: { start: 0, end: 0 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        nextValue,
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe(
+        normalizePerpsNumericInput(nextValue, 'de-DE'),
+      );
+      expect(normalizedValue).toBe('1.23450');
+    });
+
     it('treats a selected German grouped value replaced with a period as decimal input', () => {
       const context = {
         previousDisplayValue: '1.200',
@@ -854,6 +907,38 @@ describe('formatUtils', () => {
       );
 
       expect(normalizedValue).toBe('1200.50');
+    });
+
+    it('applies and maps an appended digit with Indian grouping', () => {
+      const previousDisplayValue = formatPerpsInput('1234567', 'hi-IN');
+      const nextDisplayValue = `${previousDisplayValue}8`;
+      const context = {
+        previousDisplayValue,
+        previousSelection: {
+          start: previousDisplayValue.length,
+          end: previousDisplayValue.length,
+        },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        nextDisplayValue,
+        'hi-IN',
+        context,
+      );
+      const formattedValue = formatPerpsInput(normalizedValue, 'hi-IN');
+      const selection = getPerpsFormattedInputSelection({
+        ...context,
+        nextDisplayValue,
+        nextFormattedValue: formattedValue,
+        locale: 'hi-IN',
+      });
+
+      expect(normalizedValue).toBe('12345678');
+      expect(formattedValue).toBe('1,23,45,678');
+      expect(selection).toEqual({
+        start: formattedValue.length,
+        end: formattedValue.length,
+      });
     });
 
     it('preserves French grouping when deleting a decimal separator', () => {
