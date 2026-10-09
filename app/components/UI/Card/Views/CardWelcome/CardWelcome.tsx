@@ -25,9 +25,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { trackCardLinkRoutingDisagreement } from '../../util/trackCardLinkRoutingDisagreement';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
-  selectHasCardholderAccounts,
+  selectCardEntryRouting,
   selectHasCardSignInLink,
 } from '../../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
@@ -71,7 +72,7 @@ const CardWelcome = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation<AppNavigationProp>();
   const { goBack, navigate } = navigation;
-  const hasCardholderAccounts = useSelector(selectHasCardholderAccounts);
+  const cardEntryRouting = useSelector(selectCardEntryRouting);
   const hasSignInLink = useSelector(selectHasCardSignInLink);
   const postAuthRedirect = useCardPostAuthRedirect();
   const theme = useTheme();
@@ -233,7 +234,7 @@ const CardWelcome = () => {
     goBack();
   }, [goBack]);
 
-  const shouldGoToSignIn = hasCardholderAccounts || hasSignInLink;
+  const shouldGoToSignIn = cardEntryRouting.hasCard || hasSignInLink;
 
   const handleButtonPress = useCallback(() => {
     trackEvent(
@@ -245,6 +246,7 @@ const CardWelcome = () => {
         )
         .build(),
     );
+    trackCardLinkRoutingDisagreement(cardEntryRouting, 'card_welcome');
 
     if (shouldGoToSignIn) {
       navigate(
@@ -258,6 +260,7 @@ const CardWelcome = () => {
       );
     }
   }, [
+    cardEntryRouting,
     shouldGoToSignIn,
     navigate,
     postAuthRedirect,
