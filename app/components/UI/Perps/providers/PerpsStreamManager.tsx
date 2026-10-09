@@ -705,13 +705,17 @@ abstract class StreamChannel<T> {
       return;
     }
 
+    // The latest snapshot supersedes updates queued before the pause. Cancel
+    // their timers so older data cannot follow the immediate cache replay.
+    this.subscribers.forEach((subscriber) => {
+      if (subscriber.timer) {
+        clearTimeout(subscriber.timer);
+        subscriber.timer = undefined;
+      }
+      subscriber.pendingUpdate = undefined;
+    });
     // Replaying a snapshot is not a successful post-error provider update.
     this.notifySubscribers(latest, 'cache');
-    // Throttled subscribers would otherwise park this in pendingUpdate behind a
-    // timer — the Pro orders panel throttles at 1000ms, so a cancelled order
-    // could stay on screen for up to a second after the book is already empty.
-    // The batch operation has finished; there is nothing left to throttle.
-    this.flushThrottledDeliveries();
   }
 
   protected getCachedData(): T | null {

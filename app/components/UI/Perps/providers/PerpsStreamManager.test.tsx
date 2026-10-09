@@ -1032,6 +1032,56 @@ describe('PerpsStreamManager', () => {
       expect(testStreamManager.orders.getError()).toBeNull();
     });
 
+    it.each([false, true])(
+      'supersedes pre-pause throttled orders on resume with authentication error %s',
+      (hasError) => {
+        const callback = jest.fn();
+        const onDelivery = jest.fn();
+        testStreamManager.orders.subscribe({
+          callback,
+          onDelivery,
+          throttleMs: 1000,
+        });
+        const source = mockSubscribeToOrders.mock.calls[0][0];
+        const queuedOrders: Order[] = [
+          {
+            orderId: 'cancelled-order',
+            symbol: 'ETH',
+            side: 'buy',
+            originalSize: '0.01',
+            size: '0.01',
+            remainingSize: '0.01',
+            filledSize: '0',
+            price: '2000',
+            orderType: 'limit',
+            status: 'open',
+            timestamp: Date.now(),
+            providerId: 'lighter',
+          },
+        ];
+        const error = hasError ? new Error('Trading key rejected') : null;
+        source.callback([]);
+        source.callback(queuedOrders);
+        testStreamManager.orders.pause();
+        source.callback([]);
+        if (error) source.onError(error);
+        callback.mockClear();
+        onDelivery.mockClear();
+
+        testStreamManager.orders.resume();
+
+        expect(callback.mock.calls).toEqual([[[]]]);
+        expect(onDelivery.mock.calls).toEqual([['cache']]);
+        expect(testStreamManager.orders.getError()).toBe(error);
+
+        jest.advanceTimersByTime(1000);
+
+        expect(callback.mock.calls).toEqual([[[]]]);
+        expect(onDelivery.mock.calls).toEqual([['cache']]);
+        expect(testStreamManager.orders.getError()).toBe(error);
+      },
+    );
+
     it('retains a throttled healthy-provider delivery when Lighter fails', () => {
       const callback = jest.fn();
       const failure = new Error('Lighter authentication failed');
