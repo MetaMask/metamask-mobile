@@ -84,7 +84,6 @@ describe('useTokenDetailsVariant', () => {
     });
     expect(mockUseTokenAssetDetails).toHaveBeenCalledWith(ASSET_ID);
   });
-
   it('resolves the legacy page when the flag is off', () => {
     const { result } = arrange({ isFlagEnabled: false, isMeme: true });
 

@@ -137,7 +137,7 @@ interface TokenStickyFooterProps {
   sourcePage?: string;
   /** Whether the ambient price color A/B test treatment is active. */
   useAmbientColor?: boolean;
-  /** Optional collapsed trader position header rendered above the footer actions. */
+  /** Optional trader position header rendered above the footer actions. */
   traderPositionPnl?: TraderPositionPnlProps;
 }
 
@@ -469,24 +469,24 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     () => ({
       backgroundColor: colors.background.default,
       paddingHorizontal: 16,
-      paddingTop: isTraderPositionExpanded ? 22 : 8,
+      paddingTop: traderPositionPnl?.isExpanded ? 22 : 8,
       paddingBottom: 0,
     }),
-    [colors.background.default, isTraderPositionExpanded],
+    [colors.background.default, traderPositionPnl?.isExpanded],
   );
   const bottomSheetStyle = useMemo(
     () => ({
       borderTopColor: colors.border.muted,
-      borderTopLeftRadius: isTraderPositionExpanded ? 32 : 0,
-      borderTopRightRadius: isTraderPositionExpanded ? 32 : 0,
+      borderTopLeftRadius: traderPositionPnl?.isExpanded ? 32 : 0,
+      borderTopRightRadius: traderPositionPnl?.isExpanded ? 32 : 0,
       borderTopWidth: 1,
       paddingBottom: skipBottomInset ? 4 : insets.bottom + 6,
     }),
     [
       colors.border.muted,
       insets.bottom,
-      isTraderPositionExpanded,
       skipBottomInset,
+      traderPositionPnl?.isExpanded,
     ],
   );
   if (!tradingOpen) return null;
@@ -525,35 +525,22 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     </Button>
   ) : null;
 
-  const positionContent = (
+  const positionContent = traderPositionPnl ? (
     <>
-      {traderPositionPnl && (
-        <>
-          <TraderPositionPnl
-            {...traderPositionPnl}
-            onToggleExpanded={onToggleTraderPositionExpanded}
-          />
-          <Animated.View style={expandedDetailsStyle}>
-            <Box
-              testID="token-details-trader-position-pnl-expanded-placeholder"
-              twClassName="rounded-lg bg-muted p-3"
-              onLayout={handleExpandedDetailsLayout}
-            >
-              {/* TODO: Replace this placeholder with expanded position details from the Social API. */}
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings(
-                  'social_leaderboard.trader_position.expanded_placeholder',
-                )}
-              </Text>
-            </Box>
-          </Animated.View>
-        </>
-      )}
+      <TraderPositionPnl {...traderPositionPnl} />
+      <Animated.View style={expandedDetailsStyle}>
+        <Box
+          testID="token-details-trader-position-pnl-expanded-placeholder"
+          twClassName="rounded-lg bg-muted p-3"
+          onLayout={handleExpandedDetailsLayout}
+        >
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('social_leaderboard.trader_position.expanded_placeholder')}
+          </Text>
+        </Box>
+      </Animated.View>
     </>
-  );
+  ) : null;
 
   const footerActions = (
     <>

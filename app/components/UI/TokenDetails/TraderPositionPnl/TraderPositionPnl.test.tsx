@@ -22,6 +22,28 @@ describe('TraderPositionPnl', () => {
     ).toHaveTextContent('+$15.01 (+16.99%)');
   });
 
+  it('keeps the header text accessible and labels the expand control', () => {
+    const { getByTestId } = render(
+      <TraderPositionPnl
+        positionValue="$103.31"
+        pnl={defaultPnl}
+        onToggleExpanded={jest.fn()}
+      />,
+    );
+
+    expect(
+      getByTestId('token-details-trader-position-pnl').props.accessibilityLabel,
+    ).toBeUndefined();
+    expect(
+      getByTestId('token-details-trader-position-pnl-toggle').props
+        .accessibilityLabel,
+    ).toEqual(expect.any(String));
+    expect(
+      getByTestId('token-details-trader-position-pnl-toggle').props
+        .accessibilityState,
+    ).toEqual(expect.objectContaining({ expanded: false }));
+  });
+
   it('renders only the position value when PnL is unavailable', () => {
     const { getByTestId, queryByTestId } = render(
       <TraderPositionPnl positionValue="$103.31" />,

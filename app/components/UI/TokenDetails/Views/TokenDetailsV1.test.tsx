@@ -288,6 +288,7 @@ describe('TokenDetailsV1', () => {
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
     mockOverviewProps.length = 0;
     mockPriceHeaderProps.length = 0;
+    mockStickyFooterProps.length = 0;
   });
 
   it('renders the meme-TDP body with the token symbol in the header', () => {

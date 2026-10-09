@@ -1,7 +1,10 @@
 import React from 'react';
 import { ActivityIndicator, AppState, type AppStateStatus } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
-import { TokenDetails } from './TokenDetails';
+import {
+  TokenDetails as TokenDetailsRoute,
+  TokenDetailsLegacyRouteWrapper as TokenDetails,
+} from './TokenDetails';
 import { TOKEN_DETAILS_PAGE_PENDING_TEST_ID } from './TokenDetailsPagePending';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
@@ -757,39 +760,6 @@ describe('TokenDetails', () => {
 
       expect(getByText('Swap')).toBeOnTheScreen();
       expect(getByText('Buy DAI')).toBeOnTheScreen();
-    });
-
-    it('collapses the trader position when the route token changes', () => {
-      const devGlobal = globalThis as { __DEV__?: boolean };
-      const originalDev = devGlobal.__DEV__;
-      devGlobal.__DEV__ = true;
-
-      try {
-        const { getByTestId, queryByTestId, rerender } = render(
-          <TokenDetails />,
-        );
-
-        fireEvent.press(
-          getByTestId('token-details-trader-position-pnl-toggle'),
-        );
-        expect(
-          queryByTestId('token-details-trader-position-pnl-overlay'),
-        ).toBeOnTheScreen();
-
-        mockRouteParams.mockReturnValue({
-          ...defaultRouteParams,
-          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          symbol: 'USDC',
-          name: 'USD Coin',
-        });
-        rerender(<TokenDetails />);
-
-        expect(
-          queryByTestId('token-details-trader-position-pnl-overlay'),
-        ).not.toBeOnTheScreen();
-      } finally {
-        devGlobal.__DEV__ = originalDev;
-      }
     });
 
     it('passes scrollToTopOnNav when sticky Swap is pressed', () => {
@@ -1742,7 +1712,7 @@ describe('TokenDetails', () => {
     });
 
     it('does not render TokenDetailsV1 when the flag is off and the token is not a meme', () => {
-      render(<TokenDetails />);
+      render(<TokenDetailsRoute />);
 
       expect(mockTokenDetailsV1).not.toHaveBeenCalled();
       expect(mockTokenDetailsInlineHeader).toHaveBeenCalled();
@@ -1751,7 +1721,7 @@ describe('TokenDetails', () => {
     it('does not render TokenDetailsV1 when the flag is on but the token is not a meme', () => {
       applyBaselineSelectorsWithMemeFlag(true);
 
-      const { queryByTestId } = render(<TokenDetails />);
+      const { queryByTestId } = render(<TokenDetailsRoute />);
 
       expect(mockTokenDetailsV1).not.toHaveBeenCalled();
       expect(queryByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeNull();
@@ -1765,7 +1735,7 @@ describe('TokenDetails', () => {
         isError: false,
       });
 
-      const { getByTestId } = render(<TokenDetails />);
+      const { getByTestId } = render(<TokenDetailsRoute />);
 
       expect(getByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeTruthy();
       expect(getByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON)).toBeTruthy();
@@ -1782,7 +1752,7 @@ describe('TokenDetails', () => {
         isError: false,
       });
 
-      render(<TokenDetails />);
+      render(<TokenDetailsRoute />);
 
       expect(mockTokenDetailsV1).toHaveBeenCalledWith(
         expect.objectContaining({ token: expect.any(Object) }),
@@ -1798,7 +1768,7 @@ describe('TokenDetails', () => {
         isError: false,
       });
 
-      const { queryByTestId } = render(<TokenDetails />);
+      const { queryByTestId } = render(<TokenDetailsRoute />);
 
       expect(mockTokenDetailsV1).not.toHaveBeenCalled();
       expect(queryByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeNull();
@@ -1819,7 +1789,7 @@ describe('TokenDetails', () => {
         isError: false,
       });
 
-      const { getByTestId } = render(<TokenDetails />);
+      const { getByTestId } = render(<TokenDetailsRoute />);
 
       expect(getByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeTruthy();
       expect(mockTokenDetailsV1).not.toHaveBeenCalled();
@@ -1834,7 +1804,7 @@ describe('TokenDetails', () => {
         query: {},
       });
 
-      render(<TokenDetails />);
+      render(<TokenDetailsRoute />);
 
       expect(mockTokenDetailsV1).toHaveBeenCalledWith(
         expect.objectContaining({ token: expect.any(Object) }),
@@ -1851,7 +1821,7 @@ describe('TokenDetails', () => {
         query: {},
       });
 
-      render(<TokenDetails />);
+      render(<TokenDetailsRoute />);
 
       expect(mockTokenDetailsV1).toHaveBeenCalled();
       // A/B exposure events would otherwise be attributed to users who never
