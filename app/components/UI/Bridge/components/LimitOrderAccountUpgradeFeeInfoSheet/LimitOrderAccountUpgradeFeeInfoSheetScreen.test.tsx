@@ -1,9 +1,9 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import LimitOrderCostToleranceInfoSheet from './LimitOrderCostToleranceInfoSheet';
-import { LimitOrderCostToleranceInfoSheetSelectorsIDs } from './LimitOrderCostToleranceInfoSheet.testIds';
+import { createBridgeTestState } from '../../testUtils';
+import { LimitOrderAccountUpgradeFeeInfoSheetScreen } from './LimitOrderAccountUpgradeFeeInfoSheetScreen';
+import { LimitOrderAccountUpgradeFeeInfoSheetSelectorsIDs } from './LimitOrderAccountUpgradeFeeInfoSheet.testIds';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -33,31 +33,15 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-describe('LimitOrderCostToleranceInfoSheet', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('renders the price tolerance body', () => {
+describe('LimitOrderAccountUpgradeFeeInfoSheetScreen', () => {
+  it('renders the account upgrade fee body', () => {
     const { getByTestId } = renderWithProvider(
-      <LimitOrderCostToleranceInfoSheet goBack={jest.fn()} />,
+      <LimitOrderAccountUpgradeFeeInfoSheetScreen />,
+      { state: createBridgeTestState() },
     );
 
     expect(
-      getByTestId(LimitOrderCostToleranceInfoSheetSelectorsIDs.BODY),
-    ).toHaveTextContent(strings('bridge.cost_tolerance_tooltip_content'));
-  });
-
-  it('goes back when the header close button is pressed', () => {
-    const goBack = jest.fn();
-    const { getByTestId } = renderWithProvider(
-      <LimitOrderCostToleranceInfoSheet goBack={goBack} />,
-    );
-
-    fireEvent.press(
-      getByTestId(LimitOrderCostToleranceInfoSheetSelectorsIDs.CLOSE_BUTTON),
-    );
-
-    expect(goBack).toHaveBeenCalledTimes(1);
+      getByTestId(LimitOrderAccountUpgradeFeeInfoSheetSelectorsIDs.BODY),
+    ).toHaveTextContent(strings('bridge.limit.account_upgrade_fee_info_body'));
   });
 });

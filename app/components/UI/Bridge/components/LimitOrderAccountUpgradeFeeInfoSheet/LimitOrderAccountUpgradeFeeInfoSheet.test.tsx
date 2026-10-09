@@ -2,8 +2,8 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import LimitOrderCostToleranceInfoSheet from './LimitOrderCostToleranceInfoSheet';
-import { LimitOrderCostToleranceInfoSheetSelectorsIDs } from './LimitOrderCostToleranceInfoSheet.testIds';
+import LimitOrderAccountUpgradeFeeInfoSheet from './LimitOrderAccountUpgradeFeeInfoSheet';
+import { LimitOrderAccountUpgradeFeeInfoSheetSelectorsIDs } from './LimitOrderAccountUpgradeFeeInfoSheet.testIds';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -33,29 +33,34 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-describe('LimitOrderCostToleranceInfoSheet', () => {
+describe('LimitOrderAccountUpgradeFeeInfoSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders the price tolerance body', () => {
-    const { getByTestId } = renderWithProvider(
-      <LimitOrderCostToleranceInfoSheet goBack={jest.fn()} />,
+  it('renders the account upgrade fee title and body', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <LimitOrderAccountUpgradeFeeInfoSheet goBack={jest.fn()} />,
     );
 
     expect(
-      getByTestId(LimitOrderCostToleranceInfoSheetSelectorsIDs.BODY),
-    ).toHaveTextContent(strings('bridge.cost_tolerance_tooltip_content'));
+      getByText(strings('bridge.limit.account_upgrade_fee_info_title')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(LimitOrderAccountUpgradeFeeInfoSheetSelectorsIDs.BODY),
+    ).toHaveTextContent(strings('bridge.limit.account_upgrade_fee_info_body'));
   });
 
   it('goes back when the header close button is pressed', () => {
     const goBack = jest.fn();
     const { getByTestId } = renderWithProvider(
-      <LimitOrderCostToleranceInfoSheet goBack={goBack} />,
+      <LimitOrderAccountUpgradeFeeInfoSheet goBack={goBack} />,
     );
 
     fireEvent.press(
-      getByTestId(LimitOrderCostToleranceInfoSheetSelectorsIDs.CLOSE_BUTTON),
+      getByTestId(
+        LimitOrderAccountUpgradeFeeInfoSheetSelectorsIDs.CLOSE_BUTTON,
+      ),
     );
 
     expect(goBack).toHaveBeenCalledTimes(1);

@@ -9398,9 +9398,6 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "एक्सपायरी: {{timeLeft}}",
-      "days_left": "{{count}}d left",
-      "hours_left": "{{count}}h left",
-      "minutes_left": "{{count}}m left",
       "limit_price": "{{symbol}} लिमिट प्राइस",
       "not_enough_gas": "पर्याप्त गैस नहीं",
       "filled": "भरा गया",
