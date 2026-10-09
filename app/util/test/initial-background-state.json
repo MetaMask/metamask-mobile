@@ -964,8 +964,9 @@
   "AiDigestController": {},
   "RampsController": {
     "autoramps": [],
-    "userRegion": null,
+    "moneyAccountWalletRegistrations": [],
     "vbaAutorampListFetchedAt": null,
+    "userRegion": null,
     "countries": {
       "data": [],
       "selected": null,
@@ -991,7 +992,6 @@
       "isLoading": false,
       "error": null
     },
-    "moneyAccountWalletRegistrations": [],
     "nativeProviders": {
       "transak": {
         "buyQuote": {

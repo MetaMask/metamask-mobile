@@ -386,6 +386,7 @@ app/components/Views/WalletCreationError                    @MetaMask/web3auth
 app/components/Views/OAuthRehydration                       @MetaMask/web3auth
 app/components/Views/RevealPrivateCredential                @MetaMask/web3auth
 app/reducers/onboarding                                     @MetaMask/web3auth
+app/components/Approvals/ConfirmMembershipApproval          @MetaMask/web3auth
 
 # Delegation team
 app/core/Engine/controllers/gator-permissions-controller              @MetaMask/delegation
