@@ -25,6 +25,12 @@ interface FeesTooltipContentProps extends TooltipContentProps {
   };
 }
 
+const DISCOUNT_MESSAGE_BY_KIND = {
+  vip: 'perps.tooltips.fees.discount_message',
+  promotional: 'perps.tooltips.fees.promotional_discount_message',
+  generic: 'perps.tooltips.fees.fee_discount_message',
+} as const satisfies Record<Exclude<PerpsFeeDiscountKind, undefined>, string>;
+
 const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
   const { styles } = useStyles(createStyles, {});
 
@@ -36,12 +42,9 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
   const hasDiscount =
     discountPercentage !== undefined && discountPercentage > 0;
   const isVipDiscount = hasDiscount && data?.feeDiscountKind === 'vip';
-  const discountMessage =
-    data?.feeDiscountKind === 'vip'
-      ? 'perps.tooltips.fees.discount_message'
-      : data?.feeDiscountKind === 'promotional'
-        ? 'perps.tooltips.fees.promotional_discount_message'
-        : 'perps.tooltips.fees.fee_discount_message';
+  const discountMessage = data?.feeDiscountKind
+    ? DISCOUNT_MESSAGE_BY_KIND[data.feeDiscountKind]
+    : DISCOUNT_MESSAGE_BY_KIND.generic;
 
   return (
     <View testID={testID}>
