@@ -75,7 +75,7 @@ export interface PolymarketPositionV2 {
   current_size: number;
   outcome: string;
   outcome_index: number;
-  /** Cumulative unrealized P&L for the row; open positions only. */
+  /** Mark-to-market P&L for the row (`current_value − entry_cost_usdc`). */
   unrealized_pnl?: number | null;
   /** Current outcome price (v1 `curPrice`). */
   current_price: number;

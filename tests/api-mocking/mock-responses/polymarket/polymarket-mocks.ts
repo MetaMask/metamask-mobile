@@ -139,6 +139,7 @@ export function normalizeDataApiUrl(proxiedUrl: string): string {
       'data-api.polymarket.com/v2/user-pnl',
       'data-api.polymarket.com/upnl',
     )
+    .replace(/([?&])status=REDEEMABLE_LOST/gu, '$1redeemable=true')
     .replace(/([?&])status=REDEEMABLE/gu, '$1redeemable=true')
     .replace(/([?&])status=OPEN/gu, '$1redeemable=false')
     .replace(/([?&])event_id=/gu, '$1eventId=');

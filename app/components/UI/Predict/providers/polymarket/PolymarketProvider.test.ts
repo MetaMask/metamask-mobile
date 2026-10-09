@@ -2832,8 +2832,9 @@ describe('PolymarketProvider', () => {
       );
     });
 
-    it('maps claimable reads to the REDEEMABLE status', async () => {
+    it('maps claimable reads to both settled statuses (winners and lost)', async () => {
       mockActivityCheck();
+      mockPositionsPage([]);
       mockPositionsPage([]);
 
       await createProvider().getPositions({
@@ -2841,9 +2842,32 @@ describe('PolymarketProvider', () => {
         claimable: true,
       });
 
-      expect(global.fetch).toHaveBeenLastCalledWith(
+      const positionCalls = (global.fetch as jest.Mock).mock.calls.filter(
+        ([url]) => (url as string).includes('/v2/positions'),
+      );
+      expect(positionCalls).toHaveLength(2);
+      expect(positionCalls[0][0]).toBe(
         `https://data-api.polymarket.com/v2/positions?limit=100&user=${legacySafeAddress}&sortBy=CURRENT_VALUE&status=REDEEMABLE`,
-        expect.anything(),
+      );
+      expect(positionCalls[1][0]).toBe(
+        `https://data-api.polymarket.com/v2/positions?limit=100&user=${legacySafeAddress}&sortBy=CURRENT_VALUE&status=REDEEMABLE_LOST`,
+      );
+    });
+
+    it('dedupes tokens that surface in both claimable walks', async () => {
+      mockActivityCheck();
+      mockPositionsPage([createPositionRow()]);
+      mockPositionsPage([createPositionRow()]);
+
+      await createProvider().getPositions({
+        address: signer.address,
+        claimable: true,
+      });
+
+      expect(mockParsePolymarketPositions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          positions: [mappedPositionRow],
+        }),
       );
     });
 

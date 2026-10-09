@@ -1950,29 +1950,25 @@ export class PolymarketProvider implements PredictProvider {
     return result;
   }
 
-  public async getPositions({
-    address,
-    limit = PREDICT_POSITIONS_PAGE_SIZE,
-    claimable,
-    marketId,
+  /**
+   * Follows `/v2/positions` opaque `next_cursor` pages for a single status
+   * filter, up to `PREDICT_POSITIONS_MAX_PAGES` pages.
+   */
+  async #fetchPositionPages({
+    dataApiEndpoint,
+    predictAddress,
+    limit,
+    status,
     outcomeId,
-  }: GetPositionsParams): Promise<PredictPosition[]> {
-    const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
-
-    if (!address) {
-      throw new Error('Address is required');
-    }
-
-    const predictAddress =
-      this.#getCachedAccountState(address)?.address ??
-      (await this.getAccountState({ ownerAddress: address })).address;
-
-    const teamLookup = this.#createTeamLookup(
-      this.#getSupportedLeagues().length > 0,
-    );
-
-    // v2 defaults to open positions and pages with an opaque cursor; follow
-    // next_cursor until exhausted, capped for sanity.
+    marketId,
+  }: {
+    dataApiEndpoint: string;
+    predictAddress: string;
+    limit: number;
+    status?: string;
+    outcomeId?: string;
+    marketId?: string;
+  }): Promise<PolymarketPositionV2[]> {
     const positions: PolymarketPositionV2[] = [];
     let cursor: string | undefined;
     for (let page = 0; page < PREDICT_POSITIONS_MAX_PAGES; page += 1) {
@@ -1982,9 +1978,8 @@ export class PolymarketProvider implements PredictProvider {
         sortBy: 'CURRENT_VALUE',
       });
 
-      // v2 status defaults to OPEN; claimable maps to the REDEEMABLE status.
-      if (claimable !== undefined) {
-        queryParams.set('status', claimable ? 'REDEEMABLE' : 'OPEN');
+      if (status) {
+        queryParams.set('status', status);
       }
 
       // Use condition (conditionId/outcomeId) if provided for targeted fetch.
@@ -1999,7 +1994,7 @@ export class PolymarketProvider implements PredictProvider {
         queryParams.set('cursor', cursor);
       }
 
-      const positionsUrl = `${DATA_API_ENDPOINT}/v2/positions?${queryParams.toString()}`;
+      const positionsUrl = `${dataApiEndpoint}/v2/positions?${queryParams.toString()}`;
       const response = await fetchWithTimeout(positionsUrl, {
         method: 'GET',
         headers: {
@@ -2038,6 +2033,67 @@ export class PolymarketProvider implements PredictProvider {
       cursor = pageData.pagination?.next_cursor ?? undefined;
       if (!cursor) {
         break;
+      }
+    }
+
+    return positions;
+  }
+
+  public async getPositions({
+    address,
+    limit = PREDICT_POSITIONS_PAGE_SIZE,
+    claimable,
+    marketId,
+    outcomeId,
+  }: GetPositionsParams): Promise<PredictPosition[]> {
+    const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
+
+    if (!address) {
+      throw new Error('Address is required');
+    }
+
+    const predictAddress =
+      this.#getCachedAccountState(address)?.address ??
+      (await this.getAccountState({ ownerAddress: address })).address;
+
+    const teamLookup = this.#createTeamLookup(
+      this.#getSupportedLeagues().length > 0,
+    );
+
+    // v1's redeemable=true returned settled winners and still-held losers
+    // alike; v2 splits them across two statuses, so a claimable read walks
+    // both. Everything else keeps the v2 default (the OPEN superset) or the
+    // explicit OPEN filter.
+    const statusFilters = !claimable
+      ? [claimable === false ? 'OPEN' : undefined]
+      : ['REDEEMABLE', 'REDEEMABLE_LOST'];
+
+    const walks = await Promise.all(
+      statusFilters.map((status) =>
+        this.#fetchPositionPages({
+          dataApiEndpoint: DATA_API_ENDPOINT,
+          predictAddress,
+          limit,
+          status,
+          outcomeId,
+          marketId,
+        }),
+      ),
+    );
+
+    // The two cohorts are disjoint, but a market settling between the walks
+    // could surface the same token twice; keep the first walk's occurrence.
+    // Pages within a walk are trusted (keyset-ordered, distinct by contract).
+    const positions: PolymarketPositionV2[] = [];
+    const seenTokenIds = new Set<string>();
+    for (const walk of walks) {
+      for (const row of walk) {
+        if (!seenTokenIds.has(row.token_id)) {
+          positions.push(row);
+        }
+      }
+      for (const row of walk) {
+        seenTokenIds.add(row.token_id);
       }
     }
 
