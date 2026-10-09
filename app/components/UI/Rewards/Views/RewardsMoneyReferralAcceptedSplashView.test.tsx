@@ -67,7 +67,11 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
   default: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+const INVITE_MESSAGE_BODY =
+  'Earn up to 50% mUSD back on fees when you trade Swaps and Perps, for a limited time.';
+
 const LOCALIZED_TEXT = {
+  inviteMessageBody: INVITE_MESSAGE_BODY,
   inviteAcceptedEyebrow: 'Referral activated',
   inviteAcceptedTitle: 'Your rebate offer is active',
   inviteAcceptedBody:
@@ -110,15 +114,34 @@ describe('fillInviteAcceptedBodyDate', () => {
     expect(
       fillInviteAcceptedBodyDate(
         'Earn rebates {date}.',
+        INVITE_MESSAGE_BODY,
         '2026-10-24T00:00:00.000Z',
       ),
     ).toMatch(/^Earn rebates through /);
   });
 
-  it('fills for a limited time when earning_end is absent', () => {
-    expect(fillInviteAcceptedBodyDate('Earn rebates {date}.', null)).toBe(
-      'Earn rebates for a limited time.',
-    );
+  it('uses inviteMessageBody when earning_end is absent', () => {
+    expect(
+      fillInviteAcceptedBodyDate(
+        'Earn rebates {date}.',
+        INVITE_MESSAGE_BODY,
+        null,
+      ),
+    ).toBe(INVITE_MESSAGE_BODY);
+  });
+
+  it('uses inviteMessageBody when earning_end is invalid', () => {
+    expect(
+      fillInviteAcceptedBodyDate(
+        'Earn rebates {date}.',
+        INVITE_MESSAGE_BODY,
+        'not-a-date',
+      ),
+    ).toBe(INVITE_MESSAGE_BODY);
+  });
+
+  it('returns an empty string when the date and the fallback are both missing', () => {
+    expect(fillInviteAcceptedBodyDate(undefined, undefined, null)).toBe('');
   });
 });
 
@@ -158,7 +181,7 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
     expect(getByTestId(TEST_IDS.BODY).props.children).not.toMatch(/2027/);
   });
 
-  it('uses for a limited time when cashback_earning_end is missing', () => {
+  it('uses inviteMessageBody when cashback_earning_end is missing', () => {
     const { getByTestId } = renderSplash(
       buildReferralMe({
         referred_by: {
@@ -170,9 +193,7 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
       }),
     );
 
-    expect(getByTestId(TEST_IDS.BODY)).toHaveTextContent(
-      'Earn up to 50% mUSD back on eligible Swaps and Perps trades for a limited time.',
-    );
+    expect(getByTestId(TEST_IDS.BODY)).toHaveTextContent(INVITE_MESSAGE_BODY);
   });
 
   it('renders the invite_hero theme image when present', () => {
