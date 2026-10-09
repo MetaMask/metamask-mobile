@@ -21,7 +21,7 @@ import { useBulkLinkState } from './useBulkLinkState';
 
 const hasSideEffectAccounts = (
   sideEffectAccountGroupId: string | undefined,
-  sideEffectAccounts: InternalAccount[],
+  sideEffectAccounts: readonly InternalAccount[],
 ): boolean =>
   Boolean(sideEffectAccountGroupId) && sideEffectAccounts.length > 0;
 
@@ -31,9 +31,9 @@ const hasSideEffectAccounts = (
  */
 const selectAccountsToOptIn = (
   sideEffectAccountGroupId: string | undefined,
-  sideEffectAccounts: InternalAccount[],
-  activeGroupAccounts: InternalAccount[],
-): InternalAccount[] => {
+  sideEffectAccounts: readonly InternalAccount[],
+  activeGroupAccounts: readonly InternalAccount[],
+): readonly InternalAccount[] => {
   if (hasSideEffectAccounts(sideEffectAccountGroupId, sideEffectAccounts)) {
     return sideEffectAccounts;
   }
@@ -46,7 +46,7 @@ const selectAccountsToOptIn = (
  */
 const selectAccountGroupToLinkAfterOptIn = (
   sideEffectAccountGroupId: string | undefined,
-  sideEffectAccounts: InternalAccount[],
+  sideEffectAccounts: readonly InternalAccount[],
   selectedAccountGroupId: string,
 ): string | undefined => {
   if (!hasSideEffectAccounts(sideEffectAccountGroupId, sideEffectAccounts)) {
