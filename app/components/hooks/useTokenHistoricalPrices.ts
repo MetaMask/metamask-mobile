@@ -75,7 +75,10 @@ interface HistoricalPricesResult {
   prices: TokenPrice[];
   hasInsufficientCoverage: boolean;
   apiDurationMs: number;
-  error?: Error;
+}
+
+interface HistoricalPricesFetchError extends Error {
+  apiDurationMs: number;
 }
 
 const isAbortError = (error: unknown): boolean =>
@@ -176,12 +179,10 @@ const fetchHistoricalPrices = async (
     if (signal?.aborted || isAbortError(error)) {
       throw error;
     }
-    return {
-      prices: HISTORICAL_PRICE_PLACEHOLDER,
-      hasInsufficientCoverage: false,
-      apiDurationMs: Date.now() - fetchStart,
-      error: error instanceof Error ? error : new Error('Unknown error'),
-    };
+    throw Object.assign(
+      error instanceof Error ? error : new Error('Unknown error'),
+      { apiDurationMs: Date.now() - fetchStart },
+    );
   } finally {
     if (timeoutId !== undefined) {
       clearTimeout(timeoutId);
@@ -279,9 +280,11 @@ const useTokenHistoricalPrices = ({
   return {
     data: payload?.prices ?? HISTORICAL_PRICE_PLACEHOLDER,
     isLoading: query.isPending,
-    error: payload?.error,
+    error: query.error ?? undefined,
     hasInsufficientCoverage: payload?.hasInsufficientCoverage ?? false,
-    apiDurationMs: payload?.apiDurationMs,
+    apiDurationMs:
+      payload?.apiDurationMs ??
+      (query.error as HistoricalPricesFetchError | null)?.apiDurationMs,
   };
 };
 
