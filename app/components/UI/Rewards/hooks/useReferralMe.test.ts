@@ -50,6 +50,7 @@ const mockReferralMe: ReferralMeDto = {
   },
   localized_text: {} as ReferralMeDto['localized_text'],
   invite_hero: null,
+  excluded_regions: [],
 };
 
 describe('useReferralMe', () => {
