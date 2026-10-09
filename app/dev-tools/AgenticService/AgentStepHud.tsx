@@ -12,7 +12,7 @@ interface Step {
   error?: string;
   nodeId?: string;
   debug?: { nodeId?: string; proofTarget?: unknown };
-  // 'top' while a bottom sheet is shown, so the HUD never covers what it documents.
+  /** 'top' while a bottom sheet is shown, so the HUD never covers what it documents. */
   placement?: 'top' | 'bottom';
 }
 

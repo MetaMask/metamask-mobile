@@ -10,6 +10,10 @@ jest.mock('react-native-screens', () => ({
   ),
 }));
 
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 47, right: 0, bottom: 34, left: 0 }),
+}));
+
 describe('AgentStepHud', () => {
   const originalDev = (globalThis as unknown as { __DEV__: boolean }).__DEV__;
   const originalPlatform = Platform.OS;
@@ -148,10 +152,10 @@ describe('AgentStepHud', () => {
   });
 
   it.each([
-    [undefined, { bottom: 0 }],
-    ['bottom' as const, { bottom: 0 }],
-    ['top' as const, { top: 0 }],
-  ])('sits where the step placement %s says', (placement, position) => {
+    [undefined, { bottom: 34 }, 'top'],
+    ['bottom' as const, { bottom: 34 }, 'top'],
+    ['top' as const, { top: 47 }, 'bottom'],
+  ])('sits where the step placement %s says', (placement, position, unset) => {
     Platform.OS = 'android';
     render(<AgentStepHud />);
 
@@ -160,5 +164,6 @@ describe('AgentStepHud', () => {
     });
 
     expect(screen.root).toHaveStyle(position);
+    expect(screen.root).not.toHaveStyle({ [unset]: expect.anything() });
   });
 });

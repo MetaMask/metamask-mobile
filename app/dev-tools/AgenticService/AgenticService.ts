@@ -418,21 +418,53 @@ function walkFiberRoots(visitor: (rootFiber: FiberNode) => boolean): boolean {
   return false;
 }
 
+// Identity match on the imported components. Recipe runs refuse hot-reloaded
+// source and restart the app first, so these references stay current.
 const BOTTOM_SHEET_TYPES = new Set<unknown>([
   DesignSystemBottomSheet,
   ComponentLibraryBottomSheet,
 ]);
 
+interface RouteTreeState {
+  index?: number;
+  routes: { key?: string; state?: RouteTreeState }[];
+}
+
+/** Keys of the routes on the focused path, from the root navigator down. */
+function getFocusedRouteKeys(state: RouteTreeState | undefined): Set<string> {
+  const keys = new Set<string>();
+  let current = state;
+  while (current?.routes?.length) {
+    const route = current.routes[current.index ?? current.routes.length - 1];
+    if (route?.key) keys.add(route.key);
+    current = route?.state;
+  }
+  return keys;
+}
+
+/** Key of the route whose screen renders this fiber, if any. */
+function getRouteKey(fiber: FiberNode): string | undefined {
+  for (let current = fiber.return; current; current = current.return) {
+    const key = (current.memoizedProps?.route as { key?: unknown } | undefined)
+      ?.key;
+    if (typeof key === 'string') return key;
+  }
+  return undefined;
+}
+
 /**
- * True while a bottom sheet is mounted on a visible route, whether it is its
- * own route or rendered inline by a screen (e.g. the Perps close-all sheet).
+ * True while a bottom sheet is mounted on the focused route, whether it is
+ * its own route or rendered inline by a screen (e.g. the Perps close-all
+ * sheet). Sheets on covered or hidden routes don't count.
  */
-function isBottomSheetShown(): boolean {
+function isBottomSheetShown(state: RouteTreeState | undefined): boolean {
+  const focusedRouteKeys = getFocusedRouteKeys(state);
   return walkFiberRoots((rootFiber) =>
-    walkFiber(
-      rootFiber,
-      (f) => BOTTOM_SHEET_TYPES.has(f.type) && !isFiberInactive(f),
-    ),
+    walkFiber(rootFiber, (f) => {
+      if (!BOTTOM_SHEET_TYPES.has(f.type)) return false;
+      const routeKey = getRouteKey(f);
+      return routeKey === undefined || focusedRouteKeys.has(routeKey);
+    }),
   );
 }
 
@@ -1501,7 +1533,11 @@ const AgenticService = {
       showStep: (step: AgenticHudStep) => {
         emitStepHud({
           ...step,
-          placement: isBottomSheetShown() ? 'top' : 'bottom',
+          placement: isBottomSheetShown(
+            navRef.getRootState() as RouteTreeState | undefined,
+          )
+            ? 'top'
+            : 'bottom',
         });
       },
       hideStep: () => {

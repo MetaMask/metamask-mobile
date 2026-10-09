@@ -625,6 +625,7 @@ describe('AgenticService.install', () => {
       dispatch: jest.fn(),
       getCurrentRoute: jest.fn(() => ({ name: 'Wallet', key: 'w-1' })),
       getState: jest.fn(() => ({})),
+      getRootState: jest.fn(() => undefined),
       canGoBack: jest.fn(() => true),
     } as unknown as NavigationContainerRef<ParamListBase>;
 
@@ -766,15 +767,37 @@ describe('AgenticService.install', () => {
       },
     );
 
-    it('keeps the HUD at the bottom when the sheet is under a hidden route', () => {
-      const hiddenRoute = makeFiber({ activityState: 0 });
-      hiddenRoute.child = makeFiber({
+    function installSheetOnRoute(routeKey: string) {
+      const screen = makeFiber({ memoizedProps: { route: { key: routeKey } } });
+      screen.child = makeFiber({
         type: DesignSystemBottomSheet,
-        return: hiddenRoute,
+        return: screen,
       });
-      installFiberHook(hiddenRoute);
+      installFiberHook(screen);
+    }
 
-      bridge().showStep({ id: 'run 1/1', intent: 'Wallet home' });
+    it('places the HUD at the top for a sheet rendered by the focused screen', () => {
+      installSheetOnRoute('perps-home');
+      jest.mocked(mockNavRef.getRootState).mockReturnValue({
+        index: 0,
+        routes: [{ key: 'perps-home' }],
+      } as unknown as ReturnType<typeof mockNavRef.getRootState>);
+
+      bridge().showStep({ id: 'run 1/1', intent: 'Close-all preview' });
+
+      expect(mockEmit).toHaveBeenLastCalledWith(
+        expect.objectContaining({ placement: 'top' }),
+      );
+    });
+
+    it('keeps the HUD at the bottom when the sheet route is covered', () => {
+      installSheetOnRoute('onboarding-sheet');
+      jest.mocked(mockNavRef.getRootState).mockReturnValue({
+        index: 1,
+        routes: [{ key: 'onboarding-sheet' }, { key: 'terms-webview' }],
+      } as unknown as ReturnType<typeof mockNavRef.getRootState>);
+
+      bridge().showStep({ id: 'run 1/1', intent: 'Terms of use' });
 
       expect(mockEmit).toHaveBeenLastCalledWith(
         expect.objectContaining({ placement: 'bottom' }),
