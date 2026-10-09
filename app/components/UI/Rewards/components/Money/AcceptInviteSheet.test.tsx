@@ -165,6 +165,7 @@ describe('AcceptInviteSheet', () => {
       acceptReferralCode: mockAcceptReferralCode,
       isLoading: false,
       errorMessage: '',
+      acceptBlockedUntil: null,
       clearError: jest.fn(),
     });
     mockEngineCall.mockImplementation(async (action: string) => {
@@ -346,6 +347,27 @@ describe('AcceptInviteSheet', () => {
     expect(getByTestId(TEST_IDS.ACCEPT).props.accessibilityState).toMatchObject(
       { disabled: true },
     );
+  });
+
+  it('keeps accept disabled until a 429 Retry-After elapses', async () => {
+    mockUseAcceptMoneyReferralCode.mockReturnValue({
+      acceptReferralCode: mockAcceptReferralCode,
+      isLoading: false,
+      errorMessage: strings('rewards.error_messages.rate_limited'),
+      acceptBlockedUntil: Date.now() + 12000,
+      clearError: jest.fn(),
+    });
+
+    const { getByTestId } = await renderSheet('KOL1');
+
+    expect(getByTestId(TEST_IDS.CODE_ERROR)).toHaveTextContent(
+      strings('rewards.error_messages.rate_limited'),
+    );
+    expect(getByTestId(TEST_IDS.ACCEPT).props.accessibilityState).toMatchObject(
+      { disabled: true },
+    );
+    fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+    expect(mockAcceptReferralCode).not.toHaveBeenCalled();
   });
 
   it('shows a register refusal as the field error instead of blocking accept', async () => {

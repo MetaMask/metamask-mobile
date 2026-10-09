@@ -53,7 +53,18 @@ export function getRegisterRefereeErrorTitle(error: unknown): string {
       return strings('rewards.error_messages.active_trader_cannot_be_referred');
     }
   }
+  if (status === 429) {
+    return strings('rewards.error_messages.rate_limited');
+  }
   return strings('rewards.error_messages.something_went_wrong');
+}
+
+/** `Retry-After` on a 429, in seconds. Absent for every other refusal. */
+function rateLimitWaitSeconds(error: unknown): number | undefined {
+  if (!(error instanceof RewardsMoneyHttpError) || error.status !== 429) {
+    return undefined;
+  }
+  return error.retryAfterSeconds;
 }
 
 /**
@@ -98,8 +109,14 @@ export interface UseAcceptMoneyReferralCodeResult {
    */
   errorMessage: string;
   /**
+   * Epoch ms until which accept stays disabled after a 429. Null when the
+   * refusal carried no `Retry-After`, or once that wait has elapsed.
+   */
+  acceptBlockedUntil: number | null;
+  /**
    * Clears {@link errorMessage}. Call when the typed code changes so a
-   * previous refusal does not outlive the code that caused it.
+   * previous refusal does not outlive the code that caused it. A 429 wait
+   * is left in place: editing the code does not spend the miss budget again.
    */
   clearError: () => void;
 }
@@ -121,11 +138,34 @@ export const useAcceptMoneyReferralCode =
     const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [acceptBlockedUntil, setAcceptBlockedUntil] = useState<number | null>(
+      null,
+    );
     const isAcceptingRef = useRef(false);
     const isMountedRef = useRef(true);
+    const rateLimitUntilRef = useRef<number | null>(null);
 
     const clearError = useCallback(() => {
+      if (
+        rateLimitUntilRef.current !== null &&
+        Date.now() < rateLimitUntilRef.current
+      ) {
+        return;
+      }
       setErrorMessage('');
+    }, []);
+
+    const noteRefusal = useCallback((error: unknown) => {
+      setErrorMessage(getRegisterRefereeErrorTitle(error));
+      const waitSeconds = rateLimitWaitSeconds(error);
+      if (waitSeconds === undefined) {
+        rateLimitUntilRef.current = null;
+        setAcceptBlockedUntil(null);
+        return;
+      }
+      const until = Date.now() + waitSeconds * 1000;
+      rateLimitUntilRef.current = until;
+      setAcceptBlockedUntil(until);
     }, []);
 
     useEffect(() => {
@@ -134,6 +174,27 @@ export const useAcceptMoneyReferralCode =
         isMountedRef.current = false;
       };
     }, []);
+
+    useEffect(() => {
+      if (acceptBlockedUntil === null) {
+        return undefined;
+      }
+      const remaining = acceptBlockedUntil - Date.now();
+      const release = () => {
+        rateLimitUntilRef.current = null;
+        if (!isMountedRef.current) {
+          return;
+        }
+        setAcceptBlockedUntil(null);
+        setErrorMessage('');
+      };
+      if (remaining <= 0) {
+        release();
+        return undefined;
+      }
+      const timer = setTimeout(release, remaining);
+      return () => clearTimeout(timer);
+    }, [acceptBlockedUntil]);
 
     const refreshReferralMe = useCallback(
       () => refreshReferralMeWithRetries(fetchReferralMe),
@@ -145,6 +206,12 @@ export const useAcceptMoneyReferralCode =
         if (isAcceptingRef.current) {
           return false;
         }
+        if (
+          rateLimitUntilRef.current !== null &&
+          Date.now() < rateLimitUntilRef.current
+        ) {
+          return false;
+        }
         isAcceptingRef.current = true;
         if (isMountedRef.current) {
           setIsLoading(true);
@@ -154,7 +221,15 @@ export const useAcceptMoneyReferralCode =
           if (isMountedRef.current) {
             setErrorMessage('');
           }
-          const validationError = await validateCode(code);
+          let validationError: string;
+          try {
+            validationError = await validateCode(code);
+          } catch (error) {
+            if (isMountedRef.current) {
+              noteRefusal(error);
+            }
+            return false;
+          }
           if (validationError) {
             // A failed validation call is not a code the server rejected, so it
             // does not claim the code is invalid.
@@ -175,7 +250,7 @@ export const useAcceptMoneyReferralCode =
             );
           } catch (error) {
             if (isMountedRef.current) {
-              setErrorMessage(getRegisterRefereeErrorTitle(error));
+              noteRefusal(error);
             }
             return false;
           }
@@ -205,10 +280,16 @@ export const useAcceptMoneyReferralCode =
           }
         }
       },
-      [navigation, refreshReferralMe, validateCode],
+      [navigation, noteRefusal, refreshReferralMe, validateCode],
     );
 
-    return { acceptReferralCode, isLoading, errorMessage, clearError };
+    return {
+      acceptReferralCode,
+      isLoading,
+      errorMessage,
+      acceptBlockedUntil,
+      clearError,
+    };
   };
 
 export default useAcceptMoneyReferralCode;
