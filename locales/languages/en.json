@@ -2643,6 +2643,7 @@
         "scaleCountInvalid": "Scale order count is invalid",
         "scaleSizeTooSmall": "Each scale order is below the minimum size",
         "scaleNotionalTooSmall": "Each scale order is below the exchange minimum value",
+        "scalePreviewStale": "Scale order preview is out of date. Review the updated orders and try again",
         "chaseIntervalInvalid": "Chase interval is invalid",
         "chaseDurationInvalid": "Chase duration is invalid",
         "chaseLimitReached": "Too many chase orders are already running",

@@ -704,7 +704,7 @@ export function transformFillsToTransactions(
         isPositive,
         size: fillSize,
         entryPrice: price,
-        pnl,
+        pnl: pnl ?? '0',
         fee,
         points: '0', // Points feature not activated yet
         feeToken,
