@@ -1350,7 +1350,7 @@
       }
     },
     "composer": {
-      "placeholder": "Share your thoughts",
+      "placeholder": "Share your thoughts about a position",
       "post": "Post",
       "close": "Close composer",
       "character_count": "{{count}}/{{limit}}",
@@ -1376,7 +1376,18 @@
       "error_title": "Couldn't load positions",
       "retry": "Try again",
       "posting": "Posting...",
-      "post_failed": "Couldn't create post. Try again."
+      "post_failed": "Couldn't create post. Try again.",
+      "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
+    },
+    "post_swap_share": {
+      "in_progress": "In progress...",
+      "complete": "Swap complete",
+      "failed": "Swap failed",
+      "share_and_earn_title": "Share and earn",
+      "share_and_earn_body": "Earn 15% of the post-rebate fee when someone copies your trade.",
+      "share_this_trade": "Share this trade",
+      "try_again": "Try again",
+      "close": "Close"
     },
     "shell": {
       "subnav": {
