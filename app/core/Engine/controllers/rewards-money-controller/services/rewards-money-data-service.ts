@@ -730,7 +730,7 @@ export class RewardsMoneyDataService {
    * more. A `429` is not retried: its window is 30 seconds.
    */
   async #read(endpoint: string): Promise<Response> {
-    let response = await this.#makeRequest(endpoint, { method: 'GET' });
+    const response = await this.#makeRequest(endpoint, { method: 'GET' });
     if (response.status !== 503) {
       return response;
     }
