@@ -705,7 +705,8 @@ abstract class StreamChannel<T> {
       return;
     }
 
-    this.notifySubscribers(latest);
+    // Replaying a snapshot is not a successful post-error provider update.
+    this.notifySubscribers(latest, 'cache');
     // Throttled subscribers would otherwise park this in pendingUpdate behind a
     // timer — the Pro orders panel throttles at 1000ms, so a cancelled order
     // could stay on screen for up to a second after the book is already empty.

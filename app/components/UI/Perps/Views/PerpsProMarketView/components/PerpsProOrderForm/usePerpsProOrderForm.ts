@@ -1170,6 +1170,29 @@ export const usePerpsProOrderForm = ({
   ]);
   const isExactFullClose = exactFullCloseSize !== undefined;
 
+  const scaleBaseSize = exactFullCloseSize ?? exactAssetAmount;
+  // A live USD projection is display-only when the trader chose asset units.
+  const scaleUsdAmount =
+    scaleBaseSize === undefined ? effectiveUsdAmount : undefined;
+  const scaleExecutionContext = useMemo(
+    () => ({
+      account: normalizedSelectedAddress,
+      network,
+      providerId: scaleProviderId,
+      asset: orderForm.asset,
+    }),
+    [normalizedSelectedAddress, network, scaleProviderId, orderForm.asset],
+  );
+  const scaleExecutionContextRef = useRef<
+    typeof scaleExecutionContext | undefined
+  >(scaleExecutionContext);
+  useLayoutEffect(() => {
+    scaleExecutionContextRef.current = scaleExecutionContext;
+    return () => {
+      scaleExecutionContextRef.current = undefined;
+    };
+  }, [scaleExecutionContext]);
+
   const scalePreviewParams = useMemo<
     GetScalePriceLadderParams | undefined
   >(() => {
@@ -1177,8 +1200,7 @@ export const usePerpsProOrderForm = ({
     const maxPrice = Number(scaleEndPrice);
     const count = Number(scaleTotalOrders);
     const skew = Number(scaleSizeSkew);
-    const baseSize = exactFullCloseSize ?? exactAssetAmount;
-    const exposure = new BigNumber(baseSize ?? effectiveUsdAmount);
+    const exposure = new BigNumber(scaleBaseSize ?? scaleUsdAmount ?? '');
     if (
       !isScaleOrder ||
       !scaleProviderId ||
@@ -1204,14 +1226,13 @@ export const usePerpsProOrderForm = ({
       count,
       providerId: scaleProviderId,
       sizing:
-        baseSize === undefined
-          ? { usdAmount: effectiveUsdAmount, skew }
-          : { size: baseSize, skew },
+        scaleBaseSize === undefined
+          ? { usdAmount: scaleUsdAmount, skew }
+          : { size: scaleBaseSize, skew },
     };
   }, [
-    effectiveUsdAmount,
-    exactAssetAmount,
-    exactFullCloseSize,
+    scaleUsdAmount,
+    scaleBaseSize,
     isScaleOrder,
     isScaleOrdersEnabled,
     isScaleOrderSupportPending,
@@ -1682,7 +1703,6 @@ export const usePerpsProOrderForm = ({
             asset: orderForm.asset,
             direction: orderForm.direction,
             sizeIntent: scalePreviewParams?.sizing,
-            amount: effectiveUsdAmount,
             scaleStartPrice,
             scaleEndPrice,
             scaleTotalOrders,
@@ -2878,11 +2898,16 @@ export const usePerpsProOrderForm = ({
         });
 
         isChaseExecutionRef.current = false;
-        scaleExecutionIsCurrentRef.current = isCurrentSubmission;
+        // After dispatch, receipts belong to the issuing route and lifetime,
+        // independently of later preview refreshes or form display projections.
+        const isCurrentScaleExecution = () =>
+          isCurrentLifecycle() &&
+          scaleExecutionContextRef.current === scaleExecutionContext;
+        scaleExecutionIsCurrentRef.current = isCurrentScaleExecution;
         if (scalePreflightRef.current)
           scalePreflightRef.current.dispatched = true;
         const orderResult = await executeOrder(scaleOrderParams);
-        if (!isCurrentSubmission()) return;
+        if (!isCurrentScaleExecution()) return;
         if (isVenueSizedScale) PerpsCacheInvalidator.invalidate('accountState');
         if (!orderResult || (!orderResult.success && !isVenueSizedScale))
           return;

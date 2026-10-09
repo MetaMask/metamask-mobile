@@ -1,3 +1,4 @@
+import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type { TransactionMeta } from '@metamask/transaction-controller';
@@ -317,7 +318,7 @@ describe('PerpsDetails', () => {
       pnl: undefined,
       amountNumber: undefined,
       amount: '--',
-      expected: 'Unknown',
+      expected: strings('perps.transactions.unknown_pnl'),
     },
     { pnl: '0', amountNumber: 0, amount: '$0.00', expected: '$0.00' },
   ])(
@@ -348,7 +349,9 @@ describe('PerpsDetails', () => {
 
       expect(
         getByTestId(ActivityDetailsSelectorsIDs.PNL_ROW),
-      ).toHaveTextContent(`Net P&L${expected}`);
+      ).toHaveTextContent(
+        `${strings('perps.transactions.position.pnl')}${expected}`,
+      );
     },
   );
 
