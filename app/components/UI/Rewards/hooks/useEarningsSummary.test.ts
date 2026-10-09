@@ -122,6 +122,29 @@ describe('useEarningsSummary', () => {
     );
   });
 
+  it('skips a second fetch while one is still in flight', async () => {
+    let resolveInFlight: (value: typeof mockSummary) => void = () => undefined;
+    mockEngineCall.mockReturnValue(
+      new Promise((resolve) => {
+        resolveInFlight = resolve;
+      }),
+    );
+
+    const { result } = renderHook(() => useEarningsSummary(PROFILE_A));
+    result.current.fetchEarningsSummary({ forceFresh: true });
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(1);
+
+    resolveInFlight(mockSummary);
+    await flushPromises();
+
+    mockEngineCall.mockResolvedValue(mockSummary);
+    result.current.fetchEarningsSummary({ forceFresh: true });
+    await flushPromises();
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(2);
+  });
+
   it('passes forceFresh through to the controller', async () => {
     const { result } = renderHook(() => useEarningsSummary(PROFILE_A));
     await flushPromises();

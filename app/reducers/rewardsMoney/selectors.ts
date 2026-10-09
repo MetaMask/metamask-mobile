@@ -2,6 +2,7 @@ import type { RootState } from '..';
 import type {
   CommissionEntryView,
   LedgerEarningEntryDto,
+  LedgerEntryDto,
   ReferralLocalizedText,
   ReferralVariant,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
@@ -87,4 +88,15 @@ export function selectCashbackLedger(
     return undefined;
   }
   return state.rewardsMoney.cashbackLedger[profileId];
+}
+
+/** First page of the unified earnings ledger for one Hydra profile. */
+export function selectEarningsHistory(
+  state: RootState,
+  profileId: string | undefined,
+): LedgerEntryDto[] | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.earningsHistory[profileId];
 }

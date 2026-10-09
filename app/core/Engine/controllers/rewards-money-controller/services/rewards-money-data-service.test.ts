@@ -4,6 +4,7 @@ import {
   RewardsMoneyAuthorizationError,
   RewardsMoneyRebateQuoteError,
   RewardsMoneyHttpError,
+  buildEarningsSummaryQuery,
   buildOriginTypeQuery,
   type RewardsMoneyDataServiceMessenger,
 } from './rewards-money-data-service';
@@ -467,6 +468,45 @@ describe('RewardsMoneyDataService', () => {
         ),
         expect.any(Object),
       );
+    });
+
+    it('sends a window only with claimability turned off', async () => {
+      mockFetch.mockResolvedValue(
+        okJson({
+          lifetime_total: '0',
+          window: { from: '2026-09-22', to: '2026-09-28' },
+          pending: '0',
+          claimed: '0',
+          forfeited: '0',
+          minimum_musd_base_units: '0',
+          self_earned: {
+            lifetime: '0',
+            pending: '0',
+            claimed: '0',
+            forfeited: '0',
+            by_claim_family: {},
+          },
+          earned_by_others: {
+            lifetime: '0',
+            pending: '0',
+            claimed: '0',
+            forfeited: '0',
+            by_claim_family: {},
+          },
+        }),
+      );
+
+      await service.getEarningsSummary(undefined, {
+        from: '2026-09-22',
+        to: '2026-09-28',
+        includeClaimable: false,
+      });
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('from=2026-09-22');
+      expect(url).toContain('to=2026-09-28');
+      expect(url).toContain('include_claimable=false');
+      expect(url).not.toContain('earning_origin_type');
     });
 
     it('throws when earnings summary fails', async () => {
@@ -1046,6 +1086,30 @@ describe('RewardsMoneyDataService', () => {
       await expect(
         service.getRebateQuote({ product: 'perps' }),
       ).rejects.toMatchObject({ status: 200, failure: 'FAILED' });
+    });
+  });
+
+  describe('buildEarningsSummaryQuery', () => {
+    it('matches the origin-type query when claimability stays on', () => {
+      expect(buildEarningsSummaryQuery()).toBe('');
+      expect(buildEarningsSummaryQuery(['REFERRAL_REV_SHARE'])).toBe(
+        '?earning_origin_type=REFERRAL_REV_SHARE',
+      );
+      expect(
+        buildEarningsSummaryQuery(undefined, { includeClaimable: true }),
+      ).toBe('');
+    });
+
+    it('appends the window and include_claimable=false together', () => {
+      expect(
+        buildEarningsSummaryQuery(['SWAPS_FEE_CASHBACK'], {
+          from: '2026-09-22',
+          to: '2026-09-28',
+          includeClaimable: false,
+        }),
+      ).toBe(
+        '?earning_origin_type=SWAPS_FEE_CASHBACK&from=2026-09-22&to=2026-09-28&include_claimable=false',
+      );
     });
   });
 });

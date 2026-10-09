@@ -28,6 +28,7 @@ import {
 } from '../../../../reducers/rewardsMoney/selectors';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
+import EarningsTab from '../components/Money/Tabs/EarningsTab';
 import PerformanceTab from '../components/Money/Tabs/PerformanceTab';
 import WaysToEarnTab from '../components/Money/Tabs/WaysToEarnTab';
 import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkeleton';
@@ -222,7 +223,13 @@ const RewardsMoneyDashboard: React.FC = () => {
               <Box
                 testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY}
                 {...tabPanelProps(activeTab === 'earnings')}
-              />
+              >
+                <EarningsTab
+                  profileId={profileId}
+                  variant={referralMe.variant}
+                  onViewPerformance={() => setActiveTab('performance')}
+                />
+              </Box>
               <Box
                 testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY}
                 {...tabPanelProps(activeTab === 'performance')}

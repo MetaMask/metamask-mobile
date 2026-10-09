@@ -478,7 +478,24 @@ export interface RegisterRefereeDto {
   code: string;
 }
 
-export interface GetEarningsSummaryDto {
+/**
+ * Optional narrowing for `GET /earnings/summary`.
+ *
+ * A window (`from`/`to`, UTC `YYYY-MM-DD`, closed on both ends) is only valid
+ * with `includeClaimable: false`. Claimability is what a claim would pay right
+ * now, so the server refuses it beside a window rather than mixing the two.
+ */
+export interface EarningsSummaryQuery {
+  from?: string;
+  to?: string;
+  /**
+   * When false, the response omits `claimable`, `held` and `blocked`.
+   * Defaults to true, matching the server.
+   */
+  includeClaimable?: boolean;
+}
+
+export interface GetEarningsSummaryDto extends EarningsSummaryQuery {
   originTypes?: EarningOriginType[];
   forceFresh?: boolean;
 }
