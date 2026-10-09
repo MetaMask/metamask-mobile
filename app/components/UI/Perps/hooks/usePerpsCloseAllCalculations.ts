@@ -1,5 +1,6 @@
 import {
   getPerpsFeeDiscount,
+  getPerpsFeeDiscountPercentage,
   type PerpsFeeDiscountKind,
 } from '../utils/feeDiscount';
 import { useMemo, useState, useEffect, useRef } from 'react';
@@ -529,11 +530,10 @@ export function usePerpsCloseAllCalculations({
     );
     const avgOriginalMetamaskFeeRate =
       totalWeight > 0 ? originalBuilderTotal / totalWeight : undefined;
-    const rateDerivedDiscountPercentage =
-      originalBuilderTotal > currentBuilderTotal && originalBuilderTotal > 0
-        ? ((originalBuilderTotal - currentBuilderTotal) / originalBuilderTotal) *
-          100
-        : undefined;
+    const rateDerivedDiscountPercentage = getPerpsFeeDiscountPercentage(
+      originalBuilderTotal,
+      currentBuilderTotal,
+    );
     const avgFeeDiscountBips =
       weightedDiscountWeight > 0
         ? Math.round(weightedFeeDiscountBips / weightedDiscountWeight)

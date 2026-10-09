@@ -17,6 +17,43 @@ export interface PerpsFeeDiscount {
   kind: PerpsFeeDiscountKind;
 }
 
+/** Hundredths match the fees tooltip, which prints this number with toString(). */
+const FEE_DISCOUNT_PERCENTAGE_SCALE = 100;
+
+/**
+ * Percent reduction from an original fee amount or rate to the current one.
+ *
+ * Rounded to hundredths so binary division noise (0.0009 versus 0.001 is
+ * 10.000000000000005) does not reach the fees tooltip.
+ *
+ * @param originalFee - Fee amount or rate before the discount.
+ * @param currentFee - Fee amount or rate after the discount.
+ * @returns Discount percent in the range (0, 100], or undefined when there is no reduction.
+ */
+export function getPerpsFeeDiscountPercentage(
+  originalFee: number,
+  currentFee: number,
+): number | undefined {
+  if (
+    !Number.isFinite(originalFee) ||
+    !Number.isFinite(currentFee) ||
+    originalFee <= 0 ||
+    currentFee >= originalFee
+  ) {
+    return undefined;
+  }
+
+  const percentage = Math.min(
+    100,
+    Math.max(0, ((originalFee - currentFee) / originalFee) * 100),
+  );
+  const rounded =
+    Math.round(percentage * FEE_DISCOUNT_PERCENTAGE_SCALE) /
+    FEE_DISCOUNT_PERCENTAGE_SCALE;
+
+  return rounded > 0 ? rounded : undefined;
+}
+
 /**
  * Derives presentation from the resolved quote. Attribution never proves that
  * a discount occurred: rewards can win a tie with the default fee.
@@ -26,19 +63,17 @@ export function getPerpsFeeDiscount({
   currentFeeRate,
   originalFeeRate,
 }: GetPerpsFeeDiscountParams): PerpsFeeDiscount {
-  if (
-    currentFeeRate === undefined ||
-    originalFeeRate === undefined ||
-    originalFeeRate <= 0 ||
-    currentFeeRate >= originalFeeRate
-  ) {
+  if (currentFeeRate === undefined || originalFeeRate === undefined) {
     return { kind: undefined };
   }
 
-  const percentage = Math.min(
-    100,
-    Math.max(0, ((originalFeeRate - currentFeeRate) / originalFeeRate) * 100),
+  const percentage = getPerpsFeeDiscountPercentage(
+    originalFeeRate,
+    currentFeeRate,
   );
+  if (percentage === undefined) {
+    return { kind: undefined };
+  }
 
   if (feeSource === 'default') {
     return { kind: undefined };

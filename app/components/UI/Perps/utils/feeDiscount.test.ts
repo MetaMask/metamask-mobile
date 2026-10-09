@@ -1,4 +1,7 @@
-import { getPerpsFeeDiscount } from './feeDiscount';
+import {
+  getPerpsFeeDiscount,
+  getPerpsFeeDiscountPercentage,
+} from './feeDiscount';
 
 describe('getPerpsFeeDiscount', () => {
   it.each([
@@ -34,5 +37,53 @@ describe('getPerpsFeeDiscount', () => {
         originalFeeRate: 0.001,
       }),
     ).toEqual({ percentage: 100, kind: 'promotional' });
+  });
+
+  it('rounds a 0.0009 versus 0.001 rate to a 10 percent savings', () => {
+    const discount = getPerpsFeeDiscount({
+      feeSource: 'rewards',
+      currentFeeRate: 0.0009,
+      originalFeeRate: 0.001,
+    });
+
+    expect(discount).toEqual({ percentage: 10, kind: 'vip' });
+    expect(String(discount.percentage)).toBe('10');
+  });
+
+  it('rounds a 0.00035 versus 0.001 rate to a 65 percent savings', () => {
+    const discount = getPerpsFeeDiscount({
+      feeSource: 'rewards',
+      currentFeeRate: 0.00035,
+      originalFeeRate: 0.001,
+    });
+
+    expect(discount).toEqual({ percentage: 65, kind: 'vip' });
+    expect(String(discount.percentage)).toBe('65');
+  });
+
+  it('keeps a fractional discount at hundredths', () => {
+    const discount = getPerpsFeeDiscount({
+      feeSource: 'grant',
+      currentFeeRate: 0.000875,
+      originalFeeRate: 0.001,
+    });
+
+    expect(discount).toEqual({ percentage: 12.5, kind: 'promotional' });
+    expect(String(discount.percentage)).toBe('12.5');
+  });
+});
+
+describe('getPerpsFeeDiscountPercentage', () => {
+  it('rounds close-all builder totals that are not exact in binary', () => {
+    const percentage = getPerpsFeeDiscountPercentage(25.5, 22.95);
+
+    expect(percentage).toBe(10);
+    expect(String(percentage)).toBe('10');
+  });
+
+  it('returns undefined when the rounded savings is zero', () => {
+    const percentage = getPerpsFeeDiscountPercentage(0.001, 0.000999999);
+
+    expect(percentage).toBeUndefined();
   });
 });
