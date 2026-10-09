@@ -1,6 +1,11 @@
 export const MyProfileViewSelectorsIDs = {
   CONTAINER: 'my-profile-view-container',
   HEADER: 'my-profile-view-header',
+  HEADER_COMPACT_IDENTITY: 'my-profile-view-header-compact-identity',
+  COMPACT_STATS: 'my-profile-view-compact-stats',
+  HEADER_COMPACT_WIN_RATE: 'my-profile-view-header-compact-win-rate',
+  HEADER_COMPACT_PNL: 'my-profile-view-header-compact-pnl',
+  TITLE_SECTION_WRAPPER: 'my-profile-view-title-section-wrapper',
   BACK_BUTTON: 'my-profile-view-back-button',
   INSIGHTS_BUTTON: 'my-profile-view-insights-button',
   AVATAR: 'my-profile-view-avatar',

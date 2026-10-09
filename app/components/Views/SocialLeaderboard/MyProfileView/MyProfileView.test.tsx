@@ -18,6 +18,7 @@ import type {
   UseTraderPositionsResult,
 } from '../TraderProfileView/hooks/useTraderPositions';
 import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTraderProfile';
+import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   getLocalSocialProfileSnapshot,
@@ -226,6 +227,41 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.HANDLE),
     ).toHaveTextContent('@giga-whale.metamask');
+  });
+
+  it('renders the owner identity and stats in the compact header', () => {
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY),
+    ).toHaveTextContent('Giga Whale');
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_WIN_RATE),
+    ).toHaveTextContent('*60%');
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_PNL),
+    ).toHaveTextContent('*+$7,100');
+  });
+
+  it('keeps the top inset on the animated header', () => {
+    renderWithProvider(<MyProfileView />);
+
+    expectHeaderIncludesTopInset(
+      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER),
+    );
+  });
+
+  it('measures the profile title section for header animation', () => {
+    renderWithProvider(<MyProfileView />);
+
+    const titleSectionWrapper = screen.getByTestId(
+      MyProfileViewSelectorsIDs.TITLE_SECTION_WRAPPER,
+    );
+    fireEvent(titleSectionWrapper, 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 320 } },
+    });
+
+    expect(titleSectionWrapper).toBeOnTheScreen();
   });
 
   it('renders zero for missing follower counts', () => {
