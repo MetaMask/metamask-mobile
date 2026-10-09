@@ -1,5 +1,7 @@
 import {
+  beginMusdRescueSendAttempt,
   clearMusdRescueInFlightForTests,
+  endMusdRescueSendAttempt,
   flushMusdRescueInFlightForTests,
   isMusdRescueSendInFlight,
   markMusdRescueSendSetupFailed,
@@ -57,6 +59,56 @@ describe('musdRescueInFlight', () => {
 
       // The 50ms race timeout in the flush helper unblocks the test even
       // though the submission is still pending.
+      expect(isMusdRescueSendInFlight()).toBe(true);
+    });
+  });
+
+  describe('beginMusdRescueSendAttempt', () => {
+    it('blocks new attempts until the attempt is ended', () => {
+      const attemptId = beginMusdRescueSendAttempt();
+
+      expect(isMusdRescueSendInFlight()).toBe(true);
+
+      endMusdRescueSendAttempt(attemptId);
+
+      expect(isMusdRescueSendInFlight()).toBe(false);
+    });
+
+    it('is superseded by a registered submission that later settles', async () => {
+      const attemptId = beginMusdRescueSendAttempt();
+
+      let resolveCompletion: (reason: 'submitted' | 'failed') => void = () =>
+        undefined;
+      const completion = new Promise<'submitted' | 'failed'>((resolve) => {
+        resolveCompletion = resolve;
+      });
+
+      registerMusdRescueSendSubmission({
+        batchId: 'batch-attempted',
+        completion,
+        attemptId,
+      });
+
+      // The placeholder is gone, the real submission is tracked.
+      expect(isMusdRescueSendInFlight()).toBe(true);
+
+      resolveCompletion('submitted');
+      await flushMusdRescueInFlightForTests();
+
+      expect(isMusdRescueSendInFlight()).toBe(false);
+    });
+
+    it('end is a no-op after the attempt was superseded', async () => {
+      const attemptId = beginMusdRescueSendAttempt();
+
+      registerMusdRescueSendSubmission({
+        batchId: 'batch-still-in-flight',
+        completion: new Promise<'submitted' | 'failed'>(() => undefined),
+        attemptId,
+      });
+      endMusdRescueSendAttempt(attemptId);
+
+      // Ending the stale attempt id must not clear the live submission entry.
       expect(isMusdRescueSendInFlight()).toBe(true);
     });
   });

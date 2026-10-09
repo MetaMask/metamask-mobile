@@ -14,6 +14,8 @@ import {
   registerMusdRescueSendSubmission,
   markMusdRescueSendSetupFailed,
   isMusdRescueSendInFlight,
+  beginMusdRescueSendAttempt,
+  endMusdRescueSendAttempt,
 } from '../utils/musdRescueInFlight';
 import {
   MUSD_DECIMALS,
@@ -235,7 +237,7 @@ export function useMoneyAccountMusdRescueSend() {
    * @param prepared - Output of {@link prepareRescueSend}.
    */
   const submitRescueSend = useCallback(
-    (prepared: PreparedMusdRescueSend): void => {
+    (prepared: PreparedMusdRescueSend, attemptId: string): void => {
       const completion = addTransactionBatch({
         batchId: prepared.batchId,
         requireApproval: false,
@@ -274,6 +276,7 @@ export function useMoneyAccountMusdRescueSend() {
       registerMusdRescueSendSubmission({
         batchId: prepared.batchId,
         completion,
+        attemptId,
       });
     },
     [],
@@ -297,19 +300,31 @@ export function useMoneyAccountMusdRescueSend() {
           { reason: 'in-flight' },
         );
       }
-      const prepared = await prepareRescueSend({
-        recipient,
-        amount,
-        sameSrpAddresses,
-      });
+      // Open the in-flight attempt before any async work so the prepare
+      // window (fresh-balance network read) is also covered: the sending
+      // screen may unmount during the await and lose its local tap guard,
+      // and a second Send here would otherwise start a second transfer.
+      const attemptId = beginMusdRescueSendAttempt();
+      let prepared: PreparedMusdRescueSend;
+      try {
+        prepared = await prepareRescueSend({
+          recipient,
+          amount,
+          sameSrpAddresses,
+        });
+      } catch (error) {
+        endMusdRescueSendAttempt(attemptId);
+        throw error;
+      }
       // The user has confirmed on the review screen. Show the pending toast
       // immediately, navigate home, and let the submission promise settle in
       // the background — the global Money transaction monitor owns the
       // success/failure toasts from here. Submission is registered before
-      // returning so a fast unmount cannot lose duplicate protection.
+      // returning so a fast unmount cannot lose duplicate protection; the
+      // registered entry supersedes this attempt's placeholder.
       showToast(MoneyToastOptions.rescue?.inProgress() as never);
       navigateToMoneyHome();
-      submitRescueSend(prepared);
+      submitRescueSend(prepared, attemptId);
     },
     [
       MoneyToastOptions.rescue,

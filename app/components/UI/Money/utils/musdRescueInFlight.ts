@@ -25,21 +25,63 @@ type MusdRescueSetupFailureListener = (batchId: string) => void;
 const inFlightSubmissions = new Map<string, MusdRescueSubmissionEntry>();
 const setupFailureListeners = new Set<MusdRescueSetupFailureListener>();
 
+// Placeholder completion for attempts still preparing: never settles, so it
+// keeps blocking new attempts until superseded or abandoned.
+const PENDING_COMPLETION = new Promise<MusdRescueSubmissionReason>(
+  () => undefined,
+);
+
+let attemptCounter = 0;
+
+/**
+ * Opens a rescue attempt before any async work starts. Until the attempt is
+ * either superseded by {@link registerMusdRescueSendSubmission} or abandoned
+ * via {@link endMusdRescueSendAttempt}, new rescue attempts are rejected —
+ * this covers the prepare window (fresh-balance network read) where the
+ * sending screen may unmount and lose its local tap guard.
+ *
+ * @returns An opaque attempt id to pass to register or end.
+ */
+export function beginMusdRescueSendAttempt(): string {
+  attemptCounter += 1;
+  const attemptId = `musd-rescue-attempt-${attemptCounter}`;
+  inFlightSubmissions.set(attemptId, { completion: PENDING_COMPLETION });
+  return attemptId;
+}
+
+/**
+ * Abandons a started attempt (e.g. preparation failed or the user backed
+ * out). No-op if the attempt was already superseded by a real submission.
+ *
+ * @param attemptId - Id returned by {@link beginMusdRescueSendAttempt}.
+ */
+export function endMusdRescueSendAttempt(attemptId: string): void {
+  inFlightSubmissions.delete(attemptId);
+}
+
 /**
  * Registers a rescue submission that has been handed to the transaction
  * controller. The entry is dropped as soon as the attempt reaches a terminal
- * outcome; until then any new rescue attempt is rejected.
+ * outcome; until then any new rescue attempt is rejected. Supersedes the
+ * placeholder opened by {@link beginMusdRescueSendAttempt} for this attempt.
  *
  * @param params.batchId - Batch id allocated for the submission.
  * @param params.completion - Promise resolving when the attempt settles.
+ * @param params.attemptId - Id returned by {@link beginMusdRescueSendAttempt}
+ * for the attempt that produced this submission.
  */
 export function registerMusdRescueSendSubmission({
   batchId,
   completion,
+  attemptId,
 }: {
   batchId: string;
   completion: Promise<MusdRescueSubmissionReason>;
+  attemptId?: string;
 }): void {
+  if (attemptId) {
+    inFlightSubmissions.delete(attemptId);
+  }
   inFlightSubmissions.set(batchId, { completion });
   const dropEntry = () => {
     inFlightSubmissions.delete(batchId);
@@ -101,4 +143,5 @@ export async function flushMusdRescueInFlightForTests(): Promise<void> {
  */
 export function clearMusdRescueInFlightForTests(): void {
   inFlightSubmissions.clear();
+  attemptCounter = 0;
 }

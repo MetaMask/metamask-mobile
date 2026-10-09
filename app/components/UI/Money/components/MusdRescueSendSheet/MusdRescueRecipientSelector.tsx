@@ -142,6 +142,7 @@ const MusdRescueRecipientScreen = () => {
     return recipients.filter(
       (recipient) =>
         recipient.name.toLowerCase().includes(query) ||
+        recipient.groupName.toLowerCase().includes(query) ||
         recipient.address.toLowerCase().includes(query),
     );
   }, [recipients, searchQuery]);

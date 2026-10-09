@@ -244,6 +244,32 @@ describe('useMoneyAccountMusdRescueSend', () => {
     expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
     expect(mockShowToast).not.toHaveBeenCalled();
     expect(mockAddTransactionBatch).not.toHaveBeenCalled();
+
+    // The failed attempt released the in-flight guard, so a retry works.
+    await expect(initiate(result)).resolves.toBeUndefined();
+    expect(mockAddTransactionBatch).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a second submission blocked while the first is still preparing', async () => {
+    // Preparation hangs on the fresh-balance read (network in flight).
+    mockRefreshMoneyAccountBalanceFresh.mockImplementationOnce(
+      () => new Promise(() => undefined) as never,
+    );
+    const { result } = renderHook(() => useMoneyAccountMusdRescueSend());
+
+    const firstAttempt = initiate(result, { amount: '100' });
+
+    await expect(
+      result.current.initiateRescueSend({
+        recipient: MOCK_RECIPIENT,
+        amount: '100',
+        sameSrpAddresses: SAME_SRP_ADDRESSES,
+      } as never),
+    ).rejects.toMatchObject({ reason: 'in-flight' });
+
+    expect(mockAddTransactionBatch).not.toHaveBeenCalled();
+    expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
+    expect(firstAttempt).toBeInstanceOf(Promise);
   });
 
   it('blocks with amount-exceeds-balance when the reviewed amount no longer matches the fresh balance', async () => {
