@@ -21,7 +21,7 @@ import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 import { useQuickBuyContext } from './useQuickBuyContext';
 import { getGaslessFeeAsset } from '../Bridge/utils/getGaslessFeeAsset';
 import { DiscountType } from '@metamask/bridge-controller';
-import MembershipVipBadge from '../Rewards/components/MembershipVipBadge';
+import MembershipVipBadge from '../shared/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../Rewards/components/RewardsDiscountBadge';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
 import QuickBuyQuoteCountdown from './components/QuickBuyQuoteCountdown';

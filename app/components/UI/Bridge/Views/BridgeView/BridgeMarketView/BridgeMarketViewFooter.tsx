@@ -29,7 +29,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds.ts';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import MembershipVipBadge from '../../../../Rewards/components/MembershipVipBadge';
+import MembershipVipBadge from '../../../../shared/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../../../../Rewards/components/RewardsDiscountBadge';
 import { useFeeDisclaimer } from '../../../hooks/useFeeDisclaimer';
 

@@ -3,11 +3,11 @@ import { render } from '@testing-library/react-native';
 import MembershipVipBadge from './MembershipVipBadge';
 
 const mockUseVipTier = jest.fn();
-jest.mock('../../hooks/useVipTier', () => ({
+jest.mock('../../Rewards/hooks/useVipTier', () => ({
   useVipTier: () => mockUseVipTier(),
 }));
 
-jest.mock('../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
     if (key === 'rewards.vip.badge_label' && params) {
       return `Mock VIP ${params.tier}`;

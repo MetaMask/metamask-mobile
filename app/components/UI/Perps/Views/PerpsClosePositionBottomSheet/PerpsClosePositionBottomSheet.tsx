@@ -17,7 +17,7 @@ import { type OrdinaryOrderType } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import Keypad from '../../../../Base/Keypad';
-import MembershipVipBadge from '../../../Rewards/components/MembershipVipBadge/MembershipVipBadge';
+import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';

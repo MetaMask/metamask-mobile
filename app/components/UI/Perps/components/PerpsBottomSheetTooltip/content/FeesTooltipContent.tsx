@@ -6,7 +6,7 @@ import { TooltipContentProps } from './types';
 import createStyles from './FeesTooltipContent.styles';
 import { formatFeeRate } from '../../../hooks/usePerpsOrderFees';
 import VipIcon from '../../../../../../images/rewards/vip.svg';
-import MembershipVipBadge from '../../../../Rewards/components/MembershipVipBadge/MembershipVipBadge';
+import MembershipVipBadge from '../../../../shared/MembershipVipBadge/MembershipVipBadge';
 import {
   Text,
   TextColor,

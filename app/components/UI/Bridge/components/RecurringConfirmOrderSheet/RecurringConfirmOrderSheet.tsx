@@ -56,7 +56,7 @@ import {
 } from '../../utils/recurringSchedule';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { getSlippageDisplayValue } from '../SlippageModal/utils';
-import MembershipVipBadge from '../../../Rewards/components/MembershipVipBadge';
+import MembershipVipBadge from '../../../shared/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../../../Rewards/components/RewardsDiscountBadge';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
 import type { RecurringConfirmOrderSheetProps } from './RecurringConfirmOrderSheet.types';

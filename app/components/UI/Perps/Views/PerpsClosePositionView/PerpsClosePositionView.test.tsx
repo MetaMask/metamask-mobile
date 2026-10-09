@@ -180,18 +180,15 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
   default: 'PerpsBottomSheetTooltip',
 }));
 
-jest.mock(
-  '../../../Rewards/components/MembershipVipBadge/MembershipVipBadge',
-  () => {
-    const MockReact = jest.requireActual('react');
-    const { View: MockView } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: () =>
-        MockReact.createElement(MockView, { testID: 'rewards-vip-badge' }),
-    };
-  },
-);
+jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
+  const MockReact = jest.requireActual('react');
+  const { View: MockView } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      MockReact.createElement(MockView, { testID: 'rewards-vip-badge' }),
+  };
+});
 
 const STATE_MOCK = createPerpsStateMock();
 

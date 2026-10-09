@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import MembershipVipBadge from '../../../Rewards/components/MembershipVipBadge/MembershipVipBadge';
+import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { createStyles } from './PerpsFeesDisplay.styles';
 import { useTheme } from '../../../../../util/theme';
 import {

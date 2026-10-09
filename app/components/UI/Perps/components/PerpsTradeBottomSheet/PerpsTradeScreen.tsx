@@ -26,7 +26,7 @@ import React, { useState } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Keypad from '../../../../Base/Keypad';
-import MembershipVipBadge from '../../../Rewards/components/MembershipVipBadge/MembershipVipBadge';
+import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
 import PerpsMarketLimitToggle from '../PerpsMarketLimitToggle';
