@@ -13,21 +13,18 @@ import type {
   KycProviderFlowStatus,
   KycSessionStatus,
 } from '@metamask/kyc-controller';
-import Engine from '../../../../core/Engine';
-import Logger from '../../../../util/Logger';
+import Engine from '../../../../../../core/Engine';
+import Logger from '../../../../../../util/Logger';
 import {
   selectRampsControllerState,
   selectSelectedVbaWalletAddress,
-} from '../../../../selectors/rampsController';
+} from '../../../../../../selectors/rampsController';
 import {
   selectKycProviderFlowStatus,
   selectKycSessionStatus,
-} from '../../../../selectors/kycController';
-import {
-  useVbaEligibility,
-  type VbaEligibility,
-} from '../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
-import { hasAcceptedVbaVendorTerms } from '../../Ramp/Views/VirtualBankAccount/vbaVendorTermsStorage';
+} from '../../../../../../selectors/kycController';
+import { useVbaEligibility, type VbaEligibility } from './useVbaEligibility';
+import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
 import {
   getVbaHomeCard,
   shouldRefreshKycSessionOnFocus,
@@ -37,7 +34,7 @@ import {
 } from './useVbaHomeCard';
 
 jest.mock('react-redux');
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('../../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
@@ -47,10 +44,10 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
-jest.mock('../../../../selectors/rampsController');
-jest.mock('../../../../selectors/kycController');
-jest.mock('../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility');
-jest.mock('../../Ramp/Views/VirtualBankAccount/vbaVendorTermsStorage');
+jest.mock('../../../../../../selectors/rampsController');
+jest.mock('../../../../../../selectors/kycController');
+jest.mock('./useVbaEligibility');
+jest.mock('../vbaVendorTermsStorage');
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));

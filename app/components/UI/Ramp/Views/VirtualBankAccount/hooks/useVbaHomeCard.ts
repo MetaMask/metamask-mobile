@@ -10,19 +10,19 @@ import type {
   KycProviderFlowStatus,
   KycSessionStatus,
 } from '@metamask/kyc-controller';
-import Engine from '../../../../core/Engine';
-import Logger from '../../../../util/Logger';
-import type { RootState } from '../../../../reducers';
+import Engine from '../../../../../../core/Engine';
+import Logger from '../../../../../../util/Logger';
+import type { RootState } from '../../../../../../reducers';
 import {
   selectKycProviderFlowStatus,
   selectKycSessionStatus,
-} from '../../../../selectors/kycController';
+} from '../../../../../../selectors/kycController';
 import {
   selectRampsControllerState,
   selectSelectedVbaWalletAddress,
-} from '../../../../selectors/rampsController';
-import { useVbaEligibility } from '../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
-import { hasAcceptedVbaVendorTerms } from '../../Ramp/Views/VirtualBankAccount/vbaVendorTermsStorage';
+} from '../../../../../../selectors/rampsController';
+import { useVbaEligibility } from './useVbaEligibility';
+import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
 
 /**
  * Identity of the single VBA status card Money home renders, if any. The hook
