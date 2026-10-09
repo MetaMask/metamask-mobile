@@ -6,10 +6,11 @@ name: Build iOS E2E Debug App (manual)
 
 on:
   workflow_dispatch:
-  # TEMPORARY: lets this branch exercise the workflow before it exists on main. Remove before merge.
-  push:
-    branches:
-      - ci/ios-e2e-debug-build-target
+  # TEMPORARY: lets this PR exercise the workflow before it exists on main. Remove before merge.
+  # pull_request (not push) because the AWS signing role only trusts PR-scoped OIDC tokens.
+  pull_request:
+    paths:
+      - .github/workflows/build-ios-e2e-debug.yml
 
 permissions:
   contents: read
