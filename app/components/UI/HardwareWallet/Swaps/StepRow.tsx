@@ -37,6 +37,10 @@ interface StepRowProps {
   amount?: string;
   /** Token symbol shown in the step title. */
   tokenSymbol?: string;
+  /** Destination amount for swap copy (both dest values required). */
+  destAmount?: string;
+  /** Destination symbol for swap copy (both dest values required). */
+  destTokenSymbol?: string;
   /** Whether the active wallet signs via QR code scanning. */
   isQrWallet?: boolean;
   /** Pending QR scan request shown inline while a step is signing. */
@@ -56,6 +60,8 @@ export const StepRow = memo(
     isLast,
     amount,
     tokenSymbol,
+    destAmount,
+    destTokenSymbol,
     isQrWallet,
     pendingScanRequest,
   }: StepRowProps) => {
@@ -117,16 +123,24 @@ export const StepRow = memo(
             color={titleColor}
             fontWeight={FontWeight.Medium}
           >
-            {getStepTitle(step, { amount, tokenSymbol })}
+            {getStepTitle(step, {
+              amount,
+              tokenSymbol,
+              destAmount,
+              destTokenSymbol,
+            })}
           </Text>
-          {description ? (
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {description}
-            </Text>
-          ) : null}
+          <Box gap={1}>
+            {description.map((line, lineIndex) => (
+              <Text
+                key={`${lineIndex}-${line}`}
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {line}
+              </Text>
+            ))}
+          </Box>
           {showQrCode && pendingScanRequest.request ? (
             <Box
               testID={`${HardwareWalletsSwapsSelectorsIDs.INLINE_QR_CODE}-${index}`}
