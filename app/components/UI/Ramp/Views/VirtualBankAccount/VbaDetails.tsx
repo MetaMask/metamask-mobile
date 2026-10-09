@@ -35,6 +35,7 @@ export const VbaDetailsSelectorsIDs = {
   BACK_BUTTON: 'vba-details-back-button',
   DONE_BUTTON: 'vba-details-done-button',
   PIX_CODE: 'vba-details-pix-code',
+  PIX_INSTRUCTIONS: 'vba-details-pix-instructions',
   PIX_KEY: 'vba-details-pix-key',
   WAITING_FOR_PIX: 'vba-details-waiting-for-pix',
   LOAD_ERROR: 'vba-details-load-error',
@@ -248,6 +249,36 @@ const VbaDetails = () => {
     );
   }, [loadError]);
 
+  const transactionLabel =
+    transactionStatus === 'Completed'
+      ? strings('virtual_bank_account.vba_details.transaction_completed')
+      : transactionStatus;
+  const pixAnnouncement = instructions?.brCode
+    ? instructions.instruction ||
+      strings('virtual_bank_account.vba_details.br_code')
+    : null;
+  const transactionAnnouncement = transactionLabel
+    ? strings('virtual_bank_account.vba_details.transaction_status', {
+        status: transactionLabel,
+      })
+    : null;
+
+  // Announce when PIX instructions appear or deposit status moves, including
+  // Completed, so focus on Done does not hide the update (WCAG 4.1.3).
+  useEffect(() => {
+    if (!pixAnnouncement) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(pixAnnouncement);
+  }, [pixAnnouncement]);
+
+  useEffect(() => {
+    if (!transactionAnnouncement) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(transactionAnnouncement);
+  }, [transactionAnnouncement]);
+
   const handleDone = useCallback(() => {
     navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
@@ -256,11 +287,6 @@ const VbaDetails = () => {
   }, [navigation]);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
-
-  const transactionLabel =
-    transactionStatus === 'Completed'
-      ? strings('virtual_bank_account.vba_details.transaction_completed')
-      : transactionStatus;
 
   return (
     <SafeAreaView
@@ -295,8 +321,13 @@ const VbaDetails = () => {
         ) : null}
         {instructions ? (
           <Box twClassName="mt-4">
-            <Text variant={TextVariant.BodyMd} twClassName="mb-2">
-              {instructions.instruction}
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="mb-2"
+              testID={VbaDetailsSelectorsIDs.PIX_INSTRUCTIONS}
+              accessibilityLiveRegion="polite"
+            >
+              {pixAnnouncement}
             </Text>
             <Box testID={VbaDetailsSelectorsIDs.PIX_CODE}>
               <BankDetailRow
@@ -328,10 +359,9 @@ const VbaDetails = () => {
             variant={TextVariant.BodyMd}
             twClassName="mt-4"
             testID={VbaDetailsSelectorsIDs.TRANSACTION_STATUS}
+            accessibilityLiveRegion="polite"
           >
-            {strings('virtual_bank_account.vba_details.transaction_status', {
-              status: transactionLabel,
-            })}
+            {transactionAnnouncement}
           </Text>
         ) : null}
         {loadError ? (
