@@ -18,6 +18,7 @@ import AccountsMenu from '../../Views/AccountsMenu';
 import AccountHub from '../../Views/AccountHub';
 import ProfileDrawer from '../../Views/SocialProfile/ProfileDrawer/ProfileDrawer';
 import ManageProfile from '../../Views/SocialProfile/ManageProfile/ManageProfile';
+import ManageProfileField from '../../Views/SocialProfile/ManageProfile/ManageProfileField';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
@@ -1027,6 +1028,10 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE}
           component={ManageProfile}
+        />
+        <NativeStack.Screen
+          name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD}
+          component={ManageProfileField}
         />
       </NativeStack.Group>
       <NativeStack.Screen

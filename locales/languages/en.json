@@ -4849,7 +4849,12 @@
     "off": "Off",
     "not_set": "Not set",
     "no_linked_account": "None",
-    "avatar_accessibility_label": "Your profile picture"
+    "avatar_accessibility_label": "Your profile picture",
+    "save": "Save",
+    "display_name_placeholder": "Enter a display name",
+    "bio_placeholder": "Tell people about your trading style",
+    "bio_helper": "Shown on your profile.",
+    "bio_character_count": "{{count}}/{{limit}}"
   },
   "profile_drawer": {
     "close": "Close",
