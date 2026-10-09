@@ -61,14 +61,16 @@ export type RewardsMoneyRebateQuoteFailure =
 /**
  * A rebate quote the server refused. `failure` is the status the confirmation
  * screen branches on; `detail` is the server's message when it sent one.
- * `401` is not this: that is {@link RewardsMoneyAuthorizationError}.
+ * A `401` is {@link RewardsMoneyAuthorizationError} and is not retried.
  *
- * A pod that sheds the quote answers `503` with
- * `{ reason: 'SERVER_BUSY', message: 'Server busy, retry shortly' }` and
- * `Retry-After: 2`. That is `failure: 'UNAVAILABLE'`, that message as
- * `detail`, and `retryAfterSeconds` from the header. Show no rebate row, do
- * not request another quote for this screen, and leave the button disabled
- * until `retryAfterSeconds` has elapsed.
+ * A `503` is `failure: 'UNAVAILABLE'`: the server is unavailable. That covers
+ * a busy pod (`reason: 'SERVER_BUSY'`, message `Server busy, retry shortly`,
+ * `Retry-After: 2`) and token verification down
+ * (`reason: 'JWKS_UNAVAILABLE'`). Both are handled the same way. A `429` is
+ * `failure: 'RATE_LIMITED'`: the profile spent the read budget it shares with
+ * the Earnings reads, 60 requests per 30 seconds. `retryAfterSeconds` is the
+ * `Retry-After` header when the refusal carried one, and `undefined` when the
+ * header is missing. There is no default.
  */
 export class RewardsMoneyRebateQuoteError extends Error {
   readonly status: number;
@@ -78,7 +80,10 @@ export class RewardsMoneyRebateQuoteError extends Error {
   /** Nest `message`, or `reason` when that is all the body carries. */
   readonly detail: string | undefined;
 
-  /** Seconds from a `Retry-After` header, when the refusal carried one. */
+  /**
+   * Seconds from a `Retry-After` header, when the refusal carried one.
+   * `undefined` when the header is missing. There is no default.
+   */
   readonly retryAfterSeconds: number | undefined;
 
   constructor(
