@@ -22,6 +22,27 @@ export const chainNameToId = (chainName: string): CaipChainId | undefined =>
 export const isSupportedChain = (chainName: string): boolean =>
   chainName.toLowerCase() in CHAIN_NAME_TO_ID;
 
+/**
+ * Social-api `tradeInFlight.chain` slugs the swap-comment DTO accepts.
+ * Broader mobile mappings (arbitrum, polygon, …) are omitted — the API
+ * rejects them with `@IsIn(CHAIN_NAMES)`.
+ */
+const TRADE_IN_FLIGHT_CHAIN_BY_CAIP: Record<string, string> = {
+  'eip155:1': 'ethereum',
+  'eip155:8453': 'base',
+  'eip155:56': 'bsc',
+  'eip155:4663': 'robinhood',
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': 'solana',
+};
+
+/**
+ * Maps a CAIP-2 chain id to the social-api `tradeInFlight.chain` slug.
+ * Returns `undefined` when the API cannot accept that chain.
+ */
+export const caipChainIdToTradeInFlightChain = (
+  chainId: string,
+): string | undefined => TRADE_IN_FLIGHT_CHAIN_BY_CAIP[chainId];
+
 export interface PositionNetworkBadge {
   name: string;
   imageSource: ImageSourcePropType;

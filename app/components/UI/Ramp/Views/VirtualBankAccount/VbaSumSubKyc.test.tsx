@@ -1,10 +1,28 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaSumSubKyc, { VbaSumSubKycSelectorsIDs } from './VbaSumSubKyc';
 import Engine from '../../../../../core/Engine';
 import type { KycProviderFlowStatus } from '@metamask/kyc-controller';
 const mockOnSubmitted = jest.fn();
+const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
+const mockParentGoBack = jest.fn();
+const mockParentCanGoBack = jest.fn(() => false);
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+    canGoBack: mockCanGoBack,
+    navigate: mockNavigate,
+    getParent: () => ({
+      goBack: mockParentGoBack,
+      canGoBack: mockParentCanGoBack,
+    }),
+  }),
+}));
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -44,6 +62,8 @@ const catalog = {
 describe('VbaSumSubKyc', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCanGoBack.mockReturnValue(true);
+    mockParentCanGoBack.mockReturnValue(false);
     mockKycService.getGeoCountry.mockResolvedValue('BRA');
     mockKycController.fetchSessionDisclaimers.mockResolvedValue(catalog);
     mockKycController.recordSessionDisclaimers.mockResolvedValue(undefined);
@@ -131,6 +151,55 @@ describe('VbaSumSubKyc', () => {
       getByTestId(VbaSumSubKycSelectorsIDs.RETRY_BUTTON),
     ).toBeOnTheScreen();
     expect(mockOnSubmitted).not.toHaveBeenCalled();
+  });
+
+  it('hides back while SumSub is launching and ignores the result after leaving', async () => {
+    let resolveLaunch: (status: KycProviderFlowStatus) => void = () =>
+      undefined;
+    mockKycController.launchProviderFlow.mockReturnValue(
+      new Promise((resolve) => {
+        resolveLaunch = resolve;
+      }),
+    );
+
+    const { queryByTestId, unmount } = renderWithProvider(
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+    );
+
+    await waitFor(() => {
+      expect(mockKycController.launchProviderFlow).toHaveBeenCalledTimes(1);
+    });
+    expect(
+      queryByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON),
+    ).not.toBeOnTheScreen();
+
+    unmount();
+    await act(async () => {
+      resolveLaunch('submitted');
+    });
+
+    expect(mockOnSubmitted).not.toHaveBeenCalled();
+  });
+
+  it('leaves the more-info screen from the header', async () => {
+    mockCanGoBack.mockReturnValue(false);
+    mockParentCanGoBack.mockReturnValue(true);
+    mockKycController.launchProviderFlow.mockResolvedValue('abandoned');
+
+    const { getByTestId } = renderWithProvider(
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
+    );
+
+    await waitFor(() => {
+      expect(
+        getByTestId(VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED),
+      ).toBeOnTheScreen();
+    });
+
+    fireEvent.press(getByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON));
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockParentGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('re-launches SumSub when the retry button is pressed', async () => {

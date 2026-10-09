@@ -924,14 +924,23 @@ jest.mock('../../hooks/useStopLossPrompt', () => ({
 const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
   action(),
 );
+const mockComplianceState = { isBlocked: false };
 
 jest.mock('../../../Compliance', () => ({
   useComplianceGate: () => ({
     gate: mockComplianceGate,
-    isBlocked: false,
+    isBlocked: mockComplianceState.isBlocked,
     isComplianceEnabled: false,
     checkCompliance: jest.fn(),
   }),
+}));
+
+const mockUsePerpsPrewarmDepositOrder = jest.fn();
+
+jest.mock('../../hooks/usePerpsPrewarmDepositOrder', () => ({
+  usePerpsPrewarmDepositOrder: (
+    params: import('../../hooks/usePerpsPrewarmDepositOrder').UsePerpsPrewarmDepositOrderParams,
+  ) => mockUsePerpsPrewarmDepositOrder(params),
 }));
 
 const initialState = {
@@ -1060,6 +1069,7 @@ describe('PerpsMarketDetailsView', () => {
       maxLeverage: '40x',
     };
     mockScreenVsBottomSheetAbTest.useBottomSheet = false;
+    mockComplianceState.isBlocked = false;
     mockRouteParams.transactionActiveAbTests = undefined;
     mockRouteParams.source = undefined;
     mockRouteParams.source_section = undefined;
@@ -6054,6 +6064,80 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       expect(mockRecordMarketViewed).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Deposit-with-order prewarm', () => {
+    const setEligibility = (isEligible: boolean) => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) =>
+        selector === mockSelectPerpsEligibility ? isEligible : undefined,
+      );
+    };
+
+    const renderView = () =>
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+    it('enables prewarming for an eligible, unblocked bottom-sheet treatment user', () => {
+      setEligibility(true);
+      mockScreenVsBottomSheetAbTest.useBottomSheet = true;
+      mockRouteParams.market = {
+        ...(mockRouteParams.market as PerpsMarketData),
+        providerId: 'hyperliquid',
+      };
+      mockRouteParams.transactionActiveAbTests = [
+        { key: 'experiment', value: 'treatment' },
+      ];
+
+      renderView();
+
+      expect(mockUsePerpsPrewarmDepositOrder).toHaveBeenLastCalledWith({
+        enabled: true,
+        marketProviderId: 'hyperliquid',
+        transactionActiveAbTests: mockRouteParams.transactionActiveAbTests,
+      });
+    });
+
+    it('does not prewarm for the screen control group', () => {
+      setEligibility(true);
+      mockScreenVsBottomSheetAbTest.useBottomSheet = false;
+
+      renderView();
+
+      expect(mockUsePerpsPrewarmDepositOrder).toHaveBeenLastCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it('does not prewarm for a compliance-blocked user', () => {
+      setEligibility(true);
+      mockScreenVsBottomSheetAbTest.useBottomSheet = true;
+      mockComplianceState.isBlocked = true;
+
+      renderView();
+
+      expect(mockUsePerpsPrewarmDepositOrder).toHaveBeenLastCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it('does not prewarm for an ineligible user', () => {
+      setEligibility(false);
+      mockScreenVsBottomSheetAbTest.useBottomSheet = true;
+
+      renderView();
+
+      expect(mockUsePerpsPrewarmDepositOrder).toHaveBeenLastCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
     });
   });
 });

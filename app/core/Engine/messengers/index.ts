@@ -61,6 +61,7 @@ import {
 } from './predict-portfolio-service-messenger';
 import { getRecurringOrdersDataServiceMessenger } from './recurring-orders-data-service-messenger';
 import { getLimitOrdersDataServiceMessenger } from './limit-orders-data-service-messenger';
+import { getSentinelFeeTokensDataServiceMessenger } from './sentinel-fee-tokens-data-service-messenger';
 import {
   getPredictOrderServiceInitMessenger,
   getPredictOrderServiceMessenger,
@@ -173,10 +174,7 @@ import {
   getChompApiServiceMessenger,
   getChompApiServiceInitMessenger,
 } from './chomp-api-service-messenger';
-import {
-  getMoneyAccountUpgradeControllerMessenger,
-  getMoneyAccountUpgradeControllerInitMessenger,
-} from './money-account-upgrade-controller-messenger';
+import { getMoneyAccountUpgradeControllerMessenger } from './money-account-upgrade-controller-messenger';
 
 /**
  * The messenger factories for the messenger clients that have been modularized.
@@ -396,6 +394,10 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getLimitOrdersDataServiceMessenger,
     getInitMessenger: noop,
   },
+  SentinelFeeTokensDataService: {
+    getMessenger: getSentinelFeeTokensDataServiceMessenger,
+    getInitMessenger: noop,
+  },
   BridgeController: {
     getMessenger: getBridgeControllerMessenger,
     getInitMessenger: getBridgeControllerInitMessenger,
@@ -562,6 +564,6 @@ export const MESSENGER_FACTORIES = {
   },
   MoneyAccountUpgradeController: {
     getMessenger: getMoneyAccountUpgradeControllerMessenger,
-    getInitMessenger: getMoneyAccountUpgradeControllerInitMessenger,
+    getInitMessenger: noop,
   },
 } as const;

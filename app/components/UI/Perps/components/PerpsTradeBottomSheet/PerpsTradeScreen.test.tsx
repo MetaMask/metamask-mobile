@@ -9,7 +9,12 @@ import {
 import { typography } from '@metamask/design-tokens';
 import PerpsTradeScreen from './PerpsTradeScreen';
 import type PerpsSlider from '../PerpsSlider';
-import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
+import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
+import {
+  PerpsAmountDisplaySelectorsIDs,
+  PerpsTradeSheetSelectorsIDs,
+} from '../../Perps.testIds';
+import { convertAssetAmountToUsd } from '../../utils/assetAmountInput';
 
 jest.mock('../../../../../util/haptics');
 
@@ -92,6 +97,8 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   liquidationDistance: '30.05%',
   amount: '10',
   tokenAmount: '0.11',
+  amountPrice: 98.5,
+  sizeDecimals: 2,
   sliderMaximum: 100,
   isAmountDisabled: false,
   isAmountLoading: false,
@@ -316,6 +323,58 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.queryByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_TREND_ICON),
     ).not.toBeOnTheScreen();
+  });
+
+  it('applies a keypad digit to the USD amount', () => {
+    const onKeypadChange = jest.fn();
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        amount="0"
+        isInputFocused
+        onKeypadChange={onKeypadChange}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_1));
+
+    expect(onKeypadChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: '1', valueAsNumber: 1 }),
+    );
+    expect(onKeypadChange.mock.calls[0][0].isAssetAmount).toBeUndefined();
+  });
+
+  it('applies a keypad digit to the coin amount after the display toggle', () => {
+    const onKeypadChange = jest.fn();
+    const peoplePrice = 1 / 121;
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        asset="PEOPLE"
+        amount="0"
+        tokenAmount="0"
+        amountPrice={peoplePrice}
+        sizeDecimals={0}
+        isInputFocused
+        onKeypadChange={onKeypadChange}
+      />,
+    );
+
+    fireEvent.press(screen.getByRole('button', { name: 'Show asset value' }));
+    fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_1));
+
+    expect(onKeypadChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        value: convertAssetAmountToUsd('1', peoplePrice),
+        isAssetAmount: true,
+      }),
+    );
+    expect(
+      screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+    ).toHaveTextContent(/^1$/);
+    expect(
+      screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
+    ).toHaveTextContent('PEOPLE');
   });
 
   it('draws the Figma swap glyph in the fiat/token toggle', () => {

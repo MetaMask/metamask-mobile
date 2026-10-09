@@ -413,6 +413,11 @@ import {
   type LimitOrdersDataServiceActions,
   type LimitOrdersDataServiceEvents,
 } from '../../components/UI/Bridge/services/LimitOrdersDataService';
+import {
+  SentinelFeeTokensDataService,
+  type SentinelFeeTokensDataServiceActions,
+  type SentinelFeeTokensDataServiceEvents,
+} from '../../components/UI/Bridge/services/SentinelFeeTokensDataService';
 import type {
   CardControllerState,
   CardControllerActions,
@@ -456,6 +461,7 @@ import {
   type SubscriptionControllerActions,
   type SubscriptionControllerEvents,
   type SubscriptionControllerState,
+  type SubscriptionDelegationServiceActions,
   SubscriptionDelegationService,
   SubscriptionService,
   type SubscriptionServiceActions,
@@ -501,17 +507,12 @@ import {
   GatorPermissionsControllerEvents,
   GatorPermissionsControllerState,
 } from '@metamask/gator-permissions-controller';
-import {
+import type {
   DelegationController,
   DelegationControllerActions,
   DelegationControllerEvents,
 } from '@metamask/delegation-controller';
-// `DelegationControllerState` isn't re-exported from the package's public
-// entry, so we go through the `@metamask/delegation-controller/types` path
-// alias declared in `tsconfig.json`. Once the upstream package re-exports it
-// (or we move to Node16/NodeNext module resolution), drop both the alias and
-// this dedicated import.
-import type { DelegationControllerState } from '@metamask/delegation-controller/types';
+type DelegationControllerState = DelegationController['state'];
 import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
@@ -748,6 +749,7 @@ export type GlobalActions =
   | PredictOrderServiceActions
   | RecurringOrdersDataServiceActions
   | LimitOrdersDataServiceActions
+  | SentinelFeeTokensDataServiceActions
   | CardControllerActions
   | UiSlotsControllerActions
   | QrSyncControllerActions
@@ -763,6 +765,7 @@ export type GlobalActions =
   | DeFiPositionsControllerV2Actions
   | StorageServiceActions
   | SubscriptionControllerActions
+  | SubscriptionDelegationServiceActions
   | SubscriptionControllerRegisterAddressAction
   | SubscriptionServiceActions
   | ShieldControllerActions
@@ -874,6 +877,7 @@ export type GlobalEvents =
   | PredictOrderServiceEvents
   | RecurringOrdersDataServiceEvents
   | LimitOrdersDataServiceEvents
+  | SentinelFeeTokensDataServiceEvents
   | CardControllerEvents
   | UiSlotsControllerEvents
   | QrSyncControllerEvents
@@ -1039,6 +1043,7 @@ export type MessengerClients = {
   PredictOrderService: PredictOrderService;
   RecurringOrdersDataService: RecurringOrdersDataService;
   LimitOrdersDataService: LimitOrdersDataService;
+  SentinelFeeTokensDataService: SentinelFeeTokensDataService;
   CardController: CardController;
   UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
@@ -1255,6 +1260,7 @@ export type MessengerClientsToInitialize =
   | 'PredictOrderService'
   | 'RecurringOrdersDataService'
   | 'LimitOrdersDataService'
+  | 'SentinelFeeTokensDataService'
   | 'CardController'
   | 'UiSlotsController'
   | 'QrSyncController'
