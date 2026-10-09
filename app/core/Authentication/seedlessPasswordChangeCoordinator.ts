@@ -93,6 +93,10 @@ export const applySeedlessUnlockRecovery = async (
       throw new Error(
         'SeedlessOnboardingController - password still outdated after reconcile',
       );
+    case PasswordSyncInstruction.WalletResetRequired:
+      throw new Error(
+        'SeedlessOnboardingController - wallet reset required to recover this device',
+      );
     default: {
       const exhaustive: never = keyringInstruction;
       throw new Error(

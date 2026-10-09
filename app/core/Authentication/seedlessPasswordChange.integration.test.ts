@@ -55,6 +55,7 @@ jest.mock('../../util/trace', () => ({
 
 const OLD_PASSWORD = 'old-password';
 const NEW_PASSWORD = 'new-password';
+const LATEST_PASSWORD = 'latest-password';
 const PRIMARY_SRP = new Uint8Array(64).fill(1);
 
 const useEngine = (
@@ -217,6 +218,50 @@ describe('seedless password change: fault, restart, unlock', () => {
     expect(restarted.state.seedlessOperationLifecycle).toBeUndefined();
     expect(await restarted.loadKeyringEncryptionKey()).toBe(
       await keyring.exportEncryptionKey(),
+    );
+  });
+
+  it('recovers on the latest password when another device changes it after the Keyring change fails', async () => {
+    const { harness, controller, keyring } = await createWallet();
+    keyring.changePassword.mockRejectedValueOnce(
+      new Error('Keyring change failed'),
+    );
+
+    await expect(changePassword()).rejects.toThrow();
+    harness.backend.changePasswordOnAnotherDevice(LATEST_PASSWORD);
+    const restarted = restart(harness, controller, keyring);
+    const instruction = await restarted.resolvePasswordSyncState({
+      skipCache: true,
+    });
+    const recovered = await unlock(keyring, LATEST_PASSWORD);
+
+    expect(instruction).toBe(PasswordSyncInstruction.PasswordOutdated);
+    expect(recovered).toBe(true);
+    expect(keyring.isUnlocked).toBe(true);
+    expect(restarted.state.seedlessOperationLifecycle).toBeUndefined();
+  });
+
+  it('requires a wallet reset when another device changes the password at KEY_SYNC_PENDING', async () => {
+    const { harness, controller, keyring } = await createWallet();
+    setSeedlessPasswordChangeKillAfter(
+      SEEDLESS_PASSWORD_CHANGE_KILL_AFTER.KeySyncPending,
+    );
+
+    await expect(changePassword()).rejects.toThrow();
+    setSeedlessPasswordChangeKillAfter(undefined);
+    harness.backend.changePasswordOnAnotherDevice(LATEST_PASSWORD);
+    const restarted = restart(harness, controller, keyring);
+    const instruction = await restarted.resolvePasswordSyncState({
+      skipCache: true,
+    });
+
+    expect(instruction).toBe(PasswordSyncInstruction.WalletResetRequired);
+    await expect(applySeedlessUnlockRecovery(LATEST_PASSWORD)).rejects.toThrow(
+      'SeedlessOnboardingController - wallet reset required to recover this device',
+    );
+    expect(keyring.isUnlocked).toBe(false);
+    expect(restarted.state.seedlessOperationLifecycle?.checkpoint).toBe(
+      SeedlessOnboardingCheckpoint.KeySyncPending,
     );
   });
 

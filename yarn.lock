@@ -11845,22 +11845,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/seedless-onboarding-controller@npm:@metamask-previews/seedless-onboarding-controller@11.0.0-preview-0a1dd02ad":
-  version: 11.0.0-preview-0a1dd02ad
-  resolution: "@metamask-previews/seedless-onboarding-controller@npm:11.0.0-preview-0a1dd02ad"
+"@metamask/seedless-onboarding-controller@npm:@metamask-previews/seedless-onboarding-controller@11.0.1-preview-105d14e7e":
+  version: 11.0.1-preview-105d14e7e
+  resolution: "@metamask-previews/seedless-onboarding-controller@npm:11.0.1-preview-105d14e7e"
   dependencies:
     "@metamask/auth-network-utils": "npm:^0.3.0"
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
-    "@metamask/keyring-controller": "npm:^28.0.0"
+    "@metamask/keyring-controller": "npm:^28.1.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/toprf-secure-backup": "npm:^1.1.0"
     "@metamask/utils": "npm:^12.0.0"
     "@noble/ciphers": "npm:^1.3.0"
-    "@noble/curves": "npm:^1.9.2"
+    "@noble/curves": "npm:^1.9.7"
     "@noble/hashes": "npm:^1.8.0"
     async-mutex: "npm:^0.5.0"
-  checksum: 10/70983a64bc3365fba41378248bf277d020d638962aebeac7d36d00764a2e087e8bab9b1b45eef495ff6a2f5f4b20a17cadfa3bfe83a8359e037918d6a08d1559
+  checksum: 10/c6f5f9ffed20cdc6ac88e8eae65333ac984595b5435a12f725808e21b1cc7f5f20f6a3c5246cfff74b00126574ed2f5c67ef310897fe1d288a8ea0b96ff9a846
   languageName: node
   linkType: hard
 

@@ -271,6 +271,27 @@ describe('seedlessPasswordChangeCoordinator', () => {
       expect(controller.completePasswordChange).toHaveBeenCalledTimes(1);
     });
 
+    it('throws without touching the keyring when instruction is wallet-reset-required', async () => {
+      const controller = setSeedlessController({
+        resolvePasswordSyncState: jest
+          .fn()
+          .mockResolvedValue(PasswordSyncInstruction.WalletResetRequired),
+        reconcilePassword: jest
+          .fn()
+          .mockResolvedValue(PasswordSyncInstruction.WalletResetRequired),
+        markPasswordChangeKeySyncPending: jest.fn(),
+        completePasswordChange: jest.fn(),
+      });
+
+      await expect(applySeedlessUnlockRecovery('new-password')).rejects.toThrow(
+        'SeedlessOnboardingController - wallet reset required to recover this device',
+      );
+      expect(
+        mockEngine.context.KeyringController.submitPassword,
+      ).not.toHaveBeenCalled();
+      expect(controller.completePasswordChange).not.toHaveBeenCalled();
+    });
+
     it('loads the stored keyring key when submitPassword rejects', async () => {
       mockEngine.context.KeyringController.submitPassword = jest
         .fn()

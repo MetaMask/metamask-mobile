@@ -80,6 +80,12 @@ export class FakePasswordBackend {
       this.metadata.get(this.namespaceOf(from)) ?? [],
     );
   }
+
+  changePasswordOnAnotherDevice(password: string) {
+    const previous = this.keyFor(this.current).authKeyPair;
+    this.current = this.addKey(password);
+    this.moveItems(previous, this.keyFor(this.current).authKeyPair);
+  }
 }
 
 export class FakeVaultEncryptor {
