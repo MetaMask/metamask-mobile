@@ -293,9 +293,12 @@ async function repackIos() {
   }
 
   const startTime = Date.now();
-  const sourceApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app';
-  const repackedApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask-repack.app';
-  const finalApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app';
+  const productsDir = `ios/build/Build/Products/${
+    process.env.IOS_CONFIGURATION || 'Release'
+  }-iphonesimulator`;
+  const sourceApp = `${productsDir}/MetaMask.app`;
+  const repackedApp = `${productsDir}/MetaMask-repack.app`;
+  const finalApp = `${productsDir}/MetaMask.app`;
   const sourcemapPath = 'sourcemaps/ios/index.js.map';
   const workingDir = 'ios/build/repack-working-main';
 
