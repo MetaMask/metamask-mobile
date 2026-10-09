@@ -228,6 +228,128 @@ describe('useCursorPaginatedList', () => {
     });
   });
 
+  it('clears the error when a later page loads after a failed load-more', async () => {
+    const fetchPage = jest
+      .fn()
+      .mockResolvedValueOnce(PAGE_1)
+      .mockRejectedValueOnce(new Error('boom'))
+      .mockResolvedValueOnce(PAGE_2);
+
+    const { result } = renderHook(() =>
+      useCursorPaginatedList<Item>({
+        enabled: true,
+        resetKey: 'key',
+        fetchPage,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual(PAGE_1.results);
+    });
+
+    act(() => {
+      result.current.loadMore();
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBe('boom');
+    });
+
+    expect(result.current.items).toEqual(PAGE_1.results);
+
+    act(() => {
+      result.current.loadMore();
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBeNull();
+    });
+
+    expect(result.current.items).toEqual([{ id: '1' }, { id: '2' }]);
+  });
+
+  it('retries a failed load-more with the same cursor', async () => {
+    const fetchPage = jest
+      .fn()
+      .mockResolvedValueOnce(PAGE_1)
+      .mockRejectedValueOnce(new Error('boom'))
+      .mockResolvedValueOnce(PAGE_2);
+
+    const { result } = renderHook(() =>
+      useCursorPaginatedList<Item>({
+        enabled: true,
+        resetKey: 'key',
+        fetchPage,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual(PAGE_1.results);
+    });
+
+    act(() => {
+      result.current.loadMore();
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBe('boom');
+    });
+
+    await act(async () => {
+      result.current.retry();
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBeNull();
+    });
+
+    expect(result.current.items).toEqual([{ id: '1' }, { id: '2' }]);
+    expect(fetchPage).toHaveBeenLastCalledWith({
+      cursor: 'c2',
+      isFirstPage: false,
+      forceFresh: false,
+    });
+    expect(fetchPage).not.toHaveBeenCalledWith({
+      cursor: null,
+      isFirstPage: true,
+      forceFresh: true,
+    });
+  });
+
+  it('retries a failed first page from the start', async () => {
+    const fetchPage = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('boom'))
+      .mockResolvedValueOnce(PAGE_1);
+
+    const { result } = renderHook(() =>
+      useCursorPaginatedList<Item>({
+        enabled: true,
+        resetKey: 'key',
+        fetchPage,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.error).toBe('boom');
+    });
+
+    await act(async () => {
+      result.current.retry();
+    });
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual(PAGE_1.results);
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(fetchPage).toHaveBeenLastCalledWith({
+      cursor: null,
+      isFirstPage: true,
+      forceFresh: true,
+    });
+  });
+
   it('sets error on fetch failure when there is no cache', async () => {
     const fetchPage = jest.fn().mockRejectedValue(new Error('boom'));
 

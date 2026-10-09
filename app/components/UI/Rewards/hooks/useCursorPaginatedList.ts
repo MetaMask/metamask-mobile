@@ -142,6 +142,7 @@ export const useCursorPaginatedList = <T>({
 
         setCursor(data.cursor);
         setHasMore(data.has_more);
+        setError(null);
       } catch (err) {
         if (request?.cancelled) {
           return { cancelled: true };
@@ -184,8 +185,14 @@ export const useCursorPaginatedList = <T>({
     }
   }, [fetchList]);
 
-  // Programmatic retry — uses isLoading skeletons, not RefreshControl.
+  // A failed next page keeps its cursor. Retry asks for that page again and
+  // leaves the rows already shown. Anything else, including a failed first
+  // page, starts over.
   const retry = useCallback(async () => {
+    if (error && cursor && nonEmpty(items)) {
+      await fetchList({ isFirstPage: false, currentCursor: cursor });
+      return;
+    }
     setCursor(null);
     setHasMore(true);
     await fetchList({
@@ -193,7 +200,7 @@ export const useCursorPaginatedList = <T>({
       forceFresh: true,
       preserveItems: false,
     });
-  }, [fetchList]);
+  }, [cursor, error, fetchList, items]);
 
   // When disabled, surface non-empty cache as local items for display.
   useEffect(() => {
