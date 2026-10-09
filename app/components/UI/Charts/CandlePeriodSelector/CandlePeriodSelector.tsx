@@ -22,10 +22,11 @@ export interface CandlePeriodOption {
 }
 
 export const DEFAULT_CANDLE_PERIODS = [
-  { label: '1min', value: CandlePeriod.OneMinute },
-  { label: '3min', value: CandlePeriod.ThreeMinutes },
-  { label: '5min', value: CandlePeriod.FiveMinutes },
-  { label: '15min', value: CandlePeriod.FifteenMinutes },
+  { label: '1m', value: CandlePeriod.OneMinute },
+  { label: '5m', value: CandlePeriod.FiveMinutes },
+  { label: '15m', value: CandlePeriod.FifteenMinutes },
+  { label: '1h', value: CandlePeriod.OneHour },
+  { label: '1d', value: CandlePeriod.OneDay },
 ] as const satisfies readonly CandlePeriodOption[];
 
 /**

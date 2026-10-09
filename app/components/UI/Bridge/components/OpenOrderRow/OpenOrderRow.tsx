@@ -6,10 +6,15 @@ import {
   BadgeWrapper,
   BadgeWrapperPosition,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxFlexWrap,
   FontWeight,
   ListItem,
   ListItemProps,
+  Text,
   TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { getTokenImageSource } from '../../utils';
@@ -62,17 +67,30 @@ function OpenOrderRow({
         />
       </BadgeWrapper>
     ),
-    title,
-    titleProps: {
-      color: titleColor,
-      fontWeight: FontWeight.Medium,
-      testID: OpenOrderRowSelectorsIDs.TITLE,
-    },
-    titleEndAccessory: titleEndAccessory ? (
-      <Box testID={OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY}>
-        {titleEndAccessory}
+    title: (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        flexWrap={BoxFlexWrap.Wrap}
+        alignItems={BoxAlignItems.Center}
+        gap={1}
+        twClassName="flex-1 min-w-0"
+        testID={OpenOrderRowSelectorsIDs.TITLE_ROW}
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          color={titleColor}
+          fontWeight={FontWeight.Medium}
+          testID={OpenOrderRowSelectorsIDs.TITLE}
+        >
+          {title}
+        </Text>
+        {titleEndAccessory ? (
+          <Box testID={OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY}>
+            {titleEndAccessory}
+          </Box>
+        ) : null}
       </Box>
-    ) : undefined,
+    ),
     description: subtitle,
     descriptionProps: {
       color: subtitleColor,

@@ -38,4 +38,32 @@ describe('createSwapComment', () => {
       timestamp: 1700000000,
     });
   });
+
+  it('forwards tradeInFlight on SocialService:createSwapComment', async () => {
+    mockCall.mockResolvedValue({
+      uid: 'comment-2',
+      commentText: 'this is alpha',
+      timestamp: 1700000000,
+    });
+
+    await createSwapComment({
+      commentText: 'this is alpha',
+      tradeInFlight: {
+        transactionHash: '0xabc',
+        chain: 'base',
+        tokenAddress: '0xpump',
+      },
+      source: 'metamask-mobile',
+    });
+
+    expect(mockCall).toHaveBeenCalledWith('SocialService:createSwapComment', {
+      commentText: 'this is alpha',
+      tradeInFlight: {
+        transactionHash: '0xabc',
+        chain: 'base',
+        tokenAddress: '0xpump',
+      },
+      source: 'metamask-mobile',
+    });
+  });
 });

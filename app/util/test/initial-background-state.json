@@ -32,7 +32,10 @@
   "AnalyticsController": {
     "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
     "consentDecisionMade": false,
-    "optedIn": false
+    "marketingCampaignCookieId": null,
+    "marketingConsentDecisionMade": false,
+    "optedIn": false,
+    "optedInToMarketing": false
   },
   "GatorPermissionsController": {
     "grantedPermissions": [],
@@ -961,6 +964,8 @@
   "AiDigestController": {},
   "RampsController": {
     "autoramps": [],
+    "moneyAccountWalletRegistrations": [],
+    "vbaAutorampListFetchedAt": null,
     "userRegion": null,
     "countries": {
       "data": [],

@@ -4,6 +4,7 @@ import {
   isStrategyOrderType,
   isTriggerOrderType,
   type InputMethod,
+  type MarginMode,
   type Order,
   type OrderParams,
   type OrderType,
@@ -114,6 +115,8 @@ export interface BuildPerpsOrderParamsInput {
   twapRandomize?: boolean;
   /** Provider route required for strategy placement. */
   providerId?: PerpsProviderType;
+  /** Explicit collateral mode; omit to keep the provider's isolated default. */
+  marginMode?: MarginMode;
   /**
    * True when the order consumes the full open position.
    * Enables the controller's minimum-notional exemption for dust closes.
@@ -144,6 +147,7 @@ export const buildPerpsOrderParams = ({
   limitPrice,
   chaseMaxDistanceBps,
   providerId,
+  marginMode,
   triggerPrice,
   takeProfitPrice,
   stopLossPrice,
@@ -191,6 +195,7 @@ export const buildPerpsOrderParams = ({
       ? { twapRandomize }
       : {}),
     ...(providerId !== undefined ? { providerId } : {}),
+    ...(marginMode !== undefined ? { marginMode } : {}),
     ...(canAttachTpSl && takeProfitPrice?.trim() ? { takeProfitPrice } : {}),
     ...(canAttachTpSl && stopLossPrice?.trim() ? { stopLossPrice } : {}),
     trackingData,

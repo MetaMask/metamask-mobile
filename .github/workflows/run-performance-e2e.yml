@@ -70,6 +70,13 @@ on:
         required: false
         type: string
         default: ''
+      collect_hermes_cpuprofiles:
+        description: >-
+          Harvest Hermes .cpuprofile artifacts for analyze-app-profiling.
+          True for schedule/manual; false (default) for PR runs.
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -316,6 +323,7 @@ jobs:
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       browserstack_build_name: ${{ needs.prepare.outputs.android_build_name }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
     secrets: inherit
 
   run-ios-onboarding-tests:
@@ -335,6 +343,7 @@ jobs:
       app_version: Manual-Input
       browserstack_build_name: ${{ needs.prepare.outputs.ios_build_name }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
     secrets: inherit
 
   # =============================================================================
@@ -367,6 +376,7 @@ jobs:
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       browserstack_build_name: ${{ needs.prepare.outputs.android_build_name }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
     secrets: inherit
 
   run-ios-imported-wallet-tests:
@@ -386,6 +396,7 @@ jobs:
       app_version: Manual-Input
       browserstack_build_name: ${{ needs.prepare.outputs.ios_build_name }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
     secrets: inherit
 
   aggregate-results:
@@ -461,8 +472,9 @@ jobs:
       - name: Delete previous performance / app-profiling comments
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
-          ALL_COMMENT_IDS=$(gh api --paginate "repos/${{ github.repository }}/issues/${{ inputs.pr_number }}/comments?per_page=100" \
+          ALL_COMMENT_IDS=$(gh api --paginate "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments?per_page=100" \
             --jq '.[] | select(.body | contains("<!-- perf-test-results -->") or contains("<!-- app-profiling-check -->")) | .id')
 
           if [ -n "$ALL_COMMENT_IDS" ]; then
@@ -478,12 +490,13 @@ jobs:
       - name: Post PR comment
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           MARKER="<!-- perf-test-results -->"
           COMMENT=$(cat performance-pr-comment.md 2>/dev/null || echo "⚠️ Performance test results are not available.")
           FULL_COMMENT="${COMMENT}"$'\n'"${MARKER}"
-          gh pr comment "${{ inputs.pr_number }}" --repo "${{ github.repository }}" --body "$FULL_COMMENT"
-          echo "Performance results posted to PR #${{ inputs.pr_number }}"
+          gh pr comment "${PR_NUMBER}" --repo "${{ github.repository }}" --body "$FULL_COMMENT"
+          echo "Performance results posted to PR #${PR_NUMBER}"
 
   slack-notification:
     name: Send Slack Notification

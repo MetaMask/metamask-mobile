@@ -61,6 +61,7 @@ jest.mock('../../../../../util/Logger', () => ({
   },
 }));
 
+const CURRENT_PERIOD_END = '2027-07-20T12:00:00.000Z';
 const PLUS_SUBSCRIPTION: Subscription = {
   id: 'subscription-1',
   products: [
@@ -72,7 +73,7 @@ const PLUS_SUBSCRIPTION: Subscription = {
     },
   ],
   currentPeriodStart: '2027-06-20T12:00:00.000Z',
-  currentPeriodEnd: '2027-07-20T12:00:00.000Z',
+  currentPeriodEnd: CURRENT_PERIOD_END,
   status: SUBSCRIPTION_STATUSES.active,
   interval: RECURRING_INTERVALS.year,
   paymentMethod: {

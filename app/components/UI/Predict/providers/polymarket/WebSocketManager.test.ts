@@ -1594,25 +1594,32 @@ describe('WebSocketManager', () => {
       expect(mockWebSocketInstances).toHaveLength(3);
     });
 
-    it('stops reconnecting after max attempts', () => {
+    it('keeps reconnecting past the previous attempt cap with the delay capped at the maximum', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
       manager.subscribeToGame('123', callback);
       const initialInstanceCount = mockWebSocketInstances.length;
 
-      for (let i = 0; i < 5; i++) {
+      // Far more consecutive failures than the old MAX_RECONNECT_ATTEMPTS
+      // budget — sports must keep retrying so scores recover without an app
+      // restart (PRED-1334).
+      for (let i = 0; i < 10; i++) {
         const currentIdx = initialInstanceCount - 1 + i;
         mockWebSocketInstances[currentIdx].simulateClose();
-        jest.advanceTimersByTime((i + 1) * 3000);
+        jest.advanceTimersByTime(Math.min((i + 1) * 3000, 30000));
       }
 
-      const afterAttemptsCount = mockWebSocketInstances.length;
-      const lastIdx = afterAttemptsCount - 1;
-      mockWebSocketInstances[lastIdx].simulateClose();
-      jest.advanceTimersByTime(30000);
+      expect(mockWebSocketInstances.length).toBe(initialInstanceCount + 10);
 
-      expect(mockWebSocketInstances).toHaveLength(afterAttemptsCount);
+      // Once attempts exceed the linear backoff window, the delay is capped
+      // at 30s instead of growing unbounded.
+      const lastIdx = mockWebSocketInstances.length - 1;
+      mockWebSocketInstances[lastIdx].simulateClose();
+      jest.advanceTimersByTime(30000 - 1);
+      expect(mockWebSocketInstances.length).toBe(initialInstanceCount + 10);
+      jest.advanceTimersByTime(1);
+      expect(mockWebSocketInstances.length).toBe(initialInstanceCount + 11);
     });
 
     it('resets reconnect attempts on successful connection', () => {
@@ -2620,11 +2627,12 @@ describe('WebSocketManager', () => {
 
       expect(mockWebSocketInstances).toHaveLength(6);
 
+      // Sports keeps retrying past the old attempt cap (delay capped at 30s
+      // once attempts exceed the linear backoff window).
       const lastIdx = mockWebSocketInstances.length - 1;
       mockWebSocketInstances[lastIdx].simulateClose();
-      jest.advanceTimersByTime(60000);
-
-      expect(mockWebSocketInstances).toHaveLength(6);
+      jest.advanceTimersByTime(18000);
+      expect(mockWebSocketInstances).toHaveLength(7);
     });
   });
 
@@ -2966,6 +2974,105 @@ describe('WebSocketManager', () => {
           data: { method: 'rtdsHeartbeat' },
         },
       });
+    });
+  });
+
+  describe('sports heartbeat staleness detection', () => {
+    it('closes the socket and reconnects when no message arrives within the stale threshold', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToGame('123', jest.fn());
+      const ws = mockWebSocketInstances[0];
+      ws.simulateOpen();
+
+      const countAfterOpen = mockWebSocketInstances.length;
+
+      jest.advanceTimersByTime(60000 + 5000);
+
+      expect(ws.close).toHaveBeenCalled();
+
+      ws.simulateClose();
+      jest.advanceTimersByTime(3000);
+
+      expect(mockWebSocketInstances.length).toBeGreaterThan(countAfterOpen);
+    });
+
+    it('does not close the socket while messages keep arriving below the stale threshold', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToGame('123', jest.fn());
+      const ws = mockWebSocketInstances[0];
+      ws.simulateOpen();
+
+      // Run well past the 60s threshold: every game data or PONG message must
+      // reset the staleness clock.
+      for (let i = 0; i < 16; i++) {
+        jest.advanceTimersByTime(5000);
+        if (i % 2 === 0) {
+          ws.simulateMessage({
+            gameId: 123,
+            score: '21-14',
+            elapsed: '12:34',
+            period: 'Q2',
+            live: true,
+            ended: false,
+          });
+        } else {
+          ws.simulateRawMessage('PONG');
+        }
+      }
+
+      expect(ws.close).not.toHaveBeenCalled();
+    });
+
+    it('does not call Logger.error on the first sports heartbeat timeout (transient blip)', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToGame('123', jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      mockedLoggerError.mockClear();
+
+      jest.advanceTimersByTime(60000 + 5000);
+
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+    });
+
+    it('logs to Logger.error with structured context on the second consecutive sports heartbeat timeout', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToGame('123', jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      mockedLoggerError.mockClear();
+
+      // First timeout: close fired, onclose schedules reconnect.
+      jest.advanceTimersByTime(60000 + 5000);
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+
+      mockWebSocketInstances[0].simulateClose();
+      jest.advanceTimersByTime(3000);
+
+      // Simulate reconnect: new socket opens but stays stale again.
+      const reconnected =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      reconnected.simulateOpen();
+      jest.advanceTimersByTime(60000 + 5000);
+
+      expect(mockedLoggerError).toHaveBeenCalledTimes(1);
+      expect(mockedLoggerError.mock.calls[0][1]).toMatchObject({
+        tags: { channel: 'sports' },
+        context: {
+          name: 'WebSocketManager',
+          data: { method: 'sportsHeartbeat' },
+        },
+      });
+    });
+
+    it('stops the heartbeat timer on disconnect so it does not fire after unsubscribe', () => {
+      const manager = WebSocketManager.getInstance();
+      const unsubscribe = manager.subscribeToGame('123', jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      unsubscribe();
+      mockedLoggerError.mockClear();
+
+      jest.advanceTimersByTime(120000);
+
+      expect(mockedLoggerError).not.toHaveBeenCalled();
     });
   });
 });
