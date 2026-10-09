@@ -1,3 +1,4 @@
+import { strings } from '../../../../../locales/i18n';
 import { BigNumber } from 'bignumber.js';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
@@ -73,7 +74,9 @@ describe('transactionTransforms', () => {
       const [transaction] = transformFillsToTransactions(fills);
 
       expect(transaction.fill?.pnl).toBeUndefined();
-      expect(transaction.fill?.amount).toBe('Unknown');
+      expect(transaction.fill?.amount).toBe(
+        strings('perps.transactions.unknown_pnl'),
+      );
       expect(transaction.fill?.amountNumber).toBeUndefined();
       expect(transaction.fill?.isPositive).toBeUndefined();
     });
@@ -85,7 +88,9 @@ describe('transactionTransforms', () => {
           createFill({ direction, pnl: undefined, startPosition: '1' }),
         ]);
 
-        expect(transaction.fill).toMatchObject({ amount: 'Unknown' });
+        expect(transaction.fill).toMatchObject({
+          amount: strings('perps.transactions.unknown_pnl'),
+        });
         expect(transaction.fill?.pnl).toBeUndefined();
         expect(transaction.fill?.amountNumber).toBeUndefined();
         expect(transaction.fill?.isPositive).toBeUndefined();
@@ -112,7 +117,9 @@ describe('transactionTransforms', () => {
 
         const [transaction] = transformFillsToTransactions(fills);
 
-        expect(transaction.fill?.amount).toBe('Unknown');
+        expect(transaction.fill?.amount).toBe(
+          strings('perps.transactions.unknown_pnl'),
+        );
         expect(transaction.fill?.amountNumber).toBeUndefined();
         expect(transaction.fill?.isPositive).toBeUndefined();
       },

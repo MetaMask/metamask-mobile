@@ -19,6 +19,7 @@ import {
 } from '@metamask/perps-controller';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 import { translatePerpsError } from '../../utils/translatePerpsError';
 import Engine from '../../../../../core/Engine';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
@@ -442,6 +443,114 @@ describe('Lighter Scale through the Pro market screen', () => {
     expect(screen.getByTestId(FORM.SIZE_INPUT)).toHaveProp('value', '');
   });
 
+  it.each(['complete', 'partial'] as const)(
+    'retains an exact-asset Scale %s receipt across live price ticks',
+    async (outcome) => {
+      const mounted = renderLighter();
+      await configureScale();
+      fireEvent.press(screen.getByTestId(FORM.SIZE_UNIT_BUTTON));
+      fireEvent.changeText(screen.getByTestId(FORM.SIZE_INPUT), '0.04');
+      fireEvent(screen.getByTestId(FORM.SIZE_INPUT), 'blur');
+      await waitFor(() =>
+        expect(screen.getByTestId(FORM.PLACE_ORDER_BUTTON)).toBeEnabled(),
+      );
+      let settlePreview!: (value: PerpsScalePriceLadder) => void;
+      let settleOrder!: (value: OrderResult) => void;
+      jest.mocked(controller.getScalePriceLadder).mockReturnValueOnce(
+        new Promise((resolve) => {
+          settlePreview = resolve;
+        }),
+      );
+      jest.mocked(controller.placeOrder).mockReturnValueOnce(
+        new Promise((resolve) => {
+          settleOrder = resolve;
+        }),
+      );
+      const previewCalls = jest.mocked(controller.getScalePriceLadder).mock
+        .calls.length;
+
+      fireEvent.press(screen.getByTestId(FORM.PLACE_ORDER_BUTTON));
+      await waitFor(() =>
+        expect(controller.getScalePriceLadder).toHaveBeenCalledTimes(
+          previewCalls + 1,
+        ),
+      );
+      await act(async () => {
+        mounted.stream.emitPrices({
+          ETH: { symbol: 'ETH', price: '2501', timestamp: Date.now() },
+        });
+      });
+      expect(controller.getScalePriceLadder).toHaveBeenCalledTimes(
+        previewCalls + 1,
+      );
+      await act(async () => settlePreview(preview));
+      await waitFor(() =>
+        expect(controller.placeOrder).toHaveBeenCalledTimes(1),
+      );
+      expect(controller.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerId: 'lighter',
+          orderType: 'scale',
+          size: '0.04',
+        }),
+      );
+      expect(
+        jest.mocked(controller.placeOrder).mock.calls[0][0],
+      ).not.toHaveProperty('usdAmount');
+      await act(async () => {
+        mounted.stream.emitPrices({
+          ETH: { symbol: 'ETH', price: '2502', timestamp: Date.now() },
+        });
+      });
+      const onAccountInvalidated = jest.fn();
+      const unsubscribe = PerpsCacheInvalidator.subscribe(
+        'accountState',
+        onAccountInvalidated,
+      );
+      try {
+        await act(async () =>
+          settleOrder(
+            outcome === 'complete'
+              ? {
+                  success: true,
+                  orderId: group.groupId,
+                  acceptedSize: '0.04',
+                  acceptedChildren: [
+                    { state: 'resting', orderId: 'child-1' },
+                    { state: 'resting', orderId: 'child-2' },
+                    { state: 'resting', orderId: 'child-3' },
+                  ],
+                }
+              : {
+                  success: false,
+                  orderId: group.groupId,
+                  acceptedSize: '0.01',
+                  acceptedChildren: [{ state: 'resting', orderId: 'child-1' }],
+                },
+          ),
+        );
+      } finally {
+        unsubscribe();
+      }
+
+      expect(onAccountInvalidated).toHaveBeenCalled();
+      expect(
+        await screen.findByText(
+          strings(
+            outcome === 'complete'
+              ? 'perps.pro_order_form.scale.orders_placed'
+              : 'perps.pro_order_form.scale.orders_partially_placed',
+          ),
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId(FORM.SIZE_INPUT)).toHaveProp(
+        'value',
+        outcome === 'complete' ? '' : '0.04',
+      );
+      expect(controller.placeOrder).toHaveBeenCalledTimes(1);
+    },
+  );
+
   it('keeps missing venue sizing unavailable without a Hyperliquid fallback', async () => {
     jest.mocked(controller.getScalePriceLadder).mockResolvedValue({
       status: 'ready',
@@ -776,6 +885,52 @@ describe('Lighter Scale through the Pro market screen', () => {
     expect(
       screen.queryByText(strings('perps.order.validation.error')),
     ).not.toBeOnTheScreen();
+  });
+
+  it('discards a dispatched Scale receipt after a network round trip', async () => {
+    const { store } = renderLighter();
+    await configureScale();
+    await waitFor(() =>
+      expect(screen.getByTestId(FORM.PLACE_ORDER_BUTTON)).toBeEnabled(),
+    );
+    let settleOrder!: (value: OrderResult) => void;
+    jest.mocked(controller.placeOrder).mockReturnValueOnce(
+      new Promise((resolve) => {
+        settleOrder = resolve;
+      }),
+    );
+    fireEvent.press(screen.getByTestId(FORM.PLACE_ORDER_BUTTON));
+    await waitFor(() => expect(controller.placeOrder).toHaveBeenCalledTimes(1));
+    const perpsState = store.getState().engine.backgroundState.PerpsController;
+    const engineState = Engine as unknown as { state: Record<string, unknown> };
+
+    for (const isTestnet of [false, true]) {
+      act(() => {
+        engineState.state = {
+          ...engineState.state,
+          PerpsController: { ...perpsState, isTestnet },
+        };
+        store.dispatch(updateBgState({ key: 'PerpsController' }));
+      });
+    }
+    await act(async () =>
+      settleOrder({
+        success: true,
+        orderId: group.groupId,
+        acceptedSize: '0.04',
+        acceptedChildren: [
+          { state: 'resting', orderId: 'child-1' },
+          { state: 'resting', orderId: 'child-2' },
+          { state: 'resting', orderId: 'child-3' },
+        ],
+      }),
+    );
+
+    expect(controller.clearPendingTradeConfiguration).not.toHaveBeenCalled();
+    expect(
+      screen.queryByText(strings('perps.pro_order_form.scale.orders_placed')),
+    ).not.toBeOnTheScreen();
+    expect(screen.getByTestId(FORM.SIZE_INPUT)).toHaveProp('value', '100');
   });
 
   it('refuses placement when the final venue quantities differ from the displayed ladder', async () => {

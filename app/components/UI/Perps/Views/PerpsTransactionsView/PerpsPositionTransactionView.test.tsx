@@ -1,3 +1,4 @@
+import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import PerpsPositionTransactionView from './PerpsPositionTransactionView';
@@ -319,8 +320,12 @@ describe('PerpsPositionTransactionView', () => {
       state: mockInitialState,
     });
 
-    expect(getByText('Net P&L')).toBeOnTheScreen();
-    expect(getByText('Unknown')).toBeOnTheScreen();
+    expect(
+      getByText(strings('perps.transactions.position.pnl')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('perps.transactions.unknown_pnl')),
+    ).toBeOnTheScreen();
   });
 
   it('should handle zero P&L correctly', () => {
@@ -345,7 +350,9 @@ describe('PerpsPositionTransactionView', () => {
     });
 
     // Then P&L should be displayed with success color (>= 0)
-    expect(getByText('Net P&L')).toBeOnTheScreen();
+    expect(
+      getByText(strings('perps.transactions.position.pnl')),
+    ).toBeOnTheScreen();
     expect(getByText('+$0')).toBeOnTheScreen();
   });
 

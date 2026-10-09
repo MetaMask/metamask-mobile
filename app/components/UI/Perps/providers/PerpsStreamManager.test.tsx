@@ -1004,6 +1004,34 @@ describe('PerpsStreamManager', () => {
       expect(callback).toHaveBeenCalledWith([]);
     });
 
+    it('preserves a newer authentication error when resuming a cached snapshot', () => {
+      const callback = jest.fn();
+      const onDelivery = jest.fn();
+      testStreamManager.orders.subscribe({
+        callback,
+        onDelivery,
+        throttleMs: 0,
+      });
+      const source = mockSubscribeToOrders.mock.calls[0][0];
+      const error = new Error('Trading key rejected');
+      testStreamManager.orders.pause();
+      source.callback([]);
+      source.onError(error);
+      callback.mockClear();
+      onDelivery.mockClear();
+
+      testStreamManager.orders.resume();
+
+      expect(callback).toHaveBeenCalledWith([]);
+      expect(onDelivery).toHaveBeenLastCalledWith('cache');
+      expect(testStreamManager.orders.getError()).toBe(error);
+
+      source.callback([]);
+
+      expect(onDelivery).toHaveBeenLastCalledWith('fresh');
+      expect(testStreamManager.orders.getError()).toBeNull();
+    });
+
     it('retains a throttled healthy-provider delivery when Lighter fails', () => {
       const callback = jest.fn();
       const failure = new Error('Lighter authentication failed');

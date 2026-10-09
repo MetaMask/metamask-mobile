@@ -3,8 +3,11 @@
  */
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import type { ReactTestInstance } from 'react-test-renderer';
-import { StyleSheet as ReactNativeStyleSheet } from 'react-native';
+import {
+  StyleSheet as ReactNativeStyleSheet,
+  type StyleProp,
+  type TextStyle,
+} from 'react-native';
 import {
   TransactionStatus,
   TransactionType,
@@ -929,7 +932,7 @@ describe('ActivityListItemRow — row content', () => {
 
       expect(
         getByTestId('activity-primary-amount-missing-pnl'),
-      ).toHaveTextContent('Unknown');
+      ).toHaveTextContent(strings('perps.transactions.unknown_pnl'));
     },
   );
 
@@ -1062,7 +1065,7 @@ describe('ActivityListItemRow — row content', () => {
       },
     }) as unknown as ActivityListItem;
 
-  const flattenColor = (node: ReactTestInstance) => {
+  const flattenColor = (node: { props: { style?: StyleProp<TextStyle> } }) => {
     const { StyleSheet } = jest.requireActual('react-native');
     return StyleSheet.flatten(node.props.style).color;
   };
@@ -2458,9 +2461,6 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
 describe('getLocalTransactionStatus — all local transaction status paths', () => {
   const { getLocalTransactionStatus } = jest.requireActual(
     '../../../util/activity-adapters/adapters/helpers',
-  );
-  const { TransactionStatus } = jest.requireActual(
-    '@metamask/transaction-controller',
   );
 
   const makeGroup = (overrides: Record<string, unknown>) => ({
