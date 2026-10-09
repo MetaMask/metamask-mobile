@@ -10,6 +10,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../../component-library/components/Toast';
+import type { ToastRef } from '../../../../../../component-library/components/Toast/Toast.types';
 import { useCardWalletProvisioning } from './useCardWalletProvisioning';
 import {
   CardStatus,
@@ -22,6 +23,7 @@ import {
 
 const mockUsePushProvisioning = jest.fn();
 const showToast = jest.fn();
+const closeToast = jest.fn();
 
 jest.mock('../../../pushProvisioning', () => ({
   usePushProvisioning: (...args: unknown[]) => mockUsePushProvisioning(...args),
@@ -89,8 +91,8 @@ function accountWithAddress(
 
 function renderProvisioning(
   data: CardHomeData,
-  toastRef: { current: { showToast: jest.Mock } | null } = {
-    current: { showToast },
+  toastRef: React.RefObject<ToastRef | null> = {
+    current: { showToast, closeToast },
   },
 ) {
   return renderHook(() => useCardWalletProvisioning(data), {
