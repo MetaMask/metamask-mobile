@@ -47,6 +47,19 @@ const isAbortError = (error: unknown): boolean =>
 
 const emptyMarketData = {} as MarketDataDetails;
 
+interface SpotPriceFetchError extends Error {
+  apiDurationMs: number;
+}
+
+const createSpotPriceFetchError = (
+  apiDurationMs: number,
+  cause: unknown,
+): SpotPriceFetchError =>
+  Object.assign(new Error('Spot price fetch failed'), {
+    apiDurationMs,
+    cause,
+  });
+
 const fetchSpotPrice = async (
   request: SpotPriceQueryRequest,
   signal?: AbortSignal,
@@ -71,10 +84,7 @@ const fetchSpotPrice = async (
     if (signal?.aborted || isAbortError(error)) {
       throw error;
     }
-    return {
-      marketData: emptyMarketData,
-      apiDurationMs: Date.now() - fetchStart,
-    };
+    throw createSpotPriceFetchError(Date.now() - fetchStart, error);
   }
 };
 
@@ -226,7 +236,8 @@ export const useTokenPrice = ({
     : emptyMarketData;
 
   const exchangeRateApiMs = shouldFetchSpot
-    ? spotQuery.data?.apiDurationMs
+    ? (spotQuery.data?.apiDurationMs ??
+      (spotQuery.error as SpotPriceFetchError | null)?.apiDurationMs)
     : undefined;
 
   let fetchedRate: number | undefined;
@@ -248,7 +259,8 @@ export const useTokenPrice = ({
   const isWaitingForSpotPrice =
     needsSpotPriceFetch &&
     spotPctField !== undefined &&
-    fetchedMarketData === undefined;
+    fetchedMarketData === undefined &&
+    !spotQuery.isError;
 
   const exchangeRate = marketDataRate ?? fetchedRate;
 
