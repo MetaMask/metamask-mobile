@@ -592,12 +592,14 @@ export class RewardsMoneyDataService {
     // Not encoded in the cursor — must be sent on every page of a walk.
     params.append('include_claims', includeClaims ? 'true' : 'false');
 
+    // The cursor stamps `earning_origin_type` and the server 400s when the
+    // request's filter does not match, so the filter is resent on every page.
+    for (const originType of originTypes ?? []) {
+      params.append('earning_origin_type', originType);
+    }
+
     if (cursor) {
       params.append('cursor', cursor);
-    } else {
-      for (const originType of originTypes ?? []) {
-        params.append('earning_origin_type', originType);
-      }
     }
 
     const response = await this.#read(`/earnings/ledger?${params.toString()}`);
@@ -618,9 +620,8 @@ export class RewardsMoneyDataService {
     const params = new URLSearchParams();
     params.append('limit', String(limit));
 
-    // Unlike the ledger, the commissions cursor stamps the filter AND is checked
-    // against the request: paging with the cursor but without the original
-    // `earning_origin_type` is a 400, so the filter is resent on every page.
+    // The cursor stamps the filter and the server 400s when the request omits
+    // it, so the filter is resent on every page.
     if (originType) {
       params.append('earning_origin_type', originType);
     }
