@@ -1175,9 +1175,12 @@
       "terms_not_loaded_error": "Terms are not loaded yet. Go back to Add funds right from your bank and try again."
     },
     "sumsub_kyc": {
-      "more_info_title": "More information needed",
-      "more_info_description": "We need a bit more information to complete your verification. Continue to provide it.",
-      "more_info_button": "Continue verification",
+      "more_info_title": "We need a little more info",
+      "more_info_description": "Sometimes we need additional information to complete verification. Review what's needed below to continue.",
+      "more_info_item_title": "Proof of address",
+      "more_info_item_description": "Upload a recent document showing your name and current home address",
+      "more_info_button": "Continue",
+      "more_info_help": "Need help verifying?",
       "error_title": "Couldn't start verification",
       "error_description": "Something went wrong opening identity verification. Please try again.",
       "retry": "Try again"
