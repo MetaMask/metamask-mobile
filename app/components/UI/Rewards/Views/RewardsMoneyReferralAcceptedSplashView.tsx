@@ -42,24 +42,48 @@ export const REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS = {
 const eyebrowTrackingStyle = { letterSpacing: 0.8 };
 
 /**
- * `{date}` is the full trailing time phrase so both forms stay grammatical:
- * `through <formatted cashback_earning_end>` or `for a limited time`.
+ * Formats `referred_by.cashback_earning_end` for the current locale.
+ *
+ * @param earningEnd - ISO end timestamp, or missing.
+ * @returns The locale date, or null when the timestamp is missing or invalid.
+ */
+function formatCashbackEarningEnd(
+  earningEnd: string | null | undefined,
+): string | null {
+  if (!earningEnd) {
+    return null;
+  }
+  const parsed = new Date(earningEnd);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+  return formatRewardsDateLabel(parsed);
+}
+
+/**
+ * Activated body copy. A usable end date fills `{date}` in the localized
+ * `inviteAcceptedBody` as `through <locale date>`. Without a date, the whole
+ * body is `fallback` (`inviteMessageBody`) so we do not inject English.
+ *
+ * @param acceptedBody - `localized_text.inviteAcceptedBody`.
+ * @param fallback - Copy used when the end date is missing or invalid.
+ * @param earningEnd - `referred_by.cashback_earning_end`.
+ * @returns The body to show.
  */
 export function fillInviteAcceptedBodyDate(
-  template: string,
+  acceptedBody: string | undefined,
+  fallback: string | undefined,
   earningEnd: string | null | undefined,
 ): string {
+  const formattedEnd = formatCashbackEarningEnd(earningEnd);
+  if (!formattedEnd) {
+    return fallback ?? '';
+  }
+  const template = acceptedBody ?? '';
   if (!template.includes('{date}')) {
     return template;
   }
-  let datePhrase = 'for a limited time';
-  if (earningEnd) {
-    const parsed = new Date(earningEnd);
-    if (!Number.isNaN(parsed.getTime())) {
-      datePhrase = `through ${formatRewardsDateLabel(parsed)}`;
-    }
-  }
-  return template.replaceAll('{date}', datePhrase);
+  return template.replaceAll('{date}', `through ${formattedEnd}`);
 }
 
 const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
@@ -76,11 +100,13 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
   const body = useMemo(
     () =>
       fillInviteAcceptedBodyDate(
-        localizedText?.inviteAcceptedBody ?? '',
+        localizedText?.inviteAcceptedBody,
+        localizedText?.inviteMessageBody,
         referralMe?.referred_by?.cashback_earning_end,
       ),
     [
       localizedText?.inviteAcceptedBody,
+      localizedText?.inviteMessageBody,
       referralMe?.referred_by?.cashback_earning_end,
     ],
   );
