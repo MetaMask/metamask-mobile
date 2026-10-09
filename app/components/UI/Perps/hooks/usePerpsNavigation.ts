@@ -63,6 +63,7 @@ export interface PerpsNavigationHandlers {
     market: PerpsMarketData,
     source?: string,
     transactionActiveAbTests?: TransactionActiveAbTestEntry[],
+    source_section?: string,
   ) => void;
   navigateToHome: (source?: string) => void;
   /**
@@ -171,6 +172,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
       market: PerpsMarketData,
       source?: string,
       transactionActiveAbTests?: TransactionActiveAbTestEntry[],
+      source_section?: string,
     ) => {
       navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
         market,
@@ -178,6 +180,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
         ...(transactionActiveAbTests?.length
           ? { transactionActiveAbTests }
           : {}),
+        ...(source_section ? { source_section } : {}),
       });
     },
     [navigation],

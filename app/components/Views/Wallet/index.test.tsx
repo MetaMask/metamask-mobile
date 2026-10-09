@@ -165,18 +165,11 @@ jest.mock('../../../hooks', () => ({
       };
     }
 
-    if (flagKey === 'homeTMCU1209AbtestHomepageBalanceBreakdown') {
+    if (flagKey === 'homeTMCU1209AbtestHomepageBalanceBreakdownV2') {
       return {
         variantName: mockBalanceBreakdownVariantName,
         variant: {
-          layout:
-            mockBalanceBreakdownVariantName === 'icons' ||
-            mockBalanceBreakdownVariantName === 'iconsWithArrows'
-              ? 'icons'
-              : mockBalanceBreakdownVariantName === 'allocation'
-                ? 'allocation'
-                : null,
-          showRowArrows: mockBalanceBreakdownVariantName === 'iconsWithArrows',
+          showBalanceBreakdown: mockBalanceBreakdownVariantName === 'treatment',
         },
         isActive: mockBalanceBreakdownVariantName !== 'unresolved',
       };
@@ -294,11 +287,37 @@ jest.mock('../Homepage', () => {
   );
   return {
     __esModule: true,
-    default: React.forwardRef((props: unknown, _ref: unknown) => {
-      mockHomepage(props);
-      capturedContext = React.useContext(HomepageCtx);
-      return null;
-    }),
+    default: React.forwardRef(
+      (
+        props: {
+          balanceBreakdownSectionProps?: {
+            accountGroupBalanceProps?: object;
+            children?: React.ReactNode;
+            hideRows?: boolean;
+          };
+        },
+        _ref: unknown,
+      ) => {
+        mockHomepage(props);
+        capturedContext = React.useContext(HomepageCtx);
+        const balanceBreakdownProps = props.balanceBreakdownSectionProps;
+        const AccountGroupBalance = jest.requireMock(
+          '../../UI/Assets/components/Balance/AccountGroupBalance',
+        ).default;
+
+        return React.createElement(
+          React.Fragment,
+          null,
+          balanceBreakdownProps?.hideRows
+            ? React.createElement(
+                AccountGroupBalance,
+                balanceBreakdownProps.accountGroupBalanceProps,
+              )
+            : null,
+          balanceBreakdownProps?.children,
+        );
+      },
+    ),
   };
 });
 
@@ -1939,14 +1958,14 @@ describe('MoneyBalanceCard slot', () => {
   it('suppresses the standalone MoneyBalanceCard in breakdown treatment', () => {
     mockMoneyAccountEnabled = true;
     mockMoneyAccountVisible = true;
-    mockBalanceBreakdownVariantName = 'icons';
+    mockBalanceBreakdownVariantName = 'treatment';
 
     const { queryByTestId } = render(Wallet);
 
     expect(mockHomepage).toHaveBeenCalledWith(
       expect.objectContaining({
         balanceBreakdownSectionProps: expect.objectContaining({
-          layout: 'icons',
+          hideRows: false,
         }),
       }),
     );
@@ -2012,7 +2031,7 @@ describe('Header and Nav Bar refresh AB test', () => {
 
   it('renders the account name when the balance breakdown treatment is also active', () => {
     mockHeaderNavBarVariantName = 'searchFocused';
-    mockBalanceBreakdownVariantName = 'icons';
+    mockBalanceBreakdownVariantName = 'treatment';
 
     const { getByTestId } = render(Wallet);
 
@@ -2210,7 +2229,7 @@ describe('Header and Nav Bar refresh AB test', () => {
   });
 });
 
-describe('Homepage balance breakdown ABC test', () => {
+describe('Homepage balance breakdown A/B test', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockBalanceBreakdownVariantName = 'unresolved';
@@ -2225,7 +2244,9 @@ describe('Homepage balance breakdown ABC test', () => {
     mockBalanceBreakdownVariantName = 'unresolved';
   });
 
-  it('does not mount the aggregation UI while assignment is unresolved', () => {
+  it('keeps the current homepage for the control variant', () => {
+    mockBalanceBreakdownVariantName = 'control';
+
     render(Wallet);
 
     expect(mockHomepage).toHaveBeenCalledWith(
@@ -2235,69 +2256,31 @@ describe('Homepage balance breakdown ABC test', () => {
     );
   });
 
-  it('keeps the current homepage for the control assignment', () => {
-    mockBalanceBreakdownVariantName = 'control';
+  it('mounts the single balance breakdown design for treatment', () => {
+    mockBalanceBreakdownVariantName = 'treatment';
 
-    const { queryByTestId } = render(Wallet);
+    render(Wallet);
 
     expect(mockHomepage).toHaveBeenCalledWith(
       expect.objectContaining({
-        balanceBreakdownSectionProps: undefined,
+        balanceBreakdownSectionProps: expect.objectContaining({
+          children: expect.anything(),
+          hideRows: false,
+          transactionActiveAbTests: [
+            {
+              key: 'homeTMCU1209AbtestHomepageBalanceBreakdownV2',
+              value: 'treatment',
+              key_value_pair:
+                'homeTMCU1209AbtestHomepageBalanceBreakdownV2=treatment',
+            },
+          ],
+        }),
       }),
     );
-    expect(
-      queryByTestId(WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTENT),
-    ).not.toBeOnTheScreen();
   });
-
-  it('renders control banner spacing when the network banner is visible', () => {
-    mockBalanceBreakdownVariantName = 'control';
-    mockNetworkConnectionBannerVisible = true;
-
-    const { getByTestId } = render(Wallet);
-
-    expect(
-      getByTestId(WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTENT),
-    ).toBeOnTheScreen();
-  });
-
-  it.each([
-    { variantName: 'icons', layout: 'icons', showRowArrows: false },
-    {
-      variantName: 'iconsWithArrows',
-      layout: 'icons',
-      showRowArrows: true,
-    },
-    { variantName: 'allocation', layout: 'allocation', showRowArrows: false },
-  ] as const)(
-    'maps $variantName assignment to the $layout layout',
-    ({ variantName, layout, showRowArrows }) => {
-      mockBalanceBreakdownVariantName = variantName;
-
-      render(Wallet);
-
-      expect(mockHomepage).toHaveBeenCalledWith(
-        expect.objectContaining({
-          balanceBreakdownSectionProps: expect.objectContaining({
-            children: expect.anything(),
-            hideRows: false,
-            layout,
-            showRowArrows,
-            transactionActiveAbTests: [
-              {
-                key: 'homeTMCU1209AbtestHomepageBalanceBreakdown',
-                value: variantName,
-                key_value_pair: `homeTMCU1209AbtestHomepageBalanceBreakdown=${variantName}`,
-              },
-            ],
-          }),
-        }),
-      );
-    },
-  );
 
   it('does not reserve banner spacing when treatment banners are hidden', () => {
-    mockBalanceBreakdownVariantName = 'icons';
+    mockBalanceBreakdownVariantName = 'treatment';
 
     const { queryByTestId } = render(Wallet);
 
@@ -2310,7 +2293,7 @@ describe('Homepage balance breakdown ABC test', () => {
   });
 
   it('keeps treatment banner spacing when the network banner is visible', () => {
-    mockBalanceBreakdownVariantName = 'icons';
+    mockBalanceBreakdownVariantName = 'treatment';
     mockNetworkConnectionBannerVisible = true;
 
     const { getByTestId } = render(Wallet);
@@ -2320,8 +2303,8 @@ describe('Homepage balance breakdown ABC test', () => {
     ).toHaveStyle({ paddingBottom: 16 });
   });
 
-  it('hides treatment rows during wallet-home post-onboarding', () => {
-    mockBalanceBreakdownVariantName = 'icons';
+  it('hides breakdown rows during wallet-home post-onboarding', () => {
+    mockBalanceBreakdownVariantName = 'treatment';
     const state = mockStateWalletHomePostOnboardingActive;
     jest.mocked(useSelector).mockImplementation((callback) => callback(state));
 
@@ -2332,7 +2315,6 @@ describe('Homepage balance breakdown ABC test', () => {
         balanceBreakdownSectionProps: expect.objectContaining({
           children: null,
           hideRows: true,
-          layout: 'icons',
         }),
       }),
     );

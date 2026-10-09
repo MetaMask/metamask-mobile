@@ -16,7 +16,7 @@ import { useLatestBalance } from '../../hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 import { selectGasIncludedQuoteParams } from '../../../../../selectors/bridge';
-import { buildGenericQuoteRequest } from './utils';
+import { buildGenericQuoteRequest, type QuoteParams } from './utils';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import {
@@ -33,16 +33,13 @@ export const SwapQuotesContext = createContext<SwapQuotesContextValue | null>(
 
 interface UseSwapQuotesParams {
   latestSourceAtomicBalance?: EthersBigNumber;
-  quoteParams: Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams'];
-}
-
-interface UseQuoteDataParams extends UseSwapQuotesParams {
+  quoteParams: QuoteParams;
   /**
    * Whether this is the quote source for the rendered tab. The other quote
    * provider stays mounted to keep the tree stable, this flag skips
    * expensive computations.
    */
-  isActive?: boolean;
+  isActive: boolean;
 }
 
 interface UseQuoteRequestParams
@@ -54,7 +51,7 @@ interface UseQuoteRequestParams
  * @returns An object with a debounced function to update quote parameters and a function to refresh quotes
  */
 const useQuoteRequest = (params: UseQuoteRequestParams) => {
-  const { quoteParams, latestSourceAtomicBalance } = params;
+  const { quoteParams, latestSourceAtomicBalance, isActive } = params;
   const {
     srcAmount,
     srcToken,
@@ -88,32 +85,24 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
   );
 
   const genericQuoteRequest = useMemo(
-    (): GenericQuoteRequest | undefined =>
+    ():
+      | (Partial<GenericQuoteRequest> & { walletAddress: string })
+      | undefined =>
       buildGenericQuoteRequest({
         quoteParams: {
-          srcAmount,
-          srcToken,
-          destToken,
-          walletAddress,
-          destWalletAddress,
-          slippage,
+          ...quoteParams,
+          gasIncluded,
+          gasIncluded7702,
         },
-        gasIncluded,
-        gasIncluded7702,
         insufficientBalance,
         insufficientNativeReserveError: Boolean(insufficientNativeReserveError),
       }),
     [
-      srcAmount,
-      srcToken,
-      destToken,
-      walletAddress,
-      destWalletAddress,
-      slippage,
-      gasIncluded,
-      gasIncluded7702,
       insufficientBalance,
       insufficientNativeReserveError,
+      quoteParams,
+      gasIncluded,
+      gasIncluded7702,
     ],
   );
 
@@ -124,6 +113,7 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
     quoteRequestCount: params.quoteRequestCount,
     genericQuoteRequest,
     rawSrcAmount: srcAmount,
+    isActive,
   });
 
   const refreshQuotes = useCallback(() => {
@@ -143,7 +133,7 @@ const useQuoteData = ({
   latestSourceAtomicBalance,
   quoteParams,
   isActive,
-}: UseQuoteDataParams) => {
+}: UseSwapQuotesParams) => {
   const { quoteFetchError, quotesLoadingStatus } = useSelector(
     selectBridgeControllerState,
   );
@@ -159,18 +149,24 @@ const useQuoteData = ({
     needsNewQuote,
     validQuotes,
     willRefresh,
+    refreshRate,
+    quotesLastFetched,
   } = useValidQuotes({ latestSourceAtomicBalance, isActive, quoteParams });
 
   // Validate solana quotes
   const blockaidError = useBlockaidError({ activeQuote, isActive });
 
   // Format quote data
-  const { destTokenAmount, formattedQuoteData, shouldShowPriceImpactWarning } =
-    useFormattedQuoteData({
-      activeQuote,
-      isActiveQuoteForCurrentTokenPair,
-      quoteParams,
-    });
+  const {
+    destTokenAmount,
+    formattedQuoteData,
+    shouldShowPriceImpactWarning,
+    shouldShowPriceImpactError,
+  } = useFormattedQuoteData({
+    activeQuote,
+    isActiveQuoteForCurrentTokenPair,
+    quoteParams,
+  });
 
   return useMemo(
     () => ({
@@ -187,8 +183,11 @@ const useQuoteData = ({
       quoteFetchError,
       quotesLoadingStatus,
       shouldShowPriceImpactWarning,
+      shouldShowPriceImpactError,
       validQuotes,
       willRefresh,
+      refreshRate,
+      quotesLastFetched,
     }),
     [
       activeQuote,
@@ -204,8 +203,11 @@ const useQuoteData = ({
       quoteFetchError,
       quotesLoadingStatus,
       shouldShowPriceImpactWarning,
+      shouldShowPriceImpactError,
       validQuotes,
       willRefresh,
+      refreshRate,
+      quotesLastFetched,
     ],
   );
 };
@@ -244,7 +246,7 @@ export const SwapQuotesProvider = ({
     debounceWait: DEBOUNCE_WAIT,
   };
 
-  const requestData = useQuoteRequest(resolvedParams);
+  const requestData = useQuoteRequest({ ...resolvedParams, isActive });
   const quoteData = useQuoteData({
     ...resolvedParams,
     isActive,
