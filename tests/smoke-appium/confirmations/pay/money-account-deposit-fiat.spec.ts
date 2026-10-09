@@ -21,10 +21,7 @@ import MoneyAddMoneySheet from '../../../page-objects/Money/MoneyAddMoneySheet.j
 
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { moneyAccountDepositFlags } from '../../../api-mocking/mock-responses/pay/feature-flag-mocks.js';
-import {
-  MONEY_ACCOUNT_DEPOSIT_MOCKS,
-  logMoneyDepositTraffic,
-} from '../../../api-mocking/mock-responses/pay/money-account-deposit-mocks.js';
+import { MONEY_ACCOUNT_DEPOSIT_MOCKS } from '../../../api-mocking/mock-responses/pay/money-account-deposit-mocks.js';
 import { applyTokenHoldingsMocks } from '../../../api-mocking/mock-responses/pay/holdings-mocks.js';
 import {
   BUY_ORDER_STATUS_MOCKS,
@@ -84,7 +81,6 @@ appiumTest.describe(
               transactionPayFiatTestAmountOverride: '0.016666666666666666',
             },
             testSpecificMock: async (mockServer: Mockttp) => {
-              await logMoneyDepositTraffic(mockServer);
               await setupRemoteFeatureFlagsMock(
                 mockServer,
                 moneyAccountDepositFlags(),
