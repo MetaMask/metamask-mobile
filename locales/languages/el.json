@@ -4877,6 +4877,7 @@
     "enable_push_notifications": "Ενεργοποίηση ειδοποιήσεων push",
     "allow_notifications_desc": "Επιλέξτε τι ειδοποιήσεις θα λαμβάνετε και πώς.",
     "notifications_opts": {
+      "all_title": "Όλα",
       "preferences_title": "Προτιμήσεις",
       "push_recommended": "Ειδοποιήσεις push",
       "in_app": "Εντός εφαρμογής",

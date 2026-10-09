@@ -48,6 +48,33 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../util/notifications/hooks/useNotifications', () => ({
+  ...jest.requireActual('../../../util/notifications/hooks/useNotifications'),
+  useNotificationsCategories: () => ({
+    categoriesData: [
+      {
+        category_id: 'walletActivity',
+        aus_keys: ['walletActivity'],
+        visible_on: [],
+        notification_types: [],
+      },
+      {
+        category_id: 'perps',
+        aus_keys: ['perps'],
+        visible_on: [],
+        notification_types: [],
+      },
+      {
+        category_id: 'marketing',
+        aus_keys: ['marketing'],
+        visible_on: [],
+        notification_types: [],
+      },
+    ],
+    isLoading: false,
+  }),
+}));
+
 const mockMetrics = {
   trackEvent: jest.fn(),
   createEventBuilder: jest.fn().mockReturnValue({ build: jest.fn() }),
