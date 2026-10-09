@@ -249,9 +249,20 @@ const isLocaleGroupedInteger = (
   );
 };
 
+const hasLocaleGroupedIntegerPart = (
+  value: string,
+  localeGrouping: PerpsLocaleGrouping,
+  localeDecimalSeparator: string,
+): boolean =>
+  isLocaleGroupedInteger(
+    value.split(localeDecimalSeparator, 1)[0],
+    localeGrouping,
+  );
+
 const retainsLocaleGroupingFromPreviousDisplay = (
   value: string,
   localeGrouping: PerpsLocaleGrouping,
+  localeDecimalSeparator: string,
   context?: NormalizePerpsNumericInputContext,
 ): boolean => {
   if (!context) {
@@ -266,7 +277,11 @@ const retainsLocaleGroupingFromPreviousDisplay = (
 
   if (
     !groupingSeparator ||
-    !isLocaleGroupedInteger(previousValue, localeGrouping) ||
+    !hasLocaleGroupedIntegerPart(
+      previousValue,
+      localeGrouping,
+      localeDecimalSeparator,
+    ) ||
     !value.includes(groupingSeparator)
   ) {
     return false;
@@ -317,6 +332,7 @@ const retainsLocaleGroupingFromPreviousDisplay = (
 const addsLocaleGroupingCharacterToPreviousDisplay = (
   value: string,
   localeGrouping: PerpsLocaleGrouping,
+  localeDecimalSeparator: string,
   context?: NormalizePerpsNumericInputContext,
 ): boolean => {
   if (!context || !localeGrouping.groupingSeparator) {
@@ -331,8 +347,11 @@ const addsLocaleGroupingCharacterToPreviousDisplay = (
     input.split(localeGrouping.groupingSeparator).length - 1;
 
   return (
-    isLocaleGroupedInteger(previousValue, localeGrouping) &&
-    countGroupingCharacters(value) > countGroupingCharacters(previousValue)
+    hasLocaleGroupedIntegerPart(
+      previousValue,
+      localeGrouping,
+      localeDecimalSeparator,
+    ) && countGroupingCharacters(value) > countGroupingCharacters(previousValue)
   );
 };
 
@@ -443,6 +462,7 @@ export const normalizePerpsNumericInput = (
     const addsGroupingCharacter = addsLocaleGroupingCharacterToPreviousDisplay(
       localizedValue,
       localeGrouping,
+      separators.decimal,
       context,
     );
     decimalSeparator =
@@ -452,6 +472,7 @@ export const normalizePerpsNumericInput = (
         !retainsLocaleGroupingFromPreviousDisplay(
           localizedValue,
           localeGrouping,
+          separators.decimal,
           context,
         ))
         ? '.'

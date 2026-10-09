@@ -686,6 +686,36 @@ describe('formatUtils', () => {
       expect(normalizedValue).toBe('1000.');
     });
 
+    it('preserves German grouping when deleting a decimal separator', () => {
+      const context = {
+        previousDisplayValue: '1.234,50',
+        previousSelection: { start: 6, end: 6 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.23450',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('123450');
+    });
+
+    it('treats a period replacing a German decimal separator as decimal input', () => {
+      const context = {
+        previousDisplayValue: '1.234,50',
+        previousSelection: { start: 5, end: 6 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.234.50',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1234.50');
+    });
+
     it.each([
       ['en-US', '1.5.', '1.5'],
       ['de-DE', '1,5,', '1.5'],
