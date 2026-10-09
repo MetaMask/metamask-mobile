@@ -204,17 +204,15 @@ describe('useCardWalletProvisioning', () => {
     );
   });
 
-  it('shows the provisioning error, or a fallback when the error has no message', () => {
+  it('shows the provisioning error message', () => {
     renderProvisioning(homeData(walletProvisioning));
 
     const { onError } = mockUsePushProvisioning.mock.calls[0][0] as {
       onError: (error: { message: string }) => void;
     };
     onError({ message: 'Wallet rejected the card' });
-    onError({ message: '' });
 
-    expect(showToast).toHaveBeenNthCalledWith(
-      1,
+    expect(showToast).toHaveBeenCalledWith(
       expect.objectContaining({
         labelOptions: [{ label: 'Wallet rejected the card' }],
         startAccessory: expect.objectContaining({
@@ -226,8 +224,17 @@ describe('useCardWalletProvisioning', () => {
         }),
       }),
     );
-    expect(showToast).toHaveBeenNthCalledWith(
-      2,
+  });
+
+  it('shows a fallback when the provisioning error has no message', () => {
+    renderProvisioning(homeData(walletProvisioning));
+
+    const { onError } = mockUsePushProvisioning.mock.calls[0][0] as {
+      onError: (error: { message: string }) => void;
+    };
+    onError({ message: '' });
+
+    expect(showToast).toHaveBeenCalledWith(
       expect.objectContaining({
         labelOptions: [
           { label: strings('card.push_provisioning.error_unknown') },

@@ -1244,7 +1244,7 @@ describe('ImmersveProvider', () => {
       );
     });
 
-    it('reports an ineligible card when name, last four, and series id are missing', async () => {
+    it('maps missing cardholder fields to empty strings for an active card', async () => {
       const { provider, service } = createProvider();
       service.get.mockImplementation(
         routeGet({
@@ -1252,7 +1252,6 @@ describe('ImmersveProvider', () => {
             items: [
               {
                 ...activeCard,
-                isBlocked: true,
                 panLast4: undefined,
                 seriesId: undefined,
               },
@@ -1260,7 +1259,6 @@ describe('ImmersveProvider', () => {
           },
           cardDetail: {
             ...activeCardDetail,
-            isBlocked: true,
             cardholderName: undefined,
             panLast4: undefined,
             seriesId: undefined,
@@ -1272,12 +1270,33 @@ describe('ImmersveProvider', () => {
       const data = await provider.getCardHomeData('0xabc', TOKENS);
 
       expect(data.walletProvisioning).toEqual({
-        eligible: false,
+        eligible: true,
         cardholderName: '',
         lastFour: '',
         network: 'MASTERCARD',
         primaryAccountIdentifier: undefined,
       });
+    });
+
+    it('marks a blocked card ineligible for wallet provisioning', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [{ ...activeCard, isBlocked: true }] },
+          cardDetail: { ...activeCardDetail, isBlocked: true },
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.walletProvisioning).toEqual(
+        expect.objectContaining({
+          eligible: false,
+          cardholderName: 'John Doe',
+          lastFour: '1234',
+        }),
+      );
     });
 
     it('passes cardholderName through without sanitizing', async () => {
