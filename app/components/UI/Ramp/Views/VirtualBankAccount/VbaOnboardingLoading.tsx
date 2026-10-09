@@ -46,26 +46,39 @@ const VbaOnboardingLoading = () => {
   useEffect(() => {
     let active = true;
 
-    resolveVbaOnboarding(VBA_LOADING_SOURCE).then((resolved) => {
-      if (!active) {
-        return;
-      }
-      if (resolved.status === 'error') {
-        setHasError(true);
-        return;
-      }
+    resolveVbaOnboarding(VBA_LOADING_SOURCE)
+      .then((resolved) => {
+        if (!active) {
+          return;
+        }
+        if (resolved.status === 'error') {
+          setHasError(true);
+          return;
+        }
 
-      Logger.log('[vba-onboarding] resume', {
-        source: VBA_LOADING_SOURCE,
-        snapshot: resolved.snapshot,
-        destinationId: resolved.destinationId,
+        Logger.log('[vba-onboarding] resume', {
+          source: VBA_LOADING_SOURCE,
+          snapshot: resolved.snapshot,
+          destinationId: resolved.destinationId,
+        });
+        navigateToVbaOnboardingDestination(
+          navigation,
+          resolved.destinationId,
+          resolved.snapshot,
+        );
+      })
+      .catch((error: unknown) => {
+        Logger.error(error as Error, {
+          tags: { feature: 'vba-onboarding' },
+          context: {
+            name: 'VbaOnboardingLoading',
+            data: { source: VBA_LOADING_SOURCE },
+          },
+        });
+        if (active) {
+          setHasError(true);
+        }
       });
-      navigateToVbaOnboardingDestination(
-        navigation,
-        resolved.destinationId,
-        resolved.snapshot,
-      );
-    });
 
     return () => {
       active = false;

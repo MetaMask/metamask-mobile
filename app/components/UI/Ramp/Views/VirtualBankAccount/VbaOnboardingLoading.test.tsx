@@ -25,6 +25,14 @@ jest.mock('./hooks/useVbaOnboardingRouting', () => ({
   navigateToVbaOnboardingDestination: jest.fn(),
 }));
 
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    log: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
 const mockResolve = jest.mocked(resolveVbaOnboarding);
 const mockNavigateToDestination = jest.mocked(
   navigateToVbaOnboardingDestination,
@@ -131,6 +139,19 @@ describe('VbaOnboardingLoading', () => {
         expect.objectContaining({ vendorTermsAcceptedLocally: true }),
       );
     });
+  });
+
+  it('shows the error stub when hydrate rejects', async () => {
+    mockResolve.mockRejectedValue(new Error('hydrate failed'));
+
+    const { getByTestId } = renderWithProvider(<VbaOnboardingLoading />);
+
+    await waitFor(() => {
+      expect(
+        getByTestId(`${VbaOnboardingStubSelectorsIDs.CONTAINER}-error`),
+      ).toBeOnTheScreen();
+    });
+    expect(mockNavigateToDestination).not.toHaveBeenCalled();
   });
 
   it('does not navigate when the screen unmounts before hydrate resolves', async () => {
