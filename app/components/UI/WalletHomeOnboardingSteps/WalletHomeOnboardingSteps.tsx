@@ -78,8 +78,6 @@ import {
 } from './walletHomeOnboardingStepsStrings';
 import { useWalletHomeOnboardingChecklistHomeViewed } from './useWalletHomeOnboardingChecklistHomeViewed';
 
-const SLIDE_DISTANCE = Dimensions.get('window').width;
-
 export interface WalletHomeOnboardingStepsProps {
   testID?: string;
   /**
@@ -457,8 +455,9 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         return;
       }
 
+      const slideDistance = Dimensions.get('window').width;
       Animated.timing(slideX, {
-        toValue: -SLIDE_DISTANCE,
+        toValue: -slideDistance,
         duration: WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_OUT_MS,
         easing: Easing.in(Easing.cubic),
         useNativeDriver: true,
@@ -469,7 +468,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           return;
         }
         dispatch(setWalletHomeOnboardingStepsStep(fromIndex + 1));
-        slideX.setValue(SLIDE_DISTANCE);
+        slideX.setValue(slideDistance);
         requestAnimationFrame(() => {
           Animated.timing(slideX, {
             toValue: 0,

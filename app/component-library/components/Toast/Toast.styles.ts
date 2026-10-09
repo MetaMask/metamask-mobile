@@ -1,22 +1,25 @@
 // Third party dependencies.
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { AppThemeKey, Theme } from '../../../util/theme/models';
 
 const marginWidth = 16;
-const toastWidth = Dimensions.get('window').width - marginWidth * 2;
+
+export interface ToastStyleSheetVars {
+  windowWidth: number;
+}
 
 /**
  * Style sheet for Toast component.
  *
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const styleSheet = (params: { theme: Theme; vars: ToastStyleSheetVars }) => {
+  const { theme, vars } = params;
   const { colors, shadows } = theme;
   return StyleSheet.create({
     base: {
       position: 'absolute',
-      width: toastWidth,
+      width: vars.windowWidth - marginWidth * 2,
       left: marginWidth,
       top: 0,
       backgroundColor:

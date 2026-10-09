@@ -130,8 +130,6 @@ import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerfor
 import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
 import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
-
 type TrackFn = (
   event: IMetaMetricsEvent | ITrackingEvent,
   properties?: JsonMap,
@@ -427,8 +425,9 @@ const ImportFromSecretRecoveryPhrase = () => {
       }
 
       const isForward = nextStep > currentStep;
-      const exitValue = isForward ? -SCREEN_WIDTH : SCREEN_WIDTH;
-      const enterValue = isForward ? SCREEN_WIDTH : -SCREEN_WIDTH;
+      const { width: windowWidth } = Dimensions.get('window');
+      const exitValue = isForward ? -windowWidth : windowWidth;
+      const enterValue = isForward ? windowWidth : -windowWidth;
 
       Animated.timing(slideAnim, {
         toValue: exitValue,

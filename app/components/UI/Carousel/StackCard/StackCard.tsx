@@ -3,7 +3,7 @@ import {
   Pressable,
   Image as RNImage,
   Animated,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import {
   Box,
@@ -20,8 +20,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { StackCardProps } from './StackCard.types';
 
 const BANNER_HEIGHT = 100;
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const BANNER_WIDTH = SCREEN_WIDTH - 32;
+const BANNER_HORIZONTAL_MARGIN = 32;
 
 export const StackCard: React.FC<StackCardProps> = ({
   slide,
@@ -37,6 +36,8 @@ export const StackCard: React.FC<StackCardProps> = ({
   onTransitionToNextCard,
 }) => {
   const tw = useTailwind();
+  const { width: windowWidth } = useWindowDimensions();
+  const bannerWidth = windowWidth - BANNER_HORIZONTAL_MARGIN;
 
   return (
     <Animated.View
@@ -61,7 +62,7 @@ export const StackCard: React.FC<StackCardProps> = ({
           'rounded-xl relative overflow-hidden border border-muted',
           {
             height: BANNER_HEIGHT,
-            width: BANNER_WIDTH,
+            width: bannerWidth,
           },
         )}
       >
@@ -72,7 +73,7 @@ export const StackCard: React.FC<StackCardProps> = ({
               'bg-default rounded-xl pl-4 pr-3',
               {
                 height: BANNER_HEIGHT,
-                width: BANNER_WIDTH,
+                width: bannerWidth,
               },
               pressed && 'bg-default-pressed',
             )

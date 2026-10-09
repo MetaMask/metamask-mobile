@@ -15,7 +15,7 @@ interface UseScreenOrientationOptions {
  *
  * This hook allows screens to opt-in to landscape orientation support.
  * When the component unmounts or `allowLandscape` becomes false,
- * the orientation is automatically locked back to portrait.
+ * the orientation returns to the device default: portrait on phones, rotatable on iPad.
  *
  * @example
  * // In a modal that should allow landscape
@@ -45,8 +45,8 @@ export function useScreenOrientation({
         await ScreenOrientationService.allowLandscape();
         hasUnlockedRef.current = true;
       } else if (hasUnlockedRef.current) {
-        // Only lock if we previously unlocked
-        await ScreenOrientationService.lockToPortrait();
+        // Only restore the default if we previously unlocked
+        await ScreenOrientationService.lockToDefault();
         hasUnlockedRef.current = false;
       }
     };
@@ -56,7 +56,7 @@ export function useScreenOrientation({
     // Cleanup: lock back to portrait when component unmounts
     return () => {
       if (hasUnlockedRef.current) {
-        ScreenOrientationService.lockToPortrait();
+        ScreenOrientationService.lockToDefault();
         hasUnlockedRef.current = false;
       }
     };

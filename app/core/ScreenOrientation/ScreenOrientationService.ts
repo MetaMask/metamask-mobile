@@ -3,26 +3,42 @@ import {
   unlockAsync,
   OrientationLock,
 } from 'expo-screen-orientation';
+import { Platform } from 'react-native';
 import Logger from '../../util/Logger';
 
 /**
  * ScreenOrientationService provides centralized control over screen orientation.
  *
- * By default, the app is locked to portrait mode. Specific screens can opt-in
- * to allow landscape orientation using the provided methods.
+ * Phones are locked to portrait. iPad follows the device orientation so the app
+ * fills the screen in landscape. Specific screens can still opt in to landscape
+ * on phones.
  *
  * @example
- * // Lock app to portrait on startup
- * await ScreenOrientationService.lockToPortrait();
+ * // Apply the device default on startup
+ * await ScreenOrientationService.lockToDefault();
  *
- * // Allow landscape for a specific screen
+ * // Allow landscape for a specific phone screen
  * await ScreenOrientationService.allowLandscape();
  *
- * // Lock back to portrait when leaving the screen
- * await ScreenOrientationService.lockToPortrait();
+ * // Restore the device default when leaving the screen
+ * await ScreenOrientationService.lockToDefault();
  */
 export class ScreenOrientationService {
   private static isLocked = false;
+
+  /**
+   * Applies the default orientation for the current device.
+   * Phones stay portrait. iPad rotates with the device so landscape uses the full screen.
+   */
+  static async lockToDefault(): Promise<void> {
+    if (Platform.OS === 'ios' && Platform.isPad) {
+      // Unlocking falls back to the iPad orientations allowed in Info.plist.
+      await this.allowLandscape();
+      return;
+    }
+
+    await this.lockToPortrait();
+  }
 
   /**
    * Locks the screen orientation to portrait mode.

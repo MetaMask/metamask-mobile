@@ -1,10 +1,16 @@
-import { Dimensions, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
-const screenWidth = Dimensions.get('window').width;
+export interface VerifyIdentityStyleSheetVars {
+  /** Shorter window side: the width on portrait phones, the height in iPad landscape. */
+  shortSide: number;
+}
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const styleSheet = (params: {
+  theme: Theme;
+  vars: VerifyIdentityStyleSheetVars;
+}) => {
+  const { theme, vars } = params;
 
   return StyleSheet.create({
     title: {
@@ -12,8 +18,8 @@ const styleSheet = (params: { theme: Theme }) => {
       fontWeight: 'bold',
     },
     image: {
-      width: screenWidth * 0.65,
-      height: screenWidth * 0.49,
+      width: vars.shortSide * 0.65,
+      height: vars.shortSide * 0.49,
       alignSelf: 'center',
       marginVertical: 16,
     },
