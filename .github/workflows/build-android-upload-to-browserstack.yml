@@ -1077,8 +1077,9 @@ jobs:
             fi
             echo "Uploading $label APK to TestMu AI: $apk"
             local app_url
-            app_url="$(./tests/scripts/upload-testmu-app.sh "$apk" "$custom_id")"
-            ./tests/scripts/verify-testmu-app-url.sh "$app_url"
+            # errexit is disabled inside functions called via `||`, so check each step explicitly.
+            app_url="$(./tests/scripts/upload-testmu-app.sh "$apk" "$custom_id")" || return 1
+            ./tests/scripts/verify-testmu-app-url.sh "$app_url" || return 1
             {
               echo "$url_key=$app_url"
               echo "$version_key=$version"

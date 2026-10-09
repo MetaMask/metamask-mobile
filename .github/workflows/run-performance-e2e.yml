@@ -300,7 +300,17 @@ jobs:
           PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           if [ -n "$LT_USERNAME" ] && [ -n "$LT_ACCESS_KEY" ]; then
-            echo "TestMu AI credentials are configured"
+            http_code="$(curl -sS -o /dev/null -w '%{http_code}' -u "$LT_USERNAME:$LT_ACCESS_KEY" \
+              "https://manual-api.lambdatest.com/app/data?type=android&level=user&limit=1" || true)"
+            if [ "$http_code" != "200" ]; then
+              echo "TestMu AI credentials are set but the API rejected them (HTTP $http_code)"
+              if [ -n "$PR_NUMBER" ]; then
+                exit 1
+              fi
+              echo "testmu_ready=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "TestMu AI credentials are configured and valid"
             echo "testmu_ready=true" >> "$GITHUB_OUTPUT"
           elif [ -n "$PR_NUMBER" ]; then
             echo "PR performance runs require LT_USERNAME and LT_ACCESS_KEY secrets"
