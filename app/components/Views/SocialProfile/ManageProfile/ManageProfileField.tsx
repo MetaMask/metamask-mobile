@@ -101,9 +101,7 @@ const ManageProfileField = () => {
                 <TextArea
                   value={draft}
                   onChangeText={handleChangeText}
-                  placeholder={strings(
-                    'manage_profile.bio_placeholder',
-                  )}
+                  placeholder={strings('manage_profile.bio_placeholder')}
                   maxLength={PROFILE_FIELD_MAX_LENGTH.bio}
                   autoFocus
                   testID={ManageProfileSelectorsIDs.FIELD_INPUT}
@@ -125,13 +123,10 @@ const ManageProfileField = () => {
                     color={TextColor.TextAlternative}
                     testID={ManageProfileSelectorsIDs.BIO_CHARACTER_COUNT}
                   >
-                    {strings(
-                      'manage_profile.bio_character_count',
-                      {
-                        count: draft.length,
-                        limit: PROFILE_FIELD_MAX_LENGTH.bio,
-                      },
-                    )}
+                    {strings('manage_profile.bio_character_count', {
+                      count: draft.length,
+                      limit: PROFILE_FIELD_MAX_LENGTH.bio,
+                    })}
                   </Text>
                 </Box>
               </>
@@ -139,9 +134,7 @@ const ManageProfileField = () => {
               <TextField
                 value={draft}
                 onChangeText={handleChangeText}
-                placeholder={strings(
-                  'manage_profile.display_name_placeholder',
-                )}
+                placeholder={strings('manage_profile.display_name_placeholder')}
                 autoFocus
                 // TextField puts `testID` on the root Box, so target the inner
                 // input to match TextArea.
