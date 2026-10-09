@@ -156,9 +156,7 @@ describe('LinkedSocialAccount', () => {
 
     const header = getByTestId(LinkedSocialAccountSelectorsIDs.HEADER);
     expect(
-      within(header).getByText(
-        strings('app_settings.manage_profile.linked_social_account'),
-      ),
+      within(header).getByText(strings('manage_profile.linked_social_account')),
     ).toBeOnTheScreen();
   });
 

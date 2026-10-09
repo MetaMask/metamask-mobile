@@ -59,7 +59,7 @@ const LinkedSocialAccount = () => {
       testID={LinkedSocialAccountSelectorsIDs.SAFE_AREA}
     >
       <HeaderStandard
-        title={strings('app_settings.manage_profile.linked_social_account')}
+        title={strings('manage_profile.linked_social_account')}
         onBack={handleBack}
         includesTopInset
         testID={LinkedSocialAccountSelectorsIDs.HEADER}
