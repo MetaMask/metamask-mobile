@@ -12,6 +12,7 @@ import type {
   PerpsMarketData,
   PositionModifyPreviewResult,
 } from '@metamask/perps-controller';
+import type { ComponentType } from 'react';
 import { renderPerpsCrossMarginOrderFormPanel } from '../../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
 import {
@@ -129,7 +130,12 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
           },
         },
       },
-      extraRoutes: [{ name: Routes.PERPS.TPSL, Component: PerpsTPSLView }],
+      extraRoutes: [
+        {
+          name: Routes.PERPS.TPSL,
+          Component: PerpsTPSLView as unknown as ComponentType<unknown>,
+        },
+      ],
     });
     unwire = wirePerpsControllerForStore(store);
 
