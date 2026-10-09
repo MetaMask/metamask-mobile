@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import RewardsVipBadge from './RewardsVipBadge';
+import MembershipVipBadge from './MembershipVipBadge';
 
 const mockUseVipTier = jest.fn();
 jest.mock('../../hooks/useVipTier', () => ({
@@ -19,7 +19,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-describe('RewardsVipBadge', () => {
+describe('MembershipVipBadge', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -27,7 +27,7 @@ describe('RewardsVipBadge', () => {
   it('renders vip badge when tier is 1', () => {
     mockUseVipTier.mockReturnValue(1);
 
-    const { getByTestId } = render(<RewardsVipBadge />);
+    const { getByTestId } = render(<MembershipVipBadge />);
 
     expect(getByTestId('rewards-vip-badge')).toHaveTextContent('Mock VIP 1');
   });
@@ -36,7 +36,7 @@ describe('RewardsVipBadge', () => {
     mockUseVipTier.mockReturnValue(2);
 
     const { getByTestId, queryByTestId } = render(
-      <RewardsVipBadge hasProEntitlement />,
+      <MembershipVipBadge hasProEntitlement />,
     );
 
     expect(getByTestId('rewards-vip-badge')).toHaveTextContent('Mock VIP 2');
@@ -47,7 +47,7 @@ describe('RewardsVipBadge', () => {
     mockUseVipTier.mockReturnValue(null);
 
     const { getByTestId, queryByTestId } = render(
-      <RewardsVipBadge hasProEntitlement />,
+      <MembershipVipBadge hasProEntitlement />,
     );
 
     expect(getByTestId('rewards-member-badge')).toHaveTextContent('Member');
@@ -57,7 +57,7 @@ describe('RewardsVipBadge', () => {
   it('renders nothing when hasProEntitlement is omitted and vip tier is null', () => {
     mockUseVipTier.mockReturnValue(null);
 
-    const { queryByTestId } = render(<RewardsVipBadge />);
+    const { queryByTestId } = render(<MembershipVipBadge />);
 
     expect(queryByTestId('rewards-vip-badge')).toBeNull();
     expect(queryByTestId('rewards-member-badge')).toBeNull();
@@ -67,7 +67,7 @@ describe('RewardsVipBadge', () => {
     mockUseVipTier.mockReturnValue(null);
 
     const { queryByTestId } = render(
-      <RewardsVipBadge hasProEntitlement={false} />,
+      <MembershipVipBadge hasProEntitlement={false} />,
     );
 
     expect(queryByTestId('rewards-vip-badge')).toBeNull();
@@ -77,7 +77,7 @@ describe('RewardsVipBadge', () => {
   it('renders nothing when vip tier is 0 and hasProEntitlement is omitted', () => {
     mockUseVipTier.mockReturnValue(0);
 
-    const { queryByTestId } = render(<RewardsVipBadge />);
+    const { queryByTestId } = render(<MembershipVipBadge />);
 
     expect(queryByTestId('rewards-vip-badge')).toBeNull();
     expect(queryByTestId('rewards-member-badge')).toBeNull();

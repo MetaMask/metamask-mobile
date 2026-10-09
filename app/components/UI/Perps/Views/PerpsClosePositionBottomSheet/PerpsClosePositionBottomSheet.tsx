@@ -17,7 +17,7 @@ import { type OrdinaryOrderType } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import Keypad from '../../../../Base/Keypad';
-import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
+import MembershipVipBadge from '../../../Rewards/components/MembershipVipBadge/MembershipVipBadge';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
@@ -311,7 +311,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
               testID={PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER}
             >
               {(feeResults.feeDiscountPercentage ?? 0) > 0 ? (
-                <RewardsVipBadge />
+                <MembershipVipBadge />
               ) : null}
               <Text
                 variant={TextVariant.BodyXs}

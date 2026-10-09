@@ -3,7 +3,7 @@ import { render } from '@testing-library/react-native';
 import FeesTooltipContent from './FeesTooltipContent';
 
 jest.mock(
-  '../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge',
+  '../../../../Rewards/components/MembershipVipBadge/MembershipVipBadge',
   () => {
     const MockReact = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');

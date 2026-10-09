@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
+import MembershipVipBadge from '../../../Rewards/components/MembershipVipBadge/MembershipVipBadge';
 import { createStyles } from './PerpsFeesDisplay.styles';
 import { useTheme } from '../../../../../util/theme';
 import {
@@ -79,7 +79,7 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
     <View style={styles.feeRowContent}>
       {showVipBadge ? (
         <View style={styles.vipBadgeContainer}>
-          <RewardsVipBadge />
+          <MembershipVipBadge />
         </View>
       ) : null}
       {originalFeeText !== undefined ? (

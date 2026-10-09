@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
   },
 });
 
-interface RewardsVipBadgeProps {
+interface MembershipVipBadgeProps {
   /**
    * True when the parent says this feature's waiver is a Plus entitlement.
    * Omitted means the Member badge stays hidden.
@@ -31,7 +31,7 @@ interface RewardsVipBadgeProps {
   hasProEntitlement?: boolean;
 }
 
-const RewardsVipBadge: React.FC<RewardsVipBadgeProps> = ({
+const MembershipVipBadge: React.FC<MembershipVipBadgeProps> = ({
   hasProEntitlement = false,
 }) => {
   const vipTier = useVipTier();
@@ -65,4 +65,4 @@ const RewardsVipBadge: React.FC<RewardsVipBadgeProps> = ({
   return null;
 };
 
-export default RewardsVipBadge;
+export default MembershipVipBadge;

@@ -29,7 +29,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds.ts';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import RewardsVipBadge from '../../../../Rewards/components/RewardsVipBadge';
+import MembershipVipBadge from '../../../../Rewards/components/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../../../../Rewards/components/RewardsDiscountBadge';
 import { useFeeDisclaimer } from '../../../hooks/useFeeDisclaimer';
 
@@ -100,7 +100,7 @@ export const BridgeMarketViewFooter = ({
           >
             {discountBadge ? (
               isRewardsTierBadge ? (
-                <RewardsVipBadge
+                <MembershipVipBadge
                   hasProEntitlement={
                     discountBadge.type === DiscountType.SUBSCRIPTION
                   }

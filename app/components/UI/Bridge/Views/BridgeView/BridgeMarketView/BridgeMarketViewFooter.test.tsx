@@ -81,7 +81,7 @@ jest.mock(
 );
 
 jest.mock(
-  '../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge',
+  '../../../../Rewards/components/MembershipVipBadge/MembershipVipBadge',
   () => {
     const MockReact = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');

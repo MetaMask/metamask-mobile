@@ -21,7 +21,7 @@ import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 import { useQuickBuyContext } from './useQuickBuyContext';
 import { getGaslessFeeAsset } from '../Bridge/utils/getGaslessFeeAsset';
 import { DiscountType } from '@metamask/bridge-controller';
-import RewardsVipBadge from '../Rewards/components/RewardsVipBadge';
+import MembershipVipBadge from '../Rewards/components/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../Rewards/components/RewardsDiscountBadge';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
 import QuickBuyQuoteCountdown from './components/QuickBuyQuoteCountdown';
@@ -215,7 +215,7 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
               >
                 {discountBadge ? (
                   isRewardsTierBadge ? (
-                    <RewardsVipBadge
+                    <MembershipVipBadge
                       hasProEntitlement={
                         discountBadge.type === DiscountType.SUBSCRIPTION
                       }

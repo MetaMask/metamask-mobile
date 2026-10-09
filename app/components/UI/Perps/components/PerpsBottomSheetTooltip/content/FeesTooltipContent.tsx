@@ -6,7 +6,7 @@ import { TooltipContentProps } from './types';
 import createStyles from './FeesTooltipContent.styles';
 import { formatFeeRate } from '../../../hooks/usePerpsOrderFees';
 import VipIcon from '../../../../../../images/rewards/vip.svg';
-import RewardsVipBadge from '../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
+import MembershipVipBadge from '../../../../Rewards/components/MembershipVipBadge/MembershipVipBadge';
 import {
   Text,
   TextColor,
@@ -52,7 +52,7 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
           {strings('perps.tooltips.fees.metamask_fee')}
         </Text>
         <View style={styles.feeValueContainer}>
-          {hasDiscount && <RewardsVipBadge />}
+          {hasDiscount && <MembershipVipBadge />}
           {hasDiscount && (
             <Text
               variant={TextVariant.BodyMd}

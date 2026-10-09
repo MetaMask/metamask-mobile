@@ -110,15 +110,18 @@ jest.mock(
   '../../components/LivePriceDisplay/LivePriceHeader',
   () => 'LivePriceHeader',
 );
-jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      ReactActual.createElement(View, { testID: 'rewards-vip-badge' }),
-  };
-});
+jest.mock(
+  '../../../Rewards/components/MembershipVipBadge/MembershipVipBadge',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: () =>
+        ReactActual.createElement(View, { testID: 'rewards-vip-badge' }),
+    };
+  },
+);
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
