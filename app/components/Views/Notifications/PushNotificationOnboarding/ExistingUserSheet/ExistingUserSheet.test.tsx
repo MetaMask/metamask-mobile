@@ -4,23 +4,25 @@ import ExistingUserSheet from './ExistingUserSheet';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { ExistingUserSheetSelectorsIDs } from './ExistingUserSheet.testIds';
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const MockReact = jest.requireActual('react');
-    const MockBottomSheet = MockReact.forwardRef(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ({ children }: any, ref: any) => {
-        MockReact.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: (callback?: () => void) => callback?.(),
-        }));
-        return children;
-      },
-    );
-    MockBottomSheet.displayName = 'MockBottomSheet';
-    return { __esModule: true, default: MockBottomSheet };
-  },
-);
+const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const MockReact = jest.requireActual('react');
+  const MockBottomSheet = MockReact.forwardRef(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ({ children }: any, ref: any) => {
+      MockReact.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: mockOnCloseBottomSheet,
+      }));
+      return children;
+    },
+  );
+  MockBottomSheet.displayName = 'MockBottomSheet';
+  return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
+    BottomSheet: MockBottomSheet,
+  };
+});
 
 describe('ExistingUserSheet', () => {
   const mockOnClose = jest.fn();
@@ -47,6 +49,16 @@ describe('ExistingUserSheet', () => {
     expect(
       getByTestId(ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW),
     ).toBeOnTheScreen();
+  });
+
+  it('closes when the close button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <ExistingUserSheet {...defaultProps} />,
+    );
+
+    fireEvent.press(getByTestId(ExistingUserSheetSelectorsIDs.CLOSE_BUTTON));
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
   });
 
   it('calls onConfirm when Confirm is pressed', () => {
