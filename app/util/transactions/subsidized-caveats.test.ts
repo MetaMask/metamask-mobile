@@ -1,10 +1,13 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
+import { NestedTransactionMetadata } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { getDeleGatorEnvironment, type Caveat } from '../../core/Delegation';
+import {
+  getDeleGatorEnvironment,
+  type Caveat,
+  type ExecutionStruct,
+} from '../../core/Delegation';
 import {
   SUBSIDIZED_ORDER_ID_PLACEHOLDER,
   getSubsidizedCaveats,
-  normalizeCallData,
 } from './subsidized-caveats';
 
 const ENV = getDeleGatorEnvironment(1);
@@ -41,20 +44,16 @@ const buildBatchData = (occurrences = 1): Hex => {
   return `0x${header}${windows}${fill('cd')}` as Hex;
 };
 
-const buildTransactionMeta = (
-  data: Hex,
-  nestedTransactions: { data?: Hex; to?: Hex }[] = [],
-): TransactionMeta =>
-  ({
-    chainId: '0x1' as Hex,
-    txParams: {
-      data,
-      from: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-      to: TARGET,
-      value: '0x0',
-    },
-    nestedTransactions,
-  }) as unknown as TransactionMeta;
+const buildExecution = (callData: Hex): ExecutionStruct => ({
+  callData,
+  target: TARGET,
+  value: 0n,
+});
+
+const NESTED_TRANSACTIONS_MOCK: NestedTransactionMetadata[] = [
+  { data: `0x${APPROVE_DATA}`, to: TARGET },
+  { data: `0x${DEPOSIT_DATA}`, to: TARGET },
+];
 
 const parseAllowedCalldata = (terms: string) => ({
   startIndex: parseInt(terms.slice(2, 2 + 64), 16),
@@ -70,25 +69,24 @@ describe('getSubsidizedCaveats', () => {
   describe('allowedTargets caveat', () => {
     it('first caveat is allowedTargets for the batch target', () => {
       const data = buildBatchData(1);
-      const txMeta = buildTransactionMeta(data);
-
-      const result = getSubsidizedCaveats(ENV, txMeta);
+      const result = getSubsidizedCaveats(ENV, buildExecution(data));
 
       expect(result[0].enforcer).toBe(ALLOWED_TARGETS_ENFORCER);
       // terms = lowercased packed target address (20 bytes)
-      expect(result[0].terms.toLowerCase()).toContain(TARGET.slice(2).toLowerCase());
+      expect(result[0].terms.toLowerCase()).toContain(
+        TARGET.slice(2).toLowerCase(),
+      );
     });
   });
 
   describe('placeholder window is free', () => {
     it('leaves the order-ID placeholder window free and enforces the full remainder', () => {
       const data = buildBatchData(1);
-      const txMeta = buildTransactionMeta(data, [
-        { data: `0x${APPROVE_DATA}` as Hex, to: TARGET },
-        { data: `0x${DEPOSIT_DATA}` as Hex, to: TARGET },
-      ]);
-
-      const result = getSubsidizedCaveats(ENV, txMeta);
+      const result = getSubsidizedCaveats(
+        ENV,
+        buildExecution(data),
+        NESTED_TRANSACTIONS_MOCK,
+      );
       const enforced = getAllowedCalldataTerms(result);
       const body = data.slice(2).toLowerCase();
 
@@ -120,12 +118,12 @@ describe('getSubsidizedCaveats', () => {
 
     it('frees every occurrence when the placeholder appears multiple times', () => {
       const data = buildBatchData(2);
-      const txMeta = buildTransactionMeta(data, [
-        { data: `0x${APPROVE_DATA}` as Hex, to: TARGET },
-        { data: `0x${DEPOSIT_DATA}` as Hex, to: TARGET },
-      ]);
 
-      const result = getSubsidizedCaveats(ENV, txMeta);
+      const result = getSubsidizedCaveats(
+        ENV,
+        buildExecution(data),
+        NESTED_TRANSACTIONS_MOCK,
+      );
       const enforced = getAllowedCalldataTerms(result);
       const body = data.slice(2).toLowerCase();
 
@@ -156,12 +154,12 @@ describe('getSubsidizedCaveats', () => {
     it('splits only after order-ID-bearing call selectors, folding the selector into the preceding segment', () => {
       const data = buildBatchData(1);
       const body = data.slice(2).toLowerCase();
-      const txMeta = buildTransactionMeta(data, [
-        { data: `0x${APPROVE_DATA}` as Hex, to: TARGET },
-        { data: `0x${DEPOSIT_DATA}` as Hex, to: TARGET },
-      ]);
 
-      const result = getSubsidizedCaveats(ENV, txMeta);
+      const result = getSubsidizedCaveats(
+        ENV,
+        buildExecution(data),
+        NESTED_TRANSACTIONS_MOCK,
+      );
       const enforced = getAllowedCalldataTerms(result);
 
       // No segment is the bare selector (selector is folded into the preceding run).
@@ -192,12 +190,12 @@ describe('getSubsidizedCaveats', () => {
 
     it('produces far fewer caveats than a naive per-selector split (regression: 9 -> few)', () => {
       const data = buildBatchData(2);
-      const txMeta = buildTransactionMeta(data, [
-        { data: `0x${APPROVE_DATA}` as Hex, to: TARGET },
-        { data: `0x${DEPOSIT_DATA}` as Hex, to: TARGET },
-      ]);
 
-      const result = getSubsidizedCaveats(ENV, txMeta);
+      const result = getSubsidizedCaveats(
+        ENV,
+        buildExecution(data),
+        NESTED_TRANSACTIONS_MOCK,
+      );
 
       // allowedTargets + allowedCalldata segments. Old per-selector isolation emitted ~9 caveats.
       expect(result.length).toBeLessThanOrEqual(8);
@@ -206,31 +204,18 @@ describe('getSubsidizedCaveats', () => {
 
   describe('error handling', () => {
     it('throws "Subsidized Caveats: Missing batch target or calldata" when target is missing', () => {
-      const txMeta: TransactionMeta = {
-        chainId: '0x1' as Hex,
-        txParams: {
-          data: '0xabcd1234' as Hex,
-          from: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-          to: undefined,
-        },
-      } as unknown as TransactionMeta;
+      const execution = {
+        ...buildExecution('0xabcd1234'),
+        target: undefined,
+      } as unknown as ExecutionStruct;
 
-      expect(() => getSubsidizedCaveats(ENV, txMeta)).toThrow(
+      expect(() => getSubsidizedCaveats(ENV, execution)).toThrow(
         'Subsidized Caveats: Missing batch target or calldata',
       );
     });
 
     it('throws "Subsidized Caveats: Missing batch target or calldata" when calldata is missing', () => {
-      const txMeta: TransactionMeta = {
-        chainId: '0x1' as Hex,
-        txParams: {
-          data: undefined,
-          from: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-          to: TARGET,
-        },
-      } as unknown as TransactionMeta;
-
-      expect(() => getSubsidizedCaveats(ENV, txMeta)).toThrow(
+      expect(() => getSubsidizedCaveats(ENV, buildExecution('0x'))).toThrow(
         'Subsidized Caveats: Missing batch target or calldata',
       );
     });
@@ -239,52 +224,12 @@ describe('getSubsidizedCaveats', () => {
   describe('no limitedCalls in subsidized caveats', () => {
     it('does not include a limitedCalls caveat', () => {
       const data = buildBatchData(1);
-      const txMeta = buildTransactionMeta(data);
-
-      const result = getSubsidizedCaveats(ENV, txMeta);
+      const result = getSubsidizedCaveats(ENV, buildExecution(data));
 
       const hasLimitedCalls = result.some(
         (c) => c.enforcer === caveatEnforcers.LimitedCallsEnforcer,
       );
       expect(hasLimitedCalls).toBe(false);
     });
-  });
-});
-
-describe('normalizeCallData', () => {
-  it('returns "0x" for undefined', () => {
-    expect(normalizeCallData(undefined)).toBe('0x');
-  });
-
-  it('returns "0x" for null', () => {
-    expect(normalizeCallData(null)).toBe('0x');
-  });
-
-  it('returns "0x" for empty string', () => {
-    expect(normalizeCallData('')).toBe('0x');
-  });
-
-  it('returns "0x" for "0x" only', () => {
-    expect(normalizeCallData('0x')).toBe('0x');
-  });
-
-  it('lowercases hex characters', () => {
-    expect(normalizeCallData('0xABCDEF')).toBe('0xabcdef');
-  });
-
-  it('adds 0x prefix when missing', () => {
-    expect(normalizeCallData('abcdef1234')).toBe('0xabcdef1234');
-  });
-
-  it('pads odd-length hex body with a leading zero', () => {
-    expect(normalizeCallData('0xabc')).toBe('0x0abc');
-  });
-
-  it('pads odd-length hex body without prefix', () => {
-    expect(normalizeCallData('abc')).toBe('0x0abc');
-  });
-
-  it('preserves even-length hex unchanged (modulo casing)', () => {
-    expect(normalizeCallData('0xDEADBEEF')).toBe('0xdeadbeef');
   });
 });

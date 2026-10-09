@@ -1,8 +1,9 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
+import { NestedTransactionMetadata } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import {
   Caveat,
   DeleGatorEnvironment,
+  ExecutionStruct,
   createCaveatBuilder,
 } from '../../core/Delegation';
 import { allowedCalldata } from '../../core/Delegation/caveatBuilder/allowedCalldataBuilder';
@@ -37,57 +38,30 @@ interface EnforcedSegment {
  * signing.
  *
  * @param environment - Delegation environment.
- * @param transactionMeta - Transaction being delegated.
+ * @param execution - Batch execution the delegation will be redeemed with.
+ * @param nestedTransactions - Calls within the batch, used to find the order ID.
  * @returns The subsidized caveats.
  */
 export function getSubsidizedCaveats(
   environment: DeleGatorEnvironment,
-  transactionMeta: TransactionMeta,
+  execution: ExecutionStruct | undefined,
+  nestedTransactions: NestedTransactionMetadata[] = [],
 ): Caveat[] {
   try {
-    return buildSubsidizedCaveats(environment, transactionMeta);
+    return buildSubsidizedCaveats(environment, execution, nestedTransactions);
   } catch (error) {
     throw prefixError(error, 'Subsidized Caveats: ');
   }
 }
 
-/**
- * Normalizes calldata to a lowercase, 0x-prefixed, even-length hex string so
- * byte offsets used by caveat terms cannot shift.
- *
- * @param data - Raw calldata value.
- * @returns Normalized calldata, or `0x` if empty or not a string.
- */
-export function normalizeCallData(data: unknown): Hex {
-  if (typeof data !== 'string' || data.length === 0) {
-    return '0x';
-  }
-
-  const hasHexPrefix = data.slice(0, 2).toLowerCase() === '0x';
-  const lower = data.toLowerCase();
-  const prefixed = hasHexPrefix ? `0x${lower.slice(2)}` : `0x${lower}`;
-  const hexBody = prefixed.slice(2);
-
-  if (hexBody.length === 0) {
-    return '0x';
-  }
-
-  if (hexBody.length % 2 !== 0) {
-    return normalizeCallData(`0x0${hexBody}`);
-  }
-
-  return prefixed as Hex;
-}
-
 function buildSubsidizedCaveats(
   environment: DeleGatorEnvironment,
-  transactionMeta: TransactionMeta,
+  execution: ExecutionStruct | undefined,
+  nestedTransactions: NestedTransactionMetadata[],
 ): Caveat[] {
-  const { txParams } = transactionMeta;
-  const target = txParams.to as Hex | undefined;
-  const calldata = txParams.data as Hex | undefined;
+  const { callData: calldata, target } = execution ?? {};
 
-  if (!target || !calldata) {
+  if (!target || !calldata || calldata === '0x') {
     throw new Error('Missing batch target or calldata');
   }
 
@@ -98,7 +72,7 @@ function buildSubsidizedCaveats(
 
   for (const { startIndex, value } of getEnforcedSegments(
     calldata,
-    transactionMeta.nestedTransactions ?? [],
+    nestedTransactions,
   )) {
     caveatBuilder.addCaveat(allowedCalldata, startIndex, value);
   }
@@ -123,7 +97,8 @@ function getSplitPoints(
   calldata: Hex,
   nestedTransactions: { data?: string }[],
 ): number[] {
-  const placeholderBody = SUBSIDIZED_ORDER_ID_PLACEHOLDER.slice(2).toLowerCase();
+  const placeholderBody =
+    SUBSIDIZED_ORDER_ID_PLACEHOLDER.slice(2).toLowerCase();
 
   const nestedData = nestedTransactions
     .map((tx) => tx.data)

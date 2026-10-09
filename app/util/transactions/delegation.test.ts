@@ -8,6 +8,7 @@ import { MOCK_ANY_NAMESPACE, Messenger } from '@metamask/messenger';
 import { Hex } from '@metamask/utils';
 import { type FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import { getDeleGatorEnvironment, type Caveat } from '../../core/Delegation';
+import { timestampBuilder } from '../../core/Delegation/caveatBuilder/timestampBuilder';
 import { CONFIRMATIONS_DELEGATIONS_FEATURE_FLAG_NAME } from './caveats';
 
 const mockGetNonceLock = jest.fn();
@@ -40,15 +41,8 @@ const NETWORK_CLIENT_ID_MOCK = 'mainnet';
 
 let remoteFeatureFlags: FeatureFlags = {};
 
-/**
- * Expected TimestampEnforcer terms with afterThreshold = 0.
- *
- * @param beforeThreshold - Unix timestamp in seconds.
- * @returns Packed uint128 afterThreshold + uint128 beforeThreshold.
- */
-function buildExpectedTimestampTerms(beforeThreshold: number): Hex {
-  return `0x${'0'.repeat(32)}${beforeThreshold.toString(16).padStart(32, '0')}`;
-}
+const buildExpectedTimestampTerms = (beforeThreshold: number) =>
+  timestampBuilder(getDeleGatorEnvironment(1), 0, beforeThreshold).terms;
 
 const TRANSACTION_META_MOCK = {
   chainId: '0x1' as Hex,
@@ -187,12 +181,13 @@ describe('Transaction Delegation Utils', () => {
         caveats: Caveat[];
       };
 
-      expect(getTimestampCaveat(delegation.caveats, expectedTimestampTerms))
-        .toEqual(
-          expect.objectContaining({
-            terms: expectedTimestampTerms,
-          }),
-        );
+      expect(
+        getTimestampCaveat(delegation.caveats, expectedTimestampTerms),
+      ).toEqual(
+        expect.objectContaining({
+          terms: expectedTimestampTerms,
+        }),
+      );
     });
 
     it('calls KeyringController to sign authorization', async () => {
@@ -271,6 +266,58 @@ describe('Transaction Delegation Utils', () => {
           'Subsidized Caveats: Missing batch target or calldata',
         );
       });
+
+      it.each([
+        ['uppercase', '0xABCD1234', 'abcd1234'],
+        ['missing prefix', 'abcd1234', 'abcd1234'],
+        ['odd length', '0xabc', '0abc'],
+      ])(
+        'normalizes the batch calldata with %s',
+        async (_name, data, expected) => {
+          const { caveatEnforcers } = getDeleGatorEnvironment(1);
+
+          await getDelegationTransaction(
+            messengerMock,
+            buildSubsidizedTransaction(data as Hex),
+            true,
+          );
+
+          const { caveats } = signDelegationMock.mock.calls[0][0]
+            .delegation as { caveats: Caveat[] };
+
+          const allowedCalldata = caveats.filter(
+            (caveat) =>
+              caveat.enforcer === caveatEnforcers.AllowedCalldataEnforcer,
+          );
+
+          expect(allowedCalldata).toHaveLength(1);
+          expect(allowedCalldata[0].terms.slice(2 + 64)).toBe(expected);
+        },
+      );
+    });
+
+    it('normalizes nested transaction calldata', async () => {
+      const { caveatEnforcers } = getDeleGatorEnvironment(1);
+
+      await getDelegationTransaction(messengerMock, {
+        ...TRANSACTION_META_MOCK,
+        nestedTransactions: [
+          {
+            ...TRANSACTION_META_MOCK.nestedTransactions?.[0],
+            data: '0xABC' as Hex,
+          },
+        ],
+      });
+
+      const { caveats } = signDelegationMock.mock.calls[0][0].delegation as {
+        caveats: Caveat[];
+      };
+
+      const exactExecution = caveats.find(
+        (caveat) => caveat.enforcer === caveatEnforcers.ExactExecutionEnforcer,
+      );
+
+      expect(exactExecution?.terms.endsWith('0abc')).toBe(true);
     });
   });
 });

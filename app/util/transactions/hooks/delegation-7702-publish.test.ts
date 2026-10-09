@@ -57,8 +57,7 @@ const UPGRADE_CONTRACT_ADDRESS_MOCK =
   '0x12345678901234567890123456789012345678a4';
 const SENTINEL_SIGNER_1_MOCK = '0xB01caEa8c6C47bbf4F4b4c5080Ca642043359C2E';
 const SENTINEL_SIGNER_2_MOCK = '0xB42F812A44c22cc6b861478900401ee759EbEAD6';
-const CONFIRMATIONS_DELEGATIONS_FEATURE_FLAG_NAME =
-  'confirmations_delegations';
+const CONFIRMATIONS_DELEGATIONS_FEATURE_FLAG_NAME = 'confirmations_delegations';
 
 const TRANSACTION_META_MOCK = {
   chainId: '0x1',
@@ -406,6 +405,138 @@ describe('Delegation 7702 Publish Hook', () => {
           SIGNED_TX_MOCK,
         ),
       ).rejects.toThrow('Gas Station 7702: Selected gas fee token not found');
+    });
+  });
+
+  describe('normalizeCallData edge cases', () => {
+    it('handles transaction with empty data', async () => {
+      isAtomicBatchSupportedMock.mockResolvedValueOnce([
+        {
+          chainId: TRANSACTION_META_MOCK.chainId,
+          delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+          isSupported: true,
+          upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+        },
+      ]);
+
+      await hookClass.getHook()(
+        {
+          ...TRANSACTION_META_MOCK,
+          txParams: {
+            ...TRANSACTION_META_MOCK.txParams,
+            data: '',
+          },
+          gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+          selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+        },
+        SIGNED_TX_MOCK,
+      );
+
+      expect(submitRelayTransactionMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles transaction with undefined data', async () => {
+      isAtomicBatchSupportedMock.mockResolvedValueOnce([
+        {
+          chainId: TRANSACTION_META_MOCK.chainId,
+          delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+          isSupported: true,
+          upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+        },
+      ]);
+
+      await hookClass.getHook()(
+        {
+          ...TRANSACTION_META_MOCK,
+          txParams: {
+            ...TRANSACTION_META_MOCK.txParams,
+            data: undefined,
+          },
+          gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+          selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+        },
+        SIGNED_TX_MOCK,
+      );
+
+      expect(submitRelayTransactionMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles transaction with data without 0x prefix', async () => {
+      isAtomicBatchSupportedMock.mockResolvedValueOnce([
+        {
+          chainId: TRANSACTION_META_MOCK.chainId,
+          delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+          isSupported: true,
+          upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+        },
+      ]);
+
+      await hookClass.getHook()(
+        {
+          ...TRANSACTION_META_MOCK,
+          txParams: {
+            ...TRANSACTION_META_MOCK.txParams,
+            data: 'abcdef1234',
+          },
+          gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+          selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+        },
+        SIGNED_TX_MOCK,
+      );
+
+      expect(submitRelayTransactionMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles transaction with odd-length hex data (needs padding)', async () => {
+      isAtomicBatchSupportedMock.mockResolvedValueOnce([
+        {
+          chainId: TRANSACTION_META_MOCK.chainId,
+          delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+          isSupported: true,
+          upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+        },
+      ]);
+
+      await hookClass.getHook()(
+        {
+          ...TRANSACTION_META_MOCK,
+          txParams: {
+            ...TRANSACTION_META_MOCK.txParams,
+            data: '0xabc',
+          },
+          gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+          selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+        },
+        SIGNED_TX_MOCK,
+      );
+
+      expect(submitRelayTransactionMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles transaction with "0x" only data', async () => {
+      isAtomicBatchSupportedMock.mockResolvedValueOnce([
+        {
+          chainId: TRANSACTION_META_MOCK.chainId,
+          delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+          isSupported: true,
+          upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+        },
+      ]);
+
+      await hookClass.getHook()(
+        {
+          ...TRANSACTION_META_MOCK,
+          txParams: {
+            ...TRANSACTION_META_MOCK.txParams,
+            data: '0x',
+          },
+          gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+          selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+        },
+        SIGNED_TX_MOCK,
+      );
+
+      expect(submitRelayTransactionMock).toHaveBeenCalledTimes(1);
     });
   });
 

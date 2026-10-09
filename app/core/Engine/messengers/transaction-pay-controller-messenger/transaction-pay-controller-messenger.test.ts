@@ -121,7 +121,9 @@ describe('getTransactionPayControllerInitMessenger', () => {
 
     expect(delegateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        actions: expect.arrayContaining(['RemoteFeatureFlagController:getState']),
+        actions: expect.arrayContaining([
+          'RemoteFeatureFlagController:getState',
+        ]),
       }),
     );
   });

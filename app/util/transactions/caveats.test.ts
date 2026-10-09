@@ -2,6 +2,7 @@ import { type FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { getDeleGatorEnvironment, type Caveat } from '../../core/Delegation';
+import { timestampBuilder } from '../../core/Delegation/caveatBuilder/timestampBuilder';
 import {
   CONFIRMATIONS_DELEGATIONS_FEATURE_FLAG_NAME,
   getDelegationCaveats,
@@ -34,15 +35,8 @@ const EXECUTION_MOCK = {
 const REDEEMER_1 = '0xB01caEa8c6C47bbf4F4b4c5080Ca642043359C2E' as Hex;
 const REDEEMER_2 = '0xB42F812A44c22cc6b861478900401ee759EbEAD6' as Hex;
 
-/**
- * Builds the expected packed uint128 timestamp enforcer terms.
- *
- * @param beforeThreshold - Unix timestamp in seconds.
- * @returns 32-byte hex terms: 0-padded afterThreshold + beforeThreshold.
- */
-function buildExpectedTimestampTerms(beforeThreshold: number): Hex {
-  return `0x${'0'.repeat(32)}${beforeThreshold.toString(16).padStart(32, '0')}` as Hex;
-}
+const buildExpectedTimestampTerms = (beforeThreshold: number) =>
+  timestampBuilder(ENV, 0, beforeThreshold).terms;
 
 describe('getDelegationCaveats', () => {
   let remoteFeatureFlags: FeatureFlags;
@@ -225,21 +219,12 @@ describe('getDelegationCaveats', () => {
 
   describe('subsidized caveats', () => {
     it('returns base caveats followed by subsidized caveats when isSubsidized is true', () => {
-      const txMeta: TransactionMeta = {
-        ...TRANSACTION_META_MOCK,
-        txParams: {
-          ...TRANSACTION_META_MOCK.txParams,
-          data: '0xabcd1234' as Hex,
-          to: '0x1234567890123456789012345678901234567890' as Hex,
-        },
-      } as unknown as TransactionMeta;
-
       const result = getDelegationCaveats({
         environment: ENV,
         executions: [EXECUTION_MOCK],
         isSubsidized: true,
         messenger: messengerMock,
-        transactionMeta: txMeta,
+        transactionMeta: TRANSACTION_META_MOCK,
       });
 
       // Base: [limitedCalls, timestamp] + subsidized: [allowedTargets, ...allowedCalldata]
@@ -251,21 +236,12 @@ describe('getDelegationCaveats', () => {
     });
 
     it('does not include exactExecution when isSubsidized is true', () => {
-      const txMeta: TransactionMeta = {
-        ...TRANSACTION_META_MOCK,
-        txParams: {
-          ...TRANSACTION_META_MOCK.txParams,
-          data: '0xabcd1234' as Hex,
-          to: '0x1234567890123456789012345678901234567890' as Hex,
-        },
-      } as unknown as TransactionMeta;
-
       const result = getDelegationCaveats({
         environment: ENV,
         executions: [EXECUTION_MOCK],
         isSubsidized: true,
         messenger: messengerMock,
-        transactionMeta: txMeta,
+        transactionMeta: TRANSACTION_META_MOCK,
       });
 
       const hasExactExecution = result.some(
@@ -360,9 +336,7 @@ describe('getDelegationCaveats', () => {
       (label, value) => {
         remoteFeatureFlags = {
           [CONFIRMATIONS_DELEGATIONS_FEATURE_FLAG_NAME]:
-            value === undefined
-              ? {}
-              : { deadlineSeconds: value as number },
+            value === undefined ? {} : { deadlineSeconds: value as number },
         };
 
         const result = getDelegationCaveats({

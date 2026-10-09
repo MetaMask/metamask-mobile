@@ -13,6 +13,7 @@ import { exactExecutionBatch } from '../../core/Delegation/caveatBuilder/exactEx
 import { exactExecution } from '../../core/Delegation/caveatBuilder/exactExecutionBuilder';
 import { limitedCalls } from '../../core/Delegation/caveatBuilder/limitedCallsBuilder';
 import { redeemer } from '../../core/Delegation/caveatBuilder/redeemerBuilder';
+import { timestamp } from '../../core/Delegation/caveatBuilder/timestampBuilder';
 import { getSubsidizedCaveats } from './subsidized-caveats';
 
 export const CONFIRMATIONS_DELEGATIONS_FEATURE_FLAG_NAME =
@@ -78,7 +79,11 @@ export function getDelegationCaveats(
   if (isSubsidized) {
     return [
       ...baseCaveats,
-      ...getSubsidizedCaveats(environment, transactionMeta),
+      ...getSubsidizedCaveats(
+        environment,
+        executions[0],
+        transactionMeta.nestedTransactions,
+      ),
     ];
   }
 
@@ -92,10 +97,7 @@ function getBaseCaveats({
 }: GetDelegationCaveatsRequest): Caveat[] {
   const caveatBuilder = createCaveatBuilder(environment)
     .addCaveat(limitedCalls, 1)
-    .addCaveat({
-      enforcer: environment.caveatEnforcers.TimestampEnforcer,
-      terms: buildTimestampTerms(0, getDeadline(messenger)),
-    });
+    .addCaveat(timestamp, 0, getDeadline(messenger));
 
   if (!redeemers?.length) {
     return caveatBuilder.build();
@@ -125,22 +127,6 @@ function getExactExecutionCaveat(
   const [{ data, to, value }] = caveatExecutions;
 
   return caveatBuilder.addCaveat(exactExecution, to, value, data).build()[0];
-}
-
-/**
- * Encodes TimestampEnforcer terms as two packed uint128 values.
- *
- * @param afterThreshold - Unix timestamp (seconds) after which the delegation is valid, or 0.
- * @param beforeThreshold - Unix timestamp (seconds) before which the delegation is valid.
- * @returns 32-byte terms: afterThreshold (16 bytes) followed by beforeThreshold (16 bytes).
- */
-function buildTimestampTerms(
-  afterThreshold: number,
-  beforeThreshold: number,
-): Hex {
-  const toUint128 = (value: number) => value.toString(16).padStart(32, '0');
-
-  return `0x${toUint128(afterThreshold)}${toUint128(beforeThreshold)}`;
 }
 
 function getDeadline(messenger: DelegationCaveatsMessenger): number {

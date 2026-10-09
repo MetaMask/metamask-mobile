@@ -56,9 +56,7 @@ export async function getDelegationTransaction<
   const delegationManagerAddress =
     delegationEnvironment.DelegationManager as Hex;
 
-  const executions = isSubsidized
-    ? buildSubsidizedExecutions(transaction)
-    : buildExecutions(transaction);
+  const executions = buildExecutions(transaction, isSubsidized);
 
   const delegations = await buildDelegation({
     environment: delegationEnvironment,
@@ -236,36 +234,48 @@ async function buildDelegation<MessengerType extends SignMessenger>({
 
 function buildExecutions(
   transactionMeta: TransactionMeta,
+  useParentExecution = false,
 ): ExecutionStruct[][] {
-  const { nestedTransactions } = transactionMeta;
+  const { nestedTransactions, txParams } = transactionMeta;
+
+  if (useParentExecution) {
+    return [
+      [
+        {
+          target: txParams.to as Hex,
+          value: BigInt((txParams.value as Hex) ?? '0x0'),
+          callData: normalizeCallData(txParams.data),
+        },
+      ],
+    ];
+  }
 
   return [
     (nestedTransactions ?? []).map((tx) => ({
       target: tx.to as Hex,
       value: BigInt(tx.value ?? '0x0'),
-      callData: tx.data as Hex,
+      callData: normalizeCallData(tx.data),
     })),
   ];
 }
 
-function buildSubsidizedExecutions(
-  transactionMeta: TransactionMeta,
-): ExecutionStruct[][] {
-  const { txParams } = transactionMeta;
-  const target = txParams.to as Hex | undefined;
-  const callData = txParams.data as Hex | undefined;
-
-  if (!target || !callData) {
-    throw new Error('Subsidized Caveats: Missing batch target or calldata');
+function normalizeCallData(data: unknown): Hex {
+  if (typeof data !== 'string' || data.length === 0) {
+    return '0x';
   }
 
-  return [
-    [
-      {
-        target,
-        value: BigInt(txParams.value ?? '0x0'),
-        callData,
-      },
-    ],
-  ];
+  const hasHexPrefix = data.slice(0, 2).toLowerCase() === '0x';
+  const lower = data.toLowerCase();
+  const prefixed = hasHexPrefix ? `0x${lower.slice(2)}` : `0x${lower}`;
+  const hexBody = prefixed.slice(2);
+
+  if (hexBody.length === 0) {
+    return '0x';
+  }
+
+  if (hexBody.length % 2 !== 0) {
+    return normalizeCallData(`0x0${hexBody}`);
+  }
+
+  return prefixed as Hex;
 }

@@ -26,7 +26,6 @@ import {
   getDeleGatorEnvironment,
 } from '../../../core/Delegation';
 import { getDelegationCaveats } from '../caveats';
-import { normalizeCallData } from '../subsidized-caveats';
 import {
   Delegation,
   encodeRedeemDelegations,
@@ -49,8 +48,10 @@ import { prefixError } from '../error-prefix';
 
 // Test chain ID (Sepolia) used in E2E tests to match the delegation package's test contract configuration
 const SEPOLIA_CHAIN_ID = '0xaa36a7';
+const EMPTY_HEX = '0x';
 const POLLING_INTERVAL_MS = 1000; // 1 Second
 const ERROR_PREFIX = 'Gas Station 7702: ';
+
 const EMPTY_RESULT = {
   transactionHash: undefined,
 };
@@ -327,7 +328,7 @@ export class Delegation7702PublishHook {
   ): ExecutionStruct[][] {
     const { txParams } = transactionMeta;
     const { data, to, value } = txParams;
-    const normalizedData = normalizeCallData(data);
+    const normalizedData = this.#normalizeCallData(data);
     const userExecution: ExecutionStruct = {
       target: to as Hex,
       value: BigInt((value as Hex) ?? '0x0'),
@@ -526,5 +527,31 @@ export class Delegation7702PublishHook {
       recipient,
       amount,
     ]) as Hex;
+  }
+
+  #normalizeCallData(data: unknown): Hex {
+    if (typeof data !== 'string' || data.length === 0) {
+      return EMPTY_HEX;
+    }
+
+    const hasHexPrefix = data.slice(0, 2).toLowerCase() === '0x';
+    const normalizedData = data.toLowerCase();
+    const prefixed = hasHexPrefix
+      ? `0x${normalizedData.slice(2)}`
+      : `0x${normalizedData}`;
+    const hexBody = prefixed.slice(2);
+
+    if (hexBody.length === 0) {
+      return EMPTY_HEX;
+    }
+
+    if (hexBody.length % 2 !== 0) {
+      // The EVM works with byte arrays, and each byte is represented by exactly
+      // two hexadecimal characters. Ensure the hex string is byte-aligned by
+      // prefixing a leading zero.
+      return this.#normalizeCallData(`0x0${hexBody}`);
+    }
+
+    return prefixed as Hex;
   }
 }
