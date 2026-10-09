@@ -133,6 +133,7 @@ function writeBuildEnvJson(buildName) {
     'AUTH_SERVICE_URL',
     'DIGEST_API_URL',
     'SOCIAL_API_URL',
+    'PROFILE_API_URL',
     'BAANX_API_URL',
     'RAMP_DEV_BUILD',
     'BRIDGE_USE_CUSTOM_BASE_URL',

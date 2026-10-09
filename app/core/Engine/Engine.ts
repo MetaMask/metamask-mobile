@@ -193,6 +193,8 @@ import { aiDigestControllerInit } from './controllers/ai-digest-controller-init'
 import { socialServiceInit } from './controllers/social-service-init';
 import { authenticatedUserStorageServiceInit } from './controllers/authenticated-user-storage-service-init';
 import { socialControllerInit } from './controllers/social-controller-init';
+import { profileServiceInit } from './controllers/profile-service-init';
+import { profileControllerInit } from './controllers/profile-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
 import { uiSlotsControllerInit } from './controllers/ui-slots-controller';
 import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
@@ -421,6 +423,8 @@ export class Engine {
         AiDigestController: aiDigestControllerInit,
         SocialService: socialServiceInit,
         SocialController: socialControllerInit,
+        ProfileService: profileServiceInit,
+        ProfileController: profileControllerInit,
         AuthenticatedUserStorageService: authenticatedUserStorageServiceInit,
         CardController: cardControllerInit,
         UiSlotsController: uiSlotsControllerInit,
@@ -730,6 +734,8 @@ export class Engine {
       AiDigestController: aiDigestController,
       SocialService: socialService,
       SocialController: socialController,
+      ProfileService: messengerClientsByName.ProfileService,
+      ProfileController: messengerClientsByName.ProfileController,
       AuthenticatedUserStorageService: authenticatedUserStorageService,
       CardController: cardController,
       UiSlotsController: uiSlotsController,
@@ -1687,6 +1693,7 @@ export default {
       AiDigestController,
       ClientController,
       SocialController,
+      ProfileController,
       ComplianceController,
       KycController,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -1769,6 +1776,7 @@ export default {
       RampsController: RampsController.state,
       AiDigestController: AiDigestController.state,
       SocialController: SocialController.state,
+      ProfileController: ProfileController.state,
       CardController: CardController.state,
       UiSlotsController: UiSlotsController.state,
       ClientController: ClientController.state,

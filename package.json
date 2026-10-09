@@ -385,6 +385,7 @@
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/preferences-controller": "^23.0.0",
     "@metamask/preinstalled-example-snap": "^0.8.1",
+    "@metamask/profile-controller": "^1.0.1",
     "@metamask/profile-metrics-controller": "^5.1.0",
     "@metamask/profile-sync-controller": "^34.0.3",
     "@metamask/ramps-controller": "^26.1.0",
