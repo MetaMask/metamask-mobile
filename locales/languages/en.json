@@ -1686,6 +1686,9 @@
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
+    "recovery": {
+      "review_expired": "Your position review needs refreshing. Go back and review your positions and orders before trying again."
+    },
     "trade_sheet": {
       "close": "Close trade",
       "settings": "Settings",
@@ -1950,6 +1953,10 @@
         "start": "Start",
         "end": "End",
         "margin": "Margin",
+        "orders_uncertain": "Scale placement needs review",
+        "orders_rejected": "Scale orders were not placed",
+        "rejected_placement_summary": "The venue confirmed that no orders were accepted",
+        "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
         "orders_submitted": "Scale orders submitted",
         "orders_placed": "Scale orders placed",
         "orders_partially_placed": "Scale orders partially placed",
@@ -1963,7 +1970,8 @@
           "invalid_order_count": "Order count must be between {{minOrderCount}} and {{maxOrderCount}}",
           "invalid_skew": "Size skew must be greater than 0",
           "minimum_lot": "Smallest order must have minimum value of ${{minOrderValue}}",
-          "unavailable": "Scale orders are temporarily unavailable. Select another order type."
+          "route_changed": "Your trading route changed. Review the Scale order and try again.",
+        "unavailable": "Scale orders are temporarily unavailable. Select another order type."
         }
       },
       "twap": {
@@ -2642,6 +2650,7 @@
         "scaleRangeInvalid": "Scale order maximum price must be above the minimum",
         "scaleCountInvalid": "Scale order count is invalid",
         "scaleSizeTooSmall": "Each scale order is below the minimum size",
+        "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
         "scaleNotionalTooSmall": "Each scale order is below the exchange minimum value",
         "chaseIntervalInvalid": "Chase interval is invalid",
         "chaseDurationInvalid": "Chase duration is invalid",
@@ -3013,6 +3022,8 @@
       "see_all": "See all",
       "positions": "Your positions",
       "orders": "Your orders",
+      "orders_load_error": "Couldn’t connect to your trading account. Try again to load your orders.",
+      "activity_load_error": "Couldn't load your trading activity. Try again.",
       "perps": "Perps",
       "all": "All",
       "crypto": "Explore crypto",
@@ -3215,6 +3226,7 @@
         "funding_description": "Funding history is a summary of the fees you have paid or received, as determined by the funding rates on your open positions."
       },
       "not_found": "Transaction not found",
+      "unknown_pnl": "Unknown",
       "position": {
         "date": "Date",
         "size": "Size",

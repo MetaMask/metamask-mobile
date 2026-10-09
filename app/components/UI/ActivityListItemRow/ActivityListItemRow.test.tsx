@@ -3,8 +3,11 @@
  */
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import type { ReactTestInstance } from 'react-test-renderer';
-import { StyleSheet as ReactNativeStyleSheet } from 'react-native';
+import {
+  StyleSheet as ReactNativeStyleSheet,
+  type StyleProp,
+  type TextStyle,
+} from 'react-native';
 import {
   TransactionStatus,
   TransactionType,
@@ -909,6 +912,52 @@ describe('ActivityListItemRow — row content', () => {
     expect(queryByTestId('activity-secondary-amount-0xlong')).toBeNull();
   });
 
+  it.each(['perpsCloseLong', 'perpsCloseShortStopLoss'] as const)(
+    'displays Unknown for %s without a reported amount',
+    (type) => {
+      const item = {
+        type,
+        chainId: 'eip155:421614',
+        status: 'success',
+        timestamp: 1_700_000_000_000,
+        hash: 'missing-pnl',
+        data: {
+          sourceToken: { amount: '0.008', symbol: 'ETH', direction: 'out' },
+        },
+      } as ActivityListItem;
+
+      const { getByTestId } = render(
+        <ActivityListItemRow item={item} index={0} />,
+      );
+
+      expect(
+        getByTestId('activity-primary-amount-missing-pnl'),
+      ).toHaveTextContent(strings('perps.transactions.unknown_pnl'));
+    },
+  );
+
+  it('preserves a reported zero closing PnL in the activity row', () => {
+    const item = {
+      type: 'perpsCloseLong',
+      chainId: 'eip155:421614',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: 'zero-pnl',
+      data: {
+        token: { amount: '0', symbol: 'USD', direction: 'in' },
+        sourceToken: { amount: '0.008', symbol: 'ETH', direction: 'out' },
+      },
+    } as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-zero-pnl')).toHaveTextContent(
+      '+$0.00',
+    );
+  });
+
   it('uses PerpsTokenLogo for market avatars', () => {
     const openLong = {
       type: 'perpsOpenLong',
@@ -1016,7 +1065,7 @@ describe('ActivityListItemRow — row content', () => {
       },
     }) as unknown as ActivityListItem;
 
-  const flattenColor = (node: ReactTestInstance) => {
+  const flattenColor = (node: { props: { style?: StyleProp<TextStyle> } }) => {
     const { StyleSheet } = jest.requireActual('react-native');
     return StyleSheet.flatten(node.props.style).color;
   };
@@ -2412,9 +2461,6 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
 describe('getLocalTransactionStatus — all local transaction status paths', () => {
   const { getLocalTransactionStatus } = jest.requireActual(
     '../../../util/activity-adapters/adapters/helpers',
-  );
-  const { TransactionStatus } = jest.requireActual(
-    '@metamask/transaction-controller',
   );
 
   const makeGroup = (overrides: Record<string, unknown>) => ({

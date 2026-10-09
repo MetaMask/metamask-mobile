@@ -490,6 +490,7 @@ describe('createMobileClientConfig', () => {
     'MM_PERPS_LIGHTER_PROVIDER_ENABLED',
     'MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET',
     'MM_PERPS_LIGHTER_API_KEY_INDEX',
+    'MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE',
   ] as const;
   const saved: Partial<Record<(typeof envVars)[number], string>> = {};
 
@@ -534,6 +535,7 @@ describe('createMobileClientConfig', () => {
         },
         lighter: {
           enabled: false,
+          chaseTestnetProbe: false,
           accountIndexTestnet: undefined,
           apiKeyIndex: undefined,
         },
@@ -553,6 +555,35 @@ describe('createMobileClientConfig', () => {
       }),
     );
   });
+
+  it.each([false, true])(
+    'passes the explicit Chase probe only with Lighter enabled=%s',
+    (enabled) => {
+      mockIsLighterProviderEnabled.mockReturnValue(enabled);
+      process.env.MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE = 'true';
+
+      const config = createMobileClientConfig();
+
+      expect(config.providerCredentials?.lighter?.chaseTestnetProbe).toBe(
+        enabled,
+      );
+    },
+  );
+
+  it.each([undefined, 'false', 'TRUE', '1'])(
+    'keeps the Chase probe disabled for %s',
+    (value) => {
+      mockIsLighterProviderEnabled.mockReturnValue(true);
+      if (value !== undefined)
+        process.env.MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE = value;
+
+      const config = createMobileClientConfig();
+
+      expect(config.providerCredentials?.lighter?.chaseTestnetProbe).toBe(
+        false,
+      );
+    },
+  );
 
   it('enables Lighter with its signer bridge through a production override', () => {
     mockIsLighterProviderEnabled.mockReturnValue(true);
@@ -610,6 +641,7 @@ describe('createMobileClientConfig', () => {
 
     expect(config.providerCredentials?.lighter).toEqual({
       enabled: false,
+      chaseTestnetProbe: false,
       accountIndexTestnet: undefined,
       apiKeyIndex: undefined,
     });

@@ -1932,6 +1932,10 @@
         "start": "Start",
         "end": "Ende",
         "margin": "Margin",
+        "orders_uncertain": "Scale placement needs review",
+        "orders_rejected": "Scale orders were not placed",
+        "rejected_placement_summary": "The venue confirmed that no orders were accepted",
+        "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
         "orders_submitted": "Skalierte Orders eingereicht",
         "orders_placed": "Skalierte Orders platziert",
         "orders_partially_placed": "Skalierte Orders teilweise platziert",
@@ -1945,7 +1949,8 @@
           "invalid_order_count": "Die Anzahl der Orders muss zwischen {{minOrderCount}} und {{maxOrderCount}} liegen",
           "invalid_skew": "Die Größenverschiebung muss größer sein als 0",
           "minimum_lot": "Die kleinste Order muss einen Mindestwert von {{minOrderValue}} $ haben",
-          "unavailable": "Skalierte Orders sind vorübergehend nicht verfügbar. Bitte wählen Sie eine andere Orderart aus."
+          "route_changed": "Your trading route changed. Review the Scale order and try again.",
+        "unavailable": "Skalierte Orders sind vorübergehend nicht verfügbar. Bitte wählen Sie eine andere Orderart aus."
         }
       },
       "twap": {
@@ -2621,6 +2626,7 @@
         "scaleRangeInvalid": "Der Höchstpreis einer Scale-Order muss über dem Mindestpreis liegen",
         "scaleCountInvalid": "Anzahl der Scale-Order ungültig",
         "scaleSizeTooSmall": "Jede Scale-Order liegt unter der Mindestgröße",
+        "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
         "scaleNotionalTooSmall": "Jede Scale-Order liegt unter dem Mindestwert der Börse",
         "chaseIntervalInvalid": "Das Chase-Intervall ist ungültig",
         "chaseDurationInvalid": "Die Chase-Dauer ist ungültig",

@@ -284,11 +284,13 @@ describe('usePerpsHomeData', () => {
     });
 
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: mockOrders,
       isInitialLoading: false,
     });
 
     mockUsePerpsLiveFills.mockReturnValue({
+      retry: jest.fn(),
       fills: mockFills,
       isInitialLoading: false,
     });
@@ -367,10 +369,12 @@ describe('usePerpsHomeData', () => {
         isInitialLoading: false,
       });
       mockUsePerpsLiveOrders.mockReturnValue({
+        retry: jest.fn(),
         orders: manyOrders,
         isInitialLoading: false,
       });
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: manyFills,
         isInitialLoading: false,
       });
@@ -405,6 +409,7 @@ describe('usePerpsHomeData', () => {
       );
 
       mockUsePerpsLiveOrders.mockReturnValue({
+        retry: jest.fn(),
         orders: twelveOrders,
         isInitialLoading: false,
       });
@@ -506,6 +511,7 @@ describe('usePerpsHomeData', () => {
         resetError: jest.fn(),
       } as never);
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -939,6 +945,7 @@ describe('usePerpsHomeData', () => {
 
     it('handles empty orders array', () => {
       mockUsePerpsLiveOrders.mockReturnValue({
+        retry: jest.fn(),
         orders: [],
         isInitialLoading: false,
       });
@@ -951,6 +958,7 @@ describe('usePerpsHomeData', () => {
     it('handles empty fills array', () => {
       // Activity now comes from WebSocket fills, not usePerpsTransactionHistory
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -981,10 +989,12 @@ describe('usePerpsHomeData', () => {
         isInitialLoading: false,
       });
       mockUsePerpsLiveOrders.mockReturnValue({
+        retry: jest.fn(),
         orders: [],
         isInitialLoading: false,
       });
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -1122,6 +1132,7 @@ describe('usePerpsHomeData', () => {
         Engine.context.PerpsController.getOrderFills as jest.Mock
       ).mockImplementation(mockGetOrderFills);
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [],
         isInitialLoading: false,
       });
@@ -1205,6 +1216,7 @@ describe('usePerpsHomeData', () => {
 
       // WebSocket returns same fills
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [multiFill1, multiFill2],
         isInitialLoading: false,
       });
@@ -1252,6 +1264,7 @@ describe('usePerpsHomeData', () => {
         timestamp: 1234567800,
       });
       mockUsePerpsLiveFills.mockReturnValue({
+        retry: jest.fn(),
         fills: [wsFill],
         isInitialLoading: false,
       });
@@ -1313,6 +1326,7 @@ describe('usePerpsHomeData', () => {
 
       const newOrders = [createMockOrder({ symbol: 'DOGE' })];
       mockUsePerpsLiveOrders.mockReturnValue({
+        retry: jest.fn(),
         orders: newOrders,
         isInitialLoading: false,
       });

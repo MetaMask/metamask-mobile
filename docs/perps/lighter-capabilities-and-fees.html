@@ -87,14 +87,17 @@
   </head>
   <body>
     <header>
-      <p class="meta">MetaMask Perps · Status checked September 19, 2026</p>
+      <p class="meta">
+        MetaMask Perps · Source update checked October 8, 2026; live evidence
+        retains its recorded build and date
+      </p>
       <h1>Lighter: fees, capabilities and integration status</h1>
       <p>
-        Reviewer companion for
+        The Lighter integration began in
         <a href="https://github.com/MetaMask/metamask-mobile/pull/34865"
           >Mobile #34865</a
-        >. This compares the MetaMask integrations, not everything each venue
-        offers.
+        >. This page compares the MetaMask integrations, not everything each
+        venue offers.
       </p>
       <nav aria-label="Contents">
         <a href="#fees">Fee capture</a><a href="#matrix">Capability matrix</a
@@ -369,13 +372,221 @@
         not a claim that the venue cannot do it.
       </p>
       <p>
-        Hyperliquid is the source-based comparison baseline; its flows were not
-        re-proved in this Lighter run. The historical Core references below use
-        #10187 at <code>2617b5880</code>. Core #10187 has since merged, and the
-        Mobile PR now consumes the published
-        <code>@metamask/perps-controller@17.2.0</code>. Advanced capability
-        declarations are not a promise of end-to-end validation in Mobile.
-        <a href="#core-sources">[C1–C4]</a>
+        Latest package adoption, October 8: Mobile
+        <code>8ae650bacb8417162555cbed5323232391e8115d</code> consumes published
+        <code>@metamask/perps-controller@20.0.0</code> without a Yarn patch. All
+        444 former patch hunks are accounted for in the release; none of their
+        functionality is missing. Full TypeScript and 2,529 targeted Mobile
+        tests pass. Fresh testnet recipes with the HUD shown pass Lighter
+        market/fill/close and limit/rest/cancel, plus Hyperliquid
+        market/fill/close. Hyperliquid limit placement and cancellation were
+        confirmed, but final state reads hit a rate limit and the recipe remains
+        failed. A separate read-only proof confirmed zero ETH orders and
+        positions. Mainnet orders remain operator-executed.
+        <a href="#controller20-adoption">[C24]</a>
+      </p>
+      <p>
+        Broader advanced-order and recovery evidence, October 4: Mobile
+        <code>1f5c519c72614b06409f666e78fb729c6ecaece2</code>, Core
+        <code>1ffc52ade4c6966ef901466d5169b3e71601a3bc</code> patched into
+        controller 19.0.0, and Scale/Chase recipe source
+        <code>357d9df8920898ca258672f0ca0494af928ff1f8</code>. Basic order, edit
+        and standalone-stop proofs use recipe source 495087c7. Testnet
+        market/fill/close, post-only limit/cancel, native same-ID edit,
+        stop-market/cancel and stop-limit/cancel pass. The existing Scale UI
+        passes exact two-child placement and complete cancellation. Bounded
+        controller Chase passes placement and cancellation with zero repricings.
+        Each case stays within $20 at 1x and ends flat, with unchanged
+        registered key identities and no new key slots. These proofs cover this
+        build; they do not establish mainnet trading or revalidate every
+        advanced-order case on 20.0.0. Later recovery authentication after reset
+        passed. Controlled same-account Retry passed within its five-minute
+        inspection budget; the earlier 60-second cases remain failed. Native iOS
+        reinstall followed by authenticated recovery without a saved signer
+        entry is evidenced. Saved-key erasure was not exercised.
+        <a href="#current-source-state">[C22, C23]</a>
+      </p>
+      <p>
+        Earlier native-edit validation passes its 21-check testnet lifecycle on
+        [C17]. The earlier [C21] Scale and Chase recipes failed on delayed
+        cancellation confirmation. Later read-only reconciliation proved their
+        exact children canceled with zero fills and the account flat. Those
+        failures and an earlier final-source Scale UI failure remain retained.
+        Separate fresh proofs on [C22] now pass Scale UI placement/cancellation
+        and bounded controller Chase placement/cancellation. Chase repricing, UI
+        submission and its dedicated reconciliation API were not exercised.
+      </p>
+      <p>
+        The combined Core PR
+        <a href="https://github.com/MetaMask/core/pull/10638"
+          >#10638 recovery and advanced orders</a
+        >
+        merged on October 5 and is included in published controller 20.0.0.
+        <a href="https://github.com/MetaMask/core/pull/10618">#10618</a> is
+        closed as superseded; #10629 was closed. The branch incorporates the
+        safeguards merged in #10644 on October 2. Mobile
+        <a href="https://github.com/MetaMask/metamask-mobile/pull/37161"
+          >#37161</a
+        >
+        is the matching integration and still carries <code>[NOT-READY]</code>.
+        The local branch has merged main and adopted the release, removing the
+        8.6 MB patch. These updates are not yet pushed, so the remote PR still
+        has its earlier dependency and merge conflict. Publication is held at
+        the operator's request. Final review and CI apply to the updated PR
+        after publication; local validation is recorded in [C24]. The Mobile
+        size limit is waived. A published controller does not establish an
+        enabled production feature or a mainnet trading pass.
+      </p>
+      <p>
+        Inspected source includes bounded key recovery, standalone triggers,
+        post-only, native edit, Scale, isolated margin support and bounded
+        testnet Chase. Earlier testnet runs passed market/fill/close and
+        limit/rest/cancel on both protocols, and Lighter's controller Scale
+        lifecycle with two exact children and group cancellation. The fresh
+        October 4 Lighter proofs cover the cases listed above. Earlier
+        Hyperliquid and margin results retain their recorded builds.
+        <a href="#evidence">Dated evidence</a> retains those source identities.
+      </p>
+      <p>
+        The recorded Lighter post-only case accepted an order, proved it resting
+        unfilled and exactly canceled it. Its recipe failed because management
+        received an empty default. Merged recipe #28 corrects that default; the
+        original failed run remains failed and was not replayed.
+      </p>
+      <p>
+        The native-edit case accepted and rested its opening SOL limit order,
+        then returned a pending edit response. Durable reconciliation proved the
+        edit failed before signing or dispatch because Mobile's signer allowlist
+        omitted <code>_signModifyOrder</code>. The exact original order was
+        canceled once, with independent zero-fill proof. Fresh reads found no
+        positions, resting orders or pending orders, and all four original
+        trading-key maps were unchanged. The failed recipe and original pending
+        response remain preserved; no edit was replayed.
+      </p>
+      <p>
+        The signer correction introduced at
+        <code>d6e6577786b8028554b9f1497427b07e0fcad5a9</code> is included in
+        recorded Mobile source [C17]. Its validated seven-argument operation and
+        host regressions establish source support. The recorded runtime also
+        passes exact same-order edit settlement and cancellation, with zero
+        fills and unchanged trading-key maps.
+        <a href="#current-source-state">[C18]</a>
+      </p>
+      <p>
+        Hyperliquid post-only passed 20/20; Lighter native edit and isolated
+        add-margin passed 21/21 and 22/22 on their recorded builds. Earlier
+        failed Scale and Chase recipes remain failed despite later exact
+        reconciliation and the separate fresh [C22] passes. Historical account
+        and network cases passed 34/34 and 33/33; guarded [C21] cases passed
+        26/26 and 25/25. Fresh [C22] account and network cases prove visible
+        guarded target errors and restoration of dev1/testnet with public orders
+        loaded. They do not prove authenticated target trading, continuous
+        stale-callback isolation or a rendered loaded-empty state. Historical
+        cold restart and reconnect passed on [C21]. An earlier final-source
+        restart attempt failed harness attachment with NO_TARGET; a later read
+        observed locked Login. Recovery authentication after reset now passes
+        for account 64/API key 2, with fresh authenticated orders data,
+        unchanged key inventory and nonce, and zero registration or financial
+        writes. Controlled same-account Retry passed with one reconnect, one
+        actual UI press, a fresh authenticated orders frame and restored
+        cleanup. Its 69,660 ms workflow included image inspection and passed
+        under a fixed five-minute total budget, with runtime, UI and frame
+        operations bounded at 60 seconds. This is not a product recovery latency
+        measurement or a pass under the prior 60-second total contract. Earlier
+        controlled Retry attempts 161 and 170 remain failed with cleanup
+        confirmed and zero presses. The earlier Retry UI recovered and
+        authenticated, but timed closeout began 295 ms late, so that result
+        remains failed. Native iOS reinstall followed by authenticated recovery
+        without a saved signer entry is evidenced separately
+        <a href="#current-source-state">[C23]</a>. Saved-key erasure was not
+        exercised. Deposits, withdrawals and Extension are deferred. Financial
+        validation is testnet-only; no mainnet trading pass is claimed.
+      </p>
+      <p class="note">
+        The original reset failed during wallet restoration with
+        <code>SETUP_WALLET_FAILED</code>; its exact cause was not retained.
+        Fixture restoration succeeded separately with all 47 accounts and
+        <code>dev1</code> selected. Final source binding and passive wallet
+        observation pass, including absence of all eight original scoped testnet
+        entries. Those entries were also absent in the original before record.
+        That historical recovery received an authenticated orders snapshot and
+        reconnect preserved the registered key map, with no new registration. A
+        genuine reinstall and reset-caused key loss were not proved by that
+        failed run. Later native iOS reinstall and recovery authentication are
+        evidenced separately <a href="#current-source-state">[C23]</a>; the
+        earlier locked Login observation remains historical. The account-switch
+        observer counted raw callbacks before Mobile's stale account guard, so
+        its failure does not establish stale UI delivery. The original failed
+        run remains recorded.
+      </p>
+      <p class="note" id="tpsl-follow-up">
+        TP/SL follow-up, deposits, withdrawals and Extension delivery are
+        deferred. Existing TP/SL source remains in place while basic trading and
+        automatic key recovery are validated. Follow-up covers Mobile partial
+        sizing, final native and venue proof for position and attached
+        protection, and partial attached children if venue and signer support is
+        verified. The shared Mobile form protects the full position on both
+        protocols. Lighter linked pairs require equal quantities; independent
+        unequal legs do not cancel siblings automatically. No Hyperliquid TP/SL
+        defect has been identified.
+      </p>
+      <p>
+        Remaining differences from Hyperliquid are Lighter TWAP availability,
+        default-off testnet-only Chase, partial attached TP/SL child sizes,
+        snapshot-based position protection and narrower native-edit eligibility.
+        Lighter also lacks the shared margin-adjustment preview. Scale UI
+        placement/cancellation now passes. Chase repricing and UI submission
+        remain unvalidated. The shared Mobile form has no partial TP/SL controls
+        on either protocol.
+      </p>
+      <p>
+        Current audit paths:
+        <code
+          >packages/perps-controller/src/providers/HyperLiquidProvider.ts</code
+        >
+        (<code>getOrderCapabilities</code>),
+        <code>packages/perps-controller/src/providers/LighterProvider.ts</code>
+        (<code>placeOrder</code>, <code>validateOrder</code>,
+        <code>updatePositionTPSL</code>),
+        <code>packages/perps-controller/src/PerpsController.ts</code>
+        (<code>getOrderCapabilities</code>), and Mobile
+        <a href="../../app/components/UI/Perps/hooks/usePerpsProvider.ts"
+          >usePerpsProvider</a
+        >
+        and
+        <a
+          href="../../app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProOrderFormPanel.tsx"
+          >PerpsProOrderFormPanel</a
+        >.
+      </p>
+      <p>
+        Recipe discovery: register the existing Perps library, inspect the
+        closest recipe with <code>--describe</code>, and expand its composition
+        with <code>--plan</code>. Shared <code>perps.order-receipt</code> and
+        <code>perps.order-lifecycle</code> accept provider, network, market and
+        Pro/Lite choices. Account defaults to the current selection;
+        <code>account=dev1</code> or an EVM address overrides it. Testnet
+        lifecycles bind exact venue receipts and clean only owned orders and
+        positions. Mainnet examples are operator-executed.
+      </p>
+      <p>
+        The Scale recipe reuses the existing UI journey and correlates one
+        journaled Submit press with its exact unsigned request and controller
+        result. The pre-press expectation uses the same production builder as
+        submission. Intent fields and current quote fields remain in the digest;
+        a changed quote is a mismatch, with no resubmit. Chase cleanup uses
+        complete public handle ownership and an exact ancestor-scoped existing
+        button, then independent venue reconciliation. Current Core advertises
+        Chase only for an explicitly configured testnet provider with its
+        signer. Mobile passes the public probe config through
+        <code>MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE=true</code>; it remains
+        default-off, with actual-network guards and the existing version-gated
+        Pro and Chase UI rollout gates. The Pro USD request must agree with the
+        current quote and downward-grid size within 20 USD and actual 1x. Recipe
+        UI Chase still requires the complete approved pre-press request. TWAP
+        has no complete public lifecycle. Counts, press success and row
+        disappearance confer no ownership. Host checks and plans do not prove
+        native or venue success.
       </p>
       <div class="table-wrap">
         <table>
@@ -386,7 +597,7 @@
             <tr>
               <th scope="col">Capability</th>
               <th scope="col">Hyperliquid integration</th>
-              <th scope="col">Lighter integration</th>
+              <th scope="col">Lighter local candidate</th>
               <th scope="col">Lighter validation / limit</th>
             </tr>
           </thead>
@@ -422,8 +633,8 @@
                 without changing mode.
               </td>
               <td>
-                Lite entry, Back and restored Lite controls validated; Pro limit
-                flow validated. <a href="#mobile-sources">[M1]</a>
+                Earlier Lite entry, Back and restored Lite controls validated;
+                Pro limit flow validated. <a href="#mobile-sources">[M1]</a>
               </td>
             </tr>
             <tr>
@@ -434,23 +645,34 @@
                 signer.
               </td>
               <td>
-                Testnet BTC long market/open/close and Pro limit/cancel
-                validated. Short entry exists; no separate short cycle claimed.
+                Fresh [C22] testnet controller proofs pass market opening, exact
+                fill-owned close and passive limit/cancel with independent venue
+                reads and flat cleanup. UI submission and a separate short cycle
+                are not claimed. Earlier [C21] 20/20 results and dev1 results on
+                both protocols remain historical evidence.
               </td>
             </tr>
             <tr>
               <th scope="row">Post-only</th>
               <td>ALO order handling implemented.</td>
-              <td>Unavailable: placement and validation reject ALO.</td>
-              <td>No post-only proof; excluded from basic acceptance.</td>
+              <td>Post-only placement and validation implemented.</td>
+              <td>
+                Fresh Lighter controller post-only proof passes on [C22], with
+                exact resting and canceled venue identity and flat cleanup. The
+                [C21] 20/20 result remains historical. The earlier
+                empty-management-default recipe failed and remains failed;
+                merged recipe #28 corrects that default. Hyperliquid post-only
+                passed all 20 recipe steps on October 3, including exact
+                cancellation and an independent flat-account check.
+              </td>
             </tr>
             <tr>
               <th scope="row">Positions and open orders</th>
               <td>Implemented reads/subscriptions.</td>
               <td>Implemented reads/subscriptions.</td>
               <td>
-                Visible position, resting order and independent empty final
-                state validated.
+                Earlier visible position, resting order and independent empty
+                final state validated.
               </td>
             </tr>
             <tr>
@@ -458,20 +680,31 @@
               <td>Implemented.</td>
               <td>Close path implemented, including size-based reduction.</td>
               <td>
-                Full UI close validated. Partial reduction not revalidated.
+                Earlier full UI close validated. Fresh [C22] exact fill-owned
+                close is a controller proof. Partial reduction is not
+                revalidated.
               </td>
             </tr>
             <tr>
               <th scope="row">Cancel / edit resting order</th>
               <td>Both implemented.</td>
               <td>
-                Cancel implemented. Edit explicitly refused because the
-                documented ModifyOrder path accepted but did not apply changes;
-                cancel and re-place is the stated alternative.
+                Cancel and native edit are implemented in Core and the recorded
+                Mobile signer allowlist. Edit requires the exact unfilled
+                ordinary active perpetual GTC or post-only limit, original
+                client and venue identity, fresh remaining quantity and current
+                owner. Strategy and protection children, partial fills and
+                unsupported types refuse. The seven-argument ABI has no
+                order-version or expiry comparison; the final venue race
+                remains.
               </td>
               <td>
-                Individual cancel validated. Cancel/re-place is not atomic and
-                was not separately validated as an edit workflow.
+                Fresh [C22] native edit changes the same venue order from
+                2558.69 to 2531.86 and cancels it exactly, ending flat with
+                unchanged registered key identities and no new slots. It is a
+                controller proof, with no cancel-replace substitution or UI
+                submission claim. The [C17] 21/21 result and earlier
+                pending-response failures remain retained.
               </td>
             </tr>
             <tr>
@@ -481,11 +714,18 @@
                 and position/order guards.
               </td>
               <td>
-                Leverage handling implemented. Explicit order
-                <code>marginMode</code> is rejected; do not advertise selectable
-                cross/isolated parity.
+                Leverage and explicit cross/isolated order margin modes are
+                implemented and advertised for active perpetual markets in the
+                current source. Fresh identity, execution, existing position and
+                collateral checks remain required; venue risk limits can still
+                refuse the request.
               </td>
-              <td>2x order cycle validated; no margin-mode switching proof.</td>
+              <td>
+                The corrected October 3 recipe passes 22/22 checks: open a $15
+                isolated 1x SOL position, add $1 collateral, and close the exact
+                position. The original delayed-confirmation failure is retained.
+                This proves the controller-backed testnet lifecycle.
+              </td>
             </tr>
             <tr>
               <th scope="row">Add/remove margin</th>
@@ -494,40 +734,246 @@
                 <code>updateMargin</code> implemented;
                 <code>previewPositionModify</code> returns unsupported.
               </td>
-              <td>No UI parity or device proof claimed.</td>
+              <td>
+                Testnet add-margin proof shows allocated collateral increasing
+                by exactly $1 without changing the position identity or size,
+                followed by a filled close. Manual UI parity and margin removal
+                remain unproved.
+              </td>
             </tr>
             <tr>
               <th scope="row">TP/SL at placement</th>
               <td>Implemented.</td>
               <td>
-                Unavailable: rejects attached TP/SL; directs callers to
-                post-entry update.
+                Native OTO/OTOCO submission and durable exact group identities
+                are implemented in the inspected source. Child coverage uses
+                venue-native zero size. Partial attached child sizes remain
+                unsupported, and lifecycle verification is pending.
               </td>
-              <td>Excluded from this initial acceptance.</td>
+              <td>
+                Offline OTO/OCO/OTOCO signing and wrapper regressions pass on
+                unchanged WASM. Attached UI placement, exact child receipts,
+                activation and cleanup remain unproved and are deferred to the
+                <a href="#tpsl-follow-up">TP/SL follow-up</a>.
+              </td>
             </tr>
             <tr>
               <th scope="row">Existing-position TP/SL</th>
               <td>Implemented.</td>
               <td>
-                <code>updatePositionTPSL</code> implemented for full-position
-                protection; partial TP/SL sizes refused.
+                Full-position snapshot protection implemented with durable
+                client/venue identities, cancellation-first replacement and
+                uncertain-submission recovery. Outstanding journals and manual
+                obligations across trading keys fence conflicting mutations.
               </td>
-              <td>Not revalidated; advanced protection deferred.</td>
+              <td>
+                Recorded create/replace/remove/close controller and venue
+                lifecycles passed on both testnets on earlier builds. Current
+                Mobile form and final-build lifecycle proof are deferred to the
+                <a href="#tpsl-follow-up">TP/SL follow-up</a>. Published-head
+                review remains a delivery requirement.
+              </td>
             </tr>
             <tr>
-              <th scope="row">TWAP / scale / chase</th>
+              <th scope="row">Partial-position TP/SL</th>
               <td>
-                Declared by the inspected provider's strategy capability
-                contract, subject to market readiness and client gates.
+                Controller API supports independent fixed-size legs, including
+                unequal TP/SL quantities. The shared Mobile TP/SL form submits
+                full-position protection and has no partial-sizing controls.
               </td>
               <td>
-                No <code>getOrderCapabilities</code> implementation; controller
-                returns <code>not_implemented</code>. Basic placement accepts
-                only market/limit.
+                The controller API supports a fixed-size single leg, an
+                equal-size native OCO pair, or an explicitly independent pair
+                with unequal or mixed partial/full quantities. Omitted
+                quantities remain omitted in the per-leg receipt and use the
+                captured position snapshot. Independent legs have no sibling
+                cancellation guarantee. Replacement cancels prior exact
+                protection before creating new legs. Unknown or failed legs
+                retain their receipt and require explicit current-position
+                recovery. The shared Mobile form keeps the same full-position
+                controls as Hyperliquid.
               </td>
               <td>
-                Not part of initial integration acceptance. Do not infer support
-                from signing helpers.
+                Offline signing and mocked-I/O regressions pass.
+                Controller-level recipe support carries exact partial quantities
+                and linkage through the existing controller composition, then
+                checks each normalized leg against its receipt and independent
+                resting intent. This is API validation. Partial sizing UI and
+                final-build native signing, actual venue receipts and cleanup
+                are deferred to the
+                <a href="#tpsl-follow-up">TP/SL follow-up</a>. Snapshot
+                quantities do not resize with positions.
+                <a href="#current-source-state">[C17]</a>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">
+                Standalone stop / take-profit market and limit
+              </th>
+              <td>
+                Implemented order types: stop_market, stop_limit,
+                take_profit_market and take_profit_limit.
+              </td>
+              <td>
+                Included in published controller 20.0.0 for active markets:
+                stop_market, stop_limit, take_profit_market and
+                take_profit_limit. Trigger markets use IOC execution; trigger
+                limits use GTT. Pending triggers retain the signer's 28-day
+                default expiry. Existing-position TP/SL is a separate path.
+              </td>
+              <td>
+                Pro mode and rollout require an explicit standalone type
+                declaration. Omitted, unavailable and pending declarations offer
+                only Basic choices. Fresh placement checks bind the declared
+                provider and current wallet/network. The completed capability
+                stage passed Lighter Basic-only and Hyperliquid's four trigger
+                choices. Native Lighter follow-up passed all eight type/side
+                combinations on its dated build through exact controller
+                receipt, resting venue intent, cancellation and flat cleanup.
+                Fresh [C22] stop-market and stop-limit entry cases also prove
+                exact pending venue orders and cancellation within $20 at 1x,
+                ending flat. Activation/fills, attached TP/SL and Pro form
+                submission remain unproved.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">TWAP</th>
+              <td>
+                Native strategy, subject to market readiness and Mobile rollout.
+              </td>
+              <td>
+                Native signer and controller source exists behind a default-off
+                testnet gate. Public capabilities do not advertise Lighter TWAP,
+                and no complete public schedule/child lifecycle is available.
+              </td>
+              <td>
+                Mobile can observe exact unsigned dispatches and results, but
+                complete public parent/child inventory, independent schedule
+                execution and exact cleanup are pending. The recipe refuses
+                before placement.
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Scale</th>
+              <td>
+                Ladder strategy, subject to market readiness and Mobile rollout.
+              </td>
+              <td>
+                Inspected Core advertises Scale and persists exact group/rung
+                identities. Public input ownership and fresh metadata are
+                checked at later signing and dispatch boundaries. Mobile copies
+                the venue ladder and exposes the complete production request
+                before the existing Submit handler. Current source [C19] adds a
+                ten-second placement window, one shared group-cancellation
+                deadline and retained exact cancellation attempts across
+                restarts. Accepted or unresolved attempts cannot be replayed
+                because a later lookup omits them. Fresh existing-UI placement
+                and exact cancellation pass on [C22].
+              </td>
+              <td>
+                The fresh Scale UI case passes on [C22] with the original
+                layout. One submission creates exact children of 0.125 at 80 and
+                0.1 at 100, totaling $20 at 1x. One controller cancellation is
+                recorded; observation resolves its pending result without
+                another cancel. Both children are exactly canceled with zero
+                fills and flat cleanup. Registered key identities and guards
+                remain unchanged, with no new key slots. No layout change or
+                extra controls are involved. Historical passes and failed runs,
+                including the [C17] 42/45 case and the earlier final-source
+                Scale UI case, retain their original verdicts. Hyperliquid
+                two-child comparison exceeds the $20 case cap.
+                <a href="#current-source-state">[C22]</a>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Chase</th>
+              <td>
+                Managed repricing, subject to market readiness and rollout.
+              </td>
+              <td>
+                Default-off testnet source has managed repricing, durable
+                cancellation and complete public handle-bound child history.
+                Public probe config reaches the testnet provider and advertises
+                Chase only with a signer. Pro USD sizing retains the 20 USD,
+                actual 1x and opening-only guards. Mainnet remains unavailable.
+                Ordinary native resting-limit edit uses the final Mobile signer
+                correction and has a separate runtime proof boundary.
+              </td>
+              <td>
+                Public history includes superseded and unresolved children plus
+                the original wallet/network/account/key owner. It is local
+                history, not fresh venue proof. Recipe cleanup requires every
+                independent exact child and scopes the existing UI button to its
+                stable handle. The transaction/order nonce mismatch is corrected
+                in [C17], and the old retained strategy is reconciled terminal.
+                The recorded testnet case places and proves one exact child,
+                then fails because the cancellation read precedes venue
+                settlement. Subsequent exact reconciliation closes the local
+                strategy with no second cancellation or nonce change, zero fills
+                and no exposure. Current source [C19] waits for exact
+                cancellation settlement and preserves accepted or conflicting
+                evidence across restart, expiry and missing lookups. Placement
+                and cancellation acceptance stay tied to the original account
+                and key during account or network changes. Explicit retry
+                requires complete proof that the attempt never landed. The fresh
+                Chase case passes bounded testnet controller placement and exact
+                cancellation on [C22], with one acknowledged placement dispatch
+                and one acknowledged cancellation dispatch under the original
+                account 64/key 2 owner. The exact child is canceled with zero
+                fills, no repeated dispatch observed, flat cleanup and no new
+                key slots. There are zero repricings; UI submission, mainnet
+                execution and the dedicated reconciliation API are not proved.
+                Earlier failed recipes retain their verdicts.
+                <a href="#current-source-state">[C22]</a>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Trading-key recovery</th>
+              <td>
+                Account-bound agent authorization. Reinstall recovery was not
+                proved by this comparison.
+              </td>
+              <td>
+                Retained keys are matched and reused, registration allocation is
+                bounded, and other devices' keys are preserved. Core keeps
+                recovery listing, dispatch reconciliation, acknowledgment and
+                previous-key protection APIs. Stale reconciliation results are
+                rejected after account, network or provider changes. Automatic
+                recovery uses existing trading flows. Software wallets can
+                reconstruct their trading key after a typed decryption failure
+                without replacing unreadable storage. Native access failures and
+                hardware wallets remain strict. Mobile retains the original
+                Scale and market design; unrequested recovery/status controls
+                are removed and manual recovery UI is deferred.
+              </td>
+              <td>
+                Cold native restart and separate reconnect pass on [C21],
+                reusing key 2/account 64 with fresh authenticated orders data,
+                unchanged public key maps and nonce, and no registration. Native
+                trading-key scopes were absent before and after; this does not
+                prove saved-key erasure. Guarded account/network target errors
+                and testnet restoration pass. An earlier mainnet case passed
+                decryption, then hit the deny-all registration guard; mainnet
+                authentication is not proved. Fresh [C22] scope cases prove
+                guarded target errors and dev1/testnet restoration only, with no
+                trading or delegated registration. An earlier restart attempt
+                failed harness attachment with NO_TARGET; a subsequent read
+                found locked Login. Later recovery authentication after reset
+                passed for account 64/API key 2, with a fresh authenticated
+                orders snapshot, unchanged key inventory and nonce, and zero
+                registration or financial writes. Native iOS reinstall followed
+                by authenticated recovery without a saved signer entry is
+                evidenced separately <a href="#current-source-state">[C23]</a>.
+                Saved-key erasure was not exercised. Authenticated target
+                trading, continuous stale-callback isolation, rendered
+                loaded-empty remain unproved. Controlled same-account Retry
+                passed with one reconnect, one actual UI press, a fresh
+                authenticated orders frame and restored cleanup under a fixed
+                five-minute inspection budget. Runtime, UI and frame operations
+                remain bounded at 60 seconds. The 69,660 ms workflow is not a
+                product recovery latency measurement or a pass under the prior
+                60-second total contract. Earlier attempts 161 and 170 remain
+                failed with cleanup confirmed and zero presses.
               </td>
             </tr>
             <tr>
@@ -541,7 +987,8 @@
               </td>
               <td>
                 Existing funded testnet account used. Funded Lite order entry is
-                not a deposit implementation.
+                not a deposit implementation. Deposits are excluded from this
+                validation.
               </td>
             </tr>
             <tr>
@@ -551,7 +998,10 @@
                 Signed withdrawal implemented; mainnet route advertised, testnet
                 route withheld because devnet L1 is unreachable per source.
               </td>
-              <td>No withdrawal or mainnet financial proof.</td>
+              <td>
+                Withdrawals are excluded from this validation. No withdrawal or
+                mainnet financial proof.
+              </td>
             </tr>
             <tr>
               <th scope="row">Trade/order history</th>
@@ -605,7 +1055,8 @@
           <a href="https://github.com/MetaMask/metamask-mobile/pull/34865"
             >Mobile #34865</a
           >
-          is open and feature-gated. Source inspected at
+          merged on September 23 and remains feature-gated. Historical source
+          inspected at
           <code>1876414683</code>. It includes the hidden signer WebView, strict
           request/result validation, SecureKeychain-backed venue keys,
           external-navigation blocking, Android new-window containment, funded
@@ -613,32 +1064,89 @@
         </li>
         <li>
           <a href="https://github.com/MetaMask/core/pull/10187">Core #10187</a>
-          merged on September 16. Mobile consumes the resulting published
-          <code>@metamask/perps-controller@17.2.0</code>.
+          merged on September 16. The initial integration consumed published
+          17.2.0. Mobile #37025 migrated the controller integration; the current
+          local checkout consumes published controller 20.0.0.
         </li>
         <li>
-          The dependency migration is complete: <code>package.json</code> and
-          <code>yarn.lock</code> resolve published 17.2.0 with a narrow Yarn
-          patch for Lighter filled-size normalization. Remove that patch when
-          the correction is available upstream. No <code>.yalc</code> package or
-          <code>yalc.lock</code> is part of the PR.
+          The current <code>package.json</code> and
+          <code>yarn.lock</code> resolve plain controller 20.0.0. The old Yarn
+          patch is removed. Its wallet-key recovery, stream failures/history,
+          unknown closing-fill PnL, capability gating, native standalone
+          triggers, position protection and non-financial dispatch
+          reconciliation changes are included in the release. Core #10605 is
+          merged. Core
+          <a href="https://github.com/MetaMask/core/pull/10638">#10638</a>
+          merged on October 5, consolidating recovery and advanced orders and
+          superseding #10618 and #10629. It incorporates safeguards merged in
+          #10644 on October 2. Its source waits for exact margin and native-edit
+          execution without resubmitting. Broader advanced-order proofs use
+          [C22]; released-package basic-order proofs use [C24]. Historical
+          settlement source [C19] remains separate from earlier runtime [C17].
+          Mobile
+          <a href="https://github.com/MetaMask/metamask-mobile/pull/37161"
+            >#37161</a
+          >
+          still shows the earlier package patch until the local adoption is
+          published. Historical final-source basic orders, native edit,
+          standalone stops, Scale UI and bounded controller Chase
+          placement/cancellation pass on testnet. The original Scale layout is
+          restored; unrequested controls are removed. The reusable Perps recipe
+          library
+          <a
+            href="https://github.com/MetaMask/experimental-metamask-recipe-perps/pull/28"
+            >#28</a
+          >
+          and
+          <a
+            href="https://github.com/MetaMask/experimental-metamask-recipe-perps/pull/29"
+            >#29</a
+          >
+          are merged. Recipe #30 corrected initial-dispatch observation. Recipe
+          <a
+            href="https://github.com/MetaMask/experimental-metamask-recipe-perps/pull/31"
+            >#31</a
+          >
+          is also merged and reconciles exact Scale children and Chase
+          cancellation results. Recipe
+          <a
+            href="https://github.com/MetaMask/experimental-metamask-recipe-perps/pull/32"
+            >#32</a
+          >
+          merged on October 4 and includes the recipe source used in [C24].
+          October 4 basic proofs use recipe source 495087c7; Scale and Chase
+          proofs use successor 357d9df8. Earlier [C21] restart/reconnect passes
+          remain historical. Later recovery authentication after reset and
+          controlled same-account Retry pass. Retry used a fixed five-minute
+          inspection budget; the prior 60-second cases remain failed. Native iOS
+          reinstall followed by authenticated recovery without a saved signer
+          entry is evidenced separately [C23]. Saved-key erasure was not
+          exercised. Controller 20.0.0 is now published, and the local Mobile
+          adoption has fresh basic-order proof and passing static checks [C24].
+          Advanced-order and recovery passes retain their recorded builds.
+          Mobile stays
+          <code>[NOT-READY]</code> while publication is held and the updated PR
+          awaits its final review and CI. Mobile size is waived, not a release
+          blocker. No <code>.yalc</code> package or <code>yalc.lock</code> is
+          committed.
         </li>
         <li>
-          The September 19 CI snapshot is not green. TypeScript, lint, format,
-          unit, integration, security, bundle-size and Android smoke checks
-          pass. Component-view shards and the intentional PR max-lines policy
-          remain red; the branch is labeled <code>size-XL</code> and requires
-          the normal review/policy approvals.
+          The historical September 19 CI snapshot was not green. TypeScript,
+          lint, format, unit, integration, security, bundle-size and Android
+          smoke checks passed in that snapshot. Component-view shards and the
+          intentional PR max-lines policy were red; that historical branch was
+          labeled <code>size-XL</code>. This snapshot does not state current
+          merge readiness.
         </li>
         <li>
-          An automated Bugbot finding about Android new-window navigation was
-          addressed with explicit navigation filtering and
-          <code>setSupportMultipleWindows={false}</code>. Automated review is
-          not an independent security certification.
+          Android new-window navigation was corrected with explicit filtering
+          and
+          <code>setSupportMultipleWindows={false}</code>. Those controls are not
+          an independent security certification.
         </li>
       </ul>
       <p class="note">
-        Before rollout: resolve CI, size and review gates; agree the signer
+        Before rollout: assess current CI and review gates; agree the signer
         trust model; validate mainnet financial compatibility; and decide
         whether zero MetaMask fee is acceptable for the initial release. Fee
         monetization is separate unfinished work, not an already-proven
@@ -648,6 +1156,256 @@
 
     <section id="evidence">
       <h2>Retained validation evidence</h2>
+      <p>
+        October 4 final-source proofs [C22] use Core <code>1ffc52ad</code>,
+        Mobile <code>1f5c519c</code> and Scale/Chase recipe
+        <code>357d9df8</code>; basic orders use recipe 495087c7. Evidence is
+        under goal/final-runtime/final-trading-root-review-56 in
+        root-market-proof-67.json, root-limit-proof-68.json,
+        root-edit-proof-69.json, root-stop-market-proof-70.json,
+        root-stop-limit-proof-78.json, root-scale-proof-89.json and
+        root-chase-proof-91.json. Each passes exact venue ownership and cleanup
+        on testnet, at most $20 and 1x, with the account flat, unchanged
+        registered key identities and zero new key slots. Trading nonces and
+        transaction timestamps can change. The fresh Scale case proves the
+        existing UI and both exact children; the other cases are controller
+        proofs. Stop cases prove pending orders and cancellation only. The
+        bounded Chase case records one acknowledged placement and cancellation
+        with zero repricings and no dedicated reconciliation API call. The
+        account/network transition cases, recorded in
+        root-account-switch-proof-82.json and root-network-switch-proof-83.json,
+        prove guarded target errors and dev1/testnet restoration only, with no
+        authenticated-target, continuous stale-callback or rendered-loaded-empty
+        claim. No mainnet financial execution is claimed.
+      </p>
+      <p>
+        October 4 native iOS reinstall at reset 104 is evidenced by the pinned
+        executed reset implementation and passing receipt. Its successful path
+        uninstalls and reinstalls the preserved app. Later recovery 146
+        authenticated account 64/API key 2, receiving a fresh
+        <code>account_all_orders:64</code> snapshot. Venue key inventory and
+        nonce 244 were unchanged, with zero registration attempts and zero
+        financial writes. All eight native signer scopes were absent before and
+        after authentication. Saved-key erasure was not exercised. The
+        intermediate uninstalled state was not independently captured.
+        <a href="#current-source-state">[C23]</a> Evidence:
+        <code
+          >service-product-link-successor-141/service/recovery-authentication-114/result.json</code
+        >. Later ordinary reconnect preparation completed once. The before/after
+        venue reads retained the same key inventory and nonce 244; passive
+        observation found unchanged deny-all registration guards. These records
+        are <code>root-normal-preparation-159.json</code>,
+        <code>normal-preparation-venue-before-158.json</code>,
+        <code>normal-preparation-venue-after-158.json</code> and
+        <code>root-retry-passive-observation-160.json</code> in that service
+        directory. Preparation and passive observation do not prove a Retry
+        pass.
+      </p>
+      <p>
+        October 4 controlled same-account Retry 178 passed on [C22]. Exactly one
+        reconnect and one actual UI Retry press preceded a fresh authenticated
+        <code>account_all_orders:64</code> frame at 1791100036688. No
+        independent initialization occurred after the press. Both actual error
+        and recovered screenshots were inspected. Recovered content loaded,
+        error text cleared and no persistent skeletons remained. Finish
+        completed with wrappers restored and <code>unreconciled:false</code>.
+        The complete workflow took 69,660 ms including image inspection, within
+        a fixed 300,000 ms total inspection budget. Runtime, UI and frame
+        operations retained bounds of at most 60,000 ms. This is not a pass
+        under the prior 60-second total contract or a product recovery latency
+        measurement. Evidence:
+        <code>retry-budget-successor-171/live-final-retry-178/outcome.json</code
+        >.
+      </p>
+      <p>
+        Final passive postflight 179 passed. Native lifetime, source binding and
+        both deny-all registration guards stayed unchanged. Public venue reads
+        retained the key inventory and nonce 244. The account was flat, with
+        zero registration attempts, new key slots or financial writes. Evidence:
+        <code>retry-budget-successor-171/root-runtime-closeout-179.json</code>.
+        That record pins the exact before/after observations and public venue
+        reads.
+      </p>
+      <p>
+        Earlier controlled Retry 161 failed when the inspection stream closed
+        before completion. Cleanup was confirmed and no Retry press occurred. It
+        does not prove Retry recovery. Evidence:
+        <code
+          >retry-url-binding-correction-148/live-final-retry-161/outcome.json</code
+        >. Controlled Retry 170 also failed when the inspection response was
+        lost at its original 60-second deadline. Cleanup was confirmed and no
+        press occurred. Evidence:
+        <code
+          >retry-stdio-case-successor-162/live-final-retry-170/outcome.json</code
+        >. Both cases remain failed. The earlier finish that began 295 ms late
+        remains failed. All evidence paths here are relative to
+        <code>goal/final-runtime</code>.
+      </p>
+      <p>
+        Historical [C21] market/fill/close and passive limit/cancel each passed
+        20/20; guarded account/network cases passed 26/26 and 25/25. Cold
+        restart and separate reconnect received fresh authenticated orders data
+        and reused key 2/account 64 with unchanged key maps and nonce and no
+        registration. Native key scopes were absent before and after, so
+        saved-key erasure is not proved. On that build, Scale and Chase accepted
+        placement, but complete recipes failed on cancellation confirmation.
+        Later independent reads prove their exact children canceled, zero fills
+        and a flat account without another financial write. The original
+        failures remain failed. Same-account Retry had one actual press and
+        fresh authenticated orders data; the recovered screen passed its four UI
+        checks. Its timed finish began 295 ms after the original deadline, so
+        the complete Retry proof failed. Reinstall/key-loss recovery remains
+        pending. Evidence is under
+        <code>goal/final-runtime/final-trading-validation-08</code> in
+        <code>basic-lifecycle-outcome-10.json</code>,
+        <code>account-network-outcome-01.json</code>,
+        <code>restart-reconnect-outcome-12.json</code>,
+        <code>scale-eventual-outcome-02.json</code>,
+        <code>chase-eventual-outcome-01.json</code> and
+        <code>retry-outcome-10.json</code>. The fresh Scale UI and bounded Chase
+        controller passes preserve these historical failures and the earlier
+        final-source Scale UI failure. That failure is retained in
+        final-trading-root-review-56/executions/final-1ffc52-1f5c519c-65-exact-scale-ui/summary.json
+        and
+        settlement-runtime-execution-49/execute-scale-exact-ladder-65-01.stdout.
+        In the final-source restart attempt, the harness failed to attach to the
+        restarted app, reporting NO_TARGET. The failure is recorded in
+        reset-native-lifetime-execution-93/restart-recipe/trace.json and
+        settlement-runtime-execution-49/execute-ios-reset-lock-93-01.stdout. A
+        subsequent status read observed locked Login, recorded in
+        settlement-runtime-execution-49/read-post-restart-status-95-01.stdout.
+        These evidence paths are relative to goal/final-runtime. The locked
+        Login observation does not prove unlock, authenticated recovery,
+        reinstall or reset-caused key loss.
+      </p>
+      <p>
+        October 3 combined-runtime follow-up on [C17]:
+        <code>combined-native-edit-validation-01</code> passes 21/21.
+        <code>combined-scale-validation-01</code> fails 42/45 and
+        <code>combined-chase-validation-01</code> fails 14/16 on settlement
+        confirmation. Their original results remain unchanged. Subsequent exact
+        reconciliation proves all owned children canceled with zero fills, no
+        orders or positions, and unchanged public trading-key maps. These later
+        reads do not convert the failed lifecycles into passes.
+      </p>
+      <p>
+        October 3 follow-up on Mobile <code>655ad1c2</code>, Core
+        <code>d436afc3</code>, and recipe library <code>6bda9513</code>:
+        <code>corrected-margin-validation-01</code> passes 22/22 checks with
+        independent flat-account confirmation. Native edit executed but its
+        original recipe failed on early pending confirmation. Scale created two
+        exact $10 children; observation timing failed the recipe, while later
+        reconciliation proved both canceled with zero fills. Chase revealed a
+        transaction/order nonce mismatch; its exact child was canceled with zero
+        fills. Original failures remain retained. Source fixes and publication
+        do not replace corrected-build runtime proof.
+      </p>
+      <p>
+        October 3 recovery follow-up loaded Mobile <code>655ad1c2</code> with
+        Core <code>d436afc3</code>. The mainnet existing-key recipe failed at
+        trading readiness, with 11 steps passed and one failed. The earlier
+        decryption error no longer stopped recovery, but the app attempted
+        registration and the deny-all test guard blocked it. This is not a
+        mainnet authentication pass. Testnet restoration received fresh order
+        data at 13:16:01.513 UTC. Both post-run guard checks passed, public key
+        maps were unchanged, and no trade or registration was delegated.
+        Evidence: <code>key-decryption-mainnet-validation-01</code>.
+      </p>
+      <p>
+        Earlier on Mobile <code>a771aea5</code>, account transitions passed
+        26/26 and network transitions passed 25/25 for selection, visible target
+        errors and testnet restoration. The mainnet target exposed the original
+        decryption error; dev2 was blocked from registering by the test guard.
+        Those runs do not prove target authentication, forced stale-callback
+        rejection or same-account Retry recovery. See
+        <code>transition-evidence-review-01</code>. The original failed account
+        observer and genuine reinstall attempt remain failed.
+      </p>
+      <p>
+        October 3 follow-up used Mobile <code>54d9669</code>, Core
+        <code>a3afafb4</code> and recipe library <code>6bda9513</code> on mm-3.
+        Hyperliquid post-only passed 20/20. Lighter Scale placed two exact
+        children, then canceled both with zero fills; delayed results required
+        receipt-only reconciliation, and the original recipe failure is
+        retained. Isolated-margin opening and Chase failed before exposure. No
+        financial case was replayed. Final public reads found no orders or
+        positions. The order-error experiment never reached its injected
+        failure; cleanup passed, but recovery remains unproved. Accepted
+        account/network isolation and genuine reinstall proof are also
+        incomplete in that run; subsequent transition evidence is recorded
+        above. The margin correction in Core <code>d436afc3</code> and Mobile
+        <code>19c2b36a</code> passes host checks, including 46 Mobile tests and
+        full typechecking, but was not in that financial run. Evidence is under
+        <code>goal/final-runtime/</code>.
+      </p>
+      <p>
+        September 30 mm-3 validation on controller 19.0.0 uses dev1
+        <code>0x8dc623e964475d4d669da601fd15ea9125469003</code> on both
+        protocols. The refreshed runs below used Mobile
+        <code>78afc42d4505303b14a26b6c3cd047faf545303f</code> with the
+        closing-fill correction from Core
+        <code>2e6a4d94532653c40dba4de6d586911fa7b2adfa</code>. Each run records
+        unchanged source provenance. Lighter recovery
+        <code>key-recovery/recipe-run-13</code> passed 12/12 across two local
+        key-loss cycles and reconnect with zero additional venue registrations.
+        Lighter <code>recipe-library/market-run-11</code> passed 17/17 and
+        <code>recipe-library/limit-run-06</code> passed 18/18. Hyperliquid
+        <code>recipe-library/hyperliquid-market-run-03</code> and
+        <code>recipe-library/hyperliquid-limit-run-02</code> each passed 18/18.
+        These financial recipes match exact fills or orders and end flat.
+        Hyperliquid collateral is in spot USDC under unified-account mode; its
+        zero perps margin summary alone does not indicate missing funding.
+        <code>key-recovery/ui-error-run-17</code> passed 18/18 with visible
+        Retry controls, then real authenticated snapshots. It injects
+        presentation failures, not signer-boundary failures. Earlier controller
+        19 recovery run 12 and the previous financial runs preceded the
+        closing-fill correction and remain historical evidence. Omitted closing
+        PnL now stays unknown. Core has 403 passing affected tests; Mobile has
+        439 across 10 affected suites. These artifact paths are relative to
+        <code>temp/tasks/feat/tat-4045-0930-095044/artifacts/</code>.
+        Application diagnostics are retained. No advanced-order or mainnet
+        financial pass is claimed.
+      </p>
+
+      <p>
+        October 1 capability and recovery follow-up uses the same mm-3 dev1
+        fixture. With the actual remote trigger rollout enabled,
+        <code>goal/capability-gating/lighter-run-02</code> passed 15/15 and
+        <code>goal/capability-gating/hyperliquid-run-03</code> passed 22/22,
+        including native menu visibility and Basic Limit selection. Controlled
+        iOS/Android view tests cover missing, pending and subset declarations
+        and preserved drafts. The follow-up recovery recipe passed 12/12 with
+        unchanged registered keys; Lighter market/close passed 17/17 and
+        limit/cancel passed 18/18, ending flat. Recovery now skips an unrelated
+        candidate's ledger and retains the matching key's nonce safeguards.
+        Scoped source tests, lint and type diagnostics passed. Task artifacts
+        retain warnings and unrelated type diagnostics; no warning-free or
+        full-project TypeScript pass is claimed. Native advanced-order execution
+        and mainnet financial validation remain unfinished.
+      </p>
+      <p>
+        October 1 native standalone proof uses Core <code>1ef6e190</code>,
+        Mobile <code>205575ce</code> and Perps library <code>e834ff6f</code>.
+        The eight <code>goal/native-orders/*-02</code> runs pass on Lighter
+        testnet with dev1, four types on both sides, exact client-to-venue IDs,
+        native intent, exact cancellation and flat cleanup. The first case uses
+        the selected-account default. The pinned embedded WASM signs all 16
+        type/side/reduce-only combinations offline. This proves pending orders
+        and cancellation, not activation, fills or form submission. Core's
+        subsequent ownership/disconnect regressions passed 635 tests across five
+        affected suites, followed by 22 passing expiry/restart regressions after
+        test-type corrections. Ownership records retain the exact signed order
+        expiry. Missing records can be reclaimed after expiry plus clock slack,
+        even when old terminal history is unavailable; live and uncertain
+        records remain conservative. Legacy records with no expiry proof still
+        require exact terminal evidence, and new protection creation refuses at
+        the 256-record cap when verified cleanup cannot make room. The recipe
+        precision/slippage follow-up passes 51 tests, with both independent
+        reviews complete at library <code>c3154d6b</code>. Fresh runtime proof
+        for the revised Core patch is tracked separately in the task's transport
+        manifest and run artifacts. Money Account and Terminal diagnostics are
+        retained separately.
+      </p>
       <p>
         September 21 revalidation on commit <code>9f31932280</code>, iOS
         <code>mm-1</code>, Runway <code>35154767219</code>, and published
@@ -700,12 +1458,13 @@
           awaits separate consent.
         </li>
         <li>
-          Current migration checks include focused signer, provider, navigation,
-          order-execution and controller-integration suites, component-view
-          coverage for funded and aggregated Lighter orders, and passing CI
-          TypeScript, lint, format, unit and integration jobs. A post-upgrade
-          iOS provider-selector recipe passed 36/36 nodes. The earlier funded
-          trading cycles remain the financial evidence.
+          Earlier migration checks included focused signer, provider,
+          navigation, order-execution and controller-integration suites,
+          component-view coverage for funded and aggregated Lighter orders, and
+          passing CI TypeScript, lint, format, unit and integration jobs. A
+          post-upgrade iOS provider-selector recipe passed 36/36 nodes. The
+          earlier funded trading cycles remain dated financial evidence; these
+          checks do not establish a pass for the latest complete app.
         </li>
       </ul>
     </section>
@@ -765,41 +1524,261 @@
         </li>
       </ul>
       <p id="core-sources">
-        Core snapshot: <code>2617b5880a1420c4f802f439d768834601db819f</code>.
-        Links pin the inspected revision; later changes require a new audit.
+        Core snapshot: <code>2e6a4d94532653c40dba4de6d586911fa7b2adfa</code>.
+        Links pin the September 30 inspected revision; later changes require a
+        new audit.
       </p>
       <ul>
         <li>
           <a
-            href="https://github.com/MetaMask/core/blob/2617b5880a1420c4f802f439d768834601db819f/packages/perps-controller/src/providers/LighterProvider.ts"
+            href="https://github.com/MetaMask/core/blob/2e6a4d94532653c40dba4de6d586911fa7b2adfa/packages/perps-controller/src/providers/LighterProvider.ts"
             >C1 · LighterProvider</a
           >: account tier guard, place/cancel/edit/close, TP/SL, margin, fee
           quote, subscriptions and asset routes.
         </li>
         <li>
           <a
-            href="https://github.com/MetaMask/core/blob/2617b5880a1420c4f802f439d768834601db819f/packages/perps-controller/src/providers/HyperLiquidProvider.ts"
+            href="https://github.com/MetaMask/core/blob/2e6a4d94532653c40dba4de6d586911fa7b2adfa/packages/perps-controller/src/providers/HyperLiquidProvider.ts"
             >C2 · HyperLiquidProvider</a
           >: builder approval, builder payload, strategy exceptions and fee
           calculation.
         </li>
         <li>
           <a
-            href="https://github.com/MetaMask/core/blob/2617b5880a1420c4f802f439d768834601db819f/packages/perps-controller/src/constants/hyperLiquidConfig.ts"
+            href="https://github.com/MetaMask/core/blob/2e6a4d94532653c40dba4de6d586911fa7b2adfa/packages/perps-controller/src/constants/hyperLiquidConfig.ts"
             >C3 · Hyperliquid configuration</a
           >: builder fee units, maximum and strategy declaration. Defaults are
           not proof of the recipient configured in a deployed app.
         </li>
         <li>
           <a
-            href="https://github.com/MetaMask/core/blob/2617b5880a1420c4f802f439d768834601db819f/packages/perps-controller/src/PerpsController.ts"
+            href="https://github.com/MetaMask/core/blob/2e6a4d94532653c40dba4de6d586911fa7b2adfa/packages/perps-controller/src/PerpsController.ts"
             >C4 · PerpsController</a
           >: unavailable capability result when a provider lacks the optional
           strategy API.
         </li>
       </ul>
+      <p id="current-source-state">
+        Current development revisions and historical source references are
+        separate from the September 30 audit. Historical source checks do not
+        prove the latest runtime:
+      </p>
+      <ul>
+        <li>
+          <a
+            href="https://github.com/MetaMask/core/blob/e9b0ba30c004b5d174f5267ce68cf1caa69862bd/packages/perps-controller/src/PerpsController.ts"
+            >C5 · Published recovery controller</a
+          >: account, network, provider and connection lifetime checks for
+          recovery actions.
+        </li>
+        <li>
+          <a
+            href="https://github.com/MetaMask/core/blob/5ca7c853f894644190e751e2755553e9d3f4339b/packages/perps-controller/src/types/index.ts"
+            >C6 · Published standalone capability contract</a
+          >: optional trigger-type declarations; omitted support stays unknown.
+        </li>
+        <li>
+          C7 · Historical partial-protection source at
+          <code>ff0e20cacc74d25fa1073d07dc9be3f6856bcaf6</code>:
+          <code>LighterProvider.ts</code>, <code>types/index.ts</code> and
+          <code>constants/hyperLiquidConfig.ts</code>. Frozen local source and
+          package checks establish implementation only, not published or live
+          availability.
+        </li>
+        <li>
+          <a
+            href="https://github.com/MetaMask/core/blob/5ca7c853f894644190e751e2755553e9d3f4339b/packages/perps-controller/src/providers/LighterProvider.ts"
+            >C8 · Published standalone trigger implementation</a
+          >: durable ownership, session checks and signed expiry.
+        </li>
+        <li>
+          <a
+            href="https://github.com/MetaMask/core/blob/5ca7c853f894644190e751e2755553e9d3f4339b/packages/perps-controller/src/providers/LighterProvider.ts"
+            >C9 · Published position protection implementation</a
+          >: cancellation-first updates and exact protection receipts.
+        </li>
+        <li>
+          C10 · Historical recovery source at
+          <code>821f980c9b8a8e6feeb6f7ede5c318c6713889ea</code>. Independently
+          approved local source and matching installed build; no published
+          package or live validation claim.
+        </li>
+        <li>
+          C11 · Historical Scale preview source
+          <code>45c0a72326f3243226e4b605d16874d2a3c5b72c</code>: public
+          expected-ladder contract and provider comparison. Later public awaits
+          and financial-write boundaries require correction.
+        </li>
+        <li>
+          C12 · Historical Chase correction source
+          <code>c7e86d67da4793bc99e16f3aaef2b8dbcc47aa3a</code>: local stops
+          persist without consuming venue cancellation attempts. Source tests
+          pass; final review and native/venue proof remain pending.
+        </li>
+        <li>
+          C13 · Historical Mobile Scale source
+          <code>8e204d2daa388e4f203beaa02ed2f98b1c4a84be</code>: production
+          payload, expected preview, pending/refusal copy and group selectors.
+          Private dependency matches C11; no live adoption claim.
+        </li>
+        <li>
+          C14 · Historical assembled Core
+          <code>f0ad5c63746fd255108f9e2534dbbee32b7cb911</code>. Earlier C7 and
+          C11–C13 describe its source inputs. Its preserved package and check
+          evidence establish source provenance only.
+        </li>
+        <li>
+          C15 · Historical Core
+          <code>13d3226905f3eb93a0b3adaf06cf8790536176c0</code>. This added
+          independent protection quantities, per-leg outcomes and public bounded
+          testnet Chase configuration beyond C14. The shared Mobile TP/SL screen
+          retains full-position controls. Its source and host checks remain
+          historical evidence.
+        </li>
+        <li>
+          C16 · Historical Core
+          <code>c8d866f4aba3854d5a9694660ef800912aef4ae7</code>. Its 367 package
+          outputs included Scale child amount bounds and source type mappings.
+          Its checks and failed full Mobile lint attempts remain preserved; they
+          do not identify the current runtime.
+        </li>
+        <li>
+          C17 · Recorded runtime source as of October 3: Core
+          <code>1c8c3ddf4a22c48a57246f881942b4b9d28e6bdf</code>, Mobile
+          <code>dcff4e12ae6ee03d4fca04221b870ac6e7cf765a</code>. Recorded
+          combined-runtime checks use merged recipe #30 library
+          <code>ea86276b890caa8d541eea039974c2e2bb7a4429</code>. Exact
+          source/package and loaded-module binding pass. Matching final-package
+          Mobile integration and TypeScript checks pass. Runtime outcomes and
+          release availability need their own evidence; historical passes retain
+          their original revisions.
+        </li>
+        <li>
+          C18 · Historical Mobile signer correction
+          <code>d6e6577786b8028554b9f1497427b07e0fcad5a9</code>, included in
+          recorded runtime [C17]. The unchanged embedded binary supports the
+          validated seven-argument ModifyOrder ABI. Its 111 host wrapper tests
+          belong to that recorded correction; recorded native/venue edit
+          settlement passes the separate 21-check lifecycle above.
+        </li>
+        <li>
+          C19 · Earlier settlement source inspected October 4: Core
+          <code>db75bdee45aae4237362d0def034b3410169f13f</code>, matching Mobile
+          controller integration
+          <code>02fba095da03c40bc96b32f78aabc20f8630b4a7</code>. Core #10638 and
+          Mobile #37161 publish these corrections. Source/package matching,
+          1,668 Core tests, 77 tests across seven Mobile Perps integration
+          suites including both recovery suites, and full Mobile TypeScript
+          checks pass. Source adds bounded Scale visibility, durable exact
+          cancellation identities and Chase settlement reads. Exact observed
+          cancellation acceptance persists across restart and later missing
+          transaction lookups. Conflicting or unknown evidence remains
+          nonretryable. Accepted placement and cancellation dispatches persist
+          under their original account and key before session checks or nonce
+          retirement; storage failure preserves unresolved evidence. Acceptance
+          phase and flag stay consistent when completion reads, parsing or
+          matching fail, so journal readback and restart retain the accepted
+          action without replay. These are source and integration checks;
+          historical runtime results retain their revisions. Fresh [C22] trading
+          proofs are listed above; no upstream package release is claimed.
+        </li>
+        <li>
+          C20 · Recipe #31 merged October 3 at
+          <code>186c8ce09f2fbadd997269fe65b11d7ddca84ffa</code>. Its tree
+          matches the approved source at
+          <code>cfc11fec86bec155e9876f7bc93df0beb140c4f1</code>. The recorded
+          456 host tests, 48 harness tests, TypeScript and formatting checks
+          pass. Publication does not establish native or venue success.
+        </li>
+        <li>
+          C21 · Historical validated runtime: Core
+          <code>db75bdee45aae4237362d0def034b3410169f13f</code>, Mobile
+          <code>f4b260d8507e1a19e662c23cfb7e413d699787a1</code>, recipe
+          <code>186c8ce09f2fbadd997269fe65b11d7ddca84ffa</code>. Earlier basic
+          trading, guarded account/network restoration, cold restart and
+          reconnect outcomes above belong to these revisions. Failed Scale/Chase
+          and timed Retry results retain their verdicts; reinstall/key-loss
+          remains unproved.
+        </li>
+        <li>
+          C22 · Published development source with October 4 trading proof: Core
+          #10638 at
+          <code>1ffc52ade4c6966ef901466d5169b3e71601a3bc</code>, Mobile #37161
+          at <code>1f5c519c72614b06409f666e78fb729c6ecaece2</code>. Independent
+          source reviews approve both exact heads. Core reconciles accepted
+          Chase cancellation evidence without dispatching another cancellation
+          after failure. Mobile retains the original layouts. The market,
+          post-only limit, native-edit and standalone-stop proofs use recipe
+          495087c7f4fda73a65b40337733ee755503aebd8; the Scale UI and bounded
+          Chase controller cases use 357d9df8920898ca258672f0ca0494af928ff1f8.
+          The guarded account/network transition cases cover errors and
+          restoration. These trading passes do not cover recovery after reset.
+          Separately recorded recovery authentication and controlled
+          same-account Retry now pass. Retry passed within its five-minute
+          inspection budget; the prior 60-second cases remain failed. Native iOS
+          reinstall followed by authenticated recovery without a saved signer
+          entry is evidenced separately [C23]. Saved-key erasure was not
+          exercised. Earlier [C21] passes retain their own revisions. At the
+          time of this evidence, Core approval and the controller release were
+          pending. The later release and local Mobile adoption are recorded in
+          [C24]; Mobile still carries <code>[NOT-READY]</code>.
+        </li>
+        <li>
+          C23 · October 4 iOS testnet reinstall and recovery evidence for a
+          software wallet. Reset 104's exact argv, pinned source/dist and iOS
+          reset leaf at harness
+          <code>67527610e5e95bbc14f79417404b7ed31707d261</code>, plus its
+          passing receipt, establish native uninstall/reinstall. Recovery 146
+          then authenticated with all eight signer scopes absent, unchanged
+          venue keys and nonce 244, and zero registration attempts or financial
+          writes. Raw OS output and the intermediate uninstalled state were not
+          retained. Saved-key erasure was not exercised. The adopted assessment
+          is in <code>goal/native-reinstall-plan-185/report.md</code>,
+          <code>historical-evidence.json</code> and
+          <code>root-adoption.json</code>. Exact executed and recovery receipts
+          remain under <code>goal/final-runtime</code> in
+          <code
+            >host-reset-wrapper-correction-54/execution-reset-1ffc-1f5c-357d9df-104/result.json</code
+          >
+          and
+          <code
+            >service-product-link-successor-141/service/recovery-authentication-114/result.json</code
+          >.
+        </li>
+      </ul>
+      <p id="controller20-adoption">
+        C24 · October 8 released-controller adoption. Core #10638 merged at
+        <code>bf084f6218570290f94875c0129db0821d7a51e5</code>; npm controller
+        20.0.0 records source commit
+        <code>b2aebcb681e4c7a267ad4c90380d8e60399459cc</code>. Registry
+        integrity checks pass, and all 372 installed package files match the
+        tarball. Of 444 old patch hunks, 438 match exactly and six retain the
+        changes with updated README text or regenerated source maps. Local
+        Mobile <code>8ae650bacb8417162555cbed5323232391e8115d</code> follows a
+        merge of main at <code>9091a924462ec616eb802256b098663c2a3e10cd</code>.
+        The conflict resolution retains both Lighter routing and venue-sized
+        Scale configuration. Yarn install, 2,149 unit tests, 223 component-view
+        tests, 68 integration tests and 89 config-caller tests pass on both the
+        merged old dependency and the published release. Full TypeScript and 14
+        additional Engine/controller and messenger tests pass on the published
+        release with retained exit status 0. Focused lint passed; the broad
+        merge hook was stopped before completion. Fresh recipes use the
+        unchanged library <code>357d9df8</code>, dev1, testnet ETH, at most $20
+        per case at 1x, and <code>--hud show</code>. Lighter market and limit
+        and Hyperliquid market each pass 20/20. Hyperliquid limit remains failed
+        at 16/18 because final reads returned 429 after successful placement and
+        cancellation. The separate 5/5 read-only cleanup proof found no
+        remaining ETH orders or positions; no order was replayed. Evidence and
+        the full hunk table are in
+        <code>goal/controller20-adoption-20261008/REPORT.md</code>,
+        <code>results.json</code> and <code>patch-hunks.md</code> under the
+        task's artifacts. This validation does not replace historical
+        advanced-order or reinstall evidence and does not claim mainnet trading
+        or production rollout.
+      </p>
       <p id="mobile-sources">
-        Mobile snapshot: <code>18764146836007e1a789dbd7fc164f5d93c05403</code>.
+        Historical Mobile audit snapshot:
+        <code>18764146836007e1a789dbd7fc164f5d93c05403</code>.
       </p>
       <ul>
         <li>

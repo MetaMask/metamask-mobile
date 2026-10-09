@@ -28,14 +28,14 @@ Domain rollout phases and perps harness-shape detail: [`STRATEGY.md`](STRATEGY.m
 
 ## Position management
 
-| Use case                             |  U  | CV  |   I   | E2E | Coverage notes                                                              |
-| ------------------------------------ | :-: | :-: | :---: | :-: | --------------------------------------------------------------------------- |
-| Add collateral (increase margin)     |     |  ✓  | **✓** |     | I: state transition on margin-update. CV: input form + confirmation.        |
-| Remove collateral (decrease margin)  |     |  ✓  | **✓** |     | Same; covers the rejection path when margin would drop below maintenance.   |
-| Set take-profit                      |     |  ✓  | **✓** |     | I: TP-price validation, state update. CV: TP input.                         |
-| Set stop-loss                        |     |  ✓  | **✓** |     | Same shape as TP.                                                           |
-| Update existing TP/SL                |     |     | **✓** |     | Edit-of-existing path; UI is shared with create.                            |
-| Adjust leverage on existing position |     |  ✓  | **✓** |     | I: leverage validation against position size. CV: leverage slider clamping. |
+| Use case                             |  U  | CV  |   I   | E2E | Coverage notes                                                                                                                                                   |
+| ------------------------------------ | :-: | :-: | :---: | :-: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Add collateral (increase margin)     |     |  ✓  | **✓** |     | I: state transition on margin-update. CV: input form + confirmation.                                                                                             |
+| Remove collateral (decrease margin)  |     |  ✓  | **✓** |     | Same; covers the rejection path when margin would drop below maintenance.                                                                                        |
+| Set take-profit                      |     |  ✓  | **✓** |     | I: TP-price validation, state update. CV: TP input.                                                                                                              |
+| Set stop-loss                        |     |  ✓  | **✓** |     | Same shape as TP.                                                                                                                                                |
+| Update existing TP/SL                |     |     | **✓** |     | Signed-size/entry preconditions, exact child receipts, account/network switches and dispatch-time drift. Removal preserves protection when the position changes. |
+| Adjust leverage on existing position |     |  ✓  | **✓** |     | I: leverage validation against position size. CV: leverage slider clamping.                                                                                      |
 
 ## Account / funds
 
@@ -80,6 +80,33 @@ E2E for live data is impractical (timing-dependent, needs real WS); rely on inte
 | Approve builder fee                         |     |     | **✓** |       | I: one-time approval flow.                                                               |
 | Set referrer code                           |     |     | **✓** |       | I: referrer state update.                                                                |
 
+## Lighter recovery
+
+| Use case                                                     |  U  | CV  |   I   | E2E | Coverage notes                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------ | :-: | :-: | :---: | :-: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Review selected wallet's venue positions/orders              |     |  ✓  | **✓** |  ✓  | Real installed Core controller/provider and Mobile messenger; registered local key only, no venue writes. CV owns controls; live recipes prove native signer and actual venue.                                                                              |
+| Acknowledge a resolved stored outcome through Mobile hooks   |     |  ✓  | **✓** |  ✓  | Real Core list output retains its optional flag shape; Mobile reviews and acknowledges exactly that outcome and persists removal without financial submission. Native storage remains a live-recipe requirement.                                            |
+| Replace selected parked protection through Mobile hooks      |     |  ✓  | **✓** |  ✓  | Real installed source-to-successor execution with exact opaque source, signed long/short position and new prices. Mocked HTTP acceptance owns trigger-book mutation; durable settlement survives controller recreation and preserves unrelated obligations. |
+| Remove selected parked protection through Mobile hooks       |     |  ✓  | **✓** |  ✓  | Real installed removal cancels only selected owned orders, retains unrelated protection and persists settlement. CV owns the explicit warning/confirmation controls; native signing/storage remains live proof.                                             |
+| Retain unresolved protection without automatic replay        |     |  ✓  | **✓** |     | Transport uncertainty retains the exact parked source and pending successor. Reload and controller recreation perform no financial retry; only external I/O is mocked.                                                                                      |
+| Refuse stale or wrong protection identity and position drift |  ✓  |  ✓  | **✓** |     | Real installed provider refuses changed durable source/provider and signed side/size/entry mismatch before mutation. Real Mobile context retires claimed editor authority after account and real-controller network A-to-B-to-A.                            |
+| Keep recovery harness financial writes explicitly isolated   |     |     | **✓** |     | Default read mode refuses an actual installed-provider cancellation signature with valid venue/source fixtures, preserves the selected order/source and never submits. Financial I/O requires explicit isolated-write mode.                                 |
+| Refuse a mismatched local and registered key                 |     |     | **✓** |     | Read authentication cannot overwrite an occupied key or submit registration.                                                                                                                                                                                |
+| Refuse incomplete order responses                            |     |     | **✓** |     | Missing venue data cannot become an assumed empty account.                                                                                                                                                                                                  |
+| Refuse account data owned by another wallet                  |     |     | **✓** |     | Real wallet/client validation must preserve Ethereum-address ownership.                                                                                                                                                                                     |
+| Expire authoritative reads after selected-wallet changes     |     |  ✓  | **✓** |  ✓  | Core rejects late reads; CV independently owns account/network A-to-B-to-A expiry, and live recipes cover native account switching.                                                                                                                         |
+| Expire review after A-to-B-to-A provider rebinding           |     |  ✓  | **✓** |  ✓  | Both in-flight account reviews reject after a real intervening provider read; a fresh review works for A without registration or writes.                                                                                                                    |
+| Expire review across a controller network change             |     |  ✓  | **✓** |  ✓  | Real controller teardown/reinitialization invalidates old testnet reads. Integration HTTP remains mocked on both networks; native scope isolation still requires live proof.                                                                                |
+
+## Lighter Scale
+
+| Use case                                         |  U  |  CV   |   I   | E2E | Coverage notes                                                                                                                                                                                                                                                                                                                                         |
+| ------------------------------------------------ | :-: | :---: | :---: | :-: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Preview quote budget and exact base quantity     |  ✓  |   ✓   | **✓** |     | Real installed provider supplies its grids and totals through the Mobile preview hook; helper tests reject inconsistent quantities and excess budget.                                                                                                                                                                                                  |
+| Place the settled current Scale draft            |  ✓  | **✓** |   ✓   |  ✓  | Pro screen waits for preview and rechecks it after capability validation. The actual builder submits quote, base and reduce-only payloads to Core with the approved normalized ladder. Changed metadata is refused before financial signing or submission; lifetime tests retire held requests. Native signing and venue proof belong to live recipes. |
+| Display complete, partial and uncertain receipts |  ✓  | **✓** |   ✓   |     | Rendered receipt copy uses actual accepted children and size. Partial or missing acceptance retains the draft and durable groups.                                                                                                                                                                                                                      |
+| Review and cancel the selected owned group       |  ✓  |   ✓   | **✓** |  ✓  | Real Core list/review/cancel methods preserve opaque group identity and unrelated orders. Unknown review cannot create children. Account, network, provider and unmount fence actions; native storage remains live proof.                                                                                                                              |
+
 ## Pure helpers (utility functions)
 
 These don't have user-facing flows; they're consumed by the layers above. Unit is the right home for all of them.
@@ -123,3 +150,10 @@ Where a use case fits multiple rules, pick the one with the **cheapest sufficien
 - **Snapshot tests** — out of scope; team killed them previously for reasons that still apply.
 - **Hook-level integration as a default** — Shape B exists, but it is not the default for every flow. Use it when hook wiring or the `TradingService` -> provider seam is part of the risk; use Shape A when a direct provider/service call is sufficient.
 - **Visual regression / Storybook** — orthogonal; if it gets adopted, it owns "did the rendered pixels change?" and CV continues to own "did the structure render correctly?"
+
+## Bounded testnet Lighter Chase
+
+| Use case                                     | Primary layer | Coverage                                                                                                                                                                                |
+| -------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public probe config and actual network guard | Integration   | Actual Mobile config to installed Core provider; absent probe and mainnet leave Chase unadvertised.                                                                                     |
+| Pro USD request accepted at 1x within 20 USD | Integration   | Production builder and real trading hook/controller submit one synthetic resting child. Existing component views cover Pro/Chase rollout gates; native and venue proof remain separate. |

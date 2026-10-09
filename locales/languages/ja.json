@@ -1932,6 +1932,10 @@
         "start": "開始",
         "end": "終了",
         "margin": "証拠金",
+        "orders_uncertain": "Scale placement needs review",
+        "orders_rejected": "Scale orders were not placed",
+        "rejected_placement_summary": "The venue confirmed that no orders were accepted",
+        "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
         "orders_submitted": "分割注文が送信されました",
         "orders_placed": "分割注文が配置されました",
         "orders_partially_placed": "分割注文が部分的に配置されました",
@@ -1945,7 +1949,8 @@
           "invalid_order_count": "注文数は{{minOrderCount}}～{{maxOrderCount}}の間で設定する必要があります",
           "invalid_skew": "数量の配分は0よりも大きな数値である必要があります",
           "minimum_lot": "最小の注文は${{minOrderValue}}以上でなければなりません",
-          "unavailable": "分割注文が一時的に利用できません。別の注文種別を選択してください。"
+          "route_changed": "Your trading route changed. Review the Scale order and try again.",
+        "unavailable": "分割注文が一時的に利用できません。別の注文種別を選択してください。"
         }
       },
       "twap": {
@@ -2621,6 +2626,7 @@
         "scaleRangeInvalid": "分割注文の最高価格は最低価格よりも高くする必要があります",
         "scaleCountInvalid": "分割注文の回数が無効です",
         "scaleSizeTooSmall": "各分割注文が最低サイズを下回っています",
+        "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
         "scaleNotionalTooSmall": "各分割注文が取引所の最低値を下回っています",
         "chaseIntervalInvalid": "追跡間隔が無効です",
         "chaseDurationInvalid": "追跡期間が無効です",

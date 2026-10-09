@@ -1,3 +1,4 @@
+import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type { TransactionMeta } from '@metamask/transaction-controller';
@@ -310,6 +311,49 @@ describe('PerpsDetails', () => {
       getByTestId(ActivityDetailsSelectorsIDs.TRIGGER_PRICE_ROW),
     ).toBeOnTheScreen();
   });
+
+  // Preserve the legacy display string to verify the view derives Unknown from missing numeric PnL.
+  it.each([
+    {
+      pnl: undefined,
+      amountNumber: undefined,
+      amount: '--',
+      expected: strings('perps.transactions.unknown_pnl'),
+    },
+    { pnl: '0', amountNumber: 0, amount: '$0.00', expected: '$0.00' },
+  ])(
+    'renders $expected as net PnL',
+    ({ pnl, amountNumber, amount, expected }) => {
+      const transaction: PerpsTransaction = {
+        ...baseTransaction,
+        type: 'trade',
+        category: 'position_close',
+        fill: {
+          shortTitle: 'Closed short',
+          amount,
+          amountNumber,
+          size: '0.0001',
+          entryPrice: '92113',
+          points: '0',
+          pnl,
+          fee: '0',
+          action: 'Closed',
+          feeToken: 'USDC',
+          fillType: FillType.Standard,
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsDetails item={perpsItem('perpsCloseShort', transaction)} />,
+      );
+
+      expect(
+        getByTestId(ActivityDetailsSelectorsIDs.PNL_ROW),
+      ).toHaveTextContent(
+        `${strings('perps.transactions.position.pnl')}${expected}`,
+      );
+    },
+  );
 
   it('renders trade rows and trade-again CTA', () => {
     const transaction: PerpsTransaction = {

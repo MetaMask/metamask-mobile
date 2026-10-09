@@ -1932,6 +1932,10 @@
         "start": "Начать",
         "end": "Завершить",
         "margin": "Маржа",
+        "orders_uncertain": "Scale placement needs review",
+        "orders_rejected": "Scale orders were not placed",
+        "rejected_placement_summary": "The venue confirmed that no orders were accepted",
+        "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
         "orders_submitted": "Масштабные ордера отправлены",
         "orders_placed": "Масштабные ордера размещены",
         "orders_partially_placed": "Масштабные ордера частично размещены",
@@ -1945,7 +1949,8 @@
           "invalid_order_count": "Количество ордеров должно быть от {{minOrderCount}} до {{maxOrderCount}}",
           "invalid_skew": "Смещение размера должно быть больше 0",
           "minimum_lot": "Наименьший ордер должен иметь минимальную стоимость ${{minOrderValue}}",
-          "unavailable": "Масштабные ордера временно недоступны. Выберите другой тип ордера."
+          "route_changed": "Your trading route changed. Review the Scale order and try again.",
+        "unavailable": "Масштабные ордера временно недоступны. Выберите другой тип ордера."
         }
       },
       "twap": {
@@ -2621,6 +2626,7 @@
         "scaleRangeInvalid": "Максимальная цена масштабируемого ордера должна быть выше минимальной",
         "scaleCountInvalid": "Недопустимое количество масштабируемых ордеров",
         "scaleSizeTooSmall": "Все масштабируемые ордера меньше минимальной суммы",
+        "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
         "scaleNotionalTooSmall": "Все масштабируемые ордера ниже минимальной биржевой стоимости",
         "chaseIntervalInvalid": "Недопустимый интервал преследования",
         "chaseDurationInvalid": "Недопустимая продолжительность преследования",

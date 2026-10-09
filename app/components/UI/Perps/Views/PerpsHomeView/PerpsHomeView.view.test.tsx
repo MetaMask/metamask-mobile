@@ -10,8 +10,10 @@ import {
   fireEvent,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
+import { strings } from '../../../../../../locales/i18n';
 import {
   createEthMarketForViews,
   createFundedAccountForViews,
@@ -117,6 +119,77 @@ describe('PerpsHomeView', () => {
         amount: undefined,
         placeOrder: false,
       });
+    });
+  });
+
+  it('retries an order authentication failure and accepts an empty snapshot', async () => {
+    const { stream } = renderPerpsHomeView({ overrides: eligibleOverrides });
+    await screen.findByTestId(PerpsHomeViewSelectorsIDs.HOME_HEADING);
+
+    act(() => {
+      stream.emitOrdersError(new Error('Trading key unavailable'));
+    });
+
+    expect(
+      await screen.findByTestId(PerpsHomeViewSelectorsIDs.ORDERS_ERROR),
+    ).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId(PerpsHomeViewSelectorsIDs.ORDERS_RETRY));
+    expect(stream.getOrdersReconnectCount()).toBe(1);
+    expect(stream.getFillsReconnectCount()).toBe(1);
+    act(() => {
+      stream.emitOrders([]);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.ORDERS_ERROR),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.ORDERS_RETRY),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  it('retries an activity authentication failure and accepts an empty snapshot', async () => {
+    const { stream } = renderPerpsHomeView({ overrides: eligibleOverrides });
+    await screen.findByTestId(PerpsHomeViewSelectorsIDs.HOME_HEADING);
+
+    act(() => {
+      stream.emitFillsError(new Error('Trading key unavailable'));
+    });
+
+    const activityError = await screen.findByTestId(
+      PerpsHomeViewSelectorsIDs.ACTIVITY_ERROR,
+    );
+    expect(
+      screen.getByText(strings('perps.home.recent_activity')),
+    ).toBeOnTheScreen();
+    expect(
+      within(activityError).getByText(
+        strings('perps.home.activity_load_error'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      within(activityError).getByTestId(
+        PerpsHomeViewSelectorsIDs.ACTIVITY_RETRY,
+      ),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(PerpsHomeViewSelectorsIDs.ACTIVITY_RETRY),
+    );
+    expect(stream.getFillsReconnectCount()).toBe(1);
+    expect(stream.getOrdersReconnectCount()).toBe(1);
+    act(() => {
+      stream.emitFills([]);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.ACTIVITY_ERROR),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.ACTIVITY_RETRY),
+      ).not.toBeOnTheScreen();
     });
   });
 

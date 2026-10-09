@@ -1932,6 +1932,10 @@
         "start": "Commencer",
         "end": "Fin",
         "margin": "Marge",
+        "orders_uncertain": "Scale placement needs review",
+        "orders_rejected": "Scale orders were not placed",
+        "rejected_placement_summary": "The venue confirmed that no orders were accepted",
+        "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
         "orders_submitted": "Ordres échelonnés soumis",
         "orders_placed": "Ordres échelonnés exécutés",
         "orders_partially_placed": "Ordres échelonnés partiellement exécutés",
@@ -1945,7 +1949,8 @@
           "invalid_order_count": "Le nombre d’ordres doit être compris entre {{minOrderCount}} et {{maxOrderCount}}",
           "invalid_skew": "La répartition du volume doit être supérieur à 0",
           "minimum_lot": "L’ordre le plus petit doit avoir une valeur minimale de {{minOrderValue}} $",
-          "unavailable": "Les ordres échelonnés sont temporairement indisponibles. Sélectionnez un autre type d'ordre."
+          "route_changed": "Your trading route changed. Review the Scale order and try again.",
+        "unavailable": "Les ordres échelonnés sont temporairement indisponibles. Sélectionnez un autre type d'ordre."
         }
       },
       "twap": {
@@ -2621,6 +2626,7 @@
         "scaleRangeInvalid": "Le prix maximum de l'ordre échelonné doit être supérieur au minimum",
         "scaleCountInvalid": "Le nombre d'ordres de l'ordre échelonné n'est pas valide",
         "scaleSizeTooSmall": "Chaque ordre de l'ordre échelonné est inférieur à la taille minimale",
+        "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
         "scaleNotionalTooSmall": "Chaque ordre de l'ordre échelonné est inférieur à la valeur minimale requise par la bourse",
         "chaseIntervalInvalid": "L'intervalle de l'ordre suiveur n'est pas valide",
         "chaseDurationInvalid": "La durée de l'ordre suiveur n'est pas valide",

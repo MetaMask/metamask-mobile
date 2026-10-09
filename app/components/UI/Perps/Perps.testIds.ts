@@ -290,6 +290,10 @@ export const PerpsHomeViewSelectorsIDs = {
   POSITION_CARD: 'perps-home-position-card',
   /** Per-order card; suffixed with the list index, e.g. `perps-home-order-card-0` */
   ORDER_CARD: 'perps-home-order-card',
+  ORDERS_ERROR: 'perps-orders-error',
+  ORDERS_RETRY: 'perps-orders-retry',
+  ACTIVITY_ERROR: 'perps-activity-error',
+  ACTIVITY_RETRY: 'perps-activity-retry',
   SERVICE_INTERRUPTION_BANNER: 'perps-service-interruption-banner',
   COMPETITION_BANNER: 'perps-home-competition-banner',
   PRODUCTS_SECTION: 'perps-products',
@@ -376,6 +380,7 @@ export const PerpsTPSLViewSelectorsIDs = {
   CANCEL_BUTTON: 'perps-tpsl-cancel-button',
   DONE_BUTTON: 'perps-tpsl-done-button',
   SET_BUTTON: 'perps-tpsl-set-button',
+  RECOVERY_REVIEW_EXPIRED: 'perps-tpsl-recovery-review-expired',
   TAKE_PROFIT_CLEAR_BUTTON: 'perps-tpsl-tp-clear-button',
   STOP_LOSS_CLEAR_BUTTON: 'perps-tpsl-sl-clear-button',
   TAKE_PROFIT_PRICE_INPUT: 'perps-tpsl-tp-input',
@@ -681,6 +686,12 @@ export const getPerpsProChaseTerminateSelector = (
 ) =>
   `perps-chase-terminate-${status}-${symbol}${isPrimary ? '' : `-${handle}`}`;
 
+/** Exact row identity, including the primary row's compatible market-only controls. */
+export const getPerpsProChaseHandleSelector = (
+  symbol: string,
+  handle: string,
+) => `perps-chase-handle-${symbol}-${handle}`;
+
 const getPerpsProTwapIdentitySelectorSuffix = (
   providerId: string,
   orderId: string,
@@ -735,6 +746,11 @@ export const getPerpsProTwapFillRowSelector = (
     orderId,
     fillId,
   );
+
+// Retired panel identifiers retained to guard the established layout.
+export const PerpsScaleOrderGroupsSelectorsIDs = {
+  PANEL: 'perps-scale-groups',
+} as const;
 
 export const PerpsProOrderFormSelectorsIDs = {
   CONTAINER: 'perps-pro-order-form',
@@ -1455,4 +1471,7 @@ export const PerpsMarketTradesListSelectorsIDs = {
 export const PerpsRecentActivityListSelectorsIDs = {
   LIST: 'perps-recent-activity-list',
   ROW: (index: number) => `perps-recent-activity-row-${index}`,
+} as const;
+export const PerpsRecoveryPanelTestIds = {
+  PANEL: 'perps-recovery-panel',
 } as const;

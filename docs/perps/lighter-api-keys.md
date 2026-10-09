@@ -1,38 +1,36 @@
-# Lighter API Keys (Trading Key Slots)
+# Lighter trading keys
 
-## What a slot is
+Your Ethereum address owns your Lighter account. Orders use a separate trading key registered with Lighter in a numbered API-key slot. Mobile selects and manages these slots automatically; users should not need to choose one to trade.
 
-Lighter orders are not signed by the wallet. Your Lighter account belongs to your wallet address, and orders are signed by a trading key, which Lighter calls an API key. An account holds several of these keys, each in a numbered slot.
+## Recovery and reuse
 
-Mobile generates its key in the embedded Lighter signer and keeps the private half on the device. The wallet signs one `personal_sign` message to register the key in the slot, when trading is prepared or before the first order. After that, orders are signed with the key and need no wallet prompt. It is the same idea as a HyperLiquid agent key.
+For new trading keys on seed-phrase and imported-private-key accounts, Mobile uses the software keyring's [app-key derivation](../../app/components/UI/Perps/Lighter/lighterWalletKey.ts). The key is scoped to the Ethereum account, Lighter network and Lighter account index. It does not depend on the slot, nonce or a `personal_sign` signature.
 
-## Local setup
+Mobile compares recoverable keys with Lighter's registered public keys before signing orders. Restoring the same software account can reuse a matching registration made with this derived key, even without a saved native Keychain entry. Reconnect reuses a matching key instead of allocating another slot.
+
+Existing locally stored trading keys are also supported and take precedence over derivation. Legacy device-generated keys and keys used by hardware or Snap keyrings depend on local storage. They cannot be recreated from the Ethereum wallet if that storage is lost.
+
+When a new registration is needed, the Ethereum wallet signs its registration message. Mobile waits for the registered key to become visible before using it. A pending or uncertain registration remains tied to its original slot and is checked on reconnect.
+
+Mobile does not replace an occupied slot's key merely because it differs from this device's key. Another device or application may still use it. Automatic selection is bounded to trading slots 2 through 254.
+
+## Developer configuration
 
 ```sh
 export MM_PERPS_LIGHTER_PROVIDER_ENABLED="true"
-# A free slot for this device or simulator (0..254). Empty uses the controller default (7).
-export MM_PERPS_LIGHTER_API_KEY_INDEX="9"
-# Optional. Empty finds the account from the wallet address.
+# Optional preferred slot, 2..254. Empty uses the controller default, 7.
+# Automatic recovery may reuse a matching key registered in another slot.
+export MM_PERPS_LIGHTER_API_KEY_INDEX=""
+# Optional testnet account index. Empty discovers it from the selected address.
 export MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET=""
 ```
 
-These values are built into the bundle: restart Metro with a cleared cache after changing them.
+Add these exports to `.js.env`; the build scripts reload that file and can overwrite values exported in your shell. These values are built into the development bundle. Restart Metro with a cleared cache after changing them. Changing the preferred slot is not the normal recovery procedure.
 
-## One slot per device
+## If trading setup fails
 
-A key only works on the device that generated it. Every simulator, device and script (for example the core Lighter e2e) trading on the same account needs its own slot.
+Confirm the selected Ethereum account and Lighter network, then reconnect or use Orders Retry after a temporary connection failure. Balances are public account data; seeing a balance does not prove that a matching trading key has authenticated.
 
-Find your account index from your address, then check that a slot is free (`"api key not found"`):
+If Mobile reports that the key cannot be recovered, use a device that still has its registered key. Do not repeatedly change slots or remove another device's registration. If all trading slots are occupied, identify an unused key in Lighter before removing it.
 
-```sh
-curl -s "https://testnet.zklighter.elliot.ai/api/v1/accountsByL1Address?l1_address=<address>"
-curl -s "https://testnet.zklighter.elliot.ai/api/v1/apikeys?account_index=<account>&api_key_index=<slot>"
-```
-
-## "Lighter API key slot N already contains a different key"
-
-The slot holds a key this device did not create, for example one registered by another simulator or script. The app does not replace it, since that key may still be in use. Set `MM_PERPS_LIGHTER_API_KEY_INDEX` to a free slot and restart Metro with a cleared cache.
-
-## After a testnet reset
-
-Account indexes can change. Leave `MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET` empty so the app finds the account from the wallet address, or update it to the new index.
+After a testnet reset, account indexes can change. Leave the testnet account-index override empty so discovery follows the selected Ethereum address, or update it to the current index.
