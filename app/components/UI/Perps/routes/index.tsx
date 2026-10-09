@@ -370,6 +370,23 @@ const PerpsModalStack = () => {
             name={Routes.PERPS.SELECT_ORDER_TYPE}
             component={PerpsSelectOrderTypeView}
           />
+          {/* Trade sheet from outside the Perps stack (Social copy trade). The
+              redirect waits for the connection this stack provides, then
+              replaces itself with the sheet confirmation, so the sheet opens
+              over the page the user pressed on instead of a Perps screen. */}
+          <ModalStack.Screen
+            name={Routes.PERPS.ORDER_REDIRECT}
+            component={PerpsOrderRedirect}
+          />
+          <ModalStack.Screen
+            name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+            component={PerpsConfirmScreen}
+            options={({ route }) =>
+              getRedesignedConfirmationsHeaderOptions(
+                route.params as PerpsNavigationParamList['RedesignedConfirmations'],
+              )
+            }
+          />
         </ModalStack.Navigator>
       </PerpsStreamProvider>
     </PerpsConnectionProvider>

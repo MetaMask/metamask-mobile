@@ -1,7 +1,7 @@
+import { LIVE_GAME_CACHE_TTL_MS } from '../../constants/sports';
 import { GameUpdate, PredictMarket } from '../../types';
 import { parseScore } from '../../utils/gameParser';
 
-const CACHE_TTL_MS = 5 * 60 * 1000;
 const CLEANUP_INTERVAL_MS = 60 * 1000;
 
 interface CacheEntry {
@@ -43,7 +43,7 @@ export class GameCache {
       return null;
     }
 
-    const isStale = Date.now() - entry.lastUpdate > CACHE_TTL_MS;
+    const isStale = Date.now() - entry.lastUpdate > LIVE_GAME_CACHE_TTL_MS;
     if (isStale) {
       this.cache.delete(gameId);
       return null;
@@ -82,7 +82,7 @@ export class GameCache {
   pruneStaleEntries(): void {
     const now = Date.now();
     for (const [gameId, entry] of this.cache.entries()) {
-      if (now - entry.lastUpdate > CACHE_TTL_MS) {
+      if (now - entry.lastUpdate > LIVE_GAME_CACHE_TTL_MS) {
         this.cache.delete(gameId);
       }
     }
