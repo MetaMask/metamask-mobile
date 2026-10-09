@@ -3334,11 +3334,9 @@
       "title": "盈亏核心数据",
       "header_title": "分享您的交易",
       "share_button": "共享",
-      "share_message_with_referral_code": "在 MetaMask 上交易 {{asset}} 永续合约。使用我的推荐码 {{code}} 注册，即可赚取额外奖励。{{link}}",
       "share_message_without_referral_code": "在 MetaMask 交易 {{asset}} 永续合约。",
       "share_failed": "图片导出失败",
-      "export_success": "已导出图片",
-      "referral_code_text": "使用我的推荐码即可赚取额外奖励。"
+      "export_success": "已导出图片"
     },
     "market_details": {
       "fullscreen_chart": "全屏图表",
@@ -11011,15 +11009,6 @@
       "error_fetching_title": "奖励加载失败",
       "error_fetching_description": "请检查连接后重试。"
     },
-    "referral_details_error": {
-      "error_fetching_title": "推荐详情加载失败",
-      "error_fetching_description": "请检查连接后重试。",
-      "retry_button": "重试"
-    },
-    "referral_validation_unknown_error": {
-      "title": "推荐码验证失败",
-      "description": "请检查连接后重试。"
-    },
     "active_activity_error": {
       "error_fetching_title": "活动加载失败",
       "error_fetching_description": "请检查连接后重试。",
@@ -11061,7 +11050,6 @@
       "progress_to_next_tier": "距下一等级还需 {{pointsRemaining}} 积分",
       "bps_unit": "基点",
       "badge_label": "VIP {{tier}}",
-      "referral_tag_label": "VIP",
       "swaps_label": "兑换",
       "perps_label": "永续合约",
       "points_label": "积分",
@@ -11117,9 +11105,7 @@
       "retry_button": "重试",
       "empty_title": "暂无交易。当您有交易活动后，您的 VIP 交易将显示在此处。"
     },
-    "referral_title": "推荐",
     "referral_stats_earned_from_referrals": "通过推荐所获奖励",
-    "referral_stats_referrals": "推荐",
     "loading_activity": "正在加载活动……",
     "error_loading_activity": "加载活动出错",
     "activity_empty_title": "暂无近期活动。",
@@ -11184,8 +11170,6 @@
       "step_confirm": "下一步",
       "step_finish": "立即开始",
       "step_skip": "跳过",
-      "step4_title_referral_validating": "正在验证推荐码……",
-      "step4_referral_input_error": "推荐码无效",
       "title": "开始赚取奖励",
       "description": "只需使用 MetaMask，即可赢取奖品、领取福利并探索更多赚取收益的方式。",
       "sign_up": "加入奖励计划",
@@ -11194,9 +11178,6 @@
       "legal_disclaimer_2": "使用条款",
       "legal_disclaimer_3": "。我们将为本设备上的所有账户自动开启此项功能，并追踪链上活动以自动为您发放奖励。",
       "legal_disclaimer_4": "了解详情",
-      "referral_prompt": "有推荐码吗？",
-      "referral_hide": "隐藏代码",
-      "referral_placeholder": "推荐码（可选）",
       "referral_label": "推荐码"
     },
     "settings": {
@@ -11228,13 +11209,6 @@
       "off_device_accounts_sheet_title": "缺少已注册账户",
       "off_device_accounts_sheet_description": "这些地址可能属于重新安装 MetaMask 后尚未添加的钱包。这些地址您都不认识吗？",
       "off_device_accounts_sheet_let_us_know": "请告知我们"
-    },
-    "referred_by_code": {
-      "title": "推荐码",
-      "description_linked": "邀请码已关联，当您交易时，您的推荐人将获得相应奖励。",
-      "description_not_linked": "在朋友发送推荐码给您之前就已经注册了吗？请在下方输入其推荐码，即可建立关联。",
-      "input_placeholder": "输入推荐码",
-      "invalid_code": "推荐码无效"
     },
     "bonus_code": {
       "input_placeholder": "输入奖励代码",
@@ -11281,22 +11255,6 @@
     },
     "ways_to_earn": {
       "title": "赚取方式"
-    },
-    "referral": {
-      "referral_code": "推荐码",
-      "referral_link": "推荐链接",
-      "actions": {
-        "share_referral_link": "推荐好友",
-        "share_referral_subject": "加入 MetaMask Rewards"
-      },
-      "info": {
-        "title": "将您的推荐码分享给好友",
-        "description": "推荐奖励因活动而异。详情请查看各活动规则。",
-        "vip_title": "您推荐的用户每完成一笔兑换或永续合约交易，您均可赚取收益分成。您的分成比例随等级提升而提高。",
-        "vip_referrals_label": "推荐",
-        "vip_revenue_share_label": "收益分成"
-      },
-      "referral_code_copied": "推荐码已复制到剪贴板"
     },
     "link_account_group": {
       "link_account": "添加账户",

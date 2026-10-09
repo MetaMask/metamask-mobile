@@ -569,7 +569,6 @@ export async function wrapWithCache<T>({
 const MESSENGER_EXPOSED_METHODS = [
   'addPointsEstimateToHistory',
   'applyBonusCode',
-  'applyReferralCode',
   'calculateTierStatus',
   'canChangeRewardsEnvUrl',
   'checkOptInStatusAgainstCache',
@@ -635,7 +634,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'hasActivityChanged',
   'hasPointsEventsChanged',
   'hasVipTransactionsChanged',
-  'invalidateReferralDetailsCache',
   'invalidateSubscriptionAndAccounts',
   'invalidateSubscriptionCache',
   'isOptInSupported',
@@ -659,7 +657,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'shouldSkipSilentAuth',
   'signRewardsMessage',
   'validateBonusCode',
-  'validateReferralCode',
 ] as const;
 
 /**
@@ -2822,12 +2819,8 @@ export class RewardsController extends BaseController<
   /**
    * Perform the complete opt-in process for rewards
    * @param accounts - Array of internal accounts to opt in
-   * @param referralCode - Optional referral code
    */
-  async optIn(
-    accounts: InternalAccount[],
-    referralCode?: string,
-  ): Promise<string | null> {
+  async optIn(accounts: InternalAccount[]): Promise<string | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       Logger.log(
@@ -2865,7 +2858,7 @@ export class RewardsController extends BaseController<
       );
 
       try {
-        optinResult = await this.#optIn(accountToTry, referralCode);
+        optinResult = await this.#optIn(accountToTry);
       } catch {
         // Silent auth failed for this account
       }
@@ -2908,12 +2901,10 @@ export class RewardsController extends BaseController<
   /**
    * Private method to perform opt-in for a single internal account (using mobile opt-in logic)
    * @param account - The internal account to opt in
-   * @param referralCode - Optional referral code
    * @returns Promise with subscription data or null if failed
    */
   async #optIn(
     account: InternalAccount,
-    referralCode?: string,
   ): Promise<{ subscription: SubscriptionDto; sessionId: string } | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
@@ -2942,7 +2933,6 @@ export class RewardsController extends BaseController<
           account: account.address,
           timestamp: ts,
           signature: sig as `0x${string}`,
-          referralCode,
         });
       } catch (error) {
         // Check if it's an InvalidTimestampError and we haven't exceeded retry attempts
@@ -3186,42 +3176,6 @@ export class RewardsController extends BaseController<
         geoLocation: 'UNKNOWN',
         optinAllowedForGeo: true,
       };
-    }
-  }
-
-  /**
-   * Validate a referral code
-   * @param code - The referral code to validate
-   * @returns Promise<{ valid: boolean; isVipCode: boolean }> - Validation result including VIP status
-   */
-  async validateReferralCode(
-    code: string,
-  ): Promise<{ valid: boolean; isVipCode: boolean }> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return { valid: false, isVipCode: false };
-    }
-
-    if (!code.trim()) {
-      return { valid: false, isVipCode: false };
-    }
-
-    try {
-      const response = await this.messenger.call(
-        'RewardsDataService:validateReferralCode',
-        code,
-      );
-      // A referral code is only treated as a VIP code when the backend says so
-      // AND the VIP feature is enabled locally (rewards on and VIP not disabled).
-      const isVipCode =
-        (response.isVipCode ?? false) && this.isVipFeatureEnabled();
-      return { valid: response.valid, isVipCode };
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to validate referral code:',
-        error instanceof Error ? error.message : String(error),
-      );
-      throw error;
     }
   }
 
@@ -5304,49 +5258,6 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Apply a referral code to an existing subscription.
-   * @param referralCode - The referral code to apply.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns Promise that resolves when the referral code is applied successfully.
-   * @throws Error with the error message from the API response.
-   */
-  async applyReferralCode(
-    referralCode: string,
-    subscriptionId: string,
-  ): Promise<void> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      throw new Error('Rewards are not enabled');
-    }
-
-    try {
-      await this.#withAuthRetry(
-        () =>
-          this.messenger.call(
-            'RewardsDataService:applyReferralCode',
-            { referralCode },
-            subscriptionId,
-          ),
-        subscriptionId,
-      );
-
-      // Invalidate referral details cache for this subscription
-      this.invalidateReferralDetailsCache(subscriptionId);
-
-      Logger.log(
-        'RewardsController: Successfully applied referral code',
-        subscriptionId,
-      );
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to apply referral code:',
-        error instanceof Error ? error.message : String(error),
-      );
-      throw error;
-    }
-  }
-
-  /**
    * Apply a bonus code to a subscription.
    * @param bonusCode - The bonus code to apply.
    * @param subscriptionId - The subscription ID to apply the bonus code to.
@@ -5420,21 +5331,6 @@ export class RewardsController extends BaseController<
     });
 
     return result;
-  }
-
-  /**
-   * Invalidate referral details cache for a subscription
-   * @param subscriptionId - The subscription ID to invalidate cache for
-   */
-  invalidateReferralDetailsCache(subscriptionId: string): void {
-    this.update((state) => {
-      delete state.subscriptionReferralDetails[subscriptionId];
-    });
-
-    Logger.log(
-      'RewardsController: Invalidated referral details cache for subscription',
-      subscriptionId,
-    );
   }
 
   /**

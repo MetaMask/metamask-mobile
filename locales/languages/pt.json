@@ -3334,11 +3334,9 @@
       "title": "Cartão de herói P&L",
       "header_title": "Compartilhe sua negociação",
       "share_button": "Compartilhar",
-      "share_message_with_referral_code": "Negocie {{asset}} contratos perpétuos na MetaMask. Cadastre-se usando meu código de indicação {{code}} e ganhe recompensas extras. {{link}}",
       "share_message_without_referral_code": "Negocie perpétuos de {{asset}} na MetaMask.",
       "share_failed": "Não foi possível exportar a imagem",
-      "export_success": "Imagem exportada",
-      "referral_code_text": "Use meu código de indicação para ganhar recompensas extras."
+      "export_success": "Imagem exportada"
     },
     "market_details": {
       "fullscreen_chart": "Gráfico em tela cheia",
@@ -11011,15 +11009,6 @@
       "error_fetching_title": "Não foi possível carregar as recompensas",
       "error_fetching_description": "Verifique sua conexão e tente novamente."
     },
-    "referral_details_error": {
-      "error_fetching_title": "Não foi possível carregar os detalhes da indicação",
-      "error_fetching_description": "Verifique sua conexão e tente novamente.",
-      "retry_button": "Tentar novamente"
-    },
-    "referral_validation_unknown_error": {
-      "title": "Não foi possível validar o código de indicação",
-      "description": "Verifique sua conexão e tente novamente."
-    },
     "active_activity_error": {
       "error_fetching_title": "Não foi possível carregar a atividade",
       "error_fetching_description": "Verifique sua conexão e tente novamente.",
@@ -11061,7 +11050,6 @@
       "progress_to_next_tier": "{{pointsRemaining}} aponta para o próximo nível",
       "bps_unit": "bps",
       "badge_label": "VIP {{tier}}",
-      "referral_tag_label": "VIP",
       "swaps_label": "Trocas",
       "perps_label": "Perps",
       "points_label": "Pontos",
@@ -11117,9 +11105,7 @@
       "retry_button": "Tentar novamente",
       "empty_title": "Nenhuma transação ainda. Suas transações VIP aparecerão aqui assim que houver atividade."
     },
-    "referral_title": "Indicações",
     "referral_stats_earned_from_referrals": "Ganho por meio de indicações",
-    "referral_stats_referrals": "Indicações",
     "loading_activity": "Carregando atividade...",
     "error_loading_activity": "Erro ao carregar atividade",
     "activity_empty_title": "Nenhuma atividade recente.",
@@ -11184,8 +11170,6 @@
       "step_confirm": "Avançar",
       "step_finish": "Vamos lá",
       "step_skip": "Pular",
-      "step4_title_referral_validating": "Validando código de indicação...",
-      "step4_referral_input_error": "Código de indicação inválido",
       "title": "Comece a ganhar recompensas",
       "description": "Ganhe prêmios, resgate vantagens e descubra mais maneiras de ganhar — bastando apenas usar a MetaMask.",
       "sign_up": "Participe do programa de recompensas",
@@ -11194,9 +11178,6 @@
       "legal_disclaimer_2": "Termos de uso",
       "legal_disclaimer_3": ". Ativaremos todas as contas neste dispositivo e rastrearemos a atividade na rede para recompensar você automaticamente.",
       "legal_disclaimer_4": "Saiba mais",
-      "referral_prompt": "Tem um código de indicação?",
-      "referral_hide": "Ocultar código",
-      "referral_placeholder": "Código de indicação (opcional)",
       "referral_label": "Código de indicação"
     },
     "settings": {
@@ -11228,13 +11209,6 @@
       "off_device_accounts_sheet_title": "Contas inscritas ausentes",
       "off_device_accounts_sheet_description": "Elas podem pertencer a uma carteira que ainda não foi adicionada após a reinstalação do MetaMask. Não reconhece nenhum desses endereços?",
       "off_device_accounts_sheet_let_us_know": "Informe-nos"
-    },
-    "referred_by_code": {
-      "title": "Código de indicação",
-      "description_linked": "O código de convite agora está vinculado, então quem indicou você ganhará recompensas quando você realizar negociações.",
-      "description_not_linked": "Você se cadastrou antes que seu amigo pudesse te enviar o código? Insira-o abaixo e você será vinculado(a).",
-      "input_placeholder": "Inserir código de indicação",
-      "invalid_code": "Código de indicação inválido"
     },
     "bonus_code": {
       "input_placeholder": "Inserir código de bônus",
@@ -11281,22 +11255,6 @@
     },
     "ways_to_earn": {
       "title": "Formas de ganhar"
-    },
-    "referral": {
-      "referral_code": "Código de indicação",
-      "referral_link": "Link de indicação",
-      "actions": {
-        "share_referral_link": "Indique um amigo",
-        "share_referral_subject": "Junte-se ao MetaMask Rewards"
-      },
-      "info": {
-        "title": "Compartilhe seu código com amigos",
-        "description": "Os bônus de indicação variam de acordo com a campanha. Consulte os detalhes de cada uma.",
-        "vip_title": "Ganhe participação na receita de cada troca e contrato perp realizado por seus indicados. Sua taxa varia de acordo com o seu nível.",
-        "vip_referrals_label": "Indicações",
-        "vip_revenue_share_label": "Participação na receita"
-      },
-      "referral_code_copied": "Código de indicação copiado para a área de transferência"
     },
     "link_account_group": {
       "link_account": "Adicionar conta",

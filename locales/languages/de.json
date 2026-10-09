@@ -3334,11 +3334,9 @@
       "title": "GuV-Heldenkarte",
       "header_title": "Teilen Sie Ihren Trade",
       "share_button": "Teilen",
-      "share_message_with_referral_code": "Handeln Sie {{asset}} Perps auf MetaMask. Melden Sie sich mit meinem Empfehlungscode {{code}} an und sichern Sie sich zusätzliche Belohnungen. {{link}}",
       "share_message_without_referral_code": "Handeln Sie {{asset}}-Perps auf MetaMask.",
       "share_failed": "Export des Bildes fehlgeschlagen",
-      "export_success": "Exportiertes Bild",
-      "referral_code_text": "Verwenden Sie meinen Empfehlungscode und erhalten Sie zusätzliche Belohnungen."
+      "export_success": "Exportiertes Bild"
     },
     "market_details": {
       "fullscreen_chart": "Vollbilddiagramm",
@@ -11011,15 +11009,6 @@
       "error_fetching_title": "Belohnungen konnten nicht geladen werden",
       "error_fetching_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
     },
-    "referral_details_error": {
-      "error_fetching_title": "Empfehlungsdetails konnten nicht geladen werden",
-      "error_fetching_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
-      "retry_button": "Erneut versuchen"
-    },
-    "referral_validation_unknown_error": {
-      "title": "Empfehlungscode konnte nicht validiert werden",
-      "description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
-    },
     "active_activity_error": {
       "error_fetching_title": "Aktivität konnte nicht geladen werden",
       "error_fetching_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
@@ -11061,7 +11050,6 @@
       "progress_to_next_tier": "{{pointsRemaining}} Punkte zur nächsten Stufe",
       "bps_unit": "Basispunkte",
       "badge_label": "VIP {{tier}}",
-      "referral_tag_label": "VIP",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "points_label": "Punkte",
@@ -11117,9 +11105,7 @@
       "retry_button": "Erneut versuchen",
       "empty_title": "Noch keine Transaktionen. Ihre VIP-Transaktionen werden hier angezeigt, sobald Sie Aktivitäten verzeichnen."
     },
-    "referral_title": "Empfehlungen",
     "referral_stats_earned_from_referrals": "Durch Empfehlungen verdient",
-    "referral_stats_referrals": "Empfehlungen",
     "loading_activity": "Aktivität wird geladen ...",
     "error_loading_activity": "Fehler beim Laden der Aktivität",
     "activity_empty_title": "Keine aktuelle Aktivität.",
@@ -11184,8 +11170,6 @@
       "step_confirm": "Weiter",
       "step_finish": "Los geht's",
       "step_skip": "Überspringen",
-      "step4_title_referral_validating": "Validierung des Empfehlungscodes ...",
-      "step4_referral_input_error": "Ungültiger Empfehlungscode",
       "title": "Beginnen Sie, Belohnungen zu sammeln",
       "description": "Gewinnen Sie Preise, beanspruchen Sie Vorteile und entdecken Sie weitere Verdienstmöglichkeiten – allein durch die Nutzung von MetaMask.",
       "sign_up": "Belohnungen beitreten",
@@ -11194,9 +11178,6 @@
       "legal_disclaimer_2": "Nutzungsbedingungen",
       "legal_disclaimer_3": ". Wir melden alle Konten auf diesem Gerät an, verfolgen die Onchain-Aktivitäten und belohnen Sie automatisch.",
       "legal_disclaimer_4": "Mehr erfahren",
-      "referral_prompt": "Sie haben einen Empfehlungscode?",
-      "referral_hide": "Code verbergen",
-      "referral_placeholder": "Empfehlungscode (optional)",
       "referral_label": "Empfehlungscode"
     },
     "settings": {
@@ -11228,13 +11209,6 @@
       "off_device_accounts_sheet_title": "Angemeldete Konten fehlen",
       "off_device_accounts_sheet_description": "Diese gehören möglicherweise zu einer Wallet, die nach der Neuinstallation von MetaMask noch nicht hinzugefügt wurde. Erkennen Sie eine dieser Adressen nicht?",
       "off_device_accounts_sheet_let_us_know": "Sagen Sie uns Bescheid"
-    },
-    "referred_by_code": {
-      "title": "Empfehlungscode",
-      "description_linked": "Der Einladungscode ist nun verknüpft, sodass Ihr Werber bei jedem Handel Belohnungen erhält.",
-      "description_not_linked": "Haben Sie sich angemeldet, bevor Ihr Freund Ihnen seinen Code schicken konnte? Geben Sie ihn unten ein und sie werden verbunden.",
-      "input_placeholder": "Empfehlungscode eingeben",
-      "invalid_code": "Ungültiger Empfehlungscode"
     },
     "bonus_code": {
       "input_placeholder": "Bonuscode eingeben",
@@ -11281,22 +11255,6 @@
     },
     "ways_to_earn": {
       "title": "Möglichkeiten zum Verdienen"
-    },
-    "referral": {
-      "referral_code": "Empfehlungscode",
-      "referral_link": "Empfehlungslink",
-      "actions": {
-        "share_referral_link": "Einem Freund empfehlen",
-        "share_referral_subject": "MetaMask-Belohnungen beitreten"
-      },
-      "info": {
-        "title": "Teilen Sie Ihren Code mit Freunden",
-        "description": "Empfehlungsboni variieren je nach Kampagne. Überprüfen Sie jede Kampagne auf Details.",
-        "vip_title": "Verdienen Sie einen Anteil am Umsatz für jeden von Ihnen empfohlenen Swap und Pep. Ihre Rate skaliert mit Ihrer Stufe.",
-        "vip_referrals_label": "Empfehlungen",
-        "vip_revenue_share_label": "Anteil am Umsatz"
-      },
-      "referral_code_copied": "Empfehlungscode in die Zwischenablage kopiert"
     },
     "link_account_group": {
       "link_account": "Konto hinzufügen",

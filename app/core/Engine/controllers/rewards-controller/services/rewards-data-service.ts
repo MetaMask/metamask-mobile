@@ -22,7 +22,6 @@ import type {
   SeasonStateDto,
   SubscriptionBenefitDto,
   LineaTokenRewardDto,
-  ApplyReferralDto,
   ApplyBonusCodeDto,
   CampaignDto,
   CampaignParticipantStatusDto,
@@ -154,11 +153,6 @@ export interface RewardsDataServiceGetReferralDetailsAction {
   handler: RewardsDataService['getReferralDetails'];
 }
 
-export interface RewardsDataServiceValidateReferralCodeAction {
-  type: `${typeof SERVICE_NAME}:validateReferralCode`;
-  handler: RewardsDataService['validateReferralCode'];
-}
-
 export interface RewardsDataServiceMobileJoinAction {
   type: `${typeof SERVICE_NAME}:mobileJoin`;
   handler: RewardsDataService['mobileJoin'];
@@ -202,11 +196,6 @@ export interface RewardsDataServiceGetSeasonMetadataAction {
 export interface RewardsDataServiceGetSeasonOneLineaRewardTokensAction {
   type: `${typeof SERVICE_NAME}:getSeasonOneLineaRewardTokens`;
   handler: RewardsDataService['getSeasonOneLineaRewardTokens'];
-}
-
-export interface RewardsDataServiceApplyReferralCodeAction {
-  type: `${typeof SERVICE_NAME}:applyReferralCode`;
-  handler: RewardsDataService['applyReferralCode'];
 }
 
 export interface RewardsDataServiceValidateBonusCodeAction {
@@ -433,7 +422,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
   | RewardsDataServiceLogoutAction
-  | RewardsDataServiceValidateReferralCodeAction
   | RewardsDataServiceMobileJoinAction
   | RewardsDataServiceGetOptInStatusAction
   | RewardsDataServiceOptOutAction
@@ -443,7 +431,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetDiscoverSeasonsAction
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
-  | RewardsDataServiceApplyReferralCodeAction
   | RewardsDataServiceGetRewardsEnvUrlAction
   | RewardsDataServiceCanChangeRewardsEnvUrlAction
   | RewardsDataServiceSetRewardsEnvUrlAction
@@ -562,10 +549,6 @@ export class RewardsDataService {
       this.getReferralDetails.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:validateReferralCode`,
-      this.validateReferralCode.bind(this),
-    );
-    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:mobileJoin`,
       this.mobileJoin.bind(this),
     );
@@ -600,10 +583,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSeasonOneLineaRewardTokens`,
       this.getSeasonOneLineaRewardTokens.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:applyReferralCode`,
-      this.applyReferralCode.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:validateBonusCode`,
@@ -1058,7 +1037,7 @@ export class RewardsDataService {
 
   /**
    * Perform optin via signature for the current account.
-   * @param body - The login request body containing account, timestamp, signature and referral code.
+   * @param body - The login request body containing account, timestamp and signature.
    * @returns The login response DTO.
    */
   async mobileOptin(body: MobileOptinDto): Promise<LoginResponseDto> {
@@ -1167,30 +1146,6 @@ export class RewardsDataService {
     }
     const data = await response.json();
     return data as SubscriptionReferralDetailsDto;
-  }
-
-  /**
-   * Validate a referral code.
-   * @param code - The referral code to validate.
-   * @returns Promise<{valid: boolean}> - Object indicating if the code is valid.
-   */
-  async validateReferralCode(
-    code: string,
-  ): Promise<{ valid: boolean; isVipCode?: boolean }> {
-    const response = await this.makeRequest(
-      `/referral/validate?code=${encodeURIComponent(code)}`,
-      {
-        method: 'GET',
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to validate referral code. Please try again shortly.`,
-      );
-    }
-
-    return (await response.json()) as { valid: boolean; isVipCode?: boolean };
   }
 
   /**
@@ -1510,40 +1465,6 @@ export class RewardsDataService {
       subscriptionId: data.subscriptionId,
       amount: String(data.amount),
     } as LineaTokenRewardDto;
-  }
-
-  /**
-   * Apply a referral code to an existing subscription.
-   * @param dto - The apply referral request body containing the referral code.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns Promise that resolves when the referral code is applied successfully.
-   * @throws Error with the error message from the API response.
-   */
-  async applyReferralCode(
-    dto: ApplyReferralDto,
-    subscriptionId: string,
-  ): Promise<void> {
-    const response = await this.makeRequest(
-      '/wr/subscriptions/apply-referral',
-      {
-        method: 'POST',
-        body: JSON.stringify(dto),
-      },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      // Handle 204 No Content as success (already handled by response.ok)
-      if (response.status === 204) {
-        return;
-      }
-
-      const errorData = await response.json();
-      const errorMessage =
-        errorData?.message || `Apply referral code failed: ${response.status}`;
-
-      throw new Error(errorMessage);
-    }
   }
 
   /**

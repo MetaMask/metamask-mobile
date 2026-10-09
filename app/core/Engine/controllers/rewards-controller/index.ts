@@ -43,7 +43,6 @@ export type { RewardsControllerGetStateAction } from './types';
 export type {
   RewardsControllerAddPointsEstimateToHistoryAction,
   RewardsControllerApplyBonusCodeAction,
-  RewardsControllerApplyReferralCodeAction,
   RewardsControllerCalculateTierStatusAction,
   RewardsControllerCanChangeRewardsEnvUrlAction,
   RewardsControllerCheckOptInStatusAgainstCacheAction,
@@ -80,7 +79,6 @@ export type {
   RewardsControllerHandleAuthenticationTriggerAction,
   RewardsControllerHasActiveSeasonAction,
   RewardsControllerHasPointsEventsChangedAction,
-  RewardsControllerInvalidateReferralDetailsCacheAction,
   RewardsControllerInvalidateSubscriptionAndAccountsAction,
   RewardsControllerInvalidateSubscriptionCacheAction,
   RewardsControllerIsOptInSupportedAction,
@@ -100,5 +98,4 @@ export type {
   RewardsControllerShouldSkipSilentAuthAction,
   RewardsControllerSignRewardsMessageAction,
   RewardsControllerValidateBonusCodeAction,
-  RewardsControllerValidateReferralCodeAction,
 } from './RewardsController-method-action-types';

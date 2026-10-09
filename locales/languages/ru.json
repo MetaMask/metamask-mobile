@@ -3334,11 +3334,9 @@
       "title": "Карточка героя П/У",
       "header_title": "Поделитесь своей сделкой",
       "share_button": "Поделиться",
-      "share_message_with_referral_code": "Торгуйте перпами на {{asset}} на MetaMask. Зарегистрируйтесь, используя мой реферальный код {{code}}, чтобы получить дополнительные награды. {{link}}",
       "share_message_without_referral_code": "Торгуйте перами на {{asset}} на MetaMask.",
       "share_failed": "Не удалось экспортировать изображение",
-      "export_success": "Экспортированное изображение",
-      "referral_code_text": "Использовать мой реферальный код, чтобы получить дополнительные вознаграждения."
+      "export_success": "Экспортированное изображение"
     },
     "market_details": {
       "fullscreen_chart": "Полноэкранный график",
@@ -11011,15 +11009,6 @@
       "error_fetching_title": "Не удалось загрузить вознаграждения",
       "error_fetching_description": "Проверьте соединение и повторите попытку."
     },
-    "referral_details_error": {
-      "error_fetching_title": "Не удалось загрузить данные о реферале",
-      "error_fetching_description": "Проверьте соединение и повторите попытку.",
-      "retry_button": "Повтор"
-    },
-    "referral_validation_unknown_error": {
-      "title": "Не удалось проверить реферальный код",
-      "description": "Проверьте соединение и повторите попытку."
-    },
     "active_activity_error": {
       "error_fetching_title": "Не удалось загрузить активность",
       "error_fetching_description": "Проверьте соединение и повторите попытку.",
@@ -11061,7 +11050,6 @@
       "progress_to_next_tier": "{{pointsRemaining}} балла(-ов) до следующего уровня",
       "bps_unit": "базисные пункты",
       "badge_label": "VIP {{tier}}",
-      "referral_tag_label": "VIP",
       "swaps_label": "Свопы",
       "perps_label": "Перпы",
       "points_label": "Баллы",
@@ -11117,9 +11105,7 @@
       "retry_button": "Повтор",
       "empty_title": "Транзакций пока нет. Ваши VIP-транзакции появятся здесь, как только у вас появится активность."
     },
-    "referral_title": "Рефералы",
     "referral_stats_earned_from_referrals": "Заработано на рефералах",
-    "referral_stats_referrals": "Рефералы",
     "loading_activity": "Загрузка активности...",
     "error_loading_activity": "Ошибка загрузки активности",
     "activity_empty_title": "Нет недавней активности.",
@@ -11184,8 +11170,6 @@
       "step_confirm": "Далее",
       "step_finish": "Вперед",
       "step_skip": "Пропустить",
-      "step4_title_referral_validating": "Проверка реферального кода...",
-      "step4_referral_input_error": "Недействительный реферальный код",
       "title": "Начните получать награды",
       "description": "Выигрывайте призы, получайте бонусы и открывайте для себя больше способов заработка — просто используя MetaMask.",
       "sign_up": "Присоединиться к Rewards",
@@ -11194,9 +11178,6 @@
       "legal_disclaimer_2": "Условиями использования",
       "legal_disclaimer_3": ". Мы автоматически подключим все счета на этом устройстве и будем отслеживать ончейн-активность, чтобы награждать вас.",
       "legal_disclaimer_4": "Узнайте подробнее",
-      "referral_prompt": "Есть реферальный код?",
-      "referral_hide": "Скрыть код",
-      "referral_placeholder": "Реферальный код (необязательно)",
       "referral_label": "Реферальный код"
     },
     "settings": {
@@ -11228,13 +11209,6 @@
       "off_device_accounts_sheet_title": "Отсутствуют зарегистрированные счета",
       "off_device_accounts_sheet_description": "Возможно, эти адреса принадлежат кошельку, который еще не был добавлен после переустановки MetaMask. Не узнаете ни один из этих адресов?",
       "off_device_accounts_sheet_let_us_know": "Сообщите нам"
-    },
-    "referred_by_code": {
-      "title": "Реферальный код",
-      "description_linked": "Теперь пригласительный код привязан, поэтому ваш реферер будет получать вознаграждение за ваши сделки.",
-      "description_not_linked": "Зарегистрировались до того, как ваш друг успел отправить вам свой код? Введите его ниже, и вы будете связаны.",
-      "input_placeholder": "Введите реферальный код",
-      "invalid_code": "Недействительный реферальный код"
     },
     "bonus_code": {
       "input_placeholder": "Введите бонусный код",
@@ -11281,22 +11255,6 @@
     },
     "ways_to_earn": {
       "title": "Способы заработка"
-    },
-    "referral": {
-      "referral_code": "Реферальный код",
-      "referral_link": "Реферальная ссылка",
-      "actions": {
-        "share_referral_link": "Приведите друга",
-        "share_referral_subject": "Присоединяйтесь к MetaMask Rewards"
-      },
-      "info": {
-        "title": "Поделитесь кодом с друзьями",
-        "description": "Реферальные бонусы различаются в зависимости от кампании. Подробности уточняйте в каждой из них.",
-        "vip_title": "Получайте долю от дохода с каждого свопа и сделки с бессрочными контрактами, которые совершают ваши рефералы. Ваша ставка масштабируется вместе с вашим уровнем.",
-        "vip_referrals_label": "Рефералы",
-        "vip_revenue_share_label": "Доля дохода"
-      },
-      "referral_code_copied": "Реферальный код скопирован в буфер обмена"
     },
     "link_account_group": {
       "link_account": "Добавить счет",

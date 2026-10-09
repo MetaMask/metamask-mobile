@@ -269,33 +269,6 @@ export const selectPerpsPayWithAnyTokenAllowlistAssets = createSelector(
 );
 
 /**
- * Selector for Rewards Referral Code feature flag
- * Controls visibility of referral code in PnL hero card
- * Supports both boolean and version-gated JSON flag formats
- *
- * @returns boolean - true if referral code should be shown, false otherwise
- */
-export const selectPerpsRewardsReferralCodeEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): boolean => {
-    const remoteFlag = remoteFeatureFlags?.rewardsReferralCodeEnabled;
-
-    if (remoteFlag === undefined || remoteFlag === null) {
-      return false;
-    }
-
-    // Handle simple boolean flag
-    if (typeof remoteFlag === 'boolean') {
-      return remoteFlag;
-    }
-
-    // Handle version-gated JSON flag
-    const versionGatedFlag = remoteFlag as unknown as VersionGatedFeatureFlag;
-    return validatedVersionGatedFeatureFlag(versionGatedFlag) ?? false;
-  },
-);
-
-/**
  * Selector for Perps Products section feature flag
  * Controls visibility of the category pills grid on Perps home screen
  *

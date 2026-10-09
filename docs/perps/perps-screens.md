@@ -789,7 +789,6 @@ Celebratory card carousel for profitable positions. User can swipe through 4 the
 | `ScrollableTabView`      | Card carousel (swipe) |
 | `react-native-view-shot` | Capture card image    |
 | `react-native-share`     | Share to social apps  |
-| `RewardsReferralCodeTag` | Referral code display |
 | `PerpsTokenLogo`         | Market asset logo     |
 
 ### Hooks Consumed

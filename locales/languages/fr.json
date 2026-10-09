@@ -3334,11 +3334,9 @@
       "title": "Carte « Héros PNL (gain et perte) »",
       "header_title": "Partagez votre ordre de bourse",
       "share_button": "Partager",
-      "share_message_with_referral_code": "Tradez des contrats à terme perpétuels sur {{asset}} sur MetaMask. Inscrivez-vous à l’aide de mon code de parrainage {{code}} pour obtenir des récompenses supplémentaires. {{link}}",
       "share_message_without_referral_code": "Tradez des contrats à terme perpétuels sur {{asset}} dans MetaMask.",
       "share_failed": "L’exportation de l’image a échoué",
-      "export_success": "Image exportée",
-      "referral_code_text": "Utilisez mon code de parrainage pour obtenir des récompenses supplémentaires."
+      "export_success": "Image exportée"
     },
     "market_details": {
       "fullscreen_chart": "Graphique en plein écran",
@@ -11011,15 +11009,6 @@
       "error_fetching_title": "Impossible de charger les récompenses",
       "error_fetching_description": "Vérifiez votre connexion et réessayez."
     },
-    "referral_details_error": {
-      "error_fetching_title": "Impossible de charger les détails du parrainage",
-      "error_fetching_description": "Vérifiez votre connexion et réessayez.",
-      "retry_button": "Réessayer"
-    },
-    "referral_validation_unknown_error": {
-      "title": "Impossible de valider le code de parrainage",
-      "description": "Vérifiez votre connexion et réessayez."
-    },
     "active_activity_error": {
       "error_fetching_title": "Impossible de charger l’activité",
       "error_fetching_description": "Vérifiez votre connexion et réessayez.",
@@ -11061,7 +11050,6 @@
       "progress_to_next_tier": "{{pointsRemaining}} points pour passer au niveau supérieur",
       "bps_unit": "points de base",
       "badge_label": "VIP {{tier}}",
-      "referral_tag_label": "VIP",
       "swaps_label": "Échanges",
       "perps_label": "Perps",
       "points_label": "Points",
@@ -11117,9 +11105,7 @@
       "retry_button": "Réessayer",
       "empty_title": "Aucune transaction pour le moment. Vos transactions VIP s’afficheront ici dès qu’elles seront effectuées."
     },
-    "referral_title": "Parrainages",
     "referral_stats_earned_from_referrals": "Gagnés grâce aux parrainages",
-    "referral_stats_referrals": "Parrainages",
     "loading_activity": "Chargement de l’activité…",
     "error_loading_activity": "Une erreur s’est produite lors du chargement de l’activité",
     "activity_empty_title": "Aucune activité récente.",
@@ -11184,8 +11170,6 @@
       "step_confirm": "Suivant",
       "step_finish": "C’est parti",
       "step_skip": "Ignorer",
-      "step4_title_referral_validating": "Validation du code de parrainage…",
-      "step4_referral_input_error": "Code de parrainage non valide",
       "title": "Commencez à gagner des récompenses",
       "description": "Gagnez des prix, profitez d’avantages et découvrez d’autres façons de gagner de l’argent, simplement en utilisant MetaMask.",
       "sign_up": "Inscrivez-vous au programme de récompenses",
@@ -11194,9 +11178,6 @@
       "legal_disclaimer_2": "Conditions d’utilisation",
       "legal_disclaimer_3": ". Nous inscrirons tous les comptes sur cet appareil et suivrons l’activité sur la blockchain pour vous récompenser automatiquement.",
       "legal_disclaimer_4": "En savoir plus",
-      "referral_prompt": "Vous avez un code de parrainage ?",
-      "referral_hide": "Masquer le code",
-      "referral_placeholder": "Code de parrainage (facultatif)",
       "referral_label": "Code de parrainage"
     },
     "settings": {
@@ -11228,13 +11209,6 @@
       "off_device_accounts_sheet_title": "Comptes inscrits manquants",
       "off_device_accounts_sheet_description": "Ils peuvent appartenir à un portefeuille qui n’a pas encore été ajouté après la réinstallation de MetaMask. Ne reconnaissez-vous aucune de ces adresses ?",
       "off_device_accounts_sheet_let_us_know": "Faites-le nous savoir"
-    },
-    "referred_by_code": {
-      "title": "Code de parrainage",
-      "description_linked": "Le code d’invitation est désormais associé au compte, votre parrain recevra donc des récompenses lorsque vous tradez.",
-      "description_not_linked": "Vous vous êtes inscrit avant que votre ami ait pu vous envoyer son code ? Saisissez-le ci-dessous pour être associé à son compte.",
-      "input_placeholder": "Saisir le code de parrainage",
-      "invalid_code": "Code de parrainage non valide"
     },
     "bonus_code": {
       "input_placeholder": "Saisir le code bonus",
@@ -11281,22 +11255,6 @@
     },
     "ways_to_earn": {
       "title": "Façons de gagner des points"
-    },
-    "referral": {
-      "referral_code": "Code de parrainage",
-      "referral_link": "Lien de parrainage",
-      "actions": {
-        "share_referral_link": "Parrainer un ami",
-        "share_referral_subject": "Rejoignez MetaMask Rewards"
-      },
-      "info": {
-        "title": "Partagez votre code avec vos amis",
-        "description": "Les bonus de parrainage varient selon les campagnes. Consultez les détails de chacune des campagnes pour en savoir plus.",
-        "vip_title": "Touchez une commission sur chaque swap et chaque contrat perp effectués par vos filleuls. Votre taux varie selon votre niveau.",
-        "vip_referrals_label": "Parrainages",
-        "vip_revenue_share_label": "Commission"
-      },
-      "referral_code_copied": "Code de parrainage copié dans le presse-papiers"
     },
     "link_account_group": {
       "link_account": "Ajouter un compte",

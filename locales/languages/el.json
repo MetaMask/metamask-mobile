@@ -3334,11 +3334,9 @@
       "title": "Κεντρική κάρτα Κερδών & Ζημιών",
       "header_title": "Κοινοποιήστε τη συναλλαγή σας",
       "share_button": "Κοινοποίηση",
-      "share_message_with_referral_code": "Κάντε συναλλαγές με {{asset}} perps στο MetaMask. Εγγραφείτε με τον κωδικό παραπομπής μου {{code}} για να κερδίσετε επιπλέον ανταμοιβές. {{link}}",
       "share_message_without_referral_code": "Κάντε συναλλαγές σε perps του {{asset}} στο MetaMask.",
       "share_failed": "Η εξαγωγή της εικόνας απέτυχε",
-      "export_success": "Η εικόνα εξήχθη",
-      "referral_code_text": "Χρησιμοποιήστε τον κωδικό παραπομπής μου για να κερδίσετε επιπλέον ανταμοιβές."
+      "export_success": "Η εικόνα εξήχθη"
     },
     "market_details": {
       "fullscreen_chart": "Γράφημα σε πλήρη οθόνη",
@@ -11011,15 +11009,6 @@
       "error_fetching_title": "Δεν ήταν δυνατή η φόρτωση των ανταμοιβών",
       "error_fetching_description": "Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά."
     },
-    "referral_details_error": {
-      "error_fetching_title": "Δεν ήταν δυνατή η φόρτωση των στοιχείων παραπομπής",
-      "error_fetching_description": "Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά.",
-      "retry_button": "Επανάληψη"
-    },
-    "referral_validation_unknown_error": {
-      "title": "Ο κωδικός παραπομπής δεν ήταν δυνατό να επαληθευτεί",
-      "description": "Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά."
-    },
     "active_activity_error": {
       "error_fetching_title": "Δεν ήταν δυνατή η φόρτωση της δραστηριότητας",
       "error_fetching_description": "Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά.",
@@ -11061,7 +11050,6 @@
       "progress_to_next_tier": "{{pointsRemaining}} πόντοι μέχρι το επόμενο επίπεδο",
       "bps_unit": "bps",
       "badge_label": "VIP {{tier}}",
-      "referral_tag_label": "VIP",
       "swaps_label": "Ανταλλαγές",
       "perps_label": "Συμβ.αορ.",
       "points_label": "Πόντοι",
@@ -11117,9 +11105,7 @@
       "retry_button": "Επανάληψη",
       "empty_title": "Δεν υπάρχουν ακόμη συναλλαγές. Οι VIP συναλλαγές σας θα εμφανιστούν εδώ μόλις υπάρξει δραστηριότητα."
     },
-    "referral_title": "Συστάσεις",
     "referral_stats_earned_from_referrals": "Κερδίσατε από συστάσεις",
-    "referral_stats_referrals": "Συστάσεις",
     "loading_activity": "Φόρτωση δραστηριότητας…",
     "error_loading_activity": "Σφάλμα κατά τη φόρτωση της δραστηριότητας",
     "activity_empty_title": "Δεν υπάρχει πρόσφατη δραστηριότητα.",
@@ -11184,8 +11170,6 @@
       "step_confirm": "Επόμενο",
       "step_finish": "Ας ξεκινήσουμε",
       "step_skip": "Παράλειψη",
-      "step4_title_referral_validating": "Έλεγχος κωδικού παραπομπής…",
-      "step4_referral_input_error": "Μη έγκυρος κωδικός παραπομπής",
       "title": "Ξεκινήστε να κερδίζετε ανταμοιβές",
       "description": "Κερδίστε βραβεία, διεκδικήστε ανταμοιβές και ανακαλύψτε περισσότερους τρόπους για να κερδίζετε — απλώς χρησιμοποιώντας το MetaMask.",
       "sign_up": "Εγγραφείτε για Ανταμοιβές",
@@ -11194,9 +11178,6 @@
       "legal_disclaimer_2": "Όρους Χρήσης",
       "legal_disclaimer_3": ". Θα ενεργοποιήσουμε τη συμμετοχή για όλους τους λογαριασμούς σε αυτήν τη συσκευή και θα παρακολουθούμε την on-chain δραστηριότητα ώστε να σας ανταμείβουμε αυτόματα.",
       "legal_disclaimer_4": "Μάθετε περισσότερα",
-      "referral_prompt": "Έχετε κωδικό παραπομπής;",
-      "referral_hide": "Απόκρυψη κωδικού",
-      "referral_placeholder": "Κωδικός παραπομπής (προαιρετικά)",
       "referral_label": "Κωδικός παραπομπής"
     },
     "settings": {
@@ -11228,13 +11209,6 @@
       "off_device_accounts_sheet_title": "Δεν υπάρχουν καταχωρημένοι λογαριασμοί",
       "off_device_accounts_sheet_description": "Αυτοί οι λογαριασμοί μπορεί να ανήκουν σε πορτοφόλι που δεν έχει προστεθεί ακόμη μετά την επανεγκατάσταση του MetaMask. Δεν αναγνωρίζετε καμία από αυτές τις διευθύνσεις;",
       "off_device_accounts_sheet_let_us_know": "Ενημερώστε μας"
-    },
-    "referred_by_code": {
-      "title": "Κωδικός παραπομπής",
-      "description_linked": "Ο κωδικός πρόσκλησης έχει πλέον ενεργοποιηθεί, ώστε ο χρήστης που σας παρέπεμψε να κερδίζει ανταμοιβές όταν κάνετε συναλλαγές.",
-      "description_not_linked": "Εγγραφήκατε πριν προλάβει ο φίλος σας να σας στείλει τον κωδικό; Πληκτρολογήστε τον παρακάτω και θα ενεργοποιηθεί.",
-      "input_placeholder": "Εισαγάγετε κωδικό παραπομπής",
-      "invalid_code": "Μη έγκυρος κωδικός παραπομπής"
     },
     "bonus_code": {
       "input_placeholder": "Πληκτρολογήστε τον κωδικό μπόνους",
@@ -11281,22 +11255,6 @@
     },
     "ways_to_earn": {
       "title": "Τρόποι για να κερδίσετε"
-    },
-    "referral": {
-      "referral_code": "Κωδικός παραπομπής",
-      "referral_link": "Σύνδεσμος παραπομπής",
-      "actions": {
-        "share_referral_link": "Συστήστε έναν φίλο",
-        "share_referral_subject": "Συμμετάσχετε στο MetaMask Rewards"
-      },
-      "info": {
-        "title": "Κοινοποιήστε τον κωδικό σας με φίλους",
-        "description": "Τα μπόνους παραπομπής διαφέρουν ανά καμπάνια. Ελέγξτε κάθε καμπάνια για λεπτομέρειες.",
-        "vip_title": "Κερδίστε μερίδιο εσόδων από κάθε ανταλλαγή και perp που πραγματοποιούν οι παραπομπές σας. Η απόδοσή σας αυξάνεται ανάλογα με το επίπεδό σας.",
-        "vip_referrals_label": "Συστάσεις",
-        "vip_revenue_share_label": "Κατανομή εσόδων"
-      },
-      "referral_code_copied": "Ο κωδικός παραπομπής αντιγράφηκε στο πρόχειρο"
     },
     "link_account_group": {
       "link_account": "Προσθήκη λογαριασμού",
