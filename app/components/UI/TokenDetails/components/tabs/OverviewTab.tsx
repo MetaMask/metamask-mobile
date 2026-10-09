@@ -8,6 +8,7 @@ import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { useTokenBalance } from '../../hooks/useTokenBalance';
 import { useTokenPerformance } from '../../hooks/useTokenPerformance';
+import { useTokenAssetDetails } from '../../queries/tokenAssetQuery';
 import { useTokenDetailsActionTracking } from '../../hooks/useTokenDetailsActionTracking';
 import {
   TokenDetailsAction,
@@ -32,15 +33,6 @@ export const OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID =
 export const OVERVIEW_TAB_ACTIVITY_TEST_ID =
   TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID;
 
-/**
- * TODO(ASSETS-4020): replace with the token's real description once the API
- * platform exposes it. Delete the `?? MOCK_TOKEN_DESCRIPTION` fallback in
- * the component to restore the pure hide-when-absent gate, or set this to
- * `undefined` to preview the hidden state in the simulator.
- */
-const MOCK_TOKEN_DESCRIPTION: string | undefined =
-  'Pepe is a deflationary memecoin launched on Ethereum in 2023 as a tribute to the Pepe the Frog internet character. There is no formal team or roadmap — the token is entirely community-driven.';
-
 export interface OverviewTabProps {
   token: TokenDetailsRouteParams;
   assetId: CaipAssetType | null;
@@ -60,7 +52,11 @@ const OverviewTab = ({
   securityData,
   marketData,
 }: OverviewTabProps) => {
-  const description = token.description ?? MOCK_TOKEN_DESCRIPTION;
+  const { asset } = useTokenAssetDetails(assetId);
+  const assetDescription = asset?.launchpadData?.description?.trim();
+  const tokenDescription = token.description?.trim();
+  // Hide the block when neither source has text. A blank string is not a description.
+  const description = assetDescription || tokenDescription || undefined;
 
   const performance = useTokenPerformance({
     token,
