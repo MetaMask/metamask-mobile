@@ -36,6 +36,8 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import styleSheet from './MoneyBalanceCard.styles';
+import GlassSurface from '../../../../../component-library/components-temp/GlassSurface';
+import ButtonGlass from '../../../../../component-library/components-temp/ButtonGlass';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 import {
@@ -50,7 +52,11 @@ import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../sel
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import { useMoneyAddMoney } from '../../hooks/useMoneyAddMoney';
 
-const MoneyBalanceCard = () => {
+export interface MoneyBalanceCardProps {
+  isGlass?: boolean;
+}
+
+const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const hasSeenMoneyCardRef = useRef(false);
@@ -262,18 +268,8 @@ const MoneyBalanceCard = () => {
     );
   };
 
-  return (
-    <Pressable
-      testID={containerTestId}
-      onPress={handleCardPress}
-      style={({ pressed }) => [
-        styles.container,
-        tw.style(
-          'flex-row items-center justify-between gap-3 bg-muted',
-          pressed && 'opacity-80',
-        ),
-      ]}
-    >
+  const content = (
+    <>
       <Box twClassName="w-0 min-w-0 flex-1 gap-1 pr-3">
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -350,15 +346,65 @@ const MoneyBalanceCard = () => {
         justifyContent={BoxJustifyContent.End}
         twClassName="shrink-0"
       >
-        <Button
-          testID={buttonTestId}
-          variant={buttonVariant}
-          size={ButtonSize.Md}
-          onPress={handleAddPress}
-        >
-          {strings(buttonLabelKey)}
-        </Button>
+        {buttonVariant === ButtonVariant.Secondary ? (
+          <ButtonGlass
+            isGlass={isGlass}
+            testID={buttonTestId}
+            size={ButtonSize.Md}
+            onPress={handleAddPress}
+          >
+            {strings(buttonLabelKey)}
+          </ButtonGlass>
+        ) : (
+          <Button
+            testID={buttonTestId}
+            variant={buttonVariant}
+            size={ButtonSize.Md}
+            onPress={handleAddPress}
+          >
+            {strings(buttonLabelKey)}
+          </Button>
+        )}
       </Box>
+    </>
+  );
+
+  if (isGlass) {
+    return (
+      <Pressable
+        testID={containerTestId}
+        onPress={handleCardPress}
+        style={styles.glassContainer}
+      >
+        <GlassSurface
+          radiusClassName="rounded-xl"
+          isInteractive
+          hasSheen
+          testID={MoneyBalanceCardTestIds.GLASS_SURFACE}
+          style={[
+            styles.glassContent,
+            tw.style('flex-row items-center justify-between gap-3'),
+          ]}
+        >
+          {content}
+        </GlassSurface>
+      </Pressable>
+    );
+  }
+
+  return (
+    <Pressable
+      testID={containerTestId}
+      onPress={handleCardPress}
+      style={({ pressed }) => [
+        styles.container,
+        tw.style(
+          'flex-row items-center justify-between gap-3 bg-muted',
+          pressed && 'opacity-80',
+        ),
+      ]}
+    >
+      {content}
     </Pressable>
   );
 };

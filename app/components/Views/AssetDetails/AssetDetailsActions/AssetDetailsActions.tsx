@@ -44,6 +44,7 @@ export interface AssetDetailsActionsProps {
   sendButtonActionID?: string;
   receiveButtonActionID?: string;
   containerTestID?: string;
+  hasGlassButtons?: boolean;
 }
 
 // TODO: Delete when TokenDetailsV2Buttons flag is fully rolled out
@@ -59,6 +60,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
   receiveButtonActionID = TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
   containerTestID,
+  hasGlassButtons = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -162,6 +164,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           isDisabled={!isBuyingAvailable}
           testID={buyButtonActionID}
           containerStyle={styles.buttonContainer}
+          isGlass={hasGlassButtons}
         />
       )}
       {displaySwapsButton && (
@@ -172,6 +175,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           isDisabled={!isSwapsEnabled}
           testID={swapButtonActionID}
           containerStyle={styles.buttonContainer}
+          isGlass={hasGlassButtons}
         />
       )}
       <MainActionButton
@@ -181,6 +185,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         isDisabled={!canSignTransactions}
         testID={sendButtonActionID}
         containerStyle={styles.buttonContainer}
+        isGlass={hasGlassButtons}
       />
       <MainActionButton
         iconName={IconName.Received}
@@ -189,6 +194,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         isDisabled={false}
         testID={receiveButtonActionID}
         containerStyle={styles.buttonContainer}
+        isGlass={hasGlassButtons}
       />
     </View>
   );

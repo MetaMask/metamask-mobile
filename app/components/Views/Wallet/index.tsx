@@ -93,6 +93,8 @@ import {
   ButtonIconVariant,
 } from '../../../component-library/components/Toast';
 import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
+import { useIsGlassSurfaceEnabled } from '../../hooks/useIsGlassSurfaceEnabled';
+import { selectHomeBrandRefreshSurfacesEnabled } from '../../../selectors/featureFlagController/homeBrandRefreshSurfaces';
 import { useFloatingTabBarInset } from '../../../component-library/components/Navigation/TabBarFloating';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
@@ -157,6 +159,10 @@ import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useHomeNavBarConfig } from '../Homepage/hooks/useHomeNavBarConfig';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
+import {
+  BALANCE_DISPLAY_INK_INSET_ABOVE_CAP,
+  BALANCE_REFERENCE_SPACING,
+} from '../../UI/Assets/components/Balance/AccountGroupBalance.styles';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
@@ -207,6 +213,13 @@ import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
 const HEADER_FADE_HEIGHT = 16;
 const HEADER_FADE_OPACITIES = [1, 0.7, 0.35, 0];
 const HEADER_FADE_LOCATIONS = [0, 0.3, 0.7, 1];
+// The floating header's account capsule (h-10) sits centred in its min-h-14
+// root, so the balance cap height lands the reference gap below the capsule.
+const FLOATING_HEADER_BALANCE_INSET = Math.round(
+  BALANCE_REFERENCE_SPACING -
+    (56 - 40) / 2 -
+    BALANCE_DISPLAY_INK_INSET_ABOVE_CAP,
+);
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -746,6 +759,9 @@ const Wallet = ({
 
   const { isCompactHeader, isInterimHeader, isHeaderSearchEnabled } =
     useHomeNavBarConfig({ trackExposure: true });
+  const isHomeGlass = useIsGlassSurfaceEnabled(
+    selectHomeBrandRefreshSurfacesEnabled,
+  );
   const avatarAccountType = useSelector(selectAvatarAccountType);
 
   const homepageScrollY = useSharedValue(0);
@@ -1106,7 +1122,10 @@ const Wallet = ({
         componentLabel="BrazeBanner"
         onError={handleBannerError}
       >
-        <BrazeBanner placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID} />
+        <BrazeBanner
+          placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID}
+          isGlass={isHomeGlass}
+        />
       </ComponentErrorBoundary>
     ) : homeGrowthBanner === 'carousel' ? (
       <View accessible={false}>
@@ -1184,6 +1203,7 @@ const Wallet = ({
         sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
         receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
         containerTestID={WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER}
+        hasGlassButtons={isHomeGlass}
       />
     )
   ) : null;
@@ -1265,16 +1285,20 @@ const Wallet = ({
       ) : null}
       {compactHeaderAccountName}
       <Box
-        style={styles.portfolioHeaderCluster}
+        style={[
+          styles.portfolioHeaderCluster,
+          isFloatingJsHeader && { paddingTop: FLOATING_HEADER_BALANCE_INSET },
+        ]}
         paddingTop={
           isSearchHeaderEnabled && inWalletHomePostOnboardingFlow ? 4 : 0
         }
+        testID={WalletViewSelectorsIDs.WALLET_PORTFOLIO_HEADER_CLUSTER}
       >
         <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
         {walletHomeMainAssetDetailsActions}
         {growthBanner}
         {homepageDiscoveryPills}
-        {showMoneyBalanceCard && <MoneyBalanceCard />}
+        {showMoneyBalanceCard && <MoneyBalanceCard isGlass={isHomeGlass} />}
       </Box>
     </>
   );
