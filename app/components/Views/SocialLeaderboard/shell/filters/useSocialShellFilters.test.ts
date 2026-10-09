@@ -106,6 +106,25 @@ describe('useSocialShellFilters', () => {
     expect(result.current.hasActiveFilters('leaderboard')).toBe(false);
   });
 
+  it('does not treat leftover verification or 24h volume as active on Following', () => {
+    const { result } = renderHook(() => useSocialShellFilters());
+
+    act(() => {
+      result.current.openSheet('following');
+    });
+    act(() => {
+      result.current.updateDraft({
+        verification: 'verified',
+        volume24h: { min: 10, max: 20 },
+      });
+    });
+    act(() => {
+      result.current.applyFilters();
+    });
+
+    expect(result.current.hasActiveFilters('following')).toBe(false);
+  });
+
   it('changing type reconciles the network against the new type', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 
