@@ -4,10 +4,12 @@ import android.app.Activity
 import android.os.IBinder
 import android.view.View
 import android.view.ViewGroup
+import android.view.accessibility.AccessibilityNodeInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.core.view.ViewCompat
 import com.facebook.react.bridge.Promise
 import io.metamask.R
 
@@ -25,6 +27,11 @@ internal object PrivacyCover {
     /** Consumes system back while the cover is visible so the screen underneath stays put. */
     private var backCallback: OnBackPressedCallback? = null
     private var backCallbackActivity: Activity? = null
+    /**
+     * Accessibility importance of each decor child hidden while the cover is up.
+     * Restored from [hide].
+     */
+    private val obscuredAccessibility = mutableListOf<Pair<View, Int>>()
     /** Bumped on every pause so a stale resume cannot start authentication. */
     private var authenticationEpoch = 0
     /** Set to [authenticationEpoch] only while `onPostResume` is the latest lifecycle event. */
@@ -44,7 +51,6 @@ internal object PrivacyCover {
                 isClickable = true
                 isFocusable = true
                 isFocusableInTouchMode = true
-                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
             }.also { overlay = it }
         }
 
@@ -65,6 +71,9 @@ internal object PrivacyCover {
         // reclaim focus and reopen the keyboard on resume.
         cover.requestFocus()
         dismissKeyboard(activity, keyboardWindowToken)
+        // NO_HIDE_DESCENDANTS on the cover would hide the fox and leave the
+        // wallet readable. Hide the siblings instead, and let TalkBack land here.
+        blockAccessibility(decor, cover)
         blockBack(activity)
     }
 
@@ -86,7 +95,41 @@ internal object PrivacyCover {
             return
         }
         overlay?.visibility = View.GONE
+        restoreAccessibility()
         backCallback?.isEnabled = false
+    }
+
+    /**
+     * TalkBack has no modal-window flag. Mark every other decor child
+     * unimportant, and announce the cover by the app name. The cover is shown
+     * whether or not the vault is locked, so this does not say "locked".
+     */
+    private fun blockAccessibility(decor: ViewGroup, cover: View) {
+        restoreAccessibility()
+        cover.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+        cover.contentDescription = cover.context.getString(R.string.app_name)
+        ViewCompat.setAccessibilityPaneTitle(cover, cover.contentDescription)
+        for (index in 0 until decor.childCount) {
+            val child = decor.getChildAt(index)
+            if (child === cover) {
+                continue
+            }
+            obscuredAccessibility.add(child to child.importantForAccessibility)
+            child.importantForAccessibility =
+                View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+        }
+        cover.performAccessibilityAction(
+            AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS,
+            null,
+        )
+    }
+
+    private fun restoreAccessibility() {
+        obscuredAccessibility.forEach { (view, importance) ->
+            view.importantForAccessibility = importance
+        }
+        obscuredAccessibility.clear()
+        overlay?.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     }
 
     /**
