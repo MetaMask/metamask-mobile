@@ -7,10 +7,9 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
   Button,
-  ButtonBase,
-  ButtonBaseSize,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   HeaderStandard,
   IconAlertSeverity,
   TitleAlert,
@@ -19,6 +18,8 @@ import {
   IconName,
   IconSize,
   ListItem,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -90,6 +91,11 @@ const VbaOnboardingErrorItemRow = ({
     }
     title={item.title}
     description={item.description}
+    descriptionProps={{
+      variant: TextVariant.BodySm,
+      fontWeight: FontWeight.Regular,
+      color: TextColor.TextAlternative,
+    }}
     testID={`${VbaOnboardingErrorSelectorsIDs.ITEM}-${item.id}`}
   />
 );
@@ -194,7 +200,7 @@ const VbaOnboardingError = ({
         />
         {items.length > 0 ? (
           <Box
-            twClassName="mt-4 overflow-hidden rounded-3xl bg-muted"
+            twClassName="mt-[26px] overflow-hidden rounded-3xl bg-muted"
             testID={VbaOnboardingErrorSelectorsIDs.LIST}
           >
             {items.map((item) => (
@@ -203,7 +209,7 @@ const VbaOnboardingError = ({
           </Box>
         ) : null}
       </ScrollView>
-      <Box twClassName="gap-3 p-4">
+      <Box twClassName="gap-2 px-4 pb-2 pt-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
@@ -219,8 +225,9 @@ const VbaOnboardingError = ({
           {primaryAction.label}
         </Button>
         {secondaryAction ? (
-          <ButtonBase
-            size={ButtonBaseSize.Lg}
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
             isFullWidth
             isLoading={pendingAction === 'secondary'}
             isDisabled={isBusy}
@@ -231,7 +238,7 @@ const VbaOnboardingError = ({
             }
           >
             {secondaryAction.label}
-          </ButtonBase>
+          </Button>
         ) : null}
       </Box>
     </SafeAreaView>
