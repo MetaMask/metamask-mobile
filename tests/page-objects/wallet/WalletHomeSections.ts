@@ -242,16 +242,22 @@ export class WalletHomeSections {
     positionName: string,
     positionId?: string,
   ): Promise<void> {
-    const target = positionId
+    // Prefer the row testID when provided; keep a text fallback so Android can
+    // still find the row when the section title is omitted (trending-above
+    // layout sets showHeader=false on positions) after Predict → wallet home.
+    const idTarget = positionId
       ? Matchers.getElementByID(`predict-position-row-${positionId}`)
-      : Matchers.getElementByText(positionName);
+      : undefined;
+    const textTarget = Matchers.getElementByText(positionName);
+    const targets: Promise<AppiumElement>[] = idTarget
+      ? [idTarget, textTarget]
+      : [textTarget];
 
     const description = `Predictions Position: ${positionName}`;
     const marketDetailsScreen = Matchers.getElementByID(
       PredictMarketDetailsSelectorsIDs.SCREEN,
     );
     const scrollAndTapRetryTimeoutMs = 90_000;
-    const intoViewMaxAttempts = 8;
     const scrollAndTapPerDirectionMs = 15_000;
     const tapTimeoutMs = 10_000;
     const predictNavigationTimeoutMs = resolveE2EWaitTimeoutMs(15_000);
@@ -263,44 +269,49 @@ export class WalletHomeSections {
       });
     };
 
+    const tapFirstVisibleTarget = async (): Promise<boolean> => {
+      for (const target of targets) {
+        if (
+          await WalletHomeScroll.tapIfAlreadyVisible(target, description, {
+            tapTimeout: tapTimeoutMs,
+          })
+        ) {
+          return true;
+        }
+      }
+      return false;
+    };
+
     await Utilities.executeWithRetry(
       async () => {
-        if (
-          await WalletHomeScroll.tapIfAlreadyVisible(target, description, {
-            tapTimeout: tapTimeoutMs,
-          })
-        ) {
+        if (await tapFirstVisibleTarget()) {
           await assertMarketDetailsOpened();
           return;
         }
 
-        await WalletHomeScroll.tryScrollDirections((direction) =>
-          this.scrollPredictionsSectionIntoView(direction, {
-            maxAttempts: intoViewMaxAttempts,
-          }),
-        );
-
-        if (
-          await WalletHomeScroll.tapIfAlreadyVisible(target, description, {
-            tapTimeout: tapTimeoutMs,
-          })
-        ) {
-          await assertMarketDetailsOpened();
-          return;
+        // Scroll directly to the position row. Do not require
+        // homepage-section-title-predictions — that title is absent when
+        // trending renders above positions, and hard-failing on it caused
+        // geo-restriction / cash-out flakes after returning from Predict.
+        for (const target of targets) {
+          if (
+            await WalletHomeScroll.scrollAndTapSectionIfPossible(
+              target,
+              description,
+              {
+                timeout: scrollAndTapPerDirectionMs,
+                tapTimeout: tapTimeoutMs,
+              },
+            )
+          ) {
+            await assertMarketDetailsOpened();
+            return;
+          }
         }
 
-        await WalletHomeScroll.tryScrollDirections((direction) =>
-          WalletHomeScroll.scrollAndTapSection(target, description, direction, {
-            timeout: scrollAndTapPerDirectionMs,
-            tapTimeout: tapTimeoutMs,
-            overshootSwipe: {
-              direction: direction === 'down' ? 'up' : 'down',
-              percentage: 0.15,
-            },
-          }),
+        throw new Error(
+          `Could not scroll and tap ${description} via testID or title text`,
         );
-
-        await assertMarketDetailsOpened();
       },
       {
         timeout: scrollAndTapRetryTimeoutMs,

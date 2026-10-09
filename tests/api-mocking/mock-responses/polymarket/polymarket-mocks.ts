@@ -190,15 +190,21 @@ export const POLYMARKET_API_DOWN = async (mockServer: Mockttp) => {
 /**
  * Mock for Polymarket geoblock endpoint
  * This simulates the user being in a geo-restricted region
- * Uses a country from GEO_BLOCKED_COUNTRIES for consistency with app logic
+ * Uses a country from GEO_BLOCKED_COUNTRIES for consistency with app logic.
+ * Priority 1000 wins over POLYMARKET_COMPLETE_MOCKS eligible geoblock (999).
+ * Register after COMPLETE so blocked is the active rule.
  */
 export const POLYMARKET_GEO_BLOCKED_MOCKS = async (mockServer: Mockttp) => {
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: 'https://polymarket.com/api/geoblock',
-    responseCode: 200,
-    response: { blocked: true, country: GEO_BLOCKED_COUNTRIES[0].country },
-  });
+  await setupMockRequest(
+    mockServer,
+    {
+      requestMethod: 'GET',
+      url: 'https://polymarket.com/api/geoblock',
+      responseCode: 200,
+      response: { blocked: true, country: GEO_BLOCKED_COUNTRIES[0].country },
+    },
+    1000,
+  );
 };
 
 /**
