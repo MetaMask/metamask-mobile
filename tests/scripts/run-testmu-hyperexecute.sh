@@ -181,6 +181,7 @@ env:
   TESTMU_ANDROID_ONBOARDING_PERF_APP_URL: "$(yaml_escape "$RESOLVED_ANDROID_ONBOARDING_URL")"
   TESTMU_ANDROID_SEEDLESS_PERF_APP_URL: "$(yaml_escape "$RESOLVED_ANDROID_SEEDLESS_URL")"
   HE_REGION: "$(yaml_escape "$HE_REGION")"
+  COLLECT_HERMES_CPUPROFILES: "$(yaml_escape "${COLLECT_HERMES_CPUPROFILES:-false}")"
 
 mergeArtifacts: true
 uploadArtefacts:
@@ -289,8 +290,24 @@ copy_report_files() {
     done
 }
 
+copy_hermes_profiles() {
+  local root="$1"
+  [[ -d "$root" ]] || return 0
+  mkdir -p tests/reporters/reports/hermes-cpuprofiles
+  find "$root" -type f -name '*.cpuprofile' -print0 \
+    | while IFS= read -r -d '' f; do
+      cp -f "$f" "tests/reporters/reports/hermes-cpuprofiles/" 2>/dev/null || true
+    done
+}
+
 copy_report_files artifacts
 copy_report_files "$HE_ARTIFACTS_DIR"
+
+if [[ "${COLLECT_HERMES_CPUPROFILES:-false}" == "true" ]]; then
+  copy_hermes_profiles artifacts
+  copy_hermes_profiles "$HE_ARTIFACTS_DIR"
+  echo "Hermes cpuprofile count: $(find tests/reporters/reports/hermes-cpuprofiles -type f -name '*.cpuprofile' 2>/dev/null | wc -l | tr -d ' ')"
+fi
 
 REPORT_COUNT="$(find tests/reporters/reports -type f 2>/dev/null | wc -l | tr -d ' ')"
 echo "tests/reporters/reports file count: ${REPORT_COUNT:-0}"

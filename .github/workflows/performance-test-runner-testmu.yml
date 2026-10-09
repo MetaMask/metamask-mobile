@@ -64,6 +64,13 @@ on:
         type: string
         default: 'us'
         description: 'HyperExecute region (us or eu)'
+      collect_hermes_cpuprofiles:
+        required: false
+        type: boolean
+        default: false
+        description: >-
+          Harvest Hermes .cpuprofile artifacts after each performance spec.
+          True for schedule/manual; false (default) for PR runs.
     secrets:
       LT_USERNAME:
         required: true
@@ -186,6 +193,7 @@ jobs:
             echo "DISABLE_VIDEO_DOWNLOAD=true"
             echo "HE_CONCURRENCY=${{ inputs.he_concurrency }}"
             echo "HE_REGION=${{ inputs.he_region }}"
+            echo "COLLECT_HERMES_CPUPROFILES=${{ inputs.collect_hermes_cpuprofiles == true && 'true' || 'false' }}"
           } >> "$GITHUB_ENV"
 
       - name: Run Tests via HyperExecute
@@ -220,3 +228,14 @@ jobs:
             tests/test-reports/playwright-report/
           if-no-files-found: ignore
           retention-days: 7
+
+      # Prefixed testmu-he- so the hermes-cpuprofiles-* pattern used by
+      # analyze-app-profiling keeps matching BrowserStack profiles only.
+      - name: Upload Hermes CPU profiles
+        uses: actions/upload-artifact@v7
+        if: ${{ always() && inputs.collect_hermes_cpuprofiles == true }}
+        with:
+          name: testmu-he-hermes-cpuprofiles-${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || inputs.build_type }}-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          path: tests/reporters/reports/hermes-cpuprofiles/
+          if-no-files-found: ignore
+          retention-days: 14

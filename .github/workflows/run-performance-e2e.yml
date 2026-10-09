@@ -497,6 +497,7 @@ jobs:
       testmu_build_name: TestMu-Android-Performance-${{ inputs.branch_name }}-Branch
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
       he_concurrency: ${{ inputs.he_concurrency }}
+      collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
     secrets: inherit
 
   run-android-imported-wallet-tests-testmu:
@@ -528,6 +529,7 @@ jobs:
       testmu_build_name: TestMu-Android-Performance-${{ inputs.branch_name }}-Branch
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
       he_concurrency: ${{ inputs.he_concurrency }}
+      collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
     secrets: inherit
 
   aggregate-results:
