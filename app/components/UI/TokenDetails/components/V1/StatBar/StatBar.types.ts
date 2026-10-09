@@ -31,6 +31,13 @@ export interface TokenStatValue {
    * display state: it does not feed the security verdict.
    */
   isWarning?: boolean;
+  /**
+   * Renders a skeleton in place of the value. Set per stat rather than for the
+   * bar as a whole because the market-sourced cells resolve on a different
+   * schedule from the security-sourced ones, and a token the user already
+   * holds has its market data in state with nothing to wait for.
+   */
+  isLoading?: boolean;
 }
 
 /**

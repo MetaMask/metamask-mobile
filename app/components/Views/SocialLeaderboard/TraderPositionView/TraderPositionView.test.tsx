@@ -826,8 +826,8 @@ describe('TraderPositionView', () => {
     it('renders the perp candle period selector instead of the spot time period selector', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
-      expect(screen.getByText('1min')).toBeOnTheScreen();
-      expect(screen.getByText('15min')).toBeOnTheScreen();
+      expect(screen.getByText('1m')).toBeOnTheScreen();
+      expect(screen.getByText('5m')).toBeOnTheScreen();
       expect(screen.queryByText('1H')).not.toBeOnTheScreen();
       expect(screen.queryByText('1W')).not.toBeOnTheScreen();
     });
@@ -883,7 +883,7 @@ describe('TraderPositionView', () => {
     it('updates the local candle period without persisting to Redux settings', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
-      fireEvent.press(screen.getByText('5min'));
+      fireEvent.press(screen.getByText('5m'));
 
       expect(mockUseSocialPerpsChartAdapter).toHaveBeenCalledWith(
         expect.objectContaining({
