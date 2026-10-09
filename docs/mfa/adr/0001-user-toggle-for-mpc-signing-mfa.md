@@ -17,9 +17,18 @@ Status: proposed, 2026-10-08 ([MFA-499](https://consensyssoftware.atlassian.net/
 ## Requirements (both options)
 
 1. **Turning the switch off needs a 2FA token** proven with a user factor. Anyone holding only a 1FA session must not be able to remove the second factor.
-2. **Turning the switch back on also needs a 2FA token** proven with a user factor. Users who no longer have access to their email or passkey must not be able to turn 2FA back on. Otherwise they would lock themselves out of MPC signing.
-3. **The switch never removes enrolled user factors.** Turning it back on reuses the user's existing email or passkey.
+2. **Turning the switch back on needs the user to complete a second factor at that moment.** They either use an existing user factor or register a new one; which of these is allowed is still to be decided (see below). Either way, once 2FA is back on the user has a factor they have just proven they can use, so they cannot lock themselves out of MPC signing.
+3. **The switch never removes enrolled user factors.**
 4. **Signing checks the switch in one shared helper** that every MPC signing call site uses.
+
+### Turning the switch back on: existing or new factor (to be decided)
+
+| Rule                                   | Client flow                                                                                   | Effect                                                                                                                                                                                                                |
+| -------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Existing factor only                   | `verifyOrEnroll` with `verifyWith` set to user factors                                        | Simplest. A user who has lost access to every factor cannot turn 2FA back on until they recover one.                                                                                                                  |
+| Existing factor, or register a new one | Offer verify; if the user cannot, offer to `enroll` a new email or passkey and use that proof | Users who lost their factor can still turn 2FA back on. Enrolling a credential on a profile that already has one requires a recent 2FA session (`aal2_required`), so something else has to authorize that enrollment. |
+
+The second rule depends on what may authorize enrolling the new factor. Under Option A there is nothing the user can present, so the server would need a dedicated exception. Under Option B the SIWE credential could provide that 2FA proof. That would let anyone holding the SRP register a factor of their choosing, so it needs a deliberate security decision.
 
 ## Option A: server preference on `/v2/mpc-mfa-enabled`
 
@@ -33,7 +42,7 @@ The MPC service stores the switch and lowers its own signing requirement while t
 
 Proposed GET response: `{ "enabled": boolean }`. The GET needs only 1FA because the client must read the switch before it knows whether to ask for 2FA.
 
-**Changing the switch:** call `verifyOrEnroll` with a user factor, then POST with the 2FA token. Update the UI only after the server confirms the change.
+**Changing the switch:** to turn it off, call `verifyOrEnroll` with a user factor. To turn it on, prove a second factor using the re-enable rule above. POST with the resulting 2FA token, and update the UI only after the server confirms the change.
 
 **Signing:**
 
@@ -59,7 +68,7 @@ The MPC service keeps requiring 2FA for every signing request. The switch only d
 - Switch on (no SIWE credential enrolled): get a 2FA token through `verifyOrEnroll`, which prompts for a user factor unless a verification session is live.
 - Switch off (SIWE credential enrolled): sign a SIWE challenge with the derived key and complete verification without any UI, then start MPC signing with the resulting 2FA token.
 
-**Turning the switch back on:** call `verifyOrEnroll` restricted to user factors (`email_otp`, `passkey`), then remove the SIWE credential with that 2FA token. The SIWE credential must not be allowed to authorize its own removal. Otherwise turning the switch back on would not prove the user can still use a real second factor.
+**Turning the switch back on:** prove a user factor (`email_otp` or `passkey`) using the re-enable rule above, then remove the SIWE credential with that 2FA token. A SIWE-proven token must not be accepted for the removal itself. Otherwise turning the switch back on would not prove the user can use a real second factor.
 
 **Reading the switch:** a SIWE credential in the profile's enrolled credentials means the switch is off. No separate status endpoint is needed.
 
@@ -85,12 +94,12 @@ The MPC service keeps requiring 2FA for every signing request. The switch only d
 ## Consequences
 
 - With either option, while the switch is off, MPC signing is protected only by what is already on the device. The disable copy has to make that clear.
-- Requiring 2FA to turn the switch back on means a user who has lost their email or passkey must recover it before re-enabling. That is intended: it stops them enabling a protection they can no longer satisfy.
+- Requiring a second factor to turn the switch back on means 2FA is only restored when the user has a factor that works right now. If only existing factors are accepted, a user who has lost theirs must recover one first.
 - Mobile and extension need the same flows and `operation` names. Use `money.mpc_mfa.disable` and `money.mpc_mfa.enable` as `reason.operation` for the verification step when changing the switch.
 
 ## Follow-up work
 
-1. Choose Option A or B.
+1. Choose Option A or B, and the re-enable rule.
 2. Backend work for the chosen option, as listed under its changes.
 3. Client API and the shared signing helper.
 4. Settings UI: the Disable 2FA switch, with a warning before disabling.
@@ -99,11 +108,12 @@ The MPC service keeps requiring 2FA for every signing request. The switch only d
 ## Open questions
 
 1. **Both options:** what is the default for existing users before they change the switch? This ADR assumes on.
-2. **Option A:** is the GET response `{ "enabled": boolean }`? Which error code means the token level is too low?
-3. **Option A:** does the MPC service accept the 2FA verification token on its own, or alongside the 1FA access token?
-4. **Option B:** can the authentication server scope a SIWE credential to MPC signing only, so it cannot satisfy other 2FA-gated features?
-5. **Option B:** which derivation path should the dedicated key use, and how does that work for social-login (seedless) wallets?
-6. **Option B:** does the server reject a SIWE-proven token when the SIWE credential is being removed?
+2. **Both options:** to turn the switch back on, does the user have to use an existing factor, or may they register a new one? If a new one is allowed, what authorizes enrolling it when the profile already has a factor?
+3. **Option A:** is the GET response `{ "enabled": boolean }`? Which error code means the token level is too low?
+4. **Option A:** does the MPC service accept the 2FA verification token on its own, or alongside the 1FA access token?
+5. **Option B:** can the authentication server scope a SIWE credential to MPC signing only, so it cannot satisfy other 2FA-gated features?
+6. **Option B:** which derivation path should the dedicated key use, and how does that work for social-login (seedless) wallets?
+7. **Option B:** does the server reject a SIWE-proven token when the SIWE credential is being removed?
 
 ## References
 
