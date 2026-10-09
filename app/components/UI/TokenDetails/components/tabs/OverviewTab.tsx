@@ -5,6 +5,7 @@ import ContentDisplay from '../../../AssetOverview/AboutAsset/ContentDisplay';
 import Balance from '../../../AssetOverview/Balance';
 import TokenDetailsSection from '../../../AssetOverview/TokenDetails';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
+import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { useTokenBalance } from '../../hooks/useTokenBalance';
 import { useTokenPerformance } from '../../hooks/useTokenPerformance';
 import { useTokenDetailsActionTracking } from '../../hooks/useTokenDetailsActionTracking';
@@ -45,6 +46,11 @@ export interface OverviewTabProps {
   assetId: CaipAssetType | null;
   currentCurrency: string;
   securityData?: TokenSecurityData | null;
+  /**
+   * Market data already resolved by the screen, forwarded to the details list
+   * so it does not fetch the same figures a second time.
+   */
+  marketData?: FungibleAssetPrice | null;
 }
 
 const OverviewTab = ({
@@ -52,6 +58,7 @@ const OverviewTab = ({
   assetId,
   currentCurrency,
   securityData,
+  marketData,
 }: OverviewTabProps) => {
   const description = token.description ?? MOCK_TOKEN_DESCRIPTION;
 
@@ -100,6 +107,7 @@ const OverviewTab = ({
       <Box testID={OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID} twClassName="px-4">
         <TokenDetailsSection
           asset={token}
+          marketData={marketData}
           onCopyAddress={() =>
             trackActionTapped(TokenDetailsAction.CopyTokenAddress)
           }
