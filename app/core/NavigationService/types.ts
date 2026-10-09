@@ -580,6 +580,7 @@ export type RootStackParamList = {
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
   RampVbaOnboarding: NavigatorScreenParams<VbaOnboardingParamList> | undefined;
+  RampVbaDetails: undefined;
 
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;

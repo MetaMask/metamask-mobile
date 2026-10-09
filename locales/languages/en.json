@@ -1203,15 +1203,14 @@
       "button": "Try again"
     },
     "vba_details": {
-      "title": "Add Brazilian real",
-      "description": "Send BRL with PIX. It converts to mUSD on your Money Account. This screen checks for the deposit every few seconds.",
+      "title": "Add money with Pix",
+      "description": "Copy the code and paste it into Pix Copia e Cola in your bank app. Funds usually land in your Money account instantly.",
+      "copia_cola_label": "PIX Copia e Cola",
+      "pix_key_label": "PIX key",
+      "copy_label": "Copy",
+      "legal": "Your Money account is provided by [Entity], [regulated status, to confirm]. All funds are converted to mUSD when they arrive.",
       "button": "Done",
-      "autoramp_status": "Account status: {{status}}",
       "waiting_for_pix": "PIX instructions appear here once the account is approved.",
-      "br_code": "PIX code",
-      "pix_key": "PIX key",
-      "transaction_status": "Deposit: {{status}}",
-      "transaction_completed": "Completed. mUSD is on its way to your Money Account.",
       "load_error": "Couldn't refresh the deposit. We'll try again."
     }
   },

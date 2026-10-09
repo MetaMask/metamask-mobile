@@ -32,8 +32,12 @@ import { applyVbaDevOverrides } from '../vbaDevOverrides';
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
 
+type StackNavigationAction =
+  | ReturnType<typeof CommonActions.reset>
+  | ReturnType<typeof CommonActions.navigate>;
+
 interface StackController {
-  dispatch: (action: ReturnType<typeof CommonActions.reset>) => void;
+  dispatch: (action: StackNavigationAction) => void;
   getParent: () => StackController | undefined;
   getState: () => NavigationState | undefined;
 }
@@ -118,13 +122,57 @@ export const openAsOnlyOnboardingRoute = (
   }
 };
 
+/**
+ * Presents the completed account as its own root sheet. A stack reset rebuilds
+ * the native screen, so the entrance never gets the slide-from-bottom animation.
+ * If onboarding is already showing, the sheet replaces that route.
+ */
+const openCompletedVbaAccount = (navigation: AppNavigationProp): void => {
+  let current: StackController | undefined =
+    navigation as unknown as StackController;
+
+  while (current) {
+    const state = current.getState();
+    if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
+      const onboardingIndex = state.routes.findIndex(
+        (candidate) => candidate.name === Routes.RAMP.VBA_ONBOARDING,
+      );
+
+      if (onboardingIndex >= 0) {
+        current.dispatch(
+          CommonActions.reset({
+            index: onboardingIndex,
+            routes: [
+              ...(state.routes.slice(
+                0,
+                onboardingIndex,
+              ) as PartialState<NavigationState>['routes']),
+              { name: Routes.RAMP.VBA_DETAILS },
+            ],
+          }),
+        );
+        return;
+      }
+
+      current.dispatch(CommonActions.navigate(Routes.RAMP.VBA_DETAILS));
+      return;
+    }
+
+    const parent = current.getParent();
+    if (!parent || parent === current) {
+      break;
+    }
+    current = parent;
+  }
+};
+
 export const navigateToVbaOnboardingDestination = (
   navigation: AppNavigationProp,
   destinationId: VbaOnboardingDestinationId,
   snapshot?: VbaOnboardingSnapshot,
 ): void => {
   if (destinationId === 'complete') {
-    openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.DETAILS);
+    openCompletedVbaAccount(navigation);
     return;
   }
   if (destinationId === 'identityVerification') {

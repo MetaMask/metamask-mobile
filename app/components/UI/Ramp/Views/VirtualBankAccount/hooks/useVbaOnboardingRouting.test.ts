@@ -169,7 +169,15 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expectResetTo({ name: VbaOnboardingRoutes.DETAILS });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NAVIGATE',
+        payload: expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+        }),
+      }),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('opens identity verification when a session exists without recorded vendor disclaimers', async () => {
@@ -303,7 +311,14 @@ describe('useOpenVbaOnboarding', () => {
         source_currencies: [{ type: 'Fiat', code: 'BRL' }],
       }),
     );
-    expectResetTo({ name: VbaOnboardingRoutes.DETAILS });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NAVIGATE',
+        payload: expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+        }),
+      }),
+    );
   });
 
   it('registers the wallet before creating the BRL autoramp', async () => {
@@ -322,7 +337,14 @@ describe('useOpenVbaOnboarding', () => {
 
     expect(mockRegisterWallet).toHaveBeenCalledWith({ address: '0xabc' });
     expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
-    expectResetTo({ name: VbaOnboardingRoutes.DETAILS });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NAVIGATE',
+        payload: expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+        }),
+      }),
+    );
   });
 
   it('opens a retryable status when wallet lookup is unavailable', async () => {
