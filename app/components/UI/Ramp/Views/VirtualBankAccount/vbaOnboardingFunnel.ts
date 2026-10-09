@@ -10,6 +10,7 @@ export type VbaOnboardingDestinationId =
   | 'kycPending'
   | 'kycRejected'
   | 'accountProvisioningError'
+  | 'sourceCurrency'
   | 'error'
   | 'complete';
 
@@ -48,8 +49,8 @@ export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
 
 /**
  * Maps controller facts onto the next onboarding module or status destination.
- * AutoRamp provisioning is performed by `hydrateVbaOnboarding`, so it is not a
- * client-owned module.
+ * `hydrateVbaOnboarding` is a read. The source-currency screen registers the
+ * wallet and creates the autoramp.
  *
  * @param snapshot - Facts from hydrate.
  * @returns The next module or status destination.
@@ -71,6 +72,12 @@ export const getVbaDestinationForSnapshot = (
   }
 
   if (snapshot.kycStatus === 'approved') {
+    if (
+      snapshot.autorampStatus === 'needs_wallet_registration' ||
+      snapshot.autorampStatus === 'needs_source_currency'
+    ) {
+      return 'sourceCurrency';
+    }
     if (snapshot.autorampStatus === 'ready') {
       return 'complete';
     }

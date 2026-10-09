@@ -7,6 +7,7 @@ export const VbaOnboardingRoutes = {
   KYC_PENDING: 'VbaKycPending',
   KYC_REJECTED: 'VbaKycRejected',
   ACCOUNT_PROVISIONING_ERROR: 'VbaAccountProvisioningError',
+  SOURCE_CURRENCY: 'VbaSourceCurrency',
   ERROR: 'VbaError',
   DETAILS: 'VbaDetails',
 } as const;
@@ -22,6 +23,7 @@ export type VbaOnboardingParamList = {
   VbaKycPending: undefined;
   VbaKycRejected: undefined;
   VbaAccountProvisioningError: undefined;
+  VbaSourceCurrency: undefined;
   VbaError: undefined;
   VbaDetails: undefined;
 };

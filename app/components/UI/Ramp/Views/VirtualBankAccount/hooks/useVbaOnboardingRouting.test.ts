@@ -121,7 +121,11 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expect(mockHydrate).toHaveBeenCalledWith({ walletAddress: '0xabc' });
+    expect(mockHydrate).toHaveBeenCalledWith({
+      walletAddress: '0xabc',
+      refreshKyc: true,
+      refreshAutoramps: true,
+    });
     expectResetTo({ name: VbaOnboardingRoutes.VENDOR_TERMS });
   });
 
@@ -261,6 +265,23 @@ describe('useOpenVbaOnboarding', () => {
       }),
     );
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('opens currency selection when KYC is approved and no autoramp exists', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      kycStatus: 'approved',
+      autorampStatus: 'needs_source_currency',
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expectResetTo({ name: VbaOnboardingRoutes.SOURCE_CURRENCY });
   });
 
   it('opens a retryable status when account provisioning fails', async () => {
