@@ -890,6 +890,34 @@ describe('FeatureFlagOverride', () => {
 
       expect(screen.getByText('abTestFlag')).toBeOnTheScreen();
     });
+
+    it('renders the arm picker for a version-gated A/B flag the build satisfies', () => {
+      const arms = [
+        { name: 'control', scope: { type: 'threshold', value: 0.5 } },
+        { name: 'treatment', scope: { type: 'threshold', value: 1 } },
+      ];
+
+      renderWithProviders({ gatedAbFlag: { versions: { '1.0.0': arms } } }, {});
+
+      expect(screen.getByTestId('select-drop-down')).toBeOnTheScreen();
+      expect(screen.queryByPlaceholderText('Enter JSON object')).toBeNull();
+    });
+
+    it('falls back to the JSON editor for a version-gated A/B flag below its minimum version', () => {
+      const arms = [
+        { name: 'control', scope: { type: 'threshold', value: 1 } },
+      ];
+
+      renderWithProviders(
+        { gatedAbFlag: { versions: { '999.0.0': arms } } },
+        {},
+      );
+
+      expect(screen.queryByTestId('select-drop-down')).toBeNull();
+      expect(
+        screen.getByPlaceholderText('Enter JSON object'),
+      ).toBeOnTheScreen();
+    });
   });
 
   describe('Version-gated Flag Interactions', () => {
