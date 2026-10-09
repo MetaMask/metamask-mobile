@@ -102,6 +102,7 @@ const MOCK_LIMIT_FILLED_BUY_ORDER: LimitOrder = {
 };
 
 const BLOCK_EXPLORER_LABEL = strings('activity_details.view_on_block_explorer');
+const CREATE_NEW_ORDER_LABEL = strings('bridge.limit.create_new_order');
 
 const titleParams = { source: 'ETH', dest: 'USDC' };
 
@@ -275,7 +276,7 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
     const networkFeeRow = await findByTestId(NETWORK_FEE_ROW);
 
     expect(
-      within(getByTestId(TRIGGER_CONDITION_ROW)).getByText('$2160'),
+      within(getByTestId(TRIGGER_CONDITION_ROW)).getByText('$2,160.00'),
     ).toBeOnTheScreen();
     expect(within(networkFeeRow).getByText('$1.23')).toBeOnTheScreen();
     // 0.1 ETH at $2160.
@@ -338,6 +339,43 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
       exact: false,
     });
   });
+
+  it('offers no new order for an order that filled', async () => {
+    const { findByText, queryByText } = await openActivityPage(
+      MOCK_LIMIT_FILLED_ORDER,
+      [FILL_TRANSACTION],
+    );
+
+    await findByText(BLOCK_EXPLORER_LABEL);
+
+    expect(queryByText(CREATE_NEW_ORDER_LABEL)).not.toBeOnTheScreen();
+  });
+
+  it.each([
+    { name: 'expired', order: MOCK_LIMIT_EXPIRED_ORDER, transactions: [] },
+    { name: 'canceled', order: MOCK_LIMIT_CANCELLED_ORDER, transactions: [] },
+    {
+      name: 'failed',
+      order: MOCK_LIMIT_FAILED_ORDER,
+      transactions: [REVERTED_TRANSACTION],
+    },
+  ])(
+    'returns to the limit orders tab to create a new order after an $name order',
+    async ({ order, transactions }) => {
+      const { getByText, findByTestId } = await openActivityPage(
+        order,
+        transactions,
+      );
+
+      await act(async () => {
+        fireEvent.press(getByText(CREATE_NEW_ORDER_LABEL));
+      });
+
+      expect(
+        await findByTestId(OpenOrderRowSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    },
+  );
 
   it('returns to the orders list from the back button', async () => {
     const { getByTestId, findByTestId } = await openActivityPage(

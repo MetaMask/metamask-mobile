@@ -85,6 +85,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/config-registry-controller',
   '@metamask/controller-utils',
   '@metamask/core-backend',
+  '@metamask/cryptography',
   '@metamask/delegation-controller',
   '@metamask/delegation-core',
   '@metamask/delegation-deployments',

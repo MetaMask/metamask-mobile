@@ -5,6 +5,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -49,6 +50,7 @@ const StatBarItem: React.FC<StatBarItemProps> = ({
   isLast,
   onPress,
 }) => {
+  const tw = useTailwind();
   const { colors } = useTheme();
   const label = strings(STAT_LABEL_KEYS[statKey]);
   const hasValue = stat?.value != null;
@@ -71,16 +73,25 @@ const StatBarItem: React.FC<StatBarItemProps> = ({
       }`}
       testID={StatBarSelectors.cell(statKey)}
     >
-      <Text
-        variant={TextVariant.HeadingSm}
-        fontWeight={FontWeight.Medium}
-        color={valueColor}
-        numberOfLines={1}
-        style={TABULAR_NUMS}
-        testID={StatBarSelectors.value(statKey)}
-      >
-        {stat?.value ?? STAT_EMPTY_VALUE}
-      </Text>
+      {stat?.isLoading && !hasValue ? (
+        // Sized to the heading it replaces so the cell does not resize when
+        // the value lands.
+        <Skeleton
+          style={tw.style('h-[22px] w-16 rounded-md')}
+          testID={StatBarSelectors.skeleton(statKey)}
+        />
+      ) : (
+        <Text
+          variant={TextVariant.HeadingSm}
+          fontWeight={FontWeight.Medium}
+          color={valueColor}
+          numberOfLines={1}
+          style={TABULAR_NUMS}
+          testID={StatBarSelectors.value(statKey)}
+        >
+          {stat?.value ?? STAT_EMPTY_VALUE}
+        </Text>
+      )}
 
       <TouchableOpacity
         onPress={handlePress}

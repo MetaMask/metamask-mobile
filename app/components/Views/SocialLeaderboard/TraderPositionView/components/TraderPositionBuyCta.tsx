@@ -21,8 +21,10 @@ import {
 } from '../abTestConfig';
 import TraderPositionQuickBuy, {
   positionToQuickBuyTarget,
+  type QuickBuyTarget,
 } from '../../../../UI/QuickBuy';
 import { useQuickBuySetup } from '../../../../UI/QuickBuy/hooks/useQuickBuySetup';
+import { usePostSwapShareReopen } from '../../PostSwapShareBottomSheet';
 import type {
   QuickBuyOriginalEntryPoint,
   QuickBuySheetSource,
@@ -46,6 +48,8 @@ export interface TraderPositionBuyCtaProps {
   originalEntryPoint?: QuickBuyOriginalEntryPoint;
   /** `true` when the trader has closed the position (sell); `false` when open. */
   isTraderPositionClosed?: boolean;
+  /** Whether this position was opened from the Social V1 surface. */
+  postSwapShare?: boolean;
   /**
    * Fires the follow-trading CTA-clicked analytics and marks the CTA as clicked
    * so the parent's "dismissed" event is suppressed. Called for both variants.
@@ -73,6 +77,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   source,
   originalEntryPoint,
   isTraderPositionClosed,
+  postSwapShare,
   onBuyCtaClicked,
   buyButtonTestID,
 }) => {
@@ -164,6 +169,20 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
     setIsQuickBuyVisible(false);
   }, []);
 
+  const handlePostSwapReopen = useCallback(
+    (reopenTarget: QuickBuyTarget) => {
+      if (
+        target &&
+        target.tokenAddress === reopenTarget.tokenAddress &&
+        target.chain === reopenTarget.chain
+      ) {
+        setIsQuickBuyVisible(true);
+      }
+    },
+    [target],
+  );
+  usePostSwapShareReopen(handlePostSwapReopen);
+
   return (
     <>
       <Box twClassName="px-4 py-3">
@@ -188,6 +207,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
         source={source}
         originalEntryPoint={originalEntryPoint}
         isTraderPositionClosed={isTraderPositionClosed}
+        postSwapShare={postSwapShare}
       />
     </>
   );

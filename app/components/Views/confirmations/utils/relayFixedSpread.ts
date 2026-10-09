@@ -214,6 +214,40 @@ export const getRelayFixedSpreadRoutesWithSymbols = (
     .filter((route): route is RelayFixedSpreadAliasRoute => route !== null);
 };
 
+/** Monad mUSD → Hyperliquid perps USDC, as listed in the fixed-spread flag. */
+export const PERPS_MONEY_ACCOUNT_NO_FEE_ROUTE = [
+  'monad',
+  'musd',
+  'hyperliquid',
+  'hypercore_usdc',
+] as const;
+
+/**
+ * True when {@link remoteValue} lists {@link expectedRoute} in `routes`.
+ * Alias names are compared exactly. Missing or invalid payloads are false.
+ */
+export const hasRelayFixedSpreadAliasRoute = (
+  remoteValue: unknown,
+  expectedRoute: readonly [string, string, string, string],
+): boolean => {
+  if (remoteValue === undefined || remoteValue === null || remoteValue === '') {
+    return false;
+  }
+
+  const parsed =
+    typeof remoteValue === 'string' ? tryJsonParse(remoteValue) : remoteValue;
+  if (!isStringRecord(parsed) || !Array.isArray(parsed.routes)) {
+    return false;
+  }
+
+  return parsed.routes.some(
+    (tuple) =>
+      Array.isArray(tuple) &&
+      tuple.length === expectedRoute.length &&
+      expectedRoute.every((alias, index) => tuple[index] === alias),
+  );
+};
+
 const addressesEqual = (
   a: string | undefined,
   b: string | undefined,

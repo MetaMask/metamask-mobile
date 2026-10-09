@@ -246,6 +246,22 @@ describe('buildPerpsOrderParams', () => {
     expect(params).not.toHaveProperty('takeProfitPrice');
     expect(params).not.toHaveProperty('stopLossPrice');
   });
+
+  it('passes the margin mode through when provided', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'market',
+      marginMode: 'cross',
+    });
+
+    expect(params.marginMode).toBe('cross');
+  });
+
+  it('omits the margin mode when not provided', () => {
+    const params = buildPerpsOrderParams({ ...base, orderType: 'market' });
+
+    expect(params).not.toHaveProperty('marginMode');
+  });
 });
 
 describe('buildPerpsOrderTrackingData', () => {

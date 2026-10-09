@@ -47,7 +47,7 @@ const ExpirationRow: React.FC<ExpirationRowProps> = ({
         >
           <Text
             variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
+            color={TextColor.TextDefault}
             testID={ExpirationRowSelectorsIDs.VALUE}
           >
             {value}
