@@ -77,6 +77,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     handleDonePress,
     confirmButtonProps,
     feeResults,
+    rewardsState,
     summaryMargin,
     summaryPnl,
     receiveAmount,
@@ -310,8 +311,11 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
               twClassName="flex-row items-center justify-center gap-2 pt-2"
               testID={PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER}
             >
-              {(feeResults.feeDiscountPercentage ?? 0) > 0 ? (
-                <RewardsVipBadge />
+              {rewardsState.feeSource === 'subscription' ||
+              (feeResults.feeDiscountPercentage ?? 0) > 0 ? (
+                <RewardsVipBadge
+                  hasProEntitlement={rewardsState.feeSource === 'subscription'}
+                />
               ) : null}
               <Text
                 variant={TextVariant.BodyXs}

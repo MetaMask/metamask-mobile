@@ -6,6 +6,7 @@ import {
   formatAccountToCaipAccountId,
   type Position,
   type FeeCalculationResult,
+  type PerpsFeeSource,
 } from '@metamask/perps-controller';
 import type {
   EstimatePointsDto,
@@ -31,6 +32,11 @@ export interface CloseAllCalculationsResult {
   totalEstimatedPoints: number | undefined;
   /** Average fee discount percentage across all positions (undefined when unavailable) */
   avgFeeDiscountPercentage: number | undefined;
+  /**
+   * Fee source when every position reports the same one. Undefined when they
+   * differ, so the summary does not badge a source that covers only part of the close.
+   */
+  feeSource: PerpsFeeSource | undefined;
   /** Average bonus multiplier in basis points (undefined when unavailable) */
   avgBonusBips: number | undefined;
   /** Average MetaMask fee rate across all positions (undefined when unavailable) */
@@ -353,6 +359,7 @@ export function usePerpsCloseAllCalculations({
         totalFees: undefined,
         totalEstimatedPoints: undefined,
         avgFeeDiscountPercentage: undefined,
+        feeSource: undefined,
         avgBonusBips: undefined,
         avgMetamaskFeeRate: undefined,
         avgProtocolFeeRate: undefined,
@@ -360,6 +367,17 @@ export function usePerpsCloseAllCalculations({
         shouldShowRewards: false,
       };
     }
+
+    // Badge the summary only when every position was priced from the same source.
+    const reportedSources = perPositionResults.map(
+      (result) => result.fees.feeSource,
+    );
+    const [firstSource] = reportedSources;
+    const sourcesAgree = reportedSources.every(
+      (source) => source === firstSource,
+    );
+    const feeSource: PerpsFeeSource | undefined =
+      sourcesAgree && firstSource !== undefined ? firstSource : undefined;
 
     // Sum fees and points
     const totalFees = perPositionResults.reduce(
@@ -437,6 +455,7 @@ export function usePerpsCloseAllCalculations({
       totalFees,
       totalEstimatedPoints,
       avgFeeDiscountPercentage,
+      feeSource,
       avgBonusBips,
       avgMetamaskFeeRate,
       avgProtocolFeeRate,
@@ -461,6 +480,7 @@ export function usePerpsCloseAllCalculations({
     receiveAmount,
     totalEstimatedPoints: aggregatedResults.totalEstimatedPoints,
     avgFeeDiscountPercentage: aggregatedResults.avgFeeDiscountPercentage,
+    feeSource: aggregatedResults.feeSource,
     avgBonusBips: aggregatedResults.avgBonusBips,
     avgMetamaskFeeRate: aggregatedResults.avgMetamaskFeeRate,
     avgProtocolFeeRate: aggregatedResults.avgProtocolFeeRate,

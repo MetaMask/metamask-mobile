@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
+import type { PerpsFeeSource } from '@metamask/perps-controller';
 import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 import { createStyles } from './PerpsFeesDisplay.styles';
 import { useTheme } from '../../../../../util/theme';
@@ -22,6 +23,13 @@ interface PerpsFeesDisplayProps {
    */
   feeDiscountPercentage?: number;
   /**
+   * Winning source of the fee resolution this quote was priced from.
+   * `subscription` renders the member badge; `rewards` (with a positive
+   * `feeDiscountPercentage`) renders the VIP badge instead. When omitted,
+   * the VIP badge falls back to `feeDiscountPercentage` alone.
+   */
+  feeSource?: PerpsFeeSource;
+  /**
    * Fee amount in USD **after** any VIP discount has been applied.
    * When `undefined`, a placeholder is rendered.
    */
@@ -42,6 +50,7 @@ interface PerpsFeesDisplayProps {
 
 const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
   feeDiscountPercentage,
+  feeSource,
   fee,
   originalFee,
   placeholder = '--',
@@ -53,16 +62,22 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  // `subscription` always wins a member badge, regardless of discount size.
+  // `rewards` (or an unknown source, for callers not yet passing `feeSource`)
+  // falls back to the discount-based VIP badge.
+  const showMemberBadge = feeSource === 'subscription';
   const showVipBadge =
-    feeDiscountPercentage !== undefined && feeDiscountPercentage > 0;
+    !showMemberBadge &&
+    feeDiscountPercentage !== undefined &&
+    feeDiscountPercentage > 0;
 
   const showStrikethrough = useMemo(
     () =>
-      showVipBadge &&
+      (showVipBadge || showMemberBadge) &&
       originalFee !== undefined &&
       fee !== undefined &&
       originalFee > fee,
-    [showVipBadge, originalFee, fee],
+    [showVipBadge, showMemberBadge, originalFee, fee],
   );
 
   const feeText = useMemo(() => {
@@ -77,9 +92,9 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
 
   return (
     <View style={styles.feeRowContent}>
-      {showVipBadge ? (
+      {showMemberBadge || showVipBadge ? (
         <View style={styles.vipBadgeContainer}>
-          <RewardsVipBadge />
+          <RewardsVipBadge hasProEntitlement={showMemberBadge} />
         </View>
       ) : null}
       {originalFeeText !== undefined ? (

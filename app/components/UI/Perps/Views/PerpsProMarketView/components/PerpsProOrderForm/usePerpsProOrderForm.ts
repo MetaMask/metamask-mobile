@@ -16,6 +16,7 @@ import {
   splitScaleSizes,
   type ChaseOrder,
   type OrderType,
+  type PerpsFeeSource,
   type PerpsMarketData,
   type PerpsProviderType,
   type Position,
@@ -557,6 +558,7 @@ export interface UsePerpsProOrderFormResult {
   feeProtocolFeeRate: number | undefined;
   feeOriginalMetamaskFeeRate: number | undefined;
   feeDiscountPercentage: number | undefined;
+  feeSource: PerpsFeeSource | undefined;
 }
 
 /**
@@ -3315,6 +3317,7 @@ export const usePerpsProOrderForm = ({
       fee: hasValidAmount ? estimatedFees : undefined,
       originalFee: hasValidAmount ? undiscountedEstimatedFees : undefined,
       feeDiscountPercentage: feeResults.feeDiscountPercentage,
+      feeSource: feeResults.feeSource,
       onFeesInfoPress: () => setSelectedTooltip('fees'),
       twapSummary: isTwapOrder
         ? {
@@ -3339,6 +3342,7 @@ export const usePerpsProOrderForm = ({
     estimatedFees,
     undiscountedEstimatedFees,
     feeResults.feeDiscountPercentage,
+    feeResults.feeSource,
     onSlippagePress,
     isPositionModifyPreviewEnabled,
     positionModifySummaryDisplay,
@@ -4024,6 +4028,7 @@ export const usePerpsProOrderForm = ({
     feeProtocolFeeRate: feeResults.protocolFeeRate,
     feeOriginalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
     feeDiscountPercentage: feeResults.feeDiscountPercentage,
+    feeSource: feeResults.feeSource,
   };
 };
 

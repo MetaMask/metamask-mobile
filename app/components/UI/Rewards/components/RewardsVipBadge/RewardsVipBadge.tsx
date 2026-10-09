@@ -25,8 +25,10 @@ const styles = StyleSheet.create({
 
 interface RewardsVipBadgeProps {
   /**
-   * True when the parent says this feature's waiver is a Plus entitlement.
-   * Omitted means the Member badge stays hidden.
+   * True when this fee was priced from a Plus entitlement.
+   * Membership wins over a VIP tier, so a subscription-priced fee stays a
+   * Member chip even when the account also has a VIP tier.
+   * Omitted means only the VIP badge can appear.
    */
   hasProEntitlement?: boolean;
 }
@@ -35,18 +37,6 @@ const RewardsVipBadge: React.FC<RewardsVipBadgeProps> = ({
   hasProEntitlement = false,
 }) => {
   const vipTier = useVipTier();
-
-  if (vipTier) {
-    return (
-      <RewardsDiscountBadge
-        testID="rewards-vip-badge"
-        startIcon={<VipIcon name="VipIcon" width={14} height={14} />}
-        label={strings('rewards.vip.badge_label', {
-          tier: vipTier.toString(),
-        })}
-      />
-    );
-  }
 
   if (hasProEntitlement) {
     return (
@@ -58,6 +48,18 @@ const RewardsVipBadge: React.FC<RewardsVipBadgeProps> = ({
         label={strings('rewards.pro_member_badge_label')}
         borderColors={MEMBER_BORDER_COLORS}
         labelStyle={styles.memberLabel}
+      />
+    );
+  }
+
+  if (vipTier) {
+    return (
+      <RewardsDiscountBadge
+        testID="rewards-vip-badge"
+        startIcon={<VipIcon name="VipIcon" width={14} height={14} />}
+        label={strings('rewards.vip.badge_label', {
+          tier: vipTier.toString(),
+        })}
       />
     );
   }
