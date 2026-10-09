@@ -11,7 +11,11 @@ import {
   ToastVariants,
 } from '../../../../../../component-library/components/Toast';
 import type { ToastRef } from '../../../../../../component-library/components/Toast/Toast.types';
-import { useCardWalletProvisioning } from './useCardWalletProvisioning';
+import {
+  resolveWalletEntry,
+  useCardWalletProvisioning,
+  type WalletEntry,
+} from './useCardWalletProvisioning';
 import {
   CardStatus,
   CardType,
@@ -95,7 +99,7 @@ function renderProvisioning(
     current: { showToast, closeToast },
   },
 ) {
-  return renderHook(() => useCardWalletProvisioning(data), {
+  return renderHook(() => useCardWalletProvisioning(data, true), {
     wrapper: ({ children }) =>
       React.createElement(
         ToastContext.Provider,
@@ -256,5 +260,63 @@ describe('useCardWalletProvisioning', () => {
     onError({ message: 'Wallet rejected the card' });
 
     expect(showToast).not.toHaveBeenCalled();
+  });
+});
+
+type WalletEntryInput = Parameters<typeof resolveWalletEntry>[0];
+
+const activeCard: WalletEntryInput = {
+  cardStatus: CardStatus.ACTIVE,
+  isEligibilityLoading: false,
+  canAddToWallet: false,
+  isCardInWallet: false,
+  platformWalletSupported: true,
+};
+
+describe('resolveWalletEntry', () => {
+  it.each<{ label: string; input: WalletEntryInput; expected: WalletEntry }>([
+    {
+      label: 'a frozen card',
+      input: {
+        ...activeCard,
+        cardStatus: CardStatus.FROZEN,
+        platformWalletSupported: false,
+      },
+      expected: 'none',
+    },
+    {
+      label: 'a blocked card',
+      input: { ...activeCard, cardStatus: CardStatus.BLOCKED },
+      expected: 'none',
+    },
+    {
+      label: 'an active card while eligibility is loading',
+      input: { ...activeCard, isEligibilityLoading: true },
+      expected: 'none',
+    },
+    {
+      label: 'an active card that can be added to the wallet',
+      input: { ...activeCard, canAddToWallet: true },
+      expected: 'push',
+    },
+    {
+      label: 'an active card whose platform wallet is unsupported',
+      input: { ...activeCard, platformWalletSupported: false },
+      expected: 'instructions',
+    },
+    {
+      label: 'an active card that is not yet in a supported wallet',
+      input: activeCard,
+      expected: 'instructions',
+    },
+    {
+      label: 'an active card that is already in the wallet',
+      input: { ...activeCard, isCardInWallet: true },
+      expected: 'none',
+    },
+  ])('returns $expected for $label', ({ input, expected }) => {
+    const result = resolveWalletEntry(input);
+
+    expect(result).toBe(expected);
   });
 });
