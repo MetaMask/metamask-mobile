@@ -722,6 +722,9 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOW_BUTTON),
     ).toBeOnTheScreen();
     expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY),
+    ).toHaveTextContent('alpha.eth');
+    expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB),
     ).toBeOnTheScreen();
     expect(
