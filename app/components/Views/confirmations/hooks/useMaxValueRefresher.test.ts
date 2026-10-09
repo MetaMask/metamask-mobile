@@ -71,7 +71,8 @@ describe('useMaxValueRefresher', () => {
     });
 
     expect(mockUpdateEditableParams).toHaveBeenCalledWith(transactionId, {
-      value: '0xb', // 16 - 11 = 5
+      updateType: false,
+      value: '0xb', // 16 - 5 = 11
     });
   });
 
