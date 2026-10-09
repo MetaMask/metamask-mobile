@@ -198,6 +198,40 @@ describe('MultichainAccountSelectorList', () => {
     expect(getByText('Wallet 2')).toBeTruthy();
   });
 
+  it('injects optional per-row non-token balances without fetching them itself', () => {
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+    );
+    const account2 = createMockAccountGroup(
+      'keyring:wallet1/group2',
+      'Account 2',
+    );
+    const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
+      account1,
+      account2,
+    ]);
+    const internalAccounts = createMockInternalAccountsFromGroups([
+      account1,
+      account2,
+    ]);
+    const getNonTokenBalance = jest.fn((accountGroupId: string) =>
+      accountGroupId === account1.id ? 1000 : 100,
+    );
+
+    const { getByText } = renderComponentWithMockState(
+      [wallet1],
+      internalAccounts,
+      [account1],
+      { getNonTokenBalance },
+    );
+
+    expect(getNonTokenBalance).toHaveBeenCalledWith(account1.id);
+    expect(getNonTokenBalance).toHaveBeenCalledWith(account2.id);
+    expect(getByText('$1,000.00')).toBeOnTheScreen();
+    expect(getByText('$100.00')).toBeOnTheScreen();
+  });
+
   it('excludes hidden account groups from the default selector list', () => {
     const visibleAccount = createMockAccountGroup(
       'keyring:wallet1/group1',

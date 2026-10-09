@@ -38,6 +38,42 @@ jest.mock('../../../../selectors/assets/balances', () => ({
   }),
 }));
 
+jest.mock('../../../../hooks/useABTest', () => ({
+  useABTest: () => ({
+    variant: { showBalanceBreakdown: false },
+    isActive: false,
+  }),
+}));
+
+jest.mock('../../../../components/UI/Money/hooks/useMoneyAccountInfo', () => ({
+  __esModule: true,
+  default: () => ({
+    isMoneyAccountFeatureEnabled: false,
+    hasMoneyAccount: false,
+    primaryMoneyAccount: undefined,
+  }),
+}));
+
+jest.mock(
+  '../../../../components/UI/Money/hooks/useMoneyAccountBalance',
+  () => ({
+    __esModule: true,
+    default: () => ({
+      isBalanceUnavailable: true,
+      totalFiatRaw: undefined,
+    }),
+  }),
+);
+
+jest.mock(
+  '../../../../components/Views/Homepage/BalanceBreakdown/hooks/useFiatNormalizer',
+  () => ({
+    useFiatNormalizer: () => ({
+      toUserCurrency: (amount: number) => amount,
+    }),
+  }),
+);
+
 jest.mock('../../../../selectors/multichain/multichain', () => ({
   selectMultichainIsMainnet: () => true,
   selectIsEvmNetworkSelected: () => true,

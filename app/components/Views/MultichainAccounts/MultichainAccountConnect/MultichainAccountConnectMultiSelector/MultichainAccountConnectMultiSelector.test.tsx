@@ -157,6 +157,9 @@ const createMockState = (
         KeyringController: {
           keyrings: [],
         },
+        MoneyAccountController: {
+          moneyAccounts: {},
+        },
         MultichainNetworkController: {
           multichainNetworkConfigurationsByChainId: {
             'eip155:1': {

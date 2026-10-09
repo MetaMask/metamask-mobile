@@ -53,6 +53,10 @@ export interface MultichainAccountSelectorListProps
    */
   showCheckbox?: boolean;
   /**
+   * Optional boolean to show account balances.
+   */
+  showBalance?: boolean;
+  /**
    * Optional boolean to show footer
    */
   showFooter?: boolean;
@@ -93,6 +97,12 @@ export interface MultichainAccountSelectorListProps
    * The parent component is responsible for determining if an address is external.
    */
   selectedExternalAddress?: string;
+  /**
+   * Optional per-row non-token balance (Money ± selected-account primitives).
+   * Injected by account-menu surfaces that opt into balance aggregation;
+   * other selector consumers leave this unset so they do not mount those queries.
+   */
+  getNonTokenBalance?: (accountGroupId: string) => number | null;
 }
 
 /**

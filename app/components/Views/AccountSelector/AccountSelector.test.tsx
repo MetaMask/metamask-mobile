@@ -24,6 +24,10 @@ import {
 } from '../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
+jest.mock('../../hooks/useNonTokenBalance', () => ({
+  useAccountListNonTokenBalance: jest.fn(() => () => undefined),
+}));
+
 // Mock Engine
 jest.mock('../../../core/Engine', () => ({
   context: {

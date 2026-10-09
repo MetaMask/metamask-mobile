@@ -53,6 +53,7 @@ import {
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import AccountListBalanceProviders from '../../hooks/AccountListBalanceProviders';
 import { AccountHubSelectorsIDs } from './AccountHub.testIds';
 
 const AccountHub = () => {
@@ -297,13 +298,18 @@ const AccountHub = () => {
       />
 
       {selectedAccountGroup ? (
-        <MultichainAccountSelectorList
-          onSelectAccount={handleSelectAccount}
-          selectedAccountGroups={selectedAccountGroups}
-          hideSearch
-          ListHeaderComponent={listHeader}
-          testID={AccountHubSelectorsIDs.ACCOUNT_LIST}
-        />
+        <AccountListBalanceProviders>
+          {(getNonTokenBalance) => (
+            <MultichainAccountSelectorList
+              onSelectAccount={handleSelectAccount}
+              selectedAccountGroups={selectedAccountGroups}
+              hideSearch
+              ListHeaderComponent={listHeader}
+              getNonTokenBalance={getNonTokenBalance}
+              testID={AccountHubSelectorsIDs.ACCOUNT_LIST}
+            />
+          )}
+        </AccountListBalanceProviders>
       ) : (
         <ScrollView style={tw.style('flex-1')}>{listHeader}</ScrollView>
       )}
