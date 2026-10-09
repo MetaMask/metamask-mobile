@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Bumped stellar-wallet-snap from 1.1.0 to 1.1.1 (#37406)
 - Added fee-estimation error details to transaction event telemetry (#37104)
 - Updated swap quote handling to support use outside the Bridge experience (#36734)
 - Updated Money balance and staking and lending earnings styling (#37082)
