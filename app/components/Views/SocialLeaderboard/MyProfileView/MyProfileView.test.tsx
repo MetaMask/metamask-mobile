@@ -52,6 +52,7 @@ const mockUseTraderPositions = jest.fn<
 const mockUseMyProfilePosts = jest.fn<UseMyProfilePostsResult, []>();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>();
 const mockUseFollowedTraders = jest.fn<UseFollowedTradersResult, []>();
+const mockSetTitleSectionHeight = jest.fn();
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -64,16 +65,18 @@ jest.mock('@metamask/design-system-react-native', () => {
     onBack,
     testID,
     backButtonProps,
+    includesTopInset,
   }: {
     title?: React.ReactNode;
     subtitle?: React.ReactNode;
     onBack?: () => void;
     testID?: string;
     backButtonProps?: { testID?: string };
+    includesTopInset?: boolean;
   }) =>
     ReactActual.createElement(
       View,
-      { testID, style: { marginTop: 1 } },
+      { testID, style: includesTopInset ? { marginTop: 1 } : undefined },
       ReactActual.createElement(
         Pressable,
         { onPress: onBack, testID: backButtonProps?.testID },
@@ -89,7 +92,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     useHeaderStandardAnimated: () => ({
       scrollY: { value: 0 },
       onScroll: jest.fn(),
-      setTitleSectionHeight: jest.fn(),
+      setTitleSectionHeight: mockSetTitleSectionHeight,
       titleSectionHeightSv: { value: 0 },
     }),
   };
@@ -311,6 +314,7 @@ describe('MyProfileView', () => {
       nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 320 } },
     });
 
+    expect(mockSetTitleSectionHeight).toHaveBeenCalledWith(320);
     expect(titleSectionWrapper).toBeOnTheScreen();
   });
 
