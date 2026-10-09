@@ -9,6 +9,8 @@ export const VbaOnboardingRoutes = {
   ACCOUNT_PROVISIONING_ERROR: 'VbaAccountProvisioningError',
   ERROR: 'VbaError',
   DETAILS: 'VbaDetails',
+  DEV_PREVIEW: 'VbaDevPreview',
+  DEV_SCREEN: 'VbaDevScreen',
 } as const;
 
 // React Navigation param lists must remain type aliases for strict route keys.
@@ -24,6 +26,10 @@ export type VbaOnboardingParamList = {
   VbaAccountProvisioningError: undefined;
   VbaError: undefined;
   VbaDetails: undefined;
+  VbaDevPreview: undefined;
+  VbaDevScreen: {
+    screenId: string;
+  };
 };
 
 export const VbaIdentityVerificationRoutes = {

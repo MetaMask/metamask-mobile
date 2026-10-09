@@ -71,10 +71,13 @@ export const useLaunchSumSub = (
     result: VbaIdentityVerificationCompletion,
   ) => void | Promise<void>,
   initialNeedsMoreInfo = false,
+  initialHasError = false,
 ): UseLaunchSumSubResult => {
-  const [isLaunching, setIsLaunching] = useState(!initialNeedsMoreInfo);
+  const [isLaunching, setIsLaunching] = useState(
+    !initialNeedsMoreInfo && !initialHasError,
+  );
   const [needsMoreInfo, setNeedsMoreInfo] = useState(initialNeedsMoreInfo);
-  const [hasError, setHasError] = useState(false);
+  const [hasError, setHasError] = useState(initialHasError);
   const [attempt, setAttempt] = useState(0);
   // Guards against React 18 strict-mode double-invoke and re-renders launching
   // the SDK more than once per attempt.
@@ -90,7 +93,7 @@ export const useLaunchSumSub = (
   }, []);
 
   useEffect(() => {
-    if (initialNeedsMoreInfo && attempt === 0) {
+    if ((initialNeedsMoreInfo || initialHasError) && attempt === 0) {
       return undefined;
     }
     if (inFlightRef.current) {
@@ -145,7 +148,7 @@ export const useLaunchSumSub = (
       cancelled = true;
       inFlightRef.current = false;
     };
-  }, [attempt, initialNeedsMoreInfo, onSubmitted]);
+  }, [attempt, initialHasError, initialNeedsMoreInfo, onSubmitted]);
 
   return { isLaunching, needsMoreInfo, hasError, retry };
 };

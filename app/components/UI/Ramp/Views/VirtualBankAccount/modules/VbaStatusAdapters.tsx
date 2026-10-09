@@ -1,9 +1,14 @@
 import React, { useCallback } from 'react';
+import { strings } from '../../../../../../../locales/i18n';
+import VbaIllustration, { VbaIllustrationSource } from '../VbaIllustration';
 import VbaKycRejected from '../VbaKycRejected';
+import VbaOnboardingError from '../VbaOnboardingError';
 import VbaOnboardingStub, {
   type VbaOnboardingStubVariant,
 } from '../VbaOnboardingStub';
 import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
+
+type VbaOnboardingErrorVariant = 'account_provisioning_error' | 'error';
 
 interface VbaStatusAdapterProps {
   variant: VbaOnboardingStubVariant;
@@ -30,8 +35,31 @@ export const VbaKycRejectedAdapter = () => {
   return <VbaKycRejected onRetry={handleRetry} />;
 };
 
+const VbaOnboardingErrorAdapter = ({
+  variant,
+}: {
+  variant: VbaOnboardingErrorVariant;
+}) => {
+  const openOnboarding = useOpenVbaOnboarding(`${variant}-retry`);
+  const handleRetry = useCallback(() => openOnboarding(), [openOnboarding]);
+
+  return (
+    <VbaOnboardingError
+      illustration={<VbaIllustration source={VbaIllustrationSource.failure} />}
+      title={strings(`virtual_bank_account.${variant}.title`)}
+      description={strings(`virtual_bank_account.${variant}.description`)}
+      primaryAction={{
+        label: strings(`virtual_bank_account.${variant}.button`),
+        onPress: handleRetry,
+      }}
+    />
+  );
+};
+
 export const VbaAccountProvisioningErrorAdapter = () => (
-  <VbaStatusAdapter variant="account_provisioning_error" />
+  <VbaOnboardingErrorAdapter variant="account_provisioning_error" />
 );
 
-export const VbaErrorAdapter = () => <VbaStatusAdapter variant="error" />;
+export const VbaErrorAdapter = () => (
+  <VbaOnboardingErrorAdapter variant="error" />
+);

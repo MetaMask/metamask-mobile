@@ -1181,6 +1181,16 @@
       "description": "We're still reviewing your identity. This usually takes a few minutes.",
       "button": "Check status"
     },
+    "kyc_verifying": {
+      "title": "Verifying your identity",
+      "description": "Most checks finish in about 10 seconds. You can come back later; we'll let you know when your check is complete.",
+      "button": "Come back later"
+    },
+    "kyc_verified": {
+      "title": "Identity verified",
+      "description": "Your identity check is complete.",
+      "button": "Continue"
+    },
     "kyc_rejected": {
       "title": "Verification unsuccessful",
       "description": "We couldn't verify your identity. You can try again or contact support.",

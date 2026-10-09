@@ -24,11 +24,6 @@ describe('VbaOnboardingStub', () => {
 
   it.each([
     ['kyc_pending', 'vba-onboarding-stub-container-kyc_pending'],
-    [
-      'account_provisioning_error',
-      'vba-onboarding-stub-container-account_provisioning_error',
-    ],
-    ['error', 'vba-onboarding-stub-container-error'],
   ] as const)('renders the %s stub', (variant, testId) => {
     const { getByTestId } = renderWithProvider(
       <VbaOnboardingStub
@@ -54,7 +49,7 @@ describe('VbaOnboardingStub', () => {
 
   it('navigates back from the header', () => {
     const { getByTestId } = renderWithProvider(
-      <VbaOnboardingStub variant="error" onContinue={mockOnContinue} />,
+      <VbaOnboardingStub variant="kyc_pending" onContinue={mockOnContinue} />,
     );
 
     fireEvent.press(getByTestId(VbaOnboardingStubSelectorsIDs.BACK_BUTTON));
