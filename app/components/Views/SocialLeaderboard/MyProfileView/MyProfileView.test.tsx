@@ -53,6 +53,48 @@ const mockUseMyProfilePosts = jest.fn<UseMyProfilePostsResult, []>();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>();
 const mockUseFollowedTraders = jest.fn<UseFollowedTradersResult, []>();
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { Pressable, Text, View } = jest.requireActual('react-native');
+
+  const MockHeaderStandardAnimated = ({
+    title,
+    subtitle,
+    onBack,
+    testID,
+    backButtonProps,
+  }: {
+    title?: React.ReactNode;
+    subtitle?: React.ReactNode;
+    onBack?: () => void;
+    testID?: string;
+    backButtonProps?: { testID?: string };
+  }) =>
+    ReactActual.createElement(
+      View,
+      { testID, style: { marginTop: 1 } },
+      ReactActual.createElement(
+        Pressable,
+        { onPress: onBack, testID: backButtonProps?.testID },
+        ReactActual.createElement(Text, null, 'back'),
+      ),
+      title,
+      subtitle,
+    );
+
+  return {
+    ...actual,
+    HeaderStandardAnimated: MockHeaderStandardAnimated,
+    useHeaderStandardAnimated: () => ({
+      scrollY: { value: 0 },
+      onScroll: jest.fn(),
+      setTitleSectionHeight: jest.fn(),
+      titleSectionHeightSv: { value: 0 },
+    }),
+  };
+});
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
