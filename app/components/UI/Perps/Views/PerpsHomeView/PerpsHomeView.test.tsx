@@ -154,6 +154,7 @@ jest.mock(
 const mockNavigateBack = jest.fn();
 const mockNavigateToWallet = jest.fn();
 const mockNavigateToMarketList = jest.fn();
+const mockNavigateToMarketDetails = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
@@ -165,7 +166,7 @@ jest.mock('../../hooks', () => ({
   usePerpsMeasurement: jest.fn(),
   usePerpsNavigation: jest.fn(() => ({
     navigateTo: jest.fn(),
-    navigateToMarketDetails: jest.fn(),
+    navigateToMarketDetails: mockNavigateToMarketDetails,
     navigateToMarketList: mockNavigateToMarketList,
     navigateToWallet: mockNavigateToWallet,
     navigateBack: mockNavigateBack,
@@ -1905,6 +1906,36 @@ describe('PerpsHomeView', () => {
         defaultMarketTypeFilter: 'new',
         source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       });
+    });
+
+    it('navigates to market details with source_section=recently_added when a tile is pressed', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsRecentlyAddedEnabledFlag,
+      );
+      const recentlyAddedMarket = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        price: '$50000',
+        change24h: '+$1250',
+        change24hPercent: '+2.5%',
+        volume: '$1.2B',
+        listedAt: Date.now() - 3 * 60 * 60 * 1000,
+      };
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [recentlyAddedMarket],
+      });
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(getByTestId('perps-recently-added-tile-BTC'));
+
+      expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
+        recentlyAddedMarket,
+        PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        undefined,
+        'recently_added',
+      );
     });
   });
 });

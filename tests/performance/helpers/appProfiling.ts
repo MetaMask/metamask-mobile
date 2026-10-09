@@ -28,8 +28,28 @@ const PROFILE_OUTPUT_DIRECTORY = 'tests/reporters/reports/hermes-cpuprofiles';
 const SEGMENT_FILE_PREFIX = 'metamask-performance.segment-';
 // The dump is written before the app is allowed to settle in the background,
 // so this only has to cover writing and transferring a multi-megabyte trace.
-const SEGMENT_WAIT_TIMEOUT_MS = 30_000;
-const SEGMENT_POLL_INTERVAL_MS = 1_000;
+// Keep this short on BrowserStack: a missing path makes `pullFile` fail, and
+// WDIO connection retries re-run the same adb failure with backoff — a 30s
+// budget routinely burned ~3 full retry chains (~30s) of WARN spam per test.
+const SEGMENT_WAIT_TIMEOUT_MS = 12_000;
+// Local sleep between our polls. Each failed pull already spends seconds in
+// WDIO retries, so a longer interval mainly avoids stacking another chain
+// immediately after the previous one finishes.
+const SEGMENT_POLL_INTERVAL_MS = 2_500;
+
+/**
+ * Hermes `.cpuprofile` harvest is opt-in. PR performance runs skip it (profiles
+ * are only analyzed after schedule/manual runs). Set
+ * `COLLECT_HERMES_CPUPROFILES=true` to enable.
+ *
+ * Bracket access + babel exclude (see babel.config.tests.js /
+ * transform-inline-environment-variables) keep this readable at runtime —
+ * same pattern as sessionReuse.
+ */
+export function isHermesCpuProfileCollectionEnabled(): boolean {
+  // eslint-disable-next-line dot-notation
+  return process.env['COLLECT_HERMES_CPUPROFILES'] === 'true';
+}
 // Segment indices are assigned by the app and probed until the first gap; this
 // only bounds the probing if a device ever returns nonsense.
 const MAX_SEGMENTS_PER_TEST = 20;
@@ -112,34 +132,37 @@ async function pullSegment(
 async function waitForSegment(
   appiumDriver: PullFileDriver,
   remotePath: string,
+  timeoutMs: number = SEGMENT_WAIT_TIMEOUT_MS,
 ): Promise<Buffer | null> {
-  const deadline = Date.now() + SEGMENT_WAIT_TIMEOUT_MS;
+  const deadline = Date.now() + timeoutMs;
 
   for (;;) {
     const buffer = await pullSegment(appiumDriver, remotePath);
     if (buffer) {
       return buffer;
     }
-    if (Date.now() >= deadline) {
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) {
       return null;
     }
     await new Promise<void>((resolve) => {
-      setTimeout(resolve, SEGMENT_POLL_INTERVAL_MS);
+      setTimeout(resolve, Math.min(SEGMENT_POLL_INTERVAL_MS, remainingMs));
     });
   }
 }
 
 /**
- * Contiguous `segment-N` files already on the device, keyed by index.
- * Pulls each file once so callers can reuse the buffers instead of
- * re-downloading multi-MB traces over the BrowserStack tunnel.
+ * Probes contiguous segments starting at `fromIndex`, stopping at the first
+ * gap. Segments below `fromIndex` are skipped to avoid re-downloading
+ * already-collected multi-MB traces over the BrowserStack tunnel.
  */
-async function probeExistingSegments(
+async function probeSegmentsFrom(
   appiumDriver: PullFileDriver,
   directory: string,
+  fromIndex: number,
 ): Promise<Map<number, Buffer>> {
   const segments = new Map<number, Buffer>();
-  for (let index = 1; index <= MAX_SEGMENTS_PER_TEST; index += 1) {
+  for (let index = fromIndex; index <= MAX_SEGMENTS_PER_TEST; index += 1) {
     const buffer = await pullSegment(
       appiumDriver,
       segmentRemotePath(directory, index),
@@ -152,16 +175,6 @@ async function probeExistingSegments(
   return segments;
 }
 
-function highestSegmentIndex(segments: Map<number, Buffer>): number {
-  let highest = 0;
-  for (const index of segments.keys()) {
-    if (index > highest) {
-      highest = index;
-    }
-  }
-  return highest;
-}
-
 /**
  * Aligns the collector with whatever segments are already on the device.
  * Must run at fixture start so leftover files are not treated as new.
@@ -169,12 +182,36 @@ function highestSegmentIndex(segments: Map<number, Buffer>): number {
 export async function resetAppProfilingSegments(
   appiumDriver: WebdriverIO.Browser = getDriver(),
 ): Promise<void> {
+  const capabilities = (appiumDriver.capabilities ?? {}) as Record<
+    string,
+    unknown
+  >;
+
+  // fullReset wipes app-scoped storage between sessions, so no leftover
+  // segments can exist. Skip the probe to avoid a guaranteed adb-pull failure
+  // (and its noisy WARN log) on every fresh BrowserStack device.
+  if (capabilities['appium:fullReset'] === true) {
+    collectedSegmentCount = 0;
+    return;
+  }
+
   const directory = deviceProfileDirectory(appiumDriver);
-  const existing = await probeExistingSegments(
-    appiumDriver as PullFileDriver,
-    directory,
-  );
-  collectedSegmentCount = highestSegmentIndex(existing);
+  let existing: Map<number, Buffer>;
+  try {
+    existing = await probeSegmentsFrom(
+      appiumDriver as PullFileDriver,
+      directory,
+      1,
+    );
+  } catch (error) {
+    logger.warn(
+      `Could not probe existing segments at fixture start; leftover segments may be misattributed: ${String(error)}`,
+    );
+    collectedSegmentCount = 0;
+    return;
+  }
+  // Segments are contiguous from 1, so size equals the highest index.
+  collectedSegmentCount = existing.size;
   if (collectedSegmentCount > 0) {
     logger.info(
       `Hermes profile baseline on device is segment-${collectedSegmentCount}; new segments start at ${collectedSegmentCount + 1}`,
@@ -236,7 +273,12 @@ async function saveSegment(
 export async function collectAppProfiling(
   testInfo: TestInfo,
   platform: 'android' | 'ios',
+  options: { segmentWaitTimeoutMs?: number } = {},
 ): Promise<number> {
+  if (!isHermesCpuProfileCollectionEnabled()) {
+    return 0;
+  }
+
   if (platform !== 'android') {
     logger.info(
       'Skipping Hermes cpuprofile collection on iOS (app-scoped export is Android-only)',
@@ -246,12 +288,18 @@ export async function collectAppProfiling(
 
   const appiumDriver = getDriver() as PullFileDriver;
   const directory = deviceProfileDirectory(appiumDriver);
+  const segmentWaitTimeoutMs =
+    options.segmentWaitTimeoutMs ?? SEGMENT_WAIT_TIMEOUT_MS;
 
-  const existingBeforeBackground = await probeExistingSegments(
+  // Only probe segments not yet collected — avoids re-downloading already-saved
+  // multi-MB traces over the BrowserStack tunnel.
+  const newSegments = await probeSegmentsFrom(
     appiumDriver,
     directory,
+    collectedSegmentCount + 1,
   );
-  const highestBeforeBackground = highestSegmentIndex(existingBeforeBackground);
+  // Segments are contiguous, so highest index = already collected + new count.
+  const highestBeforeBackground = collectedSegmentCount + newSegments.size;
 
   // A negative duration leaves the app in the background instead of restoring
   // it, so the dump is not racing a resume.
@@ -268,7 +316,7 @@ export async function collectAppProfiling(
     collectedSegmentCount < MAX_SEGMENTS_PER_TEST
   ) {
     const nextIndex = collectedSegmentCount + 1;
-    const existing = existingBeforeBackground.get(nextIndex);
+    const existing = newSegments.get(nextIndex);
     if (!existing) {
       logger.warn(
         `Expected Hermes profile segment ${nextIndex} to already be on device for "${testInfo.title}", but probe missed`,
@@ -288,10 +336,11 @@ export async function collectAppProfiling(
   let buffer = await waitForSegment(
     appiumDriver,
     segmentRemotePath(directory, triggeredIndex),
+    segmentWaitTimeoutMs,
   );
   if (!buffer) {
     logger.warn(
-      `No Hermes profile segment ${triggeredIndex} appeared within ${SEGMENT_WAIT_TIMEOUT_MS}ms for "${testInfo.title}"`,
+      `No Hermes profile segment ${triggeredIndex} appeared within ${segmentWaitTimeoutMs}ms for "${testInfo.title}"`,
     );
     return collected;
   }

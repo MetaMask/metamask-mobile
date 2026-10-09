@@ -84,24 +84,40 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
       expect(result).toBe('95');
     });
 
-    it('keeps sub-dollar market fiat so market compares as zero percent', () => {
-      const marketFiat = 0.10298176120674981;
-
+    it('rounds a sub-dollar market fiat to two decimal places', () => {
       const result = getSwapsLimitOrderPriceFromMarketPercent({
         counterFiatRate: 2448.4,
         counterTokenDecimals: 18,
         isLimitFiatMode: true,
-        marketFiat,
+        marketFiat: 0.10298176120674981,
         signedPercent: 0,
       });
 
-      expect(result).not.toBe('0.1');
-      expect(
-        getSwapsLimitOrderPriceMarketComparison({
-          limitFiat: result,
-          marketFiat,
-        }),
-      ).toBeUndefined();
+      expect(result).toBe('0.1');
+    });
+
+    it('rounds fiat to two decimal places when a percent is applied', () => {
+      const result = getSwapsLimitOrderPriceFromMarketPercent({
+        counterFiatRate: 2000,
+        counterTokenDecimals: 18,
+        isLimitFiatMode: true,
+        marketFiat: 2345.6789,
+        signedPercent: 5,
+      });
+
+      expect(result).toBe('2462.96');
+    });
+
+    it('returns undefined when the price is too small to keep two decimals', () => {
+      const result = getSwapsLimitOrderPriceFromMarketPercent({
+        counterFiatRate: 2000,
+        counterTokenDecimals: 18,
+        isLimitFiatMode: true,
+        marketFiat: 0.004,
+        signedPercent: 0,
+      });
+
+      expect(result).toBeUndefined();
     });
   });
 

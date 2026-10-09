@@ -192,6 +192,7 @@ import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
 import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/AddDeviceToWallet/messenger';
 import DesignerModeOverlay from '../../UI/DesignerMode';
 import ProSubscription from '../../Views/ProSubscription';
+import { MfaFlowHost, MfaFlowLauncher } from '../../Views/Mfa';
 import ProHub from '../../Views/ProHub';
 import Membership from '../../Views/ProHub/screens/Membership';
 import Earned from '../../Views/ProHub/screens/Earned';
@@ -1391,6 +1392,16 @@ const AppFlow = () => {
         component={PayWithBottomSheet}
       />
       <NativeStack.Screen
+        name={Routes.MFA.FLOW}
+        component={MfaFlowHost}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+          presentation: 'fullScreenModal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <NativeStack.Screen
         name={Routes.PRO_SUBSCRIPTION.ROOT}
         component={ProSubscription}
         options={{
@@ -1532,6 +1543,7 @@ const App: React.FC = () => {
         {/* TODO: Temporary fix for non-V2 Buy token selection; remove RampsBootstrap once V2 flag is on for all users. */}
         <RampsBootstrap />
         <AppFlow />
+        <MfaFlowLauncher />
         <Toast ref={toastRef} />
         {/*
           ToasterOverlay mounts FullWindowOverlay only while a toast is active
