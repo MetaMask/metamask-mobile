@@ -1244,6 +1244,42 @@ describe('ImmersveProvider', () => {
       );
     });
 
+    it('reports an ineligible card when name, last four, and series id are missing', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: {
+            items: [
+              {
+                ...activeCard,
+                isBlocked: true,
+                panLast4: undefined,
+                seriesId: undefined,
+              },
+            ],
+          },
+          cardDetail: {
+            ...activeCardDetail,
+            isBlocked: true,
+            cardholderName: undefined,
+            panLast4: undefined,
+            seriesId: undefined,
+          },
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.walletProvisioning).toEqual({
+        eligible: false,
+        cardholderName: '',
+        lastFour: '',
+        network: 'MASTERCARD',
+        primaryAccountIdentifier: undefined,
+      });
+    });
+
     it('passes cardholderName through without sanitizing', async () => {
       const { provider, service } = createProvider();
       service.get.mockImplementation(
@@ -1910,5 +1946,45 @@ describe('ImmersveProvider', () => {
         errorCode: 'APPLE_PAY_PAYLOAD_INVALID',
       });
     });
+
+    it('throws NoCard when the account has no card', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
+
+      await expect(
+        provider.createApplePayProvisioningRequest(params, TOKENS),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.NoCard,
+      });
+      expect(service.post).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [
+        'encryptedPassData',
+        { activationData: 'act', ephemeralPublicKey: 'epk' },
+      ],
+      [
+        'activationData',
+        { encryptedPassData: 'enc', ephemeralPublicKey: 'epk' },
+      ],
+      [
+        'ephemeralPublicKey',
+        { encryptedPassData: 'enc', activationData: 'act' },
+      ],
+    ])(
+      'throws ServerError when %s is missing from the response',
+      async (_field, response) => {
+        const { provider, service } = createProvider();
+        service.get.mockResolvedValue({ items: [activeCard] });
+        service.post.mockResolvedValue(response);
+
+        await expect(
+          provider.createApplePayProvisioningRequest(params, TOKENS),
+        ).rejects.toMatchObject({
+          code: CardProviderErrorCode.ServerError,
+        });
+      },
+    );
   });
 });
