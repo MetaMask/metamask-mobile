@@ -3770,6 +3770,77 @@ describe('polymarket utils', () => {
     ]);
   });
 
+  it('drops an event when every market version is v2', () => {
+    const event: PolymarketApiEvent = {
+      id: 'v2-event',
+      slug: 'v2-event',
+      title: 'V2 Event',
+      description: 'V2 event description',
+      icon: '',
+      closed: false,
+      series: [],
+      markets: [
+        {
+          conditionId: 'v2-condition',
+          version: 'v2',
+        } as PolymarketApiEvent['markets'][number],
+      ],
+      tags: [],
+      liquidity: 0,
+      volume: 0,
+    };
+
+    expect(parsePolymarketEvents([event], 'trending')).toEqual([]);
+  });
+
+  it('keeps CTF markets when an event also contains a v2 market', () => {
+    const event: PolymarketApiEvent = {
+      id: 'mixed-event',
+      slug: 'mixed-event',
+      title: 'Mixed Event',
+      description: 'Mixed event description',
+      icon: '',
+      closed: false,
+      series: [],
+      markets: [
+        {
+          conditionId: 'ctf-condition',
+          question: 'CTF question',
+          description: 'CTF market',
+          icon: '',
+          image: '',
+          groupItemTitle: 'Yes',
+          status: 'open',
+          volumeNum: 10,
+          liquidity: 10,
+          negRisk: false,
+          clobTokenIds: '["yes","no"]',
+          outcomes: '["Yes","No"]',
+          outcomePrices: '["0.6","0.4"]',
+          closed: false,
+          active: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
+          version: 'v1',
+        },
+        {
+          conditionId: 'v2-condition',
+          version: 'v2',
+        } as PolymarketApiEvent['markets'][number],
+      ],
+      tags: [],
+      liquidity: 10,
+      volume: 10,
+    };
+
+    const [market] = parsePolymarketEvents([event], 'trending');
+
+    expect(market.outcomes.map((outcome) => outcome.id)).toEqual([
+      'ctf-condition',
+    ]);
+  });
+
   it('falls back to question when a spread market is missing group item title', () => {
     const marketWithoutGroupItemTitle = {
       conditionId: 'spread-condition',

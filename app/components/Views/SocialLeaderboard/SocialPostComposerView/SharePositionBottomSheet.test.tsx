@@ -124,6 +124,8 @@ describe('SharePositionBottomSheet', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetch,
     });
   });
@@ -163,6 +165,8 @@ describe('SharePositionBottomSheet', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetch,
     });
 
@@ -181,7 +185,9 @@ describe('SharePositionBottomSheet', () => {
       closedPositions: [],
       isLoadingOpen: false,
       isLoadingClosed: false,
-      error: new Error('network'),
+      error: 'network',
+      openError: 'network',
+      closedError: null,
       refetch: mockRefetch,
     });
 
@@ -202,7 +208,9 @@ describe('SharePositionBottomSheet', () => {
       closedPositions: [],
       isLoadingOpen: false,
       isLoadingClosed: false,
-      error: new Error('network'),
+      error: 'network',
+      openError: 'network',
+      closedError: null,
       refetch: mockRefetch,
     });
 

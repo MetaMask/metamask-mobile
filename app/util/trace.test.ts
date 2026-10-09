@@ -158,7 +158,7 @@ describe('Trace', () => {
       expect(result).toBe(true);
     });
 
-    it('invokes Sentry if callback provided', () => {
+    it('keeps callback trace tags on span attributes and off the shared scope', () => {
       updateCachedConsent(true);
 
       trace(
@@ -186,15 +186,13 @@ describe('Trace', () => {
         expect.any(Function),
       );
 
-      expect(setTagMock).toHaveBeenCalledTimes(2);
-      expect(setTagMock).toHaveBeenCalledWith('tag1', 'value1');
-      expect(setTagMock).toHaveBeenCalledWith('tag2', true);
+      expect(setTagMock).not.toHaveBeenCalled();
 
       expect(setMeasurementMock).toHaveBeenCalledTimes(1);
       expect(setMeasurementMock).toHaveBeenCalledWith('tag3', 123, 'none');
     });
 
-    it('invokes Sentry if no callback provided', () => {
+    it('keeps manual trace tags on span attributes and off the shared scope', () => {
       updateCachedConsent(true);
 
       trace({
@@ -220,9 +218,7 @@ describe('Trace', () => {
         expect.any(Function),
       );
 
-      expect(setTagMock).toHaveBeenCalledTimes(2);
-      expect(setTagMock).toHaveBeenCalledWith('tag1', 'value1');
-      expect(setTagMock).toHaveBeenCalledWith('tag2', true);
+      expect(setTagMock).not.toHaveBeenCalled();
 
       expect(setMeasurementMock).toHaveBeenCalledTimes(1);
       expect(setMeasurementMock).toHaveBeenCalledWith('tag3', 123, 'none');
@@ -244,7 +240,7 @@ describe('Trace', () => {
         expect.objectContaining({ attributes: { shared: 'data' } }),
         expect.any(Function),
       );
-      expect(setTagMock).toHaveBeenCalledWith('shared', 'tag');
+      expect(setTagMock).not.toHaveBeenCalled();
     });
 
     it('buffers traces when consent is not given', () => {
@@ -294,9 +290,7 @@ describe('Trace', () => {
         expect.any(Function),
       );
 
-      expect(setTagMock).toHaveBeenCalledTimes(2);
-      expect(setTagMock).toHaveBeenCalledWith('tag1', 'value1');
-      expect(setTagMock).toHaveBeenCalledWith('tag2', true);
+      expect(setTagMock).not.toHaveBeenCalled();
 
       expect(setMeasurementMock).toHaveBeenCalledTimes(1);
       expect(setMeasurementMock).toHaveBeenCalledWith('tag3', 123, 'none');
