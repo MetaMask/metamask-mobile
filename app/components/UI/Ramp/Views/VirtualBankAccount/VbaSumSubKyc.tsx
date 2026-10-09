@@ -5,15 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
   BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   HeaderStandard,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -21,6 +14,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useLaunchSumSub } from './hooks/useLaunchSumSub';
 import type { VbaIdentityVerificationCompletion } from './modules/types';
+import VbaIllustration, { VbaIllustrationSource } from './VbaIllustration';
+import VbaOnboardingError from './VbaOnboardingError';
 
 export const VbaSumSubKycSelectorsIDs = {
   CONTAINER: 'vba-sumsub-kyc-container',
@@ -43,17 +38,21 @@ interface VbaSumSubKycProps {
     result: VbaIdentityVerificationCompletion,
   ) => void | Promise<void>;
   initialNeedsMoreInfo?: boolean;
+  /** Dev preview only. Opens the launch-error view without calling SumSub. */
+  initialHasError?: boolean;
 }
 
 const VbaSumSubKyc = ({
   onSubmitted,
   initialNeedsMoreInfo = false,
+  initialHasError = false,
 }: VbaSumSubKycProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { isLaunching, needsMoreInfo, hasError, retry } = useLaunchSumSub(
     onSubmitted,
     initialNeedsMoreInfo,
+    initialHasError,
   );
 
   const handleBack = useCallback(() => {
@@ -74,6 +73,50 @@ const VbaSumSubKyc = ({
     });
   }, [navigation]);
 
+  if (needsMoreInfo) {
+    return (
+      <VbaOnboardingError
+        testID={VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED}
+        backButtonTestID={VbaSumSubKycSelectorsIDs.BACK_BUTTON}
+        onBack={handleBack}
+        illustration={
+          <VbaIllustration source={VbaIllustrationSource.scanner} />
+        }
+        title={strings('virtual_bank_account.sumsub_kyc.more_info_title')}
+        description={strings(
+          'virtual_bank_account.sumsub_kyc.more_info_description',
+        )}
+        primaryAction={{
+          label: strings('virtual_bank_account.sumsub_kyc.more_info_button'),
+          onPress: retry,
+          testID: VbaSumSubKycSelectorsIDs.CONTINUE_BUTTON,
+        }}
+      />
+    );
+  }
+
+  if (hasError) {
+    return (
+      <VbaOnboardingError
+        testID={VbaSumSubKycSelectorsIDs.ERROR}
+        backButtonTestID={VbaSumSubKycSelectorsIDs.BACK_BUTTON}
+        onBack={handleBack}
+        illustration={
+          <VbaIllustration source={VbaIllustrationSource.failure} />
+        }
+        title={strings('virtual_bank_account.sumsub_kyc.error_title')}
+        description={strings(
+          'virtual_bank_account.sumsub_kyc.error_description',
+        )}
+        primaryAction={{
+          label: strings('virtual_bank_account.sumsub_kyc.retry'),
+          onPress: retry,
+          testID: VbaSumSubKycSelectorsIDs.RETRY_BUTTON,
+        }}
+      />
+    );
+  }
+
   return (
     <SafeAreaView
       edges={['right', 'bottom', 'left']}
@@ -89,73 +132,13 @@ const VbaSumSubKyc = ({
           includesTopInset
         />
       )}
-      {needsMoreInfo ? (
-        <Box
-          flexDirection={BoxFlexDirection.Column}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1 px-6 gap-3"
-          testID={VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED}
-        >
-          <Text variant={TextVariant.HeadingMd} twClassName="text-center">
-            {strings('virtual_bank_account.sumsub_kyc.more_info_title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-          >
-            {strings('virtual_bank_account.sumsub_kyc.more_info_description')}
-          </Text>
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={retry}
-            testID={VbaSumSubKycSelectorsIDs.CONTINUE_BUTTON}
-            twClassName="mt-2"
-          >
-            {strings('virtual_bank_account.sumsub_kyc.more_info_button')}
-          </Button>
-        </Box>
-      ) : hasError ? (
-        <Box
-          flexDirection={BoxFlexDirection.Column}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1 px-6 gap-3"
-          testID={VbaSumSubKycSelectorsIDs.ERROR}
-        >
-          <Text variant={TextVariant.HeadingMd} twClassName="text-center">
-            {strings('virtual_bank_account.sumsub_kyc.error_title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-          >
-            {strings('virtual_bank_account.sumsub_kyc.error_description')}
-          </Text>
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={retry}
-            testID={VbaSumSubKycSelectorsIDs.RETRY_BUTTON}
-            twClassName="mt-2"
-          >
-            {strings('virtual_bank_account.sumsub_kyc.retry')}
-          </Button>
-        </Box>
-      ) : (
-        <Box
-          twClassName="flex-1"
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-        >
-          <ActivityIndicator />
-        </Box>
-      )}
+      <Box
+        twClassName="flex-1"
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+      >
+        <ActivityIndicator />
+      </Box>
     </SafeAreaView>
   );
 };

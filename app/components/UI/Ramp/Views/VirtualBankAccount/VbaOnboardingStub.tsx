@@ -16,10 +16,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 
-export type VbaOnboardingStubVariant =
-  | 'kyc_pending'
-  | 'account_provisioning_error'
-  | 'error';
+export type VbaOnboardingStubVariant = 'kyc_pending';
 
 export const VbaOnboardingStubSelectorsIDs = {
   CONTAINER: 'vba-onboarding-stub-container',

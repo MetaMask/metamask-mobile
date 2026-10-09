@@ -10,6 +10,7 @@ import {
 } from './modules/VbaStatusAdapters';
 import VbaVendorTermsAdapter from './modules/VbaVendorTermsAdapter';
 import VbaDetails from './VbaDetails';
+import VbaDevScreenPicker, { VbaDevScreenPreview } from './dev/VbaDevScreens';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from './routes';
 
 const Stack = createNativeStackNavigator<VbaOnboardingParamList>();
@@ -45,6 +46,18 @@ const VbaOnboardingNavigator = () => (
       component={VbaErrorAdapter}
     />
     <Stack.Screen name={VbaOnboardingRoutes.DETAILS} component={VbaDetails} />
+    {__DEV__ ? (
+      <>
+        <Stack.Screen
+          name={VbaOnboardingRoutes.DEV_PREVIEW}
+          component={VbaDevScreenPicker}
+        />
+        <Stack.Screen
+          name={VbaOnboardingRoutes.DEV_SCREEN}
+          component={VbaDevScreenPreview}
+        />
+      </>
+    ) : null}
   </Stack.Navigator>
 );
 
