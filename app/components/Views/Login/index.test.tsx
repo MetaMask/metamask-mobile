@@ -4,6 +4,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, act, waitFor, screen } from '@testing-library/react-native';
 import { LoginViewSelectors } from './LoginView.testIds';
 import { InteractionManager, BackHandler, Platform, Alert } from 'react-native';
+import performance from 'react-native-performance';
 import { OnboardingAnimationSelectorIDs } from '../../UI/OnboardingAnimation/OnboardingAnimation.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -877,6 +878,7 @@ describe('Login', () => {
       });
       expect(mockUnlockWallet).toHaveBeenCalledWith({
         password: 'valid-password123',
+        handBackAt: expect.any(Number),
       });
       expect(mockGetAuthType).toHaveBeenCalled();
     });
@@ -1629,6 +1631,7 @@ describe('Login', () => {
       });
       expect(mockUnlockWallet).toHaveBeenCalledWith({
         password: 'valid-password123',
+        handBackAt: expect.any(Number),
       });
       expect(mockGetAuthType).toHaveBeenCalled();
     });
@@ -2224,6 +2227,24 @@ describe('Login', () => {
         appStartType: LOGIN_APP_START_TYPE.COLD,
       });
       expect(mockCancelUnlockTraces).not.toHaveBeenCalled();
+    });
+
+    it('passes the submit time to unlockWallet on password submit', async () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      jest.spyOn(performance, 'now').mockReturnValue(4_321);
+
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockUnlockWallet).toHaveBeenCalledWith({
+        password: 'valid-password123',
+        handBackAt: 4_321,
+      });
     });
 
     it('cancels the unlock CUF traces when password unlock fails', async () => {

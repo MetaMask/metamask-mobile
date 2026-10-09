@@ -1,5 +1,6 @@
-import SecureKeychain from './SecureKeychain';
+import SecureKeychain, { type CredentialReadTimings } from './SecureKeychain';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import-x/no-namespace
+import performance from 'react-native-performance';
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 import QuickCrypto from 'react-native-quick-crypto';
@@ -153,6 +154,96 @@ describe('SecureKeychain - setGenericPassword', () => {
 
     expect(resetSpy).toHaveBeenCalled();
     expect(Keychain.setGenericPassword).not.toHaveBeenCalled();
+  });
+});
+
+describe('SecureKeychain - getGenericPassword', () => {
+  const mockPassword = 'test_password';
+
+  const storeEncryptedPassword = async () => {
+    const encryptedPassword =
+      await SecureKeychain.getInstance().encryptPassword(mockPassword);
+    (Keychain.getGenericPassword as jest.Mock).mockResolvedValueOnce({
+      username: 'metamask-user',
+      password: encryptedPassword,
+      service: 'com.metamask',
+      storage: Keychain.STORAGE_TYPE.AES_GCM,
+    });
+    jest
+      .spyOn(QuickCrypto.subtle, 'decrypt')
+      .mockResolvedValue(
+        new TextEncoder().encode(JSON.stringify({ password: mockPassword })),
+      );
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    SecureKeychain.init('test_salt');
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('returns the decrypted password', async () => {
+    await storeEncryptedPassword();
+
+    const credentials = await SecureKeychain.getGenericPassword();
+
+    expect(credentials).toEqual(
+      expect.objectContaining({ password: mockPassword }),
+    );
+  });
+
+  it('marks the native read and the decrypt', async () => {
+    await storeEncryptedPassword();
+    jest
+      .spyOn(performance, 'now')
+      .mockReturnValueOnce(100)
+      .mockReturnValueOnce(2_100)
+      .mockReturnValueOnce(2_400);
+    const timings: CredentialReadTimings = {};
+
+    await SecureKeychain.getGenericPassword(timings);
+
+    expect(timings).toEqual({
+      requestedAt: 100,
+      returnedAt: 2_100,
+      empty: false,
+      decryptedAt: 2_400,
+    });
+  });
+
+  it('flags an empty keychain without a decrypt mark', async () => {
+    (Keychain.getGenericPassword as jest.Mock).mockResolvedValueOnce(false);
+    jest
+      .spyOn(performance, 'now')
+      .mockReturnValueOnce(100)
+      .mockReturnValueOnce(2_100);
+    const timings: CredentialReadTimings = {};
+
+    const credentials = await SecureKeychain.getGenericPassword(timings);
+
+    expect(credentials).toBeNull();
+    expect(timings).toEqual({
+      requestedAt: 100,
+      returnedAt: 2_100,
+      empty: true,
+    });
+  });
+
+  it('keeps only the request mark when the native read fails', async () => {
+    (Keychain.getGenericPassword as jest.Mock).mockRejectedValueOnce(
+      new Error('User canceled the operation'),
+    );
+    jest.spyOn(performance, 'now').mockReturnValue(100);
+    const timings: CredentialReadTimings = {};
+
+    await expect(SecureKeychain.getGenericPassword(timings)).rejects.toThrow(
+      'User canceled the operation',
+    );
+
+    expect(timings).toEqual({ requestedAt: 100 });
   });
 });
 
