@@ -25,10 +25,7 @@ import {
   HOMEPAGE_SEARCH_AB_TEST_ANALYTICS_MAPPING,
 } from '../../components/Views/TrendingView/search/abTestConfig';
 import { ONBOARDING_INTEREST_QUESTIONNAIRE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/OnboardingInterestQuestionnaire/abTestConfig';
-import {
-  BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
-  SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING,
-} from '../../components/UI/Perps/abTestConfig';
+import { SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Perps/abTestConfig';
 import { PRO_SUBSCRIPTION_FLOW_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/ProSubscription/abTestConfig';
 import {
   MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_TEST_ANALYTICS_MAPPING,
@@ -71,7 +68,6 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   SOCIAL_V1_AB_TEST_ANALYTICS_MAPPING,
 
   // Perps
-  BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
   SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING,
 
   // Pro Subscription

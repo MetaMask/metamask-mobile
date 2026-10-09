@@ -8,8 +8,6 @@ import {
   ButtonBaseSize,
   ButtonIcon,
   ButtonIconSize,
-  ButtonSemantic,
-  ButtonSemanticSeverity,
   Checkbox,
   FilterButton,
   FontWeight,
@@ -48,6 +46,7 @@ import {
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
+import PerpsDirectionButton from '../../../../components/PerpsDirectionButton';
 import PerpsProCompactInput, {
   PerpsProInputKeyboardAccessory,
   type PerpsProCompactInputRef,
@@ -1009,12 +1008,8 @@ const PerpsProOrderForm = ({
             />
           ) : null}
           <Notices notices={notices} />
-          <ButtonSemantic
-            severity={
-              placeOrderIntent === 'long'
-                ? ButtonSemanticSeverity.Success
-                : ButtonSemanticSeverity.Danger
-            }
+          <PerpsDirectionButton
+            direction={placeOrderIntent}
             size={ButtonBaseSize.Lg}
             isFullWidth
             isDisabled={isPlaceOrderDisabled}
@@ -1023,7 +1018,7 @@ const PerpsProOrderForm = ({
             testID={ids.PLACE_ORDER_BUTTON}
           >
             {placeOrderLabel}
-          </ButtonSemantic>
+          </PerpsDirectionButton>
           {isScaleOrder ? (
             <ScalePreview model={scaleOrder} summary={summary} />
           ) : null}
