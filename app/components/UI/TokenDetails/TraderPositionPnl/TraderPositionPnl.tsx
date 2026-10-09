@@ -59,9 +59,6 @@ const TraderPositionPnl: React.FC<TraderPositionPnlProps> = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       twClassName="mb-3 gap-2"
-      accessibilityLabel={strings(
-        'social_leaderboard.trader_position.position',
-      )}
     >
       <Box twClassName="flex-1 gap-1">
         <Box

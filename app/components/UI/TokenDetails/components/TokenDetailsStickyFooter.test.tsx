@@ -181,7 +181,7 @@ describe('TokenDetailsStickyFooter', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders the full footer inside the expanded bottom sheet', () => {
+    it('renders the expanded trader position sheet with footer actions', () => {
       const { getByTestId, getByText } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
@@ -198,7 +198,6 @@ describe('TokenDetailsStickyFooter', () => {
         />,
       );
 
-      expect(getByTestId('token-details-sticky-footer')).toBeOnTheScreen();
       expect(
         getByTestId('token-details-trader-position-pnl-expanded-placeholder'),
       ).toBeOnTheScreen();

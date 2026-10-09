@@ -61,7 +61,6 @@ import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import { TokenDetailsV1 } from './TokenDetailsV1';
 import TokenDetailsPagePending from './TokenDetailsPagePending';
-import { MOCK_TRADER_POSITION_PNL } from '../TraderPositionPnl/mockTraderPositionPnl';
 import {
   TokenDetailsSource,
   TokenDetailsAction,
@@ -225,13 +224,6 @@ const TokenDetails: React.FC<{
   const navigation = useNavigation<AppNavigationProp>();
   useAddNetworkIfMissingQuery({ chainId: token.chainId });
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const [isTraderPositionExpanded, setIsTraderPositionExpanded] =
-    useState(false);
-  const traderPositionTokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
-
-  useLayoutEffect(() => {
-    setIsTraderPositionExpanded(false);
-  }, [traderPositionTokenKey]);
 
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
   const { variant: quickBuyEntrypointVariant } = useABTest(
@@ -252,13 +244,6 @@ const TokenDetails: React.FC<{
     EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
     EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
   );
-  const traderPositionPnl = __DEV__
-    ? {
-        ...MOCK_TRADER_POSITION_PNL,
-        isExpanded: isTraderPositionExpanded,
-        onToggleExpanded: setIsTraderPositionExpanded,
-      }
-    : undefined;
 
   const caip19AssetId = useTokenCaipAssetId(token);
 
@@ -715,7 +700,6 @@ const TokenDetails: React.FC<{
         onStickyButtonsResolved={onStickyButtonsResolved}
         sourcePage="TokenDetailsView"
         useAmbientColor={useAmbientColor}
-        traderPositionPnl={traderPositionPnl}
         onSwapPress={onCtaClicked}
         onBuyPress={onCtaClicked}
         onQuickBuyPress={onQuickBuyPress}
@@ -936,6 +920,13 @@ const TokenDetailsLegacy: React.FC<{ token: TokenDetailsRouteParams }> = ({
   );
 };
 
+export const TokenDetailsLegacyRouteWrapper: React.FC = () => {
+  const route = useRoute();
+  const token = route.params as TokenDetailsRouteParams;
+
+  return <TokenDetailsLegacy token={token} />;
+};
+
 /**
  * TokenDetailsRouteWrapper screen
  *
@@ -960,4 +951,4 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   );
 };
 
-export { TokenDetailsRouteWrapper as TokenDetails };
+export { TokenDetailsLegacy, TokenDetailsRouteWrapper as TokenDetails };
