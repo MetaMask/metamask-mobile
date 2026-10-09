@@ -104,6 +104,18 @@ describe('useStartProSubscription', () => {
     );
   });
 
+  it('resolves without navigating after the subscription starts', async () => {
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await expect(
+        result.current.startSubscription(PLAN),
+      ).resolves.toBeUndefined();
+    });
+
+    expect(mockedStartSubscription).toHaveBeenCalledTimes(1);
+  });
+
   it('stops when the Money Account address is missing', async () => {
     mockedUseSelector.mockImplementation((selector) => {
       if (selector === selectMoneyAccountVaultConfig) {
