@@ -1,16 +1,21 @@
-# Predict Pro membership in Predict
+# Money Account Pro membership in Predict
 
 This describes the legacy Polymarket Predict flow. `PredictNext` is out of
 scope.
 
 ## Core rule
 
-Predict Pro is a fee-waiver benefit, not a client-side permission system.
+Pro membership is a fee-waiver benefit, not a client-side permission system.
 
 - `SubscriptionController:getBenefits()` tells mobile whether it may show and prepare the waiver.
 - Only the MetaMask service fee is waived.
-- Provider fees, market fees, and Pay-With-Any-Token deposit fees remain.
+- Provider fees, market fees, and Pay-With-Any-Token deposit fees are not changed
+  by the membership waiver. Independent market-fee waiver rules may still apply.
 - The `builderCode` is fetched from the Subscriptions Benefits API.
+- An active Predict fee policy exists only for a valid subscription benefit and
+  always carries `DiscountType.SUBSCRIPTION` plus a `builderCode`.
+- Without that policy, the order uses the configured standard fees and the
+  protocol's default builder code.
 - The backend validates the benefit and owns allowance consumption.
 
 ## End-to-end flow
@@ -22,8 +27,8 @@ flowchart TD
   A[Predict screen] --> B[Request order preview]
   B --> C[Get subscription benefits]
   C --> D{Waiver appears available?}
-  D -->|Yes| E[Membership policy<br/>MetaMask fee = 0<br/>use member builderCode]
-  D -->|No or request fails| F[Standard policy<br/>use default fee and builder]
+  D -->|Yes| E[Subscription policy<br/>MetaMask fee = 0<br/>use member builderCode]
+  D -->|No or request fails| F[No fee policy<br/>use standard fees and default builder]
   E --> G[Build preview]
   F --> G
   G --> H[Show fees and order totals]
@@ -42,7 +47,7 @@ flowchart TD
   F --> G[Get benefits once for this submission]
   G --> H{Current waiver available?}
   H -->|Yes| I[Attach membership fee policy]
-  H -->|No or request fails| J[Use standard fee policy]
+  H -->|No or request fails| J[Use standard fees; no policy]
   I --> K[Validate and sign the CLOB order]
   J --> K
   K --> L[Relayer receives the signed order]
@@ -54,6 +59,11 @@ For Pay-With-Any-Token, the post-deposit submission is a separate
 `placeOrder` invocation and therefore gets its own benefits lookup. A retry
 within the same invocation reuses the already selected policy.
 
+If the page preview carried a subscription policy but the submission-time
+lookup no longer qualifies, the controller removes the stale policy and
+restores `originalFees` before submitting. This prevents a stale zero-fee
+preview from being used with the standard builder.
+
 ## Membership decision
 
 Mobile presents the waiver only when all of these are true:
@@ -61,18 +71,30 @@ Mobile presents the waiver only when all of these are true:
 ```mermaid
 flowchart LR
   A[getBenefits response] --> B{eligible = true}
-  B -->|No| S[Standard fee]
+  B -->|No| S[Standard fees; no policy]
   B -->|Yes| C{builderCode is present}
   C -->|No| S
   C -->|Yes| D{exhausted = false}
   D -->|No| S
   D -->|Yes| E{remainingTxCount > 0}
   E -->|No| S
-  E -->|Yes| W[MetaMask fee waived]
+  E -->|Yes| W[Subscription policy<br/>MetaMask fee waived]
 ```
 
 `remainingTxCount` is only a preflight signal. Mobile does not decrement it,
 reserve it, or decide whether a trade is ultimately entitled to the benefit.
+
+## Fee display
+
+When a subscription policy is active and standard fees are available in
+`originalFees`, the legacy Predict UI shows:
+
+- the current waived total;
+- the original total with a strikethrough;
+- the existing Rewards member badge beside the original total.
+
+This is display-only. The fee policy and `builderCode` still come from the
+controller/provider path used for signing and submission.
 
 ## What is signed and submitted
 
@@ -85,14 +107,19 @@ When the membership route is selected:
 5. The benefits backend consumes the allowance according to its contract and returns
    the order result.
 
-The standard route uses the default builder code and normal MetaMask fee.
+The standard route has no `feePolicy`; it uses the configured MetaMask fee and
+the protocol default builder code.
 
 ## Stale benefits and fees
 
-The preview can become stale while the user remains on the page. The next
-active-page preview refreshes the benefits snapshot. At submission, the
-controller obtains one current benefits response before validation and signing.
-The backend remains authoritative if the benefit changes between those steps.
+Legacy Buy and Sell preview screens refresh the preview about once per second
+while active, so the benefits snapshot and fee display are refreshed while the
+user remains on the page. The preview query is also debounced to avoid requests
+during rapid input changes.
+
+At submission, the controller obtains one current benefits response before
+market validation and signing. The backend remains authoritative if the benefit
+changes between those steps.
 
 The fee result is:
 
