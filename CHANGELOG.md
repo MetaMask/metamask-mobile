@@ -7,6 +7,126 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.15.0]
+
+### Added
+
+- Added limit order creation. (#36785)
+- Connected limit order open orders and history to live data and added pull-to-refresh. (#36872)
+- Enabled limit order cancellations with loading and retry states. (#36924)
+- Added time-range navigation for line charts on Token Details pages. (#36603)
+- Loaded token-specific trades when selecting Social feed token chips. (#36858)
+- Added market search to Kalshi prediction markets (#36755)
+- Added support for a Paste shortcut in homepage search for addresses and tokens (#36706)
+- Added in-app routing for link.metamask.com deep links (#37003)
+- Added Cash Out for open Kalshi prediction positions before market resolution (#36991)
+- Added a count of Pro positions and orders hidden by filters (#36987)
+- Added current-period Plus usage for swaps, perps, and prediction markets to Pro Hub Member pricing (#36010)
+- Added a Virtual Bank Account completion screen after onboarding (#36916)
+- Added pull-to-refresh for recurring open orders and order history (#36950)
+- Added deep links to notification settings and specific notification preference sections (#36874)
+- Added session-only hide-post, block-user, and report-reason options to Social feed menus (#36936)
+- Added the most recent open recurring order to token details (#36842)
+- Added a scrollable Categories carousel to Predict home with Esports, Culture, Finance, and Tech categories (#36282)
+- Added support for resuming Virtual Bank Account onboarding from Add Money (#36712)
+- Added handling for completed, canceled, and failed Virtual Bank Account identity verification (#36710)
+- Added an option to duplicate completed recurring orders (#36660)
+- Added the fee token icon and network badge to MetaMask Pay network fees (#36866)
+- Added percentage-based quick amounts to Quick Buy and Sell, a larger amount display, and available fiat balances when selling (#37048)
+
+### Changed
+
+- Redesigned Quick Buy with Buy/Sell switching, asset selection, fee discounts, gasless badges, and Token Details entry points. (#36625)
+- Unified onboarding loading screens with a centered fox animation without a spinner. (#36846)
+- Replaced animated MetaMask wordmarks and loading foxes with static artwork on launch, onboarding, unlock, and rehydration. (#36973)
+- Replaced the Secret Recovery Phrase password acknowledgement checkbox with a warning sheet before wallet creation. (#36722)
+- Restricted the Add funds Bank account option to Brazil when the feature is available. (#36932)
+- Kept the Perps payment-token picker within the trade sheet. (#36943)
+- Expanded the Perps outage banner to Pro mode and wallet home, and collapsed its description on scroll. (#37040)
+- Routed the navbar Social button to Social V1 when the Social V1 experiment is active. (#36989)
+- Enabled remote configuration of the limit orders API endpoint. (#36998)
+- Reorganized shared interface components without changing behavior. (#36751)
+- Updated Social header and composer actions with Liquid Glass styling where supported (#37053)
+- Updated MetaMask Pay asset data handling (#36889)
+- Improved how quickly Perps Long and Short trade confirmations open from a market (#37296)
+- Updated membership and subscription copy from Pro to Orange (#37054)
+- Updated the Protect your Wallet banners in Security & Privacy settings to use the design-system alert style (#37016)
+- Updated the wallet already exists and wallet not found screens with a new illustration and design-system layout (#37079)
+- Updated recurring price ranges to use the selected fiat currency and explain USD order placement (#36915)
+- Updated the wallet home basic-functionality banner to use the design-system alert style (#37022)
+- Updated the Stellar wallet integration (#36927)
+- Updated social feed cards so closed positions show their results and small prices remain readable (#36985)
+- Updated the onboarding interest questionnaire layout, selection rows, and Other sheet to match the MetaMask design system (#36844)
+- Updated the onboarding metrics opt-in screen with new copy and a design-system layout (#36731)
+- Updated the appearance of success and error bottom sheets, including the login failed sheet (#36463)
+- Updated Earn stake and unstake percentage buttons to use the same rounded-square corners as the keypad keys (#36761)
+- Updated transaction confirmation icons to improve the visibility of network fee and nonce tooltips, data copy icons, and Advanced details controls (#36859, #36860)
+- Updated the Pro Hub membership screen to show plan and payment details from the user's subscription (#36348)
+- Updated Basic Functionality migration copy and layout for the social login sheet and mixed-settings toast (#36849)
+- Updated Scale order warnings to remove the taker-fee mention when the full price range crosses the current price (#37109)
+
+### Removed
+
+- Removed the iOS social login confirmation screens so users continue directly to the next onboarding step (#36907)
+- Removed the wallet-ready screen so onboarding continues directly to wallet home (#36848)
+
+### Fixed
+
+- Fixed Arc USDC details from the Swap asset picker to show the native asset balance and details. (#37315)
+- Sped up the Perps market picker animation from the chart header. (#36946)
+- Blocked Perps limit orders priced more than 95% from the live market and showed the allowed range. (#37032)
+- Aligned current and liquidation prices in the Perps leverage sheet. (#36801)
+- Centered Perps Pro Long and Short labels in non-English locales and prevented mid-glyph clipping. (#36817)
+- Restored the live market price and 24-hour change in the edit margin sheet header (#37111)
+- Fixed memo fields appearing when sending Stellar contract-based tokens (#37405)
+- Updated the Perps outage banner support link to the troubleshoot article (#37343)
+- Fixed limit order destination amounts so they match the amount implied by the limit price without deducting an estimated MetaMask fee (#37068)
+- Fixed Buy to prefer a provider previously used for a completed order when the current provider does not support the selected token (#37002)
+- Fixed limit orders to show how far the limit price is from market for prices above and below market (#37057)
+- Fixed the near-market limit price warning to appear only after the user changes the limit price (#37034)
+- Updated the Robinhood Chain explorer URL (#36939)
+- Updated campaign winner contact emails for Ondo, Perps, and Predict to use the shared rewards inbox (#37015)
+- Fixed Perps Pro mode to open Take Profit / Stop Loss in a bottom sheet when setting up a new order (#37004)
+- Fixed Long and Short from spot token details opening the trade sheet on a new Perps screen (#37344)
+- Fixed the Perps bottom-sheet keypad so coin mode applies typed digits as coin size (#37341)
+- Fixed Swap to clear previously saved details before opening a new swap (#37243)
+- Fixed Quick Buy showing $0.00 as the estimated receive value for some quotes, including gasless quotes (#37285)
+- Fixed the card signup phone keypad advancing to the next step (#37282)
+- Fixed the Money home Card section spinning indefinitely for Immersve cardholders (#37280)
+- Fixed Earn service interruption banners appearing in unrelated experiences (#37072)
+- Fixed margin removal failing when removing the maximum amount (#36775)
+- Fixed the Perps trade sheet header showing a price skeleton when the price was already available on the asset screen (#37055)
+- Fixed pay-with-token Perps orders failing with insufficient margin after a deposit (#37028)
+- Fixed Card Travel so closing the in-app browser returned to the existing Card Home (#37087)
+- Fixed the close-position bottom sheet so tapping the close amount opened the size keypad (#37010)
+- Fixed the close-position sheet background so it faded instead of sliding down when dismissed (#37033)
+- Fixed uneven spacing around the Outcome and Fees divider in Predict activity details (#36876)
+- Fixed Scale order keyboard arrows dismissing the keyboard when moving to an empty field (#37009)
+- Fixed Perps Lite funding-rate labels overlapping the info icon in long translations (#36853)
+- Fixed the short Scale order warning incorrectly mentioning taker fees (#36999)
+- Fixed Mark price and Oracle price showing the same value in the Perps Pro market stats bar (#36929)
+- Fixed spacing below the divider in the Perps leverage sheet disclaimer (#36855)
+- Fixed Perps market sort labels wrapping in long translations (#36852)
+- Fixed Markets sort options hiding the selected sort direction in long translations (#36856)
+- Fixed Predict buy and cash-out sheets showing a black inner background instead of the sheet surface color (#36954)
+- Fixed the Send recipient QR scan button to use a circular filled style (#36774)
+- Fixed wrapped compact header titles appearing left-aligned in non-English locales (#36871)
+- Fixed onboarding Privacy Notice and Terms of Use links wrapping and overflowing when pressed (#36672)
+- Fixed deeplinks opening after auto-lock, including when auto-lock occurred during app resume (#36905, #36925)
+- Fixed chart period labels clipping on token details pages with smaller screens or larger font sizes (#36654)
+- Fixed subscription benefits retrieval (#36803)
+- Fixed Auto close plus and minus controls to use rounded filled buttons (#36759)
+- Fixed network filters in the Send token picker to render as pills (#36762)
+- Fixed the price alert type toggle corners to match the period toggle (#36896)
+- Fixed uneven spacing around the Net P&L divider on Predict activity details (#36877)
+- Fixed the price alert creation header title alignment when it wraps in longer languages (#36890)
+- Fixed uneven spacing around the token icon and amount on Predict activity details (#36880)
+- Fixed Predict activity details so market labels stay on one line and long market names wrap instead of truncating (#36878)
+- Fixed slippage warning and error messages to be left-aligned in Swaps and limit orders (#36857)
+- Fixed Predict deposit and withdrawal failures when gas-station fee tokens are unavailable (#36773)
+- Fixed an issue that could prevent social-login users from restoring their wallet on a new device (#36847)
+- Fixed identity verification reusing the previous wallet's email after a wallet reset without closing the app (#36340)
+
 ## [8.14.0]
 
 ### Added
@@ -14253,7 +14373,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.14.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.15.0...HEAD
+[8.15.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.14.0...v8.15.0
 [8.14.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.1...v8.14.0
 [8.13.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.0...v8.13.1
 [8.13.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.12.1...v8.13.0
