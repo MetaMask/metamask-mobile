@@ -521,6 +521,7 @@ interface RenderPerpsViewOptions {
   extraRoutes?: PerpsExtraRoute[];
   /** Selects the matching Perps state preset. */
   mode?: 'lite' | 'pro';
+  crossMarginEnabled?: boolean;
   /** Override the PerpsConnectionContext value. Useful for views that behave differently when disconnected or connecting. */
   connectionValue?: PerpsConnectionContextValue;
 }
@@ -548,8 +549,12 @@ export function renderPerpsView(
     extraRoutes,
     mode,
     connectionValue,
+    crossMarginEnabled,
   } = options;
-  const builder = mode === 'pro' ? initialStatePerpsPro() : initialStatePerps();
+  const builder =
+    mode === 'pro'
+      ? initialStatePerpsPro({ crossMarginEnabled })
+      : initialStatePerps({ crossMarginEnabled });
   if (overrides) {
     builder.withOverrides(overrides);
   }
@@ -791,6 +796,13 @@ export function renderPerpsProMarketView(options: RenderPerpsViewOptions = {}) {
       },
     },
   );
+}
+
+/** Renders the real Pro panel and its sheets with the Cross rollout enabled. */
+export function renderPerpsCrossMarginOrderFormPanel(
+  options: RenderPerpsViewOptions = {},
+) {
+  return renderPerpsProMarketView({ crossMarginEnabled: true, ...options });
 }
 
 /**
