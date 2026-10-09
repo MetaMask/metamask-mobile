@@ -93,6 +93,7 @@ export interface SentinelNetwork {
   cubistSigners?: Hex[];
   smartTransactions: boolean;
   relayTransactions: boolean;
+  simulationIncludeFees?: boolean;
   hidden: boolean;
   sendBundle: boolean;
 }

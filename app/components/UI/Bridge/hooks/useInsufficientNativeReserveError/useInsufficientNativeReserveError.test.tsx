@@ -17,7 +17,10 @@ import { useInsufficientNativeReserveError } from './index';
 import { ZERO_ADDRESS } from '../../../../Views/confirmations/constants/address';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { ARC_USDC_BRIDGE_TOKEN } from '../../../../../enablement/assets/arc';
+import {
+  ARC_HEX_CHAIN_ID,
+  ARC_USDC_ERC20_ADDRESS,
+} from '../../../../../enablement/assets/arc';
 
 jest.mock('../../../../../selectors/featureFlagController/gasFeesSponsored');
 jest.mock('../../../../../util/address', () => ({
@@ -64,6 +67,20 @@ const ethTokenOnMainnet: BridgeToken = {
   symbol: 'ETH',
   decimals: 18,
   chainId: CHAIN_IDS.MAINNET as `0x${string}`,
+};
+
+const nativeUsdcOnArc: BridgeToken = {
+  address: ZERO_ADDRESS,
+  symbol: 'USDC',
+  decimals: 18,
+  chainId: ARC_HEX_CHAIN_ID,
+};
+
+const legacyErc20UsdcOnArc: BridgeToken = {
+  address: ARC_USDC_ERC20_ADDRESS,
+  symbol: 'USDC',
+  decimals: 6,
+  chainId: ARC_HEX_CHAIN_ID,
 };
 
 const btcTokenOnBitcoin: BridgeToken = {
@@ -217,35 +234,47 @@ describe('useInsufficientNativeReserveError', () => {
     expect(result.current).toStrictEqual(undefined);
   });
 
-  it('returns a insufficientNativeReserveError on Arc USDC when source amount leaves less than the reserve', () => {
+  it('returns no reserve error for the full Arc native USDC balance while the fixed reserve is disabled', () => {
     mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue(() => false);
     const { result } = renderHookWithWrapper(() =>
       useInsufficientNativeReserveError({
         amount: '10',
-        token: ARC_USDC_BRIDGE_TOKEN,
-        latestAtomicBalance: BigNumber.from('10000000'), // 10 USDC
+        token: nativeUsdcOnArc,
+        latestAtomicBalance: BigNumber.from('10000000000000000000'), // 10 USDC
         walletAddress: '0x13b7e6EBcd40777099E4c45d407745aB2de1D1F8',
       }),
     );
 
-    expect(result.current).toStrictEqual({
-      maxSwappableNativeBalance: '9.95',
-      minimumNativeBalanceToBeKeptInAccount: '0.05',
-    });
+    expect(result.current).toBeUndefined();
   });
 
-  it('returns insufficientNativeReserveError=undefined on Arc USDC when source amount keeps the reserve', () => {
+  it('returns no reserve error for Arc native USDC when the source amount keeps the reserve', () => {
     mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue(() => false);
     const { result } = renderHookWithWrapper(() =>
       useInsufficientNativeReserveError({
         amount: '9.95',
-        token: ARC_USDC_BRIDGE_TOKEN,
-        latestAtomicBalance: BigNumber.from('10000000'), // 10 USDC
+        token: nativeUsdcOnArc,
+        latestAtomicBalance: BigNumber.from('10000000000000000000'), // 10 USDC
         walletAddress: '0x13b7e6EBcd40777099E4c45d407745aB2de1D1F8',
       }),
     );
 
     expect(result.current).toStrictEqual(undefined);
+  });
+
+  it('returns no reserve error for legacy Arc ERC20 USDC while the fixed reserve is disabled', () => {
+    mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue(() => false);
+
+    const { result } = renderHookWithWrapper(() =>
+      useInsufficientNativeReserveError({
+        amount: '10',
+        token: legacyErc20UsdcOnArc,
+        latestAtomicBalance: BigNumber.from('10000000'),
+        walletAddress: '0x13b7e6EBcd40777099E4c45d407745aB2de1D1F8',
+      }),
+    );
+
+    expect(result.current).toBeUndefined();
   });
 
   it('returns a insufficientNativeReserveError when BTC amount goes beyond reserve', () => {

@@ -367,6 +367,37 @@ describe('bridge selectors', () => {
       expect(result).toEqual({ gasIncluded: true, gasIncluded7702: false });
     });
 
+    it('returns gasIncluded true for a native source when fee-inclusive simulation is supported', () => {
+      const mockState = {
+        bridge: {
+          ...bridgeInitialState,
+          sourceToken: {
+            ...mockToken,
+            address: '0x0000000000000000000000000000000000000000',
+          },
+          isNativeGasIncludedSupported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: false });
+    });
+
+    it('does not enable gasIncluded for an ERC-20 source based on native simulation support', () => {
+      const mockState = {
+        bridge: {
+          ...bridgeInitialState,
+          sourceToken: mockToken,
+          isNativeGasIncludedSupported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
+    });
+
     it('returns gasIncluded true with 7702 true for swap when 7702 is supported', () => {
       const mockState = {
         bridge: {

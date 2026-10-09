@@ -83,6 +83,7 @@ import { normalizeSourceAmountToMaxLength } from '../../../utils/normalizeSource
 import { FLipQuoteButton } from '../../../components/FlipQuoteButton/index.tsx';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
 import { useIsGasIncluded7702Supported } from '../../../hooks/useIsGasIncluded7702Supported/index.ts';
+import { useIsNativeGasIncludedSupported } from '../../../hooks/useIsNativeGasIncludedSupported';
 import { useRefreshSmartTransactionsLiveness } from '../../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { SwapsKeypadRef } from '../../../components/SwapsKeypad/types.ts';
@@ -227,6 +228,9 @@ const BridgeMarketViewContent = () => {
 
   // Update isGasIncluded7702Supported state
   useIsGasIncluded7702Supported(sourceToken?.chainId);
+
+  // Update native fee-inclusive simulation support for the source chain
+  useIsNativeGasIncludedSupported(sourceToken?.chainId);
 
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
