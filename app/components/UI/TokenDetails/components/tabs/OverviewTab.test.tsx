@@ -24,6 +24,7 @@ import {
   OVERVIEW_TAB_ACTIVITY_TEST_ID,
   OVERVIEW_TAB_BALANCE_TEST_ID,
   OVERVIEW_TAB_DESCRIPTION_TEST_ID,
+  OVERVIEW_SECTION_RULE_TEST_ID,
   OVERVIEW_TAB_TEST_ID,
   OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID,
   default as OverviewTab,
@@ -316,6 +317,30 @@ describe('OverviewTab', () => {
     );
 
     expect(queryByTestId(OVERVIEW_TAB_DESCRIPTION_TEST_ID)).toBeNull();
+  });
+
+  it('draws a rule before every section after the first', () => {
+    const { getAllByTestId } = render(
+      <OverviewTab
+        token={token}
+        assetId={'eip155:1/erc20:0xabc' as never}
+        currentCurrency="usd"
+      />,
+    );
+
+    expect(getAllByTestId(OVERVIEW_SECTION_RULE_TEST_ID)).toHaveLength(2);
+  });
+
+  it('includes the description in the section rules when it is shown', () => {
+    const { getAllByTestId } = render(
+      <OverviewTab
+        token={{ ...token, description: 'Pepe the frog' }}
+        assetId={'eip155:1/erc20:0xabc' as never}
+        currentCurrency="usd"
+      />,
+    );
+
+    expect(getAllByTestId(OVERVIEW_SECTION_RULE_TEST_ID)).toHaveLength(3);
   });
 
   it('renders the asset query description ahead of the token description', () => {

@@ -7,6 +7,7 @@ import React, {
   useImperativeHandle,
 } from 'react';
 import {
+  Pressable,
   ScrollView,
   StyleSheet,
   View,
@@ -111,6 +112,11 @@ export const TOKEN_DETAILS_TAB_BAR_STICKY_INDEX = 2;
  * exposes it. Change locally to preview other labels ("5h", "3w", …).
  */
 const MOCK_TOKEN_AGE_LABEL = '3d';
+
+const AGE_EXPLAINER_COPY: ExplainerCopy = {
+  title: 'token_details_v1.age.explainer.title',
+  description: 'token_details_v1.age.explainer.description',
+};
 
 interface ShareTokenBottomSheetControllerRef {
   open: () => void;
@@ -273,6 +279,10 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   }, []);
 
   const handleExplainerClose = useCallback(() => setExplainerCopy(null), []);
+
+  const handleAgePress = useCallback(() => {
+    setExplainerCopy(AGE_EXPLAINER_COPY);
+  }, []);
 
   const isNativeToken = Boolean(token.isETH || token.isNative);
   const hasBalanceValue = useMemo(() => {
@@ -438,14 +448,22 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           }
           description={headerDescription}
           titleEndAccessory={
-            <Tag
-              severity={TagSeverity.Neutral}
-              twClassName="self-center shrink-0"
+            <Pressable
+              onPress={handleAgePress}
+              accessibilityRole="button"
+              accessibilityLabel={strings(
+                'token_details_v1.age.accessibility_label',
+                { age: MOCK_TOKEN_AGE_LABEL },
+              )}
               testID={TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID}
-              accessibilityLabel={`Token age ${MOCK_TOKEN_AGE_LABEL}`}
             >
-              {MOCK_TOKEN_AGE_LABEL}
-            </Tag>
+              <Tag
+                severity={TagSeverity.Neutral}
+                twClassName="self-center shrink-0"
+              >
+                {MOCK_TOKEN_AGE_LABEL}
+              </Tag>
+            </Pressable>
           }
         />
 
@@ -477,7 +495,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 isLoading={isPriceLoading}
                 hasInsufficientCoverage={hasInsufficientCoverage}
               >
-                <Price.Header />
+                <Price.Header showPeriodLabel={false} />
 
                 <Box twClassName="px-4">
                   <SecuritySocialSection
