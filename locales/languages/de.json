@@ -1529,6 +1529,7 @@
     "my_profile": {
       "avatar_accessibility_label": "Your profile avatar",
       "open_profile": "Open my profile",
+      "create_post": "Create post",
       "followers": "followers",
       "following": "verfolgen",
       "followers_tab": "{{count}} Follower",

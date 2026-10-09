@@ -386,12 +386,15 @@ describe('MyProfileView', () => {
   it('opens the post composer from the owner profile header', () => {
     renderWithProvider(<MyProfileView />);
 
-    fireEvent.press(
-      screen.getByTestId(MyProfileViewSelectorsIDs.CREATE_POST_BUTTON),
+    const createPostButton = screen.getByTestId(
+      MyProfileViewSelectorsIDs.CREATE_POST_BUTTON,
     );
+
+    fireEvent.press(createPostButton);
 
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POST_COMPOSER);
+    expect(createPostButton).toHaveProp('accessibilityLabel', 'Create post');
   });
 
   it('shares the placeholder owner profile URL', async () => {

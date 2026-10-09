@@ -370,6 +370,9 @@ const MyProfileView: React.FC = () => {
                 iconProps={{ color: IconColor.IconDefault }}
                 size={ButtonIconSize.Md}
                 onPress={handleOpenComposer}
+                accessibilityLabel={strings(
+                  'social_leaderboard.my_profile.create_post',
+                )}
                 testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
               />
             ) : undefined
