@@ -17,9 +17,20 @@ import { MfaFlowSelectorsIDs } from '../Mfa.testIds';
 import MfaFlowHost from './MfaFlowHost';
 
 const mockGoBack = jest.fn();
+const mockBeforeRemove: { listener?: () => void } = {};
+const mockNavigation = {
+  goBack: (...args: unknown[]) => mockGoBack(...args),
+  isFocused: () => true,
+  addListener: (event: string, listener: () => void) => {
+    if (event === 'beforeRemove') {
+      mockBeforeRemove.listener = listener;
+    }
+    return () => undefined;
+  },
+};
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => mockNavigation,
 }));
 
 const activeEmail: EnrolledCredential = {
@@ -88,6 +99,7 @@ const renderHost = () => renderWithProvider(<MfaFlowHost />, { state: {} });
 describe('MfaFlowHost', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBeforeRemove.listener = undefined;
   });
 
   afterEach(async () => {
@@ -234,5 +246,58 @@ describe('MfaFlowHost', () => {
     renderHost();
 
     await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
+  });
+
+  it('cancels as soon as the screen starts going away, without going back twice', async () => {
+    const { outcome } = await start(
+      { kind: 'enroll', method: 'email_otp' },
+      createController(),
+    );
+    renderHost();
+
+    await act(async () => mockBeforeRemove.listener?.());
+
+    expect(await outcome).toEqual({ ok: false, code: 'flow_cancelled' });
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('keeps the last step on screen while it closes', async () => {
+    const { outcome } = await start(
+      { kind: 'enroll', method: 'email_otp' },
+      createController(),
+    );
+    const { getByTestId } = renderHost();
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CLOSE_BUTTON));
+    });
+
+    expect(await outcome).toEqual({ ok: false, code: 'flow_cancelled' });
+    expect(getActiveMfaFlow()).toBeUndefined();
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-emailEntry`),
+    ).toBeOnTheScreen();
+  });
+
+  it('leaves a newer flow alone while it is still closing', async () => {
+    const first = await start(
+      { kind: 'enroll', method: 'email_otp' },
+      createController(),
+    );
+    const { getByTestId, unmount } = renderHost();
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CLOSE_BUTTON));
+    });
+    expect(await first.outcome).toEqual({ ok: false, code: 'flow_cancelled' });
+
+    await start({ kind: 'enroll', method: 'email_otp' }, createController());
+    const next = getActiveMfaFlow();
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-emailEntry`),
+    ).toBeOnTheScreen();
+
+    await act(async () => unmount());
+
+    expect(getActiveMfaFlow()).toBe(next);
   });
 });
