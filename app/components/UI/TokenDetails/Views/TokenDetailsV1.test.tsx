@@ -245,6 +245,47 @@ jest.mock('../components/sections/TokenDetailsActionsSection', () => {
   };
 });
 
+jest.mock('../hooks/useStickyQuickBuy', () => ({
+  useStickyQuickBuy: () => ({
+    onQuickBuyPress: jest.fn(),
+    openQuickBuy: jest.fn(),
+    quickBuySheet: null,
+  }),
+}));
+
+const mockUseTokenBalance = jest.fn();
+jest.mock('../hooks/useTokenBalance', () => ({
+  useTokenBalance: (...args: unknown[]) => mockUseTokenBalance(...args),
+}));
+
+const mockStickyFooterProps: Record<string, unknown>[] = [];
+
+jest.mock('../components/TokenDetailsStickyFooter', () => {
+  const { View } = jest.requireActual('react-native');
+  const TraderPositionPnl = jest.requireActual(
+    '../TraderPositionPnl/TraderPositionPnl',
+  ).default;
+
+  return {
+    __esModule: true,
+    default: (props: {
+      traderPositionPnl?: React.ComponentProps<typeof TraderPositionPnl>;
+    }) => {
+      mockStickyFooterProps.push(props);
+      return (
+        <View testID="mock-sticky-footer">
+          {props.traderPositionPnl && (
+            <TraderPositionPnl {...props.traderPositionPnl} />
+          )}
+          {props.traderPositionPnl?.isExpanded && (
+            <View testID="token-details-trader-position-pnl-overlay" />
+          )}
+        </View>
+      );
+    },
+  };
+});
+
 const baseToken = {
   address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
   chainId: '0x1',
@@ -281,7 +322,9 @@ describe('TokenDetailsV1', () => {
     useSelector.mockImplementation(() => undefined);
     mockCurrentPrice = 1;
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
+    mockUseTokenBalance.mockReturnValue({ balance: undefined });
     mockOverviewProps.length = 0;
+    mockStickyFooterProps.length = 0;
   });
 
   it('renders the meme-TDP body with the token symbol in the header', () => {
@@ -306,6 +349,96 @@ describe('TokenDetailsV1', () => {
 
     expect(getByTestId(TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID)).toBeOnTheScreen();
     expect(getByText('3d')).toBeOnTheScreen();
+  });
+
+  it('resets the trader position expansion when the token changes', () => {
+    const devGlobal = globalThis as { __DEV__?: boolean };
+    const originalDev = devGlobal.__DEV__;
+    devGlobal.__DEV__ = true;
+
+    try {
+      const { getByTestId, queryByTestId, rerender } = render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      fireEvent.press(getByTestId('token-details-trader-position-pnl-toggle'));
+      expect(
+        queryByTestId('token-details-trader-position-pnl-overlay'),
+      ).toBeOnTheScreen();
+
+      rerender(
+        <TokenDetailsV1
+          token={{
+            ...baseToken,
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            symbol: 'USDC',
+          }}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      expect(
+        queryByTestId('token-details-trader-position-pnl-overlay'),
+      ).not.toBeOnTheScreen();
+    } finally {
+      devGlobal.__DEV__ = originalDev;
+    }
+  });
+
+  it('configures the sticky footer with buy and sell actions', () => {
+    mockUseTokenBalance.mockReturnValue({ balance: '2.5' });
+
+    render(
+      <TokenDetailsV1
+        token={{ ...baseToken, balance: '0' }}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps[0]).toEqual(
+      expect.objectContaining({
+        currentTokenBalance: '2.5',
+        hasTokenBalance: true,
+        quickBuyEntrypointLayout: 'buy_sell',
+        onOpenQuickBuy: expect.any(Function),
+      }),
+    );
+  });
+
+  it('does not show sell when the live balance is zero despite a stale route balance', () => {
+    mockUseTokenBalance.mockReturnValue({ balance: '0' });
+
+    render(
+      <TokenDetailsV1
+        token={{ ...baseToken, balance: '4' }}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps[0]).toEqual(
+      expect.objectContaining({
+        currentTokenBalance: '0',
+        hasTokenBalance: false,
+      }),
+    );
+  });
+
+  it('passes token security data to the sticky footer', () => {
+    render(
+      <TokenDetailsV1
+        token={{ ...baseToken, securityData: securityDataWithLinks }}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps[0]).toEqual(
+      expect.objectContaining({
+        securityData: securityDataWithLinks,
+      }),
+    );
   });
 
   it('renders the price hero, tab bar and Overview panel by default', () => {

@@ -14,6 +14,8 @@ import { PROGRESS_STEPPER_TEST_IDS } from '../../../app/components/UI/Earn/Views
 import { EarnWithdrawInputViewTestIds } from '../../../app/components/UI/Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView.testIds';
 import { type AppiumElement } from '../../framework';
 
+const WITHDRAW_BUTTON_EXIST_TIMEOUT = 30_000;
+
 class EarnLendingView {
   get withdrawButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
@@ -90,15 +92,16 @@ class EarnLendingView {
   }
 
   async scrollToWithdrawButton(): Promise<void> {
-    await Gestures.scrollToElement(
-      this.withdrawButton,
-      Matchers.scrollContainer('transactions-container'),
-      {
-        direction: 'down',
-        scrollAmount: 200,
-        elemDescription: 'Scroll to Withdraw button',
-      },
-    );
+    await Assertions.expectElementToExist(this.withdrawButton, {
+      timeout: WITHDRAW_BUTTON_EXIST_TIMEOUT,
+      description: 'Withdraw button should be mounted on the lending balance',
+    });
+
+    await Gestures.scrollToElement(this.withdrawButton, undefined, {
+      direction: 'down',
+      scrollAmount: 200,
+      elemDescription: 'Scroll to Withdraw button',
+    });
   }
 
   async tapConfirm(timeout?: number): Promise<void> {
