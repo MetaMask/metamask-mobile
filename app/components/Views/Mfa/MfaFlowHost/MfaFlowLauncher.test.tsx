@@ -50,7 +50,26 @@ describe('MfaFlowLauncher', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MFA.FLOW);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MFA.FLOW, {
+      flowId: expect.any(String),
+    });
+  });
+
+  it('opens a separate modal for each flow', async () => {
+    controller.refreshEnrolledCredentials.mockResolvedValue([]);
+    renderWithProvider(<MfaFlowLauncher />, { state: {} });
+
+    await act(async () => {
+      start({ kind: 'enroll', method: 'email_otp' });
+    });
+    await act(async () => getActiveMfaFlow()?.dispatch({ type: 'cancel' }));
+    await act(async () => {
+      start({ kind: 'enroll', method: 'email_otp' });
+    });
+
+    expect(mockNavigate).toHaveBeenCalledTimes(2);
+    const [[, firstParams], [, secondParams]] = mockNavigate.mock.calls;
+    expect(firstParams.flowId).not.toBe(secondParams.flowId);
   });
 
   it('stays closed when the flow settles without a screen', async () => {

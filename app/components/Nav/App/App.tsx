@@ -1394,6 +1394,10 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.MFA.FLOW}
         component={MfaFlowHost}
+        // One modal per flow, even while a previous one is still closing.
+        getId={({ params }) =>
+          (params as { flowId?: string } | undefined)?.flowId
+        }
         options={{
           headerShown: false,
           gestureEnabled: false,

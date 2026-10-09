@@ -3,10 +3,11 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { useActiveMfaFlow } from '../../../../util/identity/mfa/engine/useActiveMfaFlow';
 import type { MfaFlow } from '../../../../util/identity/mfa/engine/types';
+import { getMfaFlowId } from './flowId';
 
 /**
- * Opens the MFA modal when the running flow has a screen to show. Flows that
- * settle without one (session already valid) never open it.
+ * Opens a modal for each flow that has a screen to show. Flows that settle
+ * without one (session already valid) never open it.
  */
 const MfaFlowLauncher = () => {
   const navigation = useNavigation();
@@ -18,7 +19,7 @@ const MfaFlowLauncher = () => {
   useEffect(() => {
     if (flow && hasScreen && openedFor.current !== flow) {
       openedFor.current = flow;
-      navigation.navigate(Routes.MFA.FLOW);
+      navigation.navigate(Routes.MFA.FLOW, { flowId: getMfaFlowId(flow) });
     }
   }, [flow, hasScreen, navigation]);
 

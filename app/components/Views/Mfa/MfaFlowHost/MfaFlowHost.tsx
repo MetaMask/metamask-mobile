@@ -6,6 +6,7 @@ import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import { useActiveMfaFlow } from '../../../../util/identity/mfa/engine/useActiveMfaFlow';
+import { useParams } from '../../../../util/navigation/navUtils';
 import type { MfaFlowState } from '../../../../util/identity/mfa/engine/types';
 import { MfaFlowSelectorsIDs } from '../Mfa.testIds';
 import IntroStep from './steps/IntroStep';
@@ -15,6 +16,7 @@ import CodeStep from './steps/CodeStep';
 import PasskeyStep from './steps/PasskeyStep';
 import SuccessStep from './steps/SuccessStep';
 import FailureStep from './steps/FailureStep';
+import { getMfaFlowId } from './flowId';
 
 const getProgressTitle = ({ step, progress }: MfaFlowState) =>
   progress.total > 1 && step.name !== 'success' && step.name !== 'failure'
@@ -22,26 +24,24 @@ const getProgressTitle = ({ step, progress }: MfaFlowState) =>
     : undefined;
 
 /**
- * Full-screen modal that renders the running MFA flow. Leaving it cancels the
- * flow; it closes itself once the flow settles.
+ * Full-screen modal for one MFA flow, the one whose id is in its route params:
+ * each flow opens its own modal (see `MfaFlowLauncher`). Leaving it cancels
+ * that flow; it closes itself once the flow settles.
  */
 const MfaFlowHost = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const { flowId } = useParams<{ flowId: string }>();
   const active = useActiveMfaFlow();
+  const own =
+    active && getMfaFlowId(active.flow) === flowId ? active : undefined;
   const [isClosing, setIsClosing] = useState(false);
 
-  // Follow the running flow until the modal starts closing, then keep showing
-  // the last one: a flow started before that reuses this modal, one started
-  // after gets its own. Only a settled flow is ever replaced, and a settled
-  // flow ignores actions, so this modal never cancels a newer flow.
-  const [shown, setShown] = useState(active);
-  if (
-    !isClosing &&
-    active &&
-    (active.flow !== shown?.flow || active.state !== shown?.state)
-  ) {
-    setShown(active);
+  // Keep the last step on screen while the modal animates away. The flow has
+  // settled by then, so it ignores any action.
+  const [shown, setShown] = useState(own);
+  if (own && own.state !== shown?.state) {
+    setShown(own);
   }
   const flow = shown?.flow;
   const state = shown?.state;
@@ -55,12 +55,14 @@ const MfaFlowHost = () => {
     [navigation, flow],
   );
 
-  // Fallback for removals that skip `beforeRemove`.
+  // Fallback for removals that skip `beforeRemove`. Nothing to update on
+  // unmount: only the flow needs cancelling.
   useEffect(() => () => flow?.dispatch({ type: 'cancel' }), [flow]);
 
-  const isRunning = active !== undefined;
+  // `goBack` removes this modal even when a newer one is on top of it.
+  const isRunning = own !== undefined;
   useEffect(() => {
-    if (!isRunning && !isClosing && navigation.isFocused()) {
+    if (!isRunning && !isClosing) {
       setIsClosing(true);
       navigation.goBack();
     }

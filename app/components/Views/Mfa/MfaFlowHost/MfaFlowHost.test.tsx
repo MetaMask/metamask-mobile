@@ -15,6 +15,7 @@ import type {
 } from '../../../../util/identity/mfa/engine/types';
 import { MfaFlowSelectorsIDs } from '../Mfa.testIds';
 import MfaFlowHost from './MfaFlowHost';
+import { getMfaFlowId } from './flowId';
 
 const mockGoBack = jest.fn();
 const mockBeforeRemove: { listener?: () => void } = {};
@@ -28,9 +29,11 @@ const mockNavigation = {
     return () => undefined;
   },
 };
+const mockRoute: { params: { flowId: string } } = { params: { flowId: '' } };
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => mockNavigation,
+  useRoute: () => mockRoute,
 }));
 
 const activeEmail: EnrolledCredential = {
@@ -94,7 +97,17 @@ const start = async (
   return { outcome };
 };
 
-const renderHost = () => renderWithProvider(<MfaFlowHost />, { state: {} });
+/**
+ * Renders the modal the launcher would open for the running flow, or for no
+ * flow at all.
+ *
+ * @returns The render result.
+ */
+const renderHost = () => {
+  const flow = getActiveMfaFlow();
+  mockRoute.params = { flowId: flow ? getMfaFlowId(flow) : 'none' };
+  return renderWithProvider(<MfaFlowHost />, { state: {} });
+};
 
 describe('MfaFlowHost', () => {
   beforeEach(() => {
@@ -279,35 +292,12 @@ describe('MfaFlowHost', () => {
     ).toBeOnTheScreen();
   });
 
-  it('leaves a newer flow alone while it is still closing', async () => {
+  it('never shows or cancels a flow started after its own', async () => {
     const first = await start(
       { kind: 'enroll', method: 'email_otp' },
       createController(),
     );
-    const { getByTestId, unmount } = renderHost();
-    await act(async () => {
-      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CLOSE_BUTTON));
-    });
-    expect(await first.outcome).toEqual({ ok: false, code: 'flow_cancelled' });
-
-    await start({ kind: 'enroll', method: 'email_otp' }, createController());
-    const next = getActiveMfaFlow();
-    expect(
-      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-emailEntry`),
-    ).toBeOnTheScreen();
-
-    await act(async () => unmount());
-
-    expect(getActiveMfaFlow()).toBe(next);
-  });
-
-  it('shows a flow that starts before it begins closing', async () => {
-    const first = await start(
-      { kind: 'enroll', method: 'email_otp' },
-      createController(),
-    );
-    const { getByTestId, getByText } = renderHost();
-    let second: ReturnType<typeof getActiveMfaFlow>;
+    const { getByTestId, queryByText, unmount } = renderHost();
 
     await act(async () => {
       getActiveMfaFlow()?.dispatch({ type: 'cancel' });
@@ -321,14 +311,40 @@ describe('MfaFlowHost', () => {
         platform: 'mobile',
         controller: createController(),
       }).catch(() => undefined);
-      second = getActiveMfaFlow();
     });
+    const next = getActiveMfaFlow();
 
-    expect(getByText('Next reason')).toBeOnTheScreen();
+    expect(queryByText('Next reason')).toBeNull();
     expect(
-      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-intro`),
+      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-emailEntry`),
     ).toBeOnTheScreen();
-    expect(mockGoBack).not.toHaveBeenCalled();
-    expect(getActiveMfaFlow()).toBe(second);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+    await act(async () => unmount());
+
+    expect(getActiveMfaFlow()).toBe(next);
+  });
+
+  it('starts the next flow in its own modal, from a clean step', async () => {
+    const first = await start(
+      { kind: 'enroll', method: 'email_otp' },
+      createController(),
+    );
+    const firstHost = renderHost();
+    fireEvent.changeText(
+      firstHost.getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT),
+      'typed@b.co',
+    );
+    await act(async () => {
+      fireEvent.press(firstHost.getByTestId(MfaFlowSelectorsIDs.CLOSE_BUTTON));
+    });
+    expect(await first.outcome).toEqual({ ok: false, code: 'flow_cancelled' });
+
+    await start({ kind: 'enroll', method: 'email_otp' }, createController());
+    const nextHost = renderHost();
+
+    expect(
+      nextHost.getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT).props.value,
+    ).toBe('');
   });
 });
