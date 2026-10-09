@@ -1344,10 +1344,7 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<CryptoPriceHistoryPoint[]> {
     const { symbol, eventStartTime, variant, endDate, twapWindowSeconds } =
       params;
-    const referenceWindow = resolveReferencePriceWindow(
-      twapWindowSeconds,
-      this.#getFeatureFlags().polybolt,
-    );
+    const referenceWindow = resolveReferencePriceWindow(twapWindowSeconds);
 
     try {
       const normalizedSymbol = symbol.trim().toUpperCase();
@@ -1432,7 +1429,6 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<number | null> {
     const referenceWindow = resolveReferencePriceWindow(
       params.twapWindowSeconds,
-      this.#getFeatureFlags().polybolt,
     );
 
     try {
@@ -3401,13 +3397,6 @@ export class PolymarketProvider implements PredictProvider {
     options?: CryptoPriceSubscriptionOptions,
   ): () => void {
     const websocketManager = WebSocketManager.getInstance();
-    if (!this.#getFeatureFlags().polybolt) {
-      websocketManager.useCryptoFeed({ mode: 'rtds' });
-      return options
-        ? websocketManager.subscribeToCryptoPrices(symbols, callback, options)
-        : websocketManager.subscribeToCryptoPrices(symbols, callback);
-    }
-
     let cancelled = false;
     let unsubscribe = () => {
       cancelled = true;

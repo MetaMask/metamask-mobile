@@ -46,7 +46,6 @@ describe('resolvePredictFeatureFlags', () => {
       predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
       predictHomeCategories: DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
       predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
-      polybolt: false,
     });
   });
 
@@ -1284,60 +1283,6 @@ describe('resolvePredictFeatureFlags', () => {
       expect(result.nonRegTimeSportsMarketTypes).toEqual(
         DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
       );
-    });
-  });
-
-  describe('polybolt', () => {
-    it('stays off when the remote flag is missing', () => {
-      expect(resolvePredictFeatureFlags({}).polybolt).toBe(false);
-    });
-
-    it('stays off when the version check fails', () => {
-      mockValidatedVersionGatedFeatureFlag.mockReturnValue(false);
-
-      expect(
-        resolvePredictFeatureFlags({
-          remoteFeatureFlags: {
-            predictProtocolV2: {
-              enabled: true,
-              minimumVersion: '99.0.0',
-              polybolt: true,
-            },
-          },
-        }).polybolt,
-      ).toBe(false);
-    });
-
-    it('stays off when polybolt is false', () => {
-      mockValidatedVersionGatedFeatureFlag.mockReturnValue(true);
-
-      expect(
-        resolvePredictFeatureFlags({
-          remoteFeatureFlags: {
-            predictProtocolV2: {
-              enabled: true,
-              minimumVersion: '8.15.0',
-              polybolt: false,
-            },
-          },
-        }).polybolt,
-      ).toBe(false);
-    });
-
-    it('turns on when the version check passes and polybolt is true', () => {
-      mockValidatedVersionGatedFeatureFlag.mockReturnValue(true);
-
-      expect(
-        resolvePredictFeatureFlags({
-          remoteFeatureFlags: {
-            predictProtocolV2: {
-              enabled: true,
-              minimumVersion: '8.15.0',
-              polybolt: true,
-            },
-          },
-        }).polybolt,
-      ).toBe(true);
     });
   });
 });

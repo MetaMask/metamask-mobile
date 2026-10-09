@@ -19,12 +19,10 @@ import {
 import usePredictShare from '../../hooks/usePredictShare';
 import { usePredictSeries } from '../../hooks/usePredictSeries';
 import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
-import { usePolyboltEnabled } from '../../hooks/usePolyboltEnabled';
 
 const mockUsePredictShare = usePredictShare as jest.Mock;
 const mockUsePredictSeries = usePredictSeries as jest.Mock;
 const mockUseCryptoTargetPrice = useCryptoTargetPrice as jest.Mock;
-const mockUsePolyboltEnabled = usePolyboltEnabled as jest.Mock;
 let mockChartCurrentPrice: number | undefined;
 
 interface HeaderCompactStandardMockProps {
@@ -131,10 +129,6 @@ jest.mock('../../hooks/usePredictSeries', () => ({
 
 jest.mock('../../hooks/useCryptoTargetPrice', () => ({
   useCryptoTargetPrice: jest.fn(() => ({ data: undefined })),
-}));
-
-jest.mock('../../hooks/usePolyboltEnabled', () => ({
-  usePolyboltEnabled: jest.fn(() => false),
 }));
 
 jest.mock('../../hooks/usePredictPrices', () => ({
@@ -347,7 +341,6 @@ describe('PredictCryptoUpDownDetails', () => {
       ],
     });
     mockUseCryptoTargetPrice.mockReturnValue({ data: 78000 });
-    mockUsePolyboltEnabled.mockReturnValue(false);
     mockUsePredictSeriesPositions.mockReturnValue({
       rows: [],
       isLoading: false,
@@ -411,7 +404,7 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(mockUseCryptoTargetPrice).toHaveBeenCalledWith(
       expect.objectContaining({
         enabled: true,
-        twapWindowSeconds: 30,
+        twapWindowSeconds: 60,
       }),
     );
 
@@ -427,35 +420,6 @@ describe('PredictCryptoUpDownDetails', () => {
       ),
     ).toBeOnTheScreen();
     expect(screen.getByText('How this market settles')).toBeOnTheScreen();
-    expect(
-      screen.getByText(
-        "This market settles on BTC's average price over 30 seconds, not the price at the exact moment it closes.",
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows the 60 second window when PolyBolt is on', () => {
-    mockUsePolyboltEnabled.mockReturnValue(true);
-    const market = createMockMarket({
-      priceToBeat: 78000,
-      twapWindowSeconds: 30,
-    });
-    mockUsePredictSeries.mockReturnValue({ data: [market] });
-
-    render(<PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />);
-
-    expect(mockUseCryptoTargetPrice).toHaveBeenCalledWith(
-      expect.objectContaining({
-        twapWindowSeconds: 60,
-      }),
-    );
-
-    fireEvent.press(
-      screen.getByTestId(
-        PredictCryptoUpDownDetailsSelectorsIDs.TWAP_INFO_BUTTON,
-      ),
-    );
-
     expect(
       screen.getByText(
         "This market settles on BTC's average price over 60 seconds, not the price at the exact moment it closes.",

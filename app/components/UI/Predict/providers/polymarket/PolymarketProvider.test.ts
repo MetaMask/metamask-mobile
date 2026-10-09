@@ -401,7 +401,6 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   predictHomeCategories: DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
-  polybolt: false,
 };
 
 function createProvider(
@@ -1006,8 +1005,8 @@ describe('PolymarketProvider', () => {
       expect(url).not.toContain('twapLookbackSeconds');
     });
 
-    it('requests a 60 second lookback for a 30 second market when PolyBolt is on', async () => {
-      const provider = createProvider({ polybolt: true });
+    it('requests a 60 second lookback for a 30 second market', async () => {
+      const provider = createProvider();
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
         json: jest.fn().mockResolvedValue({ openPrice: 64000 }),
@@ -2716,23 +2715,9 @@ describe('PolymarketProvider.subscribeToCryptoPrices', () => {
     jest.mocked(createApiKey).mockReset();
   });
 
-  it('keeps the RTDS feed when PolyBolt is off', () => {
-    const provider = createProvider({ polybolt: false });
-    const callback = jest.fn();
-
-    provider.subscribeToCryptoPrices(['btc/usd'], callback);
-
-    expect(mockWebSocketManagerInstance.useCryptoFeed).toHaveBeenCalledWith({
-      mode: 'rtds',
-    });
-    expect(
-      mockWebSocketManagerInstance.subscribeToCryptoPrices,
-    ).toHaveBeenCalledWith(['btc/usd'], callback);
-  });
-
   it('authenticates PolyBolt with the selected account', async () => {
     jest.mocked(createApiKey).mockResolvedValue(credentials);
-    const provider = createProvider({ polybolt: true }, () => '0xabc');
+    const provider = createProvider(undefined, () => '0xabc');
     const callback = jest.fn();
 
     provider.subscribeToCryptoPrices(['btc/usd'], callback, {
@@ -2752,7 +2737,7 @@ describe('PolymarketProvider.subscribeToCryptoPrices', () => {
 
   it('leaves the socket closed when the API key request fails', async () => {
     jest.mocked(createApiKey).mockRejectedValue(new Error('sign failed'));
-    const provider = createProvider({ polybolt: true }, () => '0xabc');
+    const provider = createProvider(undefined, () => '0xabc');
 
     provider.subscribeToCryptoPrices(['btc/usd'], jest.fn());
     await jest
@@ -2767,7 +2752,7 @@ describe('PolymarketProvider.subscribeToCryptoPrices', () => {
   });
 
   it('leaves the socket closed when no account is selected', () => {
-    const provider = createProvider({ polybolt: true });
+    const provider = createProvider();
 
     provider.subscribeToCryptoPrices(['btc/usd'], jest.fn());
 
