@@ -26,6 +26,9 @@ export const generateOpt = (
  * Analytics Tracking Events
  */
 enum EVENT_NAME {
+  // TODO: test event to trigger the draft-segment-schema-pr workflow. Remove this before merging the PR.
+  DRAFT_SCHEMA_PR_WORKFLOW_TEST = 'Draft Schema PR Workflow Test',
+
   // App
   APP_OPENED = 'App Opened',
   APP_INSTALLED = 'App Installed',
