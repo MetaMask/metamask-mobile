@@ -12,6 +12,11 @@ import type { Result as KeychainResult } from 'react-native-keychain';
 import SecureKeychain from '../../../../core/SecureKeychain';
 import { SecureKeychainDecryptionError } from '../../../../core/SecureKeychainError';
 
+const mockSelectedAccount = jest.fn(() => ({
+  address: `0x${'1'.repeat(40)}`,
+  type: 'eip155:eoa',
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
@@ -21,10 +26,7 @@ jest.mock('../../../../core/Engine', () => ({
         withKeyring: jest.fn(),
       },
       AccountsController: {
-        getSelectedAccount: jest.fn(() => ({
-          address: `0x${'1'.repeat(40)}`,
-          type: 'eip155:eoa',
-        })),
+        getSelectedAccount: () => mockSelectedAccount(),
       },
       AccountTreeController: {
         getAccountsFromSelectedAccountGroup: jest.fn(() => [
@@ -63,15 +65,13 @@ const clientResult = {
 describe('lighterSignerBridge', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest
-      .mocked(Engine.context.AccountsController.getSelectedAccount)
-      .mockReturnValue({
-        address: `0x${'1'.repeat(40)}`,
-        type: 'eip155:eoa',
-      } as never);
+    mockSelectedAccount.mockReturnValue({
+      address: `0x${'1'.repeat(40)}`,
+      type: 'eip155:eoa',
+    } as never);
     Engine.controllerMessenger.call = jest.fn((action) => {
       if (action === 'AccountsController:getSelectedAccount')
-        return Engine.context.AccountsController.getSelectedAccount();
+        return mockSelectedAccount();
       if (
         action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
       )
@@ -87,7 +87,7 @@ describe('lighterSignerBridge', () => {
       storage: 'KeystoreAESGCM_NoAuth',
     } as KeychainResult);
     jest
-      .mocked(Engine.context.KeyringController.withKeyring)
+      .spyOn(Engine.context.KeyringController, 'withKeyring')
       .mockImplementation(async (_selector, operation) =>
         operation({ keyring: { type: 'Ledger Hardware' } } as never),
       );
@@ -377,7 +377,7 @@ describe('lighterSignerBridge', () => {
   it('recreates the wallet-derived key after losing local storage', async () => {
     const exportAccount = jest.fn().mockResolvedValue('c'.repeat(64));
     jest
-      .mocked(Engine.context.KeyringController.withKeyring)
+      .spyOn(Engine.context.KeyringController, 'withKeyring')
       .mockImplementation(async (_selector, operation) =>
         operation({ keyring: { type: 'HD Key Tree', exportAccount } } as never),
       );
@@ -405,7 +405,7 @@ describe('lighterSignerBridge', () => {
   it('discovers wallet-recoverable slots without exporting keys', async () => {
     const exportAccount = jest.fn();
     jest
-      .mocked(Engine.context.KeyringController.withKeyring)
+      .spyOn(Engine.context.KeyringController, 'withKeyring')
       .mockImplementation(async (_selector, operation) =>
         operation({ keyring: { type: 'HD Key Tree', exportAccount } } as never),
       );
@@ -421,6 +421,108 @@ describe('lighterSignerBridge', () => {
     expect(QuickCrypto.randomBytes).not.toHaveBeenCalled();
   });
 
+  it.each(['reset', 'unavailable', 'timeout'] as const)(
+    'rejects held keyring discovery on %s',
+    async (interruption) => {
+      jest.useFakeTimers();
+      let finishLookup!: (value: boolean) => void;
+      jest
+        .spyOn(Engine.context.KeyringController, 'withKeyring')
+        .mockReturnValueOnce(
+          new Promise<boolean>((resolve) => {
+            finishLookup = resolve;
+          }),
+        );
+      const executor = jest.fn();
+      connectLighterExecutor(executor);
+      const rejected = jest.fn();
+      const pending = lighterSignerBridge
+        .getRecoverableKeyIndices({
+          chainId: 300,
+          accountIndex: 28,
+          apiKeyIndices: [7, 19],
+        })
+        .catch(rejected);
+
+      if (interruption === 'reset') resetLighterBridge();
+      if (interruption === 'unavailable')
+        setLighterBridgeUnavailable('Signer unmounted');
+      await jest.advanceTimersByTimeAsync(
+        interruption === 'timeout' ? LIGHTER_SIGNER_TIMEOUT_MS : 0,
+      );
+
+      expect(rejected).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining(
+            interruption === 'reset'
+              ? 'reloaded'
+              : interruption === 'unavailable'
+                ? 'Signer unmounted'
+                : 'key discovery timed out',
+          ),
+        }),
+      );
+      expect(mockSecureKeychain.getSecureItem).not.toHaveBeenCalled();
+
+      finishLookup(true);
+      await pending;
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(rejected).toHaveBeenCalledTimes(1);
+      expect(mockSecureKeychain.getSecureItem).not.toHaveBeenCalled();
+      expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
+      expect(QuickCrypto.randomBytes).not.toHaveBeenCalled();
+      expect(executor).not.toHaveBeenCalled();
+      expect(jest.getTimerCount()).toBe(0);
+    },
+  );
+
+  it('shares the discovery deadline between keyring lookup and storage scan', async () => {
+    jest.useFakeTimers();
+    let finishLookup!: (value: boolean) => void;
+    let finishRead!: (value: null) => void;
+    jest
+      .spyOn(Engine.context.KeyringController, 'withKeyring')
+      .mockReturnValueOnce(
+        new Promise<boolean>((resolve) => {
+          finishLookup = resolve;
+        }),
+      );
+    mockSecureKeychain.getSecureItem.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishRead = resolve;
+      }),
+    );
+    const rejected = jest.fn();
+    const pending = lighterSignerBridge
+      .getRecoverableKeyIndices({
+        chainId: 300,
+        accountIndex: 28,
+        apiKeyIndices: [7, 19],
+      })
+      .catch(rejected);
+
+    await jest.advanceTimersByTimeAsync(60_000);
+    finishLookup(true);
+    await jest.advanceTimersByTimeAsync(0);
+    expect(mockSecureKeychain.getSecureItem).toHaveBeenCalledTimes(1);
+    await jest.advanceTimersByTimeAsync(29_999);
+    expect(rejected).not.toHaveBeenCalled();
+    await jest.advanceTimersByTimeAsync(1);
+
+    expect(rejected).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Lighter signer key discovery timed out',
+      }),
+    );
+    finishRead(null);
+    await pending;
+    await jest.advanceTimersByTimeAsync(0);
+    expect(mockSecureKeychain.getSecureItem).toHaveBeenCalledTimes(1);
+    expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
+    expect(jest.getTimerCount()).toBe(0);
+  });
+
   describe('unreadable encrypted keys', () => {
     const params = { chainId: 300, accountIndex: 28, nonce: 9, apiKeyIndex: 7 };
     const discoveryParams = {
@@ -432,7 +534,7 @@ describe('lighterSignerBridge', () => {
       exportAccount = jest.fn().mockResolvedValue('c'.repeat(64)),
     ) => {
       jest
-        .mocked(Engine.context.KeyringController.withKeyring)
+        .spyOn(Engine.context.KeyringController, 'withKeyring')
         .mockImplementation(async (_selector, operation) =>
           operation({
             keyring: { type: 'HD Key Tree', exportAccount },
@@ -502,7 +604,7 @@ describe('lighterSignerBridge', () => {
       async (type) => {
         const exportAccount = jest.fn();
         jest
-          .mocked(Engine.context.KeyringController.withKeyring)
+          .spyOn(Engine.context.KeyringController, 'withKeyring')
           .mockImplementation(async (_selector, operation) =>
             operation({ keyring: { type, exportAccount } } as never),
           );
@@ -614,12 +716,10 @@ describe('lighterSignerBridge', () => {
       async (operation) => {
         const exportAccount = setSoftwareKeyring();
         mockSecureKeychain.getSecureItem.mockImplementation(async () => {
-          jest
-            .mocked(Engine.context.AccountsController.getSelectedAccount)
-            .mockReturnValue({
-              address: `0x${'2'.repeat(40)}`,
-              type: 'eip155:eoa',
-            } as never);
+          mockSelectedAccount.mockReturnValue({
+            address: `0x${'2'.repeat(40)}`,
+            type: 'eip155:eoa',
+          } as never);
           throw new SecureKeychainDecryptionError();
         });
 
@@ -639,12 +739,10 @@ describe('lighterSignerBridge', () => {
   it.each([null, { value: 'a'.repeat(64) }])(
     'uses the selected group EVM account with a non-EVM selection (stored: %s)',
     async (stored) => {
-      jest
-        .mocked(Engine.context.AccountsController.getSelectedAccount)
-        .mockReturnValue({
-          address: 'SolanaAddress',
-          type: 'solana:data-account',
-        } as never);
+      mockSelectedAccount.mockReturnValue({
+        address: 'SolanaAddress',
+        type: 'solana:data-account',
+      } as never);
       mockSecureKeychain.getSecureItem.mockResolvedValue(stored as never);
       const executor = jest.fn().mockResolvedValue(clientResult);
       connectLighterExecutor(executor);
@@ -662,12 +760,10 @@ describe('lighterSignerBridge', () => {
   );
 
   it('rejects a wallet switch before the bridge call without reading or persisting a key', async () => {
-    jest
-      .mocked(Engine.context.AccountsController.getSelectedAccount)
-      .mockReturnValue({
-        address: `0x${'2'.repeat(40)}`,
-        type: 'eip155:eoa',
-      } as never);
+    mockSelectedAccount.mockReturnValue({
+      address: `0x${'2'.repeat(40)}`,
+      type: 'eip155:eoa',
+    } as never);
     connectLighterExecutor(jest.fn().mockResolvedValue(clientResult));
 
     await expect(
@@ -686,12 +782,10 @@ describe('lighterSignerBridge', () => {
 
   it('rejects a wallet switch during native key discovery', async () => {
     mockSecureKeychain.getSecureItem.mockImplementationOnce(async () => {
-      jest
-        .mocked(Engine.context.AccountsController.getSelectedAccount)
-        .mockReturnValue({
-          address: `0x${'2'.repeat(40)}`,
-          type: 'eip155:eoa',
-        } as never);
+      mockSelectedAccount.mockReturnValue({
+        address: `0x${'2'.repeat(40)}`,
+        type: 'eip155:eoa',
+      } as never);
       return null;
     });
 
@@ -705,23 +799,21 @@ describe('lighterSignerBridge', () => {
     ).rejects.toThrow('wallet changed');
 
     expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
-    expect(Engine.context.KeyringController.withKeyring).toHaveBeenCalledTimes(
-      1,
-    );
+    expect(
+      jest.spyOn(Engine.context.KeyringController, 'withKeyring'),
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('rejects a wallet switch during derivation before persisting the key', async () => {
     const exportAccount = jest.fn().mockImplementation(async () => {
-      jest
-        .mocked(Engine.context.AccountsController.getSelectedAccount)
-        .mockReturnValueOnce({
-          address: `0x${'2'.repeat(40)}`,
-          type: 'eip155:eoa',
-        } as never);
+      mockSelectedAccount.mockReturnValueOnce({
+        address: `0x${'2'.repeat(40)}`,
+        type: 'eip155:eoa',
+      } as never);
       return 'c'.repeat(64);
     });
     jest
-      .mocked(Engine.context.KeyringController.withKeyring)
+      .spyOn(Engine.context.KeyringController, 'withKeyring')
       .mockImplementation(async (_selector, operation) =>
         operation({ keyring: { type: 'HD Key Tree', exportAccount } } as never),
       );
