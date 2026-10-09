@@ -22,6 +22,7 @@ import TagBase, {
 } from '../../../../../../component-library/base-components/TagBase';
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
+import { AnimatedAmountDisplay } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Device from '../../../../../../util/device';
@@ -36,8 +37,8 @@ import { useSendContext } from '../../../context/send-context';
 import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { AmountKeyboard } from './amount-keyboard';
-import { AnimatedCursor } from './animated-cursor';
-import { styleSheet } from './amount.styles';
+import { getFontSizeForInputLength, styleSheet } from './amount.styles';
+import { formatAmountWithCommas } from '../../../utils/format-amount';
 import { InitSendLocation } from '../../../constants/send';
 import {
   Text,
@@ -45,6 +46,8 @@ import {
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
+
+const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
 
 export const Amount = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -72,9 +75,20 @@ export const Amount = () => {
     ? undefined
     : ((asset as AssetType)?.ticker ?? (asset as AssetType)?.symbol);
   const assetDisplaySymbol = assetSymbol ?? (isNFT ? 'NFT' : '');
-  const { styles } = useStyles(styleSheet, {
-    contentLength: amount.length + assetDisplaySymbol.length,
-  });
+  const displaySuffix = fiatMode
+    ? (fiatCurrencySymbol ?? '')
+    : assetDisplaySymbol;
+  const defaultValue = fiatMode ? '0.00' : '0';
+  const displayAmount = useMemo(
+    () => formatAmountWithCommas(amount.length ? amount : defaultValue),
+    [amount, defaultValue],
+  );
+  const inputFontSize = getFontSizeForInputLength(
+    displayAmount.length +
+      displaySuffix.length +
+      INPUT_SIDE_MARGIN_CHARACTER_RESERVE,
+  );
+  const { styles } = useStyles(styleSheet, { inputFontSize });
   const isIos = Device.isIos();
   const { setAmountInputTypeFiat, setAmountInputTypeToken } =
     useAmountSelectionMetrics();
@@ -153,7 +167,6 @@ export const Amount = () => {
     [balance, balanceUnit, fiatMode, getFiatDisplayValue],
   );
 
-  const defaultValue = fiatMode ? '0.00' : '0';
   let textColor: TextColor = TextColor.TextDefault;
   if (amountError) {
     textColor = TextColor.ErrorDefault;
@@ -197,25 +210,24 @@ export const Amount = () => {
         )}
         <View style={styles.inputSection}>
           <View style={styles.inputWrapper}>
-            <Text
+            <AnimatedAmountDisplay
+              amountTestID="send_amount"
+              accessibilityLabel={
+                displaySuffix
+                  ? `${displayAmount} ${displaySuffix}`
+                  : displayAmount
+              }
               color={textColor}
+              cursor={{ animated: true }}
               style={styles.inputText}
-              numberOfLines={1}
+              suffix={displaySuffix}
+              suffixColor={
+                amountError ? TextColor.ErrorDefault : TextColor.TextMuted
+              }
+              suffixStyle={styles.inputText}
+              value={displayAmount}
               variant={TextVariant.DisplayMd}
-              adjustsFontSizeToFit
-              testID="send_amount"
-            >
-              {amount?.length ? amount : defaultValue}
-            </Text>
-            <AnimatedCursor />
-            <Text
-              style={styles.inputText}
-              color={amountError ? TextColor.ErrorDefault : TextColor.TextMuted}
-              numberOfLines={1}
-              variant={TextVariant.DisplayLg}
-            >
-              {fiatMode ? fiatCurrencySymbol : assetDisplaySymbol}
-            </Text>
+            />
           </View>
         </View>
         {conversionSupportedForAsset && (
@@ -234,7 +246,7 @@ export const Amount = () => {
         {isNftLoading ? (
           <Skeleton twClassName="h-4 w-40 rounded self-center mt-4" />
         ) : (
-          <Text style={styles.balanceText} color={TextColor.TextAlternative}>
+          <Text color={TextColor.TextAlternative} style={styles.balanceText}>
             {balanceDisplayValue}
           </Text>
         )}
