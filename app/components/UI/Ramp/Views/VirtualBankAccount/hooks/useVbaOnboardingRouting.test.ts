@@ -286,6 +286,27 @@ describe('useOpenVbaOnboarding', () => {
     expectResetTo({ name: VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR });
   });
 
+  it('opens the error screen when navigation after hydrate throws', async () => {
+    jest.mocked(Logger.log).mockImplementationOnce(() => {
+      throw new Error('log failed');
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expectResetTo({ name: VbaOnboardingRoutes.ERROR });
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        context: expect.objectContaining({
+          name: 'useOpenVbaOnboarding',
+          data: { source: 'unspecified', step: 'navigate' },
+        }),
+      }),
+    );
+  });
+
   it('opens the error screen when hydrate throws', async () => {
     mockHydrate.mockRejectedValue(new Error('hydrate failed'));
 

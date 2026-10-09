@@ -276,28 +276,39 @@ export const useOpenVbaOnboarding = (
         return;
       }
 
-      const destinationId =
-        retryRejectedKyc && resolved.destinationId === 'kycRejected'
-          ? 'identityVerification'
-          : resolved.destinationId;
-      Logger.log('[vba-onboarding] resume', {
-        source,
-        snapshot: resolved.snapshot,
-        destinationId,
-      });
-      if (retryRejectedKyc && destinationId === 'identityVerification') {
-        navigation.dispatch(
-          StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
-            snapshot: resolved.snapshot,
-          }),
+      try {
+        const destinationId =
+          retryRejectedKyc && resolved.destinationId === 'kycRejected'
+            ? 'identityVerification'
+            : resolved.destinationId;
+        Logger.log('[vba-onboarding] resume', {
+          source,
+          snapshot: resolved.snapshot,
+          destinationId,
+        });
+        if (retryRejectedKyc && destinationId === 'identityVerification') {
+          navigation.dispatch(
+            StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
+              snapshot: resolved.snapshot,
+            }),
+          );
+          return;
+        }
+        navigateToVbaOnboardingDestination(
+          navigation,
+          destinationId,
+          resolved.snapshot,
         );
-        return;
+      } catch (error) {
+        Logger.error(error as Error, {
+          tags: { feature: 'vba-onboarding' },
+          context: {
+            name: 'useOpenVbaOnboarding',
+            data: { source, step: 'navigate' },
+          },
+        });
+        openRecoverableError(navigation);
       }
-      navigateToVbaOnboardingDestination(
-        navigation,
-        destinationId,
-        resolved.snapshot,
-      );
     },
     [navigation, defaultSource],
   );
