@@ -102,6 +102,13 @@ jest.mock('../hooks/useTokenPrice', () => ({
   }),
 }));
 
+// Stubbed for the same reason as `useTokenPrice`: this is a view test, and no
+// case here asserts anything about market data. It also keeps the suite off
+// React Query, which the real hook needs a provider for.
+jest.mock('../hooks/useTokenMarketData', () => ({
+  useTokenMarketData: () => ({ marketData: null, isLoading: false }),
+}));
+
 // Echoes the prefetched security data so tests can supply security data at
 // navigation time, matching the real hook's pass-through of valid prefetched
 // data (no network fetch needed in tests).

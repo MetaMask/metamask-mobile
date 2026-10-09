@@ -1,13 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { handleFetch } from '@metamask/controller-utils';
+import { useQuery } from '@tanstack/react-query';
 import type { CaipAssetType } from '@metamask/utils';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { getAssetsPrice } from '../../../../selectors/assets/assets-controller';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import Logger from '../../../../util/Logger';
-
-const SPOT_PRICES_URL = 'https://price.api.cx.metamask.io/v3/spot-prices';
+import { tokenMarketDataOptions } from '../queries/tokenMarketData';
 
 export interface UseTokenMarketDataResult {
   /** Null until resolved, and when the token has no market data at all. */
@@ -38,6 +37,11 @@ export interface UseTokenMarketDataResult {
  * always USD, which makes it the right numerator for ratios against other USD
  * figures such as the security data's `reserveUSD`.
  *
+ * The controller cache wins over the query rather than seeding it, because the
+ * two have different lifetimes: `assetsPrice` keeps arriving from the
+ * controller's own polling, so writing it into the query cache would leave two
+ * copies to reconcile on every tick.
+ *
  * @param assetId - CAIP-19 asset ID. No fetch is attempted when null.
  */
 export const useTokenMarketData = (
@@ -50,82 +54,27 @@ export const useTokenMarketData = (
   const cachedMarketData =
     cachedPrice?.assetPriceType === 'fungible' ? cachedPrice : undefined;
 
-  const [fetchedMarketData, setFetchedMarketData] =
-    useState<FungibleAssetPrice | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  // The currency is part of the request, not a detail of it: the response is
+  // denominated in whatever `vsCurrency` asked for. Until it is known there is
+  // nothing worth asking, so this waits rather than fetching figures it could
+  // not label.
+  const { data, isLoading, error } = useQuery({
+    ...tokenMarketDataOptions(assetId, currentCurrency),
+    enabled: Boolean(assetId) && Boolean(currentCurrency) && !cachedMarketData,
+  });
 
-  // Discards responses from a superseded asset or currency rather than letting
-  // a slow earlier request overwrite a newer one.
-  const fetchIdRef = useRef(0);
-  const isMountedRef = useRef(true);
-
-  const fetchMarketData = useCallback(
-    async (fetchId: number) => {
-      if (!assetId) {
-        return;
-      }
-
-      try {
-        const url = `${SPOT_PRICES_URL}?${new URLSearchParams({
-          assetIds: assetId,
-          includeMarketData: 'true',
-          vsCurrency: currentCurrency.toLowerCase(),
-        })}`;
-
-        const response = (await handleFetch(url)) as Record<
-          string,
-          FungibleAssetPrice | undefined
-        >;
-
-        if (!isMountedRef.current || fetchId !== fetchIdRef.current) {
-          return;
-        }
-
-        setFetchedMarketData(response?.[assetId] ?? null);
-      } catch (error) {
-        if (!isMountedRef.current || fetchId !== fetchIdRef.current) {
-          return;
-        }
-
-        Logger.error(error as Error, 'useTokenMarketData: spot-prices failed');
-        setFetchedMarketData(null);
-      } finally {
-        if (isMountedRef.current && fetchId === fetchIdRef.current) {
-          setIsLoading(false);
-        }
-      }
-    },
-    [assetId, currentCurrency],
-  );
-
-  // Reduced to its presence so a price tick on an already-cached asset does
-  // not restart the effect for no new information. `fetchMarketData` changes
-  // identity with the asset and currency, which covers both of those.
-  const hasCachedMarketData = Boolean(cachedMarketData);
-
+  // Reported here rather than from the `queryFn` so a transient failure that
+  // the retries then recover from stays out of Sentry — only a query that
+  // settles into an error state is worth a report. React Query removed the
+  // per-query `onError` callback in v5, so an effect is the remaining seam.
   useEffect(() => {
-    isMountedRef.current = true;
-
-    // Invalidates any in-flight request for a previous asset or currency.
-    const fetchId = ++fetchIdRef.current;
-    setFetchedMarketData(null);
-
-    if (!assetId || hasCachedMarketData) {
-      setIsLoading(false);
-    } else {
-      setIsLoading(true);
-      // Settles through its own try/catch/finally, so there is nothing for the
-      // effect to await or handle.
-      void fetchMarketData(fetchId);
+    if (error) {
+      Logger.error(error, 'useTokenMarketData: spot-prices failed');
     }
-
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, [assetId, hasCachedMarketData, fetchMarketData]);
+  }, [error]);
 
   return {
-    marketData: cachedMarketData ?? fetchedMarketData,
+    marketData: cachedMarketData ?? data ?? null,
     isLoading,
   };
 };
