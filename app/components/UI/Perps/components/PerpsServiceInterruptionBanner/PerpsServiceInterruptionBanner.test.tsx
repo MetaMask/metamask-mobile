@@ -134,7 +134,7 @@ describe('PerpsServiceInterruptionBanner', () => {
 
     expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
       expect.any(Function),
-      SUPPORT_CONFIG.Url,
+      SERVICE_INTERRUPTION_CONFIG.SupportUrl,
     );
   });
 
@@ -146,12 +146,12 @@ describe('PerpsServiceInterruptionBanner', () => {
 
     fireEvent.press(getByTestId(`${TEST_ID}-support-link`));
     const [open] = mockOpenSupportWithConsent.mock.calls[0];
-    open(SUPPORT_CONFIG.Url);
+    open(SERVICE_INTERRUPTION_CONFIG.SupportUrl);
 
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: SUPPORT_CONFIG.Url,
+        url: SERVICE_INTERRUPTION_CONFIG.SupportUrl,
         title: strings(SUPPORT_CONFIG.TitleKey),
       },
     });

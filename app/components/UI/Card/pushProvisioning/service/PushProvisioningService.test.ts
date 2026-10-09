@@ -7,7 +7,7 @@ import {
   ProvisioningErrorCode,
   ProvisioningError,
   UserAddress,
-  CardDetails,
+  WalletType,
 } from '../types';
 import { ICardProviderAdapter } from '../adapters/card/ICardProviderAdapter';
 import { IWalletProviderAdapter } from '../adapters/wallet/IWalletProviderAdapter';
@@ -25,7 +25,8 @@ jest.mock('../constants', () => ({
 describe('PushProvisioningService', () => {
   // Mock adapters
   const mockCardAdapter: jest.Mocked<ICardProviderAdapter> = {
-    providerId: 'galileo',
+    providerId: 'baanx',
+    supportsWallet: jest.fn((_walletType: WalletType) => true),
     getOpaquePaymentCard: jest.fn(),
     getApplePayEncryptedPayload: jest.fn(),
   };
@@ -40,11 +41,12 @@ describe('PushProvisioningService', () => {
     addActivationListener: jest.fn(),
   };
 
-  const mockCardDetails: CardDetails = {
-    id: 'card-123',
-    holderName: 'John Doe',
-    panLast4: '1234',
-    status: 'ACTIVE',
+  const mockWalletProvisioning = {
+    eligible: true,
+    cardholderName: 'John Doe',
+    lastFour: '1234',
+    network: 'MASTERCARD' as const,
+    primaryAccountIdentifier: 'series-1',
   };
 
   const mockUserAddress: UserAddress = {
@@ -59,7 +61,8 @@ describe('PushProvisioningService', () => {
   };
 
   const mockProvisioningOptions: ProvisioningOptions = {
-    cardDetails: mockCardDetails,
+    cardId: 'card-123',
+    walletProvisioning: mockWalletProvisioning,
     userAddress: mockUserAddress,
   };
 
@@ -194,7 +197,8 @@ describe('PushProvisioningService', () => {
         });
 
         const result = await service.initiateProvisioning({
-          cardDetails: mockCardDetails,
+          cardId: 'card-123',
+          walletProvisioning: mockWalletProvisioning,
         });
 
         expect(result.status).toBe('success');
@@ -243,6 +247,7 @@ describe('PushProvisioningService', () => {
             cardNetwork: 'MASTERCARD',
             cardholderName: 'John Doe',
             lastFourDigits: '1234',
+            primaryAccountIdentifier: 'series-1',
             encryptedPayload: {},
             issuerEncryptCallback: expect.any(Function),
           }),
@@ -285,12 +290,12 @@ describe('PushProvisioningService', () => {
         ).toHaveBeenCalledWith('nonce', 'signature', ['cert1', 'cert2']);
       });
 
-      it('throws error when card adapter does not support Apple Pay', async () => {
-        // Create a card adapter without getApplePayEncryptedPayload method
+      it('returns an error when the card adapter does not support the wallet', async () => {
         const cardAdapterWithoutApplePay: jest.Mocked<ICardProviderAdapter> = {
-          providerId: 'galileo',
+          providerId: 'immersve',
+          supportsWallet: jest.fn((_walletType: WalletType) => false),
           getOpaquePaymentCard: jest.fn(),
-          // getApplePayEncryptedPayload is intentionally omitted
+          getApplePayEncryptedPayload: jest.fn(),
         };
 
         const serviceWithLimitedAdapter = new PushProvisioningService(
