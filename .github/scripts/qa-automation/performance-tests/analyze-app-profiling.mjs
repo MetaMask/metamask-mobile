@@ -252,7 +252,7 @@ Options:
   --max-runs-per-week <n>  Cap uncollected runs re-analyzed per week (default: every run)
   --max-analysis-minutes <n>  Wall clock spent rebuilding uncollected runs (default: ${DEFAULT_ANALYSIS_BUDGET_MINUTES})
   --collect-only         Analyze one run without Slack-sized scenario zips
-  --scheduled-exception  Collect one run and compare it with the previous two scheduled runs
+  --scheduled-exception  Collect one run and compare it with the previous two collected scheduled runs
   --skip-scenario-artifacts  Skip per-scenario profile bundles
   --now <iso>            Clock used by --weekly week bounds (tests)
   --scenario <text>      Analyze matching scenario names only
@@ -2574,7 +2574,9 @@ async function runScheduledExceptionAnalysis({
     });
   }
   console.log(
-    `✅ Checked run ${currentReport.meta.runId} against ${baselineReports.length} collected runs: ${exception.findings.length} finding(s)`,
+    `✅ Checked run ${currentReport.meta.runId} against collected runs [${baselineReports
+      .map((report) => report.meta.runId)
+      .join(', ')}] from ${collected.size} reusable reports and ${scheduledRuns.length} scheduled ticks: ${exception.findings.length} finding(s)`,
   );
 }
 

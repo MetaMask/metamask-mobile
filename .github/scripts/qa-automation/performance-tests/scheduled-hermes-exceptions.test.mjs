@@ -45,20 +45,52 @@ test('selectBaselineReports keeps only the two most recent scheduled ticks', () 
   );
 });
 
-test('selectBaselineReports does not backfill an older run when a tick is missing', () => {
+test('selectBaselineReports skips ticks that have no collected report', () => {
   const collected = new Map([
-    ['20', report('20', [scenario('Perps add funds', 110)])],
-    ['30', report('30', [scenario('Perps add funds', 999)])],
+    ['30', report('30', [scenario('Perps add funds', 100)])],
+    ['40', report('40', [scenario('Perps add funds', 110)])],
   ]);
   const selected = selectBaselineReports(
-    [{ databaseId: 10 }, { databaseId: 20 }, { databaseId: 30 }],
+    [
+      { databaseId: 10 },
+      { databaseId: 20 },
+      { databaseId: 30 },
+      { databaseId: 40 },
+      { databaseId: 50 },
+    ],
     collected,
   );
 
   assert.deepEqual(
     selected.map((entry) => entry.meta.runId),
-    ['20'],
+    ['30', '40'],
   );
+});
+
+test('failed ticks do not keep a later successful run unchecked', () => {
+  const current = report('9', [scenario('Perps add funds', 200)]);
+  const baseline = selectBaselineReports(
+    [
+      { databaseId: 6 },
+      { databaseId: 5 },
+      { databaseId: 8 },
+      { databaseId: 7 },
+    ],
+    new Map([
+      ['8', report('8', [scenario('Perps add funds', 120)])],
+      ['7', report('7', [scenario('Perps add funds', 100)])],
+    ]),
+  );
+
+  const exception = buildScheduledException(current, baseline);
+
+  assert.equal(exception.meta.comparedScenarioCount, 1);
+  assert.equal(exception.meta.hasFindings, true);
+  assert.equal(exception.findings[0].baselineMedianJsWorkMs, 110);
+  assert.deepEqual(exception.meta.baselineCreatedAt, [
+    '2026-09-23T08:00:00.000Z',
+    '2026-09-23T07:00:00.000Z',
+  ]);
 });
 
 test('a run below the recent threshold reports an all-clear', () => {
@@ -75,7 +107,7 @@ test('a run below the recent threshold reports an all-clear', () => {
   assert.deepEqual(exception.findings, []);
   assert.match(slack, /nothing to action/);
   assert.match(slack, /_Checked:_ 1\/1 scenarios/);
-  assert.match(slack, /previous 2 scheduled runs/);
+  assert.match(slack, /previous 2 collected scheduled runs/);
   assert.match(slack, /no scenario reached 1\.5× its recent median/);
   assert.match(
     buildScheduledExceptionMarkdown(exception),
@@ -114,7 +146,7 @@ test('a scenario at 1.5 times the recent median becomes a finding', () => {
   assert.equal(exception.findings[0].baselineMedianJsWorkMs, 110);
   assert.equal(exception.findings[0].ratio, 1.5);
   assert.match(slack, /Possible regression/);
-  assert.match(slack, /previous 2 scheduled runs/);
+  assert.match(slack, /previous 2 collected scheduled runs/);
   assert.match(slack, /owner mm-perps-engineering-team/);
   assert.doesNotMatch(slack, /subteam|<!/);
 });
