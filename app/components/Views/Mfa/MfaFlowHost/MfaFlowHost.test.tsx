@@ -300,4 +300,35 @@ describe('MfaFlowHost', () => {
 
     expect(getActiveMfaFlow()).toBe(next);
   });
+
+  it('shows a flow that starts before it begins closing', async () => {
+    const first = await start(
+      { kind: 'enroll', method: 'email_otp' },
+      createController(),
+    );
+    const { getByTestId, getByText } = renderHost();
+    let second: ReturnType<typeof getActiveMfaFlow>;
+
+    await act(async () => {
+      getActiveMfaFlow()?.dispatch({ type: 'cancel' });
+      expect(await first.outcome).toEqual({
+        ok: false,
+        code: 'flow_cancelled',
+      });
+      startMfaFlow({
+        request: { kind: 'verifyOrEnroll', methods: ['email_otp'] },
+        reason: { operation: 'next', description: 'Next reason' },
+        platform: 'mobile',
+        controller: createController(),
+      }).catch(() => undefined);
+      second = getActiveMfaFlow();
+    });
+
+    expect(getByText('Next reason')).toBeOnTheScreen();
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-intro`),
+    ).toBeOnTheScreen();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(getActiveMfaFlow()).toBe(second);
+  });
 });

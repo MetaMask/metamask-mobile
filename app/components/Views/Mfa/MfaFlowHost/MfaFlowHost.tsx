@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -22,31 +22,34 @@ const getProgressTitle = ({ step, progress }: MfaFlowState) =>
     : undefined;
 
 /**
- * Full-screen modal that renders the MFA flow it was opened for. Leaving it
- * cancels that flow; it closes itself once the flow settles.
+ * Full-screen modal that renders the running MFA flow. Leaving it cancels the
+ * flow; it closes itself once the flow settles.
  */
 const MfaFlowHost = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const active = useActiveMfaFlow();
-  // A later flow gets its own modal: this one never shows or cancels it, even
-  // while it is still animating away.
-  const [flow] = useState(() => active?.flow);
-  const isRunning = flow !== undefined && active?.flow === flow;
-  const isRemoving = useRef(false);
+  const [isClosing, setIsClosing] = useState(false);
 
-  // Keep the last step on screen while the modal animates away. The flow has
-  // settled by then, so it ignores any action.
-  const [lastState, setLastState] = useState(active?.state);
-  if (isRunning && active.state !== lastState) {
-    setLastState(active.state);
+  // Follow the running flow until the modal starts closing, then keep showing
+  // the last one: a flow started before that reuses this modal, one started
+  // after gets its own. Only a settled flow is ever replaced, and a settled
+  // flow ignores actions, so this modal never cancels a newer flow.
+  const [shown, setShown] = useState(active);
+  if (
+    !isClosing &&
+    active &&
+    (active.flow !== shown?.flow || active.state !== shown?.state)
+  ) {
+    setShown(active);
   }
-  const state = isRunning ? active.state : lastState;
+  const flow = shown?.flow;
+  const state = shown?.state;
 
   useEffect(
     () =>
       navigation.addListener('beforeRemove', () => {
-        isRemoving.current = true;
+        setIsClosing(true);
         flow?.dispatch({ type: 'cancel' });
       }),
     [navigation, flow],
@@ -55,12 +58,13 @@ const MfaFlowHost = () => {
   // Fallback for removals that skip `beforeRemove`.
   useEffect(() => () => flow?.dispatch({ type: 'cancel' }), [flow]);
 
+  const isRunning = active !== undefined;
   useEffect(() => {
-    if (!isRunning && !isRemoving.current && navigation.isFocused()) {
-      isRemoving.current = true;
+    if (!isRunning && !isClosing && navigation.isFocused()) {
+      setIsClosing(true);
       navigation.goBack();
     }
-  }, [isRunning, navigation]);
+  }, [isRunning, isClosing, navigation]);
 
   if (!flow || !state) {
     return null;
