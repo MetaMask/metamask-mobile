@@ -3563,7 +3563,7 @@ describe('usePerpsProOrderForm', () => {
       });
 
       mockLivePrice = '92000';
-      rerender(undefined);
+      rerender({});
 
       await act(async () => {
         resolveValidation?.({
