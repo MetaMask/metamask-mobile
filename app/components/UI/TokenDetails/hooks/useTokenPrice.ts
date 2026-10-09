@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
+import { Hex, type CaipChainId } from '@metamask/utils';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
 import {
   selectCurrentCurrency,
   selectCurrencyRates,
 } from '../../../../selectors/currencyRateController';
 import useTokenHistoricalPrices, {
+  DEFAULT_HISTORICAL_TIME_PERIOD,
   TimePeriod,
   TokenPrice,
 } from '../../../hooks/useTokenHistoricalPrices';
@@ -17,12 +19,103 @@ import {
   selectTokenDisplayData,
 } from '../../../../selectors/tokenSearchDiscoveryDataController';
 import { calculateAssetPrice } from '../../AssetOverview/utils/calculateAssetPrice';
+import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import { type MarketDataDetails } from '@metamask/assets-controllers';
-import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { safeToChecksumAddress } from '../../../../util/address';
+
+const SPOT_QUERY_STALE_TIME_MS = 30_000;
+
+export interface SpotPriceQueryRequest {
+  chainId: Hex | CaipChainId;
+  tokenAddress: string;
+  currency: string;
+}
+
+interface SpotPriceQueryResult {
+  marketData: MarketDataDetails;
+  apiDurationMs: number;
+}
+
+const isAbortError = (error: unknown): boolean =>
+  typeof error === 'object' &&
+  error != null &&
+  'name' in error &&
+  (error as { name: string }).name === 'AbortError';
+
+const emptyMarketData = {} as MarketDataDetails;
+
+interface SpotPriceFetchError extends Error {
+  apiDurationMs: number;
+}
+
+const createSpotPriceFetchError = (
+  apiDurationMs: number,
+  cause: unknown,
+): SpotPriceFetchError =>
+  Object.assign(new Error('Spot price fetch failed'), {
+    apiDurationMs,
+    cause,
+  });
+
+const fetchSpotPrice = async (
+  request: SpotPriceQueryRequest,
+  signal?: AbortSignal,
+): Promise<SpotPriceQueryResult> => {
+  const fetchStart = Date.now();
+  try {
+    if (signal?.aborted) {
+      throw new DOMException('The user aborted a request.', 'AbortError');
+    }
+    const data = (await getTokenExchangeRate({
+      chainId: request.chainId,
+      tokenAddress: request.tokenAddress,
+      currency: request.currency,
+      includeMarketData: true,
+    })) as MarketDataDetails | undefined;
+
+    return {
+      marketData: data?.price ? data : emptyMarketData,
+      apiDurationMs: Date.now() - fetchStart,
+    };
+  } catch (error: unknown) {
+    if (signal?.aborted || isAbortError(error)) {
+      throw error;
+    }
+    throw createSpotPriceFetchError(Date.now() - fetchStart, error);
+  }
+};
+
+export const spotPriceQueryOptions = (request: SpotPriceQueryRequest) =>
+  queryOptions({
+    queryKey: [
+      'token-details',
+      'spot-price',
+      request.chainId,
+      request.tokenAddress,
+      request.currency,
+    ],
+    queryFn: ({ signal }) => fetchSpotPrice(request, signal),
+    retry: false,
+    staleTime: SPOT_QUERY_STALE_TIME_MS,
+  });
+
+const shouldFetchSpotPrice = ({
+  chainId,
+  tokenAddress,
+  marketDataMissing,
+  hasNativeConversionRate,
+}: {
+  chainId: Hex | CaipChainId;
+  tokenAddress: string | null | undefined;
+  marketDataMissing: boolean;
+  hasNativeConversionRate: boolean;
+}): boolean =>
+  marketDataMissing &&
+  Boolean(tokenAddress) &&
+  (isNonEvmChainId(chainId) || hasNativeConversionRate);
 
 /**
  * Time ranges where the spot-prices API provides a reliable pre-computed
@@ -74,7 +167,9 @@ export const useTokenPrice = ({
   const chainId = token.chainId as Hex;
   const isNonEvmToken = formatChainIdToCaip(chainId) === token.chainId;
 
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('1d');
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>(
+    DEFAULT_HISTORICAL_TIME_PERIOD,
+  );
 
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -116,85 +211,43 @@ export const useTokenPrice = ({
   const tokenMarketEntry = allTokenMarketData?.[chainId]?.[itemAddress as Hex];
   const marketDataRate = tokenMarketEntry?.price;
 
-  const [fetchedRate, setFetchedRate] = useState<number | undefined>();
-  const [fetchedMarketData, setFetchedMarketData] = useState<
-    MarketDataDetails | undefined
-  >();
-  const [exchangeRateApiMs, setExchangeRateApiMs] = useState<number>();
-  const fetchIdRef = useRef(0);
+  const isNonEvm = isNonEvmChainId(chainId);
+  const nativeTokenConversionRate =
+    nativeCurrency && conversionRateByTicker?.[nativeCurrency]?.conversionRate;
 
-  // Stable token key to prevent unnecessary re-fetches
-  const tokenKey = `${chainId}-${itemAddress}-${currentCurrency}`;
+  const shouldFetchSpot = shouldFetchSpotPrice({
+    chainId,
+    tokenAddress: itemAddress,
+    marketDataMissing: marketDataRate === undefined,
+    hasNativeConversionRate: Boolean(nativeTokenConversionRate),
+  });
 
-  // For non-imported tokens (not in Redux), fetch price + market data in a
-  // single call. This gives us both the exchange rate and the pre-computed
-  // percentage changes from the spot-prices API, avoiding the historical-prices
-  // endpoint's incomplete-data problem for newly-listed tokens.
-  useEffect(() => {
-    setFetchedRate(undefined);
-    setFetchedMarketData(undefined);
-    setExchangeRateApiMs(undefined);
+  const spotQuery = useQuery({
+    ...spotPriceQueryOptions({
+      chainId,
+      tokenAddress: itemAddress ?? '',
+      currency: currentCurrency,
+    }),
+    enabled: shouldFetchSpot,
+  });
 
-    if (marketDataRate !== undefined || !itemAddress) {
-      // Token data already available in Redux or no address - mark fetch as "not needed"
-      setFetchedMarketData({} as MarketDataDetails);
-      return;
+  const fetchedMarketData: MarketDataDetails | undefined = shouldFetchSpot
+    ? spotQuery.data?.marketData
+    : emptyMarketData;
+
+  const exchangeRateApiMs = shouldFetchSpot
+    ? (spotQuery.data?.apiDurationMs ??
+      (spotQuery.error as SpotPriceFetchError | null)?.apiDurationMs)
+    : undefined;
+
+  let fetchedRate: number | undefined;
+  if (shouldFetchSpot && fetchedMarketData?.price) {
+    if (isNonEvm) {
+      fetchedRate = fetchedMarketData.price;
+    } else if (nativeTokenConversionRate) {
+      fetchedRate = fetchedMarketData.price / nativeTokenConversionRate;
     }
-
-    const isNonEvm = isNonEvmChainId(chainId);
-    const nativeTokenConversionRate =
-      nativeCurrency &&
-      conversionRateByTicker?.[nativeCurrency]?.conversionRate;
-
-    if (!isNonEvm && !nativeTokenConversionRate) {
-      // Can't fetch without conversion rate - mark fetch as "not possible"
-      setFetchedMarketData({} as MarketDataDetails);
-      return;
-    }
-
-    const id = ++fetchIdRef.current;
-    const fetchStart = Date.now();
-
-    const fetchData = async () => {
-      try {
-        const data = (await getTokenExchangeRate({
-          chainId,
-          tokenAddress: itemAddress,
-          currency: currentCurrency,
-          includeMarketData: true,
-        })) as MarketDataDetails | undefined;
-
-        if (id !== fetchIdRef.current) return;
-        setExchangeRateApiMs(Date.now() - fetchStart);
-
-        if (!data?.price) {
-          setFetchedRate(undefined);
-          // Set empty object to indicate "fetch completed but no data available"
-          // This prevents infinite loading when API returns incomplete data
-          setFetchedMarketData({} as MarketDataDetails);
-          return;
-        }
-
-        setFetchedMarketData(data);
-
-        if (isNonEvm) {
-          setFetchedRate(data.price);
-        } else if (nativeTokenConversionRate) {
-          setFetchedRate(data.price / nativeTokenConversionRate);
-        }
-      } catch {
-        if (id !== fetchIdRef.current) return;
-        setExchangeRateApiMs(Date.now() - fetchStart);
-        setFetchedRate(undefined);
-        // Set empty object to indicate "fetch attempted but failed"
-        // This prevents infinite loading when API request fails
-        setFetchedMarketData({} as MarketDataDetails);
-      }
-    };
-
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tokenKey, marketDataRate]);
+  }
 
   // For time periods that use spot-prices percentage (1d, 1w, 1m, 1y),
   // wait for spot-prices to load before showing data to avoid flicker.
@@ -206,7 +259,8 @@ export const useTokenPrice = ({
   const isWaitingForSpotPrice =
     needsSpotPriceFetch &&
     spotPctField !== undefined &&
-    fetchedMarketData === undefined;
+    fetchedMarketData === undefined &&
+    !spotQuery.isError;
 
   const exchangeRate = marketDataRate ?? fetchedRate;
 

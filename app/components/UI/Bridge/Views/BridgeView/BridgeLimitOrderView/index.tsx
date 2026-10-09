@@ -398,7 +398,7 @@ const BridgeLimitOrderViewContent = () => {
     });
   }, [navigation]);
 
-  const handleExpirationConfirm = useCallback(
+  const handleExpirationSelect = useCallback(
     (minutes: SwapsLimitOrderExpirationMinutes) => {
       setExpirationMinutes(minutes);
     },
@@ -411,13 +411,13 @@ const BridgeLimitOrderViewContent = () => {
       screen: Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_EXPIRATION_MODAL,
       params: {
         selectedMinutes: expirationMinutes,
-        onConfirm: handleExpirationConfirm,
+        onSelect: handleExpirationSelect,
       },
     });
   }, [
     dismissInputAndKeypad,
     expirationMinutes,
-    handleExpirationConfirm,
+    handleExpirationSelect,
     navigation,
   ]);
 

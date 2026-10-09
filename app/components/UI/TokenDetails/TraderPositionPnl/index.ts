@@ -9,3 +9,7 @@ export type {
   TraderPositionTrade,
   UnrealizedPnl,
 } from './types';
+export { useTraderPosition } from './useTraderPosition';
+export type { UseTraderPositionResult } from './useTraderPosition';
+export { useUnrealizedPnl } from './useUnrealizedPnl';
+export type { UnrealizedPnlView } from './useUnrealizedPnl';

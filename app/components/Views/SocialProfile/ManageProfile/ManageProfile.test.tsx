@@ -5,7 +5,9 @@ import { fireEvent, within } from '@testing-library/react-native';
 import ManageProfile from './ManageProfile';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
+import Routes from '../../../../constants/navigation/Routes';
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
+import { ManageProfileFieldName } from './ManageProfileField.types';
 
 import { DEFAULT_PROFILE_AVATAR_SIZE } from './ProfileAvatar';
 import { strings } from '../../../../../locales/i18n';
@@ -15,22 +17,29 @@ const EXPECTED_VALUE_WIDTH_RATIO = 0.45;
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockSetParams = jest.fn();
 const mockNavigation = {
   navigate: mockNavigate,
   goBack: mockGoBack,
+  setParams: mockSetParams,
 };
+let mockRouteParams: {
+  fieldUpdate?: { field: string; value: string };
+} = {};
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: () => mockNavigation,
+    useRoute: () => ({ params: mockRouteParams }),
   };
 });
 
 describe('ManageProfile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = {};
   });
 
   it('wraps content in SafeAreaView', () => {
@@ -168,12 +177,20 @@ describe('ManageProfile', () => {
     expect(bioValue).toHaveStyle({ maxWidth: 120 });
   });
 
-  it('bounds a row value so it cannot overflow its row', () => {
+  it('bounds a long saved value so it cannot overflow its row', () => {
+    const longName = 'Yield Whale '.repeat(10).trim();
+    mockRouteParams = {
+      fieldUpdate: {
+        field: ManageProfileFieldName.DisplayName,
+        value: longName,
+      },
+    };
+
     const { getByTestId } = renderWithProvider(<ManageProfile />);
 
     const valueText = within(
       getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW),
-    ).getByText(strings('manage_profile.not_set'));
+    ).getByText(longName);
 
     expect(valueText.props.numberOfLines).toBe(1);
     expect(valueText).toHaveStyle({
@@ -200,9 +217,7 @@ describe('ManageProfile', () => {
   });
 
   it.each([
-    [ManageProfileSelectorsIDs.DISPLAY_NAME_ROW],
     [ManageProfileSelectorsIDs.HANDLE_ROW],
-    [ManageProfileSelectorsIDs.BIO_ROW],
     [ManageProfileSelectorsIDs.X_ACCOUNT_ROW],
     [ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW],
     [ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW],
@@ -210,5 +225,99 @@ describe('ManageProfile', () => {
     const { getByTestId } = renderWithProvider(<ManageProfile />);
 
     expect(getByTestId(testID).props.accessibilityRole).toBeUndefined();
+  });
+
+  it.each([
+    [ManageProfileSelectorsIDs.DISPLAY_NAME_ROW],
+    [ManageProfileSelectorsIDs.BIO_ROW],
+  ])('keeps the %s row interactive', (testID) => {
+    const { getByTestId } = renderWithProvider(<ManageProfile />);
+
+    expect(getByTestId(testID).props.accessibilityRole).toBe('button');
+  });
+
+  describe('field navigation', () => {
+    it('navigates to the display name editor with an empty value', () => {
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
+
+      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD,
+        {
+          field: ManageProfileFieldName.DisplayName,
+          initialValue: '',
+        },
+      );
+    });
+
+    it('navigates to the bio editor with an empty value', () => {
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
+
+      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.BIO_ROW));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD,
+        {
+          field: ManageProfileFieldName.Bio,
+          initialValue: '',
+        },
+      );
+    });
+
+    it('writes a returned display name onto the row', () => {
+      mockRouteParams = {
+        fieldUpdate: {
+          field: ManageProfileFieldName.DisplayName,
+          value: 'Tomato Farmer',
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
+
+      expect(
+        within(
+          getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW),
+        ).getByText('Tomato Farmer'),
+      ).toBeOnTheScreen();
+      expect(mockSetParams).toHaveBeenCalledWith({ fieldUpdate: undefined });
+    });
+
+    it('writes a returned bio onto the row', () => {
+      mockRouteParams = {
+        fieldUpdate: {
+          field: ManageProfileFieldName.Bio,
+          value: 'Just here for the yield.',
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
+
+      expect(
+        within(getByTestId(ManageProfileSelectorsIDs.BIO_ROW)).getByText(
+          'Just here for the yield.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('reopens the display name editor with the value just applied', () => {
+      mockRouteParams = {
+        fieldUpdate: {
+          field: ManageProfileFieldName.DisplayName,
+          value: 'Tomato Farmer',
+        },
+      };
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
+
+      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.DISPLAY_NAME_ROW));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD,
+        {
+          field: ManageProfileFieldName.DisplayName,
+          initialValue: 'Tomato Farmer',
+        },
+      );
+    });
   });
 });

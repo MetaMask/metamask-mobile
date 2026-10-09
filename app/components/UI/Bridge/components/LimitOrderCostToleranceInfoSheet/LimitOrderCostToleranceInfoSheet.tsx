@@ -13,7 +13,6 @@ import { LimitOrderCostToleranceInfoSheetSelectorsIDs } from './LimitOrderCostTo
 import type { LimitOrderCostToleranceInfoSheetProps } from './LimitOrderCostToleranceInfoSheet.types';
 
 const LimitOrderCostToleranceInfoSheet = ({
-  minReceivedPercentage,
   goBack,
 }: LimitOrderCostToleranceInfoSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -43,9 +42,7 @@ const LimitOrderCostToleranceInfoSheet = ({
           twClassName="text-center"
           testID={LimitOrderCostToleranceInfoSheetSelectorsIDs.BODY}
         >
-          {strings('bridge.cost_tolerance_tooltip_content', {
-            minReceivedPercentage,
-          })}
+          {strings('bridge.cost_tolerance_tooltip_content')}
         </Text>
       </Box>
     </BottomSheet>

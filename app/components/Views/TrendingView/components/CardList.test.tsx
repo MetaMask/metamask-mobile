@@ -69,4 +69,56 @@ describe('CardList', () => {
     expect(queryByTestId('row-3')).toBeNull();
     expect(queryByTestId('row-4')).toBeNull();
   });
+
+  it('adds horizontal padding around the list by default', () => {
+    const { getByTestId } = render(
+      <CardList<Row>
+        data={[{ id: '1' }]}
+        isLoading={false}
+        renderItem={renderItem}
+        Skeleton={Skeleton}
+        idPrefix="pfx"
+        listTestId="card-list-flash"
+      />,
+    );
+
+    expect(getByTestId('card-list-flash').props.contentContainerStyle).toEqual(
+      expect.objectContaining({ paddingLeft: 16, paddingRight: 16 }),
+    );
+  });
+
+  it('omits horizontal padding when horizontalInset is false', () => {
+    const { getByTestId } = render(
+      <CardList<Row>
+        data={[{ id: '1' }]}
+        isLoading={false}
+        renderItem={renderItem}
+        Skeleton={Skeleton}
+        idPrefix="pfx"
+        listTestId="card-list-flash"
+        horizontalInset={false}
+      />,
+    );
+
+    expect(
+      getByTestId('card-list-flash').props.contentContainerStyle,
+    ).toBeUndefined();
+  });
+
+  it('omits horizontal padding on the loading container when horizontalInset is false', () => {
+    const { getByTestId } = render(
+      <CardList<Row>
+        data={[]}
+        isLoading
+        renderItem={renderItem}
+        Skeleton={Skeleton}
+        idPrefix="pfx"
+        horizontalInset={false}
+      />,
+    );
+
+    expect(getByTestId('explore-card-list').props.style).toEqual(
+      expect.not.objectContaining({ paddingLeft: 16, paddingRight: 16 }),
+    );
+  });
 });
