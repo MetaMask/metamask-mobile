@@ -630,10 +630,7 @@ export class PolymarketProvider implements PredictProvider {
       return OrderType.FOK;
     }
 
-    const hasFees =
-      !preview.feePolicy &&
-      preview.fees !== undefined &&
-      preview.fees.totalFee > 0;
+    const hasFees = preview.fees !== undefined && preview.fees.totalFee > 0;
 
     if (
       !hasFees ||
@@ -752,12 +749,7 @@ export class PolymarketProvider implements PredictProvider {
     let executor: string | undefined;
     let permit2FeeReady = false;
 
-    if (
-      !preview.feePolicy &&
-      shouldUsePermit2 &&
-      preview.fees &&
-      preview.fees.totalFee > 0
-    ) {
+    if (shouldUsePermit2 && preview.fees && preview.fees.totalFee > 0) {
       const feeAmount = BigInt(
         parseUnits(preview.fees.totalFee.toString(), 6).toString(),
       );

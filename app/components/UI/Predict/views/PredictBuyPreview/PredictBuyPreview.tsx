@@ -614,6 +614,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
           <PredictFeeSummary
             disabled={false}
             total={total}
+            originalTotal={originalFeeBreakdown?.total}
+            feePolicyDiscountType={preview?.feePolicy?.discountType}
             rewardsFeeAmountUsd={rewardsFeeAmountUsd}
             rewardsLoadingOverride={isCalculating && isUserInputChange}
             handleFeesInfoPress={handleFeesInfoPress}

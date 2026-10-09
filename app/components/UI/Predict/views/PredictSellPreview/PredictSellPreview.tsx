@@ -452,6 +452,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               disabled={!preview}
               loading={isPreviewLoading}
               total={total}
+              originalTotal={originalFeeBreakdown?.total}
+              feePolicyDiscountType={preview?.feePolicy?.discountType}
               handleFeesInfoPress={handleFeesInfoPress}
             />
             <View style={styles.cashOutButtonContainer}>

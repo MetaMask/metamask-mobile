@@ -6,7 +6,7 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
-import { Interface } from 'ethers/lib/utils';
+import { Interface, parseUnits } from 'ethers/lib/utils';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
@@ -1832,7 +1832,22 @@ describe('PolymarketProvider', () => {
     );
   });
 
-  it('skips pUSD Permit2 fee authorization for membership orders', async () => {
+  it('authorizes the remaining provider fee with pUSD Permit2 for membership orders', async () => {
+    const providerFee = 0.05;
+    const feeAuthorization = {
+      type: 'safe-permit2' as const,
+      authorization: {
+        permit: {
+          permitted: { token: MATIC_CONTRACTS_V2.collateral, amount: '50000' },
+          nonce: '1',
+          deadline: '2',
+        },
+        spender: '0x2222222222222222222222222222222222222222',
+        signature: '0xsig',
+      },
+    };
+    mockCreatePermit2FeeAuthorization.mockResolvedValue(feeAuthorization);
+
     const provider = createProvider({
       feeCollection: {
         ...DEFAULT_FEE_COLLECTION_FLAG,
@@ -1846,10 +1861,10 @@ describe('PolymarketProvider', () => {
       preview: {
         ...basePreview,
         fees: {
-          metamaskFee: 0.05,
-          providerFee: 0.05,
-          totalFee: 0.1,
-          totalFeePercentage: 1,
+          metamaskFee: 0,
+          providerFee,
+          totalFee: providerFee,
+          totalFeePercentage: 0.5,
           collector: '0x3333333333333333333333333333333333333333',
           executors: ['0x2222222222222222222222222222222222222222'],
           permit2Enabled: true,
@@ -1862,7 +1877,20 @@ describe('PolymarketProvider', () => {
       },
     });
 
-    expect(mockCreatePermit2FeeAuthorization).not.toHaveBeenCalled();
+    expect(mockCreatePermit2FeeAuthorization).toHaveBeenCalledWith(
+      expect.objectContaining({
+        safeAddress: '0x9999999999999999999999999999999999999999',
+        tokenAddress: MATIC_CONTRACTS_V2.collateral,
+        amount: BigInt(parseUnits(providerFee.toString(), 6).toString()),
+        spender: '0x2222222222222222222222222222222222222222',
+      }),
+    );
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        feeAuthorization,
+        executor: '0x2222222222222222222222222222222222222222',
+      }),
+    );
   });
 
   it('prepares pUSD deposits and optional legacy sweep maintenance', async () => {

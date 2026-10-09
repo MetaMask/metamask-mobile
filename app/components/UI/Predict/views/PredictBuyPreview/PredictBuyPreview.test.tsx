@@ -1,3 +1,4 @@
+import { DiscountType } from '@metamask/bridge-controller';
 import {
   NavigationProp,
   RouteProp,
@@ -145,6 +146,19 @@ jest.mock('../../hooks/usePredictDeposit', () => ({
     status: null,
   }),
 }));
+
+jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>
+    hasProEntitlement
+      ? ReactActual.createElement(
+          Text,
+          { testID: 'rewards-member-badge' },
+          'Member',
+        )
+      : null;
+});
 
 // Mock usePredictRewards hook
 let mockRewardsEnabled = false;
@@ -1393,6 +1407,50 @@ describe('PredictBuyPreview', () => {
 
       // Fee summary should not be visible when input is focused
       expect(screen.queryByText('Fees')).not.toBeOnTheScreen();
+    });
+
+    it('shows the original total and member badge for a membership fee waiver', () => {
+      mockPreviewOverride = {
+        marketId: 'market-123',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'outcome-token-789',
+        timestamp: Date.now(),
+        side: 'BUY',
+        sharePrice: 0.5,
+        maxAmountSpent: 50,
+        minAmountReceived: 120,
+        slippage: 0.005,
+        tickSize: 0.01,
+        minOrderSize: 1,
+        negRisk: false,
+        fees: {
+          metamaskFee: 0,
+          providerFee: 1,
+          marketFee: 0,
+          totalFee: 1,
+          totalFeePercentage: 2,
+        },
+        originalFees: {
+          metamaskFee: 2,
+          providerFee: 1,
+          marketFee: 0,
+          totalFee: 3,
+          totalFeePercentage: 6,
+        },
+        feePolicy: {
+          discountType: DiscountType.SUBSCRIPTION,
+          builderCode: 'predict-pro-builder',
+        },
+      };
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      fireEvent.press(screen.getByText('$50'));
+      fireEvent.press(screen.getByText('Done'));
+
+      expect(screen.getByText('$53')).toBeOnTheScreen();
+      expect(screen.getByText('$51')).toBeOnTheScreen();
+      expect(screen.getByTestId('rewards-member-badge')).toBeOnTheScreen();
     });
   });
 

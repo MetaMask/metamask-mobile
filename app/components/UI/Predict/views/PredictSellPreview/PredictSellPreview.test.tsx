@@ -1,3 +1,4 @@
+import { DiscountType } from '@metamask/bridge-controller';
 import {
   NavigationProp,
   RouteProp,
@@ -112,6 +113,19 @@ jest.mock('../../hooks/usePredictOrderRetry', () => ({
   }),
 }));
 
+jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>
+    hasProEntitlement
+      ? ReactActual.createElement(
+          Text,
+          { testID: 'rewards-member-badge' },
+          'Member',
+        )
+      : null;
+});
+
 jest.mock('../../hooks/usePredictRewards', () => ({
   usePredictRewards: jest.fn(() => ({
     shouldShowRewardsRow: false,
@@ -148,6 +162,11 @@ interface MockPreview {
   minOrderSize: number;
   negRisk: boolean;
   fees?: MockFees;
+  originalFees?: MockFees;
+  feePolicy?: {
+    discountType: DiscountType;
+    builderCode: string;
+  };
 }
 
 const mockFees: MockFees = {
@@ -674,6 +693,31 @@ describe('PredictSellPreview', () => {
       });
 
       expect(screen.getAllByText('$57.30')).toHaveLength(2);
+    });
+
+    it('shows the original total and member badge for a membership fee waiver', () => {
+      mockPreview = {
+        ...mockPreview,
+        fees: {
+          ...mockFees,
+          metamaskFee: 0,
+          totalFee: mockFees.providerFee,
+          totalFeePercentage: 1,
+        },
+        originalFees: mockFees,
+        feePolicy: {
+          discountType: DiscountType.SUBSCRIPTION,
+          builderCode: 'predict-pro-builder',
+        },
+      };
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      expect(screen.getAllByText('$59.10')).toHaveLength(2);
+      expect(screen.getByText('$57.30')).toBeOnTheScreen();
+      expect(screen.getByTestId('rewards-member-badge')).toBeOnTheScreen();
     });
 
     it('hides Total row when preview is unavailable', () => {
