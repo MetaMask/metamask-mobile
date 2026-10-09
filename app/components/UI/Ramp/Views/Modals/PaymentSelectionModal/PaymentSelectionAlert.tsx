@@ -1,7 +1,8 @@
 import React from 'react';
-import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  BannerAlert,
+  BannerAlertSeverity,
+} from '@metamask/design-system-react-native';
 
 interface PaymentSelectionAlertProps {
   message: string;
@@ -10,12 +11,7 @@ interface PaymentSelectionAlertProps {
 
 const PaymentSelectionAlert: React.FC<PaymentSelectionAlertProps> = ({
   message,
-  severity = BannerAlertSeverity.Error,
-}) => (
-  <BannerAlert
-    description={<Text variant={TextVariant.BodySm}>{message}</Text>}
-    severity={severity}
-  />
-);
+  severity = BannerAlertSeverity.Danger,
+}) => <BannerAlert description={message} severity={severity} />;
 
 export default PaymentSelectionAlert;
