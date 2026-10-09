@@ -373,6 +373,8 @@ let mockPositionsResult: UseTraderPositionsResult = {
   isLoadingOpen: false,
   isLoadingClosed: false,
   error: null,
+  openError: null,
+  closedError: null,
   refetch: mockRefetchPositions,
 };
 
@@ -407,6 +409,8 @@ describe('TraderProfileView', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetchPositions,
     };
     mockRefresh.mockResolvedValue(undefined);

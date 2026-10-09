@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
+import {
+  PERPS_CONSTANTS,
+  type PerpsProviderType,
+  type Position,
+} from '@metamask/perps-controller';
 import { usePerpsLivePositions, usePerpsLiveFills } from './stream';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
@@ -7,6 +11,8 @@ import Logger from '../../../../util/Logger';
 interface UseHasExistingPositionParams {
   /** Asset symbol to check for existing position */
   asset: string;
+  /** Provider to match; untagged positions always match */
+  providerId?: PerpsProviderType;
   /** Whether to load positions on mount */
   loadOnMount?: boolean;
 }
@@ -37,7 +43,7 @@ interface UseHasExistingPositionReturn {
 export function useHasExistingPosition(
   params: UseHasExistingPositionParams,
 ): UseHasExistingPositionReturn {
-  const { asset } = params;
+  const { asset, providerId } = params;
   // loadOnMount is ignored since WebSocket subscriptions load from cache immediately
 
   // Get real-time positions via WebSocket
@@ -60,8 +66,14 @@ export function useHasExistingPosition(
   // Check if user has an existing position for this asset
   const existingPosition = useMemo(
     () =>
-      (positions || []).find((position) => position.symbol === asset) || null,
-    [positions, asset],
+      (positions || []).find(
+        (position) =>
+          position.symbol === asset &&
+          (!providerId ||
+            !position.providerId ||
+            position.providerId === providerId),
+      ) || null,
+    [positions, asset, providerId],
   );
 
   const hasPosition = existingPosition !== null;

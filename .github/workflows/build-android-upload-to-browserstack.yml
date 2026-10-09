@@ -126,8 +126,11 @@ jobs:
     steps:
       - name: Check if builds are needed
         id: check-builds
+        env:
+          BS_URL_ONBOARDING: ${{ inputs.browserstack_app_url_android_onboarding }}
+          BS_URL_IMPORTED_WALLET: ${{ inputs.browserstack_app_url_android_imported_wallet }}
         run: |
-          if [ -n "${{ inputs.browserstack_app_url_android_onboarding }}" ] || [ -n "${{ inputs.browserstack_app_url_android_imported_wallet }}" ]; then
+          if [ -n "${BS_URL_ONBOARDING}" ] || [ -n "${BS_URL_IMPORTED_WALLET}" ]; then
             echo "builds-needed=false" >> "$GITHUB_OUTPUT"
             echo "Skipping Android builds - BS URLs provided via workflow inputs"
           else
@@ -137,14 +140,16 @@ jobs:
 
       - name: Resolve build artifact names
         id: names
+        env:
+          BUILD_VARIANT: ${{ inputs.build_variant }}
         run: |
-          if [ "${{ inputs.build_variant }}" = "exp" ]; then
+          if [ "${BUILD_VARIANT}" = "exp" ]; then
             {
               echo "with-srp-build-name=main-exp-with-srp"
               echo "without-srp-build-name=main-exp-without-srp"
               echo "github-environment=build-exp"
             } >> "$GITHUB_OUTPUT"
-          elif [ "${{ inputs.build_variant }}" = "rc" ]; then
+          elif [ "${BUILD_VARIANT}" = "rc" ]; then
             {
               echo "with-srp-build-name=main-rc-with-srp"
               echo "without-srp-build-name=main-rc-without-srp"
@@ -205,6 +210,7 @@ jobs:
           main-branch-only: ${{ inputs.main_branch_only }}
           max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
           latest-main-only: ${{ inputs.reuse_latest_main_builds }}
+          max-age-days: ${{ inputs.reuse_latest_main_builds && '2' || '0' }}
 
       - name: Find reusable performance APKs on run-performance-e2e.yml
         id: find-perf
@@ -231,6 +237,7 @@ jobs:
           main-branch-only: ${{ inputs.main_branch_only }}
           max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
           latest-main-only: ${{ inputs.reuse_latest_main_builds }}
+          max-age-days: ${{ inputs.reuse_latest_main_builds && '2' || '0' }}
 
       - name: Find reusable performance APKs on run-performance-e2e-manual.yml
         id: find-manual
@@ -257,6 +264,7 @@ jobs:
           main-branch-only: ${{ inputs.main_branch_only }}
           max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
           latest-main-only: ${{ inputs.reuse_latest_main_builds }}
+          max-age-days: ${{ inputs.reuse_latest_main_builds && '2' || '0' }}
 
       # Select a candidate run only. found=true is deferred until both APK downloads
       # succeed (mirrors build-android-e2e.yml gate: never skip native build on lookup alone).
@@ -851,11 +859,11 @@ jobs:
           MAIN_BRANCH_ONLY: ${{ inputs.main_branch_only }}
           FRESH_WITH_SRP_VERSION: ${{ needs.build-with-srp.outputs.semantic_version }}
           FRESH_WITHOUT_SRP_VERSION: ${{ needs.build-without-srp.outputs.semantic_version }}
+          BRANCH_NAME: ${{ inputs.branch_name || github.ref_name }}
         run: |
           set +e  # Don't exit on error — attempt both uploads independently
           echo "Uploading APKs to BrowserStack..."
 
-          BRANCH_NAME="${{ inputs.branch_name || github.ref_name }}"
           BRANCH_SLUG="$(printf '%s' "$BRANCH_NAME" | sed 's/[^A-Za-z0-9._-]/_/g' | cut -c1-40)"
           WITH_SRP_CUSTOM_ID="MetaMask-Android-With-SRP-${BRANCH_SLUG}"
           WITHOUT_SRP_CUSTOM_ID="MetaMask-Android-Without-SRP-${BRANCH_SLUG}"

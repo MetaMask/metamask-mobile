@@ -1,4 +1,6 @@
+import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import nock from 'nock';
 import {
   OHLCVApiCandle,
@@ -63,8 +65,26 @@ function arrangeDefaultOptions(): Parameters<typeof useOHLCVChart>[0] {
   };
 }
 
+function renderChartHook<Props>(
+  hook: (props: Props) => ReturnType<typeof useOHLCVChart>,
+  options?: { initialProps: Props },
+) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+  });
+  return renderHook(hook, {
+    ...options,
+    wrapper: ({ children }) =>
+      React.createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        children,
+      ),
+  });
+}
+
 function renderUseOHLCVChart(options: Parameters<typeof useOHLCVChart>[0]) {
-  return renderHook(() => useOHLCVChart(options));
+  return renderChartHook(() => useOHLCVChart(options));
 }
 
 describe('useOHLCVChart - initial load', () => {
@@ -266,7 +286,7 @@ describe('useOHLCVChart - pagination metadata', () => {
 
     const initialProps: Parameters<typeof useOHLCVChart>[0] =
       arrangeDefaultOptions();
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderChartHook(
       (props: Parameters<typeof useOHLCVChart>[0]) => useOHLCVChart(props),
       { initialProps },
     );
@@ -354,7 +374,7 @@ describe('useOHLCVChart - empty data handling', () => {
       .reply(200, createSuccessBody({ data: [] }));
 
     const initialProps = arrangeDefaultOptions();
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderChartHook(
       (props: Parameters<typeof useOHLCVChart>[0]) => useOHLCVChart(props),
       { initialProps },
     );
@@ -458,7 +478,7 @@ describe('useOHLCVChart - abort controller', () => {
 
     const initialProps: Parameters<typeof useOHLCVChart>[0] =
       arrangeDefaultOptions();
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderChartHook(
       (props: Parameters<typeof useOHLCVChart>[0]) => useOHLCVChart(props),
       { initialProps },
     );
@@ -531,7 +551,7 @@ describe('useOHLCVChart - error handling', () => {
 
     const initialProps: Parameters<typeof useOHLCVChart>[0] =
       arrangeDefaultOptions();
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderChartHook(
       (props: Parameters<typeof useOHLCVChart>[0]) => useOHLCVChart(props),
       { initialProps },
     );

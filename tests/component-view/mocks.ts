@@ -458,6 +458,11 @@ jest.mock('../../app/core/Engine', () => {
           providerId: 'hyperliquid',
           supportedStrategies: ['twap', 'scale', 'chase'],
         }),
+        getMarginModeLock: jest.fn().mockResolvedValue({
+          status: 'unlocked',
+          providerId: 'hyperliquid',
+        }),
+        previewPositionModify: jest.fn().mockResolvedValue({ status: 'none' }),
         subscribeToPrices: jest.fn(() => () => undefined),
         subscribeToOrderBook: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),

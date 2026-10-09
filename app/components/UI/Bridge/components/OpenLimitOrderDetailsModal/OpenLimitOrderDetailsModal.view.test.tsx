@@ -17,7 +17,6 @@ const {
   TRIGGER_COMPARISON,
   EXPIRY,
   CANCEL_ORDER_BUTTON,
-  USD_PRICE_NOTICE,
 } = OpenLimitOrderDetailsModalSelectorsIDs;
 
 // Derived from MOCK_LIMIT_OPEN_ORDER: 0.1 ETH at 2200 USDC per ETH, expiring
@@ -35,32 +34,27 @@ const MOCK_USD_PRICE_ORDER = {
 };
 
 /**
- * State where the display currency is EUR. With both rates given, 1 ETH is
- * worth EUR 2000 and USD 2160, so EUR 1 is worth USD 1.08.
+ * State where the display currency is EUR. 1 ETH is worth EUR 2000 and
+ * USD 2160, so EUR 1 is worth USD 1.08.
  */
-const withEurDisplayCurrency = ({
-  usdPrice,
-}: {
-  usdPrice?: number;
-}): DeepPartial<RootState> =>
-  ({
-    engine: {
-      backgroundState: {
-        AssetsController: {
-          selectedCurrency: 'eur',
-          assetsPrice: {
-            'eip155:1/slip44:60': {
-              assetPriceType: 'fungible',
-              id: 'eth',
-              price: 2000,
-              usdPrice,
-              lastUpdated: 1700000000000,
-            },
+const EUR_DISPLAY_CURRENCY_STATE = {
+  engine: {
+    backgroundState: {
+      AssetsController: {
+        selectedCurrency: 'eur',
+        assetsPrice: {
+          'eip155:1/slip44:60': {
+            assetPriceType: 'fungible',
+            id: 'eth',
+            price: 2000,
+            usdPrice: 2160,
+            lastUpdated: 1700000000000,
           },
         },
       },
     },
-  }) as unknown as DeepPartial<RootState>;
+  },
+} as unknown as DeepPartial<RootState>;
 
 describeForPlatforms('OpenLimitOrderDetailsModal', () => {
   it('shows every detail of the open order', async () => {
@@ -112,77 +106,25 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
       expect(await findByTestId(SHEET)).toBeOnTheScreen();
 
       expect(
-        within(getByTestId(TRIGGER_CONDITION)).getByText('$2200.5'),
+        within(getByTestId(TRIGGER_CONDITION)).getByText('$2,200.50'),
       ).toBeOnTheScreen();
     },
   );
 
-  it('does not show the USD price notice when the display currency is USD', async () => {
-    const { findByTestId, getByTestId, queryByTestId } =
-      renderOpenLimitOrderDetailsModal({
-        order: MOCK_USD_PRICE_ORDER,
-        deterministicFiat: true,
-      });
-
-    expect(await findByTestId(SHEET)).toBeOnTheScreen();
-
-    expect(
-      within(getByTestId(TRIGGER_CONDITION)).getByText('$2160'),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(USD_PRICE_NOTICE)).not.toBeOnTheScreen();
-  });
-
-  it('shows a USD trigger price in the display currency, with the USD price in a notice', async () => {
+  // The order is placed at the USD price, so converting it would show a price
+  // that drifts with the exchange rate while the order does not.
+  it('shows a USD trigger price in USD whatever the display currency is', async () => {
     const { findByTestId, getByTestId } = renderOpenLimitOrderDetailsModal({
       order: MOCK_USD_PRICE_ORDER,
       deterministicFiat: true,
-      overrides: withEurDisplayCurrency({ usdPrice: 2160 }),
+      overrides: EUR_DISPLAY_CURRENCY_STATE,
     });
 
     expect(await findByTestId(SHEET)).toBeOnTheScreen();
 
-    expect(
-      within(getByTestId(TRIGGER_CONDITION)).getByText('€2000'),
-    ).toBeOnTheScreen();
-    expect(getByTestId(USD_PRICE_NOTICE)).toHaveTextContent(
-      strings('bridge.limit.usd_price_notice', { usdPrice: '$2160' }),
-    );
-  });
-
-  // Without a rate the converted price would be a guess, while the USD price
-  // is exactly the one the order was placed at.
-  it('shows a USD trigger price as is when no rate converts it to the display currency', async () => {
-    const { findByTestId, getByTestId, queryByTestId } =
-      renderOpenLimitOrderDetailsModal({
-        order: MOCK_USD_PRICE_ORDER,
-        deterministicFiat: true,
-        overrides: withEurDisplayCurrency({ usdPrice: undefined }),
-      });
-
-    expect(await findByTestId(SHEET)).toBeOnTheScreen();
-
-    expect(
-      within(getByTestId(TRIGGER_CONDITION)).getByText('$2160'),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(USD_PRICE_NOTICE)).not.toBeOnTheScreen();
-  });
-
-  // A ratio trigger is priced in the counter token, so no exchange rate takes
-  // part in placing the order.
-  it('does not show the USD price notice for a ratio trigger', async () => {
-    const { findByTestId, getByTestId, queryByTestId } =
-      renderOpenLimitOrderDetailsModal({
-        order: MOCK_LIMIT_OPEN_ORDER,
-        deterministicFiat: true,
-        overrides: withEurDisplayCurrency({ usdPrice: 2160 }),
-      });
-
-    expect(await findByTestId(SHEET)).toBeOnTheScreen();
-
-    expect(
-      within(getByTestId(TRIGGER_CONDITION)).getByText(TRIGGER_PRICE),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(USD_PRICE_NOTICE)).not.toBeOnTheScreen();
+    const triggerRow = getByTestId(TRIGGER_CONDITION);
+    expect(within(triggerRow).getByText('$2,160.00')).toBeOnTheScreen();
+    expect(within(triggerRow).queryByText('€2,000.00')).not.toBeOnTheScreen();
   });
 
   // The orders response carries no market price, so the sheet cannot say how

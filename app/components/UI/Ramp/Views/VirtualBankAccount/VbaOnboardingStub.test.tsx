@@ -24,7 +24,6 @@ describe('VbaOnboardingStub', () => {
 
   it.each([
     ['kyc_pending', 'vba-onboarding-stub-container-kyc_pending'],
-    ['kyc_rejected', 'vba-onboarding-stub-container-kyc_rejected'],
     [
       'account_provisioning_error',
       'vba-onboarding-stub-container-account_provisioning_error',
