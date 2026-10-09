@@ -831,22 +831,35 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     () => parseFloat(orderForm.amount) || 0,
     [orderForm.amount],
   );
-  const { estimatedSlippageBps } = usePerpsEstimatedSlippage({
+  const {
+    estimatedSlippageBps,
+    isReady: isSlippageReady,
+    canFillWithinSlippage,
+  } = usePerpsEstimatedSlippage({
     symbol: orderForm.asset,
     sizeUsd: orderUsdAmount,
+    currentPrice: assetData.price,
+    maxSlippageBps,
+    szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
     isBuy: orderForm.direction === 'long',
     // Gate on `isInitialized` so the order-book subscription waits until the
     // perps providers are wired; otherwise the subscription becomes a no-op
     // and the estimate stays null until the screen remounts.
     enabled: isMarketOrder && hasValidAmount && isInitialized,
   });
-  // Keep the estimate nullable so the row can render a `--` placeholder when
-  // the L2 book has not produced data yet (per the perps anti-pattern doc:
-  // never default unavailable data to `0`). When the estimate is unknown the
-  // user-configured cap still flows through to HyperLiquid as the limit-price
-  // buffer, so we surface "estimate pending" without blocking the order.
-  // Numeric percent for analytics and comparisons; formatted string for UI so
-  // the row never shows `3.333333%` noise.
+  // Keep VWAP for display; submission eligibility uses the worst required level.
+  const liquidityError =
+    isMarketOrder && hasValidAmount && isSlippageReady
+      ? estimatedSlippageBps === null
+        ? strings('perps.slippage.insufficient_depth')
+        : canFillWithinSlippage === false
+          ? strings(
+              useBottomSheet
+                ? 'perps.slippage.cannot_fill_reduce_size'
+                : 'perps.slippage.cannot_fill',
+            )
+          : undefined
+      : undefined;
   const estimatedSlippagePct: number | null = useMemo(
     () =>
       typeof estimatedSlippageBps === 'number'
@@ -1335,11 +1348,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // only those messages here — any other blocking error stays visible.
   const footerErrors = useMemo(() => {
     if (insufficientBalanceErrors.length === 0) {
-      return filteredErrors;
+      return liquidityError
+        ? [...filteredErrors, liquidityError]
+        : filteredErrors;
     }
     const covered = new Set(insufficientBalanceErrors);
-    return filteredErrors.filter((error) => !covered.has(error));
-  }, [filteredErrors, insufficientBalanceErrors]);
+    const errors = filteredErrors.filter((error) => !covered.has(error));
+    return liquidityError ? [...errors, liquidityError] : errors;
+  }, [filteredErrors, insufficientBalanceErrors, liquidityError]);
 
   // Handlers
   const handleTPSLPress = useCallback(() => {
@@ -1661,6 +1677,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               ? PERPS_EVENT_VALUE.DIRECTION.LONG
               : PERPS_EVENT_VALUE.DIRECTION.SHORT,
         });
+      }
+
+      if (liquidityError) {
+        showToast(
+          PerpsToastOptions.formValidation.orderForm.validationError(
+            liquidityError,
+          ),
+        );
+        return;
       }
 
       // Bail out before the pay-with-any-token deposit branch so an
@@ -2034,6 +2059,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       maxSlippageSource,
       estimatedSlippageBps,
       exceedsMaxSlippage,
+      liquidityError,
       vipTier,
       useBottomSheet,
     ],
@@ -2202,6 +2228,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // presentation blocker: both surfaces allow the tap and handlePlaceOrder
   // awaits validateNow() before any deposit or order execution.
   const isOrderSubmissionBlocked =
+    Boolean(liquidityError) ||
     !orderValidation.isValid ||
     isPlacingOrder ||
     doesStopLossRiskLiquidation ||

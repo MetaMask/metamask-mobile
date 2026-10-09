@@ -6674,6 +6674,39 @@ describe('PerpsOrderView', () => {
     });
 
     it.each([
+      { estimate: null, copyKey: 'perps.slippage.insufficient_depth' },
+      { estimate: 100, copyKey: 'perps.slippage.cannot_fill_reduce_size' },
+    ])(
+      'rejects a programmatic submit before deposits with $copyKey',
+      async ({ estimate, copyKey }) => {
+        const mockPlaceOrder = jest.fn();
+        (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+          placeOrder: mockPlaceOrder,
+          isPlacing: false,
+        });
+        const toasts = mockDefaultUsePerpsToasts();
+        (usePerpsToasts as jest.Mock).mockReturnValue(toasts);
+        (usePerpsEstimatedSlippage as jest.Mock).mockReturnValue({
+          estimatedSlippageBps: estimate,
+          isReady: true,
+          canFillWithinSlippage: false,
+        });
+        useTradeSheetRoute();
+        render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+        await act(async () => {
+          await getMockTradeScreenProps().onSubmit();
+        });
+
+        expect(mockPlaceOrder).not.toHaveBeenCalled();
+        expect(
+          toasts.PerpsToastOptions.formValidation.orderForm.validationError,
+        ).toHaveBeenCalledWith(copyKey);
+        expect(toasts.showToast).toHaveBeenCalled();
+      },
+    );
+
+    it.each([
       {
         surface: 'full-screen view',
         useTradeSheet: false,

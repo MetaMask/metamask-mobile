@@ -10,6 +10,8 @@ import {
 } from '@testing-library/react-native';
 import type {
   ChaseOrder,
+  OrderBookData,
+  OrderBookLevel,
   Order,
   PriceUpdate,
   TwapOrder,
@@ -275,6 +277,10 @@ beforeEach(() => {
   resetChaseOrderVisibilityForTests();
   PerpsCacheInvalidator._clearAllSubscribers();
   resetPerpsControllerMocks();
+  jest.mocked(Engine.context.PerpsController.subscribeToOrderBook).mockReset();
+  jest
+    .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+    .mockImplementation(() => () => undefined);
   connectionReadySpy = jest
     .spyOn(PerpsConnectionManager, 'isSelectedUserContextReady')
     .mockReturnValue(true);
@@ -3756,4 +3762,81 @@ describe('PerpsProMarketView header actions', () => {
       await screen.findByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
   });
+});
+
+describe('Pro market order liquidity', () => {
+  it.each([true, false])(
+    'blocks shallow=%s and submits after visible depth recovers',
+    async (shallow) => {
+      const level = (price: number, size: number): OrderBookLevel => ({
+        price: String(price),
+        size: String(size),
+        total: String(size),
+        notional: String(price * size),
+        totalNotional: String(price * size),
+      });
+      const makeBook = (asks: OrderBookLevel[]): OrderBookData => ({
+        midPrice: '2500',
+        asks,
+        bids: [],
+        spread: '0',
+        spreadPercentage: '0',
+        lastUpdated: Date.now(),
+        maxTotal: '1',
+      });
+      const blockedBook = makeBook(
+        shallow ? [level(2500, 0.001)] : [level(2500, 0.039), level(2600, 1)],
+      );
+      let deliver: ((book: OrderBookData) => void) | undefined;
+      jest
+        .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+        .mockImplementation(({ callback }) => {
+          deliver = callback;
+          callback(blockedBook);
+          return () => undefined;
+        });
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+      renderFundedProMarket();
+      const input = await findSizeInput();
+
+      fireEvent.changeText(input, '100');
+      const message = strings(
+        shallow
+          ? 'perps.slippage.insufficient_depth'
+          : 'perps.slippage.cannot_fill',
+      );
+      expect(
+        await screen.findByText(message, {}, { timeout: TIMEOUT_MS }),
+      ).toBeOnTheScreen();
+      const submit = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      expect(submit).toBeDisabled();
+      fireEvent.press(submit);
+      expect(placeOrder).not.toHaveBeenCalled();
+
+      await act(async () => {
+        deliver?.(makeBook([level(2500, 1)]));
+      });
+      await waitFor(
+        () =>
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).not.toBeDisabled(),
+        { timeout: TIMEOUT_MS },
+      );
+      expect(screen.queryByText(message)).not.toBeOnTheScreen();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
+      });
+      await waitFor(
+        () =>
+          expect(placeOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              symbol: 'ETH',
+              isBuy: true,
+              orderType: 'market',
+              usdAmount: '100',
+            }),
+          ),
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
 });
