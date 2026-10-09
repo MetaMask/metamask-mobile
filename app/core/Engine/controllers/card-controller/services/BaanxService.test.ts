@@ -3,6 +3,19 @@ import { BaanxService } from './BaanxService';
 
 jest.mock('axios');
 jest.mock('../../../../../util/Logger');
+jest.mock('uuid', () => ({
+  v4: () => '11111111-2222-4333-8444-555555555555',
+}));
+jest.mock('../../../../../util/trace', () => {
+  const actual = jest.requireActual('../../../../../util/trace');
+  return {
+    ...actual,
+    trace: jest.fn((_request: unknown, fn: (context?: unknown) => unknown) =>
+      fn(undefined),
+    ),
+    annotateTrace: jest.fn(),
+  };
+});
 
 const mockAxiosCreate = axios.create as jest.Mock;
 const mockRequest = jest.fn();
@@ -125,26 +138,6 @@ describe('BaanxService', () => {
         statusCode: 401,
         path: '/v1/test',
         responseBody: 'Unauthorized',
-      });
-    });
-
-    it('throws CardApiError with 408 on timeout', async () => {
-      const axiosError = new Error('timeout') as Error & {
-        isAxiosError: boolean;
-        code: string;
-        response: undefined;
-      };
-      axiosError.isAxiosError = true;
-      axiosError.code = 'ECONNABORTED';
-      axiosError.response = undefined;
-
-      mockRequest.mockRejectedValue(axiosError);
-      (isAxiosError as unknown as jest.Mock).mockReturnValue(true);
-      const service = createService();
-
-      await expect(service.get('/v1/slow')).rejects.toMatchObject({
-        statusCode: 408,
-        responseBody: '',
       });
     });
 

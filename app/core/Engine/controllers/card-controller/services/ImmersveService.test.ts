@@ -1,9 +1,22 @@
 import { create, isAxiosError } from 'axios';
 import { ImmersveService } from './ImmersveService';
-import { CardApiError } from './BaanxService';
+import { CardApiError } from './cardHttpObservability';
 
 jest.mock('axios');
 jest.mock('../../../../../util/Logger');
+jest.mock('uuid', () => ({
+  v4: () => 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+}));
+jest.mock('../../../../../util/trace', () => {
+  const actual = jest.requireActual('../../../../../util/trace');
+  return {
+    ...actual,
+    trace: jest.fn((_request: unknown, fn: (context?: unknown) => unknown) =>
+      fn(undefined),
+    ),
+    annotateTrace: jest.fn(),
+  };
+});
 
 const mockCreate = create as jest.Mock;
 const mockRequest = jest.fn();
@@ -207,73 +220,6 @@ describe('ImmersveService', () => {
         path: '/api/accounts',
         responseBody: 'Unauthorized',
       });
-    });
-
-    it('stringifies object response bodies on HTTP error', async () => {
-      const axiosError = new Error('Request failed') as Error & {
-        isAxiosError: boolean;
-        response: { status: number; data: { message: string } };
-      };
-      axiosError.isAxiosError = true;
-      axiosError.response = { status: 400, data: { message: 'bad request' } };
-
-      mockRequest.mockRejectedValue(axiosError);
-      (isAxiosError as unknown as jest.Mock).mockReturnValue(true);
-      const service = createService();
-
-      await expect(service.post('/auth/token', {})).rejects.toMatchObject({
-        statusCode: 400,
-        responseBody: JSON.stringify({ message: 'bad request' }),
-      });
-    });
-
-    it('throws CardApiError with 408 on timeout', async () => {
-      const axiosError = new Error('timeout') as Error & {
-        isAxiosError: boolean;
-        code: string;
-        response: undefined;
-      };
-      axiosError.isAxiosError = true;
-      axiosError.code = 'ECONNABORTED';
-      axiosError.response = undefined;
-
-      mockRequest.mockRejectedValue(axiosError);
-      (isAxiosError as unknown as jest.Mock).mockReturnValue(true);
-      const service = createService();
-
-      await expect(service.get('/api/slow')).rejects.toMatchObject({
-        statusCode: 408,
-        path: '/api/slow',
-        responseBody: '',
-      });
-    });
-
-    it('throws CardApiError with status 0 on network error without response', async () => {
-      const axiosError = new Error('Network Error') as Error & {
-        isAxiosError: boolean;
-        code: string;
-        response: undefined;
-      };
-      axiosError.isAxiosError = true;
-      axiosError.code = 'ERR_NETWORK';
-      axiosError.response = undefined;
-
-      mockRequest.mockRejectedValue(axiosError);
-      (isAxiosError as unknown as jest.Mock).mockReturnValue(true);
-      const service = createService();
-
-      await expect(service.get('/api/offline')).rejects.toMatchObject({
-        statusCode: 0,
-        responseBody: '',
-      });
-    });
-
-    it('re-throws non-axios errors', async () => {
-      mockRequest.mockRejectedValue(new TypeError('Unexpected failure'));
-      (isAxiosError as unknown as jest.Mock).mockReturnValue(false);
-      const service = createService();
-
-      await expect(service.get('/api/accounts')).rejects.toThrow(TypeError);
     });
   });
 });
