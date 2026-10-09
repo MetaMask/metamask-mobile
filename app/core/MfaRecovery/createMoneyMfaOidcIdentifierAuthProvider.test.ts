@@ -1,13 +1,32 @@
+import { Platform } from 'react-native';
 import { AuthConnection } from '../OAuthService/OAuthInterface';
+import { createLoginHandler } from '../OAuthService/OAuthLoginHandlers';
 import { isMoneyMfaEnabled } from '../../lib/Money/feature-flags';
 import { createMoneyMfaOidcIdentifierAuthProvider } from './createMoneyMfaOidcIdentifierAuthProvider';
+import { computeKeyBoundNonce } from './identifierAuthProvider';
 import type { Identifier } from './types';
 
 jest.mock('../../lib/Money/feature-flags', () => ({
   isMoneyMfaEnabled: jest.fn(),
 }));
 
+jest.mock('../OAuthService/OAuthLoginHandlers', () => ({
+  createLoginHandler: jest.fn(),
+}));
+
+jest.mock('react-native', () => {
+  const actual = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Platform: {
+      ...actual.Platform,
+      OS: 'ios',
+    },
+  };
+});
+
 const mockedIsMoneyMfaEnabled = jest.mocked(isMoneyMfaEnabled);
+const mockCreateLoginHandler = jest.mocked(createLoginHandler);
 
 const PROOF_PUBLIC_KEY = '{"kty":"EC","crv":"P-256","x":"abc","y":"def"}';
 const REQUEST_HASH = `0x${'11'.repeat(32)}`;
@@ -122,5 +141,38 @@ describe('createMoneyMfaOidcIdentifierAuthProvider', () => {
       requestHash: REQUEST_HASH,
     });
     expect(mockedIsMoneyMfaEnabled).toHaveBeenCalledTimes(2);
+  });
+
+  it('uses the default login handler when loginWithNonce is omitted', async () => {
+    mockedIsMoneyMfaEnabled.mockReturnValue(true);
+    const expectedNonce = computeKeyBoundNonce(PROOF_PUBLIC_KEY, REQUEST_HASH);
+    const idToken = buildIdToken({
+      iss: 'https://accounts.google.com',
+      sub: 'google-sub-1',
+      aud: 'client-id',
+      nonce: expectedNonce,
+    });
+    const login = jest.fn().mockResolvedValue({ idToken });
+    mockCreateLoginHandler.mockReturnValue({ login } as never);
+
+    const provider = createMoneyMfaOidcIdentifierAuthProvider({
+      getRemoteFeatureFlags: () => ({
+        isMoneyMfaEnabled: { enabled: true, minimumVersion: '0.0.0' },
+      }),
+    });
+
+    const token = await provider.getKeyBoundIdentifierToken({
+      identifier: googleIdentifier,
+      proofPublicKey: PROOF_PUBLIC_KEY,
+      requestHash: REQUEST_HASH,
+    });
+
+    expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+      Platform.OS,
+      AuthConnection.Google,
+      false,
+      { nonce: expectedNonce },
+    );
+    expect(token.providerAssertion).toBe(idToken);
   });
 });
