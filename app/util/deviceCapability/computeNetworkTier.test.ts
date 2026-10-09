@@ -29,7 +29,7 @@ describe('computeNetworkTier', () => {
       ['wimax', 'wimax', null],
       ['other', 'other', null],
     ] as const)(
-      'returns NONE when isInternetReachable is false for %s',
+      'returns NONE for every type when unreachable (priority)',
       (_label, type, cellularGeneration) => {
         const result = computeNetworkTier(
           input(type, false, cellularGeneration),
