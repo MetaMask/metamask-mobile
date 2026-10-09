@@ -12,7 +12,7 @@ import ReduxService, { type ReduxStore } from '../redux';
 import SecureKeychain from '../SecureKeychain';
 import Logger from '../../util/Logger';
 import Routes from '../../constants/navigation/Routes';
-import { checkForDeeplink, lockApp } from '../../actions/user';
+import { checkForDeeplink } from '../../actions/user';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import PreventScreenshot, { CAPTURE_KEYS } from '../PreventScreenshot';
 
@@ -357,7 +357,7 @@ describe('AppLockService', () => {
       lockKeyringOnSetLocked();
     });
 
-    it('locks the keyring, rejects pending approvals and dispatches lockApp on background', async () => {
+    it('locks the keyring and rejects pending approvals on background', async () => {
       emitAppState('background');
       await settle();
 
@@ -365,12 +365,11 @@ describe('AppLockService', () => {
       expect(mockClearRequests).toHaveBeenCalledWith(
         providerErrors.userRejectedRequest(),
       );
-      expect(mockDispatch).toHaveBeenCalledWith(lockApp());
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(service.isAutoLockPending()).toBe(true);
     });
 
-    it('still dispatches lockApp when rejecting approvals throws', async () => {
+    it('still finishes the lock when rejecting approvals throws', async () => {
       mockClearRequests.mockImplementationOnce(() => {
         throw new Error('clear failed');
       });
@@ -378,7 +377,6 @@ describe('AppLockService', () => {
       emitAppState('background');
       await settle();
 
-      expect(mockDispatch).toHaveBeenCalledWith(lockApp());
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(service.isAutoLockPending()).toBe(true);
       expect(Logger.error).toHaveBeenCalled();
@@ -447,12 +445,11 @@ describe('AppLockService', () => {
       await settle();
 
       expect(mockSetLocked).not.toHaveBeenCalled();
-      expect(mockDispatch).not.toHaveBeenCalledWith(lockApp());
       expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
       expectPrivacyCoverDismissed();
     });
 
-    it('logs and does not dispatch lockApp when setLocked rejects', async () => {
+    it('logs and stops when setLocked rejects', async () => {
       mockSetLocked.mockRejectedValue(new Error('keyring busy'));
 
       emitAppState('background');
@@ -462,7 +459,7 @@ describe('AppLockService', () => {
         'AppLockService: Failed to lock KeyringController',
         expect.any(Error),
       );
-      expect(mockDispatch).not.toHaveBeenCalledWith(lockApp());
+      expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
@@ -518,7 +515,6 @@ describe('AppLockService', () => {
       await settle();
 
       expect(mockSetLocked).toHaveBeenCalledTimes(1);
-      expect(mockDispatch).toHaveBeenCalledWith(lockApp());
       expect(mockTryBiometricUnlock).toHaveBeenCalledTimes(1);
       expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
       expect(service.isAutoLockPending()).toBe(false);
@@ -551,7 +547,6 @@ describe('AppLockService', () => {
       releaseLock();
       await settle();
 
-      expect(mockDispatch).toHaveBeenCalledWith(lockApp());
       expect(mockTryBiometricUnlock).toHaveBeenCalledTimes(1);
       expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
       expect(service.isAutoLockPending()).toBe(false);

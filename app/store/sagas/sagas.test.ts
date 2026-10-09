@@ -281,11 +281,10 @@ describe('authStateMachine', () => {
     jest.clearAllMocks();
   });
 
-  it('initializes AppLockService before waiting for login', () => {
+  it('waits for login before starting AppLockService', () => {
     const generator = authStateMachine();
 
     expect(generator.next().value).toEqual(take(UserActionType.LOGIN));
-    expect(AppLockService.initialize).toHaveBeenCalledTimes(1);
     expect(AppLockService.start).not.toHaveBeenCalled();
   });
 

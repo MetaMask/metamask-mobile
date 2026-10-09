@@ -49,8 +49,7 @@ if (__DEV__) {
 enableFreeze(true);
 
 // Subscribe to AppState before Engine and any screen hooks do, so the privacy
-// screen is raised first when the app backgrounds. Idempotent; the auth saga
-// calls it again and is a no-op.
+// screen is raised first when the app backgrounds.
 AppLockService.initialize();
 
 // Setup Sentry

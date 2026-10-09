@@ -12,7 +12,7 @@ import ReduxService from '../redux';
 import SecureKeychain from '../SecureKeychain';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { lockApp, checkForDeeplink } from '../../actions/user';
+import { checkForDeeplink } from '../../actions/user';
 import { selectLockTime } from '../../selectors/settings';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import PreventScreenshot, { CAPTURE_KEYS } from '../PreventScreenshot';
@@ -506,8 +506,6 @@ export class AppLockService {
         'AppLockService: Failed to reject pending approvals on app lock',
       );
     }
-
-    ReduxService.store.dispatch(lockApp());
   };
 }
 

@@ -193,9 +193,6 @@ export function* requestAuthOnAppStart() {
  * auto-lock behavior to the logged-in session.
  */
 export function* authStateMachine() {
-  // Subscribe to AppState once so the privacy screen covers the app on
-  // background regardless of login state.
-  AppLockService.initialize();
   while (true) {
     yield take(UserActionType.LOGIN);
     AppLockService.start();
