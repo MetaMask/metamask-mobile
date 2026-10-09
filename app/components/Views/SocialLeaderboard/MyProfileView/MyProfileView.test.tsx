@@ -126,11 +126,8 @@ jest.mock('../../../UI/SocialFeed/components/TraderAvatar', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
-  return ({
-    testID,
-  }: {
-    testID?: string;
-  }) => ReactActual.createElement(View, { testID });
+  return ({ testID }: { testID?: string }) =>
+    ReactActual.createElement(View, { testID });
 });
 
 jest.mock('../TraderProfileView/components/PositionRow', () => {

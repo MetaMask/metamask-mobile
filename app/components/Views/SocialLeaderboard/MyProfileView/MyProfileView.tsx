@@ -375,9 +375,7 @@ const MyProfileView: React.FC = () => {
               <TraderHeaderIdentity
                 traderName={displayProfile.displayName}
                 traderImageUrl={displayProfile.imageUrl}
-                traderAddress={
-                  displayProfile.linkedAccountAddress ?? undefined
-                }
+                traderAddress={displayProfile.linkedAccountAddress ?? undefined}
                 variant="compact"
                 testID={MyProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
               />
