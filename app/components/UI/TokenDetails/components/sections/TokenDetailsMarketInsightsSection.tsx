@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { CaipAssetType } from '@metamask/utils';
+import { Box } from '@metamask/design-system-react-native';
 import {
   MarketInsightsDisclaimerBottomSheet,
   MarketInsightsEntryCard,
@@ -55,6 +56,7 @@ export interface TokenDetailsMarketInsightsSectionProps {
   useAmbientColor?: boolean;
   pricePercentChange?: number;
   containerStyle?: StyleProp<ViewStyle>;
+  showSectionRule?: boolean;
 }
 
 const TokenDetailsMarketInsightsSection = ({
@@ -66,6 +68,7 @@ const TokenDetailsMarketInsightsSection = ({
   useAmbientColor,
   pricePercentChange = 0,
   containerStyle,
+  showSectionRule = false,
 }: TokenDetailsMarketInsightsSectionProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -186,7 +189,7 @@ const TokenDetailsMarketInsightsSection = ({
     return null;
   }
 
-  return (
+  const card = (
     <View
       testID={TOKEN_DETAILS_MARKET_INSIGHTS_SECTION_TEST_ID}
       style={containerStyle}
@@ -212,6 +215,12 @@ const TokenDetailsMarketInsightsSection = ({
       )}
     </View>
   );
+
+  if (!showSectionRule) {
+    return card;
+  }
+
+  return <Box twClassName="mt-6 border-t border-muted pt-6">{card}</Box>;
 };
 
 TokenDetailsMarketInsightsSection.displayName =

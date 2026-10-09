@@ -49,6 +49,7 @@ export const ACTIVITY_EXPAND_STEP_ROWS = 5;
 
 export interface ActivitySectionProps {
   token: TokenDetailsRouteParams;
+  showSectionRule?: boolean;
 }
 
 interface UseGroupedTokenActivityParams {
@@ -161,7 +162,10 @@ function useVisibleActivityRows(groupedItems: GroupedActivityListItem[]): {
   return { visibleItems, hasMore, handleShowMore };
 }
 
-const ActivitySection: React.FC<ActivitySectionProps> = ({ token }) => {
+const ActivitySection: React.FC<ActivitySectionProps> = ({
+  token,
+  showSectionRule = false,
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
   const chainId = token.chainId as Hex | undefined;
   const assetSymbol = token.symbol ?? '';
@@ -230,7 +234,12 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({ token }) => {
 
   return (
     <>
-      <Box testID={TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID}>
+      <Box
+        testID={TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID}
+        twClassName={
+          showSectionRule ? 'mt-6 border-t border-muted pt-6' : undefined
+        }
+      >
         <ActivityHeader
           asset={{
             ...token,

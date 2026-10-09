@@ -137,6 +137,8 @@ jest.mock(
 );
 
 // Price hero + chart are integration-tested separately (Price / AdvancedChart).
+const mockPriceHeaderProps: { showPeriodLabel?: boolean }[] = [];
+
 // The mock renders `children` like the real component so the security &
 // social row passed into the price-hero slot stays in the tree.
 jest.mock('../../AssetOverview/Price/Price', () => {
@@ -147,7 +149,10 @@ jest.mock('../../AssetOverview/Price/Price', () => {
     <View testID="mock-price">{children}</View>
   );
   MockPrice.Provider = MockPrice;
-  MockPrice.Header = () => null;
+  MockPrice.Header = (props: { showPeriodLabel?: boolean }) => {
+    mockPriceHeaderProps.push(props);
+    return null;
+  };
   MockPrice.Chart = () => null;
   return {
     __esModule: true,
@@ -282,6 +287,7 @@ describe('TokenDetailsV1', () => {
     mockCurrentPrice = 1;
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
     mockOverviewProps.length = 0;
+    mockPriceHeaderProps.length = 0;
   });
 
   it('renders the meme-TDP body with the token symbol in the header', () => {
@@ -306,6 +312,44 @@ describe('TokenDetailsV1', () => {
 
     expect(getByTestId(TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID)).toBeOnTheScreen();
     expect(getByText('3d')).toBeOnTheScreen();
+    expect(
+      getByTestId(TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID).props.accessibilityLabel,
+    ).toBe('Token age 3d. Learn about token age.');
+  });
+
+  it('opens the token age explainer from the age chip', () => {
+    const { getByTestId, queryByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
+
+    fireEvent.press(getByTestId(TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID));
+
+    expect(getByTestId(TokenExplainerSheetSelectors.TITLE)).toHaveTextContent(
+      'Token age',
+    );
+    expect(
+      getByTestId(TokenExplainerSheetSelectors.DESCRIPTION),
+    ).toHaveTextContent(
+      'Time since token creation. Seconds, minutes, hours, then days.',
+    );
+  });
+
+  it('omits the price period label so the header does not say Today', () => {
+    render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockPriceHeaderProps[0]).toStrictEqual({
+      showPeriodLabel: false,
+    });
   });
 
   it('renders the price hero, tab bar and Overview panel by default', () => {
