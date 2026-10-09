@@ -135,9 +135,11 @@ async function getMoneyAccountDepositPaymentOverrideData<
   const provider = getProviderByChainId(chainId);
   if (!provider) return { calls: [] };
 
+  // ROUND_DOWN so Max / near-Max from an 18-decimal pay token never encodes
+  // more mUSD than the source balance can fund (ROUND_UP was pushing past it).
   const amount = BigInt(
     calcTokenValue(amountHuman, MUSD_DECIMALS)
-      .decimalPlaces(0, BigNumber.ROUND_UP)
+      .decimalPlaces(0, BigNumber.ROUND_DOWN)
       .toFixed(0),
   );
 

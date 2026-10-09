@@ -4,6 +4,7 @@ import {
   isMoneyAccountPriorityEntry,
   networkToCaipChainId,
   resolveReceivingPriorityEntry,
+  resolveRedeemReceivingEntry,
 } from './redeemDestination';
 import {
   FundingStatus,
@@ -136,5 +137,168 @@ describe('isMoneyAccountPriorityEntry', () => {
 
   it('is false for an undefined entry', () => {
     expect(isMoneyAccountPriorityEntry(undefined, vedaConfig)).toBe(false);
+  });
+});
+
+describe('resolveRedeemReceivingEntry', () => {
+  it('returns the VEDA entry for Monad when another Monad wallet ranks higher', () => {
+    const entries = [
+      priorityEntry({
+        address: '0xusdc-monad',
+        currency: 'usdc',
+        network: 'monad',
+        priority: 2,
+      }),
+      priorityEntry({
+        address: '0xveda-monad',
+        currency: 'veda',
+        network: 'monad',
+        priority: 3,
+      }),
+    ];
+
+    expect(
+      resolveRedeemReceivingEntry({
+        priorities: entries,
+        network: 'monad',
+        vedaConfig,
+      })?.address,
+    ).toBe('0xveda-monad');
+  });
+
+  it('returns undefined for Monad when no VEDA entry is linked', () => {
+    const entries = [
+      priorityEntry({
+        address: '0xusdc-monad',
+        currency: 'usdc',
+        network: 'monad',
+        priority: 1,
+      }),
+    ];
+
+    expect(
+      resolveRedeemReceivingEntry({
+        priorities: entries,
+        network: 'monad',
+        vedaConfig,
+      }),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined for Monad when the veda config is null', () => {
+    const entries = [
+      priorityEntry({
+        address: '0xveda-monad',
+        currency: 'veda',
+        network: 'monad',
+        priority: 1,
+      }),
+    ];
+
+    expect(
+      resolveRedeemReceivingEntry({
+        priorities: entries,
+        network: 'monad',
+        vedaConfig: null,
+      }),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined for Solana', () => {
+    const entries = [
+      priorityEntry({
+        address: '4jepDb74MRJ3vFxCr53CyGbSk9Vsc9qbCCFPmc2wJfMh',
+        currency: 'usdt',
+        network: 'solana',
+        priority: 1,
+      }),
+    ];
+
+    expect(
+      resolveRedeemReceivingEntry({
+        priorities: entries,
+        network: 'solana',
+        vedaConfig,
+      }),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when no network is given', () => {
+    const entries = [
+      priorityEntry({ address: '0xlinea', network: 'linea', priority: 1 }),
+    ];
+
+    expect(
+      resolveRedeemReceivingEntry({
+        priorities: entries,
+        vedaConfig,
+      }),
+    ).toBeUndefined();
+  });
+
+  it('returns the lowest priority number for Linea', () => {
+    const entries = [
+      priorityEntry({
+        address: '0xlinea2',
+        network: 'linea',
+        priority: 2,
+      }),
+      priorityEntry({
+        address: '0xlinea1',
+        network: 'linea',
+        priority: 1,
+      }),
+    ];
+
+    expect(
+      resolveRedeemReceivingEntry({
+        priorities: entries,
+        network: 'linea',
+        vedaConfig,
+      })?.address,
+    ).toBe('0xlinea1');
+  });
+
+  it('skips entries with an empty address', () => {
+    const entries = [
+      priorityEntry({ address: '', network: 'linea', priority: 1 }),
+      priorityEntry({
+        address: '0xlinea2',
+        network: 'linea',
+        priority: 2,
+      }),
+    ];
+
+    expect(
+      resolveRedeemReceivingEntry({
+        priorities: entries,
+        network: 'linea',
+        vedaConfig,
+      })?.address,
+    ).toBe('0xlinea2');
+  });
+
+  it('skips entries on other networks', () => {
+    const entries = [
+      priorityEntry({
+        address: '0xmonad',
+        currency: 'veda',
+        network: 'monad',
+        priority: 0,
+      }),
+      priorityEntry({
+        address: '0xlinea',
+        network: 'linea',
+        priority: 5,
+      }),
+    ];
+
+    expect(
+      resolveRedeemReceivingEntry({
+        priorities: entries,
+        network: 'linea',
+        vedaConfig,
+      })?.address,
+    ).toBe('0xlinea');
   });
 });

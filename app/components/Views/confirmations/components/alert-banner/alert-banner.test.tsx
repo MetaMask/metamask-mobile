@@ -1,5 +1,4 @@
 import React from 'react';
-import { Text } from 'react-native';
 import { render } from '@testing-library/react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Alert, Severity } from '../../types/alerts';
@@ -8,6 +7,7 @@ import AlertBanner from './alert-banner';
 import { RowAlertKey } from '../UI/info-row/alert-row/constants';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { AlertKeys } from '../../constants/alerts';
+import { Text } from '@metamask/design-system-react-native';
 
 jest.mock('../../hooks/transactions/useTransactionMetadataRequest');
 

@@ -4,8 +4,8 @@ import useImmersveSupportedRegions from './useImmersveSupportedRegions';
 import Engine from '../../../../core/Engine';
 import type { CardApiSupportedRegionsResponse } from '../../../../core/Engine/controllers/card-controller/services/card-supported-regions.types';
 import {
-  selectImmersveOnboardingEnabled,
-  selectCardFeatureFlag,
+  selectCardImmersveEnabled,
+  selectCardImmersveCountries,
 } from '../../../../selectors/featureFlagController/card';
 
 jest.mock('react-redux', () => ({
@@ -102,11 +102,11 @@ function mockImmersveSelectors({
   immersveCountries?: string[];
 } = {}) {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectImmersveOnboardingEnabled) {
+    if (selector === selectCardImmersveEnabled) {
       return immersveEnabled;
     }
-    if (selector === selectCardFeatureFlag) {
-      return { immersveCountries };
+    if (selector === selectCardImmersveCountries) {
+      return immersveCountries;
     }
     return undefined;
   });

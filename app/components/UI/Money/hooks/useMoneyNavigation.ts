@@ -5,6 +5,17 @@ import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
 import type { MoneyOnboardingParams } from '../types/navigation';
+import type { NavigationAnalyticsContext } from '../../../../util/analytics/navigationAnalyticsAttribution';
+
+export interface NavigateToMoneyHomeOptions {
+  analyticsContext?: NavigationAnalyticsContext;
+  /**
+   * Controls whether navigation pops to an existing route, which can show the
+   * backward animation. Explore passes `pop: false` to use normal forward
+   * navigation into Money Home. Defaults to true.
+   */
+  pop?: boolean;
+}
 
 /**
  * Why NavigationService instead of useNavigation():
@@ -55,16 +66,32 @@ export const useMoneyNavigation = () => {
   const { isOnboardingRedirectNeeded, redirectToOnboardingIfNeeded } =
     useMoneyOnboardingNavigation();
 
-  const navigateToMoneyHome = useCallback(() => {
-    if (redirectToOnboardingIfNeeded()) {
-      return;
-    }
+  const navigateToMoneyHome = useCallback(
+    (options?: NavigateToMoneyHomeOptions) => {
+      const { analyticsContext, pop = true } = options ?? {};
 
-    NavigationService.navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [redirectToOnboardingIfNeeded]);
+      if (
+        redirectToOnboardingIfNeeded(
+          analyticsContext ? { analyticsContext } : undefined,
+        )
+      ) {
+        return;
+      }
+
+      NavigationService.navigation.navigate(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: {
+            screen: Routes.MONEY.HOME,
+            ...(analyticsContext ? { params: { analyticsContext } } : {}),
+          },
+        },
+        { pop },
+      );
+    },
+    [redirectToOnboardingIfNeeded],
+  );
 
   return { isOnboardingRedirectNeeded, navigateToMoneyHome };
 };

@@ -59,6 +59,7 @@ function createParamsObj(overrides?: Record<string, unknown>) {
     isOrderNotFilled: false,
     resetOrderNotFilled: jest.fn(),
     isSheetMode: false as boolean | undefined,
+    attempt: undefined as PlaceOrderParams['attempt'],
     ...overrides,
   };
 }
@@ -133,6 +134,22 @@ describe('usePredictOrderRetry', () => {
       expect(promptedCalls).toHaveLength(1);
     });
 
+    it('does not track retry status for a Predict buy', () => {
+      const params = createDefaultParams({
+        isOrderNotFilled: false,
+        analyticsProperties: {
+          marketId: 'market-123',
+          transactionType: 'mm_predict_buy',
+        },
+      });
+      const { rerender } = renderHook(() => usePredictOrderRetry(params));
+
+      params.isOrderNotFilled = true;
+      rerender();
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
     it('opens the retry sheet ref when isOrderNotFilled becomes true and isSheetMode is false', () => {
       const params = createDefaultParams({ isOrderNotFilled: false });
       const { result, rerender } = renderHook(() =>
@@ -205,6 +222,24 @@ describe('usePredictOrderRetry', () => {
         expect.objectContaining({
           preview: expect.objectContaining({ slippage: 0.99 }),
         }),
+      );
+    });
+
+    it('passes the same attempt to a retry', async () => {
+      const attempt = {
+        attemptId: 'attempt-1',
+        amountUsd: 8,
+        paymentMethod: 'predict_balance' as const,
+      };
+      const params = createDefaultParams({ attempt });
+      const { result } = renderHook(() => usePredictOrderRetry(params));
+
+      await act(async () => {
+        await result.current.handleRetryWithBestPrice();
+      });
+
+      expect(params.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ attempt }),
       );
     });
 

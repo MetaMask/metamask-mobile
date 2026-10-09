@@ -3,9 +3,9 @@ import { render, screen } from '@testing-library/react-native';
 import React from 'react';
 import PerpsProOrderEditSheets from './PerpsProOrderEditSheets';
 
-jest.mock('./PerpsProPositionsModalPortal', () => {
+jest.mock('./PerpsProModalPortal', () => {
   const { View } = jest.requireActual('react-native');
-  return function PerpsProPositionsModalPortal({
+  return function PerpsProModalPortal({
     children,
   }: {
     children: React.ReactNode;

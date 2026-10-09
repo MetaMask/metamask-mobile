@@ -34,6 +34,61 @@ describe('Remote Feature Flags Helper', () => {
       expect(Array.isArray(result.response)).toBe(true);
     });
 
+    it('pins backendWebSocketConnection to a boolean true instead of a threshold array', () => {
+      const result = createRemoteFeatureFlagsMock();
+
+      const response = result.response as Record<string, unknown>[];
+      const websocketFlag = response.find(
+        (obj: Record<string, unknown>) => 'backendWebSocketConnection' in obj,
+      );
+
+      expect(websocketFlag).toEqual({ backendWebSocketConnection: true });
+    });
+
+    it('pins 2026-10-06 production UI flags to pre-sync values', () => {
+      const result = createRemoteFeatureFlagsMock();
+      const response = result.response as Record<string, unknown>[];
+      const flagByName = (name: string) =>
+        response.find((obj) => name in obj)?.[name];
+
+      const disabledVersionGate = {
+        enabled: false,
+        minimumVersion: '0.0.0',
+      };
+      const disabledFlagNames = [
+        'mobileUxBftcOnsolidation',
+        'earnHomeSectionEnabled',
+        'earnExploreSectionEnabled',
+        'earnTradeMenuRowRedesignEnabled',
+        'earnMoneyAssetOverviewFooterCtaEnabled',
+        'earnMoneyCardFlipAnimationEnabled',
+        'earnMoneyBalanceAnimationEnabled',
+        'brazeBannerHomeMinVersion',
+        'cardIntercomSupport',
+        'crossmintApplePayCheckout',
+      ];
+
+      for (const flagName of disabledFlagNames) {
+        expect(flagByName(flagName)).toEqual(disabledVersionGate);
+      }
+
+      expect(flagByName('stellarAccounts')).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.1',
+      });
+      expect(flagByName('nativeTabBarEnabled')).toBe(true);
+      expect(flagByName('predictHomeRedesign')).toEqual({
+        enabled: true,
+        minimumVersion: '8.6.0',
+      });
+      expect(flagByName('cardUkMigration')).toEqual({
+        enabled: false,
+        minimumVersion: '8.13.0',
+        startDate: '',
+        endDate: '',
+      });
+    });
+
     it('uses flask distribution when specified', () => {
       const result = createRemoteFeatureFlagsMock({}, 'flask');
 
@@ -98,6 +153,43 @@ describe('Remote Feature Flags Helper', () => {
         const resultProps = Object.keys(confirmationData);
         expect(resultProps.length).toBeGreaterThanOrEqual(baselineProps.length);
       }
+    });
+
+    it('replaces versioned registry flags when a flat RC override is provided', () => {
+      const baseline = createRemoteFeatureFlagsMock();
+      const baselineResponse = baseline.response as Record<string, unknown>[];
+      const baselinePayExtended = baselineResponse.find(
+        (obj: Record<string, unknown>) => 'confirmations_pay_extended' in obj,
+      );
+      const baselineValue = (
+        baselinePayExtended as Record<string, Record<string, unknown>>
+      )?.confirmations_pay_extended;
+
+      // Registry sync may ship versioned pay_extended; pay smoke fixtures use a
+      // flat RC object. Deep-merging would keep newer version keys and break UI.
+      expect(baselineValue).toEqual(
+        expect.objectContaining({ versions: expect.any(Object) }),
+      );
+
+      const flatOverride = {
+        enableDepositWalletWithdraw: true,
+        name: 'rc-fixture',
+        payStrategies: { relay: { gaslessEnabled: true } },
+      };
+
+      const result = createRemoteFeatureFlagsMock({
+        confirmations_pay_extended: flatOverride,
+      });
+      const response = result.response as Record<string, unknown>[];
+      const payExtendedObj = response.find(
+        (obj: Record<string, unknown>) => 'confirmations_pay_extended' in obj,
+      );
+      const payExtended = (
+        payExtendedObj as Record<string, Record<string, unknown>>
+      ).confirmations_pay_extended;
+
+      expect(payExtended).toEqual(flatOverride);
+      expect(payExtended).not.toHaveProperty('versions');
     });
 
     it('preserves and overrides deeply nested objects', () => {

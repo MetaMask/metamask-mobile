@@ -1,4 +1,5 @@
 import { WalletDevice } from '@metamask/transaction-controller';
+import { validateTransactionParams } from '@metamask/eth-json-rpc-middleware';
 import {
   NavigationContainerRef,
   ParamListBase,
@@ -7,6 +8,7 @@ import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
 import { isEqual } from 'lodash';
+import type { OriginMetadata } from '@metamask/snaps-sdk';
 
 import {
   CaipAccountId,
@@ -17,6 +19,13 @@ import {
 } from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
+import { updateConfirmationMetric } from '../redux/slices/confirmationMetrics';
+import {
+  RemoteTransport,
+  getRequestSourceForTransport,
+  stampOriginProvenance,
+  removeOriginProvenance,
+} from '../OriginProvenance';
 import {
   selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -130,6 +139,15 @@ class WalletConnect2Session {
     DevLogger.log(
       `WalletConnect2Session::constructor topic=${session.topic} pairingTopic=${session.pairingTopic} url=${url} name=${name} icons=${icons}`,
     );
+
+    // Stamp the connection's provenance at the entry point: the channelId is
+    // the unspoofable connection identity; the session peer metadata is
+    // self-reported by the dapp and display-only.
+    stampOriginProvenance({
+      connectionId: channelId,
+      transport: RemoteTransport.WalletConnect,
+      selfReported: { url, name, icon: icons?.[0] },
+    });
 
     this.backgroundBridge = backgroundBridgeFactory.create({
       webview: null,
@@ -666,6 +684,10 @@ class WalletConnect2Session {
         // what Snaps must receive as the request origin, never the dapp's
         // self-reported metadata URL.
         origin: this.channelId,
+        originMetadata: {
+          transport: 'WalletConnect',
+          selfReportedOrigin: this.selfReportedUrl,
+        },
         requestEvent,
         scope: normalizedRequestChainId,
       });
@@ -795,10 +817,12 @@ class WalletConnect2Session {
    */
   private handleAdapterRequest = async ({
     origin,
+    originMetadata,
     requestEvent,
     scope,
   }: {
     origin: string;
+    originMetadata: OriginMetadata;
     requestEvent: WalletKitTypes.SessionRequest;
     scope: CaipChainId;
   }) => {
@@ -810,6 +834,7 @@ class WalletConnect2Session {
     try {
       const result = await handleMultichainRequestByAdapter({
         origin,
+        originMetadata,
         connectedAddresses,
         scope,
         requestId: requestEvent.id,
@@ -828,6 +853,7 @@ class WalletConnect2Session {
   };
 
   removeListeners = async () => {
+    removeOriginProvenance(this.channelId);
     this.backgroundBridge.onDisconnect();
   };
 
@@ -840,6 +866,7 @@ class WalletConnect2Session {
     unverifiedOrigin: string,
   ) {
     try {
+      validateTransactionParams(methodParams[0]);
       const networkClientId = getNetworkClientIdForCaipChainId(caip2ChainId);
       const trx = await addTransaction(methodParams[0], {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
@@ -848,11 +875,31 @@ class WalletConnect2Session {
         securityAlertResponse: undefined,
       });
 
+      // Record the transport keyed by transaction id so the confirmation UI
+      // (useIsExternalAppRequest) can render the "External app" treatment:
+      // `unverifiedOrigin` is a self-reported domain the UI must not present
+      // as verified, and TransactionMeta cannot carry client-only fields.
+      store.dispatch(
+        updateConfirmationMetric({
+          id: trx.transactionMeta.id,
+          params: {
+            properties: {
+              request_source: getRequestSourceForTransport(
+                RemoteTransport.WalletConnect,
+              ),
+            },
+          },
+        }),
+      );
+
       const reqObject = {
         id: requestEvent.id,
         jsonrpc: '2.0',
         method: 'eth_sendTransaction',
-        origin: unverifiedOrigin,
+        // No `origin`: it would be the dapp's self-reported URL, which is
+        // unverifiable over WalletConnect and must never influence the
+        // security scan (Blockaid treats the URL as a core heuristic that
+        // can flip a verdict between malicious and benign).
         params: [
           {
             from: methodParams[0].from,

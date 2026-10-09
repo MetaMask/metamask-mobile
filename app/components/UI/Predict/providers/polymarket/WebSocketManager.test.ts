@@ -1,6 +1,5 @@
 import { AppState, AppStateStatus } from 'react-native';
 import Logger from '../../../../../util/Logger';
-import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import { GameCache } from './GameCache';
 import { POLYMARKET_PROVIDER_ID } from './constants';
 import { PREDICT_CONSTANTS } from '../../constants/errors';
@@ -11,12 +10,6 @@ jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn(), log: jest.fn() },
 }));
-jest.mock('../../../../../util/trace', () => ({
-  ...jest.requireActual('../../../../../util/trace'),
-  trace: jest.fn(),
-  endTrace: jest.fn(),
-}));
-
 const mockedLoggerError = jest.mocked(Logger.error);
 
 const mockGameCacheInstance = {
@@ -422,22 +415,6 @@ describe('WebSocketManager', () => {
       expect(callback).not.toHaveBeenCalled();
     });
 
-    it('does not trace RTDS messages when JSON parsing throws', () => {
-      const manager = WebSocketManager.getInstance();
-
-      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
-      const rtdsInstance =
-        mockWebSocketInstances[mockWebSocketInstances.length - 1];
-      rtdsInstance.simulateOpen();
-
-      rtdsInstance.onmessage?.({
-        data: 'not valid json',
-      } as MessageEvent);
-
-      expect(trace).not.toHaveBeenCalled();
-      expect(endTrace).not.toHaveBeenCalled();
-    });
-
     it('continues flushing buffered prices when a callback throws', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn().mockImplementationOnce(() => {
@@ -462,9 +439,6 @@ describe('WebSocketManager', () => {
       });
 
       expect(() => jest.advanceTimersByTime(250)).not.toThrow();
-      expect(endTrace).toHaveBeenCalledWith({
-        name: TraceName.CryptoUpDownBufferFlush,
-      });
       expect(callback).toHaveBeenCalledTimes(2);
       expect(callback).toHaveBeenCalledWith({
         symbol: 'eth/usd',
@@ -486,37 +460,6 @@ describe('WebSocketManager', () => {
         symbol: 'eth/usd',
         price: 3500,
         timestamp: 1700000001,
-      });
-    });
-
-    it('does not end an unmatched buffer flush trace when trace start throws', () => {
-      const manager = WebSocketManager.getInstance();
-      const traceError = new Error('trace failed');
-      (trace as jest.Mock)
-        .mockImplementationOnce(() => undefined)
-        .mockImplementationOnce(() => {
-          throw traceError;
-        });
-
-      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
-      const rtdsInstance =
-        mockWebSocketInstances[mockWebSocketInstances.length - 1];
-      rtdsInstance.simulateOpen();
-      rtdsInstance.simulateMessage({
-        topic: 'crypto_prices_chainlink',
-        type: 'update',
-        timestamp: 1700000000,
-        payload: { symbol: 'btc/usd', timestamp: 1700000000, value: 67234.5 },
-      });
-      (endTrace as jest.Mock).mockClear();
-
-      try {
-        expect(() => jest.advanceTimersByTime(250)).toThrow(traceError);
-      } finally {
-        WebSocketManager.resetInstance();
-      }
-      expect(endTrace).not.toHaveBeenCalledWith({
-        name: TraceName.CryptoUpDownBufferFlush,
       });
     });
   });
@@ -1299,11 +1242,86 @@ describe('WebSocketManager', () => {
             {
               topic: 'crypto_prices_chainlink',
               type: 'update',
-              filters: JSON.stringify({ symbol: 'btc/usd' }),
             },
           ],
         }),
       );
+    });
+
+    it('subscribes to and routes the configured TWAP window', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToCryptoPrices(['btc/usd'], callback, {
+        twapWindowSeconds: 30,
+      });
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      expect(rtdsInstance.send).toHaveBeenCalledWith(
+        JSON.stringify({
+          action: 'subscribe',
+          subscriptions: [
+            {
+              topic: 'crypto_prices_twap_thirty',
+              type: 'update',
+            },
+          ],
+        }),
+      );
+
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices_twap_thirty',
+        type: 'update',
+        timestamp: 1700000002000,
+        payload: {
+          symbol: 'btc/usd',
+          timestamp: 1700000001000,
+          value: 67234.5,
+          window_s: 30,
+        },
+      });
+      jest.advanceTimersByTime(250);
+
+      expect(callback).toHaveBeenCalledWith({
+        symbol: 'btc/usd',
+        price: 67234.5,
+        timestamp: 1700000001000,
+        twapWindowSeconds: 30,
+      });
+    });
+
+    it('ignores duplicate and older TWAP observations', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+      manager.subscribeToCryptoPrices(['btc/usd'], callback, {
+        twapWindowSeconds: 60,
+      });
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      const message = {
+        topic: 'crypto_prices_twap_sixty',
+        type: 'update',
+        timestamp: 1700000002000,
+        payload: {
+          symbol: 'btc/usd',
+          timestamp: 1700000001000,
+          value: 67234.5,
+          window_s: 60,
+        },
+      };
+      rtdsInstance.simulateMessage(message);
+      rtdsInstance.simulateMessage(message);
+      rtdsInstance.simulateMessage({
+        ...message,
+        payload: { ...message.payload, timestamp: 1700000000000 },
+      });
+      jest.advanceTimersByTime(250);
+
+      expect(callback).toHaveBeenCalledTimes(1);
     });
 
     it('calls callback with crypto price update for subscribed symbol', () => {
@@ -1332,13 +1350,6 @@ describe('WebSocketManager', () => {
         symbol: 'btc/usd',
         price: 67234.5,
         timestamp: 1700000001,
-      });
-      expect(trace).toHaveBeenCalledWith({
-        name: TraceName.CryptoUpDownWsMessage,
-        op: 'rtds.message',
-      });
-      expect(endTrace).toHaveBeenCalledWith({
-        name: TraceName.CryptoUpDownWsMessage,
       });
     });
 
@@ -1383,6 +1394,32 @@ describe('WebSocketManager', () => {
       expect(callback).not.toHaveBeenCalled();
     });
 
+    it('does not start buffering updates for unsubscribed symbols', () => {
+      const manager = WebSocketManager.getInstance();
+
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn(), {
+        twapWindowSeconds: 30,
+      });
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      const timerCountBeforeMessage = jest.getTimerCount();
+
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices_twap_thirty',
+        type: 'update',
+        timestamp: 1700000002000,
+        payload: {
+          symbol: 'eth/usd',
+          timestamp: 1700000001000,
+          value: 3500,
+          window_s: 30,
+        },
+      });
+
+      expect(jest.getTimerCount()).toBe(timerCountBeforeMessage);
+    });
+
     it('sends unsubscribe message when all callbacks removed', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
@@ -1405,14 +1442,13 @@ describe('WebSocketManager', () => {
             {
               topic: 'crypto_prices_chainlink',
               type: 'update',
-              filters: JSON.stringify({ symbol: 'btc/usd' }),
             },
           ],
         }),
       );
     });
 
-    it('unsubscribes only the removed RTDS symbol while another crypto subscription remains', () => {
+    it('keeps the shared RTDS topic subscribed while another symbol remains', () => {
       const manager = WebSocketManager.getInstance();
       const btcCallback = jest.fn();
       const ethCallback = jest.fn();
@@ -1429,18 +1465,7 @@ describe('WebSocketManager', () => {
 
       unsubscribeBtc();
 
-      expect(rtdsInstance.send).toHaveBeenCalledWith(
-        JSON.stringify({
-          action: 'unsubscribe',
-          subscriptions: [
-            {
-              topic: 'crypto_prices_chainlink',
-              type: 'update',
-              filters: JSON.stringify({ symbol: 'btc/usd' }),
-            },
-          ],
-        }),
-      );
+      expect(rtdsInstance.send).not.toHaveBeenCalled();
       expect(manager.getConnectionStatus().cryptoPriceSubscriptionCount).toBe(
         1,
       );
@@ -1569,25 +1594,32 @@ describe('WebSocketManager', () => {
       expect(mockWebSocketInstances).toHaveLength(3);
     });
 
-    it('stops reconnecting after max attempts', () => {
+    it('keeps reconnecting past the previous attempt cap with the delay capped at the maximum', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
       manager.subscribeToGame('123', callback);
       const initialInstanceCount = mockWebSocketInstances.length;
 
-      for (let i = 0; i < 5; i++) {
+      // Far more consecutive failures than the old MAX_RECONNECT_ATTEMPTS
+      // budget — sports must keep retrying so scores recover without an app
+      // restart (PRED-1334).
+      for (let i = 0; i < 10; i++) {
         const currentIdx = initialInstanceCount - 1 + i;
         mockWebSocketInstances[currentIdx].simulateClose();
-        jest.advanceTimersByTime((i + 1) * 3000);
+        jest.advanceTimersByTime(Math.min((i + 1) * 3000, 30000));
       }
 
-      const afterAttemptsCount = mockWebSocketInstances.length;
-      const lastIdx = afterAttemptsCount - 1;
-      mockWebSocketInstances[lastIdx].simulateClose();
-      jest.advanceTimersByTime(30000);
+      expect(mockWebSocketInstances.length).toBe(initialInstanceCount + 10);
 
-      expect(mockWebSocketInstances).toHaveLength(afterAttemptsCount);
+      // Once attempts exceed the linear backoff window, the delay is capped
+      // at 30s instead of growing unbounded.
+      const lastIdx = mockWebSocketInstances.length - 1;
+      mockWebSocketInstances[lastIdx].simulateClose();
+      jest.advanceTimersByTime(30000 - 1);
+      expect(mockWebSocketInstances.length).toBe(initialInstanceCount + 10);
+      jest.advanceTimersByTime(1);
+      expect(mockWebSocketInstances.length).toBe(initialInstanceCount + 11);
     });
 
     it('resets reconnect attempts on successful connection', () => {
@@ -1901,7 +1933,7 @@ describe('WebSocketManager', () => {
       expect(rtdsInstances).toHaveLength(1);
     });
 
-    it('sends subscribe for new symbols on already-open connection', () => {
+    it('reuses the broad topic subscription for new symbols', () => {
       const manager = WebSocketManager.getInstance();
 
       manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
@@ -1912,18 +1944,7 @@ describe('WebSocketManager', () => {
 
       manager.subscribeToCryptoPrices(['eth/usd'], jest.fn());
 
-      expect(rtdsInstance.send).toHaveBeenCalledWith(
-        JSON.stringify({
-          action: 'subscribe',
-          subscriptions: [
-            {
-              topic: 'crypto_prices_chainlink',
-              type: 'update',
-              filters: JSON.stringify({ symbol: 'eth/usd' }),
-            },
-          ],
-        }),
-      );
+      expect(rtdsInstance.send).not.toHaveBeenCalled();
     });
 
     it('does not create new connection when WS is in CONNECTING state', () => {
@@ -2015,10 +2036,6 @@ describe('WebSocketManager', () => {
       jest.advanceTimersByTime(250);
 
       expect(callback).not.toHaveBeenCalled();
-      expect(trace).not.toHaveBeenCalledWith({
-        name: TraceName.CryptoUpDownWsMessage,
-        op: 'rtds.message',
-      });
     });
 
     it('ignores messages with missing payload', () => {
@@ -2118,18 +2135,17 @@ describe('WebSocketManager', () => {
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       secondInstance.simulateOpen();
 
-      const subscribeCalls = secondInstance.send.mock.calls.filter(
-        (call: string[]) => {
-          try {
-            const msg = JSON.parse(call[0]);
-            return msg.action === 'subscribe';
-          } catch {
-            return false;
-          }
-        },
+      expect(secondInstance.send).toHaveBeenCalledWith(
+        JSON.stringify({
+          action: 'subscribe',
+          subscriptions: [
+            {
+              topic: 'crypto_prices_chainlink',
+              type: 'update',
+            },
+          ],
+        }),
       );
-
-      expect(subscribeCalls.length).toBeGreaterThan(0);
     });
 
     it('reconnectAll only connects RTDS when only RTDS has subscriptions', () => {
@@ -2611,11 +2627,12 @@ describe('WebSocketManager', () => {
 
       expect(mockWebSocketInstances).toHaveLength(6);
 
+      // Sports keeps retrying past the old attempt cap (delay capped at 30s
+      // once attempts exceed the linear backoff window).
       const lastIdx = mockWebSocketInstances.length - 1;
       mockWebSocketInstances[lastIdx].simulateClose();
-      jest.advanceTimersByTime(60000);
-
-      expect(mockWebSocketInstances).toHaveLength(6);
+      jest.advanceTimersByTime(18000);
+      expect(mockWebSocketInstances).toHaveLength(7);
     });
   });
 
@@ -2957,6 +2974,105 @@ describe('WebSocketManager', () => {
           data: { method: 'rtdsHeartbeat' },
         },
       });
+    });
+  });
+
+  describe('sports heartbeat staleness detection', () => {
+    it('closes the socket and reconnects when no message arrives within the stale threshold', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToGame('123', jest.fn());
+      const ws = mockWebSocketInstances[0];
+      ws.simulateOpen();
+
+      const countAfterOpen = mockWebSocketInstances.length;
+
+      jest.advanceTimersByTime(60000 + 5000);
+
+      expect(ws.close).toHaveBeenCalled();
+
+      ws.simulateClose();
+      jest.advanceTimersByTime(3000);
+
+      expect(mockWebSocketInstances.length).toBeGreaterThan(countAfterOpen);
+    });
+
+    it('does not close the socket while messages keep arriving below the stale threshold', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToGame('123', jest.fn());
+      const ws = mockWebSocketInstances[0];
+      ws.simulateOpen();
+
+      // Run well past the 60s threshold: every game data or PONG message must
+      // reset the staleness clock.
+      for (let i = 0; i < 16; i++) {
+        jest.advanceTimersByTime(5000);
+        if (i % 2 === 0) {
+          ws.simulateMessage({
+            gameId: 123,
+            score: '21-14',
+            elapsed: '12:34',
+            period: 'Q2',
+            live: true,
+            ended: false,
+          });
+        } else {
+          ws.simulateRawMessage('PONG');
+        }
+      }
+
+      expect(ws.close).not.toHaveBeenCalled();
+    });
+
+    it('does not call Logger.error on the first sports heartbeat timeout (transient blip)', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToGame('123', jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      mockedLoggerError.mockClear();
+
+      jest.advanceTimersByTime(60000 + 5000);
+
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+    });
+
+    it('logs to Logger.error with structured context on the second consecutive sports heartbeat timeout', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToGame('123', jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      mockedLoggerError.mockClear();
+
+      // First timeout: close fired, onclose schedules reconnect.
+      jest.advanceTimersByTime(60000 + 5000);
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+
+      mockWebSocketInstances[0].simulateClose();
+      jest.advanceTimersByTime(3000);
+
+      // Simulate reconnect: new socket opens but stays stale again.
+      const reconnected =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      reconnected.simulateOpen();
+      jest.advanceTimersByTime(60000 + 5000);
+
+      expect(mockedLoggerError).toHaveBeenCalledTimes(1);
+      expect(mockedLoggerError.mock.calls[0][1]).toMatchObject({
+        tags: { channel: 'sports' },
+        context: {
+          name: 'WebSocketManager',
+          data: { method: 'sportsHeartbeat' },
+        },
+      });
+    });
+
+    it('stops the heartbeat timer on disconnect so it does not fire after unsubscribe', () => {
+      const manager = WebSocketManager.getInstance();
+      const unsubscribe = manager.subscribeToGame('123', jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      unsubscribe();
+      mockedLoggerError.mockClear();
+
+      jest.advanceTimersByTime(120000);
+
+      expect(mockedLoggerError).not.toHaveBeenCalled();
     });
   });
 });

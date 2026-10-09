@@ -128,7 +128,7 @@ describe('usePerpsCloseAllPositions', () => {
       expect(result.current.isClosing).toBe(false);
     });
     expect(Engine.context.PerpsController.closePositions).toHaveBeenCalledWith({
-      closeAll: true,
+      symbols: positions.map((p) => p.symbol),
     });
     expect(mockNavigation.goBack).toHaveBeenCalled();
     expect(result.current.error).toBeNull();

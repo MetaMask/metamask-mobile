@@ -12,6 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
+import { useHaptics } from '../../../../../../util/haptics';
 import type { ProSortDirection } from '../utils/proSortCompare';
 import PerpsProPositionsOptionSheet from './PerpsProPositionsOptionSheet';
 
@@ -31,6 +32,7 @@ export interface PerpsProSortSheetProps<TField extends string> {
   options: readonly ProSortOption<TField>[];
   onApply: (next: ProSortConfig<TField>) => void;
   onClose: () => void;
+  onClear?: () => void;
   testID?: string;
 }
 
@@ -44,8 +46,10 @@ const PerpsProSortSheet = <TField extends string>({
   options,
   onApply,
   onClose,
+  onClear,
   testID = 'perps-pro-sort-sheet',
 }: PerpsProSortSheetProps<TField>) => {
+  const { playSelection } = useHaptics();
   const [draftField, setDraftField] = useState<TField>(sortConfig.field);
   const [draftDirection, setDraftDirection] = useState<ProSortDirection>(
     sortConfig.direction,
@@ -58,6 +62,7 @@ const PerpsProSortSheet = <TField extends string>({
 
   const handleOptionPress = useCallback(
     (field: TField) => {
+      playSelection().catch(() => undefined);
       if (draftField === field) {
         setDraftDirection((current) => (current === 'asc' ? 'desc' : 'asc'));
         return;
@@ -66,7 +71,7 @@ const PerpsProSortSheet = <TField extends string>({
       setDraftField(field);
       setDraftDirection('desc');
     },
-    [draftField],
+    [draftField, playSelection],
   );
 
   const handleApply = useCallback(() => {
@@ -79,6 +84,7 @@ const PerpsProSortSheet = <TField extends string>({
       title={strings('perps.sort.sort_by')}
       onClose={onClose}
       onApply={handleApply}
+      onClear={onClear}
       onOpen={resetDraft}
       testID={testID}
     >

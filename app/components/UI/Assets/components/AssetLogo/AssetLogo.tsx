@@ -4,13 +4,23 @@ import {
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
-import { TokenI } from '../../../Tokens/types';
+import type { TokenI } from '../../../Tokens/types';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import styleSheet from './AssetLogo.styles';
 import { getFallbackAssetImageUrls } from './AssetLogo.utils';
 import { useSmartImageFallback } from './AssetLogo.hook';
 
-const AssetLogo = ({ asset }: { asset: TokenI }) => {
+type AssetLogoAsset = Omit<TokenI, 'balance'>;
+
+const AssetLogo = ({
+  asset,
+  size = AvatarTokenSize.Lg,
+  testID,
+}: {
+  asset: AssetLogoAsset;
+  size?: AvatarTokenSize;
+  testID?: string;
+}) => {
   const { styles } = useStyles(styleSheet, {});
 
   const images = useMemo(
@@ -47,7 +57,8 @@ const AssetLogo = ({ asset }: { asset: TokenI }) => {
       imageOrSvgProps={{
         imageProps: { onError, testID: 'token-avatar-image' },
       }}
-      size={AvatarTokenSize.Lg}
+      size={size}
+      testID={testID}
     />
   );
 };

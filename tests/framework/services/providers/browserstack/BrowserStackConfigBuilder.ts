@@ -106,10 +106,9 @@ export class BrowserStackConfigBuilder {
           debug: true,
           local: isLocal,
           interactiveDebugging: true,
-          networkLogsOptions: {
-            captureContent: true,
-          },
-          networkLogs: true,
+          // Keep network log capture off for performance lanes (parity with
+          // TestMu HE / Sauce Labs — network capture adds session overhead).
+          networkLogs: false,
           appiumVersion: '3.1.0',
           idleTimeout: DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
           deviceName: device.name,
@@ -157,9 +156,11 @@ export class BrowserStackConfigBuilder {
         'appium:app': appBsUrl,
         'appium:autoAcceptAlerts': true,
         'appium:fullReset': true,
+        // Performance Appium settings (parity with TestMu HE / Sauce Labs)
         'appium:settings[actionAcknowledgmentTimeout]': 3000,
         'appium:settings[ignoreUnimportantViews]': true,
         'appium:settings[snapshotMaxDepth]': 62,
+        'appium:settings[waitForIdleTimeout]': 0, // Don't wait for idle
         'appium:settings[waitForSelectorTimeout]': 1000,
         'appium:includeSafariInWebviews': true,
         'appium:chromedriverAutodownload': true,
@@ -167,7 +168,6 @@ export class BrowserStackConfigBuilder {
         'appium:animationCoolOffTimeout': 0, // Skip animation wait
         'appium:reduceMotion': true, // Reduce iOS animations
         'appium:customSnapshotTimeout': 15,
-        'appium:waitForIdleTimeout': 0, // Don't wait for idle
         'appium:disableWindowAnimation': true, // Disable animations
         'appium:skipDeviceInitialization': true, // Skip init (faster startup)
         'appium:bstackPageSource': {

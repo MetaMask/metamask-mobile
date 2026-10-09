@@ -65,43 +65,52 @@ jest.mock('../../../../NavigationService', () => ({
 const mockOrigin = 'testOrigin';
 
 describe('handleApproveUrl', () => {
-  const spyGetNetworkTypeById = jest.spyOn(
-    NetworksUtilsModule,
-    'getNetworkTypeById',
-  );
-
-  const spyGenerateApproveData = jest.spyOn(
-    TransactionsUtilsModule,
-    'generateApprovalData',
-  );
-
-  const spySetProviderType = jest.spyOn(
-    Engine.context.NetworkController,
-    'setProviderType',
-  );
+  // Spies are created per test and restored in afterEach, so an implementation
+  // set by one test (e.g. spyGetAddress.mockResolvedValue) cannot bleed into the
+  // next one — jest.clearAllMocks() only clears calls, not implementations.
+  let spyGetNetworkTypeById: jest.SpyInstance;
+  let spyGenerateApproveData: jest.SpyInstance;
+  let spySetProviderType: jest.SpyInstance;
+  let spyGetAddress: jest.SpyInstance;
+  let spyShowSimpleNotification: jest.SpyInstance;
+  let spyFindNetworkClientIdByChainId: jest.SpyInstance;
 
   const spyAddTransaction = addTransaction as jest.Mock;
 
-  const spyGetAddress = jest.spyOn(AddressUtilsModule, 'getAddress');
-
-  const spyShowSimpleNotification = jest.spyOn(
-    NotificationManager,
-    'showSimpleNotification',
-  );
-
   const spyValidateWithPPOM = validateWithPPOM as jest.Mock;
-
-  const spyFindNetworkClientIdByChainId = jest.spyOn(
-    Engine.context.NetworkController,
-    'findNetworkClientIdByChainId',
-  );
 
   beforeEach(() => {
     jest.clearAllMocks();
 
+    spyGetNetworkTypeById = jest.spyOn(
+      NetworksUtilsModule,
+      'getNetworkTypeById',
+    );
+    spyGenerateApproveData = jest.spyOn(
+      TransactionsUtilsModule,
+      'generateApprovalData',
+    );
+    spySetProviderType = jest.spyOn(
+      Engine.context.NetworkController,
+      'setProviderType',
+    );
+    spyGetAddress = jest.spyOn(AddressUtilsModule, 'getAddress');
+    spyShowSimpleNotification = jest.spyOn(
+      NotificationManager,
+      'showSimpleNotification',
+    );
+    spyFindNetworkClientIdByChainId = jest.spyOn(
+      Engine.context.NetworkController,
+      'findNetworkClientIdByChainId',
+    );
+
     spyGetNetworkTypeById.mockReturnValue('fakeNetworkType');
     spyGenerateApproveData.mockReturnValue('fakeApproveData');
     spyFindNetworkClientIdByChainId.mockReturnValue('mockNetworkClientId');
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('calls setProviderType with the correct network type', async () => {

@@ -65,6 +65,10 @@ import {
   selectMarketInsightsPerpsEnabled,
 } from '../../../../../selectors/featureFlagController/marketInsights';
 import { endTrace, TraceName } from '../../../../../util/trace';
+import {
+  getMarketInsightsTraceEndData,
+  getMarketInsightsTraceId,
+} from '../../utils/marketInsightsPerformance';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import MarketInsightsViewSkeleton from './MarketInsightsViewSkeleton';
 import MarketInsightsViewHeader from './MarketInsightsViewHeader';
@@ -89,6 +93,7 @@ import { usePerpsEventTracking } from '../../../Perps/hooks/usePerpsEventTrackin
 import TokenDetailsStickyFooter from '../../../TokenDetails/components/TokenDetailsStickyFooter';
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
 import { useStickyQuickBuy } from '../../../TokenDetails/hooks/useStickyQuickBuy';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 
 const feedbackByDigest = new Map<string, 'up' | 'down'>();
 
@@ -209,10 +214,21 @@ const MarketInsightsView: React.FC = () => {
   const isMarketInsightsEnabled = isPerps
     ? isPerpsInsightsEnabled
     : isTokenInsightsEnabled;
+  const assetType = isPerps ? 'perps' : 'token';
+  const fullViewTraceId = getMarketInsightsTraceId(
+    assetIdentifier,
+    routeSource,
+    'full_view',
+  );
 
   const { report, reportAssetId, isLoading, error } = useMarketInsights(
     assetIdentifier,
     isMarketInsightsEnabled,
+    {
+      source: routeSource,
+      stage: 'full_view',
+      assetType,
+    },
   );
 
   const isDarkMode = useColorScheme() === 'dark';
@@ -609,8 +625,6 @@ const MarketInsightsView: React.FC = () => {
       return;
     }
 
-    endTrace({ name: TraceName.MarketInsightsViewLoad });
-
     const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_VIEWED)
       .addProperties({
         ...assetIdProperty,
@@ -630,6 +644,41 @@ const MarketInsightsView: React.FC = () => {
     createEventBuilder,
     routeSource,
   ]);
+
+  useEffect(() => {
+    if (reportAssetId !== assetIdentifier) {
+      return;
+    }
+
+    endTrace({
+      name: TraceName.MarketInsightsViewLoad,
+      id: fullViewTraceId,
+      data: getMarketInsightsTraceEndData('success'),
+    });
+  }, [assetIdentifier, fullViewTraceId, reportAssetId]);
+
+  useEffect(() => {
+    if (isLoading || report) {
+      return;
+    }
+
+    endTrace({
+      name: TraceName.MarketInsightsViewLoad,
+      id: fullViewTraceId,
+      data: getMarketInsightsTraceEndData(error ? 'error' : 'empty'),
+    });
+  }, [error, fullViewTraceId, isLoading, report]);
+
+  useEffect(
+    () => () => {
+      endTrace({
+        name: TraceName.MarketInsightsViewLoad,
+        id: fullViewTraceId,
+        data: getMarketInsightsTraceEndData('cancelled'),
+      });
+    },
+    [fullViewTraceId],
+  );
 
   if (showLoadingSkeleton && !report && !error) {
     return (
@@ -910,12 +959,14 @@ const MarketInsightsView: React.FC = () => {
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
         <View>
           <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={closeEligibilityModal}
-              contentKey="geo_block"
-              testID="market-insights-geo-block-tooltip"
-            />
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={closeEligibilityModal}
+                contentKey="geo_block"
+                testID="market-insights-geo-block-tooltip"
+              />
+            </ModalSafeAreaProvider>
           </Modal>
         </View>
       )}

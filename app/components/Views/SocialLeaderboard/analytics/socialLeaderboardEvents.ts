@@ -46,10 +46,16 @@ export const SocialLeaderboardEventValues = {
     FOLLOW: 'follow',
     UNFOLLOW: 'unfollow',
   },
+  /**
+   * Position-lifecycle stage of the trade a feed row announces. Asset-agnostic
+   * — pair with `trade_type` to tell a perp open from a token buy. Replaces
+   * the earlier `bought`/`sold`/`opened`/`closed` set, which conflated a
+   * partial exit with a full close and could not express an add.
+   */
   FEED_ACTION: {
-    BOUGHT: 'bought',
-    SOLD: 'sold',
     OPENED: 'opened',
+    ADDED: 'added',
+    REDUCED: 'reduced',
     CLOSED: 'closed',
   },
   FEED_AUDIENCE: {
@@ -85,7 +91,10 @@ export const SocialLeaderboardEventValues = {
   TAB: {
     CLOSED: 'closed',
     FEED: 'tab_feed',
+    FOLLOWING: 'tab_following',
+    TRENDING: 'tab_trending',
     LEADERBOARD: 'tab_leaderboard',
+    LIVE_TRADES: 'tab_live_trades',
     OPEN: 'open',
   },
   TAB_CHANGE_METHOD: {
@@ -114,6 +123,8 @@ export type SocialLeaderboardSource =
   | 'notification'
   | 'deep_link'
   | 'home_carousel'
+  | 'trending_carousel'
+  | 'profiles_to_follow'
   | 'leaderboard'
   | 'trader_profile'
   | 'trader_feed'
@@ -140,12 +151,23 @@ export type LeaderboardScreenViewedSource = Extract<
 
 export type TraderProfileScreenViewedSource = Extract<
   SocialLeaderboardSource,
-  'leaderboard' | 'home_carousel' | 'notification' | 'deep_link' | 'trader_feed'
+  | 'leaderboard'
+  | 'home_carousel'
+  | 'trending_carousel'
+  | 'profiles_to_follow'
+  | 'notification'
+  | 'deep_link'
+  | 'trader_feed'
 >;
 
 export type TraderFollowInteractionSource = Extract<
   SocialLeaderboardSource,
-  'leaderboard' | 'trader_profile' | 'home_carousel' | 'nux'
+  | 'leaderboard'
+  | 'trader_profile'
+  | 'home_carousel'
+  | 'trending_carousel'
+  | 'profiles_to_follow'
+  | 'nux'
 >;
 
 export type FollowTradingTokenSource = Extract<

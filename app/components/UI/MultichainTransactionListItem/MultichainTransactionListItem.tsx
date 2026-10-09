@@ -26,7 +26,7 @@ import { getNetworkImageSource } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../core/Analytics/events/transactions';
 import { selectAppTheme } from '../../../selectors/user';
@@ -62,7 +62,7 @@ const MultichainTransactionListItem = ({
 
   const handlePress = useCallback(() => {
     trackEvent(
-      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+      createEventBuilder(ACTIVITY_DETAIL_EVENTS.OPENED)
         .addProperties({
           transaction_type: transaction.type?.toLowerCase() ?? 'unknown',
           transaction_status: transaction.status ?? 'unknown',

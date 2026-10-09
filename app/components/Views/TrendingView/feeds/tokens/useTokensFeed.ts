@@ -1,6 +1,9 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
+import { selectExploreLaptopSearchApiRankingEnabled } from '../../../../UI/Trending/selectors/featureFlags';
+import { usesTemporaryApiRanking } from '../../../../UI/Trending/utils/usesTemporaryApiRanking';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import { fuseSearch, TOKEN_FUSE_OPTIONS } from '../search-utils';
@@ -12,7 +15,7 @@ import {
 } from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 
 interface UseTokensFeedOptions {
-  /** Search query; when present, results are sorted by market cap descending. */
+  /** Search query; results are sorted by market cap unless temporarily exempted. */
   query?: string;
   refresh?: RefreshConfig;
   /**
@@ -41,6 +44,9 @@ export const useTokensFeed = ({
   hideRiskyTokens = false,
   timeOption,
 }: UseTokensFeedOptions = {}): UseTokensFeedResult => {
+  const isLaptopApiRankingEnabled = useSelector(
+    selectExploreLaptopSearchApiRankingEnabled,
+  );
   const sortBy = timeOption ? mapTimeOptionToSortBy(timeOption) : undefined;
 
   const {
@@ -92,14 +98,19 @@ export const useTokensFeed = ({
     let searched: TrendingAsset[];
 
     if (query?.trim()) {
-      // Sort only the first-page slice; subsequent pages are appended as-is so
-      // that pagination order is preserved rather than interleaved by market cap.
-      const boundary = firstPageSizeRef.current ?? data.length;
-      const firstPage = data
-        .slice(0, boundary)
-        .sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0));
-      const rest = data.slice(boundary);
-      searched = [...firstPage, ...rest];
+      if (usesTemporaryApiRanking(query, isLaptopApiRankingEnabled)) {
+        // TEMPORARY: Preserve API order only for the LAPTOP launch.
+        searched = data;
+      } else {
+        // Sort only the first-page slice; subsequent pages are appended as-is
+        // so pagination order is not interleaved by market cap.
+        const boundary = firstPageSizeRef.current ?? data.length;
+        const firstPage = data
+          .slice(0, boundary)
+          .sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0));
+        const rest = data.slice(boundary);
+        searched = [...firstPage, ...rest];
+      }
     } else {
       searched = fuseSearch(
         data,
@@ -120,7 +131,7 @@ export const useTokensFeed = ({
     // firstPageSizeRef is a ref — intentionally excluded from deps so that
     // boundary captures the snapshot set by the effect, not a stale closure.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, query, hideRiskyTokens]);
+  }, [data, query, hideRiskyTokens, isLaptopApiRankingEnabled]);
 
   return {
     data: filteredData,

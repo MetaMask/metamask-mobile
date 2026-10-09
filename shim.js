@@ -41,6 +41,7 @@ import {
   testConfig,
 } from './app/util/test/utils.js';
 import { WS_SERVICES } from './tests/websocket/constants.ts';
+import { resolveWebSocketTarget } from './tests/websocket/route.ts';
 import { defaultMockPort } from './tests/api-mocking/mock-config/mockUrlCollection.json';
 
 import './shimPerf';
@@ -105,10 +106,8 @@ if (hasTestOverrides) {
 // We pass dynamic ports via launchArgs in FixtureHelper.ts, but react-native-launch-arguments
 // library behavior differs by platform:
 //
-// iOS: LaunchArguments.value() successfully reads Detox launchArgs → returns { fixtureServerPort: "30002", ... }
-//      App uses the dynamic port directly.
-//
-// Android: LaunchArguments.value() returns {} (library doesn't integrate with Detox on Android)
+// iOS: LaunchArguments.value() successfully reads E2E launchArgs → returns { fixtureServerPort: "30002", ... }
+// Android: LaunchArguments.value() returns {} (library doesn't integrate reliably on Android)
 //          → ALWAYS falls back to hardcoded ports (12345 for fixtures, 2446 for command queue)
 //          Since we need dynamic ports for parallel test execution, the E2E infrastructure uses
 //          adb reverse to transparently map these hardcoded ports to dynamically allocated ports.
@@ -117,7 +116,7 @@ if (hasTestOverrides) {
 if (isTestEnvironment) {
   const raw = LaunchArguments.value();
 
-  // Priority: LaunchArgs (Detox) → NSUserDefaults (mm CLI daemon) → hardcoded fallback
+  // Priority: LaunchArgs (E2E) → NSUserDefaults (mm CLI daemon) → hardcoded fallback
   const nsDefaults =
     Platform.OS === 'ios' ? Settings.get('fixtureServerPort') : undefined;
   testConfig.fixtureServerPort = raw?.fixtureServerPort
@@ -127,6 +126,13 @@ if (isTestEnvironment) {
   testConfig.commandQueueServerPort = raw?.commandQueueServerPort
     ? raw.commandQueueServerPort
     : FALLBACK_COMMAND_QUEUE_SERVER_PORT;
+
+  if (hasTestOverrides) {
+    testConfig.transactionPayFiatTestFundingSource =
+      raw?.transactionPayFiatTestFundingSource;
+    testConfig.transactionPayFiatTestAmountOverride =
+      raw?.transactionPayFiatTestAmountOverride;
+  }
 }
 
 // Fix for https://github.com/facebook/react-native/issues/5667
@@ -161,12 +167,7 @@ global.crypto = {
   ...crypto,
   randomUUID,
   getRandomValues,
-  subtle: {
-    ...global.crypto.subtle,
-    ...crypto.subtle,
-    // Shimming just digest as it has been fully implemented.
-    digest: quickCryptoSubtle.digest,
-  },
+  subtle: quickCryptoSubtle,
 };
 
 process.browser = false;
@@ -323,6 +324,31 @@ if (enableApiCallLogs || isTestEnvironment) {
     // a NitroHeaders instance and silently drops headers like Content-Type,
     // which makes HyperLiquid reject perps orders/candles with a 415.
     const installedFetch = global.fetch;
+
+    // Performance builds only: let SeedlessOnboardingController hit live UAT
+    // TOPRF / auth-service. E2E CI keeps these hosts on Mockttp (TOPRF mocked).
+    // IS_PERFORMANCE_TEST is inlined at build time via babel.
+    const isPerformanceTestBuild = process.env.IS_PERFORMANCE_TEST === 'true';
+    const PROXY_BYPASS_PATTERNS = [
+      '.node.web3auth.io',
+      '.uat-node.web3auth.io',
+      'auth-service.uat-api.cx.metamask.io',
+    ];
+
+    const shouldBypassProxy = (targetUrl) => {
+      if (!isPerformanceTestBuild) {
+        return false;
+      }
+      try {
+        const hostname = new URL(targetUrl).hostname;
+        return PROXY_BYPASS_PATTERNS.some(
+          (p) => hostname === p || hostname.endsWith(p),
+        );
+      } catch {
+        return false;
+      }
+    };
+
     // if mockServer is off we route to original destination
     global.fetch = async (url, options) => {
       // Extract URL string from Request or URL objects
@@ -338,12 +364,14 @@ if (enableApiCallLogs || isTestEnvironment) {
         urlString = String(url);
       }
 
-      return isMockServerAvailable
-        ? installedFetch(
-            `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(urlString)}`,
-            options,
-          ).catch(() => installedFetch(url, options))
-        : installedFetch(url, options);
+      if (!isMockServerAvailable || shouldBypassProxy(urlString)) {
+        return installedFetch(url, options);
+      }
+
+      return installedFetch(
+        `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(urlString)}`,
+        options,
+      ).catch(() => installedFetch(url, options));
     };
 
     if (isMockServerAvailable) {
@@ -384,9 +412,9 @@ if (enableApiCallLogs || isTestEnvironment) {
                 }
                 if (
                   !url.includes(`localhost:${mockServerPort}`) &&
-                  !url.includes('/proxy')
+                  !url.includes('/proxy') &&
+                  !shouldBypassProxy(url)
                 ) {
-                  const originalUrl = url;
                   url = `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`;
                 }
               }
@@ -423,11 +451,22 @@ if (enableApiCallLogs || isTestEnvironment) {
         );
       }
 
-      // Patch WebSocket to route production wss:// URLs to local mock servers.
-      // Each WS service gets its own mock port via WS_SERVICES config.
-      // Non-matching wss:// URLs pass through unchanged.
+      // Patch WebSocket to route production ws:// / wss:// URLs to mock
+      // servers. Each WS_SERVICES match gets its own per-service mock port.
+      // Unmatched ws:// / wss:// URLs fall back to the central mock server's
+      // /proxy-ws upgrade path (mirrors the /proxy HTTP path): the original
+      // URL is carried in the `url` query param and the server either scripts
+      // frames or live-proxies upstream. Local URLs, the mock server itself,
+      // anything containing /proxy, and performance-build bypass hosts pass
+      // through untouched.
       if (WS_SERVICES.length > 0 && global.WebSocket) {
         const OriginalWebSocket = global.WebSocket;
+
+        // The generic /proxy-ws fallback must target the same host the
+        // health check found (MOCKTTP_URL), not hardcoded `localhost` —
+        // on an Android emulator without `adb reverse`, the mock server
+        // is only reachable via 10.0.2.2.
+        const mockServerHost = new URL(MOCKTTP_URL).hostname;
 
         const wsRoutes = {};
         for (const svc of WS_SERVICES) {
@@ -436,15 +475,13 @@ if (enableApiCallLogs || isTestEnvironment) {
         }
 
         global.WebSocket = function (url, protocols) {
-          let targetUrl = url;
-          if (typeof url === 'string') {
-            for (const [prefix, localUrl] of Object.entries(wsRoutes)) {
-              if (url.startsWith(prefix)) {
-                targetUrl = localUrl;
-                break;
-              }
-            }
-          }
+          const targetUrl = resolveWebSocketTarget(
+            url,
+            wsRoutes,
+            mockServerPort,
+            shouldBypassProxy,
+            mockServerHost,
+          );
           return protocols !== undefined
             ? new OriginalWebSocket(targetUrl, protocols)
             : new OriginalWebSocket(targetUrl);
@@ -455,7 +492,9 @@ if (enableApiCallLogs || isTestEnvironment) {
         global.WebSocket.prototype = OriginalWebSocket.prototype;
 
         // eslint-disable-next-line no-console
-        console.log(`[WS Patch] Routes: ${JSON.stringify(wsRoutes)}`);
+        console.log(
+          `[WS Patch] Routes: ${JSON.stringify(wsRoutes)}; generic fallback → ws://${mockServerHost}:${mockServerPort}/proxy-ws?url=<original>`,
+        );
       }
 
       // Patch expo/fetch so its native networking routes through the mock
@@ -501,7 +540,15 @@ if (enableApiCallLogs || isTestEnvironment) {
         if (proto && typeof proto.start === 'function' && !proto.__e2ePatched) {
           const originalStart = proto.start;
           proto.start = function patchedStart(url, init, body) {
-            const targetUrl = shouldProxy(url) ? buildProxyUrl(url) : url;
+            const targetUrl = (() => {
+              if (typeof url !== 'string') {
+                return url;
+              }
+              if (shouldBypassProxy(url)) {
+                return url;
+              }
+              return shouldProxy(url) ? buildProxyUrl(url) : url;
+            })();
             if (targetUrl !== url) {
               // eslint-disable-next-line no-console
               console.log(
@@ -544,6 +591,10 @@ if (enableApiCallLogs || isTestEnvironment) {
             return;
           }
           const patchedExpoFetch = (url, options) => {
+            const urlStr = String(url);
+            if (shouldBypassProxy(urlStr)) {
+              return originalExpoFetch(url, options);
+            }
             if (!shouldProxy(url)) {
               return originalExpoFetch(url, options);
             }

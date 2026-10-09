@@ -55,8 +55,10 @@ on:
         default: ''
       reuse_main_builds:
         description: >-
-          For e2e builds only, skip fresh Android BrowserStack builds and reuse
-          the latest uploaded apps from main-branch CI instead.
+          For e2e builds only, use for test-only changes. Reuses main-branch
+          Android APKs when available without JS repacking, then falls back to
+          a fresh build. Leave false for app changes, which use fingerprint
+          reuse with JS repacking.
         required: false
         type: boolean
         default: false
@@ -76,13 +78,6 @@ permissions:
   pull-requests: write
   statuses: write
 
-concurrency:
-  # Include build_variant so scheduled/PR e2e runs and manual exp/rc runs don't
-  # share the same queue — avoids unrelated variants canceling each other's pending run.
-  # Note: GitHub allows at most 1 running + 1 pending per group; a 3rd run cancels the pending one.
-  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}-${{ inputs.build_variant || 'e2e' }}
-  # Do not cancel in-progress runs; pending runs can still be replaced by a newer trigger.
-  cancel-in-progress: false
 
 env:
   BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
@@ -188,11 +183,12 @@ jobs:
           echo "ios_build_name=iOS-Performance-$BRANCH_NAME-Branch" >> "$GITHUB_OUTPUT"
 
       # A fingerprint is only needed when tests will run and Android apps were
-      # not supplied. PR CI normally provides it; schedule/manual runs compute it.
+      # not supplied and latest-main reuse is not selected.
       - name: Use caller-provided fingerprint
         id: provided
         if: >-
           steps.select-tests.outputs.run_tests == 'true' &&
+          !inputs.reuse_main_builds &&
           !inputs.browserstack_app_url_android_onboarding &&
           !inputs.browserstack_app_url_android_imported_wallet &&
           inputs.source_fingerprint
@@ -205,6 +201,7 @@ jobs:
       - name: Set up Node.js
         if: >-
           steps.select-tests.outputs.run_tests == 'true' &&
+          !inputs.reuse_main_builds &&
           !inputs.browserstack_app_url_android_onboarding &&
           !inputs.browserstack_app_url_android_imported_wallet &&
           !inputs.source_fingerprint
@@ -216,10 +213,11 @@ jobs:
       - name: Install Yarn dependencies with retry
         if: >-
           steps.select-tests.outputs.run_tests == 'true' &&
+          !inputs.reuse_main_builds &&
           !inputs.browserstack_app_url_android_onboarding &&
           !inputs.browserstack_app_url_android_imported_wallet &&
           !inputs.source_fingerprint
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -230,6 +228,7 @@ jobs:
         id: computed
         if: >-
           steps.select-tests.outputs.run_tests == 'true' &&
+          !inputs.reuse_main_builds &&
           !inputs.browserstack_app_url_android_onboarding &&
           !inputs.browserstack_app_url_android_imported_wallet &&
           !inputs.source_fingerprint
@@ -243,6 +242,7 @@ jobs:
         id: resolve-fingerprint
         if: >-
           steps.select-tests.outputs.run_tests == 'true' &&
+          !inputs.reuse_main_builds &&
           !inputs.browserstack_app_url_android_onboarding &&
           !inputs.browserstack_app_url_android_imported_wallet
         env:
@@ -259,62 +259,26 @@ jobs:
           fi
           echo "Resolved fingerprint: $(grep fingerprint= "$GITHUB_OUTPUT" | tail -1)"
 
-  resolve-main-browserstack-urls:
-    name: Resolve main-branch BrowserStack Android apps
-    runs-on: ubuntu-latest
-    needs: [prepare]
-    if: >-
-      needs.prepare.outputs.run_tests == 'true' &&
-      inputs.reuse_main_builds &&
-      inputs.build_variant == 'e2e' &&
-      !inputs.browserstack_app_url_android_onboarding &&
-      !inputs.browserstack_app_url_android_imported_wallet
-    outputs:
-      found: ${{ steps.resolve.outputs.found }}
-      with-srp-browserstack-url: ${{ steps.resolve.outputs.with-srp-browserstack-url }}
-      without-srp-browserstack-url: ${{ steps.resolve.outputs.without-srp-browserstack-url }}
-      with-srp-version: ${{ steps.resolve.outputs.with-srp-version }}
-      without-srp-version: ${{ steps.resolve.outputs.without-srp-version }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          sparse-checkout: |
-            .github/scripts/resolve-main-browserstack-apps.cjs
-            .github/scripts/browserstack-app-validation.cjs
-          sparse-checkout-cone-mode: false
-
-      - name: Resolve latest main BrowserStack apps
-        id: resolve
-        run: node .github/scripts/resolve-main-browserstack-apps.cjs
-        env:
-          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
-    needs: [prepare, resolve-main-browserstack-urls]
-    # Build/upload when not reusing main, or when main reuse lookup found nothing.
-    # Fingerprint job must succeed (same as ci.yml native-build-fingerprint → E2E).
-    # Download-miss → fresh dual Gradle fallback is inside build-android-upload-to-browserstack.
+    needs: [prepare]
+    # All Android runs without explicit BrowserStack URLs go through this
+    # workflow. It selects fingerprint reuse for app changes and latest-main
+    # artifact reuse for test-only changes, with a fresh-build fallback.
     if: >-
       always() &&
       !cancelled() &&
       needs.prepare.result == 'success' &&
       needs.prepare.outputs.run_tests == 'true' &&
-      (needs.resolve-main-browserstack-urls.result == 'skipped' || needs.resolve-main-browserstack-urls.result == 'success') &&
-      (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet) &&
-      (
-        !inputs.reuse_main_builds ||
-        inputs.build_variant != 'e2e' ||
-        needs.resolve-main-browserstack-urls.outputs.found != 'true'
-      )
+      !inputs.browserstack_app_url_android_onboarding &&
+      !inputs.browserstack_app_url_android_imported_wallet
     with:
       branch_name: ${{ inputs.branch_name }}
       source_ref: ${{ inputs.source_ref }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       source_fingerprint: ${{ needs.prepare.outputs.fingerprint }}
+      reuse_latest_main_builds: ${{ inputs.reuse_main_builds && inputs.build_variant == 'e2e' }}
       # Coerce to a real boolean. On schedule/push, workflow_dispatch inputs are
       # unset; passing a blank value into this boolean workflow_call input makes
       # the reusable Android build job fail to start.
@@ -328,8 +292,7 @@ jobs:
   run-android-onboarding-tests:
     name: Performance Test Android (Onboarding)
     uses: ./.github/workflows/performance-test-runner.yml
-    needs:
-      [prepare, trigger-android-dual-versions, resolve-main-browserstack-urls]
+    needs: [prepare, trigger-android-dual-versions]
     if: >-
       always() && !failure() && !cancelled() &&
       needs.prepare.outputs.run_tests == 'true' &&
@@ -338,13 +301,8 @@ jobs:
         needs.trigger-android-dual-versions.result == 'success'
       ) &&
       (
-        needs.resolve-main-browserstack-urls.result == 'skipped' ||
-        needs.resolve-main-browserstack-urls.result == 'success'
-      ) &&
-      (
         inputs.browserstack_app_url_android_onboarding != '' ||
-        needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url != '' ||
-        needs.resolve-main-browserstack-urls.outputs.without-srp-browserstack-url != ''
+        needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url != ''
       )
     with:
       platform: android
@@ -353,10 +311,9 @@ jobs:
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       branch_name: ${{ inputs.branch_name }}
       device_matrix: ${{ needs.prepare.outputs.android_matrix }}
-      # Prefer an explicitly supplied or freshly uploaded app. Reused main
-      # URLs are only a fallback so onboarding cannot receive a stale variant.
-      browserstack_app_url: ${{ inputs.browserstack_app_url_android_onboarding || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || needs.resolve-main-browserstack-urls.outputs.without-srp-browserstack-url }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || needs.resolve-main-browserstack-urls.outputs.without-srp-version || 'Manual-Input' }}
+      # Prefer an explicitly supplied app; otherwise require the upload job.
+      browserstack_app_url: ${{ inputs.browserstack_app_url_android_onboarding || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       browserstack_build_name: ${{ needs.prepare.outputs.android_build_name }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
     secrets: inherit
@@ -387,8 +344,7 @@ jobs:
   run-android-imported-wallet-tests:
     name: Performance Test Android (Imported Wallet)
     uses: ./.github/workflows/performance-test-runner.yml
-    needs:
-      [prepare, trigger-android-dual-versions, resolve-main-browserstack-urls]
+    needs: [prepare, trigger-android-dual-versions]
     if: >-
       always() && !cancelled() &&
       needs.prepare.outputs.run_tests == 'true' &&
@@ -397,13 +353,8 @@ jobs:
         needs.trigger-android-dual-versions.result == 'success'
       ) &&
       (
-        needs.resolve-main-browserstack-urls.result == 'skipped' ||
-        needs.resolve-main-browserstack-urls.result == 'success'
-      ) &&
-      (
         inputs.browserstack_app_url_android_imported_wallet != '' ||
-        needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '' ||
-        needs.resolve-main-browserstack-urls.outputs.with-srp-browserstack-url != ''
+        needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != ''
       )
     with:
       platform: android
@@ -412,8 +363,8 @@ jobs:
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       branch_name: ${{ inputs.branch_name }}
       device_matrix: ${{ needs.prepare.outputs.android_matrix }}
-      browserstack_app_url: ${{ inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || needs.resolve-main-browserstack-urls.outputs.with-srp-browserstack-url }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || needs.resolve-main-browserstack-urls.outputs.with-srp-version || 'Manual-Input' }}
+      browserstack_app_url: ${{ inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       browserstack_build_name: ${{ needs.prepare.outputs.android_build_name }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
     secrets: inherit
@@ -451,10 +402,10 @@ jobs:
     if: always() && needs.prepare.outputs.run_tests == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download All Test Results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: '*-test-results-*'
           path: ./test-results
@@ -471,7 +422,7 @@ jobs:
           echo "Aggregation completed"
 
       - name: Upload Final Combined Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: aggregated-reports
           path: |
@@ -487,10 +438,10 @@ jobs:
     if: always() && !cancelled() && needs.aggregate-results.result != 'skipped' && inputs.pr_number != ''
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download Aggregated Results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: aggregated-reports
           path: ./aggregated-reports
@@ -510,8 +461,9 @@ jobs:
       - name: Delete previous performance / app-profiling comments
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
-          ALL_COMMENT_IDS=$(gh api --paginate "repos/${{ github.repository }}/issues/${{ inputs.pr_number }}/comments?per_page=100" \
+          ALL_COMMENT_IDS=$(gh api --paginate "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments?per_page=100" \
             --jq '.[] | select(.body | contains("<!-- perf-test-results -->") or contains("<!-- app-profiling-check -->")) | .id')
 
           if [ -n "$ALL_COMMENT_IDS" ]; then
@@ -527,12 +479,13 @@ jobs:
       - name: Post PR comment
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           MARKER="<!-- perf-test-results -->"
           COMMENT=$(cat performance-pr-comment.md 2>/dev/null || echo "⚠️ Performance test results are not available.")
           FULL_COMMENT="${COMMENT}"$'\n'"${MARKER}"
-          gh pr comment "${{ inputs.pr_number }}" --repo "${{ github.repository }}" --body "$FULL_COMMENT"
-          echo "Performance results posted to PR #${{ inputs.pr_number }}"
+          gh pr comment "${PR_NUMBER}" --repo "${{ github.repository }}" --body "$FULL_COMMENT"
+          echo "Performance results posted to PR #${PR_NUMBER}"
 
   slack-notification:
     name: Send Slack Notification
@@ -548,10 +501,10 @@ jobs:
     if: always() && needs.aggregate-results.result != 'skipped'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download Aggregated Results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: aggregated-reports
           path: ./aggregated-reports

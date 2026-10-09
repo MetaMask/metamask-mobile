@@ -66,6 +66,7 @@ import TEMPO_NATIVE from './tempo-native.png';
 import ARC_NATIVE from './arc-native-token-logo.png';
 import ROBINHOOD from './robinhood.png';
 import GNOSIS_NATIVE from './gnosis-native-token-logo.png';
+import ZERO_G_NATIVE from './0g-native-logo.png';
 import SOMNIA_NATIVE from './somnia.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron-logo.png';
@@ -153,5 +154,6 @@ export default {
   USDC: ARC_NATIVE,
   ROBINHOOD,
   XDAI: GNOSIS_NATIVE,
+  '0G': ZERO_G_NATIVE,
   SOMI: SOMNIA_NATIVE,
 };

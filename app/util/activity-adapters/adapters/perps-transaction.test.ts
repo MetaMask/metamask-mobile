@@ -1,4 +1,8 @@
 import type { CaipChainId } from '@metamask/utils';
+import {
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_ARBITRUM_TESTNET_ADDRESS,
+} from '@metamask/perps-controller/constants/hyperLiquidConfig';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import {
   FillType,
@@ -8,7 +12,10 @@ import {
 } from '../../../components/UI/Perps/types/transactionHistory';
 // eslint-disable-next-line import-x/no-restricted-paths -- exercise the real perps order transform output
 import { transformOrdersToTransactions } from '../../../components/UI/Perps/utils/transactionTransforms';
-import { mapPerpsTransaction } from './perps-transaction';
+import {
+  getPerpsActivityMappingIds,
+  mapPerpsTransaction,
+} from './perps-transaction';
 
 const ARBITRUM: CaipChainId = 'eip155:42161';
 
@@ -148,7 +155,6 @@ describe('mapPerpsTransaction', () => {
         status: 'success',
         timestamp: base.timestamp,
         hash: 'tx-1',
-        raw: { type: 'perpsTransaction', data: transaction },
         data: {
           token: {
             amount: '43.99',
@@ -299,7 +305,6 @@ describe('mapPerpsTransaction', () => {
         status: 'success',
         timestamp: base.timestamp,
         hash: '0xfeedface',
-        raw: { type: 'perpsTransaction', data: withdrawalTx },
         data: {
           token: {
             amount: '250',
@@ -530,6 +535,28 @@ describe('mapPerpsTransaction', () => {
         'marketCloseLong',
       ],
       [
+        'Stop market long (open)',
+        {
+          orderType: 'market',
+          side: 'buy',
+          reduceOnly: false,
+          isTrigger: true,
+          detailedOrderType: 'Stop Market',
+        },
+        'marketLong',
+      ],
+      [
+        'Stop market short (open)',
+        {
+          orderType: 'market',
+          side: 'sell',
+          reduceOnly: false,
+          isTrigger: true,
+          detailedOrderType: 'Stop Market',
+        },
+        'marketShort',
+      ],
+      [
         'Stop market close short',
         {
           orderType: 'market',
@@ -550,7 +577,7 @@ describe('mapPerpsTransaction', () => {
         'stopMarketCloseLong',
       ],
       [
-        'Stop loss close long (MYX)',
+        'Stop loss close long (Lighter)',
         {
           orderType: 'market',
           side: 'sell',
@@ -580,7 +607,7 @@ describe('mapPerpsTransaction', () => {
         'limitCloseLong',
       ],
       [
-        'Take profit market close long',
+        'Take market close long',
         {
           orderType: 'market',
           side: 'sell',
@@ -590,7 +617,7 @@ describe('mapPerpsTransaction', () => {
         'marketCloseLong',
       ],
       [
-        'Take profit limit close short',
+        'Take limit close short',
         {
           orderType: 'limit',
           side: 'buy',
@@ -604,6 +631,58 @@ describe('mapPerpsTransaction', () => {
       (_label, overrides, expectedKind) => {
         const result = mapFromOrder(makeOrder(overrides));
         expect(result?.type).toBe(expectedKind);
+      },
+    );
+
+    it('keeps a trigger-market order with a limit slippage cap classified as market', () => {
+      const result = mapFromOrder(
+        makeOrder({
+          orderType: 'limit',
+          side: 'buy',
+          reduceOnly: false,
+          isTrigger: true,
+          detailedOrderType: 'Stop Market',
+        }),
+      );
+
+      expect(result?.type).toBe('marketLong');
+    });
+
+    it('classifies normalized stop-market metadata without provider display text', () => {
+      const result = mapFromOrder(
+        makeOrder({
+          orderType: 'limit',
+          triggerOrderType: 'stop_market',
+          side: 'sell',
+          reduceOnly: true,
+          isTrigger: true,
+          detailedOrderType: undefined,
+        }),
+      );
+
+      expect(result?.type).toBe('stopMarketCloseLong');
+    });
+
+    it.each([
+      ['Stop Limit', 'limit', false, 'stop_limit'],
+      ['Stop Market', 'market', true, 'stop_market'],
+      ['Take Profit Limit', 'limit', true, 'take_profit_limit'],
+      ['Take Profit Market', 'market', false, 'take_profit_market'],
+    ] as const)(
+      'preserves the semantic %s trigger type in Activity data',
+      (detailedOrderType, orderType, reduceOnly, expectedTriggerOrderType) => {
+        const result = mapFromOrder(
+          makeOrder({
+            detailedOrderType,
+            orderType,
+            reduceOnly,
+            isTrigger: true,
+          }),
+        );
+
+        expect(result?.data.perpsTriggerOrderType).toBe(
+          expectedTriggerOrderType,
+        );
       },
     );
 
@@ -682,6 +761,22 @@ describe('mapPerpsTransaction', () => {
       symbol: 'USDC',
       assetId: 'eip155:42161/erc20:0xabc',
       direction: 'in',
+    });
+  });
+});
+
+describe('getPerpsActivityMappingIds', () => {
+  it('builds mainnet USDC collateral', () => {
+    expect(getPerpsActivityMappingIds(false)).toEqual({
+      chainId: ARBITRUM,
+      collateralAssetId: `eip155:42161/erc20:${USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase()}`,
+    });
+  });
+
+  it('builds testnet USDC collateral', () => {
+    expect(getPerpsActivityMappingIds(true)).toEqual({
+      chainId: 'eip155:421614',
+      collateralAssetId: `eip155:421614/erc20:${USDC_ARBITRUM_TESTNET_ADDRESS.toLowerCase()}`,
     });
   });
 });

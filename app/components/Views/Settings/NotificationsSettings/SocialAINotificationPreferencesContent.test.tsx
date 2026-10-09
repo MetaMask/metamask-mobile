@@ -354,6 +354,33 @@ describe('SocialAINotificationPreferencesContent', () => {
     ).toBe(false);
   });
 
+  it('forces threshold and trader toggles disabled when disabled prop is true', () => {
+    mockUseFollowedTraders.mockReturnValue(
+      makeFollowedTradersResult({ traders: followedTraders }),
+    );
+    mockUseNotificationPreferences.mockReturnValue(
+      makeNotificationPreferencesResult({
+        preferences: makePreferences({
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: true,
+        }),
+      }),
+    );
+
+    renderComponent({ disabled: true });
+
+    expect(
+      screen.getByTestId(
+        NotificationPreferencesSelectorsIDs.THRESHOLD_OPTION(100),
+      ).props.accessibilityState.disabled,
+    ).toBe(true);
+    expect(
+      screen.getByTestId(
+        NotificationPreferencesSelectorsIDs.TRADER_TOGGLE('trader-1'),
+      ).props.disabled,
+    ).toBe(true);
+  });
+
   it('navigates to the trader profile when a trader row is pressed', () => {
     mockUseFollowedTraders.mockReturnValue(
       makeFollowedTradersResult({ traders: followedTraders }),
@@ -367,13 +394,10 @@ describe('SocialAINotificationPreferencesContent', () => {
       ),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.PROFILE,
-      {
-        traderId: 'trader-1',
-        traderName: 'trader1',
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE, {
+      traderId: 'trader-1',
+      traderName: 'trader1',
+    });
   });
 
   it('omits the global push toggle when showPushToggle is false', () => {

@@ -7,6 +7,8 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  IconSize,
+  Spinner,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -20,14 +22,14 @@ import { useImmersveSpendingPrerequisites } from '../../hooks/useImmersveSpendin
 import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { KYC_REDIRECT_URL } from '../../constants';
 import {
   setImmersveKycOnClose,
   clearImmersveKycOnClose,
 } from '../ImmersveKYCModal/ImmersveKYCModal';
 import OnboardingStep from './OnboardingStep';
-import AnimatedSpinner from '../../../AnimatedSpinner';
 
 // While the user waits on this screen, poll spending-prerequisites; give up after
 // this window and send them to the "we'll notify you" pending screen. Immersve
@@ -84,7 +86,11 @@ const ImmersveKYCProcessing = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({ screen: CardScreens.KYC_PROCESSING })
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            screen: CardScreens.KYC_PROCESSING,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -144,13 +150,23 @@ const ImmersveKYCProcessing = () => {
       return undefined;
     }
     const id = setTimeout(() => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties(
+            withCardProvider(CardProviderIds.Immersve, {
+              action: CardActions.KYC_PENDING_TIMEOUT,
+              screen: CardScreens.KYC_PROCESSING,
+            }),
+          )
+          .build(),
+      );
       navigation.reset({
         index: 0,
         routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
       });
     }, POLLING_TIMEOUT_MS);
     return () => clearTimeout(id);
-  }, [nextAction?.type, navigation]);
+  }, [nextAction?.type, navigation, trackEvent, createEventBuilder]);
 
   // User came back from the webview with KYC still outstanding ⇒ prompt to reopen
   // (never auto-reopen — they may have closed it deliberately). The backend
@@ -188,7 +204,10 @@ const ImmersveKYCProcessing = () => {
         />
       ) : (
         <>
-          <AnimatedSpinner testID="immersve-kyc-processing-spinner" />
+          <Spinner
+            testID="immersve-kyc-processing-spinner"
+            spinnerIconProps={{ size: IconSize.Xl }}
+          />
           <Text
             variant={TextVariant.BodyMd}
             twClassName="text-center text-text-alternative mt-4 px-4"
@@ -208,9 +227,19 @@ const ImmersveKYCProcessing = () => {
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         isFullWidth
-        onPress={() =>
-          openKycWebview((nextAction?.type === 'kyc' && nextAction.url) || '')
-        }
+        onPress={() => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+              .addProperties(
+                withCardProvider(CardProviderIds.Immersve, {
+                  action: CardActions.KYC_REOPEN,
+                  cta_hint: ctaHint,
+                }),
+              )
+              .build(),
+          );
+          openKycWebview((nextAction?.type === 'kyc' && nextAction.url) || '');
+        }}
         testID="immersve-kyc-processing-reopen-button"
       >
         {strings(

@@ -1,0 +1,13 @@
+{
+  "lockVersion": 1,
+  "assetName": "metamask-mobile.json",
+  "assetSha256": "sha256:9e07f2ac4c23fa37fb69001364f79981b7f7c3fcb126ee1e39ab457f02ecead7",
+  "contractFormatVersion": 1,
+  "contractHash": "sha256:f75e241c1a832b22c80f9537765e51dac0ba380133f1ec90a6f3e7c77235c4c3",
+  "platform": "mobile",
+  "releaseTag": "analytics-contracts-67390efdfde3-8db9e9f80441",
+  "releaseUrl": "https://github.com/Consensys/segment-schema/releases/tag/analytics-contracts-67390efdfde3-8db9e9f80441",
+  "ruleCount": 784,
+  "sourceSha": "67390efdfde300fec50596c149eb02e46f91c5eb",
+  "trackingPlanId": "tp_2iOKYXh3y11VP5nMhQJAfB5McDH"
+}

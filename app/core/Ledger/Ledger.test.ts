@@ -82,14 +82,11 @@ const mockBridge = {
   closeApps: jest.fn(),
 };
 
-const legacyLedgerKeyring = new LegacyLedgerKeyring({
-  bridge: mockBridge as unknown as LedgerMobileBridge,
-});
+// Stand-in for a legacy BLE Transport object (from @ledgerhq/hw-transport-ble).
+// `connectLedgerHardware` accepts a Transport from the legacy adapter.
+const mockTransport = { id: 'mock-ble-transport' } as unknown as BleTransport;
 
-const ledgerKeyring = new LedgerKeyring({
-  legacyKeyring: legacyLedgerKeyring,
-  entropySource: 'test-entropy-source',
-});
+let ledgerKeyring: LedgerKeyring;
 
 function createRestrictedControllerMock(
   keyringController: typeof MockEngine.context.KeyringController,
@@ -126,6 +123,15 @@ function createRestrictedControllerMock(
 describe('Ledger core', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+
+    ledgerKeyring = new LedgerKeyring({
+      // @ts-expect-error: Property '#private' in type LedgerKeyring refers to a
+      // different member that cannot be accessed from within type 'LedgerKeyring'.
+      legacyKeyring: new LegacyLedgerKeyring({
+        bridge: mockBridge as unknown as LedgerMobileBridge,
+      }),
+      entropySource: 'test-entropy-source',
+    });
 
     // Reset AccountsController state that may have been modified by previous tests
     MockEngine.context.AccountsController.state.internalAccounts.accounts = {};
@@ -223,16 +229,13 @@ describe('Ledger core', () => {
     mockKeyringController.signTypedMessage.mockResolvedValue('signature');
   });
 
-  describe('connectLedgerHardware', () => {
-    const mockTransport = 'foo' as unknown as BleTransport;
-    it('calls keyring.setTransport', async () => {
+  describe('connectLedgerHardware (legacy)', () => {
+    it('calls updateTransportMethod and setDeviceId', async () => {
       await connectLedgerHardware(mockTransport, 'bar');
-      expect(mockBridge.updateTransportMethod).toHaveBeenCalled();
-    });
-
-    it('calls keyring.getAppAndVersion', async () => {
-      await connectLedgerHardware(mockTransport, 'bar');
-      expect(mockBridge.getAppNameAndVersion).toHaveBeenCalled();
+      expect(mockBridge.updateTransportMethod).toHaveBeenCalledWith(
+        mockTransport,
+      );
+      expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
     });
 
     it('returns app name correctly', async () => {
@@ -240,9 +243,9 @@ describe('Ledger core', () => {
       expect(value).toBe('appName');
     });
 
-    it('calls keyring.setDeviceId if deviceId is different', async () => {
+    it('calls bridge.getAppNameAndVersion', async () => {
       await connectLedgerHardware(mockTransport, 'bar');
-      expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
+      expect(mockBridge.getAppNameAndVersion).toHaveBeenCalled();
     });
 
     it('releases the keyring lock before requesting app metadata from the device', async () => {
@@ -581,7 +584,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when TransportStatusError with 0x6e00', async () => {
@@ -595,7 +598,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_NEXT_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when TransportStatusError with 0x650f', async () => {
@@ -609,7 +612,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when error message contains 0x650f', async () => {
@@ -618,7 +621,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws unspecified error for other errors', async () => {
@@ -642,7 +645,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when TransportStatusError with 0x6511', async () => {
@@ -656,7 +659,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when TransportStatusError with 0x6700', async () => {
@@ -670,7 +673,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when error message contains 0x6511', async () => {
@@ -679,7 +682,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when error message contains 0x6d00', async () => {
@@ -688,7 +691,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_NEXT_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when error message contains 0x6e00', async () => {
@@ -697,7 +700,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when error message contains 0x6e01', async () => {
@@ -706,7 +709,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error when error message contains 0x6700', async () => {
@@ -715,7 +718,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error for unknown_error pattern with 0x650f', async () => {
@@ -724,7 +727,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('throws ETH app not open error for unknown_error pattern with 0x6511', async () => {
@@ -733,7 +736,7 @@ describe('Ledger core', () => {
 
       await expect(
         getLedgerAccountsByOperation(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-      ).rejects.toThrow('Please open the Ethereum app on your Ledger device.');
+      ).rejects.toThrow('Open the Ethereum app on your Ledger device.');
     });
 
     it('does not throw ETH app not open error for non-matching status codes', async () => {
@@ -876,12 +879,6 @@ describe('Ledger core', () => {
 
   describe(`unlockLedgerWalletAccount`, () => {
     const mockAccountsController = MockEngine.context.AccountsController;
-    mockAccountsController.getAccountByAddress.mockReturnValue({
-      // @ts-expect-error: The account metadata type is hard to mock
-      metadata: {
-        name: 'Ledger 1',
-      },
-    });
 
     it(`calls keyring.createAccounts with the derivation path for the unlock index`, async () => {
       await unlockLedgerWalletAccount(1);
@@ -990,7 +987,7 @@ describe('Ledger core', () => {
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
-        'Please open the Ethereum app on your Ledger device.',
+        'Open the Ethereum app on your Ledger device.',
       );
     });
 
@@ -1004,7 +1001,7 @@ describe('Ledger core', () => {
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
-        'Please open the Ethereum app on your Ledger device.',
+        'Open the Ethereum app on your Ledger device.',
       );
     });
 
@@ -1018,7 +1015,7 @@ describe('Ledger core', () => {
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
-        'Please open the Ethereum app on your Ledger device.',
+        'Open the Ethereum app on your Ledger device.',
       );
     });
 
@@ -1032,7 +1029,7 @@ describe('Ledger core', () => {
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
-        'Please open the Ethereum app on your Ledger device.',
+        'Open the Ethereum app on your Ledger device.',
       );
     });
 
@@ -1046,7 +1043,7 @@ describe('Ledger core', () => {
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
-        'Please open the Ethereum app on your Ledger device.',
+        'Open the Ethereum app on your Ledger device.',
       );
     });
 
@@ -1060,7 +1057,7 @@ describe('Ledger core', () => {
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
-        'Please open the Ethereum app on your Ledger device.',
+        'Open the Ethereum app on your Ledger device.',
       );
     });
 
@@ -1069,7 +1066,7 @@ describe('Ledger core', () => {
       jest.mocked(ledgerKeyring.createAccounts).mockRejectedValueOnce(error);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
-        'Please open the Ethereum app on your Ledger device.',
+        'Open the Ethereum app on your Ledger device.',
       );
     });
 
@@ -1078,7 +1075,7 @@ describe('Ledger core', () => {
       jest.mocked(ledgerKeyring.createAccounts).mockRejectedValueOnce(error);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
-        'Please open the Ethereum app on your Ledger device.',
+        'Open the Ethereum app on your Ledger device.',
       );
     });
 

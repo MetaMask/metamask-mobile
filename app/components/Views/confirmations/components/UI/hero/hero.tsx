@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+
 import { useStyles } from '../../../../../../component-library/hooks';
 import { TooltipModal } from '../Tooltip/Tooltip';
 import styleSheet from './hero.styles';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 interface TitleProps {
   title: React.ReactNode | string;
@@ -21,7 +20,7 @@ const Title = ({ title, setIsModalVisible, styles }: TitleProps) => {
       {setIsModalVisible ? (
         <TouchableOpacity onPress={() => setIsModalVisible(true)}>
           {isStringTitle ? (
-            <Text style={styles.titleText} variant={TextVariant.HeadingLG}>
+            <Text style={styles.titleText} variant={TextVariant.HeadingLg}>
               {title}
             </Text>
           ) : (
@@ -29,7 +28,7 @@ const Title = ({ title, setIsModalVisible, styles }: TitleProps) => {
           )}
         </TouchableOpacity>
       ) : isStringTitle ? (
-        <Text style={styles.titleText} variant={TextVariant.HeadingLG}>
+        <Text style={styles.titleText} variant={TextVariant.HeadingLg}>
           {title}
         </Text>
       ) : (

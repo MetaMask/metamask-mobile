@@ -1,7 +1,10 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import {
   Box,
+  ButtonIcon,
+  ButtonIconSize,
   FilterButtonVariant,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -15,11 +18,31 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
 import type { PerpsAdvancedChartProps } from '../../../components/PerpsAdvancedChart/PerpsAdvancedChart';
-import PerpsCandlePeriodSelector from '../../../components/PerpsCandlePeriodSelector/PerpsCandlePeriodSelector';
+import { CandlePeriodSelector as PerpsCandlePeriodSelector } from '../../../../Charts/CandlePeriodSelector';
 import type { PerpsChartFullscreenModalProps } from '../../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import type { OhlcData } from '../../../components/TradingViewChart';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import { playSelection } from '../../../../../../util/haptics';
 import PerpsProChartPanel from './PerpsProChartPanel';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import Routes from '../../../../../../constants/navigation/Routes';
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn().mockReturnValue({
+    navigate: jest.fn(),
+    replace: jest.fn(),
+    goBack: jest.fn(),
+  }),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
+jest.mock('../../../../../../util/haptics');
 
 interface MockLivePriceHeaderProps {
   currentPrice: number;
@@ -29,6 +52,7 @@ interface MockLivePriceHeaderProps {
 
 interface MockTradingViewChartProps {
   candleData?: CandleData | null;
+  visibleCandleCount?: number;
   tpslLines?: {
     currentPrice?: string;
   };
@@ -74,6 +98,10 @@ const mockOnCandlePeriodChange = jest.fn();
 const mockOnMorePress = jest.fn();
 const mockOnChartError = jest.fn();
 const mockFetchMoreHistory = jest.fn();
+const mockAdvancedChartMounted = jest.fn();
+const mockAdvancedChartUnmounted = jest.fn();
+const mockLightweightChartMounted = jest.fn();
+const mockLightweightChartUnmounted = jest.fn();
 const mockPerpsAdvancedChart = jest.fn((_props: PerpsAdvancedChartProps) => (
   <Box testID="mock-perps-advanced-chart" />
 ));
@@ -98,17 +126,17 @@ const mockPerpsOHLCVBar = ({ testID }: { testID?: string }) => (
 const mockPerpsPriceDeviationWarning = ({ testID }: { testID?: string }) => (
   <Box testID={testID} />
 );
-const mockPerpsServiceInterruptionBanner = ({
-  testID,
-}: {
-  testID?: string;
-}) => <Box testID={testID} />;
 const mockUsePerpsLiveCandles = jest.fn();
+const mockUsePerpsLiveOrders = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
 const mockUsePerpsMarketData = jest.fn();
 const mockUsePriceDeviation = jest.fn();
 const mockSetChartExpanded = jest.fn();
 const mockUsePerpsProChartExpanded = jest.fn();
+let mockVisibleCandleCount = 30;
+const mockOnVisibleCandleCountChange = jest.fn((count: number) => {
+  mockVisibleCandleCount = count;
+});
 
 jest.mock('../../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({ track: mockTrack }),
@@ -118,8 +146,19 @@ jest.mock('../../../hooks/usePerpsProChartExpanded', () => ({
   usePerpsProChartExpanded: () => mockUsePerpsProChartExpanded(),
 }));
 
+jest.mock('../../../hooks/usePerpsVisibleCandleCount', () => ({
+  usePerpsVisibleCandleCount: () => ({
+    visibleCandleCount: mockVisibleCandleCount,
+    onVisibleCandleCountChange: mockOnVisibleCandleCountChange,
+  }),
+}));
+
 jest.mock('../../../hooks/stream/usePerpsLiveCandles', () => ({
   usePerpsLiveCandles: (params: unknown) => mockUsePerpsLiveCandles(params),
+}));
+
+jest.mock('../../../hooks/stream/usePerpsLiveOrders', () => ({
+  usePerpsLiveOrders: (params: unknown) => mockUsePerpsLiveOrders(params),
 }));
 
 jest.mock('../../../hooks/useHasExistingPosition', () => ({
@@ -138,12 +177,26 @@ jest.mock('../../../hooks', () => ({
 
 jest.mock('../../../components/PerpsAdvancedChart/PerpsAdvancedChart', () => ({
   __esModule: true,
-  default: (props: PerpsAdvancedChartProps) => mockPerpsAdvancedChart(props),
+  default: (props: PerpsAdvancedChartProps) => {
+    const ReactActual = jest.requireActual('react');
+    ReactActual.useEffect(() => {
+      mockAdvancedChartMounted();
+      return mockAdvancedChartUnmounted;
+    }, []);
+    return mockPerpsAdvancedChart(props);
+  },
 }));
 
 jest.mock('../../../components/TradingViewChart', () => ({
   __esModule: true,
-  default: (props: MockTradingViewChartProps) => mockTradingViewChart(props),
+  default: (props: MockTradingViewChartProps) => {
+    const ReactActual = jest.requireActual('react');
+    ReactActual.useEffect(() => {
+      mockLightweightChartMounted();
+      return mockLightweightChartUnmounted;
+    }, []);
+    return mockTradingViewChart(props);
+  },
 }));
 
 jest.mock('../../../components/LivePriceDisplay/LivePriceHeader', () => ({
@@ -171,16 +224,18 @@ jest.mock('../../../components/PerpsPriceDeviationWarning', () => ({
     mockPerpsPriceDeviationWarning(props),
 }));
 
-jest.mock('../../../components/PerpsServiceInterruptionBanner', () => ({
-  __esModule: true,
-  default: (props: { testID?: string }) =>
-    mockPerpsServiceInterruptionBanner(props),
-}));
-
 const getLastAdvancedChartProps = () => {
   const lastCall = mockPerpsAdvancedChart.mock.calls.at(-1);
   if (!lastCall) {
     throw new Error('PerpsAdvancedChart was not rendered');
+  }
+  return lastCall[0];
+};
+
+const getLastLightweightChartProps = () => {
+  const lastCall = mockTradingViewChart.mock.calls.at(-1);
+  if (!lastCall) {
+    throw new Error('TradingViewChart was not rendered');
   }
   return lastCall[0];
 };
@@ -201,10 +256,14 @@ const renderChartPanel = (overrides: Partial<PerpsProChartPanelProps> = {}) =>
       symbol="BTC"
       selectedCandlePeriod={CandlePeriod.FifteenMinutes}
       isAdvancedChartEnabled
+      configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
       effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+      marketContextKey="testnet|hyperliquid|1"
+      isMarketContextReady
       onCandlePeriodChange={mockOnCandlePeriodChange}
       onMorePress={mockOnMorePress}
       onChartError={mockOnChartError}
+      currentPrice={50500}
       {...overrides}
     />,
   );
@@ -212,11 +271,18 @@ const renderChartPanel = (overrides: Partial<PerpsProChartPanelProps> = {}) =>
 describe('PerpsProChartPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockVisibleCandleCount = 30;
+    jest.mocked(playSelection).mockClear();
     mockUsePerpsLiveCandles.mockReturnValue({
       candleData: MOCK_CANDLE_DATA,
       isLoading: false,
       hasHistoricalData: true,
       fetchMoreHistory: mockFetchMoreHistory,
+      deliveryRevision: 0,
+    });
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [],
+      isInitialLoading: false,
     });
     mockUseHasExistingPosition.mockReturnValue({
       existingPosition: null,
@@ -232,6 +298,126 @@ describe('PerpsProChartPanel', () => {
       isChartExpanded: true,
       setChartExpanded: mockSetChartExpanded,
     });
+  });
+
+  it('forwards fresh Lightweight delivery revisions', () => {
+    const onFreshDelivery = jest.fn();
+    const props = {
+      isAdvancedChartEnabled: false,
+      configuredChartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+      effectiveChartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+      onFreshDelivery,
+    };
+    const { rerender } = renderChartPanel(props);
+
+    mockUsePerpsLiveCandles.mockReturnValue({
+      candleData: MOCK_CANDLE_DATA,
+      isLoading: false,
+      hasHistoricalData: true,
+      fetchMoreHistory: mockFetchMoreHistory,
+      deliveryRevision: 1,
+    });
+    rerender(
+      <PerpsProChartPanel
+        symbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        marketContextKey="testnet|hyperliquid|1"
+        isMarketContextReady
+        onCandlePeriodChange={mockOnCandlePeriodChange}
+        onMorePress={mockOnMorePress}
+        onChartError={mockOnChartError}
+        currentPrice={50500}
+        {...props}
+      />,
+    );
+
+    expect(onFreshDelivery).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes resting BTC limit orders to the Advanced Chart', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        {
+          orderId: 'btc-limit',
+          symbol: 'BTC',
+          side: 'buy',
+          orderType: 'limit',
+          size: '0.001',
+          originalSize: '0.001',
+          price: '50000',
+          filledSize: '0',
+          remainingSize: '0.001',
+          status: 'open',
+          timestamp: 1,
+          reduceOnly: false,
+          isTrigger: false,
+        },
+      ],
+      isInitialLoading: false,
+    });
+
+    renderChartPanel();
+
+    expect(mockPerpsAdvancedChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tpslLines: expect.objectContaining({
+          limitOrders: [{ id: 'btc-limit', price: '50000', side: 'buy' }],
+        }),
+      }),
+    );
+  });
+
+  it('omits limitOrders on the Advanced Chart when live orders are empty', () => {
+    renderChartPanel();
+
+    expect(getLastAdvancedChartProps().tpslLines?.limitOrders).toBeUndefined();
+  });
+
+  it('keeps the same limitOrders array when only currentPrice changes', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        {
+          orderId: 'btc-limit',
+          symbol: 'BTC',
+          side: 'buy',
+          orderType: 'limit',
+          size: '0.001',
+          originalSize: '0.001',
+          price: '50000',
+          filledSize: '0',
+          remainingSize: '0.001',
+          status: 'open',
+          timestamp: 1,
+          reduceOnly: false,
+          isTrigger: false,
+        },
+      ],
+      isInitialLoading: false,
+    });
+
+    const view = renderChartPanel({ currentPrice: 50500 });
+    const initialLimitOrders =
+      getLastAdvancedChartProps().tpslLines?.limitOrders;
+
+    view.rerender(
+      <PerpsProChartPanel
+        symbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        isAdvancedChartEnabled
+        configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+        effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+        marketContextKey="testnet|hyperliquid|1"
+        isMarketContextReady
+        onCandlePeriodChange={mockOnCandlePeriodChange}
+        onMorePress={mockOnMorePress}
+        onChartError={mockOnChartError}
+        currentPrice={51000}
+      />,
+    );
+
+    expect(getLastAdvancedChartProps().tpslLines?.limitOrders).toBe(
+      initialLimitOrders,
+    );
   });
 
   it('renders the Advanced Chart path when its feature flag is enabled', () => {
@@ -296,23 +482,46 @@ describe('PerpsProChartPanel', () => {
     expect(screen.getByText('1d')).toBeOnTheScreen();
   });
 
-  it('left-aligns the configured Pro candle periods', () => {
-    renderChartPanel();
-
-    expect(
-      screen.UNSAFE_getByType(PerpsCandlePeriodSelector).props.groupTwClassName,
-    ).toBe('gap-2 justify-start');
-  });
-
-  it('uses the Figma compact candle-period appearance', () => {
+  it('spreads the configured Pro candle periods across the chart nav width', () => {
     renderChartPanel();
 
     const selector = screen.UNSAFE_getByType(PerpsCandlePeriodSelector);
 
+    expect(selector.props.fillWidth).toBe(true);
+    expect(selector.props.groupTwClassName).toBe('gap-2');
+  });
+
+  it('separates the candle periods from the fullscreen button by 24px', () => {
+    renderChartPanel();
+
+    const chartNavRow = screen.getByTestId(
+      PerpsProMarketViewSelectorsIDs.CHART_NAV,
+    );
+
+    expect(StyleSheet.flatten(chartNavRow?.props.style)).toMatchObject({
+      flexDirection: 'row',
+      gap: 24,
+    });
+  });
+
+  it('uses the Figma candle-period appearance', () => {
+    renderChartPanel();
+
+    const selector = screen.UNSAFE_getByType(PerpsCandlePeriodSelector);
+
+    const fullscreenButton = screen
+      .UNSAFE_getAllByType(ButtonIcon)
+      .find(
+        (button) =>
+          button.props.testID ===
+          PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON,
+      );
+
     expect(selector.props.filterVariant).toBe(FilterButtonVariant.Secondary);
-    expect(selector.props.periodButtonTwClassName).toBe('h-7 rounded px-1');
-    expect(selector.props.moreButtonTwClassName).toBe('h-7 rounded px-1');
-    expect(selector.props.textVariant).toBe(TextVariant.BodyXs);
+    expect(selector.props.periodButtonTwClassName).toBe('h-8 rounded-lg px-1');
+    expect(selector.props.moreButtonTwClassName).toBe('h-8 rounded-lg px-1');
+    expect(selector.props.textVariant).toBe(TextVariant.BodySm);
+    expect(fullscreenButton?.props.size).toBe(ButtonIconSize.Sm);
   });
 
   it('forwards a selected Pro candle period', () => {
@@ -365,24 +574,262 @@ describe('PerpsProChartPanel', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the latest candle price in the market summary', () => {
+  it('remounts the inline Advanced Chart with the fullscreen viewport on close', () => {
     renderChartPanel();
+    expect(mockAdvancedChartMounted).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON,
+      ),
+    );
+    act(() => {
+      getLastFullscreenModalProps().onVisibleCandleCountChange?.(80);
+      getLastFullscreenModalProps().onClose();
+    });
+
+    expect(mockAdvancedChartUnmounted).toHaveBeenCalledTimes(1);
+    expect(mockAdvancedChartMounted).toHaveBeenCalledTimes(2);
+    expect(getLastAdvancedChartProps().visibleCandleCount).toBe(80);
+  });
+
+  it('remounts the inline Lightweight Chart with the fullscreen viewport on close', () => {
+    renderChartPanel({
+      isAdvancedChartEnabled: false,
+      configuredChartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+      effectiveChartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+    });
+    expect(mockLightweightChartMounted).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON,
+      ),
+    );
+    act(() => {
+      getLastFullscreenModalProps().onVisibleCandleCountChange?.(80);
+      getLastFullscreenModalProps().onClose();
+    });
+
+    expect(mockLightweightChartUnmounted).toHaveBeenCalledTimes(1);
+    expect(mockLightweightChartMounted).toHaveBeenCalledTimes(2);
+    expect(getLastLightweightChartProps().visibleCandleCount).toBe(80);
+  });
+
+  it('renders the provided currentPrice in the market summary', () => {
+    renderChartPanel({ currentPrice: 50500 });
 
     expect(mockLivePriceHeader).toHaveBeenLastCalledWith(
       expect.objectContaining({ currentPrice: 50500 }),
     );
   });
 
-  it('synchronizes the market summary with the Advanced Chart price', () => {
-    renderChartPanel();
+  it('updates the market summary when the parent currentPrice changes', () => {
+    const view = renderChartPanel({ currentPrice: 50500 });
+
+    view.rerender(
+      <PerpsProChartPanel
+        symbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        isAdvancedChartEnabled
+        configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+        effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+        marketContextKey="testnet|hyperliquid|1"
+        isMarketContextReady
+        onCandlePeriodChange={mockOnCandlePeriodChange}
+        onMorePress={mockOnMorePress}
+        onChartError={mockOnChartError}
+        currentPrice={51000}
+      />,
+    );
+
+    expect(mockLivePriceHeader).toHaveBeenLastCalledWith(
+      expect.objectContaining({ currentPrice: 51000 }),
+    );
+  });
+
+  it('reports Advanced Chart resolution with the configured chart context', () => {
+    const onResolvedStateChange = jest.fn();
+    renderChartPanel({ onResolvedStateChange });
+    onResolvedStateChange.mockClear();
+
+    act(() => {
+      getLastAdvancedChartProps().onResolved?.(
+        `BTC|${CandlePeriod.FifteenMinutes}`,
+        'empty',
+      );
+    });
+
+    expect(onResolvedStateChange).toHaveBeenCalledWith(
+      'BTC',
+      'empty',
+      `BTC|testnet|hyperliquid|1|${CandlePeriod.FifteenMinutes}|${PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}`,
+    );
+  });
+
+  it('renders and resolves an empty Lightweight chart', () => {
+    mockUsePerpsLiveCandles.mockReturnValue({
+      candleData: {
+        symbol: 'BTC',
+        interval: CandlePeriod.FifteenMinutes,
+        candles: [],
+      },
+      isLoading: false,
+      hasHistoricalData: false,
+      fetchMoreHistory: mockFetchMoreHistory,
+    });
+    const onResolvedStateChange = jest.fn();
+
+    renderChartPanel({
+      isAdvancedChartEnabled: false,
+      configuredChartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+      effectiveChartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+      onResolvedStateChange,
+    });
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT),
+    ).toBeOnTheScreen();
+    expect(onResolvedStateChange).toHaveBeenCalledWith(
+      'BTC',
+      'empty',
+      `BTC|testnet|hyperliquid|1|${CandlePeriod.FifteenMinutes}|${PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}`,
+    );
+  });
+
+  it('mounts Advanced Chart only after the market context is ready', () => {
+    const view = renderChartPanel({ isMarketContextReady: false });
+
+    expect(mockPerpsAdvancedChart).not.toHaveBeenCalled();
+    expect(mockUsePerpsLiveCandles).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+
+    view.rerender(
+      <PerpsProChartPanel
+        symbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        isAdvancedChartEnabled
+        configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+        effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+        marketContextKey="testnet|hyperliquid|1"
+        isMarketContextReady
+        onCandlePeriodChange={mockOnCandlePeriodChange}
+        onMorePress={mockOnMorePress}
+        onChartError={mockOnChartError}
+        currentPrice={50500}
+      />,
+    );
+
+    expect(mockUsePerpsLiveCandles).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
+    expect(mockPerpsAdvancedChart).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides prior Lightweight candles and OHLC while context reconnects', () => {
+    const view = renderChartPanel({
+      isAdvancedChartEnabled: false,
+      configuredChartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+      effectiveChartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+    });
+    const tradingViewProps = mockTradingViewChart.mock.calls.at(-1)?.[0];
+
+    act(() => {
+      tradingViewProps?.onOhlcDataChange?.({
+        open: '1',
+        high: '2',
+        low: '0.5',
+        close: '1.5',
+        volume: '10',
+        time: 1,
+      });
+    });
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_OHLCV),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON,
+      ),
+    );
+    expect(screen.getByTestId('mock-perps-fullscreen-chart')).toBeOnTheScreen();
+
+    view.rerender(
+      <PerpsProChartPanel
+        symbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        isAdvancedChartEnabled={false}
+        configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}
+        effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}
+        marketContextKey="mainnet|hyperliquid|1"
+        isMarketContextReady={false}
+        onCandlePeriodChange={mockOnCandlePeriodChange}
+        onMorePress={mockOnMorePress}
+        onChartError={mockOnChartError}
+        currentPrice={50500}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsProMarketViewSelectorsIDs.CHART_OHLCV),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('mock-perps-fullscreen-chart'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('resets chart readiness when the configured strategy changes', () => {
+    const onResolvedStateChange = jest.fn();
+    const view = renderChartPanel({ onResolvedStateChange });
+
+    act(() => {
+      getLastAdvancedChartProps().onResolved?.(
+        `BTC|${CandlePeriod.FifteenMinutes}`,
+        'content',
+      );
+    });
+    onResolvedStateChange.mockClear();
+
+    view.rerender(
+      <PerpsProChartPanel
+        symbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        isAdvancedChartEnabled={false}
+        configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}
+        effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}
+        marketContextKey="testnet|hyperliquid|1"
+        isMarketContextReady
+        onCandlePeriodChange={mockOnCandlePeriodChange}
+        onMorePress={mockOnMorePress}
+        onChartError={mockOnChartError}
+        currentPrice={50500}
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+    );
+
+    expect(onResolvedStateChange).toHaveBeenCalledWith(
+      'BTC',
+      'loading',
+      `BTC|testnet|hyperliquid|1|${CandlePeriod.FifteenMinutes}|${PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}`,
+    );
+  });
+
+  it('forwards Advanced Chart latest-bar close to the parent', () => {
+    const onLatestPriceChange = jest.fn();
+    renderChartPanel({ onLatestPriceChange });
 
     act(() => {
       getLastAdvancedChartProps().onLatestPriceChange?.(51000);
     });
 
-    expect(mockLivePriceHeader).toHaveBeenLastCalledWith(
-      expect.objectContaining({ currentPrice: 51000 }),
-    );
+    expect(onLatestPriceChange).toHaveBeenCalledWith(51000);
   });
 
   it('renders OHLCV values reported by the active chart', () => {
@@ -530,6 +977,7 @@ describe('PerpsProChartPanel', () => {
       );
 
       expect(mockSetChartExpanded).toHaveBeenCalledWith(true);
+      expect(playSelection).toHaveBeenCalledTimes(1);
       expect(mockTrack).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
@@ -551,6 +999,7 @@ describe('PerpsProChartPanel', () => {
       );
 
       expect(mockSetChartExpanded).toHaveBeenCalledWith(false);
+      expect(playSelection).toHaveBeenCalledTimes(1);
       expect(mockTrack).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
@@ -570,19 +1019,10 @@ describe('PerpsProChartPanel', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('follows the candle price (not the frozen Advanced Chart price) after collapsing', () => {
-      const view = renderChartPanel();
+    it('clears the Advanced Chart price when the chart collapses', () => {
+      const onLatestPriceChange = jest.fn();
+      const view = renderChartPanel({ onLatestPriceChange });
 
-      // Advanced Chart reports a live price while expanded.
-      act(() => {
-        getLastAdvancedChartProps().onLatestPriceChange?.(51000);
-      });
-      expect(mockLivePriceHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ currentPrice: 51000 }),
-      );
-
-      // Collapse: the Advanced Chart unmounts and can no longer report prices,
-      // so the summary must fall back to the retained candle price (50500).
       mockUsePerpsProChartExpanded.mockReturnValue({
         isChartExpanded: false,
         setChartExpanded: mockSetChartExpanded,
@@ -592,16 +1032,48 @@ describe('PerpsProChartPanel', () => {
           symbol="BTC"
           selectedCandlePeriod={CandlePeriod.FifteenMinutes}
           isAdvancedChartEnabled
+          configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
           effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+          marketContextKey="testnet|hyperliquid|1"
+          isMarketContextReady
           onCandlePeriodChange={mockOnCandlePeriodChange}
           onMorePress={mockOnMorePress}
           onChartError={mockOnChartError}
+          currentPrice={50500}
+          onLatestPriceChange={onLatestPriceChange}
         />,
       );
+
+      expect(onLatestPriceChange).toHaveBeenCalledWith(undefined);
+    });
+
+    it('keeps showing the parent-provided price while collapsed', () => {
+      renderCollapsed({ currentPrice: 50500 });
 
       expect(mockLivePriceHeader).toHaveBeenLastCalledWith(
         expect.objectContaining({ currentPrice: 50500 }),
       );
     });
+  });
+
+  it('navigates to price alerts with szDecimals from market data', () => {
+    jest.mocked(useSelector).mockReturnValue(true);
+
+    renderChartPanel();
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_PRICE_ALERTS_BUTTON,
+      ),
+    );
+
+    expect(useNavigation().navigate).toHaveBeenCalledWith(
+      Routes.PERPS.PRICE_ALERTS,
+      expect.objectContaining({
+        mode: 'perps',
+        szDecimals: 2,
+        assetId: 'BTC',
+      }),
+    );
   });
 });

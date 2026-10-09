@@ -23,6 +23,8 @@ import { formatPercentage, formatPnl } from '../../../utils/formatUtils';
 interface PerpsProUnrealizedPnlProps {
   unrealizedPnl: string;
   returnOnEquity: string;
+  positionCount: number;
+  isFiltered?: boolean;
   onCloseAll?: () => void;
 }
 
@@ -32,6 +34,8 @@ interface PerpsProUnrealizedPnlProps {
 const PerpsProUnrealizedPnl = ({
   unrealizedPnl,
   returnOnEquity,
+  positionCount,
+  isFiltered = false,
   onCloseAll,
 }: PerpsProUnrealizedPnlProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
@@ -69,14 +73,18 @@ const PerpsProUnrealizedPnl = ({
           >{`${formatPnl(pnl)} (${formatPercentage(roe, 1)})`}</SensitiveText>
         </Box>
         <Button
-          variant={ButtonVariant.Secondary}
+          variant={ButtonVariant.Tertiary}
           size={ButtonSize.Sm}
           isDanger
-          twClassName="self-center border-muted bg-transparent"
+          twClassName="self-center"
           onPress={onCloseAll}
           testID={PerpsProMarketViewSelectorsIDs.POSITIONS_CLOSE_ALL}
         >
-          {strings('perps.home.close_all')}
+          {isFiltered
+            ? strings('perps.pro_positions_panel.close_count', {
+                count: positionCount,
+              })
+            : strings('perps.home.close_all')}
         </Button>
       </Box>
     </Box>

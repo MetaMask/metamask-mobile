@@ -7,7 +7,10 @@ import { ENSCache } from '../../../util/ENSUtils';
 import { Transaction } from './AccountFromToInfoCard.types';
 import AccountFromToInfoCard from '.';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import {
+  createMockAccountsControllerState,
+  createMockUuidFromAddress,
+} from '../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../reducers';
 import { AssetsContractController } from '@metamask/assets-controllers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -20,6 +23,13 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_1,
   MOCK_ADDRESS_2,
 ]);
+const MOCK_ACCOUNT_ID_1 = createMockUuidFromAddress(
+  MOCK_ADDRESS_1.toLowerCase(),
+);
+const MOCK_ACCOUNT_ID_2 = createMockUuidFromAddress(
+  MOCK_ADDRESS_2.toLowerCase(),
+);
+const NATIVE_ETH_ASSET_ID = 'eip155:1/slip44:60';
 
 const NETWORK_NAME_MOCK = 'Ethereum Main Network';
 
@@ -28,26 +38,22 @@ const mockInitialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       ...backgroundState,
-      AccountTrackerController: {
-        accountsByChainId: {
-          [CHAIN_IDS.MAINNET]: {
-            [MOCK_ADDRESS_1]: {
-              balance: '200',
-            },
-            [MOCK_ADDRESS_2]: {
-              balance: '200',
-            },
+      AssetsController: {
+        assetsInfo: {
+          [NATIVE_ETH_ASSET_ID]: { type: 'native', decimals: 18 },
+        },
+        assetsBalance: {
+          [MOCK_ACCOUNT_ID_1]: {
+            [NATIVE_ETH_ASSET_ID]: { amount: '200' },
+          },
+          [MOCK_ACCOUNT_ID_2]: {
+            [NATIVE_ETH_ASSET_ID]: { amount: '200' },
           },
         },
-      },
-      TokenBalancesController: {
-        tokenBalances: {
-          '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': {
-            '0x5': {
-              '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': '0x2b46',
-            },
-          },
-        },
+        assetsPrice: {},
+        assetPreferences: {},
+        customAssets: {},
+        selectedCurrency: 'usd',
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       KeyringController: {

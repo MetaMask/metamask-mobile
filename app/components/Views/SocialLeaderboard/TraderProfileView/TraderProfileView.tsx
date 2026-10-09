@@ -52,9 +52,13 @@ import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featu
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 import TraderMuteChip from '../components/TraderMuteChip';
-import { useOpenTradingSignalsSetup } from '../hooks/useOpenTradingSignalsSetup';
-import { useTraderMute } from '../hooks/useTraderMute';
-import { HYPERLIQUID_CHAIN_NAME, isPerpPosition } from '../utils/perp';
+import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
+import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
+import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
+import {
+  HYPERLIQUID_CHAIN_NAME,
+  isPerpPosition,
+} from '../../../UI/SocialFeed/utils/perp';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import PositionRow from './components/PositionRow';
 import ProfileHeader from './components/ProfileHeader';
@@ -66,8 +70,10 @@ import {
 import SortButton from './components/SortButton';
 import StatsRow from './components/StatsRow';
 import TraderProfileCompactStats from './components/TraderProfileCompactStats';
+import TraderStatsSheet from './components/TraderStatsSheet';
+import type { TraderProfileWithSheetStats } from './types/traderProfileStatsSheet';
 import { useTraderPositions, useTraderProfile } from './hooks';
-import { resolveQuickBuyOriginalEntryPointFromProfile } from '../TraderPositionView/components/QuickBuy/analytics';
+import { resolveQuickBuyOriginalEntryPointFromProfile } from '../../../UI/QuickBuy/analytics';
 import {
   CLOSED_SORT_CYCLE,
   OPEN_SORT_CYCLE,
@@ -111,7 +117,12 @@ const TabButton: React.FC<TabButtonProps> = ({
   onPress,
   testID,
 }) => (
-  <TouchableOpacity onPress={onPress} testID={testID}>
+  <TouchableOpacity
+    onPress={onPress}
+    testID={testID}
+    accessibilityRole="tab"
+    accessibilityState={{ selected: isActive }}
+  >
     <Box twClassName={`pb-2 ${isActive ? 'border-b-2 border-default' : ''}`}>
       <Text
         variant={TextVariant.BodyMd}
@@ -161,6 +172,7 @@ const TraderProfileView = () => {
   } = useTraderPositions(traderId, { refetchInterval: 30_000 });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isStatsSheetOpen, setIsStatsSheetOpen] = useState(false);
 
   const traderAddress = traderAddressParam ?? profile?.profile.address ?? '';
 
@@ -201,9 +213,12 @@ const TraderProfileView = () => {
     });
   }, [profile, traderAddress, source, isFollowing, traderRank, track]);
 
-  const { isChipMuted, isMuted, showMuteChip, toggleMute } =
-    useTraderMute(traderId);
-  const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
+  const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
+  const { followWithSetup } = useFollowWithNotificationSetup();
+  const handleMutePress = useCallback(
+    () => onMutePress(traderId),
+    [onMutePress, traderId],
+  );
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
   const [openSort, setOpenSort] = useState<OpenSortKey>('value');
@@ -226,39 +241,20 @@ const TraderProfileView = () => {
     }
   }, [refresh, refetchPositions]);
 
-  const handleFollowPress = useCallback(async () => {
-    const wasFollowing = isFollowing;
-    const performFollow = () =>
-      toggleFollow({
-        source: 'trader_profile',
-        traderAddress: traderAddress || profile?.profile.address || '',
-        traderUsername: profile?.profile.name,
-        traderAvatarUri: profile?.profile.imageUrl,
-        // Rank only meaningful when arriving from a ranked surface; omit on
-        // trader_profile to keep schema clean.
-      });
-    if (!wasFollowing && openSetupIfNeeded(performFollow)) {
-      return;
-    }
-    await performFollow();
-  }, [toggleFollow, traderAddress, profile, isFollowing, openSetupIfNeeded]);
-
-  const handleMutePress = useCallback(() => {
-    // Tapping a bell that only looks disabled because notifications are off
-    // means "enable"; forward an idempotent unmute rather than a toggle.
-    const ensureUnmuted = () => {
-      if (isMuted) {
-        // Symmetric with the Follow button: same Light impact on any real toggle.
-        playImpact(ImpactMoment.FollowToggle);
-        toggleMute();
-      }
-    };
-    if (openSetupIfNeeded(ensureUnmuted)) {
-      return;
-    }
-    playImpact(ImpactMoment.FollowToggle);
-    toggleMute();
-  }, [openSetupIfNeeded, toggleMute, isMuted]);
+  const handleFollowPress = useCallback(
+    async () =>
+      followWithSetup(isFollowing, () =>
+        toggleFollow({
+          source: 'trader_profile',
+          traderAddress: traderAddress || profile?.profile.address || '',
+          traderUsername: profile?.profile.name,
+          traderAvatarUri: profile?.profile.imageUrl,
+          // Rank only meaningful when arriving from a ranked surface; omit on
+          // trader_profile to keep schema clean.
+        }),
+      ),
+    [toggleFollow, traderAddress, profile, isFollowing, followWithSetup],
+  );
 
   const handleTabChange = useCallback(
     (tab: 'open' | 'closed') => {
@@ -289,7 +285,7 @@ const TraderProfileView = () => {
           [SocialLeaderboardEventProperties.IS_OPEN]: isOpenTab,
         });
       }
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
+      navigation.navigate(Routes.SOCIAL.POSITION, {
         traderId,
         traderName,
         traderImageUrl: profile?.profile.imageUrl ?? undefined,
@@ -355,13 +351,11 @@ const TraderProfileView = () => {
   const headerTitle = profile?.profile.name;
 
   return (
-    // The top edge is deliberately off: a native SafeAreaView top padding is
-    // recalculated as the view is attached, which lands after this screen's
-    // `slide_from_right` push and visibly drops the header into place. The top
-    // inset comes from `includesTopInset` (JS `marginTop` off the already
-    // resolved provider) instead.
+    // Top and bottom edges are deliberately off — see
+    // `SCROLLABLE_SCREEN_SAFE_AREA_EDGES`. The top inset comes from
+    // `includesTopInset` (JS `marginTop` off the already resolved provider).
     <SafeAreaView
-      edges={['bottom', 'left', 'right']}
+      edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
       style={tw.style('flex-1 bg-default')}
       testID={TraderProfileViewSelectorsIDs.CONTAINER}
     >
@@ -438,6 +432,7 @@ const TraderProfileView = () => {
                       <StatsRow
                         stats={headlineStats}
                         holdTimeMinutes={profile.stats.medianHoldMinutes}
+                        onPress={() => setIsStatsSheetOpen(true)}
                       />
                     ) : (
                       <StatsRowSkeleton />
@@ -471,7 +466,7 @@ const TraderProfileView = () => {
                     </Box>
                     {showMuteChip && (
                       <TraderMuteChip
-                        isMuted={isChipMuted}
+                        isMuted={isChipMuted(traderId)}
                         visible={isFollowing}
                         onPress={handleMutePress}
                         traderName={profile?.profile.name}
@@ -492,6 +487,7 @@ const TraderProfileView = () => {
                       flexDirection={BoxFlexDirection.Row}
                       alignItems={BoxAlignItems.Center}
                       gap={4}
+                      accessibilityRole="tablist"
                     >
                       <TabButton
                         label={strings(
@@ -558,6 +554,12 @@ const TraderProfileView = () => {
           )}
         </Animated.ScrollView>
       </Box>
+      {isStatsSheetOpen && profile ? (
+        <TraderStatsSheet
+          profile={profile as TraderProfileWithSheetStats}
+          onClose={() => setIsStatsSheetOpen(false)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 };

@@ -1,6 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
+import { selectExploreLaptopSearchApiRankingEnabled } from '../../../../UI/Trending/selectors/featureFlags';
 import { TimeOption } from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import { useTokensFeed } from './useTokensFeed';
@@ -11,8 +12,18 @@ jest.mock(
     useTrendingSearch: jest.fn(),
   }),
 );
+jest.mock('../../../../UI/Trending/selectors/featureFlags', () => ({
+  selectExploreLaptopSearchApiRankingEnabled: jest.fn(() => true),
+}));
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn((selector: () => boolean) => selector()),
+}));
 
 const mockUseTrendingSearch = jest.mocked(useTrendingSearch);
+const mockSelectExploreLaptopSearchApiRankingEnabled = jest.mocked(
+  selectExploreLaptopSearchApiRankingEnabled,
+);
 
 describe('useTokensFeed', () => {
   const mockRefetch = jest.fn().mockResolvedValue(undefined);
@@ -41,6 +52,7 @@ describe('useTokensFeed', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectExploreLaptopSearchApiRankingEnabled.mockReturnValue(true);
     mockUseTrendingSearch.mockReturnValue({
       data: sampleTokens,
       isLoading: false,
@@ -60,11 +72,9 @@ describe('useTokensFeed', () => {
     expect(result.current.refetch).toBe(mockRefetch);
   });
 
-  it('when query is active, returns all data sorted by market cap (skips Fuse re-filter)', () => {
+  it('sorts non-LAPTOP search results by market cap', () => {
     const { result } = renderHook(() => useTokensFeed({ query: 'wrap' }));
 
-    // useTrendingSearch already searched the API; all items in `data` are
-    // considered relevant. We only sort by marketCap, not fuzzy-filter.
     expect(result.current.data.map((t) => t.symbol)).toEqual([
       'WBTC',
       'WETH',
@@ -72,11 +82,29 @@ describe('useTokensFeed', () => {
     ]);
   });
 
-  it('when query is absent, fuzzy-filters by Fuse and returns only matching items', () => {
-    const { result } = renderHook(() => useTokensFeed({ query: undefined }));
+  it.each(['laptop', '$laptop'])(
+    'preserves API order for temporary query "%s"',
+    (query) => {
+      const { result } = renderHook(() => useTokensFeed({ query }));
 
-    // Without a query, fuseSearch is a no-op (returns data unchanged).
-    expect(result.current.data).toEqual(sampleTokens);
+      expect(result.current.data.map((token) => token.symbol)).toEqual([
+        'AAA',
+        'WBTC',
+        'WETH',
+      ]);
+    },
+  );
+
+  it('sorts LAPTOP search results by market cap when the remote flag is off', () => {
+    mockSelectExploreLaptopSearchApiRankingEnabled.mockReturnValue(false);
+
+    const { result } = renderHook(() => useTokensFeed({ query: 'laptop' }));
+
+    expect(result.current.data.map((token) => token.symbol)).toEqual([
+      'WBTC',
+      'WETH',
+      'AAA',
+    ]);
   });
 
   it('refetches when refresh trigger increments past initial mount', async () => {

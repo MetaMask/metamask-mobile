@@ -17,17 +17,19 @@ const THUMB_BOTTOM_OFFSET = THUMB_TOP_OFFSET + THUMB_SIZE;
 const SLIDER_TRACK_AREA_HEIGHT =
   SLIDER_VERTICAL_PADDING * 2 + THUMB_BOTTOM_OFFSET;
 /**
- * Visual scale applied to the `compact` variant so it matches Figma's small
- * slider (16px thumb, 4px track, 2px dots — exactly half of the design
- * system's hardcoded 32px/8px/4px). See the `variant` doc below for why this
- * can't just be a prop on the design system `Slider`.
+ * Visual scale applied to the `compact` variant so its thumb matches the
+ * 24px thumb of Figma's small slider (the design system hardcodes 32px). The
+ * track and dots shrink by the same factor (8px → 6px, 4px → 3px), which is
+ * the closest a uniform transform can get to Figma's 4px/2px. See the
+ * `variant` doc below for why this can't just be a prop on the design system
+ * `Slider`.
  */
-const COMPACT_SCALE = 0.5;
+const COMPACT_SCALE = 0.75;
 
 const styles = StyleSheet.create({
   compactScaler: {
     height: SLIDER_TRACK_AREA_HEIGHT * COMPACT_SCALE,
-    width: '200%',
+    width: `${100 / COMPACT_SCALE}%`,
     transform: [{ scale: COMPACT_SCALE }],
     transformOrigin: 'left top',
   },
@@ -54,18 +56,19 @@ interface PerpsSliderProps {
    * match Figma's small variant and removes the horizontal track inset, for
    * dense layouts (e.g. footer sliders). The design system `Slider` has no
    * size prop and only exposes one root `style`/`twClassName` covering its
-   * whole subtree, so this wraps it in a single `View` that declares
-   * `width: '200%'` (double, so the `Slider` — which stretches to fill its
-   * parent — still spans the full row after shrinking) and `height` equal
-   * to the target *post-scale* size (half the `Slider`'s natural height, so
-   * it overflows the declared box by exactly 2x). `transform: scale(0.5)`
-   * with `transformOrigin: 'left top'` then shrinks that whole overflowing
-   * render back down, anchored at the top-left corner — the declared box
-   * and the shrunk content end up pixel-identical, so no separate clipping
-   * container is needed. The drag/tap gesture math still runs against the
-   * pre-scale (double-size) layout box, so the hit-region stays exactly as
-   * large as the `'default'` variant's even though it now looks half the
-   * size.
+   * whole subtree, so this wraps it in a single `View` that declares a
+   * `width` of `100% / COMPACT_SCALE` (so the `Slider` — which stretches to
+   * fill its parent — still spans the full row after shrinking) and `height`
+   * equal to the target *post-scale* size (the `Slider`'s natural height
+   * times the scale, so it overflows the declared box by exactly
+   * `1 / COMPACT_SCALE`). `transform: scale(COMPACT_SCALE)` with
+   * `transformOrigin: 'left top'` then shrinks that whole overflowing render
+   * back down, anchored at the top-left corner — the declared box and the
+   * shrunk content end up pixel-identical, so no separate clipping container
+   * is needed. The drag/tap gesture math still runs against the pre-scale
+   * (larger) layout box, so the hit-region stays exactly as large as the
+   * `'default'` variant's even though it now looks smaller. That box is sized
+   * to the track and thumb only, so this variant never renders range labels.
    */
   variant?: 'default' | 'compact';
   testID?: string;
@@ -100,15 +103,70 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
 
   const isCompact = variant === 'compact';
 
+  // The design system `Slider` only repositions its thumb when `value` changes;
+  // it ignores range changes. Driving it in percent means a range change moves
+  // `value`, so the thumb follows without remounting (remounting would kill an
+  // in-flight drag, and the range streams from live price/balance feeds).
+  const range = maximumValue - minimumValue;
+  const toPercent = (domainValue: number) =>
+    range > 0 ? ((domainValue - minimumValue) / range) * 100 : 0;
+  const toDomain = useCallback(
+    (percent: number) => {
+      const span = maximumValue - minimumValue;
+      if (span <= 0) {
+        return minimumValue;
+      }
+      const raw = minimumValue + (percent / 100) * span;
+      // Percent is a float; round so the caller only sees exact step multiples.
+      const stepped = step > 0 ? Math.round(raw / step) * step : raw;
+      return Math.min(maximumValue, Math.max(minimumValue, stepped));
+    },
+    [maximumValue, minimumValue, step],
+  );
+
+  // One caller step, in percent. Keeps the slider's grid identical to the
+  // caller's, so VoiceOver's step-sized increments still move one step.
+  const percentStep = range > 0 && step > 0 ? (step / range) * 100 : 0.1;
+  // Snap onto the emit grid: the slider suppresses stale echoes by matching
+  // `value` against its own emits with ===, so the fed-back percent has to be
+  // bit-identical to the emitted one. Rebuild it as `index * percentStep` —
+  // the same expression the slider emits — rather than converting back through
+  // percent, which lands a few ULPs off and silently misses the match.
+  // Clamped because `maximumValue` is a live float that is rarely a whole
+  // multiple of `step`: the last index then lands just past the end of the
+  // track (e.g. max 33.5 step 1 gives 101.49), which would push the thumb past
+  // the slider's own maximum.
+  const percentValue =
+    range > 0 && step > 0
+      ? Math.min(
+          100,
+          Math.max(
+            0,
+            Math.round((toDomain(toPercent(value)) - minimumValue) / step) *
+              percentStep,
+          ),
+        )
+      : 0;
+
+  const handlePercentChange = useCallback(
+    (percent: number) => onValueChange(toDomain(percent)),
+    [onValueChange, toDomain],
+  );
+
+  const handlePercentDragEnd = useCallback(
+    (percent: number) => onDragEnd?.(toDomain(percent)),
+    [onDragEnd, toDomain],
+  );
+
   const slider = (
     <Slider
-      value={value}
-      onValueChange={onValueChange}
-      onDragEnd={onDragEnd}
-      minimumValue={minimumValue}
-      maximumValue={maximumValue}
-      step={step}
-      showRangeLabels={showPercentageLabels}
+      value={percentValue}
+      onValueChange={handlePercentChange}
+      onDragEnd={onDragEnd ? handlePercentDragEnd : undefined}
+      minimumValue={0}
+      maximumValue={100}
+      step={percentStep}
+      showRangeLabels={showPercentageLabels && !isCompact}
       showRangeDots={showPercentageMarkers}
       onGrip={handleGrip}
       onMark={handleMark}

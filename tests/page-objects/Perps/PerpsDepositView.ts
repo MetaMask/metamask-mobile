@@ -1,19 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
-import {
-  asPlaywrightElement,
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import {
-  encapsulatedAction,
-  PlatformDetector,
-  PlaywrightAssertions,
-  PlaywrightElement,
-  PlaywrightGestures,
-} from '../../framework';
+import { type AppiumElement, PlatformDetector } from '../../framework';
 
 const TIMEOUT = {
   KEYPAD_DIGIT: 10000,
@@ -21,70 +9,47 @@ const TIMEOUT = {
 
 class PerpsDepositView {
   // Custom deposit keypad container
-  get keypad(): EncapsulatedElementType {
+  get keypad(): Promise<AppiumElement> {
     return Matchers.getElementByID('deposit-keyboard');
   }
 
   /** Amount input - wdio PerpsDepositScreen uses 'custom-amount-input' for isAmountInputVisible */
-  get amountInput(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID('custom-amount-input'),
-      appium: () =>
-        PlaywrightMatchers.getElementById('custom-amount-input', {
-          exact: true,
-        }),
-    });
+  get amountInput(): Promise<AppiumElement> {
+    return Matchers.getElementByID('custom-amount-input');
   }
 
   /** Add funds button - wdio uses getElementByText('Add funds') for isAddFundsVisible */
-  get addFundsButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText('Add funds'),
-      appium: () => PlaywrightMatchers.getElementByText('Add funds'),
-    });
+  get addFundsButton(): Promise<AppiumElement> {
+    return Matchers.getElementByText('Add funds');
   }
 
   /** Total text - wdio uses getElementByText('Total') for isTotalVisible */
-  get totalText(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText('Total'),
-      appium: () => PlaywrightMatchers.getElementByText('Total'),
-    });
+  get totalText(): Promise<AppiumElement> {
+    return Matchers.getElementByText('Total');
   }
 
   // Continue button (toolbar text)
-  get continueButtonByText(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText('Continue'),
-      appium: () => PlaywrightMatchers.getElementByCatchAll('Continue'),
-    });
+  get continueButtonByText(): Promise<AppiumElement> {
+    return Matchers.getElementByText('Continue');
   }
 
   // Add funds (confirm) button on review screen. Uses testID for reliability:
   // the confirmation screen shows at most one "Add funds" (ConfirmButton);
   // index 1 was failing when no second "Add funds" existed in the hierarchy.
-  get confirmButton(): EncapsulatedElementType {
+  get confirmButton(): Promise<AppiumElement> {
     return Matchers.getElementByID('confirm-button');
   }
 
-  get infoRow(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText('Info'),
-      appium: () =>
-        PlaywrightMatchers.getElementById('info-row', { exact: true }),
-    });
+  get infoRow(): Promise<AppiumElement> {
+    return Matchers.getElementByID('info-row');
   }
 
   // Pay with row (open selector)
-  get payWithRow(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText('Pay with'),
-      appium: () =>
-        PlaywrightMatchers.getElementById('pay-with', { exact: true }),
-    });
+  get payWithRow(): Promise<AppiumElement> {
+    return Matchers.getElementByID('pay-with');
   }
 
-  get usdcOption(): EncapsulatedElementType {
+  get usdcOption(): Promise<AppiumElement> {
     return Matchers.getElementByText('USDC');
   }
 
@@ -117,61 +82,32 @@ class PerpsDepositView {
   }
 
   async typeUSD(amount: string): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        // Types digits using the on-screen keypad (buttons 0-9 and '.')
-        for (const ch of amount) {
-          const key = Matchers.getElementByText(ch) as DetoxElement;
-          await Gestures.waitAndTap(key, {
-            elemDescription: `Keypad ${ch}`,
-            checkEnabled: false,
-            checkVisibility: false,
-          });
-        }
-      },
-      appium: async () => {
-        let digitEl: PlaywrightElement;
-        for (const digit of amount) {
-          if (await PlatformDetector.isAndroid()) {
-            digitEl = await PlaywrightMatchers.getElementByText(digit);
-          } else {
-            digitEl = await PlaywrightMatchers.getElementByXPath(
-              `//*[contains(@name,'keypad-key-${digit}')]`,
-            );
-          }
-          await PlaywrightAssertions.expectElementToBeVisible(digitEl, {
-            timeout: TIMEOUT.KEYPAD_DIGIT,
-            description: `Keypad digit ${digit} should be visible`,
-          });
-          await PlaywrightGestures.waitAndTap(digitEl, {
-            checkForDisplayed: true,
-            checkForEnabled: true,
-            delay: 1000,
-          });
-        }
-      },
-    });
+    const isAndroid = PlatformDetector.isAndroid();
+    for (const digit of amount) {
+      const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
+      const digitEl = isAndroid
+        ? Matchers.getElementByText(digit)
+        : Matchers.getElementByNativeXPath(`//*[contains(@name,'${keyName}')]`);
+      await Assertions.expectElementToBeVisible(digitEl, {
+        timeout: TIMEOUT.KEYPAD_DIGIT,
+        description: `Keypad digit ${digit} should be visible`,
+      });
+      await Gestures.waitAndTap(digitEl, {
+        checkForDisplayed: true,
+        checkEnabled: true,
+        delay: 1000,
+        elemDescription: `Keypad ${digit}`,
+      });
+    }
   }
 
   async tapContinue(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(this.continueButtonByText, {
-          elemDescription: 'Continue (by text) deposit confirmation',
-          checkEnabled: false,
-          checkVisibility: false,
-        });
-      },
-      appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.continueButtonByText),
-          {
-            checkForDisplayed: true,
-            checkForEnabled: true,
-            delay: 1000,
-          },
-        );
-      },
+    await Gestures.waitAndTap(this.continueButtonByText, {
+      elemDescription: 'Continue (by text) deposit confirmation',
+      checkEnabled: false,
+      checkVisibility: false,
+      checkForDisplayed: true,
+      delay: 1000,
     });
   }
 

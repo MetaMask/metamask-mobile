@@ -120,7 +120,7 @@ describe('DeviceSecurityToggle', () => {
       const { getByText } = renderComponent();
       await waitFor(() => {
         // strings('app_settings.enable_biometrics_in_settings') from en.json
-        expect(getByText('Enable Device Authentication')).toBeOnTheScreen();
+        expect(getByText('Enable device authentication')).toBeOnTheScreen();
       });
     });
 
@@ -134,7 +134,7 @@ describe('DeviceSecurityToggle', () => {
       });
       const { getByText } = renderComponent();
       const button = await waitFor(() =>
-        getByText('Enable Device Authentication'),
+        getByText('Enable device authentication'),
       );
       fireEvent.press(button);
       expect(Linking.openSettings).toHaveBeenCalled();
@@ -309,6 +309,45 @@ describe('DeviceSecurityToggle', () => {
           password: 'test-password',
         });
       });
+    });
+
+    it('keeps toggle on after password entry until capabilities refresh', async () => {
+      jest.useFakeTimers();
+      let onPasswordSet: ((password: string) => Promise<void>) | undefined;
+      mockUpdateAuthPreference
+        .mockRejectedValueOnce(
+          new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
+        )
+        .mockResolvedValueOnce(undefined);
+      mockNavigate.mockImplementation(
+        (
+          _: string,
+          params?: { onPasswordSet?: (p: string) => Promise<void> },
+        ) => {
+          if (params?.onPasswordSet) onPasswordSet = params.onPasswordSet;
+        },
+      );
+
+      const { getByTestId } = renderComponent();
+      const toggle = await waitFor(() =>
+        getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
+      );
+      fireEvent(toggle, 'onValueChange', true);
+
+      await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
+      await act(async () => {
+        if (onPasswordSet) await onPasswordSet('test-password');
+      });
+
+      expect(
+        getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE)
+          .props.value,
+      ).toBe(true);
+
+      act(() => {
+        jest.runAllTimers();
+      });
+      jest.useRealTimers();
     });
 
     it('clears optimistic state when user cancels password entry', async () => {

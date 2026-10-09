@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  DEFAULT_PRO_ORDER_SORT,
   PRO_ORDER_SORT_OPTIONS,
   type ProOrderSortConfig,
 } from '../utils/proOrderSort';
@@ -28,6 +29,7 @@ const PerpsProOrdersSortSheet = ({
     sortConfig={sortConfig}
     options={PRO_ORDER_SORT_OPTIONS}
     onApply={onApply}
+    onClear={() => onApply(DEFAULT_PRO_ORDER_SORT)}
     onClose={onClose}
     testID={testID}
   />

@@ -4,6 +4,7 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
+import { recordPerpsAction } from '../utils/perpsActivityStorage';
 import {
   type Position,
   type ClosePositionsResult,
@@ -93,7 +94,7 @@ export const usePerpsCloseAllPositions = (
 
     try {
       const result = await Engine.context.PerpsController.closePositions({
-        closeAll: true,
+        symbols: positions.map((p) => p.symbol),
       });
 
       const executionTime = Date.now() - startTime;
@@ -104,6 +105,11 @@ export const usePerpsCloseAllPositions = (
         failureCount: result.failureCount,
         executionTimeMs: executionTime,
       });
+
+      // A partial close still counts as an executed action.
+      if (result.successCount > 0) {
+        recordPerpsAction();
+      }
 
       // Invoke success callback if provided
       if (onSuccess) {

@@ -10,13 +10,14 @@ import {
   ButtonVariant,
   FontWeight,
   Text,
+  TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import styleSheet from './MoneyEarnCryptoInfoSheet.styles';
 import { MoneyEarnCryptoInfoSheetTestIds } from './MoneyEarnCryptoInfoSheet.testIds';
 
@@ -43,7 +44,7 @@ const MoneyEarnCryptoInfoSheet = () => {
   const { styles } = useStyles(styleSheet, {});
   const { showMoneyHomeCta = false, variant = 'default' } =
     useParams<MoneyEarnCryptoInfoSheetParams>();
-  const { apyPercent } = useMoneyAccountBalance();
+  const { apyPercent } = useMoneyVaultApy();
   const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
     useMoneyNavigation();
 
@@ -99,6 +100,7 @@ const MoneyEarnCryptoInfoSheet = () => {
       <View style={styles.content}>
         <Text
           variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
           testID={MoneyEarnCryptoInfoSheetTestIds.BODY}
         >
           {strings('money.earn_crypto_info_sheet.body', {

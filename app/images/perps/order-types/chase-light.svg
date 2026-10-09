@@ -1,0 +1,5 @@
+<!-- No light Figma frame exists; geometry matches node 12202:50964 exactly and only semantic theme colors differ. -->
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M6.11724 29.8828C6.11724 29.8828 19.3095 23.7511 19.0506 20.4494C18.7917 17.1476 13.9657 16.0208 14.8983 13.1018C15.8308 10.1828 23.1497 9.85028 25.5669 8.43312C27.984 7.01596 26.0719 4.64542 23.845 4.15501C20.5669 3.43312 16.5 1.49997 16.5 1.49997" stroke="#121314" stroke-linecap="round"/>
+<circle cx="15" cy="14" r="3" fill="#9A6300"/>
+</svg>

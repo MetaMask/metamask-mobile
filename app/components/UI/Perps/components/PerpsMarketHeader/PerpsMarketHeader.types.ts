@@ -27,6 +27,8 @@ export interface PerpsMarketHeaderProps {
    * target that opens the market list, and a trailing caret is shown.
    */
   onIdentityPress?: () => void;
+  /** Whether to render the market identity content in the header. */
+  showMarketIdentity?: boolean;
   /** When set, replaces the default right-side action row entirely. */
   endAccessory?: ReactNode;
   /** Default action row — ignored when `endAccessory` is provided. */
@@ -35,6 +37,17 @@ export interface PerpsMarketHeaderProps {
   isFavorite?: boolean;
   mode?: PerpsMode;
   onModeChange?: (mode: PerpsMode) => void;
+  /**
+   * When true, fires catalog haptics for header gestures and the mode pill.
+   * Defaults off so Lite market headers stay silent.
+   */
+  enableHaptics?: boolean;
+  /**
+   * When true, fires the mode-toggle haptic independently of other header
+   * gestures. This allows Lite/Pro switching feedback while Lite header
+   * navigation actions remain silent.
+   */
+  enableModeHaptics?: boolean;
   /**
    * Scroll offset from the parent's `Animated.ScrollView`, shared via
    * `useHeaderStandardAnimated()`. Drives the subtitle/price crossfade.
@@ -45,4 +58,11 @@ export interface PerpsMarketHeaderProps {
    * (e.g. `PRICE_SECTION_HEIGHT` from `PerpsMarketSummary`).
    */
   priceSectionHeight?: SharedValue<number>;
+  /**
+   * Chart-synced price for the compact header (shown after scrolling past
+   * the summary). Pass the same `syncedChartCurrentPrice` given to
+   * `PerpsMarketSummary` so the header and chart prices match. When omitted,
+   * falls back to the live mid-price stream.
+   */
+  currentPrice?: number;
 }

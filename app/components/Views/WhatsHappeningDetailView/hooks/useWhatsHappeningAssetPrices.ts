@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import type { RelatedAsset } from '@metamask/ai-controllers';
+import type { PriceUpdate } from '@metamask/perps-controller';
 import { usePerpsLivePrices } from '../../../UI/Perps/hooks/stream';
 
 export interface PerpsPriceEntry {
@@ -15,10 +16,44 @@ export interface UseWhatsHappeningAssetPricesResult {
 
 const NO_SYMBOLS: string[] = [];
 
+const EMPTY_PRICE_ENTRY: PerpsPriceEntry = {
+  price: undefined,
+  percentChange24h: undefined,
+};
+
+function parseLivePriceEntry(
+  liveEntry: PriceUpdate | undefined,
+): PerpsPriceEntry {
+  if (!liveEntry) {
+    return EMPTY_PRICE_ENTRY;
+  }
+
+  const rawPrice = parseFloat(liveEntry.price);
+  const rawChange = liveEntry.percentChange24h
+    ? parseFloat(liveEntry.percentChange24h)
+    : undefined;
+
+  return {
+    price: Number.isNaN(rawPrice) ? undefined : rawPrice,
+    percentChange24h:
+      rawChange !== undefined && Number.isNaN(rawChange)
+        ? undefined
+        : rawChange,
+  };
+}
+
+function hasFinitePrice(entry: PerpsPriceEntry): boolean {
+  return entry.price !== undefined && Number.isFinite(entry.price);
+}
+
 /**
  * Returns live price data for every perps market referenced by the given
  * related assets. Prices come from the WebSocket stream via
  * `usePerpsLivePrices` and are throttled to 3 s to limit re-renders.
+ *
+ * `usePerpsLivePrices` replaces its map on every tick, and ticks are often
+ * partial (only symbols that changed). This hook keeps last-known finite
+ * prices so omitted symbols do not flash empty.
  *
  * Assets without an `hlPerpsMarket` entry are ignored.
  */
@@ -44,26 +79,25 @@ export function useWhatsHappeningAssetPrices(
     throttleMs: 3000,
   });
 
+  const lastKnownBySymbolRef = useRef<Record<string, PerpsPriceEntry>>({});
+
   const perpsPriceBySymbol = useMemo<Record<string, PerpsPriceEntry>>(() => {
     const map: Record<string, PerpsPriceEntry> = {};
+    const nextKnown: Record<string, PerpsPriceEntry> = {};
+
     for (const symbol of perpsSymbols) {
-      const liveEntry = livePerpsPrices[symbol];
-      if (!liveEntry) {
-        map[symbol] = { price: undefined, percentChange24h: undefined };
-        continue;
+      const parsed = parseLivePriceEntry(livePerpsPrices[symbol]);
+      const resolved = hasFinitePrice(parsed)
+        ? parsed
+        : (lastKnownBySymbolRef.current[symbol] ?? parsed);
+      map[symbol] = resolved;
+      if (hasFinitePrice(resolved)) {
+        nextKnown[symbol] = resolved;
       }
-      const rawPrice = parseFloat(liveEntry.price);
-      const rawChange = liveEntry.percentChange24h
-        ? parseFloat(liveEntry.percentChange24h)
-        : undefined;
-      map[symbol] = {
-        price: isNaN(rawPrice) ? undefined : rawPrice,
-        percentChange24h:
-          rawChange !== undefined && isNaN(rawChange) ? undefined : rawChange,
-      };
     }
+
+    lastKnownBySymbolRef.current = nextKnown;
     return map;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [perpsSymbols, livePerpsPrices]);
 
   return { perpsPriceBySymbol };

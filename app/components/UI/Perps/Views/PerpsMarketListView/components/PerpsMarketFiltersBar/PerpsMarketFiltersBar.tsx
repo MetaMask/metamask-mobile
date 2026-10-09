@@ -7,6 +7,7 @@ import PerpsMarketCategoryBadges from '../../../../components/PerpsMarketCategor
 import type { PerpsMarketFiltersBarProps } from './PerpsMarketFiltersBar.types';
 import styleSheet from './PerpsMarketFiltersBar.styles';
 import {
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -36,6 +37,7 @@ import {
 const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   selectedOptionId,
   onSortPress,
+  sortDirection,
   marketTypeFilter,
   onCategorySelect,
   marketCount,
@@ -62,12 +64,13 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
         />
       )}
 
-      {/* Row 2: Market count (left) + Sort dropdown (right) — hidden when watchlist filter is active */}
-      {showSortRow && !isWatchlistSelected && (
+      {/* Row 2: Market count (left) + Sort dropdown (right) */}
+      {showSortRow && (
         <View style={styles.sortRow}>
           <Text
-            variant={TextVariant.BodySm}
+            variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
             testID={testID ? `${testID}-market-count` : undefined}
           >
             {marketCount === 1
@@ -77,6 +80,7 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
           <PerpsMarketSortDropdowns
             selectedOptionId={selectedOptionId}
             onSortPress={onSortPress}
+            sortDirection={sortDirection}
             testID={testID ? `${testID}-sort` : undefined}
           />
         </View>

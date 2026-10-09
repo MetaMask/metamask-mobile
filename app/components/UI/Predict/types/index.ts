@@ -3,6 +3,7 @@
 import { Hex } from '@metamask/utils';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictMarketListOrder } from '../constants/flags';
+import type { PredictPaymentMethodValue } from '../constants/eventNames';
 
 export enum Side {
   BUY = 'BUY',
@@ -18,6 +19,12 @@ export enum ActiveOrderState {
   PLACING_ORDER = 'placing_order',
   SUCCESS = 'success',
 }
+
+/**
+ * Which leg of a PWAT buy failed. Defaults to `'order'` when omitted so
+ * existing failure UX (Retry-only) is preserved for non-payment failures.
+ */
+export type PredictOrderErrorStage = 'payment' | 'order';
 
 export enum PredictPriceHistoryInterval {
   ONE_HOUR = '1h',
@@ -130,7 +137,10 @@ export type PredictMarket = {
   childMarketIds?: string[];
   isHighlighted?: boolean;
   priceToBeat?: number;
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
 };
+
+export type CryptoTwapWindowSeconds = 30 | 60;
 
 export type PredictSeries = {
   id: string;
@@ -213,6 +223,10 @@ export type PredictSportsLeague =
   | 'dfb'
   | 'cde'
   | 'fifwc'
+  | 'usc'
+  | 'efa'
+  | 'clf'
+  | 'saf1'
   | 'atp'
   | 'wta'
   | 'itf'
@@ -297,6 +311,11 @@ export interface CryptoPriceUpdate {
   symbol: string;
   price: number;
   timestamp: number;
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
+}
+
+export interface CryptoPriceSubscriptionOptions {
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
 }
 
 export interface OrderbookLevel {
@@ -365,13 +384,10 @@ export type PredictMarketBuyButtonPressParams = {
   outcomeToken: PredictOutcomeToken;
 };
 
-/**
- * Called when the user taps a buy button (before the betslip opens).
- * Return `true` to handle the buy flow externally and skip the default sheet.
- */
+/** Called when the user taps a buy button (before the betslip opens). */
 export type PredictMarketBuyButtonPress = (
   params: PredictMarketBuyButtonPressParams,
-) => boolean | void;
+) => void;
 
 export interface PredictActivity {
   id: string;
@@ -458,6 +474,7 @@ export interface GetCryptoTargetPriceParams {
   eventStartTime: string;
   variant: string;
   endDate: string;
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
 }
 
 /**
@@ -472,13 +489,15 @@ export interface GetCryptoPriceHistoryParams {
   variant: string;
   /** Optional end date as ISO 8601 string (omit for live/current data) */
   endDate?: string;
+  /** Chainlink TWAP lookback window when requesting TWAP history */
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
 }
 
 /**
  * A single point from the crypto price history source.
  */
 export interface CryptoPriceHistoryPoint {
-  /** Unix timestamp in seconds */
+  /** Unix timestamp in seconds or milliseconds */
   timestamp: number;
   /** Price value */
   value: number;
@@ -773,12 +792,52 @@ export type OrderResult = Result<{
   txHashes?: string[];
 }>;
 
+export interface PredictBuyAttempt {
+  attemptId: string;
+  amountUsd: number;
+  paymentMethod: PredictPaymentMethodValue;
+}
+
 export interface PlaceOrderParams {
   preview: OrderPreview;
   address?: string;
   transactionId?: string;
   activeAbTests?: TransactionActiveAbTestEntry[];
   analyticsProperties?: PredictTradeAnalyticsProperties;
+  attempt?: PredictBuyAttempt;
+}
+
+/**
+ * Order context kept in memory between a pay-with-any-token deposit and the
+ * order leg that runs once the deposit confirms. `depositedAmount` is recorded
+ * at deposit confirmation because the amount is no longer available if the
+ * order leg later fails.
+ */
+export interface PendingOrderPreview {
+  preview: OrderPreview;
+  signerAddress: string;
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  activeAbTests?: PlaceOrderParams['activeAbTests'];
+  depositedAmount?: number;
+  attempt?: PlaceOrderParams['attempt'];
+}
+
+export interface PredictBuyAttemptContext {
+  attempt: PredictBuyAttempt;
+  address: string;
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  sharePrice?: number;
+  orderType?: OrderPreview['orderType'];
+  activeAbTests?: PlaceOrderParams['activeAbTests'];
+}
+
+export interface StartPredictBuyAttemptArgs {
+  amountUsd: number;
+  paymentMethod: PredictBuyAttempt['paymentMethod'];
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  sharePrice?: number;
+  orderType?: OrderPreview['orderType'];
+  activeAbTests?: PlaceOrderParams['activeAbTests'];
 }
 
 export interface PreviewOrderParams {
@@ -792,6 +851,13 @@ export interface PreviewOrderParams {
   positionId?: string;
 }
 
+export interface PreviewMaxBuyOrderParams {
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+  availableBalance: number;
+}
+
 export type PredictWalletType = 'safe' | 'deposit-wallet';
 
 export interface AccountState {
@@ -800,10 +866,37 @@ export interface AccountState {
   walletType: PredictWalletType;
 }
 
+/**
+ * Definitive geoblock result. Providers must throw instead of returning when
+ * the check does not complete (timeout, network failure, non-2xx, malformed or
+ * incomplete payload), so a connectivity problem is never reported as a
+ * geo-restriction.
+ */
 export interface GeoBlockResponse {
   isEligible: boolean;
-  country?: string;
+  country: string;
 }
+
+export type PredictEligibilityStatus =
+  | 'checking'
+  | 'eligible'
+  | 'ineligible'
+  | 'unavailable';
+
+/**
+ * Predict eligibility as tracked by the controller.
+ *
+ * checking: a geoblock check is in flight and no definitive result exists yet.
+ * eligible / ineligible: definitive result; country is always present.
+ * unavailable: the last check failed or returned an incomplete payload, so
+ * eligibility could not be determined. This is a connectivity problem, not a
+ * legal restriction, and callers must not describe it as one.
+ *
+ * Sensitive actions stay fail-closed for every status other than eligible.
+ */
+export type PredictEligibility =
+  | { status: 'checking' | 'unavailable'; eligible?: boolean; country?: string }
+  | { status: 'eligible' | 'ineligible'; country: string; eligible?: boolean };
 
 export interface ConnectionStatus {
   sportsConnected: boolean;

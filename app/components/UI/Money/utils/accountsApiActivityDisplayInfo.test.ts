@@ -1,7 +1,25 @@
 import { IconName } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
+import {
+  CardTransactionStatus,
+  CardTransactionType,
+  type CardTransaction,
+} from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { accountsApiActivityDisplayInfo } from './accountsApiActivityDisplayInfo';
 import type { AccountsApiActivity } from '../types/moneyActivity';
+
+jest.mock('../../Card/utils/cardTransactionAmount', () => ({
+  formatCardAmount: (
+    amount: { value: string; currency: string },
+    isDebit?: boolean,
+  ) => {
+    const sign = isDebit === undefined ? '' : isDebit ? '-' : '+';
+    if (amount.currency === 'BRL') {
+      return `${sign}R$${amount.value}`;
+    }
+    return `${sign}$${amount.value}`;
+  },
+}));
 
 const token = {
   address: '0x754704bc059f8c67012fed69bc8a327a5aafb603' as Hex,
@@ -79,5 +97,27 @@ describe('accountsApiActivityDisplayInfo', () => {
 
     expect(info.primaryAmount).toBe('+0.30 mUSD');
     expect(info.fiatAmount).toBe('+$0.30');
+  });
+
+  it('keeps Purchase label and Card icon when enrichment is present', () => {
+    const enrichment: CardTransaction = {
+      id: 'baanx-1',
+      providerId: 'baanx',
+      timestamp: card.time,
+      status: CardTransactionStatus.Completed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '5.38', currency: 'USD' },
+      originalAmount: { value: '27.50', currency: 'BRL' },
+      merchant: { name: 'Coffee Shop' },
+      fundingSources: [],
+    };
+
+    const info = accountsApiActivityDisplayInfo(card, enrichment);
+
+    expect(info.label).toBe('Purchase');
+    expect(info.icon).toBe(IconName.Card);
+    expect(info.description).toBe('Coffee Shop');
+    expect(info.fiatAmount).toBe('-R$27.50');
   });
 });

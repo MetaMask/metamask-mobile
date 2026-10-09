@@ -12,6 +12,16 @@ import {
 
 describe('Feature Flag Registry', () => {
   describe('FEATURE_FLAG_REGISTRY', () => {
+    it('registers Chase as in-prod, version-gated and default-off', () => {
+      expect(FEATURE_FLAG_REGISTRY.perpsMobileChase).toMatchObject({
+        name: 'perpsMobileChase',
+        inProd: true,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.13.0',
+        },
+      });
+    });
     it('contains entries for all registered flags', () => {
       const entries = Object.values(FEATURE_FLAG_REGISTRY);
       expect(entries.length).toBeGreaterThan(0);
@@ -42,6 +52,34 @@ describe('Feature Flag Registry', () => {
       for (const entry of Object.values(FEATURE_FLAG_REGISTRY)) {
         expect(entry.productionDefault).toBeDefined();
       }
+    });
+
+    it('uses the version-gated default shape for Perps Scale', () => {
+      expect(FEATURE_FLAG_REGISTRY.perpsMobileScale).toMatchObject({
+        name: 'perpsMobileScale',
+        type: FeatureFlagType.Remote,
+        inProd: true,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.13.0',
+        },
+        status: FeatureFlagStatus.Active,
+      });
+    });
+
+    it('registers the Pro position-modify margin preview as in-prod, version-gated and default-off', () => {
+      expect(
+        FEATURE_FLAG_REGISTRY.perpsPositionModifyPreviewEnabled,
+      ).toMatchObject({
+        name: 'perpsPositionModifyPreviewEnabled',
+        type: FeatureFlagType.Remote,
+        inProd: true,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.11.0',
+        },
+        status: FeatureFlagStatus.Active,
+      });
     });
 
     it('enables curated event pages for the extended sports leagues', () => {
@@ -88,9 +126,16 @@ describe('Feature Flag Registry', () => {
       expect(extendedSportsFlag).toEqual(
         expect.objectContaining({
           versions: expect.objectContaining({
-            '8.6.0': expect.objectContaining({
+            '8.10.0': expect.objectContaining({
               enabledSportsMarketTypes: expect.arrayContaining([
                 'first_half_moneyline',
+                'first_half_spreads',
+                'team_totals_home',
+                'team_totals_away',
+                'anytime_touchdowns',
+                'first_touchdowns',
+                'rushing_yards',
+                'receiving_yards',
               ]),
               leagues: expect.arrayContaining(extendedSportsLeagues),
             }),
@@ -103,6 +148,369 @@ describe('Feature Flag Registry', () => {
       expect(getRegistryEntry('predictSportsFeed')?.productionDefault).toEqual(
         expect.objectContaining({ enabled: true }),
       );
+    });
+
+    it('keeps Perps Mobile TWAP default-off and version-gated', () => {
+      expect(getRegistryEntry('perpsMobileTwap')?.productionDefault).toEqual({
+        enabled: false,
+        minimumVersion: '8.13.0',
+      });
+    });
+
+    it('keeps the Money hub default-off', () => {
+      expect(
+        getRegistryEntry('earnMoneyHubEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.0',
+      });
+    });
+
+    it('keeps mUSD conversion and Get-mUSD CTAs default-off', () => {
+      const musdCtaFlags = [
+        'earnMusdCtaEnabled',
+        'earnMusdConversionFlowEnabled',
+        'earnMusdConversionAssetOverviewCtaEnabled',
+        'earnMusdConversionTokenListItemCtaEnabled',
+      ];
+
+      for (const flagName of musdCtaFlags) {
+        expect(getRegistryEntry(flagName)?.productionDefault).toEqual({
+          enabled: false,
+          minimumVersion: '0.0.0',
+        });
+      }
+    });
+
+    it('version-gates the Earn banner and token-list Money CTA on at 8.4.0', () => {
+      expect(
+        getRegistryEntry('earnMoneyEarnBannerEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.4.0',
+      });
+      expect(
+        getRegistryEntry('earnMoneyTokenListItemCtaEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.4.0',
+      });
+    });
+
+    it('registers Earn catalog flags added in the 2026-09-08 prod sync', () => {
+      const addedFlagNames = [
+        'earnMoneyDepositCtaTokens',
+        'earnMoneyEarnBannerTokens',
+        'earnMoneyBalanceAnimationEnabled',
+        'earnMoneyCardFlipAnimationEnabled',
+        'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
+        'musd1313AbtestEarnSectionOnHomepage',
+      ];
+
+      for (const flagName of addedFlagNames) {
+        expect(getRegistryEntry(flagName)?.inProd).toBe(true);
+      }
+    });
+
+    it('includes Monad in mUSD token registration chain ids', () => {
+      expect(
+        getRegistryEntry('earnMusdTokenRegistrationChainIds')
+          ?.productionDefault,
+      ).toEqual({
+        chainIds: ['0x1', '0xe708', '0x8f'],
+      });
+    });
+
+    it('pins Earn homepage and token-details A/B flags to control', () => {
+      const abTestFlags = [
+        'musd1313AbtestEarnSectionOnHomepage',
+        'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
+      ];
+
+      for (const flagName of abTestFlags) {
+        const productionDefault = getRegistryEntry(flagName)?.productionDefault;
+        expect(Array.isArray(productionDefault)).toBe(true);
+
+        const variants = productionDefault as {
+          name: string;
+          scope: { type: string; value: number };
+        }[];
+        const control = variants.find((variant) => variant.name === 'control');
+        const treatment = variants.find(
+          (variant) => variant.name === 'treatment',
+        );
+
+        expect(control?.scope).toEqual({
+          type: 'percentage_rollout',
+          value: 1,
+        });
+        expect(treatment?.scope).toEqual({
+          type: 'percentage_rollout',
+          value: 0,
+        });
+      }
+    });
+
+    it('version-gates Money account on at 8.0.0', () => {
+      expect(
+        getRegistryEntry('moneyEnableMoneyAccount')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.0.0',
+      });
+    });
+
+    it('registers Money MFA default-off until LaunchDarkly rolls it out', () => {
+      expect(getRegistryEntry('isMoneyMfaEnabled')).toMatchObject({
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.15.0',
+        },
+      });
+    });
+
+    it('registers Card Immersve catalog flags added in the 2026-09-08 prod sync', () => {
+      const addedFlagNames = [
+        'cardImmersve',
+        'cardImmersveChains',
+        'cardImmersveConfig',
+        'cardImmersveCountries',
+        'cardIntercomSupport',
+        'moneyHeadlessAllProviders',
+      ];
+
+      for (const flagName of addedFlagNames) {
+        expect(getRegistryEntry(flagName)?.inProd).toBe(true);
+      }
+    });
+
+    it('registers UK migration on for the prod window, with sign-in routing still off', () => {
+      expect(getRegistryEntry('cardUkMigration')?.productionDefault).toEqual({
+        enabled: true,
+        minimumVersion: '8.13.0',
+        startDate: '2026-09-28T00:00:00.000Z',
+        endDate: '2026-12-29T23:59:59.999Z',
+      });
+      expect(getRegistryEntry('cardUkMigrationSignInRouting')).toMatchObject({
+        inProd: true,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+      });
+    });
+
+    it('drops removed Immersve onboarding and keeps Intercom support on at 8.13.0', () => {
+      expect(getRegistryEntry('immersveOnboardingEnabled')).toBeUndefined();
+      expect(
+        getRegistryEntry('cardIntercomSupport')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.13.0',
+      });
+    });
+
+    it('pins the Card attention-badge A/B flag to control', () => {
+      const productionDefault = getRegistryEntry(
+        'cardCARD338AbtestAttentionBadge',
+      )?.productionDefault;
+      expect(Array.isArray(productionDefault)).toBe(true);
+
+      const variants = productionDefault as {
+        name: string;
+        scope: { type: string; value: number };
+      }[];
+      const control = variants.find((variant) => variant.name === 'control');
+      const withBadge = variants.find(
+        (variant) => variant.name === 'withBadge',
+      );
+
+      expect(control?.scope).toEqual({
+        type: 'percentage_rollout',
+        value: 1,
+      });
+      expect(withBadge?.scope).toEqual({
+        type: 'percentage_rollout',
+        value: 0,
+      });
+    });
+
+    it('registers Home/TMCU and Social AI catalog flags added in the 2026-09-08 prod sync', () => {
+      const addedFlagNames = [
+        'homeTMCU470AbtestTrendingSections',
+        'homeTMCU828AbtestOnboardingChecklistStepper',
+        'aiSocialFeedEnabled',
+        'socialAIQuickBuyStreamQuotes',
+      ];
+
+      for (const flagName of addedFlagNames) {
+        expect(getRegistryEntry(flagName)?.inProd).toBe(true);
+      }
+      expect(
+        getRegistryEntry('aiSocialLeaderboardOnboaridngEnabled'),
+      ).toBeUndefined();
+    });
+
+    it('pins the homepage balance breakdown A/B test to control', () => {
+      expect(
+        getRegistryEntry('homeTMCU1209AbtestHomepageBalanceBreakdownV2')
+          ?.productionDefault,
+      ).toEqual([
+        {
+          name: 'control',
+          scope: { type: 'percentage_rollout', value: 1 },
+        },
+        {
+          name: 'treatment',
+          scope: { type: 'percentage_rollout', value: 0 },
+        },
+      ]);
+    });
+
+    it('version-gates activity and transactions redesigns on at 8.5.0', () => {
+      expect(
+        getRegistryEntry('tmcuActivityRedesignEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.5.0',
+      });
+      expect(
+        getRegistryEntry('tmcuTransactionsRedesignEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.5.0',
+      });
+    });
+
+    it('enables the Social AI feed and leaderboard at 8.0.0+', () => {
+      expect(
+        getRegistryEntry('aiSocialFeedEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.3.0',
+      });
+      expect(
+        getRegistryEntry('aiSocialLeaderboardEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.0.0',
+      });
+    });
+
+    it('pins Home and Social AI percentage A/B flags to control', () => {
+      const abTestFlags = [
+        'homeTMCU610AbtestWalletHomePostOnboardingSteps',
+        'socialAiTSA531AbtestWhatsHappeningExplore',
+        'socialAiTSA612AbtestQuickBuy',
+      ];
+
+      for (const flagName of abTestFlags) {
+        const productionDefault = getRegistryEntry(flagName)?.productionDefault;
+        expect(Array.isArray(productionDefault)).toBe(true);
+
+        const variants = productionDefault as {
+          name: string;
+          scope: { type: string; value: number };
+        }[];
+        const control = variants.find((variant) => variant.name === 'control');
+
+        expect(control?.scope).toEqual({
+          type: 'percentage_rollout',
+          value: 1,
+        });
+        for (const variant of variants) {
+          if (variant.name === 'control') {
+            continue;
+          }
+          expect(variant.scope).toEqual({
+            type: 'percentage_rollout',
+            value: 0,
+          });
+        }
+      }
+
+      expect(
+        (
+          getRegistryEntry('homeTMCU610AbtestWalletHomePostOnboardingSteps')
+            ?.productionDefault as { name: string }[]
+        ).map((variant) => variant.name),
+      ).toEqual(['control', 'postOnboardingSteps']);
+    });
+
+    it('registers Assets and leftover catalog flags added in the 2026-09-08 prod sync', () => {
+      const addedFlagNames = [
+        'ASSETS3831TestFeatureFlagPermissions',
+        'assetsAccountsApiV6',
+        'assetsMemeCoinView',
+        'networkAssetsSnapsMigrationSolana',
+        'networkAssetsSnapsMigrationStellar',
+        'platformTestStructure',
+        'priceAlertsEnabled',
+        'productSafetyScamQuestionnaireEnabled',
+      ];
+
+      for (const flagName of addedFlagNames) {
+        expect(getRegistryEntry(flagName)?.inProd).toBe(true);
+      }
+      expect(
+        getRegistryEntry('networkAssetsSnapsMigrationSolana')?.status,
+      ).toBe(FeatureFlagStatus.Active);
+      expect(
+        getRegistryEntry('networkAssetsSnapsMigrationStellar')?.status,
+      ).toBe(FeatureFlagStatus.Active);
+    });
+
+    it('version-gates global watchlist on at 8.9.0 and price alerts on at 8.2.0', () => {
+      expect(
+        getRegistryEntry('assetsGlobalWatchlistV1')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.9.0',
+      });
+      expect(getRegistryEntry('priceAlertsEnabled')?.productionDefault).toEqual(
+        {
+          enabled: true,
+          minimumVersion: '8.2.0',
+        },
+      );
+    });
+
+    it('pins Assets and Pro-subscription A/B flags to control', () => {
+      const abTestFlags = [
+        'assetsASSETS3205AbtestAmbientPriceColor',
+        'assetsASSETS3380AbtestExploreQuickBuy',
+        'subSUB990AbtestProSubscriptionFlow',
+      ];
+
+      for (const flagName of abTestFlags) {
+        const productionDefault = getRegistryEntry(flagName)?.productionDefault;
+        expect(Array.isArray(productionDefault)).toBe(true);
+
+        const variants = productionDefault as {
+          name: string;
+          scope: { type: string; value: number };
+        }[];
+        const control = variants.find((variant) => variant.name === 'control');
+
+        expect(control?.scope).toEqual({
+          type: 'percentage_rollout',
+          value: 1,
+        });
+        for (const variant of variants) {
+          if (variant.name === 'control') {
+            continue;
+          }
+          expect(variant.scope.value).toBe(0);
+        }
+      }
+
+      expect(
+        (
+          getRegistryEntry('assetsASSETS3380AbtestExploreQuickBuy')
+            ?.productionDefault as { name: string }[]
+        ).map((variant) => variant.name),
+      ).toEqual(['control', 'treatment']);
     });
   });
 
@@ -207,12 +615,16 @@ describe('Feature Flag Registry', () => {
       }
     });
 
-    it('returns empty array when no entries match deprecated', () => {
+    it('returns deprecated entries', () => {
       const deprecated = getRegistryEntriesByStatus(
         FeatureFlagStatus.Deprecated,
       );
-      // All current flags are active, so deprecated should be empty
-      expect(deprecated).toHaveLength(0);
+      for (const entry of deprecated) {
+        expect(entry.status).toBe(FeatureFlagStatus.Deprecated);
+      }
+      expect(deprecated.map((entry) => entry.name)).toContain(
+        'earnMerklCampaignClaiming',
+      );
     });
   });
 

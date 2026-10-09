@@ -1,56 +1,28 @@
-import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
-import { isNumberValue } from '../../../../util/number';
+import {
+  type QuoteResponse,
+  sumAmounts,
+  type DeepPartial,
+} from '@metamask/bridge-controller';
 import formatFiat from '../../../../util/formatFiat';
 import { BigNumber } from 'bignumber.js';
 import { isGaslessQuote } from './isGaslessQuote';
 
 export const formatNetworkFee = (
   currency: string,
-  quote?: (QuoteResponse & QuoteMetadata) | null,
+  quote?: DeepPartial<QuoteResponse> | null,
 ) => {
   if (!quote) return '-';
 
+  const fee = isGaslessQuote(quote.quote)
+    ? sumAmounts(quote.quote?.feeData?.txFee)
+    : sumAmounts(quote.quote?.feeData?.network);
+
   if (
-    isGaslessQuote(quote.quote) &&
-    quote.includedTxFees?.valueInCurrency != null &&
-    quote.includedTxFees?.amount != null &&
-    isNumberValue(quote.includedTxFees.amount) &&
-    isNumberValue(quote.includedTxFees.valueInCurrency)
-  ) {
-    return formatFiat(
-      new BigNumber(quote.includedTxFees.valueInCurrency),
-      currency,
-    );
-  } else if (isGaslessQuote(quote.quote)) {
-    // Quote is gasless but includedTxFees is not set.
-    // Return "uknown" gas fee to keep the same behavior
-    // as the previous vesrions of this utility.
+    !fee?.valueInCurrency ||
+    Number.isNaN(Number(fee.valueInCurrency)) ||
+    Number.isNaN(Number(fee.normalizedAmount))
+  )
     return '-';
-  }
 
-  if (
-    quote.totalNetworkFee?.valueInCurrency != null &&
-    quote.totalNetworkFee?.amount != null &&
-    isNumberValue(quote.totalNetworkFee.amount) &&
-    isNumberValue(quote.totalNetworkFee.valueInCurrency)
-  ) {
-    return formatFiat(
-      new BigNumber(quote.totalNetworkFee.valueInCurrency),
-      currency,
-    );
-  }
-
-  if (
-    quote.gasFee?.total?.valueInCurrency != null &&
-    quote.gasFee?.total?.amount != null &&
-    isNumberValue(quote.gasFee.total.amount) &&
-    isNumberValue(quote.gasFee.total.valueInCurrency)
-  ) {
-    return formatFiat(
-      new BigNumber(quote.gasFee.total.valueInCurrency),
-      currency,
-    );
-  }
-
-  return '-';
+  return formatFiat(new BigNumber(fee.valueInCurrency), currency);
 };

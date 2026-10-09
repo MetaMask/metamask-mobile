@@ -26,6 +26,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import { EarnWithdrawInputViewTestIds } from './EarnWithdrawInputView.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -46,10 +47,15 @@ import {
 } from '../../constants/events/earnEvents';
 import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
 import EarnHeaderSubtitle from '../../components/EarnHeaderSubtitle';
+import EarnMaintenanceBanner from '../../components/EarnMaintenanceBanner';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import {
   calculateAaveV3HealthFactorAfterWithdrawal,
   CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS,
@@ -101,6 +107,12 @@ const EarnWithdrawInputView = () => {
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
+  const isPooledStakingServiceInterruptionBannerEnabled = useSelector(
+    selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  );
+  const isStablecoinLendingServiceInterruptionBannerEnabled = useSelector(
+    selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+  );
   const { getPairedEarnTokens, getEarnToken } = useEarnTokens();
   const { outputToken: receiptToken } = getPairedEarnTokens(token);
 
@@ -144,12 +156,15 @@ const EarnWithdrawInputView = () => {
     tronWithdrawalToken,
     ///: END:ONLY_INCLUDE_IF
   ]);
+  const stakingExperienceType =
+    receiptTokenToUse?.experience.type ?? EARN_EXPERIENCES.POOLED_STAKING;
 
   const withdrawalToken: EarnTokenDetails | undefined = useMemo(() => {
     if (
       receiptTokenToUse?.experience?.type ===
         EARN_EXPERIENCES.STABLECOIN_LENDING ||
-      receiptTokenToUse?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING
+      receiptTokenToUse?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING ||
+      receiptTokenToUse?.experience?.type === EARN_EXPERIENCES.TRX_STAKING
     ) {
       return receiptTokenToUse;
     }
@@ -159,6 +174,11 @@ const EarnWithdrawInputView = () => {
     }
     return undefined;
   }, [receiptTokenToUse, earnTokenFromMap]);
+  const isPooledStakingWithdrawal =
+    withdrawalToken?.isETH === true &&
+    withdrawalToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING;
+  const isStablecoinLendingWithdrawal =
+    withdrawalToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
 
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -331,7 +351,7 @@ const EarnWithdrawInputView = () => {
       }
     : {
         event: MetaMetricsEvents.UNSTAKE_CANCEL_CLICKED,
-        experience: EARN_EXPERIENCES.POOLED_STAKING,
+        experience: stakingExperienceType,
         location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
       };
 
@@ -817,7 +837,7 @@ const EarnWithdrawInputView = () => {
               amount: value,
               is_max: value === 1,
               mode: isFiat ? 'fiat' : 'native',
-              experience: EARN_EXPERIENCES.POOLED_STAKING,
+              experience: stakingExperienceType,
               user_token_balance: receiptToken?.balanceFormatted,
               token: receiptToken?.symbol,
               network: network?.name,
@@ -837,6 +857,7 @@ const EarnWithdrawInputView = () => {
       receiptToken?.experience?.type,
       network?.name,
       isFiat,
+      stakingExperienceType,
     ],
   );
 
@@ -906,6 +927,22 @@ const EarnWithdrawInputView = () => {
         includesTopInset
         style={headerSubtitle ? styles.headerWithSubtitle : undefined}
       />
+      {isPooledStakingWithdrawal &&
+        isPooledStakingServiceInterruptionBannerEnabled && (
+          <View style={styles.maintenanceBanner}>
+            <EarnMaintenanceBanner
+              experienceName={EARN_EXPERIENCES.POOLED_STAKING}
+            />
+          </View>
+        )}
+      {isStablecoinLendingWithdrawal &&
+        isStablecoinLendingServiceInterruptionBannerEnabled && (
+          <View style={styles.maintenanceBanner}>
+            <EarnMaintenanceBanner
+              experienceName={EARN_EXPERIENCES.STABLECOIN_LENDING}
+            />
+          </View>
+        )}
       <ScreenLayout style={styles.container}>
         {
           ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -981,7 +1018,7 @@ const EarnWithdrawInputView = () => {
           shouldShowTronWithdrawButton && (
             <View style={styles.reviewButtonContainer}>
               <Button
-                testID="review-button"
+                testID={EarnWithdrawInputViewTestIds.REVIEW_BUTTON}
                 label={buttonLabel}
                 size={ButtonSize.Lg}
                 labelTextVariant={TextVariant.BodyMDMedium}
@@ -998,7 +1035,7 @@ const EarnWithdrawInputView = () => {
         {!isTronEnabled && (
           <View style={styles.reviewButtonContainer}>
             <Button
-              testID="review-button"
+              testID={EarnWithdrawInputViewTestIds.REVIEW_BUTTON}
               label={buttonLabel}
               size={ButtonSize.Lg}
               labelTextVariant={TextVariant.BodyMDMedium}

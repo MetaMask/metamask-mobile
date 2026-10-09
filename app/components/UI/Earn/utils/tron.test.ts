@@ -182,10 +182,10 @@ describe('tron utils', () => {
       expect(result.balanceFiat).toBe(baseToken.balanceFiat);
       expect(result.tokenUsdExchangeRate).toBe(0);
       expect(result.experiences).toEqual([
-        { type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' },
+        { type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' },
       ]);
       expect(result.experience).toEqual({
-        type: EARN_EXPERIENCES.POOLED_STAKING,
+        type: EARN_EXPERIENCES.TRX_STAKING,
         apr: '0',
       });
       expect(result.balanceMinimalUnit).toBeDefined();

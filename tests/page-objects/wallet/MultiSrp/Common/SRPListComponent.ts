@@ -1,9 +1,9 @@
 import { SRPListSelectorsIDs } from '../../../../../app/components/UI/SRPList/SRPList.testIds';
 import Matchers from '../../../../framework/Matchers';
-import { EncapsulatedElementType } from '../../../../framework';
+import { type AppiumElement } from '../../../../framework';
 
 class SRPListComponent {
-  get srpList(): EncapsulatedElementType {
+  get srpList(): Promise<AppiumElement> {
     return Matchers.getElementByID(SRPListSelectorsIDs.SRP_LIST);
   }
 }

@@ -6,12 +6,15 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-} from '@metamask/design-system-react-native';
-import { resetOnboardingState } from '../../../../../core/redux/slices/card';
-import Text, {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import {
+  resetOnboardingState,
+  setCardArrivalAnimationSeen,
+  setCardArrivalPreviewRequested,
+} from '../../../../../core/redux/slices/card';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
@@ -47,18 +50,23 @@ const CardDeveloperOptionsSection = () => {
     }
   }, [primaryMoneyAccount?.address]);
 
+  const handleResetCardArrivalAnimation = useCallback(() => {
+    dispatch(setCardArrivalAnimationSeen(false));
+    dispatch(setCardArrivalPreviewRequested(true));
+  }, [dispatch]);
+
   return (
     <Box twClassName="mt-2 gap-2">
       <Text
-        color={TextColor.Default}
-        variant={TextVariant.HeadingLG}
+        color={TextColor.TextDefault}
+        variant={TextVariant.HeadingLg}
         style={tw.style('mt-4')}
       >
         {strings('app_settings.developer_options.card.title')}
       </Text>
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodyMd}
         style={tw.style('mt-2')}
       >
         {strings(
@@ -75,8 +83,8 @@ const CardDeveloperOptionsSection = () => {
         {strings('app_settings.developer_options.card.reset_onboarding_button')}
       </Button>
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodyMd}
         style={tw.style('mt-6')}
       >
         {strings(
@@ -98,8 +106,8 @@ const CardDeveloperOptionsSection = () => {
       </Button>
       {!isUnlinkable && (
         <Text
-          color={TextColor.Muted}
-          variant={TextVariant.BodySM}
+          color={TextColor.TextMuted}
+          variant={TextVariant.BodySm}
           style={tw.style('mt-2')}
           testID="card-dev-unlink-money-account-disabled-hint"
         >
@@ -108,6 +116,27 @@ const CardDeveloperOptionsSection = () => {
           )}
         </Text>
       )}
+      <Text
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodyMd}
+        style={tw.style('mt-6')}
+      >
+        {strings(
+          'app_settings.developer_options.card.reset_card_arrival_description',
+        )}
+      </Text>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        onPress={handleResetCardArrivalAnimation}
+        isFullWidth
+        style={tw.style('mt-4')}
+        testID="card-dev-reset-card-arrival-button"
+      >
+        {strings(
+          'app_settings.developer_options.card.reset_card_arrival_button',
+        )}
+      </Button>
     </Box>
   );
 };

@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import Logger from '../../../../../util/Logger';
-import type { CardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
+import type { ImmersveProgramConfig } from '../../../../../selectors/featureFlagController/card';
 import { CardApiError } from '../services/BaanxService';
 import type { ImmersveService } from '../services/ImmersveService';
 import type { ImmersveProviderConfig } from '../services/immersve-config';
@@ -34,26 +34,21 @@ const mockReadErc20AllowanceAndBalance =
 const CONFIG: ImmersveProviderConfig = {
   apiKey: 'test-key',
   baseUrl: 'https://api.test.immersve.com',
+  secureBaseUrl: 'https://test-sec.immersve.com',
   clientApplicationId: 'client-app-1',
   appUrl: 'https://app.immersve.com',
 };
 
-const FEATURE_FLAG: CardFeatureFlag = {
-  immersve: {
-    network: 'base-sepolia',
-    cardProgramId: 'program-1',
-    partnerAccountId: 'partner-1',
-    fundingChannelId: 'base-channel',
-  },
-  immersveCountries: ['GB'],
+const PROGRAM_CONFIG: ImmersveProgramConfig = {
+  network: 'base-sepolia',
+  cardProgramId: 'program-1',
+  partnerAccountId: 'partner-1',
+  fundingChannelId: 'base-channel',
 };
 
-const FEATURE_FLAG_WITH_SPENDER: CardFeatureFlag = {
-  immersve: {
-    ...FEATURE_FLAG.immersve,
-    spenderAddress: '0x2222222222222222222222222222222222222222',
-  },
-  immersveCountries: ['GB'],
+const PROGRAM_CONFIG_WITH_SPENDER: ImmersveProgramConfig = {
+  ...PROGRAM_CONFIG,
+  spenderAddress: '0x2222222222222222222222222222222222222222',
 };
 
 function makeJwt(expMs: number): string {
@@ -63,7 +58,9 @@ function makeJwt(expMs: number): string {
   return `h.${payload}.s`;
 }
 
-function createProvider(featureFlag: CardFeatureFlag | null = FEATURE_FLAG) {
+function createProvider(
+  programConfig: ImmersveProgramConfig | null = PROGRAM_CONFIG,
+) {
   const service = {
     get: jest.fn(),
     post: jest.fn(),
@@ -73,11 +70,12 @@ function createProvider(featureFlag: CardFeatureFlag | null = FEATURE_FLAG) {
     get: jest.Mock;
     post: jest.Mock;
     patch: jest.Mock;
+    request: jest.Mock;
   };
   const provider = new ImmersveProvider({
     service,
     config: CONFIG,
-    getCardFeatureFlag: () => featureFlag,
+    getProgramConfig: () => programConfig,
   });
   return { provider, service };
 }
@@ -92,6 +90,19 @@ const TOKENS: CardAuthTokens = {
   location: 'international',
   cardholderAccountId: 'cardholder-1',
   accountAddress: '0xabc',
+};
+
+const activeCard = {
+  id: 'card-1',
+  accountId: 'cardholder-1',
+  type: 'virtual',
+  createdAt: '2024-01-02T00:00:00.000Z',
+  modifiedAt: '2024-01-02T00:00:00.000Z',
+  expiresAt: '2029-01-01T00:00:00.000Z',
+  isBlocked: false,
+  status: 'active',
+  fundingSourceIds: ['fs-1'],
+  panLast4: '1234',
 };
 
 describe('ImmersveProvider', () => {
@@ -120,6 +131,8 @@ describe('ImmersveProvider', () => {
       expect(provider.capabilities.authMethod).toBe('siwe');
       expect(provider.capabilities.supportsCashback).toBe(false);
       expect(provider.capabilities.supportsCredit).toBe(false);
+      expect(provider.capabilities.supportsTransactionHistory).toBe(true);
+      expect(provider.capabilities.supportsMoneyAccountLinking).toBe(false);
       expect(provider.capabilities.onboarding.type).toBe('webview');
     });
   });
@@ -182,8 +195,8 @@ describe('ImmersveProvider', () => {
 
     it('prefers the feature-flag clientApplicationId over the env config', async () => {
       const { provider, service } = createProvider({
-        immersve: { ...FEATURE_FLAG.immersve, clientApplicationId: 'flag-app' },
-        immersveCountries: ['GB'],
+        ...PROGRAM_CONFIG,
+        clientApplicationId: 'flag-app',
       });
       service.post.mockResolvedValue({
         id: 'login-req-1',
@@ -200,8 +213,8 @@ describe('ImmersveProvider', () => {
 
     it('prefers the feature-flag appUrl over the env config', async () => {
       const { provider, service } = createProvider({
-        immersve: { ...FEATURE_FLAG.immersve, appUrl: 'https://flag.app' },
-        immersveCountries: ['GB'],
+        ...PROGRAM_CONFIG,
+        appUrl: 'https://flag.app',
       });
       service.post.mockResolvedValue({
         id: 'login-req-1',
@@ -213,6 +226,24 @@ describe('ImmersveProvider', () => {
       expect(service.post).toHaveBeenCalledWith(
         '/auth/login-init',
         expect.objectContaining({ url: 'https://flag.app' }),
+      );
+    });
+
+    it('honours autoSignup: false when provided', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        id: 'login-req-1',
+        signingChallenge: { message: 'sign in' },
+      });
+
+      await provider.initiateAuth('GB', {
+        address: '0xabc',
+        autoSignup: false,
+      });
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/auth/login-init',
+        expect.objectContaining({ autoSignup: false }),
       );
     });
 
@@ -238,6 +269,65 @@ describe('ImmersveProvider', () => {
       },
     );
 
+    it('reports non-auth initiateAuth failures to Sentry', async () => {
+      const { provider, service } = createProvider();
+      const apiError = new CardApiError(500, '/auth/login-init', 'fail');
+      service.post.mockRejectedValue(apiError);
+
+      await expect(
+        provider.initiateAuth('GB', { address: '0xabc' }),
+      ).rejects.toMatchObject({ code: CardProviderErrorCode.ServerError });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        apiError,
+        expect.objectContaining({
+          tags: { feature: 'card', provider: 'immersve' },
+          context: expect.objectContaining({
+            name: 'ImmersveProvider',
+            data: expect.objectContaining({
+              method: 'initiateAuth',
+              network: 'base-sepolia',
+              country: 'GB',
+              httpStatus: 500,
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('does not report 401 initiateAuth failures to Sentry', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockRejectedValue(
+        new CardApiError(401, '/auth/login-init', 'unauthorized'),
+      );
+
+      await expect(
+        provider.initiateAuth('GB', { address: '0xabc' }),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.InvalidCredentials,
+      });
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('maps ACCOUNT_DOES_NOT_EXIST to NotFound without Sentry', async () => {
+      const { provider, service } = createProvider();
+      const apiError = new CardApiError(
+        403,
+        '/auth/login-init',
+        JSON.stringify({ errorCode: 'ACCOUNT_DOES_NOT_EXIST' }),
+      );
+      service.post.mockRejectedValue(apiError);
+
+      await expect(
+        provider.initiateAuth('GB', { address: '0xabc' }),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.NotFound,
+        statusCode: 403,
+        errorCode: 'ACCOUNT_DOES_NOT_EXIST',
+      });
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
     it('maps non-API errors to Unknown', async () => {
       const { provider, service } = createProvider();
       service.post.mockRejectedValue(new Error('boom'));
@@ -248,6 +338,65 @@ describe('ImmersveProvider', () => {
         code: CardProviderErrorCode.Unknown,
         message: 'boom',
       });
+    });
+  });
+
+  describe('lookupAccount', () => {
+    it('returns found when login-init succeeds with autoSignup false', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        id: 'login-req-1',
+        signingChallenge: { message: 'msg' },
+      });
+
+      await expect(provider.lookupAccount('0xabc')).resolves.toBe('found');
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/auth/login-init',
+        expect.objectContaining({
+          address: '0xabc',
+          autoSignup: false,
+        }),
+      );
+    });
+
+    it('returns not_found for ACCOUNT_DOES_NOT_EXIST without Sentry', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockRejectedValue(
+        new CardApiError(
+          403,
+          '/auth/login-init',
+          JSON.stringify({ errorCode: 'ACCOUNT_DOES_NOT_EXIST' }),
+        ),
+      );
+
+      await expect(provider.lookupAccount('0xabc')).resolves.toBe('not_found');
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [404, 'missing'],
+      [429, 'rate limited'],
+      [500, 'down'],
+    ])(
+      'returns unknown for status %s without a known no-account error code',
+      async (status, body) => {
+        const { provider, service } = createProvider();
+        service.post.mockRejectedValue(
+          new CardApiError(status, '/auth/login-init', body),
+        );
+
+        await expect(provider.lookupAccount('0xabc')).resolves.toBe('unknown');
+        expect(Logger.error).not.toHaveBeenCalled();
+      },
+    );
+
+    it('returns unknown for network errors without Sentry', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockRejectedValue(new Error('network'));
+
+      await expect(provider.lookupAccount('0xabc')).resolves.toBe('unknown');
+      expect(Logger.error).not.toHaveBeenCalled();
     });
   });
 
@@ -290,6 +439,7 @@ describe('ImmersveProvider', () => {
       });
       expect(result.done).toBe(true);
       expect(result.tokenSet?.accessToken).toBe(accessJwt);
+      expect(result.tokenSet?.providerUserId).toBe('cardholder-1');
       expect(result.tokenSet?.cardholderAccountId).toBe('cardholder-1');
       expect(result.tokenSet?.accountAddress).toBe('0xabc');
       expect(result.tokenSet?.location).toBe('international');
@@ -370,6 +520,7 @@ describe('ImmersveProvider', () => {
         { origin: 'https://app.immersve.com' },
       );
       expect(refreshed.accessToken).toBe(accessJwt);
+      expect(refreshed.providerUserId).toBe('cardholder-1');
       expect(refreshed.cardholderAccountId).toBe('cardholder-1');
       expect(refreshed.accountAddress).toBe('0xabc');
       expect(refreshed.keyringId).toBe(TOKENS.keyringId);
@@ -541,7 +692,7 @@ describe('ImmersveProvider', () => {
     });
 
     it('createFundingSource throws when fundingChannelId is unconfigured', async () => {
-      const { provider } = createProvider({ immersve: { cardProgramId: 'p' } });
+      const { provider } = createProvider({ cardProgramId: 'p' });
       await expect(provider.createFundingSource(TOKENS)).rejects.toBeInstanceOf(
         CardProviderError,
       );
@@ -634,6 +785,59 @@ describe('ImmersveProvider', () => {
       );
     });
 
+    it('getContactDetails returns normalized email and phone values', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        email: { emailAddress: 'cardholder@example.com' },
+        phone: { phoneNumber: '+441234567890' },
+      });
+
+      const result = await provider.getContactDetails(TOKENS);
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/api/accounts/cardholder-1/contact-details',
+        TOKENS,
+      );
+      expect(result).toStrictEqual({
+        email: 'cardholder@example.com',
+        phone: '+441234567890',
+      });
+    });
+
+    it('getContactDetails returns undefined values for absent contact fields', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({});
+
+      await expect(provider.getContactDetails(TOKENS)).resolves.toStrictEqual({
+        email: undefined,
+        phone: undefined,
+      });
+    });
+
+    it('getContactDetails throws when cardholderAccountId is missing', async () => {
+      const { provider } = createProvider();
+
+      await expect(
+        provider.getContactDetails({
+          ...TOKENS,
+          cardholderAccountId: undefined,
+        }),
+      ).rejects.toMatchObject({
+        message: 'getContactDetails: missing cardholder account id',
+      });
+    });
+
+    it('getContactDetails maps API failures', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockRejectedValue(
+        new CardApiError(403, '/api/accounts/x/contact-details', 'forbidden'),
+      );
+
+      await expect(provider.getContactDetails(TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Forbidden,
+      });
+    });
+
     it('patchContactDetails PATCHes the account contact-details path', async () => {
       const { provider, service } = createProvider();
       service.patch.mockResolvedValue({});
@@ -718,7 +922,7 @@ describe('ImmersveProvider', () => {
 
     it('getSpendingPrerequisites uses hardcoded constants when program fields are absent', async () => {
       const { provider, service } = createProvider({
-        immersve: { cardProgramId: 'program-1' },
+        cardProgramId: 'program-1',
       });
       service.post.mockResolvedValue({ prerequisites: [] });
 
@@ -736,7 +940,7 @@ describe('ImmersveProvider', () => {
     });
 
     it('getSpendingPrerequisites throws when cardProgramId is unconfigured', async () => {
-      const { provider } = createProvider({ immersve: {} });
+      const { provider } = createProvider({});
 
       await expect(
         provider.getSpendingPrerequisites('fs-1', {}, TOKENS),
@@ -756,8 +960,9 @@ describe('ImmersveProvider', () => {
       ).rejects.toMatchObject({ code: CardProviderErrorCode.ServerError });
     });
 
-    it('createCard posts cardProgramId + fundingSourceId', async () => {
+    it('createCard posts cardProgramId + fundingSourceId when the account has no card', async () => {
       const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
       service.post.mockResolvedValue({ cardId: 'card-1' });
 
       const result = await provider.createCard('fs-1', TOKENS);
@@ -770,15 +975,72 @@ describe('ImmersveProvider', () => {
       expect(result.cardId).toBe('card-1');
     });
 
-    it('createCard maps API failures', async () => {
+    it('createCard reuses the existing card instead of issuing a duplicate', async () => {
       const { provider, service } = createProvider();
-      service.post.mockRejectedValue(
+      service.get.mockResolvedValue({ items: [activeCard] });
+
+      const result = await provider.createCard('fs-1', TOKENS);
+
+      expect(result.cardId).toBe('card-1');
+      expect(service.post).not.toHaveBeenCalled();
+    });
+
+    it('createCard reuses a frozen card', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [{ ...activeCard, isBlocked: true }],
+      });
+
+      const result = await provider.createCard('fs-1', TOKENS);
+
+      expect(result.cardId).toBe('card-1');
+      expect(service.post).not.toHaveBeenCalled();
+    });
+
+    it('createCard ignores cancelled cards', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [{ ...activeCard, status: 'cancelled' }],
+      });
+      service.post.mockResolvedValue({ cardId: 'card-2' });
+
+      const result = await provider.createCard('fs-1', TOKENS);
+
+      expect(result.cardId).toBe('card-2');
+      expect(service.post).toHaveBeenCalled();
+    });
+
+    it('createCard does not post when the card lookup fails', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockRejectedValue(
         new CardApiError(500, '/api/cards', 'down'),
       );
+
+      await expect(provider.createCard('fs-1', TOKENS)).rejects.toThrow();
+      expect(service.post).not.toHaveBeenCalled();
+    });
+
+    it('createCard maps API failures', async () => {
+      const { provider, service } = createProvider();
+      const apiError = new CardApiError(500, '/api/cards', 'down');
+      service.get.mockResolvedValue({ items: [] });
+      service.post.mockRejectedValue(apiError);
 
       await expect(provider.createCard('fs-1', TOKENS)).rejects.toMatchObject({
         code: CardProviderErrorCode.ServerError,
       });
+      expect(Logger.error).toHaveBeenCalledWith(
+        apiError,
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              method: 'createCard',
+              fundingSourceId: 'fs-1',
+              httpStatus: 500,
+            }),
+          }),
+        }),
+      );
     });
 
     it('getResumeCardInfo returns null when the account has no card', async () => {
@@ -844,22 +1106,11 @@ describe('ImmersveProvider', () => {
       expect(provider.capabilities.supportsSensitiveDetailsView).toBe(true);
       expect(provider.capabilities.supportsFundingLimits).toBe(false);
       expect(provider.capabilities.supportsPinView).toBe(false);
+      expect(provider.capabilities.supportsPinSet).toBe(true);
       expect(provider.capabilities.supportsTravel).toBe(false);
+      expect(provider.capabilities.supportsContactDetails).toBe(true);
     });
   });
-
-  const activeCard = {
-    id: 'card-1',
-    accountId: 'cardholder-1',
-    type: 'virtual',
-    createdAt: '2024-01-02T00:00:00.000Z',
-    modifiedAt: '2024-01-02T00:00:00.000Z',
-    expiresAt: '2029-01-01T00:00:00.000Z',
-    isBlocked: false,
-    status: 'active',
-    fundingSourceIds: ['fs-1'],
-    panLast4: '1234',
-  };
 
   const activeCardDetail = {
     ...activeCard,
@@ -957,6 +1208,7 @@ describe('ImmersveProvider', () => {
         holderName: 'John Doe',
         isFreezable: true,
         regionCode: undefined,
+        hasPin: true,
       });
       expect(data.primaryFundingAsset).toStrictEqual({
         symbol: 'USDC',
@@ -1024,7 +1276,7 @@ describe('ImmersveProvider', () => {
         ...TOKENS,
         accountAddress: fundingAddress,
       };
-      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      const { provider, service } = createProvider(PROGRAM_CONFIG_WITH_SPENDER);
       service.get.mockImplementation(
         routeGet({
           cards: { items: [activeCard] },
@@ -1064,7 +1316,7 @@ describe('ImmersveProvider', () => {
         ...TOKENS,
         accountAddress: fundingAddress,
       };
-      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      const { provider, service } = createProvider(PROGRAM_CONFIG_WITH_SPENDER);
       service.get.mockImplementation(
         routeGet({
           cards: { items: [activeCard] },
@@ -1095,7 +1347,7 @@ describe('ImmersveProvider', () => {
         ...TOKENS,
         accountAddress: fundingAddress,
       };
-      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      const { provider, service } = createProvider(PROGRAM_CONFIG_WITH_SPENDER);
       service.get.mockImplementation(
         routeGet({
           cards: { items: [activeCard] },
@@ -1138,13 +1390,71 @@ describe('ImmersveProvider', () => {
       });
     });
 
+    it('raises allowance_revoked and keeps the card when spendingCap is a numeric zero', async () => {
+      const fundingAddress = '0x1111111111111111111111111111111111111111';
+      const tokensWithAddress: CardAuthTokens = {
+        ...TOKENS,
+        accountAddress: fundingAddress,
+      };
+      const { provider, service } = createProvider(PROGRAM_CONFIG_WITH_SPENDER);
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+      mockReadErc20AllowanceAndBalance.mockResolvedValue({
+        balance: '30.0',
+        allowance: '0.0',
+        spendableBalance: '0',
+      });
+
+      const data = await provider.getCardHomeData(
+        fundingAddress,
+        tokensWithAddress,
+      );
+
+      // The cardholder still has a card — surfacing it as provisioning would
+      // send Card Home into the onboarding reconcile loop.
+      expect(data.card).toMatchObject({ id: 'card-1' });
+      expect(data.alerts).toStrictEqual([
+        { type: 'allowance_revoked', dismissable: false },
+      ]);
+      expect(data.actions).toStrictEqual([]);
+      expect(data.primaryFundingAsset).toMatchObject({
+        spendingCap: '0.0',
+        spendableBalance: '0',
+      });
+      expect(data.fundingAssets).toHaveLength(1);
+    });
+
+    it('does not treat an empty spendingCap as revoked', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.card).not.toBeNull();
+      expect(data.alerts).toStrictEqual([]);
+      expect(data.primaryFundingAsset).toMatchObject({
+        spendingCap: '',
+      });
+    });
+
     it('reads on-chain allowance on Arbitrum Sepolia for arbitrum-sepolia funding', async () => {
       const fundingAddress = '0x1111111111111111111111111111111111111111';
       const tokensWithAddress: CardAuthTokens = {
         ...TOKENS,
         accountAddress: fundingAddress,
       };
-      const { provider, service } = createProvider(FEATURE_FLAG_WITH_SPENDER);
+      const { provider, service } = createProvider(PROGRAM_CONFIG_WITH_SPENDER);
       service.get.mockImplementation(
         routeGet({
           cards: { items: [activeCard] },
@@ -1327,6 +1637,187 @@ describe('ImmersveProvider', () => {
       await expect(
         provider.getCardSensitiveDetails(TOKENS),
       ).rejects.toMatchObject({ code: CardProviderErrorCode.NoCard });
+    });
+  });
+
+  describe('setCardPin', () => {
+    it('posts to the secure host set-pin endpoint', async () => {
+      const { provider, service } = createProvider();
+      service.request.mockResolvedValue({});
+
+      await provider.setCardPin('card-1', '1337', TOKENS);
+
+      expect(service.request).toHaveBeenCalledWith(
+        '/api/cards/card-1/set-pin',
+        expect.objectContaining({
+          method: 'POST',
+          body: { newPin: '1337' },
+          tokenSet: TOKENS,
+          baseURL: 'https://test-sec.immersve.com',
+        }),
+      );
+    });
+
+    it('prefers feature-flag secureApiBaseUrl over config', async () => {
+      const { provider, service } = createProvider({
+        ...PROGRAM_CONFIG,
+        secureApiBaseUrl: 'https://ff-sec.example.com',
+      });
+      service.request.mockResolvedValue({});
+
+      await provider.setCardPin('card-1', '2468', TOKENS);
+
+      expect(service.request).toHaveBeenCalledWith(
+        '/api/cards/card-1/set-pin',
+        expect.objectContaining({
+          baseURL: 'https://ff-sec.example.com',
+        }),
+      );
+    });
+
+    it('maps INVALID_PIN_FORMAT to Forbidden with errorCode', async () => {
+      const { provider, service } = createProvider();
+      service.request.mockRejectedValue(
+        new CardApiError(
+          403,
+          '/api/cards/card-1/set-pin',
+          JSON.stringify({ errorCode: 'INVALID_PIN_FORMAT' }),
+        ),
+      );
+
+      await expect(
+        provider.setCardPin('card-1', '1111', TOKENS),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.Forbidden,
+        errorCode: 'INVALID_PIN_FORMAT',
+      });
+      expect(Logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('listTransactions', () => {
+    const rawTx = {
+      id: '4e4607f1',
+      description: 'Air NZ Online Auckland',
+      accountId: 'cardholder-1',
+      status: 'cleared' as const,
+      cardId: 'card-1',
+      amount: '31412',
+      currency: 'USD',
+      acquirerAmount: '31412',
+      acquirerCurrency: 'NZD',
+      feeAmount: '12',
+      transactionDate: '2022-11-09T03:24:15.182Z',
+      processedDate: '2022-11-09T03:24:15.182Z',
+      reference: '1000000178145',
+      cardAcceptor: {
+        city: 'Auckland',
+        countryCode: 'NZ',
+        name: 'Air NZ Online',
+      },
+      creditDebitIndicator: 'debit' as const,
+      paymentType: 'purchase' as const,
+    };
+
+    it('maps amounts from minor units and cardAcceptor fields', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [rawTx],
+        pageInfo: { nextCursor: 'abc' },
+      });
+
+      const page = await provider.listTransactions({}, TOKENS);
+
+      expect(service.get).toHaveBeenCalledWith(
+        expect.stringContaining(
+          '/api/accounts/cardholder-1/transactions?statuses=all',
+        ),
+        TOKENS,
+      );
+      expect(page.items[0]).toMatchObject({
+        id: '4e4607f1',
+        status: 'completed',
+        type: 'purchase',
+        billingAmount: { value: '314.12', currency: 'USD' },
+        feeAmount: { value: '0.12', currency: 'USDC' },
+        merchant: {
+          name: 'Air NZ Online',
+          city: 'Auckland',
+          countryCode: 'NZ',
+        },
+        fundingSources: [],
+      });
+      expect(page.nextCursor).toBeDefined();
+    });
+
+    it('maps failureReason to failed status', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [{ ...rawTx, status: 'init', failureReason: 'cvv-invalid' }],
+      });
+
+      const page = await provider.listTransactions({}, TOKENS);
+
+      expect(page.items[0]).toMatchObject({
+        status: 'failed',
+        declineReason: { code: 'cvv-invalid' },
+      });
+      expect(page.nextCursor).toBeUndefined();
+    });
+
+    it('maps holding status to completed', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [{ ...rawTx, status: 'holding' }],
+      });
+
+      const page = await provider.listTransactions({}, TOKENS);
+
+      expect(page.items[0].status).toBe('completed');
+    });
+
+    it('throws when cardholderAccountId is missing', async () => {
+      const { provider } = createProvider();
+      const tokensWithoutAccount = {
+        ...TOKENS,
+        cardholderAccountId: undefined,
+      };
+
+      await expect(
+        provider.listTransactions({}, tokensWithoutAccount),
+      ).rejects.toMatchObject({ code: CardProviderErrorCode.Unknown });
+    });
+  });
+
+  describe('getTransaction', () => {
+    it('includes PAN fields from the detail endpoint', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        id: 'tx-1',
+        description: 'Air NZ',
+        accountId: 'cardholder-1',
+        status: 'cleared',
+        cardId: 'card-1',
+        amount: '100',
+        currency: 'USD',
+        transactionDate: '2022-11-09T03:24:15.182Z',
+        reference: 'ref',
+        cardAcceptor: { name: 'Air NZ', city: 'AKL', countryCode: 'NZ' },
+        paymentType: 'purchase',
+        panFirst6: '123456',
+        panLast6: '7890',
+      });
+
+      const details = await provider.getTransaction('tx-1', TOKENS);
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/api/transactions/tx-1',
+        TOKENS,
+      );
+      expect(details).toMatchObject({
+        cardFirstSix: '123456',
+        cardLastFour: '7890',
+      });
     });
   });
 });

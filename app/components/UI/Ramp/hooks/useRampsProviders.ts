@@ -121,9 +121,11 @@ export function useRampsProviders(options?: {
   // React Query is authoritative when present; fallback to controller state
   // keeps initial renders and test mocks resilient.
   const providers = useMemo(
-    () => providersQuery?.data ?? providersStateData ?? [],
-    [providersQuery?.data, providersStateData],
+    () => providersQuery?.data?.providers ?? providersStateData ?? [],
+    [providersQuery?.data?.providers, providersStateData],
   );
+  const backendDefaultProviderId =
+    providersQuery?.data?.sorted?.[0]?.ids[0] ?? providers[0]?.id;
 
   const legacyOrders = useSelector(getOrders);
   const controllerOrders = useSelector(
@@ -163,7 +165,11 @@ export function useRampsProviders(options?: {
       providers.length > 0 &&
       !selectedProvider
     ) {
-      const result = determinePreferredProvider(completedOrders, providers);
+      const result = determinePreferredProvider(
+        completedOrders,
+        providers,
+        backendDefaultProviderId,
+      );
       if (result) {
         (
           Engine.context.RampsController as {
@@ -177,7 +183,13 @@ export function useRampsProviders(options?: {
         });
       }
     }
-  }, [enableSideEffects, providers, selectedProvider, completedOrders]);
+  }, [
+    enableSideEffects,
+    providers,
+    selectedProvider,
+    completedOrders,
+    backendDefaultProviderId,
+  ]);
 
   let error: string | null = null;
 

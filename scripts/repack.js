@@ -34,17 +34,30 @@ const logger = {
   warn: (msg) => console.warn(`⚠️  ${msg}`),
 };
 
+// The REPACK_ANDROID_* overrides exist because the keystore env var names are
+// per-signer: the E2E/UAT signer exports BITRISEIO_ANDROID_QA_*, while the RC signer
+// used by the auto RC repack path exports BITRISEIO_ANDROID_RC_* (see the signingConfigs
+// block in android/app/build.gradle). Callers pass whichever pair applies; the
+// BITRISEIO_ANDROID_QA_* fallbacks keep the E2E callers working unchanged.
 function getKeystoreConfig() {
   const isCI = !!process.env.CI;
-  const keystorePath = process.env.ANDROID_KEYSTORE_PATH;
-  const keystorePassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
-  const keyAlias = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
-  const keyPassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
+  const keystorePath =
+    process.env.REPACK_ANDROID_KEYSTORE_PATH || process.env.ANDROID_KEYSTORE_PATH;
+  const keystorePassword =
+    process.env.REPACK_ANDROID_KEYSTORE_PASSWORD ||
+    process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
+  const keyAlias =
+    process.env.REPACK_ANDROID_KEYSTORE_ALIAS ||
+    process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
+  const keyPassword =
+    process.env.REPACK_ANDROID_KEY_PASSWORD ||
+    process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
 
   if (isCI && (!keystorePath || !keystorePassword || !keyAlias || !keyPassword)) {
     logger.error(
       'Missing required Android keystore environment variables in CI. ' +
-      'Please check that setup-e2e-env action has configure-keystores: true'
+      'Please check that setup-e2e-env action has configure-keystores: true, ' +
+      'or that REPACK_ANDROID_KEYSTORE_PATH/PASSWORD/ALIAS and REPACK_ANDROID_KEY_PASSWORD are set.'
     );
     process.exit(1);
   }
@@ -189,9 +202,96 @@ function generateExpoPlistIfNeeded(appPath) {
 }
 
 /**
+ * Repack a signed device .ipa. The output is NOT signed.
+ *
+ * Used by the auto RC repack fast path (.github/workflows/build-rc-repack.yml), where the
+ * source is a previous RC run's TestFlight IPA rather than a simulator build. The caller is
+ * responsible for patching CFBundleVersion in the source IPA BEFORE this runs, and for
+ * re-signing the output afterwards.
+ *
+ * Signing is deliberately left to the caller. `@expo/repack-app` can re-sign via fastlane,
+ * but it always derives entitlements from the provisioning profile, and a profile enumerates
+ * every capability the App ID is allowed — including development-only keys that App Store
+ * Connect rejects on upload. The `resign_repacked_ipa` fastlane lane re-signs with the
+ * entitlements already inside the donor binary instead.
+ *
+ * Required env: REPACK_SOURCE_IPA, REPACK_OUTPUT_IPA.
+ */
+async function repackIosIpa() {
+  const startTime = Date.now();
+  const sourceIpa = process.env.REPACK_SOURCE_IPA;
+  const outputIpa = process.env.REPACK_OUTPUT_IPA;
+  const sourcemapPath = process.env.REPACK_SOURCEMAP_PATH || 'sourcemaps/ios/index.js.map';
+  const workingDir = process.env.REPACK_WORKING_DIR || 'ios/build/repack-working-ipa';
+
+  if (!outputIpa || !outputIpa.endsWith('.ipa')) {
+    throw new Error(
+      `REPACK_OUTPUT_IPA must be set and end with .ipa (got: ${outputIpa || 'unset'})`
+    );
+  }
+
+  try {
+    logger.info('🚀 Starting iOS IPA repack process...');
+    logger.info(`Source IPA: ${sourceIpa}`);
+    logger.info(`Output IPA: ${outputIpa}`);
+    logger.info(`Working dir: ${workingDir}`);
+
+    if (!fs.existsSync(sourceIpa)) {
+      throw new Error(`IPA not found: ${sourceIpa}`);
+    }
+
+    fs.mkdirSync(path.dirname(sourcemapPath), { recursive: true });
+    fs.mkdirSync(workingDir, { recursive: true });
+    fs.mkdirSync(path.dirname(path.resolve(outputIpa)), { recursive: true });
+
+    // Dynamic import for ES module compatibility
+    const { repackAppIosAsync } = await import('@expo/repack-app');
+
+    await repackAppIosAsync({
+      platform: 'ios',
+      projectRoot: process.cwd(),
+      sourceAppPath: sourceIpa,
+      outputPath: outputIpa,
+      workingDirectory: workingDir,
+      verbose: true,
+      exportEmbedOptions: {
+        sourcemapOutput: sourcemapPath,
+      },
+      env: process.env,
+    });
+
+    if (!fs.existsSync(outputIpa)) {
+      throw new Error(`Repacked IPA not found: ${outputIpa}`);
+    }
+
+    fs.rmSync(workingDir, { recursive: true, force: true });
+
+    const duration = Math.round((Date.now() - startTime) / 1000);
+    logger.success(`🎉 iOS IPA repack completed in ${duration}s`);
+    logger.success(`Output: ${outputIpa} (${(fs.statSync(outputIpa).size / 1024 / 1024).toFixed(1)} MB)`);
+    logger.warn(
+      'The output IPA carries the donor\'s now-stale signature. Re-sign it before installing ' +
+      'or uploading: fastlane ios resign_repacked_ipa ipa_path:<output> ...'
+    );
+
+    if (fs.existsSync(sourcemapPath)) {
+      logger.success(`Sourcemap: ${sourcemapPath}`);
+    }
+  } catch (error) {
+    logger.error(`iOS IPA repack failed: ${error.message}`);
+    throw error;
+  }
+}
+
+/**
  * Repack iOS App
  */
 async function repackIos() {
+  // Device (.ipa) repacking is opt-in via env and follows a separate, signed flow.
+  if (process.env.REPACK_SOURCE_IPA) {
+    return repackIosIpa();
+  }
+
   const startTime = Date.now();
   const sourceApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app';
   const repackedApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask-repack.app';
@@ -315,4 +415,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { main, repackAndroid, repackIos };
+module.exports = { main, repackAndroid, repackIos, repackIosIpa };

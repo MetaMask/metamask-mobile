@@ -26,7 +26,6 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
-import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../../../../selectors/networkController';
 import {
@@ -37,11 +36,15 @@ import {
 // Import PerpsController hooks
 import PerpsTransactionItem from '../../components/PerpsTransactionItem';
 import PerpsTransactionsSkeleton from '../../components/PerpsTransactionsSkeleton';
-import { usePerpsConnection, usePerpsTransactionHistory } from '../../hooks';
+import {
+  usePerpsConnection,
+  usePerpsNetwork,
+  usePerpsTransactionHistory,
+} from '../../hooks';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../../../core/Analytics/events/transactions';
 import { PERPS_BALANCE_CHAIN_ID } from '../../constants/perpsConfig';
@@ -52,11 +55,13 @@ import {
   TransactionSection,
 } from '../../types/transactionHistory';
 import { formatDateSection } from '../../utils/formatUtils';
+import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
 import { PerpsTransactionsViewSelectorsIDs } from '../../Perps.testIds';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import PerpsAggregatedFillsCheckbox from '../../components/PerpsAggregatedFillsCheckbox';
 
 const PerpsTransactionsView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -64,6 +69,7 @@ const PerpsTransactionsView: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
 
   const [activeFilter, setActiveFilter] = useState<FilterTab>('Trades');
+  const [aggregateFills, setAggregateFills] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [isFocusRefreshing, setIsFocusRefreshing] = useState(false);
 
@@ -75,6 +81,7 @@ const PerpsTransactionsView: React.FC = () => {
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
   const selectedAddress = evmAccount?.address;
   const currentChainId = useSelector(selectChainId);
+  const isTestnet = usePerpsNetwork() === 'testnet';
   const accountId = useMemo(() => {
     if (!selectedAddress || !currentChainId) {
       return undefined;
@@ -95,6 +102,7 @@ const PerpsTransactionsView: React.FC = () => {
   } = usePerpsTransactionHistory({
     skipInitialFetch: !isConnected,
     accountId,
+    aggregateFills,
   });
 
   // Helper function to group transactions by date
@@ -313,7 +321,7 @@ const PerpsTransactionsView: React.FC = () => {
 
   const handleTransactionPress = (transaction: PerpsTransaction) => {
     trackEvent(
-      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+      createEventBuilder(ACTIVITY_DETAIL_EVENTS.OPENED)
         .addProperties({
           transaction_type: `perps_${transaction.type}`,
           transaction_status:
@@ -326,26 +334,7 @@ const PerpsTransactionsView: React.FC = () => {
         .build(),
     );
 
-    switch (transaction.type) {
-      case 'trade':
-        navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
-          transaction,
-        });
-        break;
-      case 'order':
-        navigation.navigate(Routes.PERPS.ORDER_TRANSACTION, {
-          transaction,
-        });
-        break;
-      case 'funding':
-        navigation.navigate(Routes.PERPS.FUNDING_TRANSACTION, {
-          transaction,
-        });
-        break;
-      default:
-        // Unknown transaction type - do nothing
-        break;
-    }
+    navigateToPerpsTransactionDetails(navigation, transaction, isTestnet);
   };
 
   // Render right content based on transaction type
@@ -429,6 +418,27 @@ const PerpsTransactionsView: React.FC = () => {
 
   const filterTabs: FilterTab[] = ['Trades', 'Orders', 'Funding', 'Deposits'];
 
+  const renderFilterBar = () => (
+    <View style={styles.filterContainer} pointerEvents="box-none">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('flex-row items-center gap-2')}
+        pointerEvents="auto"
+        scrollEnabled
+      >
+        {filterTabs.map(renderFilterTab)}
+        {activeFilter === 'Trades' ? (
+          <PerpsAggregatedFillsCheckbox
+            isSelected={aggregateFills}
+            onChange={setAggregateFills}
+            testID={PerpsTransactionsViewSelectorsIDs.AGGREGATED_CHECKBOX}
+          />
+        ) : null}
+      </ScrollView>
+    </View>
+  );
+
   const filterTabDescription = useMemo(() => {
     if (activeFilter === 'Funding') {
       return strings('perps.transactions.tabs.funding_description');
@@ -474,17 +484,7 @@ const PerpsTransactionsView: React.FC = () => {
   if (isInitialLoading) {
     return (
       <View style={styles.container}>
-        <View style={styles.filterContainer} pointerEvents="box-none">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('flex-row gap-2')}
-            pointerEvents="auto"
-            scrollEnabled={false}
-          >
-            {filterTabs.map(renderFilterTab)}
-          </ScrollView>
-        </View>
+        {renderFilterBar()}
 
         {filterTabDescription && (
           <View style={styles.tabDescription}>
@@ -499,17 +499,7 @@ const PerpsTransactionsView: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.filterContainer} pointerEvents="box-none">
-        <ScrollView
-          horizontal
-          contentContainerStyle={tw.style('flex-row gap-2')}
-          showsHorizontalScrollIndicator={false}
-          pointerEvents="auto"
-          scrollEnabled
-        >
-          {filterTabs.map(renderFilterTab)}
-        </ScrollView>
-      </View>
+      {renderFilterBar()}
 
       {filterTabDescription && (
         <View style={styles.tabDescription}>

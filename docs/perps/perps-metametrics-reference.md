@@ -6,6 +6,17 @@ MetaMetrics uses **9 consolidated events** with discriminating properties (vs 38
 
 **Example:** `PERPS_SCREEN_VIEWED` with `screen_type: 'trading' | 'withdrawal' | ...` instead of 9 separate screen events.
 
+### Global properties (all Perps events)
+
+These are attached automatically — do not pass them manually unless overriding:
+
+| Property     | Values              | Source                                                                                                                        |
+| ------------ | ------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `timestamp`  | number (ms)         | `usePerpsEventTracking`                                                                                                       |
+| `perps_mode` | `'lite'` \| `'pro'` | Current Perps interface mode via `enrichWithPerpsMode` in `analytics.trackEvent` (all `Perp *` events + Perps `Asset Viewed`) |
+
+`perps_mode` is the Lite/Pro interface mode. It is intentionally separate from `mode` (`PERPS_EVENT_PROPERTY.MODE`), which search already uses for query intent (`'discovery'` \| `'intent'` \| `'browse'`).
+
 ## Three Tracking Approaches
 
 ### 1. `usePerpsEventTracking` Hook (Components)
@@ -74,7 +85,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Deposit screens:** `'deposit_input'` | `'deposit_review'`
   - **Market list screens:** `'market_list'` | `'market_list_all'` | `'market_list_crypto'` | `'market_list_stocks'`
   - **Position management:** `'close_all_positions'` | `'cancel_all_orders'` | `'increase_exposure'` | `'add_margin'` | `'remove_margin'`
-  - **Other screens:** `'pnl_hero_card'` | `'order_book'` | `'full_screen_chart'` | `'activity'` | `'geo_block_notif'` | `'compliance_block_notif'` | `'cancel_trade_with_token_toast'`
+  - **Other screens:** `'pnl_hero_card'` | `'order_book'` | `'full_screen_chart'` | `'activity'` | `'geo_block_notif'` | `'compliance_block_notif'` | `'cancel_trade_with_token_toast'` | `'mode_selection'`
 - `asset` (optional): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (optional): `'long' | 'short'`
 - `source` (optional): Where user came from
@@ -130,8 +141,12 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Hero card interactions:** `'display_hero_card'` | `'share_pnl_hero_card'`
   - **Pay-with interactions:** `'payment_token_selector'` | `'payment_method_changed'` | `'cancel_trade_with_token'`
   - **Slippage interactions:** `'slippage_config_opened'` | `'slippage_config_changed'` | `'slippage_limit_blocked_order'`
+  - **Chase interactions:** `'chase_backgrounded_converted'` | `'chase_terminated'` | `'chase_max_distance_hit'` | `'chase_concurrency_limit_hit'` | `'chase_reprice'`
   - **Discovery interactions:** `'related_market_clicked'`
   - **Market list filter:** `'market_list_filter'` — category badge or watchlist toggle tap in PerpsMarketListView _(`PERPS_EVENT_VALUE.INTERACTION_TYPE.MARKET_LIST_FILTER`)_
+  - **Mode selection:** `'mode_selection_dismissed'` — Lite/Pro chooser closed without selecting _(local constant `PERPS_MODE_SELECTION_DISMISSED`, pending addition to `PERPS_EVENT_VALUE`)_. Includes `source`, `entry`, and `time_on_screen_ms`. Selection itself uses `button_clicked` with `perps_mode`. Header toggles also use `button_clicked` with `perps_mode`, but only after the mode is actually applied (not when the chooser opens instead).
+  - **Chase Mobile-local coverage:** Mobile emits `chase_max_distance_hit` from the typed controller lifecycle event, `chase_concurrency_limit_hit` when the five-order banner first appears or a stale preflight/execution reaches the limit, and `chase_reprice` at each newly observed tenth cumulative reprice. The first observed reprice count is a baseline and is not backfilled. Successful user termination includes `fill_pct_at_terminate`, calculated from the last Mobile-observed `originalSize` and `remainingSize`; it is not an exact venue-time fill percentage.
+  - **Chase lifecycle limitations:** Controller v16 emits the correlated `reduce_only` property on every `Perp Trade Transaction` lifecycle event. Its typed tracking payload still exposes no correlated `chase_max_distance_bps`, so Mobile does not add an untyped property or attempt an out-of-band join that could misattribute concurrent orders. The max-distance notification also has no controller `notification_type`, so its local notification intentionally omits fabricated attribution.
 - `action` (optional): Specific action performed: `'connection_retry'` | `'connection_go_back'` | `'share'` | `'add_margin'` | `'remove_margin'` | `'edit_tp_sl'` | `'create_tp_sl'` | `'create_position'` | `'increase_exposure'` | `'flip_long_to_short'` | `'flip_short_to_long'`
 - `attempt_number` (optional): Retry attempt number when action is 'connection_retry' (number)
 - `action_type` (optional): `'start_trading'` | `'skip'` | `'stop_loss_set'` | `'take_profit_set'` | `'adl_learn_more'` | `'learn_more'` | `'favorite_market'` | `'unfavorite_market'` (Note: `favorite_market` = add to watchlist, `unfavorite_market` = remove from watchlist)
@@ -139,7 +154,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `direction` (optional): `'long' | 'short'`
 - `order_size` (optional): Size of the order in tokens (number)
 - `leverage_used` (optional): Leverage value being used (number)
-- `order_type` (optional): `'market' | 'limit'`
+- `order_type` (optional): `'market' | 'limit' | 'stop_market' | 'stop_limit' | 'take_profit_market' | 'take_profit_limit' | 'twap' | 'scale' | 'chase'`
 - `setting_type` (optional): Type of setting changed: `'leverage'` | `'slippage'`
 - `input_method` (optional): How value was entered: `'slider' | 'keyboard' | 'preset' | 'manual' | 'percentage_button'`
 - `candle_period` (optional): Selected candle period
@@ -182,7 +197,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `status` (required): `'submitted' | 'executed' | 'partially_filled' | 'failed'`
 - `asset` (required): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (required): `'long' | 'short'`
-- `order_type` (required): `'market' | 'limit'`
+- `order_type` (required): `'market' | 'limit' | 'stop_market' | 'stop_limit' | 'take_profit_market' | 'take_profit_limit' | 'twap' | 'scale' | 'chase'`
 - `leverage` (required): Leverage multiplier (number)
 - `order_size` (required for executed): Size of the order in tokens (number)
 - `asset_price` (required for executed): Price of the asset (number)
@@ -227,6 +242,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `amount_filled` (optional): Amount filled in partially filled orders (number)
 - `remaining_amount` (optional): Amount remaining in partially filled orders (number)
 - `error_message` (optional): Error description when status is 'failed'
+- `active_ab_tests` (optional): Canonical A/B test assignment array injected automatically via `app/util/analytics/abTestAnalyticsRegistry.ts` when a registered test is active. The shared screen vs bottom-sheet experiment (`perpsTAT3938AbtestScreenVsBottomSheet`) is registered on this conversion event only — see [`docs/perps/perps-ab-testing.md`](./perps-ab-testing.md)
 
 ### 5. PERPS_ORDER_CANCEL_TRANSACTION
 
@@ -357,15 +373,15 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 
 ### Canonical `active_ab_tests` Pattern
 
-Perps A/B tests (e.g., TAT-1937 button colors) follow the canonical MetaMask Mobile A/B testing standard (see [`docs/ab-testing.md`](../ab-testing.md)) rather than a Perps-local flat-property pattern. Each test is registered once in `app/util/analytics/abTestAnalyticsRegistry.ts` with the events it should be attached to; `active_ab_tests` is then injected automatically onto every matching event when the test is active — no manual per-event wiring is required in the view components.
+Perps A/B tests follow the canonical MetaMask Mobile A/B testing standard (see [`docs/ab-testing.md`](../ab-testing.md)) rather than a Perps-local flat-property pattern. Each test is registered once in `app/util/analytics/abTestAnalyticsRegistry.ts` with the events it should be attached to; `active_ab_tests` is then injected automatically onto every matching event when the test is active — no manual per-event wiring is required in the view components.
 
 To run multiple concurrent tests, register each test's mapping in the registry; `enrichWithABTests()` appends an entry per active test to the shared `active_ab_tests` array on any event that matches one of the registered `eventNames`.
 
+Register only the events needed to answer that test's question. Do not copy another test's event list.
+
 ### Where to Track AB Tests
 
-**✅ Track in both events:** Use dual tracking to enable engagement rate calculation.
-
-**Dual Tracking Approach:**
+**Button color (TAT-1937):** dual tracking on `PERPS_SCREEN_VIEWED` and `PERPS_UI_INTERACTION` so engagement rate can be calculated.
 
 1. **PERPS_SCREEN_VIEWED** (baseline exposure):
    - `active_ab_tests` is auto-injected when the test is active
@@ -376,16 +392,12 @@ To run multiple concurrent tests, register each test's mapping in the registry; 
    - `active_ab_tests` is auto-injected when the test is active and user taps Long/Short or Place Order button
    - Measures which variant drives more button presses
 
-**Why Both Events?**
+**Why both events for button color?**
 
 - **Engagement Rate** = Button presses / Screen views per variant
 - Answers: "Which button color makes users more likely to press the button?"
 
-**Example:** For TAT-1937 (button color test):
-
-- Screen views establish baseline (how many saw control vs monochrome)
-- Button presses measure engagement
-- Compare button presses to screen views for each variant
+**Screen vs bottom sheet (`perpsTAT3938AbtestScreenVsBottomSheet`):** conversion tracking only. Register `PERPS_POSITION_CLOSE_TRANSACTION` (and later each converted flow's transaction event). Do not attach this assignment to screen or interaction events. `Experiment Viewed` from `useABTest` is the exposure signal.
 
 For details, see [perps-ab-testing.md](./perps-ab-testing.md).
 
@@ -718,7 +730,7 @@ Section names used in impression events:
 2. **Track status** - Always include success/failure
 3. **Track duration** - Include `completion_duration` for transactions
 4. **Use properties** - Don't create new events for minor variations
-5. **Auto timestamp** - `usePerpsEventTracking` adds it automatically
+5. **Auto timestamp + Lite/Pro mode** - `usePerpsEventTracking` adds `timestamp`. `analytics.trackEvent` (`enrichWithPerpsMode`) adds `perps_mode: 'lite' | 'pro'` on every `Perp *` event and on companion Perps `Asset Viewed` emissions (`trade_type: 'Perps'`). Explicit caller `perps_mode` wins (e.g. mode toggle emits the selected next mode **after** the parent confirms the switch applied — chooser-gated toggles return `false` and skip toggle analytics; the chooser emits its own selection/dismiss events). Search intent continues to use `mode` (`discovery` | `intent` | `browse`) for backwards compatibility.
 6. **AB test tracking** - Only in screen view events, not every interaction
 7. **Entry point tracking** - Include `button_clicked` and `button_location` to track user navigation flows
 8. **Source = current screen** - The `source` property must always identify the screen the user is currently on, never a screen from earlier in the navigation chain. If the user navigates A → B → action C, the source for C must be B, not A.
@@ -736,6 +748,7 @@ Section names used in impression events:
 ## Related Files
 
 - **Event Tracking Hook**: `app/components/UI/Perps/hooks/usePerpsEventTracking.ts`
+- **Lite/Pro mode enrichment**: `app/util/analytics/enrichWithPerpsMode.ts`, `app/components/UI/Perps/utils/perpsModeAnalytics.ts` (`getPerpsModeAnalyticsProperties`)
 - **Events**: `app/core/Analytics/MetaMetrics.events.ts`
 - **Properties & Values**: Exported from `@metamask/perps-controller` as `PERPS_EVENT_PROPERTY`, `PERPS_EVENT_VALUE` (source: `packages/perps-controller/src/constants/eventNames.ts` in the [MetaMask/core](https://github.com/MetaMask/core) monorepo)
 - **Metrics Adapter**: `app/components/UI/Perps/adapters/mobileInfrastructure.ts` (maps `trackPerpsEvent` to MetaMetrics)

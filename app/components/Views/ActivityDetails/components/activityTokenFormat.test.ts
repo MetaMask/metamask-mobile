@@ -1,66 +1,102 @@
-import { formatActivityTokenAmount } from './activityTokenFormat';
+import { renderHook } from '@testing-library/react-native';
+import { useFormatActivityTokenAmount } from './activityTokenFormat';
 import { strings } from '../../../../../locales/i18n';
 import type { TokenAmount } from '../../../../util/activity-adapters';
 
-describe('formatActivityTokenAmount', () => {
+const formatToken = (
+  token: TokenAmount | undefined,
+  options?: { showPlus?: boolean; signZero?: boolean },
+) => {
+  const { result } = renderHook(() => useFormatActivityTokenAmount());
+  return result.current(token, options);
+};
+
+describe('useFormatActivityTokenAmount', () => {
   it('returns undefined when there is no token', () => {
-    expect(formatActivityTokenAmount(undefined)).toBeUndefined();
+    expect(formatToken(undefined)).toBeUndefined();
   });
 
   it('renders unlimited approvals', () => {
     expect(
-      formatActivityTokenAmount({
-        isUnlimitedApproval: true,
+      formatToken({
+        amount:
+          '115792089237316195423570985008687907853269984665640564039457584007913129639935',
         symbol: 'USDC',
         direction: 'out',
       } as TokenAmount),
     ).toBe(strings('confirm.unlimited'));
   });
 
-  it('falls back to the symbol when there is no amount', () => {
+  it('treats a missing amount with symbol as zero', () => {
     expect(
-      formatActivityTokenAmount({
+      formatToken({
         symbol: 'ETH',
         direction: 'out',
       } as TokenAmount),
-    ).toBe('ETH');
+    ).toBe('-0 ETH');
+  });
+
+  it.each(['out', 'in'] as const)(
+    'leaves a zero %s amount unsigned when signZero is off',
+    (direction) => {
+      expect(
+        formatToken(
+          { amount: '0', decimals: 18, symbol: 'ETH', direction },
+          { signZero: false },
+        ),
+      ).toBe('0 ETH');
+    },
+  );
+
+  it('still signs a non-zero amount when signZero is off', () => {
+    expect(
+      formatToken(
+        {
+          amount: '100000000000000000',
+          decimals: 18,
+          symbol: 'ETH',
+          direction: 'out',
+        },
+        { signZero: false },
+      ),
+    ).toBe('-0.1 ETH');
   });
 
   it('prefixes outgoing amounts with a minus sign', () => {
-    const result = formatActivityTokenAmount({
-      amount: '1714557',
-      decimals: 6,
-      symbol: 'USDC',
-      direction: 'out',
-    } as TokenAmount);
-
-    expect(result).toBe('-1.7146 USDC');
+    expect(
+      formatToken({
+        amount: '1714557',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: 'out',
+      } as TokenAmount),
+    ).toBe('-1.7146 USDC');
   });
 
   it('prefixes incoming amounts with a plus sign by default', () => {
-    const result = formatActivityTokenAmount({
-      amount: '745596683158496',
-      decimals: 18,
-      symbol: 'ETH',
-      direction: 'in',
-    } as TokenAmount);
-
-    expect(result).toBe('+0.0007456 ETH');
+    expect(
+      formatToken({
+        amount: '745596683158496',
+        decimals: 18,
+        symbol: 'ETH',
+        direction: 'in',
+      } as TokenAmount),
+    ).toBe('+0.0007456 ETH');
   });
 
   it('shows non-zero incoming amounts that round to zero as less than the minimum display quantity', () => {
-    const result = formatActivityTokenAmount({
-      amount: '1000000000000',
-      decimals: 18,
-      symbol: 'ETH',
-      direction: 'in',
-    } as TokenAmount);
-
-    expect(result).toBe('+<0.00001 ETH');
+    expect(
+      formatToken({
+        amount: '1000000000000',
+        decimals: 18,
+        symbol: 'ETH',
+        direction: 'in',
+      } as TokenAmount),
+    ).toBe('+<0.00001 ETH');
   });
 
   it('omits the plus sign when showPlus is false', () => {
-    const result = formatActivityTokenAmount(
+    const result = formatToken(
       {
         amount: '1000000',
         decimals: 6,
@@ -73,5 +109,25 @@ describe('formatActivityTokenAmount', () => {
     expect(result?.startsWith('+')).toBe(false);
     expect(result?.startsWith('-')).toBe(false);
     expect(result?.endsWith(' USDC')).toBe(true);
+  });
+
+  it('omits the trailing separator when the token has no symbol', () => {
+    expect(
+      formatToken({
+        amount: '1000000',
+        decimals: 6,
+        direction: 'in',
+      } as TokenAmount),
+    ).toBe('+1');
+  });
+
+  it('renders a non-numeric amount verbatim instead of a bare sign', () => {
+    expect(
+      formatToken({
+        amount: '1,714.55',
+        symbol: 'USDC',
+        direction: 'out',
+      } as TokenAmount),
+    ).toBe('-1,714.55 USDC');
   });
 });

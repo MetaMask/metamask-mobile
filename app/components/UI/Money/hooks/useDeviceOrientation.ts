@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import {
   accelerometer,
   SensorTypes,
@@ -150,13 +151,24 @@ interface UseDeviceOrientationOptions {
  * shaped so hand tremor does not register. Unlike integrating the gyroscope,
  * this is drift-free.
  *
- * @param onOrientation - receives (x, y) roll/pitch in the [-1, 1] range.
+ * @param onOrientation - receives (x, y) roll/pitch in the [-1, 1] range, plus
+ * the rate the sensor is being sampled at. The rate is reported rather than
+ * exposed as a getter because resolving it costs a `getTotalMemorySync` call,
+ * which this hook deliberately avoids making while disabled; a consumer that
+ * smooths across samples needs it to express its filter in wall-clock terms.
  */
 export function useDeviceOrientation(
-  onOrientation: (x: number, y: number) => void,
+  onOrientation: (x: number, y: number, hz: number) => void,
   options?: UseDeviceOrientationOptions,
 ): void {
-  const enabled = options?.enabled ?? true;
+  // Screens hosting a tilt surface sit in native stacks, and the Money sheets
+  // are presented as transparent modals over them, so a screen stays mounted
+  // while something else is on top of it. Sampling the accelerometer to drive
+  // an artboard nobody can see costs the same as driving a visible one, so the
+  // gate belongs here rather than at each call site, where it would eventually
+  // be forgotten.
+  const isFocused = useIsFocused();
+  const enabled = (options?.enabled ?? true) && isFocused;
   const onOrientationRef = useRef(onOrientation);
   const smoothed = useRef({ x: 0, y: 0 });
   const neutralPitch = useRef<number | null>(null);
@@ -200,6 +212,7 @@ export function useDeviceOrientation(
         onOrientationRef.current(
           applyResponseCurve(smoothed.current.x),
           applyResponseCurve(smoothed.current.y),
+          hz,
         );
       },
       error: () => undefined,

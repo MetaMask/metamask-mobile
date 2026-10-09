@@ -2,6 +2,7 @@ export {
   useWhatsHappening,
   isWhatsHappeningSectionVisible,
 } from './useWhatsHappening';
+export { useWhatsHappeningLoadTrace } from './useWhatsHappeningLoadTrace';
 export type {
   UseWhatsHappeningResult,
   UseWhatsHappeningOptions,

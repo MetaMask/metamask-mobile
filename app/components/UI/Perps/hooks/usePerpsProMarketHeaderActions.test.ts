@@ -9,6 +9,8 @@ import { usePerpsProMarketHeaderActions } from './usePerpsProMarketHeaderActions
 
 const mockNavigateBack = jest.fn();
 const mockNavigateToWallet = jest.fn();
+const mockNavigateToHome = jest.fn();
+const mockResetToHome = jest.fn();
 const mockNavigateToMarketList = jest.fn();
 const mockNavigateToMarketListFromHeader = jest.fn();
 let mockCanGoBack = true;
@@ -17,6 +19,8 @@ jest.mock('./usePerpsNavigation', () => ({
   usePerpsNavigation: jest.fn(() => ({
     navigateBack: mockNavigateBack,
     navigateToWallet: mockNavigateToWallet,
+    navigateToHome: mockNavigateToHome,
+    resetToHome: mockResetToHome,
     navigateToMarketList: mockNavigateToMarketList,
     navigateToMarketListFromHeader: mockNavigateToMarketListFromHeader,
     get canGoBack() {
@@ -26,10 +30,12 @@ jest.mock('./usePerpsNavigation', () => ({
 }));
 
 const mockSetPerpsMode = jest.fn();
-const mockPerpsModeValue = PerpsMode.Pro;
+let mockPerpsModeValue = PerpsMode.Pro;
 jest.mock('./usePerpsMode', () => ({
   usePerpsMode: jest.fn(() => ({
-    mode: mockPerpsModeValue,
+    get mode() {
+      return mockPerpsModeValue;
+    },
     setMode: mockSetPerpsMode,
   })),
 }));
@@ -48,9 +54,50 @@ jest.mock('./usePerpsWatchlistActions', () => ({
   })),
 }));
 
-const mockShowPerpsModeFlash = jest.fn();
-jest.mock('../utils/perpsModeFlash', () => ({
-  showPerpsModeFlash: (...args: unknown[]) => mockShowPerpsModeFlash(...args),
+const mockDropPerpsHomeFromStackHistory = jest.fn();
+jest.mock('../utils/perpsModeSwitch', () => ({
+  ...jest.requireActual('../utils/perpsModeSwitch'),
+  useDropPerpsHomeFromStackHistory: () => mockDropPerpsHomeFromStackHistory,
+}));
+
+const mockNavigate = jest.fn();
+interface BeforeRemoveEvent {
+  preventDefault: () => void;
+  data: { action: { type: string } };
+}
+const mockAddListener = jest.fn(
+  (_event: string, _listener?: (event: BeforeRemoveEvent) => void) => jest.fn(),
+);
+// Index within the Perps stack itself: 0 means this screen is the only entry,
+// so there is nothing to pop without leaving Perps.
+let mockPerpsStackIndex = 1;
+let mockHomeDroppedFromHistory = false;
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    addListener: mockAddListener,
+    getState: () => ({
+      index: mockPerpsStackIndex,
+      routes: [
+        {
+          name: 'PerpsMarketDetails',
+          key: 'market-1',
+          params: mockHomeDroppedFromHistory
+            ? { homeDroppedFromHistory: true }
+            : {},
+        },
+      ],
+    }),
+  }),
+}));
+
+const mockOpenPerpsModeSelectionIfNeeded = jest.fn(() =>
+  Promise.resolve(false),
+);
+jest.mock('../utils/openPerpsModeSelection', () => ({
+  openPerpsModeSelectionIfNeeded: (...args: unknown[]) =>
+    mockOpenPerpsModeSelectionIfNeeded(...(args as [])),
 }));
 
 let mockIsWatchlist = false;
@@ -60,10 +107,26 @@ jest.mock('react-redux', () => ({
 }));
 
 describe('usePerpsProMarketHeaderActions', () => {
+  const fireBeforeRemove = (type: string) => {
+    const listener = mockAddListener.mock.calls.find(
+      (call) => call[0] === 'beforeRemove',
+    )?.[1];
+    const event: BeforeRemoveEvent = {
+      preventDefault: jest.fn(),
+      data: { action: { type } },
+    };
+    listener?.(event);
+    return event;
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack = true;
+    mockPerpsStackIndex = 1;
+    mockHomeDroppedFromHistory = false;
     mockIsWatchlist = false;
+    mockPerpsModeValue = PerpsMode.Pro;
+    mockOpenPerpsModeSelectionIfNeeded.mockResolvedValue(false);
   });
 
   it('navigates back when the stack can go back', () => {
@@ -79,6 +142,75 @@ describe('usePerpsProMarketHeaderActions', () => {
     expect(mockNavigateToWallet).not.toHaveBeenCalled();
   });
 
+  it('pops the parent stack when Perps was opened as a single entry from outside Perps', () => {
+    // Arrange - Explore (and homepage/activity) push PERPS.ROOT onto a
+    // market page with no Perps Home beneath it. Parent canGoBack is true
+    // and Home was never dropped, so back must return to that screen.
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC', backFallback: 'home' }),
+    );
+
+    act(() => {
+      result.current.handleBackPress();
+    });
+
+    expect(mockNavigateBack).toHaveBeenCalledTimes(1);
+    expect(mockResetToHome).not.toHaveBeenCalled();
+    expect(mockNavigateToWallet).not.toHaveBeenCalled();
+  });
+
+  it('returns to Perps Home when Home was dropped from history and the fallback is home', () => {
+    // Arrange - the Lite -> Pro switch dropped Perps Home, so this market page
+    // is the only Perps route left, while a parent navigator still reports it
+    // can go back (TAT-3786). The dropped-Home stamp is what stops us from
+    // treating this like an Explore entry and popping out to wallet.
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+    mockHomeDroppedFromHistory = true;
+
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC', backFallback: 'home' }),
+    );
+
+    // Act
+    act(() => {
+      result.current.handleBackPress();
+    });
+
+    // Assert
+    expect(mockResetToHome).toHaveBeenCalledWith(
+      PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    );
+    expect(mockNavigateToHome).not.toHaveBeenCalled();
+    expect(mockNavigateBack).not.toHaveBeenCalled();
+    expect(mockNavigateToWallet).not.toHaveBeenCalled();
+  });
+
+  it('leaves Perps when Home was dropped from history and the fallback is wallet', () => {
+    // Arrange - Pro's stack root is itself a market page after Home was
+    // dropped, so falling back to Perps Home would be a no-op.
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+    mockHomeDroppedFromHistory = true;
+
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
+    );
+
+    // Act
+    act(() => {
+      result.current.handleBackPress();
+    });
+
+    // Assert
+    expect(mockNavigateToWallet).toHaveBeenCalledTimes(1);
+    expect(mockNavigateBack).not.toHaveBeenCalled();
+    expect(mockResetToHome).not.toHaveBeenCalled();
+  });
+
   it('falls back to leaving Perps when the stack cannot go back', () => {
     mockCanGoBack = false;
     const { result } = renderHook(() =>
@@ -91,6 +223,87 @@ describe('usePerpsProMarketHeaderActions', () => {
 
     expect(mockNavigateToWallet).toHaveBeenCalledTimes(1);
     expect(mockNavigateBack).not.toHaveBeenCalled();
+    expect(mockResetToHome).not.toHaveBeenCalled();
+  });
+
+  it('falls back to Perps Home when backFallback is home and the stack cannot go back', () => {
+    mockCanGoBack = false;
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({
+        symbol: 'BTC',
+        backFallback: 'home',
+      }),
+    );
+
+    act(() => {
+      result.current.handleBackPress();
+    });
+
+    expect(mockResetToHome).toHaveBeenCalledWith(
+      PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    );
+    expect(mockNavigateToHome).not.toHaveBeenCalled();
+    expect(mockNavigateToWallet).not.toHaveBeenCalled();
+    expect(mockNavigateBack).not.toHaveBeenCalled();
+  });
+
+  it('intercepts GO_BACK after Home was dropped and uses the home fallback', () => {
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+    mockHomeDroppedFromHistory = true;
+
+    renderHook(() =>
+      usePerpsProMarketHeaderActions({
+        symbol: 'BTC',
+        backFallback: 'home',
+      }),
+    );
+
+    const event = fireBeforeRemove('GO_BACK');
+
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(mockResetToHome).toHaveBeenCalledWith(
+      PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    );
+    expect(mockNavigateToHome).not.toHaveBeenCalled();
+    expect(mockNavigateBack).not.toHaveBeenCalled();
+  });
+
+  it('lets a parent-aware POP through when Home was not dropped', () => {
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+    mockHomeDroppedFromHistory = false;
+
+    renderHook(() =>
+      usePerpsProMarketHeaderActions({
+        symbol: 'BTC',
+        backFallback: 'home',
+      }),
+    );
+
+    const event = fireBeforeRemove('POP');
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(mockResetToHome).not.toHaveBeenCalled();
+    expect(mockNavigateToWallet).not.toHaveBeenCalled();
+  });
+
+  it('does not intercept NAVIGATE when Home was dropped', () => {
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+    mockHomeDroppedFromHistory = true;
+
+    renderHook(() =>
+      usePerpsProMarketHeaderActions({
+        symbol: 'BTC',
+        backFallback: 'home',
+      }),
+    );
+
+    const event = fireBeforeRemove('NAVIGATE');
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(mockResetToHome).not.toHaveBeenCalled();
   });
 
   it('opens the market list and tracks the identity press', () => {
@@ -104,6 +317,7 @@ describe('usePerpsProMarketHeaderActions', () => {
 
     expect(mockNavigateToMarketListFromHeader).toHaveBeenCalledWith({
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      enableHaptics: true,
     });
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.PERPS_UI_INTERACTION,
@@ -113,6 +327,23 @@ describe('usePerpsProMarketHeaderActions', () => {
         [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
       }),
     );
+  });
+
+  it('omits market-list selection haptics when the header is in Lite mode', () => {
+    mockPerpsModeValue = PerpsMode.Lite;
+
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
+    );
+
+    act(() => {
+      result.current.handleMarketListPress();
+    });
+
+    expect(mockNavigateToMarketListFromHeader).toHaveBeenCalledWith({
+      source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      enableHaptics: false,
+    });
   });
 
   it('no-ops market list press when symbol is missing', () => {
@@ -169,17 +400,55 @@ describe('usePerpsProMarketHeaderActions', () => {
     expect(mockRemoveFromWatchlist).not.toHaveBeenCalled();
   });
 
-  it('switches mode and flashes the mode transition', () => {
+  it('switches mode directly when the chooser is already completed', async () => {
     const { result } = renderHook(() =>
       usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
     );
 
-    act(() => {
-      result.current.handlePerpsModeChange(PerpsMode.Lite);
+    let applied: boolean | void = false;
+    await act(async () => {
+      applied = await result.current.handlePerpsModeChange(PerpsMode.Lite);
     });
 
+    expect(applied).toBe(true);
     expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Lite);
-    expect(mockShowPerpsModeFlash).toHaveBeenCalledWith(PerpsMode.Lite);
+    expect(mockDropPerpsHomeFromStackHistory).not.toHaveBeenCalled();
+  });
+
+  it('drops Perps Home from history when switching to Pro', async () => {
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
+    );
+
+    await act(async () => {
+      result.current.handlePerpsModeChange(PerpsMode.Pro);
+    });
+
+    expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Pro);
+    expect(mockDropPerpsHomeFromStackHistory).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the mode chooser instead of switching when it has not been completed', async () => {
+    mockOpenPerpsModeSelectionIfNeeded.mockResolvedValue(true);
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
+    );
+
+    let applied: boolean | void = true;
+    await act(async () => {
+      applied = await result.current.handlePerpsModeChange(PerpsMode.Lite);
+    });
+
+    expect(applied).toBe(false);
+    expect(mockOpenPerpsModeSelectionIfNeeded).toHaveBeenCalledWith(
+      expect.anything(),
+      {
+        entry: 'market',
+        source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      },
+    );
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
+    expect(mockDropPerpsHomeFromStackHistory).not.toHaveBeenCalled();
   });
 
   it('exposes the current mode and watchlist state', () => {

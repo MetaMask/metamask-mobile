@@ -83,10 +83,12 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
   );
 
   useEffect(() => {
-    if (data.length > 0 && Number.isFinite(value)) {
+    if (connectionError || data.length === 0) {
+      onCurrentPriceChange?.(undefined);
+    } else if (data.length > 0 && Number.isFinite(value)) {
       onCurrentPriceChange?.(value);
     }
-  }, [data.length, onCurrentPriceChange, value]);
+  }, [connectionError, data.length, onCurrentPriceChange, value]);
 
   return (
     <Box

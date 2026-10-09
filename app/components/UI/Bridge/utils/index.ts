@@ -7,7 +7,6 @@ import {
   formatAddressToAssetId,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
-import { ImageSourcePropType } from 'react-native';
 import imageIcons from '../../../../images/image-icons';
 import parseAmount from '../../../../util/parseAmount';
 
@@ -51,26 +50,29 @@ export const getTokenIconUrl = (
     .join('/')}.png`;
 };
 
+/** A locally-bundled image (number) or a remote image source. */
+export type TokenIconSource = number | { uri: string };
+
 /**
  * Returns the proper image source for a token, prioritizing local icons from imageIcons
  * over remote URLs. This ensures consistent branding for tokens like TRX, ETH, SOL, etc.
  *
  * @param symbol - The token symbol (e.g., 'TRX', 'ETH', 'SOL')
  * @param imageUrl - The remote image URL (fallback if no local icon exists)
- * @returns ImageSourcePropType - Either a local require() result or { uri: string }
+ * @returns A local require() result, `{ uri }`, or undefined
  */
 export const getTokenImageSource = (
   symbol: string | undefined,
   imageUrl: string | undefined,
   address?: string,
   chainId?: Hex | CaipChainId,
-): ImageSourcePropType | undefined => {
+): TokenIconSource | undefined => {
   // Check if we have a local icon for this symbol
   if (symbol && Object.keys(imageIcons).includes(symbol)) {
     const imageIcon = imageIcons[symbol as keyof typeof imageIcons];
     // Only return if it's a valid image source (not a function/SVG component or string)
     if (typeof imageIcon !== 'function' && typeof imageIcon !== 'string') {
-      return imageIcon as ImageSourcePropType;
+      return imageIcon as TokenIconSource;
     }
   }
 

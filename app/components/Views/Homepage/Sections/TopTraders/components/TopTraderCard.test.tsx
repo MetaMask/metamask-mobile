@@ -16,6 +16,7 @@ const baseTrader: TopTrader = {
   pnlValue: 963146.8,
   winRatePercent: 92,
   pnlPerChain: { base: 963146.8 },
+  followerCount: 48707,
   isFollowing: false,
 };
 

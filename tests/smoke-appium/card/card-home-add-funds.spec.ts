@@ -46,8 +46,17 @@ appiumTest.describe(SmokeMoney('CardHome - Add Funds'), () => {
           await Assertions.expectElementToBeVisible(
             WalletView.navbarCardButton,
           );
-          await WalletView.tapNavbarCardButton();
-          await Assertions.expectElementToBeVisible(CardHomeView.cardViewTitle);
+          // Open until Add Funds is visible; re-tap navbar only if still on wallet.
+          await CardHomeView.openFromWallet(() =>
+            WalletView.tapNavbarCardButton(),
+          );
+          await Assertions.expectElementToBeVisible(
+            CardHomeView.cardViewTitle,
+            {
+              timeout: 30000,
+              elemDescription: 'Card Home view title',
+            },
+          );
           await CardHomeView.tapAddFundsButton();
           await Assertions.expectElementToBeVisible(
             CardHomeView.addFundsBottomSheetDepositOption,

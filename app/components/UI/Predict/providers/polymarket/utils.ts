@@ -39,6 +39,7 @@ import {
   getSportsMarketTeamLogo,
   resolveNegRiskMoneylineShortTitles,
 } from './sportsUtils';
+import { fetchWithTimeout } from './fetchWithTimeout';
 import type {
   GetMarketsParams,
   OrderPreview,
@@ -46,6 +47,7 @@ import type {
   PredictFilterOption,
   PredictFilterOptionsParams,
   PredictMarketListParams,
+  PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   SearchMarketsParams,
 } from '../types';
@@ -86,7 +88,10 @@ import {
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../../constants/flags';
 import { PredictFeeCollection } from '../../types/flags';
-import { roundToFiveDecimals } from '../../utils/orders';
+import {
+  getPredictBuyAllInCost,
+  roundToFiveDecimals,
+} from '../../utils/orders';
 import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
 import {
   buildOutcomeGroups,
@@ -94,7 +99,6 @@ import {
   normalizeEnabledSportsMarketTypes,
   sortGameMarkets,
 } from './outcomeGrouping';
-
 export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
 export { buildOutcomeGroups, sortGameMarkets } from './outcomeGrouping';
 
@@ -131,7 +135,8 @@ export const getPolymarketEndpoints = () => ({
   CLOB_ENDPOINT: DEFAULT_CLOB_BASE_URL,
   DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
   CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
-  CHAINLINK_CANDLES_ENDPOINT: 'https://polymarket.com/api/chainlink-candles',
+  CRYPTO_PRICE_HISTORY_ENDPOINT:
+    'https://polymarket.com/api/crypto/price-history',
   GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
   HOMEPAGE_CAROUSEL_ENDPOINT: 'https://polymarket.com/api/homepage/carousel',
   CLOB_RELAYER:
@@ -349,7 +354,7 @@ export const deriveApiKey = async ({
     clobVersion,
     clobBaseUrl,
   })}/auth/derive-api-key`;
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     method: 'GET',
     headers,
   });
@@ -371,7 +376,7 @@ export const createApiKey = async ({
 }) => {
   const headers = await getL1Headers({ address });
   const url = `${getClobEndpoint({ clobVersion, clobBaseUrl })}/auth/api-key`;
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     method: 'POST',
     headers,
     body: '',
@@ -403,9 +408,12 @@ export const getClobMarketInfo = async ({
     return cachedMarketInfo;
   }
 
-  const response = await fetch(`${clobEndpoint}/clob-markets/${conditionId}`, {
-    method: 'GET',
-  });
+  const response = await fetchWithTimeout(
+    `${clobEndpoint}/clob-markets/${conditionId}`,
+    {
+      method: 'GET',
+    },
+  );
 
   if (!response.ok) {
     throw new Error('Failed to get CLOB market info');
@@ -639,7 +647,7 @@ export const getOrderBook = async ({
   clobVersion?: 'v1' | 'v2';
   clobBaseUrl?: string;
 }) => {
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `${getClobEndpoint({ clobVersion, clobBaseUrl })}/book?token_id=${tokenId}`,
     {
       method: 'GET',
@@ -978,6 +986,19 @@ const parseEventPriceToBeat = (
     : undefined;
 };
 
+const parseTwapWindowSeconds = (
+  markets: PolymarketApiMarket[],
+): 30 | 60 | undefined => {
+  const config = markets.find(
+    (market) => market.cryptoMarketConfig?.twapEnabled === true,
+  )?.cryptoMarketConfig;
+  const windowSeconds = config?.twapLookbackSeconds;
+
+  return windowSeconds === 30 || windowSeconds === 60
+    ? windowSeconds
+    : undefined;
+};
+
 export const parsePolymarketMarket = (
   market: PolymarketApiMarket,
   event: PolymarketApiEvent,
@@ -1012,6 +1033,31 @@ export type PolymarketTeamLookupFn = (
   league: PredictSportsLeague,
   abbreviation: string,
 ) => PolymarketApiTeam | undefined;
+
+const PROTOCOL_V2_MARKET_VERSION = 'v2';
+
+function isProtocolV2Market(market?: PolymarketApiMarket): boolean {
+  return market?.version === PROTOCOL_V2_MARKET_VERSION;
+}
+
+function isVisiblePolymarketMarket(market: PolymarketApiMarket): boolean {
+  if (market?.active === false) {
+    return false;
+  }
+
+  return !isProtocolV2Market(market);
+}
+
+function isUnsupportedProtocolEvent(
+  event: PolymarketApiEvent,
+  visibleMarkets: PolymarketApiMarket[],
+): boolean {
+  if (visibleMarkets.length > 0) {
+    return false;
+  }
+
+  return event.markets?.some(isProtocolV2Market) === true;
+}
 
 export interface ParsePolymarketEventsOptions {
   category: PredictCategory;
@@ -1060,7 +1106,11 @@ export const parsePolymarketEvents = (
         event,
         sortBy,
         isGameEvent: !!game,
-      }).filter((market: PolymarketApiMarket) => market?.active !== false);
+      }).filter(isVisiblePolymarketMarket);
+
+      if (isUnsupportedProtocolEvent(event, markets)) {
+        return [];
+      }
 
       // As per Polymarket's team, we should use the first market's description
       // rather than the event's description. The event's description is not
@@ -1102,6 +1152,7 @@ export const parsePolymarketEvents = (
           : undefined;
 
       const priceToBeat = parseEventPriceToBeat(event);
+      const twapWindowSeconds = parseTwapWindowSeconds(markets);
 
       return [
         {
@@ -1125,6 +1176,7 @@ export const parsePolymarketEvents = (
           volume: event.volume,
           game,
           ...(priceToBeat !== undefined && { priceToBeat }),
+          ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
           ...(seriesData && { series: seriesData }),
           ...(event.parentEventId !== undefined && {
             parentMarketId: event.parentEventId,
@@ -1274,7 +1326,7 @@ const fetchKeysetEvents = async (
   errorMessage: string,
   malformedMessage = 'Malformed keyset events response',
 ): Promise<PolymarketApiEventsKeysetResponse> => {
-  const response = await fetch(endpoint);
+  const response = await fetchWithTimeout(endpoint);
 
   if (!response.ok) {
     throw new Error(errorMessage);
@@ -1628,7 +1680,7 @@ export const fetchRelatedTagsFromPolymarketApi = async (
 
   DevLogger.log('Fetching related tags via Polymarket API:', endpoint);
 
-  const response = await fetch(endpoint);
+  const response = await fetchWithTimeout(endpoint);
 
   if (!response.ok) {
     throw new Error('Failed to fetch related tags');
@@ -1735,7 +1787,7 @@ export const searchEventsFromPolymarketApi = async ({
   });
 
   const endpoint = `${GAMMA_API_ENDPOINT}/public-search?${queryParams.toString()}`;
-  const response = await fetch(endpoint);
+  const response = await fetchWithTimeout(endpoint);
 
   if (!response.ok) {
     throw new Error('Failed to search markets');
@@ -1762,7 +1814,7 @@ export const fetchCarouselFromPolymarketApi = async (): Promise<
 
   DevLogger.log('Fetching carousel data from:', HOMEPAGE_CAROUSEL_ENDPOINT);
 
-  const response = await fetch(HOMEPAGE_CAROUSEL_ENDPOINT);
+  const response = await fetchWithTimeout(HOMEPAGE_CAROUSEL_ENDPOINT);
   if (!response.ok) {
     throw new Error('Failed to fetch carousel data');
   }
@@ -1799,7 +1851,9 @@ export const getMarketDetailsFromGammaApi = async ({
   marketId: string;
 }): Promise<PolymarketApiEvent> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
-  const response = await fetch(`${GAMMA_API_ENDPOINT}/events/${marketId}`);
+  const response = await fetchWithTimeout(
+    `${GAMMA_API_ENDPOINT}/events/${marketId}`,
+  );
 
   if (!response.ok) {
     throw new Error('Failed to get market details');
@@ -1852,18 +1906,42 @@ export const mergeChildEventsIntoParent = (
   };
 };
 
+/**
+ * Per-share prices Polymarket's UMA adapter settles a market at: 1 for the
+ * winning outcome, 0 for a loser, 0.5 for each side of a 50/50 push. Any other
+ * `curPrice` on a `redeemable` position is a stale last-traded price.
+ */
+const SETTLED_PAYOUT_PRICES: readonly number[] = [0.5, 1];
+
+/**
+ * Polymarket marks every position in a resolved market `redeemable`, losers
+ * included (they redeem for nothing), and flips that flag before it re-pins
+ * `curPrice` to the payout. For a few minutes a loser can still carry its last
+ * traded price (0.0005 and 0.005 observed in the wild) and a small positive
+ * `currentValue`. P&L decides WON. Below break-even, only a settled payout
+ * price proves there is something to claim: that makes a push bought above
+ * 50c REDEEMABLE rather than LOST without handing a claim CTA to a loser whose
+ * price has not settled yet.
+ */
 export const getPredictPositionStatus = ({
   claimable,
   cashPnl,
+  currentValue,
+  curPrice,
 }: {
   claimable: boolean;
   cashPnl: number;
+  currentValue: number;
+  curPrice: number;
 }) => {
   if (!claimable) {
     return PredictPositionStatus.OPEN;
   }
   if (cashPnl > 0) {
     return PredictPositionStatus.WON;
+  }
+  if (currentValue > 0 && SETTLED_PAYOUT_PRICES.includes(curPrice)) {
+    return PredictPositionStatus.REDEEMABLE;
   }
   return PredictPositionStatus.LOST;
 };
@@ -1928,6 +2006,8 @@ export const parsePolymarketPositions = async ({
       status: getPredictPositionStatus({
         claimable: position.redeemable,
         cashPnl: position.cashPnl,
+        currentValue: position.currentValue,
+        curPrice: position.curPrice,
       }),
       realizedPnl: position.realizedPnl,
       percentPnl: position.percentPnl,
@@ -2231,7 +2311,7 @@ export const getMarketPositions = async ({
   address: string;
 }) => {
   const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `${DATA_API_ENDPOINT}/positions?eventId=${marketId}&user=${address}`,
   );
   if (!response.ok) {
@@ -2295,9 +2375,9 @@ const matchBuyOrder = ({
 }: {
   asks: OrderSummary[];
   dollarAmount: number;
-}): { price: number; size: number } => {
+}): { price: number; size: number } | null => {
   if (!asks.length) {
-    throw new Error('no order match');
+    return null;
   }
 
   const sharePrice = parseFloat(asks[asks.length - 1].price);
@@ -2309,9 +2389,12 @@ const matchBuyOrder = ({
     const e = asks[i];
     const entrySize = parseFloat(e.size);
     const entryPrice = parseFloat(e.price);
+    if (!Number.isFinite(entrySize) || !Number.isFinite(entryPrice)) {
+      continue;
+    }
     const entryValue = entrySize * entryPrice;
 
-    if (sum + entryValue <= dollarAmount) {
+    if (sum + entryValue <= dollarAmount + Number.EPSILON) {
       quantity += entrySize;
       sum += entryValue;
     } else {
@@ -2322,15 +2405,25 @@ const matchBuyOrder = ({
     }
   }
 
-  if (sum === dollarAmount) {
+  if (Math.abs(sum - dollarAmount) < 1e-8) {
     return {
       price: sharePrice,
       size: quantity,
     };
   }
 
-  throw new Error('not enough shares to match user bet amount');
+  return null;
 };
+
+const getBuyLiquidity = (asks: OrderSummary[]): number =>
+  asks.reduce((total, ask) => {
+    const size = parseFloat(ask.size);
+    const price = parseFloat(ask.price);
+
+    return Number.isFinite(size) && Number.isFinite(price)
+      ? total + size * price
+      : total;
+  }, 0);
 
 const matchSellOrder = ({
   bids,
@@ -2511,6 +2604,34 @@ export const previewOrder = async (
     isV2,
     clobBaseUrl,
   } = params;
+
+  if (side === Side.BUY) {
+    const context = await getBuyPreviewContext({
+      marketId,
+      outcomeId,
+      outcomeTokenId,
+      feeCollection,
+      isV2,
+      clobBaseUrl,
+    });
+    if (!context) {
+      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY);
+    }
+
+    const preview = buildBuyPreviewFromContext({
+      marketId,
+      outcomeId,
+      outcomeTokenId,
+      size,
+      context,
+    });
+    if (!preview) {
+      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY);
+    }
+
+    return preview;
+  }
+
   const [book, feeRateBps, marketInfo] = await Promise.all([
     getOrderBook({
       tokenId: outcomeTokenId,
@@ -2531,54 +2652,6 @@ export const previewOrder = async (
     tickSize: book.tick_size,
   });
 
-  if (side === Side.BUY) {
-    const { asks } = book;
-    if (!asks || asks.length === 0) {
-      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY);
-    }
-    const { price: bestPrice, size: shareAmount } = matchBuyOrder({
-      asks,
-      dollarAmount: size,
-    });
-    const makerAmount = roundDown(size, roundConfig.size);
-    const takerAmount = roundOrderAmount({
-      amount: shareAmount,
-      decimals: roundConfig.amount,
-    });
-    const preview: OrderPreview = {
-      marketId,
-      outcomeId,
-      outcomeTokenId,
-      timestamp: new Date(book.timestamp).getTime(),
-      side: Side.BUY,
-      sharePrice: bestPrice,
-      maxAmountSpent: makerAmount,
-      minAmountReceived: takerAmount,
-      slippage: SLIPPAGE_BUY,
-      tickSize: parseFloat(tickSize),
-      minOrderSize: parseFloat(book.min_order_size),
-      negRisk: book.neg_risk,
-      feeRateBps,
-    };
-
-    const serviceFees = await calculateFees({
-      feeCollection,
-      marketId,
-      userBetAmount: makerAmount,
-    });
-    const marketFee = calculateConservativeBuyMarketFee({
-      preview,
-      marketInfo,
-    });
-
-    return {
-      ...preview,
-      fees: {
-        ...serviceFees,
-        marketFee,
-      },
-    };
-  }
   const { bids } = book;
   if (!bids || bids.length === 0) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_SELL);
@@ -2625,4 +2698,161 @@ export const previewOrder = async (
       marketFee,
     },
   };
+};
+
+interface BuyPreviewContext {
+  book: OrderBook;
+  marketInfo?: ClobMarketInfo;
+  serviceFeesPerDollar: PredictFees;
+}
+
+async function getBuyPreviewContext({
+  marketId,
+  outcomeId,
+  outcomeTokenId,
+  feeCollection,
+  isV2,
+  clobBaseUrl,
+}: Omit<PreviewMaxBuyOrderParams, 'availableBalance'> & {
+  feeCollection?: PredictFeeCollection;
+  isV2?: boolean;
+  clobBaseUrl?: string;
+}): Promise<BuyPreviewContext | null> {
+  const [book, marketInfo] = await Promise.all([
+    getOrderBook({
+      tokenId: outcomeTokenId,
+      clobVersion: isV2 ? 'v2' : 'v1',
+      clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+    }),
+    getClobMarketInfoSafe({
+      conditionId: outcomeId,
+      clobVersion: isV2 ? 'v2' : 'v1',
+      clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+    }),
+  ]);
+
+  if (!book) {
+    throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
+  }
+  if (!book.asks?.length) {
+    return null;
+  }
+
+  const serviceFeesPerDollar = await calculateFees({
+    feeCollection,
+    marketId,
+    userBetAmount: 1,
+  });
+
+  return { book, marketInfo, serviceFeesPerDollar };
+}
+
+function buildBuyPreviewFromContext({
+  marketId,
+  outcomeId,
+  outcomeTokenId,
+  size,
+  context,
+}: Omit<PreviewOrderParams, 'side' | 'positionId'> & {
+  context: BuyPreviewContext;
+}): OrderPreview | null {
+  const { book, marketInfo, serviceFeesPerDollar } = context;
+  const { tickSize, roundConfig } = getTickSizeRoundConfig({
+    tickSize: book.tick_size,
+  });
+  const match = matchBuyOrder({
+    asks: book.asks,
+    dollarAmount: size,
+  });
+  if (!match) {
+    return null;
+  }
+  const { price: bestPrice, size: shareAmount } = match;
+  const makerAmount = roundDown(size, roundConfig.size);
+  const metamaskFee = makerAmount * serviceFeesPerDollar.metamaskFee;
+  const providerFee = makerAmount * serviceFeesPerDollar.providerFee;
+  const preview: OrderPreview = {
+    marketId,
+    outcomeId,
+    outcomeTokenId,
+    timestamp: new Date(book.timestamp).getTime(),
+    side: Side.BUY,
+    sharePrice: bestPrice,
+    maxAmountSpent: makerAmount,
+    minAmountReceived: roundOrderAmount({
+      amount: shareAmount,
+      decimals: roundConfig.amount,
+    }),
+    slippage: SLIPPAGE_BUY,
+    tickSize: parseFloat(tickSize),
+    minOrderSize: parseFloat(book.min_order_size),
+    negRisk: book.neg_risk,
+    feeRateBps: '0',
+  };
+
+  return {
+    ...preview,
+    fees: {
+      ...serviceFeesPerDollar,
+      metamaskFee,
+      providerFee,
+      totalFee: Math.round((metamaskFee + providerFee) * 1000000) / 1000000,
+      marketFee: calculateConservativeBuyMarketFee({ preview, marketInfo }),
+    },
+  };
+}
+
+const getBuyAllInCostInCents = (preview: OrderPreview): number =>
+  Math.round(getPredictBuyAllInCost(preview) * 100);
+
+/**
+ * Finds the largest cent-denominated BUY that is fully fillable from one order
+ * book snapshot and whose stake plus fees fits within the available balance.
+ */
+export const previewMaxBuyOrder = async (
+  params: PreviewMaxBuyOrderParams & {
+    feeCollection?: PredictFeeCollection;
+    isV2?: boolean;
+    clobBaseUrl?: string;
+  },
+): Promise<OrderPreview | null> => {
+  const { availableBalance, ...previewParams } = params;
+  if (!Number.isFinite(availableBalance) || availableBalance <= 0) {
+    return null;
+  }
+
+  const context = await getBuyPreviewContext(previewParams);
+  if (!context) {
+    return null;
+  }
+  const balanceInCents = Math.floor(availableBalance * 100 + 1e-8);
+  const liquidityInCents = Math.floor(
+    getBuyLiquidity(context.book.asks) * 100 + 1e-8,
+  );
+  let low = 0;
+  let high = Math.min(balanceInCents, liquidityInCents);
+  let maxPreview: OrderPreview | null = null;
+
+  while (low <= high) {
+    const candidateInCents = Math.floor((low + high) / 2);
+    if (candidateInCents === 0) {
+      low = 1;
+      continue;
+    }
+
+    const preview = buildBuyPreviewFromContext({
+      ...previewParams,
+      size: candidateInCents / 100,
+      context,
+    });
+
+    if (preview && getBuyAllInCostInCents(preview) <= balanceInCents) {
+      maxPreview = preview;
+      low = candidateInCents + 1;
+    } else {
+      high = candidateInCents - 1;
+    }
+  }
+
+  return maxPreview;
 };

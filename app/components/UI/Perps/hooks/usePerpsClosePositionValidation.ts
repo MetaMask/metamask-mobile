@@ -4,17 +4,18 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   VALIDATION_THRESHOLDS,
   type ClosePositionParams,
-  type OrderType,
+  type OrdinaryOrderType,
 } from '@metamask/perps-controller';
 import { LIMIT_PRICE_CONFIG } from '../constants/perpsConfig';
 import { isPriceOutsideDeviationBand } from '../utils/orderUtils';
+import { getLimitPriceTooFarMessage } from '../utils/triggerOrderValidation';
 import { usePerpsTrading } from './usePerpsTrading';
 
 interface UsePerpsClosePositionValidationParams {
   symbol: string;
   closePercentage: number;
   closeAmount: string;
-  orderType: OrderType;
+  orderType: OrdinaryOrderType;
   limitPrice?: string;
   currentPrice: number;
   referencePrice?: number; // Reference (oracle/mark) price used for the deviation band; falls back to currentPrice
@@ -223,9 +224,7 @@ export function usePerpsClosePositionValidation(
             LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
           )
         ) {
-          errors.push(
-            strings('perps.order.limit_price_modal.limit_price_too_far'),
-          );
+          errors.push(getLimitPriceTooFarMessage(bandReferencePrice));
         }
 
         // Add warning if the limit price is far from the live mark price

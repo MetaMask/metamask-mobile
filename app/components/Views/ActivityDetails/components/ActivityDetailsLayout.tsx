@@ -27,7 +27,7 @@ export function ActivityDetailRow({
 
   return (
     <Box
-      twClassName="flex-row items-start justify-between gap-4"
+      twClassName="min-h-8 flex-row items-center justify-between gap-4"
       testID={testID}
     >
       <Text
@@ -61,7 +61,7 @@ export function ActivityDetailSection({
   testID?: string;
 }) {
   return (
-    <Box twClassName="gap-4" testID={testID}>
+    <Box twClassName="gap-2" testID={testID}>
       {children}
     </Box>
   );

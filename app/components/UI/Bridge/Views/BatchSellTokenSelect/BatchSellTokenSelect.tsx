@@ -593,9 +593,7 @@ export function BatchSellTokenSelect() {
   ]);
 
   const handleExploreTokensPress = useCallback(() => {
-    navigation.navigate(Routes.TRENDING_VIEW, {
-      screen: Routes.TRENDING_FEED,
-    });
+    navigation.navigate(Routes.TRENDING_VIEW);
   }, [navigation]);
 
   const handleTokenSortToggle = useCallback(() => {

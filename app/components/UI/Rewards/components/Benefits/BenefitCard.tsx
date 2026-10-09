@@ -18,7 +18,10 @@ import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants.ts';
 import React from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SubscriptionBenefitDto } from '../../../../../core/Engine/controllers/rewards-controller/types.ts';
-import { formatDateRemaining } from '../../utils/formatUtils.ts';
+import {
+  formatDateRemaining,
+  resolveBenefitEndDate,
+} from '../../utils/formatUtils.ts';
 
 interface Props {
   benefit: SubscriptionBenefitDto;
@@ -28,10 +31,14 @@ const BenefitCard = ({ benefit }: Props) => {
   const tw = useTailwind();
   const benefitImageTestId = `${REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}-${benefit.id}`;
 
+  const remainingTimeEndDate = resolveBenefitEndDate(
+    benefit.validTo,
+    benefit.actionDate,
+  );
   const remainingTime =
-    benefit.actionDate == null
+    remainingTimeEndDate == null
       ? null
-      : formatDateRemaining(benefit.actionDate, Date.now());
+      : formatDateRemaining(remainingTimeEndDate, Date.now());
   const companyName = benefit.companyName?.trim();
 
   return (
@@ -55,54 +62,62 @@ const BenefitCard = ({ benefit }: Props) => {
         </Box>
 
         <Box twClassName="flex-1 gap-1">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-2"
-          >
+          <Box>
             <Text
               variant={TextVariant.HeadingSm}
-              twClassName="text-default flex-1"
+              twClassName="text-default"
               numberOfLines={1}
             >
               {benefit.longTitle}
             </Text>
-            {companyName ? (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                twClassName="max-w-[40%]"
-                numberOfLines={1}
-              >
-                {companyName}
-              </Text>
-            ) : null}
           </Box>
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
             numberOfLines={3}
           >
             {benefit.shortDescription}
           </Text>
-          {remainingTime != null && (
+          {(remainingTime != null || companyName) && (
             <Box
               gap={1}
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
+              testID={`${REWARDS_VIEW_SELECTORS.BENEFIT_CARD_FOOTER}-${benefit.id}`}
             >
-              <Icon
-                name={IconName.Clock}
-                size={IconSize.Md}
-                color={IconColor.IconAlternative}
-              />
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {remainingTime}
-              </Text>
+              {remainingTime != null ? (
+                <Box
+                  gap={1}
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="flex-1"
+                >
+                  <Icon
+                    name={IconName.Clock}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {remainingTime}
+                  </Text>
+                </Box>
+              ) : (
+                <Box twClassName="flex-1" />
+              )}
+              {companyName ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  twClassName="max-w-[40%]"
+                  numberOfLines={1}
+                >
+                  {companyName}
+                </Text>
+              ) : null}
             </Box>
           )}
         </Box>
