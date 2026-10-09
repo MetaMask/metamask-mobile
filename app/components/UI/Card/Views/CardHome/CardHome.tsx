@@ -97,8 +97,7 @@ import {
 import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline';
 import { CardHomeSelectors } from './CardHome.testIds';
 
-/** Temporary until the Apple Pay learn-more URL is confirmed. */
-const APPLE_PAY_LEARN_MORE_URL = 'https://metamask.io';
+const APPLE_PAY_LEARN_MORE_URL = 'https://metamask.io/card';
 import CardAlertSection from './components/CardAlertSection';
 import CardActionsButtons from './components/CardActionsButtons';
 import CardBalanceDisplay from './components/CardBalanceDisplay';

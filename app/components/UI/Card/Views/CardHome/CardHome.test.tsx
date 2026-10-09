@@ -2276,7 +2276,7 @@ describe('CardHome Component', () => {
       });
     });
 
-    it('opens the temporary learn-more page from the Add to Apple Wallet section', () => {
+    it('opens the Apple Pay learn-more page from the Add to Apple Wallet section', () => {
       mockUsePushProvisioning.mockReturnValueOnce({
         initiateProvisioning: mockInitiateProvisioning,
         resetStatus: mockResetProvisioningStatus,
@@ -2296,7 +2296,7 @@ describe('CardHome Component', () => {
         screen.getByTestId(CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON),
       );
 
-      expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io');
+      expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io/card');
     });
 
     it('hides learn more when the card cannot be added to Apple Wallet', () => {
