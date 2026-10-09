@@ -16,6 +16,7 @@ import {
   MoneyAccountPlusBenefitsStatus,
   useMoneyAccountPlusBenefits,
 } from './hooks/useMoneyAccountPlusBenefits';
+import { useIsMoneyAccountPlusTrialing } from './hooks/useIsMoneyAccountPlusTrialing';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -54,6 +55,13 @@ jest.mock('./hooks/useMoneyAccountPlusBenefits', () => ({
   useMoneyAccountPlusBenefits: jest.fn(),
 }));
 
+const mockUseIsMoneyAccountPlusTrialing = jest.mocked(
+  useIsMoneyAccountPlusTrialing,
+);
+jest.mock('./hooks/useIsMoneyAccountPlusTrialing', () => ({
+  useIsMoneyAccountPlusTrialing: jest.fn(),
+}));
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const renderProHub = () => render(<ProHub />);
@@ -86,6 +94,7 @@ describe('ProHub', () => {
       resetsOn: 'Sep 15',
       retry: jest.fn(),
     });
+    mockUseIsMoneyAccountPlusTrialing.mockReturnValue(false);
   });
 
   // ── Access guard ───────────────────────────────────────────────────────────
@@ -174,7 +183,7 @@ describe('ProHub', () => {
     });
 
     it('renders membership card, lifetime earnings, and stat rows', () => {
-      const { getByTestId } = renderProHub();
+      const { getByTestId, queryByTestId } = renderProHub();
 
       const membershipBanner = getByTestId(ProHubTestIds.MEMBERSHIP_BANNER);
       const lifetimeEarningsSection = getByTestId(
@@ -206,6 +215,23 @@ describe('ProHub', () => {
           }),
         ),
       );
+      expect(musdBackRow).toHaveTextContent(
+        toRegex(MOCK_PRO_HUB_STATS.musdBack),
+      );
+      expect(queryByTestId(`${ProHubTestIds.MUSD_BACK_ROW}-lock`)).toBeNull();
+    });
+
+    it('shows a lock instead of the mUSD back amount during a free trial', () => {
+      mockUseIsMoneyAccountPlusTrialing.mockReturnValue(true);
+
+      const { getByTestId, queryByText } = renderProHub();
+
+      const musdBackRow = getByTestId(ProHubTestIds.MUSD_BACK_ROW);
+      const lock = getByTestId(`${ProHubTestIds.MUSD_BACK_ROW}-lock`);
+
+      expect(lock).toBeOnTheScreen();
+      expect(musdBackRow).toContainElement(lock);
+      expect(queryByText(MOCK_PRO_HUB_STATS.musdBack)).toBeNull();
     });
 
     it('renders the physical card banner with title and description', () => {
@@ -314,6 +340,28 @@ describe('ProHub', () => {
       fireEvent.press(getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+    });
+
+    it('shows unlock copy and does not navigate when the banner is pressed during a free trial', () => {
+      mockUseIsMoneyAccountPlusTrialing.mockReturnValue(true);
+
+      const { getByTestId } = renderProHub();
+
+      const banner = getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER);
+
+      expect(getByTestId(ProHubTestIds.PHYSICAL_CARD_TITLE)).toHaveTextContent(
+        strings('pro_hub.physical_card.trial_title', {
+          rate: `${MOCK_PRO_HUB_STATS.musdBackRate}%`,
+        }),
+      );
+      expect(
+        getByTestId(ProHubTestIds.PHYSICAL_CARD_DESCRIPTION),
+      ).toHaveTextContent(strings('pro_hub.physical_card.trial_description'));
+      expect(banner).not.toHaveProp('onPress');
+
+      fireEvent.press(banner);
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('does not navigate on initial render', () => {
