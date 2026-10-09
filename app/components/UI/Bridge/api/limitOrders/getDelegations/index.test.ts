@@ -3,6 +3,10 @@ import { renderHookWithProvider } from '../../../../../../util/test/renderWithPr
 import { useFetchLimitOrdersDelegations } from '.';
 
 const mockGetBearerToken = jest.fn();
+jest.mock('../getLimitOrdersBaseUrl', () => ({
+  getLimitOrdersBaseUrl: () => 'https://limit-orders.test',
+}));
+
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     AuthenticationController: {
@@ -123,7 +127,7 @@ describe('useFetchLimitOrdersDelegations', () => {
     expect(result).toStrictEqual(VALID_RESPONSE);
     expect(globalFetchSpy).toHaveBeenCalledTimes(1);
     const [url, requestOptions] = globalFetchSpy.mock.calls[0];
-    expect(url).toContain('/v2/limit-orders/delegations?');
+    expect(url).toContain('/v2/orders/limit/delegations?');
     expect(url).toContain(
       `accountAddress=${encodeURIComponent(`eip155:143:${DELEGATOR_ADDRESS}`)}`,
     );

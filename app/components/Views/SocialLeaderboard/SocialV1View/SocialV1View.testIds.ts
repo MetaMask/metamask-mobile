@@ -12,5 +12,7 @@ export const SocialV1ViewSelectorsIDs = {
   NOTIFICATIONS_BANNER: 'social-v1-view-notifications-banner',
   AVATAR_BUTTON: 'social-v1-view-avatar-button',
   PLUS_BUTTON: 'social-v1-view-plus-button',
+  REWARDS_BUTTON: 'social-v1-view-rewards-button',
   FOLLOWING_FILTER_BUTTON: 'social-v1-following-filter-button',
+  COPY_TRADE_GEO_BLOCK: 'social-v1-feed-copy-trade-geo-block',
 } as const;

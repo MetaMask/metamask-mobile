@@ -197,12 +197,14 @@ jobs:
 
       - name: Load config
         id: config
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
         run: |
           node -e "
           const yaml = require('js-yaml');
           const fs = require('fs');
           const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
-          const build = config.builds['${{ inputs.build_name }}'];
+          const build = config.builds[process.env.BUILD_NAME];
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
           const env = build.env || {};
@@ -211,7 +213,7 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing ? signing.aws_role || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing && signing.android_keystore_path ? signing.android_keystore_path : '') + '\n');
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'script_name=' + (build.script_name || '${{ inputs.build_name }}') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'script_name=' + (build.script_name || process.env.BUILD_NAME) + '\n');
           "
 
   # Setup dependencies (no secrets) - uses reusable workflow on platform-specific runner
@@ -251,7 +253,7 @@ jobs:
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
          (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
          vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build' || 'namespace-profile-metamask-android-build') ||
+        (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build-tahoe-slim' || 'namespace-profile-metamask-android-build') ||
         (matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg')
       }}
     environment: ${{ needs.prepare.outputs.github_environment }}
@@ -318,9 +320,11 @@ jobs:
       - name: Compute node_modules cache key
         id: cache-key
         if: ${{ needs.prepare.outputs.should_cache == 'true' }}
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
         run: |
           NODE_VERSION=$(node --version | sed 's/v//')
-          KEY="node-modules-${{ env.CACHE_GENERATION }}-${{ inputs.build_name }}-${{ matrix.platform }}-${RUNNER_OS}-${NODE_VERSION}-${{ hashFiles('yarn.lock', 'patches/**', 'scripts/inpage-bridge/**', 'scripts/build-inpage-bridge.sh') }}"
+          KEY="node-modules-${{ env.CACHE_GENERATION }}-${BUILD_NAME}-${{ matrix.platform }}-${RUNNER_OS}-${NODE_VERSION}-${{ hashFiles('yarn.lock', 'patches/**', 'scripts/inpage-bridge/**', 'scripts/build-inpage-bridge.sh') }}"
           echo "key=${KEY}" >> "$GITHUB_OUTPUT"
           echo "Cache key: ${KEY}"
 
@@ -417,7 +421,7 @@ jobs:
       - name: Select Xcode (iOS)
         if: matrix.platform == 'ios'
         run: |
-          sudo xcodes select 26.3
+          sudo xcodes select 26.6
           xcodebuild -version
 
       # TapAndPay SDK Setup (Android only)
@@ -451,13 +455,15 @@ jobs:
           TAP_AND_PAY_SDK_REPO_SSH: ${{ needs.prepare.outputs.tap_and_pay_sdk_repo_ssh }}
 
       - name: Apply build config
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
         run: |
           # Load env vars from builds.yml (this step only)
-          eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
+          eval "$(node scripts/apply-build-config.js "${BUILD_NAME}" --export)"
           # Persist to GITHUB_ENV so later steps (e.g. Build) see CONFIGURATION, IS_SIM_BUILD, etc.
-          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
+          node scripts/apply-build-config.js "${BUILD_NAME}" --export-github-env >> "$GITHUB_ENV"
           # Generate build-env.json capturing actual env values used in this build (non-critical)
-          node scripts/apply-build-config.js ${{ inputs.build_name }} --write-build-env || true
+          node scripts/apply-build-config.js "${BUILD_NAME}" --write-build-env || true
 
       - name: Validate secrets
         env:
@@ -624,7 +630,6 @@ jobs:
             #      swapping, which costs far more than the lost parallelism.
             # Runners are 28GB (iOS) / 32GB (Android); keep workers low enough that
             # workers x heap still leaves room for clang/Gradle running alongside.
-            # Do not put --trace-gc here: Node rejects it in NODE_OPTIONS.
             export NODE_OPTIONS='--max-old-space-size=8192'
             export METRO_MAX_WORKERS='2'
             SCRIPT_BASE="${{ needs.prepare.outputs.script_name }}"

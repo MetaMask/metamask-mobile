@@ -16,10 +16,14 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectStablecoinLendingEnabledFlag,
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import { setMusdConversionAssetDetailCtaSeen } from '../../../../../actions/user';
 import { toHexadecimal } from '../../../../../util/number';
 import Earnings from '../Earnings';
+import EarnMaintenanceBanner from '../EarnMaintenanceBanner';
 import styleSheet from './EarnLendingBalance.styles';
 import { trace, TraceName } from '../../../../../util/trace';
 import MusdConversionAssetOverviewCta from '../Musd/MusdConversionAssetOverviewCta';
@@ -53,12 +57,17 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
+  const isStablecoinLendingServiceInterruptionBannerEnabled = useSelector(
+    selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+  );
 
   const navigation = useNavigation<AppNavigationProp>();
 
   const { outputToken: receiptToken, earnToken } = useSelector(
     (state: RootState) => selectEarnTokenPair(state, asset),
   );
+  const isStablecoinLending =
+    receiptToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
   const { isEligible } = useStakingEligibility();
   const isAssetReceiptToken = useSelector((state: RootState) =>
     selectEarnOutputToken(state, asset),
@@ -164,6 +173,15 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
 
   return (
     <View>
+      {isStablecoinLending &&
+        isStablecoinLendingServiceInterruptionBannerEnabled &&
+        isAssetReceiptToken && (
+          <View style={styles.maintenanceBanner}>
+            <EarnMaintenanceBanner
+              experienceName={EARN_EXPERIENCES.STABLECOIN_LENDING}
+            />
+          </View>
+        )}
       {renderCta()}
       {isAssetReceiptToken &&
         userHasLendingPositions &&

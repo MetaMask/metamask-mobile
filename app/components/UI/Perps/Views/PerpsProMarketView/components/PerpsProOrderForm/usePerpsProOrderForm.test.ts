@@ -49,6 +49,8 @@ const mockGetPerpsToastLabels = jest.fn(
   ],
 );
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockRouteParams: { stayOnCurrentScreen?: boolean } = {};
 const mockSetMaxSlippage = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
@@ -197,6 +199,7 @@ let mockPositionModifyPreviewParams:
   | undefined;
 
 let mockIsAtCap = false;
+let mockUseBottomSheet = false;
 let mockEstimatedSlippageBps: number | null = 50;
 let mockMaxSlippageBps = 100;
 let mockMaxSlippageSource = 'default';
@@ -401,6 +404,12 @@ jest.mock('../../../../hooks/usePerpsOICap', () => ({
   usePerpsOICap: () => ({ isAtCap: mockIsAtCap }),
 }));
 
+jest.mock('../../../../hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
+  usePerpsScreenVsBottomSheetAbTest: () => ({
+    useBottomSheet: mockUseBottomSheet,
+  }),
+}));
+
 jest.mock('../../../../hooks/usePerpsChaseOrders', () => {
   class MockChaseOrderRequestError extends Error {
     code: 'context_not_ready' | 'stale_request';
@@ -424,8 +433,8 @@ jest.mock('../../../../../Rewards/hooks/useVipTier', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate }),
-  useRoute: () => ({ params: {} }),
+  useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
 
 jest.mock('react-redux', () => ({
@@ -585,6 +594,7 @@ describe('usePerpsProOrderForm', () => {
     mockIsPositionModifyPreviewEnabled = true;
     mockLiquidationPrice = '80000';
     mockIsAtCap = false;
+    mockUseBottomSheet = false;
     mockEstimatedSlippageBps = 50;
     mockMaxSlippageBps = 100;
     mockMaxSlippageSource = 'default';
@@ -3618,6 +3628,18 @@ describe('usePerpsProOrderForm', () => {
 
       expect(confirmed).toHaveBeenCalledWith('long', '0.00013', 'BTC');
     });
+    it('returns to the presenting screen after a stay-on-screen order is confirmed', () => {
+      mockRouteParams.stayOnCurrentScreen = true;
+      renderProForm();
+
+      act(() => {
+        mockExecutionOptions.onSuccess?.();
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      mockRouteParams.stayOnCurrentScreen = undefined;
+    });
+
     it('shows the confirmed toast on success', () => {
       // Arrange
       renderProForm();
@@ -3723,8 +3745,9 @@ describe('usePerpsProOrderForm', () => {
 
     it('finalizes a trailing decimal separator from the limit price before submit', async () => {
       // Arrange: Place Order can fire before blur commits a state update.
+      // Stay inside the 95% band so submit is not blocked by too_far.
       mockOrderForm.type = 'limit';
-      mockOrderForm.limitPrice = '12.';
+      mockOrderForm.limitPrice = '80000.';
       const { result } = renderProForm();
 
       // Act
@@ -3734,7 +3757,7 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       const params = mockExecuteOrder.mock.calls[0][0];
-      expect(params.price).toBe('12');
+      expect(params.price).toBe('80000');
       expect(params.orderType).toBe('limit');
     });
   });
@@ -6348,6 +6371,33 @@ describe('usePerpsProOrderForm', () => {
       },
     );
 
+    it('shows a 95% band error before the limit price blurs', () => {
+      mockOrderForm.type = 'limit';
+      mockOrderForm.limitPrice = '1000';
+      mockContextValue.hasBlurredLimitPrice = false;
+      mockValidation.isValid = false;
+      mockValidation.fieldIssues = [
+        {
+          field: 'limitPrice',
+          issue: { code: 'too_far', min: '$150.00', max: '$60,000.00' },
+        },
+      ];
+
+      const { result } = renderProForm();
+
+      expect(result.current.priceCardMessage).toEqual({
+        severity: 'error',
+        message:
+          strings('perps.order.limit_price_modal.limit_price_too_far') +
+          ' ' +
+          strings('perps.order.limit_price_modal.limit_price_too_far_range', {
+            min: '$150.00',
+            max: '$60,000.00',
+          }),
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
     it('defers a required trigger error until the trigger price blurs', () => {
       mockOrderForm.type = 'stop_market';
       mockContextValue.triggerPrice = undefined;
@@ -6931,6 +6981,40 @@ describe('usePerpsProOrderForm', () => {
       });
       expect(mockSetTakeProfitPrice).toHaveBeenCalledWith('95000');
       expect(mockSetStopLossPrice).toHaveBeenCalledWith('80000');
+    });
+
+    it('opens TP/SL as a bottom sheet when assigned the bottom-sheet arm', () => {
+      // Arrange
+      mockUseBottomSheet = true;
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onTPSLPress();
+      });
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.TPSL,
+        expect.objectContaining({ useBottomSheet: true }),
+      );
+    });
+
+    it('omits useBottomSheet from the TP/SL route on the screen arm', () => {
+      // Arrange
+      mockUseBottomSheet = false;
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onTPSLPress();
+      });
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.TPSL,
+        expect.not.objectContaining({ useBottomSheet: expect.anything() }),
+      );
     });
 
     it('shows the limit-price-required toast and does not navigate for a limit order without a price', () => {

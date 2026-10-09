@@ -25,6 +25,10 @@ export interface PredictNextFeedParams {
   selectedTabId?: string;
 }
 
+export interface PredictNextSearchParams {
+  venueId: PredictVenueId;
+}
+
 // ParamListBase requires a type alias.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictNextStackParamList = {
@@ -32,4 +36,5 @@ export type PredictNextStackParamList = {
   PredictNextFeed: PredictNextFeedParams;
   PredictNextEvent: PredictNextEventParams;
   PredictNextPortfolio: PredictNextPortfolioParams;
+  PredictNextSearch: PredictNextSearchParams;
 };

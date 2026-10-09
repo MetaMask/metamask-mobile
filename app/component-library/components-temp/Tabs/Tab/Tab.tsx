@@ -20,6 +20,7 @@ const Tab: React.FC<TabProps> = ({
   onPress,
   testID,
   onLayout,
+  endAccessory,
   ...pressableProps
 }) => {
   const tw = useTailwind();
@@ -42,7 +43,7 @@ const Tab: React.FC<TabProps> = ({
     >
       <Pressable
         style={tw.style(
-          'px-0 py-1 flex-row items-center justify-center relative',
+          'px-0 py-1 flex-row items-center justify-center gap-1 relative',
           isDisabled && 'opacity-50',
         )}
         onPress={isDisabled ? undefined : onPress}
@@ -50,35 +51,42 @@ const Tab: React.FC<TabProps> = ({
         testID={testID}
         {...pressableProps}
       >
-        {/* Hidden bold text that determines layout size */}
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          numberOfLines={1}
-          style={tw.style('opacity-0')}
-        >
-          {label}
-        </Text>
+        {/* The label sizes itself, so endAccessory can sit beside it */}
+        <View>
+          {/* Hidden bold text that determines layout size */}
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Bold}
+            numberOfLines={1}
+            style={tw.style('opacity-0')}
+          >
+            {label}
+          </Text>
 
-        {/* Visible text positioned absolutely over the hidden text */}
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={
-            isActive && !isDisabled ? FontWeight.Bold : FontWeight.Regular
-          }
-          testID={testID ? `${testID}-label` : undefined}
-          twClassName={
-            isDisabled
-              ? 'text-muted'
-              : isActive
-                ? 'text-default'
-                : 'text-alternative'
-          }
-          numberOfLines={1}
-          style={tw.style('absolute inset-0 flex items-center justify-center')}
-        >
-          {label}
-        </Text>
+          {/* Visible text positioned absolutely over the hidden text */}
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={
+              isActive && !isDisabled ? FontWeight.Bold : FontWeight.Regular
+            }
+            testID={testID ? `${testID}-label` : undefined}
+            twClassName={
+              isDisabled
+                ? 'text-muted'
+                : isActive
+                  ? 'text-default'
+                  : 'text-alternative'
+            }
+            numberOfLines={1}
+            style={tw.style(
+              'absolute inset-0 flex items-center justify-center',
+            )}
+          >
+            {label}
+          </Text>
+        </View>
+
+        {endAccessory}
       </Pressable>
     </View>
   );

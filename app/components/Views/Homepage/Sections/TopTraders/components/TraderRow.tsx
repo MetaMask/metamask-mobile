@@ -17,11 +17,15 @@ import { TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { RankMedal, isTopRank } from '../topRank';
 import type { TraderRowProps } from '../types';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { formatSignedUsd } from '../../../../SocialLeaderboard/utils/formatters';
+
+import { formatSignedUsd } from '../../../../../UI/SocialFeed/utils/formatters';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderMuteChip from '../../../../SocialLeaderboard/components/TraderMuteChip';
-import TraderAvatar from './TraderAvatar';
+import TraderAvatar from '../../../../../UI/SocialFeed/components/TraderAvatar';
+import {
+  getTraderRowMuteChipTestId,
+  getTraderRowTestId,
+} from './TraderRow.testIds';
 
 const MUTE_CHIP_DIAMETER = 40;
 
@@ -64,7 +68,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
       justifyContent={BoxJustifyContent.Between}
       twClassName="px-4"
       style={{ height: TRADER_ROW_HEIGHT }}
-      testID={testID ?? `trader-row-${trader.id}`}
+      testID={testID ?? getTraderRowTestId(trader.id)}
     >
       <TouchableOpacity
         activeOpacity={onTraderPress ? 0.7 : 1}
@@ -144,7 +148,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
             onPress={handleMutePress}
             diameter={MUTE_CHIP_DIAMETER}
             traderName={trader.username}
-            testID={`trader-row-mute-chip-${trader.id}`}
+            testID={getTraderRowMuteChipTestId(trader.id)}
           />
         )}
       </Box>
