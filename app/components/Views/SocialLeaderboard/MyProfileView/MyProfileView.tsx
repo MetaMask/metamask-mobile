@@ -40,6 +40,7 @@ import { useTheme } from '../../../../util/theme';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
+import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
 import {
   useTraderPositions,
   useTraderProfile,
@@ -128,6 +129,7 @@ const MyProfileView: React.FC = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const { profile: myProfile, isLoading, error, refresh } = useMyProfile();
+  const { openComposer } = useOpenSocialPostComposer();
   const isOwner =
     !traderId ||
     traderId === myProfile?.profileId ||
@@ -232,8 +234,8 @@ const MyProfileView: React.FC = () => {
     });
   }, [isOwner, navigation]);
   const handleShareFirstTrade = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
-  }, [navigation]);
+    openComposer();
+  }, [openComposer]);
 
   const handleResetProfile = useCallback(() => {
     resetLocalSocialProfile();

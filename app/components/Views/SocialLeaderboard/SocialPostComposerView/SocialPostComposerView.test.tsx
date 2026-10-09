@@ -93,6 +93,7 @@ jest.mock('../MyProfileView/hooks', () => ({
       displayName: 'Giga Whale',
       handle: 'giga-whale',
       shareUrl: 'https://metamask.io/social/giga-whale',
+      linkedAccountAddress: '0x1111111111111111111111111111111111111111',
     },
     isLoading: false,
     error: null,

@@ -136,6 +136,7 @@ const SocialPostComposerView: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
   const isScreenTransitionComplete = useScreenTransitionComplete();
   const { profile } = useMyProfile();
+  const linkedAccountAddress = profile?.linkedAccountAddress?.trim() ?? '';
   const inputRef = useRef<TextInput>(null);
   const [text, setText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -222,6 +223,12 @@ const SocialPostComposerView: React.FC = () => {
     setGifUri(nextGifUri);
     setIsGifSheetOpen(false);
   }, []);
+
+  useEffect(() => {
+    if (!linkedAccountAddress) {
+      navigation.goBack();
+    }
+  }, [linkedAccountAddress, navigation]);
 
   // Focusing mid-transition drops the keyboard on the native stack push, so
   // wait until the screen has settled before raising it.
@@ -472,6 +479,7 @@ const SocialPostComposerView: React.FC = () => {
 
         {isShareSheetOpen ? (
           <SharePositionBottomSheet
+            address={linkedAccountAddress}
             onSelect={handleSelectPosition}
             onClose={() => setIsShareSheetOpen(false)}
           />

@@ -76,6 +76,7 @@ import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import Routes from '../../../../constants/navigation/Routes';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
+import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
 import {
   QuickBuy,
   TOP_TRADERS_QUICK_BUY_FEATURES,
@@ -146,6 +147,7 @@ const SocialV1View: React.FC = () => {
       RouteProp<RootStackParamList, 'SocialV1View' | 'SocialLeaderboardTab'>
     >();
   const { profile: myProfile } = useMyProfile();
+  const { openComposer } = useOpenSocialPostComposer();
   const { track } = useSocialLeaderboardAnalytics();
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
@@ -358,8 +360,8 @@ const SocialV1View: React.FC = () => {
 
   const handleOpenComposer = useCallback(() => {
     playSelection().catch(() => undefined);
-    navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
-  }, [navigation]);
+    openComposer();
+  }, [openComposer]);
 
   const handleOpenRewards = useCallback(() => {
     navigation.navigate(Routes.REWARDS_VIEW);

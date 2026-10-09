@@ -130,9 +130,27 @@ describe('SharePositionBottomSheet', () => {
     });
   });
 
+  it('loads positions for the linked social address', () => {
+    renderWithProvider(
+      <SharePositionBottomSheet
+        address="0x1111111111111111111111111111111111111111"
+        onSelect={onSelect}
+        onClose={onClose}
+      />,
+    );
+
+    expect(mockUseTraderPositions).toHaveBeenCalledWith(
+      '0x1111111111111111111111111111111111111111',
+    );
+  });
+
   it('groups open tokens and perps', () => {
     renderWithProvider(
-      <SharePositionBottomSheet onSelect={onSelect} onClose={onClose} />,
+      <SharePositionBottomSheet
+        address="0x1111111111111111111111111111111111111111"
+        onSelect={onSelect}
+        onClose={onClose}
+      />,
     );
 
     expect(
@@ -147,7 +165,11 @@ describe('SharePositionBottomSheet', () => {
 
   it('selects a closed position from the Closed tab', () => {
     renderWithProvider(
-      <SharePositionBottomSheet onSelect={onSelect} onClose={onClose} />,
+      <SharePositionBottomSheet
+        address="0x1111111111111111111111111111111111111111"
+        onSelect={onSelect}
+        onClose={onClose}
+      />,
     );
 
     fireEvent.press(
@@ -171,7 +193,11 @@ describe('SharePositionBottomSheet', () => {
     });
 
     renderWithProvider(
-      <SharePositionBottomSheet onSelect={onSelect} onClose={onClose} />,
+      <SharePositionBottomSheet
+        address="0x1111111111111111111111111111111111111111"
+        onSelect={onSelect}
+        onClose={onClose}
+      />,
     );
 
     expect(
@@ -192,7 +218,11 @@ describe('SharePositionBottomSheet', () => {
     });
 
     renderWithProvider(
-      <SharePositionBottomSheet onSelect={onSelect} onClose={onClose} />,
+      <SharePositionBottomSheet
+        address="0x1111111111111111111111111111111111111111"
+        onSelect={onSelect}
+        onClose={onClose}
+      />,
     );
 
     fireEvent.press(
@@ -215,7 +245,11 @@ describe('SharePositionBottomSheet', () => {
     });
 
     renderWithProvider(
-      <SharePositionBottomSheet onSelect={onSelect} onClose={onClose} />,
+      <SharePositionBottomSheet
+        address="0x1111111111111111111111111111111111111111"
+        onSelect={onSelect}
+        onClose={onClose}
+      />,
     );
 
     expect(screen.getByTestId('position-row-BTC')).toBeOnTheScreen();
