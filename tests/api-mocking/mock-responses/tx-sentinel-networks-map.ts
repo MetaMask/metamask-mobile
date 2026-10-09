@@ -1,3 +1,5 @@
+import type { Mockttp } from 'mockttp';
+
 /**
  * Relay signer addresses returned as `cubistSigners` for every network.
  * Required by `Delegation7702PublishHook` to build the RedeemerEnforcer caveat.
@@ -8,7 +10,8 @@ export const TX_SENTINEL_SIGNERS_MOCK = [
 
 /**
  * TX Sentinel `/networks` response body (chainId string keys).
- * Shared by default mocks and Polygon relay E2E overrides (e.g. POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS).
+ * Each entry is also the `/network` response body for that network.
+ * Shared by default mocks and relay E2E overrides (see {@link mockTxSentinelNetworks}).
  */
 export const TX_SENTINEL_NETWORKS_MAP = {
   '1': {
@@ -233,3 +236,72 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     sendBundle: false,
   },
 };
+
+/**
+ * Builds the TX Sentinel base URL for a network subdomain.
+ *
+ * @param subdomain - Network subdomain, e.g. `ethereum-mainnet`.
+ * @returns The TX Sentinel base URL.
+ */
+export function getTxSentinelUrl(subdomain: string): string {
+  return `https://tx-sentinel-${subdomain}.api.cx.metamask.io`;
+}
+
+/**
+ * Default mocks for the single network endpoint (`/network`) of every network
+ * in {@link TX_SENTINEL_NETWORKS_MAP}.
+ */
+export const TX_SENTINEL_NETWORK_MOCKS = Object.values(
+  TX_SENTINEL_NETWORKS_MAP,
+).map((network) => ({
+  urlEndpoint: `${getTxSentinelUrl(network.network)}/network`,
+  responseCode: 200,
+  response: network,
+}));
+
+/**
+ * Overrides TX Sentinel `/networks` and each `/network` endpoint, including
+ * Android `/proxy` requests, with the given networks.
+ *
+ * @param mockServer - The mock server.
+ * @param networks - TX Sentinel networks keyed by decimal chain ID.
+ * @param priority - Mock priority, above the defaults.
+ */
+export async function mockTxSentinelNetworks(
+  mockServer: Mockttp,
+  networks: Record<string, { network: string }>,
+  priority: number,
+): Promise<void> {
+  await mockTxSentinelEndpoint(
+    mockServer,
+    `${getTxSentinelUrl('ethereum-mainnet')}/networks`,
+    networks,
+    priority,
+  );
+
+  for (const network of Object.values(networks)) {
+    await mockTxSentinelEndpoint(
+      mockServer,
+      `${getTxSentinelUrl(network.network)}/network`,
+      network,
+      priority,
+    );
+  }
+}
+
+async function mockTxSentinelEndpoint(
+  mockServer: Mockttp,
+  url: string,
+  json: object,
+  priority: number,
+): Promise<void> {
+  const handler = () => ({ statusCode: 200, json });
+
+  await mockServer.forGet(url).asPriority(priority).thenCallback(handler);
+
+  await mockServer
+    .forGet('/proxy')
+    .asPriority(priority)
+    .matching((request) => new URL(request.url).searchParams.get('url') === url)
+    .thenCallback(handler);
+}

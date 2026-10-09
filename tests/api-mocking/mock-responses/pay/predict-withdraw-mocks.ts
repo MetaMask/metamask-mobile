@@ -5,7 +5,10 @@ import {
   mockRelayStatusSuccess,
 } from './relay-mocks';
 import { mockMoneyAccountApis } from './money-account-deposit-mocks';
-import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map';
+import {
+  TX_SENTINEL_NETWORKS_MAP,
+  mockTxSentinelNetworks,
+} from '../tx-sentinel-networks-map';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
 import {
   POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS,
@@ -738,26 +741,7 @@ async function mockSentinelNetworksForPredictAndMonad(mockServer: Mockttp) {
     },
   };
 
-  const handler = () => ({
-    statusCode: 200,
-    json: withPredictAndMonadRelay,
-  });
-
-  await mockServer
-    .forGet('https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks')
-    .asPriority(1002)
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1002)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return url.includes(
-        'tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks',
-      );
-    })
-    .thenCallback(handler);
+  await mockTxSentinelNetworks(mockServer, withPredictAndMonadRelay, 1002);
 }
 
 async function mockPolygonSentinelSimulateProxy(mockServer: Mockttp) {
