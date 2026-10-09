@@ -8,6 +8,7 @@ import {
   MOCK_TRADE_ALLOWANCES,
   TRADE_ALLOWANCE_IDS,
 } from './ProHub.constants';
+import { formatMembershipDueDate } from './components/MembershipBanner';
 import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -187,7 +188,7 @@ describe('ProHub', () => {
         toRegex(strings('pro_hub.title')),
       );
       expect(membershipBanner).toHaveTextContent(
-        toRegex(strings('pro_hub.membership_label')),
+        toRegex(strings('pro_hub.membership_status.active')),
       );
       expect(lifetimeEarningsSection).toHaveTextContent(
         toRegex(strings('pro_hub.lifetime_earnings')),
@@ -205,6 +206,27 @@ describe('ProHub', () => {
             rate: `${MOCK_PRO_HUB_STATS.musdBackRate}%`,
           }),
         ),
+      );
+    });
+
+    it('renders the add funds alert with MM/DD/YYYY due date, description, and action', () => {
+      const { getByTestId } = renderProHub();
+
+      const banner = getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_BANNER);
+      const actionButton = getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_ACTION);
+
+      expect(banner).toHaveTextContent(
+        toRegex(
+          strings('pro_hub.membership_alert.low_balance.title', {
+            date: formatMembershipDueDate(MOCK_PRO_HUB_STATS.addFundsDueDate),
+          }),
+        ),
+      );
+      expect(banner).toHaveTextContent(
+        toRegex(strings('pro_hub.membership_alert.low_balance.description')),
+      );
+      expect(actionButton).toHaveTextContent(
+        strings('pro_hub.membership_alert.low_balance.action'),
       );
     });
 
