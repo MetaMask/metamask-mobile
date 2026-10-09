@@ -10,15 +10,20 @@ import {
 } from './modules/VbaStatusAdapters';
 import VbaVendorTermsAdapter from './modules/VbaVendorTermsAdapter';
 import VbaDetails from './VbaDetails';
+import VbaOnboardingLoading from './VbaOnboardingLoading';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from './routes';
 
 const Stack = createNativeStackNavigator<VbaOnboardingParamList>();
 
 const VbaOnboardingNavigator = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
+  <Stack.Navigator screenOptions={{ headerShown: false, animation: 'none' }}>
     <Stack.Screen
       name={VbaOnboardingRoutes.VENDOR_TERMS}
       component={VbaVendorTermsAdapter}
+    />
+    <Stack.Screen
+      name={VbaOnboardingRoutes.LOADING}
+      component={VbaOnboardingLoading}
     />
     <Stack.Screen
       name={VbaOnboardingRoutes.EMAIL}

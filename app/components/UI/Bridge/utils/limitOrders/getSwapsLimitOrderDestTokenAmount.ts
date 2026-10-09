@@ -57,7 +57,7 @@ export const getSwapsLimitOrderDestTokenAmount = ({
 
   const amount = new BigNumber(sourceAmount ?? '');
   if (!amount.isFinite() || amount.lte(0)) {
-    return '0';
+    return undefined;
   }
 
   const destTokenAmount =

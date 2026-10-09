@@ -27,6 +27,29 @@ const ALL_ROW_KEYS: SecurityRowKey[] = [
   ...Object.values(SecurityStatKey),
 ];
 
+const SECTION_TITLE_KEYS = [
+  [
+    SecurityTabSelectors.SECTION_CHECKS,
+    'token_details_v1.security_tab.sections.checks',
+  ],
+  [
+    SecurityTabSelectors.SECTION_HOLDERS,
+    'token_details_v1.security_tab.sections.holders',
+  ],
+  [
+    SecurityTabSelectors.SECTION_LIQUIDITY,
+    'token_details_v1.security_tab.sections.liquidity',
+  ],
+  [
+    SecurityTabSelectors.SECTION_TRADING,
+    'token_details_v1.security_tab.sections.trading',
+  ],
+  [
+    SecurityTabSelectors.SECTION_ORIGIN,
+    'token_details_v1.security_tab.sections.origin',
+  ],
+] as const;
+
 describe('SecurityTab', () => {
   it('renders every section for a chain with complete data', () => {
     const { getByTestId } = render(
@@ -55,6 +78,32 @@ describe('SecurityTab', () => {
 
     expect(queryByTestId(SecurityTabSelectors.SECTION_TRADING)).toBeNull();
   });
+
+  it.each([
+    ['complete data', MOCK_SECURITY_FACTS_EVM, SECTION_TITLE_KEYS],
+    [
+      'a chain with no fee data',
+      MOCK_SECURITY_FACTS_SOLANA,
+      SECTION_TITLE_KEYS.filter(
+        ([selector]) => selector !== SecurityTabSelectors.SECTION_TRADING,
+      ),
+    ],
+  ] as const)(
+    'exposes each section title as a header for %s',
+    (_label, facts, sections) => {
+      const { getByTestId } = render(
+        <SecurityTab facts={facts} onExplain={jest.fn()} />,
+      );
+
+      for (const [selector, titleKey] of sections) {
+        expect(
+          within(getByTestId(selector)).getByRole('header', {
+            name: strings(titleKey),
+          }),
+        ).toBeOnTheScreen();
+      }
+    },
+  );
 
   describe('check selection', () => {
     it.each([

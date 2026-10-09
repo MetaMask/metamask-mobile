@@ -87,6 +87,17 @@ describe('useSwapsLimitOrderKeypad', () => {
     mockSourceAmountCursor();
   });
 
+  it('limits the custom percent input to 5 digits', () => {
+    renderKeypadHook();
+
+    expect(mockUseSourceAmountCursor).toHaveBeenCalledWith(
+      expect.objectContaining({
+        onSourceAmountChange: mockOnCustomPercentChange,
+        maxInputLength: 5,
+      }),
+    );
+  });
+
   it('defaults to amount keypad focus', () => {
     const { result } = renderKeypadHook();
 
@@ -136,7 +147,7 @@ describe('useSwapsLimitOrderKeypad', () => {
     expect(result.current.keypadProps).toEqual({
       value: '250',
       currency: 'SWAPS_FIAT_INPUT',
-      decimals: 18,
+      decimals: 2,
     });
   });
 

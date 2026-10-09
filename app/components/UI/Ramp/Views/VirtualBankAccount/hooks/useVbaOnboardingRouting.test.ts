@@ -5,8 +5,10 @@ import Logger from '../../../../../../util/Logger';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   navigateToVbaOnboardingDestination,
+  resolveVbaOnboarding,
   useOpenVbaOnboarding,
 } from './useVbaOnboardingRouting';
+import { readVbaKycStatusOverrideEnv } from '../vbaDevOverrides.env';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
 import { VbaOnboardingRoutes } from '../routes';
 
@@ -100,6 +102,10 @@ jest.mock('../../../../../../util/Logger', () => ({
     log: jest.fn(),
     error: jest.fn(),
   },
+}));
+
+jest.mock('../vbaDevOverrides.env', () => ({
+  readVbaKycStatusOverrideEnv: jest.fn(() => undefined),
 }));
 
 jest.mock('../vbaVendorTermsStorage', () => ({
@@ -355,6 +361,27 @@ describe('useOpenVbaOnboarding', () => {
     expectResetTo({ name: VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR });
   });
 
+  it('opens the error screen when navigation after hydrate throws', async () => {
+    jest.mocked(Logger.log).mockImplementationOnce(() => {
+      throw new Error('log failed');
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expectResetTo({ name: VbaOnboardingRoutes.ERROR });
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        context: expect.objectContaining({
+          name: 'useOpenVbaOnboarding',
+          data: { source: 'unspecified', step: 'navigate' },
+        }),
+      }),
+    );
+  });
+
   it('opens the error screen when hydrate throws', async () => {
     mockHydrate.mockRejectedValue(new Error('hydrate failed'));
 
@@ -468,11 +495,12 @@ describe('useOpenVbaOnboarding', () => {
         index: 1,
         routeNames: [
           VbaOnboardingRoutes.VENDOR_TERMS,
+          VbaOnboardingRoutes.LOADING,
           VbaOnboardingRoutes.EMAIL,
         ],
         routes: [
           { name: VbaOnboardingRoutes.VENDOR_TERMS },
-          { name: VbaOnboardingRoutes.EMAIL },
+          { name: VbaOnboardingRoutes.LOADING },
         ],
       }),
       getParent: () => ({
@@ -704,5 +732,68 @@ describe('useOpenVbaOnboarding', () => {
         }),
       }),
     );
+  });
+});
+
+describe('resolveVbaOnboarding', () => {
+  const devGlobal = globalThis as { __DEV__?: boolean };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    devGlobal.__DEV__ = true;
+    jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue(undefined);
+    mockGetState.mockReturnValue({ address: '0xabc' });
+    mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
+    mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
+    mockRecordVendorDisclaimers.mockResolvedValue([]);
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+    });
+  });
+
+  it('returns an error when no wallet address is selected', async () => {
+    mockGetState.mockReturnValue({ address: null });
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual({
+      status: 'error',
+    });
+    expect(mockHydrate).not.toHaveBeenCalled();
+  });
+
+  it('returns an error when hydrate throws', async () => {
+    mockHydrate.mockRejectedValue(new Error('hydrate failed'));
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual({
+      status: 'error',
+    });
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        context: expect.objectContaining({
+          data: { source: 'money-add-money-bank-account' },
+        }),
+      }),
+    );
+  });
+
+  it('applies the dev KYC status override before choosing a destination', async () => {
+    jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue('rejected');
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual({
+      status: 'ready',
+      destinationId: 'kycRejected',
+      snapshot: expect.objectContaining({
+        kycStatus: 'rejected',
+        sessionExists: true,
+        vendorDisclaimersComplete: true,
+        sessionDisclaimersComplete: true,
+      }),
+    });
   });
 });

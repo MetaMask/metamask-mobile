@@ -223,9 +223,91 @@ const resolveOpenRequest = (
   };
 };
 
+export type ResolvedVbaOnboarding =
+  | {
+      status: 'ready';
+      destinationId: VbaOnboardingDestinationId;
+      snapshot: VbaOnboardingSnapshot;
+    }
+  | { status: 'error' };
+
 /**
- * Hydrates VBA onboarding facts and opens the first incomplete module. This is
- * the single coordinator API used for entry, retry, and module completion.
+ * Hydrates VBA onboarding facts and picks the next destination. Does not
+ * navigate. A missing wallet or a thrown hydrate returns `{ status: 'error' }`.
+ *
+ * @param source - Caller/entry point for error telemetry.
+ */
+export const resolveVbaOnboarding = async (
+  source: string,
+): Promise<ResolvedVbaOnboarding> => {
+  try {
+    const walletAddress = selectSelectedVbaWalletAddress(
+      ReduxService.store.getState() as RootState,
+    );
+    if (!walletAddress) {
+      return { status: 'error' };
+    }
+
+    const hydratedSnapshot = applyVbaDevOverrides(
+      await Engine.context.RampsController.hydrateVbaOnboarding({
+        walletAddress,
+        refreshKyc: true,
+        refreshAutoramps: true,
+      }),
+    );
+    const accountSnapshot = await provisionBrazilMusdAutoramp(
+      walletAddress,
+      hydratedSnapshot,
+    );
+    if (
+      accountSnapshot.sessionExists &&
+      !accountSnapshot.vendorDisclaimersComplete
+    ) {
+      try {
+        const vendorTermsAcceptance =
+          await getVbaVendorTermsAcceptance(walletAddress);
+        if (vendorTermsAcceptance?.disclaimerIds.length) {
+          await Engine.context.KycController.recordVendorDisclaimers({
+            disclaimerIds: vendorTermsAcceptance.disclaimerIds,
+          });
+        }
+      } catch (error) {
+        Logger.error(error as Error, {
+          tags: { feature: 'vba-onboarding' },
+          context: {
+            name: 'useOpenVbaOnboarding',
+            data: { source, step: 'recordVendorDisclaimers' },
+          },
+        });
+      }
+    }
+    const snapshot: VbaOnboardingSnapshot = {
+      ...accountSnapshot,
+      vendorTermsAcceptedLocally:
+        accountSnapshot.vendorDisclaimersComplete ||
+        (await hasAcceptedVbaVendorTerms(walletAddress)),
+    };
+    return {
+      status: 'ready',
+      destinationId: getVbaDestinationForSnapshot(snapshot),
+      snapshot,
+    };
+  } catch (error) {
+    Logger.error(error as Error, {
+      tags: { feature: 'vba-onboarding' },
+      context: {
+        name: 'useOpenVbaOnboarding',
+        data: { source },
+      },
+    });
+    return { status: 'error' };
+  }
+};
+
+/**
+ * Hydrates VBA onboarding facts and opens the first incomplete module. Used
+ * for in-flow retry and module completion. Cold entry opens the loading screen
+ * first and calls {@link resolveVbaOnboarding} there.
  *
  * @param defaultSource - Caller/entry point for error telemetry.
  * @returns An async callback. Pass a source string, or `{ retryRejectedKyc: true }` from the KYC failure page.
@@ -241,79 +323,41 @@ export const useOpenVbaOnboarding = (
         request,
         defaultSource,
       );
-      try {
-        const walletAddress = selectSelectedVbaWalletAddress(
-          ReduxService.store.getState() as RootState,
-        );
-        if (!walletAddress) {
-          openRecoverableError(navigation);
-          return;
-        }
+      const resolved = await resolveVbaOnboarding(source);
+      if (resolved.status === 'error') {
+        openRecoverableError(navigation);
+        return;
+      }
 
-        const hydratedSnapshot = applyVbaDevOverrides(
-          await Engine.context.RampsController.hydrateVbaOnboarding({
-            walletAddress,
-            refreshKyc: true,
-            refreshAutoramps: true,
-          }),
-        );
-        const accountSnapshot = await provisionBrazilMusdAutoramp(
-          walletAddress,
-          hydratedSnapshot,
-        );
-        if (
-          accountSnapshot.sessionExists &&
-          !accountSnapshot.vendorDisclaimersComplete
-        ) {
-          try {
-            const vendorTermsAcceptance =
-              await getVbaVendorTermsAcceptance(walletAddress);
-            if (vendorTermsAcceptance?.disclaimerIds.length) {
-              await Engine.context.KycController.recordVendorDisclaimers({
-                disclaimerIds: vendorTermsAcceptance.disclaimerIds,
-              });
-            }
-          } catch (error) {
-            Logger.error(error as Error, {
-              tags: { feature: 'vba-onboarding' },
-              context: {
-                name: 'useOpenVbaOnboarding',
-                data: { source, step: 'recordVendorDisclaimers' },
-              },
-            });
-          }
-        }
-        const snapshot: VbaOnboardingSnapshot = {
-          ...accountSnapshot,
-          vendorTermsAcceptedLocally:
-            accountSnapshot.vendorDisclaimersComplete ||
-            (await hasAcceptedVbaVendorTerms(walletAddress)),
-        };
-        const hydratedDestination = getVbaDestinationForSnapshot(snapshot);
+      try {
         const destinationId =
-          retryRejectedKyc && hydratedDestination === 'kycRejected'
+          retryRejectedKyc && resolved.destinationId === 'kycRejected'
             ? 'identityVerification'
-            : hydratedDestination;
+            : resolved.destinationId;
         Logger.log('[vba-onboarding] resume', {
           source,
-          snapshot,
+          snapshot: resolved.snapshot,
           destinationId,
         });
         if (retryRejectedKyc && destinationId === 'identityVerification') {
           navigation.dispatch(
             StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
-              snapshot,
+              snapshot: resolved.snapshot,
             }),
           );
           return;
         }
-        navigateToVbaOnboardingDestination(navigation, destinationId, snapshot);
+        navigateToVbaOnboardingDestination(
+          navigation,
+          destinationId,
+          resolved.snapshot,
+        );
       } catch (error) {
         Logger.error(error as Error, {
           tags: { feature: 'vba-onboarding' },
           context: {
             name: 'useOpenVbaOnboarding',
-            data: { source },
+            data: { source, step: 'navigate' },
           },
         });
         openRecoverableError(navigation);
