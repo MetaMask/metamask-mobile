@@ -18,7 +18,10 @@ import type { LedgerTransactionModalParams } from '../../components/UI/LedgerMod
 // Browser params
 import type { BrowserParams } from '../../components/Views/Browser/Browser.types';
 import type { ActivityDetailsParams } from '../../components/Views/ActivityDetails/ActivityDetails.types';
-import type { FullScreenConfirmationParams } from '../../components/Views/confirmations/components/confirm/confirm-component';
+import type {
+  ConfirmationParams,
+  FullScreenConfirmationParams,
+} from '../../components/Views/confirmations/components/confirm/confirm-component';
 import type { PayWithModalParams } from '../../components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import type {
   AssetStackParamList,
@@ -312,11 +315,6 @@ interface OnboardingSuccessFlowParamList {
   SecuritySettings: undefined;
 }
 
-/** Onboarding social-login screens share AccountStatus params plus trace context. */
-type SocialLoginRouteParams = AccountStatusParams & {
-  previous_screen?: string;
-};
-
 /** Import SRP screen params from onboarding entry points. */
 interface ImportFromSecretRecoveryPhraseParams {
   previous_screen?: string;
@@ -467,6 +465,20 @@ export type RootModalFlowParamList = {
  * Maps actual route name strings to their parameter types.
  * This provides TypeScript autocomplete and error checking for navigation.
  */
+/**
+ * Social V1 profile screen. Empty / omitted params open the signed-in owner.
+ * `traderId` opens another user when it is not the owner.
+ */
+export interface SocialV1ProfileViewParams {
+  traderId?: string;
+  traderName?: string;
+  traderAddress?: string;
+  /** List/feed snapshot; live `profile.imageUrl` wins once the profile loads. */
+  traderAvatarUri?: string;
+  source?: string;
+  traderRank?: number;
+}
+
 // Declared as a `type` (not `interface`) so it gains an *implicit* index
 // signature and therefore satisfies React Navigation's `ParamListBase`
 // constraint (used by `RouteProp`/`StackNavigationProp`), while `keyof`
@@ -558,13 +570,6 @@ export type RootStackParamList = {
   RampsServiceDisruptionModal: undefined;
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
-  RampCreateVirtualBankAccount: undefined;
-  RampVbaVerifyIdentity: undefined;
-  RampVbaKycEmail: undefined;
-  RampVbaSumSubKyc: undefined;
-  RampVbaKycPending: undefined;
-  RampVbaKycRejected: undefined;
-  RampVbaOnboardingError: undefined;
   RampVbaOnboarding: NavigatorScreenParams<VbaOnboardingParamList> | undefined;
 
   // Deposit routes
@@ -713,7 +718,6 @@ export type RootStackParamList = {
   Onboarding: undefined;
   Login: undefined;
   OnboardingNav: undefined;
-  SocialLoginSuccessNewUser: SocialLoginRouteParams | undefined;
   ManualBackupStep1: ManualBackupStep1Params | undefined;
   ManualBackupStep2: ManualBackupStep2Params | undefined;
   ManualBackupStep3: ManualBackupStep3Params;
@@ -724,7 +728,6 @@ export type RootStackParamList = {
   OptinMetrics: OptinMetricsRouteParams | undefined;
   OnboardingInterestQuestionnaire: OnboardingInterestQuestionnaireRouteParams;
   OnboardingCryptoExperienceQuestionnaire: OnboardingCryptoExperienceQuestionnaireRouteParams;
-  SocialLoginSuccessExistingUser: SocialLoginRouteParams | undefined;
   AccountAlreadyExists: AccountStatusParams | undefined;
   AccountNotFound: AccountStatusParams | undefined;
   /** OAuth unlock screen nested in OnboardingNav (see Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE). */
@@ -762,7 +765,7 @@ export type RootStackParamList = {
         onCancel?: () => void;
       }
     | undefined;
-  NotificationsSettings: undefined;
+  NotificationsSettings: { section?: string } | undefined;
   NotificationSettingsSection: NotificationSettingsSectionProps['route']['params'];
   RevealPrivateCredentialView: RevealPrivateCredentialParams | undefined;
   SDKSessionsManager: SDKSessionsManagerParams | undefined;
@@ -903,6 +906,7 @@ export type RootStackParamList = {
   QuoteSelectorView: BridgeScreensStackParamList['QuoteSelectorView'];
   RecurringOrderDetails: BridgeScreensStackParamList['RecurringOrderDetails'];
   RecurringSwapDetails: BridgeScreensStackParamList['RecurringSwapDetails'];
+  SwapsLimitOrderActivity: BridgeScreensStackParamList['SwapsLimitOrderActivity'];
   HwQrScanner: BridgeScreensStackParamList['HwQrScanner'];
   HardwareWalletsSwaps: BridgeScreensStackParamList['HardwareWalletsSwaps'];
   BridgeModals:
@@ -1006,7 +1010,11 @@ export type RootStackParamList = {
         landingFeedAudience?: 'all' | 'following';
       }
     | undefined;
-  /** The same screen mounted as the Social tab root (SOCIAL.TAB). */
+  /**
+   * Social tab root (SOCIAL.TAB). Mounts SocialV1View or SocialV0View from
+   * TSA-1122, matching `getFollowTradingHomeRoute()`. Params are the V0
+   * shape; V1 reads the overlapping `source` / `showNotificationsBanner`.
+   */
   SocialLeaderboardTab: RootStackParamList['SocialV0View'];
   SocialV1View:
     | {
@@ -1016,7 +1024,8 @@ export type RootStackParamList = {
     | undefined;
   SocialPostComposerView: undefined;
   SocialProfileOnboardingView: undefined;
-  MyProfileView: undefined;
+  MyProfileView: SocialV1ProfileViewParams | undefined;
+  SocialV1ProfileView: SocialV1ProfileViewParams | undefined;
   FollowConnectionsView: { initialTab: 'followers' | 'following' };
   ProfilesToFollowView: undefined;
   ManageProfileView: undefined;
@@ -1046,7 +1055,7 @@ export type RootStackParamList = {
   SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
   AgenticCliApprovalConfirm: AgenticCliApprovalParams;
   AgenticCliDashboardConfirmation: AgenticCliDashboardWebviewParams;
-  ConfirmationRequestModal: undefined;
+  ConfirmationRequestModal: ConfirmationParams | undefined;
   ConfirmationSwitchAccountType:
     | NavigatorScreenParams<{
         ConfirmationSwitchAccountType: { address?: string } | undefined;

@@ -39,6 +39,7 @@ import { markPerpsPaymentTokenSelection } from '../../../../../UI/Perps/utils/pe
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
+import { useClearPaymentOverride } from '../../../hooks/pay/sections/useClearPaymentOverride';
 import { useEnsurePayToken } from '../../../hooks/tokens/useEnsurePayToken';
 
 export interface PayWithModalParams {
@@ -85,6 +86,7 @@ export function PayWithModal() {
     isPredictContext ? resetSelectedPaymentToken : undefined,
   );
   const ensurePayToken = useEnsurePayToken();
+  const clearPaymentOverride = useClearPaymentOverride();
 
   const isMoneyAccount = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
@@ -133,12 +135,17 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
+      // An explicit token selection always replaces any dedicated payment
+      // override (e.g. Money Account). This is deliberately done here rather
+      // than when the picker is opened, so closing the picker without
+      // choosing a token leaves the previous selection intact.
       if (
         payToken &&
         payToken.address.toLowerCase() === token.address.toLowerCase() &&
         payToken.chainId.toLowerCase() === token.chainId?.toLowerCase()
       ) {
         close(() => {
+          clearPaymentOverride();
           if (dismissOnSelectCount > 1) {
             navigation.dispatch(StackActions.pop(dismissOnSelectCount));
           }
@@ -147,6 +154,8 @@ export function PayWithModal() {
       }
 
       const onClosed = async () => {
+        clearPaymentOverride();
+
         if (dismissOnSelectCount > 1) {
           navigation.dispatch(StackActions.pop(dismissOnSelectCount));
         }
@@ -216,6 +225,7 @@ export function PayWithModal() {
       close(onClosed);
     },
     [
+      clearPaymentOverride,
       close,
       dismissOnSelectCount,
       ensurePayToken,

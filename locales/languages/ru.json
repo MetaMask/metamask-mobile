@@ -607,11 +607,15 @@
     "create_password_cta": "Создать пароль",
     "new_password_placeholder": "Новый пароль",
     "confirm_password_placeholder": "Введите новый пароль еще раз",
-    "acknowledgement_error": "Подтвердите, что вы понимаете, что MetaMask не может восстановить этот пароль.",
     "steps": "Шаг {{currentStep}} из {{totalSteps}}",
     "password_error": "Пароли не совпадают.",
     "marketing_opt_in_description": "Получайте обновления, советы и новости о продуктах, в том числе по эл. почте. Мы можем использовать ваши сообщения для улучшения того, чем мы делимся.",
-    "loose_password_description": "Если я потеряю этот пароль, MetaMask не сможет его сбросить."
+    "password_warning_title": "MetaMask can’t reset your password",
+    "password_warning_description_part1": "If you forget this password, the only way back in is with your ",
+    "password_warning_srp": "секретная фраза для восстановления",
+    "password_warning_description_part2": " or a device with biometrics enabled.",
+    "password_warning_confirm": "Я понимаю",
+    "password_warning_cancel": "Отмена"
   },
   "wallet_creation_error": {
     "title": "Что-то пошло не так",
@@ -988,7 +992,7 @@
       "dob_required": "Нужно указать дату рождения",
       "dob_invalid": "Введите корректную дату рождения",
       "ssn_required": "Нужно указать номер соцстрахования",
-      "unexpected_error": "Произошла непредвиденная ошибка. Повторите попытку.",
+      "unexpected_error": "An unexpected error occurred. Try again.",
       "phone_already_registered": "Этот номер телефона уже используется пользователем {{email}}. Войдите, используя этот адрес электронной почты, чтобы продолжить.",
       "login_with_email": "Войти с помощью эл. почты"
     },
@@ -1119,8 +1123,8 @@
   "virtual_bank_account": {
     "create_virtual_bank_account": {
       "navbar_title": "Банковский счет",
-      "title": "Получить ключ Pix",
-      "description": "Отправляйте средства напрямую на свой счет Money account с любого банковского счета.",
+      "title": "Activate your Virtual Bank Account",
+      "description": "Get account details tailored to your region, making it easier to add, hold, receive, and send money.",
       "benefit_receive_title": "Receive money locally",
       "benefit_receive_description": "Use account details designed for your region",
       "benefit_add_money_title": "Add money with ease",
@@ -1131,7 +1135,7 @@
       "disclaimers_retry": "Повторить попытку",
       "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
       "agreement_separator": " и ",
-      "button": "Согласиться и продолжить"
+      "button": "Activate Virtual Bank Account"
     },
     "verify_identity": {
       "title": "Подтвердите свою личность",
@@ -1159,8 +1163,15 @@
       "button": "Продолжить",
       "error_title": "Подтверждение личности",
       "error_description": "Нам не удалось начать подтверждение вашей личности. Повторите попытку.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.",
-      "email_not_set_error": "Адрес эл. почты отсутствует. Вернитесь назад и введите свой адрес эл. почты."
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "More information needed",
+      "more_info_description": "Нам нужно немного больше информации, чтобы завершить вашу проверку. Продолжите, чтобы предоставить её.",
+      "more_info_button": "Продолжить проверку",
+      "error_title": "Couldn't start verification",
+      "error_description": "Something went wrong opening identity verification. Please try again.",
+      "retry": "Повторить попытку"
     },
     "kyc_pending": {
       "title": "Выполняется проверка",
@@ -1181,12 +1192,31 @@
       "title": "Couldn't continue",
       "description": "Something went wrong while checking your bank account setup. Try again.",
       "button": "Повторить попытку"
+    },
+    "vba_details": {
+      "title": "Virtual bank account",
+      "description": "Your account is ready. Details for adding and receiving money will appear here.",
+      "button": "Выполнено"
     }
   },
   "social_leaderboard": {
     "entry_options": {
       "title": "Параметры",
-      "report": "Report"
+      "report": "Report",
+      "hide_post": "Hide post",
+      "block_user": "Block user",
+      "report_reason_title": "Report",
+      "report_reason_description": "Select the reason that best describes the issue.",
+      "report_reasons": {
+        "spam": "Spam",
+        "harassment": "Harassment or bullying",
+        "misleading": "False or misleading information",
+        "other": "Другое"
+      },
+      "submit_report": "Отправить",
+      "post_hidden_confirmation": "Post hidden",
+      "user_blocked_confirmation": "{{username}} has been blocked",
+      "report_confirmation": "Report submitted"
     },
     "feed_sort": {
       "title": "Sort",
@@ -1291,6 +1321,10 @@
         "win_rate": "{{winRate}} win rate"
       },
       "no_data": "Нет данных",
+      "copies": {
+        "one": "{{count}} copy",
+        "other": "{{count}} copies"
+      },
       "position_card": {
         "copy_trade": "Copy trade",
         "leverage": "Кредитное плечо",
@@ -1299,12 +1333,14 @@
         "mock_data_footnote": "* Mock data",
         "entry_price": "Начальная цена",
         "exit_price": "Exit price",
+        "entry": "Вход",
+        "exit": "Выйти",
+        "cost": "Cost",
         "hold_time": "Hold time",
-        "max_hold_time": "Max hold time",
-        "status": "Статус",
-        "closed": "Закрыто",
         "buy": "Купить",
-        "sell": "Продать"
+        "sell": "Продать",
+        "bought": "Куплено",
+        "sold": "Продано"
       }
     },
     "composer": {
@@ -1333,7 +1369,8 @@
       "empty_closed": "No closed positions",
       "error_title": "Couldn't load positions",
       "retry": "Повторить попытку",
-      "posting": "Posting..."
+      "posting": "Posting...",
+      "post_failed": "Couldn't create post. Try again."
     },
     "shell": {
       "subnav": {
@@ -1347,7 +1384,7 @@
         "kols": "Лидеры мнений"
       },
       "filters": {
-        "title": "Filters",
+        "title": "Custom filters",
         "show_results": "Применить",
         "apply": "Применить",
         "reset": "Сброс",
@@ -1458,10 +1495,25 @@
       "followers_count_plural": "{{count}} подписчика(-ов)",
       "win_rate": "Процент успешных сделок",
       "pnl_7d": "П/У за 7 дн.",
+      "pnl_30d": "П/У за 30 дн.",
       "hold_time": "Ср. время удержания",
       "hold_time_minutes": "{{count}} мин.",
       "hold_time_hours": "{{count}} ч",
       "hold_time_days": "{{count}} дн.",
+      "stats_sheet_title": "30D stats",
+      "stats_sheet_hold_time": "Hold time",
+      "stats_sheet_breakdown": "Breakdown",
+      "stats_sheet_performance": "Результативность",
+      "stats_sheet_profile_age": "Profile age",
+      "stats_sheet_positions": "Позиции",
+      "stats_sheet_avg_position_value": "Avg. position value",
+      "stats_sheet_avg_30d_sample": "Avg. 30D sample",
+      "stats_sheet_copy_success_rate": "Copy success rate",
+      "stats_sheet_accessibility_label": "View trader stats",
+      "trading_volume": "Trading volume",
+      "number_of_trades": "Number of trades",
+      "followers": "Followers",
+      "trades_copied": "Trades copied",
       "open": "Открыть",
       "closed": "Закрыто",
       "no_positions": "Пока нет позиций",
@@ -1495,6 +1547,8 @@
       "empty_title": "Your feed starts here",
       "empty_description": "Share a trade and it'll show up here for your followers",
       "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "other_empty_title": "No posts yet",
+      "other_empty_description": "When they share a trade, it will show up here.",
       "share_first_trade": "Share your first trade",
       "debug_reset_profile": "debug: reset profile",
       "no_profile_title": "Create your profile",
@@ -1579,11 +1633,14 @@
     },
     "quick_buy": {
       "title": "Купить {{symbol}}",
+      "sell_title": "Sell {{symbol}}",
+      "change_trade_mode": "Change trade mode",
       "market_cap_label": "По рыночной капитализации",
       "pay_with": "Оплатить с помощью",
       "buy_mode": "Купить",
       "with": "с",
-      "total": "Итого",
+      "est_receive": "Est. receive",
+      "metamask_fee": "Комиссия MetaMask",
       "network_fee": "Комиссия сети",
       "slippage": "Проскальзывание",
       "minimum_received": "Полученный минимум",
@@ -1601,12 +1658,6 @@
       "get_new_quote": "Получить новую котировку",
       "available_balance": "Доступно: {{amount}}",
       "toggle_amount_display": "Переключение между суммой в токенах и долларах",
-      "includes_mm_fee": "Включает {{fee}}% комиссии MetaMask",
-      "pay_with_no_tokens": "Нет токенов для оплаты",
-      "receive_with_no_tokens": "Нет доступных токенов для получения",
-      "pay_with_filter_all": "Все",
-      "buy_label": "Купить",
-      "sell_label": "Продать",
       "receive": "Получить",
       "max": "Максимум",
       "add_funds": "Внести средства",
@@ -1615,15 +1666,7 @@
       "toast_complete_buy": "Куплено {{amount}} {{symbol}} за {{counter}}",
       "toast_complete_sell": "Продано {{amount}} {{symbol}} за {{counter}}",
       "toast_failed_buy": "Не удалось купить {{symbol}}",
-      "toast_failed_sell": "Не удалось продать {{symbol}}",
-      "edit_quick_amounts_title": "Изменить суммы по умолчанию",
-      "edit_quick_amounts_set_buy": "Купить",
-      "edit_quick_amounts_set_sell": "Продать",
-      "edit_quick_amounts_confirm": "Сохранить",
-      "edit_quick_amounts_buy_above_zero": "Сумма покупки должна быть выше {{min}}",
-      "edit_quick_amounts_buy_below_max": "Сумма покупки должна быть ниже {{max}}",
-      "edit_quick_amounts_sell_above_zero": "Сумма продажи должна быть больше 0%",
-      "edit_quick_amounts_sell_below_max": "Сумма продажи должна быть меньше 100%"
+      "toast_failed_sell": "Не удалось продать {{symbol}}"
     }
   },
   "perps": {
@@ -1942,6 +1985,14 @@
       "twap": "TWAP (Средневзвешенная по времени цена)",
       "twap_with_count": "Средневзвешенная по времени цена (TWAP) ({{count}})",
       "ticker_only": "Только {{ticker}}",
+      "positions_hidden_by_filters": {
+        "one": "1 position is hidden by the filters.",
+        "other": "{{count}} positions are hidden by the filters."
+      },
+      "orders_hidden_by_filters": {
+        "one": "1 order is hidden by the filters.",
+        "other": "{{count}} orders are hidden by the filters."
+      },
       "view_market_accessibility": "Переключиться на рынок {{symbol}}",
       "positions_empty": "Здесь будут отображаться ваши открытые позиции.",
       "positions_empty_filtered": "Нет открытых позиций по {{ticker}}.",
@@ -3359,6 +3410,7 @@
       "load_failed_retry": "Повторить попытку",
       "outcome_shares": "{{outcome}} · {{shares}} долей",
       "active_positions": "Активные позиции",
+      "cash_out": "Вывести деньги",
       "add_funds": "Внести средства",
       "withdraw": "Вывести средства",
       "empty": {
@@ -3374,9 +3426,18 @@
     },
     "order_preview": {
       "amount": "Сумма в USD",
+      "contracts": "Contract count",
       "minimum_amount": "Введите как минимум ${{amount}}.",
+      "minimum_contracts": "Enter at least 1 contract.",
+      "over_sell": "You can sell up to {{contracts}} contracts.",
+      "held_contracts": "You hold {{contracts}} contracts",
       "estimated_contracts": "Прим. контрактов",
       "average_price": "Сред. цена",
+      "limit_price": "Предельная цена",
+      "proceeds": "Proceeds",
+      "net_proceeds": "Net proceeds",
+      "net_proceeds_line": "Net proceeds {{amount}}",
+      "max": "Максимум",
       "potential_payout": "Потенциальная выплата",
       "potential_profit": "Потенциальная прибыль",
       "fee": "Комиссия",
@@ -3410,14 +3471,20 @@
       "partial_title": "Order partially filled",
       "partial_description": "{{filled}} of {{quoted}} contracts filled. The remaining {{remainder}} were canceled and won't be placed.",
       "position_context": "You now own {{contracts}} {{outcome}} contracts",
+      "sell_filled_title": "Cash Out complete",
+      "sell_partial_title": "Cash Out partially filled",
+      "sell_partial_description": "{{filled}} of {{quoted}} contracts sold. The other {{remainder}} remain in your position.",
+      "sold_context": "You sold {{contracts}} {{outcome}} contracts",
       "filled_contracts": "Выполнен",
       "average_fill_price": "Ср. цена исполнения",
       "actual_spend": "Spent",
       "payout_exposure": "Payout exposure",
       "not_filled_title": "Order not filled",
       "not_filled_description": "The market is moving fast, so we couldn't buy at {{price}}. No money left your balance.",
+      "sell_not_filled_description": "The market is moving fast, so we couldn't sell at {{price}}. Nothing was sold.",
       "rejected_title": "Order rejected",
       "rejected_description": "The venue refused this order. Nothing was filled and your balance is untouched.",
+      "sell_rejected_description": "The venue refused this order. Nothing was sold and your position is untouched.",
       "reconciling_title": "Still confirming your order",
       "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
       "keep_checking": "Keep checking",
@@ -3708,6 +3775,10 @@
       "sports": "Спорт",
       "crypto": "Крипто",
       "politics": "Политика",
+      "esports": "E-sports",
+      "culture": "Culture",
+      "finance": "Finance",
+      "tech": "Tech",
       "hot": "Популярное",
       "wimbledon": "Уимблдон"
     },
@@ -4102,6 +4173,7 @@
   "wallet": {
     "title": "Кошелек",
     "search_accessibility_label": "Поиск",
+    "homepage_search_placeholder": "Поиск",
     "rewards_accessibility_label": "Награды",
     "tokens": "Токены",
     "view_all_nfts": "Просмотреть все NFT",
@@ -4397,6 +4469,7 @@
     "gather_basic_usage_title": "Собирать основные данные об использовании",
     "gather_basic_usage_description": "Мы будем собирать основные данные об использовании продукта. Мы можем связать эту информацию с данными, хранящимися ончейн.",
     "gather_basic_usage_learn_more": "Подробнее",
+    "stay_informed": "Stay informed",
     "checkbox_marketing": "Рекламные новости",
     "checkbox": "Мы будем использовать эти данные, чтобы узнать, как вы взаимодействуете с нашими маркетинговыми сообщениями. Мы можем отправлять соответствующие новости (например, о функциях продукта).",
     "action_description_1_prefix": "Приватными:",
@@ -5540,6 +5613,7 @@
     "convert": "Конвертировать",
     "bridge": "Мост",
     "earn": "Заработать",
+    "orders": "Ордеры",
     "convert_to_musd": "Конвертировать в mUSD",
     "tron": {
       "daily_resource_new_energy": "Новая дневная энергия",
@@ -8106,7 +8180,7 @@
     "ledger_disconnected": "Ваше устройство отключилось",
     "ledger_disconnected_error": "Связь с вашим устройством потеряна. Повторите попытку.",
     "unknown_error": "Произошла непредвиденная ошибка.",
-    "unknown_error_message": "Произошла непредвиденная ошибка. Повторите попытку.",
+    "unknown_error_message": "An unexpected error occurred. Try again.",
     "error_occured": "Произошла ошибка",
     "how_to_install_eth_app": "Как установить приложение Ethereum на устройство Ledger",
     "ledger_account_count": "Вы используете 1 счет из своего Ledger с MetaMask Mobile.",
@@ -8813,7 +8887,7 @@
     }
   },
   "stake": {
-    "stake": "Stake",
+    "stake": "Стейкинг",
     "earn": "Заработать",
     "tron": {
       "stake_completed": "Стейкинг завершен",
@@ -9067,6 +9141,7 @@
   "confirm": {
     "cancel": "Отмена",
     "confirm": "Подтвердить",
+    "membership_top_up_info": "We’ll add {{amount}} to your Money account to cover this payment.",
     "pay_with_bottom_sheet": {
       "title": "Оплатить с помощью",
       "receive_title": "Получить",
@@ -9379,9 +9454,20 @@
       "error_signing_delegations": "Could not create an order: the order couldn't be signed.",
       "error_creating_order": "Could not create an order: the order couldn't be placed.",
       "error_missing_trigger_price": "Could not create an order: the trigger price is unavailable.",
+      "error_canceling_order": "Could not cancel your order. Please try again.",
       "order_created_title": "Ордер создан",
       "order_created_description": "Мы сообщим вам, когда он будет исполнен.",
-      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})"
+      "order_canceled_title": "Ордер отменен",
+      "usd_price_notice": "For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~{{usdPrice}})",
+      "activity_title_filled": "{{source}} обменян в {{dest}}",
+      "activity_title_expired": "{{source}} to {{dest}} expired",
+      "activity_title_canceled": "{{source}} to {{dest}} canceled",
+      "activity_title_failed": "{{source}} to {{dest}} failed",
+      "expired_at_status": "Expired (at {{date}})",
+      "date_created": "Дата создания",
+      "order_type": "Тип ордера",
+      "order_type_limit": "Лимит",
+      "duplicate_order": "Дублировать ордер"
     },
     "recurring": {
       "you_get": "Вы получаете",
@@ -9408,6 +9494,7 @@
       "got_it": "Понятно",
       "repeat_info_title": "Повторяющиеся ордера",
       "repeat_info_body": "Мы рандомизируем время и размер ваших ордеров, чтобы ваши обмены не следовали предсказуемому шаблону.",
+      "local_currency_notice": "Prices are shown in your local currency, but your order is placed in USD based on the exchange rate at order creation. Current rate: 1 USD = {{rate}} {{currency}}.",
       "max_is": "Максимум — {{max}}",
       "price_range": {
         "label": "Диапазон цен",
@@ -10818,7 +10905,7 @@
     "card_otp_authentication": {
       "title": "Подтвердите свой номер телефона",
       "description_with_phone_number": "Введите проверочный код, отправленный на\n{{maskedPhoneNumber}}",
-      "description_without_phone_number": "Мы отправили код подтверждения на ваш номер телефона. Введите код, чтобы продолжить.",
+      "description_without_phone_number": "We've sent a confirmation code to your phone number. Enter the code to continue.",
       "confirm_code_label": "Код подтверждения",
       "confirm_button": "Подтвердить",
       "back_to_login_button": "Назад ко входу",
@@ -10835,22 +10922,22 @@
       "success_title": "Карта добавлена!",
       "success_message": "Ваша карта MetaMask добавлена в {{walletName}}.",
       "error_title": "Невозможно добавить карту",
-      "error_wallet_not_available": "{{walletName}} недоступен на этом устройстве. Убедитесь, что у вас настроен {{walletName}}.",
-      "error_wallet_not_initialized": "{{walletName}} не инициализирован. Настройте свой кошелек и попробуйте снова.",
+      "error_wallet_not_available": "{{walletName}} is not available on this device. Ensure you have {{walletName}} set up.",
+      "error_wallet_not_initialized": "{{walletName}} is not initialized. Set up your wallet and try again.",
       "error_card_already_in_wallet": "Эта карта уже добавлена в {{walletName}}.",
-      "error_card_pending": "Ваша карта настраивается в {{walletName}}. Зайдите через несколько минут.",
-      "error_card_suspended": "Ваша карта в {{walletName}} заблокирована. Обратитесь в службу поддержки за помощью.",
+      "error_card_pending": "Your card is being set up in {{walletName}}. Check back in a few minutes.",
+      "error_card_suspended": "Your card in {{walletName}} has been suspended. Contact support for assistance.",
       "error_card_not_eligible": "Данная карта не подходит для пополнения баланса мобильного кошелька.",
-      "error_encryption_failed": "Не удалось обновить данные карты. Попробуйте еще раз.",
-      "error_invalid_card_data": "Неверные данные карты. Проверьте данные карты и повторите попытку.",
-      "error_card_not_found": "Карта не найдена. Повторите попытку.",
+      "error_encryption_failed": "Failed to encrypt card data. Try again.",
+      "error_invalid_card_data": "Invalid card data. Verify your card details and try again.",
+      "error_card_not_found": "Card not found. Try again.",
       "error_card_provider_not_found": "Поставщик карт недоступен в вашем регионе.",
-      "error_card_id_mismatch": "Не удалось проверить карту. Повторите попытку.",
-      "error_card_not_active": "Ваша карта неактивна. Сначала активируйте ее.",
+      "error_card_id_mismatch": "Card verification failed. Try again.",
+      "error_card_not_active": "Your card is not active. Activate your card first.",
       "error_network": "Network error occurred. Check your connection and try again.",
-      "error_timeout": "Время выполнения запроса истекло. Попробуйте снова.",
-      "error_server": "Возникла ошибка сервера. Повторите попытку позже.",
-      "error_unknown": "Произошла непредвиденная ошибка. Попробуйте еще раз или обратитесь в службу поддержки.",
+      "error_timeout": "The request timed out. Try again.",
+      "error_server": "Server error occurred. Try again later.",
+      "error_unknown": "An unexpected error occurred. Try again or contact support.",
       "error_platform_not_supported": "Данная платформа не поддерживает предоставление мобильных кошельков.",
       "try_again": "Повторить попытку",
       "cancel": "Отмена"
@@ -10897,7 +10984,7 @@
     },
     "version_guard": {
       "title": "Требуется обновление",
-      "description": "Для использования функции «Бонусы» требуется более новая версия MetaMask. Обновите приложение, чтобы продолжить.",
+      "description": "A newer version of MetaMask is required to use Rewards. Update to continue.",
       "update_button": "Обновить MetaMask"
     },
     "season_error": {
@@ -10941,15 +11028,15 @@
       "error_fetching_description": "Проверьте соединение и повторите попытку.",
       "retry_button": "Повтор"
     },
-    "solana_signup_not_supported": "Вход в «Вознаграждения» с помощью счетов Solana пока не поддерживается. Используйте вместо этого счет Ethereum.",
+    "solana_signup_not_supported": "Signing in to Rewards with Solana accounts is not supported yet. Use an Ethereum account instead.",
     "error_messages": {
       "unknown_error": "Произошла неизвестная ошибка",
-      "something_went_wrong": "Возникла ошибка. Повторите попытку позже.",
-      "account_already_registered": "Этот счет уже зарегистрирован в другом профиле вознаграждений. Смените счет, чтобы продолжить.",
+      "something_went_wrong": "Something went wrong. Try again shortly.",
+      "account_already_registered": "This account is already registered with another Rewards profile. Switch account to continue.",
       "request_rejected": "Вы отклонили запрос.",
-      "failed_to_claim_reward": "Не удалось получить вознаграждение. Повторите попытку позже.",
-      "service_not_available": "В данный момент сервис недоступен. Повторите попытку позже.",
-      "invalid_referral_code": "Неверный реферальный код. Проверьте и повторите попытку.",
+      "failed_to_claim_reward": "Failed to claim reward. Try again shortly.",
+      "service_not_available": "Service is not available at the moment. Try again shortly.",
+      "invalid_referral_code": "Invalid referral code. Check and try again.",
       "already_referred": "Вас уже направил другой пользователь.",
       "cannot_use_own_referral_code": "Вы не можете использовать собственный реферальный код.",
       "invalid_bonus_code": "Недействительный бонусный код",
@@ -11029,7 +11116,7 @@
       "swap_title": "Обменять",
       "perps_title": "Перпы",
       "error_title": "Не удалось загрузить транзакции",
-      "error_description": "Что-то пошло не так при загрузке ваших транзакций. Повторите попытку.",
+      "error_description": "Something went wrong while loading your transactions. Try again.",
       "retry_button": "Повтор",
       "empty_title": "Транзакций пока нет. Ваши VIP-транзакции появятся здесь, как только у вас появится активность."
     },
@@ -11087,15 +11174,15 @@
       "not_supported_region_title": "Регион не поддерживается",
       "not_supported_region_description": "Вознаграждения пока не поддерживаются в вашем регионе. Мы работаем над расширением доступа, поэтому зайдите позже.",
       "not_supported_hardware_account_title": "Счет не поддерживается",
-      "not_supported_hardware_account_description": "Счета аппаратных кошельков пока не могут быть использованы для получения вознаграждений. Чтобы продолжить, перейдите в другой счет.",
+      "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Switch to a different account to proceed.",
       "not_supported_account_type_title": "Тип счета не поддерживается",
-      "not_supported_account_type_description": "В настоящее время к Бонусной программе можно подключить только внутренние счета Ethereum и Solana. Для продолжения смените счет.",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Switch to a different account to proceed.",
       "not_supported_confirm_go_back": "Назад",
       "not_supported_confirm_retry": "Повтор",
       "auth_fail_title": "Ошибка аутентификации",
-      "auth_fail_description": "Не удалось авторизоваться в программе вознаграждений. Проверьте подключение и повторите попытку.",
+      "auth_fail_description": "Unable to authenticate with the rewards program. Check your connection and try again.",
       "geo_check_fail_title": "Невозможно определить право на участие",
-      "geo_check_fail_description": "Мы не можем определить, разрешена ли регистрация в бонусной программе в вашем регионе. Проверьте подключение и повторите попытку.",
+      "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Check your connection and try again.",
       "intro_confirm_geo_loading": "Проверка региона...",
       "step_confirm": "Далее",
       "step_finish": "Вперед",
@@ -11168,12 +11255,12 @@
         "cancel": "Отмена",
         "confirm": "Подтвердить",
         "error_title": "Что-то пошло не так",
-        "error_message": "Не удалось отказаться от участия в Программе вознаграждений. Попробуйте еще раз.",
+        "error_message": "Failed to opt out of Rewards. Try again.",
         "processing": "Обработка..."
       },
       "request_received": {
         "title": "Запрос получен",
-        "description": "Примерно через 7 дней ваш прогресс будет полностью удален. Если вы отправили этот запрос по ошибке, обратитесь в службу поддержки через приложение."
+        "description": "In about 7 days, your progress will be fully erased. If you made this request by mistake, contact support through the app."
       }
     },
     "toast_dismiss": "Отклонить",
@@ -11190,8 +11277,8 @@
       },
       "account_not_supported": {
         "title": "Счет не поддерживается",
-        "description_hardware": "Счета аппаратных кошельков пока не соответствуют требованиям. Чтобы продолжить, перейдите в другой счет.",
-        "description_general": "В настоящее время требованиям соответствуют только внутренние счета Ethereum и Solana, не использующие аппаратные кошельки. Чтобы продолжить, перейдите в другой счет.",
+        "description_hardware": "Hardware wallet accounts are not yet eligible. Switch to a different account to proceed.",
+        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible. Switch to a different account to proceed.",
         "confirm": "Назад"
       }
     },
@@ -11273,7 +11360,7 @@
       "arriving_soon": "Скоро появятся",
       "check_back_soon": "Зайдите снова в ближайшее время, чтобы получить",
       "redeem_failure_title": "Не удалось использовать",
-      "redeem_failure_description": "Повторите попытку позже.",
+      "redeem_failure_description": "Try again later.",
       "reward_details": "Сведения о бонусе",
       "select_account_description": "Выберите счет, на который вы хотите получить этот бонус."
     },
@@ -11302,7 +11389,7 @@
       "geo_locked_cta": "Проверить доступность",
       "geo_loading": "Проверка региона...",
       "remind_me_success_toast": "Мы сообщим вам, когда начнется эта кампания.",
-      "remind_me_save_error": "Не удалось сохранить ваше напоминание. Пожалуйста, попробуйте еще раз.",
+      "remind_me_save_error": "Could not save your reminder. Try again.",
       "view_details": "Просмотр подробностей",
       "view_details_accessibility": "Посмотреть детали для {{campaignName}}"
     },
@@ -11315,7 +11402,7 @@
       "opt_in": "Согласиться",
       "opting_in": "Дача согласия...",
       "opted_in": "Вы согласились на участие в этой кампании",
-      "opt_in_error": "Не удалось согласиться. Повторите попытку.",
+      "opt_in_error": "Failed to opt in. Try again.",
       "join_campaign": "Присоединиться к кампании",
       "competition_closed_title": "Соревнование закрыто",
       "competition_closed_description": "Извините, в этом соревновании больше нельзя поучаствовать. Вы можете следить за таблицей лидеров ниже и возвращаться, чтобы узнавать о будущих кампаниях.",
@@ -11325,9 +11412,9 @@
       "open_position": "Торговать сейчас",
       "how_it_works": "Как это работает",
       "error_title": "Не удалось загрузить эту кампанию",
-      "error_description": "Мы не смогли загрузить эту кампанию. Попробуйте снова.",
+      "error_description": "We couldn't load this campaign. Try again.",
       "stats_error_title": "Не удалось загрузить статистику",
-      "stats_error_description": "У нас возникла проблема с загрузкой вашей статистики. Пожалуйста, попробуйте еще раз.",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "retry": "Повтор",
       "last_checked_at": "Последняя проверка в",
       "ondo": {
@@ -11338,7 +11425,7 @@
     "campaign_ended_stats": {
       "title": "Статистика",
       "error_title": "Не удалось загрузить всю статистику",
-      "error_description": "У нас возникла проблема с загрузкой вашей статистики. Попробуйте позже.",
+      "error_description": "We had a problem loading your stats. Try again later.",
       "retry": "Повтор",
       "total_participants": "Всего участников",
       "total_volume": "Общий объем",
@@ -11355,7 +11442,7 @@
       "max_tier_subtext": "{{maxThreshold}} + общее максимальное значение (TVL) — все ключевые показатели достигнуты",
       "max_badge": "Максимум",
       "error_title": "Не удалось загрузить призовой фонд",
-      "error_description": "Произошла ошибка при загрузке призового фонда. Попробуйте еще раз.",
+      "error_description": "There was an error loading the prize pool. Try again.",
       "retry": "Повтор"
     },
     "ondo_campaign_portfolio": {
@@ -11363,7 +11450,7 @@
       "position_unrealized_pnl": "П/У",
       "updated_at": "Последнее обновление: {{time}}",
       "error_loading": "Не удалось загрузить позиции.",
-      "error_loading_description": "При загрузке ваших позиций возникла ошибка. Повторите попытку.",
+      "error_loading_description": "There was an error loading your positions. Try again.",
       "retry": "Повтор",
       "loading": "Загрузка позиций...",
       "empty": "У вас нет никаких позиций",
@@ -11388,7 +11475,7 @@
       "total_participants": "{{count}} участника(-ов)",
       "updated_at": "Последнее обновление: {{time}}",
       "error_loading": "Не удалось загрузить таблицу лидеров",
-      "error_loading_description": "При загрузке таблицы лидеров возникла ошибка. Пожалуйста, попробуйте еще раз.",
+      "error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "error_loading_position": "Не удалось загрузить вашу позицию",
       "retry": "Повтор",
       "no_data": "Данные таблицы лидеров недоступны",
@@ -11406,7 +11493,7 @@
     "ondo_campaign_stats": {
       "title": "Статистика",
       "stats_error_title": "Не удалось загрузить всю статистику",
-      "stats_error_description": "У нас возникла проблема с загрузкой вашей статистики. Попробуйте позже.",
+      "stats_error_description": "We had a problem loading your stats. Try again later.",
       "retry": "Повтор",
       "label_return": "Доход",
       "label_market_value": "Рыночная стоимость",
@@ -11430,7 +11517,7 @@
       "type_rebalance": "Перебалансировка",
       "type_external_outflow": "Отток",
       "error_title": "Не удалось загрузить активность",
-      "error_description": "При загрузке таблицы активности возникла ошибка. Попробуйте еще раз.",
+      "error_description": "Something went wrong while loading the activity. Try again.",
       "retry_button": "Повтор",
       "empty_title": "Пока нет активности",
       "empty_description": "Активность вашей кампании появится здесь, как только у вас появятся транзакции."
@@ -11463,7 +11550,7 @@
       "leaderboard_total_participants": "{{count}} участника(-ов)",
       "last_updated": "Последнее обновление: {{time}}",
       "leaderboard_error_loading": "Не удалось загрузить таблицу лидеров",
-      "leaderboard_error_loading_description": "При загрузке таблицы лидеров возникла ошибка. Пожалуйста, попробуйте еще раз.",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "leaderboard_not_yet_computed": "Таблица лидеров еще не сформирована. Загляните попозже.",
       "leaderboard_powered_by_prefix": "На основе ",
       "leaderboard_hypertracker_brand": "HyperTracker",
@@ -11473,7 +11560,7 @@
       "stats_qualify_for_rank_title": "Пройти квалификацию для таблицы лидеров",
       "stats_qualify_for_rank_description": "Наторгуйте еще {{notionalRemaining}} номинального объема, чтобы получить право на участие.",
       "stats_error_title": "Не удалось загрузить статистику",
-      "stats_error_description": "У нас возникла проблема с загрузкой вашей статистики. Пожалуйста, попробуйте еще раз.",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "stats_retry": "Повтор"
     },
     "predict_the_pitch_campaign": {
@@ -11492,7 +11579,7 @@
       "positions_open_badge": "{{count}} открыто",
       "positions_closed_badge": "{{count}} закрыто",
       "positions_error": "Не удалось загрузить прогнозы",
-      "positions_error_description": "При загрузке ваших прогнозов возникла ошибка. Попробуйте еще раз.",
+      "positions_error_description": "Something went wrong while loading your predictions. Try again.",
       "positions_retry": "Повтор",
       "positions_last_updated": "Последнее обновление: {{time}}",
       "positions_empty": "Пока нет прогнозов",
@@ -11501,10 +11588,10 @@
       "leaderboard_total_participants": "{{count}} участника(-ов)",
       "last_updated": "Последнее обновление: {{time}}",
       "leaderboard_error_loading": "Не удалось загрузить таблицу лидеров",
-      "leaderboard_error_loading_description": "При загрузке таблицы лидеров возникла ошибка. Пожалуйста, попробуйте еще раз.",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "leaderboard_not_yet_computed": "Таблица лидеров еще не сформирована. Загляните попозже.",
       "stats_error_title": "Не удалось загрузить статистику",
-      "stats_error_description": "У нас возникла проблема с загрузкой вашей статистики. Пожалуйста, попробуйте еще раз.",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "label_markets_traded": "Торгуемые рынки",
       "stats_retry": "Повтор",
       "performance_title": "Результативность",
@@ -11534,7 +11621,7 @@
       "previous_title": "Предыдущее",
       "empty_state": "Нет доступных кампаний",
       "error_title": "Не удалось загрузить кампании",
-      "error_description": "Нам не удалось загрузить кампании. Пожалуйста, попробуйте еще раз.",
+      "error_description": "We couldn't load any campaigns. Try again.",
       "retry_button": "Повтор",
       "refreshing": "Обновление..."
     },
@@ -11683,7 +11770,7 @@
     },
     "show_error": {
       "title": "Ошибка соединения",
-      "description": "Не удалось установить соединение. Попробуйте ещё раз."
+      "description": "Failed to establish connection. Try again."
     },
     "show_rejection": {
       "title": "В одобрении отказано",
@@ -11717,11 +11804,11 @@
     },
     "show_not_found": {
       "title": "Соединение не найдено",
-      "description": "Для продолжения установите новое соединение через приложение."
+      "description": "Establish a new connection from the app to continue."
     },
     "show_internal_error": {
       "title": "Что-то пошло не так",
-      "description": "Произошла непредвиденная ошибка. Повторите попытку."
+      "description": "An unexpected error occurred. Try again."
     },
     "agentic_cli_dashboard_webview": {
       "title": "Выберите проект",
@@ -11730,7 +11817,7 @@
     },
     "show_method_error": {
       "title": "Не удалось выполнить запрос",
-      "description": "Не удалось выполнить запрос. Повторите попытку."
+      "description": "The request could not be completed. Try again."
     }
   },
   "network_connection_banner": {
@@ -11862,7 +11949,7 @@
     },
     "awaiting_app": {
       "title": "Откройте {{app}}",
-      "message": "Откройте приложение {{app}} на вашем {{device}}",
+      "message": "Open the {{app}} app on your {{device}}",
       "current_app": "Сейчас открыто: {{app}}"
     },
     "awaiting_confirmation": {
@@ -11875,22 +11962,22 @@
     },
     "errors": {
       "device_locked": "Разблокируйте его и попробуйте снова, чтобы продолжить",
-      "app_not_open": "Откройте приложение Ethereum на вашем устройстве",
-      "device_disconnected": "Ваше {{device}} было отключено. Подключитесь снова и повторите попытку.",
-      "device_not_found": "Не удалось найти ваше {{device}}. Убедитесь, что устройство подключено.",
-      "device_not_ready": "Ваше устройство не готово. Проверьте его и повторите попытку.",
-      "blind_signing": "Слепое подписание отключено. Включите его в настройках вашего устройства.",
-      "connection_closed": "Подключение прервано. Повторите попытку.",
-      "connection_timeout": "Время ожидания подключения истекло. Повторите попытку.",
+      "app_not_open": "Open the Ethereum app on your device",
+      "device_disconnected": "Your {{device}} was disconnected. Reconnect and try again",
+      "device_not_found": "Could not find your {{device}}. Make sure it's connected",
+      "device_not_ready": "Your device is not ready. Check it and try again",
+      "blind_signing": "Blind signing is disabled. Enable it in your device settings",
+      "connection_closed": "The connection was lost. Try again",
+      "connection_timeout": "Connection timed out. Try again",
       "user_cancelled": "Действие было отменено на вашем устройстве",
-      "pending_confirmation": "На вашем устройстве ожидается выполнения действия. Выполните или отмените его.",
+      "pending_confirmation": "There's a pending action on your device. Complete or cancel it",
       "bluetooth_permission_denied": "Для подключения к вашему устройству требуется разрешение на использование Bluetooth",
       "location_permission_denied": "Для поиска устройств требуется разрешение на использование геолокации",
       "nearby_permission_denied": "Требуется разрешение на доступ к устройствам поблизости",
-      "bluetooth_off": "Включите Bluetooth для подключения к вашему устройству",
-      "bluetooth_scan_failed": "Не удалось выполнить поиск устройств. Повторите попытку",
-      "bluetooth_connection_failed": "Сбой подключения к вашему устройству. Повторите попытку",
-      "camera_permission_denied": "Для сканирования QR-кодов требуется разрешение на использование камеры. Пожалуйста, включите его в настройках вашего устройства",
+      "bluetooth_off": "Turn on Bluetooth to connect to your device",
+      "bluetooth_scan_failed": "Failed to scan for devices. Try again",
+      "bluetooth_connection_failed": "The connection to your device failed. Try again",
+      "camera_permission_denied": "Camera permission is required to scan QR codes. Enable it in your device settings",
       "not_supported": "Эта операция не поддерживается",
       "only_v4_supported": "Ваше устройство {{device}} может подписывать только типизированные данные версии 4 (V4). Этот сайт запросил более старый тип подписи, который не поддерживается",
       "unknown_error": "Убедитесь, что ваш {{device}} настроен с помощью секретной фразой для восстановления или пароля для этого счета"
@@ -12092,7 +12179,10 @@
       "predict": {
         "label": "Прогнозы",
         "footnote": "Одна сделка на прогнозах в месяц. Неиспользованные сделки не переносятся."
-      }
+      },
+      "resets_on": "Resets on {{date}}",
+      "load_error": "Couldn't load your allowances.",
+      "retry": "Повторить попытку"
     },
     "physical_card": {
       "title": "Получите бесплатную карту MetaMask Card",
@@ -12113,23 +12203,17 @@
     "membership": {
       "title": "Ваша подписка",
       "plan": "Подписка",
-      "earned_this_month": "Заработано в этом месяце",
       "payment_details": "Детали платежа",
       "total": "Итого",
       "paying_with": "Оплата с помощью",
+      "money_account": "Money Account",
       "renews_on": "Продлевается",
+      "months_on_us_one": "{{count}} month on us",
+      "months_on_us_other": "{{count}} months on us",
       "manage": "Управление",
       "invoices": "Счета-фактуры",
       "contact_support": "Связаться с поддержкой",
-      "cancel_membership": "Отменить подписку",
-      "earned_info": {
-        "title": "Заработано в этом месяце",
-        "description": "Сумма, которую вы заработали в виде APY и кешбэка в mUSD как участник Pro."
-      },
-      "saved_info": {
-        "title": "Сэкономлено в этом месяце",
-        "description": "Сумма, которую вы сэкономили как участник Pro на комиссиях MetaMask при свопах, перпах и прогнозах в этом месяце, плюс комиссии банкоматов и конвертации."
-      }
+      "cancel_membership": "Отменить подписку"
     },
     "cancel_membership": {
       "title": "Почему вы отменяете подписку?",
@@ -12165,6 +12249,7 @@
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Присоединиться к Pro",
+    "enable_stripe_test_clocks": "Enable Stripe Test clocks (for development and testing only)",
     "pro": "Pro",
     "pricing": {
       "loading": "Loading plans...",

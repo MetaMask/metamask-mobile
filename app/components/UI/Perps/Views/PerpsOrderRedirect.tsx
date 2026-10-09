@@ -49,14 +49,22 @@ type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
 const PerpsOrderRedirect: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteParams>();
-  const { direction, asset, fromTokenDetails, transactionActiveAbTests } =
-    route.params;
+  const {
+    direction,
+    asset,
+    fromTokenDetails,
+    transactionActiveAbTests,
+    useBottomSheet: useBottomSheetParam,
+    stayOnCurrentScreen,
+  } = route.params;
 
   const { isConnected, isInitialized } = usePerpsConnection();
   const { depositWithOrder } = usePerpsTrading();
   const activeProvider = useSelector(selectPerpsProvider);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
-  const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
+  const { useBottomSheet: isBottomSheetExperiment } =
+    usePerpsScreenVsBottomSheetAbTest();
+  const useBottomSheet = useBottomSheetParam ?? isBottomSheetExperiment;
 
   const hasStartedRef = useRef(false);
   useEffect(() => {
@@ -67,14 +75,28 @@ const PerpsOrderRedirect: React.FC = () => {
     hasStartedRef.current = true;
 
     if (activeProvider === 'lighter') {
+      const balanceOrderParams = {
+        direction,
+        asset,
+        fromTokenDetails,
+        source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+        transactionActiveAbTests,
+        ...(stayOnCurrentScreen ? { stayOnCurrentScreen: true } : {}),
+      };
+      // Lighter has no sheet. From the transparent modal stack, the full
+      // order screen lives in the Perps stack, so leave the modal first.
+      if (useBottomSheetParam) {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.BALANCE_ORDER,
+          params: balanceOrderParams,
+        });
+        return;
+      }
       navigation.dispatch(
-        StackActions.replace(Routes.PERPS.BALANCE_ORDER, {
-          direction,
-          asset,
-          fromTokenDetails,
-          source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-          transactionActiveAbTests,
-        }),
+        StackActions.replace(Routes.PERPS.BALANCE_ORDER, balanceOrderParams),
       );
       return;
     }
@@ -107,7 +129,10 @@ const PerpsOrderRedirect: React.FC = () => {
               asset,
               fromTokenDetails,
               source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-              ...(useBottomSheet ? { useBottomSheet: true } : {}),
+              ...(useBottomSheet
+                ? { useBottomSheet: true, forceBottomSheet: true }
+                : {}),
+              ...(stayOnCurrentScreen ? { stayOnCurrentScreen: true } : {}),
               showPerpsHeader:
                 CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },
@@ -152,14 +177,29 @@ const PerpsOrderRedirect: React.FC = () => {
     direction,
     asset,
     fromTokenDetails,
+    stayOnCurrentScreen,
     transactionActiveAbTests,
     useBottomSheet,
+    useBottomSheetParam,
     depositWithOrder,
     activeProvider,
     navigation,
     showToast,
     PerpsToastOptions,
   ]);
+
+  // An explicit sheet request arrives through the transparent Perps modal
+  // stack. The pending indicator does not fill the page, and it does not take
+  // touches, so the feed stays usable until the sheet replaces this screen.
+  if (useBottomSheetParam) {
+    return (
+      <Box twClassName="flex-1 items-center pt-20" pointerEvents="box-none">
+        <Box pointerEvents="none">
+          <PerpsLoader message="Preparing order..." fullScreen={false} />
+        </Box>
+      </Box>
+    );
+  }
 
   // Match PerpsLoader connecting layout so both loaders look the same: top-aligned, centered, pt-20
   return (
