@@ -23,7 +23,7 @@ export interface MarketOrderLiquidityParams extends EstimatedSlippageParams {
   szDecimals?: number;
   /** Reduce-only sizing never rounds up. */
   reduceOnly?: boolean;
-  /** Exact position size cap for a reduce-only close. */
+  /** Exact position size for a full reduce-only close, submitted without USD. */
   size?: string;
 }
 
@@ -84,7 +84,7 @@ export function calculateMarketOrderLiquidity({
   if (szDecimals !== undefined) {
     try {
       targetBaseSize = calculateFinalPositionSize({
-        usdAmount: String(sizeUsd),
+        usdAmount: sizeCap === undefined ? String(sizeUsd) : undefined,
         size: sizeCap,
         currentPrice: midPrice,
         szDecimals,

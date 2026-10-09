@@ -240,7 +240,7 @@ describe('calculateMarketOrderLiquidity', () => {
     expect(result.canFillWithinSlippage).toBe(false);
   });
 
-  it('caps a reduce-only fill to the exact position size', () => {
+  it('uses the exact position size for a full reduce-only close', () => {
     const orderBook = buildBook(100, [], [level(100, 0.5)]);
 
     const result = calculateMarketOrderLiquidity({
@@ -255,6 +255,38 @@ describe('calculateMarketOrderLiquidity', () => {
 
     expect(result.canFillWithinSlippage).toBe(true);
   });
+
+  it.each([true, false])(
+    'checks fractional MAX depth and worst level for a full close, buy=%s',
+    (isBuy) => {
+      const params = {
+        sizeUsd: 50,
+        currentPrice: 100,
+        isBuy,
+        maxSlippageBps: 300,
+        szDecimals: 3,
+        reduceOnly: true,
+        size: '0.509',
+      };
+      const shallow = [level(100, 0.5)];
+      const outsideCap = [...shallow, level(isBuy ? 104 : 96, 0.009)];
+      const sufficient = [level(100, 0.509)];
+
+      for (const levels of [shallow, outsideCap]) {
+        const result = calculateMarketOrderLiquidity({
+          ...params,
+          orderBook: buildBook(100, levels, levels),
+        });
+        expect(result.canFillWithinSlippage).toBe(false);
+      }
+      expect(
+        calculateMarketOrderLiquidity({
+          ...params,
+          orderBook: buildBook(100, sufficient, sufficient),
+        }).canFillWithinSlippage,
+      ).toBe(true);
+    },
+  );
 
   it('skips nonpositive prices instead of allowing a zero-price sell level', () => {
     const orderBook = buildBook(
