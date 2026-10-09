@@ -18,13 +18,11 @@ import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 interface QuickBuySubScreenHeaderProps {
   title: string;
   onBack: () => void;
-  onClose: () => void;
 }
 
 const QuickBuySubScreenHeader: React.FC<QuickBuySubScreenHeaderProps> = ({
   title,
   onBack,
-  onClose,
 }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
@@ -45,12 +43,8 @@ const QuickBuySubScreenHeader: React.FC<QuickBuySubScreenHeaderProps> = ({
     >
       {title}
     </Text>
-    <ButtonIcon
-      iconName={DsIconName.Close}
-      size={ButtonIconSize.Md}
-      onPress={onClose}
-      testID={QuickBuySheetSelectorsIDs.SUB_SCREEN_CLOSE}
-    />
+    {/* Same size as the back button so the title stays centered. */}
+    <Box twClassName="h-8 w-8" />
   </Box>
 );
 
