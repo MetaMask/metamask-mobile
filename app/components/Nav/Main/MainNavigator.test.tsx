@@ -930,6 +930,21 @@ describe('MainNavigator', () => {
           }),
         }),
       );
+
+      const vbaDetailsScreen = getScreenProps(container).find(
+        ({ name }) => name === Routes.RAMP.VBA_DETAILS,
+      );
+
+      expect(vbaDetailsScreen).toEqual(
+        expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+          options: expect.objectContaining({
+            animation: 'slide_from_bottom',
+            gestureDirection: 'vertical',
+            headerShown: false,
+          }),
+        }),
+      );
     });
 
     it('shares slide-from-right options on one Group for trending and RWA full views', () => {

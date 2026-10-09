@@ -149,7 +149,15 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expectResetTo({ name: VbaOnboardingRoutes.DETAILS });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NAVIGATE',
+        payload: expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+        }),
+      }),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('opens identity verification when a session exists without recorded vendor disclaimers', async () => {

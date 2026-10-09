@@ -11,6 +11,7 @@ import {
   ButtonIconSize,
   ButtonSize,
   ButtonVariant,
+  HeaderStandard,
   IconName,
   ListItem,
   Text,
@@ -25,6 +26,7 @@ import vbaPixLogo from './assets/vba-pix-logo.png';
 
 export const VbaDetailsSelectorsIDs = {
   CONTAINER: 'vba-details-container',
+  HEADER: 'vba-details-header',
   LOGO: 'vba-details-logo',
   COPY_BUTTON: 'vba-details-copy-button',
   DONE_BUTTON: 'vba-details-done-button',
@@ -50,6 +52,7 @@ const SAMPLE_PIX_DETAILS = [
 /**
  * Completed virtual bank account screen. Reached once the Money account is
  * provisioned (`hydrateVbaOnboarding` returns `autorampStatus: 'ready'`).
+ * Presented as a root sheet (`Routes.RAMP.VBA_DETAILS`), not an onboarding step.
  */
 const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -71,9 +74,10 @@ const VbaDetails = () => {
 
   return (
     <SafeAreaView
-      edges={['top', 'right', 'bottom', 'left']}
+      edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
+      <HeaderStandard includesTopInset testID={VbaDetailsSelectorsIDs.HEADER} />
       <ScrollView
         contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
         testID={VbaDetailsSelectorsIDs.CONTAINER}

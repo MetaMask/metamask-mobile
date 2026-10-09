@@ -27,6 +27,7 @@ describe('VbaDetails', () => {
     const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
 
     expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.HEADER)).toBeOnTheScreen();
     expect(getByTestId(VbaDetailsSelectorsIDs.LOGO)).toBeOnTheScreen();
     expect(getByText('Add money with Pix')).toBeOnTheScreen();
     expect(getByText('PIX Copia e Cola')).toBeOnTheScreen();
