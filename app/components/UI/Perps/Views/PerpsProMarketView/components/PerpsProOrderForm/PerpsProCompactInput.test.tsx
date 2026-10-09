@@ -209,6 +209,37 @@ describe('PerpsProCompactInput', () => {
     expect(input).toHaveProp('value', '1.200');
   });
 
+  it('preserves a German grouped integer that replaces the full decimal value', () => {
+    jest.mocked(usePerpsLocale).mockReturnValue('de-DE');
+    const onChangeText = jest.fn();
+    const ControlledInput = () => {
+      const [value, setValue] = React.useState('1234.50');
+      const handleChangeText = (nextValue: string) => {
+        onChangeText(nextValue);
+        setValue(nextValue);
+      };
+
+      return (
+        <PerpsProCompactInput
+          {...defaultProps}
+          value={value}
+          onChangeText={handleChangeText}
+        />
+      );
+    };
+    render(<ControlledInput />);
+    const input = screen.getByTestId(defaultProps.testID);
+
+    fireEvent(input, 'focus');
+    fireEvent(input, 'selectionChange', {
+      nativeEvent: { selection: { start: 0, end: 8 } },
+    });
+    fireEvent.changeText(input, '1.234.567');
+
+    expect(onChangeText).toHaveBeenLastCalledWith('1234567');
+    expect(input).toHaveProp('value', '1.234.567');
+  });
+
   it('keeps an external value update when the field blurs', () => {
     const onChangeText = jest.fn();
     const initialProps = { ...defaultProps, value: '100', onChangeText };

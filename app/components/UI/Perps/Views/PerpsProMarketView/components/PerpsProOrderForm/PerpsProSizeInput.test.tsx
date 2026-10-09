@@ -182,6 +182,35 @@ describe('PerpsProSizeInput', () => {
     expect(input).toHaveProp('value', '123.450');
   });
 
+  it('preserves remaining grouping after deleting a selected German decimal span', () => {
+    jest.mocked(usePerpsLocale).mockReturnValue('de-DE');
+    const onChangeText = jest.fn();
+    const ControlledInput = () => {
+      const [value, setValue] = React.useState('1234567.89');
+      const handleChangeText = (nextValue: string) => {
+        onChangeText(nextValue);
+        setValue(nextValue);
+      };
+
+      return (
+        <PerpsProSizeInput
+          {...createProps({ value, onChangeText: handleChangeText })}
+        />
+      );
+    };
+    render(<ControlledInput />);
+    const input = screen.getByTestId(ids.SIZE_INPUT);
+
+    fireEvent(input, 'focus');
+    fireEvent(input, 'selectionChange', {
+      nativeEvent: { selection: { start: 5, end: 11 } },
+    });
+    fireEvent.changeText(input, '1.2349');
+
+    expect(onChangeText).toHaveBeenLastCalledWith('12349');
+    expect(input).toHaveProp('value', '12.349');
+  });
+
   it('keeps an external value update when the field blurs', () => {
     const onChangeText = jest.fn();
     const { rerender } = renderInput({ value: '100', onChangeText });

@@ -686,20 +686,26 @@ describe('formatUtils', () => {
       expect(normalizedValue).toBe('1000.');
     });
 
-    it('preserves German grouping when deleting a decimal separator', () => {
-      const context = {
-        previousDisplayValue: '1.234,50',
-        previousSelection: { start: 6, end: 6 },
-      };
+    it.each([
+      ['backspacing', { start: 6, end: 6 }],
+      ['forward deleting', { start: 5, end: 5 }],
+    ])(
+      'preserves German grouping when %s a decimal separator',
+      (_operation, previousSelection) => {
+        const context = {
+          previousDisplayValue: '1.234,50',
+          previousSelection,
+        };
 
-      const normalizedValue = normalizePerpsNumericInput(
-        '1.23450',
-        'de-DE',
-        context,
-      );
+        const normalizedValue = normalizePerpsNumericInput(
+          '1.23450',
+          'de-DE',
+          context,
+        );
 
-      expect(normalizedValue).toBe('123450');
-    });
+        expect(normalizedValue).toBe('123450');
+      },
+    );
 
     it('treats a period replacing a German decimal separator as decimal input', () => {
       const context = {
@@ -714,6 +720,155 @@ describe('formatUtils', () => {
       );
 
       expect(normalizedValue).toBe('1234.50');
+    });
+
+    it('preserves a German grouped integer that replaces the full decimal value', () => {
+      const context = {
+        previousDisplayValue: '1.234,50',
+        previousSelection: { start: 0, end: 8 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.234.567',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1234567');
+    });
+
+    it('preserves remaining German grouping after deleting a selected decimal span', () => {
+      const context = {
+        previousDisplayValue: '1.234.567,89',
+        previousSelection: { start: 5, end: 11 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.2349',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('12349');
+    });
+
+    it('concatenates digits when a selection removes a German decimal and adjacent digit', () => {
+      const context = {
+        previousDisplayValue: '1.234,50',
+        previousSelection: { start: 5, end: 7 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.2340',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('12340');
+    });
+
+    it('keeps a replacement period as decimal when the result resembles grouping', () => {
+      const context = {
+        previousDisplayValue: '1.234,500',
+        previousSelection: { start: 5, end: 6 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.234.500',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1234.500');
+    });
+
+    it('keeps grouping when a selected separator is replaced with itself', () => {
+      const context = {
+        previousDisplayValue: '1.234',
+        previousSelection: { start: 1, end: 2 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.234',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1234');
+    });
+
+    it.each([
+      ['en-US', '1.5', '1.5,'],
+      ['de-DE', '1,5', '1,5.'],
+    ])(
+      'ignores an alternate repeated decimal separator in %s',
+      (locale, previousDisplayValue, nextValue) => {
+        const context = {
+          previousDisplayValue,
+          previousSelection: {
+            start: previousDisplayValue.length,
+            end: previousDisplayValue.length,
+          },
+        };
+
+        const normalizedValue = normalizePerpsNumericInput(
+          nextValue,
+          locale,
+          context,
+        );
+
+        expect(normalizedValue).toBe('1.5');
+      },
+    );
+
+    it('treats an inserted comma as a decimal key in an English input', () => {
+      const context = {
+        previousDisplayValue: '1',
+        previousSelection: { start: 1, end: 1 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1,',
+        'en-US',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1.');
+    });
+
+    it('applies contextual edits to localized Arabic digits', () => {
+      const previousDisplayValue = formatPerpsInput('1200.5', 'ar-EG');
+      const localizedZero = formatPerpsInput('0', 'ar-EG');
+      const context = {
+        previousDisplayValue,
+        previousSelection: {
+          start: previousDisplayValue.length,
+          end: previousDisplayValue.length,
+        },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        `${previousDisplayValue}${localizedZero}`,
+        'ar-EG',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1200.50');
+    });
+
+    it('preserves French grouping when deleting a decimal separator', () => {
+      const context = {
+        previousDisplayValue: '1\u202f234,50',
+        previousSelection: { start: 6, end: 6 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1\u202f23450',
+        'fr-FR',
+        context,
+      );
+
+      expect(normalizedValue).toBe('123450');
     });
 
     it.each([
@@ -811,6 +966,30 @@ describe('formatUtils', () => {
           nextFormattedValue: '1,200',
           previousSelection: { start: 0, end: 6 },
           locale: 'en-US',
+        }),
+      ).toEqual({ start: 5, end: 5 });
+    });
+
+    it('maps a German grouped replacement cursor to the end of the field', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '1.234,50',
+          nextDisplayValue: '1.234.567',
+          nextFormattedValue: '1.234.567',
+          previousSelection: { start: 0, end: 8 },
+          locale: 'de-DE',
+        }),
+      ).toEqual({ start: 9, end: 9 });
+    });
+
+    it('maps the cursor after deleting a selected German decimal span', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '1.234.567,89',
+          nextDisplayValue: '1.2349',
+          nextFormattedValue: '12.349',
+          previousSelection: { start: 5, end: 11 },
+          locale: 'de-DE',
         }),
       ).toEqual({ start: 5, end: 5 });
     });
