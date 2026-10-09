@@ -1,11 +1,11 @@
 import { getDefaultKycVendorDisclaimersAccepted } from '@metamask/kyc-controller';
-import { RootState } from '../reducers';
+import { RootState } from '../../reducers';
 import {
   selectKycControllerState,
   selectKycProviderFlowStatus,
   selectKycSessionStatus,
   selectKycVendorDisclaimersAccepted,
-} from './kycController';
+} from './index';
 
 const MOCK_SESSION_STATUS = {
   id: 'session-1',

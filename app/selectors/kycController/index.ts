@@ -6,7 +6,7 @@ import {
   type KycSessionStatus,
   type KycVendorDisclaimersAccepted,
 } from '@metamask/kyc-controller';
-import { RootState } from '../reducers';
+import { RootState } from '../../reducers';
 
 /**
  * Fallback for when the KycController state is unavailable in Redux (for
