@@ -9,29 +9,39 @@ import {
 import { TokenExplainerSheetSelectors } from '../TokenExplainerSheet/TokenExplainerSheet.testIds';
 import SecurityTab from './SecurityTab';
 import {
-  SECURITY_CHECKS_BY_NAMESPACE,
+  SECURITY_CONTRACT_CHECKS,
   SECURITY_EMPTY_VALUE,
   SECURITY_EXPLAINER_KEYS,
 } from './SecurityTab.constants';
 import { SecurityTabSelectors } from './SecurityTab.testIds';
 import {
-  SecurityCheckKey,
+  AdditionalCheckKey,
+  ContractCheckKey,
   SecurityStatKey,
-  SupportedSecurityNamespace,
   type SecurityCheck,
   type SecurityRowKey,
 } from './SecurityTab.types';
 
 const ALL_ROW_KEYS: SecurityRowKey[] = [
-  ...Object.values(SecurityCheckKey),
+  ...Object.values(ContractCheckKey),
   ...Object.values(SecurityStatKey),
 ];
 
+const renderTab = (
+  props: Partial<React.ComponentProps<typeof SecurityTab>> = {},
+) =>
+  render(
+    <SecurityTab
+      facts={MOCK_SECURITY_FACTS_EVM}
+      onExplain={jest.fn()}
+      onOpenContractDetails={jest.fn()}
+      {...props}
+    />,
+  );
+
 describe('SecurityTab', () => {
   it('renders every section for a chain with complete data', () => {
-    const { getByTestId } = render(
-      <SecurityTab facts={MOCK_SECURITY_FACTS_EVM} onExplain={jest.fn()} />,
-    );
+    const { getByTestId } = renderTab();
 
     for (const section of [
       SecurityTabSelectors.SECTION_CHECKS,
@@ -49,65 +59,101 @@ describe('SecurityTab', () => {
   // Blockaid returns every `fees` field as null on Solana, so keeping the
   // section would leave a heading above two dashes rather than information.
   it('omits the trading section when the chain has no fee data', () => {
-    const { queryByTestId } = render(
-      <SecurityTab facts={MOCK_SECURITY_FACTS_SOLANA} onExplain={jest.fn()} />,
-    );
+    const { queryByTestId } = renderTab({ facts: MOCK_SECURITY_FACTS_SOLANA });
 
     expect(queryByTestId(SecurityTabSelectors.SECTION_TRADING)).toBeNull();
   });
 
-  describe('check selection', () => {
+  describe('contract checks', () => {
+    // An earlier revision picked a different four per chain. The list is now
+    // fixed, so the same rows have to render whichever fixture is passed —
+    // including the Solana one, where a check with nothing behind it falls to
+    // the dash rather than disappearing.
     it.each([
-      [SupportedSecurityNamespace.Eip155, MOCK_SECURITY_FACTS_EVM],
-      [SupportedSecurityNamespace.Solana, MOCK_SECURITY_FACTS_SOLANA],
-    ] as const)('renders only the %s checks', (namespace, facts) => {
-      const expected = SECURITY_CHECKS_BY_NAMESPACE[namespace];
-      const { getByTestId, queryByTestId } = render(
-        <SecurityTab facts={facts} onExplain={jest.fn()} />,
-      );
+      ['an EVM token', MOCK_SECURITY_FACTS_EVM],
+      ['a Solana token', MOCK_SECURITY_FACTS_SOLANA],
+    ] as const)('renders the same four checks for %s', (_label, facts) => {
+      const { getByTestId } = renderTab({ facts });
 
-      for (const checkKey of Object.values(SecurityCheckKey)) {
-        const row = queryByTestId(SecurityTabSelectors.row(checkKey));
-
-        if (expected.includes(checkKey)) {
-          expect(
-            getByTestId(SecurityTabSelectors.row(checkKey)),
-          ).toBeOnTheScreen();
-        } else {
-          expect(row).toBeNull();
-        }
+      for (const checkKey of SECURITY_CONTRACT_CHECKS) {
+        expect(
+          getByTestId(SecurityTabSelectors.row(checkKey)),
+        ).toBeOnTheScreen();
       }
     });
 
-    // The two namespaces must not accidentally converge on the same list —
-    // that would mean a Solana token showing Ethereum's honeypot and renounced
-    // checks, which the ticket forbids outright.
-    it('gives the two chain families different checks', () => {
+    // The additional checks live behind the chevron. Rendering them here too
+    // would make the tab the long screen the detail screen exists to be.
+    it('keeps the additional checks off the tab', () => {
+      const { queryByTestId } = renderTab();
+
+      for (const checkKey of Object.values(AdditionalCheckKey)) {
+        expect(
+          queryByTestId(`token-details-v1-security-tab-row-${checkKey}`),
+        ).toBeNull();
+      }
+    });
+
+    it('opens the contract security screen from the heading', () => {
+      const onOpenContractDetails = jest.fn();
+      const { getByTestId } = renderTab({ onOpenContractDetails });
+
+      fireEvent.press(getByTestId(SecurityTabSelectors.CONTRACT_DETAILS_LINK));
+
+      expect(onOpenContractDetails).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('section headings', () => {
+    // Plain Text left VoiceOver and TalkBack users no way to skip between
+    // sections on a tab this long (WCAG 1.3.1, 2.4.6).
+    // Queried by role rather than by text: "Holders" is both a section title
+    // and a row label, so matching on the word alone is ambiguous — which is
+    // the ambiguity the heading role exists to resolve.
+    it.each([
+      en.token_details_v1.security_tab.sections.holders,
+      en.token_details_v1.security_tab.sections.liquidity,
+      en.token_details_v1.security_tab.sections.trading,
+      en.token_details_v1.security_tab.sections.origin,
+    ])('announces %s as a heading', (title) => {
+      const { getByRole } = renderTab();
+
+      expect(getByRole('header', { name: title })).toBeOnTheScreen();
+    });
+
+    // The design system bakes `px-4` into SectionHeader and concatenates
+    // overrides rather than resolving them, so `px-0` wins only by arriving
+    // last. If that ever stops holding, every title silently sits 16px further
+    // in than the rows beneath it, and nothing else would catch it.
+    it('cancels the design system inset against the tab own padding', () => {
+      const { getByTestId } = renderTab();
+
       expect(
-        SECURITY_CHECKS_BY_NAMESPACE[SupportedSecurityNamespace.Solana],
-      ).not.toEqual(
-        SECURITY_CHECKS_BY_NAMESPACE[SupportedSecurityNamespace.Eip155],
-      );
+        getByTestId(SecurityTabSelectors.CONTRACT_DETAILS_LINK),
+      ).toHaveStyle({ paddingLeft: 0, paddingRight: 0 });
+    });
+
+    // Contract is the exception, because it navigates. A node cannot usefully
+    // be both a heading and a button, and the action is the more useful of the
+    // two to announce — so this one is asserted as a button on purpose rather
+    // than left out of the list above by oversight.
+    it('announces the contract heading as a button instead', () => {
+      const { getByTestId } = renderTab();
+
       expect(
-        SECURITY_CHECKS_BY_NAMESPACE[SupportedSecurityNamespace.Solana],
-      ).not.toContain(SecurityCheckKey.NoHoneypot);
-      expect(
-        SECURITY_CHECKS_BY_NAMESPACE[SupportedSecurityNamespace.Solana],
-      ).not.toContain(SecurityCheckKey.ContractVerified);
+        getByTestId(SecurityTabSelectors.CONTRACT_DETAILS_LINK),
+      ).toHaveProp('accessibilityRole', 'button');
     });
   });
 
   describe('check outcomes', () => {
     const renderCheck = (check?: SecurityCheck) =>
-      render(
-        <SecurityTab
-          facts={{
-            ...MOCK_SECURITY_FACTS_EVM,
-            checks: { [SecurityCheckKey.NoHoneypot]: check },
-          }}
-          onExplain={jest.fn()}
-        />,
-      );
+      renderTab({
+        facts: {
+          ...MOCK_SECURITY_FACTS_EVM,
+          checks: { [ContractCheckKey.NoHoneypot]: check },
+        },
+      });
 
     it.each([
       ['pass', 'Sells work'],
@@ -119,12 +165,12 @@ describe('SecurityTab', () => {
 
         expect(
           getByTestId(
-            SecurityTabSelectors.rowValue(SecurityCheckKey.NoHoneypot),
+            SecurityTabSelectors.rowValue(ContractCheckKey.NoHoneypot),
           ),
         ).toHaveTextContent(value);
         expect(
           getByTestId(
-            SecurityTabSelectors.rowIcon(SecurityCheckKey.NoHoneypot),
+            SecurityTabSelectors.rowIcon(ContractCheckKey.NoHoneypot),
           ),
         ).toBeOnTheScreen();
       },
@@ -144,11 +190,11 @@ describe('SecurityTab', () => {
       const { getByTestId, queryByTestId } = renderCheck(check);
 
       expect(
-        getByTestId(SecurityTabSelectors.rowValue(SecurityCheckKey.NoHoneypot)),
+        getByTestId(SecurityTabSelectors.rowValue(ContractCheckKey.NoHoneypot)),
       ).toHaveTextContent(SECURITY_EMPTY_VALUE);
       expect(
         queryByTestId(
-          SecurityTabSelectors.rowIcon(SecurityCheckKey.NoHoneypot),
+          SecurityTabSelectors.rowIcon(ContractCheckKey.NoHoneypot),
         ),
       ).toBeNull();
     });
@@ -161,12 +207,10 @@ describe('SecurityTab', () => {
     // ScrollView and scroll away with the content.
     it.each([
       ['a stat row', SecurityStatKey.TopTen],
-      ['a check row', SecurityCheckKey.NoHoneypot],
+      ['a check row', ContractCheckKey.NoHoneypot],
     ] as const)('reports the tapped row for %s', (_label, rowKey) => {
       const onExplain = jest.fn();
-      const { getByTestId } = render(
-        <SecurityTab facts={MOCK_SECURITY_FACTS_EVM} onExplain={onExplain} />,
-      );
+      const { getByTestId } = renderTab({ onExplain });
 
       fireEvent.press(getByTestId(SecurityTabSelectors.rowLabel(rowKey)));
 
@@ -174,9 +218,7 @@ describe('SecurityTab', () => {
     });
 
     it('renders no sheet of its own', () => {
-      const { queryByTestId } = render(
-        <SecurityTab facts={MOCK_SECURITY_FACTS_EVM} onExplain={jest.fn()} />,
-      );
+      const { queryByTestId } = renderTab();
 
       expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
     });
@@ -219,27 +261,14 @@ describe('SecurityTab', () => {
     }
   });
 
-  it('shows the same verdict word as the hero pill', () => {
-    const { getByTestId } = render(
-      <SecurityTab facts={MOCK_SECURITY_FACTS_EVM} onExplain={jest.fn()} />,
-    );
-
-    expect(getByTestId(SecurityTabSelectors.VERDICT)).toHaveTextContent(
-      strings('token_details_v1.security_pill.screened'),
-    );
-  });
-
   it('names the flag that fired instead of summarising a pass ratio', () => {
-    const { getByTestId } = render(
-      <SecurityTab
-        facts={{
-          ...MOCK_SECURITY_FACTS_EVM,
-          verdict: 'high_risk',
-          highRiskFlag: 'The blacklist function is included',
-        }}
-        onExplain={jest.fn()}
-      />,
-    );
+    const { getByTestId } = renderTab({
+      facts: {
+        ...MOCK_SECURITY_FACTS_EVM,
+        verdict: 'high_risk',
+        highRiskFlag: 'The blacklist function is included',
+      },
+    });
 
     expect(getByTestId(SecurityTabSelectors.HIGH_RISK_FLAG)).toHaveTextContent(
       'The blacklist function is included',
@@ -247,9 +276,7 @@ describe('SecurityTab', () => {
   });
 
   it('shows no flag line for verdicts that carry no named flag', () => {
-    const { queryByTestId } = render(
-      <SecurityTab facts={MOCK_SECURITY_FACTS_EVM} onExplain={jest.fn()} />,
-    );
+    const { queryByTestId } = renderTab();
 
     expect(queryByTestId(SecurityTabSelectors.HIGH_RISK_FLAG)).toBeNull();
   });
@@ -258,9 +285,7 @@ describe('SecurityTab', () => {
   // legend and again as tappable rows. Only the rows carry the definitions, so
   // dropping either half loses something.
   it('shows the holders figures in both the legend and the rows', () => {
-    const { getByTestId } = render(
-      <SecurityTab facts={MOCK_SECURITY_FACTS_EVM} onExplain={jest.fn()} />,
-    );
+    const { getByTestId } = renderTab();
 
     expect(getByTestId(SecurityTabSelectors.LEGEND_TOP_TEN)).toHaveTextContent(
       'Top 10 18.4%',
@@ -271,9 +296,7 @@ describe('SecurityTab', () => {
   });
 
   it('orders the holders rows as the prototype does', () => {
-    const { getByTestId } = render(
-      <SecurityTab facts={MOCK_SECURITY_FACTS_EVM} onExplain={jest.fn()} />,
-    );
+    const { getByTestId } = renderTab();
 
     const renderedOrder = within(
       getByTestId(SecurityTabSelectors.SECTION_HOLDERS),
@@ -285,5 +308,39 @@ describe('SecurityTab', () => {
       SecurityTabSelectors.row(SecurityStatKey.Holders),
       SecurityTabSelectors.row(SecurityStatKey.TopTen),
     ]);
+  });
+
+  it('shows the listed-on-exchange row in the trading section', () => {
+    const { getByTestId } = renderTab();
+
+    expect(
+      within(getByTestId(SecurityTabSelectors.SECTION_TRADING)).getByTestId(
+        SecurityTabSelectors.rowValue(SecurityStatKey.ListedOnExchange),
+      ),
+    ).toHaveTextContent('No');
+  });
+
+  describe('section dividers', () => {
+    it('separates each pair of sections with one rule', () => {
+      const { getAllByTestId } = renderTab();
+
+      // Five sections, so four gaps between them. The count is the assertion:
+      // a rule attached to the wrong side would still render, just not here.
+      expect(getAllByTestId(SecurityTabSelectors.SECTION_DIVIDER)).toHaveLength(
+        4,
+      );
+    });
+
+    // Trading drops out on a chain with no fee data. Its rule has to leave with
+    // it, or the gap it vacates shows two rules with nothing between them.
+    it('drops a rule along with the section it separates', () => {
+      const { getAllByTestId } = renderTab({
+        facts: MOCK_SECURITY_FACTS_SOLANA,
+      });
+
+      expect(getAllByTestId(SecurityTabSelectors.SECTION_DIVIDER)).toHaveLength(
+        3,
+      );
+    });
   });
 });

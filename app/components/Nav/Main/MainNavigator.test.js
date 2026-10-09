@@ -77,6 +77,10 @@ describe('MainNavigator Route Constants', () => {
     expect(Routes.SECURITY_TRUST).toBeDefined();
   });
 
+  it('has contract security route defined', () => {
+    expect(Routes.CONTRACT_SECURITY).toBeDefined();
+  });
+
   it('has snaps routes defined', () => {
     expect(Routes.SNAPS.SNAPS_SETTINGS_LIST).toBeDefined();
     expect(Routes.SNAPS.SNAP_SETTINGS).toBeDefined();

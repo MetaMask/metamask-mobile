@@ -1,30 +1,26 @@
 import React from 'react';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  IconColor,
-  IconName,
+  SectionDivider,
+  SectionHeader,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import SecurityPill from '../SecurityPill/SecurityPill';
 import HoldersDistributionBar from './components/HoldersDistributionBar';
 import SecurityRow from './components/SecurityRow';
 import {
-  SECURITY_CHECKS_BY_NAMESPACE,
+  CHECK_OUTCOME_PRESENTATION,
   SECURITY_CHECK_LABEL_KEYS,
+  SECURITY_CONTRACT_CHECKS,
   SECURITY_STAT_LABEL_KEYS,
 } from './SecurityTab.constants';
 import { SecurityTabSelectors } from './SecurityTab.testIds';
 import {
   SecurityStatKey,
+  type ContractCheckKey,
   type SecurityCheck,
-  type SecurityCheckKey,
-  type SecurityCheckOutcome,
   type SecurityRowKey,
   type SecurityTabFacts,
 } from './SecurityTab.types';
@@ -50,40 +46,64 @@ export interface SecurityTabProps {
    * `ScrollView`, which only the screen can do.
    */
   onExplain: (rowKey: SecurityRowKey) => void;
+  /**
+   * Opens the Contract security screen, which repeats these four checks with
+   * their definitions printed and adds the three additional ones.
+   *
+   * Reported rather than navigated for the same reason as `onExplain`: the tab
+   * stays a pure function of its props, so tests render it without a
+   * navigation container.
+   */
+  onOpenContractDetails: () => void;
 }
 
 /**
- * `SectionHeading` is the 20px/600 token, matching the prototype's `h3`. The
- * variant supplies the weight, so passing `fontWeight` here would only risk
- * drifting from it.
+ * A section title.
+ *
+ * Wraps the design system's `SectionHeader` for two reasons that apply to every
+ * heading on this tab.
+ *
+ * The first is padding. `SectionHeader` bakes in `px-4 pb-2 pt-3`, but this tab
+ * already pads itself and spaces its sections with `gap-6`, so the horizontal
+ * inset has to be cancelled or every title would sit 32px in while its rows sat
+ * at 16px. Note that the design system concatenates these strings rather than
+ * resolving conflicts, so the override works by arriving last.
+ *
+ * The second is the header role. `SectionHeader` never sets one — it only
+ * assumes `button` when interactive — so without this, VoiceOver and TalkBack
+ * users get no way to jump between sections on a tab this long (WCAG 1.3.1,
+ * 2.4.6). It goes on `titleProps` so it lands on the `Text` itself rather than
+ * the surrounding row.
  */
-const SectionHeader = ({ titleKey }: { titleKey: string }) => (
-  <Text variant={TextVariant.SectionHeading} color={TextColor.TextDefault}>
-    {strings(titleKey)}
-  </Text>
+const SectionTitle = ({ titleKey }: { titleKey: string }) => (
+  <SectionHeader
+    title={strings(titleKey)}
+    titleProps={{ accessibilityRole: 'header' }}
+    twClassName="px-0 pb-3 pt-0"
+  />
 );
 
 /**
- * How each check outcome presents.
+ * Rule between two sections.
  *
- * Typed as a full `Record` so a third outcome cannot be added to
- * `SecurityCheckOutcome` without deciding how it looks.
+ * `-mx-4` cancels the tab's own padding so the line reaches both screen edges
+ * while the rows stay inset, which is how the prototype draws it.
+ *
+ * `marginVertical={0}` drops the design system's 20px default, leaving the
+ * container's own `gap-6` as the single source of spacing between sections.
+ *
+ * Rendered above the section it separates rather than below, so a section that
+ * drops out takes its own rule with it — Trading is absent on any chain with no
+ * fee data, and a rule that belonged to the section above would survive it and
+ * leave two rules stacked with nothing between them.
  */
-const CHECK_OUTCOME_PRESENTATION: Record<
-  SecurityCheckOutcome,
-  { icon?: { name: IconName; color: IconColor }; valueColor: TextColor }
-> = {
-  pass: {
-    icon: { name: IconName.CheckBold, color: IconColor.SuccessDefault },
-    valueColor: TextColor.SuccessDefault,
-  },
-  fail: {
-    icon: { name: IconName.Close, color: IconColor.ErrorDefault },
-    valueColor: TextColor.ErrorDefault,
-  },
-  /** No glyph, leaving the dash to carry the "no data" meaning. */
-  unknown: { valueColor: TextColor.TextAlternative },
-};
+const SectionRule = () => (
+  <SectionDivider
+    marginVertical={0}
+    twClassName="-mx-4"
+    testID={SecurityTabSelectors.SECTION_DIVIDER}
+  />
+);
 
 /**
  * One contract check — a label, a pass/fail glyph and the check's own wording.
@@ -99,7 +119,7 @@ const CheckRow = ({
   check,
   onExplain,
 }: {
-  checkKey: SecurityCheckKey;
+  checkKey: ContractCheckKey;
   check?: SecurityCheck;
   onExplain: (rowKey: SecurityRowKey) => void;
 }) => {
@@ -151,24 +171,35 @@ const StatRow = ({
 export const SecurityTab: React.FC<SecurityTabProps> = ({
   facts,
   onExplain: handleExplain,
+  onOpenContractDetails: handleOpenContractDetails,
 }) => {
   const { checks, holders, liquidity, trading, origin } = facts;
 
   return (
     <Box twClassName="gap-6 px-4 pb-6 pt-4" testID={SecurityTabSelectors.TAB}>
-      {/* ── Security checks ─────────────────────────────────────────────── */}
+      {/* ── Contract ────────────────────────────────────────────────────────
+          The heading itself is the affordance for the detail screen rather than
+          a trailing "See all" row.
+
+          `isInteractive` supplies the Pressable, the button role and the
+          trailing disclosure arrow, which is where the design system puts a
+          chevron. Its `titleAccessory` slot would sit the arrow against the
+          title instead, but that slot is documented as not being for chevrons,
+          so this follows the component rather than the prototype's placement.
+
+          It also means the press target is the whole header row instead of the
+          title's own text box. */}
       <Box testID={SecurityTabSelectors.SECTION_CHECKS}>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="gap-4 pb-3"
-        >
-          <SectionHeader titleKey="token_details_v1.security_tab.sections.checks" />
-          <Box testID={SecurityTabSelectors.VERDICT}>
-            <SecurityPill verdict={facts.verdict} flagCount={facts.flagCount} />
-          </Box>
-        </Box>
+        <SectionHeader
+          isInteractive
+          title={strings('token_details_v1.security_tab.sections.contract')}
+          onPress={handleOpenContractDetails}
+          accessibilityLabel={strings(
+            'token_details_v1.security_tab.contract_details_link',
+          )}
+          twClassName="px-0 pb-3 pt-0"
+          testID={SecurityTabSelectors.CONTRACT_DETAILS_LINK}
+        />
         {/* The flag is named rather than summarised as a pass ratio: "3 of 4
             checks passed" hides which one failed, and the failure is the only
             part the reader can act on. */}
@@ -182,7 +213,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
             {facts.highRiskFlag}
           </Text>
         ) : null}
-        {SECURITY_CHECKS_BY_NAMESPACE[facts.namespace].map((checkKey) => (
+        {SECURITY_CONTRACT_CHECKS.map((checkKey) => (
           <CheckRow
             key={checkKey}
             checkKey={checkKey}
@@ -214,10 +245,9 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
           tappable rows. The duplication is the prototype's: the legend labels
           the picture, the rows carry the definitions behind a dotted
           underline. */}
+      <SectionRule />
       <Box testID={SecurityTabSelectors.SECTION_HOLDERS}>
-        <Box twClassName="pb-3">
-          <SectionHeader titleKey="token_details_v1.security_tab.sections.holders" />
-        </Box>
+        <SectionTitle titleKey="token_details_v1.security_tab.sections.holders" />
         <HoldersDistributionBar
           fillPercentage={holders.topTenFillPercentage}
           topTenPercentage={holders.topTenPercentage}
@@ -238,10 +268,9 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
       </Box>
 
       {/* ── Liquidity ───────────────────────────────────────────────────── */}
+      <SectionRule />
       <Box testID={SecurityTabSelectors.SECTION_LIQUIDITY}>
-        <Box twClassName="pb-3">
-          <SectionHeader titleKey="token_details_v1.security_tab.sections.liquidity" />
-        </Box>
+        <SectionTitle titleKey="token_details_v1.security_tab.sections.liquidity" />
         <StatRow
           statKey={SecurityStatKey.TotalLiquidity}
           value={liquidity.total}
@@ -269,28 +298,33 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
           data at all — Blockaid returns every `fees` field as null on Solana,
           so the section would otherwise be a heading above two dashes. */}
       {trading ? (
-        <Box testID={SecurityTabSelectors.SECTION_TRADING}>
-          <Box twClassName="pb-3">
-            <SectionHeader titleKey="token_details_v1.security_tab.sections.trading" />
+        <>
+          <SectionRule />
+          <Box testID={SecurityTabSelectors.SECTION_TRADING}>
+            <SectionTitle titleKey="token_details_v1.security_tab.sections.trading" />
+            <StatRow
+              statKey={SecurityStatKey.BuySellTax}
+              value={trading.buySellTax}
+              onExplain={handleExplain}
+            />
+            <StatRow
+              statKey={SecurityStatKey.VolumeFlags}
+              value={trading.volumeFlags}
+              onExplain={handleExplain}
+            />
+            <StatRow
+              statKey={SecurityStatKey.ListedOnExchange}
+              value={trading.listedOnExchange}
+              onExplain={handleExplain}
+            />
           </Box>
-          <StatRow
-            statKey={SecurityStatKey.BuySellTax}
-            value={trading.buySellTax}
-            onExplain={handleExplain}
-          />
-          <StatRow
-            statKey={SecurityStatKey.VolumeFlags}
-            value={trading.volumeFlags}
-            onExplain={handleExplain}
-          />
-        </Box>
+        </>
       ) : null}
 
       {/* ── Origin ──────────────────────────────────────────────────────── */}
+      <SectionRule />
       <Box testID={SecurityTabSelectors.SECTION_ORIGIN}>
-        <Box twClassName="pb-3">
-          <SectionHeader titleKey="token_details_v1.security_tab.sections.origin" />
-        </Box>
+        <SectionTitle titleKey="token_details_v1.security_tab.sections.origin" />
         <StatRow
           statKey={SecurityStatKey.Created}
           value={origin.created}

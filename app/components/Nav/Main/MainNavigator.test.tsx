@@ -2495,6 +2495,9 @@ describe('MainNavigator', () => {
         expect(
           getScreenComponent(assetStackRoot, Routes.SECURITY_TRUST),
         ).toBeTruthy();
+        expect(
+          getScreenComponent(assetStackRoot, Routes.CONTRACT_SECURITY),
+        ).toBeTruthy();
       });
 
       it('renders SnapsSettingsStack inside SettingsFlow', () => {

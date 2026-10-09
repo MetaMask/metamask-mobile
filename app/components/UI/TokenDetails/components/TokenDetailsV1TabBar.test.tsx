@@ -84,6 +84,21 @@ describe('TokenDetailsV1TabBar', () => {
     expect(queryByText('active:security')).toBeNull();
   });
 
+  // TabsBar draws only the active segment, so the unselected track the
+  // indicator rides on has to come from here. Asserted on every tab because
+  // the track is unselected state — it has to be there no matter which tab
+  // owns the indicator.
+  it.each(TOKEN_DETAILS_V1_TABS)(
+    'draws the track beneath the tabs on the %s tab',
+    (activeTab) => {
+      const { getByTestId } = renderTabBar(activeTab);
+
+      expect(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).toHaveStyle({
+        borderBottomWidth: 1,
+      });
+    },
+  );
+
   it('maps the pressed design-system tab index to its tab key', () => {
     const onTabPress = jest.fn();
     const { getByTestId } = renderTabBar('overview', onTabPress);

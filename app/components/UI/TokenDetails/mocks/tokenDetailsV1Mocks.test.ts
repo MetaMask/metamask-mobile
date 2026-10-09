@@ -1,3 +1,5 @@
+import { SECURITY_CONTRACT_CHECKS } from '../components/V1/SecurityTab/SecurityTab.constants';
+import { ContractCheckKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import {
   MOCK_SECURITY_FACTS_EVM,
   MOCK_SECURITY_FACTS_SOLANA,
@@ -97,8 +99,8 @@ describe('tokenDetailsV1Mocks', () => {
     });
   });
 
-  // The fixtures exist to verify two materially different layouts, so they have
-  // to stay different in the ways the live API is.
+  // Both chains now render the same rows, so this fixture no longer previews a
+  // different list. It has to stay different in the ways the live API is.
   describe('the Solana fixture', () => {
     it('has no fee data, matching the live response', () => {
       expect(MOCK_SECURITY_FACTS_SOLANA.trading).toBeNull();
@@ -108,10 +110,16 @@ describe('tokenDetailsV1Mocks', () => {
       expect(MOCK_SECURITY_FACTS_SOLANA.origin.created).toBeNull();
     });
 
-    it('exercises the unresolved-check path', () => {
+    // Named rather than counted: the row has to be one the tab actually
+    // renders, so that leaving it out puts a dash on screen instead of quietly
+    // shortening the list.
+    it('leaves a rendered contract check unresolved so the dash appears', () => {
+      expect(SECURITY_CONTRACT_CHECKS).toContain(
+        ContractCheckKey.ContractVerified,
+      );
       expect(
-        Object.keys(MOCK_SECURITY_FACTS_SOLANA.checks).length,
-      ).toBeLessThan(4);
+        MOCK_SECURITY_FACTS_SOLANA.checks[ContractCheckKey.ContractVerified],
+      ).toBeUndefined();
     });
   });
 

@@ -1,7 +1,14 @@
 import {
+  IconColor,
+  IconName,
+  TextColor,
+} from '@metamask/design-system-react-native';
+import {
+  AdditionalCheckKey,
+  ContractCheckKey,
   SecurityCheckKey,
   SecurityStatKey,
-  SupportedSecurityNamespace,
+  type SecurityCheckOutcome,
   type SecurityRowKey,
 } from './SecurityTab.types';
 
@@ -18,66 +25,101 @@ import {
 export const SECURITY_EMPTY_VALUE = '\u2014';
 
 /**
- * Which four contract checks each chain family shows, in render order.
+ * How each check outcome presents.
  *
- * Keyed by namespace so the rule lives in one readable place instead of being
- * spread through the JSX as conditionals, and so adding a family to
- * `SupportedSecurityNamespace` fails type checking here until it declares its
- * checks — a forgotten chain breaks the build rather than silently rendering
- * Ethereum's checks on a non-EVM token.
+ * Shared by the tab and the Contract security screen rather than declared in
+ * each: the screen is one tap from the tab and repeats the same four checks, so
+ * a fork here would show the same check as passing in two different colours.
  *
- * TODO(ASSETS-4022): this table is hand-maintained against PRD section 14,
- * which is not reproduced anywhere reachable from the repo. Two things to
- * settle before wiring real data.
- *
- * First, whether the split can be derived from the response instead of
- * hard-coded. Sampling `/assets?includeTokenSecurityData=true` across four EVM
- * and three Solana memecoins found that `fees` and `created` ARE derivable —
- * both come back null on every Solana token and populated on every EVM one —
- * but the four checks are not, because `features[]` reports only what Blockaid
- * detected and never what it tested.
- *
- * Second, that `Renounced` belongs to EIP-155 alone. The same sampling returned
- * `OWNERSHIP_RENOUNCED` on all three Solana tokens, which contradicts the
- * acceptance criteria's claim that Solana never shows renounced.
- *
- * The Solana row is provisional for a third reason: the story's own open
- * question from 2 Oct about which Solana field backs `No blacklist` is
- * unanswered.
+ * Typed as a full `Record` so a third outcome cannot be added to
+ * `SecurityCheckOutcome` without deciding how it looks.
  */
-export const SECURITY_CHECKS_BY_NAMESPACE: Record<
-  SupportedSecurityNamespace,
-  readonly SecurityCheckKey[]
+export const CHECK_OUTCOME_PRESENTATION: Record<
+  SecurityCheckOutcome,
+  { icon?: { name: IconName; color: IconColor }; valueColor: TextColor }
 > = {
-  [SupportedSecurityNamespace.Eip155]: [
-    SecurityCheckKey.NoHoneypot,
-    SecurityCheckKey.ContractVerified,
-    SecurityCheckKey.Renounced,
-    SecurityCheckKey.NoBlacklist,
-  ],
-  [SupportedSecurityNamespace.Solana]: [
-    SecurityCheckKey.NoMint,
-    SecurityCheckKey.NoBlacklist,
-    SecurityCheckKey.Burnt,
-    SecurityCheckKey.TopTenConcentration,
-  ],
+  pass: {
+    icon: { name: IconName.CheckBold, color: IconColor.SuccessDefault },
+    valueColor: TextColor.SuccessDefault,
+  },
+  fail: {
+    icon: { name: IconName.Close, color: IconColor.ErrorDefault },
+    valueColor: TextColor.ErrorDefault,
+  },
+  /** No glyph, leaving the dash to carry the "no data" meaning. */
+  unknown: { valueColor: TextColor.TextAlternative },
 };
+
+/**
+ * The four contract checks, in render order.
+ *
+ * Shown on the Security tab under the Contract heading, and repeated at the
+ * top of the Contract security screen. See `ContractCheckKey` for why the list
+ * no longer varies by chain.
+ */
+export const SECURITY_CONTRACT_CHECKS: readonly ContractCheckKey[] = [
+  ContractCheckKey.NoHoneypot,
+  ContractCheckKey.ContractVerified,
+  ContractCheckKey.Renounced,
+  ContractCheckKey.NoBlacklist,
+];
+
+/**
+ * The "Additional checks" group, in render order.
+ *
+ * Only reachable from the Contract security screen — the tab shows the four
+ * contract checks and a chevron, not all seven.
+ */
+export const SECURITY_ADDITIONAL_CHECKS: readonly AdditionalCheckKey[] = [
+  AdditionalCheckKey.NoMint,
+  AdditionalCheckKey.RugPullRisk,
+  AdditionalCheckKey.ContractControls,
+];
 
 /** Label beside each contract check. */
 export const SECURITY_CHECK_LABEL_KEYS: Record<SecurityCheckKey, string> = {
-  [SecurityCheckKey.NoHoneypot]:
+  [ContractCheckKey.NoHoneypot]:
     'token_details_v1.security_tab.checks.no_honeypot',
-  [SecurityCheckKey.ContractVerified]:
+  [ContractCheckKey.ContractVerified]:
     'token_details_v1.security_tab.checks.contract_verified',
-  [SecurityCheckKey.Renounced]:
+  [ContractCheckKey.Renounced]:
     'token_details_v1.security_tab.checks.renounced',
-  [SecurityCheckKey.NoBlacklist]:
+  [ContractCheckKey.NoBlacklist]:
     'token_details_v1.security_tab.checks.no_blacklist',
-  [SecurityCheckKey.NoMint]: 'token_details_v1.security_tab.checks.no_mint',
-  [SecurityCheckKey.Burnt]: 'token_details_v1.security_tab.checks.burnt',
-  [SecurityCheckKey.TopTenConcentration]:
-    'token_details_v1.security_tab.checks.top_ten_concentration',
+  [AdditionalCheckKey.NoMint]: 'token_details_v1.security_tab.checks.no_mint',
+  [AdditionalCheckKey.RugPullRisk]:
+    'token_details_v1.security_tab.checks.rug_pull_risk',
+  [AdditionalCheckKey.ContractControls]:
+    'token_details_v1.security_tab.checks.contract_controls',
 };
+
+/**
+ * Sentence printed under each row on the Contract security screen.
+ *
+ * The four contract checks point at the same copy as their explainer sheets:
+ * the screen states the definition inline where the tab hides it behind a tap,
+ * but it is the same definition, so pointing both at one key is what stops the
+ * two surfaces defining a term differently.
+ *
+ * The additional checks have no sheet, so these are their only definitions.
+ */
+export const SECURITY_CHECK_DESCRIPTION_KEYS: Record<SecurityCheckKey, string> =
+  {
+    [ContractCheckKey.NoHoneypot]:
+      'token_details_v1.security_tab.explainers.no_honeypot.description',
+    [ContractCheckKey.ContractVerified]:
+      'token_details_v1.security_tab.explainers.contract_verified.description',
+    [ContractCheckKey.Renounced]:
+      'token_details_v1.security_tab.explainers.renounced.description',
+    [ContractCheckKey.NoBlacklist]:
+      'token_details_v1.security_tab.explainers.no_blacklist.description',
+    [AdditionalCheckKey.NoMint]:
+      'token_details_v1.security_tab.check_descriptions.no_mint',
+    [AdditionalCheckKey.RugPullRisk]:
+      'token_details_v1.security_tab.check_descriptions.rug_pull_risk',
+    [AdditionalCheckKey.ContractControls]:
+      'token_details_v1.security_tab.check_descriptions.contract_controls',
+  };
 
 /** Label beside each stat row. */
 export const SECURITY_STAT_LABEL_KEYS: Record<SecurityStatKey, string> = {
@@ -95,6 +137,8 @@ export const SECURITY_STAT_LABEL_KEYS: Record<SecurityStatKey, string> = {
     'token_details_v1.security_tab.stats.buy_sell_tax',
   [SecurityStatKey.VolumeFlags]:
     'token_details_v1.security_tab.stats.volume_flags',
+  [SecurityStatKey.ListedOnExchange]:
+    'token_details_v1.security_tab.stats.listed_on_exchange',
   [SecurityStatKey.Created]: 'token_details_v1.security_tab.stats.created',
 };
 
@@ -105,44 +149,34 @@ export const SECURITY_STAT_LABEL_KEYS: Record<SecurityStatKey, string> = {
  * without a definition. Titles are separate from the row labels because a row
  * abbreviates to fit its line (`Liq/MC`, `Top 10`) while the sheet spells the
  * term out.
+ *
+ * `SecurityRowKey` excludes the additional checks: those render only on the
+ * Contract security screen, with their definition inline, so an entry here
+ * would be copy nothing ever opens.
  */
 export const SECURITY_EXPLAINER_KEYS: Record<
   SecurityRowKey,
   { title: string; description: string }
 > = {
-  [SecurityCheckKey.NoHoneypot]: {
+  [ContractCheckKey.NoHoneypot]: {
     title: 'token_details_v1.security_tab.explainers.no_honeypot.title',
     description:
       'token_details_v1.security_tab.explainers.no_honeypot.description',
   },
-  [SecurityCheckKey.ContractVerified]: {
+  [ContractCheckKey.ContractVerified]: {
     title: 'token_details_v1.security_tab.explainers.contract_verified.title',
     description:
       'token_details_v1.security_tab.explainers.contract_verified.description',
   },
-  [SecurityCheckKey.Renounced]: {
+  [ContractCheckKey.Renounced]: {
     title: 'token_details_v1.security_tab.explainers.renounced.title',
     description:
       'token_details_v1.security_tab.explainers.renounced.description',
   },
-  [SecurityCheckKey.NoBlacklist]: {
+  [ContractCheckKey.NoBlacklist]: {
     title: 'token_details_v1.security_tab.explainers.no_blacklist.title',
     description:
       'token_details_v1.security_tab.explainers.no_blacklist.description',
-  },
-  [SecurityCheckKey.NoMint]: {
-    title: 'token_details_v1.security_tab.explainers.no_mint.title',
-    description: 'token_details_v1.security_tab.explainers.no_mint.description',
-  },
-  [SecurityCheckKey.Burnt]: {
-    title: 'token_details_v1.security_tab.explainers.burnt.title',
-    description: 'token_details_v1.security_tab.explainers.burnt.description',
-  },
-  [SecurityCheckKey.TopTenConcentration]: {
-    title:
-      'token_details_v1.security_tab.explainers.top_ten_concentration.title',
-    description:
-      'token_details_v1.security_tab.explainers.top_ten_concentration.description',
   },
   [SecurityStatKey.Holders]: {
     title: 'token_details_v1.security_tab.explainers.holders.title',
@@ -182,6 +216,11 @@ export const SECURITY_EXPLAINER_KEYS: Record<
     title: 'token_details_v1.security_tab.explainers.volume_flags.title',
     description:
       'token_details_v1.security_tab.explainers.volume_flags.description',
+  },
+  [SecurityStatKey.ListedOnExchange]: {
+    title: 'token_details_v1.security_tab.explainers.listed_on_exchange.title',
+    description:
+      'token_details_v1.security_tab.explainers.listed_on_exchange.description',
   },
   [SecurityStatKey.Created]: {
     title: 'token_details_v1.security_tab.explainers.created.title',

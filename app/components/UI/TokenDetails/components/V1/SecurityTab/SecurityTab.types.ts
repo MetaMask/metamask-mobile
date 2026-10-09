@@ -1,39 +1,64 @@
 import type { SecurityVerdict } from '../SecurityPill/SecurityPill';
 
 /**
- * Chain families the Security tab knows how to describe.
+ * The four contract checks, shown on the Security tab and repeated at the top
+ * of the Contract security screen.
  *
- * Keyed by CAIP-2 namespace rather than by chain id, because the four contract
- * checks are a property of the chain family — every EIP-155 chain shows the
- * same four — and because `Record<SupportedSecurityNamespace, ...>` then turns
- * adding a family into a type error until it declares its checks.
- */
-export const SupportedSecurityNamespace = {
-  Eip155: 'eip155',
-  Solana: 'solana',
-} as const;
-
-export type SupportedSecurityNamespace =
-  (typeof SupportedSecurityNamespace)[keyof typeof SupportedSecurityNamespace];
-
-/**
- * Every contract check the tab can render, across all chain families.
+ * The same four on every chain. An earlier revision picked a different set per
+ * CAIP-2 namespace, on the acceptance criteria's claim that a Solana token
+ * never shows honeypot, renounced or contract verified. Sampling contradicted
+ * a third of that rule outright — `OWNERSHIP_RENOUNCED` came back on all three
+ * Solana tokens — and could not confirm the rest either way, because every
+ * other check reads the *absence* of a feature and three tokens cannot tell
+ * "capability not present" apart from "check not run on this chain".
  *
- * A given token shows a subset chosen by `SECURITY_CHECKS_BY_NAMESPACE`, so
- * this is the union rather than any one chain's list.
+ * So the list is fixed and a check with nothing behind it resolves to
+ * `unknown`, which renders the dash. That states what is actually known
+ * instead of encoding a per-chain rule the evidence could not support.
  */
-export const SecurityCheckKey = {
+export const ContractCheckKey = {
   NoHoneypot: 'no_honeypot',
   ContractVerified: 'contract_verified',
   Renounced: 'renounced',
   NoBlacklist: 'no_blacklist',
-  NoMint: 'no_mint',
-  Burnt: 'burnt',
-  TopTenConcentration: 'top_ten_concentration',
 } as const;
 
-export type SecurityCheckKey =
-  (typeof SecurityCheckKey)[keyof typeof SecurityCheckKey];
+export type ContractCheckKey =
+  (typeof ContractCheckKey)[keyof typeof ContractCheckKey];
+
+/**
+ * Checks that appear only under "Additional checks" on the Contract security
+ * screen.
+ *
+ * Kept apart from `ContractCheckKey` rather than flattened into one union
+ * because the two render differently: a contract check carries a dotted
+ * underline opening a definition sheet, while these carry their definition
+ * inline and are not tappable. The split is what lets
+ * `SECURITY_EXPLAINER_KEYS` stay exhaustive over exactly the rows that need a
+ * sheet, instead of forcing dead copy for rows that never open one.
+ */
+export const AdditionalCheckKey = {
+  NoMint: 'no_mint',
+  RugPullRisk: 'rug_pull_risk',
+  ContractControls: 'contract_controls',
+} as const;
+
+export type AdditionalCheckKey =
+  (typeof AdditionalCheckKey)[keyof typeof AdditionalCheckKey];
+
+/**
+ * Every contract check, across both groups.
+ *
+ * Merged so `facts.checks` stays one record and callers that genuinely do not
+ * care which group a check belongs to — the fixtures, the label map — can key
+ * off a single enum.
+ */
+export const SecurityCheckKey = {
+  ...ContractCheckKey,
+  ...AdditionalCheckKey,
+} as const;
+
+export type SecurityCheckKey = ContractCheckKey | AdditionalCheckKey;
 
 /**
  * Whether a check passed, failed, or could not be determined.
@@ -66,14 +91,21 @@ export const SecurityStatKey = {
   PrimaryPool: 'primary_pool',
   BuySellTax: 'buy_sell_tax',
   VolumeFlags: 'volume_flags',
+  ListedOnExchange: 'listed_on_exchange',
   Created: 'created',
 } as const;
 
 export type SecurityStatKey =
   (typeof SecurityStatKey)[keyof typeof SecurityStatKey];
 
-/** Any row whose label opens an explainer. */
-export type SecurityRowKey = SecurityCheckKey | SecurityStatKey;
+/**
+ * Any row whose label opens an explainer.
+ *
+ * Excludes `AdditionalCheckKey` on purpose: those rows live only on the
+ * Contract security screen, where the definition is printed under the row
+ * rather than hidden behind a tap.
+ */
+export type SecurityRowKey = ContractCheckKey | SecurityStatKey;
 
 /**
  * Everything the Security tab renders, already formatted for display.
@@ -90,9 +122,14 @@ export type SecurityRowKey = SecurityCheckKey | SecurityStatKey;
  * tax, the null test has to happen before formatting, never after.
  */
 export interface SecurityTabFacts {
-  /** Chooses which four contract checks render. */
-  namespace: SupportedSecurityNamespace;
-  /** Same word as the pill, so the two surfaces cannot drift. */
+  /**
+   * Same word as the pill, so the two surfaces cannot drift.
+   *
+   * No longer rendered on the tab itself — the Contract heading replaced the
+   * pill with a chevron into the Contract security screen. Kept because
+   * `SecuritySocialSection` still shows the verdict and reads it from the same
+   * fixtures, so dropping it here would only push the duplication elsewhere.
+   */
   verdict: SecurityVerdict;
   /** Only read when the verdict is `medium_risk`, matching `SecurityPill`. */
   flagCount?: number;
@@ -102,8 +139,8 @@ export interface SecurityTabFacts {
    */
   highRiskFlag: string | null;
   /**
-   * Partial because a check listed for a namespace may have no verdict yet,
-   * which collapses "no data" and "not applicable" into the same dash.
+   * Partial because a check may have no verdict yet, which collapses "no data"
+   * and "not applicable" into the same dash.
    */
   checks: Partial<Record<SecurityCheckKey, SecurityCheck>>;
   holders: {
@@ -126,12 +163,13 @@ export interface SecurityTabFacts {
   };
   /**
    * `null` omits the whole Trading section. Blockaid returns every fee as
-   * `null` on Solana, so the section would otherwise be a heading above two
+   * `null` on Solana, so the section would otherwise be a heading above
    * dashes.
    */
   trading: {
     buySellTax: string | null;
     volumeFlags: string | null;
+    listedOnExchange: string | null;
   } | null;
   origin: {
     created: string | null;

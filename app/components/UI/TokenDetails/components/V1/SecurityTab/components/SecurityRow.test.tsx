@@ -99,6 +99,28 @@ describe('SecurityRow', () => {
     expect(onExplain).toHaveBeenCalledWith(SecurityStatKey.Holders);
   });
 
+  // The target used to wrap the underlined label on its own, which `BodySm`
+  // makes 22px tall against the 24px WCAG 2.5.8 minimum. The whole row carries
+  // the press now, so a tap on the far side of the row — previously a sibling
+  // of the target, with no handler above it — has to reach the same handler.
+  it('reports the row when pressed away from the label', () => {
+    const onExplain = jest.fn();
+    const { getByTestId } = render(
+      <SecurityRow
+        rowKey={SecurityStatKey.Holders}
+        label="Holders"
+        value="12.9K"
+        onExplain={onExplain}
+      />,
+    );
+
+    fireEvent.press(
+      getByTestId(SecurityTabSelectors.rowValue(SecurityStatKey.Holders)),
+    );
+
+    expect(onExplain).toHaveBeenCalledWith(SecurityStatKey.Holders);
+  });
+
   // The dotted underline is the only visual hint that the label is tappable,
   // and a screen reader cannot see it — so the accessibility label has to say
   // what the gesture does rather than just repeat the row name.

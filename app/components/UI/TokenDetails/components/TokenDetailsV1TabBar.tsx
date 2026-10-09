@@ -255,8 +255,15 @@ const TokenDetailsV1TabBar = memo(
     );
 
     return (
+      // The rule is the unselected track the active indicator rides on, so it
+      // runs the full width of the screen while the tabs themselves stay
+      // inset. `TabsBar` only draws the active segment — it sizes and animates
+      // one underline to the selected tab and has nothing continuous — so the
+      // track belongs to the caller. It sits here rather than on `TabsBar`'s
+      // own container because both edges land in the same place, and this is
+      // the element that already identifies the tab bar.
       <Box
-        twClassName="bg-default pt-3"
+        twClassName="border-b border-muted bg-default pt-3"
         testID={TOKEN_DETAILS_V1_TAB_BAR_TEST_ID}
         onLayout={onLayout}
       >

@@ -4,7 +4,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   FontWeight,
   Icon,
   IconColor,
@@ -14,6 +13,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../../util/theme';
 import DottedUnderline from '../../../../../DottedUnderline';
@@ -60,6 +60,14 @@ export interface SecurityRowProps {
  * The underline colour comes from `useTheme` rather than a Tailwind class
  * because `DottedUnderline` draws an SVG stroke, which needs a resolved
  * `ColorValue`.
+ *
+ * The whole row is the press target, not just the underlined label. `BodySm`
+ * is 14px type on a 22px line height, so a target wrapping the label alone
+ * missed the 24px WCAG 2.5.8 minimum by two pixels, fourteen times over on an
+ * EVM token. The row's `py-1.5` already makes it 34px tall, so the space was
+ * there — it just wasn't part of the target. A `hitSlop` would reach the same
+ * 34px, but each row's slop would then abut its neighbour's exactly, which
+ * breaks the moment anyone raises the value or tightens the padding.
  */
 export const SecurityRow: React.FC<SecurityRowProps> = ({
   rowKey,
@@ -69,6 +77,7 @@ export const SecurityRow: React.FC<SecurityRowProps> = ({
   valueColor,
   onExplain,
 }) => {
+  const tw = useTailwind();
   const { colors } = useTheme();
 
   const handlePress = useCallback(() => onExplain(rowKey), [onExplain, rowKey]);
@@ -76,31 +85,27 @@ export const SecurityRow: React.FC<SecurityRowProps> = ({
   const isMissing = value === null;
 
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      justifyContent={BoxJustifyContent.Between}
-      alignItems={BoxAlignItems.Center}
-      twClassName="gap-4 py-1.5"
+    <TouchableOpacity
+      onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={strings('token_details_v1.security_tab.explain', {
+        term: label,
+      })}
+      style={tw.style('flex-row items-center justify-between gap-4 py-1.5')}
       testID={SecurityTabSelectors.row(rowKey)}
     >
-      <TouchableOpacity
-        onPress={handlePress}
-        accessibilityRole="button"
-        accessibilityLabel={strings('token_details_v1.security_tab.explain', {
-          term: label,
-        })}
-        testID={SecurityTabSelectors.rowLabel(rowKey)}
-      >
+      <Box>
         <DottedUnderline color={colors.text.alternative}>
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Regular}
             color={TextColor.TextAlternative}
+            testID={SecurityTabSelectors.rowLabel(rowKey)}
           >
             {label}
           </Text>
         </DottedUnderline>
-      </TouchableOpacity>
+      </Box>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -129,7 +134,7 @@ export const SecurityRow: React.FC<SecurityRowProps> = ({
           {value ?? SECURITY_EMPTY_VALUE}
         </Text>
       </Box>
-    </Box>
+    </TouchableOpacity>
   );
 };
 

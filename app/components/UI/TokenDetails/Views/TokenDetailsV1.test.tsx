@@ -512,6 +512,18 @@ describe('TokenDetailsV1', () => {
 
       expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
     });
+
+    // The Contract heading pushes a screen rather than opening a sheet: seven
+    // rows each carrying a sentence runs past the height a sheet can offer.
+    it('pushes the contract security screen from the Contract heading', () => {
+      const { getByTestId } = openSecurityTab();
+
+      fireEvent.press(getByTestId(SecurityTabSelectors.CONTRACT_DETAILS_LINK));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CONTRACT_SECURITY, {
+        token: baseToken,
+      });
+    });
   });
 
   it('offers the contract address for copying', () => {

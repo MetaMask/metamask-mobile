@@ -1,7 +1,7 @@
 import type { SecurityVerdict } from '../components/V1/SecurityPill/SecurityPill';
 import {
-  SecurityCheckKey,
-  SupportedSecurityNamespace,
+  AdditionalCheckKey,
+  ContractCheckKey,
   type SecurityTabFacts,
 } from '../components/V1/SecurityTab/SecurityTab.types';
 
@@ -80,7 +80,6 @@ export const MOCK_SHARED_TOKEN_METRICS = {
  * working.
  */
 export const MOCK_SECURITY_FACTS_EVM: SecurityTabFacts = {
-  namespace: SupportedSecurityNamespace.Eip155,
   verdict: 'screened',
   flagCount: 1,
   /**
@@ -91,13 +90,22 @@ export const MOCK_SECURITY_FACTS_EVM: SecurityTabFacts = {
   highRiskFlag:
     'The blacklist function is included, which may restrict some accounts from trading',
   checks: {
-    [SecurityCheckKey.NoHoneypot]: {
+    [ContractCheckKey.NoHoneypot]: {
       outcome: 'pass',
       value: 'Sells work',
     },
-    [SecurityCheckKey.ContractVerified]: { outcome: 'pass', value: 'Yes' },
-    [SecurityCheckKey.Renounced]: { outcome: 'pass', value: 'Renounced' },
-    [SecurityCheckKey.NoBlacklist]: { outcome: 'pass', value: 'No controls' },
+    [ContractCheckKey.ContractVerified]: { outcome: 'pass', value: 'Yes' },
+    [ContractCheckKey.Renounced]: { outcome: 'pass', value: 'Renounced' },
+    [ContractCheckKey.NoBlacklist]: { outcome: 'pass', value: 'No controls' },
+    [AdditionalCheckKey.NoMint]: { outcome: 'pass', value: 'Fixed supply' },
+    [AdditionalCheckKey.RugPullRisk]: {
+      outcome: 'pass',
+      value: 'Below threshold',
+    },
+    [AdditionalCheckKey.ContractControls]: {
+      outcome: 'pass',
+      value: 'None detected',
+    },
   },
   holders: {
     count: MOCK_SHARED_TOKEN_METRICS.holdersCount,
@@ -114,6 +122,7 @@ export const MOCK_SECURITY_FACTS_EVM: SecurityTabFacts = {
   trading: {
     buySellTax: MOCK_SHARED_TOKEN_METRICS.buySellTax,
     volumeFlags: 'None detected',
+    listedOnExchange: 'No',
   },
   origin: {
     created: 'Sep 26, 2026',
@@ -122,30 +131,35 @@ export const MOCK_SECURITY_FACTS_EVM: SecurityTabFacts = {
 };
 
 /**
- * A Solana token, which is a materially different shape rather than the EVM one
+ * A Solana token, which is a materially thinner payload rather than the EVM one
  * with different numbers.
  *
- * Mocked separately because the live API behaves differently per namespace, and
- * a single EVM fixture would ship a layout never verified for the other chain
- * the story names:
+ * Every chain now renders the same rows, so this fixture no longer exists to
+ * preview a different list. It exists because Solana is where the gaps show:
  *
  * `fees` comes back null on every Solana token sampled, so `trading` is null
  * here and the section is omitted instead of showing a heading above dashes.
- * `created` likewise comes back null, so Origin falls to a gray dash. And a
- * different four checks render, per `SECURITY_CHECKS_BY_NAMESPACE`.
+ * `created` likewise comes back null, so Origin falls to a gray dash.
  *
- * `TopTenConcentration` is left absent rather than given an outcome, exercising
- * the unknown-check path: a check the chain lists but Blockaid has not resolved.
+ * `ContractVerified` is left absent rather than given an outcome, exercising
+ * the unknown-check path. It is also the check least likely to resolve on
+ * Solana in practice: it is the only one of the four that needs a positive
+ * assertion from Blockaid rather than the absence of a risk feature, so it has
+ * no fallback when the vendor says nothing.
  */
 export const MOCK_SECURITY_FACTS_SOLANA: SecurityTabFacts = {
-  namespace: SupportedSecurityNamespace.Solana,
   verdict: 'screened',
   flagCount: 0,
   highRiskFlag: null,
   checks: {
-    [SecurityCheckKey.NoMint]: { outcome: 'pass', value: 'Revoked' },
-    [SecurityCheckKey.NoBlacklist]: { outcome: 'pass', value: 'No controls' },
-    [SecurityCheckKey.Burnt]: { outcome: 'fail', value: 'Not burnt' },
+    [ContractCheckKey.NoHoneypot]: { outcome: 'pass', value: 'Sells work' },
+    [ContractCheckKey.Renounced]: { outcome: 'pass', value: 'Renounced' },
+    [ContractCheckKey.NoBlacklist]: { outcome: 'pass', value: 'No controls' },
+    [AdditionalCheckKey.NoMint]: { outcome: 'pass', value: 'Revoked' },
+    [AdditionalCheckKey.RugPullRisk]: {
+      outcome: 'pass',
+      value: 'Below threshold',
+    },
   },
   holders: {
     count: MOCK_SHARED_TOKEN_METRICS.holdersCount,

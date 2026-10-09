@@ -73,11 +73,10 @@ import {
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
+import { useSecurityTabFacts } from '../hooks/useSecurityTabFacts';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenStatBarStats } from '../hooks/useTokenStatBarStats';
 import {
-  MOCK_SECURITY_FACTS_EVM,
-  MOCK_SECURITY_FACTS_SOLANA,
   MOCK_SECURITY_FLAG_COUNT,
   MOCK_SECURITY_VERDICT,
 } from '../mocks/tokenDetailsV1Mocks';
@@ -312,6 +311,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const [explainedSecurityRow, setExplainedSecurityRow] =
     useState<SecurityRowKey | null>(null);
 
+  const securityFacts = useSecurityTabFacts(token);
+
+  const handleOpenContractSecurity = useCallback(() => {
+    navigation.navigate(Routes.CONTRACT_SECURITY, { token });
+  }, [navigation, token]);
+
   const renderTabPage = useCallback(
     (tab: TokenDetailsV1TabKey) => {
       if (!mountedTabs.has(tab)) {
@@ -328,25 +333,25 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
         );
       }
       if (tab === 'security') {
-        // TODO(ASSETS-4022): replace with real facts derived from
-        // `securityData`. The fixture is chosen by chain because the two
-        // namespaces render materially different tabs — Solana has no fee or
-        // creation data at all — so a single fixture would leave one of them
-        // unverified.
         return (
           <SecurityTab
-            facts={
-              isNonEvmChainId(token.chainId as string)
-                ? MOCK_SECURITY_FACTS_SOLANA
-                : MOCK_SECURITY_FACTS_EVM
-            }
+            facts={securityFacts}
             onExplain={setExplainedSecurityRow}
+            onOpenContractDetails={handleOpenContractSecurity}
           />
         );
       }
       return <TokenDetailsV1TabPlaceholder tab={tab} />;
     },
-    [mountedTabs, token, caip19AssetId, currentCurrency, securityData],
+    [
+      mountedTabs,
+      token,
+      caip19AssetId,
+      currentCurrency,
+      securityData,
+      securityFacts,
+      handleOpenContractSecurity,
+    ],
   );
 
   const explainedSecurityCopy = explainedSecurityRow

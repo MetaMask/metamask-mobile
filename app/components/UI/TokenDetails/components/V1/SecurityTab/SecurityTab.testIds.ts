@@ -7,7 +7,10 @@ export const SecurityTabSelectors = {
   SECTION_LIQUIDITY: 'token-details-v1-security-tab-liquidity',
   SECTION_TRADING: 'token-details-v1-security-tab-trading',
   SECTION_ORIGIN: 'token-details-v1-security-tab-origin',
-  VERDICT: 'token-details-v1-security-tab-verdict',
+  /** Tappable Contract heading that opens the Contract security screen. */
+  CONTRACT_DETAILS_LINK: 'token-details-v1-security-tab-contract-details-link',
+  /** Rule between two sections. One per gap, so these are countable. */
+  SECTION_DIVIDER: 'token-details-v1-security-tab-section-divider',
   HIGH_RISK_FLAG: 'token-details-v1-security-tab-high-risk-flag',
   DISTRIBUTION_BAR: 'token-details-v1-security-tab-distribution-bar',
   DISTRIBUTION_BAR_FILL: 'token-details-v1-security-tab-distribution-bar-fill',

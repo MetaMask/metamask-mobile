@@ -5938,8 +5938,10 @@
     },
     "security_tab": {
       "explain": "What does {{term}} mean?",
+      "contract_details_link": "See all contract security checks",
       "sections": {
-        "checks": "Security checks",
+        "contract": "Contract",
+        "additional_checks": "Additional checks",
         "holders": "Holders",
         "liquidity": "Liquidity",
         "trading": "Trading",
@@ -5950,16 +5952,18 @@
         "contract_verified": "Contract verified",
         "renounced": "Renounced",
         "no_blacklist": "No blacklist",
-        "no_mint": "Mint authority",
-        "burnt": "LP burnt",
-        "top_ten_concentration": "Top 10 concentration"
+        "no_mint": "No minting",
+        "rug_pull_risk": "Rug pull risk",
+        "contract_controls": "Contract controls"
+      },
+      "check_descriptions": {
+        "no_mint": "Checks whether token supply can be increased — whether the creator can print more tokens.",
+        "rug_pull_risk": "Checks whether token creators have a history of rug pull and honeypot schemes.",
+        "contract_controls": "Checks whether contract code contains a malicious backdoor or matches known malicious tokens."
       },
       "checks_meta": {
-        "attribution": "Security data provided by Blockaid.",
-        "attribution_checked": {
-          "one": "Security data provided by Blockaid, checked {{count}} minute ago.",
-          "other": "Security data provided by Blockaid, checked {{count}} minutes ago."
-        }
+        "attribution": "Blockaid",
+        "attribution_checked": "Blockaid · checked {{count}} min ago"
       },
       "stats": {
         "holders": "Holders",
@@ -5970,6 +5974,7 @@
         "primary_pool": "Primary pool",
         "buy_sell_tax": "Buy/sell tax",
         "volume_flags": "Volume flags",
+        "listed_on_exchange": "Listed on exchange",
         "created": "Created"
       },
       "holders": {
@@ -5995,18 +6000,6 @@
         "no_blacklist": {
           "title": "No blacklist",
           "description": "Whether an address can be blocked from trading."
-        },
-        "no_mint": {
-          "title": "Mint authority",
-          "description": "Whether new tokens can still be minted after launch."
-        },
-        "burnt": {
-          "title": "LP burnt",
-          "description": "Whether the liquidity pool tokens have been burned."
-        },
-        "top_ten_concentration": {
-          "title": "Top 10 concentration",
-          "description": "Whether the top 10 wallets hold an outsized share of supply."
         },
         "holders": {
           "title": "Holders",
@@ -6040,11 +6033,18 @@
           "title": "Volume flags",
           "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
         },
+        "listed_on_exchange": {
+          "title": "Listed on exchange",
+          "description": "Whether Blockaid reports the token as listed on a leading centralized exchange."
+        },
         "created": {
           "title": "Created",
           "description": "Date the token contract was created, when reported by its source."
         }
       }
+    },
+    "contract_security": {
+      "title": "Contract security"
     },
     "tab_placeholder": "Coming soon"
   },
