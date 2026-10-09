@@ -25,6 +25,11 @@ export interface TopTrader {
   /** Absolute PnL over the requested window in USD (formatted by the UI). */
   pnlValue: number;
   /**
+   * 30-day realized PnL in USD, independent of the displayed window. Used to
+   * band shrimp / dolphin / whale. Null when the leaderboard omitted it.
+   */
+  pnl30d?: number | null;
+  /**
    * Share of winning trades over the requested window, as a whole percent
    * (e.g. 92 for 92%) to match `percentageChange`. The API reports it as a
    * 0–1 fraction. `null` when the window has no win-rate data.
