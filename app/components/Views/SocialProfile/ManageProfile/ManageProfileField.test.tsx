@@ -99,6 +99,7 @@ describe('ManageProfileField', () => {
             value: 'Tomato Farmer',
           },
         },
+        { pop: true },
       );
     });
 
@@ -233,6 +234,7 @@ describe('ManageProfileField', () => {
             value: 'Just here for the yield.',
           },
         },
+        { pop: true },
       );
     });
   });
