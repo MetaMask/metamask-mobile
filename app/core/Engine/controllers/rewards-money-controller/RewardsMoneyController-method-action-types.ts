@@ -61,7 +61,9 @@ export type RewardsMoneyControllerValidateReferralCodeAction = {
  *
  * A refusal rejects with `RewardsMoneyRebateQuoteError`, a `401` with
  * `RewardsMoneyAuthorizationError`. A timeout or a network failure rejects
- * with a plain `Error`.
+ * with a plain `Error`. A `503` (`failure: 'UNAVAILABLE'`) is a busy pod:
+ * show no rebate row, do not request another quote for this screen, and
+ * leave the button disabled until `retryAfterSeconds` has elapsed.
  *
  * @param quote - The bridge quote the confirmation screen holds.
  * @returns The rebate to show; `eligible: false` means no rebate row.
@@ -79,7 +81,9 @@ export type RewardsMoneyControllerGetSwapsRebateQuoteAction = {
  *
  * A refusal rejects with `RewardsMoneyRebateQuoteError`, a `401` with
  * `RewardsMoneyAuthorizationError`. A timeout or a network failure rejects
- * with a plain `Error`.
+ * with a plain `Error`. A `503` (`failure: 'UNAVAILABLE'`) is a busy pod:
+ * show no rebate row, do not request another quote for this screen, and
+ * leave the button disabled until `retryAfterSeconds` has elapsed.
  *
  * @param trade - What the user is about to trade, when known.
  * @returns The rebate to show; `eligible: false` means no rebate row.

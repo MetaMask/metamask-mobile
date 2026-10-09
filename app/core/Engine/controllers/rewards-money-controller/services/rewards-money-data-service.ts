@@ -62,6 +62,13 @@ export type RewardsMoneyRebateQuoteFailure =
  * A rebate quote the server refused. `failure` is the status the confirmation
  * screen branches on; `detail` is the server's message when it sent one.
  * `401` is not this: that is {@link RewardsMoneyAuthorizationError}.
+ *
+ * A pod that sheds the quote answers `503` with
+ * `{ reason: 'SERVER_BUSY', message: 'Server busy, retry shortly' }` and
+ * `Retry-After: 2`. That is `failure: 'UNAVAILABLE'`, that message as
+ * `detail`, and `retryAfterSeconds` from the header. Show no rebate row, do
+ * not request another quote for this screen, and leave the button disabled
+ * until `retryAfterSeconds` has elapsed.
  */
 export class RewardsMoneyRebateQuoteError extends Error {
   readonly status: number;
