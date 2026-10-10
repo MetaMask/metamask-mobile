@@ -146,6 +146,81 @@ function formatErrorForLog(error: Error): Error {
   return errorWithCause;
 }
 
+interface SubscriptionPayment {
+  payerAddress: Hex;
+  chainId: Hex;
+}
+
+/**
+ * Requires a Money Account payer and vault chain id before checkout starts.
+ *
+ * @param payerAddress - Primary Money Account address.
+ * @param chainId - Vault chain id from the Money Account feature flag.
+ * @returns Validated payer address and chain id.
+ */
+function requireSubscriptionPayment(
+  payerAddress: string | undefined,
+  chainId: string | undefined,
+): SubscriptionPayment {
+  if (!isHexAddress(payerAddress) || !isStrictHexString(chainId)) {
+    throw new Error(PAYMENT_UNAVAILABLE_ERROR);
+  }
+
+  return { payerAddress, chainId };
+}
+
+/**
+ * Maps a failed subscription start to the message shown on the join screen.
+ *
+ * @param error - Error caught while starting the subscription.
+ * @returns Localized join or insufficient-balance copy.
+ */
+function getStartSubscriptionErrorMessage(error: Error): string {
+  const isInsufficientBalanceError =
+    error.message ===
+    SubscriptionDelegationServiceErrorMessage.InsufficientBalance;
+
+  return strings(
+    isInsufficientBalanceError
+      ? 'pro_subscription.insufficient_balance'
+      : 'pro_subscription.join_error',
+  );
+}
+
+/**
+ * Logs a failed subscription start, updates the join error when the hook is
+ * still mounted, and rethrows so the caller can stop the flow. User
+ * rejections are not logged; they clear any previous join error.
+ *
+ * @param error - Failure from balance check, top-up, or delegation start.
+ * @param isMounted - Whether the hook is still mounted.
+ * @param setMessage - Join-screen error setter.
+ */
+function reportStartSubscriptionError(
+  error: unknown,
+  isMounted: boolean,
+  setMessage: (message: string | undefined) => void,
+): never {
+  const loggedError = error instanceof Error ? error : new Error(String(error));
+
+  if (isUserRejectedError(loggedError, loggedError.message)) {
+    if (isMounted) {
+      setMessage(undefined);
+    }
+    throw loggedError;
+  }
+
+  const causeDetails = describeErrorCause(loggedError.cause);
+  Logger.error(formatErrorForLog(loggedError), {
+    ...SUBSCRIPTION_START_ERROR_LOG_OPTIONS,
+    ...(causeDetails ? { extras: { cause: causeDetails } } : {}),
+  });
+  if (isMounted) {
+    setMessage(getStartSubscriptionErrorMessage(loggedError));
+  }
+  throw loggedError;
+}
+
 export interface UseStartProSubscriptionResult {
   startSubscription: (plan: SelectedPlusPlan) => Promise<void>;
   isSubmitting: boolean;
@@ -198,11 +273,10 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
       setErrorMessage(undefined);
 
       try {
-        const payerAddress = moneyAccount?.address;
-        const chainId = vaultConfig?.chainId;
-        if (!isHexAddress(payerAddress) || !isStrictHexString(chainId)) {
-          throw new Error(PAYMENT_UNAVAILABLE_ERROR);
-        }
+        const { payerAddress, chainId } = requireSubscriptionPayment(
+          moneyAccount?.address,
+          vaultConfig?.chainId,
+        );
 
         const { SubscriptionDelegationService } = Engine.context;
         const subscriptionParams = {
@@ -231,33 +305,11 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
           skipApproval: true,
         });
       } catch (error) {
-        const loggedError =
-          error instanceof Error ? error : new Error(String(error));
-        if (isUserRejectedError(loggedError, loggedError.message)) {
-          if (isMountedRef.current) {
-            setErrorMessage(undefined);
-          }
-          throw loggedError;
-        }
-
-        const causeDetails = describeErrorCause(loggedError.cause);
-        Logger.error(formatErrorForLog(loggedError), {
-          ...SUBSCRIPTION_START_ERROR_LOG_OPTIONS,
-          ...(causeDetails ? { extras: { cause: causeDetails } } : {}),
-        });
-        if (isMountedRef.current) {
-          const isInsufficientBalanceError =
-            loggedError.message ===
-            SubscriptionDelegationServiceErrorMessage.InsufficientBalance;
-          setErrorMessage(
-            strings(
-              isInsufficientBalanceError
-                ? 'pro_subscription.insufficient_balance'
-                : 'pro_subscription.join_error',
-            ),
-          );
-        }
-        throw loggedError;
+        reportStartSubscriptionError(
+          error,
+          isMountedRef.current,
+          setErrorMessage,
+        );
       } finally {
         isSubmittingRef.current = false;
         if (isMountedRef.current) {
