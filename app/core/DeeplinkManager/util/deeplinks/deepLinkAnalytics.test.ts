@@ -696,6 +696,24 @@ describe('deepLinkAnalytics', () => {
       });
     });
 
+    it('includes referral code for rewards route', async () => {
+      mockDetectAppInstallation.mockResolvedValue(true);
+
+      const context: DeepLinkAnalyticsContext = {
+        url: 'https://link.metamask.io/rewards?referral=ABC123',
+        route: DeepLinkRoute.REWARDS,
+        urlParams: { referral: 'ABC123' },
+        signatureStatus: SignatureStatus.MISSING,
+        interstitialShown: false,
+        interstitialDisabled: false,
+      };
+
+      const result = (await createDeepLinkUsedEventBuilder(context)).build();
+
+      expect(result.properties.referral).toBe('ABC123');
+      expect(result.sensitiveProperties).toEqual({});
+    });
+
     it('creates event for invalid route with target URL', async () => {
       const mockBranch = jest.requireMock('react-native-branch');
       mockBranch.getLatestReferringParams.mockResolvedValue({
