@@ -394,12 +394,10 @@ describe('useStartProSubscription', () => {
     );
   });
 
-  it('exposes the insufficient-balance message for a failed balance check', async () => {
-    mockedCheckBalance.mockResolvedValue({
-      hasSufficientBalance: false,
-      balance: '0',
-      requiredBalance: '49990000',
-    });
+  it('exposes the insufficient-balance message when startSubscriptionWithDelegation reports it', async () => {
+    mockedStartSubscription.mockRejectedValue(
+      new Error(SubscriptionDelegationServiceErrorMessage.InsufficientBalance),
+    );
     const { result } = renderHook(() => useStartProSubscription());
 
     await act(async () => {
@@ -408,7 +406,6 @@ describe('useStartProSubscription', () => {
       );
     });
 
-    expect(mockedStartSubscription).not.toHaveBeenCalled();
     expect(result.current.errorMessage).toBe(
       strings('pro_subscription.insufficient_balance'),
     );
