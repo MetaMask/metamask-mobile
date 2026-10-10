@@ -36,6 +36,7 @@ const createMoneyAccountBalance = (
   withdrawableFiatFormatted: undefined,
   withdrawableFiatRaw: undefined,
   withdrawableMusd: undefined,
+  liquidMusd: undefined,
   ...overrides,
 });
 

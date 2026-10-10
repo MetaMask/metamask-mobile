@@ -171,6 +171,18 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
+// The rescue row consumed the live balance hook; this harness renders without
+// a QueryClient, so stub the balance as unavailable (rescue row disabled —
+// out of scope for the pending-transaction regression it covers).
+jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    liquidMusd: undefined,
+    isBalanceLoading: false,
+    isBalanceFetchError: false,
+  })),
+}));
+
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
   selectPrivacyMode: jest.fn(() => false),
