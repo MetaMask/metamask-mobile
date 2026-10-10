@@ -1181,8 +1181,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   });
 
   const handleTradeAction = useCallback(
-    (direction: 'long' | 'short') =>
-      gate(async () => {
+    (direction: 'long' | 'short') => {
+      playImpact(ImpactMoment.SecondaryCTA).catch(() => undefined);
+      return gate(async () => {
         if (!isEligible) {
           // Track geo-block screen viewed
           track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
@@ -1242,7 +1243,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             ? { transactionActiveAbTests }
             : {}),
         });
-      }),
+      });
+    },
     [
       gate,
       isEligible,
@@ -1422,6 +1424,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const handleClosePosition = useCallback(() => {
     if (!existingPosition) return;
 
+    playImpact(ImpactMoment.SecondaryCTA).catch(() => undefined);
     return gate(async () => {
       // Geo-restriction check for close position action
       if (!isEligible) {

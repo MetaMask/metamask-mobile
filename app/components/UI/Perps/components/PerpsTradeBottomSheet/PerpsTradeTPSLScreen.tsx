@@ -40,6 +40,7 @@ import {
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { strings } from '../../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
 import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsTPSLForm } from '../../hooks/usePerpsTPSLForm';
@@ -222,6 +223,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
   onSave,
 }) => {
   const { goBack } = usePerpsTradeSheet();
+  const { fireImpact } = useHaptics();
   const [isUpdating, setIsUpdating] = useState(false);
   const [focusedInput, setFocusedInput] = useState<TPSLInput | null>(null);
   const inputRefs = useRef<Record<TPSLInput, TextInput | null>>({
@@ -409,6 +411,11 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
     setFocusedInput(null);
   }, [focusedInput]);
 
+  const handleDonePillPress = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
+    dismissKeypad();
+  }, [dismissKeypad, fireImpact]);
+
   const handleTakeProfitClear = useCallback(() => {
     dismissKeypad();
     handleTakeProfitOff();
@@ -541,6 +548,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
       return;
     }
 
+    fireImpact(ImpactMoment.PrimaryCTA);
     dismissKeypad();
     setIsUpdating(true);
     try {
@@ -557,6 +565,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
     goBack,
     isUpdating,
     onSave,
+    fireImpact,
     hasChanges,
     isValid,
     stopLossPrice,
@@ -908,7 +917,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
                 twClassName="flex-1 px-1"
-                onPress={dismissKeypad}
+                onPress={handleDonePillPress}
                 testID={PerpsTPSLViewSelectorsIDs.DONE_BUTTON}
               >
                 {strings('perps.tpsl.done')}
