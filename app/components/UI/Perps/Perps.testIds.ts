@@ -813,6 +813,13 @@ export const PerpsProOrderFormSelectorsIDs = {
   CHASE_REFERENCE_PRICE: 'perps-pro-chase-reference-price',
 };
 
+export const getPerpsProCompactInputLabelContainerTestId = (
+  testID: string,
+): string => `${testID}-label-container`;
+
+export const getPerpsProCompactInputRowTestId = (testID: string): string =>
+  `${testID}-input-row`;
+
 // ========================================
 // PERPS MARKET HEADER SELECTORS
 // ========================================
