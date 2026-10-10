@@ -58,13 +58,6 @@ export type ClaimBlockingReason =
   | 'VOIDED'
   | 'UNDER_REVIEW';
 
-export type LedgerBlockingReason =
-  | 'SUSPENDED'
-  | 'TAX_DETERMINATION_REQUIRED'
-  | 'EARNING_ADDRESS_MISSING'
-  | 'MECHANISM_NOT_CLAIMABLE'
-  | 'UNDER_REVIEW';
-
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ReferralCodeView = {
   code: string;
@@ -193,8 +186,10 @@ export type ReferralLocalizedTextKey =
   | 'paused'
   | 'claimsPausedTitle'
   | 'claimsPausedDescription'
-  | 'rewardPausedTitle'
-  | 'rewardPausedDescription';
+  | 'rewardsPausedTitle'
+  | 'rewardsPausedDescription'
+  | 'rewardsPausedBanner'
+  | 'rewardsPausedLearnMore';
 
 /** Resolved for the request's `Accept-Language`; defaults fill missing keys. */
 export type ReferralLocalizedText = {
@@ -369,7 +364,6 @@ export type LedgerEarningEntryDto = {
    * the end of its claim delay, and a day entry carries its UTC day's close.
    */
   claimable_at: string;
-  blocking_reason?: LedgerBlockingReason | null;
   swaps_source: LedgerSwapsSourceView | null;
   perps_source: LedgerPerpsSourceView | null;
   predict_source: LedgerPredictSourceView | null;
