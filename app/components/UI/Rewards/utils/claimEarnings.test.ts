@@ -828,6 +828,7 @@ describe('submitClaimVoucher', () => {
       disableSequential: true,
       disableUpgrade: true,
       from: voucher.to,
+      requireApproval: false,
       isGasFeeSponsored: true,
       isInternal: true,
       networkClientId: 'monad-mainnet',
