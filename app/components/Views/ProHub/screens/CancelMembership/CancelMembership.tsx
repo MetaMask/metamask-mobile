@@ -3,10 +3,7 @@ import { BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  PRODUCT_TYPES,
-  type Subscription,
-} from '@metamask/subscription-controller';
+import { PRODUCT_TYPES } from '@metamask/subscription-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
@@ -55,13 +52,13 @@ const CancelMembership = () => {
     if (isSubmitting) return;
 
     const controller = Engine.context.SubscriptionController;
-    const subscription: Subscription | undefined =
-      controller.getSubscriptionByProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS);
-    const timing = subscription
-      ? getCancellationTiming(subscription.cancelType)
-      : undefined;
+    const subscription = controller.getSubscriptionByProduct(
+      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+    );
+    const currentPeriodEnd = subscription?.currentPeriodEnd;
+    const timing = getCancellationTiming(subscription?.cancelType);
 
-    if (!subscription || !timing) {
+    if (!subscription || !timing || !currentPeriodEnd) {
       setErrorMessage(
         strings('pro_hub.cancel_membership.cancellation_unavailable'),
       );
@@ -83,8 +80,7 @@ const CancelMembership = () => {
       setCancelledSubscription({
         timing,
         endDate:
-          formatSubscriptionPeriodEnd(subscription.currentPeriodEnd) ??
-          subscription.currentPeriodEnd,
+          formatSubscriptionPeriodEnd(currentPeriodEnd) ?? currentPeriodEnd,
       });
       setStep('success');
     } catch (error) {

@@ -1,7 +1,7 @@
 import type { QueryFunctionContext } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../constants/transactions';
-import type { PredictActivity } from '../types';
+import type { PredictActivityPage } from '../types';
 
 export const predictActivityKeys = {
   all: () => ['predict', 'activity'] as const,
@@ -21,18 +21,16 @@ export const predictActivityOptions = ({
   queryKey: predictActivityKeys.byAddress(address, limit),
   queryFn: async ({
     pageParam,
-  }: QueryFunctionContext<PredictActivityQueryKey, number>): Promise<
-    PredictActivity[]
-  > =>
+  }: QueryFunctionContext<
+    PredictActivityQueryKey,
+    string | undefined
+  >): Promise<PredictActivityPage> =>
     Engine.context.PredictController.getActivity({
       address,
       limit,
-      offset: pageParam,
+      cursor: pageParam,
     }),
-  initialPageParam: 0,
-  getNextPageParam: (
-    lastPage: PredictActivity[],
-    allPages: PredictActivity[][],
-  ): number | undefined =>
-    lastPage.length > 0 ? allPages.length * limit : undefined,
+  initialPageParam: undefined as string | undefined,
+  getNextPageParam: (lastPage: PredictActivityPage): string | undefined =>
+    lastPage.nextCursor ?? undefined,
 });
