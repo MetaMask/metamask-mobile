@@ -56,7 +56,11 @@ import {
   getPerpsProTwapTerminateSelector,
   getPerpsProTwapValueSelector,
 } from '../../Perps.testIds';
-import { formatProOrderCardTimestamp } from '../../utils/formatUtils';
+import {
+  formatPerpsInput,
+  formatProOrderCardTimestamp,
+  normalizePerpsNumericInput,
+} from '../../utils/formatUtils';
 import { getTwapOrderProviderId } from '../../utils/twapOrderUtils';
 
 const ids = PerpsProOrderFormSelectorsIDs;
@@ -2755,20 +2759,27 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     'previews slider sizing live and keeps it after drag-end commit',
     async () => {
       renderFundedProMarket();
-      const sizeInput = await findSizeInput();
-      const slider = screen.getByTestId(ids.SIZE_SLIDER);
-      const initialValue = sizeInput.props.value;
+      await findSizeInput();
+      const initialValue = screen.getByTestId(ids.SIZE_INPUT).props.value;
 
-      fireEvent(slider, 'valueChange', 50);
+      fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'valueChange', 50);
 
       await waitFor(() => {
-        expect(sizeInput.props.value).not.toBe(initialValue);
-        expect(Number(sizeInput.props.value)).toBeGreaterThan(0);
+        const updatedSizeInput = screen.getByTestId(ids.SIZE_INPUT);
+        expect(updatedSizeInput.props.value).not.toBe(initialValue);
+        expect(
+          Number(normalizePerpsNumericInput(updatedSizeInput.props.value)),
+        ).toBeGreaterThan(0);
       });
-      const previewValue = sizeInput.props.value;
-      fireEvent(slider, 'dragEnd', 50);
+      const previewValue = screen.getByTestId(ids.SIZE_INPUT).props.value;
+      fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'dragEnd', 50);
 
-      await waitFor(() => expect(sizeInput).toHaveProp('value', previewValue));
+      await waitFor(() =>
+        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+          'value',
+          previewValue,
+        ),
+      );
     },
   );
 
@@ -2918,7 +2929,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         );
         expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
         expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
-        expect(sizeInput).toHaveProp('value', '3000');
+        expect(sizeInput).toHaveProp('value', formatPerpsInput('3000'));
       });
     },
   );
@@ -2941,7 +2952,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
       await waitFor(() => {
         const marginCappedAmount = Number(
-          screen.getByTestId(ids.SIZE_INPUT).props.value,
+          normalizePerpsNumericInput(
+            screen.getByTestId(ids.SIZE_INPUT).props.value,
+          ),
         );
         expect(marginCappedAmount).toBeGreaterThan(0);
         expect(marginCappedAmount).toBeLessThan(2500);
@@ -2957,7 +2970,10 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'dragEnd', 2500);
 
       await waitFor(() =>
-        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '2500'),
+        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+          'value',
+          formatPerpsInput('2500'),
+        ),
       );
     },
   );
