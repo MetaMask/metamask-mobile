@@ -156,6 +156,9 @@ export const useImmersveOnboardingRouter = () => {
           Engine.context.CardController.markMigrationCompleted().catch(
             () => undefined,
           );
+          Engine.context.CardController.recordCardActivated({
+            provider: CardProviderIds.Immersve,
+          });
           if (showAccountExistsToast !== false) {
             toastRef?.current?.showToast({
               variant: ToastVariants.Icon,

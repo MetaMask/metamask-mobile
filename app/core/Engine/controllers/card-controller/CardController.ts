@@ -1,5 +1,5 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
-import { numberToHex, type Hex, type Json } from '@metamask/utils';
+import { bytesToHex, numberToHex, type Hex, type Json } from '@metamask/utils';
 import {
   TransactionType,
   type TransactionMeta,
@@ -30,6 +30,10 @@ import {
   type CardRedeemWithdrawalError,
   type CardAccountLookupCacheEntry,
   type CardRedeemWithdrawalErrorReason,
+  type CardLink,
+  type CardLinkWriteBody,
+  type CardLinkWriteStatus,
+  type CardSha256,
   type FetchCardHomeDataOptions,
 } from './types';
 import type {
@@ -116,6 +120,7 @@ import { toTokenMinimalUnit } from '../../../../util/number/bigint';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import {
   readCardFeatureFlag,
+  readCardLinkApiEnabled,
   readCardUkMigrationSignInRoutingEnabled,
   resolveCardProviderForCountry,
   FALLBACK_CARD_PROVIDER_ID,
@@ -124,7 +129,11 @@ import {
   ImmersveProvider,
   type CardResumeInfo,
 } from './providers/ImmersveProvider';
-import { CardService } from './services/CardService';
+import {
+  CARD_LINK_CLIENT_NOT_ALLOWED,
+  CardService,
+  getCardApiErrorBodyCode,
+} from './services/CardService';
 import { CardApiError } from './services/BaanxService';
 import type { CardApiSupportedRegionsResponse } from './services/card-supported-regions.types';
 import { cardNetworkInfos } from '../../../../components/UI/Card/constants';
@@ -135,6 +144,9 @@ const CARDHOLDER_MAX_BATCHES = 3;
 const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
 const ACCOUNT_LOOKUP_MISS_TTL_MS = 24 * 60 * 60 * 1000;
 const ACCOUNT_LOOKUP_TIMEOUT_MS = 2000;
+const CARD_LINKS_FRESH_MS = 24 * 60 * 60 * 1000;
+const CARD_LINKS_FETCH_ATTEMPTS = 3;
+const CARD_LINK_FIELD_MAX_LENGTH = 128;
 
 type RedeemFailureStage = 'estimation' | 'submit' | 'on_chain';
 
@@ -147,6 +159,11 @@ const bucketRedeemAmount = (amount: string): string => {
   if (n < 1000) return '100-1000';
   return '1000+';
 };
+
+const isValidCardLinkField = (value: string | undefined): value is string =>
+  typeof value === 'string' &&
+  value.length > 0 &&
+  value.length <= CARD_LINK_FIELD_MAX_LENGTH;
 
 const resolveRedeemPollingChainId = (network?: string): string | undefined => {
   const info = network ? cardNetworkInfos[network as CardNetwork] : undefined;
@@ -252,6 +269,24 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: false,
     usedInUi: false,
   },
+  cardLinks: {
+    persist: true,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
+  cardLinksFetchedAt: {
+    persist: true,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: false,
+  },
+  cardLinksSeeded: {
+    persist: true,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: false,
+  },
 };
 
 export const defaultCardControllerState: CardControllerState = {
@@ -271,6 +306,9 @@ export const defaultCardControllerState: CardControllerState = {
   redeemWithdrawal: null,
   signInLink: null,
   accountLookupCache: {},
+  cardLinks: null,
+  cardLinksFetchedAt: null,
+  cardLinksSeeded: false,
 };
 
 /**
@@ -300,17 +338,26 @@ export class CardController extends BaseController<
   #lastFetchedAt = 0;
   /** In-flight fetch is a silent revalidation. Instance state, not a local, so a joined forced call can clear it. */
   #silentRevalidation = false;
+  readonly #sha256: CardSha256 | undefined;
+  #cardLinksFetchPromise: Promise<void> | null = null;
+  #cardLinkSeedPromise: Promise<void> | null = null;
+  #cardLinksGeneration = 0;
+  #cardLinksWriteRevision = 0;
+  #cardLinkClientBlocked = false;
+  #pendingProviderCardholderIds: Partial<Record<CardProviderId, string>> = {};
 
   constructor({
     messenger,
     state,
     providers,
     cardService,
+    sha256,
   }: {
     messenger: CardControllerMessenger;
     state?: Partial<CardControllerState>;
     providers: Partial<Record<CardProviderId, ICardProvider>>;
     cardService: CardService;
+    sha256?: CardSha256;
   }) {
     super({
       name: CARD_CONTROLLER_NAME,
@@ -323,6 +370,7 @@ export class CardController extends BaseController<
     });
     this.providers = providers;
     this.cardService = cardService;
+    this.#sha256 = sha256;
     try {
       this.previousEvmAddress = this.#getSelectedEvmAddress();
       this.#discardCardHomeDataFromOtherAccount(this.previousEvmAddress);
@@ -363,6 +411,7 @@ export class CardController extends BaseController<
     this.messenger.subscribe('KeyringController:unlock', () => {
       if (this.resetInProgress) return;
       this.#triggerCardholderCheck();
+      this.#fetchCardLinksWithLogging('#onUnlock/fetchCardLinks');
       this.validateAndRefreshSession()
         .then(({ isAuthenticated }) => {
           if (isAuthenticated && !this.resetInProgress) {
@@ -588,6 +637,7 @@ export class CardController extends BaseController<
       this.update((s) => {
         s.cardholderAccounts = results;
       });
+      this.#seedCardLinkIfNeededWithLogging();
     }
   }
 
@@ -615,6 +665,308 @@ export class CardController extends BaseController<
       batches.push(items.slice(i, i + size));
     }
     return batches;
+  }
+
+  // -- Card links --
+
+  #isCardLinkApiEnabled(): boolean {
+    if (this.#cardLinkClientBlocked) return false;
+    try {
+      const { remoteFeatureFlags } = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
+      return readCardLinkApiEnabled(remoteFeatureFlags);
+    } catch {
+      return false;
+    }
+  }
+
+  async #withCardLinkBearer<T>(
+    call: (bearerToken: string) => Promise<T>,
+  ): Promise<T> {
+    // No argument: an entropy-source ID returns another profile's token.
+    const getToken = () =>
+      this.messenger.call('AuthenticationController:getBearerToken');
+    try {
+      return await call(await getToken());
+    } catch (error) {
+      if (error instanceof CardApiError && error.statusCode === 401) {
+        return await call(await getToken());
+      }
+      throw error;
+    }
+  }
+
+  #handleCardLinkError(error: unknown, method: string): void {
+    if (
+      error instanceof CardApiError &&
+      error.statusCode === 403 &&
+      getCardApiErrorBodyCode(error) === CARD_LINK_CLIENT_NOT_ALLOWED
+    ) {
+      this.#cardLinkClientBlocked = true;
+      return;
+    }
+    Logger.error(error as Error, {
+      tags: { feature: 'card', operation: 'cardLinks' },
+      context: {
+        name: 'CardController',
+        data: {
+          method,
+          statusCode: error instanceof CardApiError ? error.statusCode : null,
+        },
+      },
+    });
+  }
+
+  #fetchCardLinksWithLogging(method: string): void {
+    this.fetchCardLinks().catch((error) =>
+      Logger.error(error as Error, {
+        tags: { feature: 'card' },
+        context: { name: 'CardController', data: { method } },
+      }),
+    );
+  }
+
+  async fetchCardLinks({
+    force = false,
+  }: { force?: boolean } = {}): Promise<void> {
+    if (!this.#isCardLinkApiEnabled()) return;
+
+    const { cardLinks, cardLinksFetchedAt } = this.state;
+    const isFresh =
+      cardLinks !== null &&
+      cardLinksFetchedAt !== null &&
+      Date.now() - cardLinksFetchedAt < CARD_LINKS_FRESH_MS;
+    if (isFresh && !force) {
+      await this.#seedCardLinkIfNeeded();
+      return;
+    }
+
+    this.#cardLinksFetchPromise ??= this.#doFetchCardLinks().finally(() => {
+      this.#cardLinksFetchPromise = null;
+    });
+    await this.#cardLinksFetchPromise;
+  }
+
+  async #doFetchCardLinks(attempt = 0): Promise<void> {
+    const generation = this.#cardLinksGeneration;
+    const writeRevision = this.#cardLinksWriteRevision;
+    let links: CardLink[];
+    try {
+      links = await this.#withCardLinkBearer((token) =>
+        this.cardService.getCardLinks(token),
+      );
+    } catch (error) {
+      this.#handleCardLinkError(error, 'fetchCardLinks');
+      return;
+    }
+    if (generation !== this.#cardLinksGeneration) return;
+    if (writeRevision !== this.#cardLinksWriteRevision) {
+      // This GET started before a write, so its body is the pre-write list.
+      // Applying it would replace the write and start the 24h freshness window.
+      if (attempt + 1 < CARD_LINKS_FETCH_ATTEMPTS) {
+        await this.#doFetchCardLinks(attempt + 1);
+      }
+      return;
+    }
+
+    this.update((s) => {
+      s.cardLinks = links;
+      s.cardLinksFetchedAt = Date.now();
+    });
+    await this.#seedCardLinkIfNeeded();
+  }
+
+  #seedCardLinkIfNeededWithLogging(): void {
+    this.#seedCardLinkIfNeeded().catch((error) =>
+      Logger.error(error as Error, {
+        tags: { feature: 'card' },
+        context: {
+          name: 'CardController',
+          data: { method: '#seedCardLinkIfNeeded' },
+        },
+      }),
+    );
+  }
+
+  async #seedCardLinkIfNeeded(): Promise<void> {
+    const { cardLinks, cardLinksSeeded, cardholderAccounts } = this.state;
+    if (
+      cardLinksSeeded ||
+      cardLinks === null ||
+      cardLinks.length > 0 ||
+      cardholderAccounts.length === 0 ||
+      !this.#isCardLinkApiEnabled()
+    ) {
+      return;
+    }
+
+    this.#cardLinkSeedPromise ??= this.#doSeedCardLink(
+      cardholderAccounts[0],
+    ).finally(() => {
+      this.#cardLinkSeedPromise = null;
+    });
+    await this.#cardLinkSeedPromise;
+  }
+
+  async #doSeedCardLink(caipAccountId: string): Promise<void> {
+    const generation = this.#cardLinksGeneration;
+    const outcome = await this.#writeCardLink(
+      CardProviderIds.Baanx,
+      'active',
+      { address: caipAccountId },
+      '#seedCardLinkIfNeeded',
+    );
+    if (outcome !== 'skipped') {
+      this.#trackCardLinkSeeded(outcome);
+    }
+    if (generation !== this.#cardLinksGeneration) return;
+    if (outcome === 'written' || outcome === 'rejected') {
+      this.update((s) => {
+        s.cardLinksSeeded = true;
+      });
+    }
+  }
+
+  #trackCardLinkSeeded(outcome: 'written' | 'rejected' | 'failed'): void {
+    try {
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.CARD_LINK_SEEDED,
+        )
+          .addProperties({ provider: CardProviderIds.Baanx, outcome })
+          .build(),
+      );
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card' },
+        context: {
+          name: 'CardController',
+          data: { method: '#trackCardLinkSeeded' },
+        },
+      });
+    }
+  }
+
+  async recordProviderOnboardingStarted({
+    provider,
+    address,
+    providerCardholderId,
+  }: {
+    provider: CardProviderId;
+    address: string;
+    providerCardholderId?: string;
+  }): Promise<void> {
+    const cardholderId =
+      providerCardholderId ?? this.#pendingProviderCardholderIds[provider];
+    const outcome = await this.#writeCardLink(
+      provider,
+      'onboarding',
+      { address, providerCardholderId: cardholderId },
+      'recordProviderOnboardingStarted',
+    );
+    if (outcome !== 'failed') {
+      delete this.#pendingProviderCardholderIds[provider];
+    }
+  }
+
+  async recordCardActivated({
+    provider,
+  }: {
+    provider: CardProviderId;
+  }): Promise<void> {
+    await this.#writeCardLink(provider, 'active', {}, 'recordCardActivated');
+  }
+
+  async recordProviderLogin({
+    provider,
+    phase,
+    address,
+  }: {
+    provider: CardProviderId;
+    phase: CardLinkWriteStatus;
+    address?: string | null;
+  }): Promise<void> {
+    await this.#writeCardLink(
+      provider,
+      phase,
+      { address: address ?? undefined },
+      'recordProviderLogin',
+    );
+  }
+
+  #recordProviderLoginWithLogging(
+    provider: CardProviderId,
+    phase: CardLinkWriteStatus,
+  ): void {
+    (async () =>
+      this.recordProviderLogin({
+        provider,
+        phase,
+        address: this.#getSelectedEvmAddress(),
+      }))().catch((error) =>
+      Logger.error(error as Error, {
+        tags: { feature: 'card', provider },
+        context: {
+          name: 'CardController',
+          data: { method: 'recordProviderLogin' },
+        },
+      }),
+    );
+  }
+
+  async #writeCardLink(
+    provider: CardProviderId,
+    status: CardLinkWriteStatus,
+    {
+      address,
+      providerCardholderId,
+    }: { address?: string; providerCardholderId?: string },
+    method: string,
+  ): Promise<'written' | 'rejected' | 'failed' | 'skipped'> {
+    const generation = this.#cardLinksGeneration;
+    try {
+      if (!this.#isCardLinkApiEnabled()) return 'skipped';
+
+      const body: CardLinkWriteBody = { status };
+      if (isValidCardLinkField(providerCardholderId)) {
+        body.providerCardholderId = providerCardholderId;
+      }
+      const linkedAccountRef = address
+        ? await this.#computeLinkedAccountRef(address)
+        : undefined;
+      if (isValidCardLinkField(linkedAccountRef)) {
+        body.linkedAccountRef = linkedAccountRef;
+      }
+
+      const link = await this.#withCardLinkBearer((token) =>
+        this.cardService.putCardLink(provider, body, token),
+      );
+      if (generation === this.#cardLinksGeneration) {
+        this.update((s) => {
+          s.cardLinks = [
+            ...(s.cardLinks ?? []).filter((l) => l.provider !== link.provider),
+            link,
+          ];
+        });
+        this.#cardLinksWriteRevision += 1;
+      }
+      return 'written';
+    } catch (error) {
+      this.#handleCardLinkError(error, method);
+      return error instanceof CardApiError && error.statusCode === 400
+        ? 'rejected'
+        : 'failed';
+    }
+  }
+
+  async #computeLinkedAccountRef(address: string): Promise<string | undefined> {
+    if (!this.#sha256) return undefined;
+    const bare = address.includes(':')
+      ? address.slice(address.lastIndexOf(':') + 1)
+      : address;
+    if (!bare) return undefined;
+    return bytesToHex(await this.#sha256(bare.toLowerCase()));
   }
 
   private getActiveProvider(): ICardProvider {
@@ -1495,8 +1847,17 @@ export class CardController extends BaseController<
         }
       }
 
+      if (tokenSet.cardholderAccountId) {
+        this.#pendingProviderCardholderIds[pid] = tokenSet.cardholderAccountId;
+      }
+      if (pid === CardProviderIds.Baanx) {
+        this.#recordProviderLoginWithLogging(pid, 'active');
+      }
+
       this.invalidateFetch();
       this.#fetchCardHomeDataWithLogging('submitCredentials/fetchCardHomeData');
+    } else if (result.onboardingRequired && pid === CardProviderIds.Baanx) {
+      this.#recordProviderLoginWithLogging(pid, 'onboarding');
     }
 
     return result;
@@ -1622,6 +1983,8 @@ export class CardController extends BaseController<
       this.refreshPromise = null;
       this.invalidateFetch();
       this.#invalidateRedeemWithdrawal();
+      this.#cardLinksGeneration += 1;
+      this.#pendingProviderCardholderIds = {};
       if (this.#cardholderCheckTimer !== undefined) {
         clearTimeout(this.#cardholderCheckTimer);
         this.#cardholderCheckTimer = undefined;

@@ -1,5 +1,6 @@
 import { create, isAxiosError } from 'axios';
-import { CardService } from './CardService';
+import { CardService, getCardApiErrorBodyCode } from './CardService';
+import { CardApiError } from './BaanxService';
 import { CardProviderIds } from '../provider-types';
 
 jest.mock('axios');
@@ -105,6 +106,115 @@ describe('CardService', () => {
         path: '/v1/providers/immersve/supported-regions',
         responseBody: 'Upstream unavailable',
       });
+    });
+  });
+
+  describe('card links', () => {
+    const clientInfo = {
+      product: 'metamask-mobile',
+      version: '7.60.0',
+      build: '1500',
+      platform: 'ios',
+    };
+    const linkRow = {
+      provider: 'baanx',
+      status: 'active',
+      linkedAccountRef: null,
+      closedReason: null,
+      migratedToProvider: null,
+      linkedAt: '2026-09-01T00:00:00.000Z',
+      updatedAt: '2026-09-01T00:00:00.000Z',
+    };
+    const createLinksService = () =>
+      new CardService({
+        getBaseUrl: () => 'https://card.test-api.cx.metamask.io',
+        getClientInfo: () => clientInfo,
+      });
+
+    it('GETs /v1/card/links with the bearer token and client headers', async () => {
+      mockRequest.mockResolvedValue({ data: [linkRow], status: 200 });
+
+      const result = await createLinksService().getCardLinks('jwt');
+
+      expect(result).toStrictEqual([linkRow]);
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: '/v1/card/links',
+          method: 'GET',
+          headers: {
+            Authorization: 'Bearer jwt',
+            'x-metamask-clientproduct': 'metamask-mobile',
+            'x-metamask-clientversion': '7.60.0',
+            'x-metamask-clientbuild': '1500',
+            'x-metamask-clientplatform': 'ios',
+          },
+        }),
+      );
+    });
+
+    it('rejects a GET body that is not a bare array', async () => {
+      mockRequest.mockResolvedValue({
+        data: { links: [linkRow] },
+        status: 200,
+      });
+
+      await expect(createLinksService().getCardLinks('jwt')).rejects.toThrow(
+        CardApiError,
+      );
+    });
+
+    it('PUTs the body to /v1/card/links/{provider}', async () => {
+      mockRequest.mockResolvedValue({ data: linkRow, status: 200 });
+      const body = { status: 'active' as const, linkedAccountRef: '0xref' };
+
+      const result = await createLinksService().putCardLink(
+        CardProviderIds.Baanx,
+        body,
+        'jwt',
+      );
+
+      expect(result).toStrictEqual(linkRow);
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: '/v1/card/links/baanx',
+          method: 'PUT',
+          data: body,
+        }),
+      );
+    });
+
+    it('omits the build header when the host has no build number', async () => {
+      mockRequest.mockResolvedValue({ data: [], status: 200 });
+      const service = new CardService({
+        getBaseUrl: () => 'https://card.test-api.cx.metamask.io',
+        getClientInfo: () => ({ ...clientInfo, build: undefined }),
+      });
+
+      await service.getCardLinks('jwt');
+
+      const { headers } = mockRequest.mock.calls[0][0];
+      expect(headers).not.toHaveProperty('x-metamask-clientbuild');
+    });
+
+    it('throws CardApiError with the status and body on an HTTP error', async () => {
+      const axiosError = {
+        response: {
+          status: 403,
+          data: { code: 'CARD_LINK_CLIENT_NOT_ALLOWED' },
+        },
+      };
+      mockRequest.mockRejectedValue(axiosError);
+      (isAxiosError as unknown as jest.Mock).mockReturnValue(true);
+
+      const error = await createLinksService()
+        .getCardLinks('jwt')
+        .catch((e) => e);
+
+      expect(error).toBeInstanceOf(CardApiError);
+      expect(error.statusCode).toBe(403);
+      expect(getCardApiErrorBodyCode(error)).toBe(
+        'CARD_LINK_CLIENT_NOT_ALLOWED',
+      );
     });
   });
 });

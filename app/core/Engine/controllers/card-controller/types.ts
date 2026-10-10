@@ -21,6 +21,7 @@ import type {
   NetworkControllerFindNetworkClientIdByChainIdAction,
   NetworkControllerGetNetworkClientByIdAction,
 } from '@metamask/network-controller';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import type {
   TransactionControllerAddTransactionAction,
   TransactionControllerAddTransactionBatchAction,
@@ -104,6 +105,36 @@ export interface FetchCardHomeDataOptions {
   force?: boolean;
 }
 
+export type CardLinkStatus = 'onboarding' | 'active' | 'closed';
+
+export type CardLinkWriteStatus = Exclude<CardLinkStatus, 'closed'>;
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CardLink = {
+  provider: CardProviderId;
+  status: CardLinkStatus;
+  linkedAccountRef: string | null;
+  closedReason: 'migrated' | 'terminated' | null;
+  migratedToProvider: string | null;
+  linkedAt: string;
+  updatedAt: string;
+};
+
+export interface CardLinkWriteBody {
+  status: CardLinkWriteStatus;
+  providerCardholderId?: string;
+  linkedAccountRef?: string;
+}
+
+export interface CardClientInfo {
+  product: string;
+  version: string;
+  build?: string;
+  platform: string;
+}
+
+export type CardSha256 = (text: string) => Promise<Uint8Array>;
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardControllerState = {
   /** ISO 3166-1 alpha-2 country code selected by the user. */
@@ -150,6 +181,10 @@ export type CardControllerState = {
   redeemWithdrawal: Record<string, Json> | null;
   signInLink: Record<string, Json> | null;
   accountLookupCache: Record<string, Json>;
+  /** `null` until fetched; `[]` means never linked. */
+  cardLinks: CardLink[] | null;
+  cardLinksFetchedAt: number | null;
+  cardLinksSeeded: boolean;
 };
 
 export type CardControllerActions = ControllerGetStateAction<
@@ -165,6 +200,7 @@ export type CardControllerEvents = ControllerStateChangeEvent<
 type CardControllerAllowedActions =
   | AccountsControllerGetStateAction
   | AccountTreeControllerGetAccountFromSelectedAccountGroupAction
+  | AuthenticationController.AuthenticationControllerGetBearerTokenAction
   | RemoteFeatureFlagControllerGetStateAction
   | KeyringControllerSignPersonalMessageAction
   | NetworkControllerFindNetworkClientIdByChainIdAction

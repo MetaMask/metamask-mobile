@@ -30,6 +30,7 @@ export function getCardControllerMessenger(
     actions: [
       'AccountsController:getState',
       'AccountTreeController:getAccountFromSelectedAccountGroup',
+      'AuthenticationController:getBearerToken',
       'RemoteFeatureFlagController:getState',
       'KeyringController:signPersonalMessage',
       'NetworkController:findNetworkClientIdByChainId',

@@ -12,11 +12,13 @@ import {
   type CardControllerState,
   type CardHomeDataError,
   type CardHomeDataStatus,
+  type CardLink,
   type CardRedeemWithdrawal,
 } from '../core/Engine/controllers/card-controller/types';
 import {
   FundingAssetStatus,
   type CardHomeData,
+  type CardProviderId,
   type CardSignInLink,
 } from '../core/Engine/controllers/card-controller/provider-types';
 import {
@@ -187,6 +189,31 @@ export const selectIsCardholder = createSelector(
       }
     });
   },
+);
+
+export const selectCardLinks = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined): CardLink[] | null =>
+    cardState?.cardLinks ?? null,
+);
+
+/** `active` wins over `onboarding`; `closed` rows are ignored. */
+const selectRoutableCardLink = createSelector(
+  selectCardLinks,
+  (links): CardLink | null =>
+    links?.find((link) => link.status === 'active') ??
+    links?.find((link) => link.status === 'onboarding') ??
+    null,
+);
+
+export const selectHasLinkedCard = createSelector(
+  selectRoutableCardLink,
+  (link) => link !== null,
+);
+
+export const selectLinkedCardProvider = createSelector(
+  selectRoutableCardLink,
+  (link): CardProviderId | null => link?.provider ?? null,
 );
 
 export const selectCardUserLocation = createSelector(
