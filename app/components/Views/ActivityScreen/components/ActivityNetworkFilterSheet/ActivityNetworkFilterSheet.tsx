@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import type { CaipChainId } from '@metamask/utils';
 import BottomSheet, {
