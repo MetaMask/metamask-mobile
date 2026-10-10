@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useReducer, useState } from 'react';
 import { Keyboard, TextInput, View } from 'react-native';
 import {
   Box,
@@ -23,7 +23,7 @@ import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 import StepLayout, { StepError, type StepProps } from './StepLayout';
 
 const CELL_COUNT = 6;
-const COOLDOWN_CODES = ['otp_resend_cooldown', 'rate_limited'];
+const COOLDOWN_CODES = new Set(['otp_resend_cooldown', 'rate_limited']);
 
 const getSecondsUntil = (at?: number) =>
   at === undefined ? 0 : Math.max(0, Math.ceil((at - Date.now()) / 1000));
@@ -31,14 +31,14 @@ const getSecondsUntil = (at?: number) =>
 // Derived during render: a value kept in state would still read 0 on the
 // render that receives a new cooldown, and the auto-send below would fire.
 const useSecondsUntil = (at?: number) => {
-  const [, setTick] = useState(0);
+  const [, rerender] = useReducer((tick: number) => tick + 1, 0);
   useEffect(() => {
     // A recurring timer keeps the JS thread busy and stalls Detox.
     if (at === undefined || hasTestOverrides) {
       return undefined;
     }
     const id = setInterval(() => {
-      setTick((tick) => tick + 1);
+      rerender();
       if (getSecondsUntil(at) === 0) {
         clearInterval(id);
       }
@@ -137,7 +137,7 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
   };
 
   const showError =
-    error !== undefined && !(isCoolingDown && COOLDOWN_CODES.includes(error));
+    error !== undefined && !(isCoolingDown && COOLDOWN_CODES.has(error));
 
   return (
     <StepLayout

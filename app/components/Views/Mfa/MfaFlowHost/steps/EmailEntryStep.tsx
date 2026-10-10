@@ -12,7 +12,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 import StepLayout, { type StepProps } from './StepLayout';
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
 
 const EmailEntryStep = ({ step, state, onAction }: StepProps<'emailEntry'>) => {
   const [email, setEmail] = useState(step.prefillEmail ?? '');

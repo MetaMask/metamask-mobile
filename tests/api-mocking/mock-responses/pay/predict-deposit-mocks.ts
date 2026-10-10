@@ -7,6 +7,8 @@ import {
 import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map.js';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder.js';
 import {
+  dataApiJsonResponse,
+  getProxiedDataApiUrl,
   POLYMARKET_USDC_BALANCE_MOCKS,
   POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS,
 } from '../polymarket/polymarket-mocks.js';
@@ -366,13 +368,12 @@ async function mockPredictActivity(mockServer: Mockttp) {
     .forGet('/proxy')
     .asPriority(1001)
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
+      const url = getProxiedDataApiUrl(request.url) ?? '';
       return Boolean(url.includes('data-api.polymarket.com/activity'));
     })
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: [],
-    }));
+    .thenCallback((request) =>
+      dataApiJsonResponse(request.url, 'activity', []),
+    );
 }
 
 /**

@@ -2,11 +2,26 @@ import { useSelector } from 'react-redux';
 import { selectEnrolledCredentials } from '../../../selectors/identity';
 import { mobileMfaControllerAdapter } from './bindings';
 import { startMfaFlow } from './engine/activeFlow';
+import Logger from '../../Logger';
 import type {
   EnrollOptions,
+  MfaFlowOptions,
   MfaFlowResult,
   VerifyOrEnrollOptions,
 } from './engine/types';
+
+const clientOptions: Pick<
+  MfaFlowOptions,
+  'platform' | 'controller' | 'reportError'
+> = {
+  platform: 'mobile',
+  controller: mobileMfaControllerAdapter,
+  reportError: (error, { code, operation, step }) =>
+    Logger.error(error instanceof Error ? error : new Error(code), {
+      tags: { feature: 'mfa', mfaCode: code, operation },
+      context: { name: 'mfa_flow', data: { step } },
+    }),
+};
 
 const verifyOrEnroll = ({
   reason,
@@ -15,16 +30,14 @@ const verifyOrEnroll = ({
   startMfaFlow({
     request: { kind: 'verifyOrEnroll', ...request },
     reason,
-    platform: 'mobile',
-    controller: mobileMfaControllerAdapter,
+    ...clientOptions,
   });
 
 const enroll = ({ method, reason }: EnrollOptions): Promise<MfaFlowResult> =>
   startMfaFlow({
     request: { kind: 'enroll', method },
     reason,
-    platform: 'mobile',
-    controller: mobileMfaControllerAdapter,
+    ...clientOptions,
   });
 
 /**

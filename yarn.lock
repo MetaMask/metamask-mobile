@@ -10660,25 +10660,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/kyc-controller@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@metamask/kyc-controller@npm:0.6.0"
+"@metamask/kyc-controller@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@metamask/kyc-controller@npm:0.8.0"
   dependencies:
     "@metamask/base-controller": "npm:^10.0.0"
-    "@metamask/base-data-service": "npm:^2.0.0"
+    "@metamask/base-data-service": "npm:^2.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/geolocation-controller": "npm:^2.0.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^33.0.0"
+    "@metamask/profile-sync-controller": "npm:^34.0.3"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.0"
     "@noble/ciphers": "npm:^1.3.0"
-    "@noble/curves": "npm:^1.9.2"
+    "@noble/curves": "npm:^1.9.7"
     "@noble/hashes": "npm:^1.8.0"
     "@scure/base": "npm:^1.2.6"
-    "@tanstack/query-core": "npm:^5.89.0"
+    "@tanstack/query-core": "npm:^5.103.2"
     tweetnacl: "npm:^1.0.3"
-  checksum: 10/f05fe92a9d73fca810588171854d4c54fb0cdc8ed08c86ea44afb72e9f62665eb1edb591b14f77f37eeb876663c609b8a8d3781274ff09643565b662e354d970
+  checksum: 10/b71b823cc57776825d6266fbbc4319dc6495182ca7dc344c164cb6a4fe65487ea61aea1a08093f13eb107a963db56fa75ecef67226727ddba929d2e0a1c8293b
   languageName: node
   linkType: hard
 
@@ -11465,7 +11465,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^26.0.1, @metamask/ramps-controller@npm:^26.3.0":
+"@metamask/ramps-controller@npm:^26.0.1":
   version: 26.3.0
   resolution: "@metamask/ramps-controller@npm:26.3.0"
   dependencies:
@@ -11477,6 +11477,21 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     fast-deep-equal: "npm:^3.1.3"
   checksum: 10/bba6e4bc9236180a2dbd7925374c2c7c0510ce2c1c599115645338c041ac9b0b45d6511cfdaedc8c60ae1db8f25f52f0d919870e4833ca33aab6797b93b6ce53
+  languageName: node
+  linkType: hard
+
+"@metamask/ramps-controller@npm:^27.0.1":
+  version: 27.0.1
+  resolution: "@metamask/ramps-controller@npm:27.0.1"
+  dependencies:
+    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^34.0.3"
+    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
+    bignumber.js: "npm:^9.1.2"
+    fast-deep-equal: "npm:^3.1.3"
+  checksum: 10/72192f3c017c664d54fe5b067fccc9f40be9307c021eba2ed5c15218e489c291582af4047294f3dd85a8de6e53b3c830b1fb87f7912f2785417a69000cdc992f
   languageName: node
   linkType: hard
 
@@ -39130,7 +39145,7 @@ __metadata:
     "@metamask/keyring-sdk": "npm:^3.1.0"
     "@metamask/keyring-snap-client": "npm:^10.0.0"
     "@metamask/keyring-utils": "npm:^5.0.0"
-    "@metamask/kyc-controller": "npm:^0.6.0"
+    "@metamask/kyc-controller": "npm:^0.8.0"
     "@metamask/logging-controller": "npm:^9.0.0"
     "@metamask/message-signing-snap": "npm:^1.1.2"
     "@metamask/messenger": "npm:^3.0.0"
@@ -39165,7 +39180,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
     "@metamask/profile-sync-controller": "npm:^34.0.3"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^26.3.0"
+    "@metamask/ramps-controller": "npm:^27.0.1"
     "@metamask/react-data-query": "npm:^1.0.0"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"

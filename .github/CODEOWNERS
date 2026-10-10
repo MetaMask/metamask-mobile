@@ -76,6 +76,7 @@ app/core/Engine/controllers/ramps-controller           @MetaMask/money-movement
 app/core/Engine/messengers/ramps-controller-messenger  @MetaMask/money-movement
 app/core/Engine/messengers/ramps-service-messenger     @MetaMask/money-movement
 app/selectors/rampsController                          @MetaMask/money-movement
+app/selectors/kycController                            @MetaMask/universal-kyc
 **/Ramp/**                                              @MetaMask/money-movement
 **/ramp/**                                              @MetaMask/money-movement
 **/ramps/**                                             @MetaMask/money-movement
