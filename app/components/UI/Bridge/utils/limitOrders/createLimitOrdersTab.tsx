@@ -1,4 +1,5 @@
 import React from 'react';
+import { parseCaipAssetType } from '@metamask/utils';
 import { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
 import { LimitOrderTabRow } from '../../components/LimitOrderTabRow';
 import { OrdersTabConfig } from '../../components/OrdersTabs';
@@ -11,6 +12,9 @@ interface CreateLimitOrdersTabOptions {
   onRetry: () => void;
 }
 
+const getLimitOrderChainId = (order: LimitOrder) =>
+  parseCaipAssetType(order.src.asset.assetId).chainId;
+
 export function createLimitOrdersTab({
   orders,
   isLoading,
@@ -22,6 +26,7 @@ export function createLimitOrdersTab({
     items: orders,
     renderItem: (order) => <LimitOrderTabRow order={order} />,
     keyExtractor: (order) => order.id,
+    getItemChainId: getLimitOrderChainId,
     isLoading,
     isError,
     isFetchingNextPage,

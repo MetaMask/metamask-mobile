@@ -69,6 +69,23 @@ describe('parseCreateLimitOrderResponse', () => {
     ).toThrow(/Invalid create limit order response/u);
   });
 
+  it('rejects an asset whose assetId is not a CAIP-19 asset type', () => {
+    expect(() =>
+      parseCreateLimitOrderResponse({
+        order: {
+          ...MINIMAL_RESPONSE.order,
+          src: {
+            asset: {
+              ...ASSET,
+              assetId: '0x55d398326f99059ff775485246999027b3197955',
+            },
+            amount: '1000000',
+          },
+        },
+      }),
+    ).toThrow(/Invalid create limit order response/u);
+  });
+
   it('rethrows a non-validation error', () => {
     // A getter that throws is not a StructError, so it must propagate as-is.
     expect(() =>

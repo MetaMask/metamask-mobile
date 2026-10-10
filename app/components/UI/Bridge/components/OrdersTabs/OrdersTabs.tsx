@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import type { CaipChainId, Hex } from '@metamask/utils';
+import { isEqual } from 'lodash';
+import type { CaipChainId } from '@metamask/utils';
 import {
   AvatarBaseShape,
   AvatarNetwork,
@@ -35,33 +35,55 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { OrdersEmptyState } from './OrdersEmptyState';
 import { OrdersTabsSelectorsIDs } from './OrdersTabs.testIds';
-import { OrdersTabKey, type OrdersTabsProps } from './OrdersTabs.types';
+import {
+  OrdersTabKey,
+  type OrdersTabConfig,
+  type OrdersTabsProps,
+} from './OrdersTabs.types';
 
-function itemMatchesNetworkFilter<T>(
-  item: T,
+/**
+ * Networks the orders filter offers for one tab, re-derived as pages load.
+ * Consumers fetch per selected network, so while one is selected the items
+ * only cover that network; the networks seen under All networks are kept so
+ * the picker still lists them.
+ */
+function useOrdersTabFilterChainIds<T>(
+  { items, getItemChainId, isLoading }: OrdersTabConfig<T>,
   selectedChainId: CaipChainId | undefined,
-  getItemChainId?: (item: T) => Hex | CaipChainId | undefined,
-): boolean {
-  if (!selectedChainId || !getItemChainId) {
-    return true;
+  enabledChainIds: CaipChainId[] | undefined,
+): CaipChainId[] {
+  const itemChainIds = useMemo(() => {
+    const chainIds = [...new Set(items.map(getItemChainId))];
+    return enabledChainIds
+      ? chainIds.filter((chainId) => enabledChainIds.includes(chainId))
+      : chainIds;
+  }, [enabledChainIds, getItemChainId, items]);
+
+  const [allNetworksChainIds, setAllNetworksChainIds] = useState<CaipChainId[]>(
+    [],
+  );
+  const isAllNetworksLoaded =
+    !selectedChainId && !(isLoading && items.length === 0);
+
+  if (isAllNetworksLoaded && !isEqual(allNetworksChainIds, itemChainIds)) {
+    setAllNetworksChainIds(itemChainIds);
   }
 
-  const itemChainId = getItemChainId(item);
-  return (
-    itemChainId !== undefined &&
-    formatChainIdToCaip(itemChainId) === selectedChainId
-  );
+  return useMemo(() => {
+    if (!selectedChainId) {
+      return isAllNetworksLoaded ? itemChainIds : allNetworksChainIds;
+    }
+    return [
+      ...new Set([...allNetworksChainIds, ...itemChainIds, selectedChainId]),
+    ];
+  }, [allNetworksChainIds, isAllNetworksLoaded, itemChainIds, selectedChainId]);
 }
 
-function OrdersNetworkFilter({
-  enabledChainIds,
-}: {
-  enabledChainIds?: CaipChainId[];
-}) {
+function OrdersNetworkFilter({ chainIds }: { chainIds: CaipChainId[] }) {
   const navigation = useNavigation<AppNavigationProp>();
   const selectedChainId = useSelector(selectOrdersNetworkFilter);
   const chainRanking = useSelector((state: RootState) =>
-    selectAllowedChainRanking(state, enabledChainIds),
+    selectAllowedChainRanking(state, chainIds),
   );
 
   const selectedNetwork = selectedChainId
@@ -72,9 +94,14 @@ function OrdersNetworkFilter({
   const handlePress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-      params: { enabledChainIds, filterTarget: 'orders' },
+      params: { enabledChainIds: chainIds, filterTarget: 'orders' },
     });
-  }, [enabledChainIds, navigation]);
+  }, [chainIds, navigation]);
+
+  // A selected network keeps the button so the user can go back to All networks.
+  if (!selectedChainId && chainRanking.length < 2) {
+    return null;
+  }
 
   return (
     <Button
@@ -124,7 +151,7 @@ function OrdersTabPanel<T>({
   items: T[];
   renderItem?: (item: T, index: number) => React.ReactElement;
   keyExtractor?: (item: T, index: number) => string;
-  getItemChainId?: (item: T) => Hex | CaipChainId | undefined;
+  getItemChainId: (item: T) => CaipChainId;
   emptyDescription: string;
   isLoading?: boolean;
   isError?: boolean;
@@ -135,9 +162,9 @@ function OrdersTabPanel<T>({
 
   const filteredItems = useMemo(
     () =>
-      items.filter((item) =>
-        itemMatchesNetworkFilter(item, selectedChainId, getItemChainId),
-      ),
+      selectedChainId
+        ? items.filter((item) => getItemChainId(item) === selectedChainId)
+        : items,
     [getItemChainId, items, selectedChainId],
   );
 
@@ -203,6 +230,17 @@ function OrdersTabs<TOpen, THistory>({
   const [internalSelectedTab, setInternalSelectedTab] =
     useState<OrdersTabKey>(initialTab);
   const selectedTab = activeTab ?? internalSelectedTab;
+  const selectedChainId = useSelector(selectOrdersNetworkFilter);
+  const openOrdersChainIds = useOrdersTabFilterChainIds(
+    openOrders,
+    selectedChainId,
+    enabledChainIds,
+  );
+  const historyChainIds = useOrdersTabFilterChainIds(
+    history,
+    selectedChainId,
+    enabledChainIds,
+  );
 
   const tabs = useMemo<TabItem[]>(
     () => [
@@ -243,7 +281,13 @@ function OrdersTabs<TOpen, THistory>({
         />
       </Box>
       <Box twClassName="mx-4 grow gap-4 py-4">
-        <OrdersNetworkFilter enabledChainIds={enabledChainIds} />
+        <OrdersNetworkFilter
+          chainIds={
+            selectedTab === OrdersTabKey.History
+              ? historyChainIds
+              : openOrdersChainIds
+          }
+        />
         {selectedTab === OrdersTabKey.OpenOrders ? (
           <OrdersTabPanel
             items={openOrders.items}
