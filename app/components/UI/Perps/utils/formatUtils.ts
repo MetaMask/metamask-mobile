@@ -484,39 +484,79 @@ export const formatPerpsInput = (value: string, locale?: string): string => {
 const clampInputCursor = (cursor: number, length: number): number =>
   Math.min(Math.max(cursor, 0), length);
 
-const isPerpsDecimalSeparatorMatch = (
-  canonicalCharacter: string,
-  formattedCharacter: string,
-) => canonicalCharacter === '.' && /\D/u.test(formattedCharacter);
+const getPerpsFormattedTokenLength = ({
+  canonicalCharacter,
+  formattedValue,
+  formattedIndex,
+  localizedDigits,
+}: {
+  canonicalCharacter: string;
+  formattedValue: string;
+  formattedIndex: number;
+  localizedDigits: readonly string[];
+}): number => {
+  if (formattedValue.startsWith(canonicalCharacter, formattedIndex)) {
+    return canonicalCharacter.length;
+  }
+
+  const canonicalDigit = Number(canonicalCharacter);
+
+  if (
+    Number.isInteger(canonicalDigit) &&
+    canonicalDigit >= 0 &&
+    canonicalDigit <= 9
+  ) {
+    const localizedDigit = localizedDigits[canonicalDigit];
+
+    if (
+      localizedDigit &&
+      formattedValue.startsWith(localizedDigit, formattedIndex)
+    ) {
+      return localizedDigit.length;
+    }
+  }
+
+  return canonicalCharacter === '.' &&
+    /\D/u.test(formattedValue[formattedIndex])
+    ? 1
+    : 0;
+};
 
 const mapFormattedPerpsCursorToCanonical = ({
   canonicalValue,
   formattedValue,
   formattedCursor,
+  localizedDigits,
 }: {
   canonicalValue: string;
   formattedValue: string;
   formattedCursor: number;
+  localizedDigits: readonly string[];
 }): number => {
   const boundedCursor = clampInputCursor(
     formattedCursor,
     formattedValue.length,
   );
   let canonicalIndex = 0;
+  let formattedIndex = 0;
 
-  for (
-    let formattedIndex = 0;
-    formattedIndex < boundedCursor && canonicalIndex < canonicalValue.length;
-    formattedIndex += 1
+  while (
+    formattedIndex < boundedCursor &&
+    canonicalIndex < canonicalValue.length
   ) {
     const canonicalCharacter = canonicalValue[canonicalIndex];
-    const formattedCharacter = formattedValue[formattedIndex];
+    const tokenLength = getPerpsFormattedTokenLength({
+      canonicalCharacter,
+      formattedValue,
+      formattedIndex,
+      localizedDigits,
+    });
 
-    if (
-      canonicalCharacter === formattedCharacter ||
-      isPerpsDecimalSeparatorMatch(canonicalCharacter, formattedCharacter)
-    ) {
+    if (tokenLength > 0 && formattedIndex + tokenLength <= boundedCursor) {
       canonicalIndex += 1;
+      formattedIndex += tokenLength;
+    } else {
+      formattedIndex += 1;
     }
   }
 
@@ -527,10 +567,12 @@ const mapCanonicalPerpsCursorToFormatted = ({
   canonicalValue,
   formattedValue,
   canonicalCursor,
+  localizedDigits,
 }: {
   canonicalValue: string;
   formattedValue: string;
   canonicalCursor: number;
+  localizedDigits: readonly string[];
 }): number => {
   const boundedCursor = clampInputCursor(
     canonicalCursor,
@@ -544,16 +586,19 @@ const mapCanonicalPerpsCursorToFormatted = ({
     canonicalIndex < boundedCursor
   ) {
     const canonicalCharacter = canonicalValue[canonicalIndex];
-    const formattedCharacter = formattedValue[formattedIndex];
+    const tokenLength = getPerpsFormattedTokenLength({
+      canonicalCharacter,
+      formattedValue,
+      formattedIndex,
+      localizedDigits,
+    });
 
-    if (
-      canonicalCharacter === formattedCharacter ||
-      isPerpsDecimalSeparatorMatch(canonicalCharacter, formattedCharacter)
-    ) {
+    if (tokenLength > 0) {
       canonicalIndex += 1;
+      formattedIndex += tokenLength;
+    } else {
+      formattedIndex += 1;
     }
-
-    formattedIndex += 1;
   }
 
   return formattedIndex;
@@ -719,11 +764,13 @@ function normalizePerpsNumericEdit(
     canonicalValue: previousCanonicalValue,
     formattedValue: normalizedPreviousDisplay,
     formattedCursor: edit.start,
+    localizedDigits: localeGrouping.localizedDigits,
   });
   const canonicalEnd = mapFormattedPerpsCursorToCanonical({
     canonicalValue: previousCanonicalValue,
     formattedValue: normalizedPreviousDisplay,
     formattedCursor: edit.end,
+    localizedDigits: localeGrouping.localizedDigits,
   });
   const separators = getPerpsLocaleSeparators(locale);
   const normalizedInsertedValue =
@@ -803,15 +850,18 @@ export const getPerpsFormattedInputSelection = ({
     nextDisplayValue,
     resolvedPreviousSelection,
   );
+  const localeGrouping = getPerpsLocaleGrouping(locale);
   const nextCanonicalCursor = mapFormattedPerpsCursorToCanonical({
     canonicalValue: nextCanonicalValue,
     formattedValue: nextDisplayValue,
     formattedCursor: nextDisplayCursor,
+    localizedDigits: localeGrouping.localizedDigits,
   });
   const formattedCursor = mapCanonicalPerpsCursorToFormatted({
     canonicalValue: nextCanonicalValue,
     formattedValue: nextFormattedValue,
     canonicalCursor: nextCanonicalCursor,
+    localizedDigits: localeGrouping.localizedDigits,
   });
 
   return { start: formattedCursor, end: formattedCursor };

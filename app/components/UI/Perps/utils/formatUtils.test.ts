@@ -1090,6 +1090,30 @@ describe('formatUtils', () => {
         }),
       ).toEqual({ start: 6, end: 6 });
     });
+
+    it('maps the cursor across localized Arabic digits', () => {
+      const locale = 'ar-EG';
+      const previousDisplayValue = formatPerpsInput('1200.5', locale);
+      const localizedZero = formatPerpsInput('0', locale);
+      const nextDisplayValue = `${previousDisplayValue}${localizedZero}`;
+      const nextFormattedValue = formatPerpsInput('1200.50', locale);
+
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue,
+          nextDisplayValue,
+          nextFormattedValue,
+          previousSelection: {
+            start: previousDisplayValue.length,
+            end: previousDisplayValue.length,
+          },
+          locale,
+        }),
+      ).toEqual({
+        start: nextFormattedValue.length,
+        end: nextFormattedValue.length,
+      });
+    });
   });
 
   describe('formatPerpsFiat with PRICE_RANGES_UNIVERSAL', () => {
