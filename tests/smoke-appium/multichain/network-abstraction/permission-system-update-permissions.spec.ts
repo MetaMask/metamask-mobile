@@ -103,8 +103,9 @@ appiumTest.describe(
             );
 
             await ConnectedAccountsModal.tapAccountListBottomSheet();
-            await AccountListBottomSheet.tapAddAccountButtonV2();
-            await Assertions.expectTextDisplayed('Account 2');
+            await AccountListBottomSheet.addAccountAndExpectVisibleV2(
+              'Account 2',
+            );
 
             await AccountListBottomSheet.tapAccountByNameV2('Account 2');
             await AccountListBottomSheet.tapConnectAccountsButton();
@@ -113,8 +114,9 @@ appiumTest.describe(
             await Assertions.expectTextDisplayed('Account 2');
 
             await ConnectedAccountsModal.tapAccountListBottomSheet();
-            await AccountListBottomSheet.tapAddAccountButtonV2();
-            await Assertions.expectTextDisplayed('Account 3');
+            await AccountListBottomSheet.addAccountAndExpectVisibleV2(
+              'Account 3',
+            );
 
             await AccountListBottomSheet.tapAccountByNameV2('Account 3');
             await AccountListBottomSheet.tapConnectAccountsButton();
