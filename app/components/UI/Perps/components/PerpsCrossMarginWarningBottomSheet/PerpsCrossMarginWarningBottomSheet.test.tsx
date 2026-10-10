@@ -2,133 +2,6 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsCrossMarginWarningBottomSheet from './PerpsCrossMarginWarningBottomSheet';
 
-jest.mock('../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
-});
-
-jest.mock('./PerpsCrossMarginWarningBottomSheet.styles', () => ({
-  createStyles: () => ({
-    contentContainer: {
-      paddingHorizontal: 16,
-      paddingVertical: 16,
-    },
-  }),
-}));
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    const ReactActual = jest.requireActual('react');
-
-    return ReactActual.forwardRef(
-      (
-        {
-          children,
-          onClose,
-        }: {
-          children: React.ReactNode;
-          shouldNavigateBack?: boolean;
-          onClose: () => void;
-        },
-        ref: React.Ref<{
-          onOpenBottomSheet: () => void;
-          onCloseBottomSheet: () => void;
-        }>,
-      ) => {
-        ReactActual.useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: jest.fn(),
-          onCloseBottomSheet: jest.fn(),
-        }));
-
-        return (
-          <View testID="bottom-sheet" onTouchStart={onClose}>
-            {children}
-          </View>
-        );
-      },
-    );
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-
-    return ({
-      children,
-      onClose,
-    }: {
-      children: React.ReactNode;
-      onClose: () => void;
-    }) => (
-      <View testID="bottom-sheet-header">
-        <TouchableOpacity testID="header-close-button" onPress={onClose}>
-          <Text>Close</Text>
-        </TouchableOpacity>
-        {children}
-      </View>
-    );
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetFooter',
-  () => {
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-
-    const MockFooter = ({
-      buttonPropsArray,
-    }: {
-      buttonPropsArray: {
-        label: string;
-        onPress: () => void;
-        variant?: string;
-        size?: string;
-      }[];
-      buttonsAlignment?: string;
-    }) => (
-      <View testID="bottom-sheet-footer">
-        {buttonPropsArray.map((button, index) => (
-          <TouchableOpacity
-            key={index}
-            testID={`footer-button-${index}`}
-            onPress={button.onPress}
-          >
-            <Text>{button.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-
-    return {
-      __esModule: true,
-      default: MockFooter,
-      ButtonsAlignment: {
-        Horizontal: 'horizontal',
-        Vertical: 'vertical',
-      },
-    };
-  },
-);
-
-jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
-  __esModule: true,
-  ButtonVariants: {
-    Primary: 'primary',
-    Secondary: 'secondary',
-  },
-  ButtonSize: {
-    Lg: 'lg',
-    Md: 'md',
-    Sm: 'sm',
-  },
-}));
-
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
@@ -176,9 +49,7 @@ describe('PerpsCrossMarginWarningBottomSheet', () => {
     it('navigates back when dismiss button is pressed', () => {
       render(<PerpsCrossMarginWarningBottomSheet />);
 
-      const dismissButton = screen.getByTestId('footer-button-0');
-
-      fireEvent.press(dismissButton);
+      fireEvent.press(screen.getByText('Got it'));
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
@@ -188,9 +59,7 @@ describe('PerpsCrossMarginWarningBottomSheet', () => {
 
       render(<PerpsCrossMarginWarningBottomSheet onClose={mockOnClose} />);
 
-      const dismissButton = screen.getByTestId('footer-button-0');
-
-      fireEvent.press(dismissButton);
+      fireEvent.press(screen.getByText('Got it'));
 
       expect(mockOnClose).toHaveBeenCalledTimes(1);
       expect(mockGoBack).not.toHaveBeenCalled();
@@ -201,9 +70,7 @@ describe('PerpsCrossMarginWarningBottomSheet', () => {
 
       render(<PerpsCrossMarginWarningBottomSheet onClose={mockOnClose} />);
 
-      const closeButton = screen.getByTestId('header-close-button');
-
-      fireEvent.press(closeButton);
+      fireEvent.press(screen.getByTestId('header-close-button'));
 
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
@@ -211,9 +78,7 @@ describe('PerpsCrossMarginWarningBottomSheet', () => {
     it('navigates back when header close pressed without onClose prop', () => {
       render(<PerpsCrossMarginWarningBottomSheet />);
 
-      const closeButton = screen.getByTestId('header-close-button');
-
-      fireEvent.press(closeButton);
+      fireEvent.press(screen.getByTestId('header-close-button'));
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
