@@ -58,6 +58,51 @@ describe('groupOrdersByDate', () => {
     ]);
   });
 
+  it('orders sections newest day first even when the input is not sorted by that date', () => {
+    const orders: TestOrder[] = [
+      { id: 'closed-yesterday', createdAt: '2026-10-06T15:00:00.000Z' },
+      { id: 'closed-today', createdAt: '2026-10-07T15:00:00.000Z' },
+      { id: 'closed-in-august', createdAt: '2026-08-13T15:00:00.000Z' },
+    ];
+
+    const sections = groupOrdersByDate(orders, getDate, NOW);
+
+    expect(sections.map((section) => section.title)).toStrictEqual([
+      'Today',
+      'Oct 6, 2026',
+      'Aug 13, 2026',
+    ]);
+    expect(sections[0].items).toStrictEqual([{ item: orders[1], index: 1 }]);
+  });
+
+  it('orders items within a day newest first and keeps their original index', () => {
+    const orders: TestOrder[] = [
+      { id: 'morning', createdAt: '2026-10-07T13:00:00.000Z' },
+      { id: 'afternoon', createdAt: '2026-10-07T15:00:00.000Z' },
+    ];
+
+    const sections = groupOrdersByDate(orders, getDate, NOW);
+
+    expect(sections[0].items).toStrictEqual([
+      { item: orders[1], index: 1 },
+      { item: orders[0], index: 0 },
+    ]);
+  });
+
+  it('puts the untitled section after every dated section', () => {
+    const orders: TestOrder[] = [
+      { id: 'missing' },
+      { id: 'older', createdAt: '2026-08-13T15:00:00.000Z' },
+    ];
+
+    const sections = groupOrdersByDate(orders, getDate, NOW);
+
+    expect(sections.map((section) => section.title)).toStrictEqual([
+      'Aug 13, 2026',
+      undefined,
+    ]);
+  });
+
   it('puts orders with a missing or unparsable date in an untitled section', () => {
     const orders: TestOrder[] = [
       { id: 'missing' },
