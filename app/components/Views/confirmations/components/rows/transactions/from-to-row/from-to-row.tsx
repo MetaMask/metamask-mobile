@@ -1,9 +1,21 @@
 import React from 'react';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
+import {
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarToken,
+  AvatarTokenSize,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useStyles } from '../../../../../../../component-library/hooks';
+import { getAvatarAccountVariant } from '../../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransferRecipient } from '../../../../hooks/transactions/useTransferRecipient';
 import { useAddressPoisoningDetection } from '../../../../hooks/send/useAddressPoisoningDetection';
@@ -12,19 +24,12 @@ import InfoSection from '../../../UI/info-row/info-section';
 import AlertRow from '../../../UI/info-row/alert-row';
 import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../../../../locales/i18n';
-import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
-import Identicon from '../../../../../../UI/Identicon';
+import { selectAvatarAccountType } from '../../../../../../../selectors/settings';
 import useDisplayName, {
   DisplayNameVariant,
 } from '../../../../../../hooks/DisplayName/useDisplayName';
 import { toFormattedAddress } from '../../../../../../../util/address';
 import styleSheet from './from-to-row.styles';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-} from '@metamask/design-system-react-native';
 
 interface AddressDisplayProps {
   address: string;
@@ -42,6 +47,7 @@ const AddressDisplay = ({
   isPoisoned,
 }: AddressDisplayProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   return (
     <View style={styles.addressRow}>
@@ -56,11 +62,19 @@ const AddressDisplay = ({
           {displayText}
         </Text>
       </View>
-      <Identicon
-        address={address}
-        imageUri={image}
-        avatarSize={AvatarSize.Lg}
-      />
+      {image ? (
+        <AvatarToken
+          src={{ uri: image }}
+          name={displayText}
+          size={AvatarTokenSize.Lg}
+        />
+      ) : (
+        <AvatarAccount
+          address={address}
+          variant={getAvatarAccountVariant(accountAvatarType)}
+          size={AvatarAccountSize.Lg}
+        />
+      )}
     </View>
   );
 };

@@ -1,6 +1,8 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { NativeSyntheticEvent, TextLayoutEventData, View } from 'react-native';
 import {
+  AvatarToken,
+  AvatarTokenSize,
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
@@ -15,8 +17,6 @@ import {
 } from '@metamask/design-system-react-native';
 import BigNumber from 'bignumber.js';
 import { useStyles } from '../../../../hooks/useStyles';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { AssetType } from '../../types/token';
@@ -228,8 +228,8 @@ export const TokenConversionAssetHeader = ({
         >
           <AvatarToken
             name={inputToken.symbol}
-            imageSource={{ uri: inputToken.image }}
-            size={AvatarSize.Lg}
+            src={{ uri: inputToken.image }}
+            size={AvatarTokenSize.Lg}
             testID={TokenConversionAssetHeaderTestIds.INPUT_TOKEN_AVATAR}
           />
         </BadgeWrapper>
@@ -290,8 +290,8 @@ export const TokenConversionAssetHeader = ({
         >
           <AvatarToken
             name={outputToken.symbol}
-            imageSource={{ uri: outputToken.image }}
-            size={AvatarSize.Lg}
+            src={{ uri: outputToken.image }}
+            size={AvatarTokenSize.Lg}
             testID={TokenConversionAssetHeaderTestIds.OUTPUT_TOKEN_AVATAR}
           />
         </BadgeWrapper>
