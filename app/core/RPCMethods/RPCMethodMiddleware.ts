@@ -569,7 +569,10 @@ export const getRpcMethodMiddleware = ({
               resolve(undefined);
             },
             {
-              getAccounts: (...args) => getPermittedAccounts(origin, ...args),
+              getAccounts: getPermittedAccounts.bind(
+                getPermittedAccounts,
+                origin,
+              ),
               getPermissionsForOrigin:
                 Engine.context.PermissionController.getPermissions.bind(
                   Engine.context.PermissionController,
@@ -597,7 +600,10 @@ export const getRpcMethodMiddleware = ({
                 resolve(undefined);
               },
               {
-                getAccounts: (...args) => getPermittedAccounts(origin, ...args),
+                getAccounts: getPermittedAccounts.bind(
+                  getPermittedAccounts,
+                  origin,
+                ),
                 getCaip25PermissionFromLegacyPermissionsForOrigin: (
                   requestedPermissions?: RequestedPermissions,
                 ) =>
@@ -679,8 +685,10 @@ export const getRpcMethodMiddleware = ({
                 resolve(undefined);
               },
               {
-                getAccounts: (opts?: { ignoreLock?: boolean }) =>
-                  getPermittedAccounts(origin, opts),
+                getAccounts: getPermittedAccounts.bind(
+                  getPermittedAccounts,
+                  origin,
+                ),
                 getCaip25PermissionFromLegacyPermissionsForOrigin: (
                   requestedPermissions?: RequestedPermissions,
                 ) =>
@@ -699,18 +707,6 @@ export const getRpcMethodMiddleware = ({
                       },
                     },
                   ),
-                getUnlockPromise: () => {
-                  if (Engine.context.KeyringController.isUnlocked()) {
-                    return Promise.resolve();
-                  }
-                  return new Promise((resolveUnlock) => {
-                    Engine.controllerMessenger.subscribeOnceIf(
-                      'KeyringController:unlock',
-                      resolveUnlock,
-                      () => true,
-                    );
-                  });
-                },
               },
             )
             ?.then(resolve)
