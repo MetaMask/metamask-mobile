@@ -56,6 +56,11 @@ export async function playImpact(moment: HapticImpactMoment): Promise<void> {
   await withGatedPlayback(getHapticGateOptions(), () => vendorImpact(moment));
 }
 
+/** Fire-and-forget `playImpact` — swallows rejection so a haptics failure never blocks the caller. */
+export function fireImpact(moment: HapticImpactMoment): void {
+  playImpact(moment).catch(() => undefined);
+}
+
 /**
  * Dispatch a notification haptic by moment string — useful for config-driven
  * patterns (e.g. toast hooks that store the moment type on each config).
