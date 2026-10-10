@@ -492,12 +492,16 @@ export async function submitClaimVoucher({
   await awaitClaimBatchConfirmed({
     timeoutMs: confirmationTimeoutMs(voucher, now()),
     submit: async () => {
+      // disableHook and disableSequential put a Money Account on the EIP-7702
+      // path, where an omitted requireApproval waits for a confirmation nobody
+      // accepts. False submits the batch the Claim tap already authorized.
       await addTransactionBatch({
         batchId,
         disableHook: true,
         disableSequential: true,
         disableUpgrade: true,
         from: moneyAccountAddress as Hex,
+        requireApproval: false,
         isGasFeeSponsored: isMonadMainnetChainId(chainIdHex),
         isInternal: true,
         networkClientId: resolveNetworkClientId(chainIdHex),
