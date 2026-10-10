@@ -47,13 +47,9 @@ export type ClaimBlockingReason =
   | 'SIGNER_UNAVAILABLE'
   | 'TAX_DETERMINATION_REQUIRED'
   | 'EARNING_ADDRESS_MISSING'
-  | 'MECHANISM_NOT_CLAIMABLE';
-
-export type LedgerBlockingReason =
-  | 'SUSPENDED'
-  | 'TAX_DETERMINATION_REQUIRED'
-  | 'EARNING_ADDRESS_MISSING'
-  | 'MECHANISM_NOT_CLAIMABLE';
+  | 'MECHANISM_NOT_CLAIMABLE'
+  | 'VOIDED'
+  | 'UNDER_REVIEW';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ReferralCodeView = {
@@ -109,6 +105,17 @@ export type ReferralLocalizedTextKey =
   | 'claim'
   | 'claimed'
   | 'claimSuccessToast'
+  | 'claimPartialSuccessToast'
+  | 'claimFailureToast'
+  | 'claimFailureRetryToast'
+  | 'claimFailureWaitToast'
+  | 'claimFailureMinimumToast'
+  | 'claimFailureAddressBlockedToast'
+  | 'claimFailureTooLargeToast'
+  | 'claimFailureNoEligibleBalanceToast'
+  | 'claimFailureUnavailableToast'
+  | 'claimFailureContactSupportToast'
+  | 'historyClaimPending'
   | 'last7Days'
   | 'recordedEarningsLabel'
   | 'breakdown'
@@ -164,7 +171,16 @@ export type ReferralLocalizedTextKey =
   | 'termsTitle'
   | 'termsDescription'
   | 'termsLearnMore'
-  | 'termsUrl';
+  | 'termsUrl'
+  | 'balance'
+  | 'mUSD'
+  | 'paused'
+  | 'claimsPausedTitle'
+  | 'claimsPausedDescription'
+  | 'rewardsPausedTitle'
+  | 'rewardsPausedDescription'
+  | 'rewardsPausedBanner'
+  | 'rewardsPausedLearnMore';
 
 /** Resolved for the request's `Accept-Language`; defaults fill missing keys. */
 export type ReferralLocalizedText = {
@@ -328,7 +344,6 @@ export type LedgerEarningEntryDto = {
    * the end of its claim delay, and a day entry carries its UTC day's close.
    */
   claimable_at: string;
-  blocking_reason?: LedgerBlockingReason | null;
   swaps_source: LedgerSwapsSourceView | null;
   perps_source: LedgerPerpsSourceView | null;
   predict_source: LedgerPredictSourceView | null;
@@ -404,6 +419,67 @@ export type ClaimHistoryPageDto = {
   has_more: boolean;
   cursor: string | null;
 };
+
+/** Last path segment of `POST /wr/earnings/claim/<slug>`. */
+export type ClaimRouteSlug =
+  | 'referral-trade-fee-cashback'
+  | 'referral-rev-share';
+
+export interface ClaimVoucherDto {
+  claim_id: string;
+  from: string;
+  to: string;
+  value: string;
+  valid_after: number;
+  valid_before: number;
+  nonce: string;
+  signature: string;
+}
+
+export interface ClaimExcludedDto {
+  type: string;
+  reason: string;
+}
+
+export interface ClaimInitiateDto {
+  claim: ClaimDto;
+  voucher: ClaimVoucherDto | null;
+  excluded: ClaimExcludedDto[];
+  status: 'LIVE_VOUCHER' | 'AWAITING_RELEASE' | 'OPENED';
+}
+
+export interface ClaimProofChallengeDto {
+  earning_address: string;
+  amount_musd_base_units: string;
+  message: string;
+}
+
+export interface ClaimProofRequiredDto {
+  reason: 'PROOF_REQUIRED';
+  claim_intent_id: string;
+  expires_at: string;
+  challenges: ClaimProofChallengeDto[];
+}
+
+export interface ClaimProofSubmissionDto {
+  earning_address: string;
+  signature: string;
+}
+
+export interface InitiateClaimBody {
+  money_account_address: string;
+  /**
+   * Earning-address keys this handset can sign. Omitting it asks for every
+   * address with eligible cashback. An empty array is refused.
+   */
+  earning_addresses?: string[];
+  claim_intent_id?: string;
+  proofs?: ClaimProofSubmissionDto[];
+}
+
+export type InitiateClaimResult =
+  | { kind: 'authorized'; body: ClaimInitiateDto }
+  | { kind: 'proof_required'; body: ClaimProofRequiredDto };
 
 /**
  * The mechanisms `GET /referral/me/commissions` serves.

@@ -34,6 +34,7 @@ import WaysToEarnTab from '../components/Money/Tabs/WaysToEarnTab';
 import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkeleton';
 import { useSessionProfileId } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
+import { canClaimEarnings } from '../utils/claimEarnings';
 
 export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
   CONTAINER: 'rewards-money-dashboard',
@@ -52,17 +53,6 @@ export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
 type RewardsMoneyTab = 'waysToEarn' | 'earnings' | 'performance';
 
 const TAB_ORDER: RewardsMoneyTab[] = ['waysToEarn', 'earnings', 'performance'];
-
-const hasClaimableEarnings = (claimable?: string): boolean => {
-  if (!claimable) {
-    return false;
-  }
-  try {
-    return BigInt(claimable) > 0n;
-  } catch {
-    return false;
-  }
-};
 
 const RewardsMoneyDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -88,11 +78,11 @@ const RewardsMoneyDashboard: React.FC = () => {
     selectEarningsSummaryEntry(state, profileId),
   );
   const [activeTab, setActiveTab] = useState<RewardsMoneyTab>('waysToEarn');
-  const showEarningsDot = hasClaimableEarnings(
-    earningsSummaryEntry?.data?.claimable,
-  );
-
   const referralMe = referralMeEntry?.data;
+  const showEarningsDot = canClaimEarnings(
+    earningsSummaryEntry?.data,
+    referralMe?.variant,
+  );
   const localizedText = referralMe?.localized_text;
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
   const tabPanelProps = (isActive: boolean) => ({

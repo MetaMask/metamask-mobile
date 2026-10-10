@@ -6,13 +6,17 @@ import type {
   ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { EarningsHistoryRow } from './EarningsHistoryRows';
+import {
+  EARNINGS_HISTORY_TEST_IDS,
+  EarningsHistoryRow,
+} from './EarningsHistoryRows';
 
 const LOCALIZED_TEXT = {
   historyReferrals: 'Referrals',
   historyCommission: 'Commission',
   historyRebate: 'Rebate',
   historyClaimed: 'Claimed',
+  historyClaimPending: 'Pending',
 } as unknown as ReferralLocalizedText;
 
 const amountColor = (
@@ -103,6 +107,23 @@ describe('EarningsHistoryRow', () => {
     );
 
     expect(getByText('Claimed')).toBeOnTheScreen();
+    expect(getByText('-$2.50')).toBeOnTheScreen();
+  });
+
+  it('shows an in-flight claim as pending', () => {
+    const { getByText } = renderWithProvider(
+      <EarningsHistoryRow
+        item={{
+          kind: 'pending-claim',
+          id: 'claim-open',
+          net_amount: '2500000',
+        }}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Claimed')).toBeOnTheScreen();
+    expect(getByText('Pending')).toBeOnTheScreen();
     expect(getByText('-$2.50')).toBeOnTheScreen();
   });
 });

@@ -55,6 +55,7 @@ export const useEarningsSummary = (
         dispatch(setEarningsSummary({ profileId, data: summary }));
       } catch (error) {
         dispatch(setEarningsSummaryError({ profileId, error: true }));
+        throw error;
       } finally {
         isLoadingRef.current = false;
         dispatch(setEarningsSummaryLoading({ profileId, loading: false }));
@@ -65,7 +66,9 @@ export const useEarningsSummary = (
 
   useFocusEffect(
     useCallback(() => {
-      void fetchEarningsSummary();
+      // The error is already on the slice. A focus refresh has no caller to
+      // tell, so the rejection stops here.
+      void fetchEarningsSummary().catch(() => undefined);
     }, [fetchEarningsSummary]),
   );
 

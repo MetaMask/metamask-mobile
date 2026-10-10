@@ -102,11 +102,15 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
           description={strings(
             'rewards.referral_details_error.error_fetching_description',
           )}
-          onConfirm={() =>
-            errorSource === 'referral'
-              ? fetchReferralMe({ forceFresh: true })
-              : fetchEarningsSummary({ forceFresh: true })
-          }
+          onConfirm={() => {
+            if (errorSource === 'referral') {
+              void fetchReferralMe({ forceFresh: true });
+              return;
+            }
+            void Promise.resolve(
+              fetchEarningsSummary({ forceFresh: true }),
+            ).catch(() => undefined);
+          }}
           confirmButtonLabel={strings(
             'rewards.referral_details_error.retry_button',
           )}

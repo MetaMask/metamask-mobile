@@ -137,7 +137,11 @@ export const PerformanceRebateRow: React.FC<{
         iconProps={{ color: IconColor.IconDefault }}
       />
       <Box twClassName="flex-1">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          twClassName="shrink"
+        >
           {rebateTitle(item, localizedText)}
         </Text>
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
