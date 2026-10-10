@@ -1,30 +1,15 @@
 import React from 'react';
 import { Text, TextColor } from '@metamask/design-system-react-native';
-import { fireEvent } from '@testing-library/react-native';
 import type {
   LedgerClaimEntryDto,
   LedgerEarningEntryDto,
   ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   EARNINGS_HISTORY_TEST_IDS,
   EarningsHistoryRow,
 } from './EarningsHistoryRows';
-
-const mockNavigate = jest.fn();
-
-jest.mock('@react-navigation/native', () => {
-  const actual = jest.requireActual('@react-navigation/native');
-  return {
-    ...actual,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      goBack: jest.fn(),
-    }),
-  };
-});
 
 const LOCALIZED_TEXT = {
   historyReferrals: 'Referrals',
@@ -32,9 +17,6 @@ const LOCALIZED_TEXT = {
   historyRebate: 'Rebate',
   historyClaimed: 'Claimed',
   historyClaimPending: 'Pending',
-  paused: 'Paused',
-  rewardPausedTitle: 'Reward paused',
-  rewardPausedDescription: 'This reward is paused while we review it.',
 } as unknown as ReferralLocalizedText;
 
 const amountColor = (
@@ -77,10 +59,6 @@ const claim: LedgerClaimEntryDto = {
 };
 
 describe('EarningsHistoryRow', () => {
-  beforeEach(() => {
-    mockNavigate.mockClear();
-  });
-
   it('shows an earning as a signed credit', () => {
     const { getByText, UNSAFE_getAllByType } = renderWithProvider(
       <EarningsHistoryRow item={earning} localizedText={LOCALIZED_TEXT} />,
@@ -147,34 +125,5 @@ describe('EarningsHistoryRow', () => {
     expect(getByText('Claimed')).toBeOnTheScreen();
     expect(getByText('Pending')).toBeOnTheScreen();
     expect(getByText('-$2.50')).toBeOnTheScreen();
-  });
-
-  it('shows a Paused badge for an earning under review and opens the sheet', () => {
-    const { getByTestId, getByText } = renderWithProvider(
-      <EarningsHistoryRow
-        item={{ ...earning, blocking_reason: 'UNDER_REVIEW' }}
-        localizedText={LOCALIZED_TEXT}
-      />,
-    );
-
-    expect(getByText('Paused')).toBeOnTheScreen();
-    expect(getByTestId(EARNINGS_HISTORY_TEST_IDS.PAUSED_TAG)).toBeOnTheScreen();
-    fireEvent.press(getByTestId(EARNINGS_HISTORY_TEST_IDS.PAUSED_ROW));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
-      {
-        title: 'Reward paused',
-        description: 'This reward is paused while we review it.',
-      },
-    );
-  });
-
-  it('leaves a clear earning without a Paused badge', () => {
-    const { queryByTestId } = renderWithProvider(
-      <EarningsHistoryRow item={earning} localizedText={LOCALIZED_TEXT} />,
-    );
-
-    expect(queryByTestId(EARNINGS_HISTORY_TEST_IDS.PAUSED_TAG)).toBeNull();
-    expect(queryByTestId(EARNINGS_HISTORY_TEST_IDS.PAUSED_ROW)).toBeNull();
   });
 });

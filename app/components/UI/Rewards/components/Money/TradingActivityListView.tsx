@@ -45,6 +45,8 @@ interface TradingActivityListViewProps<T extends { id: string }> {
   /** Empty-state button label. The button renders only with `emptyOnAction`. */
   emptyActionLabel?: string;
   emptyOnAction?: () => void;
+  /** Sits above the list, the empty state, and the loading skeleton. */
+  header?: React.ReactElement | null;
 }
 
 /**
@@ -66,6 +68,7 @@ function TradingActivityListView<T extends { id: string }>({
   emptyDescription,
   emptyActionLabel,
   emptyOnAction,
+  header,
 }: TradingActivityListViewProps<T>): React.ReactElement {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
@@ -193,6 +196,7 @@ function TradingActivityListView<T extends { id: string }>({
           includesTopInset
         />
         <Box twClassName="flex-1 px-4 pb-8 pt-2">
+          {header ? <Box twClassName="mb-4">{header}</Box> : null}
           {isInitialLoadPending && !error ? (
             <Box
               collapsable={false}

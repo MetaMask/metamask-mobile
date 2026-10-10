@@ -5,6 +5,7 @@ import {
   creditedSelfEarnedLifetime,
   earnedByOthersLifetime,
   selfEarnedLifetime,
+  underReviewBlockedBaseUnits,
 } from './earningsSummaryTotals';
 
 const emptyBranch = {
@@ -94,5 +95,92 @@ describe('earningsSummaryTotals', () => {
   it('returns null when there is no summary', () => {
     expect(selfEarnedLifetime(null, 'REFERRAL_TRADE_FEE_CASHBACK')).toBeNull();
     expect(earnedByOthersLifetime(undefined, 'REFERRAL_REV_SHARE')).toBeNull();
+    expect(underReviewBlockedBaseUnits(null)).toBeNull();
+    expect(underReviewBlockedBaseUnits(undefined)).toBeNull();
+  });
+
+  it('sums blocked base units on families under review', () => {
+    const summary = {
+      ...SUMMARY,
+      self_earned: {
+        ...SUMMARY.self_earned,
+        by_claim_family: {
+          REFERRAL_TRADE_FEE_CASHBACK: {
+            ...emptyBranch,
+            blocked: '2000000',
+            blocking_reason: 'UNDER_REVIEW',
+          },
+        },
+      },
+      earned_by_others: {
+        ...SUMMARY.earned_by_others,
+        by_claim_family: {
+          REFERRAL_REV_SHARE: {
+            ...emptyBranch,
+            blocked: '5000000',
+            blocking_reason: 'UNDER_REVIEW',
+          },
+          SOCIAL_FOLLOW_TRADE: {
+            ...emptyBranch,
+            blocked: '9000000',
+            blocking_reason: 'MECHANISM_NOT_CLAIMABLE',
+          },
+        },
+      },
+    } as unknown as EarningsSummaryDto;
+
+    expect(underReviewBlockedBaseUnits(summary)).toBe('7000000');
+  });
+
+  it('ignores a zero under-review block and a family with another reason', () => {
+    const summary = {
+      ...SUMMARY,
+      self_earned: {
+        ...SUMMARY.self_earned,
+        by_claim_family: {
+          REFERRAL_TRADE_FEE_CASHBACK: {
+            ...emptyBranch,
+            blocked: '0',
+            blocking_reason: 'UNDER_REVIEW',
+          },
+        },
+      },
+    } as unknown as EarningsSummaryDto;
+
+    expect(underReviewBlockedBaseUnits(summary)).toBeNull();
+    expect(underReviewBlockedBaseUnits(SUMMARY)).toBeNull();
+  });
+
+  it.each([
+    ['omitted', undefined],
+    ['negative', '-1000000'],
+    ['not a number', 'nope'],
+  ])('returns null when the under-review amount is %s', (_label, blocked) => {
+    const summary = {
+      ...SUMMARY,
+      self_earned: {
+        ...emptyBranch,
+        by_claim_family: {
+          REFERRAL_TRADE_FEE_CASHBACK: {
+            ...emptyBranch,
+            blocked,
+            blocking_reason: 'UNDER_REVIEW',
+          },
+        },
+      },
+      earned_by_others: { ...emptyBranch, by_claim_family: {} },
+    } as unknown as EarningsSummaryDto;
+
+    expect(underReviewBlockedBaseUnits(summary)).toBeNull();
+  });
+
+  it('returns null when neither branch lists claim families', () => {
+    const summary = {
+      ...SUMMARY,
+      self_earned: undefined,
+      earned_by_others: undefined,
+    } as unknown as EarningsSummaryDto;
+
+    expect(underReviewBlockedBaseUnits(summary)).toBeNull();
   });
 });

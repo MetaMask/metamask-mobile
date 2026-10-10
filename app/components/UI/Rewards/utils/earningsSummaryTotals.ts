@@ -98,3 +98,44 @@ export function earnedByOthersLifetime(
 ): string | null {
   return familyLifetime(summary?.earned_by_others, family);
 }
+
+function blockedUnderReview(family: {
+  blocking_reason?: string | null;
+  blocked?: string | null;
+}): BigNumber {
+  if (family.blocking_reason !== 'UNDER_REVIEW') {
+    return new BigNumber(0);
+  }
+  const blocked = new BigNumber(family.blocked ?? 0);
+  if (!blocked.isFinite() || !blocked.gt(0)) {
+    return new BigNumber(0);
+  }
+  return blocked;
+}
+
+/**
+ * Base units a review is holding, summed across both branches' claim families.
+ *
+ * A branch reason is null when its families disagree, so the family is the
+ * place a mixed branch still says `UNDER_REVIEW`. Zero and any other reason
+ * add nothing, and a summary with no such family returns null.
+ */
+export function underReviewBlockedBaseUnits(
+  summary: EarningsSummaryDto | null | undefined,
+): string | null {
+  if (!summary) {
+    return null;
+  }
+  const families = [
+    ...Object.values(summary.self_earned?.by_claim_family ?? {}),
+    ...Object.values(summary.earned_by_others?.by_claim_family ?? {}),
+  ];
+  const total = families.reduce(
+    (sum, family) => sum.plus(blockedUnderReview(family)),
+    new BigNumber(0),
+  );
+  if (!total.gt(0)) {
+    return null;
+  }
+  return total.toFixed(0);
+}
