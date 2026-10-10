@@ -60,26 +60,49 @@ if [ -f "$SUMMARY_FILE" ]; then
         ' "$SUMMARY_FILE" >/dev/null 2>&1
     }
 
-    apply_category_failures() {
+    category_has_executions() {
+        local platform="$1"
+        local category="$2"
+        local platformKey
+        platformKey=$(echo "$platform" | tr '[:upper:]' '[:lower:]')
+
+        local count
+        count=$(jq -r --arg cat "$category" --arg plat "$platformKey" \
+            '.metadata.executedTestsByCategory[$cat][$plat] // empty' "$SUMMARY_FILE")
+        if [ -n "$count" ]; then
+            [ "$count" -gt 0 ]
+            return $?
+        fi
+
+        return 1
+    }
+
+    apply_category_status() {
         local status="$1"
         local platform="$2"
         local category="$3"
 
-        # Preserve SKIPPED (job never ran). Upgrade PASSED/UNKNOWN when summary
-        # has failures for this category/platform (including quality gates).
-        if [[ "$status" == *"SKIPPED"* ]]; then
-            echo "$status"
-            return
-        fi
-        if [[ "$status" == *"FAILED"* ]]; then
-            echo "$status"
-            return
-        fi
-
+        # Aggregated results take precedence over GitHub job conclusions.
+        # This handles cancelled jobs and reusable-workflow name mismatches.
         if category_has_failures "$platform" "$category"; then
             echo "❌ FAILED"
+        elif category_has_executions "$platform" "$category"; then
+            echo "✅ PASSED"
         else
             echo "$status"
+        fi
+    }
+
+    category_status() {
+        local first_status="$1"
+        local second_status="$2"
+
+        if [[ "$first_status" == *"FAILED"* || "$second_status" == *"FAILED"* ]]; then
+            echo "❌ FAILED"
+        elif [[ "$first_status" == *"PASSED"* || "$second_status" == *"PASSED"* ]]; then
+            echo "✅ PASSED"
+        else
+            echo "⏭️ SKIPPED"
         fi
     }
 
@@ -99,8 +122,13 @@ if [ -f "$SUMMARY_FILE" ]; then
                 # Collect all matching job conclusions (matrix can have multiple devices).
                 local conclusions
                 conclusions=$(echo "$jobStatuses" | jq -r \
-                    --arg p "$platform" --arg t "$test_type" \
-                    '.jobs[] | select(.name | contains($p) and contains($t)) | .conclusion')
+                    --arg p "${platform,,}" --arg t "${test_type,,}" \
+                    '.jobs[]
+                    | select(
+                        (.name | ascii_downcase | contains($p))
+                        and (.name | ascii_downcase | contains($t))
+                      )
+                    | .conclusion')
                 
                 if [ -z "$(echo "$conclusions" | sed '/^$/d')" ]; then
                     echo "⏭️ SKIPPED"
@@ -143,28 +171,16 @@ if [ -f "$SUMMARY_FILE" ]; then
         fi
     fi
 
-    androidOnboardingStatus=$(apply_category_failures "$androidOnboardingStatus" "Android" "onboarding")
-    iosOnboardingStatus=$(apply_category_failures "$iosOnboardingStatus" "iOS" "onboarding")
-    androidImportedWalletStatus=$(apply_category_failures "$androidImportedWalletStatus" "Android" "imported-wallet")
-    iosImportedWalletStatus=$(apply_category_failures "$iosImportedWalletStatus" "iOS" "imported-wallet")
-    
-    # Build type label
-    if [ "$buildType" = "Experimental" ]; then
-        buildTypeLabel="Experimental"
-    elif [ "$buildType" = "RC" ]; then
-        buildTypeLabel="RC"
-    elif [ "$buildType" = "E2E" ]; then
-        buildTypeLabel="E2E"
-    else
-        buildTypeLabel="Normal"
-    fi
+    androidOnboardingStatus=$(apply_category_status "$androidOnboardingStatus" "Android" "onboarding")
+    iosOnboardingStatus=$(apply_category_status "$iosOnboardingStatus" "iOS" "onboarding")
+    androidImportedWalletStatus=$(apply_category_status "$androidImportedWalletStatus" "Android" "imported-wallet")
+    iosImportedWalletStatus=$(apply_category_status "$iosImportedWalletStatus" "iOS" "imported-wallet")
 
-    releaseVersion=""
-    if [[ "${GITHUB_REF_NAME:-}" =~ ^release/(.+)$ ]]; then
-        releaseVersion="${BASH_REMATCH[1]}"
-    elif [[ "${BRANCH_NAME:-}" =~ ^release/(.+)$ ]]; then
-        releaseVersion="${BASH_REMATCH[1]}"
-    fi
+    onboardingStatus=$(category_status "$iosOnboardingStatus" "$androidOnboardingStatus")
+    importedWalletStatus=$(category_status "$iosImportedWalletStatus" "$androidImportedWalletStatus")
+
+    branchName="${BRANCH_NAME:-${GITHUB_REF_NAME:-unknown}}"
+    commitId="${GITHUB_SHA:0:7}"
 
     # Helper: format device key "DeviceName+OSVersion" -> "DeviceName (vOSVersion)"
     format_device_name() {
@@ -181,16 +197,7 @@ if [ -f "$SUMMARY_FILE" ]; then
     # --- Build the formatted message ---
 
     SUMMARY="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-    if [ "$buildTypeLabel" = "RC" ]; then
-        if [ -n "$releaseVersion" ]; then
-            SUMMARY+="*🔄 Performance E2E Tests — RC ${releaseVersion} (track-only)*\n"
-        else
-            SUMMARY+="*🔄 Performance E2E Tests — RC (track-only)*\n"
-        fi
-        SUMMARY+="_Observability only — does not block the release._\n"
-    else
-        SUMMARY+="*🔄 Performance E2E Tests — ${buildTypeLabel} Build*\n"
-    fi
+    SUMMARY+="*🔄 Performance E2E Tests — ${branchName} - ${commitId}*\n"
     SUMMARY+="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
 
     # Count job-level failures (jobs that failed before producing test results)
@@ -226,8 +233,15 @@ if [ -f "$SUMMARY_FILE" ]; then
         [ -n "$line" ] && android_device_arr+=("$line")
     done <<< "$androidDevices"
 
-    if [ "$iosCount" -gt 0 ]; then
-        if [ "$androidCount" -gt 0 ]; then
+    if [ "$totalDevices" -eq 1 ]; then
+        if [ "$androidCount" -eq 1 ]; then
+            device=$(format_device_name "${android_device_arr[0]}")
+        else
+            device=$(format_device_name "${ios_device_arr[0]}")
+        fi
+        SUMMARY+="└─ ${device}\n"
+    else
+        if [ "$iosCount" -gt 0 ]; then
             SUMMARY+="├─ *iOS* (${iosCount})\n"
             for i in "${!ios_device_arr[@]}"; do
                 dev=$(format_device_name "${ios_device_arr[$i]}")
@@ -237,11 +251,13 @@ if [ -f "$SUMMARY_FILE" ]; then
                     SUMMARY+="│  ├─ ${dev}\n"
                 fi
             done
-        else
-            SUMMARY+="└─ *iOS* (${iosCount})\n"
-            for i in "${!ios_device_arr[@]}"; do
-                dev=$(format_device_name "${ios_device_arr[$i]}")
-                if [ $((i + 1)) -eq ${#ios_device_arr[@]} ]; then
+        fi
+
+        if [ "$androidCount" -gt 0 ]; then
+            SUMMARY+="└─ *Android* (${androidCount})\n"
+            for i in "${!android_device_arr[@]}"; do
+                dev=$(format_device_name "${android_device_arr[$i]}")
+                if [ $((i + 1)) -eq ${#android_device_arr[@]} ]; then
                     SUMMARY+="   └─ ${dev}\n"
                 else
                     SUMMARY+="   ├─ ${dev}\n"
@@ -250,24 +266,12 @@ if [ -f "$SUMMARY_FILE" ]; then
         fi
     fi
 
-    if [ "$androidCount" -gt 0 ]; then
-        SUMMARY+="└─ *Android* (${androidCount})\n"
-        for i in "${!android_device_arr[@]}"; do
-            dev=$(format_device_name "${android_device_arr[$i]}")
-            if [ $((i + 1)) -eq ${#android_device_arr[@]} ]; then
-                SUMMARY+="   └─ ${dev}\n"
-            else
-                SUMMARY+="   ├─ ${dev}\n"
-            fi
-        done
-    fi
-
     SUMMARY+="\n"
 
     # Results by Category
     SUMMARY+="*📋 RESULTS BY CATEGORY*\n"
-    SUMMARY+="├─ Onboarding: ${iosOnboardingStatus} iOS · ${androidOnboardingStatus} Android\n"
-    SUMMARY+="└─ Imported Wallet: ${iosImportedWalletStatus} iOS · ${androidImportedWalletStatus} Android\n\n"
+    SUMMARY+="├─ Onboarding: ${onboardingStatus}\n"
+    SUMMARY+="└─ Imported Wallet: ${importedWalletStatus}\n\n"
 
     # Failed Tests Section
     if [ "$uniqueFailedTests" -gt 0 ]; then
@@ -291,9 +295,10 @@ if [ -f "$SUMMARY_FILE" ]; then
                     prevMention="$mention"
                 fi
 
-                SUMMARY+="│  ├─ ❌ ${name} — ${reasonDisplay}\n"
                 if [ -n "$recordings" ] && [ "$recordings" != "—" ]; then
-                    SUMMARY+="│  │  └─ 📹 ${recordings}\n"
+                    SUMMARY+="│  ├─ ❌ ${name} — ${reasonDisplay} - ${recordings}\n"
+                else
+                    SUMMARY+="│  ├─ ❌ ${name} — ${reasonDisplay}\n"
                 fi
             done <<< "$(jq -r --arg plat "$platName" '
               .failedTestsStats.failedTestsByTeam | to_entries[] |
@@ -319,7 +324,7 @@ if [ -f "$SUMMARY_FILE" ]; then
                   else .platform end
                   | gsub("Google "; "") | gsub("Samsung "; "")) as $shortName |
                   if .recordingLink != null and .recordingLink != "" then
-                    "<" + .recordingLink + "|" + $shortName + ">"
+                    "<" + .recordingLink + "|Recording>"
                   else
                     (if .sessionId != null and .sessionId != "" then
                       $shortName
@@ -334,19 +339,7 @@ if [ -f "$SUMMARY_FILE" ]; then
         SUMMARY+="\n"
     fi
 
-    # Build Info
-    SUMMARY+="*🔧 BUILD INFO*\n"
-    SUMMARY+="├─ Build: ${buildTypeLabel}\n"
-    if [ -n "$releaseVersion" ]; then
-        SUMMARY+="├─ Release: \`${releaseVersion}\`\n"
-    fi
-    SUMMARY+="├─ Branch: \`$GITHUB_REF_NAME\`\n"
-    SUMMARY+="└─ Commit: \`${GITHUB_SHA:0:7}\`\n\n"
-
     SUMMARY+="<${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|🔗 View full results>\n"
-    if [ "$buildTypeLabel" = "RC" ]; then
-        SUMMARY+="_Filter in Sentry (test): \`ci_build_variant:rc\` + \`release_version:${releaseVersion:-*}\`_\n"
-    fi
     SUMMARY+="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
     echo "$SUMMARY"
