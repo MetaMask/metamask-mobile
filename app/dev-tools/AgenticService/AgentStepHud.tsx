@@ -12,6 +12,8 @@ interface Step {
   error?: string;
   nodeId?: string;
   debug?: { nodeId?: string; proofTarget?: unknown };
+  /** 'top' while a bottom sheet is shown, so the HUD never covers what it documents. */
+  placement?: 'top' | 'bottom';
 }
 
 // Step bus. The HUD owns the registry so nothing outside this leaf module needs
@@ -123,17 +125,20 @@ const styles = StyleSheet.create({
 const AgentStepHudInner = () => {
   const [step, setStep] = useState<Step | null>(null);
   const insets = useSafeAreaInsets();
+  const atTop = step?.placement === 'top';
 
   const containerStyle = useMemo(
     () => [
       styles.container,
+      atTop
+        ? { top: Math.max(insets.top, 0) }
+        : { bottom: Math.max(insets.bottom, 0) },
       {
-        bottom: Math.max(insets.bottom, 0),
         paddingLeft: Math.max(insets.left, 10),
         paddingRight: Math.max(insets.right, 10),
       },
     ],
-    [insets.left, insets.right, insets.bottom],
+    [atTop, insets.left, insets.right, insets.top, insets.bottom],
   );
 
   useEffect(() => {
