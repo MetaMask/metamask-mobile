@@ -112,7 +112,12 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
-import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
+import {
+  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
+  PERPS_ANALYTICS_SIZE_UNIT,
+} from '../../constants/perpsAnalytics';
+import { toPerpsSizeUnitAnalyticsValue } from '../../utils/perpsSizeDenomination';
+import { usePerpsSizeDenomination } from '../../hooks/usePerpsSizeDenomination';
 import { bpsToPercent } from '../../constants/slippageConfig';
 import { FIXED_BOTTOM_CONTAINER_PADDING } from '../../constants/perpsUIConfig';
 import {
@@ -361,6 +366,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const hasCustomTokenSelected = !isPayTokenPerpsBalance;
 
   const { track } = usePerpsEventTracking();
+  const { denomination: sizeDenomination } = usePerpsSizeDenomination();
+  const sizeDenominationRef = useRef(sizeDenomination);
+  sizeDenominationRef.current = sizeDenomination;
   const { openTooltipModal } = useTooltipModal();
 
   // Feature flags
@@ -1043,6 +1051,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         [PERPS_EVENT_PROPERTY.ORDER_HAS_SL]: Boolean(orderForm.stopLossPrice),
         [PERPS_EVENT_PROPERTY.LEVERAGE]: orderForm.leverage,
         [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: hasCustomTokenSelected,
+        [PERPS_ANALYTICS_SIZE_UNIT]:
+          toPerpsSizeUnitAnalyticsValue(sizeDenomination),
       };
       if (hasCustomTokenSelected && payToken) {
         consideredProps[PERPS_EVENT_PROPERTY.FROM_TOKEN] = payToken.symbol;
@@ -1063,6 +1073,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     consideredTradeAction,
     hasCustomTokenSelected,
     payToken,
+    sizeDenomination,
     track,
   ]);
 
@@ -1660,6 +1671,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             orderForm.direction === 'long'
               ? PERPS_EVENT_VALUE.DIRECTION.LONG
               : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+          [PERPS_ANALYTICS_SIZE_UNIT]: toPerpsSizeUnitAnalyticsValue(
+            sizeDenominationRef.current,
+          ),
         });
       }
 

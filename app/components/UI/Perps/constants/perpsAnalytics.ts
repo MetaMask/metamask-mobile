@@ -12,5 +12,11 @@
  */
 export const PERPS_ANALYTICS_PREVIOUS_LEVERAGE = 'previous_leverage' as const;
 
+/**
+ * Order-size denomination on Perp Transaction Considered and Place Order taps.
+ * Segment property: `size_unit`. Values are `usd` or `coin`.
+ */
+export const PERPS_ANALYTICS_SIZE_UNIT = 'size_unit' as const;
+
 /** Perps market-details `source` when opened from Explore omni-search. */
 export const PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH = 'explore_search' as const;

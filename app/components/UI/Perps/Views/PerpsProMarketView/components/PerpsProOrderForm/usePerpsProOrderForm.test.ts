@@ -17,7 +17,11 @@ import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { formatPerpsPrice } from '../../../../utils/formatUtils';
-import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
+import {
+  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
+  PERPS_ANALYTICS_SIZE_UNIT,
+} from '../../../../constants/perpsAnalytics';
+import { resetPerpsSizeDenominationForTests } from '../../../../utils/perpsSizeDenomination';
 import {
   FAR_FROM_MARKET_WARNING_INTERACTION,
   FAR_FROM_MARKET_WARNING_TYPE,
@@ -618,6 +622,7 @@ const renderMutableScaleForm = (initialProps: MutableScaleProps) => {
 
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
+    resetPerpsSizeDenominationForTests();
     jest.clearAllMocks();
     mockExecutionOptions = {};
     mockOrderForm.type = 'market';
@@ -1874,6 +1879,7 @@ describe('usePerpsProOrderForm', () => {
         expect.objectContaining({
           [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
             PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
         }),
       );
       expect(mockTrack).not.toHaveBeenCalledWith(
@@ -1889,6 +1895,27 @@ describe('usePerpsProOrderForm', () => {
         }),
       );
       expect(chaseSubmitted).not.toHaveBeenCalled();
+    });
+
+    it('reports coin on place order after the size denomination is switched', async () => {
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.sizeInput.onToggleDenomination();
+      });
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'coin',
+        }),
+      );
     });
 
     it('does not show Chase feedback for a stale non-Chase fingerprint', async () => {

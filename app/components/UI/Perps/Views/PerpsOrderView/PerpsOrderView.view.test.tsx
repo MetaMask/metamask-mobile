@@ -18,6 +18,7 @@ import {
   type PriceUpdate,
 } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
+import { resetPerpsSizeDenominationForTests } from '../../utils/perpsSizeDenomination';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -109,6 +110,7 @@ describe('PerpsOrderView', () => {
   });
 
   beforeEach(() => {
+    resetPerpsSizeDenominationForTests();
     jest.clearAllMocks();
     (
       Engine.context.PerpsController.calculateFees as jest.Mock
