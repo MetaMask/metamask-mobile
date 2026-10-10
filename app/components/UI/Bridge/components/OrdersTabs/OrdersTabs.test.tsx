@@ -1,8 +1,7 @@
 import React from 'react';
 import { Text } from 'react-native';
 import { act, fireEvent } from '@testing-library/react-native';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import type { CaipChainId, Hex } from '@metamask/utils';
+import type { CaipChainId } from '@metamask/utils';
 import renderWithProvider, {
   type DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
@@ -32,12 +31,17 @@ jest.mock('@react-navigation/native', () => ({
 
 interface ChainOrder {
   id: string;
-  chainId: Hex;
+  chainId: CaipChainId;
 }
 
-const ETH_ORDER: ChainOrder = { id: 'eth-order', chainId: '0x1' };
-const ETH_ORDER_2: ChainOrder = { id: 'eth-order-2', chainId: '0x1' };
-const OPTIMISM_ORDER: ChainOrder = { id: 'optimism-order', chainId: '0xa' };
+const ETH_ORDER: ChainOrder = { id: 'eth-order', chainId: 'eip155:1' };
+const ETH_ORDER_2: ChainOrder = { id: 'eth-order-2', chainId: 'eip155:1' };
+const OPTIMISM_ORDER: ChainOrder = {
+  id: 'optimism-order',
+  chainId: 'eip155:10',
+};
+
+const getEthereumChainId = (): CaipChainId => ETH_ORDER.chainId;
 
 function chainOrdersTab(items: ChainOrder[]): OrdersTabConfig<ChainOrder> {
   return {
@@ -73,8 +77,8 @@ describe('OrdersTabs', () => {
 
   it('shows open orders empty copy then history empty copy after pressing History', () => {
     const { getByTestId, getByText, queryByText } = renderOrdersTabs({
-      openOrders: { items: [] },
-      history: { items: [] },
+      openOrders: chainOrdersTab([]),
+      history: chainOrdersTab([]),
     });
 
     expect(getByTestId(OrdersTabsSelectorsIDs.EMPTY_STATE)).toBeOnTheScreen();
@@ -104,17 +108,6 @@ describe('OrdersTabs', () => {
       const { queryByTestId } = renderOrdersTabs({
         openOrders: chainOrdersTab([ETH_ORDER, ETH_ORDER_2]),
         history: chainOrdersTab([]),
-      });
-
-      expect(
-        queryByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
-      ).toBeNull();
-    });
-
-    it('hides the network filter when orders have no chain resolver', () => {
-      const { queryByTestId } = renderOrdersTabs({
-        openOrders: { items: [ETH_ORDER, OPTIMISM_ORDER] },
-        history: { items: [] },
       });
 
       expect(
@@ -209,7 +202,7 @@ describe('OrdersTabs', () => {
       });
 
       act(() => {
-        store.dispatch(setOrdersNetworkFilter(formatChainIdToCaip('0xa')));
+        store.dispatch(setOrdersNetworkFilter(OPTIMISM_ORDER.chainId));
       });
       rerender(
         <OrdersTabs
@@ -240,7 +233,7 @@ describe('OrdersTabs', () => {
           openOrders: chainOrdersTab([ETH_ORDER, OPTIMISM_ORDER]),
           history: chainOrdersTab([]),
         },
-        stateWithOrdersNetworkFilter(formatChainIdToCaip('0xa')),
+        stateWithOrdersNetworkFilter(OPTIMISM_ORDER.chainId),
       );
 
       act(() => {
@@ -267,6 +260,7 @@ describe('OrdersTabs', () => {
           <Text testID="limit-open-order">{item.price}</Text>
         ),
         keyExtractor: (item) => item.id,
+        getItemChainId: getEthereumChainId,
       },
       history: {
         items: [{ hash: '0xabc', executedAt: 1_700_000_000 }],
@@ -274,6 +268,7 @@ describe('OrdersTabs', () => {
           <Text testID="recurring-history">{item.hash}</Text>
         ),
         keyExtractor: (item) => item.hash,
+        getItemChainId: getEthereumChainId,
       },
     });
 
@@ -292,9 +287,9 @@ describe('OrdersTabs', () => {
     const { getByTestId, queryByTestId } = renderOrdersTabs(
       {
         openOrders: chainOrdersTab([ETH_ORDER]),
-        history: { items: [] },
+        history: chainOrdersTab([]),
       },
-      stateWithOrdersNetworkFilter(formatChainIdToCaip('0xa')),
+      stateWithOrdersNetworkFilter(OPTIMISM_ORDER.chainId),
     );
 
     expect(queryByTestId(`order-${ETH_ORDER.id}`)).toBeNull();
@@ -303,8 +298,8 @@ describe('OrdersTabs', () => {
 
   it('switches back to open orders when Open orders tab is pressed from History', () => {
     const { getByTestId, getByText, queryByText } = renderOrdersTabs({
-      openOrders: { items: [] },
-      history: { items: [] },
+      openOrders: chainOrdersTab([]),
+      history: chainOrdersTab([]),
       initialTab: OrdersTabKey.History,
     });
 
@@ -321,8 +316,8 @@ describe('OrdersTabs', () => {
   it('notifies the consumer when the selected tab changes', () => {
     const onTabChange = jest.fn();
     const { getByTestId } = renderOrdersTabs({
-      openOrders: { items: [] },
-      history: { items: [] },
+      openOrders: chainOrdersTab([]),
+      history: chainOrdersTab([]),
       onTabChange,
     });
 
@@ -334,8 +329,8 @@ describe('OrdersTabs', () => {
   it('renders the controlled active tab', () => {
     const { getByText, queryByText } = renderOrdersTabs({
       activeTab: OrdersTabKey.History,
-      openOrders: { items: [] },
-      history: { items: [] },
+      openOrders: chainOrdersTab([]),
+      history: chainOrdersTab([]),
     });
 
     expect(getByText(strings('bridge.orders.empty.history'))).toBeOnTheScreen();
@@ -346,8 +341,8 @@ describe('OrdersTabs', () => {
     const onTabChange = jest.fn();
     const { getByTestId, getByText, queryByText } = renderOrdersTabs({
       activeTab: OrdersTabKey.History,
-      openOrders: { items: [] },
-      history: { items: [] },
+      openOrders: chainOrdersTab([]),
+      history: chainOrdersTab([]),
       onTabChange,
     });
 
@@ -360,8 +355,8 @@ describe('OrdersTabs', () => {
 
   it('renders the initial loading state', () => {
     const { getByTestId } = renderOrdersTabs({
-      openOrders: { items: [], isLoading: true },
-      history: { items: [] },
+      openOrders: { ...chainOrdersTab([]), isLoading: true },
+      history: chainOrdersTab([]),
     });
 
     expect(getByTestId(OrdersTabsSelectorsIDs.LOADING)).toBeOnTheScreen();
@@ -372,9 +367,10 @@ describe('OrdersTabs', () => {
       openOrders: {
         items: ['order-1'],
         renderItem: (item) => <Text>{item}</Text>,
+        getItemChainId: getEthereumChainId,
         isFetchingNextPage: true,
       },
-      history: { items: [] },
+      history: chainOrdersTab([]),
     });
 
     expect(
@@ -385,12 +381,8 @@ describe('OrdersTabs', () => {
   it('retries after an initial error', () => {
     const onRetry = jest.fn();
     const { getByTestId } = renderOrdersTabs({
-      openOrders: {
-        items: [],
-        isError: true,
-        onRetry,
-      },
-      history: { items: [] },
+      openOrders: { ...chainOrdersTab([]), isError: true, onRetry },
+      history: chainOrdersTab([]),
     });
 
     fireEvent.press(getByTestId(OrdersTabsSelectorsIDs.RETRY_BUTTON));
@@ -406,8 +398,9 @@ describe('OrdersTabs', () => {
         renderItem: (item) => (
           <Text testID={`order-row-${item.label}`}>{item.label}</Text>
         ),
+        getItemChainId: getEthereumChainId,
       },
-      history: { items: [] },
+      history: chainOrdersTab([]),
     });
 
     expect(getByTestId('order-row-first')).toHaveTextContent('first');
@@ -418,10 +411,10 @@ describe('OrdersTabs', () => {
   it('shows the selected network icon and name on the filter button', () => {
     const { getByTestId } = renderOrdersTabs(
       {
-        openOrders: { items: [] },
-        history: { items: [] },
+        openOrders: chainOrdersTab([]),
+        history: chainOrdersTab([]),
       },
-      stateWithOrdersNetworkFilter(formatChainIdToCaip('0xa')),
+      stateWithOrdersNetworkFilter(OPTIMISM_ORDER.chainId),
     );
 
     expect(

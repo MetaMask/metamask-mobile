@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import type { CaipChainId, Hex } from '@metamask/utils';
+import type { CaipChainId } from '@metamask/utils';
 
 export enum OrdersTabKey {
   OpenOrders = 'openOrders',
@@ -17,9 +17,9 @@ export interface OrdersTabConfig<T> {
   /**
    * Chain used by the All networks filter for this tab's items. The filter
    * is only shown once the items span at least two of these chains, or
-   * while a network is selected. Omit to hide the filter for this tab.
+   * while a network is selected.
    */
-  getItemChainId?: (item: T) => Hex | CaipChainId | undefined;
+  getItemChainId: (item: T) => CaipChainId;
 }
 
 export interface OrdersTabsProps<TOpen, THistory> {

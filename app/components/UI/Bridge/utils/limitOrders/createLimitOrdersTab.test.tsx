@@ -29,6 +29,6 @@ describe('createLimitOrdersTab', () => {
       onRetry: jest.fn(),
     });
 
-    expect(tab.getItemChainId?.(MOCK_LIMIT_OPEN_ORDER)).toBe('eip155:1');
+    expect(tab.getItemChainId(MOCK_LIMIT_OPEN_ORDER)).toBe('eip155:1');
   });
 });

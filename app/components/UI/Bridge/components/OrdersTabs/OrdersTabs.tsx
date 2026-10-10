@@ -2,8 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { isEqual } from 'lodash';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import type { CaipChainId, Hex } from '@metamask/utils';
+import type { CaipChainId } from '@metamask/utils';
 import {
   AvatarBaseShape,
   AvatarNetwork,
@@ -42,24 +41,6 @@ import {
   type OrdersTabsProps,
 } from './OrdersTabs.types';
 
-function getItemsChainIds<T>(
-  items: T[],
-  getItemChainId?: (item: T) => Hex | CaipChainId | undefined,
-): CaipChainId[] {
-  if (!getItemChainId) {
-    return [];
-  }
-
-  const chainIds = new Set<CaipChainId>();
-  for (const item of items) {
-    const itemChainId = getItemChainId(item);
-    if (itemChainId !== undefined) {
-      chainIds.add(formatChainIdToCaip(itemChainId));
-    }
-  }
-  return [...chainIds];
-}
-
 /**
  * Networks the orders filter offers for one tab, re-derived as pages load.
  * Consumers fetch per selected network, so while one is selected the items
@@ -72,7 +53,7 @@ function useOrdersTabFilterChainIds<T>(
   enabledChainIds: CaipChainId[] | undefined,
 ): CaipChainId[] {
   const itemChainIds = useMemo(() => {
-    const chainIds = getItemsChainIds(items, getItemChainId);
+    const chainIds = [...new Set(items.map(getItemChainId))];
     return enabledChainIds
       ? chainIds.filter((chainId) => enabledChainIds.includes(chainId))
       : chainIds;
@@ -96,22 +77,6 @@ function useOrdersTabFilterChainIds<T>(
       ...new Set([...allNetworksChainIds, ...itemChainIds, selectedChainId]),
     ];
   }, [allNetworksChainIds, isAllNetworksLoaded, itemChainIds, selectedChainId]);
-}
-
-function itemMatchesNetworkFilter<T>(
-  item: T,
-  selectedChainId: CaipChainId | undefined,
-  getItemChainId?: (item: T) => Hex | CaipChainId | undefined,
-): boolean {
-  if (!selectedChainId || !getItemChainId) {
-    return true;
-  }
-
-  const itemChainId = getItemChainId(item);
-  return (
-    itemChainId !== undefined &&
-    formatChainIdToCaip(itemChainId) === selectedChainId
-  );
 }
 
 function OrdersNetworkFilter({ chainIds }: { chainIds: CaipChainId[] }) {
@@ -186,7 +151,7 @@ function OrdersTabPanel<T>({
   items: T[];
   renderItem?: (item: T, index: number) => React.ReactElement;
   keyExtractor?: (item: T, index: number) => string;
-  getItemChainId?: (item: T) => Hex | CaipChainId | undefined;
+  getItemChainId: (item: T) => CaipChainId;
   emptyDescription: string;
   isLoading?: boolean;
   isError?: boolean;
@@ -197,9 +162,9 @@ function OrdersTabPanel<T>({
 
   const filteredItems = useMemo(
     () =>
-      items.filter((item) =>
-        itemMatchesNetworkFilter(item, selectedChainId, getItemChainId),
-      ),
+      selectedChainId
+        ? items.filter((item) => getItemChainId(item) === selectedChainId)
+        : items,
     [getItemChainId, items, selectedChainId],
   );
 
