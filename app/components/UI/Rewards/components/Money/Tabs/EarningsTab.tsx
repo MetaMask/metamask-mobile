@@ -55,9 +55,12 @@ import { formatMusdBaseUnits } from '../../../utils/formatUtils';
 import {
   earnedByOthersLifetime,
   selfEarnedLifetime,
+  underReviewBlockedBaseUnits,
 } from '../../../utils/earningsSummaryTotals';
+import { SHOW_TRADING_COMMISSIONS } from '../constants';
 import ClaimableRewardsCard from '../ClaimableRewardsCard';
 import { EarningsHistoryRow } from '../EarningsHistoryRows';
+import RewardsPausedBanner from '../RewardsPausedBanner';
 import TradingActivityListSkeleton from '../TradingActivityListSkeleton';
 
 /** Rows shown under History before "see all". Matches the Performance preview. */
@@ -352,9 +355,18 @@ const HistorySection: React.FC<{
   state: HistorySectionState;
   /** A section above this one supplies the divider and header spacing. */
   followsSection: boolean;
+  /** Under-review base units from the summary, or null when none are held. */
+  pausedBaseUnits: string | null;
   onEmptyAction: () => void;
   onOpenList: () => void;
-}> = ({ localizedText, state, followsSection, onEmptyAction, onOpenList }) => {
+}> = ({
+  localizedText,
+  state,
+  followsSection,
+  pausedBaseUnits,
+  onEmptyAction,
+  onOpenList,
+}) => {
   const { items, loading, listEmpty } = state;
 
   let body: React.ReactElement;
@@ -419,7 +431,17 @@ const HistorySection: React.FC<{
         twClassName={followsSection ? 'pt-0 pb-4' : 'pt-6 pb-4'}
         testID={EARNINGS_TAB_TEST_IDS.HISTORY_HEADER}
       />
-      <Box twClassName="px-4 pb-8">{body}</Box>
+      <Box twClassName="px-4 pb-8">
+        {pausedBaseUnits ? (
+          <Box twClassName="mb-4">
+            <RewardsPausedBanner
+              baseUnits={pausedBaseUnits}
+              localizedText={localizedText}
+            />
+          </Box>
+        ) : null}
+        {body}
+      </Box>
     </>
   );
 };
@@ -485,9 +507,9 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     last7.error && !last7.data,
     history.error,
   );
-  // Disable the breakdown for this pilot until the section is ready to show.
-  const showBreakdown = false; // summary.show && rows.length > 0
   const rows = breakdownRows(persona, summary.data, localizedText);
+  const showBreakdown =
+    summary.show && rows.length > 0 && SHOW_TRADING_COMMISSIONS;
   const claimEnabled = canClaimEarnings(summary.data, persona);
 
   return (
@@ -561,6 +583,11 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
           localizedText={localizedText}
           state={history}
           followsSection={summary.show || showBreakdown}
+          pausedBaseUnits={
+            summary.loading || history.loading
+              ? null
+              : underReviewBlockedBaseUnits(summary.data)
+          }
           onEmptyAction={openTradeActions}
           onOpenList={openHistory}
         />

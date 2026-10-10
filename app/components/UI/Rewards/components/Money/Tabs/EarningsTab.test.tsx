@@ -15,6 +15,7 @@ import { useEarningsHistory } from '../../../hooks/useEarningsHistory';
 import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../TradingActivityListSkeleton';
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../ClaimableRewardsCard';
 import { EARNINGS_HISTORY_TEST_IDS } from '../EarningsHistoryRows';
+import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../RewardsPausedBanner';
 import EarningsTab, { EARNINGS_TAB_TEST_IDS } from './EarningsTab';
 
 const mockNavigate = jest.fn();
@@ -55,6 +56,11 @@ const LOCALIZED_TEXT = {
   claimed: 'Claimed',
   claimsPausedTitle: 'Claims paused',
   claimsPausedDescription: 'You cannot claim rewards right now.',
+  rewardsPausedTitle: 'Rewards paused',
+  rewardsPausedDescription:
+    "We've paused these rewards while we review them. Your other rewards aren't affected, and you can still claim them as usual. You don't need to do anything.",
+  rewardsPausedBanner: '{amount} of rewards paused.',
+  rewardsPausedLearnMore: 'Learn more',
   last7Days: 'Last 7 days',
   recordedEarningsLabel: 'Recorded earnings',
   breakdown: 'Breakdown',
@@ -478,6 +484,33 @@ describe('EarningsTab', () => {
     ).toBeOnTheScreen();
     expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeNull();
     expect(queryByTestId(EARNINGS_TAB_TEST_IDS.HISTORY)).toBeNull();
+    expect(queryByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER)).toBeNull();
+  });
+
+  it('hides the paused banner while history is still a skeleton', () => {
+    const { getByTestId, queryByTestId } = renderTab('referrer', {
+      summary: {
+        ...SUMMARY,
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              blocked: '9150000',
+              blocking_reason: 'UNDER_REVIEW',
+            },
+          },
+        },
+      },
+      historyItems: null,
+      historyLoading: true,
+    });
+
+    expect(
+      getByTestId(TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER)).toBeNull();
   });
 
   it('keeps cached earnings without an error banner', () => {
@@ -556,5 +589,46 @@ describe('EarningsTab', () => {
       getByRole('button', { name: 'Retry', busy: true }),
     ).toBeOnTheScreen();
     expect(queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SKELETON)).toBeNull();
+  });
+
+  it('hides the paused banner when no family is under review', () => {
+    const { queryByTestId } = renderTab('referrer');
+
+    expect(queryByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER)).toBeNull();
+  });
+
+  it('shows the under-review total above history and opens the paused sheet', () => {
+    const { getByTestId, getByText } = renderTab('referrer', {
+      summary: {
+        ...SUMMARY,
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              blocked: '9150000',
+              blocking_reason: 'UNDER_REVIEW',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      getByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER),
+    ).toHaveTextContent('$9.15 of rewards paused.Learn more');
+    expect(getByText('Learn more')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+      {
+        title: 'Rewards paused',
+        description:
+          "We've paused these rewards while we review them. Your other rewards aren't affected, and you can still claim them as usual. You don't need to do anything.",
+      },
+    );
   });
 });

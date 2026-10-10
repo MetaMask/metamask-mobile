@@ -1,6 +1,4 @@
-import React, { useCallback } from 'react';
-import { Pressable } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React from 'react';
 import {
   AvatarIcon,
   AvatarIconSeverity,
@@ -13,14 +11,10 @@ import {
   FontWeight,
   IconColor,
   IconName,
-  Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import type {
   CommissionEntryView,
   LedgerEarningEntryDto,
@@ -36,8 +30,6 @@ import {
 export const PERFORMANCE_ACTIVITY_TEST_IDS = {
   COMMISSION_ROW: 'performance-commission-row',
   REBATE_ROW: 'performance-rebate-row',
-  PAUSED_ROW: 'performance-rebate-paused-row',
-  PAUSED_TAG: 'performance-rebate-paused-tag',
 } as const;
 
 function copiedTimesLabel(
@@ -129,18 +121,9 @@ export const PerformanceRebateRow: React.FC<{
   item: LedgerEarningEntryDto;
   localizedText: ReferralLocalizedText;
 }> = ({ item, localizedText }) => {
-  const navigation = useNavigation<AppNavigationProp>();
-  const underReview = item.blocking_reason === 'UNDER_REVIEW';
   const amount = rebateAmount(item);
-  const amountColor = underReview ? TextColor.TextAlternative : amount.color;
-  const openRewardsPaused = useCallback(() => {
-    navigation.navigate(Routes.MODAL.REWARDS_INFO_SHEET_MODAL, {
-      title: localizedText.rewardPausedTitle,
-      description: localizedText.rewardPausedDescription,
-    });
-  }, [localizedText, navigation]);
 
-  const row = (
+  return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
@@ -154,53 +137,20 @@ export const PerformanceRebateRow: React.FC<{
         iconProps={{ color: IconColor.IconDefault }}
       />
       <Box twClassName="flex-1">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          twClassName="shrink"
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            twClassName="shrink"
-          >
-            {rebateTitle(item, localizedText)}
-          </Text>
-          {underReview ? (
-            <Tag
-              severity={TagSeverity.Neutral}
-              testID={PERFORMANCE_ACTIVITY_TEST_IDS.PAUSED_TAG}
-            >
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-              >
-                {localizedText.paused}
-              </Text>
-            </Tag>
-          ) : null}
-        </Box>
+          {rebateTitle(item, localizedText)}
+        </Text>
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
           {formatRewardsRelativeTime(new Date(item.ledger_timestamp))}
         </Text>
       </Box>
-      <Text variant={TextVariant.BodyMd} color={amountColor}>
+      <Text variant={TextVariant.BodyMd} color={amount.color}>
         {amount.label}
       </Text>
     </Box>
-  );
-
-  if (!underReview) {
-    return row;
-  }
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={openRewardsPaused}
-      testID={PERFORMANCE_ACTIVITY_TEST_IDS.PAUSED_ROW}
-    >
-      {row}
-    </Pressable>
   );
 };
