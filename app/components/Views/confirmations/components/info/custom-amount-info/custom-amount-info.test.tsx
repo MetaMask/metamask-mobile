@@ -57,7 +57,10 @@ import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsA
 import { mockTheme } from '../../../../../../util/theme';
 import { useAutomaticTransactionPayToken } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { ConfirmationFirstFrameProvider } from '../../../context/confirmation-first-frame-context';
-import { DepositPrefillStatus } from '../../../hooks/transactions/useDepositPrefillAmount';
+import {
+  DepositPrefillStatus,
+  useIsDepositPrefillEnabled,
+} from '../../../hooks/transactions/useDepositPrefillAmount';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
 
@@ -71,6 +74,10 @@ jest.mock('../../../hooks/tokens/useTokenFiatRates');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/transactions/useTransactionCustomAmount');
+jest.mock('../../../hooks/transactions/useDepositPrefillAmount', () => ({
+  ...jest.requireActual('../../../hooks/transactions/useDepositPrefillAmount'),
+  useIsDepositPrefillEnabled: jest.fn(),
+}));
 jest.mock('../../../context/confirmation-context');
 jest.mock('../../../context/alert-system-context');
 jest.mock('../../../hooks/transactions/useTransactionCustomAmountAlerts');
@@ -481,6 +488,7 @@ describe('CustomAmountInfo', () => {
           return frames.length;
         });
       jest.spyOn(global, 'cancelAnimationFrame').mockImplementation(jest.fn());
+      jest.mocked(useIsDepositPrefillEnabled).mockReturnValue(true);
     });
 
     afterEach(() => {
@@ -537,6 +545,54 @@ describe('CustomAmountInfo', () => {
       expect(useConfirmActionsMock).not.toHaveBeenCalled();
       expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledTimes(1);
       expect(requestAnimationFrame).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows the totals loading state when prefill is enabled', () => {
+      const { getByTestId, queryByTestId } = renderDeferred();
+
+      expect(getByTestId('custom-amount-skeleton')).toBeOnTheScreen();
+      expect(getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+      expect(queryByTestId('deposit-keyboard')).not.toBeOnTheScreen();
+    });
+
+    it('shows the keyboard when prefill is disabled', () => {
+      jest.mocked(useIsDepositPrefillEnabled).mockReturnValue(false);
+
+      const { getByTestId, queryByTestId } = renderDeferred({
+        supportAccountSelection: true,
+      });
+
+      expect(getByTestId('custom-amount-info-first-frame')).toBeOnTheScreen();
+      expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-input')).toHaveTextContent('0');
+      expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
+      expect(getByTestId('pay-with-row-skeleton')).toBeOnTheScreen();
+      expect(queryByTestId('custom-amount-skeleton')).not.toBeOnTheScreen();
+      expect(queryByTestId('bridge-fee-row-skeleton')).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(useTransactionCustomAmountMock).not.toHaveBeenCalled();
+    });
+
+    it('shows the keyboard when fiat payment skips prefill', () => {
+      const { getByTestId } = renderDeferred({ autoSelectFiatPayment: true });
+
+      expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+    });
+
+    it('shows the totals loading state for add mUSD deposits', () => {
+      jest.mocked(useIsDepositPrefillEnabled).mockReturnValue(false);
+      jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('addMusd');
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { getByTestId, queryByTestId } = renderDeferred();
+
+      expect(getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+      expect(queryByTestId('deposit-keyboard')).not.toBeOnTheScreen();
     });
 
     it('mounts the live amount and automatic selection only after the frame yield', () => {

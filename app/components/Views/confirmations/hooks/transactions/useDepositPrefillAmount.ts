@@ -75,18 +75,8 @@ export function useDepositPrefillAmount({
   const fiatPayment = useTransactionPayFiatPayment();
   const { availableTokens } = useTransactionPayAvailableTokens();
 
-  const { prefilledAmount } = useSelector(selectMetaMaskPayFlags);
   const depositLimits = useSelector(selectDepositLimits);
   const relayFixedSpread = useSelector(selectRelayFixedSpread);
-
-  const prefilledAmountConfig = useMemo((): PrefilledAmountConfig => {
-    for (const [type, config] of Object.entries(prefilledAmount.overrides)) {
-      if (hasTransactionType(transactionMeta, [type as TransactionType])) {
-        return config;
-      }
-    }
-    return prefilledAmount.default;
-  }, [transactionMeta, prefilledAmount]);
 
   const depositLimit = useMemo(() => {
     for (const [type, limit] of Object.entries(depositLimits)) {
@@ -101,58 +91,8 @@ export function useDepositPrefillAmount({
     transactionMeta,
     MONEY_ACCOUNT_DEPOSIT_TYPES,
   );
-  const depositIntent = getMoneyAccountDepositIntent(transactionMeta?.batchId);
 
-  const remoteFeatureFlags = useSelector(selectRemoteFeatureFlags);
-  const thresholdGroups = useSelector(selectFeatureFlagThresholdGroups);
-
-  // Scope the deposit-prefill experiment to moneyAccountDeposit only. Other
-  // CustomAmountInfo flows (perps/predict/withdraw) must not read or apply it.
-  // Experiment Viewed is emitted from MoneyAccountDepositInfo via useABTest.
-  const enabled = useMemo(() => {
-    if (!isMoneyAccountDeposit) {
-      return prefilledAmountConfig.enabled;
-    }
-
-    // Explicit amounts use the same quote preparation flow without opting into
-    // balance-based prefill or changing card/add-mUSD funding behavior.
-    if (amount !== undefined) {
-      const explicitAmount = new BigNumber(amount);
-      return (
-        depositIntent !== 'card' &&
-        depositIntent !== 'addMusd' &&
-        explicitAmount.isFinite() &&
-        explicitAmount.gt(0)
-      );
-    }
-
-    const { variantName } = resolveABTestAssignment(
-      remoteFeatureFlags,
-      MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
-      Object.values(MoneyAccountDepositPrefillVariant),
-      thresholdGroups,
-    );
-    const abTestPrefillEnabled =
-      MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS[
-        variantName as MoneyAccountDepositPrefillVariant
-      ]?.prefillEnabled ??
-      MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS[
-        MoneyAccountDepositPrefillVariant.Control
-      ].prefillEnabled;
-
-    return isMoneyAccountDepositPrefillEnabled({
-      remotePrefillEnabled: prefilledAmountConfig.enabled,
-      abTestPrefillEnabled,
-      intent: depositIntent,
-    });
-  }, [
-    amount,
-    depositIntent,
-    isMoneyAccountDeposit,
-    prefilledAmountConfig.enabled,
-    remoteFeatureFlags,
-    thresholdGroups,
-  ]);
+  const enabled = useIsDepositPrefillEnabled();
 
   const transactionId = transactionMeta?.id ?? '';
   const accountOverride = useSelector((state: RootState) =>
@@ -287,4 +227,83 @@ export function useDepositPrefillAmount({
     isLimitCapped,
     status,
   };
+}
+
+/**
+ * Whether deposit prefill is enabled for the current confirmation.
+ *
+ * Derived only from the transaction, route params and feature flags, so it is
+ * cheap enough to read before pay token selection has run.
+ *
+ * @returns True if deposit prefill is enabled.
+ */
+export function useIsDepositPrefillEnabled(): boolean {
+  const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const { amount } = useParams<{ amount?: string }>();
+  const { prefilledAmount } = useSelector(selectMetaMaskPayFlags);
+  const remoteFeatureFlags = useSelector(selectRemoteFeatureFlags);
+  const thresholdGroups = useSelector(selectFeatureFlagThresholdGroups);
+
+  const prefilledAmountConfig = useMemo((): PrefilledAmountConfig => {
+    for (const [type, config] of Object.entries(prefilledAmount.overrides)) {
+      if (hasTransactionType(transactionMeta, [type as TransactionType])) {
+        return config;
+      }
+    }
+    return prefilledAmount.default;
+  }, [transactionMeta, prefilledAmount]);
+
+  const isMoneyAccountDeposit = hasTransactionType(
+    transactionMeta,
+    MONEY_ACCOUNT_DEPOSIT_TYPES,
+  );
+  const depositIntent = getMoneyAccountDepositIntent(transactionMeta?.batchId);
+
+  // Scope the deposit-prefill experiment to moneyAccountDeposit only. Other
+  // CustomAmountInfo flows (perps/predict/withdraw) must not read or apply it.
+  // Experiment Viewed is emitted from MoneyAccountDepositInfo via useABTest.
+  return useMemo(() => {
+    if (!isMoneyAccountDeposit) {
+      return prefilledAmountConfig.enabled;
+    }
+
+    // Explicit amounts use the same quote preparation flow without opting into
+    // balance-based prefill or changing card/add-mUSD funding behavior.
+    if (amount !== undefined) {
+      const explicitAmount = new BigNumber(amount);
+      return (
+        depositIntent !== 'card' &&
+        depositIntent !== 'addMusd' &&
+        explicitAmount.isFinite() &&
+        explicitAmount.gt(0)
+      );
+    }
+
+    const { variantName } = resolveABTestAssignment(
+      remoteFeatureFlags,
+      MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
+      Object.values(MoneyAccountDepositPrefillVariant),
+      thresholdGroups,
+    );
+    const abTestPrefillEnabled =
+      MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS[
+        variantName as MoneyAccountDepositPrefillVariant
+      ]?.prefillEnabled ??
+      MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS[
+        MoneyAccountDepositPrefillVariant.Control
+      ].prefillEnabled;
+
+    return isMoneyAccountDepositPrefillEnabled({
+      remotePrefillEnabled: prefilledAmountConfig.enabled,
+      abTestPrefillEnabled,
+      intent: depositIntent,
+    });
+  }, [
+    amount,
+    depositIntent,
+    isMoneyAccountDeposit,
+    prefilledAmountConfig.enabled,
+    remoteFeatureFlags,
+    thresholdGroups,
+  ]);
 }

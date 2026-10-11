@@ -62,9 +62,11 @@ export function useCustomAmountStage({
   // `null` = derive the stage. Initial override opens the keyboard unless a
   // deposit prefill is expected to resolve first.
   const [stageOverride, setStage] = useState<CustomAmountStage | null>(() =>
-    !isAddMusdIntent && (!isDepositPrefillEnabled || skipDepositPrefill)
-      ? CustomAmountStage.AmountInput
-      : CustomAmountStage.Loading,
+    getInitialCustomAmountStage({
+      isAddMusdIntent,
+      isDepositPrefillEnabled,
+      skipDepositPrefill,
+    }),
   );
 
   const isQuotesLoading = useIsTransactionPayQuoteLoading();
@@ -204,4 +206,27 @@ export function useCustomAmountStage({
     stage === CustomAmountStage.Loading && !isQuotesLoading;
 
   return { isAmountUpdating, setStage, stage };
+}
+
+/**
+ * The stage `CustomAmountInfo` opens in: the keyboard, unless a deposit prefill
+ * is expected to resolve first.
+ *
+ * @param options.isAddMusdIntent - Whether this is an add-mUSD deposit.
+ * @param options.isDepositPrefillEnabled - Whether deposit prefill is enabled.
+ * @param options.skipDepositPrefill - Whether deposit prefill is skipped.
+ * @returns The initial stage.
+ */
+export function getInitialCustomAmountStage({
+  isAddMusdIntent,
+  isDepositPrefillEnabled,
+  skipDepositPrefill,
+}: {
+  isAddMusdIntent: boolean;
+  isDepositPrefillEnabled: boolean;
+  skipDepositPrefill: boolean;
+}): CustomAmountStage.AmountInput | CustomAmountStage.Loading {
+  return !isAddMusdIntent && (!isDepositPrefillEnabled || skipDepositPrefill)
+    ? CustomAmountStage.AmountInput
+    : CustomAmountStage.Loading;
 }

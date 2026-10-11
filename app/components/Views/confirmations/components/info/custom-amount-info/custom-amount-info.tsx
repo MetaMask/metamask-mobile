@@ -7,6 +7,7 @@ import React, {
   useRef,
 } from 'react';
 import { View } from 'react-native';
+import { noop } from 'lodash';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   TransactionType,
@@ -26,10 +27,14 @@ import { Box } from '../../../../../UI/Box/Box';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
-import { DepositPrefillStatus } from '../../../hooks/transactions/useDepositPrefillAmount';
+import {
+  DepositPrefillStatus,
+  useIsDepositPrefillEnabled,
+} from '../../../hooks/transactions/useDepositPrefillAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
 import {
   CustomAmountStage,
+  getInitialCustomAmountStage,
   useCustomAmountStage,
 } from '../../../hooks/custom-amount/useCustomAmountStage';
 import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
@@ -615,9 +620,8 @@ function CustomAmountInfoWrapper(props: CustomAmountInfoProps) {
   // Only present when the confirmation opts into first-frame deferral.
   const firstFrame = useConfirmationFirstFrame();
 
-  // This is pending initialization, not disabled prefill. The live stage and
-  // input hooks mount with their real settings, so no temporary keyboard/$0
-  // state or early user input can be overwritten by delayed selection.
+  // A static placeholder only: the live stage and input hooks mount afterwards
+  // with their real settings, so delayed selection can't overwrite input.
   if (firstFrame && !firstFrame.isFirstFrameComplete) {
     return <CustomAmountInfoFirstFrame {...props} />;
   }
@@ -626,28 +630,70 @@ function CustomAmountInfoWrapper(props: CustomAmountInfoProps) {
 }
 
 function CustomAmountInfoFirstFrame({
+  autoSelectFiatPayment,
+  currency,
   disablePay,
   footerText,
+  hasMax,
   hideAccountSelector,
   hidePayTokenAmount,
   supportAccountSelection,
 }: CustomAmountInfoProps) {
   const { styles } = useStyles(styleSheet, {});
+  const { amount } = useParams<ConfirmationParams>();
+  const transactionMeta = useTransactionMetadataRequest();
+  const isDepositPrefillEnabled = useIsDepositPrefillEnabled();
+  const isAddMusdIntent =
+    hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountDeposit,
+    ]) && getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
 
+  // Open in the same stage the live screen will, so it doesn't swap layouts
+  // once initialization completes. Only the fiat skip is known up front; skips
+  // that depend on the pay token balance resolve after the first frame.
+  const isKeyboard =
+    getInitialCustomAmountStage({
+      isAddMusdIntent,
+      isDepositPrefillEnabled,
+      skipDepositPrefill: Boolean(autoSelectFiatPayment),
+    }) === CustomAmountStage.AmountInput;
+
+  const amountFiat = amount ?? '0';
+  const showAccountSelector = supportAccountSelection && !hideAccountSelector;
+  const showPayWith = disablePay !== true;
+
+  // Static only: input is ignored until the live screen mounts.
   return (
     <View style={styles.container} testID="custom-amount-info-first-frame">
       <View style={styles.inputContainer}>
-        <CustomAmountSkeleton />
-        {!hidePayTokenAmount && <BalanceProjectionSkeleton />}
+        {isKeyboard ? (
+          <CustomAmount amountFiat={amountFiat} currency={currency} />
+        ) : (
+          <CustomAmountSkeleton />
+        )}
+        {!hidePayTokenAmount &&
+          showPayWith &&
+          (isKeyboard ? (
+            <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
+          ) : (
+            <BalanceProjectionSkeleton />
+          ))}
       </View>
       <View style={styles.shellBottomBlock}>
-        <View>
-          {supportAccountSelection && !hideAccountSelector && (
-            <PayAccountSelector />
-          )}
-          {!disablePay && <PayWithRowSkeleton />}
-          <CustomAmountTotals stage={CustomAmountStage.Loading} />
-        </View>
+        {isKeyboard ? (
+          <>
+            {showAccountSelector && (
+              <PayAccountSelector style={styles.separator} />
+            )}
+            {showPayWith && <PayWithRowSkeleton />}
+          </>
+        ) : (
+          <View>
+            {showAccountSelector && <PayAccountSelector />}
+            {showPayWith && <PayWithRowSkeleton />}
+            <CustomAmountTotals stage={CustomAmountStage.Loading} />
+          </View>
+        )}
         {footerText && (
           <Text
             color={TextColor.TextAlternative}
@@ -657,16 +703,27 @@ function CustomAmountInfoFirstFrame({
             {footerText}
           </Text>
         )}
-        <Button
-          isDisabled
-          isFullWidth
-          size={ButtonSize.Lg}
-          style={styles.disabledButton}
-          testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
-          variant={ButtonVariant.Primary}
-        >
-          {strings('confirm.deposit_edit_amount_done')}
-        </Button>
+        {isKeyboard ? (
+          <DepositKeyboard
+            hasMax={hasMax}
+            hidePercentageButtons={hideAccountSelector}
+            onChange={noop}
+            onDonePress={noop}
+            onPercentagePress={noop}
+            value={amountFiat}
+          />
+        ) : (
+          <Button
+            isDisabled
+            isFullWidth
+            size={ButtonSize.Lg}
+            style={styles.disabledButton}
+            testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
+            variant={ButtonVariant.Primary}
+          >
+            {strings('confirm.deposit_edit_amount_done')}
+          </Button>
+        )}
       </View>
     </View>
   );
@@ -682,7 +739,7 @@ export function CustomAmountInfoSkeleton() {
         <PayTokenAmountSkeleton />
       </Box>
       <Box style={styles.bottomBlock}>
-        <PayWithRowSkeleton />
+        <PayWithRowSkeleton noLabel />
         <DepositKeyboardSkeleton />
       </Box>
     </Box>
@@ -751,7 +808,7 @@ export function AdvancedCustomAmountInfoSkeleton() {
         {!hideAccountRows && (
           <>
             <AccountSelectorSkeleton />
-            <PayWithRowSkeleton />
+            <PayWithRowSkeleton noLabel />
           </>
         )}
         <DepositKeyboardSkeleton />

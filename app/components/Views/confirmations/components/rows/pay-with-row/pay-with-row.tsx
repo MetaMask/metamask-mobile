@@ -180,9 +180,7 @@ function PayWithRowInteractive() {
     });
   }, [isDisabled, navigation, preferredPaymentToken, setConfirmationMetric]);
 
-  const label = isWithdraw
-    ? strings('confirm.label.receive_as')
-    : strings('confirm.label.pay_with');
+  const label = usePayWithLabel();
 
   // For withdrawals, default to the primary required token (where funds are going)
   // if no payment token has been explicitly selected.
@@ -343,7 +341,7 @@ function PayWithRowEmpty({
 
 function PayWithRowMoneyAccount() {
   const navigation = useNavigation<AppNavigationProp>();
-  const { isWithdraw } = useTransactionPayWithdraw();
+  const label = usePayWithLabel();
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
@@ -358,15 +356,7 @@ function PayWithRowMoneyAccount() {
   }, [navigation, preferredPaymentToken, setConfirmationMetric]);
 
   return (
-    <PayWithRowLayout
-      label={
-        isWithdraw
-          ? strings('confirm.label.receive_as')
-          : strings('confirm.label.pay_with')
-      }
-      showArrow
-      onPress={handleClick}
-    >
+    <PayWithRowLayout label={label} showArrow onPress={handleClick}>
       <Image source={MoneyIcon} style={styles.moneyIcon} />
       <Text
         variant={TextVariant.BodyMd}
@@ -380,20 +370,40 @@ function PayWithRowMoneyAccount() {
   );
 }
 
-export function PayWithRowSkeleton() {
+export function PayWithRowSkeleton({
+  noLabel = false,
+}: {
+  /** Show a placeholder instead of the label, e.g. before the transaction is known. */
+  noLabel?: boolean;
+} = {}) {
   const { styles } = useStyles(styleSheet, {});
+  const label = usePayWithLabel();
 
   return (
     <Box
       testID="pay-with-row-skeleton"
       twClassName="flex-row items-center justify-between"
-      style={styles.skeletonContainer}
+      style={styles.container}
     >
-      <Skeleton height={18} width={60} style={styles.skeletonTop} />
+      {noLabel ? (
+        <Skeleton height={18} width={60} />
+      ) : (
+        <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
+          {label}
+        </Text>
+      )}
       <Box twClassName="flex-row items-center gap-2">
-        <Skeleton height={32} width={32} style={styles.skeletonCircle} />
-        <Skeleton height={18} width={120} style={styles.skeletonTop} />
+        <Skeleton height={20} width={20} style={styles.skeletonCircle} />
+        <Skeleton height={18} width={120} />
       </Box>
     </Box>
   );
+}
+
+function usePayWithLabel() {
+  const { isWithdraw } = useTransactionPayWithdraw();
+
+  return isWithdraw
+    ? strings('confirm.label.receive_as')
+    : strings('confirm.label.pay_with');
 }
