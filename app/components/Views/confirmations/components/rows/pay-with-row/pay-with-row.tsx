@@ -226,7 +226,7 @@ function PayWithRowInteractive() {
     // Without available tokens the skeleton never resolves (e.g. perps
     // deposit with zero balance and no fiat payment method selected).
     if (!hasAccountNoFunds && hasAvailableTokens) {
-      return <PayWithRowSkeleton label={label} />;
+      return <PayWithRowSkeleton />;
     }
 
     return (
@@ -380,25 +380,19 @@ function PayWithRowMoneyAccount() {
   );
 }
 
-export function PayWithRowSkeleton({ label }: { label?: string } = {}) {
+export function PayWithRowSkeleton() {
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <Box
       testID="pay-with-row-skeleton"
       twClassName="flex-row items-center justify-between"
-      style={styles.container}
+      style={styles.skeletonContainer}
     >
-      {label ? (
-        <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
-          {label}
-        </Text>
-      ) : (
-        <Skeleton height={18} width={60} />
-      )}
+      <Skeleton height={18} width={60} style={styles.skeletonTop} />
       <Box twClassName="flex-row items-center gap-2">
-        <Skeleton height={20} width={20} style={styles.skeletonCircle} />
-        <Skeleton height={18} width={120} />
+        <Skeleton height={32} width={32} style={styles.skeletonCircle} />
+        <Skeleton height={18} width={120} style={styles.skeletonTop} />
       </Box>
     </Box>
   );

@@ -513,22 +513,20 @@ describe('CustomAmountInfo', () => {
       const { getByText, queryByTestId } = render();
 
       expect(
-        queryByTestId('custom-amount-initialization-shell'),
+        queryByTestId('custom-amount-info-first-frame'),
       ).not.toBeOnTheScreen();
       expect(getByText('123.45')).toBeOnTheScreen();
       expect(requestAnimationFrame).not.toHaveBeenCalled();
     });
 
     it('shows account and local placeholders without mounting payment, amount or submit hooks', () => {
-      const { getByTestId, getByText, queryByText } = renderDeferred({
+      const { getByTestId, queryByText } = renderDeferred({
         supportAccountSelection: true,
       });
 
-      expect(
-        getByTestId('custom-amount-initialization-shell'),
-      ).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-info-first-frame')).toBeOnTheScreen();
       expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
-      expect(getByText(strings('confirm.label.pay_with'))).toBeOnTheScreen();
+      expect(getByTestId('pay-with-row-skeleton')).toBeOnTheScreen();
       expect(getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
       expect(
         getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
@@ -552,7 +550,7 @@ describe('CustomAmountInfo', () => {
 
       expect(requestAnimationFrame).toHaveBeenCalledTimes(2);
       expect(
-        queryByTestId('custom-amount-initialization-shell'),
+        queryByTestId('custom-amount-info-first-frame'),
       ).not.toBeOnTheScreen();
       expect(getByText('123.45')).toBeOnTheScreen();
       expect(useTransactionCustomAmountMock).toHaveBeenCalled();
@@ -580,9 +578,7 @@ describe('CustomAmountInfo', () => {
 
       rerender(createDeferredCustomAmountInfo({}, 'next-transaction'));
 
-      expect(
-        getByTestId('custom-amount-initialization-shell'),
-      ).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-info-first-frame')).toBeOnTheScreen();
       expect(useTransactionCustomAmountMock).not.toHaveBeenCalled();
       expect(useAutomaticTransactionPayToken).not.toHaveBeenCalled();
     });

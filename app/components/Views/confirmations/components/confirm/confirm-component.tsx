@@ -60,6 +60,8 @@ const DEFAULT_BOTTOM_SHEET_HEIGHT = 60;
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
+const FIRST_FRAME_TRANSACTION_TYPES = [TransactionType.moneyAccountDeposit];
+
 const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
@@ -146,17 +148,12 @@ const ConfirmWrapped = ({
   route?: UnstakeConfirmationViewProps['route'];
 }) => {
   const transaction = useTransactionMetadataRequest();
-  const isScrollDisabled = hasTransactionType(
-    transaction,
-    TRANSACTION_TYPES_DISABLE_SCROLL,
-  );
+  const isScrollDisabled = useDisableScroll();
 
   return (
     <ConfirmationContextProvider>
       <ConfirmationFirstFrameProvider
-        enabled={hasTransactionType(transaction, [
-          TransactionType.moneyAccountDeposit,
-        ])}
+        enabled={hasTransactionType(transaction, FIRST_FRAME_TRANSACTION_TYPES)}
         transactionId={transaction?.id}
       >
         <ConfirmationAssetPollingProvider>
@@ -459,4 +456,9 @@ function InfoLoader({
       {loader === ConfirmationLoader.Transfer && <FooterSkeleton />}
     </SafeAreaView>
   );
+}
+
+function useDisableScroll() {
+  const transaction = useTransactionMetadataRequest();
+  return hasTransactionType(transaction, TRANSACTION_TYPES_DISABLE_SCROLL);
 }

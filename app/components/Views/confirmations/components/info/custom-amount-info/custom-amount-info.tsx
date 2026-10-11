@@ -619,13 +619,13 @@ function CustomAmountInfoWrapper(props: CustomAmountInfoProps) {
   // input hooks mount with their real settings, so no temporary keyboard/$0
   // state or early user input can be overwritten by delayed selection.
   if (firstFrame && !firstFrame.isFirstFrameComplete) {
-    return <CustomAmountInitializationShell {...props} />;
+    return <CustomAmountInfoFirstFrame {...props} />;
   }
 
   return <CustomAmountInfoInternal {...props} />;
 }
 
-function CustomAmountInitializationShell({
+function CustomAmountInfoFirstFrame({
   disablePay,
   footerText,
   hideAccountSelector,
@@ -635,7 +635,7 @@ function CustomAmountInitializationShell({
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.container} testID="custom-amount-initialization-shell">
+    <View style={styles.container} testID="custom-amount-info-first-frame">
       <View style={styles.inputContainer}>
         <CustomAmountSkeleton />
         {!hidePayTokenAmount && <BalanceProjectionSkeleton />}
@@ -645,9 +645,7 @@ function CustomAmountInitializationShell({
           {supportAccountSelection && !hideAccountSelector && (
             <PayAccountSelector />
           )}
-          {!disablePay && (
-            <PayWithRowSkeleton label={strings('confirm.label.pay_with')} />
-          )}
+          {!disablePay && <PayWithRowSkeleton />}
           <CustomAmountTotals stage={CustomAmountStage.Loading} />
         </View>
         {footerText && (
