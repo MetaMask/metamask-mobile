@@ -89,8 +89,9 @@ const MusdRescueSendScreen = () => {
   const isBalanceUnavailable = isBalanceLoading || isBalanceFetchError;
   const amount = liquidMusd?.toString() ?? '';
 
-  // Resolve the selected recipient by id from route params. Stale or foreign
-  // ids (e.g. after accounts change) resolve to nothing and disable Send.
+  // Resolve the selected recipient by id from route params. The transfer
+  // sheet opens this screen without an id, and a stored id can go stale
+  // after accounts change — both fall back to the first eligible recipient.
   const selectedRecipient = useMemo(
     () =>
       recipients.find((candidate) => candidate.id === params?.recipientId) ??
