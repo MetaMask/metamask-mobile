@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect, useMemo } from 'react';
 import {
   BackHandler,
   StyleProp,
@@ -249,8 +249,12 @@ function ConfirmInternal({
   const { forceBottomSheet, bottomSheetHeightPercentage } =
     useParams<ConfirmationParams>();
   const { height: screenHeight } = useSafeAreaFrame();
-  const { top: screenTopPadding, bottom: screenBottomPadding } =
-    useSafeAreaInsets();
+  const {
+    bottom: screenBottomPadding,
+    left: screenLeftPadding,
+    right: screenRightPadding,
+    top: screenTopPadding,
+  } = useSafeAreaInsets();
   const sheetHeightPercentage =
     bottomSheetHeightPercentage ??
     (forceBottomSheet ? DEFAULT_BOTTOM_SHEET_HEIGHT : undefined);
@@ -284,17 +288,36 @@ function ConfirmInternal({
     navigation.setOptions(options);
   }, [approvalRequest, isFullScreenConfirmation, navigation]);
 
+  // Pad with the window insets rather than a native `SafeAreaView`, which
+  // measures its own position and so applies the bottom inset late while the
+  // screen animates in, shifting the content up after the first frame.
+  const safeAreaStyle = useMemo(
+    () =>
+      disableSafeArea
+        ? undefined
+        : {
+            paddingBottom: screenBottomPadding,
+            paddingLeft: screenLeftPadding,
+            paddingRight: screenRightPadding,
+          },
+    [
+      disableSafeArea,
+      screenBottomPadding,
+      screenLeftPadding,
+      screenRightPadding,
+    ],
+  );
+
   // Show confirmation in a flat container if the confirmation is full screen
   if (isFullScreenConfirmation) {
     return (
-      <SafeAreaView
-        edges={disableSafeArea ? [] : ['right', 'bottom', 'left']}
-        style={[styles.flatContainer, fullscreenStyle]}
+      <View
+        style={[styles.flatContainer, safeAreaStyle, fullscreenStyle]}
         testID={ConfirmationUIType.FLAT}
         onLayout={onFirstPaint}
       >
         <ConfirmWrapped styles={styles} route={route} />
-      </SafeAreaView>
+      </View>
     );
   }
 
