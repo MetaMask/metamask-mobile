@@ -6,10 +6,6 @@ import type { Colors } from '../../../../util/theme/models';
 
 export const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    safeArea: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-    },
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
