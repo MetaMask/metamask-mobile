@@ -52,6 +52,7 @@ import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccoun
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
 import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
+import MoneyClaimableRewardsCard from '../../components/MoneyClaimableRewardsCard/MoneyClaimableRewardsCard';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
@@ -64,6 +65,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
+import {
+  navigateToRewardsEarningsTab,
+  useMoneyHomeClaimableRewards,
+} from '../../hooks/useMoneyHomeClaimableRewards';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import {
@@ -160,6 +165,10 @@ const MoneyHomeView = () => {
   const hasTrackedCardActionRowViewRef = useRef(false);
   const { PreferencesController } = Engine.context;
   const privacyMode = useSelector(selectPrivacyMode);
+  const claimableRewards = useMoneyHomeClaimableRewards();
+  const openClaimEarnings = useCallback(() => {
+    navigateToRewardsEarningsTab(navigation);
+  }, [navigation]);
 
   const {
     trackButtonClicked,
@@ -248,13 +257,20 @@ const MoneyHomeView = () => {
         refreshMusdFiatRate(),
         Promise.resolve(refetchActivity()),
         Engine.context.CardController.fetchCardHomeData({ force: true }),
+        claimableRewards.refresh(),
       ]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
     } finally {
       setRefreshing(false);
     }
-  }, [refetchBalance, refetchInterest, refreshMusdFiatRate, refetchActivity]);
+  }, [
+    claimableRewards.refresh,
+    refetchBalance,
+    refetchInterest,
+    refreshMusdFiatRate,
+    refetchActivity,
+  ]);
 
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
@@ -1130,7 +1146,17 @@ const MoneyHomeView = () => {
         {vbaHomeCard.type !== 'none' && (
           <MoneyVbaHomeCard key={vbaHomeCard.type} variant={vbaHomeCard.type} />
         )}
-        <MoneyOnboardingCard isGlass={isGlass} />
+        <Box twClassName="gap-2">
+          <MoneyOnboardingCard isGlass={isGlass} />
+          {claimableRewards.show && claimableRewards.localizedText ? (
+            <MoneyClaimableRewardsCard
+              localizedText={claimableRewards.localizedText}
+              amount={claimableRewards.amount}
+              privacyMode={privacyMode}
+              onClaim={openClaimEarnings}
+            />
+          ) : null}
+        </Box>
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>
             {index > 0 && <Divider />}

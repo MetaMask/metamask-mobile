@@ -21,6 +21,7 @@ import { MoneyActionButtonRowTestIds } from '../../components/MoneyActionButtonR
 import { MoneyEarningsTestIds } from '../../components/MoneyEarnings/MoneyEarnings.testIds';
 import { MoneyOnboardingCardTestIds } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard.testIds';
 import { MONEY_VBA_HOME_CARD_TEST_IDS } from '../../components/MoneyVbaHomeCard/MoneyVbaHomeCard.testIds';
+import { MoneyClaimableRewardsCardTestIds } from '../../components/MoneyClaimableRewardsCard/MoneyClaimableRewardsCard';
 import { MoneyHowItWorksTestIds } from '../../components/MoneyHowItWorks/MoneyHowItWorks.testIds';
 import { MoneyPotentialEarningsTestIds } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings.testIds';
 import { MoneyMetaMaskCardTestIds } from '../../components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
@@ -927,6 +928,14 @@ describe('MoneyHomeView', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyOnboardingCardTestIds.CONTAINER)).toBeOnTheScreen();
+  });
+
+  it('does not render the claimable rewards card without a referral session', () => {
+    const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    expect(
+      queryByTestId(MoneyClaimableRewardsCardTestIds.CONTAINER),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders the earnings section when its feature flag is enabled', () => {
