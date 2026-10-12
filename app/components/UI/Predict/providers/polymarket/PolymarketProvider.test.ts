@@ -1722,6 +1722,31 @@ describe('PolymarketProvider', () => {
     );
   });
 
+  it('carries the threaded market version on the preview', async () => {
+    const provider = createProvider();
+
+    const preview = await provider.previewOrder({
+      ...basePreview,
+      size: 10,
+      marketVersion: 'v2',
+      signer,
+    });
+
+    expect(preview.marketVersion).toBe('v2');
+  });
+
+  it('omits the market version from the preview when none is threaded', async () => {
+    const provider = createProvider();
+
+    const preview = await provider.previewOrder({
+      ...basePreview,
+      size: 10,
+      signer,
+    });
+
+    expect('marketVersion' in preview).toBe(false);
+  });
+
   it('previews the maximum fully fillable buy through the provider', async () => {
     const provider = createProvider();
 

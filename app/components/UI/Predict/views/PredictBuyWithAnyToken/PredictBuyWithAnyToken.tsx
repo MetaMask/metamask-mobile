@@ -207,6 +207,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     side: Side.BUY,
     size: currentValue,
     autoRefreshTimeout: 1000,
+    marketVersion: outcome.version,
   });
 
   const { maxBetAmount, isLoading: isMaxBetAmountLoading } =

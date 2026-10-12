@@ -192,6 +192,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     side: Side.BUY,
     size: currentValue,
     autoRefreshTimeout: 1000,
+    marketVersion: outcome.version,
   });
 
   const { maxBetAmount, isLoading: isMaxBetAmountLoading } =
@@ -336,11 +337,10 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     predictBuyPreviewOrderInitiatedRef.current = true;
     await placeOrder({
       analyticsProperties,
-      preview: { ...preview, marketVersion: outcome.version },
+      preview,
     });
   }, [
     preview,
-    outcome,
     isBelowMinimum,
     isInsufficientBalance,
     placeOrder,
