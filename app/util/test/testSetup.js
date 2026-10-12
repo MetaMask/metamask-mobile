@@ -776,6 +776,7 @@ jest.mock('@braze/react-native-sdk', () => ({
     addListener: jest.fn(() => ({ remove: jest.fn() })),
     requestBannersRefresh: jest.fn(),
     getBanner: jest.fn().mockResolvedValue(null),
+    dismissBanner: jest.fn(),
     Events: {
       PUSH_NOTIFICATION_EVENT: 'push_notification_event',
       BANNER_CARDS_UPDATED: 'bannerCardsUpdated',

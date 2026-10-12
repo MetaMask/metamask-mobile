@@ -85,6 +85,18 @@ export const usePredictLivePositions = (
             100
           : 0;
 
+      // A non-finite computation (e.g. malformed size/price data) must never
+      // enter the cache: NaN fails the equality guards below on every pass,
+      // which would re-run this effect each render until React aborts with
+      // "Maximum update depth exceeded". Keep the cached values instead.
+      if (
+        !Number.isFinite(liveCurrentValue) ||
+        !Number.isFinite(liveCashPnl) ||
+        !Number.isFinite(livePercentPnl)
+      ) {
+        return position;
+      }
+
       if (
         position.currentValue === liveCurrentValue &&
         position.cashPnl === liveCashPnl &&

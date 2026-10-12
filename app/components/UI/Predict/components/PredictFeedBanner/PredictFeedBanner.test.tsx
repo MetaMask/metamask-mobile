@@ -45,7 +45,6 @@ const createState = (
   },
   banners: {
     dismissedBanners,
-    lastDismissedBrazeBanner: null,
   },
 });
 

@@ -89,6 +89,8 @@ jobs:
       - name: Filter suites by selected_tags
         id: filter
         shell: bash
+        env:
+          SELECTED: ${{ inputs.selected_tags }}
         run: |
           # Full suite list — one entry per shard: {tag, slug, split, total_splits}.
           # Suites with N shards appear N times with split: 1..N.
@@ -123,7 +125,6 @@ jobs:
             {"tag":"SmokeNetworkExpansion",   "slug":"network-expansion",   "split":1,"total_splits":2},
             {"tag":"SmokeNetworkExpansion",   "slug":"network-expansion",   "split":2,"total_splits":2}
           ]'
-          SELECTED='${{ inputs.selected_tags }}'
           if echo "$SELECTED" | jq -e 'contains(["ALL"])' > /dev/null; then
             INCLUDE="$SUITES"
           else

@@ -75,6 +75,7 @@ describe('AuthenticationControllerInit', () => {
         getMetaMetricsId: expect.any(Function),
         getAppVersion: expect.any(Function),
       },
+      trace: expect.any(Function),
     });
   });
 

@@ -69,9 +69,8 @@ jobs:
       - name: Resolve PR number for current branch
         id: resolve-pr
         run: |
-          BRANCH="${{ inputs.source_branch || github.ref_name }}"
           # Strip refs/heads/ if present
-          BRANCH="${BRANCH#refs/heads/}"
+          BRANCH="${SOURCE_BRANCH#refs/heads/}"
           echo "Resolving PR for branch: $BRANCH (repo: $GITHUB_REPOSITORY)"
 
           # Try same-repo head first, then owner:branch (required by API when listing pulls)
@@ -85,6 +84,7 @@ jobs:
           echo "Branch: $BRANCH, PR number: ${PR_NUMBER:-none}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_BRANCH: ${{ inputs.source_branch || github.ref_name }}
 
       - name: Decide OTA context
         id: decide

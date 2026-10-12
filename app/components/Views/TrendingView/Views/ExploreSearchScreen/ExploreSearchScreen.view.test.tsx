@@ -63,7 +63,7 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
       mockRwaTokensData,
       [mockAppleSearchResult],
     );
-    const { findByText, getByDisplayValue } =
+    const { findByTestId, findByText, getByDisplayValue } =
       renderExploreSearchScreenWithRoutes({
         initialParams: {
           initialQuery: 'Apple',
@@ -73,6 +73,7 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
 
     expect(getByDisplayValue('Apple')).toBeOnTheScreen();
 
+    await findByTestId(ExploreSearchScreenSelectorsIDs.SEARCH_RESULTS_LIST);
     expect(await findByText('Apple Token')).toBeOnTheScreen();
   });
 

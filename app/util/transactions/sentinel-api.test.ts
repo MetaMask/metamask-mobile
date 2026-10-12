@@ -8,6 +8,7 @@ import {
   clearSentinelNetworkCache,
   setSentinelApiAuth,
   getSentinelApiHeadersAsync,
+  getSentinelSigners,
 } from './sentinel-api';
 
 const fetchMock = jest.fn();
@@ -160,6 +161,55 @@ describe('sentinel-api', () => {
       await expect(getSentinelNetworkFlags('0x1' as Hex)).rejects.toThrow(
         'Sentinel: API connection error',
       );
+    });
+  });
+
+  describe('getSentinelSigners', () => {
+    const SIGNERS_MOCK: Hex[] = [
+      '0xB01caEa8c6C47bbf4F4b4c5080Ca642043359C2E',
+      '0xB42F812A44c22cc6b861478900401ee759EbEAD6',
+    ];
+
+    it('returns the cubist signers for the chain', async () => {
+      fetchMock.mockResolvedValueOnce({
+        json: async () => ({
+          ...MOCK_NETWORKS,
+          '1': { ...MAINNET_BASE, cubistSigners: SIGNERS_MOCK },
+        }),
+        ok: true,
+      } as Response);
+
+      expect(await getSentinelSigners('0x1')).toStrictEqual(SIGNERS_MOCK);
+    });
+
+    it('returns an empty array if cubist signers are missing', async () => {
+      fetchMock.mockResolvedValueOnce({
+        json: async () => MOCK_NETWORKS,
+        ok: true,
+      } as Response);
+
+      expect(await getSentinelSigners('0x1')).toStrictEqual([]);
+    });
+
+    it('returns an empty array if cubist signers is not an array', async () => {
+      fetchMock.mockResolvedValueOnce({
+        json: async () => ({
+          ...MOCK_NETWORKS,
+          '1': { ...MAINNET_BASE, cubistSigners: 'invalid' },
+        }),
+        ok: true,
+      } as Response);
+
+      expect(await getSentinelSigners('0x1')).toStrictEqual([]);
+    });
+
+    it('returns an empty array if the chain is not supported', async () => {
+      fetchMock.mockResolvedValueOnce({
+        json: async () => MOCK_NETWORKS,
+        ok: true,
+      } as Response);
+
+      expect(await getSentinelSigners('0xFAFA' as Hex)).toStrictEqual([]);
     });
   });
 
