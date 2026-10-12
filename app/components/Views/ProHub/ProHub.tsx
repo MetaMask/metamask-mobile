@@ -231,7 +231,7 @@ const ProHub = () => {
 
           <PhysicalCardBanner
             onPress={isTrialing ? undefined : handleGetCard}
-            isTrialing={isTrialing}
+            isSubscriptionTrialing={isTrialing}
             cashbackRate={formatPercent(MOCK_PRO_HUB_STATS.musdBackRate)}
           />
 

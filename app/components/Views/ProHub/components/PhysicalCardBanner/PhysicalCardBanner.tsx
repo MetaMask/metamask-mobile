@@ -19,19 +19,19 @@ import { ProHubTestIds } from '../../ProHub.testIds';
 
 interface PhysicalCardBannerProps {
   onPress?: () => void;
-  isTrialing?: boolean;
+  isSubscriptionTrialing?: boolean;
   cashbackRate: string;
 }
 
 const PhysicalCardBanner = ({
   onPress,
-  isTrialing = false,
+  isSubscriptionTrialing = false,
   cashbackRate,
 }: PhysicalCardBannerProps) => {
-  const title = isTrialing
+  const title = isSubscriptionTrialing
     ? strings('pro_hub.physical_card.trial_title', { rate: cashbackRate })
     : strings('pro_hub.physical_card.title');
-  const description = isTrialing
+  const description = isSubscriptionTrialing
     ? strings('pro_hub.physical_card.trial_description')
     : strings('pro_hub.physical_card.description');
 
@@ -62,7 +62,7 @@ const PhysicalCardBanner = ({
           </Text>
         </Box>
 
-        {isTrialing ? null : (
+        {isSubscriptionTrialing ? null : (
           <Icon
             name={IconName.ArrowRight}
             size={IconSize.Sm}
@@ -74,7 +74,7 @@ const PhysicalCardBanner = ({
     </Card>
   );
 
-  if (isTrialing || onPress === undefined) {
+  if (isSubscriptionTrialing || onPress === undefined) {
     return (
       <Box
         accessible

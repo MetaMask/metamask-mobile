@@ -258,9 +258,7 @@ export const selectMoneyAccountPlusSubscription = (
  * @returns Whether Plus is currently in a trial.
  */
 export const selectIsMoneyAccountPlusTrialing = createSelector(
-  selectSubscriptions,
-  (subscriptions): boolean =>
-    subscriptions.find((subscription) =>
-      hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS),
-    )?.status === SUBSCRIPTION_STATUSES.trialing,
+  selectMoneyAccountPlusSubscription,
+  (subscription): boolean =>
+    subscription?.status === SUBSCRIPTION_STATUSES.trialing,
 );
