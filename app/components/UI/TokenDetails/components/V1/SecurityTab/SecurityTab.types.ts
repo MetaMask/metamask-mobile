@@ -29,6 +29,18 @@ export type ContractCheckKey =
   (typeof ContractCheckKey)[keyof typeof ContractCheckKey];
 
 /**
+ * The four checks in render order, which the declaration order above fixes.
+ *
+ * Derived rather than written out a second time. The tab, the Contract
+ * security screen and `resolveSecurityChecks` all iterate this one list, so
+ * the order they render in and the order they are resolved in cannot drift —
+ * an earlier revision kept a separate array in `SecurityTab.constants.ts` that
+ * happened to agree with the rule table, with nothing holding it there.
+ */
+export const CONTRACT_CHECK_KEYS: readonly ContractCheckKey[] =
+  Object.values(ContractCheckKey);
+
+/**
  * Whether a check passed, failed, or could not be determined.
  *
  * `unknown` is a first-class outcome, not an error: ASSETS-4022 requires a gray

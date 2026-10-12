@@ -14,17 +14,17 @@ import SecurityRow from './components/SecurityRow';
 import {
   CHECK_OUTCOME_PRESENTATION,
   SECURITY_CHECK_LABEL_KEYS,
-  SECURITY_CONTRACT_CHECKS,
   SECURITY_SECTIONS,
   SECURITY_STAT_LABEL_KEYS,
   type SecurityStatRowKey,
 } from './SecurityTab.constants';
 import { SecurityTabSelectors } from './SecurityTab.testIds';
-import type {
-  ContractCheckKey,
-  SecurityCheck,
-  SecurityFacts,
-  SecurityRowKey,
+import {
+  CONTRACT_CHECK_KEYS,
+  type ContractCheckKey,
+  type SecurityCheck,
+  type SecurityFacts,
+  type SecurityRowKey,
 } from './SecurityTab.types';
 
 export interface SecurityTabProps {
@@ -229,7 +229,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
           twClassName="px-0 pb-3 pt-0"
           testID={SecurityTabSelectors.CONTRACT_DETAILS_LINK}
         />
-        {SECURITY_CONTRACT_CHECKS.map((checkKey) => (
+        {CONTRACT_CHECK_KEYS.map((checkKey) => (
           <CheckRow
             key={checkKey}
             checkKey={checkKey}

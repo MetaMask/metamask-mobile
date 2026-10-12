@@ -9,8 +9,10 @@ import {
 import ContractSecurityScreen from './ContractSecurityScreen';
 import { ContractSecuritySelectors } from './ContractSecurityScreen.testIds';
 import { STAT_EMPTY_VALUE } from '../../../constants/tokenStats';
-import { SECURITY_CONTRACT_CHECKS } from '../SecurityTab/SecurityTab.constants';
-import { ContractCheckKey } from '../SecurityTab/SecurityTab.types';
+import {
+  CONTRACT_CHECK_KEYS,
+  ContractCheckKey,
+} from '../SecurityTab/SecurityTab.types';
 
 const mockGoBack = jest.fn();
 
@@ -67,13 +69,13 @@ describe('ContractSecurityScreen', () => {
 
     expect(
       group.getAllByTestId(ContractSecuritySelectors.DIVIDER),
-    ).toHaveLength(SECURITY_CONTRACT_CHECKS.length - 1);
+    ).toHaveLength(CONTRACT_CHECK_KEYS.length - 1);
   });
 
   it('renders the four checks, each with its definition', () => {
     const { getByTestId } = renderScreen(CBXRP_VERIFIED);
 
-    for (const checkKey of SECURITY_CONTRACT_CHECKS) {
+    for (const checkKey of CONTRACT_CHECK_KEYS) {
       expect(
         getByTestId(ContractSecuritySelectors.rowDescription(checkKey)),
       ).not.toHaveTextContent(/\[missing/iu);
@@ -90,7 +92,7 @@ describe('ContractSecurityScreen', () => {
       .map((row) => row.props.testID);
 
     expect(renderedOrder).toStrictEqual(
-      SECURITY_CONTRACT_CHECKS.map(ContractSecuritySelectors.row),
+      CONTRACT_CHECK_KEYS.map(ContractSecuritySelectors.row),
     );
   });
 

@@ -14,12 +14,10 @@ import {
 import { deriveSecurityFacts } from '../../../utils/securityFacts';
 import { TokenExplainerSheetSelectors } from '../TokenExplainerSheet/TokenExplainerSheet.testIds';
 import SecurityTab from './SecurityTab';
-import {
-  EXPLAINER_KEYS_BY_ROW,
-  SECURITY_CONTRACT_CHECKS,
-} from './SecurityTab.constants';
+import { EXPLAINER_KEYS_BY_ROW } from './SecurityTab.constants';
 import { SecurityTabSelectors } from './SecurityTab.testIds';
 import {
+  CONTRACT_CHECK_KEYS,
   ContractCheckKey,
   type SecurityCheck,
   type SecurityRowKey,
@@ -177,7 +175,7 @@ describe('SecurityTab', () => {
       (_label, facts, stats) => {
         const { getByTestId } = renderTab({ facts, stats });
 
-        for (const checkKey of SECURITY_CONTRACT_CHECKS) {
+        for (const checkKey of CONTRACT_CHECK_KEYS) {
           expect(
             getByTestId(SecurityTabSelectors.row(checkKey)),
           ).toBeOnTheScreen();

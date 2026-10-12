@@ -31,11 +31,11 @@ import {
   CHECK_OUTCOME_PRESENTATION,
   SECURITY_CHECK_DESCRIPTION_KEYS,
   SECURITY_CHECK_LABEL_KEYS,
-  SECURITY_CONTRACT_CHECKS,
 } from '../SecurityTab/SecurityTab.constants';
-import type {
-  ContractCheckKey,
-  SecurityCheck,
+import {
+  CONTRACT_CHECK_KEYS,
+  type ContractCheckKey,
+  type SecurityCheck,
 } from '../SecurityTab/SecurityTab.types';
 import SecurityDetailRow from './components/SecurityDetailRow';
 import { ContractSecuritySelectors } from './ContractSecurityScreen.testIds';
@@ -43,8 +43,8 @@ import { ContractSecuritySelectors } from './ContractSecurityScreen.testIds';
 /**
  * One group of checks, rendered as rows with their definitions printed.
  *
- * `checkKeys` drives the order so the group's membership lives in
- * `SecurityTab.constants` beside the tab's own list, not inside this JSX.
+ * `checkKeys` drives the order so the group's membership comes from
+ * `CONTRACT_CHECK_KEYS`, which the tab renders from too, rather than this JSX.
  *
  * The group owns the spacing between its rows as well as the order. A
  * `SectionDivider` sits in each gap, and its default 20px margins give the
@@ -230,7 +230,7 @@ export const ContractSecurityScreen: React.FC = () => {
               title already names them, and a second "Contract" immediately
               under it would read as a nested section. */}
           <CheckGroup
-            checkKeys={SECURITY_CONTRACT_CHECKS}
+            checkKeys={CONTRACT_CHECK_KEYS}
             checks={facts.checks}
             testID={ContractSecuritySelectors.SECTION_CONTRACT}
             twClassName="pb-6"

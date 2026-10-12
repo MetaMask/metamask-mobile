@@ -41,20 +41,6 @@ export const CHECK_OUTCOME_PRESENTATION: Record<
 };
 
 /**
- * The four contract checks, in render order.
- *
- * Shown on the Security tab under the Contract heading, and repeated at the
- * top of the Contract security screen. See `ContractCheckKey` for why the list
- * no longer varies by chain.
- */
-export const SECURITY_CONTRACT_CHECKS: readonly ContractCheckKey[] = [
-  ContractCheckKey.NoHoneypot,
-  ContractCheckKey.ContractVerified,
-  ContractCheckKey.Renounced,
-  ContractCheckKey.NoBlacklist,
-];
-
-/**
  * Which stats each section lists, in render order.
  *
  * The tab's whole row layout. Sections keep their own JSX because Holders

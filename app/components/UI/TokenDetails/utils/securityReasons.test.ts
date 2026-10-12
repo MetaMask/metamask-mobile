@@ -3,7 +3,7 @@ import {
   ETHOS_WARNING,
   feature,
 } from './__fixtures__/securityData';
-import { CONTRACT_CHECK_FEATURE_IDS } from './securityChecks';
+import { CONTRACT_CHECK_FEATURE_IDS } from './securityFacts';
 import { countSecurityFlags, resolveSecurityReasons } from './securityReasons';
 
 describe('resolveSecurityReasons', () => {
