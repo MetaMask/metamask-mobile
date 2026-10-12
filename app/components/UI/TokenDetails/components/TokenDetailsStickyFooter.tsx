@@ -480,6 +480,15 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     }),
     [colors.background.default, traderPositionPnl?.isExpanded],
   );
+  const legacyFooterStyle = useMemo(
+    () => ({
+      backgroundColor: colors.background.default,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: skipBottomInset ? 4 : insets.bottom + 6,
+    }),
+    [colors.background.default, insets.bottom, skipBottomInset],
+  );
   const bottomSheetStyle = useMemo(
     () => ({
       borderTopColor: colors.border.muted,
@@ -695,34 +704,37 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     </>
   );
 
+  const traderPositionFooter = traderPositionPnl ? (
+    <BottomSheetDialog
+      testID="token-details-sticky-footer"
+      isInteractable={false}
+      style={bottomSheetStyle}
+    >
+      <GestureDetector gesture={sheetGesture}>
+        <View testID="token-details-sticky-footer-surface" style={footerStyle}>
+          {isTraderPositionExpanded && (
+            <Box
+              testID="token-details-trader-position-pnl-handle"
+              twClassName="absolute inset-x-0 top-1 z-10 items-center"
+            >
+              <Box twClassName="h-1 w-10 rounded-sm bg-border-muted" />
+            </Box>
+          )}
+          {positionContent}
+          {footerActions}
+        </View>
+      </GestureDetector>
+    </BottomSheetDialog>
+  ) : (
+    <View style={legacyFooterStyle}>{footerActions}</View>
+  );
+
   return (
     <>
       {isTraderPositionExpanded && (
         <BottomSheetOverlay testID="token-details-trader-position-pnl-overlay" />
       )}
-      <BottomSheetDialog
-        testID="token-details-sticky-footer"
-        isInteractable={false}
-        style={bottomSheetStyle}
-      >
-        <GestureDetector gesture={sheetGesture}>
-          <View
-            testID="token-details-sticky-footer-surface"
-            style={footerStyle}
-          >
-            {isTraderPositionExpanded && (
-              <Box
-                testID="token-details-trader-position-pnl-handle"
-                twClassName="absolute inset-x-0 top-1 z-10 items-center"
-              >
-                <Box twClassName="h-1 w-10 rounded-sm bg-border-muted" />
-              </Box>
-            )}
-            {positionContent}
-            {footerActions}
-          </View>
-        </GestureDetector>
-      </BottomSheetDialog>
+      {traderPositionFooter}
       <RwaUnavailableBottomSheet ref={rwaUnavailableSheetRef} />
       {networkModal}
     </>

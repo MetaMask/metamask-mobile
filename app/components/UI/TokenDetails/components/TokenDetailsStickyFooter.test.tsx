@@ -150,15 +150,14 @@ describe('TokenDetailsStickyFooter', () => {
   });
 
   describe('button visibility', () => {
-    it('renders the footer inside the bottom sheet dialog', () => {
-      const { getByTestId } = render(
+    it('renders the legacy footer in flow without the bottom sheet dialog', () => {
+      const { getByTestId, queryByTestId } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
 
-      expect(getByTestId('token-details-sticky-footer')).toBeOnTheScreen();
-      expect(
-        getByTestId('token-details-sticky-footer-surface'),
-      ).toBeOnTheScreen();
+      expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
+      expect(queryByTestId('token-details-sticky-footer')).toBeNull();
+      expect(queryByTestId('token-details-sticky-footer-surface')).toBeNull();
     });
 
     it('renders the trader position header above the footer actions', () => {
