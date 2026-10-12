@@ -25,7 +25,6 @@ import {
   limitOrderPriceAdjustReducer,
 } from '../../reducers/limitOrderPriceAdjustReducer';
 import {
-  LIMIT_ORDER_CUSTOM_PERCENT_MAX,
   LIMIT_ORDER_NEAR_MARKET_PERCENT,
   LimitOrderExecutionType,
 } from '../../constants/limitOrders';
@@ -132,17 +131,8 @@ export const useSwapsLimitOrderPriceAdjust = ({
       return;
     }
 
-    // Cap the custom percent offset, discarding any larger value the user typed.
-    const cappedMagnitude = magnitude.isGreaterThan(
-      LIMIT_ORDER_CUSTOM_PERCENT_MAX,
-    )
-      ? new BigNumber(LIMIT_ORDER_CUSTOM_PERCENT_MAX)
-      : magnitude;
-
     const nextLimitPrice = getLimitPriceFromSignedPercent(
-      isSell
-        ? cappedMagnitude.toNumber()
-        : cappedMagnitude.negated().toNumber(),
+      isSell ? magnitude.toNumber() : magnitude.negated().toNumber(),
     );
     if (nextLimitPrice === undefined) {
       return;
@@ -152,8 +142,8 @@ export const useSwapsLimitOrderPriceAdjust = ({
     dispatch({
       type: 'commitCustomPercent',
       limitPrice: nextLimitPrice,
-      isTrackingMarket: cappedMagnitude.isZero(),
-      customValue: cappedMagnitude.toString(),
+      isTrackingMarket: magnitude.isZero(),
+      customValue: magnitude.toString(),
     });
   }, [customValue, getLimitPriceFromSignedPercent, isCustomActive, isSell]);
 

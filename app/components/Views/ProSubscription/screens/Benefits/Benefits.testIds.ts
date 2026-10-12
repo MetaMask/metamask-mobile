@@ -9,6 +9,7 @@ export const BenefitsTestIds = {
   PLAN_CARD_SKELETON: 'benefits-plan-card-skeleton',
   CTA_BUTTON: 'benefits-cta-button',
   FREE_TRIAL_DESCRIPTION: 'benefits-free-trial-description',
+  JOIN_ERROR: 'benefits-join-error',
   TEST_CLOCKS_CHECKBOX: 'benefits-test-clocks-checkbox',
   BENEFIT_DETAILS_CONTAINER: 'benefits-details-container',
   PRICING_LOADING: 'benefits-pricing-loading',
