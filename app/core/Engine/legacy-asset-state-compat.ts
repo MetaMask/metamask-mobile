@@ -27,8 +27,8 @@ import { RootExtendedMessenger, RootMessenger } from './types';
 export function registerLegacyAssetControllerStateCompat(
   rootMessenger: RootExtendedMessenger,
 ) {
-  // Used by `@metamask/bridge-controller` (quotes), `TokenSearchDiscoveryDataController`
-  // (`@metamask/assets-controllers`) and the `snap_getPreferences` handler in this repo.
+  // Used by `TokenSearchDiscoveryDataController` (`@metamask/assets-controllers`),
+  // e.g. `fetchTokenDisplayData` called from `useEarnToken`.
   new Messenger<
     'CurrencyRateController',
     CurrencyRateControllerGetStateAction,

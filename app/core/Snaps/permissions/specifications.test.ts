@@ -17,6 +17,14 @@ jest.mock('@metamask/snaps-rpc-methods', () => ({
   buildSnapRestrictedMethodSpecifications: jest.fn(() => ({})),
 }));
 
+jest.mock('../../../store', () => ({
+  store: { getState: () => ({}) },
+}));
+
+jest.mock('../../../selectors/assets/assets-migration', () => ({
+  getCurrencyRateControllerCurrentCurrency: jest.fn(() => 'eur'),
+}));
+
 const MOCK_SNAP_ID = 'npm:@metamask/test-snap' as SnapId;
 const MOCK_MESSAGE: SnapMessage = { method: 'keyring_createAccount' };
 
@@ -123,6 +131,35 @@ describe('getSnapPermissionSpecifications', () => {
       );
 
       expect(result).toBe(expectedResult);
+    });
+  });
+
+  describe('getPreferences', () => {
+    it('returns the selected currency from AssetsController', () => {
+      const messenger = getMessenger();
+      messenger.registerActionHandler(
+        'PreferencesController:getState',
+        () =>
+          ({
+            privacyMode: true,
+            showTestNetworks: false,
+          }) as ReturnType<
+            Extract<
+              SnapPermissionSpecificationsActions,
+              { type: 'PreferencesController:getState' }
+            >['handler']
+          >,
+      );
+
+      getSnapPermissionSpecifications(messenger);
+
+      const { getPreferences } = getCapturedOptions() as {
+        getPreferences: () => { currency: string; hideBalances: boolean };
+      };
+      expect(getPreferences()).toMatchObject({
+        currency: 'eur',
+        hideBalances: true,
+      });
     });
   });
 });

@@ -3,7 +3,6 @@ import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-rpc-methods';
-import { ControllerGetStateAction } from '@metamask/base-controller';
 import { Messenger } from '@metamask/messenger';
 import {
   SnapControllerClearSnapStateAction,
@@ -16,7 +15,6 @@ import {
   SnapInterfaceControllerUpdateInterfaceAction,
   SnapControllerUpdateSnapStateAction,
 } from '@metamask/snaps-controllers';
-import { CurrencyRateController } from '@metamask/assets-controllers';
 import {
   KeyringControllerGetStateAction,
   KeyringControllerUnlockEvent,
@@ -31,6 +29,8 @@ import { HasPermission } from '@metamask/permission-controller';
 import { hmacSha512 } from '@metamask/native-utils';
 import { pbkdf2 } from '../../Encryptor';
 import I18n from '../../../../locales/i18n';
+import { store } from '../../../store';
+import { getCurrencyRateControllerCurrentCurrency } from '../../../selectors/assets/assets-migration';
 import { ExcludedSnapEndowments, ExcludedSnapPermissions } from './permissions';
 import { SnapMessage } from '@metamask/eth-snap-keyring';
 import { SnapId } from '@metamask/snaps-sdk';
@@ -39,10 +39,6 @@ import { SnapAccountServiceHandleKeyringSnapMessageAction } from '@metamask/snap
 export type SnapPermissionSpecificationsActions =
   | ApprovalControllerAddRequestAction
   | SnapControllerClearSnapStateAction
-  | ControllerGetStateAction<
-      'CurrencyRateController',
-      CurrencyRateController['state']
-    >
   | SnapInterfaceControllerCreateInterfaceAction
   | SnapInterfaceControllerGetInterfaceAction
   | SnapControllerGetSnapAction
@@ -103,8 +99,8 @@ export const getSnapPermissionSpecifications = (
           isMultiAccountBalancesEnabled,
           showTestNetworks,
         } = messenger.call('PreferencesController:getState');
-        const { currentCurrency } = messenger.call(
-          'CurrencyRateController:getState',
+        const currentCurrency = getCurrencyRateControllerCurrentCurrency(
+          store.getState(),
         );
 
         const locale = I18n.locale;
