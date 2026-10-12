@@ -9,21 +9,10 @@ jest.mock('../../store', () => ({
 }));
 
 jest.mock('../../selectors/assets/assets-migration', () => ({
-  getAccountTrackerControllerAccountsByChainId: jest.fn(() => ({
-    '0x1': { '0xabc': { balance: '0x1' } },
-  })),
   getCurrencyRateControllerCurrentCurrency: jest.fn(() => 'eur'),
   getCurrencyRateControllerCurrencyRates: jest.fn(() => ({
     ETH: { conversionRate: 2 },
   })),
-  getTokenBalancesControllerTokenBalances: jest.fn(() => ({
-    '0xabc': { '0x1': { '0xdef': '0x5' } },
-  })),
-  getTokenRatesControllerMarketData: jest.fn(() => ({
-    '0x1': { '0xdef': { price: 1 } },
-  })),
-  getTokensControllerAllTokens: jest.fn(() => ({ '0x1': { '0xabc': [] } })),
-  getTokensControllerAllIgnoredTokens: jest.fn(() => ({ '0x1': {} })),
   getMultiChainAssetsControllerAccountsAssets: jest.fn(() => ({
     id: ['solana:1/slip44:501'],
   })),
@@ -44,15 +33,6 @@ const callAction = (
 ) => messenger.call(action);
 
 describe('registerLegacyAssetControllerStateCompat', () => {
-  it('serves AccountTrackerController:getState', () => {
-    const root = createRoot();
-    registerLegacyAssetControllerStateCompat(root as RootExtendedMessenger);
-
-    expect(callAction(root, 'AccountTrackerController:getState')).toStrictEqual(
-      { accountsByChainId: { '0x1': { '0xabc': { balance: '0x1' } } } },
-    );
-  });
-
   it('serves CurrencyRateController:getState', () => {
     const root = createRoot();
     registerLegacyAssetControllerStateCompat(root as RootExtendedMessenger);
@@ -60,35 +40,6 @@ describe('registerLegacyAssetControllerStateCompat', () => {
     expect(callAction(root, 'CurrencyRateController:getState')).toStrictEqual({
       currentCurrency: 'eur',
       currencyRates: { ETH: { conversionRate: 2 } },
-    });
-  });
-
-  it('serves TokenBalancesController:getState', () => {
-    const root = createRoot();
-    registerLegacyAssetControllerStateCompat(root as RootExtendedMessenger);
-
-    expect(callAction(root, 'TokenBalancesController:getState')).toStrictEqual({
-      tokenBalances: { '0xabc': { '0x1': { '0xdef': '0x5' } } },
-    });
-  });
-
-  it('serves TokenRatesController:getState', () => {
-    const root = createRoot();
-    registerLegacyAssetControllerStateCompat(root as RootExtendedMessenger);
-
-    expect(callAction(root, 'TokenRatesController:getState')).toStrictEqual({
-      marketData: { '0x1': { '0xdef': { price: 1 } } },
-    });
-  });
-
-  it('serves TokensController:getState with empty detected tokens', () => {
-    const root = createRoot();
-    registerLegacyAssetControllerStateCompat(root as RootExtendedMessenger);
-
-    expect(callAction(root, 'TokensController:getState')).toStrictEqual({
-      allTokens: { '0x1': { '0xabc': [] } },
-      allIgnoredTokens: { '0x1': {} },
-      allDetectedTokens: {},
     });
   });
 

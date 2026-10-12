@@ -33,22 +33,15 @@ import {
   TokenSearchDiscoveryDataControllerEvents,
   CodefiTokenPricesServiceV2,
   ///: END:ONLY_INCLUDE_IF
-  // The 9 legacy asset controllers below (AccountTracker, CurrencyRate,
-  // TokenBalances, TokenRates, Tokens) are no longer constructed by the
-  // Engine — `AssetsController` is the sole source of truth. Some
-  // external controllers (TransactionPayController, TokenSearchDiscoveryDataController,
-  // BridgeController) still declare these `:getState` actions in their
-  // messenger's allowed-actions union, so the action *types* are kept here
-  // and backed by a compatibility shim (see `legacy-asset-state-compat.ts`)
-  // that derives the same shape from `AssetsController` state.
+  // The legacy asset controllers are no longer built by the Engine. These
+  // action types stay because external messenger unions still reference them;
+  // only CurrencyRate and MultichainAssets have handlers
+  // (see `legacy-asset-state-compat.ts`).
   type AccountTrackerControllerGetStateAction,
   // Some external messengers (e.g. TransactionControllerInitMessenger) declare
   // the full `CurrencyRateControllerActions` union (get + set/update methods)
   // rather than just the getState action, so the broader type is kept here too.
   type CurrencyRateControllerActions,
-  type TokenBalancesControllerGetStateAction,
-  type TokenRatesControllerGetStateAction,
-  type TokensControllerGetStateAction,
   type MultichainAssetsControllerGetStateAction,
   // Compat events: never actually published (no controller instance exists to
   // emit them), but required by external messenger type unions (e.g.
@@ -679,13 +672,9 @@ export type GlobalActions =
   | SamplePetnamesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AssetsControllerActions
-  // Compat actions for the removed legacy asset controllers, backed by
-  // `legacy-asset-state-compat.ts`. See the import above for context.
+  // Legacy asset controller actions. See the import above for context.
   | AccountTrackerControllerGetStateAction
   | CurrencyRateControllerActions
-  | TokenBalancesControllerGetStateAction
-  | TokenRatesControllerGetStateAction
-  | TokensControllerGetStateAction
   | MultichainAssetsControllerGetStateAction
   | NftControllerActions
   | AddressBookControllerActions
