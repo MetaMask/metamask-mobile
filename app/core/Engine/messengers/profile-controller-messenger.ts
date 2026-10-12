@@ -5,13 +5,6 @@ import {
 } from '@metamask/messenger';
 import type { ProfileControllerMessenger } from '@metamask/profile-controller';
 import type { RootMessenger } from '../types';
-
-/**
- * Get the messenger for the ProfileController.
- *
- * @param rootMessenger - The root messenger.
- * @returns The ProfileControllerMessenger.
- */
 export function getProfileControllerMessenger(
   rootMessenger: RootMessenger,
 ): ProfileControllerMessenger {
@@ -24,7 +17,6 @@ export function getProfileControllerMessenger(
     namespace: 'ProfileController',
     parent: rootMessenger,
   });
-
   rootMessenger.delegate({
     messenger: controllerMessenger,
     actions: [
@@ -37,6 +29,5 @@ export function getProfileControllerMessenger(
       'ProfileService:getXAccount',
     ],
   });
-
   return controllerMessenger;
 }
