@@ -1,10 +1,15 @@
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { AB_TEST_ANALYTICS_MAPPINGS } from '../../../util/analytics/abTestAnalyticsRegistry';
 import {
   BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
   BUTTON_COLOR_VARIANTS,
   ButtonColorVariant,
   PERPS_BUTTON_COLOR_AB_TEST_KEY,
+  PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING,
+  PERPS_HOME_EXPLORE_AB_TEST_KEY,
+  PERPS_HOME_EXPLORE_VARIANTS,
   PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
+  PerpsHomeExploreVariant,
   SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING,
   SCREEN_VS_BOTTOM_SHEET_VARIANTS,
   ScreenVsBottomSheetVariant,
@@ -121,6 +126,70 @@ describe('Perps abTestConfig', () => {
         EVENT_NAME.PERPS_TRADE_QUOTE_RECEIVED,
         EVENT_NAME.PERPS_TRADE_TRANSACTION,
       ]);
+    });
+  });
+
+  describe('PERPS_HOME_EXPLORE_AB_TEST_KEY', () => {
+    it('follows the {team}{TICKET}Abtest{TestName} naming convention', () => {
+      expect(PERPS_HOME_EXPLORE_AB_TEST_KEY).toBe(
+        'tatTAT3793AbtestPerpsHomeExplore',
+      );
+      expect(PERPS_HOME_EXPLORE_AB_TEST_KEY).toMatch(
+        /^[a-z][A-Za-z0-9]*[A-Z]{2,}[0-9]+Abtest[A-Z][A-Za-z0-9]*$/,
+      );
+    });
+  });
+
+  describe('PERPS_HOME_EXPLORE_VARIANTS', () => {
+    it('includes a control variant', () => {
+      expect(PERPS_HOME_EXPLORE_VARIANTS).toHaveProperty(
+        PerpsHomeExploreVariant.Control,
+      );
+    });
+
+    it('maps control to the stacked sections', () => {
+      expect(
+        PERPS_HOME_EXPLORE_VARIANTS[PerpsHomeExploreVariant.Control],
+      ).toEqual({ showExploreTable: false });
+    });
+
+    it('maps treatment to the explore table', () => {
+      expect(
+        PERPS_HOME_EXPLORE_VARIANTS[PerpsHomeExploreVariant.Treatment],
+      ).toEqual({ showExploreTable: true });
+    });
+  });
+
+  describe('PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING', () => {
+    it('references the explore flag key', () => {
+      expect(PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING.flagKey).toBe(
+        PERPS_HOME_EXPLORE_AB_TEST_KEY,
+      );
+    });
+
+    it('declares control and treatment as valid variants', () => {
+      expect(
+        PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING.validVariants,
+      ).toEqual([
+        PerpsHomeExploreVariant.Control,
+        PerpsHomeExploreVariant.Treatment,
+      ]);
+    });
+
+    it('registers the home, trade, watchlist, and error events', () => {
+      expect(PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING.eventNames).toEqual([
+        EVENT_NAME.PERPS_SCREEN_VIEWED,
+        EVENT_NAME.PERPS_UI_INTERACTION,
+        EVENT_NAME.PERPS_TRANSACTION_CONSIDERED,
+        EVENT_NAME.PERPS_TRADE_TRANSACTION,
+        EVENT_NAME.PERPS_ERROR,
+      ]);
+    });
+
+    it('is registered for shared-path active_ab_tests enrichment', () => {
+      expect(AB_TEST_ANALYTICS_MAPPINGS).toContain(
+        PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING,
+      );
     });
   });
 });

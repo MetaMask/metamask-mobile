@@ -101,3 +101,56 @@ export const SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMa
       EVENT_NAME.PERPS_TRADE_TRANSACTION,
     ],
   };
+
+/**
+ * TAT-3793: Perps home Explore table.
+ *
+ * Control keeps the stacked Watchlist, Products, and category sections.
+ * Treatment replaces those six sections with one tabbed Explore table.
+ *
+ * Dark-launch the LaunchDarkly JSON flag at 100% control (control threshold
+ * `1`, treatment threshold `0`), then move to 50/50. Missing, invalid, or
+ * unresolved assignments fall back to `control` inside `useABTest`.
+ *
+ * Consume via `usePerpsHomeExploreAbTest()` — do not read the raw flag.
+ */
+export const PERPS_HOME_EXPLORE_AB_TEST_KEY =
+  'tatTAT3793AbtestPerpsHomeExplore';
+
+export enum PerpsHomeExploreVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export interface PerpsHomeExploreVariantConfig {
+  showExploreTable: boolean;
+}
+
+export const PERPS_HOME_EXPLORE_VARIANTS: Record<
+  PerpsHomeExploreVariant,
+  PerpsHomeExploreVariantConfig
+> = {
+  [PerpsHomeExploreVariant.Control]: { showExploreTable: false },
+  [PerpsHomeExploreVariant.Treatment]: { showExploreTable: true },
+};
+
+export const PERPS_HOME_EXPLORE_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Home Explore Table',
+  variationNames: {
+    control: 'Stacked sections',
+    treatment: 'Explore table',
+  },
+} as const;
+
+export const PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: PERPS_HOME_EXPLORE_AB_TEST_KEY,
+    validVariants: Object.values(PerpsHomeExploreVariant),
+    eventNames: [
+      EVENT_NAME.PERPS_SCREEN_VIEWED,
+      EVENT_NAME.PERPS_UI_INTERACTION,
+      EVENT_NAME.PERPS_TRANSACTION_CONSIDERED,
+      EVENT_NAME.PERPS_TRADE_TRANSACTION,
+      EVENT_NAME.PERPS_ERROR,
+    ],
+  };

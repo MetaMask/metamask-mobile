@@ -139,6 +139,8 @@ import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterru
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsOutreachBanner from '../../components/PerpsOutreachBanner';
 import PerpsProducts from '../../components/PerpsProducts';
+import PerpsExploreSection from '../../components/PerpsExploreSection';
+import { usePerpsHomeExploreAbTest } from '../../hooks/usePerpsHomeExploreAbTest';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 import PerpsRecentlyAddedSection, {
   RECENTLY_ADDED_SOURCE_SECTION,
@@ -175,6 +177,7 @@ const PerpsHomeView = () => {
     selectPerpsRecentlyAddedEnabledFlag,
   );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
+  const { showExploreTable } = usePerpsHomeExploreAbTest();
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
@@ -480,26 +483,36 @@ const PerpsHomeView = () => {
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.ORDERS);
     if (isWhatsHappeningVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING);
-    if (isWatchlistVisible) {
-      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST);
+    if (showExploreTable) {
+      if (isLoading.markets || hasMarkets) {
+        sections.push('explore');
+      }
+    } else {
+      if (isWatchlistVisible) {
+        sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST);
+      }
+      // Products self-hides when disabled, or when there are neither
+      // categories nor a "New" pill to show (see isProductsVisible above).
+      if (isProductsVisible)
+        sections.push(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS);
     }
-    // Products self-hides when disabled, or when there are neither
-    // categories nor a "New" pill to show (see isProductsVisible above).
-    if (isProductsVisible)
-      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS);
     // Top Movers self-hides when its feed finishes empty; mirror that here so
     // PerpsHomeSectionList does not render an orphan divider.
     if (isTopMoversVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS);
     // Explore category lists render a skeleton while markets load, then self-hide
-    // when their own market array is empty.
-    if (isLoading.markets || perpsMarkets.length > 0)
+    // when their own market array is empty. Treatment replaces them with the
+    // single Explore section recorded above.
+    if (!showExploreTable && (isLoading.markets || perpsMarkets.length > 0))
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_CRYPTO);
-    if (isLoading.markets || commoditiesMarkets.length > 0)
+    if (
+      !showExploreTable &&
+      (isLoading.markets || commoditiesMarkets.length > 0)
+    )
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_COMMODITIES);
-    if (isLoading.markets || stocksMarkets.length > 0)
+    if (!showExploreTable && (isLoading.markets || stocksMarkets.length > 0))
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS);
-    if (isLoading.markets || forexMarkets.length > 0)
+    if (!showExploreTable && (isLoading.markets || forexMarkets.length > 0))
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_FOREX);
     // Recently Added self-hides when there are no markets listed in the last
     // 30 days, or when the feature flag is off.
@@ -513,6 +526,8 @@ const PerpsHomeView = () => {
     positions,
     orders,
     isWhatsHappeningVisible,
+    showExploreTable,
+    hasMarkets,
     isWatchlistVisible,
     isProductsVisible,
     isTopMoversVisible,
@@ -822,8 +837,18 @@ const PerpsHomeView = () => {
         ),
       },
       {
+        key: 'explore',
+        visible: showExploreTable && (isLoading.markets || hasMarkets),
+        onLayout: handleSectionLayout('explore'),
+        content: (
+          <PerpsExploreSection
+            transactionActiveAbTests={transactionActiveAbTests}
+          />
+        ),
+      },
+      {
         key: 'watchlist',
-        visible: isWatchlistVisible,
+        visible: !showExploreTable && isWatchlistVisible,
         onLayout: handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST),
         content: (
           <PerpsWatchlistMarkets
@@ -846,7 +871,7 @@ const PerpsHomeView = () => {
       },
       {
         key: 'products',
-        visible: isProductsVisible,
+        visible: !showExploreTable && isProductsVisible,
         onLayout: handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS),
         content: (
           <PerpsProducts transactionActiveAbTests={transactionActiveAbTests} />
@@ -867,7 +892,8 @@ const PerpsHomeView = () => {
       },
       {
         key: 'crypto',
-        visible: isLoading.markets || perpsMarkets.length > 0,
+        visible:
+          !showExploreTable && (isLoading.markets || perpsMarkets.length > 0),
         onLayout: handleSectionLayout(
           PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_CRYPTO,
         ),
@@ -887,7 +913,9 @@ const PerpsHomeView = () => {
       },
       {
         key: 'commodities',
-        visible: isLoading.markets || commoditiesMarkets.length > 0,
+        visible:
+          !showExploreTable &&
+          (isLoading.markets || commoditiesMarkets.length > 0),
         onLayout: handleSectionLayout(
           PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_COMMODITIES,
         ),
@@ -906,7 +934,8 @@ const PerpsHomeView = () => {
       },
       {
         key: 'stocks',
-        visible: isLoading.markets || stocksMarkets.length > 0,
+        visible:
+          !showExploreTable && (isLoading.markets || stocksMarkets.length > 0),
         onLayout: handleSectionLayout(
           PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS,
         ),
@@ -925,7 +954,8 @@ const PerpsHomeView = () => {
       },
       {
         key: 'forex',
-        visible: isLoading.markets || forexMarkets.length > 0,
+        visible:
+          !showExploreTable && (isLoading.markets || forexMarkets.length > 0),
         onLayout: handleSectionLayout(
           PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_FOREX,
         ),
@@ -989,6 +1019,8 @@ const PerpsHomeView = () => {
       whatsHappeningFeed,
       handleWhatsHappeningHeaderPress,
       isWatchlistVisible,
+      showExploreTable,
+      hasMarkets,
       watchlistMarkets,
       suggestedWatchlistMarkets,
       handleWatchlistSeeAllPress,

@@ -17,7 +17,8 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
  */
 export type PerpsHomeSectionName =
   | (typeof PERPS_EVENT_VALUE.SECTION_NAME)[keyof typeof PERPS_EVENT_VALUE.SECTION_NAME]
-  | 'recently_added';
+  | 'recently_added'
+  | 'explore';
 
 /**
  * Ordered master list of all Perps home sections.
@@ -29,6 +30,7 @@ export const PERPS_HOME_SECTION_ORDER: PerpsHomeSectionName[] = [
   PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS,
   PERPS_EVENT_VALUE.SECTION_NAME.ORDERS,
   PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING,
+  'explore',
   PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST,
   PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS,
   PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS,

@@ -29,3 +29,28 @@ export const mockedPerpsFeatureFlagsEnabledState: Record<
   perpsCrossMarginEnabled: mockEnabledPerpsLDFlag,
   perpsPriceAlertsEnabled: mockEnabledPerpsLDFlag,
 };
+
+/**
+ * Dark-launch value for TAT-3793. Control is served to 100% (threshold 1)
+ * and treatment to 0% until the experiment moves to 50/50.
+ */
+export const mockedPerpsHomeExploreAbTestFlag = {
+  tatTAT3793AbtestPerpsHomeExplore: {
+    versions: {
+      '8.17.0': [
+        {
+          scope: { type: 'threshold' as const, value: 1 },
+          thresholdName: 'control',
+          thresholdVersion: 2,
+          value: 'control',
+        },
+        {
+          scope: { type: 'threshold' as const, value: 0 },
+          thresholdName: 'treatment',
+          thresholdVersion: 2,
+          value: 'treatment',
+        },
+      ],
+    },
+  },
+};

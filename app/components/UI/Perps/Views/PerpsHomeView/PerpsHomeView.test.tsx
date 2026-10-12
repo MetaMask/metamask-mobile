@@ -431,6 +431,14 @@ jest.mock(
   () => 'PerpsMarketBalanceActions',
 );
 jest.mock('../../components/PerpsProducts', () => 'PerpsProducts');
+jest.mock('../../components/PerpsExploreSection', () => 'PerpsExploreSection');
+jest.mock('../../hooks/usePerpsHomeExploreAbTest', () => ({
+  usePerpsHomeExploreAbTest: jest.fn(() => ({
+    showExploreTable: false,
+    variantName: 'control',
+    isActive: false,
+  })),
+}));
 jest.mock('../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView', () => {
   const { View } = jest.requireActual('react-native');
   return function PerpsCloseAllPositionsView() {
@@ -577,6 +585,10 @@ jest.mock(
   () => 'TabBarItem',
 );
 
+const mockUsePerpsHomeExploreAbTest = jest.requireMock(
+  '../../hooks/usePerpsHomeExploreAbTest',
+).usePerpsHomeExploreAbTest as jest.Mock;
+
 const mockUsePerpsHomeData = jest.requireMock('../../hooks')
   .usePerpsHomeData as jest.Mock;
 const mockUseAnimatedScrollHandler = jest.requireMock('react-native-reanimated')
@@ -656,6 +668,11 @@ describe('PerpsHomeView', () => {
     mockRouteParams = { source: 'main_action_button' };
     mockPerpsModeValue = PerpsMode.Lite;
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
+    mockUsePerpsHomeExploreAbTest.mockReturnValue({
+      showExploreTable: false,
+      variantName: 'control',
+      isActive: false,
+    });
     mockUsePerpsHomeSectionTracking.mockReturnValue(mockScrollTracking());
     mockUsePerpsTopMovers.mockReturnValue({
       data: [],
@@ -1227,6 +1244,45 @@ describe('PerpsHomeView', () => {
     expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
   });
 
+  it('keeps the stacked sections for the control assignment', () => {
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      hasMarkets: true,
+      perpsMarkets: [{ symbol: 'BTC' }],
+      watchlistMarkets: [{ symbol: 'ETH' }],
+    });
+
+    const { UNSAFE_getByType, UNSAFE_queryByType } = render(<PerpsHomeView />);
+
+    expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
+    expect(UNSAFE_getByType('PerpsMarketTypeSection' as never)).toBeTruthy();
+    expect(UNSAFE_queryByType('PerpsExploreSection' as never)).toBeNull();
+  });
+
+  it('replaces the stacked sections with Explore in treatment', () => {
+    mockUsePerpsHomeExploreAbTest.mockReturnValue({
+      showExploreTable: true,
+      variantName: 'treatment',
+      isActive: true,
+    });
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      hasMarkets: true,
+      perpsMarkets: [{ symbol: 'BTC' }],
+      stocksMarkets: [{ symbol: 'AAPL' }],
+      commoditiesMarkets: [{ symbol: 'GOLD' }],
+      forexMarkets: [{ symbol: 'EUR' }],
+      watchlistMarkets: [{ symbol: 'ETH' }],
+    });
+
+    const { UNSAFE_getByType, UNSAFE_queryByType } = render(<PerpsHomeView />);
+
+    expect(UNSAFE_getByType('PerpsExploreSection' as never)).toBeTruthy();
+    expect(UNSAFE_queryByType('PerpsWatchlistMarkets' as never)).toBeNull();
+    expect(UNSAFE_queryByType('PerpsProducts' as never)).toBeNull();
+    expect(UNSAFE_queryByType('PerpsMarketTypeSection' as never)).toBeNull();
+  });
+
   it('does not render watchlist when markets and suggestions are empty', () => {
     mockUsePerpsHomeData.mockReturnValue({
       ...mockDefaultData,
@@ -1601,6 +1657,37 @@ describe('PerpsHomeView', () => {
           'recent_activity',
         ]),
       );
+    });
+
+    it('records the explore section instead of the stacked sections in treatment', () => {
+      mockUsePerpsHomeExploreAbTest.mockReturnValue({
+        showExploreTable: true,
+        variantName: 'treatment',
+        isActive: true,
+      });
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        hasMarkets: true,
+        perpsMarkets: [{ symbol: 'BTC' }],
+        stocksMarkets: [{ symbol: 'AAPL' }],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toEqual(
+        expect.arrayContaining(['balance', 'explore']),
+      );
+      expect(properties?.sections_displayed).not.toContain('watchlist');
+      expect(properties?.sections_displayed).not.toContain('products');
+      expect(properties?.sections_displayed).not.toContain('explore_crypto');
+      expect(properties?.sections_displayed).not.toContain('explore_stocks');
+      expect(properties?.sections_displayed).not.toContain(
+        'explore_commodities',
+      );
+      expect(properties?.sections_displayed).not.toContain('explore_forex');
     });
 
     it('includes watchlist_count and watchlist_markets from raw selector', () => {
