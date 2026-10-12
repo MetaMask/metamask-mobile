@@ -94,10 +94,10 @@ describe('useResumeMembership', () => {
     mockUnCancelSubscription.mockResolvedValue(undefined);
   });
 
-  it('does not offer resume for an active subscription', () => {
+  it('starts idle with no error', () => {
     const { result } = renderResumeHook();
 
-    expect(result.current.canResume).toBe(false);
+    expect(result.current.isResuming).toBe(false);
     expect(result.current.errorMessage).toBeNull();
   });
 
@@ -107,8 +107,6 @@ describe('useResumeMembership', () => {
       cancelAtPeriodEnd: true,
     };
     const { result } = renderResumeHook(pendingCancellation);
-
-    expect(result.current.canResume).toBe(true);
 
     await act(async () => {
       await result.current.resumeMembership();

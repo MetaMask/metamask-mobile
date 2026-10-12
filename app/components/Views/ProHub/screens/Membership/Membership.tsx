@@ -3,7 +3,6 @@ import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { PRODUCT_TYPES } from '@metamask/subscription-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -24,12 +23,15 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import type { RootState } from '../../../../../reducers';
 import {
   selectMoneyAccountPlusPricing,
-  selectSubscriptionByProduct,
+  selectMoneyAccountPlusSubscription,
 } from '../../../../../selectors/subscriptionController';
 import { useResumeMembership } from '../../hooks/useResumeMembership';
+import {
+  getMembershipManageAction,
+  MembershipManageAction,
+} from '../../ProHub.utils';
 import { MembershipTestIds } from './Membership.testIds';
 import { getMembershipDetails } from './Membership.utils';
 
@@ -107,10 +109,44 @@ const ManageRow = ({ label, onPress, testID, isDisabled }: ManageRowProps) => (
   </TouchableOpacity>
 );
 
-// ─── Screen ───────────────────────────────────────────────────────────────────
+interface MembershipActionRowProps {
+  action: MembershipManageAction;
+  isResuming: boolean;
+  onResume: () => void;
+  onCancel: () => void;
+}
 
-const selectMoneyAccountPlusSubscription = (state: RootState) =>
-  selectSubscriptionByProduct(state, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS);
+const MembershipActionRow = ({
+  action,
+  isResuming,
+  onResume,
+  onCancel,
+}: MembershipActionRowProps) => {
+  if (action === MembershipManageAction.Resume) {
+    return (
+      <ManageRow
+        label={strings('pro_hub.membership.resume_membership')}
+        onPress={onResume}
+        testID={MembershipTestIds.RESUME_MEMBERSHIP_ROW}
+        isDisabled={isResuming}
+      />
+    );
+  }
+
+  if (action === MembershipManageAction.Cancel) {
+    return (
+      <ManageRow
+        label={strings('pro_hub.membership.cancel_membership')}
+        onPress={onCancel}
+        testID={MembershipTestIds.CANCEL_MEMBERSHIP_ROW}
+      />
+    );
+  }
+
+  return null;
+};
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
 
 const Membership = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -126,10 +162,8 @@ const Membership = () => {
     resumeMembership,
     isResuming,
     errorMessage: resumeErrorMessage,
-    canResume: resumeAvailable,
   } = useResumeMembership();
-  const hideMembershipAction =
-    subscription?.cancelAtPeriodEnd === true && !resumeAvailable;
+  const manageAction = getMembershipManageAction(subscription);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -325,24 +359,12 @@ const Membership = () => {
             onPress={handleContactSupport}
             testID={MembershipTestIds.CONTACT_SUPPORT_ROW}
           />
-          {hideMembershipAction ? null : (
-            <ManageRow
-              label={strings(
-                resumeAvailable
-                  ? 'pro_hub.membership.resume_membership'
-                  : 'pro_hub.membership.cancel_membership',
-              )}
-              onPress={
-                resumeAvailable ? resumeMembership : handleCancelMembership
-              }
-              testID={
-                resumeAvailable
-                  ? MembershipTestIds.RESUME_MEMBERSHIP_ROW
-                  : MembershipTestIds.CANCEL_MEMBERSHIP_ROW
-              }
-              isDisabled={resumeAvailable && isResuming}
-            />
-          )}
+          <MembershipActionRow
+            action={manageAction}
+            isResuming={isResuming}
+            onResume={resumeMembership}
+            onCancel={handleCancelMembership}
+          />
           {resumeErrorMessage ? (
             <Text
               variant={TextVariant.BodySm}

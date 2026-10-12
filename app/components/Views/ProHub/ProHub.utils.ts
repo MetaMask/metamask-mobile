@@ -32,6 +32,40 @@ export const canResumeMembership = (
   return periodEnd.getTime() > now.getTime();
 };
 
+export const MembershipManageAction = {
+  Resume: 'resume',
+  Cancel: 'cancel',
+  Hidden: 'hidden',
+} as const;
+
+export type MembershipManageAction =
+  (typeof MembershipManageAction)[keyof typeof MembershipManageAction];
+
+/**
+ * Which manage row the Membership screen should show.
+ *
+ * Resume while a period-end cancellation can still be reversed. Hide the row
+ * once that window has closed. Otherwise offer cancel.
+ *
+ * @param subscription - Money Account Plus subscription, when one exists.
+ * @param now - Clock used to compare `currentPeriodEnd`.
+ * @returns The manage-row action for this subscription.
+ */
+export const getMembershipManageAction = (
+  subscription: Subscription | undefined,
+  now: Date = new Date(),
+): MembershipManageAction => {
+  if (canResumeMembership(subscription, now)) {
+    return MembershipManageAction.Resume;
+  }
+
+  if (subscription?.cancelAtPeriodEnd === true) {
+    return MembershipManageAction.Hidden;
+  }
+
+  return MembershipManageAction.Cancel;
+};
+
 /**
  * Formats a subscription period end in the app language and device timezone.
  *

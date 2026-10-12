@@ -9,6 +9,8 @@ import I18n from '../../../../locales/i18n';
 import {
   canResumeMembership,
   formatSubscriptionPeriodEnd,
+  getMembershipManageAction,
+  MembershipManageAction,
 } from './ProHub.utils';
 
 describe('formatSubscriptionPeriodEnd', () => {
@@ -133,5 +135,43 @@ describe('canResumeMembership', () => {
 
   it('is false when there is no subscription', () => {
     expect(canResumeMembership(undefined, now)).toBe(false);
+  });
+});
+
+describe('getMembershipManageAction', () => {
+  const now = new Date('2026-10-07T00:00:00.000Z');
+
+  it('returns resume while a period-end cancellation can still be reversed', () => {
+    const subscription = createSubscription({
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2027-07-20T00:00:00.000Z',
+    });
+
+    expect(getMembershipManageAction(subscription, now)).toBe(
+      MembershipManageAction.Resume,
+    );
+  });
+
+  it('returns hidden once the resume window has closed', () => {
+    const subscription = createSubscription({
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2026-10-06T00:00:00.000Z',
+    });
+
+    expect(getMembershipManageAction(subscription, now)).toBe(
+      MembershipManageAction.Hidden,
+    );
+  });
+
+  it('returns cancel when the subscription is not pending cancellation', () => {
+    expect(getMembershipManageAction(createSubscription(), now)).toBe(
+      MembershipManageAction.Cancel,
+    );
+  });
+
+  it('returns cancel when there is no subscription', () => {
+    expect(getMembershipManageAction(undefined, now)).toBe(
+      MembershipManageAction.Cancel,
+    );
   });
 });
