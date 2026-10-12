@@ -242,6 +242,16 @@ export interface ContractConfig {
   conditionalTokens: string;
 }
 
+/**
+ * Contracts the positions protocol (Polymarket Protocol V2) needs. Protocol
+ * V2 settles on a single exchange, so there is no separate neg-risk exchange
+ * contract.
+ */
+export interface PositionsProtocolContractConfig {
+  exchange: string;
+  negRiskExchange: string;
+}
+
 export interface RoundConfig {
   readonly price: number;
   readonly size: number;
