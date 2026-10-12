@@ -7,6 +7,7 @@ import {
   selectCanonicalProfileId,
   selectNeedsProfilePairing,
   selectNeedsSocialPairing,
+  selectEnrolledCredentials,
 } from './index';
 import { RootState } from '../../reducers';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
@@ -170,5 +171,26 @@ describe('Notification Selectors', () => {
 
   it('selectNeedsSocialPairing defaults to true when the field is absent', () => {
     expect(selectNeedsSocialPairing(mockState)).toBe(true);
+  });
+
+  it('selectEnrolledCredentials returns the cached credentials', () => {
+    const enrolledCredentials = [
+      { type: 'email_otp', status: 'active', verified: true },
+    ];
+    const stateWithCredentials = {
+      engine: {
+        backgroundState: {
+          AuthenticationController: { isSignedIn: true, enrolledCredentials },
+        },
+      },
+    } as unknown as RootState;
+
+    expect(selectEnrolledCredentials(stateWithCredentials)).toBe(
+      enrolledCredentials,
+    );
+  });
+
+  it('selectEnrolledCredentials defaults to an empty list when the field is absent', () => {
+    expect(selectEnrolledCredentials(mockState)).toStrictEqual([]);
   });
 });

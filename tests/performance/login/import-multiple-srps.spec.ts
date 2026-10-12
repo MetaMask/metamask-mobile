@@ -49,7 +49,7 @@ perfTest.describe(`${Performance} ${PerformanceAccountList}`, () => {
       await WalletView.tapIdenticon();
       await accountListTimer.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
-          AccountListBottomSheet.accountList,
+          AccountListBottomSheet.addWalletButton,
           {
             description: 'Account list should be visible',
           },
@@ -57,7 +57,7 @@ perfTest.describe(`${Performance} ${PerformanceAccountList}`, () => {
       });
 
       await AccountListBottomSheet.waitForAccountSyncToComplete();
-      await AccountListBottomSheet.tapAddAccountButton();
+      await AccountListBottomSheet.tapAddWalletButton();
 
       await addAccountTimer.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(

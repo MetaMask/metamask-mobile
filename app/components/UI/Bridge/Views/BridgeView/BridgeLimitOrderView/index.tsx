@@ -65,6 +65,10 @@ import {
 } from '../../../constants/limitOrders';
 import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrderPriceAdjust';
 import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypad';
+import {
+  useScrollIntoViewAboveKeypad,
+  type MeasureInWindow,
+} from '../../../hooks/useScrollIntoViewAboveKeypad';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import {
   formatMinimumReceived,
@@ -75,8 +79,13 @@ import { getSwapsLimitOrderDestTokenAmount } from '../../../utils/limitOrders/ge
 import { strings } from '../../../../../../../locales/i18n';
 import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssetsPriceData';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
+import { useLimitOrderMinAmount } from '../../../hooks/useLimitOrderMinAmount';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
-import { createLimitOrdersTab } from '../../../utils/limitOrders/createLimitOrdersTab';
+import {
+  createLimitOrdersTab,
+  getHistoryLimitOrderDate,
+  getOpenLimitOrderDate,
+} from '../../../utils/limitOrders/createLimitOrdersTab';
 import { getLimitOrderDelegationsParams } from '../../../utils/limitOrders/getLimitOrderDelegationsParams';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { LimitOrderFeeTokenErrorBanner } from './LimitOrderFeeTokenErrorBanner';
@@ -95,6 +104,7 @@ const BridgeLimitOrderViewContent = () => {
   const inputRef = useRef<TokenInputAreaRef>(null);
   const limitPriceInputRef = useRef<InputSectionRef>(null);
   const customPercentInputRef = useRef<ButtonPricePresetsSectionRef>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   const { latestSourceBalance } = useBridgeSession();
   const [activeOrdersTab, setActiveOrdersTab] = useState(
     OrdersTabKey.OpenOrders,
@@ -197,6 +207,25 @@ const BridgeLimitOrderViewContent = () => {
     sourceAmountInput,
   });
 
+  const measureCustomPercentInput = useCallback<MeasureInWindow>(
+    (callback) => customPercentInputRef.current?.measureInWindow(callback),
+    [],
+  );
+
+  // The keypad is laid over the screen and can cover the custom percent input
+  // on short devices, so the input is scrolled above it.
+  const {
+    keypadLayoutProps,
+    keypadOverlap,
+    onScroll: trackScrollOffset,
+    onScrollViewLayout,
+    onContentSizeChange,
+  } = useScrollIntoViewAboveKeypad({
+    isTargetActive: isCustomActive && isCustomPercentFocused,
+    scrollViewRef,
+    measureTarget: measureCustomPercentInput,
+  });
+
   // Limit orders are not quoted, so the destination amount is derived from the
   // amount being paid and the price the order would trigger at.
   const destTokenAmount = useMemo(
@@ -233,8 +262,21 @@ const BridgeLimitOrderViewContent = () => {
 
   const [hasVisibleBanner, setHasVisibleBanner] = useState(false);
   const isMissingPrice = useHasMissingAssetsPriceData();
-  const isCtaDisabled =
-    isMissingPrice || isHardwareWallet || !feeTokenValidation.isValid;
+  const { isBelowMinAmount, minAmountUsd } = useLimitOrderMinAmount({
+    sourceToken,
+    sourceAmount,
+  });
+  const isCreateOrderDisabled =
+    isMissingPrice ||
+    isHardwareWallet ||
+    isBelowMinAmount ||
+    !feeTokenValidation.isValid;
+  const createOrderLabel =
+    isBelowMinAmount && minAmountUsd !== undefined
+      ? strings('bridge.limit.min_order_amount', {
+          amount: formatAmountWithLocaleSeparators(String(minAmountUsd)),
+        })
+      : strings('bridge.limit.create_order');
   const [expirationMinutes, setExpirationMinutes] =
     useState<SwapsLimitOrderExpirationMinutes>(
       SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
@@ -264,6 +306,7 @@ const BridgeLimitOrderViewContent = () => {
     isError: openOrdersQuery.isError,
     isFetchingNextPage: openOrdersQuery.isFetchingNextPage,
     onRetry: () => openOrdersQuery.refetch(),
+    getItemDate: getOpenLimitOrderDate,
   });
 
   const history = createLimitOrdersTab({
@@ -272,10 +315,14 @@ const BridgeLimitOrderViewContent = () => {
     isError: historyQuery.isError,
     isFetchingNextPage: historyQuery.isFetchingNextPage,
     onRetry: () => historyQuery.refetch(),
+    getItemDate: getHistoryLimitOrderDate,
   });
 
   const handleOrdersScroll = useCallback(
-    ({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      trackScrollOffset(event);
+
+      const { nativeEvent } = event;
       const distanceFromBottom =
         nativeEvent.contentSize.height -
         nativeEvent.layoutMeasurement.height -
@@ -292,7 +339,7 @@ const BridgeLimitOrderViewContent = () => {
 
       historyQuery.fetchNextPage();
     },
-    [activeOrdersTab, historyQuery, openOrdersQuery],
+    [activeOrdersTab, historyQuery, openOrdersQuery, trackScrollOffset],
   );
 
   const handleOrdersRefresh = useCallback(async () => {
@@ -357,7 +404,7 @@ const BridgeLimitOrderViewContent = () => {
     });
   }, [navigation]);
 
-  const handleExpirationConfirm = useCallback(
+  const handleExpirationSelect = useCallback(
     (minutes: SwapsLimitOrderExpirationMinutes) => {
       setExpirationMinutes(minutes);
     },
@@ -370,13 +417,13 @@ const BridgeLimitOrderViewContent = () => {
       screen: Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_EXPIRATION_MODAL,
       params: {
         selectedMinutes: expirationMinutes,
-        onConfirm: handleExpirationConfirm,
+        onSelect: handleExpirationSelect,
       },
     });
   }, [
     dismissInputAndKeypad,
     expirationMinutes,
-    handleExpirationConfirm,
+    handleExpirationSelect,
     navigation,
   ]);
 
@@ -457,9 +504,14 @@ const BridgeLimitOrderViewContent = () => {
         testID={BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER}
       >
         <ScrollView
+          ref={scrollViewRef}
           testID={BridgeViewSelectorsIDs.LIMIT_ORDER_SCROLL}
           style={tw.style('flex-1 min-h-0')}
-          contentContainerStyle={tw.style('grow')}
+          contentContainerStyle={tw.style('grow', {
+            paddingBottom: keypadOverlap,
+          })}
+          onLayout={onScrollViewLayout}
+          onContentSizeChange={onContentSizeChange}
           showsVerticalScrollIndicator={false}
           onScrollBeginDrag={dismissInputAndKeypad}
           onScroll={handleOrdersScroll}
@@ -575,22 +627,23 @@ const BridgeLimitOrderViewContent = () => {
         </ScrollView>
 
         <BridgeLimitOrderFooterView
-          ctaDisabled={isCtaDisabled}
+          ctaDisabled={isCreateOrderDisabled}
           onCTAPress={handleCreateOrderPress}
-          ctaLabel={strings('bridge.limit.create_order')}
+          ctaLabel={createOrderLabel}
         />
 
         <SwapsKeypad
           ref={keypadRef}
           onChange={handleKeypadChange}
+          {...keypadLayoutProps}
           {...keypadProps}
         >
           {isAmountFocused && sourceAmount && sourceAmount !== '0' ? (
             <SwapsLimitOrderConfirmButton
               onPress={handleCreateOrderPress}
-              label={strings('bridge.limit.create_order')}
+              label={createOrderLabel}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
-              disabled={isCtaDisabled}
+              disabled={isCreateOrderDisabled}
             />
           ) : isAmountFocused ? (
             <GaslessQuickPickOptions

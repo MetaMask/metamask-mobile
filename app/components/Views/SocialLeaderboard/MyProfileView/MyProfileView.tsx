@@ -7,12 +7,13 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
+  HeaderStandardAnimated,
   SectionDivider,
   Spinner,
   Text,
   TextColor,
   TextVariant,
+  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
@@ -28,6 +29,7 @@ import {
   Pressable,
   RefreshControl,
   Share,
+  type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
@@ -52,11 +54,13 @@ import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1Feed
 import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
+import MyProfileCompactStats from './components/MyProfileCompactStats';
 import ProfilePostsEmptyState from './components/ProfilePostsEmptyState';
 import ProfilePositionsTab from './components/ProfilePositionsTab';
 import ProfileAvatar from './components/ProfileAvatar';
 
 import TraderAvatar from '../../../UI/SocialFeed/components/TraderAvatar';
+import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 
 import {
   useMyOpenPerpsPositionCount,
@@ -209,6 +213,12 @@ const MyProfileView: React.FC = () => {
   );
   const [isStatsSheetOpen, setIsStatsSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const {
+    scrollY: scrollYShared,
+    onScroll,
+    setTitleSectionHeight,
+    titleSectionHeightSv,
+  } = useHeaderStandardAnimated();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -304,6 +314,13 @@ const MyProfileView: React.FC = () => {
     refetchPositions().catch(() => undefined);
   }, [refetchPositions]);
 
+  const handleTitleSectionLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      setTitleSectionHeight(Math.ceil(event.nativeEvent.layout.height));
+    },
+    [setTitleSectionHeight],
+  );
+
   const handlePositionPress = useCallback(
     (position: Position) => {
       if (!displayProfile) {
@@ -351,9 +368,42 @@ const MyProfileView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={MyProfileViewSelectorsIDs.CONTAINER}
       >
-        <HeaderStandard
+        <HeaderStandardAnimated
           includesTopInset
-          title=""
+          scrollY={scrollYShared}
+          titleSectionHeight={titleSectionHeightSv}
+          title={
+            displayProfile ? (
+              <TraderHeaderIdentity
+                traderName={displayProfile.displayName}
+                traderImageUrl={displayProfile.imageUrl}
+                traderAddress={displayProfile.linkedAccountAddress ?? undefined}
+                avatar={
+                  isOwner ? (
+                    <ProfileAvatar
+                      imageUrl={displayProfile.imageUrl}
+                      avatarPresetId={displayProfile.avatarPresetId}
+                      size="xs"
+                      testID={MyProfileViewSelectorsIDs.HEADER_COMPACT_AVATAR}
+                    />
+                  ) : undefined
+                }
+                variant="compact"
+                testID={MyProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
+              />
+            ) : undefined
+          }
+          subtitle={
+            overlayedStats ? (
+              <MyProfileCompactStats
+                winRateLabel={overlayedStats.winRateLabel}
+                isWinRatePositive={overlayedStats.isWinRatePositive}
+                pnlLabel={overlayedStats.pnlLabel}
+                hasPnl={overlayedStats.hasPnl}
+                isPnlPositive={overlayedStats.isPnlPositive}
+              />
+            ) : undefined
+          }
           onBack={handleBack}
           backButtonProps={{ testID: MyProfileViewSelectorsIDs.BACK_BUTTON }}
           testID={MyProfileViewSelectorsIDs.HEADER}
@@ -396,6 +446,8 @@ const MyProfileView: React.FC = () => {
             testID={MyProfileViewSelectorsIDs.SCROLL}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={tw.style('flex-grow pb-6')}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
             onMomentumScrollEnd={handleScrollSettled}
             onScrollEndDrag={handleScrollSettled}
             refreshControl={
@@ -407,15 +459,20 @@ const MyProfileView: React.FC = () => {
               />
             }
           >
-            <MyProfileHeader
-              profile={displayProfile}
-              overlayedStats={overlayedStats}
-              followingCount={following.length}
-              isOwner={isOwner}
-              onFollowersPress={handleFollowersPress}
-              onFollowingPress={handleFollowingPress}
-              onStatsPress={() => setIsStatsSheetOpen(true)}
-            />
+            <Box
+              testID={MyProfileViewSelectorsIDs.TITLE_SECTION_WRAPPER}
+              onLayout={handleTitleSectionLayout}
+            >
+              <MyProfileHeader
+                profile={displayProfile}
+                overlayedStats={overlayedStats}
+                followingCount={following.length}
+                isOwner={isOwner}
+                onFollowersPress={handleFollowersPress}
+                onFollowingPress={handleFollowingPress}
+                onStatsPress={() => setIsStatsSheetOpen(true)}
+              />
+            </Box>
 
             <Box
               flexDirection={BoxFlexDirection.Row}

@@ -2,36 +2,32 @@ import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
 import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
 import type { BridgeToken } from '../../types';
-import { getCurrencySymbol } from '../../utils/currencyUtils';
-import { formatLimitOrderFiatPrice } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
+import { formatLimitOrderFiatValue } from '../../utils/limitOrders/formatLimitOrderFiatValue';
 import { formatLimitOrderQuickPrice } from '../../utils/limitOrders/formatLimitOrderQuickPrice';
 import type { TriggerPriceDisplay } from './types';
 
 /**
- * Formats a USD trigger price in the given currency. Without a rate to
- * convert with, the price shows in USD as is rather than a guessed one.
+ * Formats a USD trigger price in the given currency, to two decimal places.
+ * Without a rate to convert with, the price shows in USD as is rather than a
+ * guessed one.
  */
 function getFiatTriggerPrice(
   usdPrice: string,
   currentCurrency: string,
   fiatToUsdRate: number | undefined,
 ): string {
-  const displayPrice =
-    currentCurrency?.toLowerCase() !== 'usd' && fiatToUsdRate
-      ? formatLimitOrderFiatPrice(
-          new BigNumber(usdPrice).dividedBy(fiatToUsdRate),
-        )
-      : undefined;
+  if (currentCurrency?.toLowerCase() !== 'usd' && fiatToUsdRate) {
+    const displayPrice = new BigNumber(usdPrice).dividedBy(fiatToUsdRate);
 
-  if (!displayPrice) {
-    return `${getCurrencySymbol('usd')}${
-      formatLimitOrderQuickPrice(usdPrice) ?? usdPrice
-    }`;
+    if (displayPrice.isFinite() && displayPrice.gt(0)) {
+      return formatLimitOrderFiatValue(
+        displayPrice.toNumber(),
+        currentCurrency,
+      );
+    }
   }
 
-  return `${getCurrencySymbol(currentCurrency)}${
-    formatLimitOrderQuickPrice(displayPrice) ?? displayPrice
-  }`;
+  return formatLimitOrderFiatValue(usdPrice, 'usd');
 }
 
 /**

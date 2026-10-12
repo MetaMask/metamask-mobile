@@ -8,7 +8,10 @@ import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridg
 // eslint-disable-next-line import-x/no-restricted-paths
 import { fromTokenMinimalUnit } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
-import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
+import {
+  exceedsPriceImpactErrorThreshold,
+  parsePriceImpact,
+} from '../../utils/getPriceImpactViewData';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useFormattedNetworkFee } from '../useFormattedNetworkFee';
 import { usePriceImpactFiat } from '../usePriceImpactFiat';
@@ -120,12 +123,25 @@ export const useFormattedQuoteData = ({
           AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD),
   );
 
+  const shouldShowPriceImpactError = Boolean(
+    exceedsPriceImpactErrorThreshold(
+      parsePriceImpact(activeQuote?.quote.priceData?.priceImpact?.amount),
+      bridgeFeatureFlags?.priceImpactThreshold?.error,
+    ),
+  );
+
   return useMemo(
     () => ({
       destTokenAmount,
       formattedQuoteData,
       shouldShowPriceImpactWarning,
+      shouldShowPriceImpactError,
     }),
-    [destTokenAmount, formattedQuoteData, shouldShowPriceImpactWarning],
+    [
+      destTokenAmount,
+      formattedQuoteData,
+      shouldShowPriceImpactWarning,
+      shouldShowPriceImpactError,
+    ],
   );
 };

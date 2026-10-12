@@ -142,6 +142,7 @@ const TraderPositionView = () => {
     originalEntryPoint: originalEntryPointParam,
     isClosed: isClosedParam,
     notificationSubtype,
+    isSocialV1,
   } = route.params;
   const { track } = useSocialLeaderboardAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
@@ -857,6 +858,7 @@ const TraderPositionView = () => {
           originalEntryPoint={quickBuyOriginalEntryPoint}
           isTraderPositionClosed={isClosed}
           onBuyCtaClicked={handleBuyCtaClicked}
+          postSwapShare={isSocialV1 === true}
           buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
         />
       )}

@@ -25,12 +25,11 @@ import { SecurityTabSelectors } from '../components/V1/SecurityTab/SecurityTab.t
 import { SecurityStatKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import { TokenExplainerSheetSelectors } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.testIds';
 import { SecuritySocialSectionSelectors } from '../components/V1/SecuritySocialSection/SecuritySocialSection.testIds';
-import {
-  StatBarSelectors,
-  StatExplainerSheetSelectors,
-} from '../components/V1/StatBar/StatBar.testIds';
+import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
 import { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
 import Routes from '../../../../constants/navigation/Routes';
+import { useSocialFeed } from '../../SocialFeed';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -44,6 +43,38 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(() => undefined),
 }));
+
+const mockUseSocialFeed = jest.mocked(useSocialFeed);
+
+jest.mock('../../SocialFeed', () => {
+  const useSocialFeedMock = jest.fn((_source: unknown) => ({
+    posts: [],
+    isLoading: false,
+    isFetchingNextPage: false,
+    hasNextPage: false,
+    loadMore: jest.fn(),
+    error: null,
+    refresh: jest.fn(),
+  }));
+  return {
+    useSocialFeed: useSocialFeedMock,
+    SocialFeed: ({
+      source,
+    }: {
+      source: { kind: 'token'; assetId: string };
+    }) => {
+      useSocialFeedMock(source);
+      return null;
+    },
+    SocialFeedSurfaceProvider: ({ children }: { children?: React.ReactNode }) =>
+      children ?? null,
+    SocialV1FeedPostList: () => null,
+    SocialFeedPostShell: () => null,
+    SocialFeedSkeleton: () => null,
+    SocialFeedEmpty: () => null,
+    SocialFeedError: () => null,
+  };
+});
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -69,6 +100,13 @@ jest.mock('../hooks/useTokenPrice', () => ({
     currentCurrency: 'usd',
     hasInsufficientCoverage: false,
   }),
+}));
+
+// Stubbed for the same reason as `useTokenPrice`: this is a view test, and no
+// case here asserts anything about market data. It also keeps the suite off
+// React Query, which the real hook needs a provider for.
+jest.mock('../hooks/useTokenMarketData', () => ({
+  useTokenMarketData: () => ({ marketData: null, isLoading: false }),
 }));
 
 // Echoes the prefetched security data so tests can supply security data at
@@ -237,6 +275,10 @@ const securityDataWithLinks = {
 describe('TokenDetailsV1', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation(() => undefined);
     mockCurrentPrice = 1;
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
     mockOverviewProps.length = 0;
@@ -565,6 +607,29 @@ describe('TokenDetailsV1', () => {
     expect(getByTestId('token-details-v1-tab-panel-feed')).toBeTruthy();
   });
 
+  it('loads the social feed on the Feed tab', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    fireEvent.press(getByTestId('token-details-v1-tab-feed'));
+
+    expect(mockUseSocialFeed).toHaveBeenCalledWith({
+      kind: 'token',
+      assetId: 'eip155:1/erc20:0x6982508145454Ce325dDbE47a25d4ec3d2311933',
+    });
+  });
+
   it('anchors the scroll position to the docked tab bar when switching tabs from a scrolled-down state', () => {
     const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
     const { getByTestId } = render(
@@ -792,7 +857,7 @@ describe('TokenDetailsV1', () => {
       />,
     );
 
-    expect(queryByTestId(StatExplainerSheetSelectors.SHEET)).toBeNull();
+    expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
   });
 
   it('opens the explainer for the stat whose label was tapped', () => {
@@ -807,11 +872,11 @@ describe('TokenDetailsV1', () => {
 
     // Asserts the copy, not just that a sheet opened: the press has to carry
     // which stat it was through to the sheet.
-    expect(getByTestId(StatExplainerSheetSelectors.TITLE)).toHaveTextContent(
+    expect(getByTestId(TokenExplainerSheetSelectors.TITLE)).toHaveTextContent(
       'Holders',
     );
     expect(
-      getByTestId(StatExplainerSheetSelectors.DESCRIPTION),
+      getByTestId(TokenExplainerSheetSelectors.DESCRIPTION),
     ).toHaveTextContent('Number of unique addresses holding this token.');
   });
 
@@ -824,8 +889,8 @@ describe('TokenDetailsV1', () => {
     );
 
     fireEvent.press(getByTestId(StatBarSelectors.label(TokenStatKey.Tax)));
-    fireEvent.press(getByTestId(StatExplainerSheetSelectors.GOT_IT_BUTTON));
+    fireEvent.press(getByTestId(TokenExplainerSheetSelectors.GOT_IT_BUTTON));
 
-    expect(queryByTestId(StatExplainerSheetSelectors.SHEET)).toBeNull();
+    expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
   });
 });

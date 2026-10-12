@@ -4,7 +4,7 @@ import { Hex } from '@metamask/utils';
 import { LimitOrderConfirmationModal } from './LimitOrderConfirmationModal';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
-import { LIMIT_ORDER_DEFAULT_METAMASK_FEE } from '../../constants/limitOrders';
+import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
@@ -88,6 +88,10 @@ function buildProps(
 }
 
 describe('LimitOrderConfirmationModal', () => {
+  beforeEach(() => {
+    mockNavigate.mockClear();
+  });
+
   it('does not close when re-rendered with the same cost tolerance', () => {
     const onClose = jest.fn();
     const props = buildProps({ costTolerance: '2%', onClose });
@@ -265,15 +269,28 @@ describe('LimitOrderConfirmationModal', () => {
     });
   });
 
-  it('displays the fee disclaimer with the default MetaMask fee percentage', () => {
+  it('displays the MetaMask fee disclaimer', () => {
     const { getByTestId } = render(
       <LimitOrderConfirmationModal {...buildProps()} />,
     );
 
     expect(
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.FEE_DISCLAIMER),
-    ).toHaveTextContent(
-      new RegExp(`${LIMIT_ORDER_DEFAULT_METAMASK_FEE}% MetaMask fee`),
+    ).toHaveTextContent(strings('bridge.limit.includes_metamask_fee'));
+  });
+
+  it('opens the account upgrade fee info sheet when the fee disclaimer is pressed', () => {
+    const { getByTestId } = render(
+      <LimitOrderConfirmationModal {...buildProps()} />,
     );
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.FEE_DISCLAIMER),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL,
+    });
   });
 });

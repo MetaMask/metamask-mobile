@@ -66,6 +66,10 @@ import {
 } from '../types';
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
+import {
+  clearPostSwapShareSession,
+  getPostSwapShareSession,
+} from '../../../Views/SocialLeaderboard/PostSwapShareBottomSheet';
 import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
@@ -308,6 +312,7 @@ export const runQuickBuyControllerCases = ({
     analyticsContext?: QuickBuyAnalyticsContext,
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
     initialTradeMode?: 'buy' | 'sell',
+    postSwapShare?: boolean,
   ) => {
     result: {
       current: UseQuickBuyControllerResult;
@@ -324,6 +329,7 @@ export const runQuickBuyControllerCases = ({
   describe(name, () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      clearPostSwapShareSession();
       setupDefaultMocks();
       setupQuoteSourceMock({
         activeQuote: undefined,
@@ -3990,6 +3996,72 @@ export const runQuickBuyControllerCases = ({
             resolveSubmit({ id: 'tx-1', hash: '0xabc' });
             await confirmPromise;
           });
+        });
+
+        it('uses the source chain for the in-flight trade hash', async () => {
+          mockUsableQuote();
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+          const { result } = renderHook(
+            createTarget(),
+            jest.fn(),
+            undefined,
+            undefined,
+            'buy',
+            true,
+          );
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(getPostSwapShareSession()).toEqual(
+            expect.objectContaining({
+              status: 'pending',
+              tradeInFlightChain: 'ethereum',
+              preview: expect.objectContaining({
+                chain: 'base',
+              }),
+            }),
+          );
+          expect(buildQuickBuyToastOptions).not.toHaveBeenCalledWith(
+            'pending',
+            expect.anything(),
+          );
+        });
+
+        it('uses normal Quick Buy feedback for unsupported trade-in-flight chains', async () => {
+          mockUsePayWithTokens.mockReturnValue({
+            options: [createSourceToken({ chainId: '0xa4b1' })],
+            isLoading: false,
+          });
+          mockUsableQuote();
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+          const { result } = renderHook(
+            createTarget({ chain: 'arbitrum' }),
+            jest.fn(),
+            undefined,
+            undefined,
+            'buy',
+            true,
+          );
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(getPostSwapShareSession()).toBeNull();
+          expect(buildQuickBuyToastOptions).toHaveBeenCalledWith(
+            'pending',
+            expect.objectContaining({
+              trade: expect.objectContaining({ tradeMode: 'buy' }),
+            }),
+          );
         });
 
         it('tracks the trade and shows a pending toast on successful submit', async () => {
