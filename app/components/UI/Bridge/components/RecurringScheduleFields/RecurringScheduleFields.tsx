@@ -164,7 +164,7 @@ const RecurringScheduleFields = ({
       onStartShouldSetResponder={() => true}
       onResponderRelease={onDismissKeypad}
     >
-      <Box padding={4} flexDirection={BoxFlexDirection.Row} gap={2}>
+      <Box paddingHorizontal={4} flexDirection={BoxFlexDirection.Row} gap={2}>
         <RecurringNumberCard
           label={strings('bridge.recurring.every')}
           errorMessage={everyErrorMessage}
