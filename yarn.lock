@@ -9802,26 +9802,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/core-backend@npm:^12.0.0":
-  version: 12.0.0
-  resolution: "@metamask/core-backend@npm:12.0.0"
-  dependencies:
-    "@metamask/account-tree-controller": "npm:^11.0.0"
-    "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/keyring-controller": "npm:^28.1.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^33.0.0"
-    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
-    "@metamask/utils": "npm:^12.0.0"
-    "@tanstack/query-core": "npm:^5.103.2"
-    async-mutex: "npm:^0.5.0"
-    cockatiel: "npm:^3.2.1"
-    uuid: "npm:^11.1.1"
-  checksum: 10/6826b70f07cae08d4a7c8c6765633f8a2d556282af94df0958788d193868dca0e762cf82b5df5c214974cfb911677e4dbd9f55e425083367a23fdb2d4d3f9550
-  languageName: node
-  linkType: hard
-
-"@metamask/core-backend@npm:^12.0.1":
+"@metamask/core-backend@npm:^12.0.0, @metamask/core-backend@npm:^12.0.1":
   version: 12.0.1
   resolution: "@metamask/core-backend@npm:12.0.1"
   dependencies:

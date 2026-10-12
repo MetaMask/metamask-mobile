@@ -164,6 +164,12 @@ describe('useFollowToggle', () => {
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
         queryKey: ['SocialService:fetchMyFollowers'],
       });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchFollowers'],
+      });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchTraderFollowing'],
+      });
     });
 
     it('invalidates following and followers queries after a successful unfollow', async () => {
@@ -180,6 +186,12 @@ describe('useFollowToggle', () => {
       });
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
         queryKey: ['SocialService:fetchMyFollowers'],
+      });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchFollowers'],
+      });
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchTraderFollowing'],
       });
     });
 
