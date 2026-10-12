@@ -10,7 +10,17 @@ import Engine from '../../../../core/Engine';
 const USER_REJECTED_TOP_UP_MESSAGE = 'User rejected the request';
 
 const STATUS_UPDATED = 'TransactionController:transactionStatusUpdated';
-const CONFIRMED = 'TransactionController:transactionConfirmed';
+
+/**
+ * Statuses the parent top-up can only reach after the user approved it.
+ * Statuses past `approved` are included in case that update is missed.
+ */
+const APPROVED_STATUSES: readonly TransactionStatus[] = [
+  TransactionStatus.approved,
+  TransactionStatus.signed,
+  TransactionStatus.submitted,
+  TransactionStatus.confirmed,
+];
 
 export interface WaitForMembershipTopUpResult {
   promise: Promise<TransactionMeta>;
@@ -37,16 +47,23 @@ function topUpFailureMessage(transactionMeta: TransactionMeta): string {
 }
 
 /**
- * Waits for a membership-subscription top-up batch to settle.
+ * Waits for the user to approve a membership-subscription top-up batch.
  *
- * Callers should subscribe before `addTransactionBatch` so a fast confirmed
- * or rejected event cannot race past the listener. Only transactions that
- * match both `batchId` and `TransactionType.membershipSubscription` are
- * considered.
+ * Resolves on approval rather than on-chain confirmation. Depending on the
+ * route MM Pay picks, funds can take seconds (same-chain swap/transfer),
+ * minutes (bridge), or 10+ minutes (fiat on-ramp) to land in the Money
+ * Account. The subscription server creates the subscription in a provisional
+ * status and re-checks the Money Account balance within a grace period; if the
+ * funds never arrive, it cancels the subscription. So the client only needs
+ * the user's commitment to fund, not the settled funds.
+ *
+ * Callers should subscribe before `addTransactionBatch` so a fast approval or
+ * rejection cannot race past the listener. Only transactions that match both
+ * `batchId` and `TransactionType.membershipSubscription` are considered.
  *
  * @param batchId - Batch id of the membership top-up transaction.
- * @returns A promise that resolves on confirmation, plus a cancel that
- * unsubscribes without settling the promise.
+ * @returns A promise that resolves once the top-up is approved, plus a cancel
+ * that unsubscribes without settling the promise.
  */
 export function waitForMembershipTopUp(
   batchId: Hex,
@@ -65,22 +82,6 @@ export function waitForMembershipTopUp(
   };
 
   const promise = new Promise<TransactionMeta>((resolve, reject) => {
-    const resolveTopUp = (transactionMeta: TransactionMeta) => {
-      if (
-        isMembershipTopUp(transactionMeta, batchId) &&
-        transactionMeta.status === TransactionStatus.confirmed &&
-        settleOnce()
-      ) {
-        resolve(transactionMeta);
-      }
-    };
-
-    const rejectTopUp = (error: Error) => {
-      if (settleOnce()) {
-        reject(error);
-      }
-    };
-
     const onStatusUpdated = ({
       transactionMeta,
     }: {
@@ -90,34 +91,38 @@ export function waitForMembershipTopUp(
         return;
       }
 
-      switch (transactionMeta.status) {
-        case TransactionStatus.confirmed:
-          resolveTopUp(transactionMeta);
-          break;
+      const { status } = transactionMeta;
+
+      if (APPROVED_STATUSES.includes(status)) {
+        if (settleOnce()) {
+          resolve(transactionMeta);
+        }
+        return;
+      }
+
+      switch (status) {
         case TransactionStatus.rejected:
-          rejectTopUp(new Error(USER_REJECTED_TOP_UP_MESSAGE));
+          if (settleOnce()) {
+            reject(new Error(USER_REJECTED_TOP_UP_MESSAGE));
+          }
           break;
         case TransactionStatus.failed:
         case TransactionStatus.dropped:
         case TransactionStatus.cancelled:
-          rejectTopUp(new Error(topUpFailureMessage(transactionMeta)));
+          if (settleOnce()) {
+            reject(new Error(topUpFailureMessage(transactionMeta)));
+          }
           break;
         default:
           break;
       }
     };
 
-    const onConfirmed = (transactionMeta: TransactionMeta) => {
-      resolveTopUp(transactionMeta);
-    };
-
     stopListening = () => {
       Engine.controllerMessenger.unsubscribe(STATUS_UPDATED, onStatusUpdated);
-      Engine.controllerMessenger.unsubscribe(CONFIRMED, onConfirmed);
     };
 
     Engine.controllerMessenger.subscribe(STATUS_UPDATED, onStatusUpdated);
-    Engine.controllerMessenger.subscribe(CONFIRMED, onConfirmed);
   });
 
   // Keep rejections observable to `await promise`, but mark them handled so a

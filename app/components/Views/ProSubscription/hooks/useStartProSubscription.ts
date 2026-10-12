@@ -54,7 +54,8 @@ type InitiateDeposit = ReturnType<
 
 /**
  * Opens a membership-subscription top-up for the mUSD shortfall and waits
- * until that batch confirms. Subscribes before the deposit is submitted, and
+ * until the user approves that batch (see `waitForMembershipTopUp` for why
+ * approval is enough). Subscribes before the deposit is submitted, and
  * cancels the waiter if deposit setup fails.
  *
  * @param initiateDeposit - Money Account deposit starter.
@@ -231,7 +232,9 @@ export interface UseStartProSubscriptionResult {
  * flow from MetaMask/core#10666:
  * 1. `checkMoneyAccountBalance`
  * 2. If short, open a `membershipSubscription` MetaMask Pay top-up for the
- * shortfall and wait for confirmation
+ * shortfall and wait for the user to approve it. The server keeps the
+ * subscription provisional until the funds land, and cancels it if they
+ * don't arrive within its grace period.
  * 3. Call `SubscriptionDelegationService:startSubscriptionWithDelegation`
  *
  * When the balance is already sufficient, consent UI is skipped for now

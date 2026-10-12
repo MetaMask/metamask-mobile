@@ -12,7 +12,8 @@ jest.mock('../../../../core/Engine');
 type StatusUpdatedHandler = (payload: {
   transactionMeta: TransactionMeta;
 }) => void;
-type ConfirmedHandler = (transactionMeta: TransactionMeta) => void;
+
+const STATUS_UPDATED = 'TransactionController:transactionStatusUpdated';
 
 const BATCH_ID =
   '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Hex;
@@ -34,7 +35,7 @@ function createTransactionMeta(
   return {
     id: 'tx-1',
     batchId: BATCH_ID,
-    status: TransactionStatus.submitted,
+    status: TransactionStatus.approved,
     type: TransactionType.membershipSubscription,
     txParams: { from: '0x1' },
     chainId: '0x1',
@@ -44,25 +45,22 @@ function createTransactionMeta(
   } as TransactionMeta;
 }
 
-function getHandlers(): {
-  statusUpdatedHandler: StatusUpdatedHandler;
-  confirmedHandler: ConfirmedHandler;
-} {
+function getStatusUpdatedHandler(): StatusUpdatedHandler {
   const statusCall = mockSubscribe.mock.calls.find(
-    ([event]) => event === 'TransactionController:transactionStatusUpdated',
-  );
-  const confirmedCall = mockSubscribe.mock.calls.find(
-    ([event]) => event === 'TransactionController:transactionConfirmed',
+    ([event]) => event === STATUS_UPDATED,
   );
 
-  if (!statusCall || !confirmedCall) {
-    throw new Error('Expected both transaction event subscriptions');
+  if (!statusCall) {
+    throw new Error('Expected a transactionStatusUpdated subscription');
   }
 
-  return {
-    statusUpdatedHandler: statusCall[1] as StatusUpdatedHandler,
-    confirmedHandler: confirmedCall[1] as ConfirmedHandler,
-  };
+  return statusCall[1] as StatusUpdatedHandler;
+}
+
+async function expectPending(promise: Promise<unknown>): Promise<void> {
+  await expect(
+    Promise.race([promise.then(() => 'resolved'), Promise.resolve('pending')]),
+  ).resolves.toBe('pending');
 }
 
 describe('waitForMembershipTopUp', () => {
@@ -70,43 +68,69 @@ describe('waitForMembershipTopUp', () => {
     jest.clearAllMocks();
   });
 
-  it('resolves when the matching top-up is confirmed via status update', async () => {
+  it('resolves and unsubscribes when the matching top-up is approved', async () => {
     const { promise } = waitForMembershipTopUp(BATCH_ID);
-    const { statusUpdatedHandler } = getHandlers();
-    const confirmedMeta = createTransactionMeta({
-      status: TransactionStatus.confirmed,
-    });
+    const statusUpdatedHandler = getStatusUpdatedHandler();
+    const approvedMeta = createTransactionMeta();
 
-    statusUpdatedHandler({ transactionMeta: confirmedMeta });
+    statusUpdatedHandler({ transactionMeta: approvedMeta });
 
-    await expect(promise).resolves.toBe(confirmedMeta);
+    await expect(promise).resolves.toBe(approvedMeta);
     expect(mockUnsubscribe).toHaveBeenCalledWith(
-      'TransactionController:transactionStatusUpdated',
+      STATUS_UPDATED,
       statusUpdatedHandler,
-    );
-    expect(mockUnsubscribe).toHaveBeenCalledWith(
-      'TransactionController:transactionConfirmed',
-      expect.any(Function),
     );
   });
 
-  it('resolves when the matching top-up is confirmed via transactionConfirmed', async () => {
+  it.each([
+    TransactionStatus.signed,
+    TransactionStatus.submitted,
+    TransactionStatus.confirmed,
+  ])(
+    'resolves when the first matching update is the later %s status',
+    async (status) => {
+      const { promise } = waitForMembershipTopUp(BATCH_ID);
+      const meta = createTransactionMeta({ status });
+
+      getStatusUpdatedHandler()({ transactionMeta: meta });
+
+      await expect(promise).resolves.toBe(meta);
+    },
+  );
+
+  it('ignores failures reported after approval', async () => {
     const { promise } = waitForMembershipTopUp(BATCH_ID);
-    const { confirmedHandler } = getHandlers();
-    const confirmedMeta = createTransactionMeta({
-      status: TransactionStatus.confirmed,
+    const statusUpdatedHandler = getStatusUpdatedHandler();
+    const approvedMeta = createTransactionMeta();
+
+    statusUpdatedHandler({ transactionMeta: approvedMeta });
+    statusUpdatedHandler({
+      transactionMeta: createTransactionMeta({
+        status: TransactionStatus.failed,
+      }),
     });
 
-    confirmedHandler(confirmedMeta);
+    await expect(promise).resolves.toBe(approvedMeta);
+  });
 
-    await expect(promise).resolves.toBe(confirmedMeta);
+  it('stays pending while the top-up is unapproved', async () => {
+    const { promise, cancel } = waitForMembershipTopUp(BATCH_ID);
+
+    getStatusUpdatedHandler()({
+      transactionMeta: createTransactionMeta({
+        status: TransactionStatus.unapproved,
+      }),
+    });
+
+    expect(mockUnsubscribe).not.toHaveBeenCalled();
+    cancel();
+    await expectPending(promise);
   });
 
   it('rejects with a user-rejected error when the top-up is rejected', async () => {
     const { promise } = waitForMembershipTopUp(BATCH_ID);
-    const { statusUpdatedHandler } = getHandlers();
 
-    statusUpdatedHandler({
+    getStatusUpdatedHandler()({
       transactionMeta: createTransactionMeta({
         status: TransactionStatus.rejected,
       }),
@@ -117,122 +141,71 @@ describe('waitForMembershipTopUp', () => {
 
   it('rejects with the transaction error message when the top-up fails', async () => {
     const { promise } = waitForMembershipTopUp(BATCH_ID);
-    const { statusUpdatedHandler } = getHandlers();
 
-    statusUpdatedHandler({
+    getStatusUpdatedHandler()({
       transactionMeta: createTransactionMeta({
         status: TransactionStatus.failed,
-        error: { name: 'Error', message: 'relay quote failed' },
+        error: { name: 'Error', message: 'No chainId defined.' },
       }),
     });
 
-    await expect(promise).rejects.toThrow('relay quote failed');
+    await expect(promise).rejects.toThrow('No chainId defined.');
   });
 
-  it('rejects with a status message when failed without meta.error', async () => {
-    const { promise } = waitForMembershipTopUp(BATCH_ID);
-    const { statusUpdatedHandler } = getHandlers();
+  it.each([TransactionStatus.dropped, TransactionStatus.cancelled])(
+    'rejects with a status message when %s without meta.error',
+    async (status) => {
+      const { promise } = waitForMembershipTopUp(BATCH_ID);
 
-    statusUpdatedHandler({
-      transactionMeta: createTransactionMeta({
-        status: TransactionStatus.dropped,
-      }),
-    });
+      getStatusUpdatedHandler()({
+        transactionMeta: createTransactionMeta({ status }),
+      });
 
-    await expect(promise).rejects.toThrow(
-      'Membership subscription top-up dropped',
-    );
-  });
-
-  it('rejects when the matching top-up is cancelled', async () => {
-    const { promise } = waitForMembershipTopUp(BATCH_ID);
-    const { statusUpdatedHandler } = getHandlers();
-
-    statusUpdatedHandler({
-      transactionMeta: createTransactionMeta({
-        status: TransactionStatus.cancelled,
-      }),
-    });
-
-    await expect(promise).rejects.toThrow(
-      'Membership subscription top-up cancelled',
-    );
-  });
+      await expect(promise).rejects.toThrow(
+        `Membership subscription top-up ${status}`,
+      );
+    },
+  );
 
   it('ignores events for a different batch id', async () => {
     const { promise, cancel } = waitForMembershipTopUp(BATCH_ID);
-    const { statusUpdatedHandler, confirmedHandler } = getHandlers();
 
-    statusUpdatedHandler({
-      transactionMeta: createTransactionMeta({
-        batchId: OTHER_BATCH_ID,
-        status: TransactionStatus.confirmed,
-      }),
+    getStatusUpdatedHandler()({
+      transactionMeta: createTransactionMeta({ batchId: OTHER_BATCH_ID }),
     });
-    confirmedHandler(
-      createTransactionMeta({
-        batchId: OTHER_BATCH_ID,
-        status: TransactionStatus.confirmed,
-      }),
-    );
 
     expect(mockUnsubscribe).not.toHaveBeenCalled();
     cancel();
-    await expect(
-      Promise.race([
-        promise.then(() => 'resolved'),
-        Promise.resolve('pending'),
-      ]),
-    ).resolves.toBe('pending');
+    await expectPending(promise);
   });
 
   it('ignores events for a non-membership transaction type', async () => {
     const { promise, cancel } = waitForMembershipTopUp(BATCH_ID);
-    const { statusUpdatedHandler } = getHandlers();
 
-    statusUpdatedHandler({
+    getStatusUpdatedHandler()({
       transactionMeta: createTransactionMeta({
         type: TransactionType.moneyAccountDeposit,
-        status: TransactionStatus.confirmed,
       }),
     });
 
     expect(mockUnsubscribe).not.toHaveBeenCalled();
     cancel();
-    await expect(
-      Promise.race([
-        promise.then(() => 'resolved'),
-        Promise.resolve('pending'),
-      ]),
-    ).resolves.toBe('pending');
+    await expectPending(promise);
   });
 
   it('unsubscribes without settling when cancel is called', async () => {
     const { promise, cancel } = waitForMembershipTopUp(BATCH_ID);
-    const { statusUpdatedHandler, confirmedHandler } = getHandlers();
+    const statusUpdatedHandler = getStatusUpdatedHandler();
 
     cancel();
 
     expect(mockUnsubscribe).toHaveBeenCalledWith(
-      'TransactionController:transactionStatusUpdated',
+      STATUS_UPDATED,
       statusUpdatedHandler,
     );
-    expect(mockUnsubscribe).toHaveBeenCalledWith(
-      'TransactionController:transactionConfirmed',
-      confirmedHandler,
-    );
 
-    statusUpdatedHandler({
-      transactionMeta: createTransactionMeta({
-        status: TransactionStatus.confirmed,
-      }),
-    });
+    statusUpdatedHandler({ transactionMeta: createTransactionMeta() });
 
-    await expect(
-      Promise.race([
-        promise.then(() => 'resolved'),
-        Promise.resolve('pending'),
-      ]),
-    ).resolves.toBe('pending');
+    await expectPending(promise);
   });
 });
