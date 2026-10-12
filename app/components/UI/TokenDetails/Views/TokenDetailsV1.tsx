@@ -65,6 +65,7 @@ import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenEx
 import OverviewTab from '../components/tabs/OverviewTab';
 import TokenDetailsFeedTab from '../components/tabs/FeedTab';
 import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
+import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import TokenDetailsV1TabBar, {
   HIDDEN_TAB_PAGE_STYLE,
   useTokenDetailsV1ScrollStabilization,
@@ -78,6 +79,7 @@ import {
   type TokenDetailsV1TabKey,
 } from '../constants/constants';
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
+import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
@@ -203,6 +205,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   }, [navigation]);
 
   const caip19AssetId = useTokenCaipAssetId(token);
+  const { balance, balanceFiatUsd } = useTokenBalance(token, {
+    calculateUsdBalance: true,
+  });
 
   const shareUrl = useMemo(
     () =>
@@ -554,6 +559,17 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             </ScrollView>
           )}
         </PriceChartContext.Consumer>
+
+        <TokenDetailsStickyFooter
+          token={token}
+          securityData={securityData}
+          balanceFiatUsd={balanceFiatUsd}
+          networkName={networkConfigurationByChainId?.name}
+          currentTokenBalance={balance}
+          hasTokenBalance={Boolean(balance) && balance !== '0'}
+          sourcePage="TokenDetailsView"
+          showPositionLine={Boolean(socialEnabled && caip19AssetId)}
+        />
 
         {/* Both sheets sit outside the ScrollView on purpose: the design
             system `BottomSheet` is positioned `absolute inset-0` against its

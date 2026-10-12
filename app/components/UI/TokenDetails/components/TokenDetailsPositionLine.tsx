@@ -120,12 +120,10 @@ const TokenDetailsPositionLine: React.FC<TokenDetailsPositionLineProps> = ({
     <Box twClassName="mb-3 gap-1">
       <Pressable
         testID={TOKEN_DETAILS_POSITION_LINE_TEST_ID}
-        accessibilityRole="button"
-        onPress={() => {
-          if (showPnl) {
-            setExpanded((open) => !open);
-          }
-        }}
+        accessibilityRole={showPnl ? 'button' : undefined}
+        accessibilityState={showPnl ? { expanded } : undefined}
+        disabled={!showPnl}
+        onPress={() => setExpanded((open) => !open)}
       >
         <Box
           flexDirection={BoxFlexDirection.Row}

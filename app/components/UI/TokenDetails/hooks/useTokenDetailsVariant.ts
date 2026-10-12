@@ -41,6 +41,8 @@ export const useTokenDetailsVariant = (
     isMemecoinTdpEnabled ? caipAssetId : null,
   );
 
+  const hasLaunchpadData = asset?.launchpadData != null;
+
   if (!isMemecoinTdpEnabled) {
     return { variant: null, isPending: false };
   }
@@ -49,7 +51,7 @@ export const useTokenDetailsVariant = (
     return { variant: null, isPending: true };
   }
 
-  if (isMeme || asset?.launchpadData != null) {
+  if (isMeme || hasLaunchpadData) {
     return { variant: TokenDetailsVariant.Memecoin, isPending: false };
   }
 

@@ -29,7 +29,6 @@ import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
-import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
 import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
@@ -126,6 +125,11 @@ interface TokenStickyFooterProps {
    * confirms how to resolve it; the line then shows value only.
    */
   positionId?: string;
+  /**
+   * Renders the position line above the buttons. Both token details pages set
+   * this when the Feed tab would show the social feed.
+   */
+  showPositionLine?: boolean;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -149,9 +153,9 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   sourcePage,
   useAmbientColor = false,
   positionId,
+  showPositionLine = false,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const isPositionLineEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
   const insets = useSafeAreaInsets();
   const { colors, themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
@@ -405,7 +409,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   return (
     <>
       <View style={footerStyle}>
-        {isPositionLineEnabled && (
+        {showPositionLine && (
           <TokenDetailsPositionLine
             positionId={positionId}
             balanceFiatUsd={balanceFiatUsd}

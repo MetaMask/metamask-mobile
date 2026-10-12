@@ -88,6 +88,19 @@ describe('TokenDetailsPositionLine', () => {
     expect(queryByText('Unrealised PNL')).toBeNull();
   });
 
+  it('does not announce a button when there is no position to expand', () => {
+    const { getByTestId } = render(
+      <TokenDetailsPositionLine balanceFiatUsd={50} />,
+    );
+
+    const row = getByTestId('token-details-position-line');
+    expect(row.props.accessibilityRole).toBeUndefined();
+    expect(row.props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true }),
+    );
+    expect(row.props.accessibilityState?.expanded).toBeUndefined();
+  });
+
   it('shows unrealised PnL and expands the position details', () => {
     mockUseTraderPosition.mockReturnValue({
       position,
@@ -112,9 +125,17 @@ describe('TokenDetailsPositionLine', () => {
 
     expect(getByText('Unrealised PNL')).toBeTruthy();
     expect(getByText('+$50.00 (+50.00%)')).toBeTruthy();
+    const row = getByTestId('token-details-position-line');
+    expect(row.props.accessibilityRole).toBe('button');
+    expect(row.props.accessibilityState).toEqual(
+      expect.objectContaining({ expanded: false }),
+    );
 
-    fireEvent.press(getByTestId('token-details-position-line'));
+    fireEvent.press(row);
 
+    expect(
+      getByTestId('token-details-position-line').props.accessibilityState,
+    ).toEqual(expect.objectContaining({ expanded: true }));
     expect(getByText('Realized')).toBeTruthy();
     expect(getByText('Unrealized')).toBeTruthy();
     expect(getByText('Average cost')).toBeTruthy();

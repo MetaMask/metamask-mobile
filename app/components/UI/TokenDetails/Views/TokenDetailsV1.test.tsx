@@ -160,6 +160,15 @@ jest.mock('../../AssetOverview/Price/Price', () => {
   };
 });
 
+const mockStickyFooterProps: Record<string, unknown>[] = [];
+jest.mock('../components/TokenDetailsStickyFooter', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => {
+    mockStickyFooterProps.push(props);
+    return null;
+  },
+}));
+
 const mockOverviewProps: Record<string, unknown>[] = [];
 jest.mock('../components/tabs/OverviewTab', () => {
   const { View } = jest.requireActual('react-native');
@@ -288,6 +297,7 @@ describe('TokenDetailsV1', () => {
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
     mockOverviewProps.length = 0;
     mockPriceHeaderProps.length = 0;
+    mockStickyFooterProps.length = 0;
   });
 
   it('renders the meme-TDP body with the token symbol in the header', () => {
@@ -649,6 +659,42 @@ describe('TokenDetailsV1', () => {
 
     expect(getByText('feed:true')).toBeTruthy();
     expect(getByTestId('token-details-v1-tab-panel-feed')).toBeTruthy();
+  });
+
+  it('renders the sticky footer without the position line when the social feed is off', () => {
+    render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps).toEqual([
+      expect.objectContaining({
+        sourcePage: 'TokenDetailsView',
+        showPositionLine: false,
+      }),
+    ]);
+  });
+
+  it('shows the position line on the sticky footer when the social feed is on', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+
+    render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps.at(-1)).toEqual(
+      expect.objectContaining({ showPositionLine: true }),
+    );
   });
 
   it('loads the social feed on the Feed tab', () => {

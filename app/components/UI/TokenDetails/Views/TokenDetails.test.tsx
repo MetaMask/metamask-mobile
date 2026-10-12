@@ -26,6 +26,7 @@ import { TraceName } from '../../../../util/trace';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectBridgeRecurringBuyFeatureFlags } from '../../../../selectors/bridge/featureFlags';
 import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
@@ -451,6 +452,21 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
   useStickyFooterTracking: jest.fn(() => jest.fn()),
 }));
 
+jest.mock('../components/TokenDetailsPositionLine', () => {
+  const { createElement } = jest.requireActual<typeof import('react')>('react');
+  const { Text } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      createElement(
+        Text,
+        { testID: 'token-details-position-line' },
+        'position',
+      ),
+  };
+});
+
 const mockAssetDetailsQuickBuy = jest.fn(
   (_props: Record<string, unknown>) => null,
 );
@@ -733,11 +749,28 @@ describe('TokenDetails', () => {
     });
 
     it('shows sticky buttons when token is loaded', () => {
-      const { getByTestId, getByText } = render(<TokenDetails />);
+      const { getByTestId, getByText, queryByTestId } = render(
+        <TokenDetails />,
+      );
 
       expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
       expect(getByText('Swap')).toBeOnTheScreen();
       expect(getByText('Buy')).toBeOnTheScreen();
+      expect(queryByTestId('token-details-position-line')).toBeNull();
+    });
+
+    it('shows the position line when the social feed is on', () => {
+      const previous = mockUseSelector.getMockImplementation();
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSocialLeaderboardEnabled) {
+          return true;
+        }
+        return previous?.(selector);
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId('token-details-position-line')).toBeOnTheScreen();
     });
 
     it('does not show sticky buttons when RWA token is not tradable', () => {
