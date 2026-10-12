@@ -166,6 +166,7 @@ const MoneyHomeView = () => {
   const { PreferencesController } = Engine.context;
   const privacyMode = useSelector(selectPrivacyMode);
   const claimableRewards = useMoneyHomeClaimableRewards();
+  const refreshClaimableRewards = claimableRewards.refresh;
   const openClaimEarnings = useCallback(() => {
     navigateToRewardsEarningsTab(navigation);
   }, [navigation]);
@@ -257,7 +258,7 @@ const MoneyHomeView = () => {
         refreshMusdFiatRate(),
         Promise.resolve(refetchActivity()),
         Engine.context.CardController.fetchCardHomeData({ force: true }),
-        claimableRewards.refresh(),
+        refreshClaimableRewards(),
       ]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
@@ -265,7 +266,7 @@ const MoneyHomeView = () => {
       setRefreshing(false);
     }
   }, [
-    claimableRewards.refresh,
+    refreshClaimableRewards,
     refetchBalance,
     refetchInterest,
     refreshMusdFiatRate,
