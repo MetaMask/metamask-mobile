@@ -210,6 +210,29 @@ describe('TokenDetailsStickyFooter', () => {
       expect(getByText('Buy ETH')).toBeOnTheScreen();
     });
 
+    it('collapses the expanded trader position sheet when the overlay is pressed', () => {
+      const onToggleExpanded = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{
+            positionValue: '$103.31',
+            pnl: {
+              amount: '+$15.01',
+              percentage: '+16.99%',
+              isProfit: true,
+            },
+            isExpanded: true,
+            onToggleExpanded,
+          }}
+        />,
+      );
+
+      fireEvent.press(getByTestId('token-details-trader-position-pnl-overlay'));
+
+      expect(onToggleExpanded).toHaveBeenCalledWith(false);
+    });
+
     it('shows both buttons when isBuyable and hasEligibleSwapTokens are true', () => {
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,

@@ -93,6 +93,7 @@ const ERROR_TEXT_PROPS = { color: TextColor.ErrorInverse } as const;
 const PRIMARY_ICON_PROPS = { size: IconSize.Md } as const;
 const EXPANDED_DETAILS_FALLBACK_HEIGHT = 240;
 const EXPANDED_DETAILS_BOTTOM_SPACING = 16;
+const SHEET_SWIPE_ACTIVATION_OFFSET_PX = 10;
 
 type StickyButtonLayout =
   | 'both'
@@ -290,6 +291,9 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     },
     [onToggleTraderPositionExpanded],
   );
+  const handleCollapseTraderPosition = useCallback(() => {
+    onToggleTraderPositionExpanded?.(false);
+  }, [onToggleTraderPositionExpanded]);
 
   const sheetGesture = useMemo(
     () =>
@@ -297,6 +301,10 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         .enabled(
           isTraderPositionExpanded && Boolean(onToggleTraderPositionExpanded),
         )
+        .activeOffsetY([
+          -SHEET_SWIPE_ACTIVATION_OFFSET_PX,
+          SHEET_SWIPE_ACTIVATION_OFFSET_PX,
+        ])
         .onStart(() => {
           'worklet';
           gestureStartProgress.value = expandedDetailsProgress.value;
@@ -732,7 +740,10 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   return (
     <>
       {isTraderPositionExpanded && (
-        <BottomSheetOverlay testID="token-details-trader-position-pnl-overlay" />
+        <BottomSheetOverlay
+          testID="token-details-trader-position-pnl-overlay"
+          onPress={handleCollapseTraderPosition}
+        />
       )}
       {traderPositionFooter}
       <RwaUnavailableBottomSheet ref={rwaUnavailableSheetRef} />
