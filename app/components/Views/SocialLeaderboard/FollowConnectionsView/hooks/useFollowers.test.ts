@@ -71,6 +71,39 @@ describe('useFollowers', () => {
       );
     });
 
+    it('passes fetchFollowers queryKey with addressOrId', () => {
+      renderHook(() => useFollowers({ addressOrId: '0xabc' }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['SocialService:fetchFollowers', { addressOrId: '0xabc' }],
+        }),
+      );
+    });
+
+    it('passes fetchFollowers queryKey with mutuals true', () => {
+      renderHook(() => useFollowers({ addressOrId: '0xabc', mutuals: true }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: [
+            'SocialService:fetchFollowers',
+            { addressOrId: '0xabc', mutuals: true },
+          ],
+        }),
+      );
+    });
+
+    it('ignores mutuals without addressOrId', () => {
+      renderHook(() => useFollowers({ mutuals: true }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['SocialService:fetchMyFollowers'],
+        }),
+      );
+    });
+
     it('enables the query by default', () => {
       renderHook(() => useFollowers());
 
@@ -164,6 +197,38 @@ describe('useFollowers', () => {
             surface: 'followed_traders',
             operation: 'fetch_my_followers',
             endpoint: 'followers',
+          }),
+        }),
+      );
+    });
+
+    it('logs trader follower errors as fetch_followers', () => {
+      const error = new Error('fetch failed');
+      mockUseQuery.mockReturnValue(makeQueryResult({ error }));
+
+      renderHook(() => useFollowers({ addressOrId: '0xabc' }));
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            operation: 'fetch_followers',
+          }),
+        }),
+      );
+    });
+
+    it('logs mutual follower errors as fetch_mutual_followers', () => {
+      const error = new Error('fetch failed');
+      mockUseQuery.mockReturnValue(makeQueryResult({ error }));
+
+      renderHook(() => useFollowers({ addressOrId: '0xabc', mutuals: true }));
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            operation: 'fetch_mutual_followers',
           }),
         }),
       );

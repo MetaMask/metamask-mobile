@@ -550,6 +550,83 @@ describe('MyProfileView', () => {
     expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
+  it('opens another trader followers with addressOrId', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+    mockUseTraderProfile.mockReturnValue({
+      profile: {
+        profile: {
+          profileId: 'trader-1',
+          address: '0xabc',
+          allAddresses: ['0xabc'],
+          name: 'alpha.eth',
+          imageUrl: null,
+        },
+        stats: {
+          pnl30d: 0,
+          winRate30d: 0,
+          medianHoldMinutes: 0,
+          tradeCount30d: 0,
+          volumeUsd30d: 0,
+        },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+        },
+        socialHandles: {},
+        followerCount: 88,
+        followingCount: 7,
+        copytradedAllTime: {
+          count: 0,
+          volumeUSD: 0,
+          distinctActors: 0,
+        },
+      } as TraderProfileResponse,
+      isLoading: false,
+      error: null,
+      isFollowing: false,
+      toggleFollow: jest.fn().mockResolvedValue(undefined),
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWING_COUNT),
+    ).toHaveTextContent('7');
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWERS_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.FOLLOW_CONNECTIONS,
+      { initialTab: 'followers', addressOrId: 'trader-1' },
+    );
+  });
+
+  it('opens another trader following with addressOrId', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderAddress: '0xabc',
+    };
+
+    renderWithProvider(<MyProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWING_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.FOLLOW_CONNECTIONS,
+      { initialTab: 'following', addressOrId: 'trader-1' },
+    );
+  });
+
   it('hides owner actions and shows follow for another trader', () => {
     mockProfileRouteParams = {
       traderId: 'trader-1',

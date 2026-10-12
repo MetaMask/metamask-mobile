@@ -9,7 +9,11 @@ import {
   getConnectionFollowButtonTestId,
   getConnectionRowTestId,
 } from './FollowConnectionsView.testIds';
-import type { UseFollowersResult } from './hooks/useFollowers';
+import type {
+  UseFollowersOptions,
+  UseFollowersResult,
+  UseTraderFollowingResult,
+} from './hooks';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -17,15 +21,20 @@ const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
 const mockIsFollowing = jest.fn((id: string) => id === 'trader-1');
 const mockRefreshFollowing = jest.fn().mockResolvedValue(undefined);
 const mockRefreshFollowers = jest.fn().mockResolvedValue(undefined);
+const mockRefreshMutuals = jest.fn().mockResolvedValue(undefined);
 const mockUseFollowedTraders = jest.fn<UseFollowedTradersResult, []>();
-const mockUseFollowers = jest.fn<UseFollowersResult, []>();
-let mockInitialTab: 'followers' | 'following' = 'followers';
+const mockUseFollowers = jest.fn<UseFollowersResult, [UseFollowersOptions?]>();
+const mockUseTraderFollowing = jest.fn<UseTraderFollowingResult, []>();
+let mockRouteParams: {
+  initialTab?: 'followers' | 'following' | 'mutuals';
+  addressOrId?: string;
+} = { initialTab: 'followers' };
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   useRoute: () => ({
-    params: { initialTab: mockInitialTab },
+    params: mockRouteParams,
     name: 'FollowConnectionsView',
   }),
 }));
@@ -35,7 +44,8 @@ jest.mock('../NotificationPreferences/hooks', () => ({
 }));
 
 jest.mock('./hooks', () => ({
-  useFollowers: () => mockUseFollowers(),
+  useFollowers: (options?: UseFollowersOptions) => mockUseFollowers(options),
+  useTraderFollowing: () => mockUseTraderFollowing(),
 }));
 
 jest.mock('../../../hooks/useFollowToggle', () => ({
@@ -84,10 +94,18 @@ const liveFollowers: UseFollowersResult['followers'] = [
   },
 ];
 
+const emptyFollowers: UseFollowersResult = {
+  followers: [],
+  count: 0,
+  isLoading: false,
+  error: null,
+  refresh: mockRefreshMutuals,
+};
+
 describe('FollowConnectionsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockInitialTab = 'followers';
+    mockRouteParams = { initialTab: 'followers' };
     mockIsFollowing.mockImplementation((id: string) => id === 'trader-1');
     mockUseFollowedTraders.mockReturnValue({
       traders: followingTraders,
@@ -95,12 +113,24 @@ describe('FollowConnectionsView', () => {
       error: null,
       refresh: mockRefreshFollowing,
     });
-    mockUseFollowers.mockReturnValue({
-      followers: liveFollowers,
-      count: 12,
+    mockUseFollowers.mockImplementation((options) => {
+      if (options?.mutuals) {
+        return emptyFollowers;
+      }
+      return {
+        followers: liveFollowers,
+        count: 12,
+        isLoading: false,
+        error: null,
+        refresh: mockRefreshFollowers,
+      };
+    });
+    mockUseTraderFollowing.mockReturnValue({
+      traders: followingTraders,
+      count: 4,
       isLoading: false,
       error: null,
-      refresh: mockRefreshFollowers,
+      refresh: mockRefreshFollowing,
     });
   });
 
@@ -173,7 +203,7 @@ describe('FollowConnectionsView', () => {
   });
 
   it('renders live following traders on the following tab', () => {
-    mockInitialTab = 'following';
+    mockRouteParams = { initialTab: 'following' };
 
     renderWithProvider(<FollowConnectionsView />);
 
@@ -186,7 +216,7 @@ describe('FollowConnectionsView', () => {
   });
 
   it('navigates to trader profile from a following row', () => {
-    mockInitialTab = 'following';
+    mockRouteParams = { initialTab: 'following' };
 
     renderWithProvider(<FollowConnectionsView />);
 
@@ -205,7 +235,7 @@ describe('FollowConnectionsView', () => {
   });
 
   it('unfollows from a following row button', () => {
-    mockInitialTab = 'following';
+    mockRouteParams = { initialTab: 'following' };
 
     renderWithProvider(<FollowConnectionsView />);
 
@@ -224,7 +254,7 @@ describe('FollowConnectionsView', () => {
   });
 
   it('retries following fetch after an error', () => {
-    mockInitialTab = 'following';
+    mockRouteParams = { initialTab: 'following' };
     mockUseFollowedTraders.mockReturnValue({
       traders: [],
       isLoading: false,
@@ -249,5 +279,51 @@ describe('FollowConnectionsView', () => {
     );
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the mutuals tab on the owner list', () => {
+    renderWithProvider(<FollowConnectionsView />);
+
+    expect(
+      screen.getByTestId(FollowConnectionsViewSelectorsIDs.FOLLOWERS_TAB),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(FollowConnectionsViewSelectorsIDs.FOLLOWING_TAB),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(FollowConnectionsViewSelectorsIDs.MUTUALS_TAB),
+    ).toBeNull();
+  });
+
+  it('shows the mutuals tab for another trader', () => {
+    mockRouteParams = { initialTab: 'followers', addressOrId: '0xabc' };
+
+    renderWithProvider(<FollowConnectionsView />);
+
+    expect(
+      screen.getByTestId(FollowConnectionsViewSelectorsIDs.MUTUALS_TAB),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the mutuals empty state for another trader', () => {
+    mockRouteParams = { initialTab: 'mutuals', addressOrId: '0xabc' };
+
+    renderWithProvider(<FollowConnectionsView />);
+
+    expect(
+      screen.getByTestId(FollowConnectionsViewSelectorsIDs.MUTUALS_EMPTY),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('No mutual followers yet.')).toBeOnTheScreen();
+  });
+
+  it('renders trader following from fetchTraderFollowing', () => {
+    mockRouteParams = { initialTab: 'following', addressOrId: '0xabc' };
+
+    renderWithProvider(<FollowConnectionsView />);
+
+    expect(
+      screen.getByTestId(FollowConnectionsViewSelectorsIDs.FOLLOWING_LIST),
+    ).toBeOnTheScreen();
+    expect(mockUseTraderFollowing).toHaveBeenCalled();
   });
 });

@@ -26,7 +26,6 @@ import {
   TabsBar,
   type TabItem,
 } from '../../../../component-library/components-temp/Tabs';
-import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { useFollowToggleMany } from '../../../hooks/useFollowToggle';
@@ -38,38 +37,89 @@ import {
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import ConnectionRow from './components/ConnectionRow';
 import { FollowConnectionsViewSelectorsIDs } from './FollowConnectionsView.testIds';
-import { useFollowers, type FollowerConnection } from './hooks';
+import {
+  useFollowers,
+  useTraderFollowing,
+  type FollowerConnection,
+} from './hooks';
+
+const tabIndexFor = (
+  initialTab: 'followers' | 'following' | 'mutuals' | undefined,
+  isTraderList: boolean,
+): number => {
+  if (initialTab === 'following') {
+    return 1;
+  }
+  if (isTraderList && initialTab === 'mutuals') {
+    return 2;
+  }
+  return 0;
+};
 
 const FollowConnectionsView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route =
     useRoute<RouteProp<RootStackParamList, 'FollowConnectionsView'>>();
   const tw = useTailwind();
+  const addressOrId = route.params?.addressOrId;
+  const isTraderList = Boolean(addressOrId);
   const initialTab = route.params?.initialTab ?? 'followers';
   const [activeIndex, setActiveIndex] = useState(
-    initialTab === 'following' ? 1 : 0,
+    tabIndexFor(initialTab, isTraderList),
   );
-  const {
-    followers,
-    count: followerCount,
-    isLoading: isFollowersLoading,
-    error: followersError,
-    refresh: refreshFollowers,
-  } = useFollowers();
-  const {
-    traders: following,
-    isLoading: isFollowingLoading,
-    error: followingError,
-    refresh: refreshFollowing,
-  } = useFollowedTraders();
+  const myFollowers = useFollowers({ enabled: !isTraderList });
+  const traderFollowers = useFollowers({
+    addressOrId,
+    enabled: isTraderList,
+  });
+  const mutualFollowers = useFollowers({
+    addressOrId,
+    mutuals: true,
+    enabled: isTraderList,
+  });
+  const myFollowing = useFollowedTraders({ enabled: !isTraderList });
+  const traderFollowing = useTraderFollowing({
+    addressOrId: addressOrId ?? '',
+    enabled: isTraderList,
+  });
+  const followers = isTraderList
+    ? traderFollowers.followers
+    : myFollowers.followers;
+  const followerCount = isTraderList
+    ? traderFollowers.count
+    : myFollowers.count;
+  const isFollowersLoading = isTraderList
+    ? traderFollowers.isLoading
+    : myFollowers.isLoading;
+  const followersError = isTraderList
+    ? traderFollowers.error
+    : myFollowers.error;
+  const refreshFollowers = isTraderList
+    ? traderFollowers.refresh
+    : myFollowers.refresh;
+  const following = isTraderList
+    ? traderFollowing.traders
+    : myFollowing.traders;
+  const followingCount = isTraderList
+    ? traderFollowing.count
+    : myFollowing.traders.length;
+  const isFollowingLoading = isTraderList
+    ? traderFollowing.isLoading
+    : myFollowing.isLoading;
+  const followingError = isTraderList
+    ? traderFollowing.error
+    : myFollowing.error;
+  const refreshFollowing = isTraderList
+    ? traderFollowing.refresh
+    : myFollowing.refresh;
   const { isFollowing, toggleFollow } = useFollowToggleMany();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const connectionTabs: TabItem[] = useMemo(
-    () => [
+  const connectionTabs: TabItem[] = useMemo(() => {
+    const tabs: TabItem[] = [
       {
         key: 'followers',
         label: strings('social_leaderboard.my_profile.followers_tab', {
@@ -81,14 +131,24 @@ const FollowConnectionsView: React.FC = () => {
       {
         key: 'following',
         label: strings('social_leaderboard.my_profile.following_tab', {
-          count: following.length,
+          count: followingCount,
         }),
         content: null,
         testID: FollowConnectionsViewSelectorsIDs.FOLLOWING_TAB,
       },
-    ],
-    [followerCount, following.length],
-  );
+    ];
+    if (isTraderList) {
+      tabs.push({
+        key: 'mutuals',
+        label: strings('social_leaderboard.my_profile.mutuals_tab', {
+          count: mutualFollowers.count,
+        }),
+        content: null,
+        testID: FollowConnectionsViewSelectorsIDs.MUTUALS_TAB,
+      });
+    }
+    return tabs;
+  }, [followerCount, followingCount, isTraderList, mutualFollowers.count]);
 
   const handleTabPress = useCallback((index: number) => {
     setActiveIndex(index);
@@ -130,7 +190,7 @@ const FollowConnectionsView: React.FC = () => {
     [toggleFollow],
   );
 
-  const handleUnfollow = useCallback(
+  const handleFollowingFollowPress = useCallback(
     (trader: FollowedTrader) => {
       toggleFollow(trader.id, {
         source: 'trader_profile',
@@ -150,12 +210,17 @@ const FollowConnectionsView: React.FC = () => {
         subtitle={formatAddress(item.address, 'short')}
         address={item.address}
         avatarUri={item.avatarUri}
-        isFollowing
-        onFollowPress={() => handleUnfollow(item)}
+        isFollowing={isTraderList ? isFollowing(item.id) : true}
+        onFollowPress={() => handleFollowingFollowPress(item)}
         onRowPress={() => handleFollowingRowPress(item)}
       />
     ),
-    [handleFollowingRowPress, handleUnfollow],
+    [
+      handleFollowingFollowPress,
+      handleFollowingRowPress,
+      isFollowing,
+      isTraderList,
+    ],
   );
 
   const renderFollowerItem = useCallback(
@@ -227,7 +292,11 @@ const FollowConnectionsView: React.FC = () => {
           testID={FollowConnectionsViewSelectorsIDs.FOLLOWING_EMPTY}
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('social_leaderboard.my_profile.empty_following')}
+            {strings(
+              isTraderList
+                ? 'social_leaderboard.my_profile.empty_trader_following'
+                : 'social_leaderboard.my_profile.empty_following',
+            )}
           </Text>
         </Box>
       );
@@ -310,6 +379,81 @@ const FollowConnectionsView: React.FC = () => {
     );
   })();
 
+  const mutualsContent = (() => {
+    if (mutualFollowers.isLoading && mutualFollowers.followers.length === 0) {
+      return (
+        <Box
+          twClassName="flex-1"
+          alignItems={BoxAlignItems.Center}
+          paddingTop={12}
+          testID={FollowConnectionsViewSelectorsIDs.MUTUALS_LOADING}
+        >
+          <Spinner />
+        </Box>
+      );
+    }
+    if (mutualFollowers.error && mutualFollowers.followers.length === 0) {
+      return (
+        <Box
+          twClassName="flex-1"
+          alignItems={BoxAlignItems.Center}
+          paddingHorizontal={4}
+          paddingTop={12}
+          gap={4}
+          testID={FollowConnectionsViewSelectorsIDs.MUTUALS_ERROR}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            twClassName="text-center"
+          >
+            {strings('social_leaderboard.my_profile.load_error')}
+          </Text>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            onPress={mutualFollowers.refresh}
+            twClassName="self-center"
+            testID={FollowConnectionsViewSelectorsIDs.MUTUALS_RETRY}
+          >
+            {strings('social_leaderboard.my_profile.retry')}
+          </Button>
+        </Box>
+      );
+    }
+    if (mutualFollowers.followers.length === 0) {
+      return (
+        <Box
+          twClassName="flex-1"
+          alignItems={BoxAlignItems.Center}
+          paddingTop={12}
+          paddingHorizontal={4}
+          testID={FollowConnectionsViewSelectorsIDs.MUTUALS_EMPTY}
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('social_leaderboard.my_profile.empty_mutuals')}
+          </Text>
+        </Box>
+      );
+    }
+    return (
+      <FlatList
+        data={mutualFollowers.followers}
+        keyExtractor={(item) => item.id}
+        renderItem={renderFollowerItem}
+        testID={FollowConnectionsViewSelectorsIDs.MUTUALS_LIST}
+      />
+    );
+  })();
+
+  const activeContent =
+    activeIndex === 1
+      ? followingContent
+      : activeIndex === 2
+        ? mutualsContent
+        : followersContent;
+
   return (
     <SafeAreaView
       edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
@@ -333,9 +477,7 @@ const FollowConnectionsView: React.FC = () => {
           testID={FollowConnectionsViewSelectorsIDs.TABS}
         />
       </Box>
-      <Box twClassName="flex-1">
-        {activeIndex === 0 ? followersContent : followingContent}
-      </Box>
+      <Box twClassName="flex-1">{activeContent}</Box>
     </SafeAreaView>
   );
 };

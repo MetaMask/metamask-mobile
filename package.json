@@ -191,12 +191,6 @@
       "prettier --write"
     ]
   },
-  "previewBuilds": {
-    "@metamask/social-controllers": {
-      "type": "non-breaking",
-      "previewVersion": "3.6.0-preview-136f5f1"
-    }
-  },
   "resolutions": {
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
@@ -419,7 +413,7 @@
     "@metamask/snaps-rpc-methods": "^17.2.0",
     "@metamask/snaps-sdk": "^12.1.0",
     "@metamask/snaps-utils": "^12.6.0",
-    "@metamask/social-controllers": "^3.4.0",
+    "@metamask/social-controllers": "^3.7.0",
     "@metamask/solana-wallet-snap": "^7.0.0",
     "@metamask/solana-wallet-standard": "^0.6.0",
     "@metamask/stake-sdk": "^3.4.0",

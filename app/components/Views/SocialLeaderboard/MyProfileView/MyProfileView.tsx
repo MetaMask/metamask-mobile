@@ -162,21 +162,23 @@ const MyProfileView: React.FC = () => {
     navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE);
   }, [navigation]);
   const handleFollowersPress = useCallback(() => {
-    if (!isOwner) {
+    if (!isOwner && !addressOrId) {
       return;
     }
     navigation.navigate(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
       initialTab: 'followers',
+      ...(isOwner ? {} : { addressOrId }),
     });
-  }, [isOwner, navigation]);
+  }, [addressOrId, isOwner, navigation]);
   const handleFollowingPress = useCallback(() => {
-    if (!isOwner) {
+    if (!isOwner && !addressOrId) {
       return;
     }
     navigation.navigate(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
       initialTab: 'following',
+      ...(isOwner ? {} : { addressOrId }),
     });
-  }, [isOwner, navigation]);
+  }, [addressOrId, isOwner, navigation]);
   const handleShareFirstTrade = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
   }, [navigation]);
@@ -329,7 +331,11 @@ const MyProfileView: React.FC = () => {
             <MyProfileHeader
               profile={displayProfile}
               overlayedStats={overlayedStats}
-              followingCount={following.length}
+              followingCount={
+                isOwner
+                  ? following.length
+                  : (displayProfile.followingCount ?? 0)
+              }
               isOwner={isOwner}
               onFollowersPress={handleFollowersPress}
               onFollowingPress={handleFollowingPress}
