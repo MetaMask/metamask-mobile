@@ -13,12 +13,16 @@ import {
   requestDepositWalletCreate,
   resolveDepositWalletAddress,
   syncDepositWalletCollateralBalanceAllowance,
+  syncDepositWalletPositionBalanceAllowance,
   toDepositWalletCalls,
   waitForDepositWalletDeployed,
   waitForDepositWalletTransaction,
 } from './depositWallet';
 import Engine from '../../../../../core/Engine';
-import { POLYMARKET_V2_PROTOCOL } from './protocol/definitions';
+import {
+  POLYMARKET_POSITIONS_PROTOCOL,
+  POLYMARKET_V2_PROTOCOL,
+} from './protocol/definitions';
 import { OperationType } from './safe/types';
 import { getL2Headers } from './utils';
 
@@ -562,6 +566,38 @@ describe('depositWallet', () => {
     });
     expect(mockFetch).toHaveBeenCalledWith(
       'https://clob.polymarket.com/balance-allowance/update?asset_type=COLLATERAL&signature_type=3',
+      expect.objectContaining({ method: 'GET' }),
+    );
+  });
+
+  it('syncs positions balance allowance through direct CLOB endpoint', async () => {
+    mockFetch.mockResolvedValue(mockResponse({ ok: true }));
+
+    await syncDepositWalletPositionBalanceAllowance({
+      protocol: POLYMARKET_POSITIONS_PROTOCOL,
+      signerAddress: ownerAddress,
+      apiKey: {
+        apiKey: 'api-key',
+        secret: 'secret',
+        passphrase: 'passphrase',
+      },
+      tokenId: '1234567890',
+    });
+
+    expect(mockGetL2Headers).toHaveBeenCalledWith({
+      l2HeaderArgs: {
+        method: 'GET',
+        requestPath: '/balance-allowance/update',
+      },
+      address: ownerAddress,
+      apiKey: {
+        apiKey: 'api-key',
+        secret: 'secret',
+        passphrase: 'passphrase',
+      },
+    });
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://clob.polymarket.com/balance-allowance/update?asset_type=CONDITIONAL-V2&token_id=1234567890&signature_type=3',
       expect.objectContaining({ method: 'GET' }),
     );
   });

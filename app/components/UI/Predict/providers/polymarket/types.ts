@@ -245,11 +245,13 @@ export interface ContractConfig {
 /**
  * Contracts the positions protocol (Polymarket Protocol V2) needs. Protocol
  * V2 settles on a single exchange, so there is no separate neg-risk exchange
- * contract.
+ * contract. The PositionManager owns the positions-protocol outcome balances;
+ * selling requires approving it as operator for the exchange.
  */
 export interface PositionsProtocolContractConfig {
   exchange: string;
   negRiskExchange: string;
+  positionManager: string;
 }
 
 export interface RoundConfig {

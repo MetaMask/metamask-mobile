@@ -16,6 +16,12 @@ export interface Erc1155OperatorRequirement {
   operator: string;
 }
 
+/**
+ * A required approval: an ERC-20 allowance or an ERC-1155 operator grant,
+ * checked on chain during preflight and compiled into transactions when
+ * missing. The shape is protocol-neutral — the positions-protocol builders
+ * in `positionsAllowanceRequirements.ts` reuse it.
+ */
 export type V2AllowanceRequirement =
   | Erc20AllowanceRequirement
   | Erc1155OperatorRequirement;
