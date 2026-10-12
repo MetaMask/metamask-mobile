@@ -164,7 +164,7 @@ export function usePushProvisioning(
   );
 
   useEffect(() => {
-    refreshEligibility({ silent: false });
+    void refreshEligibility({ silent: false });
 
     return () => {
       eligibilityRequestIdRef.current += 1;
@@ -187,7 +187,7 @@ export function usePushProvisioning(
           return;
         }
 
-        refreshEligibility({ silent: true });
+        void refreshEligibility({ silent: true });
       },
     );
 
