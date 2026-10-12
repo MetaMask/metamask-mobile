@@ -20,6 +20,11 @@ export interface OrdersTabConfig<T> {
    * while a network is selected.
    */
   getItemChainId: (item: T) => CaipChainId;
+  /**
+   * ISO-8601 timestamp used to group this tab's items under date headers.
+   * Omit to render a flat list.
+   */
+  getItemDate?: (item: T) => string | undefined;
 }
 
 export interface OrdersTabsProps<TOpen, THistory> {
