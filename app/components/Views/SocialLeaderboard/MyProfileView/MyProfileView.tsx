@@ -43,6 +43,7 @@ import type { RootStackParamList } from '../../../../core/NavigationService/type
 import { playSelection } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
+import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import {
@@ -365,16 +366,18 @@ const MyProfileView: React.FC = () => {
           backButtonProps={{ testID: MyProfileViewSelectorsIDs.BACK_BUTTON }}
           endAccessory={
             isOwner && displayProfile ? (
-              <ButtonIcon
-                iconName={IconName.Edit}
-                iconProps={{ color: IconColor.IconDefault }}
-                size={ButtonIconSize.Md}
-                onPress={handleOpenComposer}
-                accessibilityLabel={strings(
-                  'social_leaderboard.my_profile.create_post',
-                )}
-                testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
-              />
+              <SocialHeaderGlassSurface twClassName="px-1">
+                <ButtonIcon
+                  iconName={IconName.Edit}
+                  iconProps={{ color: IconColor.IconDefault }}
+                  size={ButtonIconSize.Md}
+                  onPress={handleOpenComposer}
+                  accessibilityLabel={strings(
+                    'social_leaderboard.my_profile.create_post',
+                  )}
+                  testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
+                />
+              </SocialHeaderGlassSurface>
             ) : undefined
           }
           testID={MyProfileViewSelectorsIDs.HEADER}
