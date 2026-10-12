@@ -1,23 +1,27 @@
 import React from 'react';
 import { fireEvent, render, within } from '@testing-library/react-native';
+import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { strings } from '../../../../../../../locales/i18n';
+import {
+  CBXRP_VERIFIED,
+  ETHOS_WARNING,
+} from '../../../utils/__fixtures__/securityData';
 import ContractSecurityScreen from './ContractSecurityScreen';
 import { ContractSecuritySelectors } from './ContractSecurityScreen.testIds';
 import {
-  SECURITY_ADDITIONAL_CHECKS,
   SECURITY_CONTRACT_CHECKS,
   SECURITY_EMPTY_VALUE,
 } from '../SecurityTab/SecurityTab.constants';
-import {
-  AdditionalCheckKey,
-  ContractCheckKey,
-} from '../SecurityTab/SecurityTab.types';
+import { ContractCheckKey } from '../SecurityTab/SecurityTab.types';
 
 const mockGoBack = jest.fn();
 
-/** An EVM address routes the facts hook to the EVM fixture. */
-let mockRouteParams: { token: { chainId: string } } = {
-  token: { chainId: '0x1' },
+/**
+ * The tab hands its resolved payload over on the route, which is the path the
+ * screen is reached by in practice.
+ */
+let mockRouteParams: { token: { securityData?: TokenSecurityData } } = {
+  token: { securityData: CBXRP_VERIFIED },
 };
 
 jest.mock('@react-navigation/native', () => ({
@@ -26,17 +30,21 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
+const renderScreen = (securityData?: TokenSecurityData) => {
+  mockRouteParams = { token: { securityData } };
+  return render(<ContractSecurityScreen />);
+};
+
 describe('ContractSecurityScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams = { token: { chainId: '0x1' } };
   });
 
-  // Both headings are the only landmarks on a screen of seven rows that each
-  // carry a sentence, so a screen reader needs them to skip the first group
+  // Both headings are the only landmarks on a screen of rows that each carry a
+  // sentence, so a screen reader needs them to skip the first group
   // (WCAG 1.3.1, 2.4.6).
   it('announces the title and the additional-checks heading as headings', () => {
-    const { getByTestId, getByText } = render(<ContractSecurityScreen />);
+    const { getByTestId, getByText } = renderScreen(CBXRP_VERIFIED);
 
     expect(getByTestId(ContractSecuritySelectors.TITLE)).toHaveProp(
       'accessibilityRole',
@@ -51,80 +59,31 @@ describe('ContractSecurityScreen', () => {
 
   // One rule per gap, not one per row. The count is the assertion: a rule
   // attached to each row instead would give four here, and would leave a line
-  // stranded above the "Additional checks" border and the footer.
-  it.each([
-    [
-      'contract',
-      ContractSecuritySelectors.SECTION_CONTRACT,
-      SECURITY_CONTRACT_CHECKS,
-    ],
-    [
-      'additional',
-      ContractSecuritySelectors.SECTION_ADDITIONAL,
-      SECURITY_ADDITIONAL_CHECKS,
-    ],
-  ] as const)(
-    'rules the gaps between the %s rows and no more',
-    (_label, sectionTestId, checkKeys) => {
-      const { getByTestId } = render(<ContractSecurityScreen />);
+  // stranded above the "Additional checks" border.
+  it('rules the gaps between the contract rows and no more', () => {
+    const { getByTestId } = renderScreen(CBXRP_VERIFIED);
 
-      const group = within(getByTestId(sectionTestId));
-
-      expect(
-        group.getAllByTestId(ContractSecuritySelectors.DIVIDER),
-      ).toHaveLength(checkKeys.length - 1);
-    },
-  );
-
-  it('renders both check groups under the screen title', () => {
-    const { getByTestId } = render(<ContractSecurityScreen />);
-
-    expect(getByTestId(ContractSecuritySelectors.TITLE)).toHaveTextContent(
-      strings('token_details_v1.contract_security.title'),
-    );
-    expect(
+    const group = within(
       getByTestId(ContractSecuritySelectors.SECTION_CONTRACT),
-    ).toBeOnTheScreen();
+    );
+
     expect(
-      getByTestId(ContractSecuritySelectors.SECTION_ADDITIONAL),
-    ).toBeOnTheScreen();
+      group.getAllByTestId(ContractSecuritySelectors.DIVIDER),
+    ).toHaveLength(SECURITY_CONTRACT_CHECKS.length - 1);
   });
 
-  // The screen is the only place the additional three appear, so losing them
-  // here loses them from the app.
-  it('renders all seven checks, each with its definition', () => {
-    const { getByTestId } = render(<ContractSecurityScreen />);
+  it('renders the four checks, each with its definition', () => {
+    const { getByTestId } = renderScreen(CBXRP_VERIFIED);
 
-    for (const checkKey of [
-      ...SECURITY_CONTRACT_CHECKS,
-      ...SECURITY_ADDITIONAL_CHECKS,
-    ]) {
+    for (const checkKey of SECURITY_CONTRACT_CHECKS) {
       expect(
         getByTestId(ContractSecuritySelectors.rowDescription(checkKey)),
       ).not.toHaveTextContent(/\[missing/iu);
     }
   });
 
-  it('puts the additional checks in their own group', () => {
-    const { getByTestId } = render(<ContractSecurityScreen />);
-    const additional = within(
-      getByTestId(ContractSecuritySelectors.SECTION_ADDITIONAL),
-    );
-
-    expect(
-      additional.getByTestId(
-        ContractSecuritySelectors.row(AdditionalCheckKey.RugPullRisk),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      additional.queryByTestId(
-        ContractSecuritySelectors.row(ContractCheckKey.NoHoneypot),
-      ),
-    ).toBeNull();
-  });
-
-  it('orders each group as its constant declares', () => {
-    const { getByTestId } = render(<ContractSecurityScreen />);
+  it('orders the contract group as its constant declares', () => {
+    const { getByTestId } = renderScreen(CBXRP_VERIFIED);
 
     const renderedOrder = within(
       getByTestId(ContractSecuritySelectors.SECTION_CONTRACT),
@@ -137,14 +96,10 @@ describe('ContractSecurityScreen', () => {
     );
   });
 
-  // The Solana fixture leaves `contract_verified` unresolved, which is the
-  // check least likely to resolve there in practice.
-  it('dashes a check the fixture leaves unresolved', () => {
-    mockRouteParams = {
-      token: { chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' },
-    };
-
-    const { getByTestId } = render(<ContractSecurityScreen />);
+  // Solana sends neither `VERIFIED_CONTRACT` nor `UNVERIFIED_CONTRACT`, which
+  // is the one check that can honestly say it does not know.
+  it('dashes the check the payload leaves unresolved', () => {
+    const { getByTestId } = renderScreen(ETHOS_WARNING);
 
     expect(
       getByTestId(
@@ -153,21 +108,65 @@ describe('ContractSecurityScreen', () => {
     ).toHaveTextContent(SECURITY_EMPTY_VALUE);
   });
 
+  describe('findings', () => {
+    it('names each flag behind a warning verdict', () => {
+      const { getByTestId } = renderScreen(ETHOS_WARNING);
+
+      const group = within(
+        getByTestId(ContractSecuritySelectors.SECTION_ADDITIONAL),
+      );
+
+      for (const featureId of [
+        'WASH_TRADING',
+        'HIGH_DEV_PERCENTAGE',
+        'SNIPE_AT_MINT',
+      ]) {
+        expect(
+          group.getByTestId(ContractSecuritySelectors.reason(featureId)),
+        ).toBeOnTheScreen();
+      }
+    });
+
+    // The whole reason `Info` is excluded: this token is `Verified` and also
+    // mintable and blacklistable, all three typed the same way.
+    it('never lists a capability flag as a reason a token is low risk', () => {
+      const { queryByTestId } = renderScreen(CBXRP_VERIFIED);
+
+      for (const featureId of ['CAN_BLACKLIST', 'IS_MINTABLE']) {
+        expect(
+          queryByTestId(ContractSecuritySelectors.reason(featureId)),
+        ).toBeNull();
+      }
+    });
+
+    // A clean token on a chain Blockaid says little about is the common case,
+    // so the empty list needs to read as an answer rather than a loading gap.
+    it('says so when there is nothing to report', () => {
+      const { getByTestId } = renderScreen();
+
+      expect(
+        getByTestId(ContractSecuritySelectors.SECTION_ADDITIONAL),
+      ).toHaveTextContent(
+        strings('token_details_v1.security_tab.reasons.empty'),
+      );
+    });
+  });
+
   it('goes back from the header button', () => {
-    const { getByTestId } = render(<ContractSecurityScreen />);
+    const { getByTestId } = renderScreen(CBXRP_VERIFIED);
 
     fireEvent.press(getByTestId(ContractSecuritySelectors.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('attributes the checks to the scanner and names the scan age', () => {
-    const { getByTestId } = render(<ContractSecurityScreen />);
+  // Blockaid returns no scan timestamp, so the line carries attribution alone
+  // rather than guessing at an age.
+  it('attributes the checks to the scanner without claiming a scan age', () => {
+    const { getByTestId } = renderScreen(CBXRP_VERIFIED);
 
     expect(getByTestId(ContractSecuritySelectors.SCAN_META)).toHaveTextContent(
-      strings('token_details_v1.security_tab.checks_meta.attribution_checked', {
-        count: 2,
-      }),
+      strings('token_details_v1.security_tab.checks_meta.attribution'),
     );
   });
 });

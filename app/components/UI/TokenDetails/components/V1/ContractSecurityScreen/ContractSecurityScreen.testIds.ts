@@ -1,4 +1,4 @@
-import type { SecurityCheckKey } from '../SecurityTab/SecurityTab.types';
+import type { ContractCheckKey } from '../SecurityTab/SecurityTab.types';
 
 export const ContractSecuritySelectors = {
   SCREEN: 'token-details-v1-contract-security-screen',
@@ -18,17 +18,23 @@ export const ContractSecuritySelectors = {
   DIVIDER: 'token-details-v1-contract-security-divider',
 
   /** Wrapper for a row, keyed so a test can target one row by name. */
-  row: (key: SecurityCheckKey) =>
+  row: (key: ContractCheckKey) =>
     `token-details-v1-contract-security-row-${key}`,
-  rowLabel: (key: SecurityCheckKey) =>
+  rowLabel: (key: ContractCheckKey) =>
     `token-details-v1-contract-security-row-${key}-label`,
   /** The row's value, so a test can assert the dash without matching on text. */
-  rowValue: (key: SecurityCheckKey) =>
+  rowValue: (key: ContractCheckKey) =>
     `token-details-v1-contract-security-row-${key}-value`,
   /** Pass / fail glyph. */
-  rowIcon: (key: SecurityCheckKey) =>
+  rowIcon: (key: ContractCheckKey) =>
     `token-details-v1-contract-security-row-${key}-icon`,
   /** The definition printed under the row. */
-  rowDescription: (key: SecurityCheckKey) =>
+  rowDescription: (key: ContractCheckKey) =>
     `token-details-v1-contract-security-row-${key}-description`,
+  /**
+   * One derived reason, keyed by featureId rather than index so a test names
+   * the finding it is asserting on.
+   */
+  reason: (featureId: string) =>
+    `token-details-v1-contract-security-reason-${featureId}`,
 };

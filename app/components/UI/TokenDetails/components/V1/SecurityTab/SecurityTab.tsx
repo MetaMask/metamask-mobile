@@ -48,7 +48,7 @@ export interface SecurityTabProps {
   onExplain: (rowKey: SecurityRowKey) => void;
   /**
    * Opens the Contract security screen, which repeats these four checks with
-   * their definitions printed and adds the three additional ones.
+   * their definitions printed and lists what Blockaid actually found.
    *
    * Reported rather than navigated for the same reason as `onExplain`: the tab
    * stays a pure function of its props, so tests render it without a
@@ -93,9 +93,8 @@ const SectionTitle = ({ titleKey }: { titleKey: string }) => (
  * container's own `gap-6` as the single source of spacing between sections.
  *
  * Rendered above the section it separates rather than below, so a section that
- * drops out takes its own rule with it — Trading is absent on any chain with no
- * fee data, and a rule that belonged to the section above would survive it and
- * leave two rules stacked with nothing between them.
+ * drops out takes its own rule with it rather than leaving two stacked with
+ * nothing between them.
  */
 const SectionRule = () => (
   <SectionDivider
@@ -200,19 +199,6 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
           twClassName="px-0 pb-3 pt-0"
           testID={SecurityTabSelectors.CONTRACT_DETAILS_LINK}
         />
-        {/* The flag is named rather than summarised as a pass ratio: "3 of 4
-            checks passed" hides which one failed, and the failure is the only
-            part the reader can act on. */}
-        {facts.verdict === 'high_risk' && facts.highRiskFlag ? (
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            twClassName="pb-1"
-            testID={SecurityTabSelectors.HIGH_RISK_FLAG}
-          >
-            {facts.highRiskFlag}
-          </Text>
-        ) : null}
         {SECURITY_CONTRACT_CHECKS.map((checkKey) => (
           <CheckRow
             key={checkKey}
@@ -294,32 +280,29 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
       </Box>
 
       {/* ── Trading ─────────────────────────────────────────────────────────
-          Omitted entirely rather than dashed out when the chain has no fee
-          data at all — Blockaid returns every `fees` field as null on Solana,
-          so the section would otherwise be a heading above two dashes. */}
-      {trading ? (
-        <>
-          <SectionRule />
-          <Box testID={SecurityTabSelectors.SECTION_TRADING}>
-            <SectionTitle titleKey="token_details_v1.security_tab.sections.trading" />
-            <StatRow
-              statKey={SecurityStatKey.BuySellTax}
-              value={trading.buySellTax}
-              onExplain={handleExplain}
-            />
-            <StatRow
-              statKey={SecurityStatKey.VolumeFlags}
-              value={trading.volumeFlags}
-              onExplain={handleExplain}
-            />
-            <StatRow
-              statKey={SecurityStatKey.ListedOnExchange}
-              value={trading.listedOnExchange}
-              onExplain={handleExplain}
-            />
-          </Box>
-        </>
-      ) : null}
+          Always rendered. An earlier revision dropped the whole section when
+          `fees` came back empty, which is every Solana token — and took Volume
+          flags and Listed on exchange with it, both of which Solana does
+          report. Each row now dashes out on its own. */}
+      <SectionRule />
+      <Box testID={SecurityTabSelectors.SECTION_TRADING}>
+        <SectionTitle titleKey="token_details_v1.security_tab.sections.trading" />
+        <StatRow
+          statKey={SecurityStatKey.BuySellTax}
+          value={trading.buySellTax}
+          onExplain={handleExplain}
+        />
+        <StatRow
+          statKey={SecurityStatKey.VolumeFlags}
+          value={trading.volumeFlags}
+          onExplain={handleExplain}
+        />
+        <StatRow
+          statKey={SecurityStatKey.ListedOnExchange}
+          value={trading.listedOnExchange}
+          onExplain={handleExplain}
+        />
+      </Box>
 
       {/* ── Origin ──────────────────────────────────────────────────────── */}
       <SectionRule />

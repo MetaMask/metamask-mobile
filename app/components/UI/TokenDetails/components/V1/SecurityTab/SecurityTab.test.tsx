@@ -3,9 +3,10 @@ import { fireEvent, render, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import en from '../../../../../../../locales/languages/en.json';
 import {
-  MOCK_SECURITY_FACTS_EVM,
-  MOCK_SECURITY_FACTS_SOLANA,
-} from '../../../mocks/tokenDetailsV1Mocks';
+  CBXRP_VERIFIED,
+  ETHOS_WARNING,
+} from '../../../utils/__fixtures__/securityData';
+import { deriveSecurityFacts } from '../../../utils/securityFacts';
 import { TokenExplainerSheetSelectors } from '../TokenExplainerSheet/TokenExplainerSheet.testIds';
 import SecurityTab from './SecurityTab';
 import {
@@ -15,12 +16,16 @@ import {
 } from './SecurityTab.constants';
 import { SecurityTabSelectors } from './SecurityTab.testIds';
 import {
-  AdditionalCheckKey,
   ContractCheckKey,
   SecurityStatKey,
   type SecurityCheck,
   type SecurityRowKey,
 } from './SecurityTab.types';
+
+/** An EVM token with a complete payload. */
+const EVM_FACTS = deriveSecurityFacts(CBXRP_VERIFIED);
+/** A Solana token: no fees, no markets, no creation date. */
+const SOLANA_FACTS = deriveSecurityFacts(ETHOS_WARNING);
 
 const ALL_ROW_KEYS: SecurityRowKey[] = [
   ...Object.values(ContractCheckKey),
@@ -32,7 +37,7 @@ const renderTab = (
 ) =>
   render(
     <SecurityTab
-      facts={MOCK_SECURITY_FACTS_EVM}
+      facts={EVM_FACTS}
       onExplain={jest.fn()}
       onOpenContractDetails={jest.fn()}
       {...props}
@@ -56,12 +61,19 @@ describe('SecurityTab', () => {
     }
   });
 
-  // Blockaid returns every `fees` field as null on Solana, so keeping the
-  // section would leave a heading above two dashes rather than information.
-  it('omits the trading section when the chain has no fee data', () => {
-    const { queryByTestId } = renderTab({ facts: MOCK_SECURITY_FACTS_SOLANA });
+  // An earlier revision dropped the whole Trading section when `fees` came
+  // back empty, which is every Solana token — and took Volume flags and
+  // Listed on exchange with it, both of which Solana does populate.
+  it('keeps the trading section on a chain that reports no fees', () => {
+    const { getByTestId } = renderTab({ facts: SOLANA_FACTS });
 
-    expect(queryByTestId(SecurityTabSelectors.SECTION_TRADING)).toBeNull();
+    expect(getByTestId(SecurityTabSelectors.SECTION_TRADING)).toBeOnTheScreen();
+    expect(
+      getByTestId(SecurityTabSelectors.rowValue(SecurityStatKey.BuySellTax)),
+    ).toHaveTextContent(SECURITY_EMPTY_VALUE);
+    expect(
+      getByTestId(SecurityTabSelectors.rowValue(SecurityStatKey.VolumeFlags)),
+    ).toHaveTextContent('2 detected');
   });
 
   describe('contract checks', () => {
@@ -70,8 +82,8 @@ describe('SecurityTab', () => {
     // including the Solana one, where a check with nothing behind it falls to
     // the dash rather than disappearing.
     it.each([
-      ['an EVM token', MOCK_SECURITY_FACTS_EVM],
-      ['a Solana token', MOCK_SECURITY_FACTS_SOLANA],
+      ['an EVM token', EVM_FACTS],
+      ['a Solana token', SOLANA_FACTS],
     ] as const)('renders the same four checks for %s', (_label, facts) => {
       const { getByTestId } = renderTab({ facts });
 
@@ -82,16 +94,15 @@ describe('SecurityTab', () => {
       }
     });
 
-    // The additional checks live behind the chevron. Rendering them here too
-    // would make the tab the long screen the detail screen exists to be.
-    it('keeps the additional checks off the tab', () => {
-      const { queryByTestId } = renderTab();
+    // What Blockaid actually found lives behind the chevron. Listing it here
+    // too would make the tab the long screen the detail screen exists to be.
+    it('keeps the findings off the tab', () => {
+      const { queryByTestId } = renderTab({ facts: SOLANA_FACTS });
 
-      for (const checkKey of Object.values(AdditionalCheckKey)) {
-        expect(
-          queryByTestId(`token-details-v1-security-tab-row-${checkKey}`),
-        ).toBeNull();
+      for (const reason of SOLANA_FACTS.reasons) {
+        expect(queryByTestId(`reason-${reason.featureId}`)).toBeNull();
       }
+      expect(SOLANA_FACTS.reasons.length).toBeGreaterThan(0);
     });
 
     it('opens the contract security screen from the heading', () => {
@@ -150,14 +161,14 @@ describe('SecurityTab', () => {
     const renderCheck = (check?: SecurityCheck) =>
       renderTab({
         facts: {
-          ...MOCK_SECURITY_FACTS_EVM,
+          ...EVM_FACTS,
           checks: { [ContractCheckKey.NoHoneypot]: check },
         },
       });
 
     it.each([
       ['pass', 'Sells work'],
-      ['fail', 'Sells blocked'],
+      ['fail', 'Sells may fail'],
     ] as const)(
       'shows a %s check with its glyph and wording',
       (outcome, value) => {
@@ -261,26 +272,6 @@ describe('SecurityTab', () => {
     }
   });
 
-  it('names the flag that fired instead of summarising a pass ratio', () => {
-    const { getByTestId } = renderTab({
-      facts: {
-        ...MOCK_SECURITY_FACTS_EVM,
-        verdict: 'high_risk',
-        highRiskFlag: 'The blacklist function is included',
-      },
-    });
-
-    expect(getByTestId(SecurityTabSelectors.HIGH_RISK_FLAG)).toHaveTextContent(
-      'The blacklist function is included',
-    );
-  });
-
-  it('shows no flag line for verdicts that carry no named flag', () => {
-    const { queryByTestId } = renderTab();
-
-    expect(queryByTestId(SecurityTabSelectors.HIGH_RISK_FLAG)).toBeNull();
-  });
-
   // The prototype shows the same two figures twice over: once in the bar's
   // legend and again as tappable rows. Only the rows carry the definitions, so
   // dropping either half loses something.
@@ -320,27 +311,19 @@ describe('SecurityTab', () => {
     ).toHaveTextContent('No');
   });
 
-  describe('section dividers', () => {
-    it('separates each pair of sections with one rule', () => {
-      const { getAllByTestId } = renderTab();
+  // Five sections, so four gaps between them. The count is the assertion: a
+  // rule attached to the wrong side would still render, just not here.
+  it.each([
+    ['a complete payload', EVM_FACTS],
+    ['a payload full of gaps', SOLANA_FACTS],
+  ] as const)(
+    'separates each pair of sections with one rule for %s',
+    (_label, facts) => {
+      const { getAllByTestId } = renderTab({ facts });
 
-      // Five sections, so four gaps between them. The count is the assertion:
-      // a rule attached to the wrong side would still render, just not here.
       expect(getAllByTestId(SecurityTabSelectors.SECTION_DIVIDER)).toHaveLength(
         4,
       );
-    });
-
-    // Trading drops out on a chain with no fee data. Its rule has to leave with
-    // it, or the gap it vacates shows two rules with nothing between them.
-    it('drops a rule along with the section it separates', () => {
-      const { getAllByTestId } = renderTab({
-        facts: MOCK_SECURITY_FACTS_SOLANA,
-      });
-
-      expect(getAllByTestId(SecurityTabSelectors.SECTION_DIVIDER)).toHaveLength(
-        3,
-      );
-    });
-  });
+    },
+  );
 });

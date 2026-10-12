@@ -14,11 +14,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { SECURITY_EMPTY_VALUE } from '../../SecurityTab/SecurityTab.constants';
-import type { SecurityCheckKey } from '../../SecurityTab/SecurityTab.types';
+import type { ContractCheckKey } from '../../SecurityTab/SecurityTab.types';
 import { ContractSecuritySelectors } from '../ContractSecurityScreen.testIds';
 
 export interface SecurityDetailRowProps {
-  checkKey: SecurityCheckKey;
+  checkKey: ContractCheckKey;
   /** Already-localized row label. */
   label: string;
   /**

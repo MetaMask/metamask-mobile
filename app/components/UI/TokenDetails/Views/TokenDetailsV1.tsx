@@ -76,10 +76,6 @@ import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useSecurityTabFacts } from '../hooks/useSecurityTabFacts';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenStatBarStats } from '../hooks/useTokenStatBarStats';
-import {
-  MOCK_SECURITY_FLAG_COUNT,
-  MOCK_SECURITY_VERDICT,
-} from '../mocks/tokenDetailsV1Mocks';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
 export const TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID = 'token-details-v1-age-chip';
@@ -225,7 +221,11 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     trackEvent,
   ]);
 
-  const { securityData } = useTokenSecurityData({
+  const {
+    securityData,
+    isLoading: isSecurityDataLoading,
+    error: securityDataError,
+  } = useTokenSecurityData({
     assetId: caip19AssetId,
     prefetchedData: token.securityData,
   });
@@ -311,11 +311,22 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const [explainedSecurityRow, setExplainedSecurityRow] =
     useState<SecurityRowKey | null>(null);
 
-  const securityFacts = useSecurityTabFacts(token);
+  const securityFacts = useSecurityTabFacts({
+    securityData,
+    isLoading: isSecurityDataLoading,
+    error: securityDataError,
+  });
 
+  /**
+   * The resolved payload rides along on `securityData` so the detail screen
+   * renders from what the tab already has rather than issuing its own request
+   * for the token the user is looking at.
+   */
   const handleOpenContractSecurity = useCallback(() => {
-    navigation.navigate(Routes.CONTRACT_SECURITY, { token });
-  }, [navigation, token]);
+    navigation.navigate(Routes.CONTRACT_SECURITY, {
+      token: { ...token, securityData: securityData ?? undefined },
+    });
+  }, [navigation, token, securityData]);
 
   const renderTabPage = useCallback(
     (tab: TokenDetailsV1TabKey) => {
@@ -458,8 +469,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 
                 <Box twClassName="px-4">
                   <SecuritySocialSection
-                    securityVerdict={MOCK_SECURITY_VERDICT}
-                    securityFlagCount={MOCK_SECURITY_FLAG_COUNT}
+                    securityVerdict={securityFacts.verdict}
+                    securityFlagCount={securityFacts.flagCount}
                     externalLinks={securityData?.metadata?.externalLinks}
                     contractAddress={token.isNative ? null : token.address}
                     onSecurityPress={() => activateTab('security')}

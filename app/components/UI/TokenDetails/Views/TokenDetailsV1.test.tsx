@@ -406,9 +406,9 @@ describe('TokenDetailsV1', () => {
     expect(
       priceHero.getByTestId(SecuritySocialSectionSelectors.SECTION),
     ).toBeOnTheScreen();
-    // Asserted by test ID, not label, so previewing a different verdict via
-    // MOCK_SECURITY_VERDICT does not fail this test. SecurityPill's own tests
-    // cover the label for each verdict.
+    // Asserted by test ID, not label, so a different verdict from the API does
+    // not fail this test. SecurityPill's own tests cover the label for each
+    // verdict.
     expect(getByTestId(SecurityPillSelectors.VERDICT)).toBeOnTheScreen();
   });
 

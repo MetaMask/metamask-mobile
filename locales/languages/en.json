@@ -5951,15 +5951,49 @@
         "no_honeypot": "No honeypot",
         "contract_verified": "Contract verified",
         "renounced": "Renounced",
-        "no_blacklist": "No blacklist",
-        "no_mint": "No minting",
-        "rug_pull_risk": "Rug pull risk",
-        "contract_controls": "Contract controls"
+        "no_blacklist": "No blacklist"
       },
-      "check_descriptions": {
-        "no_mint": "Checks whether token supply can be increased — whether the creator can print more tokens.",
-        "rug_pull_risk": "Checks whether token creators have a history of rug pull and honeypot schemes.",
-        "contract_controls": "Checks whether contract code contains a malicious backdoor or matches known malicious tokens."
+      "check_values": {
+        "no_honeypot": {
+          "pass": "Sells work",
+          "fail": "Sells may fail"
+        },
+        "contract_verified": {
+          "pass": "Yes",
+          "fail": "No"
+        },
+        "renounced": {
+          "pass": "Renounced",
+          "fail": "Not renounced"
+        },
+        "no_blacklist": {
+          "pass": "No controls",
+          "fail": "Control detected"
+        }
+      },
+      "values": {
+        "yes": "Yes",
+        "no": "No",
+        "none_detected": "None detected",
+        "detected": {
+          "one": "{{count}} detected",
+          "other": "{{count}} detected"
+        }
+      },
+      "reasons": {
+        "empty": "Nothing to report",
+        "ownership_renounced": "Ownership renounced",
+        "significant_usd_reserves": "Significant liquidity reserves",
+        "created_via_launchpad": "Created via a known launchpad",
+        "dex_paid": "Paid DEX promotion",
+        "low_dev_percentage": "Developer holds a small share",
+        "low_snipers_percentage": "Few snipers hold the token",
+        "low_initial_snipers_percentage": "Launch snipers hold a small share",
+        "low_insiders_percentage": "Insiders hold a small share",
+        "low_bundlers_percentage": "Few bundled wallets hold the token",
+        "high_dev_percentage": "Developer holds a large share",
+        "high_initial_snipers_percentage": "Launch snipers hold a large share",
+        "unverified_contract": "Contract source code not verified"
       },
       "checks_meta": {
         "attribution": "Blockaid",

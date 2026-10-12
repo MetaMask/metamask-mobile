@@ -1,3 +1,4 @@
+import type { SecurityReason } from '../../../utils/securityReasons';
 import type { SecurityVerdict } from '../SecurityPill/SecurityPill';
 
 /**
@@ -25,40 +26,6 @@ export const ContractCheckKey = {
 
 export type ContractCheckKey =
   (typeof ContractCheckKey)[keyof typeof ContractCheckKey];
-
-/**
- * Checks that appear only under "Additional checks" on the Contract security
- * screen.
- *
- * Kept apart from `ContractCheckKey` rather than flattened into one union
- * because the two render differently: a contract check carries a dotted
- * underline opening a definition sheet, while these carry their definition
- * inline and are not tappable. The split is what lets
- * `SECURITY_EXPLAINER_KEYS` stay exhaustive over exactly the rows that need a
- * sheet, instead of forcing dead copy for rows that never open one.
- */
-export const AdditionalCheckKey = {
-  NoMint: 'no_mint',
-  RugPullRisk: 'rug_pull_risk',
-  ContractControls: 'contract_controls',
-} as const;
-
-export type AdditionalCheckKey =
-  (typeof AdditionalCheckKey)[keyof typeof AdditionalCheckKey];
-
-/**
- * Every contract check, across both groups.
- *
- * Merged so `facts.checks` stays one record and callers that genuinely do not
- * care which group a check belongs to — the fixtures, the label map — can key
- * off a single enum.
- */
-export const SecurityCheckKey = {
-  ...ContractCheckKey,
-  ...AdditionalCheckKey,
-} as const;
-
-export type SecurityCheckKey = ContractCheckKey | AdditionalCheckKey;
 
 /**
  * Whether a check passed, failed, or could not be determined.
@@ -98,13 +65,7 @@ export const SecurityStatKey = {
 export type SecurityStatKey =
   (typeof SecurityStatKey)[keyof typeof SecurityStatKey];
 
-/**
- * Any row whose label opens an explainer.
- *
- * Excludes `AdditionalCheckKey` on purpose: those rows live only on the
- * Contract security screen, where the definition is printed under the row
- * rather than hidden behind a tap.
- */
+/** Any row whose label opens an explainer. */
 export type SecurityRowKey = ContractCheckKey | SecurityStatKey;
 
 /**
@@ -134,15 +95,20 @@ export interface SecurityTabFacts {
   /** Only read when the verdict is `medium_risk`, matching `SecurityPill`. */
   flagCount?: number;
   /**
-   * The flag that fired, named rather than summarised as a pass ratio.
-   * Only read when the verdict is `high_risk`.
+   * What Blockaid actually found, explaining the verdict in its own right.
+   *
+   * Replaces the three fixed "Additional checks" rows. Those asked a question
+   * the payload cannot answer — `features[]` reports detected risks, never
+   * checks performed — so a fixed row had to infer a pass from silence. A
+   * derived list only ever states what came back, and is empty when nothing
+   * did.
    */
-  highRiskFlag: string | null;
+  reasons: SecurityReason[];
   /**
    * Partial because a check may have no verdict yet, which collapses "no data"
    * and "not applicable" into the same dash.
    */
-  checks: Partial<Record<SecurityCheckKey, SecurityCheck>>;
+  checks: Partial<Record<ContractCheckKey, SecurityCheck>>;
   holders: {
     count: string | null;
     topTenPercentage: string | null;
@@ -162,15 +128,18 @@ export interface SecurityTabFacts {
     primaryPool: string | null;
   };
   /**
-   * `null` omits the whole Trading section. Blockaid returns every fee as
-   * `null` on Solana, so the section would otherwise be a heading above
-   * dashes.
+   * Always rendered, dashing out the fields a chain does not report.
+   *
+   * It used to be nullable so Solana — where every `fees` field comes back
+   * null — showed no Trading heading at all. That also hid Volume flags and
+   * Listed on exchange, which Solana does populate, so the section is now
+   * unconditional and each row nulls out on its own.
    */
   trading: {
     buySellTax: string | null;
     volumeFlags: string | null;
     listedOnExchange: string | null;
-  } | null;
+  };
   origin: {
     created: string | null;
   };

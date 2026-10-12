@@ -3,7 +3,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { IconColor, IconName } from '@metamask/design-system-react-native';
 import { SECURITY_EMPTY_VALUE } from '../SecurityTab.constants';
 import { SecurityTabSelectors } from '../SecurityTab.testIds';
-import { SecurityCheckKey, SecurityStatKey } from '../SecurityTab.types';
+import { ContractCheckKey, SecurityStatKey } from '../SecurityTab.types';
 import SecurityRow from './SecurityRow';
 
 const PASS_ICON = {
@@ -141,7 +141,7 @@ describe('SecurityRow', () => {
     it('draws the glyph it is given', () => {
       const { getByTestId } = render(
         <SecurityRow
-          rowKey={SecurityCheckKey.NoHoneypot}
+          rowKey={ContractCheckKey.NoHoneypot}
           label="No honeypot"
           value="Sells work"
           icon={PASS_ICON}
@@ -150,7 +150,7 @@ describe('SecurityRow', () => {
       );
 
       expect(
-        getByTestId(SecurityTabSelectors.rowIcon(SecurityCheckKey.NoHoneypot)),
+        getByTestId(SecurityTabSelectors.rowIcon(ContractCheckKey.NoHoneypot)),
       ).toBeOnTheScreen();
     });
 
@@ -174,7 +174,7 @@ describe('SecurityRow', () => {
     it('suppresses the glyph when the value is missing', () => {
       const { getByTestId, queryByTestId } = render(
         <SecurityRow
-          rowKey={SecurityCheckKey.NoBlacklist}
+          rowKey={ContractCheckKey.NoBlacklist}
           label="No blacklist"
           value={null}
           icon={PASS_ICON}
@@ -184,12 +184,12 @@ describe('SecurityRow', () => {
 
       expect(
         getByTestId(
-          SecurityTabSelectors.rowValue(SecurityCheckKey.NoBlacklist),
+          SecurityTabSelectors.rowValue(ContractCheckKey.NoBlacklist),
         ),
       ).toHaveTextContent(SECURITY_EMPTY_VALUE);
       expect(
         queryByTestId(
-          SecurityTabSelectors.rowIcon(SecurityCheckKey.NoBlacklist),
+          SecurityTabSelectors.rowIcon(ContractCheckKey.NoBlacklist),
         ),
       ).toBeNull();
     });

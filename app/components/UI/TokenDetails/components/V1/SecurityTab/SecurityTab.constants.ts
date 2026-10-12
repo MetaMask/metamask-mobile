@@ -4,9 +4,7 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import {
-  AdditionalCheckKey,
   ContractCheckKey,
-  SecurityCheckKey,
   SecurityStatKey,
   type SecurityCheckOutcome,
   type SecurityRowKey,
@@ -64,20 +62,8 @@ export const SECURITY_CONTRACT_CHECKS: readonly ContractCheckKey[] = [
   ContractCheckKey.NoBlacklist,
 ];
 
-/**
- * The "Additional checks" group, in render order.
- *
- * Only reachable from the Contract security screen — the tab shows the four
- * contract checks and a chevron, not all seven.
- */
-export const SECURITY_ADDITIONAL_CHECKS: readonly AdditionalCheckKey[] = [
-  AdditionalCheckKey.NoMint,
-  AdditionalCheckKey.RugPullRisk,
-  AdditionalCheckKey.ContractControls,
-];
-
 /** Label beside each contract check. */
-export const SECURITY_CHECK_LABEL_KEYS: Record<SecurityCheckKey, string> = {
+export const SECURITY_CHECK_LABEL_KEYS: Record<ContractCheckKey, string> = {
   [ContractCheckKey.NoHoneypot]:
     'token_details_v1.security_tab.checks.no_honeypot',
   [ContractCheckKey.ContractVerified]:
@@ -86,24 +72,17 @@ export const SECURITY_CHECK_LABEL_KEYS: Record<SecurityCheckKey, string> = {
     'token_details_v1.security_tab.checks.renounced',
   [ContractCheckKey.NoBlacklist]:
     'token_details_v1.security_tab.checks.no_blacklist',
-  [AdditionalCheckKey.NoMint]: 'token_details_v1.security_tab.checks.no_mint',
-  [AdditionalCheckKey.RugPullRisk]:
-    'token_details_v1.security_tab.checks.rug_pull_risk',
-  [AdditionalCheckKey.ContractControls]:
-    'token_details_v1.security_tab.checks.contract_controls',
 };
 
 /**
  * Sentence printed under each row on the Contract security screen.
  *
- * The four contract checks point at the same copy as their explainer sheets:
- * the screen states the definition inline where the tab hides it behind a tap,
- * but it is the same definition, so pointing both at one key is what stops the
- * two surfaces defining a term differently.
- *
- * The additional checks have no sheet, so these are their only definitions.
+ * Points at the same copy as the explainer sheets: the screen states the
+ * definition inline where the tab hides it behind a tap, but it is the same
+ * definition, so pointing both at one key is what stops the two surfaces
+ * defining a term differently.
  */
-export const SECURITY_CHECK_DESCRIPTION_KEYS: Record<SecurityCheckKey, string> =
+export const SECURITY_CHECK_DESCRIPTION_KEYS: Record<ContractCheckKey, string> =
   {
     [ContractCheckKey.NoHoneypot]:
       'token_details_v1.security_tab.explainers.no_honeypot.description',
@@ -113,12 +92,6 @@ export const SECURITY_CHECK_DESCRIPTION_KEYS: Record<SecurityCheckKey, string> =
       'token_details_v1.security_tab.explainers.renounced.description',
     [ContractCheckKey.NoBlacklist]:
       'token_details_v1.security_tab.explainers.no_blacklist.description',
-    [AdditionalCheckKey.NoMint]:
-      'token_details_v1.security_tab.check_descriptions.no_mint',
-    [AdditionalCheckKey.RugPullRisk]:
-      'token_details_v1.security_tab.check_descriptions.rug_pull_risk',
-    [AdditionalCheckKey.ContractControls]:
-      'token_details_v1.security_tab.check_descriptions.contract_controls',
   };
 
 /** Label beside each stat row. */
@@ -149,10 +122,6 @@ export const SECURITY_STAT_LABEL_KEYS: Record<SecurityStatKey, string> = {
  * without a definition. Titles are separate from the row labels because a row
  * abbreviates to fit its line (`Liq/MC`, `Top 10`) while the sheet spells the
  * term out.
- *
- * `SecurityRowKey` excludes the additional checks: those render only on the
- * Contract security screen, with their definition inline, so an entry here
- * would be copy nothing ever opens.
  */
 export const SECURITY_EXPLAINER_KEYS: Record<
   SecurityRowKey,

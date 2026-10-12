@@ -1,31 +1,53 @@
-import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+import { useMemo } from 'react';
+import type { TokenSecurityData } from '@metamask/assets-controllers';
+
 import type { SecurityTabFacts } from '../components/V1/SecurityTab/SecurityTab.types';
-import type { TokenDetailsRouteParams } from '../constants/constants';
 import {
-  MOCK_SECURITY_FACTS_EVM,
-  MOCK_SECURITY_FACTS_SOLANA,
-} from '../mocks/tokenDetailsV1Mocks';
+  deriveSecurityFacts,
+  emptySecurityFacts,
+} from '../utils/securityFacts';
+
+interface UseSecurityTabFactsOpts {
+  /** `null` once the request settled with no entry for this token. */
+  securityData: TokenSecurityData | null;
+  isLoading: boolean;
+  error: Error | null;
+}
 
 /**
  * Everything the Security surfaces render for a token, already formatted.
  *
- * The Security tab and the Contract security screen both call this rather than
- * reaching for a fixture themselves, which is what stops the two showing
- * different readings for the same token — the screen is reached from the tab,
- * so a disagreement would be visible in a single gesture.
+ * The Security tab, the Contract security screen and the hero pill all call
+ * this rather than reading the payload themselves, which is what stops them
+ * showing different readings for the same token — the screen is reached from
+ * the tab, so a disagreement would be visible in a single gesture.
  *
- * A hook rather than a plain function even though it currently derives
- * everything from the token: the real implementation has to call
- * `useTokenSecurityData`, so starting here means that swap changes this file
- * and nothing else.
+ * Takes the resolved request rather than fetching, so the one `/assets` call
+ * `TokenDetailsV1` already makes for social links feeds every surface and the
+ * detail screen adds no second round trip.
  *
- * TODO(ASSETS-4022): return facts derived from `TokenSecurityData` instead of
- * the fixtures. The open questions blocking that are recorded on
- * `tokenDetailsV1Mocks`; none of them affect layout.
+ * The three outcomes map to three verdicts, which the pill already draws:
+ *
+ * - in flight, or no entry in the response -> `pending`
+ * - the request failed -> `unscreened`, because a token we could not ask
+ * about is indistinguishable from one nobody has screened
+ * - a payload -> whatever `resultType` says
+ *
+ * Loading and no-data deliberately share `pending`. Both mean "no answer yet",
+ * and splitting them would put a second neutral state on screen that says the
+ * same thing in different words.
  */
-export const useSecurityTabFacts = (
-  token: TokenDetailsRouteParams,
-): SecurityTabFacts =>
-  isNonEvmChainId(token.chainId as string)
-    ? MOCK_SECURITY_FACTS_SOLANA
-    : MOCK_SECURITY_FACTS_EVM;
+export const useSecurityTabFacts = ({
+  securityData,
+  isLoading,
+  error,
+}: UseSecurityTabFactsOpts): SecurityTabFacts =>
+  useMemo(() => {
+    if (error) {
+      return emptySecurityFacts('unscreened');
+    }
+    if (isLoading || !securityData) {
+      return emptySecurityFacts('pending');
+    }
+    return deriveSecurityFacts(securityData);
+  }, [securityData, isLoading, error]);

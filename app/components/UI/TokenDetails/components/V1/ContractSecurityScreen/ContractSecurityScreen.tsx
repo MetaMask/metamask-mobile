@@ -25,16 +25,17 @@ import { strings } from '../../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import type { AssetStackParamList } from '../../../../../Nav/Main/types/navigation';
 import { useSecurityTabFacts } from '../../../hooks/useSecurityTabFacts';
+import { useTokenSecurityData } from '../../../hooks/useTokenSecurityData';
+import type { SecurityReason } from '../../../utils/securityReasons';
 import {
   CHECK_OUTCOME_PRESENTATION,
-  SECURITY_ADDITIONAL_CHECKS,
   SECURITY_CHECK_DESCRIPTION_KEYS,
   SECURITY_CHECK_LABEL_KEYS,
   SECURITY_CONTRACT_CHECKS,
 } from '../SecurityTab/SecurityTab.constants';
 import type {
+  ContractCheckKey,
   SecurityCheck,
-  SecurityCheckKey,
 } from '../SecurityTab/SecurityTab.types';
 import SecurityDetailRow from './components/SecurityDetailRow';
 import { ContractSecuritySelectors } from './ContractSecurityScreen.testIds';
@@ -57,8 +58,8 @@ const CheckGroup = ({
   testID,
   twClassName,
 }: {
-  checkKeys: readonly SecurityCheckKey[];
-  checks: Partial<Record<SecurityCheckKey, SecurityCheck>>;
+  checkKeys: readonly ContractCheckKey[];
+  checks: Partial<Record<ContractCheckKey, SecurityCheck>>;
   testID: string;
   twClassName?: string;
 }) => (
@@ -88,15 +89,76 @@ const CheckGroup = ({
 );
 
 /**
+ * What Blockaid actually found, one line per feature.
+ *
+ * Replaces three fixed rows that each had to infer a pass from an absent
+ * feature. This list only ever states what came back, so it needs no empty
+ * state beyond saying so — and an empty list is the common case for a clean
+ * token on a chain Blockaid reports little about.
+ *
+ * One glyph for the whole list rather than per row: every entry shares the
+ * token's verdict by construction, since the bucket a reason comes from is
+ * chosen by that verdict.
+ */
+const ReasonList = ({
+  reasons,
+  isPositive,
+}: {
+  reasons: readonly SecurityReason[];
+  isPositive: boolean;
+}) => {
+  if (reasons.length === 0) {
+    return (
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        testID={ContractSecuritySelectors.SECTION_ADDITIONAL}
+      >
+        {strings('token_details_v1.security_tab.reasons.empty')}
+      </Text>
+    );
+  }
+
+  return (
+    <Box
+      twClassName="gap-3"
+      testID={ContractSecuritySelectors.SECTION_ADDITIONAL}
+    >
+      {reasons.map((reason) => (
+        <Box
+          key={reason.featureId}
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-2"
+          testID={ContractSecuritySelectors.reason(reason.featureId)}
+        >
+          <Icon
+            name={isPositive ? IconName.CheckBold : IconName.Danger}
+            size={IconSize.Sm}
+            color={
+              isPositive ? IconColor.SuccessDefault : IconColor.ErrorDefault
+            }
+          />
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+            {reason.label}
+          </Text>
+        </Box>
+      ))}
+    </Box>
+  );
+};
+
+/**
  * Contract security screen — the Security tab's Contract heading, expanded.
  *
  * Repeats the tab's four contract checks with their definitions printed under
- * each row instead of hidden behind a dotted underline, then adds the three
- * checks that appear nowhere else.
+ * each row instead of hidden behind a dotted underline, then lists what
+ * Blockaid actually found.
  *
  * A pushed screen rather than a sheet because the content runs past a phone
- * screen: seven rows each carrying a sentence does not fit the height a
- * `BottomSheet` can offer without becoming a scroll-within-a-scroll.
+ * screen: four rows each carrying a sentence, plus an open-ended list of
+ * findings, does not fit the height a `BottomSheet` can offer without becoming
+ * a scroll-within-a-scroll.
  */
 export const ContractSecurityScreen: React.FC = () => {
   const tw = useTailwind();
@@ -105,7 +167,17 @@ export const ContractSecurityScreen: React.FC = () => {
   const { token } =
     useRoute<RouteProp<AssetStackParamList, 'ContractSecurity'>>().params;
 
-  const facts = useSecurityTabFacts(token);
+  /**
+   * The tab hands its resolved payload over on `token.securityData`, so the
+   * common path — tapping the Contract heading — resolves without a request.
+   * The fetch is the fallback for a deep link that arrives here cold.
+   */
+  const { securityData, isLoading, error } = useTokenSecurityData({
+    assetId: token.caipAssetId ?? null,
+    prefetchedData: token.securityData,
+  });
+
+  const facts = useSecurityTabFacts({ securityData, isLoading, error });
 
   /**
    * `paddingTop` is the prototype's 20px. The 24px bottom is its `pb-6` plus
@@ -192,10 +264,9 @@ export const ContractSecurityScreen: React.FC = () => {
               titleProps={{ accessibilityRole: 'header' }}
               twClassName="px-0 pb-5 pt-0"
             />
-            <CheckGroup
-              checkKeys={SECURITY_ADDITIONAL_CHECKS}
-              checks={facts.checks}
-              testID={ContractSecuritySelectors.SECTION_ADDITIONAL}
+            <ReasonList
+              reasons={facts.reasons}
+              isPositive={facts.verdict === 'screened'}
             />
           </Box>
 
