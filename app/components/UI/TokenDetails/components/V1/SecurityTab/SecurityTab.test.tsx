@@ -6,18 +6,21 @@ import {
   CBXRP_VERIFIED,
   ETHOS_WARNING,
 } from '../../../utils/__fixtures__/securityData';
+import {
+  STAT_EMPTY_VALUE,
+  TokenStatKey,
+  type TokenStatValues,
+} from '../../../constants/tokenStats';
 import { deriveSecurityFacts } from '../../../utils/securityFacts';
 import { TokenExplainerSheetSelectors } from '../TokenExplainerSheet/TokenExplainerSheet.testIds';
 import SecurityTab from './SecurityTab';
 import {
+  EXPLAINER_KEYS_BY_ROW,
   SECURITY_CONTRACT_CHECKS,
-  SECURITY_EMPTY_VALUE,
-  SECURITY_EXPLAINER_KEYS,
 } from './SecurityTab.constants';
 import { SecurityTabSelectors } from './SecurityTab.testIds';
 import {
   ContractCheckKey,
-  SecurityStatKey,
   type SecurityCheck,
   type SecurityRowKey,
 } from './SecurityTab.types';
@@ -27,9 +30,43 @@ const EVM_FACTS = deriveSecurityFacts(CBXRP_VERIFIED);
 /** A Solana token: no fees, no markets, no creation date. */
 const SOLANA_FACTS = deriveSecurityFacts(ETHOS_WARNING);
 
+/**
+ * Stats written out rather than run through `useTokenStats`.
+ *
+ * The tab is a pure function of its props, so a literal record keeps each
+ * assertion's input next to the thing it asserts. The hook's own test covers
+ * that these are the figures it produces for these payloads.
+ */
+const EVM_STATS: TokenStatValues = {
+  [TokenStatKey.Holders]: { value: '12.9K' },
+  [TokenStatKey.Top10]: { value: '18.4%' },
+  [TokenStatKey.Liquidity]: { value: '$680.0K' },
+  [TokenStatKey.LiquidityToMarketCap]: { value: '4.52%' },
+  [TokenStatKey.LpBurnedLocked]: { value: null },
+  [TokenStatKey.PrimaryPool]: { value: 'Aerodrome \u00b7 CBXRP / WETH' },
+  [TokenStatKey.Tax]: { value: '0% / 0%' },
+  [TokenStatKey.VolumeFlags]: { value: 'None detected' },
+  [TokenStatKey.ListedOnExchange]: { value: 'No' },
+  [TokenStatKey.Created]: { value: 'Oct 5, 2026' },
+};
+
+/** Solana: no fees, no markets, no creation date. */
+const SOLANA_STATS: TokenStatValues = {
+  [TokenStatKey.Holders]: { value: '4.2K' },
+  [TokenStatKey.Top10]: { value: '31.0%' },
+  [TokenStatKey.Liquidity]: { value: null },
+  [TokenStatKey.LiquidityToMarketCap]: { value: null },
+  [TokenStatKey.LpBurnedLocked]: { value: '0.0%' },
+  [TokenStatKey.PrimaryPool]: { value: null },
+  [TokenStatKey.Tax]: { value: null },
+  [TokenStatKey.VolumeFlags]: { value: '2 detected' },
+  [TokenStatKey.ListedOnExchange]: { value: 'No' },
+  [TokenStatKey.Created]: { value: null },
+};
+
 const ALL_ROW_KEYS: SecurityRowKey[] = [
   ...Object.values(ContractCheckKey),
-  ...Object.values(SecurityStatKey),
+  ...Object.values(TokenStatKey),
 ];
 
 const renderTab = (
@@ -38,6 +75,7 @@ const renderTab = (
   render(
     <SecurityTab
       facts={EVM_FACTS}
+      stats={EVM_STATS}
       onExplain={jest.fn()}
       onOpenContractDetails={jest.fn()}
       {...props}
@@ -91,14 +129,17 @@ describe('SecurityTab', () => {
   // back empty, which is every Solana token — and took Volume flags and
   // Listed on exchange with it, both of which Solana does populate.
   it('keeps the trading section on a chain that reports no fees', () => {
-    const { getByTestId } = renderTab({ facts: SOLANA_FACTS });
+    const { getByTestId } = renderTab({
+      facts: SOLANA_FACTS,
+      stats: SOLANA_STATS,
+    });
 
     expect(getByTestId(SecurityTabSelectors.SECTION_TRADING)).toBeOnTheScreen();
     expect(
-      getByTestId(SecurityTabSelectors.rowValue(SecurityStatKey.BuySellTax)),
-    ).toHaveTextContent(SECURITY_EMPTY_VALUE);
+      getByTestId(SecurityTabSelectors.rowValue(TokenStatKey.Tax)),
+    ).toHaveTextContent(STAT_EMPTY_VALUE);
     expect(
-      getByTestId(SecurityTabSelectors.rowValue(SecurityStatKey.VolumeFlags)),
+      getByTestId(SecurityTabSelectors.rowValue(TokenStatKey.VolumeFlags)),
     ).toHaveTextContent('2 detected');
   });
 
@@ -106,12 +147,12 @@ describe('SecurityTab', () => {
   // dropped on a chain with no fee data, so it has a heading to expose there
   // too.
   it.each([
-    ['complete data', EVM_FACTS],
-    ['a chain with no fee data', SOLANA_FACTS],
+    ['complete data', EVM_FACTS, EVM_STATS],
+    ['a chain with no fee data', SOLANA_FACTS, SOLANA_STATS],
   ] as const)(
     'exposes each section title as a header for %s',
-    (_label, facts) => {
-      const { getByTestId } = renderTab({ facts });
+    (_label, facts, stats) => {
+      const { getByTestId } = renderTab({ facts, stats });
 
       for (const [selector, titleKey] of SECTION_TITLE_KEYS) {
         expect(
@@ -129,22 +170,28 @@ describe('SecurityTab', () => {
     // including the Solana one, where a check with nothing behind it falls to
     // the dash rather than disappearing.
     it.each([
-      ['an EVM token', EVM_FACTS],
-      ['a Solana token', SOLANA_FACTS],
-    ] as const)('renders the same four checks for %s', (_label, facts) => {
-      const { getByTestId } = renderTab({ facts });
+      ['an EVM token', EVM_FACTS, EVM_STATS],
+      ['a Solana token', SOLANA_FACTS, SOLANA_STATS],
+    ] as const)(
+      'renders the same four checks for %s',
+      (_label, facts, stats) => {
+        const { getByTestId } = renderTab({ facts, stats });
 
-      for (const checkKey of SECURITY_CONTRACT_CHECKS) {
-        expect(
-          getByTestId(SecurityTabSelectors.row(checkKey)),
-        ).toBeOnTheScreen();
-      }
-    });
+        for (const checkKey of SECURITY_CONTRACT_CHECKS) {
+          expect(
+            getByTestId(SecurityTabSelectors.row(checkKey)),
+          ).toBeOnTheScreen();
+        }
+      },
+    );
 
     // What Blockaid actually found lives behind the chevron. Listing it here
     // too would make the tab the long screen the detail screen exists to be.
     it('keeps the findings off the tab', () => {
-      const { queryByTestId } = renderTab({ facts: SOLANA_FACTS });
+      const { queryByTestId } = renderTab({
+        facts: SOLANA_FACTS,
+        stats: SOLANA_STATS,
+      });
 
       for (const reason of SOLANA_FACTS.reasons) {
         expect(queryByTestId(`reason-${reason.featureId}`)).toBeNull();
@@ -249,7 +296,7 @@ describe('SecurityTab', () => {
 
       expect(
         getByTestId(SecurityTabSelectors.rowValue(ContractCheckKey.NoHoneypot)),
-      ).toHaveTextContent(SECURITY_EMPTY_VALUE);
+      ).toHaveTextContent(STAT_EMPTY_VALUE);
       expect(
         queryByTestId(
           SecurityTabSelectors.rowIcon(ContractCheckKey.NoHoneypot),
@@ -264,7 +311,7 @@ describe('SecurityTab', () => {
     // ancestor, so a sheet mounted in here would be clipped by the page
     // ScrollView and scroll away with the content.
     it.each([
-      ['a stat row', SecurityStatKey.TopTen],
+      ['a stat row', TokenStatKey.Top10],
       ['a check row', ContractCheckKey.NoHoneypot],
     ] as const)('reports the tapped row for %s', (_label, rowKey) => {
       const onExplain = jest.fn();
@@ -285,7 +332,7 @@ describe('SecurityTab', () => {
     // the entry points at a real translation. Without this, a typo in a key
     // path would render the path itself on device.
     it.each(ALL_ROW_KEYS)('has resolvable copy for %s', (rowKey) => {
-      const { title, description } = SECURITY_EXPLAINER_KEYS[rowKey];
+      const { title, description } = EXPLAINER_KEYS_BY_ROW[rowKey];
 
       for (const key of [title, description]) {
         const resolved = strings(key);
@@ -329,7 +376,7 @@ describe('SecurityTab', () => {
       'Top 10 18.4%',
     );
     expect(
-      getByTestId(SecurityTabSelectors.rowValue(SecurityStatKey.TopTen)),
+      getByTestId(SecurityTabSelectors.rowValue(TokenStatKey.Top10)),
     ).toHaveTextContent('18.4%');
   });
 
@@ -339,12 +386,12 @@ describe('SecurityTab', () => {
     const renderedOrder = within(
       getByTestId(SecurityTabSelectors.SECTION_HOLDERS),
     )
-      .getAllByTestId(/-row-[a-z_]+$/)
+      .getAllByTestId(/-row-[a-z0-9_]+$/)
       .map((row) => row.props.testID);
 
     expect(renderedOrder).toStrictEqual([
-      SecurityTabSelectors.row(SecurityStatKey.Holders),
-      SecurityTabSelectors.row(SecurityStatKey.TopTen),
+      SecurityTabSelectors.row(TokenStatKey.Holders),
+      SecurityTabSelectors.row(TokenStatKey.Top10),
     ]);
   });
 
@@ -353,20 +400,89 @@ describe('SecurityTab', () => {
 
     expect(
       within(getByTestId(SecurityTabSelectors.SECTION_TRADING)).getByTestId(
-        SecurityTabSelectors.rowValue(SecurityStatKey.ListedOnExchange),
+        SecurityTabSelectors.rowValue(TokenStatKey.ListedOnExchange),
       ),
     ).toHaveTextContent('No');
+  });
+
+  // The tab reads the same record the stat bar does, so a row's presentation
+  // is whatever that one entry says — which is what stops the two surfaces
+  // reporting different figures for the ten stats they both show.
+  describe('stats record', () => {
+    it('renders a skeleton for a row still waiting on the price API', () => {
+      const { getByTestId, queryByTestId } = renderTab({
+        stats: {
+          ...EVM_STATS,
+          [TokenStatKey.LiquidityToMarketCap]: {
+            value: null,
+            isLoading: true,
+          },
+        },
+      });
+
+      expect(
+        getByTestId(
+          SecurityTabSelectors.rowSkeleton(TokenStatKey.LiquidityToMarketCap),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(
+          SecurityTabSelectors.rowValue(TokenStatKey.LiquidityToMarketCap),
+        ),
+      ).toBeNull();
+    });
+
+    // Every other row comes from the security payload, which the tab never
+    // renders partially — so their absence is settled and the dash is honest.
+    it('leaves the security-sourced rows unaffected by a loading stat', () => {
+      const { getByTestId, queryByTestId } = renderTab({
+        stats: {
+          ...EVM_STATS,
+          [TokenStatKey.Liquidity]: { value: null, isLoading: true },
+        },
+      });
+
+      expect(
+        getByTestId(SecurityTabSelectors.rowValue(TokenStatKey.PrimaryPool)),
+      ).toHaveTextContent('Aerodrome \u00b7 CBXRP / WETH');
+      expect(
+        queryByTestId(SecurityTabSelectors.rowSkeleton(TokenStatKey.Created)),
+      ).toBeNull();
+    });
+
+    it('dashes out a stat the record omits entirely', () => {
+      const { getByTestId } = renderTab({ stats: {} });
+
+      expect(
+        getByTestId(SecurityTabSelectors.rowValue(TokenStatKey.Holders)),
+      ).toHaveTextContent(STAT_EMPTY_VALUE);
+    });
+
+    // Liq/MC renders amber below 5% on the bar, and now does so on the tab as
+    // well, because both read the same `isWarning`.
+    it('renders every stat the record carries a value for', () => {
+      const { getByTestId } = renderTab();
+
+      for (const [statKey, stat] of Object.entries(EVM_STATS)) {
+        if (stat?.value == null) {
+          continue;
+        }
+        expect(
+          getByTestId(SecurityTabSelectors.rowValue(statKey as SecurityRowKey)),
+        ).toHaveTextContent(stat.value);
+      }
+    });
   });
 
   // Five sections, so four gaps between them. The count is the assertion: a
   // rule attached to the wrong side would still render, just not here.
   it.each([
-    ['a complete payload', EVM_FACTS],
-    ['a payload full of gaps', SOLANA_FACTS],
+    ['a complete payload', EVM_FACTS, EVM_STATS],
+    ['a payload full of gaps', SOLANA_FACTS, SOLANA_STATS],
   ] as const)(
     'separates each pair of sections with one rule for %s',
-    (_label, facts) => {
-      const { getAllByTestId } = renderTab({ facts });
+    (_label, facts, stats) => {
+      const { getAllByTestId } = renderTab({ facts, stats });
 
       expect(getAllByTestId(SecurityTabSelectors.SECTION_DIVIDER)).toHaveLength(
         4,

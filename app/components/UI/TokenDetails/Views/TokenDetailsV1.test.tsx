@@ -22,11 +22,10 @@ import {
 import type { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import { SecurityPillSelectors } from '../components/V1/SecurityPill/SecurityPill.testIds';
 import { SecurityTabSelectors } from '../components/V1/SecurityTab/SecurityTab.testIds';
-import { SecurityStatKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import { TokenExplainerSheetSelectors } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.testIds';
 import { SecuritySocialSectionSelectors } from '../components/V1/SecuritySocialSection/SecuritySocialSection.testIds';
 import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
-import { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
+import { TokenStatKey } from '../constants/tokenStats';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSocialFeed } from '../../SocialFeed';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
@@ -565,7 +564,7 @@ describe('TokenDetailsV1', () => {
       expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
 
       fireEvent.press(
-        getByTestId(SecurityTabSelectors.rowLabel(SecurityStatKey.TopTen)),
+        getByTestId(SecurityTabSelectors.rowLabel(TokenStatKey.Top10)),
       );
 
       expect(getByTestId(TokenExplainerSheetSelectors.TITLE)).toHaveTextContent(
@@ -577,7 +576,7 @@ describe('TokenDetailsV1', () => {
       const { getByTestId } = openSecurityTab();
 
       fireEvent.press(
-        getByTestId(SecurityTabSelectors.rowLabel(SecurityStatKey.TopTen)),
+        getByTestId(SecurityTabSelectors.rowLabel(TokenStatKey.Top10)),
       );
 
       expect(
@@ -592,7 +591,7 @@ describe('TokenDetailsV1', () => {
       const { getByTestId, queryByTestId } = openSecurityTab();
 
       fireEvent.press(
-        getByTestId(SecurityTabSelectors.rowLabel(SecurityStatKey.Created)),
+        getByTestId(SecurityTabSelectors.rowLabel(TokenStatKey.Created)),
       );
       fireEvent.press(getByTestId(TokenExplainerSheetSelectors.GOT_IT_BUTTON));
 

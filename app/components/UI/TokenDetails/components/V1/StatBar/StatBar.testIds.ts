@@ -1,4 +1,4 @@
-import type { TokenStatKey } from './StatBar.types';
+import type { TokenStatKey } from '../../../constants/tokenStats';
 
 const underlineWrapper = (key: TokenStatKey) =>
   `token-details-v1-stat-${key}-underlined`;

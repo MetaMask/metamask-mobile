@@ -5956,10 +5956,10 @@
           "title": "Market capitalization",
           "description": "Current market capitalization of the circulating token supply."
         },
-        "liquidity": {
-          "title": "Liquidity",
-          "description": "Value currently available in the token's trading pools."
-        },
+          "liquidity": {
+            "title": "Total liquidity",
+            "description": "Value currently available in the token's trading pools."
+          },
         "volume_24h": {
           "title": "24-hour trading volume",
           "description": "Value traded over the last 24 hours."
@@ -5976,18 +5976,38 @@
           "title": "Liquidity to market capitalization",
           "description": "Total liquidity divided by market cap. This is a standalone statistic, not part of the Blockaid verdict."
         },
-        "tax": {
-          "title": "Buy and sell tax",
-          "description": "Buy and sell fees reported by the provider when available."
-        },
-        "high_low_24h": {
-          "title": "24-hour high and low",
-          "description": "Highest and lowest traded prices in the past 24 hours, shown in that order."
-        },
-        "circulating_supply": {
-          "title": "Circulating supply",
-          "description": "Amount of this token currently circulating."
-        }
+          "tax": {
+            "title": "Buy and sell tax",
+            "description": "The buy and sell fees reported for EVM tokens. Missing data does not mean zero fees."
+          },
+          "high_low_24h": {
+            "title": "24-hour high and low",
+            "description": "Highest and lowest traded prices in the past 24 hours, shown in that order."
+          },
+          "circulating_supply": {
+            "title": "Circulating supply",
+            "description": "Amount of this token currently circulating."
+          },
+          "lp_burned_locked": {
+            "title": "Liquidity pool tokens burned or locked",
+            "description": "Share of the primary pool liquidity that is burned or locked."
+          },
+          "primary_pool": {
+            "title": "Primary pool",
+            "description": "The main trading pool reported for this token."
+          },
+          "volume_flags": {
+            "title": "Volume flags",
+            "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
+          },
+          "listed_on_exchange": {
+            "title": "Listed on exchange",
+            "description": "Whether Blockaid reports the token as listed on a leading centralized exchange."
+          },
+          "created": {
+            "title": "Created",
+            "description": "Date the token contract was created, when reported by its source."
+          }
       }
     },
     "tabs": {
@@ -6096,50 +6116,10 @@
           "title": "Renounced",
           "description": "Whether contract ownership has been renounced."
         },
-        "no_blacklist": {
-          "title": "No blacklist",
-          "description": "Whether an address can be blocked from trading."
-        },
-        "holders": {
-          "title": "Holders",
-          "description": "Number of unique addresses holding this token."
-        },
-        "top_ten": {
-          "title": "Top 10 holders",
-          "description": "Share held by the top 10 wallets, excluding pools, routers, and burn addresses."
-        },
-        "total_liquidity": {
-          "title": "Total liquidity",
-          "description": "Value currently available in the token’s trading pools."
-        },
-        "liquidity_to_market_cap": {
-          "title": "Liquidity to market capitalization",
-          "description": "Total liquidity divided by market cap. This is a standalone statistic, not part of the Blockaid verdict."
-        },
-        "lp_burned_locked": {
-          "title": "Liquidity pool tokens burned or locked",
-          "description": "Share of the primary pool liquidity that is burned or locked."
-        },
-        "primary_pool": {
-          "title": "Primary pool",
-          "description": "The main trading pool reported for this token."
-        },
-        "buy_sell_tax": {
-          "title": "Buy and sell tax",
-          "description": "The buy and sell fees reported for EVM tokens. Missing data does not mean zero fees."
-        },
-        "volume_flags": {
-          "title": "Volume flags",
-          "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
-        },
-        "listed_on_exchange": {
-          "title": "Listed on exchange",
-          "description": "Whether Blockaid reports the token as listed on a leading centralized exchange."
-        },
-        "created": {
-          "title": "Created",
-          "description": "Date the token contract was created, when reported by its source."
-        }
+          "no_blacklist": {
+            "title": "No blacklist",
+            "description": "Whether an address can be blocked from trading."
+          }
       }
     },
     "contract_security": {

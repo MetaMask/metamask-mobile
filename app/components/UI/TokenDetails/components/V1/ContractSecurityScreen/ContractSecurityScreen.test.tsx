@@ -8,10 +8,8 @@ import {
 } from '../../../utils/__fixtures__/securityData';
 import ContractSecurityScreen from './ContractSecurityScreen';
 import { ContractSecuritySelectors } from './ContractSecurityScreen.testIds';
-import {
-  SECURITY_CONTRACT_CHECKS,
-  SECURITY_EMPTY_VALUE,
-} from '../SecurityTab/SecurityTab.constants';
+import { STAT_EMPTY_VALUE } from '../../../constants/tokenStats';
+import { SECURITY_CONTRACT_CHECKS } from '../SecurityTab/SecurityTab.constants';
 import { ContractCheckKey } from '../SecurityTab/SecurityTab.types';
 
 const mockGoBack = jest.fn();
@@ -105,7 +103,7 @@ describe('ContractSecurityScreen', () => {
       getByTestId(
         ContractSecuritySelectors.rowValue(ContractCheckKey.ContractVerified),
       ),
-    ).toHaveTextContent(SECURITY_EMPTY_VALUE);
+    ).toHaveTextContent(STAT_EMPTY_VALUE);
   });
 
   describe('findings', () => {

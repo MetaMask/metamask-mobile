@@ -1,27 +1,18 @@
-import type { ExplainerCopy } from '../TokenExplainerSheet/TokenExplainerSheet.types';
 import {
   IconColor,
   IconName,
   TextColor,
 } from '@metamask/design-system-react-native';
 import {
+  STAT_EXPLAINER_KEYS,
+  TokenStatKey,
+} from '../../../constants/tokenStats';
+import type { ExplainerCopy } from '../TokenExplainerSheet/TokenExplainerSheet.types';
+import {
   ContractCheckKey,
-  SecurityStatKey,
   type SecurityCheckOutcome,
   type SecurityRowKey,
 } from './SecurityTab.types';
-
-/**
- * Rendered wherever Blockaid returned null.
- *
- * An em dash, in `text-alternative`, so a missing reading cannot be mistaken
- * for a real one. ASSETS-4022 forbids `0%` or a green tick standing in for
- * absent data.
- *
- * TODO(ASSETS-4056): the stat bar declares its own `STAT_EMPTY_VALUE` for the
- * same purpose. Collapse the two once both branches have landed.
- */
-export const SECURITY_EMPTY_VALUE = '\u2014';
 
 /**
  * How each check outcome presents.
@@ -63,6 +54,42 @@ export const SECURITY_CONTRACT_CHECKS: readonly ContractCheckKey[] = [
   ContractCheckKey.NoBlacklist,
 ];
 
+/**
+ * Which stats each section lists, in render order.
+ *
+ * The tab's whole row layout. Sections keep their own JSX because Holders
+ * opens with the distribution bar, but the rows within each come from here, so
+ * adding a row is one entry rather than an entry plus a block of markup.
+ *
+ * `satisfies` keeps the literal keys visible to `SecurityStatRowKey` below
+ * while still enforcing that every entry names a real stat.
+ */
+export const SECURITY_SECTIONS = {
+  holders: [TokenStatKey.Holders, TokenStatKey.Top10],
+  liquidity: [
+    TokenStatKey.Liquidity,
+    TokenStatKey.LiquidityToMarketCap,
+    TokenStatKey.LpBurnedLocked,
+    TokenStatKey.PrimaryPool,
+  ],
+  trading: [
+    TokenStatKey.Tax,
+    TokenStatKey.VolumeFlags,
+    TokenStatKey.ListedOnExchange,
+  ],
+  origin: [TokenStatKey.Created],
+} as const satisfies Record<string, readonly TokenStatKey[]>;
+
+/**
+ * Only the stats the tab actually lists.
+ *
+ * Derived rather than widened to `TokenStatKey` so the tab needs no label for
+ * the four stats only the bar shows, while adding a key to a section above
+ * still fails until it has one.
+ */
+export type SecurityStatRowKey =
+  (typeof SECURITY_SECTIONS)[keyof typeof SECURITY_SECTIONS][number];
+
 /** Label beside each contract check. */
 export const SECURITY_CHECK_LABEL_KEYS: Record<ContractCheckKey, string> = {
   [ContractCheckKey.NoHoneypot]:
@@ -95,36 +122,39 @@ export const SECURITY_CHECK_DESCRIPTION_KEYS: Record<ContractCheckKey, string> =
       'token_details_v1.security_tab.explainers.no_blacklist.description',
   };
 
-/** Label beside each stat row. */
-export const SECURITY_STAT_LABEL_KEYS: Record<SecurityStatKey, string> = {
-  [SecurityStatKey.Holders]: 'token_details_v1.security_tab.stats.holders',
-  [SecurityStatKey.TopTen]: 'token_details_v1.security_tab.stats.top_ten',
-  [SecurityStatKey.TotalLiquidity]:
+/**
+ * Label beside each stat row.
+ *
+ * Spelled out where the stat bar abbreviates, which is why the two surfaces
+ * keep their own label maps. The definitions behind them do not differ, so the
+ * explainer copy is shared — see `STAT_EXPLAINER_KEYS`.
+ */
+export const SECURITY_STAT_LABEL_KEYS: Record<SecurityStatRowKey, string> = {
+  [TokenStatKey.Holders]: 'token_details_v1.security_tab.stats.holders',
+  [TokenStatKey.Top10]: 'token_details_v1.security_tab.stats.top_ten',
+  [TokenStatKey.Liquidity]:
     'token_details_v1.security_tab.stats.total_liquidity',
-  [SecurityStatKey.LiquidityToMarketCap]:
+  [TokenStatKey.LiquidityToMarketCap]:
     'token_details_v1.security_tab.stats.liquidity_to_market_cap',
-  [SecurityStatKey.LpBurnedLocked]:
+  [TokenStatKey.LpBurnedLocked]:
     'token_details_v1.security_tab.stats.lp_burned_locked',
-  [SecurityStatKey.PrimaryPool]:
+  [TokenStatKey.PrimaryPool]:
     'token_details_v1.security_tab.stats.primary_pool',
-  [SecurityStatKey.BuySellTax]:
-    'token_details_v1.security_tab.stats.buy_sell_tax',
-  [SecurityStatKey.VolumeFlags]:
+  [TokenStatKey.Tax]: 'token_details_v1.security_tab.stats.buy_sell_tax',
+  [TokenStatKey.VolumeFlags]:
     'token_details_v1.security_tab.stats.volume_flags',
-  [SecurityStatKey.ListedOnExchange]:
+  [TokenStatKey.ListedOnExchange]:
     'token_details_v1.security_tab.stats.listed_on_exchange',
-  [SecurityStatKey.Created]: 'token_details_v1.security_tab.stats.created',
+  [TokenStatKey.Created]: 'token_details_v1.security_tab.stats.created',
 };
 
 /**
- * Copy for the explainer sheet behind each row's dotted underline.
+ * Copy for the explainer sheet behind each contract check's dotted underline.
  *
- * Keyed by every row the tab can render, so a row added later cannot ship
- * without a definition. Titles are separate from the row labels because a row
- * abbreviates to fit its line (`Liq/MC`, `Top 10`) while the sheet spells the
- * term out.
+ * The stat rows' copy lives in `STAT_EXPLAINER_KEYS`, shared with the stat
+ * bar. Only the checks are the tab's alone, because only the tab shows them.
  */
-export const SECURITY_EXPLAINER_KEYS: Record<SecurityRowKey, ExplainerCopy> = {
+const CONTRACT_CHECK_EXPLAINER_KEYS: Record<ContractCheckKey, ExplainerCopy> = {
   [ContractCheckKey.NoHoneypot]: {
     title: 'token_details_v1.security_tab.explainers.no_honeypot.title',
     description:
@@ -145,52 +175,17 @@ export const SECURITY_EXPLAINER_KEYS: Record<SecurityRowKey, ExplainerCopy> = {
     description:
       'token_details_v1.security_tab.explainers.no_blacklist.description',
   },
-  [SecurityStatKey.Holders]: {
-    title: 'token_details_v1.security_tab.explainers.holders.title',
-    description: 'token_details_v1.security_tab.explainers.holders.description',
-  },
-  [SecurityStatKey.TopTen]: {
-    title: 'token_details_v1.security_tab.explainers.top_ten.title',
-    description: 'token_details_v1.security_tab.explainers.top_ten.description',
-  },
-  [SecurityStatKey.TotalLiquidity]: {
-    title: 'token_details_v1.security_tab.explainers.total_liquidity.title',
-    description:
-      'token_details_v1.security_tab.explainers.total_liquidity.description',
-  },
-  [SecurityStatKey.LiquidityToMarketCap]: {
-    title:
-      'token_details_v1.security_tab.explainers.liquidity_to_market_cap.title',
-    description:
-      'token_details_v1.security_tab.explainers.liquidity_to_market_cap.description',
-  },
-  [SecurityStatKey.LpBurnedLocked]: {
-    title: 'token_details_v1.security_tab.explainers.lp_burned_locked.title',
-    description:
-      'token_details_v1.security_tab.explainers.lp_burned_locked.description',
-  },
-  [SecurityStatKey.PrimaryPool]: {
-    title: 'token_details_v1.security_tab.explainers.primary_pool.title',
-    description:
-      'token_details_v1.security_tab.explainers.primary_pool.description',
-  },
-  [SecurityStatKey.BuySellTax]: {
-    title: 'token_details_v1.security_tab.explainers.buy_sell_tax.title',
-    description:
-      'token_details_v1.security_tab.explainers.buy_sell_tax.description',
-  },
-  [SecurityStatKey.VolumeFlags]: {
-    title: 'token_details_v1.security_tab.explainers.volume_flags.title',
-    description:
-      'token_details_v1.security_tab.explainers.volume_flags.description',
-  },
-  [SecurityStatKey.ListedOnExchange]: {
-    title: 'token_details_v1.security_tab.explainers.listed_on_exchange.title',
-    description:
-      'token_details_v1.security_tab.explainers.listed_on_exchange.description',
-  },
-  [SecurityStatKey.Created]: {
-    title: 'token_details_v1.security_tab.explainers.created.title',
-    description: 'token_details_v1.security_tab.explainers.created.description',
-  },
+};
+
+/**
+ * Copy for every definition sheet either surface can open.
+ *
+ * One map over both halves of `SecurityRowKey`, so the screen that owns the
+ * sheet needs a single handler rather than one per surface plus a way to tell
+ * a check key from a stat key. Typed as a full `Record`, which is what makes a
+ * row unable to ship without a definition behind its dotted underline.
+ */
+export const EXPLAINER_KEYS_BY_ROW: Record<SecurityRowKey, ExplainerCopy> = {
+  ...CONTRACT_CHECK_EXPLAINER_KEYS,
+  ...STAT_EXPLAINER_KEYS,
 };

@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 
-import type { SecurityTabFacts } from '../components/V1/SecurityTab/SecurityTab.types';
+import type { SecurityFacts } from '../components/V1/SecurityTab/SecurityTab.types';
 import {
   deriveSecurityFacts,
   emptySecurityFacts,
 } from '../utils/securityFacts';
 
-interface UseSecurityTabFactsOpts {
+interface UseSecurityFactsOpts {
   /** `null` once the request settled with no entry for this token. */
   securityData: TokenSecurityData | null;
   isLoading: boolean;
@@ -15,16 +15,18 @@ interface UseSecurityTabFactsOpts {
 }
 
 /**
- * Everything the Security surfaces render for a token, already formatted.
+ * What Blockaid concluded about a token.
  *
  * The Security tab, the Contract security screen and the hero pill all call
  * this rather than reading the payload themselves, which is what stops them
- * showing different readings for the same token — the screen is reached from
- * the tab, so a disagreement would be visible in a single gesture.
+ * judging the same token differently — the screen is reached from the tab, so
+ * a disagreement would be visible in a single gesture.
  *
- * Takes the resolved request rather than fetching, so the one `/assets` call
- * `TokenDetailsV1` already makes for social links feeds every surface and the
- * detail screen adds no second round trip.
+ * Judgement only. The figures the same payload carries go through
+ * `useTokenStats`, which the stat bar reads too.
+ *
+ * Takes the resolved request rather than fetching, so the `/assets` call
+ * `TokenDetailsV1` already makes feeds every surface.
  *
  * The three outcomes map to three verdicts, which the pill already draws:
  *
@@ -37,11 +39,11 @@ interface UseSecurityTabFactsOpts {
  * and splitting them would put a second neutral state on screen that says the
  * same thing in different words.
  */
-export const useSecurityTabFacts = ({
+export const useSecurityFacts = ({
   securityData,
   isLoading,
   error,
-}: UseSecurityTabFactsOpts): SecurityTabFacts =>
+}: UseSecurityFactsOpts): SecurityFacts =>
   useMemo(() => {
     if (error) {
       return emptySecurityFacts('unscreened');

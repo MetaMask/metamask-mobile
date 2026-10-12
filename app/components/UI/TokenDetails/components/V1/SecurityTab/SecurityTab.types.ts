@@ -1,3 +1,4 @@
+import type { TokenStatKey } from '../../../constants/tokenStats';
 import type { SecurityReason } from '../../../utils/securityReasons';
 import type { SecurityVerdict } from '../SecurityPill/SecurityPill';
 
@@ -46,43 +47,25 @@ export interface SecurityCheck {
 }
 
 /**
- * Every stat row on the tab, used to key the explainer copy so a row cannot
- * ship without a definition behind its dotted underline.
+ * Any row whose label opens an explainer.
+ *
+ * The stat half is `TokenStatKey`, shared with the stat bar. The tab used to
+ * declare its own `SecurityStatKey` covering the same ten rows, which drifted:
+ * two keys matched the bar's by accident while three differed only in
+ * spelling, and the figures behind them were derived twice.
  */
-export const SecurityStatKey = {
-  Holders: 'holders',
-  TopTen: 'top_ten',
-  TotalLiquidity: 'total_liquidity',
-  LiquidityToMarketCap: 'liquidity_to_market_cap',
-  LpBurnedLocked: 'lp_burned_locked',
-  PrimaryPool: 'primary_pool',
-  BuySellTax: 'buy_sell_tax',
-  VolumeFlags: 'volume_flags',
-  ListedOnExchange: 'listed_on_exchange',
-  Created: 'created',
-} as const;
-
-export type SecurityStatKey =
-  (typeof SecurityStatKey)[keyof typeof SecurityStatKey];
-
-/** Any row whose label opens an explainer. */
-export type SecurityRowKey = ContractCheckKey | SecurityStatKey;
+export type SecurityRowKey = ContractCheckKey | TokenStatKey;
 
 /**
- * Everything the Security tab renders, already formatted for display.
+ * What Blockaid concluded about a token.
  *
- * Deliberately a view model rather than the raw `TokenSecurityData`: the tab
- * shows values drawn from two different sources (Blockaid for the checks and
- * holders, `AssetsController.assetsPrice` for the market cap behind Liq/MC),
- * and several of them are owned by ASSETS-4056 so that the stat bar and this
- * tab cannot disagree. Keeping the component on formatted strings means the
- * later wiring replaces one module and touches no JSX.
- *
- * Every value is `string | null` because ASSETS-4022 requires a gray dash for
- * any field Blockaid returns as null — and because `0` is a real reading for
- * tax, the null test has to happen before formatting, never after.
+ * Judgement, not statistics. The figures the Security tab renders live in
+ * `TokenStatValues` and come from `useTokenStats`, which the stat bar reads
+ * too. Splitting them that way is what lets the Contract security screen and
+ * the hero pill consume this without acquiring a market-data dependency for
+ * numbers they never show.
  */
-export interface SecurityTabFacts {
+export interface SecurityFacts {
   /**
    * Same word as the pill, so the two surfaces cannot drift.
    *
@@ -109,40 +92,16 @@ export interface SecurityTabFacts {
    * and "not applicable" into the same dash.
    */
   checks: Partial<Record<ContractCheckKey, SecurityCheck>>;
-  holders: {
-    count: string | null;
-    topTenPercentage: string | null;
-    /** Everyone outside the top ten — the other half of the bar's legend. */
-    remainingPercentage: string | null;
-    /**
-     * The same top-ten figure as a number in the range 0-100, used only to
-     * size the distribution bar. `null` hides the bar rather than drawing an
-     * empty one, since a zero-width bar would read as "0% concentration".
-     */
-    topTenFillPercentage: number | null;
-  };
-  liquidity: {
-    total: string | null;
-    liquidityToMarketCap: string | null;
-    lpBurnedLocked: string | null;
-    primaryPool: string | null;
-  };
   /**
-   * Always rendered, dashing out the fields a chain does not report.
+   * Top ten holders' combined share as a raw number in the range 0-100, used
+   * to size the distribution bar's fill.
    *
-   * It used to be nullable so Solana — where every `fees` field comes back
-   * null — showed no Trading heading at all. That also hid Volume flags and
-   * Listed on exchange, which Solana does populate, so the section is now
-   * unconditional and each row nulls out on its own.
+   * The one figure here rather than in `TokenStatValues`, because it is the
+   * one the tab needs unformatted. `null` hides the bar rather than drawing an
+   * empty one, since a zero-width bar would read as "0% concentration" — a
+   * reassuring claim rather than an absence.
    */
-  trading: {
-    buySellTax: string | null;
-    volumeFlags: string | null;
-    listedOnExchange: string | null;
-  };
-  origin: {
-    created: string | null;
-  };
+  topTenPercentage: number | null;
   /**
    * Minutes since the Blockaid scan, for the provenance line sitting under the
    * contract checks.

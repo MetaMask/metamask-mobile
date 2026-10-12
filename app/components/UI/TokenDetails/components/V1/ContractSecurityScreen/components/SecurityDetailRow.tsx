@@ -13,7 +13,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { SECURITY_EMPTY_VALUE } from '../../SecurityTab/SecurityTab.constants';
+import { STAT_EMPTY_VALUE } from '../../../../constants/tokenStats';
 import type { ContractCheckKey } from '../../SecurityTab/SecurityTab.types';
 import { ContractSecuritySelectors } from '../ContractSecurityScreen.testIds';
 
@@ -109,7 +109,7 @@ export const SecurityDetailRow: React.FC<SecurityDetailRowProps> = ({
             twClassName="shrink"
             testID={ContractSecuritySelectors.rowValue(checkKey)}
           >
-            {value ?? SECURITY_EMPTY_VALUE}
+            {value ?? STAT_EMPTY_VALUE}
           </Text>
         </Box>
       </Box>

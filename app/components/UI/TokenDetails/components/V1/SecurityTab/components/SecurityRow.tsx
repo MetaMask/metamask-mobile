@@ -9,6 +9,7 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -17,7 +18,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../../util/theme';
 import DottedUnderline from '../../../../../DottedUnderline';
-import { SECURITY_EMPTY_VALUE } from '../SecurityTab.constants';
+import { STAT_EMPTY_VALUE } from '../../../../constants/tokenStats';
 import { SecurityTabSelectors } from '../SecurityTab.testIds';
 import type { SecurityRowKey } from '../SecurityTab.types';
 
@@ -42,6 +43,15 @@ export interface SecurityRowProps {
   icon?: { name: IconName; color: IconColor };
   /** Defaults to the standard value colour; checks override with pass/fail. */
   valueColor?: TextColor;
+  /**
+   * Renders a skeleton where the value goes.
+   *
+   * Only the rows that wait on the price API set it — Liq/MC and Total
+   * liquidity. The rest come from the security payload, which the tab does not
+   * render partially, so their absence is settled by the time a row draws and
+   * the dash is the honest reading.
+   */
+  isLoading?: boolean;
   onExplain: (rowKey: SecurityRowKey) => void;
 }
 
@@ -75,6 +85,7 @@ export const SecurityRow: React.FC<SecurityRowProps> = ({
   value,
   icon,
   valueColor,
+  isLoading,
   onExplain,
 }) => {
   const tw = useTailwind();
@@ -119,20 +130,29 @@ export const SecurityRow: React.FC<SecurityRowProps> = ({
             testID={SecurityTabSelectors.rowIcon(rowKey)}
           />
         ) : null}
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={
-            isMissing
-              ? TextColor.TextAlternative
-              : (valueColor ?? TextColor.TextDefault)
-          }
-          numberOfLines={1}
-          twClassName="shrink"
-          testID={SecurityTabSelectors.rowValue(rowKey)}
-        >
-          {value ?? SECURITY_EMPTY_VALUE}
-        </Text>
+        {isLoading && isMissing ? (
+          // Sized to the `BodySm` line height it replaces so the row does not
+          // resize when the value lands.
+          <Skeleton
+            style={tw.style('h-[22px] w-12 rounded-md')}
+            testID={SecurityTabSelectors.rowSkeleton(rowKey)}
+          />
+        ) : (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={
+              isMissing
+                ? TextColor.TextAlternative
+                : (valueColor ?? TextColor.TextDefault)
+            }
+            numberOfLines={1}
+            twClassName="shrink"
+            testID={SecurityTabSelectors.rowValue(rowKey)}
+          >
+            {value ?? STAT_EMPTY_VALUE}
+          </Text>
+        )}
       </Box>
     </TouchableOpacity>
   );

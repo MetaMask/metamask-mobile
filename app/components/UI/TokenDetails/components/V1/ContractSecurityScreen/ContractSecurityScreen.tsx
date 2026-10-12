@@ -24,7 +24,7 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import type { AssetStackParamList } from '../../../../../Nav/Main/types/navigation';
-import { useSecurityTabFacts } from '../../../hooks/useSecurityTabFacts';
+import { useSecurityFacts } from '../../../hooks/useSecurityFacts';
 import { useTokenSecurityData } from '../../../hooks/useTokenSecurityData';
 import type { SecurityReason } from '../../../utils/securityReasons';
 import {
@@ -167,23 +167,13 @@ export const ContractSecurityScreen: React.FC = () => {
   const { token } =
     useRoute<RouteProp<AssetStackParamList, 'ContractSecurity'>>().params;
 
-  /**
-   * The tab hands its resolved payload over on `token.securityData`, so the
-   * common path — tapping the Contract heading — resolves without a request.
-   * The fetch is the fallback for a deep link that arrives here cold.
-   */
   const { securityData, isLoading, error } = useTokenSecurityData({
     assetId: token.caipAssetId ?? null,
     prefetchedData: token.securityData,
   });
 
-  const facts = useSecurityTabFacts({ securityData, isLoading, error });
+  const facts = useSecurityFacts({ securityData, isLoading, error });
 
-  /**
-   * `paddingTop` is the prototype's 20px. The 24px bottom is its `pb-6` plus
-   * the home-indicator inset, so the last row clears the gesture area rather
-   * than ending flush against it.
-   */
   const scrollContentStyle = React.useMemo(
     () => ({ paddingTop: 20, paddingBottom: insets.bottom + 24 }),
     [insets.bottom],

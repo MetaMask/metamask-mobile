@@ -30,4 +30,7 @@ export const SecurityTabSelectors = {
   /** Pass / fail glyph on a contract check row. */
   rowIcon: (key: SecurityRowKey) =>
     `token-details-v1-security-tab-row-${key}-icon`,
+  /** Stands in for the value while a market-sourced row is still loading. */
+  rowSkeleton: (key: SecurityRowKey) =>
+    `token-details-v1-security-tab-row-${key}-skeleton`,
 };

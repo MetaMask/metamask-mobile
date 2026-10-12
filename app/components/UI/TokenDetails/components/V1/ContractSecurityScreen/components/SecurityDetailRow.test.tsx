@@ -5,7 +5,7 @@ import {
   IconName,
   TextColor,
 } from '@metamask/design-system-react-native';
-import { SECURITY_EMPTY_VALUE } from '../../SecurityTab/SecurityTab.constants';
+import { STAT_EMPTY_VALUE } from '../../../../constants/tokenStats';
 import { ContractCheckKey } from '../../SecurityTab/SecurityTab.types';
 import { ContractSecuritySelectors } from '../ContractSecurityScreen.testIds';
 import SecurityDetailRow from './SecurityDetailRow';
@@ -71,7 +71,7 @@ describe('SecurityDetailRow', () => {
 
     expect(
       getByTestId(ContractSecuritySelectors.rowValue(CHECK_KEY)),
-    ).toHaveTextContent(SECURITY_EMPTY_VALUE);
+    ).toHaveTextContent(STAT_EMPTY_VALUE);
     expect(
       queryByTestId(ContractSecuritySelectors.rowIcon(CHECK_KEY)),
     ).toBeNull();

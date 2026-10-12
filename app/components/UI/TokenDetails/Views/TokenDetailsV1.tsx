@@ -55,11 +55,9 @@ import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStar
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import SecuritySocialSection from '../components/V1/SecuritySocialSection/SecuritySocialSection';
 import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
-import { SECURITY_EXPLAINER_KEYS } from '../components/V1/SecurityTab/SecurityTab.constants';
+import { EXPLAINER_KEYS_BY_ROW } from '../components/V1/SecurityTab/SecurityTab.constants';
 import type { SecurityRowKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import StatBar from '../components/V1/StatBar/StatBar';
-import { STAT_EXPLAINER_KEYS } from '../components/V1/StatBar/StatBar.constants';
-import type { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
 import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExplainerSheet';
 import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.types';
 import OverviewTab from '../components/tabs/OverviewTab';
@@ -80,10 +78,10 @@ import {
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
-import { useSecurityTabFacts } from '../hooks/useSecurityTabFacts';
+import { useSecurityFacts } from '../hooks/useSecurityFacts';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenMarketData } from '../hooks/useTokenMarketData';
-import { useTokenStatBarStats } from '../hooks/useTokenStatBarStats';
+import { useTokenStats } from '../hooks/useTokenStats';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
 export const TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID = 'token-details-v1-age-chip';
@@ -249,7 +247,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const { marketData, isLoading: isMarketDataLoading } =
     useTokenMarketData(caip19AssetId);
 
-  const statBarStats = useTokenStatBarStats({
+  // Feeds both the stat bar and the Security tab. Ten of these figures appear
+  // on both, and deriving them once is what stops the two disagreeing.
+  const tokenStats = useTokenStats({
     marketData,
     isMarketDataLoading,
     securityData,
@@ -269,12 +269,15 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     null,
   );
 
-  const handleStatPress = useCallback((statKey: TokenStatKey) => {
-    setExplainerCopy(STAT_EXPLAINER_KEYS[statKey]);
-  }, []);
-
-  const handleSecurityRowPress = useCallback((rowKey: SecurityRowKey) => {
-    setExplainerCopy(SECURITY_EXPLAINER_KEYS[rowKey]);
+  /**
+   * Opens the definition for a tapped label, from either surface.
+   *
+   * One handler rather than one each: the stat bar's keys and the Security
+   * tab's rows are both `SecurityRowKey` now, so there is nothing left to tell
+   * apart.
+   */
+  const handleRowExplain = useCallback((rowKey: SecurityRowKey) => {
+    setExplainerCopy(EXPLAINER_KEYS_BY_ROW[rowKey]);
   }, []);
 
   const handleExplainerClose = useCallback(() => setExplainerCopy(null), []);
@@ -344,7 +347,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     useTokenDetailsV1Tabs({ onTabChange: clampScrollToTabBar });
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
 
-  const securityFacts = useSecurityTabFacts({
+  const securityFacts = useSecurityFacts({
     securityData,
     isLoading: isSecurityDataLoading,
     error: securityDataError,
@@ -381,7 +384,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
         return (
           <SecurityTab
             facts={securityFacts}
-            onExplain={handleSecurityRowPress}
+            stats={tokenStats}
+            onExplain={handleRowExplain}
             onOpenContractDetails={handleOpenContractSecurity}
           />
         );
@@ -399,7 +403,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       securityData,
       marketData,
       securityFacts,
-      handleSecurityRowPress,
+      tokenStats,
+      handleRowExplain,
       handleOpenContractSecurity,
       socialEnabled,
     ],
@@ -519,8 +524,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 <Box twClassName="py-4">
                   <StatBar
                     variant={variant}
-                    stats={statBarStats}
-                    onStatPress={handleStatPress}
+                    stats={tokenStats}
+                    onStatPress={handleRowExplain}
                   />
                 </Box>
 

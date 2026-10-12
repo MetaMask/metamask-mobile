@@ -1,19 +1,19 @@
 import { useMemo } from 'react';
 import type {
   TokenSecurityData,
+  TokenSecurityFeature,
   TokenSecurityFinancialStats,
+  TokenSecurityMarket,
 } from '@metamask/assets-controllers';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
-import i18n from '../../../../../locales/i18n';
-import { getTop10HoldingPct } from '../../SecurityTrust/utils/securityUtils';
-import {
-  TokenStatKey,
-  type TokenStatValues,
-} from '../components/V1/StatBar/StatBar.types';
+import i18n, { strings } from '../../../../../locales/i18n';
+import { getIntlDateTimeFormatter } from '../../../../util/intl';
+import { TokenStatKey, type TokenStatValues } from '../constants/tokenStats';
 import {
   getLiquidityToMarketCapRatio,
   isLowLiquidityToMarketCapRatio,
 } from '../utils/liquidityToMarketCap';
+import { sumTopTenPercentage } from '../utils/securityFacts';
 import {
   formatCompactFiat,
   formatCompactNumber,
@@ -33,12 +33,27 @@ const USD_CURRENCY_CODE = 'usd';
 const isUsdCurrency = (currencyCode: string | undefined): boolean =>
   currencyCode?.toLowerCase() === USD_CURRENCY_CODE;
 
-/** Top 10 share reads as a headline figure, so one decimal is enough. */
-const TOP_10_DECIMALS = 1;
+/**
+ * Decimal places on the plain percentages.
+ *
+ * Top 10 and LP burned/locked read as headline figures, where one decimal is
+ * enough and a second would imply precision the source does not have.
+ */
+const PERCENT_DECIMALS = 1;
 /** Liq/MC sits in single-digit percentages, where the second decimal carries. */
 const LIQUIDITY_TO_MARKET_CAP_DECIMALS = 2;
 
-export interface UseTokenStatBarStatsParams {
+/** Volume manipulation Blockaid names explicitly. */
+const VOLUME_FLAG_FEATURE_IDS = [
+  'INORGANIC_VOLUME',
+  'WASH_TRADING',
+  'FAKE_VOLUME',
+  'FAKE_TRADE_MAKER_COUNT',
+];
+
+const LISTED_ON_EXCHANGE_FEATURE_ID = 'LISTED_ON_CENTRALIZED_EXCHANGE';
+
+export interface UseTokenStatsParams {
   /** Resolved by `useTokenMarketData`, in the user's selected currency. */
   marketData: FungibleAssetPrice | null;
   /** True while the market-data fetch is in flight. */
@@ -94,39 +109,106 @@ const getUsdToSelectedCurrencyRate = (
 };
 
 /**
- * Formatted statistics for the Token Details V1 stat bar.
+ * The deepest pool, named as `marketName · pairName`.
+ *
+ * `markets[]` carries no primary-pool flag, so "primary" is defined here as
+ * the largest reserve. That is a choice rather than a reading.
+ */
+const resolvePrimaryPool = (
+  markets: readonly TokenSecurityMarket[],
+): string | null => {
+  const deepest = markets.reduce<TokenSecurityMarket | null>(
+    (best, market) =>
+      best === null || (market.reserveUSD ?? 0) > (best.reserveUSD ?? 0)
+        ? market
+        : best,
+    null,
+  );
+  return deepest?.marketName && deepest?.pairName
+    ? `${deepest.marketName} \u00b7 ${deepest.pairName}`
+    : null;
+};
+
+/**
+ * The creation date, in the user's selected language.
+ *
+ * Formatted in UTC rather than device time. Blockaid timestamps land on
+ * midnight UTC, so rendering them locally moves a token's birthday a day
+ * earlier for every user west of Greenwich.
+ */
+const formatCreated = (created: string | null | undefined): string | null => {
+  if (!created) {
+    return null;
+  }
+  const date = new Date(created);
+  return Number.isNaN(date.getTime())
+    ? null
+    : getIntlDateTimeFormatter(i18n.locale, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'UTC',
+      }).format(date);
+};
+
+/**
+ * How many volume-manipulation flags fired, worded rather than counted.
+ *
+ * Always a string: "none detected" is a real reading here, because these four
+ * featureIds are ones Blockaid states explicitly rather than ones we infer
+ * from silence.
+ */
+const resolveVolumeFlags = (
+  features: readonly TokenSecurityFeature[],
+): string => {
+  const flagged = features.filter((feature) =>
+    VOLUME_FLAG_FEATURE_IDS.includes(feature.featureId),
+  );
+  return flagged.length === 0
+    ? strings('token_details_v1.security_tab.values.none_detected')
+    : strings('token_details_v1.security_tab.values.detected', {
+        count: flagged.length,
+      });
+};
+
+/**
+ * Every statistic Token Details V1 renders, formatted and keyed by stat.
  *
  * Draws on two sources. Market cap, 24h volume, the 24h high/low range and
  * circulating supply come from the price API via `useTokenMarketData`.
- * Holders, top 10 share and tax come from the Blockaid security data. Liq/MC
- * spans both and is therefore absent whenever either side is.
+ * Holders, top 10 share, tax, LP locked, the primary pool, volume flags,
+ * exchange listing and the creation date come from the Blockaid security data.
+ * Liq/MC spans both and is therefore absent whenever either side is.
  *
  * Liquidity reads from the security data but needs the price API too: Blockaid
- * reports it in USD while the rest of the bar follows the selected currency,
- * so for anyone not already on USD it cannot be labelled until the rate
- * arrives. It therefore loads and falls back on the market-data schedule.
+ * reports it in USD while the rest of the figures follow the selected
+ * currency, so for anyone not already on USD it cannot be labelled until the
+ * rate arrives. It therefore loads and falls back on the market-data schedule.
  *
  * Every field on both sources is optional, so each stat falls back to the gray
- * dash on its own rather than the bar emptying as a unit.
+ * dash on its own rather than a surface emptying as a unit.
  *
  * Liq/MC is computed entirely in USD — summed `reserveUSD` over
  * `circulatingSupply * usdPrice` — rather than dividing by `marketCap`, which
  * follows the selected currency and would scale the ratio by the exchange rate
  * without ever looking wrong.
  *
- * Liq/MC, Top 10 and Holders also render on the Security tab, so ASSETS-4056
- * requires both places to read the same computed value. Keeping the
- * computation here gives that work one place to land.
+ * Both the stat bar and the Security tab read this one record, each picking
+ * the keys it shows. That is the point: ten of these appear on both surfaces,
+ * and while each derived its own the two disagreed — Liq/MC was computed here
+ * and hardcoded `null` there, and liquidity was labelled in two currencies.
  */
-export const useTokenStatBarStats = ({
+export const useTokenStats = ({
   marketData,
   isMarketDataLoading,
   securityData,
   currentCurrency,
-}: UseTokenStatBarStatsParams): TokenStatValues =>
+}: UseTokenStatsParams): TokenStatValues =>
   useMemo(() => {
     const { locale } = i18n;
     const financialStats = securityData?.financialStats;
+    const features = securityData?.features ?? [];
+    const markets = financialStats?.markets ?? [];
 
     const liquidityUsd = getLiquidityUsd(financialStats);
     // A rate of 1 is only correct for a user already on USD. For anyone else
@@ -171,8 +253,8 @@ export const useTokenStatBarStats = ({
       },
       [TokenStatKey.Top10]: {
         value: formatPercent(
-          getTop10HoldingPct(financialStats),
-          TOP_10_DECIMALS,
+          sumTopTenPercentage(financialStats),
+          PERCENT_DECIMALS,
         ),
       },
       [TokenStatKey.LiquidityToMarketCap]: {
@@ -201,7 +283,30 @@ export const useTokenStatBarStats = ({
         value: formatCompactNumber(marketData?.circulatingSupply),
         isLoading: isMarketDataLoading,
       },
+      /**
+       * TODO(ASSETS-4022): labelled "LP burned/locked" but
+       * `lockedLiquidityPct` measures locking alone. Either the label narrows
+       * or the payload needs a burn figure.
+       */
+      [TokenStatKey.LpBurnedLocked]: {
+        value: formatPercent(
+          financialStats?.lockedLiquidityPct,
+          PERCENT_DECIMALS,
+        ),
+      },
+      [TokenStatKey.PrimaryPool]: { value: resolvePrimaryPool(markets) },
+      [TokenStatKey.VolumeFlags]: { value: resolveVolumeFlags(features) },
+      [TokenStatKey.ListedOnExchange]: {
+        value: strings(
+          features.some(
+            (feature) => feature.featureId === LISTED_ON_EXCHANGE_FEATURE_ID,
+          )
+            ? 'token_details_v1.security_tab.values.yes'
+            : 'token_details_v1.security_tab.values.no',
+        ),
+      },
+      [TokenStatKey.Created]: { value: formatCreated(securityData?.created) },
     };
   }, [marketData, isMarketDataLoading, securityData, currentCurrency]);
 
-export default useTokenStatBarStats;
+export default useTokenStats;

@@ -8,32 +8,42 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import type { TokenStatValues } from '../../../constants/tokenStats';
 import HoldersDistributionBar from './components/HoldersDistributionBar';
 import SecurityRow from './components/SecurityRow';
 import {
   CHECK_OUTCOME_PRESENTATION,
   SECURITY_CHECK_LABEL_KEYS,
   SECURITY_CONTRACT_CHECKS,
+  SECURITY_SECTIONS,
   SECURITY_STAT_LABEL_KEYS,
+  type SecurityStatRowKey,
 } from './SecurityTab.constants';
 import { SecurityTabSelectors } from './SecurityTab.testIds';
-import {
-  SecurityStatKey,
-  type ContractCheckKey,
-  type SecurityCheck,
-  type SecurityRowKey,
-  type SecurityTabFacts,
+import type {
+  ContractCheckKey,
+  SecurityCheck,
+  SecurityFacts,
+  SecurityRowKey,
 } from './SecurityTab.types';
 
 export interface SecurityTabProps {
   /**
-   * Everything the tab renders, already formatted.
+   * What Blockaid concluded — the checks, the flags behind them, the verdict.
    *
    * Passed in rather than read from a hook so the tab stays a pure function of
-   * its facts — which is what makes both chain fixtures renderable in tests and
-   * lets the eventual data wiring land in the caller.
+   * its props, which is what makes both chain fixtures renderable in tests.
    */
-  facts: SecurityTabFacts;
+  facts: SecurityFacts;
+  /**
+   * Every figure the tab shows, formatted and keyed by stat.
+   *
+   * The same record the stat bar renders from, which is why ten of these rows
+   * cannot disagree with the bar above them. Each carries its own `isLoading`
+   * and `isWarning`, so a row waiting on the price API shows a skeleton while
+   * its neighbours show values.
+   */
+  stats: TokenStatValues;
   /**
    * Reports which row's label was tapped so the screen can open its explainer.
    *
@@ -137,23 +147,32 @@ const CheckRow = ({
   );
 };
 
-/** A stat row differs from a check only in where its label comes from. */
+/**
+ * A stat row differs from a check only in where its label comes from and in
+ * taking its whole presentation — value, amber, skeleton — from one entry in
+ * the shared stats record.
+ */
 const StatRow = ({
   statKey,
-  value,
+  stats,
   onExplain,
 }: {
-  statKey: SecurityStatKey;
-  value: string | null;
+  statKey: SecurityStatRowKey;
+  stats: TokenStatValues;
   onExplain: (rowKey: SecurityRowKey) => void;
-}) => (
-  <SecurityRow
-    rowKey={statKey}
-    label={strings(SECURITY_STAT_LABEL_KEYS[statKey])}
-    value={value}
-    onExplain={onExplain}
-  />
-);
+}) => {
+  const stat = stats[statKey];
+
+  return (
+    <SecurityRow
+      rowKey={statKey}
+      label={strings(SECURITY_STAT_LABEL_KEYS[statKey])}
+      value={stat?.value ?? null}
+      isLoading={stat?.isLoading}
+      onExplain={onExplain}
+    />
+  );
+};
 
 /**
  * Security tab of the Token Details V1 page.
@@ -169,10 +188,21 @@ const StatRow = ({
  */
 export const SecurityTab: React.FC<SecurityTabProps> = ({
   facts,
+  stats,
   onExplain: handleExplain,
   onOpenContractDetails: handleOpenContractDetails,
 }) => {
-  const { checks, holders, liquidity, trading, origin } = facts;
+  const { checks } = facts;
+
+  const renderStatRows = (statKeys: readonly SecurityStatRowKey[]) =>
+    statKeys.map((statKey) => (
+      <StatRow
+        key={statKey}
+        statKey={statKey}
+        stats={stats}
+        onExplain={handleExplain}
+      />
+    ));
 
   return (
     <Box twClassName="gap-6 px-4 pb-6 pt-4" testID={SecurityTabSelectors.TAB}>
@@ -234,22 +264,9 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
       <SectionRule />
       <Box testID={SecurityTabSelectors.SECTION_HOLDERS}>
         <SectionTitle titleKey="token_details_v1.security_tab.sections.holders" />
-        <HoldersDistributionBar
-          fillPercentage={holders.topTenFillPercentage}
-          topTenPercentage={holders.topTenPercentage}
-          remainingPercentage={holders.remainingPercentage}
-        />
+        <HoldersDistributionBar topTenPercentage={facts.topTenPercentage} />
         <Box twClassName="pt-3">
-          <StatRow
-            statKey={SecurityStatKey.Holders}
-            value={holders.count}
-            onExplain={handleExplain}
-          />
-          <StatRow
-            statKey={SecurityStatKey.TopTen}
-            value={holders.topTenPercentage}
-            onExplain={handleExplain}
-          />
+          {renderStatRows(SECURITY_SECTIONS.holders)}
         </Box>
       </Box>
 
@@ -257,26 +274,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
       <SectionRule />
       <Box testID={SecurityTabSelectors.SECTION_LIQUIDITY}>
         <SectionTitle titleKey="token_details_v1.security_tab.sections.liquidity" />
-        <StatRow
-          statKey={SecurityStatKey.TotalLiquidity}
-          value={liquidity.total}
-          onExplain={handleExplain}
-        />
-        <StatRow
-          statKey={SecurityStatKey.LiquidityToMarketCap}
-          value={liquidity.liquidityToMarketCap}
-          onExplain={handleExplain}
-        />
-        <StatRow
-          statKey={SecurityStatKey.LpBurnedLocked}
-          value={liquidity.lpBurnedLocked}
-          onExplain={handleExplain}
-        />
-        <StatRow
-          statKey={SecurityStatKey.PrimaryPool}
-          value={liquidity.primaryPool}
-          onExplain={handleExplain}
-        />
+        {renderStatRows(SECURITY_SECTIONS.liquidity)}
       </Box>
 
       {/* ── Trading ─────────────────────────────────────────────────────────
@@ -287,32 +285,14 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
       <SectionRule />
       <Box testID={SecurityTabSelectors.SECTION_TRADING}>
         <SectionTitle titleKey="token_details_v1.security_tab.sections.trading" />
-        <StatRow
-          statKey={SecurityStatKey.BuySellTax}
-          value={trading.buySellTax}
-          onExplain={handleExplain}
-        />
-        <StatRow
-          statKey={SecurityStatKey.VolumeFlags}
-          value={trading.volumeFlags}
-          onExplain={handleExplain}
-        />
-        <StatRow
-          statKey={SecurityStatKey.ListedOnExchange}
-          value={trading.listedOnExchange}
-          onExplain={handleExplain}
-        />
+        {renderStatRows(SECURITY_SECTIONS.trading)}
       </Box>
 
       {/* ── Origin ──────────────────────────────────────────────────────── */}
       <SectionRule />
       <Box testID={SecurityTabSelectors.SECTION_ORIGIN}>
         <SectionTitle titleKey="token_details_v1.security_tab.sections.origin" />
-        <StatRow
-          statKey={SecurityStatKey.Created}
-          value={origin.created}
-          onExplain={handleExplain}
-        />
+        {renderStatRows(SECURITY_SECTIONS.origin)}
       </Box>
 
       <Text
