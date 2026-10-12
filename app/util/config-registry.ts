@@ -15,10 +15,11 @@ import type { ImageSourcePropType } from 'react-native';
  */
 export function getDefaultConfigRegistryControllerState(): ConfigRegistryControllerState {
   return {
-    configs: { networks: {} },
+    configs: { networks: {}, eventsConfig: null },
     version: null,
     lastFetched: null,
     etag: null,
+    eventsConfigEtag: null,
   };
 }
 

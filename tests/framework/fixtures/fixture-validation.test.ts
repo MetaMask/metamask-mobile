@@ -144,6 +144,43 @@ describe('fixture-validation', () => {
       expect(diff.newKeys).toEqual([]);
     });
 
+    it('ignores the live-fetched config registry events catalog', () => {
+      const baseline = {
+        engine: {
+          backgroundState: {
+            ConfigRegistryController: {
+              configs: { networks: {}, eventsConfig: null },
+              eventsConfigEtag: null,
+            },
+          },
+        },
+      };
+      const candidate = {
+        engine: {
+          backgroundState: {
+            ConfigRegistryController: {
+              configs: {
+                networks: {},
+                eventsConfig: {
+                  version: '1',
+                  timestamp: '2026-01-01T00:00:00.000Z',
+                  schemaVersion: 1,
+                  events: { 'App Opened': [{ purpose: 'product' }] },
+                },
+              },
+              eventsConfigEtag: '"abc"',
+            },
+          },
+        },
+      };
+
+      const diff = computeSchemaDiff(baseline, candidate);
+
+      expect(diff.newKeys).toEqual([]);
+      expect(diff.typeMismatches).toEqual([]);
+      expect(diff.valueMismatches).toEqual([]);
+    });
+
     it('accepts custom ignoredKeys override', () => {
       const baseline = { a: 1 };
       const candidate = { a: 1, b: 2 };
