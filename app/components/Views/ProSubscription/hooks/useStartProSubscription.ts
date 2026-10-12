@@ -7,12 +7,10 @@ import {
 } from '@metamask/subscription-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
-  bytesToHex,
   isStrictHexString,
   isValidHexAddress,
   type Hex,
 } from '@metamask/utils';
-import { v4 as uuidv4, parse as uuidParse } from 'uuid';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
@@ -20,6 +18,7 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { MUSD_DECIMALS } from '../../../UI/Earn/constants/musd';
 import { useMoneyAccountDeposit } from '../../../UI/Money/hooks/useMoneyAccount';
+import { createMoneyAccountBatchId } from '../../../UI/Money/utils/createMoneyAccountBatchId';
 import { strings } from '../../../../../locales/i18n';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
@@ -67,7 +66,7 @@ async function topUpMembershipShortfall(
   balance: string,
   requiredBalance: string,
 ): Promise<void> {
-  const batchId = bytesToHex(new Uint8Array(uuidParse(uuidv4())));
+  const batchId = createMoneyAccountBatchId();
   const { promise, cancel } = waitForMembershipTopUp(batchId);
 
   try {
