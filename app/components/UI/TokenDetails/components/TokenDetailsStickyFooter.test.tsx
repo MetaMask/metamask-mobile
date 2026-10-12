@@ -7,6 +7,7 @@ import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
+import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { strings } from '../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
@@ -112,6 +113,21 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
   useStickyFooterTracking: () => mockTrackStickyFooterTapped,
 }));
 
+jest.mock('./TokenDetailsPositionLine', () => {
+  const { createElement } = jest.requireActual<typeof import('react')>('react');
+  const { Text } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      createElement(
+        Text,
+        { testID: 'token-details-position-line' },
+        'position',
+      ),
+  };
+});
+
 const mockToken: TokenDetailsRouteParams = {
   address: '0x123',
   symbol: 'ETH',
@@ -155,6 +171,19 @@ describe('TokenDetailsStickyFooter', () => {
       );
       expect(getByText('Swap')).toBeTruthy();
       expect(getByText('Buy')).toBeTruthy();
+    });
+
+    it('shows the position line when the memecoin token details flag is on', () => {
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectAssetsMemecoinTdpV1Enabled) return true;
+        return undefined;
+      });
+
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={50} />,
+      );
+
+      expect(getByTestId('token-details-position-line')).toBeTruthy();
     });
 
     it('shows only swap button when not buyable and hasEligibleSwapTokens is true', () => {

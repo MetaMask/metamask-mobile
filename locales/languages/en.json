@@ -5743,6 +5743,16 @@
     "address": "Address",
     "were_unable": "We’re unable to load your",
     "balance": "balance. See the support article",
+    "position_pnl": {
+      "your_position": "Your position",
+      "unrealised": "Unrealised PNL",
+      "average_cost": "Average cost",
+      "realized": "Realized",
+      "unrealized": "Unrealized",
+      "hold_time": "Hold time",
+      "loading": "Loading position",
+      "shown_in_usd": "Shown in USD"
+    },
     "troubleshooting_missing": "troubleshooting missing balances",
     "for_help": "for help.",
     "troubleshoot": "Troubleshoot",
