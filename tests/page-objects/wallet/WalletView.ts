@@ -9,6 +9,7 @@ import Utilities from '../../framework/Utilities';
 import type { AppiumElement } from '../../framework/AppiumElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
+import { isPerformanceSuiteActive } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import WalletHomeScroll from './WalletHomeScroll';
 import { WalletHomeSections as WalletHomeSectionsBase } from './WalletHomeSections';
 
@@ -52,15 +53,32 @@ class WalletView extends WalletHomeSectionsBase {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_BUTTON);
   }
 
+  /**
+   * Wallet account icon / name button.
+   * Performance: match both A/B header variants (compact + control).
+   * Smoke / shared: keep the classic account-picker control only.
+   */
   get accountIcon(): Promise<AppiumElement> {
-    const id = WalletViewSelectorsIDs.ACCOUNT_ICON;
+    const controlId = WalletViewSelectorsIDs.ACCOUNT_ICON;
+    if (!isPerformanceSuiteActive()) {
+      if (PlatformDetector.isIOS()) {
+        // iOS: catch-all across name/label/text (historical AccessibilityId flakiness)
+        return Matchers.getElementByNativeXPath(
+          `//*[contains(@name,'${controlId}') or contains(@label,'${controlId}') or contains(@text,'${controlId}')]`,
+        );
+      }
+      return Matchers.getElementByID(controlId);
+    }
+
+    const compactId = WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON;
     if (PlatformDetector.isIOS()) {
-      // iOS: catch-all across name/label/text (historical AccessibilityId flakiness)
       return Matchers.getElementByNativeXPath(
-        `//*[contains(@name,'${id}') or contains(@label,'${id}') or contains(@text,'${id}')]`,
+        `//*[contains(@name,'${compactId}') or contains(@name,'${controlId}') or contains(@label,'${compactId}') or contains(@label,'${controlId}')]`,
       );
     }
-    return Matchers.getElementByID(id);
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${compactId}' or @resource-id='${controlId}']`,
+    );
   }
 
   get eyeSlashIcon(): Promise<AppiumElement> {
@@ -111,12 +129,38 @@ class WalletView extends WalletHomeSectionsBase {
     );
   }
 
+  /**
+   * Finds the active account name element regardless of which header variant is
+   * active. Two variants exist:
+   * - Non-compact (control A/B): PickerAccount renders `account-label`
+   * - Compact (searchFocused / tradeFocused A/B): WalletHeaderCompact renders
+   * `wallet-account-name-heading` (no `account-label` in the tree)
+   *
+   * Performance-only: smoke keeps `account-label` as the single source of truth.
+   */
+  private get activeAccountNameElement(): Promise<AppiumElement> {
+    if (!isPerformanceSuiteActive()) {
+      return this.accountNameLabelText;
+    }
+
+    const accountLabel = WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT;
+    const headingLabel = WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING;
+    if (PlatformDetector.isIOS()) {
+      return Matchers.getElementByNativeXPath(
+        `//*[@name='${accountLabel}' or @name='${headingLabel}']`,
+      );
+    }
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${accountLabel}' or @resource-id='${headingLabel}']`,
+    );
+  }
+
   async checkActiveAccount(
     expectedName: string,
     timeout = 10_000,
   ): Promise<void> {
     await Assertions.expectElementToHaveText(
-      this.accountNameLabelText,
+      this.activeAccountNameElement,
       expectedName,
       { timeout },
     );

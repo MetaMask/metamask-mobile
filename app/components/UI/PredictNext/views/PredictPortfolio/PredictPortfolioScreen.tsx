@@ -94,6 +94,7 @@ export const PredictPortfolioScreen = () => {
     (position: PredictPosition) => {
       openOrderFlow({
         action: 'sell',
+        eventId: position.context?.eventId,
         venueId,
         marketId: position.marketId,
         side: position.side,
