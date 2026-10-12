@@ -14,6 +14,15 @@ import PerpsTradeBottomSheet, {
 } from './PerpsTradeBottomSheet';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
+const mockIsFocused = jest.fn(() => true);
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    isFocused: mockIsFocused,
+  }),
+}));
+
 let openCallback: (() => void) | undefined;
 let hardwareBackHandler:
   | ((event: HardwareBackPressEvent) => boolean | null | undefined)
@@ -26,6 +35,7 @@ const tradeSheetConfig = {
     trade: 0,
     leverage: 1,
     tpsl: 1,
+    payWith: 1,
     marginInfo: 1,
     liquidationInfo: 1,
   },
@@ -33,6 +43,7 @@ const tradeSheetConfig = {
 const emptyNestedScreens = {
   leverage: null,
   tpsl: null,
+  payWith: null,
   marginInfo: null,
   liquidationInfo: null,
 };
@@ -133,6 +144,8 @@ describe('PerpsTradeBottomSheet', () => {
     hardwareBackHandler = undefined;
     mockCloseBottomSheet.mockClear();
     mockDeferSheetClose = false;
+    mockIsFocused.mockReset();
+    mockIsFocused.mockReturnValue(true);
     jest
       .spyOn(BackHandler, 'addEventListener')
       .mockImplementation((_event, handler) => {
@@ -188,6 +201,30 @@ describe('PerpsTradeBottomSheet', () => {
     });
 
     expect(screen.getByText('Trade')).toBeOnTheScreen();
+  });
+
+  it('leaves Android back to a route stacked on the sheet', () => {
+    mockIsFocused.mockReturnValue(false);
+
+    render(
+      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
+        onClose={jest.fn()}
+        {...tradeSheetConfig}
+        screens={{
+          trade: <TradeTestScreen />,
+          ...emptyNestedScreens,
+          leverage: <LeverageTestScreen />,
+        }}
+      />,
+    );
+
+    act(() => openCallback?.());
+    fireEvent.press(screen.getByTestId('open-leverage'));
+    act(() => {
+      expect(hardwareBackHandler?.({} as HardwareBackPressEvent)).toBe(false);
+    });
+
+    expect(screen.getByText('Leverage')).toBeOnTheScreen();
   });
 
   it('locks nested screens to the measured Trade screen height', () => {

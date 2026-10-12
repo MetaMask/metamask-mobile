@@ -13,15 +13,21 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Trade } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
-import { formatUsd, formatTradeTime } from '../../utils/formatters';
+import {
+  formatUsd,
+  formatTradeTime,
+} from '../../../../UI/SocialFeed/utils/formatters';
 import PerpBadges from '../../components/PerpBadges';
-import { getPerpTradeDirection, isPerpTrade } from '../../utils/perp';
+import {
+  getPerpTradeDirection,
+  isPerpTrade,
+} from '../../../../UI/SocialFeed/utils/perp';
 import {
   getTradeActionI18nKey,
   type TradeAction,
-} from '../../utils/tradeAction';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
+} from '../../../../UI/SocialFeed/utils/tradeAction';
+
+import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 
 const AVATAR_SIZE = 32;
 /** How long the highlight lingers before fading out, ms. */

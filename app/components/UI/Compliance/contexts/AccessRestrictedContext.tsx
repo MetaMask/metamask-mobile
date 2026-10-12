@@ -100,3 +100,31 @@ export const useAccessRestrictedModal = (): AccessRestrictedContextType => {
   }
   return context;
 };
+
+const NO_OP_ACCESS_RESTRICTED: AccessRestrictedContextType = {
+  showAccessRestrictedModal: () => undefined,
+  hideAccessRestrictedModal: () => undefined,
+  isAccessRestricted: false,
+};
+
+/**
+ * Feed cards call the compliance gate on every render. The app root already
+ * provides this context; surfaces rendered without it (unit tests, and any
+ * shell mounted outside the root) get a no-op so the card still paints.
+ * A blocked wallet still does not proceed — the gate returns before the action.
+ */
+export const EnsureAccessRestricted = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
+  const existing = useContext(AccessRestrictedContext);
+  if (existing) {
+    return children;
+  }
+  return (
+    <AccessRestrictedContext.Provider value={NO_OP_ACCESS_RESTRICTED}>
+      {children}
+    </AccessRestrictedContext.Provider>
+  );
+};

@@ -4,7 +4,7 @@ import {
   formatCount,
   formatPercent,
   formatSignedFullUsdNoDecimals,
-} from '../../utils/formatters';
+} from '../../../../UI/SocialFeed/utils/formatters';
 import type { TraderProfileWithSheetStats } from '../../TraderProfileView/types/traderProfileStatsSheet';
 import {
   FAKE_STATS_PREFIX,
@@ -14,6 +14,7 @@ import {
 import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
 import { applyMyProfileMockDefaults } from './myProfileMockDefaults';
 import { myProfileToSheetProfile } from './myProfileToSheetProfile';
+import { preferTraderAvatarUrl } from './preferTraderAvatarUrl';
 
 export { FAKE_STATS_PREFIX };
 
@@ -95,7 +96,10 @@ export const overlayMyProfileLiveStats = (
         profile: {
           ...live.profile,
           name: localWithMocks.displayName,
-          imageUrl: localWithMocks.imageUrl ?? live.profile.imageUrl,
+          imageUrl: preferTraderAvatarUrl(
+            live.profile.imageUrl,
+            localWithMocks.imageUrl,
+          ),
         },
         stats: {
           ...live.stats,

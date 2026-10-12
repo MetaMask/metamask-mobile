@@ -121,6 +121,7 @@ const buildController = (
   sourceTokenAmount: undefined,
   hasSourcePrice: true,
   isSliderDisabled: false,
+  isMaxAmountAllowed: true,
   positionTokenFromSetup: undefined,
   selectedReceiveToken: undefined,
   handleSelectReceiveToken: jest.fn(),

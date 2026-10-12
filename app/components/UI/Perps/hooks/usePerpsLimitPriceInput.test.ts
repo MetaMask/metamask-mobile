@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { strings } from '../../../../../locales/i18n';
 import { usePerpsLimitPriceInput } from './usePerpsLimitPriceInput';
+import { getLimitPriceTooFarMessage } from '../utils/triggerOrderValidation';
 import { usePerpsLivePrices, usePerpsTopOfBook } from './stream';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 
@@ -214,21 +215,17 @@ describe('usePerpsLimitPriceInput', () => {
       });
 
       expect(result.current.exceedsMaxDeviation).toBe(true);
-      expect(result.current.error).toBe(
-        strings('perps.order.limit_price_modal.limit_price_too_far'),
-      );
+      expect(result.current.error).toBe(getLimitPriceTooFarMessage(3000));
     });
 
-    it('leaves the deviation band to the order form when opening', () => {
+    it('blocks an opening price outside the venue deviation band', () => {
       const { result } = renderLimitPriceInput({
         limitPrice: '10',
         isClosingPosition: false,
       });
 
-      expect(result.current.exceedsMaxDeviation).toBe(false);
-      expect(result.current.error).not.toBe(
-        strings('perps.order.limit_price_modal.limit_price_too_far'),
-      );
+      expect(result.current.exceedsMaxDeviation).toBe(true);
+      expect(result.current.error).toBe(getLimitPriceTooFarMessage(3000));
     });
 
     it('warns when a closing long rests below market', () => {

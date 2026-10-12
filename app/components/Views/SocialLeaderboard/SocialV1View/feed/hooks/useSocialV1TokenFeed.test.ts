@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   mockFeedResponse,
   mockSpotFeedItem,
-} from '../../../FeedView/mocks/coreFeed.mock';
+} from '../../../../../UI/SocialFeed/mocks/coreFeed.mock';
 import { TOKEN_FEED_PAGE_LIMIT } from './tokenFeedQueries';
 import { useSocialV1TokenFeed } from './useSocialV1TokenFeed';
 

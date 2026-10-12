@@ -36,6 +36,7 @@ jest.mock('../../Views/SocialLeaderboard/analytics', () => {
 
 let storedOnOpenCallback: (() => void) | undefined;
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
+const mockOnOpenBottomSheet = jest.fn();
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -49,16 +50,17 @@ jest.mock('@metamask/design-system-react-native', () => {
         {
           children,
           onClose,
+          onOpen,
         }: {
           children: unknown;
           onClose?: () => void;
+          onOpen?: () => void;
         },
         ref: unknown,
       ) => {
+        storedOnOpenCallback = onOpen;
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: (cb: () => void) => {
-            storedOnOpenCallback = cb;
-          },
+          onOpenBottomSheet: mockOnOpenBottomSheet,
           onCloseBottomSheet: mockOnCloseBottomSheet,
         }));
         return ReactMock.createElement(
@@ -248,6 +250,7 @@ const buildHookResult = (
   sourceTokenAmount: undefined,
   hasSourcePrice: true,
   isSliderDisabled: false,
+  isMaxAmountAllowed: true,
   positionTokenFromSetup: undefined,
   selectedReceiveToken: undefined,
   handleSelectReceiveToken: jest.fn(),
@@ -345,6 +348,7 @@ describe('QuickBuyRoot', () => {
     expect(screen.getByTestId('mock-toolbar')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-amount-section')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-action-footer')).toBeOnTheScreen();
+    expect(mockOnOpenBottomSheet).not.toHaveBeenCalled();
   });
 
   it('fires SOCIAL_QUICK_BUY_SHEET_VIEWED when the sheet opens with a source', () => {

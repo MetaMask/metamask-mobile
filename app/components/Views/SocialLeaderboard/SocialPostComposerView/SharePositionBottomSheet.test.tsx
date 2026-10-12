@@ -5,7 +5,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SharePositionBottomSheet from './SharePositionBottomSheet';
 import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
 
-jest.mock('../utils/perp', () => ({
+jest.mock('../../../UI/SocialFeed/utils/perp', () => ({
   isPerpPosition: (position: { chain?: string; perpPositionType?: string }) =>
     position.perpPositionType != null || position.chain === 'hyperliquid',
 }));
@@ -124,6 +124,8 @@ describe('SharePositionBottomSheet', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetch,
     });
   });
@@ -163,6 +165,8 @@ describe('SharePositionBottomSheet', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetch,
     });
 
@@ -181,7 +185,9 @@ describe('SharePositionBottomSheet', () => {
       closedPositions: [],
       isLoadingOpen: false,
       isLoadingClosed: false,
-      error: new Error('network'),
+      error: 'network',
+      openError: 'network',
+      closedError: null,
       refetch: mockRefetch,
     });
 
@@ -202,7 +208,9 @@ describe('SharePositionBottomSheet', () => {
       closedPositions: [],
       isLoadingOpen: false,
       isLoadingClosed: false,
-      error: new Error('network'),
+      error: 'network',
+      openError: 'network',
+      closedError: null,
       refetch: mockRefetch,
     });
 

@@ -69,27 +69,27 @@ describe('chompApiServiceInit', () => {
     });
   });
 
-  it('falls back to the dev URL and logs when the feature flag is missing', () => {
+  it('falls back to the prod URL and logs when the feature flag is missing', () => {
     chompApiServiceInit(getInitRequestMock({ remoteFeatureFlags: {} }));
 
     expect(jest.mocked(ChompApiService)).toHaveBeenCalledWith({
       messenger: expect.any(Object),
-      baseUrl: 'https://chomp.dev-api.cx.metamask.io',
+      baseUrl: 'https://chomp.api.cx.metamask.io',
     });
     expect(Logger.log).toHaveBeenCalledWith(
       '[ChompApiServiceInit]',
-      'chompApiConfig feature flag not set; falling back to dev URL',
-      { fallback: 'https://chomp.dev-api.cx.metamask.io' },
+      'chompApiConfig feature flag not set; falling back to prod URL',
+      { fallback: 'https://chomp.api.cx.metamask.io' },
     );
   });
 
-  describe('when MM_DEV_API_ENV=dev', () => {
+  describe('when MM_API_ENV=dev', () => {
     beforeEach(() => {
-      process.env.MM_DEV_API_ENV = 'dev';
+      process.env.MM_API_ENV = 'dev';
     });
 
     afterEach(() => {
-      delete process.env.MM_DEV_API_ENV;
+      delete process.env.MM_API_ENV;
     });
 
     it('uses the dev URL even when the remote feature flag points elsewhere', () => {
@@ -104,6 +104,31 @@ describe('chompApiServiceInit', () => {
       expect(jest.mocked(ChompApiService)).toHaveBeenCalledWith({
         messenger: expect.any(Object),
         baseUrl: 'https://chomp.dev-api.cx.metamask.io',
+      });
+    });
+  });
+
+  describe('when MM_API_ENV=uat', () => {
+    beforeEach(() => {
+      process.env.MM_API_ENV = 'uat';
+    });
+
+    afterEach(() => {
+      delete process.env.MM_API_ENV;
+    });
+
+    it('keeps the feature-flag URL because chomp has no uat host', () => {
+      chompApiServiceInit(
+        getInitRequestMock({
+          remoteFeatureFlags: {
+            moneyAccountChompConfig: { baseUrl: 'https://chomp.example.com' },
+          },
+        }),
+      );
+
+      expect(jest.mocked(ChompApiService)).toHaveBeenCalledWith({
+        messenger: expect.any(Object),
+        baseUrl: 'https://chomp.example.com',
       });
     });
   });

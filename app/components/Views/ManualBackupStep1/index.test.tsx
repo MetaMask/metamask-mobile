@@ -120,6 +120,8 @@ jest.mock('../../../core', () => ({
 jest.mock('../../../util/Logger', () => ({ error: jest.fn(), log: jest.fn() }));
 const Logger = jest.requireMock('../../../util/Logger');
 
+jest.mock('../../UI/OnboardingFoxLoader/OnboardingFoxLoader');
+
 jest.mock('../../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
   jest.fn(),
 );
@@ -541,6 +543,25 @@ describe('ManualBackupStep1', () => {
   });
 
   describe('seed phrase recovery (no seed phrase in route params)', () => {
+    it('shows the onboarding fox loader while recovering the seed phrase', () => {
+      mockGetPassword.mockReturnValue(new Promise(() => undefined));
+
+      const { wrapper } = renderComponent({
+        seedPhrase: undefined,
+        backupFlow: false,
+        settingsBackup: false,
+      });
+
+      expect(
+        wrapper.getByTestId('fox-rive-loader-animation'),
+      ).toBeOnTheScreen();
+      expect(
+        wrapper.queryByTestId(
+          ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
     it('shows password view when Authentication.getPassword returns null', async () => {
       const { wrapper } = await renderPasswordView();
 

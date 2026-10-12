@@ -43,6 +43,7 @@ import {
   CardProviderErrorCode,
   CardStatus,
   emptyCardHomeData,
+  type ApplePayProvisioningParams,
   type CardAuthSession,
   type CardAuthResult,
   type CardAuthStep,
@@ -2512,12 +2513,9 @@ export class CardController extends BaseController<
     );
   }
 
-  async createApplePayProvisioningRequest(params: {
-    leafCertificate: string;
-    intermediateCertificate: string;
-    nonce: string;
-    nonceSignature: string;
-  }): Promise<{
+  async createApplePayProvisioningRequest(
+    params: ApplePayProvisioningParams,
+  ): Promise<{
     encryptedPassData: string;
     activationData: string;
     ephemeralPublicKey: string;

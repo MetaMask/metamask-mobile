@@ -261,6 +261,8 @@ describe('useTraderPositions', () => {
       const { result } = renderHook(() => useTraderPositions('trader-1'));
 
       expect(result.current.error).toBeNull();
+      expect(result.current.openError).toBeNull();
+      expect(result.current.closedError).toBeNull();
     });
 
     it('returns the open query error before the closed query error', () => {
@@ -275,6 +277,8 @@ describe('useTraderPositions', () => {
       const { result } = renderHook(() => useTraderPositions('trader-1'));
 
       expect(result.current.error).toBe('open error');
+      expect(result.current.openError).toBe('open error');
+      expect(result.current.closedError).toBe('closed error');
     });
 
     it('returns the closed query error when the open query succeeds', () => {
@@ -287,6 +291,8 @@ describe('useTraderPositions', () => {
       const { result } = renderHook(() => useTraderPositions('trader-1'));
 
       expect(result.current.error).toBe('closed error');
+      expect(result.current.openError).toBeNull();
+      expect(result.current.closedError).toBe('closed error');
     });
 
     it('converts non-Error values to strings', () => {

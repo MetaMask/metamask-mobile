@@ -9,8 +9,8 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import TraderAvatar from '../../Homepage/Sections/TopTraders/components/TraderAvatar';
+
+import TraderAvatar from '../../../UI/SocialFeed/components/TraderAvatar';
 
 const AVATAR_SIZE_BY_VARIANT = {
   nav: 24,

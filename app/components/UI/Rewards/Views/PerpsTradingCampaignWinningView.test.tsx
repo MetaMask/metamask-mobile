@@ -7,6 +7,7 @@ import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTrad
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
 import CampaignWinningView from './CampaignWinningView';
 import Routes from '../../../../constants/navigation/Routes';
+import { REWARDS_WINNER_CONTACT_EMAIL } from '../constants/campaignWinnerContact';
 
 jest.mock('./CampaignWinningView', () => {
   const ReactActual = jest.requireActual('react');
@@ -95,7 +96,7 @@ describe('PerpsTradingCampaignWinningView', () => {
     expect(mockCampaignWinningView).toHaveBeenCalledWith(
       expect.objectContaining({
         testID: PERPS_TRADING_CAMPAIGN_WINNING_VIEW_TEST_IDS.CONTAINER,
-        prizeEmail: 'perpscampaign@consensys.net',
+        prizeEmail: REWARDS_WINNER_CONTACT_EMAIL,
         campaignName: 'Perps Campaign',
         campaignId: 'campaign-perps-1',
         analyticsPageType: 'perps_trading_campaign_winning',

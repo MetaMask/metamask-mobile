@@ -1,6 +1,6 @@
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../../util/analytics/abTestAnalytics.types';
-import type { FeedAudience } from '../FeedView/types';
+import type { FeedAudience } from '../../../UI/SocialFeed/types';
 
 // --- Leaderboard Landing Feed A/B Test (TSA-1042) ---
 //

@@ -826,6 +826,7 @@ describe('MainNavigator', () => {
         Routes.SOCIAL.V1,
         Routes.SOCIAL.POST_COMPOSER,
         Routes.SOCIAL.MY_PROFILE,
+        Routes.SOCIAL.V1_PROFILE,
         Routes.SOCIAL.FOLLOW_CONNECTIONS,
         Routes.SOCIAL.PROFILES_TO_FOLLOW,
         Routes.SOCIAL.MANAGE_PROFILE,
@@ -1734,6 +1735,13 @@ describe('MainNavigator', () => {
     expect(myProfileScreen).toBeDefined();
     expect(myProfileScreen?.component.name).toBe('MyProfileView');
 
+    const v1ProfileScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.V1_PROFILE,
+    );
+
+    expect(v1ProfileScreen).toBeDefined();
+    expect(v1ProfileScreen?.component.name).toBe('MyProfileView');
+
     const followConnectionsScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.FOLLOW_CONNECTIONS,
     );
@@ -1804,6 +1812,7 @@ describe('MainNavigator', () => {
     expect(screenNames).not.toContain(Routes.SOCIAL.V1);
     expect(screenNames).not.toContain(Routes.SOCIAL.POST_COMPOSER);
     expect(screenNames).not.toContain(Routes.SOCIAL.MY_PROFILE);
+    expect(screenNames).not.toContain(Routes.SOCIAL.V1_PROFILE);
     expect(screenNames).not.toContain(Routes.SOCIAL.FOLLOW_CONNECTIONS);
     expect(screenNames).not.toContain(Routes.SOCIAL.PROFILES_TO_FOLLOW);
     expect(screenNames).not.toContain(Routes.SOCIAL.MANAGE_PROFILE);
@@ -1940,6 +1949,52 @@ describe('MainNavigator', () => {
         ).toBe(trailingAction);
       },
     );
+
+    const stateForInterim = (headerNavBarVariant: string) => {
+      const state = stateForArm(headerNavBarVariant);
+      const { RemoteFeatureFlagController } = state.engine.backgroundState;
+      return {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...RemoteFeatureFlagController.remoteFeatureFlags,
+                homeInterimHeaderNavBar: {
+                  enabled: true,
+                  minimumVersion: '0.0.1',
+                },
+              },
+            },
+          },
+        },
+      };
+    };
+
+    it.each(['control', 'searchFocused'])(
+      'keeps Rewards as a tab with no Social tab when the interim flag is on over %s',
+      (arm) => {
+        const state = stateForInterim(arm);
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        const tabs = homeTabNames(container, state);
+        expect(tabs).toContain(Routes.REWARDS_VIEW);
+        expect(tabs).not.toContain(Routes.SOCIAL.TAB);
+        expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
+      },
+    );
+
+    it('hands the trade button to the floating bar when the interim flag is on', () => {
+      const state = stateForInterim('control');
+      const container = renderWithProvider(<MainNavigator />, { state });
+
+      expect(
+        renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
+      ).toBe('trade');
+    });
 
     const socialTabComponentName = (
       container: { root: ReactTestInstance },

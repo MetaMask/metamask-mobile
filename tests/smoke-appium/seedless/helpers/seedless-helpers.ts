@@ -24,7 +24,6 @@ import {
 
 import OnboardingView from '../../../page-objects/Onboarding/OnboardingView.js';
 import OnboardingSheet from '../../../page-objects/Onboarding/OnboardingSheet.js';
-import SocialLoginView from '../../../page-objects/Onboarding/SocialLoginView.js';
 import CreatePasswordView from '../../../page-objects/Onboarding/CreatePasswordView.js';
 import MetaMetricsOptInView from '../../../page-objects/Onboarding/MetaMetricsOptInView.js';
 import ExperienceEnhancerBottomSheet from '../../../page-objects/Onboarding/ExperienceEnhancerBottomSheet.js';
@@ -206,8 +205,8 @@ type SocialLoginProvider = 'google' | 'apple' | 'telegram';
 
 /**
  * Social login new-user smoke.
- * Intermediate screen UI is covered by component-view / unit tests; this
- * helper only drives the device path.
+ * After OAuth, create-wallet new users go directly to create-password.
+ * This helper only drives the device path.
  */
 export const completeSocialLoginOnboarding = async (
   provider: SocialLoginProvider,
@@ -233,26 +232,6 @@ export const completeSocialLoginOnboarding = async (
       },
     );
     await OnboardingSheet.tapTelegramLoginButton();
-  }
-
-  if (PlatformDetector.isIOS()) {
-    if (provider === 'telegram') {
-      try {
-        await Assertions.expectElementToBeVisible(
-          SocialLoginView.iosNewUserTitle,
-          {
-            timeout: 8000,
-            description: 'iOS set-PIN screen may appear after Telegram login',
-          },
-        );
-        await SocialLoginView.tapIosNewUserSetPinButton();
-      } catch {
-        // Telegram can skip SocialLoginIosUser and land on create-password.
-      }
-    } else {
-      await SocialLoginView.isIosNewUserScreenVisible();
-      await SocialLoginView.tapIosNewUserSetPinButton();
-    }
   }
 
   await waitForCreatePasswordScreenPlaywright(resolveE2EWaitTimeoutMs(60_000));

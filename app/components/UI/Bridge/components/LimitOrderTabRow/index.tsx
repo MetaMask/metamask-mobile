@@ -12,9 +12,13 @@ import {
   LimitOrderState,
   type LimitOrder,
 } from '../../api/limitOrders/getLimitOrders/types';
+import {
+  HISTORY_LIMIT_ORDER_STATES,
+  OPEN_LIMIT_ORDER_STATES,
+} from '../../constants/limitOrders';
 import OpenOrderRow from '../OpenOrderRow';
 import { getLimitOrderTokens } from '../../utils/limitOrders/getLimitOrderTokens';
-import { formatLimitOrderAmount } from '../../utils/limitOrders/formatLimitOrderAmount';
+import { formatLimitOrderRowAmount } from '../../utils/limitOrders/formatLimitOrderRowAmount';
 import { formatLimitOrderDate } from '../../utils/limitOrders/formatLimitOrderDate';
 import {
   formatLimitOrderExpiredDuration,
@@ -26,7 +30,7 @@ function getLimitOrderRowSlots(
   sourceSymbol: string,
   destSymbol: string,
 ) {
-  const stakedAmount = `${formatLimitOrderAmount(
+  const stakedAmount = `${formatLimitOrderRowAmount(
     order.src.amount,
     // src.asset.decimals is looked up by the caller via getLimitOrderTokens,
     // but the raw asset is also available directly on the order.
@@ -44,11 +48,11 @@ function getLimitOrderRowSlots(
         }),
         // The orders list only carries the guaranteed minimum, not the amount
         // the fill actually delivered.
-        primaryValue: `+${formatLimitOrderAmount(
+        primaryValue: `+${formatLimitOrderRowAmount(
           order.dest.amount,
           order.dest.asset.decimals,
         )} ${destSymbol}`,
-        secondaryValue: `-${formatLimitOrderAmount(
+        secondaryValue: `-${formatLimitOrderRowAmount(
           order.src.amount,
           order.src.asset.decimals,
         )} ${sourceSymbol}`,
@@ -113,6 +117,28 @@ function getLimitOrderRowSlots(
   }
 }
 
+/**
+ * Every order of the open orders tab opens the details sheet, including one
+ * being executed, which the sheet shows without the cancel button since the
+ * API no longer reports it as cancellable. A closed order opens its activity
+ * page. A state the client doesn't know opens nothing.
+ */
+function getRowPressHandler(
+  order: LimitOrder,
+  onOpenOrderPress: () => void,
+  onHistoryOrderPress: () => void,
+): (() => void) | undefined {
+  const state = order.state as LimitOrderState;
+
+  if (OPEN_LIMIT_ORDER_STATES.includes(state)) {
+    return onOpenOrderPress;
+  }
+
+  return HISTORY_LIMIT_ORDER_STATES.includes(state)
+    ? onHistoryOrderPress
+    : undefined;
+}
+
 interface LimitOrderTabRowProps {
   order: LimitOrder;
 }
@@ -126,11 +152,15 @@ export function LimitOrderTabRow({ order }: LimitOrderTabRowProps) {
     destinationToken.symbol,
   );
 
-  const handlePress = useCallback(() => {
+  const handleOpenOrderPress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.OPEN_LIMIT_ORDER_DETAILS_MODAL,
       params: { order },
     });
+  }, [navigation, order]);
+
+  const handleHistoryOrderPress = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY, { order });
   }, [navigation, order]);
 
   return (
@@ -140,9 +170,11 @@ export function LimitOrderTabRow({ order }: LimitOrderTabRowProps) {
         source: sourceToken.symbol,
         dest: destinationToken.symbol,
       })}
-      // Only an order that is still open can be cancelled, which is all the
-      // details sheet offers today.
-      onPress={order.state === LimitOrderState.Open ? handlePress : undefined}
+      onPress={getRowPressHandler(
+        order,
+        handleOpenOrderPress,
+        handleHistoryOrderPress,
+      )}
       {...slots}
     />
   );

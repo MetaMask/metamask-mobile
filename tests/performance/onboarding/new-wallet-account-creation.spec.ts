@@ -86,8 +86,8 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
       await AppiumGestures.hideKeyboard();
 
-      await CreatePasswordView.tapIUnderstandCheckBox();
       await CreatePasswordView.tapCreatePasswordButton();
+      await CreatePasswordView.tapPasswordWarningConfirmButton();
       await ProtectYourWalletView.tapRemindMeLater();
       await AppiumAssertions.expectElementToBeVisible(
         MetaMetricsOptInView.screenTitle,
@@ -141,10 +141,13 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
 
       await AccountListBottomSheet.tapAccountByName('Account 2');
       await screen3Timer.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(WalletView.headerRoot, {
-          description:
-            'token list should be visible after selecting the new account',
-        });
+        await AppiumAssertions.expectElementToBeVisible(
+          WalletView.accountIcon,
+          {
+            description:
+              'token list should be visible after selecting the new account',
+          },
+        );
       });
 
       performanceTracker.addTimers(screen1Timer, screen2Timer, screen3Timer);

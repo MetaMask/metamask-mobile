@@ -100,8 +100,6 @@ import type { DeeplinkParseMode } from '../utils/parseDeeplink';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 import { handleMoney } from './legacy/handleMoney';
 
-const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
-
 const SUPPORTED_ACTIONS = {
   DAPP: ACTIONS.DAPP,
   BUY: ACTIONS.BUY,
@@ -395,7 +393,7 @@ async function handleUniversalLink({
   // Intercept SDK actions and handle them in handleMetaMaskDeeplink
   if (isMetaMaskSDKDeeplinkAction(action)) {
     const mappedUrl = url.replace(
-      `${PROTOCOLS.HTTPS}://${MM_IO_UNIVERSAL_LINK_HOST}/`,
+      `${PROTOCOLS.HTTPS}://${validatedUrl.hostname}/`,
       `${PROTOCOLS.METAMASK}://`,
     );
     const { urlObj: mappedUrlObj, params } = extractURLParams(mappedUrl);

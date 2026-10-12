@@ -18,6 +18,7 @@ export enum BottomNavName {
 /** Where a search field lives, for the Search Interacted event. */
 export enum SearchInteractedSource {
   AccountList = 'account_list',
+  Homepage = 'homepage',
 }
 
 /**
@@ -27,4 +28,5 @@ export enum SearchInteractedSource {
 export enum SearchInteractionType {
   Focused = 'focused',
   Searched = 'searched',
+  Paste = 'paste',
 }

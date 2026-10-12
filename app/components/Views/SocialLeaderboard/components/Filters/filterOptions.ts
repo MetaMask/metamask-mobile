@@ -1,3 +1,4 @@
+import type { LeaderboardTraderCohort } from '../../../../UI/SocialFeed/utils/traderStats';
 import type {
   LeaderboardSort,
   SocialTimeframe,
@@ -61,16 +62,6 @@ export const V1_LEADERBOARD_RANKING_LABEL_KEY: Record<
 
 export const DEFAULT_V1_LEADERBOARD_RANKING: V1LeaderboardRanking = 'pnl';
 
-/**
- * Leaderboard trader-cohort chip. `following` stays on the Live trades sheet.
- */
-export type LeaderboardTraderCohort =
-  | 'all'
-  | 'shrimp'
-  | 'dolphin'
-  | 'whale'
-  | 'kol';
-
 export const LEADERBOARD_COHORT_OPTIONS: LeaderboardTraderCohort[] = [
   'all',
   'shrimp',
@@ -91,15 +82,6 @@ export const LEADERBOARD_COHORT_LABEL_KEY: Record<
 };
 
 export const DEFAULT_LEADERBOARD_COHORT: LeaderboardTraderCohort = 'all';
-
-/** Emoji prefixes for cohort rows in the Trader cohort sheet (Leaderboard). */
-export const LEADERBOARD_COHORT_LEADING_EMOJI: Partial<
-  Record<LeaderboardTraderCohort, string>
-> = {
-  shrimp: '🦐',
-  dolphin: '🐬',
-  whale: '🐳',
-};
 
 export {
   DEFAULT_LEADERBOARD_SORT,

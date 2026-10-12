@@ -4,7 +4,6 @@ import {
   type QueryClient,
 } from '@tanstack/react-query';
 import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
-import { BRIDGE_API_BASE_URL } from '../../../../../../constants/bridge';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { getBaseSemVerVersion } from '../../../../../../util/version';
@@ -13,6 +12,7 @@ import { parseCancelLimitOrderResponse } from './validators';
 import type { CancelLimitOrderResponse } from './schema';
 import { LimitOrderNotOpenError } from './errors';
 import { CancelLimitOrderOutcome } from './constants';
+import { getLimitOrdersBaseUrl } from '../getLimitOrdersBaseUrl';
 
 export interface CancelLimitOrderParams {
   /**
@@ -37,7 +37,7 @@ export const cancelLimitOrder = async ({
   const searchParams = new URLSearchParams({ accountAddress });
 
   const response = await fetch(
-    `${BRIDGE_API_BASE_URL}/v2/orders/limit/${encodeURIComponent(
+    `${getLimitOrdersBaseUrl()}/v2/orders/limit/${encodeURIComponent(
       orderId,
     )}?${searchParams.toString()}`,
     {

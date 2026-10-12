@@ -6,20 +6,21 @@ import type { MessengerClientInitFunction } from '../types';
 import type { ChompApiServiceInitMessenger } from '../messengers/chomp-api-service-messenger';
 import { parseChompApiConfig } from '../../../selectors/featureFlagController/chompApi';
 import Logger from '../../../util/Logger';
-import { devApiEnv, type DevApiEnv } from '../../devApiEnv';
+import { ApiEnv, getApiEnv } from '../../apiEnv';
 
 const LOG_PREFIX = '[ChompApiServiceInit]';
 
 // Fallback used only when the remote feature flag has not hydrated yet (e.g.
-// first launch, offline). Points at dev so unconfigured builds will fail fast
-// against a non-prod backend.
-const FALLBACK_CHOMP_API_URL = 'https://chomp.dev-api.cx.metamask.io';
+// first launch, offline). Points at prod: this URL is captured once for the
+// process, so a dev fallback would send production clients at the dev API
+// until the next restart.
+const FALLBACK_CHOMP_API_URL = 'https://chomp.api.cx.metamask.io';
 
-// Known chomp base URLs per env. When `MM_DEV_API_ENV` is set to one of these,
-// the env wins over the remote feature flag — the JWT will be minted for that
-// env by AuthenticationController, and a prod chomp endpoint would 401 it.
-const CHOMP_URL_BY_DEV_API_ENV: Partial<Record<DevApiEnv, string>> = {
-  dev: 'https://chomp.dev-api.cx.metamask.io',
+// Known chomp base URLs per env. Only envs listed here override the remote
+// feature flag. UAT is omitted on purpose: there is no chomp UAT host, so a
+// UAT build keeps the flag URL (or the dev fallback below).
+const CHOMP_URL_BY_API_ENV: Partial<Record<ApiEnv, string>> = {
+  [ApiEnv.Dev]: 'https://chomp.dev-api.cx.metamask.io',
 };
 
 /**
@@ -35,12 +36,12 @@ export const chompApiServiceInit: MessengerClientInitFunction<
   ChompApiServiceMessenger,
   ChompApiServiceInitMessenger
 > = ({ controllerMessenger, initMessenger }) => {
-  const env = devApiEnv();
-  const devOverrideUrl = CHOMP_URL_BY_DEV_API_ENV[env];
+  const env = getApiEnv();
+  const devOverrideUrl = CHOMP_URL_BY_API_ENV[env];
 
   let baseUrl: string;
   if (devOverrideUrl) {
-    Logger.log(LOG_PREFIX, `MM_DEV_API_ENV=${env}; using env URL`, {
+    Logger.log(LOG_PREFIX, `MM_API_ENV=${env}; using env URL`, {
       baseUrl: devOverrideUrl,
     });
     baseUrl = devOverrideUrl;
@@ -57,7 +58,7 @@ export const chompApiServiceInit: MessengerClientInitFunction<
     } else {
       Logger.log(
         LOG_PREFIX,
-        'chompApiConfig feature flag not set; falling back to dev URL',
+        'chompApiConfig feature flag not set; falling back to prod URL',
         { fallback: FALLBACK_CHOMP_API_URL },
       );
       baseUrl = FALLBACK_CHOMP_API_URL;

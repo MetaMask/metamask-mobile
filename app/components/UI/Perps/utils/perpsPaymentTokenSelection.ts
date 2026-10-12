@@ -21,6 +21,11 @@ export function resetPerpsPaymentTokenSelection(): void {
   selectionMade = false;
 }
 
+/** Read the selection marker without clearing it. */
+export function hasPerpsPaymentTokenSelection(): boolean {
+  return selectionMade;
+}
+
 /** Read and clear the selection marker. */
 export function consumePerpsPaymentTokenSelection(): boolean {
   const made = selectionMade;

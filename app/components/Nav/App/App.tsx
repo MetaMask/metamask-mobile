@@ -58,6 +58,7 @@ import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import { useQuickBuyToastRegistrations } from '../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations';
+import { PostSwapShareBottomSheet } from '../../Views/SocialLeaderboard/PostSwapShareBottomSheet';
 import AccountSelector from '../../Views/AccountSelector';
 import AddressSelector from '../../Views/AddressSelector';
 import AddWallet from '../../Views/AddWallet';
@@ -182,7 +183,6 @@ import MultichainAccountConnect from '../../Views/MultichainAccounts/MultichainA
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { MultichainAccountPermissions } from '../../Views/MultichainAccounts/MultichainAccountPermissions/MultichainAccountPermissions';
-import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import AgenticCliApproval from '../../Views/AgenticCliApproval';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
@@ -193,6 +193,7 @@ import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
 import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/AddDeviceToWallet/messenger';
 import DesignerModeOverlay from '../../UI/DesignerMode';
 import ProSubscription from '../../Views/ProSubscription';
+import { MfaFlowHost, MfaFlowLauncher } from '../../Views/Mfa';
 import ProHub from '../../Views/ProHub';
 import Membership from '../../Views/ProHub/screens/Membership';
 import Earned from '../../Views/ProHub/screens/Earned';
@@ -250,12 +251,6 @@ const isTradeWalletActionsRootModalRoute = (params: object | undefined) =>
 // but for migration compatibility, we cast these components to satisfy the type checker.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
-
-const SocialLoginSuccessNewUser = () => <SocialLoginIosUser type="new" />;
-
-const SocialLoginSuccessExistingUser = () => (
-  <SocialLoginIosUser type="existing" />
-);
 
 const OnboardingSuccessFlow = () => {
   const { colors } = useTheme();
@@ -327,11 +322,6 @@ const OnboardingNav = () => {
         }}
       />
       <NativeStack.Screen
-        name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
-        component={SocialLoginSuccessNewUser}
-        options={{ headerShown: false }}
-      />
-      <NativeStack.Screen
         name="ChoosePassword"
         component={ChoosePasswordWithMessenger}
         options={{ headerShown: false }}
@@ -399,11 +389,6 @@ const OnboardingNav = () => {
       <NativeStack.Screen
         name="AccountStatus"
         component={AccountStatus as ScreenComponent}
-        options={{ headerShown: false }}
-      />
-      <NativeStack.Screen
-        name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER}
-        component={SocialLoginSuccessExistingUser}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -1408,6 +1393,16 @@ const AppFlow = () => {
         component={PayWithBottomSheet}
       />
       <NativeStack.Screen
+        name={Routes.MFA.FLOW}
+        component={MfaFlowHost}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+          presentation: 'fullScreenModal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <NativeStack.Screen
         name={Routes.PRO_SUBSCRIPTION.ROOT}
         component={ProSubscription}
         options={{
@@ -1549,6 +1544,7 @@ const App: React.FC = () => {
         {/* TODO: Temporary fix for non-V2 Buy token selection; remove RampsBootstrap once V2 flag is on for all users. */}
         <RampsBootstrap />
         <AppFlow />
+        <MfaFlowLauncher />
         <Toast ref={toastRef} />
         {/*
           ToasterOverlay mounts FullWindowOverlay only while a toast is active
@@ -1559,6 +1555,7 @@ const App: React.FC = () => {
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
+        <PostSwapShareBottomSheet />
         <ProfilerManager />
         {/* Dev/QA-only visual inspector — no-op unless DESIGNER_MODE=true (see docs/designer-mode.md) */}
         <DesignerModeOverlay />

@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
-import { BRIDGE_API_BASE_URL } from '../../../../../../constants/bridge';
 import Engine from '../../../../../../core/Engine';
 import { getBaseSemVerVersion } from '../../../../../../util/version';
 import { limitOrdersQueries } from '../../../queries/limitOrders';
@@ -9,6 +8,7 @@ import type {
   CreateLimitOrderResponse,
   SignedLimitOrderDelegation,
 } from './schema';
+import { getLimitOrdersBaseUrl } from '../getLimitOrdersBaseUrl';
 
 export interface CreateLimitOrderParams {
   /**
@@ -67,7 +67,7 @@ export const createLimitOrder = async (
   const bearerToken =
     await Engine.context.AuthenticationController.getBearerToken();
 
-  const response = await fetch(`${BRIDGE_API_BASE_URL}/v2/orders/limit`, {
+  const response = await fetch(`${getLimitOrdersBaseUrl()}/v2/orders/limit`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

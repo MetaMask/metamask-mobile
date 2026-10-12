@@ -18,16 +18,16 @@ import {
 import React, { useCallback } from 'react';
 import { Pressable, StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { useSocialEntryOptions } from '../../components/SocialEntryOptionsBottomSheet';
-import { getSocialEntryOptionsTriggerTestId } from '../../components/SocialEntryOptionsBottomSheet.testIds';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
+import { useSocialEntryOptions } from '../../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
+import { getSocialEntryOptionsTriggerTestId } from '../../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet.testIds';
+
+import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import PerpBadges from '../../components/PerpBadges';
-import PositionTokenAvatar from '../../components/PositionTokenAvatar';
-import type { FeedItem } from '../types';
+import PositionTokenAvatar from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
+import type { FeedItem } from '../../../../UI/SocialFeed/types';
 import FeedSubHeaderText from './FeedSubHeaderText';
-import { formatFeedTimestamp } from '../../utils/formatters';
-import { getTradeActionI18nKey } from '../../utils/tradeAction';
+import { formatFeedTimestamp } from '../../../../UI/SocialFeed/utils/formatters';
+import { getTradeActionI18nKey } from '../../../../UI/SocialFeed/utils/tradeAction';
 import {
   getFeedItemTestId,
   getFeedNewPositionTestId,

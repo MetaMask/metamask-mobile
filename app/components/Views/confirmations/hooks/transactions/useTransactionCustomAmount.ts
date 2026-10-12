@@ -43,13 +43,13 @@ import {
 } from '../../utils/pay-amount-input-metrics';
 import {
   DepositPrefillStatus,
+  MIN_FIAT_AMOUNT,
   useDepositPrefillAmount,
 } from './useDepositPrefillAmount';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
-const MIN_FIAT_AMOUNT = 0.01;
 
 interface DepositPrefetchQuoteRequest {
   amountHuman: string;

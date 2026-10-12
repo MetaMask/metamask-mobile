@@ -9,13 +9,15 @@ const colorOf = (node: ReturnType<typeof screen.getByText>) =>
   (StyleSheet.flatten(node.props.style) as { color?: string } | undefined)
     ?.color;
 
-jest.mock('../../components/PositionTokenAvatar', () => ({
+jest.mock('../../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,
 }));
 
-jest.mock('../../utils/formatters', () => {
-  const actual = jest.requireActual('../../utils/formatters');
+jest.mock('../../../../UI/SocialFeed/utils/formatters', () => {
+  const actual = jest.requireActual(
+    '../../../../UI/SocialFeed/utils/formatters',
+  );
   return {
     ...actual,
     formatTradeDate: jest.fn().mockReturnValue('Apr 15 at 2:00 pm'),

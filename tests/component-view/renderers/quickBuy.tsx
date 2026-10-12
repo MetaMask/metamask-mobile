@@ -7,7 +7,9 @@ import QuickBuyRoot from '../../../app/components/UI/QuickBuy/QuickBuyRoot';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from '../../../app/components/UI/QuickBuy/features';
 import type {
   QuickBuyAnalyticsContext,
+  QuickBuyFeatures,
   QuickBuyTarget,
+  QuickBuyTradeMode,
 } from '../../../app/components/UI/QuickBuy/types';
 import { USDC_DEST } from '../../../app/components/UI/Bridge/_mocks_/bridgeViewTestConstants';
 import { initialStateQuickBuy } from '../presets/quickBuy';
@@ -25,17 +27,22 @@ function QuickBuySheetHarness({
   target,
   onClose,
   analyticsContext,
+  initialTradeMode,
+  features = TOP_TRADERS_QUICK_BUY_FEATURES,
 }: {
   target: QuickBuyTarget;
   onClose: () => void;
   analyticsContext?: QuickBuyAnalyticsContext;
+  initialTradeMode?: QuickBuyTradeMode;
+  features?: QuickBuyFeatures;
 }) {
   return (
     <QuickBuyRoot
       isVisible
       target={target}
       onClose={onClose}
-      features={TOP_TRADERS_QUICK_BUY_FEATURES}
+      features={features}
+      initialTradeMode={initialTradeMode}
       analyticsContext={analyticsContext}
     />
   );
@@ -46,13 +53,20 @@ export const renderQuickBuySheet = ({
   target = DEFAULT_QUICK_BUY_TARGET,
   onClose = () => undefined,
   analyticsContext,
+  initialTradeMode,
+  features,
   extraRoutes,
 }: {
   overrides?: DeepPartial<RootState>;
   target?: QuickBuyTarget;
   onClose?: () => void;
   analyticsContext?: QuickBuyAnalyticsContext;
-  extraRoutes?: { name: string }[];
+  initialTradeMode?: QuickBuyTradeMode;
+  features?: QuickBuyFeatures;
+  extraRoutes?: {
+    name: string;
+    Component?: React.ComponentType<object>;
+  }[];
 } = {}): ReturnType<typeof renderComponentViewScreen> => {
   const builder = initialStateQuickBuy({ deterministicFiat: true });
   if (overrides) {
@@ -65,6 +79,8 @@ export const renderQuickBuySheet = ({
       target={target}
       onClose={onClose}
       analyticsContext={analyticsContext}
+      initialTradeMode={initialTradeMode}
+      features={features}
     />
   );
 

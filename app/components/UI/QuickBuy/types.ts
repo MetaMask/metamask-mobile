@@ -5,7 +5,7 @@ import type {
   QuickBuyOriginalEntryPoint,
   QuickBuySheetSource,
 } from './analytics';
-import { chainNameToId } from '../../Views/SocialLeaderboard/utils/chainMapping';
+import { chainNameToId } from '../SocialFeed/utils/chainMapping';
 
 /** Host-agnostic trade target — maps from social `Position` via adapter. */
 export interface QuickBuyTarget {
@@ -69,6 +69,11 @@ export interface QuickBuyRootProps {
   features?: QuickBuyFeatures;
   initialTradeMode?: QuickBuyTradeMode;
   analyticsContext?: QuickBuyAnalyticsContext;
+  /**
+   * When true, a confirmed swap opens the Social post-swap share sheet instead
+   * of Quick Buy's pending/complete/failed toasts.
+   */
+  postSwapShare?: boolean;
   children?: ReactNode;
 }
 

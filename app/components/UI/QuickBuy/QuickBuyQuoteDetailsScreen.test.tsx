@@ -1,11 +1,16 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { DiscountType } from '@metamask/bridge-controller';
 import Routes from '../../../constants/navigation/Routes';
 import QuickBuyQuoteDetailsScreen from './QuickBuyQuoteDetailsScreen';
 import { useQuickBuyContext } from './useQuickBuyContext';
 
 jest.mock('./useQuickBuyContext', () => ({
   useQuickBuyContext: jest.fn(),
+}));
+
+jest.mock('../Rewards/hooks/useVipTier', () => ({
+  useVipTier: () => null,
 }));
 
 const mockNavigate = jest.fn();
@@ -130,25 +135,6 @@ describe('QuickBuyQuoteDetailsScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows a discounted MetaMask fee as badge, struck-through base fee and current fee', () => {
-    (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext({
-        discountBadge: { type: 'PROMO', label: 'Promo' },
-        baseFeePercentage: '0.875%',
-        metamaskFeePercent: 0,
-      }),
-    );
-
-    render(<QuickBuyQuoteDetailsScreen />);
-
-    expect(
-      screen.getByText('social_leaderboard.quick_buy.metamask_fee'),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('Promo')).toBeOnTheScreen();
-    expect(screen.getByText('0.875%')).toBeOnTheScreen();
-    expect(screen.getByText('0%')).toBeOnTheScreen();
-  });
-
   it('calls setActiveScreen("selectQuote") when the rate row is pressed', () => {
     const setActiveScreen = jest.fn();
     (useQuickBuyContext as jest.Mock).mockReturnValue(
@@ -225,6 +211,44 @@ describe('QuickBuyQuoteDetailsScreen', () => {
       screen.getByText('bridge.price_impact_info_title'),
     ).toBeOnTheScreen();
     expect(screen.getByText('25.00%')).toBeOnTheScreen();
+  });
+
+  it('shows the Member badge for a subscription discount', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({
+        discountBadge: { type: DiscountType.SUBSCRIPTION },
+        baseFeePercentage: '0.875%',
+        metamaskFeePercent: 0,
+      }),
+    );
+
+    render(<QuickBuyQuoteDetailsScreen />);
+
+    expect(screen.getByTestId('rewards-member-badge')).toHaveTextContent(
+      'rewards.pro_member_badge_label',
+    );
+    expect(
+      screen.queryByTestId('rewards-discount-badge'),
+    ).not.toBeOnTheScreen();
+    expect(screen.getByText('0.875%')).toBeOnTheScreen();
+  });
+
+  it('shows the promo discount badge label', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({
+        discountBadge: {
+          type: DiscountType.PROMO,
+          label: 'bridge.discount_badge_promo',
+        },
+      }),
+    );
+
+    render(<QuickBuyQuoteDetailsScreen />);
+
+    expect(screen.getByTestId('rewards-discount-badge')).toHaveTextContent(
+      'bridge.discount_badge_promo',
+    );
+    expect(screen.queryByTestId('rewards-member-badge')).not.toBeOnTheScreen();
   });
 
   it('shows the "enter an amount" empty state when there is no quote and no committed amount', () => {

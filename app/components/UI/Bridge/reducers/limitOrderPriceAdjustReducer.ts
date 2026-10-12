@@ -7,6 +7,7 @@ export interface LimitOrderPriceAdjustState {
   executionType: LimitOrderExecutionType;
   isCustomActive: boolean;
   customValue: string | undefined;
+  hasUserEditedLimitPrice: boolean;
 }
 
 export type LimitOrderPriceAdjustAction =
@@ -38,6 +39,7 @@ const PRICE_FIELDS_RESET = {
   isTrackingMarket: true,
   isCustomActive: false,
   customValue: undefined,
+  hasUserEditedLimitPrice: false,
 } as const satisfies Omit<
   LimitOrderPriceAdjustState,
   'executionType' | 'isLimitFiatMode'
@@ -65,6 +67,7 @@ export const limitOrderPriceAdjustReducer = (
         ...state,
         isTrackingMarket: false,
         limitPrice: action.limitPrice,
+        hasUserEditedLimitPrice: true,
       };
     case 'applyPreset':
       return {
@@ -73,7 +76,7 @@ export const limitOrderPriceAdjustReducer = (
         customValue: undefined,
         isTrackingMarket: action.isTrackingMarket,
         ...(action.limitPrice !== undefined
-          ? { limitPrice: action.limitPrice }
+          ? { limitPrice: action.limitPrice, hasUserEditedLimitPrice: true }
           : {}),
       };
     case 'commitCustomPercent':
@@ -82,6 +85,7 @@ export const limitOrderPriceAdjustReducer = (
         isTrackingMarket: action.isTrackingMarket,
         limitPrice: action.limitPrice,
         customValue: action.customValue,
+        hasUserEditedLimitPrice: true,
       };
     case 'seedFromMarket':
       // A market refresh that rounds to the same string is not a state change.

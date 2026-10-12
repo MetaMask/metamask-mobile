@@ -278,6 +278,7 @@ export const runQuoteDataCases = ({
         isExpired: false,
         needsNewQuote: false,
         shouldShowPriceImpactWarning: false,
+        shouldShowPriceImpactError: false,
         willRefresh: false,
         blockaidError: null,
         quotesLoadingStatus: null,
@@ -286,6 +287,8 @@ export const runQuoteDataCases = ({
         ...(isCombinedQuoteHook && {
           refreshQuotes: expect.any(Function),
           debouncedUpdateQuoteParams: expect.any(Function),
+          refreshRate: 5000,
+          quotesLastFetched: undefined,
         }),
       });
     });
@@ -487,12 +490,15 @@ export const runQuoteDataCases = ({
         willRefresh: false,
         blockaidError: null,
         shouldShowPriceImpactWarning: false,
+        shouldShowPriceImpactError: false,
         quotesLoadingStatus: RequestStatus.FETCHED,
         validQuotes: [],
         isActiveQuoteForCurrentTokenPair: false,
         ...(isCombinedQuoteHook && {
           refreshQuotes: expect.any(Function),
           debouncedUpdateQuoteParams: expect.any(Function),
+          refreshRate: 5000,
+          quotesLastFetched: 123,
         }),
       });
     });
@@ -686,6 +692,7 @@ export const runQuoteDataCases = ({
         isLoading: false,
         quoteFetchError: null,
         isNoQuotesAvailable: false,
+        shouldShowPriceImpactError: false,
         shouldShowPriceImpactWarning: false,
         isExpired: true,
         needsNewQuote: true,
@@ -697,6 +704,8 @@ export const runQuoteDataCases = ({
         ...(isCombinedQuoteHook && {
           refreshQuotes: expect.any(Function),
           debouncedUpdateQuoteParams: expect.any(Function),
+          refreshRate: 5000,
+          quotesLastFetched: undefined,
         }),
       });
     });
@@ -729,6 +738,7 @@ export const runQuoteDataCases = ({
         isExpired: false,
         needsNewQuote: false,
         shouldShowPriceImpactWarning: false,
+        shouldShowPriceImpactError: false,
         willRefresh: false,
         blockaidError: null,
         quotesLoadingStatus: RequestStatus.LOADING,
@@ -737,6 +747,8 @@ export const runQuoteDataCases = ({
         ...(isCombinedQuoteHook && {
           refreshQuotes: expect.any(Function),
           debouncedUpdateQuoteParams: expect.any(Function),
+          refreshRate: 5000,
+          quotesLastFetched: undefined,
         }),
       });
     });
@@ -770,6 +782,7 @@ export const runQuoteDataCases = ({
         isNoQuotesAvailable: false,
         isExpired: false,
         needsNewQuote: false,
+        shouldShowPriceImpactError: false,
         willRefresh: false,
         blockaidError: null,
         quotesLoadingStatus: null,
@@ -778,6 +791,8 @@ export const runQuoteDataCases = ({
         ...(isCombinedQuoteHook && {
           refreshQuotes: expect.any(Function),
           debouncedUpdateQuoteParams: expect.any(Function),
+          refreshRate: 5000,
+          quotesLastFetched: undefined,
         }),
       });
     });

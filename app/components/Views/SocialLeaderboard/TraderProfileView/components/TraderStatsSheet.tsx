@@ -15,8 +15,8 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
+
+import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import {
   getCopytradedCount,
   type TraderProfileWithSheetStats,

@@ -28,6 +28,7 @@ import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import SitesSearchFooter from '../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import { useSearchTracking } from '../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
 import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
 import { strings } from '../../../../../locales/i18n';
@@ -51,6 +52,7 @@ import {
 } from './abTestConfig';
 import { useQuickBuySearchKeyboard } from '../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 import { POPULAR_SEARCH_ASSETS } from './popularSearchAssets';
+import { useExploreSearchFooterPress } from './useExploreSearchFooterPress';
 
 const pressedStyle = StyleSheet.create({
   pressable: {
@@ -62,6 +64,7 @@ const pressedStyle = StyleSheet.create({
 
 interface ExploreSearchResultsProps {
   searchQuery: string;
+  analyticsSearchQuery?: string;
   sections: SearchFeedSection[];
   onViewMore: (feedId: SearchFeedId) => void;
   /** When set, renders a "No {title} found" header above the all-results list. */
@@ -77,6 +80,7 @@ interface ExploreSearchResultsProps {
 
 const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   searchQuery,
+  analyticsSearchQuery = searchQuery,
   sections,
   onViewMore,
   emptyFeedTitle,
@@ -84,6 +88,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
 }) => {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
+  const floatingTabBarInset = useFloatingTabBarInset();
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
@@ -111,7 +116,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
 
   const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
     'scrolled',
-    searchQuery,
+    analyticsSearchQuery,
     { tab_name: activeTab, result_count: totalResultCount },
   );
 
@@ -123,7 +128,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     (section: SearchFeedSection) => {
       trackExploreSearchEvent({
         interaction_type: 'tab_switched',
-        search_query: searchQuery,
+        search_query: analyticsSearchQuery,
         tab_name: section.feedId,
         previous_tab: activeTab,
         comes_from_view_all_tap: true,
@@ -131,7 +136,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       });
       onViewMore(section.feedId);
     },
-    [onViewMore, searchQuery, activeTab],
+    [onViewMore, analyticsSearchQuery, activeTab],
   );
 
   const renderSectionHeader = useCallback(
@@ -232,7 +237,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
 
   const tokensSection = sections.find((s) => s.feedId === 'tokens');
   useSearchTracking({
-    searchQuery,
+    searchQuery: analyticsSearchQuery,
     resultsCount:
       (tokensSection?.items as TrendingAsset[] | undefined)?.length ?? 0,
     isLoading: tokensSection?.isLoading ?? false,
@@ -241,9 +246,18 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     networkFilter: 'all',
   });
 
+  const handleFooterPress = useExploreSearchFooterPress({
+    searchQuery,
+    tabName: activeTab,
+    resultCount: totalResultCount,
+  });
+
   const renderFooter =
     searchQuery.length > 0 ? (
-      <SitesSearchFooter searchQuery={searchQuery} />
+      <SitesSearchFooter
+        searchQuery={searchQuery}
+        onPress={handleFooterPress}
+      />
     ) : null;
 
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
@@ -262,6 +276,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           item={item.data}
           index={item.sectionIndex}
           searchQuery={searchQuery}
+          analyticsSearchQuery={analyticsSearchQuery}
           tabName={activeTab}
           resultCount={totalResultCount}
           onQuickTrade={
@@ -277,6 +292,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       renderSectionHeader,
       sectionsMap,
       searchQuery,
+      analyticsSearchQuery,
       activeTab,
       totalResultCount,
       quickBuyVariant.showQuickTradeButton,
@@ -365,8 +381,9 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         ref={flashListRef}
         data={flatData}
         renderItem={renderFlatItem}
+        getItemType={(item) => item.type}
         keyExtractor={keyExtractor}
-        contentContainerStyle={tw.style('px-4')}
+        contentContainerStyle={tw.style(`px-4 pb-[${floatingTabBarInset}px]`)}
         showsVerticalScrollIndicator={false}
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
