@@ -20,6 +20,8 @@ const selectShowRobinhoodRwa = createSelector(
     remoteFeatureFlags[SHOW_ROBINHOOD_RWA_FLAG_NAME] === true,
 );
 
+export const useShowRobinhoodRwa = () => useSelector(selectShowRobinhoodRwa);
+
 const STOCKS_FEED_RWA_CHAIN_IDS: CaipChainId[] = [
   NetworkToCaipChainId.ETHEREUM,
   NetworkToCaipChainId.ROBINHOOD,
@@ -61,7 +63,7 @@ export const useStocksFeed = ({
 }: UseStocksFeedOptions = {}): UseStocksFeedResult => {
   const trimmedQuery = query?.trim();
   const hasQuery = Boolean(trimmedQuery);
-  const showRobinhoodRwa = useSelector(selectShowRobinhoodRwa);
+  const showRobinhoodRwa = useShowRobinhoodRwa();
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );

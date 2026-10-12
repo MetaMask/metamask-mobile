@@ -172,6 +172,9 @@ export const RWA_NETWORKS_LIST: ProcessedNetwork[] =
     ].includes(n.caipChainId as NetworkToCaipChainId),
   );
 
+export const RWA_NETWORKS_LIST_WITHOUT_ROBINHOOD: ProcessedNetwork[] =
+  RWA_NETWORKS_LIST.filter(n => n.caipChainId !== NetworkToCaipChainId.ROBINHOOD);
+
 export const RWA_CHAIN_IDS: CaipChainId[] = RWA_NETWORKS_LIST.map(
   (n) => n.caipChainId,
 );
