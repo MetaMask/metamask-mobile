@@ -10,7 +10,7 @@ const baseInput = {
   hasMoneyAccountBaseRequirements: true,
   hasMoneyAccountRequirements: true,
   isCardStateResolved: true,
-  isMoneyAccountLinkingSupported: true,
+  isMoneyCardSectionAvailable: true,
 };
 
 describe('deriveMoneyMetaMaskCardMode', () => {
@@ -195,11 +195,11 @@ describe('deriveMoneyMetaMaskCardMode', () => {
     ).toBeNull();
   });
 
-  it('returns null when money account linking is unsupported, even if card state is unresolved', () => {
+  it('returns null when the money card section is unavailable, even if card state is unresolved', () => {
     expect(
       deriveMoneyMetaMaskCardMode({
         ...baseInput,
-        isMoneyAccountLinkingSupported: false,
+        isMoneyCardSectionAvailable: false,
         isCardStateResolved: false,
         isCardAuthenticated: true,
         isCardLinkedToMoneyAccount: true,
