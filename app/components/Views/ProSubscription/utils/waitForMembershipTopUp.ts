@@ -49,13 +49,29 @@ function topUpFailureMessage(transactionMeta: TransactionMeta): string {
 /**
  * Waits for the user to approve a membership-subscription top-up batch.
  *
- * Resolves on approval rather than on-chain confirmation. Depending on the
- * route MM Pay picks, funds can take seconds (same-chain swap/transfer),
- * minutes (bridge), or 10+ minutes (fiat on-ramp) to land in the Money
- * Account. The subscription server creates the subscription in a provisional
- * status and re-checks the Money Account balance within a grace period; if the
- * funds never arrive, it cancels the subscription. So the client only needs
- * the user's commitment to fund, not the settled funds.
+ * Resolves on `approved`, not on-chain confirmation. MM Pay runs the whole
+ * top-up route inside the publish hook, and the parent transaction only
+ * becomes `submitted`/`confirmed` once that route finishes. How long that
+ * takes depends on the route MM Pay picks:
+ * - Same-chain swap or transfer: seconds (the source batch confirms on-chain).
+ * - Bridge: usually minutes (Relay is polled until the destination fills).
+ * - Fiat on-ramp: 10+ minutes (the ramp order is polled, then bridged). By
+ * `approved` the user has already paid the provider, because confirm opens
+ * the ramp widget first when there is no order yet.
+ *
+ * Blocking checkout for that long is not needed: the subscription server
+ * creates the subscription in a provisional status, re-checks the Money
+ * Account balance within a grace period, and cancels the subscription if the
+ * funds never arrive. The client only needs the user's commitment to fund.
+ *
+ * As a result:
+ * - Rejection, or a failure before approval, rejects the promise.
+ * - Failures after approval (signing, a failed/expired/timed-out fiat order,
+ * a bridge failure, a vault deposit error) are not reported here; the
+ * server cancels the provisional subscription instead.
+ * - MM Pay steps that run in app memory (fiat order polling, a non-atomic
+ * bridge's vault deposit) stop if the app is killed, leaving funds in the
+ * paying account rather than the Money Account.
  *
  * Callers should subscribe before `addTransactionBatch` so a fast approval or
  * rejection cannot race past the listener. Only transactions that match both
