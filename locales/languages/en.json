@@ -1670,7 +1670,12 @@
       "fallback_back_to_leaderboard": "Back to leaderboard",
       "sell": "Sell",
       "long": "Long",
-      "short": "Short"
+      "short": "Short",
+      "your_position": "Your position",
+      "unrealized_pnl": "Unrealized P&L",
+      "expand_position": "Expand position",
+      "collapse_position": "Collapse position",
+      "expanded_placeholder": "Position details will appear here"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
@@ -5692,6 +5697,7 @@
     "market_closed": "Market closed",
     "send_button": "Send",
     "buy_button": "Buy",
+    "buy_token_button": "Buy {{symbol}}",
     "cash_buy_button": "Cash Buy",
     "long_button": "Long",
     "short_button": "Short",
@@ -5932,6 +5938,13 @@
       "telegram": "Open on Telegram",
       "search_on_x": "Search on X",
       "copy_address": "Copy contract address {{address}}"
+    },
+    "age": {
+      "accessibility_label": "Token age {{age}}. Learn about token age.",
+      "explainer": {
+        "title": "Token age",
+        "description": "Time since token creation. Seconds, minutes, hours, then days."
+      }
     },
     "stats": {
       "market_cap": "MCap",
@@ -9075,7 +9088,31 @@
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "External address",
+      "back_to_account": "Back to account",
       "withdraw_to_bank": "Bank account"
+    },
+    "musd_rescue_send": {
+      "title": "Send",
+      "your_funds_are_safe_title": "Your funds are safe",
+      "your_funds_are_safe_description": "{{amount}} of your mUSD is in your Money account but isn't earning yet. Send the funds back to your MetaMask account, then add them again.",
+      "to_label": "To",
+      "receive_label": "Receive",
+      "est_time_label": "Est. time",
+      "est_time_value": "< 10 sec",
+      "transaction_fees_label": "Transaction fees",
+      "paid_by_metamask": "Paid by MetaMask",
+      "you_ll_receive_label": "You'll receive",
+      "recipient_label": "Select account",
+      "recipient_placeholder": "Enter account name or paste address",
+      "recipient_empty": "No accounts found",
+      "send": "Send",
+      "rescue_success_body": "{{amount}} added to {{destination}}.",
+      "error_invalid_recipient": "Select an account to send to",
+      "error_invalid_amount": "Enter an amount greater than zero",
+      "error_insufficient_balance": "Amount exceeds available mUSD",
+      "error_vmusd_balance_present": "Sending is available only before mUSD is converted to vmUSD.",
+      "error_balance_unavailable": "Balance unavailable — try again shortly",
+      "error_send_failed": "Failed to start the send — try again"
     },
     "toasts": {
       "in_progress_title": "Transaction in progress",
@@ -9774,7 +9811,8 @@
         "history": "Order history appears here"
       },
       "error": "Orders couldn’t be loaded",
-      "try_again": "Try again"
+      "try_again": "Try again",
+      "today": "Today"
     },
     "limit": {
       "pair": "{{source}} → {{dest}}",
@@ -12606,31 +12644,19 @@
       "cancel_membership": "Cancel membership"
     },
     "cancel_membership": {
-      "title": "Why are you canceling?",
-      "subtitle": "Survey is optional.",
-      "earned_as_member": "Earned as a member",
-      "membership_cost": "Membership cost",
+      "title": "Why are you canceling your plan?",
       "reason_cost": "Costs more than it's worth",
       "reason_not_using": "I wasn't using the benefits",
       "reason_benefit_misfit": "The benefits weren't what I expected",
       "reason_didnt_work": "Something didn't work",
       "reason_support": "Unhappy with support",
       "reason_other": "Other",
-      "reason_other_placeholder": "Describe your reason",
-      "stay_question": "What's the one thing that would have made you stay?",
-      "stay_question_optional": "Optional",
-      "stay_question_placeholder": "Describe what would have made you stay",
-      "keep_membership": "Keep membership",
-      "cancel": "Cancel",
+      "stay_question": "What's one feature that would have made you stay?",
+      "stay_question_placeholder": "Optional",
+      "keep_membership": "Keep Orange",
+      "cancel": "Cancel membership",
       "cancellation_unavailable": "Your membership can't be canceled right now. Please try again later.",
-      "cancellation_failed": "We couldn't cancel your membership. Please try again.",
-      "success": {
-        "title": "Plan canceled",
-        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
-        "description_suffix": ".",
-        "immediate_description": "Your Pro plan was canceled successfully and your benefits have ended.",
-        "done": "Done"
-      }
+      "cancellation_failed": "We couldn't cancel your membership. Please try again."
     }
   },
   "pro_subscription": {
