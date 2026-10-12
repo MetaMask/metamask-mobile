@@ -16,11 +16,16 @@ import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AccountsMenu from '../../Views/AccountsMenu';
 import AccountHub from '../../Views/AccountHub';
+import ProfileDrawer from '../../Views/SocialProfile/ProfileDrawer/ProfileDrawer';
+import ManageProfile from '../../Views/SocialProfile/ManageProfile/ManageProfile';
+import ManageProfileField from '../../Views/SocialProfile/ManageProfile/ManageProfileField';
+import ManageProfileXAccount from '../../Views/SocialProfile/ManageProfile/ManageProfileXAccount';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
+import { MfaSettings } from '../../Views/Mfa';
 import NetworksManagementView from '../../Views/NetworksManagement/NetworksManagementView';
 import NetworkDetailsView from '../../Views/NetworksManagement/NetworkDetailsView';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
@@ -122,6 +127,7 @@ import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalStackOptions,
   slideFromRightNativeOptions,
+  slideFromLeftNativeOptions,
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -475,6 +481,7 @@ const SettingsFlow = () => {
         name="SecuritySettings"
         component={SecuritySettings}
       />
+      <NativeStack.Screen name={Routes.MFA.SETTINGS} component={MfaSettings} />
       <NativeStack.Screen
         name={Routes.RAMP.SETTINGS}
         component={RampSettings}
@@ -1013,6 +1020,25 @@ const MainNavigator = () => {
         component={SettingsFlow}
         options={slideFromRightNativeOptions}
       />
+      <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+        <NativeStack.Screen
+          name={Routes.SOCIAL_PROFILE.DRAWER}
+          component={ProfileDrawer}
+          options={slideFromLeftNativeOptions}
+        />
+        <NativeStack.Screen
+          name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE}
+          component={ManageProfile}
+        />
+        <NativeStack.Screen
+          name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD}
+          component={ManageProfileField}
+        />
+        <NativeStack.Screen
+          name={Routes.SOCIAL_PROFILE.X_ACCOUNT}
+          component={ManageProfileXAccount}
+        />
+      </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.ACCOUNT_HUB_VIEW}
         component={AccountHub}

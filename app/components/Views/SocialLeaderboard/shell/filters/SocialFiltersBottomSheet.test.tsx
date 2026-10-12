@@ -235,7 +235,7 @@ describe('SocialFiltersBottomSheet', () => {
       />,
     );
 
-    expect(screen.queryByTestId('social-filters-timeframe-1h')).toBeNull();
+    expect(screen.queryByTestId('social-filters-timeframe-7d')).toBeNull();
   });
 
   it('shows the Time frame section on Leaderboard only', () => {
@@ -249,7 +249,7 @@ describe('SocialFiltersBottomSheet', () => {
         onClose={jest.fn()}
       />,
     );
-    expect(screen.queryByTestId('social-filters-timeframe-1h')).toBeNull();
+    expect(screen.queryByTestId('social-filters-timeframe-7d')).toBeNull();
 
     rerender(
       <SocialFiltersBottomSheet
@@ -261,7 +261,12 @@ describe('SocialFiltersBottomSheet', () => {
         onClose={jest.fn()}
       />,
     );
-    expect(screen.getByTestId('social-filters-timeframe-1h')).toBeOnTheScreen();
+    expect(screen.getByTestId('social-filters-timeframe-7d')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-filters-timeframe-30d'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-timeframe-1h')).toBeNull();
+    expect(screen.queryByTestId('social-filters-timeframe-24h')).toBeNull();
   });
 
   it('hides the Market cap and 24h volume sliders on the Leaderboard tab', () => {
@@ -320,9 +325,7 @@ describe('SocialFiltersBottomSheet', () => {
     expect(
       screen.getByTestId('social-filters-cohort-following'),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId('social-filters-cohort-verified'),
-    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-cohort-verified')).toBeNull();
   });
 
   it('sizes Reset by its label and lets Apply take the remaining width', () => {
@@ -405,7 +408,7 @@ describe('SocialFiltersBottomSheet', () => {
     expect(onChange).toHaveBeenCalledWith({ type: 'tokens' });
   });
 
-  it('renders market cap and 24h volume sliders on Trending and Live trades', () => {
+  it('renders market cap and hides 24h volume on Following and Live trades', () => {
     const { rerender } = render(
       <SocialFiltersBottomSheet
         tab="following"
@@ -420,9 +423,7 @@ describe('SocialFiltersBottomSheet', () => {
     expect(
       screen.getByTestId('social-filters-market_cap-slider'),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId('social-filters-volume_24h-slider'),
-    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-volume_24h-slider')).toBeNull();
 
     rerender(
       <SocialFiltersBottomSheet
@@ -438,9 +439,7 @@ describe('SocialFiltersBottomSheet', () => {
     expect(
       screen.getByTestId('social-filters-market_cap-slider'),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId('social-filters-volume_24h-slider'),
-    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-volume_24h-slider')).toBeNull();
   });
 
   it('calls onClose when the backdrop is pressed', () => {
@@ -476,7 +475,7 @@ describe('SocialFiltersBottomSheet', () => {
     expect(screen.queryByTestId('social-filters-network-all')).toBeNull();
   });
 
-  it('omits Predictions on every tab and shows Verification on Following', () => {
+  it('omits Predictions and Verification on Following', () => {
     render(
       <SocialFiltersBottomSheet
         tab="following"
@@ -490,8 +489,8 @@ describe('SocialFiltersBottomSheet', () => {
 
     expect(screen.queryByTestId('social-filters-type-predictions')).toBeNull();
     expect(
-      screen.getByTestId('social-filters-verification-verified'),
-    ).toBeOnTheScreen();
+      screen.queryByTestId('social-filters-verification-verified'),
+    ).toBeNull();
   });
 
   it('omits KOL from Traders chips', () => {

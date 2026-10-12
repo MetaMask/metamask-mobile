@@ -1,38 +1,36 @@
 /**
- * Push Provisioning Provider Factory Functions
+ * Push provisioning provider factories.
  *
- * Simple factory functions that return the appropriate card and wallet providers
- * based on user location and platform OS.
+ * The card adapter is selected from the active provider's wallet capabilities.
+ * The wallet adapter is selected from the platform.
  */
 
 import { Platform } from 'react-native';
+import type { CardProviderCapabilities } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { ControllerCardAdapter, ICardProviderAdapter } from './adapters/card';
 import {
   AppleWalletAdapter,
   GoogleWalletAdapter,
   IWalletProviderAdapter,
 } from './adapters/wallet';
-import { CardLocation } from '../types';
+import type { WalletType } from './types';
 
-/**
- * Get the appropriate card provider adapter based on user location.
- * Uses CardController under the hood (no direct SDK dependency).
- */
 export function getCardProvider(
-  userCardLocation: CardLocation | null,
+  capabilities: CardProviderCapabilities | null | undefined,
+  walletType: WalletType | null,
 ): ICardProviderAdapter | null {
-  switch (userCardLocation) {
-    case 'us':
-      return new ControllerCardAdapter();
-    case 'international':
-    default:
-      return null;
+  if (!capabilities || !walletType) {
+    return null;
   }
+
+  const supported =
+    walletType === 'apple_wallet'
+      ? capabilities.pushProvisioning.applePay
+      : capabilities.pushProvisioning.googlePay;
+
+  return supported ? new ControllerCardAdapter() : null;
 }
 
-/**
- * Get the appropriate wallet provider adapter based on platform
- */
 export function getWalletProvider(): IWalletProviderAdapter | null {
   switch (Platform.OS) {
     case 'android':

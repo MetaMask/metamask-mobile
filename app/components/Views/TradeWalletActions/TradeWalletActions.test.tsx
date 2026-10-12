@@ -1,5 +1,6 @@
 import { act, fireEvent } from '@testing-library/react-native';
-import { BackHandler, StyleSheet } from 'react-native';
+import { BackHandler, Platform, StyleSheet } from 'react-native';
+import type { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Routes from '../../../constants/navigation/Routes';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
@@ -642,6 +643,39 @@ describe('TradeWalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('cuts the overlay hole at the measured button without a status-bar offset on Android', () => {
+    const originalOS = Platform.OS;
+    Platform.OS = 'android';
+    jest
+      .spyOn(
+        jest.requireMock<{
+          useSafeAreaInsets: typeof useSafeAreaInsets;
+        }>('react-native-safe-area-context'),
+        'useSafeAreaInsets',
+      )
+      .mockReturnValue({
+        top: 48,
+        right: 0,
+        bottom: 48,
+        left: 0,
+      });
+    mockOverlayWithHole.mockClear();
+
+    try {
+      renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+    } finally {
+      Platform.OS = originalOS;
+    }
+
+    expect(mockOverlayWithHole).toHaveBeenLastCalledWith(
+      expect.objectContaining({ circleY: 371, height: 844 }),
+    );
   });
 
   describe('blur in the trade-focused arm', () => {
