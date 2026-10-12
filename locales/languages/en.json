@@ -1127,19 +1127,24 @@
   "virtual_bank_account": {
     "create_virtual_bank_account": {
       "navbar_title": "Bank account",
-      "title": "Activate your Virtual Bank Account",
-      "description": "Get account details tailored to your region, making it easier to add, hold, receive, and send money.",
-      "benefit_receive_title": "Receive money locally",
-      "benefit_receive_description": "Use account details designed for your region",
-      "benefit_add_money_title": "Add money with ease",
-      "benefit_add_money_description": "Transfer directly from your bank account",
-      "benefit_currencies_title": "Manage multiple currencies",
-      "benefit_currencies_description": "Keep supported balances together in one place",
+      "title": "Add funds right from your bank",
+      "description": "Get virtual account details so you can receive funds directly from your local bank.",
+      "feature_no_fees_title": "No fees to add funds",
+      "feature_no_fees_description": "We don’t charge to deposit. Your bank may.",
+      "feature_arrives_title": "Arrives in [timeframe by region]",
+      "feature_arrives_description": "Funds land as soon as your transfer clears.",
+      "feature_set_up_title": "Set up once, use anytime",
+      "feature_set_up_description": "Save it as a payee in your banking app.",
+      "feature_earn_title": "Starts earning straight away",
+      "feature_earn_description": "Deposits earn {{percentage}}% APY as mUSD.",
+      "feature_earn_description_no_apy": "Deposits earn APY as mUSD.",
       "disclaimers_error": "Couldn't load the terms and conditions.",
       "disclaimers_retry": "Try again",
       "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
       "agreement_separator": " and ",
-      "button": "Activate Virtual Bank Account"
+      "agreement_suffix": ".",
+      "powered_by": "Powered by",
+      "button": "Get account details"
     },
     "verify_identity": {
       "title": "Verify your identity",
@@ -1167,12 +1172,15 @@
       "button": "Continue",
       "error_title": "Identity verification",
       "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again."
+      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Add funds right from your bank and try again."
     },
     "sumsub_kyc": {
-      "more_info_title": "More information needed",
-      "more_info_description": "We need a bit more information to complete your verification. Continue to provide it.",
-      "more_info_button": "Continue verification",
+      "more_info_title": "We need a little more info",
+      "more_info_description": "Sometimes we need additional information to complete verification. Review what's needed below to continue.",
+      "more_info_item_title": "Proof of address",
+      "more_info_item_description": "Upload a recent document showing your name and current home address",
+      "more_info_button": "Continue",
+      "more_info_help": "Need help verifying?",
       "error_title": "Couldn't start verification",
       "error_description": "Something went wrong opening identity verification. Please try again.",
       "retry": "Try again"
@@ -1554,6 +1562,7 @@
     "my_profile": {
       "avatar_accessibility_label": "Your profile avatar",
       "open_profile": "Open my profile",
+      "create_post": "Create post",
       "followers": "followers",
       "following": "following",
       "followers_tab": "{{count}} followers",
@@ -1629,6 +1638,8 @@
       "trading_activity_on": "On",
       "linked_social_account": "Linked social account",
       "save": "Save",
+      "save_error": "Couldn't save changes. Check your connection and try again.",
+      "username_unavailable": "This handle is unavailable. Choose another one.",
       "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
       "socials_helper": "Your X handle appears on posts and your profile.",
       "show_trading_activity": "Show trading activity",
@@ -1662,7 +1673,12 @@
       "fallback_back_to_leaderboard": "Back to leaderboard",
       "sell": "Sell",
       "long": "Long",
-      "short": "Short"
+      "short": "Short",
+      "your_position": "Your position",
+      "unrealized_pnl": "Unrealized P&L",
+      "expand_position": "Expand position",
+      "collapse_position": "Collapse position",
+      "expanded_placeholder": "Position details will appear here"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
@@ -3443,6 +3459,9 @@
       "retry": "Try again"
     },
     "home_title": "Predictions",
+    "event": {
+      "your_positions": "Your positions"
+    },
     "search": {
       "placeholder": "Search markets",
       "idle": "Search by team, topic, or market question.",
@@ -4854,7 +4873,13 @@
     "display_name_placeholder": "Enter a display name",
     "bio_placeholder": "Tell people about your trading style",
     "bio_helper": "Shown on your profile.",
-    "bio_character_count": "{{count}}/{{limit}}"
+    "bio_character_count": "{{count}}/{{limit}}",
+    "show_trading_activity": "Show trading activity",
+    "trading_activity_public": "Public and available to copy",
+    "trading_activity_private": "Private and unavailable to copy",
+    "trading_activity_info": "More information about trading activity",
+    "trading_activity_info_description": "When this is on, other traders can see and copy your trades. You earn 15% of the fees from those copy trades. Turn it off to keep your positions, performance, and stats private.",
+    "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way."
   },
   "profile_drawer": {
     "close": "Close",
@@ -5675,6 +5700,7 @@
     "market_closed": "Market closed",
     "send_button": "Send",
     "buy_button": "Buy",
+    "buy_token_button": "Buy {{symbol}}",
     "cash_buy_button": "Cash Buy",
     "long_button": "Long",
     "short_button": "Short",
@@ -5726,6 +5752,16 @@
     "address": "Address",
     "were_unable": "We’re unable to load your",
     "balance": "balance. See the support article",
+    "position_pnl": {
+      "your_position": "Your position",
+      "unrealised": "Unrealised PNL",
+      "average_cost": "Average cost",
+      "realized": "Realized",
+      "unrealized": "Unrealized",
+      "hold_time": "Hold time",
+      "loading": "Loading position",
+      "shown_in_usd": "Shown in USD"
+    },
     "troubleshooting_missing": "troubleshooting missing balances",
     "for_help": "for help.",
     "troubleshoot": "Troubleshoot",
@@ -5915,6 +5951,13 @@
       "telegram": "Open on Telegram",
       "search_on_x": "Search on X",
       "copy_address": "Copy contract address {{address}}"
+    },
+    "age": {
+      "accessibility_label": "Token age {{age}}. Learn about token age.",
+      "explainer": {
+        "title": "Token age",
+        "description": "Time since token creation. Seconds, minutes, hours, then days."
+      }
     },
     "stats": {
       "market_cap": "MCap",
@@ -8147,13 +8190,13 @@
     "method_email": "Email",
     "method_passkey": "Passkey",
     "intro": {
-      "title": "Secure your account",
-      "description": "Set up the following to continue.",
+      "title": "Set up 2-step verification",
+      "description": "We’ll set up a few ways to confirm it’s you. You’ll use them to approve important actions, and if you lose access to one, you can use another.",
+      "list_title": "You’ll set up",
       "continue": "Get started"
     },
     "picker": {
-      "title": "Confirm it's you",
-      "description": "Choose how you want to verify."
+      "title": "Confirm with 2-step verification"
     },
     "email_entry": {
       "title": "Enter your email",
@@ -9058,7 +9101,31 @@
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "External address",
+      "back_to_account": "Back to account",
       "withdraw_to_bank": "Bank account"
+    },
+    "musd_rescue_send": {
+      "title": "Send",
+      "your_funds_are_safe_title": "Your funds are safe",
+      "your_funds_are_safe_description": "{{amount}} of your mUSD is in your Money account but isn't earning yet. Send the funds back to your MetaMask account, then add them again.",
+      "to_label": "To",
+      "receive_label": "Receive",
+      "est_time_label": "Est. time",
+      "est_time_value": "< 10 sec",
+      "transaction_fees_label": "Transaction fees",
+      "paid_by_metamask": "Paid by MetaMask",
+      "you_ll_receive_label": "You'll receive",
+      "recipient_label": "Select account",
+      "recipient_placeholder": "Enter account name or paste address",
+      "recipient_empty": "No accounts found",
+      "send": "Send",
+      "rescue_success_body": "{{amount}} added to {{destination}}.",
+      "error_invalid_recipient": "Select an account to send to",
+      "error_invalid_amount": "Enter an amount greater than zero",
+      "error_insufficient_balance": "Amount exceeds available mUSD",
+      "error_vmusd_balance_present": "Sending is available only before mUSD is converted to vmUSD.",
+      "error_balance_unavailable": "Balance unavailable — try again shortly",
+      "error_send_failed": "Failed to start the send — try again"
     },
     "toasts": {
       "in_progress_title": "Transaction in progress",
@@ -9757,7 +9824,8 @@
         "history": "Order history appears here"
       },
       "error": "Orders couldn’t be loaded",
-      "try_again": "Try again"
+      "try_again": "Try again",
+      "today": "Today"
     },
     "limit": {
       "pair": "{{source}} → {{dest}}",
@@ -12586,31 +12654,19 @@
       "cancel_membership": "Cancel membership"
     },
     "cancel_membership": {
-      "title": "Why are you canceling?",
-      "subtitle": "Survey is optional.",
-      "earned_as_member": "Earned as a member",
-      "membership_cost": "Membership cost",
+      "title": "Why are you canceling your plan?",
       "reason_cost": "Costs more than it's worth",
       "reason_not_using": "I wasn't using the benefits",
       "reason_benefit_misfit": "The benefits weren't what I expected",
       "reason_didnt_work": "Something didn't work",
       "reason_support": "Unhappy with support",
       "reason_other": "Other",
-      "reason_other_placeholder": "Describe your reason",
-      "stay_question": "What's the one thing that would have made you stay?",
-      "stay_question_optional": "Optional",
-      "stay_question_placeholder": "Describe what would have made you stay",
-      "keep_membership": "Keep membership",
-      "cancel": "Cancel",
+      "stay_question": "What's one feature that would have made you stay?",
+      "stay_question_placeholder": "Optional",
+      "keep_membership": "Keep Orange",
+      "cancel": "Cancel membership",
       "cancellation_unavailable": "Your membership can't be canceled right now. Please try again later.",
-      "cancellation_failed": "We couldn't cancel your membership. Please try again.",
-      "success": {
-        "title": "Plan canceled",
-        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
-        "description_suffix": ".",
-        "immediate_description": "Your Pro plan was canceled successfully and your benefits have ended.",
-        "done": "Done"
-      }
+      "cancellation_failed": "We couldn't cancel your membership. Please try again."
     }
   },
   "pro_subscription": {
