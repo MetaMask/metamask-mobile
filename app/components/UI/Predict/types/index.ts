@@ -382,6 +382,12 @@ export type PredictOutcome = {
   line?: number;
   resolvedBy?: string;
   resolutionStatus?: string;
+  /**
+   * Gamma market version for this outcome's market: "v2" markets use the
+   * Protocol V2 trade path (ExchangeV3, PositionManager outcome ids);
+   * "v1", missing, or unknown versions stay on the CTF path.
+   */
+  version?: string;
 };
 
 export type PredictOutcomeToken = {
@@ -816,6 +822,12 @@ export interface OrderPreview {
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
+  /**
+   * Gamma market version carried from the loaded market so placeOrder can
+   * route the order to the right trade protocol without refetching. Absent
+   * on sell previews — the provider resolves the version from Gamma then.
+   */
+  marketVersion?: string;
   orderType?: PredictOrderType;
 }
 

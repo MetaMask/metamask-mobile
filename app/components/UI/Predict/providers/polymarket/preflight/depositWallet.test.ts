@@ -21,8 +21,15 @@ jest.mock('./compileRequirementTransactions', () => ({
 
 import { PERMIT2_ADDRESS } from '../safe/constants';
 import { OperationType, type SafeTransaction } from '../safe/types';
+import {
+  MATIC_CONTRACTS_V2,
+  MATIC_POSITIONS_PROTOCOL_CONTRACTS,
+} from '../constants';
 import { compileRequirementTransactions } from './compileRequirementTransactions';
-import { planDepositWalletPreflight } from './depositWallet';
+import {
+  planDepositWalletPreflight,
+  planPositionsDepositWalletPreflight,
+} from './depositWallet';
 import { inspectMissingRequirements } from './inspectMissingRequirements';
 import {
   filterDepositWalletUnsupportedRequirements,
@@ -100,6 +107,56 @@ describe('planDepositWalletPreflight', () => {
     mockCompileRequirementTransactions.mockReturnValue([]);
 
     const plan = await planDepositWalletPreflight({ walletAddress });
+
+    expect(mockCompileRequirementTransactions).toHaveBeenCalledWith([]);
+    expect(plan).toEqual({ missingRequirements: [], transactions: [] });
+  });
+});
+
+describe('planPositionsDepositWalletPreflight', () => {
+  const positionsRequirements: V2AllowanceRequirement[] = [
+    {
+      type: 'erc20-allowance',
+      tokenAddress: MATIC_CONTRACTS_V2.collateral,
+      spender: MATIC_POSITIONS_PROTOCOL_CONTRACTS.exchange,
+    },
+    {
+      type: 'erc1155-operator',
+      tokenAddress: MATIC_POSITIONS_PROTOCOL_CONTRACTS.positionManager,
+      operator: MATIC_POSITIONS_PROTOCOL_CONTRACTS.exchange,
+    },
+  ];
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockInspectMissingRequirements.mockResolvedValue(missingRequirements);
+    mockCompileRequirementTransactions.mockReturnValue(compiledTransactions);
+  });
+
+  it('filters the positions requirements for the deposit wallet and compiles missing repairs', async () => {
+    const plan = await planPositionsDepositWalletPreflight({ walletAddress });
+
+    expect(mockFilterDepositWalletUnsupportedRequirements).toHaveBeenCalledWith(
+      positionsRequirements,
+    );
+    expect(mockInspectMissingRequirements).toHaveBeenCalledWith({
+      address: walletAddress,
+      requirements: positionsRequirements,
+    });
+    expect(mockCompileRequirementTransactions).toHaveBeenCalledWith(
+      missingRequirements,
+    );
+    expect(plan).toEqual({
+      missingRequirements,
+      transactions: compiledTransactions,
+    });
+  });
+
+  it('returns no transactions when no positions requirements are missing', async () => {
+    mockInspectMissingRequirements.mockResolvedValue([]);
+    mockCompileRequirementTransactions.mockReturnValue([]);
+
+    const plan = await planPositionsDepositWalletPreflight({ walletAddress });
 
     expect(mockCompileRequirementTransactions).toHaveBeenCalledWith([]);
     expect(plan).toEqual({ missingRequirements: [], transactions: [] });

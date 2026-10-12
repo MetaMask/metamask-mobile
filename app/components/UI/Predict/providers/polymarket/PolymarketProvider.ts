@@ -152,15 +152,20 @@ import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
 import {
+  getPolymarketProtocolForMarketVersion,
   getProtocolWithdrawTokenAddress,
+  POLYMARKET_POSITIONS_PROTOCOL,
   POLYMARKET_V2_PROTOCOL,
   type PolymarketProtocolDefinition,
+  type PolymarketTradeProtocol,
 } from './protocol/definitions';
 import {
+  buildPositionsProtocolUnsignedOrder,
   buildProtocolUnsignedOrder,
   getPreviewFeeRateBpsForProtocol,
   getProtocolVerifyingContract,
   serializeProtocolRelayerOrder,
+  signPositionsProtocolOrder,
   signProtocolOrder,
 } from './protocol/orderCodec';
 import { submitProtocolClobOrder } from './protocol/transport';
@@ -169,9 +174,16 @@ import {
   planDepositWalletClaim,
 } from './preflight/claim';
 import { buildDepositMaintenanceTransaction } from './preflight/deposit';
-import { planDepositWalletPreflight } from './preflight/depositWallet';
+import {
+  planDepositWalletPreflight,
+  planPositionsDepositWalletPreflight,
+  type DepositWalletPreflightPlan,
+} from './preflight/depositWallet';
 import { buildLegacySafeMigrationSweepTransaction } from './preflight/legacySafeMigration';
-import { buildTradeAllowancesTx } from './preflight/trade';
+import {
+  buildPositionsTradeAllowancesTx,
+  buildTradeAllowancesTx,
+} from './preflight/trade';
 import { buildWithdrawTransaction } from './preflight/withdraw';
 import {
   executeDepositWalletBatch,
@@ -179,6 +191,7 @@ import {
   requestDepositWalletCreate,
   resolveDepositWalletAddress,
   syncDepositWalletCollateralBalanceAllowance,
+  syncDepositWalletPositionBalanceAllowance,
   toDepositWalletCalls,
   waitForDepositWalletDeployed,
   waitForDepositWalletTransaction,
@@ -834,6 +847,264 @@ export class PolymarketProvider implements PredictProvider {
           }),
         );
         throw new Error('Failed to prepare v2 trade preflight');
+      }
+    }
+
+    const orderType = this.#getPlaceOrderType({
+      preview,
+      feeCollection,
+      fakOrdersEnabled,
+      permit2FeeReady,
+      permit2AllowanceReady,
+      manualFeeCollectionSupported: !isDepositWallet,
+    });
+
+    const clobOrder = serializeProtocolRelayerOrder({
+      signedOrder,
+      owner: signerApiKey.apiKey,
+      orderType,
+      side: preview.side,
+    });
+    const body = JSON.stringify(clobOrder);
+    const headers = await getL2Headers({
+      l2HeaderArgs: {
+        method: 'POST',
+        requestPath: `/order`,
+        body,
+      },
+      address: signer.address,
+      apiKey: signerApiKey,
+    });
+
+    const orderResult = await submitProtocolClobOrder({
+      protocol,
+      headers,
+      clobOrder,
+      feeAuthorization,
+      executor,
+      allowancesTx,
+    });
+
+    if (!orderResult.success) {
+      DevLogger.log('PolymarketProvider: Place order failed', {
+        error: orderResult.error,
+        errorDetails: undefined,
+        side: preview.side,
+        outcomeTokenId: preview.outcomeTokenId,
+      });
+      this.#throwPlaceOrderError({
+        error: orderResult.error,
+        side: preview.side,
+      });
+    }
+
+    return orderResult.response;
+  }
+
+  /**
+   * Resolves the Gamma market version for an order whose preview does not
+   * carry one — a sell: the position holds no protocol, so the version is
+   * read from Gamma at order time. Reads the raw event markets because list
+   * parsing still filters v2 markets out. A failed read resolves to
+   * undefined — the CTF path, same as an unknown version.
+   */
+  async #resolveMarketVersion({
+    marketId,
+    outcomeId,
+  }: {
+    marketId: string;
+    outcomeId: string;
+  }): Promise<string | undefined> {
+    try {
+      const event = await getMarketDetailsFromGammaApi({ marketId });
+      return event.markets?.find((market) => market.conditionId === outcomeId)
+        ?.version;
+    } catch (error) {
+      DevLogger.log('PolymarketProvider: Failed to resolve market version', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        marketId,
+        outcomeId,
+      });
+      return undefined;
+    }
+  }
+
+  /**
+   * Chooses the trade protocol for an order from the Gamma market version:
+   * a buy threads the version from the loaded market, everything else
+   * (sells, unthreaded flows) resolves it from Gamma by market id.
+   */
+  async #resolveTradeProtocol({
+    preview,
+  }: {
+    preview: OrderPreview;
+  }): Promise<PolymarketTradeProtocol> {
+    const marketVersion =
+      preview.marketVersion ??
+      (await this.#resolveMarketVersion({
+        marketId: preview.marketId,
+        outcomeId: preview.outcomeId,
+      }));
+
+    return getPolymarketProtocolForMarketVersion(marketVersion);
+  }
+
+  /**
+   * Protocol V2 (positions) order path — selected by the Gamma market
+   * version. Mirrors {@link #submitOrder} section-for-section with the
+   * positions protocol; the CTF path is untouched. The legacy USDC.e balance
+   * read and the legacy-Safe sweep keep using the CTF definition because
+   * they move CTF-era assets, which no v2 market changes.
+   */
+  async #submitPositionsOrder({
+    signer,
+    preview,
+    protocol,
+  }: {
+    signer: Signer;
+    preview: OrderPreview;
+    protocol: typeof POLYMARKET_POSITIONS_PROTOCOL;
+  }) {
+    const accountState = await this.getAccountState({
+      ownerAddress: signer.address,
+    });
+    const isDepositWallet = accountState.walletType === 'deposit-wallet';
+    const tradingWalletAddress = accountState.address;
+    const verifyingContract = getProtocolVerifyingContract({
+      protocol,
+      negRisk: preview.negRisk,
+    });
+
+    let depositWalletSetupUpdatedState = false;
+    if (isDepositWallet) {
+      depositWalletSetupUpdatedState = await this.ensureDepositWalletReady({
+        ownerAddress: signer.address,
+        depositWalletAddress: tradingWalletAddress,
+        // Unused when the positions planner is supplied below; the wallet
+        // setup itself is protocol-independent.
+        protocol: POLYMARKET_V2_PROTOCOL,
+        getSigner: () => signer,
+        operation: 'deposit_wallet_order_preflight',
+        getPreflightPlan: ({ walletAddress }) =>
+          planPositionsDepositWalletPreflight({ walletAddress }),
+      });
+    }
+
+    const order = buildPositionsProtocolUnsignedOrder({
+      preview: {
+        ...preview,
+        feeRateBps: getPreviewFeeRateBpsForProtocol(),
+      },
+      makerAddress: tradingWalletAddress,
+      signerAddress: isDepositWallet
+        ? tradingWalletAddress
+        : getAddress(signer.address),
+      signatureType: isDepositWallet
+        ? SignatureType.POLY_1271
+        : SignatureType.POLY_GNOSIS_SAFE,
+    });
+
+    const signature = await signPositionsProtocolOrder({
+      signer,
+      order,
+      verifyingContract,
+    });
+
+    const signedOrder = {
+      ...order,
+      signature,
+    };
+    const signerApiKey = await this.getApiKey({
+      address: signer.address,
+    });
+
+    if (isDepositWallet && depositWalletSetupUpdatedState) {
+      await this.syncDepositWalletBalanceAllowanceForPositionsOrderIfNeeded({
+        preview,
+        signerAddress: signer.address,
+        apiKey: signerApiKey,
+      });
+    }
+
+    const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
+    const shouldUsePermit2 =
+      !isDepositWallet &&
+      this.#hasPermit2Config({
+        permit2Enabled: preview.fees?.permit2Enabled,
+        executors: preview.fees?.executors,
+      });
+
+    let feeAuthorization: Permit2FeeAuthorization | undefined;
+    let executor: string | undefined;
+    let permit2FeeReady = false;
+
+    if (
+      preview.fees !== undefined &&
+      preview.fees.totalFee > 0 &&
+      shouldUsePermit2
+    ) {
+      const feeAmount = BigInt(
+        parseUnits(preview.fees.totalFee.toString(), 6).toString(),
+      );
+      executor = this.#pickExecutor(preview.fees.executors ?? []);
+      feeAuthorization = await createPermit2FeeAuthorization({
+        safeAddress: tradingWalletAddress,
+        signer,
+        amount: feeAmount,
+        spender: executor,
+        tokenAddress: protocol.collateral.feeAuthorizationToken,
+      });
+      permit2FeeReady = true;
+    }
+
+    let allowancesTx: { to: string; data: string } | undefined;
+    let permit2AllowanceReady = false;
+
+    if (isDepositWallet) {
+      const legacySafeAddress = computeProxyAddress(signer.address);
+      const legacySafeDeployed = await isSmartContractAddress(
+        legacySafeAddress,
+        numberToHex(POLYGON_MAINNET_CHAIN_ID),
+      );
+
+      if (legacySafeDeployed) {
+        const sweepTransaction = await buildLegacySafeMigrationSweepTransaction(
+          {
+            signer,
+            legacySafeAddress,
+            depositWalletAddress: tradingWalletAddress,
+            protocol: POLYMARKET_V2_PROTOCOL,
+          },
+        );
+
+        allowancesTx = sweepTransaction?.params;
+      }
+    } else {
+      try {
+        const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
+          safeAddress: tradingWalletAddress,
+          protocol: POLYMARKET_V2_PROTOCOL,
+        });
+        allowancesTx = await buildPositionsTradeAllowancesTx({
+          signer,
+          safeAddress: tradingWalletAddress,
+          safeUsdceBalance: safeLegacyUsdceBalance,
+        });
+        permit2AllowanceReady = true;
+      } catch (allowanceError) {
+        DevLogger.log(
+          'PolymarketProvider: Failed to generate positions allowances transaction',
+          { error: allowanceError },
+        );
+        Logger.error(
+          allowanceError instanceof Error
+            ? allowanceError
+            : new Error(String(allowanceError)),
+          this.getErrorContext('placeOrder:positionsAllowancesTx', {
+            operation: 'generate_allowances_tx_positions',
+          }),
+        );
+        throw new Error('Failed to prepare positions trade preflight');
       }
     }
 
@@ -2382,12 +2653,19 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
-      const protocol = this.#getProtocol();
-      const orderResponse = await this.#submitOrder({
-        signer,
-        preview,
-        protocol,
-      });
+      const protocol = await this.#resolveTradeProtocol({ preview });
+      const orderResponse =
+        protocol.key === 'positions'
+          ? await this.#submitPositionsOrder({
+              signer,
+              preview,
+              protocol,
+            })
+          : await this.#submitOrder({
+              signer,
+              preview,
+              protocol,
+            });
 
       if (side === Side.BUY) {
         this.#lastBuyOrderTimestampByAddress.set(signer.address, Date.now());
@@ -3191,12 +3469,20 @@ export class PolymarketProvider implements PredictProvider {
     protocol,
     getSigner,
     operation = 'deposit_wallet_preflight',
+    getPreflightPlan,
   }: {
     ownerAddress: string;
     depositWalletAddress: Hex;
     protocol: PolymarketProtocolDefinition;
     getSigner: (address?: string) => Signer;
     operation?: string;
+    /**
+     * Override for the allowance preflight plan — the Protocol V2 order path
+     * supplies the positions planner. Defaults to the CTF planner.
+     */
+    getPreflightPlan?: (input: {
+      walletAddress: string;
+    }) => Promise<DepositWalletPreflightPlan>;
   }): Promise<boolean> {
     let updatedState = false;
     let depositWalletDeploymentConfirmed = false;
@@ -3283,10 +3569,12 @@ export class PolymarketProvider implements PredictProvider {
       updatedState = true;
     }
 
-    const preflightPlan = await planDepositWalletPreflight({
-      walletAddress: depositWalletAddress,
-      protocol,
-    });
+    const preflightPlan = getPreflightPlan
+      ? await getPreflightPlan({ walletAddress: depositWalletAddress })
+      : await planDepositWalletPreflight({
+          walletAddress: depositWalletAddress,
+          protocol,
+        });
 
     DevLogger.log('PolymarketProvider: Deposit wallet preflight planned', {
       operation: 'deposit_wallet_allowance_preflight',
@@ -3418,6 +3706,59 @@ export class PolymarketProvider implements PredictProvider {
           operation: 'deposit_wallet_order_balance_allowance_sync',
           walletType: 'deposit-wallet',
         }),
+      );
+    }
+  }
+
+  /**
+   * The positions-protocol counterpart of
+   * {@link syncDepositWalletBalanceAllowanceForOrderIfNeeded}, selected by
+   * the Gamma market version: a sell needs the CONDITIONAL-V2 position
+   * balance refreshed before the relayer accepts the order; a buy needs the
+   * same collateral sync as the CTF path (pUSD is either protocol's
+   * collateral and the collateral request is protocol-independent).
+   */
+  private async syncDepositWalletBalanceAllowanceForPositionsOrderIfNeeded({
+    preview,
+    signerAddress,
+    apiKey,
+  }: {
+    preview: OrderPreview;
+    signerAddress: string;
+    apiKey: ApiKeyCreds;
+  }): Promise<void> {
+    try {
+      if (preview.side === Side.SELL) {
+        await syncDepositWalletPositionBalanceAllowance({
+          protocol: POLYMARKET_POSITIONS_PROTOCOL,
+          signerAddress,
+          apiKey,
+          tokenId: preview.outcomeTokenId,
+        });
+      } else {
+        await syncDepositWalletCollateralBalanceAllowance({
+          protocol: POLYMARKET_V2_PROTOCOL,
+          signerAddress,
+          apiKey,
+        });
+      }
+    } catch (error) {
+      DevLogger.log(
+        'PolymarketProvider: Deposit wallet positions order balance-allowance sync failed',
+        {
+          operation: 'deposit_wallet_positions_order_balance_allowance_sync',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      );
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext(
+          'placeOrder:depositWalletPositionsBalanceAllowanceSync',
+          {
+            operation: 'deposit_wallet_positions_order_balance_allowance_sync',
+            walletType: 'deposit-wallet',
+          },
+        ),
       );
     }
   }
