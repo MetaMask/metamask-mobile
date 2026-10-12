@@ -7,7 +7,6 @@ import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
-import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { strings } from '../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
@@ -17,6 +16,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ bottom: 0, top: 0, left: 0, right: 0 }),
+  useSafeAreaFrame: () => ({ x: 0, y: 0, width: 375, height: 812 }),
 }));
 
 const mockIsBuyable = jest.fn(() => true);
@@ -113,21 +113,6 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
   useStickyFooterTracking: () => mockTrackStickyFooterTapped,
 }));
 
-jest.mock('./TokenDetailsPositionLine', () => {
-  const { createElement } = jest.requireActual<typeof import('react')>('react');
-  const { Text } =
-    jest.requireActual<typeof import('react-native')>('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      createElement(
-        Text,
-        { testID: 'token-details-position-line' },
-        'position',
-      ),
-  };
-});
-
 const mockToken: TokenDetailsRouteParams = {
   address: '0x123',
   symbol: 'ETH',
@@ -143,6 +128,7 @@ const defaultProps = {
   token: mockToken,
   securityData: mockSecurityData,
   balanceFiatUsd: 50,
+  isTokenDetailsV1: true,
 };
 
 const setupSelectorMock = (geolocation?: string) => {
@@ -165,43 +151,122 @@ describe('TokenDetailsStickyFooter', () => {
   });
 
   describe('button visibility', () => {
+    it('renders the legacy footer in flow without the bottom sheet dialog', () => {
+      const { getByTestId, queryByTestId } = render(
+        <TokenDetailsStickyFooter {...defaultProps} isTokenDetailsV1={false} />,
+      );
+
+      expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
+      expect(queryByTestId('token-details-sticky-footer')).toBeNull();
+      expect(queryByTestId('token-details-sticky-footer-surface')).toBeNull();
+    });
+
+    it('keeps the legacy button treatment when V1 is disabled', () => {
+      const onOpenQuickBuy = jest.fn();
+      const { getByText, getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          isTokenDetailsV1={false}
+          hasTokenBalance
+          quickBuyEntrypointLayout="buy_sell"
+          onOpenQuickBuy={onOpenQuickBuy}
+        />,
+      );
+
+      expect(getByText('Buy')).toBeOnTheScreen();
+      expect(getByTestId('token-details-footer-quick-sell')).toHaveProp(
+        'variant',
+        ButtonVariant.Secondary,
+      );
+      expect(getByTestId('token-details-footer-quick-sell')).toHaveProp(
+        'twClassName',
+        expect.stringContaining('bg-transparent'),
+      );
+    });
+
+    it('renders the trader position header above the footer actions', () => {
+      const { getByTestId, queryByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{
+            positionValue: '$103.31',
+            pnl: {
+              amount: '+$15.01',
+              percentage: '+16.99%',
+              isProfit: true,
+            },
+          }}
+        />,
+      );
+
+      expect(
+        getByTestId('token-details-trader-position-pnl'),
+      ).toBeOnTheScreen();
+      expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
+      expect(
+        queryByTestId('token-details-sticky-footer-surface'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the expanded trader position sheet with footer actions', () => {
+      const { getByTestId, getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{
+            positionValue: '$103.31',
+            pnl: {
+              amount: '+$15.01',
+              percentage: '+16.99%',
+              isProfit: true,
+            },
+            isExpanded: true,
+            onToggleExpanded: jest.fn(),
+          }}
+        />,
+      );
+
+      expect(
+        getByTestId('token-details-trader-position-pnl-expanded-placeholder'),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId('token-details-trader-position-pnl-overlay'),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId('token-details-trader-position-pnl-handle'),
+      ).toBeOnTheScreen();
+      expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
+      expect(getByText('Buy ETH')).toBeOnTheScreen();
+    });
+
+    it('collapses the expanded trader position sheet when the overlay is pressed', () => {
+      const onToggleExpanded = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{
+            positionValue: '$103.31',
+            pnl: {
+              amount: '+$15.01',
+              percentage: '+16.99%',
+              isProfit: true,
+            },
+            isExpanded: true,
+            onToggleExpanded,
+          }}
+        />,
+      );
+
+      fireEvent.press(getByTestId('token-details-trader-position-pnl-overlay'));
+
+      expect(onToggleExpanded).toHaveBeenCalledWith(false);
+    });
+
     it('shows both buttons when isBuyable and hasEligibleSwapTokens are true', () => {
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
       expect(getByText('Swap')).toBeTruthy();
-      expect(getByText('Buy')).toBeTruthy();
-    });
-
-    it('hides the position line unless the page asks for it', () => {
-      const { queryByTestId } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
-      );
-
-      expect(queryByTestId('token-details-position-line')).toBeNull();
-    });
-
-    it('hides the position line when the memecoin token details flag is off', () => {
-      const { queryByTestId } = render(
-        <TokenDetailsStickyFooter {...defaultProps} showPositionLine />,
-      );
-
-      expect(queryByTestId('token-details-position-line')).toBeNull();
-    });
-
-    it('shows the position line when the page asks for it and the memecoin flag is on', () => {
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-        if (selector === selectAssetsMemecoinTdpV1Enabled) {
-          return true;
-        }
-        return undefined;
-      });
-
-      const { getByTestId } = render(
-        <TokenDetailsStickyFooter {...defaultProps} showPositionLine />,
-      );
-
-      expect(getByTestId('token-details-position-line')).toBeTruthy();
+      expect(getByText('Buy ETH')).toBeTruthy();
     });
 
     it('shows only swap button when not buyable and hasEligibleSwapTokens is true', () => {
@@ -210,7 +275,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
       expect(getByText('Swap')).toBeTruthy();
-      expect(queryByText('Buy')).toBeNull();
+      expect(queryByText('Buy ETH')).toBeNull();
     });
 
     it('shows only buy button when isBuyable and no eligible swap tokens', () => {
@@ -218,7 +283,7 @@ describe('TokenDetailsStickyFooter', () => {
       const { getByText, queryByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
-      expect(getByText('Buy')).toBeTruthy();
+      expect(getByText('Buy ETH')).toBeTruthy();
       expect(queryByText('Swap')).toBeNull();
     });
 
@@ -228,17 +293,32 @@ describe('TokenDetailsStickyFooter', () => {
       const { getByText, queryByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
-      expect(getByText('Buy')).toBeTruthy();
+      expect(getByText('Buy ETH')).toBeTruthy();
       expect(queryByText('Swap')).toBeNull();
     });
 
     it('renders nothing when isTokenTradable returns false', () => {
       mockIsTokenTradable.mockReturnValue(false);
       const { queryByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
+        <TokenDetailsStickyFooter {...defaultProps} isTokenDetailsV1={false} />,
       );
       expect(queryByText('Swap')).toBeNull();
-      expect(queryByText('Buy')).toBeNull();
+      expect(queryByText('Buy ETH')).toBeNull();
+    });
+
+    it('keeps the V1 buttons visible when legacy trading gating is closed', () => {
+      mockIsTokenTradable.mockReturnValue(false);
+      const { getByText, getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          quickBuyEntrypointLayout="buy_sell"
+          onOpenQuickBuy={jest.fn()}
+        />,
+      );
+
+      expect(getByText('Buy ETH')).toBeOnTheScreen();
+      expect(getByTestId('token-details-footer-quick-sell')).toBeOnTheScreen();
     });
   });
 
@@ -368,7 +448,7 @@ describe('TokenDetailsStickyFooter', () => {
 
       expect(getByText('Swap')).toBeOnTheScreen();
       expect(getByText('Earn 6% APY')).toBeOnTheScreen();
-      expect(queryByText('Buy')).not.toBeOnTheScreen();
+      expect(queryByText('Buy ETH')).not.toBeOnTheScreen();
     });
 
     it('renders Swap before Money Deposit and Quick Buy in treatment', () => {
@@ -419,7 +499,7 @@ describe('TokenDetailsStickyFooter', () => {
       expect(getByTestId('swap-button').props.variant).toBe(
         ButtonVariant.Secondary,
       );
-      expect(queryByText('Buy')).not.toBeOnTheScreen();
+      expect(queryByText('Buy ETH')).not.toBeOnTheScreen();
     });
 
     it('renders a loading Money button alongside Swap for a held token', () => {
@@ -436,7 +516,7 @@ describe('TokenDetailsStickyFooter', () => {
         'isLoading',
         true,
       );
-      expect(queryByText('Buy')).not.toBeOnTheScreen();
+      expect(queryByText('Buy ETH')).not.toBeOnTheScreen();
     });
 
     it('renders a loading Money button alongside Swap when provided', () => {
@@ -453,7 +533,7 @@ describe('TokenDetailsStickyFooter', () => {
         true,
       );
       expect(getByText('Swap')).toBeOnTheScreen();
-      expect(queryByText('Buy')).not.toBeOnTheScreen();
+      expect(queryByText('Buy ETH')).not.toBeOnTheScreen();
     });
 
     it('renders disclaimer after the APY resolves', () => {
@@ -590,7 +670,7 @@ describe('TokenDetailsStickyFooter', () => {
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
-      expect(getByText('Buy')).toBeTruthy();
+      expect(getByText('Buy ETH')).toBeTruthy();
     });
   });
 
@@ -600,7 +680,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={150} />,
       );
       expect(getByText('Swap')).toBeTruthy();
-      expect(getByText('Buy')).toBeTruthy();
+      expect(getByText('Buy ETH')).toBeTruthy();
     });
 
     it('applies success style to buy when balance < $100', () => {
@@ -608,7 +688,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={50} />,
       );
       expect(getByText('Swap')).toBeTruthy();
-      expect(getByText('Buy')).toBeTruthy();
+      expect(getByText('Buy ETH')).toBeTruthy();
     });
 
     it('applies success style to swap at exactly $100', () => {
@@ -616,7 +696,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={100} />,
       );
       expect(getByText('Swap')).toBeTruthy();
-      expect(getByText('Buy')).toBeTruthy();
+      expect(getByText('Buy ETH')).toBeTruthy();
     });
 
     it('handles undefined balanceFiatUsd gracefully (treats as $0, buy gets success)', () => {
@@ -627,7 +707,7 @@ describe('TokenDetailsStickyFooter', () => {
         />,
       );
       expect(getByText('Swap')).toBeTruthy();
-      expect(getByText('Buy')).toBeTruthy();
+      expect(getByText('Buy ETH')).toBeTruthy();
     });
   });
 
@@ -653,7 +733,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={50} />,
       );
 
-      fireEvent.press(getByText('Buy'));
+      fireEvent.press(getByText('Buy ETH'));
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'buy',
@@ -845,7 +925,7 @@ describe('TokenDetailsStickyFooter', () => {
         />,
       );
 
-      fireEvent.press(getByText('Buy'));
+      fireEvent.press(getByText('Buy ETH'));
 
       expect(mockNavigate).toHaveBeenCalledWith(
         expect.any(String),
@@ -868,7 +948,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
 
-      fireEvent.press(getByText('Buy'));
+      fireEvent.press(getByText('Buy ETH'));
 
       expect(mockOnBuy).not.toHaveBeenCalled();
     });
@@ -894,7 +974,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
 
-      fireEvent.press(getByText('Buy'));
+      fireEvent.press(getByText('Buy ETH'));
 
       expect(mockOnBuy).toHaveBeenCalled();
     });
@@ -907,7 +987,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} />,
       );
 
-      fireEvent.press(getByText('Buy'));
+      fireEvent.press(getByText('Buy ETH'));
 
       expect(mockOnBuy).toHaveBeenCalled();
     });
@@ -957,7 +1037,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} onBuyPress={onBuyPress} />,
       );
 
-      fireEvent.press(getByText('Buy'));
+      fireEvent.press(getByText('Buy ETH'));
 
       expect(onBuyPress).toHaveBeenCalled();
       expect(mockOnBuy).toHaveBeenCalled();
@@ -972,7 +1052,7 @@ describe('TokenDetailsStickyFooter', () => {
         <TokenDetailsStickyFooter {...defaultProps} onBuyPress={onBuyPress} />,
       );
 
-      fireEvent.press(getByText('Buy'));
+      fireEvent.press(getByText('Buy ETH'));
 
       expect(onBuyPress).not.toHaveBeenCalled();
       expect(mockOnBuy).not.toHaveBeenCalled();
@@ -1027,7 +1107,7 @@ describe('TokenDetailsStickyFooter', () => {
         />,
       );
 
-      fireEvent.press(getByText('Buy'));
+      fireEvent.press(getByText('Buy ETH'));
 
       // Neither callback fires when the warning modal is shown
       expect(onBuyPress).not.toHaveBeenCalled();
@@ -1171,6 +1251,12 @@ describe('TokenDetailsStickyFooter', () => {
       );
 
       expect(queryByText(strings('asset_overview.swap'))).toBeNull();
+      expect(getByTestId('token-details-footer-quick-sell').props.variant).toBe(
+        ButtonVariant.Primary,
+      );
+      expect(
+        getByTestId('token-details-footer-quick-sell').props.twClassName,
+      ).toBe('bg-error-default');
       fireEvent.press(getByTestId('token-details-footer-quick-sell'));
 
       expect(onOpenQuickBuy).toHaveBeenCalledWith('sell');

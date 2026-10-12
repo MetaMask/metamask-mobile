@@ -29,7 +29,6 @@ import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
 import { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSocialFeed } from '../../SocialFeed';
-import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
 const mockGoBack = jest.fn();
@@ -161,15 +160,6 @@ jest.mock('../../AssetOverview/Price/Price', () => {
   };
 });
 
-const mockStickyFooterProps: Record<string, unknown>[] = [];
-jest.mock('../components/TokenDetailsStickyFooter', () => ({
-  __esModule: true,
-  default: (props: Record<string, unknown>) => {
-    mockStickyFooterProps.push(props);
-    return null;
-  },
-}));
-
 const mockOverviewProps: Record<string, unknown>[] = [];
 jest.mock('../components/tabs/OverviewTab', () => {
   const { View } = jest.requireActual('react-native');
@@ -260,6 +250,47 @@ jest.mock('../components/sections/TokenDetailsActionsSection', () => {
   };
 });
 
+jest.mock('../hooks/useStickyQuickBuy', () => ({
+  useStickyQuickBuy: () => ({
+    onQuickBuyPress: jest.fn(),
+    openQuickBuy: jest.fn(),
+    quickBuySheet: null,
+  }),
+}));
+
+const mockUseTokenBalance = jest.fn();
+jest.mock('../hooks/useTokenBalance', () => ({
+  useTokenBalance: (...args: unknown[]) => mockUseTokenBalance(...args),
+}));
+
+const mockStickyFooterProps: Record<string, unknown>[] = [];
+
+jest.mock('../components/TokenDetailsStickyFooter', () => {
+  const { View } = jest.requireActual('react-native');
+  const TraderPositionPnl = jest.requireActual(
+    '../TraderPositionPnl/TraderPositionPnl',
+  ).default;
+
+  return {
+    __esModule: true,
+    default: (props: {
+      traderPositionPnl?: React.ComponentProps<typeof TraderPositionPnl>;
+    }) => {
+      mockStickyFooterProps.push(props);
+      return (
+        <View testID="mock-sticky-footer">
+          {props.traderPositionPnl && (
+            <TraderPositionPnl {...props.traderPositionPnl} />
+          )}
+          {props.traderPositionPnl?.isExpanded && (
+            <View testID="token-details-trader-position-pnl-overlay" />
+          )}
+        </View>
+      );
+    },
+  };
+});
+
 const baseToken = {
   address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
   chainId: '0x1',
@@ -296,6 +327,7 @@ describe('TokenDetailsV1', () => {
     useSelector.mockImplementation(() => undefined);
     mockCurrentPrice = 1;
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
+    mockUseTokenBalance.mockReturnValue({ balance: undefined });
     mockOverviewProps.length = 0;
     mockPriceHeaderProps.length = 0;
     mockStickyFooterProps.length = 0;
@@ -361,6 +393,59 @@ describe('TokenDetailsV1', () => {
     expect(mockPriceHeaderProps[0]).toStrictEqual({
       showPeriodLabel: false,
     });
+  });
+
+  it('configures the sticky footer with buy and sell actions', () => {
+    mockUseTokenBalance.mockReturnValue({ balance: '2.5' });
+    render(
+      <TokenDetailsV1
+        token={{ ...baseToken, balance: '0' }}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps[0]).toEqual(
+      expect.objectContaining({
+        currentTokenBalance: '2.5',
+        hasTokenBalance: true,
+        isTokenDetailsV1: true,
+        quickBuyEntrypointLayout: 'buy_sell',
+        onOpenQuickBuy: expect.any(Function),
+      }),
+    );
+  });
+
+  it('does not show sell when the live balance is zero despite a stale route balance', () => {
+    mockUseTokenBalance.mockReturnValue({ balance: '0' });
+
+    render(
+      <TokenDetailsV1
+        token={{ ...baseToken, balance: '4' }}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps[0]).toEqual(
+      expect.objectContaining({
+        currentTokenBalance: '0',
+        hasTokenBalance: false,
+      }),
+    );
+  });
+
+  it('passes token security data to the sticky footer', () => {
+    render(
+      <TokenDetailsV1
+        token={{ ...baseToken, securityData: securityDataWithLinks }}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps[0]).toEqual(
+      expect.objectContaining({
+        securityData: securityDataWithLinks,
+      }),
+    );
   });
 
   it('renders the price hero, tab bar and Overview panel by default', () => {
@@ -660,68 +745,6 @@ describe('TokenDetailsV1', () => {
 
     expect(getByText('feed:true')).toBeTruthy();
     expect(getByTestId('token-details-v1-tab-panel-feed')).toBeTruthy();
-  });
-
-  it('renders the sticky footer without the position line when the social feed is off', () => {
-    render(
-      <TokenDetailsV1
-        token={baseToken}
-        variant={TokenDetailsVariant.Memecoin}
-      />,
-    );
-
-    expect(mockStickyFooterProps).toEqual([
-      expect.objectContaining({
-        sourcePage: 'TokenDetailsView',
-        showPositionLine: false,
-      }),
-    ]);
-  });
-
-  it('hides the position line when the social feed is on and the memecoin flag is off', () => {
-    const { useSelector } = jest.requireMock('react-redux') as {
-      useSelector: jest.Mock;
-    };
-    useSelector.mockImplementation((selector: unknown) =>
-      selector === selectSocialLeaderboardEnabled ? true : undefined,
-    );
-
-    render(
-      <TokenDetailsV1
-        token={baseToken}
-        variant={TokenDetailsVariant.Memecoin}
-      />,
-    );
-
-    expect(mockStickyFooterProps.at(-1)).toEqual(
-      expect.objectContaining({ showPositionLine: false }),
-    );
-  });
-
-  it('shows the position line on the sticky footer when the social feed and memecoin flag are on', () => {
-    const { useSelector } = jest.requireMock('react-redux') as {
-      useSelector: jest.Mock;
-    };
-    useSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectSocialLeaderboardEnabled) {
-        return true;
-      }
-      if (selector === selectAssetsMemecoinTdpV1Enabled) {
-        return true;
-      }
-      return undefined;
-    });
-
-    render(
-      <TokenDetailsV1
-        token={baseToken}
-        variant={TokenDetailsVariant.Memecoin}
-      />,
-    );
-
-    expect(mockStickyFooterProps.at(-1)).toEqual(
-      expect.objectContaining({ showPositionLine: true }),
-    );
   });
 
   it('loads the social feed on the Feed tab', () => {

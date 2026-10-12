@@ -44,7 +44,6 @@ import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
-import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Price from '../../AssetOverview/Price/Price';
 import PriceChartContext, {
@@ -66,13 +65,13 @@ import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenEx
 import OverviewTab from '../components/tabs/OverviewTab';
 import TokenDetailsFeedTab from '../components/tabs/FeedTab';
 import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
-import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import TokenDetailsV1TabBar, {
   HIDDEN_TAB_PAGE_STYLE,
   useTokenDetailsV1ScrollStabilization,
   useTokenDetailsV1Tabs,
 } from '../components/TokenDetailsV1TabBar';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
+import TraderPositionPnlSection from '../TraderPositionPnl/TraderPositionPnlSection';
 import {
   TOKEN_DETAILS_V1_TABS,
   type TokenDetailsRouteParams,
@@ -80,7 +79,6 @@ import {
   type TokenDetailsV1TabKey,
 } from '../constants/constants';
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
-import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
@@ -206,9 +204,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   }, [navigation]);
 
   const caip19AssetId = useTokenCaipAssetId(token);
-  const { balance, balanceFiatUsd } = useTokenBalance(token, {
-    calculateUsdBalance: true,
-  });
 
   const shareUrl = useMemo(
     () =>
@@ -255,6 +250,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const selectedCurrency = useSelector(selectCurrentCurrency);
   const { marketData, isLoading: isMarketDataLoading } =
     useTokenMarketData(caip19AssetId);
+  const traderPositionTokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
 
   const statBarStats = useTokenStatBarStats({
     marketData,
@@ -350,7 +346,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const { activeTab, activateTab, mountedTabs, swipeGesture } =
     useTokenDetailsV1Tabs({ onTabChange: clampScrollToTabBar });
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
-  const isMemecoinTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
 
   const renderTabPage = useCallback(
     (tab: TokenDetailsV1TabKey) => {
@@ -473,7 +468,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             </Pressable>
           }
         />
-
         {/* The tab bar is a direct ScrollView child registered in
             `stickyHeaderIndices`, so it docks right below the nav header
             while the price hero, chart and tab content scroll under it. */}
@@ -562,17 +556,10 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           )}
         </PriceChartContext.Consumer>
 
-        <TokenDetailsStickyFooter
+        <TraderPositionPnlSection
           token={token}
+          tokenKey={traderPositionTokenKey}
           securityData={securityData}
-          balanceFiatUsd={balanceFiatUsd}
-          networkName={networkConfigurationByChainId?.name}
-          currentTokenBalance={balance}
-          hasTokenBalance={Boolean(balance) && balance !== '0'}
-          sourcePage="TokenDetailsView"
-          showPositionLine={Boolean(
-            isMemecoinTdpEnabled && socialEnabled && caip19AssetId,
-          )}
         />
 
         {/* Both sheets sit outside the ScrollView on purpose: the design
