@@ -97,7 +97,6 @@ describe('useStartProSubscription', () => {
       recurringInterval: RECURRING_INTERVALS.year,
       chainId: CHAIN_ID,
       payerAddress: PAYER_ADDRESS,
-      skipApproval: true,
     });
     expect(mockedCheckBalance.mock.invocationCallOrder[0]).toBeLessThan(
       mockedStartSubscription.mock.invocationCallOrder[0],

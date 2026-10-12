@@ -96,10 +96,8 @@ export interface UseStartProSubscriptionResult {
  * Starts a Money Account Plus subscription using
  * `SubscriptionDelegationService:startSubscriptionWithDelegation`.
  *
- * Passes `skipApproval: true` because mobile does not yet host the
- * `subscription_delegation` confirmation / MM Pay funding UI. The caller is
- * responsible for consent; this hook still balance-checks first so the
- * insufficient-balance error mapping stays intact.
+ * The service expects the caller to obtain consent before the call. This hook
+ * balance-checks first so the insufficient-balance error mapping stays intact.
  *
  * On success, returns to the caller. Benefits shows the confirmation screen,
  * and that screen opens Pro Hub. The delegation start refreshes subscriptions
@@ -158,8 +156,6 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
         await SubscriptionDelegationService.startSubscriptionWithDelegation({
           ...subscriptionParams,
           chainId,
-          // Mobile does not host the subscription_delegation confirmation UI yet.
-          skipApproval: true,
         });
       } catch (error) {
         const loggedError =
