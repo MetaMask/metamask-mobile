@@ -191,10 +191,15 @@ export type TransactionsHomeParamList = {
  */
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+/** One-shot tab selection for the Money rewards dashboard. */
+export type RewardsMoneyDashboardParams = {
+  initialTab?: 'earnings';
+};
+
 export type RewardsHomeParamList = {
   RewardsOnboardingFlow: undefined;
   RewardsDashboard: undefined;
-  RewardsMoneyDashboard: undefined;
+  RewardsMoneyDashboard: RewardsMoneyDashboardParams | undefined;
 };
 
 /**

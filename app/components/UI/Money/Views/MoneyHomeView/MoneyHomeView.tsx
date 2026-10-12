@@ -35,6 +35,7 @@ import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
+import MoneyClaimableRewardsCard from '../../components/MoneyClaimableRewardsCard/MoneyClaimableRewardsCard';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
@@ -47,6 +48,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
+import {
+  navigateToRewardsEarningsTab,
+  useMoneyHomeClaimableRewards,
+} from '../../hooks/useMoneyHomeClaimableRewards';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import {
@@ -138,6 +143,10 @@ const MoneyHomeView = () => {
   const hasTrackedCardActionRowViewRef = useRef(false);
   const { PreferencesController } = Engine.context;
   const privacyMode = useSelector(selectPrivacyMode);
+  const claimableRewards = useMoneyHomeClaimableRewards();
+  const openClaimEarnings = useCallback(() => {
+    navigateToRewardsEarningsTab(navigation);
+  }, [navigation]);
 
   // usePlusAccess already mounts the subscriptions query while the Pro flow
   // is enabled, so this view only needs the resolved chrome flags.
@@ -186,13 +195,19 @@ const MoneyHomeView = () => {
         refetchInterest(),
         refreshMusdFiatRate(),
         Engine.context.CardController.fetchCardHomeData({ force: true }),
+        claimableRewards.refresh(),
       ]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
     } finally {
       setRefreshing(false);
     }
-  }, [refetchBalance, refetchInterest, refreshMusdFiatRate]);
+  }, [
+    claimableRewards.refresh,
+    refetchBalance,
+    refetchInterest,
+    refreshMusdFiatRate,
+  ]);
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
 
@@ -1065,7 +1080,17 @@ const MoneyHomeView = () => {
           }}
           card={{ onPress: handleActionButtonCardPress }}
         />
-        <MoneyOnboardingCard />
+        <Box twClassName="gap-2">
+          <MoneyOnboardingCard />
+          {claimableRewards.show && claimableRewards.localizedText ? (
+            <MoneyClaimableRewardsCard
+              localizedText={claimableRewards.localizedText}
+              amount={claimableRewards.amount}
+              privacyMode={privacyMode}
+              onClaim={openClaimEarnings}
+            />
+          ) : null}
+        </Box>
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>
             {index > 0 && <Divider />}

@@ -28,6 +28,8 @@ import type {
   AssetStackParamList,
   BrowserTabHomeParamList,
   HomeTabsParamList,
+  RewardsHomeParamList,
+  RewardsMoneyDashboardParams,
   ImportPrivateKeyStackParamList,
   MainStackParamList,
   SettingsStackParamList,
@@ -631,11 +633,12 @@ export type RootStackParamList = {
   TransactionsView: TransactionsViewParams | NestedNavigationParams | undefined;
   TransactionDetails: TransactionDetailsParams | undefined;
   ActivityDetails: ActivityDetailsParams;
-  RewardsView: undefined;
+  RewardsView: NavigatorScreenParams<RewardsHomeParamList> | undefined;
   RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
+  RewardsMoneyDashboard: RewardsMoneyDashboardParams | undefined;
   TrendingView: ExploreFeedRouteParams | undefined;
   WhatsHappeningDetailView:
     | { initialIndex?: number; source: WhatsHappeningSourceValue }
