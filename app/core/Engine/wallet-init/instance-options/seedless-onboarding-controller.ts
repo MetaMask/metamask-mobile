@@ -1,5 +1,4 @@
 import type { Json } from '@metamask/utils';
-import type { RecoveryIdentifierAuthProvider } from '@metamask/mfa-recovery-controller';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import type { WalletOptions } from '@metamask/wallet';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
@@ -10,6 +9,7 @@ import type {
 import {
   createMoneyMfaOidcIdentifierAuthProvider,
   type CreateMoneyMfaOidcIdentifierAuthProviderOptions,
+  type RecoveryIdentifierAuthProvider,
 } from '../../../MfaRecovery';
 import AuthTokenHandler from '../../../OAuthService/AuthTokenHandler';
 import { web3AuthNetwork } from '../../../OAuthService/OAuthLoginHandlers/constants';

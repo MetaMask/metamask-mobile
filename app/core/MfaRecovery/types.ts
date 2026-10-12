@@ -1,17 +1,26 @@
 /**
- * Re-exports identifier-auth types from `@metamask/mfa-recovery-controller`
- * (MetaMask/core#10022).
- *
- * `KeyBoundIdentifierToken` is not a public package export, so it is derived
- * from {@link RecoveryIdentifierAuthProvider}.
+ * Mirrors the identifier-auth types from `@metamask/mfa-recovery-controller`
+ * (MetaMask/core#10022). Replace with the package imports once it is published.
  */
-export type {
-  Identifier,
-  RecoveryIdentifierAuthProvider,
-} from '@metamask/mfa-recovery-controller';
 
-import type { RecoveryIdentifierAuthProvider } from '@metamask/mfa-recovery-controller';
+export interface Identifier {
+  type: string;
+  namespace: string;
+  value: string;
+  verifier: unknown;
+}
 
-export type KeyBoundIdentifierToken = Awaited<
-  ReturnType<RecoveryIdentifierAuthProvider['getKeyBoundIdentifierToken']>
->;
+export interface KeyBoundIdentifierToken {
+  identifier: Identifier;
+  proofPublicKey: string;
+  requestHash: string;
+  providerAssertion: unknown;
+}
+
+export interface RecoveryIdentifierAuthProvider {
+  getKeyBoundIdentifierToken: (params: {
+    identifier: Identifier;
+    proofPublicKey: string;
+    requestHash: string;
+  }) => Promise<KeyBoundIdentifierToken>;
+}
