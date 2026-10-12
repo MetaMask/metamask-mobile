@@ -46,10 +46,10 @@ import {
 /**
  * Networks the orders filter offers for one tab.
  * Consumers fetch per selected network, so while one is selected the items
- * only cover that network. Chains seen while All networks is showing are
- * merged across pages, so a partial page does not replace networks already
- * seen. A settled empty list clears them; the empty initial load keeps the
- * previous set until orders arrive.
+ * only cover that network, and the last All networks set is kept alongside
+ * them. While All networks is showing, the items already span every loaded
+ * page, so each settled result replaces that set; the empty initial load
+ * keeps the previous set until orders arrive.
  */
 function useOrdersTabFilterChainIds<T>(
   { items, getItemChainId, isLoading }: OrdersTabConfig<T>,
@@ -80,15 +80,7 @@ function useOrdersTabFilterChainIds<T>(
       return [...new Set([...seenChainIds, ...itemChainIds, selectedChainId])];
     }
 
-    if (isInitialAllNetworksLoad) {
-      return seenChainIds;
-    }
-
-    if (itemChainIds.length === 0) {
-      return [];
-    }
-
-    return [...new Set([...seenChainIds, ...itemChainIds])];
+    return isInitialAllNetworksLoad ? seenChainIds : itemChainIds;
   }, [
     allNetworksChainIds,
     enabledChainIds,

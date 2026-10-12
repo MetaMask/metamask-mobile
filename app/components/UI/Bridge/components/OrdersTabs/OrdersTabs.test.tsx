@@ -137,8 +137,8 @@ describe('OrdersTabs', () => {
       });
     });
 
-    it('keeps All networks filter options when the current page covers one network', () => {
-      const { getByTestId, rerender } = renderOrdersTabs({
+    it('hides the network filter when a settled reload covers one network', () => {
+      const { queryByTestId, rerender } = renderOrdersTabs({
         openOrders: chainOrdersTab([ETH_ORDER, OPTIMISM_ORDER]),
         history: chainOrdersTab([]),
       });
@@ -150,12 +150,30 @@ describe('OrdersTabs', () => {
         />,
       );
 
-      const filterButton = getByTestId(
-        OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON,
-      );
-      expect(filterButton).toHaveTextContent(strings('bridge.all_networks'));
+      expect(
+        queryByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
+      ).toBeNull();
+    });
 
-      fireEvent.press(filterButton);
+    it('drops networks that a settled reload no longer covers from the picker', () => {
+      const BASE_ORDER: ChainOrder = {
+        id: 'base-order',
+        chainId: 'eip155:8453',
+      };
+      const { getByTestId, rerender } = renderOrdersTabs({
+        openOrders: chainOrdersTab([ETH_ORDER, OPTIMISM_ORDER, BASE_ORDER]),
+        history: chainOrdersTab([]),
+      });
+
+      rerender(
+        <OrdersTabs
+          openOrders={chainOrdersTab([ETH_ORDER, OPTIMISM_ORDER])}
+          history={chainOrdersTab([])}
+        />,
+      );
+      fireEvent.press(
+        getByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
+      );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
