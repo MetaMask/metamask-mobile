@@ -1670,7 +1670,12 @@
       "fallback_back_to_leaderboard": "Back to leaderboard",
       "sell": "Sell",
       "long": "Long",
-      "short": "Short"
+      "short": "Short",
+      "your_position": "Your position",
+      "unrealized_pnl": "Unrealized P&L",
+      "expand_position": "Expand position",
+      "collapse_position": "Collapse position",
+      "expanded_placeholder": "Position details will appear here"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
@@ -5692,6 +5697,7 @@
     "market_closed": "Market closed",
     "send_button": "Send",
     "buy_button": "Buy",
+    "buy_token_button": "Buy {{symbol}}",
     "cash_buy_button": "Cash Buy",
     "long_button": "Long",
     "short_button": "Short",
@@ -9082,7 +9088,31 @@
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "External address",
+      "back_to_account": "Back to account",
       "withdraw_to_bank": "Bank account"
+    },
+    "musd_rescue_send": {
+      "title": "Send",
+      "your_funds_are_safe_title": "Your funds are safe",
+      "your_funds_are_safe_description": "{{amount}} of your mUSD is in your Money account but isn't earning yet. Send the funds back to your MetaMask account, then add them again.",
+      "to_label": "To",
+      "receive_label": "Receive",
+      "est_time_label": "Est. time",
+      "est_time_value": "< 10 sec",
+      "transaction_fees_label": "Transaction fees",
+      "paid_by_metamask": "Paid by MetaMask",
+      "you_ll_receive_label": "You'll receive",
+      "recipient_label": "Select account",
+      "recipient_placeholder": "Enter account name or paste address",
+      "recipient_empty": "No accounts found",
+      "send": "Send",
+      "rescue_success_body": "{{amount}} added to {{destination}}.",
+      "error_invalid_recipient": "Select an account to send to",
+      "error_invalid_amount": "Enter an amount greater than zero",
+      "error_insufficient_balance": "Amount exceeds available mUSD",
+      "error_vmusd_balance_present": "Sending is available only before mUSD is converted to vmUSD.",
+      "error_balance_unavailable": "Balance unavailable — try again shortly",
+      "error_send_failed": "Failed to start the send — try again"
     },
     "toasts": {
       "in_progress_title": "Transaction in progress",
