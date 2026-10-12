@@ -126,7 +126,7 @@ export const POLYMARKET_POSITIONS_PROTOCOL = {
   key: 'positions',
   contracts: MATIC_POSITIONS_PROTOCOL_CONTRACTS,
   collateral: {
-    tradingToken: '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
+    tradingToken: MATIC_CONTRACTS_V2.collateral,
   },
   order: {
     domainVersion: '3',
