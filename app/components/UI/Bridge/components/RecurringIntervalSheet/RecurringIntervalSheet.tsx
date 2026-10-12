@@ -1,7 +1,6 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   BottomSheet,
-  BottomSheetFooter,
   BottomSheetHeader,
   Box,
   ListItemSelect,
@@ -15,23 +14,46 @@ import {
 import { RecurringIntervalSheetSelectorsIDs } from './RecurringIntervalSheet.testIds';
 import type { RecurringIntervalSheetProps } from './RecurringIntervalSheet.types';
 
+/** Matches the limit-order expiration sheet, so the new check is visible before close. */
+const RECURRING_INTERVAL_CLOSE_DELAY_MS = 250;
+
 const RecurringIntervalSheet = ({
   currentUnit,
-  onConfirm,
+  onSelect,
   goBack,
 }: RecurringIntervalSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const [pendingUnit, setPendingUnit] =
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [selectedUnit, setSelectedUnit] =
     useState<RecurringIntervalUnit>(currentUnit);
 
   const closeSheet = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const handleConfirm = useCallback(() => {
-    onConfirm(pendingUnit);
-    closeSheet();
-  }, [closeSheet, onConfirm, pendingUnit]);
+  useEffect(
+    () => () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  const handleSelect = useCallback(
+    (unit: RecurringIntervalUnit) => {
+      setSelectedUnit(unit);
+      onSelect(unit);
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+      closeTimeoutRef.current = setTimeout(
+        closeSheet,
+        RECURRING_INTERVAL_CLOSE_DELAY_MS,
+      );
+    },
+    [closeSheet, onSelect],
+  );
 
   return (
     <BottomSheet
@@ -47,25 +69,18 @@ const RecurringIntervalSheet = ({
       >
         {strings('bridge.recurring.every')}
       </BottomSheetHeader>
-      <Box paddingHorizontal={4} paddingBottom={2}>
+      <Box paddingBottom={2}>
         {RECURRING_INTERVAL_UNITS.map((unit) => (
           <ListItemSelect
             key={unit}
             title={strings(`bridge.recurring.unit_option.${unit}`)}
-            isSelected={pendingUnit === unit}
+            isSelected={selectedUnit === unit}
             showSelectedIcon
-            onPress={() => setPendingUnit(unit)}
+            onPress={() => handleSelect(unit)}
             testID={RecurringIntervalSheetSelectorsIDs.OPTION(unit)}
           />
         ))}
       </Box>
-      <BottomSheetFooter
-        primaryButtonProps={{
-          children: strings('bridge.recurring.confirm'),
-          onPress: handleConfirm,
-          testID: RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
-        }}
-      />
     </BottomSheet>
   );
 };
