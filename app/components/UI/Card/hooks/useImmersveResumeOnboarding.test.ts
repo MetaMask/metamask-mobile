@@ -9,6 +9,7 @@ const mockGetResumeCardInfo = jest.fn();
 const mockGetSpendingPrerequisites = jest.fn();
 const mockPatchContactDetails = jest.fn();
 const mockRecordProviderOnboardingStarted = jest.fn();
+const mockRecordCardActivated = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
     CardController: {
@@ -24,6 +25,8 @@ jest.mock('../../../../core/Engine', () => ({
         mockPatchContactDetails(...args),
       recordProviderOnboardingStarted: (...args: unknown[]) =>
         mockRecordProviderOnboardingStarted(...args),
+      recordCardActivated: (...args: unknown[]) =>
+        mockRecordCardActivated(...args),
     },
   },
 }));
@@ -115,6 +118,30 @@ describe('useImmersveResumeOnboarding', () => {
       });
 
       expect(mockRecordProviderOnboardingStarted).not.toHaveBeenCalled();
+    });
+
+    it('records the card as active for a returning user with an existing card', async () => {
+      mockGetResumeCardInfo.mockResolvedValue({ fundingSourceIds: ['fs-1'] });
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await result.current({ ...PARAMS, alreadyAuthenticated: true });
+      });
+
+      expect(mockRecordCardActivated).toHaveBeenCalledWith({
+        provider: 'immersve',
+        address: '0xabc',
+      });
+    });
+
+    it('does not record activation for a user without a card', async () => {
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await result.current(PARAMS);
+      });
+
+      expect(mockRecordCardActivated).not.toHaveBeenCalled();
     });
 
     it('does not record onboarding started when sign-in fails', async () => {

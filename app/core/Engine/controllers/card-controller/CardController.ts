@@ -343,6 +343,7 @@ export class CardController extends BaseController<
   #cardLinkSeedPromise: Promise<void> | null = null;
   #cardLinksGeneration = 0;
   #cardLinksWriteRevision = 0;
+  #cardLinkWriteQueues: Partial<Record<CardProviderId, Promise<unknown>>> = {};
   #cardLinkClientBlocked = false;
   #pendingProviderCardholderIds: Partial<Record<CardProviderId, string>> = {};
 
@@ -857,25 +858,51 @@ export class CardController extends BaseController<
     address: string;
     providerCardholderId?: string;
   }): Promise<void> {
-    const cardholderId =
-      providerCardholderId ?? this.#pendingProviderCardholderIds[provider];
-    const outcome = await this.#writeCardLink(
+    await this.#recordProviderMilestone(
       provider,
       'onboarding',
-      { address, providerCardholderId: cardholderId },
+      { address, providerCardholderId },
       'recordProviderOnboardingStarted',
     );
-    if (outcome !== 'failed') {
-      delete this.#pendingProviderCardholderIds[provider];
-    }
   }
 
   async recordCardActivated({
     provider,
+    address,
+    providerCardholderId,
   }: {
     provider: CardProviderId;
+    address?: string;
+    providerCardholderId?: string;
   }): Promise<void> {
-    await this.#writeCardLink(provider, 'active', {}, 'recordCardActivated');
+    await this.#recordProviderMilestone(
+      provider,
+      'active',
+      { address, providerCardholderId },
+      'recordCardActivated',
+    );
+  }
+
+  async #recordProviderMilestone(
+    provider: CardProviderId,
+    status: CardLinkWriteStatus,
+    {
+      address,
+      providerCardholderId,
+    }: { address?: string; providerCardholderId?: string },
+    method: string,
+  ): Promise<void> {
+    const cardholderId =
+      providerCardholderId ?? this.#pendingProviderCardholderIds[provider];
+    const outcome = await this.#writeCardLink(
+      provider,
+      status,
+      { address, providerCardholderId: cardholderId },
+      method,
+    );
+    if (outcome !== 'failed') {
+      delete this.#pendingProviderCardholderIds[provider];
+    }
   }
 
   async recordProviderLogin({
@@ -915,7 +942,23 @@ export class CardController extends BaseController<
     );
   }
 
-  async #writeCardLink(
+  // Writes for one provider run in order, so a slow `onboarding` PUT cannot
+  // land after `active` and replace the stored row with the older state.
+  #writeCardLink(
+    provider: CardProviderId,
+    status: CardLinkWriteStatus,
+    fields: { address?: string; providerCardholderId?: string },
+    method: string,
+  ): Promise<'written' | 'rejected' | 'failed' | 'skipped'> {
+    const run = () => this.#doWriteCardLink(provider, status, fields, method);
+    const queued = (
+      this.#cardLinkWriteQueues[provider] ?? Promise.resolve()
+    ).then(run, run);
+    this.#cardLinkWriteQueues[provider] = queued;
+    return queued;
+  }
+
+  async #doWriteCardLink(
     provider: CardProviderId,
     status: CardLinkWriteStatus,
     {

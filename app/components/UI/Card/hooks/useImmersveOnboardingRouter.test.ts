@@ -180,12 +180,13 @@ describe('useImmersveOnboardingRouter', () => {
     });
   });
 
-  it('records the card as activated when active', () => {
-    getRoute()({ type: 'active' });
+  it('records the card as activated for the funding account when active', () => {
+    getRoute()({ type: 'active' }, { fundingAddress: '0xabc' });
 
     expect(mockRecordCardActivated).toHaveBeenCalledTimes(1);
     expect(mockRecordCardActivated).toHaveBeenCalledWith({
       provider: 'immersve',
+      address: '0xabc',
     });
   });
 

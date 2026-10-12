@@ -68,6 +68,12 @@ export const useImmersveResumeOnboarding = () => {
         }
 
         const resume = await controller.getResumeCardInfo();
+        if (resume) {
+          controller.recordCardActivated({
+            provider: CardProviderIds.Immersve,
+            address,
+          });
+        }
 
         const id = await resolveImmersveFundingSourceId({
           fundingChannelId: immersveConfig.fundingChannelId,

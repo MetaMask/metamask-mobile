@@ -695,6 +695,58 @@ describe('CardController card links', () => {
       expect(Logger.error).toHaveBeenCalled();
     });
 
+    it('records activation with the address and cardholder ID', async () => {
+      const { controller, cardService } = setup();
+
+      await controller.recordCardActivated({
+        provider: 'immersve',
+        address: SELECTED_ADDRESS,
+        providerCardholderId: 'chacc-1',
+      });
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'immersve',
+        {
+          status: 'active',
+          providerCardholderId: 'chacc-1',
+          linkedAccountRef: refFor(SELECTED_ADDRESS),
+        },
+        'token-1',
+      );
+    });
+
+    it('runs writes for one provider in order, so a slow onboarding write cannot replace active', async () => {
+      const { controller, cardService } = setup();
+      let finishOnboarding!: (value: CardLink) => void;
+      cardService.putCardLink.mockImplementationOnce(
+        () =>
+          new Promise<CardLink>((resolve) => {
+            finishOnboarding = resolve;
+          }),
+      );
+
+      const onboarding = controller.recordProviderOnboardingStarted({
+        provider: 'immersve',
+        address: SELECTED_ADDRESS,
+      });
+      const activated = controller.recordCardActivated({
+        provider: 'immersve',
+      });
+      await flush();
+      expect(cardService.putCardLink).toHaveBeenCalledTimes(1);
+
+      finishOnboarding(link({ provider: 'immersve', status: 'onboarding' }));
+      await Promise.all([onboarding, activated]);
+
+      expect(cardService.putCardLink).toHaveBeenCalledTimes(2);
+      expect(
+        cardService.putCardLink.mock.calls.map(([, body]) => body.status),
+      ).toStrictEqual(['onboarding', 'active']);
+      expect(controller.state.cardLinks).toStrictEqual([
+        link({ provider: 'immersve', status: 'active' }),
+      ]);
+    });
+
     it('resolves without throwing when a write fails', async () => {
       const { controller, cardService } = setup();
       cardService.putCardLink.mockRejectedValue(new Error('network down'));
