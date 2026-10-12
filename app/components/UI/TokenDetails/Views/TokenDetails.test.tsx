@@ -183,6 +183,10 @@ jest.mock('../hooks/useTokenTransactions', () => ({
     mockUseTokenTransactions(...args),
 }));
 
+jest.mock('../queries/prefetchTokenDetailsQueries', () => ({
+  usePrefetchTokenDetails: () => undefined,
+}));
+
 const mockUseTokenAssetDetails = jest.fn((_assetId: unknown) => ({
   asset: null as { launchpadData: object | null } | null,
   isLoading: false,
