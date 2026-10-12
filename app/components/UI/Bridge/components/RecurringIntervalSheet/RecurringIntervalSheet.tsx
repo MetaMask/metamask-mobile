@@ -43,7 +43,9 @@ const RecurringIntervalSheet = ({
   const handleSelect = useCallback(
     (unit: RecurringIntervalUnit) => {
       setSelectedUnit(unit);
-      onSelect(unit);
+      if (unit !== currentUnit) {
+        onSelect(unit);
+      }
       if (closeTimeoutRef.current) {
         clearTimeout(closeTimeoutRef.current);
       }
@@ -52,7 +54,7 @@ const RecurringIntervalSheet = ({
         RECURRING_INTERVAL_CLOSE_DELAY_MS,
       );
     },
-    [closeSheet, onSelect],
+    [closeSheet, currentUnit, onSelect],
   );
 
   return (
