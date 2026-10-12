@@ -282,6 +282,7 @@ const BridgeRecurringBuyViewContent = () => {
 
           <Box twClassName="-mt-1">
             <Box
+              testID={BridgeViewSelectorsIDs.RECURRING_BANNERS_WRAPPER}
               onLayout={handleBannersLayout}
               twClassName={hasVisibleBanner ? 'mb-2' : undefined}
               onTouchEnd={dismissInputAndKeypad}
