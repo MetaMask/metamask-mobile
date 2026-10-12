@@ -1,10 +1,7 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useSelector } from 'react-redux';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { CaipChainId } from '@metamask/utils';
 import { fetchRwas, type TrendingAsset } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
-import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
-import { selectShowRobinhoodRwa } from '../../../../../selectors/featureFlagController/rwa';
 import {
   PriceChangeOption,
   SortDirection,
@@ -60,14 +57,12 @@ const normalizeRwaToken = (token: RwaTokenWithSecurityData): TrendingAsset => ({
 
 /**
  * Hook for RWA tokens using the dedicated /v1/rwas endpoint.
- * Defaults to `RWA_CHAIN_IDS` when no chainIds are provided. Robinhood Chain is
- * omitted from that default when `ASSETS4098ShowRobinhoodRwa` is off.
+ * Defaults to Ethereum + BNB when no chainIds are provided.
  *
  * Server-side sorting, pagination, and search are delegated to the RWA API.
  *
  * @param opts.searchQuery - Server-side query to filter results
- * @param opts.chainIds - Chain IDs to filter by (defaults to RWA_CHAIN_IDS,
- * minus Robinhood when the flag is off)
+ * @param opts.chainIds - Chain IDs to filter by (defaults to RWA_CHAIN_IDS)
  * @param opts.includeTokenSecurityData - Whether the response should include trust-signal data
  * @param opts.sortTrendingTokensOptions - Sorting options for price change / volume / market cap
  * @returns Token data, loading state, pagination helpers, and refetch function for rwa tokens
@@ -91,18 +86,8 @@ export const useRwaTokens = (opts?: {
   } = opts ?? {};
   const { option = DEFAULT_SORT_OPTION, direction = DEFAULT_SORT_DIRECTION } =
     sortTrendingTokensOptions ?? {};
-  const showRobinhoodRwa = useSelector(selectShowRobinhoodRwa);
-  const defaultChainIds = useMemo(
-    () =>
-      showRobinhoodRwa
-        ? RWA_CHAIN_IDS
-        : RWA_CHAIN_IDS.filter(
-            (chainId) => chainId !== NetworkToCaipChainId.ROBINHOOD,
-          ),
-    [showRobinhoodRwa],
-  );
 
-  const stableChainIds = useStableArray(chainIds ?? defaultChainIds);
+  const stableChainIds = useStableArray(chainIds ?? RWA_CHAIN_IDS);
 
   const [data, setData] = useState<TrendingAsset[]>([]);
   const [isLoading, setIsLoading] = useState(true);

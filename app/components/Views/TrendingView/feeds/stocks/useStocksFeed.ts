@@ -1,13 +1,24 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { createSelector } from 'reselect';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import type { CaipChainId } from '@metamask/utils';
+import { hasProperty, type CaipChainId } from '@metamask/utils';
 import { NetworkToCaipChainId } from '../../../../UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 import { useRwaTokens } from '../../../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
-import { selectShowRobinhoodRwa } from '../../../../../selectors/featureFlagController/rwa';
+import { RWA_CHAIN_IDS } from '../../../../UI/Trending/utils/trendingNetworksList';
+import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
+
+const SHOW_ROBINHOOD_RWA_FLAG_NAME = 'ASSETS4098ShowRobinhoodRwa';
+
+const selectShowRobinhoodRwa = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): boolean =>
+    hasProperty(remoteFeatureFlags, SHOW_ROBINHOOD_RWA_FLAG_NAME) &&
+    remoteFeatureFlags[SHOW_ROBINHOOD_RWA_FLAG_NAME] === true,
+);
 
 const STOCKS_FEED_RWA_CHAIN_IDS: CaipChainId[] = [
   NetworkToCaipChainId.ETHEREUM,
@@ -35,11 +46,9 @@ export interface UseStocksFeedResult {
  * Tokenized stocks (RWAs) feed.
  *
  * Tab sections (no query): Ethereum and Robinhood Chain tokens are shown.
- * Robinhood Chain is omitted when `ASSETS4098ShowRobinhoodRwa` is off.
  *
  * Search (query present): all chains in RWA_CHAIN_IDS are included so users
- * can find stocks across Ethereum, BNB, and Robinhood. Robinhood is omitted
- * from that default when the flag is off.
+ * can find stocks across Ethereum, BNB, and Robinhood.
  *
  * No-query sections request Ethereum and Robinhood only so the API page is not
  * consumed by other supported RWA chains before the section renders its
@@ -69,6 +78,13 @@ export const useStocksFeed = ({
     () => stocksFeedChainIds.map((chainId) => `${chainId}/`),
     [stocksFeedChainIds],
   );
+  const searchChainIds = useMemo(
+    () =>
+      showRobinhoodRwa
+        ? [...RWA_CHAIN_IDS, NetworkToCaipChainId.ROBINHOOD]
+        : undefined,
+    [showRobinhoodRwa],
+  );
   const {
     data,
     isLoading,
@@ -79,7 +95,7 @@ export const useStocksFeed = ({
     loadMore,
   } = useRwaTokens({
     searchQuery: hasQuery ? trimmedQuery : undefined,
-    chainIds: hasQuery ? undefined : stocksFeedChainIds,
+    chainIds: hasQuery ? searchChainIds : stocksFeedChainIds,
     pageSize,
     includeTokenSecurityData: hasQuery && isBasicFunctionalityEnabled,
   });

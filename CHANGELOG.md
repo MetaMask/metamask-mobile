@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- Show Robinhood tokenized stocks in Explore when ASSETS4098ShowRobinhoodRwa is on
-
 ### Changed
 
 - Upgraded `@metamask/delegation-deployments` from `^2.0.0` to `^2.1.0`

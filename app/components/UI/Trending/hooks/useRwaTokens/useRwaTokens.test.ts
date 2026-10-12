@@ -5,9 +5,7 @@ import {
   PriceChangeOption,
   SortDirection,
 } from '../../components/TrendingTokensBottomSheet';
-import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { RWA_CHAIN_IDS } from '../../utils/trendingNetworksList';
-import initialRootState from '../../../../../util/test/initial-root-state';
 import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { act, waitFor } from '@testing-library/react-native';
 
@@ -86,9 +84,7 @@ describe('useRwaTokens', () => {
 
     await waitFor(() => {
       expect(mockFetchRwas).toHaveBeenCalledWith({
-        chainIds: RWA_CHAIN_IDS.filter(
-          (chainId) => chainId !== NetworkToCaipChainId.ROBINHOOD,
-        ),
+        chainIds: RWA_CHAIN_IDS,
         query: undefined,
         sortBy: 'price_change_desc',
         limit: 100,
@@ -130,42 +126,12 @@ describe('useRwaTokens', () => {
     });
   });
 
-  it('includes Robinhood Chain when ASSETS4098ShowRobinhoodRwa is on', async () => {
-    renderHookWithProvider(() => useRwaTokens(), {
-      state: {
-        ...initialRootState,
-        engine: {
-          backgroundState: {
-            ...initialRootState.engine.backgroundState,
-            RemoteFeatureFlagController: {
-              ...initialRootState.engine.backgroundState
-                .RemoteFeatureFlagController,
-              remoteFeatureFlags: {
-                ASSETS4098ShowRobinhoodRwa: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    await waitFor(() => {
-      expect(mockFetchRwas).toHaveBeenCalledWith(
-        expect.objectContaining({ chainIds: RWA_CHAIN_IDS }),
-      );
-    });
-  });
-
-  it('defaults to Ethereum and BNB when chainIds is null and the flag is off', async () => {
+  it('defaults to RWA_CHAIN_IDS when chainIds is null', async () => {
     renderHookWithProvider(() => useRwaTokens({ chainIds: null }));
 
     await waitFor(() => {
       expect(mockFetchRwas).toHaveBeenCalledWith(
-        expect.objectContaining({
-          chainIds: RWA_CHAIN_IDS.filter(
-            (chainId) => chainId !== NetworkToCaipChainId.ROBINHOOD,
-          ),
-        }),
+        expect.objectContaining({ chainIds: RWA_CHAIN_IDS }),
       );
     });
   });

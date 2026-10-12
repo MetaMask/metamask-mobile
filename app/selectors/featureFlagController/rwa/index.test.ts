@@ -1,4 +1,4 @@
-import { selectRWAEnabledFlag, selectShowRobinhoodRwa } from '.';
+import { selectRWAEnabledFlag } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
 
@@ -85,57 +85,6 @@ describe('RWA Feature Flag Selector', () => {
     const result = selectRWAEnabledFlag(mockedUndefinedFlagsState);
 
     expect(result).toBe(false);
-  });
-
-  it('returns true only when ASSETS4098ShowRobinhoodRwa is true', () => {
-    expect(
-      selectShowRobinhoodRwa({
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                ASSETS4098ShowRobinhoodRwa: true,
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      }),
-    ).toBe(true);
-  });
-
-  it('returns false when ASSETS4098ShowRobinhoodRwa is false, missing, or not a boolean', () => {
-    expect(
-      selectShowRobinhoodRwa({
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                ASSETS4098ShowRobinhoodRwa: false,
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      }),
-    ).toBe(false);
-    expect(selectShowRobinhoodRwa(mockedStateWithoutRWAFlag)).toBe(false);
-    expect(selectShowRobinhoodRwa(mockedEmptyFlagsState)).toBe(false);
-    expect(selectShowRobinhoodRwa(mockedUndefinedFlagsState)).toBe(false);
-    expect(
-      selectShowRobinhoodRwa({
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                ASSETS4098ShowRobinhoodRwa: null,
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      }),
-    ).toBe(false);
   });
 
   it('handles null values correctly', () => {

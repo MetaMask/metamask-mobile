@@ -165,11 +165,22 @@ describe('useStocksFeed', () => {
       );
     });
 
-    it('does not restrict chainIds when searching', () => {
+    it('does not restrict chainIds when searching and the flag is off', () => {
       renderHook(() => useStocksFeed({ query: 'OUSG' }));
 
       expect(mockUseRwaTokens).toHaveBeenCalledWith(
         expect.objectContaining({ chainIds: undefined }),
+      );
+    });
+
+    it('includes Robinhood Chain when searching and the flag is on', () => {
+      mockShowRobinhoodRwa = true;
+      renderHook(() => useStocksFeed({ query: 'OUSG' }));
+
+      expect(mockUseRwaTokens).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chainIds: ['eip155:1', 'eip155:56', 'eip155:4663'],
+        }),
       );
     });
 
