@@ -44,10 +44,12 @@ import {
 } from './OrdersTabs.types';
 
 /**
- * Networks the orders filter offers for one tab, re-derived as pages load.
+ * Networks the orders filter offers for one tab.
  * Consumers fetch per selected network, so while one is selected the items
- * only cover that network; the networks seen under All networks are kept so
- * the picker still lists them.
+ * only cover that network. Chains seen while All networks is showing are
+ * merged across pages, so a partial page does not replace networks already
+ * seen. A settled empty list clears them; the empty initial load keeps the
+ * previous set until orders arrive.
  */
 function useOrdersTabFilterChainIds<T>(
   { items, getItemChainId, isLoading }: OrdersTabConfig<T>,
@@ -64,21 +66,46 @@ function useOrdersTabFilterChainIds<T>(
   const [allNetworksChainIds, setAllNetworksChainIds] = useState<CaipChainId[]>(
     [],
   );
-  const isAllNetworksLoaded =
-    !selectedChainId && !(isLoading && items.length === 0);
+  const isInitialAllNetworksLoad =
+    !selectedChainId && Boolean(isLoading) && items.length === 0;
 
-  if (isAllNetworksLoaded && !isEqual(allNetworksChainIds, itemChainIds)) {
-    setAllNetworksChainIds(itemChainIds);
+  const filterChainIds = useMemo(() => {
+    const seenChainIds = enabledChainIds
+      ? allNetworksChainIds.filter((chainId) =>
+          enabledChainIds.includes(chainId),
+        )
+      : allNetworksChainIds;
+
+    if (selectedChainId) {
+      return [...new Set([...seenChainIds, ...itemChainIds, selectedChainId])];
+    }
+
+    if (isInitialAllNetworksLoad) {
+      return seenChainIds;
+    }
+
+    if (itemChainIds.length === 0) {
+      return [];
+    }
+
+    return [...new Set([...seenChainIds, ...itemChainIds])];
+  }, [
+    allNetworksChainIds,
+    enabledChainIds,
+    isInitialAllNetworksLoad,
+    itemChainIds,
+    selectedChainId,
+  ]);
+
+  if (
+    !selectedChainId &&
+    !isInitialAllNetworksLoad &&
+    !isEqual(allNetworksChainIds, filterChainIds)
+  ) {
+    setAllNetworksChainIds(filterChainIds);
   }
 
-  return useMemo(() => {
-    if (!selectedChainId) {
-      return isAllNetworksLoaded ? itemChainIds : allNetworksChainIds;
-    }
-    return [
-      ...new Set([...allNetworksChainIds, ...itemChainIds, selectedChainId]),
-    ];
-  }, [allNetworksChainIds, isAllNetworksLoaded, itemChainIds, selectedChainId]);
+  return filterChainIds;
 }
 
 function OrdersNetworkFilter({ chainIds }: { chainIds: CaipChainId[] }) {

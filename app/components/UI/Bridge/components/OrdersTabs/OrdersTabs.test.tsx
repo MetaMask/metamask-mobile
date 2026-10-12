@@ -137,6 +137,35 @@ describe('OrdersTabs', () => {
       });
     });
 
+    it('keeps All networks filter options when the current page covers one network', () => {
+      const { getByTestId, rerender } = renderOrdersTabs({
+        openOrders: chainOrdersTab([ETH_ORDER, OPTIMISM_ORDER]),
+        history: chainOrdersTab([]),
+      });
+
+      rerender(
+        <OrdersTabs
+          openOrders={chainOrdersTab([ETH_ORDER, ETH_ORDER_2])}
+          history={chainOrdersTab([])}
+        />,
+      );
+
+      const filterButton = getByTestId(
+        OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON,
+      );
+      expect(filterButton).toHaveTextContent(strings('bridge.all_networks'));
+
+      fireEvent.press(filterButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
+        params: {
+          enabledChainIds: ['eip155:1', 'eip155:10'],
+          filterTarget: 'orders',
+        },
+      });
+    });
+
     it('shows the network filter once a fetched page adds a second network', () => {
       const { queryByTestId, getByTestId, rerender } = renderOrdersTabs({
         openOrders: chainOrdersTab([ETH_ORDER]),
@@ -421,9 +450,10 @@ describe('OrdersTabs', () => {
           <Text testID={`order-row-${item.id}`}>{item.id}</Text>
         ),
         keyExtractor: (item) => item.id,
+        getItemChainId: getEthereumChainId,
         getItemDate: (item) => item.createdAt,
       },
-      history: { items: [] },
+      history: chainOrdersTab([]),
     });
 
     const headers = getAllByTestId(OrdersTabsSelectorsIDs.DATE_SECTION_HEADER);
@@ -441,8 +471,9 @@ describe('OrdersTabs', () => {
       openOrders: {
         items: ['order-1'],
         renderItem: (item) => <Text>{item}</Text>,
+        getItemChainId: getEthereumChainId,
       },
-      history: { items: [] },
+      history: chainOrdersTab([]),
     });
 
     expect(

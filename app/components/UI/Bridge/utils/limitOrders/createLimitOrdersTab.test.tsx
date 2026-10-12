@@ -68,6 +68,7 @@ describe('getHistoryLimitOrderDate', () => {
       isError: false,
       isFetchingNextPage: false,
       onRetry: jest.fn(),
+      getItemDate: getOpenLimitOrderDate,
     });
 
     expect(tab.getItemChainId(MOCK_LIMIT_OPEN_ORDER)).toBe('eip155:1');
