@@ -42,14 +42,6 @@ import {
   // rather than just the getState action, so the broader type is kept here too.
   type CurrencyRateControllerActions,
   type MultichainAssetsControllerGetStateAction,
-  // Compat events: never actually published (no controller instance exists to
-  // emit them), but required by external messenger type unions (e.g.
-  // TransactionPayControllerMessenger) that still declare them as allowed.
-  type AccountTrackerControllerStateChangeEvent,
-  type CurrencyRateStateChange,
-  type TokenBalancesControllerStateChangeEvent,
-  type TokenRatesControllerStateChangeEvent,
-  type TokensControllerStateChangeEvent,
 } from '@metamask/assets-controllers';
 import {
   AssetsController,
@@ -789,13 +781,6 @@ export type GlobalEvents =
   | SamplePetnamesControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | AssetsControllerEvents
-  // Compat events for the removed legacy asset controllers. See the import
-  // above for context.
-  | AccountTrackerControllerStateChangeEvent
-  | CurrencyRateStateChange
-  | TokenBalancesControllerStateChangeEvent
-  | TokenRatesControllerStateChangeEvent
-  | TokensControllerStateChangeEvent
   | NftControllerEvents
   | AddressBookControllerEvents
   | ApprovalControllerEvents
