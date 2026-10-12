@@ -15,8 +15,6 @@ import { EarnWithdrawInputViewTestIds } from '../../../app/components/UI/Earn/Vi
 import { ActivitiesViewSelectorsIDs } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import { type AppiumElement } from '../../framework';
 
-const WITHDRAW_BUTTON_EXIST_TIMEOUT = 30_000;
-
 class EarnLendingView {
   get withdrawButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
@@ -93,11 +91,6 @@ class EarnLendingView {
   }
 
   async scrollToWithdrawButton(): Promise<void> {
-    await Assertions.expectElementToExist(this.withdrawButton, {
-      timeout: WITHDRAW_BUTTON_EXIST_TIMEOUT,
-      description: 'Withdraw button should be mounted on the lending balance',
-    });
-
     await Gestures.scrollToElement(
       this.withdrawButton,
       Matchers.scrollContainer(ActivitiesViewSelectorsIDs.CONTAINER),
