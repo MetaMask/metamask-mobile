@@ -519,7 +519,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       traderPositionPnl?.isExpanded,
     ],
   );
-  if (!tradingOpen) return null;
+  if (!tradingOpen && !isTokenDetailsV1) return null;
 
   const moneyDepositButton = showMoneyDepositButton ? (
     <Button
@@ -588,7 +588,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     <>
       <View
         testID="bottomsheetfooter"
-        style={isTokenDetailsV1 ? styles.traderPositionFooter : styles.footer}
+        style={[styles.footer, isTokenDetailsV1 && styles.traderPositionFooter]}
       >
         {showSwapButton && !isBuySellLayout && (
           <Button

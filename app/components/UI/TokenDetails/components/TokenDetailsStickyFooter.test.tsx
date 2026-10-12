@@ -185,7 +185,7 @@ describe('TokenDetailsStickyFooter', () => {
     });
 
     it('renders the trader position header above the footer actions', () => {
-      const { getByTestId } = render(
+      const { getByTestId, queryByTestId } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
           traderPositionPnl={{
@@ -201,6 +201,10 @@ describe('TokenDetailsStickyFooter', () => {
 
       expect(
         getByTestId('token-details-trader-position-pnl'),
+      ).toBeOnTheScreen();
+      expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
+      expect(
+        queryByTestId('token-details-sticky-footer-surface'),
       ).toBeOnTheScreen();
     });
 
@@ -296,10 +300,25 @@ describe('TokenDetailsStickyFooter', () => {
     it('renders nothing when isTokenTradable returns false', () => {
       mockIsTokenTradable.mockReturnValue(false);
       const { queryByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
+        <TokenDetailsStickyFooter {...defaultProps} isTokenDetailsV1={false} />,
       );
       expect(queryByText('Swap')).toBeNull();
       expect(queryByText('Buy ETH')).toBeNull();
+    });
+
+    it('keeps the V1 buttons visible when legacy trading gating is closed', () => {
+      mockIsTokenTradable.mockReturnValue(false);
+      const { getByText, getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          quickBuyEntrypointLayout="buy_sell"
+          onOpenQuickBuy={jest.fn()}
+        />,
+      );
+
+      expect(getByText('Buy ETH')).toBeOnTheScreen();
+      expect(getByTestId('token-details-footer-quick-sell')).toBeOnTheScreen();
     });
   });
 
