@@ -18,15 +18,18 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import {
   TabsBar,
   type TabItem,
 } from '../../../../component-library/components-temp/Tabs';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { useSessionProfileId } from '../../../../util/notifications/hooks/useSessionProfileId';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { useFollowToggleMany } from '../../../hooks/useFollowToggle';
 import { formatAddress } from '../../../../util/address';
@@ -42,6 +45,22 @@ import {
   useTraderFollowing,
   type FollowerConnection,
 } from './hooks';
+
+const addressesMatch = (
+  left: string | undefined,
+  right: string | undefined,
+): boolean =>
+  Boolean(left && right && left.toLowerCase() === right.toLowerCase());
+
+const isViewerConnection = (
+  connection: { id: string; address: string },
+  viewerProfileId: string | undefined,
+  viewerAddress: string | undefined,
+): boolean =>
+  Boolean(
+    (viewerProfileId && connection.id === viewerProfileId) ||
+      addressesMatch(connection.address, viewerAddress),
+  );
 
 const tabIndexFor = (
   initialTab: 'followers' | 'following' | 'mutuals' | undefined,
@@ -67,6 +86,11 @@ const FollowConnectionsView: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(
     tabIndexFor(initialTab, isTraderList),
   );
+
+  // `navigate` can reuse this screen; keep the tab in sync with route params.
+  useEffect(() => {
+    setActiveIndex(tabIndexFor(initialTab, isTraderList));
+  }, [addressOrId, initialTab, isTraderList]);
   const myFollowers = useFollowers({ enabled: !isTraderList });
   const traderFollowers = useFollowers({
     addressOrId,
@@ -113,6 +137,8 @@ const FollowConnectionsView: React.FC = () => {
     ? traderFollowing.refresh
     : myFollowing.refresh;
   const { isFollowing, toggleFollow } = useFollowToggleMany();
+  const { profileId: viewerProfileId } = useSessionProfileId();
+  const viewerAddress = useSelector(selectSelectedInternalAccountAddress);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -161,9 +187,11 @@ const FollowConnectionsView: React.FC = () => {
         traderName: trader.username,
         traderAddress: trader.address,
         traderAvatarUri: trader.avatarUri,
+        viewerProfileId,
+        viewerAddress,
       });
     },
-    [navigation],
+    [navigation, viewerAddress, viewerProfileId],
   );
 
   const handleFollowerRowPress = useCallback(
@@ -173,13 +201,18 @@ const FollowConnectionsView: React.FC = () => {
         traderName: follower.username,
         traderAddress: follower.address,
         traderAvatarUri: follower.avatarUri,
+        viewerProfileId,
+        viewerAddress,
       });
     },
-    [navigation],
+    [navigation, viewerAddress, viewerProfileId],
   );
 
   const handleFollowerFollowPress = useCallback(
     (follower: FollowerConnection) => {
+      if (isViewerConnection(follower, viewerProfileId, viewerAddress)) {
+        return;
+      }
       toggleFollow(follower.id, {
         source: 'trader_profile',
         traderAddress: follower.address,
@@ -187,11 +220,14 @@ const FollowConnectionsView: React.FC = () => {
         traderAvatarUri: follower.avatarUri,
       }).catch(() => undefined);
     },
-    [toggleFollow],
+    [toggleFollow, viewerAddress, viewerProfileId],
   );
 
   const handleFollowingFollowPress = useCallback(
     (trader: FollowedTrader) => {
+      if (isViewerConnection(trader, viewerProfileId, viewerAddress)) {
+        return;
+      }
       toggleFollow(trader.id, {
         source: 'trader_profile',
         traderAddress: trader.address,
@@ -199,44 +235,62 @@ const FollowConnectionsView: React.FC = () => {
         traderAvatarUri: trader.avatarUri,
       }).catch(() => undefined);
     },
-    [toggleFollow],
+    [toggleFollow, viewerAddress, viewerProfileId],
   );
 
   const renderFollowingItem = useCallback(
-    ({ item }: { item: FollowedTrader }) => (
-      <ConnectionRow
-        id={item.id}
-        username={item.username}
-        subtitle={formatAddress(item.address, 'short')}
-        address={item.address}
-        avatarUri={item.avatarUri}
-        isFollowing={isTraderList ? isFollowing(item.id) : true}
-        onFollowPress={() => handleFollowingFollowPress(item)}
-        onRowPress={() => handleFollowingRowPress(item)}
-      />
-    ),
+    ({ item }: { item: FollowedTrader }) => {
+      const isSelf = isViewerConnection(item, viewerProfileId, viewerAddress);
+      return (
+        <ConnectionRow
+          id={item.id}
+          username={item.username}
+          subtitle={formatAddress(item.address, 'short')}
+          address={item.address}
+          avatarUri={item.avatarUri}
+          isFollowing={isTraderList ? isFollowing(item.id) : true}
+          onFollowPress={
+            isSelf ? undefined : () => handleFollowingFollowPress(item)
+          }
+          onRowPress={() => handleFollowingRowPress(item)}
+        />
+      );
+    },
     [
       handleFollowingFollowPress,
       handleFollowingRowPress,
       isFollowing,
       isTraderList,
+      viewerAddress,
+      viewerProfileId,
     ],
   );
 
   const renderFollowerItem = useCallback(
-    ({ item }: { item: FollowerConnection }) => (
-      <ConnectionRow
-        id={item.id}
-        username={item.username}
-        subtitle={formatAddress(item.address, 'short')}
-        address={item.address}
-        avatarUri={item.avatarUri}
-        isFollowing={isFollowing(item.id)}
-        onFollowPress={() => handleFollowerFollowPress(item)}
-        onRowPress={() => handleFollowerRowPress(item)}
-      />
-    ),
-    [handleFollowerFollowPress, handleFollowerRowPress, isFollowing],
+    ({ item }: { item: FollowerConnection }) => {
+      const isSelf = isViewerConnection(item, viewerProfileId, viewerAddress);
+      return (
+        <ConnectionRow
+          id={item.id}
+          username={item.username}
+          subtitle={formatAddress(item.address, 'short')}
+          address={item.address}
+          avatarUri={item.avatarUri}
+          isFollowing={isFollowing(item.id)}
+          onFollowPress={
+            isSelf ? undefined : () => handleFollowerFollowPress(item)
+          }
+          onRowPress={() => handleFollowerRowPress(item)}
+        />
+      );
+    },
+    [
+      handleFollowerFollowPress,
+      handleFollowerRowPress,
+      isFollowing,
+      viewerAddress,
+      viewerProfileId,
+    ],
   );
 
   const followingContent = (() => {

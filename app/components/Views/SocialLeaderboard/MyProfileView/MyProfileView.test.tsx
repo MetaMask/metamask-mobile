@@ -27,6 +27,7 @@ import {
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockPush = jest.fn();
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const mockFollowWithSetup = jest.fn(
@@ -104,7 +105,11 @@ jest.mock('@metamask/design-system-react-native', () => {
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+    navigate: mockNavigate,
+    push: mockPush,
+  }),
   useRoute: () => ({ params: mockProfileRouteParams }),
 }));
 
@@ -450,10 +455,9 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWERS_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL.FOLLOW_CONNECTIONS,
-      { initialTab: 'followers' },
-    );
+    expect(mockPush).toHaveBeenCalledWith(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+      initialTab: 'followers',
+    });
   });
 
   it('opens following connections on the following tab', () => {
@@ -463,10 +467,9 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWING_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL.FOLLOW_CONNECTIONS,
-      { initialTab: 'following' },
-    );
+    expect(mockPush).toHaveBeenCalledWith(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+      initialTab: 'following',
+    });
   });
 
   it('opens the owner X profile', () => {
@@ -782,10 +785,10 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWERS_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL.FOLLOW_CONNECTIONS,
-      { initialTab: 'followers', addressOrId: 'trader-1' },
-    );
+    expect(mockPush).toHaveBeenCalledWith(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+      initialTab: 'followers',
+      addressOrId: 'trader-1',
+    });
   });
 
   it('opens another trader following with addressOrId', () => {
@@ -800,10 +803,10 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWING_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL.FOLLOW_CONNECTIONS,
-      { initialTab: 'following', addressOrId: 'trader-1' },
-    );
+    expect(mockPush).toHaveBeenCalledWith(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+      initialTab: 'following',
+      addressOrId: 'trader-1',
+    });
   });
 
   it('hides owner actions and shows follow for another trader', () => {

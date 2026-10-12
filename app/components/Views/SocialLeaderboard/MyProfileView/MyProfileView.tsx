@@ -24,7 +24,6 @@ import type { Position } from '@metamask/social-controllers';
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import React, { Fragment, useCallback, useMemo, useState } from 'react';
@@ -41,7 +40,10 @@ import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import type {
+  AppStackNavigationProp,
+  RootStackParamList,
+} from '../../../../core/NavigationService/types';
 import { playSelection } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -126,7 +128,7 @@ const INITIAL_POST_SKELETON_KEYS = Array.from(
 );
 
 const MyProfileView: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<
       RouteProp<RootStackParamList, 'MyProfileView' | 'SocialV1ProfileView'>
@@ -235,7 +237,7 @@ const MyProfileView: React.FC = () => {
     if (!isOwner && !addressOrId) {
       return;
     }
-    navigation.navigate(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+    navigation.push(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
       initialTab: 'followers',
       ...(isOwner ? {} : { addressOrId }),
     });
@@ -244,7 +246,7 @@ const MyProfileView: React.FC = () => {
     if (!isOwner && !addressOrId) {
       return;
     }
-    navigation.navigate(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+    navigation.push(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
       initialTab: 'following',
       ...(isOwner ? {} : { addressOrId }),
     });

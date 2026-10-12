@@ -55,6 +55,15 @@ jest.mock('../../../hooks/useFollowToggle', () => ({
   }),
 }));
 
+const mockUseSessionProfileId = jest.fn(() => ({
+  profileId: undefined as string | undefined,
+  isLoading: false,
+}));
+
+jest.mock('../../../../util/notifications/hooks/useSessionProfileId', () => ({
+  useSessionProfileId: () => mockUseSessionProfileId(),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual(
     '@metamask/design-system-react-native',
@@ -106,6 +115,10 @@ describe('FollowConnectionsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = { initialTab: 'followers' };
+    mockUseSessionProfileId.mockReturnValue({
+      profileId: undefined,
+      isLoading: false,
+    });
     mockIsFollowing.mockImplementation((id: string) => id === 'trader-1');
     mockUseFollowedTraders.mockReturnValue({
       traders: followingTraders,
@@ -325,5 +338,131 @@ describe('FollowConnectionsView', () => {
       screen.getByTestId(FollowConnectionsViewSelectorsIDs.FOLLOWING_LIST),
     ).toBeOnTheScreen();
     expect(mockUseTraderFollowing).toHaveBeenCalled();
+  });
+
+  it('hides Follow on the signed-in viewer row in another trader followers list', () => {
+    mockRouteParams = { initialTab: 'followers', addressOrId: '0xabc' };
+    mockUseSessionProfileId.mockReturnValue({
+      profileId: 'me-profile',
+      isLoading: false,
+    });
+    mockUseFollowers.mockImplementation((options) => {
+      if (options?.mutuals) {
+        return emptyFollowers;
+      }
+      return {
+        followers: [
+          {
+            id: 'me-profile',
+            username: 'Me',
+            handle: '0xaaaa...aaaa',
+            address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          },
+          ...liveFollowers,
+        ],
+        count: 2,
+        isLoading: false,
+        error: null,
+        refresh: mockRefreshFollowers,
+      };
+    });
+
+    renderWithProvider(<FollowConnectionsView />);
+
+    expect(
+      screen.queryByTestId(getConnectionFollowButtonTestId('me-profile')),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(getConnectionFollowButtonTestId('follower-1')),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens owner profile chrome when the viewer row is tapped', () => {
+    mockRouteParams = { initialTab: 'followers', addressOrId: '0xabc' };
+    mockUseSessionProfileId.mockReturnValue({
+      profileId: 'me-profile',
+      isLoading: false,
+    });
+    mockUseFollowers.mockImplementation((options) => {
+      if (options?.mutuals) {
+        return emptyFollowers;
+      }
+      return {
+        followers: [
+          {
+            id: 'me-profile',
+            username: 'Me',
+            handle: '0xaaaa...aaaa',
+            address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          },
+        ],
+        count: 1,
+        isLoading: false,
+        error: null,
+        refresh: mockRefreshFollowers,
+      };
+    });
+
+    renderWithProvider(<FollowConnectionsView />);
+
+    fireEvent.press(screen.getByTestId(getConnectionRowTestId('me-profile')));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.V1_PROFILE,
+      undefined,
+      {},
+    );
+    expect(mockToggleFollow).not.toHaveBeenCalled();
+  });
+
+  it('selects the incoming tab when the connections screen is reused', () => {
+    mockRouteParams = { initialTab: 'following' };
+
+    const { rerender } = renderWithProvider(<FollowConnectionsView />);
+
+    expect(
+      screen.getByTestId(FollowConnectionsViewSelectorsIDs.FOLLOWING_LIST),
+    ).toBeOnTheScreen();
+
+    mockRouteParams = { initialTab: 'followers', addressOrId: '0xabc' };
+    rerender(<FollowConnectionsView />);
+
+    expect(
+      screen.getByTestId(FollowConnectionsViewSelectorsIDs.FOLLOWERS_LIST),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(FollowConnectionsViewSelectorsIDs.MUTUALS_TAB),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides Follow on the signed-in viewer row in another trader following list', () => {
+    mockRouteParams = { initialTab: 'following', addressOrId: '0xabc' };
+    mockUseSessionProfileId.mockReturnValue({
+      profileId: 'me-profile',
+      isLoading: false,
+    });
+    mockUseTraderFollowing.mockReturnValue({
+      traders: [
+        {
+          id: 'me-profile',
+          username: 'Me',
+          address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        },
+        followingTraders[1],
+      ],
+      count: 2,
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshFollowing,
+    });
+
+    renderWithProvider(<FollowConnectionsView />);
+
+    expect(
+      screen.queryByTestId(getConnectionFollowButtonTestId('me-profile')),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(getConnectionFollowButtonTestId('trader-2')),
+    ).toBeOnTheScreen();
   });
 });
