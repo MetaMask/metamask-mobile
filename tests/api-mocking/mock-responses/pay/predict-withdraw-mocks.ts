@@ -8,6 +8,8 @@ import { mockMoneyAccountApis } from './money-account-deposit-mocks';
 import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
 import {
+  dataApiJsonResponse,
+  getProxiedDataApiUrl,
   POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS,
   POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS,
   POLYMARKET_POLYGON_RELAY_POLLING_MOCKS,
@@ -180,43 +182,40 @@ async function mockPredictWithdrawalActivity(mockServer: Mockttp) {
     .forGet('/proxy')
     .asPriority(1002)
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
+      const url = getProxiedDataApiUrl(request.url) ?? '';
       return url.includes('data-api.polymarket.com/activity');
     })
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
+      const url = getProxiedDataApiUrl(request.url) ?? '';
       const userMatch = url.match(/user=(0x[a-fA-F0-9]{40})/u);
       const userAddress = userMatch?.[1] ?? DEFAULT_FIXTURE_ACCOUNT;
 
-      return {
-        statusCode: 200,
-        json: [
-          {
-            proxyWallet: userAddress,
-            timestamp: Math.floor(Date.now() / 1000),
-            conditionId:
-              '0x0000000000000000000000000000000000000000000000000000000000000000',
-            type: 'WITHDRAWAL',
-            size: 5,
-            usdcSize: 5,
-            transactionHash: PREDICT_WITHDRAW_TX_HASH,
-            price: 1,
-            asset: '0',
-            side: 'WITHDRAW',
-            outcomeIndex: 0,
-            title: 'Prediction withdrawal',
-            slug: 'prediction-withdrawal',
-            icon: '',
-            eventSlug: 'prediction-withdrawal',
-            outcome: 'Prediction withdrawal',
-            name: 'MetaMask',
-            pseudonym: 'MetaMask',
-            bio: '',
-            profileImage: '',
-            profileImageOptimized: '',
-          },
-        ],
-      };
+      return dataApiJsonResponse(request.url, 'activity', [
+        {
+          proxyWallet: userAddress,
+          timestamp: Math.floor(Date.now() / 1000),
+          conditionId:
+            '0x0000000000000000000000000000000000000000000000000000000000000000',
+          type: 'WITHDRAWAL',
+          size: 5,
+          usdcSize: 5,
+          transactionHash: PREDICT_WITHDRAW_TX_HASH,
+          price: 1,
+          asset: '0',
+          side: 'WITHDRAW',
+          outcomeIndex: 0,
+          title: 'Prediction withdrawal',
+          slug: 'prediction-withdrawal',
+          icon: '',
+          eventSlug: 'prediction-withdrawal',
+          outcome: 'Prediction withdrawal',
+          name: 'MetaMask',
+          pseudonym: 'MetaMask',
+          bio: '',
+          profileImage: '',
+          profileImageOptimized: '',
+        },
+      ]);
     });
 }
 

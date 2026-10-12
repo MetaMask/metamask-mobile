@@ -6,7 +6,6 @@ import React, { useState } from 'react';
 import { Image, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -29,6 +28,8 @@ import {
   PERPS_GTM_WHATS_NEW_MODAL,
 } from '../../constants/perpsConfig';
 import {
+  ButtonBase,
+  ButtonBaseSize,
   FontWeight,
   Text,
   TextVariant,
@@ -145,20 +146,13 @@ const PerpsGTMModal = () => {
         <ButtonBase
           onPress={() => tryPerpsNow()}
           testID={PerpsGTMModalSelectorsIDs.PERPS_TRY_NOW_BUTTON}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
+          size={ButtonBaseSize.Lg}
+          isFullWidth
           style={styles.tryNowButton}
-          activeOpacity={0.6}
-          label={
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              style={styles.tryNowButtonText}
-            >
-              {strings('perps.gtm_content.try_now')}
-            </Text>
-          }
-        />
+          textProps={{ style: styles.tryNowButtonText }}
+        >
+          {strings('perps.gtm_content.try_now')}
+        </ButtonBase>
         <Button
           variant={ButtonVariants.Secondary}
           onPress={() => handleClose()}

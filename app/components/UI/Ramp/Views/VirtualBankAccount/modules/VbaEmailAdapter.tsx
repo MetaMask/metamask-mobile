@@ -40,9 +40,12 @@ const VbaEmailAdapter = () => {
     async (email: string): Promise<void> => {
       const sessionEmail = boundEmail || email.trim();
       try {
+        const aal2Token =
+          await Engine.context.AuthenticationController.getBearerToken();
         await Engine.context.KycController.startSession({
           vendor: VBA_KYC_VENDOR,
           email: sessionEmail,
+          aal2Token,
         });
 
         const walletAddress = selectSelectedVbaWalletAddress(

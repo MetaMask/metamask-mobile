@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
@@ -58,11 +59,22 @@ describe('PerpsProPositionCard', () => {
       expect(
         screen.getByTestId('cross-liquidation-info-pro-ETH'),
       ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE),
-      ).toHaveTextContent(
-        liquidationPrice === null ? 'No liquidation price' : '$2,500 (13.79%)',
+      const liquidationValue = screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE,
       );
+      if (liquidationPrice === null) {
+        expect(liquidationValue).toHaveTextContent('No liquidation price');
+      } else {
+        expect(liquidationValue).toHaveTextContent('$2,500');
+        expect(
+          screen.getByTestId(
+            PerpsProMarketViewSelectorsIDs.POSITION_LIQ_DISTANCE,
+          ),
+        ).toHaveTextContent('13.79%');
+        expect(
+          screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_TREND),
+        ).toBeOnTheScreen();
+      }
       expect(screen.getByText('Position margin used')).toBeOnTheScreen();
       expect(
         screen.queryByTestId(
@@ -119,11 +131,22 @@ describe('PerpsProPositionCard', () => {
       expect(
         screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE),
       ).toHaveTextContent(DOTS_SHORT);
-      expect(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE),
-      ).not.toHaveTextContent(
-        liquidationPrice === null ? 'No liquidation price' : '$2,500 (13.79%)',
+      const liquidationValue = screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE,
       );
+      if (liquidationPrice === null) {
+        expect(liquidationValue).not.toHaveTextContent('No liquidation price');
+      } else {
+        expect(liquidationValue).not.toHaveTextContent('$2,500');
+      }
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITION_LIQ_DISTANCE,
+        ),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_TREND),
+      ).toBeNull();
     },
   );
 
@@ -170,14 +193,23 @@ describe('PerpsProPositionCard', () => {
     expect(screen.getByText('$3,000')).toBeOnTheScreen();
   });
 
-  it('appends the liquidation distance in parentheses to the liquidation price', () => {
+  it('renders liquidation price, distance, and long trend separately', () => {
     // Mark 4350 / 1.5 = 2900, liq 2500 → (2900 - 2500) / 2900 = 13.79%
     render(<PerpsProPositionCard position={position} />);
 
-    expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('$2,500 (13.79%)')).toBeOnTheScreen();
+    const liquidationValue = screen.getByTestId(
+      PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE,
+    );
+    const liquidationDistance = screen.getByTestId(
+      PerpsProMarketViewSelectorsIDs.POSITION_LIQ_DISTANCE,
+    );
+    const liquidationTrend = screen.getByTestId(
+      PerpsProMarketViewSelectorsIDs.POSITION_LIQ_TREND,
+    );
+    expect(liquidationValue).toHaveTextContent('$2,500');
+    expect(liquidationDistance).toHaveTextContent('13.79%');
+    expect(liquidationValue).not.toHaveTextContent('(');
+    expect(liquidationTrend.props.name).toBe(IconName.TrendDown);
   });
 
   it('measures the liquidation distance against the live mark price', () => {
@@ -188,7 +220,8 @@ describe('PerpsProPositionCard', () => {
       />,
     );
 
-    expect(screen.getByText('$2,500 (25.00%)')).toBeOnTheScreen();
+    expect(screen.getByText('$2,500')).toBeOnTheScreen();
+    expect(screen.getByText('25.00%')).toBeOnTheScreen();
   });
 
   it('reports the distance as a positive value for a short position', () => {
@@ -199,7 +232,16 @@ describe('PerpsProPositionCard', () => {
       />,
     );
 
-    expect(screen.getByText('$3,200 (10.34%)')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE),
+    ).toHaveTextContent('$3,200');
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_DISTANCE),
+    ).toHaveTextContent('10.34%');
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_TREND)
+        .props.name,
+    ).toBe(IconName.TrendUp);
   });
 
   it('renders the fallback when the position has no liquidation price', () => {
@@ -209,7 +251,9 @@ describe('PerpsProPositionCard', () => {
       />,
     );
 
-    expect(screen.getByText('$---')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE),
+    ).toHaveTextContent('$---');
   });
 
   it('renders the liquidation price without a distance when size is zero', () => {
@@ -217,6 +261,14 @@ describe('PerpsProPositionCard', () => {
     render(<PerpsProPositionCard position={{ ...position, size: '0' }} />);
 
     expect(screen.getByText('$2,500')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITION_LIQ_DISTANCE,
+      ),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_TREND),
+    ).toBeNull();
   });
 
   it('renders a zero-size position with a short direction', () => {
