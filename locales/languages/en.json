@@ -8192,9 +8192,7 @@
     },
     "passkey": {
       "title_setup": "Create a passkey",
-      "title_verify": "Use your passkey",
-      "description": "Your device will ask you to confirm.",
-      "continue": "Continue"
+      "title_verify": "Use your passkey"
     },
     "success": {
       "title": "You're all set",
