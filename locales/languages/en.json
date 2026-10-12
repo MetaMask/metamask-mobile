@@ -9814,7 +9814,7 @@
         "week": "{{count}} week",
         "month": "{{count}} month"
       },
-      "est_network_fee": "Delegation fee (one time)",
+      "est_network_fee": "Account upgrade fee",
       "includes_metamask_fee": "Includes MetaMask fee",
       "account_upgrade_fee_info_title": "Account upgrade fee",
       "account_upgrade_fee_info_body": "Upgrading to a smart account lets you execute limit orders. Like all on-chain actions, this has a small network fee.",
