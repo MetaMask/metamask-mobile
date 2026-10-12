@@ -1,7 +1,8 @@
 import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
-import QuickCrypto from 'react-native-quick-crypto';
+// eslint-disable-next-line import-x/no-nodejs-modules
+import { webcrypto } from 'crypto';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import {
@@ -160,21 +161,43 @@ const buyPreview: OrderPreview = {
 
 describe('polymarket utils', () => {
   describe('buildPolyHmacSignature', () => {
-    it('creates a URL-safe SHA-256 signature with native crypto', async () => {
-      const secret = 'c2VjcmV0';
+    const originalSubtle = global.crypto.subtle;
 
+    beforeAll(() => {
+      Object.defineProperty(global.crypto, 'subtle', {
+        value: webcrypto.subtle,
+        configurable: true,
+      });
+    });
+
+    afterAll(() => {
+      Object.defineProperty(global.crypto, 'subtle', {
+        value: originalSubtle,
+        configurable: true,
+      });
+    });
+
+    it('creates a base64 HMAC-SHA256 signature of the request', async () => {
       const result = await buildPolyHmacSignature(
-        secret,
+        'c2VjcmV0',
         1_700_000_000,
         'GET',
         '/orders',
       );
 
-      expect(QuickCrypto.createHmac).toHaveBeenCalledWith(
-        'sha256',
-        Buffer.from(secret, 'base64'),
-      );
       expect(result).toBe('5pq6uRxdFFvJzbzIJRObr9401649NDsVtb6H2TgxZRY=');
+    });
+
+    it('signs the body and returns URL-safe base64 with padding', async () => {
+      const result = await buildPolyHmacSignature(
+        'c2VjcmV0',
+        1_700_000_000,
+        'POST',
+        '/order',
+        '{"order":2}',
+      );
+
+      expect(result).toBe('pRzrxeC2oeF_Dk2ipne3W7ErhC-B2Xee-DusSbPAkUE=');
     });
   });
 
