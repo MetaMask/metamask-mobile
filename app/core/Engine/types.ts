@@ -13,7 +13,6 @@ import {
   NftControllerActions,
   NftControllerEvents,
   NftDetectionController,
-  TokenListService,
   AssetsContractController,
   AssetsContractControllerActions,
   AssetsContractControllerEvents,
@@ -1302,14 +1301,6 @@ export type MessengerClientInitRequest<
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
 
   /**
-   * Shared token list service instance.
-   * Owns a TanStack Query cache (4-hour stale time) so that both
-   * TokenDetectionController and TokensController share the same in-memory
-   * cache without redundant network requests.
-   */
-  tokenListService: TokenListService;
-
-  /**
    * Controller messenger for the client.
    * Used to generate controller for each controller.
    */
@@ -1408,7 +1399,6 @@ export interface InitMessengerClientsFunctionRequest {
   getState: () => RootState;
   analyticsId: string;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
-  tokenListService: TokenListService;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   removeAccount: (address: string) => Promise<void>;
   ///: END:ONLY_INCLUDE_IF

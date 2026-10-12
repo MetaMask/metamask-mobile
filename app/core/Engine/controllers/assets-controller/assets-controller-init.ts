@@ -88,19 +88,13 @@ function getApiClient(
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @param request.persistedState - The persisted state of the extension.
  * @param request.initMessenger - The init messenger to use for the controller.
- * @param request.getMessengerClient - Function to get a controller by name.
  * @returns The initialized controller.
  */
 export const assetsControllerInit: MessengerClientInitFunction<
   AssetsController,
   AssetsControllerMessenger,
   AssetsControllerInitMessenger
-> = ({
-  controllerMessenger,
-  persistedState,
-  initMessenger,
-  getMessengerClient: _getController,
-}) => {
+> = ({ controllerMessenger, persistedState, initMessenger }) => {
   /**
    * Check if the AssetsController feature is enabled. AssetsController is
    * the sole source of truth for asset data (the legacy per-asset
