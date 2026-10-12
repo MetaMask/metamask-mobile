@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added the ability to send unconverted mUSD from a Money Account to an external address (#37216)
 - Added limit order creation. (#36785)
 - Connected limit order open orders and history to live data and added pull-to-refresh. (#36872)
 - Enabled limit order cancellations with loading and retry states. (#36924)
@@ -72,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed Perps Pro order form inputs flashing or losing focus on Android (#37471)
 - Fixed Arc USDC details from the Swap asset picker to show the native asset balance and details. (#37315)
 - Sped up the Perps market picker animation from the chart header. (#36946)
 - Blocked Perps limit orders priced more than 95% from the live market and showed the allowed range. (#37032)
