@@ -408,6 +408,7 @@ describe('TokenDetailsV1', () => {
       expect.objectContaining({
         currentTokenBalance: '2.5',
         hasTokenBalance: true,
+        isTokenDetailsV1: true,
         quickBuyEntrypointLayout: 'buy_sell',
         onOpenQuickBuy: expect.any(Function),
       }),

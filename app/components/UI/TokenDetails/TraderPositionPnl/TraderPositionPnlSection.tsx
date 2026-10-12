@@ -48,6 +48,7 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
       <TokenDetailsStickyFooter
         token={token}
         securityData={securityData}
+        isTokenDetailsV1
         currentTokenBalance={balance}
         hasTokenBalance={hasTokenBalance}
         onQuickBuyPress={onQuickBuyPress}

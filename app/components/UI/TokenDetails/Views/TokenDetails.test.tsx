@@ -734,7 +734,7 @@ describe('TokenDetails', () => {
 
       expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
       expect(getByText('Swap')).toBeOnTheScreen();
-      expect(getByText('Buy DAI')).toBeOnTheScreen();
+      expect(getByText('Buy')).toBeOnTheScreen();
     });
 
     it('does not show sticky buttons when RWA token is not tradable', () => {
@@ -749,7 +749,7 @@ describe('TokenDetails', () => {
       const { getByText } = render(<TokenDetails />);
 
       expect(getByText('Swap')).toBeOnTheScreen();
-      expect(getByText('Buy DAI')).toBeOnTheScreen();
+      expect(getByText('Buy')).toBeOnTheScreen();
     });
 
     it('passes scrollToTopOnNav when sticky Swap is pressed', () => {
@@ -769,7 +769,7 @@ describe('TokenDetails', () => {
       const { getByText, queryByText } = render(<TokenDetails />);
 
       expect(getByText('Swap')).toBeOnTheScreen();
-      expect(queryByText('Buy DAI')).toBeNull();
+      expect(queryByText('Buy')).toBeNull();
     });
 
     it('shows only Buy when user has no eligible swap tokens', () => {
@@ -782,7 +782,7 @@ describe('TokenDetails', () => {
 
       const { getByText, queryByText } = render(<TokenDetails />);
 
-      expect(getByText('Buy DAI')).toBeOnTheScreen();
+      expect(getByText('Buy')).toBeOnTheScreen();
       expect(queryByText('Swap')).toBeNull();
     });
   });
@@ -1559,7 +1559,7 @@ describe('TokenDetails', () => {
     it('fires TOKEN_DETAILS_CLOSED with cta_clicked when Buy is pressed', () => {
       const { getByText } = render(<TokenDetails />);
 
-      fireEvent.press(getByText('Buy DAI'));
+      fireEvent.press(getByText('Buy'));
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.TOKEN_DETAILS_CLOSED,

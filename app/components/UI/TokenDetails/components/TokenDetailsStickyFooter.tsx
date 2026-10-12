@@ -57,6 +57,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+    paddingVertical: 4,
+  },
+  traderPositionFooter: {
     paddingTop: 4,
     paddingBottom: 0,
   },
@@ -144,6 +147,8 @@ interface TokenStickyFooterProps {
   sourcePage?: string;
   /** Whether the ambient price color A/B test treatment is active. */
   useAmbientColor?: boolean;
+  /** Enables the updated button treatment used by the feature-flagged V1 page. */
+  isTokenDetailsV1?: boolean;
   /** Optional trader position header rendered above the footer actions. */
   traderPositionPnl?: TraderPositionPnlProps;
 }
@@ -168,6 +173,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   onOpenQuickBuy,
   sourcePage,
   useAmbientColor = false,
+  isTokenDetailsV1 = false,
   traderPositionPnl,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -244,9 +250,10 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const showMoneyDepositButton = isMoneyDepositCtaActive;
   const showBothButtons = showSwapButton && showBuyButton;
   const showQuickBuyButton = Boolean(onQuickBuyPress);
-  const buyButtonLabel = token.symbol
-    ? strings('asset_overview.buy_token_button', { symbol: token.symbol })
-    : strings('asset_overview.buy_button');
+  const buyButtonLabel =
+    isTokenDetailsV1 && token.symbol
+      ? strings('asset_overview.buy_token_button', { symbol: token.symbol })
+      : strings('asset_overview.buy_button');
   const isTraderPositionExpanded = Boolean(traderPositionPnl?.isExpanded);
   const onToggleTraderPositionExpanded = traderPositionPnl?.onToggleExpanded;
   const expandedDetailsHeight = useSharedValue(
@@ -579,7 +586,10 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
   const footerActions = (
     <>
-      <View testID="bottomsheetfooter" style={styles.footer}>
+      <View
+        testID="bottomsheetfooter"
+        style={isTokenDetailsV1 ? styles.traderPositionFooter : styles.footer}
+      >
         {showSwapButton && !isBuySellLayout && (
           <Button
             testID={swapTestID}
@@ -650,10 +660,16 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         {isBuySellLayout && hasTokenBalance && (
           <Button
             testID="token-details-footer-quick-sell"
-            variant={ButtonVariant.Primary}
+            variant={
+              isTokenDetailsV1 ? ButtonVariant.Primary : ButtonVariant.Secondary
+            }
             style={styles.iconButton}
-            twClassName="bg-error-default"
-            textProps={ERROR_TEXT_PROPS}
+            twClassName={
+              isTokenDetailsV1
+                ? 'bg-error-default'
+                : `bg-transparent ${successBorder}`
+            }
+            textProps={isTokenDetailsV1 ? ERROR_TEXT_PROPS : secondaryTextProps}
             onPress={() => handleOpenQuickBuy('sell')}
           >
             {strings('asset_overview.sell_button')}

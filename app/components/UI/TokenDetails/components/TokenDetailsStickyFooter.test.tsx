@@ -128,6 +128,7 @@ const defaultProps = {
   token: mockToken,
   securityData: mockSecurityData,
   balanceFiatUsd: 50,
+  isTokenDetailsV1: true,
 };
 
 const setupSelectorMock = (geolocation?: string) => {
@@ -152,12 +153,35 @@ describe('TokenDetailsStickyFooter', () => {
   describe('button visibility', () => {
     it('renders the legacy footer in flow without the bottom sheet dialog', () => {
       const { getByTestId, queryByTestId } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
+        <TokenDetailsStickyFooter {...defaultProps} isTokenDetailsV1={false} />,
       );
 
       expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
       expect(queryByTestId('token-details-sticky-footer')).toBeNull();
       expect(queryByTestId('token-details-sticky-footer-surface')).toBeNull();
+    });
+
+    it('keeps the legacy button treatment when V1 is disabled', () => {
+      const onOpenQuickBuy = jest.fn();
+      const { getByText, getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          isTokenDetailsV1={false}
+          hasTokenBalance
+          quickBuyEntrypointLayout="buy_sell"
+          onOpenQuickBuy={onOpenQuickBuy}
+        />,
+      );
+
+      expect(getByText('Buy')).toBeOnTheScreen();
+      expect(getByTestId('token-details-footer-quick-sell')).toHaveProp(
+        'variant',
+        ButtonVariant.Secondary,
+      );
+      expect(getByTestId('token-details-footer-quick-sell')).toHaveProp(
+        'twClassName',
+        expect.stringContaining('bg-transparent'),
+      );
     });
 
     it('renders the trader position header above the footer actions', () => {
