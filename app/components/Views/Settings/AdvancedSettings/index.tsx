@@ -8,7 +8,6 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 
 // External dependencies.
 import Engine from '../../../../core/Engine';
-import { baseStyles } from '../../../../styles/common';
 import {
   setShowFiatOnTestnets as setShowFiatOnTestnetsAction,
   setShowHexData as setShowHexDataAction,
@@ -161,7 +160,7 @@ const AdvancedSettings = ({
   };
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.safeArea}>
       <HeaderStandard
         title={strings('app_settings.advanced_title')}
         onBack={() => navigation.goBack()}
