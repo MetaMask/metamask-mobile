@@ -7,6 +7,7 @@ import {
 import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map';
 import { USDC_MAINNET } from '../../../constants/musd-mainnet';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
+import { toWeiHex } from '../../../framework/fixtures/mmpay-token-holdings-registry';
 
 const MAINNET_SPOT_PRICES = {
   'eip155:1/slip44:60': {
@@ -91,6 +92,7 @@ export async function MONEY_ACCOUNT_DEPOSIT_MOCKS(
   await mockMonadTokenApi(mockServer);
   await mockMainnetRpc(mockServer);
   await mockMonadRpc(mockServer);
+  await mockMixedFundingRpc(mockServer);
   await mockMainnetSentinel(mockServer);
   await mockMonadSentinel(mockServer);
   await mockSentinelNetworks(mockServer);
@@ -138,17 +140,19 @@ function isExactMainnetRpcUrl(url: string | null): boolean {
   );
 }
 
-// Gas, block, and transaction methods the fiat test-funding transfer needs on
-// mainnet. `eth_call` and `eth_getBalance` are deliberately absent: balance
-// reads and Multicall3 aggregate3 belong to the holdings mocks, which keep
-// seeded balances consistent and return `0x` so AssetsController falls back
-// to per-call reads.
+// Gas, block, and transaction methods the fiat test-funding transfer needs.
+// `eth_call` and `eth_getBalance` stay out of this set: balance reads and
+// Multicall3 aggregate3 belong to the holdings mocks, which keep seeded
+// balances consistent and return `0x` so AssetsController falls back to
+// per-call reads. A batch that also contains one of those calls is claimed
+// by mockMixedFundingRpc so the funding call is not answered as `0x` / `0x0`.
 const MAINNET_DEPOSIT_RPC_METHODS = new Set([
   'eth_blockNumber',
   'eth_chainId',
   'eth_estimateGas',
   'eth_feeHistory',
   'eth_gasPrice',
+  'eth_getBlockByHash',
   'eth_getBlockByNumber',
   'eth_getCode',
   'eth_getTransactionByHash',
@@ -168,25 +172,13 @@ async function mockMainnetRpc(mockServer: Mockttp) {
       const url = new URL(request.url).searchParams.get('url');
       if (!isExactMainnetRpcUrl(url)) return false;
 
-      try {
-        const bodyText = await request.body.getText();
-        const body = bodyText ? JSON.parse(bodyText) : {};
-        const calls = (Array.isArray(body) ? body : [body]) as Record<
-          string,
-          unknown
-        >[];
-        // Only claim requests made up entirely of these methods. A batch that
-        // also carries a balance read or aggregate3 is left to the holdings
-        // mocks so their fallback semantics are untouched.
-        return (
-          calls.length > 0 &&
-          calls.every((call) =>
-            MAINNET_DEPOSIT_RPC_METHODS.has(String(call?.method)),
-          )
-        );
-      } catch {
-        return false;
-      }
+      const calls = await rpcCallsFromRequest(request);
+      // Only claim requests made up entirely of these methods. A batch that
+      // also carries a balance read or aggregate3 is left to mockMixedFundingRpc.
+      if (!calls?.length) return false;
+      return calls.every((call) =>
+        MAINNET_DEPOSIT_RPC_METHODS.has(String(call?.method)),
+      );
     })
     .thenCallback(async (request) => {
       const body = (await request.body.getJson()) as
@@ -237,6 +229,48 @@ const MONAD_GAS_PRICE = '0x3b9aca00';
 const MAINNET_TX_HASH =
   '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
 
+async function rpcCallsFromRequest(request: {
+  body: { getText(): Promise<string | undefined> };
+}): Promise<Record<string, unknown>[] | undefined> {
+  try {
+    const bodyText = await request.body.getText();
+    const body = bodyText ? JSON.parse(bodyText) : {};
+    return (Array.isArray(body) ? body : [body]) as Record<string, unknown>[];
+  } catch {
+    return undefined;
+  }
+}
+
+function fundingBlock() {
+  return {
+    number: '0x1234568',
+    hash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+    parentHash:
+      '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+    gasLimit: '0x1c9c380',
+    gasUsed: '0x94670',
+    baseFeePerGas: '0x989680',
+    timestamp: '0x68c0c0c0',
+  };
+}
+
+function fundingTransaction(hash: string) {
+  return {
+    hash,
+    blockNumber: '0x1234568',
+    blockHash:
+      '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+    transactionIndex: '0x0',
+    from: DEFAULT_FIXTURE_ACCOUNT,
+    to: DEFAULT_FIXTURE_ACCOUNT,
+    value: '0x0',
+    input: '0x',
+    nonce: '0x1',
+    gas: '0x186a0',
+    gasPrice: '0x3b9aca00',
+  };
+}
+
 function mainnetSuccessReceipt(hash: string) {
   return {
     transactionHash: hash,
@@ -266,20 +300,7 @@ function resolveMainnetDepositRpc(body: Record<string, unknown>): unknown {
     case 'eth_getTransactionReceipt':
       return mainnetSuccessReceipt(requestedHash);
     case 'eth_getTransactionByHash':
-      return {
-        hash: requestedHash,
-        blockNumber: '0x1234568',
-        blockHash:
-          '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-        transactionIndex: '0x0',
-        from: DEFAULT_FIXTURE_ACCOUNT,
-        to: DEFAULT_FIXTURE_ACCOUNT,
-        value: '0x0',
-        input: '0x',
-        nonce: '0x1',
-        gas: '0x186a0',
-        gasPrice: '0x3b9aca00',
-      };
+      return fundingTransaction(requestedHash);
     case 'eth_sendRawTransaction':
     case 'eth_sendTransaction':
       return MAINNET_TX_HASH;
@@ -296,19 +317,12 @@ function resolveMainnetDepositRpc(body: Record<string, unknown>): unknown {
     case 'eth_gasPrice':
     case 'eth_maxPriorityFeePerGas':
       return '0x3b9aca00';
+    case 'eth_getBlockByHash':
     case 'eth_getBlockByNumber':
-      // A type-2 funding transfer reads baseFeePerGas. The default Infura
-      // stub returns `0x0` for this method, which fails the transfer.
-      return {
-        number: '0x1234568',
-        hash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-        parentHash:
-          '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-        gasLimit: '0x1c9c380',
-        gasUsed: '0x94670',
-        baseFeePerGas: '0x989680',
-        timestamp: '0x68c0c0c0',
-      };
+      // A type-2 funding transfer reads baseFeePerGas. Confirmation loads the
+      // block by hash after the receipt. The default Infura stub returns
+      // `0x0` for both methods, which leaves the transfer unconfirmed.
+      return fundingBlock();
     case 'eth_feeHistory':
       return {
         oldestBlock: '0x1234568',
@@ -387,6 +401,11 @@ function resolveMonadRpcResult(body: Record<string, unknown>): unknown {
     return mockHash;
   }
 
+  if (method === 'eth_getTransactionByHash') {
+    const requestedHash = (body?.params as string[])?.[0] ?? mockHash;
+    return fundingTransaction(requestedHash);
+  }
+
   if (method === 'eth_call') {
     const call = (body?.params as Record<string, string>[])?.[0];
     const data = String(call?.data);
@@ -418,19 +437,10 @@ function resolveMonadRpcResult(body: Record<string, unknown>): unknown {
   if (method === 'eth_gasPrice' || method === 'eth_maxPriorityFeePerGas') {
     return MONAD_GAS_PRICE;
   }
-  if (method === 'eth_getBlockByNumber') {
+  if (method === 'eth_getBlockByHash' || method === 'eth_getBlockByNumber') {
     // A type-2 funding transfer reads baseFeePerGas. Falling through to `0x`
     // marks the Money deposit failed.
-    return {
-      number: '0x1234568',
-      hash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-      parentHash:
-        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-      gasLimit: '0x1c9c380',
-      gasUsed: '0x94670',
-      baseFeePerGas: '0x989680',
-      timestamp: '0x68c0c0c0',
-    };
+    return fundingBlock();
   }
   if (method === 'eth_feeHistory') {
     return {
@@ -459,8 +469,10 @@ function resolveMonadRpcResult(body: Record<string, unknown>): unknown {
   return '0x';
 }
 
-function isMonadRpcRequest(url: string | null, port: number): boolean {
-  return Boolean(url?.includes('monad')) || String(port) === '8546';
+function isMonadRpcRequest(url: string | null): boolean {
+  // The Monad network client's RPC is the disabled local node (localhost:8546),
+  // so its proxied calls carry that host rather than a monad hostname.
+  return Boolean(url?.includes('monad') || url?.includes('8546'));
 }
 
 async function mockMonadRpc(mockServer: Mockttp) {
@@ -469,9 +481,7 @@ async function mockMonadRpc(mockServer: Mockttp) {
     .asPriority(1001)
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      // The Monad network client's RPC is the disabled local node (localhost:8546),
-      // so its proxied calls carry that host rather than a monad hostname.
-      return Boolean(url?.includes('monad') || url?.includes('8546'));
+      return isMonadRpcRequest(url);
     })
     .thenCallback(async (request) => {
       const body = (await request.body.getJson()) as
@@ -495,6 +505,107 @@ async function mockMonadRpc(mockServer: Mockttp) {
           id: body?.id ?? 1,
           jsonrpc: '2.0',
           result: resolveMonadRpcResult(body),
+        },
+      };
+    });
+}
+
+const MULTICALL3_ADDRESS = '0xca11bde05977b3631167028862be2a173976ca11';
+
+function ethCallArg(
+  call: Record<string, unknown>,
+): { to?: string; data?: string } | undefined {
+  const params = call.params;
+  if (!Array.isArray(params)) return undefined;
+  const arg = params[0];
+  if (!arg || typeof arg !== 'object') return undefined;
+  return arg as { to?: string; data?: string };
+}
+
+function isAggregate3Call(call: Record<string, unknown>): boolean {
+  const arg = ethCallArg(call);
+  return (
+    call.method === 'eth_call' &&
+    arg?.to?.toLowerCase() === MULTICALL3_ADDRESS &&
+    String(arg?.data ?? '')
+      .toLowerCase()
+      .startsWith(MULTICALL3_AGGREGATE3_SELECTOR)
+  );
+}
+
+function isBalanceRead(call: Record<string, unknown>): boolean {
+  if (call.method === 'eth_getBalance') return true;
+  return (
+    call.method === 'eth_call' &&
+    String(ethCallArg(call)?.data ?? '')
+      .toLowerCase()
+      .startsWith(ERC20_BALANCE_OF_SELECTOR)
+  );
+}
+
+function seededBalance(call: Record<string, unknown>, monad: boolean): string {
+  if (call.method === 'eth_getBalance') {
+    return monad ? MON_BALANCE_20 : toWeiHex('1', 18);
+  }
+  if (!monad) return toWeiHex('500', 6);
+  return ethCallArg(call)?.to?.toLowerCase() === MUSD_MONAD_ADDRESS
+    ? MUSD_BALANCE_10
+    : UINT256_ZERO;
+}
+
+function resolveMixedFundingCall(
+  call: Record<string, unknown>,
+  monad: boolean,
+): unknown {
+  const method = String(call.method ?? '');
+  if (MAINNET_DEPOSIT_RPC_METHODS.has(method)) {
+    return monad ? resolveMonadRpcResult(call) : resolveMainnetDepositRpc(call);
+  }
+  if (isAggregate3Call(call)) return '0x';
+  if (isBalanceRead(call)) return seededBalance(call, monad);
+  return monad ? resolveMonadRpcResult(call) : resolveMainnetDepositRpc(call);
+}
+
+// Above the holdings handlers (1003 aggregate3, 1002 balance). A batch that
+// contains a funding method is answered per call so receipt and block reads
+// keep baseFeePerGas when they share a request with a balance or aggregate3.
+async function mockMixedFundingRpc(mockServer: Mockttp) {
+  await mockServer
+    .forPost('/proxy')
+    .asPriority(1004)
+    .matching(async (request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      if (!isExactMainnetRpcUrl(url) && !isMonadRpcRequest(url)) return false;
+      const calls = await rpcCallsFromRequest(request);
+      if (!calls?.length) return false;
+      return calls.some((call) =>
+        MAINNET_DEPOSIT_RPC_METHODS.has(String(call.method)),
+      );
+    })
+    .thenCallback(async (request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      const monad = isMonadRpcRequest(url);
+      const body = (await request.body.getJson()) as
+        | Record<string, unknown>
+        | Record<string, unknown>[];
+
+      if (Array.isArray(body)) {
+        return {
+          statusCode: 200,
+          json: body.map((call) => ({
+            jsonrpc: '2.0',
+            id: call?.id ?? 1,
+            result: resolveMixedFundingCall(call, monad),
+          })),
+        };
+      }
+
+      return {
+        statusCode: 200,
+        json: {
+          id: body?.id ?? 1,
+          jsonrpc: '2.0',
+          result: resolveMixedFundingCall(body, monad),
         },
       };
     });
