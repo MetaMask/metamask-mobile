@@ -39,6 +39,11 @@ export interface UsePerpsAdjustMarginDataReturn {
   positionValue: number;
   /** Max amount that can be added/removed */
   maxAmount: number;
+  /**
+   * Largest amount the exchange accepts right now. For remove mode this has no
+   * price-move headroom, so a tick after choosing Max does not invalidate it.
+   */
+  exchangeMaxAmount: number;
   /** Current liquidation price */
   currentLiquidationPrice: number;
   /** New liquidation price after adjustment */
@@ -51,6 +56,8 @@ export interface UsePerpsAdjustMarginDataReturn {
   spendableBalance: number;
   /** Current market price */
   currentPrice: number;
+  /** 24h percent change from the price stream; null until available */
+  percentChange24h: number | null;
   /** Whether this is add mode */
   isAddMode: boolean;
   /** Position leverage */
@@ -166,6 +173,13 @@ export function usePerpsAdjustMarginData(
     [livePrices, symbol],
   );
 
+  const percentChange24h = useMemo(() => {
+    const rawPercentChange = Number.parseFloat(
+      livePrices?.[symbol]?.percentChange24h ?? '',
+    );
+    return Number.isFinite(rawPercentChange) ? rawPercentChange : null;
+  }, [livePrices, symbol]);
+
   const spendableBalance = useMemo(
     () => parseFiniteNumber(account?.spendableBalance),
     [account],
@@ -174,19 +188,24 @@ export function usePerpsAdjustMarginData(
   const positionLeverage =
     parsedPositionLeverage > 0 ? parsedPositionLeverage : maxLeverage;
 
-  // Calculate max removable/addable amount
-  const maxAmount = useMemo(() => {
+  // Calculate max removable/addable amount. The exchange max has no price-move
+  // headroom so it can validate an amount chosen before a tick.
+  const { maxAmount, exchangeMaxAmount } = useMemo(() => {
     if (isAddMode) {
-      return Math.max(0, spendableBalance);
+      const addable = Math.max(0, spendableBalance);
+      return { maxAmount: addable, exchangeMaxAmount: addable };
     }
-    return calculateMaxRemovableMargin({
-      currentMargin,
-      positionSize,
-      entryPrice,
-      currentPrice,
-      positionLeverage,
-      notionalValue: positionValue,
-    });
+    const removable = (priceMoveBufferRatio?: number) =>
+      calculateMaxRemovableMargin({
+        currentMargin,
+        positionSize,
+        entryPrice,
+        currentPrice,
+        positionLeverage,
+        notionalValue: positionValue,
+        priceMoveBufferRatio,
+      });
+    return { maxAmount: removable(), exchangeMaxAmount: removable(0) };
   }, [
     isAddMode,
     spendableBalance,
@@ -255,12 +274,14 @@ export function usePerpsAdjustMarginData(
     newMargin,
     positionValue,
     maxAmount,
+    exchangeMaxAmount,
     currentLiquidationPrice,
     newLiquidationPrice,
     currentLiquidationDistance,
     newLiquidationDistance,
     spendableBalance,
     currentPrice,
+    percentChange24h,
     isAddMode,
     positionLeverage,
   };

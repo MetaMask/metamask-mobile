@@ -137,6 +137,7 @@ export const PredictEventValues = {
     BUY_PREVIEW: 'buy_preview',
     HOME_SECTION: 'home_section',
     EXPLORE: 'explore',
+    EXPLORE_SEARCH: 'explore_search',
   },
   TRANSACTION_TYPE: {
     MM_PREDICT_BUY: 'mm_predict_buy',

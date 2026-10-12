@@ -30,6 +30,7 @@ const ETHEREUM_MAINNET_FLAGS = {
   network: 'ethereum-mainnet',
   explorer: 'https://etherscan.io',
   confirmations: true,
+  cubistSigners: ['0xB01caEa8c6C47bbf4F4b4c5080Ca642043359C2E'],
   smartTransactions: false,
   relayTransactions: true,
   hidden: false,

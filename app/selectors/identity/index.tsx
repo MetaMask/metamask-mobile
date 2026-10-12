@@ -94,6 +94,18 @@ export const selectNeedsSocialPairing = createSelector(
     authenticationControllerState.needsSocialPairing ?? true,
 );
 
+/**
+ * Selector that exposes the MFA credentials cached by the
+ * `AuthenticationController`. The cache is only filled by
+ * `refreshEnrolledCredentials()` and after an enrollment, so callers that need
+ * fresh data refresh first.
+ */
+export const selectEnrolledCredentials = createSelector(
+  selectAuthenticationControllerState,
+  (authenticationControllerState: AuthenticationState) =>
+    authenticationControllerState.enrolledCredentials ?? [],
+);
+
 // User Storage
 export const selectIsBackupAndSyncEnabled = createSelector(
   selectUserStorageControllerState,

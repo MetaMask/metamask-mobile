@@ -1,9 +1,15 @@
 import React from 'react';
 import { lightTheme } from '@metamask/design-tokens';
-import { screen, within } from '@testing-library/react-native';
+import {
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPositionCard, {
   PositionCardBody,
 } from './SocialFeedPositionCard';
@@ -25,6 +31,35 @@ import {
   getSocialFeedPostWinRateTestId,
 } from './SocialFeedPositionCard.testIds';
 import { MINUTE } from '../../../../constants/time';
+import Routes from '../../../../constants/navigation/Routes';
+import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeToPerps';
+
+const mockNavigate = jest.fn();
+const mockGate = jest.fn((action: () => Promise<void> | void) =>
+  Promise.resolve(action()),
+);
+const mockSelectPerpsEligibility = jest.fn(() => true);
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+jest.mock('../../Compliance', () => ({
+  useComplianceGate: () => ({ gate: mockGate }),
+}));
+
+jest.mock('../../Perps/selectors/perpsController', () => ({
+  selectPerpsEligibility: () => mockSelectPerpsEligibility(),
+}));
+
+jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <View testID={testID} />,
+  };
+});
 
 jest.mock('./PositionTokenAvatar', () => ({
   __esModule: true,
@@ -126,6 +161,36 @@ describe('SocialFeedPositionCard', () => {
     expect(statValue(item.id, 'entry')).toBe('$107,675');
     expect(statValue(item.id, 'autoClose')).toBe('TP $101,214 / SL $110,905');
     expect(statValue(item.id, 'cost')).toBe('$212,000.00');
+  });
+
+  it('forwards the open spot item when Copy trade is pressed', () => {
+    const item = mockOpenSpotFeedItem();
+    const onCopyTrade = jest.fn();
+
+    renderWithProvider(
+      <PositionCardBody item={item} onCopyTrade={onCopyTrade} />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+    );
+
+    expect(onCopyTrade).toHaveBeenCalledWith(item);
+  });
+
+  it('forwards the open perp item when Copy trade is pressed', () => {
+    const item = mockOpenPerpsFeedItem();
+    const onCopyTrade = jest.fn();
+
+    renderWithProvider(
+      <PositionCardBody item={item} onCopyTrade={onCopyTrade} />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+    );
+
+    expect(onCopyTrade).toHaveBeenCalledWith(item);
   });
 
   // One line, two figures: the title carries the leverage it qualifies, and the
@@ -420,6 +485,136 @@ describe('SocialFeedPositionCard', () => {
         cardTintOf(mockClosedSpotFeedItem({ isPnlPositive: false })),
       ).toContain(lightTheme.colors.error.default);
     });
+  });
+
+  describe('copy trade', () => {
+    beforeEach(() => {
+      mockNavigate.mockClear();
+      mockGate.mockImplementation((action: () => Promise<void> | void) =>
+        Promise.resolve(action()),
+      );
+      mockSelectPerpsEligibility.mockReturnValue(true);
+    });
+
+    it('opens the perps order redirect as a bottom sheet when the trader is eligible', async () => {
+      const item = mockOpenPerpsFeedItem();
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+      fireEvent.press(
+        screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+          screen: Routes.PERPS.ORDER_REDIRECT,
+          params: {
+            direction: 'short',
+            asset: 'BTC',
+            leverage: 40,
+            source: 'trader_feed',
+            useBottomSheet: true,
+            stayOnCurrentScreen: true,
+          },
+        });
+      });
+    });
+
+    it('opens copy trade with the HIP-3 market id, not the display ticker', async () => {
+      const item = mockOpenPerpsFeedItem({
+        tradeSymbol: 'xyz:TSLA',
+        asset: {
+          symbol: 'TSLA',
+          avatar: {
+            positionId: 'v1-pos-tsla-open',
+            chain: 'hyperliquid',
+            tokenAddress: '',
+            tokenImageUrl: null,
+            tokenSymbol: 'xyz:TSLA',
+          },
+        },
+      });
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+      fireEvent.press(
+        screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.MODALS.ROOT,
+          expect.objectContaining({
+            params: expect.objectContaining({ asset: 'xyz:TSLA' }),
+          }),
+        );
+      });
+    });
+
+    it('does not navigate when compliance blocks the action', async () => {
+      const item = mockOpenPerpsFeedItem();
+      mockGate.mockImplementation(() => Promise.resolve());
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+      fireEvent.press(
+        screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+      );
+
+      await waitFor(() => {
+        expect(mockGate).toHaveBeenCalled();
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(
+        screen.queryByTestId(SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID),
+      ).toBeNull();
+    });
+
+    it('shows the geo block and does not navigate when the trader is ineligible', async () => {
+      const item = mockOpenPerpsFeedItem();
+      mockSelectPerpsEligibility.mockReturnValue(false);
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+      fireEvent.press(
+        screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID),
+        ).toBeOnTheScreen();
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  it('hides an invented mark price and leaves a dash for an invented auto-close', () => {
+    const item = mockOpenPerpsFeedItem({
+      mockedFields: ['markPrice', 'autoClose'],
+    });
+
+    renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+    expect(screen.queryByText('$104,213')).toBeNull();
+    expect(
+      within(
+        screen.getByTestId(
+          getSocialFeedPositionCardStatTestId(item.id, 'autoClose'),
+        ),
+      ).getByText('\u2014'),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps invented values when the surface opts in', () => {
+    const item = mockOpenPerpsFeedItem({
+      mockedFields: ['markPrice', 'autoClose'],
+    });
+
+    renderWithProvider(
+      <SocialFeedSurfaceProvider showMockedFields>
+        <SocialFeedPositionCard item={item} />
+      </SocialFeedSurfaceProvider>,
+    );
+
+    expect(screen.getByText('$104,213')).toBeOnTheScreen();
+    expect(statValue(item.id, 'autoClose')).toBe('TP $101,214 / SL $110,905');
   });
 
   it('renders the position body without the post author header', () => {

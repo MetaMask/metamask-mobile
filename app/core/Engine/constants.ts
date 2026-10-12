@@ -44,6 +44,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'PredictOrderService',
   'RecurringOrdersDataService',
   'LimitOrdersDataService',
+  'SentinelFeeTokensDataService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [

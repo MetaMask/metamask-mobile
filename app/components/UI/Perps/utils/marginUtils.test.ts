@@ -28,8 +28,9 @@ describe('marginUtils', () => {
       // initialMarginRequired = 20000 / 50 = 400 (2%)
       // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
       // transferMarginRequired = max(400, 2000) = 2000
-      // maxRemovable = 3000 - 2000 = 1000
-      expect(result).toBe(1000);
+      // priceMoveBuffer = 20000 * 0.01 = 200
+      // maxRemovable = 3000 - 2000 - 200 = 800
+      expect(result).toBe(800);
     });
 
     it('uses leverage-based minimum when it exceeds 10% (low leverage)', () => {
@@ -46,8 +47,9 @@ describe('marginUtils', () => {
       // initialMarginRequired = 20000 / 5 = 4000 (20%)
       // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
       // transferMarginRequired = max(4000, 2000) = 4000
-      // maxRemovable = 5000 - 4000 = 1000
-      expect(result).toBe(1000);
+      // priceMoveBuffer = 20000 * 0.01 = 200
+      // maxRemovable = 5000 - 4000 - 200 = 800
+      expect(result).toBe(800);
     });
 
     it('uses current price (mark price) per Hyperliquid docs', () => {
@@ -64,8 +66,9 @@ describe('marginUtils', () => {
       // initialMarginRequired = 25000 / 5 = 5000 (20%)
       // tenPercentMargin = 25000 * 0.1 = 2500 (10%)
       // transferMarginRequired = max(5000, 2500) = 5000
-      // maxRemovable = 6000 - 5000 = 1000
-      expect(result).toBe(1000);
+      // priceMoveBuffer = 25000 * 0.01 = 250
+      // maxRemovable = 6000 - 5000 - 250 = 750
+      expect(result).toBe(750);
     });
 
     it('allows margin removal when current margin exceeds transfer margin required', () => {
@@ -82,8 +85,37 @@ describe('marginUtils', () => {
       // initialMarginRequired = 20000 / 50 = 400 (2%)
       // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
       // transferMarginRequired = max(400, 2000) = 2000
-      // maxRemovable = 8000 - 2000 = 6000
+      // priceMoveBuffer = 20000 * 0.01 = 200
+      // maxRemovable = 8000 - 2000 - 200 = 5800
+      expect(result).toBe(5800);
+    });
+
+    it('returns the exact exchange boundary when the price-move buffer is 0', () => {
+      const result = calculateMaxRemovableMargin({
+        currentMargin: 8000,
+        positionSize: 10,
+        entryPrice: 2000,
+        currentPrice: 2000,
+        positionLeverage: 50,
+        priceMoveBufferRatio: 0,
+      });
+
+      // transferMarginRequired = 2000, no headroom
       expect(result).toBe(6000);
+    });
+
+    it('returns 0 when the surplus over the requirement is inside the price-move headroom', () => {
+      // $1000 notional at 10x needs $100; $105 leaves $5 of surplus, below
+      // the $10 (1%) kept back for price movement before the exchange checks.
+      const result = calculateMaxRemovableMargin({
+        currentMargin: 105,
+        positionSize: 0.01,
+        entryPrice: 100000,
+        currentPrice: 100000,
+        positionLeverage: 10,
+      });
+
+      expect(result).toBe(0);
     });
 
     it('correctly calculates for position at exact initial margin (no removable)', () => {
@@ -189,8 +221,8 @@ describe('marginUtils', () => {
       // initialMarginRequired = 20000 / 50 = 400 (2%)
       // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
       // transferMarginRequired = max(400, 2000) = 2000
-      // maxRemovable = 3000 - 2000 = 1000
-      expect(result).toBe(1000);
+      // maxRemovable = 3000 - 2000 - 200 (1% headroom) = 800
+      expect(result).toBe(800);
     });
 
     it('uses calculated notionalValue when provided value is 0', () => {
@@ -205,7 +237,7 @@ describe('marginUtils', () => {
 
       // Falls back to: notionalValue = 10 * 2000 = 20000
       // Same calculation as above
-      expect(result).toBe(1000);
+      expect(result).toBe(800);
     });
 
     it('prefers provided notionalValue over calculated when both available', () => {
@@ -222,8 +254,8 @@ describe('marginUtils', () => {
       // initialMarginRequired = 20000 / 5 = 4000 (20%)
       // tenPercentMargin = 20000 * 0.1 = 2000 (10%)
       // transferMarginRequired = max(4000, 2000) = 4000
-      // maxRemovable = 5000 - 4000 = 1000
-      expect(result).toBe(1000);
+      // maxRemovable = 5000 - 4000 - 200 (1% headroom) = 800
+      expect(result).toBe(800);
     });
   });
 
