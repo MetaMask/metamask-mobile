@@ -67,6 +67,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     testID,
     backButtonProps,
     includesTopInset,
+    endAccessory,
   }: {
     title?: React.ReactNode;
     subtitle?: React.ReactNode;
@@ -74,6 +75,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     testID?: string;
     backButtonProps?: { testID?: string };
     includesTopInset?: boolean;
+    endAccessory?: React.ReactNode;
   }) =>
     ReactActual.createElement(
       View,
@@ -85,6 +87,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       ),
       title,
       subtitle,
+      endAccessory,
     );
 
   return {
