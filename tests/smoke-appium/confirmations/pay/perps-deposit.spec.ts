@@ -14,6 +14,7 @@ import {
 import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
 import { Assertions } from '../../../framework/index.js';
 import WalletView from '../../../page-objects/wallet/WalletView.js';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import PerpsHomeView from '../../../page-objects/Perps/PerpsHomeView.js';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation.js';
 import PayWithModal from '../../../page-objects/Confirmation/PayWithModal.js';
@@ -37,7 +38,8 @@ const PERPS_HOLDINGS: TokenHolding[] = [
 ];
 
 appiumTest.describe(SmokeConfirmations('MM Pay - Perps deposit'), () => {
-  appiumTest.describe.configure({ timeout: 250_000 });
+  // Slow Perps homepage scroll + confirm can approach 250s on Android CI.
+  appiumTest.describe.configure({ timeout: 300_000 });
 
   appiumTest(
     'deposits $50 with Mainnet USDC, verifies the MM Pay quote, confirms the transaction, and sees it in perps activity',
@@ -88,7 +90,7 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Perps deposit'), () => {
 
           await PerpsHomeView.tapBackHomeButton();
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
-          await WalletView.tapActivityButton();
+          await TabBarComponent.tapActivity();
 
           await ActivitiesView.tapTypeFilterChip();
           await ActivitiesView.tapTypeFilterOption('perps');

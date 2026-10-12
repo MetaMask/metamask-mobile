@@ -149,22 +149,47 @@ export class WalletHomeSections {
     );
   }
 
-  async scrollAndTapPerpsSection(): Promise<void> {
-    try {
-      await WalletHomeScroll.scrollAndTapSection(
+  async scrollAndTapPerpsSection(
+    direction: 'up' | 'down' = 'down',
+    options: {
+      overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
+    } = {},
+  ): Promise<void> {
+    // Mirror Predictions smoke path: cheap visibility probe, then bounded
+    // down→up scroll attempts. The prior try/catch burned a full scrollIntoView
+    // budget (~30s) on the wrong direction before falling back.
+    if (
+      await WalletHomeScroll.tapIfAlreadyVisible(
         this.perpsSectionHeader,
         'Perpetuals section',
-        'down',
-        { overshootSwipe: { direction: 'up', percentage: 0.2 } },
-      );
-    } catch {
-      await WalletHomeScroll.scrollAndTapSection(
-        this.perpsSectionHeader,
-        'Perpetuals section',
-        'up',
-        { overshootSwipe: { direction: 'down', percentage: 0.2 } },
-      );
+      )
+    ) {
+      return;
     }
+
+    const fallbackDirection = direction === 'down' ? 'up' : 'down';
+
+    await WalletHomeScroll.tryScrollDirections(
+      (scrollDirection) =>
+        WalletHomeScroll.scrollAndTapSection(
+          this.perpsSectionHeader,
+          'Perpetuals section',
+          scrollDirection,
+          {
+            overshootSwipe: options.overshootSwipe ?? {
+              direction:
+                scrollDirection === 'down'
+                  ? ('up' as const)
+                  : ('down' as const),
+              percentage: 0.15,
+            },
+            // Keep each direction short so a wrong-way scroll fails fast
+            // (~20s) instead of burning the suite budget before the fallback.
+            timeout: 20_000,
+          },
+        ),
+      [direction, fallbackDirection],
+    );
   }
 
   async scrollAndTapPredictionsSection(

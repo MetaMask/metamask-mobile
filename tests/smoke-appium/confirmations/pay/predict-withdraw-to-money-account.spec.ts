@@ -14,7 +14,7 @@ import {
 import { openPredictWithdrawPayConfirmation } from '../../../flows/predict.flow.js';
 import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
 import { Assertions } from '../../../framework/index.js';
-import WalletView from '../../../page-objects/wallet/WalletView.js';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import PredictHome from '../../../page-objects/Predict/PredictHome.js';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation.js';
 import PayWithModal from '../../../page-objects/Confirmation/PayWithModal.js';
@@ -110,7 +110,7 @@ appiumTest.describe(
 
             await PredictHome.tapBackButton();
             await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
-            await WalletView.tapActivityButton();
+            await TabBarComponent.tapActivity();
 
             await ActivitiesView.tapTypeFilterChip();
             await ActivitiesView.tapTypeFilterOption('predictions');
