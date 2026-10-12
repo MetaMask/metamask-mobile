@@ -86,8 +86,6 @@ import {
   MoneyAssetOverviewBalanceDescriptionSkeleton,
 } from '../../Money/components/MoneyAssetOverviewBalanceCta';
 import { useMoneyAssetOverviewCtas } from '../../Money/hooks/useMoneyAssetOverviewCtas';
-import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
-import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectBridgeRecurringBuyFeatureFlags } from '../../../../selectors/bridge/featureFlags';
@@ -247,8 +245,6 @@ const TokenDetails: React.FC<{
   );
 
   const caip19AssetId = useTokenCaipAssetId(token);
-  const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
-  const isMemecoinTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
 
   const shareUrl = useMemo(
     () =>
@@ -709,9 +705,6 @@ const TokenDetails: React.FC<{
         quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
         quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
         onOpenQuickBuy={openQuickBuy}
-        showPositionLine={Boolean(
-          isMemecoinTdpEnabled && socialEnabled && caip19AssetId,
-        )}
       />
 
       {shareUrl && (

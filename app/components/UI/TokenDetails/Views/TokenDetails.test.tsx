@@ -759,21 +759,7 @@ describe('TokenDetails', () => {
       expect(queryByTestId('token-details-position-line')).toBeNull();
     });
 
-    it('hides the position line when the social feed is on and the memecoin flag is off', () => {
-      const previous = mockUseSelector.getMockImplementation();
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectSocialLeaderboardEnabled) {
-          return true;
-        }
-        return previous?.(selector);
-      });
-
-      const { queryByTestId } = render(<TokenDetails />);
-
-      expect(queryByTestId('token-details-position-line')).toBeNull();
-    });
-
-    it('shows the position line when the social feed and the memecoin flag are on', () => {
+    it('hides the position line on the legacy page when the social feed and memecoin flag are on', () => {
       const previous = mockUseSelector.getMockImplementation();
       mockUseSelector.mockImplementation((selector: unknown) => {
         if (selector === selectSocialLeaderboardEnabled) {
@@ -785,9 +771,9 @@ describe('TokenDetails', () => {
         return previous?.(selector);
       });
 
-      const { getByTestId } = render(<TokenDetails />);
+      const { queryByTestId } = render(<TokenDetails />);
 
-      expect(getByTestId('token-details-position-line')).toBeOnTheScreen();
+      expect(queryByTestId('token-details-position-line')).toBeNull();
     });
 
     it('does not show sticky buttons when RWA token is not tradable', () => {
