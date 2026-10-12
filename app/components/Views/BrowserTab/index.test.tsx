@@ -1203,6 +1203,7 @@ describe('BrowserTab', () => {
     const dappUrl = 'https://app.uniswap.org/';
     const otherOriginUrl = 'https://example.org/';
     const sameOriginNextUrl = 'https://app.uniswap.org/swap';
+    const redirectOriginUrl = 'https://final.example/';
 
     const commitPage = async (
       webView: { props: Record<string, unknown> },
@@ -1299,6 +1300,86 @@ describe('BrowserTab', () => {
       await startLoad(webView, sameOriginNextUrl);
 
       expect(previousBridge?.onDisconnect).not.toHaveBeenCalled();
+    });
+
+    it('keeps the destination-origin bridge on a same-origin path load before commit', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      await commitPage(webView, dappUrl);
+      await startLoad(webView, otherOriginUrl);
+
+      const destinationBridge = mockBackgroundBridgeInstances.at(-1);
+      expect(destinationBridge).toBeDefined();
+      destinationBridge?.onDisconnect.mockClear();
+
+      // Document is still the previous origin until commit. Comparing against
+      // that committed URL would tear this bridge down incorrectly.
+      await startLoad(webView, 'https://example.org/path');
+
+      expect(destinationBridge?.onDisconnect).not.toHaveBeenCalled();
+      expect(mockBackgroundBridgeInstances.at(-1)).toBe(destinationBridge);
+    });
+
+    it('rebinds the bridge through a cross-origin redirect before commit', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      await commitPage(webView, dappUrl);
+
+      const originBridge = mockBackgroundBridgeInstances.at(-1);
+      expect(originBridge).toBeDefined();
+
+      await startLoad(webView, otherOriginUrl);
+
+      const intermediateBridge = mockBackgroundBridgeInstances.at(-1);
+      expect(intermediateBridge).toBeDefined();
+      expect(intermediateBridge).not.toBe(originBridge);
+      expect(BackgroundBridge).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          url: 'https://example.org',
+        }),
+      );
+
+      await startLoad(webView, redirectOriginUrl);
+
+      expect(intermediateBridge?.onDisconnect).toHaveBeenCalledTimes(1);
+
+      const finalBridge = mockBackgroundBridgeInstances.at(-1);
+      expect(finalBridge).toBeDefined();
+      expect(finalBridge).not.toBe(intermediateBridge);
+      expect(BackgroundBridge).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          url: 'https://final.example',
+        }),
+      );
+
+      const onMessage = webView.props.onMessage as (event: {
+        nativeEvent: { data: string };
+      }) => void;
+      onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            name: 'metamask-provider',
+            origin: 'https://example.org',
+            data: { method: 'eth_accounts', params: [] },
+          }),
+        },
+      });
+
+      expect(intermediateBridge?.onMessage).not.toHaveBeenCalled();
     });
 
     it('rebuilds the bridge on same-origin URL bar navigation because the WebView remounts', async () => {
@@ -1437,6 +1518,49 @@ describe('BrowserTab', () => {
       expect(BackgroundBridge).toHaveBeenLastCalledWith(
         expect.objectContaining({
           url: 'https://example.org',
+        }),
+      );
+    });
+
+    it('rebinds on backforward against the live bridge when the committed URL is stale', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      await commitPage(webView, dappUrl);
+      await startLoad(webView, otherOriginUrl);
+
+      const destinationBridge = mockBackgroundBridgeInstances.at(-1);
+      expect(destinationBridge).toBeDefined();
+      destinationBridge?.onDisconnect.mockClear();
+      mockInjectJavaScript.mockClear();
+
+      const onNavigationStateChange = webView.props.onNavigationStateChange as (
+        event: Record<string, unknown>,
+      ) => void;
+
+      // Committed document is still the dapp. Back to that origin must still
+      // tear down the destination bridge that was bound on navigation start.
+      await act(async () => {
+        onNavigationStateChange({
+          url: dappUrl,
+          title: 'Uniswap',
+          loading: false,
+          canGoBack: true,
+          canGoForward: true,
+          navigationType: 'backforward',
+        });
+      });
+
+      expect(destinationBridge?.onDisconnect).toHaveBeenCalledTimes(1);
+      expect(BackgroundBridge).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          url: 'https://app.uniswap.org',
         }),
       );
     });

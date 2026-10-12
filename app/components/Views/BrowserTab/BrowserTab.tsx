@@ -1265,13 +1265,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         const canBindProvider = isHttpPageUrl(nativeEvent.url);
 
         // Disconnect the previous-origin bridge on cross-origin http(s)
-        // navigation start. Same-origin navigations keep it. Blank loads
-        // from a WebView remount must not disconnect the live provider.
+        // navigation start. Compare against the live bridge origin — not the
+        // last committed document — so overlapping navigations (A → B → C
+        // before B commits) tear down the connection that is actually live.
+        // Same-origin navigations keep it. Blank loads from a WebView remount
+        // must not disconnect the live provider.
+        const liveBridgeUrl = backgroundBridgeRef.current?.url;
         if (
           canBindProvider &&
-          backgroundBridgeRef.current &&
-          resolvedUrlRef.current &&
-          !isSameOrigin(nativeEvent.url, resolvedUrlRef.current)
+          liveBridgeUrl &&
+          !isSameOrigin(nativeEvent.url, liveBridgeUrl)
         ) {
           teardownBackgroundBridge();
         }
@@ -1697,11 +1700,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const rebindBridgeOnCrossOriginBackForward = useCallback(
       (nextUrl: string) => {
+        const liveBridgeUrl = backgroundBridgeRef.current?.url;
         if (
           !isHttpPageUrl(nextUrl) ||
-          !backgroundBridgeRef.current ||
-          !resolvedUrlRef.current ||
-          isSameOrigin(nextUrl, resolvedUrlRef.current)
+          !liveBridgeUrl ||
+          isSameOrigin(nextUrl, liveBridgeUrl)
         ) {
           return;
         }
