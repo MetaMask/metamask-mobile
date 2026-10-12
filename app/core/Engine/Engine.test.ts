@@ -1385,23 +1385,6 @@ describe('Engine', () => {
       expect(clearStateSpy).toHaveBeenCalled();
     });
 
-    it('resets AssetsController state but keeps the selected currency', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const { AssetsController } = engine.context;
-      const assetId =
-        'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f';
-      AssetsController.hideAsset(assetId);
-      AssetsController.setSelectedCurrency('eur');
-      expect(Object.values(AssetsController.state.assetPreferences)).toEqual([
-        { hidden: true },
-      ]);
-
-      await engine.resetState();
-
-      expect(AssetsController.state.assetPreferences).toEqual({});
-      expect(AssetsController.state.selectedCurrency).toBe('eur');
-    });
-
     it('calls KycController.clearState', async () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const clearStateSpy = jest

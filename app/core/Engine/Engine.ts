@@ -59,7 +59,6 @@ import {
   ohlcvServiceInit,
 } from './controllers/core-backend';
 import { assetsControllerInit } from './controllers/assets-controller/assets-controller-init';
-import { resetAssetsControllerState } from './controllers/assets-controller/reset-assets-controller-state';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 import { backupVault } from '../BackupVault';
 import { Hex, Json } from '@metamask/utils';
@@ -1340,7 +1339,6 @@ export class Engine {
     const {
       TransactionController,
       NftController,
-      AssetsController,
       PermissionController,
       // SelectedNetworkController,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -1364,8 +1362,7 @@ export class Engine {
     // TODO implement this method on SelectedNetworkController
     // SelectedNetworkController.unsetAllDomains()
 
-    // Clear assets info (keeps the selected currency)
-    resetAssetsControllerState(AssetsController);
+    // Clear assets info
     NftController.resetState();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
