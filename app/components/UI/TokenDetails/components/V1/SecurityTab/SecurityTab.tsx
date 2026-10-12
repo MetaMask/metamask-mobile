@@ -153,7 +153,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
   const { checks, holders, liquidity, trading, origin } = facts;
 
   return (
-    <Box twClassName="gap-6 px-4 pb-6 pt-4" testID={SecurityTabSelectors.TAB}>
+    <Box twClassName="px-4 pb-6 pt-4" testID={SecurityTabSelectors.TAB}>
       {/* ── Security checks ─────────────────────────────────────────────── */}
       <Box testID={SecurityTabSelectors.SECTION_CHECKS}>
         <Box
@@ -212,7 +212,10 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
           tappable rows. The duplication is the prototype's: the legend labels
           the picture, the rows carry the definitions behind a dotted
           underline. */}
-      <Box testID={SecurityTabSelectors.SECTION_HOLDERS}>
+      <Box
+        testID={SecurityTabSelectors.SECTION_HOLDERS}
+        twClassName="mt-6 border-t border-muted pt-6"
+      >
         <Box twClassName="pb-3">
           <SectionHeader titleKey="token_details_v1.security_tab.sections.holders" />
         </Box>
@@ -236,7 +239,10 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
       </Box>
 
       {/* ── Liquidity ───────────────────────────────────────────────────── */}
-      <Box testID={SecurityTabSelectors.SECTION_LIQUIDITY}>
+      <Box
+        testID={SecurityTabSelectors.SECTION_LIQUIDITY}
+        twClassName="mt-6 border-t border-muted pt-6"
+      >
         <Box twClassName="pb-3">
           <SectionHeader titleKey="token_details_v1.security_tab.sections.liquidity" />
         </Box>
@@ -267,7 +273,10 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
           data at all — Blockaid returns every `fees` field as null on Solana,
           so the section would otherwise be a heading above two dashes. */}
       {trading ? (
-        <Box testID={SecurityTabSelectors.SECTION_TRADING}>
+        <Box
+          testID={SecurityTabSelectors.SECTION_TRADING}
+          twClassName="mt-6 border-t border-muted pt-6"
+        >
           <Box twClassName="pb-3">
             <SectionHeader titleKey="token_details_v1.security_tab.sections.trading" />
           </Box>
@@ -285,7 +294,10 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
       ) : null}
 
       {/* ── Origin ──────────────────────────────────────────────────────── */}
-      <Box testID={SecurityTabSelectors.SECTION_ORIGIN}>
+      <Box
+        testID={SecurityTabSelectors.SECTION_ORIGIN}
+        twClassName="mt-6 border-t border-muted pt-6"
+      >
         <Box twClassName="pb-3">
           <SectionHeader titleKey="token_details_v1.security_tab.sections.origin" />
         </Box>
@@ -300,6 +312,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
         variant={TextVariant.BodyXs}
         color={TextColor.TextAlternative}
         testID={SecurityTabSelectors.DISCLAIMER}
+        twClassName="mt-6"
       >
         {strings('token_details_v1.security_tab.footer.disclaimer')}
       </Text>

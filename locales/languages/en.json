@@ -5933,6 +5933,13 @@
       "search_on_x": "Search on X",
       "copy_address": "Copy contract address {{address}}"
     },
+    "age": {
+      "accessibility_label": "Token age {{age}}. Learn about token age.",
+      "explainer": {
+        "title": "Token age",
+        "description": "Time since token creation. Seconds, minutes, hours, then days."
+      }
+    },
     "stats": {
       "market_cap": "MCap",
       "liquidity": "Liquidity",
