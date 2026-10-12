@@ -67,7 +67,7 @@ export const toCancellationReason = (
  * be sent.
  */
 export const getCancellationTiming = (
-  cancelType: CancelType,
+  cancelType: CancelType | undefined,
 ): CancellationTiming | undefined => {
   if (cancelType === CANCEL_TYPES.ALLOWED_IMMEDIATE) {
     return CANCELLATION_TIMINGS.IMMEDIATE;

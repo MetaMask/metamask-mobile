@@ -154,6 +154,8 @@ module.exports = {
           'EXPO_BASE_URL',
           // Must remain runtime-readable for emergency Appium session-reuse rollback.
           'APPIUM_SESSION_REUSE',
+          // Opt-in Hermes harvest for schedule/manual performance only.
+          'COLLECT_HERMES_CPUPROFILES',
         ],
       },
     ],

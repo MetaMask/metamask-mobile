@@ -102,6 +102,10 @@ describe('PerpsCloseAllPositionsView', () => {
     expect(
       await screen.findByText(strings('perps.position.no_positions')),
     ).toBeOnTheScreen();
+    // A missing key renders this fallback, which the `strings(...)` match above accepts.
+    expect(
+      screen.queryByText(/\[missing ".*" translation\]/),
+    ).not.toBeOnTheScreen();
     expect(
       screen.queryByText(
         strings('perps.close_all_modal.close_count', { count: 0 }),

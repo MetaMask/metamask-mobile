@@ -18,21 +18,25 @@ runs:
   steps:
     - name: Validate artifact compatibility
       shell: bash
+      env:
+        ARTIFACT_NAME: ${{ inputs.artifact-name }}
+        ARTIFACT_PREFIX: ${{ inputs.artifact-prefix }}
+        VALIDATION_CONTEXT: ${{ inputs.validation-context }}
       run: |
         NODE_VERSION=$(node --version | sed 's/v//')
         OS_NAME=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
-        EXPECTED_ARTIFACT="${{ inputs.artifact-prefix }}-node${NODE_VERSION}-${OS_NAME}"
+        EXPECTED_ARTIFACT="${ARTIFACT_PREFIX}-node${NODE_VERSION}-${OS_NAME}"
         
-        echo "🔍 Validating ${{ inputs.validation-context }} artifact compatibility..."
+        echo "🔍 Validating ${VALIDATION_CONTEXT} artifact compatibility..."
         echo "  Expected artifact: $EXPECTED_ARTIFACT"
-        echo "  Actual artifact:   ${{ inputs.artifact-name }}"
+        echo "  Actual artifact:   ${ARTIFACT_NAME}"
         
-        if [ "$EXPECTED_ARTIFACT" != "${{ inputs.artifact-name }}" ]; then
+        if [ "$EXPECTED_ARTIFACT" != "${ARTIFACT_NAME}" ]; then
           echo "::error title=Artifact Incompatibility::Node version or OS mismatch detected!"
           echo "❌ The node_modules artifact was built with different Node version or OS"
           echo "   This could cause issues with native node modules"
           echo "   Expected: $EXPECTED_ARTIFACT"
-          echo "   Actual:   ${{ inputs.artifact-name }}"
+          echo "   Actual:   ${ARTIFACT_NAME}"
           exit 1
         fi
-        echo "✅ ${{ inputs.validation-context }} artifact compatibility validated"
+        echo "✅ ${VALIDATION_CONTEXT} artifact compatibility validated"

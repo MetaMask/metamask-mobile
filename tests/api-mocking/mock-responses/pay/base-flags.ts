@@ -713,9 +713,22 @@ const BASE_HOME_FLAGS = [
     ],
   },
   {
-    homeTMCU1209AbtestHomepageBalanceBreakdown: {
-      enabled: false,
-    },
+    homeTMCU1209AbtestHomepageBalanceBreakdownV2: [
+      {
+        name: 'control',
+        scope: {
+          value: 0,
+          type: 'percentage_rollout',
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          value: 1,
+          type: 'percentage_rollout',
+        },
+      },
+    ],
   },
   {
     homeTMCU470AbtestTrendingSections: {

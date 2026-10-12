@@ -3,6 +3,16 @@ import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 import { useWalletHomeOnboardingChecklistTradePress } from './useWalletHomeOnboardingChecklistTradePress';
 import type { BridgeToken } from '../Bridge/types';
 import type { WalletHomeOnboardingTradeSwapPair } from './walletHomeOnboardingTradeSwapBalances';
+import { SwapBridgeNavigationLocation } from '../Bridge/hooks/useSwapBridgeNavigation';
+
+const mockGoToSwaps = jest.fn();
+const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
+  goToSwaps: mockGoToSwaps,
+}));
+jest.mock('../Bridge/hooks/useSwapBridgeNavigation', () => ({
+  ...jest.requireActual('../Bridge/hooks/useSwapBridgeNavigation'),
+  useSwapBridgeNavigation: (args: unknown) => mockUseSwapBridgeNavigation(args),
+}));
 
 const mockUseWalletHomeOnboardingTradeSwapPair = jest.fn();
 jest.mock('./useWalletHomeOnboardingTradeSwapPair', () => ({
@@ -11,8 +21,6 @@ jest.mock('./useWalletHomeOnboardingTradeSwapPair', () => ({
 }));
 
 describe('useWalletHomeOnboardingChecklistTradePress', () => {
-  const goToSwaps = jest.fn();
-
   const sourceToken = {
     address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
     symbol: 'mUSD',
@@ -43,14 +51,18 @@ describe('useWalletHomeOnboardingChecklistTradePress', () => {
     mockUseWalletHomeOnboardingTradeSwapPair.mockReturnValue(swapPair);
 
     const { result } = renderHook(() =>
-      useWalletHomeOnboardingChecklistTradePress(goToSwaps),
+      useWalletHomeOnboardingChecklistTradePress(),
     );
 
     act(() => {
       result.current();
     });
 
-    expect(goToSwaps).toHaveBeenCalledWith(
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      location: SwapBridgeNavigationLocation.MainView,
+      sourcePage: 'MainView',
+    });
+    expect(mockGoToSwaps).toHaveBeenCalledWith(
       sourceToken,
       destToken,
       undefined,
@@ -61,14 +73,18 @@ describe('useWalletHomeOnboardingChecklistTradePress', () => {
 
   it('falls back to default goToSwaps when no swap pair', () => {
     const { result } = renderHook(() =>
-      useWalletHomeOnboardingChecklistTradePress(goToSwaps),
+      useWalletHomeOnboardingChecklistTradePress(),
     );
 
     act(() => {
       result.current();
     });
 
-    expect(goToSwaps).toHaveBeenCalledWith(
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      location: SwapBridgeNavigationLocation.MainView,
+      sourcePage: 'MainView',
+    });
+    expect(mockGoToSwaps).toHaveBeenCalledWith(
       undefined,
       undefined,
       undefined,
@@ -81,14 +97,18 @@ describe('useWalletHomeOnboardingChecklistTradePress', () => {
     mockUseWalletHomeOnboardingTradeSwapPair.mockReturnValue(undefined);
 
     const { result, rerender } = renderHook(() =>
-      useWalletHomeOnboardingChecklistTradePress(goToSwaps),
+      useWalletHomeOnboardingChecklistTradePress(),
     );
 
     act(() => {
       result.current();
     });
 
-    expect(goToSwaps).toHaveBeenCalledWith(
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      location: SwapBridgeNavigationLocation.MainView,
+      sourcePage: 'MainView',
+    });
+    expect(mockGoToSwaps).toHaveBeenCalledWith(
       undefined,
       undefined,
       undefined,
@@ -103,7 +123,11 @@ describe('useWalletHomeOnboardingChecklistTradePress', () => {
       result.current();
     });
 
-    expect(goToSwaps).toHaveBeenCalledWith(
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      location: SwapBridgeNavigationLocation.MainView,
+      sourcePage: 'MainView',
+    });
+    expect(mockGoToSwaps).toHaveBeenCalledWith(
       sourceToken,
       destToken,
       undefined,
