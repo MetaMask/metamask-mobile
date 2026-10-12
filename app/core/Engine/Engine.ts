@@ -768,14 +768,10 @@ export class Engine {
     );
 
     // Forward real-time websocket balance pushes into the AssetsController.
-    // The UI reads balances from `AssetsController.assetsBalance`. Both
-    // `AccountActivityService` and the controller's internal
-    // `BackendWebsocketDataSource` open a separate websocket subscription to
-    // the same account-activity channel, but the backend routes each
-    // notification to a single subscriptionId, so the data source's
-    // subscription is starved and `assetsBalance` is not refreshed until the
-    // 30s poll. `AccountActivityService` reliably receives the push, so we
-    // bridge it into the controller's own public merge entrypoint.
+    // `AccountActivityService` and the controller's own websocket data source
+    // subscribe to the same channel, but the backend only delivers to one of
+    // them, and it is `AccountActivityService`. Forward its updates into
+    // `AssetsController` so balances don't wait for the 30s poll.
     this.controllerMessenger.subscribe(
       'AccountActivityService:balanceUpdated',
       (payload: BalanceUpdatedPushPayload) => {

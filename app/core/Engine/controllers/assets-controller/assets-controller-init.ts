@@ -96,12 +96,9 @@ export const assetsControllerInit: MessengerClientInitFunction<
   AssetsControllerInitMessenger
 > = ({ controllerMessenger, persistedState, initMessenger }) => {
   /**
-   * Check if the AssetsController feature is enabled. AssetsController is
-   * the sole source of truth for asset data (the legacy per-asset
-   * controllers have been removed), so this now only requires the wallet
-   * to be unlocked.
+   * The controller only runs while the wallet is unlocked.
    *
-   * @returns True if the feature is enabled, false otherwise.
+   * @returns True if the controller is enabled.
    */
   const isEnabled = (): boolean => selectIsUnlocked(store.getState());
 
@@ -127,7 +124,7 @@ export const assetsControllerInit: MessengerClientInitFunction<
     },
     isOnboarded: () => selectCompletedOnboarding(store.getState()),
     // TEMPORARY (ASSETS-3346): legacy state slices used to heal wiped `assetsInfo` metadata.
-    // TokensController has been removed; only AccountsController remains available.
+    // TokensController no longer exists, so only AccountsController is passed.
     tempMigrateAssetsInfoMetadataAssets3346: () => ({
       AccountsController: persistedState?.AccountsController,
     }),

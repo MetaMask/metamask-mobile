@@ -32,14 +32,11 @@ import {
   TokenSearchDiscoveryDataControllerEvents,
   CodefiTokenPricesServiceV2,
   ///: END:ONLY_INCLUDE_IF
-  // The legacy asset controllers are no longer built by the Engine. These
-  // action types stay because external messenger unions still reference them;
-  // only CurrencyRate and MultichainAssets have handlers
-  // (see `legacy-asset-state-compat.ts`).
+  // Legacy asset controller actions still referenced by external messenger
+  // types. Only CurrencyRate and MultichainAssets have handlers
+  // (`legacy-asset-state-compat.ts`).
   type AccountTrackerControllerGetStateAction,
-  // Some external messengers (e.g. TransactionControllerInitMessenger) declare
-  // the full `CurrencyRateControllerActions` union (get + set/update methods)
-  // rather than just the getState action, so the broader type is kept here too.
+  // TransactionControllerInitMessenger uses the full actions union.
   type CurrencyRateControllerActions,
   type MultichainAssetsControllerGetStateAction,
 } from '@metamask/assets-controllers';
@@ -663,7 +660,6 @@ export type GlobalActions =
   | SamplePetnamesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AssetsControllerActions
-  // Legacy asset controller actions. See the import above for context.
   | AccountTrackerControllerGetStateAction
   | CurrencyRateControllerActions
   | MultichainAssetsControllerGetStateAction

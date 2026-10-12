@@ -121,12 +121,10 @@ export interface MainnetUsdcFixtureOptions {
 }
 
 /**
- * State of the legacy per-asset controllers (removed from the Engine in favour
- * of `AssetsController`). It is deliberately NOT part of `default-fixture.json`
- * so the committed fixture schema matches the live app state, but many builder
- * methods and specs still read or write these keys, so it is restored in memory
- * by `withDefaultFixture()`. The app ignores these keys. Remove together with
- * the builder code that touches them once fixtures only use `AssetsController`.
+ * State of the removed legacy asset controllers. Kept out of
+ * `default-fixture.json` so the fixture schema matches the app, but builder
+ * methods and specs still write to these keys, so `withDefaultFixture()` adds
+ * them back in memory. The app ignores them.
  */
 const LEGACY_ASSET_CONTROLLERS_STATE = {
   AccountTrackerController: {

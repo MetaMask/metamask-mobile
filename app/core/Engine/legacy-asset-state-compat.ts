@@ -14,15 +14,8 @@ import {
 import { RootExtendedMessenger, RootMessenger } from './types';
 
 /**
- * The legacy asset controllers are no longer built by the Engine, but some
- * packages still call their `:getState` actions. These handlers answer those
- * calls with the legacy state shape, derived from `AssetsController`.
- *
- * Only these two have a runtime caller (checked against the installed packages):
- * - `CurrencyRateController:getState`
- * - `MultichainAssetsController:getState`
- *
- * Remove this file once those consumers read from `AssetsController` directly.
+ * Serves `:getState` for the legacy controllers that some packages still call,
+ * using `AssetsController` data. Remove once those packages stop calling them.
  */
 export function registerLegacyAssetControllerStateCompat(
   rootMessenger: RootExtendedMessenger,
