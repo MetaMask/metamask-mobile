@@ -75,3 +75,56 @@ export const EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING:
       },
     },
   };
+
+// --- Earn Money Deposit Balance CTA Visibility A/B Test ---
+
+export const EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY =
+  'earnMUSD1442AbtestTokenDetailsBalanceMoneyDepositButton';
+
+export enum EarnMoneyDepositBalanceCtaVisibilityVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export const EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_VARIANTS: Record<
+  EarnMoneyDepositBalanceCtaVisibilityVariant,
+  { showMoneyDepositBalanceCta: boolean }
+> = {
+  [EarnMoneyDepositBalanceCtaVisibilityVariant.Control]: {
+    showMoneyDepositBalanceCta: false,
+  },
+  [EarnMoneyDepositBalanceCtaVisibilityVariant.Treatment]: {
+    showMoneyDepositBalanceCta: true,
+  },
+};
+
+export const EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_EXPOSURE_METADATA = {
+  experimentName: 'Asset Overview Balance Money Deposit CTA',
+  variationNames: {
+    [EarnMoneyDepositBalanceCtaVisibilityVariant.Control]: 'Balance CTA hidden',
+    [EarnMoneyDepositBalanceCtaVisibilityVariant.Treatment]:
+      'Balance CTA shown',
+  },
+};
+
+export const EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY,
+    validVariants: Object.values(EarnMoneyDepositBalanceCtaVisibilityVariant),
+    eventNames: [
+      EVENT_NAME.MONEY_SURFACE_VIEWED,
+      EVENT_NAME.MONEY_TOOLTIP_CLICKED,
+      EVENT_NAME.MONEY_BUTTON_CLICKED,
+    ],
+    eventPropertyRequirements: {
+      [EVENT_NAME.MONEY_SURFACE_VIEWED]: {
+        component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
+      },
+      [EVENT_NAME.MONEY_TOOLTIP_CLICKED]: {
+        component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
+      },
+      [EVENT_NAME.MONEY_BUTTON_CLICKED]: {
+        component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
+      },
+    },
+  };

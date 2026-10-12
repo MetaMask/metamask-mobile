@@ -13,6 +13,12 @@ import { AppiumElement } from './AppiumElement.ts';
 import AppiumGestures from './AppiumGestures.ts';
 import Matchers from './Matchers.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
+import { getDriver } from './AppiumUtilities.ts';
+import { findWithSelfHealingLocator } from './ai-locator/SelfHealingLocator.ts';
+import {
+  getPerformanceLocatorRecovery,
+  isPerformanceSuiteActive,
+} from './ai-locator/PerformanceLocatorRecovery.ts';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
 
 type TapAtIndexElement =
@@ -61,11 +67,12 @@ export default class Gestures {
     const location = await container.unwrap().getLocation();
     const size = await container.unwrap().getSize();
     const centerX = Math.floor(location.x + size.width / 2);
-    const travel = Math.floor(
-      size.height * Math.min(Math.max(percent, 0.1), 0.9),
-    );
+    const centerY = Math.floor(location.y + size.height / 2);
 
     if (swipeDirection === 'up' || swipeDirection === 'down') {
+      const travel = Math.floor(
+        size.height * Math.min(Math.max(percent, 0.1), 0.9),
+      );
       const fromY =
         swipeDirection === 'up'
           ? location.y + Math.floor(size.height * 0.8)
@@ -82,10 +89,22 @@ export default class Gestures {
       return;
     }
 
+    // Horizontal swipe bounded to the element's own coordinates.
+    const travelX = Math.floor(
+      size.width * Math.min(Math.max(percent, 0.1), 0.9),
+    );
+    const fromX =
+      swipeDirection === 'left'
+        ? location.x + Math.floor(size.width * 0.8)
+        : location.x + Math.floor(size.width * 0.2);
+    const toX = swipeDirection === 'left' ? fromX - travelX : fromX + travelX;
+
     await AppiumGestures.swipe({
       scrollParams: { direction: swipeDirection },
       percent,
       duration: 600,
+      from: { x: fromX, y: centerY },
+      to: { x: toX, y: centerY },
     });
   }
 
@@ -98,13 +117,7 @@ export default class Gestures {
     elem: AppiumElement | Promise<AppiumElement>,
     options: TapOptions = {},
   ): Promise<void> {
-    const el = await elem;
-    await AppiumGestures.waitAndTap(el, {
-      timeout: options.timeout,
-      delay: options.delay,
-      checkForDisplayed: options.checkForDisplayed ?? true,
-      checkForEnabled: options.checkEnabled,
-    });
+    await this.performTap(elem, options);
   }
 
   /**
@@ -118,17 +131,50 @@ export default class Gestures {
     elem: AppiumElement | Promise<AppiumElement>,
     options: TapOptions = {},
   ): Promise<void> {
-    const el = await elem;
-    await AppiumGestures.waitAndTap(el, {
-      timeout: options.timeout,
-      delay: options.delay,
-      checkForDisplayed: options.checkForDisplayed ?? true,
-      checkForEnabled: options.checkEnabled,
-      waitForInteractive: options.waitForInteractive,
-      enabledStableReads: options.enabledStableReads,
-      postEnabledSettleMs: options.postEnabledSettleMs,
-      checkForStable: options.checkStability,
+    await this.performTap(elem, options);
+  }
+
+  private static async performTap(
+    elementOrPromise: AppiumElement | Promise<AppiumElement>,
+    options: TapOptions,
+  ): Promise<void> {
+    const tap = async (target: AppiumElement): Promise<void> => {
+      await AppiumGestures.waitAndTap(target, {
+        timeout: options.timeout,
+        delay: options.delay,
+        checkForDisplayed: options.checkForDisplayed ?? true,
+        checkForEnabled: options.checkEnabled,
+        waitForInteractive: options.waitForInteractive,
+        enabledStableReads: options.enabledStableReads,
+        postEnabledSettleMs: options.postEnabledSettleMs,
+        checkForStable: options.checkStability,
+      });
+    };
+
+    const recovery = getPerformanceLocatorRecovery();
+    if (!recovery) {
+      const resolvedElement = await elementOrPromise;
+      await tap(resolvedElement);
+      return;
+    }
+
+    // Matchers are lazy: resolving the promise does not prove the control is
+    // tappable. Run the real waitAndTap as `primary` so a missing/stale
+    // control triggers recovery. Tap again only for the recovered locator.
+    const { element, source } = await findWithSelfHealingLocator({
+      intent: options.elemDescription ?? 'tap the current mobile control',
+      primary: async () => {
+        const resolvedElement = await elementOrPromise;
+        await tap(resolvedElement);
+        return resolvedElement;
+      },
+      driver: getDriver(),
+      recovery: recovery.provider,
+      onRecovered: recovery.onRecovered,
     });
+    if (source === 'recovered') {
+      await tap(element);
+    }
   }
 
   /**
@@ -274,7 +320,12 @@ export default class Gestures {
   ): Promise<void> {
     const percent = options.percentage ?? 0.75;
 
-    if (direction === 'left' || direction === 'right') {
+    // Smoke keeps the previous full-gesture horizontal swipe (carousel, quotes).
+    // Performance drags inside the element so the leverage picker can snap.
+    if (
+      (direction === 'left' || direction === 'right') &&
+      !isPerformanceSuiteActive()
+    ) {
       await AppiumGestures.swipe({
         scrollParams: { direction },
         percent,
