@@ -392,7 +392,10 @@ jest.mock('../../app/core/Engine', () => {
           address: '0x0000000000000000000000000000000000000001',
           walletType: 'metamask',
         }),
-        getActivity: jest.fn().mockResolvedValue([]),
+        getActivity: jest.fn().mockResolvedValue({
+          activities: [],
+          nextCursor: undefined,
+        }),
         getPositions: jest.fn().mockResolvedValue([]),
         getPrices: jest.fn().mockResolvedValue({ providerId: '', results: [] }),
         getPriceHistory: jest.fn().mockResolvedValue([]),
