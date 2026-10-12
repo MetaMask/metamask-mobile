@@ -13,12 +13,13 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { getMethodLabel } from '../../labels';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
-import StepLayout, { type StepProps } from './StepLayout';
+import StepLayout, { MfaShield, type StepProps } from './StepLayout';
 
 const IntroStep = ({ step, state, reason, onAction }: StepProps<'intro'>) => (
   <StepLayout
+    top={<MfaShield />}
     title={strings('mfa.intro.title')}
-    description={reason.description ?? strings('mfa.intro.description')}
+    description={reason.enrollDescription ?? strings('mfa.intro.description')}
     error={state.error}
     footer={
       <Button
@@ -33,6 +34,7 @@ const IntroStep = ({ step, state, reason, onAction }: StepProps<'intro'>) => (
       </Button>
     }
   >
+    <Text variant={TextVariant.BodyMd}>{strings('mfa.intro.list_title')}</Text>
     {step.missing.map((method) => (
       <Box key={method} twClassName="flex-row items-center gap-3">
         <Icon

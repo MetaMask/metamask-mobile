@@ -81,7 +81,11 @@ import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssets
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
 import { useLimitOrderMinAmount } from '../../../hooks/useLimitOrderMinAmount';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
-import { createLimitOrdersTab } from '../../../utils/limitOrders/createLimitOrdersTab';
+import {
+  createLimitOrdersTab,
+  getHistoryLimitOrderDate,
+  getOpenLimitOrderDate,
+} from '../../../utils/limitOrders/createLimitOrdersTab';
 import { getLimitOrderDelegationsParams } from '../../../utils/limitOrders/getLimitOrderDelegationsParams';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { LimitOrderFeeTokenErrorBanner } from './LimitOrderFeeTokenErrorBanner';
@@ -302,6 +306,7 @@ const BridgeLimitOrderViewContent = () => {
     isError: openOrdersQuery.isError,
     isFetchingNextPage: openOrdersQuery.isFetchingNextPage,
     onRetry: () => openOrdersQuery.refetch(),
+    getItemDate: getOpenLimitOrderDate,
   });
 
   const history = createLimitOrdersTab({
@@ -310,6 +315,7 @@ const BridgeLimitOrderViewContent = () => {
     isError: historyQuery.isError,
     isFetchingNextPage: historyQuery.isFetchingNextPage,
     onRetry: () => historyQuery.refetch(),
+    getItemDate: getHistoryLimitOrderDate,
   });
 
   const handleOrdersScroll = useCallback(
