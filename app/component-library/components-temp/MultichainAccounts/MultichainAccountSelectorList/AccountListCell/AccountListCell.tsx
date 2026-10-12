@@ -18,7 +18,6 @@ const AccountListCell = memo(
     isSelected,
     onSelectAccount,
     showCheckbox = false,
-    showBalance = true,
     chainId,
     hideMenu = false,
   }: AccountListCellProps) => {
@@ -54,7 +53,6 @@ const AccountListCell = memo(
             avatarAccountType={avatarAccountType}
             chainId={chainId}
             hideMenu={hideMenu}
-            showBalance={showBalance}
             onSelectAccount={handlePress}
           />
         </View>

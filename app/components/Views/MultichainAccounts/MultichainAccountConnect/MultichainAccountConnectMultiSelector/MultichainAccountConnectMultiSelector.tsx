@@ -206,7 +206,6 @@ const MultichainAccountConnectMultiSelector = ({
           accountSections={accountSections}
           testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
           showCheckbox
-          showBalance={false}
         />
         {connection?.originatorInfo?.apiVersion && (
           <View style={styles.sdkInfoContainer}>

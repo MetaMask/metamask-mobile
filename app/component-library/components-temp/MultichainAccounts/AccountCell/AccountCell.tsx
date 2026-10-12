@@ -50,7 +50,6 @@ interface AccountCellProps {
   accountGroup: AccountGroupObject;
   avatarAccountType: AccountAvatarVariant;
   hideMenu?: boolean;
-  showBalance?: boolean;
   startAccessory?: React.ReactNode;
   endContainer?: React.ReactNode;
   chainId?: string;
@@ -59,7 +58,7 @@ interface AccountCellProps {
 
 type BalanceEndContainerProps = Pick<
   AccountCellProps,
-  'accountGroup' | 'hideMenu' | 'onSelectAccount' | 'showBalance'
+  'accountGroup' | 'hideMenu' | 'onSelectAccount'
 > & {
   networkImageSource?: React.ComponentProps<typeof AvatarNetwork>['src'];
 };
@@ -131,7 +130,6 @@ const BalanceEndContainer = ({
   accountGroup,
   hideMenu,
   onSelectAccount,
-  showBalance = true,
   networkImageSource,
 }: BalanceEndContainerProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -146,13 +144,11 @@ const BalanceEndContainer = ({
 
   return (
     <>
-      {showBalance ? (
-        <AccountBalanceDisplay
-          accountGroup={accountGroup}
-          onSelectAccount={onSelectAccount}
-          networkImageSource={networkImageSource}
-        />
-      ) : null}
+      <AccountBalanceDisplay
+        accountGroup={accountGroup}
+        onSelectAccount={onSelectAccount}
+        networkImageSource={networkImageSource}
+      />
       {!hideMenu && (
         <Pressable
           testID={AccountCellIds.MENU}
@@ -217,7 +213,6 @@ const AccountCell = ({
   accountGroup,
   avatarAccountType,
   hideMenu = false,
-  showBalance = true,
   startAccessory,
   endContainer,
   chainId,
@@ -280,7 +275,6 @@ const AccountCell = ({
             accountGroup={accountGroup}
             hideMenu={hideMenu}
             onSelectAccount={onSelectAccount}
-            showBalance={showBalance}
             networkImageSource={networkImageSource}
           />
         )}

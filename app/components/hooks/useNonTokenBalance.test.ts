@@ -6,7 +6,6 @@ import {
 } from './useNonTokenBalance';
 import { useBalanceBreakdown } from '../Views/Homepage/BalanceBreakdown/hooks/useBalanceBreakdown';
 import { selectSelectedAccountGroup } from '../../selectors/multichainAccounts/accountTreeController';
-import { selectInternalAccountByAccountGroupAndScope } from '../../selectors/multichainAccounts/accounts';
 import type {
   BreakdownData,
   HeroData,
@@ -76,11 +75,6 @@ describe('getAccountListBalance', () => {
 describe('useAccountListBalance', () => {
   it('retains the complete homepage total after switching accounts', () => {
     let selectedAccountGroupId = 'group-main';
-    const addresses: Record<string, string> = {
-      'group-main': '0x0000000000000000000000000000000000000001',
-      'group-other': '0x0000000000000000000000000000000000000002',
-      'group-never-selected': '0x0000000000000000000000000000000000000003',
-    };
     const createBreakdown = (
       primitiveValue: number,
       tokenValue: number,
@@ -116,11 +110,6 @@ describe('useAccountListBalance', () => {
       if (selector === selectSelectedAccountGroup) {
         return { id: selectedAccountGroupId } as never;
       }
-      if (selector === selectInternalAccountByAccountGroupAndScope) {
-        return ((_scope: string, accountGroupId: string) => ({
-          address: addresses[accountGroupId],
-        })) as never;
-      }
       return undefined as never;
     });
     jest
@@ -139,5 +128,31 @@ describe('useAccountListBalance', () => {
     expect(result.current('group-main')).toBe(1_088.33);
     expect(result.current('group-other')).toBe(50);
     expect(result.current('group-never-selected')).toBeNull();
+  });
+
+  it('retains a non-EVM account group total after switching accounts', () => {
+    let selectedAccountGroupId = 'solana-group';
+
+    jest.mocked(useSelector).mockImplementation((selector) => {
+      if (selector === selectSelectedAccountGroup) {
+        return { id: selectedAccountGroupId } as never;
+      }
+      return undefined as never;
+    });
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      hero: hero({ totalFiat: 1_234.56 }),
+      slices: {},
+    } as BreakdownData);
+
+    const { result, rerender } = renderHook(useAccountListBalance);
+
+    selectedAccountGroupId = 'another-group';
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      hero: hero({ totalFiat: 50 }),
+      slices: {},
+    } as BreakdownData);
+    rerender(undefined);
+
+    expect(result.current('solana-group')).toBe(1_234.56);
   });
 });

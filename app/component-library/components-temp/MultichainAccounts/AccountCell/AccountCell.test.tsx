@@ -73,7 +73,6 @@ const renderAccountCell = (
     avatarAccountType?: AvatarAccountType;
     onSelectAccount?: () => void;
     privacyMode?: boolean;
-    showBalance?: boolean;
     accountListBalance?: number | null;
   } = {},
 ) => {
@@ -133,14 +132,6 @@ describe('AccountCell', () => {
     expect(getByText('Test Account Group')).toBeTruthy();
   });
 
-  it('does not mount balance display when balance fetching is disabled', () => {
-    const { queryByTestId } = renderAccountCell({
-      showBalance: false,
-    });
-
-    expect(queryByTestId(AccountCellIds.BALANCE)).toBeNull();
-  });
-
   it('displays account name when selected', () => {
     const { getByText } = renderAccountCell({ isSelected: true });
     expect(getByText('Test Account Group')).toBeTruthy();
@@ -186,6 +177,8 @@ describe('AccountCell', () => {
   });
 
   it('keeps the balance blank when the account has never been fully loaded', () => {
+    mockBalance.value = 100;
+
     const { queryByText } = renderAccountCell({
       accountListBalance: null,
     });

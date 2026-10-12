@@ -2,8 +2,6 @@ import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useBalanceBreakdown } from '../Views/Homepage/BalanceBreakdown/hooks/useBalanceBreakdown';
 import { selectSelectedAccountGroup } from '../../selectors/multichainAccounts/accountTreeController';
-import { selectInternalAccountByAccountGroupAndScope } from '../../selectors/multichainAccounts/accounts';
-import { EVM_SCOPE } from '../UI/Earn/constants/networks';
 import type { HeroData } from '../Views/Homepage/BalanceBreakdown/types';
 
 // Balance breakdown hooks expose only the selected account. Retain its last
@@ -49,39 +47,31 @@ export function getAccountListBalance({
 
 export function useAccountListBalance(): AccountListBalanceGetter {
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
-  const getInternalAccountByAccountGroupAndScope = useSelector(
-    selectInternalAccountByAccountGroupAndScope,
-  );
   const { hero } = useBalanceBreakdown();
-  const selectedEvmAddress = selectedAccountGroup
-    ? getInternalAccountByAccountGroupAndScope(
-        EVM_SCOPE,
-        selectedAccountGroup.id,
-      )?.address.toLowerCase()
-    : undefined;
   const isHeroComplete =
     hero.status === 'ready' && !hero.isPartiallyLoaded && !hero.hasErroredSlice;
 
   useEffect(() => {
-    if (!selectedEvmAddress || !isHeroComplete) {
+    if (!selectedAccountGroup?.id || !isHeroComplete) {
       return;
     }
 
     accountBalanceCache.set(
-      `${hero.userCurrency}:${selectedEvmAddress}`,
+      `${hero.userCurrency}:${selectedAccountGroup.id}`,
       hero.totalFiat,
     );
-  }, [hero.totalFiat, hero.userCurrency, isHeroComplete, selectedEvmAddress]);
+  }, [
+    hero.totalFiat,
+    hero.userCurrency,
+    isHeroComplete,
+    selectedAccountGroup?.id,
+  ]);
 
   return useCallback(
     (accountGroupId: string) => {
-      const evmAddress = getInternalAccountByAccountGroupAndScope(
-        EVM_SCOPE,
-        accountGroupId,
-      )?.address.toLowerCase();
-      const knownAccountBalance = evmAddress
-        ? accountBalanceCache.get(`${hero.userCurrency}:${evmAddress}`)
-        : undefined;
+      const knownAccountBalance = accountBalanceCache.get(
+        `${hero.userCurrency}:${accountGroupId}`,
+      );
 
       return getAccountListBalance({
         hero,
@@ -90,6 +80,6 @@ export function useAccountListBalance(): AccountListBalanceGetter {
         accountGroupId,
       });
     },
-    [getInternalAccountByAccountGroupAndScope, hero, selectedAccountGroup?.id],
+    [hero, selectedAccountGroup?.id],
   );
 }

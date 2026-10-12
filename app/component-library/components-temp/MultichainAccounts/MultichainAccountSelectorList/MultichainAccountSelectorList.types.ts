@@ -53,10 +53,6 @@ export interface MultichainAccountSelectorListProps
    */
   showCheckbox?: boolean;
   /**
-   * Optional boolean to show account balances.
-   */
-  showBalance?: boolean;
-  /**
    * Optional boolean to show footer
    */
   showFooter?: boolean;
