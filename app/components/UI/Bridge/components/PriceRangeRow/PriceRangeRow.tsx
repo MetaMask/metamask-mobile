@@ -54,8 +54,8 @@ function PriceRangeValue({
         style={{ marginLeft: PRICE_RANGE_TOKEN_TO_RANGE_GAP }}
       >
         <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Regular}
           color={TextColor.TextDefault}
           numberOfLines={1}
           testID={PriceRangeRowSelectorsIDs.MIN_VALUE}
@@ -63,8 +63,8 @@ function PriceRangeValue({
           {minLabel}
         </Text>
         <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Regular}
           color={TextColor.TextDefault}
           numberOfLines={1}
           testID={PriceRangeRowSelectorsIDs.MAX_VALUE}
@@ -77,8 +77,8 @@ function PriceRangeValue({
 
   return (
     <Text
-      variant={TextVariant.BodySm}
-      fontWeight={FontWeight.Medium}
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Regular}
       color={TextColor.TextDefault}
       numberOfLines={1}
       twClassName="min-w-0 shrink"
@@ -138,7 +138,7 @@ const PriceRangeRow = ({
       onPress={onPress}
       testID={PriceRangeRowSelectorsIDs.ROW}
       style={({ pressed }) =>
-        tw.style('w-full px-4 py-3', pressed && 'bg-pressed')
+        tw.style('w-full px-4 pt-3 pb-4', pressed && 'bg-pressed')
       }
     >
       <Box
@@ -151,8 +151,8 @@ const PriceRangeRow = ({
       >
         {oneLineLabel ? (
           <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Regular}
             accessible={false}
             importantForAccessibility="no"
             numberOfLines={1}
@@ -168,8 +168,8 @@ const PriceRangeRow = ({
           </Text>
         ) : null}
         <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Regular}
           color={TextColor.TextAlternative}
           twClassName="flex-1"
         >
@@ -222,9 +222,9 @@ const PriceRangeRow = ({
             </Box>
           ) : (
             <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Regular}
+              color={TextColor.TextDefault}
               testID={PriceRangeRowSelectorsIDs.VALUE}
             >
               {strings('bridge.recurring.price_range.not_set')}
