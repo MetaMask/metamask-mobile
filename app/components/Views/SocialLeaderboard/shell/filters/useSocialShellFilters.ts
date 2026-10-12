@@ -25,17 +25,17 @@ const tabFiltersEqual = (
   a: SocialShellFilters,
   b: SocialShellFilters,
 ): boolean => {
-  if (a.type !== b.type || a.traderCohort !== b.traderCohort) {
+  const cohortA = a.traderCohort === 'verified' ? 'all' : a.traderCohort;
+  const cohortB = b.traderCohort === 'verified' ? 'all' : b.traderCohort;
+  if (a.type !== b.type || cohortA !== cohortB) {
     return false;
   }
   if (tab === 'leaderboard') {
     return a.timeframe === b.timeframe;
   }
-  return (
-    a.verification === b.verification &&
-    rangesEqual(a.marketCap, b.marketCap) &&
-    rangesEqual(a.volume24h, b.volume24h)
-  );
+  // Verification and 24h volume are hidden until the API can honor them, so
+  // leftover values must not light the filter icon.
+  return rangesEqual(a.marketCap, b.marketCap);
 };
 
 export interface UseSocialShellFiltersResult {

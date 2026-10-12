@@ -1,7 +1,9 @@
 import React from 'react';
+import { View as RNView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { render } from '@testing-library/react-native';
 import Price from './Price';
+import { usePriceChartContext } from './Price.context';
 import type { TokenI } from '../../Tokens/types';
 import { PriceChartProvider } from '../PriceChart/PriceChart.context';
 import {
@@ -308,6 +310,49 @@ describe('Price Component', () => {
 
       expect(getByText('No chart data')).toBeTruthy();
       expect(getByTestId('mock-advanced-chart')).toBeTruthy();
+    });
+  });
+
+  describe('compound composition', () => {
+    it('renders caller content between the header and the chart', () => {
+      const { getByTestId } = renderWithProviders(
+        <Price.Provider {...unifiedProps}>
+          <Price.Header />
+          <RNView testID="interleaved-section" />
+          <Price.Chart />
+        </Price.Provider>,
+      );
+
+      expect(getByTestId('token-price')).toBeTruthy();
+      expect(getByTestId('interleaved-section')).toBeTruthy();
+      expect(getByTestId('mock-advanced-chart')).toBeTruthy();
+    });
+
+    it('renders a single chart when the parts share one provider', () => {
+      const { getAllByTestId } = renderWithProviders(
+        <Price.Provider {...unifiedProps}>
+          <Price.Header />
+          <Price.Chart />
+        </Price.Provider>,
+      );
+
+      expect(getAllByTestId('mock-advanced-chart')).toHaveLength(1);
+    });
+
+    it('throws when a part is rendered outside Price.Provider', () => {
+      const consoleError = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+      const Orphan = () => {
+        usePriceChartContext();
+        return null;
+      };
+
+      expect(() => render(<Orphan />)).toThrow(
+        'usePriceChartContext must be used within a Price.Provider',
+      );
+
+      consoleError.mockRestore();
     });
   });
 });

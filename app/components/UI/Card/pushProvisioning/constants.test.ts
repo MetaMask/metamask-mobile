@@ -1,9 +1,5 @@
 import { Platform } from 'react-native';
-import {
-  getWalletName,
-  isAccountEligibleForProvisioning,
-  PROVISIONING_ELIGIBLE_AFTER,
-} from './constants';
+import { getWalletName, getWalletTypeForPlatform } from './constants';
 
 describe('Push Provisioning Constants', () => {
   const originalPlatform = Platform.OS;
@@ -45,43 +41,21 @@ describe('Push Provisioning Constants', () => {
     });
   });
 
-  describe('isAccountEligibleForProvisioning', () => {
-    it('returns false for null or undefined', () => {
-      expect(isAccountEligibleForProvisioning(null)).toBe(false);
-      expect(isAccountEligibleForProvisioning(undefined)).toBe(false);
+  describe('getWalletTypeForPlatform', () => {
+    it('returns apple_wallet on iOS', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'ios',
+        writable: true,
+      });
+      expect(getWalletTypeForPlatform()).toBe('apple_wallet');
     });
 
-    it('returns false for invalid date strings', () => {
-      expect(isAccountEligibleForProvisioning('')).toBe(false);
-      expect(isAccountEligibleForProvisioning('not-a-date')).toBe(false);
-    });
-
-    it('returns false for accounts created before November 10, 2025', () => {
-      expect(isAccountEligibleForProvisioning('2025-11-09T23:59:59.999Z')).toBe(
-        false,
-      );
-      expect(isAccountEligibleForProvisioning('2025-09-15T12:00:00.000Z')).toBe(
-        false,
-      );
-      expect(isAccountEligibleForProvisioning('2025-08-01T00:00:00.000Z')).toBe(
-        false,
-      );
-    });
-
-    it('returns true for accounts created on or after November 10, 2025', () => {
-      expect(isAccountEligibleForProvisioning('2025-12-01T00:00:00.000Z')).toBe(
-        true,
-      );
-      expect(isAccountEligibleForProvisioning('2025-11-11T10:30:00.000Z')).toBe(
-        true,
-      );
-      expect(isAccountEligibleForProvisioning('2026-06-01T00:00:00.000Z')).toBe(
-        true,
-      );
-    });
-
-    it('uses the PROVISIONING_ELIGIBLE_AFTER constant as cutoff', () => {
-      expect(PROVISIONING_ELIGIBLE_AFTER).toBe('2025-11-10T00:00:00.000Z');
+    it('returns google_wallet on Android', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+      expect(getWalletTypeForPlatform()).toBe('google_wallet');
     });
   });
 });

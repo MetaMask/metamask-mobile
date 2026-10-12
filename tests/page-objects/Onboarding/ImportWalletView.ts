@@ -1,6 +1,5 @@
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
-import enContent from '../../../locales/languages/en.json';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
@@ -28,39 +27,14 @@ class ImportWalletView {
     );
   }
 
-  getAppiumIosSeedPhraseXPath(index: number, onboarding = true): string {
-    if (onboarding) {
-      if (index === 0) {
-        return '//XCUIElementTypeOther[@name="textfield"]';
-      }
-
-      return `//XCUIElementTypeOther[@name="textfield" and @label="${index + 1}."]`;
-    }
-
-    if (index === 0) {
-      return "//*[@name='textfield' or @label='textfield']";
-    }
-
-    return `//*[@label="${index + 1}."]`;
-  }
-
   seedPhraseInput(index: number, onboarding = true): Promise<AppiumElement> {
-    // Onboarding ImportFromSecretRecoveryPhrase uses phrase-input-id;
-    // post-onboarding ImportNewSecretRecoveryPhrase uses seed-phrase-input.
-    const androidSeedPhraseInputPrefix = onboarding
+    // Onboarding uses phrase-input-id; post-onboarding uses seed-phrase-input.
+    const seedPhraseInputPrefix = onboarding
       ? ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID
       : ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_FIELD;
 
-    if (PlatformDetector.isAndroid()) {
-      return Matchers.getElementByID(
-        index === 0
-          ? androidSeedPhraseInputPrefix
-          : `${androidSeedPhraseInputPrefix}_${index}`,
-      );
-    }
-
-    return Matchers.getElementByNativeXPath(
-      this.getAppiumIosSeedPhraseXPath(index, onboarding),
+    return Matchers.getElementByID(
+      index === 0 ? seedPhraseInputPrefix : `${seedPhraseInputPrefix}_${index}`,
     );
   }
 
@@ -93,10 +67,7 @@ class ImportWalletView {
     secretRecoveryPhrase: string,
     onboarding = true,
   ): Promise<void> {
-    const srpArray = secretRecoveryPhrase.split(' ');
-
-    // Android: replaceText does not leave the soft keyboard open;
-    // hideKeyboard() throws on Android when none is visible (unlike iOS).
+    // Android: replaceText into the TextArea accepts the full phrase in one shot.
     if (PlatformDetector.isAndroid()) {
       await Gestures.replaceText(
         this.seedPhraseInput(0, onboarding),
@@ -109,7 +80,21 @@ class ImportWalletView {
       return;
     }
 
+    // iOS: enter word-by-word. After the first word+space the UI switches from
+    // TextArea to numbered grid chips (`phrase-input-id_${index}`). Bulk
+    // fill/setValue on the multiline TextArea is unreliable.
+    const srpArray = secretRecoveryPhrase.split(' ');
+    const firstInput = await this.seedPhraseInput(0, onboarding);
+    await firstInput.waitForDisplayed({
+      timeout: 15_000,
+      timeoutMsg:
+        'Import Wallet Secret Recovery Phrase Input Box was not displayed within 15000ms',
+    });
+    await Gestures.typeTextByCharacters(firstInput, `${srpArray[0]} `);
     for (const [i, word] of srpArray.entries()) {
+      if (i === 0) {
+        continue;
+      }
       await Gestures.typeText(this.seedPhraseInput(i, onboarding), `${word} `, {
         elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
         hideKeyboard: false,
@@ -121,7 +106,6 @@ class ImportWalletView {
 
   async tapContinueButton(onboarding = true): Promise<void> {
     if (onboarding) {
-      // iOS only — Android replaceText path already has no keyboard.
       if (!PlatformDetector.isAndroid()) {
         await Gestures.hideKeyboard();
       }
@@ -179,25 +163,25 @@ class ImportWalletView {
     });
   }
 
-  get importFromExtensionLink(): Promise<AppiumElement> {
-    // Nested RN Text testIDs are not exposed as Android resourceId / iOS
-    // accessibility id. Exact text matches the tappable inner link (contains
-    // matching hits the parent sentence and does not fire onPress).
-    const text = enContent.import_from_seed.import_wallet_from_extension;
-    const escaped = text.replace(/'/g, "\\'");
-    if (PlatformDetector.isAndroid()) {
-      return Matchers.getElementByNativeXPath(
-        `//*[@name='${escaped}' or @label='${escaped}' or @text='${escaped}' or @content-desc='${escaped}']`,
-      );
-    }
-    return Matchers.getElementByNativeXPath(
-      `//*[@name='${escaped}' or @label='${escaped}' or @text='${escaped}']`,
+  get qrCodeButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
+    );
+  }
+
+  get importFromExtensionOption(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_OPTION_ID,
     );
   }
 
   async tapImportFromExtensionLink(): Promise<void> {
-    await Gestures.waitAndTap(this.importFromExtensionLink, {
-      elemDescription: 'Import from MetaMask extension link',
+    await Gestures.waitAndTap(this.qrCodeButton, {
+      elemDescription: 'Import Wallet scan header button',
+      timeout: 15_000,
+    });
+    await Gestures.waitAndTap(this.importFromExtensionOption, {
+      elemDescription: 'Import from MetaMask extension option',
       timeout: 15_000,
     });
   }

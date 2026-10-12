@@ -2,6 +2,7 @@ import React from 'react';
 import { ActivityIndicator, AppState, type AppStateStatus } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
+import { TOKEN_DETAILS_PAGE_PENDING_TEST_ID } from './TokenDetailsPagePending';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   selectNetworkConfigurationByChainId,
@@ -24,6 +25,7 @@ import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissi
 import { TraceName } from '../../../../util/trace';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectBridgeRecurringBuyFeatureFlags } from '../../../../selectors/bridge/featureFlags';
+import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
@@ -181,6 +183,30 @@ jest.mock('../hooks/useTokenTransactions', () => ({
     mockUseTokenTransactions(...args),
 }));
 
+const mockUseTokenAssetDetails = jest.fn((_assetId: unknown) => ({
+  asset: null as { launchpadData: object | null } | null,
+  isLoading: false,
+  isError: false,
+}));
+jest.mock('../queries/tokenAssetQuery', () => ({
+  useTokenAssetDetails: (assetId: unknown) => mockUseTokenAssetDetails(assetId),
+}));
+
+const mockUseIsMemeToken = jest.fn((_opts: Record<string, unknown>) => ({
+  isMeme: false,
+  isLoading: false,
+  isError: false,
+  query: {},
+}));
+jest.mock('../hooks/useIsMemeToken', () => ({
+  useIsMemeToken: (opts: Record<string, unknown>) => mockUseIsMemeToken(opts),
+}));
+
+const mockTokenDetailsV1 = jest.fn((_props: Record<string, unknown>) => null);
+jest.mock('./TokenDetailsV1', () => ({
+  TokenDetailsV1: (props: Record<string, unknown>) => mockTokenDetailsV1(props),
+}));
+
 const mockTokenDetailsInlineHeader = jest.fn(
   (_props: Record<string, unknown>) => null,
 );
@@ -310,9 +336,13 @@ jest.mock('../../../Views/Asset/ActivityHeader', () => ({
   default: () => null,
 }));
 
+const mockTransactions = jest.fn((_props: Record<string, unknown>) => null);
 jest.mock('../../Transactions', () => ({
   __esModule: true,
-  default: ({ header }: { header?: React.ReactNode }) => header ?? null,
+  default: (props: { header?: React.ReactNode }) => {
+    mockTransactions(props);
+    return props.header ?? null;
+  },
 }));
 
 jest.mock(
@@ -419,14 +449,6 @@ jest.mock('../../../../hooks/useABTest', () => ({
 
 jest.mock('../hooks/useStickyFooterTracking', () => ({
   useStickyFooterTracking: jest.fn(() => jest.fn()),
-}));
-
-const mockMarketInsightsDisclaimer = jest.fn(
-  (_props: { onClose?: () => void }) => null,
-);
-jest.mock('../../MarketInsights', () => ({
-  MarketInsightsDisclaimerBottomSheet: (props: { onClose?: () => void }) =>
-    mockMarketInsightsDisclaimer(props),
 }));
 
 const mockAssetDetailsQuickBuy = jest.fn(
@@ -1405,32 +1427,6 @@ describe('TokenDetails', () => {
     });
   });
 
-  describe('market insights disclaimer', () => {
-    it('does not render the disclaimer bottom sheet before it is requested', () => {
-      render(<TokenDetails />);
-
-      expect(mockMarketInsightsDisclaimer).not.toHaveBeenCalled();
-    });
-
-    it('renders the disclaimer bottom sheet when the disclaimer is pressed and hides it on close', () => {
-      render(<TokenDetails />);
-
-      act(() => {
-        mockLatestOnMarketInsightsDisclaimerPress?.();
-      });
-      expect(mockMarketInsightsDisclaimer).toHaveBeenCalled();
-
-      const { onClose } = (mockMarketInsightsDisclaimer.mock.calls.at(
-        -1,
-      )?.[0] ?? {}) as { onClose?: () => void };
-      act(() => {
-        onClose?.();
-      });
-
-      expect(onClose).toBeDefined();
-    });
-  });
-
   describe('non-EVM asset', () => {
     it('renders without crashing and shows sticky footer for non-EVM assets', () => {
       mockUseTokenTransactions.mockReturnValue({
@@ -1668,6 +1664,215 @@ describe('TokenDetails', () => {
         expect.objectContaining({
           starButton: expect.anything(),
         }),
+      );
+    });
+  });
+
+  describe('memecoin TDP V1 routing', () => {
+    const applyBaselineSelectorsWithMemeFlag = (flagEnabled: boolean) => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsMemecoinTdpV1Enabled) return flagEnabled;
+        if (selector === selectNetworkConfigurationByChainId)
+          return { name: 'Ethereum' };
+        if (selector === selectNetworkConfigurations)
+          return { '0x1': { nativeCurrency: 'ETH' } };
+        if (selector === selectCurrencyRates)
+          return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
+        if (selector === getRampNetworks) return [];
+        if (selector === selectDepositActiveFlag) return false;
+        if (selector === selectDepositMinimumVersionFlag) return null;
+        if (selector === selectSelectedInternalAccountFormattedAddress)
+          return '0x1234567890123456789012345678901234567890';
+        if (selector === selectBridgeRecurringBuyFeatureFlags)
+          return { enabled: true, enabledChainIds: ['eip155:1'] };
+        return undefined;
+      });
+    };
+
+    beforeEach(() => {
+      mockUseIsMemeToken.mockReturnValue({
+        isMeme: false,
+        isLoading: false,
+        isError: false,
+        query: {},
+      });
+      mockUseTokenAssetDetails.mockReturnValue({
+        asset: null,
+        isLoading: false,
+        isError: false,
+      });
+      mockTokenDetailsV1.mockClear();
+    });
+
+    it('does not render TokenDetailsV1 when the flag is off and the token is not a meme', () => {
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsV1).not.toHaveBeenCalled();
+      expect(mockTokenDetailsInlineHeader).toHaveBeenCalled();
+    });
+
+    it('does not render TokenDetailsV1 when the flag is on but the token is not a meme', () => {
+      applyBaselineSelectorsWithMemeFlag(true);
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(mockTokenDetailsV1).not.toHaveBeenCalled();
+      expect(queryByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeNull();
+    });
+
+    it('shows the interim shell and sticky swap while the token API is pending', () => {
+      applyBaselineSelectorsWithMemeFlag(true);
+      mockUseTokenAssetDetails.mockReturnValue({
+        asset: null,
+        isLoading: true,
+        isError: false,
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeTruthy();
+      expect(getByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON)).toBeTruthy();
+      expect(mockTokenDetailsV1).not.toHaveBeenCalled();
+      expect(mockTokenDetailsInlineHeader).toHaveBeenCalled();
+      expect(mockUseTokenPrice).toHaveBeenCalled();
+    });
+
+    it('renders TokenDetailsV1 when the token API returns launchpad data', () => {
+      applyBaselineSelectorsWithMemeFlag(true);
+      mockUseTokenAssetDetails.mockReturnValue({
+        asset: { launchpadData: { description: 'A launch' } },
+        isLoading: false,
+        isError: false,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsV1).toHaveBeenCalledWith(
+        expect.objectContaining({ token: expect.any(Object) }),
+      );
+      expect(mockTokenDetailsInlineHeader).not.toHaveBeenCalled();
+    });
+
+    it('renders the legacy page when the token API has no launchpad data', () => {
+      applyBaselineSelectorsWithMemeFlag(true);
+      mockUseTokenAssetDetails.mockReturnValue({
+        asset: { launchpadData: null },
+        isLoading: false,
+        isError: false,
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(mockTokenDetailsV1).not.toHaveBeenCalled();
+      expect(queryByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeNull();
+      expect(mockTokenDetailsInlineHeader).toHaveBeenCalled();
+    });
+
+    it('shows the interim shell for PEPE while the token API is pending', () => {
+      applyBaselineSelectorsWithMemeFlag(true);
+      mockUseIsMemeToken.mockReturnValue({
+        isMeme: true,
+        isLoading: false,
+        isError: false,
+        query: {},
+      });
+      mockUseTokenAssetDetails.mockReturnValue({
+        asset: null,
+        isLoading: true,
+        isError: false,
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeTruthy();
+      expect(mockTokenDetailsV1).not.toHaveBeenCalled();
+    });
+
+    it('renders TokenDetailsV1 and skips the legacy header when the flag is on and the token is a meme', () => {
+      applyBaselineSelectorsWithMemeFlag(true);
+      mockUseIsMemeToken.mockReturnValue({
+        isMeme: true,
+        isLoading: false,
+        isError: false,
+        query: {},
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsV1).toHaveBeenCalledWith(
+        expect.objectContaining({ token: expect.any(Object) }),
+      );
+      expect(mockTokenDetailsInlineHeader).not.toHaveBeenCalled();
+    });
+
+    it('does not run legacy page hooks when it renders TokenDetailsV1', () => {
+      applyBaselineSelectorsWithMemeFlag(true);
+      mockUseIsMemeToken.mockReturnValue({
+        isMeme: true,
+        isLoading: false,
+        isError: false,
+        query: {},
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsV1).toHaveBeenCalled();
+      // A/B exposure events would otherwise be attributed to users who never
+      // see the legacy page, skewing those experiments.
+      expect(mockUseABTest).not.toHaveBeenCalled();
+      expect(mockUseTokenPrice).not.toHaveBeenCalled();
+      expect(mockUseTokenTransactions).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('header live price on scroll', () => {
+    const getScrollHandler = () =>
+      (mockTransactions.mock.calls.at(-1)?.[0] ?? {}) as {
+        onScrollThroughContent?: (y: number) => void;
+      };
+
+    it('shows the contract address (no description) before scrolling', () => {
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ description: undefined }),
+      );
+    });
+
+    it('swaps the header subtitle to the live price once scrolled, and back when returning to top', () => {
+      render(<TokenDetails />);
+
+      act(() => {
+        getScrollHandler().onScrollThroughContent?.(120);
+      });
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ description: expect.anything() }),
+      );
+
+      act(() => {
+        getScrollHandler().onScrollThroughContent?.(0);
+      });
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ description: undefined }),
+      );
+    });
+
+    it('keeps the contract address when there is no live price', () => {
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 0,
+      });
+
+      render(<TokenDetails />);
+
+      act(() => {
+        getScrollHandler().onScrollThroughContent?.(120);
+      });
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ description: undefined }),
       );
     });
   });
