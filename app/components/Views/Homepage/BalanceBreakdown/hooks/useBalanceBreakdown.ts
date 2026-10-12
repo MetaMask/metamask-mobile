@@ -1,7 +1,10 @@
 import { useMemo } from 'react';
 import { useTokensSlice } from './slices/useTokensSlice';
+import { useMoneySlice } from './slices/useMoneySlice';
+import { usePerpsSlice } from './slices/usePerpsSlice';
+import { usePredictSlice } from './slices/usePredictSlice';
+import { useDefiSlice } from './slices/useDefiSlice';
 import { useFiatNormalizer } from './useFiatNormalizer';
-import { useNonTokenBalanceSlices } from '../../../../hooks/useNonTokenBalance';
 import { SLICE_ORDER } from '../constants';
 import { computeAggregateHero24hDelta } from '../utils/aggregateHero24hDelta';
 import type {
@@ -76,17 +79,20 @@ function aggregateStatus(
 export function useBalanceBreakdown(): BreakdownData {
   const { toUserCurrency, userCurrency } = useFiatNormalizer();
   const tokensSlice = useTokensSlice();
-  const nonTokenSlices = useNonTokenBalanceSlices(toUserCurrency);
+  const moneySlice = useMoneySlice(toUserCurrency);
+  const perpsSlice = usePerpsSlice(toUserCurrency);
+  const predictSlice = usePredictSlice(toUserCurrency);
+  const defiSlice = useDefiSlice(toUserCurrency);
 
   const slicesRaw: Record<SliceKey, BalanceSlice> = useMemo(
     () => ({
       tokens: tokensSlice,
-      money: nonTokenSlices.money,
-      perps: nonTokenSlices.perps,
-      predict: nonTokenSlices.predict,
-      defi: nonTokenSlices.defi,
+      money: moneySlice,
+      perps: perpsSlice,
+      predict: predictSlice,
+      defi: defiSlice,
     }),
-    [nonTokenSlices, tokensSlice],
+    [tokensSlice, moneySlice, perpsSlice, predictSlice, defiSlice],
   );
 
   const { slices, totalFiat } = useMemo(
@@ -115,16 +121,16 @@ export function useBalanceBreakdown(): BreakdownData {
     /** A missing Perps baseline must not turn session PnL into a “Today” value. */
     const PERPS_24H_BASELINE_EPS = 1e-6;
     const hasTrustworthyPerps24hBaseline =
-      slices.perps.valueFiat <= PERPS_24H_BASELINE_EPS ||
-      (slices.perps.value1dAgoFiat ?? 0) > PERPS_24H_BASELINE_EPS;
+      perpsSlice.valueFiat <= PERPS_24H_BASELINE_EPS ||
+      (perpsSlice.value1dAgoFiat ?? 0) > PERPS_24H_BASELINE_EPS;
 
     const includePerpsContribution =
-      slices.perps.status === 'ready' &&
-      slices.perps.value1dAgoFiat !== undefined &&
+      perpsSlice.status === 'ready' &&
+      perpsSlice.value1dAgoFiat !== undefined &&
       hasTrustworthyPerps24hBaseline;
 
     const perpsFiatContribution = includePerpsContribution
-      ? slices.perps.valueFiat - (slices.perps.value1dAgoFiat ?? 0)
+      ? perpsSlice.valueFiat - (perpsSlice.value1dAgoFiat ?? 0)
       : 0;
 
     return {
@@ -147,9 +153,9 @@ export function useBalanceBreakdown(): BreakdownData {
     heroStatus,
     hasHeroErroredSlice,
     isHeroPartiallyLoaded,
-    slices.perps.status,
-    slices.perps.value1dAgoFiat,
-    slices.perps.valueFiat,
+    perpsSlice.status,
+    perpsSlice.value1dAgoFiat,
+    perpsSlice.valueFiat,
   ]);
 
   return { hero, slices };

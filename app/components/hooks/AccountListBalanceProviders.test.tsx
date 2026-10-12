@@ -1,16 +1,22 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Text } from 'react-native';
 import { render } from '@testing-library/react-native';
-import AccountListBalanceProviders from './AccountListBalanceProviders';
+import AccountListBalanceProviders, {
+  AccountListBalanceContext,
+} from './AccountListBalanceProviders';
 import { useABTest } from '../../hooks/useABTest';
-import { useAccountListNonTokenBalance } from './useNonTokenBalance';
+import { useAccountListBalance } from './useNonTokenBalance';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => true),
+}));
 
 jest.mock('../../hooks/useABTest', () => ({
   useABTest: jest.fn(),
 }));
 
 jest.mock('./useNonTokenBalance', () => ({
-  useAccountListNonTokenBalance: jest.fn(),
+  useAccountListBalance: jest.fn(),
 }));
 
 jest.mock('../UI/Perps/providers/PerpsConnectionProvider', () => ({
@@ -24,17 +30,25 @@ jest.mock('../UI/Perps/providers/PerpsStreamManager', () => ({
 }));
 
 const mockUseABTest = jest.mocked(useABTest);
-const mockUseAccountListNonTokenBalance = jest.mocked(
-  useAccountListNonTokenBalance,
-);
+const mockUseAccountListBalance = jest.mocked(useAccountListBalance);
+
+const BalanceConsumer = () => {
+  const getAccountListBalance = useContext(AccountListBalanceContext);
+  const balance = getAccountListBalance?.('group');
+
+  return <Text>{balance ? balance.value : 'disabled'}</Text>;
+};
 
 describe('AccountListBalanceProviders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAccountListNonTokenBalance.mockReturnValue(() => 123);
+    mockUseAccountListBalance.mockReturnValue(() => ({
+      mode: 'total',
+      value: 123,
+    }));
   });
 
-  it('does not provide account-list balance aggregation outside the treatment', () => {
+  it('does not provide account-list balance aggregation without an active assignment', () => {
     mockUseABTest.mockReturnValue({
       variant: { showBalanceBreakdown: false },
       variantName: 'control',
@@ -43,16 +57,12 @@ describe('AccountListBalanceProviders', () => {
 
     const { getByText } = render(
       <AccountListBalanceProviders>
-        {(getNonTokenBalance) => (
-          <Text>
-            {getNonTokenBalance ? getNonTokenBalance('group') : 'disabled'}
-          </Text>
-        )}
+        <BalanceConsumer />
       </AccountListBalanceProviders>,
     );
 
     expect(getByText('disabled')).toBeOnTheScreen();
-    expect(mockUseAccountListNonTokenBalance).not.toHaveBeenCalled();
+    expect(mockUseAccountListBalance).not.toHaveBeenCalled();
   });
 
   it('provides account-list balance aggregation for the active treatment', () => {
@@ -64,11 +74,36 @@ describe('AccountListBalanceProviders', () => {
 
     const { getByText } = render(
       <AccountListBalanceProviders>
-        {(getNonTokenBalance) => <Text>{getNonTokenBalance?.('group')}</Text>}
+        <BalanceConsumer />
       </AccountListBalanceProviders>,
     );
 
     expect(getByText('123')).toBeOnTheScreen();
-    expect(mockUseAccountListNonTokenBalance).toHaveBeenCalledTimes(1);
+    expect(mockUseAccountListBalance).toHaveBeenCalledTimes(1);
+  });
+
+  it('updates mounted consumers when the aggregate balance changes', () => {
+    mockUseABTest.mockReturnValue({
+      variant: { showBalanceBreakdown: true },
+      variantName: 'treatment',
+      isActive: true,
+    });
+    const view = render(
+      <AccountListBalanceProviders>
+        <BalanceConsumer />
+      </AccountListBalanceProviders>,
+    );
+
+    mockUseAccountListBalance.mockReturnValue(() => ({
+      mode: 'total',
+      value: 456,
+    }));
+    view.rerender(
+      <AccountListBalanceProviders>
+        <BalanceConsumer />
+      </AccountListBalanceProviders>,
+    );
+
+    expect(view.getByText('456')).toBeOnTheScreen();
   });
 });

@@ -6,23 +6,25 @@ import {
   HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
   HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS,
 } from '../Views/Homepage/abTestConfig';
-import {
-  useAccountListNonTokenBalance,
-  type AccountListNonTokenBalanceGetter,
-} from './useNonTokenBalance';
+import { useAccountListBalance } from './useNonTokenBalance';
+import { AccountListBalanceContext } from './AccountListBalanceContext';
 
 interface AccountListBalanceProvidersProps {
-  children: (
-    getNonTokenBalance?: AccountListNonTokenBalanceGetter,
-  ) => React.ReactNode;
+  children: React.ReactNode;
 }
+
+export { AccountListBalanceContext };
 
 const AccountListBalanceContent = ({
   children,
 }: AccountListBalanceProvidersProps) => {
-  const getNonTokenBalance = useAccountListNonTokenBalance();
+  const getAccountListBalance = useAccountListBalance();
 
-  return children(getNonTokenBalance);
+  return (
+    <AccountListBalanceContext.Provider value={getAccountListBalance}>
+      {children}
+    </AccountListBalanceContext.Provider>
+  );
 };
 
 /**
@@ -45,7 +47,7 @@ const AccountListBalanceProviders = ({
     balanceBreakdownVariant.showBalanceBreakdown;
 
   if (!isBalanceBreakdownEnabled) {
-    return children();
+    return children;
   }
 
   return (

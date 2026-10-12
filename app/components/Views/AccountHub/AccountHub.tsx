@@ -299,16 +299,13 @@ const AccountHub = () => {
 
       {selectedAccountGroup ? (
         <AccountListBalanceProviders>
-          {(getNonTokenBalance) => (
-            <MultichainAccountSelectorList
-              onSelectAccount={handleSelectAccount}
-              selectedAccountGroups={selectedAccountGroups}
-              hideSearch
-              ListHeaderComponent={listHeader}
-              getNonTokenBalance={getNonTokenBalance}
-              testID={AccountHubSelectorsIDs.ACCOUNT_LIST}
-            />
-          )}
+          <MultichainAccountSelectorList
+            onSelectAccount={handleSelectAccount}
+            selectedAccountGroups={selectedAccountGroups}
+            hideSearch
+            ListHeaderComponent={listHeader}
+            testID={AccountHubSelectorsIDs.ACCOUNT_LIST}
+          />
         </AccountListBalanceProviders>
       ) : (
         <ScrollView style={tw.style('flex-1')}>{listHeader}</ScrollView>

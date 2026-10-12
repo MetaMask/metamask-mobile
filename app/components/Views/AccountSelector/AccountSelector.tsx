@@ -234,18 +234,15 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       <Fragment>
         {selectedAccountGroup ? (
           <AccountListBalanceProviders>
-            {(getNonTokenBalance) => (
-              <MultichainAccountSelectorList
-                onSelectAccount={_onSelectMultichainAccount}
-                selectedAccountGroups={selectedAccountGroups}
-                testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
-                setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
-                showFooter={!disableAddAccountButton}
-                onSearchFocus={handleSearchFocus}
-                onSearchSettled={handleSearchSettled}
-                getNonTokenBalance={getNonTokenBalance}
-              />
-            )}
+            <MultichainAccountSelectorList
+              onSelectAccount={_onSelectMultichainAccount}
+              selectedAccountGroups={selectedAccountGroups}
+              testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
+              setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
+              showFooter={!disableAddAccountButton}
+              onSearchFocus={handleSearchFocus}
+              onSearchSettled={handleSearchSettled}
+            />
           </AccountListBalanceProviders>
         ) : null}
         {!disableAddAccountButton && (

@@ -25,7 +25,7 @@ import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigrationUpdateBadge';
 
 jest.mock('../../hooks/useNonTokenBalance', () => ({
-  useAccountListNonTokenBalance: jest.fn(() => () => undefined),
+  useAccountListBalance: jest.fn(() => () => undefined),
 }));
 
 const mockNavigate = jest.fn();

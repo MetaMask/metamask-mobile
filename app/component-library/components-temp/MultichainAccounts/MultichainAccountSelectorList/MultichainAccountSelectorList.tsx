@@ -92,7 +92,6 @@ const MultichainAccountSelectorList = ({
   showExternalAccountOnEmptySearch = false,
   onSelectExternalAccount,
   selectedExternalAddress,
-  getNonTokenBalance,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
@@ -398,7 +397,6 @@ const MultichainAccountSelectorList = ({
                 showBalance={showBalance}
                 chainId={chainId}
                 hideMenu={hideAccountCellMenu}
-                nonTokenBalance={getNonTokenBalance?.(item.data.id)}
               />
             );
           }
@@ -444,7 +442,6 @@ const MultichainAccountSelectorList = ({
         chainId,
         hideAccountCellMenu,
         selectedExternalAddress,
-        getNonTokenBalance,
       ],
     );
 

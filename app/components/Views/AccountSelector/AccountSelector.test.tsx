@@ -25,7 +25,7 @@ import {
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
 jest.mock('../../hooks/useNonTokenBalance', () => ({
-  useAccountListNonTokenBalance: jest.fn(() => () => undefined),
+  useAccountListBalance: jest.fn(() => () => undefined),
 }));
 
 // Mock Engine

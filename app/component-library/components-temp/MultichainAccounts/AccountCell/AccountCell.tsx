@@ -1,5 +1,5 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import { Pressable, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -40,9 +40,7 @@ import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { renderShortAddress } from '../../../../util/address';
-import useMoneyAccountBalance from '../../../../components/UI/Money/hooks/useMoneyAccountBalance';
-import useMoneyAccountInfo from '../../../../components/UI/Money/hooks/useMoneyAccountInfo';
-import { useFiatNormalizer } from '../../../../components/Views/Homepage/BalanceBreakdown/hooks/useFiatNormalizer';
+import { AccountListBalanceContext } from '../../../../components/hooks/AccountListBalanceContext';
 import {
   type AccountAvatarVariant,
   getAvatarAccountVariant,
@@ -53,43 +51,41 @@ interface AccountCellProps {
   avatarAccountType: AccountAvatarVariant;
   hideMenu?: boolean;
   showBalance?: boolean;
-  showMoneyBalance?: boolean;
   startAccessory?: React.ReactNode;
   endContainer?: React.ReactNode;
-  nonTokenBalance?: number | null;
   chainId?: string;
   onSelectAccount?: () => void;
 }
 
 type BalanceEndContainerProps = Pick<
   AccountCellProps,
-  | 'accountGroup'
-  | 'hideMenu'
-  | 'nonTokenBalance'
-  | 'onSelectAccount'
-  | 'showBalance'
-  | 'showMoneyBalance'
+  'accountGroup' | 'hideMenu' | 'onSelectAccount' | 'showBalance'
 > & {
   networkImageSource?: React.ComponentProps<typeof AvatarNetwork>['src'];
 };
 
-interface BalanceDisplayProps {
-  totalBalance?: number;
-  userCurrency?: string;
-  privacyMode: boolean;
-  onSelectAccount?: () => void;
-  networkImageSource?: React.ComponentProps<typeof AvatarNetwork>['src'];
-}
-
-const BalanceDisplay = ({
-  totalBalance,
-  userCurrency,
-  privacyMode,
+const AccountBalanceDisplay = ({
+  accountGroup,
   onSelectAccount,
   networkImageSource,
-}: BalanceDisplayProps) => {
+}: BalanceEndContainerProps) => {
   const { styles } = useStyles(styleSheet, {});
-
+  const selectBalanceForGroup = useMemo(
+    () => selectBalanceByAccountGroup(accountGroup.id),
+    [accountGroup.id],
+  );
+  const groupBalance = useSelector(selectBalanceForGroup);
+  const getAccountListBalance = useContext(AccountListBalanceContext);
+  const accountListBalance = getAccountListBalance?.(accountGroup.id);
+  const userCurrency = groupBalance?.userCurrency;
+  const privacyMode = useSelector(selectPrivacyMode);
+  const tokenBalance = groupBalance?.totalBalanceInUserCurrency;
+  let totalBalance: number | undefined = tokenBalance;
+  if (accountListBalance === null) {
+    totalBalance = undefined;
+  } else if (accountListBalance) {
+    totalBalance = accountListBalance.value;
+  }
   const displayBalance = useMemo(() => {
     if (totalBalance == null || !userCurrency) {
       return undefined;
@@ -131,108 +127,11 @@ const BalanceDisplay = ({
   );
 };
 
-interface MoneyBalanceDisplayProps
-  extends Omit<BalanceDisplayProps, 'totalBalance'> {
-  tokenBalance?: number;
-}
-
-const MoneyBalanceDisplay = ({
-  tokenBalance,
-  userCurrency,
-  privacyMode,
-  onSelectAccount,
-  networkImageSource,
-}: MoneyBalanceDisplayProps) => {
-  const { toUserCurrency } = useFiatNormalizer();
-  const { isBalanceUnavailable, totalFiatRaw } = useMoneyAccountBalance();
-
-  const moneyAccountBalanceInUserCurrency = useMemo(() => {
-    if (isBalanceUnavailable || totalFiatRaw === undefined) {
-      return undefined;
-    }
-    return toUserCurrency(Number(totalFiatRaw));
-  }, [isBalanceUnavailable, toUserCurrency, totalFiatRaw]);
-
-  const totalBalance = useMemo(() => {
-    if (
-      tokenBalance === undefined ||
-      moneyAccountBalanceInUserCurrency === undefined
-    ) {
-      return undefined;
-    }
-    return tokenBalance + moneyAccountBalanceInUserCurrency;
-  }, [moneyAccountBalanceInUserCurrency, tokenBalance]);
-
-  return (
-    <BalanceDisplay
-      totalBalance={totalBalance}
-      userCurrency={userCurrency}
-      privacyMode={privacyMode}
-      onSelectAccount={onSelectAccount}
-      networkImageSource={networkImageSource}
-    />
-  );
-};
-
-const AccountBalanceDisplay = ({
-  accountGroup,
-  nonTokenBalance,
-  onSelectAccount,
-  showMoneyBalance = true,
-  networkImageSource,
-}: BalanceEndContainerProps) => {
-  const selectBalanceForGroup = useMemo(
-    () => selectBalanceByAccountGroup(accountGroup.id),
-    [accountGroup.id],
-  );
-  const groupBalance = useSelector(selectBalanceForGroup);
-  const { hasMoneyAccount } = useMoneyAccountInfo();
-  const userCurrency = groupBalance?.userCurrency;
-  const privacyMode = useSelector(selectPrivacyMode);
-
-  return (
-    <>
-      {nonTokenBalance !== undefined ? (
-        <BalanceDisplay
-          totalBalance={
-            groupBalance?.totalBalanceInUserCurrency === undefined ||
-            nonTokenBalance === null
-              ? undefined
-              : groupBalance.totalBalanceInUserCurrency + nonTokenBalance
-          }
-          userCurrency={userCurrency}
-          privacyMode={privacyMode}
-          onSelectAccount={onSelectAccount}
-          networkImageSource={networkImageSource}
-        />
-      ) : showMoneyBalance && hasMoneyAccount ? (
-        <MoneyBalanceDisplay
-          tokenBalance={groupBalance?.totalBalanceInUserCurrency}
-          userCurrency={userCurrency}
-          privacyMode={privacyMode}
-          onSelectAccount={onSelectAccount}
-          networkImageSource={networkImageSource}
-        />
-      ) : (
-        <BalanceDisplay
-          totalBalance={groupBalance?.totalBalanceInUserCurrency}
-          userCurrency={userCurrency}
-          privacyMode={privacyMode}
-          onSelectAccount={onSelectAccount}
-          networkImageSource={networkImageSource}
-        />
-      )}
-    </>
-  );
-};
-
 const BalanceEndContainer = ({
   accountGroup,
   hideMenu,
-  nonTokenBalance,
   onSelectAccount,
   showBalance = true,
-  showMoneyBalance = true,
   networkImageSource,
 }: BalanceEndContainerProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -250,9 +149,7 @@ const BalanceEndContainer = ({
       {showBalance ? (
         <AccountBalanceDisplay
           accountGroup={accountGroup}
-          nonTokenBalance={nonTokenBalance}
           onSelectAccount={onSelectAccount}
-          showMoneyBalance={showMoneyBalance}
           networkImageSource={networkImageSource}
         />
       ) : null}
@@ -321,10 +218,8 @@ const AccountCell = ({
   avatarAccountType,
   hideMenu = false,
   showBalance = true,
-  showMoneyBalance = true,
   startAccessory,
   endContainer,
-  nonTokenBalance,
   chainId,
   onSelectAccount,
 }: AccountCellProps) => {
@@ -384,10 +279,8 @@ const AccountCell = ({
           <BalanceEndContainer
             accountGroup={accountGroup}
             hideMenu={hideMenu}
-            nonTokenBalance={nonTokenBalance}
             onSelectAccount={onSelectAccount}
             showBalance={showBalance}
-            showMoneyBalance={showMoneyBalance}
             networkImageSource={networkImageSource}
           />
         )}

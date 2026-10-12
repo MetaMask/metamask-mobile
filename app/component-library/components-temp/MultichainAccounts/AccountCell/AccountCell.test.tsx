@@ -17,52 +17,14 @@ import {
 import { AccountCellIds } from './AccountCell.testIds';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { AvatarAccountType } from '../avatarAccountVariant';
+import { AccountListBalanceContext } from '../../../../components/hooks/AccountListBalanceProviders';
+import type { AccountListBalance } from '../../../../components/hooks/useNonTokenBalance';
 
 // Configurable mock balance for selector
 const mockBalance: { value: number; currency: string } = {
   value: 0,
   currency: 'usd',
 };
-
-const mockMoneyAccountInfo: {
-  isMoneyAccountFeatureEnabled: boolean;
-  hasMoneyAccount: boolean;
-  primaryMoneyAccount: unknown;
-} = {
-  isMoneyAccountFeatureEnabled: false,
-  hasMoneyAccount: false,
-  primaryMoneyAccount: undefined,
-};
-
-const mockMoneyAccountBalance: {
-  isBalanceUnavailable: boolean;
-  totalFiatRaw: string | undefined;
-} = {
-  isBalanceUnavailable: true,
-  totalFiatRaw: undefined,
-};
-
-jest.mock('../../../../components/UI/Money/hooks/useMoneyAccountInfo', () => ({
-  __esModule: true,
-  default: () => mockMoneyAccountInfo,
-}));
-
-jest.mock(
-  '../../../../components/UI/Money/hooks/useMoneyAccountBalance',
-  () => ({
-    __esModule: true,
-    default: () => mockMoneyAccountBalance,
-  }),
-);
-
-jest.mock(
-  '../../../../components/Views/Homepage/BalanceBreakdown/hooks/useFiatNormalizer',
-  () => ({
-    useFiatNormalizer: () => ({
-      toUserCurrency: (amount: number) => amount,
-    }),
-  }),
-);
 
 // Mock balance selector to avoid deep store dependencies
 jest.mock('../../../../selectors/assets/balances', () => {
@@ -113,11 +75,10 @@ const renderAccountCell = (
     onSelectAccount?: () => void;
     privacyMode?: boolean;
     showBalance?: boolean;
-    showMoneyBalance?: boolean;
-    nonTokenBalance?: number | null;
+    accountListBalance?: AccountListBalance | null;
   } = {},
 ) => {
-  const { privacyMode = false, ...componentProps } = props;
+  const { privacyMode = false, accountListBalance, ...componentProps } = props;
   const defaultProps = {
     accountGroup: mockAccountGroup,
     avatarAccountType: AvatarAccountType.Maskicon,
@@ -131,7 +92,17 @@ const renderAccountCell = (
   const wallet = createMockWallet('test-group', 'Test Wallet', groups);
   const internalAccounts = createMockInternalAccountsFromGroups(groups);
   const baseState = createMockState([wallet], internalAccounts);
-  return renderWithProvider(<AccountCell {...defaultProps} />, {
+  const accountCell = <AccountCell {...defaultProps} />;
+  const component =
+    accountListBalance === undefined ? (
+      accountCell
+    ) : (
+      <AccountListBalanceContext.Provider value={() => accountListBalance}>
+        {accountCell}
+      </AccountListBalanceContext.Provider>
+    );
+
+  return renderWithProvider(component, {
     state: {
       ...baseState,
       engine: {
@@ -156,11 +127,6 @@ describe('AccountCell', () => {
     jest.clearAllMocks();
     mockBalance.value = 0;
     mockBalance.currency = 'usd';
-    mockMoneyAccountInfo.isMoneyAccountFeatureEnabled = false;
-    mockMoneyAccountInfo.hasMoneyAccount = false;
-    mockMoneyAccountInfo.primaryMoneyAccount = undefined;
-    mockMoneyAccountBalance.isBalanceUnavailable = true;
-    mockMoneyAccountBalance.totalFiatRaw = undefined;
   });
 
   it('displays account name', () => {
@@ -191,119 +157,38 @@ describe('AccountCell', () => {
     expect(getByText(expected)).toBeTruthy();
   });
 
-  it('includes the Money Account balance in its account group balance', () => {
-    const moneyAccountGroup = createMockAccountGroup(
-      'entropy:test-entropy-id/0',
-      'Test Account Group',
-      ['account-1'],
-    );
-    mockMoneyAccountInfo.isMoneyAccountFeatureEnabled = true;
-    mockMoneyAccountInfo.hasMoneyAccount = true;
-    mockMoneyAccountInfo.primaryMoneyAccount = {
-      options: {
-        entropy: {
-          id: 'test-entropy-id',
-          groupIndex: 0,
-        },
-      },
-    };
-    mockMoneyAccountBalance.isBalanceUnavailable = false;
-    mockMoneyAccountBalance.totalFiatRaw = '3';
+  it('renders the cached complete homepage aggregate', () => {
     mockBalance.value = 100;
 
     const { getByText } = renderAccountCell({
-      accountGroup: moneyAccountGroup,
+      accountListBalance: { mode: 'total', value: 900 },
     });
 
-    expect(getByText('$103.00')).toBeTruthy();
+    expect(getByText('$900.00')).toBeTruthy();
   });
 
-  it('includes the Money Account balance in every account group', () => {
-    mockMoneyAccountInfo.isMoneyAccountFeatureEnabled = true;
-    mockMoneyAccountInfo.hasMoneyAccount = true;
-    mockMoneyAccountInfo.primaryMoneyAccount = {
-      options: {
-        entropy: {
-          id: 'test-entropy-id',
-          groupIndex: 0,
-        },
-      },
-    };
-    mockMoneyAccountBalance.isBalanceUnavailable = false;
-    mockMoneyAccountBalance.totalFiatRaw = '3';
+  it('uses the homepage aggregate for the selected account group', () => {
     mockBalance.value = 100;
 
-    const { getByText } = renderAccountCell();
-
-    expect(getByText('$103.00')).toBeTruthy();
-  });
-
-  it('includes the Money Account balance when the balance card has a value', () => {
-    const moneyAccountGroup = createMockAccountGroup(
-      'entropy:test-entropy-id/0',
-      'Test Account Group',
-      ['account-1'],
-    );
-    mockMoneyAccountInfo.hasMoneyAccount = true;
-    mockMoneyAccountInfo.primaryMoneyAccount = {
-      options: {
-        entropy: {
-          id: 'test-entropy-id',
-          groupIndex: 0,
-        },
-      },
-    };
-    mockMoneyAccountBalance.isBalanceUnavailable = false;
-    mockMoneyAccountBalance.totalFiatRaw = '3';
-    mockBalance.value = 100;
-
-    const { getByText } = renderAccountCell({
-      accountGroup: moneyAccountGroup,
+    const { getByText, queryByText } = renderAccountCell({
+      accountListBalance: { mode: 'total', value: 900 },
     });
 
-    expect(getByText('$103.00')).toBeTruthy();
-  });
-
-  it('includes the aggregate non-token balance in every account group', () => {
-    mockBalance.value = 100;
-
-    const { getByText } = renderAccountCell({ nonTokenBalance: 900 });
-
-    expect(getByText('$1,000.00')).toBeTruthy();
+    expect(getByText('$900.00')).toBeTruthy();
+    expect(queryByText('$1,000.00')).toBeNull();
   });
 
   it('keeps the aggregate balance blank while non-token balances are loading', () => {
-    mockMoneyAccountInfo.hasMoneyAccount = true;
-    mockMoneyAccountInfo.primaryMoneyAccount = {
-      address: '0x0000000000000000000000000000000000000001',
-    };
     mockBalance.value = 100;
 
-    const { queryByText } = renderAccountCell({ nonTokenBalance: null });
+    const { queryByText } = renderAccountCell({ accountListBalance: null });
 
     expect(queryByText('$100.00')).toBeNull();
   });
 
-  it('keeps the Money Account group balance blank while Money balance is unavailable', () => {
-    const moneyAccountGroup = createMockAccountGroup(
-      'entropy:test-entropy-id/0',
-      'Test Account Group',
-      ['account-1'],
-    );
-    mockMoneyAccountInfo.isMoneyAccountFeatureEnabled = true;
-    mockMoneyAccountInfo.hasMoneyAccount = true;
-    mockMoneyAccountInfo.primaryMoneyAccount = {
-      options: {
-        entropy: {
-          id: 'test-entropy-id',
-          groupIndex: 0,
-        },
-      },
-    };
-    mockBalance.value = 100;
-
+  it('keeps the balance blank when the account has never been fully loaded', () => {
     const { queryByText } = renderAccountCell({
-      accountGroup: moneyAccountGroup,
+      accountListBalance: null,
     });
 
     expect(queryByText('$100.00')).toBeNull();

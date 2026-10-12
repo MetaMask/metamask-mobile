@@ -1,124 +1,100 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { useFiatNormalizer } from '../Views/Homepage/BalanceBreakdown/hooks/useFiatNormalizer';
-import { useDefiSlice } from '../Views/Homepage/BalanceBreakdown/hooks/slices/useDefiSlice';
-import { useMoneySlice } from '../Views/Homepage/BalanceBreakdown/hooks/slices/useMoneySlice';
-import { usePerpsSlice } from '../Views/Homepage/BalanceBreakdown/hooks/slices/usePerpsSlice';
-import { usePredictSlice } from '../Views/Homepage/BalanceBreakdown/hooks/slices/usePredictSlice';
+import { useBalanceBreakdown } from '../Views/Homepage/BalanceBreakdown/hooks/useBalanceBreakdown';
 import { selectSelectedAccountGroup } from '../../selectors/multichainAccounts/accountTreeController';
-import type {
-  BalanceSlice,
-  FiatConverter,
-  SliceKey,
-} from '../Views/Homepage/BalanceBreakdown/types';
+import { selectInternalAccountByAccountGroupAndScope } from '../../selectors/multichainAccounts/accounts';
+import { EVM_SCOPE } from '../UI/Earn/constants/networks';
+import type { HeroData } from '../Views/Homepage/BalanceBreakdown/types';
 
-export type NonTokenSliceKey = Exclude<SliceKey, 'tokens'>;
+// Balance breakdown hooks expose only the selected account. Retain its last
+// complete homepage total so previously selected accounts do not fall back to
+// an incomplete token-only value after switching accounts.
+const accountBalanceCache = new Map<string, number>();
 
-const ACCOUNT_SLICE_KEYS: NonTokenSliceKey[] = ['perps', 'predict', 'defi'];
-
-export interface NonTokenBalances {
-  moneyBalance?: number;
-  accountBalance?: number;
+export interface AccountListBalance {
+  mode: 'total';
+  value: number;
 }
 
-export type AccountListNonTokenBalanceGetter = (
+export type AccountListBalanceGetter = (
   accountGroupId: string,
-) => number | null;
+) => AccountListBalance | null;
 
-function getSliceBalance(
-  slice: Pick<BalanceSlice, 'status' | 'valueFiat'>,
-): number | undefined {
-  if (slice.status === 'loading') {
-    return undefined;
-  }
-
-  return slice.status === 'ready' ? slice.valueFiat : 0;
-}
-
-export function getNonTokenBalances(
-  slices: Record<NonTokenSliceKey, Pick<BalanceSlice, 'status' | 'valueFiat'>>,
-): NonTokenBalances {
-  const moneyBalance = getSliceBalance(slices.money);
-  const accountSliceBalances = ACCOUNT_SLICE_KEYS.map((key) =>
-    getSliceBalance(slices[key]),
-  );
-  const hasLoadingAccountSlice = accountSliceBalances.some(
-    (balance) => balance === undefined,
-  );
-
-  return {
-    moneyBalance,
-    accountBalance: hasLoadingAccountSlice
-      ? undefined
-      : accountSliceBalances.reduce<number>(
-          (total, balance) => total + (balance ?? 0),
-          0,
-        ),
-  };
-}
-
-/**
- * Money is shared across every account row. Selected-account primitives are
- * only added to the active account group.
- */
-export function getAccountListNonTokenBalance({
-  moneyBalance,
-  accountBalance,
+export function getAccountListBalance({
+  hero,
+  knownAccountBalance,
   selectedAccountGroupId,
   accountGroupId,
-}: NonTokenBalances & {
+}: {
+  hero: HeroData;
+  knownAccountBalance?: number;
   selectedAccountGroupId?: string;
   accountGroupId: string;
-}): number | null {
-  if (moneyBalance === undefined) {
+}): AccountListBalance | null {
+  const isSelected = selectedAccountGroupId === accountGroupId;
+
+  if (isSelected) {
+    if (
+      hero.status !== 'ready' ||
+      hero.isPartiallyLoaded ||
+      hero.hasErroredSlice
+    ) {
+      return null;
+    }
+
+    return { mode: 'total', value: hero.totalFiat };
+  }
+
+  if (knownAccountBalance === undefined) {
     return null;
   }
 
-  if (selectedAccountGroupId !== accountGroupId) {
-    return moneyBalance;
-  }
-
-  return accountBalance === undefined ? null : moneyBalance + accountBalance;
+  return { mode: 'total', value: knownAccountBalance };
 }
 
-export function useNonTokenBalanceSlices(
-  toUserCurrency: FiatConverter,
-): Record<NonTokenSliceKey, BalanceSlice> {
-  const moneySlice = useMoneySlice(toUserCurrency);
-  const perpsSlice = usePerpsSlice(toUserCurrency);
-  const predictSlice = usePredictSlice(toUserCurrency);
-  const defiSlice = useDefiSlice(toUserCurrency);
-
-  return useMemo(
-    () => ({
-      money: moneySlice,
-      perps: perpsSlice,
-      predict: predictSlice,
-      defi: defiSlice,
-    }),
-    [defiSlice, moneySlice, perpsSlice, predictSlice],
-  );
-}
-
-export function useNonTokenBalances(): NonTokenBalances {
-  const { toUserCurrency } = useFiatNormalizer();
-  const slices = useNonTokenBalanceSlices(toUserCurrency);
-
-  return useMemo(() => getNonTokenBalances(slices), [slices]);
-}
-
-export function useAccountListNonTokenBalance(): AccountListNonTokenBalanceGetter {
+export function useAccountListBalance(): AccountListBalanceGetter {
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
-  const { moneyBalance, accountBalance } = useNonTokenBalances();
+  const getInternalAccountByAccountGroupAndScope = useSelector(
+    selectInternalAccountByAccountGroupAndScope,
+  );
+  const { hero } = useBalanceBreakdown();
+  const selectedEvmAddress = selectedAccountGroup
+    ? getInternalAccountByAccountGroupAndScope(
+        EVM_SCOPE,
+        selectedAccountGroup.id,
+      )?.address.toLowerCase()
+    : undefined;
+  const isHeroComplete =
+    hero.status === 'ready' && !hero.isPartiallyLoaded && !hero.hasErroredSlice;
+
+  useEffect(() => {
+    if (!selectedEvmAddress || !isHeroComplete) {
+      return;
+    }
+
+    accountBalanceCache.set(
+      `${hero.userCurrency}:${selectedEvmAddress}`,
+      hero.totalFiat,
+    );
+  }, [hero.totalFiat, hero.userCurrency, isHeroComplete, selectedEvmAddress]);
 
   return useCallback(
-    (accountGroupId: string) =>
-      getAccountListNonTokenBalance({
-        moneyBalance,
-        accountBalance,
+    (accountGroupId: string) => {
+      const evmAddress = getInternalAccountByAccountGroupAndScope(
+        EVM_SCOPE,
+        accountGroupId,
+      )?.address.toLowerCase();
+      const knownAccountBalance = evmAddress
+        ? accountBalanceCache.get(`${hero.userCurrency}:${evmAddress}`)
+        : undefined;
+
+      return getAccountListBalance({
+        hero,
+        knownAccountBalance,
         selectedAccountGroupId: selectedAccountGroup?.id,
         accountGroupId,
-      }),
-    [accountBalance, moneyBalance, selectedAccountGroup?.id],
+      });
+    },
+    [getInternalAccountByAccountGroupAndScope, hero, selectedAccountGroup?.id],
   );
 }

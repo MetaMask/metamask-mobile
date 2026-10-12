@@ -17,7 +17,7 @@ import { PermissionSummaryBottomSheetSelectorsIDs } from '../../MultichainAccoun
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 
 jest.mock('../../../hooks/useNonTokenBalance', () => ({
-  useAccountListNonTokenBalance: jest.fn(() => () => undefined),
+  useAccountListBalance: jest.fn(() => () => undefined),
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {

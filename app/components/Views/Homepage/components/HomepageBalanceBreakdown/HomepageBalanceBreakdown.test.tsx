@@ -247,8 +247,11 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.VALUE_UNDERLINE('tokens')),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(HomepageBalanceBreakdownTestIds.VALUE('money')),
+      getByTestId(HomepageBalanceBreakdownTestIds.VALUE('money')),
     ).toHaveTextContent('USD 10.00');
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
+    ).not.toBeOnTheScreen();
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.HERO).props
         .accessibilityLabel,
@@ -434,7 +437,7 @@ describe('HomepageBalanceBreakdown', () => {
       ...breakdown,
       slices: {
         ...breakdown.slices,
-        money: makeSlice('money', { valueFiat: 0 }),
+        money: makeSlice('money', { valueFiat: 0, percentOfTotal: 0 }),
       },
     });
     const { getByTestId } = render(<HomepageBalanceBreakdown />);
@@ -450,7 +453,7 @@ describe('HomepageBalanceBreakdown', () => {
       ...breakdown,
       slices: {
         ...breakdown.slices,
-        money: makeSlice('money', { valueFiat: 0 }),
+        money: makeSlice('money', { valueFiat: 0, percentOfTotal: 0 }),
       },
     });
     const { getByTestId } = render(<HomepageBalanceBreakdown />);
