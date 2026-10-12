@@ -67,7 +67,7 @@ const CancelMembership = () => {
   }, [navigation]);
 
   const handleCancelConfirm = useCallback(async () => {
-    if (isSubmitting) return;
+    if (isSubmitting || isNavigatingRef.current) return;
 
     const controller = Engine.context.SubscriptionController;
     const subscription = controller.getSubscriptionByProduct(
@@ -104,7 +104,6 @@ const CancelMembership = () => {
         },
       });
       setErrorMessage(strings('pro_hub.cancel_membership.cancellation_failed'));
-    } finally {
       setIsSubmitting(false);
     }
   }, [isSubmitting, selectedReasonId, navigateToProHub]);

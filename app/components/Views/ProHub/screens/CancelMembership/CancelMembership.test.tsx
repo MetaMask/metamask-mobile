@@ -457,17 +457,17 @@ describe('CancelMembership', () => {
     expectPostCancellationReset();
   });
 
-  it('does not reset the stack again once cancellation has navigated away', async () => {
+  it('does not cancel or reset the stack again once cancellation has navigated away', async () => {
     const { getByTestId } = renderScreen();
 
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
     await waitFor(() => expect(mockDispatch).toHaveBeenCalledTimes(1));
 
-    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
-    await waitFor(() =>
-      expect(mockCancelSubscription).toHaveBeenCalledTimes(2),
-    );
+    expect(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON)).toBeDisabled();
 
+    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+    expect(mockCancelSubscription).toHaveBeenCalledTimes(1);
     expect(mockDispatch).toHaveBeenCalledTimes(1);
   });
 
