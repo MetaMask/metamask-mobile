@@ -10,7 +10,8 @@ import {
 import { useRwaTokens } from '../../hooks/useRwaTokens/useRwaTokens';
 import { useTokenListFilters } from '../../hooks/useTokenListFilters/useTokenListFilters';
 import TokenListPageLayout from '../../components/TokenListPageLayout/TokenListPageLayout';
-import { getRwaNetworksList } from '../../utils/trendingNetworksList';
+import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
+import { RWA_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 import { selectShowRobinhoodRwa } from '../../../../../selectors/featureFlagController/rwa';
 import { useABTest } from '../../../../../hooks/useABTest';
 import {
@@ -23,7 +24,13 @@ import { useQuickBuySearchKeyboard } from '../../hooks/useQuickBuySearchKeyboard
 const RWATokensFullView = () => {
   const showRobinhoodRwa = useSelector(selectShowRobinhoodRwa);
   const allowedNetworks = useMemo(
-    () => getRwaNetworksList(showRobinhoodRwa),
+    () =>
+      showRobinhoodRwa
+        ? RWA_NETWORKS_LIST
+        : RWA_NETWORKS_LIST.filter(
+            (network) =>
+              network.caipChainId !== NetworkToCaipChainId.ROBINHOOD,
+          ),
     [showRobinhoodRwa],
   );
   const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(

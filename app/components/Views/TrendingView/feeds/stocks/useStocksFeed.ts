@@ -9,8 +9,9 @@ import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settin
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 
-const STOCKS_FEED_BASE_CHAIN_IDS: CaipChainId[] = [
+const STOCKS_FEED_RWA_CHAIN_IDS: CaipChainId[] = [
   NetworkToCaipChainId.ETHEREUM,
+  NetworkToCaipChainId.ROBINHOOD,
 ];
 export const STOCKS_FEED_PREVIEW_PAGE_SIZE = 3;
 
@@ -33,16 +34,16 @@ export interface UseStocksFeedResult {
 /**
  * Tokenized stocks (RWAs) feed.
  *
- * Tab sections (no query): Ethereum tokens are shown. Robinhood Chain tokens
- * are included when `ASSETS4098ShowRobinhoodRwa` is on.
+ * Tab sections (no query): Ethereum and Robinhood Chain tokens are shown.
+ * Robinhood Chain is omitted when `ASSETS4098ShowRobinhoodRwa` is off.
  *
- * Search (query present): all chains in the flag-aware RWA chain list are
- * included so users can find stocks across Ethereum, BNB, and Robinhood
- * when that flag is on.
+ * Search (query present): all chains in RWA_CHAIN_IDS are included so users
+ * can find stocks across Ethereum, BNB, and Robinhood. Robinhood is omitted
+ * from that default when the flag is off.
  *
- * No-query sections request Ethereum (and Robinhood when the flag is on) so
- * the API page is not consumed by other supported RWA chains before the
- * section renders its 3-item preview.
+ * No-query sections request Ethereum and Robinhood only so the API page is not
+ * consumed by other supported RWA chains before the section renders its
+ * 3-item preview.
  */
 export const useStocksFeed = ({
   query,
@@ -55,12 +56,15 @@ export const useStocksFeed = ({
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
-  const stocksFeedChainIds = useMemo(() => {
-    if (!showRobinhoodRwa) {
-      return STOCKS_FEED_BASE_CHAIN_IDS;
-    }
-    return [...STOCKS_FEED_BASE_CHAIN_IDS, NetworkToCaipChainId.ROBINHOOD];
-  }, [showRobinhoodRwa]);
+  const stocksFeedChainIds = useMemo(
+    () =>
+      showRobinhoodRwa
+        ? STOCKS_FEED_RWA_CHAIN_IDS
+        : STOCKS_FEED_RWA_CHAIN_IDS.filter(
+            (chainId) => chainId !== NetworkToCaipChainId.ROBINHOOD,
+          ),
+    [showRobinhoodRwa],
+  );
   const stocksFeedAssetIdPrefixes = useMemo(
     () => stocksFeedChainIds.map((chainId) => `${chainId}/`),
     [stocksFeedChainIds],
@@ -84,7 +88,7 @@ export const useStocksFeed = ({
     // During search, surface tokens from all supported RWA chains so the user
     // can find any matching stock regardless of chain.
     if (hasQuery) return data;
-    // Tab sections show Ethereum, plus Robinhood Chain when the flag is on.
+    // Tab sections show Ethereum and Robinhood Chain tokens.
     return data.filter((asset) =>
       stocksFeedAssetIdPrefixes.some((prefix) =>
         asset.assetId.startsWith(prefix),

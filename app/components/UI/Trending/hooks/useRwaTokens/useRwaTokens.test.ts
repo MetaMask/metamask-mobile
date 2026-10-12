@@ -5,10 +5,8 @@ import {
   PriceChangeOption,
   SortDirection,
 } from '../../components/TrendingTokensBottomSheet';
-import {
-  getRwaChainIds,
-  RWA_CHAIN_IDS,
-} from '../../utils/trendingNetworksList';
+import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
+import { RWA_CHAIN_IDS } from '../../utils/trendingNetworksList';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { act, waitFor } from '@testing-library/react-native';
@@ -88,7 +86,9 @@ describe('useRwaTokens', () => {
 
     await waitFor(() => {
       expect(mockFetchRwas).toHaveBeenCalledWith({
-        chainIds: RWA_CHAIN_IDS,
+        chainIds: RWA_CHAIN_IDS.filter(
+          (chainId) => chainId !== NetworkToCaipChainId.ROBINHOOD,
+        ),
         query: undefined,
         sortBy: 'price_change_desc',
         limit: 100,
@@ -151,17 +151,21 @@ describe('useRwaTokens', () => {
 
     await waitFor(() => {
       expect(mockFetchRwas).toHaveBeenCalledWith(
-        expect.objectContaining({ chainIds: getRwaChainIds(true) }),
+        expect.objectContaining({ chainIds: RWA_CHAIN_IDS }),
       );
     });
   });
 
-  it('defaults to RWA_CHAIN_IDS when chainIds is null', async () => {
+  it('defaults to Ethereum and BNB when chainIds is null and the flag is off', async () => {
     renderHookWithProvider(() => useRwaTokens({ chainIds: null }));
 
     await waitFor(() => {
       expect(mockFetchRwas).toHaveBeenCalledWith(
-        expect.objectContaining({ chainIds: RWA_CHAIN_IDS }),
+        expect.objectContaining({
+          chainIds: RWA_CHAIN_IDS.filter(
+            (chainId) => chainId !== NetworkToCaipChainId.ROBINHOOD,
+          ),
+        }),
       );
     });
   });

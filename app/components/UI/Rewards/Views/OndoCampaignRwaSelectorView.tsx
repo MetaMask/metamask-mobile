@@ -38,6 +38,7 @@ import { useRwaTokens } from '../../Trending/hooks/useRwaTokens/useRwaTokens';
 import TrendingTokenRowItem from '../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { getTrendingTokenImageUrl } from '../../Trending/utils/getTrendingTokenImageUrl';
 import { parseCaip19, caipChainIdToHex } from '../utils/formatUtils';
+import { NetworkToCaipChainId } from '../../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { RWA_NETWORKS_LIST } from '../../Trending/utils/trendingNetworksList';
 import {
   useSwapBridgeNavigation,
@@ -57,6 +58,7 @@ import { useTokenListFilters } from '../../Trending/hooks/useTokenListFilters/us
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import OndoAfterHoursSheet from '../components/Campaigns/OndoAfterHoursSheet';
+import { selectShowRobinhoodRwa } from '../../../../selectors/featureFlagController/rwa';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -152,6 +154,17 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   const filters = useTokenListFilters({
     timeOption: TimeOption.TwentyFourHours,
   });
+  const showRobinhoodRwa = useSelector(selectShowRobinhoodRwa);
+  const rwaNetworks = useMemo(
+    () =>
+      showRobinhoodRwa
+        ? RWA_NETWORKS_LIST
+        : RWA_NETWORKS_LIST.filter(
+            (network) =>
+              network.caipChainId !== NetworkToCaipChainId.ROBINHOOD,
+          ),
+    [showRobinhoodRwa],
+  );
 
   // Set the default network filter based on mode:
   // - swap: pre-select the source asset's chain
@@ -170,8 +183,8 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
         return;
       }
     }
-    filters.handleNetworkSelect([RWA_NETWORKS_LIST[0].caipChainId]);
-  }, [mode, srcTokenAsset, filters]);
+    filters.handleNetworkSelect([rwaNetworks[0].caipChainId]);
+  }, [mode, srcTokenAsset, filters, rwaNetworks]);
 
   const [isAfterHoursSheetOpen, setIsAfterHoursSheetOpen] = useState(false);
   const [afterHoursNextOpen, setAfterHoursNextOpen] = useState<Date | null>(
@@ -228,13 +241,11 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
       if (parsed) {
         const srcCaipChainId =
           `${parsed.namespace}:${parsed.chainId}` as CaipChainId;
-        return RWA_NETWORKS_LIST.filter(
-          (n) => n.caipChainId === srcCaipChainId,
-        );
+        return rwaNetworks.filter((n) => n.caipChainId === srcCaipChainId);
       }
     }
-    return RWA_NETWORKS_LIST;
-  }, [mode, srcTokenAsset]);
+    return rwaNetworks;
+  }, [mode, srcTokenAsset, rwaNetworks]);
 
   const chainIds = filters.selectedNetwork;
 

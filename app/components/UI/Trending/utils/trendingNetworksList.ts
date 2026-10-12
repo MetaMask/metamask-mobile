@@ -160,34 +160,20 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
   },
 ];
 
-const RWA_CHAIN_IDS_WITHOUT_ROBINHOOD: NetworkToCaipChainId[] = [
-  NetworkToCaipChainId.ETHEREUM,
-  NetworkToCaipChainId.BNB,
-];
-
 /**
- * RWA networks for the current `ASSETS4098ShowRobinhoodRwa` value.
- * Robinhood Chain is included only when the flag is on.
+ * Networks supported for RWA (Real World Asset) tokens.
+ * Includes Robinhood Chain. Callers hide it unless
+ * `ASSETS4098ShowRobinhoodRwa` is on.
  */
-export const getRwaNetworksList = (
-  showRobinhoodRwa: boolean,
-): ProcessedNetwork[] => {
-  const allowed = new Set<string>(RWA_CHAIN_IDS_WITHOUT_ROBINHOOD);
-  if (showRobinhoodRwa) {
-    allowed.add(NetworkToCaipChainId.ROBINHOOD);
-  }
-  return TRENDING_NETWORKS_LIST.filter((network) =>
-    allowed.has(network.caipChainId),
+export const RWA_NETWORKS_LIST: ProcessedNetwork[] =
+  TRENDING_NETWORKS_LIST.filter((n) =>
+    [
+      NetworkToCaipChainId.ETHEREUM,
+      NetworkToCaipChainId.BNB,
+      NetworkToCaipChainId.ROBINHOOD,
+    ].includes(n.caipChainId as NetworkToCaipChainId),
   );
-};
 
-export const getRwaChainIds = (showRobinhoodRwa: boolean): CaipChainId[] =>
-  getRwaNetworksList(showRobinhoodRwa).map((network) => network.caipChainId);
-
-/**
- * RWA networks with Robinhood hidden. Callers that can read
- * `ASSETS4098ShowRobinhoodRwa` should use `getRwaNetworksList` instead.
- */
-export const RWA_NETWORKS_LIST: ProcessedNetwork[] = getRwaNetworksList(false);
-
-export const RWA_CHAIN_IDS: CaipChainId[] = getRwaChainIds(false);
+export const RWA_CHAIN_IDS: CaipChainId[] = RWA_NETWORKS_LIST.map(
+  (n) => n.caipChainId,
+);

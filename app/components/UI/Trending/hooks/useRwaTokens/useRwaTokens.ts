@@ -3,12 +3,13 @@ import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { fetchRwas, type TrendingAsset } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
+import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { selectShowRobinhoodRwa } from '../../../../../selectors/featureFlagController/rwa';
 import {
   PriceChangeOption,
   SortDirection,
 } from '../../components/TrendingTokensBottomSheet';
-import { getRwaChainIds } from '../../utils/trendingNetworksList';
+import { RWA_CHAIN_IDS } from '../../utils/trendingNetworksList';
 
 const RWA_PAGE_SIZE = 100;
 const DEFAULT_SORT_OPTION = PriceChangeOption.PriceChange;
@@ -59,13 +60,14 @@ const normalizeRwaToken = (token: RwaTokenWithSecurityData): TrendingAsset => ({
 
 /**
  * Hook for RWA tokens using the dedicated /v1/rwas endpoint.
- * Defaults to Ethereum + BNB when no chainIds are provided. Robinhood Chain is
- * included in that default when `ASSETS4098ShowRobinhoodRwa` is on.
+ * Defaults to `RWA_CHAIN_IDS` when no chainIds are provided. Robinhood Chain is
+ * omitted from that default when `ASSETS4098ShowRobinhoodRwa` is off.
  *
  * Server-side sorting, pagination, and search are delegated to the RWA API.
  *
  * @param opts.searchQuery - Server-side query to filter results
- * @param opts.chainIds - Chain IDs to filter by (defaults to the flag-aware RWA list)
+ * @param opts.chainIds - Chain IDs to filter by (defaults to RWA_CHAIN_IDS,
+ * minus Robinhood when the flag is off)
  * @param opts.includeTokenSecurityData - Whether the response should include trust-signal data
  * @param opts.sortTrendingTokensOptions - Sorting options for price change / volume / market cap
  * @returns Token data, loading state, pagination helpers, and refetch function for rwa tokens
@@ -91,7 +93,12 @@ export const useRwaTokens = (opts?: {
     sortTrendingTokensOptions ?? {};
   const showRobinhoodRwa = useSelector(selectShowRobinhoodRwa);
   const defaultChainIds = useMemo(
-    () => getRwaChainIds(showRobinhoodRwa),
+    () =>
+      showRobinhoodRwa
+        ? RWA_CHAIN_IDS
+        : RWA_CHAIN_IDS.filter(
+            (chainId) => chainId !== NetworkToCaipChainId.ROBINHOOD,
+          ),
     [showRobinhoodRwa],
   );
 
