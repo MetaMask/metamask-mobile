@@ -57,7 +57,6 @@ const waitForAndroidTestDappHeadingViaCdp = async (
   // Drop stale webview_devtools_remote after reload so the next session
   // re-resolves the CDP endpoint instead of probing a dead forward.
   ChromeCdpHelpers.resetMetaMaskWebViewCache();
-  await sleep(1_000);
 
   text = await ChromeCdpHelpers.waitForElementTextInWebView(
     pageUrl,
