@@ -1,8 +1,11 @@
+import { RpcEndpointType } from '@metamask/network-controller';
+
 import {
   getDefaultConfigRegistryControllerState,
   registryConfigToPopularListShape,
   getNetworksToAddFromFeatured,
   addNetworkFieldsToPopularListShape,
+  buildAddNetworkRpcEndpoint,
   type PopularListNetworkShape,
 } from './config-registry';
 
@@ -67,6 +70,29 @@ describe('config-registry util', () => {
         'https://evm-rpc.sei.network',
       );
       expect((result as PopularListNetworkShape).ticker).toBe('SEI');
+    });
+
+    it('marks Infura providers with rpcEndpointType and networkClientId', () => {
+      const config = {
+        chainId: 'eip155:1329',
+        name: 'Sei Network',
+        rpcProviders: {
+          default: {
+            url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
+            type: 'infura',
+            networkClientId: 'sei-mainnet',
+          },
+          fallbacks: [],
+        },
+        config: { isFeatured: true },
+      } as never;
+      const result = registryConfigToPopularListShape(config);
+      expect((result as PopularListNetworkShape).rpcEndpointType).toBe(
+        'infura',
+      );
+      expect((result as PopularListNetworkShape).networkClientId).toBe(
+        'sei-mainnet',
+      );
     });
 
     it('uses default blockExplorerUrl and ticker when missing', () => {
@@ -161,6 +187,41 @@ describe('config-registry util', () => {
       expect(result.nickname).toBe('Ethereum Mainnet');
       expect(result.rpcUrl).toBe('https://eth.llamarpc.com');
       expect(result.ticker).toBe('ETH');
+    });
+  });
+
+  describe('buildAddNetworkRpcEndpoint', () => {
+    it('builds an Infura endpoint for registry Infura providers', () => {
+      const result = buildAddNetworkRpcEndpoint({
+        nickname: 'Sei Network',
+        rpcUrl: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
+        rpcEndpointType: RpcEndpointType.Infura,
+        networkClientId: 'sei-mainnet',
+      });
+      expect(result).toStrictEqual([
+        {
+          type: 'infura',
+          networkClientId: 'sei-mainnet',
+          failoverUrls: undefined,
+          url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
+        },
+      ]);
+    });
+
+    it('builds a Custom endpoint for non-Infura networks', () => {
+      const result = buildAddNetworkRpcEndpoint({
+        nickname: 'Ethereum',
+        rpcUrl: 'https://eth.llamarpc.com',
+        failoverRpcUrls: ['https://eth.quicknode.com'],
+      });
+      expect(result).toStrictEqual([
+        {
+          type: 'custom',
+          url: 'https://eth.llamarpc.com',
+          failoverUrls: ['https://eth.quicknode.com'],
+          name: 'Ethereum',
+        },
+      ]);
     });
   });
 });

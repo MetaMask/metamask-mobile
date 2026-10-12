@@ -89,6 +89,14 @@ describe('WalletHeaderCompact', () => {
     expect(defaultProps.handleAccountHubPress).toHaveBeenCalledTimes(1);
   });
 
+  it('exposes the account picker id on the avatar', () => {
+    const { getByTestId } = renderWithProvider(
+      <WalletHeaderCompact {...defaultProps} />,
+    );
+
+    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
+  });
+
   it('calls handleAccountHubPress when the avatar is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <WalletHeaderCompact {...defaultProps} />,
