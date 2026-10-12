@@ -564,6 +564,7 @@ const Routes = {
     MANAGE_PROFILE: 'ManageProfile',
     MANAGE_PROFILE_FIELD: 'ManageProfileField',
     X_ACCOUNT: 'ManageProfileXAccount',
+    LINKED_SOCIAL_ACCOUNT: 'LinkedSocialAccount',
   },
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',

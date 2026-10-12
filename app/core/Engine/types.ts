@@ -563,6 +563,15 @@ import {
   type SocialServiceEvents,
 } from '@metamask/social-controllers';
 import {
+  ProfileController,
+  ProfileService,
+  type ProfileControllerActions,
+  type ProfileControllerEvents,
+  type ProfileControllerState,
+  type ProfileServiceActions,
+  type ProfileServiceEvents,
+} from '@metamask/profile-controller';
+import {
   AuthenticatedUserStorageService,
   type AuthenticatedUserStorageActions,
   type AuthenticatedUserStorageEvents,
@@ -766,6 +775,8 @@ export type GlobalActions =
   | AiDigestControllerActions
   | SocialControllerActions
   | SocialServiceActions
+  | ProfileControllerActions
+  | ProfileServiceActions
   | AuthenticatedUserStorageActions
   | ComplianceControllerActions
   | ComplianceServiceActions
@@ -876,6 +887,8 @@ export type GlobalEvents =
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents
+  | ProfileControllerEvents
+  | ProfileServiceEvents
   | AuthenticatedUserStorageEvents
   | ComplianceControllerEvents
   | ComplianceServiceEvents
@@ -1035,6 +1048,8 @@ export type MessengerClients = {
   AiDigestController: AiDigestController;
   SocialController: SocialController;
   SocialService: SocialService;
+  ProfileController: ProfileController;
+  ProfileService: ProfileService;
   AuthenticatedUserStorageService: AuthenticatedUserStorageService;
   ComplianceService: ComplianceService;
   ComplianceController: ComplianceController;
@@ -1130,6 +1145,7 @@ export type EngineState = {
   ProfileMetricsController: ProfileMetricsControllerState;
   AiDigestController: AiDigestControllerState;
   SocialController: SocialControllerState;
+  ProfileController: ProfileControllerState;
   ComplianceController: ComplianceControllerState;
   KycController: KycControllerState;
   MoneyAccountUpgradeController: MoneyAccountUpgradeControllerState;
@@ -1249,6 +1265,8 @@ export type MessengerClientsToInitialize =
   | 'AiDigestController'
   | 'SocialService'
   | 'SocialController'
+  | 'ProfileService'
+  | 'ProfileController'
   | 'AuthenticatedUserStorageService'
   | 'ComplianceService'
   | 'ComplianceController'

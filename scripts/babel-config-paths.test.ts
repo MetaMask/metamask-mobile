@@ -84,6 +84,7 @@ describe('babel.config.js path matching', () => {
     const OVERRIDE_TARGETS = [
       '/node_modules/marked/src/marked.js',
       '/node_modules/@metamask/profile-sync-controller/dist/index.js',
+      '/node_modules/@metamask/profile-controller/dist/index.js',
       '/node_modules/@metamask/notification-services-controller/dist/index.js',
       '/node_modules/@metamask/bridge-controller/dist/index.js',
       '/node_modules/@nktkas/hyperliquid/dist/index.js',
