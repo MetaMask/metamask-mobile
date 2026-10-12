@@ -2994,6 +2994,76 @@ describe('PolymarketProvider', () => {
       });
     });
 
+    it('starts the open-positions walk before the user-pnl response resolves', async () => {
+      let releasePnl: () => void = () => undefined;
+      const pnlGate = new Promise<void>((resolve) => {
+        releasePnl = resolve;
+      });
+      const fetchMock = jest.fn((url: string) => {
+        const requestUrl = String(url);
+        if (requestUrl.includes('/v2/activity')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ data: [{}] }),
+          });
+        }
+        if (requestUrl.includes('/v2/user-pnl')) {
+          return pnlGate.then(() => ({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                data: {
+                  proxy_wallet: legacySafeAddress,
+                  points: [{ t: 1, unrealized_pnl: 4 }],
+                },
+              }),
+          }));
+        }
+        if (requestUrl.includes('/v2/positions')) {
+          return Promise.resolve({
+            ok: true,
+            text: () =>
+              Promise.resolve(
+                JSON.stringify({
+                  data: [],
+                  pagination: { next_cursor: null },
+                }),
+              ),
+          });
+        }
+        throw new Error(`unexpected fetch ${requestUrl}`);
+      });
+      global.fetch = fetchMock;
+      mockParsePolymarketPositions.mockResolvedValue([
+        createClaimPosition({ currentValue: 110, initialValue: 100 }),
+      ]);
+
+      const pending = createProvider().getUnrealizedPnL({
+        address: signer.address,
+      });
+
+      try {
+        for (let attempt = 0; attempt < 20; attempt += 1) {
+          await Promise.resolve();
+        }
+
+        expect(fetchMock).toHaveBeenCalledWith(
+          expect.stringContaining(
+            `/v2/positions?limit=100&user=${legacySafeAddress}&sortBy=CURRENT_VALUE&status=OPEN`,
+          ),
+          expect.any(Object),
+        );
+      } finally {
+        releasePnl();
+      }
+
+      await expect(pending).resolves.toEqual({
+        user: legacySafeAddress,
+        cashUpnl: 4,
+        percentUpnl: 10,
+      });
+    });
+
     it('keeps a null latest unrealized_pnl missing instead of zero', async () => {
       global.fetch = jest
         .fn()
