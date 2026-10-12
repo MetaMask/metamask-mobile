@@ -58,6 +58,9 @@ import type {
   SocialV1FeedItem,
   SocialV1FeedPost,
 } from '../../../UI/SocialFeed/types';
+import { DEFAULT_FILTERS } from './filters/filterDefaults';
+import { filterSocialV1FeedPosts } from './filters/filterSocialV1FeedPosts';
+import type { SocialShellFilters } from './filters/types';
 import type {
   SocialV1FeedTab,
   SocialV1HotToken,
@@ -101,6 +104,7 @@ export interface EmptyShellTabPageProps {
   scrollTestID: string;
   onOpenFilters?: () => void;
   isFilterActive?: boolean;
+  appliedFilters?: SocialShellFilters;
   /**
    * Requests the spot QuickBuy sheet for a copy-traded post. The sheet is
    * hosted by the parent view, outside the pager — see `SocialV1View`.
@@ -121,6 +125,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   scrollTestID,
   onOpenFilters,
   isFilterActive = false,
+  appliedFilters = DEFAULT_FILTERS,
   onQuickBuy,
 }) => {
   const tw = useTailwind();
@@ -150,6 +155,13 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           }),
       ),
     [isEntryHidden, posts],
+  );
+  const shellFilteredPosts = useMemo(
+    () =>
+      tab === 'following'
+        ? filterSocialV1FeedPosts(visiblePosts, appliedFilters)
+        : visiblePosts,
+    [appliedFilters, tab, visiblePosts],
   );
 
   const { colors } = useTheme();
@@ -181,9 +193,9 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   const filteredPosts = useMemo(() => {
     if (!selectedToken) {
-      return visiblePosts;
+      return shellFilteredPosts;
     }
-    const sourcePosts = showingAssetFeed ? assetFeed.posts : visiblePosts;
+    const sourcePosts = showingAssetFeed ? assetFeed.posts : shellFilteredPosts;
     return sourcePosts.filter((post) => {
       if (
         isEntryHidden({
@@ -204,7 +216,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     isEntryHidden,
     selectedToken,
     showingAssetFeed,
-    visiblePosts,
+    shellFilteredPosts,
   ]);
 
   const handleHotTokenPress = useCallback((token: SocialV1HotToken) => {

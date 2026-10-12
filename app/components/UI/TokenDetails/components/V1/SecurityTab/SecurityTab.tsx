@@ -6,6 +6,7 @@ import {
   BoxJustifyContent,
   IconColor,
   IconName,
+  SectionHeader as DesignSystemSectionHeader,
   Text,
   TextColor,
   TextVariant,
@@ -52,15 +53,12 @@ export interface SecurityTabProps {
   onExplain: (rowKey: SecurityRowKey) => void;
 }
 
-/**
- * `SectionHeading` is the 20px/600 token, matching the prototype's `h3`. The
- * variant supplies the weight, so passing `fontWeight` here would only risk
- * drifting from it.
- */
 const SectionHeader = ({ titleKey }: { titleKey: string }) => (
-  <Text variant={TextVariant.SectionHeading} color={TextColor.TextDefault}>
-    {strings(titleKey)}
-  </Text>
+  <DesignSystemSectionHeader
+    title={strings(titleKey)}
+    twClassName="px-0 pb-0 pt-0"
+    titleProps={{ accessibilityRole: 'header' }}
+  />
 );
 
 /**
