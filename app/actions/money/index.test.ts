@@ -592,6 +592,15 @@ describe('upgradeMoneyAccount', () => {
 });
 
 describe('forceUpgradeMoneyAccount', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUpgradeAccount.mockResolvedValue(undefined);
+    mockForceUpgradeAccount.mockResolvedValue(undefined);
+    Engine.context.MoneyAccountUpgradeController.state = {
+      upgradedAccounts: {},
+    };
+  });
+
   it('returns registered when the controller records the address', async () => {
     mockForceUpgradeAccount.mockImplementation(async (address: string) => {
       Engine.context.MoneyAccountUpgradeController.state.upgradedAccounts[
@@ -628,7 +637,11 @@ describe('forceUpgradeMoneyAccount', () => {
     });
     expect(mockLogError).toHaveBeenCalledWith(
       expect.any(Error),
-      expect.objectContaining({ trigger: 'manual' }),
+      expect.objectContaining({
+        context: expect.objectContaining({
+          data: expect.objectContaining({ trigger: 'manual' }),
+        }),
+      }),
     );
   });
 });
