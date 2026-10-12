@@ -28,6 +28,10 @@ function cashbackClaimable(
  * tab navigator has no Rewards screen, and naming one there is ignored. The
  * root stack always registers Rewards, and when Rewards is the tab the nearer
  * navigator still handles this same call.
+ *
+ * Keep the dashboard as the first Rewards screen. With `initial: false`, an
+ * unmounted Rewards stack would open its default dashboard under this one,
+ * and Back would land on that copy instead of Money Home.
  */
 export function navigateToRewardsEarningsTab(
   navigation: Pick<AppNavigationProp, 'navigate'>,
@@ -35,7 +39,6 @@ export function navigateToRewardsEarningsTab(
   navigation.navigate(Routes.REWARDS_VIEW, {
     screen: Routes.REWARDS_MONEY_DASHBOARD,
     params: { initialTab: 'earnings' },
-    initial: false,
   });
 }
 

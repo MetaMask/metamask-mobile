@@ -180,7 +180,6 @@ describe('navigateToRewardsEarningsTab', () => {
     expect(navigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW, {
       screen: Routes.REWARDS_MONEY_DASHBOARD,
       params: { initialTab: 'earnings' },
-      initial: false,
     });
   });
 });
