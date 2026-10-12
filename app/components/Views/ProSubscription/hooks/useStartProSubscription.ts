@@ -240,9 +240,9 @@ export interface UseStartProSubscriptionResult {
  * `@metamask/subscription-controller` is bumped past the core PR that removed
  * the nested approval contract.
  *
- * On success, returns to the caller. Benefits shows the confirmation screen,
- * and that screen opens Pro Hub. The delegation start refreshes subscriptions
- * before it resolves, so later screens see the subscriber.
+ * Resolves after the subscription starts. The caller shows the success screen;
+ * this hook does not navigate. The delegation start refreshes subscriptions
+ * before it resolves.
  *
  * @returns Subscription start callback and its request state.
  */
