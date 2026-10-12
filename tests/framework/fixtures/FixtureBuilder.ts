@@ -121,6 +121,46 @@ export interface MainnetUsdcFixtureOptions {
 }
 
 /**
+ * State of the legacy per-asset controllers (removed from the Engine in favour
+ * of `AssetsController`). It is deliberately NOT part of `default-fixture.json`
+ * so the committed fixture schema matches the live app state, but many builder
+ * methods and specs still read or write these keys, so it is restored in memory
+ * by `withDefaultFixture()`. The app ignores these keys. Remove together with
+ * the builder code that touches them once fixtures only use `AssetsController`.
+ */
+const LEGACY_ASSET_CONTROLLERS_STATE = {
+  AccountTrackerController: {
+    accountsByChainId: {
+      '1': {
+        '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': { balance: '0x0' },
+      },
+      '64': {
+        '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': { balance: '0x0' },
+      },
+    },
+  },
+  CurrencyRateController: {
+    currencyRates: {
+      ETH: {
+        conversionDate: 1684232383.997,
+        conversionRate: 1815.41,
+        usdConversionRate: 1815.41,
+      },
+    },
+    currentCurrency: 'usd',
+  },
+  MultichainAssetsController: { accountsAssets: {}, assetsMetadata: {} },
+  MultichainAssetsRatesController: { conversionRates: {} },
+  TokenBalancesController: { tokenBalances: {} },
+  TokenRatesController: { marketData: {} },
+  TokensController: {
+    allDetectedTokens: {},
+    allIgnoredTokens: {},
+    allTokens: {},
+  },
+};
+
+/**
  * FixtureBuilder class provides a fluent interface for building fixture data.
  */
 class FixtureBuilder {
@@ -230,6 +270,10 @@ class FixtureBuilder {
   withDefaultFixture() {
     // Deep clone the JSON fixture to avoid mutations
     this.fixture = JSON.parse(JSON.stringify(defaultFixture));
+    merge(
+      this.fixture.state.engine.backgroundState,
+      LEGACY_ASSET_CONTROLLERS_STATE,
+    );
 
     // Inject dynamic values that can't be stored in static JSON
     // 1. Timestamp for legal notices

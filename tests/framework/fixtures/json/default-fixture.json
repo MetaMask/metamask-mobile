@@ -87,20 +87,6 @@
     "cronjobController": {},
     "engine": {
       "backgroundState": {
-        "AccountTrackerController": {
-          "accountsByChainId": {
-            "1": {
-              "0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3": {
-                "balance": "0x0"
-              }
-            },
-            "64": {
-              "0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3": {
-                "balance": "0x0"
-              }
-            }
-          }
-        },
         "AccountTreeController": {
           "accountTree": {
             "wallets": {}
@@ -194,16 +180,6 @@
           "events": {},
           "jobs": {}
         },
-        "CurrencyRateController": {
-          "currencyRates": {
-            "ETH": {
-              "conversionDate": 1684232383.997,
-              "conversionRate": 1815.41,
-              "usdConversionRate": 1815.41
-            }
-          },
-          "currentCurrency": "usd"
-        },
         "GasFeeController": {
           "estimatedGasFeeTimeBounds": {},
           "gasEstimateType": "none",
@@ -251,13 +227,6 @@
         },
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
-        },
-        "MultichainAssetsController": {
-          "accountsAssets": {},
-          "assetsMetadata": {}
-        },
-        "MultichainAssetsRatesController": {
-          "conversionRates": {}
         },
         "MultichainNetworkController": {
           "isEvmSelected": true,
@@ -746,17 +715,6 @@
         "SubscriptionController": {
           "subscriptions": [],
           "trialedProducts": []
-        },
-        "TokenBalancesController": {
-          "tokenBalances": {}
-        },
-        "TokenRatesController": {
-          "marketData": {}
-        },
-        "TokensController": {
-          "allDetectedTokens": {},
-          "allIgnoredTokens": {},
-          "allTokens": {}
         },
         "TransactionController": {
           "methodData": {},
