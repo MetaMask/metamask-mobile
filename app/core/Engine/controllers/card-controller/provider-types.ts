@@ -130,7 +130,7 @@ export type CardSignInResolution =
       kind: 'wallet';
       option: CardSignInOption;
       address: string;
-      source: 'record' | 'lookup';
+      source: 'record' | 'lookup' | 'card_link';
     }
   | {
       kind: 'wallet_account_missing';
