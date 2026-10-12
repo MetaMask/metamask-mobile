@@ -167,6 +167,7 @@ import { nftDetectionControllerInit } from './controllers/nft-detection-controll
 import { smartTransactionsControllerInit } from './controllers/smart-transactions-controller-init';
 import { userStorageControllerInit } from './controllers/identity/user-storage-controller-init';
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
+import { mfaRecoveryControllerInit } from './controllers/mfa-recovery-controller';
 import { earnControllerInit } from './controllers/earn-controller-init';
 import { moneyAccountControllerInit } from './controllers/money-account-controller-init';
 import { moneyAccountBalanceServiceInit } from './controllers/money-account-balance-service-init';
@@ -373,6 +374,7 @@ export class Engine {
         AuthenticationController: authenticationControllerInit,
         UserStorageController: userStorageControllerInit,
         ///: END:ONLY_INCLUDE_IF
+        MfaRecoveryController: mfaRecoveryControllerInit,
         BackendWebSocketService: backendWebSocketServiceInit,
         AccountActivityService: accountActivityServiceInit,
         OHLCVService: ohlcvServiceInit,
@@ -508,6 +510,7 @@ export class Engine {
     const socialController = messengerClientsByName.SocialController;
     const authenticatedUserStorageService =
       messengerClientsByName.AuthenticatedUserStorageService;
+    const mfaRecoveryController = messengerClientsByName.MfaRecoveryController;
     const cardController = messengerClientsByName.CardController;
     const uiSlotsController = messengerClientsByName.UiSlotsController;
     const clientController = messengerClientsByName.ClientController;
@@ -739,6 +742,7 @@ export class Engine {
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController:
         messengerClientsByName.MoneyAccountUpgradeController,
+      MfaRecoveryController: mfaRecoveryController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1705,6 +1709,7 @@ export default {
       ProfileMetricsController,
       MoneyAccountController,
       MoneyAccountUpgradeController,
+      MfaRecoveryController,
       QrSyncController,
     } = instance.context;
 
@@ -1791,6 +1796,7 @@ export default {
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,
       MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
+      MfaRecoveryController: MfaRecoveryController.state,
       QrSyncController: QrSyncController.state,
     };
   },

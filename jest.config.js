@@ -114,6 +114,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/design-system-react-native',
   '@metamask/messenger',
   '@metamask/native-utils',
+  '@metamask/mfa-recovery-controller',
   '@metamask/perps-controller',
   '@metamask/superstruct',
   '@metamask/react-native-acm',
@@ -138,6 +139,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   // We need to transpile it to avoid errors when running the tests.
   '@metamask/passkey-controller',
   '@metamask/accounts-controller',
+  '@cubist-labs/cubesigner-sdk',
 ];
 
 const config = {

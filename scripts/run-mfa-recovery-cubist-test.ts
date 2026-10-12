@@ -19,25 +19,47 @@ import {
 import { authEnv } from '../app/core/apiEnv';
 import {
   getMfaRecoveryErrorCode,
-  MfaRecoveryTestError,
   runMfaRecoveryCubistTest,
-  type MfaRecoveryTestDependencies,
   type MfaRecoveryTestStep,
 } from '../app/components/Views/Settings/DeveloperOptions/MfaRecoveryDeveloperOptionsSection/runMfaRecoveryCubistTest';
+import { MfaRecoveryControllerError } from '../app/core/Engine/controllers/mfa-recovery-controller/errors';
+import { createMfaRecoveryController } from '../app/core/Engine/controllers/mfa-recovery-controller/create-mfa-recovery-controller';
+import {
+  MOCK_ANY_NAMESPACE,
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
+import type {
+  MfaRecoveryControllerMessenger,
+  PendingOperation,
+  PendingOperationEncryptor,
+} from '@metamask/mfa-recovery-controller';
 
 interface TestAuthOptions {
   tokenSource?: 'hydra' | 'auth-api';
   logAuthApiToken?: boolean;
 }
 
+interface TestWalletDependencies {
+  address: string;
+  signPersonalMessage: (params: {
+    data: string;
+    from: string;
+  }) => Promise<string>;
+  randomBytes: (length: number) => Uint8Array;
+  getAuthSession: () => Promise<{ accessToken: string }>;
+}
+
 /** Creates a signer for a disposable test wallet, never the app's wallet. */
 export function createTestWallet(
   value: string | undefined,
   options: TestAuthOptions = {},
-): MfaRecoveryTestDependencies {
+): TestWalletDependencies {
   const hex = value?.trim().replace(/^0x/u, '');
   if (!hex || !/^[0-9a-fA-F]{64}$/u.test(hex)) {
-    throw new MfaRecoveryTestError(
+    throw new MfaRecoveryControllerError(
       'Set MM_MFA_RECOVERY_TEST_PRIVATE_KEY to a disposable 32-byte test key',
       'invalid_test_private_key',
     );
@@ -50,7 +72,7 @@ export function createTestWallet(
       `0x${privateToAddress(privateKey).toString('hex')}`,
     );
   } catch {
-    throw new MfaRecoveryTestError(
+    throw new MfaRecoveryControllerError(
       'The test private key is outside the secp256k1 range',
       'invalid_test_private_key',
     );
@@ -90,7 +112,7 @@ export function createTestWallet(
         nonceUrl.searchParams.set('identifier', publicKey);
         const nonceResponse = await fetch(nonceUrl);
         if (!nonceResponse.ok) {
-          throw new MfaRecoveryTestError(
+          throw new MfaRecoveryControllerError(
             `Auth API nonce failed with HTTP ${nonceResponse.status}`,
             'auth_nonce_failed',
           );
@@ -103,7 +125,7 @@ export function createTestWallet(
           typeof nonceBody.nonce !== 'string' ||
           !nonceBody.nonce
         ) {
-          throw new MfaRecoveryTestError(
+          throw new MfaRecoveryControllerError(
             'Auth API returned a malformed nonce',
             'auth_nonce_response_invalid',
           );
@@ -121,7 +143,7 @@ export function createTestWallet(
           }),
         });
         if (!response.ok) {
-          throw new MfaRecoveryTestError(
+          throw new MfaRecoveryControllerError(
             `Failed to login with SRP: HTTP ${response.status}`,
             'auth_login_failed',
           );
@@ -140,7 +162,7 @@ export function createTestWallet(
           typeof body.profile.profile_id !== 'string' ||
           !body.profile.profile_id.trim()
         ) {
-          throw new MfaRecoveryTestError(
+          throw new MfaRecoveryControllerError(
             'Auth API returned a malformed login response',
             'auth_login_response_invalid',
           );
@@ -174,7 +196,7 @@ export function createTestWallet(
     randomBytes: (length) => new Uint8Array(randomBytes(length)),
     signPersonalMessage: async ({ data, from }) => {
       if (from.toLowerCase() !== address.toLowerCase()) {
-        throw new MfaRecoveryTestError(
+        throw new MfaRecoveryControllerError(
           'The requested signer does not match the test wallet',
           'test_signer_mismatch',
         );
@@ -199,7 +221,7 @@ async function exchangeForHydraToken(assertion: string): Promise<string> {
     },
   );
   if (!response.ok) {
-    throw new MfaRecoveryTestError(
+    throw new MfaRecoveryControllerError(
       `Hydra token exchange failed with HTTP ${response.status}: ${(await response.text()).slice(0, 200)}`,
       'hydra_token_exchange_failed',
     );
@@ -220,7 +242,7 @@ export function configureEnvUrl(
   try {
     url = new URL(value.trim());
   } catch {
-    throw new MfaRecoveryTestError(
+    throw new MfaRecoveryControllerError(
       `${name} must be an HTTP(S) base URL`,
       'invalid_env_url',
     );
@@ -232,7 +254,7 @@ export function configureEnvUrl(
     url.search ||
     url.hash
   ) {
-    throw new MfaRecoveryTestError(
+    throw new MfaRecoveryControllerError(
       `${name} must be an HTTP(S) base URL without credentials, query, or fragment`,
       'invalid_env_url',
     );
@@ -271,11 +293,37 @@ export function normalizeEscrowPublicKey(
     }
     return JSON.stringify(jwk);
   } catch {
-    throw new MfaRecoveryTestError(
+    throw new MfaRecoveryControllerError(
       `${name} must be a P-256 public key in PEM or JWK JSON format`,
       'invalid_escrow_public_key',
     );
   }
+}
+
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  MessengerActions<MfaRecoveryControllerMessenger>,
+  MessengerEvents<MfaRecoveryControllerMessenger>
+>;
+
+const inMemoryPendingOperationEncryptor: PendingOperationEncryptor = {
+  async encrypt(operation: PendingOperation): Promise<string> {
+    return JSON.stringify(operation);
+  },
+
+  async decrypt(ciphertext: string): Promise<PendingOperation> {
+    return JSON.parse(ciphertext) as PendingOperation;
+  },
+};
+
+function getControllerMessenger(): MfaRecoveryControllerMessenger {
+  const rootMessenger: RootMessenger = new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+  return new Messenger({
+    namespace: 'MfaRecoveryController',
+    parent: rootMessenger,
+  });
 }
 
 /** Runs the same live round trip as Developer Options without React Native. */
@@ -298,7 +346,7 @@ export async function main(): Promise<void> {
     );
     const tokenSource = process.env.MM_MFA_RECOVERY_TOKEN_SOURCE ?? 'auth-api';
     if (tokenSource !== 'hydra' && tokenSource !== 'auth-api') {
-      throw new MfaRecoveryTestError(
+      throw new MfaRecoveryControllerError(
         'MM_MFA_RECOVERY_TOKEN_SOURCE must be hydra or auth-api',
         'invalid_token_source',
       );
@@ -316,16 +364,33 @@ export async function main(): Promise<void> {
     ]) {
       process.env[name] = normalizeEscrowPublicKey(process.env[name], name);
     }
+    const { controller, identifierRouter } = createMfaRecoveryController({
+      messenger: getControllerMessenger(),
+      getBearerToken: async () =>
+        (await wallet.getAuthSession()).accessToken,
+      getAddress: () => wallet.address,
+      signPersonalMessage: wallet.signPersonalMessage,
+      pendingOperationEncryptor: inMemoryPendingOperationEncryptor,
+      isEnabled: () => true,
+    });
     console.log(`Authentication token source: ${tokenSource}`);
     console.log(
       'Running live Cubist recovery test: register, updateRecoverySecret, and updateIdentifiers with MPC request-bound authorization.',
     );
-    const result = await runMfaRecoveryCubistTest(wallet, (nextStep) => {
+    const result = await runMfaRecoveryCubistTest(
+      {
+        controller,
+        identifierRouter,
+        address: wallet.address,
+        randomBytes: wallet.randomBytes,
+      },
+      (nextStep) => {
       step = nextStep;
       console.log(`MFA recovery: ${step}`);
-    });
+      },
+    );
     if (!result.matches) {
-      throw new MfaRecoveryTestError(
+      throw new MfaRecoveryControllerError(
         'The recovered secret does not match',
         'recovery_secret_mismatch',
       );

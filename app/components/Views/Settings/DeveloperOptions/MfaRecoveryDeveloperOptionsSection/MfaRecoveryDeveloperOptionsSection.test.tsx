@@ -13,10 +13,22 @@ jest.mock('../../../../../core/Engine', () => ({
     context: {
       KeyringController: {
         state: { keyrings: [{ accounts: ['0xabc'] }] },
-        signPersonalMessage: jest.fn(),
       },
+      MfaRecoveryController: {},
     },
   },
+}));
+
+jest.mock(
+  '../../../../../core/Engine/controllers/mfa-recovery-controller',
+  () => ({
+    getMfaRecoveryIdentifierRouter: jest.fn(() => ({})),
+    isMfaRecoveryConfigured: jest.fn(() => true),
+  }),
+);
+
+jest.mock('../../../../../selectors/featureFlagController/mfaRecovery', () => ({
+  selectMfaRecoveryEnabled: jest.fn(() => true),
 }));
 
 jest.mock('./runMfaRecoveryCubistTest', () => ({

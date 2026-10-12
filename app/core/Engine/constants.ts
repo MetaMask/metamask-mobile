@@ -126,6 +126,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'KycController:stateChange',
   'SocialController:stateChange',
   'QrSyncController:stateChange',
+  'MfaRecoveryController:stateChanged',
 ] as const;
 
 export const MAINNET_DISPLAY_NAME = 'Ethereum';

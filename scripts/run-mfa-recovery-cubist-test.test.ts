@@ -14,15 +14,27 @@ jest.mock(
     runMfaRecoveryCubistTest: jest.fn(),
     getMfaRecoveryErrorCode: (error: { code?: string }) =>
       error.code ?? 'unknown_error',
-    MfaRecoveryTestError: class extends Error {
-      code: string;
-
-      constructor(message: string, code: string) {
-        super(message);
-        this.code = code;
-      }
-    },
   }),
+);
+
+jest.mock(
+  '../app/core/Engine/controllers/mfa-recovery-controller/create-mfa-recovery-controller',
+  () => ({
+    createMfaRecoveryController: jest.fn(() => ({
+      controller: {},
+      identifierRouter: {},
+    })),
+  }),
+);
+
+const mockCreateMfaRecoveryController = jest.mocked(
+  (
+    jest.requireMock(
+      '../app/core/Engine/controllers/mfa-recovery-controller/create-mfa-recovery-controller',
+    ) as {
+      createMfaRecoveryController: jest.Mock;
+    }
+  ).createMfaRecoveryController,
 );
 
 // Public, disposable fixture only. Never fund this wallet.
@@ -227,6 +239,7 @@ describe('headless MFA recovery command', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCreateMfaRecoveryController.mockClear();
     jest.spyOn(console, 'log').mockImplementation(() => undefined);
     jest.spyOn(console, 'error').mockImplementation(() => undefined);
     process.env.MM_MFA_RECOVERY_TEST_PRIVATE_KEY = TEST_PRIVATE_KEY;
@@ -265,6 +278,13 @@ describe('headless MFA recovery command', () => {
     expect(mockRun).toHaveBeenCalledWith(
       expect.objectContaining({ address: TEST_ADDRESS }),
       expect.any(Function),
+    );
+    expect(mockCreateMfaRecoveryController).toHaveBeenCalledWith(
+      expect.objectContaining({
+        getAddress: expect.any(Function),
+        getBearerToken: expect.any(Function),
+        pendingOperationEncryptor: expect.any(Object),
+      }),
     );
     expect(console.log).toHaveBeenCalledWith(
       expect.stringContaining('secret matches: yes'),

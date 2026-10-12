@@ -126,7 +126,9 @@ app/core/Engine/controllers/multichain-account-service      @MetaMask/accounts-e
 app/core/Engine/controllers/snap-keyring                    @MetaMask/accounts-engineers
 app/core/Engine/controllers/keyring-controller              @MetaMask/accounts-engineers
 app/core/Engine/controllers/storage-service                 @MetaMask/accounts-engineers
+app/core/Engine/controllers/mfa-recovery-controller         @MetaMask/accounts-engineers
 app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
+app/core/Engine/messengers/mfa-recovery-controller-messenger @MetaMask/accounts-engineers
 app/core/SnapKeyring                                        @MetaMask/accounts-engineers
 **/Identity/**                                              @MetaMask/accounts-engineers
 **/identity/**                                              @MetaMask/accounts-engineers

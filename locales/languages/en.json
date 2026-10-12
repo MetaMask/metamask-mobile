@@ -5310,14 +5310,18 @@
       "mfa_recovery": {
         "title": "MFA recovery",
         "description": "Run the Cubist MFA recovery controller test with the primary account and configured developer services.",
+        "status": "Feature flag enabled: {{enabled}}; service configured: {{configured}}; controller phase: {{phase}}.",
         "run_cubist_test_button": "Run Cubist recovery test",
         "recover_secret_button": "Recover secret (getRecoverySecret)",
+        "resume_button": "Resume pending recovery",
+        "abort_button": "Abort pending recovery",
         "running": "Running: {{step}}",
         "success": "Recovery test passed (epoch: {{epoch}}, secret matches: {{matches}}).",
         "recover_success": "Recovery succeeded (epoch: {{epoch}}, secret matches last registration: {{matches}}).",
         "recover_success_no_reference": "Recovery succeeded (epoch: {{epoch}}, fingerprint: {{fingerprint}}). No secret from a previous run in memory to compare.",
         "failure": "Recovery test failed: {{code}}",
         "steps": {
+          "resuming_pending_operation": "Resuming the pending recovery operation",
           "signing_in": "Signing in with SIWE",
           "requesting_oidc_token": "Requesting the recovery OIDC token",
           "creating_cubist_session": "Creating the Cubist session",
