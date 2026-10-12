@@ -51,7 +51,12 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { useEarnMetadata } from '../../hooks/useEarnMetadata';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPooledStakingEnabledFlag,
+  selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import EarnInputView from './EarnInputView';
 import { EarnInputViewProps } from './EarnInputView.types';
 import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
@@ -196,7 +201,9 @@ const mockPooledStakingContractService: PooledStakingContract = {
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(),
+  selectPooledStakingServiceInterruptionBannerEnabledFlag: jest.fn(),
   selectStablecoinLendingEnabledFlag: jest.fn(),
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag: jest.fn(),
 }));
 
 const mockLendingContracts = {
@@ -353,9 +360,16 @@ const mockInitialState: DeepPartial<RootState> = {
 
 describe('EarnInputView', () => {
   const usePoolStakedDepositMock = jest.mocked(usePoolStakedDeposit);
+  const selectPooledStakingEnabledFlagMock = jest.mocked(
+    selectPooledStakingEnabledFlag,
+  );
+  const selectPooledStakingServiceInterruptionBannerEnabledFlagMock =
+    jest.mocked(selectPooledStakingServiceInterruptionBannerEnabledFlag);
   const selectStablecoinLendingEnabledFlagMock = jest.mocked(
     selectStablecoinLendingEnabledFlag,
   );
+  const selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock =
+    jest.mocked(selectStablecoinLendingServiceInterruptionBannerEnabledFlag);
 
   const selectConversionRateMock = jest.mocked(selectConversionRate);
   const mockTrace = jest.mocked(trace);
@@ -385,7 +399,14 @@ describe('EarnInputView', () => {
       createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
     } as unknown as ReturnType<typeof useAnalytics>);
 
+    selectPooledStakingEnabledFlagMock.mockReturnValue(true);
     selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
+    selectPooledStakingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+      false,
+    );
+    selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+      false,
+    );
     selectConversionRateMock.mockReturnValue(mockConversionRate);
     mockUseTronStakeApy.mockReturnValue({
       apyPercent: null,
@@ -487,9 +508,171 @@ describe('EarnInputView', () => {
 
   const renderComponent = () => render(EarnInputView);
 
+  const createLendingEarnToken = () => {
+    const experience = {
+      type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+      apr: '2.5%',
+      estimatedAnnualRewardsFormatted: '$3.00',
+      estimatedAnnualRewardsFiatNumber: 3,
+      estimatedAnnualRewardsTokenMinimalUnit: '3000000',
+      estimatedAnnualRewardsTokenFormatted: '3 USDC',
+      market: {
+        protocol: 'AAVE v3',
+        underlying: {
+          address: MOCK_USDC_MAINNET_ASSET.address,
+        },
+      },
+    };
+
+    return {
+      ...MOCK_USDC_MAINNET_ASSET,
+      chainId: CHAIN_IDS.MAINNET,
+      address: '0x123232',
+      balance: '100',
+      balanceFiat: '$100',
+      balanceWei: new BN4('100000000'),
+      balanceMinimalUnit: '100000000',
+      balanceFiatNumber: 100,
+      balanceFormatted: '100 USDC',
+      tokenUsdExchangeRate: 1,
+      isETH: false,
+      experiences: [experience],
+      experience,
+    };
+  };
+
+  const renderLendingComponent = () => {
+    const lendingEarnToken = createLendingEarnToken();
+
+    (useEarnTokens as jest.Mock).mockReturnValue({
+      getEarnToken: jest.fn(() => lendingEarnToken),
+      getOutputToken: jest.fn(() => ({
+        ...MOCK_USDC_MAINNET_ASSET,
+        chainId: CHAIN_IDS.MAINNET,
+      })),
+    });
+
+    return render(EarnInputView, {
+      params: {
+        ...baseProps.route.params,
+        token: MOCK_USDC_MAINNET_ASSET,
+      },
+      key: Routes.STAKING.STAKE,
+      name: 'params',
+    });
+  };
+
+  const renderTronComponent = () => {
+    const tronToken = {
+      ...MOCK_ETH_MAINNET_ASSET,
+      name: 'TRON',
+      symbol: 'TRX',
+      ticker: 'TRX',
+      chainId: 'tron:728126428',
+      isNative: true,
+      isETH: false,
+      decimals: 6,
+      address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
+      balance: '100',
+      balanceFiat: '$100',
+      balanceMinimalUnit: '100000000',
+      balanceFormatted: '100 TRX',
+      balanceFiatNumber: 100,
+      tokenUsdExchangeRate: 1,
+      experiences: [{ type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' }],
+      experience: { type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' },
+    } as unknown as typeof MOCK_ETH_MAINNET_ASSET;
+
+    (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
+    (useEarnTokens as jest.Mock).mockReturnValue({
+      getEarnToken: jest.fn(() => tronToken),
+      getOutputToken: jest.fn(() => undefined),
+    });
+
+    return render(EarnInputView, {
+      params: { token: tronToken },
+      key: Routes.STAKING.STAKE,
+      name: 'params',
+    });
+  };
+
+  const getMaintenanceMessage = (experienceName: string) =>
+    strings('earn.service_interruption_banner.maintenance_message', {
+      experienceName,
+    });
+
   it('renders stake ETH heading', () => {
     const { getByText } = renderComponent();
     expect(getByText(strings('stake.stake_eth'))).toBeOnTheScreen();
+  });
+
+  describe('service interruption banners', () => {
+    it('renders pooled staking maintenance message for ETH when enabled', () => {
+      selectPooledStakingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      const { getByText } = renderComponent();
+
+      expect(
+        getByText(getMaintenanceMessage('Pooled Staking')),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders stablecoin lending maintenance message when enabled', () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      const { getByText } = renderLendingComponent();
+
+      expect(
+        getByText(getMaintenanceMessage('Stablecoin Lending')),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides pooled staking maintenance message when disabled', () => {
+      const { queryByText } = renderComponent();
+
+      expect(
+        queryByText(getMaintenanceMessage('Pooled Staking')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides stablecoin lending maintenance message when disabled', () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      const { queryByText } = renderLendingComponent();
+
+      expect(
+        queryByText(getMaintenanceMessage('Stablecoin Lending')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render lending maintenance message for pooled staking ETH', () => {
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      const { queryByText } = renderComponent();
+
+      expect(
+        queryByText(getMaintenanceMessage('Stablecoin Lending')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render pooled staking maintenance message for stablecoin lending', () => {
+      selectPooledStakingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      const { queryByText } = renderLendingComponent();
+
+      expect(
+        queryByText(getMaintenanceMessage('Pooled Staking')),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   describe('when erc20 token is selected', () => {
@@ -566,6 +749,87 @@ describe('EarnInputView', () => {
   });
 
   describe('TRON staking flow', () => {
+    it('keeps TRON stake enabled when pooled staking is disabled', async () => {
+      selectPooledStakingEnabledFlagMock.mockReturnValue(false);
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      const { getByText, getByRole } = renderTronComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('onboarding_success.done')));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.stake') }),
+      ).not.toBeDisabled();
+    });
+
+    it('keeps TRON stake enabled when stablecoin lending is disabled', async () => {
+      selectPooledStakingEnabledFlagMock.mockReturnValue(true);
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
+
+      const { getByText, getByRole } = renderTronComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('onboarding_success.done')));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.stake') }),
+      ).not.toBeDisabled();
+    });
+
+    it('keeps TRON stake enabled during pooled staking service interruption', async () => {
+      selectPooledStakingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      const { getByText, getByRole } = renderTronComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('onboarding_success.done')));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.stake') }),
+      ).not.toBeDisabled();
+    });
+
+    it('keeps TRON stake enabled during stablecoin lending service interruption', async () => {
+      selectPooledStakingEnabledFlagMock.mockReturnValue(true);
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      const { getByText, getByRole } = renderTronComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('onboarding_success.done')));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.stake') }),
+      ).not.toBeDisabled();
+    });
+
     it('constructs TRX earnToken and shows the ResourceToggle when staking enabled', () => {
       (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
 
@@ -865,6 +1129,105 @@ describe('EarnInputView', () => {
       expect(getByText('Review')).toBeOnTheScreen();
     });
 
+    it('disables pooled staking review button during service interruption', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      selectPooledStakingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      const { getByText, getByRole } = renderComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.review') }),
+      ).toBeDisabled();
+    });
+
+    it('disables stablecoin lending review button during service interruption', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      const { getByText, getByRole } = renderLendingComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.review') }),
+      ).toBeDisabled();
+    });
+
+    it('keeps pooled staking review enabled when stablecoin lending is disabled', async () => {
+      selectPooledStakingEnabledFlagMock.mockReturnValue(true);
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
+
+      const { getByText, getByRole } = renderComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.review') }),
+      ).not.toBeDisabled();
+    });
+
+    it('keeps stablecoin lending review enabled when pooled staking is disabled', async () => {
+      selectPooledStakingEnabledFlagMock.mockReturnValue(false);
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      const { getByText, getByRole } = renderLendingComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.review') }),
+      ).not.toBeDisabled();
+    });
+
+    it('keeps stablecoin lending review enabled during pooled staking service interruption', async () => {
+      selectPooledStakingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      const { getByText, getByRole } = renderLendingComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.review') }),
+      ).not.toBeDisabled();
+    });
+
+    it('keeps pooled staking review enabled during stablecoin lending service interruption', async () => {
+      selectPooledStakingEnabledFlagMock.mockReturnValue(true);
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      const { getByText, getByRole } = renderComponent();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', { name: strings('stake.review') }),
+      ).not.toBeDisabled();
+    });
+
     it('displays `Not enough ETH` when input exceeds balance', () => {
       const { getByText, queryAllByText } = renderComponent();
 
@@ -874,6 +1237,10 @@ describe('EarnInputView', () => {
   });
 
   describe('navigates to ', () => {
+    beforeEach(() => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+    });
+
     it('gas impact modal when gas cost is 30% or more of deposit amount', async () => {
       const mockUseStakingGasFee = jest.spyOn(useEarnGasFee, 'default');
       const mockUseBalance = jest.spyOn(useBalance, 'default');
@@ -1728,6 +2095,10 @@ describe('EarnInputView', () => {
     });
 
     describe('Pooled Staking flow tracing', () => {
+      beforeEach(() => {
+        selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      });
+
       it('calls trace with EarnDepositConfirmationScreen', async () => {
         const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
         usePoolStakedDepositMock.mockReturnValue({

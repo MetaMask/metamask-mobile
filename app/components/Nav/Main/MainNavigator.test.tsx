@@ -1950,6 +1950,52 @@ describe('MainNavigator', () => {
       },
     );
 
+    const stateForInterim = (headerNavBarVariant: string) => {
+      const state = stateForArm(headerNavBarVariant);
+      const { RemoteFeatureFlagController } = state.engine.backgroundState;
+      return {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...RemoteFeatureFlagController.remoteFeatureFlags,
+                homeInterimHeaderNavBar: {
+                  enabled: true,
+                  minimumVersion: '0.0.1',
+                },
+              },
+            },
+          },
+        },
+      };
+    };
+
+    it.each(['control', 'searchFocused'])(
+      'keeps Rewards as a tab with no Social tab when the interim flag is on over %s',
+      (arm) => {
+        const state = stateForInterim(arm);
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        const tabs = homeTabNames(container, state);
+        expect(tabs).toContain(Routes.REWARDS_VIEW);
+        expect(tabs).not.toContain(Routes.SOCIAL.TAB);
+        expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
+      },
+    );
+
+    it('hands the trade button to the floating bar when the interim flag is on', () => {
+      const state = stateForInterim('control');
+      const container = renderWithProvider(<MainNavigator />, { state });
+
+      expect(
+        renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
+      ).toBe('trade');
+    });
+
     const socialTabComponentName = (
       container: { root: ReactTestInstance },
       state: ReturnType<typeof stateForArm>,

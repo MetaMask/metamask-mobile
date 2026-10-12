@@ -31,7 +31,8 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
   const originalFee = formatFeeRate(data?.originalMetamaskFeeRate);
   const discountPercentage = data?.feeDiscountPercentage;
 
-  const hasDiscount = discountPercentage && discountPercentage > 0;
+  const hasDiscount =
+    discountPercentage !== undefined && discountPercentage > 0;
 
   return (
     <View testID={testID}>

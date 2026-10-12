@@ -400,7 +400,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     rows.push({
       id: 'crypto-other-assets',
       icon: React.createElement(Icon, {
-        name: IconName.Coin,
+        name: IconName.MoreHorizontal,
         size: IconSize.Md,
         color: IconColor.IconAlternative,
       }),

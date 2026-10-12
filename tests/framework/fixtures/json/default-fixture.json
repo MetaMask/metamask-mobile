@@ -21,8 +21,7 @@
       "attribution": null
     },
     "banners": {
-      "dismissedBanners": [],
-      "lastDismissedBrazeBanner": null
+      "dismissedBanners": []
     },
     "bookmarks": [],
     "bridge": {

@@ -42,18 +42,26 @@ export type SearchInteractionType =
   | 'scrolled'
   | 'tab_switched'
   | 'searched'
-  | 'paste';
+  | 'paste'
+  | 'abandoned';
 
 /** 'all' = aggregated view; other values are a specific feed pill. */
 export type SearchFeedPill = SearchFeedId | 'all';
 
-/** Surface that opened search. Only set on `opened`. */
+/** Surface that opened search. Only set on `opened` and `abandoned`. */
 export type SearchEntryPoint = 'home' | 'explore' | 'deeplink' | 'nav_bar';
+
+/**
+ * How the user left search without clicking a result: `cancel` is the
+ * screen's own cancel/back button, `back` is system back (swipe or hardware),
+ * `navigate_away` is leaving without closing search (tab switch, browser tabs).
+ */
+export type SearchAbandonReason = 'cancel' | 'back' | 'navigate_away';
 
 export interface ExploreSearchInteractedProperties {
   interaction_type: SearchInteractionType;
   search_query: string;
-  /** Set on `opened` and paste interactions initiated from a known surface. */
+  /** Set on `opened`, `abandoned`, and paste interactions initiated from a known surface. */
   entry_point?: SearchEntryPoint;
   /**
    * Only set on result_clicked: the feed section when tab_name is 'all', or
@@ -73,6 +81,8 @@ export interface ExploreSearchInteractedProperties {
   /** Only set on result_clicked for tokens and stocks. */
   token_name?: string;
   token_symbol?: string;
+  /** Only set on `abandoned`. */
+  abandon_reason?: SearchAbandonReason;
   /** Predict market identity; only set on result_clicked for the predictions feed. */
   market_id?: string;
   market_slug?: string;
@@ -181,9 +191,52 @@ export const trackExploreSectionSeeAll = ({
   }
 };
 
+interface ExploreSearchSession {
+  entryPoint?: SearchEntryPoint;
+  hasResultClick: boolean;
+  hasEnded: boolean;
+  lastTabName?: SearchFeedPill;
+  lastSearchedQuery?: string;
+  lastSearchedResultCount?: number;
+}
+
+// One search visit, from `opened` until the user clicks a result or leaves.
+let searchSession: ExploreSearchSession = {
+  hasResultClick: false,
+  hasEnded: false,
+};
+
+const updateSearchSession = ({
+  interaction_type,
+  entry_point,
+  tab_name,
+  search_query,
+  result_count,
+}: ExploreSearchInteractedProperties): void => {
+  if (interaction_type === 'opened') {
+    searchSession = {
+      entryPoint: entry_point,
+      hasResultClick: false,
+      hasEnded: false,
+    };
+    return;
+  }
+  if (tab_name) {
+    searchSession.lastTabName = tab_name;
+  }
+  if (interaction_type === 'result_clicked') {
+    searchSession.hasResultClick = true;
+  }
+  if (interaction_type === 'searched') {
+    searchSession.lastSearchedQuery = search_query;
+    searchSession.lastSearchedResultCount = result_count;
+  }
+};
+
 export const trackExploreSearchEvent = (
   properties: ExploreSearchInteractedProperties,
 ): void => {
+  updateSearchSession(properties);
   analytics.trackEvent(
     AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED,
@@ -209,6 +262,43 @@ export const trackExploreSearchOpened = (
     interaction_type: 'opened',
     search_query: '',
     entry_point: entryPoint,
+  });
+};
+
+/**
+ * Fires `abandoned` when the user leaves search without clicking a result.
+ * One-shot per session: later calls are ignored until the next `opened`.
+ * `result_count` is only sent when it belongs to the query being abandoned.
+ * `redactSearchQuery` blanks `search_query` for clipboard-pasted queries.
+ */
+export const trackExploreSearchAbandoned = (
+  reason: SearchAbandonReason,
+  searchQuery: string,
+  redactSearchQuery = false,
+): void => {
+  if (searchSession.hasResultClick || searchSession.hasEnded) {
+    return;
+  }
+  searchSession.hasEnded = true;
+
+  const {
+    entryPoint,
+    lastTabName,
+    lastSearchedQuery,
+    lastSearchedResultCount,
+  } = searchSession;
+  const sentSearchQuery = redactSearchQuery ? '' : searchQuery;
+  trackExploreSearchEvent({
+    interaction_type: 'abandoned',
+    search_query: sentSearchQuery,
+    query_length: getSearchQueryLength(searchQuery),
+    abandon_reason: reason,
+    ...(entryPoint ? { entry_point: entryPoint } : {}),
+    ...(lastTabName ? { tab_name: lastTabName } : {}),
+    ...(lastSearchedQuery === sentSearchQuery &&
+    lastSearchedResultCount !== undefined
+      ? { result_count: lastSearchedResultCount }
+      : {}),
   });
 };
 

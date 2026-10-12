@@ -43,6 +43,9 @@ _api_prod: &api_prod
   REWARDS_MONEY_API_URL: 'https://rewards-money.api.cx.metamask.io'
   BAANX_API_URL: 'https://api.baanx.com'
   CARD_API_URL: 'https://card.api.cx.metamask.io'
+  # Predict has no UAT/prod deployment yet, so every cluster (prod/uat/dev)
+  # bundles the dev predict-api host. Override via local .js.env if needed.
+  MM_PREDICT_API_URL: 'https://predict-api.dev-api.cx.metamask.io'
 
 _public_envs: &public_envs # Production hosts plus build flags
   <<: *api_prod
@@ -79,10 +82,10 @@ _api_dev: &api_dev
   CARD_API_URL: 'https://card.dev-api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
   SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
-  PRICE_ALERTS_API_URL: 'https://price-alerts.api.cx.metamask.io'
+  PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
   KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
   MM_BACKEND_WEBSOCKET_URL: 'wss://gateway.dev-api.cx.metamask.io/v1'
-  IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
+  IDOS_ENCLAVE_URL: 'https://enclave.tee.staging.idos.network'
   IDOS_RELAY_URL: 'https://relay.playground.idos.network'
 
 # UAT hosts. Portfolio, digest, social, price alerts, and Baanx have no UAT
@@ -98,10 +101,10 @@ _api_uat: &api_uat
   CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
   SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
-  PRICE_ALERTS_API_URL: 'https://price-alerts.api.cx.metamask.io'
+  PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
   KYC_API_URL: 'https://kyc-api.uat-api.cx.metamask.io'
   MM_BACKEND_WEBSOCKET_URL: 'wss://gateway.uat-api.cx.metamask.io/v1'
-  IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
+  IDOS_ENCLAVE_URL: 'https://enclave.tee.staging.idos.network'
   IDOS_RELAY_URL: 'https://relay.staging.idos.network'
 
 _main_dev_env: &main_dev_env

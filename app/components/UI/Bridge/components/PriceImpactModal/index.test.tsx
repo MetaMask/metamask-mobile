@@ -313,12 +313,13 @@ describe('PriceImpactModal', () => {
       );
     });
 
-    it('passes isDanger=true to PriceImpactDescription when price impact exceeds error threshold', () => {
+    it('passes isDanger=true to PriceImpactDescription when shouldShowPriceImpactError is true', () => {
       mockUseBridgeQuoteData.mockReturnValue({
         activeQuote: {
           quote: { priceData: { priceImpact: { amount: '0.96' } } },
         },
         formattedQuoteData: { priceImpact: '96%', priceImpactFiat: '$7.05' },
+        shouldShowPriceImpactError: true,
       } as ReturnType<typeof useBridgeQuoteDataContext>);
 
       render(<PriceImpactModal />);
@@ -329,12 +330,13 @@ describe('PriceImpactModal', () => {
       );
     });
 
-    it('passes isDanger=false to PriceImpactDescription when price impact is below error threshold', () => {
+    it('passes isDanger=false to PriceImpactDescription when shouldShowPriceImpactError is false', () => {
       mockUseBridgeQuoteData.mockReturnValue({
         activeQuote: {
           quote: { priceData: { priceImpact: { amount: '0.05' } } },
         },
         formattedQuoteData: { priceImpact: '5%', priceImpactFiat: '$0.50' },
+        shouldShowPriceImpactError: false,
       } as ReturnType<typeof useBridgeQuoteDataContext>);
 
       render(<PriceImpactModal />);

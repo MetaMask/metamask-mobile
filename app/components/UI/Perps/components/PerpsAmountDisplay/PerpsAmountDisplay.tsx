@@ -36,6 +36,26 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
+/**
+ * Formats a trade-sheet coin amount.
+ *
+ * An in-progress keypad draft is shown as typed. `formatPositionSize` rounds
+ * amounts at or above 1 to two decimals, which would change the digits still
+ * being entered. Idle amounts keep that display formatting.
+ */
+const formatTradeSheetTokenAmount = (
+  tokenAmount: string,
+  preserveExactAmount: boolean,
+): string => {
+  if (preserveExactAmount) {
+    return tokenAmount;
+  }
+  if (tokenAmount.endsWith('.')) {
+    return `${formatPositionSize(tokenAmount.slice(0, -1) || '0')}.`;
+  }
+  return formatPositionSize(tokenAmount);
+};
+
 interface PerpsAmountDisplayProps {
   amount: string;
   showWarning?: boolean;
@@ -138,7 +158,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
     // number rather than after the symbol.
     const primaryDisplayValue =
       isTokenPrimary && tokenAmount
-        ? formatPositionSize(tokenAmount)
+        ? formatTradeSheetTokenAmount(tokenAmount, isActive)
         : fiatDisplayValue;
     const primaryDisplayUnit =
       isTokenPrimary && tokenSymbol

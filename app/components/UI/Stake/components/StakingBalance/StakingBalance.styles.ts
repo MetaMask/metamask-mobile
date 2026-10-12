@@ -10,6 +10,9 @@ const styleSheet = (params: { theme: Theme }) =>
     stakingEarnings: {
       paddingTop: 16,
     },
+    maintenanceBanner: {
+      paddingBottom: 8,
+    },
     balances: {
       flex: 1,
       flexDirection: 'column',

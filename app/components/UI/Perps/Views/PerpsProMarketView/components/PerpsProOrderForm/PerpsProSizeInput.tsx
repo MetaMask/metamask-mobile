@@ -250,7 +250,7 @@ const PerpsProSizeInput = ({
         </Box>
       </Box>
       <Box
-        twClassName="overflow-visible px-3 pb-4 pt-6"
+        twClassName="overflow-visible px-3 pb-4 pt-4"
         onTouchCancel={handleSliderDragCancel}
         testID={ids.SIZE_SLIDER_SECTION}
       >

@@ -17,7 +17,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import React, {
   useCallback,
   useContext,
@@ -55,6 +55,7 @@ import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { PositionCardBody } from '../../../UI/SocialFeed/components/SocialFeedPositionCard';
+import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import { submitSocialV1ComposedPost } from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
@@ -67,6 +68,8 @@ import {
   COMPOSER_FEED_AUTHOR,
   mapPositionToFeedItem,
 } from './mapPositionToFeedItem';
+import { mapTradeInFlightToFeedItem } from './mapTradeInFlightToFeedItem';
+import type { SocialPostComposerViewParams } from './SocialPostComposerView.types';
 import GifPickerSheet from './GifPickerSheet';
 import SharePositionBottomSheet from './SharePositionBottomSheet';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
@@ -132,6 +135,13 @@ const SocialPostComposerView: React.FC = () => {
   const { colors, typography } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const route = useRoute();
+  const tradeInFlightParams = (
+    route.params as SocialPostComposerViewParams | undefined
+  )?.tradeInFlight;
+  const tradeInFlightPreview = (
+    route.params as SocialPostComposerViewParams | undefined
+  )?.preview;
   const { toastRef } = useContext(ToastContext);
   const isScreenTransitionComplete = useScreenTransitionComplete();
   const { profile } = useMyProfile();
@@ -157,6 +167,11 @@ const SocialPostComposerView: React.FC = () => {
   );
 
   const previewItem: SocialV1FeedItem | null = useMemo(() => {
+    if (tradeInFlightPreview) {
+      return mapTradeInFlightToFeedItem(tradeInFlightPreview, text.trim(), {
+        author: composerAuthor,
+      });
+    }
     if (!selectedPosition) {
       return null;
     }
@@ -164,10 +179,10 @@ const SocialPostComposerView: React.FC = () => {
       isClosed: selectedPosition.isClosed,
       author: composerAuthor,
     });
-  }, [composerAuthor, selectedPosition, text]);
+  }, [composerAuthor, selectedPosition, text, tradeInFlightPreview]);
 
-  // A position is the only requirement. An empty caption still posts.
-  const canSubmit = selectedPosition != null;
+  const isTradeInFlightLocked = tradeInFlightParams != null;
+  const canSubmit = selectedPosition != null || isTradeInFlightLocked;
 
   const handleClose = useCallback(() => {
     navigation.goBack();
@@ -232,31 +247,60 @@ const SocialPostComposerView: React.FC = () => {
   }, [isScreenTransitionComplete, focusComposer]);
 
   const handlePost = useCallback(async () => {
-    if (!selectedPosition || !canSubmit || isSubmitting) {
+    if (
+      (!selectedPosition && !tradeInFlightParams) ||
+      !canSubmit ||
+      isSubmitting
+    ) {
       return;
     }
     const caption = text.trim();
     const commentText = appendKlipyGifUrlToCommentText(caption, gifUri);
     setIsSubmitting(true);
     try {
-      const created = await createSwapComment({
-        commentText,
-        positionUid: selectedPosition.position.positionId,
-        source: 'metamask-mobile',
-      });
-      const item = mapPositionToFeedItem(selectedPosition.position, caption, {
-        isClosed: selectedPosition.isClosed,
-        author: composerAuthor,
-      });
-      submitSocialV1ComposedPost({
-        id: created.uid,
-        authorHandle: profile?.handle ?? '',
-        authorImageUrl: profile?.imageUrl,
-        timestampMs: created.timestamp * 1000,
-        reactions: [],
-        gifUri: gifUri ?? undefined,
-        item,
-      });
+      let created;
+      if (tradeInFlightParams) {
+        created = await createSwapComment({
+          commentText,
+          tradeInFlight: tradeInFlightParams,
+          source: 'metamask-mobile',
+        });
+      } else if (selectedPosition) {
+        created = await createSwapComment({
+          commentText,
+          positionUid: selectedPosition.position.positionId,
+          source: 'metamask-mobile',
+        });
+      } else {
+        return;
+      }
+      if (selectedPosition && !tradeInFlightParams) {
+        const item = mapPositionToFeedItem(selectedPosition.position, caption, {
+          isClosed: selectedPosition.isClosed,
+          author: composerAuthor,
+        });
+        submitSocialV1ComposedPost({
+          id: created.uid,
+          authorHandle: profile?.handle ?? '',
+          authorImageUrl: profile?.imageUrl,
+          timestampMs: created.timestamp * 1000,
+          reactions: [],
+          gifUri: gifUri ?? undefined,
+          item,
+        });
+      } else {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: ComponentLibraryIconName.Confirmation,
+          iconColor: colors.success.default,
+          labelOptions: [
+            {
+              label: strings('social_leaderboard.composer.post_pending_index'),
+            },
+          ],
+          hasNoTimeout: false,
+        });
+      }
       await Promise.all([
         ReactQueryService.queryClient.invalidateQueries({
           queryKey: ['SocialService:fetchFeed'],
@@ -282,6 +326,7 @@ const SocialPostComposerView: React.FC = () => {
   }, [
     canSubmit,
     colors.error.default,
+    colors.success.default,
     composerAuthor,
     gifUri,
     isSubmitting,
@@ -291,188 +336,195 @@ const SocialPostComposerView: React.FC = () => {
     selectedPosition,
     text,
     toastRef,
+    tradeInFlightParams,
   ]);
 
   return (
-    <SafeAreaView
-      edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
-      style={tw.style('flex-1 bg-default')}
-      testID={SocialPostComposerViewSelectorsIDs.CONTAINER}
-    >
-      <HeaderBase
-        includesTopInset
-        twClassName="px-4"
-        startAccessory={
-          <SocialHeaderGlassSurface twClassName="w-10 justify-center">
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSize.Md}
-              onPress={handleClose}
-              testID={SocialPostComposerViewSelectorsIDs.CLOSE_BUTTON}
-              accessibilityLabel={strings('social_leaderboard.composer.close')}
-            />
-          </SocialHeaderGlassSurface>
-        }
-        endAccessory={
+    <SocialFeedSurfaceProvider location="social_post_composer" showMockedFields>
+      <SafeAreaView
+        edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
+        style={tw.style('flex-1 bg-default')}
+        testID={SocialPostComposerViewSelectorsIDs.CONTAINER}
+      >
+        <HeaderBase
+          includesTopInset
+          twClassName="px-4"
+          startAccessory={
+            <SocialHeaderGlassSurface twClassName="w-10 justify-center">
+              <ButtonIcon
+                iconName={IconName.Close}
+                size={ButtonIconSize.Md}
+                onPress={handleClose}
+                testID={SocialPostComposerViewSelectorsIDs.CLOSE_BUTTON}
+                accessibilityLabel={strings(
+                  'social_leaderboard.composer.close',
+                )}
+              />
+            </SocialHeaderGlassSurface>
+          }
+          endAccessory={
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={3}
+            >
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextMuted}
+                testID={SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT}
+              >
+                {strings('social_leaderboard.composer.character_count', {
+                  count: text.length,
+                  limit: COMPOSER_COMMENT_MAX_LENGTH,
+                })}
+              </Text>
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Sm}
+                isDisabled={!canSubmit || isSubmitting}
+                onPress={handlePost}
+                testID={SocialPostComposerViewSelectorsIDs.POST_BUTTON}
+              >
+                {isSubmitting
+                  ? strings('social_leaderboard.composer.posting')
+                  : strings('social_leaderboard.composer.post')}
+              </Button>
+            </Box>
+          }
+          testID={SocialPostComposerViewSelectorsIDs.HEADER}
+        />
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={tw.style('flex-1')}
+        >
+          <ScrollView
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('px-4 pt-8 pb-4 gap-4')}
+            keyboardShouldPersistTaps="always"
+          >
+            <Box gap={3} twClassName="w-full">
+              <ProfileAvatar
+                imageUrl={profile?.imageUrl}
+                avatarPresetId={profile?.avatarPresetId}
+                size="sm"
+              />
+              <TextInput
+                ref={inputRef}
+                value={text}
+                onChangeText={handleChangeText}
+                placeholder={strings('social_leaderboard.composer.placeholder')}
+                placeholderTextColor={colors.text.alternative}
+                multiline
+                autoFocus={isScreenTransitionComplete}
+                showSoftInputOnFocus
+                style={[
+                  tw.style('w-full text-default min-h-24'),
+                  composerInputTypography,
+                ]}
+                testID={SocialPostComposerViewSelectorsIDs.INPUT}
+                {...{
+                  onImageChange: handleImageInsert,
+                }}
+              />
+            </Box>
+
+            {previewItem ? (
+              <Box twClassName="relative">
+                <PositionCardBody item={previewItem} />
+                {isTradeInFlightLocked ? null : (
+                  <Pressable
+                    onPress={() => setSelectedPosition(null)}
+                    accessibilityRole="button"
+                    accessibilityLabel={strings(
+                      'social_leaderboard.composer.remove_position',
+                    )}
+                    testID={SocialPostComposerViewSelectorsIDs.REMOVE_POSITION}
+                    hitSlop={8}
+                    style={tw.style(
+                      'absolute z-20 -top-3 -right-3 w-8 h-8 rounded-full bg-default border border-muted items-center justify-center',
+                    )}
+                  >
+                    <Icon name={IconName.Close} size={IconSize.Sm} />
+                  </Pressable>
+                )}
+              </Box>
+            ) : null}
+
+            {gifUri ? (
+              <Box twClassName="relative rounded-2xl overflow-hidden">
+                <Image
+                  source={{ uri: gifUri }}
+                  style={tw.style('w-full aspect-square')}
+                  testID={SocialPostComposerViewSelectorsIDs.GIF_PREVIEW}
+                />
+                <Pressable
+                  onPress={() => setGifUri(null)}
+                  accessibilityRole="button"
+                  accessibilityLabel={strings(
+                    'social_leaderboard.composer.remove_gif',
+                  )}
+                  testID={SocialPostComposerViewSelectorsIDs.REMOVE_GIF}
+                  style={tw.style(
+                    'absolute top-2 right-2 w-7 h-7 rounded-full bg-default items-center justify-center',
+                  )}
+                >
+                  <ButtonIcon
+                    iconName={IconName.Close}
+                    size={ButtonIconSize.Sm}
+                    onPress={() => setGifUri(null)}
+                  />
+                </Pressable>
+              </Box>
+            ) : null}
+          </ScrollView>
+
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            gap={3}
+            gap={2}
+            twClassName="px-4 pt-3"
+            style={tw.style({
+              paddingBottom: isGifSheetOpen ? 8 : Math.max(insets.bottom, 12),
+            })}
           >
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextMuted}
-              testID={SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT}
-            >
-              {strings('social_leaderboard.composer.character_count', {
-                count: text.length,
-                limit: COMPOSER_COMMENT_MAX_LENGTH,
-              })}
-            </Text>
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Sm}
-              isDisabled={!canSubmit || isSubmitting}
-              onPress={handlePost}
-              testID={SocialPostComposerViewSelectorsIDs.POST_BUTTON}
-            >
-              {isSubmitting
-                ? strings('social_leaderboard.composer.posting')
-                : strings('social_leaderboard.composer.post')}
-            </Button>
-          </Box>
-        }
-        testID={SocialPostComposerViewSelectorsIDs.HEADER}
-      />
-
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={tw.style('flex-1')}
-      >
-        <ScrollView
-          style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('px-4 pt-8 pb-4 gap-4')}
-          keyboardShouldPersistTaps="always"
-        >
-          <Box gap={3} twClassName="w-full">
-            <ProfileAvatar
-              imageUrl={profile?.imageUrl}
-              avatarPresetId={profile?.avatarPresetId}
-              size="sm"
-            />
-            <TextInput
-              ref={inputRef}
-              value={text}
-              onChangeText={handleChangeText}
-              placeholder={strings('social_leaderboard.composer.placeholder')}
-              placeholderTextColor={colors.text.alternative}
-              multiline
-              autoFocus={isScreenTransitionComplete}
-              showSoftInputOnFocus
-              style={[
-                tw.style('w-full text-default min-h-24'),
-                composerInputTypography,
-              ]}
-              testID={SocialPostComposerViewSelectorsIDs.INPUT}
-              {...{
-                onImageChange: handleImageInsert,
-              }}
-            />
-          </Box>
-
-          {previewItem ? (
-            <Box twClassName="relative">
-              <PositionCardBody item={previewItem} />
-              <Pressable
-                onPress={() => setSelectedPosition(null)}
-                accessibilityRole="button"
-                accessibilityLabel={strings(
-                  'social_leaderboard.composer.remove_position',
-                )}
-                testID={SocialPostComposerViewSelectorsIDs.REMOVE_POSITION}
-                hitSlop={8}
-                style={tw.style(
-                  'absolute z-20 -top-3 -right-3 w-8 h-8 rounded-full bg-default border border-muted items-center justify-center',
-                )}
-              >
-                <Icon name={IconName.Close} size={IconSize.Sm} />
-              </Pressable>
-            </Box>
-          ) : null}
-
-          {gifUri ? (
-            <Box twClassName="relative rounded-2xl overflow-hidden">
-              <Image
-                source={{ uri: gifUri }}
-                style={tw.style('w-full aspect-square')}
-                testID={SocialPostComposerViewSelectorsIDs.GIF_PREVIEW}
+            {selectedPosition || isTradeInFlightLocked ? null : (
+              <ComposerChip
+                label={strings('social_leaderboard.composer.chip_position')}
+                icon={<Icon name={IconName.Card} size={IconSize.Sm} />}
+                onPress={() => {
+                  setIsGifSheetOpen(false);
+                  setIsShareSheetOpen(true);
+                }}
+                testID={SocialPostComposerViewSelectorsIDs.POSITION_CHIP}
               />
-              <Pressable
-                onPress={() => setGifUri(null)}
-                accessibilityRole="button"
-                accessibilityLabel={strings(
-                  'social_leaderboard.composer.remove_gif',
-                )}
-                testID={SocialPostComposerViewSelectorsIDs.REMOVE_GIF}
-                style={tw.style(
-                  'absolute top-2 right-2 w-7 h-7 rounded-full bg-default items-center justify-center',
-                )}
-              >
-                <ButtonIcon
-                  iconName={IconName.Close}
-                  size={ButtonIconSize.Sm}
-                  onPress={() => setGifUri(null)}
-                />
-              </Pressable>
-            </Box>
+            )}
+            {gifUri ? null : (
+              <ComposerChip
+                label={strings('social_leaderboard.composer.chip_gif')}
+                icon={<GifChipIcon color={colors.icon.default} />}
+                onPress={handleGifChipPress}
+                accessibilityState={{ selected: isGifSheetOpen }}
+                testID={SocialPostComposerViewSelectorsIDs.GIF_CHIP}
+              />
+            )}
+          </Box>
+          {isGifSheetOpen ? (
+            <GifPickerSheet
+              onSelect={handleSelectGif}
+              onClose={() => setIsGifSheetOpen(false)}
+            />
           ) : null}
-        </ScrollView>
+        </KeyboardAvoidingView>
 
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={2}
-          twClassName="px-4 pt-3"
-          style={tw.style({
-            paddingBottom: isGifSheetOpen ? 8 : Math.max(insets.bottom, 12),
-          })}
-        >
-          {selectedPosition ? null : (
-            <ComposerChip
-              label={strings('social_leaderboard.composer.chip_position')}
-              icon={<Icon name={IconName.Card} size={IconSize.Sm} />}
-              onPress={() => {
-                setIsGifSheetOpen(false);
-                setIsShareSheetOpen(true);
-              }}
-              testID={SocialPostComposerViewSelectorsIDs.POSITION_CHIP}
-            />
-          )}
-          {gifUri ? null : (
-            <ComposerChip
-              label={strings('social_leaderboard.composer.chip_gif')}
-              icon={<GifChipIcon color={colors.icon.default} />}
-              onPress={handleGifChipPress}
-              accessibilityState={{ selected: isGifSheetOpen }}
-              testID={SocialPostComposerViewSelectorsIDs.GIF_CHIP}
-            />
-          )}
-        </Box>
-        {isGifSheetOpen ? (
-          <GifPickerSheet
-            onSelect={handleSelectGif}
-            onClose={() => setIsGifSheetOpen(false)}
+        {isShareSheetOpen ? (
+          <SharePositionBottomSheet
+            onSelect={handleSelectPosition}
+            onClose={() => setIsShareSheetOpen(false)}
           />
         ) : null}
-      </KeyboardAvoidingView>
-
-      {isShareSheetOpen ? (
-        <SharePositionBottomSheet
-          onSelect={handleSelectPosition}
-          onClose={() => setIsShareSheetOpen(false)}
-        />
-      ) : null}
-    </SafeAreaView>
+      </SafeAreaView>
+    </SocialFeedSurfaceProvider>
   );
 };
 
