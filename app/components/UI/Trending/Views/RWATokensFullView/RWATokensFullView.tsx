@@ -9,7 +9,10 @@ import {
 import { useRwaTokens } from '../../hooks/useRwaTokens/useRwaTokens';
 import { useTokenListFilters } from '../../hooks/useTokenListFilters/useTokenListFilters';
 import TokenListPageLayout from '../../components/TokenListPageLayout/TokenListPageLayout';
-import { RWA_NETWORKS_LIST, RWA_NETWORKS_LIST_WITHOUT_ROBINHOOD } from '../../utils/trendingNetworksList';
+import {
+  RWA_NETWORKS_LIST,
+  RWA_NETWORKS_LIST_WITHOUT_ROBINHOOD,
+} from '../../utils/trendingNetworksList';
 import { useABTest } from '../../../../../hooks/useABTest';
 import {
   EXPLORE_QUICK_BUY_AB_KEY,
@@ -69,11 +72,13 @@ const RWATokensFullView = () => {
   );
 
   const showRobinhoodRwa = useShowRobinhoodRwa();
-  const allowedNetworks = useMemo(() =>
-    showRobinhoodRwa
-      ? RWA_NETWORKS_LIST
-      : RWA_NETWORKS_LIST_WITHOUT_ROBINHOOD
-    , [showRobinhoodRwa])
+  const allowedNetworks = useMemo(
+    () =>
+      showRobinhoodRwa
+        ? RWA_NETWORKS_LIST
+        : RWA_NETWORKS_LIST_WITHOUT_ROBINHOOD,
+    [showRobinhoodRwa],
+  );
 
   return (
     <TokenListPageLayout

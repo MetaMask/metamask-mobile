@@ -7,6 +7,7 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useRwaTokens } from '../../hooks/useRwaTokens/useRwaTokens';
 import type TrendingTokensList from '../../components/TrendingTokensList';
 import mockState from '../../../../../util/test/initial-root-state';
+import { clone } from 'lodash';
 
 const TEST_IDS = {
   skeleton: 'trending-tokens-skeleton',
@@ -100,14 +101,25 @@ const arrangeMocks = () => {
 describe('RWATokensFullView', () => {
   let mocks: ReturnType<typeof arrangeMocks>;
 
-  const renderRWAFullView = () =>
+  const renderRWAFullView = (state: typeof mockState = mockState) =>
     renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
         <RWATokensFullView />
       </SafeAreaProvider>,
-      { state: mockState },
+      { state },
       false,
     );
+
+  const createStateWithRobinhoodRwa = (showRobinhoodRwa: boolean) => {
+    const state = clone(mockState);
+    (
+      state as Record<string, unknown> & typeof mockState
+    ).engine.backgroundState.RemoteFeatureFlagController = {
+      ...state.engine.backgroundState.RemoteFeatureFlagController,
+      remoteFeatureFlags: { ASSETS4098ShowRobinhoodRwa: showRobinhoodRwa },
+    };
+    return state;
+  };
 
   // Arranged once per test so every test asserts on the same mock handles the
   // component received; jest.resetAllMocks() is deliberately avoided because it
@@ -202,7 +214,9 @@ describe('RWATokensFullView', () => {
   });
 
   it('opens network bottom sheet when button is pressed', async () => {
-    const { getByTestId, getByText } = renderRWAFullView();
+    const { getByTestId, getByText } = renderRWAFullView(
+      createStateWithRobinhoodRwa(true),
+    );
 
     const networkButton = getByTestId('all-networks-button');
     await userEvent.press(networkButton);
@@ -211,6 +225,20 @@ describe('RWATokensFullView', () => {
       getByTestId('trending-token-network-bottom-sheet'),
     ).toBeOnTheScreen();
     expect(getByText('Robinhood Chain')).toBeOnTheScreen();
+  });
+
+  it('excludes Robinhood Chain from the network bottom sheet when the flag is off', async () => {
+    const { getByTestId, queryByText } = renderRWAFullView(
+      createStateWithRobinhoodRwa(false),
+    );
+
+    const networkButton = getByTestId('all-networks-button');
+    await userEvent.press(networkButton);
+
+    expect(
+      getByTestId('trending-token-network-bottom-sheet'),
+    ).toBeOnTheScreen();
+    expect(queryByText('Robinhood Chain')).not.toBeOnTheScreen();
   });
 
   it('opens price change bottom sheet when button is pressed', async () => {
