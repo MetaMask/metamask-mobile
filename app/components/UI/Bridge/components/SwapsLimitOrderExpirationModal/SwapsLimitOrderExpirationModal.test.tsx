@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
   SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
@@ -51,7 +51,6 @@ const renderModal = (
   const props: SwapsLimitOrderExpirationModalProps = {
     selectedMinutes: SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
     onSelect: jest.fn(),
-    onConfirm: jest.fn(),
     onClose: jest.fn(),
     ...overrides,
   };
@@ -67,16 +66,14 @@ describe('SwapsLimitOrderExpirationModal', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the title, options, and confirm button', () => {
-    const { getByTestId, getByText } = renderModal();
+  it('renders the title and options without a confirm button', () => {
+    const { getByTestId, getByText, queryByText } = renderModal();
 
     expect(
       getByTestId(SwapsLimitOrderExpirationModalSelectorsIDs.SHEET),
     ).toBeOnTheScreen();
     expect(getByText(strings('bridge.limit.expiration'))).toBeOnTheScreen();
-    expect(
-      getByTestId(SwapsLimitOrderExpirationModalSelectorsIDs.CONFIRM_BUTTON),
-    ).toBeOnTheScreen();
+    expect(queryByText(strings('bridge.confirm'))).not.toBeOnTheScreen();
 
     SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES.forEach((minutes) => {
       expect(
@@ -99,17 +96,66 @@ describe('SwapsLimitOrderExpirationModal', () => {
     expect(props.onSelect).toHaveBeenCalledWith(10080);
   });
 
-  it('calls onConfirm with the selected minutes when confirm is pressed', () => {
-    const { getByTestId, props } = renderModal({
-      selectedMinutes: 10080,
+  describe('closing after selection', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
     });
 
-    fireEvent.press(
-      getByTestId(SwapsLimitOrderExpirationModalSelectorsIDs.CONFIRM_BUTTON),
-    );
+    afterEach(() => {
+      jest.useRealTimers();
+    });
 
-    expect(props.onConfirm).toHaveBeenCalledTimes(1);
-    expect(props.onConfirm).toHaveBeenCalledWith(10080);
+    it('closes the sheet 250ms after an option is pressed, not before', () => {
+      const { getByTestId, props } = renderModal();
+
+      fireEvent.press(
+        getByTestId(SwapsLimitOrderExpirationModalSelectorsIDs.OPTION(10080)),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(249);
+      });
+      expect(props.onClose).not.toHaveBeenCalled();
+
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+      expect(props.onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes only once when several options are pressed in quick succession', () => {
+      const { getByTestId, props } = renderModal();
+
+      fireEvent.press(
+        getByTestId(SwapsLimitOrderExpirationModalSelectorsIDs.OPTION(10080)),
+      );
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+      fireEvent.press(
+        getByTestId(SwapsLimitOrderExpirationModalSelectorsIDs.OPTION(1440)),
+      );
+      act(() => {
+        jest.advanceTimersByTime(250);
+      });
+
+      expect(props.onSelect).toHaveBeenCalledTimes(2);
+      expect(props.onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not close after unmount', () => {
+      const { getByTestId, unmount, props } = renderModal();
+
+      fireEvent.press(
+        getByTestId(SwapsLimitOrderExpirationModalSelectorsIDs.OPTION(10080)),
+      );
+      unmount();
+      act(() => {
+        jest.advanceTimersByTime(250);
+      });
+
+      expect(props.onClose).not.toHaveBeenCalled();
+    });
   });
 
   it('calls onClose when the close button is pressed', () => {
@@ -119,17 +165,6 @@ describe('SwapsLimitOrderExpirationModal', () => {
       getByTestId(SwapsLimitOrderExpirationModalSelectorsIDs.CLOSE_BUTTON),
     );
 
-    expect(props.onClose).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls onClose after confirm closes the sheet', () => {
-    const { getByTestId, props } = renderModal();
-
-    fireEvent.press(
-      getByTestId(SwapsLimitOrderExpirationModalSelectorsIDs.CONFIRM_BUTTON),
-    );
-
-    expect(props.onConfirm).toHaveBeenCalledTimes(1);
     expect(props.onClose).toHaveBeenCalledTimes(1);
   });
 });
