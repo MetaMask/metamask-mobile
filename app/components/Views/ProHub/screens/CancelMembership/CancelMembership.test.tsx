@@ -457,6 +457,20 @@ describe('CancelMembership', () => {
     expectPostCancellationReset();
   });
 
+  it('does not reset the stack again once cancellation has navigated away', async () => {
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+    await waitFor(() => expect(mockDispatch).toHaveBeenCalledTimes(1));
+
+    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+    await waitFor(() =>
+      expect(mockCancelSubscription).toHaveBeenCalledTimes(2),
+    );
+
+    expect(mockDispatch).toHaveBeenCalledTimes(1);
+  });
+
   it('shows an error and allows retry when cancellation fails', async () => {
     mockCancelSubscription
       .mockRejectedValueOnce(new Error('Request failed'))
