@@ -36,6 +36,11 @@ jest.mock('../../../../util/Logger', () => ({
 const mockUnCancelSubscription = Engine.context.SubscriptionController
   .unCancelSubscription as jest.Mock;
 
+// Date.now is stubbed to 123 in test setup. Resume compares new Date().
+const futurePeriodEnd = new Date(
+  new Date().getTime() + 24 * 60 * 60 * 1000,
+).toISOString();
+
 const subscription: Subscription = {
   id: 'money-account-plus-subscription',
   products: [
@@ -47,7 +52,7 @@ const subscription: Subscription = {
     },
   ],
   currentPeriodStart: '2026-07-20T00:00:00.000Z',
-  currentPeriodEnd: '2027-07-20T00:00:00.000Z',
+  currentPeriodEnd: futurePeriodEnd,
   status: SUBSCRIPTION_STATUSES.active,
   interval: RECURRING_INTERVALS.year,
   paymentMethod: {
@@ -117,6 +122,34 @@ describe('useResumeMembership', () => {
     });
     expect(result.current.isResuming).toBe(false);
     expect(result.current.errorMessage).toBeNull();
+  });
+
+  it('does not uncancel when the membership cannot be resumed', async () => {
+    const { result } = renderResumeHook();
+
+    await act(async () => {
+      await result.current.resumeMembership();
+    });
+
+    expect(mockUnCancelSubscription).not.toHaveBeenCalled();
+    expect(result.current.isResuming).toBe(false);
+    expect(result.current.errorMessage).toBeNull();
+  });
+
+  it('does not uncancel after the period end has passed', async () => {
+    const expiredCancellation: Subscription = {
+      ...subscription,
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: '2020-01-01T00:00:00.000Z',
+    };
+    const { result } = renderResumeHook(expiredCancellation);
+
+    await act(async () => {
+      await result.current.resumeMembership();
+    });
+
+    expect(mockUnCancelSubscription).not.toHaveBeenCalled();
+    expect(result.current.isResuming).toBe(false);
   });
 
   it('ignores a second press while resume is in flight', async () => {

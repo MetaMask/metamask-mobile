@@ -5,6 +5,7 @@ import { selectMoneyAccountPlusSubscription } from '../../../../selectors/subscr
 import { ensureError } from '../../../../util/errorUtils';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
+import { canResumeMembership } from '../ProHub.utils';
 
 export interface UseResumeMembershipResult {
   resumeMembership: () => Promise<void>;
@@ -15,8 +16,8 @@ export interface UseResumeMembershipResult {
 /**
  * Reverses a pending Money Account Plus cancellation.
  *
- * Shared by Membership and any later Pro Hub entry point. Whether the row is
- * shown is decided by `getMembershipManageAction`.
+ * Shared by Membership and any later Pro Hub entry point. The callback
+ * returns early unless `canResumeMembership` is true.
  *
  * @returns Resume callback, in-flight state, and a localized failure message.
  */
@@ -27,7 +28,11 @@ export function useResumeMembership(): UseResumeMembershipResult {
   const isResumingRef = useRef(false);
 
   const resumeMembership = useCallback(async () => {
-    if (isResumingRef.current || !subscription) {
+    if (
+      isResumingRef.current ||
+      !subscription ||
+      !canResumeMembership(subscription)
+    ) {
       return;
     }
 

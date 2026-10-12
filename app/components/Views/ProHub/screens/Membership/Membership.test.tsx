@@ -342,7 +342,10 @@ describe('Membership', () => {
     const pendingCancellation: Subscription = {
       ...subscription,
       cancelAtPeriodEnd: true,
-      currentPeriodEnd: '2027-07-20T00:00:00.000Z',
+      // Date.now is stubbed to 123 in test setup. Resume compares new Date().
+      currentPeriodEnd: new Date(
+        new Date().getTime() + 24 * 60 * 60 * 1000,
+      ).toISOString(),
     };
 
     it('shows resume and uncancels the subscription when the period end is still ahead', async () => {
