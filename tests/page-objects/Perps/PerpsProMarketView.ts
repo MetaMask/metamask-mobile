@@ -645,24 +645,25 @@ class PerpsProMarketView {
   }
 
   /**
-   * Swipe until the positions panel is on screen, then stop.
-   * A closed position unmounts that list. Treating a missing panel as a
-   * scroll failure burned the 30s close-poll on one attempt (no mark-price
-   * re-push) and cost ~2.5m on perps-position-stop-loss. The caller asserts
-   * the row. iOS reveal stays short so the poll can retry; Android keeps a
-   * longer reveal because off-screen rows are omitted from the hierarchy.
+   * Bring the positions list on screen without failing when a closed
+   * position has unmounted it. A missing panel used to fail the 30s
+   * close-poll after one 45s scroll. Once any of the panel is visible,
+   * scroll it clear of the bottom edge so Android mounts rows that were
+   * still below the fold before the caller checks that a row is gone.
    */
   private async revealPositionsPanel(): Promise<void> {
     await this.dismissOrderFormKeyboard();
     const scrollView = await this.scrollView;
     const revealMs = PlatformDetector.isAndroid() ? 20000 : 8000;
     const deadline = Date.now() + revealMs;
+    let panelVisible = false;
     while (Date.now() < deadline) {
       if (await Utilities.isElementVisible(this.positionsPanel, 500)) {
-        return;
+        panelVisible = true;
+        break;
       }
       if (Date.now() >= deadline) {
-        return;
+        break;
       }
       await Gestures.swipe(scrollView, 'up', {
         speed: 'fast',
@@ -670,6 +671,15 @@ class PerpsProMarketView {
         elemDescription: 'Swipe Pro market view toward positions panel',
       });
     }
+    if (!panelVisible) {
+      return;
+    }
+    await Gestures.scrollIntoViewFullyVisible(this.positionsPanel, {
+      direction: 'up',
+      scrollableElement: scrollView,
+      maxScrolls: 6,
+      percent: 0.7,
+    });
   }
 
   async expectPositionRowNotVisible(symbol: string): Promise<void> {
