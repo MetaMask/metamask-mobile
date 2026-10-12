@@ -19,6 +19,10 @@ import ManageProfileScreenChrome from './ManageProfileScreenChrome';
 interface ManageProfileTextEditorProps {
   title: string;
   initialValue: string;
+  onSave: (value: string) => Promise<void>;
+  isSaveDisabled?: boolean;
+  isSaving?: boolean;
+  errorMessage?: string | null;
   containerTestID: string;
   headerTestID: string;
   backTestID: string;
@@ -32,6 +36,10 @@ interface ManageProfileTextEditorProps {
 const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
   title,
   initialValue,
+  onSave,
+  isSaveDisabled = false,
+  isSaving = false,
+  errorMessage,
   containerTestID,
   headerTestID,
   backTestID,
@@ -93,14 +101,20 @@ const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
               {helperText}
             </Text>
           ) : null}
+          {errorMessage ? (
+            <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+              {errorMessage}
+            </Text>
+          ) : null}
         </Box>
         <Box twClassName="px-4 pb-8 pt-2">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
-            isDisabled
-            onPress={() => undefined}
+            isDisabled={isSaveDisabled || isSaving}
+            isLoading={isSaving}
+            onPress={() => onSave(value)}
             testID={saveTestID}
           >
             {strings('social_leaderboard.manage_profile.save')}
