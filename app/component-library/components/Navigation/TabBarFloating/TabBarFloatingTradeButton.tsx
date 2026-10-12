@@ -1,6 +1,8 @@
 import React, { useCallback, useState } from 'react';
 import type { LayoutRectangle } from 'react-native';
 import Animated, {
+  Easing,
+  ReduceMotion,
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
@@ -21,12 +23,15 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectChainId } from '../../../../selectors/networkController';
+import { selectNativeTabBarEnabled } from '../../../../selectors/featureFlagController/nativeTabBar';
 import { getDecimalChainId } from '../../../../util/networks';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import { LABEL_BY_TAB_BAR_ICON_KEY } from '../TabBar/TabBar.constants';
 import { TabBarIconKey } from '../TabBar/TabBar.types';
 
 const ROTATION_DURATION = 150;
+const ACTIVE_SCALE = 1.04;
+const ACTIVE_SCALE_DURATION = 120;
 
 export interface TabBarFloatingTradeButtonProps {
   testID?: string;
@@ -43,16 +48,25 @@ const TabBarFloatingTradeButton = ({
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const chainId = useSelector(selectChainId);
+  const isNativeTabBarEnabled = useSelector(selectNativeTabBarEnabled);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isTrayOpen, setIsTrayOpen] = useState(false);
   // The tray cuts its overlay hole around this, so it stays unset until layout.
   const [buttonLayout, setButtonLayout] = useState<LayoutRectangle>();
+  const isLifted = isTrayOpen && isNativeTabBarEnabled;
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       {
         rotateZ: withTiming(isTrayOpen ? '45deg' : '0deg', {
           duration: ROTATION_DURATION,
+        }),
+      },
+      {
+        scale: withTiming(isLifted ? ACTIVE_SCALE : 1, {
+          duration: ACTIVE_SCALE_DURATION,
+          easing: Easing.out(Easing.quad),
+          reduceMotion: ReduceMotion.System,
         }),
       },
     ],

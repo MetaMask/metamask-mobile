@@ -6,6 +6,7 @@ import {
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { markMocked } from '../mockMarker';
+import { useSocialFeedSurface } from '../SocialFeedSurface';
 import { formatPercent } from '../utils/formatters';
 
 /** At or above this win rate the tag switches to the highlighted treatment. */
@@ -21,9 +22,9 @@ export interface WinRateTagProps {
    */
   winRatePercent?: number | null;
   /**
-   * Appends the mock marker. The V1 feed invents win rates (a feed row carries
-   * no trader stats), while the leaderboard reads real ones -- so the marker is
-   * a caller's concern rather than something this tag can infer.
+   * Appends the mock marker. The percent itself is the trader's real win rate;
+   * the marker only flags a caller that invented one. It also needs the
+   * surrounding surface to opt into mocked fields, so a host page never shows it.
    */
   isMocked?: boolean;
   testID?: string;
@@ -42,6 +43,7 @@ const WinRateTag: React.FC<WinRateTagProps> = ({
   isMocked = false,
   testID,
 }) => {
+  const { showMockedFields } = useSocialFeedSurface();
   if (winRatePercent == null) {
     return null;
   }
@@ -61,7 +63,7 @@ const WinRateTag: React.FC<WinRateTagProps> = ({
       twClassName="shrink-0"
       testID={testID}
     >
-      {isMocked ? markMocked(label) : label}
+      {isMocked && showMockedFields ? markMocked(label) : label}
     </Tag>
   );
 };

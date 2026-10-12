@@ -55,6 +55,78 @@ export interface ClobMarketInfo {
   mos?: number;
 }
 
+/** Polymarket Data API v2 envelope: every response wraps its payload in `data`; paginated routes add an opaque cursor. */
+export interface PolymarketDataApiV2Response<Row> {
+  data: Row[] | null;
+  pagination?: {
+    next_cursor?: string | null;
+  } | null;
+}
+
+/** Raw Polymarket Data API v2 position row (`GET /v2/positions`). */
+export interface PolymarketPositionV2 {
+  condition_id: string;
+  event_id: string;
+  icon: string;
+  title: string;
+  slug: string;
+  event_slug?: string;
+  /** Current holding size for the outcome (v1 `size`). */
+  current_size: number;
+  outcome: string;
+  outcome_index: number;
+  /** Mark-to-market P&L for the row (`current_value − entry_cost_usdc`). */
+  unrealized_pnl?: number | null;
+  /** Current outcome price (v1 `curPrice`). */
+  current_price: number;
+  current_value: number;
+  /** Cost basis in USDC (v1 `initialValue`). */
+  entry_cost_usdc: number;
+  avg_price: number;
+  redeemable: boolean;
+  negative_risk: boolean;
+  realized_pnl: number;
+  end_date: string;
+  /** Outcome token id (v1 `asset`). Not an indicator of market protocol. */
+  token_id: string;
+}
+
+/** Activity side as returned by the Data API v2 (empty string when absent). */
+type PolymarketActivityV2Side = 'BUY' | 'SELL' | '';
+
+/** Raw Polymarket Data API v2 activity row (`GET /v2/activity`). */
+export interface PolymarketActivityV2 {
+  type: string;
+  side: PolymarketActivityV2Side;
+  size?: number | string | null;
+  price: number;
+  usdc_size: number;
+  timestamp: number;
+  transaction_hash: string;
+  condition_id: string;
+  outcome_index: number;
+  title: string;
+  outcome?: string;
+  icon: string;
+  slug?: string;
+  event_slug?: string;
+  token_id?: string;
+}
+
+/** Raw Polymarket Data API v2 user-PnL series (`GET /v2/user-pnl`). */
+export interface PolymarketUserPnlV2Response {
+  data: {
+    proxy_wallet: string;
+    interval: string;
+    fidelity: string;
+    points: {
+      t?: number;
+      unrealized_pnl?: number | null;
+      [key: string]: unknown;
+    }[];
+  } | null;
+}
+
 // Polymarket API response types
 export interface PolymarketApiMarket {
   conditionId: string;
@@ -79,6 +151,8 @@ export interface PolymarketApiMarket {
   orderPriceMinTickSize: number | null;
   events?: PolymarketApiEvent[];
   umaResolutionStatus: string;
+  /** Gamma protocol version. `v2` is Protocol V2. A missing value is CTF. */
+  version?: string;
   line?: number;
   cryptoMarketConfig?: {
     twapEnabled?: boolean;

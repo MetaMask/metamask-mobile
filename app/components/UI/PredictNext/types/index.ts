@@ -190,6 +190,20 @@ export interface PredictFeed {
   nextCursor?: string;
 }
 
+// A type alias so the params satisfy Json as part of a query key.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type FetchSearchParams = {
+  /** Free text; every whitespace-separated term must match. */
+  q: string;
+  limit?: number;
+};
+
+/** Ranked, unpaginated Events matching a text query. */
+export interface PredictSearchResults {
+  venueId: PredictVenueId;
+  events: readonly PredictEvent[];
+}
+
 export interface PredictVenueStatus {
   venueId: PredictVenueId;
   status: 'available' | 'degraded' | 'unavailable';

@@ -54,14 +54,10 @@ import {
   getChartLimitOrderLines,
 } from '../../../utils/chartOverlayLines';
 import PerpsAdvancedChart from '../../../components/PerpsAdvancedChart/PerpsAdvancedChart';
-import {
-  CandlePeriodSelector,
-  type CandlePeriodOption,
-} from '../../../../Charts/CandlePeriodSelector';
+import { CandlePeriodSelector } from '../../../../Charts/CandlePeriodSelector';
 import PerpsChartFullscreenModal from '../../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import PerpsOHLCVBar from '../../../components/PerpsOHLCVBar';
 import PerpsPriceDeviationWarning from '../../../components/PerpsPriceDeviationWarning';
-import PerpsServiceInterruptionBanner from '../../../components/PerpsServiceInterruptionBanner';
 import TradingViewChart, {
   type OhlcData,
   type TradingViewChartRef,
@@ -79,14 +75,6 @@ const PRO_CHART_BUTTON = {
   COLLAPSE_CHART: 'collapse_chart',
   EXPAND_CHART: 'expand_chart',
 } as const;
-const PRO_CANDLE_PERIODS = [
-  { label: '1m', value: CandlePeriod.OneMinute },
-  { label: '5m', value: CandlePeriod.FiveMinutes },
-  { label: '15m', value: CandlePeriod.FifteenMinutes },
-  { label: '1h', value: CandlePeriod.OneHour },
-  { label: '1d', value: CandlePeriod.OneDay },
-] as const satisfies readonly CandlePeriodOption[];
-
 interface PerpsProChartPanelProps {
   symbol: string;
   selectedCandlePeriod: CandlePeriod;
@@ -479,7 +467,6 @@ const PerpsProChartPanel = ({
                   selectedPeriod={selectedCandlePeriod}
                   onPeriodChange={onCandlePeriodChange}
                   onMorePress={onMorePress}
-                  visiblePeriods={PRO_CANDLE_PERIODS}
                   twClassName="flex-1 py-0"
                   groupTwClassName="gap-2"
                   filterVariant={FilterButtonVariant.Secondary}
@@ -530,11 +517,6 @@ const PerpsProChartPanel = ({
           testID={PerpsProMarketViewSelectorsIDs.CHART_PRICE_DEVIATION_WARNING}
         />
       ) : null}
-      <PerpsServiceInterruptionBanner
-        testID={
-          PerpsProMarketViewSelectorsIDs.CHART_SERVICE_INTERRUPTION_BANNER
-        }
-      />
       {isMarketContextReady && (
         <PerpsChartFullscreenModal
           isVisible={isFullscreenChartVisible}

@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { useTheme } from '../../../../../util/theme';
 import { useTokensSlice } from './slices/useTokensSlice';
 import { useMoneySlice } from './slices/useMoneySlice';
 import { usePerpsSlice } from './slices/usePerpsSlice';
@@ -8,7 +7,6 @@ import { useDefiSlice } from './slices/useDefiSlice';
 import { useFiatNormalizer } from './useFiatNormalizer';
 import { SLICE_ORDER } from '../constants';
 import { computeAggregateHero24hDelta } from '../utils/aggregateHero24hDelta';
-import { getBalanceBreakdownSliceColors } from '../utils/getBalanceBreakdownSliceColors';
 import type {
   BalanceSlice,
   BreakdownData,
@@ -17,7 +15,7 @@ import type {
   SliceKey,
 } from '../types';
 
-function computePercentages(slices: Record<SliceKey, SliceData>): {
+function computePercentages(slices: Record<SliceKey, BalanceSlice>): {
   slices: Record<SliceKey, SliceData>;
   totalFiat: number;
 } {
@@ -32,7 +30,7 @@ function computePercentages(slices: Record<SliceKey, SliceData>): {
     0,
   );
 
-  const updated = { ...slices };
+  const updated = {} as Record<SliceKey, SliceData>;
   for (const key of SLICE_ORDER) {
     updated[key] = {
       ...slices[key],
@@ -79,7 +77,6 @@ function aggregateStatus(
 }
 
 export function useBalanceBreakdown(): BreakdownData {
-  const { themeAppearance } = useTheme();
   const { toUserCurrency, userCurrency } = useFiatNormalizer();
   const tokensSlice = useTokensSlice();
   const moneySlice = useMoneySlice(toUserCurrency);
@@ -98,29 +95,9 @@ export function useBalanceBreakdown(): BreakdownData {
     [tokensSlice, moneySlice, perpsSlice, predictSlice, defiSlice],
   );
 
-  const sliceStrokeColors = useMemo(
-    () => getBalanceBreakdownSliceColors(themeAppearance),
-    [themeAppearance],
-  );
-
-  const slicesWithThemeColors: Record<SliceKey, SliceData> = useMemo(
-    () =>
-      Object.fromEntries(
-        SLICE_ORDER.map((key) => [
-          key,
-          {
-            ...slicesRaw[key],
-            color: sliceStrokeColors[key],
-            percentOfTotal: 0,
-          },
-        ]),
-      ) as Record<SliceKey, SliceData>,
-    [slicesRaw, sliceStrokeColors],
-  );
-
   const { slices, totalFiat } = useMemo(
-    () => computePercentages(slicesWithThemeColors),
-    [slicesWithThemeColors],
+    () => computePercentages(slicesRaw),
+    [slicesRaw],
   );
 
   const heroStatus = useMemo(

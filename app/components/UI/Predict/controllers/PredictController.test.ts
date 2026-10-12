@@ -5738,11 +5738,17 @@ describe('PredictController', () => {
 
     it('fetches activity successfully with default address', async () => {
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.getActivity.mockResolvedValue(mockActivity);
+        mockPolymarketProvider.getActivity.mockResolvedValue({
+          activities: mockActivity,
+          nextCursor: undefined,
+        });
 
         const result = await controller.getActivity({});
 
-        expect(result).toEqual(mockActivity);
+        expect(result).toEqual({
+          activities: mockActivity,
+          nextCursor: undefined,
+        });
         expect(mockPolymarketProvider.getActivity).toHaveBeenCalledWith({
           address: '0x1234567890123456789012345678901234567890',
         });
@@ -5753,14 +5759,20 @@ describe('PredictController', () => {
 
     it('fetches activity successfully with custom address', async () => {
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.getActivity.mockResolvedValue(mockActivity);
+        mockPolymarketProvider.getActivity.mockResolvedValue({
+          activities: mockActivity,
+          nextCursor: undefined,
+        });
         const customAddress = '0xCustomAddress';
 
         const result = await controller.getActivity({
           address: customAddress,
         });
 
-        expect(result).toEqual(mockActivity);
+        expect(result).toEqual({
+          activities: mockActivity,
+          nextCursor: undefined,
+        });
         expect(mockPolymarketProvider.getActivity).toHaveBeenCalledWith({
           address: customAddress,
         });
@@ -5769,23 +5781,35 @@ describe('PredictController', () => {
 
     it('fetches activity with specific provider', async () => {
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.getActivity.mockResolvedValue(mockActivity);
+        mockPolymarketProvider.getActivity.mockResolvedValue({
+          activities: mockActivity,
+          nextCursor: undefined,
+        });
 
         const result = await controller.getActivity({});
 
-        expect(result).toEqual(mockActivity);
+        expect(result).toEqual({
+          activities: mockActivity,
+          nextCursor: undefined,
+        });
         expect(mockPolymarketProvider.getActivity).toHaveBeenCalled();
       });
     });
 
     it('filters out undefined activity entries', async () => {
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.getActivity.mockResolvedValue(mockActivity);
+        mockPolymarketProvider.getActivity.mockResolvedValue({
+          activities: mockActivity,
+          nextCursor: undefined,
+        });
 
         const result = await controller.getActivity({});
 
-        expect(result).toEqual(mockActivity);
-        expect(result.length).toBe(2);
+        expect(result).toEqual({
+          activities: mockActivity,
+          nextCursor: undefined,
+        });
+        expect(result.activities.length).toBe(2);
       });
     });
 
@@ -5819,11 +5843,14 @@ describe('PredictController', () => {
 
     it('returns empty array when no activity found', async () => {
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.getActivity.mockResolvedValue([]);
+        mockPolymarketProvider.getActivity.mockResolvedValue({
+          activities: [],
+          nextCursor: undefined,
+        });
 
         const result = await controller.getActivity({});
 
-        expect(result).toEqual([]);
+        expect(result).toEqual({ activities: [], nextCursor: undefined });
         expect(controller.state.lastError).toBeNull();
       });
     });

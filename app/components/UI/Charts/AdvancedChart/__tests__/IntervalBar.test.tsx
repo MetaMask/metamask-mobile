@@ -49,6 +49,6 @@ describe('IntervalBar', () => {
 
     fireEvent.press(getByText('1h'));
 
-    expect(onIntervalSelect).toHaveBeenCalledWith('1H');
+    expect(onIntervalSelect).toHaveBeenCalledWith('1h');
   });
 });

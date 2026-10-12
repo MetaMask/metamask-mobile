@@ -19,6 +19,7 @@ import { Pressable } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import TraderAvatar from './TraderAvatar';
 import { MOCK_MARKER } from '../mockMarker';
+import { useSocialFeedSurface } from '../SocialFeedSurface';
 import type { SocialV1FeedAuthor } from '../types';
 import RotatingTraderStat from './RotatingTraderStat';
 import {
@@ -68,6 +69,7 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
   twClassName,
 }) => {
   const tw = useTailwind();
+  const { showMockedFields } = useSocialFeedSurface();
   const statLabels = useMemo(() => buildTraderStatLabels(author), [author]);
   const cohortEmoji = traderCohortEmoji(resolveTraderCohort(author.pnl30d));
 
@@ -108,24 +110,29 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
           >
             {handle}
           </Text>
-          {/* Nothing reports verification yet, so the badge is invented
-              and carries the mock marker every fabricated value does. */}
-          <Icon
-            name={IconName.VerifiedFilled}
-            size={IconSize.Sm}
-            twClassName="text-info-default shrink-0"
-            testID={
-              testIDs?.verifiedBadge ??
-              SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE
-            }
-          />
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextMuted}
-            twClassName="shrink-0"
-          >
-            {MOCK_MARKER}
-          </Text>
+          {/* Nothing reports verification yet, so the badge is invented.
+              Social V1 keeps it, marked, so the gap stays visible; other
+              surfaces omit it until a real signal exists. */}
+          {showMockedFields ? (
+            <>
+              <Icon
+                name={IconName.VerifiedFilled}
+                size={IconSize.Sm}
+                twClassName="text-info-default shrink-0"
+                testID={
+                  testIDs?.verifiedBadge ??
+                  SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE
+                }
+              />
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextMuted}
+                twClassName="shrink-0"
+              >
+                {MOCK_MARKER}
+              </Text>
+            </>
+          ) : null}
           {cohortEmoji ? (
             <Text
               variant={TextVariant.BodySm}

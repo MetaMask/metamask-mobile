@@ -25,11 +25,9 @@ import Animated, {
 import PositionTokenAvatar from '../../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import { ExplorePill } from '../../../../../UI/Trending/components/ExplorePill';
 import { SectionPillsSkeleton } from '../../../../../UI/Trending/components/SectionPillsSkeleton';
-import type { TokenFeedTarget } from '../hooks/tokenFeedQueries';
 import { useSocialV1HotTokens } from '../hooks/useSocialV1HotTokens';
-import { useSocialV1TokenFeed } from '../hooks/useSocialV1TokenFeed';
 import type { SocialV1FeedPost } from '../../../../../UI/SocialFeed/types';
-import type { SocialV1HotToken, SocialV1TokenFeedState } from '../types';
+import type { SocialV1HotToken } from '../types';
 import {
   getSocialV1HotTokenCheckTestId,
   getSocialV1HotTokenChipTestId,
@@ -67,11 +65,6 @@ export interface HotTokensCarouselProps {
   selectedTokenId?: string | null;
   /** Filters the feed to this asset. Pressing the selected chip clears it. */
   onTokenPress?: (token: SocialV1HotToken) => void;
-  /**
-   * Token-feed page for the selected chip that has a chain and contract.
-   * `null` when nothing is selected or the chip cannot call the token route.
-   */
-  onTokenFeedChange?: (state: SocialV1TokenFeedState | null) => void;
 }
 
 const HotTokenChip: React.FC<{
@@ -87,7 +80,8 @@ const HotTokenChip: React.FC<{
   <Box twClassName="shrink-0">
     <ExplorePill
       testID={testID}
-      isSelected={isSelected}
+      accessibilityState={{ selected: isSelected }}
+      twClassName={isSelected ? 'border-default' : undefined}
       leading={
         <PositionTokenAvatar
           position={token.avatar}
@@ -160,7 +154,6 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   isLoading: feedIsLoading = false,
   selectedTokenId = null,
   onTokenPress,
-  onTokenFeedChange,
 }) => {
   const { tokens, isLoading } = useSocialV1HotTokens(
     posts,
@@ -171,20 +164,19 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     () => tokens.find((token) => token.id === selectedTokenId) ?? null,
     [selectedTokenId, tokens],
   );
-  // The rail is ranked from the unfiltered feed. Remember the selected
-  // contract chip so a refetch that drops that asset does not cancel its feed.
-  const heldContractTokenRef = useRef<SocialV1HotToken | null>(null);
+  // The rail is ranked from the unfiltered feed. Remember the selected chip,
+  // including a perp with no contract, so a refetch that drops that asset
+  // still leaves a chip the user can tap to clear the filter.
+  const heldTokenRef = useRef<SocialV1HotToken | null>(null);
   if (!selectedTokenId) {
-    heldContractTokenRef.current = null;
-  } else if (rankedToken?.chain && rankedToken.contractAddress) {
-    heldContractTokenRef.current = rankedToken;
-  } else if (heldContractTokenRef.current?.id !== selectedTokenId) {
-    heldContractTokenRef.current = null;
+    heldTokenRef.current = null;
+  } else if (rankedToken) {
+    heldTokenRef.current = rankedToken;
   }
   const selectedToken =
     rankedToken ??
-    (heldContractTokenRef.current?.id === selectedTokenId
-      ? heldContractTokenRef.current
+    (heldTokenRef.current?.id === selectedTokenId
+      ? heldTokenRef.current
       : null);
   // The selected chip leads the rail. Frequency decides the order until a
   // filter is on, and then the asset being filtered on has to be the one the
@@ -199,47 +191,6 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
         : tokens,
     [selectedToken, tokens],
   );
-  const tokenFeedTarget = useMemo((): TokenFeedTarget | null => {
-    if (!selectedToken?.chain || !selectedToken.contractAddress) {
-      return null;
-    }
-    return {
-      chain: selectedToken.chain,
-      contractAddress: selectedToken.contractAddress,
-    };
-  }, [selectedToken]);
-  const tokenFeed = useSocialV1TokenFeed(tokenFeedTarget);
-  const onTokenFeedChangeRef = useRef(onTokenFeedChange);
-  onTokenFeedChangeRef.current = onTokenFeedChange;
-
-  useEffect(() => {
-    const report = onTokenFeedChangeRef.current;
-    if (!report) {
-      return;
-    }
-    if (!tokenFeedTarget) {
-      report(null);
-      return;
-    }
-    report({
-      posts: tokenFeed.posts,
-      isLoading: tokenFeed.isLoading,
-      isFetchingNextPage: tokenFeed.isFetchingNextPage,
-      hasNextPage: tokenFeed.hasNextPage,
-      loadMore: tokenFeed.loadMore,
-      error: tokenFeed.error,
-      refresh: tokenFeed.refresh,
-    });
-  }, [
-    tokenFeed.error,
-    tokenFeed.hasNextPage,
-    tokenFeed.isFetchingNextPage,
-    tokenFeed.isLoading,
-    tokenFeed.loadMore,
-    tokenFeed.posts,
-    tokenFeed.refresh,
-    tokenFeedTarget,
-  ]);
   const offset = useSharedValue(0);
   const dragStartOffset = useSharedValue(0);
   const paused = useSharedValue(false);

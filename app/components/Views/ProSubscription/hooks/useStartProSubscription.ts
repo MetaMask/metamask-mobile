@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   PRODUCT_TYPES,
@@ -12,8 +11,6 @@ import {
 } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import Routes from '../../../../constants/navigation/Routes';
-import type { AppStackNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { strings } from '../../../../../locales/i18n';
@@ -104,13 +101,13 @@ export interface UseStartProSubscriptionResult {
  * responsible for consent; this hook still balance-checks first so the
  * insufficient-balance error mapping stays intact.
  *
- * On success, replaces the current screen with Pro Hub. The delegation start
- * refreshes subscriptions before it resolves, so the hub sees the subscriber.
+ * On success, returns to the caller. Benefits shows the confirmation screen,
+ * and that screen opens Pro Hub. The delegation start refreshes subscriptions
+ * before it resolves, so later screens see the subscriber.
  *
  * @returns Subscription start callback and its request state.
  */
 export function useStartProSubscription(): UseStartProSubscriptionResult {
-  const navigation = useNavigation<AppStackNavigationProp>();
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -164,10 +161,6 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
           // Mobile does not host the subscription_delegation confirmation UI yet.
           skipApproval: true,
         });
-
-        if (isMountedRef.current) {
-          navigation.replace(Routes.PRO_HUB.ROOT);
-        }
       } catch (error) {
         const loggedError =
           error instanceof Error ? error : new Error(String(error));
@@ -196,7 +189,7 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
         }
       }
     },
-    [moneyAccount?.address, navigation, vaultConfig?.chainId],
+    [moneyAccount?.address, vaultConfig?.chainId],
   );
 
   return { startSubscription, isSubmitting, errorMessage };

@@ -305,22 +305,17 @@ export const HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING: ABTestAnaly
 // ─── Homepage balance breakdown ──────────────────────────────────────────────
 
 export const HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY =
-  'homeTMCU1209AbtestHomepageBalanceBreakdown';
+  'homeTMCU1209AbtestHomepageBalanceBreakdownV2';
 export const HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT =
   'homescreen_balance_breakdown';
 
 export enum HomepageBalanceBreakdownVariant {
   Control = 'control',
-  Icons = 'icons',
-  IconsWithArrows = 'iconsWithArrows',
-  Allocation = 'allocation',
+  Treatment = 'treatment',
 }
 
-export type HomepageBalanceBreakdownLayout = 'icons' | 'allocation';
-
 interface HomepageBalanceBreakdownVariantConfig {
-  layout: HomepageBalanceBreakdownLayout | null;
-  showRowArrows: boolean;
+  showBalanceBreakdown: boolean;
 }
 
 export const HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS: Record<
@@ -328,30 +323,18 @@ export const HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS: Record<
   HomepageBalanceBreakdownVariantConfig
 > = {
   [HomepageBalanceBreakdownVariant.Control]: {
-    layout: null,
-    showRowArrows: false,
+    showBalanceBreakdown: false,
   },
-  [HomepageBalanceBreakdownVariant.Icons]: {
-    layout: 'icons',
-    showRowArrows: false,
-  },
-  [HomepageBalanceBreakdownVariant.IconsWithArrows]: {
-    layout: 'icons',
-    showRowArrows: true,
-  },
-  [HomepageBalanceBreakdownVariant.Allocation]: {
-    layout: 'allocation',
-    showRowArrows: false,
+  [HomepageBalanceBreakdownVariant.Treatment]: {
+    showBalanceBreakdown: true,
   },
 };
 
 export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS = {
-  experimentName: 'Homepage balance breakdown',
+  experimentName: 'Homepage balance breakdown V2',
   variationNames: {
     control: 'Current homepage without balance breakdown',
-    icons: 'Primitive breakdown with icons',
-    iconsWithArrows: 'Primitive breakdown with icons and row arrows',
-    allocation: 'Primitive allocation breakdown',
+    treatment: 'Iconless balance breakdown',
   },
 } as const;
 
