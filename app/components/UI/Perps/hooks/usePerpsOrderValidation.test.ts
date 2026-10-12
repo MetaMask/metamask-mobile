@@ -45,6 +45,8 @@ jest.mock('../../../../../locales/i18n', () => ({
         'Trigger price must be higher than mid price',
       'perps.order.validation.trigger_must_be_below_mid':
         'Trigger price must be lower than mid price',
+      'perps.order.validation.lighter_limit_tpsl_unsupported':
+        "Take profit and stop loss can't both be set on a limit order for this provider yet",
     };
     return translations[key] || key;
   }),
@@ -474,6 +476,106 @@ describe('usePerpsOrderValidation', () => {
 
       expect(result.current.isValid).toBe(true);
       expect(result.current.errors).toEqual([]);
+    });
+  });
+
+  describe('Lighter limit TP/SL gate', () => {
+    const lighterTpSlError =
+      "Take profit and stop loss can't both be set on a limit order for this provider yet";
+
+    it('blocks a Lighter limit order with both TP and SL attached', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          orderForm: {
+            ...defaultOrderForm,
+            type: 'limit',
+            limitPrice: '49500',
+            takeProfitPrice: '51000',
+            stopLossPrice: '48000',
+          },
+          providerId: 'lighter',
+        }),
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.isValid).toBe(false);
+      expect(result.current.errors).toContain(lighterTpSlError);
+    });
+
+    it('allows a Lighter limit order with only a take profit attached', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          orderForm: {
+            ...defaultOrderForm,
+            type: 'limit',
+            limitPrice: '49500',
+            takeProfitPrice: '51000',
+          },
+          providerId: 'lighter',
+        }),
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.errors).not.toContain(lighterTpSlError);
+    });
+
+    it('allows a Lighter market order with both TP and SL attached', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          orderForm: {
+            ...defaultOrderForm,
+            type: 'market',
+            takeProfitPrice: '51000',
+            stopLossPrice: '48000',
+          },
+          providerId: 'lighter',
+        }),
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.errors).not.toContain(lighterTpSlError);
+    });
+
+    it('allows a Hyperliquid limit order with both TP and SL attached', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          orderForm: {
+            ...defaultOrderForm,
+            type: 'limit',
+            limitPrice: '49500',
+            takeProfitPrice: '51000',
+            stopLossPrice: '48000',
+          },
+          providerId: 'hyperliquid',
+        }),
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.errors).not.toContain(lighterTpSlError);
     });
   });
 

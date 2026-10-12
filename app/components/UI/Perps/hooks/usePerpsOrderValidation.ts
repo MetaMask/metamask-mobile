@@ -103,7 +103,13 @@ const INSUFFICIENT_BALANCE_PROTOCOL_ERRORS = new Set<string>([
 
 type OrderFormValidationData = Pick<
   OrderFormState,
-  'asset' | 'direction' | 'leverage' | 'limitPrice' | 'type'
+  | 'asset'
+  | 'direction'
+  | 'leverage'
+  | 'limitPrice'
+  | 'type'
+  | 'takeProfitPrice'
+  | 'stopLossPrice'
 >;
 
 interface BuildOrderParamsInput {
@@ -353,6 +359,24 @@ const getProtocolValidationErrors = ({
   return { errors, insufficientBalanceErrors };
 };
 
+/**
+ * Mobile's Lighter signer only supports two-order groups, but a Lighter limit
+ * order with both TP and SL set signs as a group of three (entry + TP + SL).
+ */
+const getLighterLimitTpSlErrors = ({
+  providerId,
+  orderForm,
+}: {
+  providerId?: PerpsProviderType;
+  orderForm: OrderFormValidationData;
+}): string[] =>
+  providerId === 'lighter' &&
+  orderForm.type === 'limit' &&
+  orderForm.takeProfitPrice &&
+  orderForm.stopLossPrice
+    ? [strings('perps.order.validation.lighter_limit_tpsl_unsupported')]
+    : EMPTY_ERRORS;
+
 const getValidationWarnings = (leverage: number): string[] => {
   if (leverage <= VALIDATION_THRESHOLDS.HighLeverageWarning) {
     return EMPTY_WARNINGS;
@@ -442,6 +466,8 @@ export function usePerpsOrderValidation(
       leverage: orderForm.leverage,
       limitPrice: orderForm.limitPrice,
       type: orderForm.type,
+      takeProfitPrice: orderForm.takeProfitPrice,
+      stopLossPrice: orderForm.stopLossPrice,
     }),
     [
       orderForm.asset,
@@ -449,6 +475,8 @@ export function usePerpsOrderValidation(
       orderForm.leverage,
       orderForm.limitPrice,
       orderForm.type,
+      orderForm.takeProfitPrice,
+      orderForm.stopLossPrice,
     ],
   );
 
@@ -507,7 +535,18 @@ export function usePerpsOrderValidation(
       spendableBalance,
     ],
   );
-  const localErrors = immediateValidation.errors;
+  const lighterLimitTpSlErrors = useMemo(
+    () =>
+      getLighterLimitTpSlErrors({
+        providerId,
+        orderForm: orderFormValidationData,
+      }),
+    [providerId, orderFormValidationData],
+  );
+  const localErrors = useMemo(
+    () => [...immediateValidation.errors, ...lighterLimitTpSlErrors],
+    [immediateValidation.errors, lighterLimitTpSlErrors],
+  );
   const localInsufficientBalanceErrors =
     immediateValidation.insufficientBalanceErrors;
 
