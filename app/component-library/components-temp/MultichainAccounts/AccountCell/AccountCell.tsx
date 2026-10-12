@@ -83,8 +83,8 @@ const AccountBalanceDisplay = ({
   let totalBalance: number | undefined = tokenBalance;
   if (accountListBalance === null) {
     totalBalance = undefined;
-  } else if (accountListBalance) {
-    totalBalance = accountListBalance.value;
+  } else if (accountListBalance !== undefined) {
+    totalBalance = accountListBalance;
   }
   const displayBalance = useMemo(() => {
     if (totalBalance == null || !userCurrency) {

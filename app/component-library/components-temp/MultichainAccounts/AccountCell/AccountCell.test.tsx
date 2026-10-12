@@ -17,8 +17,7 @@ import {
 import { AccountCellIds } from './AccountCell.testIds';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { AvatarAccountType } from '../avatarAccountVariant';
-import { AccountListBalanceContext } from '../../../../components/hooks/AccountListBalanceProviders';
-import type { AccountListBalance } from '../../../../components/hooks/useNonTokenBalance';
+import { AccountListBalanceContext } from '../../../../components/hooks/AccountListBalanceContext';
 
 // Configurable mock balance for selector
 const mockBalance: { value: number; currency: string } = {
@@ -75,7 +74,7 @@ const renderAccountCell = (
     onSelectAccount?: () => void;
     privacyMode?: boolean;
     showBalance?: boolean;
-    accountListBalance?: AccountListBalance | null;
+    accountListBalance?: number | null;
   } = {},
 ) => {
   const { privacyMode = false, accountListBalance, ...componentProps } = props;
@@ -161,7 +160,7 @@ describe('AccountCell', () => {
     mockBalance.value = 100;
 
     const { getByText } = renderAccountCell({
-      accountListBalance: { mode: 'total', value: 900 },
+      accountListBalance: 900,
     });
 
     expect(getByText('$900.00')).toBeTruthy();
@@ -171,7 +170,7 @@ describe('AccountCell', () => {
     mockBalance.value = 100;
 
     const { getByText, queryByText } = renderAccountCell({
-      accountListBalance: { mode: 'total', value: 900 },
+      accountListBalance: 900,
     });
 
     expect(getByText('$900.00')).toBeTruthy();

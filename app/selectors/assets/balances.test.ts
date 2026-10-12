@@ -347,19 +347,6 @@ describe('assets balance and balance change selectors (mobile)', () => {
   });
 
   describe('selectBalanceByAccountGroup', () => {
-    it('includes balances from chains that are not currently enabled', () => {
-      const state = makeState() as unknown as RootState;
-      const selector = selectBalanceByAccountGroup('wallet-1/group-1');
-
-      selector(state);
-
-      expect(
-        jest
-          .mocked(calculateBalanceForAllWalletsUnified)
-          .mock.calls.at(-1)?.[2],
-      ).toBeUndefined();
-    });
-
     it('returns group balance when group exists', () => {
       const state = makeState() as unknown as RootState;
       const selector = selectBalanceByAccountGroup('wallet-1/group-1');

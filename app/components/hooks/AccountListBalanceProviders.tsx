@@ -13,8 +13,6 @@ interface AccountListBalanceProvidersProps {
   children: React.ReactNode;
 }
 
-export { AccountListBalanceContext };
-
 const AccountListBalanceContent = ({
   children,
 }: AccountListBalanceProvidersProps) => {

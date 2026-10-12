@@ -46,7 +46,7 @@ const getBalance = ({
 
 describe('getAccountListBalance', () => {
   it('uses the homepage aggregate as the selected row total', () => {
-    expect(getBalance()).toEqual({ mode: 'total', value: 1_000 });
+    expect(getBalance()).toBe(1_000);
   });
 
   it.each([
@@ -69,10 +69,7 @@ describe('getAccountListBalance', () => {
         selectedAccountGroupId: 'other',
         accountGroupId: 'previously-selected',
       }),
-    ).toEqual({
-      mode: 'total',
-      value: 900,
-    });
+    ).toBe(900);
   });
 });
 
@@ -139,14 +136,8 @@ describe('useAccountListBalance', () => {
     });
     rerender(undefined);
 
-    expect(result.current('group-main')).toEqual({
-      mode: 'total',
-      value: 1_088.33,
-    });
-    expect(result.current('group-other')).toEqual({
-      mode: 'total',
-      value: 50,
-    });
+    expect(result.current('group-main')).toBe(1_088.33);
+    expect(result.current('group-other')).toBe(50);
     expect(result.current('group-never-selected')).toBeNull();
   });
 });

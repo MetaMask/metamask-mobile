@@ -11,14 +11,9 @@ import type { HeroData } from '../Views/Homepage/BalanceBreakdown/types';
 // an incomplete token-only value after switching accounts.
 const accountBalanceCache = new Map<string, number>();
 
-export interface AccountListBalance {
-  mode: 'total';
-  value: number;
-}
-
 export type AccountListBalanceGetter = (
   accountGroupId: string,
-) => AccountListBalance | null;
+) => number | null;
 
 export function getAccountListBalance({
   hero,
@@ -30,7 +25,7 @@ export function getAccountListBalance({
   knownAccountBalance?: number;
   selectedAccountGroupId?: string;
   accountGroupId: string;
-}): AccountListBalance | null {
+}): number | null {
   const isSelected = selectedAccountGroupId === accountGroupId;
 
   if (isSelected) {
@@ -42,14 +37,14 @@ export function getAccountListBalance({
       return null;
     }
 
-    return { mode: 'total', value: hero.totalFiat };
+    return hero.totalFiat;
   }
 
   if (knownAccountBalance === undefined) {
     return null;
   }
 
-  return { mode: 'total', value: knownAccountBalance };
+  return knownAccountBalance;
 }
 
 export function useAccountListBalance(): AccountListBalanceGetter {

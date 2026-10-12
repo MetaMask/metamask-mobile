@@ -1,9 +1,8 @@
 import React, { useContext } from 'react';
 import { Text } from 'react-native';
 import { render } from '@testing-library/react-native';
-import AccountListBalanceProviders, {
-  AccountListBalanceContext,
-} from './AccountListBalanceProviders';
+import AccountListBalanceProviders from './AccountListBalanceProviders';
+import { AccountListBalanceContext } from './AccountListBalanceContext';
 import { useABTest } from '../../hooks/useABTest';
 import { useAccountListBalance } from './useNonTokenBalance';
 
@@ -36,16 +35,13 @@ const BalanceConsumer = () => {
   const getAccountListBalance = useContext(AccountListBalanceContext);
   const balance = getAccountListBalance?.('group');
 
-  return <Text>{balance ? balance.value : 'disabled'}</Text>;
+  return <Text>{balance ?? 'disabled'}</Text>;
 };
 
 describe('AccountListBalanceProviders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAccountListBalance.mockReturnValue(() => ({
-      mode: 'total',
-      value: 123,
-    }));
+    mockUseAccountListBalance.mockReturnValue(() => 123);
   });
 
   it('does not provide account-list balance aggregation without an active assignment', () => {
@@ -94,10 +90,7 @@ describe('AccountListBalanceProviders', () => {
       </AccountListBalanceProviders>,
     );
 
-    mockUseAccountListBalance.mockReturnValue(() => ({
-      mode: 'total',
-      value: 456,
-    }));
+    mockUseAccountListBalance.mockReturnValue(() => 456);
     view.rerender(
       <AccountListBalanceProviders>
         <BalanceConsumer />
