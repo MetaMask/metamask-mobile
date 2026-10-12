@@ -635,6 +635,7 @@ jest.mock(
 let mockPerpsAdvancedChartEnabled = false;
 let mockPaymentOverride: PaymentOverride | undefined;
 let mockTradeWithAnyTokenEnabled = false;
+let mockPerpsSizeDenomination: 'usd' | 'asset' = 'usd';
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
 jest.mock('react-redux', () => ({
@@ -653,7 +654,7 @@ jest.mock('react-redux', () => ({
       return mockTradeWithAnyTokenEnabled;
     }
     if (selector === selectPerpsSizeDenomination) {
-      return 'usd';
+      return mockPerpsSizeDenomination;
     }
     if (
       selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
@@ -1310,6 +1311,7 @@ function applyDefaultHookMocks() {
 
 describe('PerpsOrderView', () => {
   beforeEach(() => {
+    mockPerpsSizeDenomination = 'usd';
     jest.useRealTimers();
     jest.clearAllMocks();
     applyDefaultHookMocks();
@@ -6848,7 +6850,7 @@ describe('PerpsOrderView', () => {
 
     it('emits PERPS_TRANSACTION_CONSIDERED once the filled order form settles (1s debounce)', () => {
       jest.useFakeTimers();
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      const view = render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       // Nothing before the 1s debounce window elapses.
       act(() => {
@@ -6882,6 +6884,16 @@ describe('PerpsOrderView', () => {
           [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
         }),
       );
+
+      mockPerpsSizeDenomination = 'asset';
+      act(() => {
+        view.rerender(<PerpsOrderView />);
+        jest.advanceTimersByTime(1000);
+      });
+
+      expect(
+        eventsOf(MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED),
+      ).toHaveLength(1);
 
       jest.useRealTimers();
     });

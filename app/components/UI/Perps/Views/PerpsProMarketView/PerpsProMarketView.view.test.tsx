@@ -16,6 +16,8 @@ import type {
   TwapOrderFill,
 } from '@metamask/perps-controller';
 import { Platform } from 'react-native';
+/* eslint-disable-next-line import-x/no-extraneous-dependencies */
+import { NavigationProvider } from '@react-navigation/core';
 import { renderPerpsProMarketView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
   describeForPlatforms,
@@ -331,6 +333,32 @@ afterEach(async () => {
     dateNowSpy = undefined;
   }
 });
+
+const openMarketOnCurrentScreen = (market: {
+  symbol: string;
+  name: string;
+  price: string;
+  change24h: string;
+  change24hPercent: string;
+  volume: string;
+  openInterest: string;
+  maxLeverage: string;
+  marketType: string;
+  providerId: string;
+  szDecimals: number;
+}) => {
+  const provider = screen
+    .UNSAFE_getAllByType(NavigationProvider)
+    .find((node) => node.props.route?.params?.market?.symbol === 'ETH');
+
+  if (!provider) {
+    throw new Error('Pro market navigation was not mounted');
+  }
+
+  act(() => {
+    provider.props.navigation.setParams({ market });
+  });
+};
 
 const renderFundedProMarket = () =>
   renderPerpsProMarketView({
@@ -2712,7 +2740,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms('keeps coin sizing after opening another market', async () => {
-    const { store } = renderFundedProMarket();
+    const { store, stream } = renderFundedProMarket();
     await findSizeInput();
     fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
     await waitFor(() => {
@@ -2720,60 +2748,40 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         'Size (ETH)',
       );
     });
-    const perpsSizeDenomination =
-      store.getState().settings.perpsSizeDenomination;
-    expect(perpsSizeDenomination).toBe('asset');
+    expect(store.getState().settings.perpsSizeDenomination).toBe('asset');
 
-    cleanup();
-    // Each render builds its own store. The next market reads the settings
-    // value this toggle wrote, which is what redux-persist restores later.
-    renderPerpsProMarketView({
-      overrides: {
-        settings: { perpsSizeDenomination },
-      },
-      initialParams: {
-        market: {
+    act(() => {
+      stream.emitPrices({
+        ETH: {
+          symbol: 'ETH',
+          price: '2500',
+          markPrice: '2500',
+          percentChange24h: '2',
+          timestamp: 1,
+          isTradable: true,
+        },
+        BTC: {
           symbol: 'BTC',
-          name: 'Bitcoin',
-          price: '$90,000.00',
-          change24h: '+$100.00',
-          change24hPercent: '+1%',
-          volume: '$1.5B',
-          openInterest: '$500M',
-          maxLeverage: '50x',
-          marketType: 'crypto',
-          providerId: 'hyperliquid',
-          szDecimals: 5,
+          price: '90000',
+          markPrice: '90000',
+          percentChange24h: '1',
+          timestamp: 1,
+          isTradable: true,
         },
-      },
-      streamOverrides: {
-        account: createFundedAccountForViews('1000'),
-        marketData: [
-          {
-            symbol: 'BTC',
-            name: 'Bitcoin',
-            price: '$90,000.00',
-            change24h: '+$100.00',
-            change24hPercent: '+1%',
-            volume: '$1.5B',
-            openInterest: '$500M',
-            maxLeverage: '50x',
-            marketType: 'crypto',
-            providerId: 'hyperliquid',
-            szDecimals: 5,
-          },
-        ],
-        prices: {
-          BTC: {
-            symbol: 'BTC',
-            price: '90000',
-            markPrice: '90000',
-            percentChange24h: '1',
-            timestamp: 1,
-            isTradable: true,
-          },
-        },
-      },
+      });
+    });
+    openMarketOnCurrentScreen({
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      price: '$90,000.00',
+      change24h: '+$100.00',
+      change24hPercent: '+1%',
+      volume: '$1.5B',
+      openInterest: '$500M',
+      maxLeverage: '50x',
+      marketType: 'crypto',
+      providerId: 'hyperliquid',
+      szDecimals: 5,
     });
 
     await waitFor(() => {

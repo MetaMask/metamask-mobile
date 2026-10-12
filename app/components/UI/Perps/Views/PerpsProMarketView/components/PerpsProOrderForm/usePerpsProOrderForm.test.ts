@@ -441,46 +441,36 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 let mockPerpsSizeDenomination: 'usd' | 'asset' = 'usd';
-const mockSizeDenominationListeners = new Set<() => void>();
 
-const mockDispatchPerpsSizeDenomination = (action: {
-  type?: string;
-  perpsSizeDenomination?: 'usd' | 'asset';
-}) => {
-  if (
-    action.type === 'SET_PERPS_SIZE_DENOMINATION' &&
-    (action.perpsSizeDenomination === 'usd' ||
-      action.perpsSizeDenomination === 'asset')
-  ) {
-    mockPerpsSizeDenomination = action.perpsSizeDenomination;
-    mockSizeDenominationListeners.forEach((listener) => listener());
-  }
-};
+jest.mock('../../../../hooks/usePerpsSizeDenomination', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+
+  return {
+    usePerpsSizeDenomination: () => {
+      const [denomination, setDenominationState] = React.useState(
+        mockPerpsSizeDenomination,
+      );
+
+      return {
+        denomination,
+        setDenomination: (next: 'usd' | 'asset') => {
+          mockPerpsSizeDenomination = next;
+          setDenominationState(next);
+        },
+      };
+    },
+  };
+});
 
 jest.mock('react-redux', () => ({
-  useDispatch: () => mockDispatchPerpsSizeDenomination,
   useSelector: (selector: { isSelectedAccountSelector?: boolean }) => {
     if (selector.isSelectedAccountSelector) {
       return mockSelectedAddress;
     }
     const { selectPerpsPositionModifyPreviewEnabledFlag: mockPreviewFlag } =
       jest.requireActual('../../../../selectors/featureFlags');
-    const { selectPerpsSizeDenomination: mockSizeDenomination } =
-      jest.requireActual('../../../../selectors/sizeDenomination');
     if (selector === mockPreviewFlag) {
       return mockIsPositionModifyPreviewEnabled;
-    }
-    if (selector === mockSizeDenomination) {
-      const ReactActual = jest.requireActual<typeof import('react')>('react');
-      const [, rerender] = ReactActual.useState(0);
-      ReactActual.useEffect(() => {
-        const listener = () => rerender((count) => count + 1);
-        mockSizeDenominationListeners.add(listener);
-        return () => {
-          mockSizeDenominationListeners.delete(listener);
-        };
-      }, [rerender]);
-      return mockPerpsSizeDenomination;
     }
     return false;
   },
@@ -597,7 +587,6 @@ const renderMutableScaleForm = (initialProps: MutableScaleProps) => {
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
     mockPerpsSizeDenomination = 'usd';
-    mockSizeDenominationListeners.clear();
     jest.clearAllMocks();
     mockExecutionOptions = {};
     mockOrderForm.type = 'market';

@@ -1051,8 +1051,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         [PERPS_EVENT_PROPERTY.ORDER_HAS_SL]: Boolean(orderForm.stopLossPrice),
         [PERPS_EVENT_PROPERTY.LEVERAGE]: orderForm.leverage,
         [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: hasCustomTokenSelected,
-        [PERPS_ANALYTICS_SIZE_UNIT]:
-          toPerpsSizeUnitAnalyticsValue(sizeDenomination),
+        // Read at fire time. A display-unit toggle is not a new fill, so it
+        // must not reset this debounce or emit a second considered event.
+        [PERPS_ANALYTICS_SIZE_UNIT]: toPerpsSizeUnitAnalyticsValue(
+          sizeDenominationRef.current,
+        ),
       };
       if (hasCustomTokenSelected && payToken) {
         consideredProps[PERPS_EVENT_PROPERTY.FROM_TOKEN] = payToken.symbol;
@@ -1073,7 +1076,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     consideredTradeAction,
     hasCustomTokenSelected,
     payToken,
-    sizeDenomination,
     track,
   ]);
 
