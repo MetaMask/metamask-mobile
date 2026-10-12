@@ -1,8 +1,14 @@
 import { useCallback, useSyncExternalStore } from 'react';
+import { useSelector } from 'react-redux';
+import {
+  selectProfileControllerProfile,
+  selectProfileControllerXProfile,
+} from '../../../../../selectors/profileController';
 import {
   getLocalSocialProfileSnapshot,
   subscribeLocalSocialProfile,
 } from './localSocialProfileStore';
+import { profileControllerToMySocialProfile } from '../utils/profileControllerToMySocialProfile';
 
 export type ProfileRankingTag = 'shrimp' | 'dolphin' | 'whale';
 
@@ -53,6 +59,8 @@ export interface UseMyProfileResult {
  * social profile query once the API exposes current-user identity.
  */
 export const useMyProfile = (): UseMyProfileResult => {
+  const controllerProfile = useSelector(selectProfileControllerProfile);
+  const controllerXProfile = useSelector(selectProfileControllerXProfile);
   const { profile } = useSyncExternalStore(
     subscribeLocalSocialProfile,
     getLocalSocialProfileSnapshot,
@@ -61,7 +69,12 @@ export const useMyProfile = (): UseMyProfileResult => {
   const refresh = useCallback(async () => undefined, []);
 
   return {
-    profile,
+    profile: controllerProfile
+      ? profileControllerToMySocialProfile(
+          controllerProfile,
+          controllerXProfile,
+        )
+      : profile,
     isLoading: false,
     error: null,
     refresh,

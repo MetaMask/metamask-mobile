@@ -4,10 +4,14 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
   HeaderStandardAnimated,
+  IconColor,
+  IconName,
   SectionDivider,
   Spinner,
   Text,
@@ -38,8 +42,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import { playSelection } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
+import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
@@ -243,6 +249,10 @@ const MyProfileView: React.FC = () => {
       initialTab: 'following',
     });
   }, [isOwner, navigation]);
+  const handleOpenComposer = useCallback(() => {
+    playSelection().catch(() => undefined);
+    openComposer();
+  }, [openComposer]);
   const handleShareFirstTrade = useCallback(() => {
     openComposer();
   }, [openComposer]);
@@ -406,6 +416,22 @@ const MyProfileView: React.FC = () => {
           }
           onBack={handleBack}
           backButtonProps={{ testID: MyProfileViewSelectorsIDs.BACK_BUTTON }}
+          endAccessory={
+            isOwner && displayProfile ? (
+              <SocialHeaderGlassSurface twClassName="px-1">
+                <ButtonIcon
+                  iconName={IconName.Edit}
+                  iconProps={{ color: IconColor.IconDefault }}
+                  size={ButtonIconSize.Md}
+                  onPress={handleOpenComposer}
+                  accessibilityLabel={strings(
+                    'social_leaderboard.my_profile.create_post',
+                  )}
+                  testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
+                />
+              </SocialHeaderGlassSurface>
+            ) : undefined
+          }
           testID={MyProfileViewSelectorsIDs.HEADER}
         />
 

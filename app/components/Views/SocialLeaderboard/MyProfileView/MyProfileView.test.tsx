@@ -28,6 +28,7 @@ import {
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockOpenComposer = jest.fn();
+const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const mockFollowWithSetup = jest.fn(
   async (_isFollowing: boolean, performFollow: () => Promise<void>) => {
@@ -67,6 +68,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     testID,
     backButtonProps,
     includesTopInset,
+    endAccessory,
   }: {
     title?: React.ReactNode;
     subtitle?: React.ReactNode;
@@ -74,6 +76,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     testID?: string;
     backButtonProps?: { testID?: string };
     includesTopInset?: boolean;
+    endAccessory?: React.ReactNode;
   }) =>
     ReactActual.createElement(
       View,
@@ -85,6 +88,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       ),
       title,
       subtitle,
+      endAccessory,
     );
 
   return {
@@ -103,6 +107,10 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   useRoute: () => ({ params: mockProfileRouteParams }),
+}));
+
+jest.mock('../../../../util/haptics', () => ({
+  playSelection: () => mockPlaySelection(),
 }));
 
 jest.mock('../hooks/useFollowWithNotificationSetup', () => ({
@@ -482,6 +490,20 @@ describe('MyProfileView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  it('opens the post composer from the owner profile header', () => {
+    renderWithProvider(<MyProfileView />);
+
+    const createPostButton = screen.getByTestId(
+      MyProfileViewSelectorsIDs.CREATE_POST_BUTTON,
+    );
+
+    fireEvent.press(createPostButton);
+
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(mockOpenComposer).toHaveBeenCalledTimes(1);
+    expect(createPostButton).toHaveProp('accessibilityLabel', 'Create post');
+  });
+
   it('shares the placeholder owner profile URL', async () => {
     const shareSpy = jest
       .spyOn(Share, 'share')
@@ -733,6 +755,9 @@ describe('MyProfileView', () => {
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON),
     ).toBeNull();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.CREATE_POST_BUTTON),
+    ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON),
     ).toBeNull();
