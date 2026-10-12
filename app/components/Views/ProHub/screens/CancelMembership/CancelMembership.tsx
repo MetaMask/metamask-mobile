@@ -21,13 +21,18 @@ import {
 import CancelSurveyStep from './components/CancelSurveyStep';
 import CancelStayStep from './components/CancelStayStep';
 
-type CancelStep = 'reason' | 'stay';
+const CANCEL_STEPS = {
+  REASON: 'reason',
+  STAY: 'stay',
+} as const;
+
+type CancelStep = (typeof CANCEL_STEPS)[keyof typeof CANCEL_STEPS];
 
 const CancelMembership = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const [orderedReasons] = useState(() => shuffleCancelReasons(CANCEL_REASONS));
-  const [step, setStep] = useState<CancelStep>('reason');
+  const [step, setStep] = useState<CancelStep>(CANCEL_STEPS.REASON);
   const [selectedReasonId, setSelectedReasonId] = useState<string | null>(null);
   const [stayFeedback, setStayFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,8 +41,8 @@ const CancelMembership = () => {
 
   const handleBack = useCallback(() => {
     if (isSubmitting) return;
-    if (step === 'stay') {
-      setStep('reason');
+    if (step === CANCEL_STEPS.STAY) {
+      setStep(CANCEL_STEPS.REASON);
       return;
     }
     navigation.goBack();
@@ -106,7 +111,7 @@ const CancelMembership = () => {
 
   const handleReasonSelect = useCallback((id: string) => {
     setSelectedReasonId(id);
-    setStep('stay');
+    setStep(CANCEL_STEPS.STAY);
   }, []);
 
   const handleStayFeedbackChange = useCallback((value: string) => {
@@ -119,7 +124,7 @@ const CancelMembership = () => {
 
   // On the stay step, leaving via back gesture / hardware back should return
   // to the reason step instead of popping the whole screen.
-  const shouldInterceptLeave = isLeaveBlocked || step === 'stay';
+  const shouldInterceptLeave = isLeaveBlocked || step === CANCEL_STEPS.STAY;
 
   // Disable iOS swipe-back so the user cannot leave by gesture.
   useEffect(() => {
@@ -136,8 +141,8 @@ const CancelMembership = () => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       if (isNavigatingRef.current) return;
       e.preventDefault();
-      if (step === 'stay' && !isSubmitting) {
-        setStep('reason');
+      if (step === CANCEL_STEPS.STAY && !isSubmitting) {
+        setStep(CANCEL_STEPS.REASON);
       }
     });
     return () => unsubscribe();
@@ -152,8 +157,8 @@ const CancelMembership = () => {
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
-        if (step === 'stay' && !isSubmitting) {
-          setStep('reason');
+        if (step === CANCEL_STEPS.STAY && !isSubmitting) {
+          setStep(CANCEL_STEPS.REASON);
         }
         return true;
       },
@@ -167,7 +172,7 @@ const CancelMembership = () => {
       edges={['top', 'bottom']}
       testID={CancelMembershipTestIds.CONTAINER}
     >
-      {step === 'reason' && (
+      {step === CANCEL_STEPS.REASON && (
         <CancelSurveyStep
           reasons={orderedReasons}
           selectedReasonId={selectedReasonId}
@@ -179,7 +184,7 @@ const CancelMembership = () => {
           errorMessage={errorMessage}
         />
       )}
-      {step === 'stay' && (
+      {step === CANCEL_STEPS.STAY && (
         <CancelStayStep
           stayFeedback={stayFeedback}
           onStayFeedbackChange={handleStayFeedbackChange}
