@@ -23,6 +23,7 @@ export const predictOrderPreviewOptions = ({
   side,
   size,
   positionId,
+  marketVersion,
 }: PreviewOrderParams) =>
   queryOptions<OrderPreview, Error>({
     queryKey: predictOrderPreviewKeys.detail({
@@ -41,6 +42,7 @@ export const predictOrderPreviewOptions = ({
         side,
         size,
         positionId,
+        marketVersion,
       }),
     retry: false,
     placeholderData: keepPreviousData,
