@@ -21,7 +21,6 @@ import {
   PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
   PERPS_ANALYTICS_SIZE_UNIT,
 } from '../../../../constants/perpsAnalytics';
-import { resetPerpsSizeDenominationForTests } from '../../../../utils/perpsSizeDenomination';
 import {
   FAR_FROM_MARKET_WARNING_INTERACTION,
   FAR_FROM_MARKET_WARNING_TYPE,
@@ -441,15 +440,47 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
+let mockPerpsSizeDenomination: 'usd' | 'asset' = 'usd';
+const mockSizeDenominationListeners = new Set<() => void>();
+
+const mockDispatchPerpsSizeDenomination = (action: {
+  type?: string;
+  perpsSizeDenomination?: 'usd' | 'asset';
+}) => {
+  if (
+    action.type === 'SET_PERPS_SIZE_DENOMINATION' &&
+    (action.perpsSizeDenomination === 'usd' ||
+      action.perpsSizeDenomination === 'asset')
+  ) {
+    mockPerpsSizeDenomination = action.perpsSizeDenomination;
+    mockSizeDenominationListeners.forEach((listener) => listener());
+  }
+};
+
 jest.mock('react-redux', () => ({
+  useDispatch: () => mockDispatchPerpsSizeDenomination,
   useSelector: (selector: { isSelectedAccountSelector?: boolean }) => {
     if (selector.isSelectedAccountSelector) {
       return mockSelectedAddress;
     }
     const { selectPerpsPositionModifyPreviewEnabledFlag: mockPreviewFlag } =
       jest.requireActual('../../../../selectors/featureFlags');
+    const { selectPerpsSizeDenomination: mockSizeDenomination } =
+      jest.requireActual('../../../../selectors/sizeDenomination');
     if (selector === mockPreviewFlag) {
       return mockIsPositionModifyPreviewEnabled;
+    }
+    if (selector === mockSizeDenomination) {
+      const ReactActual = jest.requireActual<typeof import('react')>('react');
+      const [, rerender] = ReactActual.useState(0);
+      ReactActual.useEffect(() => {
+        const listener = () => rerender((count) => count + 1);
+        mockSizeDenominationListeners.add(listener);
+        return () => {
+          mockSizeDenominationListeners.delete(listener);
+        };
+      }, [rerender]);
+      return mockPerpsSizeDenomination;
     }
     return false;
   },
@@ -565,7 +596,8 @@ const renderMutableScaleForm = (initialProps: MutableScaleProps) => {
 
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
-    resetPerpsSizeDenominationForTests();
+    mockPerpsSizeDenomination = 'usd';
+    mockSizeDenominationListeners.clear();
     jest.clearAllMocks();
     mockExecutionOptions = {};
     mockOrderForm.type = 'market';

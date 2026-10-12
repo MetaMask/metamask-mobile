@@ -82,7 +82,6 @@ import {
   PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
   PERPS_ANALYTICS_SIZE_UNIT,
 } from '../../constants/perpsAnalytics';
-import { resetPerpsSizeDenominationForTests } from '../../utils/perpsSizeDenomination';
 import PerpsOrderView from './PerpsOrderView';
 import { markPerpsPaymentTokenSelection } from '../../utils/perpsPaymentTokenSelection';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -647,8 +646,14 @@ jest.mock('react-redux', () => ({
     const { selectPerpsTradeWithAnyTokenEnabledFlag } = jest.requireActual(
       '../../selectors/featureFlags',
     );
+    const { selectPerpsSizeDenomination } = jest.requireActual(
+      '../../selectors/sizeDenomination',
+    );
     if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
       return mockTradeWithAnyTokenEnabled;
+    }
+    if (selector === selectPerpsSizeDenomination) {
+      return 'usd';
     }
     if (
       selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
@@ -1305,7 +1310,6 @@ function applyDefaultHookMocks() {
 
 describe('PerpsOrderView', () => {
   beforeEach(() => {
-    resetPerpsSizeDenominationForTests();
     jest.useRealTimers();
     jest.clearAllMocks();
     applyDefaultHookMocks();

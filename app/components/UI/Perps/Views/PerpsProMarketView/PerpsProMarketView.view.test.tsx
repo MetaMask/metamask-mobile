@@ -34,7 +34,6 @@ import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 import { PERPS_TWAP_UI_CONFIG } from '../../constants/perpsConfig';
 import { resetPerpsChaseOrdersStoreForTests } from '../../hooks/usePerpsChaseOrders';
-import { resetPerpsSizeDenominationForTests } from '../../utils/perpsSizeDenomination';
 import {
   isChaseOrderHandleVisible,
   resetChaseOrderVisibilityForTests,
@@ -269,7 +268,6 @@ const resetPerpsControllerMocks = () => {
 };
 
 beforeEach(() => {
-  resetPerpsSizeDenominationForTests();
   issuedTwapReadPromises.clear();
   activeTwapSubscriptions.clear();
   settledChaseReadPromises.clear();
@@ -2714,7 +2712,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms('keeps coin sizing after opening another market', async () => {
-    renderFundedProMarket();
+    const { store } = renderFundedProMarket();
     await findSizeInput();
     fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
     await waitFor(() => {
@@ -2722,9 +2720,17 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         'Size (ETH)',
       );
     });
+    const perpsSizeDenomination =
+      store.getState().settings.perpsSizeDenomination;
+    expect(perpsSizeDenomination).toBe('asset');
 
     cleanup();
+    // Each render builds its own store. The next market reads the settings
+    // value this toggle wrote, which is what redux-persist restores later.
     renderPerpsProMarketView({
+      overrides: {
+        settings: { perpsSizeDenomination },
+      },
       initialParams: {
         market: {
           symbol: 'BTC',

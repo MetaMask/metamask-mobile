@@ -1,10 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
-import {
-  readPerpsSizeDenomination,
-  subscribePerpsSizeDenomination,
-  writePerpsSizeDenomination,
-  type PerpsSizeDenomination,
-} from '../utils/perpsSizeDenomination';
+import { useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { setPerpsSizeDenomination } from '../../../../actions/settings';
+import { selectPerpsSizeDenomination } from '../selectors/sizeDenomination';
+import type { PerpsSizeDenomination } from '../utils/perpsSizeDenomination';
 
 export interface UsePerpsSizeDenominationResult {
   /** USD or coin, shared by Lite and Pro and restored after restart. */
@@ -15,17 +13,18 @@ export interface UsePerpsSizeDenominationResult {
 
 /**
  * Shared order-size denomination for Lite and Pro order forms.
+ * Stored on the persisted settings slice, with the other Perps preferences.
  */
 export const usePerpsSizeDenomination = (): UsePerpsSizeDenominationResult => {
-  const [denomination, setDenominationState] = useState(
-    readPerpsSizeDenomination,
+  const denomination = useSelector(selectPerpsSizeDenomination);
+  const dispatch = useDispatch();
+
+  const setDenomination = useCallback(
+    (next: PerpsSizeDenomination) => {
+      dispatch(setPerpsSizeDenomination(next));
+    },
+    [dispatch],
   );
-
-  useEffect(() => subscribePerpsSizeDenomination(setDenominationState), []);
-
-  const setDenomination = useCallback((next: PerpsSizeDenomination) => {
-    writePerpsSizeDenomination(next);
-  }, []);
 
   return { denomination, setDenomination };
 };

@@ -2,11 +2,12 @@ import React from 'react';
 import { StyleSheet, Text } from 'react-native';
 import {
   fireEvent,
-  render,
+  render as renderRoot,
   screen,
   within,
 } from '@testing-library/react-native';
 import { typography } from '@metamask/design-tokens';
+import { Provider } from 'react-redux';
 import PerpsTradeScreen from './PerpsTradeScreen';
 import type PerpsSlider from '../PerpsSlider';
 import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
@@ -15,7 +16,12 @@ import {
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import { convertAssetAmountToUsd } from '../../utils/assetAmountInput';
-import { resetPerpsSizeDenominationForTests } from '../../utils/perpsSizeDenomination';
+import configureStore from '../../../../../util/test/configureStore';
+
+let store = configureStore();
+
+const render: typeof renderRoot = (ui, options) =>
+  renderRoot(<Provider store={store}>{ui}</Provider>, options);
 
 const mockNavigateTo = jest.fn();
 let mockLivePriceHeaderProps:
@@ -140,7 +146,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
 
 describe('PerpsTradeScreen errors', () => {
   beforeEach(() => {
-    resetPerpsSizeDenominationForTests();
+    store = configureStore();
     jest.clearAllMocks();
     mockLivePriceHeaderProps = undefined;
     mockPerpsTokenLogoProps = undefined;

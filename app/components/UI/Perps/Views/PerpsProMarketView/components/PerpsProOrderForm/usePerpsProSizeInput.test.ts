@@ -1,12 +1,34 @@
-import { act, renderHook } from '@testing-library/react-native';
+import React from 'react';
+import { Provider } from 'react-redux';
 import {
-  resetPerpsSizeDenominationForTests,
-  writePerpsSizeDenomination,
-} from '../../../../utils/perpsSizeDenomination';
+  act,
+  renderHook as renderHookWithStore,
+  type RenderHookOptions,
+} from '@testing-library/react-native';
+import configureStore from '../../../../../../../util/test/configureStore';
+import type { PerpsSizeDenomination } from '../../../../utils/perpsSizeDenomination';
 import {
   usePerpsProSizeInput,
   type UsePerpsProSizeInputParams,
 } from './usePerpsProSizeInput';
+
+let store = configureStore();
+
+const renderHook = <Result, Props>(
+  hook: (props: Props) => Result,
+  options?: RenderHookOptions<Props>,
+) =>
+  renderHookWithStore(hook, {
+    ...options,
+    wrapper: ({ children }) =>
+      React.createElement(Provider, { store }, children),
+  });
+
+const setStoredSizeDenomination = (denomination: PerpsSizeDenomination) => {
+  store = configureStore({
+    settings: { perpsSizeDenomination: denomination },
+  });
+};
 
 const mockSetAmount = jest.fn();
 
@@ -26,7 +48,7 @@ const createParams = (
 describe('usePerpsProSizeInput', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    resetPerpsSizeDenominationForTests();
+    store = configureStore();
   });
 
   it('starts in USD mode with the canonical amount', () => {
@@ -63,7 +85,7 @@ describe('usePerpsProSizeInput', () => {
   });
 
   it('shows the USD amount until a persisted coin unit can be priced', () => {
-    writePerpsSizeDenomination('asset');
+    setStoredSizeDenomination('asset');
     const { result, rerender } = renderHook(
       (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
       {
@@ -90,7 +112,7 @@ describe('usePerpsProSizeInput', () => {
   });
 
   it('keeps a pre-price USD edit visible until blur projects it into coin', () => {
-    writePerpsSizeDenomination('asset');
+    setStoredSizeDenomination('asset');
     const { result, rerender } = renderHook(
       (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
       {
@@ -124,7 +146,7 @@ describe('usePerpsProSizeInput', () => {
   });
 
   it('keeps a focused USD edit in USD after its echo and the price arrive separately', () => {
-    writePerpsSizeDenomination('asset');
+    setStoredSizeDenomination('asset');
     const { result, rerender } = renderHook(
       (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
       {
