@@ -9120,24 +9120,29 @@
     },
     "vba_home_card": {
       "get_started": {
-        "title": "Set up your Money account",
-        "description": "Verify your identity to open your Money account.",
+        "title": "Add money from your bank",
+        "description": "Transfer directly from your bank in seconds. No network fees.",
         "cta": "Get started"
       },
       "account_is_ready": {
-        "title": "You're verified",
-        "description": "Your identity is verified. Finish setting up your Money account.",
-        "cta": "Finish setup"
+        "title": "You’re all set",
+        "description": "Your virtual account details are ready.",
+        "cta": "View Pix details"
       },
       "kyc_pending": {
-        "title": "Verifying your identity",
-        "description": "We're reviewing your details. Check the status of your verification.",
-        "cta": "Check status"
+        "title": "Still verifying your identity",
+        "description": "We’re reviewing your details. We’ll notify you when your account is ready.",
+        "cta": "Verifying"
       },
       "finish_verification": {
         "title": "Finish verifying your identity",
-        "description": "You're almost done. Pick up where you left off.",
-        "cta": "Resume"
+        "description": "We need a little more information. It only takes a minute.",
+        "cta": "Continue"
+      },
+      "kyc_decision": {
+        "title": "We can’t verify your identity",
+        "description": "We’re unable to create virtual account details right now.",
+        "cta": "Learn more"
       }
     },
     "first_time_deposit": {

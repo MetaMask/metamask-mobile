@@ -1,13 +1,17 @@
 import React, { useCallback, useEffect, useRef } from 'react';
+import { Image, StyleSheet } from 'react-native';
 import {
   Box,
   ButtonBase,
   ButtonBaseSize,
-  Text,
-  TextVariant,
   FontWeight,
+  IconName,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import moneyVbaIdentityHero from '../../../../../images/money-vba-identity-hero.png';
 import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
@@ -17,6 +21,13 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { MoneyVbaKycPendingCardTestIds } from './MoneyVbaKycPendingCard.testIds';
+
+const styles = StyleSheet.create({
+  hero: {
+    width: '100%',
+    height: '100%',
+  },
+});
 
 /** Telemetry source passed when this card's CTA opens VBA onboarding. */
 export const VBA_KYC_PENDING_CARD_SOURCE = 'vba-home-card-kyc-pending';
@@ -57,22 +68,30 @@ const MoneyVbaKycPendingCard = () => {
   }, [openVbaOnboarding, trackButtonClicked]);
 
   return (
-    // TODO(figma node 2254-13372): verify visual spec — surface, spacing, and
-    // typography are provisional (mirrors the MoneyOnboardingCard chrome).
     <Box
       testID={MoneyVbaKycPendingCardTestIds.CONTAINER}
-      twClassName="mx-4 mt-2 rounded-3xl bg-muted p-4 gap-4"
+      twClassName="mx-4 mt-2 rounded-2xl bg-muted p-4"
     >
-      <Box twClassName="gap-1">
+      <Box twClassName="h-[185px] w-full overflow-hidden rounded-[14px]">
+        <Image
+          source={moneyVbaIdentityHero}
+          style={styles.hero}
+          resizeMode="cover"
+        />
+      </Box>
+      <Box twClassName="gap-1 py-4">
         <Text
-          variant={TextVariant.HeadingSm}
+          variant={TextVariant.HeadingLg}
           fontWeight={FontWeight.Bold}
+          color={TextColor.TextDefault}
           testID={MoneyVbaKycPendingCardTestIds.TITLE}
         >
           {strings('money.vba_home_card.kyc_pending.title')}
         </Text>
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
           testID={MoneyVbaKycPendingCardTestIds.DESCRIPTION}
         >
           {strings('money.vba_home_card.kyc_pending.description')}
@@ -80,6 +99,10 @@ const MoneyVbaKycPendingCard = () => {
       </Box>
       <ButtonBase
         size={ButtonBaseSize.Lg}
+        isFullWidth
+        startIconName={IconName.Loading}
+        twClassName="bg-muted-pressed"
+        textProps={{ twClassName: 'text-default' }}
         onPress={handleCtaPress}
         testID={MoneyVbaKycPendingCardTestIds.CTA_BUTTON}
       >
