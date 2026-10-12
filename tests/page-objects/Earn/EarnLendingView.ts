@@ -12,6 +12,7 @@ import { DEPOSIT_DETAILS_SECTION_TEST_ID } from '../../../app/components/UI/Earn
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from '../../../app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/DepositReceiveSection/DepositReceiveSection.testIds';
 import { PROGRESS_STEPPER_TEST_IDS } from '../../../app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/ProgressStepper/ProgressStepper.testIds';
 import { EarnWithdrawInputViewTestIds } from '../../../app/components/UI/Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView.testIds';
+import { ActivitiesViewSelectorsIDs } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import { type AppiumElement } from '../../framework';
 
 const WITHDRAW_BUTTON_EXIST_TIMEOUT = 30_000;
@@ -97,11 +98,15 @@ class EarnLendingView {
       description: 'Withdraw button should be mounted on the lending balance',
     });
 
-    await Gestures.scrollToElement(this.withdrawButton, undefined, {
-      direction: 'down',
-      scrollAmount: 200,
-      elemDescription: 'Scroll to Withdraw button',
-    });
+    await Gestures.scrollToElement(
+      this.withdrawButton,
+      Matchers.scrollContainer(ActivitiesViewSelectorsIDs.CONTAINER),
+      {
+        direction: 'down',
+        scrollAmount: 200,
+        elemDescription: 'Scroll to Withdraw button',
+      },
+    );
   }
 
   async tapConfirm(timeout?: number): Promise<void> {
