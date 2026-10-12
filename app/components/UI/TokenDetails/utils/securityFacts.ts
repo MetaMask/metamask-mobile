@@ -10,6 +10,12 @@ import type { SecurityVerdict } from '../components/V1/SecurityPill/SecurityPill
 import type { SecurityTabFacts } from '../components/V1/SecurityTab/SecurityTab.types';
 import { resolveSecurityChecks } from './securityChecks';
 import { countSecurityFlags, resolveSecurityReasons } from './securityReasons';
+import {
+  formatCompactFiat,
+  formatCompactNumber,
+  formatPercent,
+  formatTaxPair,
+} from './statBarFormat';
 
 /**
  * Blockaid's verdict word, mapped to the pill's.
@@ -37,36 +43,20 @@ const VOLUME_FLAG_FEATURE_IDS = [
 ];
 
 /**
- * Compact figures, matching the stat bar's shape so ASSETS-4056 has one format
- * to unify rather than two.
+ * Decimal places on every percentage this tab renders.
+ *
+ * Shared so Top 10, Remaining and LP locked cannot drift apart — they sit
+ * within two sections of each other.
  */
-const formatCompact = (value: number): string => {
-  const units: [number, string][] = [
-    [1e12, 'T'],
-    [1e9, 'B'],
-    [1e6, 'M'],
-    [1e3, 'K'],
-  ];
-  for (const [threshold, suffix] of units) {
-    if (Math.abs(value) >= threshold) {
-      return `${(value / threshold).toFixed(1)}${suffix}`;
-    }
-  }
-  return value.toLocaleString();
-};
-
-const formatUsd = (value: number): string => `$${formatCompact(value)}`;
-
-const formatPercentage = (value: number): string => `${value.toFixed(1)}%`;
+const PERCENTAGE_DECIMALS = 1;
 
 /**
- * A fee as a percentage.
- *
- * `0` is a real reading and has to survive, so every null test here is an
- * explicit `== null` rather than a falsy check.
+ * Liquidity arrives as `reserveUSD`, which is USD whatever currency the user
+ * has selected. Formatting it with their currency symbol would relabel a
+ * dollar figure as euros rather than convert it, so this stays `USD` until
+ * there is a rate to convert with (ASSETS-4056).
  */
-const formatFee = (value: number | null | undefined): string | null =>
-  value == null ? null : `${value}%`;
+const LIQUIDITY_CURRENCY = 'USD';
 
 /**
  * The creation date, in the user's selected language.
@@ -193,8 +183,6 @@ export const deriveSecurityFacts = (
     ? markets.reduce((sum, market) => sum + (market.reserveUSD ?? 0), 0)
     : null;
   const lockedLiquidityPct = financialStats?.lockedLiquidityPct;
-  const buyFee = formatFee(securityData.fees?.buy);
-  const sellFee = formatFee(securityData.fees?.sell);
 
   return {
     verdict,
@@ -202,20 +190,16 @@ export const deriveSecurityFacts = (
     reasons: resolveSecurityReasons(features, verdict),
     checks: resolveSecurityChecks(features),
     holders: {
-      count:
-        financialStats?.holdersCount == null
-          ? null
-          : formatCompact(financialStats.holdersCount),
-      topTenPercentage:
-        topTenPercentage == null ? null : formatPercentage(topTenPercentage),
+      count: formatCompactNumber(financialStats?.holdersCount),
+      topTenPercentage: formatPercent(topTenPercentage, PERCENTAGE_DECIMALS),
       remainingPercentage:
         topTenPercentage == null
           ? null
-          : formatPercentage(100 - topTenPercentage),
+          : formatPercent(100 - topTenPercentage, PERCENTAGE_DECIMALS),
       topTenFillPercentage: topTenPercentage,
     },
     liquidity: {
-      total: totalLiquidity == null ? null : formatUsd(totalLiquidity),
+      total: formatCompactFiat(totalLiquidity, LIQUIDITY_CURRENCY),
       /**
        * TODO(ASSETS-4056): needs a market cap, which this payload does not
        * carry. Build the denominator as `circulatingSupply * usdPrice` rather
@@ -228,16 +212,15 @@ export const deriveSecurityFacts = (
        * `lockedLiquidityPct` measures locking alone. Either the label narrows
        * or the payload needs a burn figure.
        */
-      lpBurnedLocked:
-        lockedLiquidityPct == null
-          ? null
-          : formatPercentage(lockedLiquidityPct),
+      lpBurnedLocked: formatPercent(lockedLiquidityPct, PERCENTAGE_DECIMALS),
       primaryPool: resolvePrimaryPool(markets),
     },
     trading: {
-      /** Both halves have to be present for the pair to mean anything. */
-      buySellTax:
-        buyFee == null || sellFee == null ? null : `${buyFee} / ${sellFee}`,
+      /** Dashes out unless both halves arrive: a one-sided fee is not a pair. */
+      buySellTax: formatTaxPair(
+        securityData.fees?.buy,
+        securityData.fees?.sell,
+      ),
       volumeFlags: resolveVolumeFlags(features),
       listedOnExchange: strings(
         features.some(

@@ -7,6 +7,7 @@ import React, {
   useImperativeHandle,
 } from 'react';
 import {
+  Pressable,
   ScrollView,
   StyleSheet,
   View,
@@ -39,7 +40,11 @@ import {
   selectNetworkConfigurationByChainId,
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
-import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Price from '../../AssetOverview/Price/Price';
 import PriceChartContext, {
   PriceChartProvider,
@@ -53,10 +58,12 @@ import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
 import { SECURITY_EXPLAINER_KEYS } from '../components/V1/SecurityTab/SecurityTab.constants';
 import type { SecurityRowKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import StatBar from '../components/V1/StatBar/StatBar';
-import StatExplainerSheet from '../components/V1/StatBar/StatExplainerSheet';
+import { STAT_EXPLAINER_KEYS } from '../components/V1/StatBar/StatBar.constants';
 import type { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
 import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExplainerSheet';
+import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.types';
 import OverviewTab from '../components/tabs/OverviewTab';
+import TokenDetailsFeedTab from '../components/tabs/FeedTab';
 import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
 import TokenDetailsV1TabBar, {
   HIDDEN_TAB_PAGE_STYLE,
@@ -75,6 +82,7 @@ import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useSecurityTabFacts } from '../hooks/useSecurityTabFacts';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
+import { useTokenMarketData } from '../hooks/useTokenMarketData';
 import { useTokenStatBarStats } from '../hooks/useTokenStatBarStats';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
@@ -99,6 +107,11 @@ export const TOKEN_DETAILS_TAB_BAR_STICKY_INDEX = 2;
  * exposes it. Change locally to preview other labels ("5h", "3w", …).
  */
 const MOCK_TOKEN_AGE_LABEL = '3d';
+
+const AGE_EXPLAINER_COPY: ExplainerCopy = {
+  title: 'token_details_v1.age.explainer.title',
+  description: 'token_details_v1.age.explainer.description',
+};
 
 interface ShareTokenBottomSheetControllerRef {
   open: () => void;
@@ -230,17 +243,44 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     prefetchedData: token.securityData,
   });
 
-  const statBarStats = useTokenStatBarStats();
+  // Resolved once here and shared with the Overview tab's market details list,
+  // so the screen does not fetch the same data from two places.
+  const selectedCurrency = useSelector(selectCurrentCurrency);
+  const { marketData, isLoading: isMarketDataLoading } =
+    useTokenMarketData(caip19AssetId);
 
-  /** Which stat's explainer is open, or `null` for none. */
-  const [explainedStat, setExplainedStat] = useState<TokenStatKey | null>(null);
+  const statBarStats = useTokenStatBarStats({
+    marketData,
+    isMarketDataLoading,
+    securityData,
+    currentCurrency: selectedCurrency,
+  });
+
+  /**
+   * Copy for whichever definition sheet is open, or `null` for none.
+   *
+   * The stat bar and the Security tab render the same sheet, so they share one
+   * piece of state rather than a key each: two keys would let both mount at
+   * once. It is held here rather than inside `SecurityTab` because the sheet
+   * has to mount outside the page `ScrollView` — see the note on
+   * `SecurityTabProps.onExplain`.
+   */
+  const [explainerCopy, setExplainerCopy] = useState<ExplainerCopy | null>(
+    null,
+  );
 
   const handleStatPress = useCallback((statKey: TokenStatKey) => {
-    setExplainedStat(statKey);
+    setExplainerCopy(STAT_EXPLAINER_KEYS[statKey]);
   }, []);
 
-  const handleExplainerClose = useCallback(() => {
-    setExplainedStat(null);
+  const handleSecurityRowPress = useCallback((rowKey: SecurityRowKey) => {
+    setExplainerCopy(SECURITY_EXPLAINER_KEYS[rowKey]);
+  }, []);
+
+  const handleExplainerClose = useCallback(() => setExplainerCopy(null), []);
+
+  const handleAgePress = useCallback(() => {
+    setExplainerCopy(AGE_EXPLAINER_COPY);
   }, []);
 
   const isNativeToken = Boolean(token.isETH || token.isNative);
@@ -302,14 +342,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 
   const { activeTab, activateTab, mountedTabs, swipeGesture } =
     useTokenDetailsV1Tabs({ onTabChange: clampScrollToTabBar });
-
-  /**
-   * Security row whose definition is open, held here rather than inside
-   * `SecurityTab` because the sheet it drives has to mount outside the page
-   * `ScrollView` — see the note on `SecurityTabProps.onExplain`.
-   */
-  const [explainedSecurityRow, setExplainedSecurityRow] =
-    useState<SecurityRowKey | null>(null);
+  const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
 
   const securityFacts = useSecurityTabFacts({
     securityData,
@@ -340,6 +373,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             assetId={caip19AssetId}
             currentCurrency={currentCurrency}
             securityData={securityData}
+            marketData={marketData}
           />
         );
       }
@@ -347,10 +381,13 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
         return (
           <SecurityTab
             facts={securityFacts}
-            onExplain={setExplainedSecurityRow}
+            onExplain={handleSecurityRowPress}
             onOpenContractDetails={handleOpenContractSecurity}
           />
         );
+      }
+      if (tab === 'feed' && socialEnabled && caip19AssetId) {
+        return <TokenDetailsFeedTab assetId={caip19AssetId} />;
       }
       return <TokenDetailsV1TabPlaceholder tab={tab} />;
     },
@@ -360,17 +397,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       caip19AssetId,
       currentCurrency,
       securityData,
+      marketData,
       securityFacts,
+      handleSecurityRowPress,
       handleOpenContractSecurity,
+      socialEnabled,
     ],
-  );
-
-  const explainedSecurityCopy = explainedSecurityRow
-    ? SECURITY_EXPLAINER_KEYS[explainedSecurityRow]
-    : null;
-  const handleSecurityExplainerClose = useCallback(
-    () => setExplainedSecurityRow(null),
-    [],
   );
 
   const currentPriceUsd = useMemo(() => {
@@ -426,14 +458,22 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           }
           description={headerDescription}
           titleEndAccessory={
-            <Tag
-              severity={TagSeverity.Neutral}
-              twClassName="self-center shrink-0"
+            <Pressable
+              onPress={handleAgePress}
+              accessibilityRole="button"
+              accessibilityLabel={strings(
+                'token_details_v1.age.accessibility_label',
+                { age: MOCK_TOKEN_AGE_LABEL },
+              )}
               testID={TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID}
-              accessibilityLabel={`Token age ${MOCK_TOKEN_AGE_LABEL}`}
             >
-              {MOCK_TOKEN_AGE_LABEL}
-            </Tag>
+              <Tag
+                severity={TagSeverity.Neutral}
+                twClassName="self-center shrink-0"
+              >
+                {MOCK_TOKEN_AGE_LABEL}
+              </Tag>
+            </Pressable>
           }
         />
 
@@ -465,7 +505,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 isLoading={isPriceLoading}
                 hasInsufficientCoverage={hasInsufficientCoverage}
               >
-                <Price.Header />
+                <Price.Header showPeriodLabel={false} />
 
                 <Box twClassName="px-4">
                   <SecuritySocialSection
@@ -530,11 +570,11 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             nearest positioned ancestor instead of being portalled, so mounting
             one inside the scroll content would clip it to the viewport and
             scroll it away with the page. */}
-        {explainedSecurityCopy && (
+        {explainerCopy && (
           <TokenExplainerSheet
-            title={strings(explainedSecurityCopy.title)}
-            description={strings(explainedSecurityCopy.description)}
-            onClose={handleSecurityExplainerClose}
+            title={strings(explainerCopy.title)}
+            description={strings(explainerCopy.description)}
+            onClose={handleExplainerClose}
           />
         )}
 
@@ -549,13 +589,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             currentCurrency={currentCurrency ?? 'usd'}
             securityData={securityData}
             networkName={networkConfigurationByChainId?.name}
-          />
-        )}
-
-        {explainedStat && (
-          <StatExplainerSheet
-            statKey={explainedStat}
-            onClose={handleExplainerClose}
           />
         )}
       </View>

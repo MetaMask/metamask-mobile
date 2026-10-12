@@ -642,6 +642,9 @@ const SocialV1View: React.FC = () => {
                             : undefined
                         }
                         isFilterActive={hasActiveFilters('following')}
+                        appliedFilters={
+                          tab === 'following' ? applied.following : undefined
+                        }
                         onQuickBuy={setQuickBuyTarget}
                       />
                     )}

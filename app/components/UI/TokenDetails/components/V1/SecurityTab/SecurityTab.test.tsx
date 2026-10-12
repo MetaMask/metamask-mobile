@@ -44,6 +44,32 @@ const renderTab = (
     />,
   );
 
+/**
+ * Sections whose heading is plain text.
+ *
+ * Contract is excluded on purpose: its heading is the affordance for the
+ * detail screen, so `isInteractive` gives it the button role instead. Its own
+ * test covers that.
+ */
+const SECTION_TITLE_KEYS = [
+  [
+    SecurityTabSelectors.SECTION_HOLDERS,
+    'token_details_v1.security_tab.sections.holders',
+  ],
+  [
+    SecurityTabSelectors.SECTION_LIQUIDITY,
+    'token_details_v1.security_tab.sections.liquidity',
+  ],
+  [
+    SecurityTabSelectors.SECTION_TRADING,
+    'token_details_v1.security_tab.sections.trading',
+  ],
+  [
+    SecurityTabSelectors.SECTION_ORIGIN,
+    'token_details_v1.security_tab.sections.origin',
+  ],
+] as const;
+
 describe('SecurityTab', () => {
   it('renders every section for a chain with complete data', () => {
     const { getByTestId } = renderTab();
@@ -75,6 +101,27 @@ describe('SecurityTab', () => {
       getByTestId(SecurityTabSelectors.rowValue(SecurityStatKey.VolumeFlags)),
     ).toHaveTextContent('2 detected');
   });
+
+  // Every section title, on both fixtures: the Trading section is no longer
+  // dropped on a chain with no fee data, so it has a heading to expose there
+  // too.
+  it.each([
+    ['complete data', EVM_FACTS],
+    ['a chain with no fee data', SOLANA_FACTS],
+  ] as const)(
+    'exposes each section title as a header for %s',
+    (_label, facts) => {
+      const { getByTestId } = renderTab({ facts });
+
+      for (const [selector, titleKey] of SECTION_TITLE_KEYS) {
+        expect(
+          within(getByTestId(selector)).getByRole('header', {
+            name: strings(titleKey),
+          }),
+        ).toBeOnTheScreen();
+      }
+    },
+  );
 
   describe('contract checks', () => {
     // An earlier revision picked a different four per chain. The list is now

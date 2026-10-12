@@ -9398,9 +9398,6 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "만료: {{timeLeft}}",
-      "days_left": "{{count}}d left",
-      "hours_left": "{{count}}h left",
-      "minutes_left": "{{count}}m left",
       "limit_price": "{{symbol}} 지정가",
       "not_enough_gas": "가스 부족",
       "filled": "체결됨",

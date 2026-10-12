@@ -154,6 +154,11 @@ export interface SocialV1FeedPost {
   reactions: { emotion: string; count: number }[];
   /** Session/API viewer emotion when known. */
   userReaction?: string | null;
+  /**
+   * Triggering spot fill market cap in USD. Null for perps and for fills that
+   * omitted it. Following / Live market-cap filters pass those through.
+   */
+  marketCapUsd?: number | null;
   gifUri?: string;
   isPending?: boolean;
   item: SocialV1FeedItem;

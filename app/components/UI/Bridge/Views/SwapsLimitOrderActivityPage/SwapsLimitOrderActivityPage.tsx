@@ -30,6 +30,7 @@ import {
   ActivityDetailSection,
   ActivityDetailsAccountValue,
   ActivityDetailsBlockExplorerButton,
+  ActivityDetailsDoItAgainButton,
   ActivityDetailsDualAmountHeader,
   ActivityDetailsFeeValue,
   ActivityDetailsNetworkValue,
@@ -305,7 +306,12 @@ function SwapsLimitOrderActivityPage() {
                   chainId={chainId}
                   hash={txHash}
                 />
-              ) : null
+              ) : (
+                <ActivityDetailsDoItAgainButton
+                  label={strings('bridge.limit.create_new_order')}
+                  onPress={handleBack}
+                />
+              )
             }
           />
         </ScrollView>

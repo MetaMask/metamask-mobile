@@ -8,7 +8,9 @@ import Engine from '../../../app/core/Engine';
 import { KalshiRemoteAdapter } from '../../../app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../../../app/components/UI/PredictNext/adapters/remote/PredictApiReadClient';
 import { PredictOrderService } from '../../../app/components/UI/PredictNext/services/PredictOrderService';
+import { PredictPortfolioService } from '../../../app/components/UI/PredictNext/services/PredictPortfolioService';
 import { getPredictOrderServiceMessenger } from '../../../app/core/Engine/messengers/predict-order-service-messenger';
+import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
 import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
 import type {
   PredictGameLive,
@@ -368,6 +370,15 @@ export const ncaaEvents = [
 export const messengerCall = Engine.controllerMessenger
   .call as unknown as jest.Mock;
 
+/** One cursor-addressable Positions page: `cursor` is the incoming page
+ * cursor (absent for the first page) and `nextCursor` links to the next
+ * page, mirroring `PredictPositionsPage`. */
+export interface PredictNextPositionsPageFixture {
+  cursor?: string;
+  positions: readonly unknown[];
+  nextCursor?: string;
+}
+
 /**
  * Composes the real Order workflow service the way the Engine init does,
  * against whatever `globalThis.fetch` is installed when called: the concrete
@@ -396,6 +407,54 @@ export const composePredictNextOrderService = (): PredictOrderService => {
     trading: adapter.trading,
     venueId: adapter.venueId,
   });
+};
+
+/**
+ * Composes the real Order workflow and Portfolio read services the way the
+ * Engine init does — both on one root messenger, with the concrete adapters
+ * bound to whatever `globalThis.fetch` is installed when called. Compose
+ * per-test after stubbing fetch. A UI query client observes these services
+ * by delegating its messenger adapter to the returned root.
+ */
+export const composePredictNextPortfolioTrading = () => {
+  const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+  const adapter = new KalshiRemoteAdapter(
+    new PredictApiReadClient({
+      baseUrl: 'https://predict.example',
+      clientVersion: '1.0.0',
+      getBearerToken: () =>
+        Engine.context.AuthenticationController.getBearerToken(),
+    }),
+  );
+  const portfolioService = new PredictPortfolioService({
+    messenger: getPredictPortfolioServiceMessenger(
+      rootMessenger as unknown as Parameters<
+        typeof getPredictPortfolioServiceMessenger
+      >[0],
+    ),
+    portfolio: adapter.portfolio,
+    venueId: adapter.venueId,
+  });
+  const orderService = new PredictOrderService({
+    messenger: getPredictOrderServiceMessenger(
+      rootMessenger as unknown as Parameters<
+        typeof getPredictOrderServiceMessenger
+      >[0],
+    ),
+    trading: adapter.trading,
+    venueId: adapter.venueId,
+  });
+  return {
+    rootMessenger,
+    orderService,
+    portfolioService,
+    destroy: () => {
+      orderService.destroy();
+      portfolioService.destroy();
+    },
+  };
 };
 
 export const makePredictNextPosition = (
@@ -530,12 +589,16 @@ export const configurePredictNextFeeds = ({
   ncaa = ncaaEvents,
   details,
   positions,
+  positionPages,
   activity,
 }: {
   nfl?: readonly PredictEvent[] | Error;
   ncaa?: readonly PredictEvent[] | Error;
   details?: readonly PredictEvent[] | Error;
   positions?: readonly unknown[] | Error;
+  /** Cursor-addressable Positions pages, for tests that exercise
+   * pagination; `positions` is ignored when this is set. */
+  positionPages?: readonly PredictNextPositionsPageFixture[];
   activity?: readonly unknown[] | Error;
 } = {}) => {
   const defaultDetails = [
@@ -544,7 +607,7 @@ export const configurePredictNextFeeds = ({
   ];
 
   messengerCall.mockImplementation(
-    (action: string, _venueId: string, resourceId: string) => {
+    (action: string, _venueId: string, resourceId: string, cursor?: string) => {
       if (action === 'PredictPortfolioService:getBalance') {
         return Promise.resolve({
           venueId: 'kalshi',
@@ -554,6 +617,19 @@ export const configurePredictNextFeeds = ({
       }
 
       if (action === 'PredictPortfolioService:getPositions') {
+        if (positionPages) {
+          const page = positionPages.find(
+            (candidate) => candidate.cursor === cursor,
+          );
+          if (!page) {
+            return Promise.reject(new Error('Unknown Positions page'));
+          }
+          return Promise.resolve({
+            venueId: 'kalshi',
+            positions: page.positions,
+            ...(page.nextCursor ? { nextCursor: page.nextCursor } : {}),
+          });
+        }
         return positions instanceof Error
           ? Promise.reject(positions)
           : Promise.resolve({

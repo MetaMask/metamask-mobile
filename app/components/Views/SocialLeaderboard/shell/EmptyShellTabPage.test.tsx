@@ -408,6 +408,29 @@ describe('EmptyShellTabPage', () => {
     ).toBeOnTheScreen();
   });
 
+  it('hides perp posts on Following when Custom filters apply tokens', () => {
+    const { DEFAULT_FILTERS } = jest.requireActual(
+      './filters/filterDefaults',
+    ) as typeof import('./filters/filterDefaults');
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+        appliedFilters={{ ...DEFAULT_FILTERS, type: 'tokens' }}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId('social-v1-feed-card-v1-feed-btc-open'),
+    ).toBeNull();
+    expect(
+      screen.getByTestId('social-v1-feed-card-v1-feed-pump-open'),
+    ).toBeOnTheScreen();
+  });
+
   it('frames the Popular traders rail with block dividers on Trending', () => {
     renderWithProvider(
       <EmptyShellTabPage

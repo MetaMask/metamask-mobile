@@ -60,6 +60,7 @@ import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import { TokenDetailsV1 } from './TokenDetailsV1';
+import TokenDetailsPagePending from './TokenDetailsPagePending';
 import {
   TokenDetailsSource,
   TokenDetailsAction,
@@ -72,6 +73,7 @@ import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
 import { useTokenDetailsVariant } from '../hooks/useTokenDetailsVariant';
+import { usePrefetchTokenDetails } from '../queries/prefetchTokenDetailsQueries';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
@@ -929,7 +931,12 @@ const TokenDetailsLegacy: React.FC<{ token: TokenDetailsRouteParams }> = ({
 export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
   const token = route.params as TokenDetailsRouteParams;
-  const variant = useTokenDetailsVariant(token);
+  const { variant, isPending } = useTokenDetailsVariant(token);
+  usePrefetchTokenDetails(token);
+
+  if (isPending) {
+    return <TokenDetailsPagePending token={token} />;
+  }
 
   return variant ? (
     <TokenDetailsV1 token={token} variant={variant} />

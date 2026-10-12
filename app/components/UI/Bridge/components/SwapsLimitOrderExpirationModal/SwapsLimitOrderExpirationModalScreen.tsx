@@ -11,25 +11,25 @@ import type { SwapsLimitOrderExpirationModalParams } from './types';
 
 export const SwapsLimitOrderExpirationModalScreen = () => {
   const { goBack } = useNavigation<AppNavigationProp>();
-  const { selectedMinutes: initialMinutes, onConfirm } =
+  const { selectedMinutes: initialMinutes, onSelect } =
     useParams<SwapsLimitOrderExpirationModalParams>();
-  const [pendingMinutes, setPendingMinutes] =
+  const [selectedMinutes, setSelectedMinutes] =
     useState<SwapsLimitOrderExpirationMinutes>(
       initialMinutes ?? SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
     );
 
-  const handleConfirm = useCallback(
+  const handleSelect = useCallback(
     (minutes: SwapsLimitOrderExpirationMinutes) => {
-      onConfirm(minutes);
+      setSelectedMinutes(minutes);
+      onSelect(minutes);
     },
-    [onConfirm],
+    [onSelect],
   );
 
   return (
     <SwapsLimitOrderExpirationModal
-      selectedMinutes={pendingMinutes}
-      onSelect={setPendingMinutes}
-      onConfirm={handleConfirm}
+      selectedMinutes={selectedMinutes}
+      onSelect={handleSelect}
       goBack={goBack}
     />
   );

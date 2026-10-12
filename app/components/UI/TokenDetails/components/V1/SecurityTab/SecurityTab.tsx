@@ -319,6 +319,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
         variant={TextVariant.BodyXs}
         color={TextColor.TextAlternative}
         testID={SecurityTabSelectors.DISCLAIMER}
+        twClassName="mt-6"
       >
         {strings('token_details_v1.security_tab.footer.disclaimer')}
       </Text>
