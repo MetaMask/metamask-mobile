@@ -547,7 +547,13 @@ function seededBalance(call: Record<string, unknown>, monad: boolean): string {
   if (call.method === 'eth_getBalance') {
     return monad ? MON_BALANCE_20 : toWeiHex('1', 18);
   }
-  if (!monad) return toWeiHex('500', 6);
+  if (!monad) {
+    // eth_call return data is a 32-byte ABI word. Only the seeded USDC
+    // contract gets a balance; every other token stays zero.
+    const to = ethCallArg(call)?.to?.toLowerCase();
+    if (to !== USDC_MAINNET) return UINT256_ZERO;
+    return `0x${toWeiHex('500', 6).slice(2).padStart(64, '0')}`;
+  }
   return ethCallArg(call)?.to?.toLowerCase() === MUSD_MONAD_ADDRESS
     ? MUSD_BALANCE_10
     : UINT256_ZERO;
