@@ -46,7 +46,9 @@ export const LimitOrderPriceAdjustCard = ({
   <Box
     testID={LimitOrderPriceAdjustCardSelectorsIDs.CONTAINER}
     twClassName={
-      hasVisibleBanner ? 'px-4 flex-grow-0 pb-3' : 'px-4 flex-grow-0'
+      hasVisibleBanner
+        ? 'px-4 flex-grow-0 pb-3 -mt-1'
+        : 'px-4 flex-grow-0 -mt-1'
     }
     onStartShouldSetResponder={() => true}
     onResponderRelease={onDismissKeypad}
