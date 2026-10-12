@@ -165,11 +165,13 @@ describe('useStocksFeed', () => {
       );
     });
 
-    it('does not restrict chainIds when searching and the flag is off', () => {
+    it('requests Ethereum and BNB when searching and the flag is off', () => {
       renderHook(() => useStocksFeed({ query: 'OUSG' }));
 
       expect(mockUseRwaTokens).toHaveBeenCalledWith(
-        expect.objectContaining({ chainIds: undefined }),
+        expect.objectContaining({
+          chainIds: ['eip155:1', 'eip155:56'],
+        }),
       );
     });
 

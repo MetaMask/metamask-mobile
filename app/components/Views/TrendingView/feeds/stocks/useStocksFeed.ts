@@ -81,8 +81,10 @@ export const useStocksFeed = ({
   const searchChainIds = useMemo(
     () =>
       showRobinhoodRwa
-        ? [...RWA_CHAIN_IDS, NetworkToCaipChainId.ROBINHOOD]
-        : undefined,
+        ? RWA_CHAIN_IDS
+        : RWA_CHAIN_IDS.filter(
+            (chainId) => chainId !== NetworkToCaipChainId.ROBINHOOD,
+          ),
     [showRobinhoodRwa],
   );
   const {
