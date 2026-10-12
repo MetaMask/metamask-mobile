@@ -39,6 +39,7 @@ import MoneyVbaGetStartedCard from '../../components/MoneyVbaGetStartedCard';
 import MoneyVbaAccountReadyCard from '../../components/MoneyVbaAccountReadyCard';
 import MoneyVbaKycPendingCard from '../../components/MoneyVbaKycPendingCard';
 import MoneyVbaFinishVerificationCard from '../../components/MoneyVbaFinishVerificationCard';
+import MoneyVbaKycDecisionCard from '../../components/MoneyVbaKycDecisionCard';
 import {
   useVbaHomeCard,
   useVbaHomeCardRefresh,
@@ -204,8 +205,8 @@ const MoneyHomeView = () => {
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
 
-  // At most one VBA identity-status card; `kyc_decision` (design pending) and
-  // `none` render nothing. The focus refresh is the one-shot KYC session GET.
+  // At most one VBA identity-status card; `none` renders nothing. The focus
+  // refresh is the one-shot KYC session GET.
   const vbaHomeCard = useVbaHomeCard();
   useVbaHomeCardRefresh();
 
@@ -1085,6 +1086,7 @@ const MoneyHomeView = () => {
         {vbaHomeCard.type === 'finish_verification' && (
           <MoneyVbaFinishVerificationCard />
         )}
+        {vbaHomeCard.type === 'kyc_decision' && <MoneyVbaKycDecisionCard />}
         <MoneyOnboardingCard />
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>

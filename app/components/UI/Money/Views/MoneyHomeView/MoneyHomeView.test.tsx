@@ -23,6 +23,7 @@ import { MoneyVbaGetStartedCardTestIds } from '../../components/MoneyVbaGetStart
 import { MoneyVbaAccountReadyCardTestIds } from '../../components/MoneyVbaAccountReadyCard/MoneyVbaAccountReadyCard.testIds';
 import { MoneyVbaKycPendingCardTestIds } from '../../components/MoneyVbaKycPendingCard/MoneyVbaKycPendingCard.testIds';
 import { MoneyVbaFinishVerificationCardTestIds } from '../../components/MoneyVbaFinishVerificationCard/MoneyVbaFinishVerificationCard.testIds';
+import { MoneyVbaKycDecisionCardTestIds } from '../../components/MoneyVbaKycDecisionCard/MoneyVbaKycDecisionCard.testIds';
 import { MoneyHowItWorksTestIds } from '../../components/MoneyHowItWorks/MoneyHowItWorks.testIds';
 import { MoneyPotentialEarningsTestIds } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings.testIds';
 import { MoneyMetaMaskCardTestIds } from '../../components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
@@ -788,6 +789,7 @@ describe('MoneyHomeView', () => {
       MoneyVbaAccountReadyCardTestIds.CONTAINER,
       MoneyVbaKycPendingCardTestIds.CONTAINER,
       MoneyVbaFinishVerificationCardTestIds.CONTAINER,
+      MoneyVbaKycDecisionCardTestIds.CONTAINER,
     ];
 
     const expectOnlyVbaCard = (
@@ -846,6 +848,17 @@ describe('MoneyHomeView', () => {
       );
     });
 
+    it('renders the kyc_decision card', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'kyc_decision',
+      } as VbaHomeCard);
+
+      expectOnlyVbaCard(
+        renderWithProvider(<MoneyHomeView />),
+        MoneyVbaKycDecisionCardTestIds.CONTAINER,
+      );
+    });
+
     it('renders the VBA card above the onboarding card', () => {
       mockUseVbaHomeCard.mockReturnValue({
         type: 'get_started',
@@ -870,9 +883,9 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('renders no VBA card for the kyc_decision stub', () => {
+    it('renders no VBA card for the none variant', () => {
       mockUseVbaHomeCard.mockReturnValue({
-        type: 'kyc_decision',
+        type: 'none',
       } as VbaHomeCard);
 
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
