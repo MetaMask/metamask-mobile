@@ -1,4 +1,5 @@
 import { create, get } from 'react-native-passkeys';
+import Logger from '../../Logger';
 import { MfaFlowError } from './engine/errors';
 import type { MfaFlowErrorCode, PasskeyAdapter } from './engine/types';
 
@@ -18,6 +19,21 @@ const isCancellation = (error: unknown): boolean => {
 };
 
 /**
+ * Drops `null` fields: Expo returns the WebAuthn fields iOS does not provide
+ * (`transports`, `publicKeyAlgorithm`, ...) as `null`, while the SDK expects
+ * them absent.
+ *
+ * @param response - The library's response.
+ * @returns The same response without `null` fields.
+ */
+const withoutNulls = <Response>(response: Response): Response =>
+  JSON.parse(
+    JSON.stringify(response, (_key, value) =>
+      value === null ? undefined : value,
+    ),
+  );
+
+/**
  * Runs one passkey ceremony, turning its failures into MFA errors the flow
  * knows: a dismissed sheet can be retried in place, anything else shows
  * "Couldn't use your passkey".
@@ -34,14 +50,20 @@ const runCeremony = async <Response>(
   try {
     response = await ceremony();
   } catch (error) {
-    throw new MfaFlowError(
-      isCancellation(error) ? 'passkey_ceremony_cancelled' : failure,
-    );
+    if (isCancellation(error)) {
+      throw new MfaFlowError('passkey_ceremony_cancelled');
+    }
+    // The flow only shows "Couldn't use your passkey"; keep the cause (for
+    // example a misconfigured association) for debugging and Sentry.
+    Logger.error(error as Error, {
+      tags: { feature: 'mfa', mfaCode: failure },
+    });
+    throw new MfaFlowError(failure);
   }
   if (!response) {
     throw new MfaFlowError(failure);
   }
-  return response;
+  return withoutNulls(response);
 };
 
 // The SDK types enum-like fields (`attestation`, `userVerification`, ...) as
