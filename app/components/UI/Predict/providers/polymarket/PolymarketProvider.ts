@@ -572,14 +572,14 @@ export class PolymarketProvider implements PredictProvider {
     fakOrdersEnabled,
     signer,
     feePolicy,
-    marketVersion,
+    outcomeVersion,
   }: {
     preview: OrderPreview;
     feeCollection: PredictFeatureFlags['feeCollection'];
     fakOrdersEnabled: boolean;
     signer: Signer;
     feePolicy?: PredictFeePolicy;
-    marketVersion?: string;
+    outcomeVersion?: string;
   }): OrderPreview {
     const orderType = this.#shouldUseFakOrderType({
       permit2Enabled: feeCollection.permit2Enabled,
@@ -594,7 +594,7 @@ export class PolymarketProvider implements PredictProvider {
       feeRateBps: getPreviewFeeRateBpsForProtocol(),
       orderType,
       ...(feePolicy ? { feePolicy } : {}),
-      ...(marketVersion !== undefined && { marketVersion }),
+      ...(outcomeVersion !== undefined && { outcomeVersion }),
     };
 
     return this.isRateLimited(signer.address)
@@ -942,14 +942,14 @@ export class PolymarketProvider implements PredictProvider {
   }: {
     preview: OrderPreview;
   }): Promise<PolymarketTradeProtocol> {
-    const marketVersion =
-      preview.marketVersion ??
+    const outcomeVersion =
+      preview.outcomeVersion ??
       (await this.#resolveMarketVersion({
         marketId: preview.marketId,
         outcomeId: preview.outcomeId,
       }));
 
-    return getPolymarketProtocolForMarketVersion(marketVersion);
+    return getPolymarketProtocolForMarketVersion(outcomeVersion);
   }
 
   /**
@@ -2573,7 +2573,7 @@ export class PolymarketProvider implements PredictProvider {
       fakOrdersEnabled,
       signer: params.signer,
       feePolicy: params.feePolicy,
-      marketVersion: params.marketVersion,
+      outcomeVersion: params.outcomeVersion,
     });
   }
 

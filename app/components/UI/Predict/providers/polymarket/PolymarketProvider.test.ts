@@ -1730,11 +1730,11 @@ describe('PolymarketProvider', () => {
     const preview = await provider.previewOrder({
       ...basePreview,
       size: 10,
-      marketVersion: 'v2',
+      outcomeVersion: 'v2',
       signer,
     });
 
-    expect(preview.marketVersion).toBe('v2');
+    expect(preview.outcomeVersion).toBe('v2');
   });
 
   it('omits the market version from the preview when none is threaded', async () => {
@@ -1746,7 +1746,7 @@ describe('PolymarketProvider', () => {
       signer,
     });
 
-    expect('marketVersion' in preview).toBe(false);
+    expect('outcomeVersion' in preview).toBe(false);
   });
 
   it('previews the maximum fully fillable buy through the provider', async () => {
@@ -1857,12 +1857,12 @@ describe('PolymarketProvider', () => {
 
     const result = await provider.placeOrder({
       signer,
-      preview: { ...basePreview, marketVersion: 'v2' },
+      preview: { ...basePreview, outcomeVersion: 'v2' },
     });
 
     expect(result.success).toBe(true);
     // The one call is the optimistic position update's market fetch — the
-    // version resolver resolved the threaded marketVersion without fetching.
+    // version resolver resolved the threaded outcomeVersion without fetching.
     expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(1);
     expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
     expect(mockBuildPositionsTradeAllowancesTx).toHaveBeenCalledWith(
@@ -1884,12 +1884,12 @@ describe('PolymarketProvider', () => {
 
     const result = await provider.placeOrder({
       signer,
-      preview: { ...basePreview, marketVersion: 'v1' },
+      preview: { ...basePreview, outcomeVersion: 'v1' },
     });
 
     expect(result.success).toBe(true);
     // The one call is the optimistic position update's market fetch — the
-    // version resolver resolved the threaded marketVersion without fetching.
+    // version resolver resolved the threaded outcomeVersion without fetching.
     expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(1);
     expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
       expect.objectContaining({ safeAddress: legacySafeAddress }),
@@ -2080,7 +2080,7 @@ describe('PolymarketProvider', () => {
 
     const result = await createProvider().placeOrder({
       signer,
-      preview: { ...basePreview, marketVersion: 'v2', side: Side.SELL },
+      preview: { ...basePreview, outcomeVersion: 'v2', side: Side.SELL },
     });
 
     expect(result.success).toBe(true);
@@ -2103,7 +2103,7 @@ describe('PolymarketProvider', () => {
 
     const result = await createProvider().placeOrder({
       signer,
-      preview: { ...basePreview, marketVersion: 'v2' },
+      preview: { ...basePreview, outcomeVersion: 'v2' },
     });
 
     expect(result.success).toBe(true);
