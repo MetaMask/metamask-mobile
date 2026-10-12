@@ -196,6 +196,56 @@ describe('PerpsAmountDisplay', () => {
       expect(screen.getByLabelText('Show fiat value')).toBeOnTheScreen();
     });
 
+    it('keeps a trailing decimal on an in-progress coin amount', () => {
+      render(
+        <PerpsAmountDisplay
+          amount="10"
+          tokenAmount="1."
+          tokenSymbol="ETH"
+          showTokenAmount
+          variant="tradeSheet"
+          isActive
+        />,
+      );
+
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent(/^1\.$/);
+    });
+
+    it('shows each typed coin digit while the amount is being edited', () => {
+      render(
+        <PerpsAmountDisplay
+          amount="10"
+          tokenAmount="1.234"
+          tokenSymbol="PEOPLE"
+          showTokenAmount
+          variant="tradeSheet"
+          isActive
+        />,
+      );
+
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent(/^1\.234$/);
+    });
+
+    it('formats an idle coin amount for display', () => {
+      render(
+        <PerpsAmountDisplay
+          amount="10"
+          tokenAmount="1.234"
+          tokenSymbol="PEOPLE"
+          showTokenAmount
+          variant="tradeSheet"
+        />,
+      );
+
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent(/^1\.23$/);
+    });
+
     it('omits the unit label when the trade sheet shows the fiat value', () => {
       render(
         <PerpsAmountDisplay

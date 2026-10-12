@@ -147,6 +147,7 @@ describe('useTopTraders', () => {
         avatarUri: first.imageUrl,
         percentageChange: first.roiPercent7d,
         pnlValue: first.pnl7d,
+        pnl30d: null,
         winRatePercent: null,
         pnlPerChain: first.pnlPerChain ?? {},
         followerCount: first.followerCount,

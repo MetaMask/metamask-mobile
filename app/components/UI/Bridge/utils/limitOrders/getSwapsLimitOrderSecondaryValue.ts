@@ -5,6 +5,7 @@ import {
   formatTokenInputAmountFromFiat,
 } from '../sourceAmountInputMode';
 import { formatCurrency } from '../currencyUtils';
+import { formatLimitOrderFiatValue } from './formatLimitOrderFiatValue';
 
 /**
  * Secondary-row label for the limit price: Build the ≈ 0.0561 ETH row
@@ -51,7 +52,7 @@ export const getSwapsLimitOrderSecondaryValue = ({
 
   const fiatFromCounter = formatFiatInputAmount(limitPrice, counterFiatRate);
   if (fiatFromCounter && Number(fiatFromCounter) > 0) {
-    return formatCurrency(fiatFromCounter, currency);
+    return formatLimitOrderFiatValue(fiatFromCounter, currency);
   }
 
   return formatCurrency(0, currency, {

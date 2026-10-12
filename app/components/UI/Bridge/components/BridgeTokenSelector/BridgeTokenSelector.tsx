@@ -103,6 +103,12 @@ import { trackTokenListItemClicked } from '../../../Assets/watchlist/utils/track
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
+import {
+  ARC_HEX_CHAIN_ID,
+  isArcTokenUSDC,
+} from '../../../../../enablement/assets/arc';
+import { selectAsset } from '../../../../../selectors/assets/assets-list';
+import { ZERO_ADDRESS } from '../../../../../constants/address';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -293,6 +299,13 @@ export const BridgeTokenSelectorContent: React.FC<
   );
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isRWAEnabled = useSelector(selectRWAEnabledFlag);
+  const arcNativeAsset = useSelector((state: RootState) =>
+    selectAsset(state, {
+      address: ZERO_ADDRESS,
+      chainId: ARC_HEX_CHAIN_ID,
+      isStaked: false,
+    }),
+  );
 
   const { data: watchlistData, isLoading: isWatchlistLoading } =
     useTokenWatchlistQuery();
@@ -911,12 +924,22 @@ export const BridgeTokenSelectorContent: React.FC<
       const tokenDetailsSource = isWatchlistListMode
         ? TokenDetailsSource.SwapWatchlistFilter
         : TokenDetailsSource.Swap;
+      const assetDetailsItem = isArcTokenUSDC(item)
+        ? {
+            ...item,
+            ...arcNativeAsset,
+            address: ZERO_ADDRESS,
+            assetId: ARC_NATIVE_ASSET_ID,
+            caipAssetId: ARC_NATIVE_ASSET_ID,
+            isNative: true,
+          }
+        : item;
 
       // Use push so we always open details for the tapped token.
       // navigate('Asset') can reuse an existing Asset route with stale params.
       navigation.dispatch(
         StackActions.push('Asset', {
-          ...item,
+          ...assetDetailsItem,
           source: tokenDetailsSource,
         }),
       );
@@ -933,7 +956,13 @@ export const BridgeTokenSelectorContent: React.FC<
         },
       );
     },
-    [navigation, enabledChainRanking, isWatchlistListMode, featureId],
+    [
+      arcNativeAsset,
+      navigation,
+      enabledChainRanking,
+      isWatchlistListMode,
+      featureId,
+    ],
   );
 
   const renderToken = useCallback<ListRenderItem<BridgeToken | null>>(

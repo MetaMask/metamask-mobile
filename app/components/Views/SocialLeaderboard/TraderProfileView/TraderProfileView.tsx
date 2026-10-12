@@ -117,7 +117,12 @@ const TabButton: React.FC<TabButtonProps> = ({
   onPress,
   testID,
 }) => (
-  <TouchableOpacity onPress={onPress} testID={testID}>
+  <TouchableOpacity
+    onPress={onPress}
+    testID={testID}
+    accessibilityRole="tab"
+    accessibilityState={{ selected: isActive }}
+  >
     <Box twClassName={`pb-2 ${isActive ? 'border-b-2 border-default' : ''}`}>
       <Text
         variant={TextVariant.BodyMd}
@@ -482,6 +487,7 @@ const TraderProfileView = () => {
                       flexDirection={BoxFlexDirection.Row}
                       alignItems={BoxAlignItems.Center}
                       gap={4}
+                      accessibilityRole="tablist"
                     >
                       <TabButton
                         label={strings(

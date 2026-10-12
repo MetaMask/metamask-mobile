@@ -58,9 +58,12 @@ const NotificationSettingsSection = ({
 
   useEffect(() => {
     if (!isMetamaskNotificationsEnabled) {
-      navigation.dispatch(StackActions.replace(Routes.SETTINGS.NOTIFICATIONS));
+      // Keep the destination pending until notifications are enabled.
+      navigation.dispatch(
+        StackActions.replace(Routes.SETTINGS.NOTIFICATIONS, { section: type }),
+      );
     }
-  }, [isMetamaskNotificationsEnabled, navigation]);
+  }, [isMetamaskNotificationsEnabled, navigation, type]);
 
   if (!isMetamaskNotificationsEnabled) return null;
 

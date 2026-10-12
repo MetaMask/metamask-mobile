@@ -80,6 +80,7 @@ interface QuickBuyRootInnerProps {
   features: QuickBuyFeatures;
   initialTradeMode?: QuickBuyRootProps['initialTradeMode'];
   analyticsContext?: QuickBuyAnalyticsContext;
+  postSwapShare?: boolean;
   children?: React.ReactNode;
 }
 
@@ -89,6 +90,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   features,
   initialTradeMode,
   analyticsContext,
+  postSwapShare,
   children,
 }) => {
   const tw = useTailwind();
@@ -140,11 +142,11 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     });
   }, [analyticsContext, openingTradeMode, target.tokenSymbol, track]);
 
-  useEffect(() => {
-    bottomSheetRef.current?.onOpenBottomSheet(() => {
-      setIsContentReady(true);
-      trackSheetViewed();
-    });
+  // The sheet animates itself open on first layout; calling onOpenBottomSheet
+  // as well restarts the slide-up from the bottom mid-animation.
+  const handleSheetOpened = useCallback(() => {
+    setIsContentReady(true);
+    trackSheetViewed();
   }, [trackSheetViewed]);
 
   // Animate the sheet down (then run the parent's onClose) and flag the content
@@ -176,7 +178,12 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     activeScreen === 'amount' || activeScreen === 'priceImpactConfirm';
 
   return (
-    <BottomSheet ref={bottomSheetRef} onClose={onClose} isFullscreen>
+    <BottomSheet
+      ref={bottomSheetRef}
+      onClose={onClose}
+      onOpen={handleSheetOpened}
+      isFullscreen
+    >
       {isContentReady ? (
         <QuickBuyProvider
           target={target}
@@ -184,6 +191,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           features={features}
           initialTradeMode={openingTradeMode}
           analyticsContext={analyticsContext}
+          postSwapShare={postSwapShare}
           activeScreen={activeScreen}
           setActiveScreen={navigateToScreen}
         >
@@ -223,6 +231,7 @@ const QuickBuyRoot: React.FC<QuickBuyRootProps> = ({
   features = TOP_TRADERS_QUICK_BUY_FEATURES,
   initialTradeMode,
   analyticsContext,
+  postSwapShare,
   children,
 }) => {
   if (!isVisible || !target) {
@@ -236,6 +245,7 @@ const QuickBuyRoot: React.FC<QuickBuyRootProps> = ({
       features={features}
       initialTradeMode={initialTradeMode}
       analyticsContext={analyticsContext}
+      postSwapShare={postSwapShare}
     >
       {children}
     </QuickBuyRootInner>

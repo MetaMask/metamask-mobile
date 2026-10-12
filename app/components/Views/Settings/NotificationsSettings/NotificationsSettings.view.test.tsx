@@ -1,6 +1,6 @@
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 
 import {
   renderComponentViewScreen,
@@ -12,6 +12,10 @@ import NotificationsSettings from './';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
+import { updateBgState } from '../../../../core/redux/slices/engine';
+import { strings } from '../../../../../locales/i18n';
+import NotificationSettingsSection from './NotificationSettingsSection';
+import { createNotificationsSettingsDeeplinkIntent } from '../../../../core/DeeplinkManager/handlers/intent/handleNotificationsSettingsUrl';
 
 const MOCK_NOTIFICATION_PREFERENCES = {
   walletActivity: {
@@ -284,4 +288,74 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
       ).toBeNull();
     });
   });
+
+  it.each([
+    ['wallet-activity', 'wallet_activity_desc'],
+    ['price-alerts', 'price_alerts_desc'],
+  ])(
+    'opens the pending %s deeplink section after enabling notifications',
+    async (section, descriptionKey) => {
+      const intent = createNotificationsSettingsDeeplinkIntent({
+        notificationsSettingsPath: `?section=${section}`,
+      });
+      const targetParams = intent.target.params as {
+        screen: string;
+        params: Record<string, unknown>;
+      };
+      const enableSpy = jest
+        .spyOn(
+          Engine.context.NotificationServicesController,
+          'enableMetamaskNotifications',
+        )
+        .mockResolvedValue(undefined);
+      const engineWithState = Engine as unknown as {
+        state: Record<string, unknown>;
+      };
+      const originalEngineState = engineWithState.state;
+      const { findByTestId, findByText, store } = renderScreenWithRoutes(
+        NotificationSettingsSection as unknown as React.ComponentType,
+        { name: targetParams.screen },
+        [
+          {
+            name: Routes.SETTINGS.NOTIFICATIONS,
+            Component: NotificationsSettings as unknown as React.ComponentType,
+          },
+        ],
+        { state: buildNotificationsState({ notificationsEnabled: false }) },
+        targetParams.params,
+      );
+
+      try {
+        const toggle = await findByTestId(
+          NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE,
+        );
+        expect(toggle).toBeOnTheScreen();
+
+        fireEvent(toggle, 'onValueChange', true);
+        await waitFor(() => expect(enableSpy).toHaveBeenCalledTimes(1));
+        // Mirror the controller update reaching Redux after enabling succeeds.
+        act(() => {
+          engineWithState.state = {
+            ...originalEngineState,
+            NotificationServicesController: {
+              ...store.getState().engine.backgroundState
+                .NotificationServicesController,
+              isNotificationServicesEnabled: true,
+            },
+          };
+          store.dispatch(
+            updateBgState({ key: 'NotificationServicesController' }),
+          );
+        });
+
+        expect(
+          await findByText(
+            strings(`app_settings.notifications_opts.${descriptionKey}`),
+          ),
+        ).toBeOnTheScreen();
+      } finally {
+        engineWithState.state = originalEngineState;
+      }
+    },
+  );
 });
