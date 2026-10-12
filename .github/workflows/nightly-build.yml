@@ -24,11 +24,13 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   ios-exp:
     name: Nightly iOS exp
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/build-and-upload-to-testflight.yml
     with:
       source_branch: main
@@ -42,6 +44,9 @@ jobs:
   ios-rc:
     name: Nightly iOS rc
     needs: [ios-exp]
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/build-and-upload-to-testflight.yml
     with:
       source_branch: main
@@ -53,11 +58,16 @@ jobs:
     secrets: inherit
 
   android-exp-generate:
+    permissions:
+      id-token: write
     uses: ./.github/workflows/generate-build-version.yml
 
   android-exp:
     name: Nightly Android exp
     needs: [android-exp-generate]
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-exp
@@ -70,11 +80,16 @@ jobs:
 
   android-rc-generate:
     needs: [android-exp]
+    permissions:
+      id-token: write
     uses: ./.github/workflows/generate-build-version.yml
 
   android-rc:
     name: Nightly Android rc
     needs: [android-rc-generate]
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-rc

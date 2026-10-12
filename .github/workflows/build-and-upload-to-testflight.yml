@@ -88,15 +88,19 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   generate-build-version:
+    permissions:
+      id-token: write
     uses: ./.github/workflows/generate-build-version.yml
 
   build:
     name: Build iOS (${{ inputs.environment }})
     needs: [generate-build-version]
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/build.yml
     with:
       # dev maps to main-dev-testflight rather than main-dev: same app config, but signed
@@ -112,6 +116,9 @@ jobs:
 
   upload-ios-testflight:
     needs: [build]
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
       environment: ${{ inputs.environment }}

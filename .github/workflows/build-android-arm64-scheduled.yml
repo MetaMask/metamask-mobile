@@ -10,7 +10,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write # required for AWS OIDC role assumption when fetching signing keystores
   actions: read
 
 jobs:
@@ -53,6 +52,10 @@ jobs:
     name: Build arm64 E2E APK
     needs: check-changes
     if: ${{ needs.check-changes.outputs.should-build == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+      actions: read
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: main

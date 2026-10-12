@@ -1,9 +1,7 @@
 name: Merge Previous Release Branches
 
 permissions:
-  pull-requests: write
-  contents: write
-  issues: write
+  contents: read
 
 on:
   create:

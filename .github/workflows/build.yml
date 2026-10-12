@@ -128,7 +128,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   # Load config
@@ -224,6 +223,9 @@ jobs:
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
@@ -257,6 +259,9 @@ jobs:
         (matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg')
       }}
     environment: ${{ needs.prepare.outputs.github_environment }}
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC role assumption for signing certificates
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
       # directly, or a provider set through the repo variables would be ignored.

@@ -28,9 +28,7 @@ on:
         required: false
 
 permissions:
-  id-token: write
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   resolve-bases:
@@ -98,6 +96,10 @@ jobs:
     if: needs.resolve-bases.result == 'success' && needs.resolve-previous-ref.result == 'success'
     name: Create Release Pull Request using Github Tools
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
     steps:
       # Mint a short-lived token via the token-exchange service (OIDC). It needs:
       # - contents: write       → push the release / version-bump / changelog branches

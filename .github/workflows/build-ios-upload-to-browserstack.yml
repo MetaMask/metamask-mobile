@@ -77,8 +77,7 @@ on:
         default: inherit
 
 permissions:
-  contents: write
-  id-token: write
+  contents: read
 
 jobs:
   check-builds-needed:
@@ -106,6 +105,9 @@ jobs:
     name: Performance Build iOS (with-SRP)
     needs: [check-builds-needed]
     if: needs.check-builds-needed.outputs.builds-needed == 'true'
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/build.yml
     with:
       build_name: ${{ inputs.build_variant == 'exp' && 'main-exp-with-srp' || inputs.build_variant == 'rc' && 'main-rc-with-srp' || 'main-e2e-bs-with-srp' }}
@@ -117,6 +119,9 @@ jobs:
     name: Performance Build iOS (without-SRP)
     needs: [check-builds-needed]
     if: needs.check-builds-needed.outputs.builds-needed == 'true'
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/build.yml
     with:
       build_name: ${{ inputs.build_variant == 'exp' && 'main-exp-without-srp' || inputs.build_variant == 'rc' && 'main-rc-without-srp' || 'main-e2e-bs-without-srp' }}

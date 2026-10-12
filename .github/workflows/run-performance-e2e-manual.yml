@@ -61,11 +61,7 @@ on:
         default: ''
 
 permissions:
-  contents: write
-  id-token: write
-  actions: write
-  pull-requests: write
-  statuses: write
+  contents: read
 
 concurrency:
   # Manual runs are isolated by ref and variant so they do not block the
@@ -77,6 +73,12 @@ jobs:
   scheduled-e2e:
     name: Scheduled Performance E2E (e2e)
     if: github.event_name == 'schedule' && github.event.schedule == '0 */6 * * 1-6'
+    permissions:
+      contents: write
+      id-token: write
+      actions: write
+      pull-requests: write
+      statuses: write
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       branch_name: main
@@ -142,6 +144,12 @@ jobs:
     name: Manual Performance E2E (${{ inputs.build_variant }})
     if: github.event_name == 'workflow_dispatch'
     needs: [detect-changes]
+    permissions:
+      contents: write
+      id-token: write
+      actions: write
+      pull-requests: write
+      statuses: write
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       branch_name: ${{ github.ref_name }}

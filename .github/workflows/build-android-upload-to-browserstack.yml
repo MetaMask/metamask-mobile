@@ -108,8 +108,7 @@ on:
         default: inherit
 
 permissions:
-  contents: write
-  id-token: write
+  contents: read
   actions: read
   statuses: read
 
@@ -549,6 +548,9 @@ jobs:
         needs.resolve-fingerprint-reuse.result == 'skipped' ||
         needs.resolve-fingerprint-reuse.outputs.found != 'true'
       )
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/build.yml
     with:
       build_name: ${{ needs.check-builds-needed.outputs.with-srp-build-name }}
@@ -567,6 +569,9 @@ jobs:
         needs.resolve-fingerprint-reuse.result == 'skipped' ||
         needs.resolve-fingerprint-reuse.outputs.found != 'true'
       )
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/build.yml
     with:
       build_name: ${{ needs.check-builds-needed.outputs.without-srp-build-name }}
@@ -612,6 +617,10 @@ jobs:
         build-with-srp,
         build-without-srp,
       ]
+    permissions:
+      contents: read
+      actions: read
+      id-token: write # AWS OIDC role assumption for keystores on the repack path
     if: >-
       always() &&
       !cancelled() &&

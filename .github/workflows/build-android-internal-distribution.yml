@@ -33,12 +33,14 @@ on:
 
 permissions:
   contents: read
-  id-token: write
   actions: read
 
 jobs:
   build:
     name: Build Android (main-prod)
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-prod

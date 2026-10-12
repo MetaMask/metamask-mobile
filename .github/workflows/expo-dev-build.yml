@@ -49,8 +49,7 @@ on:
         default: false
 
 permissions:
-  contents: write
-  id-token: write
+  contents: read
   actions: read
 
 concurrency:
@@ -235,6 +234,9 @@ jobs:
     name: Expo dev build (main-dev-expo)
     needs: [resolve-dev-build]
     if: ${{ needs.resolve-dev-build.outputs.needs-build == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-dev-expo
@@ -246,9 +248,6 @@ jobs:
   record-dev-build:
     name: Record dev build marker
     needs: [resolve-dev-build, build-dev]
-    # Inherits workflow-level permissions (contents: write, actions: read) - no
-    # job-level override, since actions/upload-artifact's exact permission
-    # requirements aren't documented and the workflow-level set is a safe superset.
     if: ${{ !cancelled() && needs.build-dev.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5

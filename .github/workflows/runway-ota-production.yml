@@ -23,7 +23,6 @@ on:
 permissions:
   contents: read
   pull-requests: read
-  id-token: write # required by push-eas-update.yml
 
 jobs:
   resolve-context:
@@ -50,6 +49,9 @@ jobs:
   push-ota:
     name: Push OTA update (production)
     needs: [resolve-context, validate-ota-pr]
+    permissions:
+      contents: read
+      id-token: write # required by push-eas-update.yml
     uses: ./.github/workflows/push-eas-update.yml
     with:
       pr_number: ${{ needs.resolve-context.outputs.pr_number }}

@@ -90,11 +90,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  pull-requests: write
   contents: read
-  actions: write
-  id-token: write
-  statuses: write # build-source-hash fingerprint status consumed by the repack fast path
 
 jobs:
   validate-and-find-pr:
@@ -194,6 +190,8 @@ jobs:
 
   generate_rc_build_version:
     name: Generate RC build version
+    permissions:
+      id-token: write
     uses: ./.github/workflows/generate-build-version.yml
     needs: validate-and-find-pr
     if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
@@ -301,6 +299,9 @@ jobs:
   # path skips the build on an OTA_VERSION bump exactly like the native path does.
   resolve-ota-context:
     name: Resolve OTA context (repack path)
+    permissions:
+      contents: read
+      pull-requests: read
     uses: ./.github/workflows/runway-ota-resolve-context.yml
     needs: validate-and-find-pr
     if: >-
@@ -315,6 +316,10 @@ jobs:
   # donor. Skipped when the release PR has 'repack-rc-disabled', or when no donor matches.
   repack-ios-rc-build:
     name: Repack iOS RC Build
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
     uses: ./.github/workflows/build-rc-repack.yml
     needs:
       - validate-and-find-pr
@@ -340,6 +345,10 @@ jobs:
 
   repack-android-rc-build:
     name: Repack Android RC Build
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
     uses: ./.github/workflows/build-rc-repack.yml
     needs:
       - validate-and-find-pr
@@ -429,6 +438,10 @@ jobs:
   # auto-rc-ota-build-core.yml).
   trigger-ios-rc-build:
     name: Trigger iOS RC Build
+    permissions:
+      contents: read
+      pull-requests: read
+      id-token: write
     uses: ./.github/workflows/auto-rc-ota-build-core.yml
     needs:
       - validate-and-find-pr
@@ -460,6 +473,10 @@ jobs:
 
   trigger-android-rc-build:
     name: Trigger Android RC Build
+    permissions:
+      contents: read
+      pull-requests: read
+      id-token: write
     uses: ./.github/workflows/auto-rc-ota-build-core.yml
     needs:
       - validate-and-find-pr
@@ -565,6 +582,9 @@ jobs:
       always() &&
       (needs.trigger-ios-rc-build.result == 'success' || needs.repack-ios-rc-build.result == 'success') &&
       (needs.trigger-android-rc-build.result == 'success' || needs.repack-android-rc-build.result == 'success')
+    permissions:
+      actions: read
+      contents: read
     uses: ./.github/workflows/slack-rc-notification.yml
     with:
       source_branch: ${{ needs.validate-and-find-pr.outputs.branch-name }}

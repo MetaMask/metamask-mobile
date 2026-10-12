@@ -34,7 +34,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   compute-version:
@@ -70,11 +69,16 @@ jobs:
   generate-build-version:
     needs: [compute-version]
     if: needs.compute-version.outputs.bumped == 'true'
+    permissions:
+      id-token: write
     uses: ./.github/workflows/generate-build-version.yml
 
   build:
     name: Build iOS (exp)
     needs: [compute-version, generate-build-version]
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-exp
@@ -86,6 +90,9 @@ jobs:
 
   upload-ios-testflight:
     needs: [compute-version, build]
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
       environment: exp

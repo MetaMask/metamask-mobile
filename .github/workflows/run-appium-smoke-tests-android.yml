@@ -84,10 +84,6 @@ on:
 
 permissions:
   contents: read
-  checks: write
-  # write: nested prime workflow saves golden AVD via actions/cache.
-  actions: write
-  pull-requests: read
 
 jobs:
   compute-matrix:
@@ -152,6 +148,9 @@ jobs:
   # emulator boot mode `auto` then falls back to the historical cold boot.
   prime-android-emulator-snapshot:
     if: ${{ !cancelled() }}
+    permissions:
+      contents: read
+      actions: write # saves the golden AVD via actions/cache
     uses: ./.github/workflows/prime-appium-e2e-android-emulator.yml
     with:
       runner_provider: ${{ inputs.runner_provider }}
@@ -163,6 +162,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
+    permissions:
+      contents: read
+      checks: write
+      actions: read
+      pull-requests: read
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
       test-suite-name: appium-${{ matrix.slug }}-android-smoke-${{ matrix.split }}

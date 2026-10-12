@@ -67,7 +67,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   validate-inputs:
@@ -85,11 +84,16 @@ jobs:
 
   generate-build-version:
     needs: [validate-inputs]
+    permissions:
+      id-token: write
     uses: ./.github/workflows/generate-build-version.yml
 
   build:
     name: Build Android (${{ inputs.environment }})
     needs: [generate-build-version]
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-${{ inputs.environment }}

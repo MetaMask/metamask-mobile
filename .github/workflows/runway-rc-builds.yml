@@ -35,17 +35,20 @@ on:
 permissions:
   contents: read
   pull-requests: read
-  actions: write
-  id-token: write # required by build.yml
 
 jobs:
   generate-build-version:
     name: Generate build version
+    permissions:
+      id-token: write
     uses: ./.github/workflows/generate-build-version.yml
 
   build:
     name: Build iOS + Android (main-rc)
     needs: generate-build-version
+    permissions:
+      contents: read
+      id-token: write # required by build.yml
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-rc
@@ -62,6 +65,9 @@ jobs:
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: build
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
       environment: rc
@@ -78,6 +84,9 @@ jobs:
     name: Slack RC Notification
     needs: build
     if: success()
+    permissions:
+      actions: read
+      contents: read
     uses: ./.github/workflows/slack-rc-notification.yml
     with:
       source_branch: ${{ inputs.source_branch || github.ref_name }}
