@@ -11,7 +11,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Switch } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
@@ -25,11 +25,25 @@ const ManageProfileTradingActivityView: React.FC = () => {
   const { profile: localProfile } = useMyProfile();
   const { isControllerBacked, profile, updateProfile } = useProfileController();
   const [isUpdating, setIsUpdating] = useState(false);
+  const [optimisticTradingActivity, setOptimisticTradingActivity] = useState<
+    boolean | undefined
+  >();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const isTradingActivityPublic = isControllerBacked
+  const controllerTradingActivityPublic = isControllerBacked
     ? profile?.tradingPrivacy === 'public'
     : (localProfile?.shareTradingActivity ?? true);
+  const isTradingActivityPublic =
+    optimisticTradingActivity ?? controllerTradingActivityPublic;
+
+  useEffect(() => {
+    if (
+      optimisticTradingActivity !== undefined &&
+      controllerTradingActivityPublic === optimisticTradingActivity
+    ) {
+      setOptimisticTradingActivity(undefined);
+    }
+  }, [controllerTradingActivityPublic, optimisticTradingActivity]);
 
   const handleTradingActivityChange = useCallback(
     async (value: boolean): Promise<void> => {
@@ -37,6 +51,7 @@ const ManageProfileTradingActivityView: React.FC = () => {
         return;
       }
 
+      setOptimisticTradingActivity(value);
       setIsUpdating(true);
       setErrorMessage(null);
 
@@ -45,6 +60,7 @@ const ManageProfileTradingActivityView: React.FC = () => {
           trading_privacy: value ? 'public' : 'private',
         });
       } catch {
+        setOptimisticTradingActivity(undefined);
         setErrorMessage(
           strings('social_leaderboard.manage_profile.save_error'),
         );

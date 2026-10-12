@@ -88,5 +88,8 @@ describe('ManageProfileTradingActivityView', () => {
     expect(updateProfile).toHaveBeenCalledWith({
       trading_privacy: 'private',
     });
+    expect(
+      screen.getByTestId(ManageProfileTradingActivitySelectorsIDs.SWITCH),
+    ).toHaveProp('value', false);
   });
 });
