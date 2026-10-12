@@ -601,4 +601,23 @@ describe('depositWallet', () => {
       expect.objectContaining({ method: 'GET' }),
     );
   });
+
+  it('throws contextual error when positions balance allowance sync fails', async () => {
+    mockFetch.mockResolvedValue(mockResponse({ error: 'not allowed' }, false));
+
+    await expect(
+      syncDepositWalletPositionBalanceAllowance({
+        protocol: POLYMARKET_POSITIONS_PROTOCOL,
+        signerAddress: ownerAddress,
+        apiKey: {
+          apiKey: 'api-key',
+          secret: 'secret',
+          passphrase: 'passphrase',
+        },
+        tokenId: '1234567890',
+      }),
+    ).rejects.toThrow(
+      'Failed to sync deposit wallet position balance allowance: 500 {"error":"not allowed"}',
+    );
+  });
 });
