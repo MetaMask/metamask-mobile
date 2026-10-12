@@ -163,4 +163,33 @@ describe('MfaSettings', () => {
 
     expect(getByTestId(MfaSettingsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
+
+  it('offers to set up a first passkey', async () => {
+    const { getByTestId } = renderSettings();
+
+    expect(
+      getByTestId(MfaSettingsSelectorsIDs.PASSKEY_BUTTON),
+    ).toHaveTextContent('Set up');
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaSettingsSelectorsIDs.PASSKEY_BUTTON));
+    });
+    expect(mockStartMfaFlow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request: { kind: 'enroll', method: 'passkey' },
+        reason: { operation: 'settings.addPasskey' },
+      }),
+    );
+  });
+
+  it('counts the passkeys and offers to add another', () => {
+    const { getByText, getByTestId } = renderSettings([
+      { type: 'passkey', status: 'active' },
+      { type: 'passkey', status: 'active' },
+    ] as EnrolledCredential[]);
+
+    expect(getByText('2 added')).toBeOnTheScreen();
+    expect(
+      getByTestId(MfaSettingsSelectorsIDs.PASSKEY_BUTTON),
+    ).toHaveTextContent('Add another');
+  });
 });

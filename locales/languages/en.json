@@ -8226,7 +8226,9 @@
       "email_linked": "Linked to your sign-in",
       "email_pending": "Setup not finished",
       "set_up": "Set up",
-      "finish_setup": "Finish setup"
+      "finish_setup": "Finish setup",
+      "passkey_count": "{{count}} added",
+      "add_another": "Add another"
     }
   },
   "media_player": {
