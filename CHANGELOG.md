@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added an option to duplicate completed recurring orders (#36660)
 - Added the fee token icon and network badge to MetaMask Pay network fees (#36866)
 - Added percentage-based quick amounts to Quick Buy and Sell, a larger amount display, and available fiat balances when selling (#37048)
+- Added the ability to send unconverted mUSD from a Money Account to an external address (#37470)
 
 ### Changed
 
@@ -64,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated the Pro Hub membership screen to show plan and payment details from the user's subscription (#36348)
 - Updated Basic Functionality migration copy and layout for the social login sheet and mixed-settings toast (#36849)
 - Updated Scale order warnings to remove the taker-fee mention when the full price range crosses the current price (#37109)
+- Increased keyring vault PBKDF2 iterations to 600,000 (#37477)
 
 ### Removed
 
@@ -126,6 +128,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Predict deposit and withdrawal failures when gas-station fee tokens are unavailable (#36773)
 - Fixed an issue that could prevent social-login users from restoring their wallet on a new device (#36847)
 - Fixed identity verification reusing the previous wallet's email after a wallet reset without closing the app (#36340)
+- Fixed Perps Pro order form inputs flashing or losing focus on Android (#37471)
 
 ## [8.14.0]
 
