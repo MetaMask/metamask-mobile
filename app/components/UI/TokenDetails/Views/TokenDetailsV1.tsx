@@ -44,6 +44,7 @@ import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
+import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Price from '../../AssetOverview/Price/Price';
 import PriceChartContext, {
@@ -349,6 +350,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const { activeTab, activateTab, mountedTabs, swipeGesture } =
     useTokenDetailsV1Tabs({ onTabChange: clampScrollToTabBar });
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const isMemecoinTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
 
   const renderTabPage = useCallback(
     (tab: TokenDetailsV1TabKey) => {
@@ -568,7 +570,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           currentTokenBalance={balance}
           hasTokenBalance={Boolean(balance) && balance !== '0'}
           sourcePage="TokenDetailsView"
-          showPositionLine={Boolean(socialEnabled && caip19AssetId)}
+          showPositionLine={Boolean(
+            isMemecoinTdpEnabled && socialEnabled && caip19AssetId,
+          )}
         />
 
         {/* Both sheets sit outside the ScrollView on purpose: the design

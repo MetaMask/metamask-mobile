@@ -759,10 +759,27 @@ describe('TokenDetails', () => {
       expect(queryByTestId('token-details-position-line')).toBeNull();
     });
 
-    it('shows the position line when the social feed is on', () => {
+    it('hides the position line when the social feed is on and the memecoin flag is off', () => {
       const previous = mockUseSelector.getMockImplementation();
       mockUseSelector.mockImplementation((selector: unknown) => {
         if (selector === selectSocialLeaderboardEnabled) {
+          return true;
+        }
+        return previous?.(selector);
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(queryByTestId('token-details-position-line')).toBeNull();
+    });
+
+    it('shows the position line when the social feed and the memecoin flag are on', () => {
+      const previous = mockUseSelector.getMockImplementation();
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSocialLeaderboardEnabled) {
+          return true;
+        }
+        if (selector === selectAssetsMemecoinTdpV1Enabled) {
           return true;
         }
         return previous?.(selector);

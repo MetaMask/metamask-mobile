@@ -29,6 +29,7 @@ import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
 import { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSocialFeed } from '../../SocialFeed';
+import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
 const mockGoBack = jest.fn();
@@ -677,13 +678,39 @@ describe('TokenDetailsV1', () => {
     ]);
   });
 
-  it('shows the position line on the sticky footer when the social feed is on', () => {
+  it('hides the position line when the social feed is on and the memecoin flag is off', () => {
     const { useSelector } = jest.requireMock('react-redux') as {
       useSelector: jest.Mock;
     };
     useSelector.mockImplementation((selector: unknown) =>
       selector === selectSocialLeaderboardEnabled ? true : undefined,
     );
+
+    render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps.at(-1)).toEqual(
+      expect.objectContaining({ showPositionLine: false }),
+    );
+  });
+
+  it('shows the position line on the sticky footer when the social feed and memecoin flag are on', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectSocialLeaderboardEnabled) {
+        return true;
+      }
+      if (selector === selectAssetsMemecoinTdpV1Enabled) {
+        return true;
+      }
+      return undefined;
+    });
 
     render(
       <TokenDetailsV1

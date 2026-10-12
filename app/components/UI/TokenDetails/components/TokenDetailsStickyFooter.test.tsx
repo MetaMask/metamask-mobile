@@ -7,6 +7,7 @@ import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
+import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { strings } from '../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
@@ -180,7 +181,22 @@ describe('TokenDetailsStickyFooter', () => {
       expect(queryByTestId('token-details-position-line')).toBeNull();
     });
 
-    it('shows the position line when the page asks for it', () => {
+    it('hides the position line when the memecoin token details flag is off', () => {
+      const { queryByTestId } = render(
+        <TokenDetailsStickyFooter {...defaultProps} showPositionLine />,
+      );
+
+      expect(queryByTestId('token-details-position-line')).toBeNull();
+    });
+
+    it('shows the position line when the page asks for it and the memecoin flag is on', () => {
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectAssetsMemecoinTdpV1Enabled) {
+          return true;
+        }
+        return undefined;
+      });
+
       const { getByTestId } = render(
         <TokenDetailsStickyFooter {...defaultProps} showPositionLine />,
       );
