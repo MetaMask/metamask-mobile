@@ -1,10 +1,12 @@
 import {
+  POLYMARKET_POSITIONS_PROTOCOL,
   POLYMARKET_V2_PROTOCOL,
   type PolymarketProtocolDefinition,
 } from '../protocol/definitions';
 import type { SafeTransaction } from '../safe/types';
 import { compileRequirementTransactions } from './compileRequirementTransactions';
 import { inspectMissingRequirements } from './inspectMissingRequirements';
+import { getPositionsAllowanceRequirements } from './positionsAllowanceRequirements';
 import {
   filterDepositWalletUnsupportedRequirements,
   getActiveV2AllowanceRequirements,
@@ -32,6 +34,31 @@ export async function planDepositWalletPreflight({
   protocol?: PolymarketProtocolDefinition;
 }): Promise<DepositWalletPreflightPlan> {
   const requirements = getDepositWalletAllowanceRequirements(protocol);
+  const missingRequirements = await inspectMissingRequirements({
+    address: walletAddress,
+    requirements,
+  });
+
+  return {
+    missingRequirements,
+    transactions: compileRequirementTransactions(missingRequirements),
+  };
+}
+
+/**
+ * The positions-protocol counterpart of `planDepositWalletPreflight`,
+ * selected by the Gamma market version. Mirrors it with the positions
+ * requirement builders; the deposit-wallet filter is protocol-neutral and
+ * applies unchanged.
+ */
+export async function planPositionsDepositWalletPreflight({
+  walletAddress,
+}: {
+  walletAddress: string;
+}): Promise<DepositWalletPreflightPlan> {
+  const requirements = filterDepositWalletUnsupportedRequirements(
+    getPositionsAllowanceRequirements(POLYMARKET_POSITIONS_PROTOCOL),
+  );
   const missingRequirements = await inspectMissingRequirements({
     address: walletAddress,
     requirements,

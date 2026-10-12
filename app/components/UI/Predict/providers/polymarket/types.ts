@@ -153,6 +153,12 @@ export interface PolymarketApiMarket {
   umaResolutionStatus: string;
   /** Gamma protocol version. `v2` is Protocol V2. A missing value is CTF. */
   version?: string;
+  /**
+   * JSON-encoded array of Protocol V2 outcome token ids (decimal strings),
+   * indexed like `clobTokenIds`. Present on v2 markets; both fields can be
+   * present — the market version decides which field to use.
+   */
+  positionIds?: string;
   line?: number;
   cryptoMarketConfig?: {
     twapEnabled?: boolean;

@@ -30,6 +30,7 @@ import {
   requestDepositWalletCreate,
   resolveDepositWalletAddress,
   syncDepositWalletCollateralBalanceAllowance,
+  syncDepositWalletPositionBalanceAllowance,
   toDepositWalletCalls,
   waitForDepositWalletDeployed,
   waitForDepositWalletTransaction,
@@ -79,9 +80,15 @@ import {
 } from './preflight/claim';
 import { buildDepositMaintenanceTransaction } from './preflight/deposit';
 import type { SignedSafeExecution } from './preflight/core';
-import { planDepositWalletPreflight } from './preflight/depositWallet';
+import {
+  planDepositWalletPreflight,
+  planPositionsDepositWalletPreflight,
+} from './preflight/depositWallet';
 import { buildLegacySafeMigrationSweepTransaction } from './preflight/legacySafeMigration';
-import { buildTradeAllowancesTx } from './preflight/trade';
+import {
+  buildPositionsTradeAllowancesTx,
+  buildTradeAllowancesTx,
+} from './preflight/trade';
 import { buildWithdrawTransaction } from './preflight/withdraw';
 import {
   generateTransferData,
@@ -183,6 +190,7 @@ jest.mock('./depositWallet', () => ({
   requestDepositWalletCreate: jest.fn(),
   resolveDepositWalletAddress: jest.fn(),
   syncDepositWalletCollateralBalanceAllowance: jest.fn(),
+  syncDepositWalletPositionBalanceAllowance: jest.fn(),
   toDepositWalletCalls: jest.fn(),
   waitForDepositWalletDeployed: jest.fn(),
   waitForDepositWalletTransaction: jest.fn(),
@@ -199,6 +207,7 @@ jest.mock('./preflight/deposit', () => ({
 
 jest.mock('./preflight/depositWallet', () => ({
   planDepositWalletPreflight: jest.fn(),
+  planPositionsDepositWalletPreflight: jest.fn(),
 }));
 
 jest.mock('./preflight/legacySafeMigration', () => ({
@@ -206,6 +215,7 @@ jest.mock('./preflight/legacySafeMigration', () => ({
 }));
 
 jest.mock('./preflight/trade', () => ({
+  buildPositionsTradeAllowancesTx: jest.fn(),
   buildTradeAllowancesTx: jest.fn(),
 }));
 
@@ -272,6 +282,12 @@ const mockBuildDepositMaintenanceTransaction = jest.mocked(
   buildDepositMaintenanceTransaction,
 );
 const mockPlanDepositWalletPreflight = jest.mocked(planDepositWalletPreflight);
+const mockPlanPositionsDepositWalletPreflight = jest.mocked(
+  planPositionsDepositWalletPreflight,
+);
+const mockSyncDepositWalletPositionBalanceAllowance = jest.mocked(
+  syncDepositWalletPositionBalanceAllowance,
+);
 const mockBuildLegacySafeMigrationSweepTransaction = jest.mocked(
   buildLegacySafeMigrationSweepTransaction,
 );
@@ -287,6 +303,9 @@ const mockWaitForDepositWalletTransaction = jest.mocked(
   waitForDepositWalletTransaction,
 );
 const mockBuildTradeAllowancesTx = jest.mocked(buildTradeAllowancesTx);
+const mockBuildPositionsTradeAllowancesTx = jest.mocked(
+  buildPositionsTradeAllowancesTx,
+);
 const mockBuildWithdrawTransaction = jest.mocked(buildWithdrawTransaction);
 
 const depositWalletAddress = '0x2222222222222222222222222222222222222222';
@@ -1047,6 +1066,15 @@ describe('PolymarketProvider', () => {
       to: '0x9999999999999999999999999999999999999999',
       data: '0xallowances',
     });
+    mockBuildPositionsTradeAllowancesTx.mockResolvedValue({
+      to: '0x8888888888888888888888888888888888888888',
+      data: '0xpositionsAllowances',
+    });
+    mockPlanPositionsDepositWalletPreflight.mockResolvedValue({
+      missingRequirements: [],
+      transactions: [],
+    });
+    mockSyncDepositWalletPositionBalanceAllowance.mockResolvedValue(undefined);
     mockGenerateTransferData.mockReturnValue('0xtransferData');
     mockIsSmartContractAddress.mockResolvedValue(true);
     mockGetDeployProxyWalletTransaction.mockResolvedValue({
@@ -1757,6 +1785,89 @@ describe('PolymarketProvider', () => {
     );
   });
 
+  it('routes v2 market buys through the positions protocol path', async () => {
+    const provider = createProvider();
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: { ...basePreview, marketVersion: 'v2' },
+    });
+
+    expect(result.success).toBe(true);
+    // The one call is the optimistic position update's market fetch — the
+    // version resolver resolved the threaded marketVersion without fetching.
+    expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(1);
+    expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
+    expect(mockBuildPositionsTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: expect.objectContaining({ key: 'positions' }),
+        allowancesTx: {
+          to: '0x8888888888888888888888888888888888888888',
+          data: '0xpositionsAllowances',
+        },
+      }),
+    );
+  });
+
+  it('routes v1 market buys through the CTF path without resolving the version from Gamma', async () => {
+    const provider = createProvider();
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: { ...basePreview, marketVersion: 'v1' },
+    });
+
+    expect(result.success).toBe(true);
+    // The one call is the optimistic position update's market fetch — the
+    // version resolver resolved the threaded marketVersion without fetching.
+    expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(1);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+    expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
+  });
+
+  it('resolves the market version from Gamma for sells and routes v2 positions', async () => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue({
+      id: 'market-1',
+      markets: [{ conditionId: basePreview.outcomeId, version: 'v2' }],
+    } as never);
+    const provider = createProvider();
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: { ...basePreview, side: Side.SELL },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledWith({
+      marketId: 'market-1',
+    });
+    expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
+    expect(mockBuildPositionsTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+  });
+
+  it('falls back to the CTF path when the sell market version cannot be resolved', async () => {
+    mockGetMarketDetailsFromGammaApi.mockRejectedValue(new Error('Gamma down'));
+    const provider = createProvider();
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: { ...basePreview, side: Side.SELL },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+    expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
+  });
+
   it('submits deposit-wallet orders with POLY_1271 payload and no Safe trade preflight fields', async () => {
     const innerSignature = `0x${'11'.repeat(65)}`;
     signer.signTypedMessage.mockResolvedValueOnce(innerSignature);
@@ -1879,6 +1990,66 @@ describe('PolymarketProvider', () => {
     expect(
       mockExecuteDepositWalletBatch.mock.invocationCallOrder[0],
     ).toBeLessThan(mockSubmitProtocolClobOrder.mock.invocationCallOrder[0]);
+  });
+
+  it('syncs the CONDITIONAL-V2 position balance for deposit-wallet v2 sells', async () => {
+    const repairTransaction = {
+      to: '0x4444444444444444444444444444444444444444',
+      data: '0xrepair',
+      operation: OperationType.Call,
+      value: '0',
+    };
+    mockIsSmartContractAddress.mockResolvedValue(false);
+    mockPlanPositionsDepositWalletPreflight.mockResolvedValue({
+      missingRequirements: [
+        {
+          type: 'erc20-allowance',
+          tokenAddress: repairTransaction.to,
+          spender: '0x5555555555555555555555555555555555555555',
+        },
+      ],
+      transactions: [repairTransaction],
+    });
+
+    const result = await createProvider().placeOrder({
+      signer,
+      preview: { ...basePreview, marketVersion: 'v2', side: Side.SELL },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockPlanPositionsDepositWalletPreflight).toHaveBeenCalledWith({
+      walletAddress: depositWalletAddress,
+    });
+    expect(mockSyncDepositWalletPositionBalanceAllowance).toHaveBeenCalledWith({
+      protocol: expect.objectContaining({ key: 'positions' }),
+      signerAddress: signer.address,
+      apiKey: expect.objectContaining({ apiKey: 'api-key' }),
+      tokenId: '123',
+    });
+    expect(
+      mockSyncDepositWalletCollateralBalanceAllowance,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('keeps the collateral sync for deposit-wallet v2 buys', async () => {
+    mockIsSmartContractAddress.mockResolvedValue(false);
+
+    const result = await createProvider().placeOrder({
+      signer,
+      preview: { ...basePreview, marketVersion: 'v2' },
+    });
+
+    expect(result.success).toBe(true);
+    expect(
+      mockSyncDepositWalletPositionBalanceAllowance,
+    ).not.toHaveBeenCalled();
+    expect(
+      mockSyncDepositWalletCollateralBalanceAllowance,
+    ).toHaveBeenCalledWith({
+      protocol: expect.objectContaining({ key: 'v2' }),
+      signerAddress: signer.address,
+      apiKey: expect.objectContaining({ apiKey: 'api-key' }),
+    });
   });
 
   it('passes legacy Safe migration sweep as allowancesTx for deposit-wallet orders', async () => {

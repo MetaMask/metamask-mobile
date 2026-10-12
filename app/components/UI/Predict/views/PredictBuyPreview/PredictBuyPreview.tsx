@@ -336,10 +336,11 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     predictBuyPreviewOrderInitiatedRef.current = true;
     await placeOrder({
       analyticsProperties,
-      preview,
+      preview: { ...preview, marketVersion: outcome.version },
     });
   }, [
     preview,
+    outcome,
     isBelowMinimum,
     isInsufficientBalance,
     placeOrder,

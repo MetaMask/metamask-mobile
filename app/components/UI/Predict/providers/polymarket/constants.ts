@@ -10,6 +10,14 @@ import {
 
 export const POLYMARKET_PROVIDER_ID = 'polymarket';
 
+/**
+ * Gamma market version for Protocol V2 (PositionManager) markets. Every
+ * other value — "v1", missing, or unknown — stays on the CTF path. This is
+ * the Gamma version axis, not the EIP-712 domain version and not the CLOB
+ * deployment version.
+ */
+export const V2_MARKET_VERSION = 'v2';
+
 export const POLYMARKET_TERMS_URL = 'https://polymarket.com/tos';
 
 export const DEFAULT_CLOB_BASE_URL = 'https://clob.polymarket.com';
