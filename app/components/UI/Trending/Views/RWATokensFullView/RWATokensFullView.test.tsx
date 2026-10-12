@@ -100,12 +100,29 @@ const arrangeMocks = () => {
 describe('RWATokensFullView', () => {
   let mocks: ReturnType<typeof arrangeMocks>;
 
-  const renderRWAFullView = () =>
+  const renderRWAFullView = (showRobinhoodRwa = false) =>
     renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
         <RWATokensFullView />
       </SafeAreaProvider>,
-      { state: mockState },
+      {
+        state: {
+          ...mockState,
+          engine: {
+            backgroundState: {
+              ...mockState.engine.backgroundState,
+              RemoteFeatureFlagController: {
+                ...mockState.engine.backgroundState.RemoteFeatureFlagController,
+                remoteFeatureFlags: {
+                  ...mockState.engine.backgroundState
+                    .RemoteFeatureFlagController.remoteFeatureFlags,
+                  ASSETS4098ShowRobinhoodRwa: showRobinhoodRwa,
+                },
+              },
+            },
+          },
+        },
+      },
       false,
     );
 
@@ -201,8 +218,21 @@ describe('RWATokensFullView', () => {
     expect(mocks.mockRefetch).toHaveBeenCalledTimes(1);
   });
 
-  it.skip('opens network bottom sheet when button is pressed', async () => {
-    const { getByTestId, getByText } = renderRWAFullView();
+  it('hides Robinhood Chain in the network filter when the flag is off', async () => {
+    const { getByTestId, queryByText } = renderRWAFullView(false);
+
+    await userEvent.press(getByTestId('all-networks-button'));
+
+    expect(
+      getByTestId('trending-token-network-bottom-sheet'),
+    ).toBeOnTheScreen();
+    expect(queryByText('Robinhood Chain')).toBeNull();
+    expect(queryByText('Ethereum')).toBeOnTheScreen();
+    expect(queryByText('BNB Chain')).toBeOnTheScreen();
+  });
+
+  it('opens network bottom sheet with Robinhood Chain when the flag is on', async () => {
+    const { getByTestId, getByText } = renderRWAFullView(true);
 
     const networkButton = getByTestId('all-networks-button');
     await userEvent.press(networkButton);

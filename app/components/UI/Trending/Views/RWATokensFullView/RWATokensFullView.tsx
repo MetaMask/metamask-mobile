@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingQuickBuy from '../../components/TrendingQuickBuy/TrendingQuickBuy';
 import { strings } from '../../../../../../locales/i18n';
@@ -9,7 +10,8 @@ import {
 import { useRwaTokens } from '../../hooks/useRwaTokens/useRwaTokens';
 import { useTokenListFilters } from '../../hooks/useTokenListFilters/useTokenListFilters';
 import TokenListPageLayout from '../../components/TokenListPageLayout/TokenListPageLayout';
-import { RWA_NETWORKS_LIST } from '../../utils/trendingNetworksList';
+import { getRwaNetworksList } from '../../utils/trendingNetworksList';
+import { selectShowRobinhoodRwa } from '../../../../../selectors/featureFlagController/rwa';
 import { useABTest } from '../../../../../hooks/useABTest';
 import {
   EXPLORE_QUICK_BUY_AB_KEY,
@@ -19,6 +21,11 @@ import {
 import { useQuickBuySearchKeyboard } from '../../hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 
 const RWATokensFullView = () => {
+  const showRobinhoodRwa = useSelector(selectShowRobinhoodRwa);
+  const allowedNetworks = useMemo(
+    () => getRwaNetworksList(showRobinhoodRwa),
+    [showRobinhoodRwa],
+  );
   const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
     null,
   );
@@ -76,7 +83,7 @@ const RWATokensFullView = () => {
       searchResults={searchResults}
       isLoading={isLoading}
       onRefresh={handleRefresh}
-      allowedNetworks={RWA_NETWORKS_LIST}
+      allowedNetworks={allowedNetworks}
       onLoadMore={loadMore}
       isLoadingMore={isLoadingMore}
       onQuickTrade={

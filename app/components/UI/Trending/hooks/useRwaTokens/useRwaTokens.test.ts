@@ -5,7 +5,11 @@ import {
   PriceChangeOption,
   SortDirection,
 } from '../../components/TrendingTokensBottomSheet';
-import { RWA_CHAIN_IDS } from '../../utils/trendingNetworksList';
+import {
+  getRwaChainIds,
+  RWA_CHAIN_IDS,
+} from '../../utils/trendingNetworksList';
+import initialRootState from '../../../../../util/test/initial-root-state';
 import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { act, waitFor } from '@testing-library/react-native';
 
@@ -122,6 +126,32 @@ describe('useRwaTokens', () => {
     await waitFor(() => {
       expect(mockFetchRwas).toHaveBeenCalledWith(
         expect.objectContaining({ limit: 3 }),
+      );
+    });
+  });
+
+  it('includes Robinhood Chain when ASSETS4098ShowRobinhoodRwa is on', async () => {
+    renderHookWithProvider(() => useRwaTokens(), {
+      state: {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...initialRootState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ASSETS4098ShowRobinhoodRwa: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    await waitFor(() => {
+      expect(mockFetchRwas).toHaveBeenCalledWith(
+        expect.objectContaining({ chainIds: getRwaChainIds(true) }),
       );
     });
   });

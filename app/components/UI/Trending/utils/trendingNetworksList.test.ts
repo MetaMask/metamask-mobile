@@ -1,5 +1,7 @@
 import { NetworkToCaipChainId } from '../../NetworkMultiSelector/NetworkMultiSelector.constants';
 import {
+  getRwaChainIds,
+  getRwaNetworksList,
   RWA_CHAIN_IDS,
   RWA_NETWORKS_LIST,
   TRENDING_NETWORKS_LIST,
@@ -25,13 +27,25 @@ describe('TRENDING_NETWORKS_LIST', () => {
 });
 
 describe('RWA networks', () => {
-  it.skip('supports Ethereum, BNB Chain, and Robinhood Chain', () => {
+  it('supports Ethereum and BNB Chain when Robinhood is hidden', () => {
     expect(RWA_CHAIN_IDS).toEqual([
+      NetworkToCaipChainId.ETHEREUM,
+      NetworkToCaipChainId.BNB,
+    ]);
+    expect(getRwaChainIds(false)).toEqual(RWA_CHAIN_IDS);
+    expect(RWA_NETWORKS_LIST.map((network) => network.name)).toEqual([
+      'Ethereum',
+      'BNB Chain',
+    ]);
+  });
+
+  it('adds Robinhood Chain when ASSETS4098ShowRobinhoodRwa is on', () => {
+    expect(getRwaChainIds(true)).toEqual([
       NetworkToCaipChainId.ETHEREUM,
       NetworkToCaipChainId.BNB,
       NetworkToCaipChainId.ROBINHOOD,
     ]);
-    expect(RWA_NETWORKS_LIST.map((network) => network.name)).toEqual([
+    expect(getRwaNetworksList(true).map((network) => network.name)).toEqual([
       'Ethereum',
       'BNB Chain',
       'Robinhood Chain',
