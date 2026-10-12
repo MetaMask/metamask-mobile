@@ -9767,6 +9767,7 @@
     "orders": {
       "tabs": {
         "open_orders": "Open orders",
+        "open_orders_with_count": "Open orders ({{count}})",
         "history": "History"
       },
       "empty": {

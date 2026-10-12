@@ -110,37 +110,40 @@ function OrdersNetworkFilter({
   );
 }
 
-function OrdersTabPanel<T>({
-  items,
-  renderItem,
-  keyExtractor,
-  getItemChainId,
-  emptyDescription,
-  isLoading,
-  isError,
-  isFetchingNextPage,
-  onRetry,
-}: {
-  items: T[];
-  renderItem?: (item: T, index: number) => React.ReactElement;
-  keyExtractor?: (item: T, index: number) => string;
-  getItemChainId?: (item: T) => Hex | CaipChainId | undefined;
-  emptyDescription: string;
-  isLoading?: boolean;
-  isError?: boolean;
-  isFetchingNextPage?: boolean;
-  onRetry?: () => void;
-}) {
+function useNetworkFilteredItems<T>(
+  items: T[],
+  getItemChainId?: (item: T) => Hex | CaipChainId | undefined,
+): T[] {
   const selectedChainId = useSelector(selectOrdersNetworkFilter);
 
-  const filteredItems = useMemo(
+  return useMemo(
     () =>
       items.filter((item) =>
         itemMatchesNetworkFilter(item, selectedChainId, getItemChainId),
       ),
     [getItemChainId, items, selectedChainId],
   );
+}
 
+function OrdersTabPanel<T>({
+  filteredItems,
+  renderItem,
+  keyExtractor,
+  emptyDescription,
+  isLoading,
+  isError,
+  isFetchingNextPage,
+  onRetry,
+}: {
+  filteredItems: T[];
+  renderItem?: (item: T, index: number) => React.ReactElement;
+  keyExtractor?: (item: T, index: number) => string;
+  emptyDescription: string;
+  isLoading?: boolean;
+  isError?: boolean;
+  isFetchingNextPage?: boolean;
+  onRetry?: () => void;
+}) {
   if (isLoading && filteredItems.length === 0) {
     return (
       <Box alignItems={BoxAlignItems.Center} paddingVertical={6}>
@@ -204,11 +207,26 @@ function OrdersTabs<TOpen, THistory>({
     useState<OrdersTabKey>(initialTab);
   const selectedTab = activeTab ?? internalSelectedTab;
 
+  const filteredOpenOrders = useNetworkFilteredItems(
+    openOrders.items,
+    openOrders.getItemChainId,
+  );
+  const filteredHistory = useNetworkFilteredItems(
+    history.items,
+    history.getItemChainId,
+  );
+  const openOrdersCount = openOrders.renderItem ? filteredOpenOrders.length : 0;
+
   const tabs = useMemo<TabItem[]>(
     () => [
       {
         key: OrdersTabKey.OpenOrders,
-        label: strings('bridge.orders.tabs.open_orders'),
+        label:
+          openOrdersCount > 0
+            ? strings('bridge.orders.tabs.open_orders_with_count', {
+                count: openOrdersCount,
+              })
+            : strings('bridge.orders.tabs.open_orders'),
         content: null,
         testID: OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB,
       },
@@ -219,7 +237,7 @@ function OrdersTabs<TOpen, THistory>({
         testID: OrdersTabsSelectorsIDs.HISTORY_TAB,
       },
     ],
-    [],
+    [openOrdersCount],
   );
 
   const activeIndex = selectedTab === OrdersTabKey.History ? 1 : 0;
@@ -246,10 +264,9 @@ function OrdersTabs<TOpen, THistory>({
         <OrdersNetworkFilter enabledChainIds={enabledChainIds} />
         {selectedTab === OrdersTabKey.OpenOrders ? (
           <OrdersTabPanel
-            items={openOrders.items}
+            filteredItems={filteredOpenOrders}
             renderItem={openOrders.renderItem}
             keyExtractor={openOrders.keyExtractor}
-            getItemChainId={openOrders.getItemChainId}
             isLoading={openOrders.isLoading}
             isError={openOrders.isError}
             isFetchingNextPage={openOrders.isFetchingNextPage}
@@ -258,10 +275,9 @@ function OrdersTabs<TOpen, THistory>({
           />
         ) : (
           <OrdersTabPanel
-            items={history.items}
+            filteredItems={filteredHistory}
             renderItem={history.renderItem}
             keyExtractor={history.keyExtractor}
-            getItemChainId={history.getItemChainId}
             isLoading={history.isLoading}
             isError={history.isError}
             isFetchingNextPage={history.isFetchingNextPage}

@@ -126,6 +126,64 @@ describe('OrdersTabs', () => {
     expect(queryByTestId(OrdersTabsSelectorsIDs.EMPTY_STATE)).toBeNull();
   });
 
+  it('renders the open orders tab title without a count when there are no open orders', () => {
+    const { getByTestId } = renderOrdersTabs({
+      openOrders: { items: [] },
+      history: { items: [] },
+    });
+
+    expect(
+      getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
+    ).toHaveTextContent(/^Open orders$|^Open ordersOpen orders$/);
+    expect(
+      getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
+    ).not.toHaveTextContent('(');
+  });
+
+  it('renders the number of open orders in the tab title', () => {
+    const { getByTestId } = renderOrdersTabs({
+      openOrders: {
+        items: [{ id: 'a' }, { id: 'b' }],
+        renderItem: (item) => <Text>{item.id}</Text>,
+        keyExtractor: (item) => item.id,
+      },
+      history: { items: [] },
+    });
+
+    expect(
+      getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
+    ).toHaveTextContent(/^Open orders \(2\)/);
+  });
+
+  it('counts only open orders matching the selected network in the tab title', () => {
+    const { getByTestId } = renderOrdersTabs(
+      {
+        openOrders: {
+          items: [
+            { id: 'eth-order', chainId: '0x1' as const },
+            { id: 'op-order', chainId: '0xa' as const },
+            { id: 'op-order-2', chainId: '0xa' as const },
+          ],
+          renderItem: (item) => <Text>{item.id}</Text>,
+          keyExtractor: (item) => item.id,
+          getItemChainId: (item) => item.chainId,
+        },
+        history: { items: [] },
+      },
+      {
+        ...initialState,
+        bridge: {
+          ...initialState.bridge,
+          ordersNetworkFilter: formatChainIdToCaip('0xa'),
+        },
+      },
+    );
+
+    expect(
+      getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
+    ).toHaveTextContent(/^Open orders \(2\)/);
+  });
+
   it('hides open orders that are not on the selected network', () => {
     const { getByTestId, queryByTestId } = renderOrdersTabs(
       {
