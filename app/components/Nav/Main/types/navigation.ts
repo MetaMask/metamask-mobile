@@ -186,16 +186,16 @@ export type TransactionsHomeParamList = {
   BridgeTransactionDetails: BridgeTransactionDetailsParams | undefined;
 };
 
+/** One-shot tab selection for the Money rewards dashboard. */
+export interface RewardsMoneyDashboardParams {
+  initialTab?: 'earnings';
+}
+
 /**
  * Param list for screens inside `RewardsHome` (Rewards tab under Home).
  */
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-/** One-shot tab selection for the Money rewards dashboard. */
-export type RewardsMoneyDashboardParams = {
-  initialTab?: 'earnings';
-};
-
 export type RewardsHomeParamList = {
   RewardsOnboardingFlow: undefined;
   RewardsDashboard: undefined;
