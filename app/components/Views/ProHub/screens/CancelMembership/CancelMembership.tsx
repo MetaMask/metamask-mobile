@@ -9,11 +9,13 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
 import { strings } from '../../../../../../locales/i18n';
+import { CANCEL_REASONS } from './CancelMembership.constants';
 import { CancelMembershipTestIds } from './CancelMembership.testIds';
 import {
   buildPostCancellationResetState,
   CANCELLATION_TIMINGS,
   getCancellationTiming,
+  shuffleCancelReasons,
   toCancellationReason,
 } from './CancelMembership.utils';
 import CancelSurveyStep from './components/CancelSurveyStep';
@@ -24,6 +26,7 @@ type CancelStep = 'reason' | 'stay';
 const CancelMembership = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const [orderedReasons] = useState(() => shuffleCancelReasons(CANCEL_REASONS));
   const [step, setStep] = useState<CancelStep>('reason');
   const [selectedReasonId, setSelectedReasonId] = useState<string | null>(null);
   const [stayFeedback, setStayFeedback] = useState('');
@@ -166,6 +169,7 @@ const CancelMembership = () => {
     >
       {step === 'reason' && (
         <CancelSurveyStep
+          reasons={orderedReasons}
           selectedReasonId={selectedReasonId}
           onReasonSelect={handleReasonSelect}
           onBack={handleBack}

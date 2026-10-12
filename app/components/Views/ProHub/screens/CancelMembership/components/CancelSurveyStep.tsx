@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
   Box,
@@ -19,8 +19,7 @@ import {
   getCancelReasonCheckmarkTestId,
   getCancelReasonTestId,
 } from '../CancelMembership.testIds';
-import { CANCEL_REASONS } from '../CancelMembership.constants';
-import { shuffleCancelReasons } from '../CancelMembership.utils';
+import { type CancelReason } from '../CancelMembership.constants';
 import CancelStepLayout from './CancelStepLayout';
 
 interface ReasonItemProps {
@@ -64,6 +63,7 @@ const ReasonItem = ({ id, label, isSelected, onPress }: ReasonItemProps) => (
 );
 
 export interface CancelSurveyStepProps {
+  reasons: CancelReason[];
   selectedReasonId: string | null;
   onReasonSelect: (id: string) => void;
   onBack: () => void;
@@ -78,6 +78,7 @@ export interface CancelSurveyStepProps {
  * advances to the stay-question step; "Cancel membership" skips the survey.
  */
 const CancelSurveyStep = ({
+  reasons,
   selectedReasonId,
   onReasonSelect,
   onBack,
@@ -85,35 +86,28 @@ const CancelSurveyStep = ({
   onCancelConfirm,
   isSubmitting,
   errorMessage,
-}: CancelSurveyStepProps) => {
-  const orderedReasons = useMemo(
-    () => shuffleCancelReasons(CANCEL_REASONS),
-    [],
-  );
-
-  return (
-    <CancelStepLayout
-      title={strings('pro_hub.cancel_membership.title')}
-      titleTestId={CancelMembershipTestIds.TITLE}
-      onBack={onBack}
-      onKeepMembership={onKeepMembership}
-      onCancelConfirm={onCancelConfirm}
-      isSubmitting={isSubmitting}
-      errorMessage={errorMessage}
-    >
-      <Box twClassName="gap-y-3" testID={CancelMembershipTestIds.REASONS_LIST}>
-        {orderedReasons.map((reason) => (
-          <ReasonItem
-            key={reason.id}
-            id={reason.id}
-            label={strings(reason.labelKey)}
-            isSelected={selectedReasonId === reason.id}
-            onPress={() => onReasonSelect(reason.id)}
-          />
-        ))}
-      </Box>
-    </CancelStepLayout>
-  );
-};
+}: CancelSurveyStepProps) => (
+  <CancelStepLayout
+    title={strings('pro_hub.cancel_membership.title')}
+    titleTestId={CancelMembershipTestIds.TITLE}
+    onBack={onBack}
+    onKeepMembership={onKeepMembership}
+    onCancelConfirm={onCancelConfirm}
+    isSubmitting={isSubmitting}
+    errorMessage={errorMessage}
+  >
+    <Box twClassName="gap-y-3" testID={CancelMembershipTestIds.REASONS_LIST}>
+      {reasons.map((reason) => (
+        <ReasonItem
+          key={reason.id}
+          id={reason.id}
+          label={strings(reason.labelKey)}
+          isSelected={selectedReasonId === reason.id}
+          onPress={() => onReasonSelect(reason.id)}
+        />
+      ))}
+    </Box>
+  </CancelStepLayout>
+);
 
 export default CancelSurveyStep;

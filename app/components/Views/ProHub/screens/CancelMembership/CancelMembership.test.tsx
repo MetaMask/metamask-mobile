@@ -215,6 +215,30 @@ describe('CancelMembership', () => {
       expect(queryByTestId(CancelMembershipTestIds.TITLE)).toBeNull();
     });
 
+    it('keeps the reason order when returning from the stay step', () => {
+      const randomSpy = jest.spyOn(Math, 'random');
+      randomSpy
+        .mockReturnValueOnce(0)
+        .mockReturnValueOnce(0)
+        .mockReturnValueOnce(0)
+        .mockReturnValueOnce(0)
+        .mockReturnValue(0.99);
+
+      const { getByTestId, getAllByRole } = renderScreen();
+      const orderBeforeLeave = getAllByRole('radio').map(
+        (item) => item.props.testID,
+      );
+
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+      );
+      fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
+
+      expect(getAllByRole('radio').map((item) => item.props.testID)).toEqual(
+        orderBeforeLeave,
+      );
+    });
+
     it('returns to the reason step with the selection preserved when back is pressed', () => {
       const { getByTestId, queryByTestId } = renderScreen();
       fireEvent.press(

@@ -24,6 +24,7 @@ const renderStep = (
   overrides: Partial<React.ComponentProps<typeof CancelSurveyStep>> = {},
 ) => {
   const props: React.ComponentProps<typeof CancelSurveyStep> = {
+    reasons: CANCEL_REASONS,
     selectedReasonId: null,
     onReasonSelect: jest.fn(),
     onBack: jest.fn(),
