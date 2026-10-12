@@ -239,10 +239,13 @@ const SocialPostComposerView: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!linkedAccountAddress) {
+    // Swap-share opens this screen with `tradeInFlight` and never goes
+    // through `useOpenSocialPostComposer`. Do not bounce that path — posting
+    // does not need the position picker or a linked onboarding address.
+    if (!linkedAccountAddress && !tradeInFlightParams) {
       navigation.goBack();
     }
-  }, [linkedAccountAddress, navigation]);
+  }, [linkedAccountAddress, navigation, tradeInFlightParams]);
 
   // Focusing mid-transition drops the keyboard on the native stack push, so
   // wait until the screen has settled before raising it.
