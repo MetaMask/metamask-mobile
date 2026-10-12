@@ -5,7 +5,10 @@ import {
 import type { Hex } from '@metamask/utils';
 import { buildMoneyAccountDepositBatch } from '../../../../components/UI/Money/utils/moneyAccountTransactions';
 import ReduxService from '../../../../core/redux/ReduxService';
-import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import {
+  selectMoneyAccountVaultConfig,
+  type MoneyAccountVaultConfig,
+} from '../../../../selectors/featureFlagController/moneyAccount';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import { getAmountData } from './amount-data-callback';
 
@@ -17,7 +20,7 @@ jest.mock('../../../../core/redux/ReduxService', () => ({
 jest.mock('../../../../selectors/featureFlagController/moneyAccount');
 jest.mock('../../../../util/notifications/methods/common');
 
-const VAULT_CONFIG = {
+const VAULT_CONFIG: MoneyAccountVaultConfig = {
   chainId: '0x8f',
   boringVault: '0xBoringVault',
   tellerAddress: '0xTeller',

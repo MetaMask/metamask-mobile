@@ -1,6 +1,7 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useRef,
 } from 'react';
@@ -134,10 +135,21 @@ export const ButtonPricePresetsSection = forwardRef<
       ],
     );
 
+    // The custom input only mounts once custom mode is active, so the press
+    // that activates it can't focus it directly. Focus it as soon as it mounts
+    // so the caret shows on the first tap instead of requiring a second one.
+    useEffect(() => {
+      if (isCustomActive) {
+        inputRef.current?.focus();
+      }
+    }, [isCustomActive]);
+
     useImperativeHandle(ref, () => ({
       blur: () => inputRef.current?.blur(),
       focus: () => inputRef.current?.focus(),
       isFocused: () => Boolean(inputRef.current?.isFocused()),
+      measureInWindow: (callback) =>
+        inputRef.current?.measureInWindow(callback),
     }));
 
     return (
@@ -176,7 +188,7 @@ export const ButtonPricePresetsSection = forwardRef<
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="h-8 w-full overflow-hidden rounded-lg bg-muted px-1"
+              twClassName="h-8 w-full overflow-hidden rounded-2xl bg-muted px-1"
             >
               <Input
                 ref={inputRef}

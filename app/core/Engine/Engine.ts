@@ -598,7 +598,9 @@ export class Engine {
     const networkEnablementController =
       messengerClientsByName.NetworkEnablementController;
     networkEnablementController.init();
-    messengerClientsByName.MoneyAccountUpgradeController.init();
+
+    const moneyAccountUpgradeController =
+      messengerClientsByName.MoneyAccountUpgradeController;
 
     // The wallet constructs AccountsController; emit the startup breadcrumb
     // (account counts) that the deleted local init used to log.
@@ -742,8 +744,7 @@ export class Engine {
       KycService: kycService,
       KycController: kycController,
       ChompApiService: messengerClientsByName.ChompApiService,
-      MoneyAccountUpgradeController:
-        messengerClientsByName.MoneyAccountUpgradeController,
+      MoneyAccountUpgradeController: moneyAccountUpgradeController,
     };
 
     const childControllers = Object.assign({}, this.context);

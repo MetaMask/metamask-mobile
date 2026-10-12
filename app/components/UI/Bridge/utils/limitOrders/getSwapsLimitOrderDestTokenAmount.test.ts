@@ -139,14 +139,14 @@ describe('getSwapsLimitOrderDestTokenAmount', () => {
       { sourceAmount: '-1' },
       { sourceAmount: 'abc' },
     ])(
-      'returns zero when the source amount is $sourceAmount',
+      'returns undefined when the source amount is $sourceAmount',
       ({ sourceAmount }) => {
         const result = getSwapsLimitOrderDestTokenAmount({
           ...sellTokenModeDefaults,
           sourceAmount,
         });
 
-        expect(result).toBe('0');
+        expect(result).toBeUndefined();
       },
     );
 
