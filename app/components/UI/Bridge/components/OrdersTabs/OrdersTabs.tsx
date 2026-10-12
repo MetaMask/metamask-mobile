@@ -18,6 +18,7 @@ import {
   IconName,
   Spinner,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
@@ -33,6 +34,7 @@ import {
   selectAllowedChainRanking,
   selectOrdersNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
+import { groupOrdersByDate } from './groupOrdersByDate';
 import { OrdersEmptyState } from './OrdersEmptyState';
 import { OrdersTabsSelectorsIDs } from './OrdersTabs.testIds';
 import { OrdersTabKey, type OrdersTabsProps } from './OrdersTabs.types';
@@ -129,6 +131,7 @@ function OrdersTabPanel<T>({
   filteredItems,
   renderItem,
   keyExtractor,
+  getItemDate,
   emptyDescription,
   isLoading,
   isError,
@@ -138,12 +141,19 @@ function OrdersTabPanel<T>({
   filteredItems: T[];
   renderItem?: (item: T, index: number) => React.ReactElement;
   keyExtractor?: (item: T, index: number) => string;
+  getItemDate?: (item: T) => string | undefined;
   emptyDescription: string;
   isLoading?: boolean;
   isError?: boolean;
   isFetchingNextPage?: boolean;
   onRetry?: () => void;
 }) {
+  const dateSections = useMemo(
+    () =>
+      getItemDate ? groupOrdersByDate(filteredItems, getItemDate) : undefined,
+    [filteredItems, getItemDate],
+  );
+
   if (isLoading && filteredItems.length === 0) {
     return (
       <Box alignItems={BoxAlignItems.Center} paddingVertical={6}>
@@ -171,18 +181,36 @@ function OrdersTabPanel<T>({
     return <OrdersEmptyState description={emptyDescription} />;
   }
 
+  const renderRow = (item: T, index: number) => (
+    <React.Fragment
+      key={keyExtractor ? keyExtractor(item, index) : String(index)}
+    >
+      {renderItem(item, index)}
+    </React.Fragment>
+  );
+
   // Map rows instead of FlashList so the parent page ScrollView owns
   // scrolling. A nested virtualized list with flex-1 fills the viewport
   // and captures pans, which blocks page scroll on short form screens.
   return (
-    <Box testID={OrdersTabsSelectorsIDs.CONTENT} gap={2}>
-      {filteredItems.map((item, index) => (
-        <React.Fragment
-          key={keyExtractor ? keyExtractor(item, index) : String(index)}
-        >
-          {renderItem(item, index)}
-        </React.Fragment>
-      ))}
+    <Box testID={OrdersTabsSelectorsIDs.CONTENT} gap={dateSections ? 4 : 2}>
+      {dateSections
+        ? dateSections.map((section) => (
+            <Box key={section.key} gap={2}>
+              {section.title ? (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                  testID={OrdersTabsSelectorsIDs.DATE_SECTION_HEADER}
+                >
+                  {section.title}
+                </Text>
+              ) : null}
+              {section.items.map(({ item, index }) => renderRow(item, index))}
+            </Box>
+          ))
+        : filteredItems.map((item, index) => renderRow(item, index))}
       {isFetchingNextPage ? (
         <Box alignItems={BoxAlignItems.Center} paddingVertical={4}>
           <Spinner
@@ -267,6 +295,7 @@ function OrdersTabs<TOpen, THistory>({
             filteredItems={filteredOpenOrders}
             renderItem={openOrders.renderItem}
             keyExtractor={openOrders.keyExtractor}
+            getItemDate={openOrders.getItemDate}
             isLoading={openOrders.isLoading}
             isError={openOrders.isError}
             isFetchingNextPage={openOrders.isFetchingNextPage}
@@ -278,6 +307,7 @@ function OrdersTabs<TOpen, THistory>({
             filteredItems={filteredHistory}
             renderItem={history.renderItem}
             keyExtractor={history.keyExtractor}
+            getItemDate={history.getItemDate}
             isLoading={history.isLoading}
             isError={history.isError}
             isFetchingNextPage={history.isFetchingNextPage}
