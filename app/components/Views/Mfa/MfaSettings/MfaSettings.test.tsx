@@ -116,7 +116,9 @@ describe('MfaSettings', () => {
     ['Verify with email, max 30s old', 'qa.verifyEmailFresh'],
     ['Require email, no verification', 'qa.requireEmail'],
     ['Enroll email', 'qa.enrollEmail'],
-    ['Email and passkey (no passkey adapter yet)', 'qa.emailAndPasskey'],
+    ['Verify with passkey', 'qa.verifyPasskey'],
+    ['Email and passkey, verify with passkey (Kalshi)', 'qa.kalshi'],
+    ['Email or passkey, pick one', 'qa.emailAndPasskey'],
   ])('starts the "%s" QA preset', async (label, operation) => {
     const { getByText } = renderSettings();
 
