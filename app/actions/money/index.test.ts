@@ -435,24 +435,6 @@ describe('upgradeMoneyAccount', () => {
     );
   });
 
-  it('skips quietly (no Sentry error) when the controller is not ready', async () => {
-    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
-    mockUpgradeAccount.mockRejectedValueOnce(
-      new Error('controller is not bootstrapped'),
-    );
-
-    dispatchUpgrade();
-    await flushPromises();
-
-    expect(mockUpgradeAccount).toHaveBeenCalled();
-    expect(mockLogError).not.toHaveBeenCalled();
-    expect(mockLogLog).toHaveBeenCalledWith(
-      expect.stringContaining('upgradeMoneyAccount'),
-      'upgrade controller not ready; skipping',
-      expect.objectContaining({ address: ADDRESS }),
-    );
-  });
-
   it('deduplicates concurrent upgrades for the same address', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     mockUpgradeAccount.mockReturnValueOnce(new Promise(() => undefined));

@@ -300,6 +300,28 @@ describe('usePerpsNavigation', () => {
       });
     });
 
+    it('navigates to market details with source_section', () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+      const mockMarket = { symbol: 'DOGE' } as Partial<
+        Parameters<typeof result.current.navigateToMarketDetails>[0]
+      >;
+
+      result.current.navigateToMarketDetails(
+        mockMarket as Parameters<
+          typeof result.current.navigateToMarketDetails
+        >[0],
+        'perps_home',
+        undefined,
+        'recently_added',
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_DETAILS, {
+        market: mockMarket,
+        source: 'perps_home',
+        source_section: 'recently_added',
+      });
+    });
+
     it('navigates to perps home without source', () => {
       const { result } = renderHook(() => usePerpsNavigation());
 

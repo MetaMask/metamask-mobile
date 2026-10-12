@@ -1,7 +1,10 @@
 import React from 'react';
 import { ActivityIndicator, AppState, type AppStateStatus } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
-import { TokenDetails } from './TokenDetails';
+import {
+  TokenDetails as TokenDetailsRoute,
+  TokenDetailsLegacyRouteWrapper as TokenDetails,
+} from './TokenDetails';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   selectNetworkConfigurationByChainId,
@@ -180,6 +183,10 @@ const mockUseTokenTransactions = jest.fn();
 jest.mock('../hooks/useTokenTransactions', () => ({
   useTokenTransactions: (...args: unknown[]) =>
     mockUseTokenTransactions(...args),
+}));
+
+jest.mock('../queries/prefetchTokenDetailsQueries', () => ({
+  usePrefetchTokenDetails: () => undefined,
 }));
 
 const mockUseIsMemeToken = jest.fn((_opts: Record<string, unknown>) => ({
@@ -1690,7 +1697,7 @@ describe('TokenDetails', () => {
     });
 
     it('does not render TokenDetailsV1 when the flag is off and the token is not a meme', () => {
-      render(<TokenDetails />);
+      render(<TokenDetailsRoute />);
 
       expect(mockTokenDetailsV1).not.toHaveBeenCalled();
       expect(mockTokenDetailsInlineHeader).toHaveBeenCalled();
@@ -1699,7 +1706,7 @@ describe('TokenDetails', () => {
     it('does not render TokenDetailsV1 when the flag is on but the token is not a meme', () => {
       applyBaselineSelectorsWithMemeFlag(true);
 
-      render(<TokenDetails />);
+      render(<TokenDetailsRoute />);
 
       expect(mockTokenDetailsV1).not.toHaveBeenCalled();
     });
@@ -1713,7 +1720,7 @@ describe('TokenDetails', () => {
         query: {},
       });
 
-      render(<TokenDetails />);
+      render(<TokenDetailsRoute />);
 
       expect(mockTokenDetailsV1).toHaveBeenCalledWith(
         expect.objectContaining({ token: expect.any(Object) }),
@@ -1730,7 +1737,7 @@ describe('TokenDetails', () => {
         query: {},
       });
 
-      render(<TokenDetails />);
+      render(<TokenDetailsRoute />);
 
       expect(mockTokenDetailsV1).toHaveBeenCalled();
       // A/B exposure events would otherwise be attributed to users who never

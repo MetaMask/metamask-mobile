@@ -564,5 +564,6 @@ export const MESSENGER_FACTORIES = {
   },
   MoneyAccountUpgradeController: {
     getMessenger: getMoneyAccountUpgradeControllerMessenger,
+    getInitMessenger: noop,
   },
 } as const;

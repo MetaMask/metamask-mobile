@@ -70,6 +70,7 @@ import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import SocialTabFilterBar from '../shell/filters/SocialTabFilterBar';
 import {
+  filterLeaderboardTraders,
   toLeaderboardTimeframe,
   toLeaderboardTypeFilter,
   type SocialShellFilters,
@@ -226,8 +227,8 @@ export interface TopTradersViewProps {
   revealPreviousOrder?: boolean;
   /**
    * Applied Custom filters from the V1 shell. Type and timeframe drive
-   * `useTopTraders`; cohort / verified stay chrome-only until the list can
-   * honor them.
+   * `useTopTraders`; shrimp / dolphin / whale / following filter the loaded
+   * page client-side. Verified is hidden until a real field exists.
    */
   v1AppliedFilters?: SocialShellFilters;
   onOpenCustomFilters?: () => void;
@@ -427,12 +428,22 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     [isViewerTrader, traders, useV1Filters],
   );
 
+  const cohortFilteredTraders = useMemo(
+    () =>
+      useV1Filters && v1AppliedFilters
+        ? filterLeaderboardTraders(traders, v1AppliedFilters)
+        : traders,
+    [traders, useV1Filters, v1AppliedFilters],
+  );
+
   const listTraders = useMemo(
     () =>
       useV1Filters && matchedViewer
-        ? traders.filter((trader) => trader.id !== matchedViewer.id)
-        : traders,
-    [matchedViewer, traders, useV1Filters],
+        ? cohortFilteredTraders.filter(
+            (trader) => trader.id !== matchedViewer.id,
+          )
+        : cohortFilteredTraders,
+    [cohortFilteredTraders, matchedViewer, useV1Filters],
   );
 
   const viewerRow = useMemo(() => {

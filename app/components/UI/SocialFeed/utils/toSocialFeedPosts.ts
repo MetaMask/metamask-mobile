@@ -1,6 +1,7 @@
 import type { TraderFeedRow, SocialV1FeedPost } from '../types';
 import { splitKlipyGifFromCommentText } from './klipyGifComment';
 import { readAuthorComment } from '../reactions';
+import { readTriggeringTradeMarketCapUsd } from './mapFeedItem';
 import { toSocialV1FeedItem } from './toSocialV1FeedItem';
 
 /**
@@ -35,6 +36,7 @@ export const toSocialFeedPosts = (
         }),
       ),
       userReaction: authorComment?.engagement.userReaction ?? null,
+      marketCapUsd: readTriggeringTradeMarketCapUsd(row.core),
       item,
     };
   });

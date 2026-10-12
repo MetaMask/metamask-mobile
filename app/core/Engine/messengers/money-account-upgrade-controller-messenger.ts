@@ -4,14 +4,6 @@ import {
   type MessengerEvents,
 } from '@metamask/messenger';
 import type { MoneyAccountUpgradeControllerMessenger } from '@metamask/money-account-upgrade-controller';
-import type {
-  KeyringControllerGetStateAction,
-  KeyringControllerStateChangeEvent,
-} from '@metamask/keyring-controller';
-import type {
-  RemoteFeatureFlagControllerGetStateAction,
-  RemoteFeatureFlagControllerStateChangeEvent,
-} from '@metamask/remote-feature-flag-controller';
 import type { RootMessenger } from '../types';
 
 /**

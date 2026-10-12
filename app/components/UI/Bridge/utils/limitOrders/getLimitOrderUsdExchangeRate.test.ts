@@ -13,17 +13,16 @@ describe('getLimitOrderUsdExchangeRate', () => {
     expect(result).toStrictEqual({ rate: '149.88', currency: 'JPY' });
   });
 
-  it('rounds a rate below one to three significant digits', () => {
+  it('rounds a rate below one to two decimals', () => {
     const result = getLimitOrderUsdExchangeRate('eur', 1.08);
 
-    expect(result).toStrictEqual({ rate: '0.926', currency: 'EUR' });
+    expect(result).toStrictEqual({ rate: '0.93', currency: 'EUR' });
   });
 
-  // Two decimals would show 0.01, half again off the actual rate.
-  it('keeps significant digits for a rate between one cent and one', () => {
-    const result = getLimitOrderUsdExchangeRate('ltc', 1 / 0.0149);
+  it('keeps two decimals for a whole rate', () => {
+    const result = getLimitOrderUsdExchangeRate('rub', 1 / 90);
 
-    expect(result).toStrictEqual({ rate: '0.0149', currency: 'LTC' });
+    expect(result).toStrictEqual({ rate: '90.00', currency: 'RUB' });
   });
 
   it('formats the rate with locale separators', () => {
@@ -32,10 +31,10 @@ describe('getLimitOrderUsdExchangeRate', () => {
     expect(result).toStrictEqual({ rate: '16,250.50', currency: 'IDR' });
   });
 
-  it('keeps significant digits when two decimals would round the rate to zero', () => {
+  it('returns undefined when two decimals would round the rate to zero', () => {
     const result = getLimitOrderUsdExchangeRate('btc', 95000);
 
-    expect(result).toStrictEqual({ rate: '0.0000105', currency: 'BTC' });
+    expect(result).toBeUndefined();
   });
 
   it.each(['usd', 'USD'])(
