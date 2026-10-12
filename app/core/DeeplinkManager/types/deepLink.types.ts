@@ -23,6 +23,7 @@ export interface DeeplinkUrlParams {
   request?: string;
   attributionId?: string;
   attribution_id?: string;
+  referral?: string;
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;

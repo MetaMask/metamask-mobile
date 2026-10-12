@@ -28,6 +28,7 @@ import { TELLER_ABI } from '../utils/moneyAccountTransactions';
 import {
   isMoneyAccountTx,
   isMoneyDepositTx,
+  isMusdRescueSendTx,
   isPerpsPredictMoneyActivity,
   isPerpsPredictMoneyDeposit,
   isPerpsPredictMoneyWithdraw,
@@ -42,6 +43,7 @@ import {
   isHardwareFundedDeposit,
 } from '../utils/hardwareDepositSigning';
 import { isTransactionStatusSignedOrLater } from '../../../Views/confirmations/utils/batch-signing';
+import { subscribeMusdRescueSetupFailures } from '../utils/musdRescueInFlight';
 import useMoneyToasts from './useMoneyToasts';
 import {
   clearMoneyAccountDepositIntent,
@@ -192,7 +194,11 @@ export const useMoneyTransactionStatus = () => {
 
     const showInProgressFor = (transactionMeta: TransactionMeta) => {
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
-      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
+      const isRescue = isMusdRescueSendTx(transactionMeta);
+      if (!isMoneyAccountTx(transactionMeta) && !isSend && !isRescue) return;
+      // The rescue pending toast is shown immediately by the review screen at
+      // submission start; the monitor must not duplicate it on `approved`.
+      if (isRescue) return;
       // Not reserved yet: a later `signed` event retries via
       // `showInProgressForSignedDeposits`.
       if (isAwaitingHardwareSignature(transactionMeta)) return;
@@ -229,12 +235,15 @@ export const useMoneyTransactionStatus = () => {
 
     const showFailedFor = (transactionMeta: TransactionMeta) => {
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
-      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
+      const isRescue = isMusdRescueSendTx(transactionMeta);
+      if (!isMoneyAccountTx(transactionMeta) && !isSend && !isRescue) return;
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, FAILED_KEY)) return;
       const onPress = () =>
         navigateToMoneyTransactionDetails(transactionMeta.id);
-      if (isSend) {
+      if (isRescue) {
+        showToast(MoneyToastOptions.rescue.failed());
+      } else if (isSend) {
         showToast(MoneyToastOptions.send.failed({ onPress }));
       } else if (isMoneyDepositTx(transactionMeta)) {
         const intent = resolveDepositIntent(transactionMeta);
@@ -249,7 +258,14 @@ export const useMoneyTransactionStatus = () => {
     const showConfirmedFor = (transactionMeta: TransactionMeta) => {
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
       const isReceive = isPerpsPredictMoneyWithdraw(transactionMeta);
-      if (!isMoneyAccountTx(transactionMeta) && !isSend && !isReceive) return;
+      const isRescue = isMusdRescueSendTx(transactionMeta);
+      if (
+        !isMoneyAccountTx(transactionMeta) &&
+        !isSend &&
+        !isReceive &&
+        !isRescue
+      )
+        return;
       // The in-progress toast has no timeout and is normally dismissed by the
       // final toast replacing it. It has actually been displayed only if its
       // key was reserved and its deferral timer already fired.
@@ -261,6 +277,28 @@ export const useMoneyTransactionStatus = () => {
       if (!reserveToastKey(transactionMeta.id, CONFIRMED_KEY)) return;
       const onPress = () =>
         navigateToMoneyTransactionDetails(transactionMeta.id);
+
+      if (isRescue) {
+        // `txParams.to` is the mUSD token contract, not the recipient — the
+        // actual destination lives in the transfer calldata.
+        const transfer = decodeErc20Transfer(
+          nestedTxWithType(transactionMeta, TransactionType.tokenMethodTransfer)
+            ?.data ?? transactionMeta.txParams?.data,
+          TransactionType.tokenMethodTransfer,
+        );
+        const amountFiat = transfer
+          ? formatMusdAmountForToast(BigInt(transfer.amount))
+          : undefined;
+        const destination =
+          (transfer?.recipient &&
+            resolveWithdrawDestination(transfer.recipient)) ??
+          strings('money.toasts.withdraw_fallback_destination');
+        showToast(
+          MoneyToastOptions.rescue.success({ amountFiat, destination }),
+        );
+        scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
+        return;
+      }
 
       if (isSend) {
         const amountFiat = formatMetamaskPayFiat(
@@ -382,6 +420,21 @@ export const useMoneyTransactionStatus = () => {
       showConfirmedFor(transactionMeta);
     };
 
+    // A rescue submission can fail before any transaction metadata exists
+    // (setup failure after the review screen already navigated Home). No
+    // transaction-status event fires for that, so the send hook notifies via
+    // this channel and the pending toast is replaced with the failure toast.
+    // The batch id is used as the toast-correlation key so a later unrelated
+    // transaction can never clear or overwrite it.
+    const unsubscribeSetupFailures = subscribeMusdRescueSetupFailures(
+      (batchId) => {
+        cancelPendingInProgress(batchId);
+        if (!reserveToastKey(batchId, FAILED_KEY)) return;
+        showToast(MoneyToastOptions.rescue.failed());
+        scheduleCleanup(batchId, FAILED_KEY);
+      },
+    );
+
     Engine.controllerMessenger.subscribe(
       'TransactionController:transactionStatusUpdated',
       handleTransactionStatusUpdated,
@@ -392,6 +445,7 @@ export const useMoneyTransactionStatus = () => {
     );
 
     return () => {
+      unsubscribeSetupFailures();
       Engine.controllerMessenger.unsubscribe(
         'TransactionController:transactionStatusUpdated',
         handleTransactionStatusUpdated,
@@ -409,6 +463,7 @@ export const useMoneyTransactionStatus = () => {
     MoneyToastOptions.deposit,
     MoneyToastOptions.withdraw,
     MoneyToastOptions.send,
+    MoneyToastOptions.rescue,
     showToast,
     closeToast,
   ]);
