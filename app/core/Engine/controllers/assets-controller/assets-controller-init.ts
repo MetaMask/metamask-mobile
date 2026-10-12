@@ -9,11 +9,6 @@ import {
   AssetsControllerMessenger,
   type AssetsControllerOptions,
 } from '@metamask/assets-controller';
-import type {
-  TraceCallback as ControllerTraceCallback,
-  TraceContext as ControllerTraceContext,
-  TraceRequest as ControllerTraceRequest,
-} from '@metamask/controller-utils';
 import type { MessengerClientInitFunction } from '../../types';
 import { type AssetsControllerInitMessenger } from '../../messengers/assets-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
@@ -87,20 +82,6 @@ function getApiClient(
 }
 
 /**
- * Trace callback for AssetsController. Sentry tracing for this controller is
- * currently disabled by default (matching the last-known remote config), so
- * `fn` (if provided) is run without creating a Sentry span.
- *
- * @returns A {@link ControllerTraceCallback} suitable for AssetsController.
- */
-function createAssetsControllerTrace(): ControllerTraceCallback {
-  return <Result>(
-    _req: ControllerTraceRequest,
-    fn?: (ctx?: ControllerTraceContext) => Result,
-  ): Promise<Result> => Promise.resolve(fn?.() as Result);
-}
-
-/**
  * Init function for the AssetsController.
  *
  * @param request - The request object.
@@ -151,7 +132,6 @@ export const assetsControllerInit: MessengerClientInitFunction<
       enabled: true,
     },
     isOnboarded: () => selectCompletedOnboarding(store.getState()),
-    trace: createAssetsControllerTrace(),
     // TEMPORARY (ASSETS-3346): legacy state slices used to heal wiped `assetsInfo` metadata.
     // TokensController has been removed; only AccountsController remains available.
     tempMigrateAssetsInfoMetadataAssets3346: () => ({

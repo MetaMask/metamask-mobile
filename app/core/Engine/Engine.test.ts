@@ -1295,12 +1295,6 @@ describe('Engine', () => {
     );
   });
 
-  // NOTE: The `BridgeStatusController:destinationTransactionCompleted`
-  // subscription (previously in Engine.ts) was removed as part of the
-  // legacy asset controller removal. AssetsController is now the sole
-  // source of truth for asset data and refreshes itself internally, so
-  // there is no longer an Engine-level handler to test here.
-
   describe('Engine.state', () => {
     it('throws error when accessing state before Engine exists', () => {
       expect(() => Engine.state).toThrow('Engine does not exist');

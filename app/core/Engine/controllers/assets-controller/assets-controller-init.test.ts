@@ -13,7 +13,6 @@ import {
 } from '@metamask/assets-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { store } from '../../../../store';
-import { trace } from '../../../../util/trace';
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import { createApiPlatformClient } from '@metamask/core-backend';
 
@@ -28,10 +27,6 @@ jest.mock('../../../../store', () => ({
   store: {
     getState: jest.fn(),
   },
-}));
-
-jest.mock('../../../../util/trace', () => ({
-  trace: jest.fn((_req, fn) => (fn ? fn('traced-context') : undefined)),
 }));
 
 const mockRemoteFeatureFlagController = {
@@ -219,7 +214,6 @@ describe('assetsControllerInit', () => {
           pollInterval: 30_000,
           enabled: true,
         },
-        trace: expect.any(Function),
         tempMigrateAssetsInfoMetadataAssets3346: expect.any(Function),
       }),
     );
@@ -487,22 +481,12 @@ describe('assetsControllerInit', () => {
   });
 
   describe('trace callback', () => {
-    it('skips Sentry tracing (tracing for AssetsController is currently disabled)', async () => {
+    it('does not pass a trace callback (tracing is disabled)', () => {
       assetsControllerInit(getInitRequestMock());
 
       const constructorCall = jest.mocked(AssetsController).mock.calls[0][0];
-      const traceCallback = constructorCall.trace;
-      if (!traceCallback) {
-        throw new Error('Expected trace callback to be defined');
-      }
 
-      const fn = jest.fn(() => 'result');
-      await expect(
-        traceCallback({ name: 'AssetsControllerFirstInitFetch' }, fn),
-      ).resolves.toBe('result');
-
-      expect(fn).toHaveBeenCalledWith();
-      expect(trace).not.toHaveBeenCalled();
+      expect(constructorCall.trace).toBeUndefined();
     });
   });
 });
