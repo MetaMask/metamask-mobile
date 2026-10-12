@@ -11,6 +11,7 @@ export const OrdersTabsSelectorsIDs = {
   LOADING: 'bridge-orders-loading',
   NEXT_PAGE_LOADING: 'bridge-orders-next-page-loading',
   CONTENT: 'bridge-orders-content',
+  DATE_SECTION_HEADER: 'bridge-orders-date-section-header',
 } as const;
 
 export type OrdersTabsSelectorsIDsType = typeof OrdersTabsSelectorsIDs;
