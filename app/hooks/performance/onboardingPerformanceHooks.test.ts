@@ -386,10 +386,6 @@ describe('onboarding performance hooks', () => {
       'OAuthRehydration/index.tsx',
     ],
     ['AccountAlreadyExists / AccountNotFound', 'AccountStatus/index.tsx'],
-    [
-      Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
-      'SocialLoginIosUser/index.tsx',
-    ],
   ])('instruments the registered %s destination', (_routeName, entry) => {
     const path = `${__dirname}/../../components/Views/${entry}`;
 

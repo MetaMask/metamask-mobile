@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
-import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
-import type { SocialV1FeedPost } from '../types';
+import { mockOpenPerpsFeedItem } from '../../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
+import type { SocialV1FeedPost } from '../../../../../UI/SocialFeed/types';
 import { useSocialV1HotTokens } from './useSocialV1HotTokens';
 
 const post = (symbol: string, id: string): SocialV1FeedPost => ({

@@ -25,6 +25,7 @@ import {
   IconName,
   IconSize,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
   BottomSheet,
@@ -48,6 +49,12 @@ type OnboardingSheetRouteProp = RouteProp<
   { OnboardingSheet: OnboardingSheetParams },
   'OnboardingSheet'
 >;
+
+/**
+ * Joins a label with non-breaking spaces so an inline link wraps to the next
+ * line as a whole instead of splitting across lines mid-phrase.
+ */
+const noWrap = (label: string) => label.replace(/ /gu, '\u00A0');
 
 const OnboardingSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -250,25 +257,23 @@ const OnboardingSheet = () => {
           twClassName="mt-6 text-center"
         >
           {strings('onboarding.by_continuing')}{' '}
-          <Text
+          <TextButton
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
-            color={TextColor.PrimaryDefault}
             onPress={onPressTermsOfUse}
             testID="terms-of-use-link"
           >
-            {strings('onboarding.terms_of_use')}
-          </Text>{' '}
+            {noWrap(strings('onboarding.terms_of_use'))}
+          </TextButton>{' '}
           {strings('onboarding.and')}{' '}
-          <Text
+          <TextButton
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
-            color={TextColor.PrimaryDefault}
             onPress={onPressPrivacyNotice}
             testID="privacy-notice-link"
           >
-            {strings('onboarding.privacy_notice')}
-          </Text>
+            {noWrap(strings('onboarding.privacy_notice'))}
+          </TextButton>
         </Text>
       </Box>
     </BottomSheet>

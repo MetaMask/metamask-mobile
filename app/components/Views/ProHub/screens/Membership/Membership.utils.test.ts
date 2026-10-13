@@ -63,8 +63,8 @@ describe('getMembershipDetails', () => {
     const result = getMembershipDetails(subscription, readyPricing);
 
     expect(result).toEqual({
-      plan: 'Pro (Annual)',
-      earnedThisMonth: MEMBERSHIP_UNAVAILABLE_VALUE,
+      plan: 'Annual',
+      lifetimeEarnings: MEMBERSHIP_UNAVAILABLE_VALUE,
       total: '$99.00',
       totalOriginal: '$119.88',
       savingsNote: '2 months on us',
@@ -97,7 +97,7 @@ describe('getMembershipDetails', () => {
 
     const result = getMembershipDetails(subscription, readyPricing);
 
-    expect(result.plan).toBe('Pro (Monthly)');
+    expect(result.plan).toBe('Monthly');
     expect(result.total).toBe('$9.99');
     expect(result.totalOriginal).toBeUndefined();
     expect(result.savingsNote).toBeUndefined();
@@ -122,7 +122,7 @@ describe('getMembershipDetails', () => {
 
     expect(result).toEqual({
       plan: MEMBERSHIP_UNAVAILABLE_VALUE,
-      earnedThisMonth: MEMBERSHIP_UNAVAILABLE_VALUE,
+      lifetimeEarnings: MEMBERSHIP_UNAVAILABLE_VALUE,
       total: MEMBERSHIP_UNAVAILABLE_VALUE,
       payingWith: MEMBERSHIP_UNAVAILABLE_VALUE,
       renewsOn: MEMBERSHIP_UNAVAILABLE_VALUE,

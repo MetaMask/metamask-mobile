@@ -13,6 +13,7 @@ import {
 } from '@metamask/keyring-controller';
 import { TransactionControllerIsAtomicBatchSupportedAction } from '@metamask/transaction-controller';
 import { NetworkControllerGetNetworkConfigurationByChainIdAction } from '@metamask/network-controller';
+import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 
 export function getTransactionPayControllerMessenger(
   rootMessenger: RootMessenger<
@@ -27,9 +28,8 @@ export function getTransactionPayControllerMessenger(
 
   rootMessenger.delegate({
     actions: [
-      'AccountTrackerController:getState',
-      'AssetsController:getStateForTransactionPay',
-      'CurrencyRateController:getState',
+      'AccountsController:getState',
+      'AssetsController:getState',
       'GasFeeController:getState',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
@@ -38,9 +38,6 @@ export function getTransactionPayControllerMessenger(
       'RampsController:getQuoteWithFees',
       'RemoteFeatureFlagController:getState',
       'SentinelApiService:simulateTransactions',
-      'TokenBalancesController:getState',
-      'TokenRatesController:getState',
-      'TokensController:getState',
       'TransactionController:estimateGas',
       'TransactionController:estimateGasBatch',
       'TransactionController:getGasFeeTokens',
@@ -50,6 +47,7 @@ export function getTransactionPayControllerMessenger(
       'KeyringController:signTypedMessage',
     ],
     events: [
+      'AssetsController:stateChange',
       'TransactionController:stateChange',
       'TransactionController:unapprovedTransactionAdded',
     ],
@@ -65,6 +63,7 @@ type InitMessengerActions =
   | KeyringControllerSignPersonalMessageAction
   | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetNetworkConfigurationByChainIdAction
+  | RemoteFeatureFlagControllerGetStateAction
   | TransactionControllerIsAtomicBatchSupportedAction;
 
 type InitMessengerEvents = never;
@@ -93,6 +92,7 @@ export function getTransactionPayControllerInitMessenger(
       'KeyringController:signPersonalMessage',
       'KeyringController:signTypedMessage',
       'NetworkController:getNetworkConfigurationByChainId',
+      'RemoteFeatureFlagController:getState',
       'TransactionController:isAtomicBatchSupported',
     ],
     events: [],

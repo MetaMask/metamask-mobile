@@ -13,6 +13,7 @@ export enum ActivityScreenInteractionType {
 export enum ActivityScreenEntryPoint {
   BottomNavClick = 'bottom_nav_click',
   WalletHomeHeader = 'wallet_home_header',
+  ProfileDrawer = 'profile_drawer',
   Deeplink = 'deeplink',
 }
 

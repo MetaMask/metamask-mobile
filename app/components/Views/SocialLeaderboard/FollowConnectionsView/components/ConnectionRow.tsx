@@ -15,8 +15,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
+
+import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import {
   getConnectionFollowButtonTestId,
   getConnectionRowTestId,
@@ -92,16 +92,20 @@ const ConnectionRow: React.FC<ConnectionRowProps> = ({
           </Box>
         </Box>
       </Pressable>
-      <Button
-        variant={isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary}
-        size={ButtonSize.Md}
-        onPress={onFollowPress ?? (() => undefined)}
-        testID={getConnectionFollowButtonTestId(id)}
-      >
-        {isFollowing
-          ? strings('social_leaderboard.following')
-          : strings('social_leaderboard.follow')}
-      </Button>
+      {onFollowPress ? (
+        <Button
+          variant={
+            isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
+          }
+          size={ButtonSize.Md}
+          onPress={onFollowPress}
+          testID={getConnectionFollowButtonTestId(id)}
+        >
+          {isFollowing
+            ? strings('social_leaderboard.following')
+            : strings('social_leaderboard.follow')}
+        </Button>
+      ) : null}
     </Box>
   );
 };

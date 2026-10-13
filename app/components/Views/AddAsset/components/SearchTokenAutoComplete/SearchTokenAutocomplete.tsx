@@ -222,7 +222,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       if (!assetIdBelongsToChain(assetId, caipChainId)) {
         return;
       }
-      if (assetPreferences[assetId]?.hidden === true) {
+      if (assetPreferences[assetId as CaipAssetType]?.hidden === true) {
         return;
       }
       const addressKey = addressKeyFromAssetId(assetId, isNonEvm);

@@ -145,7 +145,7 @@ export class PredictOrderService {
         name: TraceName.PredictNextOrderPreview,
         op: TraceOperation.PredictDataFetch,
         tags: { venueId: this.#venueId },
-        data: { side: params.side },
+        data: { side: params.side, action: params.action },
       },
       () =>
         this.#trading.previewOrder(params, {

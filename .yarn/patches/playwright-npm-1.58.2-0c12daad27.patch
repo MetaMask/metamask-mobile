@@ -1,0 +1,48 @@
+diff --git a/lib/transform/transform.js b/lib/transform/transform.js
+index 715bcce88b2bcc5647718f3c58bb1ebdd9585fa0..8180906670ca6590c9897e01b8598a278aa7b73c 100644
+--- a/lib/transform/transform.js
++++ b/lib/transform/transform.js
+@@ -253,6 +253,43 @@ function installTransformIfNeeded() {
+ }
+ const collectCJSDependencies = (module2, dependencies) => {
+   module2.children.forEach((child) => {
++    // [MetaMask patch] Skip Node "require(esm)" JSON-bridge stubs (no `filename`).
++    //
++    // WHY THIS PATCH EXISTS — CI symptom: Appium smoke shards (e.g.
++    // appium-snaps-android-smoke-1) fail at spec-load time with a bare
++    //   TypeError: Cannot read properties of undefined (reading 'includes')
++    // and NO stack trace, "Total: 0 tests in 0 files", exit code 1 — before a
++    // single test runs. It is shard-flaky because the trigger depends on
++    // module-load order inside the Playwright CLI process.
++    //
++    // Root cause chain (verified on Node 24 / playwright 1.58.2):
++    //  1. An ESM-only @metamask package is require()d from the babel/pirates
++    //     compiled CJS spec chain (e.g. @metamask/account-tree-controller@11
++    //     via tests/smoke/identity/utils/helpers.ts). Node >=22 "require(esm)"
++    //     then loads its ESM graph through the ESM loader.
++    //  2. That graph resolves @metamask/snaps-utils to its ESM dist; its
++    //     dist/platform-version.mjs line 1 does:
++    //       import packageJson from "@metamask/snaps-sdk/package.json" with { type: "json" }
++    //  3. Node's ESM JSON strategy (node:internal/modules/esm/translators,
++    //     jsonStrategy) bridges that JSON module into the CJS Module._cache as
++    //     a plain { exports, loaded: true } object — with NO `filename` — so
++    //     later require()s of the same JSON file share the exports.
++    //  4. Later, a spec require()s that same JSON path
++    //     (tests/smoke-appium/snaps/test-snap-client-status.spec.ts imports
++    //     `@metamask/snaps-sdk/package.json`). Node's loadModule cache-hit
++    //     path (updateChildren) then pushes the filename-less STUB into the
++    //     spec module's `children`.
++    //  5. Playwright walks `module.children` here assuming every entry is a
++    //     real Module with a `filename`; belongsToNodeModules(undefined)
++    //     throws `undefined.includes(...)` inside compilationCache.js.
++    //
++    // Skipping filename-less children is safe: they are Node's synthetic
++    // bridge objects, not files on disk, so they can never be repo test
++    // dependencies. Drop this patch once upstream Playwright guards this
++    // walk (collectCJSDependencies / belongsToNodeModules).
++    if (child.filename === void 0 || child.filename === null) {
++      return;
++    }
+     if (!(0, import_compilationCache.belongsToNodeModules)(child.filename) && !dependencies.has(child.filename)) {
+       dependencies.add(child.filename);
+       collectCJSDependencies(child, dependencies);

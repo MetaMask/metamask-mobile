@@ -75,6 +75,7 @@ export enum DeepLinkRoute {
   SDK_MMSDK = 'sdk-mmsdk',
   MONEY = 'money',
   PRIVACY = 'privacy',
+  NOTIFICATIONS_SETTINGS = 'notifications-settings',
   INVALID = 'invalid',
 }
 

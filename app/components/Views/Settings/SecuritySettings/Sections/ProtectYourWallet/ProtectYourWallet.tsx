@@ -4,17 +4,17 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   Button,
   ButtonVariant,
   ButtonSize,
   FontWeight,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import OldButton, {
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
@@ -22,10 +22,6 @@ import { LEARN_MORE_URL } from '../../../../../../constants/urls';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
 import { createStyles } from './styles';
 import Routes from '../../../../../../constants/navigation/Routes';
-import Banner, {
-  BannerVariant,
-  BannerAlertSeverity,
-} from '../../../../../../component-library/components/Banners/Banner';
 import { useAnalytics } from '../../../../../../components/hooks/useAnalytics/useAnalytics';
 import { hasMultipleHDKeyrings } from '../../../../../../selectors/keyringController';
 import {
@@ -128,28 +124,23 @@ const ProtectYourWallet = ({
 
       {!oauthFlow &&
         (srpBackedup ? (
-          <Banner
-            variant={BannerVariant.Alert}
+          <BannerAlert
             severity={BannerAlertSeverity.Success}
             title={strings('app_settings.seedphrase_backed_up')}
             description={
               hintText ? (
-                <OldButton
-                  variant={ButtonVariants.Link}
-                  style={styles.viewHint}
-                  onPress={toggleHint}
-                  label={strings('app_settings.view_hint')}
-                />
+                <TextButton variant={TextVariant.BodySm} onPress={toggleHint}>
+                  {strings('app_settings.view_hint')}
+                </TextButton>
               ) : null
             }
-            style={styles.accessory}
+            twClassName="mt-4"
           />
         ) : (
-          <Banner
-            variant={BannerVariant.Alert}
-            severity={BannerAlertSeverity.Error}
+          <BannerAlert
+            severity={BannerAlertSeverity.Danger}
             title={strings('app_settings.seedphrase_not_backed_up')}
-            style={styles.accessory}
+            twClassName="mt-4"
           />
         ))}
 
@@ -177,13 +168,12 @@ const ProtectYourWallet = ({
           </Button>
         ))}
       {oauthFlow && authConnection && (
-        <Banner
-          variant={BannerVariant.Alert}
+        <BannerAlert
           severity={BannerAlertSeverity.Success}
           title={strings('app_settings.banner_social_login_enabled', {
             authConnection: capitalize(authConnection),
           })}
-          style={styles.accessory}
+          twClassName="mt-4"
         />
       )}
       {oauthFlow && (

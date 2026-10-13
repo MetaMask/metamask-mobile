@@ -19,6 +19,9 @@ import { addTransactionBatch } from '../../../../../../util/transaction-controll
 import { useSelector, useDispatch } from 'react-redux';
 import { StyleSheet, Switch, View } from 'react-native';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { v1 as random } from 'uuid';
+import Engine from '../../../../../../core/Engine';
+import { ApprovalTypes } from '../../../../../../core/RPCMethods/RPCMethodMiddleware';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../confirm/confirm-component';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
@@ -81,7 +84,14 @@ export function ConfirmationsDeveloperOptions() {
           }
         />
       )}
-      {isMoneyAccountDepositEnabled && <MoneyAccountDeposit />}
+      {isMoneyAccountDepositEnabled && (
+        <>
+          <MoneyAccountDeposit />
+          <MembershipSubscription />
+          <ConfirmMembership />
+          <ConfirmMembershipTrial />
+        </>
+      )}
       {isMoneyAccountWithdrawEnabled && <MoneyAccountWithdraw />}
     </>
   );
@@ -254,6 +264,12 @@ function MoneyAccountDeposit() {
     });
   }, [initiateDeposit]);
 
+  const handleDepositFiveDollars = useCallback(() => {
+    initiateDeposit({ forceBottomSheet: true, amount: '5' }).catch((error) => {
+      Logger.error(error as Error, 'Developer Options: Money deposit failed');
+    });
+  }, [initiateDeposit]);
+
   return (
     <>
       <DeveloperButton
@@ -277,7 +293,120 @@ function MoneyAccountDeposit() {
       >
         Deposit in BottomSheet
       </Button>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        onPress={handleDepositFiveDollars}
+        testID={
+          ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_DEPOSIT_FIVE_DOLLARS_BUTTON
+        }
+        isFullWidth
+        style={styles.accessory}
+      >
+        Deposit 5$
+      </Button>
     </>
+  );
+}
+
+function MembershipSubscription() {
+  const { initiateDeposit } = useMoneyAccountDeposit();
+
+  const handleMembershipSubscription = useCallback(() => {
+    initiateDeposit({
+      forceBottomSheet: true,
+      amount: '1',
+      transactionType: TransactionType.membershipSubscription,
+    }).catch((error) => {
+      Logger.error(
+        error as Error,
+        'Developer Options: Membership subscription failed',
+      );
+    });
+  }, [initiateDeposit]);
+
+  return (
+    <DeveloperButton
+      title="Membership Subscription"
+      description="Trigger a Membership Subscription confirmation."
+      buttonLabel="Top-up 1$"
+      onPress={handleMembershipSubscription}
+      testID={
+        ConfirmationsDeveloperOptionsTestIds.MONEY_ACCOUNT_MEMBERSHIP_TOP_UP_BUTTON
+      }
+    />
+  );
+}
+
+function ConfirmMembership() {
+  const handleConfirmMembership = useCallback(() => {
+    Engine.context.ApprovalController.add({
+      id: random(),
+      origin: ORIGIN_METAMASK,
+      type: ApprovalTypes.CONFIRM_MEMBERSHIP,
+      requestData: {
+        monthlyAmount: '4.99',
+        totalAmount: '49.99',
+        renewDate: 'Nov 5, 2026',
+      },
+    })
+      .then(() => {
+        Logger.log('Developer Options: Confirm membership approved');
+      })
+      .catch((error) => {
+        Logger.log(
+          error as Error,
+          'Developer Options: Confirm membership rejected',
+        );
+      });
+  }, []);
+
+  return (
+    <DeveloperButton
+      title="Confirm Membership"
+      description="Trigger a Confirm Membership bottom sheet."
+      buttonLabel="Confirm Membership"
+      onPress={handleConfirmMembership}
+      testID={ConfirmationsDeveloperOptionsTestIds.CONFIRM_MEMBERSHIP_BUTTON}
+    />
+  );
+}
+
+function ConfirmMembershipTrial() {
+  const handleConfirmMembershipTrial = useCallback(() => {
+    Engine.context.ApprovalController.add({
+      id: random(),
+      origin: ORIGIN_METAMASK,
+      type: ApprovalTypes.CONFIRM_MEMBERSHIP,
+      requestData: {
+        monthlyAmount: '4.99',
+        totalAmount: '49.99',
+        renewDate: 'Nov 5, 2026',
+        isTrial: true,
+        billedOn: '05.10.2026',
+      },
+    })
+      .then(() => {
+        Logger.log('Developer Options: Confirm membership (trial) approved');
+      })
+      .catch((error) => {
+        Logger.log(
+          error as Error,
+          'Developer Options: Confirm membership (trial) rejected',
+        );
+      });
+  }, []);
+
+  return (
+    <DeveloperButton
+      title="Confirm Membership (trial)"
+      description="Trigger a Confirm Membership bottom sheet with a free trial."
+      buttonLabel="Confirm Membership (trial)"
+      onPress={handleConfirmMembershipTrial}
+      testID={
+        ConfirmationsDeveloperOptionsTestIds.CONFIRM_MEMBERSHIP_TRIAL_BUTTON
+      }
+    />
   );
 }
 

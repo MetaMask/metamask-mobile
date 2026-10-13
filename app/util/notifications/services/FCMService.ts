@@ -230,7 +230,11 @@ class FCMService {
   onClickPushNotificationWhenAppClosed = async (): Promise<PushTapResult> => {
     try {
       const remoteMessage = await getInitialNotification();
-      await analyticsTrackPushClickEvent(remoteMessage);
+
+      if (remoteMessage !== null) {
+        await analyticsTrackPushClickEvent(remoteMessage);
+      }
+
       return toPushTapResult(remoteMessage?.data, Boolean(remoteMessage));
     } catch {
       return { opened: false, deeplink: null };
@@ -242,12 +246,12 @@ class FCMService {
   ) => {
     try {
       const handleOpenedNotification = async (
-        remoteMessage?: FirebaseMessagingTypes.RemoteMessage,
+        remoteMessage: FirebaseMessagingTypes.RemoteMessage,
       ) => {
         try {
           await analyticsTrackPushClickEvent(remoteMessage);
           tapCallback(
-            toPushTapResult(remoteMessage?.data, Boolean(remoteMessage)),
+            toPushTapResult(remoteMessage.data, Boolean(remoteMessage)),
           );
         } catch {
           // Do nothing

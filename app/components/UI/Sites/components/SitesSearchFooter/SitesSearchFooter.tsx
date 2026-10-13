@@ -28,6 +28,8 @@ import isUrlFn from 'is-url';
 // https://github.com/MetaMask/metamask-design-system/issues/1115
 type BoxComponentProps = React.ComponentProps<typeof Box>;
 
+export type SearchFooterAction = 'open_url' | 'engine_search';
+
 export interface SitesSearchFooterProps {
   searchQuery: string;
   /**
@@ -35,9 +37,10 @@ export interface SitesSearchFooterProps {
    * Defaults to browser navigation.
    * @default useSearchFooterBrowserNavigation - default to explore feature browser navigation
    * @param {string} url - Url to navigate
+   * @param {SearchFooterAction} action - Which footer link was pressed
    * @returns
    */
-  onPress?: (url: string) => void;
+  onPress?: (url: string, action: SearchFooterAction) => void;
   containerStyle?: BoxComponentProps['style'];
 }
 
@@ -104,7 +107,7 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
       {isUrl && (
         <TouchableOpacity
           style={tw.style('flex-row items-center py-4')}
-          onPress={() => handlePress(searchQuery)}
+          onPress={() => handlePress(searchQuery, 'open_url')}
           testID="trending-search-footer-url-link"
         >
           <Box twClassName="flex-1">
@@ -128,7 +131,7 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
 
       <TouchableOpacity
         style={tw.style('flex-row items-center py-4')}
-        onPress={() => handlePress(searchUrl)}
+        onPress={() => handlePress(searchUrl, 'engine_search')}
         testID="trending-search-footer-search-link"
       >
         <Box twClassName="flex-1 flex-row items-center">

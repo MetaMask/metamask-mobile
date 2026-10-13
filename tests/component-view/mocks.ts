@@ -100,6 +100,7 @@ jest.mock('../../app/core/Engine', () => {
         setPrivacyMode: jest.fn(),
       },
       CardController: {
+        state: { activeProviderId: 'baanx' },
         fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
         getContactDetails: jest.fn().mockResolvedValue({
           email: 'cardholder@example.com',
@@ -116,7 +117,7 @@ jest.mock('../../app/core/Engine', () => {
           supportsFundingLimits: true,
           fundingChains: ['eip155:59144'],
           supportsFreeze: true,
-          supportsPushProvisioning: false,
+          pushProvisioning: { applePay: false, googlePay: false },
           onboarding: { requiresEmail: true },
           supportsPinView: true,
           supportsCashback: true,
@@ -391,7 +392,10 @@ jest.mock('../../app/core/Engine', () => {
           address: '0x0000000000000000000000000000000000000001',
           walletType: 'metamask',
         }),
-        getActivity: jest.fn().mockResolvedValue([]),
+        getActivity: jest.fn().mockResolvedValue({
+          activities: [],
+          nextCursor: undefined,
+        }),
         getPositions: jest.fn().mockResolvedValue([]),
         getPrices: jest.fn().mockResolvedValue({ providerId: '', results: [] }),
         getPriceHistory: jest.fn().mockResolvedValue([]),
@@ -457,6 +461,11 @@ jest.mock('../../app/core/Engine', () => {
           providerId: 'hyperliquid',
           supportedStrategies: ['twap', 'scale', 'chase'],
         }),
+        getMarginModeLock: jest.fn().mockResolvedValue({
+          status: 'unlocked',
+          providerId: 'hyperliquid',
+        }),
+        previewPositionModify: jest.fn().mockResolvedValue({ status: 'none' }),
         subscribeToPrices: jest.fn(() => () => undefined),
         subscribeToOrderBook: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),

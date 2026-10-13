@@ -1,8 +1,9 @@
 import { useInfiniteQuery } from '@metamask/react-data-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { MOCK_LIMIT_OPEN_ORDER } from '../api/limitOrders/getLimitOrders/mock';
 import {
   type GetLimitOrdersResponse,
-  LimitOrderStatus,
+  LimitOrderState,
 } from '../api/limitOrders/getLimitOrders/types';
 import { useLimitOrders } from './useLimitOrders';
 import { LIMIT_ORDERS_STALE_TIME } from '../constants/limitOrders';
@@ -11,16 +12,18 @@ jest.mock('@metamask/react-data-query', () => ({
   useInfiniteQuery: jest.fn(),
 }));
 
-const mockUseInfiniteQuery = jest.mocked(useInfiniteQuery);
-const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
-const OPEN_STATUSES = [LimitOrderStatus.Open];
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: jest.fn(),
+}));
 
-function createPage(
-  orderId: string,
-  nextCursor?: string,
-): GetLimitOrdersResponse {
+const mockUseInfiniteQuery = jest.mocked(useInfiniteQuery);
+const mockInvalidateQueries = jest.fn();
+const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
+const OPEN_STATES = [LimitOrderState.Open];
+
+function createPage(id: string, nextCursor?: string): GetLimitOrdersResponse {
   return {
-    orders: [{ ...MOCK_LIMIT_OPEN_ORDER, orderId }],
+    orders: [{ ...MOCK_LIMIT_OPEN_ORDER, id }],
     nextCursor,
   };
 }
@@ -52,6 +55,10 @@ function createQueryResult({
 describe('useLimitOrders', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    mockInvalidateQueries.mockResolvedValue(undefined);
+    jest.mocked(useQueryClient).mockReturnValue({
+      invalidateQueries: mockInvalidateQueries,
+    } as never);
   });
 
   it('uses a cursor-free service query key and polls hourly', () => {
@@ -59,7 +66,7 @@ describe('useLimitOrders', () => {
 
     useLimitOrders({
       walletAddress: WALLET_ADDRESS.toUpperCase(),
-      status: OPEN_STATUSES,
+      states: OPEN_STATES,
       chainId: 'eip155:1',
     });
 
@@ -69,7 +76,7 @@ describe('useLimitOrders', () => {
           'LimitOrdersDataService:getLimitOrders',
           {
             walletAddress: WALLET_ADDRESS,
-            status: OPEN_STATUSES,
+            states: OPEN_STATES,
             chainId: 'eip155:1',
             limit: 20,
           },
@@ -89,10 +96,10 @@ describe('useLimitOrders', () => {
 
     const result = useLimitOrders({
       walletAddress: WALLET_ADDRESS,
-      status: OPEN_STATUSES,
+      states: OPEN_STATES,
     });
 
-    expect(result.orders.map(({ orderId }) => orderId)).toStrictEqual([
+    expect(result.orders.map(({ id }) => id)).toStrictEqual([
       'order-1',
       'order-2',
     ]);
@@ -102,7 +109,7 @@ describe('useLimitOrders', () => {
     mockUseInfiniteQuery.mockReturnValue(createQueryResult() as never);
     useLimitOrders({
       walletAddress: WALLET_ADDRESS,
-      status: OPEN_STATUSES,
+      states: OPEN_STATES,
     });
     const options = mockUseInfiniteQuery.mock.calls[0][0];
 
@@ -119,7 +126,7 @@ describe('useLimitOrders', () => {
   it('disables the query without a wallet', () => {
     mockUseInfiniteQuery.mockReturnValue(createQueryResult() as never);
 
-    useLimitOrders({ status: OPEN_STATUSES });
+    useLimitOrders({ states: OPEN_STATES });
 
     expect(mockUseInfiniteQuery).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
@@ -131,7 +138,7 @@ describe('useLimitOrders', () => {
 
     useLimitOrders({
       walletAddress: WALLET_ADDRESS,
-      status: OPEN_STATUSES,
+      states: OPEN_STATES,
       enabled: false,
     });
 
@@ -145,7 +152,7 @@ describe('useLimitOrders', () => {
     mockUseInfiniteQuery.mockReturnValue(queryResult as never);
     const result = useLimitOrders({
       walletAddress: WALLET_ADDRESS,
-      status: OPEN_STATUSES,
+      states: OPEN_STATES,
     });
 
     result.fetchNextPage();
@@ -176,7 +183,7 @@ describe('useLimitOrders', () => {
       mockUseInfiniteQuery.mockReturnValue(queryResult as never);
       const result = useLimitOrders({
         walletAddress: WALLET_ADDRESS,
-        status: OPEN_STATUSES,
+        states: OPEN_STATES,
       });
 
       result.fetchNextPage();
@@ -184,6 +191,22 @@ describe('useLimitOrders', () => {
       expect(queryResult.fetchNextPage).not.toHaveBeenCalled();
     },
   );
+
+  it('refreshes by invalidating exactly its own query', async () => {
+    mockUseInfiniteQuery.mockReturnValue(createQueryResult() as never);
+    const result = useLimitOrders({
+      walletAddress: WALLET_ADDRESS,
+      states: OPEN_STATES,
+      chainId: 'eip155:1',
+    });
+
+    await result.refresh();
+
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: mockUseInfiniteQuery.mock.calls[0][0].queryKey,
+      exact: true,
+    });
+  });
 
   it('forwards the underlying query state', () => {
     const queryResult = createQueryResult({
@@ -196,7 +219,7 @@ describe('useLimitOrders', () => {
 
     const result = useLimitOrders({
       walletAddress: WALLET_ADDRESS,
-      status: OPEN_STATUSES,
+      states: OPEN_STATES,
     });
 
     expect(result).toMatchObject({

@@ -12,6 +12,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'RewardsMoneyDataService',
   'StorageService',
   'SubscriptionService',
+  'SubscriptionDelegationService',
   'ShieldApiService',
   'ClaimsService',
   'TokenDetectionController',
@@ -24,6 +25,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'GeolocationApiService',
   'ProfileMetricsService',
   'ProofOfOwnershipService',
+  'ProfileService',
   'RampsService',
   'TransakService',
   'NeoBankService',
@@ -43,6 +45,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'PredictOrderService',
   'RecurringOrdersDataService',
   'LimitOrdersDataService',
+  'SentinelFeeTokensDataService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -124,6 +127,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'ComplianceController:stateChange',
   'KycController:stateChange',
   'SocialController:stateChange',
+  'ProfileController:stateChange',
   'QrSyncController:stateChange',
 ] as const;
 

@@ -4,11 +4,12 @@ import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
 import useSubscriptions from '../components/hooks/useSubscriptions';
 import {
   selectHasAnyMoneyAccountPlusEntitlement,
-  selectIsMoneyAccountPlusSubscriber,
+  selectHasExistingMoneyAccountPlusSubscription,
 } from '../selectors/subscriptionController';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
+  useMoneyAccountPlusAccessState,
 } from './useMoneyAccountPlusAccess';
 
 jest.mock('react-redux', () => ({
@@ -25,15 +26,15 @@ const mockUseProSubscriptionEnabled = jest.mocked(useProSubscriptionEnabled);
 const mockUseSubscriptions = jest.mocked(useSubscriptions);
 
 const mockSubscriptionState = ({
-  isSubscriber = false,
+  hasExistingSubscription = false,
   hasEntitlement = false,
 }: {
-  isSubscriber?: boolean;
+  hasExistingSubscription?: boolean;
   hasEntitlement?: boolean;
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectIsMoneyAccountPlusSubscriber) {
-      return isSubscriber;
+    if (selector === selectHasExistingMoneyAccountPlusSubscription) {
+      return hasExistingSubscription;
     }
     if (selector === selectHasAnyMoneyAccountPlusEntitlement) {
       return hasEntitlement;
@@ -47,8 +48,6 @@ describe('useMoneyAccountPlusAccess', () => {
     jest.clearAllMocks();
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: true,
-      variantName: 'treatment',
-      isActive: true,
     });
     mockUseSubscriptions.mockReturnValue({
       isLoading: false,
@@ -60,10 +59,11 @@ describe('useMoneyAccountPlusAccess', () => {
   it('is disabled when the Pro subscription flag is off', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
-      variantName: 'control',
-      isActive: false,
     });
-    mockSubscriptionState({ isSubscriber: true, hasEntitlement: true });
+    mockSubscriptionState({
+      hasExistingSubscription: true,
+      hasEntitlement: true,
+    });
 
     const { result } = renderHook(() => useMoneyAccountPlusAccess());
 
@@ -71,8 +71,19 @@ describe('useMoneyAccountPlusAccess', () => {
     expect(mockUseSubscriptions).toHaveBeenCalledWith({ enabled: false });
   });
 
+  it('grants subscriber access to an existing subscription', () => {
+    mockSubscriptionState({ hasExistingSubscription: true });
+
+    const { result } = renderHook(() => useMoneyAccountPlusAccess());
+
+    expect(result.current).toBe(MoneyAccountPlusAccess.Subscriber);
+  });
+
   it('keeps subscriber access when entitlements outlive an active status', () => {
-    mockSubscriptionState({ isSubscriber: false, hasEntitlement: true });
+    mockSubscriptionState({
+      hasExistingSubscription: false,
+      hasEntitlement: true,
+    });
 
     const { result } = renderHook(() => useMoneyAccountPlusAccess());
 
@@ -80,7 +91,7 @@ describe('useMoneyAccountPlusAccess', () => {
   });
 
   it('grants subscriber access even while the query is still loading', () => {
-    mockSubscriptionState({ isSubscriber: true });
+    mockSubscriptionState({ hasExistingSubscription: true });
     mockUseSubscriptions.mockReturnValue({
       isLoading: true,
       isError: false,
@@ -119,4 +130,37 @@ describe('useMoneyAccountPlusAccess', () => {
     expect(result.current).toBe(MoneyAccountPlusAccess.Eligible);
     expect(mockUseSubscriptions).toHaveBeenCalledWith({ enabled: true });
   });
+});
+
+describe('useMoneyAccountPlusAccessState', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: true,
+    });
+    mockSubscriptionState({ hasExistingSubscription: true });
+  });
+
+  it.each([
+    ['never fetched', { isFetched: false, isFetching: false }, false],
+    ['first fetch in flight', { isFetched: false, isFetching: true }, false],
+    ['stale remount refetch', { isFetched: true, isFetching: true }, false],
+    ['settled', { isFetched: true, isFetching: false }, true],
+  ])(
+    'reports subscriptions settled = %s when %s',
+    (_label, queryState, expected) => {
+      mockUseSubscriptions.mockReturnValue({
+        isLoading: false,
+        isError: false,
+        ...queryState,
+      } as ReturnType<typeof useSubscriptions>);
+
+      const { result } = renderHook(() => useMoneyAccountPlusAccessState());
+
+      expect(result.current).toEqual({
+        access: MoneyAccountPlusAccess.Subscriber,
+        isSubscriptionsSettled: expected,
+      });
+    },
+  );
 });

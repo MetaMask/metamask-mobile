@@ -28,6 +28,8 @@ function buildTransactionMeta(type: TransactionType): TransactionMeta {
 }
 
 describe('getTransactionPayAmountCalls', () => {
+  const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+    TransactionType.membershipSubscription;
   const updateMoneyAccountDepositTokenAmountMock = jest.mocked(
     updateMoneyAccountDepositTokenAmount,
   );
@@ -51,11 +53,11 @@ describe('getTransactionPayAmountCalls', () => {
   });
 
   describe('money account deposit', () => {
-    const transactionMeta = buildTransactionMeta(
+    it.each([
       TransactionType.moneyAccountDeposit,
-    );
-
-    it('returns the calls from the deposit util', async () => {
+      MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+    ])('returns the calls from the deposit util for %s', async (type) => {
+      const transactionMeta = buildTransactionMeta(type);
       updateMoneyAccountDepositTokenAmountMock.mockResolvedValue(
         DEPOSIT_CALLS_MOCK,
       );
@@ -73,6 +75,9 @@ describe('getTransactionPayAmountCalls', () => {
     });
 
     it('returns an empty array when the deposit util produces no calls', async () => {
+      const transactionMeta = buildTransactionMeta(
+        TransactionType.moneyAccountDeposit,
+      );
       updateMoneyAccountDepositTokenAmountMock.mockResolvedValue([]);
 
       const result = await getTransactionPayAmountCalls(
@@ -84,6 +89,9 @@ describe('getTransactionPayAmountCalls', () => {
     });
 
     it('prefixes deposit errors', async () => {
+      const transactionMeta = buildTransactionMeta(
+        TransactionType.moneyAccountDeposit,
+      );
       updateMoneyAccountDepositTokenAmountMock.mockRejectedValue(
         new Error('rpc failure'),
       );

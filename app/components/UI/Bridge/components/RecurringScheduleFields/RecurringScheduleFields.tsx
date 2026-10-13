@@ -195,7 +195,8 @@ const RecurringScheduleFields = ({
             <ButtonIcon
               iconName={IconName.Info}
               iconProps={{ color: IconColor.IconAlternative }}
-              size={ButtonIconSize.Sm}
+              size={ButtonIconSize.Xs}
+              twClassName="-ml-1"
               onPress={onRepeatInfoPress}
               testID={RecurringScheduleFieldsSelectorsIDs.REPEAT_INFO_BUTTON}
               accessibilityLabel={strings('bridge.recurring.repeat_info_title')}

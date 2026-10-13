@@ -55,10 +55,8 @@ export {
   V1_LEADERBOARD_RANKING_LABEL_KEY,
   V1_LEADERBOARD_RANKING_OPTIONS,
 } from './filterOptions';
-export type {
-  LeaderboardTraderCohort,
-  V1LeaderboardRanking,
-} from './filterOptions';
+export type { LeaderboardTraderCohort } from '../../../../UI/SocialFeed/utils/traderStats';
+export type { V1LeaderboardRanking } from './filterOptions';
 export {
   CohortFilterSelectorsIDs,
   FilterOptionSheetSelectorsIDs,

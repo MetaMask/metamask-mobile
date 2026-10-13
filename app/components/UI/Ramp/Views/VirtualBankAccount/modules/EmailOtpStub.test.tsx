@@ -52,4 +52,28 @@ describe('EmailOtpStub', () => {
 
     expect(onBack).toHaveBeenCalledTimes(1);
   });
+
+  it('prefills and locks a bound email', () => {
+    const { getByTestId } = renderWithProvider(
+      <EmailOtpStub
+        onBack={jest.fn()}
+        onSuccess={jest.fn()}
+        initialEmail="bound@example.com"
+      />,
+    );
+
+    expect({
+      emailValue: getByTestId(EmailOtpStubSelectorsIDs.EMAIL_INPUT).props.value,
+      continueDisabled: getByTestId(EmailOtpStubSelectorsIDs.CONTINUE_BUTTON)
+        .props.accessibilityState.disabled,
+      editable: getByTestId(EmailOtpStubSelectorsIDs.EMAIL_INPUT).props
+        .editable,
+    }).toMatchInlineSnapshot(`
+      {
+        "continueDisabled": false,
+        "editable": false,
+        "emailValue": "bound@example.com",
+      }
+    `);
+  });
 });

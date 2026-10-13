@@ -142,7 +142,7 @@ async function parseDeeplink({
           return null;
         }
         handled();
-        handleSolanaUrl({ url }).catch((err) => {
+        handleSolanaUrl({ url, origin }).catch((err) => {
           Logger.error(err, 'Error handling solana url');
         });
         endDeeplinkProcessedTrace({

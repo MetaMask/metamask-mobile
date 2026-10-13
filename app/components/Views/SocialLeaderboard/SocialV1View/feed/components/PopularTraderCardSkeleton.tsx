@@ -3,7 +3,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { POPULAR_TRADER_CARD_WIDTH } from './PopularTraderCard';
 import { PopularTradersCarouselSelectorsIDs } from './PopularTradersCarousel.testIds';
-import { SocialFeedSkeletonPlaceholder } from './SocialFeedSkeletonPlaceholder';
+import { SocialFeedSkeletonPlaceholder } from '../../../../../UI/SocialFeed/components/SocialFeedSkeletonPlaceholder';
 
 /**
  * Loading placeholder matching {@link PopularTraderCard}'s vertical footprint.

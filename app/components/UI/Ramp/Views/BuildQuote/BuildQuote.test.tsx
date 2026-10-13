@@ -788,7 +788,7 @@ describe('BuildQuote', () => {
         amount: 12,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -822,7 +822,7 @@ describe('BuildQuote', () => {
         amount: 100,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -854,7 +854,7 @@ describe('BuildQuote', () => {
         amount: 100,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -879,7 +879,7 @@ describe('BuildQuote', () => {
         amount: 250,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -892,7 +892,7 @@ describe('BuildQuote', () => {
         amount: 10,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -922,7 +922,7 @@ describe('BuildQuote', () => {
         amount: 50,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -952,7 +952,7 @@ describe('BuildQuote', () => {
         amount: 200,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -977,7 +977,7 @@ describe('BuildQuote', () => {
         amount: 100,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });

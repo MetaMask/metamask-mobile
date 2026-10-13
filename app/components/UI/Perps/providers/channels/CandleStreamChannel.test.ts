@@ -86,6 +86,16 @@ describe('CandleStreamChannel', () => {
       );
     });
 
+    it('treats a candle inside the freshness window as the live chart price', () => {
+      expect(channel.isChartCacheFresh(mockCandleData)).toBe(true);
+      expect(
+        channel.isChartCacheFresh(
+          mockCandleData,
+          mockCandleData.candles[0].time + 3 * 60 * 60 * 1000,
+        ),
+      ).toBe(false);
+    });
+
     it('should return cached data immediately if available', () => {
       const callback1 = jest.fn();
       const callback2 = jest.fn();

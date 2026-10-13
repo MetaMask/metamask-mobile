@@ -90,6 +90,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     presets,
     exceedsMaxDeviation,
     directionWarning,
+    error,
     handleKeypadChange,
     trackInputMethod,
     resetInputMethod,
@@ -220,9 +221,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         />
         {hasInputError ? (
           <HelpText severity={HelpTextSeverity.Danger} showIcon>
-            {exceedsMaxDeviation
-              ? strings('perps.order.limit_price_modal.limit_price_too_far')
-              : marginError || directionWarning}
+            {exceedsMaxDeviation ? error : marginError || directionWarning}
           </HelpText>
         ) : (
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>

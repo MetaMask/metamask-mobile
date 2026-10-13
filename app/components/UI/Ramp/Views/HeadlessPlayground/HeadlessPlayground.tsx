@@ -537,6 +537,10 @@ function HeadlessPlayground() {
           setActiveSession(null);
         },
       });
+      // Synchronous start failures call onError and return undefined.
+      if (!session) {
+        return;
+      }
       appendEvent(
         strings(
           'app_settings.fiat_on_ramp.headless_playground.event_log_started',

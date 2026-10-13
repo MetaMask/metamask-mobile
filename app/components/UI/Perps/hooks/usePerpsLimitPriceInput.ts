@@ -22,6 +22,7 @@ import {
   isPriceOutsideDeviationBand,
   resolveOracleReferencePrice,
 } from '../utils/orderUtils';
+import { getLimitPriceTooFarMessage } from '../utils/triggerOrderValidation';
 
 export interface PerpsLimitPricePreset {
   label: string;
@@ -49,8 +50,8 @@ export interface UsePerpsLimitPriceInputParams {
   setLimitPrice: (price: string) => void;
   testIDs: PerpsLimitPricePresetTestIDs;
   /**
-   * Applies HyperLiquid's max-deviation gate. Opening a limit order is left to
-   * the order form's own validation.
+   * Used for direction-warning copy. The 95% venue band applies to every limit
+   * price, opening or closing.
    */
   isClosingPosition?: boolean;
   /** Unsubscribes from live price and book data while a modal is hidden. */
@@ -219,16 +220,15 @@ export function usePerpsLimitPriceInput({
     [limitPrice],
   );
 
-  const exceedsMaxDeviation = useMemo(() => {
-    if (!isClosingPosition) {
-      return false;
-    }
-    return isPriceOutsideDeviationBand(
-      Number.parseFloat(limitPrice.replace(/[$,]/g, '')),
-      referencePrice,
-      LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
-    );
-  }, [isClosingPosition, limitPrice, referencePrice]);
+  const exceedsMaxDeviation = useMemo(
+    () =>
+      isPriceOutsideDeviationBand(
+        Number.parseFloat(limitPrice.replace(/[$,]/g, '')),
+        referencePrice,
+        LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+      ),
+    [limitPrice, referencePrice],
+  );
 
   const directionWarning = useMemo(
     () =>
@@ -242,7 +242,7 @@ export function usePerpsLimitPriceInput({
   );
 
   const error = exceedsMaxDeviation
-    ? strings('perps.order.limit_price_modal.limit_price_too_far')
+    ? getLimitPriceTooFarMessage(referencePrice)
     : directionWarning;
 
   const trackInputMethod = useCallback(() => {

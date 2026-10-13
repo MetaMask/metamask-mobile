@@ -1,5 +1,8 @@
+import { EthScope } from '@metamask/keyring-api';
+import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
+import { LimitOrderState } from '../api/limitOrders/getLimitOrders/types';
 
 export enum LimitOrderExecutionType {
   BUY = 'buy',
@@ -19,10 +22,10 @@ export enum LimitOrderPriceComparisonDirection {
 export const LIMIT_ORDER_BUTTON_PRICE_PRESETS = [5, 10];
 
 /**
- * Upper bound for the custom percent offset a user can type into the custom
- * preset input. Values above this are clamped on commit.
+ * Maximum number of digits a user can type into the custom percent preset
+ * input, which makes 99999 the largest value it can hold.
  */
-export const LIMIT_ORDER_CUSTOM_PERCENT_MAX = 99;
+export const LIMIT_ORDER_CUSTOM_PERCENT_MAX_INPUT_LENGTH = 5;
 
 /**
  * Inclusive percent band around market at which the trigger-price warning is
@@ -43,6 +46,11 @@ export const LIMIT_ORDER_DEFAULT_COST_TOLERANCE = '2';
 export const SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES = [
   10, 60, 1440, 4320, 10080, 43200,
 ] as const;
+
+/**
+ * Delay before the expiration sheet closes after the user picks an option.
+ */
+export const SWAPS_LIMIT_ORDER_EXPIRATION_CLOSE_DELAY_MS = 250;
 
 export type SwapsLimitOrderExpirationMinutes =
   (typeof SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES)[number];
@@ -72,3 +80,37 @@ export const LIMIT_ORDER_DEFAULT_METAMASK_FEE = 0.875;
 
 export const LIMIT_ORDERS_STALE_TIME = 60 * 60 * 1000;
 export const LIMIT_ORDERS_PAGE_LIMIT = 20;
+
+export const OPEN_LIMIT_ORDER_STATES = [
+  LimitOrderState.Open,
+  LimitOrderState.Executing,
+  LimitOrderState.Submitted,
+];
+export const HISTORY_LIMIT_ORDER_STATES = [
+  LimitOrderState.Filled,
+  LimitOrderState.Cancelled,
+  LimitOrderState.Expired,
+  LimitOrderState.Failed,
+];
+
+export const LOAD_MORE_LIMIT_ORDERSSCROLL_THRESHOLD = 200;
+
+/**
+ * Per-chain limit order settings, keyed by CAIP-2 chain ID, with
+ * '*' as the fallback for chains without an entry of their own.
+ */
+export const LIMIT_ORDERS_CHAIN_CONFIG: Partial<
+  Record<
+    CaipChainId | '*',
+    {
+      minAmountUSD: number;
+    }
+  >
+> = {
+  [EthScope.Mainnet]: {
+    minAmountUSD: 50,
+  },
+  '*': {
+    minAmountUSD: 1,
+  },
+};
