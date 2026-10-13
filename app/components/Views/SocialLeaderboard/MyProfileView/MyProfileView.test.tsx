@@ -18,6 +18,7 @@ import type {
   UseTraderPositionsResult,
 } from '../TraderProfileView/hooks/useTraderPositions';
 import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTraderProfile';
+import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   getLocalSocialProfileSnapshot,
@@ -26,6 +27,9 @@ import {
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockPush = jest.fn();
+const mockOpenComposer = jest.fn();
+const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const mockFollowWithSetup = jest.fn(
   async (_isFollowing: boolean, performFollow: () => Promise<void>) => {
@@ -51,17 +55,77 @@ const mockUseTraderPositions = jest.fn<
 const mockUseMyProfilePosts = jest.fn<UseMyProfilePostsResult, []>();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>();
 const mockUseFollowedTraders = jest.fn<UseFollowedTradersResult, []>();
+const mockSetTitleSectionHeight = jest.fn();
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { Pressable, Text, View } = jest.requireActual('react-native');
+
+  const MockHeaderStandardAnimated = ({
+    title,
+    subtitle,
+    onBack,
+    testID,
+    backButtonProps,
+    includesTopInset,
+    endAccessory,
+  }: {
+    title?: React.ReactNode;
+    subtitle?: React.ReactNode;
+    onBack?: () => void;
+    testID?: string;
+    backButtonProps?: { testID?: string };
+    includesTopInset?: boolean;
+    endAccessory?: React.ReactNode;
+  }) =>
+    ReactActual.createElement(
+      View,
+      { testID, style: includesTopInset ? { marginTop: 1 } : undefined },
+      ReactActual.createElement(
+        Pressable,
+        { onPress: onBack, testID: backButtonProps?.testID },
+        ReactActual.createElement(Text, null, 'back'),
+      ),
+      title,
+      subtitle,
+      endAccessory,
+    );
+
+  return {
+    ...actual,
+    HeaderStandardAnimated: MockHeaderStandardAnimated,
+    useHeaderStandardAnimated: () => ({
+      scrollY: { value: 0 },
+      onScroll: jest.fn(),
+      setTitleSectionHeight: mockSetTitleSectionHeight,
+      titleSectionHeightSv: { value: 0 },
+    }),
+  };
+});
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+    navigate: mockNavigate,
+    push: mockPush,
+  }),
   useRoute: () => ({ params: mockProfileRouteParams }),
+}));
+
+jest.mock('../../../../util/haptics', () => ({
+  playSelection: () => mockPlaySelection(),
 }));
 
 jest.mock('../hooks/useFollowWithNotificationSetup', () => ({
   useFollowWithNotificationSetup: () => ({
     followWithSetup: mockFollowWithSetup,
   }),
+}));
+
+jest.mock('../hooks/useOpenSocialPostComposer', () => ({
+  useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
 }));
 
 jest.mock('./hooks', () => ({
@@ -78,6 +142,14 @@ jest.mock('../TraderProfileView/hooks', () => ({
     options?: UseTraderPositionsOptions,
   ) => mockUseTraderPositions(addressOrId, options),
 }));
+
+jest.mock('../../../UI/SocialFeed/components/TraderAvatar', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return ({ testID }: { testID?: string }) =>
+    ReactActual.createElement(View, { testID });
+});
 
 jest.mock('../TraderProfileView/components/PositionRow', () => {
   const { Pressable, Text } = jest.requireActual('react-native');
@@ -154,6 +226,7 @@ const profile: UseMyProfileResult['profile'] = {
   handle: 'giga-whale.metamask',
   bio: 'Trading in the open. Copy my moves or fade them — either way we learn.',
   imageUrl: null,
+  avatarPresetId: 'fox-emoji',
   rankingTag: 'whale',
   xHandle: 'giga-whale',
   followerCount: 4,
@@ -226,6 +299,50 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.HANDLE),
     ).toHaveTextContent('@giga-whale.metamask');
+  });
+
+  it('renders the owner identity and stats in the compact header', () => {
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY),
+    ).toHaveTextContent(/Giga Whale/);
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_WIN_RATE),
+    ).toHaveTextContent('*60%');
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_PNL),
+    ).toHaveTextContent('*+$7,100');
+  });
+
+  it('renders the owner avatar preset in the compact header', () => {
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_AVATAR),
+    ).toHaveTextContent('🦊');
+  });
+
+  it('keeps the top inset on the animated header', () => {
+    renderWithProvider(<MyProfileView />);
+
+    expectHeaderIncludesTopInset(
+      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER),
+    );
+  });
+
+  it('measures the profile title section for header animation', () => {
+    renderWithProvider(<MyProfileView />);
+
+    const titleSectionWrapper = screen.getByTestId(
+      MyProfileViewSelectorsIDs.TITLE_SECTION_WRAPPER,
+    );
+    fireEvent(titleSectionWrapper, 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 320 } },
+    });
+
+    expect(mockSetTitleSectionHeight).toHaveBeenCalledWith(320);
+    expect(titleSectionWrapper).toBeOnTheScreen();
   });
 
   it('renders zero for missing follower counts', () => {
@@ -343,10 +460,9 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWERS_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL.FOLLOW_CONNECTIONS,
-      { initialTab: 'followers' },
-    );
+    expect(mockPush).toHaveBeenCalledWith(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+      initialTab: 'followers',
+    });
   });
 
   it('opens following connections on the following tab', () => {
@@ -356,10 +472,9 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWING_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL.FOLLOW_CONNECTIONS,
-      { initialTab: 'following' },
-    );
+    expect(mockPush).toHaveBeenCalledWith(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+      initialTab: 'following',
+    });
   });
 
   it('opens the owner X profile', () => {
@@ -376,6 +491,20 @@ describe('MyProfileView', () => {
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the post composer from the owner profile header', () => {
+    renderWithProvider(<MyProfileView />);
+
+    const createPostButton = screen.getByTestId(
+      MyProfileViewSelectorsIDs.CREATE_POST_BUTTON,
+    );
+
+    fireEvent.press(createPostButton);
+
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(mockOpenComposer).toHaveBeenCalledTimes(1);
+    expect(createPostButton).toHaveProp('accessibilityLabel', 'Create post');
   });
 
   it('shares the placeholder owner profile URL', async () => {
@@ -489,7 +618,7 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POST_COMPOSER);
+    expect(mockOpenComposer).toHaveBeenCalledTimes(1);
   });
 
   it('resets the local profile and opens onboarding from the debug button', () => {
@@ -608,6 +737,83 @@ describe('MyProfileView', () => {
     expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
+  it('opens another trader followers with addressOrId', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+    mockUseTraderProfile.mockReturnValue({
+      profile: {
+        profile: {
+          profileId: 'trader-1',
+          address: '0xabc',
+          allAddresses: ['0xabc'],
+          name: 'alpha.eth',
+          imageUrl: null,
+        },
+        stats: {
+          pnl30d: 0,
+          winRate30d: 0,
+          medianHoldMinutes: 0,
+          tradeCount30d: 0,
+          volumeUsd30d: 0,
+        },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+        },
+        socialHandles: {},
+        followerCount: 88,
+        followingCount: 7,
+        copytradedAllTime: {
+          count: 0,
+          volumeUSD: 0,
+          distinctActors: 0,
+        },
+      } as TraderProfileResponse,
+      isLoading: false,
+      error: null,
+      isFollowing: false,
+      toggleFollow: jest.fn().mockResolvedValue(undefined),
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWING_COUNT),
+    ).toHaveTextContent('7');
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWERS_BUTTON),
+    );
+
+    expect(mockPush).toHaveBeenCalledWith(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+      initialTab: 'followers',
+      addressOrId: 'trader-1',
+    });
+  });
+
+  it('opens another trader following with addressOrId', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderAddress: '0xabc',
+    };
+
+    renderWithProvider(<MyProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWING_BUTTON),
+    );
+
+    expect(mockPush).toHaveBeenCalledWith(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+      initialTab: 'following',
+      addressOrId: 'trader-1',
+    });
+  });
+
   it('hides owner actions and shows follow for another trader', () => {
     mockProfileRouteParams = {
       traderId: 'trader-1',
@@ -630,11 +836,17 @@ describe('MyProfileView', () => {
       screen.queryByTestId(MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON),
     ).toBeNull();
     expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.CREATE_POST_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON),
     ).toBeNull();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOW_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY),
+    ).toHaveTextContent('alpha.eth');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB),
     ).toBeOnTheScreen();

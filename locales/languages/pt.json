@@ -693,7 +693,6 @@
     "re_enter_password": "Insira sua senha novamente",
     "use_at_least_8_characters": "Use pelo menos 8 caracteres",
     "unlock_with_face_id": "Desbloquear com Face ID?",
-    "learn_more": "Se eu esquecer essa senha, a MetaMask não poderá recuperá-la para mim.",
     "learn_more_social_login": "Se eu esquecer esta senha, perderei acesso à minha carteira permanentemente. A MetaMask não consegue redefini-la para mim.",
     "seed_phrase_length_error": "A Frase de Recuperação Secreta deve ter 12, 15, 18, 21 ou 24 palavras",
     "continue": "Continuar",

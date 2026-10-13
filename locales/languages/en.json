@@ -696,7 +696,6 @@
     "re_enter_password": "Re-enter your password",
     "use_at_least_8_characters": "Use at least 8 characters",
     "unlock_with_face_id": "Unlock with Face ID?",
-    "learn_more": "If I forget this password, MetaMask can't recover it for me.",
     "learn_more_social_login": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
     "seed_phrase_length_error": "Secret Recovery Phrase must be 12, 15, 18, 21, or 24 words",
     "continue": "Continue",
@@ -1148,22 +1147,21 @@
     },
     "verify_identity": {
       "title": "Verify your identity",
-      "description": "Verification is quick and only needs to be done once. To verify, you'll need to:",
-      "step_upload_id": "Upload ID document",
+      "description": "This usually only takes a few minutes. You'll need a valid, government-issued photo ID on hand.",
+      "step_photograph_id": "Photograph your ID",
       "step_take_selfie": "Take a selfie",
-      "step_confirm_details": "Confirm personal details",
-      "data_and_privacy_title": "Data and privacy",
-      "what_we_collect_title": "What we collect",
-      "what_we_collect_description": "We collect personal information as part of identity verification, including legal full name, address, and more.",
-      "how_we_store_data_title": "How we store data",
-      "how_we_store_data_description": "Verification info is securely stored on MetaMask-managed servers. It's encrypted with your Secret Recovery Phrase entropy and we can't access the data. Your consent will be required for future use with another provider.",
-      "how_to_delete_title": "How to delete",
-      "how_to_delete_description": "You can delete your data anytime by going to Settings > Manage data.",
-      "metamask_privacy_policy": "MetaMask Privacy Policy",
-      "metamask_terms": "MetaMask T&C",
+      "step_confirm_details": "Confirm your details",
+      "step_answer_questions": "Answer a few questions",
+      "footer": "Your information is encrypted and shared securely with our verification providers. You'll review the details before continuing.",
+      "powered_by": "Powered by",
       "disclaimers_error": "Couldn't load the terms and conditions.",
       "disclaimers_retry": "Try again",
-      "button": "Continue"
+      "button": "Continue",
+      "terms_sheet_title": "Data and privacy",
+      "terms_sheet_description": "To verify your identity, your information will be shared securely with the providers below. Review their policies and terms before continuing.",
+      "metamask_privacy_policy": "MetaMask Privacy Policy",
+      "metamask_terms": "MetaMask Terms and Conditions",
+      "terms_sheet_button": "Agree and start verification"
     },
     "kyc_email": {
       "title": "What's your email?",
@@ -1393,6 +1391,8 @@
       "retry": "Try again",
       "posting": "Posting...",
       "post_failed": "Couldn't create post. Try again.",
+      "linked_account_missing": "Your linked Social account isn't in this wallet.",
+      "showing_linked_account": "Showing positions from {{account}}",
       "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
     },
     "post_swap_share": {
@@ -1562,16 +1562,21 @@
     "my_profile": {
       "avatar_accessibility_label": "Your profile avatar",
       "open_profile": "Open my profile",
+      "create_post": "Create post",
       "followers": "followers",
       "following": "following",
       "followers_tab": "{{count}} followers",
       "following_tab": "{{count}} following",
+      "mutuals_tab": "{{count}} mutuals",
       "win_rate": "Win rate",
       "pnl": "P&L",
       "hold_time": "Hold time",
       "times_copied": "Times copied",
       "empty_following": "You aren't following anyone yet.",
+      "empty_trader_following": "Not following anyone yet.",
       "empty_followers": "No followers yet.",
+      "empty_mutuals": "No mutual followers yet.",
+      "load_error": "Couldn't load this list",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
       "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
@@ -1637,6 +1642,8 @@
       "trading_activity_on": "On",
       "linked_social_account": "Linked social account",
       "save": "Save",
+      "save_error": "Couldn't save changes. Check your connection and try again.",
+      "username_unavailable": "This handle is unavailable. Choose another one.",
       "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
       "socials_helper": "Your X handle appears on posts and your profile.",
       "show_trading_activity": "Show trading activity",
@@ -1670,7 +1677,12 @@
       "fallback_back_to_leaderboard": "Back to leaderboard",
       "sell": "Sell",
       "long": "Long",
-      "short": "Short"
+      "short": "Short",
+      "your_position": "Your position",
+      "unrealized_pnl": "Unrealized P&L",
+      "expand_position": "Expand position",
+      "collapse_position": "Collapse position",
+      "expanded_placeholder": "Position details will appear here"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
@@ -5692,6 +5704,7 @@
     "market_closed": "Market closed",
     "send_button": "Send",
     "buy_button": "Buy",
+    "buy_token_button": "Buy {{symbol}}",
     "cash_buy_button": "Cash Buy",
     "long_button": "Long",
     "short_button": "Short",
@@ -5743,6 +5756,19 @@
     "address": "Address",
     "were_unable": "We’re unable to load your",
     "balance": "balance. See the support article",
+    "position_pnl": {
+      "your_position": "Your position",
+      "unrealised": "Unrealised PNL",
+      "average_cost": "Average cost",
+      "realized": "Realized",
+      "realized_pnl": "Realized P&L",
+      "unrealized": "Unrealized",
+      "unrealized_pnl": "Unrealized P&L",
+      "hold_time": "Hold time",
+      "share_to_feed": "Share to feed",
+      "loading": "Loading position",
+      "shown_in_usd": "Shown in USD"
+    },
     "troubleshooting_missing": "troubleshooting missing balances",
     "for_help": "for help.",
     "troubleshoot": "Troubleshoot",
@@ -5932,6 +5958,13 @@
       "telegram": "Open on Telegram",
       "search_on_x": "Search on X",
       "copy_address": "Copy contract address {{address}}"
+    },
+    "age": {
+      "accessibility_label": "Token age {{age}}. Learn about token age.",
+      "explainer": {
+        "title": "Token age",
+        "description": "Time since token creation. Seconds, minutes, hours, then days."
+      }
     },
     "stats": {
       "market_cap": "MCap",
@@ -8192,9 +8225,7 @@
     },
     "passkey": {
       "title_setup": "Create a passkey",
-      "title_verify": "Use your passkey",
-      "description": "Your device will ask you to confirm.",
-      "continue": "Continue"
+      "title_verify": "Use your passkey"
     },
     "success": {
       "title": "You're all set",
@@ -8226,7 +8257,9 @@
       "email_linked": "Linked to your sign-in",
       "email_pending": "Setup not finished",
       "set_up": "Set up",
-      "finish_setup": "Finish setup"
+      "finish_setup": "Finish setup",
+      "passkey_count": "{{count}} added",
+      "add_another": "Add another"
     }
   },
   "media_player": {
@@ -9075,7 +9108,31 @@
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "External address",
+      "back_to_account": "Back to account",
       "withdraw_to_bank": "Bank account"
+    },
+    "musd_rescue_send": {
+      "title": "Send",
+      "your_funds_are_safe_title": "Your funds are safe",
+      "your_funds_are_safe_description": "{{amount}} of your mUSD is in your Money account but isn't earning yet. Send the funds back to your MetaMask account, then add them again.",
+      "to_label": "To",
+      "receive_label": "Receive",
+      "est_time_label": "Est. time",
+      "est_time_value": "< 10 sec",
+      "transaction_fees_label": "Transaction fees",
+      "paid_by_metamask": "Paid by MetaMask",
+      "you_ll_receive_label": "You'll receive",
+      "recipient_label": "Select account",
+      "recipient_placeholder": "Enter account name or paste address",
+      "recipient_empty": "No accounts found",
+      "send": "Send",
+      "rescue_success_body": "{{amount}} added to {{destination}}.",
+      "error_invalid_recipient": "Select an account to send to",
+      "error_invalid_amount": "Enter an amount greater than zero",
+      "error_insufficient_balance": "Amount exceeds available mUSD",
+      "error_vmusd_balance_present": "Sending is available only before mUSD is converted to vmUSD.",
+      "error_balance_unavailable": "Balance unavailable — try again shortly",
+      "error_send_failed": "Failed to start the send — try again"
     },
     "toasts": {
       "in_progress_title": "Transaction in progress",
@@ -9774,7 +9831,8 @@
         "history": "Order history appears here"
       },
       "error": "Orders couldn’t be loaded",
-      "try_again": "Try again"
+      "try_again": "Try again",
+      "today": "Today"
     },
     "limit": {
       "pair": "{{source}} → {{dest}}",
@@ -10072,15 +10130,18 @@
       "failed_title": "Transaction failed",
       "disconnected_title": "Device disconnected",
       "approve_token": "Approve {{amount}} {{symbol}}",
-      "approving_token": "Approving {{amount}} {{symbol}}",
       "approved_token": "Approved {{amount}} {{symbol}}",
       "send_token": "Send {{amount}} {{symbol}}",
       "sending_token": "Sending {{amount}} {{symbol}}",
       "sent_token": "Sent {{amount}} {{symbol}}",
+      "swap_amount": "Swap {{amount}} {{symbol}} for {{destAmount}} {{destSymbol}}",
+      "swapping_amount": "Swapping {{amount}} {{symbol}} for {{destAmount}} {{destSymbol}}",
+      "swapped_amount": "Swapped {{amount}} {{symbol}} for {{destAmount}} {{destSymbol}}",
       "spender": "Spender",
-      "spender_address": "Spender {{address}}",
+      "spender_address": "Spender: {{address}}",
+      "token_address": "Token: {{address}}",
       "recipient": "Recipient",
-      "recipient_address": "Recipient {{address}}",
+      "recipient_address": "To: {{address}}",
       "rejected": "Rejected",
       "reconnect": "Reconnect",
       "done": "Done",
@@ -12603,31 +12664,19 @@
       "cancel_membership": "Cancel membership"
     },
     "cancel_membership": {
-      "title": "Why are you canceling?",
-      "subtitle": "Survey is optional.",
-      "earned_as_member": "Earned as a member",
-      "membership_cost": "Membership cost",
+      "title": "Why are you canceling your plan?",
       "reason_cost": "Costs more than it's worth",
       "reason_not_using": "I wasn't using the benefits",
       "reason_benefit_misfit": "The benefits weren't what I expected",
       "reason_didnt_work": "Something didn't work",
       "reason_support": "Unhappy with support",
       "reason_other": "Other",
-      "reason_other_placeholder": "Describe your reason",
-      "stay_question": "What's the one thing that would have made you stay?",
-      "stay_question_optional": "Optional",
-      "stay_question_placeholder": "Describe what would have made you stay",
-      "keep_membership": "Keep membership",
-      "cancel": "Cancel",
+      "stay_question": "What's one feature that would have made you stay?",
+      "stay_question_placeholder": "Optional",
+      "keep_membership": "Keep Orange",
+      "cancel": "Cancel membership",
       "cancellation_unavailable": "Your membership can't be canceled right now. Please try again later.",
-      "cancellation_failed": "We couldn't cancel your membership. Please try again.",
-      "success": {
-        "title": "Plan canceled",
-        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
-        "description_suffix": ".",
-        "immediate_description": "Your Pro plan was canceled successfully and your benefits have ended.",
-        "done": "Done"
-      }
+      "cancellation_failed": "We couldn't cancel your membership. Please try again."
     }
   },
   "pro_subscription": {
