@@ -380,6 +380,8 @@ const Routes = {
         'SwapsLimitOrderCustomCostToleranceModal',
       LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
       LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL: 'LimitOrderCostToleranceInfoModal',
+      LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL:
+        'LimitOrderAccountUpgradeFeeInfoModal',
       OPEN_LIMIT_ORDER_DETAILS_MODAL: 'OpenLimitOrderDetailsModal',
       CANCEL_LIMIT_ORDER_MODAL: 'CancelLimitOrderModal',
       RECURRING_INTERVAL_MODAL: 'RecurringIntervalModal',
@@ -517,6 +519,8 @@ const Routes = {
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
+    MUSD_RESCUE_SEND: 'MoneyMusdRescueSend',
+    MUSD_RESCUE_RECIPIENT: 'MoneyMusdRescueRecipient',
     ONBOARDING: 'MoneyOnboarding',
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
@@ -558,6 +562,9 @@ const Routes = {
   SOCIAL_PROFILE: {
     DRAWER: 'ProfileDrawer',
     MANAGE_PROFILE: 'ManageProfile',
+    MANAGE_PROFILE_FIELD: 'ManageProfileField',
+    X_ACCOUNT: 'ManageProfileXAccount',
+    LINKED_SOCIAL_ACCOUNT: 'LinkedSocialAccount',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {

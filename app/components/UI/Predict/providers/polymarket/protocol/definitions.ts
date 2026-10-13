@@ -1,7 +1,8 @@
-import type { ContractConfig } from '../types';
+import type { ContractConfig, PositionsProtocolContractConfig } from '../types';
 import {
   HASH_ZERO_BYTES32,
   MATIC_CONTRACTS_V2,
+  MATIC_POSITIONS_PROTOCOL_CONTRACTS,
   DEFAULT_CLOB_BASE_URL,
   COLLATERAL_ONRAMP_ADDRESS,
   CTF_COLLATERAL_ADAPTER_ADDRESS,
@@ -97,6 +98,39 @@ export const POLYMARKET_V2_PROTOCOL = {
 } satisfies BasePolymarketProtocolDefinition;
 
 export type PolymarketProtocolDefinition = typeof POLYMARKET_V2_PROTOCOL;
+
+/**
+ * Polymarket Protocol V2 — PositionManager markets. Signs orders with EIP-712
+ * domain version "3" against ExchangeV3. Gamma reports these markets as
+ * version "v2"; routing by market version is PRED-1351.
+ */
+export interface BasePolymarketPositionsProtocolDefinition {
+  key: 'positions';
+  contracts: PositionsProtocolContractConfig;
+  order: {
+    domainVersion: '3';
+    metadata: string;
+    getBuilderCode: () => string;
+  };
+  transport: {
+    clobVersionHeader: '2';
+    clobBaseUrl: string;
+  };
+}
+
+export const POLYMARKET_POSITIONS_PROTOCOL = {
+  key: 'positions',
+  contracts: MATIC_POSITIONS_PROTOCOL_CONTRACTS,
+  order: {
+    domainVersion: '3',
+    metadata: HASH_ZERO_BYTES32,
+    getBuilderCode: getClobV2BuilderCode,
+  },
+  transport: {
+    clobVersionHeader: '2',
+    clobBaseUrl: DEFAULT_CLOB_BASE_URL,
+  },
+} satisfies BasePolymarketPositionsProtocolDefinition;
 
 export function getProtocolDepositTokenAddress(
   protocol: PolymarketProtocolDefinition,

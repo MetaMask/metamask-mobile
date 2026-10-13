@@ -27,7 +27,7 @@ export const LimitOrderCostToleranceTooltip: React.FC<
     <ButtonIcon
       iconName={IconName.Info}
       iconProps={{ color: IconColor.IconAlternative }}
-      size={ButtonIconSize.Sm}
+      size={ButtonIconSize.Xs}
       onPress={handlePress}
       testID={testID}
       accessibilityLabel={strings('bridge.cost_tolerance')}
