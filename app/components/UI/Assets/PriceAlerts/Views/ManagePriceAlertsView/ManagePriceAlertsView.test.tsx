@@ -97,9 +97,28 @@ const mockDeletePerpAlert = jest.fn();
 const mockUpdatePerpAlert = jest.fn();
 jest.mock('../../perpApi', () => ({
   fetchPerpAlerts: (...args: unknown[]) => mockFetchPerpAlerts(...args),
-  deletePerpAlert: (...args: unknown[]) => mockDeletePerpAlert(...args),
-  updatePerpAlert: (...args: unknown[]) => mockUpdatePerpAlert(...args),
+  deletePerpAlertByType: (...args: unknown[]) => mockDeletePerpAlert(...args),
+  updatePerpAlertByType: (...args: unknown[]) => mockUpdatePerpAlert(...args),
   perpAlertsQueryKey: (marketId: string) => ['perpAlerts', marketId],
+  normalizePerpAlerts: (
+    alerts: {
+      marketId: string;
+      type: 'perp_absolute_price' | 'perp_percent_change';
+      [key: string]: unknown;
+    }[],
+  ) =>
+    alerts.map(({ marketId, type, ...responseFields }) => ({
+      ...responseFields,
+      asset: marketId,
+      type:
+        type === 'perp_percent_change' ? 'percent_change' : 'absolute_price',
+    })),
+}));
+jest.mock('../../../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => 'HIGH',
+}));
+jest.mock('../../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => 'WIFI',
 }));
 
 const makeAlert = (
@@ -1180,14 +1199,24 @@ describe('ManagePriceAlertsView', () => {
     const perpAlert = {
       id: 'perp-alert-1',
       userId: 'user-1',
-      asset: MARKET_ID,
+      marketId: MARKET_ID,
+      type: 'perp_absolute_price',
       threshold: 95000,
       recurring: false,
       active: true,
       createdAt: '2026-01-01T00:00:00Z',
-      // NOTE: intentionally omit `type` to simulate a perp-alerts API that
-      // does not return the discriminator field. The component must normalise
-      // this so duplicate-threshold checks in AbsolutePriceAlertForm work.
+    };
+    const perpPercentAlert = {
+      id: 'perp-percent-alert-1',
+      userId: 'user-1',
+      marketId: MARKET_ID,
+      type: 'perp_percent_change',
+      threshold: 5,
+      period: '1h',
+      direction: 'up',
+      recurring: true,
+      active: true,
+      createdAt: '2026-01-01T00:00:00Z',
     };
 
     beforeEach(() => {
@@ -1228,7 +1257,7 @@ describe('ManagePriceAlertsView', () => {
       );
     });
 
-    it('normalises perp alert type even when API returns without type field', async () => {
+    it('passes an empty percent list when only threshold alerts are returned', async () => {
       const screen = renderView();
       await waitForLoaded(screen);
 
@@ -1236,7 +1265,6 @@ describe('ManagePriceAlertsView', () => {
         screen.getByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON),
       );
 
-      // existingPercentAlerts should be empty (no percent alerts in perps)
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.PERPS.CREATE_PRICE_ALERT,
         expect.objectContaining({
@@ -1266,6 +1294,46 @@ describe('ManagePriceAlertsView', () => {
           szDecimals: 5,
         }),
       );
+    });
+
+    it('renders and routes perps percent alerts by type', async () => {
+      mockFetchPerpAlerts.mockResolvedValue(
+        makeFetchResponse([perpAlert, perpPercentAlert] as unknown as Alert[]),
+      );
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      expect(screen.getByText('Moves up 5%')).toBeOnTheScreen();
+      expect(screen.getByText('1h • Recurring')).toBeOnTheScreen();
+
+      fireEvent(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-${perpPercentAlert.id}`,
+        ),
+        'valueChange',
+        false,
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-${perpPercentAlert.id}`,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(mockUpdatePerpAlert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: perpPercentAlert.id,
+            type: 'percent_change',
+          }),
+          { active: false },
+        );
+        expect(mockDeletePerpAlert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: perpPercentAlert.id,
+            type: 'percent_change',
+          }),
+        );
+      });
     });
   });
 });

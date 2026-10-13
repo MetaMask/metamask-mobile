@@ -33,6 +33,8 @@ import usePerpAlertSaveFlow from '../../perpApi';
 import AbsolutePriceAlertForm from './AbsolutePriceAlertForm';
 import PercentChangeAlertForm from './PercentChangeAlertForm';
 import { FeatureNotificationsGate } from '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 
 /**
  * Mounted only in perps mode (inside PerpsStreamProvider). Spot Create lives
@@ -82,6 +84,11 @@ const CreatePriceAlertView: React.FC = () => {
     szDecimals,
   } = route.params;
   const isPerpsMode = mode === 'perps';
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  const shouldUseLivePrice =
+    networkTier !== 'NONE' &&
+    !(hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR');
   const [livePrice, setLivePrice] = useState<number | undefined>();
   const displayPrice =
     isPerpsMode && livePrice !== undefined ? livePrice : currentPrice;
@@ -185,24 +192,22 @@ const CreatePriceAlertView: React.FC = () => {
           onBack={handleBack}
         />
 
-        {isPerpsMode ? (
+        {isPerpsMode && shouldUseLivePrice ? (
           <PerpsStreamProvider>
             <PerpsAlertLivePrice symbol={assetId} onPrice={setLivePrice} />
           </PerpsStreamProvider>
         ) : null}
 
-        {/* Percent-change tab is not supported by the perp alerts API */}
-        {!isPerpsMode && (
-          <AlertTypeToggle
-            value={alertType}
-            onChange={setAlertType}
-            isDisabled={isEditing}
-          />
-        )}
+        <AlertTypeToggle
+          value={alertType}
+          onChange={setAlertType}
+          isDisabled={isEditing}
+        />
 
-        {!isPerpsMode && alertType === 'percent_change' ? (
+        {alertType === 'percent_change' ? (
           <PercentChangeAlertForm
             assetId={assetId}
+            marketId={isPerpsMode ? marketId : undefined}
             saveAlert={saveAlert}
             editingAlert={editingPercentAlert}
             existingPercentAlerts={existingPercentAlerts}

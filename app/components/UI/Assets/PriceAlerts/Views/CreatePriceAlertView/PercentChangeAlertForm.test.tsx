@@ -8,6 +8,7 @@ import { type SaveAlertFlowParams } from '../../hooks/useAlertSaveFlow';
 import PercentChangeAlertForm from './PercentChangeAlertForm';
 
 const mockSubmitPercent = jest.fn();
+const mockSubmitPerpPercent = jest.fn();
 const mockSaveAlert = jest.fn(async ({ submit }: SaveAlertFlowParams) => {
   await submit();
 });
@@ -19,6 +20,13 @@ const mockUseSubmitPercentAlert = jest.fn((_editingAlert?: unknown) => ({
 jest.mock('../../api', () => ({
   useSubmitPercentAlert: (editingAlert?: unknown) =>
     mockUseSubmitPercentAlert(editingAlert),
+}));
+
+jest.mock('../../perpApi', () => ({
+  useSubmitPerpPercentAlert: jest.fn(() => ({
+    submit: mockSubmitPerpPercent,
+    isSubmitting: false,
+  })),
 }));
 
 const baseProps: React.ComponentProps<typeof PercentChangeAlertForm> = {
@@ -47,6 +55,7 @@ describe('PercentChangeAlertForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSubmitPercent.mockResolvedValue(undefined);
+    mockSubmitPerpPercent.mockResolvedValue(undefined);
     mockSaveAlert.mockImplementation(
       async ({ submit }: SaveAlertFlowParams) => {
         await submit();
@@ -239,6 +248,39 @@ describe('PercentChangeAlertForm', () => {
           alert_direction: 'up',
           alert_value: 5,
           alert_recurring: true,
+        }),
+      }),
+    );
+  });
+
+  it('submits a 1h perps percent alert with the market id', async () => {
+    const screen = renderForm({
+      marketId: 'btc-hyperliquid-mainnet',
+    });
+    fireEvent.press(
+      screen.getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_1H),
+    );
+    fireEvent.press(screen.getByTestId('keypad-key-5'));
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+      );
+    });
+
+    expect(mockSubmitPerpPercent).toHaveBeenCalledWith({
+      marketId: 'btc-hyperliquid-mainnet',
+      threshold: 5,
+      period: '1h',
+      direction: 'up',
+      recurring: true,
+    });
+    expect(mockSubmitPercent).not.toHaveBeenCalled();
+    expect(mockSaveAlert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        analyticsProperties: expect.objectContaining({
+          alert_market_type: 'perps',
+          alert_period: '1h',
         }),
       }),
     );

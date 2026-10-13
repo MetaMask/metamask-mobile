@@ -3,14 +3,25 @@ import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
-import { type AbsolutePriceAlert, PriceAlertAnalytics } from './constants';
+import {
+  type AbsolutePriceAlert,
+  type PercentChangeAlert,
+  PriceAlertAnalytics,
+} from './constants';
 import usePerpAlertSaveFlow, {
   perpAlertsQueryKey,
   fetchPerpAlerts,
   createPerpAlert,
   updatePerpAlert,
   deletePerpAlert,
+  createPerpPercentAlert,
+  updatePerpPercentAlert,
+  deletePerpPercentAlert,
+  deletePerpAlertByType,
+  normalizePerpAlerts,
+  updatePerpAlertByType,
   useSubmitPerpAlert,
+  useSubmitPerpPercentAlert,
 } from './perpApi';
 
 // ─── Shared mock state ────────────────────────────────────────────────────────
@@ -71,6 +82,14 @@ const editingAlert: AbsolutePriceAlert = {
   active: true,
   type: 'absolute_price',
   createdAt: '2026-01-01T00:00:00Z',
+};
+
+const editingPercentAlert: PercentChangeAlert = {
+  ...editingAlert,
+  id: 'percent-alert-99',
+  type: 'percent_change',
+  period: '1h',
+  direction: 'down',
 };
 
 const baseAnalyticsProperties = {
@@ -145,6 +164,105 @@ describe('API functions', () => {
       expect.objectContaining({ method: 'DELETE' }),
     );
   });
+
+  it('sends percent-change create, update, and delete requests to the percent endpoint', async () => {
+    const params = {
+      marketId: MARKET_ID,
+      threshold: 5,
+      period: '24h' as const,
+      direction: 'up' as const,
+      recurring: false,
+    };
+
+    await createPerpPercentAlert(params);
+    await updatePerpPercentAlert('percent-alert-1', { active: false });
+    await deletePerpPercentAlert('percent-alert-1');
+
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining('perp-alerts/percent-change'),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify(params),
+      }),
+    );
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('perp-alerts/percent-change/percent-alert-1'),
+      expect.objectContaining({ method: 'PATCH' }),
+    );
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      3,
+      expect.stringContaining('perp-alerts/percent-change/percent-alert-1'),
+      expect.objectContaining({ method: 'DELETE' }),
+    );
+  });
+});
+
+describe('normalizePerpAlerts', () => {
+  it('maps absolute and percent API discriminators to shared alert types', () => {
+    const shared = {
+      userId: 'user-1',
+      marketId: MARKET_ID,
+      recurring: true,
+      active: true,
+      createdAt: '2026-01-01T00:00:00Z',
+    };
+
+    const result = normalizePerpAlerts([
+      {
+        ...shared,
+        id: 'absolute-1',
+        type: 'perp_absolute_price',
+        threshold: 60000,
+      },
+      {
+        ...shared,
+        id: 'percent-1',
+        type: 'perp_percent_change',
+        threshold: 5,
+        period: '1h',
+        direction: 'down',
+      },
+    ]);
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: 'absolute-1',
+        asset: MARKET_ID,
+        type: 'absolute_price',
+      }),
+      expect.objectContaining({
+        id: 'percent-1',
+        asset: MARKET_ID,
+        type: 'percent_change',
+        period: '1h',
+        direction: 'down',
+      }),
+    ]);
+  });
+});
+
+describe('perps CRUD routing', () => {
+  beforeEach(() => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: true } as Response);
+  });
+
+  it('routes percent updates and deletes to percent-change endpoints', async () => {
+    await updatePerpAlertByType(editingPercentAlert, { active: false });
+    await deletePerpAlertByType(editingPercentAlert);
+
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining('perp-alerts/percent-change/percent-alert-99'),
+      expect.objectContaining({ method: 'PATCH' }),
+    );
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('perp-alerts/percent-change/percent-alert-99'),
+      expect.objectContaining({ method: 'DELETE' }),
+    );
+  });
 });
 
 // ─── useSubmitPerpAlert ───────────────────────────────────────────────────────
@@ -176,6 +294,46 @@ describe('useSubmitPerpAlert', () => {
     });
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining('alert-99'),
+      expect.objectContaining({ method: 'PATCH' }),
+    );
+  });
+});
+
+describe('useSubmitPerpPercentAlert', () => {
+  const params = {
+    marketId: MARKET_ID,
+    threshold: 7.5,
+    period: '24h' as const,
+    direction: 'up' as const,
+    recurring: true,
+  };
+
+  it('posts a percent alert when no editing alert is supplied', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: true } as Response);
+    const { result } = renderHook(() => useSubmitPerpPercentAlert());
+
+    await act(async () => {
+      await result.current.submit(params);
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('perp-alerts/percent-change'),
+      expect.objectContaining({ method: 'POST' }),
+    );
+  });
+
+  it('patches a percent alert when an editing alert is supplied', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: true } as Response);
+    const { result } = renderHook(() =>
+      useSubmitPerpPercentAlert(editingPercentAlert),
+    );
+
+    await act(async () => {
+      await result.current.submit(params);
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('perp-alerts/percent-change/percent-alert-99'),
       expect.objectContaining({ method: 'PATCH' }),
     );
   });

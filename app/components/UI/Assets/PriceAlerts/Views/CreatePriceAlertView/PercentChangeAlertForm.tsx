@@ -26,6 +26,7 @@ import {
   PriceAlertAnalytics,
 } from '../../constants';
 import { useSubmitPercentAlert } from '../../api';
+import { useSubmitPerpPercentAlert } from '../../perpApi';
 import { type SaveAlert } from '../../hooks/useAlertSaveFlow';
 import {
   KEYPAD_EMPTY,
@@ -36,6 +37,7 @@ import {
 
 interface PercentChangeAlertFormProps {
   assetId: string;
+  marketId?: string;
   saveAlert: SaveAlert;
   editingAlert?: PercentChangeAlert;
   existingPercentAlerts?: PercentChangeAlert[];
@@ -43,6 +45,7 @@ interface PercentChangeAlertFormProps {
 
 const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
   assetId,
+  marketId,
   saveAlert,
   editingAlert,
   existingPercentAlerts,
@@ -98,20 +101,33 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
     direction === editingAlert?.direction &&
     isRecurring === editingAlert?.recurring;
 
-  const { submit, isSubmitting } = useSubmitPercentAlert(editingAlert);
+  const { submit: submitSpotPercent, isSubmitting: isSpotSubmitting } =
+    useSubmitPercentAlert(editingAlert);
+  const { submit: submitPerpPercent, isSubmitting: isPerpSubmitting } =
+    useSubmitPerpPercentAlert(editingAlert);
+  const isPerpsMode = Boolean(marketId);
+  const isSubmitting = isPerpsMode ? isPerpSubmitting : isSpotSubmitting;
 
   const handleSave = useCallback(async () => {
     if (!hasValidPercent) return;
 
     await saveAlert({
       submit: () =>
-        submit({
-          asset: assetId,
-          threshold: percentValue,
-          period,
-          direction,
-          recurring: isRecurring,
-        }),
+        isPerpsMode
+          ? submitPerpPercent({
+              marketId: marketId ?? '',
+              threshold: percentValue,
+              period,
+              direction,
+              recurring: isRecurring,
+            })
+          : submitSpotPercent({
+              asset: assetId,
+              threshold: percentValue,
+              period,
+              direction,
+              recurring: isRecurring,
+            }),
       editingAlert,
       patch: {
         threshold: percentValue,
@@ -125,7 +141,9 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
         alert_direction: direction,
         alert_value: percentValue,
         alert_recurring: isRecurring,
-        alert_market_type: PriceAlertAnalytics.MARKET_TYPE.SPOT,
+        alert_market_type: isPerpsMode
+          ? PriceAlertAnalytics.MARKET_TYPE.PERPS
+          : PriceAlertAnalytics.MARKET_TYPE.SPOT,
       },
     });
   }, [
@@ -134,10 +152,13 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
     editingAlert,
     hasValidPercent,
     isRecurring,
+    isPerpsMode,
+    marketId,
     percentValue,
     period,
     saveAlert,
-    submit,
+    submitPerpPercent,
+    submitSpotPercent,
   ]);
 
   const handleKeypadChange = useCallback(({ value }: KeypadChangeData) => {
