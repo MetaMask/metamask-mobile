@@ -47,6 +47,8 @@ import { importNewSecretRecoveryPhrase } from '../../actions/multiSrp';
 import { bufferToHex, privateToAddress } from 'ethereumjs-util';
 import Authentication from '../../core/Authentication';
 import { emitStepHud } from './AgentStepHud';
+import { BottomSheet as DesignSystemBottomSheet } from '@metamask/design-system-react-native';
+import ComponentLibraryBottomSheet from '../../component-library/components/BottomSheets/BottomSheet';
 import { Wallet as EthersWallet } from 'ethers';
 import PerpsConnectionManager from '../../components/UI/Perps/services/PerpsConnectionManager';
 import { readPerpsUiObservations } from '../../components/UI/Perps/utils/perpsUiObservations';
@@ -60,6 +62,7 @@ import { getStreamManagerInstance } from '../../components/UI/Perps/providers/Pe
  */
 interface FiberNode {
   tag?: number;
+  type?: unknown;
   memoizedState?: unknown;
   child: FiberNode | null;
   sibling: FiberNode | null;
@@ -115,6 +118,7 @@ interface AgenticHudStep {
   error?: string;
   nodeId?: string;
   debug?: { nodeId?: string; proofTarget?: unknown };
+  placement?: 'top' | 'bottom';
 }
 
 interface AgenticBridge {
@@ -494,6 +498,56 @@ function walkFiberRoots(visitor: (rootFiber: FiberNode) => boolean): boolean {
     if (found) return true;
   }
   return false;
+}
+
+// Identity match on the imported components. Recipe runs refuse hot-reloaded
+// source and restart the app first, so these references stay current.
+const BOTTOM_SHEET_TYPES = new Set<unknown>([
+  DesignSystemBottomSheet,
+  ComponentLibraryBottomSheet,
+]);
+
+interface RouteTreeState {
+  index?: number;
+  routes: { key?: string; state?: RouteTreeState }[];
+}
+
+/** Keys of the routes on the focused path, from the root navigator down. */
+function getFocusedRouteKeys(state: RouteTreeState | undefined): Set<string> {
+  const keys = new Set<string>();
+  let current = state;
+  while (current?.routes?.length) {
+    const route = current.routes[current.index ?? current.routes.length - 1];
+    if (route?.key) keys.add(route.key);
+    current = route?.state;
+  }
+  return keys;
+}
+
+/** Key of the route whose screen renders this fiber, if any. */
+function getRouteKey(fiber: FiberNode): string | undefined {
+  for (let current = fiber.return; current; current = current.return) {
+    const key = (current.memoizedProps?.route as { key?: unknown } | undefined)
+      ?.key;
+    if (typeof key === 'string') return key;
+  }
+  return undefined;
+}
+
+/**
+ * True while a bottom sheet is mounted on the focused route, whether it is
+ * its own route or rendered inline by a screen (e.g. the Perps close-all
+ * sheet). Sheets on covered or hidden routes don't count.
+ */
+function isBottomSheetShown(state: RouteTreeState | undefined): boolean {
+  const focusedRouteKeys = getFocusedRouteKeys(state);
+  return walkFiberRoots((rootFiber) =>
+    walkFiber(rootFiber, (f) => {
+      if (!BOTTOM_SHEET_TYPES.has(f.type)) return false;
+      const routeKey = getRouteKey(f);
+      return routeKey === undefined || focusedRouteKeys.has(routeKey);
+    }),
+  );
 }
 
 // ─── Shared helpers ─────────────────────────────────────────────────────────
@@ -1687,7 +1741,14 @@ const AgenticService = {
         return { switched: true, ...toAccountSummary(target) };
       },
       showStep: (step: AgenticHudStep) => {
-        emitStepHud(step);
+        emitStepHud({
+          ...step,
+          placement: isBottomSheetShown(
+            navRef.getRootState() as RouteTreeState | undefined,
+          )
+            ? 'top'
+            : 'bottom',
+        });
       },
       hideStep: () => {
         emitStepHud(null);

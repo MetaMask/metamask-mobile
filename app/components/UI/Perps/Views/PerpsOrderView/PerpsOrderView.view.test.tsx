@@ -95,6 +95,18 @@ const waitForDeferredOrderData = async () => {
   });
 };
 
+const waitForEnabledPlaceOrderButton = async (
+  testId: string = PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+) => {
+  await waitFor(
+    () => {
+      expect(screen.getByTestId(testId)).not.toBeDisabled();
+    },
+    { timeout: TIMEOUT_MS },
+  );
+  return screen.getByTestId(testId);
+};
+
 describe('PerpsOrderView', () => {
   const originalRequestAnimationFrame = global.requestAnimationFrame;
 
@@ -182,12 +194,7 @@ describe('PerpsOrderView', () => {
       ).toHaveTextContent('$0.06');
     });
 
-    const placeOrderButton = await screen.findByTestId(
-      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-    );
-    await waitFor(() => {
-      expect(placeOrderButton).not.toBeDisabled();
-    });
+    const placeOrderButton = await waitForEnabledPlaceOrderButton();
     await act(async () => {
       fireEvent.press(placeOrderButton);
     });
