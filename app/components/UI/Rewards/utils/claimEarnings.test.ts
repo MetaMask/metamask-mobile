@@ -98,6 +98,7 @@ function summary(options: {
   claimable: string;
   cashback?: string;
   revShare?: string;
+  minimum?: string;
 }): EarningsSummaryDto {
   return {
     lifetime_total: '0',
@@ -106,7 +107,7 @@ function summary(options: {
     pending: '0',
     claimed: '0',
     voided: '0',
-    minimum_musd_base_units: ONE_DOLLAR,
+    minimum_musd_base_units: options.minimum ?? ONE_DOLLAR,
     pairing_pending: false,
     self_earned: {
       lifetime: '0',
@@ -188,6 +189,36 @@ describe('claimRoutesForSummary', () => {
     expect(canClaimEarnings(atMinimum, 'referee')).toBe(true);
     expect(canClaimEarnings(atMinimum, 'referrer')).toBe(false);
     expect(canClaimEarnings(atMinimum, 'plain')).toBe(false);
+  });
+
+  it('uses the summary minimum instead of a fixed $1', () => {
+    const underRaisedMinimum = summary({
+      claimable: ONE_DOLLAR,
+      cashback: ONE_DOLLAR,
+      minimum: '5000000',
+    });
+    expect(canClaimEarnings(underRaisedMinimum, 'referee')).toBe(false);
+    expect(claimRoutesForSummary(underRaisedMinimum)).toEqual([]);
+
+    const aboveLoweredMinimum = summary({
+      claimable: UNDER_DOLLAR,
+      cashback: UNDER_DOLLAR,
+      minimum: '500000',
+    });
+    expect(canClaimEarnings(aboveLoweredMinimum, 'referee')).toBe(true);
+    expect(claimRoutesForSummary(aboveLoweredMinimum)).toEqual([
+      'referral-trade-fee-cashback',
+    ]);
+  });
+
+  it('does not claim when the summary minimum is missing', () => {
+    const noMinimum = summary({
+      claimable: ONE_DOLLAR,
+      cashback: ONE_DOLLAR,
+      minimum: '',
+    });
+    expect(canClaimEarnings(noMinimum, 'referee')).toBe(false);
+    expect(claimRoutesForSummary(null)).toEqual([]);
   });
 });
 

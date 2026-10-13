@@ -20,6 +20,7 @@ const LOCALIZED_TEXT = {
   copiedTimes: 'Copied {count} times',
   rebatePerpsVolume: 'Perps volume',
   rebateSwaps: 'Swaps',
+  voided: 'Voided',
 } as unknown as ReferralLocalizedText;
 
 const amountColor = (
@@ -113,33 +114,32 @@ describe('PerformanceActivityRows', () => {
     expect(queryByText('Predictions')).toBeNull();
   });
 
-  it('shows the remaining rebate in green when only part is voided', () => {
-    const { getByText, queryByText, UNSAFE_getAllByType } = renderWithProvider(
-      <PerformanceRebateRow
-        item={rebate({ musd_amount: '2500000', voided_musd_amount: '1000000' })}
-        localizedText={LOCALIZED_TEXT}
-      />,
-    );
+  it.each(['1000000', '2500000'])(
+    'shows a voided rebate as the original amount in gray, marked voided (voided %s)',
+    (voided) => {
+      const { getByText, queryByText, UNSAFE_getAllByType } =
+        renderWithProvider(
+          <PerformanceRebateRow
+            item={rebate({
+              musd_amount: '2500000',
+              voided_musd_amount: voided,
+            })}
+            localizedText={LOCALIZED_TEXT}
+          />,
+        );
 
-    expect(getByText('+$1.50')).toBeOnTheScreen();
-    expect(amountColor(UNSAFE_getAllByType, '+$1.50')).toBe(
-      TextColor.SuccessDefault,
-    );
-    expect(queryByText('+$2.50')).toBeNull();
-  });
-
-  it('does not show a fully voided rebate as a green credit', () => {
-    const { getByText, queryByText, UNSAFE_getAllByType } = renderWithProvider(
-      <PerformanceRebateRow
-        item={rebate({ musd_amount: '2500000', voided_musd_amount: '2500000' })}
-        localizedText={LOCALIZED_TEXT}
-      />,
-    );
-
-    expect(getByText('$0.00')).toBeOnTheScreen();
-    expect(amountColor(UNSAFE_getAllByType, '$0.00')).toBe(
-      TextColor.TextAlternative,
-    );
-    expect(queryByText('+$2.50')).toBeNull();
-  });
+      expect(getByText('+$2.50')).toBeOnTheScreen();
+      expect(amountColor(UNSAFE_getAllByType, '+$2.50')).toBe(
+        TextColor.TextAlternative,
+      );
+      expect(
+        getByText(
+          formatRewardsRelativeTime(new Date('2026-09-01T12:00:00.000Z')),
+        ),
+      ).toBeOnTheScreen();
+      expect(getByText('Voided')).toBeOnTheScreen();
+      expect(queryByText('+$1.50')).toBeNull();
+      expect(queryByText('$0.00')).toBeNull();
+    },
+  );
 });

@@ -24,8 +24,9 @@ export const REWARDS_PAUSED_BANNER_TEST_IDS = {
 } as const;
 
 /**
- * Neutral banner for the under-review total on the claims history. The whole
- * banner opens the rewards paused sheet.
+ * Neutral banner above claims history. The amount is `blocked` on families
+ * whose reason is `UNDER_REVIEW`. The whole banner opens the rewards paused
+ * sheet.
  */
 const RewardsPausedBanner: React.FC<{
   baseUnits: string;

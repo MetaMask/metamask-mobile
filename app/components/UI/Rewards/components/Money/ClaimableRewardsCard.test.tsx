@@ -45,10 +45,17 @@ describe('claimButtonState', () => {
     expect(claimButtonState(undefined, undefined)).toBe('hidden');
   });
 
-  it('shows Paused for a positive hold only when nothing is claimable', () => {
-    expect(claimButtonState('0', '0', false, '100000000')).toBe('paused');
+  it('keeps Claim ahead of a positive hold or block', () => {
     expect(claimButtonState('1000000', '0', true, '100000000')).toBe('claim');
-    expect(claimButtonState('0', '50', false, '0')).toBe('claimed');
+    expect(claimButtonState('1000000', '50', true, '0', '12000000')).toBe(
+      'claim',
+    );
+    expect(
+      claimButtonState('1000000', '50', true, '100000000', '12000000'),
+    ).toBe('claim');
+    expect(claimButtonState('0', '0', false, '100000000')).toBe('paused');
+    expect(claimButtonState('0', '50', false, '0', '12000000')).toBe('paused');
+    expect(claimButtonState('0', '50', false, '0', '0')).toBe('claimed');
   });
 });
 
@@ -98,7 +105,7 @@ describe('ClaimableRewardsCard', () => {
     ).toBeNull();
   });
 
-  it('shows the held balance and a Paused button when claims are held', () => {
+  it('shows the lifetime balance and a Paused button when claims are held', () => {
     const onPaused = jest.fn();
     const { getByTestId, getByText, queryByTestId } = renderWithProvider(
       <ClaimableRewardsCard
@@ -107,8 +114,7 @@ describe('ClaimableRewardsCard', () => {
         claimed="0"
         held="100000000"
         claimableAmount="$0.00"
-        heldAmount="$100.00"
-        recordedAmount="$4.00"
+        recordedAmount="$132.00"
         last7Amount="$0.25"
         isSummaryLoading={false}
         isLast7Loading={false}
@@ -117,7 +123,9 @@ describe('ClaimableRewardsCard', () => {
     );
 
     expect(getByText('Balance • mUSD')).toBeOnTheScreen();
-    expect(getByText('$100.00')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$132.00');
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
     ).toBeOnTheScreen();
@@ -127,5 +135,37 @@ describe('ClaimableRewardsCard', () => {
 
     fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON));
     expect(onPaused).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps Claim when cashback is claimable and some money is held or blocked', () => {
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="50"
+        held="100000000"
+        blocked="12000000"
+        canClaim
+        claimableAmount="$1.00"
+        recordedAmount="$132.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+      />,
+    );
+
+    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$1.00');
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeNull();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
+    ).toBeNull();
   });
 });

@@ -222,6 +222,7 @@ import ActivityDetails from '../../Views/ActivityDetails';
 import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsInfoSheetModal from '../../UI/Rewards/components/RewardsInfoSheetModal';
+import RewardsMoneyClaimsPausedModal from '../../UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
@@ -1041,6 +1042,10 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_INFO_SHEET_MODAL}
           component={RewardsInfoSheetModal}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL}
+          component={RewardsMoneyClaimsPausedModal}
         />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}

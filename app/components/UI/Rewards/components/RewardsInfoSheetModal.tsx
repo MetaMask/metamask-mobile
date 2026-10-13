@@ -57,6 +57,9 @@ const RewardsInfoSheetModal: React.FC<RewardsInfoSheetModalProps> = ({
         closeButtonProps={{
           testID: REWARDS_INFO_SHEET_MODAL_TEST_IDS.CLOSE,
         }}
+        // Header default is px-2 around a 32px button and a 24px icon, which
+        // leaves the glyph 4px outside the px-4 body. 12px lines it up.
+        style={{ paddingHorizontal: 12 }}
         testID={REWARDS_INFO_SHEET_MODAL_TEST_IDS.TITLE}
       >
         {title}

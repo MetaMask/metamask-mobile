@@ -18,7 +18,7 @@ import type {
   LedgerEarningEntryDto,
   ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import { creditedBaseUnits } from '../../utils/earningsSummaryTotals';
+import { isVoidedEarning } from '../../utils/earningsSummaryTotals';
 import {
   isPendingClaimRow,
   type EarningsHistoryListItem,
@@ -75,17 +75,18 @@ function claimDebit(netAmount: string): string | null {
 function earningAmount(item: LedgerEarningEntryDto): {
   label: string;
   color: TextColor;
+  voided: boolean;
 } {
-  const credited = creditedBaseUnits(item.musd_amount, item.voided_musd_amount);
-  const fullyVoided = credited === '0' && item.voided_musd_amount !== '0';
+  const voided = isVoidedEarning(item.voided_musd_amount);
 
   return {
     label:
-      formatMusdBaseUnits(credited, {
+      formatMusdBaseUnits(item.musd_amount, {
         signed: true,
         maximumFractionDigits: 2,
       }) ?? '—',
-    color: fullyVoided ? TextColor.TextAlternative : TextColor.SuccessDefault,
+    color: voided ? TextColor.TextAlternative : TextColor.SuccessDefault,
+    voided,
   };
 }
 
@@ -110,6 +111,7 @@ export const EarningsHistoryRow: React.FC<{
   const amountColor = isClaim
     ? TextColor.TextAlternative
     : (credited?.color ?? TextColor.SuccessDefault);
+  const voided = credited?.voided === true;
   const subtitle = pending
     ? localizedText.historyClaimPending
     : formatRewardsRelativeTime(new Date(item.ledger_timestamp));
@@ -142,18 +144,30 @@ export const EarningsHistoryRow: React.FC<{
           >
             {title}
           </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={amountColor}
-            twClassName="ml-auto"
-          >
-            {amount ?? '—'}
-          </Text>
+          {voided ? null : (
+            <Text
+              variant={TextVariant.BodyMd}
+              color={amountColor}
+              twClassName="ml-auto"
+            >
+              {amount ?? '—'}
+            </Text>
+          )}
         </Box>
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
           {subtitle}
         </Text>
       </Box>
+      {voided ? (
+        <Box alignItems={BoxAlignItems.End}>
+          <Text variant={TextVariant.BodyMd} color={amountColor}>
+            {amount ?? '—'}
+          </Text>
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+            {localizedText.voided}
+          </Text>
+        </Box>
+      ) : null}
     </Box>
   );
 };

@@ -28,6 +28,7 @@ import {
   canClaimEarnings,
   claimRoutesForSummary,
   claimToastKey,
+  isClaimsPausedRefusal,
   evmAddressFromEarningAddress,
   isClaimSubmittable,
   runEarningsClaim,
@@ -48,8 +49,9 @@ function isClaimConfirmationActive(): boolean {
 }
 
 /**
- * Claims referee cashback that clears $1, signs the challenges, and submits
- * the voucher. One toast, after the batch is submitted or the route has failed.
+ * Claims referee cashback that reaches the summary minimum, signs the
+ * challenges, and submits the voucher. One toast, after the batch is
+ * submitted or the route has failed.
  */
 export function useClaimEarnings(
   profileId: string,
@@ -57,10 +59,16 @@ export function useClaimEarnings(
     persona,
     onOpened,
     onSubmitted,
+    onClaimsPaused,
     summary: liveSummary = null,
   }: {
     persona?: MoneyDashboardPersona;
     onOpened?: () => void;
+    /**
+     * A whole-claim refusal that leaves money in `held` or `blocked`. The
+     * caller opens the Claims paused sheet. No error toast.
+     */
+    onClaimsPaused?: () => void;
     /**
      * Runs after a confirmed claim, before Claim is enabled again. A rejection
      * means the balance on screen is still the pre-claim one, so Claim stays
@@ -218,7 +226,12 @@ export function useClaimEarnings(
 
         const key = claimToastKey(outcomes);
         const paid = outcomes.some((outcome) => outcome.submitted);
-        if (key === 'claimSuccessToast' || key === 'claimPartialSuccessToast') {
+        if (isClaimsPausedRefusal(outcomes)) {
+          onClaimsPaused?.();
+        } else if (
+          key === 'claimSuccessToast' ||
+          key === 'claimPartialSuccessToast'
+        ) {
           showToast(RewardsToastOptions.success(localizedText[key]));
         } else {
           showToast(RewardsToastOptions.error(localizedText[key]));
@@ -268,6 +281,7 @@ export function useClaimEarnings(
       navigateToConfirmation,
       onOpened,
       onSubmitted,
+      onClaimsPaused,
       showToast,
       RewardsToastOptions,
     ],

@@ -104,6 +104,10 @@ export type ReferralLocalizedTextKey =
   | 'availableToClaim'
   | 'claim'
   | 'claimed'
+  | 'held'
+  | 'blocked'
+  | 'voided'
+  | 'pending'
   | 'claimSuccessToast'
   | 'claimPartialSuccessToast'
   | 'claimFailureToast'
@@ -248,19 +252,59 @@ export type ReadWindowDto = {
   to: string | null;
 };
 
+/**
+ * Totals at one level of `GET /earnings/summary`.
+ *
+ * Every amount is an mUSD base-unit integer string. At the root of the
+ * summary, `lifetime_total` is this same `lifetime`.
+ */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SummaryTotalsDto = {
+  /**
+   * Everything at this level. It currently partitions exactly as
+   * `claimed + pending + claimable + held + blocked + voided`. An upcoming
+   * change will remove `voided` from `lifetime`. The client treats this
+   * backend figure as the source of truth and does not subtract `voided`.
+   */
   lifetime: string;
+  /**
+   * Exact base units a claim over this slice would pay now. Absent when
+   * claimability was not requested; absent is not zero.
+   */
   claimable?: string;
+  /**
+   * Base units the income threshold is holding, or, while the account is
+   * suspended, everything that was otherwise payable. Valued at what a claim
+   * would release.
+   */
   held?: string;
+  /**
+   * Base units a durable reason excluded: the mechanism is closed, the
+   * accrual has no producing address, the address cannot be screened, or an
+   * operator hold is under review. A suspension does not move this money.
+   * Voided money is not included.
+   */
   blocked?: string;
   /**
-   * Base units voided and not paid. Absent when the caller opted out of
-   * claimability, like `claimable`, `held`, and `blocked`.
+   * Base units cancelled and never payable. Final, and separate from
+   * `blocked`. Absent when claimability was not requested.
    */
   voided?: string;
+  /**
+   * Earned but not claimable yet, including an open trading day and cashback
+   * still inside its claim delay.
+   */
   pending: string;
+  /** Already paid out. */
   claimed: string;
+  /**
+   * Why this level pays nothing. Null only when `claimable` is non-zero. On
+   * a family it is that family's claim reason. On a branch it is set only
+   * when every family shares the same reason. It names the durable `blocked`
+   * state, except `VOIDED`, which is used only when `blocked` and `held` are
+   * zero and `voided` is not. A suspension reports `SUSPENDED` even though
+   * that money sits in `held`.
+   */
   blocking_reason?: ClaimBlockingReason | null;
 };
 
@@ -292,6 +336,11 @@ export type BranchViewDto<F extends SummaryTotalsDto> = SummaryTotalsDto & {
 /** `GET /earnings/summary` — live backend SummaryView shape. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EarningsSummaryDto = {
+  /**
+   * The root `lifetime`: everything in this summary. It currently includes
+   * `voided`. An upcoming change will remove `voided` from it. Read this
+   * figure as returned.
+   */
   lifetime_total: string;
   window: ReadWindowDto | null;
   claimable?: string;
@@ -301,6 +350,10 @@ export type EarningsSummaryDto = {
   voided?: string;
   pending: string;
   claimed: string;
+  /**
+   * Server claim minimum, `claimMinimumMusdBaseUnits`, as mUSD base units.
+   * A claimable balance below this is not offered as Claim.
+   */
   minimum_musd_base_units: string;
   self_earned: BranchViewDto<SelfEarnedFamilyTotalsDto>;
   earned_by_others: BranchViewDto<EarnedByOthersFamilyTotalsDto>;

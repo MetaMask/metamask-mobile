@@ -27,29 +27,15 @@ function familyLifetime(
 }
 
 /**
- * Base units still owed on a ledger row. `musd_amount` keeps voided money
- * inside it; `voided_musd_amount` is the part that will never be paid. Family
- * `lifetime` already leaves voided money out, so it is shown as-is.
- *
- * Missing `voided` subtracts nothing. A void larger than the amount floors at
- * zero, so a row cannot render a negative credit.
+ * A positive void marks the whole reward voided. There is no partial void, so
+ * the row shows the original amount rather than a remainder.
  */
-export function creditedBaseUnits(
-  amount: string | null | undefined,
-  voided?: string | null,
-): string | null {
-  if (amount == null || amount === '') {
-    return null;
+export function isVoidedEarning(voided: string | null | undefined): boolean {
+  if (voided == null || voided === '') {
+    return false;
   }
-
-  const total = new BigNumber(amount);
-  if (!total.isFinite()) {
-    return null;
-  }
-
-  const removed = new BigNumber(voided ?? 0);
-  const net = total.minus(removed.isFinite() ? removed : 0);
-  return (net.isNegative() ? new BigNumber(0) : net).toFixed(0);
+  const amount = new BigNumber(voided);
+  return amount.isFinite() && amount.gt(0);
 }
 
 /** Lifetime the profile earned on its own trades, e.g. its cashback. */
@@ -68,6 +54,21 @@ export function earnedByOthersLifetime(
   return familyLifetime(summary?.earned_by_others, family);
 }
 
+function summaryFamilies(summary: EarningsSummaryDto) {
+  return [
+    ...Object.values(summary.self_earned?.by_claim_family ?? {}),
+    ...Object.values(summary.earned_by_others?.by_claim_family ?? {}),
+  ];
+}
+
+function finiteBaseUnits(value: string | null | undefined): BigNumber {
+  const amount = new BigNumber(value ?? 0);
+  if (!amount.isFinite() || !amount.gt(0)) {
+    return new BigNumber(0);
+  }
+  return amount;
+}
+
 function blockedUnderReview(family: {
   blocking_reason?: string | null;
   blocked?: string | null;
@@ -75,15 +76,12 @@ function blockedUnderReview(family: {
   if (family.blocking_reason !== 'UNDER_REVIEW') {
     return new BigNumber(0);
   }
-  const blocked = new BigNumber(family.blocked ?? 0);
-  if (!blocked.isFinite() || !blocked.gt(0)) {
-    return new BigNumber(0);
-  }
-  return blocked;
+  return finiteBaseUnits(family.blocked);
 }
 
 /**
- * Base units a review is holding, summed across both branches' claim families.
+ * Base units a review is holding in `blocked`, summed across both branches'
+ * claim families.
  *
  * A branch reason is null when its families disagree, so the family is the
  * place a mixed branch still says `UNDER_REVIEW`. Zero and any other reason
@@ -95,11 +93,7 @@ export function underReviewBlockedBaseUnits(
   if (!summary) {
     return null;
   }
-  const families = [
-    ...Object.values(summary.self_earned?.by_claim_family ?? {}),
-    ...Object.values(summary.earned_by_others?.by_claim_family ?? {}),
-  ];
-  const total = families.reduce(
+  const total = summaryFamilies(summary).reduce(
     (sum, family) => sum.plus(blockedUnderReview(family)),
     new BigNumber(0),
   );
