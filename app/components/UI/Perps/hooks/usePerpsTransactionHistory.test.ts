@@ -1404,7 +1404,7 @@ describe('usePerpsTransactionHistory', () => {
             isPositive: true,
             size: f.size,
             entryPrice: f.price,
-            pnl: f.pnl ?? '0',
+            pnl: f.pnl,
             fee: f.fee,
             points: '0',
             feeToken: f.feeToken,
