@@ -4,7 +4,7 @@ import type { TokenDetailsRouteParams } from '../constants/constants';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
 import { useTokenBalance } from '../hooks/useTokenBalance';
-import { MOCK_TRADER_POSITION_PNL } from './mockTraderPositionPnl';
+import { useOpenPositionHeader } from './useOpenPositionHeader';
 
 interface TraderPositionPnlSectionProps {
   token: TokenDetailsRouteParams;
@@ -15,8 +15,8 @@ interface TraderPositionPnlSectionProps {
 /**
  * Renders the trader position header and its temporary expanded details sheet.
  *
- * The Social API data will replace the development fixture once the position
- * endpoint is available.
+ * The header reads this wallet's open position for the token. A missing or
+ * still-indexing position shows the wallet value and hides PnL.
  */
 const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
   token,
@@ -30,18 +30,25 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
   });
   const { balance } = useTokenBalance(token);
   const hasTokenBalance = balance !== undefined && Number(balance) > 0;
+  const header = useOpenPositionHeader(token);
 
   useLayoutEffect(() => {
     setIsExpanded(false);
   }, [tokenKey]);
 
-  const traderPositionPnl = __DEV__
-    ? {
-        ...MOCK_TRADER_POSITION_PNL,
-        isExpanded,
-        onToggleExpanded: setIsExpanded,
-      }
-    : undefined;
+  const traderPositionPnl =
+    header.positionValue !== undefined || header.isLoading
+      ? {
+          positionValue: header.positionValue,
+          pnl: header.pnl,
+          ...(header.expandedDetails
+            ? { expandedDetails: header.expandedDetails }
+            : {}),
+          isLoading: header.isLoading,
+          isExpanded,
+          onToggleExpanded: setIsExpanded,
+        }
+      : undefined;
 
   return (
     <>

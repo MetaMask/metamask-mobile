@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import PasswordResetWarningSheet from './PasswordResetWarningSheet';
 import { PasswordResetWarningSheetSelectorsIDs } from './PasswordResetWarningSheet.testIds';
-import { strings } from '../../../../locales/i18n';
+import { strings } from '../../../../../locales/i18n';
 
 describe('PasswordResetWarningSheet', () => {
   it('does not render when hidden', () => {

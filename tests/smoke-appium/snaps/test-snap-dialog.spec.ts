@@ -6,7 +6,9 @@ import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
 appiumTest.describe(SmokeSnaps('Dialog Snap Tests'), () => {
-  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
+  // Login + Explore → Browser + install routinely approaches the old 150s
+  // budget on Android CI (passing retries ~143s). Give connect headroom.
+  appiumTest.describe.configure({ mode: 'serial', timeout: 180_000 });
 
   appiumTest(
     'connects to the Dialog Snap',

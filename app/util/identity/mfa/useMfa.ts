@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import { selectEnrolledCredentials } from '../../../selectors/identity';
 import { mobileMfaControllerAdapter } from './bindings';
+import { mobilePasskeyAdapter } from './passkeyAdapter';
 import { startMfaFlow } from './engine/activeFlow';
 import Logger from '../../Logger';
 import type {
@@ -12,10 +13,11 @@ import type {
 
 const clientOptions: Pick<
   MfaFlowOptions,
-  'platform' | 'controller' | 'reportError'
+  'platform' | 'controller' | 'passkey' | 'reportError'
 > = {
   platform: 'mobile',
   controller: mobileMfaControllerAdapter,
+  passkey: mobilePasskeyAdapter,
   reportError: (error, { code, operation, step }) =>
     Logger.error(error instanceof Error ? error : new Error(code), {
       tags: { feature: 'mfa', mfaCode: code, operation },
