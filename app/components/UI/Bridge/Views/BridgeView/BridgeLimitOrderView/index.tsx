@@ -615,7 +615,11 @@ const BridgeLimitOrderViewContent = () => {
               />
             </Box>
 
-            <Box onTouchEnd={dismissInputAndKeypad} paddingBottom={3}>
+            <Box
+              twClassName="grow"
+              onTouchEnd={dismissInputAndKeypad}
+              paddingBottom={3}
+            >
               <OrdersTabs
                 enabledChainIds={enabledChainIds}
                 openOrders={openOrders}

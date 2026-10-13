@@ -1360,6 +1360,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  confirmations_delegations: {
+    name: 'confirmations_delegations',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      deadlineSeconds: 1800,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   confirmations_eip_7702: {
     name: 'confirmations_eip_7702',
     type: FeatureFlagType.Remote,
