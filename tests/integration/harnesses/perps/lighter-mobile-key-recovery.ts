@@ -2,7 +2,12 @@
 import { buildLighterRecoveryHarness } from './lighter-recovery';
 import Engine from '../../../../app/core/Engine';
 import SecureKeychain from '../../../../app/core/SecureKeychain';
-import { SecureKeychainDecryptionError } from '../../../../app/core/SecureKeychainError';
+class SecureKeychainDecryptionError extends Error {
+  constructor() {
+    super('Unable to decrypt secure item');
+    this.name = 'SecureKeychainDecryptionError';
+  }
+}
 import {
   lighterSignerBridge,
   connectLighterExecutor,

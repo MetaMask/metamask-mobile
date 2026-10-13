@@ -9,7 +9,6 @@ import type {
 } from '@metamask/perps-controller';
 
 import SecureKeychain from '../../../../core/SecureKeychain';
-import { SecureKeychainDecryptionError } from '../../../../core/SecureKeychainError';
 import Engine from '../../../../core/Engine';
 import { getSelectedEvmAccountFromMessenger } from '@metamask/perps-controller/utils/accountUtils';
 import { deriveLighterWalletKey } from './lighterWalletKey';
@@ -35,6 +34,13 @@ const LIGHTER_SIGNER_KEY_NAME = 'LIGHTER_SIGNER_PRIVATE_KEY';
 const PRIVATE_KEY_PATTERN = /^[0-9a-f]{64}$/u;
 const RELOAD_ERROR = 'Lighter signer WebView reloaded; retry the operation';
 export const LIGHTER_SIGNER_LOCKED_ERROR = 'Lighter signer wallet is locked';
+
+/** Matches SecureKeychainDecryptionError by name. The class stays with SecureKeychain. */
+function isSecureKeychainDecryptionError(error: unknown): error is Error {
+  return (
+    error instanceof Error && error.name === 'SecureKeychainDecryptionError'
+  );
+}
 
 const resetListeners = new Set<() => void>();
 // Keep these across bridge resets: native keychain writes can outlive callers.
@@ -145,11 +151,11 @@ async function getOrCreatePrivateKey(
   try {
     if (previous) await previous;
     assertWallet();
-    let decryptionError: SecureKeychainDecryptionError | undefined;
+    let decryptionError: Error | undefined;
     const stored = await SecureKeychain.getSecureItem(scope).catch(
       (error: unknown) => {
         assertWallet();
-        if (!(error instanceof SecureKeychainDecryptionError)) throw error;
+        if (!isSecureKeychainDecryptionError(error)) throw error;
         decryptionError = error;
         return null;
       },
@@ -375,7 +381,7 @@ const getStoredKeyIndices = (
             assertWallet();
             if (
               !allowSoftwareRecovery ||
-              !(error instanceof SecureKeychainDecryptionError)
+              !isSecureKeychainDecryptionError(error)
             )
               throw error;
             return null;

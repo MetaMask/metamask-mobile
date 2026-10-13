@@ -10,7 +10,13 @@ import {
 import QuickCrypto from 'react-native-quick-crypto';
 import type { Result as KeychainResult } from 'react-native-keychain';
 import SecureKeychain from '../../../../core/SecureKeychain';
-import { SecureKeychainDecryptionError } from '../../../../core/SecureKeychainError';
+/** Same name as SecureKeychainDecryptionError, which is added outside this PR. */
+class SecureKeychainDecryptionError extends Error {
+  constructor() {
+    super('Unable to decrypt secure item');
+    this.name = 'SecureKeychainDecryptionError';
+  }
+}
 
 const mockSelectedAccount = jest.fn(() => ({
   address: `0x${'1'.repeat(40)}`,
