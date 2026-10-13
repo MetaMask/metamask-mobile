@@ -18,7 +18,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import {
   BottomSheetRef,
   Button,
-  ButtonIcon,
   ButtonIconSize,
   ButtonVariant,
   ButtonSize,
@@ -137,7 +136,7 @@ import PerpsMoreSection, {
 } from '../../components/PerpsMoreSection';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import GlassCapsule from '../../../../../component-library/components-temp/GlassCapsule';
+import ButtonIconCapsule from '../../../../../component-library/components-temp/ButtonIconCapsule';
 import FloatingHeader, {
   useFloatingHeaderInset,
 } from '../../../../../component-library/components-temp/FloatingHeader';
@@ -1127,13 +1126,6 @@ const PerpsHomeView = () => {
   // Always navigate to wallet home to avoid navigation loops (tutorial/onboarding flow)
   const handleBackPress = perpsNavigation.navigateToWallet;
 
-  const wrapInCapsule = (button: React.ReactNode) =>
-    isBrandRefresh ? (
-      <GlassCapsule twClassName="w-10 justify-center">{button}</GlassCapsule>
-    ) : (
-      button
-    );
-
   const header = (
     <HeaderStandardAnimated
       includesTopInset={headerIncludesTopInset}
@@ -1149,17 +1141,16 @@ const PerpsHomeView = () => {
         testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
       }}
       startAccessory={
-        isBrandRefresh
-          ? wrapInCapsule(
-              <ButtonIcon
-                iconName={IconName.ArrowLeft}
-                size={ButtonIconSize.Md}
-                onPress={handleBackPress}
-                accessibilityLabel="Back"
-                testID={PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON}
-              />,
-            )
-          : undefined
+        isBrandRefresh ? (
+          <ButtonIconCapsule
+            isCapsule
+            iconName={IconName.ArrowLeft}
+            size={ButtonIconSize.Md}
+            onPress={handleBackPress}
+            accessibilityLabel="Back"
+            testID={PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON}
+          />
+        ) : undefined
       }
       endAccessory={
         <Box
@@ -1168,15 +1159,14 @@ const PerpsHomeView = () => {
           alignItems={BoxAlignItems.Center}
           gap={2}
         >
-          {wrapInCapsule(
-            <ButtonIcon
-              iconName={IconName.Search}
-              size={ButtonIconSize.Md}
-              onPress={handleSearchToggle}
-              accessibilityLabel="Search"
-              testID={PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE}
-            />,
-          )}
+          <ButtonIconCapsule
+            isCapsule={isBrandRefresh}
+            iconName={IconName.Search}
+            size={ButtonIconSize.Md}
+            onPress={handleSearchToggle}
+            accessibilityLabel="Search"
+            testID={PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE}
+          />
           {isPerpsProModeEnabled ? (
             <PerpsModeToggle
               mode={perpsMode}
