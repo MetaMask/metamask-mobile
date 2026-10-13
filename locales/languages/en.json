@@ -8255,7 +8255,7 @@
       "code_expired": "Your verification code expired, get a new code."
     },
     "settings": {
-      "title": "Verification methods",
+      "title": "2-step verification",
       "description": "Used to confirm it's you before sensitive actions.",
       "manage": "Manage",
       "email_linked": "Linked to your sign-in",
