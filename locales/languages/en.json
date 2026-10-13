@@ -9896,6 +9896,7 @@
       "edit_cost_tolerance": "Edit price tolerance",
       "try_again": "Try again",
       "error_calculation_network_fees": "Couldn't calculate the network fee.",
+      "error_upgrading_account": "Could not create an order: the account couldn't be upgraded.",
       "error_fetching_delegations": "Could not create an order: unable to fetch delegation details.",
       "error_signing_delegations": "Could not create an order: the order couldn't be signed.",
       "error_creating_order": "Could not create an order: the order couldn't be placed.",
