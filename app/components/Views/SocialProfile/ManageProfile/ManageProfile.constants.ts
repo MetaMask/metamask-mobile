@@ -7,7 +7,6 @@ export interface Profile {
   displayName: string;
   handle: string;
   bio: string;
-  socialHandle: string;
   /** Whether trading activity is shared publicly. Renders as "On" / "Off". */
   isTradingActivityVisible: boolean;
   linkedSocialAccountName: string;

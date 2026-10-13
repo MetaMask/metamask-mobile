@@ -1,6 +1,11 @@
 import React from 'react';
 import { Dimensions, StyleSheet } from 'react-native';
-import { fireEvent, within } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  within,
+  type RenderResult,
+} from '@testing-library/react-native';
 
 import ManageProfile from './ManageProfile';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -8,9 +13,91 @@ import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import Routes from '../../../../constants/navigation/Routes';
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
 import { ManageProfileFieldName } from './ManageProfileField.types';
+import { ToastContext } from '../../../../component-library/components/Toast';
+import Logger from '../../../../util/Logger';
+import {
+  connectX,
+  XAuthError,
+  XAuthErrorType,
+  type XProfile,
+} from '../../../../core/XAuthService';
+import {
+  selectIsConnectedToX,
+  selectProfileControllerXProfile,
+} from '../../../../selectors/profileController';
 
 import { DEFAULT_PROFILE_AVATAR_SIZE } from './ProfileAvatar';
 import { strings } from '../../../../../locales/i18n';
+
+jest.mock('../../../../core/XAuthService', () => {
+  const actual = jest.requireActual('../../../../core/XAuthService');
+  return {
+    ...actual,
+    connectX: jest.fn(),
+  };
+});
+
+jest.mock('../../../../selectors/profileController', () => ({
+  selectIsConnectedToX: jest.fn(),
+  selectProfileControllerXProfile: jest.fn(),
+}));
+
+const mockConnectX = jest.mocked(connectX);
+const mockSelectIsConnectedToX = jest.mocked(selectIsConnectedToX);
+const mockSelectXProfile = jest.mocked(selectProfileControllerXProfile);
+
+const X_PROFILE_FIXTURE: XProfile = {
+  xUserId: '8472619402',
+  xProfileUrl: 'x-profile-url',
+  username: 'katiedelta',
+  displayName: 'Katie Delta',
+  avatarUrl: 'x-avatar-url',
+  createdAt: '2026-01-15T09:30:00.000Z',
+  updatedAt: '2026-05-02T14:12:00.000Z',
+};
+
+/** Creates a promise whose settlement the test controls explicitly. */
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
+/** Presses a row/handler that kicks off async work, wrapped in act(). */
+async function pressAsync(target: ReturnType<RenderResult['getByTestId']>) {
+  await act(async () => {
+    fireEvent.press(target);
+  });
+}
+
+const mockShowToast = jest.fn();
+const mockToastRef = {
+  current: { showToast: mockShowToast, closeToast: jest.fn() },
+};
+
+/** Renders with a toast ref, as the app root provides. */
+const renderManageProfileWithToast = () =>
+  renderWithProvider(
+    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+      <ManageProfile />
+    </ToastContext.Provider>,
+  );
+
+/** Flips the connection-state mocks to a linked X account with profile. */
+const mockConnectedToX = () => {
+  mockSelectIsConnectedToX.mockReturnValue(true);
+  mockSelectXProfile.mockReturnValue(X_PROFILE_FIXTURE);
+};
+
+/** Connected (e.g. from another client) without a local X profile. */
+const mockConnectedWithoutXProfile = () => {
+  mockSelectIsConnectedToX.mockReturnValue(true);
+  mockSelectXProfile.mockReturnValue(undefined);
+};
 
 /** Mirrors `VALUE_MAX_WIDTH_RATIO` in ProfileRow. */
 const EXPECTED_VALUE_WIDTH_RATIO = 0.45;
@@ -40,6 +127,14 @@ describe('ManageProfile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
+    jest.spyOn(Logger, 'log').mockImplementation(() => undefined);
+    jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
+    mockSelectIsConnectedToX.mockReturnValue(false);
+    mockSelectXProfile.mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('wraps content in SafeAreaView', () => {
@@ -301,16 +396,6 @@ describe('ManageProfile', () => {
       ).toBeOnTheScreen();
     });
 
-    it('navigates to the empty X account screen', () => {
-      const { getByTestId } = renderWithProvider(<ManageProfile />);
-
-      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_ROW));
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.SOCIAL_PROFILE.X_ACCOUNT,
-      );
-    });
-
     it('navigates to the linked social account picker', () => {
       const { getByTestId } = renderWithProvider(<ManageProfile />);
 
@@ -374,6 +459,172 @@ describe('ManageProfile', () => {
           initialValue: 'Tomato Farmer',
         },
       );
+    });
+  });
+
+  describe('x account row (disconnected)', () => {
+    it('starts the X connect flow when the row is pressed', async () => {
+      mockConnectX.mockResolvedValue(X_PROFILE_FIXTURE);
+      const { getByTestId } = renderManageProfileWithToast();
+
+      await pressAsync(getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_ROW));
+
+      expect(mockConnectX).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows connecting in the row while the connect flow is in flight, then clears it', async () => {
+      const deferred = createDeferred<XProfile>();
+      mockConnectX.mockReturnValue(deferred.promise);
+      const { getByTestId } = renderManageProfileWithToast();
+      const row = getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_ROW);
+
+      await act(async () => {
+        fireEvent.press(row);
+      });
+
+      expect(
+        within(row).getByText(
+          strings('app_settings.manage_profile.connecting'),
+        ),
+      ).toBeOnTheScreen();
+
+      await act(async () => {
+        deferred.resolve(X_PROFILE_FIXTURE);
+      });
+
+      // The indicator drops once the flow settles; the linked handle itself
+      // arrives through the ProfileController state change in Redux.
+      expect(
+        within(row).getByText(strings('manage_profile.not_set')),
+      ).toBeOnTheScreen();
+    });
+
+    it('ignores a second press while the connect flow is in flight', async () => {
+      const deferred = createDeferred<XProfile>();
+      mockConnectX.mockReturnValue(deferred.promise);
+      const { getByTestId } = renderManageProfileWithToast();
+      const row = getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_ROW);
+
+      await act(async () => {
+        fireEvent.press(row);
+        fireEvent.press(row);
+      });
+
+      expect(mockConnectX).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        deferred.resolve(X_PROFILE_FIXTURE);
+      });
+    });
+
+    it('accepts another press after the connect flow fails', async () => {
+      mockConnectX.mockRejectedValueOnce(new Error('offline'));
+      mockConnectX.mockResolvedValueOnce(X_PROFILE_FIXTURE);
+      const { getByTestId } = renderManageProfileWithToast();
+      const row = getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_ROW);
+
+      await pressAsync(row);
+      await pressAsync(row);
+
+      expect(mockConnectX).toHaveBeenCalledTimes(2);
+    });
+
+    it('shows no toast when the user cancels the X authorization', async () => {
+      mockConnectX.mockRejectedValue(
+        new XAuthError(XAuthErrorType.UserCancelled, 'User cancelled'),
+      );
+      const { getByTestId } = renderManageProfileWithToast();
+
+      await pressAsync(getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_ROW));
+
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [
+        XAuthErrorType.NetworkFailure,
+        'app_settings.manage_profile.connect_x_error_network',
+      ],
+      [
+        XAuthErrorType.BackendError,
+        'app_settings.manage_profile.connect_x_error_backend',
+      ],
+      [
+        XAuthErrorType.StateMismatch,
+        'app_settings.manage_profile.connect_x_error',
+      ],
+      [
+        XAuthErrorType.NotSignedIn,
+        'app_settings.manage_profile.connect_x_error',
+      ],
+    ])(
+      'shows the %s toast copy when the connect fails with that error',
+      async (errorType, copyKey) => {
+        mockConnectX.mockRejectedValue(
+          new XAuthError(errorType, 'connect failed'),
+        );
+        const { getByTestId } = renderManageProfileWithToast();
+
+        await pressAsync(getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_ROW));
+
+        expect(mockShowToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            labelOptions: [{ label: strings(copyKey) }],
+          }),
+        );
+      },
+    );
+
+    it('shows the generic toast copy when the connect fails with an unexpected error', async () => {
+      mockConnectX.mockRejectedValue(new Error('something unexpected'));
+      const { getByTestId } = renderManageProfileWithToast();
+
+      await pressAsync(getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_ROW));
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: [
+            {
+              label: strings('app_settings.manage_profile.connect_x_error'),
+            },
+          ],
+        }),
+      );
+    });
+  });
+
+  describe('x account row (connected)', () => {
+    it('shows the linked X handle in the row', () => {
+      mockConnectedToX();
+      const { getByTestId } = renderManageProfileWithToast();
+
+      const row = getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_ROW);
+
+      expect(within(row).getByText('@katiedelta')).toBeOnTheScreen();
+    });
+
+    it('renders the row as read-only while connected, since it is informational', () => {
+      mockConnectedToX();
+      const { getByTestId } = renderManageProfileWithToast();
+
+      // The interactive variant renders a Pressable announced as a button; the
+      // read-only variant renders a plain Box. There is no disconnect flow to
+      // offer, so the row carries no press affordance.
+      expect(
+        getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_ROW).props
+          .accessibilityRole,
+      ).toBeUndefined();
+    });
+
+    it('shows Connected when linked without a local X profile', () => {
+      mockConnectedWithoutXProfile();
+      const { getByTestId } = renderManageProfileWithToast();
+
+      expect(
+        within(getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_ROW)).getByText(
+          strings('app_settings.manage_profile.connected'),
+        ),
+      ).toBeOnTheScreen();
     });
   });
 });

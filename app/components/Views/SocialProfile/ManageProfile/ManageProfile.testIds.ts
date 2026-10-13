@@ -9,8 +9,6 @@ export const ManageProfileSelectorsIDs = {
   HANDLE_ROW: 'manage-profile-handle-row',
   BIO_ROW: 'manage-profile-bio-row',
   X_ACCOUNT_ROW: 'manage-profile-x-account-row',
-  X_ACCOUNT_SCREEN: 'manage-profile-x-account-screen',
-  X_ACCOUNT_HEADER: 'manage-profile-x-account-header',
   TRADING_ACTIVITY_ROW: 'manage-profile-trading-activity-row',
   LINKED_SOCIAL_ACCOUNT_ROW: 'manage-profile-linked-social-account-row',
   FIELD_SCREEN: 'manage-profile-field-screen',
