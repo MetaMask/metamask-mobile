@@ -5,7 +5,8 @@ import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
 appiumTest.describe(SmokeSnaps('Get File Snap Tests'), () => {
-  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
+  // Same connect path budget as Dialog Snap — login + Explore → install.
+  appiumTest.describe.configure({ mode: 'serial', timeout: 180_000 });
 
   appiumTest(
     'can connect to the get File Snap',
