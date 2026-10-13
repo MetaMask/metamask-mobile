@@ -3966,4 +3966,73 @@ describe('Pro market order liquidity', () => {
       );
     },
   );
+
+  it('keeps a limit order unblocked when the order book is unavailable', async () => {
+    jest
+      .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+      .mockImplementation(({ onError }) => {
+        onError?.(new Error('order book unavailable'));
+        return () => undefined;
+      });
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    renderFundedProMarket();
+    fireEvent.changeText(await findSizeInput(), '100');
+    const message = strings('perps.slippage.insufficient_depth');
+    expect(
+      await screen.findByText(message, {}, { timeout: TIMEOUT_MS }),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    );
+    const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+    fireEvent.changeText(limitInput, '2500');
+    fireEvent(limitInput, 'blur');
+
+    await waitFor(
+      () =>
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).not.toBeDisabled(),
+      { timeout: TIMEOUT_MS },
+    );
+    expect(screen.queryByText(message)).not.toBeOnTheScreen();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
+    });
+    await waitFor(
+      () =>
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            symbol: 'ETH',
+            orderType: 'limit',
+            price: '2500',
+          }),
+        ),
+      { timeout: TIMEOUT_MS },
+    );
+  });
+
+  it('keeps a market order enabled while the order book subscription is pending', async () => {
+    renderFundedProMarket();
+    fireEvent.changeText(await findSizeInput(), '100');
+
+    await waitFor(
+      () =>
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).not.toBeDisabled(),
+      { timeout: TIMEOUT_MS },
+    );
+    expect(
+      Engine.context.PerpsController.subscribeToOrderBook,
+    ).toHaveBeenCalled();
+    expect(
+      screen.queryByText(strings('perps.slippage.insufficient_depth')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.slippage.cannot_fill')),
+    ).not.toBeOnTheScreen();
+  });
 });

@@ -8279,6 +8279,7 @@ describe('usePerpsProOrderForm', () => {
     });
   });
 
+  // CV cannot reach onSubmit while the button is disabled, so this unit test covers the programmatic-submit rejection.
   describe('Pro defensive liquidity guard', () => {
     it.each([
       { estimate: null, copyKey: 'perps.slippage.insufficient_depth' },

@@ -6673,6 +6673,7 @@ describe('PerpsOrderView', () => {
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
     });
 
+    // CV cannot reach onSubmit while the button is disabled, so this unit test covers the programmatic-submit rejection.
     it.each([
       { estimate: null, copyKey: 'perps.slippage.insufficient_depth' },
       { estimate: 100, copyKey: 'perps.slippage.cannot_fill_reduce_size' },
