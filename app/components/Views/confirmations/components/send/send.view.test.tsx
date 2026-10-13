@@ -2,16 +2,48 @@ import '../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import {
+  TransactionStatus,
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
+import {
   getRouteProbeTestId,
   renderScreenWithRoutes,
 } from '../../../../../../tests/component-view/render';
-import { sendViewOverrides } from '../../../../../../tests/component-view/presets/send';
+import {
+  MAX_NATIVE_BALANCE_WEI_HEX,
+  MAX_NATIVE_RESERVED_VALUE_HEX,
+  MAX_NATIVE_SEND_CHAINS,
+  MAX_NATIVE_SEND_HASH,
+  MAX_NATIVE_SEND_RECIPIENT,
+  MAX_NATIVE_SEND_SENDER,
+  MAX_NATIVE_SEND_TX_ID,
+  buildMaxNativeSendFixture,
+  buildMaxNativeSendTransaction,
+  sendViewOverrides,
+} from '../../../../../../tests/component-view/presets/send';
 import { initialStateWallet } from '../../../../../../tests/component-view/presets/wallet';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
+import {
+  clearAccountsTransactionsApiMocks,
+  setupAccountsTransactionsApiMock,
+} from '../../../../../../tests/component-view/api-mocking/accounts-transactions';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TokenStandard } from '../../types/token';
 import { AddressScanResultType } from '../../types/trustSignals';
+import Engine from '../../../../../core/Engine';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { HardwareWalletProvider } from '../../../../../core/HardwareWallet/HardwareWalletProvider';
+/* eslint-disable import-x/no-restricted-paths -- test-only: Max native send mounts Activity as the confirmation destination */
+import ActivityScreen from '../../../ActivityScreen/ActivityScreen';
+import ActivityDetails from '../../../ActivityDetails';
+import {
+  activityListRowItemTestId,
+  activityListRowPendingSpinnerTestId,
+  activityListRowTitleTestId,
+} from '../../../ActivityList/ActivityList.testIds';
+import { ActivityDetailsSelectorsIDs } from '../../../ActivityDetails/ActivityDetails.testIds';
+/* eslint-enable import-x/no-restricted-paths */
 import {
   getNftRowTestId,
   getRecipientAvatarTestId,
@@ -21,7 +53,12 @@ import {
 import { Send } from './send';
 import { SendAlertModalSelectorIDs } from './send-alert-modal/send-alert-modal.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { ConfirmationLoaderSelectorIDs } from '../../ConfirmationView.testIds';
+import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
+import {
+  ConfirmationFooterSelectorIDs,
+  ConfirmationLoaderSelectorIDs,
+  ConfirmationRowComponentIDs,
+} from '../../ConfirmationView.testIds';
 
 /** A minimal ETH asset with 2 ETH balance, suitable for EVM send tests. */
 const EVM_ETH_ASSET = {
@@ -83,6 +120,52 @@ function SendFlowWithHardwareWalletProvider() {
       <Send />
     </HardwareWalletProvider>
   );
+}
+
+function ActivityScreenForMaxNativeSend() {
+  return (
+    <HardwareWalletProvider>
+      <ActivityScreen />
+    </HardwareWalletProvider>
+  );
+}
+
+function ActivityDetailsForMaxNativeSend() {
+  return (
+    <HardwareWalletProvider>
+      <ActivityDetails />
+    </HardwareWalletProvider>
+  );
+}
+
+function syncTransactionController(
+  store: {
+    getState: () => {
+      engine: { backgroundState: Record<string, unknown> };
+    };
+    dispatch: (action: ReturnType<typeof updateBgState>) => void;
+  },
+  transaction: TransactionMeta,
+) {
+  const engineWithState = Engine as unknown as {
+    state?: Record<string, unknown>;
+  };
+  const backgroundState = store.getState().engine.backgroundState;
+  const existing =
+    (backgroundState.TransactionController as
+      | Record<string, unknown>
+      | undefined) ?? {};
+
+  engineWithState.state = {
+    ...(engineWithState.state ?? {}),
+    TransactionController: {
+      ...existing,
+      transactions: [transaction],
+      swapsTransactions: {},
+    },
+  };
+
+  store.dispatch(updateBgState({ key: 'TransactionController' }));
 }
 
 describeForPlatforms('Send', () => {
@@ -802,5 +885,270 @@ describeForPlatforms('Send', () => {
       const uniqueAddresses = new Set(avatarAddresses);
       expect(uniqueAddresses.size).toBe(avatarAddresses.length);
     });
+  });
+
+  describe('Max native send', () => {
+    for (const chain of MAX_NATIVE_SEND_CHAINS) {
+      it(`reserves gas on ${chain.name} and shows Confirmed in Activity`, async () => {
+        setupAccountsTransactionsApiMock([]);
+
+        const engineMock = jest.requireMock(
+          '../../../../../../app/core/Engine',
+        ) as {
+          default: {
+            acceptPendingApproval: jest.Mock;
+            context: {
+              NetworkController: {
+                findNetworkClientIdByChainId: (chainId: string) => string;
+                getNetworkConfigurationByNetworkClientId: (
+                  networkClientId: string,
+                ) => { chainId: string } | null;
+              };
+              TransactionController: {
+                addTransaction: jest.Mock;
+                updateEditableParams: jest.Mock;
+              };
+            };
+          };
+        };
+        const { NetworkController, TransactionController } =
+          engineMock.default.context;
+        const originalFindNetworkClientId =
+          NetworkController.findNetworkClientIdByChainId;
+        const originalGetNetworkConfiguration =
+          NetworkController.getNetworkConfigurationByNetworkClientId;
+        const addTransactionSpy = TransactionController.addTransaction;
+        const updateEditableParamsSpy =
+          TransactionController.updateEditableParams;
+        const unapprovedTransaction = buildMaxNativeSendTransaction(chain);
+        let activeStore:
+          | {
+              getState: () => {
+                engine: { backgroundState: Record<string, unknown> };
+              };
+              dispatch: (action: ReturnType<typeof updateBgState>) => void;
+            }
+          | undefined;
+
+        addTransactionSpy.mockReset();
+        addTransactionSpy.mockResolvedValue({
+          transactionMeta: unapprovedTransaction,
+        });
+        updateEditableParamsSpy.mockReset();
+        updateEditableParamsSpy.mockImplementation(
+          (_id: string, params: { value?: string }) => {
+            if (!activeStore || !params.value) {
+              return undefined;
+            }
+            syncTransactionController(activeStore, {
+              ...unapprovedTransaction,
+              txParams: {
+                ...unapprovedTransaction.txParams,
+                value: params.value,
+              },
+            });
+            return undefined;
+          },
+        );
+        engineMock.default.acceptPendingApproval.mockReset();
+        engineMock.default.acceptPendingApproval.mockImplementation(
+          async () => {
+            if (!activeStore) {
+              return undefined;
+            }
+            syncTransactionController(activeStore, {
+              ...unapprovedTransaction,
+              status: TransactionStatus.confirmed,
+              txReceipt: { status: '0x1' },
+              txParams: {
+                ...unapprovedTransaction.txParams,
+                value: MAX_NATIVE_RESERVED_VALUE_HEX,
+              },
+            } as TransactionMeta);
+            return undefined;
+          },
+        );
+        NetworkController.findNetworkClientIdByChainId = (chainId: string) =>
+          chainId.toLowerCase() === chain.chainId ? chain.networkClientId : '';
+        NetworkController.getNetworkConfigurationByNetworkClientId = (
+          networkClientId: string,
+        ) =>
+          networkClientId === chain.networkClientId
+            ? { chainId: chain.chainId }
+            : null;
+
+        try {
+          const state = initialStateWallet()
+            .withRemoteFeatureFlags({
+              tmcuActivityRedesignEnabled: true,
+              tmcuTransactionsRedesignEnabled: true,
+            })
+            .withOverrides(sendViewOverrides)
+            .withOverrides(buildMaxNativeSendFixture(chain))
+            .build();
+
+          const {
+            findByTestId,
+            getByRole,
+            getByTestId,
+            queryByTestId,
+            queryByText,
+            store,
+          } = renderScreenWithRoutes(
+            SendFlowWithHardwareWalletProvider as unknown as React.ComponentType,
+            { name: Routes.SEND.DEFAULT },
+            [
+              {
+                name: Routes.TRANSACTIONS_VIEW,
+                Component:
+                  ActivityScreenForMaxNativeSend as unknown as React.ComponentType<object>,
+              },
+              {
+                name: Routes.ACTIVITY_DETAILS,
+                Component:
+                  ActivityDetailsForMaxNativeSend as unknown as React.ComponentType<object>,
+              },
+            ],
+            { state },
+            {
+              screen: Routes.SEND.AMOUNT,
+              params: {
+                asset: {
+                  address: '0x0000000000000000000000000000000000000000',
+                  chainId: chain.chainId,
+                  symbol: 'ETH',
+                  decimals: 18,
+                  balance: '1',
+                  rawBalance: MAX_NATIVE_BALANCE_WEI_HEX,
+                },
+              },
+            },
+          );
+          activeStore = store;
+
+          expect(
+            getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+          ).toHaveTextContent('0');
+
+          fireEvent.press(getByRole('button', { name: 'Max' }));
+
+          await waitFor(() => {
+            expect(
+              getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
+            ).toHaveTextContent('1');
+          });
+
+          fireEvent.press(getByRole('button', { name: 'Continue' }));
+
+          const recipientInput = await findByTestId(
+            RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+            {},
+            { timeout: 5000 },
+          );
+          fireEvent.changeText(recipientInput, MAX_NATIVE_SEND_RECIPIENT);
+
+          const reviewButton = await findByTestId(
+            RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+            {},
+            { timeout: 5000 },
+          );
+          await waitFor(() => expect(reviewButton).toBeEnabled(), {
+            timeout: 5000,
+          });
+          fireEvent.press(reviewButton);
+
+          await waitFor(() => {
+            expect(addTransactionSpy).toHaveBeenCalledWith(
+              expect.objectContaining({
+                from: MAX_NATIVE_SEND_SENDER,
+                to: MAX_NATIVE_SEND_RECIPIENT,
+              }),
+              expect.objectContaining({
+                networkClientId: chain.networkClientId,
+                type: TransactionType.simpleSend,
+              }),
+            );
+          });
+
+          expect(
+            await findByTestId(
+              ConfirmationInfoComponentIDs.TRANSFER,
+              {},
+              {
+                timeout: 5000,
+              },
+            ),
+          ).toBeOnTheScreen();
+
+          await waitFor(() => {
+            expect(updateEditableParamsSpy).toHaveBeenCalledWith(
+              MAX_NATIVE_SEND_TX_ID,
+              {
+                updateType: false,
+                value: MAX_NATIVE_RESERVED_VALUE_HEX,
+              },
+            );
+          });
+
+          const hero = await findByTestId(
+            ConfirmationRowComponentIDs.TOKEN_HERO,
+            {},
+            { timeout: 5000 },
+          );
+          expect(hero).toHaveTextContent('0.9 ETH', { exact: false });
+          expect(hero).not.toHaveTextContent('1 ETH', { exact: false });
+          expect(queryByText(strings('transaction.failed'))).toBeNull();
+
+          await waitFor(
+            () => {
+              expect(
+                getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+              ).toBeEnabled();
+            },
+            { timeout: 5000 },
+          );
+          fireEvent.press(
+            getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+          );
+
+          expect(
+            await findByTestId(
+              activityListRowTitleTestId(MAX_NATIVE_SEND_HASH),
+              {},
+              { timeout: 10000 },
+            ),
+          ).toBeOnTheScreen();
+          expect(
+            queryByTestId(
+              activityListRowPendingSpinnerTestId(MAX_NATIVE_SEND_HASH),
+            ),
+          ).not.toBeOnTheScreen();
+
+          // Index 0 is the date header. The confirmed send is the first row.
+          fireEvent.press(getByTestId(activityListRowItemTestId(1)));
+
+          expect(
+            await findByTestId(
+              ActivityDetailsSelectorsIDs.STATUS_PILL,
+              {},
+              { timeout: 5000 },
+            ),
+          ).toHaveTextContent(strings('transaction.confirmed'));
+          expect(queryByText(strings('transaction.failed'))).toBeNull();
+          expect(queryByText(strings('transaction.pending'))).toBeNull();
+        } finally {
+          NetworkController.findNetworkClientIdByChainId =
+            originalFindNetworkClientId;
+          NetworkController.getNetworkConfigurationByNetworkClientId =
+            originalGetNetworkConfiguration;
+          addTransactionSpy.mockReset();
+          addTransactionSpy.mockResolvedValue({});
+          updateEditableParamsSpy.mockReset();
+          engineMock.default.acceptPendingApproval.mockReset();
+          engineMock.default.acceptPendingApproval.mockResolvedValue(undefined);
+          clearAccountsTransactionsApiMocks();
+        }
+      });
+    }
   });
 });

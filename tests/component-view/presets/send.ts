@@ -1,3 +1,11 @@
+import { add0x } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
+import {
+  TransactionEnvelopeType,
+  TransactionStatus,
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import type { DeepPartial } from 'app/util/test/renderWithProvider';
 import type { RootState } from 'app/reducers';
 import { BtcAccountType } from '@metamask/keyring-api';
@@ -331,6 +339,230 @@ export function buildAddressBookOverridesWithEvmContact(
         },
         MultichainNetworkController: {
           isEvmSelected: false,
+        },
+      },
+    },
+  } as unknown as DeepPartial<RootState>;
+}
+
+/** Wallet fixture account. Max-native send uses this as `txParams.from`. */
+export const MAX_NATIVE_SEND_SENDER =
+  '0x0000000000000000000000000000000000000001';
+
+export const MAX_NATIVE_SEND_RECIPIENT =
+  '0x0000000000000000000000000000000000000002';
+
+export const MAX_NATIVE_SEND_TX_ID = 'max-native-send-cv';
+
+export const MAX_NATIVE_SEND_HASH = '0xmaxnativesendcv';
+
+/** 1 ETH. The amount screen Max button fills this in before confirmation. */
+export const MAX_NATIVE_BALANCE_WEI_HEX = '0xde0b6b3a7640000';
+
+/**
+ * 100000 gas * 1000 gwei = 0.1 ETH. Large enough that confirmation shows 0.9
+ * instead of rounding back to the full 1 ETH balance.
+ */
+export const MAX_NATIVE_GAS_HEX = '0x186a0';
+
+export const MAX_NATIVE_MAX_FEE_PER_GAS_HEX = '0xe8d4a51000';
+
+const maxNativeFeeWei = new BigNumber(MAX_NATIVE_GAS_HEX).times(
+  MAX_NATIVE_MAX_FEE_PER_GAS_HEX,
+);
+
+/** Balance minus the fixture max fee. Confirmation must submit this value. */
+export const MAX_NATIVE_RESERVED_VALUE_HEX = add0x(
+  new BigNumber(MAX_NATIVE_BALANCE_WEI_HEX).minus(maxNativeFeeWei).toString(16),
+);
+
+export interface MaxNativeSendChain {
+  name: string;
+  chainId: string;
+  networkClientId: string;
+  networkName: string;
+}
+
+/** Ink, plus Ethereum mainnet as the send-vs-confirmation parity chain. */
+export const MAX_NATIVE_SEND_CHAINS: readonly MaxNativeSendChain[] = [
+  {
+    name: 'Ink',
+    chainId: '0xdef1',
+    networkClientId: 'ink',
+    networkName: 'Ink',
+  },
+  {
+    name: 'Ethereum',
+    chainId: '0x1',
+    networkClientId: 'mainnet',
+    networkName: 'Ethereum Main Network',
+  },
+];
+
+const maxNativeGasFeeEstimates = {
+  low: {
+    suggestedMaxPriorityFeePerGas: '0',
+    suggestedMaxFeePerGas: '1000',
+    minWaitTimeEstimate: 30000,
+    maxWaitTimeEstimate: 60000,
+  },
+  medium: {
+    suggestedMaxPriorityFeePerGas: '0',
+    suggestedMaxFeePerGas: '1000',
+    minWaitTimeEstimate: 20000,
+    maxWaitTimeEstimate: 40000,
+  },
+  high: {
+    suggestedMaxPriorityFeePerGas: '0',
+    suggestedMaxFeePerGas: '1000',
+    minWaitTimeEstimate: 10000,
+    maxWaitTimeEstimate: 15000,
+  },
+  estimatedBaseFee: '1000',
+  historicalBaseFeeRange: ['1000', '1000'],
+  baseFeeTrend: 'down',
+  latestPriorityFeeRange: ['0', '0'],
+  historicalPriorityFeeRange: ['0', '0'],
+  priorityFeeTrend: 'up',
+  networkCongestion: 0,
+};
+
+export function buildMaxNativeSendTransaction(
+  chain: MaxNativeSendChain,
+  overrides: { status?: TransactionStatus; value?: string } = {},
+): TransactionMeta {
+  return {
+    id: MAX_NATIVE_SEND_TX_ID,
+    hash: MAX_NATIVE_SEND_HASH,
+    origin: 'metamask',
+    chainId: chain.chainId,
+    networkClientId: chain.networkClientId,
+    status: overrides.status ?? TransactionStatus.unapproved,
+    time: 1_716_367_781_000,
+    type: TransactionType.simpleSend,
+    txParams: {
+      from: MAX_NATIVE_SEND_SENDER,
+      to: MAX_NATIVE_SEND_RECIPIENT,
+      value: overrides.value ?? MAX_NATIVE_BALANCE_WEI_HEX,
+      gas: MAX_NATIVE_GAS_HEX,
+      maxFeePerGas: MAX_NATIVE_MAX_FEE_PER_GAS_HEX,
+      maxPriorityFeePerGas: '0x0',
+      type: TransactionEnvelopeType.feeMarket,
+      nonce: '0x0',
+    },
+  } as unknown as TransactionMeta;
+}
+
+/**
+ * Redux overrides for a max native send on Ink or mainnet.
+ * Network config is merged beside the wallet preset's mainnet entry.
+ */
+export function buildMaxNativeSendFixture(
+  chain: MaxNativeSendChain,
+): DeepPartial<RootState> {
+  const transaction = buildMaxNativeSendTransaction(chain);
+  const recipientKey = `${chain.chainId}:${MAX_NATIVE_SEND_RECIPIENT}`;
+
+  return {
+    engine: {
+      backgroundState: {
+        AccountTrackerController: {
+          accountsByChainId: {
+            [chain.chainId]: {
+              [MAX_NATIVE_SEND_SENDER]: {
+                balance: MAX_NATIVE_BALANCE_WEI_HEX,
+              },
+            },
+          },
+        },
+        AssetsController: {
+          // useAccountNativeBalance reads this migration view, not
+          // AccountTrackerController. `amount` is a decimal token balance;
+          // 18 decimals turns "1" into 1 ETH.
+          assetsBalance: {
+            'acc-1': {
+              [`eip155:${Number.parseInt(chain.chainId, 16)}/slip44:60`]: {
+                amount: '1',
+              },
+            },
+          },
+          assetsInfo: {
+            [`eip155:${Number.parseInt(chain.chainId, 16)}/slip44:60`]: {
+              type: 'native',
+              symbol: 'ETH',
+              name: chain.networkName,
+              decimals: 18,
+            },
+          },
+        },
+        ApprovalController: {
+          pendingApprovals: {
+            [MAX_NATIVE_SEND_TX_ID]: {
+              id: MAX_NATIVE_SEND_TX_ID,
+              origin: 'metamask',
+              type: 'transaction',
+              time: 1_716_367_781_000,
+              requestData: { txId: MAX_NATIVE_SEND_TX_ID },
+              expectsResult: false,
+            },
+          },
+          pendingApprovalCount: 1,
+        },
+        GasFeeController: {
+          gasFeeEstimatesByChainId: {
+            [chain.chainId]: maxNativeGasFeeEstimates,
+          },
+        },
+        NetworkController: {
+          selectedNetworkClientId: chain.networkClientId,
+          networksMetadata: {
+            [chain.networkClientId]: {
+              status: 'available',
+              EIPS: { 1559: true },
+            },
+          },
+          networkConfigurationsByChainId: {
+            [chain.chainId]: {
+              chainId: chain.chainId,
+              name: chain.networkName,
+              nativeCurrency: 'ETH',
+              defaultRpcEndpointIndex: 0,
+              defaultBlockExplorerUrlIndex: 0,
+              blockExplorerUrls: ['https://explorer.example'],
+              rpcEndpoints: [
+                {
+                  networkClientId: chain.networkClientId,
+                  url: 'https://rpc.example',
+                  type: 'custom',
+                  name: chain.networkName,
+                },
+              ],
+            },
+          },
+        },
+        NetworkEnablementController: {
+          enabledNetworkMap: {
+            eip155: {
+              '0x1': true,
+              [chain.chainId]: true,
+            },
+          },
+        },
+        PhishingController: {
+          addressScanCache: {
+            [recipientKey]: {
+              data: {
+                result_type: 'Trusted',
+              },
+            },
+          },
+        },
+        PreferencesController: {
+          privacyMode: false,
+        },
+        TransactionController: {
+          transactions: [transaction],
+          swapsTransactions: {},
         },
       },
     },
