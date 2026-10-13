@@ -4,6 +4,8 @@ import {
   BackendWebSocketServiceMessenger,
   BackendWebSocketServiceInitMessenger,
 } from '../../messengers/core-backend';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { store } from '../../../../store';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
 
@@ -30,6 +32,22 @@ export const backendWebSocketServiceInit: MessengerClientInitFunction<
 > = ({ controllerMessenger, initMessenger }) => {
   Logger.log('Initializing BackendWebSocketService');
 
+  const isBasicFunctionality = () =>
+    selectBasicFunctionalityEnabled(store.getState());
+
+  const subscribeToBasicFunctionalityChange = (
+    onChange: (isBasic: boolean) => void,
+  ) => {
+    let previous = isBasicFunctionality();
+    return store.subscribe(() => {
+      const current = isBasicFunctionality();
+      if (current !== previous) {
+        previous = current;
+        onChange(current);
+      }
+    });
+  };
+
   const controller = new BackendWebSocketService({
     messenger: controllerMessenger,
     url:
@@ -41,6 +59,9 @@ export const backendWebSocketServiceInit: MessengerClientInitFunction<
     // Feature flag AND app lifecycle integration
     // Service will check this callback before connecting/reconnecting
     isEnabled: () => {
+      if (!isBasicFunctionality()) {
+        return false;
+      }
       try {
         const remoteFeatureFlagState = initMessenger?.call(
           'RemoteFeatureFlagController:getState',
@@ -70,6 +91,22 @@ export const backendWebSocketServiceInit: MessengerClientInitFunction<
         return false;
       }
     },
+    // Remove these expect-errors once @metamask/core-backend publishes isBasicFunctionality (ASSETS-3690).
+    // @ts-expect-error Installed core-backend types do not include isBasicFunctionality yet.
+    isBasicFunctionality,
+    // @ts-expect-error Installed core-backend types do not include subscribeToBasicFunctionalityChange yet.
+    subscribeToBasicFunctionalityChange,
+  });
+
+  // The installed core-backend build ignores the new options. Apply the same
+  // toggle here so an open socket closes before that version is published.
+  subscribeToBasicFunctionalityChange((isBasic) => {
+    if (!isBasic) {
+      controller.disconnect();
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    controller.connect();
   });
 
   // Authentication and lock/unlock handling is now managed by the core WebSocket service

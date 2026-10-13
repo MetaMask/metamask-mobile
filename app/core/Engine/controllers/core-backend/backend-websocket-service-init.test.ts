@@ -1,6 +1,7 @@
 import { BackendWebSocketService } from '@metamask/core-backend';
 import Logger from '../../../../util/Logger';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { store } from '../../../../store';
 import { backendWebSocketServiceInit } from './backend-websocket-service-init';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { BackendWebSocketServiceInitMessenger } from '../../messengers/core-backend';
@@ -11,10 +12,21 @@ jest.mock('@metamask/core-backend');
 jest.mock('../../../../util/trace', () => ({
   trace: jest.fn(),
 }));
+jest.mock('../../../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({
+      settings: { basicFunctionalityEnabled: true },
+    })),
+    subscribe: jest.fn(() => jest.fn()),
+  },
+}));
 
 describe('backendWebSocketServiceInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(store.getState).mockReturnValue({
+      settings: { basicFunctionalityEnabled: true },
+    } as ReturnType<typeof store.getState>);
   });
 
   const arrangeMocks = () => {
@@ -111,6 +123,21 @@ describe('backendWebSocketServiceInit', () => {
       expect(getIsEnabledCallback()()).toBe(false);
     });
 
+    it('returns false when basic functionality is off even if the feature flag is on', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: false },
+      } as ReturnType<typeof store.getState>);
+      const mocks = arrangeMocks();
+      (mocks.initMessenger.call as jest.Mock).mockReturnValue({
+        remoteFeatureFlags: { backendWebSocketConnection: true },
+      });
+
+      backendWebSocketServiceInit(mocks);
+
+      expect(getIsEnabledCallback()()).toBe(false);
+      expect(mocks.initMessenger.call).not.toHaveBeenCalled();
+    });
+
     it('returns false and logs error when feature flag check throws', () => {
       const mocks = arrangeMocks();
       const testError = new Error('Feature flag check failed');
@@ -125,6 +152,49 @@ describe('backendWebSocketServiceInit', () => {
         'BackendWebSocketService: Could not check feature flag, defaulting to NOT connect',
         testError,
       );
+    });
+  });
+
+  describe('isBasicFunctionality', () => {
+    it('returns the Basic Functionality setting from the store', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: false },
+      } as ReturnType<typeof store.getState>);
+
+      const mocks = arrangeMocks();
+      backendWebSocketServiceInit(mocks);
+
+      const { isBasicFunctionality } = (BackendWebSocketService as jest.Mock)
+        .mock.calls[0][0];
+
+      expect(isBasicFunctionality()).toBe(false);
+    });
+
+    it('notifies the service when Basic Functionality changes', () => {
+      let listener: (() => void) | undefined;
+      jest.mocked(store.subscribe).mockImplementation((next) => {
+        listener = next;
+        return jest.fn();
+      });
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+      } as ReturnType<typeof store.getState>);
+
+      const mocks = arrangeMocks();
+      backendWebSocketServiceInit(mocks);
+
+      const { subscribeToBasicFunctionalityChange } = (
+        BackendWebSocketService as jest.Mock
+      ).mock.calls[0][0];
+      const onChange = jest.fn();
+      subscribeToBasicFunctionalityChange(onChange);
+
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: false },
+      } as ReturnType<typeof store.getState>);
+      listener?.();
+
+      expect(onChange).toHaveBeenCalledWith(false);
     });
   });
 });
