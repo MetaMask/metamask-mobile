@@ -3,6 +3,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaKycRejected, { VbaKycRejectedSelectorsIDs } from './VbaKycRejected';
+import { VbaOnboardingErrorSelectorsIDs } from './VbaOnboardingError';
 
 const mockGoBack = jest.fn();
 const mockOnRetry = jest.fn();
@@ -20,12 +21,16 @@ describe('VbaKycRejected', () => {
     mockOnRetry.mockResolvedValue(undefined);
   });
 
-  it('renders the verification failure copy', () => {
+  it('renders the verification failure guidance', () => {
     const { getByTestId, getByText } = renderWithProvider(
       <VbaKycRejected onRetry={mockOnRetry} />,
     );
 
     expect(getByTestId(VbaKycRejectedSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    expect(
+      getByTestId(VbaOnboardingErrorSelectorsIDs.ILLUSTRATION),
+    ).toBeOnTheScreen();
+    expect(getByTestId(VbaOnboardingErrorSelectorsIDs.LIST)).toBeOnTheScreen();
     expect(
       getByText(strings('virtual_bank_account.kyc_rejected.title')),
     ).toBeOnTheScreen();
@@ -33,7 +38,21 @@ describe('VbaKycRejected', () => {
       getByText(strings('virtual_bank_account.kyc_rejected.description')),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('virtual_bank_account.kyc_rejected.button')),
+      getByText(
+        strings(
+          'virtual_bank_account.kyc_rejected.identity_document_description',
+        ),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('virtual_bank_account.kyc_rejected.selfie_description'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('virtual_bank_account.kyc_rejected.details_description'),
+      ),
     ).toBeOnTheScreen();
   });
 

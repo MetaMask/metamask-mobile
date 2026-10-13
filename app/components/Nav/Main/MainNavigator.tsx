@@ -96,6 +96,7 @@ import TokenListRoutes from '../../UI/Ramp/routes';
 
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 import VbaOnboardingNavigator from '../../UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
+import VbaDetails from '../../UI/Ramp/Views/VirtualBankAccount/VbaDetails';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
 import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
@@ -1209,6 +1210,15 @@ const MainNavigator = () => {
         name={Routes.RAMP.VBA_ONBOARDING}
         component={VbaOnboardingNavigator}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
+      <NativeStack.Screen
+        name={Routes.RAMP.VBA_DETAILS}
+        component={VbaDetails}
+        options={{
+          ...slideFromRightNativeOptions,
+          headerShown: false,
+          gestureEnabled: false,
+        }}
       />
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
