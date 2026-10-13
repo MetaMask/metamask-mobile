@@ -507,10 +507,11 @@ describeForPlatforms('QuickBuySheet', () => {
     fireEvent.press(
       await screen.findByTestId(QuickBuySheetSelectorsIDs.TRADE_MODE_TOGGLE),
     );
+    await screen.findByText('Sell USDC');
     fireEvent.press(
-      screen.getByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
+      await screen.findByTestId(QuickBuySheetSelectorsIDs.PAY_WITH_BUTTON),
     );
-    const pickerHeader = screen.getByTestId(
+    const pickerHeader = await screen.findByTestId(
       QuickBuySheetSelectorsIDs.PAY_WITH_HEADER,
     );
     expect(within(pickerHeader).getByText('Receive')).toBeOnTheScreen();
@@ -658,7 +659,11 @@ describeForPlatforms('QuickBuySheet', () => {
     fireEvent.press(screen.getByTestId('network-pills-more-button'));
     fireEvent.press(await screen.findByTestId('network-option-all'));
 
-    expect(await screen.findByTestId(USDT_PICKER_ROW)).toBeOnTheScreen();
+    // Clearing the chain filter refetches popular tokens. Until that resolves
+    // the picker only lists held assets (ETH), so USDT is not on screen yet.
+    expect(
+      await screen.findByTestId(USDT_PICKER_ROW, {}, { timeout: WAIT_MS }),
+    ).toBeOnTheScreen();
   });
 
   it('hides the trade mode toggle when the position token has no balance', async () => {

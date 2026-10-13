@@ -9450,10 +9450,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bitcoin-wallet-snap@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "@metamask/bitcoin-wallet-snap@npm:3.1.0"
-  checksum: 10/9c89eacd272bf09a715aa885b345923ff8a73e5243cecbfe3e11d70ac36debb955509a6e1e966fd4b4052fc1ab0dd3de237d308153bbe73b1ed005f0b08187bb
+"@metamask/bitcoin-wallet-snap@npm:^3.2.0":
+  version: 3.2.0
+  resolution: "@metamask/bitcoin-wallet-snap@npm:3.2.0"
+  checksum: 10/3a43cf6865b6e813a51511944b5b871eab3d266308abe64daa8accf2a17b250907f58fd04b7df9ea444ec5d7e80d63c4bdbbdfe2cca1c7aefd43e173c273f872
   languageName: node
   linkType: hard
 
@@ -39077,7 +39077,7 @@ __metadata:
     "@metamask/auto-changelog": "npm:^6.2.0"
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/base-data-service": "npm:^2.1.0"
-    "@metamask/bitcoin-wallet-snap": "npm:^3.1.0"
+    "@metamask/bitcoin-wallet-snap": "npm:^3.2.0"
     "@metamask/bitcoin-wallet-standard": "npm:^1.0.0"
     "@metamask/bridge-controller": "npm:^81.4.0"
     "@metamask/bridge-status-controller": "npm:^76.2.0"
@@ -39483,6 +39483,7 @@ __metadata:
     react-native-nitro-websockets: "patch:react-native-nitro-websockets@npm%3A1.0.3#~/.yarn/patches/react-native-nitro-websockets-npm-1.0.3-fb47e9a867.patch"
     react-native-os: "patch:react-native-os@npm%3A1.2.6#~/.yarn/patches/react-native-os-npm-1.2.6-65c52ed3dc.patch"
     react-native-pager-view: "npm:8.0.4"
+    react-native-passkeys: "npm:0.4.2"
     react-native-performance: "patch:react-native-performance@npm%3A6.0.0#~/.yarn/patches/react-native-performance-npm-6.0.0-48a0cbc8fc.patch"
     react-native-permissions: "npm:^5.6.0"
     react-native-progress: "npm:3.5.0"
@@ -45573,6 +45574,17 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/5eb006bc6d242f815e73d31d9e29c0a4eee291de921f98c21085c113279b03e476bb8a3e517f31154dcbf90f077c03439999db379883e0d7f099e47273f0a679
+  languageName: node
+  linkType: hard
+
+"react-native-passkeys@npm:0.4.2":
+  version: 0.4.2
+  resolution: "react-native-passkeys@npm:0.4.2"
+  peerDependencies:
+    expo: ">=53.0.0"
+    react: "*"
+    react-native: ">=0.71.0"
+  checksum: 10/fd36ffca0c961d35fea703faf19652276a311e74e095a19c5047f2809e5d89b65ca098d1bc59d9ed848c1eca01a111d4fdd40c91f44dd7e884f22d72e3108cd8
   languageName: node
   linkType: hard
 
