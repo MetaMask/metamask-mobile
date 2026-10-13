@@ -284,9 +284,8 @@ export const useTokenStats = ({
         isLoading: isMarketDataLoading,
       },
       /**
-       * TODO(ASSETS-4022): labelled "LP burned/locked" but
-       * `lockedLiquidityPct` measures locking alone. Either the label narrows
-       * or the payload needs a burn figure.
+       * Labelled "LP burned/locked" but `lockedLiquidityPct` measures locking
+       * alone, which is all the payload carries.
        */
       [TokenStatKey.LpBurnedLocked]: {
         value: formatPercent(

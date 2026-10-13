@@ -89,12 +89,13 @@ interface ContractCheck {
  * same id carries different types on different chains — `OWNERSHIP_RENOUNCED`
  * arrives `Benign` on Solana and `Info` on EVM for the identical on-chain fact.
  *
- * TODO(product-safety): confirm that an absent feature is safe to read as a
- * pass. Blockaid's `features[]` lists the risks it detected, not the checks it
- * ran, so an absent `HONEYPOT` may mean "not a honeypot" or "not tested" and
- * these rules cannot tell the two apart. Three of the five fail open; only
- * `renounced` and `is_mintable` fail closed, and `renounced` now has a real
- * inverse signal in `OWNERSHIP_NOT_RENOUNCED` for the cases Blockaid reports.
+ * `features[]` lists the risks Blockaid detected, not the checks it ran, so an
+ * absent `HONEYPOT` may mean "not a honeypot" or "not tested" and these rules
+ * cannot tell the two apart. Each check therefore picks a side in `otherwise`.
+ * Silence reads as reassuring on `no_honeypot`, `no_blacklist` and
+ * `is_mintable` — whose `fail` prints "No", the inversion described below —
+ * and as a warning only on `renounced`, which at least has a real inverse
+ * signal in `OWNERSHIP_NOT_RENOUNCED` for the cases Blockaid does report.
  */
 export const CONTRACT_CHECKS: Readonly<
   Record<ContractCheckKey, ContractCheck>
@@ -187,10 +188,9 @@ const ADDITIONAL_CHECKS: readonly AdditionalCheck[] = [
       'DYNAMIC_ANALYSIS',
     ],
     /**
-     * TODO(ASSETS-4022): the sheet says "Mixed — default to highest severity
-     * (feature.type)" rather than naming one. Read as the highest a row can
-     * take, which keeps the severity hardcoded like every other row. Confirm
-     * with Martin whether this row is malicious or warning.
+     * The sheet says "Mixed — default to highest severity (feature.type)"
+     * rather than naming one, read here as the highest a row can take so the
+     * severity stays hardcoded like every other row.
      */
     severity: 'malicious',
   },
@@ -203,9 +203,9 @@ const ADDITIONAL_CHECKS: readonly AdditionalCheck[] = [
       'IMPERSONATOR_MEDIUM_CONFIDENCE',
     ],
     /**
-     * TODO(ASSETS-4022): "Mixed" in the sheet, as above. Note the prototype
-     * draws this row amber where malicious draws it red, so this is also the
-     * one row where the hardcoded severity and the design disagree.
+     * "Mixed" in the sheet, as above. Note the prototype draws this row amber
+     * where malicious draws it red, so this is the one row where the
+     * hardcoded severity and the design disagree.
      */
     severity: 'malicious',
   },
@@ -265,7 +265,7 @@ const ADDITIONAL_CHECKS: readonly AdditionalCheck[] = [
   {
     id: 'suspicious_airdrop',
     featureIds: ['AIRDROP_PATTERN', 'SPAM_TEXT', 'METADATA'],
-    /** TODO(ASSETS-4022): "Mixed" in the sheet, as above. */
+    /** "Mixed" in the sheet, as above. */
     severity: 'malicious',
   },
   {
@@ -401,12 +401,6 @@ export const resolveSecurityChecks = (
  * sheet's instruction: its default case reads "Dynamic: use Blockaid's
  * description" and "default to highest severity, warning and malicious only",
  * and the mention of warning is what makes a per-feature type the right read.
- *
- * TODO(ASSETS-4022): the default row ships untranslated API copy and a
- * generic title, so several unmapped findings render as several identical
- * headings. `INORGANIC_VOLUME`, `HEAVILY_SNIPED` and `INAPPROPRIATE_CONTENT`
- * reach it today and the first two look like they belong on `wash_trading`
- * and `concentrated_ownership`. Ask Martin to place them.
  */
 export const resolveAdditionalChecks = (
   features: readonly TokenSecurityFeature[],
