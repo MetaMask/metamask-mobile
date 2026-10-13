@@ -1392,6 +1392,8 @@
       "retry": "Try again",
       "posting": "Posting...",
       "post_failed": "Couldn't create post. Try again.",
+      "linked_account_missing": "Your linked Social account isn't in this wallet.",
+      "showing_linked_account": "Showing positions from {{account}}",
       "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
     },
     "post_swap_share": {
