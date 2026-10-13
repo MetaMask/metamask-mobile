@@ -87,11 +87,11 @@ test.describe(`${Performance} ${PerformanceOnboarding}`, () => {
 
       await CreatePasswordView.tapPasswordVisibilityIcon();
       await CreatePasswordView.tapConfirmPasswordVisibilityIcon();
-      await CreatePasswordView.tapIUnderstandCheckBox();
       if (await PlatformDetector.isAndroid()) {
         await AppiumGestures.hideKeyboard();
       }
       await CreatePasswordView.tapCreatePasswordButton();
+      await CreatePasswordView.tapPasswordWarningConfirmButton();
 
       await timer4.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(

@@ -156,6 +156,7 @@ const stubBalance = (venueStatus?: { termsUrl?: string }) =>
 
 const buyIntent: PredictOrderFlowIntent = {
   action: 'buy',
+  eventId: 'event-1' as PredictEntityId,
   venueId: KALSHI_VENUE_ID,
   marketId: 'KXTEST-26-A' as PredictEntityId,
   side: 'yes',
@@ -167,6 +168,7 @@ const buyIntent: PredictOrderFlowIntent = {
 
 const sellIntent: PredictOrderFlowIntent = {
   action: 'sell',
+  eventId: 'event-1' as PredictEntityId,
   venueId: KALSHI_VENUE_ID,
   marketId: 'KXTEST-26-A' as PredictEntityId,
   side: 'yes',

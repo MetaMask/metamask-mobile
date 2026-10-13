@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, render, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import en from '../../../../../../../locales/languages/en.json';
@@ -334,5 +335,27 @@ describe('SecurityTab', () => {
       SecurityTabSelectors.row(SecurityStatKey.Holders),
       SecurityTabSelectors.row(SecurityStatKey.TopTen),
     ]);
+  });
+
+  it('rules off each section after the checks', () => {
+    const { getByTestId } = render(
+      <SecurityTab facts={MOCK_SECURITY_FACTS_EVM} onExplain={jest.fn()} />,
+    );
+
+    expect(
+      StyleSheet.flatten(
+        getByTestId(SecurityTabSelectors.SECTION_CHECKS).props.style,
+      )?.borderTopWidth,
+    ).toBeUndefined();
+    expect(
+      StyleSheet.flatten(
+        getByTestId(SecurityTabSelectors.SECTION_HOLDERS).props.style,
+      )?.borderTopWidth,
+    ).toBe(1);
+    expect(
+      StyleSheet.flatten(
+        getByTestId(SecurityTabSelectors.SECTION_ORIGIN).props.style,
+      )?.borderTopWidth,
+    ).toBe(1);
   });
 });

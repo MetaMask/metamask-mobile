@@ -3155,6 +3155,31 @@ describe('CardController — getCapabilities', () => {
     expect(caps.supportsPinView).toBe(false);
     expect(caps.supportsCashback).toBe(true);
   });
+
+  it('returns capabilities for a provider that is not active', () => {
+    const baanx = buildMockProvider({
+      capabilities: { ...baseCapabilities, supportsMoneyAccountLinking: true },
+    });
+    const immersve = buildMockProvider({
+      id: CardProviderIds.Immersve,
+      capabilities: {
+        ...baseCapabilities,
+        supportsMoneyAccountLinking: false,
+      },
+    });
+    const controller = new CardController({
+      cardService: buildMockCardService(),
+      messenger: buildMessenger(),
+      providers: { baanx, [CardProviderIds.Immersve]: immersve },
+      state: { activeProviderId: 'baanx' },
+    });
+
+    expect(controller.getCapabilities().supportsMoneyAccountLinking).toBe(true);
+    expect(
+      controller.getCapabilities(CardProviderIds.Immersve)
+        .supportsMoneyAccountLinking,
+    ).toBe(false);
+  });
 });
 
 describe('CardController — data pass-throughs', () => {
