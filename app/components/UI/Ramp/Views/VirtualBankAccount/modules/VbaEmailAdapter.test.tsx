@@ -124,13 +124,12 @@ describe('VbaEmailAdapter', () => {
         verifyWith: 'email_otp',
         reason: {
           operation: 'vba.verifyEmail',
-          enrollDescription: "We'll use this to send account updates.",
-          verifyDescription: "We'll use this to send account updates.",
+          enrollDescription: 'placeholder for enroll description',
+          verifyDescription: 'placeholder for verify description',
         },
       });
       expect(mockKycController.startSession).toHaveBeenCalledWith({
         vendor: VBA_KYC_VENDOR,
-        email: 'user@example.com',
         aal2Token: 'aal2-token',
       });
       expect(mockGetVbaVendorTermsAcceptance).toHaveBeenCalledWith('0xabc');
@@ -141,8 +140,7 @@ describe('VbaEmailAdapter', () => {
     });
   });
 
-  it('starts the session with the bound email when the credential has no address', async () => {
-    mockKycController.state.email = 'bound@example.com';
+  it('starts the session when the credential has no address', async () => {
     mockVerifyOrEnroll.mockResolvedValue({
       credentials: [{ type: 'email_otp', status: 'active', verified: true }],
       token: verifiedEmail().token,
@@ -153,7 +151,6 @@ describe('VbaEmailAdapter', () => {
     await waitFor(() => {
       expect(mockKycController.startSession).toHaveBeenCalledWith({
         vendor: VBA_KYC_VENDOR,
-        email: 'bound@example.com',
         aal2Token: 'aal2-token',
       });
       expect(mockAdvance).toHaveBeenCalled();
