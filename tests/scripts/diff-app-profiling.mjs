@@ -633,6 +633,58 @@ function shouldIncludeScenarioInComment({ currentArtifact, baseline }) {
   );
 }
 
+const MAX_API_CALL_ROWS = 200;
+const MAX_API_CALL_URL_LENGTH = 120;
+const KEY_LIKE_SEGMENT = /^[A-Za-z0-9_-]{24,}$/;
+const EVM_ADDRESS_SEGMENT = /^0x[0-9a-fA-F]{40,}$/;
+
+/**
+ * PR comments are public: drop the protocol, query string and fragment, and
+ * mask key-like path segments (e.g. an Infura project id in `/v3/<key>`).
+ */
+function sanitizeApiCallUrl(rawUrl) {
+  const withoutQuery = String(rawUrl ?? '').split(/[?#]/)[0];
+  const withoutProtocol = withoutQuery.replace(/^[a-z][a-z0-9+.-]*:\/\//i, '');
+  const masked = withoutProtocol
+    .split('/')
+    .map((segment) =>
+      KEY_LIKE_SEGMENT.test(segment) && !EVM_ADDRESS_SEGMENT.test(segment)
+        ? '***'
+        : segment,
+    )
+    .join('/');
+  const clipped =
+    masked.length > MAX_API_CALL_URL_LENGTH
+      ? `${masked.slice(0, MAX_API_CALL_URL_LENGTH - 1)}…`
+      : masked;
+  return clipped.replace(/\|/g, '%7C').replace(/`/g, "'");
+}
+
+/**
+ * Collapsed-by-default list of the API calls captured during a scenario.
+ * Returns an empty string when there is nothing to show.
+ */
+function buildApiCallsSection(apiCalls) {
+  if (!Array.isArray(apiCalls) || apiCalls.length === 0) {
+    return '';
+  }
+
+  const shown = apiCalls.slice(0, MAX_API_CALL_ROWS);
+  let md = `\n<details>\n<summary>API calls (${apiCalls.length})</summary>\n\n`;
+  md += `| # | Method | URL | Status | Time |\n`;
+  md += `|---|--------|-----|--------|------|\n`;
+  shown.forEach((call, index) => {
+    const status = call.status ?? '—';
+    const time = typeof call.time === 'number' ? `${call.time} ms` : '—';
+    md += `| ${index + 1} | ${call.method ?? 'GET'} | \`${sanitizeApiCallUrl(call.url)}\` | ${status} | ${time} |\n`;
+  });
+  if (apiCalls.length > shown.length) {
+    md += `\n_…and ${apiCalls.length - shown.length} more not shown._\n`;
+  }
+  md += `\n</details>\n`;
+  return md;
+}
+
 /**
  * Compact profiling block for embedding under a failed performance test.
  * Returns null when there is no usable baseline comparison.
@@ -644,6 +696,7 @@ function buildEmbeddedProfilingSection({
   repo,
   baselineBranch = DEFAULT_BASELINE_BRANCH,
   includeRawJson = false,
+  includeApiCalls = false,
 }) {
   if (!shouldIncludeScenarioInComment({ currentArtifact, baseline })) {
     return null;
@@ -690,6 +743,10 @@ function buildEmbeddedProfilingSection({
     md += `| ${row.label} | ${row.baselineText} | ${row.currentText} | ${row.deltaText} |\n`;
   }
   md += `\n</details>\n`;
+
+  if (includeApiCalls) {
+    md += buildApiCallsSection(currentArtifact.apiCalls);
+  }
 
   if (includeRawJson) {
     md += `\n<details>\n<summary>Raw profilingSummary JSON</summary>\n\n`;
@@ -756,6 +813,7 @@ function buildScenarioComment({
     repo,
     baselineBranch,
     includeRawJson: true,
+    includeApiCalls: true,
   });
 
   // Reuse summary + collapsed details from the embedded builder; drop its
@@ -942,6 +1000,8 @@ export {
   downloadAggregatedReports,
   buildRegressionSummary,
   buildEmbeddedProfilingSection,
+  buildApiCallsSection,
+  sanitizeApiCallUrl,
   buildScenarioComment,
   shouldIncludeScenarioInComment,
   findBaselineScenario,
