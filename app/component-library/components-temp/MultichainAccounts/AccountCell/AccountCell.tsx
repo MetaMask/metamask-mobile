@@ -86,7 +86,7 @@ const AccountBalanceDisplay = ({
     totalBalance = accountListBalance;
   }
   const displayBalance = useMemo(() => {
-    if (totalBalance == null || !userCurrency) {
+    if (totalBalance === undefined || !userCurrency) {
       return undefined;
     }
     return formatWithThreshold(totalBalance, 0.01, I18n.locale, {
