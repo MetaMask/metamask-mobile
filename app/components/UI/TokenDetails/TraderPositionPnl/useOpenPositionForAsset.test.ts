@@ -49,7 +49,7 @@ interface QueryOptions {
 }
 
 const queryOptions = (): QueryOptions =>
-  mockUseQuery.mock.calls[0][0] as QueryOptions;
+  mockUseQuery.mock.calls[0][0] as unknown as QueryOptions;
 
 describe('useOpenPositionForAsset', () => {
   beforeEach(() => {

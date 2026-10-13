@@ -68,7 +68,9 @@ export const useOpenPositionForAsset = (
     extraMessage: 'Open position PnL fetch failed',
     source: 'useOpenPositionForAsset',
     endpoint: 'open_positions',
-    queryParams: { address: address ?? '', assetId: assetId ?? '' },
+    // The wallet address is deliberately left out: these extras reach Sentry,
+    // and the asset id is enough to locate a failing route.
+    queryParams: { assetId: assetId ?? '' },
   });
 
   const refetchPosition = useCallback(async () => {

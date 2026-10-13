@@ -58,7 +58,8 @@ export const toOpenPositionHeader = ({
           unrealized.percent == null
             ? undefined
             : formatPercent(unrealized.percent),
-        isProfit: unrealized.usd > 0,
+        // Zero reads as neutral-to-positive, matching `positionDisplay.ts`.
+        isProfit: unrealized.usd >= 0,
       },
       isLoading: false,
     };

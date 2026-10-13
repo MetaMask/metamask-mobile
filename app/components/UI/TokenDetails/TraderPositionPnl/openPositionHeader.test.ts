@@ -36,6 +36,38 @@ describe('toOpenPositionHeader', () => {
     expect(result.isLoading).toBe(false);
   });
 
+  it('treats a flat position as neutral rather than a loss', () => {
+    const result = toOpenPositionHeader({
+      position: { ...readyPosition, currentValueUSD: 100 },
+      isLoading: false,
+      walletFiatBalance: '$90.00',
+      conversion: usd,
+    });
+
+    expect(result.pnl).toEqual(
+      expect.objectContaining({
+        isProfit: true,
+        amount: formatFiat(0, 'USD'),
+      }),
+    );
+  });
+
+  it('marks a losing position as a loss', () => {
+    const result = toOpenPositionHeader({
+      position: { ...readyPosition, currentValueUSD: 40 },
+      isLoading: false,
+      walletFiatBalance: '$90.00',
+      conversion: usd,
+    });
+
+    expect(result.pnl).toEqual(
+      expect.objectContaining({
+        isProfit: false,
+        amount: formatFiat(-60, 'USD'),
+      }),
+    );
+  });
+
   it('shows the wallet balance and hides PnL while indexing', () => {
     const result = toOpenPositionHeader({
       position: { ...readyPosition, pnlStatus: 'in-progress' },
