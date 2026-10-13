@@ -11,6 +11,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -29,11 +30,11 @@ import SecurityAttribution from '../SecurityAttribution/SecurityAttribution';
 import { useElapsedMinutes } from '../../../hooks/useElapsedMinutes';
 import { useTokenCaipAssetId } from '../../../hooks/useTokenCaipAssetId';
 import { useTokenSecurityQuery } from '../../../../Tokens/hooks/useTokenSecurityQuery';
-import type { SecurityReason } from '../../../utils/securityReasons';
+import type { SecurityRisk } from '../../../utils/securityFacts';
 import {
-  CHECK_OUTCOME_PRESENTATION,
-  SECURITY_CHECK_DESCRIPTION_KEYS,
-  SECURITY_CHECK_LABEL_KEYS,
+  checkDescriptionKey,
+  checkLabelKey,
+  resolveCheckPresentation,
 } from '../SecurityTab/SecurityTab.constants';
 import {
   CONTRACT_CHECK_KEYS,
@@ -70,7 +71,7 @@ const CheckGroup = ({
     {checkKeys.map((checkKey, index) => {
       const check = checks[checkKey];
       const outcome = check?.outcome ?? 'unknown';
-      const { icon, valueColor } = CHECK_OUTCOME_PRESENTATION[outcome];
+      const { icon, valueColor } = resolveCheckPresentation(checkKey, outcome);
 
       return (
         <React.Fragment key={checkKey}>
@@ -79,9 +80,9 @@ const CheckGroup = ({
           ) : null}
           <SecurityDetailRow
             checkKey={checkKey}
-            label={strings(SECURITY_CHECK_LABEL_KEYS[checkKey])}
+            label={strings(checkLabelKey(checkKey))}
             value={outcome === 'unknown' ? null : (check?.value ?? null)}
-            description={strings(SECURITY_CHECK_DESCRIPTION_KEYS[checkKey])}
+            description={strings(checkDescriptionKey(checkKey))}
             icon={icon}
             valueColor={valueColor}
           />
@@ -92,74 +93,88 @@ const CheckGroup = ({
 );
 
 /**
- * What Blockaid actually found, one line per feature.
- *
- * Replaces three fixed rows that each had to infer a pass from an absent
- * feature. This list only ever states what came back, so it needs no empty
- * state beyond saying so — and an empty list is the common case for a clean
- * token on a chain Blockaid reports little about.
- *
- * One glyph for the whole list rather than per row: every entry shares the
- * token's verdict by construction, since the bucket a reason comes from is
- * chosen by that verdict.
+ * How severe a risk looks: the glyph and its title share one colour, and the
+ * description stays grey in both so the severity reads from the heading alone.
  */
-const ReasonList = ({
-  reasons,
-  isPositive,
-}: {
-  reasons: readonly SecurityReason[];
-  isPositive: boolean;
-}) => {
-  if (reasons.length === 0) {
-    return (
-      <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextAlternative}
-        testID={ContractSecuritySelectors.SECTION_ADDITIONAL}
-      >
-        {strings('token_details_v1.security_tab.reasons.empty')}
-      </Text>
-    );
-  }
-
-  return (
-    <Box
-      twClassName="gap-3"
-      testID={ContractSecuritySelectors.SECTION_ADDITIONAL}
-    >
-      {reasons.map((reason) => (
-        <Box
-          key={reason.featureId}
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
-          testID={ContractSecuritySelectors.reason(reason.featureId)}
-        >
-          <Icon
-            name={isPositive ? IconName.CheckBold : IconName.Danger}
-            size={IconSize.Sm}
-            color={
-              isPositive ? IconColor.SuccessDefault : IconColor.ErrorDefault
-            }
-          />
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-            {reason.label}
-          </Text>
-        </Box>
-      ))}
-    </Box>
-  );
+const RISK_PRESENTATION: Record<
+  SecurityRisk['severity'],
+  { icon: IconColor; title: TextColor }
+> = {
+  malicious: { icon: IconColor.ErrorDefault, title: TextColor.ErrorDefault },
+  warning: { icon: IconColor.WarningDefault, title: TextColor.WarningDefault },
 };
+
+/**
+ * What Blockaid actually found, one row per finding.
+ *
+ * Shaped like `CheckGroup` above — a `SectionDivider` in each gap, rows
+ * carrying no spacing of their own — so the two halves of the screen read as
+ * one list. The description sits on its own full-width line rather than
+ * indented under the title, per the design.
+ *
+ * The triangle is tinted per row rather than once for the whole list. The
+ * previous single glyph was only sound while every entry shared the token's
+ * verdict by construction; now a token can carry a malicious finding beside a
+ * warning one, and the two have to be told apart.
+ *
+ * No empty state: the caller drops the whole section when nothing was found,
+ * which is the common case for a clean token.
+ */
+const RiskList = ({ risks }: { risks: readonly SecurityRisk[] }) => (
+  <Box testID={ContractSecuritySelectors.SECTION_ADDITIONAL}>
+    {risks.map((risk, index) => {
+      const presentation = RISK_PRESENTATION[risk.severity];
+
+      return (
+        <React.Fragment key={risk.id}>
+          {index > 0 ? (
+            <SectionDivider testID={ContractSecuritySelectors.DIVIDER} />
+          ) : null}
+          <Box
+            twClassName="gap-1"
+            testID={ContractSecuritySelectors.risk(risk.id)}
+          >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-2"
+            >
+              <Icon
+                name={IconName.Danger}
+                size={IconSize.Sm}
+                color={presentation.icon}
+              />
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={presentation.title}
+                testID={ContractSecuritySelectors.riskTitle(risk.id)}
+              >
+                {risk.title}
+              </Text>
+            </Box>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {risk.description}
+            </Text>
+          </Box>
+        </React.Fragment>
+      );
+    })}
+  </Box>
+);
 
 /**
  * Contract security screen — the Security tab's Contract heading, expanded.
  *
- * Repeats the tab's four contract checks with their definitions printed under
+ * Repeats the tab's five contract checks with their definitions printed under
  * each row instead of hidden behind a dotted underline, then lists what
  * Blockaid actually found.
  *
  * A pushed screen rather than a sheet because the content runs past a phone
- * screen: four rows each carrying a sentence, plus an open-ended list of
+ * screen: five rows each carrying a sentence, plus an open-ended list of
  * findings, does not fit the height a `BottomSheet` can offer without becoming
  * a scroll-within-a-scroll.
  */
@@ -249,7 +264,7 @@ export const ContractSecurityScreen: React.FC = () => {
         contentContainerStyle={scrollContentStyle}
       >
         <Box twClassName="px-4">
-          {/* The four contract checks carry no heading of their own: the screen
+          {/* The five contract checks carry no heading of their own: the screen
               title already names them, and a second "Contract" immediately
               under it would read as a nested section. */}
           <CheckGroup
@@ -259,29 +274,33 @@ export const ContractSecurityScreen: React.FC = () => {
             twClassName="pb-6"
           />
 
-          {/* The rule between the two groups belongs to this section, not to
-              the row above it — which is why the last row of each group draws
-              nothing. */}
-          <Box twClassName="border-t border-muted pt-6">
-            {/* Same `px-0` cancellation and header role as the tab's titles:
-                the screen pads itself, and this is the one heading a screen
-                reader can use to skip past the four contract checks.
+          {/* The whole section goes when there is nothing to list, rule
+              included — an "Additional checks" heading over a blank space
+              reads as a loading failure rather than as good news, and the
+              checks above have already said the token looks fine.
 
-                The type is `SectionHeader`'s own default, which resolves to
-                20px/600 on a 24px line — what the prototype's heading measures
-                — so there is nothing to override. */}
-            <SectionHeader
-              title={strings(
-                'token_details_v1.security_tab.sections.additional_checks',
-              )}
-              titleProps={{ accessibilityRole: 'header' }}
-              twClassName="px-0 pb-5 pt-0"
-            />
-            <ReasonList
-              reasons={facts.reasons}
-              isPositive={facts.verdict === 'screened'}
-            />
-          </Box>
+              The rule between the two groups belongs to this section, not to
+              the row above it, which is why the last row of each group draws
+              nothing and why dropping the section takes the rule with it. */}
+          {facts.risks.length > 0 ? (
+            <Box twClassName="border-t border-muted pt-6">
+              {/* Same `px-0` cancellation and header role as the tab's titles:
+                  the screen pads itself, and this is the one heading a screen
+                  reader can use to skip past the five contract checks.
+
+                  The type is `SectionHeader`'s own default, which resolves to
+                  20px/600 on a 24px line — what the prototype's heading
+                  measures — so there is nothing to override. */}
+              <SectionHeader
+                title={strings(
+                  'token_details_v1.security_tab.sections.additional_checks',
+                )}
+                titleProps={{ accessibilityRole: 'header' }}
+                twClassName="px-0 pb-5 pt-0"
+              />
+              <RiskList risks={facts.risks} />
+            </Box>
+          ) : null}
 
           {/* Same provenance line as the tab, for the same reason: every row
               above came from a third-party scan that may be hours old. */}

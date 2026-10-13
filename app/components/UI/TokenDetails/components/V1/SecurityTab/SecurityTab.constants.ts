@@ -7,26 +7,34 @@ import {
   STAT_EXPLAINER_KEYS,
   TokenStatKey,
 } from '../../../constants/tokenStats';
+import { CONTRACT_CHECKS } from '../../../utils/securityFacts';
 import type { ExplainerCopy } from '../TokenExplainerSheet/TokenExplainerSheet.types';
 import {
+  CONTRACT_CHECK_KEYS,
   ContractCheckKey,
   type SecurityCheckOutcome,
   type SecurityRowKey,
 } from './SecurityTab.types';
 
+/** Glyph and value colour for one check's row. */
+interface CheckPresentation {
+  icon?: { name: IconName; color: IconColor };
+  valueColor: TextColor;
+}
+
 /**
  * How each check outcome presents.
  *
  * Shared by the tab and the Contract security screen rather than declared in
- * each: the screen is one tap from the tab and repeats the same four checks, so
+ * each: the screen is one tap from the tab and repeats the same five checks, so
  * a fork here would show the same check as passing in two different colours.
  *
- * Typed as a full `Record` so a third outcome cannot be added to
+ * Typed as a full `Record` so a fourth outcome cannot be added to
  * `SecurityCheckOutcome` without deciding how it looks.
  */
 export const CHECK_OUTCOME_PRESENTATION: Record<
   SecurityCheckOutcome,
-  { icon?: { name: IconName; color: IconColor }; valueColor: TextColor }
+  CheckPresentation
 > = {
   pass: {
     icon: { name: IconName.CheckBold, color: IconColor.SuccessDefault },
@@ -39,6 +47,22 @@ export const CHECK_OUTCOME_PRESENTATION: Record<
   /** No glyph, leaving the dash to carry the "no data" meaning. */
   unknown: { valueColor: TextColor.TextAlternative },
 };
+
+/**
+ * How one check's row presents, outcome and tone together.
+ *
+ * Reads the tone straight off `CONTRACT_CHECKS` so neither render site has to
+ * know that a check without a pass/fail glyph exists. A `neutral` row answers
+ * its question in plain text — see `ContractCheck.tone` for why `is_mintable`
+ * is the one check that cannot wear a tick or a cross.
+ */
+export const resolveCheckPresentation = (
+  checkKey: ContractCheckKey,
+  outcome: SecurityCheckOutcome,
+): CheckPresentation =>
+  CONTRACT_CHECKS[checkKey].tone === 'neutral'
+    ? { valueColor: TextColor.TextDefault }
+    : CHECK_OUTCOME_PRESENTATION[outcome];
 
 /**
  * Which stats each section lists, in render order.
@@ -76,37 +100,39 @@ export const SECURITY_SECTIONS = {
 export type SecurityStatRowKey =
   (typeof SECURITY_SECTIONS)[keyof typeof SECURITY_SECTIONS][number];
 
-/** Label beside each contract check. */
-export const SECURITY_CHECK_LABEL_KEYS: Record<ContractCheckKey, string> = {
-  [ContractCheckKey.NoHoneypot]:
-    'token_details_v1.security_tab.checks.no_honeypot',
-  [ContractCheckKey.ContractVerified]:
-    'token_details_v1.security_tab.checks.contract_verified',
-  [ContractCheckKey.Renounced]:
-    'token_details_v1.security_tab.checks.renounced',
-  [ContractCheckKey.NoBlacklist]:
-    'token_details_v1.security_tab.checks.no_blacklist',
-};
+/**
+ * Every locale key belonging to a contract check, built from the check key.
+ *
+ * Interpolated rather than listed in a map per key family, because each of
+ * those maps only ever restated this naming convention — one that
+ * `resolveValue` in `securityFacts.ts` already follows for the pass and fail
+ * wording. What that gives up is the `Record<ContractCheckKey, string>` that
+ * failed to compile when a check shipped without copy; what replaces it is a
+ * test resolving every key below against `en.json`, which is strictly
+ * stronger, since a `Record` only ever proved somebody wrote *a* string.
+ *
+ * The flip side is that these keys are now unsearchable from `en.json`. Adding
+ * a sixth check therefore means adding its block under `checks`,
+ * `check_values` and `explainers` by hand; the locale test is what tells you
+ * which one you forgot.
+ */
+export const checkLabelKey = (checkKey: ContractCheckKey): string =>
+  `token_details_v1.security_tab.checks.${checkKey}`;
 
 /**
  * Sentence printed under each row on the Contract security screen.
  *
- * Points at the same copy as the explainer sheets: the screen states the
- * definition inline where the tab hides it behind a tap, but it is the same
- * definition, so pointing both at one key is what stops the two surfaces
- * defining a term differently.
+ * The same key the explainer sheet uses: the screen states the definition
+ * inline where the tab hides it behind a tap, but it is the same definition,
+ * so one key is what stops the two surfaces defining a term differently.
  */
-export const SECURITY_CHECK_DESCRIPTION_KEYS: Record<ContractCheckKey, string> =
-  {
-    [ContractCheckKey.NoHoneypot]:
-      'token_details_v1.security_tab.explainers.no_honeypot.description',
-    [ContractCheckKey.ContractVerified]:
-      'token_details_v1.security_tab.explainers.contract_verified.description',
-    [ContractCheckKey.Renounced]:
-      'token_details_v1.security_tab.explainers.renounced.description',
-    [ContractCheckKey.NoBlacklist]:
-      'token_details_v1.security_tab.explainers.no_blacklist.description',
-  };
+export const checkDescriptionKey = (checkKey: ContractCheckKey): string =>
+  `token_details_v1.security_tab.explainers.${checkKey}.description`;
+
+const checkExplainerKeys = (checkKey: ContractCheckKey): ExplainerCopy => ({
+  title: `token_details_v1.security_tab.explainers.${checkKey}.title`,
+  description: checkDescriptionKey(checkKey),
+});
 
 /**
  * Label beside each stat row.
@@ -135,43 +161,23 @@ export const SECURITY_STAT_LABEL_KEYS: Record<SecurityStatRowKey, string> = {
 };
 
 /**
- * Copy for the explainer sheet behind each contract check's dotted underline.
- *
- * The stat rows' copy lives in `STAT_EXPLAINER_KEYS`, shared with the stat
- * bar. Only the checks are the tab's alone, because only the tab shows them.
- */
-const CONTRACT_CHECK_EXPLAINER_KEYS: Record<ContractCheckKey, ExplainerCopy> = {
-  [ContractCheckKey.NoHoneypot]: {
-    title: 'token_details_v1.security_tab.explainers.no_honeypot.title',
-    description:
-      'token_details_v1.security_tab.explainers.no_honeypot.description',
-  },
-  [ContractCheckKey.ContractVerified]: {
-    title: 'token_details_v1.security_tab.explainers.contract_verified.title',
-    description:
-      'token_details_v1.security_tab.explainers.contract_verified.description',
-  },
-  [ContractCheckKey.Renounced]: {
-    title: 'token_details_v1.security_tab.explainers.renounced.title',
-    description:
-      'token_details_v1.security_tab.explainers.renounced.description',
-  },
-  [ContractCheckKey.NoBlacklist]: {
-    title: 'token_details_v1.security_tab.explainers.no_blacklist.title',
-    description:
-      'token_details_v1.security_tab.explainers.no_blacklist.description',
-  },
-};
-
-/**
  * Copy for every definition sheet either surface can open.
  *
  * One map over both halves of `SecurityRowKey`, so the screen that owns the
  * sheet needs a single handler rather than one per surface plus a way to tell
- * a check key from a stat key. Typed as a full `Record`, which is what makes a
- * row unable to ship without a definition behind its dotted underline.
+ * a check key from a stat key.
+ *
+ * Only the contract half is derived. The stat keys stay written out in
+ * `STAT_EXPLAINER_KEYS` because they are shared with the stat bar, whose keys
+ * follow no single pattern off the stat key.
  */
 export const EXPLAINER_KEYS_BY_ROW: Record<SecurityRowKey, ExplainerCopy> = {
-  ...CONTRACT_CHECK_EXPLAINER_KEYS,
+  ...CONTRACT_CHECK_KEYS.reduce(
+    (explainers, checkKey) => {
+      explainers[checkKey] = checkExplainerKeys(checkKey);
+      return explainers;
+    },
+    {} as Record<ContractCheckKey, ExplainerCopy>,
+  ),
   ...STAT_EXPLAINER_KEYS,
 };

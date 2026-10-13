@@ -6036,12 +6036,13 @@
         "no_honeypot": "No honeypot",
         "contract_verified": "Contract verified",
         "renounced": "Renounced",
-        "no_blacklist": "No blacklist"
+        "no_blacklist": "No blacklist",
+        "is_mintable": "Is mintable"
       },
       "check_values": {
         "no_honeypot": {
-          "pass": "Sells work",
-          "fail": "Sells may fail"
+          "pass": "Honeypot not detected",
+          "fail": "Honeypot detected"
         },
         "contract_verified": {
           "pass": "Yes",
@@ -6054,6 +6055,10 @@
         "no_blacklist": {
           "pass": "No controls",
           "fail": "Control detected"
+        },
+        "is_mintable": {
+          "pass": "Yes",
+          "fail": "No"
         }
       },
       "values": {
@@ -6065,20 +6070,70 @@
           "other": "{{count}} detected"
         }
       },
-      "reasons": {
-        "empty": "Nothing to report",
-        "ownership_renounced": "Ownership renounced",
-        "significant_usd_reserves": "Significant liquidity reserves",
-        "created_via_launchpad": "Created via a known launchpad",
-        "dex_paid": "Paid DEX promotion",
-        "low_dev_percentage": "Developer holds a small share",
-        "low_snipers_percentage": "Few snipers hold the token",
-        "low_initial_snipers_percentage": "Launch snipers hold a small share",
-        "low_insiders_percentage": "Insiders hold a small share",
-        "low_bundlers_percentage": "Few bundled wallets hold the token",
-        "high_dev_percentage": "Developer holds a large share",
-        "high_initial_snipers_percentage": "Launch snipers hold a large share",
-        "unverified_contract": "Contract source code not verified"
+      "risk_banner": {
+        "one": "We found {{count}} risk",
+        "other": "We found {{count}} risks"
+      },
+      "risks": {
+        "default": {
+          "title": "Risk detected"
+        },
+        "known_malicious": {
+          "title": "Known malicious",
+          "description": "Blockaid has identified known malicious activity or a compromised token contract."
+        },
+        "dangerous_contract_behavior": {
+          "title": "Dangerous contract behavior",
+          "description": "The contract contains suspicious code, privileged backdoors, or behavior that differs from its expected operation."
+        },
+        "impersonation_risk": {
+          "title": "Impersonation risk",
+          "description": "This token may imitate a legitimate token's name, symbol, branding, or identifying properties."
+        },
+        "rug_pull": {
+          "title": "Rug pull detected",
+          "description": "Blockaid has identified the token creators have a history of orchestrating malicious rug pull and honeypot schemes."
+        },
+        "exit_scam_risk": {
+          "title": "Exit scam risk",
+          "description": "Creator or insider behavior suggests a risk of withdrawing value at the expense of holders."
+        },
+        "high_token_fees": {
+          "title": "High token fees",
+          "description": "The token's transfer, buy, or sell fees are unusually high."
+        },
+        "low_liquidity_risk": {
+          "title": "Low liquidity risk",
+          "description": "Limited liquidity could make the token price volatile."
+        },
+        "concentrated_ownership": {
+          "title": "Concentrated ownership",
+          "description": "A small group of holders controls a large share of supply, increasing price-manipulation and sell-pressure risk."
+        },
+        "wash_trading": {
+          "title": "Wash trading activity",
+          "description": "Artificial trades or trading accounts may be inflating the token's activity or volume."
+        },
+        "sniped_at_launch": {
+          "title": "Sniped at launch",
+          "description": "One or more wallets acquired supply in the same block as the token's creation."
+        },
+        "suspicious_creator": {
+          "title": "Suspicious creator",
+          "description": "The creator's reputation or the token's funding trail raises additional risk concerns."
+        },
+        "sanctioned_creator": {
+          "title": "Sanctioned creator",
+          "description": "The token's creator is sanctioned by a government or financial institution."
+        },
+        "suspicious_airdrop": {
+          "title": "Suspicious airdrop",
+          "description": "The token's onchain airdrop activity or metadata may be deceptive or spam-like."
+        },
+        "liquidity_withdrawal_risk": {
+          "title": "Liquidity withdrawal risk",
+          "description": "Insufficient locked liquidity or a migration unlock could allow the operator to withdraw liquidity."
+        }
       },
       "checks_meta": {
         "attribution": "Blockaid",
@@ -6117,10 +6172,14 @@
           "title": "Renounced",
           "description": "Whether contract ownership has been renounced."
         },
-          "no_blacklist": {
-            "title": "No blacklist",
-            "description": "Whether an address can be blocked from trading."
-          }
+        "no_blacklist": {
+          "title": "No blacklist",
+          "description": "Whether an address can be blocked from trading."
+        },
+        "is_mintable": {
+          "title": "Is mintable",
+          "description": "Whether a token can mint additional supply."
+        }
       }
     },
     "contract_security": {

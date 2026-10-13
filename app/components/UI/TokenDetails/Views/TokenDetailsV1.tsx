@@ -530,7 +530,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 <Box twClassName="px-4">
                   <SecuritySocialSection
                     securityVerdict={securityFacts.verdict}
-                    securityFlagCount={securityFacts.flagCount}
+                    securityRiskCount={securityFacts.risks.length}
                     externalLinks={securityData?.metadata?.externalLinks}
                     contractAddress={token.isNative ? null : token.address}
                     onSecurityPress={() => activateTab('security')}

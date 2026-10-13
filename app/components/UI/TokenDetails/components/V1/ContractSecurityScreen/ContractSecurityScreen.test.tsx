@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { CaipAssetType } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
+import { mockTheme } from '../../../../../../util/theme';
 import {
   CBXRP_VERIFIED,
   ETHOS_WARNING,
@@ -79,8 +80,10 @@ describe('ContractSecurityScreen', () => {
   // Both headings are the only landmarks on a screen of rows that each carry a
   // sentence, so a screen reader needs them to skip the first group
   // (WCAG 1.3.1, 2.4.6).
+  // Rendered from the token that has findings, since the second heading goes
+  // with its section when there is nothing to list.
   it('announces the title and the additional-checks heading as headings', () => {
-    const { getByTestId, getByText } = renderScreen(CBXRP_VERIFIED);
+    const { getByTestId, getByText } = renderScreen(ETHOS_WARNING);
 
     expect(getByTestId(ContractSecuritySelectors.TITLE)).toHaveProp(
       'accessibilityRole',
@@ -108,7 +111,7 @@ describe('ContractSecurityScreen', () => {
     ).toHaveLength(CONTRACT_CHECK_KEYS.length - 1);
   });
 
-  it('renders the four checks, each with its definition', () => {
+  it('renders the five checks, each with its definition', () => {
     const { getByTestId } = renderScreen(CBXRP_VERIFIED);
 
     for (const checkKey of CONTRACT_CHECK_KEYS) {
@@ -145,46 +148,87 @@ describe('ContractSecurityScreen', () => {
   });
 
   describe('findings', () => {
-    it('names each flag behind a warning verdict', () => {
+    it('names each risk behind a warning verdict', () => {
       const { getByTestId } = renderScreen(ETHOS_WARNING);
 
       const group = within(
         getByTestId(ContractSecuritySelectors.SECTION_ADDITIONAL),
       );
 
-      for (const featureId of [
-        'WASH_TRADING',
-        'HIGH_DEV_PERCENTAGE',
-        'SNIPE_AT_MINT',
+      for (const riskId of [
+        'concentrated_ownership',
+        'wash_trading',
+        'sniped_at_launch',
+        'suspicious_creator',
+        'liquidity_withdrawal_risk',
       ]) {
         expect(
-          group.getByTestId(ContractSecuritySelectors.reason(featureId)),
+          group.getByTestId(ContractSecuritySelectors.risk(riskId)),
         ).toBeOnTheScreen();
       }
     });
 
+    // Each row states the finding and then explains it, which is what makes
+    // the generic row titles readable without the sheet's own column open.
+    it('prints a title and a description on every row', () => {
+      const { getByTestId } = renderScreen(ETHOS_WARNING);
+
+      const row = within(
+        getByTestId(ContractSecuritySelectors.risk('concentrated_ownership')),
+      );
+
+      expect(
+        getByTestId(
+          ContractSecuritySelectors.riskTitle('concentrated_ownership'),
+        ),
+      ).toHaveTextContent(
+        strings(
+          'token_details_v1.security_tab.risks.concentrated_ownership.title',
+        ),
+      );
+      expect(
+        row.getByText(
+          strings(
+            'token_details_v1.security_tab.risks.concentrated_ownership.description',
+          ),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    // One glyph for the whole list was only sound while every entry shared the
+    // token's verdict. Severity now varies per row, so the title carries it.
+    it('colours a row title by its own severity', () => {
+      const { getByTestId } = renderScreen(ETHOS_WARNING);
+
+      expect(
+        getByTestId(ContractSecuritySelectors.riskTitle('wash_trading')),
+      ).toHaveStyle({ color: mockTheme.colors.warning.default });
+    });
+
     // The whole reason `Info` is excluded: this token is `Verified` and also
     // mintable and blacklistable, all three typed the same way.
-    it('never lists a capability flag as a reason a token is low risk', () => {
+    it('never lists a capability flag as something it found wrong', () => {
       const { queryByTestId } = renderScreen(CBXRP_VERIFIED);
 
-      for (const featureId of ['CAN_BLACKLIST', 'IS_MINTABLE']) {
+      for (const riskId of ['CAN_BLACKLIST', 'IS_MINTABLE']) {
         expect(
-          queryByTestId(ContractSecuritySelectors.reason(featureId)),
+          queryByTestId(ContractSecuritySelectors.risk(riskId)),
         ).toBeNull();
       }
     });
 
-    // A clean token on a chain Blockaid says little about is the common case,
-    // so the empty list needs to read as an answer rather than a loading gap.
-    it('says so when there is nothing to report', () => {
-      const { getByTestId } = renderScreen();
+    // An "Additional checks" heading over a blank space reads as a loading
+    // failure rather than as good news, and the checks above have already said
+    // the token looks fine.
+    it.each([
+      ['a clean token', CBXRP_VERIFIED],
+      ['a token with no payload at all', undefined],
+    ] as const)('drops the whole section for %s', (_label, securityData) => {
+      const { queryByTestId } = renderScreen(securityData);
 
       expect(
-        getByTestId(ContractSecuritySelectors.SECTION_ADDITIONAL),
-      ).toHaveTextContent(
-        strings('token_details_v1.security_tab.reasons.empty'),
-      );
+        queryByTestId(ContractSecuritySelectors.SECTION_ADDITIONAL),
+      ).toBeNull();
     });
   });
 

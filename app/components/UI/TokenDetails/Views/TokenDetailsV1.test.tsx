@@ -609,7 +609,21 @@ describe('TokenDetailsV1', () => {
 
     // The Contract heading pushes a screen rather than opening a sheet: seven
     // rows each carrying a sentence runs past the height a sheet can offer.
+    //
+    // Needs a payload with something detected in it, because the heading is
+    // only tappable when the Contract security screen has findings to list.
     it('pushes the contract security screen from the Contract heading', () => {
+      mockSecurityQueryResult.data = {
+        resultType: 'Warning',
+        features: [
+          {
+            featureId: 'SNIPE_AT_MINT',
+            type: 'Warning',
+            description: 'Sniped at mint',
+          },
+        ],
+      } as unknown as TokenDetailsRouteParams['securityData'];
+
       const { getByTestId } = openSecurityTab();
 
       fireEvent.press(getByTestId(SecurityTabSelectors.CONTRACT_DETAILS_LINK));

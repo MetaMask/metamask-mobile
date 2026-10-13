@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import en from '../../../../../../../locales/languages/en.json';
+import { mockTheme } from '../../../../../../util/theme';
 import {
   CBXRP_VERIFIED,
   ETHOS_WARNING,
@@ -14,12 +15,17 @@ import {
 import { deriveSecurityFacts } from '../../../utils/securityFacts';
 import { TokenExplainerSheetSelectors } from '../TokenExplainerSheet/TokenExplainerSheet.testIds';
 import SecurityTab from './SecurityTab';
-import { EXPLAINER_KEYS_BY_ROW } from './SecurityTab.constants';
+import {
+  checkDescriptionKey,
+  checkLabelKey,
+  EXPLAINER_KEYS_BY_ROW,
+} from './SecurityTab.constants';
 import { SecurityTabSelectors } from './SecurityTab.testIds';
 import {
   CONTRACT_CHECK_KEYS,
   ContractCheckKey,
   type SecurityCheck,
+  type SecurityFacts,
   type SecurityRowKey,
 } from './SecurityTab.types';
 
@@ -107,6 +113,21 @@ const SECTION_TITLE_KEYS = [
   ],
 ] as const;
 
+/**
+ * Asserts a locale key reaches real copy.
+ *
+ * An unresolved key comes back as `[missing "en.<key>" translation]`, so
+ * matching the wrapper is enough — and is specific enough not to trip on copy
+ * that legitimately uses the word "missing".
+ */
+const expectResolvable = (key: string) => {
+  const resolved = strings(key);
+
+  expect(resolved).not.toBe('');
+  expect(resolved).not.toMatch(/\[missing/iu);
+  expect(resolved).not.toContain(key);
+};
+
 describe('SecurityTab', () => {
   it('renders every section for a chain with complete data', () => {
     const { getByTestId } = renderTab();
@@ -164,7 +185,7 @@ describe('SecurityTab', () => {
   );
 
   describe('contract checks', () => {
-    // An earlier revision picked a different four per chain. The list is now
+    // An earlier revision picked a different set per chain. The list is now
     // fixed, so the same rows have to render whichever fixture is passed —
     // including the Solana one, where a check with nothing behind it falls to
     // the dash rather than disappearing.
@@ -172,7 +193,7 @@ describe('SecurityTab', () => {
       ['an EVM token', EVM_FACTS, EVM_STATS],
       ['a Solana token', SOLANA_FACTS, SOLANA_STATS],
     ] as const)(
-      'renders the same four checks for %s',
+      'renders the same five checks for %s',
       (_label, facts, stats) => {
         const { getByTestId } = renderTab({ facts, stats });
 
@@ -184,27 +205,177 @@ describe('SecurityTab', () => {
       },
     );
 
+    // The one check named as a question rather than as the state we want. A
+    // green tick beside "Yes" would read as reassurance about the very thing
+    // the reader is wary of, and a red cross on "No" would fail a token for
+    // being unable to mint.
+    describe('is mintable', () => {
+      it.each([
+        ['pass', 'Yes'],
+        ['fail', 'No'],
+      ] as const)(
+        'answers %s in plain text with no glyph',
+        (outcome, value) => {
+          const { getByTestId, queryByTestId } = renderTab({
+            facts: {
+              ...EVM_FACTS,
+              checks: { [ContractCheckKey.IsMintable]: { outcome, value } },
+            },
+          });
+
+          expect(
+            getByTestId(
+              SecurityTabSelectors.rowValue(ContractCheckKey.IsMintable),
+            ),
+          ).toHaveTextContent(value);
+          expect(
+            queryByTestId(
+              SecurityTabSelectors.rowIcon(ContractCheckKey.IsMintable),
+            ),
+          ).toBeNull();
+        },
+      );
+
+      it('stays on the default text colour either way', () => {
+        const { getByTestId } = renderTab({
+          facts: {
+            ...EVM_FACTS,
+            checks: {
+              [ContractCheckKey.IsMintable]: { outcome: 'fail', value: 'No' },
+            },
+          },
+        });
+
+        expect(
+          getByTestId(
+            SecurityTabSelectors.rowValue(ContractCheckKey.IsMintable),
+          ),
+        ).toHaveStyle({ color: mockTheme.colors.text.default });
+      });
+    });
+
     // What Blockaid actually found lives behind the chevron. Listing it here
     // too would make the tab the long screen the detail screen exists to be.
     it('keeps the findings off the tab', () => {
-      const { queryByTestId } = renderTab({
+      const { queryByText } = renderTab({
         facts: SOLANA_FACTS,
         stats: SOLANA_STATS,
       });
 
-      for (const reason of SOLANA_FACTS.reasons) {
-        expect(queryByTestId(`reason-${reason.featureId}`)).toBeNull();
+      for (const risk of SOLANA_FACTS.risks) {
+        expect(queryByText(risk.description)).toBeNull();
       }
-      expect(SOLANA_FACTS.reasons.length).toBeGreaterThan(0);
+      expect(SOLANA_FACTS.risks.length).toBeGreaterThan(0);
     });
 
     it('opens the contract security screen from the heading', () => {
       const onOpenContractDetails = jest.fn();
-      const { getByTestId } = renderTab({ onOpenContractDetails });
+      const { getByTestId } = renderTab({
+        facts: SOLANA_FACTS,
+        stats: SOLANA_STATS,
+        onOpenContractDetails,
+      });
 
       fireEvent.press(getByTestId(SecurityTabSelectors.CONTRACT_DETAILS_LINK));
 
       expect(onOpenContractDetails).toHaveBeenCalledTimes(1);
+    });
+
+    /**
+     * The chevron shares the banner's gate, so the two affordances for the
+     * Contract security screen can never disagree about whether it is worth
+     * reaching.
+     *
+     * A failed check on its own does not open it. The definition behind that
+     * row is already available in place, through the dotted underline on its
+     * label, so the only thing the screen adds is the list that is empty here.
+     */
+    describe('the chevron', () => {
+      const linkFor = (facts: Partial<SecurityFacts>) =>
+        renderTab({ facts: { ...EVM_FACTS, ...facts } }).queryByTestId(
+          SecurityTabSelectors.CONTRACT_DETAILS_LINK,
+        );
+
+      it('is offered once something has been found', () => {
+        expect(linkFor({ risks: SOLANA_FACTS.risks })).toBeOnTheScreen();
+      });
+
+      it('is withheld when a check fails but nothing was found', () => {
+        expect(
+          linkFor({
+            checks: {
+              ...EVM_FACTS.checks,
+              [ContractCheckKey.NoHoneypot]: {
+                outcome: 'fail',
+                value: 'Honeypot detected',
+              },
+            },
+            risks: [],
+          }),
+        ).toBeNull();
+      });
+
+      // The heading stays, as a plain one — and gains the header role the
+      // other sections have, since there is no longer an action to announce.
+      it('falls back to a plain heading when there is nothing to show', () => {
+        const { queryByTestId, getByRole } = renderTab({
+          facts: { ...EVM_FACTS, risks: [] },
+        });
+
+        expect(
+          queryByTestId(SecurityTabSelectors.CONTRACT_DETAILS_LINK),
+        ).toBeNull();
+        expect(
+          getByRole('header', {
+            name: en.token_details_v1.security_tab.sections.contract,
+          }),
+        ).toBeOnTheScreen();
+      });
+    });
+  });
+
+  // The count is the number of rows the Contract security screen will draw, so
+  // tapping through can never show fewer findings than the banner promised.
+  describe('risk banner', () => {
+    it('counts the rows behind it and opens the screen listing them', () => {
+      const onOpenContractDetails = jest.fn();
+      const { getByTestId } = renderTab({
+        facts: SOLANA_FACTS,
+        stats: SOLANA_STATS,
+        onOpenContractDetails,
+      });
+
+      const banner = getByTestId(SecurityTabSelectors.RISK_BANNER);
+
+      expect(banner).toHaveTextContent(
+        strings('token_details_v1.security_tab.risk_banner', {
+          count: SOLANA_FACTS.risks.length,
+        }),
+      );
+
+      fireEvent.press(banner);
+
+      expect(onOpenContractDetails).toHaveBeenCalledTimes(1);
+    });
+
+    it('reads in the singular for one risk', () => {
+      const { getByTestId } = renderTab({
+        facts: { ...EVM_FACTS, risks: [SOLANA_FACTS.risks[0]] },
+      });
+
+      expect(getByTestId(SecurityTabSelectors.RISK_BANNER)).toHaveTextContent(
+        'We found 1 risk',
+      );
+    });
+
+    // Rendered only when the count is non-zero, so the copy can state a
+    // number without hedging.
+    it('is absent when nothing was found', () => {
+      const { queryByTestId } = renderTab({
+        facts: { ...EVM_FACTS, risks: [] },
+      });
+
+      expect(queryByTestId(SecurityTabSelectors.RISK_BANNER)).toBeNull();
     });
   });
 
@@ -229,8 +400,13 @@ describe('SecurityTab', () => {
     // overrides rather than resolving them, so `px-0` wins only by arriving
     // last. If that ever stops holding, every title silently sits 16px further
     // in than the rows beneath it, and nothing else would catch it.
+    // Rendered from the token that has findings, since the Contract heading is
+    // only a `SectionHeader` while there is somewhere to navigate to.
     it('cancels the design system inset against the tab own padding', () => {
-      const { getByTestId } = renderTab();
+      const { getByTestId } = renderTab({
+        facts: SOLANA_FACTS,
+        stats: SOLANA_STATS,
+      });
 
       expect(
         getByTestId(SecurityTabSelectors.CONTRACT_DETAILS_LINK),
@@ -242,7 +418,10 @@ describe('SecurityTab', () => {
     // two to announce — so this one is asserted as a button on purpose rather
     // than left out of the list above by oversight.
     it('announces the contract heading as a button instead', () => {
-      const { getByTestId } = renderTab();
+      const { getByTestId } = renderTab({
+        facts: SOLANA_FACTS,
+        stats: SOLANA_STATS,
+      });
 
       expect(
         getByTestId(SecurityTabSelectors.CONTRACT_DETAILS_LINK),
@@ -334,14 +513,28 @@ describe('SecurityTab', () => {
       const { title, description } = EXPLAINER_KEYS_BY_ROW[rowKey];
 
       for (const key of [title, description]) {
-        const resolved = strings(key);
+        expectResolvable(key);
+      }
+    });
+  });
 
-        expect(resolved).not.toBe('');
-        // An unresolved key comes back as `[missing "en.<key>" translation]`,
-        // so matching the wrapper is enough — and is specific enough not to
-        // trip on copy that legitimately uses the word "missing".
-        expect(resolved).not.toMatch(/\[missing/iu);
-        expect(resolved).not.toContain(key);
+  /**
+   * Replaces the compile-time nudge the deleted locale-key `Record`s gave.
+   *
+   * Every key a check reads is now built by interpolation, so nothing fails to
+   * compile when a check ships without copy — but nothing proved the copy was
+   * real before either, since a `Record` only ever checked that somebody wrote
+   * *a* string. Resolving the keys is strictly stronger than both.
+   */
+  describe('interpolated check copy', () => {
+    it.each(CONTRACT_CHECK_KEYS)('resolves every key for %s', (checkKey) => {
+      expectResolvable(checkLabelKey(checkKey));
+      expectResolvable(checkDescriptionKey(checkKey));
+
+      for (const outcome of ['pass', 'fail']) {
+        expectResolvable(
+          `token_details_v1.security_tab.check_values.${checkKey}.${outcome}`,
+        );
       }
     });
   });

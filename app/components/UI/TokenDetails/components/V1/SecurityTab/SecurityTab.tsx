@@ -1,5 +1,8 @@
 import React from 'react';
+import { TouchableOpacity } from 'react-native';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   Box,
   SectionDivider,
   SectionHeader,
@@ -13,8 +16,8 @@ import HoldersDistributionBar from './components/HoldersDistributionBar';
 import SecurityAttribution from '../SecurityAttribution/SecurityAttribution';
 import SecurityRow from './components/SecurityRow';
 import {
-  CHECK_OUTCOME_PRESENTATION,
-  SECURITY_CHECK_LABEL_KEYS,
+  checkLabelKey,
+  resolveCheckPresentation,
   SECURITY_SECTIONS,
   SECURITY_STAT_LABEL_KEYS,
   type SecurityStatRowKey,
@@ -30,7 +33,7 @@ import {
 
 export interface SecurityTabProps {
   /**
-   * What Blockaid concluded — the checks, the flags behind them, the verdict.
+   * What Blockaid concluded — the checks, the risks behind them, the verdict.
    *
    * Passed in rather than read from a hook so the tab stays a pure function of
    * its props, which is what makes both chain fixtures renderable in tests.
@@ -58,7 +61,7 @@ export interface SecurityTabProps {
    */
   onExplain: (rowKey: SecurityRowKey) => void;
   /**
-   * Opens the Contract security screen, which repeats these four checks with
+   * Opens the Contract security screen, which repeats these five checks with
    * their definitions printed and lists what Blockaid actually found.
    *
    * Reported rather than navigated for the same reason as `onExplain`: the tab
@@ -72,7 +75,7 @@ export interface SecurityTabProps {
    *
    * Kept off `facts` on purpose. It is provenance of the request rather than
    * anything Blockaid concluded, and a ticking value on `facts` would
-   * re-memoize `useSecurityFacts` every tick, handing down fresh `reasons` and
+   * re-memoize `useSecurityFacts` every tick, handing down fresh `risks` and
    * `checks` arrays and re-rendering the whole tab to change one line of grey
    * text.
    */
@@ -96,6 +99,10 @@ export interface SecurityTabProps {
  * users get no way to jump between sections on a tab this long (WCAG 1.3.1,
  * 2.4.6). It goes on `titleProps` so it lands on the `Text` itself rather than
  * the surrounding row.
+ *
+ * Also the Contract heading's fallback when there is nothing to drill into,
+ * which is why it is declared above `CheckRow` rather than beside the other
+ * section helpers.
  */
 const SectionTitle = ({ titleKey }: { titleKey: string }) => (
   <SectionHeader
@@ -145,12 +152,12 @@ const CheckRow = ({
   onExplain: (rowKey: SecurityRowKey) => void;
 }) => {
   const outcome = check?.outcome ?? 'unknown';
-  const { icon, valueColor } = CHECK_OUTCOME_PRESENTATION[outcome];
+  const { icon, valueColor } = resolveCheckPresentation(checkKey, outcome);
 
   return (
     <SecurityRow
       rowKey={checkKey}
-      label={strings(SECURITY_CHECK_LABEL_KEYS[checkKey])}
+      label={strings(checkLabelKey(checkKey))}
       value={outcome === 'unknown' ? null : (check?.value ?? null)}
       icon={icon}
       valueColor={valueColor}
@@ -187,6 +194,49 @@ const StatRow = ({
 };
 
 /**
+ * "We found N risks", tappable through to the list behind the number.
+ *
+ * The count is the number of rows the Contract security screen will draw, not
+ * the number of features Blockaid returned, so tapping through never shows
+ * fewer findings than the banner promised. It renders only when that count is
+ * non-zero, which is why the copy can state a number without hedging.
+ *
+ * `BannerAlert` already matches the design: its base pads 12/16, gaps 16,
+ * rounds `xl` and centres a single line of `BodyMd` medium beside the severity
+ * glyph, and `Danger` resolves to the muted error surface with the error-tinted
+ * triangle. So the only override is the 16px above it.
+ *
+ * Wrapped in a `TouchableOpacity` because `BannerBaseProps` extends
+ * `Omit<BoxProps, 'children'>` and exposes no container `onPress` — only
+ * `actionButtonLabel`, which would add a button the design does not have.
+ */
+const RiskBanner = ({
+  riskCount,
+  isHighRisk,
+  onPress,
+}: {
+  riskCount: number;
+  isHighRisk: boolean;
+  onPress: () => void;
+}) => (
+  <TouchableOpacity
+    onPress={onPress}
+    accessibilityRole="button"
+    testID={SecurityTabSelectors.RISK_BANNER}
+  >
+    <BannerAlert
+      severity={
+        isHighRisk ? BannerAlertSeverity.Danger : BannerAlertSeverity.Warning
+      }
+      title={strings('token_details_v1.security_tab.risk_banner', {
+        count: riskCount,
+      })}
+      twClassName="mt-4"
+    />
+  </TouchableOpacity>
+);
+
+/**
  * Security tab of the Token Details V1 page.
  *
  * Five sections of plain label-and-value rows, every label carrying a dotted
@@ -205,7 +255,18 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
   onOpenContractDetails: handleOpenContractDetails,
   fetchedMinutesAgo,
 }) => {
-  const { checks } = facts;
+  const { checks, risks } = facts;
+
+  /**
+   * Whether there is anything behind the Contract heading worth a tap.
+   *
+   * The same gate as the banner, so the two affordances for that screen never
+   * disagree: a token with nothing detected gets neither. The screen's first
+   * half repeats these five rows with their definitions printed, which the
+   * explainer behind each label already offers in place, so the only thing
+   * reaching it adds is the list that is empty here.
+   */
+  const hasContractDetails = risks.length > 0;
 
   const renderStatRows = (statKeys: readonly SecurityStatRowKey[]) =>
     statKeys.map((statKey) => (
@@ -230,18 +291,29 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
           so this follows the component rather than the prototype's placement.
 
           It also means the press target is the whole header row instead of the
-          title's own text box. */}
+          title's own text box.
+
+          A clean token falls back to the plain `SectionTitle` every other
+          section uses, rather than this header with `isInteractive` off:
+          `SectionHeaderProps` is a union whose non-interactive branch takes
+          `ViewProps` and so has no `onPress`, and the fallback is exactly that
+          branch already. It also regains the heading role, which is the more
+          useful announcement once there is nothing to navigate to. */}
       <Box testID={SecurityTabSelectors.SECTION_CHECKS}>
-        <SectionHeader
-          isInteractive
-          title={strings('token_details_v1.security_tab.sections.contract')}
-          onPress={handleOpenContractDetails}
-          accessibilityLabel={strings(
-            'token_details_v1.security_tab.contract_details_link',
-          )}
-          twClassName="px-0 pb-3 pt-0"
-          testID={SecurityTabSelectors.CONTRACT_DETAILS_LINK}
-        />
+        {hasContractDetails ? (
+          <SectionHeader
+            isInteractive
+            title={strings('token_details_v1.security_tab.sections.contract')}
+            onPress={handleOpenContractDetails}
+            accessibilityLabel={strings(
+              'token_details_v1.security_tab.contract_details_link',
+            )}
+            twClassName="px-0 pb-3 pt-0"
+            testID={SecurityTabSelectors.CONTRACT_DETAILS_LINK}
+          />
+        ) : (
+          <SectionTitle titleKey="token_details_v1.security_tab.sections.contract" />
+        )}
         {CONTRACT_CHECK_KEYS.map((checkKey) => (
           <CheckRow
             key={checkKey}
@@ -250,10 +322,17 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
             onExplain={handleExplain}
           />
         ))}
-        {/* Provenance for the four rows above: they come from a third-party
-            scan, and naming the provider plus when we last fetched is what
-            lets the reader judge how much to trust a tick that may be hours
-            old. Under a minute the clause drops rather than reading "0 min". */}
+        {risks.length > 0 ? (
+          <RiskBanner
+            riskCount={risks.length}
+            isHighRisk={facts.verdict === 'high_risk'}
+            onPress={handleOpenContractDetails}
+          />
+        ) : null}
+        {/* Provenance for the rows above: they come from a third-party scan,
+            and naming the provider plus when we last fetched is what lets the
+            reader judge how much to trust a tick that may be hours old. Under
+            a minute the clause drops rather than reading "0 min". */}
         <SecurityAttribution
           fetchedMinutesAgo={fetchedMinutesAgo}
           testID={SecurityTabSelectors.SCAN_META}

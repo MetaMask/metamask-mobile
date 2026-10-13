@@ -1,9 +1,9 @@
 import type { TokenStatKey } from '../../../constants/tokenStats';
-import type { SecurityReason } from '../../../utils/securityReasons';
+import type { SecurityRisk } from '../../../utils/securityFacts';
 import type { SecurityVerdict } from '../SecurityPill/SecurityPill';
 
 /**
- * The four contract checks, shown on the Security tab and repeated at the top
+ * The five contract checks, shown on the Security tab and repeated at the top
  * of the Contract security screen.
  *
  * The same four on every chain. An earlier revision picked a different set per
@@ -23,13 +23,19 @@ export const ContractCheckKey = {
   ContractVerified: 'contract_verified',
   Renounced: 'renounced',
   NoBlacklist: 'no_blacklist',
+  /**
+   * Last, which is where the design puts it — and the only check named as a
+   * question rather than as the state we want, so its row carries no pass or
+   * fail glyph. See `ContractCheck.tone` in `securityFacts.ts`.
+   */
+  IsMintable: 'is_mintable',
 } as const;
 
 export type ContractCheckKey =
   (typeof ContractCheckKey)[keyof typeof ContractCheckKey];
 
 /**
- * The four checks in render order, which the declaration order above fixes.
+ * The five checks in render order, which the declaration order above fixes.
  *
  * Derived rather than written out a second time. The tab, the Contract
  * security screen and `resolveSecurityChecks` all iterate this one list, so
@@ -87,18 +93,15 @@ export interface SecurityFacts {
    * fixtures, so dropping it here would only push the duplication elsewhere.
    */
   verdict: SecurityVerdict;
-  /** Only read when the verdict is `medium_risk`, matching `SecurityPill`. */
-  flagCount?: number;
   /**
-   * What Blockaid actually found, explaining the verdict in its own right.
+   * What Blockaid found that the contract checks do not already show, one
+   * entry per rendered row.
    *
-   * Replaces the three fixed "Additional checks" rows. Those asked a question
-   * the payload cannot answer — `features[]` reports detected risks, never
-   * checks performed — so a fixed row had to infer a pass from silence. A
-   * derived list only ever states what came back, and is empty when nothing
-   * did.
+   * No separate count travels alongside: the pill's "N flags" and the banner's
+   * "We found N risks" are both `risks.length`, so the two cannot promise a
+   * row the Contract security screen will not draw.
    */
-  reasons: SecurityReason[];
+  risks: SecurityRisk[];
   /**
    * Partial because a check may have no verdict yet, which collapses "no data"
    * and "not applicable" into the same dash.

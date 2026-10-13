@@ -32,9 +32,11 @@ export const ContractSecuritySelectors = {
   rowDescription: (key: ContractCheckKey) =>
     `token-details-v1-contract-security-row-${key}-description`,
   /**
-   * One derived reason, keyed by featureId rather than index so a test names
-   * the finding it is asserting on.
+   * One Additional checks row, keyed by the risk's id rather than its index so
+   * a test names the finding it is asserting on.
    */
-  reason: (featureId: string) =>
-    `token-details-v1-contract-security-reason-${featureId}`,
+  risk: (riskId: string) => `token-details-v1-contract-security-risk-${riskId}`,
+  /** The row's heading, which carries the severity colour. */
+  riskTitle: (riskId: string) =>
+    `token-details-v1-contract-security-risk-${riskId}-title`,
 };
