@@ -25,7 +25,7 @@ const VbaKycRejected = ({ onRetry }: VbaKycRejectedProps) => (
     illustration={
       <VbaIllustration
         source={VbaIllustrationSource.hazard}
-        twClassName="h-[65px] w-[72px]"
+        twClassName="h-[65px] w-[71px]"
       />
     }
     title={strings('virtual_bank_account.kyc_rejected.title')}
