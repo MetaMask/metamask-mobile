@@ -2011,7 +2011,7 @@
           "invalid_skew": "Size skew must be greater than 0",
           "minimum_lot": "Smallest order must have minimum value of ${{minOrderValue}}",
           "route_changed": "Your trading route changed. Review the Scale order and try again.",
-        "unavailable": "Scale orders are temporarily unavailable. Select another order type."
+          "unavailable": "Scale orders are temporarily unavailable. Select another order type."
         }
       },
       "twap": {
