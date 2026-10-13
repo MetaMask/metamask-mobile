@@ -1,6 +1,6 @@
 # Keep HyperExecute uploads lean. Appium sessions install the cloud lt:// app.
-android/
-ios/
+/android/
+/ios/
 *.apk
 *.aab
 *.ipa
