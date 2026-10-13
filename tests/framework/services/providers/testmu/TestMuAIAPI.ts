@@ -124,6 +124,35 @@ export class TestMuAIAPI {
     return await response.json();
   }
 
+  async getNetworkLogs(sessionId: string): Promise<unknown> {
+    if (!this.hasCredentials()) {
+      logger.warn('Skipping getNetworkLogs: missing TestMu AI credentials');
+      return null;
+    }
+
+    const response = await fetch(
+      `${API_BASE_URL}/sessions/${sessionId}/log/network`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: this.getAuthHeader(),
+        },
+        signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+      },
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new TestMuAIAPIError(
+        `Error fetching TestMu AI network logs: ${response.statusText}`,
+        response.status,
+        errorBody,
+      );
+    }
+
+    return await response.json();
+  }
+
   async getVideoURL(
     sessionId: string,
     maxRetries = 60,

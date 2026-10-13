@@ -182,6 +182,7 @@ env:
   TESTMU_ANDROID_SEEDLESS_PERF_APP_URL: "$(yaml_escape "$RESOLVED_ANDROID_SEEDLESS_URL")"
   HE_REGION: "$(yaml_escape "$HE_REGION")"
   COLLECT_HERMES_CPUPROFILES: "$(yaml_escape "${COLLECT_HERMES_CPUPROFILES:-false}")"
+  TESTMU_NETWORK_LOGS: "$(yaml_escape "${TESTMU_NETWORK_LOGS:-false}")"
 
 mergeArtifacts: true
 uploadArtefacts:

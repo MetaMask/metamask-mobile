@@ -1,5 +1,9 @@
 import { BaseSessionDataEnricher } from '../SessionDataEnricher';
-import { TestMuAIAPI } from '../../../framework/services/providers/testmu/TestMuAIAPI';
+import {
+  TestMuAIAPI,
+  TestMuAIAPIError,
+} from '../../../framework/services/providers/testmu/TestMuAIAPI';
+import { parseHarToEntries } from '../parseHar';
 import type { SessionData, ProfilingData, ProfilingSummary } from '../../types';
 
 /**
@@ -41,6 +45,9 @@ export class TestMuAIEnricher extends BaseSessionDataEnricher {
       const rawMetrics = await this.api.getAppMetrics(sessionId);
 
       if (rawMetrics) {
+        this.logger.info(
+          `TestMu AI app metrics payload for ${testTitle}: ${JSON.stringify(rawMetrics).slice(0, 800)}`,
+        );
         session.profilingData = rawMetrics as ProfilingData;
         session.profilingSummary = this.extractProfilingSummary(
           rawMetrics as Record<string, unknown>,
@@ -64,6 +71,36 @@ export class TestMuAIEnricher extends BaseSessionDataEnricher {
       };
       session.profilingData = errorPayload as ProfilingData;
       session.profilingSummary = errorPayload as unknown as ProfilingSummary;
+    }
+
+    if (process.env.TESTMU_NETWORK_LOGS === 'true') {
+      await this.enrichNetworkLogs(session);
+    }
+  }
+
+  private async enrichNetworkLogs(session: SessionData): Promise<void> {
+    const { sessionId, testTitle } = session;
+
+    try {
+      const har = await this.api.getNetworkLogs(sessionId);
+      if (!har) {
+        session.networkLogsError =
+          'No network logs available (missing credentials)';
+        session.networkLogsEntries = [];
+        return;
+      }
+      session.networkLogsEntries = parseHarToEntries(har);
+      this.logger.info(
+        `Network logs fetched for ${testTitle}: ${session.networkLogsEntries.length} request(s)`,
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const body = error instanceof TestMuAIAPIError ? error.body : null;
+      session.networkLogsError = message;
+      session.networkLogsEntries = [];
+      this.logger.warn(
+        `Failed to fetch TestMu AI network logs for ${testTitle}: ${message}${body ? ` — ${body.slice(0, 300)}` : ''}`,
+      );
     }
   }
 

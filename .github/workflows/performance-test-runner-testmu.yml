@@ -71,6 +71,14 @@ on:
         description: >-
           Harvest Hermes .cpuprofile artifacts after each performance spec.
           True for schedule/manual; false (default) for PR runs.
+      collect_network_logs:
+        required: false
+        type: boolean
+        default: true
+        description: >-
+          Capture device network traffic on TestMu sessions so API calls appear
+          in the performance report. Adds session overhead that can skew
+          timings; set false for timing-sensitive runs.
     secrets:
       LT_USERNAME:
         required: true
@@ -194,6 +202,7 @@ jobs:
             echo "HE_CONCURRENCY=${{ inputs.he_concurrency }}"
             echo "HE_REGION=${{ inputs.he_region }}"
             echo "COLLECT_HERMES_CPUPROFILES=${{ inputs.collect_hermes_cpuprofiles == true && 'true' || 'false' }}"
+            echo "TESTMU_NETWORK_LOGS=${{ inputs.collect_network_logs == true && 'true' || 'false' }}"
           } >> "$GITHUB_ENV"
 
       - name: Run Tests via HyperExecute

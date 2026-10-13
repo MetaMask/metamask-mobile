@@ -1,11 +1,7 @@
 import { BaseSessionDataEnricher } from '../SessionDataEnricher';
 import { BrowserStackAPI } from '../../../framework/services/providers/browserstack/BrowserStackAPI';
-import type {
-  SessionData,
-  ProfilingData,
-  ProfilingSummary,
-  NetworkLogEntry,
-} from '../../types';
+import { parseHarToEntries } from '../parseHar';
+import type { SessionData, ProfilingData, ProfilingSummary } from '../../types';
 
 /**
  * BrowserStack session enricher — fetches data via BrowserStackAPI and
@@ -146,7 +142,7 @@ export class BrowserStackEnricher extends BaseSessionDataEnricher {
             `Network logs unavailable for ${testTitle}: missing credentials`,
           );
         } else {
-          session.networkLogsEntries = this.parseHarToEntries(har);
+          session.networkLogsEntries = parseHarToEntries(har);
           this.logger.info(
             `Network logs fetched for ${testTitle}: ${session.networkLogsEntries.length} request(s)`,
           );
@@ -224,27 +220,5 @@ export class BrowserStackEnricher extends BaseSessionDataEnricher {
         timestamp: new Date().toISOString(),
       } as ProfilingSummary;
     }
-  }
-
-  /**
-   * Parse HAR response to a simple list of request entries.
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private parseHarToEntries(har: any): NetworkLogEntry[] {
-    const entries: NetworkLogEntry[] = [];
-    try {
-      const log = har?.log ?? har;
-      const harEntries = log?.entries ?? [];
-      for (const entry of harEntries) {
-        const method = entry.request?.method ?? 'GET';
-        const url = entry.request?.url ?? '';
-        const status = entry.response?.status;
-        const time = entry.time != null ? Math.round(entry.time) : undefined;
-        entries.push({ method, url, status, time });
-      }
-    } catch {
-      // ignore parse errors
-    }
-    return entries;
   }
 }
