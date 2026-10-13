@@ -1,5 +1,10 @@
-import React, { useCallback, useMemo } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import {
+  AccessibilityInfo,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -77,14 +82,24 @@ interface ManageRowProps {
   onPress: () => void;
   testID?: string;
   isDisabled?: boolean;
+  isBusy?: boolean;
 }
 
-const ManageRow = ({ label, onPress, testID, isDisabled }: ManageRowProps) => (
+const ManageRow = ({
+  label,
+  onPress,
+  testID,
+  isDisabled,
+  isBusy,
+}: ManageRowProps) => (
   <TouchableOpacity
     onPress={onPress}
     testID={testID}
     accessibilityRole="button"
-    accessibilityState={{ disabled: isDisabled }}
+    accessibilityState={{
+      disabled: Boolean(isDisabled),
+      busy: Boolean(isBusy),
+    }}
     disabled={isDisabled}
   >
     <Box
@@ -129,6 +144,7 @@ const MembershipActionRow = ({
         onPress={onResume}
         testID={MembershipTestIds.RESUME_MEMBERSHIP_ROW}
         isDisabled={isResuming}
+        isBusy={isResuming}
       />
     );
   }
@@ -180,6 +196,25 @@ const Membership = () => {
   const handleCancelMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.CANCEL_MEMBERSHIP);
   }, [navigation]);
+
+  // Live regions miss users whose focus stays on the row. Announce the
+  // in-flight and failure states so VoiceOver and TalkBack hear them
+  // (WCAG 4.1.3 status messages, 3.3.1 error identification).
+  useEffect(() => {
+    if (!isResuming) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(
+      strings('pro_hub.membership.resume_in_progress'),
+    );
+  }, [isResuming]);
+
+  useEffect(() => {
+    if (!resumeErrorMessage) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(resumeErrorMessage);
+  }, [resumeErrorMessage]);
 
   return (
     <View
@@ -370,6 +405,8 @@ const Membership = () => {
               variant={TextVariant.BodySm}
               color={TextColor.ErrorDefault}
               testID={MembershipTestIds.RESUME_ERROR}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
             >
               {resumeErrorMessage}
             </Text>

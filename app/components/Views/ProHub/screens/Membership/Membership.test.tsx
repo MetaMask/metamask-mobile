@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import {
@@ -339,6 +340,8 @@ describe('Membership', () => {
   });
 
   describe('resume membership', () => {
+    let announceSpy: jest.SpyInstance;
+
     const pendingCancellation: Subscription = {
       ...subscription,
       cancelAtPeriodEnd: true,
@@ -347,6 +350,14 @@ describe('Membership', () => {
         new Date().getTime() + 24 * 60 * 60 * 1000,
       ).toISOString(),
     };
+
+    beforeEach(() => {
+      announceSpy = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+    });
+
+    afterEach(() => {
+      announceSpy.mockRestore();
+    });
 
     it('shows resume and uncancels the subscription when the period end is still ahead', async () => {
       const { getByTestId, queryByTestId } =
@@ -363,7 +374,48 @@ describe('Membership', () => {
           subscriptionId: pendingCancellation.id,
         }),
       );
+      expect(announceSpy).toHaveBeenCalledWith(
+        strings('pro_hub.membership.resume_in_progress'),
+      );
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('marks the resume row busy and announces while uncancel is in flight', async () => {
+      let resolveUncancel: () => void = () => undefined;
+      mockUnCancelSubscription.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveUncancel = resolve;
+          }),
+      );
+      const { getByTestId } = renderMembership(pendingCancellation);
+
+      fireEvent.press(getByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW).props
+            .accessibilityState,
+        ).toEqual({
+          disabled: true,
+          busy: true,
+        });
+      });
+      expect(announceSpy).toHaveBeenCalledWith(
+        strings('pro_hub.membership.resume_in_progress'),
+      );
+
+      resolveUncancel();
+
+      await waitFor(() => {
+        expect(
+          getByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW).props
+            .accessibilityState,
+        ).toEqual({
+          disabled: false,
+          busy: false,
+        });
+      });
     });
 
     it('hides the membership action when the period end has passed', () => {
@@ -388,6 +440,18 @@ describe('Membership', () => {
         expect(getByTestId(MembershipTestIds.RESUME_ERROR)).toHaveTextContent(
           strings('pro_hub.membership.resume_failed'),
         ),
+      );
+      expect(getByTestId(MembershipTestIds.RESUME_ERROR).props).toEqual(
+        expect.objectContaining({
+          accessibilityRole: 'alert',
+          accessibilityLiveRegion: 'polite',
+        }),
+      );
+      expect(announceSpy).toHaveBeenCalledWith(
+        strings('pro_hub.membership.resume_in_progress'),
+      );
+      expect(announceSpy).toHaveBeenCalledWith(
+        strings('pro_hub.membership.resume_failed'),
       );
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockLoggerError).toHaveBeenCalledWith(
