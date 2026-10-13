@@ -211,12 +211,53 @@ describe('VbaDetails', () => {
     );
   });
 
+  it('shows a loading skeleton instead of the waiting copy until Pix loads', async () => {
+    let resolvePix: (value: typeof pixInstructions) => void = () => undefined;
+    mockGetPix.mockReturnValue(
+      new Promise((resolve) => {
+        resolvePix = resolve;
+      }),
+    );
+
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toHaveProp(
+      'accessibilityLabel',
+      'Loading PIX details',
+    );
+    expect(
+      queryByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_PIX),
+    ).not.toBeOnTheScreen();
+
+    resolvePix(pixInstructions);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+    expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).not.toBeOnTheScreen();
+  });
+
+  it('shows the waiting copy once the backend returns no Pix code', async () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(
+        getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_PIX),
+      ).toBeOnTheScreen();
+    });
+    expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).not.toBeOnTheScreen();
+  });
+
   it('does not fetch Pix instructions while offline', () => {
     mockNetworkTier = 'NONE';
 
-    renderWithProvider(<VbaDetails />);
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
 
     expect(mockGetPix).not.toHaveBeenCalled();
+    expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).not.toBeOnTheScreen();
+    expect(
+      getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_PIX),
+    ).toBeOnTheScreen();
   });
 
   it('hides the Pix key row when MoonPay omits it', async () => {

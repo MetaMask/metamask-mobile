@@ -7,6 +7,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import {
   Box,
   BoxAlignItems,
+  BoxFlexDirection,
   Button,
   ButtonIcon,
   ButtonIconSize,
@@ -32,6 +33,7 @@ import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import vbaPixLogo from './assets/vba-pix-logo.png';
 import {
   pickLatestTransaction,
@@ -53,6 +55,7 @@ export const VbaDetailsSelectorsIDs = {
   PIX_KEY: 'vba-details-pix-key',
   ROW_ICON: 'vba-details-row-icon',
   WAITING_FOR_PIX: 'vba-details-waiting-for-pix',
+  LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
   DEBUG_BUTTON: 'vba-details-debug-button',
 } as const;
@@ -116,6 +119,7 @@ const VbaDetails = () => {
     null,
   );
   const [loadError, setLoadError] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
 
   const refreshDeposit = useCallback(async () => {
@@ -205,6 +209,9 @@ const VbaDetails = () => {
         });
       } finally {
         inFlight = false;
+        if (!cancelled) {
+          setHasLoaded(true);
+        }
       }
     };
     tick().catch(() => undefined);
@@ -277,6 +284,10 @@ const VbaDetails = () => {
       : null,
   ].filter((row): row is NonNullable<typeof row> => row !== null);
 
+  // Offline never fetches, so it skips straight to the waiting copy.
+  const isLoading = !hasLoaded && networkTier !== 'NONE';
+  const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
+
   return (
     <SafeAreaView
       edges={['right', 'bottom', 'left']}
@@ -307,7 +318,53 @@ const VbaDetails = () => {
         >
           {strings('virtual_bank_account.vba_details.description')}
         </Text>
-        {rows.length > 0 ? (
+        {isLoading ? (
+          <Box
+            twClassName="mt-6 overflow-hidden rounded-xl bg-muted"
+            accessible
+            accessibilityRole="progressbar"
+            accessibilityLabel={strings(
+              'virtual_bank_account.vba_details.loading',
+            )}
+            testID={VbaDetailsSelectorsIDs.LOADING}
+          >
+            {['copia-cola', 'pix-key'].map((id) => (
+              <Box
+                key={id}
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-3 px-4 py-3"
+              >
+                <Skeleton
+                  width={20}
+                  height={20}
+                  twClassName="rounded-full"
+                  {...skeletonMotion}
+                />
+                <Box twClassName="flex-1 gap-2">
+                  <Skeleton
+                    width={96}
+                    height={14}
+                    twClassName="rounded"
+                    {...skeletonMotion}
+                  />
+                  <Skeleton
+                    width="85%"
+                    height={18}
+                    twClassName="rounded"
+                    {...skeletonMotion}
+                  />
+                </Box>
+                <Skeleton
+                  width={24}
+                  height={24}
+                  twClassName="rounded"
+                  {...skeletonMotion}
+                />
+              </Box>
+            ))}
+          </Box>
+        ) : rows.length > 0 ? (
           <Box twClassName="mt-6 overflow-hidden rounded-xl bg-muted">
             {rows.map((row) => (
               <Box key={row.id} testID={row.testID}>

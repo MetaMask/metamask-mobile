@@ -1212,6 +1212,7 @@
       "copied_label": "Copied {{field}}",
       "button": "Done",
       "waiting_for_pix": "PIX instructions appear here once the account is approved.",
+      "loading": "Loading PIX details",
       "load_error": "Couldn't refresh the deposit. We'll try again."
     }
   },
