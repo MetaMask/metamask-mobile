@@ -170,8 +170,7 @@ export function usePushProvisioning(
 
   useFocusEffect(
     useCallback(() => {
-      const shouldShowLoading =
-        checkedLastFourRef.current !== lastFourDigits;
+      const shouldShowLoading = checkedLastFourRef.current !== lastFourDigits;
       checkedLastFourRef.current = lastFourDigits;
       void refreshEligibility({ silent: !shouldShowLoading });
 
