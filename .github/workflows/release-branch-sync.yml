@@ -36,7 +36,7 @@ jobs:
     if: needs.validate-branch.outputs.is-valid == 'true'
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
     steps:
       - name: Get token
         id: get-token

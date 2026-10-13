@@ -107,7 +107,7 @@ jobs:
     if: needs.check-builds-needed.outputs.builds-needed == 'true'
     permissions:
       contents: read
-      id-token: write
+      id-token: write # AWS OIDC for code signing in build.yml
     uses: ./.github/workflows/build.yml
     with:
       build_name: ${{ inputs.build_variant == 'exp' && 'main-exp-with-srp' || inputs.build_variant == 'rc' && 'main-rc-with-srp' || 'main-e2e-bs-with-srp' }}
@@ -121,7 +121,7 @@ jobs:
     if: needs.check-builds-needed.outputs.builds-needed == 'true'
     permissions:
       contents: read
-      id-token: write
+      id-token: write # AWS OIDC for code signing in build.yml
     uses: ./.github/workflows/build.yml
     with:
       build_name: ${{ inputs.build_variant == 'exp' && 'main-exp-without-srp' || inputs.build_variant == 'rc' && 'main-rc-without-srp' || 'main-e2e-bs-without-srp' }}

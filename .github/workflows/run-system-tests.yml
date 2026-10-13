@@ -47,7 +47,7 @@ jobs:
       contents: read
       actions: read
       statuses: read
-      id-token: write
+      id-token: write # AWS OIDC for signing and keystores in build-android-upload-to-browserstack.yml
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
     if: >-
       github.event_name != 'workflow_dispatch'
@@ -64,7 +64,7 @@ jobs:
     name: Build iOS (BrowserStack)
     permissions:
       contents: read
-      id-token: write
+      id-token: write # AWS OIDC for code signing in build-ios-upload-to-browserstack.yml
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
     if: >-
       github.event_name != 'workflow_dispatch'

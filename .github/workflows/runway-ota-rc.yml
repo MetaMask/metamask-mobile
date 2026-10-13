@@ -54,7 +54,7 @@ jobs:
     needs: [resolve-context, validate-ota-pr]
     permissions:
       contents: read
-      id-token: write # required by push-eas-update.yml
+      id-token: write # AWS OIDC for the EAS update push in push-eas-update.yml
     uses: ./.github/workflows/push-eas-update.yml
     with:
       pr_number: ${{ needs.resolve-context.outputs.pr_number }}

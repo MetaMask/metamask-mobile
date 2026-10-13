@@ -40,7 +40,7 @@ jobs:
     name: Build Android (main-prod)
     permissions:
       contents: read
-      id-token: write
+      id-token: write # AWS OIDC for code signing in build.yml
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-prod

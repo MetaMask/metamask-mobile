@@ -75,10 +75,10 @@ jobs:
     if: github.event_name == 'schedule' && github.event.schedule == '0 */6 * * 1-6'
     permissions:
       contents: write
-      id-token: write
+      id-token: write # AWS OIDC for signing and keystores in run-performance-e2e.yml
       actions: write
       pull-requests: write
-      statuses: write
+      statuses: write # build-source-hash commit status posted by run-performance-e2e.yml
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       branch_name: main
@@ -146,10 +146,10 @@ jobs:
     needs: [detect-changes]
     permissions:
       contents: write
-      id-token: write
+      id-token: write # AWS OIDC for signing and keystores in run-performance-e2e.yml
       actions: write
       pull-requests: write
-      statuses: write
+      statuses: write # build-source-hash commit status posted by run-performance-e2e.yml
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       branch_name: ${{ github.ref_name }}

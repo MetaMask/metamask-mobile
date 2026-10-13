@@ -85,7 +85,7 @@ jobs:
   generate-build-version:
     needs: [validate-inputs]
     permissions:
-      id-token: write
+      id-token: write # AWS OIDC for the build number service in generate-build-version.yml
     uses: ./.github/workflows/generate-build-version.yml
 
   build:
@@ -93,7 +93,7 @@ jobs:
     needs: [generate-build-version]
     permissions:
       contents: read
-      id-token: write
+      id-token: write # AWS OIDC for code signing in build.yml
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-${{ inputs.environment }}

@@ -236,7 +236,7 @@ jobs:
     if: ${{ needs.resolve-dev-build.outputs.needs-build == 'true' }}
     permissions:
       contents: read
-      id-token: write
+      id-token: write # AWS OIDC for code signing in build.yml
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-dev-expo

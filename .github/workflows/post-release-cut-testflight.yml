@@ -70,7 +70,7 @@ jobs:
     needs: [compute-version]
     if: needs.compute-version.outputs.bumped == 'true'
     permissions:
-      id-token: write
+      id-token: write # AWS OIDC for the build number service in generate-build-version.yml
     uses: ./.github/workflows/generate-build-version.yml
 
   build:
@@ -78,7 +78,7 @@ jobs:
     needs: [compute-version, generate-build-version]
     permissions:
       contents: read
-      id-token: write
+      id-token: write # AWS OIDC for code signing in build.yml
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-exp
@@ -92,7 +92,7 @@ jobs:
     needs: [compute-version, build]
     permissions:
       contents: read
-      id-token: write
+      id-token: write # AWS OIDC for the TestFlight upload in upload-to-testflight.yml
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
       environment: exp

@@ -40,7 +40,7 @@ jobs:
   generate-build-version:
     name: Generate build version
     permissions:
-      id-token: write
+      id-token: write # AWS OIDC for the build number service in generate-build-version.yml
     uses: ./.github/workflows/generate-build-version.yml
 
   build:
@@ -48,7 +48,7 @@ jobs:
     needs: generate-build-version
     permissions:
       contents: read
-      id-token: write # required by build.yml
+      id-token: write # AWS OIDC for code signing in build.yml
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-prod
@@ -66,7 +66,7 @@ jobs:
     needs: build
     permissions:
       contents: read
-      id-token: write
+      id-token: write # AWS OIDC for the TestFlight upload in upload-to-testflight.yml
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
       environment: prod

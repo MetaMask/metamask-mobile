@@ -191,7 +191,7 @@ jobs:
   generate_rc_build_version:
     name: Generate RC build version
     permissions:
-      id-token: write
+      id-token: write # AWS OIDC for the build number service in generate-build-version.yml
     uses: ./.github/workflows/generate-build-version.yml
     needs: validate-and-find-pr
     if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
@@ -214,7 +214,7 @@ jobs:
     continue-on-error: true
     permissions:
       contents: read
-      statuses: write
+      statuses: write # build-source-hash fingerprint status consumed by the repack fast path
       actions: read
     env:
       REPACK_ENABLED: ${{ needs.validate-and-find-pr.outputs.repack-enabled }}
@@ -319,7 +319,7 @@ jobs:
     permissions:
       contents: read
       actions: read
-      id-token: write
+      id-token: write # AWS OIDC for signing and the TestFlight upload in build-rc-repack.yml
     uses: ./.github/workflows/build-rc-repack.yml
     needs:
       - validate-and-find-pr
@@ -348,7 +348,7 @@ jobs:
     permissions:
       contents: read
       actions: read
-      id-token: write
+      id-token: write # AWS OIDC for signing and the TestFlight upload in build-rc-repack.yml
     uses: ./.github/workflows/build-rc-repack.yml
     needs:
       - validate-and-find-pr
@@ -441,7 +441,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-      id-token: write
+      id-token: write # AWS OIDC for signing and the TestFlight upload in auto-rc-ota-build-core.yml
     uses: ./.github/workflows/auto-rc-ota-build-core.yml
     needs:
       - validate-and-find-pr
@@ -476,7 +476,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-      id-token: write
+      id-token: write # AWS OIDC for signing and the TestFlight upload in auto-rc-ota-build-core.yml
     uses: ./.github/workflows/auto-rc-ota-build-core.yml
     needs:
       - validate-and-find-pr

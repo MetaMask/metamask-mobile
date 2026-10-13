@@ -38,7 +38,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      id-token: write
+      id-token: write # token exchange in create-release-pr.yml
     uses: ./.github/workflows/create-release-pr.yml
     secrets:
       google-application-creds-base64: ${{ secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 }}

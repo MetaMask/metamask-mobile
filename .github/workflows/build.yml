@@ -225,7 +225,7 @@ jobs:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
     permissions:
       contents: read
-      id-token: write
+      id-token: write # requested by setup-node-modules.yml
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}

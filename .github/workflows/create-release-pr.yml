@@ -97,7 +97,7 @@ jobs:
     name: Create Release Pull Request using Github Tools
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
       contents: write
       pull-requests: write
     steps:
