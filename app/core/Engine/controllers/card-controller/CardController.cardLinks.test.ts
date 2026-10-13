@@ -678,6 +678,7 @@ describe('CardController card links', () => {
       });
       const { controller, cardService } = setup({
         provider: { submitCredentials },
+        state: { cardLinks: [], cardLinksFetchedAt: Date.now() },
       });
       jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
       (controller as unknown as { currentSession: unknown }).currentSession = {
@@ -707,6 +708,7 @@ describe('CardController card links', () => {
       });
       const { controller, cardService } = setup({
         provider: { submitCredentials },
+        state: { cardLinks: [], cardLinksFetchedAt: Date.now() },
       });
       (controller as unknown as { currentSession: unknown }).currentSession = {
         id: 's',
@@ -743,6 +745,40 @@ describe('CardController card links', () => {
           cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
           cardLinks: [link({ linkedAccountRef: refFor(CARDHOLDER_ADDRESS) })],
         },
+      });
+      jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
+      (controller as unknown as { currentSession: unknown }).currentSession = {
+        id: 's',
+        currentStep: { type: 'email_password' },
+        _metadata: {},
+      };
+
+      await controller.submitCredentials({
+        type: 'email_password',
+        email: 'e',
+        password: 'p',
+      });
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'baanx',
+        { status: 'active' },
+        'token-1',
+      );
+    });
+
+    it('sends no linkedAccountRef on Baanx login while links are not loaded', async () => {
+      const submitCredentials = jest.fn().mockResolvedValue({
+        done: true,
+        tokenSet: {
+          accessToken: 'at',
+          accessTokenExpiresAt: Date.now() + 60_000,
+          location: 'international',
+        },
+      });
+      const { controller, cardService } = setup({
+        provider: { submitCredentials },
+        state: { cardLinks: null },
       });
       jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
       (controller as unknown as { currentSession: unknown }).currentSession = {

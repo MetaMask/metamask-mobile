@@ -61,15 +61,16 @@ export const useImmersveResumeOnboarding = () => {
 
         if (!alreadyAuthenticated) {
           await signIn({ country, address });
-          controller.recordProviderOnboardingStarted({
-            provider: CardProviderIds.Immersve,
-            address,
-          });
         }
 
         const resume = await controller.getResumeCardInfo();
         if (resume) {
           controller.recordCardActivated({
+            provider: CardProviderIds.Immersve,
+            address,
+          });
+        } else if (!alreadyAuthenticated) {
+          controller.recordProviderOnboardingStarted({
             provider: CardProviderIds.Immersve,
             address,
           });

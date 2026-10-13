@@ -120,6 +120,21 @@ describe('useImmersveResumeOnboarding', () => {
       expect(mockRecordProviderOnboardingStarted).not.toHaveBeenCalled();
     });
 
+    it('records active, not onboarding, when a fresh SIWE finds an existing card', async () => {
+      mockGetResumeCardInfo.mockResolvedValue({ fundingSourceIds: ['fs-1'] });
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await result.current(PARAMS);
+      });
+
+      expect(mockRecordCardActivated).toHaveBeenCalledWith({
+        provider: 'immersve',
+        address: '0xabc',
+      });
+      expect(mockRecordProviderOnboardingStarted).not.toHaveBeenCalled();
+    });
+
     it('records the card as active for a returning user with an existing card', async () => {
       mockGetResumeCardInfo.mockResolvedValue({ fundingSourceIds: ['fs-1'] });
       const { result } = renderHook(() => useImmersveResumeOnboarding());

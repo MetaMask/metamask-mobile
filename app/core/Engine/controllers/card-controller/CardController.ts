@@ -1018,7 +1018,13 @@ export class CardController extends BaseController<
     const selected = this.#getSelectedEvmAddress();
     if (!selected) return null;
     if (this.#isCardholderAccount(selected)) return selected;
-    const existing = this.state.cardLinks?.find((l) => l.provider === provider);
+    const { cardLinks, cardLinksFetchedAt } = this.state;
+    const linksAreFresh =
+      cardLinks !== null &&
+      cardLinksFetchedAt !== null &&
+      Date.now() - cardLinksFetchedAt < CARD_LINKS_FRESH_MS;
+    if (!linksAreFresh) return null;
+    const existing = cardLinks.find((l) => l.provider === provider);
     return existing?.linkedAccountRef ? null : selected;
   }
 
