@@ -872,6 +872,7 @@
       "@metamask/sdk-communication-layer>bufferutil": false,
       "@metamask/sdk-communication-layer>utf-8-validate": false,
       "@metamask/notification-services-controller>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false,
+      "@metamask/notification-services-controller>firebase>@firebase/util": false,
       "@metamask/sdk-communication-layer>eciesjs>secp256k1": false,
       "ganache>@trufflesuite/uws-js-unofficial>utf-8-validate": false,
       "@react-native-firebase/app>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false,
