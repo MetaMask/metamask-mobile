@@ -814,6 +814,17 @@ module.exports = {
     'react-compiler/react-compiler': 'warn',
     'no-catch-shadow': 'off',
     'no-console': ['error', { allow: ['warn', 'error'] }],
+    // Code fencing was removed: nothing strips fence-marker blocks any more, so
+    // fenced code would ship in every build. Gate features at runtime instead.
+    // scripts/check-no-code-fences.sh backs this up in CI for files ESLint
+    // doesn't lint.
+    'no-warning-comments': [
+      'error',
+      {
+        terms: ['BEGIN:ONLY_INCLUDE_IF', 'END:ONLY_INCLUDE_IF'],
+        location: 'anywhere',
+      },
+    ],
     quotes: [
       'error',
       'single',
