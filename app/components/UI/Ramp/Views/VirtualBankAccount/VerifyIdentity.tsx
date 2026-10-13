@@ -210,12 +210,7 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
           >
             {strings('virtual_bank_account.verify_identity.powered_by')}
           </Text>
-          <MoonPayLogo
-            name="moonpay-logo"
-            width={77}
-            height={18}
-            color={tw.color('text-alternative')}
-          />
+          <MoonPayLogo name="moonpay-logo" width={77} height={18} />
         </Box>
       </SafeAreaView>
 
