@@ -92,16 +92,18 @@ test('isScenarioGreen returns true for passed tests', () => {
   );
 });
 
-test('computeDelta flags regressions above the 10% margin', () => {
+test('computeDelta flags regressions above the 15% margin', () => {
   const delta = computeDelta(10, 12);
   assert.equal(delta.absolute, 2);
   assert.equal(delta.relative, 0.2);
   assert.equal(delta.warn, true);
 });
 
-test('computeDelta does not warn within the baseline + 10% margin', () => {
+test('computeDelta does not warn within the baseline + 15% margin', () => {
   assert.equal(computeDelta(10, 10.5).warn, false); // +5%
-  assert.equal(computeDelta(10, 11).warn, false); // exactly +10%
+  assert.equal(computeDelta(10, 11).warn, false); // +10%
+  assert.equal(computeDelta(10, 11.5).warn, false); // exactly +15%
+  assert.equal(computeDelta(10, 11.6).warn, true); // just over +15%
 });
 
 test('computeDelta does not warn for improvements', () => {
@@ -209,7 +211,7 @@ test('buildScenarioComment includes marker and delta table when baseline exists'
   assert.match(md, /Full metric table/);
   assert.match(md, /\| Metric \| Baseline \| Current \| Δ \|/);
   assert.match(md, /Disclaimer — allowed variance/);
-  assert.match(md, /\+10%/);
+  assert.match(md, /\+15%/);
   assert.match(md, /Raw profilingSummary JSON/);
   assert.match(md, new RegExp(COMMENT_MARKER));
   assert.match(md, /run 222/);

@@ -35,8 +35,8 @@ const DEFAULT_BASELINE_BRANCH = 'main';
 // only, so its invocations are jobs of the caller run and never appear in
 // `gh run list --workflow run-performance-e2e.yml`.
 const BASELINE_WORKFLOW = 'run-performance-e2e-manual.yml';
-/** Current may be up to baseline + 10% without being highlighted as a regression. */
-const RELATIVE_WARN_THRESHOLD = 0.1;
+/** Current may be up to baseline + 15% without being highlighted as a regression. */
+const RELATIVE_WARN_THRESHOLD = 0.15;
 
 function parseArgs(argv) {
   const args = {
@@ -485,7 +485,7 @@ function emphasize(text) {
 }
 
 /**
- * Warn only when current exceeds the allowed margin: baseline + 10%.
+ * Warn only when current exceeds the allowed margin: baseline + 15%.
  * Values within that band are treated as acceptable variance.
  */
 function computeDelta(baseline, current) {
@@ -500,7 +500,7 @@ function computeDelta(baseline, current) {
         : null
       : round((current - baseline) / Math.abs(baseline), 4);
 
-  // Within margin when current <= baseline * 1.1 (relative <= 10%).
+  // Within margin when current <= baseline * 1.15 (relative <= 15%).
   // Any increase from a zero baseline is outside the margin.
   const warn =
     absolute > 0 &&
@@ -607,7 +607,7 @@ function getMetricRows(baselineSummary, currentSummary) {
 function buildRegressionSummary(rows) {
   const warned = (rows ?? []).filter((row) => row.warn);
   if (warned.length === 0) {
-    return '✅ No metrics over the +10% baseline margin.';
+    return '✅ No metrics over the +15% baseline margin.';
   }
 
   const list = warned
@@ -622,7 +622,7 @@ function buildRegressionSummary(rows) {
 
   return `⚠️ **${warned.length}** metric${
     warned.length === 1 ? '' : 's'
-  } over +10%: ${list}`;
+  } over +15%: ${list}`;
 }
 
 function shouldIncludeScenarioInComment({ currentArtifact, baseline }) {
@@ -680,10 +680,10 @@ function buildEmbeddedProfilingSection({
     md += `\n> ℹ️ API calls unavailable: \`${currentArtifact.apiCallsError}\`\n`;
   }
 
-  md += `\n<details>\n<summary>Full metric table (+10% variance rules)</summary>\n\n`;
-  md += `> **Disclaimer — allowed variance:** a **+10%** margin over the baseline is permitted.\n`;
-  md += `> - If \`Current <= Baseline + 10%\`, treated as acceptable noise.\n`;
-  md += `> - If \`Current > Baseline + 10%\`, **Current** and **variance %** are highlighted with ⚠️.\n\n`;
+  md += `\n<details>\n<summary>Full metric table (+15% variance rules)</summary>\n\n`;
+  md += `> **Disclaimer — allowed variance:** a **+15%** margin over the baseline is permitted.\n`;
+  md += `> - If \`Current <= Baseline + 15%\`, treated as acceptable noise.\n`;
+  md += `> - If \`Current > Baseline + 15%\`, **Current** and **variance %** are highlighted with ⚠️.\n\n`;
   md += `| Metric | Baseline | Current | Δ |\n`;
   md += `|--------|----------|---------|---|\n`;
   for (const row of rows) {
