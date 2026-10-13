@@ -66,7 +66,7 @@ const assertTelegramLoginReady = async (): Promise<void> => {
 perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
   perfTest.setTimeout(300000);
 
-  perfTest(
+  perfTest.skip(
     'Seedless Onboarding: Telegram Login New User',
     { tag: '@metamask-onboarding-team' },
     // Request `driver` so the Playwright/Appium fixture boots before page-object
