@@ -298,7 +298,9 @@ describe('useEarningsSummary', () => {
     await flushPromises();
     mockEngineCall.mockClear();
 
-    await result.current.fetchEarningsSummary({ forceFresh: true });
+    await expect(
+      result.current.fetchEarningsSummary({ forceFresh: true }),
+    ).resolves.toBe(mockSummary);
 
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsMoneyController:getEarningsSummary',
