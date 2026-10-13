@@ -1,5 +1,5 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import React, { useCallback, useContext, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { Pressable, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -29,18 +29,16 @@ import {
   JustifyContent,
 } from '../../../../components/UI/Box/box.types';
 import { AccountCellIds } from './AccountCell.testIds';
-import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balances';
-import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { selectInternalAccountByAccountGroupAndScope } from '../../../../selectors/multichainAccounts/accounts';
-import { useAccountGroupIconSeedAddress } from '../useAccountGroupDisplay';
+import {
+  useAccountGroupBalance,
+  useAccountGroupIconSeedAddress,
+} from '../useAccountGroupDisplay';
 import { createAccountGroupDetailsNavigationDetails } from '../../../../components/Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { getNetworkImageSource } from '../../../../util/networks';
-import { formatWithThreshold } from '../../../../util/assets';
-import I18n from '../../../../../locales/i18n';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { renderShortAddress } from '../../../../util/address';
-import { AccountListBalanceContext } from '../../../../components/hooks/AccountListBalanceContext';
 import {
   type AccountAvatarVariant,
   getAvatarAccountVariant,
@@ -63,69 +61,6 @@ type BalanceEndContainerProps = Pick<
   networkImageSource?: React.ComponentProps<typeof AvatarNetwork>['src'];
 };
 
-const AccountBalanceDisplay = ({
-  accountGroup,
-  onSelectAccount,
-  networkImageSource,
-}: BalanceEndContainerProps) => {
-  const { styles } = useStyles(styleSheet, {});
-  const selectBalanceForGroup = useMemo(
-    () => selectBalanceByAccountGroup(accountGroup.id),
-    [accountGroup.id],
-  );
-  const groupBalance = useSelector(selectBalanceForGroup);
-  const getAccountListBalance = useContext(AccountListBalanceContext);
-  const accountListBalance = getAccountListBalance?.(accountGroup.id);
-  const userCurrency = groupBalance?.userCurrency;
-  const privacyMode = useSelector(selectPrivacyMode);
-  const tokenBalance = groupBalance?.totalBalanceInUserCurrency;
-  let totalBalance: number | undefined = tokenBalance;
-  if (accountListBalance === null) {
-    totalBalance = undefined;
-  } else if (accountListBalance !== undefined) {
-    totalBalance = accountListBalance;
-  }
-  const displayBalance = useMemo(() => {
-    if (totalBalance === undefined || !userCurrency) {
-      return undefined;
-    }
-    return formatWithThreshold(totalBalance, 0.01, I18n.locale, {
-      style: 'currency',
-      currency: userCurrency.toUpperCase(),
-    });
-  }, [totalBalance, userCurrency]);
-
-  return (
-    <Pressable onPress={onSelectAccount}>
-      <View style={styles.balanceContainer}>
-        {/* Keep zero balances blank. `selectBalanceByAccountGroup` synthesizes
-            0 before assets load, so "$0.00" reads as a real empty wallet.
-            Product keeps the amount empty until a loaded non-zero balance
-            exists so users do not think funds disappeared. */}
-        <SensitiveText
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextDefault}
-          fontWeight={FontWeight.Medium}
-          length={SensitiveTextLength.Long}
-          isHidden={
-            privacyMode && Boolean(displayBalance) && Boolean(totalBalance)
-          }
-          testID={AccountCellIds.BALANCE}
-        >
-          {totalBalance ? displayBalance : null}
-        </SensitiveText>
-        {networkImageSource && (
-          <AvatarNetwork
-            size={AvatarNetworkSize.Xs}
-            style={styles.networkBadge}
-            src={networkImageSource}
-          />
-        )}
-      </View>
-    </Pressable>
-  );
-};
-
 const BalanceEndContainer = ({
   accountGroup,
   hideMenu,
@@ -134,6 +69,10 @@ const BalanceEndContainer = ({
 }: BalanceEndContainerProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation<AppNavigationProp>();
+  const { balanceLabel, isBalanceHidden } = useAccountGroupBalance(
+    accountGroup.id,
+    { includeAccountListBalance: true },
+  );
 
   const handleMenuPress = useCallback(() => {
     navigateWithDetails(
@@ -144,11 +83,27 @@ const BalanceEndContainer = ({
 
   return (
     <>
-      <AccountBalanceDisplay
-        accountGroup={accountGroup}
-        onSelectAccount={onSelectAccount}
-        networkImageSource={networkImageSource}
-      />
+      <Pressable onPress={onSelectAccount}>
+        <View style={styles.balanceContainer}>
+          <SensitiveText
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
+            fontWeight={FontWeight.Medium}
+            length={SensitiveTextLength.Long}
+            isHidden={isBalanceHidden}
+            testID={AccountCellIds.BALANCE}
+          >
+            {balanceLabel ?? null}
+          </SensitiveText>
+          {networkImageSource && (
+            <AvatarNetwork
+              size={AvatarNetworkSize.Xs}
+              style={styles.networkBadge}
+              src={networkImageSource}
+            />
+          )}
+        </View>
+      </Pressable>
       {!hideMenu && (
         <Pressable
           testID={AccountCellIds.MENU}
