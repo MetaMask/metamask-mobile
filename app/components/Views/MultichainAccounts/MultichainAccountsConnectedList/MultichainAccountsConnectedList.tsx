@@ -112,12 +112,13 @@ const MultichainAccountsConnectedList = ({
       <AccountListCell
         isSelected={selectedAccountGroup?.id === item.id}
         accountGroup={item}
+        avatarAccountType={accountAvatarType}
         onSelectAccount={handleSelectAccount}
         // @ts-expect-error - This is temporary because the account list cell is being updated in another PR.
         privacyMode={privacyMode}
       />
     ),
-    [privacyMode, handleSelectAccount, selectedAccountGroup],
+    [privacyMode, handleSelectAccount, selectedAccountGroup, accountAvatarType],
   );
 
   return (

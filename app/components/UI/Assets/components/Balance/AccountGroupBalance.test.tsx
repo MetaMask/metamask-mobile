@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 
 import AccountGroupBalance from './AccountGroupBalance';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
@@ -129,6 +130,13 @@ describe('AccountGroupBalance', () => {
 
     // Component should render the balance container even when loading
     expect(getByTestId('balance-container')).toBeOnTheScreen();
+    // Visible 16px to the action buttons after the font ink inset; the gap to
+    // the header is the header's to apply.
+    const style = StyleSheet.flatten(
+      getByTestId('balance-container').props.style,
+    );
+    expect(style.marginBottom).toBe(10);
+    expect(style.marginTop).toBeUndefined();
   });
 
   it('renders formatted balance when balance data is fetched', () => {

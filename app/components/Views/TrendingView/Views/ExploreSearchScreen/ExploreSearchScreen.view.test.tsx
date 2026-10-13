@@ -51,6 +51,24 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     setupTrendingApiFetchMock(mockTrendingTokensData);
   });
 
+  it('shows the basic functionality empty state when basic functionality is disabled', async () => {
+    const { findByText, findByTestId, queryByTestId } =
+      renderExploreSearchScreenWithRoutes({
+        overrides: {
+          settings: {
+            basicFunctionalityEnabled: false,
+          },
+        },
+      });
+
+    expect(
+      await findByText(strings('trending.basic_functionality_disabled_title')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(ExploreSearchScreenSelectorsIDs.SEARCH_RESULTS_LIST),
+    ).not.toBeOnTheScreen();
+  });
+
   afterEach(() => {
     clearTrendingApiMocks();
   });
