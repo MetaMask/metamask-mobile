@@ -56,7 +56,7 @@ export interface PerpsTransaction {
     size: string;
     entryPrice: string;
     points: string;
-    pnl: string;
+    pnl?: string;
     fee: string;
     action: string;
     feeToken: string;
