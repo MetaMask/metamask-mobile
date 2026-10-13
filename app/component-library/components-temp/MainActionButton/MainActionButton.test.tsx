@@ -1,5 +1,6 @@
 // Third party dependencies.
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 
 // External dependencies.
@@ -7,7 +8,11 @@ import { IconName } from '../../components/Icons/Icon';
 
 // Internal dependencies.
 import MainActionButton from './MainActionButton';
-import { MAINACTIONBUTTON_TEST_ID } from './MainActionButton.constants';
+import {
+  MAINACTIONBUTTON_CONTENT_TEST_ID,
+  MAINACTIONBUTTON_GLASS_TEST_ID,
+  MAINACTIONBUTTON_TEST_ID,
+} from './MainActionButton.constants';
 
 describe('MainActionButton', () => {
   it('renders with required props', () => {
@@ -142,5 +147,95 @@ describe('MainActionButton', () => {
     expect(getByTestId(MAINACTIONBUTTON_TEST_ID).props.style).toMatchObject(
       customStyle,
     );
+  });
+
+  describe('glass', () => {
+    it('keeps the opaque surface by default', () => {
+      const { queryByTestId } = render(
+        <MainActionButton
+          iconName={IconName.Add}
+          label="Buy"
+          onPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        queryByTestId(MAINACTIONBUTTON_GLASS_TEST_ID),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('draws the content on an interactive glass surface', () => {
+      const onPress = jest.fn();
+      const { getByTestId, getByText } = render(
+        <MainActionButton
+          iconName={IconName.Add}
+          label="Buy"
+          onPress={onPress}
+          testID={MAINACTIONBUTTON_TEST_ID}
+          isGlass
+        />,
+      );
+
+      expect(
+        getByTestId(MAINACTIONBUTTON_GLASS_TEST_ID).props.isInteractive,
+      ).toBe(true);
+      expect(getByText('Buy')).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(MAINACTIONBUTTON_TEST_ID));
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops its own fill so only the glass shows', () => {
+      const backgroundOf = (isGlass: boolean) =>
+        StyleSheet.flatten(
+          render(
+            <MainActionButton
+              iconName={IconName.Add}
+              label="Buy"
+              onPress={jest.fn()}
+              testID={MAINACTIONBUTTON_TEST_ID}
+              isGlass={isGlass}
+            />,
+          ).getByTestId(MAINACTIONBUTTON_TEST_ID).props.style,
+        ).backgroundColor;
+
+      expect(backgroundOf(false)).toBeDefined();
+      expect(backgroundOf(true)).toBeUndefined();
+    });
+
+    it('dims the content, not the glass, while disabled', () => {
+      const { getByTestId } = render(
+        <MainActionButton
+          iconName={IconName.Add}
+          label="Buy"
+          onPress={jest.fn()}
+          testID={MAINACTIONBUTTON_TEST_ID}
+          isDisabled
+          isGlass
+        />,
+      );
+
+      expect(getByTestId(MAINACTIONBUTTON_TEST_ID)).toHaveStyle({ opacity: 1 });
+      expect(getByTestId(MAINACTIONBUTTON_CONTENT_TEST_ID)).toHaveStyle({
+        opacity: 0.5,
+      });
+    });
+
+    it('keeps the glass static while disabled', () => {
+      const { getByTestId } = render(
+        <MainActionButton
+          iconName={IconName.Add}
+          label="Buy"
+          onPress={jest.fn()}
+          isDisabled
+          isGlass
+        />,
+      );
+
+      expect(
+        getByTestId(MAINACTIONBUTTON_GLASS_TEST_ID).props.isInteractive,
+      ).toBe(false);
+    });
   });
 });
