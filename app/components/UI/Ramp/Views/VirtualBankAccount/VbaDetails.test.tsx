@@ -1,33 +1,45 @@
 import React from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
-import VbaDetails, {
-  pickLatestTransaction,
-  VbaDetailsSelectorsIDs,
-} from './VbaDetails';
+import VbaDetails, { VbaDetailsSelectorsIDs } from './VbaDetails';
+import { VbaDepositDebugSelectorsIDs } from './VbaDepositDebugSheet';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
 const mockGetPix = jest.fn();
 const mockListTransactions = jest.fn();
 const mockRefreshAutoramp = jest.fn();
 let mockWalletAddress: string | null = '0xabc';
+let mockDebugEnv: string | undefined;
+let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null;
+let mockNetworkTier: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null;
+
+jest.mock('@react-native-clipboard/clipboard', () => ({
+  setString: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    goBack: mockGoBack,
   }),
 }));
 
 jest.mock('../../../../../selectors/rampsController', () => ({
   selectSelectedVbaWalletAddress: () => mockWalletAddress,
+}));
+
+jest.mock('../../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockHardwareTier,
+}));
+
+jest.mock('../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -36,6 +48,10 @@ jest.mock('../../../../../util/Logger', () => ({
     error: jest.fn(),
     log: jest.fn(),
   },
+}));
+
+jest.mock('./vbaDepositDebug', () => ({
+  isVbaDepositDebugEnabled: () => mockDebugEnv === 'true',
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -98,67 +114,34 @@ const restoreNeoBankService = () => {
   };
 };
 
-describe('pickLatestTransaction', () => {
-  it('returns undefined for an empty list', () => {
-    expect(pickLatestTransaction([])).toBeUndefined();
-  });
-
-  it('prefers the newest createdAt over array order', () => {
-    const latest = pickLatestTransaction([
-      { id: 'old', status: 'Completed', createdAt: '2026-01-01T00:00:00Z' },
-      { id: 'new', status: 'Pending', createdAt: '2026-06-01T00:00:00Z' },
-    ]);
-
-    expect(latest?.id).toBe('new');
-  });
-
-  it('prefers an in-flight status when timestamps are missing', () => {
-    const latest = pickLatestTransaction([
-      { id: 'done', status: 'Completed' },
-      { id: 'pending', status: 'Pending' },
-    ]);
-
-    expect(latest?.id).toBe('pending');
-  });
-
-  it('falls back to the last terminal transaction when all are terminal', () => {
-    const latest = pickLatestTransaction([
-      { id: 'first', status: 'Failed' },
-      { id: 'last', status: 'Completed' },
-    ]);
-
-    expect(latest?.id).toBe('last');
-  });
-
-  it('ignores invalid createdAt values', () => {
-    const latest = pickLatestTransaction([
-      { id: 'bad', status: 'Completed', createdAt: 'not-a-date' },
-      { id: 'pending', status: 'Pending' },
-    ]);
-
-    expect(latest?.id).toBe('pending');
-  });
-});
-
 describe('VbaDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockWalletAddress = '0xabc';
+    mockDebugEnv = undefined;
+    mockHardwareTier = null;
+    mockNetworkTier = null;
     mockGetPix.mockResolvedValue(null);
     mockListTransactions.mockResolvedValue([]);
     mockRefreshAutoramp.mockResolvedValue(approvedAutoramp);
     setAutoramps([{ ...approvedAutoramp }]);
-    // Restore after tests that `delete` NeoBankService from the shared mock.
     restoreNeoBankService();
   });
 
   it('renders the details screen', async () => {
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
 
     expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.HEADER)).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOGO)).toHaveProp(
+      'importantForAccessibility',
+      'no',
+    );
+    expect(getByText('Add money with Pix')).toBeOnTheScreen();
     await waitFor(() => {
       expect(mockGetPix).toHaveBeenCalledWith('ar-1');
     });
+    expect(mockListTransactions).not.toHaveBeenCalled();
   });
 
   it('navigates to Money home when done is pressed', async () => {
@@ -175,27 +158,137 @@ describe('VbaDetails', () => {
     });
   });
 
-  it('shows the PIX code and a completed deposit', async () => {
+  it('shows both Pix rows with a key icon', async () => {
     mockGetPix.mockResolvedValue(pixInstructions);
-    mockListTransactions.mockResolvedValue([
-      { id: 'tx-1', status: 'Completed', createdAt: '2026-06-01T00:00:00Z' },
-    ]);
 
-    const { getByText, getByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByLabelText, getByTestId, getByText } = renderWithProvider(
+      <VbaDetails />,
+    );
 
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
     });
+    expect(getByText('PIX Copia e Cola')).toBeOnTheScreen();
     expect(getByText('00020126')).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.PIX_KEY)).toBeOnTheScreen();
+    expect(getByText('PIX key')).toBeOnTheScreen();
     expect(getByText('pix@example.com')).toBeOnTheScreen();
-    expect(
-      getByTestId(VbaDetailsSelectorsIDs.TRANSACTION_STATUS),
-    ).toBeOnTheScreen();
-    expect(mockGetPix).toHaveBeenCalledWith('ar-1');
+    const copiaColaIcon = getByTestId(
+      `${VbaDetailsSelectorsIDs.ROW_ICON}-copia-cola`,
+      { includeHiddenElements: true },
+    );
+    const pixKeyIcon = getByTestId(
+      `${VbaDetailsSelectorsIDs.ROW_ICON}-pix-key`,
+      { includeHiddenElements: true },
+    );
+    expect(copiaColaIcon).toHaveProp(
+      'importantForAccessibility',
+      'no-hide-descendants',
+    );
+    expect(pixKeyIcon).toHaveProp(
+      'importantForAccessibility',
+      'no-hide-descendants',
+    );
+    expect(getByLabelText('Copy PIX Copia e Cola')).toBeOnTheScreen();
+    expect(getByLabelText('Copy PIX key')).toBeOnTheScreen();
     expect(mockRefreshAutoramp).not.toHaveBeenCalled();
+    expect(mockListTransactions).not.toHaveBeenCalled();
   });
 
-  it('shows PIX without a pix key when MoonPay omits it', async () => {
+  it('copies a Pix value', async () => {
+    mockGetPix.mockResolvedValue(pixInstructions);
+
+    const { getByLabelText, getByTestId } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_KEY)).toBeOnTheScreen();
+    });
+
+    fireEvent.press(getByLabelText('Copy PIX key'));
+
+    expect(Clipboard.setString).toHaveBeenCalledWith('pix@example.com');
+    expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
+      'Copied PIX key',
+    );
+  });
+
+  it('shows a loading skeleton instead of the waiting copy until Pix loads', async () => {
+    let resolvePix: (value: typeof pixInstructions) => void = () => undefined;
+    mockGetPix.mockReturnValue(
+      new Promise((resolve) => {
+        resolvePix = resolve;
+      }),
+    );
+
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toHaveProp(
+      'accessibilityLabel',
+      'Loading PIX details',
+    );
+    expect(
+      queryByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_PIX),
+    ).not.toBeOnTheScreen();
+
+    resolvePix(pixInstructions);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+    expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).not.toBeOnTheScreen();
+  });
+
+  it('shows Pix rows when the first fetch finishes after the network tier changes', async () => {
+    let resolveFirst: (value: typeof pixInstructions) => void = () => undefined;
+    mockGetPix
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          }),
+      )
+      .mockImplementation(() => new Promise(() => undefined));
+    mockNetworkTier = null;
+
+    const { getByTestId, queryByTestId, rerender } = renderWithProvider(
+      <VbaDetails />,
+    );
+
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+
+    mockNetworkTier = 'WIFI';
+    rerender(<VbaDetails />);
+    resolveFirst(pixInstructions);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+    expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).not.toBeOnTheScreen();
+  });
+
+  it('shows the waiting copy once the backend returns no Pix code', async () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(
+        getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_PIX),
+      ).toBeOnTheScreen();
+    });
+    expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).not.toBeOnTheScreen();
+  });
+
+  it('does not fetch Pix instructions while offline', () => {
+    mockNetworkTier = 'NONE';
+
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+
+    expect(mockGetPix).not.toHaveBeenCalled();
+    expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).not.toBeOnTheScreen();
+    expect(
+      getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_PIX),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the Pix key row when MoonPay omits it', async () => {
     mockGetPix.mockResolvedValue({
       brCode: '00020126',
       instruction: 'Pay with PIX',
@@ -209,30 +302,8 @@ describe('VbaDetails', () => {
     expect(queryByTestId(VbaDetailsSelectorsIDs.PIX_KEY)).not.toBeOnTheScreen();
   });
 
-  it('shows the newest transaction status when an older completed exists', async () => {
-    mockGetPix.mockResolvedValue(pixInstructions);
-    mockListTransactions.mockResolvedValue([
-      { id: 'tx-old', status: 'Completed', createdAt: '2026-01-01T00:00:00Z' },
-      { id: 'tx-new', status: 'Pending', createdAt: '2026-06-01T00:00:00Z' },
-    ]);
-
-    const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
-
-    await waitFor(() => {
-      expect(
-        getByTestId(VbaDetailsSelectorsIDs.TRANSACTION_STATUS),
-      ).toBeOnTheScreen();
-    });
-    expect(
-      getByText(
-        strings('virtual_bank_account.vba_details.transaction_status', {
-          status: 'Pending',
-        }),
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('keeps the PIX code when listing transactions fails', async () => {
+  it('keeps the Pix code when the debug transaction poll fails', async () => {
+    mockDebugEnv = 'true';
     mockGetPix.mockResolvedValue(pixInstructions);
     mockListTransactions.mockRejectedValue(new Error('tx poll failed'));
 
@@ -248,6 +319,27 @@ describe('VbaDetails', () => {
       queryByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR),
     ).not.toBeOnTheScreen();
     expect(Logger.error).toHaveBeenCalled();
+  });
+
+  it('shows the newest deposit status in the debug sheet', async () => {
+    mockDebugEnv = 'true';
+    mockGetPix.mockResolvedValue(pixInstructions);
+    mockListTransactions.mockResolvedValue([
+      { id: 'tx-old', status: 'Completed', createdAt: '2026-01-01T00:00:00Z' },
+      { id: 'tx-new', status: 'Pending', createdAt: '2026-06-01T00:00:00Z' },
+    ]);
+
+    const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockListTransactions).toHaveBeenCalledWith('ar-1');
+    });
+    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.DEBUG_BUTTON));
+
+    expect(
+      getByTestId(VbaDepositDebugSelectorsIDs.TRANSACTION_STATUS),
+    ).toBeOnTheScreen();
+    expect(getByText('Deposit: Pending')).toBeOnTheScreen();
   });
 
   it('refreshes a non-Approved autoramp before loading PIX', async () => {
@@ -332,16 +424,5 @@ describe('VbaDetails', () => {
       ).toBeOnTheScreen();
     });
     expect(mockGetPix).not.toHaveBeenCalled();
-  });
-
-  it('returns to the caller when back is pressed', async () => {
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
-    await waitFor(() => {
-      expect(mockGetPix).toHaveBeenCalledWith('ar-1');
-    });
-
-    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });
