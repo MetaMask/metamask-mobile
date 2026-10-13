@@ -73,6 +73,12 @@ import {
   type CloseSource,
 } from '../../utils/webviewFunnelAnalytics';
 import type { RampSurface } from '../../types/depositAnalytics';
+import { useRampScreenPerformance } from '../../hooks/useRampScreenPerformance';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+  type RampV2ScreenId,
+} from '../../constants/rampScreenPerformance';
 
 interface CheckoutParams {
   url: string;
@@ -187,13 +193,21 @@ async function handleHeadlessCheckoutCallback({
   dismissActiveHeadlessFlow();
 }
 
-const Checkout = () => {
+interface CheckoutProps {
+  performanceScreenId?: RampV2ScreenId;
+}
+
+const Checkout = ({
+  performanceScreenId = RAMP_V2_SCREEN_ID.CHECKOUT,
+}: CheckoutProps) => {
   // Must match redirectUrl from getRampCallbackBaseUrl() on quote fetch
   // (including Dev → on-ramp.dev-api), not Aggregator/sdk's content host.
   const callbackBaseUrl = getRampCallbackBaseUrl();
   const sheetRef = useRef<BottomSheetRef>(null);
   const dispatch = useDispatch();
   const [error, setError] = useState('');
+  const [initialLoadSettled, setInitialLoadSettled] = useState(false);
+  const [initialLoadFailed, setInitialLoadFailed] = useState(false);
   // 'retry' remounts the WebView; 'go_back' is for errors a remount would
   // only replay (e.g. a consumed single-use checkout link).
   const [errorCtaMode, setErrorCtaMode] =
@@ -291,6 +305,15 @@ const Checkout = () => {
   const previousNavStateUrlRef = useRef<string | null>(null);
 
   const hasTrackedScreenViewRef = useRef(false);
+
+  useRampScreenPerformance({
+    screenId: performanceScreenId,
+    contentReady: !uri || Boolean(error) || initialLoadSettled,
+    contentState:
+      !uri || error || initialLoadFailed
+        ? RAMP_SCREEN_CONTENT_STATE.ERROR
+        : RAMP_SCREEN_CONTENT_STATE.POPULATED,
+  });
 
   // Callback-URL and embedded-page completions both end on order details.
   const navigateToOrderDetails = useCallback(
@@ -685,6 +708,10 @@ const Checkout = () => {
       loadStartTimeRef.current = null;
       lastLoadCompleteUrlRef.current = redactedLoadedUrl;
       const loadSuccess = !loadUrlErrorsRef.current.delete(loadedUrl);
+      if (!initialLoadSettled) {
+        setInitialLoadFailed(!loadSuccess);
+        setInitialLoadSettled(true);
+      }
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETED)
@@ -709,6 +736,7 @@ const Checkout = () => {
       headlessSessionId,
       navigation,
       headlessBaseOverrides,
+      initialLoadSettled,
     ],
   );
 
@@ -903,6 +931,8 @@ const Checkout = () => {
     setKey((prevKey) => prevKey + 1);
     setError('');
     setErrorCtaMode('retry');
+    setInitialLoadSettled(false);
+    setInitialLoadFailed(false);
     isRedirectionHandledRef.current = false;
     lastLoadCompleteUrlRef.current = null;
     loadUrlErrorsRef.current.clear();

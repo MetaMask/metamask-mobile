@@ -17,10 +17,13 @@ jest.mock('../hooks/useVbaOnboardingRouting', () => ({
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
+    AuthenticationController: {
+      getBearerToken: jest.fn(),
+    },
     KycController: {
+      state: { email: null as string | null },
       startSession: jest.fn(),
       recordVendorDisclaimers: jest.fn(),
-      hasCompletedVendorDisclaimers: jest.fn(),
     },
   },
 }));
@@ -49,10 +52,13 @@ jest.mock('../../../../../../util/Logger', () => ({
   },
 }));
 
+const mockGetBearerToken = Engine.context.AuthenticationController
+  .getBearerToken as jest.Mock<Promise<string>, []>;
+
 const mockKycController = Engine.context.KycController as unknown as {
+  state: { email: string | null };
   startSession: jest.Mock<Promise<unknown>, [unknown]>;
   recordVendorDisclaimers: jest.Mock<Promise<unknown>, [unknown]>;
-  hasCompletedVendorDisclaimers: jest.Mock<Promise<boolean>, []>;
 };
 
 const submitEmail = (email = 'user@example.com') => {
@@ -70,6 +76,8 @@ const submitEmail = (email = 'user@example.com') => {
 describe('VbaEmailAdapter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetBearerToken.mockResolvedValue('wallet-bearer');
+    mockKycController.state.email = null;
     mockGetState.mockReturnValue({ address: '0xabc' });
     mockGetVbaVendorTermsAcceptance.mockResolvedValue({
       disclaimerIds: ['privacy', 'terms'],
@@ -79,7 +87,6 @@ describe('VbaEmailAdapter', () => {
       finalStatus: 'new',
     });
     mockKycController.recordVendorDisclaimers.mockResolvedValue([]);
-    mockKycController.hasCompletedVendorDisclaimers.mockResolvedValue(false);
     mockAdvance.mockResolvedValue(undefined);
   });
 
@@ -94,6 +101,7 @@ describe('VbaEmailAdapter', () => {
       expect(mockKycController.startSession).toHaveBeenCalledWith({
         vendor: VBA_KYC_VENDOR,
         email: 'user@example.com',
+        aal2Token: 'wallet-bearer',
       });
       expect(mockGetVbaVendorTermsAcceptance).toHaveBeenCalledWith('0xabc');
       expect(mockKycController.recordVendorDisclaimers).toHaveBeenCalledWith({
@@ -103,30 +111,41 @@ describe('VbaEmailAdapter', () => {
     });
   });
 
-  it('advances when vendor terms were already recorded remotely', async () => {
+  it('starts the session with the bound email even if another address is typed', async () => {
+    mockKycController.state.email = 'bound@example.com';
+
+    submitEmail('other@example.com');
+
+    await waitFor(() => {
+      expect(mockKycController.startSession).toHaveBeenCalledWith({
+        vendor: VBA_KYC_VENDOR,
+        email: 'bound@example.com',
+        aal2Token: 'wallet-bearer',
+      });
+      expect(mockAdvance).toHaveBeenCalled();
+    });
+  });
+
+  it('advances when vendor disclaimer recording fails', async () => {
+    mockKycController.recordVendorDisclaimers.mockRejectedValue(
+      new Error('disclaimer failed'),
+    );
+
+    submitEmail();
+
+    await waitFor(() => {
+      expect(mockAdvance).toHaveBeenCalled();
+    });
+  });
+
+  it('advances when local vendor terms are missing', async () => {
     mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
-    mockKycController.hasCompletedVendorDisclaimers.mockResolvedValue(true);
 
     submitEmail();
 
     await waitFor(() => {
       expect(mockKycController.recordVendorDisclaimers).not.toHaveBeenCalled();
       expect(mockAdvance).toHaveBeenCalled();
-    });
-  });
-
-  it('shows an error and does not advance without accepted vendor terms', async () => {
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
-    mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
-
-    submitEmail();
-
-    await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith(
-        'Identity verification',
-        'Terms are not loaded yet. Go back to Activate your Virtual Bank Account and try again.',
-      );
-      expect(mockAdvance).not.toHaveBeenCalled();
     });
   });
 

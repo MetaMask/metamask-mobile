@@ -2,8 +2,11 @@ import {
   mockClosedSpotFeedItem,
   mockOpenPerpsFeedItem,
   mockOpenSpotFeedItem,
-} from '../mocks/socialV1Feed.mock';
-import type { SocialV1FeedItem, SocialV1FeedPost } from '../types';
+} from '../../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
+import type {
+  SocialV1FeedItem,
+  SocialV1FeedPost,
+} from '../../../../../UI/SocialFeed/types';
 import {
   getSocialV1HotTokenId,
   pinSelectedHotToken,
@@ -83,6 +86,40 @@ describe('rankFeedHotTokens', () => {
       'asset:BTC',
     ]);
     expect(tokens[0]?.symbol).toBe('xyz:PUMP');
+    expect(tokens[0]?.chain).toBe('solana');
+    expect(tokens[0]?.contractAddress).toBe(
+      'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+    );
+    expect(tokens[1]?.contractAddress).toBeUndefined();
+  });
+
+  it('fills the contract from a later spot row when the first row is a perp', () => {
+    const posts = [
+      postFor(
+        mockOpenPerpsFeedItem({
+          id: 'pump-perp',
+          asset: {
+            symbol: 'PUMP',
+            avatar: {
+              positionId: 'pump-perp',
+              chain: 'hyperliquid',
+              tokenAddress: '',
+              tokenImageUrl: null,
+              tokenSymbol: 'xyz:PUMP',
+            },
+          },
+        }),
+      ),
+      postFor(mockOpenSpotFeedItem()),
+    ];
+
+    const [pump] = rankFeedHotTokens(posts);
+
+    expect(pump?.chain).toBe('solana');
+    expect(pump?.contractAddress).toBe(
+      'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+    );
+    expect(pump?.symbol).toBe('xyz:PUMP');
   });
 
   it('uses the asset name as the chip label when the feed has one', () => {

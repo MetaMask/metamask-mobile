@@ -19,10 +19,20 @@ const mockTrack = jest.fn();
 const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
   track: mockTrack,
 }));
+let mockLivePriceHeaderProps:
+  | {
+      symbol: string;
+      currentPrice: number;
+      percentChange24h: number | null;
+      testIDPrice?: string;
+      testIDChange?: string;
+    }
+  | undefined;
 let mockMarginAdjustmentOptions:
   | {
       onSuccess?: () => void;
       onError?: (error: string) => void;
+      onAmountChanged?: (maxAmount: number) => void;
     }
   | undefined;
 
@@ -75,6 +85,22 @@ jest.mock('../../utils/formatUtils', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
+
+jest.mock('../LivePriceDisplay/LivePriceHeader', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: NonNullable<typeof mockLivePriceHeaderProps>) => {
+      mockLivePriceHeaderProps = props;
+      return ReactActual.createElement(
+        Text,
+        { testID: props.testIDPrice },
+        String(props.currentPrice),
+      );
+    },
+  };
+});
 
 jest.mock('../PerpsAmountDisplay', () => {
   const ReactActual = jest.requireActual('react');
@@ -184,6 +210,7 @@ const createMarginData = (mode: 'add' | 'remove', inputAmount = 0) => ({
   newLiquidationDistance: mode === 'add' ? 10 : 2.5,
   spendableBalance: 1000,
   currentPrice: 2000,
+  percentChange24h: 1.5,
   isAddMode: mode === 'add',
   positionLeverage: 10,
 });
@@ -192,6 +219,7 @@ describe('PerpsAdjustMarginBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockMarginAdjustmentOptions = undefined;
+    mockLivePriceHeaderProps = undefined;
     mockHandleAddMargin.mockResolvedValue(undefined);
     mockHandleRemoveMargin.mockResolvedValue(undefined);
     mockUsePerpsAdjustMarginData.mockImplementation(
@@ -220,14 +248,55 @@ describe('PerpsAdjustMarginBottomSheet', () => {
     ).toHaveTextContent('perps.adjust_margin.add_margin_sheet');
   });
 
-  it('does not show the live price in the header', () => {
+  it('shows the live price and 24h change in the header', () => {
     render(
       <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
     );
 
     expect(
       screen.UNSAFE_getByType(HeaderSubpage).props.description,
-    ).toBeUndefined();
+    ).toBeDefined();
+    expect(
+      screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_PRICE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_SKELETON,
+      ),
+    ).toBeNull();
+    expect(mockLivePriceHeaderProps).toEqual(
+      expect.objectContaining({
+        symbol: 'ETH',
+        currentPrice: 2000,
+        percentChange24h: 1.5,
+        testIDPrice: PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_PRICE,
+        testIDChange: PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_CHANGE,
+      }),
+    );
+  });
+
+  it('shows a header skeleton until the live price is available', () => {
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('add'),
+      currentPrice: 0,
+      percentChange24h: null,
+    });
+
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.HEADER_PRICE,
+      ),
+    ).toBeNull();
+    expect(mockLivePriceHeaderProps).toBeUndefined();
   });
 
   it('opens liquidation info inside the current sheet', () => {
@@ -698,5 +767,157 @@ describe('PerpsAdjustMarginBottomSheet', () => {
     expect(confirmButton).toBeDisabled();
     fireEvent.press(confirmButton);
     expect(mockHandleAddMargin).not.toHaveBeenCalled();
+  });
+  it('explains and blocks removal when no margin can be removed', () => {
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('remove'),
+      maxAmount: 0.004,
+    });
+
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.NO_REMOVABLE_MARGIN,
+      ),
+    ).toHaveTextContent('perps.adjust_margin.no_removable_margin');
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+      ),
+    ).toBeDisabled();
+  });
+
+  const renderRemoveWithNoLimitLeft = (before: () => void) => {
+    const { rerender } = render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+    act(before);
+    expect(
+      screen.queryByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.NO_REMOVABLE_MARGIN,
+      ),
+    ).not.toBeOnTheScreen();
+    mockUsePerpsAdjustMarginData.mockReturnValue({
+      ...createMarginData('remove'),
+      maxAmount: 0,
+      exchangeMaxAmount: 0,
+    });
+    rerender(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+  };
+
+  it('explains a zero limit instead of an error on a retained amount', () => {
+    renderRemoveWithNoLimitLeft(() => {
+      (
+        screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER)
+          .props as { onValueChange: (percentage: number) => void }
+      ).onValueChange(50);
+    });
+
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.NO_REMOVABLE_MARGIN,
+      ),
+    ).toHaveTextContent('perps.adjust_margin.no_removable_margin');
+    expect(screen.queryAllByRole('alert')).toHaveLength(0);
+    const confirmButton = screen.getByTestId(
+      PerpsAdjustMarginBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+    fireEvent.press(confirmButton);
+    expect(confirmButton).toBeDisabled();
+    expect(mockHandleRemoveMargin).not.toHaveBeenCalled();
+  });
+
+  it('closes an open keypad once no margin can be removed', () => {
+    renderRemoveWithNoLimitLeft(() => {
+      fireEvent.press(screen.getByTestId('amount-display'));
+    });
+
+    expect(screen.queryByTestId('keypad')).not.toBeOnTheScreen();
+    expect(screen.queryByText('25%')).not.toBeOnTheScreen();
+  });
+
+  it('explains a zero limit instead of an earlier submission error', () => {
+    renderRemoveWithNoLimitLeft(() => {
+      mockMarginAdjustmentOptions?.onError?.('Margin update failed');
+    });
+
+    expect(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.NO_REMOVABLE_MARGIN,
+      ),
+    ).toHaveTextContent('perps.adjust_margin.no_removable_margin');
+    expect(screen.queryByText('Margin update failed')).not.toBeOnTheScreen();
+  });
+
+  it('sets the amount to the new safe max when removable margin shrank before submit', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+
+    act(() => {
+      mockMarginAdjustmentOptions?.onAmountChanged?.(150);
+    });
+
+    expect(screen.getByTestId('amount-display')).toHaveProp(
+      'accessibilityLabel',
+      'perps.adjust_margin.amount_accessibility_label, 150.00',
+    );
+  });
+
+  it('keeps the slider within the fresh limit while the live snapshot still shows more', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+    act(() => {
+      mockMarginAdjustmentOptions?.onAmountChanged?.(150);
+    });
+
+    act(() => {
+      (
+        screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER)
+          .props as { onValueChange: (percentage: number) => void }
+      ).onValueChange(100);
+    });
+
+    expect(screen.getByTestId('amount-display')).toHaveProp(
+      'accessibilityLabel',
+      'perps.adjust_margin.amount_accessibility_label, 150.00',
+    );
+  });
+
+  it('drops the fresh limit when switching modes', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />,
+    );
+    act(() => {
+      mockMarginAdjustmentOptions?.onAmountChanged?.(150);
+    });
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.ADD_MODE_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.REMOVE_MODE_BUTTON,
+      ),
+    );
+    act(() => {
+      (
+        screen.getByTestId(PerpsAdjustMarginBottomSheetSelectorsIDs.SLIDER)
+          .props as { onValueChange: (percentage: number) => void }
+      ).onValueChange(100);
+    });
+
+    expect(screen.getByTestId('amount-display')).toHaveProp(
+      'accessibilityLabel',
+      'perps.adjust_margin.amount_accessibility_label, 200.00',
+    );
   });
 });

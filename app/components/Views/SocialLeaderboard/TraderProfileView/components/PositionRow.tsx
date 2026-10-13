@@ -13,7 +13,7 @@ import {
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { Position } from '@metamask/social-controllers';
 import PerpBadges from '../../components/PerpBadges';
-import PositionTokenAvatar from '../../components/PositionTokenAvatar';
+import PositionTokenAvatar from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import {
   EM_DASH,
   formatPercent,
@@ -21,8 +21,11 @@ import {
   formatTokenAmount,
   formatTradeDate,
   formatUsd,
-} from '../../utils/formatters';
-import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
+} from '../../../../UI/SocialFeed/utils/formatters';
+import {
+  getPerpPositionDirection,
+  isPerpPosition,
+} from '../../../../UI/SocialFeed/utils/perp';
 
 export interface PositionRowProps {
   position: Position;

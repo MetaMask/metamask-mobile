@@ -28,15 +28,24 @@ import { useTransactionPayFiatPayment } from './useTransactionPayData';
  * fallback and the flag both only write `paymentOverride`; in the
  * `CustomAmountInfo` flows `useAutomaticTransactionPayToken` is what turns that
  * into the mUSD-on-Monad pay token the quote is actually built from.
+ *
+ * @param options - Hook options.
+ * @param options.disable - Set `true` while the product balance can already
+ * fund the order. Both automatic paths only look at the EOA token balance, so
+ * an empty wallet otherwise selects the Money Account over a funded Perps or
+ * Predict balance. Selecting the Money Account by hand is unaffected.
  */
-export function useMoneyAccountDepositAndOrder(): void {
-  useDefaultPaySelectedSection();
+export function useMoneyAccountDepositAndOrder({
+  disable = false,
+}: { disable?: boolean } = {}): void {
+  useDefaultPaySelectedSection({ disable });
 
   const { payToken, setPayToken } = useTransactionPayToken();
   const { hasTokens } = useTransactionPayAvailableTokens();
   const fiatPayment = useTransactionPayFiatPayment();
 
   useAutomaticMoneyAccountPayToken({
+    disable,
     hasFiatPaymentSelected: Boolean(fiatPayment?.selectedPaymentMethodId),
     hasTokenBalance: hasTokens,
     payTokenSelected: Boolean(payToken),

@@ -11,6 +11,9 @@ const OFFICIAL_ATTRIBUTION_ALLOWLIST = [
   'runway-ota-rc.yml',
 ] as const;
 
+// OTA publishes do not create a new build, so they must not post the RC build Slack notification.
+const OTA_ATTRIBUTION_WORKFLOWS: readonly string[] = ['runway-ota-rc.yml'];
+
 const OFFICIAL_ATTRIBUTION_LITERAL = 'build_attribution: official';
 const SLACK_RC_NOTIFICATION = 'slack-rc-notification.yml';
 
@@ -33,12 +36,25 @@ describe('official RC analytics attribution contract', () => {
     );
   });
 
-  it('requires each official attribution workflow to post to the release Slack channel', () => {
-    for (const fileName of OFFICIAL_ATTRIBUTION_ALLOWLIST) {
+  it('requires each official build workflow to post to the release Slack channel', () => {
+    const buildWorkflows = OFFICIAL_ATTRIBUTION_ALLOWLIST.filter(
+      (fileName) => !OTA_ATTRIBUTION_WORKFLOWS.includes(fileName),
+    );
+
+    for (const fileName of buildWorkflows) {
       const contents = readWorkflow(fileName);
 
       expect(contents).toContain(OFFICIAL_ATTRIBUTION_LITERAL);
       expect(contents).toContain(SLACK_RC_NOTIFICATION);
+    }
+  });
+
+  it('does not post the RC build Slack notification from official OTA workflows', () => {
+    for (const fileName of OTA_ATTRIBUTION_WORKFLOWS) {
+      const contents = readWorkflow(fileName);
+
+      expect(contents).toContain(OFFICIAL_ATTRIBUTION_LITERAL);
+      expect(contents).not.toContain(SLACK_RC_NOTIFICATION);
     }
   });
 

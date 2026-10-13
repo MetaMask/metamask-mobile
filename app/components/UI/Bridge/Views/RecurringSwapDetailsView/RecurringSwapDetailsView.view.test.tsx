@@ -278,8 +278,12 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
       exact: false,
     });
     expect(routeParams).toHaveTextContent('"symbol":"ETH"', { exact: false });
-    expect(routeParams).toHaveTextContent('"symbol":"USDC"', { exact: false });
     expect(routeParams).not.toHaveTextContent('sourceAmount');
+
+    const bridgeState = renderResult.store.getState().bridge;
+    expect(bridgeState.sourceToken?.symbol).toBe('ETH');
+    expect(bridgeState.destToken?.symbol).toBe('USDC');
+    expect(bridgeState.sourceAmount).toBeUndefined();
   });
 
   it('opens an on-chain swap in the block explorer', async () => {

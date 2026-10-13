@@ -2,7 +2,11 @@ import { handlePredictUrl } from '../handlePredictUrl';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
-import { selectPredictHomeRedesignEnabledFlag } from '../../../../../components/UI/Predict/selectors/featureFlags';
+import {
+  selectPredictHomeCategoriesConfig,
+  selectPredictHomeRedesignEnabledFlag,
+} from '../../../../../components/UI/Predict/selectors/featureFlags';
+import { DEFAULT_PREDICT_HOME_CATEGORIES_FLAG } from '../../../../../components/UI/Predict/constants/flags';
 
 // Mock dependencies
 jest.mock('../../../../NavigationService');
@@ -19,6 +23,7 @@ jest.mock(
   '../../../../../components/UI/Predict/selectors/featureFlags',
   () => ({
     selectPredictHomeRedesignEnabledFlag: jest.fn(),
+    selectPredictHomeCategoriesConfig: jest.fn(),
   }),
 );
 
@@ -40,6 +45,9 @@ describe('handlePredictUrl', () => {
     // generic-feed tests exercise the FEED path. Flag-off behavior is covered
     // by a dedicated test below.
     jest.mocked(selectPredictHomeRedesignEnabledFlag).mockReturnValue(true);
+    jest
+      .mocked(selectPredictHomeCategoriesConfig)
+      .mockReturnValue(DEFAULT_PREDICT_HOME_CATEGORIES_FLAG);
   });
 
   describe('with market parameter', () => {
@@ -341,6 +349,59 @@ describe('handlePredictUrl', () => {
         screen: Routes.PREDICT.FEED,
         params: {
           feedId: 'politics',
+          entryPoint: 'deeplink',
+        },
+      });
+    });
+
+    it('navigates to the generic feed for a bundled home category id', async () => {
+      await handlePredictUrl({ predictPath: '?feed=esports' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.FEED,
+        params: {
+          feedId: 'esports',
+          entryPoint: 'deeplink',
+        },
+      });
+    });
+
+    it('navigates to the generic feed for a category added remotely', async () => {
+      jest.mocked(selectPredictHomeCategoriesConfig).mockReturnValue({
+        enabled: true,
+        minimumVersion: '',
+        categories: [
+          {
+            id: 'weather',
+            tagSlug: 'weather',
+            label: 'Weather',
+            enabled: true,
+          },
+        ],
+      });
+
+      await handlePredictUrl({ predictPath: '?feed=weather' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.FEED,
+        params: {
+          feedId: 'weather',
+          entryPoint: 'deeplink',
+        },
+      });
+    });
+
+    it('falls back to bundled categories when the categories selector throws', async () => {
+      jest.mocked(selectPredictHomeCategoriesConfig).mockImplementation(() => {
+        throw new Error('store unavailable');
+      });
+
+      await handlePredictUrl({ predictPath: '?feed=culture' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.FEED,
+        params: {
+          feedId: 'culture',
           entryPoint: 'deeplink',
         },
       });

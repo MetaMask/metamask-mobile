@@ -22,7 +22,11 @@ import {
   EVENT_LOCATIONS,
   EVENT_PROVIDERS,
 } from '../../constants/events/earnEvents';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { getAaveV3MaxRiskAwareWithdrawalAmount } from '../../utils/tempLending';
 import EarnWithdrawInputView, {
@@ -175,6 +179,12 @@ jest.mock(
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(false),
   selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
+  selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
+    .fn()
+    .mockReturnValue(false),
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag: jest
+    .fn()
+    .mockReturnValue(false),
 }));
 
 const mockUseAnalyticsFn = jest.fn();
@@ -419,6 +429,10 @@ jest.mock('react-native-fade-in-image', () => {
 });
 
 describe('EarnWithdrawInputView', () => {
+  const selectPooledStakingServiceInterruptionBannerEnabledFlagMock =
+    jest.mocked(selectPooledStakingServiceInterruptionBannerEnabledFlag);
+  const selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock =
+    jest.mocked(selectStablecoinLendingServiceInterruptionBannerEnabledFlag);
   const mockTrackEvent = jest.fn();
   const mockTrace = jest.mocked(trace);
   const mockUseEarnTokens = useEarnTokens as jest.MockedFunction<
@@ -438,6 +452,17 @@ describe('EarnWithdrawInputView', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
     } as unknown as ReturnType<typeof useAnalytics>);
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(false);
+    selectPooledStakingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+      false,
+    );
+    selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+      false,
+    );
   });
 
   it('renders withdraw input view with review button', async () => {
@@ -445,6 +470,97 @@ describe('EarnWithdrawInputView', () => {
 
     await waitFor(async () => {
       expect(screen.getByTestId('review-button')).toBeOnTheScreen();
+    });
+  });
+
+  describe('service interruption banners', () => {
+    const getMaintenanceMessage = (experienceName: string) =>
+      strings('earn.service_interruption_banner.maintenance_message', {
+        experienceName,
+      });
+
+    const createLendingWithdrawalToken = (): EarnTokenDetails => {
+      const experience: EarnTokenDetails['experience'] = {
+        type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        apr: '5%',
+        estimatedAnnualRewardsFormatted: '50',
+        estimatedAnnualRewardsFiatNumber: 50,
+        estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+        estimatedAnnualRewardsTokenFormatted: '50',
+      };
+
+      return {
+        ...MOCK_USDC_MAINNET_ASSET,
+        balanceFormatted: '1000',
+        balanceMinimalUnit: '1000000000',
+        balanceFiatNumber: 1000,
+        tokenUsdExchangeRate: 1,
+        experiences: [experience],
+        experience,
+      };
+    };
+
+    it('renders pooled staking maintenance message when enabled', () => {
+      selectPooledStakingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      render(EarnWithdrawInputView);
+
+      expect(
+        screen.getByText(getMaintenanceMessage('Pooled Staking')),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders stablecoin lending maintenance message when enabled', () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValue(true);
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      render(EarnWithdrawInputView, createLendingWithdrawalToken());
+
+      expect(
+        screen.getByText(getMaintenanceMessage('Stablecoin Lending')),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides pooled staking maintenance message when disabled', () => {
+      render(EarnWithdrawInputView);
+
+      expect(
+        screen.queryByText(getMaintenanceMessage('Pooled Staking')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides stablecoin lending maintenance message when disabled', () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValue(true);
+
+      render(EarnWithdrawInputView, createLendingWithdrawalToken());
+
+      expect(
+        screen.queryByText(getMaintenanceMessage('Stablecoin Lending')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render stablecoin lending message for pooled staking withdrawal', () => {
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      render(EarnWithdrawInputView);
+
+      expect(
+        screen.queryByText(getMaintenanceMessage('Stablecoin Lending')),
+      ).not.toBeOnTheScreen();
     });
   });
 

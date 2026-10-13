@@ -14,16 +14,18 @@ import {
   TextColor,
   FontWeight,
   Box,
-  BoxBackgroundColor,
   Button,
   ButtonVariant,
+  HelpText,
+  HelpTextSeverity,
+  TextArea,
 } from '@metamask/design-system-react-native';
 import SrpInput from '../../Views/SrpInput';
-import { useAppTheme } from '../../../util/theme';
 import { SrpInputGridProps } from './SrpInputGrid.types';
 import { applySeedPhraseChangeAtIndex } from './srpInputGridLogic';
 import { strings } from '../../../../locales/i18n';
 import {
+  capSrpWordCount,
   getTrimmedSeedPhraseLength,
   isFirstInput as isFirstInputUtil,
   getInputValue,
@@ -33,7 +35,6 @@ import {
   checkValidSeedWord,
 } from '../../../util/srp/srpInputUtils';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 export interface SrpInputGridRef {
   handleSeedPhraseChange: (seedPhraseText: string) => void;
@@ -95,8 +96,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     },
     ref,
   ) => {
-    const { colors } = useAppTheme();
-    const tw = useTailwind();
     // Internal state
     const [
       nextSeedPhraseInputFocusedIndex,
@@ -175,10 +174,13 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       (seedPhraseText: string) => {
         const text = formatSeedPhraseToSingleLine(seedPhraseText);
         const trimmedText = text.trim();
-        const updatedTrimmedText = trimmedText
-          .split(SPACE_CHAR)
-          .filter((word) => word !== '');
-        const endsWithSpace = text.length > 0 && text.at(-1) === SPACE_CHAR;
+        const updatedTrimmedText = capSrpWordCount(
+          trimmedText.split(SPACE_CHAR).filter((word) => word !== ''),
+        );
+        const endsWithSpace =
+          text.length > 0 &&
+          text.at(-1) === SPACE_CHAR &&
+          updatedTrimmedText.length < MAX_SRP_LENGTH;
 
         if (SRP_LENGTHS.includes(updatedTrimmedText.length) && !endsWithSpace) {
           onSeedPhraseChange(updatedTrimmedText);
@@ -326,50 +328,10 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       handleSuggestionSelect,
     }));
 
-    const hiddenStyle = useMemo(
-      () => tw.style('opacity-0 h-0 absolute top-0 left-0'),
-      [tw],
-    );
-    const gridItemStyle = useMemo(
-      () =>
-        tw.style(
-          'w-[31.33%] mr-[3%] mb-2 min-w-0 rounded-lg bg-background-default flex-row items-center justify-start h-10 overflow-hidden py-1 pl-2',
-          { flex: 0 },
-        ),
-      [tw],
-    );
-    const gridItemLastStyle = useMemo(
-      () =>
-        tw.style(
-          'w-[31.33%] mb-2 min-w-0 rounded-lg bg-background-default flex-row items-center justify-start h-10 overflow-hidden py-1 pl-2 mr-0',
-          { flex: 0 },
-        ),
-      [tw],
-    );
-    const textareaInputStyle = useMemo(
-      () => ({
-        ...tw.style(
-          'h-[66px] bg-transparent text-text-alternative text-base my-4',
-        ),
-        lineHeight: 20,
-      }),
-      [tw],
-    );
-    const gridInputItemStyle = useMemo(
-      () => tw.style('flex-1 min-w-0 max-w-full pr-2'),
-      [tw],
-    );
-    const textareaVisibleStyle = useMemo(
-      () => tw.style('border-0 px-0 py-0 flex-1 bg-transparent'),
-      [tw],
-    );
-
-    const getGridItemStyle = useCallback(
-      (index: number) => {
-        if (isFirstInput) return hiddenStyle;
-        return (index + 1) % 3 === 0 ? gridItemLastStyle : gridItemStyle;
-      },
-      [isFirstInput, hiddenStyle, gridItemLastStyle, gridItemStyle],
+    const getGridItemClassName = useCallback(
+      (index: number) =>
+        (index + 1) % 3 === 0 ? 'w-[31.33%] mb-2' : 'w-[31.33%] mr-[3%] mb-2',
+      [],
     );
 
     const handlePasteOrClear = useCallback(() => {
@@ -386,81 +348,76 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
           includeTopMargin ? 'flex-col gap-1 mt-2 mb-6' : 'flex-col gap-1 mb-6'
         }
       >
-        <Box
-          backgroundColor={BoxBackgroundColor.BackgroundSection}
-          twClassName={`rounded-[10px] min-h-[210px] flex-row flex-wrap w-full px-4 ${!isFirstInput ? 'pt-4 pb-2' : ''}`}
-        >
-          {seedPhrase.map((item, index) => (
-            <SrpInput
-              key={`seed-phrase-item-${uniqueId}-${index}`}
-              {...SHARED_INPUT_PROPS}
-              ref={(itemRef) => {
-                const inputRefs = getSeedPhraseInputRef();
-                if (itemRef) {
-                  inputRefs.set(index, itemRef);
-                } else {
-                  inputRefs.delete(index);
-                }
-              }}
-              startAccessory={
-                !isFirstInput && (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Bold}
-                    color={TextColor.TextAlternative}
-                    twClassName="-mr-1"
-                  >
-                    {index + 1}.
-                  </Text>
-                )
-              }
-              value={getInputValue(isFirstInput, index, item, seedPhrase)}
-              onFocus={() => handleOnFocus(index)}
-              onBlur={() => handleOnBlur(index)}
-              onChangeText={(text) => {
-                isFirstInput
-                  ? handleSeedPhraseChange(text)
-                  : handleSeedPhraseChangeAtIndex(text, index);
-              }}
-              onSubmitEditing={dismissKeyboard}
-              placeholder=""
-              placeholderTextColor={colors.text.muted}
-              style={getGridItemStyle(index)}
-              inputStyle={
-                isFirstInput ? textareaInputStyle : gridInputItemStyle
-              }
-              textAlignVertical={isFirstInput ? 'top' : 'center'}
-              isError={errorWordIndexes[index]}
-              testID={`${testIdPrefix}_${index}`}
-              autoFocus={
-                index === nextSeedPhraseInputFocusedIndex &&
-                (autoFocusProp || index > 0)
-              }
-              onKeyPress={(e) => handleKeyPress(e, index)}
-              isDisabled={disabled}
-            />
-          ))}
-
-          <SrpInput
+        {isFirstInput ? (
+          <TextArea
             key={`seed-phrase-item-${uniqueId}`}
             {...SHARED_INPUT_PROPS}
-            value={seedPhrase[0]}
+            ref={(itemRef) => {
+              const inputRefs = getSeedPhraseInputRef();
+              if (itemRef) {
+                inputRefs.set(0, itemRef);
+              } else {
+                inputRefs.delete(0);
+              }
+            }}
+            value={seedPhrase[0] ?? ''}
             onFocus={() => handleOnFocus(0)}
             onBlur={() => handleOnBlur(0)}
             onChangeText={handleSeedPhraseChange}
             onSubmitEditing={dismissKeyboard}
             placeholder={placeholderText}
-            placeholderTextColor={colors.text.alternative}
-            style={isFirstInput ? textareaVisibleStyle : hiddenStyle}
-            inputStyle={textareaInputStyle}
-            textAlignVertical="top"
+            isError={Boolean(errorWordIndexes[0])}
+            twClassName="min-h-[210px]"
             testID={testIdPrefix}
-            autoFocus={autoFocusProp && isFirstInput}
-            multiline
+            autoFocus={autoFocusProp}
             onKeyPress={(e) => handleKeyPress(e, 0)}
             isDisabled={disabled}
           />
-        </Box>
+        ) : (
+          <Box twClassName="flex-row flex-wrap w-full">
+            {seedPhrase.map((item, index) => (
+              <SrpInput
+                key={`seed-phrase-item-${uniqueId}-${index}`}
+                ref={(itemRef) => {
+                  const inputRefs = getSeedPhraseInputRef();
+                  if (itemRef) {
+                    inputRefs.set(index, itemRef);
+                  } else {
+                    inputRefs.delete(index);
+                  }
+                }}
+                startAccessory={
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Bold}
+                    color={TextColor.TextAlternative}
+                  >
+                    {index + 1}.
+                  </Text>
+                }
+                value={getInputValue(false, index, item, seedPhrase)}
+                onFocus={() => handleOnFocus(index)}
+                onBlur={() => handleOnBlur(index)}
+                onChangeText={(text) =>
+                  handleSeedPhraseChangeAtIndex(text, index)
+                }
+                isError={errorWordIndexes[index]}
+                autoFocus={
+                  index === nextSeedPhraseInputFocusedIndex &&
+                  (autoFocusProp || index > 0)
+                }
+                isDisabled={disabled}
+                twClassName={getGridItemClassName(index)}
+                inputProps={{
+                  ...SHARED_INPUT_PROPS,
+                  testID: `${testIdPrefix}_${index}`,
+                  onSubmitEditing: dismissKeyboard,
+                  onKeyPress: (e) => handleKeyPress(e, index),
+                }}
+              />
+            ))}
+          </Box>
+        )}
 
         <Box twClassName="flex-row justify-end items-end pt-1 pb-[1px]">
           <Button variant={ButtonVariant.Tertiary} onPress={handlePasteOrClear}>
@@ -471,13 +428,9 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
         </Box>
 
         {Boolean(externalError || error) && (
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.ErrorDefault}
-          >
+          <HelpText severity={HelpTextSeverity.Danger}>
             {externalError || error}
-          </Text>
+          </HelpText>
         )}
       </Box>
     );

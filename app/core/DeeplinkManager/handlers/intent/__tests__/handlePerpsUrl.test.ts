@@ -10,6 +10,7 @@ import {
 import { selectPerpsProModeEnabledFlag } from '../../../../../components/UI/Perps/selectors/featureFlags';
 import { PerpsMode } from '@metamask/perps-controller';
 import { analytics } from '../../../../../util/analytics/analytics';
+import { PriceAlertAnalytics } from '../../../../../components/UI/Assets/PriceAlerts/constants';
 import { MetaMetricsEvents } from '../../../../Analytics';
 // Mock dependencies
 jest.mock('../../../../NavigationService');
@@ -566,6 +567,7 @@ describe('handlePerpsUrl', () => {
         expect.objectContaining({
           properties: expect.objectContaining({
             alert_type: 'threshold',
+            alert_market_type: PriceAlertAnalytics.MARKET_TYPE.PERPS,
             price_at_trigger: 150.25,
             token_symbol: 'XYZ100',
           }),
@@ -583,6 +585,7 @@ describe('handlePerpsUrl', () => {
         expect.objectContaining({
           properties: expect.objectContaining({
             alert_type: 'threshold',
+            alert_market_type: PriceAlertAnalytics.MARKET_TYPE.PERPS,
             price_at_trigger: 95000,
             token_symbol: 'BTC',
             asset_id: 'BTC',

@@ -1162,6 +1162,34 @@ describe('transactionTransforms', () => {
       });
     });
 
+    it('keeps liquidation details when HyperLiquid omits liquidatedUser', () => {
+      const liquidationFill: OrderFill = {
+        orderId: '124',
+        symbol: 'BTC',
+        side: 'sell',
+        size: '0.1',
+        price: '44900',
+        pnl: '-1000',
+        direction: 'Close Long',
+        fee: '5',
+        feeToken: 'USDC',
+        timestamp: Date.now(),
+        liquidation: {
+          markPx: '2000',
+          method: 'backstop',
+        },
+        detailedOrderType: 'Liquidation',
+      };
+
+      const result = transformFillsToTransactions([liquidationFill]);
+
+      expect(result[0].fill?.fillType).toBe(FillType.Liquidation);
+      expect(result[0].fill?.liquidation).toEqual({
+        markPx: '2000',
+        method: 'backstop',
+      });
+    });
+
     it('correctly identifies auto-deleveraging fills with positive position', () => {
       const adlFill: OrderFill = {
         orderId: '789',

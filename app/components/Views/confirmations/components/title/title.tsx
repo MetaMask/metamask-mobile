@@ -13,6 +13,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   EARN_CONTRACT_INTERACTION_TYPES,
+  MONEY_ACCOUNT_DEPOSIT_TYPES,
   MMM_ORIGIN,
   APPROVE_TRANSACTION_TYPES,
   TRANSFER_TRANSACTION_TYPES,
@@ -100,9 +101,7 @@ const getTitleAndSubTitle = (
       type === ApprovalType.TransactionBatch) &&
     !isDowngrade &&
     !isUpgradeOnly &&
-    hasTransactionType(transactionMetadata, [
-      TransactionType.moneyAccountDeposit,
-    ])
+    hasTransactionType(transactionMetadata, MONEY_ACCOUNT_DEPOSIT_TYPES)
   ) {
     return {
       title: strings('confirm.title.money_account_add_money'),
@@ -288,9 +287,10 @@ const Title = () => {
           {subTitle}
         </Text>
       )}
-      {!hasTransactionType(transactionMetadata, [
-        TransactionType.moneyAccountDeposit,
-      ]) && <BatchedTransactionTag />}
+      {!hasTransactionType(
+        transactionMetadata,
+        MONEY_ACCOUNT_DEPOSIT_TYPES,
+      ) && <BatchedTransactionTag />}
     </View>
   );
 };

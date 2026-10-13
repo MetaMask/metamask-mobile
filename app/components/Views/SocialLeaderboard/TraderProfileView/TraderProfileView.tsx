@@ -55,7 +55,10 @@ import TraderMuteChip from '../components/TraderMuteChip';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
-import { HYPERLIQUID_CHAIN_NAME, isPerpPosition } from '../utils/perp';
+import {
+  HYPERLIQUID_CHAIN_NAME,
+  isPerpPosition,
+} from '../../../UI/SocialFeed/utils/perp';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import PositionRow from './components/PositionRow';
 import ProfileHeader from './components/ProfileHeader';
@@ -67,6 +70,8 @@ import {
 import SortButton from './components/SortButton';
 import StatsRow from './components/StatsRow';
 import TraderProfileCompactStats from './components/TraderProfileCompactStats';
+import TraderStatsSheet from './components/TraderStatsSheet';
+import type { TraderProfileWithSheetStats } from './types/traderProfileStatsSheet';
 import { useTraderPositions, useTraderProfile } from './hooks';
 import { resolveQuickBuyOriginalEntryPointFromProfile } from '../../../UI/QuickBuy/analytics';
 import {
@@ -112,7 +117,12 @@ const TabButton: React.FC<TabButtonProps> = ({
   onPress,
   testID,
 }) => (
-  <TouchableOpacity onPress={onPress} testID={testID}>
+  <TouchableOpacity
+    onPress={onPress}
+    testID={testID}
+    accessibilityRole="tab"
+    accessibilityState={{ selected: isActive }}
+  >
     <Box twClassName={`pb-2 ${isActive ? 'border-b-2 border-default' : ''}`}>
       <Text
         variant={TextVariant.BodyMd}
@@ -162,6 +172,7 @@ const TraderProfileView = () => {
   } = useTraderPositions(traderId, { refetchInterval: 30_000 });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isStatsSheetOpen, setIsStatsSheetOpen] = useState(false);
 
   const traderAddress = traderAddressParam ?? profile?.profile.address ?? '';
 
@@ -421,6 +432,7 @@ const TraderProfileView = () => {
                       <StatsRow
                         stats={headlineStats}
                         holdTimeMinutes={profile.stats.medianHoldMinutes}
+                        onPress={() => setIsStatsSheetOpen(true)}
                       />
                     ) : (
                       <StatsRowSkeleton />
@@ -475,6 +487,7 @@ const TraderProfileView = () => {
                       flexDirection={BoxFlexDirection.Row}
                       alignItems={BoxAlignItems.Center}
                       gap={4}
+                      accessibilityRole="tablist"
                     >
                       <TabButton
                         label={strings(
@@ -541,6 +554,12 @@ const TraderProfileView = () => {
           )}
         </Animated.ScrollView>
       </Box>
+      {isStatsSheetOpen && profile ? (
+        <TraderStatsSheet
+          profile={profile as TraderProfileWithSheetStats}
+          onClose={() => setIsStatsSheetOpen(false)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 };

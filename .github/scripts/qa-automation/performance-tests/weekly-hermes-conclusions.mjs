@@ -3,7 +3,9 @@
 
 /**
  * Week-over-week Hermes conclusions. Stable scenarios are omitted; Slack only
- * lists regressions, isolated spikes, new hot frames, and thin coverage.
+ * lists regressions, isolated spikes, new hot frames in scenarios that got
+ * slower, and thin coverage. One slow run or one frame leading many scenarios
+ * is posted once, not per scenario.
  */
 
 import {
@@ -21,6 +23,10 @@ export const MIN_RUNS_FOR_CONCLUSION = 3;
 // the same one is far less likely than one slow run. Keeping the bar at two
 // stops a bad device or a noisy agent from paging several teams at once.
 export const MIN_SCENARIOS_FOR_SHARED_SPIKE = 2;
+// The same frame becoming the top symbolicated frame in two or more scenarios
+// is one change (a shared dependency or app-wide code), not one finding per
+// scenario. Posting it once keeps a library bump from filling the thread.
+export const MIN_SCENARIOS_FOR_SHARED_FRAME = 2;
 export const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
 
 export const STATUS = {
@@ -212,6 +218,27 @@ export function frameIdentity(contributor) {
   return contributor.name;
 }
 
+function frameLocation(contributor) {
+  if (!contributor?.url) {
+    return '';
+  }
+  return `${contributor.url}${contributor.line ? `:${contributor.line}` : ''}`;
+}
+
+/**
+ * Name plus file:line. Two frames can share a name (`anonymous`) and still be
+ * different code, so the name alone cannot describe a change of top frame.
+ */
+export function frameLabel(contributor) {
+  if (!contributor?.name) {
+    return '';
+  }
+  const location = frameLocation(contributor);
+  return location
+    ? `\`${contributor.name}\` (${location})`
+    : `\`${contributor.name}\``;
+}
+
 function hasEnoughRuns(scenario) {
   return (scenario?.runsObserved || 0) >= MIN_RUNS_FOR_CONCLUSION;
 }
@@ -269,17 +296,26 @@ export function hasRecoveredSinceSpike(current) {
   );
 }
 
+/**
+ * The top symbolicated frame changed *and* the scenario got slower. A new
+ * leader in a scenario whose JS work went down is a profile shape change,
+ * not something to open work on.
+ */
 export function isNewHotFrame(current, previous) {
   const currentTop = topContributor(current);
   const previousTop = topContributor(previous);
   if (
     !isSymbolicated(currentTop) ||
     !isSymbolicated(previousTop) ||
-    !current?.hasDominantFrame
+    !current?.hasDominantFrame ||
+    !(previous?.medianJsWorkMs > 0)
   ) {
     return false;
   }
-  return frameIdentity(currentTop) !== frameIdentity(previousTop);
+  return (
+    frameIdentity(currentTop) !== frameIdentity(previousTop) &&
+    current.medianJsWorkMs >= previous.medianJsWorkMs * RELATIVE_WARN_RATIO
+  );
 }
 
 function conclusionLine(status, current, previous) {
@@ -294,7 +330,8 @@ function conclusionLine(status, current, previous) {
     return `Median JS work is up versus last week${frame}.`;
   }
   if (status === STATUS.NEW_FRAME) {
-    return `Top symbolicated frame changed from \`${topContributor(previous).name}\` to \`${currentTop.name}\`.`;
+    const ratio = (current.medianJsWorkMs / previous.medianJsWorkMs).toFixed(2);
+    return `Top symbolicated frame changed from ${frameLabel(topContributor(previous))} to ${frameLabel(currentTop)} while median JS work rose ${ratio}× versus last week.`;
   }
   if (status === STATUS.RISING) {
     const [earlier, tail] = formatDurationsAlike([
@@ -388,6 +425,63 @@ export function collapseSharedSpikes(cards) {
           }))
           .sort((left, right) => right.spikeRatio - left.spikeRatio),
       }))
+      .sort((left, right) => right.scenarios.length - left.scenarios.length),
+  };
+}
+
+/**
+ * Splits new-hot-frame cards whose new top frame is the same code out of the
+ * per-scenario list. One frame taking the lead everywhere is one finding.
+ */
+export function collapseSharedNewFrames(cards) {
+  const byFrame = new Map();
+  for (const card of cards) {
+    if (card.status !== STATUS.NEW_FRAME) {
+      continue;
+    }
+    const identity = frameIdentity(topContributor(card.current));
+    if (!identity) {
+      continue;
+    }
+    byFrame.set(identity, [...(byFrame.get(identity) || []), card]);
+  }
+
+  const sharedFrames = [...byFrame.values()].filter(
+    (grouped) => grouped.length >= MIN_SCENARIOS_FOR_SHARED_FRAME,
+  );
+  if (sharedFrames.length === 0) {
+    return { cards, sharedFrames: [] };
+  }
+
+  const collapsed = new Set(sharedFrames.flat());
+  return {
+    cards: cards.filter((card) => !collapsed.has(card)),
+    sharedFrames: sharedFrames
+      .map((grouped) => {
+        const frame = topContributor(grouped[0].current);
+        return {
+          name: frame.name,
+          url: frame.url,
+          line: frame.line ?? null,
+          scenarios: grouped
+            .map((card) => {
+              const top = topContributor(card.current);
+              return {
+                scenario: card.scenario,
+                previousFrame: frameLabel(topContributor(card.previous)),
+                medianJsWorkMs: card.current.medianJsWorkMs,
+                previousMedianJsWorkMs: card.previous.medianJsWorkMs,
+                ratio: Number(
+                  (
+                    card.current.medianJsWorkMs / card.previous.medianJsWorkMs
+                  ).toFixed(2),
+                ),
+                medianSharePct: top.medianSharePct,
+              };
+            })
+            .sort((left, right) => right.ratio - left.ratio),
+        };
+      })
       .sort((left, right) => right.scenarios.length - left.scenarios.length),
   };
 }
@@ -583,10 +677,61 @@ export function buildSharedSpikeCard(sharedSpike) {
   return lines.join('\n');
 }
 
+function sharedFrameLabel(sharedFrame) {
+  return frameLabel({
+    name: sharedFrame.name,
+    url: sharedFrame.url,
+    line: sharedFrame.line,
+  });
+}
+
+/**
+ * Every row is read against the others, so all of them share one unit.
+ */
+function sharedFrameDurations(sharedFrame) {
+  const formatted = formatDurationsAlike(
+    sharedFrame.scenarios.flatMap((scenario) => [
+      scenario.previousMedianJsWorkMs,
+      scenario.medianJsWorkMs,
+    ]),
+  );
+  return sharedFrame.scenarios.map((scenario, index) => ({
+    scenario,
+    previous: formatted[index * 2],
+    current: formatted[index * 2 + 1],
+  }));
+}
+
+export function buildSharedFrameCard(sharedFrame) {
+  const lines = [
+    `*New hot frame across ${sharedFrame.scenarios.length} scenarios* · ${sharedFrameLabel(sharedFrame)}`,
+    `_Read as:_ one frame became the top symbolicated frame in ${sharedFrame.scenarios.length} scenarios that also got slower, so look for one shared change (dependency or app-wide code), not ${sharedFrame.scenarios.length} regressions. Owners are named for routing; no team is notified.`,
+    '_Median JS work vs last week · share of JS work this frame takes:_',
+  ];
+  for (const { scenario, previous, current } of sharedFrameDurations(
+    sharedFrame,
+  )) {
+    lines.push(
+      `  *${displayName(scenario.scenario)}* — ${previous} → ${current} (${scenario.ratio}×) · ${scenario.medianSharePct.toFixed(1)}% · was ${scenario.previousFrame} · owner ${scenarioOwner(scenario.scenario)}`,
+    );
+  }
+  lines.push(
+    `_Conclusion:_ check what changed around ${sharedFrameLabel(sharedFrame)} since last week before opening per-scenario work.`,
+  );
+  return lines.join('\n');
+}
+
+/**
+ * Thread cards. A recovered slow run is named in the parent and kept in the
+ * markdown record, but it is not something to read, so it gets no card.
+ */
 export function weeklySlackCards(report) {
   return [
-    ...(report.sharedSpikes || []).map((sharedSpike) =>
+    ...openSharedSpikes(report).map((sharedSpike) =>
       buildSharedSpikeCard(sharedSpike),
+    ),
+    ...(report.sharedFrames || []).map((sharedFrame) =>
+      buildSharedFrameCard(sharedFrame),
     ),
     ...report.cards.map((card) => buildWeeklyScenarioCard(card)),
   ];
@@ -601,7 +746,18 @@ function recoveredSharedSpikes(report) {
 }
 
 function hasNothingToAction(report) {
-  return report.cards.length === 0 && openSharedSpikes(report).length === 0;
+  return (
+    report.cards.length === 0 &&
+    openSharedSpikes(report).length === 0 &&
+    (report.sharedFrames || []).length === 0
+  );
+}
+
+function sharedFrameParentLine(sharedFrame) {
+  const maxRatio = Math.max(
+    ...sharedFrame.scenarios.map((scenario) => scenario.ratio || 0),
+  );
+  return `_Shared hot frame:_ ${sharedFrameLabel(sharedFrame)} became the top frame in ${sharedFrame.scenarios.length} scenarios that got slower (up to ${maxRatio}× last week's median JS work), reported once instead of per scenario.`;
 }
 
 export function buildWeeklyParentSlack(report) {
@@ -632,7 +788,7 @@ export function buildWeeklyParentSlack(report) {
       lines.push(...weeklyRecoveredLines(report));
       if (recoveredSpikes.length > 0) {
         lines.push(
-          '_The recovered run is detailed in the thread for the record._',
+          '_Recovered runs stay in the report artifact; nothing is posted in the thread._',
         );
       }
     }
@@ -643,14 +799,21 @@ export function buildWeeklyParentSlack(report) {
       lines.push(
         `_Scenario findings:_ ${counts.worse} worse than last week · ${counts.rising} rising within the week · ${counts.spike} spike in the newest runs · ${counts.newFrame} new hot frame · ${counts.insufficient} insufficient data`,
       );
+    } else if ((report.sharedFrames || []).length > 0) {
+      lines.push(
+        '_No scenario regressed on its own this week; every flagged change traces back to one shared frame or one run._',
+      );
     } else {
       lines.push(
         '_No scenario regressed on its own this week; every flagged spike traces back to a single run._',
       );
     }
+    for (const sharedFrame of report.sharedFrames || []) {
+      lines.push(sharedFrameParentLine(sharedFrame));
+    }
     for (const sharedSpike of sharedSpikes) {
       lines.push(
-        `_Slow run:_ <${sharedSpike.runUrl}|${sharedSpike.runId}> was the peak of ${sharedSpike.scenarios.length} scenarios (up to ${sharedSpike.maxRatio}× their weekly median JS work), reported once instead of per scenario${sharedSpike.recovered ? '; every one of them has run clean since' : ''}.`,
+        `_Slow run:_ <${sharedSpike.runUrl}|${sharedSpike.runId}> was the peak of ${sharedSpike.scenarios.length} scenarios (up to ${sharedSpike.maxRatio}× their weekly median JS work), reported once instead of per scenario${sharedSpike.recovered ? '; every one of them has run clean since and it gets no card' : ''}.`,
       );
     }
     lines.push(
@@ -687,6 +850,7 @@ export function buildWeeklyMarkdown(report) {
     '',
   ];
   const sharedSpikes = report.sharedSpikes || [];
+  const sharedFrames = report.sharedFrames || [];
   const recovered = report.recovered || [];
   if (hasNothingToAction(report)) {
     lines.push('Nothing to action this week.');
@@ -719,6 +883,22 @@ export function buildWeeklyMarkdown(report) {
       lines.push(
         '',
         'Every scenario above has run clean since that run, so this is history, not pending work.',
+      );
+    }
+    lines.push('');
+  }
+  for (const sharedFrame of sharedFrames) {
+    lines.push(
+      `## New hot frame across ${sharedFrame.scenarios.length} scenarios — ${sharedFrameLabel(sharedFrame)}`,
+      '',
+      'One frame became the top symbolicated frame in every scenario below while their median JS work rose versus last week. Read as one shared change, not one regression per scenario.',
+      '',
+    );
+    for (const { scenario, previous, current } of sharedFrameDurations(
+      sharedFrame,
+    )) {
+      lines.push(
+        `- ${displayName(scenario.scenario)} — median JS work ${previous} → ${current} (${scenario.ratio}×), ${scenario.medianSharePct.toFixed(1)}% of JS work, was ${scenario.previousFrame}, owner ${scenarioOwner(scenario.scenario)}`,
       );
     }
     lines.push('');
@@ -769,16 +949,18 @@ export function buildWeeklyReport({
   thisWeekDays = [],
   lastWeekDays = [],
 }) {
-  const collapsed = collapseSharedSpikes(
+  const bySpike = collapseSharedSpikes(
     classifyWeeklyScenarios(thisWindow, lastWindow),
   );
-  const sharedSpikes = collapsed.sharedSpikes;
+  const sharedSpikes = bySpike.sharedSpikes;
+  const byFrame = collapseSharedNewFrames(bySpike.cards);
+  const sharedFrames = byFrame.sharedFrames;
   // A spike the scenario has already run clean past is not a finding. It is
   // summarized in one line so the week is still accounted for.
-  const cards = collapsed.cards.filter(
+  const cards = byFrame.cards.filter(
     (card) => card.status !== STATUS.RECOVERED,
   );
-  const recovered = collapsed.cards.filter(
+  const recovered = byFrame.cards.filter(
     (card) => card.status === STATUS.RECOVERED,
   );
   return {
@@ -804,6 +986,7 @@ export function buildWeeklyReport({
     },
     cards,
     sharedSpikes,
+    sharedFrames,
     recovered: recovered.map((card) => ({
       scenario: card.scenario,
       spikeRatio: card.current.spikeRatio,

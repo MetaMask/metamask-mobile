@@ -64,6 +64,10 @@ import { handleNftUrl } from './legacy/handleNftUrl';
 import { handleAgenticCliApproval } from './legacy/handleAgenticCliApproval';
 import { handlePrivacyUrl } from './legacy/handlePrivacyUrl';
 import {
+  createNotificationsSettingsDeeplinkIntent,
+  handleNotificationsSettingsUrl,
+} from './intent/handleNotificationsSettingsUrl';
+import {
   getDeeplinkProcessedTraceContext,
   markDeeplinkInterstitialShown,
   markDeeplinkInterstitialContinued,
@@ -95,8 +99,6 @@ import Logger from '../../../util/Logger';
 import type { DeeplinkParseMode } from '../utils/parseDeeplink';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 import { handleMoney } from './legacy/handleMoney';
-
-const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
 
 const SUPPORTED_ACTIONS = {
   DAPP: ACTIONS.DAPP,
@@ -131,6 +133,7 @@ const SUPPORTED_ACTIONS = {
   AGENTIC_CLI: ACTIONS.AGENTIC_CLI,
   ON_RAMP: ACTIONS.ON_RAMP,
   PRIVACY: ACTIONS.PRIVACY,
+  NOTIFICATIONS_SETTINGS: ACTIONS.NOTIFICATIONS_SETTINGS,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
@@ -172,6 +175,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.ON_RAMP,
   SUPPORTED_ACTIONS.MONEY,
   SUPPORTED_ACTIONS.ASSET,
+  SUPPORTED_ACTIONS.NOTIFICATIONS_SETTINGS,
 ];
 
 const interstitialWhitelistUrls = [] as const;
@@ -312,6 +316,16 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
     resolve: ({ actionBasedRampPath }) =>
       createTrendingDeeplinkIntent({ actionPath: actionBasedRampPath }),
   },
+  [SUPPORTED_ACTIONS.NOTIFICATIONS_SETTINGS]: {
+    execute: ({ actionBasedRampPath }) =>
+      handleNotificationsSettingsUrl({
+        notificationsSettingsPath: actionBasedRampPath,
+      }),
+    resolve: ({ actionBasedRampPath }) =>
+      createNotificationsSettingsDeeplinkIntent({
+        notificationsSettingsPath: actionBasedRampPath,
+      }),
+  },
 };
 
 async function handleUniversalLink({
@@ -379,7 +393,7 @@ async function handleUniversalLink({
   // Intercept SDK actions and handle them in handleMetaMaskDeeplink
   if (isMetaMaskSDKDeeplinkAction(action)) {
     const mappedUrl = url.replace(
-      `${PROTOCOLS.HTTPS}://${MM_IO_UNIVERSAL_LINK_HOST}/`,
+      `${PROTOCOLS.HTTPS}://${validatedUrl.hostname}/`,
       `${PROTOCOLS.METAMASK}://`,
     );
     const { urlObj: mappedUrlObj, params } = extractURLParams(mappedUrl);

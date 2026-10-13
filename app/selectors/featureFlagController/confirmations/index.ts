@@ -9,6 +9,8 @@ import {
 } from '@metamask/transaction-controller';
 import {
   getRelayFixedSpreadFromConfig,
+  hasRelayFixedSpreadAliasRoute,
+  PERPS_MONEY_ACCOUNT_NO_FEE_ROUTE,
   RelayFixedSpreadConfig,
 } from '../../../components/Views/confirmations/utils/relayFixedSpread';
 
@@ -226,6 +228,20 @@ export function selectDepositLimits(state: RootState): Record<string, number> {
     PAY_DEPOSIT_LIMITS_DEFAULT
   );
 }
+
+/**
+ * True when `confirmations_relay_fixed_spread` lists the Monad mUSD →
+ * Hyperliquid perps route. That route gates the Money account "No fee" tag
+ * on perps deposits.
+ */
+export const selectPerpsMoneyAccountNoFeeRouteEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): boolean =>
+    hasRelayFixedSpreadAliasRoute(
+      featureFlags?.confirmations_relay_fixed_spread,
+      PERPS_MONEY_ACCOUNT_NO_FEE_ROUTE,
+    ),
+);
 
 export const selectMetaMaskPayTokensFlags = createSelector(
   selectRemoteFeatureFlags,

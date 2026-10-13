@@ -1,5 +1,6 @@
 // Third party dependencies.
 import React from 'react';
+import { View } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 
 // Internal dependencies.
@@ -27,6 +28,26 @@ describe('Tab', () => {
       const { getAllByText } = render(<Tab {...defaultProps} label="My Tab" />);
 
       expect(getAllByText('My Tab')[0]).toBeOnTheScreen();
+    });
+
+    it('renders endAccessory after the label', () => {
+      const { getByTestId } = render(
+        <Tab
+          {...defaultProps}
+          testID="accessory-tab"
+          endAccessory={<View testID="tab-end-accessory" />}
+        />,
+      );
+
+      expect(getByTestId('tab-end-accessory')).toBeOnTheScreen();
+    });
+
+    it('renders no endAccessory by default', () => {
+      const { queryByTestId } = render(
+        <Tab {...defaultProps} testID="plain-tab" />,
+      );
+
+      expect(queryByTestId('tab-end-accessory')).toBeNull();
     });
 
     it('renders long labels without truncating the element', () => {

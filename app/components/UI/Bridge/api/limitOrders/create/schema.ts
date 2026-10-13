@@ -6,9 +6,11 @@ import {
   optional,
   record,
   string,
+  type,
   unknown,
   type Infer,
 } from '@metamask/superstruct';
+import { CaipAssetTypeStruct } from '@metamask/utils';
 import {
   HexStringSchema,
   PreparedLimitOrderDelegationSchema,
@@ -46,7 +48,7 @@ export type LimitOrderTrigger = Infer<typeof LimitOrderTriggerSchema>;
  * fail validation.
  */
 export const LimitOrderAssetSchema = object({
-  assetId: string(),
+  assetId: CaipAssetTypeStruct,
   symbol: string(),
   decimals: number(),
   chainId: optional(number()),
@@ -111,6 +113,18 @@ export const CreatedLimitOrderSchema = object({
 });
 
 export type CreatedLimitOrder = Infer<typeof CreatedLimitOrderSchema>;
+
+/**
+ * One fee in a fill's `feeData`, e.g. its `txFee`. Only the fields the client
+ * shows are checked, so the rest of a fee can change freely.
+ */
+export const LimitOrderFeeSchema = type({
+  amount: string(),
+  asset: type({ assetId: string(), symbol: string(), decimals: number() }),
+  usd: optional(string()),
+});
+
+export type LimitOrderFee = Infer<typeof LimitOrderFeeSchema>;
 
 /**
  * A fill attempt against the order. Present from the first response for an

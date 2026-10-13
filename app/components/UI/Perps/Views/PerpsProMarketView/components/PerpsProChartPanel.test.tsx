@@ -126,11 +126,6 @@ const mockPerpsOHLCVBar = ({ testID }: { testID?: string }) => (
 const mockPerpsPriceDeviationWarning = ({ testID }: { testID?: string }) => (
   <Box testID={testID} />
 );
-const mockPerpsServiceInterruptionBanner = ({
-  testID,
-}: {
-  testID?: string;
-}) => <Box testID={testID} />;
 const mockUsePerpsLiveCandles = jest.fn();
 const mockUsePerpsLiveOrders = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
@@ -227,12 +222,6 @@ jest.mock('../../../components/PerpsPriceDeviationWarning', () => ({
   __esModule: true,
   default: (props: { testID?: string }) =>
     mockPerpsPriceDeviationWarning(props),
-}));
-
-jest.mock('../../../components/PerpsServiceInterruptionBanner', () => ({
-  __esModule: true,
-  default: (props: { testID?: string }) =>
-    mockPerpsServiceInterruptionBanner(props),
 }));
 
 const getLastAdvancedChartProps = () => {

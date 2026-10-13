@@ -11,7 +11,12 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react-native';
-import type { PriceUpdate } from '@metamask/perps-controller';
+import {
+  CandlePeriod,
+  PERPS_EVENT_VALUE,
+  type CandleData,
+  type PriceUpdate,
+} from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -19,6 +24,7 @@ import {
   defaultPositionForViews,
   renderPerpsOrderView,
   type PerpsExtraRoute,
+  type PerpsStreamOverrides,
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
   PerpsLimitPriceBottomSheetSelectorsIDs,
@@ -31,6 +37,11 @@ import {
   createEthMarketForViews,
   createFundedAccountForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
+import {
+  formatPercentage,
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
 
 const TIMEOUT_MS = 5000;
 
@@ -479,16 +490,62 @@ describe('PerpsOrderView', () => {
       leverage: 4,
       useBottomSheet: true,
     };
+    const cachedEthPrice: PriceUpdate = {
+      symbol: 'ETH',
+      price: '2700',
+      percentChange24h: '0.02',
+      timestamp: 1,
+      isTradable: true,
+    };
+    const cachedEthChart: CandleData = {
+      symbol: 'ETH',
+      interval: CandlePeriod.FifteenMinutes,
+      candles: [
+        {
+          time: Date.now(),
+          open: '2737.9',
+          high: '2737.9',
+          low: '2737.9',
+          close: '2737.9',
+          volume: '1',
+        },
+      ],
+    };
+    const headerCache = {
+      cachedPrices: { ETH: cachedEthPrice },
+      cachedCandles: cachedEthChart,
+    };
+    const chartPeriodOverrides = {
+      settings: {
+        perpsChartPreferences: {
+          preferredCandlePeriod: CandlePeriod.FifteenMinutes,
+        },
+      },
+    };
 
-    const renderTradeSheet = () =>
+    const headerPriceText = (price: number) =>
+      formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
+    const headerChangeText = (percent: number) =>
+      formatPercentage(String(percent));
+
+    const renderTradeSheet = (
+      options: {
+        initialParams?: Record<string, unknown>;
+        streamOverrides?: PerpsStreamOverrides;
+      } = {},
+    ) =>
       renderPerpsOrderView({
-        overrides: eligibleOverrides,
-        initialParams: tradeSheetParams,
+        overrides: {
+          ...eligibleOverrides,
+          ...chartPeriodOverrides,
+        },
+        initialParams: { ...tradeSheetParams, ...options.initialParams },
         streamOverrides: {
           account,
           positions: [],
           orders: [],
           marketData: [ethMarket],
+          ...options.streamOverrides,
         },
         extraRoutes: [marketDetailsRoute],
       });
@@ -549,6 +606,45 @@ describe('PerpsOrderView', () => {
       placeOrder.mockResolvedValue({ success: true });
     });
 
+    it('places the order and stays off the market page when stayOnCurrentScreen is set', async () => {
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      placeOrder.mockResolvedValue({ success: true });
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: {
+          ...tradeSheetParams,
+          stayOnCurrentScreen: true,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+      const submitButton = await findEnabledSubmitButton();
+
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      await waitFor(() => {
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            symbol: 'ETH',
+            isBuy: true,
+            orderType: 'market',
+          }),
+        );
+      });
+      expect(
+        screen.queryByTestId(`route-${Routes.PERPS.MARKET_DETAILS}`),
+      ).toBeNull();
+    });
+
     // Dismissing the sheet runs its exit animation and `onClose` before the
     // navigation transition would unmount the view. The view framework renders
     // the design-system BottomSheet as a plain View (no backdrop or swipe), so
@@ -602,6 +698,136 @@ describe('PerpsOrderView', () => {
       validateOrder.mockResolvedValue({ isValid: true });
 
       expect(placeOrder).not.toHaveBeenCalled();
+    });
+
+    it('shows the cached asset-screen chart price before a new price tick', async () => {
+      renderTradeSheet({ streamOverrides: headerCache });
+
+      expect(
+        await screen.findByTestId(
+          PerpsTradeSheetSelectorsIDs.HEADER_PRICE,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toHaveTextContent(headerPriceText(2737.9));
+      expect(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_CHANGE),
+      ).toHaveTextContent(headerChangeText(0.02));
+      expect(
+        screen.queryByTestId(PerpsTradeSheetSelectorsIDs.HEADER_SKELETON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('falls back to the cached mid when the chart cache is stale', async () => {
+      renderTradeSheet({
+        streamOverrides: { ...headerCache, chartCacheFresh: false },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsTradeSheetSelectorsIDs.HEADER_PRICE,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toHaveTextContent(headerPriceText(2700));
+      expect(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_CHANGE),
+      ).toHaveTextContent(headerChangeText(0.02));
+      expect(
+        screen.queryByTestId(PerpsTradeSheetSelectorsIDs.HEADER_SKELETON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the focused price when chart and mid caches are absent', async () => {
+      renderTradeSheet({
+        streamOverrides: {
+          cachedFocusedPrice: {
+            symbol: 'ETH',
+            price: '2715',
+            percentChange24h: '0.5',
+            timestamp: 1,
+            isTradable: true,
+          },
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsTradeSheetSelectorsIDs.HEADER_PRICE,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toHaveTextContent(headerPriceText(2715));
+      expect(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_CHANGE),
+      ).toHaveTextContent(headerChangeText(0.5));
+      expect(
+        screen.queryByTestId(PerpsTradeSheetSelectorsIDs.HEADER_SKELETON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not use the chart close when the Advanced Chart is active', async () => {
+      renderTradeSheet({
+        initialParams: {
+          chartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+        },
+        streamOverrides: headerCache,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsTradeSheetSelectorsIDs.HEADER_PRICE,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toHaveTextContent(headerPriceText(2700));
+      expect(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_CHANGE),
+      ).toHaveTextContent(headerChangeText(0.02));
+    });
+
+    it('shows the header skeleton when nothing is cached yet', async () => {
+      renderTradeSheet();
+
+      expect(
+        await screen.findByTestId(
+          PerpsTradeSheetSelectorsIDs.HEADER_SKELETON,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsTradeSheetSelectorsIDs.HEADER_PRICE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('follows the live mid once the sheet subscription delivers', async () => {
+      const { stream } = renderTradeSheet({ streamOverrides: headerCache });
+
+      expect(
+        await screen.findByTestId(
+          PerpsTradeSheetSelectorsIDs.HEADER_PRICE,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toHaveTextContent(headerPriceText(2737.9));
+
+      emitEthPrice(stream, '1.5', '2740');
+
+      await waitFor(
+        () => {
+          expect(
+            screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_PRICE),
+          ).toHaveTextContent(headerPriceText(2740));
+          expect(
+            screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_CHANGE),
+          ).toHaveTextContent(headerChangeText(1.5));
+        },
+        { timeout: TIMEOUT_MS },
+      );
+      expect(
+        screen.queryByTestId(PerpsTradeSheetSelectorsIDs.HEADER_SKELETON),
+      ).not.toBeOnTheScreen();
     });
   });
 

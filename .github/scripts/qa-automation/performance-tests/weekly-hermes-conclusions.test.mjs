@@ -7,10 +7,13 @@ import {
   buildWeeklyMarkdown,
   buildWeeklyParentSlack,
   buildWeeklyReport,
+  buildSharedFrameCard,
   classifyScenario,
   classifyWeeklyScenarios,
+  collapseSharedNewFrames,
   collapseSharedSpikes,
   formatDurationsAlike,
+  frameLabel,
   weeklySlackCards,
   isIsolatedSpike,
   isNewHotFrame,
@@ -229,23 +232,197 @@ test('the newest runs sitting above the earlier ones is a rising trend', () => {
   assert.match(rendered, /check what landed mid-week/);
 });
 
-test('new hot frame requires symbolicated identities to change', () => {
+function predictFeedContributor() {
+  return {
+    name: 'usePredictFeed',
+    url: 'app/predict.ts',
+    line: 4,
+    runsHot: 9,
+    medianSelfMs: 500,
+    medianSharePct: 14,
+  };
+}
+
+test('new hot frame requires symbolicated identities to change and JS work to rise', () => {
   const current = scenarioFixture('Predict Deposit - Complete Flow Performance', {
-    contributors: [
-      {
-        name: 'usePredictFeed',
-        url: 'app/predict.ts',
-        line: 4,
-        runsHot: 9,
-        medianSelfMs: 500,
-        medianSharePct: 14,
-      },
-    ],
+    medianJsWorkMs: 2300,
+    contributors: [predictFeedContributor()],
   });
   const previous = scenarioFixture('Predict Deposit - Complete Flow Performance');
 
   assert.equal(isNewHotFrame(current, previous), true);
   assert.equal(classifyScenario(current, previous), STATUS.NEW_FRAME);
+
+  const [card] = classifyWeeklyScenarios(
+    { scenarios: [current] },
+    { scenarios: [previous] },
+  );
+  assert.match(card.conclusion, /`selectAccount` \(app\/foo\.ts:10\)/);
+  assert.match(card.conclusion, /`usePredictFeed` \(app\/predict\.ts:4\)/);
+  assert.match(card.conclusion, /rose 1\.15× versus last week/);
+});
+
+test('a new top frame in a scenario that got faster is not a finding', () => {
+  // The Sep 28 thread: `fast-equals` took the lead in 13 scenarios whose
+  // median JS work went down 0.65×–0.98×. That is a profile shape change.
+  const current = scenarioFixture('Perps add funds', {
+    medianJsWorkMs: 1900,
+    contributors: [predictFeedContributor()],
+  });
+  const previous = scenarioFixture('Perps add funds', { medianJsWorkMs: 2000 });
+
+  assert.equal(isNewHotFrame(current, previous), false);
+  assert.equal(classifyScenario(current, previous), null);
+});
+
+test('frameLabel tells two anonymous frames apart by file and line', () => {
+  assert.equal(
+    frameLabel({ name: 'anonymous', url: 'app/lib/snaps/preinstalled-snaps.ts', line: 39 }),
+    '`anonymous` (app/lib/snaps/preinstalled-snaps.ts:39)',
+  );
+  assert.equal(frameLabel({ name: 'objectKeys' }), '`objectKeys`');
+  assert.equal(frameLabel(null), '');
+});
+
+function sharedFrameWindow(names, medianJsWorkMs) {
+  return {
+    meta: { profileCount: 20, symbolicatedProfileCount: 20 },
+    scenarios: names.map((name) =>
+      scenarioFixture(name, {
+        medianJsWorkMs,
+        contributors: [
+          {
+            name: 'isPropertyEqual',
+            url: 'node_modules/fast-equals/dist/cjs/index.cjs',
+            line: 281,
+            runsHot: 12,
+            medianSelfMs: 2000,
+            medianSharePct: 8.8,
+          },
+        ],
+      }),
+    ),
+  };
+}
+
+test('one frame leading several slower scenarios is one card, not one per scenario', () => {
+  const names = [
+    'Perps add funds',
+    'Asset View',
+    'Cold Start: Measure ColdStart To Login Screen',
+  ];
+  const report = buildWeeklyReport({
+    thisWindow: sharedFrameWindow(names, 2300),
+    lastWindow: {
+      meta: {},
+      scenarios: names.map((name) => scenarioFixture(name)),
+    },
+    bounds: weekBounds(new Date('2026-09-28T09:00:00.000Z')),
+    thisWeekRunCount: 19,
+    lastWeekRunCount: 13,
+  });
+
+  assert.equal(report.cards.length, 0);
+  assert.equal(report.sharedFrames.length, 1);
+  assert.equal(report.sharedFrames[0].name, 'isPropertyEqual');
+  assert.equal(report.sharedFrames[0].scenarios.length, 3);
+
+  const cards = weeklySlackCards(report);
+  assert.equal(cards.length, 1);
+  assert.match(cards[0], /\*New hot frame across 3 scenarios\*/);
+  assert.match(cards[0], /`isPropertyEqual` \(node_modules\/fast-equals\/dist\/cjs\/index\.cjs:281\)/);
+  assert.match(cards[0], /not 3 regressions/);
+  assert.match(cards[0], /Perps add funds\* — 2000\.0 ms → 2300\.0 ms \(1\.15×\) · 8\.8%/);
+  assert.match(cards[0], /was `selectAccount` \(app\/foo\.ts:10\)/);
+  assert.match(cards[0], /owner mm-perps-engineering-team/);
+  assert.match(cards[0], /owner assets-dev-team/);
+  assert.doesNotMatch(cards[0], /subteam/);
+
+  const parent = buildWeeklyParentSlack(report);
+  assert.doesNotMatch(parent, /Nothing to action this week/);
+  assert.match(parent, /_Shared hot frame:_ `isPropertyEqual`/);
+  assert.match(parent, /became the top frame in 3 scenarios that got slower/);
+  assert.match(parent, /reported once instead of per scenario/);
+  assert.match(parent, /traces back to one shared frame or one run/);
+
+  const markdown = buildWeeklyMarkdown(report);
+  assert.match(markdown, /## New hot frame across 3 scenarios — `isPropertyEqual`/);
+  assert.match(markdown, /- Asset View — median JS work 2000\.0 ms → 2300\.0 ms \(1\.15×\)/);
+});
+
+test('a frame that leads only one slower scenario stays a per-scenario card', () => {
+  const cards = classifyWeeklyScenarios(
+    sharedFrameWindow(['Perps add funds'], 2300),
+    { scenarios: [scenarioFixture('Perps add funds')] },
+  );
+
+  const collapsed = collapseSharedNewFrames(cards);
+
+  assert.equal(collapsed.sharedFrames.length, 0);
+  assert.deepEqual(
+    collapsed.cards.map((card) => card.status),
+    [STATUS.NEW_FRAME],
+  );
+});
+
+test('different new frames in different scenarios are not collapsed together', () => {
+  const current = {
+    scenarios: [
+      scenarioFixture('Perps add funds', {
+        medianJsWorkMs: 2300,
+        contributors: [predictFeedContributor()],
+      }),
+      scenarioFixture('Asset View', {
+        medianJsWorkMs: 2300,
+        contributors: [
+          { ...predictFeedContributor(), name: 'useAssets', url: 'app/assets.ts' },
+        ],
+      }),
+    ],
+  };
+  const previous = {
+    scenarios: [
+      scenarioFixture('Perps add funds'),
+      scenarioFixture('Asset View'),
+    ],
+  };
+
+  const collapsed = collapseSharedNewFrames(
+    classifyWeeklyScenarios(current, previous),
+  );
+
+  assert.equal(collapsed.sharedFrames.length, 0);
+  assert.equal(collapsed.cards.length, 2);
+});
+
+test('buildSharedFrameCard scales every row to the same unit', () => {
+  const card = buildSharedFrameCard({
+    name: 'comparator',
+    url: 'node_modules/fast-equals/dist/cjs/index.cjs',
+    line: 317,
+    scenarios: [
+      {
+        scenario: 'Swap flow - ETH to LINK',
+        previousFrame: '`mod` (node_modules/@noble/curves/abstract/modular.js:33)',
+        medianJsWorkMs: 26_500,
+        previousMedianJsWorkMs: 24_100,
+        ratio: 1.1,
+        medianSharePct: 8,
+      },
+      {
+        scenario: 'Fresh SRP wallet creation performance',
+        previousFrame: '`mod` (node_modules/@noble/curves/abstract/modular.js:33)',
+        medianJsWorkMs: 9_800,
+        previousMedianJsWorkMs: 8_900,
+        ratio: 1.1,
+        medianSharePct: 5,
+      },
+    ],
+  });
+
+  assert.match(card, /24\.1 s → 26\.5 s \(1\.1×\)/);
+  assert.match(card, /8\.9 s → 9\.8 s \(1\.1×\)/);
+  assert.doesNotMatch(card, / ms /);
 });
 
 test('thin coverage that would be a regression is insufficient data', () => {
@@ -479,18 +656,63 @@ test('a slow run every scenario has run clean past is marked recovered', () => {
   assert.equal(report.sharedSpikes[0].recovered, true);
   assert.deepEqual(report.recovered, []);
 
-  const [card] = weeklySlackCards(report);
-  assert.match(card, /\*Slow run \(recovered\)\*/);
-  assert.match(card, /has run clean since that run/);
-  // Nothing to action must not page six teams for the record.
-  assert.doesNotMatch(card, /subteam/);
-  assert.match(card, /owner mm-perps-engineering-team/);
-  assert.match(card, /no team is notified/);
+  // History is not something to read in the thread; the parent line and the
+  // markdown record carry it.
+  assert.deepEqual(weeklySlackCards(report), []);
   const parent = buildWeeklyParentSlack(report);
   assert.match(parent, /\*Nothing to action this week\.\*/);
   assert.match(parent, /every one of them has run clean since/);
-  assert.match(parent, /detailed in the thread for the record/);
+  assert.match(parent, /nothing is posted in the thread/);
+  assert.doesNotMatch(parent, /detailed in the thread/);
   assert.doesNotMatch(parent, /One card per finding/);
+});
+
+test('a recovered slow run next to real findings gets no card either', () => {
+  const report = buildWeeklyReport({
+    thisWindow: {
+      meta: { profileCount: 10, symbolicatedProfileCount: 10 },
+      scenarios: [
+        ...spikeWindow(['Money Home', 'Asset View'], '35936933013', {
+          runsAfterPeak: 5,
+          tailMedianJsWorkMs: 2000,
+        }).scenarios,
+        scenarioFixture('Perps add funds', { medianJsWorkMs: 5000 }),
+      ],
+    },
+    lastWindow: {
+      meta: {},
+      scenarios: [scenarioFixture('Perps add funds', { medianJsWorkMs: 2000 })],
+    },
+    bounds: weekBounds(new Date('2026-09-28T09:00:00.000Z')),
+    thisWeekRunCount: 19,
+    lastWeekRunCount: 13,
+  });
+
+  const cards = weeklySlackCards(report);
+  assert.equal(cards.length, 1);
+  assert.match(cards[0], /\*Worse than last week\* · \*Perps add funds\*/);
+  assert.doesNotMatch(cards.join('\n'), /Slow run \(recovered\)/);
+
+  const parent = buildWeeklyParentSlack(report);
+  assert.match(parent, /_Slow run:_ <https:\/\/example\.com\/35936933013\|35936933013>/);
+  assert.match(parent, /has run clean since and it gets no card/);
+  // The markdown record still keeps it.
+  assert.match(buildWeeklyMarkdown(report), /## Slow run \(recovered\) — \[35936933013\]/);
+});
+
+test('an open slow run still gets its card', () => {
+  const report = buildWeeklyReport({
+    thisWindow: spikeWindow(['Perps add funds', 'Money Home'], '34935384411'),
+    lastWindow: { meta: {}, scenarios: [] },
+    bounds: weekBounds(new Date('2026-09-21T09:00:00.000Z')),
+    thisWeekRunCount: 9,
+    lastWeekRunCount: 0,
+  });
+
+  const cards = weeklySlackCards(report);
+  assert.equal(cards.length, 1);
+  assert.match(cards[0], /^\*Slow run\* · /);
+  assert.doesNotMatch(cards[0], /recovered/);
 });
 
 test('every row of a slow run card is scaled to the same unit', () => {

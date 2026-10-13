@@ -25,7 +25,9 @@ import io.metamask.nativeModules.RNTar.RNTarPackage
 import io.metamask.nativeModules.BrazePushPackage
 import io.metamask.nativeModules.NotificationPackage
 import io.metamask.nativeModules.HermesProfiler.HermesProfilerPackage
+import com.braze.Braze
 import com.braze.BrazeActivityLifecycleCallbackListener
+import com.braze.configuration.BrazeConfig
 import com.margelo.nitro.nitrofetch.AutoPrefetcher
 
 class MainApplication : Application(), ShareApplication, ReactApplication {
@@ -65,6 +67,14 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
 
     override fun onCreate() {
         super.onCreate()
+
+        // Fill the edge-to-edge host; HTML templates use --braze-safe-area-inset-* for content padding.
+        Braze.configure(
+            this,
+            BrazeConfig.Builder()
+                .setIsHtmlInAppMessageApplyWindowInsetsEnabled(false)
+                .build()
+        )
 
         // Initialize Branch
         RNBranchModule.getAutoInstance(this)

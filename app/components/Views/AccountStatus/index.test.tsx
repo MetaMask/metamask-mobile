@@ -1,4 +1,5 @@
 import React from 'react';
+import { Image } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import AccountStatus from '.';
@@ -13,6 +14,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { AccountStatusSelectorIDs } from './AccountStatus.testIds';
 import { AccountType } from '../../../constants/onboarding';
+import WalletExistsImg from '../../../images/wallet-exists.png';
+import WalletNotFoundImg from '../../../images/wallet-not-found.png';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -99,6 +102,22 @@ describe('AccountStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
+  });
+
+  describe('Illustration image', () => {
+    it('shows wallet-exists image when type is found', () => {
+      mockRouteParams = { type: 'found' };
+      const { UNSAFE_getByType } = renderWithProvider(<AccountStatus />);
+
+      expect(UNSAFE_getByType(Image).props.source).toBe(WalletExistsImg);
+    });
+
+    it('shows wallet-not-found image when type is not_exist', () => {
+      mockRouteParams = { type: 'not_exist' };
+      const { UNSAFE_getByType } = renderWithProvider(<AccountStatus />);
+
+      expect(UNSAFE_getByType(Image).props.source).toBe(WalletNotFoundImg);
+    });
   });
 
   describe('Behavior Tests', () => {

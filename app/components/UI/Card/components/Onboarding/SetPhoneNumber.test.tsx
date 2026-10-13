@@ -1,4 +1,5 @@
 import React from 'react';
+import { Keyboard } from 'react-native';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
@@ -894,6 +895,33 @@ describe('SetPhoneNumber Component', () => {
       });
 
       expect(mockSendPhoneVerification).not.toHaveBeenCalled();
+    });
+
+    it('dismisses the keyboard without sending verification when the phone keypad is submitted', async () => {
+      const dismissSpy = jest
+        .spyOn(Keyboard, 'dismiss')
+        .mockImplementation(() => undefined);
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SetPhoneNumber />
+        </Provider>,
+      );
+
+      const phoneInput = getByTestId('set-phone-number-phone-number-input');
+
+      await act(async () => {
+        fireEvent.changeText(phoneInput, '1234567890');
+      });
+
+      await act(async () => {
+        fireEvent(phoneInput, 'onSubmitEditing');
+      });
+
+      expect(dismissSpy).toHaveBeenCalled();
+      expect(mockSendPhoneVerification).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      dismissSpy.mockRestore();
     });
   });
 

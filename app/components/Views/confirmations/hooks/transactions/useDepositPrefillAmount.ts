@@ -32,6 +32,11 @@ import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
+
+/** Smallest fiat amount the input can display and a quote can be built for. */
+export const MIN_FIAT_AMOUNT = 0.01;
 
 function formatFiatAmount(value: BigNumber): string {
   return value.isInteger() ? value.toString(10) : value.toFixed(2);
@@ -65,6 +70,7 @@ export function useDepositPrefillAmount({
   autoSelectFiatPayment?: boolean;
 } = {}): DepositPrefillResult {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const { amount } = useParams<{ amount?: string }>();
   const { payToken } = useTransactionPayToken();
   const fiatPayment = useTransactionPayFiatPayment();
   const { availableTokens } = useTransactionPayAvailableTokens();
@@ -91,9 +97,10 @@ export function useDepositPrefillAmount({
     return undefined;
   }, [transactionMeta, depositLimits]);
 
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
+  const isMoneyAccountDeposit = hasTransactionType(
+    transactionMeta,
+    MONEY_ACCOUNT_DEPOSIT_TYPES,
+  );
   const depositIntent = getMoneyAccountDepositIntent(transactionMeta?.batchId);
 
   const remoteFeatureFlags = useSelector(selectRemoteFeatureFlags);
@@ -105,6 +112,18 @@ export function useDepositPrefillAmount({
   const enabled = useMemo(() => {
     if (!isMoneyAccountDeposit) {
       return prefilledAmountConfig.enabled;
+    }
+
+    // Explicit amounts use the same quote preparation flow without opting into
+    // balance-based prefill or changing card/add-mUSD funding behavior.
+    if (amount !== undefined) {
+      const explicitAmount = new BigNumber(amount);
+      return (
+        depositIntent !== 'card' &&
+        depositIntent !== 'addMusd' &&
+        explicitAmount.isFinite() &&
+        explicitAmount.gt(0)
+      );
     }
 
     const { variantName } = resolveABTestAssignment(
@@ -127,6 +146,7 @@ export function useDepositPrefillAmount({
       intent: depositIntent,
     });
   }, [
+    amount,
     depositIntent,
     isMoneyAccountDeposit,
     prefilledAmountConfig.enabled,
@@ -157,16 +177,35 @@ export function useDepositPrefillAmount({
       };
     }
 
+    if (isMoneyAccountDeposit && amount !== undefined) {
+      return {
+        prefillAmount: amount,
+        percentage: undefined,
+        isLimitCapped: false,
+      };
+    }
+
     const stable = isRouteToken(relayFixedSpread, {
       chainId: payToken.chainId,
       address: payToken.address,
     });
-    const nextPercentage = stable ? 100 : 50;
+    const nextPercentage = isMoneyAccountDeposit && stable ? 100 : 50;
 
     const raw = new BigNumber(nextPercentage)
       .dividedBy(100)
       .multipliedBy(balanceUsd)
       .decimalPlaces(2, BigNumber.ROUND_DOWN);
+
+    // Sub-cent dust renders as $0.00 and cannot produce a usable quote.
+    // `updatePendingAmountPercentage` refuses to apply it, which left the
+    // previous token's amount in place and quoted it against the new token.
+    if (raw.lt(MIN_FIAT_AMOUNT)) {
+      return {
+        prefillAmount: undefined,
+        percentage: undefined,
+        isLimitCapped: false,
+      };
+    }
 
     const capped =
       depositLimit !== undefined && raw.isGreaterThan(depositLimit);
@@ -178,7 +217,15 @@ export function useDepositPrefillAmount({
       percentage: nextPercentage,
       isLimitCapped: capped,
     };
-  }, [enabled, balanceUsd, payToken, depositLimit, relayFixedSpread]);
+  }, [
+    amount,
+    isMoneyAccountDeposit,
+    enabled,
+    balanceUsd,
+    payToken,
+    depositLimit,
+    relayFixedSpread,
+  ]);
 
   useEffect(() => {
     if (!enabled) {
@@ -210,10 +257,15 @@ export function useDepositPrefillAmount({
   // `NaN` produces no prefill amount and is not `<= 0`, so treating it as a
   // skip rather than waiting prevents an unbounded loader.
   const hasUsableBalance = Number.isFinite(balanceUsd) && balanceUsd > 0;
+  // With a pay token and a usable balance, the only way to have no prefill
+  // amount is a sub-cent dust balance, which is skipped like no balance.
+  const isDustBalance =
+    Boolean(payToken) && hasUsableBalance && prefillAmount === undefined;
   const isSkipped =
     enabled &&
     (isFiatPrefillSkipped ||
       (Boolean(payToken) && !hasUsableBalance) ||
+      isDustBalance ||
       (!payToken && !hasFundedToken));
 
   let status = DepositPrefillStatus.Loading;

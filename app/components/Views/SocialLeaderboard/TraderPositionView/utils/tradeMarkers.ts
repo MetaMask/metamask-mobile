@@ -1,6 +1,6 @@
 import type { Trade } from '@metamask/social-controllers';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
-import { tradeTimestampToMs } from '../../utils/tradeTimestamp';
+import { tradeTimestampToMs } from '../../../../UI/SocialFeed/utils/tradeTimestamp';
 
 export interface TradeMarker {
   /** Index into the `priceList` array derived from `prices`. */

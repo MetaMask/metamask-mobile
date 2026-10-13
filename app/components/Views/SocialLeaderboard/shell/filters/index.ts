@@ -10,6 +10,8 @@ export type { UseSocialShellFiltersResult } from './useSocialShellFilters';
 export { default as SocialTabFilterBar } from './SocialTabFilterBar';
 export type { SocialTabFilterBarProps } from './SocialTabFilterBar';
 export { mapFiltersToApiParams } from './mapFiltersToApiParams';
+export { filterSocialV1FeedPosts } from './filterSocialV1FeedPosts';
+export { filterLeaderboardTraders } from './filterLeaderboardTraders';
 export {
   DEFAULT_FILTERS,
   MARKET_CAP_RANGE,

@@ -115,11 +115,11 @@ describe('screenTtcRegistry', () => {
     const listener = jest.fn();
     const unsubscribe = subscribeScreenTtc(listener);
 
-    recordScreenTtc(OnboardingScreenIds.ONBOARDING_SUCCESS, 40, 'filled');
+    recordScreenTtc(OnboardingScreenIds.OPTIN_METRICS, 40, 'filled');
     expect(listener).toHaveBeenCalledTimes(1);
 
     unsubscribe();
-    recordScreenTtc(OnboardingScreenIds.ONBOARDING_SUCCESS, 50, 'filled');
+    recordScreenTtc(OnboardingScreenIds.OPTIN_METRICS, 50, 'filled');
     expect(listener).toHaveBeenCalledTimes(1);
   });
 });

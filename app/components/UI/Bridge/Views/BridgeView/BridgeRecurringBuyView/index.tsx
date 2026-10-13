@@ -1,5 +1,6 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
+  RefreshControl,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   ScrollView,
@@ -39,10 +40,7 @@ import {
 } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
-import {
-  formatPriceRangeBounds,
-  PRICE_RANGE_CURRENCY,
-} from '../../../utils/priceRange';
+import { formatPriceRangeBounds } from '../../../utils/priceRange';
 import { strings } from '../../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import {
@@ -66,6 +64,7 @@ const BridgeRecurringBuyViewContent = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const inputRef = useRef<TokenInputAreaRef>(null);
+  const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
   const {
     latestSourceBalance,
     recurringOrdersTab = OrdersTabKey.OpenOrders,
@@ -178,13 +177,27 @@ const BridgeRecurringBuyViewContent = () => {
     [recurringOrdersTab, historyQuery, openOrdersQuery],
   );
 
+  const handleOrdersRefresh = useCallback(async () => {
+    const activeOrdersQuery =
+      recurringOrdersTab === OrdersTabKey.OpenOrders
+        ? openOrdersQuery
+        : historyQuery;
+
+    setIsRefreshingOrders(true);
+    try {
+      await activeOrdersQuery.refresh();
+    } finally {
+      setIsRefreshingOrders(false);
+    }
+  }, [recurringOrdersTab, historyQuery, openOrdersQuery]);
+
   const priceRangeToken =
     priceRange?.tokenSide === 'source' ? sourceToken : destToken;
   const { minLabel: priceRangeMinLabel, maxLabel: priceRangeMaxLabel } =
     formatPriceRangeBounds(
       priceRange?.min ?? '',
       priceRange?.max ?? '',
-      PRICE_RANGE_CURRENCY,
+      priceRange?.currency ?? '',
     );
 
   const handlePriceRangePress = useCallback(() => {
@@ -222,6 +235,12 @@ const BridgeRecurringBuyViewContent = () => {
           onScrollBeginDrag={dismissInputAndKeypad}
           onScroll={handleScroll}
           scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshingOrders}
+              onRefresh={handleOrdersRefresh}
+            />
+          }
         >
           <SwapsInputs
             inputRef={inputRef}

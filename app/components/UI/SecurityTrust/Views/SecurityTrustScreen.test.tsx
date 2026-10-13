@@ -152,7 +152,6 @@ jest.mock('../../TokenDetails/hooks/useTokenActions', () => ({
 
 jest.mock('../../TokenDetails/hooks/useStickyQuickBuy', () => ({
   useStickyQuickBuy: jest.fn(() => ({
-    isQuickBuyEnabled: true,
     onQuickBuyPress: jest.fn(),
     quickBuySheet: null,
   })),
@@ -170,7 +169,6 @@ describe('SecurityTrustScreen', () => {
     jest.clearAllMocks();
     mockRouteParams = createDefaultRouteParams();
     getMockUseStickyQuickBuy().mockReturnValue({
-      isQuickBuyEnabled: true,
       onQuickBuyPress: jest.fn(),
       quickBuySheet: null,
     });
@@ -353,22 +351,11 @@ describe('SecurityTrustScreen', () => {
     it('passes onQuickBuyPress from the hook to TokenDetailsStickyFooter', () => {
       const onQuickBuyPress = jest.fn();
       getMockUseStickyQuickBuy().mockReturnValue({
-        isQuickBuyEnabled: true,
         onQuickBuyPress,
         quickBuySheet: null,
       });
 
       // Renders without errors — the footer (mocked) receives the prop.
-      expect(() => render(<SecurityTrustScreen />)).not.toThrow();
-    });
-
-    it('does not throw when quick-buy is disabled', () => {
-      getMockUseStickyQuickBuy().mockReturnValue({
-        isQuickBuyEnabled: false,
-        onQuickBuyPress: undefined,
-        quickBuySheet: null,
-      });
-
       expect(() => render(<SecurityTrustScreen />)).not.toThrow();
     });
   });

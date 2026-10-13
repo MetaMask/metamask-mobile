@@ -7,22 +7,52 @@ import {
   ButtonIcon,
   ButtonIconSize,
   IconName as DsIconName,
+  Icon,
+  IconColor,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
-import QuickBuyTradeModeToggle from './QuickBuyTradeModeToggle';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import Routes from '../../../../constants/navigation/Routes';
+import { formatCurrency } from '../../Bridge/utils/currencyUtils';
+import { TouchableOpacity } from 'react-native';
 import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import { useQuickBuyContext } from '../useQuickBuyContext';
+import { strings } from '../../../../../locales/i18n';
+import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyToolbar: React.FC = () => {
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     features,
     hasSellableBalance,
-    isQuickAmountPreferencesLoaded,
-    onClose,
-    setActiveScreen,
+    currentCurrency,
+    sourceToken,
+    destToken,
+    tokenPrice,
+    target,
+    tradeMode,
+    setTradeMode,
   } = useQuickBuyContext();
 
   const showFullToggle = features.tradeModes.length > 1 && hasSellableBalance;
-  const showSettings = features.quickAmountPills;
+  const handleOpenSlippage = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
+      params: {
+        sourceChainId: sourceToken?.chainId,
+        destChainId: destToken?.chainId,
+      },
+    });
+  };
+  const headerToken = tradeMode === 'sell' ? sourceToken : destToken;
+  const tokenPriceLabel =
+    tokenPrice !== undefined
+      ? formatCurrency(tokenPrice, currentCurrency)
+      : undefined;
 
   return (
     <Box
@@ -31,29 +61,76 @@ const QuickBuyToolbar: React.FC = () => {
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
     >
-      {showSettings ? (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={3}
+      >
+        {headerToken ? (
+          <QuickBuyTokenIcon token={headerToken} />
+        ) : (
+          <Box twClassName="h-10 w-10" />
+        )}
+        <Box>
+          <TouchableOpacity
+            disabled={!showFullToggle}
+            accessibilityRole={showFullToggle ? 'button' : undefined}
+            accessibilityLabel={
+              showFullToggle
+                ? strings('social_leaderboard.quick_buy.change_trade_mode')
+                : undefined
+            }
+            onPress={() => setTradeMode(tradeMode === 'buy' ? 'sell' : 'buy')}
+            testID={showFullToggle ? 'quick-buy-trade-mode-toggle' : undefined}
+          >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+            >
+              <Text
+                variant={TextVariant.HeadingSm}
+                color={TextColor.TextDefault}
+              >
+                {strings(
+                  tradeMode === 'sell'
+                    ? 'social_leaderboard.quick_buy.sell_title'
+                    : 'social_leaderboard.quick_buy.title',
+                  { symbol: headerToken?.symbol ?? target?.tokenSymbol ?? '' },
+                )}
+              </Text>
+              {showFullToggle ? (
+                <Icon
+                  name={DsIconName.SwapHorizontal}
+                  size={IconSize.Sm}
+                  color={IconColor.PrimaryDefault}
+                />
+              ) : null}
+            </Box>
+          </TouchableOpacity>
+          {tokenPriceLabel ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {tokenPriceLabel}
+            </Text>
+          ) : null}
+        </Box>
+      </Box>
+
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+      >
         <ButtonIcon
           iconName={DsIconName.Setting}
           size={ButtonIconSize.Md}
-          isDisabled={!isQuickAmountPreferencesLoaded}
-          onPress={() => setActiveScreen('editQuickAmounts')}
-          testID={QuickBuySheetSelectorsIDs.EDIT_AMOUNTS_BUTTON}
+          onPress={handleOpenSlippage}
+          testID={QuickBuySheetSelectorsIDs.SETTINGS_BUTTON}
         />
-      ) : (
-        // Keep the toggle optically centered when settings is hidden.
-        <Box twClassName="w-6 h-6" />
-      )}
-
-      {/* Hide the header control when Buy is the only option — a lone "Buy"
-          pill is redundant next to the primary Buy CTA. */}
-      {showFullToggle ? <QuickBuyTradeModeToggle /> : null}
-
-      <ButtonIcon
-        iconName={DsIconName.Close}
-        size={ButtonIconSize.Md}
-        onPress={onClose}
-        testID={QuickBuySheetSelectorsIDs.CLOSE_BUTTON}
-      />
+      </Box>
     </Box>
   );
 };

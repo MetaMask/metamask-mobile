@@ -8,10 +8,7 @@ import {
   type AccountsApiActivity,
   type MoneyActivityItem,
 } from '../types/moneyActivity';
-import {
-  MoneyActivityFilter,
-  MOCK_API_ACTIVITY,
-} from '../constants/mockActivityData';
+import { MoneyActivityFilter } from '../constants/moneyActivity';
 import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
 import { useCardTransactionIndex } from '../../Card/hooks/useCardTransactionIndex';
@@ -52,8 +49,6 @@ export interface UseMoneyActivityItemsResult {
    */
   isSettling: boolean;
   moneyAddress: string | undefined;
-  /** When true, the list shows curated demo data and rows aren't pressable. */
-  mockDataEnabled: boolean;
   cardEnrichmentByHash: Map<string, CardTransaction>;
 }
 
@@ -163,19 +158,13 @@ export function buildMoneyActivityBuckets(
 
 /**
  * Assembles the Money activity list from its two sources (local on-chain txns +
- * Accounts-API activity), bucketed by filter tab. In mock-data mode it merges
- * curated demo activity instead and never surfaces the API loading state.
+ * Accounts-API activity), bucketed by filter tab.
  */
 export function useMoneyActivityItems({
   fill,
 }: UseMoneyActivityItemsOptions = {}): UseMoneyActivityItemsResult {
-  const {
-    allTransactions,
-    deposits,
-    transfers,
-    moneyAddress,
-    mockDataEnabled,
-  } = useMoneyAccountTransactions();
+  const { allTransactions, deposits, transfers, moneyAddress } =
+    useMoneyAccountTransactions();
   const {
     activity,
     isLoading,
@@ -199,20 +188,12 @@ export function useMoneyActivityItems({
   const capabilities = useCardCapabilities();
 
   const enrichmentEnabled =
-    !mockDataEnabled &&
     isCardTxHistoryEnabled &&
     isCardActivityEnrichmentEnabled &&
     isMoneyAccountEnabled &&
     isGeoEligible &&
     (capabilities?.supportsTransactionHistory ?? false) &&
     (capabilities?.supportsMoneyAccountLinking ?? false);
-
-  const apiActivity = mockDataEnabled ? MOCK_API_ACTIVITY : activity;
-  // Mock data is exhaustive and unpaginated: ignore the real watermark so every
-  // curated row renders and `loadMore` is inert.
-  const effectiveWatermark = mockDataEnabled
-    ? Number.NEGATIVE_INFINITY
-    : watermark;
 
   // While Accounts API still has pages, stop the Card index at the oldest
   // fetched API row — declines below the watermark would be withheld anyway.
@@ -223,12 +204,12 @@ export function useMoneyActivityItems({
     if (!hasMore) {
       return undefined;
     }
-    const times = apiActivity.map((a) => a.time);
+    const times = activity.map((a) => a.time);
     if (times.length === 0) {
       return undefined;
     }
     return Math.min(...times);
-  }, [apiActivity, hasMore]);
+  }, [activity, hasMore]);
 
   const {
     bySettlementHash,
@@ -256,16 +237,16 @@ export function useMoneyActivityItems({
     () =>
       buildMoneyActivityBuckets(
         { all: allTransactions, deposits, transfers },
-        apiActivity,
-        effectiveWatermark,
+        activity,
+        watermark,
         declinedForFeed,
       ),
     [
       allTransactions,
       deposits,
       transfers,
-      apiActivity,
-      effectiveWatermark,
+      activity,
+      watermark,
       declinedForFeed,
     ],
   );
@@ -277,7 +258,6 @@ export function useMoneyActivityItems({
   const fillCount = buckets[fill?.bucket ?? MoneyActivityFilter.All].length;
   const wantsMorePages =
     fill !== undefined &&
-    !mockDataEnabled &&
     hasMore &&
     fillCount < fill.count &&
     pageCount < AUTO_FILL_MAX_PAGES;
@@ -292,24 +272,21 @@ export function useMoneyActivityItems({
   // still inject a declined row. Once any row is on screen, leave the feed
   // visible — enrichment updates land in place.
   const isSettling =
-    !mockDataEnabled &&
-    (isLoading ||
-      (fillCount === 0 &&
-        ((enrichmentEnabled && isEnrichmentSettling) ||
-          wantsMorePages ||
-          isLoadingMore)));
+    isLoading ||
+    (fillCount === 0 &&
+      ((enrichmentEnabled && isEnrichmentSettling) ||
+        wantsMorePages ||
+        isLoadingMore));
 
   return {
     buckets,
     loadMore,
-    // Mock data is exhaustive and unpaginated — mask the live query's state.
-    hasMore: hasMore && !mockDataEnabled,
-    isLoadingMore: isLoadingMore && !mockDataEnabled,
-    error: error && !mockDataEnabled,
+    hasMore,
+    isLoadingMore,
+    error,
     refetch,
     isSettling,
     moneyAddress,
-    mockDataEnabled,
     cardEnrichmentByHash: enrichmentReady
       ? bySettlementHash
       : emptyEnrichmentMap,

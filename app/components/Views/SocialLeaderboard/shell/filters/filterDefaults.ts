@@ -13,7 +13,7 @@ import {
   PERP_CHAINS,
   SPOT_CHAINS,
 } from '../../../shared/top-traders-constants';
-import { LEADERBOARD_COHORT_LEADING_EMOJI } from '../../components/Filters/filterOptions';
+import { LEADERBOARD_COHORT_LEADING_EMOJI } from '../../../../UI/SocialFeed/utils/traderStats';
 import type {
   SocialTimeframe,
   SocialTypeFilter,
@@ -61,18 +61,10 @@ export const DEFAULT_TAB_FILTER_STATE: Record<
   leaderboard: { ...DEFAULT_FILTERS },
 };
 
-export const TYPE_OPTIONS: SocialFilterType[] = [
-  'all',
-  'tokens',
-  'perps',
-  'predictions',
-];
+export const TYPE_OPTIONS: SocialFilterType[] = ['all', 'tokens', 'perps'];
 
-export const TYPE_OPTIONS_FOLLOWING: SocialFilterType[] = [
-  'all',
-  'tokens',
-  'perps',
-];
+/** Same asset chips on every V1 tab — Predictions is not in V1. */
+export const TYPE_OPTIONS_FOLLOWING: SocialFilterType[] = TYPE_OPTIONS;
 
 export const TYPE_LABEL_KEY: Record<SocialFilterType, string> = {
   all: 'social_leaderboard.shell.filters.type.all',
@@ -102,7 +94,8 @@ export const COHORT_OPTIONS_LEADERBOARD: SocialTraderCohort[] = [
   'shrimp',
   'dolphin',
   'whale',
-  'verified',
+  // TODO: add `verified` once the leaderboard payload has a real verified field
+  // (the row badge is mocked today).
 ];
 
 /** @deprecated Use COHORT_OPTIONS_LIVE_TRADES. Kept for existing imports. */
@@ -140,12 +133,9 @@ export const VERIFICATION_LABEL_KEY: Record<SocialFilterVerification, string> =
     unverified: 'social_leaderboard.shell.filters.verification.unverified',
   };
 
-export const TIMEFRAME_OPTIONS: SocialFilterTimeframe[] = [
-  '1h',
-  '24h',
-  '7d',
-  '30d',
-];
+/** Windows the leaderboard API already returns (`7d` / `30d`). */
+// TODO: add `1h` / `24h` when the leaderboard endpoint exposes those windows.
+export const TIMEFRAME_OPTIONS: SocialFilterTimeframe[] = ['7d', '30d'];
 
 export const TIMEFRAME_LABEL_KEY: Record<SocialFilterTimeframe, string> = {
   '1h': 'social_leaderboard.shell.filters.timeframe.1h',

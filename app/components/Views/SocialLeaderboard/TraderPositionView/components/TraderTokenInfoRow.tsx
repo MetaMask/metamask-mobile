@@ -24,9 +24,15 @@ import {
 } from '../../../../UI/Perps/utils/formatUtils';
 import { formatCompactUsd } from '../../../../UI/Rewards/utils/formatUtils';
 import PerpBadges from '../../components/PerpBadges';
-import PositionTokenAvatar from '../../components/PositionTokenAvatar';
-import { EM_DASH, formatPercent } from '../../utils/formatters';
-import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
+import PositionTokenAvatar from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
+import {
+  EM_DASH,
+  formatPercent,
+} from '../../../../UI/SocialFeed/utils/formatters';
+import {
+  getPerpPositionDirection,
+  isPerpPosition,
+} from '../../../../UI/SocialFeed/utils/perp';
 
 export interface TraderTokenInfoRowProps {
   symbol: string;

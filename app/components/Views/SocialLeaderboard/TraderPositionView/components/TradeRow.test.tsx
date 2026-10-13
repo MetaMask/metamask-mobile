@@ -6,7 +6,7 @@ import type { Trade } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import TradeRow from './TradeRow';
-import { formatTradeTime } from '../../utils/formatters';
+import { formatTradeTime } from '../../../../UI/SocialFeed/utils/formatters';
 
 jest.mock('../../../../../util/haptics', () => ({
   playImpact: jest.fn(),

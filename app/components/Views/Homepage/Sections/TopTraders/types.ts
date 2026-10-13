@@ -25,6 +25,11 @@ export interface TopTrader {
   /** Absolute PnL over the requested window in USD (formatted by the UI). */
   pnlValue: number;
   /**
+   * 30-day realized PnL in USD, independent of the displayed window. Used to
+   * band shrimp / dolphin / whale. Null when the leaderboard omitted it.
+   */
+  pnl30d?: number | null;
+  /**
    * Share of winning trades over the requested window, as a whole percent
    * (e.g. 92 for 92%) to match `percentageChange`. The API reports it as a
    * 0–1 fraction. `null` when the window has no win-rate data.
@@ -78,6 +83,16 @@ export interface TraderRowProps {
   /** Toggles the muted state for this trader. */
   onMuteToggle?: (traderId: string) => void;
   testID?: string;
+  /**
+   * Social V1 only: rounded muted surface for the signed-in viewer's pinned
+   * card. Ignored by the legacy Follow-button row.
+   */
+  highlighted?: boolean;
+  /**
+   * Social V1 only: omit the position column when the viewer's rank is
+   * unknown. Ignored by the legacy Follow-button row.
+   */
+  hideRank?: boolean;
 }
 
 /**

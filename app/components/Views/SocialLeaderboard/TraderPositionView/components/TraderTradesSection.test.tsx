@@ -4,8 +4,8 @@ import { StyleSheet, Text } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import type { Trade } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { formatTradeDayLabel } from '../../utils/formatters';
-import type { TradeAction } from '../../utils/tradeAction';
+import { formatTradeDayLabel } from '../../../../UI/SocialFeed/utils/formatters';
+import type { TradeAction } from '../../../../UI/SocialFeed/utils/tradeAction';
 import TraderTradesSection from './TraderTradesSection';
 
 const DAY_MS = 24 * 60 * 60 * 1000;

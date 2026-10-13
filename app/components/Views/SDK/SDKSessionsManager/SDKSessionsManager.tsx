@@ -18,6 +18,7 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import Routes from '../../../../constants/navigation/Routes';
@@ -53,6 +54,10 @@ const createStyles = (
       justifyContent: 'center',
       alignItems: 'center',
       gap: 16,
+    },
+    emptyCopy: {
+      alignItems: 'center',
+      gap: 8,
     },
     btnAction: {
       width: '100%',
@@ -128,12 +133,18 @@ const SDKSessionsManager = () => {
   const renderEmptyResult = () => (
     <View style={styles.emptyContainer}>
       <Icon name={IconName.Global} size={IconSize.Xl} />
-      <Text variant={TextVariant.HeadingSM}>
-        {strings('sdk.no_connections')}
-      </Text>
-      <Text variant={TextVariant.BodyMD} style={styles.centerAlign}>
-        {strings('sdk.no_connections_desc')}
-      </Text>
+      <View style={styles.emptyCopy}>
+        <Text variant={TextVariant.HeadingSM}>
+          {strings('sdk.no_connections')}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.centerAlign}
+        >
+          {strings('sdk.no_connections_desc')}
+        </Text>
+      </View>
     </View>
   );
 

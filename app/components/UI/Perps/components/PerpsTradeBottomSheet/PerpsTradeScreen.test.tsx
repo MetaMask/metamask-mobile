@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import {
   fireEvent,
   render,
@@ -9,7 +9,12 @@ import {
 import { typography } from '@metamask/design-tokens';
 import PerpsTradeScreen from './PerpsTradeScreen';
 import type PerpsSlider from '../PerpsSlider';
-import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
+import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
+import {
+  PerpsAmountDisplaySelectorsIDs,
+  PerpsTradeSheetSelectorsIDs,
+} from '../../Perps.testIds';
+import { convertAssetAmountToUsd } from '../../utils/assetAmountInput';
 
 const mockNavigateTo = jest.fn();
 let mockLivePriceHeaderProps:
@@ -90,6 +95,8 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   liquidationDistance: '30.05%',
   amount: '10',
   tokenAmount: '0.11',
+  amountPrice: 98.5,
+  sizeDecimals: 2,
   sliderMaximum: 100,
   isAmountDisabled: false,
   isAmountLoading: false,
@@ -186,6 +193,7 @@ describe('PerpsTradeScreen errors', () => {
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW),
     );
     expect(onPayWithPress).toHaveBeenCalledTimes(1);
+    expect(mockNavigateTo).toHaveBeenCalledWith('payWith');
 
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
@@ -209,6 +217,33 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.getByLabelText('Margin, Isolated, $3.41. About margin'),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the payment asset icon beside the pay with value', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        payWithIcon={<Text testID="pay-with-icon">USDC</Text>}
+      />,
+    );
+
+    expect(
+      within(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW),
+      ).getByTestId('pay-with-icon'),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the payment asset icon while the pay with row is loading', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        isPayWithLoading
+        payWithIcon={<Text testID="pay-with-icon">USDC</Text>}
+      />,
+    );
+
+    expect(screen.queryByTestId('pay-with-icon')).toBeNull();
   });
 
   it('shows the market maximum leverage in the header, not the selected one', () => {
@@ -286,6 +321,58 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.queryByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_TREND_ICON),
     ).not.toBeOnTheScreen();
+  });
+
+  it('applies a keypad digit to the USD amount', () => {
+    const onKeypadChange = jest.fn();
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        amount="0"
+        isInputFocused
+        onKeypadChange={onKeypadChange}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_1));
+
+    expect(onKeypadChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: '1', valueAsNumber: 1 }),
+    );
+    expect(onKeypadChange.mock.calls[0][0].isAssetAmount).toBeUndefined();
+  });
+
+  it('applies a keypad digit to the coin amount after the display toggle', () => {
+    const onKeypadChange = jest.fn();
+    const peoplePrice = 1 / 121;
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        asset="PEOPLE"
+        amount="0"
+        tokenAmount="0"
+        amountPrice={peoplePrice}
+        sizeDecimals={0}
+        isInputFocused
+        onKeypadChange={onKeypadChange}
+      />,
+    );
+
+    fireEvent.press(screen.getByRole('button', { name: 'Show asset value' }));
+    fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_1));
+
+    expect(onKeypadChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        value: convertAssetAmountToUsd('1', peoplePrice),
+        isAssetAmount: true,
+      }),
+    );
+    expect(
+      screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+    ).toHaveTextContent(/^1$/);
+    expect(
+      screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
+    ).toHaveTextContent('PEOPLE');
   });
 
   it('draws the Figma swap glyph in the fiat/token toggle', () => {
@@ -490,6 +577,7 @@ describe('PerpsTradeScreen errors', () => {
     expect(payWithRow.props.accessibilityState).toEqual({ disabled: true });
     fireEvent.press(payWithRow);
     expect(onPayWithPress).not.toHaveBeenCalled();
+    expect(mockNavigateTo).not.toHaveBeenCalledWith('payWith');
   });
 
   it('shows the reused keypad while editing a limit price', () => {

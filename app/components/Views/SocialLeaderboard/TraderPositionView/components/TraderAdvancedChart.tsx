@@ -38,7 +38,7 @@ import { INTERVAL_MS } from '../../../../UI/Perps/hooks/usePerpsAdvancedChartAda
 import { useSocialPerpsChartAdapter } from '../hooks/useSocialPerpsChartAdapter';
 import { getPerpsVolumeColors } from '../../../../UI/Perps/utils/chartColors';
 import { useTheme } from '../../../../../util/theme';
-import { tradeTimestampToMs } from '../../utils/tradeTimestamp';
+import { tradeTimestampToMs } from '../../../../UI/SocialFeed/utils/tradeTimestamp';
 import type { TimePeriod } from '../useTraderPositionData';
 import TraderPriceChart from './TraderPriceChart';
 

@@ -17,7 +17,8 @@ import {
   TypeFilterSelectorsIDs,
   getTypeFilterOptionTestId,
 } from '../components/Filters';
-import type { FeedItem, FeedSection, FeedTypeFilter } from './types';
+import type { FeedItem } from '../../../UI/SocialFeed/types';
+import type { FeedSection, FeedTypeFilter } from './types';
 import type { UseTraderFeedResult } from './hooks/useTraderFeed';
 
 const mockNavigate = jest.fn();

@@ -1,14 +1,16 @@
 import { useCallback } from 'react';
+import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import { bytesToHex, Hex } from '@metamask/utils';
-import { v4 as uuidv4, parse as uuidParse } from 'uuid';
+import { Hex } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
+import { createMoneyAccountBatchId } from '../utils/createMoneyAccountBatchId';
 import {
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdrawBatch,
@@ -45,6 +47,8 @@ export {
 const LOG_TAG = '[Money Account]';
 
 export interface InitiateDepositOptions {
+  /** Initial editable deposit amount in USD, automatically quoted for token deposits. */
+  amount?: string;
   preferredPaymentToken?: {
     address: Hex;
     chainId: Hex;
@@ -59,6 +63,12 @@ export interface InitiateDepositOptions {
    * land somewhere other than the Money tab — see `navigateOnConfirm`.
    */
   launchedFrom?: ConfirmationLaunchSource;
+  transactionType?: TransactionType;
+  /**
+   * Optional batch id so a caller can subscribe to transaction events before
+   * `addTransactionBatch` runs and avoid missing the confirmed/rejected race.
+   */
+  batchId?: Hex;
   onDepositSetupFailure?: (error: Error) => void;
 }
 
@@ -145,7 +155,7 @@ export function useMoneyAccountDeposit() {
         throw error;
       }
 
-      const batchId = bytesToHex(new Uint8Array(uuidParse(uuidv4())));
+      const batchId = options?.batchId ?? createMoneyAccountBatchId();
       // Only record an explicit funding intent (card / addMusd). Generic deposits
       // (e.g. the home "Add" button) are left unset so the toast derives the
       // intent from the transaction's actual payment method instead of a guess.
@@ -153,8 +163,20 @@ export function useMoneyAccountDeposit() {
         setMoneyAccountDepositIntent(batchId, options.intent);
       }
 
+      const explicitAmount = new BigNumber(options?.amount ?? '0');
+      const shouldQuoteExplicitAmount =
+        explicitAmount.isFinite() &&
+        explicitAmount.gt(0) &&
+        options?.intent !== 'card' &&
+        !options?.autoSelectFiatPayment;
+
       const confirmationParams = {
-        loader: isDepositPrefillEnabled(options?.intent)
+        amount: options?.amount,
+        loader: (
+          options?.amount !== undefined
+            ? shouldQuoteExplicitAmount
+            : isDepositPrefillEnabled(options?.intent)
+        )
           ? ConfirmationLoader.PrefillCustomAmount
           : ConfirmationLoader.AdvancedCustomAmount,
         preferredPaymentToken,
@@ -209,7 +231,10 @@ export function useMoneyAccountDeposit() {
             },
           ],
           skipInitialGasEstimate: true,
-          transactions: [approveTx, depositTx],
+          transactions: [
+            approveTx,
+            { ...depositTx, type: options?.transactionType ?? depositTx.type },
+          ],
         });
       } catch (error) {
         const errorObj = ensureError(error, `${LOG_TAG} Deposit setup failed`);
