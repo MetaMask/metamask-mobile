@@ -108,7 +108,7 @@ class PerformanceReporter {
       `Tags: ${testTags.length > 0 ? testTags.join(', ') : 'none (using default team)'}`,
     );
 
-    this.processSessionData(test, result, testFilePath, teamInfo);
+    this.processSessionData(test, result, testFilePath, teamInfo, projectName);
     this.trackFailedTest(
       test,
       result,
@@ -167,6 +167,7 @@ class PerformanceReporter {
     result: PlaywrightTestResult,
     testFilePath: string,
     teamInfo: TeamInfo,
+    projectName: string,
   ): void {
     const sessionAttachment = result.attachments.find(
       (att) => att.name === 'session-data',
@@ -204,13 +205,14 @@ class PerformanceReporter {
             sessionId,
             testTitle: test.title,
             testFilePath,
+            projectName,
             testStatus: result.status,
             testDuration: result.duration,
             timestamp: new Date().toISOString(),
             team: teamInfo,
           });
           logger.info(
-            `[Pipeline] Session from annotations (no projectName): sessionId=${sessionId}, testTitle=${test.title}`,
+            `[Pipeline] Session from annotations: sessionId=${sessionId}, projectName=${projectName}, testTitle=${test.title}`,
           );
         }
       }
