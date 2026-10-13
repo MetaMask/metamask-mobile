@@ -5,6 +5,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 // Internal dependencies.
 import StepperCard from './StepperCard';
 import type { StepperCardStep } from './StepperCard.types';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../GlassSurface';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
@@ -240,6 +241,34 @@ describe('StepperCard', () => {
       );
       fireEvent.press(getByLabelText('More information'));
       expect(onTooltipPress).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('glass', () => {
+    const stepWithSkip = () =>
+      makeStep({ secondaryCta: { text: 'Skip', onPress: jest.fn() } });
+
+    it('keeps the opaque card and secondary button by default', () => {
+      const { queryAllByTestId } = render(
+        <StepperCard steps={[stepWithSkip()]} currentStep={0} testID="card" />,
+      );
+
+      expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
+    });
+
+    it('draws the card and its secondary button on glass', () => {
+      const step = stepWithSkip();
+      const { getAllByTestId, getByTestId, getByText } = render(
+        <StepperCard steps={[step]} currentStep={0} testID="card" isGlass />,
+      );
+
+      // One sheen for the card, one for the Skip button.
+      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(2);
+      expect(getByTestId('card-container')).toBeOnTheScreen();
+
+      fireEvent.press(getByText('Skip'));
+
+      expect(step.secondaryCta?.onPress).toHaveBeenCalledTimes(1);
     });
   });
 });
