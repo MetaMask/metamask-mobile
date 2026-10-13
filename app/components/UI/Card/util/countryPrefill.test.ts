@@ -1,7 +1,14 @@
+import { CardProviderIds } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import { CardScreens } from './metrics';
 import {
   buildCountryPrefillAnalytics,
+  cardProviderIdForPrefillCountry,
   countryCodeFromGeolocationLocation,
   locationFormatFromGeolocationLocation,
+  prefillCountryKeyForSignUp,
+  regionForSignUpCountryPrefill,
+  signUpCountryPrefillViewProperties,
+  UK_MIGRATION_COUNTRY_CODE,
 } from './countryPrefill';
 
 describe('countryCodeFromGeolocationLocation', () => {
@@ -173,6 +180,137 @@ describe('buildCountryPrefillAnalytics', () => {
       country_prefill_status: 'failed',
       country_prefill_failure_reason: 'unmatched_location',
       location_format: 'country',
+    });
+  });
+});
+
+describe('regionForSignUpCountryPrefill', () => {
+  const unitedStates = { key: 'US' };
+  const unitedKingdom = { key: 'GB' };
+  const getRegionByCode = (code: string | null | undefined) => {
+    if (code === 'US') {
+      return unitedStates;
+    }
+    if (code === UK_MIGRATION_COUNTRY_CODE) {
+      return unitedKingdom;
+    }
+    return null;
+  };
+
+  it('matches a subdivision location to its country', () => {
+    expect(
+      regionForSignUpCountryPrefill({
+        fromMigration: false,
+        geolocationStatus: 'complete',
+        geolocation: 'US-NY',
+        getRegionByCode,
+      }),
+    ).toBe(unitedStates);
+  });
+
+  it('returns null when geolocation failed', () => {
+    expect(
+      regionForSignUpCountryPrefill({
+        fromMigration: false,
+        geolocationStatus: 'error',
+        geolocation: 'US-NY',
+        getRegionByCode,
+      }),
+    ).toBeNull();
+  });
+
+  it('uses the United Kingdom during migration', () => {
+    expect(
+      regionForSignUpCountryPrefill({
+        fromMigration: true,
+        geolocationStatus: 'error',
+        geolocation: 'US-NY',
+        getRegionByCode,
+      }),
+    ).toBe(unitedKingdom);
+  });
+});
+
+describe('cardProviderIdForPrefillCountry', () => {
+  it('returns null without a country key', () => {
+    expect(cardProviderIdForPrefillCountry(null, true, ['GB'])).toBeNull();
+  });
+
+  it('returns Immersve when that country is enabled', () => {
+    expect(cardProviderIdForPrefillCountry('GB', true, ['GB'])).toBe(
+      CardProviderIds.Immersve,
+    );
+  });
+
+  it('returns Baanx otherwise', () => {
+    expect(cardProviderIdForPrefillCountry('US', true, ['GB'])).toBe(
+      CardProviderIds.Baanx,
+    );
+    expect(cardProviderIdForPrefillCountry('GB', false, ['GB'])).toBe(
+      CardProviderIds.Baanx,
+    );
+  });
+});
+
+describe('prefillCountryKeyForSignUp', () => {
+  it('keeps the United Kingdom during migration', () => {
+    expect(
+      prefillCountryKeyForSignUp({
+        fromMigration: true,
+        matchedRegionKey: 'US',
+        selectedCountryKey: 'FR',
+      }),
+    ).toBe(UK_MIGRATION_COUNTRY_CODE);
+  });
+
+  it('prefers the region matched on this render', () => {
+    expect(
+      prefillCountryKeyForSignUp({
+        fromMigration: false,
+        matchedRegionKey: 'US',
+        selectedCountryKey: 'FR',
+      }),
+    ).toBe('US');
+  });
+});
+
+describe('signUpCountryPrefillViewProperties', () => {
+  const prefilled = {
+    country_prefill_status: 'prefilled' as const,
+    location_format: 'country' as const,
+  };
+
+  it('omits the provider when prefill failed', () => {
+    expect(
+      signUpCountryPrefillViewProperties({
+        prefillAnalytics: {
+          country_prefill_status: 'failed',
+          country_prefill_failure_reason: 'unknown_location',
+          location_format: 'unknown',
+        },
+        provider: CardProviderIds.Baanx,
+        migrationAnalyticsProps: { flow: 'migration' },
+      }),
+    ).toEqual({
+      screen: CardScreens.SIGN_UP,
+      country_prefill_status: 'failed',
+      country_prefill_failure_reason: 'unknown_location',
+      location_format: 'unknown',
+    });
+  });
+
+  it('includes the provider and migration properties when prefill succeeds', () => {
+    expect(
+      signUpCountryPrefillViewProperties({
+        prefillAnalytics: prefilled,
+        provider: CardProviderIds.Immersve,
+        migrationAnalyticsProps: { flow: 'migration' },
+      }),
+    ).toEqual({
+      provider: CardProviderIds.Immersve,
+      screen: CardScreens.SIGN_UP,
+      flow: 'migration',
+      ...prefilled,
     });
   });
 });

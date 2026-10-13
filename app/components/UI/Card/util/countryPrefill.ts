@@ -1,4 +1,8 @@
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
+import { CardProviderIds } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import { CardScreens, withCardProvider } from './metrics';
+
+export const UK_MIGRATION_COUNTRY_CODE = 'GB';
 
 const COUNTRY_CODE_PATTERN = /^[A-Z]{2}$/u;
 const SUBDIVISION_CODE_PATTERN = /^[A-Z]{2}-[A-Z0-9]{1,3}$/u;
@@ -132,4 +136,116 @@ export const buildCountryPrefillAnalytics = ({
     country_prefill_failure_reason: failureReason,
     location_format: locationFormat,
   };
+};
+
+/**
+ * Region to prefill, before any visit latch.
+ * UK migration always uses GB. Other visits use the geolocation country prefix.
+ *
+ * @param params - Migration flag, geolocation, and the registration-settings lookup.
+ * @param params.fromMigration - Whether this visit is the UK migration flow.
+ * @param params.geolocationStatus - GeolocationController status.
+ * @param params.geolocation - Raw controller location.
+ * @param params.getRegionByCode - Registration-settings lookup by country key.
+ * @returns The matching region, or null when prefill should stay blank.
+ */
+export const regionForSignUpCountryPrefill = <T extends { key: string }>({
+  fromMigration,
+  geolocationStatus,
+  geolocation,
+  getRegionByCode,
+}: {
+  fromMigration: boolean;
+  geolocationStatus: string | null | undefined;
+  geolocation: string | null | undefined;
+  getRegionByCode: (code: string | null | undefined) => T | null;
+}): T | null => {
+  if (fromMigration) {
+    return getRegionByCode(UK_MIGRATION_COUNTRY_CODE);
+  }
+  if (geolocationStatus === 'error') {
+    return null;
+  }
+
+  const countryKey = countryCodeFromGeolocationLocation(geolocation);
+  return countryKey ? getRegionByCode(countryKey) : null;
+};
+
+/**
+ * Card provider for a prefilled country key.
+ *
+ * @param countryKey - Registration country key, or null when prefill failed.
+ * @param immersveOnboardingEnabled - Whether Immersve onboarding is on.
+ * @param immersveCountries - Country keys routed to Immersve.
+ * @returns The provider id, or null when there is no country key.
+ */
+export const cardProviderIdForPrefillCountry = (
+  countryKey: string | null | undefined,
+  immersveOnboardingEnabled: boolean,
+  immersveCountries: readonly string[],
+): string | null => {
+  if (!countryKey) {
+    return null;
+  }
+  if (immersveOnboardingEnabled && immersveCountries.includes(countryKey)) {
+    return CardProviderIds.Immersve;
+  }
+  return CardProviderIds.Baanx;
+};
+
+/**
+ * Properties for the sign-up `Card Viewed` event.
+ * Failures omit the provider because it depends on a matched country.
+ *
+ * @param params - Prefill result, provider, and migration properties.
+ * @param params.prefillAnalytics - Prefill status, failure reason, and location format.
+ * @param params.provider - Provider id, or null when prefill failed.
+ * @param params.migrationAnalyticsProps - Extra properties for the UK migration flow.
+ * @returns Event properties, including `provider` only for a known country.
+ */
+export const signUpCountryPrefillViewProperties = ({
+  prefillAnalytics,
+  provider,
+  migrationAnalyticsProps,
+}: {
+  prefillAnalytics: CountryPrefillAnalytics;
+  provider: string | null;
+  migrationAnalyticsProps: Record<string, unknown>;
+}): Record<string, unknown> => {
+  if (prefillAnalytics.country_prefill_status === 'failed' || !provider) {
+    return {
+      screen: CardScreens.SIGN_UP,
+      ...prefillAnalytics,
+    };
+  }
+
+  return withCardProvider(provider, {
+    screen: CardScreens.SIGN_UP,
+    ...migrationAnalyticsProps,
+    ...prefillAnalytics,
+  });
+};
+
+/**
+ * Country key used to choose the provider for this visit.
+ *
+ * @param params - Migration flag and the region chosen on this render.
+ * @param params.fromMigration - Whether this visit is the UK migration flow.
+ * @param params.matchedRegionKey - Key matched during this render.
+ * @param params.selectedCountryKey - Key already selected on an earlier render.
+ * @returns GB for UK migration, otherwise the matched or selected key.
+ */
+export const prefillCountryKeyForSignUp = ({
+  fromMigration,
+  matchedRegionKey,
+  selectedCountryKey,
+}: {
+  fromMigration: boolean;
+  matchedRegionKey?: string;
+  selectedCountryKey?: string;
+}): string | null => {
+  if (fromMigration) {
+    return UK_MIGRATION_COUNTRY_CODE;
+  }
+  return matchedRegionKey ?? selectedCountryKey ?? null;
 };

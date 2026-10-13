@@ -51,7 +51,6 @@ import {
   CardActions,
   CardEntryPoint,
   CardFlow,
-  CardScreens,
   buildCardMigrationBadgeReasons,
   mapUkMigrationPhaseToAnalytics,
   withCardProvider,
@@ -66,15 +65,9 @@ import {
 import CountrySelectField from './CountrySelectField';
 import SelectField from './SelectField';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
-import {
-  buildCountryPrefillAnalytics,
-  countryCodeFromGeolocationLocation,
-} from '../../util/countryPrefill';
+import { UK_MIGRATION_COUNTRY_CODE } from '../../util/countryPrefill';
+import { useSignUpCountryPrefill } from '../../hooks/useSignUpCountryPrefill';
 import type { Region } from '../../types';
-import {
-  selectGeolocationLocation,
-  selectGeolocationStatus,
-} from '../../../../../selectors/geolocationController';
 import {
   selectCardImmersveCountries,
   selectCardImmersveEnabled,
@@ -90,8 +83,6 @@ import Logger from '../../../../../util/Logger';
 import { isValidLocalPhoneNumber } from '../../util/contactDetails';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
-
-const UK_MIGRATION_COUNTRY_CODE = 'GB';
 
 const buildWaitlistUrl = (countryName: string, email?: string): string => {
   // country must come first per HubSpot field ordering
@@ -144,14 +135,10 @@ const SignUp = () => {
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
-  const hasAutoSelectedCountry = useRef(false);
-  const hasTrackedCountryPrefill = useRef(false);
   const hasPrefillAttempted = useRef(false);
   const hasUserEditedEmail = useRef(false);
   const hasUserEditedPhoneNumber = useRef(false);
   const hasUserEditedPhoneRegion = useRef(false);
-  const geoLocation = useSelector(selectGeolocationLocation);
-  const geolocationStatus = useSelector(selectGeolocationStatus);
   const immersveCountries = useSelector(selectCardImmersveCountries);
   const immersveOnboardingEnabled = useSelector(selectCardImmersveEnabled);
   const {
@@ -218,96 +205,18 @@ const SignUp = () => {
   const debouncedEmail = useDebouncedValue(email, 1000);
   const debouncedPassword = useDebouncedValue(password, 1000);
 
-  useEffect(() => {
-    // Both flags latch the visit: a later registration-settings refetch must
-    // not overwrite a selection or emit another sign-up view.
-    if (hasTrackedCountryPrefill.current && hasAutoSelectedCountry.current) {
-      return;
-    }
-
-    let matchedRegion: Region | null = null;
-    if (!hasAutoSelectedCountry.current && allRegions.length > 0) {
-      if (fromMigration) {
-        matchedRegion = getRegionByCode(UK_MIGRATION_COUNTRY_CODE);
-      } else if (geolocationStatus !== 'error') {
-        const countryKey = countryCodeFromGeolocationLocation(geoLocation);
-        matchedRegion = countryKey ? getRegionByCode(countryKey) : null;
-      }
-
-      if (matchedRegion) {
-        hasAutoSelectedCountry.current = true;
-        setSelectedCountry(matchedRegion);
-        setPhoneRegion(matchedRegion);
-        // Migration keeps the country in local UI. Writing it to the
-        // controller would switch the active provider.
-        if (!fromMigration) {
-          Engine.context.CardController.setUserLocation(
-            mapCountryToLocation(matchedRegion.key),
-          );
-          Engine.context.CardController.setSelectedCountry(matchedRegion.key);
-        }
-      }
-    }
-
-    if (hasTrackedCountryPrefill.current) {
-      return;
-    }
-
-    const prefillAnalytics = buildCountryPrefillAnalytics({
-      fromMigration,
-      registrationSettingsFetched: isRegistrationSettingsFetched,
-      hasRegistrationCountries: allRegions.length > 0,
-      geolocationStatus,
-      geolocation: geoLocation,
-      matchedCountry: !fromMigration && hasAutoSelectedCountry.current,
-    });
-    if (!prefillAnalytics) {
-      return;
-    }
-
-    hasTrackedCountryPrefill.current = true;
-    const prefillCountryKey = fromMigration
-      ? UK_MIGRATION_COUNTRY_CODE
-      : (matchedRegion?.key ?? selectedCountry?.key);
-    let provider: string | null = null;
-    if (prefillCountryKey) {
-      provider =
-        immersveOnboardingEnabled &&
-        immersveCountries.includes(prefillCountryKey)
-          ? CardProviderIds.Immersve
-          : CardProviderIds.Baanx;
-    }
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties(
-          prefillAnalytics.country_prefill_status === 'failed' || !provider
-            ? {
-                screen: CardScreens.SIGN_UP,
-                ...prefillAnalytics,
-              }
-            : withCardProvider(provider, {
-                screen: CardScreens.SIGN_UP,
-                ...migrationAnalyticsProps,
-                ...prefillAnalytics,
-              }),
-        )
-        .build(),
-    );
-  }, [
-    allRegions.length,
-    createEventBuilder,
+  useSignUpCountryPrefill({
     fromMigration,
-    geoLocation,
-    geolocationStatus,
+    allRegions,
     getRegionByCode,
+    isRegistrationSettingsFetched,
     immersveCountries,
     immersveOnboardingEnabled,
-    isRegistrationSettingsFetched,
     migrationAnalyticsProps,
-    selectedCountry?.key,
-    trackEvent,
-  ]);
+    selectedCountry,
+    setSelectedCountry,
+    setPhoneRegion,
+  });
 
   useEffect(() => {
     if (!fromMigration) {
