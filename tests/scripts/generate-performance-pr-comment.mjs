@@ -91,6 +91,8 @@ async function main() {
     switch (reason) {
       case 'quality_gates_exceeded':
         return 'Quality gates exceeded';
+      case 'session_creation_failed':
+        return 'Session creation failed';
       case 'timedOut':
         return 'Timed out';
       case 'test_error':
@@ -105,6 +107,19 @@ async function main() {
     return String(value ?? '—')
       .replaceAll('|', '\\|')
       .replaceAll('\n', ' ');
+  }
+
+  /** Explains why a passed test needed a retry, e.g. a session creation failure. */
+  function formatRetryNote(retryInfo) {
+    if (!retryInfo) {
+      return '';
+    }
+    const reason = formatReason(retryInfo.firstFailureReason);
+    const seconds =
+      typeof retryInfo.firstFailureDurationSec === 'number'
+        ? ` after ${retryInfo.firstFailureDurationSec.toFixed(0)}s`
+        : '';
+    return ` ⚠️ passed on attempt ${retryInfo.attempts}; attempt 1: ${reason}${seconds}`;
   }
 
   function getDeviceKey(device) {
@@ -189,6 +204,7 @@ async function main() {
               : '—',
             team: test.team?.teamId ?? 'Unknown Team',
             recordingLink: test.videoURL ?? failedTest?.recordingLink,
+            retryInfo: test.retryInfo ?? null,
           };
         }),
       ),
@@ -366,7 +382,9 @@ async function main() {
         ? `[📹 Watch](${test.recordingLink})`
         : '—';
 
-      md += `| ${escapeMarkdownTable(test.testName)} | ${
+      md += `| ${escapeMarkdownTable(test.testName)}${escapeMarkdownTable(
+        formatRetryNote(test.retryInfo),
+      )} | ${
         test.platform
       } | ${escapeMarkdownTable(test.device)} | ${test.duration} | ${escapeMarkdownTable(
         test.team,

@@ -267,6 +267,97 @@ describe('PerformanceReporter', () => {
       // Basic entry created — verified by onEnd still having metrics
     });
 
+    describe('session creation failures and retries', () => {
+      interface ReporterInternals {
+        metrics: {
+          testName: string;
+          testFailed?: boolean;
+          failureReason?: string | null;
+          sessionId?: string | null;
+          steps: unknown[];
+          total: number;
+          retryInfo?: {
+            attempts: number;
+            firstFailureReason: string | null;
+            firstFailureDurationSec: number | null;
+          };
+        }[];
+        sessions: { sessionId: string }[];
+        failedTestsByTeam: Record<string, unknown>;
+      }
+      const internals = (r: PerformanceReporter) =>
+        r as unknown as ReporterInternals;
+
+      it('classifies a failure without metrics or session as session_creation_failed', () => {
+        reporter.onTestEnd(
+          makeTest() as never,
+          makeResult({ status: 'timedOut', duration: 420003 }) as never,
+        );
+
+        const { metrics } = internals(reporter);
+        expect(metrics[0]?.testFailed).toBe(true);
+        expect(metrics[0]?.failureReason).toBe('session_creation_failed');
+      });
+
+      it('keeps the Playwright status when a session existed but no metrics were attached', () => {
+        reporter.onTestEnd(
+          makeTest() as never,
+          makeResult({
+            status: 'failed',
+            annotations: [{ type: 'sessionId', description: 'sess-9' }],
+          }) as never,
+        );
+
+        expect(internals(reporter).metrics[0]?.failureReason).toBe('failed');
+      });
+
+      it('replaces the stale failed attempt with the passing retry and records why it failed', () => {
+        reporter.onTestEnd(
+          makeTest() as never,
+          makeResult({ status: 'timedOut', duration: 420003 }) as never,
+        );
+        reporter.onTestEnd(
+          makeTest() as never,
+          makeResult({
+            status: 'passed',
+            retry: 1,
+            attachments: [makeMetricsAttachment(), makeSessionAttachment()],
+          }) as never,
+        );
+
+        const { metrics, sessions, failedTestsByTeam } = internals(reporter);
+        expect(metrics).toHaveLength(1);
+        expect(metrics[0]?.testFailed).toBe(false);
+        expect(metrics[0]?.steps).toHaveLength(1);
+        expect(metrics[0]?.total).toBe(0.5);
+        expect(sessions.map((s) => s.sessionId)).toEqual(['sess-1']);
+        expect(failedTestsByTeam).toEqual({});
+        expect(metrics[0]?.retryInfo).toEqual({
+          attempts: 2,
+          firstFailureReason: 'session_creation_failed',
+          firstFailureDurationSec: 420.003,
+        });
+      });
+
+      it('keeps the first attempt as passed when the passing retry has no metrics', () => {
+        reporter.onTestEnd(
+          makeTest() as never,
+          makeResult({ status: 'timedOut', duration: 420003 }) as never,
+        );
+        reporter.onTestEnd(
+          makeTest() as never,
+          makeResult({ status: 'passed', retry: 1 }) as never,
+        );
+
+        const { metrics } = internals(reporter);
+        expect(metrics).toHaveLength(1);
+        expect(metrics[0]?.testFailed).toBe(false);
+        expect(metrics[0]?.retryInfo?.firstFailureReason).toBe(
+          'session_creation_failed',
+        );
+      });
+    });
+
     it('retry pass clears only the matching project, not same title in another project', () => {
       const sharedTitle = 'Shared Title Flow';
       const device = { name: 'Pixel 6', osVersion: '12' };

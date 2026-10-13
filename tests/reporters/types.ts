@@ -64,6 +64,16 @@ export interface MetricsEntry {
   profilingSummary?: ProfilingSummary | null;
   apiCalls?: NetworkLogEntry[] | null;
   apiCallsError?: string | null;
+  retryInfo?: RetryInfo;
+}
+
+/** Set when a test only passed after one or more failed attempts. */
+export interface RetryInfo {
+  /** Attempt number (1-based) that finally passed. */
+  attempts: number;
+  /** Why the first attempt failed, e.g. `session_creation_failed`. */
+  firstFailureReason: string | null;
+  firstFailureDurationSec: number | null;
 }
 
 export interface SessionData {

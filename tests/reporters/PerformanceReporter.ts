@@ -24,6 +24,7 @@ import type {
   DeviceInfo,
   ReportData,
   ReportSummary,
+  RetryInfo,
 } from './types';
 
 const logger = createLogger({ name: 'PerformanceReporter' });
@@ -44,10 +45,20 @@ interface PlaywrightTestResult {
   duration: number;
   attachments: { name: string; body?: Buffer }[];
   annotations?: { type: string; description?: string }[];
+  retry?: number;
 }
 
 const isTestFailureStatus = (status: string): boolean =>
   status === 'failed' || status === 'timedOut' || status === 'interrupted';
+
+export const SESSION_CREATION_FAILED = 'session_creation_failed';
+
+const hasSessionId = (result: PlaywrightTestResult): boolean => {
+  const sessionId = result.annotations?.find(
+    (a) => a.type === 'sessionId',
+  )?.description;
+  return Boolean(sessionId) && sessionId !== 'no-session';
+};
 
 /**
  * Main Playwright reporter for performance test runs.
@@ -82,9 +93,9 @@ class PerformanceReporter {
     const testId = `${test.title}-${projectName}`;
 
     if (this.processedTests.has(testId)) {
-      // If this retry passed, update the existing failed entry to reflect final success
+      // If this retry passed, replace the failed attempt's data with this one
       if (result.status === 'passed') {
-        this.resolveRetrySuccess(test, projectName);
+        this.replaceWithPassingRetry(test, result, projectName);
       } else {
         logger.warn(
           `Test already processed, skipping: ${test.title} (${projectName})`,
@@ -94,6 +105,14 @@ class PerformanceReporter {
     }
     this.processedTests.add(testId);
 
+    this.processAttempt(test, result, projectName);
+  }
+
+  private processAttempt(
+    test: PlaywrightTestCase,
+    result: PlaywrightTestResult,
+    projectName: string,
+  ): void {
     // Get team info from test tags
     let testTags: string[] = test.tags || [];
     if (!Array.isArray(testTags)) {
@@ -429,6 +448,10 @@ class PerformanceReporter {
       logger.warn('Test failed without metrics, creating basic entry');
 
       const deviceInfo: DeviceInfo = DeviceInfoExtractor.extract(test);
+      // No metrics and no session id: the driver fixture never got a session.
+      const failureReason = hasSessionId(result)
+        ? result.status
+        : SESSION_CREATION_FAILED;
 
       const basicEntry: MetricsEntry = {
         testName: test.title,
@@ -439,7 +462,7 @@ class PerformanceReporter {
         device: deviceInfo,
         steps: [],
         testFailed: true,
-        failureReason: result.status,
+        failureReason,
         note: 'Test failed - no performance metrics collected',
         team: teamInfo,
       };
@@ -447,7 +470,7 @@ class PerformanceReporter {
       this.metrics.push(basicEntry);
 
       this.updateFailedTestEntry(teamInfo.teamId, test.title, projectName, {
-        failureReason: result.status,
+        failureReason,
       });
     }
   }
@@ -772,28 +795,41 @@ class PerformanceReporter {
     });
   }
 
-  private resolveRetrySuccess(
+  /**
+   * A retry passed after a failed first attempt. Drop the failed attempt's
+   * entry (it has no session, video or steps when the session never started)
+   * and record the passing attempt instead, keeping why the first one failed.
+   */
+  private replaceWithPassingRetry(
     test: PlaywrightTestCase,
+    result: PlaywrightTestResult,
     projectName: string,
   ): void {
-    const testTags: string[] = Array.isArray(test.tags) ? test.tags : [];
-    const teamInfo: TeamInfo = getTeamInfoFromTags(testTags) as TeamInfo;
-
     logger.info(
-      `Test passed on retry, updating result: ${test.title} (${projectName})`,
+      `Test passed on retry, replacing failed attempt: ${test.title} (${projectName})`,
     );
 
-    // Mark the existing metric entry as passed (scoped to this Playwright project)
-    const metric = this.metrics.find(
-      (m) => m.testName === test.title && m.projectName === projectName,
-    );
-    if (metric) {
-      metric.testFailed = false;
-      metric.failureReason = null;
-    }
+    const isSameTest = (m: { testName: string; projectName?: string }) =>
+      m.testName === test.title && m.projectName === projectName;
+    const previous = this.metrics.find(isSameTest);
+    const retryInfo: RetryInfo = {
+      attempts: (result.retry ?? 1) + 1,
+      firstFailureReason: previous?.failureReason ?? null,
+      firstFailureDurationSec: previous?.total ?? null,
+    };
 
-    // Remove only this project's failed entry; same title in other projects stays
-    const teamId = teamInfo.teamId;
+    this.metrics = this.metrics.filter((m) => !isSameTest(m));
+    this.sessions = this.sessions.filter(
+      (s) =>
+        !(
+          s.testTitle === test.title &&
+          (s.projectName === projectName || !s.projectName)
+        ),
+    );
+
+    const teamId = (
+      getTeamInfoFromTags(Array.isArray(test.tags) ? test.tags : []) as TeamInfo
+    ).teamId;
     if (this.failedTestsByTeam[teamId]) {
       this.failedTestsByTeam[teamId].tests = this.failedTestsByTeam[
         teamId
@@ -803,6 +839,23 @@ class PerformanceReporter {
       if (this.failedTestsByTeam[teamId].tests.length === 0) {
         delete this.failedTestsByTeam[teamId];
       }
+    }
+
+    this.processAttempt(test, result, projectName);
+
+    const current = this.metrics.find(isSameTest);
+    if (current) {
+      current.testFailed = current.testFailed ?? false;
+      current.failureReason = current.testFailed ? current.failureReason : null;
+      current.retryInfo = retryInfo;
+    } else if (previous) {
+      // The passing attempt produced no metrics; keep the old entry as passed.
+      this.metrics.push({
+        ...previous,
+        testFailed: false,
+        failureReason: null,
+        retryInfo,
+      });
     }
   }
 }

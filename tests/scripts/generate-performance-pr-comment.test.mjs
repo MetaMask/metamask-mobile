@@ -165,3 +165,79 @@ test('writes a placeholder when the summary file is missing', () => {
 
   assert.match(md, /Performance test results are not available for this run/);
 });
+
+test('labels a failed scenario that never got a session', () => {
+  const md = generateComment({
+    summary: {
+      ...SUMMARY,
+      failedTestsStats: {
+        uniqueFailedTests: 1,
+        failedTestsByTeam: {
+          '@assets-dev-team': {
+            team: { teamId: '@assets-dev-team' },
+            tests: [
+              {
+                testName: 'Asset View',
+                platform: 'Android',
+                device: 'Google Pixel 8 Pro+14.0',
+                failureReason: 'session_creation_failed',
+                sessionId: null,
+              },
+            ],
+          },
+        },
+      },
+    },
+    performanceResults: {
+      Android: {
+        'Google Pixel 8 Pro+14.0': [
+          {
+            testName: 'Asset View',
+            sessionId: null,
+            totalTime: 420,
+            device: { name: 'Google Pixel 8 Pro', osVersion: '14.0' },
+            team: { teamId: '@assets-dev-team' },
+            testFailed: true,
+            failureReason: 'session_creation_failed',
+          },
+        ],
+      },
+    },
+  });
+
+  assert.match(md, /#### Asset View/);
+  assert.match(md, /Session creation failed/);
+});
+
+test('flags a passed scenario that needed a retry after a session failure', () => {
+  const md = generateComment({
+    summary: {
+      ...SUMMARY,
+      failedTestsStats: { uniqueFailedTests: 0, failedTestsByTeam: {} },
+    },
+    performanceResults: {
+      Android: {
+        'Google Pixel 8 Pro+14.0': [
+          {
+            testName: 'Asset View',
+            sessionId: 'session-retry',
+            totalTime: 5.9,
+            device: { name: 'Google Pixel 8 Pro', osVersion: '14.0' },
+            team: { teamId: '@assets-dev-team' },
+            retryInfo: {
+              attempts: 2,
+              firstFailureReason: 'session_creation_failed',
+              firstFailureDurationSec: 420.003,
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  assert.match(md, /✅ Passed Tests \(1\)/);
+  assert.match(
+    md,
+    /\| Asset View ⚠️ passed on attempt 2; attempt 1: Session creation failed after 420s \|/,
+  );
+});

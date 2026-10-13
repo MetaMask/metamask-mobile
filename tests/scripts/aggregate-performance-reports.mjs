@@ -399,6 +399,8 @@ function processTestReport(testReport) {
     apiCallsError: testReport.apiCallsError ?? null,
     // Include quality gates if available
     qualityGates: testReport.qualityGates || null,
+    // Present when the test only passed after a failed attempt
+    ...(testReport.retryInfo ? { retryInfo: testReport.retryInfo } : {}),
   };
   
   if (testReport.testFailed) {
