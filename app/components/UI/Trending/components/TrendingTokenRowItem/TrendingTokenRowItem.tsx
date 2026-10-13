@@ -93,6 +93,8 @@ interface TrendingTokenRowItemProps {
   testIdInstanceKey?: string;
   /** Optional trailing action button rendered on the right of the row. */
   endAction?: QuickActionButton;
+  /** Prefixes the market stats with the token symbol. */
+  showSymbol?: boolean;
 }
 
 /**
@@ -156,6 +158,7 @@ const TrendingTokenRowItem = ({
   onCardPress,
   testIdInstanceKey,
   endAction,
+  showSymbol = false,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
@@ -174,6 +177,16 @@ const TrendingTokenRowItem = ({
     () => getResultTypeConfig(token.securityData?.resultType).badge,
     [token.securityData?.resultType],
   );
+
+  const marketStats = formatMarketStats(
+    token.marketCap ?? 0,
+    token.aggregatedUsdVolume ?? 0,
+    currentCurrency,
+  );
+  const subtitle =
+    showSymbol && token.symbol
+      ? `${token.symbol} \u00B7 ${marketStats}`
+      : marketStats;
 
   const priceChangeFieldKey = getPriceChangeFieldKey(selectedTimeOption);
   const pricePercentChangeString = token.priceChangePct?.[priceChangeFieldKey];
@@ -253,11 +266,7 @@ const TrendingTokenRowItem = ({
           ellipsizeMode="tail"
           style={styles.marketStats}
         >
-          {formatMarketStats(
-            token.marketCap ?? 0,
-            token.aggregatedUsdVolume ?? 0,
-            currentCurrency,
-          )}
+          {subtitle}
         </Text>
       </View>
       <View style={styles.rightContainer}>
