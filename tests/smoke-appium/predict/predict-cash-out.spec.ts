@@ -30,7 +30,10 @@ import {
 } from './helpers/predict-helpers.js';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 import ToastModal from '../../page-objects/wallet/ToastModal.js';
-import { waitForWalletHomePlaywright } from '../../flows/wallet.flow.js';
+import {
+  dismissToWalletHomePlaywright,
+  waitForWalletHomePlaywright,
+} from '../../flows/wallet.flow.js';
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
@@ -126,10 +129,10 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
           // Top toast covers the market-details back control until it auto-dismisses.
           await ToastModal.waitForToastToDismiss();
           await PredictDetailsPage.tapBackButton();
-          // Wait for wallet home before scrolling — Android scrollIntoView
-          // fails with getElementRect(elementId=undefined) if wallet-scroll-view
-          // is not yet in the hierarchy after market-details pop.
-          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
+          // After cash-out, a single back tap can leave residual nested Predict
+          // chrome. Keep backing out until wallet readiness indicators pass —
+          // Android scrollIntoView fails if wallet-scroll-view is not mounted.
+          await dismissToWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
           await WalletView.scrollAndTapPredictionsSection();
           await PredictHome.waitForScreenToDisplay({
             description: 'Predict home should be visible after cash out',
