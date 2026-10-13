@@ -33,8 +33,9 @@ import SocialLeaderboardDeveloperOptionsSection from '../../SocialLeaderboard/co
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
 /**
- * Only enabled in dev/test builds via `INCLUDE_SAMPLE_FEATURE=true`;
- * otherwise this is dead-code-eliminated out of production bundles.
+ * Only enabled when bundled with `INCLUDE_SAMPLE_FEATURE=true` (a local
+ * opt-in; no build in builds.yml sets it); otherwise this is
+ * dead-code-eliminated.
  */
 const SampleFeatureDevSettingsEntryPoint: React.FC =
   process.env.INCLUDE_SAMPLE_FEATURE === 'true'
