@@ -36,7 +36,7 @@ function relayFailedActivityState() {
 }
 
 /**
- * Review step from the same smoke spec: simulation marks sponsorship; network fee row
+ * Review step from the same smoke spec: simulation reports sponsorship as available; network fee row
  * shows "Paid by MetaMask" (matches `RowComponents.NetworkFeePaidByMetaMask` / E2E wait
  * before Confirm).
  */
@@ -74,8 +74,8 @@ describeForPlatforms('EIP-7702 sponsored send — review (network fee)', () => {
   const sponsoredGasFeeState = () => {
     const state = cloneDeep(stakingDepositConfirmationState);
     const tx = state.engine.backgroundState.TransactionController
-      .transactions[0] as { isGasFeeSponsored?: boolean };
-    tx.isGasFeeSponsored = true;
+      .transactions[0] as { isGasFeeSponsoredAvailable?: boolean };
+    tx.isGasFeeSponsoredAvailable = true;
     return state;
   };
 
