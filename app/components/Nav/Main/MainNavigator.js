@@ -884,8 +884,8 @@ const SetPasswordFlow = () => (
   </NativeStack.Navigator>
 );
 
-// Only enabled in dev/test builds via `INCLUDE_SAMPLE_FEATURE=true`; otherwise
-// this is dead-code-eliminated out of production bundles.
+// Only enabled when bundled with `INCLUDE_SAMPLE_FEATURE=true` (a local opt-in;
+// no build in builds.yml sets it); otherwise this is dead-code-eliminated.
 const SampleFeature =
   process.env.INCLUDE_SAMPLE_FEATURE === 'true'
     ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the sample feature out of prod bundles

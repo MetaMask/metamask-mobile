@@ -216,8 +216,8 @@ import { isOnboardingComplete } from './utils/ensureOnboardingComplete';
 let currentChainId: any;
 
 /**
- * Initializes the `SamplePetnamesController`. Only enabled in dev/test builds
- * via `INCLUDE_SAMPLE_FEATURE=true`; otherwise this is a no-op so
+ * Initializes the `SamplePetnamesController`. Only enabled when bundled with
+ * `INCLUDE_SAMPLE_FEATURE=true` (a local opt-in; no build in builds.yml sets it); otherwise this is a no-op so
  * `@metamask/sample-controllers` and `app/features/SampleFeature/` are
  * dead-code-eliminated out of production bundles.
  */
@@ -1730,7 +1730,7 @@ export default {
     return {
       // Omitted entirely (rather than set to `undefined`) unless
       // INCLUDE_SAMPLE_FEATURE=true, so consumers can rely on `in`/property
-      // presence checks matching real production (fenced-out) behavior.
+      // presence checks matching production, where the controller never exists.
       ...(SamplePetnamesController && {
         SamplePetnamesController: SamplePetnamesController.state,
       }),

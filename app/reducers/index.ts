@@ -136,8 +136,9 @@ export interface RootState {
   >;
 }
 
-// Only enabled in dev/test builds via `INCLUDE_SAMPLE_FEATURE=true`; otherwise
-// the reducer is dead-code-eliminated and never added to persisted state.
+// Only enabled when bundled with `INCLUDE_SAMPLE_FEATURE=true` (a local opt-in;
+// no build in builds.yml sets it); otherwise the reducer is dead-code-eliminated
+// and never added to persisted state.
 const sampleCounterReducer:
   | Reducer<SampleCounterState | undefined>
   | undefined =
