@@ -33,7 +33,7 @@ const VbaKycRejected = ({ onRetry }: VbaKycRejectedProps) => (
     items={[
       {
         id: 'identity-document',
-        icon: IconName.Gift,
+        icon: IconName.Card,
         title: strings(
           'virtual_bank_account.kyc_rejected.identity_document_title',
         ),
@@ -43,7 +43,7 @@ const VbaKycRejected = ({ onRetry }: VbaKycRejectedProps) => (
       },
       {
         id: 'selfie',
-        icon: IconName.Gift,
+        icon: IconName.FaceId,
         title: strings('virtual_bank_account.kyc_rejected.selfie_title'),
         description: strings(
           'virtual_bank_account.kyc_rejected.selfie_description',
@@ -51,7 +51,7 @@ const VbaKycRejected = ({ onRetry }: VbaKycRejectedProps) => (
       },
       {
         id: 'details',
-        icon: IconName.Gift,
+        icon: IconName.UserCheck,
         title: strings('virtual_bank_account.kyc_rejected.details_title'),
         description: strings(
           'virtual_bank_account.kyc_rejected.details_description',
