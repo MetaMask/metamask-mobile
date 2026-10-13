@@ -4971,13 +4971,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expensify/react-native-wallet@npm:0.1.24":
-  version: 0.1.24
-  resolution: "@expensify/react-native-wallet@npm:0.1.24"
+"@expensify/react-native-wallet@npm:0.1.41":
+  version: 0.1.41
+  resolution: "@expensify/react-native-wallet@npm:0.1.41"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/1107343a6dc3edbbca5d7c44260b2a4d16d351ee575c9a2584aa1f11aef78863734802aef852444659fba4fef4a8c35b50ab6ac470945058f9f53b5281abdf3b
+  checksum: 10/3dcdc63d8bb2e23a8a7d991e8b160e99a53e24ac291e4eea70666d1a0b798a141c4699a9a086acb2df89b32824866596ed03cce2e4755426bb5e7d465f3c85e7
+  languageName: node
+  linkType: hard
+
+"@expensify/react-native-wallet@patch:@expensify/react-native-wallet@npm%3A0.1.41#~/.yarn/patches/@expensify-react-native-wallet-npm-0.1.41-50938886af.patch":
+  version: 0.1.41
+  resolution: "@expensify/react-native-wallet@patch:@expensify/react-native-wallet@npm%3A0.1.41#~/.yarn/patches/@expensify-react-native-wallet-npm-0.1.41-50938886af.patch::version=0.1.41&hash=69f2f9"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/de655cb9e375b45050f61b0e8ba5ea16f6e18e1a48fdaf2edd82234015079b27e7df55f7068f7d7b79082132a7c5ad0e3a620af4b51da0e27d3d482988b061d7
   languageName: node
   linkType: hard
 
@@ -39041,7 +39051,7 @@ __metadata:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.2"
-    "@expensify/react-native-wallet": "npm:0.1.24"
+    "@expensify/react-native-wallet": "patch:@expensify/react-native-wallet@npm%3A0.1.41#~/.yarn/patches/@expensify-react-native-wallet-npm-0.1.41-50938886af.patch"
     "@expo/fingerprint": "npm:~0.20.13"
     "@expo/metro-config": "npm:~57.0.0"
     "@expo/repack-app": "npm:^0.2.9"
