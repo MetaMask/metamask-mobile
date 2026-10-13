@@ -22,8 +22,6 @@ import Engine from '../../../core/Engine';
 const mockEnableNetwork = jest.fn();
 const mockDisableNetwork = jest.fn();
 const mockEnableAllPopularNetworks = jest.fn();
-const mockSetActiveNetwork = jest.fn();
-const mockFindNetworkClientIdByChainId = jest.fn();
 
 jest.mock('@metamask/keyring-utils', () => ({}));
 jest.mock('@metamask/transaction-controller', () => ({}));
@@ -100,14 +98,11 @@ jest.mock('../../../core/Engine', () => ({
     MultichainNetworkController: {
       setActiveNetwork: jest.fn(),
     },
-    NetworkController: {
-      findNetworkClientIdByChainId: jest.fn(),
-    },
     PreferencesController: {
       setTokenNetworkFilter: jest.fn(),
     },
   },
-  setSelectedAddress: jest.fn(), // Add this line
+  setSelectedAddress: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -277,8 +272,6 @@ describe('useNetworkSelection', () => {
     mockEnableNetwork.mockReset();
     mockDisableNetwork.mockReset();
     mockEnableAllPopularNetworks.mockReset();
-    mockSetActiveNetwork.mockReset();
-    mockFindNetworkClientIdByChainId.mockReset();
 
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
@@ -488,6 +481,21 @@ describe('useNetworkSelection', () => {
       result.current.selectPopularNetwork(popularChainId);
 
       expect(mockEnableNetwork).toHaveBeenCalledWith(popularChainId);
+    });
+
+    it('does not switch the active network when selecting an already-added popular network', async () => {
+      const solanaMainnet =
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId;
+
+      const { result } = renderHook(() =>
+        useNetworkSelection({ networks: mockNetworks }),
+      );
+      await result.current.selectPopularNetwork(solanaMainnet);
+
+      expect(mockEnableNetwork).toHaveBeenCalledWith(solanaMainnet);
+      expect(
+        Engine.context.MultichainNetworkController.setActiveNetwork,
+      ).not.toHaveBeenCalled();
     });
 
     it('calls the callback function after popular network selection', async () => {
