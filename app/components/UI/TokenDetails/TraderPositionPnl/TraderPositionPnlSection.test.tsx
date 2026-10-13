@@ -81,6 +81,28 @@ describe('TraderPositionPnlSection', () => {
         isLoading: false,
       }),
     );
+    expect(positionProp()).not.toHaveProperty('expandedDetails');
+  });
+
+  it('passes expanded position details through to the footer', () => {
+    const expandedDetails = {
+      averageCost: '$0.0005',
+      realizedPnl: '+$50.25',
+      unrealizedPnl: '+$1,200.00',
+      holdTime: '—',
+    };
+    mockUseOpenPositionHeader.mockReturnValue({
+      positionValue: '$2,000.00',
+      pnl: { amount: '+$1,200.00', percentage: '+150.00%', isProfit: true },
+      expandedDetails,
+      isLoading: false,
+    });
+
+    renderSection();
+
+    expect(positionProp()).toEqual(
+      expect.objectContaining({ expandedDetails }),
+    );
   });
 
   it('passes a loading header through before a value arrives', () => {

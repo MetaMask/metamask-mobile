@@ -41,6 +41,9 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
       ? {
           positionValue: header.positionValue,
           pnl: header.pnl,
+          ...(header.expandedDetails
+            ? { expandedDetails: header.expandedDetails }
+            : {}),
           isLoading: header.isLoading,
           isExpanded,
           onToggleExpanded: setIsExpanded,

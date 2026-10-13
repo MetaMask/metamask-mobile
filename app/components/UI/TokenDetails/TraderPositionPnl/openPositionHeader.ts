@@ -1,4 +1,8 @@
-import { formatPercent } from '../../SocialFeed/utils/formatters';
+import {
+  EM_DASH,
+  formatPercent,
+  formatTradeUnitPrice,
+} from '../../SocialFeed/utils/formatters';
 import {
   convertUsdToFiat,
   formatFiat,
@@ -8,6 +12,13 @@ import {
 import type { OpenPositionPnl } from './types';
 import { computeOpenUnrealizedPnl } from './unrealizedPnl';
 
+export interface OpenPositionExpandedDetails {
+  averageCost: string;
+  realizedPnl: string;
+  unrealizedPnl: string;
+  holdTime: string;
+}
+
 export interface OpenPositionHeaderModel {
   positionValue?: string;
   pnl?: {
@@ -15,8 +26,36 @@ export interface OpenPositionHeaderModel {
     percentage?: string;
     isProfit: boolean;
   };
+  /** Rows shown when the position footer is expanded. */
+  expandedDetails?: OpenPositionExpandedDetails;
   isLoading: boolean;
 }
+
+const formatSignedFiat = (usd: number, conversion: UsdToFiatRate): string => {
+  const converted = convertUsdToFiat(usd, conversion);
+  return formatFiat(converted.value, converted.currency);
+};
+
+const formatAverageCost = (
+  position: OpenPositionPnl,
+  conversion: UsdToFiatRate,
+): string => {
+  if (
+    !Number.isFinite(position.positionAmount) ||
+    position.positionAmount <= 0 ||
+    !Number.isFinite(position.costBasis)
+  ) {
+    return EM_DASH;
+  }
+
+  const averageCostUsd = position.costBasis / position.positionAmount;
+  const converted = convertUsdToFiat(averageCostUsd, conversion);
+  // Unit prices for sub-cent assets collapse to $0.00 at two decimals.
+  if (converted.currency === 'USD') {
+    return formatTradeUnitPrice(averageCostUsd);
+  }
+  return formatFiatAmount(converted.value, converted.currency);
+};
 
 /**
  * Collapsed header for the sticky footer.
@@ -60,6 +99,13 @@ export const toOpenPositionHeader = ({
             : formatPercent(unrealized.percent),
         // Zero reads as neutral-to-positive, matching `positionDisplay.ts`.
         isProfit: unrealized.usd >= 0,
+      },
+      expandedDetails: {
+        averageCost: formatAverageCost(position, conversion),
+        realizedPnl: formatSignedFiat(position.realizedPnl, conversion),
+        unrealizedPnl: formatSignedFiat(unrealized.usd, conversion),
+        // The open-position route does not return a buy timestamp.
+        holdTime: EM_DASH,
       },
       isLoading: false,
     };

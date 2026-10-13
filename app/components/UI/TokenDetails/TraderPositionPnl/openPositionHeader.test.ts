@@ -1,3 +1,7 @@
+import {
+  EM_DASH,
+  formatTradeUnitPrice,
+} from '../../SocialFeed/utils/formatters';
 import { formatFiat, formatFiatAmount } from './fiat';
 import { toOpenPositionHeader } from './openPositionHeader';
 import type { OpenPositionPnl } from './types';
@@ -33,6 +37,12 @@ describe('toOpenPositionHeader', () => {
         amount: formatFiat(50, 'USD'),
       }),
     );
+    expect(result.expandedDetails).toEqual({
+      averageCost: formatTradeUnitPrice(100),
+      realizedPnl: formatFiat(0, 'USD'),
+      unrealizedPnl: formatFiat(50, 'USD'),
+      holdTime: EM_DASH,
+    });
     expect(result.isLoading).toBe(false);
   });
 
