@@ -597,7 +597,7 @@ const QRScanner = ({
             return;
           }
 
-          // Handle non-EVM addresses when keyring-snaps is enabled (Solana, Bitcoin)
+          // Handle non-EVM addresses (e.g. Solana, Bitcoin)
           if (
             predefinedRecipient &&
             predefinedRecipient.chainType !== ChainType.EVM
@@ -618,26 +618,6 @@ const QRScanner = ({
                 predefinedRecipient,
               });
             }, 0);
-            return;
-          }
-
-          // If non-EVM and keyring-snaps is disabled, show error
-          if (
-            predefinedRecipient &&
-            predefinedRecipient.chainType !== ChainType.EVM
-          ) {
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.QR_SCANNED)
-                .addProperties({
-                  [QRScannerEventProperties.SCAN_SUCCESS]: false,
-                  [QRScannerEventProperties.QR_TYPE]: QRType.SEND_FLOW,
-                  [QRScannerEventProperties.SCAN_RESULT]:
-                    ScanResult.ADDRESS_TYPE_NOT_SUPPORTED,
-                })
-                .build(),
-            );
-            showAlertForInvalidAddress();
-            end();
             return;
           }
 
