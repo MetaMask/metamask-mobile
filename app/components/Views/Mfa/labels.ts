@@ -9,6 +9,7 @@ const METHOD_KEYS: Record<MfaMethod, string> = {
 
 const ERROR_KEYS: Partial<Record<MfaFlowErrorCode, string>> = {
   invalid_code: 'mfa.errors.invalid_code',
+  flow_expired: 'mfa.errors.code_expired',
   too_many_attempts: 'mfa.errors.too_many_attempts',
   invalid_assertion: 'mfa.errors.invalid_passkey',
   invalid_attestation: 'mfa.errors.invalid_passkey',

@@ -1,5 +1,6 @@
 import React from 'react';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type {
   MfaFlowState,
@@ -120,6 +121,36 @@ describe('IntroStep', () => {
 });
 
 describe('PickerStep', () => {
+  it('leads with the passkey, then the other methods below an "or"', () => {
+    const onAction = jest.fn();
+    const { getByTestId, getByText } = render(
+      <PickerStep
+        {...buildState({
+          name: 'picker',
+          purpose: 'verify',
+          options: ['email_otp', 'passkey'],
+        })}
+        reason={reason}
+        onAction={onAction}
+      />,
+    );
+
+    expect(getByText('Verify with Passkey')).toBeOnTheScreen();
+    expect(getByText('or')).toBeOnTheScreen();
+    fireEvent.press(getByText('Get a verification code'));
+    expect(onAction).toHaveBeenCalledWith({
+      type: 'choose',
+      method: 'email_otp',
+    });
+    fireEvent.press(
+      getByTestId(`${MfaFlowSelectorsIDs.PICKER_OPTION}-passkey`),
+    );
+    expect(onAction).toHaveBeenCalledWith({
+      type: 'choose',
+      method: 'passkey',
+    });
+  });
+
   it('sends the chosen method', () => {
     const onAction = jest.fn();
     const { getByTestId } = render(
@@ -296,7 +327,11 @@ describe('CodeStep', () => {
   it('submits once six digits are entered', () => {
     const { onAction, getByTestId, getByText } = renderCode(otp(true));
 
-    expect(getByText('We sent a 6-digit code to a@b.co.')).toBeOnTheScreen();
+    expect(
+      getByText(
+        'We sent a 6-digit code to a•••@b.co. Enter it below to verify your email.',
+      ),
+    ).toBeOnTheScreen();
     fireEvent.changeText(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT), '12a3');
     expect(onAction).not.toHaveBeenCalled();
     fireEvent.changeText(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT), '123456');
@@ -311,20 +346,52 @@ describe('CodeStep', () => {
       error: 'invalid_code',
     });
 
-    expect(getByText('That code is incorrect. Try again.')).toBeOnTheScreen();
+    expect(
+      getByText('That code isn’t right. Check it and try again.'),
+    ).toBeOnTheScreen();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON));
     expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
   });
 
   it('counts down instead of showing the cooldown error', () => {
-    const { getByText, queryByTestId } = renderCode(otp(true), {
-      error: 'otp_resend_cooldown',
-      resendAvailableAt: Date.now() + 30_000,
-    });
+    const { onAction, getByText, getByTestId, queryByTestId } = renderCode(
+      otp(true),
+      {
+        error: 'otp_resend_cooldown',
+        resendAvailableAt: Date.now() + 30_000,
+      },
+    );
 
     expect(getByText('Resend code in 30s')).toBeOnTheScreen();
     expect(queryByTestId(MfaFlowSelectorsIDs.ERROR)).toBeNull();
-    expect(queryByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON)).toBeNull();
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON));
+    expect(onAction).not.toHaveBeenCalled();
+  });
+
+  it('pastes a copied code and submits it', async () => {
+    jest.spyOn(Clipboard, 'getString').mockResolvedValue('Code: 123456');
+    const { onAction, getByTestId } = renderCode(otp(true));
+
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PASTE_BUTTON));
+
+    await waitFor(() =>
+      expect(onAction).toHaveBeenCalledWith({
+        type: 'submitCode',
+        code: '123456',
+      }),
+    );
+  });
+
+  it('offers a new code once the one on screen expired', () => {
+    const { onAction, getByText } = renderCode(otp(true), {
+      error: 'flow_expired',
+    });
+
+    expect(
+      getByText('Your verification code expired, get a new code.'),
+    ).toBeOnTheScreen();
+    fireEvent.press(getByText('Get new code'));
+    expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
   });
 
   it('sends the first code by itself once the cooldown ends', () => {

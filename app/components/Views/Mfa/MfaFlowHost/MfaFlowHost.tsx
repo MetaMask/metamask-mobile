@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -7,7 +7,13 @@ import {
   useNavigationState,
   useRoute,
 } from '@react-navigation/native';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  Box,
+  HeaderStandard,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useActiveMfaFlow } from '../../../../util/identity/mfa/engine/useActiveMfaFlow';
 import { MfaFlowSelectorsIDs } from '../Mfa.testIds';
@@ -27,6 +33,7 @@ import FailureStep from './steps/FailureStep';
  */
 const MfaFlowHost = () => {
   const tw = useTailwind();
+  const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { key } = useRoute();
   const isOnStack = useNavigationState((navState) =>
@@ -70,6 +77,7 @@ const MfaFlowHost = () => {
   }
 
   const { step } = state;
+  const cancel = () => flow.dispatch({ type: 'cancel' });
   const shared = {
     key: `${flowCount}-${'purpose' in step ? `${step.name}-${step.purpose}` : step.name}`,
     state,
@@ -81,8 +89,6 @@ const MfaFlowHost = () => {
     switch (step.name) {
       case 'intro':
         return <IntroStep {...shared} step={step} />;
-      case 'picker':
-        return <PickerStep {...shared} step={step} />;
       case 'emailEntry':
         return <EmailEntryStep {...shared} step={step} />;
       case 'otp':
@@ -102,6 +108,23 @@ const MfaFlowHost = () => {
     }
   };
 
+  // The picker is a sheet over the screen that asked for the verification.
+  if (step.name === 'picker') {
+    return (
+      <BottomSheet
+        ref={sheetRef}
+        onClose={cancel}
+        testID={`${MfaFlowSelectorsIDs.CONTAINER}-${step.name}`}
+      >
+        <BottomSheetHeader
+          onClose={() => sheetRef.current?.onCloseBottomSheet()}
+          closeButtonProps={{ testID: MfaFlowSelectorsIDs.CLOSE_BUTTON }}
+        />
+        <PickerStep {...shared} step={step} />
+      </BottomSheet>
+    );
+  }
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
@@ -109,7 +132,7 @@ const MfaFlowHost = () => {
       testID={`${MfaFlowSelectorsIDs.CONTAINER}-${step.name}`}
     >
       <HeaderStandard
-        onBack={() => flow.dispatch({ type: 'cancel' })}
+        onBack={cancel}
         backButtonProps={{ testID: MfaFlowSelectorsIDs.BACK_BUTTON }}
         includesTopInset
       />

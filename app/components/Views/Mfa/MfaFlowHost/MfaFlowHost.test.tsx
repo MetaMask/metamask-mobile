@@ -11,6 +11,7 @@ import {
 } from '../../../../util/identity/mfa/engine/activeFlow';
 import type {
   MfaControllerAdapter,
+  MfaFlowOptions,
   MfaFlowRequest,
 } from '../../../../util/identity/mfa/engine/types';
 import { MfaFlowSelectorsIDs } from '../Mfa.testIds';
@@ -88,12 +89,14 @@ const createController = (
 const start = async (
   request: MfaFlowRequest,
   controller: MfaControllerAdapter,
+  passkey?: MfaFlowOptions['passkey'],
 ) => {
   const outcome = startMfaFlow({
     request,
     reason: { operation: 'test', enrollDescription: 'Why we ask' },
     platform: 'mobile',
     controller,
+    passkey,
   }).then(
     (value) => ({ ok: true as const, value }),
     (error) => ({ ok: false as const, code: error.mfaCode }),
@@ -242,6 +245,28 @@ describe('MfaFlowHost', () => {
 
     expect(await outcome).toEqual({ ok: false, code: 'flow_cancelled' });
     expect(mockRemoveSelf).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks how to verify in a sheet, and cancels when the sheet closes', async () => {
+    const { outcome } = await start(
+      {
+        kind: 'verifyOrEnroll',
+        methods: ['email_otp', 'passkey'],
+        verifyWith: ['email_otp', 'passkey'],
+      },
+      createController([activeEmail, { type: 'passkey', status: 'active' }]),
+      { create: jest.fn(), get: jest.fn() },
+    );
+    const { getByTestId } = renderHost();
+
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-picker`),
+    ).toBeOnTheScreen();
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CLOSE_BUTTON));
+    });
+
+    expect(await outcome).toEqual({ ok: false, code: 'flow_cancelled' });
   });
 
   it('closes itself when no flow is running', async () => {

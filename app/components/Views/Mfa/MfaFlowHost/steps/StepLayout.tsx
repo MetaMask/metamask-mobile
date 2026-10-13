@@ -7,6 +7,9 @@ import {
 } from 'react-native';
 import {
   Box,
+  FontWeight,
+  HelpText,
+  HelpTextSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -55,14 +58,49 @@ export const MfaShield = () => {
 };
 
 export const StepError = ({ code }: { code: MfaFlowErrorCode }) => (
-  <Text
-    variant={TextVariant.BodyMd}
-    color={TextColor.ErrorDefault}
+  <HelpText
+    severity={HelpTextSeverity.Danger}
+    fontWeight={FontWeight.Medium}
     testID={MfaFlowSelectorsIDs.ERROR}
   >
     {getErrorMessage(code)}
-  </Text>
+  </HelpText>
 );
+
+/**
+ * The step's title and description, centred under an image (the intro and
+ * picker shield, the success and failure icons).
+ *
+ * @param props - The header's props.
+ * @param props.title - The title.
+ * @param props.description - The line under it, if any.
+ * @param props.isCentered - Whether an image sits above it.
+ */
+export const StepHeader = ({
+  title,
+  description,
+  isCentered,
+}: Pick<StepLayoutProps, 'title' | 'description'> & {
+  isCentered: boolean;
+}) => {
+  const textAlign = isCentered ? 'text-center' : undefined;
+  return (
+    <Box twClassName="gap-2">
+      <Text variant={TextVariant.HeadingLg} twClassName={textAlign}>
+        {title}
+      </Text>
+      {description ? (
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName={textAlign}
+        >
+          {description}
+        </Text>
+      ) : null}
+    </Box>
+  );
+};
 
 const StepLayout = ({
   title,
@@ -73,8 +111,6 @@ const StepLayout = ({
   footer,
 }: StepLayoutProps) => {
   const tw = useTailwind();
-  // Screens with an image above the title centre it, as in the designs.
-  const textAlign = top ? 'text-center' : undefined;
   return (
     <KeyboardAvoidingView
       style={tw.style('flex-1')}
@@ -85,20 +121,11 @@ const StepLayout = ({
         keyboardShouldPersistTaps="handled"
       >
         {top}
-        <Box twClassName="gap-2">
-          <Text variant={TextVariant.HeadingLg} twClassName={textAlign}>
-            {title}
-          </Text>
-          {description ? (
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-              twClassName={textAlign}
-            >
-              {description}
-            </Text>
-          ) : null}
-        </Box>
+        <StepHeader
+          title={title}
+          description={description}
+          isCentered={top !== undefined}
+        />
         {children}
         {error ? <StepError code={error} /> : null}
       </ScrollView>
