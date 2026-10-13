@@ -293,6 +293,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     initialTakeProfitPrice,
     initialStopLossPrice,
     leverage: propLeverage,
+    marginMode = 'isolated',
     orderType,
     limitPrice,
     amount,
@@ -384,7 +385,12 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
 
   // Calculate liquidation price for new orders (when there's no existing position)
   const shouldCalculateLiquidation =
-    !position && currentPrice > 0 && propLeverage && actualDirection && asset;
+    marginMode !== 'cross' &&
+    !position &&
+    currentPrice > 0 &&
+    propLeverage &&
+    actualDirection &&
+    asset;
   const { liquidationPrice: calculatedLiquidationPrice } =
     usePerpsLiquidationPrice({
       entryPrice: shouldCalculateLiquidation ? currentPrice : 0,

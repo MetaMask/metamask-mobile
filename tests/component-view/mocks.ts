@@ -278,6 +278,7 @@ jest.mock('../../app/core/Engine', () => {
       RampsController: {
         setSelectedToken: jest.fn(),
         setSelectedProvider: jest.fn(),
+        setSelectedProviderForAsset: jest.fn().mockReturnValue(false),
         setSelectedPaymentMethod: jest.fn(),
         setUserRegion: jest.fn().mockResolvedValue(null),
         // Default stubs — tests override via `.mockReset().mockResolvedValue(...)`.
@@ -290,6 +291,7 @@ jest.mock('../../app/core/Engine', () => {
           .mockResolvedValue({ methods: [], selected: null }),
         getQuotes: jest.fn().mockResolvedValue({ success: [], error: [] }),
         getBuyWidgetData: jest.fn().mockResolvedValue(null),
+        transakSetApiKey: jest.fn(),
       },
       AssetsContractController: {
         getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
@@ -392,7 +394,10 @@ jest.mock('../../app/core/Engine', () => {
           address: '0x0000000000000000000000000000000000000001',
           walletType: 'metamask',
         }),
-        getActivity: jest.fn().mockResolvedValue([]),
+        getActivity: jest.fn().mockResolvedValue({
+          activities: [],
+          nextCursor: undefined,
+        }),
         getPositions: jest.fn().mockResolvedValue([]),
         getPrices: jest.fn().mockResolvedValue({ providerId: '', results: [] }),
         getPriceHistory: jest.fn().mockResolvedValue([]),
@@ -458,6 +463,11 @@ jest.mock('../../app/core/Engine', () => {
           providerId: 'hyperliquid',
           supportedStrategies: ['twap', 'scale', 'chase'],
         }),
+        getMarginModeLock: jest.fn().mockResolvedValue({
+          status: 'unlocked',
+          providerId: 'hyperliquid',
+        }),
+        previewPositionModify: jest.fn().mockResolvedValue({ status: 'none' }),
         subscribeToPrices: jest.fn(() => () => undefined),
         subscribeToOrderBook: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),

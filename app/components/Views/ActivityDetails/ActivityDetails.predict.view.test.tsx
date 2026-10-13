@@ -97,7 +97,7 @@ function renderPredictProviderDetails(activity: PredictActivity) {
   const params = getActivityDetailsViewParams(item);
   jest
     .mocked(Engine.context.PredictController.getActivity)
-    .mockResolvedValue([activity]);
+    .mockResolvedValue({ activities: [activity], nextCursor: undefined });
 
   const state = initialStateActivity()
     .withRemoteFeatureFlags(activityPredictTradingEnabledFlag)
@@ -144,7 +144,7 @@ describeForPlatforms('ActivityDetails — Predict', () => {
   afterEach(() => {
     jest
       .mocked(Engine.context.PredictController.getActivity)
-      .mockResolvedValue([]);
+      .mockResolvedValue({ activities: [], nextCursor: undefined });
   });
 
   describe('Predict account funding', () => {

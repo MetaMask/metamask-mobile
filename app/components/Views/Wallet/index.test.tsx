@@ -1949,7 +1949,7 @@ describe('MoneyBalanceCard slot', () => {
     mockBalanceBreakdownVariantName = 'unresolved';
   });
 
-  it('renders the MoneyBalanceCard when Money is enabled', () => {
+  it('shows the standalone MoneyBalanceCard when breakdown is disabled', () => {
     mockMoneyAccountEnabled = true;
     mockMoneyAccountVisible = true;
 
@@ -1958,7 +1958,7 @@ describe('MoneyBalanceCard slot', () => {
     expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
   });
 
-  it('mounts the MoneyBalanceCard when Money is enabled but geo-ineligible', () => {
+  it('shows the standalone MoneyBalanceCard when breakdown is disabled and Money is geo-ineligible', () => {
     mockMoneyAccountEnabled = true;
     mockMoneyAccountVisible = false;
 
@@ -2061,6 +2061,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
     ).toBeOnTheScreen();
+    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
     expect(
       getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
     ).toBeOnTheScreen();
@@ -2070,7 +2071,6 @@ describe('Header and Nav Bar refresh AB test', () => {
       WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON,
       WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
       WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON,
-      WalletViewSelectorsIDs.ACCOUNT_ICON,
     ]) {
       expect(queryByTestId(removed)).not.toBeOnTheScreen();
     }
@@ -2319,7 +2319,7 @@ describe('Homepage balance breakdown A/B test', () => {
     mockBalanceBreakdownVariantName = 'unresolved';
   });
 
-  it('keeps the current homepage for the control variant', () => {
+  it('does not enable the balance breakdown for the control variant', () => {
     mockBalanceBreakdownVariantName = 'control';
 
     render(Wallet);
