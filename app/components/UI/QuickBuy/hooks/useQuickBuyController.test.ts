@@ -106,6 +106,15 @@ jest.mock('../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
 }));
 
+jest.mock('../../../hooks/useAddPopularNetwork', () => ({
+  useAddPopularNetwork: jest.fn(),
+}));
+
+jest.mock('../../Bridge/utils/exchange-rates', () => ({
+  ...jest.requireActual('../../Bridge/utils/exchange-rates'),
+  getTokenExchangeRate: jest.fn(),
+}));
+
 jest.mock('../../../Views/confirmations/hooks/gas/useGasFeeEstimates', () => ({
   useGasFeeEstimates: jest.fn(),
 }));
@@ -262,6 +271,7 @@ runQuickBuyControllerCases({
     analyticsContext?: QuickBuyAnalyticsContext,
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
     initialTradeMode?: 'buy' | 'sell',
+    postSwapShare?: boolean,
   ) => {
     const utils = renderHook(
       () =>
@@ -270,6 +280,7 @@ runQuickBuyControllerCases({
           onClose ?? jest.fn(),
           analyticsContext,
           initialTradeMode,
+          postSwapShare,
         ),
       { initialProps },
     );

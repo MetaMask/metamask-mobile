@@ -10,6 +10,7 @@ import {
   EARNINGS_SUMMARY_CACHE_THRESHOLD_MS,
 } from './RewardsMoneyController';
 import type { RewardsMoneyControllerMessenger } from '../../messengers/rewards-money-controller-messenger';
+import { RewardsMoneyRebateQuoteError } from './services/rewards-money-data-service';
 import type {
   ClaimDto,
   ClaimHistoryPageDto,
@@ -17,6 +18,7 @@ import type {
   EarningsSummaryDto,
   OwnReferralCodesDto,
   CommissionsPageDto,
+  PerpsRebateTrade,
   ReferralFunnelDto,
   ReferralLocalizedText,
   ReferralMeDto,
@@ -269,6 +271,8 @@ describe('RewardsMoneyController', () => {
           'getEarningsLedger',
           'getClaimHistory',
           'getClaimById',
+          'getSwapsRebateQuote',
+          'getPerpsRebateQuote',
           'isRewardsMoneyFeatureEnabled',
           'setRewardsMoneyEnvUrl',
         ]),
@@ -350,6 +354,20 @@ describe('RewardsMoneyController', () => {
 
     it('does not call data service when flag is off for getReferralMe', async () => {
       await expect(controller.getReferralMe()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^RewardsMoneyDataService:/),
+      );
+    });
+
+    it('does not call data service when flag is off for rebate quotes', async () => {
+      await expect(
+        controller.getSwapsRebateQuote({
+          feeData: { metabridge: [] },
+        }),
+      ).rejects.toThrow('Rewards Money is disabled');
+      await expect(controller.getPerpsRebateQuote()).rejects.toThrow(
         'Rewards Money is disabled',
       );
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
@@ -757,6 +775,188 @@ describe('RewardsMoneyController', () => {
             call[0] === 'RewardsMoneyDataService:getCommissions',
         ),
       ).toHaveLength(0);
+    });
+  });
+
+  describe('rebate quotes', () => {
+    const metabridge = {
+      amount: '875000',
+      asset: {
+        chainId: 1,
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        assetId:
+          'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const,
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+      },
+      quoteBpsFee: 87.5,
+      baseBpsFee: 87.5,
+    };
+    const swapsQuote = {
+      requestId: 'request-1',
+      srcChainId: 1,
+      destChainId: 1,
+      feeData: { metabridge },
+    };
+    const swapsResponse = {
+      product: 'swaps' as const,
+      eligible: true,
+      rebateBips: 2000,
+      reason: null,
+    };
+    const perpsResponse = {
+      product: 'perps' as const,
+      eligible: false,
+      rebateBips: 0,
+      reason: 'NO_REBATE' as const,
+    };
+
+    beforeEach(() => {
+      mockMessenger.call.mockImplementation((action, ...args): any => {
+        if (action === 'RewardsMoneyDataService:getRebateQuote') {
+          const body = args[0] as { product: string };
+          return Promise.resolve(
+            body.product === 'swaps' ? swapsResponse : perpsResponse,
+          );
+        }
+        return undefined;
+      });
+    });
+
+    it('sends only the MetaMask fee leg of the bridge quote', async () => {
+      await expect(controller.getSwapsRebateQuote(swapsQuote)).resolves.toEqual(
+        swapsResponse,
+      );
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:getRebateQuote',
+        { product: 'swaps', quote: { feeData: { metabridge } } },
+      );
+    });
+
+    it('sends a V2 bridge quote fee leg list as it is', async () => {
+      const metabridgeV2 = [
+        {
+          amount: '875000',
+          asset: {
+            assetId:
+              'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const,
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+          },
+          usd: '0.87',
+        },
+      ];
+
+      await controller.getSwapsRebateQuote({
+        feeData: { metabridge: metabridgeV2 },
+      });
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:getRebateQuote',
+        { product: 'swaps', quote: { feeData: { metabridge: metabridgeV2 } } },
+      );
+    });
+
+    it('sends a perps rebate quote without a trade unless one is given', async () => {
+      const trade = { coin: 'BTC', side: 'BUY' as const, notionalUsd: '100' };
+
+      await expect(controller.getPerpsRebateQuote()).resolves.toEqual(
+        perpsResponse,
+      );
+      await expect(controller.getPerpsRebateQuote(trade)).resolves.toEqual(
+        perpsResponse,
+      );
+
+      expect(mockMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'RewardsMoneyDataService:getRebateQuote',
+        { product: 'perps' },
+      );
+      expect(mockMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsMoneyDataService:getRebateQuote',
+        { product: 'perps', trade },
+      );
+    });
+
+    it('sends a builder-deployed perp and a precise notional', async () => {
+      const trade = {
+        coin: 'xyz:TSLA',
+        side: 'SELL' as const,
+        notionalUsd: '123456789012345.123456789012345678',
+      };
+
+      await controller.getPerpsRebateQuote(trade);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:getRebateQuote',
+        { product: 'perps', trade },
+      );
+    });
+
+    it('sends only the trade fields the server accepts', async () => {
+      const trade = {
+        coin: 'ETH',
+        side: 'BUY' as const,
+        notionalUsd: '50',
+        leverage: 5,
+      };
+
+      await controller.getPerpsRebateQuote(trade);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:getRebateQuote',
+        {
+          product: 'perps',
+          trade: { coin: 'ETH', side: 'BUY', notionalUsd: '50' },
+        },
+      );
+    });
+
+    it.each<[string, PerpsRebateTrade]>([
+      ['a spot coin', { coin: '@107', side: 'BUY', notionalUsd: '100' }],
+      [
+        'an upper-case dex prefix',
+        { coin: 'XYZ:TSLA', side: 'BUY', notionalUsd: '100' },
+      ],
+      ['an empty coin', { coin: '', side: 'BUY', notionalUsd: '100' }],
+      [
+        'an exponent notional',
+        { coin: 'BTC', side: 'BUY', notionalUsd: '1e21' },
+      ],
+      ['a negative notional', { coin: 'BTC', side: 'BUY', notionalUsd: '-1' }],
+      [
+        'a notional with 19 decimals',
+        { coin: 'BTC', side: 'BUY', notionalUsd: '1.1234567890123456789' },
+      ],
+      [
+        'a notional with 16 integer digits',
+        { coin: 'BTC', side: 'BUY', notionalUsd: '1234567890123456' },
+      ],
+    ])('leaves out a trade with %s', async (_label, trade) => {
+      await controller.getPerpsRebateQuote(trade);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:getRebateQuote',
+        { product: 'perps' },
+      );
+    });
+
+    it('surfaces a quote refusal without wrapping it', async () => {
+      const refusal = new RewardsMoneyRebateQuoteError(
+        429,
+        'RATE_LIMITED',
+        'Too many requests',
+        12,
+      );
+      mockMessenger.call.mockRejectedValue(refusal);
+
+      await expect(controller.getSwapsRebateQuote(swapsQuote)).rejects.toBe(
+        refusal,
+      );
+      await expect(controller.getPerpsRebateQuote()).rejects.toBe(refusal);
     });
   });
 });

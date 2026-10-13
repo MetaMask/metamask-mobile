@@ -892,6 +892,12 @@ jest.mock('@metamask/design-system-react-native', () => {
       },
       ref,
     ) => {
+      // The real sheet animates itself open on first layout and then calls onOpen.
+      const onOpenRef = React.useRef(onOpen);
+      onOpenRef.current = onOpen;
+      React.useEffect(() => {
+        onOpenRef.current?.();
+      }, []);
       React.useImperativeHandle(ref, () => ({
         onOpenBottomSheet: (callback) => {
           onOpen?.();
@@ -1010,5 +1016,6 @@ jest.mock('@braze/react-native-sdk', () => ({
     addListener: jest.fn(() => ({
       remove: jest.fn(),
     })),
+    dismissBanner: jest.fn(),
   },
 }));

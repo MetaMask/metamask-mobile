@@ -39,6 +39,13 @@ export const colors = {
   perpsProGoldDeep: '#946500',
   perpsProGoldBright: '#CF8D00',
   perpsProGoldPale: '#DDC598',
+  // Rewards badge colors — not in the shared design-token palette.
+  // Sourced from Figma VIP and Member badges.
+  rewardsVipGold: '#EAD797',
+  rewardsVipGoldTransparent: '#EAD79700',
+  rewardsMemberOrange: '#F58C40',
+  rewardsMemberOrangeTransparent: '#F58C4000',
+  rewardsMemberLabel: '#D97326',
 };
 
 export const onboardingCarouselColors: Record<

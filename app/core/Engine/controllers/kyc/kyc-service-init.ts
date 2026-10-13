@@ -4,8 +4,8 @@ import type { MessengerClientInitFunction } from '../../types';
 /** UAT hosts used when env vars are not inlined (e.g. local Metro, Jest). */
 const DEFAULT_KYC_API_BASE_URL = 'https://kyc-api.uat-api.cx.metamask.io';
 const DEFAULT_IDOS_ENCLAVE_BASE_URL =
-  'https://enclave.staging.sandbox.fractal.id';
-const DEFAULT_IDOS_RELAY_BASE_URL = 'https://relay.staging.idos.network';
+  'https://enclave.tee.staging.idos.network';
+const DEFAULT_IDOS_RELAY_BASE_URL = 'https://relay.playground.idos.network';
 
 /**
  * Initialize the KycService.

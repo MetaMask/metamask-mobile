@@ -1,5 +1,6 @@
 import type { CaipChainId, Hex } from '@metamask/utils';
 import type { BridgeToken } from '../Bridge/types';
+import { normalizeTokenAddress } from '../Bridge/utils/tokenUtils';
 
 const EVM_NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -25,7 +26,10 @@ export const isSameAsset = (
     Partial<Pick<BridgeToken, 'symbol'>>,
 ): boolean => {
   if (token.chainId !== other.chainId) return false;
-  if (token.address.toLowerCase() === other.address.toLowerCase()) {
+  if (
+    normalizeTokenAddress(token.address.toLowerCase(), token.chainId) ===
+    normalizeTokenAddress(other.address.toLowerCase(), other.chainId)
+  ) {
     return true;
   }
   const isNonEvm =

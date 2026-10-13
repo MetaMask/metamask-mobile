@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
+import type { Hex } from '@metamask/utils';
 
 interface MoneyAccountFeatureFlag {
   moneyAccountDepositEnabled?: boolean;
@@ -78,11 +79,11 @@ export const selectMoneyOnboardingStepperAnimationEnabled = createSelector(
 );
 
 export interface MoneyAccountVaultConfig {
-  chainId: string;
-  boringVault: string;
-  tellerAddress: string;
-  accountantAddress: string;
-  lensAddress: string;
+  chainId: Hex;
+  boringVault: Hex;
+  tellerAddress: Hex;
+  accountantAddress: Hex;
+  lensAddress: Hex;
 }
 
 export const DEV_VAULT_CONFIG: MoneyAccountVaultConfig = {

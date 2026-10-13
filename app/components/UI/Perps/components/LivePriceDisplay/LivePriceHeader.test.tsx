@@ -338,8 +338,66 @@ describe('LivePriceHeader', () => {
           el.props.children.includes('(+5.50%)'),
       );
 
-      // 3000 - 3000 / 1.055 ≈ 156.4
+      // 3000 - 3000 / 1.055 ≈ 156.4; $3,000 uses 1 fraction digit
       expect(changeText?.props.children).toBe('+$156.4 (+5.50%)');
+    });
+
+    it('formats a sub-dollar change with the same decimals as a mid-range price', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        HYPE: {
+          symbol: 'HYPE',
+          price: '84.491',
+          percentChange24h: '0.97',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+
+      const { getByText } = render(
+        <LivePriceHeader symbol="HYPE" currentPrice={84.491} size="large" />,
+      );
+
+      // $84.491 is 3 decimals; $0.81169 must not keep the finer 5-decimal range
+      expect(getByText('+$0.812 (+0.97%)')).toBeTruthy();
+    });
+
+    it('formats a tens-of-dollars change with the same decimals as a hundreds price', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        ZEC: {
+          symbol: 'ZEC',
+          price: '983.81',
+          percentChange24h: '7.5',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+
+      const { getByText } = render(
+        <LivePriceHeader symbol="ZEC" currentPrice={983.81} size="large" />,
+      );
+
+      // $983.81 is 2 decimals; $68.638 must not keep the $10–$100 3-decimal range
+      expect(getByText('+$68.64 (+7.50%)')).toBeTruthy();
+    });
+
+    it('keeps the minus sign when a change uses the price decimals', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        HYPE: {
+          symbol: 'HYPE',
+          price: '84.491',
+          percentChange24h: '-0.97',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+
+      const { getByText } = render(
+        <LivePriceHeader symbol="HYPE" currentPrice={84.491} size="large" />,
+      );
+
+      // A -0.97% move is not the mirror of +0.97%: prior price is
+      // 84.491 / 0.9903, so the change rounds to $0.828 at 3 decimals.
+      expect(getByText('-$0.828 (-0.97%)')).toBeTruthy();
     });
 
     it('shows only the percentage for the compact (default) variant', () => {

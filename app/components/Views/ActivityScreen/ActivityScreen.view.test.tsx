@@ -231,6 +231,21 @@ const emptyActivityStateFunded = () =>
   } as never);
 
 describeForPlatforms('ActivityScreen', () => {
+  afterEach(() => {
+    clearAccountsTransactionsApiMocks();
+  });
+
+  const waitForActivityListLoaded = async (
+    queryByTestId: (testId: string) => unknown,
+  ) => {
+    await waitFor(
+      () => {
+        expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
+      },
+      { timeout: 10000 },
+    );
+  };
+
   it('updates the selected type filter through the real screen controls', async () => {
     const { getByTestId, getAllByText, findByTestId } =
       renderActivityScreenView();
@@ -370,47 +385,46 @@ describeForPlatforms('ActivityScreen', () => {
       const { getByTestId, findByTestId, queryByTestId } =
         renderActivityScreenView({ state });
 
+      await waitForActivityListLoaded(queryByTestId);
+
       fireEvent.press(
         getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
       );
       fireEvent.press(await findByTestId(networkOptionTestId('eip155:1')));
 
-      await waitFor(() => {
-        expect(
-          getByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
-        ).toBeOnTheScreen();
-        expect(
-          queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
-        ).not.toBeOnTheScreen();
-      });
+      await waitForActivityListLoaded(queryByTestId);
+      expect(
+        await findByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
+      ).not.toBeOnTheScreen();
 
       fireEvent.press(
         getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
       );
       fireEvent.press(await findByTestId(networkOptionTestId('eip155:59144')));
 
-      await waitFor(() => {
-        expect(
-          getByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
-        ).toBeOnTheScreen();
-        expect(
-          queryByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
-        ).not.toBeOnTheScreen();
-      });
+      await waitForActivityListLoaded(queryByTestId);
+      expect(
+        await findByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
+      ).not.toBeOnTheScreen();
 
       fireEvent.press(
         getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
       );
       fireEvent.press(await findByTestId(networkOptionTestId('eip155:1')));
 
-      await waitFor(() => {
-        expect(
-          getByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
-        ).toBeOnTheScreen();
-        expect(
-          queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
-        ).not.toBeOnTheScreen();
-      });
+      await waitForActivityListLoaded(queryByTestId);
+      expect(
+        await findByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
+      ).not.toBeOnTheScreen();
     } finally {
       clearAccountsTransactionsApiMocks();
     }
@@ -1232,7 +1246,7 @@ describeForPlatforms('ActivityScreen — prediction rows', () => {
     clearAccountsTransactionsApiMocks();
     (
       Engine.context.PredictController.getActivity as jest.Mock
-    ).mockResolvedValue([]);
+    ).mockResolvedValue({ activities: [], nextCursor: undefined });
   });
 
   it('shows deposit, withdrawal, claim, cash-out, and placed rows under Predictions after load', async () => {
@@ -1247,7 +1261,10 @@ describeForPlatforms('ActivityScreen — prediction rows', () => {
     setupAccountsTransactionsApiMock([]);
     (
       Engine.context.PredictController.getActivity as jest.Mock
-    ).mockResolvedValue([claim, sell, buy]);
+    ).mockResolvedValue({
+      activities: [claim, sell, buy],
+      nextCursor: undefined,
+    });
 
     const state = initialStateActivityWithLocalTransactions([deposit, withdraw])
       .withRemoteFeatureFlags(activityPredictTradingEnabledFlag)
