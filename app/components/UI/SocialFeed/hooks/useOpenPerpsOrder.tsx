@@ -52,7 +52,7 @@ export const useOpenPerpsOrder = ({
 
   const openPerpsOrder = useCallback(
     ({ direction, asset, leverage }: OpenPerpsOrderParams) => {
-      gate(() => {
+      const openOrder = () => {
         if (!isEligible) {
           setIsGeoBlockVisible(true);
           return;
@@ -77,7 +77,8 @@ export const useOpenPerpsOrder = ({
         } else {
           navigate();
         }
-      }).catch(() => undefined);
+      };
+      gate(() => Promise.resolve(openOrder())).catch(() => undefined);
     },
     [gate, isEligible, navigation, runNavigation],
   );
