@@ -155,13 +155,23 @@ export class WalletHomeSections {
       overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
     } = {},
   ): Promise<void> {
-    // Mirror Predictions smoke path: cheap visibility probe, then bounded
-    // down→up scroll attempts. The prior try/catch burned a full scrollIntoView
-    // budget (~30s) on the wrong direction before falling back.
+    // Probe first. A displayed header can still sit under the tab bar, so a
+    // missed tap nudges it clear instead of waiting out a 30s tap timeout.
+    // `scrollAndTapSection`'s `timeout` is not a clock: 20s becomes 10
+    // scrollIntoView attempts, which is slower than the old 8-attempt burn.
+    // Four attempts is the actual wrong-direction cap.
+    const clippedHeaderNudge = options.overshootSwipe ?? {
+      direction: 'up' as const,
+      percentage: 0.2,
+    };
     if (
       await WalletHomeScroll.tapIfAlreadyVisible(
         this.perpsSectionHeader,
         'Perpetuals section',
+        {
+          tapTimeout: 5_000,
+          overshootSwipe: clippedHeaderNudge,
+        },
       )
     ) {
       return;
@@ -183,9 +193,10 @@ export class WalletHomeSections {
                   : ('down' as const),
               percentage: 0.15,
             },
-            // Keep each direction short so a wrong-way scroll fails fast
-            // (~20s) instead of burning the suite budget before the fallback.
-            timeout: 20_000,
+            // A miss runs every attempt. Four is half the old default, so a
+            // wrong direction returns in about half the previous ~30s.
+            // A hit still stops as soon as the header is in view.
+            maxAttempts: 4,
           },
         ),
       [direction, fallbackDirection],
