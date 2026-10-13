@@ -10,6 +10,7 @@ import {
   unknown,
   type Infer,
 } from '@metamask/superstruct';
+import { CaipAssetTypeStruct } from '@metamask/utils';
 import {
   HexStringSchema,
   PreparedLimitOrderDelegationSchema,
@@ -47,7 +48,7 @@ export type LimitOrderTrigger = Infer<typeof LimitOrderTriggerSchema>;
  * fail validation.
  */
 export const LimitOrderAssetSchema = object({
-  assetId: string(),
+  assetId: CaipAssetTypeStruct,
   symbol: string(),
   decimals: number(),
   chainId: optional(number()),

@@ -11,9 +11,10 @@ import { Image } from 'react-native';
 import superheroAvatar from '../../../../../images/socialV1/superhero.png';
 import { getProfileAvatarPreset } from '../avatarPresets';
 
-type ProfileAvatarSize = 'sm' | 'md' | 'lg' | 'xl';
+type ProfileAvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 const SIZE_CLASS: Record<ProfileAvatarSize, string> = {
+  xs: 'w-5 h-5',
   sm: 'w-10 h-10',
   md: 'w-12 h-12',
   lg: 'w-16 h-16',
@@ -21,6 +22,7 @@ const SIZE_CLASS: Record<ProfileAvatarSize, string> = {
 };
 
 const EMOJI_VARIANT: Record<ProfileAvatarSize, TextVariant> = {
+  xs: TextVariant.BodySm,
   sm: TextVariant.BodyMd,
   md: TextVariant.HeadingSm,
   lg: TextVariant.HeadingMd,

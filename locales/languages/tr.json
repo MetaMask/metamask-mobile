@@ -693,7 +693,6 @@
     "re_enter_password": "Şifrenizi tekrar girin",
     "use_at_least_8_characters": "En az 8 karakter kullanın",
     "unlock_with_face_id": "Face ID ile kilidi aç?",
-    "learn_more": "Bu şifreyi unutursam MetaMask bunu benim için kurtaramaz.",
     "learn_more_social_login": "Bu şifreyi unutursam cüzdanıma erişimi kalıcı olarak kaybedeceğim. MetaMask bunu benim için sıfırlayamaz.",
     "seed_phrase_length_error": "Gizli Kurtarma İfadesi 12, 15, 18, 21 veya 24 sözcükten oluşmalıdır",
     "continue": "Devam et",
