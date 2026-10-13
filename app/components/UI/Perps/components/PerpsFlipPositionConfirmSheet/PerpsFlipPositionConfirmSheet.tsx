@@ -228,9 +228,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
       testID={PerpsFlipPositionConfirmSheetSelectorsIDs.SHEET}
     >
       <BottomSheetHeader onClose={handleCloseInternal}>
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('perps.flip_position.title')}
-        </Text>
+        {strings('perps.flip_position.title')}
       </BottomSheetHeader>
 
       <View style={styles.contentContainer}>

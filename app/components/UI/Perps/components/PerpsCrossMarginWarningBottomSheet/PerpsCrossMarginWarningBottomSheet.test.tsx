@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import PerpsCrossMarginWarningBottomSheet from './PerpsCrossMarginWarningBottomSheet';
 
 const mockGoBack = jest.fn();
@@ -49,7 +50,7 @@ describe('PerpsCrossMarginWarningBottomSheet', () => {
     it('navigates back when dismiss button is pressed', () => {
       render(<PerpsCrossMarginWarningBottomSheet />);
 
-      fireEvent.press(screen.getByText('Got it'));
+      fireEvent.press(screen.getByText(strings('perps.crossMargin.dismiss')));
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
@@ -59,7 +60,7 @@ describe('PerpsCrossMarginWarningBottomSheet', () => {
 
       render(<PerpsCrossMarginWarningBottomSheet onClose={mockOnClose} />);
 
-      fireEvent.press(screen.getByText('Got it'));
+      fireEvent.press(screen.getByText(strings('perps.crossMargin.dismiss')));
 
       expect(mockOnClose).toHaveBeenCalledTimes(1);
       expect(mockGoBack).not.toHaveBeenCalled();
