@@ -155,10 +155,34 @@ class WalletView extends WalletHomeSectionsBase {
     );
   }
 
+  /**
+   * Compact header avatar button. During the post-onboarding "Get started"
+   * home the account name text is not rendered, so the button's accessibility
+   * label (the full display name) is the only place the name is exposed.
+   */
+  get accountHubButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON,
+    );
+  }
+
   async checkActiveAccount(
     expectedName: string,
     timeout = 10_000,
   ): Promise<void> {
+    if (isPerformanceSuiteActive()) {
+      try {
+        await Assertions.expectElementToHaveLabel(
+          this.accountHubButton,
+          expectedName,
+          { timeout: Math.min(timeout, 3_000) },
+        );
+        return;
+      } catch {
+        // Control header has no hub button; fall back to the name text below.
+      }
+    }
+
     await Assertions.expectElementToHaveText(
       this.activeAccountNameElement,
       expectedName,
