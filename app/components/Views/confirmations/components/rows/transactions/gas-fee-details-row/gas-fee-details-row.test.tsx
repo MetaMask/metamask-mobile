@@ -11,6 +11,10 @@ import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confir
 import GasFeesDetailsRow from './gas-fee-details-row';
 import { toHex } from '@metamask/controller-utils';
 import {
+  IconColor,
+  IconName,
+} from '../../../../../../../component-library/components/Icons/Icon';
+import {
   GasFeeEstimateLevel,
   GasFeeEstimateType,
   SimulationData,
@@ -242,6 +246,20 @@ describe('GasFeesDetailsRow', () => {
       expect.objectContaining({
         tooltip: TOOLTIP_TYPES.NETWORK_FEE,
       }),
+    );
+  });
+
+  it('renders the network fee tooltip in the alternative icon color', () => {
+    const { getByTestId, UNSAFE_getByProps } = renderWithProvider(
+      <GasFeesDetailsRow />,
+      {
+        state: createStateWithSimulationData(),
+      },
+    );
+
+    expect(getByTestId('info-row-tooltip-open-btn')).toBeOnTheScreen();
+    expect(UNSAFE_getByProps({ name: IconName.Info }).props.color).toBe(
+      IconColor.Alternative,
     );
   });
 

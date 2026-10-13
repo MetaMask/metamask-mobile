@@ -210,6 +210,10 @@ function createMockInfoClient() {
     perpDexs: jest.fn().mockResolvedValue([null]),
     allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
     frontendOpenOrders: jest.fn().mockResolvedValue([]),
+    twapHistory: jest.fn().mockResolvedValue([]),
+    activeAssetData: jest
+      .fn()
+      .mockResolvedValue({ leverage: { type: 'isolated', value: 5 } }),
     l2Book: jest.fn().mockResolvedValue({
       levels: [
         [{ px: '49999', sz: '1', n: 1 }],
@@ -368,8 +372,8 @@ export function buildPerpsIntegrationHarness(
     getUserAddressWithDefault: jest
       .fn()
       .mockResolvedValue(DEFAULT_USER_ADDRESS),
-    isKeyringUnlocked: jest.fn().mockReturnValue(true),
-    isSelectedHardwareWallet: jest.fn().mockReturnValue(false),
+    isMainAccountSignerReady: jest.fn().mockReturnValue(true),
+    requiresSignatureConfirmation: jest.fn().mockReturnValue(false),
   } as unknown as jest.Mocked<HyperLiquidWalletService>;
 
   // Shared by every cached-position read on the mock subscription service so a

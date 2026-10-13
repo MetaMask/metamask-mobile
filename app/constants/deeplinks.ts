@@ -48,6 +48,7 @@ export enum ACTIONS {
   SHIELD = 'shield',
   PREDICT = 'predict',
   PRIVACY = 'privacy',
+  NOTIFICATIONS_SETTINGS = 'notifications-settings',
   ONBOARDING = 'onboarding',
   TRENDING = 'trending',
   WHATS_HAPPENING = 'whats-happening',
@@ -100,5 +101,6 @@ export const PREFIXES = {
   [ACTIONS.AGENTIC_CLI]: '',
   [ACTIONS.ON_RAMP]: '',
   [ACTIONS.MONEY]: '',
+  [ACTIONS.NOTIFICATIONS_SETTINGS]: '',
   METAMASK: 'metamask://',
 };

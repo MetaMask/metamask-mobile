@@ -24,7 +24,13 @@ import {
 import { useSubmitPriceAlert } from '../../api';
 import { useSubmitPerpAlert } from '../../perpApi';
 import { type SaveAlert } from '../../hooks/useAlertSaveFlow';
-import { getKeypadDecimalPlaces, KEYPAD_EMPTY, toKeypadString } from './utils';
+import {
+  formatKeypadDisplay,
+  getKeypadDecimalPlaces,
+  getPerpsKeypadDecimalPlaces,
+  KEYPAD_EMPTY,
+  toKeypadString,
+} from './utils';
 
 interface AbsolutePriceAlertFormProps {
   assetId: string;
@@ -39,6 +45,8 @@ interface AbsolutePriceAlertFormProps {
    * using this market identifier instead of the CAIP-19 `assetId`.
    */
   marketId?: string;
+  /** Hyperliquid size decimals; when set, keypad uses `6 - szDecimals`. */
+  szDecimals?: number;
 }
 
 const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
@@ -50,12 +58,13 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   editingAlert,
   existingAbsoluteAlerts,
   marketId,
+  szDecimals,
 }) => {
   const isEditing = Boolean(editingAlert);
   const [targetAmount, setTargetAmount] = useState(() =>
     editingAlert
-      ? toKeypadString(editingAlert.threshold)
-      : toKeypadString(currentPrice),
+      ? toKeypadString(editingAlert.threshold, szDecimals)
+      : toKeypadString(currentPrice, szDecimals),
   );
   const [isRecurring, setIsRecurring] = useState(
     editingAlert?.recurring ?? true,
@@ -98,9 +107,12 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
 
   const currencySymbol = CURRENCY_SYMBOLS[currentCurrency.toLowerCase()] ?? '';
   const isEmpty = targetAmount === KEYPAD_EMPTY;
+  const formattedTargetAmount = marketId
+    ? formatKeypadDisplay(targetAmount)
+    : targetAmount;
   const displayText = isEmpty
     ? currencySymbol
-    : `${currencySymbol}${targetAmount}`;
+    : `${currencySymbol}${formattedTargetAmount}`;
 
   // Always call both hooks; only one will be active depending on mode.
   const { submit: spotSubmit, isSubmitting: isSpotSubmitting } =
@@ -166,9 +178,11 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   const handleQuickPercentagePress = useCallback(
     (percentage: number) => {
       if (currentPrice <= 0) return;
-      setTargetAmount(toKeypadString(currentPrice * (1 + percentage / 100)));
+      setTargetAmount(
+        toKeypadString(currentPrice * (1 + percentage / 100), szDecimals),
+      );
     },
-    [currentPrice],
+    [currentPrice, szDecimals],
   );
 
   const saveButtonLabel = isDuplicateThreshold
@@ -203,7 +217,11 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
       onRecurringChange={setIsRecurring}
       keypadValue={targetAmount}
       onKeypadChange={handleKeypadChange}
-      keypadDecimals={getKeypadDecimalPlaces(currentPrice)}
+      keypadDecimals={
+        szDecimals === undefined
+          ? getKeypadDecimalPlaces(currentPrice)
+          : getPerpsKeypadDecimalPlaces(szDecimals)
+      }
       saveButtonLabel={saveButtonLabel}
       onSave={handleSave}
       isSubmitting={isSubmitting}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { Platform, StatusBar } from 'react-native';
+import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { EditMultichainAccountName } from './EditMultichainAccountName';
 import { strings } from '../../../../../../locales/i18n';
 import { EditAccountNameIds } from '../EditAccountName.testIds';
@@ -26,6 +26,12 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => mockUseRoute(),
 }));
 
+const mockBottomSafeAreaInset = jest.fn();
+
+jest.mock('../../../../hooks/useBottomSafeAreaInset', () => ({
+  useBottomSafeAreaInset: () => mockBottomSafeAreaInset(),
+}));
+
 const mockSetAccountGroupName = jest.fn();
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -46,6 +52,7 @@ describe('EditMultichainAccountName', () => {
     jest.clearAllMocks();
     mockSetAccountGroupName.mockReset();
     mockUseRoute.mockReturnValue(mockRoute);
+    mockBottomSafeAreaInset.mockReturnValue(0);
     Platform.OS = 'ios';
     Object.defineProperty(StatusBar, 'currentHeight', {
       configurable: true,
@@ -275,6 +282,28 @@ describe('EditMultichainAccountName', () => {
 
       const { getByTestId } = render();
       expect(getByTestId(EditAccountNameIds.BACK_BUTTON)).toBeOnTheScreen();
+    });
+
+    const renderContainerStyle = () => {
+      const tree = render().toJSON();
+      const container = Array.isArray(tree) ? tree[0] : tree;
+      return StyleSheet.flatten(container?.props.style);
+    };
+
+    // Android draws edge-to-edge, so a fixed gap left the confirm button under
+    // the navigation bar and taps landed on the system home button instead.
+    it('reserves the Android navigation bar inset below the confirm button', () => {
+      Platform.OS = 'android';
+      mockBottomSafeAreaInset.mockReturnValue(48);
+
+      expect(renderContainerStyle().paddingBottom).toBe(48);
+    });
+
+    it('keeps the minimum gap on Android when there is no navigation bar', () => {
+      Platform.OS = 'android';
+      mockBottomSafeAreaInset.mockReturnValue(0);
+
+      expect(renderContainerStyle().paddingBottom).toBe(10);
     });
   });
 });

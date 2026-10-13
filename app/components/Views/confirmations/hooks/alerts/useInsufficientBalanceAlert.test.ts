@@ -283,6 +283,52 @@ describe('useInsufficientBalanceAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
+  it('returns empty array for predict withdraw without a selected gas fee token', () => {
+    useIsGaslessSupportedMock.mockReturnValue({
+      isSmartTransaction: true,
+      isSupported: true,
+      pending: false,
+    });
+    mockSelectUseTransactionSimulations.mockReturnValue(true);
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...mockTransaction,
+      type: TransactionType.predictWithdraw,
+      selectedGasFeeToken: undefined,
+      gasFeeTokens: [
+        {
+          tokenAddress: '0xabc' as Hex,
+          symbol: 'GFT',
+          decimals: 18,
+        },
+      ],
+    } as unknown as TransactionMeta);
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns alert for predict withdraw when the selected gas fee token is unavailable', () => {
+    useIsGaslessSupportedMock.mockReturnValue({
+      isSmartTransaction: true,
+      isSupported: true,
+      pending: false,
+    });
+    mockSelectUseTransactionSimulations.mockReturnValue(true);
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...mockTransaction,
+      type: TransactionType.predictWithdraw,
+      selectedGasFeeToken: '0xabc' as Hex,
+      isGasFeeTokenIgnoredIfBalance: true,
+      gasFeeTokens: [],
+    } as unknown as TransactionMeta);
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0].key).toBe(AlertKeys.InsufficientBalance);
+  });
+
   it('returns empty array if transaction type is perpsWithdraw', () => {
     mockUseTransactionMetadataRequest.mockReturnValue({
       ...mockTransaction,

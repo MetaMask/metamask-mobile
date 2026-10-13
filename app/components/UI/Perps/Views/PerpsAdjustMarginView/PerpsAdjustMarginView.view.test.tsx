@@ -4,7 +4,9 @@
  */
 import '../../../../../../tests/component-view/mocks';
 
+import React from 'react';
 import {
+  act,
   fireEvent,
   screen,
   waitFor,
@@ -18,11 +20,13 @@ import {
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { createFundedAccountForViews } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import {
+  PerpsAdjustMarginBottomSheetSelectorsIDs,
   PerpsAdjustMarginViewSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
 } from '../../Perps.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import PerpsAdjustMarginView from './PerpsAdjustMarginView';
+import PerpsAdjustMarginBottomSheet from '../../components/PerpsAdjustMarginBottomSheet/PerpsAdjustMarginBottomSheet';
 
 // 1000 USDC available to add → flooredMaxAmount = 1000
 // Pressing 25% sets amount to $250, enabling the confirm button
@@ -171,5 +175,80 @@ describe('PerpsAdjustMarginView', () => {
     expect(
       await screen.findByText(strings('perps.errors.position_not_found')),
     ).toBeOnTheScreen();
+  });
+});
+
+const position = {
+  ...defaultPositionForViews,
+  size: '0.5',
+  positionValue: '1000',
+  marginUsed: '112',
+  unrealizedPnl: '0',
+};
+
+const BottomSheet = () => (
+  <PerpsAdjustMarginBottomSheet position={position} initialMode="remove" />
+);
+
+describe.each([
+  ['full screen', PerpsAdjustMarginView, PerpsAdjustMarginViewSelectorsIDs],
+  ['bottom sheet', BottomSheet, PerpsAdjustMarginBottomSheetSelectorsIDs],
+] as const)('Remove margin in the %s', (_surface, Component, selectors) => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('submits the selected Max when a price tick consumes only the buffer', async () => {
+    const movedPosition = {
+      ...position,
+      positionValue: '997',
+      marginUsed: '109',
+      unrealizedPnl: '-3',
+    };
+    const updateMargin = jest.spyOn(
+      Engine.context.PerpsController,
+      'updateMargin',
+    );
+    jest
+      .spyOn(Engine.context.PerpsController, 'getPositions')
+      .mockResolvedValue([movedPosition]);
+    const { stream } = renderPerpsView(Component, Routes.PERPS.ADJUST_MARGIN, {
+      initialParams: { position, mode: 'remove' },
+      streamOverrides: { positions: [position] },
+    });
+    fireEvent.press(
+      await screen.findByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+    );
+    fireEvent.press(screen.getByText(strings('perps.deposit.max_button')));
+    fireEvent.press(screen.getByTestId(selectors.DONE_BUTTON));
+    expect(
+      screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+    ).toHaveTextContent(/^\$2$/);
+
+    await act(async () => {
+      stream.emitPositions([movedPosition]);
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId(selectors.AVAILABLE_VALUE)).toHaveTextContent(
+        /^\$0$/,
+      );
+    });
+    const confirmButton = screen.getByTestId(selectors.CONFIRM_BUTTON);
+    expect(confirmButton).toBeEnabled();
+    expect(
+      screen.queryByTestId(selectors.NO_REMOVABLE_MARGIN),
+    ).not.toBeOnTheScreen();
+    fireEvent.press(confirmButton);
+
+    await waitFor(() => {
+      expect(updateMargin).toHaveBeenCalledWith({
+        symbol: 'ETH',
+        amount: '-2',
+      });
+    });
   });
 });

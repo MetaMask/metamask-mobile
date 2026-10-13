@@ -65,11 +65,16 @@ export function useConfirmNavigation() {
         return;
       }
 
-      const route = headerShown === false ? ROUTE_NO_HEADER : ROUTE;
+      const isForceBottomSheet = params.forceBottomSheet === true;
+      const route = isForceBottomSheet
+        ? Routes.CONFIRMATION_REQUEST_MODAL
+        : headerShown === false
+          ? ROUTE_NO_HEADER
+          : ROUTE;
 
       log('Navigating', { route, params, stack });
 
-      if (stack) {
+      if (stack && !isForceBottomSheet) {
         if (replace) {
           navigation.dispatch(
             StackActions.replace(stack, { screen: route, params }),

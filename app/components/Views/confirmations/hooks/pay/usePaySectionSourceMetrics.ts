@@ -1,4 +1,3 @@
-import { useRef } from 'react';
 import { useSelector } from 'react-redux';
 import {
   TransactionType,
@@ -73,15 +72,9 @@ export function usePaySectionSourceMetrics(hasPayToken: boolean) {
   const isPayingAccountReady =
     !isMoneyAccountDeposit || Boolean(accountOverride);
 
-  // Track whether any payment override has been applied
-  const overrideAppliedRef = useRef(false);
-  if (paymentOverride !== undefined) {
-    overrideAppliedRef.current = true;
-  }
-
   const isMoneyAccountActive =
     paymentOverride === PaymentOverride.MoneyAccount ||
-    (isDefaultMoneyAccount && !overrideAppliedRef.current);
+    (isDefaultMoneyAccount && !hasPayToken && !hasFiatPaymentSelected);
 
   const currentSection = getActiveSectionId({
     isMoneyAccountActive,

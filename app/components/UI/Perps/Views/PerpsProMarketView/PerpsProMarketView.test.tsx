@@ -25,8 +25,14 @@ import {
 import type { UsePerpsMarketsOptions } from '../../hooks/usePerpsMarkets';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
 import { playSelection } from '../../../../../util/haptics';
+import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../selectors/featureFlags';
 
 jest.mock('../../../../../util/haptics');
+
+jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
+  selectPerpsServiceInterruptionBannerEnabledFlag: jest.fn(() => false),
+}));
 
 interface MockLiveOrderBookResult {
   orderBook: OrderBookData | null;
@@ -820,9 +826,57 @@ describe('PerpsProMarketView', () => {
           PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
         [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
         [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+        [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]: false,
         [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: expect.any(String),
         [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
       }),
+    });
+  });
+
+  describe('service interruption banner', () => {
+    afterEach(() => {
+      jest
+        .mocked(selectPerpsServiceInterruptionBannerEnabledFlag)
+        .mockReturnValue(false);
+    });
+
+    it('does not render the banner when the outage flag is off', () => {
+      const { queryByTestId } = renderView();
+
+      expect(
+        queryByTestId(
+          PerpsProMarketViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER,
+        ),
+      ).toBeNull();
+    });
+
+    it('renders the banner above the header and reports it on the screen view when the outage flag is on', () => {
+      jest
+        .mocked(selectPerpsServiceInterruptionBannerEnabledFlag)
+        .mockReturnValue(true);
+
+      const { getByTestId } = renderView();
+
+      expect(
+        getByTestId(PerpsProMarketViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER),
+      ).toBeOnTheScreen();
+      // Pinned above the fixed header rather than scrolling with the content.
+      expect(
+        within(
+          getByTestId(PerpsProMarketViewSelectorsIDs.SCROLL_VIEW),
+        ).queryByTestId(
+          PerpsProMarketViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER,
+        ),
+      ).toBeNull();
+
+      expect(mockUsePerpsEventTracking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          properties: expect.objectContaining({
+            [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]: true,
+          }),
+        }),
+      );
     });
   });
 

@@ -1,3 +1,4 @@
+import type { TraderProfileResponse } from '@metamask/social-controllers';
 import { MockEventsObject } from '../../../framework';
 
 /**
@@ -11,7 +12,7 @@ const SOCIAL_HOST = String.raw`https:\/\/social\.(?:dev-api|api|uat-api)\.cx\.me
 const EMPTY_LEADERBOARD = { traders: [] };
 
 /** Minimal profile so background SocialService fetches do not 404. */
-const EMPTY_TRADER_PROFILE = {
+const EMPTY_TRADER_PROFILE: TraderProfileResponse = {
   profile: {
     profileId: 'e2e-mock-trader',
     address: '0x0000000000000000000000000000000000000001',
@@ -40,6 +41,11 @@ const EMPTY_TRADER_PROFILE = {
   socialHandles: {},
   followerCount: 0,
   followingCount: 0,
+  copytradedAllTime: {
+    count: 0,
+    volumeUSD: 0,
+    distinctActors: 0,
+  },
 };
 
 /** PositionsResponse shape (`positions` array). */

@@ -61,7 +61,7 @@ export interface PerpsTransaction {
     action: string;
     feeToken: string;
     liquidation?: {
-      liquidatedUser: string; // Address of the liquidated user. liquidatedUser isn't always the current user. It can also mean the fill filled another user's liquidation.
+      liquidatedUser?: string; // Address of the liquidated user, omitted by HyperLiquid on some fills. liquidatedUser isn't always the current user. It can also mean the fill filled another user's liquidation.
       markPx: string; // Mark price at liquidation
       method: string; // Liquidation method (e.g., 'market')
     };

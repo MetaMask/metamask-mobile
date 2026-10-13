@@ -1,32 +1,25 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
 import { Text } from 'react-native';
+import { render } from '@testing-library/react-native';
+import { Theme, ThemeProvider } from '@metamask/design-system-twrnc-preset';
+import { darkTheme, lightTheme } from '@metamask/design-tokens';
+
 import OnboardingAnimation from './OnboardingAnimation';
-import Logger from '../../../util/Logger';
+import { OnboardingAnimationSelectorIDs } from './OnboardingAnimation.testIds';
 import Device from '../../../util/device';
+import { mockTheme, ThemeContext } from '../../../util/theme';
 
-// Mock the entire utils module to ensure hasTestOverrides can be controlled
-let mockHasTestOverrides = false;
+const WORDMARK_ID = OnboardingAnimationSelectorIDs.WORDMARK;
 
-jest.mock('../../../util/test/utils', () => ({
-  flushPromises: () => new Promise(setImmediate),
-  FIXTURE_SERVER_PORT: 12345,
-  testConfig: {},
-  E2E_METAMETRICS_TRACK_URL: 'https://metametrics.test/track',
-  get hasTestOverrides() {
-    return mockHasTestOverrides;
-  },
-  isTestEnvironment: true,
-  enableApiCallLogs: false,
-  getFixturesServerPortInApp: () => 12345,
-  isRc: false,
-}));
+jest.mock('../../../images/branding/metamask-wordmark.svg', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
 
-const mockAppTheme = jest.fn(() => ({ themeAppearance: 'light' }));
-jest.mock('../../../util/theme', () => ({
-  ...jest.requireActual('../../../util/theme'),
-  useAppThemeFromContext: mockAppTheme,
-}));
+  const MockWordmark = (props: Record<string, unknown>) =>
+    ReactActual.createElement(View, props);
+
+  return MockWordmark;
+});
 
 jest.mock('../../../util/device', () => ({
   __esModule: true,
@@ -35,417 +28,124 @@ jest.mock('../../../util/device', () => ({
   },
 }));
 
-jest.mock('../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    error: jest.fn(),
-  },
-}));
-
-// Mock the RIV animation file
-jest.mock(
-  '../../../animations/metamask_wordmark_animation_build-up.riv',
-  () => 'mockRivFile',
-);
-
-// Mock Rive React Native - automatically uses the __mocks__ file via jest.config.js
-// We need to import helper functions to access the mock
-import {
-  __getLastRiveViewMethods,
-  __mockRiveTriggerInput,
-  __resetRiveMocks,
-} from '../../../__mocks__/rive-app-react-native';
-
 describe('OnboardingAnimation', () => {
   const mockSetStartFoxAnimation = jest.fn();
+  const mockOnInteractiveContentReady = jest.fn();
+
   const defaultProps = {
     children: <Text testID="test-children">Test Children</Text>,
     startOnboardingAnimation: false,
     setStartFoxAnimation: mockSetStartFoxAnimation,
+    onInteractiveContentReady: mockOnInteractiveContentReady,
   };
+
+  const renderAnimation = (
+    props: Partial<React.ComponentProps<typeof OnboardingAnimation>> = {},
+    colors: typeof lightTheme.colors = lightTheme.colors,
+  ) =>
+    render(
+      <ThemeProvider theme={Theme.Light}>
+        <ThemeContext.Provider value={{ ...mockTheme, colors }}>
+          <OnboardingAnimation {...defaultProps} {...props} />
+        </ThemeContext.Provider>
+      </ThemeProvider>,
+    );
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
-    mockSetStartFoxAnimation.mockClear();
-
-    // Reset E2E mode to default (false)
-    mockHasTestOverrides = false;
-
-    // Clear Rive mock methods using the mock helper
-    __resetRiveMocks();
-
-    // Clear any pending timers
-    jest.clearAllTimers();
+    (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
   });
 
-  afterEach(() => {
-    // Cleanup timers and animations
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
+  it('renders the wordmark and its children', () => {
+    const { getByTestId } = renderAnimation();
+
+    expect(getByTestId(WORDMARK_ID)).toBeOnTheScreen();
+    expect(getByTestId('test-children')).toBeOnTheScreen();
   });
 
-  describe('Component Rendering', () => {
-    it('renders Rive animation component with correct testID', () => {
-      const { getByTestId } = render(<OnboardingAnimation {...defaultProps} />);
+  it('leaves the fox animation idle until onboarding starts', () => {
+    renderAnimation();
 
-      expect(getByTestId('metamask-wordmark-animation')).toBeOnTheScreen();
-    });
-
-    it('renders children within animated wrapper', () => {
-      const { getByTestId } = render(<OnboardingAnimation {...defaultProps} />);
-
-      expect(getByTestId('test-children')).toBeOnTheScreen();
-    });
-
-    it('renders with proper initial opacity for buttons in non-E2E mode', () => {
-      const { getByTestId } = render(<OnboardingAnimation {...defaultProps} />);
-
-      const children = getByTestId('test-children');
-      expect(children).toBeOnTheScreen();
-      // In non-E2E mode, the children should be initially invisible (opacity 0)
-    });
-
-    it('initializes Rive component with correct props', () => {
-      render(<OnboardingAnimation {...defaultProps} />);
-
-      const mockedMethods = __getLastRiveViewMethods();
-      expect(mockedMethods).toBeDefined();
-      expect(mockedMethods?.setBooleanInputValue).toBeDefined();
-      expect(mockedMethods?.triggerInput).toBeDefined();
-    });
+    expect(mockSetStartFoxAnimation).not.toHaveBeenCalled();
+    expect(mockOnInteractiveContentReady).not.toHaveBeenCalled();
   });
 
-  describe('Animation Triggering', () => {
-    it('does not trigger animation when startOnboardingAnimation is false', () => {
-      render(<OnboardingAnimation {...defaultProps} />);
+  it('starts the fox animation and reports interactive content when onboarding starts', () => {
+    const { rerender, getByTestId } = renderAnimation();
 
-      expect(__mockRiveTriggerInput).not.toHaveBeenCalled();
-    });
+    rerender(
+      <ThemeProvider theme={Theme.Light}>
+        <ThemeContext.Provider value={mockTheme}>
+          <OnboardingAnimation {...defaultProps} startOnboardingAnimation />
+        </ThemeContext.Provider>
+      </ThemeProvider>,
+    );
 
-    it('fires the Start trigger when startOnboardingAnimation becomes true', () => {
-      const { rerender, getByTestId } = render(
-        <OnboardingAnimation {...defaultProps} />,
-      );
-
-      // Trigger animation
-      rerender(
-        <OnboardingAnimation {...defaultProps} startOnboardingAnimation />,
-      );
-
-      // triggerInput takes only the trigger name; the state machine is the
-      // stateMachineName view prop in the nitro runtime
-      expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Start');
-
-      // Component should still render correctly
-      expect(getByTestId('metamask-wordmark-animation')).toBeOnTheScreen();
-      expect(getByTestId('test-children')).toBeOnTheScreen();
-    });
-
-    it('accepts startOnboardingAnimation prop changes', () => {
-      const { rerender } = render(<OnboardingAnimation {...defaultProps} />);
-
-      expect(() => {
-        rerender(
-          <OnboardingAnimation {...defaultProps} startOnboardingAnimation />,
-        );
-      }).not.toThrow();
-    });
-
-    it('handles theme changes when animation is triggered', () => {
-      // Test with light theme
-      mockAppTheme.mockReturnValue({ themeAppearance: 'light' });
-
-      const { rerender } = render(<OnboardingAnimation {...defaultProps} />);
-
-      expect(() => {
-        rerender(
-          <OnboardingAnimation {...defaultProps} startOnboardingAnimation />,
-        );
-      }).not.toThrow();
-
-      // Test with dark theme
-      mockAppTheme.mockReturnValue({ themeAppearance: 'dark' });
-
-      expect(() => {
-        rerender(
-          <OnboardingAnimation {...defaultProps} startOnboardingAnimation />,
-        );
-      }).not.toThrow();
-    });
+    expect(mockSetStartFoxAnimation).toHaveBeenCalledTimes(1);
+    expect(mockSetStartFoxAnimation).toHaveBeenCalledWith(true);
+    expect(mockOnInteractiveContentReady).toHaveBeenCalledTimes(1);
+    expect(getByTestId(WORDMARK_ID)).toBeOnTheScreen();
+    expect(getByTestId('test-children')).toBeOnTheScreen();
   });
 
-  describe('E2E Mode Behavior', () => {
-    beforeEach(() => {
-      // Enable E2E mode for these tests
-      mockHasTestOverrides = true;
-    });
+  it('reports interactive content once when onboarding stays started', () => {
+    const { rerender } = renderAnimation({ startOnboardingAnimation: true });
 
-    afterEach(() => {
-      // Reset E2E mode after each test
-      mockHasTestOverrides = false;
-    });
+    rerender(
+      <ThemeProvider theme={Theme.Light}>
+        <ThemeContext.Provider value={mockTheme}>
+          <OnboardingAnimation {...defaultProps} startOnboardingAnimation />
+        </ThemeContext.Provider>
+      </ThemeProvider>,
+    );
 
-    it('sets initial opacity to 1 in E2E mode', () => {
-      const { getByTestId } = render(<OnboardingAnimation {...defaultProps} />);
-
-      const children = getByTestId('test-children');
-      expect(children).toBeOnTheScreen();
-      // In E2E mode, the children should be immediately visible (opacity 1)
-    });
-
-    it('immediately calls setStartFoxAnimation when animation is triggered in E2E mode', () => {
-      // Render a completely new component in E2E mode
-      const { rerender } = render(
-        <OnboardingAnimation
-          {...defaultProps}
-          key="e2e-test" // Force new component instance
-        />,
-      );
-
-      // Clear previous mock calls
-      mockSetStartFoxAnimation.mockClear();
-
-      rerender(
-        <OnboardingAnimation
-          {...defaultProps}
-          startOnboardingAnimation
-          key="e2e-test-animated" // Force new component instance
-        />,
-      );
-
-      expect(mockSetStartFoxAnimation).toHaveBeenCalledWith(true);
-    });
-
-    it('does not render Rive component in E2E mode', () => {
-      // Start with a fresh render in E2E mode
-      const { rerender } = render(
-        <OnboardingAnimation {...defaultProps} key="e2e-rive-test" />,
-      );
-
-      // Clear any mock calls from initial render
-      __resetRiveMocks();
-
-      // Trigger animation
-      rerender(
-        <OnboardingAnimation
-          {...defaultProps}
-          startOnboardingAnimation
-          key="e2e-rive-test-animated"
-        />,
-      );
-
-      // In E2E mode, Rive component is not rendered at all
-      const mockedMethods = __getLastRiveViewMethods();
-
-      // The Rive component should not be rendered in E2E mode
-      expect(mockedMethods).toBeUndefined();
-    });
+    expect(mockOnInteractiveContentReady).toHaveBeenCalledTimes(1);
+    expect(mockSetStartFoxAnimation).toHaveBeenCalledTimes(1);
   });
 
-  describe('Error Handling', () => {
-    it('handles component lifecycle gracefully', () => {
-      // Logger is already imported at the top
+  it('sizes the wordmark for regular devices', () => {
+    const { getByTestId } = renderAnimation();
 
-      expect(() => {
-        const { rerender } = render(<OnboardingAnimation {...defaultProps} />);
-
-        rerender(
-          <OnboardingAnimation {...defaultProps} startOnboardingAnimation />,
-        );
-      }).not.toThrow();
-
-      // Logger should be available for error reporting if needed
-      expect(Logger.error).toBeDefined();
-    });
+    expect(getByTestId(WORDMARK_ID).props).toEqual(
+      expect.objectContaining({ width: 192, height: 104 }),
+    );
   });
 
-  describe('Device Responsive Behavior', () => {
-    it('applies medium device styles correctly', () => {
-      // Device is already imported at the top
-      (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
+  it('sizes the wordmark for medium devices', () => {
+    (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
 
-      const { getByTestId } = render(<OnboardingAnimation {...defaultProps} />);
-      const animation = getByTestId('metamask-wordmark-animation');
+    const { getByTestId } = renderAnimation();
 
-      expect(animation).toHaveStyle({ width: 180, height: 180 });
-    });
-
-    it('applies large device styles correctly', () => {
-      // Device is already imported at the top
-      (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
-
-      const { getByTestId } = render(<OnboardingAnimation {...defaultProps} />);
-      const animation = getByTestId('metamask-wordmark-animation');
-
-      expect(animation).toHaveStyle({ width: 240, height: 240 });
-    });
+    expect(getByTestId(WORDMARK_ID).props).toEqual(
+      expect.objectContaining({ width: 144, height: 78 }),
+    );
   });
 
-  describe('Callback Invocation', () => {
-    it('accepts setStartFoxAnimation callback function', () => {
-      const customCallback = jest.fn();
+  it('colors the wordmark with text default in light theme', () => {
+    const { getByTestId } = renderAnimation();
 
-      render(
-        <OnboardingAnimation
-          {...defaultProps}
-          setStartFoxAnimation={customCallback}
-        />,
-      );
-
-      expect(typeof customCallback).toBe('function');
-    });
-
-    it('does not call setStartFoxAnimation on initial render', () => {
-      render(<OnboardingAnimation {...defaultProps} />);
-
-      expect(mockSetStartFoxAnimation).not.toHaveBeenCalled();
-    });
+    expect(getByTestId(WORDMARK_ID).props.color).toBe(
+      lightTheme.colors.text.default,
+    );
   });
 
-  describe('Component Structure and Props', () => {
-    it('renders with correct container structure', () => {
-      const { getByTestId } = render(<OnboardingAnimation {...defaultProps} />);
+  it('wraps the wordmark with the renderWordmark output', () => {
+    const { View } = jest.requireActual('react-native');
+    const renderWordmark = (wordmark: React.ReactElement) => (
+      <View testID="wordmark-wrapper">{wordmark}</View>
+    );
 
-      const animation = getByTestId('metamask-wordmark-animation');
-      const children = getByTestId('test-children');
+    const { getByTestId } = renderAnimation({ renderWordmark });
 
-      expect(animation).toBeOnTheScreen();
-      expect(children).toBeOnTheScreen();
-    });
-
-    it('handles multiple children elements correctly', () => {
-      const customChildren = (
-        <>
-          <Text testID="child-1">Child 1</Text>
-          <Text testID="child-2">Child 2</Text>
-        </>
-      );
-
-      const { getByTestId } = render(
-        <OnboardingAnimation {...defaultProps}>
-          {customChildren}
-        </OnboardingAnimation>,
-      );
-
-      expect(getByTestId('child-1')).toBeOnTheScreen();
-      expect(getByTestId('child-2')).toBeOnTheScreen();
-    });
-
-    it('accepts function reference for setStartFoxAnimation prop', () => {
-      const customCallback = jest.fn();
-
-      render(
-        <OnboardingAnimation
-          {...defaultProps}
-          setStartFoxAnimation={customCallback}
-        />,
-      );
-
-      expect(typeof customCallback).toBe('function');
-    });
-
-    it('maintains Rive component configuration', () => {
-      const { getByTestId } = render(<OnboardingAnimation {...defaultProps} />);
-
-      const riveComponent = getByTestId('metamask-wordmark-animation');
-      expect(riveComponent).toBeOnTheScreen();
-
-      // Verify Rive methods are available
-      const mockedMethods = __getLastRiveViewMethods();
-      expect(mockedMethods?.setBooleanInputValue).toBeDefined();
-      expect(mockedMethods?.triggerInput).toBeDefined();
-    });
+    expect(getByTestId('wordmark-wrapper')).toBeOnTheScreen();
+    expect(getByTestId(WORDMARK_ID)).toBeOnTheScreen();
   });
 
-  describe('Edge Cases and Props Validation', () => {
-    it('handles null children gracefully', () => {
-      expect(() => {
-        render(
-          <OnboardingAnimation {...defaultProps}>{null}</OnboardingAnimation>,
-        );
-      }).not.toThrow();
-    });
+  it('colors the wordmark with text default in dark theme', () => {
+    const { getByTestId } = renderAnimation({}, darkTheme.colors);
 
-    it('handles undefined setStartFoxAnimation gracefully', () => {
-      expect(() => {
-        render(
-          <OnboardingAnimation
-            startOnboardingAnimation={false}
-            setStartFoxAnimation={
-              undefined as unknown as (value: boolean) => void
-            }
-          >
-            <Text testID="test-children">Test Children</Text>
-          </OnboardingAnimation>,
-        );
-      }).not.toThrow();
-    });
-
-    it('handles rapid prop changes without errors', () => {
-      const { rerender } = render(<OnboardingAnimation {...defaultProps} />);
-
-      expect(() => {
-        // Rapidly change between animation states
-        for (let i = 0; i < 5; i++) {
-          rerender(
-            <OnboardingAnimation
-              {...defaultProps}
-              startOnboardingAnimation={i % 2 === 0}
-            />,
-          );
-        }
-      }).not.toThrow();
-    });
-
-    it('maintains component stability across multiple rerenders', () => {
-      const { rerender, getByTestId } = render(
-        <OnboardingAnimation {...defaultProps} />,
-      );
-
-      // Change children multiple times
-      const childrenVariations = [
-        <Text key="1" testID="child-1">
-          Child 1
-        </Text>,
-        <Text key="2" testID="child-2">
-          Child 2
-        </Text>,
-        <Text key="3" testID="child-3">
-          Child 3
-        </Text>,
-      ];
-
-      childrenVariations.forEach((children, index) => {
-        rerender(
-          <OnboardingAnimation {...defaultProps}>
-            {children}
-          </OnboardingAnimation>,
-        );
-
-        expect(getByTestId(`child-${index + 1}`)).toBeOnTheScreen();
-        expect(getByTestId('metamask-wordmark-animation')).toBeOnTheScreen();
-      });
-    });
-
-    it('renders correctly with both light and dark themeAppearance values', () => {
-      // Test with light theme
-      mockAppTheme.mockReturnValue({
-        themeAppearance: 'light',
-      });
-
-      expect(() => {
-        render(<OnboardingAnimation {...defaultProps} />);
-      }).not.toThrow();
-
-      // Test with dark theme value
-      mockAppTheme.mockReturnValue({
-        themeAppearance: 'dark',
-      });
-
-      expect(() => {
-        render(<OnboardingAnimation {...defaultProps} />);
-      }).not.toThrow();
-    });
+    expect(getByTestId(WORDMARK_ID).props.color).toBe(
+      darkTheme.colors.text.default,
+    );
   });
 });

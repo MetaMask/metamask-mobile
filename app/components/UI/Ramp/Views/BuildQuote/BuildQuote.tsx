@@ -67,6 +67,11 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
+import { useRampScreenPerformance } from '../../hooks/useRampScreenPerformance';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+} from '../../constants/rampScreenPerformance';
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
@@ -685,6 +690,20 @@ function BuildQuote() {
   const amountInputHasError = Boolean(
     rampsError || quoteFetchError || inlineQuoteError || hasGenericNoQuotes,
   );
+
+  useRampScreenPerformance({
+    screenId: RAMP_V2_SCREEN_ID.AMOUNT_INPUT,
+    contentReady:
+      Boolean(selectedToken) &&
+      tokenStateIsSettled &&
+      !paymentMethodsLoading &&
+      !paymentMethodsFetching &&
+      (paymentMethodsStatus === 'success' || paymentMethodsStatus === 'error'),
+    contentState:
+      amountInputHasError || paymentMethodsStatus === 'error'
+        ? RAMP_SCREEN_CONTENT_STATE.ERROR
+        : RAMP_SCREEN_CONTENT_STATE.POPULATED,
+  });
 
   const noQuotesErrorMessage = selectedProvider
     ? strings('fiat_on_ramp.no_quotes_error', {

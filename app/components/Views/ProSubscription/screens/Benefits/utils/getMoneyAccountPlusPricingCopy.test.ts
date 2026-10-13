@@ -1,7 +1,7 @@
 import { RECURRING_INTERVALS } from '@metamask/subscription-controller';
 import I18n, { strings } from '../../../../../../../locales/i18n';
 import type { PlanId } from '../Benefits.constants';
-import { formatSubscriptionFiat } from './formatSubscriptionFiat';
+import { formatSubscriptionFiat } from '../../../../../../util/subscription/formatSubscriptionFiat';
 import {
   getBenefitsPriceLine,
   getPlanSelectorCardCopy,

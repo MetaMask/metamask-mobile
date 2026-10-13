@@ -413,6 +413,11 @@ import {
   type LimitOrdersDataServiceActions,
   type LimitOrdersDataServiceEvents,
 } from '../../components/UI/Bridge/services/LimitOrdersDataService';
+import {
+  SentinelFeeTokensDataService,
+  type SentinelFeeTokensDataServiceActions,
+  type SentinelFeeTokensDataServiceEvents,
+} from '../../components/UI/Bridge/services/SentinelFeeTokensDataService';
 import type {
   CardControllerState,
   CardControllerActions,
@@ -456,6 +461,8 @@ import {
   type SubscriptionControllerActions,
   type SubscriptionControllerEvents,
   type SubscriptionControllerState,
+  type SubscriptionDelegationServiceActions,
+  SubscriptionDelegationService,
   SubscriptionService,
   type SubscriptionServiceActions,
   type SubscriptionServiceEvents,
@@ -500,17 +507,12 @@ import {
   GatorPermissionsControllerEvents,
   GatorPermissionsControllerState,
 } from '@metamask/gator-permissions-controller';
-import {
+import type {
   DelegationController,
   DelegationControllerActions,
   DelegationControllerEvents,
 } from '@metamask/delegation-controller';
-// `DelegationControllerState` isn't re-exported from the package's public
-// entry, so we go through the `@metamask/delegation-controller/types` path
-// alias declared in `tsconfig.json`. Once the upstream package re-exports it
-// (or we move to Node16/NodeNext module resolution), drop both the alias and
-// this dedicated import.
-import type { DelegationControllerState } from '@metamask/delegation-controller/types';
+type DelegationControllerState = DelegationController['state'];
 import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
@@ -569,6 +571,15 @@ import {
   type SocialServiceActions,
   type SocialServiceEvents,
 } from '@metamask/social-controllers';
+import {
+  ProfileController,
+  ProfileService,
+  type ProfileControllerActions,
+  type ProfileControllerEvents,
+  type ProfileControllerState,
+  type ProfileServiceActions,
+  type ProfileServiceEvents,
+} from '@metamask/profile-controller';
 import {
   AuthenticatedUserStorageService,
   type AuthenticatedUserStorageActions,
@@ -644,6 +655,19 @@ type OptionalControllers = Pick<
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
+
+/**
+ * Declared structurally to match `PerpsControllerAllowedActions`, which lists
+ * this action so clients that do expose it can serve it. Our
+ * `SubscriptionController` does not, so nothing delegates it and
+ * `RewardsIntegrationService` keeps using its injected `subscription`
+ * dependency. Remove once `@metamask/subscription-controller` exposes the
+ * action itself.
+ */
+interface SubscriptionControllerRegisterAddressAction {
+  type: `SubscriptionController:registerAddress`;
+  handler: (caipAccountId: string) => Promise<void>;
+}
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // TODO: Abstract this into controller utils for SnapsController
@@ -734,6 +758,7 @@ export type GlobalActions =
   | PredictOrderServiceActions
   | RecurringOrdersDataServiceActions
   | LimitOrdersDataServiceActions
+  | SentinelFeeTokensDataServiceActions
   | CardControllerActions
   | UiSlotsControllerActions
   | QrSyncControllerActions
@@ -749,6 +774,8 @@ export type GlobalActions =
   | DeFiPositionsControllerV2Actions
   | StorageServiceActions
   | SubscriptionControllerActions
+  | SubscriptionDelegationServiceActions
+  | SubscriptionControllerRegisterAddressAction
   | SubscriptionServiceActions
   | ShieldControllerActions
   | ShieldApiServiceActions
@@ -765,6 +792,8 @@ export type GlobalActions =
   | AiDigestControllerActions
   | SocialControllerActions
   | SocialServiceActions
+  | ProfileControllerActions
+  | ProfileServiceActions
   | AuthenticatedUserStorageActions
   | ComplianceControllerActions
   | ComplianceServiceActions
@@ -859,6 +888,7 @@ export type GlobalEvents =
   | PredictOrderServiceEvents
   | RecurringOrdersDataServiceEvents
   | LimitOrdersDataServiceEvents
+  | SentinelFeeTokensDataServiceEvents
   | CardControllerEvents
   | UiSlotsControllerEvents
   | QrSyncControllerEvents
@@ -880,6 +910,8 @@ export type GlobalEvents =
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents
+  | ProfileControllerEvents
+  | ProfileServiceEvents
   | AuthenticatedUserStorageEvents
   | ComplianceControllerEvents
   | ComplianceServiceEvents
@@ -975,6 +1007,7 @@ export type MessengerClients = {
   SignatureController: SignatureController;
   StorageService: StorageService;
   SubscriptionController: SubscriptionController;
+  SubscriptionDelegationService: SubscriptionDelegationService;
   SubscriptionService: SubscriptionService;
   ShieldController: ShieldController;
   ShieldApiService: ShieldApiService;
@@ -1023,6 +1056,7 @@ export type MessengerClients = {
   PredictOrderService: PredictOrderService;
   RecurringOrdersDataService: RecurringOrdersDataService;
   LimitOrdersDataService: LimitOrdersDataService;
+  SentinelFeeTokensDataService: SentinelFeeTokensDataService;
   CardController: CardController;
   UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
@@ -1042,6 +1076,8 @@ export type MessengerClients = {
   AiDigestController: AiDigestController;
   SocialController: SocialController;
   SocialService: SocialService;
+  ProfileController: ProfileController;
+  ProfileService: ProfileService;
   AuthenticatedUserStorageService: AuthenticatedUserStorageService;
   ComplianceService: ComplianceService;
   ComplianceController: ComplianceController;
@@ -1142,6 +1178,7 @@ export type EngineState = {
   ProfileMetricsController: ProfileMetricsControllerState;
   AiDigestController: AiDigestControllerState;
   SocialController: SocialControllerState;
+  ProfileController: ProfileControllerState;
   ComplianceController: ComplianceControllerState;
   KycController: KycControllerState;
   MoneyAccountUpgradeController: MoneyAccountUpgradeControllerState;
@@ -1239,6 +1276,7 @@ export type MessengerClientsToInitialize =
   | 'PredictOrderService'
   | 'RecurringOrdersDataService'
   | 'LimitOrdersDataService'
+  | 'SentinelFeeTokensDataService'
   | 'CardController'
   | 'UiSlotsController'
   | 'QrSyncController'
@@ -1266,6 +1304,8 @@ export type MessengerClientsToInitialize =
   | 'AiDigestController'
   | 'SocialService'
   | 'SocialController'
+  | 'ProfileService'
+  | 'ProfileController'
   | 'AuthenticatedUserStorageService'
   | 'ComplianceService'
   | 'ComplianceController'

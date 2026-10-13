@@ -5,6 +5,8 @@ import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import { useAdapterLifecycle } from './useAdapterLifecycle';
 import { createAdapter } from '../adapters';
 import { HardwareWalletAdapter, HardwareWalletAdapterOptions } from '../types';
+import { initializeLedgerDmkMode } from '../../Ledger/dmk';
+import { FeatureFlagNames } from '../../../constants/featureFlags';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -63,6 +65,7 @@ const getAdapterCallbacks = (): HardwareWalletAdapterOptions => {
 describe('useAdapterLifecycle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    initializeLedgerDmkMode({});
     mockUseSelector.mockReturnValue({});
     mockCreateAdapter.mockImplementation(() => createMockAdapter());
   });
@@ -172,6 +175,47 @@ describe('useAdapterLifecycle', () => {
           onDeviceEvent: expect.any(Function),
         }),
         expect.any(Boolean),
+      );
+    });
+  });
+
+  describe('Ledger transport mode selection', () => {
+    // Regression trap: the mocked `useSelector` values below disagree with the
+    // seeded mode on purpose. The hook must read the Engine-initialized mode
+    // (`getLedgerDmkMode`), not live Redux flags; a reintroduced live read
+    // fails these tests.
+    it('creates the Ledger adapter on the transport mode selected at Engine initialization, not a later live flag change', () => {
+      // Engine seeded DMK=true; the (unused) live flag flips off.
+      initializeLedgerDmkMode({ [FeatureFlagNames.ledgerDmk]: true });
+      mockUseSelector.mockReturnValue({ [FeatureFlagNames.ledgerDmk]: false });
+
+      renderHook(() => useAdapterLifecycle(createOptions()));
+
+      // Must match the Engine-seeded mode, not the flipped live flag.
+      expect(mockCreateAdapter).toHaveBeenCalledWith(
+        HardwareWalletType.Ledger,
+        expect.objectContaining({
+          onDisconnect: expect.any(Function),
+          onDeviceEvent: expect.any(Function),
+        }),
+        true,
+      );
+    });
+
+    it('keeps the Ledger adapter on the non-DMK stack selected at Engine initialization when the live flag later enables DMK', () => {
+      // Engine seeded DMK=false; the (unused) live flag flips on.
+      initializeLedgerDmkMode({ [FeatureFlagNames.ledgerDmk]: false });
+      mockUseSelector.mockReturnValue({ [FeatureFlagNames.ledgerDmk]: true });
+
+      renderHook(() => useAdapterLifecycle(createOptions()));
+
+      expect(mockCreateAdapter).toHaveBeenCalledWith(
+        HardwareWalletType.Ledger,
+        expect.objectContaining({
+          onDisconnect: expect.any(Function),
+          onDeviceEvent: expect.any(Function),
+        }),
+        false,
       );
     });
   });

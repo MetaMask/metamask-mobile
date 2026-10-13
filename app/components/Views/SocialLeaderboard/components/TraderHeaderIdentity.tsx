@@ -9,8 +9,8 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import TraderAvatar from '../../Homepage/Sections/TopTraders/components/TraderAvatar';
+
+import TraderAvatar from '../../../UI/SocialFeed/components/TraderAvatar';
 
 const AVATAR_SIZE_BY_VARIANT = {
   nav: 24,
@@ -24,6 +24,7 @@ export interface TraderHeaderIdentityProps {
   traderName: string;
   traderImageUrl?: string | null;
   traderAddress?: string;
+  avatar?: React.ReactNode;
   variant?: TraderHeaderIdentityVariant;
   onPress?: () => void;
   testID?: string;
@@ -43,6 +44,7 @@ const TraderHeaderIdentity: React.FC<TraderHeaderIdentityProps> = ({
   traderName,
   traderImageUrl,
   traderAddress,
+  avatar,
   variant = 'nav',
   onPress,
   testID,
@@ -65,11 +67,13 @@ const TraderHeaderIdentity: React.FC<TraderHeaderIdentityProps> = ({
       gap={2}
       twClassName="max-w-full"
     >
-      <TraderAvatar
-        imageUrl={traderImageUrl}
-        address={traderAddress}
-        size={avatarSize}
-      />
+      {avatar ?? (
+        <TraderAvatar
+          imageUrl={traderImageUrl}
+          address={traderAddress}
+          size={avatarSize}
+        />
+      )}
       <Text
         variant={textVariant}
         fontWeight={fontWeight}

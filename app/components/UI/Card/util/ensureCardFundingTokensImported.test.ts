@@ -4,6 +4,7 @@ import { FundingStatus, type CardFundingToken } from '../types';
 import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
 import { getTokensControllerAllTokens } from '../../../../selectors/assets/assets-migration';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
 jest.mock('../../../../util/Logger');
 jest.mock('../../../../store', () => ({
@@ -12,10 +13,13 @@ jest.mock('../../../../store', () => ({
 jest.mock('../../../../selectors/assets/assets-migration', () => ({
   getTokensControllerAllTokens: jest.fn(() => ({})),
 }));
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(),
+}));
 jest.mock('../../../../core/Engine', () => ({
   context: {
-    TokensController: {
-      addToken: jest.fn(() => Promise.resolve()),
+    AssetsController: {
+      addCustomAsset: jest.fn(() => Promise.resolve()),
     },
   },
 }));
@@ -23,8 +27,15 @@ jest.mock('../../../../core/Engine', () => ({
 const mockGetAllTokens = getTokensControllerAllTokens as jest.MockedFunction<
   typeof getTokensControllerAllTokens
 >;
-const mockAddToken = Engine.context.TokensController.addToken as jest.Mock;
+const mockAddCustomAsset = Engine.context.AssetsController
+  .addCustomAsset as jest.Mock;
+const mockSelectSelectedInternalAccountByScope =
+  selectSelectedInternalAccountByScope as jest.MockedFunction<
+    typeof selectSelectedInternalAccountByScope
+  >;
 const mockEnsureNetworkExists = jest.fn<Promise<string>, [string]>();
+
+const ACCOUNT_ID_MOCK = 'mock-account-id';
 
 const baseSepoliaToken: CardFundingToken = {
   address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
@@ -41,8 +52,16 @@ describe('ensureCardFundingTokensImported', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetAllTokens.mockReturnValue({} as never);
-    mockAddToken.mockResolvedValue(undefined);
+    mockAddCustomAsset.mockResolvedValue(undefined);
     mockEnsureNetworkExists.mockResolvedValue('base-sepolia-client');
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      () =>
+        ({
+          id: ACCOUNT_ID_MOCK,
+        }) as ReturnType<
+          ReturnType<typeof selectSelectedInternalAccountByScope>
+        >,
+    );
   });
 
   it('adds+enables the network then imports the untracked EVM funding token', async () => {
@@ -52,13 +71,17 @@ describe('ensureCardFundingTokensImported', () => {
     );
 
     expect(mockEnsureNetworkExists).toHaveBeenCalledWith('eip155:84532');
-    expect(mockAddToken).toHaveBeenCalledWith({
-      address: baseSepoliaToken.address,
-      decimals: 6,
-      name: 'USD Coin',
-      symbol: 'USDC',
-      networkClientId: 'base-sepolia-client',
-    });
+    expect(mockAddCustomAsset).toHaveBeenCalledWith(
+      ACCOUNT_ID_MOCK,
+      expect.stringContaining('erc20'),
+      {
+        address: baseSepoliaToken.address,
+        decimals: 6,
+        name: 'USD Coin',
+        symbol: 'USDC',
+        chainId: '0x14a34',
+      },
+    );
   });
 
   it('skips a token already tracked in TokensController', async () => {
@@ -74,7 +97,7 @@ describe('ensureCardFundingTokensImported', () => {
     );
 
     expect(mockEnsureNetworkExists).not.toHaveBeenCalled();
-    expect(mockAddToken).not.toHaveBeenCalled();
+    expect(mockAddCustomAsset).not.toHaveBeenCalled();
   });
 
   it('does not import when the network cannot be configured', async () => {
@@ -85,7 +108,18 @@ describe('ensureCardFundingTokensImported', () => {
       mockEnsureNetworkExists,
     );
 
-    expect(mockAddToken).not.toHaveBeenCalled();
+    expect(mockAddCustomAsset).not.toHaveBeenCalled();
+  });
+
+  it('does not import when there is no selected account for the scope', async () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(() => undefined);
+
+    await ensureCardFundingTokensImported(
+      [baseSepoliaToken],
+      mockEnsureNetworkExists,
+    );
+
+    expect(mockAddCustomAsset).not.toHaveBeenCalled();
   });
 
   it('skips non-EVM (Solana) and incomplete tokens', async () => {
@@ -101,15 +135,15 @@ describe('ensureCardFundingTokensImported', () => {
     );
 
     expect(mockEnsureNetworkExists).not.toHaveBeenCalled();
-    expect(mockAddToken).not.toHaveBeenCalled();
+    expect(mockAddCustomAsset).not.toHaveBeenCalled();
   });
 
-  it('deduplicates repeated tokens so addToken runs once', async () => {
+  it('deduplicates repeated tokens so addCustomAsset runs once', async () => {
     await ensureCardFundingTokensImported(
       [baseSepoliaToken, baseSepoliaToken],
       mockEnsureNetworkExists,
     );
 
-    expect(mockAddToken).toHaveBeenCalledTimes(1);
+    expect(mockAddCustomAsset).toHaveBeenCalledTimes(1);
   });
 });

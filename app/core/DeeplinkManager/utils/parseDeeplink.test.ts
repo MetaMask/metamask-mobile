@@ -181,6 +181,25 @@ describe('parseDeeplink', () => {
 
     expect(mockHandleSolanaUrl).toHaveBeenCalledWith({
       url,
+      origin: 'testOrigin',
+    });
+  });
+
+  it('passes QR origin through to handleSolanaUrl', async () => {
+    const url =
+      'solana:7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV?amount=25.515000';
+
+    await parseDeeplink({
+      deeplinkManager: instance,
+      url,
+      origin: 'qr-code',
+      browserCallBack: mockBrowserCallBack,
+      onHandled: mockOnHandled,
+    });
+
+    expect(mockHandleSolanaUrl).toHaveBeenCalledWith({
+      url,
+      origin: 'qr-code',
     });
   });
 

@@ -2,7 +2,6 @@ import { useSelector } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
 import type { Caip19AssetId } from '@metamask/assets-controller';
 import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
-import { BRIDGE_API_BASE_URL } from '../../../../../../constants/bridge';
 import Engine from '../../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
 import { getBaseSemVerVersion } from '../../../../../../util/version';
@@ -10,6 +9,7 @@ import { parseLimitOrderDelegationsResponse } from './validators';
 import type { LimitOrderDelegationsResponse } from './schema';
 import { getDelegatorAccountId } from './utils';
 import { useMemo } from 'react';
+import { getLimitOrdersBaseUrl } from '../getLimitOrdersBaseUrl';
 
 export interface LimitOrderDelegationsParams {
   sourceAssetId: Caip19AssetId;
@@ -58,7 +58,7 @@ const fetchLimitOrdersDelegations = async ({
   });
 
   const response = await fetch(
-    `${BRIDGE_API_BASE_URL}/v2/limit-orders/delegations?${searchParams.toString()}`,
+    `${getLimitOrdersBaseUrl()}/v2/orders/limit/delegations?${searchParams.toString()}`,
     {
       method: 'GET',
       headers: {

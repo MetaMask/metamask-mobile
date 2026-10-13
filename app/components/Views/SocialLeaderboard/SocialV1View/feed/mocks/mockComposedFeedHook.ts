@@ -4,7 +4,7 @@ import {
   subscribeSocialV1ComposedFeed,
 } from '../store/socialV1ComposedFeedStore';
 import type { SocialV1FeedTab, UseSocialV1FeedResult } from '../types';
-import { wrapMockFeedPosts } from './wrapMockFeedPosts';
+import { wrapMockFeedPosts } from '../../../../../UI/SocialFeed/mocks/wrapMockFeedPosts';
 
 /**
  * Stand-in for `useSocialV1Feed` in suites that cover the feed *chrome* --

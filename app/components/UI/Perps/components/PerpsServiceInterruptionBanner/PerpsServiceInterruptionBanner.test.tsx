@@ -1,9 +1,18 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import PerpsServiceInterruptionBanner from './PerpsServiceInterruptionBanner';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import { makeMutable } from 'react-native-reanimated';
+import PerpsServiceInterruptionBanner, {
+  buildDescriptionSegments,
+  SERVICE_INTERRUPTION_BANNER_COLLAPSE_SCROLL_PX,
+  SERVICE_INTERRUPTION_BANNER_EXPAND_SCROLL_PX,
+  SERVICE_INTERRUPTION_LINK_PLACEHOLDERS,
+} from './PerpsServiceInterruptionBanner';
 import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../selectors/featureFlags';
-import { SUPPORT_CONFIG } from '../../constants/perpsConfig';
-import { strings } from '../../../../../../locales/i18n';
+import {
+  SERVICE_INTERRUPTION_CONFIG,
+  SUPPORT_CONFIG,
+} from '../../constants/perpsConfig';
+import I18n, { strings } from '../../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
 
@@ -17,6 +26,11 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
+jest.mock('react-native-safe-area-context', () => ({
+  ...jest.requireActual('react-native-safe-area-context'),
+  useSafeAreaInsets: () => ({ top: 47, right: 0, bottom: 0, left: 0 }),
+}));
+
 const mockOpenSupportWithConsent = jest.fn();
 jest.mock('../../../../hooks/useSupportConsent', () => ({
   useSupportConsent: () => ({
@@ -26,67 +40,101 @@ jest.mock('../../../../hooks/useSupportConsent', () => ({
 
 const { useSelector } = jest.requireMock('react-redux');
 
+const TEST_ID = 'perps-service-interruption-banner';
+
+// The collapsed description is hidden from accessibility, which RNTL also
+// excludes from default queries.
+const getDescription = (
+  getByTestId: ReturnType<typeof render>['getByTestId'],
+) => getByTestId(`${TEST_ID}-description`, { includeHiddenElements: true });
+
+const mockBannerFlag = (isEnabled: boolean) => {
+  useSelector.mockImplementation((selector: unknown) => {
+    if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
+      return isEnabled;
+    }
+    return undefined;
+  });
+};
+
 describe('PerpsServiceInterruptionBanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBannerFlag(true);
   });
 
   it('renders nothing when flag is disabled', () => {
-    useSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
-        return false;
-      }
-      return undefined;
-    });
+    mockBannerFlag(false);
 
     const { queryByTestId } = render(<PerpsServiceInterruptionBanner />);
 
-    expect(queryByTestId('perps-service-interruption-banner')).toBeNull();
+    expect(queryByTestId(TEST_ID)).toBeNull();
   });
 
   it('renders banner when flag is enabled', () => {
-    useSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
-        return true;
-      }
-      return undefined;
-    });
-
     const { getByTestId } = render(<PerpsServiceInterruptionBanner />);
 
-    expect(getByTestId('perps-service-interruption-banner')).toBeOnTheScreen();
+    expect(getByTestId(TEST_ID)).toBeOnTheScreen();
   });
 
-  it('displays outage title and description', () => {
-    useSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
-        return true;
-      }
-      return undefined;
-    });
-
-    const { getByText } = render(<PerpsServiceInterruptionBanner />);
+  it('displays outage title, description and both links', () => {
+    const { getByText, getByTestId } = render(
+      <PerpsServiceInterruptionBanner />,
+    );
 
     expect(getByText("We're experiencing an outage")).toBeOnTheScreen();
-    expect(getByText(/Some services may be unavailable/)).toBeOnTheScreen();
-    expect(getByText('Contact support')).toBeOnTheScreen();
+    expect(
+      getByText(/Some services are temporarily unavailable/),
+    ).toBeOnTheScreen();
+    expect(getByTestId(`${TEST_ID}-faq-link`)).toHaveTextContent(
+      'See your options in FAQs',
+    );
+    expect(getByTestId(`${TEST_ID}-support-link`)).toHaveTextContent(
+      'contact support',
+    );
+  });
+
+  it('renders FAQ and support links when the translated description has no placeholders', () => {
+    const previousLocale = I18n.locale;
+    I18n.locale = 'es';
+
+    try {
+      const { getByTestId } = render(<PerpsServiceInterruptionBanner />);
+
+      expect(getByTestId(`${TEST_ID}-faq-link`)).toHaveTextContent(
+        strings('perps.service_interruption.faq_link'),
+      );
+      expect(getByTestId(`${TEST_ID}-support-link`)).toHaveTextContent(
+        strings('perps.service_interruption.contact_support'),
+      );
+    } finally {
+      I18n.locale = previousLocale;
+    }
+  });
+
+  it('opens the Perps FAQ in the SimpleWebview when the FAQ link is pressed', () => {
+    const { getByTestId } = render(<PerpsServiceInterruptionBanner />);
+
+    fireEvent.press(getByTestId(`${TEST_ID}-faq-link`));
+
+    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: SERVICE_INTERRUPTION_CONFIG.FaqUrl,
+        title: strings(SERVICE_INTERRUPTION_CONFIG.FaqTitleKey),
+      },
+    });
+    expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
   });
 
   it('shows the support consent sheet with the support URL when the support link is pressed', () => {
-    useSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
-        return true;
-      }
-      return undefined;
-    });
+    const { getByTestId } = render(<PerpsServiceInterruptionBanner />);
 
-    const { getByText } = render(<PerpsServiceInterruptionBanner />);
-
-    fireEvent.press(getByText('Contact support'));
+    fireEvent.press(getByTestId(`${TEST_ID}-support-link`));
 
     expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
       expect.any(Function),
-      SUPPORT_CONFIG.Url,
+      SERVICE_INTERRUPTION_CONFIG.SupportUrl,
     );
   });
 
@@ -94,40 +142,204 @@ describe('PerpsServiceInterruptionBanner', () => {
   // openSupportWithConsent navigates to the webview. The consent modal
   // behavior itself is covered by the core support-consent tests.
   it('navigates to the SimpleWebview when the provided opener is invoked', () => {
-    useSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
-        return true;
-      }
-      return undefined;
-    });
+    const { getByTestId } = render(<PerpsServiceInterruptionBanner />);
 
-    const { getByText } = render(<PerpsServiceInterruptionBanner />);
-
-    fireEvent.press(getByText('Contact support'));
+    fireEvent.press(getByTestId(`${TEST_ID}-support-link`));
     const [open] = mockOpenSupportWithConsent.mock.calls[0];
-    open(SUPPORT_CONFIG.Url);
+    open(SERVICE_INTERRUPTION_CONFIG.SupportUrl);
 
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: SUPPORT_CONFIG.Url,
+        url: SERVICE_INTERRUPTION_CONFIG.SupportUrl,
         title: strings(SUPPORT_CONFIG.TitleKey),
       },
     });
   });
 
   it('uses custom testID when provided', () => {
-    useSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
-        return true;
-      }
-      return undefined;
-    });
-
     const { getByTestId } = render(
       <PerpsServiceInterruptionBanner testID="custom-banner" />,
     );
 
     expect(getByTestId('custom-banner')).toBeOnTheScreen();
+    expect(getByTestId('custom-banner-title')).toBeOnTheScreen();
+  });
+
+  it('applies the status-bar inset only when includesTopInset is set', () => {
+    const { getByTestId, rerender } = render(
+      <PerpsServiceInterruptionBanner includesTopInset />,
+    );
+
+    expect(getByTestId(TEST_ID)).toHaveStyle({ paddingTop: 47 });
+
+    rerender(<PerpsServiceInterruptionBanner />);
+
+    expect(getByTestId(TEST_ID)).not.toHaveStyle({ paddingTop: 47 });
+  });
+
+  describe('shrink on scroll', () => {
+    it('keeps the description visible while the content is at the top', () => {
+      const scrollY = makeMutable(0);
+
+      const { getByTestId } = render(
+        <PerpsServiceInterruptionBanner scrollY={scrollY} />,
+      );
+
+      expect(getDescription(getByTestId)).toHaveProp(
+        'accessibilityElementsHidden',
+        false,
+      );
+    });
+
+    it('collapses the description once scrolled past the collapse threshold', async () => {
+      const scrollY = makeMutable(0);
+
+      const { getByTestId } = render(
+        <PerpsServiceInterruptionBanner scrollY={scrollY} />,
+      );
+
+      await act(async () => {
+        scrollY.value = SERVICE_INTERRUPTION_BANNER_COLLAPSE_SCROLL_PX + 1;
+      });
+
+      await waitFor(() =>
+        expect(getDescription(getByTestId)).toHaveProp(
+          'accessibilityElementsHidden',
+          true,
+        ),
+      );
+    });
+
+    it('stays collapsed between the expand and collapse thresholds', async () => {
+      const scrollY = makeMutable(0);
+
+      const { getByTestId } = render(
+        <PerpsServiceInterruptionBanner scrollY={scrollY} />,
+      );
+
+      await act(async () => {
+        scrollY.value = SERVICE_INTERRUPTION_BANNER_COLLAPSE_SCROLL_PX + 1;
+      });
+      await waitFor(() =>
+        expect(getDescription(getByTestId)).toHaveProp(
+          'accessibilityElementsHidden',
+          true,
+        ),
+      );
+      await act(async () => {
+        scrollY.value = SERVICE_INTERRUPTION_BANNER_EXPAND_SCROLL_PX + 1;
+      });
+
+      await waitFor(() =>
+        expect(getDescription(getByTestId)).toHaveProp(
+          'accessibilityElementsHidden',
+          true,
+        ),
+      );
+    });
+
+    it('expands the description again when scrolled back to the top', async () => {
+      const scrollY = makeMutable(0);
+
+      const { getByTestId } = render(
+        <PerpsServiceInterruptionBanner scrollY={scrollY} />,
+      );
+
+      await act(async () => {
+        scrollY.value = SERVICE_INTERRUPTION_BANNER_COLLAPSE_SCROLL_PX + 1;
+      });
+      await waitFor(() =>
+        expect(getDescription(getByTestId)).toHaveProp(
+          'accessibilityElementsHidden',
+          true,
+        ),
+      );
+      await act(async () => {
+        scrollY.value = 0;
+      });
+
+      await waitFor(() =>
+        expect(getDescription(getByTestId)).toHaveProp(
+          'accessibilityElementsHidden',
+          false,
+        ),
+      );
+    });
+
+    it('never collapses when no scroll offset is provided', () => {
+      const { getByTestId } = render(<PerpsServiceInterruptionBanner />);
+
+      expect(getDescription(getByTestId)).toHaveProp(
+        'accessibilityElementsHidden',
+        false,
+      );
+    });
+  });
+});
+
+describe('buildDescriptionSegments', () => {
+  const { faq, support } = SERVICE_INTERRUPTION_LINK_PLACEHOLDERS;
+
+  it('splits plain text around both placeholder links in sentence order', () => {
+    expect(
+      buildDescriptionSegments(
+        `Down. ${faq}, or ${support}.`,
+        'See FAQs',
+        'contact us',
+      ),
+    ).toEqual([
+      { text: 'Down. ' },
+      { text: 'See FAQs', link: 'faq' },
+      { text: ', or ' },
+      { text: 'contact us', link: 'support' },
+      { text: '.' },
+    ]);
+  });
+
+  it('honours translations that reorder the placeholders', () => {
+    expect(
+      buildDescriptionSegments(
+        `${support} or ${faq}`,
+        'See FAQs',
+        'contact us',
+      ),
+    ).toEqual([
+      { text: 'contact us', link: 'support' },
+      { text: ' or ' },
+      { text: 'See FAQs', link: 'faq' },
+    ]);
+  });
+
+  it('appends both links when the sentence has no placeholders', () => {
+    expect(buildDescriptionSegments('Down.', 'See FAQs', 'contact us')).toEqual(
+      [
+        { text: 'Down.' },
+        { text: '\n' },
+        { text: 'See FAQs', link: 'faq' },
+        { text: '\n' },
+        { text: 'contact us', link: 'support' },
+      ],
+    );
+  });
+
+  it('appends only the link whose placeholder is missing', () => {
+    expect(
+      buildDescriptionSegments(`Down. ${faq}.`, 'See FAQs', 'contact us'),
+    ).toEqual([
+      { text: 'Down. ' },
+      { text: 'See FAQs', link: 'faq' },
+      { text: '.' },
+      { text: '\n' },
+      { text: 'contact us', link: 'support' },
+    ]);
+  });
+
+  it('ignores empty link labels', () => {
+    expect(buildDescriptionSegments(`Down. ${faq}.`, 'See FAQs', '')).toEqual([
+      { text: 'Down. ' },
+      { text: 'See FAQs', link: 'faq' },
+      { text: '.' },
+    ]);
   });
 });

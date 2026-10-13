@@ -9,7 +9,7 @@ import { trimTrailingZeros } from '../trimTrailingZeros';
 
 type LimitOrderTrigger = CreateLimitOrderParams['trigger'];
 
-interface GetLimitOrderTriggerParamsOptions {
+export interface GetLimitOrderTriggerParamsOptions {
   /**
    * Which side of the pair the limit price is quoted on. Selling quotes the
    * source token, buying quotes the destination token.
@@ -36,6 +36,16 @@ interface GetLimitOrderTriggerParamsOptions {
    */
   fiatToUsdRate: number | undefined;
 }
+
+/**
+ * The limit price as entered on the limit order screen, i.e. everything a
+ * trigger is built from except the exchange rate, which is read when the order
+ * is created.
+ */
+export type LimitOrderTriggerInput = Omit<
+  GetLimitOrderTriggerParamsOptions,
+  'fiatToUsdRate'
+>;
 
 /**
  * Builds the `trigger` of a `POST /v2/limit-orders` request from the limit

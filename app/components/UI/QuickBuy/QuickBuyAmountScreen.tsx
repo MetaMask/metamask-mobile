@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Box,
   BoxAlignItems,
+  BoxJustifyContent,
   Text,
   TextColor,
   TextVariant,
@@ -36,14 +37,16 @@ const QuickBuyAmountScreen: React.FC = () => {
       {/* The toolbar stays live even with no funds — it owns the close button,
           so dimming it would leave the user with no way out of the sheet. */}
       <QuickBuyToolbar />
-      <QuickBuyDisabledSection
-        isDisabled={hasNoPayWithFunds}
-        testID="quick-buy-disabled-amount"
-      >
-        <Box testID={QuickBuySheetSelectorsIDs.AMOUNT_CONTAINER}>
-          <QuickBuyAmount />
-        </Box>
-      </QuickBuyDisabledSection>
+      <Box twClassName="flex-1" justifyContent={BoxJustifyContent.Center}>
+        <QuickBuyDisabledSection
+          isDisabled={hasNoPayWithFunds}
+          testID="quick-buy-disabled-amount"
+        >
+          <Box testID={QuickBuySheetSelectorsIDs.AMOUNT_CONTAINER}>
+            <QuickBuyAmount />
+          </Box>
+        </QuickBuyDisabledSection>
+      </Box>
       <QuickBuyActionFooter />
       {/* The keypad stays mounted and expanded whether or not the user has funds
           — collapsing it would make the sheet height depend on a flag that is

@@ -12,6 +12,8 @@ export interface PriceAlertRouteParams {
   mode?: 'spot' | 'perps';
   /** Perp market identifier (e.g. 'btc-hyperliquid-mainnet'). Required when mode='perps'. */
   marketId?: string;
+  /** Hyperliquid size decimals; used for venue price precision when mode='perps'. */
+  szDecimals?: number;
 }
 
 /** Route params for the Create Price Alert screen. */
@@ -134,6 +136,8 @@ export interface UpdatePercentAlertParams {
 
 export const CreatePriceAlertTestIds = {
   CONTAINER: 'create-price-alert-container',
+  HEADER_TITLE: 'create-price-alert-header-title',
+  HEADER_SUBTITLE: 'create-price-alert-header-subtitle',
   TARGET_PRICE_INPUT: 'create-price-alert-target-price',
   PERCENT_DIFF: 'create-price-alert-percent-diff',
   RECURRING_TOGGLE: 'create-price-alert-recurring-toggle',

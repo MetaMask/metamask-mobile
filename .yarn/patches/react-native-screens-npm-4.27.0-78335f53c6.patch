@@ -1,0 +1,32 @@
+diff --git a/ios/tabs/screen/RNSTabsScreenComponentView.mm b/ios/tabs/screen/RNSTabsScreenComponentView.mm
+index 1cdecb225fe77bb921dc87e8aa57757d6c19dabc..f89e7e77b8a751af01aa7177fe4e9a664d25ca3c 100644
+--- a/ios/tabs/screen/RNSTabsScreenComponentView.mm
++++ b/ios/tabs/screen/RNSTabsScreenComponentView.mm
+@@ -77,7 +77,7 @@ namespace react = facebook::react;
+   _isTitleUndefined = YES;
+   _orientation = RNSOrientationInherit;
+ 
+-  _standardAppearance = [UITabBarAppearance new];
++  _standardAppearance = nil;
+   _scrollEdgeAppearance = nil;
+ 
+   _shouldUseRepeatedTabSelectionPopToRootSpecialEffect = YES;
+@@ -282,10 +282,14 @@ RNS_IGNORE_SUPER_CALL_END
+   }
+ 
+   if (newComponentProps.standardAppearance != oldComponentProps.standardAppearance) {
+-    _standardAppearance = [UITabBarAppearance new];
+-    [RNSTabBarAppearanceCoordinator configureTabBarAppearance:_standardAppearance
+-                                          fromAppearanceProps:rnscreens::conversion::RNSConvertFollyDynamicToId(
+-                                                                  newComponentProps.standardAppearance)];
++    if (newComponentProps.standardAppearance.type() == folly::dynamic::OBJECT) {
++      _standardAppearance = [UITabBarAppearance new];
++      [RNSTabBarAppearanceCoordinator configureTabBarAppearance:_standardAppearance
++                                            fromAppearanceProps:rnscreens::conversion::RNSConvertFollyDynamicToId(
++                                                                    newComponentProps.standardAppearance)];
++    } else {
++      _standardAppearance = nil;
++    }
+     tabItemNeedsAppearanceUpdate = YES;
+   }
+ 

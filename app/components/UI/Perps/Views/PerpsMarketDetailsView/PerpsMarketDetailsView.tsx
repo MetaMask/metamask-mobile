@@ -159,6 +159,7 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMarketContext } from '../../hooks/usePerpsMarketContext';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsPrewarmDepositOrder } from '../../hooks/usePerpsPrewarmDepositOrder';
 import { usePerpsVisibleCandleCount } from '../../hooks/usePerpsVisibleCandleCount';
 import { usePerpsMarketDetailLiveMeasurement } from '../../hooks/usePerpsMarketDetailLiveMeasurement';
 import {
@@ -418,7 +419,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   // Compliance gate
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
-  const { gate } = useComplianceGate(selectedAddress ?? '');
+  const { gate, isBlocked } = useComplianceGate(selectedAddress ?? '');
+
+  // Limit the approval prewarm to the bottom-sheet treatment that needs the
+  // tap-to-sheet performance improvement. Control keeps its existing flow.
+  usePerpsPrewarmDepositOrder({
+    enabled: isEligible && !isBlocked && useBottomSheet,
+    marketProviderId: market?.providerId,
+    transactionActiveAbTests,
+  });
 
   // Feature flags
   const isOrderBookEnabled = useSelector(selectPerpsOrderBookEnabledFlag);
@@ -1679,8 +1688,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       assetId: market.symbol,
       mode: 'perps',
       marketId,
+      szDecimals: marketData?.szDecimals,
     });
-  }, [market, currentPrice, navigation]);
+  }, [market, marketData?.szDecimals, currentPrice, navigation]);
 
   const handleFullscreenChartClose = useCallback(() => {
     setIsFullscreenChartVisible(false);
@@ -1962,6 +1972,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       style={styles.mainContainer}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
+      {/* Service Interruption Banner — pinned above the header; collapses to
+          its title row once the content is scrolled. Outer flag guard avoids
+          mounting the padded wrapper (and banner hooks) when disabled. */}
+      {isServiceInterruptionBannerEnabled && (
+        <Box twClassName="px-4 pb-2">
+          <PerpsServiceInterruptionBanner
+            scrollY={scrollYShared}
+            testID={
+              PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER
+            }
+          />
+        </Box>
+      )}
+
       <PerpsMarketHeader
         market={market}
         testIDs={createLiteMarketHeaderTestIDs()}
@@ -2085,19 +2109,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             <Box twClassName="px-4 mb-4">
               <PerpsPriceDeviationWarning
                 testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-price-deviation-warning`}
-              />
-            </Box>
-          )}
-
-          {/* Service Interruption Banner */}
-          {/* Outer flag guard avoids mounting the padded wrapper (and banner hooks) when disabled.
-              The banner also returns null via the same flag when mounted. */}
-          {isServiceInterruptionBannerEnabled && (
-            <Box twClassName="px-4 mb-4">
-              <PerpsServiceInterruptionBanner
-                testID={
-                  PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER
-                }
               />
             </Box>
           )}

@@ -23,7 +23,6 @@ import {
   TIMEFRAME_OPTIONS,
   TYPE_LABEL_KEY,
   TYPE_OPTIONS,
-  TYPE_OPTIONS_FOLLOWING,
   VERIFICATION_LABEL_KEY,
   VERIFICATION_OPTIONS,
   VOLUME_24H_RANGE,
@@ -47,6 +46,16 @@ import type { SocialShellTab } from '../types';
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  // Overrides the footer's `flex-1` so Reset is sized by its label and Apply
+  // takes the rest. `flexShrink` keeps a longer translation from pushing Apply
+  // off the row.
+  resetButton: {
+    flexGrow: 0,
+    flexShrink: 1,
+    flexBasis: 'auto',
+    paddingLeft: 25,
+    paddingRight: 25,
   },
 });
 
@@ -95,10 +104,14 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   const { colors } = useTheme();
 
   const showTimeframe = tab === 'leaderboard';
-  const showRanges = tab !== 'leaderboard';
-  const showVerification = tab === 'following' || tab === 'liveTrades';
-  const typeOptions =
-    tab === 'following' ? TYPE_OPTIONS_FOLLOWING : TYPE_OPTIONS;
+  const showMarketCap = tab !== 'leaderboard';
+  // TODO: show 24h volume once the feed / live payload (or API) carries token
+  // 24h volume so the slider can filter rather than sit as chrome.
+  const showVolume24h = false;
+  // TODO: show Verification once posts/traders expose a real verified field.
+  // The blue check on cards is mocked today.
+  const showVerification = false;
+  const typeOptions = TYPE_OPTIONS;
   const typeTitleKey =
     tab === 'leaderboard'
       ? 'social_leaderboard.shell.filters.section.asset_type'
@@ -180,6 +193,7 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
       children: strings('social_leaderboard.shell.filters.reset'),
       onPress: onReset,
       size: ButtonSize.Lg,
+      style: styles.resetButton,
       testID: SocialFiltersBottomSheetSelectorsIDs.RESET,
     }),
     [onReset],
@@ -220,7 +234,7 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
               </BottomSheetHeader>
 
               <ScrollView>
-                <Box twClassName="px-4 pb-4">
+                <Box twClassName="px-4 pb-4 mb-4">
                   <FilterChipSection<SocialFilterType>
                     titleKey={typeTitleKey}
                     options={typeOptionObjects}
@@ -257,27 +271,28 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
                     />
                   ) : null}
 
-                  {showRanges ? (
-                    <>
-                      <FilterRangeSection
-                        titleKey="social_leaderboard.shell.filters.section.market_cap"
-                        minimumValue={MARKET_CAP_RANGE.min}
-                        maximumValue={MARKET_CAP_RANGE.max}
-                        value={draft.marketCap}
-                        onValueChange={handleMarketCapChange}
-                        formatLabel={formatMarketCapLabel}
-                        testID={getFilterRangeTestId('market_cap')}
-                      />
-                      <FilterRangeSection
-                        titleKey="social_leaderboard.shell.filters.section.volume_24h"
-                        minimumValue={VOLUME_24H_RANGE.min}
-                        maximumValue={VOLUME_24H_RANGE.max}
-                        value={draft.volume24h}
-                        onValueChange={handleVolume24hChange}
-                        formatLabel={formatVolume24hLabel}
-                        testID={getFilterRangeTestId('volume_24h')}
-                      />
-                    </>
+                  {showMarketCap ? (
+                    <FilterRangeSection
+                      titleKey="social_leaderboard.shell.filters.section.market_cap"
+                      minimumValue={MARKET_CAP_RANGE.min}
+                      maximumValue={MARKET_CAP_RANGE.max}
+                      value={draft.marketCap}
+                      onValueChange={handleMarketCapChange}
+                      formatLabel={formatMarketCapLabel}
+                      testID={getFilterRangeTestId('market_cap')}
+                    />
+                  ) : null}
+
+                  {showVolume24h ? (
+                    <FilterRangeSection
+                      titleKey="social_leaderboard.shell.filters.section.volume_24h"
+                      minimumValue={VOLUME_24H_RANGE.min}
+                      maximumValue={VOLUME_24H_RANGE.max}
+                      value={draft.volume24h}
+                      onValueChange={handleVolume24hChange}
+                      formatLabel={formatVolume24hLabel}
+                      testID={getFilterRangeTestId('volume_24h')}
+                    />
                   ) : null}
                 </Box>
               </ScrollView>

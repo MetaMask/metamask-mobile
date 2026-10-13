@@ -431,23 +431,30 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     ).toHaveTextContent(strings('bridge.recurring.history_empty'));
   });
 
-  it('keeps the price range in USD when EUR is selected', async () => {
+  it('converts the historical USD price range when EUR is selected', async () => {
     const renderResult = renderRecurringOrderDetailsView({
       order: MOCK_RECURRING_OPEN_ORDER,
       overrides: {
         engine: {
           backgroundState: {
-            CurrencyRateController: {
-              currentCurrency: 'EUR',
-              currencyRates: {
-                ETH: {
-                  conversionRate: 1800,
-                  usdConversionRate: 2000,
-                },
-              },
-            },
             AssetsController: {
               selectedCurrency: 'eur',
+              assetsInfo: {
+                'eip155:1/slip44:60': {
+                  type: 'native',
+                  decimals: 18,
+                  symbol: 'ETH',
+                  name: 'Ether',
+                },
+              },
+              assetsPrice: {
+                'eip155:1/slip44:60': {
+                  assetPriceType: 'fungible',
+                  price: 1800,
+                  usdPrice: 2000,
+                  lastUpdated: Date.now(),
+                },
+              },
             },
           },
         },
@@ -463,6 +470,8 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       summary.getByText(
         formatRecurringPriceRange({
           priceRange: MOCK_RECURRING_OPEN_ORDER.priceRange,
+          currentCurrency: 'EUR',
+          usdToCurrentCurrencyRate: 0.9,
         }),
       ),
     ).toBeOnTheScreen();

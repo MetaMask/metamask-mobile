@@ -41,13 +41,6 @@ const Routes = {
     KYC_WEBVIEW: 'RampKycWebview',
     ENTER_ADDRESS: 'RampEnterAddress',
     // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
-    CREATE_VIRTUAL_BANK_ACCOUNT: 'RampCreateVirtualBankAccount',
-    VBA_VERIFY_IDENTITY: 'RampVbaVerifyIdentity',
-    VBA_KYC_EMAIL: 'RampVbaKycEmail',
-    VBA_SUMSUB_KYC: 'RampVbaSumSubKyc',
-    VBA_KYC_PENDING: 'RampVbaKycPending',
-    VBA_KYC_REJECTED: 'RampVbaKycRejected',
-    VBA_ONBOARDING_ERROR: 'RampVbaOnboardingError',
     VBA_ONBOARDING: 'RampVbaOnboarding',
     MODALS: {
       ID: 'RampModals',
@@ -211,7 +204,6 @@ const Routes = {
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
-    SOCIAL_LOGIN_SUCCESS_NEW_USER: 'SocialLoginSuccessNewUser',
     MANUAL_BACKUP: {
       STEP_1: 'ManualBackupStep1',
       STEP_2: 'ManualBackupStep2',
@@ -220,7 +212,6 @@ const Routes = {
     IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
     CHOOSE_PASSWORD: 'ChoosePassword',
     OPTIN_METRICS: 'OptinMetrics',
-    SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'SocialLoginSuccessExistingUser',
     ONBOARDING_OAUTH_REHYDRATE: 'OnboardingOAuthRehydrate',
     REHYDRATE: 'Rehydrate',
     WALLET_CREATION_ERROR: 'WalletCreationError',
@@ -355,6 +346,7 @@ const Routes = {
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     RECURRING_ORDER_DETAILS: 'RecurringOrderDetails',
     RECURRING_SWAP_DETAILS: 'RecurringSwapDetails',
+    SWAPS_LIMIT_ORDER_ACTIVITY: 'SwapsLimitOrderActivity',
     HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
     HW_QR_SCANNER: 'HwQrScanner',
     MODALS: {
@@ -388,6 +380,8 @@ const Routes = {
         'SwapsLimitOrderCustomCostToleranceModal',
       LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
       LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL: 'LimitOrderCostToleranceInfoModal',
+      LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL:
+        'LimitOrderAccountUpgradeFeeInfoModal',
       OPEN_LIMIT_ORDER_DETAILS_MODAL: 'OpenLimitOrderDetailsModal',
       CANCEL_LIMIT_ORDER_MODAL: 'CancelLimitOrderModal',
       RECURRING_INTERVAL_MODAL: 'RecurringIntervalModal',
@@ -449,6 +443,7 @@ const Routes = {
     V0: 'SocialV0View',
     PROFILE: 'TraderProfileView',
     MY_PROFILE: 'MyProfileView',
+    V1_PROFILE: 'SocialV1ProfileView',
     FOLLOW_CONNECTIONS: 'FollowConnectionsView',
     PROFILES_TO_FOLLOW: 'ProfilesToFollowView',
     MANAGE_PROFILE: 'ManageProfileView',
@@ -524,6 +519,8 @@ const Routes = {
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
+    MUSD_RESCUE_SEND: 'MoneyMusdRescueSend',
+    MUSD_RESCUE_RECIPIENT: 'MoneyMusdRescueRecipient',
     ONBOARDING: 'MoneyOnboarding',
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
@@ -561,6 +558,13 @@ const Routes = {
     ADDRESS_LIST: 'MultichainAddressList',
     PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
+  },
+  SOCIAL_PROFILE: {
+    DRAWER: 'ProfileDrawer',
+    MANAGE_PROFILE: 'ManageProfile',
+    MANAGE_PROFILE_FIELD: 'ManageProfileField',
+    X_ACCOUNT: 'ManageProfileXAccount',
+    LINKED_SOCIAL_ACCOUNT: 'LinkedSocialAccount',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {
@@ -657,6 +661,10 @@ const Routes = {
   AGENTIC_CLI_APPROVAL: {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
+  },
+  MFA: {
+    FLOW: 'MfaFlow',
+    SETTINGS: 'MfaSettings',
   },
   PRO_SUBSCRIPTION: {
     /** Root screen for the MetaMask Pro subscription flow. */

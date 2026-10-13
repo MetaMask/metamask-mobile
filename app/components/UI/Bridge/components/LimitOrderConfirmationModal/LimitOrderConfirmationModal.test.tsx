@@ -4,7 +4,7 @@ import { Hex } from '@metamask/utils';
 import { LimitOrderConfirmationModal } from './LimitOrderConfirmationModal';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
-import { LIMIT_ORDER_DEFAULT_METAMASK_FEE } from '../../constants/limitOrders';
+import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
@@ -88,6 +88,10 @@ function buildProps(
 }
 
 describe('LimitOrderConfirmationModal', () => {
+  beforeEach(() => {
+    mockNavigate.mockClear();
+  });
+
   it('does not close when re-rendered with the same cost tolerance', () => {
     const onClose = jest.fn();
     const props = buildProps({ costTolerance: '2%', onClose });
@@ -195,7 +199,7 @@ describe('LimitOrderConfirmationModal', () => {
     expect(getByText('Something went wrong')).toBeOnTheScreen();
   });
 
-  it('does not display the USD price notice without a USD trigger price', () => {
+  it('does not display the USD price notice without a USD exchange rate', () => {
     const { queryByTestId } = render(
       <LimitOrderConfirmationModal {...buildProps()} />,
     );
@@ -205,17 +209,19 @@ describe('LimitOrderConfirmationModal', () => {
     ).toBeNull();
   });
 
-  it('displays the USD price notice with the USD trigger price', () => {
+  it('displays the USD price notice with the USD exchange rate', () => {
     const { getByTestId } = render(
       <LimitOrderConfirmationModal
-        {...buildProps({ usdTriggerPrice: '$3,412.2' })}
+        {...buildProps({
+          usdExchangeRate: { rate: '85.05', currency: 'RUB' },
+        })}
       />,
     );
 
     expect(
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.USD_PRICE_NOTICE),
     ).toHaveTextContent(
-      'For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~$3,412.2)',
+      'Prices are shown in your selected currency, but your order is placed in USD based on the exchange rate at order creation. Current rate: 1 USD = 85.05 RUB.',
     );
   });
 
@@ -263,15 +269,28 @@ describe('LimitOrderConfirmationModal', () => {
     });
   });
 
-  it('displays the fee disclaimer with the default MetaMask fee percentage', () => {
+  it('displays the MetaMask fee disclaimer', () => {
     const { getByTestId } = render(
       <LimitOrderConfirmationModal {...buildProps()} />,
     );
 
     expect(
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.FEE_DISCLAIMER),
-    ).toHaveTextContent(
-      new RegExp(`${LIMIT_ORDER_DEFAULT_METAMASK_FEE}% MetaMask fee`),
+    ).toHaveTextContent(strings('bridge.limit.includes_metamask_fee'));
+  });
+
+  it('opens the account upgrade fee info sheet when the fee disclaimer is pressed', () => {
+    const { getByTestId } = render(
+      <LimitOrderConfirmationModal {...buildProps()} />,
     );
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.FEE_DISCLAIMER),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL,
+    });
   });
 });

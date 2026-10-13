@@ -101,7 +101,7 @@ jobs:
           inputs.platform == 'android' && vars.NAMESPACE_RUNNER_ANDROID ||
           inputs.platform != 'ios' && inputs.platform != 'android' && vars.NAMESPACE_RUNNER_LINUX) ||
          vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-build' ||
+        (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-build-tahoe-slim' ||
          (inputs.platform == 'android' && 'namespace-profile-metamask-android-build' || 'namespace-profile-metamask-ci-linux')) ||
         (inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' ||
          (inputs.platform == 'android' && 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' || 'ubuntu-latest'))
@@ -170,14 +170,17 @@ jobs:
 
       - name: Set artifact name
         id: set-artifact-name
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          BASE_ARTIFACT_NAME: ${{ inputs.artifact-name }}
         run: |
-          if [ -n "${{ inputs.platform }}" ]; then
-            echo "artifact-name=${{ inputs.artifact-name }}" >> "$GITHUB_OUTPUT"
-            echo "📦 Artifact name: ${{ inputs.artifact-name }}"
+          if [ -n "${PLATFORM}" ]; then
+            echo "artifact-name=${BASE_ARTIFACT_NAME}" >> "$GITHUB_OUTPUT"
+            echo "📦 Artifact name: ${BASE_ARTIFACT_NAME}"
           else
             NODE_VERSION=$(node --version | sed 's/v//')
             OS_NAME=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
-            ARTIFACT_NAME="${{ inputs.artifact-name }}-node${NODE_VERSION}-${OS_NAME}"
+            ARTIFACT_NAME="${BASE_ARTIFACT_NAME}-node${NODE_VERSION}-${OS_NAME}"
             echo "artifact-name=$ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
             echo "📦 Artifact name: $ARTIFACT_NAME"
           fi
@@ -185,9 +188,12 @@ jobs:
       - name: Compute cache key
         id: cache-key
         if: inputs.use-cache
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
+          PLATFORM: ${{ inputs.platform }}
         run: |
           NODE_VERSION=$(node --version | sed 's/v//')
-          KEY="node-modules-${{ env.CACHE_GENERATION }}-${{ inputs.build_name }}-${{ inputs.platform }}-${RUNNER_OS}-${NODE_VERSION}-${{ hashFiles('yarn.lock', 'patches/**', 'scripts/inpage-bridge/**', 'scripts/build-inpage-bridge.sh') }}"
+          KEY="node-modules-${{ env.CACHE_GENERATION }}-${BUILD_NAME}-${PLATFORM}-${RUNNER_OS}-${NODE_VERSION}-${{ hashFiles('yarn.lock', 'patches/**', 'scripts/inpage-bridge/**', 'scripts/build-inpage-bridge.sh') }}"
           echo "key=${KEY}" >> "$GITHUB_OUTPUT"
           echo "Cache key: ${KEY}"
 
@@ -198,8 +204,10 @@ jobs:
 
       - name: Apply build config (for setup)
         if: inputs.build_name != ''
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
         run: |
-          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
+          node scripts/apply-build-config.js "$BUILD_NAME" --export-github-env >> "$GITHUB_ENV"
 
       - name: Restore .metamask folder
         id: restore-metamask
@@ -299,15 +307,17 @@ jobs:
 
       - name: Create tarball (preserves symlinks)
         if: inputs.upload-artifact && inputs.use-tarball
+        env:
+          PLATFORM: ${{ inputs.platform }}
         run: |
           echo "📦 Creating zstd tarball to preserve symlinks..."
           tar --use-compress-program 'zstd -10 -T0' \
-            -cf node-modules-${{ inputs.platform }}.tar.zst \
+            -cf "node-modules-${PLATFORM}.tar.zst" \
             node_modules \
             app/util/termsOfUse/termsOfUseContent.ts \
             app/core/InpageBridgeWeb3.js \
             scripts/inpage-bridge/dist
-          echo "✅ Tarball created: $(du -h node-modules-${{ inputs.platform }}.tar.zst)"
+          echo "✅ Tarball created: $(du -h "node-modules-${PLATFORM}.tar.zst")"
 
       - name: Upload node_modules tarball
         if: inputs.upload-artifact && inputs.use-tarball

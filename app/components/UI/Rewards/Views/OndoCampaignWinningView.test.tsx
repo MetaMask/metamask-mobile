@@ -7,6 +7,7 @@ import { useOndoCampaignParticipantOutcome } from '../hooks/useOndoCampaignParti
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import CampaignWinningView from './CampaignWinningView';
 import Routes from '../../../../constants/navigation/Routes';
+import { REWARDS_WINNER_CONTACT_EMAIL } from '../constants/campaignWinnerContact';
 
 jest.mock('./CampaignWinningView', () => {
   const ReactActual = jest.requireActual('react');
@@ -83,7 +84,7 @@ describe('OndoCampaignWinningView', () => {
     expect(mockCampaignWinningView).toHaveBeenCalledWith(
       expect.objectContaining({
         testID: ONDO_CAMPAIGN_WINNING_VIEW_TEST_IDS.CONTAINER,
-        prizeEmail: 'ondocampaign@consensys.net',
+        prizeEmail: REWARDS_WINNER_CONTACT_EMAIL,
         campaignName: 'Ondo Campaign',
         campaignId: 'campaign-ondo-1',
         analyticsPageType: 'ondo_campaign_winning',

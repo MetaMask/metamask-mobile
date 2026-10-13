@@ -212,13 +212,15 @@ jobs:
         uses: ./.github/actions/download-e2e-artifact
         continue-on-error: true
         with:
-          name: e2e-timings-${{ github.run_id }}
+          name: e2e-timings-${{ needs.prepare.outputs.RUN_ID }}
           path: ./
           runner-provider: ${{ inputs.runner_provider }}
+          run-id: ${{ needs.prepare.outputs.RUN_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Fetch qa-stats timings fallback
         if: steps.download-timings.outcome != 'success'
-        run: node .github/scripts/e2e-freeze-timings.mjs
+        run: node .github/scripts/qa-automation/stats/e2e-freeze-timings.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
@@ -389,7 +391,7 @@ jobs:
     name: Check whether the fixture update succeeded
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 5
-    if: ${{ !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
+    if: ${{ always() && !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     needs:
       - is-fork-pull-request
       - commit-updated-fixtures
@@ -403,11 +405,13 @@ jobs:
             echo "PASSED=true" >> "$GITHUB_OUTPUT"
           else
             echo "PASSED=false" >> "$GITHUB_OUTPUT"
+            echo "::error::Fixture update did not complete successfully."
+            exit 1
           fi
 
   failure-comment:
     name: Comment about the fixture update failure
-    if: ${{ !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
+    if: ${{ always() && !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 5
     permissions:

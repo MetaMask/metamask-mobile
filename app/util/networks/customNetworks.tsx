@@ -219,7 +219,7 @@ export const PopularList = [
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://robinhoodchain.blockscout.com',
+      blockExplorerUrl: 'https://robin.etherscan.io/',
       imageUrl: 'ROBINHOOD',
       imageSource: require('../../images/robinhood.png'),
     },

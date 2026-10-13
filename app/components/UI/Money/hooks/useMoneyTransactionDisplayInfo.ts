@@ -37,7 +37,7 @@ import {
   isPerpsPredictMoneyWithdraw,
   perpsPredictServiceFamily,
 } from '../utils/moneyTransactionGuards';
-import type { MoneyActivityTransactionMeta } from '../constants/mockActivityData';
+import type { MoneyActivityTransactionMeta } from '../constants/moneyActivity';
 import {
   classifyMoneyActivity,
   getMoneyActivityStatus,

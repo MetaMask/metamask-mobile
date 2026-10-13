@@ -150,20 +150,20 @@ const mockSdk = {
   getPriorityToken: jest.fn(),
 };
 
-// Mock UserCancelledError
-class MockUserCancelledError extends Error {
-  constructor(message = 'User cancelled the transaction') {
-    super(message);
-    this.name = 'UserCancelledError';
-  }
-}
-
 jest.mock('../../hooks/useCardDelegation', () => ({
   useCardDelegation: jest.fn(() => ({
     submitDelegation: mockSubmitDelegation,
     isLoading: false,
   })),
-  UserCancelledError: MockUserCancelledError,
+  // Declared inside the factory: the factory runs while the imports below are
+  // still being resolved, so a class declared at module scope is not yet
+  // initialised at that point.
+  UserCancelledError: class UserCancelledError extends Error {
+    constructor(message = 'User cancelled the transaction') {
+      super(message);
+      this.name = 'UserCancelledError';
+    }
+  },
 }));
 
 jest.mock('../../sdk', () => ({

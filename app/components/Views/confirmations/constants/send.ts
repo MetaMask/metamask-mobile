@@ -4,4 +4,5 @@ export const InitSendLocation = {
   NftDetails: 'nft_details',
   WalletActions: 'wallet_actions',
   QRScanner: 'qr_scanner',
+  Deeplink: 'deeplink',
 };

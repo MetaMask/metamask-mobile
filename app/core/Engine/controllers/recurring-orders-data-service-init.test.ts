@@ -45,8 +45,16 @@ describe('recurringOrdersDataServiceInit', () => {
         status: [RecurringOrderStatus.Expired],
       },
     );
+    const assetResult = await rootMessenger.call(
+      'RecurringOrdersDataService:getRecurringOrdersByAsset',
+      {
+        walletAddress: '0x1234',
+        assetId: 'eip155:1/slip44:60',
+      },
+    );
 
     expect(result).toStrictEqual({ orders: [] });
+    expect(assetResult).toHaveLength(1);
     controller.destroy();
     resetRecurringOrdersMockState();
   });

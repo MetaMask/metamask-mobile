@@ -11,7 +11,11 @@ import {
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { formatPnl } from '../../../../UI/Perps/utils/formatUtils';
-import { EM_DASH, formatPercent, formatUsd } from '../../utils/formatters';
+import {
+  EM_DASH,
+  formatPercent,
+  formatUsd,
+} from '../../../../UI/SocialFeed/utils/formatters';
 
 export interface TraderPositionPnLCardProps {
   isClosed: boolean;

@@ -116,13 +116,17 @@ describe('PopularTradersCarousel', () => {
 
     fireEvent.press(screen.getByText('Pain'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE, {
-      traderId: 'trader-1',
-      traderName: 'Pain',
-      traderAddress: mockTraders[0].address,
-      source: 'trending_carousel',
-      traderRank: 1,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.V1_PROFILE,
+      {
+        traderId: 'trader-1',
+        traderName: 'Pain',
+        traderAddress: mockTraders[0].address,
+        source: 'trending_carousel',
+        traderRank: 1,
+      },
+      {},
+    );
   });
 
   it('toggles follow from a card Follow button', () => {

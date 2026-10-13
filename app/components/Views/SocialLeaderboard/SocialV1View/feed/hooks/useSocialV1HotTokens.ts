@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import type { SocialV1FeedPost, UseSocialV1HotTokensResult } from '../types';
+import type { SocialV1FeedPost } from '../../../../../UI/SocialFeed/types';
+import type { UseSocialV1HotTokensResult } from '../types';
 import {
   pinSelectedHotToken,
   rankFeedHotTokens,

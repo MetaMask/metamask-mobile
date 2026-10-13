@@ -1,5 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
@@ -17,6 +19,8 @@ import type { CancelLimitOrderModalProps } from './types';
 
 export const CancelLimitOrderModal = ({
   onConfirm,
+  isCancelling = false,
+  error,
   onClose,
   goBack,
   testID = CancelLimitOrderModalSelectorsIDs.SHEET,
@@ -26,11 +30,6 @@ export const CancelLimitOrderModal = ({
   const closeSheet = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
-
-  const handleConfirm = useCallback(() => {
-    onConfirm();
-    closeSheet();
-  }, [closeSheet, onConfirm]);
 
   return (
     <BottomSheet
@@ -47,6 +46,19 @@ export const CancelLimitOrderModal = ({
       >
         {strings('bridge.limit.cancel_order')}
       </BottomSheetHeader>
+      {error && (
+        <Box paddingHorizontal={3} paddingBottom={2}>
+          <BannerAlert
+            descriptionProps={{
+              variant: TextVariant.BodySm,
+              color: TextColor.TextDefault,
+            }}
+            severity={BannerAlertSeverity.Danger}
+            description={error}
+            testID={CancelLimitOrderModalSelectorsIDs.ERROR_BANNER}
+          />
+        </Box>
+      )}
       <Box
         alignItems={BoxAlignItems.Center}
         paddingHorizontal={4}
@@ -64,8 +76,11 @@ export const CancelLimitOrderModal = ({
       </Box>
       <BottomSheetFooter
         primaryButtonProps={{
-          children: strings('bridge.confirm'),
-          onPress: handleConfirm,
+          children: error
+            ? strings('bridge.limit.try_again')
+            : strings('bridge.confirm'),
+          onPress: onConfirm,
+          isLoading: isCancelling,
           testID: CancelLimitOrderModalSelectorsIDs.CONFIRM_BUTTON,
         }}
       />

@@ -6,6 +6,7 @@ const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectIsMusdConversionFlowEnabledFlag = jest.fn();
 
 jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
+  ...jest.requireActual('../../../UI/Perps/selectors/featureFlags'),
   selectPerpsEnabledFlag: () => mockSelectPerpsEnabledFlag(),
 }));
 

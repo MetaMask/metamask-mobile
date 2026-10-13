@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -8,11 +8,18 @@ import {
   incrementBridgeBalanceRefreshKey,
   resetBridgeTokenInputs,
   selectDestToken,
+  selectRecurringPriceRange,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
+import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
+import {
+  convertPriceRangeToUsd,
+  USD_PRICE_RANGE_CURRENCY,
+} from '../../utils/priceRange';
 import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
 import {
   showRecurringAutoUpgradeError,
@@ -25,7 +32,10 @@ export const RecurringConfirmOrderSheetScreen = () => {
   const dispatch = useDispatch();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
+  const priceRange = useSelector(selectRecurringPriceRange);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const sourceWalletAddress = useSelector(selectSourceWalletAddress);
+  const fiatToUsdRate = useFiatToUsdRate(sourceToken?.chainId);
   const { autoUpgradeEIP7702Account } = useAutoUpgradeEIP7702Account({
     address: sourceWalletAddress,
     chainId: sourceToken?.chainId,
@@ -33,9 +43,22 @@ export const RecurringConfirmOrderSheetScreen = () => {
   const delegationFee = useEIP7702UpgradeFee();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
+  const canConvertStoredCurrency =
+    !priceRange ||
+    priceRange.currency.toUpperCase() === USD_PRICE_RANGE_CURRENCY ||
+    priceRange.currency.toUpperCase() === currentCurrency?.toUpperCase();
+  const usdPriceRange = useMemo(
+    () =>
+      canConvertStoredCurrency
+        ? convertPriceRangeToUsd(priceRange, fiatToUsdRate)
+        : undefined,
+    [canConvertStoredCurrency, fiatToUsdRate, priceRange],
+  );
+  const isPriceRangeConversionReady =
+    !priceRange || usdPriceRange !== undefined;
 
   const handleConfirm = useCallback(async () => {
-    if (isSubmittingRef.current) {
+    if (isSubmittingRef.current || !isPriceRangeConversionReady) {
       return;
     }
 
@@ -56,7 +79,12 @@ export const RecurringConfirmOrderSheetScreen = () => {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
-  }, [autoUpgradeEIP7702Account, dispatch, navigation]);
+  }, [
+    autoUpgradeEIP7702Account,
+    dispatch,
+    isPriceRangeConversionReady,
+    navigation,
+  ]);
 
   const handleEditSlippagePress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -76,7 +104,10 @@ export const RecurringConfirmOrderSheetScreen = () => {
 
   return (
     <RecurringConfirmOrderSheet
+      currentCurrency={currentCurrency ?? USD_PRICE_RANGE_CURRENCY}
       delegationFee={delegationFee}
+      fiatToUsdRate={fiatToUsdRate}
+      isPriceRangeConversionReady={isPriceRangeConversionReady}
       isSubmitting={isSubmitting}
       onConfirm={handleConfirm}
       onEditSlippagePress={handleEditSlippagePress}

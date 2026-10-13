@@ -6,12 +6,11 @@ import {
   type PlanId,
   type PlanOption,
 } from '../Benefits.constants';
-import { formatSubscriptionFiat } from './formatSubscriptionFiat';
+import { formatSubscriptionFiat } from '../../../../../../util/subscription/formatSubscriptionFiat';
 import {
   PLUS_PRICING_STATUS,
   type MoneyAccountPlusPricingView,
 } from './mapMoneyAccountPlusPricing';
-
 export interface PlanSelectorCardCopy {
   price: string;
   subPrice?: string;

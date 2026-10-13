@@ -1,6 +1,14 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { DEFAULT_PREDICT_SPORTS_FEED_FLAG } from '../constants/flags';
+import {
+  DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+} from '../constants/flags';
+import {
+  selectPredictHomeCategoriesConfig,
+  selectPredictSportsFeedConfig,
+} from '../selectors/featureFlags';
+import type { PredictHomeCategoriesConfig } from '../types/flags';
 import type { PredictFilterOption } from '../types';
 import {
   usePredictFilterOptions,
@@ -18,6 +26,24 @@ const mockUsePredictFilterOptions =
     typeof usePredictFilterOptions
   >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
+const mockSelectors = ({
+  sportsFeedConfig = DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+  homeCategoriesConfig = DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+}: {
+  sportsFeedConfig?: typeof DEFAULT_PREDICT_SPORTS_FEED_FLAG;
+  homeCategoriesConfig?: PredictHomeCategoriesConfig;
+} = {}) => {
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectPredictSportsFeedConfig) {
+      return sportsFeedConfig;
+    }
+    if (selector === selectPredictHomeCategoriesConfig) {
+      return homeCategoriesConfig;
+    }
+    return undefined;
+  });
+};
 
 const createOption = (id: string): PredictFilterOption => ({
   id,
@@ -41,7 +67,7 @@ const ids = (filters: { id: string }[]) => filters.map((filter) => filter.id);
 describe('usePredictFeedConfig', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue(DEFAULT_PREDICT_SPORTS_FEED_FLAG);
+    mockSelectors();
     mockUsePredictFilterOptions.mockReturnValue(filterOptionsResult());
   });
 
@@ -450,7 +476,11 @@ describe('usePredictFeedConfig', () => {
         }),
       );
       let sportsFeedConfig = DEFAULT_PREDICT_SPORTS_FEED_FLAG;
-      mockUseSelector.mockImplementation(() => sportsFeedConfig);
+      mockUseSelector.mockImplementation((selector) =>
+        selector === selectPredictHomeCategoriesConfig
+          ? DEFAULT_PREDICT_HOME_CATEGORIES_FLAG
+          : sportsFeedConfig,
+      );
 
       const { result, rerender } = renderHook(() =>
         usePredictFeedConfig('politics'),
@@ -468,6 +498,45 @@ describe('usePredictFeedConfig', () => {
       rerender({});
 
       expect(result.current.activeFilterId).toBe('elections');
+    });
+  });
+
+  describe('home category feeds (PRED-1226)', () => {
+    it('resolves a bundled category id such as esports to a single-tab category feed', () => {
+      const { result } = renderHook(() => usePredictFeedConfig('esports'));
+
+      expect(result.current.status).toBe('ready');
+      expect(result.current.feedId).toBe('esports');
+      expect(result.current.titleKey).toBe('predict.category.esports');
+      expect(result.current.showTabBar).toBe(false);
+      expect(result.current.activeFilter?.params.tagSlugs).toEqual(['esports']);
+    });
+
+    it('resolves a remotely defined category with its label and tag slug', () => {
+      mockSelectors({
+        homeCategoriesConfig: {
+          enabled: true,
+          minimumVersion: '',
+          categories: [
+            { id: 'weather', tagSlug: 'weather-tag', label: 'Weather' },
+          ],
+        },
+      });
+
+      const { result } = renderHook(() => usePredictFeedConfig('weather'));
+
+      expect(result.current.status).toBe('ready');
+      expect(result.current.label).toBe('Weather');
+      expect(result.current.titleKey).toBeUndefined();
+      expect(result.current.activeFilter?.params.tagSlugs).toEqual([
+        'weather-tag',
+      ]);
+    });
+
+    it('reports not-found for ids absent from both the registry and categories', () => {
+      const { result } = renderHook(() => usePredictFeedConfig('nope'));
+
+      expect(result.current.status).toBe('not-found');
     });
   });
 });

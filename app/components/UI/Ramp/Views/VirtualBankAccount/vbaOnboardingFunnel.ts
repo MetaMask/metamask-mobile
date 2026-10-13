@@ -34,22 +34,22 @@ export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
   },
   {
     id: 'email',
-    isComplete: (snapshot) =>
-      snapshot.sessionExists && snapshot.vendorDisclaimersComplete,
+    isComplete: (snapshot) => snapshot.sessionExists,
   },
   {
     id: 'identityVerification',
     isComplete: (snapshot) =>
-      snapshot.kycStatus !== 'none' &&
-      snapshot.kycStatus !== 'new' &&
-      snapshot.kycStatus !== 'retry',
+      snapshot.sessionDisclaimersComplete &&
+      snapshot.kycStatus !== 'retry' &&
+      (snapshot.kycStatus === 'approved' ||
+        snapshot.providerFlowStatus === 'submitted'),
   },
 ];
 
 /**
  * Maps controller facts onto the next onboarding module or status destination.
- * AutoRamp provisioning is performed by `hydrateVbaOnboarding`, so it is not a
- * client-owned module.
+ * AutoRamp provisioning stays in the coordinator. `hydrateVbaOnboarding` only
+ * reads status, and the coordinator opens the BRL route when one is missing.
  *
  * @param snapshot - Facts from hydrate.
  * @returns The next module or status destination.
@@ -70,10 +70,6 @@ export const getVbaDestinationForSnapshot = (
     }
   }
 
-  if (snapshot.kycStatus === 'pending') {
-    return 'kycPending';
-  }
-
   if (snapshot.kycStatus === 'approved') {
     if (snapshot.autorampStatus === 'ready') {
       return 'complete';
@@ -82,6 +78,14 @@ export const getVbaDestinationForSnapshot = (
     return snapshot.autorampStatus === 'retryable_failure'
       ? 'accountProvisioningError'
       : 'kycPending';
+  }
+
+  if (
+    snapshot.kycStatus === 'pending' ||
+    (snapshot.providerFlowStatus === 'submitted' &&
+      snapshot.kycStatus !== 'retry')
+  ) {
+    return 'kycPending';
   }
 
   return 'error';

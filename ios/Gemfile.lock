@@ -305,6 +305,7 @@ DEPENDENCIES
   fastlane (>= 2.220.0)
   logger
   mutex_m
+  nkf
 
 RUBY VERSION
    ruby 3.2.9

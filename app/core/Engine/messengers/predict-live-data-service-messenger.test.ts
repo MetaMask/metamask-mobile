@@ -13,6 +13,7 @@ import {
   type PredictTimestamp,
 } from '../../../components/UI/PredictNext/types';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
+import type { PredictMarketDataServiceGetEventAction } from '../../../components/UI/PredictNext/services/PredictMarketDataService';
 import {
   getPredictLiveDataServiceInitMessenger,
   getPredictLiveDataServiceMessenger,
@@ -48,12 +49,17 @@ describe('getPredictLiveDataServiceMessenger', () => {
 });
 
 describe('getPredictLiveDataServiceInitMessenger', () => {
+  type InitRootMessenger = Messenger<
+    MockAnyNamespace,
+    | AuthenticationController.AuthenticationControllerGetBearerTokenAction
+    | PredictMarketDataServiceGetEventAction,
+    never
+  >;
+
   it('delegates the bearer-token action from the root messenger', async () => {
-    const rootMessenger = new Messenger<
-      MockAnyNamespace,
-      AuthenticationController.AuthenticationControllerGetBearerTokenAction,
-      never
-    >({ namespace: MOCK_ANY_NAMESPACE });
+    const rootMessenger: InitRootMessenger = new Messenger({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
     rootMessenger.registerActionHandler(
       'AuthenticationController:getBearerToken',
       jest.fn().mockResolvedValue('bearer-token'),
@@ -64,5 +70,26 @@ describe('getPredictLiveDataServiceInitMessenger', () => {
     await expect(
       initMessenger.call('AuthenticationController:getBearerToken'),
     ).resolves.toBe('bearer-token');
+  });
+
+  it('delegates the cached Event read from the root messenger', async () => {
+    const rootMessenger: InitRootMessenger = new Messenger({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
+    const event = { venueId: KALSHI_VENUE_ID, id: 'event-1', markets: [] };
+    rootMessenger.registerActionHandler(
+      'PredictMarketDataService:getEvent',
+      jest.fn().mockResolvedValue(event),
+    );
+
+    const initMessenger = getPredictLiveDataServiceInitMessenger(rootMessenger);
+
+    await expect(
+      initMessenger.call(
+        'PredictMarketDataService:getEvent',
+        KALSHI_VENUE_ID,
+        'event-1' as PredictEntityId,
+      ),
+    ).resolves.toBe(event);
   });
 });
