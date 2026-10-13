@@ -439,6 +439,23 @@ export const selectPerpsPositionModifyPreviewEnabledFlag = createSelector(
 );
 
 /**
+ * Client-config / Redux key for social features inside Perps.
+ * LaunchDarkly key (kebab-case): `perps-social-enabled`.
+ */
+export const PERPS_SOCIAL_ENABLED_FLAG_KEY = 'perpsSocialEnabled' as const;
+
+export const selectPerpsSocialEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_SOCIAL_ENABLED_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Client-config / Redux key for the Pro Scale order feature flag.
  * LaunchDarkly key (kebab-case): `perps-mobile-scale`.
  */

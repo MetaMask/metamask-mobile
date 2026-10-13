@@ -32,6 +32,7 @@ const defaultConfirmationTransactionId = 'perps-cv-confirmation-tx';
 interface InitialStatePerpsOptions {
   mode?: 'lite' | 'pro';
   crossMarginEnabled?: boolean;
+  socialEnabled?: boolean;
 }
 
 /**
@@ -71,6 +72,12 @@ export const initialStatePerps = (options: InitialStatePerpsOptions = {}) =>
         },
         perpsTerminalBackendEnabled: {
           enabled: false,
+          minimumVersion: '0.0.0',
+        },
+      }),
+      ...(options.socialEnabled !== undefined && {
+        perpsSocialEnabled: {
+          enabled: options.socialEnabled,
           minimumVersion: '0.0.0',
         },
       }),

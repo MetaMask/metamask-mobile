@@ -188,10 +188,13 @@ Follow existing test patterns covering:
 | `perpsDefaultPayTokenWhenNoBalanceEnabled`         | `perps-default-pay-token-when-no-balance-enabled`        | —                                              | true    | Default pay token when no perps balance + Add funds CTA on market details (remote only)                                                                                            |
 | `vipProgramEnabled`                                | `vip-program-enabled`                                    | —                                              | false   | Gates VIP fee discount in perps (UI preview and order execution)                                                                                                                   |
 | `perpsClosePositionLimitOrderEnabled`              | `perps-close-position-limit-order-enabled`               | —                                              | false   | Market/Limit order-type selector on the close position screen (limit close orders, remote only)                                                                                    |
+| `perpsSocialEnabled`                               | `perps-social-enabled`                                   | —                                              | false   | Kill switch for all social UI inside Perps (remote only). Read it through `usePerpsSocialEnabled`, never directly                                                                  |
 
 `perpsMobileScale`, `perpsMobileTwap`, and `perpsMobileChase` are independent remote-only flags. Missing, malformed, disabled, or below-version values resolve to `false`; all three production configurations start at Mobile 8.10.0. Enabling one strategy does not enable the others.
 
 `perpsPositionModifyPreviewEnabled` is an independent remote-only flag. Missing, malformed, disabled, or below-version values resolve to `false`. When off, the Pro order form keeps the single-value margin and liquidation summary even if the user already has an open isolated position.
+
+`perpsSocialEnabled` is a remote-only kill switch for social UI inside Perps (feeds, Top traders, sharing to the MetaMask feed). Missing, malformed, disabled, or below-version values resolve to `false`. Social UI in Perps must gate on `usePerpsSocialEnabled` (`app/components/UI/Perps/hooks/usePerpsSocialEnabled.ts`), not on the flag or the selector directly, so the gate stays in one place.
 
 ### A/B Test Flags
 
