@@ -158,7 +158,9 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   const feePercentage =
     totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
   const summaryPnlPercentage =
-    summaryMargin !== 0 ? (summaryPnl / Math.abs(summaryMargin)) * 100 : 0;
+    summaryMargin !== 0
+      ? (summaryPnl / Math.abs(summaryMargin)) * 100
+      : undefined;
 
   const displayedErrors = useMemo(
     () =>

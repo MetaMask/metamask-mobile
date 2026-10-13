@@ -375,6 +375,38 @@ describe('PerpsClosePositionBottomSheet', () => {
       expect(pnlRow).toHaveTextContent('-$2,850 (-183.87%)');
     });
 
+    it('omits the percentage when a limit price exhausts the effective margin exactly', () => {
+      const zeroMarginPosition = {
+        ...defaultPerpsPositionMock,
+        entryPrice: '2000.00',
+        size: '1',
+        marginUsed: '500.00',
+        unrealizedPnl: '0.00',
+      };
+      useRouteMock.mockReturnValue({
+        params: { position: zeroMarginPosition },
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [zeroMarginPosition],
+        isInitialLoading: false,
+      });
+      // Effective margin (marginUsed - unrealizedPnl + effectivePnL) lands on
+      // exactly 0 at this limit price, so the true percentage is undefined
+      // (division by zero) rather than actually 0.
+      mockKeypadValue = '1500';
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByTestId('mock-keypad'));
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
+      const pnlRow = utils.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
+      );
+      expect(pnlRow).toHaveTextContent('-$500');
+      expect(pnlRow).not.toHaveTextContent('%');
+    });
+
     it('renders the fiat/token display toggle', () => {
       const { getByTestId } = renderSheet();
 
