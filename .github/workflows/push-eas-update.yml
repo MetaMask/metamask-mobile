@@ -402,8 +402,10 @@ jobs:
             echo "- Match: \`$MATCHES\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
+  # Wait for a GitHub Environment review before publishing a production OTA.
+  # Reviewers are configured on ota-production. Other channels skip this job.
   approval:
-    name: Require OTA Update Approval
+    name: Approve release
     needs:
       - fingerprint-comparison
       - validate-pr
@@ -411,21 +413,10 @@ jobs:
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       inputs.channel == 'production'
     runs-on: ubuntu-latest
+    environment: ota-production
     steps:
-      - name: Get token
-        id: get-token
-        uses: MetaMask/github-tools/.github/actions/get-token@v1
-        with:
-          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
-          permissions: |
-            members: read
-
-      - name: Await approval from mobile release team
-        uses: op5dev/require-team-approval@dfd7b8b9a88bf82a955c103f7e19642b0411aecd
-        with:
-          team: release-team
-          pr-number: ${{ needs.validate-pr.outputs.pr_number }}
-          token: ${{ steps.get-token.outputs.token }}
+      - name: Environment reviewers approved
+        run: echo "ota-production reviewers approved this production OTA publish."
 
   push-update-ios:
     name: Push EAS Update (iOS)
