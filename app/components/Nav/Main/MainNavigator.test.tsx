@@ -941,8 +941,8 @@ describe('MainNavigator', () => {
         expect.objectContaining({
           name: Routes.RAMP.VBA_DETAILS,
           options: expect.objectContaining({
-            animation: 'slide_from_bottom',
-            gestureDirection: 'vertical',
+            animation: 'ios_from_right',
+            gestureEnabled: false,
             headerShown: false,
           }),
         }),

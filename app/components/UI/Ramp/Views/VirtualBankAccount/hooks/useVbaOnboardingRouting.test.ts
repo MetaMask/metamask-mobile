@@ -506,6 +506,48 @@ describe('useOpenVbaOnboarding', () => {
     });
   });
 
+  it('pushes the completed account on the same stack as onboarding', () => {
+    const onboardingDispatch = jest.fn();
+    const parentDispatch = jest.fn();
+    const onboardingNavigation = {
+      navigate: jest.fn(),
+      dispatch: onboardingDispatch,
+      getState: () => ({
+        index: 0,
+        routeNames: [VbaOnboardingRoutes.KYC_PENDING],
+        routes: [{ name: VbaOnboardingRoutes.KYC_PENDING }],
+      }),
+      getParent: () => ({
+        navigate: jest.fn(),
+        dispatch: parentDispatch,
+        getState: () => ({
+          index: 1,
+          routeNames: [
+            'Home',
+            Routes.RAMP.VBA_ONBOARDING,
+            Routes.RAMP.VBA_DETAILS,
+          ],
+          routes: [
+            { key: 'home-1', name: 'Home' },
+            { key: 'vba-1', name: Routes.RAMP.VBA_ONBOARDING },
+          ],
+        }),
+      }),
+    } as unknown as AppNavigationProp;
+
+    navigateToVbaOnboardingDestination(onboardingNavigation, 'complete');
+
+    expect(parentDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NAVIGATE',
+        payload: expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+        }),
+      }),
+    );
+    expect(onboardingDispatch).not.toHaveBeenCalled();
+  });
+
   it('replaces the onboarding stack in place so the root screen stays mounted', () => {
     const onboardingDispatch = jest.fn();
     const parentDispatch = jest.fn();

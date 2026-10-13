@@ -123,9 +123,9 @@ export const openAsOnlyOnboardingRoute = (
 };
 
 /**
- * Presents the completed account as its own root sheet. A stack reset rebuilds
- * the native screen, so the entrance never gets the slide-from-bottom animation.
- * If onboarding is already showing, the sheet replaces that route.
+ * Pushes the completed account on the same stack as onboarding, with the same
+ * horizontal transition. The screen hides its back button, so this does not
+ * replace the route underneath.
  */
 const openCompletedVbaAccount = (navigation: AppNavigationProp): void => {
   let current: StackController | undefined =
@@ -134,26 +134,6 @@ const openCompletedVbaAccount = (navigation: AppNavigationProp): void => {
   while (current) {
     const state = current.getState();
     if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
-      const onboardingIndex = state.routes.findIndex(
-        (candidate) => candidate.name === Routes.RAMP.VBA_ONBOARDING,
-      );
-
-      if (onboardingIndex >= 0) {
-        current.dispatch(
-          CommonActions.reset({
-            index: onboardingIndex,
-            routes: [
-              ...(state.routes.slice(
-                0,
-                onboardingIndex,
-              ) as PartialState<NavigationState>['routes']),
-              { name: Routes.RAMP.VBA_DETAILS },
-            ],
-          }),
-        );
-        return;
-      }
-
       current.dispatch(CommonActions.navigate(Routes.RAMP.VBA_DETAILS));
       return;
     }

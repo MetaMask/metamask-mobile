@@ -1153,8 +1153,9 @@ const MainNavigator = () => {
         name={Routes.RAMP.VBA_DETAILS}
         component={VbaDetails}
         options={{
-          ...fullScreenModalSlideFromBottomNativeOptions,
-          gestureDirection: 'vertical',
+          ...slideFromRightNativeOptions,
+          headerShown: false,
+          gestureEnabled: false,
         }}
       />
       <NativeStack.Screen
