@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import { Laminar } from 'react-native-laminar';
 import { useSelector } from 'react-redux';
 import I18n from '../../../../../../locales/i18n';
 import HomepageBalanceBreakdown from './HomepageBalanceBreakdown';
@@ -350,9 +349,9 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { UNSAFE_getByType } = render(<HomepageBalanceBreakdown />);
+    const { getByTestId } = render(<HomepageBalanceBreakdown />);
 
-    expect(UNSAFE_getByType(Laminar).props.style).toEqual(
+    expect(getByTestId('laminar').props.style).toEqual(
       expect.objectContaining({ color: mockTheme.colors.text.muted }),
     );
   });
@@ -367,9 +366,9 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { UNSAFE_getByType } = render(<HomepageBalanceBreakdown />);
+    const { getByTestId } = render(<HomepageBalanceBreakdown />);
 
-    expect(UNSAFE_getByType(Laminar).props.style).toEqual(
+    expect(getByTestId('laminar').props.style).toEqual(
       expect.objectContaining({ color: mockTheme.colors.text.muted }),
     );
   });
@@ -394,9 +393,9 @@ describe('HomepageBalanceBreakdown', () => {
   });
 
   it('rolls every aggregate balance update', () => {
-    const { rerender, UNSAFE_getByType } = render(<HomepageBalanceBreakdown />);
+    const { rerender, getByTestId } = render(<HomepageBalanceBreakdown />);
 
-    expect(UNSAFE_getByType(Laminar).props.text).toBe('50.00');
+    expect(getByTestId('laminar')).toHaveTextContent('50.00');
 
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
@@ -407,7 +406,7 @@ describe('HomepageBalanceBreakdown', () => {
     });
     rerender(<HomepageBalanceBreakdown />);
 
-    expect(UNSAFE_getByType(Laminar).props.text).toBe('75.00');
+    expect(getByTestId('laminar')).toHaveTextContent('75.00');
   });
 
   it('renders the experiment empty state for a settled zero portfolio', () => {
@@ -744,7 +743,7 @@ describe('HomepageBalanceBreakdown', () => {
   it('displays the balance without animation when returning from privacy mode', () => {
     mockPrivacyMode = true;
 
-    const { getByTestId, UNSAFE_queryAllByType, rerender } = render(
+    const { getByTestId, queryByTestId, rerender } = render(
       <HomepageBalanceBreakdown />,
     );
 
@@ -754,7 +753,7 @@ describe('HomepageBalanceBreakdown', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
     ).toHaveTextContent('USD 50.00');
-    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(0);
+    expect(queryByTestId('laminar')).not.toBeOnTheScreen();
   });
 
   it('does not expose proportional allocation while privacy mode is enabled', () => {
