@@ -34,6 +34,7 @@ const PhysicalCardBanner = ({
   const description = isSubscriptionTrialing
     ? strings('pro_hub.physical_card.trial_description')
     : strings('pro_hub.physical_card.description');
+  const accessibilityLabel = `${title}. ${description}`;
 
   const content = (
     <Card twClassName="w-full bg-background-subsection border-0 rounded-xl p-4">
@@ -78,7 +79,7 @@ const PhysicalCardBanner = ({
     return (
       <Box
         accessible
-        accessibilityLabel={title}
+        accessibilityLabel={accessibilityLabel}
         testID={ProHubTestIds.PHYSICAL_CARD_BANNER}
       >
         {content}
@@ -90,7 +91,7 @@ const PhysicalCardBanner = ({
     <TouchableOpacity
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={title}
+      accessibilityLabel={accessibilityLabel}
       testID={ProHubTestIds.PHYSICAL_CARD_BANNER}
     >
       {content}

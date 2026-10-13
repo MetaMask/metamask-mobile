@@ -108,6 +108,10 @@ describe('PlanSelectorCard', () => {
     expect(
       getByTestId(BenefitsTestIds.PLAN_CARD_SUB_PRICE('annual')),
     ).toHaveTextContent('$4.17/month');
+    expect(getByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toHaveProp(
+      'accessibilityLabel',
+      `${strings('pro_subscription.plans.annual.label')}, Save 16%, $49.99/year, $4.17/month`,
+    );
   });
 
   it('renders the trial label on the monthly plan', () => {
@@ -122,6 +126,10 @@ describe('PlanSelectorCard', () => {
     expect(
       getByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('monthly')),
     ).toHaveTextContent('7 day free trial');
+    expect(getByTestId(BenefitsTestIds.PLAN_CARD('monthly'))).toHaveProp(
+      'accessibilityLabel',
+      `${strings('pro_subscription.plans.monthly.label')}, 7 day free trial, $4.99/month`,
+    );
   });
 
   it('renders a trial banner on the annual plan', () => {
@@ -135,6 +143,10 @@ describe('PlanSelectorCard', () => {
     expect(
       getByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('annual')),
     ).toHaveTextContent('7 day free trial');
+    expect(getByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toHaveProp(
+      'accessibilityLabel',
+      `7 day free trial, ${strings('pro_subscription.plans.annual.label')}, $49.99/year`,
+    );
   });
 
   it('omits the savings badge, sub price, and trial label when copy has none', () => {

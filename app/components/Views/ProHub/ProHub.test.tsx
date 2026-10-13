@@ -273,6 +273,10 @@ describe('ProHub', () => {
       expect(description).toHaveTextContent(
         strings('pro_hub.physical_card.description'),
       );
+      expect(banner).toHaveProp(
+        'accessibilityLabel',
+        `${strings('pro_hub.physical_card.title')}. ${strings('pro_hub.physical_card.description')}`,
+      );
     });
 
     it('renders the member pricing section title', () => {
@@ -382,6 +386,12 @@ describe('ProHub', () => {
       expect(
         getByTestId(ProHubTestIds.PHYSICAL_CARD_DESCRIPTION),
       ).toHaveTextContent(strings('pro_hub.physical_card.trial_description'));
+      expect(banner).toHaveProp(
+        'accessibilityLabel',
+        `${strings('pro_hub.physical_card.trial_title', {
+          rate: `${MOCK_PRO_HUB_STATS.musdBackRate}%`,
+        })}. ${strings('pro_hub.physical_card.trial_description')}`,
+      );
       expect(banner).not.toHaveProp('onPress');
 
       fireEvent.press(banner);

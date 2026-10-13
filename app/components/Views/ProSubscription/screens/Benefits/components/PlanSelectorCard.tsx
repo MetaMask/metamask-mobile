@@ -56,12 +56,23 @@ const PlanSelectorCard = ({
     annualTrialTextClass = 'text-icon-inverse';
   }
 
+  const accessibilityLabel = [
+    showAnnualTrialBanner ? copy.trialLabel : undefined,
+    strings(plan.label),
+    copy.savingsBadge,
+    showMonthlyTrialLabel ? copy.trialLabel : undefined,
+    copy.price,
+    copy.subPrice,
+  ]
+    .filter((part): part is string => part !== undefined && part.length > 0)
+    .join(', ');
+
   return (
     <TouchableOpacity
       onPress={() => onPress(plan.id)}
       accessibilityRole="radio"
       accessibilityState={{ checked: isSelected }}
-      accessibilityLabel={plan.id}
+      accessibilityLabel={accessibilityLabel}
       testID={BenefitsTestIds.PLAN_CARD(plan.id)}
       activeOpacity={1}
     >
