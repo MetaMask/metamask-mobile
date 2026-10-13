@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { AccessibilityInfo, Image, ScrollView } from 'react-native';
+import { AccessibilityInfo, Image, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -27,6 +27,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
@@ -38,7 +40,8 @@ import {
 import { isVbaDepositDebugEnabled } from './vbaDepositDebug';
 import VbaDepositDebugSheet from './VbaDepositDebugSheet';
 
-const POLL_INTERVAL_MS = 10_000;
+const DEFAULT_POLL_INTERVAL_MS = 10_000;
+const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
 
 export const VbaDetailsSelectorsIDs = {
   CONTAINER: 'vba-details-container',
@@ -102,6 +105,8 @@ const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
   const [instructions, setInstructions] =
     useState<PixDepositInstructions | null>(null);
@@ -175,6 +180,10 @@ const VbaDetails = () => {
   }, [debugEnabled, walletAddress]);
 
   useEffect(() => {
+    if (networkTier === 'NONE') {
+      return;
+    }
+
     let cancelled = false;
     let inFlight = false;
     const tick = async () => {
@@ -199,14 +208,19 @@ const VbaDetails = () => {
       }
     };
     tick().catch(() => undefined);
-    const timer = setInterval(() => {
-      tick().catch(() => undefined);
-    }, POLL_INTERVAL_MS);
+    const timer = setInterval(
+      () => {
+        tick().catch(() => undefined);
+      },
+      hardwareTier === 'LOW' || networkTier === 'SLOW_CELLULAR'
+        ? CONSTRAINED_POLL_INTERVAL_MS
+        : DEFAULT_POLL_INTERVAL_MS,
+    );
     return () => {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [refreshDeposit]);
+  }, [hardwareTier, networkTier, refreshDeposit]);
 
   useEffect(() => {
     if (!loadError || instructions?.brCode) {
@@ -225,8 +239,13 @@ const VbaDetails = () => {
   }, [navigation]);
 
   const handleCopy = useCallback(
-    (value: string) => () => {
+    (value: string, label: string) => () => {
       Clipboard.setString(value);
+      AccessibilityInfo.announceForAccessibility(
+        strings('virtual_bank_account.vba_details.copied_label', {
+          field: label,
+        }),
+      );
     },
     [],
   );
@@ -272,9 +291,8 @@ const VbaDetails = () => {
           <Image
             source={vbaPixLogo}
             accessibilityIgnoresInvertColors
-            accessibilityLabel={strings(
-              'virtual_bank_account.vba_details.title',
-            )}
+            accessible={false}
+            importantForAccessibility="no"
             style={tw.style('h-[88px] w-[88px]')}
             testID={VbaDetailsSelectorsIDs.LOGO}
           />
@@ -307,20 +325,27 @@ const VbaDetails = () => {
                     numberOfLines: 1,
                   }}
                   startAccessory={
-                    <Icon
-                      name={IconName.Key}
-                      size={IconSize.Md}
-                      color={IconColor.IconAlternative}
+                    <View
+                      accessible={false}
+                      accessibilityElementsHidden
+                      importantForAccessibility="no-hide-descendants"
                       testID={`${VbaDetailsSelectorsIDs.ROW_ICON}-${row.id}`}
-                    />
+                    >
+                      <Icon
+                        name={IconName.Key}
+                        size={IconSize.Md}
+                        color={IconColor.IconAlternative}
+                      />
+                    </View>
                   }
                   endAccessory={
                     <ButtonIcon
                       iconName={IconName.Copy}
                       size={ButtonIconSize.Md}
-                      onPress={handleCopy(row.value)}
+                      onPress={handleCopy(row.value, row.label)}
                       accessibilityLabel={strings(
                         'virtual_bank_account.vba_details.copy_label',
+                        { field: row.label },
                       )}
                       testID={`${VbaDetailsSelectorsIDs.COPY_BUTTON}-${row.id}`}
                     />
@@ -354,13 +379,6 @@ const VbaDetails = () => {
         ) : null}
       </ScrollView>
       <Box twClassName="gap-4 px-4 pb-2 pt-4">
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextAlternative}
-          twClassName="text-center"
-        >
-          {strings('virtual_bank_account.vba_details.legal')}
-        </Text>
         {debugEnabled ? (
           <Button
             variant={ButtonVariant.Secondary}

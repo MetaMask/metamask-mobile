@@ -16,6 +16,8 @@ const mockListTransactions = jest.fn();
 const mockRefreshAutoramp = jest.fn();
 let mockWalletAddress: string | null = '0xabc';
 let mockDebugEnv: string | undefined;
+let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null;
+let mockNetworkTier: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null;
 
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
@@ -30,6 +32,14 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../../../selectors/rampsController', () => ({
   selectSelectedVbaWalletAddress: () => mockWalletAddress,
+}));
+
+jest.mock('../../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockHardwareTier,
+}));
+
+jest.mock('../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -109,6 +119,8 @@ describe('VbaDetails', () => {
     jest.clearAllMocks();
     mockWalletAddress = '0xabc';
     mockDebugEnv = undefined;
+    mockHardwareTier = null;
+    mockNetworkTier = null;
     mockGetPix.mockResolvedValue(null);
     mockListTransactions.mockResolvedValue([]);
     mockRefreshAutoramp.mockResolvedValue(approvedAutoramp);
@@ -121,7 +133,10 @@ describe('VbaDetails', () => {
 
     expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
     expect(getByTestId(VbaDetailsSelectorsIDs.HEADER)).toBeOnTheScreen();
-    expect(getByTestId(VbaDetailsSelectorsIDs.LOGO)).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOGO)).toHaveProp(
+      'importantForAccessibility',
+      'no',
+    );
     expect(getByText('Add money with Pix')).toBeOnTheScreen();
     await waitFor(() => {
       expect(mockGetPix).toHaveBeenCalledWith('ar-1');
@@ -146,7 +161,9 @@ describe('VbaDetails', () => {
   it('shows both Pix rows with a key icon', async () => {
     mockGetPix.mockResolvedValue(pixInstructions);
 
-    const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
+    const { getByLabelText, getByTestId, getByText } = renderWithProvider(
+      <VbaDetails />,
+    );
 
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
@@ -156,12 +173,24 @@ describe('VbaDetails', () => {
     expect(getByTestId(VbaDetailsSelectorsIDs.PIX_KEY)).toBeOnTheScreen();
     expect(getByText('PIX key')).toBeOnTheScreen();
     expect(getByText('pix@example.com')).toBeOnTheScreen();
-    expect(
-      getByTestId(`${VbaDetailsSelectorsIDs.ROW_ICON}-copia-cola`),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(`${VbaDetailsSelectorsIDs.ROW_ICON}-pix-key`),
-    ).toBeOnTheScreen();
+    const copiaColaIcon = getByTestId(
+      `${VbaDetailsSelectorsIDs.ROW_ICON}-copia-cola`,
+      { includeHiddenElements: true },
+    );
+    const pixKeyIcon = getByTestId(
+      `${VbaDetailsSelectorsIDs.ROW_ICON}-pix-key`,
+      { includeHiddenElements: true },
+    );
+    expect(copiaColaIcon).toHaveProp(
+      'importantForAccessibility',
+      'no-hide-descendants',
+    );
+    expect(pixKeyIcon).toHaveProp(
+      'importantForAccessibility',
+      'no-hide-descendants',
+    );
+    expect(getByLabelText('Copy PIX Copia e Cola')).toBeOnTheScreen();
+    expect(getByLabelText('Copy PIX key')).toBeOnTheScreen();
     expect(mockRefreshAutoramp).not.toHaveBeenCalled();
     expect(mockListTransactions).not.toHaveBeenCalled();
   });
@@ -169,16 +198,25 @@ describe('VbaDetails', () => {
   it('copies a Pix value', async () => {
     mockGetPix.mockResolvedValue(pixInstructions);
 
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByLabelText, getByTestId } = renderWithProvider(<VbaDetails />);
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_KEY)).toBeOnTheScreen();
     });
 
-    fireEvent.press(
-      getByTestId(`${VbaDetailsSelectorsIDs.COPY_BUTTON}-pix-key`),
-    );
+    fireEvent.press(getByLabelText('Copy PIX key'));
 
     expect(Clipboard.setString).toHaveBeenCalledWith('pix@example.com');
+    expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
+      'Copied PIX key',
+    );
+  });
+
+  it('does not fetch Pix instructions while offline', () => {
+    mockNetworkTier = 'NONE';
+
+    renderWithProvider(<VbaDetails />);
+
+    expect(mockGetPix).not.toHaveBeenCalled();
   });
 
   it('hides the Pix key row when MoonPay omits it', async () => {

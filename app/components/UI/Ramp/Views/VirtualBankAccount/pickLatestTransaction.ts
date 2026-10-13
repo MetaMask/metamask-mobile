@@ -46,5 +46,5 @@ export const pickLatestTransaction = (
     return inFlight;
   }
 
-  return transactions[transactions.length - 1];
+  return transactions.at(-1);
 };
