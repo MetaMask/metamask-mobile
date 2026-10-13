@@ -39,7 +39,6 @@ import { getNotificationServicesControllerMessenger } from './notifications/noti
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
 import type { SamplePetnamesControllerMessenger } from '@metamask/sample-controllers';
-import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFeature/controllers/sample-petnames-controller-messenger';
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
 import {
@@ -345,7 +344,9 @@ export const MESSENGER_FACTORIES = {
     // register it with the root messenger without ever tearing it down.
     getMessenger:
       process.env.INCLUDE_SAMPLE_FEATURE === 'true'
-        ? getSamplePetnamesControllerMessenger
+        ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the sample feature out of prod bundles
+          require('../../../features/SampleFeature/controllers/sample-petnames-controller-messenger')
+            .getSamplePetnamesControllerMessenger
         : (noop as () => SamplePetnamesControllerMessenger),
     getInitMessenger: noop,
   },
