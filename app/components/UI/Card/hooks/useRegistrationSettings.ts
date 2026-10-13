@@ -11,7 +11,7 @@ import { cardQueries } from '../queries';
 const useRegistrationSettings = () => {
   const { sdk } = useCardSDK();
 
-  const { data, isLoading, isFetching, error, refetch } = useQuery({
+  const { data, isLoading, isFetching, isFetched, error, refetch } = useQuery({
     queryKey: cardQueries.dashboard.keys.registrationSettings(),
     queryFn: () => {
       if (!sdk) throw new Error('SDK not initialized');
@@ -29,6 +29,8 @@ const useRegistrationSettings = () => {
   return {
     data: data ?? null,
     isLoading: isLoading && isFetching,
+    // A disabled query (SDK not ready) stays pending, so it is not fetched.
+    isFetched: Boolean(sdk) && isFetched,
     error: error as Error | null,
     fetchData,
   };

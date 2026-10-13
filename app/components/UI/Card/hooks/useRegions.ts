@@ -14,6 +14,7 @@ const useRegions = () => {
   const {
     data: registrationSettings,
     isLoading,
+    isFetched: isRegistrationSettingsFetched,
     error,
     fetchData,
   } = useRegistrationSettings();
@@ -67,6 +68,7 @@ const useRegions = () => {
     userCountry,
     userNationality,
     isLoading,
+    isRegistrationSettingsFetched,
     error,
     refetch: fetchData,
   };

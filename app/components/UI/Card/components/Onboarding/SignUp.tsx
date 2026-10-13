@@ -66,8 +66,15 @@ import {
 import CountrySelectField from './CountrySelectField';
 import SelectField from './SelectField';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
+import {
+  buildCountryPrefillAnalytics,
+  countryCodeFromGeolocationLocation,
+} from '../../util/countryPrefill';
 import type { Region } from '../../types';
-import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
+import {
+  selectGeolocationLocation,
+  selectGeolocationStatus,
+} from '../../../../../selectors/geolocationController';
 import {
   selectCardImmersveCountries,
   selectCardImmersveEnabled,
@@ -138,11 +145,13 @@ const SignUp = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
   const hasAutoSelectedCountry = useRef(false);
+  const hasTrackedCountryPrefill = useRef(false);
   const hasPrefillAttempted = useRef(false);
   const hasUserEditedEmail = useRef(false);
   const hasUserEditedPhoneNumber = useRef(false);
   const hasUserEditedPhoneRegion = useRef(false);
   const geoLocation = useSelector(selectGeolocationLocation);
+  const geolocationStatus = useSelector(selectGeolocationStatus);
   const immersveCountries = useSelector(selectCardImmersveCountries);
   const immersveOnboardingEnabled = useSelector(selectCardImmersveEnabled);
   const {
@@ -167,6 +176,7 @@ const SignUp = () => {
     allRegions,
     getRegionByCode,
     isLoading: isLoadingRegistrationSettings,
+    isRegistrationSettingsFetched,
   } = useRegions();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const postAuthRedirect = useCardPostAuthRedirect();
@@ -209,45 +219,95 @@ const SignUp = () => {
   const debouncedPassword = useDebouncedValue(password, 1000);
 
   useEffect(() => {
-    if (!allRegions.length) {
+    // Both flags latch the visit: a later registration-settings refetch must
+    // not overwrite a selection or emit another sign-up view.
+    if (hasTrackedCountryPrefill.current && hasAutoSelectedCountry.current) {
       return;
     }
 
-    // Run at most once: prevents a background re-fetch of registrationSettings
-    // (which produces a new getRegionByCode reference) from overwriting the
-    // user's manual country selection.
-    if (hasAutoSelectedCountry.current) {
-      return;
-    }
-
-    if (fromMigration) {
-      const ukRegion = getRegionByCode(UK_MIGRATION_COUNTRY_CODE);
-      if (!ukRegion) {
-        return;
+    let matchedRegion: Region | null = null;
+    if (!hasAutoSelectedCountry.current && allRegions.length > 0) {
+      if (fromMigration) {
+        matchedRegion = getRegionByCode(UK_MIGRATION_COUNTRY_CODE);
+      } else if (geolocationStatus !== 'error') {
+        const countryKey = countryCodeFromGeolocationLocation(geoLocation);
+        matchedRegion = countryKey ? getRegionByCode(countryKey) : null;
       }
-      // Local UI only — do not call setSelectedCountry here. That would switch
-      hasAutoSelectedCountry.current = true;
-      setSelectedCountry(ukRegion);
-      setPhoneRegion(ukRegion);
+
+      if (matchedRegion) {
+        hasAutoSelectedCountry.current = true;
+        setSelectedCountry(matchedRegion);
+        setPhoneRegion(matchedRegion);
+        // Migration keeps the country in local UI. Writing it to the
+        // controller would switch the active provider.
+        if (!fromMigration) {
+          Engine.context.CardController.setUserLocation(
+            mapCountryToLocation(matchedRegion.key),
+          );
+          Engine.context.CardController.setSelectedCountry(matchedRegion.key);
+        }
+      }
+    }
+
+    if (hasTrackedCountryPrefill.current) {
       return;
     }
 
-    if (geoLocation === 'UNKNOWN') {
+    const prefillAnalytics = buildCountryPrefillAnalytics({
+      fromMigration,
+      registrationSettingsFetched: isRegistrationSettingsFetched,
+      hasRegistrationCountries: allRegions.length > 0,
+      geolocationStatus,
+      geolocation: geoLocation,
+      matchedCountry: !fromMigration && hasAutoSelectedCountry.current,
+    });
+    if (!prefillAnalytics) {
       return;
     }
 
-    const matchedRegion = getRegionByCode(geoLocation);
-
-    if (matchedRegion) {
-      hasAutoSelectedCountry.current = true;
-      setSelectedCountry(matchedRegion);
-      setPhoneRegion(matchedRegion);
-      Engine.context.CardController.setUserLocation(
-        mapCountryToLocation(matchedRegion.key),
-      );
-      Engine.context.CardController.setSelectedCountry(matchedRegion.key);
+    hasTrackedCountryPrefill.current = true;
+    const prefillCountryKey = fromMigration
+      ? UK_MIGRATION_COUNTRY_CODE
+      : (matchedRegion?.key ?? selectedCountry?.key);
+    let provider: string | null = null;
+    if (prefillCountryKey) {
+      provider =
+        immersveOnboardingEnabled &&
+        immersveCountries.includes(prefillCountryKey)
+          ? CardProviderIds.Immersve
+          : CardProviderIds.Baanx;
     }
-  }, [allRegions.length, fromMigration, geoLocation, getRegionByCode]);
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties(
+          prefillAnalytics.country_prefill_status === 'failed' || !provider
+            ? {
+                screen: CardScreens.SIGN_UP,
+                ...prefillAnalytics,
+              }
+            : withCardProvider(provider, {
+                screen: CardScreens.SIGN_UP,
+                ...migrationAnalyticsProps,
+                ...prefillAnalytics,
+              }),
+        )
+        .build(),
+    );
+  }, [
+    allRegions.length,
+    createEventBuilder,
+    fromMigration,
+    geoLocation,
+    geolocationStatus,
+    getRegionByCode,
+    immersveCountries,
+    immersveOnboardingEnabled,
+    isRegistrationSettingsFetched,
+    migrationAnalyticsProps,
+    selectedCountry?.key,
+    trackEvent,
+  ]);
 
   useEffect(() => {
     if (!fromMigration) {
@@ -349,39 +409,6 @@ const SignUp = () => {
       selectedCountry &&
       immersveCountries.includes(selectedCountry.key),
   );
-
-  const lastTrackedSignUpView = useRef<string | null>(null);
-  useEffect(() => {
-    // Wait until country is known so Immersve (e.g. GB) is not stamped as Baanx.
-    // Re-fire when provider changes (e.g. geo auto-select then user switches country).
-    if (!selectedCountry) {
-      return;
-    }
-    const provider = isImmersveCountry
-      ? CardProviderIds.Immersve
-      : CardProviderIds.Baanx;
-    const viewKey = `${CardScreens.SIGN_UP}:${provider}`;
-    if (lastTrackedSignUpView.current === viewKey) {
-      return;
-    }
-    lastTrackedSignUpView.current = viewKey;
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties(
-          withCardProvider(provider, {
-            screen: CardScreens.SIGN_UP,
-            ...migrationAnalyticsProps,
-          }),
-        )
-        .build(),
-    );
-  }, [
-    trackEvent,
-    createEventBuilder,
-    selectedCountry,
-    isImmersveCountry,
-    migrationAnalyticsProps,
-  ]);
 
   const {
     onboardingDocuments,
