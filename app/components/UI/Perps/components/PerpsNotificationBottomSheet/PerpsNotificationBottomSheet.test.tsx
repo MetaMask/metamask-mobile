@@ -12,20 +12,6 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
-// Mock BottomSheet to avoid navigation and safe area dependencies
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const MockBottomSheet = ({ children }: any) => children;
-    MockBottomSheet.displayName = 'MockBottomSheet';
-    return {
-      __esModule: true,
-      default: MockBottomSheet,
-    };
-  },
-);
-
 // Mock the notification toggle hook
 jest.mock('../../../../../util/notifications/hooks/useNotifications', () => ({
   useEnableNotifications: jest.fn(),
