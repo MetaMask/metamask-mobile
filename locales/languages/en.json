@@ -1731,6 +1731,7 @@
       "settings": "Settings",
       "order_summary": "Order summary",
       "includes_fee": "Includes {{feePercentage}}% fee",
+      "includes_fee_with_bridge": "Includes {{feePercentage}}% fee + {{bridgeFee}} bridge fee",
       "amount_slider_accessibility_label": "Order amount",
       "order_type_accessibility_label": "{{orderType}} order type",
       "show_asset_value": "Show asset value",

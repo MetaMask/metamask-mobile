@@ -884,6 +884,8 @@ interface MockTradeScreenProps {
   isPayWithDisabled: boolean;
   isPayWithLoading: boolean;
   feePercentage?: string;
+  bridgeFee?: string;
+  isFeeLoading: boolean;
   isSubmitDisabled: boolean;
   hasAmountError: boolean;
   showAmountWarning: boolean;
@@ -1856,6 +1858,108 @@ describe('PerpsOrderView', () => {
     expect(getMockTradeScreenProps().payWithName).toBe(
       'confirm.pay_with_bottom_sheet.money_account',
     );
+  });
+
+  describe('Trade sheet bridge fee', () => {
+    const payTotalsWithUsdFee = (usd: string) => ({
+      fees: {
+        provider: { usd },
+        sourceNetwork: { estimate: { usd: '0' } },
+        targetNetwork: { usd: '0' },
+      },
+    });
+
+    it('passes the formatted bridge fee when paying with a token', () => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockPayTotals = {
+        fees: {
+          provider: { usd: '0.10' },
+          sourceNetwork: { estimate: { usd: '0.03' } },
+          targetNetwork: { usd: '0.02' },
+        },
+      };
+      useTradeSheetRoute();
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().feePercentage).toBe('0.045');
+      expect(getMockTradeScreenProps().bridgeFee).toBe('$0.15');
+      expect(getMockTradeScreenProps().isFeeLoading).toBe(false);
+    });
+
+    it('leaves the fee line unchanged when paying with perps balance', () => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+      mockPayTotals = payTotalsWithUsdFee('0.15');
+      useTradeSheetRoute();
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().bridgeFee).toBeUndefined();
+      expect(getMockTradeScreenProps().feePercentage).toBe('0.045');
+    });
+
+    it('leaves the fee line unchanged for the Money Account', () => {
+      mockPaymentOverride = PaymentOverride.MoneyAccount;
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockPayTotals = payTotalsWithUsdFee('0.15');
+      useTradeSheetRoute();
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().bridgeFee).toBeUndefined();
+      expect(getMockTradeScreenProps().feePercentage).toBe('0.045');
+    });
+
+    it('omits the bridge fee when the deposit fee is zero', () => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockPayTotals = payTotalsWithUsdFee('0');
+      useTradeSheetRoute();
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().bridgeFee).toBeUndefined();
+    });
+
+    it('omits the bridge fee when the pay quote has no fees', () => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockPayTotals = undefined;
+      useTradeSheetRoute();
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().bridgeFee).toBeUndefined();
+    });
+
+    it('marks the Trade sheet fee as loading while the pay quote loads', () => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockIsPayQuoteLoading = true;
+      mockPayTotals = payTotalsWithUsdFee('0.15');
+      useTradeSheetRoute();
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().isFeeLoading).toBe(true);
+    });
+
+    it('updates the bridge fee when the pay quote refreshes', () => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockPayTotals = payTotalsWithUsdFee('0.15');
+      useTradeSheetRoute();
+      const { rerender } = render(<PerpsOrderView />, {
+        wrapper: TestWrapper,
+      });
+
+      expect(getMockTradeScreenProps().bridgeFee).toBe('$0.15');
+
+      mockPayTotals = payTotalsWithUsdFee('0.42');
+      rerender(
+        <TestWrapper>
+          <PerpsOrderView />
+        </TestWrapper>,
+      );
+
+      expect(getMockTradeScreenProps().bridgeFee).toBe('$0.42');
+    });
   });
 
   it('does not open the payment token selector for a hardware account', () => {
