@@ -9851,22 +9851,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/core-backend@npm:^11.0.0":
-  version: 11.0.0
-  resolution: "@metamask/core-backend@npm:11.0.0"
+"@metamask/core-backend@npm:@metamask-previews/core-backend@12.1.0-preview-5c31618f1":
+  version: 12.1.0-preview-5c31618f1
+  resolution: "@metamask-previews/core-backend@npm:12.1.0-preview-5c31618f1"
   dependencies:
-    "@metamask/account-tree-controller": "npm:^10.0.1"
+    "@metamask/account-tree-controller": "npm:^11.0.1"
     "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/keyring-controller": "npm:^28.0.0"
+    "@metamask/keyring-controller": "npm:^28.1.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^32.1.1"
+    "@metamask/profile-sync-controller": "npm:^34.0.3"
     "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
     "@metamask/utils": "npm:^12.0.0"
-    "@tanstack/query-core": "npm:^5.62.16"
+    "@tanstack/query-core": "npm:^5.103.2"
     async-mutex: "npm:^0.5.0"
-    cockatiel: "npm:^3.1.2"
-    uuid: "npm:^9.0.1"
-  checksum: 10/5743ece912208c0c8a38c1f031343e57af73f00714e61390ffd3b29ff9e50febf88a3e9d0b2358f0badafa4fa617202c4a6baa0e785fb8758da753ad678dc983
+    cockatiel: "npm:^3.2.1"
+    uuid: "npm:^11.1.1"
+  checksum: 10/2c41030df3233c37de4f048cff742447345bdc152b5675d86de8fcc6639bb08b0d3d5f8a35f9f04bcc7932b2f71ef6183f2dcd7edb0db7be0b013a87fdb027bb
   languageName: node
   linkType: hard
 
@@ -20507,6 +20507,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/query-core@npm:^5.103.2":
+  version: 5.104.1
+  resolution: "@tanstack/query-core@npm:5.104.1"
+  checksum: 10/05a4410e32e91eb471a7ca1f420c839b49a11367e15a3cebe8ca94e6bfdfbd3bf75a8c22da664746032113419da95d4a37a3be18471fab009d94601d9295d890
+  languageName: node
+  linkType: hard
+
 "@tanstack/react-query@npm:^5.101.0, @tanstack/react-query@npm:^5.62.16":
   version: 5.101.4
   resolution: "@tanstack/react-query@npm:5.101.4"
@@ -27427,6 +27434,13 @@ __metadata:
   version: 3.1.2
   resolution: "cockatiel@npm:3.1.2"
   checksum: 10/52d8fd0038fc5fe5579962947243fe971fa827db5ad1acecec5dbde854d7018696d3c6967a4860d8399e39d0f53e9d762c00cad5e2b3694c554d19e7d08b3f6a
+  languageName: node
+  linkType: hard
+
+"cockatiel@npm:^3.2.1":
+  version: 3.2.1
+  resolution: "cockatiel@npm:3.2.1"
+  checksum: 10/b022d588dc1e31db59a17527b89acd6ed52c6d8761402afe112c7688af8836363e260ebf71b6f07c7edd69e62047adbf9fc1b3ffcb9081b7a0a751e6018773a6
   languageName: node
   linkType: hard
 
