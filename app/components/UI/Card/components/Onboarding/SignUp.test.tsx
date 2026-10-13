@@ -332,7 +332,7 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
   return configureStore({
     reducer: {
       engine: (
-        state = engineState,
+        state: typeof engineState = engineState,
         action: { type: string; payload?: unknown } = { type: '' },
       ) => {
         if (action.type === 'test/set-geolocation') {
@@ -340,7 +340,8 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
             ...state,
             backgroundState: {
               ...state.backgroundState,
-              GeolocationController: action.payload,
+              GeolocationController:
+                action.payload as typeof engineState.backgroundState.GeolocationController,
             },
           };
         }

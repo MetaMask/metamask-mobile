@@ -225,6 +225,7 @@ describe('useRegions', () => {
       mockUseRegistrationSettings.mockReturnValue({
         data: null,
         isLoading: false,
+        isFetched: true,
         error,
         fetchData,
       } as ReturnType<typeof useRegistrationSettings>);
