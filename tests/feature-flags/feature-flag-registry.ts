@@ -1318,6 +1318,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  cardLinkApi: {
+    name: 'cardLinkApi',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   carouselBanners: {
     name: 'carouselBanners',
     type: FeatureFlagType.Remote,
