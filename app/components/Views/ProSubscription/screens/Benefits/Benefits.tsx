@@ -46,11 +46,19 @@ import { PLUS_PRICING_STATUS } from './utils/mapMoneyAccountPlusPricing';
 
 interface BenefitsProps {
   onSuccess: (plan: SelectedPlusPlan) => void;
+  onCheckoutStart: () => void;
+  onCheckoutError: () => void;
   onPlanChange?: (planId: PlanId) => void;
   initialPlan?: PlanId;
 }
 
-const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
+const Benefits = ({
+  onSuccess,
+  onCheckoutStart,
+  onCheckoutError,
+  onPlanChange,
+  initialPlan,
+}: BenefitsProps) => {
   const tw = useTailwind();
   const { plusPricing, isLoading, hasError, retry } = useSubscriptionPricing();
   const { startSubscription, isSubmitting, errorMessage } =
@@ -106,13 +114,24 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
       return;
     }
 
+    onCheckoutStart();
+
     try {
       await startSubscription(checkoutPlan);
       onSuccess(checkoutPlan);
     } catch {
       // The hook logs the failure and exposes localized error state.
+      onCheckoutError();
     }
-  }, [isCtaDisabled, onSuccess, plusPricing, resolvedPlan, startSubscription]);
+  }, [
+    isCtaDisabled,
+    onCheckoutError,
+    onCheckoutStart,
+    onSuccess,
+    plusPricing,
+    resolvedPlan,
+    startSubscription,
+  ]);
 
   const handlePlanPress = useCallback(
     (planId: PlanId) => {

@@ -12,6 +12,11 @@ import {
 import { TokenDetailsVariant } from '../../../constants/constants';
 import { mockTheme } from '../../../../../../util/theme';
 
+jest.mock('react-native-linear-gradient', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({ testID }: { testID?: string }) => <View testID={testID} />;
+});
+
 const STATS: TokenStatValues = {
   [TokenStatKey.MarketCap]: { value: '$500.5K' },
   [TokenStatKey.Liquidity]: { value: '$2.4M' },
@@ -216,6 +221,44 @@ describe('StatBar', () => {
       getByTestId(StatBarSelectors.cell(TokenStatKey.Holders)),
     ).toBeOnTheScreen();
     expect(queryByTestId(StatBarSelectors.cell(TokenStatKey.Tax))).toBeNull();
+  });
+
+  it('fades the trailing edge while more stats sit off screen', () => {
+    const { getByTestId, queryByTestId } = render(
+      <StatBar variant={TokenDetailsVariant.Memecoin} stats={STATS} />,
+    );
+    const scroll = getByTestId(StatBarSelectors.SCROLL);
+
+    expect(
+      queryByTestId(StatBarSelectors.SCROLL_FADE, {
+        includeHiddenElements: true,
+      }),
+    ).toBeNull();
+
+    fireEvent(scroll, 'layout', {
+      nativeEvent: { layout: { width: 120, height: 48, x: 0, y: 0 } },
+    });
+    fireEvent(scroll, 'contentSizeChange', 400, 48);
+
+    expect(
+      getByTestId(StatBarSelectors.SCROLL_FADE, {
+        includeHiddenElements: true,
+      }),
+    ).toBeTruthy();
+
+    fireEvent.scroll(scroll, {
+      nativeEvent: {
+        contentOffset: { x: 280, y: 0 },
+        contentSize: { width: 400, height: 48 },
+        layoutMeasurement: { width: 120, height: 48 },
+      },
+    });
+
+    expect(
+      queryByTestId(StatBarSelectors.SCROLL_FADE, {
+        includeHiddenElements: true,
+      }),
+    ).toBeNull();
   });
 
   // The bar renders no sheet of its own — `TokenDetailsV1` mounts the shared
