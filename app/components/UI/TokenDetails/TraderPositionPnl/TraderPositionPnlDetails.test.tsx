@@ -55,4 +55,16 @@ describe('TraderPositionPnlDetails', () => {
       expect(pnlValue.props.color).toBe(TextColor.ErrorDefault);
     });
   });
+
+  it('disables sharing until a share handler is provided', () => {
+    const { getByTestId } = render(<TraderPositionPnlDetails {...details} />);
+
+    const shareButton = getByTestId(
+      'token-details-trader-position-pnl-expanded-details-share',
+    );
+
+    expect(shareButton.props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true }),
+    );
+  });
 });

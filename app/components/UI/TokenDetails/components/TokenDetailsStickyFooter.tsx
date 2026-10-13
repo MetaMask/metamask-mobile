@@ -61,7 +61,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   traderPositionFooter: {
-    marginTop: 8,
     paddingTop: 4,
     paddingBottom: 0,
   },
@@ -581,9 +580,10 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
   const footerActions = (
     <>
-      <View
+      <Box
         testID="bottomsheetfooter"
         style={[styles.footer, isTokenDetailsV1 && styles.traderPositionFooter]}
+        twClassName={traderPositionPnl ? 'mt-2' : undefined}
       >
         {showSwapButton && !isBuySellLayout && (
           <Button
@@ -710,7 +710,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             />
           </ButtonAnimated>
         )}
-      </View>
+      </Box>
       {isMoneyDepositCtaActive && !moneyDepositCta?.isLoading && (
         <Text
           variant={TextVariant.BodyXs}
