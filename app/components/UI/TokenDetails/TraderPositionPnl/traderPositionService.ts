@@ -1,13 +1,18 @@
 import AppConstants from '../../../../core/AppConstants';
 import Engine from '../../../../core/Engine';
-import type { TraderPosition, TraderPositionTrade } from './types';
+import type {
+  OpenPositionPnl,
+  TraderPosition,
+  TraderPositionTrade,
+} from './types';
 
 /**
- * ASSETS-4023 names an open-positions endpoint for the wallet's line.
- * This call loads one position by id (`GET /api/v1/traders/position/{id}`).
- * `SocialService:fetchOpenPositions` lists a wallet's open positions and does
- * not filter by token, so the id for wallet + token is still unresolved.
- * Do not match a list row on `tokenAddress` until that is confirmed.
+ * Two reads:
+ * `GET /api/v1/traders/position/{id}` loads one position by id.
+ * `GET /api/v2/traders/{address}/{assetId}/open` loads this wallet's open
+ * position in one CAIP-19 asset. The bearer token identifies the profile;
+ * `{address}` must be a wallet that profile owns.
+ * Do not match a list row on `tokenAddress`.
  */
 
 /** Non-2xx response from the position endpoint. `status` is 401, 404, or other. */
@@ -110,27 +115,32 @@ export const toTraderPosition = (value: unknown): TraderPosition => {
   };
 };
 
-const positionUrl = (positionId: string): string => {
+const socialUrl = (path: string): string => {
   const base = AppConstants.SOCIAL_API_URL.replace(/\/$/, '');
-  return `${base}/api/v1/traders/position/${encodeURIComponent(positionId)}`;
+  return `${base}${path}`;
 };
 
+const positionUrl = (positionId: string): string =>
+  socialUrl(`/api/v1/traders/position/${encodeURIComponent(positionId)}`);
+
 /**
- * Loads one trader position.
- *
- * Auth is the same bearer token SocialService sends
- * (`AuthenticationController:getBearerToken`). The host comes from
- * `SOCIAL_API_URL`. Pass `signal` to cancel the request.
+ * Wallet address plus CAIP-19 asset id. The slash inside the asset id is
+ * percent-encoded so it stays one path segment.
  */
-export const getTraderPosition = async (
-  positionId: string,
+export const openPositionUrl = (address: string, assetId: string): string =>
+  socialUrl(
+    `/api/v2/traders/${encodeURIComponent(address)}/${encodeURIComponent(assetId)}/open`,
+  );
+
+const fetchSocialJson = async (
+  url: string,
   signal?: AbortSignal,
-): Promise<TraderPosition> => {
+): Promise<unknown> => {
   const token = await Engine.controllerMessenger.call(
     'AuthenticationController:getBearerToken',
   );
 
-  const response = await fetch(positionUrl(positionId), {
+  const response = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
     signal,
   });
@@ -139,12 +149,62 @@ export const getTraderPosition = async (
     throw new TraderPositionHttpError(response.status);
   }
 
-  let body: unknown;
   try {
-    body = await response.json();
+    return await response.json();
   } catch {
     throw new TraderPositionMalformedError();
   }
-
-  return toTraderPosition(body);
 };
+
+const readPnlStatus = (value: unknown): OpenPositionPnl['pnlStatus'] => {
+  if (value === 'ready' || value === 'in-progress') {
+    return value;
+  }
+  throw new TraderPositionMalformedError();
+};
+
+export const toOpenPositionPnl = (value: unknown): OpenPositionPnl => {
+  if (!isRecord(value) || typeof value.isOpen !== 'boolean') {
+    throw new TraderPositionMalformedError();
+  }
+
+  return {
+    positionAmount: requireNumber(value.positionAmount),
+    isOpen: value.isOpen,
+    boughtUsd: requireNumber(value.boughtUsd),
+    soldUsd: requireNumber(value.soldUsd),
+    realizedPnl: requireNumber(value.realizedPnl),
+    costBasis: requireNumber(value.costBasis),
+    currentValueUSD: readNullableNumber(value.currentValueUSD),
+    pnlValueUsd: readNullableNumber(value.pnlValueUsd),
+    pnlPercent: readNullableNumber(value.pnlPercent),
+    pnlStatus: readPnlStatus(value.pnlStatus),
+  };
+};
+
+/**
+ * Loads one trader position by id.
+ *
+ * Auth is the same bearer token SocialService sends
+ * (`AuthenticationController:getBearerToken`). The host comes from
+ * `SOCIAL_API_URL`. Pass `signal` to cancel the request.
+ */
+export const getTraderPosition = async (
+  positionId: string,
+  signal?: AbortSignal,
+): Promise<TraderPosition> =>
+  toTraderPosition(await fetchSocialJson(positionUrl(positionId), signal));
+
+/**
+ * Loads the selected wallet's open position in one CAIP-19 asset.
+ * A 404 means no settled position. `pnlStatus: in-progress` is a 200 whose
+ * figures are not ready to display.
+ */
+export const getOpenPositionForAsset = async (
+  address: string,
+  assetId: string,
+  signal?: AbortSignal,
+): Promise<OpenPositionPnl> =>
+  toOpenPositionPnl(
+    await fetchSocialJson(openPositionUrl(address, assetId), signal),
+  );

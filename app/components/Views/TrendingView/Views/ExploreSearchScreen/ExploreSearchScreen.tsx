@@ -73,6 +73,8 @@ import { useExploreSearchFooterPress } from '../../search/useExploreSearchFooter
 import { selectBrowserTabCount } from '../../../../../reducers/browser/selectors';
 import { useIsExploreHeaderRefreshEnabled } from '../../hooks/useIsExploreHeaderRefreshEnabled';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
+import BasicFunctionalityEmptyState from '../../../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import { ExploreSearchScreenSelectorsIDs } from './ExploreSearchScreen.testIds';
 import {
   getTrimmedInitialQuery,
@@ -651,6 +653,9 @@ const ExploreSearchScreen: React.FC = () => {
   const isTransitionComplete = useScreenTransitionComplete();
   const isHeaderRefreshEnabled = useIsExploreHeaderRefreshEnabled();
   const browserTabsCount = useSelector(selectBrowserTabCount);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
   const showBrowserTabsButton = isHeaderRefreshEnabled && browserTabsCount > 0;
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
@@ -744,6 +749,7 @@ const ExploreSearchScreen: React.FC = () => {
       onCancel={handleSearchCancel}
       placeholder={searchPlaceholder}
       autoFocus={
+        isBasicFunctionalityEnabled &&
         (isHomepageSearch || isTransitionComplete) &&
         isHomeSearchAnimationComplete
       }
@@ -781,16 +787,20 @@ const ExploreSearchScreen: React.FC = () => {
           showBrowserTabsButton={showBrowserTabsButton}
         />
 
-        <PerpsSectionProvider>
-          {shouldMountSearchContent ? (
-            <ExploreSearchContent
-              searchQuery={searchQuery}
-              redactSearchQuery={isClipboardQuery}
-            />
-          ) : (
-            <ExploreSearchLoadingContent />
-          )}
-        </PerpsSectionProvider>
+        {isBasicFunctionalityEnabled ? (
+          <PerpsSectionProvider>
+            {shouldMountSearchContent ? (
+              <ExploreSearchContent
+                searchQuery={searchQuery}
+                redactSearchQuery={isClipboardQuery}
+              />
+            ) : (
+              <ExploreSearchLoadingContent />
+            )}
+          </PerpsSectionProvider>
+        ) : (
+          <BasicFunctionalityEmptyState />
+        )}
       </Box>
     </Box>
   );

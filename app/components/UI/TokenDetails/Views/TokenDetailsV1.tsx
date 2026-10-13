@@ -70,6 +70,7 @@ import TokenDetailsV1TabBar, {
   useTokenDetailsV1Tabs,
 } from '../components/TokenDetailsV1TabBar';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
+import TraderPositionPnlSection from '../TraderPositionPnl/TraderPositionPnlSection';
 import {
   TOKEN_DETAILS_V1_TABS,
   type TokenDetailsRouteParams,
@@ -255,6 +256,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const selectedCurrency = useSelector(selectCurrentCurrency);
   const { marketData, isLoading: isMarketDataLoading } =
     useTokenMarketData(caip19AssetId);
+  const traderPositionTokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
 
   // Feeds both the stat bar and the Security tab. Ten of these figures appear
   // on both, and deriving them once is what stops the two disagreeing.
@@ -514,7 +516,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             </Pressable>
           }
         />
-
         {/* The tab bar is a direct ScrollView child registered in
             `stickyHeaderIndices`, so it docks right below the nav header
             while the price hero, chart and tab content scroll under it. */}
@@ -602,6 +603,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             </ScrollView>
           )}
         </PriceChartContext.Consumer>
+
+        <TraderPositionPnlSection
+          token={token}
+          tokenKey={traderPositionTokenKey}
+          securityData={securityData}
+        />
 
         {/* Both sheets sit outside the ScrollView on purpose: the design
             system `BottomSheet` is positioned `absolute inset-0` against its
