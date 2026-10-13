@@ -3,12 +3,11 @@ import { SmokeAccounts } from '../../tags.js';
 import {
   ensureAccountListOpenPlaywright,
   loginAndOpenAccountList,
-  waitForWalletHomePlaywright,
 } from '../../flows/wallet.flow.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import {
   assertAccountCount,
-  openImportSrpFromAccountList,
+  importSrpAndReturnToWalletHome,
   renameAccountAtIndex,
 } from '../../flows/accounts.flow.js';
 import { withIdentityFixtures } from '../../smoke/identity/utils/withIdentityFixtures.js';
@@ -19,8 +18,6 @@ import {
 } from '../../smoke/identity/utils/user-storage/userStorageMockttpController.js';
 import { createUserStorageController } from '../../smoke/identity/utils/mocks.js';
 import { IDENTITY_TEAM_SEED_PHRASE_2 } from '../../smoke/identity/utils/constants.js';
-import ImportSrpView from '../../page-objects/importSrp/ImportSrpView.js';
-import ToastModal from '../../page-objects/wallet/ToastModal.js';
 import { identityFixtureOptions } from './identity-fixture-options.js';
 
 // Skipped (flaky): account syncing across multiple SRPs is intermittently failing in CI.
@@ -72,14 +69,9 @@ appiumTest.describe.skip(
             await waitUntilSyncedAccountsNumberEquals(2);
             await assertAccountCount(SECOND_ACCOUNT_NAME, 1);
 
-            await openImportSrpFromAccountList();
-            await ImportSrpView.enterSrp(IDENTITY_TEAM_SEED_PHRASE_2);
-            await ImportSrpView.tapImportButton();
-            await waitForWalletHomePlaywright(20_000);
-            // Top import-success toast covers the account picker until it dismisses.
-            await ToastModal.waitForToastToDismiss({ appearTimeout: 10_000 });
-            // Retry-capable open: a single identicon tap can miss while the toast
-            // animates out or wallet chrome is still settling after SRP import.
+            await importSrpAndReturnToWalletHome(IDENTITY_TEAM_SEED_PHRASE_2);
+            // Retry-capable open: a single identicon tap can miss while wallet
+            // chrome is still settling after SRP import.
             await ensureAccountListOpenPlaywright();
             await waitUntilSyncedAccountsNumberEquals(3);
 
@@ -106,12 +98,7 @@ appiumTest.describe.skip(
           await loginAndOpenAccountList({
             scenarioType: 'e2e',
           });
-          await openImportSrpFromAccountList();
-          await ImportSrpView.enterSrp(IDENTITY_TEAM_SEED_PHRASE_2);
-          await ImportSrpView.tapImportButton();
-          await waitForWalletHomePlaywright(20_000);
-          // Top import-success toast covers the account picker until it dismisses.
-          await ToastModal.waitForToastToDismiss({ appearTimeout: 10_000 });
+          await importSrpAndReturnToWalletHome(IDENTITY_TEAM_SEED_PHRASE_2);
           await ensureAccountListOpenPlaywright();
           for (const [accountName, count] of Object.entries({
             [DEFAULT_ACCOUNT_NAME]: 2,

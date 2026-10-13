@@ -4,9 +4,7 @@ import { loginAndOpenAccountList } from '../../flows/wallet.flow.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
-import Assertions from '../../framework/Assertions.js';
-import ImportSrpView from '../../page-objects/importSrp/ImportSrpView.js';
-import { openImportSrpFromAccountList } from '../../flows/accounts.flow.js';
+import { importSrpAndReturnToWalletHome } from '../../flows/accounts.flow.js';
 import { IDENTITY_TEAM_SEED_PHRASE } from '../../smoke/identity/utils/constants.js';
 
 // We now have account indexes "per wallets", thus the new account for that new SRP (wallet), will
@@ -27,16 +25,8 @@ appiumTest.describe(SmokeAccounts('Multichain import SRP account'), () => {
         },
         async () => {
           await loginAndOpenAccountList({ scenarioType: 'e2e' });
-          await openImportSrpFromAccountList();
-          await ImportSrpView.enterSrp(IDENTITY_TEAM_SEED_PHRASE);
-          await ImportSrpView.tapImportButton();
-          await Assertions.expectElementToHaveText(
-            WalletView.accountName,
-            IMPORTED_ACCOUNT_NAME,
-            {
-              description: `Expect selected account to be ${IMPORTED_ACCOUNT_NAME}`,
-            },
-          );
+          await importSrpAndReturnToWalletHome(IDENTITY_TEAM_SEED_PHRASE);
+          await WalletView.checkActiveAccount(IMPORTED_ACCOUNT_NAME, 15_000);
         },
       );
     },
