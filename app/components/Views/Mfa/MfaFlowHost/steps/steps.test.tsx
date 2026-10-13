@@ -269,6 +269,10 @@ describe('CodeStep', () => {
     expect(getByText('Resend code in 30s')).toBeOnTheScreen();
     expect(queryByTestId(MfaFlowSelectorsIDs.ERROR)).toBeNull();
     expect(queryByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON)).toBeNull();
+    act(() => {
+      jest.advanceTimersByTime(1_000);
+    });
+    expect(getByText('Resend code in 29s')).toBeOnTheScreen();
   });
 
   it('sends the first code by itself once the cooldown ends', () => {
