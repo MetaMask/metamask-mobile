@@ -24,7 +24,7 @@ const mockNavigation = {
   setParams: mockSetParams,
 };
 let mockRouteParams: {
-  fieldUpdate?: { field: string; value: string };
+  fieldUpdate?: { field: string; value: string | boolean };
 } = {};
 
 jest.mock('@react-navigation/native', () => {
@@ -216,20 +216,21 @@ describe('ManageProfile', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it.each([
-    [ManageProfileSelectorsIDs.HANDLE_ROW],
-    [ManageProfileSelectorsIDs.X_ACCOUNT_ROW],
-    [ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW],
-    [ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW],
-  ])('renders the %s row as read-only', (testID) => {
-    const { getByTestId } = renderWithProvider(<ManageProfile />);
+  it.each([[ManageProfileSelectorsIDs.HANDLE_ROW]])(
+    'renders the %s row as read-only',
+    (testID) => {
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
 
-    expect(getByTestId(testID).props.accessibilityRole).toBeUndefined();
-  });
+      expect(getByTestId(testID).props.accessibilityRole).toBeUndefined();
+    },
+  );
 
   it.each([
     [ManageProfileSelectorsIDs.DISPLAY_NAME_ROW],
     [ManageProfileSelectorsIDs.BIO_ROW],
+    [ManageProfileSelectorsIDs.X_ACCOUNT_ROW],
+    [ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW],
+    [ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW],
   ])('keeps the %s row interactive', (testID) => {
     const { getByTestId } = renderWithProvider(<ManageProfile />);
 
@@ -297,6 +298,61 @@ describe('ManageProfile', () => {
         within(getByTestId(ManageProfileSelectorsIDs.BIO_ROW)).getByText(
           'Just here for the yield.',
         ),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates to the empty X account screen', () => {
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
+
+      fireEvent.press(getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_ROW));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL_PROFILE.X_ACCOUNT,
+      );
+    });
+
+    it('navigates to the linked social account picker', () => {
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
+
+      fireEvent.press(
+        getByTestId(ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL_PROFILE.LINKED_SOCIAL_ACCOUNT,
+      );
+    });
+
+    it('navigates to the trading activity editor with the switch off', () => {
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
+
+      fireEvent.press(
+        getByTestId(ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD,
+        {
+          field: ManageProfileFieldName.TradingActivity,
+          initialValue: false,
+        },
+      );
+    });
+
+    it('writes a returned trading activity toggle onto the row', () => {
+      mockRouteParams = {
+        fieldUpdate: {
+          field: ManageProfileFieldName.TradingActivity,
+          value: true,
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(<ManageProfile />);
+
+      expect(
+        within(
+          getByTestId(ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW),
+        ).getByText(strings('manage_profile.on')),
       ).toBeOnTheScreen();
     });
 

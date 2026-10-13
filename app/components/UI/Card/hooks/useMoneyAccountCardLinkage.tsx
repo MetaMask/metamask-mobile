@@ -40,6 +40,7 @@ import {
   selectIsCardResidencyBlocked,
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
+  selectCardSignInLink,
 } from '../../../../selectors/cardController';
 import {
   selectPendingMoneyAccountCardLink,
@@ -50,7 +51,10 @@ import {
   hasMoneyAccountCardRequirements,
   resolveMoneyAccountCardToken,
 } from '../../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
-import { CardLinkageInProgressError } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  CardLinkageInProgressError,
+  type CardProviderId,
+} from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { isMoneyAccountCardTokenAllowlisted } from '../util/vedaToken';
 import { CardFundingToken } from '../types';
@@ -112,6 +116,30 @@ export interface LinkFlowOrigin {
   entrypoint?: CardEntryPoint;
 }
 
+const supportsMoneyAccountLinking = (
+  capabilities: { supportsMoneyAccountLinking?: boolean } | null,
+  whenUnknown: boolean,
+): boolean => capabilities?.supportsMoneyAccountLinking ?? whenUnknown;
+
+const signInProviderSupportsLinking = (
+  providerId?: CardProviderId,
+): boolean => {
+  if (!providerId) return true;
+
+  try {
+    return supportsMoneyAccountLinking(
+      Engine.context?.CardController?.getCapabilities(providerId) ?? null,
+      true,
+    );
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'Failed to read sign-in provider capabilities',
+    );
+    return true;
+  }
+};
+
 export interface UseMoneyAccountCardLinkageReturn {
   hasMoneyAccountRequirements: boolean;
   hasMoneyAccountBaseRequirements: boolean;
@@ -123,6 +151,7 @@ export interface UseMoneyAccountCardLinkageReturn {
   canLink: boolean;
   isResidencyBlocked: boolean;
   isMoneyAccountLinkingSupported: boolean;
+  isMoneyCardSectionAvailable: boolean;
 
   status: LinkageStatus;
   isLinking: boolean;
@@ -177,9 +206,21 @@ export const useMoneyAccountCardLinkage =
     const linkInProgress = useSelector(selectIsMoneyAccountCardLinkInProgress);
     const isResidencyBlocked = useSelector(selectIsCardResidencyBlocked);
     const capabilities = useCardCapabilities();
+    const signInLink = useSelector(selectCardSignInLink);
     const isMoneyAccountLinkingSupported =
-      !isCardAuthenticated ||
-      (capabilities?.supportsMoneyAccountLinking ?? false);
+      !isCardAuthenticated || supportsMoneyAccountLinking(capabilities, false);
+    const isSignInInProgress =
+      !isCardAuthenticated && signInLink?.status === 'started';
+    const signInProviderCanLink = useMemo(
+      () =>
+        isSignInInProgress
+          ? signInProviderSupportsLinking(signInLink?.providerId)
+          : true,
+      [isSignInInProgress, signInLink?.providerId],
+    );
+    const isMoneyCardSectionAvailable = isCardAuthenticated
+      ? isMoneyAccountLinkingSupported
+      : signInProviderCanLink;
     const isMonadSponsorshipEnabled = useSelector(
       getGasFeesSponsoredNetworkEnabled,
     )(vaultConfig?.chainId ?? '');
@@ -695,6 +736,7 @@ export const useMoneyAccountCardLinkage =
       canLink,
       isResidencyBlocked,
       isMoneyAccountLinkingSupported,
+      isMoneyCardSectionAvailable,
 
       status,
       isLinking: linkInProgress,

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useReducer, useState } from 'react';
 import { Keyboard, TextInput, View } from 'react-native';
 import {
   Box,
@@ -23,29 +23,23 @@ import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 import StepLayout, { StepError, type StepProps } from './StepLayout';
 
 const CELL_COUNT = 6;
-const COOLDOWN_CODES = ['otp_resend_cooldown', 'rate_limited'];
+const COOLDOWN_CODES = new Set(['otp_resend_cooldown', 'rate_limited']);
 
-const getSecondsUntil = (at?: number) =>
-  at === undefined ? 0 : Math.max(0, Math.ceil((at - Date.now()) / 1000));
-
-// Derived during render: a value kept in state would still read 0 on the
-// render that receives a new cooldown, and the auto-send below would fire.
+// The clock is state, as the React Compiler caches what render computes:
+// `Date.now()` read during render would never move. Being up to a second
+// behind never reads 0 for a cooldown that just started, so the auto-send
+// below cannot fire early.
 const useSecondsUntil = (at?: number) => {
-  const [, setTick] = useState(0);
+  const [now, tick] = useReducer(() => Date.now(), undefined, Date.now);
   useEffect(() => {
     // A recurring timer keeps the JS thread busy and stalls Detox.
-    if (at === undefined || hasTestOverrides) {
+    if (hasTestOverrides) {
       return undefined;
     }
-    const id = setInterval(() => {
-      setTick((tick) => tick + 1);
-      if (getSecondsUntil(at) === 0) {
-        clearInterval(id);
-      }
-    }, 1000);
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [at]);
-  return getSecondsUntil(at);
+  }, []);
+  return at === undefined ? 0 : Math.max(0, Math.ceil((at - now) / 1000));
 };
 
 const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
@@ -137,7 +131,7 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
   };
 
   const showError =
-    error !== undefined && !(isCoolingDown && COOLDOWN_CODES.includes(error));
+    error !== undefined && !(isCoolingDown && COOLDOWN_CODES.has(error));
 
   return (
     <StepLayout

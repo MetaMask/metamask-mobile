@@ -8,6 +8,7 @@ import {
   selectNeedsProfilePairing,
   selectNeedsSocialPairing,
   selectEnrolledCredentials,
+  selectProfileEntropySourceIds,
 } from './index';
 import { RootState } from '../../reducers';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
@@ -134,6 +135,92 @@ describe('Notification Selectors', () => {
 
   it('selectCanonicalProfileId returns undefined when there is no session profile', () => {
     expect(selectCanonicalProfileId(mockState)).toBeUndefined();
+  });
+
+  describe('selectProfileEntropySourceIds', () => {
+    const session = (
+      identifierId: string,
+      pairedIdentifierIds?: { id: string; type: string }[],
+    ) => ({
+      profile: {
+        identifierId,
+        canonicalProfileId: 'canonical',
+        ...(pairedIdentifierIds && { pairedIdentifierIds }),
+      },
+    });
+
+    const buildState = (
+      srpSessionData: Record<string, ReturnType<typeof session>> | undefined,
+      keyrings = [hdKeyring('primary')],
+    ) =>
+      ({
+        engine: {
+          backgroundState: {
+            AuthenticationController: { isSignedIn: true, srpSessionData },
+            KeyringController: { isUnlocked: true, keyrings },
+          },
+        },
+      }) as unknown as RootState;
+
+    it('returns the primary SRP followed by the SRPs paired to it', () => {
+      const state = buildState({
+        primary: session('primary-identifier', [
+          { id: 'primary-identifier', type: 'SRP' },
+          { id: 'paired-identifier', type: 'SRP' },
+          { id: 'google-identifier', type: 'GOOGLE' },
+        ]),
+        paired: session('paired-identifier'),
+      });
+
+      expect(selectProfileEntropySourceIds(state)).toEqual([
+        'primary',
+        'paired',
+      ]);
+    });
+
+    it('excludes SRPs that share the canonical profile ID but are not paired', () => {
+      const state = buildState({
+        primary: session('primary-identifier', [
+          { id: 'primary-identifier', type: 'SRP' },
+        ]),
+        skipped: session('skipped-identifier'),
+      });
+
+      expect(selectProfileEntropySourceIds(state)).toEqual(['primary']);
+    });
+
+    it('returns only the primary SRP when the primary session has no paired identifiers', () => {
+      const state = buildState({
+        primary: session('primary-identifier'),
+        other: session('other-identifier'),
+      });
+
+      expect(selectProfileEntropySourceIds(state)).toEqual(['primary']);
+    });
+
+    it('returns only the primary SRP when there is no session data', () => {
+      expect(selectProfileEntropySourceIds(buildState(undefined))).toEqual([
+        'primary',
+      ]);
+    });
+
+    it('ignores pairings recorded on a stale session that is not the primary SRP', () => {
+      const state = buildState({
+        stale: session('stale-identifier', [
+          { id: 'other-identifier', type: 'SRP' },
+        ]),
+        primary: session('primary-identifier'),
+        other: session('other-identifier'),
+      });
+
+      expect(selectProfileEntropySourceIds(state)).toEqual(['primary']);
+    });
+
+    it('returns an empty array when the wallet is locked', () => {
+      const state = buildState({ primary: session('primary-identifier') }, []);
+
+      expect(selectProfileEntropySourceIds(state)).toEqual([]);
+    });
   });
 
   it('selectNeedsProfilePairing returns the persisted value when present', () => {
