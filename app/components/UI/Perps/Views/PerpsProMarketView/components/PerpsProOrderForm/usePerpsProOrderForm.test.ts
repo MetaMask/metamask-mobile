@@ -3772,7 +3772,18 @@ describe('usePerpsProOrderForm', () => {
 
   describe('margin mode', () => {
     const renderWithCrossMargin = () =>
-      renderProForm(true, true, 'hyperliquid', false, {}, {}, market, {}, undefined, true);
+      renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        market,
+        {},
+        undefined,
+        true,
+      );
 
     it('sends cross margin mode after the trader selects Cross', async () => {
       const { result } = renderWithCrossMargin();
@@ -4183,6 +4194,10 @@ describe('usePerpsProOrderForm', () => {
           usePerpsProOrderForm({
             market,
             isTriggeredOrdersEnabled: true,
+            isTriggerAvailabilityPending: false,
+            supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+            resolvedTriggerProviderId: 'hyperliquid',
+            checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
             isTwapEnabled: true,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
@@ -4215,6 +4230,10 @@ describe('usePerpsProOrderForm', () => {
           usePerpsProOrderForm({
             market: formMarket,
             isTriggeredOrdersEnabled: true,
+            isTriggerAvailabilityPending: false,
+            supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+            resolvedTriggerProviderId: formMarket.providerId,
+            checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
             isTwapEnabled: true,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
@@ -4394,6 +4413,10 @@ describe('usePerpsProOrderForm', () => {
           usePerpsProOrderForm({
             market,
             isTriggeredOrdersEnabled: true,
+            isTriggerAvailabilityPending: false,
+            supportedTriggerOrderTypes: TRIGGER_ORDER_TYPES,
+            resolvedTriggerProviderId: 'hyperliquid',
+            checkTriggerOrderSupport: jest.fn().mockResolvedValue(true),
             isTwapEnabled: true,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',

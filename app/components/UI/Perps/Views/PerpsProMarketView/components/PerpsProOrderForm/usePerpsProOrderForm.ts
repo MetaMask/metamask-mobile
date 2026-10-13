@@ -2149,6 +2149,7 @@ export const usePerpsProOrderForm = ({
               maxSlippageBps: resolvedMaxSlippageBps,
               reduceOnly,
               providerId: scaleProviderId,
+              marginMode: resolveOrderMarginMode(currentMarketPosition),
               isFullClose: reduceOnly
                 ? reduceOnlyValidation.isFullClose || isExactFullClose
                 : undefined,
@@ -2194,6 +2195,8 @@ export const usePerpsProOrderForm = ({
     resolvedMaxSlippageBps,
     reduceOnlyValidation.isFullClose,
     isExactFullClose,
+    resolveOrderMarginMode,
+    currentMarketPosition,
   ]);
   useLayoutEffect(
     () => () => unmountPerpsUiScaleForm(scaleObservationFormId),

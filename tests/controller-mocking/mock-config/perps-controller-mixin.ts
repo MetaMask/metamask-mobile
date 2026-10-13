@@ -728,6 +728,7 @@ export function buildE2EMockStreamManagerPlain(): Record<
     },
     orders: {
       getSnapshot: () => mockService.getMockOrders(),
+      getError: (): Error | null => null,
       getLastDeliveredAt: (): number | null => Date.now(),
       subscribe: (params: { callback: (data: Order[]) => void }) => {
         // Register for live updates
@@ -757,6 +758,7 @@ export function buildE2EMockStreamManagerPlain(): Record<
     },
     fills: {
       getSnapshot: () => mockService.getMockOrderFills(),
+      getError: (): Error | null => null,
       subscribe: (params: { callback: (data: OrderFill[]) => void }) => {
         setTimeout(() => params.callback(mockService.getMockOrderFills()), 0);
         return () => undefined;
