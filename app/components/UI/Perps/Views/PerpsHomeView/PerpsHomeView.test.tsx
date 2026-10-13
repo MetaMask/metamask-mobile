@@ -1660,6 +1660,22 @@ describe('PerpsHomeView', () => {
       expect(properties?.sections_displayed).toContain('orders');
     });
 
+    it('includes orders in sections_displayed when orders failed and the array is empty', () => {
+      mockUseSelector.mockReturnValue(false);
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        orders: [],
+        ordersError: new Error('Trading key unavailable'),
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('orders');
+    });
+
     it('includes recent_activity while activity is loading even when the array is empty', () => {
       mockUseSelector.mockReturnValue(false);
       mockUsePerpsHomeData.mockReturnValue({

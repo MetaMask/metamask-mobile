@@ -477,10 +477,11 @@ const PerpsHomeView = () => {
   // sees and stays consistent with per-section scroll impressions.
   const sectionsDisplayed = useMemo(() => {
     const sections: string[] = [PERPS_EVENT_VALUE.SECTION_NAME.BALANCE];
-    // Positions/orders render a skeleton while loading, then self-hide when empty.
+    // Positions render a skeleton while loading, then self-hide when empty.
+    // Orders do the same, and stay visible when the stream failed.
     if (isLoading.positions || positions.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS);
-    if (isLoading.orders || orders.length > 0)
+    if (ordersError || isLoading.orders || orders.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.ORDERS);
     if (isWhatsHappeningVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING);
@@ -527,6 +528,7 @@ const PerpsHomeView = () => {
     forexMarkets,
     recentActivity,
     activityError,
+    ordersError,
   ]);
 
   usePerpsEventTracking({
