@@ -177,15 +177,6 @@ describe('AddToWalletButton', () => {
         expect.objectContaining({ buttonStyle: 'black' }),
       );
     });
-
-    it('passes style to the native button', () => {
-      const style = { borderWidth: 1, borderRadius: 12 };
-      render(<AddToWalletButton style={style} />);
-
-      expect(mockNativeAddToWalletButton).toHaveBeenCalledWith(
-        expect.objectContaining({ style }),
-      );
-    });
   });
 
   describe('Android', () => {

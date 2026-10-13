@@ -3,8 +3,6 @@ import {
   Platform,
   TouchableOpacity,
   type GestureResponderEvent,
-  type StyleProp,
-  type ViewStyle,
 } from 'react-native';
 import type { SvgProps } from 'react-native-svg';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -188,7 +186,6 @@ interface AddToWalletButtonProps {
   buttonStyle?: 'black' | 'blackOutline';
   buttonType?: 'basic' | 'badge';
   borderRadius?: number;
-  style?: StyleProp<ViewStyle>;
   testID?: string;
 }
 
@@ -217,7 +214,6 @@ const AddToWalletButton: React.FC<AddToWalletButtonProps> = ({
   buttonStyle = 'blackOutline',
   buttonType = 'basic',
   borderRadius = 4,
-  style,
   testID,
 }) => {
   const locale: string = I18n.locale ?? 'en';
@@ -233,7 +229,6 @@ const AddToWalletButton: React.FC<AddToWalletButtonProps> = ({
         buttonStyle={buttonStyle}
         buttonType={buttonType}
         borderRadius={borderRadius}
-        style={style}
       />
     );
   }
