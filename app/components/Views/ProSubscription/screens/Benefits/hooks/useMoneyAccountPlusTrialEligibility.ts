@@ -2,10 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { PRODUCT_TYPES } from '@metamask/subscription-controller';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
-import {
-  selectCanonicalProfileId,
-  selectIsSignedIn,
-} from '../../../../../../selectors/identity';
+import { selectCanonicalProfileId } from '../../../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
 import { selectSeedlessOnboardingUserId } from '../../../../../../selectors/seedlessOnboardingController';
 
@@ -47,20 +44,22 @@ export interface MoneyAccountPlusTrialEligibility {
  * social login, so the screen must not infer eligibility from pricing
  * `trialPeriodDays` or `trialedProducts` alone.
  *
- * Fails closed while the check is in flight, disabled, or rejected, so trial
- * copy stays hidden until the controller returns true for this user. A
- * disabled query still exposes cached `data`, so eligibility also requires
- * the check to be enabled for the current profile.
+ * The check runs when the wallet is unlocked and either the canonical profile
+ * id or the social-login user id is present. Profile sync can lag behind
+ * social login, and the controller decides Plus eligibility from social auth,
+ * not from the profile id. Fails closed while the check is in flight,
+ * disabled, or rejected, so trial copy stays hidden until the controller
+ * returns true. A disabled query still exposes cached `data`, so eligibility
+ * also requires the check to be enabled for the current identity.
  *
  * @returns Whether the user is eligible for a Money Account Plus trial.
  */
 export function useMoneyAccountPlusTrialEligibility(): MoneyAccountPlusTrialEligibility {
-  const isSignedIn = useSelector(selectIsSignedIn);
   const isUnlocked = Boolean(useSelector(selectIsUnlocked));
   const canonicalProfileId = useSelector(selectCanonicalProfileId);
   const socialLoginUserId = useSelector(selectSeedlessOnboardingUserId);
   const canRequestEligibility =
-    isSignedIn && isUnlocked && Boolean(canonicalProfileId);
+    isUnlocked && Boolean(canonicalProfileId || socialLoginUserId);
 
   const { data } = useQuery({
     queryKey: getMoneyAccountPlusTrialEligibilityQueryKey(

@@ -5,10 +5,7 @@ import { Provider } from 'react-redux';
 import { PRODUCT_TYPES } from '@metamask/subscription-controller';
 import Engine from '../../../../../../core/Engine';
 import type { RootState } from '../../../../../../reducers';
-import {
-  selectCanonicalProfileId,
-  selectIsSignedIn,
-} from '../../../../../../selectors/identity';
+import { selectCanonicalProfileId } from '../../../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
 import { selectSeedlessOnboardingUserId } from '../../../../../../selectors/seedlessOnboardingController';
 import configureStore from '../../../../../../util/test/configureStore';
@@ -24,7 +21,6 @@ jest.mock('../../../../../../core/Engine', () => ({
 
 jest.mock('../../../../../../selectors/identity', () => ({
   ...jest.requireActual('../../../../../../selectors/identity'),
-  selectIsSignedIn: jest.fn(),
   selectCanonicalProfileId: jest.fn(),
 }));
 
@@ -40,7 +36,6 @@ jest.mock('../../../../../../selectors/keyringController', () => ({
   selectIsUnlocked: jest.fn(),
 }));
 
-const mockSelectIsSignedIn = jest.mocked(selectIsSignedIn);
 const mockSelectIsUnlocked = jest.mocked(selectIsUnlocked);
 const mockSelectCanonicalProfileId = jest.mocked(selectCanonicalProfileId);
 const mockSelectSeedlessOnboardingUserId = jest.mocked(
@@ -75,7 +70,6 @@ const renderEligibility = () => {
 describe('useMoneyAccountPlusTrialEligibility', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectIsSignedIn.mockReturnValue(true);
     mockSelectIsUnlocked.mockReturnValue(true);
     mockSelectCanonicalProfileId.mockReturnValue('profile-a');
     mockSelectSeedlessOnboardingUserId.mockReturnValue('social-user-a');
@@ -172,8 +166,35 @@ describe('useMoneyAccountPlusTrialEligibility', () => {
     expect(result.current.isEligibleForTrial).toBe(false);
   });
 
-  it('returns false and skips the controller when the profile id is missing', () => {
+  it('asks the controller when only the social login user id is present', async () => {
     mockSelectCanonicalProfileId.mockReturnValue(undefined);
+    mockIsUserEligibleForTrial.mockResolvedValue(true);
+
+    const { result } = renderEligibility();
+
+    await waitFor(() => {
+      expect(result.current.isEligibleForTrial).toBe(true);
+    });
+    expect(mockIsUserEligibleForTrial).toHaveBeenCalledWith(
+      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+    );
+  });
+
+  it('asks the controller when only the canonical profile id is present', async () => {
+    mockSelectSeedlessOnboardingUserId.mockReturnValue(undefined);
+    mockIsUserEligibleForTrial.mockResolvedValue(false);
+
+    const { result } = renderEligibility();
+
+    await waitFor(() => {
+      expect(mockIsUserEligibleForTrial).toHaveBeenCalledTimes(1);
+    });
+    expect(result.current.isEligibleForTrial).toBe(false);
+  });
+
+  it('returns false and skips the controller when both identities are missing', () => {
+    mockSelectCanonicalProfileId.mockReturnValue(undefined);
+    mockSelectSeedlessOnboardingUserId.mockReturnValue(undefined);
 
     const { result } = renderEligibility();
 
