@@ -110,8 +110,10 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
 
   const paste = async () => handleChange(await Clipboard.getString());
 
+  // A cooldown with a wait time shows as the countdown, also once it ended.
   const showError =
-    error !== undefined && !(isCoolingDown && COOLDOWN_CODES.has(error));
+    error !== undefined &&
+    !(resendAvailableAt !== undefined && COOLDOWN_CODES.has(error));
   // The code on screen can no longer be used: the main action is a new one.
   const needsNewCode =
     showError && error !== undefined && getErrorHandling(error) === 'restart';
@@ -138,9 +140,7 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
       }
       footer={
         <Button
-          variant={
-            needsNewCode ? ButtonVariant.Primary : ButtonVariant.Secondary
-          }
+          variant={canResend ? ButtonVariant.Primary : ButtonVariant.Secondary}
           size={ButtonSize.Lg}
           isFullWidth
           onPress={canResend ? () => onAction({ type: 'resend' }) : undefined}

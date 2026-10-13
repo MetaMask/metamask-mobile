@@ -372,6 +372,29 @@ describe('CodeStep', () => {
     expect(getByText('Resend code in 29s')).toBeOnTheScreen();
   });
 
+  it('lets the user resend once the cooldown ends, without its error', () => {
+    const { onAction, getByText, queryByTestId } = renderCode(otp(true), {
+      error: 'rate_limited',
+      resendAvailableAt: Date.now() + 1_000,
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(1_000);
+    });
+
+    expect(queryByTestId(MfaFlowSelectorsIDs.ERROR)).toBeNull();
+    fireEvent.press(getByText('Resend code'));
+    expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
+  });
+
+  it('shows a cooldown that came without a wait time', () => {
+    const { getByText } = renderCode(otp(true), { error: 'rate_limited' });
+
+    expect(
+      getByText('Too many requests. Wait a moment and try again.'),
+    ).toBeOnTheScreen();
+  });
+
   it('pastes a copied code and submits it', async () => {
     jest.spyOn(Clipboard, 'getString').mockResolvedValue('Code: 123456');
     const { onAction, getByTestId } = renderCode(otp(true));
