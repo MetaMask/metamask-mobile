@@ -2,11 +2,11 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type {
-  InterestOptions,
   InterestResponse,
   InterestWindow,
 } from '@metamask/money-account-api-data-service';
 import { useQuery } from '@metamask/react-data-query';
+import type { SubscriptionPaymentMethod } from '@metamask/subscription-controller';
 import BigNumber from 'bignumber.js';
 import { selectMoneyAccountPremiumVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectMoneyAccountPlusSubscription } from '../../../../selectors/subscriptionController';
@@ -15,13 +15,6 @@ import { moneyFormatUsd } from '../utils/moneyFormatFiat';
 import useMoneyAccountInfo from './useMoneyAccountInfo';
 
 const SINCE_INCEPTION_WINDOW: InterestWindow = 'since_inception';
-
-interface CryptoSubscriptionPayment {
-  type?: string;
-  crypto?: {
-    tokenAddress?: unknown;
-  };
-}
 
 interface UseMoneyPremiumAccountInterestResult {
   sinceInceptionQuery: UseQueryResult<InterestResponse>;
@@ -36,16 +29,18 @@ interface UseMoneyPremiumAccountInterestResult {
  * @returns The vault address when the payment is crypto.
  */
 const readVaultAddress = (
-  paymentMethod: CryptoSubscriptionPayment | undefined,
+  paymentMethod: SubscriptionPaymentMethod | undefined,
 ): string | undefined => {
   if (paymentMethod?.type !== 'crypto') {
     return undefined;
   }
 
-  const tokenAddress = paymentMethod.crypto?.tokenAddress;
-  return typeof tokenAddress === 'string' && tokenAddress.length > 0
-    ? tokenAddress
-    : undefined;
+  const crypto: object = paymentMethod.crypto;
+  if (!('tokenAddress' in crypto) || typeof crypto.tokenAddress !== 'string') {
+    return undefined;
+  }
+
+  return crypto.tokenAddress.length > 0 ? crypto.tokenAddress : undefined;
 };
 
 /**
@@ -103,13 +98,12 @@ const useMoneyPremiumAccountInterest =
         Number.isSafeInteger(chainId),
     );
 
-    const interestOptions = useMemo<InterestOptions | undefined>(
+    const interestOptions = useMemo(
       () =>
         vaultAddress && chainId !== undefined && Number.isSafeInteger(chainId)
           ? {
               vaultAddress,
               chainId,
-              window: SINCE_INCEPTION_WINDOW,
             }
           : undefined,
       [chainId, vaultAddress],
@@ -119,7 +113,10 @@ const useMoneyPremiumAccountInterest =
       queryKey: [
         MoneyAccountApiDataServiceQueryKeys.FETCH_INTEREST,
         address as string,
-        interestOptions,
+        {
+          ...interestOptions,
+          window: SINCE_INCEPTION_WINDOW,
+        },
       ],
       enabled: isEnabled,
     }) as UseQueryResult<InterestResponse>;

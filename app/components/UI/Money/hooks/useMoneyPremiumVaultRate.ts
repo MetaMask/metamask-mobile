@@ -2,19 +2,13 @@ import { useSelector } from 'react-redux';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { VaultRateResponse } from '@metamask/money-account-api-data-service';
 import { useQuery } from '@metamask/react-data-query';
+import type { SubscriptionPaymentMethod } from '@metamask/subscription-controller';
 import BigNumber from 'bignumber.js';
 import { selectMoneyAccountPremiumVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectMoneyAccountPlusSubscription } from '../../../../selectors/subscriptionController';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
-
-interface CryptoSubscriptionPayment {
-  type?: string;
-  crypto?: {
-    tokenAddress?: unknown;
-  };
-}
 
 interface UseMoneyPremiumVaultRateResult {
   vaultRateQuery: UseQueryResult<VaultRateResponse>;
@@ -55,16 +49,18 @@ const parseRatePercent = (rate: string | undefined): number | undefined => {
  * @returns The vault address when the payment is crypto.
  */
 const readVaultAddress = (
-  paymentMethod: CryptoSubscriptionPayment | undefined,
+  paymentMethod: SubscriptionPaymentMethod | undefined,
 ): string | undefined => {
   if (paymentMethod?.type !== 'crypto') {
     return undefined;
   }
 
-  const tokenAddress = paymentMethod.crypto?.tokenAddress;
-  return typeof tokenAddress === 'string' && tokenAddress.length > 0
-    ? tokenAddress
-    : undefined;
+  const crypto: object = paymentMethod.crypto;
+  if (!('tokenAddress' in crypto) || typeof crypto.tokenAddress !== 'string') {
+    return undefined;
+  }
+
+  return crypto.tokenAddress.length > 0 ? crypto.tokenAddress : undefined;
 };
 
 /**
@@ -86,11 +82,16 @@ const useMoneyPremiumVaultRate = (): UseMoneyPremiumVaultRateResult => {
     vaultAddress && chainId !== undefined && Number.isSafeInteger(chainId),
   );
 
+  const vaultRateOptions =
+    chainId !== undefined && Number.isSafeInteger(chainId)
+      ? { chainId }
+      : undefined;
+
   const vaultRateQuery = useQuery({
     queryKey: [
       MoneyAccountApiDataServiceQueryKeys.FETCH_VAULT_RATE,
       vaultAddress as string,
-      { chainId },
+      { ...vaultRateOptions },
     ],
     enabled: isEnabled,
     refetchInterval: FIVE_MINUTES_MS,
