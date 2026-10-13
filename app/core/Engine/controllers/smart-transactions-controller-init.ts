@@ -13,7 +13,6 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import type { AnalyticsTrackingEvent as PackageAnalyticsTrackingEvent } from '@metamask/analytics-controller';
 import { trace } from '../../../util/trace';
 import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTransactions';
-import { setSentinelApiAuth } from '../../../util/transactions/sentinel-api';
 
 /**
  * Initialize the smart transactions controller.
@@ -51,24 +50,6 @@ export const smartTransactionsControllerInit: MessengerClientInitFunction<
       // Error is logged but not thrown
     }
   };
-
-  /**
-   * Bearer token for Transaction API (and Sentinel) authentication. Only present when
-   * the user is signed in (AuthenticationController has a valid session). If getBearerToken
-   * returns undefined, no Authorization header is sent on smart transaction API calls.
-   */
-  const getBearerToken = async (): Promise<string | undefined> => {
-    try {
-      return await Promise.resolve(
-        controllerMessenger.call('AuthenticationController:getBearerToken'),
-      );
-    } catch {
-      return undefined;
-    }
-  };
-
-  // Use same bearer token for Sentinel API (networks, relay) as for Transaction API
-  setSentinelApiAuth(getBearerToken);
 
   const controller = new SmartTransactionsController({
     messenger: controllerMessenger,
