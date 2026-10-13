@@ -148,6 +148,36 @@ class ConnectedAccountsModal {
     });
   }
 
+  /**
+   * Wait until the connected-accounts modal is interactive and the accounts
+   * summary is showing. Prefer this before asserting account-name text —
+   * Appium can open the sheet while account cells are still mounting (iOS).
+   */
+  async waitForAccountsSummaryReady(timeout: number = 20_000): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.container, {
+      timeout,
+      description: 'Connected accounts modal container',
+    });
+    await Assertions.expectElementToBeVisible(
+      this.disconnectAllAccountsAndNetworksButton,
+      {
+        timeout,
+        description: 'Disconnect all accounts and networks control',
+      },
+    );
+  }
+
+  async expectConnectedAccountDisplayed(
+    accountName: string,
+    options: { timeout?: number } = {},
+  ): Promise<void> {
+    await this.waitForAccountsSummaryReady();
+    await Assertions.expectTextDisplayed(accountName, {
+      timeout: options.timeout ?? 30_000,
+      description: `"${accountName}" in connected accounts summary`,
+    });
+  }
+
   async tapDisconnectButton(): Promise<void> {
     await Gestures.waitAndTap(this.disconnectButton, {
       elemDescription: 'Disconnect button',
