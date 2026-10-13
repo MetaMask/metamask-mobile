@@ -140,7 +140,6 @@ describe('SecurityTab', () => {
       SecurityTabSelectors.SECTION_TRADING,
       SecurityTabSelectors.SECTION_ORIGIN,
       SecurityTabSelectors.SCAN_META,
-      SecurityTabSelectors.DISCLAIMER,
     ]) {
       expect(getByTestId(section)).toBeOnTheScreen();
     }

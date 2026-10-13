@@ -354,11 +354,22 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     handleScrollViewLayout,
     tabContentContainerStyle,
     clampScrollToTabBar,
+    scrollToTabBar,
   } = useTokenDetailsV1ScrollStabilization({ onScroll: handleScroll });
 
   const { activeTab, activateTab, mountedTabs, swipeGesture } =
     useTokenDetailsV1Tabs({ onTabChange: clampScrollToTabBar });
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
+
+  /**
+   * Selecting the tab alone would leave the reader looking at the price hero
+   * while the thing they asked for sat a chart's height below the fold, so the
+   * verdict pill scrolls the page as well as switching tabs.
+   */
+  const handleSecurityPress = useCallback(() => {
+    activateTab('security');
+    scrollToTabBar();
+  }, [activateTab, scrollToTabBar]);
 
   const securityFacts = useSecurityFacts({
     securityData,
@@ -540,7 +551,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                     securityRiskCount={securityFacts.risks.length}
                     externalLinks={securityData?.metadata?.externalLinks}
                     contractAddress={token.isNative ? null : token.address}
-                    onSecurityPress={() => activateTab('security')}
+                    onSecurityPress={handleSecurityPress}
                   />
                 </Box>
                 <Box twClassName="py-4">

@@ -6160,9 +6160,6 @@
         "top_ten": "Top 10",
         "remaining": "Remaining holders"
       },
-      "footer": {
-        "disclaimer": "These checks look at the token contract and its market. They are not investment advice, and they cannot tell you whether a token will hold its value."
-      },
       "explainers": {
         "no_honeypot": {
           "title": "No honeypot",

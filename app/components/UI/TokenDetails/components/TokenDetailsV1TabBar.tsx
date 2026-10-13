@@ -155,7 +155,19 @@ export interface UseTokenDetailsV1ScrollStabilizationResult {
   handleTabBarLayout: (event: LayoutChangeEvent) => void;
   handleScrollViewLayout: (event: LayoutChangeEvent) => void;
   tabContentContainerStyle: ViewStyle;
+  /**
+   * Pulls the page back down to the tab bar when a tab change would otherwise
+   * leave the reader below the new tab's content. Only ever scrolls up.
+   */
   clampScrollToTabBar: () => void;
+  /**
+   * Brings the tab bar to the top of the viewport from wherever the page is.
+   *
+   * Animated, unlike the clamp: this one is the response to a deliberate tap
+   * somewhere else on the page, so the movement is what tells the reader the
+   * page went somewhere rather than swapped its content underneath them.
+   */
+  scrollToTabBar: () => void;
 }
 
 export const useTokenDetailsV1ScrollStabilization = (
@@ -207,6 +219,14 @@ export const useTokenDetailsV1ScrollStabilization = (
     }
   }, [scrollViewRef]);
 
+  const scrollToTabBar = useCallback(() => {
+    const tabBarOffsetY = tabBarOffsetYRef.current;
+    if (tabBarOffsetY === null) {
+      return;
+    }
+    scrollViewRef.current?.scrollTo({ y: tabBarOffsetY, animated: true });
+  }, [scrollViewRef]);
+
   return {
     scrollViewRef,
     handleScroll,
@@ -214,6 +234,7 @@ export const useTokenDetailsV1ScrollStabilization = (
     handleScrollViewLayout,
     tabContentContainerStyle,
     clampScrollToTabBar,
+    scrollToTabBar,
   };
 };
 

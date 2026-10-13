@@ -20,10 +20,7 @@ import { SecurityPillSelectors } from './SecurityPill.testIds';
 /**
  * Security screening outcome shown on the Token Details V1 security & social row.
  *
- * TODO(ASSETS-4018): derive from Blockaid once security data is wired up —
- * `Benign` -> screened, `Malicious` -> high_risk, no coverage -> unscreened,
- * scan still running -> pending. Liquidity and market cap do not feed the
- * verdict in V1.
+ * Resolved by `resolveVerdict` in `utils/securityFacts.ts`.
  */
 export type SecurityVerdict =
   | 'screened'

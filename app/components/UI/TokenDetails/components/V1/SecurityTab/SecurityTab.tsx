@@ -6,9 +6,6 @@ import {
   Box,
   SectionDivider,
   SectionHeader,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { TokenStatValues } from '../../../constants/tokenStats';
@@ -393,15 +390,6 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
         <SectionTitle titleKey="token_details_v1.security_tab.sections.origin" />
         {renderStatRows(SECURITY_SECTIONS.origin)}
       </Box>
-
-      <Text
-        variant={TextVariant.BodyXs}
-        color={TextColor.TextAlternative}
-        testID={SecurityTabSelectors.DISCLAIMER}
-        twClassName="mt-6"
-      >
-        {strings('token_details_v1.security_tab.footer.disclaimer')}
-      </Text>
     </Box>
   );
 };

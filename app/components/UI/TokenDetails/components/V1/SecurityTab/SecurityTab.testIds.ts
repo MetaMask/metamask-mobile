@@ -17,7 +17,6 @@ export const SecurityTabSelectors = {
   LEGEND_TOP_TEN: 'token-details-v1-security-tab-legend-top-ten',
   LEGEND_REMAINING: 'token-details-v1-security-tab-legend-remaining',
   SCAN_META: 'token-details-v1-security-tab-scan-meta',
-  DISCLAIMER: 'token-details-v1-security-tab-disclaimer',
   /** Tappable "We found N risks" banner, absent when nothing was found. */
   RISK_BANNER: 'token-details-v1-security-tab-risk-banner',
 

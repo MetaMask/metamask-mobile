@@ -237,6 +237,50 @@ describe('useTokenDetailsV1ScrollStabilization', () => {
     expect(scrollToMock).not.toHaveBeenCalled();
   });
 
+  it('scrolls down to the tab bar when scrollToTabBar is called from above it', () => {
+    const scrollToMock = jest.fn();
+    const mockScrollView = {
+      scrollTo: scrollToMock,
+    } as unknown as ScrollView;
+
+    const { result } = renderHook(() =>
+      useTokenDetailsV1ScrollStabilization({
+        scrollViewRef: { current: mockScrollView },
+      }),
+    );
+
+    act(() => {
+      result.current.handleTabBarLayout({
+        nativeEvent: { layout: { y: 400, x: 0, width: 375, height: 48 } },
+      } as LayoutChangeEvent);
+      result.current.handleScroll({
+        nativeEvent: { contentOffset: { y: 0, x: 0 } },
+      } as NativeSyntheticEvent<NativeScrollEvent>);
+      result.current.scrollToTabBar();
+    });
+
+    expect(scrollToMock).toHaveBeenCalledWith({ y: 400, animated: true });
+  });
+
+  it('does not scroll when scrollToTabBar runs before the tab bar has laid out', () => {
+    const scrollToMock = jest.fn();
+    const mockScrollView = {
+      scrollTo: scrollToMock,
+    } as unknown as ScrollView;
+
+    const { result } = renderHook(() =>
+      useTokenDetailsV1ScrollStabilization({
+        scrollViewRef: { current: mockScrollView },
+      }),
+    );
+
+    act(() => {
+      result.current.scrollToTabBar();
+    });
+
+    expect(scrollToMock).not.toHaveBeenCalled();
+  });
+
   it('forwards scroll events to the onScroll option', () => {
     const onScroll = jest.fn();
     const { result } = renderHook(() =>
