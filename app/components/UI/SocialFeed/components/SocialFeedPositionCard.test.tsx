@@ -163,6 +163,36 @@ describe('SocialFeedPositionCard', () => {
     expect(statValue(item.id, 'cost')).toBe('$212,000.00');
   });
 
+  it('forwards the open spot item when Copy trade is pressed', () => {
+    const item = mockOpenSpotFeedItem();
+    const onCopyTrade = jest.fn();
+
+    renderWithProvider(
+      <PositionCardBody item={item} onCopyTrade={onCopyTrade} />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+    );
+
+    expect(onCopyTrade).toHaveBeenCalledWith(item);
+  });
+
+  it('forwards the open perp item when Copy trade is pressed', () => {
+    const item = mockOpenPerpsFeedItem();
+    const onCopyTrade = jest.fn();
+
+    renderWithProvider(
+      <PositionCardBody item={item} onCopyTrade={onCopyTrade} />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+    );
+
+    expect(onCopyTrade).toHaveBeenCalledWith(item);
+  });
+
   // One line, two figures: the title carries the leverage it qualifies, and the
   // right-hand column carries the percent over the USD.
   describe('open card header', () => {

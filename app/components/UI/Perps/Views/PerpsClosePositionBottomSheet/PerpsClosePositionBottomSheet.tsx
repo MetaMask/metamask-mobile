@@ -47,6 +47,8 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
+  const [showTokenAmount, setShowTokenAmount] = useState(false);
+
   const {
     position,
     livePosition,
@@ -62,6 +64,8 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     liveCloseAmount,
     closeAmountUSDString,
     displayUSDString,
+    amountKeypadValue,
+    amountKeypadDecimals,
     isInputFocused,
     handleSliderValueChange,
     handleSliderDragEnd,
@@ -82,6 +86,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     dismiss,
     confirmButtonTestID:
       PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+    amountInputUnit: showTokenAmount ? 'asset' : 'usd',
   });
 
   // The sheet has two modes: reviewing the close (slider, totals, CTA) and
@@ -92,7 +97,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   );
   const isEditingLimitPrice =
     isLimitPriceKeypadOpen && effectiveOrderType === 'limit';
-  const [showTokenAmount, setShowTokenAmount] = useState(false);
   const [isMarginInfoVisible, setIsMarginInfoVisible] = useState(false);
 
   const handleDisplayToggle = useCallback(
@@ -231,7 +235,11 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
         isActive={isInputFocused}
         accessibilityLabel={strings('perps.close_position.select_amount')}
         showTokenAmount={showTokenAmount}
-        tokenAmount={formatPositionSize(liveCloseAmount, szDecimals)}
+        tokenAmount={
+          showTokenAmount && isInputFocused
+            ? amountKeypadValue
+            : formatPositionSize(liveCloseAmount, szDecimals)
+        }
         hasError={displayedErrors.length > 0}
         tokenSymbol={position.symbol}
         onDisplayToggle={handleDisplayToggle}
@@ -356,10 +364,10 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
 
           <Box twClassName="mb-4 px-4">
             <Keypad
-              value={closeAmountUSDString}
+              value={showTokenAmount ? amountKeypadValue : closeAmountUSDString}
               onChange={handleKeypadChange}
-              currency="USD"
-              decimals={2}
+              currency={showTokenAmount ? 'ASSET' : 'USD'}
+              decimals={showTokenAmount ? amountKeypadDecimals : 2}
             />
           </Box>
         </>

@@ -4,7 +4,10 @@ import {
   mockRelayQuoteWith,
   mockRelayStatusSuccess,
 } from './relay-mocks';
-import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map';
+import {
+  TX_SENTINEL_NETWORKS_MAP,
+  mockTxSentinelNetworks,
+} from '../tx-sentinel-networks-map';
 import { USDC_MAINNET } from '../../../constants/musd-mainnet';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
 
@@ -808,26 +811,7 @@ async function mockSentinelNetworks(mockServer: Mockttp) {
     },
   };
 
-  const handler = () => ({
-    statusCode: 200,
-    json: withMonadRelay,
-  });
-
-  await mockServer
-    .forGet('https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks')
-    .asPriority(1001)
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return url.includes(
-        'tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks',
-      );
-    })
-    .thenCallback(handler);
+  await mockTxSentinelNetworks(mockServer, withMonadRelay, 1001);
 }
 
 async function mockRelaySubmissionStatus(mockServer: Mockttp) {

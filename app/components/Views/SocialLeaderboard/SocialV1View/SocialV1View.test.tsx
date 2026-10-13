@@ -22,6 +22,7 @@ import { LiveTradesViewSelectorsIDs } from '../LiveTradesView/LiveTradesView.tes
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
+const mockOpenComposer = jest.fn();
 const mockTrack = jest.fn();
 const mockNavigate = jest.fn();
 const mockOpenSystemSettings = jest.fn();
@@ -38,15 +39,31 @@ jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
 }));
 
-// The feed pages now fetch through `useTraderFeed`, which reads keyring state
-// and React Query. This suite is about the V1 chrome -- tabs, header, filters --
-// so stub the data source and let the feed's own suites cover it.
-// The feed now fetches through `useTraderFeed`, which needs keyring state and
-// React Query. This suite covers the V1 chrome, so stand in for the data source
-// while still driving the real composed-post store the banner tests depend on.
+jest.mock('../hooks/useOpenSocialPostComposer', () => ({
+  useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
+}));
+
+// The feed pages fetch through `useSocialFeed`, which reads keyring state and
+// React Query. This suite covers the V1 chrome, so stand in for both data
+// sources while still driving the real composed-post store the banner tests
+// depend on.
 jest.mock('./feed/hooks/useSocialV1Feed', () => ({
   useSocialV1Feed: jest.requireActual('./feed/mocks/mockComposedFeedHook')
     .mockUseSocialV1Feed,
+}));
+
+jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
+  useSocialFeed: jest.fn(() => ({
+    posts: [],
+    rows: [],
+    isLoading: false,
+    isFetchingNextPage: false,
+    hasNextPage: false,
+    loadMore: jest.fn(),
+    error: null,
+    refresh: jest.fn(async () => undefined),
+    dataUpdatedAt: undefined,
+  })),
 }));
 
 const mockUseABTest = jest.fn();
@@ -304,7 +321,7 @@ describe('SocialV1View', () => {
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POST_COMPOSER);
+    expect(mockOpenComposer).toHaveBeenCalledTimes(1);
   });
 
   it('opens Rewards from the gift button', () => {

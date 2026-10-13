@@ -509,7 +509,6 @@ describe('Homepage', () => {
     const balanceBreakdownSectionProps = {
       accountGroupBalanceProps: {},
       hideRows: false,
-      layout: 'icons' as const,
     };
 
     renderWithProvider(

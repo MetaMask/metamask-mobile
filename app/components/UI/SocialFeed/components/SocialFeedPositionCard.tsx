@@ -28,8 +28,12 @@ export interface SocialFeedPositionCardProps {
 
 export interface PositionCardBodyProps {
   item: SocialV1FeedItem;
-  /** Set for an open perp. Spot copy trade stays unwired. */
-  onCopyTrade?: () => void;
+  /**
+   * Spot callers receive the feed item so they can open QuickBuy. Perps callers
+   * may ignore the argument; the card and post shell pass the handler from
+   * `useCopyTradeToPerps`.
+   */
+  onCopyTrade?: (item: SocialV1FeedItem) => void;
 }
 
 const statId = getSocialFeedPositionCardStatTestId;
@@ -163,7 +167,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
         <PositionCardStats rows={stats} cardId={item.id} />
         {showCopyTrade ? (
           <CopyTradeButton
-            onPress={onCopyTrade}
+            onPress={onCopyTrade ? () => onCopyTrade(item) : undefined}
             testID={getSocialFeedPositionCardCopyTradeTestId(item.id)}
           />
         ) : null}

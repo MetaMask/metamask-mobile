@@ -34,11 +34,13 @@ import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
+  onCopyTrade?: (item: SocialV1FeedPost['item']) => void;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
 }
 
 const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   post,
+  onCopyTrade: onSpotCopyTrade,
   onAuthorPress,
 }) => {
   const tw = useTailwind();
@@ -66,7 +68,20 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     post.reactions,
     post.userReaction ?? null,
   );
-  const { onCopyTrade, geoBlockSheet } = useCopyTradeToPerps(post.item);
+  const { onCopyTrade: onPerpsCopyTrade, geoBlockSheet } = useCopyTradeToPerps(
+    post.item,
+  );
+  // Perps opens the order sheet. Spot hands the item to the feed so QuickBuy
+  // can target that token. A closed position has nothing to copy.
+  const handleSpotCopyTrade = useCallback(() => {
+    onSpotCopyTrade?.(post.item);
+  }, [onSpotCopyTrade, post.item]);
+  const copyTradeHandler =
+    post.item.variant === 'perpsOpen'
+      ? onPerpsCopyTrade
+      : onSpotCopyTrade
+        ? handleSpotCopyTrade
+        : undefined;
 
   const chips = visibleReactions(reactions);
 
@@ -136,7 +151,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         </Text>
       ) : null}
 
-      <PositionCardBody item={post.item} onCopyTrade={onCopyTrade} />
+      <PositionCardBody item={post.item} onCopyTrade={copyTradeHandler} />
 
       {post.gifUri ? (
         <Box twClassName="rounded-2xl overflow-hidden">

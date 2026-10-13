@@ -50,6 +50,7 @@ const createMockBridgeSession = (
   setRenderedTab: jest.fn(),
   latestSourceBalance: undefined,
   quoteParams: {},
+  setQuoteParams: jest.fn(),
   ...overrides,
 });
 

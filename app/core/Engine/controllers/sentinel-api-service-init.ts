@@ -3,6 +3,7 @@ import {
   type SentinelApiServiceMessenger,
 } from '@metamask/sentinel-api-service';
 import type { MessengerClientInitFunction } from '../types';
+import { setSentinelApiMessenger } from '../../../util/transactions/sentinel-api';
 
 /**
  * Initialize the SentinelApiService.
@@ -20,6 +21,9 @@ export const sentinelApiServiceInit: MessengerClientInitFunction<
     fetch: fetch.bind(globalThis),
     clientId: 'mobile',
   });
+
+  // Legacy Sentinel utils query the service via its messenger.
+  setSentinelApiMessenger(controllerMessenger);
 
   return { controller };
 };

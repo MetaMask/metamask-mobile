@@ -6,7 +6,6 @@ import {
   parseCaipAccountId,
   parseCaipAssetType,
   type CaipAccountId,
-  type CaipAssetType,
   type CaipChainId,
 } from '@metamask/utils';
 import {
@@ -30,6 +29,7 @@ import {
   ActivityDetailSection,
   ActivityDetailsAccountValue,
   ActivityDetailsBlockExplorerButton,
+  ActivityDetailsDoItAgainButton,
   ActivityDetailsDualAmountHeader,
   ActivityDetailsFeeValue,
   ActivityDetailsNetworkValue,
@@ -132,9 +132,7 @@ function SwapsLimitOrderActivityPage() {
   const navigation = useNavigation<AppNavigationProp>();
   const { order } = useParams<SwapsLimitOrderActivityPageRouteParams>();
   const { sourceToken, destinationToken } = getLimitOrderTokens(order);
-  const chainId = parseCaipAssetType(
-    order.src.asset.assetId as CaipAssetType,
-  ).chainId;
+  const chainId = parseCaipAssetType(order.src.asset.assetId).chainId;
   const networkName = useActivityNetworkName(chainId);
   const { triggerPrice, triggerToken } = getUsdTriggerPrice(
     order,
@@ -305,7 +303,12 @@ function SwapsLimitOrderActivityPage() {
                   chainId={chainId}
                   hash={txHash}
                 />
-              ) : null
+              ) : (
+                <ActivityDetailsDoItAgainButton
+                  label={strings('bridge.limit.create_new_order')}
+                  onPress={handleBack}
+                />
+              )
             }
           />
         </ScrollView>

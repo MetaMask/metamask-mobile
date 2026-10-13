@@ -567,6 +567,8 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITION_EDIT_MARGIN: 'perps-pro-market-position-edit-margin',
   POSITION_PNL_TEXT: 'perps-pro-market-position-pnl-text',
   POSITION_LIQ_PRICE: 'perps-pro-market-position-liq-price',
+  POSITION_LIQ_DISTANCE: 'perps-pro-market-position-liq-distance',
+  POSITION_LIQ_TREND: 'perps-pro-market-position-liq-trend',
   POSITION_ROW: 'perps-pro-market-position-row',
   ORDERS_LIST: 'perps-pro-market-orders-list',
   ORDERS_SUMMARY: 'perps-pro-market-orders-summary',
@@ -813,6 +815,16 @@ export const PerpsProOrderFormSelectorsIDs = {
   CHASE_MAX_DISTANCE_UNIT: 'perps-pro-chase-max-distance-unit',
   CHASE_REFERENCE_PRICE: 'perps-pro-chase-reference-price',
 };
+
+export const getPerpsProOrderFormNoticeTestId = (noticeId: string): string =>
+  `${PerpsProOrderFormSelectorsIDs.NOTICE}-${noticeId}`;
+
+export const getPerpsProCompactInputLabelContainerTestId = (
+  testID: string,
+): string => `${testID}-label-container`;
+
+export const getPerpsProCompactInputRowTestId = (testID: string): string =>
+  `${testID}-input-row`;
 
 // ========================================
 // PERPS MARKET HEADER SELECTORS
@@ -1197,6 +1209,9 @@ export const PerpsLeverageBottomSheetSelectorsIDs = {
   DESCRIPTION: 'perps-leverage-description',
   SET_BUTTON: 'perps-leverage-set-button',
 } as const;
+
+export const getPerpsLeveragePickerItemTestId = (leverage: number): string =>
+  `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-${leverage}`;
 
 export const PerpsAdjustMarginActionSheetSelectorsIDs = {
   ADD_MARGIN_OPTION: 'perps-adjust-margin-add-btn',

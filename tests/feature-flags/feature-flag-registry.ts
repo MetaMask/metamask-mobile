@@ -1360,6 +1360,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  confirmations_delegations: {
+    name: 'confirmations_delegations',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      deadlineSeconds: 1800,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   confirmations_eip_7702: {
     name: 'confirmations_eip_7702',
     type: FeatureFlagType.Remote,
@@ -6567,13 +6577,26 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  homeTMCU1209AbtestHomepageBalanceBreakdown: {
-    name: 'homeTMCU1209AbtestHomepageBalanceBreakdown',
+  homeTMCU1209AbtestHomepageBalanceBreakdownV2: {
+    name: 'homeTMCU1209AbtestHomepageBalanceBreakdownV2',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: {
-      enabled: false,
-    },
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+      },
+    ],
     status: FeatureFlagStatus.Active,
   },
 
