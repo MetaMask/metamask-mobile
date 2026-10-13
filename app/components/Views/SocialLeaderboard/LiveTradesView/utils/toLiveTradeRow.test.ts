@@ -49,6 +49,7 @@ describe('toLiveTradeRow', () => {
     expect(row.amountLabel).toContain('PEPE');
     expect(row.traderId).toBe('trader-1');
     expect(row.positionId).toBe('pepe-1');
+    expect(row.position).toBe(core);
   });
 
   it('maps a perp fill onto direction and leverage without a market cap', () => {

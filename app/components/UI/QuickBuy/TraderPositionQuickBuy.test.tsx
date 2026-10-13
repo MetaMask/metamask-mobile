@@ -203,4 +203,18 @@ describe('TraderPositionQuickBuy', () => {
       }),
     );
   });
+
+  it('forwards the opening trade mode to QuickBuy.Root', () => {
+    render(
+      <TraderPositionQuickBuy
+        isVisible
+        position={mockPosition}
+        onClose={jest.fn()}
+        initialTradeMode="sell"
+      />,
+    );
+    expect(mockQuickBuyRoot).toHaveBeenCalledWith(
+      expect.objectContaining({ initialTradeMode: 'sell' }),
+    );
+  });
 });

@@ -38,5 +38,6 @@ export const toSocialFeedPosts = (
       userReaction: authorComment?.engagement.userReaction ?? null,
       marketCapUsd: readTriggeringTradeMarketCapUsd(row.core),
       item,
+      position: row.core,
     };
   });

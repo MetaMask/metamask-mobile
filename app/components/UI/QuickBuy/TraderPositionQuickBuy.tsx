@@ -9,6 +9,7 @@ import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import {
   positionToQuickBuyTarget,
   type QuickBuyAnalyticsContext,
+  type QuickBuyTradeMode,
 } from './types';
 
 export interface TraderPositionQuickBuyProps {
@@ -24,6 +25,7 @@ export interface TraderPositionQuickBuyProps {
   /** `true` when the trader has closed the position (sell); `false` when still open (buy). */
   isTraderPositionClosed?: boolean;
   postSwapShare?: boolean;
+  initialTradeMode?: QuickBuyTradeMode;
 }
 
 /**
@@ -41,6 +43,7 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
   originalEntryPoint,
   isTraderPositionClosed,
   postSwapShare,
+  initialTradeMode,
 }) => {
   // Stabilise the derived `target` reference so it doesn't destabilise the
   // `destToken` memo inside `useQuickBuySetup` (which would in turn re-trigger
@@ -96,6 +99,7 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
       features={TOP_TRADERS_QUICK_BUY_FEATURES}
       analyticsContext={analyticsContext}
       postSwapShare={postSwapShare}
+      initialTradeMode={initialTradeMode}
     />
   );
 };

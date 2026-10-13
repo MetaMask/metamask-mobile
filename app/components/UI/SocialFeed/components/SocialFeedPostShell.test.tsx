@@ -121,6 +121,7 @@ const renderShell = (
   post: SocialV1FeedPost,
   options?: {
     onAuthorPress?: (post: SocialV1FeedPost) => void;
+    onPositionPress?: (post: SocialV1FeedPost) => void;
     onCopyTrade?: (item: SocialV1FeedPost['item']) => void;
     /** `null` renders with no surface provider, so invented values stay hidden. */
     showMockedFields?: boolean | null;
@@ -135,6 +136,7 @@ const renderShell = (
     <SocialFeedPostShell
       post={post}
       onAuthorPress={options?.onAuthorPress}
+      onPositionPress={options?.onPositionPress}
       onCopyTrade={options?.onCopyTrade}
     />
   );
@@ -434,6 +436,53 @@ describe('SocialFeedPostShell', () => {
       expect(
         screen.queryByTestId(
           `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-post-1`,
+        ),
+      ).toBeNull();
+    });
+  });
+
+  describe('position press', () => {
+    it('calls onPositionPress when the position card is pressed', () => {
+      const onPositionPress = jest.fn();
+      const post = basePost();
+      renderShell(post, { onPositionPress });
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-post-1`,
+        ),
+      );
+
+      expect(onPositionPress).toHaveBeenCalledWith(post);
+    });
+
+    it('keeps copy trade on its own press inside a pressable card', async () => {
+      mockGate.mockImplementation((action: () => Promise<void> | void) =>
+        Promise.resolve(action()),
+      );
+      mockSelectPerpsEligibility.mockReturnValue(true);
+      const onPositionPress = jest.fn();
+      renderShell(basePost(), { onPositionPress });
+
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.MODALS.ROOT,
+          expect.anything(),
+        );
+      });
+      expect(onPositionPress).not.toHaveBeenCalled();
+    });
+
+    it('does not wrap the card when onPositionPress is omitted', () => {
+      renderShell(basePost());
+
+      expect(
+        screen.queryByTestId(
+          `${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-post-1`,
         ),
       ).toBeNull();
     });

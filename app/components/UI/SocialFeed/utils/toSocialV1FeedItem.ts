@@ -1,5 +1,6 @@
 import type {
   FeedItem as CoreFeedItem,
+  Position,
   Trade,
 } from '@metamask/social-controllers';
 import { strings } from '../../../../../locales/i18n';
@@ -20,12 +21,16 @@ import { markMocked, type SocialV1MockedField } from '../mockMarker';
 import { mockAutoClose, mockMarkPrice } from '../mocks/socialV1Enrichment';
 import { splitKlipyGifFromCommentText } from './klipyGifComment';
 import { readAuthorComment } from '../reactions';
-import { asFeedCardItem, toWholePercent } from './feedCardStats';
+import {
+  asFeedCardItem,
+  toWholePercent,
+  type FeedCardItem,
+} from './feedCardStats';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
 
-const toUnitPrice = (trade: Trade): number | null => {
+export const toUnitPrice = (trade: Trade): number | null => {
   const tokenAmount = Math.abs(trade.tokenAmount);
   if (tokenAmount <= 0) {
     return null;
@@ -42,8 +47,9 @@ const toUnitPrice = (trade: Trade): number | null => {
  * closed `positionAmount` is 0, so `costBasis / positionAmount` is unusable.
  * That ratio is the fallback for rows whose fill history did not come through.
  */
-const deriveAverageEntryPrice = (core: CoreFeedItem): number | null => {
-  const storedEntry = asFeedCardItem(core).entryPriceUsd;
+export const deriveAverageEntryPrice = (core: Position): number | null => {
+  const storedEntry = (core as Pick<FeedCardItem, 'entryPriceUsd'>)
+    .entryPriceUsd;
   if (isPresentNumber(storedEntry) && storedEntry > 0) {
     return storedEntry;
   }
@@ -72,7 +78,7 @@ const deriveAverageEntryPrice = (core: CoreFeedItem): number | null => {
 };
 
 /** Price of the fill that closed the position -- its last exit fill. */
-const deriveExitPrice = (core: CoreFeedItem): number | null => {
+export const deriveExitPrice = (core: Position): number | null => {
   const exitFills = (core.trades ?? []).filter(
     (trade) => trade.intent === 'exit',
   );

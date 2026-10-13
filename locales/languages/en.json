@@ -1654,6 +1654,46 @@
       "linked_account_footnote": "Trades made with this account will be shown on your feed and the leaderboard.",
       "avatar_accessibility_label": "Your profile avatar"
     },
+    "position_sheet": {
+      "title": "{{username}}'s trade",
+      "follow": "Follow",
+      "following": "Following",
+      "today": "Today",
+      "market_cap_suffix": "(MC)",
+      "level": {
+        "entry": "Entry",
+        "exit": "Exit",
+        "current": "Current",
+        "take_profit": "TP",
+        "stop_loss": "SL",
+        "with_age": "{{level}} · {{age}}"
+      },
+      "weekdays": {
+        "0": "Sun",
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat"
+      },
+      "tooltip": {
+        "label": "{{action}} @ {{price}}",
+        "bought": "Bought",
+        "sold": "Sold",
+        "perps_closed": "Closed",
+        "perps_long_opened": "Opened long",
+        "perps_long_added": "Added to long",
+        "perps_long_reduced": "Reduced long",
+        "perps_short_opened": "Opened short",
+        "perps_short_added": "Added to short",
+        "perps_short_reduced": "Bought back",
+        "spot_opened": "Bought",
+        "spot_added": "Bought more",
+        "spot_reduced": "Sold some",
+        "spot_closed": "Sold all"
+      }
+    },
     "trader_position": {
       "market_cap": "Market cap",
       "price": "Price",

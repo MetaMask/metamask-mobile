@@ -22,6 +22,7 @@ import {
   type ScrollView,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
+import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Logger from '../../../../util/Logger';
 import { playSelection } from '../../../../util/haptics';
@@ -409,6 +410,25 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     [myProfile, navigation],
   );
 
+  const handlePositionPress = useCallback(
+    (post: SocialV1FeedPost) => {
+      if (!post.position) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
+        positionId: post.position.positionId,
+        position: post.position,
+        author: post.item.author,
+        comment: post.item.comment,
+        isClosed:
+          post.item.variant === 'perpsClosed' ||
+          post.item.variant === 'spotClosed',
+      });
+    },
+    [navigation],
+  );
+
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
       <SocialFeedPostEntrance animate={!seenPostIds.has(post.id)}>
@@ -416,10 +436,11 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           post={post}
           onCopyTrade={handleCopyTrade}
           onAuthorPress={handleAuthorPress}
+          onPositionPress={post.position ? handlePositionPress : undefined}
         />
       </SocialFeedPostEntrance>
     ),
-    [handleAuthorPress, handleCopyTrade, seenPostIds],
+    [handleAuthorPress, handleCopyTrade, handlePositionPress, seenPostIds],
   );
 
   const showInitialFeedSkeletons = visibleAssetFeed

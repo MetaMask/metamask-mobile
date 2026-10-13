@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Position } from '@metamask/social-controllers';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -121,5 +122,69 @@ describe('EmptyShellTabPage profile navigation', () => {
       },
       {},
     );
+  });
+
+  it('opens the position details sheet from a live post card tap', () => {
+    const [mockPost] = wrapMockFeedPosts();
+    if (!mockPost) {
+      throw new Error('expected mock feed post');
+    }
+    const position = { positionId: 'position-1' } as Position;
+    const livePost = { ...mockPost, position };
+    mockUseSocialV1Feed.mockReturnValue({
+      ...mockUseSocialV1Feed(),
+      posts: [livePost],
+    });
+
+    renderWithProvider(
+      <QueryClientProvider client={new QueryClient()}>
+        <EmptyShellTabPage
+          tab="trending"
+          isActive
+          containerTestID="trending-page-content"
+          scrollTestID="trending-page-scroll"
+        />
+      </QueryClientProvider>,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(
+        `${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-${livePost.id}`,
+      ),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.POSITION_SHEET,
+      expect.objectContaining({
+        positionId: 'position-1',
+        position,
+        author: livePost.item.author,
+        comment: livePost.item.comment,
+      }),
+    );
+  });
+
+  it('leaves a post without a position untappable', () => {
+    const [firstPost] = wrapMockFeedPosts();
+    if (!firstPost) {
+      throw new Error('expected mock feed post');
+    }
+
+    renderWithProvider(
+      <QueryClientProvider client={new QueryClient()}>
+        <EmptyShellTabPage
+          tab="trending"
+          isActive
+          containerTestID="trending-page-content"
+          scrollTestID="trending-page-scroll"
+        />
+      </QueryClientProvider>,
+    );
+
+    expect(
+      screen.queryByTestId(
+        `${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-${firstPost.id}`,
+      ),
+    ).toBeNull();
   });
 });

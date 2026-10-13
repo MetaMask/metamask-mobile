@@ -125,13 +125,10 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
   const handlePositionPress = useCallback(
     (item: LiveTradeRowModel) => {
       playSelection().catch(() => undefined);
-      navigation.navigate(Routes.SOCIAL.POSITION, {
+      navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
         positionId: item.positionId,
-        traderId: item.traderId,
-        traderAddress: item.traderAddress,
-        source: 'trader_feed',
-        originalEntryPoint: 'trader_feed',
-        isSocialV1: true,
+        position: item.position,
+        author: item.author,
       });
     },
     [navigation],

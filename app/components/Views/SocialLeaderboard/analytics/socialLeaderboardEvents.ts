@@ -168,6 +168,7 @@ export type TraderFollowInteractionSource = Extract<
   | 'trending_carousel'
   | 'profiles_to_follow'
   | 'nux'
+  | 'trader_feed'
 >;
 
 export type FollowTradingTokenSource = Extract<
