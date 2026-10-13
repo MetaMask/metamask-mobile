@@ -1,10 +1,13 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import BigNumber from 'bignumber.js';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyTransferSheet from './MoneyTransferSheet';
+import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
 import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
@@ -38,10 +41,26 @@ const mockInitiatePerpsDeposit = jest.fn().mockResolvedValue(undefined);
 const mockInitiatePredictDeposit = jest.fn().mockResolvedValue(undefined);
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+
+// Default: liquid balance unavailable (row stays Coming soon).
+const mockUseMoneyAccountBalance =
+  useMoneyAccountBalance as unknown as jest.Mock;
+mockUseMoneyAccountBalance.mockReturnValue({
+  liquidMusd: undefined,
+  withdrawableMusd: undefined,
+  isBalanceLoading: false,
+  isBalanceFetchError: false,
+});
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountWithdrawal: jest.fn(),
   useMoneyAccountDeposit: jest.fn(),
+}));
+
+jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 jest.mock(
@@ -72,6 +91,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       goBack: mockGoBack,
+      navigate: mockNavigate,
     }),
   };
 });
@@ -108,6 +128,12 @@ describe('MoneyTransferSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     global.alert = jest.fn();
+    mockUseMoneyAccountBalance.mockReturnValue({
+      liquidMusd: undefined,
+      withdrawableMusd: undefined,
+      isBalanceLoading: false,
+      isBalanceFetchError: false,
+    });
     (useMoneyAccountWithdrawal as jest.Mock).mockReturnValue({
       initiateWithdrawal: mockInitiateWithdrawal,
     });
@@ -153,13 +179,128 @@ describe('MoneyTransferSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders "Coming soon" tags on the last two items', () => {
+  it('renders "Coming soon" tags on the last two items when liquid mUSD is unavailable', () => {
     const { getAllByText } = renderWithProvider(<MoneyTransferSheet />);
 
     const comingSoonTags = getAllByText(
       strings('money.add_money_sheet.coming_soon'),
     );
     expect(comingSoonTags).toHaveLength(2);
+  });
+
+  describe('mUSD rescue send row', () => {
+    const setupMoneyBalance = ({
+      liquidMusd = '99' as string | undefined,
+      withdrawableMusd = '0' as string | undefined,
+      isLoading = false,
+      isError = false,
+    } = {}) => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        liquidMusd:
+          liquidMusd === undefined ? undefined : new BigNumber(liquidMusd),
+        withdrawableMusd:
+          withdrawableMusd === undefined
+            ? undefined
+            : new BigNumber(withdrawableMusd),
+        isBalanceLoading: isLoading,
+        isBalanceFetchError: isError,
+      });
+    };
+
+    it('enables the row when liquid mUSD is positive and vmUSD balance is zero', () => {
+      setupMoneyBalance();
+
+      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      expect(
+        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeEnabled();
+    });
+
+    it('keeps the row disabled when liquid mUSD is zero', () => {
+      setupMoneyBalance({ liquidMusd: '0' });
+
+      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      expect(
+        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeDisabled();
+    });
+
+    it('keeps the row disabled for a vmUSD-only balance (liquid zero)', () => {
+      setupMoneyBalance({ liquidMusd: '0', withdrawableMusd: '25' });
+
+      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      expect(
+        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeDisabled();
+    });
+
+    it('keeps the row disabled when vmUSD-backed balance is nonzero', () => {
+      setupMoneyBalance({ liquidMusd: '99', withdrawableMusd: '0.01' });
+
+      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      expect(
+        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeDisabled();
+    });
+
+    it('keeps the row disabled while the balance is loading', () => {
+      setupMoneyBalance({
+        liquidMusd: undefined,
+        withdrawableMusd: undefined,
+        isLoading: true,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      expect(
+        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeDisabled();
+    });
+
+    it('keeps the row disabled on a balance fetch error', () => {
+      setupMoneyBalance({
+        liquidMusd: undefined,
+        withdrawableMusd: undefined,
+        isError: true,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      expect(
+        getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW),
+      ).toBeDisabled();
+    });
+
+    it('navigates to the rescue review screen when enabled and pressed', () => {
+      setupMoneyBalance();
+
+      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      fireEvent.press(getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW));
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MUSD_RESCUE_SEND);
+    });
+
+    it('tracks the send-external surface click when enabled and pressed', () => {
+      setupMoneyBalance();
+
+      const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+      fireEvent.press(getByTestId(MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW));
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith(
+        expect.objectContaining({
+          component_name:
+            COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_SEND_EXTERNAL,
+          redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
+        }),
+      );
+    });
   });
 
   it('closes the sheet and calls initiateWithdrawal when "Another account" is pressed', () => {

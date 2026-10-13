@@ -1,127 +1,184 @@
-import { captureException } from '@sentry/react-native';
-import migrate, { migrationVersion } from './154';
-import { ensureValidState } from './util';
+import { cloneDeep } from 'lodash';
 
-jest.mock('@sentry/react-native', () => ({
-  captureException: jest.fn(),
-}));
+import migration from './154';
 
-jest.mock('./util', () => ({
-  ensureValidState: jest.fn(),
-}));
-
-const mockedEnsureValidState = jest.mocked(ensureValidState);
-const mockedCaptureException = jest.mocked(captureException);
+interface NetworkControllerState {
+  selectedNetworkClientId?: string;
+  networksMetadata?: Record<string, unknown>;
+  networkConfigurationsByChainId: Record<
+    string,
+    {
+      chainId: string;
+      name: string;
+      nativeCurrency?: string;
+      defaultRpcEndpointIndex: number;
+      blockExplorerUrls: string[];
+      rpcEndpoints: Record<string, unknown>[];
+    }
+  >;
+}
 
 interface TestState {
   engine: {
-    backgroundState: Record<string, unknown>;
-    preserved?: boolean;
-  };
-  preserved?: boolean;
-}
-
-function buildValidState(
-  authenticationController?: Record<string, unknown>,
-): TestState {
-  return {
-    engine: {
-      backgroundState: {
-        ...(authenticationController !== undefined
-          ? { AuthenticationController: authenticationController }
-          : {}),
-        OtherController: { preserved: true },
-      },
-      preserved: true,
-    },
-    preserved: true,
-  };
-}
-
-describe(`Migration ${migrationVersion}: Reset AuthenticationController needsSocialPairing`, () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockedEnsureValidState.mockReturnValue(true);
-  });
-
-  it('reports the expected migration version', () => {
-    expect(migrationVersion).toBe(154);
-  });
-
-  it('sets needsSocialPairing to true when it was false and keeps other fields', () => {
-    const state = buildValidState({
-      isSignedIn: true,
-      needsProfilePairing: false,
-      needsSocialPairing: false,
-      srpSessionData: { id: { accessToken: 'token' } },
-    });
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.AuthenticationController,
-    ).toStrictEqual({
-      isSignedIn: true,
-      needsProfilePairing: false,
-      needsSocialPairing: true,
-      srpSessionData: { id: { accessToken: 'token' } },
-    });
-    expect(result.engine.backgroundState.OtherController).toStrictEqual({
-      preserved: true,
-    });
-    expect(result.engine.preserved).toBe(true);
-    expect(result.preserved).toBe(true);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('sets needsSocialPairing to true when the field is absent', () => {
-    const state = buildValidState({ isSignedIn: false });
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.AuthenticationController,
-    ).toStrictEqual({ isSignedIn: false, needsSocialPairing: true });
-  });
-
-  it('keeps needsSocialPairing true when it is already true', () => {
-    const state = buildValidState({ needsSocialPairing: true });
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.AuthenticationController,
-    ).toStrictEqual({ needsSocialPairing: true });
-  });
-
-  it('does not change state when AuthenticationController is absent', () => {
-    const state = buildValidState();
-    const snapshot = JSON.stringify(state);
-
-    const result = migrate(state);
-
-    expect(JSON.stringify(result)).toBe(snapshot);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('returns state unchanged when ensureValidState fails', () => {
-    mockedEnsureValidState.mockReturnValue(false);
-    const state = { invalid: true };
-
-    const result = migrate(state);
-
-    expect(result).toBe(state);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('returns state unchanged when AuthenticationController is not an object', () => {
-    const state = {
-      engine: { backgroundState: { AuthenticationController: 'invalid' } },
+    backgroundState: {
+      NetworkController: NetworkControllerState;
     };
+  };
+}
 
-    const result = migrate(state);
+const buildState = (
+  networkControllerState: NetworkControllerState,
+): TestState => ({
+  engine: {
+    backgroundState: {
+      NetworkController: networkControllerState,
+    },
+  },
+});
 
-    expect(result).toBe(state);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+const brokenCustomEndpoint = (networkClientId: string) => ({
+  failoverUrls: [],
+  name: 'Arc',
+  networkClientId,
+  type: 'custom',
+  url: 'https://arc-mainnet.infura.io/v3/{infuraProjectId}',
+});
+
+const validInfuraEndpoint = (networkClientId: string) => ({
+  failoverUrls: [],
+  networkClientId,
+  type: 'infura',
+  url: `https://${networkClientId}.infura.io/v3/{infuraProjectId}`,
+});
+
+const VERSION = 154;
+
+describe(`migration #${VERSION}`, () => {
+  const migrate = (state: TestState) => migration(state) as TestState;
+
+  it('converts a broken custom endpoint to an infura endpoint', () => {
+    const oldState = buildState({
+      networkConfigurationsByChainId: {
+        '0x13b0': {
+          chainId: '0x13b0',
+          name: 'Arc',
+          nativeCurrency: 'USDC',
+          defaultRpcEndpointIndex: 0,
+          blockExplorerUrls: [],
+          rpcEndpoints: [brokenCustomEndpoint('a-uuid')],
+        },
+      },
+    });
+
+    const newState = migrate(cloneDeep(oldState));
+    expect(
+      newState.engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId['0x13b0'].rpcEndpoints,
+    ).toStrictEqual([
+      {
+        failoverUrls: [],
+        name: 'Arc',
+        networkClientId: 'arc-mainnet',
+        type: 'infura',
+        url: 'https://arc-mainnet.infura.io/v3/{infuraProjectId}',
+      },
+    ]);
+  });
+
+  it('remaps selectedNetworkClientId and networksMetadata', () => {
+    const oldState = buildState({
+      selectedNetworkClientId: 'old-uuid',
+      networksMetadata: {
+        'old-uuid': { status: 'available', EIPS: { 1559: true } },
+      },
+      networkConfigurationsByChainId: {
+        '0x13b0': {
+          chainId: '0x13b0',
+          name: 'Arc',
+          defaultRpcEndpointIndex: 0,
+          blockExplorerUrls: [],
+          rpcEndpoints: [brokenCustomEndpoint('old-uuid')],
+        },
+      },
+    });
+
+    const newState = migrate(cloneDeep(oldState));
+    const networkState = newState.engine.backgroundState.NetworkController;
+    expect(networkState.selectedNetworkClientId).toBe('arc-mainnet');
+    expect(networkState.networksMetadata).toStrictEqual({
+      'arc-mainnet': { status: 'available', EIPS: { 1559: true } },
+    });
+  });
+
+  it('leaves built-in infura endpoints untouched', () => {
+    const oldState = buildState({
+      networkConfigurationsByChainId: {
+        '0x1': {
+          chainId: '0x1',
+          name: 'Ethereum',
+          defaultRpcEndpointIndex: 0,
+          blockExplorerUrls: [],
+          rpcEndpoints: [validInfuraEndpoint('mainnet')],
+        },
+      },
+    });
+
+    const newState = migrate(cloneDeep(oldState));
+    expect(newState).toStrictEqual(oldState);
+  });
+
+  it('leaves custom endpoints with a real project ID alone', () => {
+    const repairedEndpoint = {
+      networkClientId: 'another-uuid',
+      type: 'custom',
+      url: 'https://arc-mainnet.infura.io/v3/real-project-id',
+    };
+    const oldState = buildState({
+      networkConfigurationsByChainId: {
+        '0x13b0': {
+          chainId: '0x13b0',
+          name: 'Arc',
+          defaultRpcEndpointIndex: 0,
+          blockExplorerUrls: [],
+          rpcEndpoints: [repairedEndpoint],
+        },
+      },
+    });
+
+    const newState = migrate(cloneDeep(oldState));
+    expect(newState).toStrictEqual(oldState);
+  });
+
+  it('does not mutate the input state', () => {
+    const oldState = buildState({
+      selectedNetworkClientId: 'old-uuid',
+      networksMetadata: {
+        'old-uuid': { status: 'available', EIPS: {} },
+      },
+      networkConfigurationsByChainId: {
+        '0x13b0': {
+          chainId: '0x13b0',
+          name: 'Arc',
+          defaultRpcEndpointIndex: 0,
+          blockExplorerUrls: [],
+          rpcEndpoints: [brokenCustomEndpoint('old-uuid')],
+        },
+      },
+    });
+    const snapshot = cloneDeep(oldState);
+
+    migration(oldState);
+
+    expect(oldState).toStrictEqual(snapshot);
+  });
+
+  it('returns state unchanged when NetworkController is missing', () => {
+    const oldState = {
+      engine: { backgroundState: {} },
+    } as unknown as TestState;
+
+    const newState = migrate(cloneDeep(oldState));
+
+    expect(newState).toStrictEqual(oldState);
   });
 });

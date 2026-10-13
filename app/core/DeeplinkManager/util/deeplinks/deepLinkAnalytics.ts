@@ -781,6 +781,7 @@ export const createDeepLinkUsedEventBuilder = async (
       utm_campaign: context.urlParams.utm_campaign,
       utm_term: context.urlParams.utm_term,
       utm_content: context.urlParams.utm_content,
+      referral: context.urlParams.referral,
       target: route === DeepLinkRoute.INVALID ? url : undefined,
     })
     .addSensitiveProperties(sensitiveProperties);

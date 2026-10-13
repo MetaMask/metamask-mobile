@@ -76,6 +76,7 @@ app/core/Engine/controllers/ramps-controller           @MetaMask/money-movement
 app/core/Engine/messengers/ramps-controller-messenger  @MetaMask/money-movement
 app/core/Engine/messengers/ramps-service-messenger     @MetaMask/money-movement
 app/selectors/rampsController                          @MetaMask/money-movement
+app/selectors/kycController                            @MetaMask/universal-kyc
 **/Ramp/**                                              @MetaMask/money-movement
 **/ramp/**                                              @MetaMask/money-movement
 **/ramps/**                                             @MetaMask/money-movement
@@ -371,6 +372,7 @@ app/components/Views/Onboarding                             @MetaMask/web3auth
 app/components/Views/OnboardingSheet                        @MetaMask/web3auth
 app/components/Views/OnboardingSuccess                      @MetaMask/web3auth
 app/components/Views/ChoosePassword                         @MetaMask/web3auth
+app/components/Views/shared/PasswordResetWarningSheet   @MetaMask/web3auth
 app/components/Views/ManualBackupStep1                      @MetaMask/web3auth
 app/components/Views/ManualBackupStep2                      @MetaMask/web3auth
 app/components/Views/ManualBackupStep3                      @MetaMask/web3auth
@@ -385,6 +387,7 @@ app/components/Views/WalletCreationError                    @MetaMask/web3auth
 app/components/Views/OAuthRehydration                       @MetaMask/web3auth
 app/components/Views/RevealPrivateCredential                @MetaMask/web3auth
 app/reducers/onboarding                                     @MetaMask/web3auth
+app/components/Approvals/ConfirmMembershipApproval          @MetaMask/web3auth
 
 # Delegation team
 app/core/Engine/controllers/gator-permissions-controller              @MetaMask/delegation
