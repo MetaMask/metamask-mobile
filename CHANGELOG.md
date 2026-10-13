@@ -129,6 +129,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue that could prevent social-login users from restoring their wallet on a new device (#36847)
 - Fixed identity verification reusing the previous wallet's email after a wallet reset without closing the app (#36340)
 - Fixed Perps Pro order form inputs flashing or losing focus on Android (#37471)
+- Fixed adding funds to a Money Account from a Ledger account failing with a signing error (#37130)
 
 ## [8.14.0]
 
