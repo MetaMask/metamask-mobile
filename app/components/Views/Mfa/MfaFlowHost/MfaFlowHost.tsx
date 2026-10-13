@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { SlideInDown } from 'react-native-reanimated';
 import {
   StackActions,
   useNavigation,
@@ -125,9 +125,11 @@ const MfaFlowHost = () => {
     );
   }
 
+  // The route is transparent for the picker sheet, so full-screen steps
+  // slide in themselves, as a full-screen modal would.
   return (
-    <SafeAreaView
-      edges={{ bottom: 'additive' }}
+    <Animated.View
+      entering={SlideInDown}
       style={tw.style('flex-1 bg-default')}
       testID={`${MfaFlowSelectorsIDs.CONTAINER}-${step.name}`}
     >
@@ -137,7 +139,7 @@ const MfaFlowHost = () => {
         includesTopInset
       />
       {renderStep()}
-    </SafeAreaView>
+    </Animated.View>
   );
 };
 

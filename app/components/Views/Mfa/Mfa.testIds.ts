@@ -17,6 +17,8 @@ export const MfaSettingsSelectorsIDs = {
   CONTAINER: 'mfa-settings',
   EMAIL_ROW: 'mfa-settings-email-row',
   EMAIL_BUTTON: 'mfa-settings-email-button',
+  PASSKEY_ROW: 'mfa-settings-passkey-row',
+  PASSKEY_BUTTON: 'mfa-settings-passkey-button',
   QA_PRESETS: 'mfa-settings-qa-presets',
   QA_RESULT: 'mfa-settings-qa-result',
 } as const;

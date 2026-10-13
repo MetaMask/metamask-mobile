@@ -269,12 +269,6 @@ describe('createMfaFlow', () => {
       await act(flow, { type: 'continue' });
       await act(flow, { type: 'submitEmail', email: 'new@b.co' });
       await act(flow, { type: 'submitCode', code: '111111' });
-      expect(flow.getState()).toMatchObject({
-        step: { name: 'passkey', purpose: 'setup' },
-        progress: { current: 2, total: 2 },
-      });
-
-      await act(flow, { type: 'continue' });
       expect(flow.getState().step).toStrictEqual({ name: 'success' });
       expect(adapter.create).toHaveBeenCalledTimes(1);
       expect(adapter.get).not.toHaveBeenCalled();
@@ -309,12 +303,6 @@ describe('createMfaFlow', () => {
       });
 
       await act(flow, { type: 'submitCode', code: '123456' });
-      expect(flow.getState().step).toStrictEqual({
-        name: 'passkey',
-        purpose: 'setup',
-      });
-
-      await act(flow, { type: 'continue' });
       expect(flow.getState().step).toStrictEqual({ name: 'success' });
       expect(fake.controller.beginCredentialVerification).toHaveBeenCalledTimes(
         1,
@@ -345,13 +333,22 @@ describe('createMfaFlow', () => {
 
     it('rejects with flow_cancelled and the methods already set up when the user backs out', async () => {
       const fake = createFakeController([]);
+      const adapter = createPasskeyAdapter();
+      adapter.create.mockRejectedValueOnce(
+        new MfaFlowError('passkey_ceremony_cancelled'),
+      );
       const { flow, outcome } = await startFlow(KALSHI, fake.controller, {
-        passkey: createPasskeyAdapter(),
+        passkey: adapter,
       });
 
       await act(flow, { type: 'continue' });
       await act(flow, { type: 'submitEmail', email: 'new@b.co' });
       await act(flow, { type: 'submitCode', code: '111111' });
+      expect(flow.getState()).toMatchObject({
+        step: { name: 'passkey', purpose: 'setup' },
+        progress: { current: 2, total: 2 },
+        error: 'passkey_ceremony_cancelled',
+      });
       await act(flow, { type: 'cancel' });
 
       const result = await outcome;
@@ -797,12 +794,6 @@ describe('createMfaFlow', () => {
       );
 
       await act(flow, { type: 'continue' });
-      expect(flow.getState().step).toStrictEqual({
-        name: 'passkey',
-        purpose: 'setup',
-      });
-
-      await act(flow, { type: 'continue' });
       expect(passkeyAdapter.create).toHaveBeenCalled();
       expect(
         fake.controller.beginCredentialVerification,
@@ -836,7 +827,7 @@ describe('createMfaFlow', () => {
       });
     });
 
-    it('stays on the passkey screen when the system sheet is dismissed', async () => {
+    it('shows the passkey screen only when the system sheet is dismissed', async () => {
       const fake = createFakeController([passkey]);
       passkeyAdapter.get.mockRejectedValueOnce(
         Object.assign(new Error('cancelled'), {
@@ -848,13 +839,13 @@ describe('createMfaFlow', () => {
         fake.controller,
       );
 
-      await act(flow, { type: 'continue' });
       expect(flow.getState()).toMatchObject({
         step: { name: 'passkey', purpose: 'verify' },
         error: 'passkey_ceremony_cancelled',
       });
 
-      await act(flow, { type: 'retry' });
+      await act(flow, { type: 'continue' });
+      expect(passkeyAdapter.get).toHaveBeenCalledTimes(2);
       expect(flow.getState().step).toStrictEqual({ name: 'success' });
     });
   });

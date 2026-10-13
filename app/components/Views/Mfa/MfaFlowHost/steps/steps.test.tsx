@@ -11,6 +11,7 @@ import CodeStep from './CodeStep';
 import EmailEntryStep from './EmailEntryStep';
 import FailureStep from './FailureStep';
 import IntroStep from './IntroStep';
+import PasskeyStep from './PasskeyStep';
 import PickerStep from './PickerStep';
 import SuccessStep, { SUCCESS_AUTO_CLOSE_MS } from './SuccessStep';
 
@@ -366,6 +367,10 @@ describe('CodeStep', () => {
     expect(queryByTestId(MfaFlowSelectorsIDs.ERROR)).toBeNull();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON));
     expect(onAction).not.toHaveBeenCalled();
+    act(() => {
+      jest.advanceTimersByTime(1_000);
+    });
+    expect(getByText('Resend code in 29s')).toBeOnTheScreen();
   });
 
   it('pastes a copied code and submits it', async () => {
@@ -436,6 +441,27 @@ describe('CodeStep', () => {
     const { getByText } = renderCode(otp(true), { codeResent: true });
 
     expect(getByText('We sent you a new code.')).toBeOnTheScreen();
+  });
+});
+
+describe('PasskeyStep', () => {
+  it('shows why the passkey failed and tries again', () => {
+    const onAction = jest.fn();
+    const { getByText, getByTestId } = render(
+      <PasskeyStep
+        {...buildState(
+          { name: 'passkey', purpose: 'verify' },
+          { error: 'passkey_ceremony_cancelled' },
+        )}
+        reason={reason}
+        onAction={onAction}
+      />,
+    );
+
+    expect(getByText('Use your passkey')).toBeOnTheScreen();
+    expect(getByText('Passkey request was cancelled.')).toBeOnTheScreen();
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    expect(onAction).toHaveBeenCalledWith({ type: 'continue' });
   });
 });
 

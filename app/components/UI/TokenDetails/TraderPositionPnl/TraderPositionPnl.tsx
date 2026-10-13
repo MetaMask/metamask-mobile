@@ -14,6 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
+import type { TraderPositionPnlDetailsProps } from './TraderPositionPnlDetails';
 
 const DEFAULT_TEST_ID = 'token-details-trader-position-pnl';
 
@@ -28,8 +29,10 @@ export interface TraderPositionPnlProps {
   };
   /** Shows the initial loading skeleton when no position value is available. */
   isLoading?: boolean;
-  /** Current expanded state, controlled by the future expanded-details flow. */
+  /** Current expanded state of the position footer. */
   isExpanded?: boolean;
+  /** Content shown inside the expanded position footer. */
+  expandedDetails?: TraderPositionPnlDetailsProps;
   /** Called when the collapsed position header is toggled. */
   onToggleExpanded?: (isExpanded: boolean) => void;
   /** Test ID for the position header. */

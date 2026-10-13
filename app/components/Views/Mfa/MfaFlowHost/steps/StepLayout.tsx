@@ -15,6 +15,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type {
   MfaFlowAction,
   MfaFlowErrorCode,
@@ -111,10 +112,14 @@ const StepLayout = ({
   footer,
 }: StepLayoutProps) => {
   const tw = useTailwind();
+  const { bottom } = useSafeAreaInsets();
   return (
     <KeyboardAvoidingView
       style={tw.style('flex-1')}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      // Over the keyboard, the footer keeps the designs' 24px gap rather than
+      // the home indicator's.
+      keyboardVerticalOffset={16 - bottom}
     >
       <ScrollView
         contentContainerStyle={tw.style('px-4 pt-4 pb-6 gap-4')}
@@ -129,7 +134,14 @@ const StepLayout = ({
         {children}
         {error ? <StepError code={error} /> : null}
       </ScrollView>
-      {footer ? <Box twClassName="px-4 pt-4 pb-2 gap-2">{footer}</Box> : null}
+      {footer ? (
+        <Box
+          twClassName="px-4 pt-4 gap-2"
+          style={{ paddingBottom: 8 + bottom }}
+        >
+          {footer}
+        </Box>
+      ) : null}
     </KeyboardAvoidingView>
   );
 };

@@ -1392,6 +1392,8 @@
       "retry": "Try again",
       "posting": "Posting...",
       "post_failed": "Couldn't create post. Try again.",
+      "linked_account_missing": "Your linked Social account isn't in this wallet.",
+      "showing_linked_account": "Showing positions from {{account}}",
       "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
     },
     "post_swap_share": {
@@ -1566,12 +1568,16 @@
       "following": "following",
       "followers_tab": "{{count}} followers",
       "following_tab": "{{count}} following",
+      "mutuals_tab": "{{count}} mutuals",
       "win_rate": "Win rate",
       "pnl": "P&L",
       "hold_time": "Hold time",
       "times_copied": "Times copied",
       "empty_following": "You aren't following anyone yet.",
+      "empty_trader_following": "Not following anyone yet.",
       "empty_followers": "No followers yet.",
+      "empty_mutuals": "No mutual followers yet.",
+      "load_error": "Couldn't load this list",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
       "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
@@ -5756,8 +5762,11 @@
       "unrealised": "Unrealised PNL",
       "average_cost": "Average cost",
       "realized": "Realized",
+      "realized_pnl": "Realized P&L",
       "unrealized": "Unrealized",
+      "unrealized_pnl": "Unrealized P&L",
       "hold_time": "Hold time",
+      "share_to_feed": "Share to feed",
       "loading": "Loading position",
       "shown_in_usd": "Shown in USD"
     },
@@ -8223,9 +8232,7 @@
     },
     "passkey": {
       "title_setup": "Create a passkey",
-      "title_verify": "Use your passkey",
-      "description": "Your device will ask you to confirm.",
-      "continue": "Continue"
+      "title_verify": "Use your passkey"
     },
     "success": {
       "title": "You're all set",
@@ -8258,7 +8265,9 @@
       "email_linked": "Linked to your sign-in",
       "email_pending": "Setup not finished",
       "set_up": "Set up",
-      "finish_setup": "Finish setup"
+      "finish_setup": "Finish setup",
+      "passkey_count": "{{count}} added",
+      "add_another": "Add another"
     }
   },
   "media_player": {
