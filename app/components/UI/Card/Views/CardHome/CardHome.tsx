@@ -234,25 +234,23 @@ const CardHome = () => {
 
   const isBlocked = data?.card?.status === CardStatus.BLOCKED;
 
+  const platformWallet = getWalletTypeForPlatform();
+  const platformWalletSupported =
+    platformWallet === 'apple_wallet'
+      ? capabilities?.pushProvisioning?.applePay === true
+      : capabilities?.pushProvisioning?.googlePay === true;
   const {
     initiateProvisioning,
     isProvisioning,
     isLoading: isPushProvisioningLoading,
     canAddToWallet,
     isCardInWallet,
-  } = useCardWalletProvisioning(data);
+    walletEntry,
+  } = useCardWalletProvisioning(data, { platformWalletSupported });
   useApplePaySplashPrompt({
     canAddToWallet,
     isPushProvisioningLoading,
   });
-  const platformWallet = getWalletTypeForPlatform();
-  const platformWalletSupported =
-    platformWallet === 'apple_wallet'
-      ? capabilities?.pushProvisioning?.applePay === true
-      : capabilities?.pushProvisioning?.googlePay === true;
-  const showDigitalWalletInstructions =
-    !platformWalletSupported ||
-    (!isPushProvisioningLoading && !canAddToWallet && !isCardInWallet);
   const handleLearnMoreAboutApplePay = useCallback(() => {
     Linking.openURL(APPLE_PAY_LEARN_MORE_URL).catch(() => undefined);
   }, []);
@@ -858,7 +856,7 @@ const CardHome = () => {
             </Box>
           )}
 
-        {!isLoading && canAddToWallet && !isUkMigrationForced && (
+        {!isLoading && walletEntry === 'push' && !isUkMigrationForced && (
           <Box twClassName="w-full px-4 pt-4 items-center justify-center">
             {isProvisioning ? (
               <Box twClassName="py-3">
@@ -945,7 +943,7 @@ const CardHome = () => {
             onToggleFreeze={actions.handleToggleFreeze}
             onManageSpendingLimit={actions.manageSpendingLimitAction}
             onContactDetails={actions.contactDetailsAction}
-            showDigitalWalletInstructions={showDigitalWalletInstructions}
+            showDigitalWalletInstructions={walletEntry === 'instructions'}
             onDigitalWalletInstructions={
               actions.digitalWalletInstructionsAction
             }
