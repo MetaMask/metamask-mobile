@@ -1,4 +1,5 @@
 import TimerStore from './TimerStore';
+import { THRESHOLD_MARGIN } from './quality-gates/thresholdMargin';
 import {
   clampInfraSubtractionMs,
   startOverheadTracking,
@@ -10,8 +11,6 @@ export interface PlatformThreshold {
   ios: number;
   android: number;
 }
-
-const THRESHOLD_MARGIN = 0.1; // 10% margin
 
 /**
  * Helper class that wraps a TimerStore timer with threshold-based
@@ -27,7 +26,7 @@ class TimerHelper {
   /**
    * Creates a new TimerHelper and registers a timer in the store.
    * @param id - Timer description/identifier
-   * @param threshold - Platform-specific thresholds in ms (effective threshold = base + 10%)
+   * @param threshold - Platform-specific thresholds in ms (effective threshold = base + THRESHOLD_MARGIN_PERCENT)
    * @param currentPlatform - The current platform of the device being tested
    */
   constructor(
@@ -205,7 +204,7 @@ class TimerHelper {
     return this._baseThreshold;
   }
 
-  /** Returns the effective threshold (base + 10% margin). */
+  /** Returns the effective threshold (base + THRESHOLD_MARGIN_PERCENT margin). */
   get threshold(): number | null {
     if (this._baseThreshold === null) {
       return null;

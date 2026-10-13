@@ -2,6 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import { createLogger } from '../framework/logger';
+import { THRESHOLD_MARGIN_PERCENT } from '../framework/quality-gates/thresholdMargin';
 import {
   QualityGatesValidator,
   QualityGatesReportFormatter,
@@ -709,7 +710,8 @@ class PerformanceReporter {
           metrics: {
             steps: metric.steps || [],
             timestamp: metric.timestamp || new Date().toISOString(),
-            thresholdMarginPercent: metric.thresholdMarginPercent ?? 10,
+            thresholdMarginPercent:
+              metric.thresholdMarginPercent ?? THRESHOLD_MARGIN_PERCENT,
             team: metric.team ?? null,
             total: metric.total || 0,
             totalThreshold: metric.totalThreshold ?? null,

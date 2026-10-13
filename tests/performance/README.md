@@ -327,7 +327,7 @@ The performance tracking system consists of three main components:
 `TimerHelper` is the core class for measuring performance. It supports:
 
 - Platform-specific thresholds (iOS vs Android)
-- Automatic 10% margin on thresholds
+- Automatic 15% margin on thresholds
 - Multiple measurement patterns
 
 ```typescript
@@ -411,7 +411,7 @@ perfTest(
 ### How Thresholds Work
 
 1. **Base Threshold**: The target time you define per platform
-2. **Effective Threshold**: Base + 10% margin (automatic)
+2. **Effective Threshold**: Base + 15% margin (automatic)
 3. **Validation**: Test fails if any timer exceeds its effective threshold
 
 ```typescript
@@ -454,12 +454,12 @@ When thresholds are defined, you'll see console output like:
 Test: My Performance Test
 Status: ✅ PASSED
 ───────────────────────────────────────────────────────────────
-✅ Step 1: 850ms [threshold: 1100ms (base: 1000ms +10%)]
+✅ Step 1: 850ms [threshold: 1150ms (base: 1000ms +15%)]
    └─ Time for button tap to screen load
-✅ Step 2: 1200ms [threshold: 1650ms (base: 1500ms +10%)]
+✅ Step 2: 1200ms [threshold: 1725ms (base: 1500ms +15%)]
    └─ Time for data to load
 ───────────────────────────────────────────────────────────────
-✅ Total: 2050ms [threshold: 2750ms]
+✅ Total: 2050ms [threshold: 2875ms]
 ═══════════════════════════════════════════════════════════════
 ```
 
@@ -893,7 +893,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
 
 **Quality gates failing unexpectedly**
 
-- Review threshold values (remember +10% margin)
+- Review threshold values (remember +15% margin)
 - Check if platform-specific threshold is appropriate
 - Consider network/device variability
 
