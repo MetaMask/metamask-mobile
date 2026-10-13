@@ -160,11 +160,10 @@ class AppDelegate: ExpoAppDelegate {
     return super.application(application, open: url, options: options) ||
       RCTLinkingManager.application(application, open: url, options: options)
 #elseif E2E
-    // E2E builds have no Branch key, so Branch never starts a session and drops
-    // non-Branch custom-scheme URLs instead of forwarding them as +non_branch_link.
-    // Hand those to React Native directly; Branch links still go to Branch.
-    return RNBranch.application(application, open: url, options: options) ||
-      RCTLinkingManager.application(application, open: url, options: options)
+    // E2E builds have no Branch key, so Branch never starts a session and would
+    // drop custom-scheme URLs instead of forwarding them to JS. Route them
+    // straight to React Native.
+    return RCTLinkingManager.application(application, open: url, options: options)
 #else
     return RNBranch.application(application, open: url, options: options)
 #endif
