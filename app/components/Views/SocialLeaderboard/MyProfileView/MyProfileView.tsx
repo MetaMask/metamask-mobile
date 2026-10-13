@@ -24,7 +24,6 @@ import type { Position } from '@metamask/social-controllers';
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import React, { Fragment, useCallback, useMemo, useState } from 'react';
@@ -41,7 +40,10 @@ import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import type {
+  AppStackNavigationProp,
+  RootStackParamList,
+} from '../../../../core/NavigationService/types';
 import { playSelection } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -127,7 +129,7 @@ const INITIAL_POST_SKELETON_KEYS = Array.from(
 );
 
 const MyProfileView: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<
       RouteProp<RootStackParamList, 'MyProfileView' | 'SocialV1ProfileView'>
@@ -234,21 +236,23 @@ const MyProfileView: React.FC = () => {
     navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE);
   }, [navigation]);
   const handleFollowersPress = useCallback(() => {
-    if (!isOwner) {
+    if (!isOwner && !addressOrId) {
       return;
     }
-    navigation.navigate(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+    navigation.push(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
       initialTab: 'followers',
+      ...(isOwner ? {} : { addressOrId }),
     });
-  }, [isOwner, navigation]);
+  }, [addressOrId, isOwner, navigation]);
   const handleFollowingPress = useCallback(() => {
-    if (!isOwner) {
+    if (!isOwner && !addressOrId) {
       return;
     }
-    navigation.navigate(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+    navigation.push(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
       initialTab: 'following',
+      ...(isOwner ? {} : { addressOrId }),
     });
-  }, [isOwner, navigation]);
+  }, [addressOrId, isOwner, navigation]);
   const handleOpenComposer = useCallback(() => {
     playSelection().catch(() => undefined);
     openComposer();
@@ -492,7 +496,11 @@ const MyProfileView: React.FC = () => {
               <MyProfileHeader
                 profile={displayProfile}
                 overlayedStats={overlayedStats}
-                followingCount={following.length}
+                followingCount={
+                  isOwner
+                    ? following.length
+                    : (displayProfile.followingCount ?? 0)
+                }
                 isOwner={isOwner}
                 onFollowersPress={handleFollowersPress}
                 onFollowingPress={handleFollowingPress}
