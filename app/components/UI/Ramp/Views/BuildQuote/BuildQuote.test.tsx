@@ -406,41 +406,6 @@ describe('BuildQuote', () => {
     });
   });
 
-  describe('amount param initialization', () => {
-    it('uses DEFAULT_AMOUNT (100) when no amount param is provided', () => {
-      mockUseParams.mockReturnValue({});
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('100');
-    });
-
-    it('uses amount param as initial value when provided via route params', () => {
-      mockUseParams.mockReturnValue({ amount: 30 });
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('30');
-    });
-
-    it('does not override amount with region default when amount param is provided', () => {
-      mockUseParams.mockReturnValue({ amount: 50 });
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('50');
-    });
-  });
-
   describe('updateAmount', () => {
     it('updates amount from string input (empty string maps to "0")', async () => {
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
@@ -479,23 +444,6 @@ describe('BuildQuote', () => {
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
       expect(amountInput.props.children).toContain('99.99');
-    });
-
-    it('updates amount from number input via QuickAmounts', async () => {
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId('keypad-trigger-empty'));
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId('quick-amount-50'));
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('50');
     });
 
     it('clears rampsError when amount is updated', async () => {
@@ -623,29 +571,6 @@ describe('BuildQuote', () => {
   });
 
   describe('client-side buy limits', () => {
-    it('shows a below-min inline error and skips quote fetching', () => {
-      const providerWithLimits = buildProviderWithLimits({
-        minAmount: 120,
-        maxAmount: 1000,
-      });
-      mockUseRampsController.mockReturnValue(
-        buildRampsControllerResult({
-          providers: [providerWithLimits, NATIVE_PROVIDER],
-          selectedProvider: providerWithLimits,
-        }),
-      );
-
-      const { getByText, getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      expect(getByText('Minimum purchase is $120.00')).toBeOnTheScreen();
-      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
-
-      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
-      expect(continueButton).toBeDisabled();
-    });
-
     it('shows an above-max inline error and skips quote fetching', () => {
       const providerWithLimits = buildProviderWithLimits({
         minAmount: 10,

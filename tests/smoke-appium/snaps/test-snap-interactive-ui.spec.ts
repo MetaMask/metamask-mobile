@@ -16,7 +16,8 @@ import { PlatformDetector } from '../../framework/PlatformLocator.js';
 
 appiumTest.describe(SmokeSnaps('Interactive UI Snap Tests'), () => {
   // Serial: later cases reuse the Snap / session from the connect test.
-  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
+  // Android install allows 60s per sheet. Login plus three sheets exceeds 150s.
+  appiumTest.describe.configure({ mode: 'serial', timeout: 240_000 });
 
   appiumTest(
     'can connect to the Interactive UI Snap',
