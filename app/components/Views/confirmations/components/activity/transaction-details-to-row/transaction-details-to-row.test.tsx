@@ -22,10 +22,6 @@ jest.mock('../../../utils/transaction', () => ({
   ...jest.requireActual('../../../utils/transaction'),
   parseStandardTokenTransactionData: jest.fn(),
 }));
-jest.mock(
-  '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount',
-  () => () => null,
-);
 jest.mock('../../../../../UI/Name/Name', () => {
   const { Text } = jest.requireActual('react-native');
   return {

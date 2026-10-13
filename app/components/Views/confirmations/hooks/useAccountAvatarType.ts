@@ -1,8 +1,8 @@
 import { useSelector } from 'react-redux';
 
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { type AccountAvatarVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 
-export function useAccountAvatarType(): AvatarAccountType {
+export function useAccountAvatarType(): AccountAvatarVariant {
   return useSelector(selectAvatarAccountType);
 }

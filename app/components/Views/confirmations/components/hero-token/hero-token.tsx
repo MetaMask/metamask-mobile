@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import {
+  AvatarTokenSize,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
@@ -13,7 +17,6 @@ import { TooltipModal } from '../UI/Tooltip/Tooltip';
 import AnimatedPulse from '../UI/animated-pulse';
 import { AvatarTokenWithNetworkBadge } from './avatar-token-with-network-badge';
 import styleSheet from './hero-token.styles';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const AssetAmount = ({
   amount,
@@ -87,7 +90,7 @@ const HeroTokenHorizontal = ({ amountWei }: { amountWei?: string }) => {
               )}
             </View>
             <View style={styles.iconContainer}>
-              <AvatarTokenWithNetworkBadge size={AvatarSize.Lg} />
+              <AvatarTokenWithNetworkBadge size={AvatarTokenSize.Lg} />
             </View>
           </View>
         </View>

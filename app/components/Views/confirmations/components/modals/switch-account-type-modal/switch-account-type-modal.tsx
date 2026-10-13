@@ -3,19 +3,18 @@ import { Hex } from '@metamask/utils';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
+  AvatarAccount,
+  AvatarAccountSize,
   BottomSheet,
   BottomSheetHeader,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../../component-library/components/Avatars/Avatar';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import { getAvatarAccountVariant } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
 import Spinner from '../../../../../UI/AnimatedSpinner';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useEIP7702Networks } from '../../../hooks/7702/useEIP7702Networks';
@@ -48,6 +47,7 @@ const SwitchAccountTypeModal = () => {
     route?.params?.address ?? (selectedAccountAddress as Hex | undefined);
   const { network7702List, pending } = useEIP7702Networks(address ?? '');
   const internalAccounts = useSelector(selectInternalAccounts);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
   const account = internalAccounts.find(
     ({ address: accAddress }) => accAddress === address,
   );
@@ -87,10 +87,10 @@ const SwitchAccountTypeModal = () => {
         ) : (
           <>
             <View style={styles.account_info}>
-              <Avatar
-                variant={AvatarVariant.Account}
-                size={AvatarSize.Md}
-                accountAddress={address}
+              <AvatarAccount
+                size={AvatarAccountSize.Md}
+                address={address}
+                variant={getAvatarAccountVariant(accountAvatarType)}
               />
               <Text style={styles.account_name} variant={TextVariant.HeadingMd}>
                 {account?.metadata.name}
