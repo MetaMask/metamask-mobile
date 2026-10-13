@@ -490,7 +490,7 @@ describe('PasskeyStep', () => {
 describe('FailureStep', () => {
   it('offers a retry when the error allows it', () => {
     const onAction = jest.fn();
-    const { getByTestId, getByText } = render(
+    const { getByTestId, getByText, queryByText } = render(
       <FailureStep
         {...buildState({
           name: 'failure',
@@ -502,7 +502,8 @@ describe('FailureStep', () => {
       />,
     );
 
-    expect(getByText('Something went wrong. Try again.')).toBeOnTheScreen();
+    expect(getByText('Something went wrong')).toBeOnTheScreen();
+    expect(queryByText('Something went wrong. Try again.')).toBeNull();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
     expect(onAction).toHaveBeenCalledWith({ type: 'retry' });
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON));
