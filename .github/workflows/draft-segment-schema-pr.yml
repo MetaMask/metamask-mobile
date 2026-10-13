@@ -46,7 +46,7 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: Consensys
           repositories: segment-schema
-      - uses: MetaMask/github-tools/.github/actions/draft-segment-schema-pr@88e4fdb33f64b632b8f426e5f1190621ef6fdc1d
+      - uses: MetaMask/github-tools/.github/actions/draft-segment-schema-pr@670ecb81b46dba53c0c357f3e0c50ff024751c4a
         with:
           platform: mobile
           mode: propose
@@ -98,7 +98,7 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: Consensys
           repositories: segment-schema
-      - uses: MetaMask/github-tools/.github/actions/draft-segment-schema-pr@88e4fdb33f64b632b8f426e5f1190621ef6fdc1d
+      - uses: MetaMask/github-tools/.github/actions/draft-segment-schema-pr@670ecb81b46dba53c0c357f3e0c50ff024751c4a
         with:
           platform: mobile
           mode: create
@@ -130,7 +130,7 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: Consensys
           repositories: segment-schema
-      - uses: MetaMask/github-tools/.github/actions/draft-segment-schema-pr@88e4fdb33f64b632b8f426e5f1190621ef6fdc1d
+      - uses: MetaMask/github-tools/.github/actions/draft-segment-schema-pr@670ecb81b46dba53c0c357f3e0c50ff024751c4a
         with:
           platform: mobile
           mode: close
