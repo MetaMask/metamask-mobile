@@ -46,6 +46,36 @@ describe('TokenAmountValue', () => {
     expect(queryByTestId(TokenAvatarSelectorsIDs.TOKEN)).toBeNull();
   });
 
+  it('does not render the token symbol by default', () => {
+    const { queryByTestId } = render(
+      <TokenAmountValue amount="$1.69" token={mockToken} />,
+    );
+
+    expect(queryByTestId(TokenAmountValueSelectorsIDs.SYMBOL)).toBeNull();
+  });
+
+  it('renders the amount, avatar and token symbol when showTokenSymbol is true', () => {
+    const { getByTestId } = render(
+      <TokenAmountValue amount="$1.69" token={mockToken} showTokenSymbol />,
+    );
+
+    expect(getByTestId(TokenAmountValueSelectorsIDs.AMOUNT)).toHaveTextContent(
+      '$1.69',
+    );
+    expect(getByTestId(TokenAvatarSelectorsIDs.TOKEN)).toBeOnTheScreen();
+    expect(getByTestId(TokenAmountValueSelectorsIDs.SYMBOL)).toHaveTextContent(
+      'ETH',
+    );
+  });
+
+  it('does not render the token symbol without a token', () => {
+    const { queryByTestId } = render(
+      <TokenAmountValue amount="--" showTokenSymbol />,
+    );
+
+    expect(queryByTestId(TokenAmountValueSelectorsIDs.SYMBOL)).toBeNull();
+  });
+
   it('renders a network badge on the avatar when withNetworkBadge is true', () => {
     const { getByTestId } = render(
       <TokenAmountValue amount="$1.69" token={mockToken} withNetworkBadge />,
