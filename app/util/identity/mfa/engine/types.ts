@@ -200,7 +200,6 @@ export type MfaFlowStep =
   | { name: 'emailEntry'; prefillEmail?: string }
   | { name: 'otp'; purpose: MfaPurpose; email?: string; codeSent: boolean }
   | { name: 'passkey'; purpose: MfaPurpose }
-  | { name: 'success' }
   | { name: 'failure'; code: MfaFlowErrorCode; canRetry: boolean };
 
 export interface MfaFlowState {

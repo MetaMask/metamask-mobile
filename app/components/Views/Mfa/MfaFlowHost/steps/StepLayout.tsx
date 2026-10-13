@@ -70,7 +70,7 @@ export const StepError = ({ code }: { code: MfaFlowErrorCode }) => (
 
 /**
  * The step's title and description, centred under an image (the intro and
- * picker shield, the success and failure icons).
+ * picker shield, the failure icon).
  *
  * @param props - The header's props.
  * @param props.title - The title.

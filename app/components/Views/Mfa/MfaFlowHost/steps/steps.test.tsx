@@ -13,7 +13,6 @@ import FailureStep from './FailureStep';
 import IntroStep from './IntroStep';
 import PasskeyStep from './PasskeyStep';
 import PickerStep from './PickerStep';
-import SuccessStep, { SUCCESS_AUTO_CLOSE_MS } from './SuccessStep';
 
 const reason = { operation: 'test' };
 
@@ -462,26 +461,6 @@ describe('PasskeyStep', () => {
     expect(getByText('Passkey request was cancelled.')).toBeOnTheScreen();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
     expect(onAction).toHaveBeenCalledWith({ type: 'continue' });
-  });
-});
-
-describe('SuccessStep', () => {
-  it('dismisses by itself', () => {
-    jest.useFakeTimers();
-    const onAction = jest.fn();
-    render(
-      <SuccessStep
-        {...buildState({ name: 'success' })}
-        reason={reason}
-        onAction={onAction}
-      />,
-    );
-
-    act(() => {
-      jest.advanceTimersByTime(SUCCESS_AUTO_CLOSE_MS);
-    });
-    expect(onAction).toHaveBeenCalledWith({ type: 'dismiss' });
-    jest.useRealTimers();
   });
 });
 

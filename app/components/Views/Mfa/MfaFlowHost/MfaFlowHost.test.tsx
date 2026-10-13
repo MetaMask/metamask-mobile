@@ -118,7 +118,7 @@ describe('MfaFlowHost', () => {
     await act(async () => getActiveMfaFlow()?.dispatch({ type: 'cancel' }));
   });
 
-  it('runs email setup from entry to success and resolves', async () => {
+  it('runs email setup from entry to the code, then resolves and closes', async () => {
     const controller = createController();
     const { outcome } = await start(
       { kind: 'enroll', method: 'email_otp' },
@@ -157,14 +157,6 @@ describe('MfaFlowHost', () => {
         proof: { type: 'email_otp', code: '123456' },
       }),
     );
-    expect(
-      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-success`),
-    ).toBeOnTheScreen();
-
-    await act(async () => {
-      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
-    });
-
     expect(await outcome).toEqual({
       ok: true,
       value: { credentials: [activeEmail] },
@@ -221,13 +213,6 @@ describe('MfaFlowHost', () => {
         proof: { type: 'email_otp', code: '222222' },
       }),
     );
-    expect(
-      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-success`),
-    ).toBeOnTheScreen();
-    await act(async () => {
-      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
-    });
-
     const result = await outcome;
     expect(result.ok && result.value.token?.claims.amr).toEqual(['email_otp']);
   });

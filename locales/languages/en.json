@@ -8234,10 +8234,6 @@
       "title_setup": "Create a passkey",
       "title_verify": "Use your passkey"
     },
-    "success": {
-      "title": "You're all set",
-      "done": "Done"
-    },
     "failure": {
       "title": "Something went wrong",
       "retry": "Try again",

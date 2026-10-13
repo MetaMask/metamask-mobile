@@ -22,7 +22,6 @@ import PickerStep from './steps/PickerStep';
 import EmailEntryStep from './steps/EmailEntryStep';
 import CodeStep from './steps/CodeStep';
 import PasskeyStep from './steps/PasskeyStep';
-import SuccessStep from './steps/SuccessStep';
 import FailureStep from './steps/FailureStep';
 
 /**
@@ -95,8 +94,6 @@ const MfaFlowHost = () => {
         return <CodeStep {...shared} step={step} />;
       case 'passkey':
         return <PasskeyStep {...shared} step={step} />;
-      case 'success':
-        return <SuccessStep {...shared} step={step} />;
       case 'failure':
         return <FailureStep {...shared} step={step} />;
       default:
