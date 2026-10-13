@@ -8226,9 +8226,7 @@
     },
     "passkey": {
       "title_setup": "Create a passkey",
-      "title_verify": "Use your passkey",
-      "description": "Your device will ask you to confirm.",
-      "continue": "Continue"
+      "title_verify": "Use your passkey"
     },
     "success": {
       "title": "You're all set",
@@ -8260,7 +8258,9 @@
       "email_linked": "Linked to your sign-in",
       "email_pending": "Setup not finished",
       "set_up": "Set up",
-      "finish_setup": "Finish setup"
+      "finish_setup": "Finish setup",
+      "passkey_count": "{{count}} added",
+      "add_another": "Add another"
     }
   },
   "media_player": {
