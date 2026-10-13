@@ -6,6 +6,7 @@ import renderWithProvider from '../../../../../../../util/test/renderWithProvide
 import { PredictHomeSelectorsIDs } from '../../../../Predict.testIds';
 import { PredictEventValues } from '../../../../constants/eventNames';
 import { usePredictPortfolio } from '../../../../hooks/usePredictPortfolio';
+import { GlassView } from 'expo-glass-effect';
 import PredictPortfolioModule from './PredictPortfolioModule';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
@@ -162,6 +163,22 @@ describe('PredictPortfolioModule', () => {
     expect(
       screen.queryByTestId(PREDICT_PORTFOLIO_TEST_IDS.SECONDARY_LINE),
     ).toBeNull();
+  });
+
+  it('draws the Positions, Add funds and Withdraw tiles on glass', () => {
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <PredictPortfolioModule isGlass />,
+    );
+
+    expect(UNSAFE_getAllByType(GlassView)).toHaveLength(3);
+  });
+
+  it('keeps the portfolio tiles off glass by default', () => {
+    const { UNSAFE_queryAllByType } = renderWithProvider(
+      <PredictPortfolioModule />,
+    );
+
+    expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
   });
 
   it('renders returning state with P&L, available balance, and badge', () => {

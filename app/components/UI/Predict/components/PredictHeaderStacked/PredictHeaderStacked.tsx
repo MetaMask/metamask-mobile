@@ -3,6 +3,7 @@ import {
   HeaderStandardAnimated,
   IconName,
 } from '@metamask/design-system-react-native';
+import ButtonIconCapsule from '../../../../../component-library/components-temp/ButtonIconCapsule';
 import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -31,6 +32,8 @@ export interface PredictHeaderStackedProps {
   onBack: () => void;
   /** Search icon handler. Opens the existing Predict search flow. */
   onSearchPress: () => void;
+  /** Seats back and search in header capsules, as on the brand refresh. */
+  isCapsule?: boolean;
   testID?: string;
 }
 
@@ -49,6 +52,7 @@ const PredictHeaderStacked: React.FC<PredictHeaderStackedProps> = ({
   title = strings('wallet.predict'),
   onBack,
   onSearchPress,
+  isCapsule = false,
   testID = PREDICT_HEADER_STACKED_TEST_IDS.HEADER,
 }) => (
   <HeaderStandardAnimated
@@ -69,6 +73,28 @@ const PredictHeaderStacked: React.FC<PredictHeaderStackedProps> = ({
         testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
       },
     ]}
+    startAccessory={
+      isCapsule ? (
+        <ButtonIconCapsule
+          isCapsule
+          iconName={IconName.ArrowLeft}
+          onPress={onBack}
+          accessibilityLabel={strings('navigation.back')}
+          testID={PredictMarketListSelectorsIDs.BACK_BUTTON}
+        />
+      ) : undefined
+    }
+    endAccessory={
+      isCapsule ? (
+        <ButtonIconCapsule
+          isCapsule
+          iconName={IconName.Search}
+          onPress={onSearchPress}
+          accessibilityLabel={strings('predict.search_placeholder')}
+          testID={PredictSearchSelectorsIDs.SEARCH_BUTTON}
+        />
+      ) : undefined
+    }
   />
 );
 

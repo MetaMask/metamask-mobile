@@ -16,6 +16,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import GlassSurface from '../../../../../../../component-library/components-temp/GlassSurface';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
 export interface PredictPortfolioActionProps {
@@ -23,6 +24,7 @@ export interface PredictPortfolioActionProps {
   badgeCount?: number;
   disabled?: boolean;
   iconName: IconName;
+  isGlass?: boolean;
   label: string;
   onPress: () => void;
   testID?: string;
@@ -33,6 +35,7 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
   badgeCount = 0,
   disabled = false,
   iconName,
+  isGlass = false,
   label,
   onPress,
   testID,
@@ -40,7 +43,7 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
   const tw = useTailwind();
   const showBadge = badgeCount > 0;
 
-  return (
+  const button = (
     <ButtonAnimated
       accessibilityLabel={accessibilityLabel ?? label}
       accessible
@@ -50,7 +53,8 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
       style={({ pressed }) =>
         tw.style(
           'flex-1 items-center justify-center rounded-2xl px-1 py-3 min-w-[68px]',
-          pressed && !disabled ? 'bg-muted-pressed' : 'bg-muted',
+          // On glass the surface draws the fill and the press response.
+          !isGlass && (pressed && !disabled ? 'bg-muted-pressed' : 'bg-muted'),
           disabled ? 'opacity-50' : 'opacity-100',
         )
       }
@@ -88,6 +92,22 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
         {label}
       </Text>
     </ButtonAnimated>
+  );
+
+  if (!isGlass) {
+    return button;
+  }
+
+  return (
+    <GlassSurface
+      radiusClassName="rounded-2xl"
+      isInteractive={!disabled}
+      hasSheen
+      containerStyle={tw.style('flex-1 min-w-[68px]')}
+      style={tw.style('flex-1')}
+    >
+      {button}
+    </GlassSurface>
   );
 };
 

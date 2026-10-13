@@ -1,7 +1,11 @@
 import React, { useCallback, useRef } from 'react';
 import { LayoutChangeEvent } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import {
   useNavigation,
   useRoute,
@@ -35,6 +39,11 @@ import PredictFeedBanner from '../../components/PredictFeedBanner';
 import { PredictFeedBannerPosition } from '../../constants/feedBanner';
 import PredictOffline from '../../components/PredictOffline';
 import { usePredictTrendingSection } from './components/PredictTrendingSection/usePredictTrendingSection';
+import FloatingHeader, {
+  useFloatingHeaderInset,
+} from '../../../../../component-library/components-temp/FloatingHeader';
+import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 
 /**
  * Redesigned Predict homepage shell (PRED-834).
@@ -63,6 +72,11 @@ const PredictHome: React.FC = () => {
 
   const { scrollY, titleSectionHeight, onScroll, setTitleSectionHeight } =
     usePredictStackedHeader();
+  const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
+  const isGlass = useIsGlassSurfaceEnabled(selectPredictBrandRefreshEnabled);
+  const safeAreaInsets = useSafeAreaInsets();
+  const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
+    useFloatingHeaderInset(isBrandRefresh, safeAreaInsets.top);
 
   const handleSectionViewed = useCallback(
     (sectionId: string) => {
@@ -144,6 +158,16 @@ const PredictHome: React.FC = () => {
     withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
   }, []);
 
+  const header = (
+    <PredictHeaderStacked
+      scrollY={scrollY}
+      titleSectionHeight={titleSectionHeight}
+      onBack={handleBackPress}
+      onSearchPress={handleShowSearch}
+      isCapsule={isBrandRefresh}
+    />
+  );
+
   return (
     <SafeAreaView
       edges={{ bottom: 'off' }}
@@ -154,15 +178,19 @@ const PredictHome: React.FC = () => {
         twClassName="flex-1"
         style={{ backgroundColor: colors.background.default }}
       >
-        <PredictHeaderStacked
-          scrollY={scrollY}
-          titleSectionHeight={titleSectionHeight}
-          onBack={handleBackPress}
-          onSearchPress={handleShowSearch}
-        />
+        {isBrandRefresh ? (
+          // Mounted before the content so assistive tech reads the header first.
+          <FloatingHeader onLayout={handleFloatingHeaderLayout}>
+            {header}
+          </FloatingHeader>
+        ) : (
+          header
+        )}
 
         {showHomeError ? (
-          <PredictOffline onRetry={retryHome} />
+          <Box twClassName="flex-1" style={{ paddingTop: floatingHeaderInset }}>
+            <PredictOffline onRetry={retryHome} />
+          </Box>
         ) : (
           <Animated.ScrollView
             testID={PredictHomeSelectorsIDs.SCROLL_VIEW}
@@ -171,7 +199,10 @@ const PredictHome: React.FC = () => {
             scrollEventThrottle={16}
             showsVerticalScrollIndicator={false}
             style={tw.style('flex-1')}
-            contentContainerStyle={tw.style('px-4 pb-8')}
+            contentContainerStyle={[
+              tw.style('px-4 pb-8'),
+              { paddingTop: floatingHeaderInset },
+            ]}
           >
             <Box
               testID={PredictHomeSelectorsIDs.TITLE_SECTION}
@@ -191,6 +222,7 @@ const PredictHome: React.FC = () => {
                 position={PredictFeedBannerPosition.BeforePortfolio}
               />
               <PredictPortfolioModule
+                isGlass={isGlass}
                 onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
               />
               <PredictFeedBanner

@@ -17,11 +17,13 @@ import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 import { PredictHomeSelectorsIDs } from '../../../../Predict.testIds';
 
 export interface PredictPortfolioModuleProps {
+  isGlass?: boolean;
   onDepositWalletWithdrawPress?: () => void;
   onPositionsPress?: () => void;
 }
 
 const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
+  isGlass = false,
   onDepositWalletWithdrawPress,
   onPositionsPress,
 }) => {
@@ -166,6 +168,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
       />
 
       <PredictPortfolioActions
+        isGlass={isGlass}
         isWithdrawDisabled={isWithdrawDisabled}
         onAddFundsPress={handleAddFundsPress}
         onPositionsPress={handlePositionsPress}
