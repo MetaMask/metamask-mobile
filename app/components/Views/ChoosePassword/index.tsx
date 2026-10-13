@@ -110,7 +110,7 @@ import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboar
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
-import PasswordResetWarningSheet from './PasswordResetWarningSheet';
+import PasswordResetWarningSheet from '../shared/PasswordResetWarningSheet/PasswordResetWarningSheet';
 
 interface KeyringState {
   type: string;

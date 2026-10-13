@@ -693,7 +693,6 @@
     "re_enter_password": "Passwort erneut eingeben",
     "use_at_least_8_characters": "Verwenden Sie mindestens 8 Zeichen",
     "unlock_with_face_id": "Mit Face ID entsperren?",
-    "learn_more": "Wenn ich dieses Passwort vergesse, kann MetaMask es nicht für mich wiederherstellen.",
     "learn_more_social_login": "Wenn ich dieses Passwort vergesse, verliere ich dauerhaft den Zugang zu meiner Wallet. MetaMask kann es nicht für mich zurücksetzen.",
     "seed_phrase_length_error": "Geheime Wiederherstellungsphrase muss 12, 15, 18, 21 oder 24 Wörter umfassen",
     "continue": "Fortfahren",
