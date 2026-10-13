@@ -8,10 +8,18 @@ export const VbaIllustrationSource = {
 } as const;
 
 /**
- * VBA header graphic at the 1x size of the exported PNG (127×88).
+ * VBA header graphic. The default size is the 1x export (127 by 88).
  * Density variants (`@2x`, `@3x`) resolve from the base filename.
  */
-const VbaIllustration = ({ source }: { source: ImageSourcePropType }) => {
+const VbaIllustration = ({
+  source,
+  width = 127,
+  height = 88,
+}: {
+  source: ImageSourcePropType;
+  width?: number;
+  height?: number;
+}) => {
   const tw = useTailwind();
 
   return (
@@ -19,7 +27,7 @@ const VbaIllustration = ({ source }: { source: ImageSourcePropType }) => {
       source={source}
       resizeMode="contain"
       accessibilityIgnoresInvertColors
-      style={tw.style('h-[88px] w-[127px]')}
+      style={tw.style({ width, height })}
     />
   );
 };

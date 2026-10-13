@@ -55,10 +55,14 @@ const VbaKycPending = () => {
       >
         <Box alignItems={BoxAlignItems.Center}>
           <Box
-            twClassName="mb-4"
+            twClassName="mb-[24px]"
             testID={VbaKycPendingSelectorsIDs.ILLUSTRATION}
           >
-            <VbaIllustration source={VbaIllustrationSource.scanner} />
+            <VbaIllustration
+              source={VbaIllustrationSource.scanner}
+              width={149}
+              height={104}
+            />
           </Box>
           <Text variant={TextVariant.HeadingLg} twClassName="text-center">
             {strings('virtual_bank_account.kyc_pending.title')}
@@ -66,7 +70,7 @@ const VbaKycPending = () => {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="mt-2 text-center"
+            twClassName="mt-[4px] text-center"
           >
             {strings('virtual_bank_account.kyc_pending.description')}
           </Text>
