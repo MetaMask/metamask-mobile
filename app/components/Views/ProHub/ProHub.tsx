@@ -13,6 +13,8 @@ import {
   ButtonSize,
   ButtonVariant,
   Card,
+  FontFamily,
+  FontWeight,
   HeaderBase,
   Icon,
   IconColor,
@@ -22,7 +24,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -180,7 +181,9 @@ const ProHub = () => {
                   {strings('pro_hub.lifetime_earnings')}
                 </Text>
                 <Text
-                  variant={TextVariant.DisplayLg}
+                  variant={TextVariant.AmountDisplayLg}
+                  fontFamily={FontFamily.Hero}
+                  fontWeight={FontWeight.Regular}
                   color={TextColor.TextDefault}
                 >
                   {MOCK_PRO_HUB_STATS.lifetimeEarnings}

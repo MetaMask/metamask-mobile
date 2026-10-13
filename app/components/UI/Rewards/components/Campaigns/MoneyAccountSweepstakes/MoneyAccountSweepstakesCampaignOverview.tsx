@@ -8,6 +8,7 @@ import {
   BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
+  FontFamily,
   FontWeight,
   IconColor,
   IconName,
@@ -231,7 +232,11 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
             flexDirection={BoxFlexDirection.Row}
             twClassName="gap-2"
           >
-            <Text variant={TextVariant.DisplayLg} fontWeight={FontWeight.Bold}>
+            <Text
+              variant={TextVariant.AmountDisplayLg}
+              fontFamily={FontFamily.Hero}
+              fontWeight={FontWeight.Regular}
+            >
               {balanceDisplay}
             </Text>
             {isIngestLagging && (

@@ -3,6 +3,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontFamily,
   FontWeight,
   Icon,
   IconColor,
@@ -104,7 +105,7 @@ const LeaderboardPositionHeader: React.FC<LeaderboardPositionHeaderProps> = ({
 
         {isLoading ? (
           <>
-            <Skeleton style={tw.style('h-9 w-28 rounded')} />
+            <Skeleton style={tw.style('h-14 w-28 rounded')} />
             {showSubtextRow && (
               <Skeleton style={tw.style('mt-1 h-4 w-full max-w-xs rounded')} />
             )}
@@ -112,8 +113,9 @@ const LeaderboardPositionHeader: React.FC<LeaderboardPositionHeaderProps> = ({
         ) : (
           <>
             <Text
-              variant={TextVariant.DisplayLg}
-              fontWeight={FontWeight.Bold}
+              variant={TextVariant.AmountDisplayLg}
+              fontFamily={FontFamily.Hero}
+              fontWeight={FontWeight.Regular}
               testID={LEADERBOARD_POSITION_HEADER_TEST_IDS.RANK_VALUE}
             >
               {rank}

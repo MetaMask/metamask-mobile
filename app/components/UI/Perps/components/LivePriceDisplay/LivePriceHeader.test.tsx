@@ -308,9 +308,10 @@ describe('LivePriceHeader', () => {
           el.props.children.includes('(+5.50%)'),
       );
 
-      expect(priceText?.props.variant).toBe(TextVariant.DisplayLg);
+      expect(priceText?.props.variant).toBe(TextVariant.AmountDisplayLg);
       expect(priceText?.props.fontFamily).toBe(FontFamily.Hero);
       expect(priceText?.props.fontWeight).toBe(FontWeight.Regular);
+      expect(priceText?.props.twClassName).toBeUndefined();
       expect(priceText?.props.color).toBe(TextColor.TextDefault);
       expect(changeText?.props.variant).toBe(TextVariant.BodySm);
       expect(changeText?.props.fontWeight).toBe(FontWeight.Medium);

@@ -1195,7 +1195,7 @@ const PerpsHomeView = () => {
               amount={
                 !isBalanceEmpty ? (
                   <SensitiveText
-                    variant={TextVariant.DisplayLg}
+                    variant={TextVariant.AmountDisplayLg}
                     fontFamily={FontFamily.Hero}
                     fontWeight={FontWeight.Regular}
                     color={TextColor.TextDefault}

@@ -2,6 +2,10 @@ import {
   Box,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontFamily,
+  FontWeight,
+  SensitiveText,
+  SensitiveTextLength,
   Spinner,
   Text,
   TextVariant,
@@ -16,9 +20,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { predictQueries } from '../../queries';
 import { strings } from '../../../../../../locales/i18n';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
 import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
@@ -266,7 +267,9 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
           title={strings('wallet.predict')}
           amount={
             <SensitiveText
-              variant={ComponentTextVariant.DisplayLG}
+              variant={TextVariant.AmountDisplayLg}
+              fontFamily={FontFamily.Hero}
+              fontWeight={FontWeight.Regular}
               isHidden={privacyMode}
               length={SensitiveTextLength.Medium}
             >

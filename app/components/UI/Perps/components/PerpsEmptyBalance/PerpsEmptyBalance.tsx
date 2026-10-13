@@ -22,7 +22,7 @@ const PerpsEmptyBalance: React.FC<PerpsEmptyBalanceProps> = ({
 }) => (
   <Box twClassName="px-4 pt-2 pb-4">
     <Text
-      variant={TextVariant.DisplayLg}
+      variant={TextVariant.AmountDisplayLg}
       fontFamily={FontFamily.Hero}
       fontWeight={FontWeight.Regular}
       color={TextColor.TextDefault}

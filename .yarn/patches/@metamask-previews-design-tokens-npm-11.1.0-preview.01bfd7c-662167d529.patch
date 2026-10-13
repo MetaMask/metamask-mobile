@@ -1,0 +1,30 @@
+diff --git a/dist/js/typography/typography.cjs b/dist/js/typography/typography.cjs
+index ef2fae0a5c69d4f41396ad654076935b732cca1e..458f95277aad7481994adcdcd701880ff812eaa7 100644
+--- a/dist/js/typography/typography.cjs
++++ b/dist/js/typography/typography.cjs
+@@ -116,8 +116,8 @@ exports.typography = {
+     },
+     sAmountDisplayLg: {
+         fontWeight: fontWeights_1.fontWeights.bold,
+-        fontSize: fontSizes_1.fontSizes.fontSize8,
+-        lineHeight: lineHeights_1.lineHeights.lineHeight7,
++        fontSize: fontSizes_1.fontSizes.fontSize9,
++        lineHeight: lineHeights_1.lineHeights.lineHeight8,
+         letterSpacing: letterSpacing_1.letterSpacing.letterSpacing0,
+     },
+     lDisplayLG: {
+diff --git a/dist/js/typography/typography.mjs b/dist/js/typography/typography.mjs
+index 2387aad8176a7346c5c30a67d8ba1e48c23b67d4..ca7749f4b063dae923cd043f7e1d92cd724e29bd 100644
+--- a/dist/js/typography/typography.mjs
++++ b/dist/js/typography/typography.mjs
+@@ -113,8 +113,8 @@ export const typography = {
+     },
+     sAmountDisplayLg: {
+         fontWeight: fontWeights.bold,
+-        fontSize: fontSizes.fontSize8,
+-        lineHeight: lineHeights.lineHeight7,
++        fontSize: fontSizes.fontSize9,
++        lineHeight: lineHeights.lineHeight8,
+         letterSpacing: letterSpacing.letterSpacing0,
+     },
+     lDisplayLG: {

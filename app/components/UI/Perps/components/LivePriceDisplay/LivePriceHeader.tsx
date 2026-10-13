@@ -94,7 +94,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   const isLarge = size === 'large' || size === 'prominent';
   const priceVariant =
     size === 'large'
-      ? TextVariant.DisplayLg
+      ? TextVariant.AmountDisplayLg
       : size === 'prominent'
         ? TextVariant.HeadingLg
         : TextVariant.BodySm;

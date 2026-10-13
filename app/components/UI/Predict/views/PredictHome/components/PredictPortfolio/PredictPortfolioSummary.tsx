@@ -2,6 +2,10 @@ import React, { useMemo } from 'react';
 import {
   Box,
   BoxAlignItems,
+  FontFamily,
+  FontWeight,
+  SensitiveText,
+  SensitiveTextLength,
   Text,
   TextColor,
   TextVariant,
@@ -9,13 +13,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { typography } from '@metamask/design-tokens';
 import { strings } from '../../../../../../../../locales/i18n';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../../../component-library/components/Texts/SensitiveText';
-import {
-  TextColor as ComponentTextColor,
-  TextVariant as ComponentTextVariant,
-} from '../../../../../../../component-library/components/Texts/Text/Text.types';
 import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import {
   formatPredictUnrealizedPnLStringParts,
@@ -23,7 +20,7 @@ import {
 } from '../../../../utils/format';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
-const PRIMARY_SKELETON_HEIGHT = typography.sDisplayLG.lineHeight;
+const PRIMARY_SKELETON_HEIGHT = typography.sAmountDisplayLg.lineHeight;
 const SECONDARY_SKELETON_HEIGHT = typography.sBodySM.lineHeight;
 
 export interface PredictPortfolioSummaryProps {
@@ -112,10 +109,12 @@ const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
         accessible
       >
         <SensitiveText
+          fontFamily={FontFamily.Hero}
+          fontWeight={FontWeight.Regular}
           isHidden={isHidden && !hasError}
           length={SensitiveTextLength.Long}
           testID={PREDICT_PORTFOLIO_TEST_IDS.PRIMARY_VALUE}
-          variant={ComponentTextVariant.DisplayLG}
+          variant={TextVariant.AmountDisplayLg}
         >
           {portfolioValueDisplay}
         </SensitiveText>
@@ -130,14 +129,14 @@ const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
           <SensitiveText
             color={
               hasError
-                ? ComponentTextColor.Alternative
+                ? TextColor.TextAlternative
                 : totalUnrealizedPnlAmount >= 0
-                  ? ComponentTextColor.Success
-                  : ComponentTextColor.Error
+                  ? TextColor.SuccessDefault
+                  : TextColor.ErrorDefault
             }
             isHidden={isHidden && !hasError}
             length={SensitiveTextLength.Long}
-            variant={ComponentTextVariant.BodySM}
+            variant={TextVariant.BodySm}
           >
             {hasError ? '—' : pnlDisplay}
           </SensitiveText>
@@ -145,10 +144,10 @@ const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
             {' · '}
           </Text>
           <SensitiveText
-            color={ComponentTextColor.Alternative}
+            color={TextColor.TextAlternative}
             isHidden={isHidden && !hasBalanceError}
             length={SensitiveTextLength.Medium}
-            variant={ComponentTextVariant.BodySM}
+            variant={TextVariant.BodySm}
           >
             {availableDisplay}
           </SensitiveText>

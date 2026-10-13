@@ -3,6 +3,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontFamily,
   FontWeight,
   Icon,
   IconColor,
@@ -90,7 +91,7 @@ const CampaignLeaderboardStatsHeader: React.FC<
 
         {isLoading ? (
           <Box twClassName="gap-2 mt-2 mb-1">
-            <Skeleton style={tw.style('h-9 w-28 rounded')} />
+            <Skeleton style={tw.style('h-14 w-28 rounded')} />
             {showSubtextRow && (
               <Skeleton style={tw.style('h-4 w-full max-w-xs rounded')} />
             )}
@@ -98,8 +99,9 @@ const CampaignLeaderboardStatsHeader: React.FC<
         ) : (
           <>
             <Text
-              variant={TextVariant.DisplayLg}
-              fontWeight={FontWeight.Bold}
+              variant={TextVariant.AmountDisplayLg}
+              fontFamily={FontFamily.Hero}
+              fontWeight={FontWeight.Regular}
               testID={testIDs.RANK_VALUE}
             >
               {rankValue}

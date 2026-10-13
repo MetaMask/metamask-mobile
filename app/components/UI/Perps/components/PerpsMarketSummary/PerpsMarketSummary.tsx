@@ -41,7 +41,7 @@ const PerpsMarketSummary = ({
   onLayout,
 }: PerpsMarketSummaryProps) => {
   if (size === 'large') {
-    // Lite: content-hugging row — DisplayLg needs more vertical space than Pro's
+    // Lite: content-hugging row — AmountDisplayLg needs more vertical space than Pro's
     // fixed 76px summary (HeadingLg). Matches the pre-unification layout.
     return (
       <Box

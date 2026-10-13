@@ -12,13 +12,14 @@ import {
   ButtonIcon,
   ButtonSize,
   ButtonVariant,
+  FontFamily,
+  FontWeight,
   HeaderBase,
   IconName,
   SectionDivider,
   Text,
   TextColor,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -105,8 +106,9 @@ const Earned = () => {
       >
         <Box twClassName="gap-y-2">
           <Text
-            variant={TextVariant.DisplayLg}
-            fontWeight={FontWeight.Bold}
+            variant={TextVariant.AmountDisplayLg}
+            fontFamily={FontFamily.Hero}
+            fontWeight={FontWeight.Regular}
             color={TextColor.TextDefault}
             testID={EarnedTestIds.TOTAL_VALUE}
           >
@@ -152,8 +154,9 @@ const Earned = () => {
             {strings('pro_hub.earned.paid_for_itself_title')}
           </Text>
           <Text
-            variant={TextVariant.DisplayLg}
-            fontWeight={FontWeight.Bold}
+            variant={TextVariant.AmountDisplayLg}
+            fontFamily={FontFamily.Hero}
+            fontWeight={FontWeight.Regular}
             color={TextColor.SuccessDefault}
             testID={EarnedTestIds.PAID_FOR_ITSELF_VALUE}
             twClassName="tabular-nums"

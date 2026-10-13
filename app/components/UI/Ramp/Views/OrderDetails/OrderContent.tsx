@@ -15,6 +15,7 @@ import {
   TextVariant,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontFamily,
   FontWeight,
   Icon,
   IconName,
@@ -358,8 +359,9 @@ const OrderContent: React.FC<OrderContentProps> = ({
 
         <Text
           testID={RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT}
-          variant={TextVariant.DisplayLg}
-          fontWeight={FontWeight.Bold}
+          variant={TextVariant.AmountDisplayLg}
+          fontFamily={FontFamily.Hero}
+          fontWeight={FontWeight.Regular}
           twClassName="mt-6 text-center"
         >
           {order.cryptoAmount != null && Number(order.cryptoAmount) > 0

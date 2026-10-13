@@ -128,7 +128,7 @@ export const TokenPriceTitleHub = ({
         ) : (
           <Text
             testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
-            variant={TextVariant.DisplayLg}
+            variant={TextVariant.AmountDisplayLg}
             fontFamily={FontFamily.Hero}
             fontWeight={FontWeight.Regular}
             color={TextColor.TextDefault}

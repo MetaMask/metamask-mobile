@@ -9137,10 +9137,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask-previews/design-tokens@npm:11.1.0-preview.01bfd7c, @metamask/design-tokens@npm:@metamask-previews/design-tokens@11.1.0-preview.01bfd7c":
+"@metamask-previews/design-tokens@npm:11.1.0-preview.01bfd7c":
   version: 11.1.0-preview.01bfd7c
   resolution: "@metamask-previews/design-tokens@npm:11.1.0-preview.01bfd7c"
   checksum: 10/65c6ee316cae1882036435e0e8c459c94e0120a3b3e58df7897f06e73780fc6c8a277976f3ad04296bea5d48f19a480b80eb14cb1976b68a19f7e5623193457c
+  languageName: node
+  linkType: hard
+
+"@metamask-previews/design-tokens@patch:@metamask-previews/design-tokens@npm%3A11.1.0-preview.01bfd7c#~/.yarn/patches/@metamask-previews-design-tokens-npm-11.1.0-preview.01bfd7c-662167d529.patch":
+  version: 11.1.0-preview.01bfd7c
+  resolution: "@metamask-previews/design-tokens@patch:@metamask-previews/design-tokens@npm%3A11.1.0-preview.01bfd7c#~/.yarn/patches/@metamask-previews-design-tokens-npm-11.1.0-preview.01bfd7c-662167d529.patch::version=11.1.0-preview.01bfd7c&hash=b02288"
+  checksum: 10/7671f60eb52c255a945efa11d0c95345f26741f15e7aac35af8211e67cdbae3bce701d7ee8bceb8c18f308a5b14886090a7e5baa2bfe27cc05db4c42bc1def65
   languageName: node
   linkType: hard
 
@@ -9996,6 +10003,13 @@ __metadata:
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
   checksum: 10/a6ac994bd3d7bd0452ef6642aaf09805f6cab6d42d02d27b1e94879f83188df12d84eefac0e6c9e3a2cddd6070891bafe20216a397433a893b8a0568de05b3da
+  languageName: node
+  linkType: hard
+
+"@metamask/design-tokens@patch:@metamask-previews/design-tokens@npm%3A11.1.0-preview.01bfd7c#~/.yarn/patches/@metamask-previews-design-tokens-npm-11.1.0-preview.01bfd7c-662167d529.patch":
+  version: 11.1.0-preview.01bfd7c
+  resolution: "@metamask/design-tokens@patch:@metamask-previews/design-tokens@npm%3A11.1.0-preview.01bfd7c#~/.yarn/patches/@metamask-previews-design-tokens-npm-11.1.0-preview.01bfd7c-662167d529.patch::version=11.1.0-preview.01bfd7c&hash=b02288"
+  checksum: 10/c4ac1699029824fc12e89225acd6ec2f5460bf4187db9708abcc500806b15e6ef4fd1505a154c49095a3b39bfbaee9faa6594f23df76dc362cd24d4c0739c9d4
   languageName: node
   linkType: hard
 
@@ -39155,7 +39169,7 @@ __metadata:
     "@metamask-previews/design-system-react-native": "patch:@metamask-previews/design-system-react-native@npm%3A0.51.0-preview.01bfd7c#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.51.0-preview.01bfd7c-2e0450b9c5.patch"
     "@metamask-previews/design-system-shared": "npm:0.40.0-preview.01bfd7c"
     "@metamask-previews/design-system-twrnc-preset": "npm:0.12.0-preview.01bfd7c"
-    "@metamask-previews/design-tokens": "npm:11.1.0-preview.01bfd7c"
+    "@metamask-previews/design-tokens": "patch:@metamask-previews/design-tokens@npm%3A11.1.0-preview.01bfd7c#~/.yarn/patches/@metamask-previews-design-tokens-npm-11.1.0-preview.01bfd7c-662167d529.patch"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^2.0.0"
     "@metamask/account-tree-controller": "npm:^11.0.0"
@@ -39194,7 +39208,7 @@ __metadata:
     "@metamask/design-system-react-native": "patch:@metamask-previews/design-system-react-native@npm%3A0.51.0-preview.01bfd7c#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.51.0-preview.01bfd7c-2e0450b9c5.patch"
     "@metamask/design-system-shared": "npm:@metamask-previews/design-system-shared@0.40.0-preview.01bfd7c"
     "@metamask/design-system-twrnc-preset": "npm:@metamask-previews/design-system-twrnc-preset@0.12.0-preview.01bfd7c"
-    "@metamask/design-tokens": "npm:@metamask-previews/design-tokens@11.1.0-preview.01bfd7c"
+    "@metamask/design-tokens": "patch:@metamask-previews/design-tokens@npm%3A11.1.0-preview.01bfd7c#~/.yarn/patches/@metamask-previews-design-tokens-npm-11.1.0-preview.01bfd7c-662167d529.patch"
     "@metamask/device-mcp": "npm:^0.4.2"
     "@metamask/earn-controller": "npm:^12.2.5"
     "@metamask/eip-5792-middleware": "npm:^3.0.4"

@@ -294,7 +294,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
             <Box twClassName="px-4 pt-2 pb-4">
               <Animated.View style={[getBalanceAnimatedStyle]}>
                 <SensitiveText
-                  variant={TextVariant.DisplayLg}
+                  variant={TextVariant.AmountDisplayLg}
                   fontFamily={FontFamily.Hero}
                   fontWeight={FontWeight.Regular}
                   color={TextColor.TextDefault}

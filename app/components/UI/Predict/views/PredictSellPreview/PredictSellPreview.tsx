@@ -3,6 +3,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontFamily,
   FontWeight,
   Text,
   TextColor,
@@ -409,8 +410,9 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               ) : (
                 <>
                   <Text
-                    fontWeight={FontWeight.Medium}
                     variant={TextVariant.AmountDisplayLg}
+                    fontFamily={FontFamily.Hero}
+                    fontWeight={FontWeight.Regular}
                   >
                     {formatPrice(currentValue, { maximumDecimals: 2 })}
                   </Text>
