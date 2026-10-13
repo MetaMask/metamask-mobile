@@ -8185,12 +8185,14 @@
     "unrecognized_chain_id": "We don't recognize this network. Be sure the chain ID is correct before you continue."
   },
   "mfa": {
-    "progress": "Step {{current}} of {{total}}",
     "method_email": "Email",
     "method_passkey": "Passkey",
     "intro": {
       "title": "Set up 2-step verification",
-      "description": "We’ll set up a few ways to confirm it’s you. You’ll use them to approve important actions, and if you lose access to one, you can use another.",
+      "description": "We’ll set up a few ways to confirm it’s you. If you lose access to one method, you can use another.",
+      "passkey_description": "Confirm with your device or password manager",
+      "passkey_done": "Saved to this device",
+      "email_description": "Get a 6-digit code sent to your inbox",
       "list_title": "You’ll set up",
       "continue": "Get started"
     },

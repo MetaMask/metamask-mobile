@@ -27,5 +27,14 @@ const ERROR_KEYS: Partial<Record<MfaFlowErrorCode, string>> = {
 export const getMethodLabel = (method: MfaMethod): string =>
   strings(METHOD_KEYS[method]);
 
+/**
+ * Shows an email's first letter and domain only, as in `c•••@metamask.com`.
+ *
+ * @param email - The full address.
+ * @returns The masked address.
+ */
+export const maskEmail = (email: string): string =>
+  `${email[0]}•••${email.slice(email.indexOf('@'))}`;
+
 export const getErrorMessage = (code: MfaFlowErrorCode): string =>
   strings(ERROR_KEYS[code] ?? 'mfa.errors.generic');

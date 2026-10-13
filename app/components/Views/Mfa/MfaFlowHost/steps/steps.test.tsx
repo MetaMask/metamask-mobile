@@ -32,26 +32,82 @@ const render = (ui: React.ReactElement) =>
   renderWithProvider(ui, { state: {} });
 
 describe('IntroStep', () => {
-  it('lists the missing methods and continues', () => {
+  it('lists every requested method, ticks those set up and continues', () => {
     const onAction = jest.fn();
-    const { getByText, getByTestId } = render(
+    const { getByText, getByTestId, queryByText } = render(
       <IntroStep
-        {...buildState({ name: 'intro', missing: ['email_otp'] })}
+        {...buildState({
+          name: 'intro',
+          methods: ['email_otp', 'passkey'],
+          missing: ['passkey'],
+          email: 'chris@metamask.com',
+        })}
         reason={{ operation: 'test', enrollDescription: 'Why we ask' }}
         onAction={onAction}
       />,
     );
 
     expect(getByText('Why we ask')).toBeOnTheScreen();
-    expect(getByText('Email')).toBeOnTheScreen();
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.INTRO_METHOD}-email_otp-done`),
+    ).toBeOnTheScreen();
+    expect(getByText('c•••@metamask.com')).toBeOnTheScreen();
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.INTRO_METHOD}-passkey`),
+    ).toBeOnTheScreen();
+    expect(
+      getByText('Confirm with your device or password manager'),
+    ).toBeOnTheScreen();
+    expect(queryByText('Saved to this device')).toBeNull();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
     expect(onAction).toHaveBeenCalledWith({ type: 'continue' });
+  });
+
+  it('describes how each missing method works', () => {
+    const { getByText } = render(
+      <IntroStep
+        {...buildState({
+          name: 'intro',
+          methods: ['email_otp', 'passkey'],
+          missing: ['email_otp', 'passkey'],
+        })}
+        reason={reason}
+        onAction={jest.fn()}
+      />,
+    );
+
+    expect(
+      getByText('Get a 6-digit code sent to your inbox'),
+    ).toBeOnTheScreen();
+  });
+
+  it('says a set-up passkey is saved, and shows no address for an email it does not know', () => {
+    const { getByText, getByTestId } = render(
+      <IntroStep
+        {...buildState({
+          name: 'intro',
+          methods: ['email_otp', 'passkey'],
+          missing: [],
+        })}
+        reason={reason}
+        onAction={jest.fn()}
+      />,
+    );
+
+    expect(getByText('Saved to this device')).toBeOnTheScreen();
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.INTRO_METHOD}-email_otp-done`),
+    ).toBeOnTheScreen();
   });
 
   it('shows the generic line when the feature gives none', () => {
     const { getByText } = render(
       <IntroStep
-        {...buildState({ name: 'intro', missing: ['email_otp'] })}
+        {...buildState({
+          name: 'intro',
+          methods: ['email_otp'],
+          missing: ['email_otp'],
+        })}
         reason={{ operation: 'test', verifyDescription: 'Not this one' }}
         onAction={jest.fn()}
       />,

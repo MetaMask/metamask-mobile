@@ -237,7 +237,7 @@ describe('MfaFlowHost', () => {
     const { getByTestId } = renderHost();
 
     await act(async () => {
-      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CLOSE_BUTTON));
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.BACK_BUTTON));
     });
 
     expect(await outcome).toEqual({ ok: false, code: 'flow_cancelled' });
@@ -274,7 +274,7 @@ describe('MfaFlowHost', () => {
     const { getByTestId } = renderHost();
 
     await act(async () => {
-      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CLOSE_BUTTON));
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.BACK_BUTTON));
     });
 
     expect(await outcome).toEqual({ ok: false, code: 'flow_cancelled' });
@@ -291,7 +291,7 @@ describe('MfaFlowHost', () => {
     );
     const { getByTestId, queryByText, unmount } = renderHost();
     await act(async () => {
-      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CLOSE_BUTTON));
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.BACK_BUTTON));
     });
     expect(await first.outcome).toEqual({ ok: false, code: 'flow_cancelled' });
 

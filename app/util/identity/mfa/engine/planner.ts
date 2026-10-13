@@ -220,7 +220,7 @@ export const planVerifyOrEnroll = (
 
   const steps: PlanStep[] = [];
   if (missing.length > 0 && !context.introShown) {
-    steps.push({ kind: 'intro', missing });
+    steps.push({ kind: 'intro', methods: request.methods, missing });
   }
 
   const simulation = startSimulation(statuses, context);

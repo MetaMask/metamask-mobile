@@ -9,9 +9,7 @@ import {
 } from '@react-navigation/native';
 import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../locales/i18n';
 import { useActiveMfaFlow } from '../../../../util/identity/mfa/engine/useActiveMfaFlow';
-import type { MfaFlowState } from '../../../../util/identity/mfa/engine/types';
 import { MfaFlowSelectorsIDs } from '../Mfa.testIds';
 import IntroStep from './steps/IntroStep';
 import PickerStep from './steps/PickerStep';
@@ -20,11 +18,6 @@ import CodeStep from './steps/CodeStep';
 import PasskeyStep from './steps/PasskeyStep';
 import SuccessStep from './steps/SuccessStep';
 import FailureStep from './steps/FailureStep';
-
-const getProgressTitle = ({ step, progress }: MfaFlowState) =>
-  progress.total > 1 && step.name !== 'success' && step.name !== 'failure'
-    ? strings('mfa.progress', progress)
-    : undefined;
 
 /**
  * Full-screen modal for MFA flows. While on the stack it shows the running
@@ -116,9 +109,8 @@ const MfaFlowHost = () => {
       testID={`${MfaFlowSelectorsIDs.CONTAINER}-${step.name}`}
     >
       <HeaderStandard
-        title={getProgressTitle(state)}
-        onClose={() => flow.dispatch({ type: 'cancel' })}
-        closeButtonProps={{ testID: MfaFlowSelectorsIDs.CLOSE_BUTTON }}
+        onBack={() => flow.dispatch({ type: 'cancel' })}
+        backButtonProps={{ testID: MfaFlowSelectorsIDs.BACK_BUTTON }}
         includesTopInset
       />
       {renderStep()}

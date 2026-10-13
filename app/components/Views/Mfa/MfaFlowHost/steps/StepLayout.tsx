@@ -48,7 +48,7 @@ export const MfaShield = () => {
   return (
     <Image
       source={shieldImage}
-      style={tw.style('w-16 h-16 self-center')}
+      style={tw.style('w-[88px] h-[88px] self-center')}
       resizeMode="contain"
     />
   );
@@ -73,6 +73,8 @@ const StepLayout = ({
   footer,
 }: StepLayoutProps) => {
   const tw = useTailwind();
+  // Screens with an image above the title centre it, as in the designs.
+  const textAlign = top ? 'text-center' : undefined;
   return (
     <KeyboardAvoidingView
       style={tw.style('flex-1')}
@@ -83,16 +85,24 @@ const StepLayout = ({
         keyboardShouldPersistTaps="handled"
       >
         {top}
-        <Text variant={TextVariant.HeadingLg}>{title}</Text>
-        {description ? (
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {description}
+        <Box twClassName="gap-2">
+          <Text variant={TextVariant.HeadingLg} twClassName={textAlign}>
+            {title}
           </Text>
-        ) : null}
+          {description ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName={textAlign}
+            >
+              {description}
+            </Text>
+          ) : null}
+        </Box>
         {children}
         {error ? <StepError code={error} /> : null}
       </ScrollView>
-      {footer ? <Box twClassName="px-4 pb-4 gap-2">{footer}</Box> : null}
+      {footer ? <Box twClassName="px-4 pt-4 pb-2 gap-2">{footer}</Box> : null}
     </KeyboardAvoidingView>
   );
 };

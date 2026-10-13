@@ -292,7 +292,15 @@ export const createMfaFlow = ({
     }
     switch (step.kind) {
       case 'intro':
-        show({ name: 'intro', missing: step.missing }, { progress });
+        show(
+          {
+            name: 'intro',
+            methods: step.methods,
+            missing: step.missing,
+            email: getEmailAddress(),
+          },
+          { progress },
+        );
         return;
       case 'confirm':
       case 'verify': {

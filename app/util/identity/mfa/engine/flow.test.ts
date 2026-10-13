@@ -173,7 +173,9 @@ describe('createMfaFlow', () => {
 
     expect(flow.getState().step).toStrictEqual({
       name: 'intro',
+      methods: ['email_otp'],
       missing: ['email_otp'],
+      email: undefined,
     });
 
     await act(flow, { type: 'continue' });
@@ -260,7 +262,9 @@ describe('createMfaFlow', () => {
 
       expect(flow.getState().step).toStrictEqual({
         name: 'intro',
+        methods: ['email_otp', 'passkey'],
         missing: ['email_otp', 'passkey'],
+        email: undefined,
       });
       await act(flow, { type: 'continue' });
       await act(flow, { type: 'submitEmail', email: 'new@b.co' });
@@ -294,7 +298,9 @@ describe('createMfaFlow', () => {
 
       expect(flow.getState().step).toStrictEqual({
         name: 'intro',
+        methods: ['email_otp', 'passkey'],
         missing: ['passkey'],
+        email: undefined,
       });
       await act(flow, { type: 'continue' });
       expect(flow.getState().step).toMatchObject({
@@ -320,6 +326,20 @@ describe('createMfaFlow', () => {
       expect(await outcome).toMatchObject({
         ok: true,
         value: { token: buildToken('passkey') },
+      });
+    });
+
+    it('lists the email already set up, with its address, on the intro', async () => {
+      const fake = createFakeController([activeEmail]);
+      const { flow } = await startFlow(KALSHI, fake.controller, {
+        passkey: createPasskeyAdapter(),
+      });
+
+      expect(flow.getState().step).toStrictEqual({
+        name: 'intro',
+        methods: ['email_otp', 'passkey'],
+        missing: ['passkey'],
+        email: 'a@b.co',
       });
     });
 
