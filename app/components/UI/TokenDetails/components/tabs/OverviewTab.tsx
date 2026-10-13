@@ -5,8 +5,10 @@ import ContentDisplay from '../../../AssetOverview/AboutAsset/ContentDisplay';
 import Balance from '../../../AssetOverview/Balance';
 import TokenDetailsSection from '../../../AssetOverview/TokenDetails';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
+import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { useTokenBalance } from '../../hooks/useTokenBalance';
 import { useTokenPerformance } from '../../hooks/useTokenPerformance';
+import { useTokenAssetDetails } from '../../queries/tokenAssetQuery';
 import { useTokenDetailsActionTracking } from '../../hooks/useTokenDetailsActionTracking';
 import {
   TokenDetailsAction,
@@ -31,20 +33,49 @@ export const OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID =
 export const OVERVIEW_TAB_ACTIVITY_TEST_ID =
   TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID;
 
-/**
- * TODO(ASSETS-4020): replace with the token's real description once the API
- * platform exposes it. Delete the `?? MOCK_TOKEN_DESCRIPTION` fallback in
- * the component to restore the pure hide-when-absent gate, or set this to
- * `undefined` to preview the hidden state in the simulator.
- */
-const MOCK_TOKEN_DESCRIPTION: string | undefined =
-  'Pepe is a deflationary memecoin launched on Ethereum in 2023 as a tribute to the Pepe the Frog internet character. There is no formal team or roadmap — the token is entirely community-driven.';
+export const OVERVIEW_SECTION_RULE_TEST_ID =
+  'token-details-overview-section-rule';
+
+const SECTION_RULE = 'mt-6 border-t border-muted pt-6';
+
+const OverviewSection = ({
+  bordered,
+  children,
+  testID,
+  twClassName,
+}: {
+  bordered: boolean;
+  children: React.ReactNode;
+  testID?: string;
+  twClassName?: string;
+}) => {
+  const content = (
+    <Box testID={testID} twClassName={twClassName}>
+      {children}
+    </Box>
+  );
+
+  if (!bordered) {
+    return content;
+  }
+
+  return (
+    <Box testID={OVERVIEW_SECTION_RULE_TEST_ID} twClassName={SECTION_RULE}>
+      {content}
+    </Box>
+  );
+};
 
 export interface OverviewTabProps {
   token: TokenDetailsRouteParams;
   assetId: CaipAssetType | null;
   currentCurrency: string;
   securityData?: TokenSecurityData | null;
+  /**
+   * Market data already resolved by the screen, forwarded to the details list
+   * so it does not fetch the same figures a second time.
+   */
+  marketData?: FungibleAssetPrice | null;
 }
 
 const OverviewTab = ({
@@ -52,8 +83,13 @@ const OverviewTab = ({
   assetId,
   currentCurrency,
   securityData,
+  marketData,
 }: OverviewTabProps) => {
-  const description = token.description ?? MOCK_TOKEN_DESCRIPTION;
+  const { asset } = useTokenAssetDetails(assetId);
+  const assetDescription = asset?.launchpadData?.description?.trim();
+  const tokenDescription = token.description?.trim();
+  // Hide the block when neither source has text. A blank string is not a description.
+  const description = assetDescription || tokenDescription || undefined;
 
   const performance = useTokenPerformance({
     token,
@@ -74,37 +110,46 @@ const OverviewTab = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Column}
-      twClassName="gap-7 pt-5 pb-6"
+      twClassName="pt-5 pb-6"
       testID={OVERVIEW_TAB_TEST_ID}
     >
       {description ? (
-        <Box testID={OVERVIEW_TAB_DESCRIPTION_TEST_ID} twClassName="px-4">
+        <OverviewSection
+          bordered={false}
+          testID={OVERVIEW_TAB_DESCRIPTION_TEST_ID}
+          twClassName="px-4"
+        >
           <ContentDisplay content={description} />
-        </Box>
+        </OverviewSection>
       ) : null}
 
-      <Box twClassName="px-4">
+      <OverviewSection bordered={Boolean(description)} twClassName="px-4">
         <PerformanceSection performance={performance} />
-      </Box>
+      </OverviewSection>
 
       {balance != null ? (
-        <Box testID={OVERVIEW_TAB_BALANCE_TEST_ID}>
+        <OverviewSection bordered testID={OVERVIEW_TAB_BALANCE_TEST_ID}>
           <Balance
             asset={token}
             mainBalance={fiatBalance ?? ''}
             secondaryBalance={tokenFormattedBalance}
           />
-        </Box>
+        </OverviewSection>
       ) : null}
 
-      <Box testID={OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID} twClassName="px-4">
+      <OverviewSection
+        bordered
+        testID={OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID}
+        twClassName="px-4"
+      >
         <TokenDetailsSection
           asset={token}
+          marketData={marketData}
           onCopyAddress={() =>
             trackActionTapped(TokenDetailsAction.CopyTokenAddress)
           }
         />
-      </Box>
+      </OverviewSection>
 
       <TokenDetailsMarketInsightsSection
         token={token}
@@ -112,9 +157,10 @@ const OverviewTab = ({
         securityData={securityData ?? null}
         pricePercentChange={performance.twentyFourHour ?? 0}
         minTokenAgeDays={MARKET_INSIGHTS_MIN_TOKEN_AGE_DAYS}
+        showSectionRule
       />
 
-      <ActivitySection token={token} />
+      <ActivitySection token={token} showSectionRule />
     </Box>
   );
 };

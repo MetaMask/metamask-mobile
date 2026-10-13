@@ -24,6 +24,7 @@ import {
   OVERVIEW_TAB_ACTIVITY_TEST_ID,
   OVERVIEW_TAB_BALANCE_TEST_ID,
   OVERVIEW_TAB_DESCRIPTION_TEST_ID,
+  OVERVIEW_SECTION_RULE_TEST_ID,
   OVERVIEW_TAB_TEST_ID,
   OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID,
   default as OverviewTab,
@@ -64,6 +65,11 @@ jest.mock(
 
 jest.mock('../../hooks/useTokenPerformance', () => ({
   useTokenPerformance: jest.fn(),
+}));
+
+const mockUseTokenAssetDetails = jest.fn();
+jest.mock('../../queries/tokenAssetQuery', () => ({
+  useTokenAssetDetails: (assetId: unknown) => mockUseTokenAssetDetails(assetId),
 }));
 
 jest.mock('../../hooks/useTokenTransactions', () => ({
@@ -274,6 +280,11 @@ describe('OverviewTab', () => {
       navigate: jest.fn(),
     } as never);
     mockUseTokenPerformance.mockReturnValue(performance);
+    mockUseTokenAssetDetails.mockReturnValue({
+      asset: null,
+      isLoading: false,
+      isError: false,
+    });
     mockUseTokenTransactions.mockReturnValue(mockTransactionsResult());
     mockUseTokenBalance.mockReturnValue({
       balance: '4200000',
@@ -308,8 +319,8 @@ describe('OverviewTab', () => {
     expect(queryByTestId(OVERVIEW_TAB_DESCRIPTION_TEST_ID)).toBeNull();
   });
 
-  it('renders the mock description fallback when the token has none', () => {
-    const { getByTestId } = render(
+  it('draws a rule before every section after the first', () => {
+    const { getAllByTestId } = render(
       <OverviewTab
         token={token}
         assetId={'eip155:1/erc20:0xabc' as never}
@@ -317,7 +328,72 @@ describe('OverviewTab', () => {
       />,
     );
 
-    expect(getByTestId(OVERVIEW_TAB_DESCRIPTION_TEST_ID)).toBeTruthy();
+    expect(getAllByTestId(OVERVIEW_SECTION_RULE_TEST_ID)).toHaveLength(2);
+  });
+
+  it('includes the description in the section rules when it is shown', () => {
+    const { getAllByTestId } = render(
+      <OverviewTab
+        token={{ ...token, description: 'Pepe the frog' }}
+        assetId={'eip155:1/erc20:0xabc' as never}
+        currentCurrency="usd"
+      />,
+    );
+
+    expect(getAllByTestId(OVERVIEW_SECTION_RULE_TEST_ID)).toHaveLength(3);
+  });
+
+  it('renders the asset query description ahead of the token description', () => {
+    mockUseTokenAssetDetails.mockReturnValue({
+      asset: {
+        launchpadData: { description: 'From the assets API' },
+      },
+      isLoading: false,
+      isError: false,
+    });
+
+    const { getByText, queryByText } = render(
+      <OverviewTab
+        token={{ ...token, description: 'From the route' }}
+        assetId={'eip155:1/erc20:0xabc' as never}
+        currentCurrency="usd"
+      />,
+    );
+
+    expect(getByText('From the assets API')).toBeTruthy();
+    expect(queryByText('From the route')).toBeNull();
+  });
+
+  it('hides the description section when the token and the asset record have none', () => {
+    const { queryByTestId } = render(
+      <OverviewTab
+        token={token}
+        assetId={'eip155:1/erc20:0xabc' as never}
+        currentCurrency="usd"
+      />,
+    );
+
+    expect(queryByTestId(OVERVIEW_TAB_DESCRIPTION_TEST_ID)).toBeNull();
+  });
+
+  it('hides the description section when the text is only spaces', () => {
+    mockUseTokenAssetDetails.mockReturnValue({
+      asset: {
+        launchpadData: { description: '   ' },
+      },
+      isLoading: false,
+      isError: false,
+    });
+
+    const { queryByTestId } = render(
+      <OverviewTab
+        token={{ ...token, description: '  ' }}
+        assetId={'eip155:1/erc20:0xabc' as never}
+        currentCurrency="usd"
+      />,
+    );
+
+    expect(queryByTestId(OVERVIEW_TAB_DESCRIPTION_TEST_ID)).toBeNull();
   });
 
   it('passes the performance cells to the Performance section', () => {

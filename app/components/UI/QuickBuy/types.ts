@@ -69,6 +69,11 @@ export interface QuickBuyRootProps {
   features?: QuickBuyFeatures;
   initialTradeMode?: QuickBuyTradeMode;
   analyticsContext?: QuickBuyAnalyticsContext;
+  /**
+   * When true, a confirmed swap opens the Social post-swap share sheet instead
+   * of Quick Buy's pending/complete/failed toasts.
+   */
+  postSwapShare?: boolean;
   children?: ReactNode;
 }
 

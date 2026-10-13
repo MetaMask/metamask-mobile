@@ -2,9 +2,16 @@ import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
   NotificationSettingsSectionSlug,
+  NOTIFICATION_SETTINGS_SECTIONS,
   getNotificationSettingsSectionRouteParams,
   resolveNotificationSettingsSection,
 } from './notificationSettingsSections';
+
+describe('NOTIFICATION_SETTINGS_SECTIONS', () => {
+  it('keeps marketing as the last section', () => {
+    expect(NOTIFICATION_SETTINGS_SECTIONS.at(-1)?.type).toBe('marketing');
+  });
+});
 
 describe('resolveNotificationSettingsSection', () => {
   it('returns the wallet activity section for the kebab-case slug', () => {

@@ -109,6 +109,19 @@ describe('getSwapsLimitOrderSecondaryValue', () => {
       expect(result).toBe('$50');
     });
 
+    it('formats fiat with exactly two decimal places', () => {
+      getSwapsLimitOrderSecondaryValue(tokenModeDefaults);
+
+      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          style: 'currency',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+      );
+    });
+
     it('returns zero fiat without decimals when token converts to zero fiat', () => {
       const result = getSwapsLimitOrderSecondaryValue({
         ...tokenModeDefaults,

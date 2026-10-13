@@ -21,7 +21,7 @@ export function buildSumSubTheme(): SumSubTheme {
   return {
     universal: { colors: buildColors(), metrics: buildMetrics() },
     ios: { colors: iosOnlyColors(), metrics: iosOnlyMetrics() },
-    android: { colors: androidOnlyColors() },
+    android: { colors: androidOnlyColors(), metrics: androidOnlyMetrics() },
   };
 }
 
@@ -146,6 +146,22 @@ function buildMetrics(): Record<string, string | number | boolean> {
 /** iOS-only: filled document-type cards. */
 function iosOnlyMetrics(): Record<string, string | number | boolean> {
   return { documentTypeCardStyle: 'filled' };
+}
+
+/**
+ * Material's `Widget.MaterialComponents.Button` insets its background by
+ * `mtrl_btn_inset` (6dp) on top and bottom.
+ */
+const ANDROID_MATERIAL_BUTTON_INSET = 6;
+
+/**
+ * Android-only: the SDK's buttons are `MaterialButton`s and `buttonHeight`
+ * sets the *view* height, so the visible pill is 12dp shorter than the metric.
+ * On iOS `buttonHeight` is the visible height, so the universal value is
+ * correct there.
+ */
+function androidOnlyMetrics(): Record<string, string | number | boolean> {
+  return { buttonHeight: CONTROL_HEIGHT + 2 * ANDROID_MATERIAL_BUTTON_INSET };
 }
 
 function resolveColors(): Colors {
