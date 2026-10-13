@@ -121,6 +121,7 @@ export const useTopTraders = (
       // (e.g. 20.98 → "20.98%"); do not multiply by 100.
       percentageChange: (is30d ? entry.roiPercent30d : entry.roiPercent7d) ?? 0,
       pnlValue: (is30d ? entry.pnl30d : entry.pnl7d) ?? 0,
+      pnl30d: entry.pnl30d ?? null,
       winRatePercent: toWholePercent(
         is30d ? entry.winRate30d : entry.winRate7d,
       ),

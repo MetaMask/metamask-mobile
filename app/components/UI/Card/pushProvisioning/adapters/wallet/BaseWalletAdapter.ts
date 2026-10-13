@@ -154,11 +154,9 @@ export abstract class BaseWalletAdapter {
       };
     }
 
-    let existingCardStatus: CardTokenStatus | undefined;
-
-    if (lastFourDigits) {
-      existingCardStatus = await this.getCardStatus(lastFourDigits);
-    }
+    const existingCardStatus = lastFourDigits
+      ? await this.getCardStatus(lastFourDigits)
+      : undefined;
 
     const additionalInfo = await this.getAdditionalEligibilityInfo(
       lastFourDigits,

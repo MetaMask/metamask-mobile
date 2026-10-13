@@ -17,6 +17,9 @@ jest.mock('../hooks/useVbaOnboardingRouting', () => ({
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
+    AuthenticationController: {
+      getBearerToken: jest.fn(),
+    },
     KycController: {
       state: { email: null as string | null },
       startSession: jest.fn(),
@@ -49,6 +52,9 @@ jest.mock('../../../../../../util/Logger', () => ({
   },
 }));
 
+const mockGetBearerToken = Engine.context.AuthenticationController
+  .getBearerToken as jest.Mock<Promise<string>, []>;
+
 const mockKycController = Engine.context.KycController as unknown as {
   state: { email: string | null };
   startSession: jest.Mock<Promise<unknown>, [unknown]>;
@@ -70,6 +76,7 @@ const submitEmail = (email = 'user@example.com') => {
 describe('VbaEmailAdapter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetBearerToken.mockResolvedValue('wallet-bearer');
     mockKycController.state.email = null;
     mockGetState.mockReturnValue({ address: '0xabc' });
     mockGetVbaVendorTermsAcceptance.mockResolvedValue({
@@ -94,6 +101,7 @@ describe('VbaEmailAdapter', () => {
       expect(mockKycController.startSession).toHaveBeenCalledWith({
         vendor: VBA_KYC_VENDOR,
         email: 'user@example.com',
+        aal2Token: 'wallet-bearer',
       });
       expect(mockGetVbaVendorTermsAcceptance).toHaveBeenCalledWith('0xabc');
       expect(mockKycController.recordVendorDisclaimers).toHaveBeenCalledWith({
@@ -112,6 +120,7 @@ describe('VbaEmailAdapter', () => {
       expect(mockKycController.startSession).toHaveBeenCalledWith({
         vendor: VBA_KYC_VENDOR,
         email: 'bound@example.com',
+        aal2Token: 'wallet-bearer',
       });
       expect(mockAdvance).toHaveBeenCalled();
     });

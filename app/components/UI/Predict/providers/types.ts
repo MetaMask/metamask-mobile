@@ -23,7 +23,7 @@ import {
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
-  PredictActivity,
+  PredictActivityPage,
   PredictFees,
   PredictFilterOption,
   PredictFilterOptionsParams,
@@ -202,7 +202,7 @@ export interface PredictProvider {
   ): Promise<PredictPosition[]>;
   getActivity(
     params: GetActivityParams & { address: string },
-  ): Promise<PredictActivity[]>;
+  ): Promise<PredictActivityPage>;
   getUnrealizedPnL(params: { address: string }): Promise<UnrealizedPnL>;
 
   previewOrder(
