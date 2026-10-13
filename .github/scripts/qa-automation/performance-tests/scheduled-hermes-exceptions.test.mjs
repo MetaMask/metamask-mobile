@@ -281,6 +281,38 @@ test('a team without a Slack group is named without a mention', () => {
   assert.doesNotMatch(performance, /subteam/);
 });
 
+test('a draft isolation pull request is linked beside the bug', () => {
+  const current = report('4', [scenario('Perps add funds', 165)]);
+  const baseline = [
+    report('1', [scenario('Perps add funds', 100)]),
+    report('2', [scenario('Perps add funds', 120)]),
+  ];
+  const exception = buildScheduledException(current, baseline);
+  exception.findings[0].issue = {
+    number: 501,
+    url: 'https://github.com/MetaMask/metamask-mobile/issues/501',
+    created: true,
+  };
+  exception.findings[0].isolation = {
+    number: 900,
+    url: 'https://github.com/MetaMask/metamask-mobile/pull/900',
+    created: true,
+  };
+
+  assert.match(
+    buildScheduledExceptionSlack(exception),
+    /Draft: <https:\/\/github\.com\/MetaMask\/metamask-mobile\/pull\/900\|#900> opened/,
+  );
+  assert.match(
+    buildPerformanceChannelSlack(exception),
+    /Draft: <https:\/\/github\.com\/MetaMask\/metamask-mobile\/pull\/900\|#900> opened/,
+  );
+  assert.match(
+    buildScheduledExceptionMarkdown(exception),
+    /draft \[#900\]\(https:\/\/github\.com\/MetaMask\/metamask-mobile\/pull\/900\) opened/,
+  );
+});
+
 test('fewer than two observations only extends the baseline', () => {
   const current = report('3', [scenario('Perps add funds', 1000)]);
   const baseline = [report('1', [scenario('Perps add funds', 100)])];

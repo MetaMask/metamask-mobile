@@ -153,6 +153,36 @@ function issueMarkdownSuffix(issue) {
 }
 
 /**
+ * Draft revert recorded for this finding. Absent when no merged pull request
+ * overlapped a hot frame, or when draft creation did not run.
+ */
+function isolationSlackSuffix(isolation) {
+  if (!isolation) {
+    return '';
+  }
+  if (isolation.error) {
+    return ` · isolation draft not opened (${isolation.error})`;
+  }
+  if (!isolation.url) {
+    return '';
+  }
+  return ` · Draft: <${isolation.url}|#${isolation.number}> ${isolation.created ? 'opened' : 'already open'}`;
+}
+
+function isolationMarkdownSuffix(isolation) {
+  if (!isolation) {
+    return '';
+  }
+  if (isolation.error) {
+    return ` — isolation draft not opened (${isolation.error})`;
+  }
+  if (!isolation.url) {
+    return '';
+  }
+  return ` — draft [#${isolation.number}](${isolation.url}) ${isolation.created ? 'opened' : 'already open'}`;
+}
+
+/**
  * Slack user-group mention for the scenario's owning team. A team with no
  * group id stays plain text, so the message does not invent a ping.
  */
@@ -221,7 +251,7 @@ export function buildPerformanceChannelSlack(exception) {
     );
     for (const finding of opened) {
       lines.push(
-        `• *${displayName(finding.scenario)}* — JS work ${findingComparison(finding)} · ${slackOwnerMention(finding.scenario)} · Bug: <${finding.issue.url}|#${finding.issue.number}>`,
+        `• *${displayName(finding.scenario)}* — JS work ${findingComparison(finding)} · ${slackOwnerMention(finding.scenario)} · Bug: <${finding.issue.url}|#${finding.issue.number}>${isolationSlackSuffix(finding.isolation)}`,
       );
     }
   } else {
@@ -233,7 +263,7 @@ export function buildPerformanceChannelSlack(exception) {
       '',
       `• JS work: ${findingComparison(finding)}`,
       `• Owner: ${slackOwnerMention(finding.scenario)}`,
-      `• Bug: <${finding.issue.url}|#${finding.issue.number}>`,
+      `• Bug: <${finding.issue.url}|#${finding.issue.number}>${isolationSlackSuffix(finding.isolation)}`,
     );
   }
   lines.push(
@@ -277,7 +307,7 @@ export function buildScheduledExceptionSlack(exception) {
       finding.baselineMedianJsWorkMs,
     ]);
     lines.push(
-      `• *${displayName(finding.scenario)}* — JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs) · owner ${finding.owner}${issueSlackSuffix(finding.issue)}`,
+      `• *${displayName(finding.scenario)}* — JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs) · owner ${finding.owner}${issueSlackSuffix(finding.issue)}${isolationSlackSuffix(finding.isolation)}`,
     );
   }
   lines.push(
@@ -315,7 +345,7 @@ export function buildScheduledExceptionMarkdown(exception) {
       finding.baselineMedianJsWorkMs,
     ]);
     lines.push(
-      `- ${displayName(finding.scenario)} — JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs), owner ${finding.owner}${issueMarkdownSuffix(finding.issue)}`,
+      `- ${displayName(finding.scenario)} — JS work ${current} vs ${baseline} recent median (${finding.ratio}× across ${finding.baselineRuns} baseline runs), owner ${finding.owner}${issueMarkdownSuffix(finding.issue)}${isolationMarkdownSuffix(finding.isolation)}`,
     );
   }
   return lines.join('\n');
