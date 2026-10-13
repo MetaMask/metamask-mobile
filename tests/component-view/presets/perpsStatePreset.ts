@@ -2,6 +2,10 @@ import { DEFAULT_PRO_LAYOUT_PREFERENCES } from '@metamask/perps-controller';
 import { createStateFixture } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
+import {
+  SOCIAL_V1_AB_KEY,
+  SocialV1Variant,
+} from '../../../app/components/Views/SocialLeaderboard/SocialV1View/abTestConfig';
 
 /**
  * Default PerpsController state for component view tests.
@@ -80,6 +84,9 @@ export const initialStatePerps = (options: InitialStatePerpsOptions = {}) =>
           enabled: options.socialEnabled,
           minimumVersion: '0.0.0',
         },
+        [SOCIAL_V1_AB_KEY]: options.socialEnabled
+          ? SocialV1Variant.Treatment
+          : SocialV1Variant.Control,
       }),
     } as Record<string, unknown>)
     .withOverrides({

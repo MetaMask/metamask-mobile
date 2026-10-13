@@ -448,7 +448,7 @@ export const selectPerpsPositionModifyPreviewEnabledFlag = createSelector(
 
 /**
  * Client-config / Redux key for social features inside Perps.
- * LaunchDarkly key (kebab-case): `perps-social-enabled`.
+ * LaunchDarkly key (camelCase, same as the client key): `perpsSocialEnabled`.
  */
 export const PERPS_SOCIAL_ENABLED_FLAG_KEY = 'perpsSocialEnabled' as const;
 
