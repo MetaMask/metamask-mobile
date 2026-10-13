@@ -1837,8 +1837,16 @@ export class CardController extends BaseController<
 
   // -- Data pass-throughs --
 
-  getCapabilities(): CardProviderCapabilities {
-    const provider = this.getActiveProvider();
+  getCapabilities(providerId?: CardProviderId): CardProviderCapabilities {
+    const provider = providerId
+      ? this.providers[providerId]
+      : this.getActiveProvider();
+    if (!provider) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        `No provider: ${providerId}`,
+      );
+    }
     return provider.capabilities;
   }
 
