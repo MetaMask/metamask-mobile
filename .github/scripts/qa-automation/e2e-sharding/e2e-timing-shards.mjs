@@ -58,6 +58,83 @@ export function computeShardingSplit(files, splitNumber, totalSplits) {
 }
 
 /**
+ * Equal-duration placements. iOS smoke timings are often missing (qa-stats
+ * keeps the newer of push vs schedule, and pushes to main are Android-only),
+ * so LPT gives every file the same median and packs alphabetically. That puts
+ * perps-take-profit-trigger on shard 2 beside three other multi-minute files.
+ * Shard 3's perps-withdraw is the short file, so the second worker there goes
+ * idle. Swap only while the two durations still match; measured timings keep
+ * the LPT assignment.
+ *
+ * @type {{ platform: string, totalSplits: number, preferred: string, counterpart: string, shardIndex: number }[]}
+ */
+const TIED_SPEC_PLACEMENTS = [
+  {
+    platform: 'ios',
+    totalSplits: 3,
+    preferred: 'tests/smoke-appium/perps/perps-take-profit-trigger.spec.ts',
+    counterpart: 'tests/smoke-appium/perps/perps-withdraw.spec.ts',
+    shardIndex: 3,
+  },
+];
+
+/**
+ * @param {{ index: number, files: string[], totalDuration: number }[]} shards
+ * @param {string} filePath
+ * @returns {{ index: number, files: string[], totalDuration: number } | undefined}
+ */
+function shardContaining(shards, filePath) {
+  const key = timingLookupKey(filePath);
+  return shards.find((shard) =>
+    shard.files.some((file) => timingLookupKey(file) === key),
+  );
+}
+
+/**
+ * @param {{ index: number, files: string[], totalDuration: number }[]} shards
+ * @param {Map<string, number>} durations
+ * @param {{ platform: string, totalSplits: number, preferred: string, counterpart: string, shardIndex: number }} placement
+ * @param {string} platform
+ * @param {number} totalSplits
+ */
+function applyTiedSpecPlacement(shards, durations, placement, platform, totalSplits) {
+  if (placement.platform !== platform || placement.totalSplits !== totalSplits) {
+    return;
+  }
+
+  const preferredKey = timingLookupKey(placement.preferred);
+  const counterpartKey = timingLookupKey(placement.counterpart);
+  const preferredDuration = durations.get(preferredKey);
+  const counterpartDuration = durations.get(counterpartKey);
+  if (
+    preferredDuration == null ||
+    counterpartDuration == null ||
+    preferredDuration !== counterpartDuration
+  ) {
+    return;
+  }
+
+  const preferredShard = shardContaining(shards, preferredKey);
+  const counterpartShard = shardContaining(shards, counterpartKey);
+  if (
+    !preferredShard ||
+    !counterpartShard ||
+    preferredShard === counterpartShard ||
+    preferredShard.index === placement.shardIndex ||
+    counterpartShard.index !== placement.shardIndex
+  ) {
+    return;
+  }
+
+  preferredShard.files = preferredShard.files.map((file) =>
+    timingLookupKey(file) === preferredKey ? placement.counterpart : file,
+  );
+  counterpartShard.files = counterpartShard.files.map((file) =>
+    timingLookupKey(file) === counterpartKey ? placement.preferred : file,
+  );
+}
+
+/**
  * LPT bin-pack: longest files first into the lightest shard.
  * @param {string[]} files
  * @param {Record<string, { android?: number, ios?: number }>} timings
@@ -101,6 +178,13 @@ export function planShards(files, timings, platform, totalSplits) {
     );
     lightest.files.push(file);
     lightest.totalDuration += duration;
+  }
+
+  const durations = new Map(
+    filesWithDuration.map(({ file, duration }) => [timingLookupKey(file), duration]),
+  );
+  for (const placement of TIED_SPEC_PLACEMENTS) {
+    applyTiedSpecPlacement(shards, durations, placement, platform, totalSplits);
   }
 
   return shards;

@@ -91,7 +91,7 @@ const start = async (
 ) => {
   const outcome = startMfaFlow({
     request,
-    reason: { operation: 'test', description: 'Why we ask' },
+    reason: { operation: 'test', enrollDescription: 'Why we ask' },
     platform: 'mobile',
     controller,
   }).then(
@@ -298,7 +298,7 @@ describe('MfaFlowHost', () => {
     await act(async () => {
       startMfaFlow({
         request: { kind: 'verifyOrEnroll', methods: ['email_otp'] },
-        reason: { operation: 'next', description: 'Next reason' },
+        reason: { operation: 'next', enrollDescription: 'Next reason' },
         platform: 'mobile',
         controller: createController(),
       }).catch(() => undefined);

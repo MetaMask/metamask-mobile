@@ -13,6 +13,7 @@ import {
 import {
   TX_SENTINEL_NETWORKS_MAP,
   TX_SENTINEL_SIGNERS_MOCK,
+  mockTxSentinelNetworks,
 } from '../tx-sentinel-networks-map';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
 import { mockMoneyAccountApis } from './money-account-deposit-mocks';
@@ -1014,13 +1015,13 @@ async function mockSentinelNetworks(
   mockServer: Mockttp,
   relayChainIds: number[],
 ) {
-  const withRelay = relayChainIds.reduce<Record<string, unknown>>(
+  const withRelay = relayChainIds.reduce<Record<string, { network: string }>>(
     (acc, chainId) => ({
       ...acc,
       [String(chainId)]: {
-        ...(TX_SENTINEL_NETWORKS_MAP[
+        ...TX_SENTINEL_NETWORKS_MAP[
           String(chainId) as keyof typeof TX_SENTINEL_NETWORKS_MAP
-        ] || {}),
+        ],
         cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
         relayTransactions: true,
       },
@@ -1028,24 +1029,5 @@ async function mockSentinelNetworks(
     { ...TX_SENTINEL_NETWORKS_MAP },
   );
 
-  const handler = () => ({
-    statusCode: 200,
-    json: withRelay,
-  });
-
-  await mockServer
-    .forGet('https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks')
-    .asPriority(1001)
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return url.includes(
-        'tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks',
-      );
-    })
-    .thenCallback(handler);
+  await mockTxSentinelNetworks(mockServer, withRelay, 1001);
 }

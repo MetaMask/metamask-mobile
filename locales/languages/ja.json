@@ -693,7 +693,6 @@
     "re_enter_password": "パスワードを再入力してください",
     "use_at_least_8_characters": "8文字以上使用してください",
     "unlock_with_face_id": "Face IDでロックを解除しますか？",
-    "learn_more": "このパスワードを忘れた場合、MetaMask側でパスワードを復元することはできません。",
     "learn_more_social_login": "このパスワードを忘れると、ウォレットに永久にアクセスできなくなります。MetaMask側ではウォレットをリセットできません。",
     "seed_phrase_length_error": "シークレットリカバリーフレーズは12、15、18、21、または24個の単語で構成されている必要があります",
     "continue": "続行",

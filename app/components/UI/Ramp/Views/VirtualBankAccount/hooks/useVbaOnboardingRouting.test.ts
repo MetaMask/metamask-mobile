@@ -62,6 +62,8 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockHydrate = jest.fn();
+const mockRegisterWallet = jest.fn();
+const mockCreateAutoramp = jest.fn();
 const mockGetState = jest.fn();
 const mockHasAcceptedVbaVendorTerms = jest.fn();
 const mockGetVbaVendorTermsAcceptance = jest.fn();
@@ -71,6 +73,9 @@ jest.mock('../../../../../../core/Engine', () => ({
   context: {
     RampsController: {
       hydrateVbaOnboarding: (...args: unknown[]) => mockHydrate(...args),
+      registerMoneyAccountWallet: (...args: unknown[]) =>
+        mockRegisterWallet(...args),
+      createAutoramp: (...args: unknown[]) => mockCreateAutoramp(...args),
     },
     KycController: {
       recordVendorDisclaimers: (...args: unknown[]) =>
@@ -117,6 +122,11 @@ describe('useOpenVbaOnboarding', () => {
     mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
     mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
     mockRecordVendorDisclaimers.mockResolvedValue([]);
+    mockRegisterWallet.mockResolvedValue({ type: 'alreadyRegistered' });
+    mockCreateAutoramp.mockResolvedValue({
+      id: 'autoramp-1',
+      status: 'Created',
+    });
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
     });
@@ -127,7 +137,11 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expect(mockHydrate).toHaveBeenCalledWith({ walletAddress: '0xabc' });
+    expect(mockHydrate).toHaveBeenCalledWith({
+      walletAddress: '0xabc',
+      refreshKyc: true,
+      refreshAutoramps: true,
+    });
     expectResetTo({ name: VbaOnboardingRoutes.VENDOR_TERMS });
   });
 
@@ -267,6 +281,67 @@ describe('useOpenVbaOnboarding', () => {
       }),
     );
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('creates the BRL autoramp when hydrate has no source currency', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      kycStatus: 'approved',
+      autorampStatus: 'needs_source_currency',
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expect(mockRegisterWallet).not.toHaveBeenCalled();
+    expect(mockCreateAutoramp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source_currencies: [{ type: 'Fiat', code: 'BRL' }],
+      }),
+    );
+    expectResetTo({ name: VbaOnboardingRoutes.DETAILS });
+  });
+
+  it('registers the wallet before creating the BRL autoramp', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      kycStatus: 'approved',
+      autorampStatus: 'needs_wallet_registration',
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expect(mockRegisterWallet).toHaveBeenCalledWith({ address: '0xabc' });
+    expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
+    expectResetTo({ name: VbaOnboardingRoutes.DETAILS });
+  });
+
+  it('opens a retryable status when wallet lookup is unavailable', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      kycStatus: 'approved',
+      autorampStatus: 'needs_wallet_registration',
+    });
+    mockRegisterWallet.mockResolvedValue({ type: 'lookupUnavailable' });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
+    expectResetTo({ name: VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR });
   });
 
   it('opens a retryable status when account provisioning fails', async () => {

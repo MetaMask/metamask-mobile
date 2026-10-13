@@ -547,6 +547,38 @@ describe('usePredictLivePositions', () => {
       });
     });
 
+    it('does not rewrite cache when live computation is non-finite (NaN guard)', async () => {
+      // Regression: malformed position data (e.g. v2 rows mapped with an
+      // undefined size) made size * bestBid === NaN. NaN fails the equality
+      // guards on every pass, so the effect rewrote the cache each render
+      // until React aborted with "Maximum update depth exceeded".
+      const malformedPosition = createMockPosition({
+        size: undefined as unknown as number,
+      });
+      const priceUpdate = createMockPriceUpdate({
+        tokenId: malformedPosition.outcomeTokenId,
+        bestBid: 0.6,
+      });
+      mockUseLiveMarketPrices.mockReturnValue({
+        prices: new Map([[malformedPosition.outcomeTokenId, priceUpdate]]),
+        isConnected: true,
+        lastUpdateTime: Date.now(),
+      });
+
+      const cachedPositions = [malformedPosition];
+      const { queryClient } = renderLivePositionsHook(
+        [malformedPosition],
+        {
+          cacheAddress: MOCK_ADDRESS,
+        },
+        cachedPositions,
+      );
+
+      await waitFor(() => {
+        expect(getCachedPositions(queryClient)).toBe(cachedPositions);
+      });
+    });
+
     it('disables cache sync when enabled is false', async () => {
       const activePosition = createMockPosition({
         currentValue: 100,

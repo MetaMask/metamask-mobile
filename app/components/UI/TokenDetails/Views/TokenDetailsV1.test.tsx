@@ -137,6 +137,8 @@ jest.mock(
 );
 
 // Price hero + chart are integration-tested separately (Price / AdvancedChart).
+const mockPriceHeaderProps: { showPeriodLabel?: boolean }[] = [];
+
 // The mock renders `children` like the real component so the security &
 // social row passed into the price-hero slot stays in the tree.
 jest.mock('../../AssetOverview/Price/Price', () => {
@@ -147,7 +149,10 @@ jest.mock('../../AssetOverview/Price/Price', () => {
     <View testID="mock-price">{children}</View>
   );
   MockPrice.Provider = MockPrice;
-  MockPrice.Header = () => null;
+  MockPrice.Header = (props: { showPeriodLabel?: boolean }) => {
+    mockPriceHeaderProps.push(props);
+    return null;
+  };
   MockPrice.Chart = () => null;
   return {
     __esModule: true,
@@ -245,6 +250,51 @@ jest.mock('../components/sections/TokenDetailsActionsSection', () => {
   };
 });
 
+jest.mock('../hooks/useStickyQuickBuy', () => ({
+  useStickyQuickBuy: () => ({
+    onQuickBuyPress: jest.fn(),
+    openQuickBuy: jest.fn(),
+    quickBuySheet: null,
+  }),
+}));
+
+const mockUseTokenBalance = jest.fn();
+jest.mock('../hooks/useTokenBalance', () => ({
+  useTokenBalance: (...args: unknown[]) => mockUseTokenBalance(...args),
+}));
+
+jest.mock('../TraderPositionPnl/useOpenPositionHeader', () => ({
+  useOpenPositionHeader: () => ({ isLoading: false }),
+}));
+
+const mockStickyFooterProps: Record<string, unknown>[] = [];
+
+jest.mock('../components/TokenDetailsStickyFooter', () => {
+  const { View } = jest.requireActual('react-native');
+  const TraderPositionPnl = jest.requireActual(
+    '../TraderPositionPnl/TraderPositionPnl',
+  ).default;
+
+  return {
+    __esModule: true,
+    default: (props: {
+      traderPositionPnl?: React.ComponentProps<typeof TraderPositionPnl>;
+    }) => {
+      mockStickyFooterProps.push(props);
+      return (
+        <View testID="mock-sticky-footer">
+          {props.traderPositionPnl && (
+            <TraderPositionPnl {...props.traderPositionPnl} />
+          )}
+          {props.traderPositionPnl?.isExpanded && (
+            <View testID="token-details-trader-position-pnl-overlay" />
+          )}
+        </View>
+      );
+    },
+  };
+});
+
 const baseToken = {
   address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
   chainId: '0x1',
@@ -281,7 +331,10 @@ describe('TokenDetailsV1', () => {
     useSelector.mockImplementation(() => undefined);
     mockCurrentPrice = 1;
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
+    mockUseTokenBalance.mockReturnValue({ balance: undefined });
     mockOverviewProps.length = 0;
+    mockPriceHeaderProps.length = 0;
+    mockStickyFooterProps.length = 0;
   });
 
   it('renders the meme-TDP body with the token symbol in the header', () => {
@@ -306,6 +359,97 @@ describe('TokenDetailsV1', () => {
 
     expect(getByTestId(TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID)).toBeOnTheScreen();
     expect(getByText('3d')).toBeOnTheScreen();
+    expect(
+      getByTestId(TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID).props.accessibilityLabel,
+    ).toBe('Token age 3d. Learn about token age.');
+  });
+
+  it('opens the token age explainer from the age chip', () => {
+    const { getByTestId, queryByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
+
+    fireEvent.press(getByTestId(TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID));
+
+    expect(getByTestId(TokenExplainerSheetSelectors.TITLE)).toHaveTextContent(
+      'Token age',
+    );
+    expect(
+      getByTestId(TokenExplainerSheetSelectors.DESCRIPTION),
+    ).toHaveTextContent(
+      'Time since token creation. Seconds, minutes, hours, then days.',
+    );
+  });
+
+  it('omits the price period label so the header does not say Today', () => {
+    render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockPriceHeaderProps[0]).toStrictEqual({
+      showPeriodLabel: false,
+    });
+  });
+
+  it('configures the sticky footer with buy and sell actions', () => {
+    mockUseTokenBalance.mockReturnValue({ balance: '2.5' });
+    render(
+      <TokenDetailsV1
+        token={{ ...baseToken, balance: '0' }}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps[0]).toEqual(
+      expect.objectContaining({
+        currentTokenBalance: '2.5',
+        hasTokenBalance: true,
+        isTokenDetailsV1: true,
+        quickBuyEntrypointLayout: 'buy_sell',
+        onOpenQuickBuy: expect.any(Function),
+      }),
+    );
+  });
+
+  it('does not show sell when the live balance is zero despite a stale route balance', () => {
+    mockUseTokenBalance.mockReturnValue({ balance: '0' });
+
+    render(
+      <TokenDetailsV1
+        token={{ ...baseToken, balance: '4' }}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps[0]).toEqual(
+      expect.objectContaining({
+        currentTokenBalance: '0',
+        hasTokenBalance: false,
+      }),
+    );
+  });
+
+  it('passes token security data to the sticky footer', () => {
+    render(
+      <TokenDetailsV1
+        token={{ ...baseToken, securityData: securityDataWithLinks }}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps[0]).toEqual(
+      expect.objectContaining({
+        securityData: securityDataWithLinks,
+      }),
+    );
   });
 
   it('renders the price hero, tab bar and Overview panel by default', () => {
