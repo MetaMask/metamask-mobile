@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Box,
   Button,
-  ButtonIcon,
   ButtonSize,
   HeaderRoot,
   HeaderStandardAnimated,
@@ -10,7 +9,7 @@ import {
 } from '@metamask/design-system-react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
-import GlassCapsule from '../../../../../component-library/components-temp/GlassCapsule';
+import ButtonIconCapsule from '../../../../../component-library/components-temp/ButtonIconCapsule';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 
 /** The Pro entry point, as resolved by the page that owns Pro access. */
@@ -68,18 +67,12 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
     testID: MoneyHeaderTestIds.MENU_BUTTON,
   };
 
-  const wrapInCapsule = (button: React.ReactNode, testID: string) =>
-    isCapsule ? (
-      <GlassCapsule twClassName="w-10 justify-center" testID={testID}>
-        {button}
-      </GlassCapsule>
-    ) : (
-      button
-    );
-
-  const menuButton = wrapInCapsule(
-    <ButtonIcon {...menuButtonProps} />,
-    MoneyHeaderTestIds.MENU_CAPSULE,
+  const menuButton = (
+    <ButtonIconCapsule
+      {...menuButtonProps}
+      isCapsule={isCapsule}
+      capsuleTestID={MoneyHeaderTestIds.MENU_CAPSULE}
+    />
   );
 
   // "Get Pro" is a text button, so it can only go in the end accessory, which
@@ -117,17 +110,16 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
           testID: MoneyHeaderTestIds.BACK_BUTTON,
         }}
         startAccessory={
-          isCapsule
-            ? wrapInCapsule(
-                <ButtonIcon
-                  iconName={IconName.ArrowLeft}
-                  onPress={props.onBack}
-                  accessibilityLabel={strings('navigation.back')}
-                  testID={MoneyHeaderTestIds.BACK_BUTTON}
-                />,
-                MoneyHeaderTestIds.BACK_CAPSULE,
-              )
-            : undefined
+          isCapsule ? (
+            <ButtonIconCapsule
+              isCapsule
+              iconName={IconName.ArrowLeft}
+              onPress={props.onBack}
+              accessibilityLabel={strings('navigation.back')}
+              testID={MoneyHeaderTestIds.BACK_BUTTON}
+              capsuleTestID={MoneyHeaderTestIds.BACK_CAPSULE}
+            />
+          ) : undefined
         }
         endAccessory={endAccessory}
         endButtonIconProps={[menuButtonProps]}

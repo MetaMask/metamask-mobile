@@ -11,17 +11,18 @@ import GlassSurface from '../GlassSurface';
 const transparentStyle = { backgroundColor: 'transparent' };
 
 export type GlassMainActionButtonProps = MainActionButtonProps & {
-  isGlass: boolean;
+  /** False renders the plain `MainActionButton`. */
+  isGlass?: boolean;
   /** Layout for the button or its glass wrapper, e.g. `flex: 1` in a row. */
   containerStyle?: StyleProp<ViewStyle>;
 };
 
 /**
- * The design-system `MainActionButton` on a brand refresh glass surface.
- * Without `isGlass` it is the plain button, so callers can switch freely.
+ * The design-system `MainActionButton` on a brand refresh glass surface, kept
+ * out of the package until the design system takes it.
  */
 const GlassMainActionButton = ({
-  isGlass,
+  isGlass = true,
   containerStyle,
   style,
   ...props
