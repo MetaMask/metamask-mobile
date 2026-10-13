@@ -709,7 +709,7 @@ describe('BatchSellTokenSelect', () => {
       ComponentLibraryTextVariant.BodySMMedium,
     );
     expect(getByTestId('token-balance-GAIN').props.color).toBe(
-      ComponentLibraryTextColor.Alternative,
+      ComponentLibraryTextColor.Default,
     );
     expect(getByTestId('token-balance-GAIN').props.style).toMatchObject({
       textAlign: 'right',

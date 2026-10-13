@@ -639,7 +639,7 @@ export function BatchSellTokenSelect() {
         onPress={() => handleChainSelect(chainId)}
         isDisabled={isDisabled}
         size={ButtonToggleSize.Md}
-        style={tw.style('rounded-xl py-2 px-3')}
+        style={tw.style('rounded-full py-2 px-4')}
         testID={`${BatchSellTokenSelectSelectorsIDs.NETWORK_PILL}-${chainId}`}
       />
     ),
