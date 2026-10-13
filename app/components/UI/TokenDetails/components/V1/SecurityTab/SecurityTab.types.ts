@@ -114,13 +114,4 @@ export interface SecurityFacts {
    * reassuring claim rather than an absence.
    */
   topTenPercentage: number | null;
-  /**
-   * Minutes since the Blockaid scan, for the provenance line sitting under the
-   * contract checks.
-   *
-   * `null` drops the "checked N min ago" clause and leaves the attribution
-   * alone. Blockaid returns no scan timestamp today, so this is expected to be
-   * `null` in production until the payload grows one.
-   */
-  checkedMinutesAgo: number | null;
 }

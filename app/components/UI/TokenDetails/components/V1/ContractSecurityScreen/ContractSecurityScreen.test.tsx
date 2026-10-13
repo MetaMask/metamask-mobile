@@ -1,6 +1,8 @@
 import React from 'react';
-import { fireEvent, render, within } from '@testing-library/react-native';
+import { act, fireEvent, render, within } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
+import type { CaipAssetType } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   CBXRP_VERIFIED,
@@ -13,15 +15,21 @@ import {
   CONTRACT_CHECK_KEYS,
   ContractCheckKey,
 } from '../SecurityTab/SecurityTab.types';
+import { tokenListSecurityBadgeKeys } from '../../../../Tokens/queries/tokenSecurityBadgeKeys';
+import { requestTokenSecurityForAsset } from '../../../../Tokens/util/tokenSecurityBadgeBatch';
 
 const mockGoBack = jest.fn();
 
+const TOKEN_CAIP_ASSET_ID =
+  'eip155:1/erc20:0x6982508145454ce325ddbe47a25d4ec3d2311933' as CaipAssetType;
+
 /**
- * The tab hands its resolved payload over on the route, which is the path the
- * screen is reached by in practice.
+ * The route carries the token only. The payload comes off the shared query
+ * entry, which is the path the screen is reached by in practice: the tab has
+ * just read that entry, so this screen renders from cache without fetching.
  */
-let mockRouteParams: { token: { securityData?: TokenSecurityData } } = {
-  token: { securityData: CBXRP_VERIFIED },
+let mockRouteParams: { token: { caipAssetId: CaipAssetType } } = {
+  token: { caipAssetId: TOKEN_CAIP_ASSET_ID },
 };
 
 jest.mock('@react-navigation/native', () => ({
@@ -30,14 +38,42 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
+jest.mock('../../../../Tokens/util/tokenSecurityBadgeBatch', () => ({
+  ...jest.requireActual('../../../../Tokens/util/tokenSecurityBadgeBatch'),
+  requestTokenSecurityForAsset: jest.fn(async () => null),
+}));
+
+const mockRequestTokenSecurityForAsset = jest.mocked(
+  requestTokenSecurityForAsset,
+);
+
 const renderScreen = (securityData?: TokenSecurityData) => {
-  mockRouteParams = { token: { securityData } };
-  return render(<ContractSecurityScreen />);
+  mockRouteParams = { token: { caipAssetId: TOKEN_CAIP_ASSET_ID } };
+
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  if (securityData) {
+    queryClient.setQueryData(
+      tokenListSecurityBadgeKeys.byAsset(TOKEN_CAIP_ASSET_ID),
+      securityData,
+    );
+  }
+
+  return {
+    queryClient,
+    ...render(
+      <QueryClientProvider client={queryClient}>
+        <ContractSecurityScreen />
+      </QueryClientProvider>,
+    ),
+  };
 };
 
 describe('ContractSecurityScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRequestTokenSecurityForAsset.mockResolvedValue(null);
   });
 
   // Both headings are the only landmarks on a screen of rows that each carry a
@@ -160,13 +196,72 @@ describe('ContractSecurityScreen', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  // Blockaid returns no scan timestamp, so the line carries attribution alone
-  // rather than guessing at an age.
-  it('attributes the checks to the scanner without claiming a scan age', () => {
+  // Freshly seeded data is seconds old, so the clause reads "just now" rather
+  // than "0 min ago".
+  it('attributes the checks to the scanner and reads "just now" for fresh data', () => {
     const { getByTestId } = renderScreen(CBXRP_VERIFIED);
 
-    expect(getByTestId(ContractSecuritySelectors.SCAN_META)).toHaveTextContent(
-      strings('token_details_v1.security_tab.checks_meta.attribution'),
+    // Asserted on the accessibility label because the provider is a logo with
+    // no on-screen text; the label is the only place both halves appear.
+    expect(getByTestId(ContractSecuritySelectors.SCAN_META)).toHaveProp(
+      'accessibilityLabel',
+      [
+        strings('token_details_v1.security_tab.checks_meta.attribution'),
+        strings(
+          'token_details_v1.security_tab.checks_meta.age_clause_just_now',
+        ),
+      ].join(' '),
+    );
+  });
+
+  it('reports how long ago the payload was fetched once it has age', () => {
+    jest.useFakeTimers();
+    try {
+      const { getByTestId } = renderScreen(CBXRP_VERIFIED);
+
+      act(() => {
+        jest.advanceTimersByTime(5 * 60_000);
+      });
+
+      const scanMeta = getByTestId(ContractSecuritySelectors.SCAN_META);
+
+      expect(scanMeta).toHaveTextContent(
+        strings('token_details_v1.security_tab.checks_meta.age_clause', {
+          count: 5,
+        }),
+      );
+      expect(scanMeta).toHaveProp(
+        'accessibilityLabel',
+        [
+          strings('token_details_v1.security_tab.checks_meta.attribution'),
+          strings('token_details_v1.security_tab.checks_meta.age_clause', {
+            count: 5,
+          }),
+        ].join(' '),
+      );
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  // The whole point of the shared entry: arriving from the tab must not fire a
+  // second request for the token the user is already looking at.
+  it('renders from the shared query entry without fetching', () => {
+    const { getByTestId } = renderScreen(CBXRP_VERIFIED);
+
+    expect(mockRequestTokenSecurityForAsset).not.toHaveBeenCalled();
+    expect(
+      getByTestId(
+        ContractSecuritySelectors.row(ContractCheckKey.ContractVerified),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('fetches when the entry is cold, as on a deep link', () => {
+    renderScreen();
+
+    expect(mockRequestTokenSecurityForAsset).toHaveBeenCalledWith(
+      TOKEN_CAIP_ASSET_ID,
     );
   });
 });

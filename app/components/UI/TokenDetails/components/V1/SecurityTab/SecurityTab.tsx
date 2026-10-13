@@ -10,6 +10,7 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import type { TokenStatValues } from '../../../constants/tokenStats';
 import HoldersDistributionBar from './components/HoldersDistributionBar';
+import SecurityAttribution from '../SecurityAttribution/SecurityAttribution';
 import SecurityRow from './components/SecurityRow';
 import {
   CHECK_OUTCOME_PRESENTATION,
@@ -65,6 +66,17 @@ export interface SecurityTabProps {
    * navigation container.
    */
   onOpenContractDetails: () => void;
+  /**
+   * Whole minutes since the security payload was fetched, or `null` before
+   * anything has been fetched.
+   *
+   * Kept off `facts` on purpose. It is provenance of the request rather than
+   * anything Blockaid concluded, and a ticking value on `facts` would
+   * re-memoize `useSecurityFacts` every tick, handing down fresh `reasons` and
+   * `checks` arrays and re-rendering the whole tab to change one line of grey
+   * text.
+   */
+  fetchedMinutesAgo: number | null;
 }
 
 /**
@@ -191,6 +203,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
   stats,
   onExplain: handleExplain,
   onOpenContractDetails: handleOpenContractDetails,
+  fetchedMinutesAgo,
 }) => {
   const { checks } = facts;
 
@@ -238,22 +251,14 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
           />
         ))}
         {/* Provenance for the four rows above: they come from a third-party
-            scan, and naming the provider plus the scan's age is what lets the
-            reader judge how much to trust a tick that may be hours old. A null
-            age drops the freshness clause rather than guessing at a time. */}
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextAlternative}
-          twClassName="pt-2"
+            scan, and naming the provider plus when we last fetched is what
+            lets the reader judge how much to trust a tick that may be hours
+            old. Under a minute the clause drops rather than reading "0 min". */}
+        <SecurityAttribution
+          fetchedMinutesAgo={fetchedMinutesAgo}
           testID={SecurityTabSelectors.SCAN_META}
-        >
-          {facts.checkedMinutesAgo === null
-            ? strings('token_details_v1.security_tab.checks_meta.attribution')
-            : strings(
-                'token_details_v1.security_tab.checks_meta.attribution_checked',
-                { count: facts.checkedMinutesAgo },
-              )}
-        </Text>
+          twClassName="pt-2"
+        />
       </Box>
 
       {/* ── Holders ─────────────────────────────────────────────────────────

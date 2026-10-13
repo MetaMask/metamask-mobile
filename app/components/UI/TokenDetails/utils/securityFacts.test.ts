@@ -73,12 +73,6 @@ describe('deriveSecurityFacts', () => {
     expect(facts.checks[ContractCheckKey.NoBlacklist]?.outcome).toBe('fail');
   });
 
-  // Blockaid returns no scan timestamp, so the "checked N min ago" clause has
-  // nothing behind it.
-  it('leaves the scan age unresolved', () => {
-    expect(deriveSecurityFacts(CBXRP_VERIFIED).checkedMinutesAgo).toBeNull();
-  });
-
   // The one figure here rather than in `useTokenStats`, because the holders
   // bar needs it raw to size its fill.
   describe('topTenPercentage', () => {
@@ -95,10 +89,11 @@ describe('deriveSecurityFacts', () => {
 
   // Everything else the payload carries — holders, liquidity, tax, pools,
   // the creation date — is a stat now, derived once in `useTokenStats` so the
-  // stat bar and the Security tab cannot report different figures for it.
+  // stat bar and the Security tab cannot report different figures for it. The
+  // age of the data is not here either: that is provenance of the request, and
+  // a ticking value on `facts` would re-render the tab every tick.
   it('derives no statistics of its own', () => {
     expect(Object.keys(deriveSecurityFacts(CBXRP_VERIFIED)).sort()).toEqual([
-      'checkedMinutesAgo',
       'checks',
       'flagCount',
       'reasons',
@@ -278,7 +273,7 @@ describe('emptySecurityFacts', () => {
       expect(facts.reasons).toStrictEqual([]);
       expect(facts.checks).toStrictEqual({});
       expect(facts.topTenPercentage).toBeNull();
-      expect(facts.checkedMinutesAgo).toBeNull();
+      expect(facts.flagCount).toBe(0);
     },
   );
 });

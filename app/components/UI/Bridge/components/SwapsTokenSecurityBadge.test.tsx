@@ -4,10 +4,10 @@ import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { CaipAssetType } from '@metamask/utils';
 
 import SwapsTokenSecurityBadge from './SwapsTokenSecurityBadge';
-import { useTokenListSecurityBadgeQuery } from '../../Tokens/hooks/useTokenListSecurityBadgeQuery';
+import { useTokenSecurityQuery } from '../../Tokens/hooks/useTokenSecurityQuery';
 
-jest.mock('../../Tokens/hooks/useTokenListSecurityBadgeQuery', () => ({
-  useTokenListSecurityBadgeQuery: jest.fn(),
+jest.mock('../../Tokens/hooks/useTokenSecurityQuery', () => ({
+  useTokenSecurityQuery: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -32,17 +32,15 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-const mockUseTokenListSecurityBadgeQuery = jest.mocked(
-  useTokenListSecurityBadgeQuery,
-);
+const mockUseTokenSecurityQuery = jest.mocked(useTokenSecurityQuery);
 
 const SAMPLE_CAIP =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
 
 function mockQueryResult(data?: TokenSecurityData | null) {
-  mockUseTokenListSecurityBadgeQuery.mockReturnValue({
+  mockUseTokenSecurityQuery.mockReturnValue({
     data,
-  } as ReturnType<typeof useTokenListSecurityBadgeQuery>);
+  } as ReturnType<typeof useTokenSecurityQuery>);
 }
 
 describe('SwapsTokenSecurityBadge', () => {
@@ -55,9 +53,7 @@ describe('SwapsTokenSecurityBadge', () => {
 
     render(<SwapsTokenSecurityBadge caipAssetId={SAMPLE_CAIP} />);
 
-    expect(mockUseTokenListSecurityBadgeQuery).toHaveBeenCalledWith(
-      SAMPLE_CAIP,
-    );
+    expect(mockUseTokenSecurityQuery).toHaveBeenCalledWith(SAMPLE_CAIP);
   });
 
   it('renders the verified icon when token security data is verified', () => {

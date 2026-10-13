@@ -6082,7 +6082,8 @@
       },
       "checks_meta": {
         "attribution": "Blockaid",
-        "attribution_checked": "Blockaid · checked {{count}} min ago"
+        "age_clause": "· updated {{count}} min ago",
+        "age_clause_just_now": "· updated just now"
       },
       "stats": {
         "holders": "Holders",

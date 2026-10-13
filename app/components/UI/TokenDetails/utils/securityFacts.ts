@@ -195,7 +195,6 @@ export const emptySecurityFacts = (
   reasons: [],
   checks: {},
   topTenPercentage: null,
-  checkedMinutesAgo: null,
 });
 
 /**
@@ -228,11 +227,5 @@ export const deriveSecurityFacts = (
     reasons: resolveSecurityReasons(features, verdict),
     checks: resolveSecurityChecks(features),
     topTenPercentage: sumTopTenPercentage(securityData.financialStats),
-    /**
-     * TODO(ASSETS-4022): Blockaid returns no scan timestamp, so the "checked N
-     * min ago" clause has nothing behind it and the line shows attribution
-     * only.
-     */
-    checkedMinutesAgo: null,
   };
 };

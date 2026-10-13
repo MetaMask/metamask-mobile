@@ -7,15 +7,13 @@ import type { CaipAssetType } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 
 import TokenListSecurityBadge from './TokenListSecurityBadge';
-import { useTokenListSecurityBadgeQuery } from '../../hooks/useTokenListSecurityBadgeQuery';
+import { useTokenSecurityQuery } from '../../hooks/useTokenSecurityQuery';
 
-jest.mock('../../hooks/useTokenListSecurityBadgeQuery', () => ({
-  useTokenListSecurityBadgeQuery: jest.fn(),
+jest.mock('../../hooks/useTokenSecurityQuery', () => ({
+  useTokenSecurityQuery: jest.fn(),
 }));
 
-const mockUseTokenListSecurityBadgeQuery = jest.mocked(
-  useTokenListSecurityBadgeQuery,
-);
+const mockUseTokenSecurityQuery = jest.mocked(useTokenSecurityQuery);
 
 const SAMPLE_CAIP =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
@@ -60,7 +58,7 @@ describe('TokenListSecurityBadge', () => {
   });
 
   it('renders a loading skeleton when the query is loading without data or error', () => {
-    mockUseTokenListSecurityBadgeQuery.mockReturnValue(
+    mockUseTokenSecurityQuery.mockReturnValue(
       mockQueryResult({
         data: undefined,
         isLoading: true,
@@ -79,7 +77,7 @@ describe('TokenListSecurityBadge', () => {
   });
 
   it('passes caipAssetId to the security badge query hook', () => {
-    mockUseTokenListSecurityBadgeQuery.mockReturnValue(
+    mockUseTokenSecurityQuery.mockReturnValue(
       mockQueryResult({
         data: { resultType: 'Benign' } as TokenSecurityData,
       }),
@@ -87,13 +85,11 @@ describe('TokenListSecurityBadge', () => {
 
     render(<TokenListSecurityBadge caipAssetId={SAMPLE_CAIP} />);
 
-    expect(mockUseTokenListSecurityBadgeQuery).toHaveBeenCalledWith(
-      SAMPLE_CAIP,
-    );
+    expect(mockUseTokenSecurityQuery).toHaveBeenCalledWith(SAMPLE_CAIP);
   });
 
   it('renders nothing when the API payload maps to no inline badge', () => {
-    mockUseTokenListSecurityBadgeQuery.mockReturnValue(
+    mockUseTokenSecurityQuery.mockReturnValue(
       mockQueryResult({
         data: { resultType: 'Benign' } as TokenSecurityData,
       }),
@@ -107,7 +103,7 @@ describe('TokenListSecurityBadge', () => {
   });
 
   it('renders nothing when resultType is unknown', () => {
-    mockUseTokenListSecurityBadgeQuery.mockReturnValue(
+    mockUseTokenSecurityQuery.mockReturnValue(
       mockQueryResult({
         data: { resultType: 'UnknownType' } as TokenSecurityData,
       }),
@@ -121,7 +117,7 @@ describe('TokenListSecurityBadge', () => {
   });
 
   it('renders an icon-only badge for Verified tokens', () => {
-    mockUseTokenListSecurityBadgeQuery.mockReturnValue(
+    mockUseTokenSecurityQuery.mockReturnValue(
       mockQueryResult({
         data: { resultType: 'Verified' } as TokenSecurityData,
       }),
@@ -135,7 +131,7 @@ describe('TokenListSecurityBadge', () => {
   });
 
   it('renders a labelled badge for Warning resultType', () => {
-    mockUseTokenListSecurityBadgeQuery.mockReturnValue(
+    mockUseTokenSecurityQuery.mockReturnValue(
       mockQueryResult({
         data: { resultType: 'Warning' } as TokenSecurityData,
       }),
@@ -149,7 +145,7 @@ describe('TokenListSecurityBadge', () => {
   });
 
   it('renders a labelled badge for Malicious resultType', () => {
-    mockUseTokenListSecurityBadgeQuery.mockReturnValue(
+    mockUseTokenSecurityQuery.mockReturnValue(
       mockQueryResult({
         data: { resultType: 'Malicious' } as TokenSecurityData,
       }),
@@ -163,7 +159,7 @@ describe('TokenListSecurityBadge', () => {
   });
 
   it('does not show the loading state when the query ends in error', () => {
-    mockUseTokenListSecurityBadgeQuery.mockReturnValue(
+    mockUseTokenSecurityQuery.mockReturnValue(
       mockQueryResult({
         data: undefined,
         error: new Error('network'),

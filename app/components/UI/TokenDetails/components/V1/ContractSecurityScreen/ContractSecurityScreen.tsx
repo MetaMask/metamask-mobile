@@ -25,7 +25,10 @@ import { strings } from '../../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import type { AssetStackParamList } from '../../../../../Nav/Main/types/navigation';
 import { useSecurityFacts } from '../../../hooks/useSecurityFacts';
-import { useTokenSecurityData } from '../../../hooks/useTokenSecurityData';
+import SecurityAttribution from '../SecurityAttribution/SecurityAttribution';
+import { useElapsedMinutes } from '../../../hooks/useElapsedMinutes';
+import { useTokenCaipAssetId } from '../../../hooks/useTokenCaipAssetId';
+import { useTokenSecurityQuery } from '../../../../Tokens/hooks/useTokenSecurityQuery';
 import type { SecurityReason } from '../../../utils/securityReasons';
 import {
   CHECK_OUTCOME_PRESENTATION,
@@ -167,12 +170,32 @@ export const ContractSecurityScreen: React.FC = () => {
   const { token } =
     useRoute<RouteProp<AssetStackParamList, 'ContractSecurity'>>().params;
 
-  const { securityData, isLoading, error } = useTokenSecurityData({
-    assetId: token.caipAssetId ?? null,
-    prefetchedData: token.securityData,
+  /**
+   * Resolved the same way the detail page resolves it, so both land on one
+   * query entry: this screen is opened from that page and should render from
+   * the payload already in cache rather than fetching its own copy.
+   */
+  const caipAssetId = useTokenCaipAssetId(token);
+
+  const {
+    data: securityData,
+    isPending: isLoading,
+    error,
+    dataUpdatedAt,
+  } = useTokenSecurityQuery(caipAssetId);
+
+  const facts = useSecurityFacts({
+    securityData: securityData ?? null,
+    isLoading,
+    error,
   });
 
-  const facts = useSecurityFacts({ securityData, isLoading, error });
+  // This screen is always the foreground route while mounted, so the clock
+  // needs no gate beyond the hook's own AppState check.
+  const fetchedMinutesAgo = useElapsedMinutes({
+    since: dataUpdatedAt,
+    enabled: true,
+  });
 
   const scrollContentStyle = React.useMemo(
     () => ({ paddingTop: 20, paddingBottom: insets.bottom + 24 }),
@@ -262,19 +285,11 @@ export const ContractSecurityScreen: React.FC = () => {
 
           {/* Same provenance line as the tab, for the same reason: every row
               above came from a third-party scan that may be hours old. */}
-          <Text
-            variant={TextVariant.BodyXs}
-            color={TextColor.TextAlternative}
-            twClassName="pt-6"
+          <SecurityAttribution
+            fetchedMinutesAgo={fetchedMinutesAgo}
             testID={ContractSecuritySelectors.SCAN_META}
-          >
-            {facts.checkedMinutesAgo === null
-              ? strings('token_details_v1.security_tab.checks_meta.attribution')
-              : strings(
-                  'token_details_v1.security_tab.checks_meta.attribution_checked',
-                  { count: facts.checkedMinutesAgo },
-                )}
-          </Text>
+            twClassName="pt-6"
+          />
         </Box>
       </ScrollView>
     </View>

@@ -7,6 +7,11 @@ const token = {
   chainId: '0x1',
 } as TokenI;
 
+jest.mock('../../Tokens/util/tokenSecurityBadgeBatch', () => ({
+  ...jest.requireActual('../../Tokens/util/tokenSecurityBadgeBatch'),
+  requestTokenSecurityForAsset: jest.fn(async () => null),
+}));
+
 const assetId = 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f';
 
 const queryKeyName = (options: { queryKey: readonly unknown[] }): string =>
@@ -33,13 +38,14 @@ const prefetch = (
 };
 
 describe('prefetchTokenDetailsQueries', () => {
-  it('prefetches historical prices, ohlcv, and spot together', () => {
+  it('prefetches historical prices, ohlcv, spot and security together', () => {
     const calls = prefetch(true, true);
 
     expect(calls.map(queryKeyName)).toStrictEqual([
       'historical-prices',
       'ohlcv-chart',
       'spot-price',
+      'securityBadge',
     ]);
     expect(calls[1]?.queryKey).toEqual([
       'token-details',
@@ -64,12 +70,24 @@ describe('prefetchTokenDetailsQueries', () => {
     expect(calls.map(queryKeyName)).toStrictEqual([
       'historical-prices',
       'ohlcv-chart',
+      'securityBadge',
     ]);
   });
 
   it('skips the ohlcv prefetch when the asset id is missing', () => {
     const calls = prefetch(false, true, null);
 
-    expect(calls.map(queryKeyName)).toStrictEqual(['historical-prices']);
+    expect(calls.map(queryKeyName)).toStrictEqual([
+      'historical-prices',
+      'securityBadge',
+    ]);
+  });
+
+  // Keyed through the same helper the page uses, not the chart's asset id,
+  // which is a different identifier for some tokens.
+  it('warms security under the key the page will read', () => {
+    const calls = prefetch(true, true);
+
+    expect(calls[3]?.queryKey).toEqual(['tokenList', 'securityBadge', assetId]);
   });
 });

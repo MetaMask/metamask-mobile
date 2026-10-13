@@ -76,6 +76,7 @@ const renderTab = (
       stats={EVM_STATS}
       onExplain={jest.fn()}
       onOpenContractDetails={jest.fn()}
+      fetchedMinutesAgo={null}
       {...props}
     />,
   );

@@ -78,8 +78,9 @@ import {
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
+import { useElapsedMinutes } from '../hooks/useElapsedMinutes';
 import { useSecurityFacts } from '../hooks/useSecurityFacts';
-import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
+import { useTokenSecurityQuery } from '../../Tokens/hooks/useTokenSecurityQuery';
 import { useTokenMarketData } from '../hooks/useTokenMarketData';
 import { useTokenStats } from '../hooks/useTokenStats';
 
@@ -232,14 +233,21 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     trackEvent,
   ]);
 
+  /**
+   * Read off the entry the token list badges already populate, rather than the
+   * `securityData` route param: that param is a snapshot taken at tap time and
+   * never revalidates, and carries no indication of when it was fetched.
+   */
   const {
-    securityData,
-    isLoading: isSecurityDataLoading,
+    data: fetchedSecurityData,
+    isPending: isSecurityDataLoading,
     error: securityDataError,
-  } = useTokenSecurityData({
-    assetId: caip19AssetId,
-    prefetchedData: token.securityData,
-  });
+    dataUpdatedAt: securityDataUpdatedAt,
+  } = useTokenSecurityQuery(caip19AssetId);
+
+  // `undefined` before the first fetch resolves, which the consumers below and
+  // `useSecurityFacts` treat the same as "no data".
+  const securityData = fetchedSecurityData ?? null;
 
   // Resolved once here and shared with the Overview tab's market details list,
   // so the screen does not fetch the same data from two places.
@@ -353,16 +361,21 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     error: securityDataError,
   });
 
+  // Gated on the tab because tabs stay mounted once visited, so an ungated
+  // clock would keep ticking behind Overview for a line nobody is looking at.
+  const securityFetchedMinutesAgo = useElapsedMinutes({
+    since: securityDataUpdatedAt,
+    enabled: activeTab === 'security',
+  });
+
   /**
-   * The resolved payload rides along on `securityData` so the detail screen
-   * renders from what the tab already has rather than issuing its own request
-   * for the token the user is looking at.
+   * No payload rides along: the detail screen subscribes to the same query
+   * entry this tab just read, so it renders from cache without a request and
+   * stays in step if that entry revalidates.
    */
   const handleOpenContractSecurity = useCallback(() => {
-    navigation.navigate(Routes.CONTRACT_SECURITY, {
-      token: { ...token, securityData: securityData ?? undefined },
-    });
-  }, [navigation, token, securityData]);
+    navigation.navigate(Routes.CONTRACT_SECURITY, { token });
+  }, [navigation, token]);
 
   const renderTabPage = useCallback(
     (tab: TokenDetailsV1TabKey) => {
@@ -387,6 +400,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             stats={tokenStats}
             onExplain={handleRowExplain}
             onOpenContractDetails={handleOpenContractSecurity}
+            fetchedMinutesAgo={securityFetchedMinutesAgo}
           />
         );
       }
@@ -403,6 +417,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       securityData,
       marketData,
       securityFacts,
+      securityFetchedMinutesAgo,
       tokenStats,
       handleRowExplain,
       handleOpenContractSecurity,

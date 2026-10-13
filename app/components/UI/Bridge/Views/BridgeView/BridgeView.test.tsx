@@ -375,8 +375,8 @@ jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: jest.fn(),
 }));
 
-jest.mock('../../../Tokens/hooks/useTokenListSecurityBadgeQuery', () => ({
-  useTokenListSecurityBadgeQuery: jest.fn(() => ({ data: null })),
+jest.mock('../../../Tokens/hooks/useTokenSecurityQuery', () => ({
+  useTokenSecurityQuery: jest.fn(() => ({ data: null })),
 }));
 
 const mockUseABTest = jest.mocked(useABTest);

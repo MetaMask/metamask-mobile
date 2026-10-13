@@ -108,14 +108,18 @@ jest.mock('../hooks/useTokenMarketData', () => ({
   useTokenMarketData: () => ({ marketData: null, isLoading: false }),
 }));
 
-// Echoes the prefetched security data so tests can supply security data at
-// navigation time, matching the real hook's pass-through of valid prefetched
-// data (no network fetch needed in tests).
-jest.mock('../hooks/useTokenSecurityData', () => ({
-  useTokenSecurityData: ({ prefetchedData }: { prefetchedData?: unknown }) => ({
-    securityData: prefetchedData ?? null,
-    isLoading: false,
-  }),
+// Stands in for the shared query entry so these tests need no QueryClient.
+// The entry itself, including the key normalization that lets the token list
+// and this page share it, is covered in `useTokenSecurityQuery.test.ts`.
+const mockSecurityQueryResult = {
+  data: null as unknown,
+  isPending: false,
+  error: null,
+  dataUpdatedAt: 0,
+};
+
+jest.mock('../../Tokens/hooks/useTokenSecurityQuery', () => ({
+  useTokenSecurityQuery: () => mockSecurityQueryResult,
 }));
 
 const mockUseIsPriceAlertsChainSupported = jest.fn(() => true);
@@ -287,6 +291,9 @@ describe('TokenDetailsV1', () => {
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
     mockOverviewProps.length = 0;
     mockPriceHeaderProps.length = 0;
+    mockSecurityQueryResult.data = null;
+    mockSecurityQueryResult.isPending = false;
+    mockSecurityQueryResult.dataUpdatedAt = 0;
   });
 
   it('renders the meme-TDP body with the token symbol in the header', () => {
@@ -498,9 +505,11 @@ describe('TokenDetailsV1', () => {
   });
 
   it('renders the token social links from its security data', () => {
+    mockSecurityQueryResult.data = securityDataWithLinks;
+
     const { getByTestId } = render(
       <TokenDetailsV1
-        token={{ ...baseToken, securityData: securityDataWithLinks }}
+        token={baseToken}
         variant={TokenDetailsVariant.Memecoin}
       />,
     );
