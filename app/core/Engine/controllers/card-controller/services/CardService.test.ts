@@ -22,6 +22,12 @@ const createService = ({
 } = {}) =>
   new CardService({
     getBaseUrl: () => baseUrl,
+    getClientInfo: () => ({
+      product: 'metamask-mobile',
+      version: '7.60.0',
+      build: '1500',
+      platform: 'ios',
+    }),
   });
 
 const supportedRegionsResponse = {
@@ -150,6 +156,28 @@ describe('CardService', () => {
           },
         }),
       );
+    });
+
+    it('drops rows with an unknown provider, status or shape, and unknown fields', async () => {
+      mockRequest.mockResolvedValue({
+        data: [
+          { ...linkRow, migration: { state: 'scheduled' } },
+          { ...linkRow, provider: 'acme' },
+          { ...linkRow, status: 'suspended' },
+          { ...linkRow, closedReason: 'other' },
+          { provider: 'immersve', status: 'active' },
+          'not-a-row',
+        ],
+        status: 200,
+      });
+
+      const result = await createLinksService().getCardLinks('jwt');
+
+      expect(result).toStrictEqual([
+        linkRow,
+        { ...linkRow, closedReason: null },
+      ]);
+      expect(result[0]).not.toHaveProperty('migration');
     });
 
     it('rejects a GET body that is not a bare array', async () => {

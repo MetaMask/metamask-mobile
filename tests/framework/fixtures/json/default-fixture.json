@@ -166,7 +166,8 @@
           "signInLink": null,
           "cardLinks": null,
           "cardLinksFetchedAt": null,
-          "cardLinksSeeded": false
+          "cardLinksSeeded": false,
+          "cardLinkApiBlocked": false
         },
         "ClaimsController": {
           "claims": [],

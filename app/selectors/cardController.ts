@@ -49,7 +49,10 @@ import {
   isAnyMoneyAccountDelegatedForCard,
 } from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
-import { selectCardFeatureFlag } from './featureFlagController/card';
+import {
+  selectCardFeatureFlag,
+  selectCardLinkApiEnabled,
+} from './featureFlagController/card';
 import { selectMoneyAccountGeoBlockedCountries } from '../components/UI/Money/selectors/featureFlags';
 import {
   buildCardResidencyRegion,
@@ -191,19 +194,32 @@ export const selectIsCardholder = createSelector(
   },
 );
 
+/** `null` while card links are off (flag, or a 403 from Card API), so routing stays legacy. */
 export const selectCardLinks = createSelector(
   selectCardControllerState,
-  (cardState: CardControllerState | undefined): CardLink[] | null =>
-    cardState?.cardLinks ?? null,
+  selectCardLinkApiEnabled,
+  (
+    cardState: CardControllerState | undefined,
+    cardLinkApiEnabled,
+  ): CardLink[] | null =>
+    cardLinkApiEnabled && !cardState?.cardLinkApiBlocked
+      ? (cardState?.cardLinks ?? null)
+      : null,
 );
 
-/** `active` wins over `onboarding`; `closed` rows are ignored. */
+const latestByUpdatedAt = (links: CardLink[]): CardLink | null =>
+  links.reduce<CardLink | null>(
+    (best, link) =>
+      best === null || link.updatedAt > best.updatedAt ? link : best,
+    null,
+  );
+
+/** `active` wins over `onboarding`; `closed` rows are ignored; ties go to the newest row. */
 const selectRoutableCardLink = createSelector(
   selectCardLinks,
   (links): CardLink | null =>
-    links?.find((link) => link.status === 'active') ??
-    links?.find((link) => link.status === 'onboarding') ??
-    null,
+    latestByUpdatedAt(links?.filter((l) => l.status === 'active') ?? []) ??
+    latestByUpdatedAt(links?.filter((l) => l.status === 'onboarding') ?? []),
 );
 
 export const selectHasLinkedCard = createSelector(

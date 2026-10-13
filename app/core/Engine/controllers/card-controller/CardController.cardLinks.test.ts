@@ -61,18 +61,18 @@ const apiError = (status: number, body: unknown = '') =>
 
 interface Setup {
   flagEnabled?: boolean;
+  basicFunctionality?: boolean;
   state?: Partial<CardControllerState>;
   getBearerToken?: jest.Mock;
   provider?: Partial<ICardProvider>;
-  withSha256?: boolean;
 }
 
 function setup({
   flagEnabled = true,
+  basicFunctionality = true,
   state = {},
   getBearerToken = jest.fn().mockResolvedValue('token-1'),
   provider = {},
-  withSha256 = true,
 }: Setup = {}) {
   const subscriptions: Record<string, (...args: unknown[]) => void> = {};
   const messenger = {
@@ -144,7 +144,8 @@ function setup({
     providers: { baanx, immersve: { ...baanx, id: 'immersve' } },
     cardService: cardService as unknown as CardService,
     state: { ...defaultCardControllerState, ...state },
-    sha256: withSha256 ? testSha256 : undefined,
+    sha256: testSha256,
+    isBasicFunctionalityEnabled: () => basicFunctionality,
   });
 
   return { controller, cardService, messenger, getBearerToken, subscriptions };
@@ -362,7 +363,44 @@ describe('CardController card links', () => {
       expect(cardService.getCardLinks).toHaveBeenCalledTimes(1);
       expect(cardService.putCardLink).not.toHaveBeenCalled();
       expect(controller.state.cardLinks).toBeNull();
+      expect(controller.state.cardLinkApiBlocked).toBe(true);
       expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('does not report offline or timeout errors', async () => {
+      for (const status of [0, 408]) {
+        const { controller, cardService } = setup();
+        cardService.getCardLinks.mockRejectedValue(apiError(status));
+        await controller.fetchCardLinks();
+      }
+      expect(Logger.error).not.toHaveBeenCalled();
+
+      const { controller, cardService } = setup();
+      cardService.getCardLinks.mockRejectedValue(apiError(503));
+      await controller.fetchCardLinks();
+      expect(Logger.error).toHaveBeenCalledTimes(1);
+    });
+
+    it('makes no call when Basic Functionality is off', async () => {
+      const { controller, cardService, getBearerToken } = setup({
+        basicFunctionality: false,
+      });
+
+      await controller.fetchCardLinks();
+      await controller.recordCardActivated({ provider: 'immersve' });
+
+      expect(getBearerToken).not.toHaveBeenCalled();
+      expect(cardService.getCardLinks).not.toHaveBeenCalled();
+      expect(cardService.putCardLink).not.toHaveBeenCalled();
+    });
+
+    it('fetches when the cardLinkApi flag changes', async () => {
+      const { cardService, subscriptions } = setup();
+
+      subscriptions['RemoteFeatureFlagController:stateChange']('{}');
+      await flush();
+
+      expect(cardService.getCardLinks).toHaveBeenCalledTimes(1);
     });
 
     it('does not seed when the fetch fails', async () => {
@@ -499,7 +537,7 @@ describe('CardController card links', () => {
       expect(controller.state.cardLinksSeeded).toBe(true);
     });
 
-    it('retries a seed that failed for a non-400 reason on the next read', async () => {
+    it('does not retry a failed seed in the same session', async () => {
       const { controller, cardService } = setup({
         state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
       });
@@ -509,8 +547,41 @@ describe('CardController card links', () => {
       expect(controller.state.cardLinksSeeded).toBe(false);
 
       await controller.fetchCardLinks({ force: true });
-      expect(cardService.putCardLink).toHaveBeenCalledTimes(2);
-      expect(controller.state.cardLinksSeeded).toBe(true);
+      expect(cardService.putCardLink).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not seed from a stale empty read when the fetch fails', async () => {
+      const { controller, cardService } = setup({
+        state: {
+          cardLinks: [],
+          cardLinksFetchedAt: Date.now() - 25 * 60 * 60 * 1000,
+          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
+        },
+      });
+      cardService.getCardLinks.mockRejectedValue(apiError(503));
+
+      await controller.fetchCardLinks();
+
+      expect(cardService.putCardLink).not.toHaveBeenCalled();
+    });
+
+    it('seeds with the selected account when it is a cardholder account', async () => {
+      const { controller, cardService } = setup({
+        state: {
+          cardholderAccounts: [
+            `eip155:0:${CARDHOLDER_ADDRESS}`,
+            `eip155:0:${SELECTED_ADDRESS.toLowerCase()}`,
+          ],
+        },
+      });
+
+      await controller.fetchCardLinks();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'baanx',
+        { status: 'active', linkedAccountRef: refFor(SELECTED_ADDRESS) },
+        'token-1',
+      );
     });
 
     it('ends the seed on a 400 without retrying it', async () => {
@@ -551,43 +622,37 @@ describe('CardController card links', () => {
       expect(body).not.toHaveProperty('cardholderId');
     });
 
-    it('uses the cardholder ID learned at the Immersve SIWE login, then forgets it', async () => {
-      const submitCredentials = jest.fn().mockResolvedValue({
-        done: true,
-        tokenSet: {
-          accessToken: 'at',
-          accessTokenExpiresAt: Date.now() + 60_000,
-          location: 'international',
-          cardholderAccountId: 'chacc-siwe',
-        },
-      });
-      const { controller, cardService } = setup({
-        provider: { submitCredentials, initiateAuth: jest.fn() },
-        state: { activeProviderId: 'immersve' },
-      });
-      jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
-      (controller as unknown as { currentSession: unknown }).currentSession = {
-        id: 's',
-        currentStep: { type: 'siwe', message: 'm' },
-        _metadata: {},
-      };
+    it('reads the cardholder ID from the token store when none is given', async () => {
+      const { controller, cardService } = setup();
+      jest
+        .spyOn(CardTokenStore, 'get')
+        .mockResolvedValue({ cardholderAccountId: 'chacc-stored' } as never);
 
-      await controller.submitCredentials({
-        type: 'siwe',
-        signature: '0xsig',
-      } as never);
       await controller.recordProviderOnboardingStarted({
         provider: 'immersve',
         address: SELECTED_ADDRESS,
       });
-      await controller.recordProviderOnboardingStarted({
-        provider: 'immersve',
-        address: SELECTED_ADDRESS,
-      });
+      await controller.recordCardActivated({ provider: 'immersve' });
 
+      expect(CardTokenStore.get).toHaveBeenCalledWith('immersve');
       const bodies = cardService.putCardLink.mock.calls.map(([, b]) => b);
-      expect(bodies[0]).toMatchObject({ providerCardholderId: 'chacc-siwe' });
-      expect(bodies[1]).not.toHaveProperty('providerCardholderId');
+      expect(bodies[0]).toMatchObject({ providerCardholderId: 'chacc-stored' });
+      expect(bodies[1]).toMatchObject({ providerCardholderId: 'chacc-stored' });
+    });
+
+    it('still writes when the token store cannot be read', async () => {
+      const { controller, cardService } = setup();
+      jest
+        .spyOn(CardTokenStore, 'get')
+        .mockRejectedValue(new Error('keychain'));
+
+      await controller.recordCardActivated({ provider: 'immersve' });
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'immersve',
+        { status: 'active' },
+        'token-1',
+      );
     });
 
     it('records the Immersve card as active with a status-only body', async () => {
@@ -659,6 +724,80 @@ describe('CardController card links', () => {
       expect(cardService.putCardLink).toHaveBeenCalledWith(
         'baanx',
         { status: 'onboarding', linkedAccountRef: refFor(SELECTED_ADDRESS) },
+        'token-1',
+      );
+    });
+
+    it('does not move linkedAccountRef to a non-cardholder account on Baanx login', async () => {
+      const submitCredentials = jest.fn().mockResolvedValue({
+        done: true,
+        tokenSet: {
+          accessToken: 'at',
+          accessTokenExpiresAt: Date.now() + 60_000,
+          location: 'international',
+        },
+      });
+      const { controller, cardService } = setup({
+        provider: { submitCredentials },
+        state: {
+          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
+          cardLinks: [link({ linkedAccountRef: refFor(CARDHOLDER_ADDRESS) })],
+        },
+      });
+      jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
+      (controller as unknown as { currentSession: unknown }).currentSession = {
+        id: 's',
+        currentStep: { type: 'email_password' },
+        _metadata: {},
+      };
+
+      await controller.submitCredentials({
+        type: 'email_password',
+        email: 'e',
+        password: 'p',
+      });
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'baanx',
+        { status: 'active' },
+        'token-1',
+      );
+    });
+
+    it('sends linkedAccountRef on Baanx login when the selected account is a cardholder account', async () => {
+      const submitCredentials = jest.fn().mockResolvedValue({
+        done: true,
+        tokenSet: {
+          accessToken: 'at',
+          accessTokenExpiresAt: Date.now() + 60_000,
+          location: 'international',
+        },
+      });
+      const { controller, cardService } = setup({
+        provider: { submitCredentials },
+        state: {
+          cardholderAccounts: [`eip155:0:${SELECTED_ADDRESS.toLowerCase()}`],
+          cardLinks: [link({ linkedAccountRef: refFor(CARDHOLDER_ADDRESS) })],
+        },
+      });
+      jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
+      (controller as unknown as { currentSession: unknown }).currentSession = {
+        id: 's',
+        currentStep: { type: 'email_password' },
+        _metadata: {},
+      };
+
+      await controller.submitCredentials({
+        type: 'email_password',
+        email: 'e',
+        password: 'p',
+      });
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'baanx',
+        { status: 'active', linkedAccountRef: refFor(SELECTED_ADDRESS) },
         'token-1',
       );
     });
@@ -787,22 +926,6 @@ describe('CardController card links', () => {
 
       const [, body] = cardService.putCardLink.mock.calls[0];
       expect(body).not.toHaveProperty('providerCardholderId');
-    });
-
-    it('omits linkedAccountRef when the host gave no sha256', async () => {
-      const { controller, cardService } = setup({ withSha256: false });
-
-      await controller.recordProviderLogin({
-        provider: 'baanx',
-        phase: 'active',
-        address: SELECTED_ADDRESS,
-      });
-
-      expect(cardService.putCardLink).toHaveBeenCalledWith(
-        'baanx',
-        { status: 'active' },
-        'token-1',
-      );
     });
 
     it('sends nothing when cardLinkApiEnabled is off', async () => {

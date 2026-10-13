@@ -185,6 +185,8 @@ export type CardControllerState = {
   cardLinks: CardLink[] | null;
   cardLinksFetchedAt: number | null;
   cardLinksSeeded: boolean;
+  /** Card API refused this client version (403); treated as the flag being off. */
+  cardLinkApiBlocked: boolean;
 };
 
 export type CardControllerActions = ControllerGetStateAction<

@@ -17,6 +17,7 @@ import { resolveImmersveConfig } from './services/immersve-config';
 import { CardService } from './services/CardService';
 import { CardProviderIds } from './provider-types';
 import { getDefaultCardApiBaseUrlForMetaMaskEnv } from '../../../../components/UI/Card/util/mapCardApiUrl';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import {
   readCardFeatureFlag,
   readCardProviderConfig,
@@ -46,7 +47,7 @@ export const cardControllerInit: MessengerClientInitFunction<
   CardController,
   CardControllerMessenger
 > = (request) => {
-  const { controllerMessenger, persistedState } = request;
+  const { controllerMessenger, persistedState, getState } = request;
 
   const getRemoteFeatureFlags = () =>
     controllerMessenger.call('RemoteFeatureFlagController:getState')
@@ -94,6 +95,8 @@ export const cardControllerInit: MessengerClientInitFunction<
     },
     cardService,
     sha256: mobileSha256,
+    isBasicFunctionalityEnabled: () =>
+      selectBasicFunctionalityEnabled(getState()),
   });
 
   return { controller };

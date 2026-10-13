@@ -1,6 +1,6 @@
 import { create, isAxiosError, type AxiosInstance } from 'axios';
 import Logger from '../../../../../util/Logger';
-import type { CardProviderId } from '../provider-types';
+import { CardProviderIds, type CardProviderId } from '../provider-types';
 import type { CardClientInfo, CardLink, CardLinkWriteBody } from '../types';
 import { CardApiError } from './BaanxService';
 import type { CardApiSupportedRegionsResponse } from './card-supported-regions.types';
@@ -21,6 +21,43 @@ export function getCardApiErrorBodyCode(error: unknown): string | undefined {
   }
 }
 
+const CARD_LINK_PROVIDERS = new Set<string>(Object.values(CardProviderIds));
+const CARD_LINK_STATUSES = new Set<string>(['onboarding', 'active', 'closed']);
+const CARD_LINK_CLOSED_REASONS = new Set<string>(['migrated', 'terminated']);
+
+const stringOrNull = (value: unknown): string | null =>
+  typeof value === 'string' ? value : null;
+
+// Keeps only the providers, statuses and fields this build knows, so a newer
+// API cannot persist a row the app cannot route to.
+const toCardLink = (item: unknown): CardLink | null => {
+  if (typeof item !== 'object' || item === null) return null;
+  const row = item as Record<string, unknown>;
+  if (
+    typeof row.provider !== 'string' ||
+    !CARD_LINK_PROVIDERS.has(row.provider) ||
+    typeof row.status !== 'string' ||
+    !CARD_LINK_STATUSES.has(row.status) ||
+    typeof row.linkedAt !== 'string' ||
+    typeof row.updatedAt !== 'string'
+  ) {
+    return null;
+  }
+  const closedReason = stringOrNull(row.closedReason);
+  return {
+    provider: row.provider as CardLink['provider'],
+    status: row.status as CardLink['status'],
+    linkedAccountRef: stringOrNull(row.linkedAccountRef),
+    closedReason:
+      closedReason !== null && CARD_LINK_CLOSED_REASONS.has(closedReason)
+        ? (closedReason as CardLink['closedReason'])
+        : null,
+    migratedToProvider: stringOrNull(row.migratedToProvider),
+    linkedAt: row.linkedAt,
+    updatedAt: row.updatedAt,
+  };
+};
+
 interface CardServiceRequest {
   path: string;
   method: 'GET' | 'PUT';
@@ -36,14 +73,14 @@ interface CardServiceRequest {
 export class CardService {
   private readonly client: AxiosInstance;
   private readonly getBaseUrl: () => string;
-  private readonly getClientInfo?: () => CardClientInfo;
+  private readonly getClientInfo: () => CardClientInfo;
 
   constructor({
     getBaseUrl,
     getClientInfo,
   }: {
     getBaseUrl: () => string;
-    getClientInfo?: () => CardClientInfo;
+    getClientInfo: () => CardClientInfo;
   }) {
     this.getBaseUrl = getBaseUrl;
     this.getClientInfo = getClientInfo;
@@ -87,7 +124,7 @@ export class CardService {
         'Expected an array of card links',
       );
     }
-    return data as CardLink[];
+    return data.flatMap((item) => toCardLink(item) ?? []);
   }
 
   async putCardLink(
@@ -112,7 +149,7 @@ export class CardService {
     if (bearerToken) {
       headers.Authorization = `Bearer ${bearerToken}`;
     }
-    const info = withClientHeaders ? this.getClientInfo?.() : undefined;
+    const info = withClientHeaders ? this.getClientInfo() : undefined;
     if (info) {
       headers['x-metamask-clientproduct'] = info.product;
       headers['x-metamask-clientversion'] = info.version;

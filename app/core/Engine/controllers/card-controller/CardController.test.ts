@@ -121,6 +121,11 @@ async function waitForCondition(
   }
 }
 
+const hostOptions = {
+  sha256: async () => new Uint8Array(32),
+  isBasicFunctionalityEnabled: () => true,
+};
+
 function buildMessenger() {
   return new Messenger<
     'CardController',
@@ -182,6 +187,7 @@ function buildController(
   cardService: CardService = buildMockCardService(),
 ) {
   return new CardController({
+    ...hostOptions,
     messenger: buildMessenger(),
     providers: { baanx: provider },
     cardService,
@@ -221,6 +227,7 @@ function buildControllerWithMockMessenger(
 ) {
   const messenger = buildMessengerWithEvmAccount(evmAddress);
   const controller = new CardController({
+    ...hostOptions,
     messenger,
     providers: { baanx: provider },
     cardService,
@@ -298,6 +305,7 @@ const mockRefreshRejectedError = new CardProviderError(
 describe('CardController', () => {
   it('initializes with default state when no state is provided', () => {
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: buildMessenger(),
       providers: {},
@@ -310,6 +318,7 @@ describe('CardController', () => {
 
   it('initializes with provided state merged over defaults', () => {
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: buildMessenger(),
       providers: {},
@@ -340,11 +349,13 @@ describe('CardController', () => {
       cardLinks: null,
       cardLinksFetchedAt: null,
       cardLinksSeeded: false,
+      cardLinkApiBlocked: false,
     });
   });
 
   it('preserves default values for fields not in partial state', () => {
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: buildMessenger(),
       providers: {},
@@ -362,6 +373,7 @@ describe('CardController', () => {
 
   it('initializes with full persisted state including providerData', () => {
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: buildMessenger(),
       providers: {},
@@ -398,6 +410,7 @@ describe('CardController — setSelectedCountry', () => {
       return undefined;
     });
     return new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger,
       providers: {
@@ -469,6 +482,7 @@ describe('CardController — auth methods', () => {
 
     it('throws CardProviderError when there is no active provider', async () => {
       const controller = new CardController({
+        ...hostOptions,
         cardService: buildMockCardService(),
         messenger: buildMessenger(),
         providers: {},
@@ -841,6 +855,7 @@ describe('CardController — auth methods', () => {
       const baanx = buildMockProvider();
       const other = buildMockProvider({ id: CardProviderIds.Immersve });
       const controller = new CardController({
+        ...hostOptions,
         cardService: buildMockCardService(),
         messenger: buildMessenger(),
         providers: { baanx, [CardProviderIds.Immersve]: other },
@@ -1003,6 +1018,7 @@ describe('CardController — auth methods', () => {
       provider.validateTokens.mockReturnValue('valid');
       const messenger = buildMessengerWithEvmAccount('0xotheraccount');
       const controller = new CardController({
+        ...hostOptions,
         cardService: buildMockCardService(),
         messenger,
         providers: { immersve: provider },
@@ -1498,6 +1514,7 @@ describe('CardController — event subscriptions', () => {
   it('subscribes to KeyringController:unlock on construction', () => {
     const mockMessenger = buildMockMessenger();
     new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: mockMessenger,
       providers: {},
@@ -1512,6 +1529,7 @@ describe('CardController — event subscriptions', () => {
   it('subscribes to AccountTreeController:stateChange on construction', () => {
     const mockMessenger = buildMockMessenger();
     new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: mockMessenger,
       providers: {},
@@ -1527,6 +1545,7 @@ describe('CardController — event subscriptions', () => {
   it('includes selectedAccountGroup in the AccountTreeController subscription key', () => {
     const mockMessenger = buildMockMessenger();
     new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: mockMessenger,
       providers: {},
@@ -1556,6 +1575,7 @@ describe('CardController — event subscriptions', () => {
   it('subscribes to RemoteFeatureFlagController:stateChange on construction', () => {
     const mockMessenger = buildMockMessenger();
     new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: mockMessenger,
       providers: {},
@@ -1610,6 +1630,7 @@ describe('CardController — event subscriptions', () => {
     });
 
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: mockMessenger,
       providers: { baanx: provider },
@@ -1638,6 +1659,7 @@ describe('CardController — event subscriptions', () => {
     const provider = buildMockProvider();
     const mockMessenger = buildMessengerForUnlock();
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: mockMessenger,
       providers: { baanx: provider },
@@ -1682,6 +1704,7 @@ describe('CardController — event subscriptions', () => {
     mockTokenStore.get.mockResolvedValue(null);
     const mockMessenger = buildMessengerForUnlock();
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: mockMessenger,
       providers: { baanx: provider },
@@ -1736,6 +1759,7 @@ describe('CardController — event subscriptions', () => {
     mockTokenStore.get.mockResolvedValue(null);
     const mockMessenger = buildMessengerForUnlock();
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: mockMessenger,
       providers: { baanx: provider },
@@ -2182,6 +2206,7 @@ describe('CardController — fetchCardHomeData', () => {
       return undefined;
     });
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger,
       providers: { baanx: provider },
@@ -2239,6 +2264,7 @@ describe('CardController — fetchCardHomeData', () => {
       return undefined;
     });
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger,
       providers: { baanx: provider },
@@ -2303,6 +2329,7 @@ describe('CardController — fetchCardHomeData', () => {
       return undefined;
     });
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger,
       providers: { baanx: provider },
@@ -2361,6 +2388,7 @@ describe('CardController — fetchCardHomeData', () => {
       return undefined;
     });
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger,
       providers: { baanx: provider },
@@ -3549,6 +3577,7 @@ describe('CardController — data pass-throughs', () => {
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
       provider.validateTokens.mockReturnValue('valid');
       return new CardController({
+        ...hostOptions,
         cardService: buildMockCardService(),
         messenger,
         providers: { baanx: provider },
@@ -5618,6 +5647,7 @@ describe('CardController — data pass-throughs', () => {
 
       const messenger = buildMessengerWithEvmAccount();
       const controller = new CardController({
+        ...hostOptions,
         cardService: buildMockCardService(),
         messenger,
         providers: { immersve, baanx },
@@ -5693,6 +5723,7 @@ describe('CardController — Immersve onboarding pass-throughs', () => {
     baanx.validateTokens.mockReturnValue('valid');
     mockTokenStore.get.mockResolvedValue(mockTokenSet);
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: buildMessenger(),
       providers: { baanx, immersve },
@@ -5931,6 +5962,7 @@ describe('CardController — sign-in resolution and migration', () => {
     });
 
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger,
       providers: {
