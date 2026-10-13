@@ -66,28 +66,36 @@ function leaveEarningsSummaryFlight(profileId: string): void {
 export const useEarningsSummary = (
   profileId: string | undefined,
 ): {
-  fetchEarningsSummary: (options?: { forceFresh?: boolean }) => Promise<void>;
+  fetchEarningsSummary: (options?: {
+    forceFresh?: boolean;
+  }) => Promise<EarningsSummaryDto | undefined>;
 } => {
   const dispatch = useDispatch();
   const { cancel: cancelBusyRefetch, arm: armBusyRefetch } =
     useOneShotBusyRefetch();
   const fetchRef = useRef<
-    (options?: { forceFresh?: boolean; followUp?: boolean }) => Promise<void>
-  >(() => Promise.resolve());
+    (options?: {
+      forceFresh?: boolean;
+      followUp?: boolean;
+    }) => Promise<EarningsSummaryDto | undefined>
+  >(() => Promise.resolve(undefined));
   const isLoadingRef = useRef(false);
 
   const fetchEarningsSummary = useCallback(
     async ({
       forceFresh,
       followUp = false,
-    }: { forceFresh?: boolean; followUp?: boolean } = {}): Promise<void> => {
+    }: { forceFresh?: boolean; followUp?: boolean } = {}): Promise<
+      EarningsSummaryDto | undefined
+    > => {
       if (!profileId) {
-        return;
+        return undefined;
       }
-      // This instance skips a second call while its own request is in flight.
-      // Another instance has its own ref, so it can still start a duplicate.
+      // This instance skips a second call while its own request is in flight,
+      // and that call has no summary to return. Another instance has its own
+      // ref, so it can still start a duplicate.
       if (isLoadingRef.current) {
-        return;
+        return undefined;
       }
       isLoadingRef.current = true;
       const flight = joinEarningsSummaryFlight(profileId);
@@ -106,6 +114,7 @@ export const useEarningsSummary = (
           );
         flight.stored = true;
         dispatch(setEarningsSummary({ profileId, data: summary }));
+        return summary;
       } catch (error) {
         // A faster duplicate already stored this profile's summary. Applying
         // this rejection would mark that stored read as failed.

@@ -148,8 +148,8 @@ const RewardsMoneyClaimsPausedModal: React.FC<
           testID: REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.CLOSE,
         }}
         // Header default is px-2 around a 32px button and a 24px icon, which
-        // leaves the glyph 4px outside the px-4 body. 12px lines it up.
-        style={{ paddingHorizontal: 12 }}
+        // leaves the glyph 4px outside the px-4 body. px-3 lines it up.
+        twClassName="px-3"
         testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.TITLE}
       >
         {title}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import type {
   EarningsSummaryDto,
   LedgerEntryDto,
@@ -453,11 +453,20 @@ describe('EarningsTab', () => {
     ).toBeNull();
   });
 
-  it('refreshes the summary and opens the paused sheet after a stale claim refusal', () => {
+  it('opens the paused sheet with the summary the refresh returns', async () => {
+    const refreshed = {
+      ...SUMMARY,
+      claimable: '0',
+      held: '12000000',
+      blocked: '0',
+    };
+    fetchEarningsSummary.mockResolvedValue(refreshed);
     renderTab('referee', {
       summary: {
         ...SUMMARY,
         claimable: '12000000',
+        held: '0',
+        blocked: '0',
         self_earned: {
           ...SUMMARY.self_earned,
           by_claim_family: {
@@ -474,16 +483,22 @@ describe('EarningsTab', () => {
     mockClaimEarningsHandlers.onClaimsPaused?.();
 
     expect(fetchEarningsSummary).toHaveBeenCalledWith({ forceFresh: true });
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
-      expect.objectContaining({
-        title: 'Claims paused',
-        totals: expect.objectContaining({
-          lifetime_total: '58500000',
-          claimable: '12000000',
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+        expect.objectContaining({
+          title: 'Claims paused',
+          totals: expect.objectContaining({
+            lifetime_total: '58500000',
+            claimable: '0',
+            held: '12000000',
+            blocked: '0',
+          }),
         }),
-      }),
-    );
+      );
+    });
   });
 
   it('does not show Paused for a referrer with a positive hold', () => {

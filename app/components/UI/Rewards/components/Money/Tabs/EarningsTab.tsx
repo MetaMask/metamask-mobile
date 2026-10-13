@@ -509,18 +509,22 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     selectEarningsSummaryEntry(state, profileId),
   );
   const { fetchEarningsSummary } = useEarningsSummary(profileId);
-  const openClaimsPaused = useCallback(() => {
-    if (!localizedText) {
-      return;
-    }
-    const summaryData = earningsSummaryEntry?.data;
-    navigation.navigate(Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL, {
-      title: localizedText.claimsPausedTitle,
-      description: localizedText.claimsPausedDescription,
-      totals: summaryData ? claimsPausedTotals(summaryData) : undefined,
-      labels: claimsPausedLabels(localizedText),
-    });
-  }, [earningsSummaryEntry?.data, localizedText, navigation]);
+  const openClaimsPaused = useCallback(
+    (
+      summaryData: EarningsSummaryDto | undefined = earningsSummaryEntry?.data,
+    ) => {
+      if (!localizedText) {
+        return;
+      }
+      navigation.navigate(Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL, {
+        title: localizedText.claimsPausedTitle,
+        description: localizedText.claimsPausedDescription,
+        totals: summaryData ? claimsPausedTotals(summaryData) : undefined,
+        labels: claimsPausedLabels(localizedText),
+      });
+    },
+    [earningsSummaryEntry?.data, localizedText, navigation],
+  );
   const retrySummary = useCallback(() => {
     void Promise.resolve(fetchEarningsSummary({ forceFresh: true })).catch(
       () => undefined,
@@ -537,10 +541,16 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     },
     onSubmitted: () => fetchEarningsSummary({ forceFresh: true }),
     onClaimsPaused: () => {
-      void Promise.resolve(fetchEarningsSummary({ forceFresh: true })).catch(
-        () => undefined,
-      );
-      openClaimsPaused();
+      // The sheet copies these totals into route params, so it has to open
+      // with the summary this refresh returns. The selector still holds the
+      // pre-refusal figures until the next render.
+      void fetchEarningsSummary({ forceFresh: true })
+        .then((summary) => {
+          openClaimsPaused(summary);
+        })
+        .catch(() => {
+          openClaimsPaused();
+        });
     },
   });
 
@@ -607,7 +617,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                     }
                   : undefined
               }
-              onPaused={openClaimsPaused}
+              onPaused={() => openClaimsPaused()}
             />
           ) : null}
         </Box>
