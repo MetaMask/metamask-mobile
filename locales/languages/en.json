@@ -1184,7 +1184,7 @@
       "error_description": "Something went wrong opening identity verification. Please try again.",
       "retry": "Try again"
     },
-    "kyc_pending": {
+    "kyc_taking_longer": {
       "title": "Verifying your identity",
       "description": "Most checks finish in about 10 seconds. You can come back later, we'll let you know when your check is complete.",
       "button": "Come back later"

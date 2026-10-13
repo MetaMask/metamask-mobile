@@ -65,14 +65,14 @@ const VbaKycPending = () => {
             />
           </Box>
           <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-            {strings('virtual_bank_account.kyc_pending.title')}
+            {strings('virtual_bank_account.kyc_taking_longer.title')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             twClassName="mt-[4px] text-center"
           >
-            {strings('virtual_bank_account.kyc_pending.description')}
+            {strings('virtual_bank_account.kyc_taking_longer.description')}
           </Text>
         </Box>
       </ScrollView>
@@ -84,7 +84,7 @@ const VbaKycPending = () => {
           onPress={handleComeBackLater}
           testID={VbaKycPendingSelectorsIDs.COME_BACK_LATER_BUTTON}
         >
-          {strings('virtual_bank_account.kyc_pending.button')}
+          {strings('virtual_bank_account.kyc_taking_longer.button')}
         </Button>
       </Box>
     </SafeAreaView>

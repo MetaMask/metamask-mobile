@@ -37,13 +37,13 @@ describe('VbaKycPending', () => {
       getByTestId(VbaKycPendingSelectorsIDs.ILLUSTRATION),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('virtual_bank_account.kyc_pending.title')),
+      getByText(strings('virtual_bank_account.kyc_taking_longer.title')),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('virtual_bank_account.kyc_pending.description')),
+      getByText(strings('virtual_bank_account.kyc_taking_longer.description')),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('virtual_bank_account.kyc_pending.button')),
+      getByText(strings('virtual_bank_account.kyc_taking_longer.button')),
     ).toBeOnTheScreen();
   });
 

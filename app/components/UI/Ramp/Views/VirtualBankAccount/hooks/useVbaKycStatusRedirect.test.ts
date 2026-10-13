@@ -11,6 +11,7 @@ import {
 import {
   isTerminalVbaKycStatus,
   useVbaKycStatusRedirect,
+  VBA_ACCOUNT_SETUP_RECHECK_DELAYS_MS,
   VBA_KYC_STATUS_REDIRECT_SOURCE,
 } from './useVbaKycStatusRedirect';
 
@@ -379,6 +380,104 @@ describe('useVbaKycStatusRedirect', () => {
     unmount();
 
     expect(mockRemoveAppStateListener).toHaveBeenCalled();
+  });
+
+  describe('when a decided status still resolves to this screen', () => {
+    const [firstDelay, secondDelay, lastDelay] =
+      VBA_ACCOUNT_SETUP_RECHECK_DELAYS_MS;
+
+    const resolveRunsTo = (destinationId?: VbaOnboardingDestinationId) => {
+      mockOpenOnboarding.mockImplementation(async (request) => {
+        if (destinationId) {
+          (request as OpenVbaOnboardingRequest).shouldNavigate?.(destinationId);
+        }
+      });
+    };
+
+    const advanceTimers = (ms: number) =>
+      act(async () => {
+        jest.advanceTimersByTime(ms);
+        await flushPromises();
+      });
+
+    beforeEach(() => {
+      jest.useFakeTimers({ doNotFake: ['setImmediate'] });
+      resolveRunsTo('kycPending');
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('does not check again before the first delay', async () => {
+      setSessionStatus(approved);
+      renderRedirectHook();
+      await act(flushPromises);
+
+      await advanceTimers(firstDelay - 1);
+
+      expect(mockOpenOnboarding).toHaveBeenCalledTimes(1);
+    });
+
+    it('checks again after each delay and repeats the last one', async () => {
+      setSessionStatus(approved);
+      renderRedirectHook();
+      await act(flushPromises);
+
+      await advanceTimers(firstDelay);
+      await advanceTimers(secondDelay);
+      await advanceTimers(lastDelay);
+      await advanceTimers(lastDelay);
+
+      expect(mockOpenOnboarding).toHaveBeenCalledTimes(5);
+    });
+
+    it('checks again right away when the app returns to the foreground', async () => {
+      setSessionStatus(approved);
+      renderRedirectHook();
+      await act(flushPromises);
+
+      await act(async () => {
+        appStateChangeHandler?.('active');
+        await flushPromises();
+      });
+
+      expect(mockOpenOnboarding).toHaveBeenCalledTimes(2);
+      expect(mockRefreshSessionStatus).not.toHaveBeenCalled();
+    });
+
+    it('stops checking after unmount', async () => {
+      setSessionStatus(approved);
+      const { unmount } = renderRedirectHook();
+      await act(flushPromises);
+
+      unmount();
+      await advanceTimers(lastDelay);
+
+      expect(mockOpenOnboarding).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not check again after a run that navigated', async () => {
+      resolveRunsTo('complete');
+      setSessionStatus(approved);
+      renderRedirectHook();
+      await act(flushPromises);
+
+      await advanceTimers(lastDelay);
+
+      expect(mockOpenOnboarding).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not check again after a run that did not reach a destination', async () => {
+      resolveRunsTo(undefined);
+      setSessionStatus(approved);
+      renderRedirectHook();
+      await act(flushPromises);
+
+      await advanceTimers(lastDelay);
+
+      expect(mockOpenOnboarding).toHaveBeenCalledTimes(1);
+    });
   });
 });
 
