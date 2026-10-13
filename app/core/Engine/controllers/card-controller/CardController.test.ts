@@ -3168,6 +3168,7 @@ describe('CardController — getCapabilities', () => {
       },
     });
     const controller = new CardController({
+      ...hostOptions,
       cardService: buildMockCardService(),
       messenger: buildMessenger(),
       providers: { baanx, [CardProviderIds.Immersve]: immersve },
