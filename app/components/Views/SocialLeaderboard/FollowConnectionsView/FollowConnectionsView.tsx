@@ -15,7 +15,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -27,7 +26,11 @@ import {
   TabsBar,
   type TabItem,
 } from '../../../../component-library/components-temp/Tabs';
-import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import Routes from '../../../../constants/navigation/Routes';
+import type {
+  AppStackNavigationProp,
+  RootStackParamList,
+} from '../../../../core/NavigationService/types';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { useSessionProfileId } from '../../../../util/notifications/hooks/useSessionProfileId';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
@@ -76,7 +79,7 @@ const tabIndexFor = (
 };
 
 const FollowConnectionsView: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<RouteProp<RootStackParamList, 'FollowConnectionsView'>>();
   const tw = useTailwind();
@@ -180,32 +183,53 @@ const FollowConnectionsView: React.FC = () => {
     setActiveIndex(index);
   }, []);
 
-  const handleFollowingRowPress = useCallback(
-    (trader: FollowedTrader) => {
-      navigateToSocialV1Profile(navigation, {
-        traderId: trader.id,
-        traderName: trader.username,
-        traderAddress: trader.address,
-        traderAvatarUri: trader.avatarUri,
+  const handleConnectionRowPress = useCallback(
+    (connection: {
+      id: string;
+      username: string;
+      address: string;
+      avatarUri?: string;
+    }) => {
+      const isSelf = isViewerConnection(
+        connection,
         viewerProfileId,
         viewerAddress,
+      );
+
+      if (isSelf) {
+        navigateToSocialV1Profile(navigation, {
+          traderId: connection.id,
+          traderName: connection.username,
+          traderAddress: connection.address,
+          traderAvatarUri: connection.avatarUri,
+          viewerProfileId,
+          viewerAddress,
+        });
+        return;
+      }
+
+      navigation.push(Routes.SOCIAL.V1_PROFILE, {
+        traderId: connection.id,
+        traderName: connection.username,
+        traderAddress: connection.address,
+        traderAvatarUri: connection.avatarUri,
       });
     },
     [navigation, viewerAddress, viewerProfileId],
   );
 
+  const handleFollowingRowPress = useCallback(
+    (trader: FollowedTrader) => {
+      handleConnectionRowPress(trader);
+    },
+    [handleConnectionRowPress],
+  );
+
   const handleFollowerRowPress = useCallback(
     (follower: FollowerConnection) => {
-      navigateToSocialV1Profile(navigation, {
-        traderId: follower.id,
-        traderName: follower.username,
-        traderAddress: follower.address,
-        traderAvatarUri: follower.avatarUri,
-        viewerProfileId,
-        viewerAddress,
-      });
+      handleConnectionRowPress(follower);
     },
-    [navigation, viewerAddress, viewerProfileId],
+    [handleConnectionRowPress],
   );
 
   const handleFollowerFollowPress = useCallback(

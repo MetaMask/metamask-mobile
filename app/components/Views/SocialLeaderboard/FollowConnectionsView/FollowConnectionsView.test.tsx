@@ -17,6 +17,7 @@ import type {
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockPush = jest.fn();
 const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
 const mockIsFollowing = jest.fn((id: string) => id === 'trader-1');
 const mockRefreshFollowing = jest.fn().mockResolvedValue(undefined);
@@ -32,7 +33,11 @@ let mockRouteParams: {
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+    navigate: mockNavigate,
+    push: mockPush,
+  }),
   useRoute: () => ({
     params: mockRouteParams,
     name: 'FollowConnectionsView',
@@ -163,16 +168,12 @@ describe('FollowConnectionsView', () => {
 
     fireEvent.press(screen.getByTestId(getConnectionRowTestId('follower-1')));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL.V1_PROFILE,
-      {
-        traderId: 'follower-1',
-        traderName: 'Moon Rabbit',
-        traderAddress: '0x3333333333333333333333333333333333333333',
-        traderAvatarUri: 'https://example.com/moon.png',
-      },
-      {},
-    );
+    expect(mockPush).toHaveBeenCalledWith(Routes.SOCIAL.V1_PROFILE, {
+      traderId: 'follower-1',
+      traderName: 'Moon Rabbit',
+      traderAddress: '0x3333333333333333333333333333333333333333',
+      traderAvatarUri: 'https://example.com/moon.png',
+    });
   });
 
   it('follows from a follower row button', () => {
@@ -235,16 +236,12 @@ describe('FollowConnectionsView', () => {
 
     fireEvent.press(screen.getByTestId(getConnectionRowTestId('trader-1')));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL.V1_PROFILE,
-      {
-        traderId: 'trader-1',
-        traderName: 'Signal Scout',
-        traderAddress: '0x1111111111111111111111111111111111111111',
-        traderAvatarUri: 'https://example.com/scout.png',
-      },
-      {},
-    );
+    expect(mockPush).toHaveBeenCalledWith(Routes.SOCIAL.V1_PROFILE, {
+      traderId: 'trader-1',
+      traderName: 'Signal Scout',
+      traderAddress: '0x1111111111111111111111111111111111111111',
+      traderAvatarUri: 'https://example.com/scout.png',
+    });
   });
 
   it('unfollows from a following row button', () => {
