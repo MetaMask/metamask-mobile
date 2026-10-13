@@ -79,6 +79,17 @@ describe('SocialProfileOnboardingView', () => {
     );
   });
 
+  it('shows the static live activity on the intro while offline', () => {
+    renderSocialProfileOnboarding();
+
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_FALLBACK),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_ANIMATION),
+    ).not.toBeOnTheScreen();
+  });
+
   it('stays on the username step when the handle cannot be claimed', () => {
     renderSocialProfileOnboarding();
 

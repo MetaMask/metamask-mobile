@@ -8,8 +8,10 @@ export const NetInfoStateType = {
   unknown: 'unknown',
 };
 
+export const useNetInfo = () => ({ isInternetReachable: false });
+
 export default {
   fetch,
   addEventListener,
-  useNetInfo: () => ({ isInternetReachable: false }),
+  useNetInfo,
 };

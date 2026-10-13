@@ -48,6 +48,9 @@ export interface RiveError {
 /** Shared so tests can assert `triggerInput` across RiveView remounts. */
 export const __mockRiveTriggerInput = jest.fn();
 
+/** `set` calls on any `instance.imageProperty(path)` handle. */
+export const __mockRiveImagePropertySet = jest.fn();
+
 interface RiveViewMethodsMock {
   play: jest.Mock;
   pause: jest.Mock;
@@ -93,6 +96,7 @@ export const __fireRiveTrigger = (path: string): void => {
 
 export const __resetRiveMocks = (): void => {
   __mockRiveTriggerInput.mockClear();
+  __mockRiveImagePropertySet.mockClear();
   lastRiveViewMethods = undefined;
   propertySetters.clear();
   propertyValues.clear();
@@ -142,7 +146,18 @@ export const RiveView = ({
 };
 
 const MOCK_RIVE_FILE = { __mockRiveFile: true };
-const MOCK_VIEW_MODEL_INSTANCE = { __mockViewModelInstance: true };
+
+const MOCK_VIEW_MODEL_INSTANCE = {
+  __mockViewModelInstance: true,
+  imageProperty: () => ({ set: __mockRiveImagePropertySet }),
+};
+
+const MOCK_RIVE_IMAGE = { byteSize: 1 };
+export const RiveImages = {
+  loadFromURLAsync: jest.fn(() => Promise.resolve(MOCK_RIVE_IMAGE)),
+  loadFromResourceAsync: jest.fn(() => Promise.resolve(MOCK_RIVE_IMAGE)),
+  loadFromBytesAsync: jest.fn(() => Promise.resolve(MOCK_RIVE_IMAGE)),
+};
 
 export const useRiveFile = (_input?: unknown, _options?: unknown) => ({
   riveFile: MOCK_RIVE_FILE,
