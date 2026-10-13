@@ -511,7 +511,9 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   const { fetchEarningsSummary } = useEarningsSummary(profileId);
   const openClaimsPaused = useCallback(
     (
-      summaryData: EarningsSummaryDto | undefined = earningsSummaryEntry?.data,
+      summaryData:
+        | EarningsSummaryDto
+        | undefined = earningsSummaryEntry?.data ?? undefined,
     ) => {
       if (!localizedText) {
         return;
@@ -539,7 +541,9 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     onOpened: () => {
       inFlight.refresh().catch(() => undefined);
     },
-    onSubmitted: () => fetchEarningsSummary({ forceFresh: true }),
+    onSubmitted: async () => {
+      await fetchEarningsSummary({ forceFresh: true });
+    },
     onClaimsPaused: () => {
       // The sheet copies these totals into route params, so it has to open
       // with the summary this refresh returns. The selector still holds the
