@@ -96,15 +96,28 @@ const CheckGroup = ({
 );
 
 /**
- * How severe a risk looks: the glyph and its title share one colour, and the
- * description stays grey in both so the severity reads from the heading alone.
+ * How severe a risk looks: its own glyph, that glyph's colour and its title's,
+ * with the description left grey in both so the severity reads from the
+ * heading alone.
+ *
+ * The two severities take different shapes rather than one shape in two
+ * colours so the distinction survives without colour: a triangle and a circle
+ * stay apart for a reader who cannot tell amber from red (WCAG 1.4.1).
  */
 const RISK_PRESENTATION: Record<
   SecurityRisk['severity'],
-  { icon: IconColor; title: TextColor }
+  { iconName: IconName; icon: IconColor; title: TextColor }
 > = {
-  malicious: { icon: IconColor.ErrorDefault, title: TextColor.ErrorDefault },
-  warning: { icon: IconColor.WarningDefault, title: TextColor.WarningDefault },
+  malicious: {
+    iconName: IconName.Danger,
+    icon: IconColor.ErrorDefault,
+    title: TextColor.ErrorDefault,
+  },
+  warning: {
+    iconName: IconName.Warning,
+    icon: IconColor.WarningDefault,
+    title: TextColor.WarningDefault,
+  },
 };
 
 /**
@@ -115,10 +128,10 @@ const RISK_PRESENTATION: Record<
  * one list. The description sits on its own full-width line rather than
  * indented under the title, per the design.
  *
- * The triangle is tinted per row rather than once for the whole list. The
- * previous single glyph was only sound while every entry shared the token's
- * verdict by construction; now a token can carry a malicious finding beside a
- * warning one, and the two have to be told apart.
+ * Each row draws its own glyph and tint rather than the list drawing one for
+ * all of them. The previous single glyph was only sound while every entry
+ * shared the token's verdict by construction; now a token can carry a
+ * malicious finding beside a warning one, and the two have to be told apart.
  *
  * No empty state: the caller drops the whole section when nothing was found,
  * which is the common case for a clean token.
@@ -143,7 +156,7 @@ const RiskList = ({ risks }: { risks: readonly SecurityRisk[] }) => (
               twClassName="gap-2"
             >
               <Icon
-                name={IconName.Danger}
+                name={presentation.iconName}
                 size={IconSize.Sm}
                 color={presentation.icon}
               />
@@ -253,7 +266,8 @@ export const ContractSecurityScreen: React.FC = () => {
           a spacer, which is how the prototype draws it.
 
           `pb-2` and the scroll view's 20px together make the 28px the
-          prototype leaves between the header and the first row. */}
+          prototype leaves between the screen title and the "Contract checks"
+          heading under it. */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -289,9 +303,17 @@ export const ContractSecurityScreen: React.FC = () => {
         contentContainerStyle={scrollContentStyle}
       >
         <Box twClassName="px-4">
-          {/* The five contract checks carry no heading of their own: the screen
-              title already names them, and a second "Contract" immediately
-              under it would read as a nested section. */}
+          {/* "Contract checks" rather than the tab's "Contract", so the
+              heading does not simply repeat the screen title above it. Padded
+              exactly like the Additional checks heading below, since the two
+              are siblings and the design draws them alike. */}
+          <SectionHeader
+            title={strings(
+              'token_details_v1.security_tab.sections.contract_checks',
+            )}
+            titleProps={{ accessibilityRole: 'header' }}
+            twClassName="px-0 pb-5 pt-0"
+          />
           <CheckGroup
             checkKeys={CONTRACT_CHECK_KEYS}
             checks={facts.checks}
@@ -308,10 +330,26 @@ export const ContractSecurityScreen: React.FC = () => {
               the row above it, which is why the last row of each group draws
               nothing and why dropping the section takes the rule with it. */}
           {facts.risks.length > 0 ? (
-            <Box twClassName="border-t border-muted pt-6">
+            <>
+              {/* `-mx-4` cancels the screen's padding so this rule reaches both
+                  edges while the rows above and below stay inset, which is how
+                  the tab draws the rule between its own sections. The rules
+                  inside each group stay inset, since those separate rows rather
+                  than sections.
+
+                  `marginVertical={0}` drops the design system's 20px default,
+                  leaving the group's `pb-6` above and the heading's `pt-6`
+                  below as the only spacing. */}
+              <SectionDivider
+                marginVertical={0}
+                twClassName="-mx-4"
+                testID={ContractSecuritySelectors.SECTION_RULE}
+              />
               {/* Same `px-0` cancellation and header role as the tab's titles:
                   the screen pads itself, and this is the one heading a screen
-                  reader can use to skip past the five contract checks.
+                  reader can use to skip past the five contract checks. The
+                  overrides work by arriving last in the concatenated class
+                  string, which is also how `pt-6` beats the baked `pt-3`.
 
                   The type is `SectionHeader`'s own default, which resolves to
                   20px/600 on a 24px line — what the prototype's heading
@@ -321,10 +359,10 @@ export const ContractSecurityScreen: React.FC = () => {
                   'token_details_v1.security_tab.sections.additional_checks',
                 )}
                 titleProps={{ accessibilityRole: 'header' }}
-                twClassName="px-0 pb-5 pt-0"
+                twClassName="px-0 pb-5 pt-6"
               />
               <RiskList risks={facts.risks} />
-            </Box>
+            </>
           ) : null}
 
           {/* Same provenance line as the tab, for the same reason: every row

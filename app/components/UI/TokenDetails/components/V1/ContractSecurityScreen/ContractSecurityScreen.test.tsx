@@ -78,23 +78,25 @@ describe('ContractSecurityScreen', () => {
     mockRequestTokenSecurityForAsset.mockResolvedValue(null);
   });
 
-  // Both headings are the only landmarks on a screen of rows that each carry a
-  // sentence, so a screen reader needs them to skip the first group
-  // (WCAG 1.3.1, 2.4.6).
-  // Rendered from the token that has findings, since the second heading goes
-  // with its section when there is nothing to list.
-  it('announces the title and the additional-checks heading as headings', () => {
+  // These are the only landmarks on a screen of rows that each carry a
+  // sentence, so a screen reader needs them to skip a group (WCAG 1.3.1,
+  // 2.4.6).
+  // Rendered from the token that has findings, since the second section
+  // heading goes with its section when there is nothing to list.
+  it('announces the title and both section headings as headings', () => {
     const { getByTestId, getByText } = renderScreen(ETHOS_WARNING);
 
     expect(getByTestId(ContractSecuritySelectors.TITLE)).toHaveProp(
       'accessibilityRole',
       'header',
     );
-    expect(
-      getByText(
-        strings('token_details_v1.security_tab.sections.additional_checks'),
-      ),
-    ).toHaveProp('accessibilityRole', 'header');
+    for (const sectionKey of ['contract_checks', 'additional_checks']) {
+      expect(
+        getByText(
+          strings(`token_details_v1.security_tab.sections.${sectionKey}`),
+        ),
+      ).toHaveProp('accessibilityRole', 'header');
+    }
   });
 
   // One rule per gap, not one per row. The count is the assertion: a rule
@@ -218,6 +220,19 @@ describe('ContractSecurityScreen', () => {
       }
     });
 
+    // The rule reaches both screen edges while the rows either side stay
+    // inset, which is how the tab draws the rule between its own sections. The
+    // rules inside each group stay inset, so this one is asserted through its
+    // own selector rather than by position among them.
+    it('runs the rule above the heading to both screen edges', () => {
+      const { getByTestId } = renderScreen(ETHOS_WARNING);
+
+      expect(getByTestId(ContractSecuritySelectors.SECTION_RULE)).toHaveStyle({
+        marginLeft: -16,
+        marginRight: -16,
+      });
+    });
+
     // An "Additional checks" heading over a blank space reads as a loading
     // failure rather than as good news, and the checks above have already said
     // the token looks fine.
@@ -230,6 +245,9 @@ describe('ContractSecurityScreen', () => {
       expect(
         queryByTestId(ContractSecuritySelectors.SECTION_ADDITIONAL),
       ).toBeNull();
+      // The rule belongs to the section, not to the row above it, so it goes
+      // too rather than being left stranded under the last contract check.
+      expect(queryByTestId(ContractSecuritySelectors.SECTION_RULE)).toBeNull();
     });
   });
 

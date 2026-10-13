@@ -17,6 +17,13 @@ export const ContractSecuritySelectors = {
    */
   DIVIDER: 'token-details-v1-contract-security-divider',
 
+  /**
+   * Rule between the two sections, which unlike `DIVIDER` runs to both screen
+   * edges. Separate so a test can assert that full bleed without first having
+   * to tell it apart from the four row rules above it.
+   */
+  SECTION_RULE: 'token-details-v1-contract-security-section-rule',
+
   /** Wrapper for a row, keyed so a test can target one row by name. */
   row: (key: ContractCheckKey) =>
     `token-details-v1-contract-security-row-${key}`,

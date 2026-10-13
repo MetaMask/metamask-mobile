@@ -6058,6 +6058,7 @@
       "contract_details_link": "See all contract security checks",
       "sections": {
         "contract": "Contract",
+        "contract_checks": "Contract checks",
         "additional_checks": "Additional checks",
         "holders": "Holders",
         "liquidity": "Liquidity",

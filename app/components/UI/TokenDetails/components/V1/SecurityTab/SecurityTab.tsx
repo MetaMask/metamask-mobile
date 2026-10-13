@@ -6,6 +6,7 @@ import {
   Box,
   SectionDivider,
   SectionHeader,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { TokenStatValues } from '../../../constants/tokenStats';
@@ -211,10 +212,15 @@ const StatRow = ({
  * fewer findings than the banner promised. It renders only when that count is
  * non-zero, which is why the copy can state a number without hedging.
  *
- * `BannerAlert` already matches the design: its base pads 12/16, gaps 16,
- * rounds `xl` and centres a single line of `BodyMd` medium beside the severity
- * glyph, and `Danger` resolves to the muted error surface with the error-tinted
- * triangle. So the only override is the 16px above it.
+ * `BannerAlert` already matches the design almost everywhere: its base pads
+ * 12/16, gaps 16, rounds `xl` and centres a single line of medium-weight
+ * `text-default` beside the severity glyph, and `Danger` resolves to the muted
+ * error surface with the error-tinted triangle. Two overrides remain. The 16px
+ * above it, and the title size: the banner defaults to `BodyMd`, 16px here,
+ * where the design asks for 14px, so `titleProps` drops it to `BodySm` and
+ * leaves the weight and colour the banner already gets right. That is the same
+ * pairing the risk titles on the Contract security screen use, which is the
+ * screen this banner opens.
  *
  * Wrapped in a `TouchableOpacity` because `BannerBaseProps` extends
  * `Omit<BoxProps, 'children'>` and exposes no container `onPress` — only
@@ -241,6 +247,7 @@ const RiskBanner = ({
       title={strings('token_details_v1.security_tab.risk_banner', {
         count: riskCount,
       })}
+      titleProps={{ variant: TextVariant.BodySm }}
       twClassName="mt-4"
     />
   </TouchableOpacity>
