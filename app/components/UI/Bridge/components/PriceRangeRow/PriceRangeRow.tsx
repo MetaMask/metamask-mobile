@@ -138,7 +138,7 @@ const PriceRangeRow = ({
       onPress={onPress}
       testID={PriceRangeRowSelectorsIDs.ROW}
       style={({ pressed }) =>
-        tw.style('w-full px-4 py-3', pressed && 'bg-pressed')
+        tw.style('w-full px-4 pt-4 pb-3', pressed && 'bg-pressed')
       }
     >
       <Box
