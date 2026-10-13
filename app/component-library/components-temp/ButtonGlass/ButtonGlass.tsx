@@ -60,7 +60,8 @@ const ButtonGlass = ({
         {...props}
         variant={variant}
         twClassName="bg-transparent border-transparent"
-        isFullWidth
+        // Fills a sized wrapper; otherwise hugs its label, as the plain Button does.
+        isFullWidth={props.isFullWidth ?? containerStyle !== undefined}
       />
     </GlassSurface>
   );
