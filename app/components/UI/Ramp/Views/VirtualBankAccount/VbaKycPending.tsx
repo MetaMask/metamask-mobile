@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Image, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -16,7 +16,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import kycTakingLongerIllustration from '../../assets/kyc-taking-longer-illustration.png';
+import VbaIllustration, { VbaIllustrationSource } from './VbaIllustration';
 
 export const VbaKycPendingSelectorsIDs = {
   CONTAINER: 'vba-kyc-pending-container',
@@ -54,13 +54,12 @@ const VbaKycPending = () => {
         testID={VbaKycPendingSelectorsIDs.CONTAINER}
       >
         <Box alignItems={BoxAlignItems.Center}>
-          <Image
-            source={kycTakingLongerIllustration}
-            resizeMode="contain"
-            accessible={false}
+          <Box
+            twClassName="mb-4"
             testID={VbaKycPendingSelectorsIDs.ILLUSTRATION}
-            style={tw.style('mb-4', { width: 126, height: 104 })}
-          />
+          >
+            <VbaIllustration source={VbaIllustrationSource.scanner} />
+          </Box>
           <Text variant={TextVariant.HeadingLg} twClassName="text-center">
             {strings('virtual_bank_account.kyc_pending.title')}
           </Text>

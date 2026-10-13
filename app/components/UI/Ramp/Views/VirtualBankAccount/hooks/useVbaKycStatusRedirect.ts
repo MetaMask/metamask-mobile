@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 import { useSelector } from 'react-redux';
+import {
+  KYC_STATUSES,
+  TERMINAL_SESSION_STATUSES,
+} from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import {
@@ -11,9 +15,6 @@ import type { VbaOnboardingDestinationId } from '../vbaOnboardingFunnel';
 import { useOpenVbaOnboarding } from './useVbaOnboardingRouting';
 
 export const VBA_KYC_STATUS_REDIRECT_SOURCE = 'kyc_pending-status-change';
-
-/** `finalStatus` values that end KycController session polling. */
-const TERMINAL_FINAL_STATUSES = new Set(['approved', 'rejected', 'retry']);
 
 interface KycStatusPair {
   finalStatus: string | null;
@@ -32,15 +33,16 @@ export const isTerminalVbaKycStatus = ({
   finalStatus,
   kycStatus,
 }: KycStatusPair): boolean =>
-  kycStatus === 'approved' ||
-  (finalStatus !== null && TERMINAL_FINAL_STATUSES.has(finalStatus));
+  kycStatus === KYC_STATUSES.approved ||
+  (finalStatus !== null && TERMINAL_SESSION_STATUSES.has(finalStatus));
 
 /**
  * Watches the KycController session status while the KYC pending screen is
  * mounted and re-runs the onboarding coordinator once the decision is terminal.
- * Returning to the foreground with a non-terminal status calls
- * `refreshSessionStatus`, which restarts the controller poll with an immediate
- * fetch. Any resulting update flows through the same watcher.
+ * Hydrate only reads the session status, so mounting with a non-terminal
+ * status calls `refreshSessionStatus` to start the controller poll. Returning
+ * to the foreground does the same to get an immediate fetch. Any resulting
+ * update flows through the same watcher.
  */
 export const useVbaKycStatusRedirect = (): void => {
   const finalStatus = useSelector(selectKycSessionFinalStatus);
@@ -107,30 +109,38 @@ export const useVbaKycStatusRedirect = (): void => {
     redirectIfTerminal();
   }, [finalStatus, kycStatus, redirectIfTerminal]);
 
+  const refreshSessionStatusIfPending = useCallback((): void => {
+    const status = latestStatusRef.current;
+    const hasSession = status.finalStatus !== null || status.kycStatus !== null;
+    if (!hasSession || isTerminalVbaKycStatus(status)) {
+      return;
+    }
+    try {
+      Engine.context.KycController.refreshSessionStatus();
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'vba-onboarding' },
+        context: {
+          name: 'useVbaKycStatusRedirect',
+          data: { step: 'refreshSessionStatus' },
+        },
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshSessionStatusIfPending();
+  }, [refreshSessionStatusIfPending]);
+
   useEffect(() => {
     const subscription = AppState.addEventListener(
       'change',
       (nextAppState: AppStateStatus) => {
-        if (nextAppState !== 'active') {
-          return;
-        }
-        const hasSession = finalStatus !== null || kycStatus !== null;
-        if (!hasSession || isTerminalVbaKycStatus({ finalStatus, kycStatus })) {
-          return;
-        }
-        try {
-          Engine.context.KycController.refreshSessionStatus();
-        } catch (error) {
-          Logger.error(error as Error, {
-            tags: { feature: 'vba-onboarding' },
-            context: {
-              name: 'useVbaKycStatusRedirect',
-              data: { step: 'refreshSessionStatus' },
-            },
-          });
+        if (nextAppState === 'active') {
+          refreshSessionStatusIfPending();
         }
       },
     );
     return () => subscription.remove();
-  }, [finalStatus, kycStatus]);
+  }, [refreshSessionStatusIfPending]);
 };

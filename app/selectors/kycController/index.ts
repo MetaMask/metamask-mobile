@@ -36,6 +36,24 @@ export const selectKycSessionStatus = createSelector(
 );
 
 /**
+ * Selects the session's `finalStatus` (vendor-side outcome), or `null` when
+ * there is no session.
+ */
+export const selectKycSessionFinalStatus = createSelector(
+  selectKycSessionStatus,
+  (sessionStatus): string | null => sessionStatus?.finalStatus ?? null,
+);
+
+/**
+ * Selects the session's `kycStatus` (relay-side decision), or `null` when
+ * there is no session.
+ */
+export const selectKycSessionKycStatus = createSelector(
+  selectKycSessionStatus,
+  (sessionStatus): string | null => sessionStatus?.kycStatus ?? null,
+);
+
+/**
  * Selects the durable identity-provider flow outcome. Unlike the session's
  * `finalStatus`, this distinguishes a session that has not entered the
  * provider flow (`'not_started'`) from one the customer submitted,

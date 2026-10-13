@@ -103,6 +103,7 @@ const relayApproved = { finalStatus: 'pending', kycStatus: 'approved' };
 describe('useVbaKycStatusRedirect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRefreshSessionStatus.mockReset();
     appStateChangeHandler = undefined;
     setSessionStatus(null);
     mockOpenOnboarding.mockResolvedValue(undefined);
@@ -303,9 +304,18 @@ describe('useVbaKycStatusRedirect', () => {
     expect(mockOpenOnboarding).toHaveBeenCalledTimes(1);
   });
 
+  it('starts the session poll on mount with a pending status', () => {
+    setSessionStatus(pending);
+
+    renderRedirectHook();
+
+    expect(mockRefreshSessionStatus).toHaveBeenCalledTimes(1);
+  });
+
   it('refreshes the session status when the app returns to the foreground with a pending status', () => {
     setSessionStatus(pending);
     renderRedirectHook();
+    mockRefreshSessionStatus.mockClear();
 
     act(() => appStateChangeHandler?.('active'));
 
@@ -315,13 +325,14 @@ describe('useVbaKycStatusRedirect', () => {
   it('does not refresh the session status when the app moves to the background', () => {
     setSessionStatus(pending);
     renderRedirectHook();
+    mockRefreshSessionStatus.mockClear();
 
     act(() => appStateChangeHandler?.('background'));
 
     expect(mockRefreshSessionStatus).not.toHaveBeenCalled();
   });
 
-  it('does not refresh the session status on foreground when the status is terminal', async () => {
+  it('does not refresh the session status on mount or foreground when the status is terminal', async () => {
     setSessionStatus(approved);
     renderRedirectHook();
     await act(flushPromises);
@@ -331,7 +342,7 @@ describe('useVbaKycStatusRedirect', () => {
     expect(mockRefreshSessionStatus).not.toHaveBeenCalled();
   });
 
-  it('does not refresh the session status on foreground without a session', () => {
+  it('does not refresh the session status on mount or foreground without a session', () => {
     setSessionStatus(null);
     renderRedirectHook();
 
@@ -340,16 +351,19 @@ describe('useVbaKycStatusRedirect', () => {
     expect(mockRefreshSessionStatus).not.toHaveBeenCalled();
   });
 
-  it('logs and swallows a refreshSessionStatus failure on foreground', () => {
-    mockRefreshSessionStatus.mockImplementationOnce(() => {
+  it('logs and swallows refreshSessionStatus failures on mount and foreground', () => {
+    mockRefreshSessionStatus.mockImplementation(() => {
       throw new Error('No session was found');
     });
     setSessionStatus(pending);
-    renderRedirectHook();
 
-    const foreground = () => act(() => appStateChangeHandler?.('active'));
+    const mountAndForeground = () => {
+      renderRedirectHook();
+      act(() => appStateChangeHandler?.('active'));
+    };
 
-    expect(foreground).not.toThrow();
+    expect(mountAndForeground).not.toThrow();
+    expect(Logger.error).toHaveBeenCalledTimes(2);
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
       expect.objectContaining({
