@@ -140,6 +140,7 @@ import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsOutreachBanner from '../../components/PerpsOutreachBanner';
 import PerpsProducts from '../../components/PerpsProducts';
 import PerpsExploreSection from '../../components/PerpsExploreSection';
+import { buildExploreTabs } from '../../components/PerpsExploreSection/buildExploreTabs';
 import { usePerpsHomeExploreAbTest } from '../../hooks/usePerpsHomeExploreAbTest';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 import PerpsRecentlyAddedSection, {
@@ -219,6 +220,16 @@ const PerpsHomeView = () => {
   const hasNewProducts = useHasNewMarkets();
   const isProductsVisible =
     isProductsEnabled && (productCategories.length > 0 || hasNewProducts);
+  const exploreTabs = useMemo(
+    () =>
+      buildExploreTabs({
+        categories: productCategories,
+        isProductsEnabled,
+        isWatchlistEnabled,
+        hasNewMarkets: hasNewProducts,
+      }),
+    [hasNewProducts, isProductsEnabled, isWatchlistEnabled, productCategories],
+  );
   const topMoversFeed = usePerpsTopMovers({
     direction: 'desc',
     enabled: isTopMoversEnabled,
@@ -357,11 +368,12 @@ const PerpsHomeView = () => {
     stocksMarkets, // Equity markets only
     forexMarkets,
     recentlyAddedMarkets,
-    hasMarkets,
     recentActivity,
     sortBy,
     isLoading,
   } = usePerpsHomeData({});
+  const isExploreVisible =
+    showExploreTable && (isLoading.markets || exploreTabs.length > 0);
 
   // Independently gates the section from the Terminal backend flag that
   // supplies `listedAt` data, so it can be hidden even when that data flows.
@@ -483,11 +495,9 @@ const PerpsHomeView = () => {
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.ORDERS);
     if (isWhatsHappeningVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING);
-    if (showExploreTable) {
-      if (isLoading.markets || hasMarkets) {
-        sections.push('explore');
-      }
-    } else {
+    if (isExploreVisible) {
+      sections.push('explore');
+    } else if (!showExploreTable) {
       if (isWatchlistVisible) {
         sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST);
       }
@@ -527,7 +537,7 @@ const PerpsHomeView = () => {
     orders,
     isWhatsHappeningVisible,
     showExploreTable,
-    hasMarkets,
+    isExploreVisible,
     isWatchlistVisible,
     isProductsVisible,
     isTopMoversVisible,
@@ -838,7 +848,7 @@ const PerpsHomeView = () => {
       },
       {
         key: 'explore',
-        visible: showExploreTable && (isLoading.markets || hasMarkets),
+        visible: isExploreVisible,
         onLayout: handleSectionLayout('explore'),
         content: (
           <PerpsExploreSection
@@ -1020,7 +1030,7 @@ const PerpsHomeView = () => {
       handleWhatsHappeningHeaderPress,
       isWatchlistVisible,
       showExploreTable,
-      hasMarkets,
+      isExploreVisible,
       watchlistMarkets,
       suggestedWatchlistMarkets,
       handleWatchlistSeeAllPress,

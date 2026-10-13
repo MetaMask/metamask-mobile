@@ -673,6 +673,8 @@ describe('PerpsHomeView', () => {
       variantName: 'control',
       isActive: false,
     });
+    (usePerpsCategories as jest.Mock).mockReturnValue([]);
+    (useHasNewMarkets as jest.Mock).mockReturnValue(false);
     mockUsePerpsHomeSectionTracking.mockReturnValue(mockScrollTracking());
     mockUsePerpsTopMovers.mockReturnValue({
       data: [],
@@ -1260,6 +1262,9 @@ describe('PerpsHomeView', () => {
   });
 
   it('replaces the stacked sections with Explore in treatment', () => {
+    (usePerpsCategories as jest.Mock).mockReturnValue([
+      { id: 'crypto', label: 'Crypto' },
+    ]);
     mockUsePerpsHomeExploreAbTest.mockReturnValue({
       showExploreTable: true,
       variantName: 'treatment',
@@ -1280,6 +1285,26 @@ describe('PerpsHomeView', () => {
     expect(UNSAFE_getByType('PerpsExploreSection' as never)).toBeTruthy();
     expect(UNSAFE_queryByType('PerpsWatchlistMarkets' as never)).toBeNull();
     expect(UNSAFE_queryByType('PerpsProducts' as never)).toBeNull();
+    expect(UNSAFE_queryByType('PerpsMarketTypeSection' as never)).toBeNull();
+  });
+
+  it('hides Explore in treatment when every market is in a gated category', () => {
+    (usePerpsCategories as jest.Mock).mockReturnValue([
+      { id: 'pre-ipo', label: 'Pre-IPO' },
+    ]);
+    mockUsePerpsHomeExploreAbTest.mockReturnValue({
+      showExploreTable: true,
+      variantName: 'treatment',
+      isActive: true,
+    });
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      hasMarkets: true,
+    });
+
+    const { UNSAFE_queryByType } = render(<PerpsHomeView />);
+
+    expect(UNSAFE_queryByType('PerpsExploreSection' as never)).toBeNull();
     expect(UNSAFE_queryByType('PerpsMarketTypeSection' as never)).toBeNull();
   });
 
@@ -1660,6 +1685,9 @@ describe('PerpsHomeView', () => {
     });
 
     it('records the explore section instead of the stacked sections in treatment', () => {
+      (usePerpsCategories as jest.Mock).mockReturnValue([
+        { id: 'crypto', label: 'Crypto' },
+      ]);
       mockUsePerpsHomeExploreAbTest.mockReturnValue({
         showExploreTable: true,
         variantName: 'treatment',

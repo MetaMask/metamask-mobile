@@ -25,14 +25,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import {
-  getHardwareTier,
-  type HardwareTier,
-} from '../../../../../util/deviceCapability';
-import {
-  useNetworkTier,
-  type NetworkTier,
-} from '../../../../../hooks/useNetworkTier';
 import { useTheme } from '../../../../../util/theme';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
@@ -41,11 +33,7 @@ import {
   selectPerpsWatchlistEnabledFlag,
 } from '../../selectors/featureFlags';
 import { selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
-import {
-  NEW_CATEGORY,
-  usePerpsCategories,
-  type PerpsCategory,
-} from '../../hooks/usePerpsCategories';
+import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import {
@@ -60,6 +48,7 @@ import { SectionPillsSkeleton } from '../../../Trending/components/SectionPillsS
 import PerpsMarketList from '../PerpsMarketList';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import { filterMarketsByCategory } from '../../utils/marketCategoryMapping';
+import { buildExploreTabs } from './buildExploreTabs';
 import {
   readExploreSessionTab,
   writeExploreSessionTab,
@@ -74,18 +63,6 @@ import {
 const TEST_ID = PerpsHomeViewSelectorsIDs.EXPLORE_SECTION;
 const EXPLORE_MARKET_LIMIT = HOME_SCREEN_CONFIG.TrendingMarketsLimit;
 const EXPLORE_TAB_ROW_COUNT = 2;
-
-/**
- * Categories that replace the stacked home market sections. Other categories
- * (Pre-IPO, Indices, ETFs, Memecoins, New) only appear when the products
- * flag is on, matching the products row they replace.
- */
-const MARKET_SECTION_TAB_IDS = new Set<ExploreTabId>([
-  'crypto',
-  'stock',
-  'commodity',
-  'forex',
-]);
 
 const SOURCE_SECTION_BY_TAB: Partial<Record<ExploreTabId, string>> = {
   [EXPLORE_WATCHLIST_TAB_ID]: PERPS_EVENT_VALUE.SOURCE_SECTION.WATCHLIST,
@@ -128,23 +105,6 @@ function isCategoryTab(
 }
 
 /**
- * The treatment is already a five-row list with no animation, blur, prefetch,
- * or poll of its own. Rows come from the market stream Perps home opened.
- * LOW and slow or unreachable networks stay on that short list. `null` is
- * unknown and uses the same product default.
- */
-function resolveExploreMarketLimit(
-  hardware: HardwareTier | null,
-  network: NetworkTier | null,
-): number {
-  if (hardware === 'LOW' || network === 'NONE' || network === 'SLOW_CELLULAR') {
-    return EXPLORE_MARKET_LIMIT;
-  }
-
-  return EXPLORE_MARKET_LIMIT;
-}
-
-/**
  * Treatment replacement for the stacked Watchlist, Products, and category
  * sections on Perps home. Category pills use the same two-row scroller as
  * Products. The market rows reuse PerpsMarketList.
@@ -152,10 +112,6 @@ function resolveExploreMarketLimit(
 const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
   transactionActiveAbTests,
 }) => {
-  const hardwareTier = getHardwareTier();
-  const networkTier = useNetworkTier();
-  const marketLimit = resolveExploreMarketLimit(hardwareTier, networkTier);
-
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { colors } = useTheme();
@@ -173,41 +129,16 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
     readExploreSessionTab,
   );
 
-  const tabs = useMemo(() => {
-    const categoryTabs = (
-      isProductsEnabled
-        ? categories
-        : categories.filter((category) =>
-            MARKET_SECTION_TAB_IDS.has(category.id),
-          )
-    ).map(
-      (category: PerpsCategory): ExploreTab => ({
-        id: category.id,
-        label: category.label,
+  const tabs = useMemo(
+    () =>
+      buildExploreTabs({
+        categories,
+        isProductsEnabled,
+        isWatchlistEnabled,
+        hasNewMarkets,
       }),
-    );
-
-    if (
-      isProductsEnabled &&
-      hasNewMarkets &&
-      !categoryTabs.some((tab) => tab.id === NEW_CATEGORY.id)
-    ) {
-      categoryTabs.push({
-        id: NEW_CATEGORY.id,
-        label: NEW_CATEGORY.label,
-      });
-    }
-
-    if (isWatchlistEnabled) {
-      categoryTabs.unshift({
-        id: EXPLORE_WATCHLIST_TAB_ID,
-        label: strings('perps.watchlist.filter_badge_label'),
-        iconOnly: true,
-      });
-    }
-
-    return categoryTabs;
-  }, [categories, hasNewMarkets, isProductsEnabled, isWatchlistEnabled]);
+    [categories, hasNewMarkets, isProductsEnabled, isWatchlistEnabled],
+  );
 
   const watchlistMarkets = useMemo(
     () => markets.filter((market) => watchlistSymbols.includes(market.symbol)),
@@ -233,15 +164,15 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
     }
 
     if (!isCategoryTab(activeTab)) {
-      return watchlistMarkets.slice(0, marketLimit);
+      return watchlistMarkets.slice(0, EXPLORE_MARKET_LIMIT);
     }
 
     return sortMarkets({
       markets: filterMarketsByCategory(markets, activeTab),
       sortBy: MARKET_SORTING_CONFIG.SortFields.Volume,
       direction: MARKET_SORTING_CONFIG.DefaultDirection,
-    }).slice(0, marketLimit);
-  }, [activeTab, marketLimit, markets, watchlistMarkets]);
+    }).slice(0, EXPLORE_MARKET_LIMIT);
+  }, [activeTab, markets, watchlistMarkets]);
 
   const openMarketList = useCallback(() => {
     if (!activeTab) {
@@ -313,14 +244,32 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
         ? IconColor.PrimaryInverse
         : IconColor.IconAlternative;
 
+      const sharedProps = {
+        variant: isSelected ? ButtonVariant.Primary : ButtonVariant.Tertiary,
+        size: ButtonSize.Sm,
+        onPress: () => handleTabPress(tab, index),
+        testID: `${TEST_ID}-tab-${tab.id}`,
+        accessibilityLabel: tab.label,
+        accessibilityState: { selected: isSelected },
+      };
+
+      // The star is the button content, not a start accessory. ButtonBase
+      // otherwise keeps a label gap and wider trailing padding.
+      if (tab.iconOnly) {
+        return (
+          <Button {...sharedProps} twClassName="px-3">
+            <Icon
+              name={IconName.StarFilled}
+              size={IconSize.Sm}
+              color={iconColor}
+            />
+          </Button>
+        );
+      }
+
       return (
         <Button
-          variant={isSelected ? ButtonVariant.Primary : ButtonVariant.Tertiary}
-          size={ButtonSize.Sm}
-          onPress={() => handleTabPress(tab, index)}
-          testID={`${TEST_ID}-tab-${tab.id}`}
-          accessibilityLabel={tab.label}
-          accessibilityState={{ selected: isSelected }}
+          {...sharedProps}
           startAccessory={
             isMemecoin ? (
               <PerpsSentimentSatisfiedIcon
@@ -331,18 +280,14 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
               />
             ) : (
               <Icon
-                name={
-                  tab.iconOnly
-                    ? IconName.StarFilled
-                    : getCategoryIconName(tab.id)
-                }
+                name={getCategoryIconName(tab.id)}
                 size={IconSize.Sm}
                 color={iconColor}
               />
             )
           }
         >
-          {tab.iconOnly ? null : tab.label}
+          {tab.label}
         </Button>
       );
     },
@@ -378,7 +323,7 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
         listTestId={`${TEST_ID}-tabs`}
       />
       {isMarketsLoading || !activeTab ? (
-        <PerpsRowSkeleton count={marketLimit} />
+        <PerpsRowSkeleton count={EXPLORE_MARKET_LIMIT} />
       ) : (
         <>
           <PerpsMarketList

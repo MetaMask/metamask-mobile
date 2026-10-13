@@ -45,14 +45,6 @@ jest.mock('../../../../../core/Analytics', () => ({
   },
 }));
 
-jest.mock('../../../../../hooks/useNetworkTier', () => ({
-  useNetworkTier: () => null,
-}));
-
-jest.mock('../../../../../util/deviceCapability', () => ({
-  getHardwareTier: () => null,
-}));
-
 jest.mock('../../../../../util/theme', () => {
   const actual = jest.requireActual('../../../../../util/theme');
   return { ...actual, useTheme: () => actual.mockTheme };
