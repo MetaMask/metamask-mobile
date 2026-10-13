@@ -30,10 +30,7 @@ import {
 } from './helpers/predict-helpers.js';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 import ToastModal from '../../page-objects/wallet/ToastModal.js';
-import {
-  dismissToWalletHomePlaywright,
-  waitForWalletHomePlaywright,
-} from '../../flows/wallet.flow.js';
+import { waitForWalletHomePlaywright } from '../../flows/wallet.flow.js';
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
@@ -90,6 +87,7 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
           await WalletView.scrollAndTapPredictionsPosition(
             positionDetails.name,
             SPURS_PELICANS_POSITION_ID,
+            { revealFirstPosition: true },
           );
           await Assertions.expectElementToBeVisible(
             PredictDetailsPage.container,
@@ -129,10 +127,17 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
           // Top toast covers the market-details back control until it auto-dismisses.
           await ToastModal.waitForToastToDismiss();
           await PredictDetailsPage.tapBackButton();
-          // After cash-out, a single back tap can leave residual nested Predict
-          // chrome. Keep backing out until wallet readiness indicators pass —
+          // A successful back tap can still race the market-details pop. Wait
+          // until that screen leaves the hierarchy before polling wallet home.
           // Android scrollIntoView fails if wallet-scroll-view is not mounted.
-          await dismissToWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
+          await Assertions.expectElementToNotExist(
+            PredictDetailsPage.container,
+            {
+              description:
+                'Predict market details should leave the hierarchy after back',
+            },
+          );
+          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
           await WalletView.scrollAndTapPredictionsSection();
           await PredictHome.waitForScreenToDisplay({
             description: 'Predict home should be visible after cash out',

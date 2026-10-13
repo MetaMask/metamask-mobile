@@ -158,14 +158,6 @@ class PredictDetailsPage {
         await drv.back();
       }
     }
-
-    // Prove the market-details screen left the tree before callers wait for
-    // wallet home. A successful back tap can still race the pop animation —
-    // especially after cash-out toast dismiss on Android.
-    await Assertions.expectElementToNotBeVisible(this.container, {
-      timeout: resolveE2EWaitTimeoutMs(15_000),
-      description: 'Predict market details should dismiss after back',
-    });
   }
 
   async tapPositionsTab(): Promise<void> {
