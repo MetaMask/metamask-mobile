@@ -27,6 +27,7 @@ import {
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockOpenComposer = jest.fn();
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const mockFollowWithSetup = jest.fn(
@@ -116,6 +117,10 @@ jest.mock('../hooks/useFollowWithNotificationSetup', () => ({
   useFollowWithNotificationSetup: () => ({
     followWithSetup: mockFollowWithSetup,
   }),
+}));
+
+jest.mock('../hooks/useOpenSocialPostComposer', () => ({
+  useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
 }));
 
 jest.mock('./hooks', () => ({
@@ -495,7 +500,7 @@ describe('MyProfileView', () => {
     fireEvent.press(createPostButton);
 
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POST_COMPOSER);
+    expect(mockOpenComposer).toHaveBeenCalledTimes(1);
     expect(createPostButton).toHaveProp('accessibilityLabel', 'Create post');
   });
 
@@ -610,7 +615,7 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POST_COMPOSER);
+    expect(mockOpenComposer).toHaveBeenCalledTimes(1);
   });
 
   it('resets the local profile and opens onboarding from the debug button', () => {

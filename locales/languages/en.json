@@ -696,7 +696,6 @@
     "re_enter_password": "Re-enter your password",
     "use_at_least_8_characters": "Use at least 8 characters",
     "unlock_with_face_id": "Unlock with Face ID?",
-    "learn_more": "If I forget this password, MetaMask can't recover it for me.",
     "learn_more_social_login": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
     "seed_phrase_length_error": "Secret Recovery Phrase must be 12, 15, 18, 21, or 24 words",
     "continue": "Continue",
@@ -1393,6 +1392,8 @@
       "retry": "Try again",
       "posting": "Posting...",
       "post_failed": "Couldn't create post. Try again.",
+      "linked_account_missing": "Your linked Social account isn't in this wallet.",
+      "showing_linked_account": "Showing positions from {{account}}",
       "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
     },
     "post_swap_share": {
