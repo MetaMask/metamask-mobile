@@ -117,13 +117,13 @@ const getXAccountValue = (
   xHandle: string | undefined,
 ): string => {
   if (isConnecting) {
-    return strings('app_settings.manage_profile.connecting');
+    return strings('manage_profile.connecting');
   }
   if (xHandle) {
     return xHandle;
   }
   if (isConnectedToX) {
-    return strings('app_settings.manage_profile.connected');
+    return strings('manage_profile.connected');
   }
   return '';
 };
@@ -135,13 +135,13 @@ const getXAccountValue = (
 const getConnectErrorCopy = (error: unknown): string => {
   if (error instanceof XAuthError) {
     if (error.type === XAuthErrorType.NetworkFailure) {
-      return strings('app_settings.manage_profile.connect_x_error_network');
+      return strings('manage_profile.connect_x_error_network');
     }
     if (error.type === XAuthErrorType.BackendError) {
-      return strings('app_settings.manage_profile.connect_x_error_backend');
+      return strings('manage_profile.connect_x_error_backend');
     }
   }
-  return strings('app_settings.manage_profile.connect_x_error');
+  return strings('manage_profile.connect_x_error');
 };
 
 const applyFieldUpdate = (

@@ -484,7 +484,7 @@ describe('ManageProfile', () => {
 
       expect(
         within(row).getByText(
-          strings('app_settings.manage_profile.connecting'),
+          strings('manage_profile.connecting'),
         ),
       ).toBeOnTheScreen();
 
@@ -543,19 +543,19 @@ describe('ManageProfile', () => {
     it.each([
       [
         XAuthErrorType.NetworkFailure,
-        'app_settings.manage_profile.connect_x_error_network',
+        'manage_profile.connect_x_error_network',
       ],
       [
         XAuthErrorType.BackendError,
-        'app_settings.manage_profile.connect_x_error_backend',
+        'manage_profile.connect_x_error_backend',
       ],
       [
         XAuthErrorType.StateMismatch,
-        'app_settings.manage_profile.connect_x_error',
+        'manage_profile.connect_x_error',
       ],
       [
         XAuthErrorType.NotSignedIn,
-        'app_settings.manage_profile.connect_x_error',
+        'manage_profile.connect_x_error',
       ],
     ])(
       'shows the %s toast copy when the connect fails with that error',
@@ -585,7 +585,7 @@ describe('ManageProfile', () => {
         expect.objectContaining({
           labelOptions: [
             {
-              label: strings('app_settings.manage_profile.connect_x_error'),
+              label: strings('manage_profile.connect_x_error'),
             },
           ],
         }),
@@ -622,7 +622,7 @@ describe('ManageProfile', () => {
 
       expect(
         within(getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_ROW)).getByText(
-          strings('app_settings.manage_profile.connected'),
+          strings('manage_profile.connected'),
         ),
       ).toBeOnTheScreen();
     });
