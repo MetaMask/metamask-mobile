@@ -3205,6 +3205,77 @@ describe('PolymarketProvider', () => {
     expect(mockPlanDepositWalletPreflight).not.toHaveBeenCalled();
   });
 
+  describe('prepareClaim', () => {
+    const gammaConditionId =
+      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+
+    it('passes resolved gamma market versions into the claim build', async () => {
+      mockGetMarketDetailsFromGammaApi.mockResolvedValueOnce({
+        markets: [
+          {
+            conditionId: gammaConditionId,
+            version: 'v2',
+          },
+        ],
+      } as never);
+      const provider = createProvider();
+
+      await provider.prepareClaim({
+        positions: [createClaimPosition()],
+        signer,
+      });
+
+      expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledWith({
+        marketId: 'market-1',
+      });
+      expect(mockBuildClaimTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          marketVersions: { [gammaConditionId]: 'v2' },
+        }),
+      );
+    });
+
+    it('keeps the CTF claim when the gamma market has no v2 version', async () => {
+      mockGetMarketDetailsFromGammaApi.mockResolvedValueOnce({
+        markets: [
+          {
+            conditionId: gammaConditionId,
+          },
+        ],
+      } as never);
+      const provider = createProvider();
+
+      await provider.prepareClaim({
+        positions: [createClaimPosition()],
+        signer,
+      });
+
+      expect(mockBuildClaimTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          marketVersions: { [gammaConditionId]: undefined },
+        }),
+      );
+    });
+
+    it('keeps the CTF claim when the gamma lookup fails', async () => {
+      mockGetMarketDetailsFromGammaApi.mockRejectedValueOnce(
+        new Error('gamma unavailable'),
+      );
+      const provider = createProvider();
+
+      await provider.prepareClaim({
+        positions: [createClaimPosition()],
+        signer,
+      });
+
+      expect(mockBuildClaimTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          marketVersions: { [gammaConditionId]: undefined },
+        }),
+      );
+    });
+  });
+
   it('marks deposit-wallet claim transactions as externally signed before signing', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,

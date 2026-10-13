@@ -1042,6 +1042,8 @@ export type PolymarketTeamLookupFn = (
   abbreviation: string,
 ) => PolymarketApiTeam | undefined;
 
+export const V2_MARKET_VERSION = 'v2';
+
 function isV2Market(market?: PolymarketApiMarket): boolean {
   return market?.version === V2_MARKET_VERSION;
 }

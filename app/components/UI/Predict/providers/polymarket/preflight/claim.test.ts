@@ -201,7 +201,7 @@ describe('planDepositWalletClaim', () => {
         }),
       ],
       walletAddress,
-      marketVersions: { 'market-1': 'v2' },
+      marketVersions: { [`0x${'ab'.repeat(31)}00`]: 'v2' },
     });
 
     expect(calls).toHaveLength(1);
@@ -224,7 +224,7 @@ describe('planDepositWalletClaim', () => {
     await planDepositWalletClaim({
       positions: [createPosition({ outcomeId: `0x${'ab'.repeat(31)}00` })],
       walletAddress,
-      marketVersions: { 'market-1': 'v2' },
+      marketVersions: { [`0x${'ab'.repeat(31)}00`]: 'v2' },
     });
 
     expect(mockInspectMissingRequirements).toHaveBeenCalledWith({
@@ -250,7 +250,7 @@ describe('planDepositWalletClaim', () => {
         }),
       ],
       walletAddress,
-      marketVersions: { 'market-1': 'v2' },
+      marketVersions: { [`0x${'cd'.repeat(31)}`]: 'v2' },
     });
 
     expect(calls.map((call) => call.target)).toEqual([
@@ -263,7 +263,7 @@ describe('planDepositWalletClaim', () => {
     const calls = await planDepositWalletClaim({
       positions: [createPosition()],
       walletAddress,
-      marketVersions: { 'market-1': 'v3' },
+      marketVersions: { [createPosition().outcomeId]: 'v3' },
     });
 
     expect(calls).toHaveLength(1);

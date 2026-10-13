@@ -112,6 +112,7 @@ import {
   SignatureType,
   PolymarketApiEvent,
   PolymarketApiEventsKeysetResponse,
+  PolymarketApiMarket,
   PolymarketApiTeam,
   PolymarketDataApiV2Response,
   PolymarketPositionV2,
@@ -143,6 +144,7 @@ import {
   previewOrder,
   previewMaxBuyOrder,
   searchEventsFromPolymarketApi,
+  V2_MARKET_VERSION,
 } from './utils';
 import { PredictFeatureFlags } from '../../types/flags';
 import {
@@ -172,6 +174,7 @@ import { submitProtocolClobOrder } from './protocol/transport';
 import {
   buildClaimTransaction,
   planDepositWalletClaim,
+  type ClaimMarketVersions,
 } from './preflight/claim';
 import { buildDepositMaintenanceTransaction } from './preflight/deposit';
 import { planDepositWalletPreflight } from './preflight/depositWallet';
@@ -2638,6 +2641,52 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
+  async #resolveClaimMarketVersions(
+    positions: PredictPosition[],
+  ): Promise<ClaimMarketVersions> {
+    // Gamma is fetched per event id (`position.marketId`) and shared across
+    // positions; versions are keyed by condition id because one event can
+    // hold several markets. A failed or unmatched lookup keeps the CTF claim.
+    const eventMarkets = new Map<string, Promise<PolymarketApiMarket[]>>();
+
+    const getMarketsForEvent = (
+      marketId: string,
+    ): Promise<PolymarketApiMarket[]> => {
+      const cached = eventMarkets.get(marketId);
+      if (cached) {
+        return cached;
+      }
+
+      const markets = getMarketDetailsFromGammaApi({ marketId })
+        .then((event) => event.markets ?? [])
+        .catch((error) => {
+          DevLogger.log('PolymarketProvider: claim version lookup failed', {
+            marketId,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+          return [];
+        });
+      eventMarkets.set(marketId, markets);
+      return markets;
+    };
+
+    const versions = await Promise.all(
+      positions.map(async (position) => {
+        const markets = await getMarketsForEvent(position.marketId);
+        const market = markets.find(
+          (candidate) => candidate.conditionId === position.outcomeId,
+        );
+
+        return [
+          position.outcomeId,
+          market?.version === V2_MARKET_VERSION ? V2_MARKET_VERSION : undefined,
+        ] as const;
+      }),
+    );
+
+    return Object.fromEntries(versions);
+  }
+
   public async prepareClaim(
     params: ClaimOrderParams,
   ): Promise<ClaimOrderResponse> {
@@ -2668,11 +2717,13 @@ export class PolymarketProvider implements PredictProvider {
         safeAddress,
         protocol,
       });
+      const marketVersions = await this.#resolveClaimMarketVersions(positions);
       const claimTransaction = await buildClaimTransaction({
         signer,
         positions,
         safeAddress,
         protocol,
+        marketVersions,
         safeLegacyUsdceBalance,
       });
 
