@@ -44,6 +44,7 @@ import {
   extractProfilingFrames,
   proposeProfilingGroundedActions,
 } from './profiling-regression-actions.mjs';
+import { openProfilingIsolationDrafts } from './profiling-isolation-drafts.mjs';
 import {
   listIssuesOpenedInWindow,
   syncProfilingRegressionIssues,
@@ -268,7 +269,8 @@ Options:
   --collect-only         Analyze one run without Slack-sized scenario zips
   --scheduled-exception  Collect one run and compare it with the previous two scheduled runs
   --skip-scenario-artifacts  Skip per-scenario profile bundles
-  --github-issues        With --scheduled-exception: open or reference one GitHub issue per finding.
+  --github-issues        With --scheduled-exception: open or reference one GitHub issue per finding,
+                         and open a draft revert of each merged pull request whose files overlap a hot frame.
                          With --weekly: list the issues opened during the reported week
   --now <iso>            Clock used by --weekly week bounds (tests)
   --scenario <text>      Analyze matching scenario names only
@@ -299,6 +301,20 @@ function runGh(args) {
     );
   }
   return (result.stdout || '').trim();
+}
+
+function runGit(args, { cwd = process.cwd() } = {}) {
+  const result = spawnSync('git', args, {
+    cwd,
+    encoding: 'utf8',
+    maxBuffer: 32 * 1024 * 1024,
+  });
+  if (result.status !== 0) {
+    throw new Error(
+      (result.stderr || result.stdout || `git ${args.join(' ')} failed`).trim(),
+    );
+  }
+  return result.stdout || '';
 }
 
 function listLatestRuns({ repo, workflow, branch, limit = 20 }) {
@@ -2631,8 +2647,9 @@ async function runScheduledExceptionAnalysis({
       callClaude,
     });
   }
-  // The issue carries the proposal, so it is opened after that pass. Slack
-  // then links the issue next to the finding it tracks.
+  // The issue carries the proposal, so it is opened after that pass. A draft
+  // revert is opened only when a merged pull request already overlaps a hot
+  // frame. Slack then links the issue and any draft next to the finding.
   if (exception.meta.hasFindings && args.githubIssues && !args.dryRun) {
     const synced = syncProfilingRegressionIssues({
       exception,
@@ -2643,10 +2660,29 @@ async function runScheduledExceptionAnalysis({
       runGh,
       outputDirectory,
     });
+    const drafts = openProfilingIsolationDrafts({
+      exception,
+      currentReport,
+      previousRun: scheduledRuns[0] || null,
+      repo: args.repo,
+      baseBranch: args.branch,
+      aiText,
+      runGh,
+      runGit,
+      outputDirectory,
+    });
     writeScheduledExceptionNotification(outputDirectory, exception);
     for (const issue of synced.issues) {
       console.log(
         `${issue.created ? '🆕 Opened' : '🔁 Referenced'} ${issue.url} — ${issue.title}`,
+      );
+    }
+    for (const draft of drafts.pulls) {
+      if (!draft.url) {
+        continue;
+      }
+      console.log(
+        `${draft.created ? '🆕 Opened draft' : '🔁 Referenced draft'} ${draft.url} isolating #${draft.sourcePull}`,
       );
     }
   }

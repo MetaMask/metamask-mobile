@@ -32,6 +32,7 @@ type Workflow = {
     {
       if?: string;
       needs?: string | string[];
+      permissions?: Record<string, string>;
       strategy?: { matrix?: string; 'fail-fast'?: boolean };
       steps: WorkflowStep[];
     }
@@ -188,6 +189,11 @@ describe('Analyze App Profiling triggers', () => {
     const command = analysisStep?.run ?? '';
 
     expect(workflow.permissions).toMatchObject({ issues: 'write' });
+    expect(workflow.jobs.analyze.permissions).toMatchObject({
+      contents: 'write',
+      'pull-requests': 'write',
+      issues: 'write',
+    });
     expect(analysisStep?.env?.SCHEDULED_EXCEPTION_BRANCH).toBe(
       '${{ github.event.workflow_run.head_branch }}',
     );
@@ -209,6 +215,7 @@ describe('Analyze App Profiling triggers', () => {
       (step) => step.name === 'Upload analysis artifact',
     );
     expect(String(upload?.with?.path)).toContain('github-issues.json');
+    expect(String(upload?.with?.path)).toContain('github-isolation-drafts.json');
   });
 
   it('bounds the weekly rebuild by time instead of by run count', () => {
