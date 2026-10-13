@@ -1,6 +1,7 @@
 import '../mocks';
 import React, { useRef } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useRoute } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type {
   CryptoCurrency,
@@ -574,16 +575,16 @@ interface RenderV2BuildQuoteWithRoutesOptions
  * its route params serialised as JSON, so tests can assert both the
  * navigation target and the params passed to it.
  */
-export function createRouteParamsProbe(routeName: string) {
-  const RouteParamsProbe = ({
-    route,
-  }: {
-    route: { params?: Record<string, unknown> };
-  }) => (
-    <Text testID={`route-${routeName}`}>
-      {JSON.stringify(route.params ?? {})}
-    </Text>
-  );
+export function createRouteParamsProbe(routeName: string): React.FC {
+  const RouteParamsProbe: React.FC = () => {
+    const route = useRoute();
+
+    return (
+      <Text testID={`route-${routeName}`}>
+        {JSON.stringify(route.params ?? {})}
+      </Text>
+    );
+  };
   return RouteParamsProbe;
 }
 

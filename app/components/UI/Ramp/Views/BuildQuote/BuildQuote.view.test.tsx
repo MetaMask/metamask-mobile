@@ -117,7 +117,12 @@ function providerWithBuyLimit(minAmount: number, maxAmount: number) {
   };
 }
 
-type ProviderRecord = typeof TRANSAK_PROVIDER;
+type ProviderRecord = Omit<
+  typeof TRANSAK_PROVIDER,
+  'supportedCryptoCurrencies'
+> & {
+  supportedCryptoCurrencies: Record<string, boolean>;
+};
 
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
