@@ -32,7 +32,9 @@ import { useCardCapabilities } from '../../hooks/useCardCapabilities';
 import { strings } from '../../../../../../locales/i18n';
 
 function wasCardRemoved(result: WalletEligibility): boolean {
-  return result.existingCardStatus === 'not_found' || result.canAddCard;
+  // requires_activation also sets canAddCard so the wallet can resume a
+  // yellow-path pass. That pass is still in the wallet.
+  return result.existingCardStatus === 'not_found';
 }
 
 /**
