@@ -1,25 +1,41 @@
 import React from 'react';
-import { Alert } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import { MfaFlowError } from '../../../../../../util/identity/mfa/engine/errors';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../../core/Engine';
 import { VBA_KYC_VENDOR } from '../constants';
-import { EmailOtpStubSelectorsIDs } from './EmailOtpStub';
-import VbaEmailAdapter from './VbaEmailAdapter';
+import VbaEmailAdapter, {
+  VbaEmailAdapterSelectorsIDs,
+} from './VbaEmailAdapter';
 
 const mockAdvance = jest.fn();
 const mockGetState = jest.fn();
 const mockGetVbaVendorTermsAcceptance = jest.fn();
+const mockGoBack = jest.fn();
+const mockVerifyOrEnroll = jest.fn();
+const mockNavigation = {
+  goBack: mockGoBack,
+};
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNavigation,
+}));
 
 jest.mock('../hooks/useVbaOnboardingRouting', () => ({
   useOpenVbaOnboarding: () => mockAdvance,
 }));
 
+jest.mock('../../../../../../util/identity/mfa', () => ({
+  useMfa: () => ({
+    credentials: [],
+    verifyOrEnroll: mockVerifyOrEnroll,
+    enroll: jest.fn(),
+  }),
+}));
+
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
-    AuthenticationController: {
-      getBearerToken: jest.fn(),
-    },
     KycController: {
       state: { email: null as string | null },
       startSession: jest.fn(),
@@ -52,31 +68,36 @@ jest.mock('../../../../../../util/Logger', () => ({
   },
 }));
 
-const mockGetBearerToken = Engine.context.AuthenticationController
-  .getBearerToken as jest.Mock<Promise<string>, []>;
-
 const mockKycController = Engine.context.KycController as unknown as {
   state: { email: string | null };
   startSession: jest.Mock<Promise<unknown>, [unknown]>;
   recordVendorDisclaimers: jest.Mock<Promise<unknown>, [unknown]>;
 };
 
-const submitEmail = (email = 'user@example.com') => {
-  const screen = renderWithProvider(<VbaEmailAdapter />);
-
-  fireEvent.changeText(
-    screen.getByTestId(EmailOtpStubSelectorsIDs.EMAIL_INPUT),
-    email,
-  );
-  fireEvent.press(screen.getByTestId(EmailOtpStubSelectorsIDs.CONTINUE_BUTTON));
-
-  return screen;
-};
+const verifiedEmail = (
+  email = 'user@example.com',
+  accessToken = 'aal2-token',
+) => ({
+  credentials: [
+    {
+      type: 'email_otp' as const,
+      status: 'active' as const,
+      email,
+      verified: true,
+    },
+  ],
+  token: {
+    accessToken,
+    expiresIn: 900,
+    obtainedAt: 0,
+    claims: { sub: 'profile', amr: ['email_otp' as const], exp: 0 },
+  },
+});
 
 describe('VbaEmailAdapter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetBearerToken.mockResolvedValue('wallet-bearer');
+    mockVerifyOrEnroll.mockResolvedValue(verifiedEmail());
     mockKycController.state.email = null;
     mockGetState.mockReturnValue({ address: '0xabc' });
     mockGetVbaVendorTermsAcceptance.mockResolvedValue({
@@ -94,14 +115,23 @@ describe('VbaEmailAdapter', () => {
     jest.restoreAllMocks();
   });
 
-  it('creates the session, records vendor terms, and advances', async () => {
-    submitEmail('  user@example.com  ');
+  it('verifies email, creates the session, records vendor terms, and advances', async () => {
+    renderWithProvider(<VbaEmailAdapter />);
 
     await waitFor(() => {
+      expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
+        methods: ['email_otp'],
+        verifyWith: 'email_otp',
+        reason: {
+          operation: 'vba.verifyEmail',
+          enrollDescription: "We'll use this to send account updates.",
+          verifyDescription: "We'll use this to send account updates.",
+        },
+      });
       expect(mockKycController.startSession).toHaveBeenCalledWith({
         vendor: VBA_KYC_VENDOR,
         email: 'user@example.com',
-        aal2Token: 'wallet-bearer',
+        aal2Token: 'aal2-token',
       });
       expect(mockGetVbaVendorTermsAcceptance).toHaveBeenCalledWith('0xabc');
       expect(mockKycController.recordVendorDisclaimers).toHaveBeenCalledWith({
@@ -111,16 +141,20 @@ describe('VbaEmailAdapter', () => {
     });
   });
 
-  it('starts the session with the bound email even if another address is typed', async () => {
+  it('starts the session with the bound email when the credential has no address', async () => {
     mockKycController.state.email = 'bound@example.com';
+    mockVerifyOrEnroll.mockResolvedValue({
+      credentials: [{ type: 'email_otp', status: 'active', verified: true }],
+      token: verifiedEmail().token,
+    });
 
-    submitEmail('other@example.com');
+    renderWithProvider(<VbaEmailAdapter />);
 
     await waitFor(() => {
       expect(mockKycController.startSession).toHaveBeenCalledWith({
         vendor: VBA_KYC_VENDOR,
         email: 'bound@example.com',
-        aal2Token: 'wallet-bearer',
+        aal2Token: 'aal2-token',
       });
       expect(mockAdvance).toHaveBeenCalled();
     });
@@ -131,7 +165,7 @@ describe('VbaEmailAdapter', () => {
       new Error('disclaimer failed'),
     );
 
-    submitEmail();
+    renderWithProvider(<VbaEmailAdapter />);
 
     await waitFor(() => {
       expect(mockAdvance).toHaveBeenCalled();
@@ -141,7 +175,7 @@ describe('VbaEmailAdapter', () => {
   it('advances when local vendor terms are missing', async () => {
     mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
 
-    submitEmail();
+    renderWithProvider(<VbaEmailAdapter />);
 
     await waitFor(() => {
       expect(mockKycController.recordVendorDisclaimers).not.toHaveBeenCalled();
@@ -150,19 +184,72 @@ describe('VbaEmailAdapter', () => {
   });
 
   it('shows an error and does not advance when session creation fails', async () => {
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
     mockKycController.startSession.mockRejectedValue(
       new Error('Session creation failed.'),
     );
 
-    submitEmail();
+    const screen = renderWithProvider(<VbaEmailAdapter />);
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith(
-        'Identity verification',
-        'Session creation failed.',
-      );
+      expect(
+        screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+      ).toHaveTextContent('Session creation failed.');
       expect(mockAdvance).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
+  });
+
+  it('retries verification from the error screen', async () => {
+    mockKycController.startSession
+      .mockRejectedValueOnce(new Error('Session creation failed.'))
+      .mockResolvedValueOnce({ id: 'session-1', finalStatus: 'new' });
+
+    const screen = renderWithProvider(<VbaEmailAdapter />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+      ).toBeOnTheScreen();
+    });
+
+    fireEvent.press(
+      screen.getByTestId(VbaEmailAdapterSelectorsIDs.RETRY_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockVerifyOrEnroll).toHaveBeenCalledTimes(2);
+      expect(mockAdvance).toHaveBeenCalled();
+    });
+  });
+
+  it('leaves the step when email verification is cancelled', async () => {
+    mockVerifyOrEnroll.mockRejectedValue(new MfaFlowError('flow_cancelled'));
+
+    const screen = renderWithProvider(<VbaEmailAdapter />);
+
+    await waitFor(() => {
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+    expect(mockKycController.startSession).not.toHaveBeenCalled();
+    expect(mockAdvance).not.toHaveBeenCalled();
+    expect(
+      screen.queryByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+    ).toBeNull();
+  });
+
+  it('shows the MFA message for the verification error code', async () => {
+    mockVerifyOrEnroll.mockRejectedValue(
+      new MfaFlowError('too_many_attempts'),
+    );
+
+    const screen = renderWithProvider(<VbaEmailAdapter />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+      ).toHaveTextContent('Too many attempts. Request a new code.');
+    });
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockKycController.startSession).not.toHaveBeenCalled();
   });
 });
