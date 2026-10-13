@@ -5758,8 +5758,11 @@
       "unrealised": "Unrealised PNL",
       "average_cost": "Average cost",
       "realized": "Realized",
+      "realized_pnl": "Realized P&L",
       "unrealized": "Unrealized",
+      "unrealized_pnl": "Unrealized P&L",
       "hold_time": "Hold time",
+      "share_to_feed": "Share to feed",
       "loading": "Loading position",
       "shown_in_usd": "Shown in USD"
     },
