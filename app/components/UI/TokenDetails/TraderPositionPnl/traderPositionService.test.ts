@@ -1,6 +1,9 @@
 import AppConstants from '../../../../core/AppConstants';
 import {
+  getOpenPositionForAsset,
   getTraderPosition,
+  openPositionUrl,
+  toOpenPositionPnl,
   toTraderPosition,
   TraderPositionHttpError,
   TraderPositionMalformedError,
@@ -276,5 +279,77 @@ describe('toTraderPosition', () => {
     expect(() =>
       toTraderPosition({ ...positionBody, perpPositionType: 'both' }),
     ).toThrow(TraderPositionMalformedError);
+  });
+});
+
+const openPositionBody = {
+  positionAmount: 90,
+  isOpen: true,
+  boughtUsd: 100,
+  soldUsd: 0,
+  realizedPnl: 10,
+  costBasis: 80,
+  currentValueUSD: 150,
+  pnlValueUsd: 80,
+  pnlPercent: 12,
+  pnlStatus: 'ready',
+};
+
+describe('getOpenPositionForAsset', () => {
+  beforeEach(() => {
+    mockCall.mockReset();
+    mockCall.mockResolvedValue('test-token');
+    mockFetch.mockReset();
+    global.fetch = mockFetch;
+  });
+
+  it('requests the wallet and percent-encoded CAIP-19 asset', async () => {
+    mockFetch.mockResolvedValue(jsonResponse(200, openPositionBody));
+    const assetId = 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+
+    await getOpenPositionForAsset('0xAbc', assetId);
+
+    expect(openPositionUrl('0xAbc', assetId)).toBe(
+      'https://social.test/api/v2/traders/0xAbc/eip155%3A1%2Ferc20%3A0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48/open',
+    );
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://social.test/api/v2/traders/0xAbc/eip155%3A1%2Ferc20%3A0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48/open',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer test-token' },
+      }),
+    );
+  });
+
+  it('returns a ready position', async () => {
+    mockFetch.mockResolvedValue(jsonResponse(200, openPositionBody));
+
+    const result = await getOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60');
+
+    expect(result).toEqual(openPositionBody);
+  });
+
+  it('keeps an in-progress payload', () => {
+    const result = toOpenPositionPnl({
+      ...openPositionBody,
+      pnlStatus: 'in-progress',
+      currentValueUSD: null,
+    });
+
+    expect(result.pnlStatus).toBe('in-progress');
+    expect(result.currentValueUSD).toBeNull();
+  });
+
+  it('throws when pnlStatus is missing', () => {
+    expect(() =>
+      toOpenPositionPnl({ ...openPositionBody, pnlStatus: 'backfilling' }),
+    ).toThrow(TraderPositionMalformedError);
+  });
+
+  it('throws the HTTP status when the route is not ready', async () => {
+    mockFetch.mockResolvedValue(jsonResponse(404, { message: 'missing' }));
+
+    await expect(
+      getOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60'),
+    ).rejects.toBeInstanceOf(TraderPositionHttpError);
   });
 });
