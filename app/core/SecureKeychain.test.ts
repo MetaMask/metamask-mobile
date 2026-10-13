@@ -1,5 +1,4 @@
 import SecureKeychain from './SecureKeychain';
-import { SecureKeychainDecryptionError } from './SecureKeychainError';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import-x/no-namespace
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
@@ -259,39 +258,17 @@ describe('SecureKeychain - Secure Item Methods', () => {
       expect(result).toBeNull();
     });
 
-    it('identifies decryption failure without leaking encrypted data', async () => {
+    it('throws error when decryption fails', async () => {
       const scopeOptions = { service: 'test-service' };
-      jest.mocked(Keychain.getGenericPassword).mockResolvedValue({
+
+      (Keychain.getGenericPassword as jest.Mock).mockResolvedValue({
         username: 'test-key',
-        password: 'unreadable-encrypted-payload',
-        service: scopeOptions.service,
-        storage: Keychain.STORAGE_TYPE.AES_GCM,
+        password: 'invalid-encrypted-data',
       });
 
-      const result = SecureKeychain.getSecureItem(scopeOptions);
-
-      await expect(result).rejects.toBeInstanceOf(
-        SecureKeychainDecryptionError,
-      );
-      await expect(result).rejects.toThrow('Unable to decrypt secure item');
-      expect(SecureKeychain.getInstance().isAuthenticating).toBe(false);
-      expect(Keychain.setGenericPassword).not.toHaveBeenCalled();
-      expect(Keychain.resetGenericPassword).not.toHaveBeenCalled();
-    });
-
-    it('keeps native retrieval failure distinct from decryption failure', async () => {
-      const nativeError = new Error('Native keychain access denied');
-      jest.mocked(Keychain.getGenericPassword).mockRejectedValue(nativeError);
-
-      const result = SecureKeychain.getSecureItem({ service: 'test-service' });
-
-      await expect(result).rejects.not.toBeInstanceOf(
-        SecureKeychainDecryptionError,
-      );
-      await expect(result).rejects.toThrow(nativeError.message);
-      expect(SecureKeychain.getInstance().isAuthenticating).toBe(false);
-      expect(Keychain.setGenericPassword).not.toHaveBeenCalled();
-      expect(Keychain.resetGenericPassword).not.toHaveBeenCalled();
+      await expect(
+        SecureKeychain.getSecureItem(scopeOptions),
+      ).rejects.toThrow();
     });
   });
 

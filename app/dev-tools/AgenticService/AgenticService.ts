@@ -51,7 +51,6 @@ import { BottomSheet as DesignSystemBottomSheet } from '@metamask/design-system-
 import ComponentLibraryBottomSheet from '../../component-library/components/BottomSheets/BottomSheet';
 import { Wallet as EthersWallet } from 'ethers';
 import PerpsConnectionManager from '../../components/UI/Perps/services/PerpsConnectionManager';
-import { readPerpsUiObservations } from '../../components/UI/Perps/utils/perpsUiObservations';
 import { getStreamManagerInstance } from '../../components/UI/Perps/providers/PerpsStreamManager';
 
 // ─── Fiber tree types ──────────────────────────────────────────────────────
@@ -61,9 +60,7 @@ import { getStreamManagerInstance } from '../../components/UI/Perps/providers/Pe
  * via __REACT_DEVTOOLS_GLOBAL_HOOK__.
  */
 interface FiberNode {
-  tag?: number;
   type?: unknown;
-  memoizedState?: unknown;
   child: FiberNode | null;
   sibling: FiberNode | null;
   return: FiberNode | null;
@@ -122,8 +119,6 @@ interface AgenticHudStep {
 }
 
 interface AgenticBridge {
-  pressTestIdScopeVersion: 1;
-  readPerpsUiObservations: typeof readPerpsUiObservations;
   platform: string;
   replayHarnessPatch?: string;
   navigate: (name: string, params?: object) => void;
@@ -133,10 +128,7 @@ interface AgenticBridge {
   goBack: () => void;
   listAccounts: () => { id: string; address: string; name: string }[];
   getSelectedAccount: () => { id: string; address: string; name: string };
-  pressTestId: (
-    testId: string,
-    options?: { ancestorTestId: string },
-  ) => Promise<{
+  pressTestId: (testId: string) => Promise<{
     ok: boolean;
     testId?: string;
     error?: string;
@@ -328,33 +320,13 @@ function walkFiber(
   return false;
 }
 
-// React Native's renderer uses tag 22 for Offscreen and non-null committed
-// memoizedState for its hidden children, even when the native route is active.
-const OFFSCREEN_FIBER_TAG = 22;
-
-interface CommittedFiberTree {
-  roots: FiberNode[];
-  parents: Map<FiberNode, FiberNode | null>;
-  inactive: Set<FiberNode>;
-}
-
-/** Read visibility from the downward tree, never from render-time return links. */
-function indexFiberTree(
-  fiber: FiberNode | null,
-  tree: CommittedFiberTree,
-  parent: FiberNode | null = null,
-  parentInactive = false,
-): void {
-  let current = fiber;
+/** Return true when React Navigation retains a fiber under a hidden route. */
+function isFiberInactive(fiber: FiberNode): boolean {
+  let current: FiberNode | null = fiber;
   while (current) {
-    tree.parents.set(current, parent);
     const props = current.memoizedProps;
     const styles = Array.isArray(props?.style) ? props.style : [props?.style];
-    const inactive =
-      parentInactive ||
-      (current.tag === OFFSCREEN_FIBER_TAG &&
-        current.memoizedState !== null &&
-        current.memoizedState !== undefined) ||
+    if (
       props?.activityState === 0 ||
       styles.some(
         (style) =>
@@ -362,63 +334,13 @@ function indexFiberTree(
           style !== null &&
           'display' in style &&
           style.display === 'none',
-      );
-    if (inactive) tree.inactive.add(current);
-    indexFiberTree(current.child, tree, current, inactive);
-    current = current.sibling;
+      )
+    ) {
+      return true;
+    }
+    current = current.return;
   }
-}
-
-function createFiberTree(fiber: FiberNode | null): CommittedFiberTree {
-  const tree: CommittedFiberTree = {
-    roots: fiber ? [fiber] : [],
-    parents: new Map(),
-    inactive: new Set(),
-  };
-  indexFiberTree(fiber, tree);
-  return tree;
-}
-
-function readCommittedFiberTree(): CommittedFiberTree {
-  const tree = createFiberTree(null);
-  walkFiberRoots((root) => {
-    tree.roots.push(root);
-    indexFiberTree(root, tree);
-    return false;
-  });
-  return tree;
-}
-
-function walkCommittedFiberRoots(
-  visitor: (root: FiberNode, tree: CommittedFiberTree) => boolean,
-): boolean {
-  const tree = readCommittedFiberTree();
-  return tree.roots.some((root) => visitor(root, tree));
-}
-
-function getFiberOwnerPath(
-  fiber: FiberNode,
-  tree: CommittedFiberTree,
-): FiberNode[] {
-  const path: FiberNode[] = [];
-  let current: FiberNode | null | undefined = fiber;
-  while (current && tree.parents.has(current)) {
-    path.push(current);
-    current = tree.parents.get(current);
-  }
-  return path;
-}
-
-function sameFiberOwnerPath(left: FiberNode[], right: FiberNode[]): boolean {
-  return (
-    left.length === right.length &&
-    left.every((fiber, index) => fiber === right[index])
-  );
-}
-
-/** Missing fibers and committed hidden ancestry are both inactive. */
-function isFiberInactive(fiber: FiberNode, tree: CommittedFiberTree): boolean {
-  return !tree.parents.has(fiber) || tree.inactive.has(fiber);
+  return false;
 }
 
 /** Return true when a pressable fiber declares any supported disabled state. */
@@ -437,11 +359,10 @@ function isFiberDisabled(fiber: FiberNode): boolean {
 function findFiberByTestId(
   fiber: FiberNode | null,
   testId: string,
-  tree = createFiberTree(fiber),
 ): FiberNode | null {
   let result: FiberNode | null = null;
   walkFiber(fiber, (f) => {
-    if (f.memoizedProps?.testID === testId && !isFiberInactive(f, tree)) {
+    if (f.memoizedProps?.testID === testId && !isFiberInactive(f)) {
       result = f;
       return true;
     }
@@ -455,24 +376,21 @@ function findFiberByTestId(
  * props through composite components, so one rendered control can expose the
  * same testID and press handler on several ancestor/descendant fibers.
  */
-function collapseNestedFibers(
-  fibers: FiberNode[],
-  tree: CommittedFiberTree,
-): FiberNode[] {
+function collapseNestedFibers(fibers: FiberNode[]): FiberNode[] {
   const candidates = new Set(fibers);
   return fibers.filter((fiber) => {
-    let ancestor = tree.parents.get(fiber);
+    let ancestor = fiber.return;
     while (ancestor) {
       if (
         candidates.has(ancestor) &&
         ancestor.memoizedProps?.onPress === fiber.memoizedProps?.onPress &&
         isFiberDisabled(ancestor) === isFiberDisabled(fiber) &&
-        findMeasurableStateNode(ancestor, false, tree) ===
-          findMeasurableStateNode(fiber, false, tree)
+        findMeasurableStateNode(ancestor, false) ===
+          findMeasurableStateNode(fiber, false)
       ) {
         return false;
       }
-      ancestor = tree.parents.get(ancestor);
+      ancestor = ancestor.return;
     }
     return true;
   });
@@ -990,14 +908,11 @@ function tryScroll(
   offset: number,
   animated: boolean,
   walkSiblings = true,
-  tree = createFiberTree(start),
 ): boolean {
   let current: FiberNode | null = start;
   while (current) {
-    if (!isFiberInactive(current, tree)) {
-      if (tryScrollStateNode(current.stateNode, offset, animated)) return true;
-      if (tryScroll(current.child, offset, animated, true, tree)) return true;
-    }
+    if (tryScrollStateNode(current.stateNode, offset, animated)) return true;
+    if (tryScroll(current.child, offset, animated)) return true;
     current = walkSiblings ? current.sibling : null;
   }
   return false;
@@ -1006,7 +921,6 @@ function tryScroll(
 function targetMatches(
   fiber: FiberNode,
   options: { testId?: string; textContains?: string },
-  tree: CommittedFiberTree,
 ): boolean {
   if (options.testId && fiber.memoizedProps?.testID !== options.testId) {
     return false;
@@ -1014,34 +928,33 @@ function targetMatches(
   if (options.textContains) {
     const needle = options.textContains.toLowerCase();
     const texts = options.testId
-      ? collectFiberTexts(fiber, tree)
-      : collectOwnFiberTexts(fiber, tree);
+      ? collectFiberTexts(fiber)
+      : collectOwnFiberTexts(fiber);
     return texts.some((text) => text.toLowerCase().includes(needle));
   }
   return Boolean(options.testId);
 }
 
+function findUiTargetFiber(
+  rootFiber: FiberNode,
+  options: { testId?: string; textContains?: string },
+): FiberNode | null {
+  let result: FiberNode | null = null;
+  walkFiber(rootFiber, (fiber) => {
+    if (targetMatches(fiber, options) && !isFiberInactive(fiber)) {
+      result = fiber;
+      return true;
+    }
+    return false;
+  });
+  return result;
+}
+
 function findMeasurableStateNode(
   fiber: FiberNode | null,
   includeAncestors = true,
-  tree?: CommittedFiberTree,
 ): FiberNode['stateNode'] | null {
-  const isStandalone = !tree && !globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__;
-  if (!tree) {
-    tree = readCommittedFiberTree();
-  }
-  // An installed hook owns membership even when it has no mounted roots.
-  if (isStandalone) {
-    let root = fiber;
-    while (root?.return) root = root.return;
-    tree = createFiberTree(root);
-    if (fiber && !tree.parents.has(fiber))
-      indexFiberTree(fiber, tree, fiber.return);
-  }
-  const committedTree = tree;
-  if (fiber && isFiberInactive(fiber, committedTree)) return null;
   const resolveMeasurableStateNode = (node: FiberNode) => {
-    if (isFiberInactive(node, committedTree)) return null;
     const stateNode = node.stateNode;
     const publicInstance = stateNode?.canonical?.publicInstance ?? stateNode;
     return publicInstance &&
@@ -1061,11 +974,10 @@ function findMeasurableStateNode(
     return false;
   });
 
-  let ancestor =
-    includeAncestors && fiber ? committedTree.parents.get(fiber) : null;
+  let ancestor = includeAncestors ? (fiber?.return ?? null) : null;
   while (!result && ancestor) {
     result = resolveMeasurableStateNode(ancestor);
-    ancestor = committedTree.parents.get(ancestor);
+    ancestor = ancestor.return;
   }
   return result;
 }
@@ -1129,40 +1041,36 @@ async function queryUiTarget(options: {
 }> {
   const visibility: 'tree' | 'viewport' =
     options.visibility === 'viewport' ? 'viewport' : 'tree';
-  const select = () => {
-    const tree = readCommittedFiberTree();
-    const targets: FiberNode[] = [];
-    tree.roots.forEach((root) =>
-      walkFiber(root, (fiber) => {
-        if (
-          !isFiberInactive(fiber, tree) &&
-          targetMatches(fiber, options, tree)
-        )
-          targets.push(fiber);
-        return false;
-      }),
-    );
-    return { target: targets[0] ?? null, targets, tree };
-  };
-  const original = select();
-  const { target, tree } = original;
-  const evidence = (
-    current: FiberNode | null,
-    currentTree: CommittedFiberTree,
-  ) => ({
-    present: Boolean(current),
-    visible: Boolean(current) && visibility === 'tree',
+  let target: FiberNode | null = null;
+
+  walkFiberRoots((rootFiber) => {
+    target = findUiTargetFiber(rootFiber, options);
+    return Boolean(target);
+  });
+
+  const base = {
+    present: Boolean(target),
+    visible: Boolean(target) && visibility === 'tree',
     visibility,
     testId: options.testId,
     textContains: options.textContains,
     textMatched: options.textContains
-      ? Boolean(current && targetMatches(current, options, currentTree))
+      ? Boolean(
+          target &&
+            collectFiberTexts(target).some((text) =>
+              text
+                .toLowerCase()
+                .includes(String(options.textContains).toLowerCase()),
+            ),
+        )
       : undefined,
-  });
-  const base = evidence(target, tree);
-  if (!target || visibility === 'tree') return base;
+  };
 
-  const stateNode = findMeasurableStateNode(target, true, tree);
+  if (!target || visibility === 'tree') {
+    return base;
+  }
+
+  const stateNode = findMeasurableStateNode(target);
   if (!stateNode) {
     return {
       ...base,
@@ -1172,29 +1080,11 @@ async function queryUiTarget(options: {
     };
   }
 
-  const ownerPath = getFiberOwnerPath(target, tree);
   const rect = await measureStateNode(stateNode);
-  const current = select();
-  if (
-    current.target !== target ||
-    current.targets.length !== original.targets.length ||
-    !current.targets.every((fiber) => original.targets.includes(fiber)) ||
-    isFiberInactive(target, current.tree) ||
-    !sameFiberOwnerPath(ownerPath, getFiberOwnerPath(target, current.tree)) ||
-    findMeasurableStateNode(target, true, current.tree) !== stateNode ||
-    !targetMatches(target, options, current.tree)
-  ) {
-    return {
-      ...evidence(null, current.tree),
-      visible: false,
-      error: 'Target changed during measurement; no current viewport evidence',
-    };
-  }
-  const currentBase = evidence(target, current.tree);
   const viewport = Dimensions.get('window');
   if (!rect) {
     return {
-      ...currentBase,
+      ...base,
       visible: false,
       viewport: { width: viewport.width, height: viewport.height },
       error: 'Target exists in fiber tree but measurement returned no frame',
@@ -1210,7 +1100,7 @@ async function queryUiTarget(options: {
     rect.y + rect.height > 0;
 
   return {
-    ...currentBase,
+    ...base,
     visible,
     rect,
     viewport: { width: viewport.width, height: viewport.height },
@@ -1244,33 +1134,21 @@ function dedupeTexts(texts: string[]): string[] {
   return texts.filter((text, index) => texts.indexOf(text) === index);
 }
 
-function collectFiberTexts(
-  fiber: FiberNode | null,
-  tree: CommittedFiberTree,
-): string[] {
-  const texts = collectOwnFiberTexts(fiber, tree);
-  walkFiber(fiber?.child ?? null, (node) => {
-    texts.push(...collectOwnFiberTexts(node, tree));
+function collectFiberTexts(fiber: FiberNode | null): string[] {
+  const texts: string[] = [];
+  walkFiber(fiber, (node) => {
+    if (node.memoizedProps?.children !== undefined) {
+      appendTextContent(node.memoizedProps.children, texts);
+    }
     return false;
   });
   return dedupeTexts(texts);
 }
 
-function collectOwnFiberTexts(
-  fiber: FiberNode | null,
-  tree: CommittedFiberTree,
-): string[] {
+function collectOwnFiberTexts(fiber: FiberNode | null): string[] {
   const texts: string[] = [];
-  if (fiber && !fiber.child && !isFiberInactive(fiber, tree)) {
-    // Committed children are authoritative. Ancestor element props can still
-    // describe retained hidden content. HostText leaves store primitive props.
-    const props: unknown = fiber.memoizedProps;
-    appendTextContent(
-      typeof props === 'string' || typeof props === 'number'
-        ? props
-        : fiber.memoizedProps?.children,
-      texts,
-    );
+  if (fiber?.memoizedProps?.children !== undefined) {
+    appendTextContent(fiber.memoizedProps.children, texts);
   }
   return dedupeTexts(texts);
 }
@@ -1278,16 +1156,15 @@ function collectOwnFiberTexts(
 function findAncestorTexts(
   fiber: FiberNode | null,
   predicate: (texts: string[]) => boolean,
-  maxTexts: number,
-  tree: CommittedFiberTree,
+  maxTexts = 14,
 ): string[] | null {
   let current = fiber;
   while (current) {
-    const texts = collectFiberTexts(current, tree);
+    const texts = collectFiberTexts(current);
     if (texts.length > 0 && texts.length <= maxTexts && predicate(texts)) {
       return texts;
     }
-    current = tree.parents.get(current) ?? null;
+    current = current.return;
   }
   return null;
 }
@@ -1307,12 +1184,12 @@ function findRowTexts(
 
   if (anchorTestId) {
     let anchoredMatch: string[] | null = null;
-    walkCommittedFiberRoots((rootFiber, tree) => {
-      const anchor = findFiberByTestId(rootFiber, anchorTestId, tree);
+    walkFiberRoots((rootFiber) => {
+      const anchor = findFiberByTestId(rootFiber, anchorTestId);
       if (!anchor) {
         return false;
       }
-      anchoredMatch = findAncestorTexts(anchor, matchesRow, maxTexts, tree);
+      anchoredMatch = findAncestorTexts(anchor, matchesRow, maxTexts);
       return Boolean(anchoredMatch);
     });
     if (anchoredMatch) {
@@ -1321,9 +1198,9 @@ function findRowTexts(
   }
 
   let fallbackMatch: string[] | null = null;
-  walkCommittedFiberRoots((rootFiber, tree) =>
+  walkFiberRoots((rootFiber) =>
     walkFiber(rootFiber, (fiber) => {
-      const texts = collectFiberTexts(fiber, tree);
+      const texts = collectFiberTexts(fiber);
       if (texts.length === 0 || texts.length > maxTexts) {
         return false;
       }
@@ -1385,7 +1262,6 @@ const AgenticService = {
     Logger.log('[AgenticService] __AGENTIC__ bridge installed');
 
     globalThis.__AGENTIC__ = {
-      readPerpsUiObservations,
       platform: Platform.OS,
       replayHarnessPatch: 'legacy-wallet-fixture-r2',
       navigate: (name: string, params?: object) =>
@@ -1404,80 +1280,29 @@ const AgenticService = {
         toAccountSummary(
           Engine.context.AccountsController.getSelectedAccount(),
         ),
-      pressTestIdScopeVersion: 1,
-      pressTestId: async (
-        testId: string,
-        options?: { ancestorTestId: string },
-      ) => {
+      pressTestId: async (testId: string) => {
         try {
-          if (options && !options.ancestorTestId)
-            return {
-              ok: false,
-              testId,
-              error: 'Exact ancestor scope is required',
-            };
-          const select = () => {
-            const tree = readCommittedFiberTree();
-            const ancestors: FiberNode[] = [];
-            if (options)
-              tree.roots.forEach((root) =>
-                walkFiber(root, (fiber) => {
-                  if (
-                    fiber.memoizedProps?.testID === options.ancestorTestId &&
-                    !isFiberInactive(fiber, tree)
-                  )
-                    ancestors.push(fiber);
-                  return false;
-                }),
-              );
-            const distinctAncestors = collapseNestedFibers(ancestors, tree);
-            const ancestor =
-              distinctAncestors.length === 1 ? distinctAncestors[0] : null;
-            const candidates: FiberNode[] = [];
-            const collect = (fiber: FiberNode) => {
+          const candidates: FiberNode[] = [];
+          walkFiberRoots((rootFiber) => {
+            walkFiber(rootFiber, (fiber) => {
               if (
                 fiber.memoizedProps?.testID === testId &&
                 typeof fiber.memoizedProps?.onPress === 'function' &&
-                !isFiberInactive(fiber, tree)
-              )
+                !isFiberInactive(fiber)
+              ) {
                 candidates.push(fiber);
+              }
               return false;
-            };
-            if (options) walkFiber(ancestor?.child ?? null, collect);
-            else tree.roots.forEach((root) => walkFiber(root, collect));
-            return {
-              tree,
-              ancestor,
-              candidates: collapseNestedFibers(candidates, tree),
-            };
-          };
-          const original = select();
-          if (
-            options &&
-            (!original.ancestor || original.candidates.length !== 1)
-          )
-            return {
-              ok: false,
-              testId,
-              error: 'Scoped control or ancestor is missing or ambiguous',
-            };
-          const { tree, candidates: distinctCandidates } = original;
-          const selections = new Map(
-            distinctCandidates.map((fiber) => [
-              fiber,
-              {
-                handler: fiber.memoizedProps?.onPress,
-                stateNode: findMeasurableStateNode(fiber, false, tree),
-                ownerPath: getFiberOwnerPath(fiber, tree),
-              },
-            ]),
-          );
+            });
+            return false;
+          });
+          const distinctCandidates = collapseNestedFibers(candidates);
           const viewport = Dimensions.get('window');
           const measuredCandidates = await Promise.all(
             distinctCandidates.map(async (fiber) => ({
               fiber,
               rect: await measureStateNode(
-                selections.get(fiber)?.stateNode ?? null,
+                findMeasurableStateNode(fiber, false),
               ),
             })),
           );
@@ -1505,28 +1330,6 @@ const AgenticService = {
                   : `No component with testID="${testId}" found or no onPress prop`,
             };
           }
-          const current = select();
-          const selection = selections.get(candidate);
-          if (
-            !selection ||
-            isFiberInactive(candidate, current.tree) ||
-            !sameFiberOwnerPath(
-              selection.ownerPath,
-              getFiberOwnerPath(candidate, current.tree),
-            ) ||
-            current.candidates.length !== distinctCandidates.length ||
-            !current.candidates.every((fiber) => selections.has(fiber)) ||
-            candidate.memoizedProps?.onPress !== selection.handler ||
-            findMeasurableStateNode(candidate, false, current.tree) !==
-              selection.stateNode ||
-            current.ancestor !== original.ancestor
-          ) {
-            return {
-              ok: false,
-              testId,
-              error: `Component with testID="${testId}" changed or became inactive; no press attempted`,
-            };
-          }
           if (isFiberDisabled(candidate)) {
             return {
               ok: false,
@@ -1534,18 +1337,6 @@ const AgenticService = {
               error: `Component with testID="${testId}" is disabled`,
             };
           }
-          if (
-            options &&
-            (!current.ancestor ||
-              isFiberDisabled(current.ancestor) ||
-              !visibleCandidate)
-          )
-            return {
-              ok: false,
-              testId,
-              error:
-                'Scoped control changed or is not visible; no press attempted',
-            };
           candidate.memoizedProps?.onPress?.();
           return { ok: true, testId };
         } catch (e) {
@@ -1560,15 +1351,15 @@ const AgenticService = {
         try {
           let bestMatch: FiberNode | null = null;
           let bestTextCount = Number.POSITIVE_INFINITY;
-          walkCommittedFiberRoots((rootFiber, tree) =>
+          walkFiberRoots((rootFiber) =>
             walkFiber(rootFiber, (fiber) => {
               if (
                 typeof fiber.memoizedProps?.onPress !== 'function' ||
-                isFiberInactive(fiber, tree)
+                isFiberInactive(fiber)
               ) {
                 return false;
               }
-              const texts = collectFiberTexts(fiber, tree);
+              const texts = collectFiberTexts(fiber);
               if (texts.length === 0 || texts.length > maxTexts) {
                 return false;
               }
@@ -1618,21 +1409,21 @@ const AgenticService = {
           animated = false,
         } = options;
         try {
-          const found = walkCommittedFiberRoots((rootFiber, tree) => {
+          const found = walkFiberRoots((rootFiber) => {
             if (scrollTestId) {
-              const anchor = findFiberByTestId(rootFiber, scrollTestId, tree);
+              const anchor = findFiberByTestId(rootFiber, scrollTestId);
               if (!anchor) return false;
-              if (tryScroll(anchor, offset, animated, false, tree)) return true;
-              let ancestor = tree.parents.get(anchor);
+              if (tryScroll(anchor, offset, animated, false)) return true;
+              let ancestor = anchor.return;
               while (ancestor) {
                 if (tryScrollStateNode(ancestor.stateNode, offset, animated)) {
                   return true;
                 }
-                ancestor = tree.parents.get(ancestor);
+                ancestor = ancestor.return;
               }
               return false;
             }
-            return tryScroll(rootFiber, offset, animated, true, tree);
+            return tryScroll(rootFiber, offset, animated);
           });
           if (found)
             return { ok: true, testId: scrollTestId, offset, animated };
@@ -1657,8 +1448,8 @@ const AgenticService = {
             ok: false,
             error: `No component with testID="${testId}" found`,
           };
-          walkCommittedFiberRoots((rootFiber, tree) => {
-            const target = findFiberByTestId(rootFiber, testId, tree);
+          walkFiberRoots((rootFiber) => {
+            const target = findFiberByTestId(rootFiber, testId);
             if (!target) return false;
             // Walk the found fiber and its parents looking for onChangeText
             let current: FiberNode | null = target;
@@ -1671,7 +1462,7 @@ const AgenticService = {
                 result.error = undefined;
                 return true;
               }
-              current = tree.parents.get(current) ?? null;
+              current = current.return;
             }
             result.error = `Component with testID="${testId}" has no onChangeText prop`;
             return true;
@@ -1683,12 +1474,12 @@ const AgenticService = {
       },
       getTextByTestId: (testId: string, options: { all?: boolean } = {}) => {
         let texts: string[] | null = null;
-        walkCommittedFiberRoots((rootFiber, tree) => {
-          const target = findFiberByTestId(rootFiber, testId, tree);
+        walkFiberRoots((rootFiber) => {
+          const target = findFiberByTestId(rootFiber, testId);
           if (!target) {
             return false;
           }
-          texts = collectFiberTexts(target, tree);
+          texts = collectFiberTexts(target);
           return true;
         });
         const collected = texts as string[] | null;
@@ -1703,8 +1494,8 @@ const AgenticService = {
       ) => {
         const { requiredLabels = [], maxTexts = 14 } = options;
         let texts: string[] | null = null;
-        walkCommittedFiberRoots((rootFiber, tree) => {
-          const target = findFiberByTestId(rootFiber, testId, tree);
+        walkFiberRoots((rootFiber) => {
+          const target = findFiberByTestId(rootFiber, testId);
           if (!target) {
             return false;
           }
@@ -1713,7 +1504,6 @@ const AgenticService = {
             (candidateTexts) =>
               requiredLabels.every((label) => candidateTexts.includes(label)),
             maxTexts,
-            tree,
           );
           return Boolean(texts);
         });
@@ -1768,8 +1558,8 @@ const AgenticService = {
       },
       findFiberByTestId: (testId: string): boolean => {
         let found = false;
-        walkCommittedFiberRoots((rootFiber, tree) => {
-          if (findFiberByTestId(rootFiber, testId, tree)) {
+        walkFiberRoots((rootFiber) => {
+          if (findFiberByTestId(rootFiber, testId)) {
             found = true;
             return true;
           }
