@@ -19,6 +19,12 @@ import { walletHomeOnboardingProgressRatioForStep } from './walletHomeOnboarding
 import { markPushNotificationOsPromptRequested } from '../../../actions/onboarding';
 import { strings } from '../../../../locales/i18n';
 import { animateWalletHomeOnboardingProgressRatio } from './walletHomeOnboardingProgressAnimation';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../component-library/components-temp/GlassSurface';
+
+let mockIsGlass = false;
+jest.mock('../../hooks/useIsGlassSurfaceEnabled', () => ({
+  useIsGlassSurfaceEnabled: () => mockIsGlass,
+}));
 
 jest.mock('./walletHomeOnboardingProgressAnimation', () => {
   const actual = jest.requireActual('./walletHomeOnboardingProgressAnimation');
@@ -318,6 +324,32 @@ describe('WalletHomeOnboardingSteps', () => {
       expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
         expect.objectContaining({ stepIndex: 1 }),
       );
+    });
+  });
+
+  describe('Skip on glass', () => {
+    afterEach(() => {
+      mockIsGlass = false;
+    });
+
+    it('keeps the opaque Skip button by default', () => {
+      const { queryByTestId } = renderSteps({
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 1 },
+      });
+
+      expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeNull();
+    });
+
+    it('draws Skip on glass when the home surfaces are glass', () => {
+      mockIsGlass = true;
+      const { getByTestId } = renderSteps({
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 1 },
+      });
+
+      expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletHomeOnboardingStepsSelectors.SKIP_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 

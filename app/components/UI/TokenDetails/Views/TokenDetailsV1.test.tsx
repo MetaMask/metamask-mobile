@@ -263,6 +263,10 @@ jest.mock('../hooks/useTokenBalance', () => ({
   useTokenBalance: (...args: unknown[]) => mockUseTokenBalance(...args),
 }));
 
+jest.mock('../TraderPositionPnl/useOpenPositionHeader', () => ({
+  useOpenPositionHeader: () => ({ isLoading: false }),
+}));
+
 const mockStickyFooterProps: Record<string, unknown>[] = [];
 
 jest.mock('../components/TokenDetailsStickyFooter', () => {

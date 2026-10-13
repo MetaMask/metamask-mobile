@@ -3018,6 +3018,8 @@ PODS:
     - React-utils (= 0.86.3)
     - ReactNativeDependencies
   - ReactNativeDependencies (0.86.3)
+  - ReactNativePasskeys (0.4.2):
+    - ExpoModulesCore
   - ReactNativePayments (2.0.2):
     - React
   - RiveRuntime (6.21.1)
@@ -3781,6 +3783,7 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios/ReactCodegen`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - ReactNativeDependencies (from `../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)
+  - ReactNativePasskeys (from `../node_modules/react-native-passkeys/ios`)
   - "ReactNativePayments (from `../node_modules/@metamask/react-native-payments/lib/ios/`)"
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
@@ -4154,6 +4157,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativeDependencies:
     :podspec: "../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec"
+  ReactNativePasskeys:
+    :path: "../node_modules/react-native-passkeys/ios"
   ReactNativePayments:
     :path: "../node_modules/@metamask/react-native-payments/lib/ios/"
   RNCAsyncStorage:
@@ -4395,6 +4400,7 @@ SPEC CHECKSUMS:
   ReactCodegen: 828f54f35f2bc4ee3f39345144ff0ec22c9535c2
   ReactCommon: 02f6a489d5eb4ab79d7deba5cd4434e0ba351a07
   ReactNativeDependencies: 6738e602b46fd24aa453cd58267ec3bb8bf29d27
+  ReactNativePasskeys: 6d48d3d4a7dbe674e325ae632e820053a068f9fe
   ReactNativePayments: b501b8e13b52a7ee532634414b92c5c8790a6b58
   RiveRuntime: b762bd437b7de47d34d0f8e670112d0b9143f8d6
   RNCAsyncStorage: 2ad919e88b8bc2cd80e8697ce66d04d006743283

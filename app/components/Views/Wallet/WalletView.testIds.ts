@@ -101,6 +101,7 @@ export const WalletViewSelectorsIDs = {
   WALLET_HEADER_ACTIONS_CAPSULE: 'wallet-header-actions-capsule',
   WALLET_HEADER_ACCOUNT_PICKER_CAPSULE: 'wallet-header-account-picker-capsule',
   WALLET_FLOATING_HEADER: 'wallet-floating-header',
+  WALLET_PORTFOLIO_HEADER_CLUSTER: 'wallet-portfolio-header-cluster',
   WALLET_SEARCH_BUTTON: 'wallet-search-button',
   HOMEPAGE_SEARCH_BUTTON: 'explore-view-search-button',
   HOMEPAGE_SEARCH_CLIPBOARD_BUTTON: 'homepage-search-clipboard-button',

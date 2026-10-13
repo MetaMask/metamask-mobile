@@ -1,10 +1,13 @@
 export { computeUnrealizedPnl } from './unrealizedPnl';
 export {
+  getOpenPositionForAsset,
   getTraderPosition,
+  openPositionUrl,
   TraderPositionHttpError,
   TraderPositionMalformedError,
 } from './traderPositionService';
 export type {
+  OpenPositionPnl,
   TraderPosition,
   TraderPositionTrade,
   UnrealizedPnl,
@@ -16,3 +19,5 @@ export type { UseTraderPositionResult } from './useTraderPosition';
 export { useUnrealizedPnl } from './useUnrealizedPnl';
 export type { UnrealizedPnlView } from './useUnrealizedPnl';
 export { useUsdToFiatRate } from './useUsdToFiatRate';
+export { default as TraderPositionPnlDetails } from './TraderPositionPnlDetails';
+export type { TraderPositionPnlDetailsProps } from './TraderPositionPnlDetails';

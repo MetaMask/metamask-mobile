@@ -3,6 +3,7 @@ import { renderHookWithProvider } from '../../test/renderWithProvider';
 import { mobileMfaControllerAdapter } from './bindings';
 import { startMfaFlow } from './engine/activeFlow';
 import Logger from '../../Logger';
+import { mobilePasskeyAdapter } from './passkeyAdapter';
 import { useMfa } from './useMfa';
 
 jest.mock('./engine/activeFlow', () => ({
@@ -11,6 +12,10 @@ jest.mock('./engine/activeFlow', () => ({
 
 jest.mock('./bindings', () => ({
   mobileMfaControllerAdapter: {},
+}));
+
+jest.mock('./passkeyAdapter', () => ({
+  mobilePasskeyAdapter: {},
 }));
 
 jest.mock('../../Logger', () => ({ error: jest.fn() }));
@@ -59,6 +64,7 @@ describe('useMfa', () => {
       reason,
       platform: 'mobile',
       controller: mobileMfaControllerAdapter,
+      passkey: mobilePasskeyAdapter,
       reportError: expect.any(Function),
     });
   });
@@ -73,6 +79,7 @@ describe('useMfa', () => {
       reason,
       platform: 'mobile',
       controller: mobileMfaControllerAdapter,
+      passkey: mobilePasskeyAdapter,
       reportError: expect.any(Function),
     });
   });
