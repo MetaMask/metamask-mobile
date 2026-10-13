@@ -1,6 +1,6 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import React, { useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -69,6 +69,10 @@ const BalanceEndContainer = ({
 }: BalanceEndContainerProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation<AppNavigationProp>();
+  const { balanceLabel, isBalanceHidden } = useAccountGroupBalance(
+    accountGroup.id,
+    { includeAccountListBalance: true },
+  );
 
   const handleMenuPress = useCallback(() => {
     navigateWithDetails(
@@ -77,13 +81,9 @@ const BalanceEndContainer = ({
     );
   }, [navigate, accountGroup]);
 
-  const { balanceLabel, isBalanceHidden } = useAccountGroupBalance(
-    accountGroup.id,
-  );
-
   return (
     <>
-      <TouchableOpacity onPress={onSelectAccount}>
+      <Pressable onPress={onSelectAccount}>
         <View style={styles.balanceContainer}>
           <SensitiveText
             variant={TextVariant.BodyMd}
@@ -103,9 +103,9 @@ const BalanceEndContainer = ({
             />
           )}
         </View>
-      </TouchableOpacity>
+      </Pressable>
       {!hideMenu && (
-        <TouchableOpacity
+        <Pressable
           testID={AccountCellIds.MENU}
           style={styles.menuButton}
           onPress={handleMenuPress}
@@ -115,7 +115,7 @@ const BalanceEndContainer = ({
             size={IconSize.Md}
             color={IconColor.IconAlternative}
           />
-        </TouchableOpacity>
+        </Pressable>
       )}
     </>
   );
@@ -191,7 +191,7 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
-      <TouchableOpacity
+      <Pressable
         onPress={onSelectAccount}
         style={styles.mainTouchable}
         testID={AccountCellIds.SELECT}
@@ -223,7 +223,7 @@ const AccountCell = ({
             />
           ) : null}
         </View>
-      </TouchableOpacity>
+      </Pressable>
       <View style={styles.endContainer}>
         {endContainer || (
           <BalanceEndContainer
