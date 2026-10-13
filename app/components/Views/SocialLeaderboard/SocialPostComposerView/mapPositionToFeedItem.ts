@@ -30,7 +30,7 @@ const entryPriceLabel = (position: Position): string | undefined => {
   const amount = Math.abs(
     position.positionAmountWithLeverage ?? position.positionAmount,
   );
-  if (amount <= 0 || position.costBasis <= 0) {
+  if (amount <= 0 || position.costBasis == null || position.costBasis <= 0) {
     return undefined;
   }
   return formatTradeUnitPrice(position.costBasis / amount);

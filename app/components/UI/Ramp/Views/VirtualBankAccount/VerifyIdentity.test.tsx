@@ -2,6 +2,7 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../constants/navigation/Routes';
 import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
@@ -23,6 +24,51 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+const MOCK_SHEET_OVERLAY = 'mock-terms-sheet-overlay';
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { Pressable, View } = jest.requireActual('react-native');
+
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      {
+        children,
+        onClose,
+        testID,
+      }: {
+        children: React.ReactNode;
+        onClose?: () => void;
+        testID?: string;
+      },
+      ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (callback?: () => void) => {
+          onClose?.();
+          callback?.();
+        },
+        onOpenBottomSheet: jest.fn(),
+      }));
+      return ReactActual.createElement(
+        View,
+        { testID },
+        ReactActual.createElement(Pressable, {
+          testID: MOCK_SHEET_OVERLAY,
+          onPress: onClose,
+        }),
+        children,
+      );
+    },
+  );
+
+  return {
+    ...actual,
+    BottomSheet: MockBottomSheet,
+  };
+});
+
 const catalogDisclaimers = [
   {
     id: 'idOS:idos-privacy',
@@ -35,10 +81,18 @@ const catalogDisclaimers = [
     id: 'kycProvider:sumsub-terms',
     key: 'sumsub-terms',
     version: '2',
-    title: 'Sumsub T&C',
+    title: 'Sumsub Terms and Conditions',
     url: 'https://sumsub.example/terms',
   },
 ];
+
+const renderScreen = () =>
+  renderWithProvider(<VbaVerifyIdentity onSuccess={mockOnSuccess} />);
+
+const openTermsSheet = (
+  getByTestId: ReturnType<typeof renderScreen>['getByTestId'],
+) =>
+  fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
 describe('VbaVerifyIdentity', () => {
   beforeEach(() => {
@@ -53,134 +107,55 @@ describe('VbaVerifyIdentity', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
-    jest.resetAllMocks();
   });
 
-  it('renders the title, steps, and continue button', () => {
-    const { getByText, getByTestId } = renderWithProvider(
-      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
-    );
+  it('renders the introduction copy, verification steps, and footer', () => {
+    const { getByText, getByTestId } = renderScreen();
 
     expect(getByText('Verify your identity')).toBeOnTheScreen();
-    expect(getByText('Upload ID document')).toBeOnTheScreen();
+    expect(
+      getByText(
+        "This usually only takes a few minutes. You'll need a valid, government-issued photo ID on hand.",
+      ),
+    ).toBeOnTheScreen();
+    expect(getByText('Photograph your ID')).toBeOnTheScreen();
     expect(getByText('Take a selfie')).toBeOnTheScreen();
-    expect(getByText('Confirm personal details')).toBeOnTheScreen();
+    expect(getByText('Confirm your details')).toBeOnTheScreen();
+    expect(getByText('Answer a few questions')).toBeOnTheScreen();
+    expect(
+      getByText(
+        "Your information is encrypted and shared securely with our verification providers. You'll review the details before continuing.",
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.POWERED_BY),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
-    ).toBeOnTheScreen();
+    ).toBeEnabled();
   });
 
-  it('navigates back when the header back button is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
-    );
+  it('returns to Money home when the header back button is pressed', () => {
+    const { getByTestId } = renderScreen();
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.BACK_BUTTON));
 
-    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('shows the legal links regardless of the data and privacy toggle state', () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
-    );
+  it('keeps the terms sheet closed until continue is pressed', () => {
+    const { queryByTestId } = renderScreen();
 
     expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK),
-    ).toBeOnTheScreen();
-
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.DATA_AND_PRIVACY_TOGGLE),
-    );
-
-    // Legal links are their own always-visible section, unaffected by the
-    // "Data and privacy" toggle above them.
-    expect(
-      queryByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK),
-    ).toBeOnTheScreen();
-  });
-
-  it('keeps the data and privacy sub-topics collapsed by default', () => {
-    const { queryByText } = renderWithProvider(
-      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
-    );
-
-    expect(queryByText('What we collect')).not.toBeOnTheScreen();
-    expect(queryByText('How we store data')).not.toBeOnTheScreen();
-    expect(queryByText('How to delete')).not.toBeOnTheScreen();
-  });
-
-  it('shows sub-topic titles but keeps their body copy folded once data and privacy opens', () => {
-    const { getByText, queryByText, getByTestId } = renderWithProvider(
-      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
-    );
-
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.DATA_AND_PRIVACY_TOGGLE),
-    );
-
-    expect(getByText('What we collect')).toBeOnTheScreen();
-    expect(getByText('How we store data')).toBeOnTheScreen();
-    expect(getByText('How to delete')).toBeOnTheScreen();
-    // Each sub-topic's body copy stays folded until individually expanded.
-    expect(
-      queryByText(
-        'We collect personal information as part of identity verification, including legal full name, address, and more.',
-      ),
+      queryByTestId(VbaVerifyIdentitySelectorsIDs.TERMS_SHEET),
     ).not.toBeOnTheScreen();
   });
 
-  it('expands an individual sub-topic without affecting the others', () => {
-    const { getByTestId, getByText, queryByText } = renderWithProvider(
-      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
-    );
-
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.DATA_AND_PRIVACY_TOGGLE),
-    );
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.WHAT_WE_COLLECT_TOGGLE),
-    );
-
-    expect(
-      getByText(
-        'We collect personal information as part of identity verification, including legal full name, address, and more.',
-      ),
-    ).toBeOnTheScreen();
-    expect(getByText('How we store data')).toBeOnTheScreen();
-    expect(
-      queryByText(
-        'You can delete your data anytime by going to Settings > Manage data.',
-      ),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('opens MetaMask legal links and catalog disclaimer URLs when pressed', () => {
-    const openUrlSpy = jest
-      .spyOn(Linking, 'openURL')
-      .mockResolvedValue(undefined);
-    const { getByTestId, getByText } = renderWithProvider(
-      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
-    );
-
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK),
-    );
-    expect(openUrlSpy).toHaveBeenCalledWith(METAMASK_PRIVACY_POLICY_URL);
-
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK),
-    );
-    expect(openUrlSpy).toHaveBeenCalledWith(METAMASK_TERMS_URL);
-
-    fireEvent.press(getByText('idOS Privacy Policy'));
-    expect(openUrlSpy).toHaveBeenCalledWith('https://idos.example/privacy');
-
-    fireEvent.press(getByText('Sumsub T&C'));
-    expect(openUrlSpy).toHaveBeenCalledWith('https://sumsub.example/terms');
-  });
-
-  it('shows a skeleton loader instead of catalog links while the fetch is in flight, and disables the CTA', () => {
+  it('disables continue while the terms are loading', () => {
     mockUseKycSessionDisclaimers.mockReturnValue({
       disclaimers: null,
       isLoading: true,
@@ -188,19 +163,18 @@ describe('VbaVerifyIdentity', () => {
       retry: mockRetry,
     });
 
-    const { getByTestId } = renderWithProvider(
-      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
-    );
+    const { getByTestId, queryByTestId } = renderScreen();
+    openTermsSheet(getByTestId);
 
-    expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_LOADING),
-    ).toBeOnTheScreen();
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
     ).toBeDisabled();
+    expect(
+      queryByTestId(VbaVerifyIdentitySelectorsIDs.TERMS_SHEET),
+    ).not.toBeOnTheScreen();
   });
 
-  it('shows an error with a retry action and keeps the CTA disabled when the fetch fails', () => {
+  it('shows a retry and keeps continue disabled when the terms fail to load', () => {
     mockUseKycSessionDisclaimers.mockReturnValue({
       disclaimers: null,
       isLoading: false,
@@ -208,9 +182,7 @@ describe('VbaVerifyIdentity', () => {
       retry: mockRetry,
     });
 
-    const { getByTestId, getByText } = renderWithProvider(
-      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
-    );
+    const { getByTestId } = renderScreen();
 
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_ERROR),
@@ -219,18 +191,90 @@ describe('VbaVerifyIdentity', () => {
       getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
     ).toBeDisabled();
 
-    fireEvent.press(getByText('Try again'));
+    fireEvent.press(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_RETRY),
+    );
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('advances within the identity module when continue is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <VbaVerifyIdentity onSuccess={mockOnSuccess} />,
+  it('opens the data and privacy sheet with every provider document on continue', () => {
+    const { getByTestId, getByText } = renderScreen();
+
+    openTermsSheet(getByTestId);
+
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.TERMS_SHEET),
+    ).toBeOnTheScreen();
+    expect(getByText('Data and privacy')).toBeOnTheScreen();
+    expect(
+      getByText(
+        'To verify your identity, your information will be shared securely with the providers below. Review their policies and terms before continuing.',
+      ),
+    ).toBeOnTheScreen();
+    expect(getByText('MetaMask Privacy Policy')).toBeOnTheScreen();
+    expect(getByText('MetaMask Terms and Conditions')).toBeOnTheScreen();
+    expect(getByText('idOS Privacy Policy')).toBeOnTheScreen();
+    expect(getByText('Sumsub Terms and Conditions')).toBeOnTheScreen();
+    expect(mockOnSuccess).not.toHaveBeenCalled();
+  });
+
+  it('opens MetaMask and catalog document URLs from the sheet', () => {
+    const openUrlSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined);
+    const { getByTestId } = renderScreen();
+    openTermsSheet(getByTestId);
+
+    fireEvent.press(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK),
+    );
+    fireEvent.press(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK),
+    );
+    fireEvent.press(
+      getByTestId(
+        `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-idOS:idos-privacy`,
+      ),
+    );
+    fireEvent.press(
+      getByTestId(
+        `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-kycProvider:sumsub-terms`,
+      ),
     );
 
-    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
+    expect(openUrlSpy.mock.calls).toEqual([
+      [METAMASK_PRIVACY_POLICY_URL],
+      [METAMASK_TERMS_URL],
+      ['https://idos.example/privacy'],
+      ['https://sumsub.example/terms'],
+    ]);
+  });
+
+  it('closes the sheet and advances when the user agrees', () => {
+    const { getByTestId, queryByTestId } = renderScreen();
+    openTermsSheet(getByTestId);
+
+    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON));
 
     expect(mockOnSuccess).toHaveBeenCalledTimes(1);
+    expect(
+      queryByTestId(VbaVerifyIdentitySelectorsIDs.TERMS_SHEET),
+    ).not.toBeOnTheScreen();
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('stays on the introduction when the sheet is dismissed without agreeing', () => {
+    const { getByTestId, queryByTestId } = renderScreen();
+    openTermsSheet(getByTestId);
+
+    fireEvent.press(getByTestId(MOCK_SHEET_OVERLAY));
+
+    expect(
+      queryByTestId(VbaVerifyIdentitySelectorsIDs.TERMS_SHEET),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(mockOnSuccess).not.toHaveBeenCalled();
   });
 });
