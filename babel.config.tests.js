@@ -49,6 +49,8 @@ const newOverrides = [
       'app/core/Engine/controllers/gator-permissions-controller/gator-permissions-controller-init.test.ts',
       'app/core/Engine/controllers/remote-feature-flag-controller/utils.ts',
       'app/core/Engine/controllers/remote-feature-flag-controller/utils.test.ts',
+      'app/core/Engine/controllers/mfa-recovery-controller/mfa-config.ts',
+      'app/core/Engine/controllers/mfa-recovery-controller/mfa-config.test.ts',
       'app/components/UI/Ramp/utils/getSdkEnvironment.ts',
       'app/components/UI/Ramp/utils/getSdkEnvironment.test.ts',
       'app/components/UI/Ramp/utils/getRampCallbackBaseUrl.ts',

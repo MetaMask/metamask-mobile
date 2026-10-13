@@ -1,6 +1,7 @@
 import type { RecoveryAuthProvider } from '@metamask/mfa-recovery-controller';
 import { LazyCubistEscrowProvider } from './cubist-escrow-provider';
 import type { CubistConfig } from './config';
+import { MFA_CONFIG } from './mfa-config';
 
 const fetchMock = jest.fn();
 
@@ -69,6 +70,16 @@ describe('LazyCubistEscrowProvider', () => {
       data: () => ({ token: 'session-token' }),
     });
     cubeSignerClient.create.mockResolvedValue({ client: true });
+  });
+
+  it('exposes the selected MFA config wrap key before creating a session', () => {
+    const provider = new LazyCubistEscrowProvider({
+      authProvider,
+      getConfig: () => config,
+      isEnabled: () => true,
+    });
+
+    expect(provider.wrapPublicKey).toBe(MFA_CONFIG.dev.wrapPublicKey);
   });
 
   it('creates and caches the authenticated Cubist provider lazily', async () => {

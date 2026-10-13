@@ -1,6 +1,7 @@
 import type { Environment, Scope } from '@cubist-labs/cubesigner-sdk';
-import { DEFAULT_REGISTRATION_URL, DEFAULT_SESSION_SCOPES } from './constants';
+import { DEFAULT_REGISTRATION_URL } from './constants';
 import { MfaRecoveryControllerError } from './errors';
+import { getMfaConfig } from './mfa-config';
 
 export interface CubistConfig {
   environment: Environment;
@@ -12,34 +13,35 @@ export interface CubistConfig {
   mpcApiKey: string;
 }
 
-type EnvironmentVariableName =
-  | 'MM_CUBIST_ENV'
-  | 'MM_CUBIST_ORG_ID'
-  | 'MM_CUBIST_WRAP_PUBLIC_KEY'
-  | 'MM_CUBIST_RECEIPT_PUBLIC_KEY'
-  | 'MM_CUBIST_SESSION_SCOPES'
-  | 'MM_RECOVERY_REGISTRATION_URL'
-  | 'MFA_RECOVERY_DEV_API_KEY';
+type EnvironmentVariableName = 'MFA_RECOVERY_DEV_API_KEY';
 
 /** Returns the Cubist configuration used by the recovery service. */
 export function getCubistConfig(): CubistConfig {
-  const environment = readEnvironmentVariable('MM_CUBIST_ENV') ?? 'gamma';
+  const mfaConfig = getMfaConfig();
+  const environment = getRequiredMfaConfig(
+    mfaConfig.cubistEnvironment,
+    'MFA_CONFIG.cubistEnvironment',
+  );
   if (!isEnvironment(environment)) {
     throw new MfaRecoveryControllerError(
-      'MM_CUBIST_ENV must be beta, gamma, or prod',
+      'MFA_CONFIG.cubistEnvironment must be beta, gamma, or prod',
       'invalid_configuration',
     );
   }
 
   const config: CubistConfig = {
     environment,
-    orgId: getRequiredConfig('MM_CUBIST_ORG_ID'),
-    wrapPublicKey: getRequiredConfig('MM_CUBIST_WRAP_PUBLIC_KEY'),
-    receiptPublicKey: getRequiredConfig('MM_CUBIST_RECEIPT_PUBLIC_KEY'),
-    scopes: parseScopes(readEnvironmentVariable('MM_CUBIST_SESSION_SCOPES')),
-    registrationUrl:
-      readEnvironmentVariable('MM_RECOVERY_REGISTRATION_URL') ??
-      DEFAULT_REGISTRATION_URL,
+    orgId: getRequiredMfaConfig(mfaConfig.orgId, 'MFA_CONFIG.orgId'),
+    wrapPublicKey: getRequiredMfaConfig(
+      mfaConfig.wrapPublicKey,
+      'MFA_CONFIG.wrapPublicKey',
+    ),
+    receiptPublicKey: getRequiredMfaConfig(
+      mfaConfig.receiptPublicKey,
+      'MFA_CONFIG.receiptPublicKey',
+    ),
+    scopes: parseScopes(mfaConfig.sessionScopes),
+    registrationUrl: mfaConfig.registrationUrl || DEFAULT_REGISTRATION_URL,
     mpcApiKey: getRequiredConfig('MFA_RECOVERY_DEV_API_KEY'),
   };
 
@@ -78,23 +80,22 @@ export function readEnvironmentVariable(
   }
 
   switch (name) {
-    case 'MM_CUBIST_ENV':
-      return process.env.MM_CUBIST_ENV;
-    case 'MM_CUBIST_ORG_ID':
-      return process.env.MM_CUBIST_ORG_ID;
-    case 'MM_CUBIST_WRAP_PUBLIC_KEY':
-      return process.env.MM_CUBIST_WRAP_PUBLIC_KEY;
-    case 'MM_CUBIST_RECEIPT_PUBLIC_KEY':
-      return process.env.MM_CUBIST_RECEIPT_PUBLIC_KEY;
-    case 'MM_CUBIST_SESSION_SCOPES':
-      return process.env.MM_CUBIST_SESSION_SCOPES;
-    case 'MM_RECOVERY_REGISTRATION_URL':
-      return process.env.MM_RECOVERY_REGISTRATION_URL;
     case 'MFA_RECOVERY_DEV_API_KEY':
       return process.env.MFA_RECOVERY_DEV_API_KEY;
     default:
       return undefined;
   }
+}
+
+function getRequiredMfaConfig(value: string, name: string): string {
+  const trimmedValue = value.trim();
+  if (!trimmedValue) {
+    throw new MfaRecoveryControllerError(
+      `${name} is not configured`,
+      'missing_configuration',
+    );
+  }
+  return trimmedValue;
 }
 
 function getRequiredConfig(name: EnvironmentVariableName): string {
@@ -108,18 +109,14 @@ function getRequiredConfig(name: EnvironmentVariableName): string {
   return value;
 }
 
-function parseScopes(value: string | undefined): Scope[] {
-  if (value === undefined) {
-    return [...DEFAULT_SESSION_SCOPES];
-  }
-
+function parseScopes(value: string): Scope[] {
   const scopes = value
     .split(',')
     .map((scope) => scope.trim())
     .filter(Boolean);
   if (scopes.length === 0) {
     throw new MfaRecoveryControllerError(
-      'MM_CUBIST_SESSION_SCOPES must not be empty',
+      'MFA_CONFIG.sessionScopes must not be empty',
       'invalid_configuration',
     );
   }

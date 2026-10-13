@@ -1,9 +1,7 @@
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
-import { generateKeyPairSync } from 'node:crypto';
 import {
   createTestWallet,
   main,
-  normalizeEscrowPublicKey,
 } from './run-mfa-recovery-cubist-test';
 import { runMfaRecoveryCubistTest } from '../app/components/Views/Settings/DeveloperOptions/MfaRecoveryDeveloperOptionsSection/runMfaRecoveryCubistTest';
 
@@ -40,40 +38,6 @@ const mockCreateMfaRecoveryController = jest.mocked(
 // Public, disposable fixture only. Never fund this wallet.
 const TEST_PRIVATE_KEY = `${'0'.repeat(63)}1`;
 const TEST_ADDRESS = '0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf';
-
-const { publicKey: escrowPublicKey, privateKey: escrowPrivateKey } =
-  generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
-const ESCROW_JWK = JSON.stringify(escrowPublicKey.export({ format: 'jwk' }));
-const ESCROW_PEM = escrowPublicKey.export({ format: 'pem', type: 'spki' }).toString();
-
-describe('normalizeEscrowPublicKey', () => {
-  it.each([ESCROW_PEM, ESCROW_PEM.replace(/\n/gu, '\\n'), ESCROW_JWK])(
-    'normalizes a public PEM or JWK without changing its key',
-    (value) => {
-      const result = normalizeEscrowPublicKey(value, 'TEST_KEY');
-
-      expect(JSON.parse(result)).toStrictEqual(JSON.parse(ESCROW_JWK));
-    },
-  );
-
-  const { publicKey: wrongCurve } = generateKeyPairSync('ec', {
-    namedCurve: 'secp256k1',
-  });
-  it.each([
-    undefined,
-    '',
-    'not-a-key',
-    '{broken',
-    'null',
-    JSON.stringify(escrowPrivateKey.export({ format: 'jwk' })),
-    escrowPrivateKey.export({ format: 'pem', type: 'pkcs8' }).toString(),
-    JSON.stringify(wrongCurve.export({ format: 'jwk' })),
-  ])('rejects missing, malformed, private, or non-P-256 keys', (value) => {
-    const normalize = () => normalizeEscrowPublicKey(value, 'TEST_KEY');
-
-    expect(normalize).toThrow('TEST_KEY must be a P-256 public key');
-  });
-});
 
 describe('createTestWallet', () => {
   it.each([undefined, '', 'not-a-key', '0'.repeat(64)])(
@@ -234,8 +198,6 @@ describe('headless MFA recovery command', () => {
   const mockRun = jest.mocked(runMfaRecoveryCubistTest);
   const originalKey = process.env.MM_MFA_RECOVERY_TEST_PRIVATE_KEY;
   const originalExitCode = process.exitCode;
-  const originalWrapKey = process.env.MM_CUBIST_WRAP_PUBLIC_KEY;
-  const originalReceiptKey = process.env.MM_CUBIST_RECEIPT_PUBLIC_KEY;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -244,8 +206,6 @@ describe('headless MFA recovery command', () => {
     jest.spyOn(console, 'error').mockImplementation(() => undefined);
     process.env.MM_MFA_RECOVERY_TEST_PRIVATE_KEY = TEST_PRIVATE_KEY;
     process.exitCode = 0;
-    process.env.MM_CUBIST_WRAP_PUBLIC_KEY = ESCROW_PEM;
-    process.env.MM_CUBIST_RECEIPT_PUBLIC_KEY = ESCROW_JWK;
     mockRun.mockResolvedValue({
       epoch: 1,
       matches: true,
@@ -260,16 +220,6 @@ describe('headless MFA recovery command', () => {
       process.env.MM_MFA_RECOVERY_TEST_PRIVATE_KEY = originalKey;
     }
     process.exitCode = originalExitCode;
-    for (const [name, value] of [
-      ['MM_CUBIST_WRAP_PUBLIC_KEY', originalWrapKey],
-      ['MM_CUBIST_RECEIPT_PUBLIC_KEY', originalReceiptKey],
-    ]) {
-      if (value === undefined) {
-        delete process.env[name as string];
-      } else {
-        process.env[name as string] = value;
-      }
-    }
   });
 
   it('runs the shared flow and reports a matching secret', async () => {

@@ -11,12 +11,9 @@ import {
   type RecoveryEscrowProvider,
 } from '@metamask/mfa-recovery-controller';
 import { DEFAULT_REGISTRATION_URL } from './constants';
-import {
-  getCubistConfig,
-  readEnvironmentVariable,
-  type CubistConfig,
-} from './config';
+import { getCubistConfig, type CubistConfig } from './config';
 import { MfaRecoveryControllerError } from './errors';
+import { getMfaConfig } from './mfa-config';
 
 interface LazyCubistEscrowProviderOptions {
   authProvider: RecoveryAuthProvider & {
@@ -46,8 +43,7 @@ export class LazyCubistEscrowProvider implements RecoveryEscrowProvider {
 
   readonly authAudience = 'cubist';
 
-  #wrapPublicKey =
-    readEnvironmentVariable('MM_CUBIST_WRAP_PUBLIC_KEY')?.trim() ?? '';
+  #wrapPublicKey = getMfaConfig().wrapPublicKey.trim();
 
   #provider: CubistEscrowProvider | undefined;
 

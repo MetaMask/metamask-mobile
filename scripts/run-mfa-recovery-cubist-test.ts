@@ -1,8 +1,6 @@
 import {
   createHash,
-  createPublicKey,
   randomBytes,
-  type JsonWebKey,
 } from 'node:crypto';
 import { secp256k1 } from '@noble/curves/secp256k1';
 import { personalSign } from '@metamask/eth-sig-util';
@@ -264,42 +262,6 @@ export function configureEnvUrl(
   getEnvUrls(authEnv())[key] = url.toString().replace(/\/$/u, '');
 }
 
-/** Normalizes a public P-256 PEM or JWK to the controller's JWK JSON format. */
-export function normalizeEscrowPublicKey(
-  value: string | undefined,
-  name: string,
-): string {
-  try {
-    const input = value?.trim();
-    if (!input) {
-      throw new Error('Missing public key');
-    }
-    let key;
-    if (input.startsWith('{')) {
-      const jwk: unknown = JSON.parse(input);
-      if (jwk === null || typeof jwk !== 'object' || 'd' in jwk) {
-        throw new Error('Expected a public JWK');
-      }
-      key = createPublicKey({ key: jwk as JsonWebKey, format: 'jwk' });
-    } else {
-      if (!input.startsWith('-----BEGIN PUBLIC KEY-----')) {
-        throw new Error('Expected a public PEM');
-      }
-      key = createPublicKey(input.replace(/\\n/gu, '\n'));
-    }
-    const jwk = key.export({ format: 'jwk' });
-    if (jwk.kty !== 'EC' || jwk.crv !== 'P-256') {
-      throw new Error('Expected a P-256 key');
-    }
-    return JSON.stringify(jwk);
-  } catch {
-    throw new MfaRecoveryControllerError(
-      `${name} must be a P-256 public key in PEM or JWK JSON format`,
-      'invalid_escrow_public_key',
-    );
-  }
-}
-
 type RootMessenger = Messenger<
   MockAnyNamespace,
   MessengerActions<MfaRecoveryControllerMessenger>,
@@ -358,12 +320,6 @@ export async function main(): Promise<void> {
         logAuthApiToken: process.env.MM_MFA_RECOVERY_LOG_AUTH_TOKEN === 'true',
       },
     );
-    for (const name of [
-      'MM_CUBIST_WRAP_PUBLIC_KEY',
-      'MM_CUBIST_RECEIPT_PUBLIC_KEY',
-    ]) {
-      process.env[name] = normalizeEscrowPublicKey(process.env[name], name);
-    }
     const { controller, identifierRouter } = createMfaRecoveryController({
       messenger: getControllerMessenger(),
       getBearerToken: async () =>
