@@ -150,93 +150,12 @@ jest.mock('../../../../../util/trace', () => ({
   },
 }));
 
-// Mock BottomSheet components
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ReactModule.forwardRef(
-        ({ children }: { children: React.ReactNode }, _ref: unknown) =>
-          ReactModule.createElement(View, { testID: 'bottom-sheet' }, children),
-      ),
-    };
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return function MockBottomSheetHeader({
-      children,
-    }: {
-      children: React.ReactNode;
-    }) {
-      return ReactModule.createElement(
-        View,
-        { testID: 'bottom-sheet-header' },
-        children,
-      );
-    };
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetFooter',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      ButtonsAlignment: { Horizontal: 'Horizontal' },
-      default: function MockBottomSheetFooter({
-        buttonPropsArray,
-      }: {
-        buttonPropsArray: {
-          label: string;
-          onPress: () => void;
-          disabled?: boolean;
-        }[];
-      }) {
-        return ReactModule.createElement(
-          View,
-          { testID: 'bottom-sheet-footer' },
-          buttonPropsArray.map(
-            (
-              button: {
-                label: string;
-                onPress: () => void;
-                disabled?: boolean;
-              },
-              index: number,
-            ) =>
-              ReactModule.createElement(
-                TouchableOpacity,
-                {
-                  key: index,
-                  onPress: button.onPress,
-                  disabled: button.disabled,
-                  testID: `footer-button-${index}`,
-                },
-                ReactModule.createElement(Text, null, button.label),
-              ),
-          ),
-        );
-      },
-    };
-  },
-);
-
-jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
-  __esModule: true,
-  default: () => null,
-  IconName: { ArrowRight: 'ArrowRight' },
-  IconSize: { Md: 'Md' },
-  IconColor: { Default: 'Default' },
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: jest.fn(),
+    navigate: jest.fn(),
+  }),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -249,11 +168,6 @@ jest.mock('@metamask/design-system-react-native', () => {
       ReactModule.createElement(View, { accessibilityLabel: name }),
   };
 });
-
-jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
-  ButtonSize: { Lg: 'Lg' },
-  ButtonVariants: { Primary: 'Primary', Secondary: 'Secondary' },
-}));
 
 describe('PerpsFlipPositionConfirmSheet', () => {
   const mockLongPosition: Position = {
