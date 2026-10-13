@@ -74,7 +74,6 @@ const createStore = (dismissedBanners: string[] = []) =>
     preloadedState: {
       banners: {
         dismissedBanners,
-        lastDismissedBrazeBanner: null,
       },
     },
   });

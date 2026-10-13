@@ -91,6 +91,7 @@ export interface LimitOrderConfirmationModalProps
     onPress: () => void;
     label: string;
     isLoading?: boolean;
+    isDisabled?: boolean;
   };
   error?: string;
   /**

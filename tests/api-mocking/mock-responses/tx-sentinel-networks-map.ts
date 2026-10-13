@@ -1,6 +1,17 @@
+import type { Mockttp } from 'mockttp';
+
+/**
+ * Relay signer addresses returned as `cubistSigners` for every network.
+ * Required by `Delegation7702PublishHook` to build the RedeemerEnforcer caveat.
+ */
+export const TX_SENTINEL_SIGNERS_MOCK = [
+  '0xB01caEa8c6C47bbf4F4b4c5080Ca642043359C2E',
+];
+
 /**
  * TX Sentinel `/networks` response body (chainId string keys).
- * Shared by default mocks and Polygon relay E2E overrides (e.g. POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS).
+ * Each entry is also the `/network` response body for that network.
+ * Shared by default mocks and relay E2E overrides (see {@link mockTxSentinelNetworks}).
  */
 export const TX_SENTINEL_NETWORKS_MAP = {
   '1': {
@@ -15,6 +26,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'ethereum-mainnet',
     explorer: 'https://etherscan.io',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: true,
     relayTransactions: true,
     hidden: false,
@@ -32,6 +44,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'optimism-mainnet',
     explorer: 'https://optimistic.etherscan.io',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: false,
     relayTransactions: false,
     hidden: false,
@@ -49,6 +62,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'ethereum-sepolia',
     explorer: 'https://sepolia.etherscan.io',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: true,
     relayTransactions: false,
     hidden: false,
@@ -66,6 +80,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'sei-mainnet',
     explorer: 'https://seiscan.io',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: false,
     relayTransactions: false,
     hidden: false,
@@ -88,6 +103,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'localhost',
     explorer: 'http://localhost:8545/explorer',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: true,
     relayTransactions: true,
     hidden: false,
@@ -105,6 +121,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'polygon-mainnet',
     explorer: 'https://polygonscan.com/',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: false,
     relayTransactions: false,
     hidden: false,
@@ -122,6 +139,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'monad-mainnet',
     explorer: 'https://monadscan.com/',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: false,
     relayTransactions: false,
     hidden: false,
@@ -139,6 +157,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'arbitrum-mainnet',
     explorer: 'https://arbiscan.io/',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: true,
     relayTransactions: false,
     hidden: false,
@@ -156,6 +175,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'avalanche-mainnet',
     explorer: 'https://avascan.info/',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: false,
     relayTransactions: false,
     hidden: false,
@@ -173,6 +193,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'bsc-mainnet',
     explorer: 'https://bscscan.com/',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: true,
     relayTransactions: true,
     hidden: false,
@@ -190,6 +211,7 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'linea-mainnet',
     explorer: 'https://lineascan.build',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: false,
     relayTransactions: false,
     hidden: false,
@@ -207,9 +229,79 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     network: 'base-mainnet',
     explorer: 'https://basescan.org',
     confirmations: true,
+    cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
     smartTransactions: true,
     relayTransactions: true,
     hidden: false,
     sendBundle: false,
   },
 };
+
+/**
+ * Builds the TX Sentinel base URL for a network subdomain.
+ *
+ * @param subdomain - Network subdomain, e.g. `ethereum-mainnet`.
+ * @returns The TX Sentinel base URL.
+ */
+export function getTxSentinelUrl(subdomain: string): string {
+  return `https://tx-sentinel-${subdomain}.api.cx.metamask.io`;
+}
+
+/**
+ * Default mocks for the single network endpoint (`/network`) of every network
+ * in {@link TX_SENTINEL_NETWORKS_MAP}.
+ */
+export const TX_SENTINEL_NETWORK_MOCKS = Object.values(
+  TX_SENTINEL_NETWORKS_MAP,
+).map((network) => ({
+  urlEndpoint: `${getTxSentinelUrl(network.network)}/network`,
+  responseCode: 200,
+  response: network,
+}));
+
+/**
+ * Overrides TX Sentinel `/networks` and each `/network` endpoint, including
+ * Android `/proxy` requests, with the given networks.
+ *
+ * @param mockServer - The mock server.
+ * @param networks - TX Sentinel networks keyed by decimal chain ID.
+ * @param priority - Mock priority, above the defaults.
+ */
+export async function mockTxSentinelNetworks(
+  mockServer: Mockttp,
+  networks: Record<string, { network: string }>,
+  priority: number,
+): Promise<void> {
+  await mockTxSentinelEndpoint(
+    mockServer,
+    `${getTxSentinelUrl('ethereum-mainnet')}/networks`,
+    networks,
+    priority,
+  );
+
+  for (const network of Object.values(networks)) {
+    await mockTxSentinelEndpoint(
+      mockServer,
+      `${getTxSentinelUrl(network.network)}/network`,
+      network,
+      priority,
+    );
+  }
+}
+
+async function mockTxSentinelEndpoint(
+  mockServer: Mockttp,
+  url: string,
+  json: object,
+  priority: number,
+): Promise<void> {
+  const handler = () => ({ statusCode: 200, json });
+
+  await mockServer.forGet(url).asPriority(priority).thenCallback(handler);
+
+  await mockServer
+    .forGet('/proxy')
+    .asPriority(priority)
+    .matching((request) => new URL(request.url).searchParams.get('url') === url)
+    .thenCallback(handler);
+}

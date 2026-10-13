@@ -49,6 +49,34 @@ describe('useLiquidGlass', () => {
     expect(result.current.isGlassEnabled).toBe(false);
   });
 
+  it('falls back to blur on iOS without Liquid Glass', () => {
+    mockIsLiquidGlassAvailable.mockReturnValue(false);
+
+    const { result } = renderHook(() => useLiquidGlass());
+
+    expect(result.current.isBlurEnabled).toBe(true);
+    expect(result.current.blurTint).toBe('systemChromeMaterialDark');
+  });
+
+  it('does not blur where glass is drawn', () => {
+    const { result } = renderHook(() => useLiquidGlass());
+
+    expect(result.current.isBlurEnabled).toBe(false);
+  });
+
+  it('does not blur when the blur material is unavailable', () => {
+    mockIsLiquidGlassAvailable.mockReturnValue(false);
+    mockUseBlurMaterial.mockReturnValue({
+      isBlurAvailable: false,
+      colorScheme: 'dark',
+      tint: 'systemChromeMaterialDark',
+    });
+
+    const { result } = renderHook(() => useLiquidGlass());
+
+    expect(result.current.isBlurEnabled).toBe(false);
+  });
+
   it('follows the app theme rather than the system appearance', () => {
     mockUseBlurMaterial.mockReturnValue({
       isBlurAvailable: true,

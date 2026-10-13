@@ -2,6 +2,7 @@ import type { VbaOnboardingSnapshot } from './vbaOnboardingSnapshot';
 
 export const VbaOnboardingRoutes = {
   VENDOR_TERMS: 'VbaVendorTerms',
+  LOADING: 'VbaOnboardingLoading',
   EMAIL: 'VbaEmail',
   IDENTITY_VERIFICATION: 'VbaIdentityVerification',
   KYC_PENDING: 'VbaKycPending',
@@ -15,6 +16,7 @@ export const VbaOnboardingRoutes = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VbaOnboardingParamList = {
   VbaVendorTerms: undefined;
+  VbaOnboardingLoading: undefined;
   VbaEmail: undefined;
   VbaIdentityVerification: {
     snapshot: VbaOnboardingSnapshot;

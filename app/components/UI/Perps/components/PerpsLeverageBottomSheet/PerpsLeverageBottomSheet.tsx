@@ -29,6 +29,7 @@ import {
   PERPS_CONSTANTS,
   PERFORMANCE_CONFIG,
   type OrderType,
+  type MarginMode,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
@@ -37,7 +38,10 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { usePerpsLivePrices } from '../../hooks';
-import { PerpsLeverageBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import {
+  getPerpsLeveragePickerItemTestId,
+  PerpsLeverageBottomSheetSelectorsIDs,
+} from '../../Perps.testIds';
 import { getProspectiveExecutionPrice } from '../../utils/orderSizing';
 import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 import {
@@ -83,6 +87,7 @@ interface PerpsLeverageBottomSheetProps {
   limitPrice?: string;
   triggerPrice?: string;
   orderType?: OrderType;
+  marginMode?: MarginMode;
   enableConfirmHaptics?: boolean;
 }
 
@@ -116,6 +121,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   limitPrice,
   triggerPrice,
   orderType = 'market',
+  marginMode = 'isolated',
   enableConfirmHaptics = false,
 }) => {
   const tw = useTailwind();
@@ -181,7 +187,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const { liquidationPrice: apiLiquidationPrice, isCalculating } =
     usePerpsLiquidationPrice(
       {
-        entryPrice,
+        entryPrice: marginMode === 'cross' ? 0 : entryPrice,
         leverage: tempLeverage, // Final leverage value for API calls
         direction,
         asset,
@@ -282,16 +288,18 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     );
   }, [currentPrice, dynamicLiquidationPrice, tempLeverage]);
 
-  const isRecalculating = leverageChanged;
+  const isRecalculating = marginMode !== 'cross' && leverageChanged;
 
   const hasValidApiPrice =
     !Number.isNaN(dynamicLiquidationPrice) && dynamicLiquidationPrice > 0;
 
-  const displayLiquidationPrice = isRecalculating
-    ? null
-    : hasValidApiPrice
-      ? dynamicLiquidationPrice
-      : lastValidLiquidationPrice.current;
+  // The cached estimate and leverage-based distance are isolated-only.
+  const displayLiquidationPrice =
+    marginMode === 'cross' || isRecalculating
+      ? null
+      : hasValidApiPrice
+        ? dynamicLiquidationPrice
+        : lastValidLiquidationPrice.current;
 
   const displayLiquidationPercentage = isRecalculating
     ? null
@@ -525,7 +533,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                           })
                         : PERPS_CONSTANTS.FallbackDataDisplay}
                     </Text>
-                    {(tempLeverage === 1 || displayLiquidationPrice !== null) &&
+                    {marginMode !== 'cross' &&
+                      (tempLeverage === 1 ||
+                        displayLiquidationPrice !== null) &&
                       displayLiquidationPercentage && (
                         <>
                           <Icon
@@ -622,7 +632,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                     accessibilityLabel={`${value}x`}
                     accessibilityState={{ selected: isSelected }}
                     onPress={() => handleLeveragePress(value)}
-                    testID={`${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-${value}`}
+                    testID={getPerpsLeveragePickerItemTestId(value)}
                     style={({ pressed }) =>
                       tw.style(
                         'h-10 items-center justify-center rounded-full',
