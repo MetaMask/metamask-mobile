@@ -232,6 +232,8 @@ jest.mock('../../../../../core/Engine', () => ({
         mockGetSpendingPrerequisites(...args),
       patchContactDetails: (...args: unknown[]) =>
         mockPatchContactDetails(...args),
+      recordProviderOnboardingStarted: jest.fn(),
+      recordCardActivated: jest.fn(),
     },
   },
 }));
