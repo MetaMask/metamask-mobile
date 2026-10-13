@@ -706,7 +706,7 @@ describe('BatchSellTokenSelect', () => {
     expect(getByText('+1.23%').props.color).toBe(DSTextColor.SuccessDefault);
     expect(getByText('-4.56%').props.color).toBe(DSTextColor.ErrorDefault);
     expect(getByTestId('token-balance-GAIN').props.variant).toBe(
-      ComponentLibraryTextVariant.BodySMMedium,
+      ComponentLibraryTextVariant.BodyMDMedium,
     );
     expect(getByTestId('token-balance-GAIN').props.color).toBe(
       ComponentLibraryTextColor.Default,
