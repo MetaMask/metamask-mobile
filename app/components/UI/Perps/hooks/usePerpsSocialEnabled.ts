@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { selectPerpsSocialEnabledFlag } from '../selectors/featureFlags';
+import { selectIsPerpsSocialEnabled } from '../selectors/featureFlags';
 
 export const usePerpsSocialEnabled = (): boolean =>
-  useSelector(selectPerpsSocialEnabledFlag);
+  useSelector(selectIsPerpsSocialEnabled);

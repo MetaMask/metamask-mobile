@@ -194,7 +194,7 @@ Follow existing test patterns covering:
 
 `perpsPositionModifyPreviewEnabled` is an independent remote-only flag. Missing, malformed, disabled, or below-version values resolve to `false`. When off, the Pro order form keeps the single-value margin and liquidation summary even if the user already has an open isolated position.
 
-`perpsSocialEnabled` is a remote-only kill switch for social UI inside Perps (feeds, Top traders, sharing to the MetaMask feed). Missing, malformed, disabled, or below-version values resolve to `false`. Social UI in Perps must gate on `usePerpsSocialEnabled` (`app/components/UI/Perps/hooks/usePerpsSocialEnabled.ts`), not on the flag or the selector directly, so the gate stays in one place.
+`perpsSocialEnabled` is a remote-only kill switch for social UI inside Perps (feeds, Top traders, sharing to the MetaMask feed). Missing, malformed, disabled, or below-version values resolve to `false`. Social UI in Perps must gate on `usePerpsSocialEnabled` (`app/components/UI/Perps/hooks/usePerpsSocialEnabled.ts`), not on the flag directly, so the gate stays in one place. The hook returns `true` only when `perpsSocialEnabled` is on **and** the user is in the Social V1 treatment (`socialAiTSA1122AbtestSocialBundleV1`). Non-React code uses `selectIsPerpsSocialEnabled`, which applies the same rule.
 
 ### A/B Test Flags
 
