@@ -383,19 +383,13 @@ export interface MaxNativeSendChain {
   networkName: string;
 }
 
-/** Ink, plus Ethereum mainnet as the send-vs-confirmation parity chain. */
+/** Ink is the custom network this max-native send coverage targets. */
 export const MAX_NATIVE_SEND_CHAINS: readonly MaxNativeSendChain[] = [
   {
     name: 'Ink',
     chainId: '0xdef1',
     networkClientId: 'ink',
     networkName: 'Ink',
-  },
-  {
-    name: 'Ethereum',
-    chainId: '0x1',
-    networkClientId: 'mainnet',
-    networkName: 'Ethereum Main Network',
   },
 ];
 
@@ -454,7 +448,7 @@ export function buildMaxNativeSendTransaction(
 }
 
 /**
- * Redux overrides for a max native send on Ink or mainnet.
+ * Redux overrides for a max native send on Ink.
  * Network config is merged beside the wallet preset's mainnet entry.
  */
 export function buildMaxNativeSendFixture(
