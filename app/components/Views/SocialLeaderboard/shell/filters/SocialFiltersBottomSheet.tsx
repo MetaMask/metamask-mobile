@@ -104,8 +104,13 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   const { colors } = useTheme();
 
   const showTimeframe = tab === 'leaderboard';
-  const showRanges = tab !== 'leaderboard';
-  const showVerification = tab === 'following' || tab === 'liveTrades';
+  const showMarketCap = tab !== 'leaderboard';
+  // TODO: show 24h volume once the feed / live payload (or API) carries token
+  // 24h volume so the slider can filter rather than sit as chrome.
+  const showVolume24h = false;
+  // TODO: show Verification once posts/traders expose a real verified field.
+  // The blue check on cards is mocked today.
+  const showVerification = false;
   const typeOptions = TYPE_OPTIONS;
   const typeTitleKey =
     tab === 'leaderboard'
@@ -266,27 +271,28 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
                     />
                   ) : null}
 
-                  {showRanges ? (
-                    <>
-                      <FilterRangeSection
-                        titleKey="social_leaderboard.shell.filters.section.market_cap"
-                        minimumValue={MARKET_CAP_RANGE.min}
-                        maximumValue={MARKET_CAP_RANGE.max}
-                        value={draft.marketCap}
-                        onValueChange={handleMarketCapChange}
-                        formatLabel={formatMarketCapLabel}
-                        testID={getFilterRangeTestId('market_cap')}
-                      />
-                      <FilterRangeSection
-                        titleKey="social_leaderboard.shell.filters.section.volume_24h"
-                        minimumValue={VOLUME_24H_RANGE.min}
-                        maximumValue={VOLUME_24H_RANGE.max}
-                        value={draft.volume24h}
-                        onValueChange={handleVolume24hChange}
-                        formatLabel={formatVolume24hLabel}
-                        testID={getFilterRangeTestId('volume_24h')}
-                      />
-                    </>
+                  {showMarketCap ? (
+                    <FilterRangeSection
+                      titleKey="social_leaderboard.shell.filters.section.market_cap"
+                      minimumValue={MARKET_CAP_RANGE.min}
+                      maximumValue={MARKET_CAP_RANGE.max}
+                      value={draft.marketCap}
+                      onValueChange={handleMarketCapChange}
+                      formatLabel={formatMarketCapLabel}
+                      testID={getFilterRangeTestId('market_cap')}
+                    />
+                  ) : null}
+
+                  {showVolume24h ? (
+                    <FilterRangeSection
+                      titleKey="social_leaderboard.shell.filters.section.volume_24h"
+                      minimumValue={VOLUME_24H_RANGE.min}
+                      maximumValue={VOLUME_24H_RANGE.max}
+                      value={draft.volume24h}
+                      onValueChange={handleVolume24hChange}
+                      formatLabel={formatVolume24hLabel}
+                      testID={getFilterRangeTestId('volume_24h')}
+                    />
                   ) : null}
                 </Box>
               </ScrollView>

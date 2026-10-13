@@ -18,7 +18,7 @@ import {
 } from '../../constants/limitOrders';
 import OpenOrderRow from '../OpenOrderRow';
 import { getLimitOrderTokens } from '../../utils/limitOrders/getLimitOrderTokens';
-import { formatLimitOrderAmount } from '../../utils/limitOrders/formatLimitOrderAmount';
+import { formatLimitOrderRowAmount } from '../../utils/limitOrders/formatLimitOrderRowAmount';
 import { formatLimitOrderDate } from '../../utils/limitOrders/formatLimitOrderDate';
 import {
   formatLimitOrderExpiredDuration,
@@ -30,7 +30,7 @@ function getLimitOrderRowSlots(
   sourceSymbol: string,
   destSymbol: string,
 ) {
-  const stakedAmount = `${formatLimitOrderAmount(
+  const stakedAmount = `${formatLimitOrderRowAmount(
     order.src.amount,
     // src.asset.decimals is looked up by the caller via getLimitOrderTokens,
     // but the raw asset is also available directly on the order.
@@ -48,11 +48,11 @@ function getLimitOrderRowSlots(
         }),
         // The orders list only carries the guaranteed minimum, not the amount
         // the fill actually delivered.
-        primaryValue: `+${formatLimitOrderAmount(
+        primaryValue: `+${formatLimitOrderRowAmount(
           order.dest.amount,
           order.dest.asset.decimals,
         )} ${destSymbol}`,
-        secondaryValue: `-${formatLimitOrderAmount(
+        secondaryValue: `-${formatLimitOrderRowAmount(
           order.src.amount,
           order.src.asset.decimals,
         )} ${sourceSymbol}`,

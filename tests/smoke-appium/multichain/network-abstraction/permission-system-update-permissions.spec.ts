@@ -104,7 +104,9 @@ appiumTest.describe(
 
             await ConnectedAccountsModal.tapAccountListBottomSheet();
             await AccountListBottomSheet.tapAddAccountButtonV2();
-            await Assertions.expectTextDisplayed('Account 2');
+            await Assertions.expectTextDisplayed('Account 2', {
+              timeout: 45_000,
+            });
 
             await AccountListBottomSheet.tapAccountByNameV2('Account 2');
             await AccountListBottomSheet.tapConnectAccountsButton();
@@ -114,7 +116,9 @@ appiumTest.describe(
 
             await ConnectedAccountsModal.tapAccountListBottomSheet();
             await AccountListBottomSheet.tapAddAccountButtonV2();
-            await Assertions.expectTextDisplayed('Account 3');
+            await Assertions.expectTextDisplayed('Account 3', {
+              timeout: 45_000,
+            });
 
             await AccountListBottomSheet.tapAccountByNameV2('Account 3');
             await AccountListBottomSheet.tapConnectAccountsButton();

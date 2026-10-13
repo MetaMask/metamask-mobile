@@ -121,10 +121,10 @@ function buildSubHeader(
 }
 
 function realizedPnlPercent(
-  realizedPnl: number,
+  realizedPnl: number | null | undefined,
   boughtUsd: number | null | undefined,
 ): number | null {
-  if (!boughtUsd) {
+  if (!isPresentNumber(realizedPnl) || !boughtUsd) {
     return null;
   }
   return (realizedPnl / boughtUsd) * 100;
@@ -290,6 +290,21 @@ function mapSpotFeedItem(
     chain,
     chainIdHex: caipChainIdToHex(chain),
   };
+}
+
+/**
+ * Market cap (USD) on the triggering spot fill, or `null` for perps and for
+ * fills that omitted it. Used by Social V1 Following / Live market-cap filters.
+ */
+export function readTriggeringTradeMarketCapUsd(
+  coreItem: CoreFeedItem,
+): number | null {
+  if (isPerpPosition(coreItem)) {
+    return null;
+  }
+  const timestampMs = tradeTimestampToMs(coreItem.timestamp);
+  const trade = findTriggeringTrade(coreItem.trades ?? [], timestampMs);
+  return trade?.marketCap ?? null;
 }
 
 /**
