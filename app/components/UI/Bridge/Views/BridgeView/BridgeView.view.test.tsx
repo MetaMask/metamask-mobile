@@ -199,18 +199,37 @@ describeForPlatforms('BridgeView', () => {
           {
             assetId:
               'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-            symbol: 'DUM8',
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            symbol: 'USDC',
+            decimals: 6,
+          },
+          {
+            assetId:
+              'eip155:1/erc20:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+            address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+            symbol: 'WBTC',
+            decimals: 8,
+          },
+        ],
+        'eip155:137': [
+          {
+            assetId: 'eip155:137/slip44:966',
+            address: '0x0000000000000000000000000000000000000000',
+            symbol: 'POL',
+            decimals: 18,
           },
         ],
       });
-      const { getByTestId, queryByTestId, store } = renderBridgeView({
-        deterministicFiat: true,
-        overrides: {
-          bridge: {
-            ...DEFAULT_BRIDGE,
+      const { getByTestId, getByText, queryByTestId, store } = renderBridgeView(
+        {
+          deterministicFiat: true,
+          overrides: {
+            bridge: {
+              ...DEFAULT_BRIDGE,
+            },
           },
         },
-      });
+      );
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
       act(() => {
@@ -224,6 +243,13 @@ describeForPlatforms('BridgeView', () => {
           ),
         ).toBeOnTheScreen();
       });
+      expect(
+        getByText(
+          strings('bridge.limit.unsupported_fee_token_pair', {
+            supportedTokens: 'USDC, WBTC',
+          }),
+        ),
+      ).toBeOnTheScreen();
       expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeDisabled();
 
       act(() => {

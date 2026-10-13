@@ -1,35 +1,35 @@
 import { parseSentinelFeeTokensResponse } from './validators';
 
-const USDC_ASSET_ID =
-  'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+const USDC_ADDRESS = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+const USDC_ASSET_ID = `eip155:1/erc20:${USDC_ADDRESS}`;
 const ETH_ASSET_ID = 'eip155:1/slip44:60';
+const USDC_TOKEN = {
+  assetId: USDC_ASSET_ID,
+  address: USDC_ADDRESS,
+  symbol: 'USDC',
+  name: 'USD Coin',
+  decimals: 6,
+  iconUrl: 'https://token.api/icons/usdc.png',
+  aliasAddress: '0x0000000000000000000000000000000000000001',
+};
 
 describe('parseSentinelFeeTokensResponse', () => {
-  it('normalizes CAIP-19 strings into Sentinel fee-token objects', () => {
+  it('returns Sentinel fee-token metadata grouped by CAIP-2 chain', () => {
     const response = {
-      'eip155:1': [USDC_ASSET_ID, ETH_ASSET_ID],
-    };
-
-    const result = parseSentinelFeeTokensResponse(response);
-
-    expect(result).toStrictEqual({
       'eip155:1': [
-        { assetId: USDC_ASSET_ID, symbol: 'DUM8' },
-        { assetId: ETH_ASSET_ID, symbol: 'DUM0' },
+        USDC_TOKEN,
+        {
+          assetId: ETH_ASSET_ID,
+          address: '0x0000000000000000000000000000000000000000',
+          symbol: 'ETH',
+          decimals: 18,
+        },
       ],
-    });
-  });
-
-  it('preserves the final asset ID character casing in the placeholder symbol', () => {
-    const mixedCaseAssetId =
-      'eip155:1/erc20:0xA0b86991c6218b36c1d19d4A2e9Eb0cE3606eB4A';
-    const response = {
-      'eip155:1': [mixedCaseAssetId],
     };
 
     const result = parseSentinelFeeTokensResponse(response);
 
-    expect(result['eip155:1']?.[0].symbol).toBe('DUMA');
+    expect(result).toStrictEqual(response);
   });
 
   it('accepts an empty response', () => {
@@ -39,46 +39,96 @@ describe('parseSentinelFeeTokensResponse', () => {
   });
 
   it('rejects a non-object response', () => {
-    expect(() => parseSentinelFeeTokensResponse([])).toThrow('expected object');
+    expect(() => parseSentinelFeeTokensResponse([])).toThrow(
+      'Expected an object',
+    );
   });
 
   it('rejects malformed CAIP-2 keys', () => {
     const response = {
-      '0x1': [USDC_ASSET_ID],
+      '0x1': [USDC_TOKEN],
     };
 
     expect(() => parseSentinelFeeTokensResponse(response)).toThrow(
-      'invalid chain ID 0x1',
+      'CaipChainId',
     );
   });
 
   it('rejects non-array chain values', () => {
     const response = {
-      'eip155:1': USDC_ASSET_ID,
+      'eip155:1': USDC_TOKEN,
     };
 
     expect(() => parseSentinelFeeTokensResponse(response)).toThrow(
-      'expected token array for eip155:1',
+      'Expected an array',
     );
   });
 
-  it('rejects malformed CAIP-19 values', () => {
+  it('rejects non-object tokens', () => {
     const response = {
-      'eip155:1': ['0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'],
+      'eip155:1': [USDC_ASSET_ID],
     };
 
     expect(() => parseSentinelFeeTokensResponse(response)).toThrow(
-      'invalid asset ID for eip155:1',
+      'Expected an object',
+    );
+  });
+
+  it('rejects malformed CAIP-19 asset IDs', () => {
+    const response = {
+      'eip155:1': [{ ...USDC_TOKEN, assetId: USDC_ADDRESS }],
+    };
+
+    expect(() => parseSentinelFeeTokensResponse(response)).toThrow(
+      'CaipAssetType',
     );
   });
 
   it('rejects an asset grouped under another chain', () => {
     const response = {
-      'eip155:137': [USDC_ASSET_ID],
+      'eip155:137': [USDC_TOKEN],
     };
 
     expect(() => parseSentinelFeeTokensResponse(response)).toThrow(
       `asset ${USDC_ASSET_ID} does not belong to eip155:137`,
+    );
+  });
+
+  it('rejects an empty address', () => {
+    const response = {
+      'eip155:1': [{ ...USDC_TOKEN, address: '' }],
+    };
+
+    expect(() => parseSentinelFeeTokensResponse(response)).toThrow(
+      'Expected a non-empty string',
+    );
+  });
+
+  it('rejects a missing symbol', () => {
+    const response = {
+      'eip155:1': [{ ...USDC_TOKEN, symbol: undefined }],
+    };
+
+    expect(() => parseSentinelFeeTokensResponse(response)).toThrow(
+      'Expected a string',
+    );
+  });
+
+  it.each([-1, 1.5, '6'])('rejects invalid decimals %s', (decimals) => {
+    const response = {
+      'eip155:1': [{ ...USDC_TOKEN, decimals }],
+    };
+
+    expect(() => parseSentinelFeeTokensResponse(response)).toThrow(/integer/u);
+  });
+
+  it('rejects invalid optional metadata', () => {
+    const response = {
+      'eip155:1': [{ ...USDC_TOKEN, aliasAddress: 1 }],
+    };
+
+    expect(() => parseSentinelFeeTokensResponse(response)).toThrow(
+      'Expected a string',
     );
   });
 });
