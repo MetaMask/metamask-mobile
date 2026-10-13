@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Image, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -101,8 +101,9 @@ const findUsableAutoramp = (
 
 /**
  * Completed virtual bank account screen. Reached once the Money account is
- * provisioned. Presented as a root sheet (`Routes.RAMP.VBA_DETAILS`).
- * PIX values come from `NeoBankService.getPixDepositInstructions`.
+ * provisioned. Pushed on the root stack (`Routes.RAMP.VBA_DETAILS`) with the
+ * same horizontal transition as onboarding. The header stays, without a back
+ * button. PIX values come from `NeoBankService.getPixDepositInstructions`.
  */
 const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -121,6 +122,14 @@ const VbaDetails = () => {
   const [loadError, setLoadError] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const refreshDeposit = useCallback(async () => {
     if (!walletAddress) {
@@ -209,7 +218,10 @@ const VbaDetails = () => {
         });
       } finally {
         inFlight = false;
-        if (!cancelled) {
+        // A network-tier change cancels this effect while the request is
+        // still in flight. The response can still store Pix instructions, so
+        // finish the load unless the screen itself has unmounted.
+        if (isMountedRef.current) {
           setHasLoaded(true);
         }
       }

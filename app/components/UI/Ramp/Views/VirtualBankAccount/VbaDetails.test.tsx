@@ -237,6 +237,34 @@ describe('VbaDetails', () => {
     expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).not.toBeOnTheScreen();
   });
 
+  it('shows Pix rows when the first fetch finishes after the network tier changes', async () => {
+    let resolveFirst: (value: typeof pixInstructions) => void = () => undefined;
+    mockGetPix
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          }),
+      )
+      .mockImplementation(() => new Promise(() => undefined));
+    mockNetworkTier = null;
+
+    const { getByTestId, queryByTestId, rerender } = renderWithProvider(
+      <VbaDetails />,
+    );
+
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+
+    mockNetworkTier = 'WIFI';
+    rerender(<VbaDetails />);
+    resolveFirst(pixInstructions);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+    expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).not.toBeOnTheScreen();
+  });
+
   it('shows the waiting copy once the backend returns no Pix code', async () => {
     const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
 
