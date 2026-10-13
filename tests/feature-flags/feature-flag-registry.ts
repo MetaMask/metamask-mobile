@@ -62,7 +62,7 @@ export interface FeatureFlagRegistryEntry {
  * Remote flag values are stored in the exact format returned by the production
  * client-config API, so they can be served directly by the E2E mock server.
  *
- * Production defaults last synced: 2026-10-06
+ * Production defaults last synced: 2026-10-13
  * Source: https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=prod
  */
 export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
@@ -346,7 +346,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           {
             scope: {
               type: 'threshold',
-              value: 1,
+              value: 0,
             },
             thresholdName: 'feature is OFF',
             thresholdVersion: 2,
@@ -357,7 +357,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           {
             scope: {
               type: 'threshold',
-              value: 0,
+              value: 1,
             },
             thresholdName: 'feature is ON',
             thresholdVersion: 2,
@@ -4690,10 +4690,9 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   isMoneyMfaEnabled: {
     name: 'isMoneyMfaEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '8.15.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5577,16 +5576,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       versions: {},
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  swapsSentinelFeeTokens: {
-    name: 'swapsSentinelFeeTokens',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      cacheTtlMs: 900000,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -6574,29 +6563,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: false,
       minimumVersion: '8.15.0',
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  homeTMCU1209AbtestHomepageBalanceBreakdownV2: {
-    name: 'homeTMCU1209AbtestHomepageBalanceBreakdownV2',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          type: 'percentage_rollout',
-          value: 1,
-        },
-      },
-      {
-        name: 'treatment',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0,
-        },
-      },
-    ],
     status: FeatureFlagStatus.Active,
   },
 
@@ -8336,7 +8302,86 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'swapsSWAPS5094AbtestQuickBuyEntrypoints',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: [],
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+      {
+        name: 'treatment_1',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+      },
+      {
+        name: 'treatment_2',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+  cardLinkApi: {
+    name: 'cardLinkApi',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  gachaEnabled: {
+    name: 'gachaEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeBrandRefreshSurfaces: {
+    name: 'homeBrandRefreshSurfaces',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeTMCU1209AbtestHomepageBalanceBreakdown: {
+    name: 'homeTMCU1209AbtestHomepageBalanceBreakdown',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyBrandRefresh: {
+    name: 'moneyBrandRefresh',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  ASSETS4098ShowRobinhoodRwa: {
+    name: 'ASSETS4098ShowRobinhoodRwa',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 };
