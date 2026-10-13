@@ -99,6 +99,35 @@ jest.mock(
   }),
 );
 
+const mockMoneySignInState: {
+  address: string | null;
+  countries: string[];
+} = {
+  address: null,
+  countries: [],
+};
+
+jest.mock('../../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: () =>
+    mockMoneySignInState.address
+      ? { address: mockMoneySignInState.address }
+      : null,
+}));
+
+jest.mock('../../../../selectors/featureFlagController/card', () => ({
+  selectCardImmersveConfig: () =>
+    mockMoneySignInState.countries.length
+      ? {
+          moneyAccountConfig: {
+            countries: mockMoneySignInState.countries,
+            network: 'monad-mainnet',
+            fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+            spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
+          },
+        }
+      : {},
+}));
+
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope:
     (state: { selectedAccount: { address: string; type: string } }) => () =>
@@ -120,6 +149,8 @@ describe('useCardSignIn', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectedSignInAddress = SELECTED;
+    mockMoneySignInState.address = null;
+    mockMoneySignInState.countries = [];
     mockResolveSignIn.mockResolvedValue({
       kind: 'email',
       option: {
@@ -234,6 +265,22 @@ describe('useCardSignIn', () => {
     });
 
     expect(mockResolveSignIn).toHaveBeenCalledTimes(1);
+  });
+
+  it('looks up only the Money account when the country is claimed by moneyAccountConfig', async () => {
+    const moneyAccount = '0x000000000000000000000000000000000000dEaD';
+    mockMoneySignInState.address = moneyAccount;
+    mockMoneySignInState.countries = ['NZ'];
+
+    renderHook(() => useCardSignIn('NZ'));
+
+    await waitFor(() => {
+      expect(mockResolveSignIn).toHaveBeenCalledWith({
+        country: 'NZ',
+        candidateAddresses: [moneyAccount],
+        deviceAddresses: [moneyAccount],
+      });
+    });
   });
 
   it('does not resolve when country is null', () => {

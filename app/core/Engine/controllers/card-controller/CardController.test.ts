@@ -417,7 +417,7 @@ describe('CardController — setSelectedCountry', () => {
     expect(controller.state.activeProviderId).toBe('immersve');
   });
 
-  it('keeps the default provider when the kill-switch is off', () => {
+  it('keeps Immersve for a configured country when the kill-switch is off on this custom build', () => {
     const controller = build({
       cardImmersve: { enabled: false, minimumVersion: '0.0.0' },
       cardImmersveCountries: ['GB'],
@@ -426,7 +426,7 @@ describe('CardController — setSelectedCountry', () => {
     controller.setSelectedCountry('GB');
 
     expect(controller.state.selectedCountry).toBe('GB');
-    expect(controller.state.activeProviderId).toBe('baanx');
+    expect(controller.state.activeProviderId).toBe('immersve');
   });
 
   it('keeps the default provider for a non-Immersve country', () => {
@@ -3559,17 +3559,37 @@ describe('CardController — data pass-throughs', () => {
       };
     }
 
+    const defaultLinkPreparation = {
+      tokenAddress: TOKEN_ADDRESS,
+      spender: DELEGATION_CONTRACT,
+      decimals: 6,
+      caipChainId: 'eip155:143' as const,
+      context: { signatureMessage: 'siwe-message-from-baanx' },
+    };
+
     function buildLinkController({
       provider,
       messenger,
       withDelegationSettings = true,
+      installLinkHooks = true,
     }: {
       provider: jest.Mocked<ICardProvider>;
       messenger: jest.Mocked<CardControllerMessenger>;
       withDelegationSettings?: boolean;
+      installLinkHooks?: boolean;
     }) {
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
       provider.validateTokens.mockReturnValue('valid');
+      if (installLinkHooks && !provider.prepareMoneyAccountLink) {
+        provider.prepareMoneyAccountLink = jest
+          .fn()
+          .mockResolvedValue(defaultLinkPreparation);
+      }
+      if (installLinkHooks && !provider.completeMoneyAccountLink) {
+        provider.completeMoneyAccountLink = jest
+          .fn()
+          .mockResolvedValue(undefined);
+      }
       return new CardController({
         cardService: buildMockCardService(),
         messenger,
@@ -3635,8 +3655,11 @@ describe('CardController — data pass-throughs', () => {
 
       await linkPromise;
 
-      expect(mockChallenge).toHaveBeenCalledWith(
-        { network: 'monad', address: MONEY_ACCOUNT_ADDRESS },
+      expect(provider.prepareMoneyAccountLink).toHaveBeenCalledWith(
+        expect.objectContaining({
+          moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+          amountHuman: '2199023255551',
+        }),
         mockTokenSet,
       );
       expect(handle.signPersonalMessageCalls).toHaveLength(1);
@@ -3661,23 +3684,15 @@ describe('CardController — data pass-throughs', () => {
       expect(batchTransactions[0]).toMatchObject({
         params: { to: TOKEN_ADDRESS, value: '0x0' },
       });
-      expect(mockGenerateSiwe).toHaveBeenCalledWith(
+      expect(provider.completeMoneyAccountLink).toHaveBeenCalledWith(
         expect.objectContaining({
-          network: 'monad',
-          address: MONEY_ACCOUNT_ADDRESS,
-          nonce: 'nonce-1',
-        }),
-      );
-      expect(mockApproveFunding).toHaveBeenCalledWith(
-        expect.objectContaining({
-          address: MONEY_ACCOUNT_ADDRESS,
-          network: 'monad',
-          currency: 'veda',
-          amount: '2199023255551',
+          moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+          amountHuman: '2199023255551',
           txHash: TX_HASH,
           sigHash: '0xsig',
-          sigMessage: 'siwe-message-from-baanx',
-          token: 'jwt-1',
+          context: expect.objectContaining({
+            signatureMessage: 'siwe-message-from-baanx',
+          }),
         }),
         mockTokenSet,
       );
@@ -3715,7 +3730,7 @@ describe('CardController — data pass-throughs', () => {
       handle.emitConfirmed();
 
       await expect(linkPromise).resolves.toBeUndefined();
-      expect(mockApproveFunding).toHaveBeenCalledTimes(1);
+      expect(provider.completeMoneyAccountLink).toHaveBeenCalledTimes(1);
     });
 
     it('subscribes to transactionConfirmed BEFORE submitting the transaction (closes the race)', async () => {
@@ -3751,12 +3766,12 @@ describe('CardController — data pass-throughs', () => {
           handle.subscribedHandlers.length > 0 &&
           handle.addTransactionBatchCalls.length > 0,
       );
-      expect(mockApproveFunding).not.toHaveBeenCalled();
+      expect(provider.completeMoneyAccountLink).not.toHaveBeenCalled();
 
       handle.emitConfirmed();
       await linkPromise;
 
-      expect(mockApproveFunding).toHaveBeenCalledTimes(1);
+      expect(provider.completeMoneyAccountLink).toHaveBeenCalledTimes(1);
     });
 
     it('rejects when the approval transaction fails on-chain', async () => {
@@ -3790,7 +3805,7 @@ describe('CardController — data pass-throughs', () => {
       handle.emitFailed('out of gas');
 
       await expect(linkPromise).rejects.toThrow('out of gas');
-      expect(mockApproveFunding).not.toHaveBeenCalled();
+      expect(provider.completeMoneyAccountLink).not.toHaveBeenCalled();
       // Refresh is only triggered on the success path — failed transactions
       // must NOT refresh card home data.
       expect(fetchCardHomeDataSpy).not.toHaveBeenCalled();
@@ -3798,9 +3813,15 @@ describe('CardController — data pass-throughs', () => {
 
     it('fails closed when Monad USDC is missing from delegation settings (after refetch)', async () => {
       const provider = buildMockProvider({
-        fetchDelegationChallenge: jest.fn(),
-        approveFunding: jest.fn(),
-        generateCardDelegationSignatureMessage: mockGenerateSiwe,
+        prepareMoneyAccountLink: jest
+          .fn()
+          .mockRejectedValue(
+            new CardProviderError(
+              CardProviderErrorCode.Unknown,
+              'Money Account Card spending token unavailable',
+            ),
+          ),
+        completeMoneyAccountLink: jest.fn(),
         getCardHomeData: jest.fn().mockResolvedValue({
           ...cardHomeDataWithMonadUsdc,
           delegationSettings: null,
@@ -3822,16 +3843,16 @@ describe('CardController — data pass-throughs', () => {
       ).rejects.toThrow('Money Account Card spending token unavailable');
     });
 
-    it('throws when provider lacks fetchDelegationChallenge, approveFunding, or generateCardDelegationSignatureMessage', async () => {
+    it('throws when provider lacks prepareMoneyAccountLink or completeMoneyAccountLink', async () => {
       const provider = buildMockProvider({
-        fetchDelegationChallenge: undefined,
-        approveFunding: undefined,
-        generateCardDelegationSignatureMessage: undefined,
+        prepareMoneyAccountLink: undefined,
+        completeMoneyAccountLink: undefined,
       });
       const handle = buildLinkMessenger();
       const controller = buildLinkController({
         provider,
         messenger: handle.messenger,
+        installLinkHooks: false,
       });
 
       await expect(
@@ -3919,7 +3940,7 @@ describe('CardController — data pass-throughs', () => {
 
         expect(handle.addTransactionBatchCalls).toHaveLength(0);
         expect(mockChallenge).not.toHaveBeenCalled();
-        expect(mockApproveFunding).not.toHaveBeenCalled();
+        expect(provider.completeMoneyAccountLink).not.toHaveBeenCalled();
       });
 
       it('submits the approve via addTransactionBatch and lets Delegation7702PublishHook attach the upgrade authorization', async () => {
@@ -3960,7 +3981,7 @@ describe('CardController — data pass-throughs', () => {
           disableHook: true,
           disableSequential: true,
         });
-        expect(mockApproveFunding).toHaveBeenCalledTimes(1);
+        expect(provider.completeMoneyAccountLink).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -3994,7 +4015,7 @@ describe('CardController — data pass-throughs', () => {
         await waitFor(() => handle.addTransactionBatchCalls.length > 0);
         handle.emitConfirmed();
         await expect(linkPromise).resolves.toBeUndefined();
-        expect(mockApproveFunding).toHaveBeenCalledTimes(1);
+        expect(provider.completeMoneyAccountLink).toHaveBeenCalledTimes(1);
       });
 
       it('retries the state read until the inner tx appears', async () => {
@@ -4046,15 +4067,12 @@ describe('CardController — data pass-throughs', () => {
         const mockApproveFunding = jest
           .fn()
           .mockImplementation(() => approveFundingGate);
-        const mockChallenge = jest.fn().mockResolvedValue({
-          delegationToken: 'jwt-1',
-          nonce: 'nonce-1',
-          expiresAt: '2099-01-01',
-        });
+        const mockChallenge = jest
+          .fn()
+          .mockResolvedValue(defaultLinkPreparation);
         const provider = buildMockProvider({
-          fetchDelegationChallenge: mockChallenge,
-          approveFunding: mockApproveFunding,
-          generateCardDelegationSignatureMessage: mockGenerateSiwe,
+          prepareMoneyAccountLink: mockChallenge,
+          completeMoneyAccountLink: mockApproveFunding,
         });
 
         const handle = buildLinkMessenger();

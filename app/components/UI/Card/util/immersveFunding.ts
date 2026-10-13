@@ -5,6 +5,10 @@ import {
   BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
   ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS,
 } from '../constants';
+import { getImmersveMoneyAccountToken } from './immersveMoneyAccount';
+
+/** Monad USDC. Used when a Monad funding source is not the Money account channel. */
+const MONAD_USDC_TOKEN_ADDRESS = '0x754704bc059f8c67012fed69bc8a327a5aafb603';
 
 export function immersveNetworkToCaipChainId(network?: string): string {
   switch (network) {
@@ -14,6 +18,8 @@ export function immersveNetworkToCaipChainId(network?: string): string {
       return 'eip155:84532';
     case 'arbitrum-sepolia':
       return 'eip155:421614';
+    case 'monad-mainnet':
+      return 'eip155:143';
     default:
       throw new Error(`Unsupported Immersve funding network: ${network}`);
   }
@@ -27,7 +33,20 @@ export interface ImmersveFundingTokenInfo {
 
 export function immersveNetworkToFundingToken(
   network?: string,
+  options?: { fundingChannelId?: string; moneyAccountChannelId?: string },
 ): ImmersveFundingTokenInfo {
+  if (
+    options?.moneyAccountChannelId &&
+    options.fundingChannelId === options.moneyAccountChannelId
+  ) {
+    const token = getImmersveMoneyAccountToken();
+    return {
+      caipChainId: token.caipChainId,
+      tokenAddress: token.tokenAddress,
+      decimals: token.decimals,
+    };
+  }
+
   switch (network) {
     case 'base-mainnet':
       return {
@@ -45,6 +64,12 @@ export function immersveNetworkToFundingToken(
       return {
         caipChainId: 'eip155:421614',
         tokenAddress: ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS,
+        decimals: 6,
+      };
+    case 'monad-mainnet':
+      return {
+        caipChainId: 'eip155:143',
+        tokenAddress: MONAD_USDC_TOKEN_ADDRESS,
         decimals: 6,
       };
     default:

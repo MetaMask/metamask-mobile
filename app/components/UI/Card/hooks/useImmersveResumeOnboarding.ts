@@ -9,6 +9,7 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { KYC_REDIRECT_URL } from '../constants';
 import { deriveNextImmersveAction } from '../util/immersvePrerequisites';
 import { resolveImmersveFundingSourceId } from '../util/immersveResume';
+import { getImmersveMoneyAccountConfig } from '../util/immersveMoneyAccount';
 import { CardActions, CardEntryPoint, withCardProvider } from '../util/metrics';
 import { getSiweErrorType, useImmersveSiweAuth } from './useImmersveSiweAuth';
 import { useImmersveOnboardingRouter } from './useImmersveOnboardingRouter';
@@ -65,9 +66,19 @@ export const useImmersveResumeOnboarding = () => {
 
         const resume = await controller.getResumeCardInfo();
 
+        const moneyAccountConfig = getImmersveMoneyAccountConfig(
+          immersveConfig,
+          country,
+        );
         const id = await resolveImmersveFundingSourceId({
-          fundingChannelId: immersveConfig.fundingChannelId,
-          existingId: resume?.fundingSourceIds?.[0],
+          fundingChannelId:
+            moneyAccountConfig?.fundingChannelId ??
+            immersveConfig.fundingChannelId,
+          // A previously stored Base source must not be reused for the Money
+          // account channel.
+          existingId: moneyAccountConfig
+            ? undefined
+            : resume?.fundingSourceIds?.[0],
         });
         dispatch(setImmersveFundingSourceId(id));
 

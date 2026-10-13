@@ -20,6 +20,7 @@ import {
   type AccountAvatarVariant,
 } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { CardAuthenticationSelectors } from '../CardAuthentication.testIds';
+import { MoneyAccountIdentity } from '../../../components/MoneyAccountRow/MoneyAccountRow';
 
 interface SignInWalletFieldsProps {
   origin: 'linked' | 'resume' | 'manual';
@@ -31,6 +32,8 @@ interface SignInWalletFieldsProps {
   onBack?: () => void;
   onSelectAccount: () => void;
   onUseCurrentCard: () => void;
+  /** NZ Money account: the row is locked and shows the Money account icon. */
+  lockToMoneyAccount?: boolean;
 }
 
 const SignInWalletFields = ({
@@ -43,6 +46,7 @@ const SignInWalletFields = ({
   onBack,
   onSelectAccount,
   onUseCurrentCard,
+  lockToMoneyAccount = false,
 }: SignInWalletFieldsProps) => {
   const tw = useTailwind();
   return (
@@ -65,20 +69,29 @@ const SignInWalletFields = ({
 
       <Box>
         <Label>{strings('card.card_authentication.account_label')}</Label>
-        <SelectField
-          value={displayAccountLabel}
-          onPress={onSelectAccount}
-          testID={CardAuthenticationSelectors.ACCOUNT_SELECT}
-          startAccessory={
-            displayAccountAddress ? (
-              <AvatarAccount
-                address={displayAccountAddress}
-                variant={getAvatarAccountVariant(avatarAccountType)}
-                size={AvatarBaseSize.Sm}
-              />
-            ) : undefined
-          }
-        />
+        {lockToMoneyAccount ? (
+          <Box
+            twClassName="flex-row items-center px-4 py-3 bg-background-muted rounded-xl"
+            testID={CardAuthenticationSelectors.ACCOUNT_SELECT}
+          >
+            <MoneyAccountIdentity />
+          </Box>
+        ) : (
+          <SelectField
+            value={displayAccountLabel}
+            onPress={onSelectAccount}
+            testID={CardAuthenticationSelectors.ACCOUNT_SELECT}
+            startAccessory={
+              displayAccountAddress ? (
+                <AvatarAccount
+                  address={displayAccountAddress}
+                  variant={getAvatarAccountVariant(avatarAccountType)}
+                  size={AvatarBaseSize.Sm}
+                />
+              ) : undefined
+            }
+          />
+        )}
         {origin === 'manual' ? (
           <Text
             variant={TextVariant.BodySm}

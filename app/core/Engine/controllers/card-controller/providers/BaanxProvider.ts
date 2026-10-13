@@ -73,6 +73,9 @@ import {
   CreditWithdrawParams,
   CreditWithdrawResponse,
   type DelegationChallengeResponse,
+  type CompleteMoneyAccountLinkParams,
+  type MoneyAccountLinkPreparation,
+  type PrepareMoneyAccountLinkParams,
   emptyCardHomeData,
   isCardAuthTokenError,
   CardProviderIds,
@@ -85,6 +88,12 @@ import {
   type CardTransactionPage,
 } from '../provider-types';
 import { decodeCardCursor, encodeCardCursor } from '../utils/transactionCursor';
+import { resolveMoneyAccountCardToken } from '../utils/moneyAccountCardToken';
+import {
+  MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID,
+  MONEY_ACCOUNT_DELEGATION_NETWORK,
+  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+} from '../../../../../components/UI/Card/util/vedaToken';
 import AppConstants from '../../../../AppConstants';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -942,6 +951,90 @@ export class BaanxProvider implements ICardProvider {
         sigHash: params.sigHash,
         sigMessage: params.sigMessage,
         token: params.token,
+      },
+      tokens,
+    );
+  }
+
+  async prepareMoneyAccountLink(
+    params: PrepareMoneyAccountLinkParams,
+    tokens: CardAuthTokens,
+  ): Promise<MoneyAccountLinkPreparation> {
+    const cardToken = resolveMoneyAccountCardToken(params.delegationSettings);
+    if (!cardToken) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card spending token unavailable',
+      );
+    }
+
+    const tokenAddress = cardToken.stagingTokenAddress ?? cardToken.address;
+    if (!tokenAddress) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card spending token address missing',
+      );
+    }
+    if (!cardToken.delegationContract) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card delegation contract missing',
+      );
+    }
+
+    const { delegationToken, nonce } = await this.fetchDelegationChallenge(
+      {
+        network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+        address: params.moneyAccountAddress,
+      },
+      tokens,
+    );
+    const caipChainId =
+      cardToken.caipChainId ?? MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID;
+    const signatureMessage = this.generateCardDelegationSignatureMessage({
+      network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+      address: params.moneyAccountAddress,
+      nonce,
+      caipChainId,
+    });
+
+    return {
+      tokenAddress,
+      spender: cardToken.delegationContract,
+      decimals: cardToken.decimals ?? 6,
+      caipChainId,
+      context: {
+        signatureMessage,
+        delegationToken,
+        network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+        currency: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+      },
+    };
+  }
+
+  async completeMoneyAccountLink(
+    params: CompleteMoneyAccountLinkParams,
+    tokens: CardAuthTokens,
+  ): Promise<void> {
+    const { signatureMessage, delegationToken, network, currency } =
+      params.context;
+    if (!params.sigHash || !signatureMessage || !delegationToken) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money account link completion is missing the delegation signature',
+      );
+    }
+
+    await this.approveFunding(
+      {
+        address: params.moneyAccountAddress,
+        network: network ?? MONEY_ACCOUNT_DELEGATION_NETWORK,
+        currency: currency ?? MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+        amount: params.amountHuman,
+        txHash: params.txHash,
+        sigHash: params.sigHash,
+        sigMessage: signatureMessage,
+        token: delegationToken,
       },
       tokens,
     );

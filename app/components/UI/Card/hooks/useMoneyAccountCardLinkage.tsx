@@ -28,7 +28,7 @@ import { useTheme } from '../../../../util/theme';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
-import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
+import { selectCardFeatureFlag , selectCardImmersveConfig } from '../../../../selectors/featureFlagController/card';
 import {
   selectCardDelegationSettings,
   selectCardHomeDataStatus,
@@ -41,7 +41,13 @@ import {
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
   selectCardSignInLink,
+  selectCardSelectedCountry,
+  selectImmersveMoneyAccountMode,
 } from '../../../../selectors/cardController';
+import {
+  getImmersveMoneyAccountConfig,
+  getImmersveMoneyAccountToken,
+} from '../util/immersveMoneyAccount';
 import {
   selectPendingMoneyAccountCardLink,
   setPendingMoneyAccountCardLink,
@@ -56,8 +62,11 @@ import {
   type CardProviderId,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { BAANX_MAX_LIMIT } from '../constants';
-import { isMoneyAccountCardTokenAllowlisted } from '../util/vedaToken';
-import { CardFundingToken } from '../types';
+import { isMoneyAccountCardTokenAllowlisted ,
+  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+  MONEY_ACCOUNT_DISPLAY_SYMBOL,
+} from '../util/vedaToken';
+import { CardFundingToken, FundingStatus } from '../types';
 import { useCardCapabilities } from './useCardCapabilities';
 import { UserCancelledError } from './useCardDelegation';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -152,6 +161,7 @@ export interface UseMoneyAccountCardLinkageReturn {
   isResidencyBlocked: boolean;
   isMoneyAccountLinkingSupported: boolean;
   isMoneyCardSectionAvailable: boolean;
+  isImmersveMoneyAccountMode: boolean;
 
   status: LinkageStatus;
   isLinking: boolean;
@@ -195,6 +205,11 @@ export const useMoneyAccountCardLinkage =
     const isCardholder = useSelector(selectIsCardholder);
     const delegationSettings = useSelector(selectCardDelegationSettings);
     const vedaConfig = useSelector(selectMoneyAccountVedaTokenConfig);
+    const immersveConfig = useSelector(selectCardImmersveConfig);
+    const selectedCountry = useSelector(selectCardSelectedCountry);
+    const isImmersveMoneyAccountMode = useSelector(
+      selectImmersveMoneyAccountMode,
+    );
     const cardFeatureFlag = useSelector(selectCardFeatureFlag);
     const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
     const isAlreadyDelegated = useSelector(
@@ -218,9 +233,11 @@ export const useMoneyAccountCardLinkage =
           : true,
       [isSignInInProgress, signInLink?.providerId],
     );
-    const isMoneyCardSectionAvailable = isCardAuthenticated
-      ? isMoneyAccountLinkingSupported
-      : signInProviderCanLink;
+    const isMoneyCardSectionAvailable = isImmersveMoneyAccountMode
+      ? true
+      : isCardAuthenticated
+        ? isMoneyAccountLinkingSupported
+        : signInProviderCanLink;
     const isMonadSponsorshipEnabled = useSelector(
       getGasFeesSponsoredNetworkEnabled,
     )(vaultConfig?.chainId ?? '');
@@ -228,16 +245,49 @@ export const useMoneyAccountCardLinkage =
     const [status, setStatus] = useState<LinkageStatus>('idle');
     const [error, setError] = useState<Error | null>(null);
 
-    const rawMoneyAccountCardToken = useMemo(
-      () => resolveMoneyAccountCardToken(delegationSettings),
-      [delegationSettings],
-    );
+    const rawMoneyAccountCardToken = useMemo(() => {
+      const fromDelegation = resolveMoneyAccountCardToken(delegationSettings);
+      if (fromDelegation) {
+        return fromDelegation;
+      }
+      const moneyConfig = getImmersveMoneyAccountConfig(
+        immersveConfig,
+        selectedCountry,
+      );
+      if (!moneyConfig) {
+        return null;
+      }
+      const token = getImmersveMoneyAccountToken();
+      return {
+        address: token.tokenAddress,
+        symbol: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+        name: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+        decimals: token.decimals,
+        caipChainId: token.caipChainId,
+        walletAddress: undefined,
+        fundingStatus: FundingStatus.NotEnabled,
+        spendableBalance: '0',
+        delegationContract: moneyConfig.spenderAddress,
+        priority: undefined,
+        stagingTokenAddress: undefined,
+        displaySymbol: MONEY_ACCOUNT_DISPLAY_SYMBOL,
+      };
+    }, [delegationSettings, immersveConfig, selectedCountry]);
 
-    const isMoneyAccountCardSupported = useMemo(
-      () =>
-        isMoneyAccountCardTokenAllowlisted(cardFeatureFlag?.chains, vedaConfig),
-      [cardFeatureFlag, vedaConfig],
-    );
+    const isMoneyAccountCardSupported = useMemo(() => {
+      if (isImmersveMoneyAccountMode && rawMoneyAccountCardToken) {
+        return true;
+      }
+      return isMoneyAccountCardTokenAllowlisted(
+        cardFeatureFlag?.chains,
+        vedaConfig,
+      );
+    }, [
+      cardFeatureFlag,
+      vedaConfig,
+      isImmersveMoneyAccountMode,
+      rawMoneyAccountCardToken,
+    ]);
 
     const moneyAccountCardToken = isMoneyAccountCardSupported
       ? rawMoneyAccountCardToken
@@ -255,7 +305,7 @@ export const useMoneyAccountCardLinkage =
     const canSubmitDelegation = Boolean(
       hasRequirements &&
         isCardAuthenticated &&
-        isCardVerified &&
+        (isCardVerified || isImmersveMoneyAccountMode) &&
         moneyAccountCardToken &&
         isMonadSponsorshipEnabled &&
         isMoneyAccountLinkingSupported,
@@ -737,6 +787,7 @@ export const useMoneyAccountCardLinkage =
       isResidencyBlocked,
       isMoneyAccountLinkingSupported,
       isMoneyCardSectionAvailable,
+      isImmersveMoneyAccountMode,
 
       status,
       isLinking: linkInProgress,

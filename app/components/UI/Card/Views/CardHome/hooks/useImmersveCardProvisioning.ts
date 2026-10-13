@@ -26,6 +26,7 @@ import {
   type ImmersveNextAction,
 } from '../../../util/immersvePrerequisites';
 import { resolveImmersveFundingSourceId } from '../../../util/immersveResume';
+import { getImmersveMoneyAccountConfig } from '../../../util/immersveMoneyAccount';
 import { CardActions, withCardProvider } from '../../../util/metrics';
 import { useImmersveOnboardingRouter } from '../../../hooks/useImmersveOnboardingRouter';
 
@@ -43,9 +44,13 @@ export function useImmersveCardProvisioning(
 
   const reduxFundingSourceId = useSelector(selectImmersveFundingSourceId);
   const kycRegion = useSelector(selectCardSelectedCountry) ?? undefined;
-  const fundingChannelId = useSelector(
-    selectCardImmersveConfig,
-  ).fundingChannelId;
+  const immersveConfig = useSelector(selectCardImmersveConfig);
+  const moneyAccountConfig = getImmersveMoneyAccountConfig(
+    immersveConfig,
+    kycRegion,
+  );
+  const fundingChannelId =
+    moneyAccountConfig?.fundingChannelId ?? immersveConfig.fundingChannelId;
   const route = useImmersveOnboardingRouter();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -103,7 +108,7 @@ export function useImmersveCardProvisioning(
         const controller = Engine.context.CardController;
         const id = await resolveImmersveFundingSourceId({
           fundingChannelId,
-          existingId,
+          existingId: moneyAccountConfig ? undefined : existingId,
         });
         if (cancelled) return;
         if (!existingId) {
@@ -248,7 +253,13 @@ export function useImmersveCardProvisioning(
       cancelled = true;
       handled.current = false;
     };
-  }, [isProvisioning, kycRegion, fundingChannelId, dispatch]);
+  }, [
+    isProvisioning,
+    kycRegion,
+    fundingChannelId,
+    moneyAccountConfig,
+    dispatch,
+  ]);
 
   const resumePendingAction = useCallback(() => {
     if (!pendingAction) return;

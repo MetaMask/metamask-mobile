@@ -33,7 +33,13 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useDispatch, useSelector } from 'react-redux';
 import { setOnboardingId } from '../../../../../core/redux/slices/card';
-import { selectCardForgotPasswordFeatureEnabled } from '../../../../../selectors/featureFlagController/card';
+import {
+  selectCardForgotPasswordFeatureEnabled,
+  selectCardImmersveConfig,
+} from '../../../../../selectors/featureFlagController/card';
+import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+import { getImmersveMoneyAccountConfig } from '../../util/immersveMoneyAccount';
+import { MoneyAccountRequired } from '../../components/MoneyAccountRow/MoneyAccountRow';
 import { CardMessageBoxType, type Region } from '../../types';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import {
@@ -169,6 +175,14 @@ const CardAuthentication = () => {
   const { state: ukMigrationState } = useCardUkMigrationState();
 
   const countryKey = selectedCountry?.key ?? null;
+  const immersveConfig = useSelector(selectCardImmersveConfig);
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const isMoneyAccountMode = Boolean(
+    getImmersveMoneyAccountConfig(immersveConfig, countryKey),
+  );
+  const moneyAccountAddress = safeToChecksumAddress(
+    primaryMoneyAccount?.address,
+  );
   const {
     resolution,
     isResolving,
@@ -269,16 +283,21 @@ const CardAuthentication = () => {
     return undefined;
   }, [resolution, countryKey]);
 
-  const { displayAccountAddress, displayAccountLabel, nextSeenLinkedAddress } =
-    resolveSignInAccountPresentation({
-      view,
-      selectedAddress,
-      seenLinkedAddress: seenLinkedAddressRef.current,
-      accountsByAddress,
-      accountToGroupMap,
-      fallbackAccountName: accountName,
-    });
-  seenLinkedAddressRef.current = nextSeenLinkedAddress;
+  const resolvedAccount = resolveSignInAccountPresentation({
+    view,
+    selectedAddress,
+    seenLinkedAddress: seenLinkedAddressRef.current,
+    accountsByAddress,
+    accountToGroupMap,
+    fallbackAccountName: accountName,
+  });
+  seenLinkedAddressRef.current = resolvedAccount.nextSeenLinkedAddress;
+  const displayAccountAddress = isMoneyAccountMode
+    ? moneyAccountAddress
+    : resolvedAccount.displayAccountAddress;
+  const displayAccountLabel = isMoneyAccountMode
+    ? strings('card.card_spending_limit.money_account_label')
+    : resolvedAccount.displayAccountLabel;
 
   useEffect(() => {
     if (!allRegions.length || hasAutoSelectedCountry.current) {
@@ -291,6 +310,7 @@ const CardAuthentication = () => {
     if (matched) {
       hasAutoSelectedCountry.current = true;
       setSelectedCountry(matched);
+      Engine.context.CardController.setSelectedCountry(matched.key);
       Engine.context.CardController.setUserLocation(
         mapCountryToLocation(matched.key),
       );
@@ -625,6 +645,9 @@ const CardAuthentication = () => {
 
   const switchedForAddressRef = useRef<string | null>(null);
   useEffect(() => {
+    if (isMoneyAccountMode) {
+      return;
+    }
     if (
       view.mode !== 'wallet' ||
       (view.origin !== 'linked' && view.origin !== 'resume') ||
@@ -653,13 +676,20 @@ const CardAuthentication = () => {
 
     switchedForAddressRef.current = pinned;
     Engine.context.AccountTreeController.setSelectedAccountGroup(groupId);
-  }, [view, selectedAddress, accountsByAddress, accountToGroupMap]);
+  }, [
+    view,
+    selectedAddress,
+    accountsByAddress,
+    accountToGroupMap,
+    isMoneyAccountMode,
+  ]);
 
   const handleCountrySelect = useCallback(() => {
     if (isLoadingRegions) return;
     setOnValueChange((region) => {
       hasAutoSelectedCountry.current = true;
       setSelectedCountry(region);
+      Engine.context.CardController.setSelectedCountry(region.key);
       Engine.context.CardController.setUserLocation(
         mapCountryToLocation(region.key),
       );
@@ -897,24 +927,28 @@ const CardAuthentication = () => {
           />
         )}
 
-        {view.mode === 'wallet' && (
-          <SignInWalletFields
-            origin={view.origin}
-            displayAccountLabel={displayAccountLabel}
-            displayAccountAddress={displayAccountAddress}
-            avatarAccountType={avatarAccountType}
-            walletError={walletError}
-            showSoftLink={
-              view.origin === 'resume' && ukMigrationState.phase === 'soft'
-            }
-            onBack={() => setUkMode(null)}
-            onSelectAccount={openAccountSelector}
-            onUseCurrentCard={() => {
-              setResumeEmail(true);
-              setBanner('resume_soft');
-            }}
-          />
-        )}
+        {view.mode === 'wallet' &&
+          (isMoneyAccountMode && !moneyAccountAddress ? (
+            <MoneyAccountRequired />
+          ) : (
+            <SignInWalletFields
+              origin={view.origin}
+              displayAccountLabel={displayAccountLabel}
+              displayAccountAddress={displayAccountAddress}
+              avatarAccountType={avatarAccountType}
+              walletError={walletError}
+              showSoftLink={
+                view.origin === 'resume' && ukMigrationState.phase === 'soft'
+              }
+              onBack={() => setUkMode(null)}
+              onSelectAccount={openAccountSelector}
+              onUseCurrentCard={() => {
+                setResumeEmail(true);
+                setBanner('resume_soft');
+              }}
+              lockToMoneyAccount={isMoneyAccountMode}
+            />
+          ))}
       </>
     );
   })();

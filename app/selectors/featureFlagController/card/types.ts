@@ -66,6 +66,23 @@ export interface CardProgramIdOption {
 }
 
 /**
+ * Immersve program that funds a card from the primary Money account.
+ * Present on `cardImmersveConfig` when a country should SIWE and approve
+ * with the Money account instead of an EOA USDC allowance.
+ */
+export interface ImmersveMoneyAccountConfig {
+  /** ISO country codes this block applies to, e.g. `['NZ']`. */
+  countries: string[];
+  /** Immersve network name, e.g. `monad-mainnet`. */
+  network: string;
+  fundingChannelId: string;
+  /** Spender used for allowance reads, revoke, and re-approve. */
+  spenderAddress: string;
+  /** Falls back to the top-level `cardProgramId` when omitted. */
+  cardProgramId?: string;
+}
+
+/**
  * Immersve provider config — the `cardImmersveConfig` flag. The on/off switch
  * is the separate `cardImmersve` flag, not a field in here.
  */
@@ -83,6 +100,11 @@ export interface ImmersveProgramConfig {
   secureApiBaseUrl?: string;
   appUrl?: string;
   reportTransactionUrl?: string;
+  /**
+   * When the selected country is listed here, Immersve signs in and funds
+   * from the primary Money account on this channel.
+   */
+  moneyAccountConfig?: ImmersveMoneyAccountConfig;
 }
 
 // -- Generic per-provider shapes --

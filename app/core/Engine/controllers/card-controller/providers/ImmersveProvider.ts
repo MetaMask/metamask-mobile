@@ -1,16 +1,23 @@
 import type { CaipChainId } from '@metamask/utils';
 import { ethers } from 'ethers';
 import Logger from '../../../../../util/Logger';
-import type { ImmersveProgramConfig } from '../../../../../selectors/featureFlagController/card';
+import type {
+  ImmersveMoneyAccountConfig,
+  ImmersveProgramConfig,
+} from '../../../../../selectors/featureFlagController/card';
 import {
   ARBITRUM_SEPOLIA_RPC_URL,
   BASE_MAINNET_RPC_URL,
   BASE_SEPOLIA_RPC_URL,
+  KYC_REDIRECT_URL,
+  MONAD_MAINNET_RPC_URL,
 } from '../../../../../components/UI/Card/constants';
 import {
   immersveNetworkToFundingToken,
   type ImmersveFundingTokenInfo,
 } from '../../../../../components/UI/Card/util/immersveFunding';
+import { getImmersveMoneyAccountToken } from '../../../../../components/UI/Card/util/immersveMoneyAccount';
+import { deriveNextImmersveAction } from '../../../../../components/UI/Card/util/immersvePrerequisites';
 import { readErc20AllowanceAndBalance } from '../../../../../components/UI/Card/util/onChainAllowance';
 import { CardApiError } from '../services/BaanxService';
 import type { ImmersveService } from '../services/ImmersveService';
@@ -40,6 +47,9 @@ import {
   CardSensitiveDetails,
   CardSpendingPrerequisitesParams,
   CardSpendingPrerequisitesResult,
+  CompleteMoneyAccountLinkParams,
+  MoneyAccountLinkPreparation,
+  PrepareMoneyAccountLinkParams,
   CardStatus,
   CardTransaction,
   CardTransactionDetails,
@@ -89,7 +99,27 @@ const IMMERSVE_FUNDING_NETWORK_RPC: Record<
     primaryRpcUrl: ARBITRUM_SEPOLIA_RPC_URL,
     publicFallback: 'https://sepolia-rollup.arbitrum.io/rpc',
   },
+  'monad-mainnet': {
+    chainId: 143,
+    primaryRpcUrl: MONAD_MAINNET_RPC_URL,
+    publicFallback: 'https://rpc.monad.xyz',
+  },
 };
+
+function spenderFromPrerequisites(
+  prerequisites: CardSpendingPrerequisitesResult['prerequisites'],
+): string | undefined {
+  const funding = prerequisites.find(
+    (item) => item.actionType === 'smart_contract_write',
+  );
+  const write = funding?.params as
+    | { params?: { _spender?: unknown } }
+    | undefined;
+  const spender = write?.params?._spender;
+  return typeof spender === 'string' && spender.length > 0
+    ? spender
+    : undefined;
+}
 
 const USD_STABLECOIN_SYMBOLS = new Set(['USDC', 'USDT']);
 
@@ -391,7 +421,7 @@ export interface CardResumeInfo {
 export class ImmersveProvider implements ICardProvider {
   readonly id = CardProviderIds.Immersve;
 
-  readonly capabilities: CardProviderCapabilities = {
+  private readonly baseCapabilities: CardProviderCapabilities = {
     authMethod: 'siwe',
     supportsOTP: false,
     supportsFundingApproval: true,
@@ -411,30 +441,58 @@ export class ImmersveProvider implements ICardProvider {
     supportsMoneyAccountLinking: false,
   };
 
+  get capabilities(): CardProviderCapabilities {
+    const moneyAccount = this.moneyAccountConfig;
+    if (!moneyAccount) {
+      return this.baseCapabilities;
+    }
+    return {
+      ...this.baseCapabilities,
+      supportsMoneyAccountLinking: true,
+      fundingChains: [...this.baseCapabilities.fundingChains, 'eip155:143'],
+    };
+  }
+
   private readonly service: ImmersveService;
   private readonly config: ImmersveProviderConfig;
   private readonly getProgramConfig: () => ImmersveProgramConfig;
+  private readonly getMoneyAccountConfig: () => ImmersveMoneyAccountConfig | null;
+  private readonly getSelectedCountry: () => string | null;
 
   constructor({
     service,
     config,
     getProgramConfig,
+    getMoneyAccountConfig,
+    getSelectedCountry,
   }: {
     service: ImmersveService;
     config: ImmersveProviderConfig;
     getProgramConfig?: () => ImmersveProgramConfig | null | undefined;
+    getMoneyAccountConfig?: () => ImmersveMoneyAccountConfig | null;
+    getSelectedCountry?: () => string | null;
   }) {
     this.service = service;
     this.config = config;
     this.getProgramConfig = () => getProgramConfig?.() ?? {};
+    this.getMoneyAccountConfig = getMoneyAccountConfig ?? (() => null);
+    this.getSelectedCountry = getSelectedCountry ?? (() => null);
   }
 
   private get programConfig(): ImmersveProgramConfig {
     return this.getProgramConfig();
   }
 
+  private get moneyAccountConfig(): ImmersveMoneyAccountConfig | null {
+    return this.getMoneyAccountConfig();
+  }
+
   private get network(): string {
-    return this.programConfig.network ?? DEFAULT_NETWORK;
+    return (
+      this.moneyAccountConfig?.network ??
+      this.programConfig.network ??
+      DEFAULT_NETWORK
+    );
   }
 
   private get clientApplicationId(): string {
@@ -681,9 +739,10 @@ export class ImmersveProvider implements ICardProvider {
 
   async createFundingSource(
     tokens: CardAuthTokens,
+    fundingAddressOverride?: string,
   ): Promise<CardFundingSourceResult> {
     const accountId = tokens.cardholderAccountId;
-    const fundingAddress = tokens.accountAddress;
+    const fundingAddress = fundingAddressOverride ?? tokens.accountAddress;
     if (!accountId || !fundingAddress) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
@@ -692,7 +751,9 @@ export class ImmersveProvider implements ICardProvider {
     }
 
     try {
-      const fundingChannelId = this.requireProgramValue('fundingChannelId');
+      const fundingChannelId =
+        this.moneyAccountConfig?.fundingChannelId ??
+        this.requireProgramValue('fundingChannelId');
       const response = await this.service.post<ImmersveFundingSourceResponse>(
         '/api/funding-sources',
         {
@@ -707,9 +768,83 @@ export class ImmersveProvider implements ICardProvider {
         network: response.network,
         balance: response.balance,
         balanceCurrency: response.balanceCurrency,
+        fundingChannelId,
       };
     } catch (error) {
       reportAndMap(error, 'createFundingSource', { network: this.network });
+    }
+  }
+
+  async prepareMoneyAccountLink(
+    params: PrepareMoneyAccountLinkParams,
+    tokens: CardAuthTokens,
+  ): Promise<MoneyAccountLinkPreparation> {
+    const moneyAccount = this.moneyAccountConfig;
+    if (!moneyAccount) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money account card delegation is not supported for this provider',
+      );
+    }
+
+    const existing = await this.getFundingSources(tokens);
+    const match =
+      existing.find(
+        (source) => source.fundingChannelId === moneyAccount.fundingChannelId,
+      ) ?? (await this.createFundingSource(tokens, params.moneyAccountAddress));
+
+    const { prerequisites } = await this.getSpendingPrerequisites(
+      match.id,
+      {
+        kycRegion: this.getSelectedCountry() ?? undefined,
+        kycRedirectUrl: KYC_REDIRECT_URL,
+      },
+      tokens,
+    );
+    const token = getImmersveMoneyAccountToken();
+    const spender =
+      spenderFromPrerequisites(prerequisites) ?? moneyAccount.spenderAddress;
+
+    return {
+      tokenAddress: token.tokenAddress,
+      spender,
+      decimals: token.decimals,
+      caipChainId: token.caipChainId,
+      context: { fundingSourceId: match.id },
+    };
+  }
+
+  async completeMoneyAccountLink(
+    params: CompleteMoneyAccountLinkParams,
+    tokens: CardAuthTokens,
+  ): Promise<void> {
+    const fundingSourceId = params.context.fundingSourceId;
+    if (!fundingSourceId) {
+      return;
+    }
+
+    const { prerequisites } = await this.getSpendingPrerequisites(
+      fundingSourceId,
+      {
+        kycRegion: this.getSelectedCountry() ?? undefined,
+        kycRedirectUrl: KYC_REDIRECT_URL,
+      },
+      tokens,
+    );
+    if (deriveNextImmersveAction(prerequisites).type !== 'active') {
+      return;
+    }
+
+    try {
+      await this.createCard(fundingSourceId, tokens);
+    } catch (error) {
+      if (
+        error instanceof CardProviderError &&
+        error.code === CardProviderErrorCode.Conflict
+      ) {
+        return;
+      }
+      throw error;
     }
   }
 
@@ -1315,9 +1450,24 @@ export class ImmersveProvider implements ICardProvider {
     fundingSource: ImmersveFundingSourceDetail,
     tokens: CardAuthTokens,
   ): Promise<CardFundingAsset | null> {
+    const moneyAccount = this.moneyAccountConfig;
+    const isMoneyAccountSource = Boolean(
+      moneyAccount &&
+        fundingSource.fundingChannelId === moneyAccount.fundingChannelId,
+    );
+    const moneyToken = isMoneyAccountSource
+      ? getImmersveMoneyAccountToken()
+      : null;
+
     let tokenInfo: ImmersveFundingTokenInfo;
     try {
-      tokenInfo = immersveNetworkToFundingToken(fundingSource.network);
+      tokenInfo = moneyToken
+        ? {
+            caipChainId: moneyToken.caipChainId,
+            tokenAddress: moneyToken.tokenAddress,
+            decimals: moneyToken.decimals,
+          }
+        : immersveNetworkToFundingToken(fundingSource.network);
     } catch (error) {
       Logger.error(
         error as Error,
@@ -1326,7 +1476,8 @@ export class ImmersveProvider implements ICardProvider {
       return null;
     }
 
-    const symbol = fundingSource.balanceCurrency ?? 'USDC';
+    const symbol =
+      moneyToken?.symbol ?? fundingSource.balanceCurrency ?? 'USDC';
     const walletAddress =
       tokens.accountAddress ?? fundingSource.externalId ?? '';
 
@@ -1334,7 +1485,10 @@ export class ImmersveProvider implements ICardProvider {
       await this.resolveOnChainSpendableBalance(
         walletAddress,
         tokenInfo,
-        fundingSource.network,
+        isMoneyAccountSource
+          ? (moneyAccount?.network ?? fundingSource.network)
+          : fundingSource.network,
+        isMoneyAccountSource ? moneyAccount?.spenderAddress : undefined,
       );
 
     return {
@@ -1356,9 +1510,10 @@ export class ImmersveProvider implements ICardProvider {
     walletAddress: string,
     tokenInfo: ImmersveFundingTokenInfo,
     network: string | undefined,
+    spenderOverride?: string,
   ): Promise<{ spendableBalance: string; spendingCap: string }> {
     const empty = { spendableBalance: '', spendingCap: '' };
-    const spender = this.programConfig.spenderAddress;
+    const spender = spenderOverride ?? this.programConfig.spenderAddress;
     if (!spender || !walletAddress || !ethers.utils.isAddress(walletAddress)) {
       return empty;
     }

@@ -4,7 +4,8 @@ import { useSelector } from 'react-redux';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { CardProviderIds } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { CardActions } from '../../../util/metrics';
+import { BAANX_MAX_LIMIT } from '../../../constants';
+import { CardActions, CardEntryPoint } from '../../../util/metrics';
 import { useImmersveCardProvisioning } from './useImmersveCardProvisioning';
 import { useImmersveEnableCard } from './useImmersveEnableCard';
 
@@ -18,6 +19,13 @@ jest.mock('react-redux', () => ({
 
 jest.mock('./useImmersveCardProvisioning', () => ({
   useImmersveCardProvisioning: jest.fn(),
+}));
+
+const mockConfirmLinkInBackground = jest.fn().mockResolvedValue(true);
+jest.mock('../../../hooks/useMoneyAccountCardLinkage', () => ({
+  useMoneyAccountCardLinkage: () => ({
+    confirmLinkInBackground: mockConfirmLinkInBackground,
+  }),
 }));
 
 const mockBuild = jest.fn(() => ({ build: 'event' }));
@@ -140,6 +148,39 @@ describe('useImmersveEnableCard', () => {
       },
     });
     expect(mockResumePendingAction).not.toHaveBeenCalled();
+  });
+
+  it('re-links the Money account in the background instead of opening reapprove', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const selectors = require('../../../../../../selectors/cardController');
+      if (selector === selectors.selectCardActiveProviderId) {
+        return CardProviderIds.Immersve;
+      }
+      if (selector === selectors.selectCardSelectedCountry) {
+        return 'NZ';
+      }
+      if (selector === selectors.selectImmersveMoneyAccountMode) {
+        return true;
+      }
+      return undefined;
+    });
+
+    const { result } = renderHook(() =>
+      useImmersveEnableCard({
+        alerts: [{ type: 'allowance_revoked', dismissable: false }],
+      } as never),
+    );
+
+    act(() => {
+      result.current.enableCard();
+    });
+
+    expect(mockConfirmLinkInBackground).toHaveBeenCalledWith({
+      delegationAmountHuman: BAANX_MAX_LIMIT,
+      entrypoint: CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('never enables the card for a non-Immersve provider', () => {

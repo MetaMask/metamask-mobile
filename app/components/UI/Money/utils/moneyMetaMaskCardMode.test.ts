@@ -195,6 +195,18 @@ describe('deriveMoneyMetaMaskCardMode', () => {
     ).toBeNull();
   });
 
+  it('shows the card upsell for an authenticated Immersve NZ user who is not verified', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardAuthenticated: true,
+        isCardVerified: false,
+        isCardholder: false,
+        isImmersveMoneyAccountMode: true,
+      }),
+    ).toBe('upsell');
+  });
+
   it('returns null when the money card section is unavailable, even if card state is unresolved', () => {
     expect(
       deriveMoneyMetaMaskCardMode({

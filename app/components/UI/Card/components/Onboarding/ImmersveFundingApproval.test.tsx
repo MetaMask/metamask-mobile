@@ -102,6 +102,14 @@ jest.mock('../../hooks/useCardHeaderHandlers', () => ({
 jest.mock('../../hooks/useImmersveSpendingPrerequisites', () => ({
   useImmersveSpendingPrerequisites: jest.fn(),
 }));
+const mockConfirmLinkInBackground = jest.fn().mockResolvedValue(true);
+jest.mock('../../hooks/useMoneyAccountCardLinkage', () => ({
+  useMoneyAccountCardLinkage: () => ({
+    confirmLinkInBackground: mockConfirmLinkInBackground,
+    isLinking: false,
+  }),
+}));
+
 jest.mock('../../hooks/useImmersveFunding', () => ({
   useImmersveFunding: jest.fn(),
 }));

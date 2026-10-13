@@ -33,6 +33,11 @@ import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { selectImmersveFundingSourceId } from '../../../../../core/redux/slices/card';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectCardHomeData } from '../../../../../selectors/cardController';
+import { selectCardImmersveConfig } from '../../../../../selectors/featureFlagController/card';
+import { getImmersveMoneyAccountConfig } from '../../util/immersveMoneyAccount';
+import { MoneyAccountRow } from '../MoneyAccountRow/MoneyAccountRow';
+import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
+import { CardEntryPoint , CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { getMemoizedInternalAccountByAddress } from '../../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
@@ -48,7 +53,6 @@ import { useImmersveFunding } from '../../hooks/useImmersveFunding';
 import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { resolveCardFundingAddress } from '../../util/resolveCardFundingAddress';
 import {
@@ -113,7 +117,11 @@ const ReadOnlyAccountRow = ({
   </Box>
 );
 
-const ReadOnlyTokenRow = () => (
+const ReadOnlyTokenRow = ({
+  moneyAccount = false,
+}: {
+  moneyAccount?: boolean;
+}) => (
   <Box
     twClassName="flex-row items-center p-4"
     testID="immersve-funding-approval-token-row"
@@ -142,7 +150,7 @@ const ReadOnlyTokenRow = () => (
         twClassName="text-text-default font-medium self-center shrink"
         numberOfLines={1}
       >
-        USDC on Base
+        {moneyAccount ? 'mUSD on Monad' : 'USDC on Base'}
       </Text>
     </Box>
   </Box>
@@ -176,6 +184,11 @@ const ImmersveFundingApproval = () => {
     isReapprove ? 'back' : 'close-direct',
   );
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const immersveConfig = useSelector(selectCardImmersveConfig);
+  const isMoneyAccountMode = Boolean(
+    getImmersveMoneyAccountConfig(immersveConfig, countryKey),
+  );
+  const { confirmLinkInBackground, isLinking } = useMoneyAccountCardLinkage();
   const fundingSourceId = useSelector(selectImmersveFundingSourceId);
   const route = useImmersveOnboardingRouter();
   const hasCreatedCard = useRef(false);
@@ -290,6 +303,35 @@ const ImmersveFundingApproval = () => {
   }, [cardHomeData?.card, createCard, fundingSourceId, navigation]);
 
   const runApprove = useCallback(() => {
+    if (isMoneyAccountMode) {
+      setIsSettling(true);
+      confirmLinkInBackground({
+        delegationAmountHuman: BAANX_MAX_LIMIT,
+        entrypoint: isReapprove
+          ? CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD
+          : CardEntryPoint.SIGN_UP,
+      })
+        .then(async (linked) => {
+          if (!linked) {
+            setIsSettling(false);
+            return;
+          }
+          if (isReapprove) {
+            await Engine.context.CardController.fetchCardHomeData({
+              force: true,
+            }).catch(() => undefined);
+            navigation.reset({
+              index: 0,
+              routes: [{ name: Routes.CARD.HOME }],
+            });
+            return;
+          }
+          refresh();
+        })
+        .catch(() => setIsSettling(false));
+      return;
+    }
+
     if (isReapprove) {
       try {
         const write = buildApproveWrite(BAANX_MAX_LIMIT);
@@ -321,6 +363,8 @@ const ImmersveFundingApproval = () => {
       .catch(() => setIsSettling(false));
   }, [
     isReapprove,
+    isMoneyAccountMode,
+    confirmLinkInBackground,
     buildApproveWrite,
     nextAction,
     executeFunding,
@@ -390,7 +434,7 @@ const ImmersveFundingApproval = () => {
     mode,
   ]);
 
-  const busy = fundingIsLoading || isSettling;
+  const busy = fundingIsLoading || isSettling || isLinking;
   const displayError = fundingError;
 
   const titleKey = isReapprove
@@ -507,12 +551,16 @@ const ImmersveFundingApproval = () => {
         </Box>
 
         <Box twClassName="bg-background-muted rounded-2xl overflow-hidden mb-6">
-          <ReadOnlyAccountRow
-            selectedAccount={displayAccount}
-            avatarAccountType={avatarAccountType}
-            accountGroupName={accountGroupName}
-          />
-          <ReadOnlyTokenRow />
+          {isMoneyAccountMode ? (
+            <MoneyAccountRow testID="immersve-funding-approval-account-row" />
+          ) : (
+            <ReadOnlyAccountRow
+              selectedAccount={displayAccount}
+              avatarAccountType={avatarAccountType}
+              accountGroupName={accountGroupName}
+            />
+          )}
+          <ReadOnlyTokenRow moneyAccount={isMoneyAccountMode} />
         </Box>
 
         {displayError && (

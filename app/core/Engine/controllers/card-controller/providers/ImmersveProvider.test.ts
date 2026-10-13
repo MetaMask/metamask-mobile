@@ -60,6 +60,15 @@ function makeJwt(expMs: number): string {
 
 function createProvider(
   programConfig: ImmersveProgramConfig | null = PROGRAM_CONFIG,
+  extras?: {
+    getMoneyAccountConfig?: () => {
+      countries: string[];
+      network: string;
+      fundingChannelId: string;
+      spenderAddress: string;
+    } | null;
+    getSelectedCountry?: () => string | null;
+  },
 ) {
   const service = {
     get: jest.fn(),
@@ -76,6 +85,8 @@ function createProvider(
     service,
     config: CONFIG,
     getProgramConfig: () => programConfig,
+    getMoneyAccountConfig: extras?.getMoneyAccountConfig,
+    getSelectedCountry: extras?.getSelectedCountry,
   });
   return { provider, service };
 }
@@ -139,6 +150,21 @@ describe('ImmersveProvider', () => {
         applePay: true,
         googlePay: false,
       });
+    });
+
+    it('enables Money account linking only when a money account config is injected', () => {
+      const { provider } = createProvider(PROGRAM_CONFIG, {
+        getMoneyAccountConfig: () => ({
+          countries: ['NZ'],
+          network: 'monad-mainnet',
+          fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+          spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
+        }),
+        getSelectedCountry: () => 'NZ',
+      });
+
+      expect(provider.capabilities.supportsMoneyAccountLinking).toBe(true);
+      expect(provider.capabilities.fundingChains).toContain('eip155:143');
     });
   });
 
@@ -693,6 +719,7 @@ describe('ImmersveProvider', () => {
         network: 'base-sepolia',
         balance: '10',
         balanceCurrency: 'USD',
+        fundingChannelId: 'base-channel',
       });
     });
 
@@ -1241,6 +1268,139 @@ describe('ImmersveProvider', () => {
       });
       expect(typeof data.walletProvisioning?.primaryAccountIdentifier).toBe(
         'string',
+      );
+    });
+
+    it('maps a Money account funding source to Veda on Monad', async () => {
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getMoneyAccountConfig: () => ({
+          countries: ['NZ'],
+          network: 'monad-mainnet',
+          fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+          spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
+        }),
+      });
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: {
+            ...fundingSourceDetail,
+            network: 'monad-mainnet',
+            fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+            balanceCurrency: 'USDC',
+          },
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.primaryFundingAsset).toMatchObject({
+        symbol: 'veda',
+        address: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+        walletAddress: '0xabc',
+        chainId: 'eip155:143',
+        decimals: 6,
+        status: FundingAssetStatus.Active,
+      });
+    });
+
+    it('prepareMoneyAccountLink creates the Money account source and uses the prerequisite spender', async () => {
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getMoneyAccountConfig: () => ({
+          countries: ['NZ'],
+          network: 'monad-mainnet',
+          fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+          spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
+        }),
+        getSelectedCountry: () => 'NZ',
+      });
+      service.get.mockResolvedValue({ items: [] });
+      service.post.mockImplementation((path: string) => {
+        if (path === '/api/funding-sources') {
+          return Promise.resolve({
+            id: 'fs-money',
+            network: 'monad-mainnet',
+          });
+        }
+        if (path === '/api/spending-prerequisites') {
+          return Promise.resolve({
+            prerequisites: [
+              {
+                status: 'action-required',
+                actionType: 'smart_contract_write',
+                params: {
+                  params: {
+                    _spender: '0x1111111111111111111111111111111111111111',
+                  },
+                },
+              },
+            ],
+          });
+        }
+        return Promise.resolve({});
+      });
+
+      const preparation = await provider.prepareMoneyAccountLink(
+        {
+          moneyAccountAddress: '0x000000000000000000000000000000000000dEaD',
+          amountHuman: '1',
+        },
+        TOKENS,
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/funding-sources',
+        expect.objectContaining({
+          fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+          fundingAddress: '0x000000000000000000000000000000000000dEaD',
+        }),
+        TOKENS,
+      );
+      expect(preparation).toMatchObject({
+        tokenAddress: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+        spender: '0x1111111111111111111111111111111111111111',
+        caipChainId: 'eip155:143',
+        context: { fundingSourceId: 'fs-money' },
+      });
+    });
+
+    it('completeMoneyAccountLink creates a card when prerequisites are active', async () => {
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        getMoneyAccountConfig: () => ({
+          countries: ['NZ'],
+          network: 'monad-mainnet',
+          fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+          spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
+        }),
+      });
+      service.get.mockResolvedValue({ items: [] });
+      service.post.mockImplementation((path: string) => {
+        if (path === '/api/spending-prerequisites') {
+          return Promise.resolve({
+            prerequisites: [{ status: 'ok', actionType: 'noop' }],
+          });
+        }
+        if (path === '/api/cards') {
+          return Promise.resolve({ cardId: 'card-new' });
+        }
+        return Promise.resolve({});
+      });
+
+      await provider.completeMoneyAccountLink(
+        {
+          moneyAccountAddress: '0x000000000000000000000000000000000000dEaD',
+          amountHuman: '1',
+          txHash: '0xtx',
+          context: { fundingSourceId: 'fs-money' },
+        },
+        TOKENS,
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/cards',
+        expect.objectContaining({ fundingSourceId: 'fs-money' }),
+        TOKENS,
       );
     });
 

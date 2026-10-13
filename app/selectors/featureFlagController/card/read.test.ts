@@ -84,23 +84,23 @@ describe('card feature flag readers', () => {
         ).toBe(true);
       });
 
-      it('stays off for the resolved disabled cohort (not in rollout)', () => {
+      it('stays on for the resolved disabled cohort on this custom build', () => {
         expect(
           readCardProviderEnabled(
             { cardImmersve: { enabled: false, minimumVersion: '0.0.0' } },
             IMMERSVE,
           ),
-        ).toBe(false);
+        ).toBe(true);
       });
 
-      it('still version-gates a user inside the enabled cohort', () => {
+      it('stays on below minimumVersion on this custom build', () => {
         mockGetVersion.mockReturnValue('8.0.0');
         expect(
           readCardProviderEnabled(
             { cardImmersve: { enabled: true, minimumVersion: '9.0.0' } },
             IMMERSVE,
           ),
-        ).toBe(false);
+        ).toBe(true);
       });
 
       // Guards the resolved-vs-raw contract on CardRemoteFeatureFlags: handing
@@ -124,31 +124,31 @@ describe('card feature flag readers', () => {
 
         expect(
           readCardProviderEnabled({ cardImmersve: rawRolloutFlag }, IMMERSVE),
-        ).toBe(false);
+        ).toBe(true);
       });
     });
 
-    it('gates off when the binary is below minimumVersion', () => {
+    it('stays on when the binary is below minimumVersion on this custom build', () => {
       mockGetVersion.mockReturnValue('8.0.0');
       expect(
         readCardProviderEnabled(
           { cardImmersve: { enabled: true, minimumVersion: '9.0.0' } },
           IMMERSVE,
         ),
-      ).toBe(false);
+      ).toBe(true);
     });
 
-    it('ignores the legacy cardFeature.immersve block entirely', () => {
+    it('is on even when only the legacy cardFeature.immersve block is set', () => {
       expect(
         readCardProviderEnabled(
           { cardFeature: { immersve: { enabled: true } } },
           IMMERSVE,
         ),
-      ).toBe(false);
+      ).toBe(true);
     });
 
-    it('defaults to false with nothing configured', () => {
-      expect(readCardProviderEnabled({}, IMMERSVE)).toBe(false);
+    it('defaults to on for Immersve on this custom build', () => {
+      expect(readCardProviderEnabled({}, IMMERSVE)).toBe(true);
     });
 
     it('returns false for an unknown provider', () => {
@@ -157,11 +157,17 @@ describe('card feature flag readers', () => {
   });
 
   describe('readCardProviderConfig', () => {
-    it('prefers cardImmersveConfig', () => {
+    it('prefers cardImmersveConfig and merges the Money account channel', () => {
       const config = { cardProgramId: 'from-flag' };
       expect(
         readCardProviderConfig({ cardImmersveConfig: config }, IMMERSVE),
-      ).toBe(config);
+      ).toEqual({
+        ...config,
+        moneyAccountConfig: expect.objectContaining({
+          countries: ['NZ'],
+          fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+        }),
+      });
     });
 
     it('ignores the legacy cardFeature.immersve block entirely', () => {
@@ -170,24 +176,32 @@ describe('card feature flag readers', () => {
           { cardFeature: { immersve: { cardProgramId: 'legacy' } } },
           IMMERSVE,
         ),
-      ).toBe(DEFAULT_IMMERSVE_CONFIG);
+      ).toEqual({
+        ...DEFAULT_IMMERSVE_CONFIG,
+        moneyAccountConfig: expect.objectContaining({
+          fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+        }),
+      });
     });
 
     it('falls back to the default when nothing is configured', () => {
-      expect(readCardProviderConfig({}, IMMERSVE)).toBe(
-        DEFAULT_IMMERSVE_CONFIG,
-      );
+      expect(readCardProviderConfig({}, IMMERSVE)).toEqual({
+        ...DEFAULT_IMMERSVE_CONFIG,
+        moneyAccountConfig: expect.objectContaining({
+          network: 'monad-mainnet',
+        }),
+      });
     });
   });
 
   describe('readCardProviderCountries', () => {
-    it('prefers cardImmersveCountries', () => {
+    it('prefers cardImmersveCountries and claims NZ', () => {
       expect(
         readCardProviderCountries(
           { cardImmersveCountries: ['FR', 'DE'] },
           IMMERSVE,
         ),
-      ).toEqual(['FR', 'DE']);
+      ).toEqual(['FR', 'DE', 'NZ']);
     });
 
     it('ignores a malformed value and falls back', () => {
@@ -196,7 +210,7 @@ describe('card feature flag readers', () => {
           { cardImmersveCountries: [1, 2], cardFeature: {} },
           IMMERSVE,
         ),
-      ).toBe(DEFAULT_IMMERSVE_COUNTRIES);
+      ).toEqual([...DEFAULT_IMMERSVE_COUNTRIES, 'NZ']);
     });
 
     it('ignores the legacy immersveCountries key entirely', () => {
@@ -205,7 +219,7 @@ describe('card feature flag readers', () => {
           { cardFeature: { immersveCountries: ['ES'] } },
           IMMERSVE,
         ),
-      ).toBe(DEFAULT_IMMERSVE_COUNTRIES);
+      ).toEqual([...DEFAULT_IMMERSVE_COUNTRIES, 'NZ']);
     });
   });
 
@@ -296,7 +310,7 @@ describe('card feature flag readers', () => {
       ).toBe('immersve');
     });
 
-    it('falls back to baanx when the provider is switched off', () => {
+    it('still routes GB to Immersve when the switch is off on this custom build', () => {
       expect(
         resolveCardProviderForCountry(
           {
@@ -305,7 +319,7 @@ describe('card feature flag readers', () => {
           },
           'GB',
         ),
-      ).toBe('baanx');
+      ).toBe('immersve');
     });
 
     it('falls back to baanx for an unclaimed country', () => {
@@ -320,7 +334,7 @@ describe('card feature flag readers', () => {
       ).toBe('baanx');
     });
 
-    it('does not route to a provider gated off by version', () => {
+    it('routes GB to Immersve below minimumVersion on this custom build', () => {
       mockGetVersion.mockReturnValue('8.0.0');
       expect(
         resolveCardProviderForCountry(
@@ -330,7 +344,11 @@ describe('card feature flag readers', () => {
           },
           'GB',
         ),
-      ).toBe('baanx');
+      ).toBe('immersve');
+    });
+
+    it('routes NZ to Immersve via the hardcoded Money account country', () => {
+      expect(resolveCardProviderForCountry({}, 'NZ')).toBe('immersve');
     });
   });
 

@@ -393,6 +393,42 @@ export interface DelegationChallengeResponse {
   expiresAt: string;
 }
 
+/**
+ * Provider-specific bag carried from {@link ICardProvider.prepareMoneyAccountLink}
+ * to {@link ICardProvider.completeMoneyAccountLink}. When `signatureMessage`
+ * is set, the controller SIWE-signs it before the approve and passes `sigHash`
+ * back on completion.
+ */
+export interface MoneyAccountLinkContext {
+  signatureMessage?: string;
+  delegationToken?: string;
+  network?: string;
+  currency?: string;
+  fundingSourceId?: string;
+}
+
+export interface MoneyAccountLinkPreparation {
+  tokenAddress: string;
+  spender: string;
+  decimals: number;
+  caipChainId: CaipChainId;
+  context: MoneyAccountLinkContext;
+}
+
+export interface PrepareMoneyAccountLinkParams {
+  moneyAccountAddress: string;
+  amountHuman: string;
+  delegationSettings?: DelegationSettingsResponse | null;
+}
+
+export interface CompleteMoneyAccountLinkParams {
+  moneyAccountAddress: string;
+  amountHuman: string;
+  txHash: string;
+  sigHash?: string;
+  context: MoneyAccountLinkContext;
+}
+
 // -- Cashback --
 
 export type CashbackWalletResponse = RedeemWalletResponse;
@@ -690,6 +726,19 @@ export interface ICardProvider {
   }): string;
   approveFunding?(
     params: FundingApprovalParams,
+    tokens: CardAuthTokens,
+  ): Promise<void>;
+  /**
+   * Resolves the token, spender, and chain for a Money account card link,
+   * plus any provider work that must happen before the sponsored approve.
+   */
+  prepareMoneyAccountLink?(
+    params: PrepareMoneyAccountLinkParams,
+    tokens: CardAuthTokens,
+  ): Promise<MoneyAccountLinkPreparation>;
+  /** Registers the confirmed approve with the provider (and creates a card when ready). */
+  completeMoneyAccountLink?(
+    params: CompleteMoneyAccountLinkParams,
     tokens: CardAuthTokens,
   ): Promise<void>;
 

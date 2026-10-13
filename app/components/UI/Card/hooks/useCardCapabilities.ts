@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectCardActiveProviderId,
+  selectCardSelectedCountry,
   selectCardUserLocation,
 } from '../../../../selectors/cardController';
 import Engine from '../../../../core/Engine';
@@ -9,11 +10,12 @@ import type { CardProviderCapabilities } from '../../../../core/Engine/controlle
 
 export const useCardCapabilities = (): CardProviderCapabilities | null => {
   const providerId = useSelector(selectCardActiveProviderId);
-  // Include location as a dep so capabilities re-compute when the user's
-  // location changes (e.g. after auth, when location is set from tokens).
+  // Location and country both change Immersve capabilities without changing
+  // the provider id: NZ turns Money account linking on, other countries do not.
   const userLocation = useSelector(selectCardUserLocation);
+  const selectedCountry = useSelector(selectCardSelectedCountry);
   return useMemo(() => {
     if (!providerId) return null;
     return Engine.context?.CardController?.getCapabilities() ?? null;
-  }, [providerId, userLocation]);
+  }, [providerId, userLocation, selectedCountry]);
 };

@@ -4,7 +4,10 @@ import {
   CardProviderIds,
   type CardHomeData,
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
-import { selectCardActiveProviderId } from '../../../../../../selectors/cardController';
+import {
+  selectCardActiveProviderId,
+  selectImmersveMoneyAccountMode,
+} from '../../../../../../selectors/cardController';
 
 /**
  * True when spendingCap is a known numeric value greater than zero.
@@ -29,11 +32,12 @@ export function useCardRevokeAllowance(
   data: CardHomeData | null | undefined,
 ): boolean {
   const providerId = useSelector(selectCardActiveProviderId);
+  const isMoneyAccountMode = useSelector(selectImmersveMoneyAccountMode);
 
   return useMemo(() => {
-    if (providerId !== CardProviderIds.Immersve) {
+    if (providerId !== CardProviderIds.Immersve || isMoneyAccountMode) {
       return false;
     }
     return hasPositiveSpendingCap(data?.primaryFundingAsset?.spendingCap);
-  }, [providerId, data?.primaryFundingAsset?.spendingCap]);
+  }, [providerId, isMoneyAccountMode, data?.primaryFundingAsset?.spendingCap]);
 }

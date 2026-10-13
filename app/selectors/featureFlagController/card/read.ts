@@ -7,6 +7,7 @@ import {
   DEFAULT_IMMERSVE_CHAINS,
   DEFAULT_IMMERSVE_CONFIG,
   DEFAULT_IMMERSVE_COUNTRIES,
+  IMMERSVE_MONEY_ACCOUNT_CONFIG,
   defaultCardFeatureFlag,
   defaultCardUkMigrationFlag,
 } from './defaults';
@@ -63,6 +64,17 @@ const isNonEmptyObject = (value: unknown): value is Record<string, unknown> =>
  * `process.env` member expressions must be written out literally — the React
  * Native env transform does not inline dynamic `process.env[key]` lookups.
  */
+/**
+ * CUSTOM BUILD: force Immersve on, claim NZ, and attach the Money account
+ * channel. LaunchDarkly would own these three once this build is retired.
+ */
+const IMMERSVE_MONEY_ACCOUNT_BUILD_COUNTRY = 'NZ';
+
+const withImmersveMoneyAccountCountry = (countries: string[]): string[] =>
+  countries.includes(IMMERSVE_MONEY_ACCOUNT_BUILD_COUNTRY)
+    ? countries
+    : [...countries, IMMERSVE_MONEY_ACCOUNT_BUILD_COUNTRY];
+
 const readProviderEnvOverride = (providerId: string): boolean => {
   if (providerId === CardProviderIds.Immersve) {
     return process.env.MM_CARD_IMMERSVE_ENABLED === 'true';
@@ -87,7 +99,7 @@ export function readCardFeatureFlag(
  * Whether a provider is available.
  *
  * Resolution order: the `card<Provider>` switch -> the local env override ->
- * false.
+ * false. This custom build forces Immersve on before that resolution.
  *
  * The switch is expected to be a gradual-rollout flag. The controller has
  * already picked the cohort by the time we see it, so the value here is a plain
@@ -110,6 +122,10 @@ export function readCardProviderEnabled(
     return false;
   }
 
+  if (providerId === CardProviderIds.Immersve) {
+    return true;
+  }
+
   const gated = validatedVersionGatedFeatureFlag(flags?.[keys.gate]);
   if (gated !== undefined) {
     return gated;
@@ -125,12 +141,18 @@ export function readCardProviderConfig<T = ImmersveProgramConfig>(
 ): T {
   const keys = CARD_PROVIDER_FLAGS[providerId];
   const raw = keys ? flags?.[keys.config] : undefined;
-  if (isNonEmptyObject(raw)) {
-    return raw as T;
+  if (providerId === CardProviderIds.Immersve) {
+    const base = isNonEmptyObject(raw)
+      ? (raw as ImmersveProgramConfig)
+      : DEFAULT_IMMERSVE_CONFIG;
+    return {
+      ...base,
+      moneyAccountConfig: IMMERSVE_MONEY_ACCOUNT_CONFIG,
+    } as T;
   }
 
-  if (providerId === CardProviderIds.Immersve) {
-    return DEFAULT_IMMERSVE_CONFIG as T;
+  if (isNonEmptyObject(raw)) {
+    return raw as T;
   }
 
   return {} as T;
@@ -143,18 +165,19 @@ export function readCardProviderCountries(
 ): string[] {
   const keys = CARD_PROVIDER_FLAGS[providerId];
   const raw = keys ? flags?.[keys.countries] : undefined;
-  if (
+  const remoteCountries =
     Array.isArray(raw) &&
     raw.every((entry): entry is string => typeof entry === 'string')
-  ) {
-    return raw;
-  }
+      ? raw
+      : null;
 
   if (providerId === CardProviderIds.Immersve) {
-    return DEFAULT_IMMERSVE_COUNTRIES;
+    return withImmersveMoneyAccountCountry(
+      remoteCountries ?? DEFAULT_IMMERSVE_COUNTRIES,
+    );
   }
 
-  return [];
+  return remoteCountries ?? [];
 }
 
 const toTokenConfig = (value: unknown): CardProviderTokenConfig | null => {

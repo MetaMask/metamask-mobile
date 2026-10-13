@@ -16,6 +16,11 @@ export interface MoneyMetaMaskCardModeInput {
   hasMoneyAccountRequirements: boolean;
   isCardStateResolved: boolean;
   isMoneyCardSectionAvailable?: boolean;
+  /**
+   * Immersve never reports Baanx VERIFIED. NZ Money account users should see
+   * the card upsell until they have a card, not the verification banner.
+   */
+  isImmersveMoneyAccountMode?: boolean;
 }
 
 export const deriveMoneyMetaMaskCardMode = ({
@@ -29,6 +34,7 @@ export const deriveMoneyMetaMaskCardMode = ({
   hasMoneyAccountRequirements,
   isCardStateResolved,
   isMoneyCardSectionAvailable = true,
+  isImmersveMoneyAccountMode = false,
 }: MoneyMetaMaskCardModeInput): MoneyMetaMaskCardMode | null => {
   if (!isMoneyCardSectionAvailable) {
     return null;
@@ -55,7 +61,13 @@ export const deriveMoneyMetaMaskCardMode = ({
   }
 
   // Authenticated but identity not yet verified -> verification in progress.
-  if (isCardAuthenticated) return isMoneyAccountVisible ? 'verifying' : null;
+  // Immersve NZ has no Baanx verification state; show the card upsell instead.
+  if (isCardAuthenticated) {
+    if (isImmersveMoneyAccountMode) {
+      return isMoneyAccountVisible ? 'upsell' : null;
+    }
+    return isMoneyAccountVisible ? 'verifying' : null;
+  }
 
   // Brand-new user -> upsell.
   return isMoneyAccountVisible ? 'upsell' : null;

@@ -169,6 +169,16 @@ jest.mock('../../../../hooks/useDebouncedValue');
 
 // Mock only the version-gated Immersve flag selector (avoids the real device-info
 // version gate); keep the rest of the card selectors actual.
+jest.mock('../../../../../selectors/moneyAccountController', () => {
+  const actual = jest.requireActual(
+    '../../../../../selectors/moneyAccountController',
+  );
+  return {
+    ...actual,
+    selectPrimaryMoneyAccount: jest.fn(() => null),
+  };
+});
+
 jest.mock('../../../../../selectors/featureFlagController/card', () => {
   const actual = jest.requireActual(
     '../../../../../selectors/featureFlagController/card',

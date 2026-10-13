@@ -16,6 +16,7 @@ import {
   type CardFeatureFlag,
   type ImmersveProgramConfig,
 } from '../../../../selectors/featureFlagController/card';
+import { getImmersveMoneyAccountConfig } from '../../../../components/UI/Card/util/immersveMoneyAccount';
 
 /**
  * Initialize the CardController.
@@ -48,6 +49,7 @@ export const cardControllerInit: MessengerClientInitFunction<
     getCardFeatureFlag,
   });
 
+  let readSelectedCountry: () => string | null = () => null;
   const immersveConfig = resolveImmersveConfig();
   const immersveProvider = new ImmersveProvider({
     service: new ImmersveService({
@@ -56,6 +58,9 @@ export const cardControllerInit: MessengerClientInitFunction<
     }),
     config: immersveConfig,
     getProgramConfig: getImmersveConfig,
+    getSelectedCountry: () => readSelectedCountry(),
+    getMoneyAccountConfig: () =>
+      getImmersveMoneyAccountConfig(getImmersveConfig(), readSelectedCountry()),
   });
 
   const cardService = new CardService({
@@ -74,6 +79,8 @@ export const cardControllerInit: MessengerClientInitFunction<
     },
     cardService,
   });
+
+  readSelectedCountry = () => controller.state.selectedCountry;
 
   return { controller };
 };

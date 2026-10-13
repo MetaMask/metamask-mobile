@@ -34,6 +34,10 @@ describe('immersveNetworkToCaipChainId', () => {
     expect(immersveNetworkToCaipChainId('base-sepolia')).toBe('eip155:84532');
   });
 
+  it('maps monad-mainnet to eip155:143', () => {
+    expect(immersveNetworkToCaipChainId('monad-mainnet')).toBe('eip155:143');
+  });
+
   it('throws for an unknown or missing network', () => {
     expect(() => immersveNetworkToCaipChainId('polygon')).toThrow();
     expect(() => immersveNetworkToCaipChainId(undefined)).toThrow();
@@ -53,6 +57,24 @@ describe('immersveNetworkToFundingToken', () => {
     expect(immersveNetworkToFundingToken('base-sepolia')).toStrictEqual({
       caipChainId: 'eip155:84532',
       tokenAddress: BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+      decimals: 6,
+    });
+  });
+
+  it('maps monad-mainnet to Monad USDC unless the source is the Money account channel', () => {
+    expect(immersveNetworkToFundingToken('monad-mainnet')).toStrictEqual({
+      caipChainId: 'eip155:143',
+      tokenAddress: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
+      decimals: 6,
+    });
+    expect(
+      immersveNetworkToFundingToken('monad-mainnet', {
+        fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+        moneyAccountChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+      }),
+    ).toStrictEqual({
+      caipChainId: 'eip155:143',
+      tokenAddress: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
       decimals: 6,
     });
   });

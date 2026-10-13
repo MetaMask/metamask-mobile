@@ -15,6 +15,7 @@ import {
   type CardRedeemWithdrawal,
 } from '../core/Engine/controllers/card-controller/types';
 import {
+  CardProviderIds,
   FundingAssetStatus,
   type CardHomeData,
   type CardSignInLink,
@@ -47,7 +48,11 @@ import {
   isAnyMoneyAccountDelegatedForCard,
 } from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
-import { selectCardFeatureFlag } from './featureFlagController/card';
+import {
+  selectCardFeatureFlag,
+  selectCardImmersveConfig,
+} from './featureFlagController/card';
+import { getImmersveMoneyAccountConfig } from '../components/UI/Card/util/immersveMoneyAccount';
 import { selectMoneyAccountGeoBlockedCountries } from '../components/UI/Money/selectors/featureFlags';
 import {
   buildCardResidencyRegion,
@@ -108,6 +113,19 @@ export const selectCardActiveProviderId = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
     cardState?.activeProviderId ?? null,
+);
+
+/**
+ * True when the active card provider is Immersve and the selected country is
+ * claimed by `moneyAccountConfig` (NZ on this build).
+ */
+export const selectImmersveMoneyAccountMode = createSelector(
+  selectCardActiveProviderId,
+  selectCardSelectedCountry,
+  selectCardImmersveConfig,
+  (providerId, country, config): boolean =>
+    providerId === CardProviderIds.Immersve &&
+    getImmersveMoneyAccountConfig(config, country) !== null,
 );
 
 export const selectIsCardAuthenticated = createSelector(

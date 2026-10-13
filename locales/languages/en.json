@@ -6606,8 +6606,8 @@
     "tx_details_free": "Free",
     "tx_details_not_available": "Not available",
     "smart_contract_interaction": "Contract interaction",
-    "money_account_deposit": "Deposit to Money Account",
-    "money_account_withdraw": "Transfer from Money Account",
+    "money_account_deposit": "Deposit to Money account",
+    "money_account_withdraw": "Transfer from Money account",
     "swaps_transaction": "Swaps transaction",
     "bridge_transaction": "Bridge",
     "approve": "Approve",
@@ -11202,9 +11202,9 @@
         "confirm_button_label": "Set up funding"
       },
       "money_account_required": {
-        "title": "Set up Money Account",
-        "description": "You need a linked Money Account before redeeming mUSD back.",
-        "confirm_button_label": "Set up Money Account"
+        "title": "Set up Money account",
+        "description": "You need a linked Money account before redeeming mUSD back.",
+        "confirm_button_label": "Set up Money account"
       }
     },
     "credit_screen": {
@@ -11225,9 +11225,9 @@
         "confirm_button_label": "Set up funding"
       },
       "money_account_required": {
-        "title": "Set up Money Account",
-        "description": "You need a linked Money Account before redeeming your credit.",
-        "confirm_button_label": "Set up Money Account"
+        "title": "Set up Money account",
+        "description": "You need a linked Money account before redeeming your credit.",
+        "confirm_button_label": "Set up Money account"
       },
       "refund_info": {
         "title": "Refund balance",
@@ -11288,6 +11288,11 @@
       "password_label": "Password",
       "login_button": "Sign in",
       "siwe_button": "Sign in with Ethereum",
+      "money_account_required": {
+        "title": "Set up Money account",
+        "description": "A Money account is required to get the card in New Zealand.",
+        "confirm_button_label": "Set up Money account"
+      },
       "continue_button": "Continue",
       "uk_login_button": "Sign in with this account",
       "signup_button": "Sign up",
@@ -12134,8 +12139,8 @@
       "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
       "predict_withdraw": "Withdrawal",
-      "money_account_deposit": "Deposit to Money Account",
-      "money_account_withdraw": "Transfer from Money Account",
+      "money_account_deposit": "Deposit to Money account",
+      "money_account_withdraw": "Transfer from Money account",
       "default": "Transaction details"
     },
     "label": {

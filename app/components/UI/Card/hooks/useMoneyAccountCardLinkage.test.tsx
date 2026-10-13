@@ -6,9 +6,14 @@ import Logger from '../../../../util/Logger';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
-import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
+import {
+  selectCardFeatureFlag,
+  selectCardImmersveConfig,
+} from '../../../../selectors/featureFlagController/card';
 import {
   selectCardDelegationSettings,
+  selectCardSelectedCountry,
+  selectImmersveMoneyAccountMode,
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
   selectIsCardVerified,
@@ -292,6 +297,36 @@ describe('useMoneyAccountCardLinkage', () => {
         </ToastContext.Provider>
       ),
     });
+
+  it('synthesizes the Immersve Veda token when delegation settings have none', () => {
+    mockResolveMoneyAccountCardToken.mockReturnValue(null);
+    applySelectorMocks(buildSelectors({ isCardVerified: false }));
+    const previous = mockUseSelector.getMockImplementation();
+    mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) => {
+      if (selector === selectCardSelectedCountry) return 'NZ';
+      if (selector === selectImmersveMoneyAccountMode) return true;
+      if (selector === selectCardImmersveConfig) {
+        return {
+          moneyAccountConfig: {
+            countries: ['NZ'],
+            network: 'monad-mainnet',
+            fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+            spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
+          },
+        };
+      }
+      return previous?.(selector);
+    });
+
+    const { result } = renderLinkageHook();
+
+    expect(result.current.moneyAccountCardToken).toMatchObject({
+      address: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+      delegationContract: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
+      caipChainId: 'eip155:143',
+    });
+    expect(result.current.canLink).toBe(true);
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -598,6 +633,23 @@ describe('useMoneyAccountCardLinkage', () => {
       const { result } = renderLinkageHook();
 
       expect(result.current.isMoneyAccountLinkingSupported).toBe(true);
+      expect(result.current.isMoneyCardSectionAvailable).toBe(true);
+    });
+
+    it('keeps the card section for an authenticated Immersve NZ Money account', () => {
+      applySelectorMocks(buildSelectors({ isCardAuthenticated: true }));
+      const previous = mockUseSelector.getMockImplementation();
+      mockUseSelector.mockImplementation(
+        (selector: (s: unknown) => unknown) => {
+          if (selector === selectImmersveMoneyAccountMode) return true;
+          return previous?.(selector);
+        },
+      );
+      mockUseCardCapabilities.mockReturnValue(unsupportedCapabilities);
+
+      const { result } = renderLinkageHook();
+
+      expect(result.current.isImmersveMoneyAccountMode).toBe(true);
       expect(result.current.isMoneyCardSectionAvailable).toBe(true);
     });
 

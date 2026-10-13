@@ -10,10 +10,17 @@ import {
 import {
   selectCardActiveProviderId,
   selectCardSelectedCountry,
+  selectImmersveMoneyAccountMode,
 } from '../../../../../../selectors/cardController';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { CardActions, withCardProvider } from '../../../util/metrics';
+import { BAANX_MAX_LIMIT } from '../../../constants';
+import { useMoneyAccountCardLinkage } from '../../../hooks/useMoneyAccountCardLinkage';
+import {
+  CardActions,
+  CardEntryPoint,
+  withCardProvider,
+} from '../../../util/metrics';
 import type { CardProvisioningView } from '../../../types';
 import type { ImmersveNextAction } from '../../../util/immersvePrerequisites';
 import { useImmersveCardProvisioning } from './useImmersveCardProvisioning';
@@ -40,6 +47,8 @@ export function useImmersveEnableCard(data: CardHomeData | null | undefined) {
   const kycRegion = useSelector(selectCardSelectedCountry) ?? undefined;
   const providerId = useSelector(selectCardActiveProviderId);
   const isImmersve = providerId === CardProviderIds.Immersve;
+  const isMoneyAccountMode = useSelector(selectImmersveMoneyAccountMode);
+  const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
 
   const { isReconciling, pendingAction, resumePendingAction, isProvisioning } =
     useImmersveCardProvisioning(data);
@@ -84,6 +93,13 @@ export function useImmersveEnableCard(data: CardHomeData | null | undefined) {
           )
           .build(),
       );
+      if (isMoneyAccountMode) {
+        confirmLinkInBackground({
+          delegationAmountHuman: BAANX_MAX_LIMIT,
+          entrypoint: CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
+        }).catch(() => undefined);
+        return;
+      }
       navigation.navigate(Routes.CARD.ONBOARDING.ROOT, {
         screen: Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
         params: {
@@ -99,6 +115,8 @@ export function useImmersveEnableCard(data: CardHomeData | null | undefined) {
     resumePendingAction();
   }, [
     isAllowanceRevoked,
+    isMoneyAccountMode,
+    confirmLinkInBackground,
     trackEvent,
     createEventBuilder,
     navigation,
