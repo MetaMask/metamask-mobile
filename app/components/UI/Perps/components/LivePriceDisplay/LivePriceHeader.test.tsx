@@ -5,6 +5,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  FontFamily,
   FontWeight,
 } from '@metamask/design-system-react-native';
 import LivePriceHeader from './LivePriceHeader';
@@ -287,6 +288,7 @@ describe('LivePriceHeader', () => {
       );
 
       expect(priceText?.props.variant).toBe(TextVariant.BodySm);
+      expect(priceText?.props.fontFamily).toBeUndefined();
       expect(priceText?.props.color).toBe(TextColor.TextAlternative);
       expect(changeText?.props.variant).toBe(TextVariant.BodySm);
     });
@@ -307,6 +309,8 @@ describe('LivePriceHeader', () => {
       );
 
       expect(priceText?.props.variant).toBe(TextVariant.DisplayLg);
+      expect(priceText?.props.fontFamily).toBe(FontFamily.Hero);
+      expect(priceText?.props.fontWeight).toBe(FontWeight.Regular);
       expect(priceText?.props.color).toBe(TextColor.TextDefault);
       expect(changeText?.props.variant).toBe(TextVariant.BodySm);
       expect(changeText?.props.fontWeight).toBe(FontWeight.Medium);
@@ -324,6 +328,8 @@ describe('LivePriceHeader', () => {
       );
 
       expect(priceText?.props.variant).toBe(TextVariant.HeadingLg);
+      expect(priceText?.props.fontFamily).toBe(FontFamily.Hero);
+      expect(priceText?.props.fontWeight).toBe(FontWeight.Regular);
       expect(priceText?.props.color).toBe(TextColor.TextDefault);
     });
 

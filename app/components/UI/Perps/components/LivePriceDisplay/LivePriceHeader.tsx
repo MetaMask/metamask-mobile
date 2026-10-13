@@ -4,6 +4,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontFamily,
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { usePerpsLivePrices } from '../../hooks/stream';
@@ -207,6 +208,8 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
     <View style={[styles.container, isLarge ? stackedLayout : inlineLayout]}>
       <Text
         variant={priceVariant}
+        fontFamily={isLarge ? FontFamily.Hero : undefined}
+        fontWeight={isLarge ? FontWeight.Regular : undefined}
         color={priceColor}
         style={styles.price}
         numberOfLines={1}

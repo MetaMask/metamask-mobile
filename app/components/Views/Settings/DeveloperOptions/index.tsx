@@ -4,11 +4,16 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
   HeaderStandard,
   TextColor,
 } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../locales/i18n';
+import NavigationService from '../../../../core/NavigationService';
+import Routes from '../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../util/theme';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { useStyles } from '../../../../component-library/hooks';
@@ -25,7 +30,6 @@ import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConfirmationsDeveloperOptions } from '../../confirmations/components/developer/confirmations-developer-options';
-import { selectIsMusdConversionFlowEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
 import { MusdDeveloperOptionsSection } from '../../../UI/Earn/components/MusdDeveloperOptionsSection';
 import { CardDeveloperOptionsSection } from '../../../UI/Card/components/CardDeveloperOptionsSection';
 import { selectMoneyEnableMoneyAccountFlag } from '../../../UI/Money/selectors/featureFlags';
@@ -44,9 +48,6 @@ const DeveloperOptions = () => {
   const { styles } = useStyles(styleSheet, { theme });
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isMusdConversionEnabled = useSelector(
-    selectIsMusdConversionFlowEnabledFlag,
-  );
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
@@ -59,6 +60,13 @@ const DeveloperOptions = () => {
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleOpenVipSplash = useCallback(() => {
+    NavigationService.navigation?.navigate(Routes.REWARDS_FLOW, {
+      screen: Routes.REWARDS_VIP_SPLASH_VIEW,
+      params: { preview: true },
+    });
+  }, []);
 
   return (
     <SafeAreaView
@@ -86,6 +94,14 @@ const DeveloperOptions = () => {
             })}
       />
       <ScrollView contentContainerStyle={styles.contentContainer}>
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={handleOpenVipSplash}
+        >
+          {'Open VIP splash'}
+        </Button>
         <SentryTest />
         {
           ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -96,7 +112,7 @@ const DeveloperOptions = () => {
         }
         {isPerpsEnabled && <PerpsDeveloperOptionsSection />}
         <ConfirmationsDeveloperOptions />
-        {isMusdConversionEnabled && <MusdDeveloperOptionsSection />}
+        <MusdDeveloperOptionsSection />
         {isMoneyAccountEnabled && <MoneyUiDeveloperOptionsSection />}
         <CardDeveloperOptionsSection />
         <IdentityDeveloperOptionsSection />

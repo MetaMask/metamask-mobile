@@ -131,7 +131,7 @@ const Complete = () => {
       <Text
         fontFamily={FontFamily.Hero}
         fontWeight={FontWeight.Regular}
-        twClassName="text-center text-[60px] leading-[60px] tracking-[-1.2px]"
+        twClassName="text-center text-[40px] leading-[32px] tracking-[-1.2px]"
       >
         {strings('card.card_onboarding.complete.title')}
       </Text>

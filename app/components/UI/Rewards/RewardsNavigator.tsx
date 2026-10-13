@@ -36,7 +36,12 @@ import MoneyAccountSweepstakesCampaignWinningView from './Views/MoneyAccountSwee
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
-import { useNavigation, useNavigationState } from '@react-navigation/native';
+import {
+  useNavigation,
+  useNavigationState,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
 import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
@@ -54,6 +59,14 @@ const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
   const navigation = useNavigation<AppNavigationProp>();
+  const route =
+    useRoute<
+      RouteProp<
+        { RewardsFlow: { params?: { preview?: boolean } } },
+        'RewardsFlow'
+      >
+    >();
+  const isVipSplashPreview = route.params?.params?.preview === true;
 
   const activeRewardsRoute = useNavigationState(
     getActiveRouteNameFromNavigationState,
@@ -151,13 +164,13 @@ const RewardsNavigator: React.FC = () => {
   // / broken back). Dismiss the flow so the user returns to the Rewards tab and
   // the stale state is discarded.
   useEffect(() => {
-    if (isVersionBlocked || subscriptionId) {
+    if (isVersionBlocked || subscriptionId || isVipSplashPreview) {
       return;
     }
     if (navigation.canGoBack()) {
       navigation.goBack();
     }
-  }, [isVersionBlocked, subscriptionId, navigation]);
+  }, [isVersionBlocked, subscriptionId, isVipSplashPreview, navigation]);
 
   if (isVersionBlocked) {
     return <RewardsUpdateRequired />;
@@ -165,7 +178,7 @@ const RewardsNavigator: React.FC = () => {
 
   // Never render an empty native stack navigator (it throws). When there is no
   // subscription, render nothing while the effect above dismisses the flow.
-  if (!subscriptionId) {
+  if (!subscriptionId && !isVipSplashPreview) {
     return null;
   }
 

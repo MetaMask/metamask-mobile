@@ -9,6 +9,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontFamily,
   FontWeight,
   KeyValueRow,
   KeyValueRowVariant,
@@ -294,6 +295,8 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
               <Animated.View style={[getBalanceAnimatedStyle]}>
                 <SensitiveText
                   variant={TextVariant.DisplayLg}
+                  fontFamily={FontFamily.Hero}
+                  fontWeight={FontWeight.Regular}
                   color={TextColor.TextDefault}
                   testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
                   isHidden={privacyMode}

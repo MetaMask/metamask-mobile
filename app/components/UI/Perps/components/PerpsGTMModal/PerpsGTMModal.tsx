@@ -89,7 +89,7 @@ const PerpsGTMModal = () => {
         <Text
           fontFamily={FontFamily.Hero}
           fontWeight={FontWeight.Regular}
-          twClassName="text-center pt-3 text-[60px] leading-[60px] tracking-[-1.2px]"
+          twClassName="text-center pt-3 text-[40px] leading-[32px] tracking-[-1.2px]"
         >
           {strings('perps.gtm_content.title')}
         </Text>
