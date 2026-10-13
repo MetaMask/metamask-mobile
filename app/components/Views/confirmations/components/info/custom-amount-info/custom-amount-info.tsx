@@ -7,7 +7,6 @@ import React, {
   useRef,
 } from 'react';
 import { View } from 'react-native';
-import { noop } from 'lodash';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   TransactionType,
@@ -27,14 +26,10 @@ import { Box } from '../../../../../UI/Box/Box';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
-import {
-  DepositPrefillStatus,
-  useIsDepositPrefillEnabled,
-} from '../../../hooks/transactions/useDepositPrefillAmount';
+import { DepositPrefillStatus } from '../../../hooks/transactions/useDepositPrefillAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
 import {
   CustomAmountStage,
-  getInitialCustomAmountStage,
   useCustomAmountStage,
 } from '../../../hooks/custom-amount/useCustomAmountStage';
 import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
@@ -82,7 +77,6 @@ import {
 } from '../../custom-amount/custom-amount-buy';
 import { CustomAmountTotals } from '../../custom-amount/custom-amount-totals';
 import { CustomAmountConfirmButton } from '../../custom-amount/custom-amount-confirm-button';
-import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import {
   Button,
   ButtonSize,
@@ -122,10 +116,6 @@ export interface CustomAmountInfoProps {
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
-  CustomAmountInfoWrapper,
-);
-
-const CustomAmountInfoInternal: React.FC<CustomAmountInfoProps> = memo(
   ({
     autoSelectFiatPayment,
     children,
@@ -149,19 +139,11 @@ const CustomAmountInfoInternal: React.FC<CustomAmountInfoProps> = memo(
       isMoneyAccountDeposit &&
       getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
 
-    // Pre-warm the Transak partner API key so the fiat fee estimate's native
-    // buy-quote lookup succeeds on first load, showing the real native fee
-    // instead of the aggregator fallback (which previously only corrected after
-    // the user entered the Transak widget flow).
-    useEnsureTransakApiKey();
+    useClearConfirmationOnBackSwipe();
 
-    useAutomaticTransactionPayToken({
-      autoSelectFiatPayment,
-      disable: disablePay,
-      preferredToken,
-    });
-    useTransactionPayMetrics();
-    useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
+    // Undefined when the confirmation renders everything immediately.
+    const firstFrame = useConfirmationFirstFrame();
+    const isDeferredInitReady = !firstFrame || firstFrame.isFirstFrameComplete;
 
     // TRAM-3623 headless ramps funnel. The adapter owns screen-viewed tracking
     // and derives ramp_surface from the tx type, so non-money flows stay inert.
@@ -608,125 +590,48 @@ const CustomAmountInfoInternal: React.FC<CustomAmountInfoProps> = memo(
             )
           )}
         </Box>
+        {isDeferredInitReady && (
+          <CustomAmountInfoDeferredInit
+            autoSelectFiatPayment={autoSelectFiatPayment}
+            disablePay={disablePay}
+            preferredToken={preferredToken}
+          />
+        )}
       </Box>
     );
   },
 );
 
-function CustomAmountInfoWrapper(props: CustomAmountInfoProps) {
-  // Rejection must work while the deferred amount/selection hooks are absent.
-  useClearConfirmationOnBackSwipe();
-
-  // Only present when the confirmation opts into first-frame deferral.
-  const firstFrame = useConfirmationFirstFrame();
-
-  // A static placeholder only: the live stage and input hooks mount afterwards
-  // with their real settings, so delayed selection can't overwrite input.
-  if (firstFrame && !firstFrame.isFirstFrameComplete) {
-    return <CustomAmountInfoFirstFrame {...props} />;
-  }
-
-  return <CustomAmountInfoInternal {...props} />;
-}
-
-function CustomAmountInfoFirstFrame({
+/**
+ * Initialization the screen doesn't need to render or accept input: automatic
+ * pay token selection, metrics and API key pre-warming. Kept in a child so a
+ * confirmation that opts into first-frame deferral can mount it after the
+ * screen has been presented, while the amount, keyboard and selectors are
+ * live from the first frame.
+ */
+function CustomAmountInfoDeferredInit({
   autoSelectFiatPayment,
-  currency,
   disablePay,
-  footerText,
-  hasMax,
-  hideAccountSelector,
-  hidePayTokenAmount,
-  supportAccountSelection,
-}: CustomAmountInfoProps) {
-  const { styles } = useStyles(styleSheet, {});
-  const { amount } = useParams<ConfirmationParams>();
-  const transactionMeta = useTransactionMetadataRequest();
-  const isDepositPrefillEnabled = useIsDepositPrefillEnabled();
-  const isAddMusdIntent =
-    hasTransactionType(transactionMeta, [
-      TransactionType.moneyAccountDeposit,
-    ]) && getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
+  preferredToken,
+}: Pick<
+  CustomAmountInfoProps,
+  'autoSelectFiatPayment' | 'disablePay' | 'preferredToken'
+>) {
+  // Pre-warm the Transak partner API key so the fiat fee estimate's native
+  // buy-quote lookup succeeds on first load, showing the real native fee
+  // instead of the aggregator fallback (which previously only corrected after
+  // the user entered the Transak widget flow).
+  useEnsureTransakApiKey();
 
-  // Open in the same stage the live screen will, so it doesn't swap layouts
-  // once initialization completes. Only the fiat skip is known up front; skips
-  // that depend on the pay token balance resolve after the first frame.
-  const isKeyboard =
-    getInitialCustomAmountStage({
-      isAddMusdIntent,
-      isDepositPrefillEnabled,
-      skipDepositPrefill: Boolean(autoSelectFiatPayment),
-    }) === CustomAmountStage.AmountInput;
+  useAutomaticTransactionPayToken({
+    autoSelectFiatPayment,
+    disable: disablePay,
+    preferredToken,
+  });
+  useTransactionPayMetrics();
+  useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
 
-  const amountFiat = amount ?? '0';
-  const showAccountSelector = supportAccountSelection && !hideAccountSelector;
-  const showPayWith = disablePay !== true;
-
-  // Static only: input is ignored until the live screen mounts.
-  return (
-    <View style={styles.container} testID="custom-amount-info-first-frame">
-      <View style={styles.inputContainer}>
-        {isKeyboard ? (
-          <CustomAmount amountFiat={amountFiat} currency={currency} />
-        ) : (
-          <CustomAmountSkeleton />
-        )}
-        {!hidePayTokenAmount &&
-          showPayWith &&
-          (isKeyboard ? (
-            <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
-          ) : (
-            <BalanceProjectionSkeleton />
-          ))}
-      </View>
-      <View style={styles.shellBottomBlock}>
-        {isKeyboard ? (
-          <>
-            {showAccountSelector && (
-              <PayAccountSelector style={styles.separator} />
-            )}
-            {showPayWith && <PayWithRowSkeleton />}
-          </>
-        ) : (
-          <View>
-            {showAccountSelector && <PayAccountSelector />}
-            {showPayWith && <PayWithRowSkeleton />}
-            <CustomAmountTotals stage={CustomAmountStage.Loading} />
-          </View>
-        )}
-        {footerText && (
-          <Text
-            color={TextColor.TextAlternative}
-            style={styles.footerText}
-            variant={TextVariant.BodySm}
-          >
-            {footerText}
-          </Text>
-        )}
-        {isKeyboard ? (
-          <DepositKeyboard
-            hasMax={hasMax}
-            hidePercentageButtons={hideAccountSelector}
-            onChange={noop}
-            onDonePress={noop}
-            onPercentagePress={noop}
-            value={amountFiat}
-          />
-        ) : (
-          <Button
-            isDisabled
-            isFullWidth
-            size={ButtonSize.Lg}
-            style={styles.disabledButton}
-            testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
-            variant={ButtonVariant.Primary}
-          >
-            {strings('confirm.deposit_edit_amount_done')}
-          </Button>
-        )}
-      </View>
-    </View>
-  );
+  return null;
 }
 
 export function CustomAmountInfoSkeleton() {
