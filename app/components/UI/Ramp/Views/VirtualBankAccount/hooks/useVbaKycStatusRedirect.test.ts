@@ -382,6 +382,28 @@ describe('useVbaKycStatusRedirect', () => {
     expect(mockRemoveAppStateListener).toHaveBeenCalled();
   });
 
+  it('logs a coordinator failure and still handles the next status', async () => {
+    mockOpenOnboarding.mockRejectedValueOnce(new Error('hydrate failed'));
+    setSessionStatus(relayApproved);
+    const { rerender } = renderRedirectHook();
+    await act(flushPromises);
+
+    setSessionStatus(approved);
+    rerender({});
+    await act(flushPromises);
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        context: expect.objectContaining({
+          name: 'useVbaKycStatusRedirect',
+          data: { step: 'redirect' },
+        }),
+      }),
+    );
+    expect(mockOpenOnboarding).toHaveBeenCalledTimes(2);
+  });
+
   describe('when a decided status still resolves to this screen', () => {
     const [firstDelay, secondDelay, lastDelay] =
       VBA_ACCOUNT_SETUP_RECHECK_DELAYS_MS;

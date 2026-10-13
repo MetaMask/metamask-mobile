@@ -122,29 +122,39 @@ export const useVbaKycStatusRedirect = (): void => {
         return true;
       };
 
-      openOnboarding({ shouldNavigate }).finally(() => {
-        isRunningRef.current = false;
-        if (didNavigate || !isMountedRef.current) {
-          return;
-        }
-        // Pick up a different terminal status that arrived while in flight.
-        if (getStatusKey(latestStatusRef.current) !== statusKey) {
-          runRedirect();
-          return;
-        }
-        if (!resolvedToThisScreen) {
-          return;
-        }
-        const delays = VBA_ACCOUNT_SETUP_RECHECK_DELAYS_MS;
-        const delay =
-          delays[Math.min(recheckCountRef.current, delays.length - 1)];
-        recheckCountRef.current += 1;
-        recheckTimerRef.current = setTimeout(() => {
-          recheckTimerRef.current = null;
-          handledStatusKeyRef.current = null;
-          runRedirect();
-        }, delay);
-      });
+      openOnboarding({ shouldNavigate })
+        .finally(() => {
+          isRunningRef.current = false;
+          if (didNavigate || !isMountedRef.current) {
+            return;
+          }
+          // Pick up a different terminal status that arrived while in flight.
+          if (getStatusKey(latestStatusRef.current) !== statusKey) {
+            runRedirect();
+            return;
+          }
+          if (!resolvedToThisScreen) {
+            return;
+          }
+          const delays = VBA_ACCOUNT_SETUP_RECHECK_DELAYS_MS;
+          const delay =
+            delays[Math.min(recheckCountRef.current, delays.length - 1)];
+          recheckCountRef.current += 1;
+          recheckTimerRef.current = setTimeout(() => {
+            recheckTimerRef.current = null;
+            handledStatusKeyRef.current = null;
+            runRedirect();
+          }, delay);
+        })
+        .catch((error: unknown) => {
+          Logger.error(error as Error, {
+            tags: { feature: 'vba-onboarding' },
+            context: {
+              name: 'useVbaKycStatusRedirect',
+              data: { step: 'redirect' },
+            },
+          });
+        });
     },
     [clearRecheckTimer, openOnboarding],
   );
