@@ -39,6 +39,13 @@ describe('parseHarToEntries', () => {
     ]);
   });
 
+  it('accepts a bare array and a { data } wrapper of HAR entries', () => {
+    const entry = { request: { method: 'GET', url: 'https://x.test' } };
+
+    expect(parseHarToEntries([entry])).toHaveLength(1);
+    expect(parseHarToEntries({ data: [entry] })).toHaveLength(1);
+  });
+
   it.each([null, undefined, {}, { log: {} }, { log: { entries: 'nope' } }])(
     'returns an empty list for malformed input %p',
     (input) => {

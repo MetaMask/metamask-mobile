@@ -76,6 +76,9 @@ export class TestMuAIConfigBuilder {
       `TestMu AI idleTimeout: ${DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS}s, newCommandTimeout: ${DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS}s`,
     );
     logger.info(
+      `TestMu AI network logs capability: ${runtimeEnv.TESTMU_NETWORK_LOGS === 'true'} (TESTMU_NETWORK_LOGS=${runtimeEnv.TESTMU_NETWORK_LOGS ?? '<unset>'})`,
+    );
+    logger.info(
       `TestMu AI tunnel: ${isLocal}, geoLocation: ${isLocal ? 'disabled for tunnel sessions' : geoLocation}`,
     );
     logger.info(

@@ -95,24 +95,39 @@ export class TestMuAIAPI {
     return data.data ?? data;
   }
 
-  async getAppMetrics(sessionId: string): Promise<unknown> {
+  // Metrics are processed after the session ends, so the endpoint can answer
+  // 404 for a while right after teardown (same as the video URL).
+  async getAppMetrics(
+    sessionId: string,
+    maxRetries = 10,
+    delayMs = 3000,
+  ): Promise<unknown> {
     if (!this.hasCredentials()) {
       logger.warn('Skipping getAppMetrics: missing TestMu AI credentials');
       return null;
     }
 
-    const response = await fetch(
-      `${API_BASE_URL}/sessions/${sessionId}/log/appmetrics`,
-      {
-        method: 'GET',
-        headers: {
-          Authorization: this.getAuthHeader(),
+    for (let attempt = 1; ; attempt++) {
+      const response = await fetch(
+        `${API_BASE_URL}/sessions/${sessionId}/log/appmetrics`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: this.getAuthHeader(),
+          },
+          signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
         },
-        signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
-      },
-    );
+      );
 
-    if (!response.ok) {
+      if (response.ok) {
+        return await response.json();
+      }
+
+      if (response.status === 404 && attempt < maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        continue;
+      }
+
       const errorBody = await response.text();
       throw new TestMuAIAPIError(
         `Error fetching TestMu AI app metrics: ${response.statusText}`,
@@ -120,8 +135,6 @@ export class TestMuAIAPI {
         errorBody,
       );
     }
-
-    return await response.json();
   }
 
   async getNetworkLogs(sessionId: string): Promise<unknown> {

@@ -8,7 +8,10 @@ interface HarEntry {
 
 export function parseHarToEntries(har: unknown): NetworkLogEntry[] {
   const log = (har as { log?: unknown } | null)?.log ?? har;
-  const harEntries = (log as { entries?: unknown } | null)?.entries;
+  const harEntries = Array.isArray(log)
+    ? log
+    : ((log as { entries?: unknown; data?: unknown } | null)?.entries ??
+      (log as { data?: unknown } | null)?.data);
   if (!Array.isArray(harEntries)) {
     return [];
   }

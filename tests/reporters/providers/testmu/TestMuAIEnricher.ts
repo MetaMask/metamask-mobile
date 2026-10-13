@@ -6,6 +6,39 @@ import {
 import { parseHarToEntries } from '../parseHar';
 import type { SessionData, ProfilingData, ProfilingSummary } from '../../types';
 
+const TIMESTAMP_KEY = /time|date|^ts$|_at$/i;
+
+// Samples are numbers or objects; for objects prefer `value`, else the first
+// numeric field that is not a timestamp.
+const sampleValue = (sample: unknown): number | null => {
+  if (typeof sample === 'number')
+    return Number.isFinite(sample) ? sample : null;
+  if (typeof sample === 'string') {
+    const parsed = Number(sample);
+    return sample.trim() !== '' && Number.isFinite(parsed) ? parsed : null;
+  }
+  if (sample === null || typeof sample !== 'object') return null;
+  const record = sample as Record<string, unknown>;
+  if ('value' in record) return sampleValue(record.value);
+  for (const [key, value] of Object.entries(record)) {
+    if (!TIMESTAMP_KEY.test(key) && typeof value === 'number') {
+      return Number.isFinite(value) ? value : null;
+    }
+  }
+  return null;
+};
+
+const seriesStats = (series: unknown): { avg: number; max: number } | null => {
+  if (!Array.isArray(series)) return null;
+  const values = series.map(sampleValue).filter((v): v is number => v !== null);
+  if (values.length === 0) return null;
+  const sum = values.reduce((acc, v) => acc + v, 0);
+  return {
+    avg: Math.round((sum / values.length) * 100) / 100,
+    max: Math.max(...values),
+  };
+};
+
 /**
  * TestMu AI session enricher — fetches the video URL and app profiling metrics.
  */
@@ -61,7 +94,11 @@ export class TestMuAIEnricher extends BaseSessionDataEnricher {
         session.profilingSummary = errorPayload as unknown as ProfilingSummary;
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const baseMessage =
+        error instanceof Error ? error.message : String(error);
+      const body = error instanceof TestMuAIAPIError ? error.body : null;
+      const status = error instanceof TestMuAIAPIError ? error.status : null;
+      const message = `${baseMessage}${status ? ` (HTTP ${status})` : ''}${body ? ` — ${body.slice(0, 300)}` : ''}`;
       this.logger.warn(
         `Failed to fetch TestMu AI app metrics for ${testTitle}: ${message}`,
       );
@@ -73,7 +110,9 @@ export class TestMuAIEnricher extends BaseSessionDataEnricher {
       session.profilingSummary = errorPayload as unknown as ProfilingSummary;
     }
 
-    if (process.env.TESTMU_NETWORK_LOGS === 'true') {
+    // Copy process.env first so Babel's env inlining does not bake the value in.
+    const runtimeEnv = process.env;
+    if (runtimeEnv.TESTMU_NETWORK_LOGS === 'true') {
       await this.enrichNetworkLogs(session);
     }
   }
@@ -104,28 +143,40 @@ export class TestMuAIEnricher extends BaseSessionDataEnricher {
     }
   }
 
+  // The appmetrics API returns time series keyed by metric name (appCpu,
+  // appMemory, download, upload, ...), not pre-aggregated avg/max.
   private extractProfilingSummary(
     metrics: Record<string, unknown>,
   ): ProfilingSummary {
     try {
       const data = (metrics.data ?? metrics) as Record<string, unknown>;
-      const cpu = data.cpu as Record<string, number> | undefined;
-      const memory = data.memory as Record<string, number> | undefined;
+      const cpu = seriesStats(data.appCpu);
+      const memory = seriesStats(data.appMemory);
+      const download = seriesStats(data.download);
+      const upload = seriesStats(data.upload);
+
+      if (!cpu && !memory) {
+        return {
+          error: `Unrecognized TestMu AI app metrics shape (keys: ${Object.keys(data).join(', ')})`,
+          timestamp: new Date().toISOString(),
+        } as ProfilingSummary;
+      }
 
       return {
         status: 'available',
         issues: 0,
         criticalIssues: 0,
-        cpu: {
-          avg: cpu?.avg ?? 0,
-          max: cpu?.max ?? 0,
-          unit: '%',
-        },
-        memory: {
-          avg: memory?.avg ?? 0,
-          max: memory?.max ?? 0,
-          unit: 'MB',
-        },
+        ...(cpu && { cpu: { avg: cpu.avg, max: cpu.max, unit: '%' } }),
+        ...(memory && {
+          memory: { avg: memory.avg, max: memory.max, unit: 'MB' },
+        }),
+        ...((download || upload) && {
+          networkIO: {
+            upload: upload?.max ?? 0,
+            download: download?.max ?? 0,
+            unit: 'MB',
+          },
+        }),
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
