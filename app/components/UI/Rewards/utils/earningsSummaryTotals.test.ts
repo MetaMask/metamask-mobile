@@ -1,7 +1,7 @@
 import type { EarningsSummaryDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import {
-  creditedBaseUnits,
   earnedByOthersLifetime,
+  isVoidedEarning,
   selfEarnedLifetime,
   underReviewBlockedBaseUnits,
 } from './earningsSummaryTotals';
@@ -81,10 +81,40 @@ describe('earningsSummaryTotals', () => {
     );
   });
 
-  it('floors a void larger than the amount at zero', () => {
-    expect(creditedBaseUnits('1000000', '2500000')).toBe('0');
-    expect(creditedBaseUnits('1000000', '0')).toBe('1000000');
-    expect(creditedBaseUnits(null, '1')).toBeNull();
+  it('treats any positive void as cancelling the whole reward', () => {
+    expect(isVoidedEarning('1000000')).toBe(true);
+    expect(isVoidedEarning('2500000')).toBe(true);
+    expect(isVoidedEarning('0')).toBe(false);
+    expect(isVoidedEarning(null)).toBe(false);
+    expect(isVoidedEarning(undefined)).toBe(false);
+    expect(isVoidedEarning('')).toBe(false);
+    expect(isVoidedEarning('nope')).toBe(false);
+  });
+
+  it('ignores held money when summing blocked families under review', () => {
+    const summary = {
+      ...SUMMARY,
+      held: '100000000',
+      self_earned: {
+        ...SUMMARY.self_earned,
+        by_claim_family: {
+          REFERRAL_TRADE_FEE_CASHBACK: {
+            ...emptyBranch,
+            held: '100000000',
+            blocked: '12000000',
+            blocking_reason: 'UNDER_REVIEW',
+          },
+          REFERRAL_REV_SHARE: {
+            ...emptyBranch,
+            held: '50000000',
+            blocked: '3000000',
+            blocking_reason: 'SUSPENDED',
+          },
+        },
+      },
+    } as unknown as EarningsSummaryDto;
+
+    expect(underReviewBlockedBaseUnits(summary)).toBe('12000000');
   });
 
   it('returns null when there is no summary', () => {

@@ -28,9 +28,6 @@ import {
   getMoneyAccountDepositAssetAddress,
 } from '../../Money/utils/moneyAccountTransactions';
 
-/** Server default `CLAIM_MINIMUM_MUSD_BASE_UNITS`. mUSD has 6 decimals, so this is $1. */
-export const CLAIM_MINIMUM_MUSD_BASE_UNITS = 1_000_000n;
-
 const RETRY_REASONS = new Set([
   'PROOF_INVALID',
   'SIGNER_UNAVAILABLE',
@@ -67,6 +64,36 @@ const WAIT_REASONS = new Set([
  */
 const TERMINAL_REASONS = new Set(['SUSPENDED', 'UNDER_REVIEW', 'VOIDED']);
 
+/**
+ * A whole-claim refusal that puts money in `held` or `blocked`. `VOIDED` is
+ * not one of them: it names the voided bucket, and only when both are zero.
+ */
+const CLAIMS_PAUSED_REASONS = new Set([
+  'SUSPENDED',
+  'TAX_DETERMINATION_REQUIRED',
+  'MECHANISM_NOT_CLAIMABLE',
+  'EARNING_ADDRESS_UNSCREENABLE',
+  'UNDER_REVIEW',
+  'EARNING_ADDRESS_MISSING',
+]);
+
+/**
+ * True when nothing was submitted and every refusal is a held or blocked
+ * reason. A paid claim that only names one of these in `excluded[]` is not.
+ */
+export function isClaimsPausedRefusal(outcomes: ClaimRouteOutcome[]): boolean {
+  if (outcomes.some((outcome) => outcome.submitted)) {
+    return false;
+  }
+  const reasons = outcomes
+    .map((outcome) => outcome.reason)
+    .filter((reason): reason is string => Boolean(reason));
+  return (
+    reasons.length > 0 &&
+    reasons.every((reason) => CLAIMS_PAUSED_REASONS.has(reason))
+  );
+}
+
 export type ClaimToastKey = Extract<
   ReferralLocalizedTextKey,
   | 'claimSuccessToast'
@@ -94,12 +121,20 @@ export interface ClaimRouteOutcome {
   retryAfterSeconds?: number;
 }
 
-export function meetsClaimMinimum(value: string | undefined): boolean {
-  if (!value) {
+/**
+ * True when `value` is at least the summary minimum. That minimum is
+ * `minimum_musd_base_units`, the server's `claimMinimumMusdBaseUnits`.
+ * A missing or unreadable minimum is not claimable.
+ */
+export function meetsClaimMinimum(
+  value: string | undefined,
+  minimumBaseUnits: string | undefined,
+): boolean {
+  if (!value || !minimumBaseUnits) {
     return false;
   }
   try {
-    return BigInt(value) >= CLAIM_MINIMUM_MUSD_BASE_UNITS;
+    return BigInt(value) >= BigInt(minimumBaseUnits);
   } catch {
     return false;
   }
@@ -107,7 +142,8 @@ export function meetsClaimMinimum(value: string | undefined): boolean {
 
 /**
  * Pilot: only trade-fee cashback, and only when that family's own claimable
- * is at least $1. Revenue share and follow-trade are not claimed.
+ * reaches the summary's `minimum_musd_base_units`. Revenue share and
+ * follow-trade are not claimed.
  */
 export function claimRoutesForSummary(
   summary: EarningsSummaryDto | null | undefined,
@@ -115,13 +151,13 @@ export function claimRoutesForSummary(
   const cashback =
     summary?.self_earned?.by_claim_family?.REFERRAL_TRADE_FEE_CASHBACK
       ?.claimable;
-  if (!meetsClaimMinimum(cashback)) {
+  if (!meetsClaimMinimum(cashback, summary?.minimum_musd_base_units)) {
     return [];
   }
   return ['referral-trade-fee-cashback'];
 }
 
-/** A referee whose cashback family clears $1. Referrers do not claim in the pilot. */
+/** A referee whose cashback family reaches the summary minimum. Referrers do not claim in the pilot. */
 export function canClaimEarnings(
   summary: EarningsSummaryDto | null | undefined,
   persona: MoneyDashboardPersona | undefined,

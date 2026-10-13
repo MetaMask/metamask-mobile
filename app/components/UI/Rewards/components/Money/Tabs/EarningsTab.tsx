@@ -54,11 +54,15 @@ import {
 import { formatMusdBaseUnits } from '../../../utils/formatUtils';
 import {
   earnedByOthersLifetime,
-  selfEarnedLifetime,
   underReviewBlockedBaseUnits,
+  selfEarnedLifetime,
 } from '../../../utils/earningsSummaryTotals';
 import { SHOW_TRADING_COMMISSIONS } from '../constants';
 import ClaimableRewardsCard from '../ClaimableRewardsCard';
+import type {
+  ClaimsPausedLabels,
+  ClaimsPausedTotals,
+} from '../RewardsMoneyClaimsPausedModal';
 import { EarningsHistoryRow } from '../EarningsHistoryRows';
 import RewardsPausedBanner from '../RewardsPausedBanner';
 import TradingActivityListSkeleton from '../TradingActivityListSkeleton';
@@ -83,6 +87,34 @@ export const EARNINGS_TAB_TEST_IDS = {
 /** mUSD base units as a two-decimal amount, or a dash when there is none. */
 const musdAmount = (baseUnits: string | null | undefined): string =>
   formatMusdBaseUnits(baseUnits, { maximumFractionDigits: 2 }) ?? '—';
+
+/** Root summary amounts for the Claims paused sheet. */
+function claimsPausedTotals(summary: EarningsSummaryDto): ClaimsPausedTotals {
+  return {
+    lifetime_total: summary.lifetime_total,
+    claimable: summary.claimable,
+    held: summary.held,
+    blocked: summary.blocked,
+    voided: summary.voided,
+    pending: summary.pending,
+    claimed: summary.claimed,
+  };
+}
+
+/** Row copy, using the localized_text keys as they are. */
+function claimsPausedLabels(
+  localizedText: ReferralLocalizedText,
+): ClaimsPausedLabels {
+  return {
+    recordedEarningsLabel: localizedText.recordedEarningsLabel,
+    availableToClaim: localizedText.availableToClaim,
+    held: localizedText.held,
+    blocked: localizedText.blocked,
+    voided: localizedText.voided,
+    pending: localizedText.pending,
+    claimed: localizedText.claimed,
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Derived state. Each source (summary, history) reduces to the same
@@ -477,6 +509,18 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     selectEarningsSummaryEntry(state, profileId),
   );
   const { fetchEarningsSummary } = useEarningsSummary(profileId);
+  const openClaimsPaused = useCallback(() => {
+    if (!localizedText) {
+      return;
+    }
+    const summaryData = earningsSummaryEntry?.data;
+    navigation.navigate(Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL, {
+      title: localizedText.claimsPausedTitle,
+      description: localizedText.claimsPausedDescription,
+      totals: summaryData ? claimsPausedTotals(summaryData) : undefined,
+      labels: claimsPausedLabels(localizedText),
+    });
+  }, [earningsSummaryEntry?.data, localizedText, navigation]);
   const retrySummary = useCallback(() => {
     void Promise.resolve(fetchEarningsSummary({ forceFresh: true })).catch(
       () => undefined,
@@ -492,6 +536,12 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
       inFlight.refresh().catch(() => undefined);
     },
     onSubmitted: () => fetchEarningsSummary({ forceFresh: true }),
+    onClaimsPaused: () => {
+      void Promise.resolve(fetchEarningsSummary({ forceFresh: true })).catch(
+        () => undefined,
+      );
+      openClaimsPaused();
+    },
   });
 
   if (!localizedText) {
@@ -536,12 +586,10 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                 persona === 'referee' ? summary.data?.claimed : undefined
               }
               held={persona === 'referee' ? summary.data?.held : undefined}
-              claimableAmount={musdAmount(summary.data?.claimable)}
-              heldAmount={
-                persona === 'referee'
-                  ? musdAmount(summary.data?.held)
-                  : undefined
+              blocked={
+                persona === 'referee' ? summary.data?.blocked : undefined
               }
+              claimableAmount={musdAmount(summary.data?.claimable)}
               recordedAmount={musdAmount(summary.data?.lifetime_total)}
               last7Amount={last7Amount}
               isSummaryLoading={summary.loading}
@@ -559,12 +607,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                     }
                   : undefined
               }
-              onPaused={() => {
-                navigation.navigate(Routes.MODAL.REWARDS_INFO_SHEET_MODAL, {
-                  title: localizedText.claimsPausedTitle,
-                  description: localizedText.claimsPausedDescription,
-                });
-              }}
+              onPaused={openClaimsPaused}
             />
           ) : null}
         </Box>
