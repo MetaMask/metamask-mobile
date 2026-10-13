@@ -678,7 +678,11 @@ describeForPlatforms('QuickBuySheet', () => {
     fireEvent.press(screen.getByTestId('network-pills-more-button'));
     fireEvent.press(await screen.findByTestId('network-option-all'));
 
-    expect(await screen.findByTestId(USDT_PICKER_ROW)).toBeOnTheScreen();
+    // Clearing the chain filter refetches popular tokens. Until that resolves
+    // the picker only lists held assets (ETH), so USDT is not on screen yet.
+    expect(
+      await screen.findByTestId(USDT_PICKER_ROW, {}, { timeout: WAIT_MS }),
+    ).toBeOnTheScreen();
   });
 
   it('hides the trade mode toggle when the position token has no balance', async () => {
