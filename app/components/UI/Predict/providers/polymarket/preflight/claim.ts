@@ -39,9 +39,10 @@ const MIN_PUSD_BALANCE_FOR_CLAIM_GAS_RAW = BigInt(
 type PolymarketV2ProtocolDefinition = PolymarketProtocolDefinition;
 
 /**
- * Gamma market version by market id, resolved at the provider edge from
- * `position.marketId`. Only 'v2' routes a claim to the Router; a missing or
- * unknown version keeps the CTF claim.
+ * Gamma market version keyed by the position's condition id
+ * (`position.outcomeId`), resolved at the provider edge by loading Gamma
+ * through `position.marketId`. Only 'v2' routes a claim to the Router; a
+ * missing or unknown version keeps the CTF claim.
  */
 export type ClaimMarketVersions = Record<string, string | undefined>;
 
@@ -56,7 +57,7 @@ function partitionClaimPositions({
   const v2Positions: PredictPosition[] = [];
 
   for (const position of positions) {
-    if (marketVersions[position.marketId] === 'v2') {
+    if (marketVersions[position.outcomeId] === 'v2') {
       v2Positions.push(position);
     } else {
       ctfPositions.push(position);

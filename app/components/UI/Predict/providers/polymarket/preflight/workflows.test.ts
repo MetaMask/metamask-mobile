@@ -205,7 +205,7 @@ describe('preflight workflow planners', () => {
     const requirements = getClaimRequirements({
       protocol: POLYMARKET_V2_PROTOCOL,
       positions: [claimPosition],
-      marketVersions: { 'market-1': 'v2' },
+      marketVersions: { [claimPosition.outcomeId]: 'v2' },
     });
 
     expect(requirements).toEqual(
@@ -243,10 +243,11 @@ describe('preflight workflow planners', () => {
           ...claimPosition,
           id: 'position-3',
           marketId: 'market-2',
+          outcomeId: `0x${'ee'.repeat(31)}`,
           negRisk: true,
         },
       ],
-      marketVersions: { 'market-2': 'v2' },
+      marketVersions: { [`0x${'ee'.repeat(31)}`]: 'v2' },
     });
 
     const operators = requirements
@@ -287,7 +288,7 @@ describe('preflight workflow planners', () => {
         },
       ],
       safeAddress: '0x9999999999999999999999999999999999999999',
-      marketVersions: { 'market-1': 'v2' },
+      marketVersions: { [`0x${'ab'.repeat(31)}00`]: 'v2' },
     });
 
     expect(plan.transactions.map((transaction) => transaction.to)).toEqual([
@@ -317,7 +318,7 @@ describe('preflight workflow planners', () => {
         },
       ],
       safeAddress: '0x9999999999999999999999999999999999999999',
-      marketVersions: { 'market-1': 'v2' },
+      marketVersions: { [`0x${'cd'.repeat(31)}`]: 'v2' },
     });
 
     expect(plan.transactions.map((transaction) => transaction.to)).toEqual([
