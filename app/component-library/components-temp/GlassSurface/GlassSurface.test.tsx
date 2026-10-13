@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, processColor } from 'react-native';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import GlassSurface, {
   GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID,
   GLASS_SURFACE_SHEEN_TEST_ID,
@@ -12,6 +12,11 @@ import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
 
 const containerStyle = { marginTop: 8 };
 const contentStyle = { padding: 4 };
+
+const layOutSheen = (width: number, height: number) =>
+  fireEvent(screen.getByTestId(GLASS_SURFACE_SHEEN_TEST_ID), 'layout', {
+    nativeEvent: { layout: { x: 0, y: 0, width, height } },
+  });
 
 describe('GlassSurface', () => {
   it('renders its children on the glass', () => {
@@ -69,6 +74,8 @@ describe('GlassSurface', () => {
           <Text>Content</Text>
         </GlassSurface>,
       );
+      layOutSheen(100, 40);
+
       expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveStyle({
         backgroundColor: mockTheme.colors.background.default,
       });
@@ -90,6 +97,7 @@ describe('GlassSurface', () => {
           <GlassSurface radiusClassName="rounded-2xl" hasSheen />
         </ThemeContext.Provider>,
       );
+      layOutSheen(100, 40);
 
       expect(getByTestId(GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID)).toHaveProp(
         'colors',
@@ -98,6 +106,38 @@ describe('GlassSurface', () => {
             colorWithOpacity(mockTheme.colors.background.muted, opacity),
           ),
         ),
+      );
+    });
+
+    it('draws the gradient only once the sheen has a size', () => {
+      render(<GlassSurface radiusClassName="rounded-2xl" hasSheen />);
+
+      expect(
+        screen.queryByTestId(GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID),
+      ).not.toBeOnTheScreen();
+
+      layOutSheen(0, 0);
+
+      expect(
+        screen.queryByTestId(GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID),
+      ).not.toBeOnTheScreen();
+
+      layOutSheen(100, 40);
+
+      expect(
+        screen.getByTestId(GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID),
+      ).toBeOnTheScreen();
+    });
+
+    it('draws a new gradient when the sheen resizes', () => {
+      render(<GlassSurface radiusClassName="rounded-2xl" hasSheen />);
+      layOutSheen(100, 40);
+      const gradient = screen.getByTestId(GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID);
+
+      layOutSheen(120, 40);
+
+      expect(screen.getByTestId(GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID)).not.toBe(
+        gradient,
       );
     });
   });

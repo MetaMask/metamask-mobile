@@ -13,6 +13,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { useLiquidGlass } from '../../hooks/useLiquidGlass';
+import { useComponentSize } from '../../hooks/useComponentSize';
 import { useTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
 import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
@@ -88,6 +89,8 @@ const LiquidGlassSurface = ({
   const tw = useTailwind();
   const { colors, themeAppearance } = useTheme();
   const { glassColorScheme } = useLiquidGlass();
+  const { size: sheenSize, onLayout: handleSheenLayout } = useComponentSize();
+  const hasSheenSize = Boolean(sheenSize?.width && sheenSize?.height);
 
   const sheenColors = useMemo(
     () =>
@@ -135,16 +138,22 @@ const LiquidGlassSurface = ({
           <View
             pointerEvents="none"
             style={[StyleSheet.absoluteFill, tw.style('bg-default')]}
+            onLayout={handleSheenLayout}
             testID={GLASS_SURFACE_SHEEN_TEST_ID}
           >
-            <LinearGradient
-              colors={sheenColors}
-              locations={SHEEN_LOCATIONS}
-              start={SHEEN_START}
-              end={SHEEN_END}
-              style={StyleSheet.absoluteFill}
-              testID={GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID}
-            />
+            {hasSheenSize && (
+              // The native gradient never redraws on resize and stays blank if
+              // first drawn at zero size, so it mounts per measured size.
+              <LinearGradient
+                key={`${sheenSize?.width}x${sheenSize?.height}`}
+                colors={sheenColors}
+                locations={SHEEN_LOCATIONS}
+                start={SHEEN_START}
+                end={SHEEN_END}
+                style={StyleSheet.absoluteFill}
+                testID={GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID}
+              />
+            )}
           </View>
         )}
         {children}
