@@ -28,7 +28,7 @@ export interface QuickBuyAnalyticsRefs {
 export function useQuickBuyAnalytics(
   traderAddress: string,
   caip19: string,
-  analyticsContext?: QuickBuyAnalyticsContext,
+  analyticsContext: QuickBuyAnalyticsContext,
   tradeMode?: QuickBuyTradeMode,
 ): {
   refs: QuickBuyAnalyticsRefs;
