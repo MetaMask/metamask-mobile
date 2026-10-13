@@ -18,7 +18,6 @@ tmp/
 artifacts/
 tests/test-reports/
 tests/reporters/reports/
-docs/
 storybook/
 *.mp4
 *.zip

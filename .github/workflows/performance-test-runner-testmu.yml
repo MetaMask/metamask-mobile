@@ -239,3 +239,16 @@ jobs:
           path: tests/reporters/reports/hermes-cpuprofiles/
           if-no-files-found: ignore
           retention-days: 14
+
+      # he-run is continue-on-error so test failures stay non-blocking, but a
+      # run that produced no metrics at all (e.g. HyperExecute `pre` stage
+      # failed) must not look green.
+      - name: Fail when HyperExecute produced no results
+        if: ${{ always() && steps.he-run.outcome == 'failure' }}
+        run: |
+          if find tests/reporters/reports -type f -name '*performance-metrics*.json' 2>/dev/null | grep -q .; then
+            echo "HyperExecute reported failures but performance metrics were produced; keeping the job non-blocking."
+            exit 0
+          fi
+          echo "::error::HyperExecute failed and no performance metrics were produced. Check the HyperExecute job link in the 'Run Tests via HyperExecute' step."
+          exit 1
