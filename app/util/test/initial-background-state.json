@@ -32,7 +32,10 @@
   "AnalyticsController": {
     "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
     "consentDecisionMade": false,
-    "optedIn": false
+    "marketingCampaignCookieId": null,
+    "marketingConsentDecisionMade": false,
+    "optedIn": false,
+    "optedInToMarketing": false
   },
   "GatorPermissionsController": {
     "grantedPermissions": [],
@@ -424,6 +427,20 @@
     "followingAddresses": [],
     "followingProfileIds": [],
     "leaderboardEntries": []
+  },
+  "ProfileController": {
+    "profile": {
+      "profileId": "",
+      "username": "",
+      "displayName": "",
+      "bio": "",
+      "linkedAddresses": [],
+      "avatarUrl": "",
+      "tradingPrivacy": "public",
+      "connectedToX": false,
+      "createdAt": "",
+      "updatedAt": ""
+    }
   },
   "SubjectMetadataController": {
     "subjectMetadata": {}
@@ -975,6 +992,8 @@
   "AiDigestController": {},
   "RampsController": {
     "autoramps": [],
+    "moneyAccountWalletRegistrations": [],
+    "vbaAutorampListFetchedAt": null,
     "userRegion": null,
     "countries": {
       "data": [],

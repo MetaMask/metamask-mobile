@@ -324,6 +324,8 @@ jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
     primaryMoneyAccount: undefined,
     moneyAccountCardToken: null,
     canLink: false,
+    isMoneyAccountLinkingSupported: true,
+    isMoneyCardSectionAvailable: true,
     status: 'idle' as const,
     isLinking: false,
     error: null,
@@ -444,6 +446,8 @@ const createLinkageMock = (
   primaryMoneyAccount: undefined,
   moneyAccountCardToken: null,
   canLink: false,
+  isMoneyAccountLinkingSupported: true,
+  isMoneyCardSectionAvailable: true,
   status: 'idle',
   isLinking: false,
   error: null,
@@ -3392,6 +3396,66 @@ describe('MoneyHomeView', () => {
       expect(
         queryByTestId(MoneyMetaMaskCardTestIds.VERIFYING_BANNER),
       ).not.toBeOnTheScreen();
+    });
+
+    it('hides the MetaMask Card section when the authenticated provider cannot link a Money account', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockSelectIsCardStateResolved.mockReturnValue(false);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        createLinkageMock({
+          hasMoneyAccountRequirements: true,
+          hasMoneyAccountBaseRequirements: true,
+          isCardAuthenticated: true,
+          isCardVerified: true,
+          isCardLinkedToMoneyAccount: true,
+          isMoneyAccountLinkingSupported: false,
+          isMoneyCardSectionAvailable: false,
+          primaryMoneyAccount: MOCK_MONEY_ACCOUNT,
+        }),
+      );
+
+      const { queryByTestId, getByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the MetaMask Card section again for a logged-out cardholder', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockSelectIsCardStateResolved.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        createLinkageMock({
+          hasMoneyAccountRequirements: true,
+          hasMoneyAccountBaseRequirements: true,
+          isCardAuthenticated: false,
+          isCardVerified: false,
+          isCardLinkedToMoneyAccount: false,
+          isMoneyAccountLinkingSupported: true,
+          isMoneyCardSectionAvailable: true,
+          primaryMoneyAccount: MOCK_MONEY_ACCOUNT,
+        }),
+      );
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(getByTestId(MoneyMetaMaskCardTestIds.CONTAINER)).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('disables link content while linkage is in progress', () => {

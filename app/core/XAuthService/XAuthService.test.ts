@@ -1,15 +1,10 @@
-import { connectX, disconnectX, fetchAndUpdateXAccount } from './XAuthService';
+import { connectX, fetchAndUpdateXAccount } from './XAuthService';
 import { XAuthError, XAuthErrorType } from './XAuthError';
 import { X_REDIRECT_URI } from './XAuthConfig';
 import Engine from '../Engine';
 import { openAuthSessionAsync } from 'expo-web-browser';
 import { Linking } from 'react-native';
-import type { CaipAccountId } from '@metamask/utils';
-import type {
-  Profile,
-  XConnectResult,
-  XProfile,
-} from '@metamask/profile-controller';
+import type { XProfile } from '@metamask/profile-controller';
 
 jest.mock('expo-web-browser', () => ({
   __esModule: true,
@@ -27,45 +22,22 @@ jest.mock('../Engine', () => ({
   __esModule: true,
   default: {
     context: {
-      AuthenticationController: {
-        getSessionProfile: jest.fn(),
-      },
-      AccountsController: {
-        getSelectedAccount: jest.fn(),
+      ProfileService: {
+        getXAuthUrl: jest.fn(),
       },
       ProfileController: {
-        startXConnect: jest.fn(),
         connectX: jest.fn(),
-        disconnectX: jest.fn(),
         fetchAndUpdateXAccount: jest.fn(),
       },
     },
   },
 }));
 
-const { AuthenticationController, AccountsController, ProfileController } =
-  Engine.context;
+const { ProfileService, ProfileController } = Engine.context;
 
 const AUTHORIZATION_URL = 'https://backend.example.com/x/authorize?state=xyz';
 const SESSION_STATE = 'session-state-1';
 const REDIRECT_WITH = (params: string) => `${X_REDIRECT_URI}?${params}`;
-
-const PROFILE_ID = 'canonical-profile-123';
-const ACCOUNT_ADDRESS = '0xAbCdEf1234567890AbCdEf1234567890AbCdEf12';
-const LINKED_ADDRESS: CaipAccountId = `eip155:0:${ACCOUNT_ADDRESS.toLowerCase()}`;
-
-const PROFILE: Profile = {
-  profileId: PROFILE_ID,
-  username: 'tester',
-  displayName: 'Tester',
-  bio: 'bio',
-  linkedAddresses: [LINKED_ADDRESS],
-  avatarUrl: 'https://example.com/avatar.png',
-  tradingPrivacy: 'public',
-  connectedToX: true,
-  createdAt: '2026-01-01T00:00:00Z',
-  updatedAt: '2026-01-01T00:00:00Z',
-};
 
 const X_PROFILE: XProfile = {
   xUserId: 'x-user-1',
@@ -93,26 +65,15 @@ const flushPromises = () => new Promise(setImmediate);
 describe('XAuthService (app-relay flow)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(AuthenticationController.getSessionProfile).mockResolvedValue({
-      canonicalProfileId: PROFILE_ID,
-    } as never);
-    jest.mocked(AccountsController.getSelectedAccount).mockReturnValue({
-      address: ACCOUNT_ADDRESS,
-      type: 'eip155:eoa',
-    } as never);
-    jest.mocked(ProfileController.startXConnect).mockResolvedValue({
-      authorizationUrl: AUTHORIZATION_URL,
+    jest.mocked(ProfileService.getXAuthUrl).mockResolvedValue({
+      url: AUTHORIZATION_URL,
       state: SESSION_STATE,
     });
-    jest.mocked(ProfileController.connectX).mockResolvedValue({
-      profile: PROFILE,
-      xProfile: X_PROFILE,
-      profileCreated: true,
-    });
+    jest.mocked(ProfileController.connectX).mockResolvedValue(X_PROFILE);
   });
 
   describe('connectX', () => {
-    it('resolves identity, opens the backend authorization URL, and relays the redirect code and state (new-profile path)', async () => {
+    it('requests the authorization URL from the backend, opens it, and relays the redirect code and state', async () => {
       (openAuthSessionAsync as jest.Mock).mockResolvedValue({
         type: 'success',
         url: REDIRECT_WITH(`code=auth-code-1&state=${SESSION_STATE}`),
@@ -120,12 +81,8 @@ describe('XAuthService (app-relay flow)', () => {
 
       const result = await connectX();
 
-      expect(AuthenticationController.getSessionProfile).toHaveBeenCalledTimes(
-        1,
-      );
-      expect(ProfileController.startXConnect).toHaveBeenCalledWith({
-        linkedAddress: LINKED_ADDRESS,
-      });
+      expect(ProfileService.getXAuthUrl).toHaveBeenCalledTimes(1);
+      expect(ProfileService.getXAuthUrl).toHaveBeenCalledWith();
       expect(openAuthSessionAsync).toHaveBeenCalledWith(
         AUTHORIZATION_URL,
         X_REDIRECT_URI,
@@ -134,80 +91,8 @@ describe('XAuthService (app-relay flow)', () => {
       expect(ProfileController.connectX).toHaveBeenCalledWith({
         code: 'auth-code-1',
         state: SESSION_STATE,
-        profileId: PROFILE_ID,
       });
-      expect(result).toStrictEqual({
-        profile: PROFILE,
-        xProfile: X_PROFILE,
-        profileCreated: true,
-      });
-    });
-
-    it('lowercases the selected EVM account address in the linked address', async () => {
-      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
-        type: 'success',
-        url: REDIRECT_WITH(`code=auth-code-1&state=${SESSION_STATE}`),
-      });
-
-      await connectX();
-
-      expect(ProfileController.startXConnect).toHaveBeenCalledWith({
-        linkedAddress: `eip155:0:${ACCOUNT_ADDRESS.toLowerCase()}`,
-      });
-    });
-
-    it('returns the connect result with profileCreated false on the existing-profile path', async () => {
-      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
-        type: 'success',
-        url: REDIRECT_WITH(`code=auth-code-1&state=${SESSION_STATE}`),
-      });
-      jest.mocked(ProfileController.connectX).mockResolvedValue({
-        profile: PROFILE,
-        xProfile: X_PROFILE,
-        profileCreated: false,
-      });
-
-      const result: XConnectResult = await connectX();
-
-      expect(result.profileCreated).toBe(false);
-      expect(result.profile).toStrictEqual(PROFILE);
-      expect(result.xProfile).toStrictEqual(X_PROFILE);
-    });
-
-    it('throws a typed NotSignedIn error when the auth session is unavailable', async () => {
-      jest
-        .mocked(AuthenticationController.getSessionProfile)
-        .mockRejectedValue(new Error('no session'));
-
-      const error = await connectX().catch((caught) => caught);
-      expect(error).toBeInstanceOf(XAuthError);
-      expect(error.type).toBe(XAuthErrorType.NotSignedIn);
-      expect(ProfileController.startXConnect).not.toHaveBeenCalled();
-    });
-
-    it('throws a typed NotSignedIn error when the session has no canonical profile id', async () => {
-      jest
-        .mocked(AuthenticationController.getSessionProfile)
-        .mockResolvedValue({
-          canonicalProfileId: undefined,
-        } as never);
-
-      const error = await connectX().catch((caught) => caught);
-      expect(error).toBeInstanceOf(XAuthError);
-      expect(error.type).toBe(XAuthErrorType.NotSignedIn);
-      expect(ProfileController.startXConnect).not.toHaveBeenCalled();
-    });
-
-    it('throws a typed NoEvmAccount error when the selected account is not an EVM account', async () => {
-      jest.mocked(AccountsController.getSelectedAccount).mockReturnValue({
-        address: '5FhqRohbVWNoboVFgbDp3LgvWSD7CRSKVPMgxTreesLyrS8V',
-        type: 'solana',
-      } as never);
-
-      const error = await connectX().catch((caught) => caught);
-      expect(error).toBeInstanceOf(XAuthError);
-      expect(error.type).toBe(XAuthErrorType.NoEvmAccount);
-      expect(ProfileController.startXConnect).not.toHaveBeenCalled();
+      expect(result).toStrictEqual(X_PROFILE);
     });
 
     it('captures the redirect via the Linking event fallback when the auth session does not resolve with it', async () => {
@@ -228,15 +113,10 @@ describe('XAuthService (app-relay flow)', () => {
       });
       resolveOpenAuth({ type: 'cancel' });
 
-      await expect(promise).resolves.toStrictEqual({
-        profile: PROFILE,
-        xProfile: X_PROFILE,
-        profileCreated: true,
-      });
+      await expect(promise).resolves.toStrictEqual(X_PROFILE);
       expect(ProfileController.connectX).toHaveBeenCalledWith({
         code: 'linking-code',
         state: SESSION_STATE,
-        profileId: PROFILE_ID,
       });
     });
 
@@ -248,15 +128,10 @@ describe('XAuthService (app-relay flow)', () => {
         REDIRECT_WITH(`code=cold-start-code&state=${SESSION_STATE}`),
       );
 
-      await expect(connectX()).resolves.toStrictEqual({
-        profile: PROFILE,
-        xProfile: X_PROFILE,
-        profileCreated: true,
-      });
+      await expect(connectX()).resolves.toStrictEqual(X_PROFILE);
       expect(ProfileController.connectX).toHaveBeenCalledWith({
         code: 'cold-start-code',
         state: SESSION_STATE,
-        profileId: PROFILE_ID,
       });
     }, 10000);
 
@@ -312,7 +187,7 @@ describe('XAuthService (app-relay flow)', () => {
 
     it('throws a backend error when the backend fails to issue the authorization URL', async () => {
       jest
-        .mocked(ProfileController.startXConnect)
+        .mocked(ProfileService.getXAuthUrl)
         .mockRejectedValue(new Error('503 Service Unavailable'));
 
       await expect(connectX()).rejects.toMatchObject({
@@ -346,47 +221,14 @@ describe('XAuthService (app-relay flow)', () => {
     });
   });
 
-  describe('disconnectX', () => {
-    it('resolves the profile ID from the auth session and delegates to ProfileController.disconnectX', async () => {
-      jest.mocked(ProfileController.disconnectX).mockResolvedValue(undefined);
-
-      await disconnectX();
-
-      expect(AuthenticationController.getSessionProfile).toHaveBeenCalledTimes(
-        1,
-      );
-      expect(ProfileController.disconnectX).toHaveBeenCalledWith(PROFILE_ID);
-    });
-
-    it('throws a typed NotSignedIn error when the auth session is unavailable', async () => {
-      jest
-        .mocked(AuthenticationController.getSessionProfile)
-        .mockRejectedValue(new Error('no session'));
-
-      await expect(disconnectX()).rejects.toMatchObject({
-        type: XAuthErrorType.NotSignedIn,
-      });
-      expect(ProfileController.disconnectX).not.toHaveBeenCalled();
-    });
-
-    it('propagates backend failures', async () => {
-      jest
-        .mocked(ProfileController.disconnectX)
-        .mockRejectedValue(new Error('500 Internal Server Error'));
-
-      await expect(disconnectX()).rejects.toThrow('500 Internal Server Error');
-    });
-  });
-
   describe('fetchAndUpdateXAccount', () => {
-    it('delegates to ProfileController.fetchAndUpdateXAccount without args and without resolving the session profile', async () => {
+    it('delegates to ProfileController.fetchAndUpdateXAccount without args', async () => {
       jest
         .mocked(ProfileController.fetchAndUpdateXAccount)
         .mockResolvedValue(X_PROFILE);
 
       await expect(fetchAndUpdateXAccount()).resolves.toEqual(X_PROFILE);
       expect(ProfileController.fetchAndUpdateXAccount).toHaveBeenCalledWith();
-      expect(AuthenticationController.getSessionProfile).not.toHaveBeenCalled();
     });
   });
 });

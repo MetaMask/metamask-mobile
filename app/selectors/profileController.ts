@@ -1,26 +1,22 @@
-import { createSelector } from 'reselect';
-import {
-  getDefaultProfileControllerState,
-  type ProfileControllerState,
-  type Profile,
-  type XProfile,
+import type {
+  ProfileControllerState,
+  Profile,
+  XProfile,
 } from '@metamask/profile-controller';
-import { RootState } from '../reducers';
+import { createSelector } from 'reselect';
+import type { RootState } from '../reducers';
 import { selectCanonicalProfileId } from './identity';
-
-const DEFAULT_PROFILE_CONTROLLER_STATE = getDefaultProfileControllerState();
 
 /**
  * Gets the ProfileController state from engine.backgroundState.
  *
  * @param state - The Redux state.
- * @returns The ProfileController state, or the package default when absent.
+ * @returns The ProfileController state, or undefined when absent.
  */
 export const selectProfileControllerState = (
   state: RootState,
-): ProfileControllerState =>
-  state.engine?.backgroundState?.ProfileController ??
-  DEFAULT_PROFILE_CONTROLLER_STATE;
+): ProfileControllerState | undefined =>
+  state.engine.backgroundState.ProfileController;
 
 /**
  * Gets the current MetaMask profile, or undefined when no profile exists yet.
@@ -34,12 +30,10 @@ export const selectProfileControllerState = (
  * @param state - The Redux state.
  * @returns The profile, or undefined.
  */
-export const selectProfile = createSelector(
+export const selectProfileControllerProfile = createSelector(
   [selectProfileControllerState, selectCanonicalProfileId],
-  (profileControllerState, canonicalProfileId): Profile | undefined => {
-    const profile = profileControllerState.profile?.profileId
-      ? profileControllerState.profile
-      : undefined;
+  (state, canonicalProfileId): Profile | undefined => {
+    const profile = state?.profile?.profileId ? state.profile : undefined;
     if (
       profile?.profileId &&
       canonicalProfileId &&
@@ -54,13 +48,16 @@ export const selectProfile = createSelector(
 /**
  * Gets the linked X (Twitter) profile, or undefined when none is connected.
  *
+ * Note: the X profile is not guarded against a stale persisted session the
+ * way the profile selector is; ProfileController clears the X fields itself
+ * when the stored profile id matches the current session's profile id.
+ *
  * @param state - The Redux state.
  * @returns The linked X profile, or undefined.
  */
-export const selectXProfile = createSelector(
+export const selectProfileControllerXProfile = createSelector(
   selectProfileControllerState,
-  (profileControllerState): XProfile | undefined =>
-    profileControllerState?.xProfile,
+  (state): XProfile | undefined => state?.xProfile,
 );
 
 /**
@@ -68,16 +65,16 @@ export const selectXProfile = createSelector(
  * exists in state, or when the current profile reports a live X connection
  * (the connection can also be established from another client).
  *
- * The connectedToX flag is only read through the guarded `selectProfile`, so
- * a persisted profile left over from a different session/backend
- * (ProfileController only clears X fields for matching profile ids) cannot
- * keep the connection reported as live.
+ * The connectedToX flag is only read through the guarded
+ * `selectProfileControllerProfile`, so a persisted profile left over from a
+ * different session/backend (ProfileController only clears X fields for
+ * matching profile ids) cannot keep the connection reported as live.
  *
  * @param state - The Redux state.
  * @returns True if connected to X, false otherwise.
  */
 export const selectIsConnectedToX = createSelector(
-  [selectProfile, selectXProfile],
+  [selectProfileControllerProfile, selectProfileControllerXProfile],
   (profile, xProfile): boolean =>
     Boolean(xProfile) || Boolean(profile?.connectedToX),
 );

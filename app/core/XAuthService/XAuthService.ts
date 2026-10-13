@@ -1,10 +1,8 @@
 import { openAuthSessionAsync } from 'expo-web-browser';
 import { Linking } from 'react-native';
-import { toCaipAccountId, type CaipAccountId } from '@metamask/utils';
-import type { XProfile, XConnectResult } from '@metamask/profile-controller';
+import type { XProfile, XAuthUrlResponse } from '@metamask/profile-controller';
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
-import { isEthAccount } from '../Multichain/utils';
 import { XAuthError, XAuthErrorType } from './XAuthError';
 import { X_REDIRECT_URI } from './XAuthConfig';
 
@@ -16,16 +14,6 @@ import { X_REDIRECT_URI } from './XAuthConfig';
  * does not resolve with the redirect URL itself.
  */
 const REDIRECT_LINKING_FALLBACK_TIMEOUT_MS = 1500;
-
-/**
- * CAIP-2 namespace/reference used for the linked address sent with the X
- * connect flow. The `0` reference is the repo-wide "any EVM chain" wildcard
- * convention (see CardController, RewardsController, selectAccountByScope) —
- * identity is chain-agnostic for the profile backend, which accepts plain
- * CAIP-10 strings in `linked_addresses`.
- */
-const EIP155_NAMESPACE = 'eip155';
-const EIP155_ANY_CHAIN_REFERENCE = '0';
 
 /**
  * Flow logging for developer debugging in Metro/console output
@@ -100,63 +88,6 @@ function parseRedirectParams(redirectUrl: string): XRedirectParams {
     state: url.searchParams.get('state') ?? undefined,
     error: url.searchParams.get('error') ?? undefined,
   };
-}
-
-/**
- * Resolves the canonical profile ID from the auth service session. The
- * canonical profile ID is the identity the backend derives from the JWT
- * `sub` — the X account is linked to it.
- *
- * @returns The canonical profile ID.
- * @throws {XAuthError} NotSignedIn when the user has no auth session.
- */
-async function getSessionProfileId(): Promise<string> {
-  let profileId: string | undefined;
-  try {
-    const profile =
-      await Engine.context.AuthenticationController.getSessionProfile();
-    profileId = profile?.canonicalProfileId;
-  } catch (error) {
-    log('session profile resolution failed', logErrorMetadata(error));
-    throw new XAuthError(
-      XAuthErrorType.NotSignedIn,
-      `Not signed in to the MetaMask auth service: ${getErrorMessage(error)}`,
-      { cause: error },
-    );
-  }
-  if (!profileId) {
-    log('session profile has no canonical profile id');
-    throw new XAuthError(
-      XAuthErrorType.NotSignedIn,
-      'Not signed in to the MetaMask auth service',
-    );
-  }
-  return profileId;
-}
-
-/**
- * Resolves the currently selected EVM account as a CAIP-10 account ID in the
- * `eip155:0:<address>` wildcard-chain form (the repo-wide "any EVM chain"
- * convention — identity is chain-agnostic for the profile backend).
- *
- * @returns The CAIP-10 account ID.
- * @throws {XAuthError} NoEvmAccount when no EVM account is selected.
- */
-function getSelectedEvmAccountId(): CaipAccountId {
-  const account = Engine.context.AccountsController.getSelectedAccount();
-  if (!account || !isEthAccount(account)) {
-    log('no EVM account selected for X connect');
-    throw new XAuthError(
-      XAuthErrorType.NoEvmAccount,
-      'No EVM account is selected — an EVM account is required to connect X',
-    );
-  }
-  return toCaipAccountId(
-    EIP155_NAMESPACE,
-    EIP155_ANY_CHAIN_REFERENCE,
-    // CAIP-10 EVM account addresses are lowercase.
-    account.address.toLowerCase(),
-  );
 }
 
 /**
@@ -257,49 +188,37 @@ async function openAuthorizationSession(
  * Connects the user's X (Twitter) account through the backend-mediated
  * app-relay OAuth flow:
  *
- * 1. Resolve identity — the canonical profile ID from the auth session and
- * the selected EVM account as a CAIP-10 linked address.
- * 2. Ask the backend for the X authorization URL
- * (ProfileController.startXConnect). The backend creates the profile during
- * the connect if it does not exist yet.
- * 3. Open it in a system browser auth session.
- * 4. Capture the x-oauth-redirect universal link (session result, Linking
+ * 1. Ask the backend for the X authorization URL and state
+ * (ProfileService.getXAuthUrl) — the backend derives the user's identity
+ * from the verified auth-service JWT, so no client-side identity is sent.
+ * 2. Open the authorization URL in a system browser auth session.
+ * 3. Capture the x-oauth-redirect universal link (session result, Linking
  * event, or cold-start initial URL).
- * 5. Relay the authorization code + state to the backend
+ * 4. Relay the authorization code + state to the backend
  * (ProfileController.connectX) — X codes expire in ~30s, so this happens
- * immediately after the redirect. On success the profile and the linked X
- * profile are persisted in ProfileController state.
+ * immediately after the redirect. On success the linked X profile is
+ * persisted in ProfileController state.
  *
- * @returns The connect result: the (possibly newly created) profile, the
- * linked X profile, and whether the backend created the profile.
- * @throws {XAuthError} NotSignedIn — the user has no auth service session.
- * @throws {XAuthError} NoEvmAccount — no EVM account is selected.
+ * @returns The linked X profile.
  * @throws {XAuthError} UserCancelled — user cancelled the session or denied
  * consent on X's consent screen (backend redirects back with an `error` param).
  * @throws {XAuthError} StateMismatch — the redirect's `state` did not match
  * the state issued with the authorization URL.
  * @throws {XAuthError} MissingCode — the redirect carried no `code` param.
- * @throws {XAuthError} BackendError — the backend rejected the start or
- * connect call.
+ * @throws {XAuthError} BackendError — the backend rejected the authorization
+ * URL request or the connect call.
  * @throws {XAuthError} NetworkFailure — the auth session could not be opened
  * or no redirect was captured.
  */
-export async function connectX(): Promise<XConnectResult> {
+export async function connectX(): Promise<XProfile> {
   log('connectX: start', { redirectUri: X_REDIRECT_URI });
 
-  const { ProfileController } = Engine.context;
-
-  const profileId = await getSessionProfileId();
-  const linkedAddress = getSelectedEvmAccountId();
-  log('connectX: identity resolved', {
-    hasProfileId: Boolean(profileId),
-    hasLinkedAddress: Boolean(linkedAddress),
-  });
+  const { ProfileService, ProfileController } = Engine.context;
 
   log('connectX: requesting authorization URL from backend');
-  let session: { authorizationUrl: string; state: string };
+  let session: XAuthUrlResponse;
   try {
-    session = await ProfileController.startXConnect({ linkedAddress });
+    session = await ProfileService.getXAuthUrl();
   } catch (error) {
     log('connectX: backend failed to issue authorization URL', {
       ...logErrorMetadata(error),
@@ -311,11 +230,11 @@ export async function connectX(): Promise<XConnectResult> {
     );
   }
   log('connectX: authorization URL issued', {
-    hasAuthorizationUrl: Boolean(session.authorizationUrl),
+    hasAuthorizationUrl: Boolean(session.url),
     hasState: Boolean(session.state),
   });
 
-  const redirectUrl = await openAuthorizationSession(session.authorizationUrl);
+  const redirectUrl = await openAuthorizationSession(session.url);
 
   const params = parseRedirectParams(redirectUrl);
   log('connectX: redirect captured', {
@@ -355,16 +274,12 @@ export async function connectX(): Promise<XConnectResult> {
 
   log('connectX: relaying code to backend');
   try {
-    const result = await ProfileController.connectX({
+    const xProfile = await ProfileController.connectX({
       code: params.code,
       state: params.state,
-      profileId,
     });
-    log('connectX: done', {
-      connected: true,
-      profileCreated: result.profileCreated,
-    });
-    return result;
+    log('connectX: done', { connected: true });
+    return xProfile;
   } catch (error) {
     log('connectX: backend connect failed', logErrorMetadata(error));
     throw new XAuthError(
@@ -373,18 +288,6 @@ export async function connectX(): Promise<XConnectResult> {
       { cause: error },
     );
   }
-}
-
-/**
- * Disconnects the X account linked to the user's profile. Resolves the
- * profile ID from the auth session, then clears the linked X profile in
- * ProfileController state.
- */
-export async function disconnectX(): Promise<void> {
-  log('disconnectX: start');
-  const profileId = await getSessionProfileId();
-  await Engine.context.ProfileController.disconnectX(profileId);
-  log('disconnectX: done');
 }
 
 /**

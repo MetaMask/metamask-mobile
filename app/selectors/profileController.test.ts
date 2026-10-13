@@ -1,11 +1,10 @@
 import {
   selectProfileControllerState,
-  selectProfile,
-  selectXProfile,
+  selectProfileControllerProfile,
+  selectProfileControllerXProfile,
   selectIsConnectedToX,
 } from './profileController';
 import { RootState } from '../reducers';
-import { getDefaultProfileControllerState } from '@metamask/profile-controller';
 import ExtendedKeyringTypes from '../constants/keyringTypes';
 
 /**
@@ -85,31 +84,31 @@ describe('profileController selectors', () => {
   describe('selectProfileControllerState', () => {
     it('returns the controller state when present', () => {
       const state = buildState({ profile: COMPLETE_PROFILE });
-      expect(selectProfileControllerState(state).profile).toEqual(
+      expect(selectProfileControllerState(state)?.profile).toEqual(
         COMPLETE_PROFILE,
       );
     });
 
-    it('returns the default state when the controller state is absent', () => {
-      expect(selectProfileControllerState(buildState(null))).toEqual(
-        getDefaultProfileControllerState(),
-      );
+    it('passes the controller state through when it is absent', () => {
+      // No default-state fallback: the selector reads backgroundState
+      // directly and surfaces whatever the engine persisted.
+      expect(selectProfileControllerState(buildState(null))).toBeNull();
     });
   });
 
-  describe('selectProfile', () => {
+  describe('selectProfileControllerProfile', () => {
     it('returns the profile when a profileId exists', () => {
       const state = buildState({
         profile: COMPLETE_PROFILE,
       });
-      expect(selectProfile(state)).toEqual(COMPLETE_PROFILE);
+      expect(selectProfileControllerProfile(state)).toEqual(COMPLETE_PROFILE);
     });
 
     it('returns undefined when no profile has been created (empty profileId)', () => {
       const state = buildState({
-        profile: getDefaultProfileControllerState().profile,
+        profile: { ...COMPLETE_PROFILE, profileId: '' },
       });
-      expect(selectProfile(state)).toBeUndefined();
+      expect(selectProfileControllerProfile(state)).toBeUndefined();
     });
 
     it('returns the profile when the canonical profile id is unknown (no session)', () => {
@@ -118,7 +117,7 @@ describe('profileController selectors', () => {
       const state = buildState({
         profile: COMPLETE_PROFILE,
       });
-      expect(selectProfile(state)).toEqual(COMPLETE_PROFILE);
+      expect(selectProfileControllerProfile(state)).toEqual(COMPLETE_PROFILE);
     });
 
     it('returns the profile when the stored profileId matches the canonical profile id', () => {
@@ -126,7 +125,7 @@ describe('profileController selectors', () => {
         { profile: { ...COMPLETE_PROFILE, profileId: 'canonical-profile-1' } },
         { keyringId: 'entropy-1', canonicalProfileId: 'canonical-profile-1' },
       );
-      expect(selectProfile(state)).toEqual({
+      expect(selectProfileControllerProfile(state)).toEqual({
         ...COMPLETE_PROFILE,
         profileId: 'canonical-profile-1',
       });
@@ -137,22 +136,22 @@ describe('profileController selectors', () => {
         { profile: { ...COMPLETE_PROFILE, profileId: 'stale-profile-id' } },
         { keyringId: 'entropy-1', canonicalProfileId: 'current-profile-id' },
       );
-      expect(selectProfile(state)).toBeUndefined();
+      expect(selectProfileControllerProfile(state)).toBeUndefined();
     });
   });
 
-  describe('selectXProfile', () => {
+  describe('selectProfileControllerXProfile', () => {
     it('returns the linked X profile when present', () => {
       const state = buildState({
         profile: COMPLETE_PROFILE,
         xProfile: X_PROFILE,
       });
-      expect(selectXProfile(state)).toEqual(X_PROFILE);
+      expect(selectProfileControllerXProfile(state)).toEqual(X_PROFILE);
     });
 
     it('returns undefined when no X profile is linked', () => {
       const state = buildState({ profile: COMPLETE_PROFILE });
-      expect(selectXProfile(state)).toBeUndefined();
+      expect(selectProfileControllerXProfile(state)).toBeUndefined();
     });
   });
 
@@ -197,7 +196,7 @@ describe('profileController selectors', () => {
         },
         { keyringId: 'entropy-1', canonicalProfileId: 'current-profile-id' },
       );
-      expect(selectProfile(state)).toBeUndefined();
+      expect(selectProfileControllerProfile(state)).toBeUndefined();
       expect(selectIsConnectedToX(state)).toBe(false);
     });
 

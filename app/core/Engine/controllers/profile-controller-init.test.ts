@@ -1,13 +1,13 @@
-import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
-import { ExtendedMessenger } from '../../ExtendedMessenger';
-import { getProfileControllerMessenger } from '../messengers/profile-controller-messenger';
-import { profileControllerInit } from './profile-controller-init';
 import {
   ProfileController,
   type ProfileControllerMessenger,
 } from '@metamask/profile-controller';
-import { MessengerClientInitRequest } from '../types';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { MOCK_ANY_NAMESPACE, type MockAnyNamespace } from '@metamask/messenger';
+import { ExtendedMessenger } from '../../ExtendedMessenger';
+import { getProfileControllerMessenger } from '../messengers/profile-controller-messenger';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import type { MessengerClientInitRequest } from '../types';
+import { profileControllerInit } from './profile-controller-init';
 
 jest.mock('@metamask/profile-controller');
 
@@ -31,15 +31,16 @@ describe('profileControllerInit', () => {
 
   it('instantiates the ProfileController', () => {
     const { controller } = profileControllerInit(getInitRequestMock());
+
     expect(controller).toBeInstanceOf(ProfileController);
   });
 
   it('passes persisted state to the controller', () => {
     const mockState = {
       profile: {
-        profileId: 'test-profile-id',
-        username: 'test',
-        displayName: 'Test',
+        profileId: 'profile-123',
+        username: 'alice',
+        displayName: 'Alice',
         bio: '',
         linkedAddresses: [],
         avatarUrl: '',

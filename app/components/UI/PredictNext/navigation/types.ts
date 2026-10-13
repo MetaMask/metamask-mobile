@@ -1,10 +1,5 @@
 import type { PredictEntityId, PredictVenueId } from '../types';
-import type { PredictEntryPoint } from '../../Predict/types/navigation';
 import type { FeedScreenId } from './feedScreens';
-
-export interface PredictNextHomeParams {
-  entryPoint?: PredictEntryPoint;
-}
 
 export interface PredictNextEventParams {
   venueId: PredictVenueId;
@@ -32,7 +27,7 @@ export interface PredictNextSearchParams {
 // ParamListBase requires a type alias.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictNextStackParamList = {
-  PredictNextHome: PredictNextHomeParams | undefined;
+  PredictNextHome: undefined;
   PredictNextFeed: PredictNextFeedParams;
   PredictNextEvent: PredictNextEventParams;
   PredictNextPortfolio: PredictNextPortfolioParams;

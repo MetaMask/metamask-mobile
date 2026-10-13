@@ -37,17 +37,22 @@ jobs:
       - name: Dispatch to triage-agent
         env:
           TOKEN: ${{ steps.exchange.outputs.token }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          EVENT_ACTION: ${{ github.event.action }}
+          LABEL_NAME: ${{ github.event.label.name }}
         run: |
           curl -sSf -X POST \
             -H "Authorization: token $TOKEN" \
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/MetaMask/triage-agent/dispatches" \
             -d "$(jq -cn \
-              --arg owner "${{ github.repository_owner }}" \
-              --arg name "${{ github.event.repository.name }}" \
-              --arg number "${{ github.event.issue.number }}" \
-              --arg action "${{ github.event.action }}" \
-              --arg label "${{ github.event.label.name }}" \
+              --arg owner "$REPO_OWNER" \
+              --arg name "$REPO_NAME" \
+              --arg number "$ISSUE_NUMBER" \
+              --arg action "$EVENT_ACTION" \
+              --arg label "$LABEL_NAME" \
               '{event_type: "triage-issue", client_payload: {repo_owner: $owner, repo_name: $name, issue_number: $number, event_action: $action, event_label_name: $label, trigger_mode: "label"}}')"
 
   forward-opened:
@@ -82,13 +87,16 @@ jobs:
       - name: Dispatch to triage-agent
         env:
           TOKEN: ${{ steps.exchange.outputs.token }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           curl -sSf -X POST \
             -H "Authorization: token $TOKEN" \
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/MetaMask/triage-agent/dispatches" \
             -d "$(jq -cn \
-              --arg owner "${{ github.repository_owner }}" \
-              --arg name "${{ github.event.repository.name }}" \
-              --arg number "${{ github.event.issue.number }}" \
+              --arg owner "$REPO_OWNER" \
+              --arg name "$REPO_NAME" \
+              --arg number "$ISSUE_NUMBER" \
               '{event_type: "triage-issue", client_payload: {repo_owner: $owner, repo_name: $name, issue_number: $number, event_action: "opened", trigger_mode: "on_create"}}')"

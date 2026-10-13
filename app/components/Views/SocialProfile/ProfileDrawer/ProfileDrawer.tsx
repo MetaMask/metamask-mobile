@@ -87,31 +87,31 @@ const ProfileDrawer = () => {
   }[] = [
     {
       iconName: IconName.Notification,
-      label: strings('app_settings.profile_drawer.notifications'),
+      label: strings('profile_drawer.notifications'),
       badgeCount: notificationBadgeCount,
       onPress: handleNotifications,
       testID: ProfileDrawerSelectorsIDs.NOTIFICATIONS_ROW,
     },
     {
       iconName: IconName.Clock,
-      label: strings('app_settings.profile_drawer.activity'),
+      label: strings('profile_drawer.activity'),
       onPress: handleActivity,
       testID: ProfileDrawerSelectorsIDs.ACTIVITY_ROW,
     },
     {
       iconName: IconName.Sparkle,
-      label: strings('app_settings.profile_drawer.subscriptions'),
+      label: strings('profile_drawer.subscriptions'),
       testID: ProfileDrawerSelectorsIDs.SUBSCRIPTIONS_ROW,
     },
     {
       iconName: IconName.Setting,
-      label: strings('app_settings.profile_drawer.settings'),
+      label: strings('profile_drawer.settings'),
       onPress: handleSettings,
       testID: ProfileDrawerSelectorsIDs.SETTINGS_ROW,
     },
     {
       iconName: IconName.Question,
-      label: strings('app_settings.profile_drawer.help_and_support'),
+      label: strings('profile_drawer.help_and_support'),
       testID: ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW,
     },
   ];
@@ -132,7 +132,7 @@ const ProfileDrawer = () => {
           iconName: IconName.Close,
           variant: ButtonIconVariant.Filled,
           onPress: handleClose,
-          accessibilityLabel: strings('app_settings.profile_drawer.close'),
+          accessibilityLabel: strings('profile_drawer.close'),
           testID: ProfileDrawerSelectorsIDs.CLOSE_BUTTON,
         }}
         endButtonIconProps={[
@@ -140,7 +140,7 @@ const ProfileDrawer = () => {
             iconName: IconName.QrCode,
             variant: ButtonIconVariant.Filled,
             onPress: openQRScanner,
-            accessibilityLabel: strings('app_settings.profile_drawer.scan'),
+            accessibilityLabel: strings('profile_drawer.scan'),
             testID: ProfileDrawerSelectorsIDs.SCAN_BUTTON,
           },
         ]}
@@ -152,9 +152,7 @@ const ProfileDrawer = () => {
         <Pressable
           onPress={handleCreateProfile}
           accessibilityRole="button"
-          accessibilityLabel={strings(
-            'app_settings.profile_drawer.create_profile',
-          )}
+          accessibilityLabel={strings('profile_drawer.create_profile')}
           testID={ProfileDrawerSelectorsIDs.CREATE_PROFILE}
           style={({ pressed }) =>
             tw.style('items-center px-4 pb-6 pt-2', pressed && 'opacity-70')
@@ -168,7 +166,7 @@ const ProfileDrawer = () => {
               testID={ProfileDrawerSelectorsIDs.CREATE_PROFILE_AVATAR}
             />
             <Text variant={TextVariant.HeadingLg} fontWeight={FontWeight.Bold}>
-              {strings('app_settings.profile_drawer.create_profile')}
+              {strings('profile_drawer.create_profile')}
             </Text>
           </Box>
         </Pressable>

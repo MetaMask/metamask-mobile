@@ -142,6 +142,7 @@ import {
 } from './controllers/predict-service-init';
 import { recurringOrdersDataServiceInit } from './controllers/recurring-orders-data-service-init';
 import { limitOrdersDataServiceInit } from './controllers/limit-orders-data-service-init';
+import { sentinelFeeTokensDataServiceInit } from './controllers/sentinel-fee-tokens-data-service-init';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { rewardsMoneyControllerInit } from './controllers/rewards-money-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
@@ -403,6 +404,7 @@ export class Engine {
         PredictOrderService: predictOrderServiceInit,
         RecurringOrdersDataService: recurringOrdersDataServiceInit,
         LimitOrdersDataService: limitOrdersDataServiceInit,
+        SentinelFeeTokensDataService: sentinelFeeTokensDataServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         RewardsMoneyController: rewardsMoneyControllerInit,
@@ -412,8 +414,6 @@ export class Engine {
           networkConnectionBannerControllerInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
-        ProfileService: profileServiceInit,
-        ProfileController: profileControllerInit,
         ProofOfOwnershipService: proofOfOwnershipServiceInit,
         AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
@@ -423,6 +423,8 @@ export class Engine {
         AiDigestController: aiDigestControllerInit,
         SocialService: socialServiceInit,
         SocialController: socialControllerInit,
+        ProfileService: profileServiceInit,
+        ProfileController: profileControllerInit,
         AuthenticatedUserStorageService: authenticatedUserStorageServiceInit,
         CardController: cardControllerInit,
         UiSlotsController: uiSlotsControllerInit,
@@ -501,8 +503,6 @@ export class Engine {
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;
-    const profileService = messengerClientsByName.ProfileService;
-    const profileController = messengerClientsByName.ProfileController;
     const proofOfOwnershipService =
       messengerClientsByName.ProofOfOwnershipService;
     const rampsService = messengerClientsByName.RampsService;
@@ -602,6 +602,9 @@ export class Engine {
     const networkEnablementController =
       messengerClientsByName.NetworkEnablementController;
     networkEnablementController.init();
+
+    const moneyAccountUpgradeController =
+      messengerClientsByName.MoneyAccountUpgradeController;
 
     // The wallet constructs AccountsController; emit the startup breadcrumb
     // (account counts) that the deleted local init used to log.
@@ -719,13 +722,13 @@ export class Engine {
       RecurringOrdersDataService:
         messengerClientsByName.RecurringOrdersDataService,
       LimitOrdersDataService: messengerClientsByName.LimitOrdersDataService,
+      SentinelFeeTokensDataService:
+        messengerClientsByName.SentinelFeeTokensDataService,
       RewardsController: rewardsController,
       RewardsMoneyController: rewardsMoneyController,
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
       ProfileMetricsService: profileMetricsService,
-      ProfileController: profileController,
-      ProfileService: profileService,
       ProofOfOwnershipService: proofOfOwnershipService,
       RampsService: rampsService,
       TransakService: transakService,
@@ -734,6 +737,8 @@ export class Engine {
       AiDigestController: aiDigestController,
       SocialService: socialService,
       SocialController: socialController,
+      ProfileService: messengerClientsByName.ProfileService,
+      ProfileController: messengerClientsByName.ProfileController,
       AuthenticatedUserStorageService: authenticatedUserStorageService,
       CardController: cardController,
       UiSlotsController: uiSlotsController,
@@ -745,8 +750,7 @@ export class Engine {
       KycService: kycService,
       KycController: kycController,
       ChompApiService: messengerClientsByName.ChompApiService,
-      MoneyAccountUpgradeController:
-        messengerClientsByName.MoneyAccountUpgradeController,
+      MoneyAccountUpgradeController: moneyAccountUpgradeController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1691,6 +1695,7 @@ export default {
       AiDigestController,
       ClientController,
       SocialController,
+      ProfileController,
       ComplianceController,
       KycController,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -1714,7 +1719,6 @@ export default {
       MoneyAccountController,
       MoneyAccountUpgradeController,
       QrSyncController,
-      ProfileController,
     } = instance.context;
 
     return {
@@ -1774,6 +1778,7 @@ export default {
       RampsController: RampsController.state,
       AiDigestController: AiDigestController.state,
       SocialController: SocialController.state,
+      ProfileController: ProfileController.state,
       CardController: CardController.state,
       UiSlotsController: UiSlotsController.state,
       ClientController: ClientController.state,
@@ -1801,7 +1806,6 @@ export default {
       MoneyAccountController: MoneyAccountController.state,
       MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
       QrSyncController: QrSyncController.state,
-      ProfileController: ProfileController.state,
     };
   },
 

@@ -40,6 +40,7 @@ import {
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
 import WalletExistsImg from '../../../images/wallet-exists.png';
+import WalletNotFoundImg from '../../../images/wallet-not-found.png';
 import type { AccountStatusParams } from './types';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import {
@@ -57,9 +58,12 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-// wallet-exists.png is exported at 3x (1061×926px).
-const WALLET_EXISTS_IMAGE_WIDTH = 1061 / 3;
-const WALLET_EXISTS_IMAGE_HEIGHT = 926 / 3;
+// Images are exported at 3x and rendered at ~90% of their natural size.
+const IMAGE_SCALE = 0.9;
+const WALLET_EXISTS_IMAGE_WIDTH = (1061 / 3) * IMAGE_SCALE;
+const WALLET_EXISTS_IMAGE_HEIGHT = (926 / 3) * IMAGE_SCALE;
+const WALLET_NOT_FOUND_IMAGE_WIDTH = (1029 / 3) * IMAGE_SCALE;
+const WALLET_NOT_FOUND_IMAGE_HEIGHT = (906 / 3) * IMAGE_SCALE;
 
 const ACCOUNT_STATUS_PRIMARY_FLOW = {
   EXISTING_ACCOUNT_IMPORT: 'import',
@@ -290,11 +294,17 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
           twClassName="w-full flex-1"
         >
           <Image
-            source={WalletExistsImg}
+            source={type === 'found' ? WalletExistsImg : WalletNotFoundImg}
             resizeMode="contain"
             style={tw.style('h-full w-full', {
-              maxWidth: WALLET_EXISTS_IMAGE_WIDTH,
-              maxHeight: WALLET_EXISTS_IMAGE_HEIGHT,
+              maxWidth:
+                type === 'found'
+                  ? WALLET_EXISTS_IMAGE_WIDTH
+                  : WALLET_NOT_FOUND_IMAGE_WIDTH,
+              maxHeight:
+                type === 'found'
+                  ? WALLET_EXISTS_IMAGE_HEIGHT
+                  : WALLET_NOT_FOUND_IMAGE_HEIGHT,
             })}
           />
         </Box>

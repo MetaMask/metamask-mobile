@@ -5,16 +5,6 @@ import {
 } from '@metamask/messenger';
 import type { ProfileServiceMessenger } from '@metamask/profile-controller';
 import type { RootMessenger } from '../types';
-
-/**
- * Get the messenger for the ProfileService.
- *
- * Delegates the AuthenticationController bearer token action so the
- * service can authenticate requests to the Profile API.
- *
- * @param rootMessenger - The root messenger.
- * @returns The ProfileServiceMessenger.
- */
 export function getProfileServiceMessenger(
   rootMessenger: RootMessenger,
 ): ProfileServiceMessenger {

@@ -1,8 +1,8 @@
 import {
   Messenger,
+  MOCK_ANY_NAMESPACE,
   type MessengerActions,
   type MessengerEvents,
-  MOCK_ANY_NAMESPACE,
   type MockAnyNamespace,
 } from '@metamask/messenger';
 import type { ProfileServiceMessenger } from '@metamask/profile-controller';
@@ -14,22 +14,21 @@ type RootMessenger = Messenger<
   MessengerEvents<ProfileServiceMessenger>
 >;
 
-function getRootMessenger(): RootMessenger {
-  return new Messenger({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-}
-
 describe('getProfileServiceMessenger', () => {
   it('returns a messenger', () => {
-    const rootMessenger = getRootMessenger();
+    const rootMessenger = new Messenger({
+      namespace: MOCK_ANY_NAMESPACE,
+    }) as RootMessenger;
+
     const profileServiceMessenger = getProfileServiceMessenger(rootMessenger);
 
     expect(profileServiceMessenger).toBeInstanceOf(Messenger);
   });
 
-  it('delegates the AuthenticationController bearer token action', () => {
-    const rootMessenger = getRootMessenger();
+  it('delegates bearer token access to the messenger', () => {
+    const rootMessenger = new Messenger({
+      namespace: MOCK_ANY_NAMESPACE,
+    }) as RootMessenger;
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
 
     getProfileServiceMessenger(rootMessenger);
