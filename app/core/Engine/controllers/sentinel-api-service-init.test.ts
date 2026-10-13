@@ -8,8 +8,10 @@ import {
   type SentinelApiServiceMessenger,
 } from '@metamask/sentinel-api-service';
 import { MOCK_ANY_NAMESPACE, type MockAnyNamespace } from '@metamask/messenger';
+import { setSentinelApiMessenger } from '../../../util/transactions/sentinel-api';
 
 jest.mock('@metamask/sentinel-api-service');
+jest.mock('../../../util/transactions/sentinel-api');
 
 function getInitRequestMock(): jest.Mocked<
   MessengerClientInitRequest<SentinelApiServiceMessenger>
@@ -45,6 +47,16 @@ describe('sentinelApiServiceInit', () => {
         fetch: expect.any(Function),
         clientId: 'mobile',
       }),
+    );
+  });
+
+  it('sets messenger for legacy Sentinel utils', () => {
+    const request = getInitRequestMock();
+
+    sentinelApiServiceInit(request);
+
+    expect(setSentinelApiMessenger).toHaveBeenCalledWith(
+      request.controllerMessenger,
     );
   });
 });

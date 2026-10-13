@@ -28,6 +28,7 @@ export type SocialEndpoint =
   | 'leaderboard'
   | 'feed'
   | 'following'
+  | 'followers'
   | 'open_positions'
   | 'closed_positions'
   | 'position_by_id'
