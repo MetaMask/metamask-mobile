@@ -275,6 +275,12 @@ if [[ -d "$HE_ARTIFACTS_DIR" ]]; then
   cp -R "$HE_ARTIFACTS_DIR"/. artifacts/ 2>/dev/null || true
 fi
 
+# mergeArtifacts appends -HYPL-<org>-<taskId> to each file next to the original,
+# so every report would be aggregated twice. Collapse them onto the original name.
+strip_he_task_suffix() {
+  printf '%s' "$1" | sed -E 's/-HYPL-[0-9]+-[0-9A-Za-z]+(\.[^.]+)$/\1/'
+}
+
 copy_report_files() {
   local root="$1"
   [[ -d "$root" ]] || return 0
@@ -285,7 +291,7 @@ copy_report_files() {
         mkdir -p tests/test-reports/playwright-report
         cp -f "$f" "tests/test-reports/playwright-report/" 2>/dev/null || true
       else
-        cp -f "$f" "tests/reporters/reports/" 2>/dev/null || true
+        cp -f "$f" "tests/reporters/reports/$(strip_he_task_suffix "$base")" 2>/dev/null || true
       fi
     done
 }
@@ -296,7 +302,7 @@ copy_hermes_profiles() {
   mkdir -p tests/reporters/reports/hermes-cpuprofiles
   find "$root" -type f -name '*.cpuprofile' -print0 \
     | while IFS= read -r -d '' f; do
-      cp -f "$f" "tests/reporters/reports/hermes-cpuprofiles/" 2>/dev/null || true
+      cp -f "$f" "tests/reporters/reports/hermes-cpuprofiles/$(strip_he_task_suffix "$(basename "$f")")" 2>/dev/null || true
     done
 }
 
