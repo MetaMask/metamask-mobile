@@ -57,11 +57,17 @@ export function usePerpsSheetPrices({
       interval: PERPS_SHEET_INTERVAL,
       limit,
       nowMs,
-    }).then((result) => {
-      if (cancelled) return;
-      setPrices(result);
-      setIsLoading(false);
-    });
+    })
+      .then((result) => {
+        if (cancelled) return;
+        setPrices(result);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setPrices([]);
+        setIsLoading(false);
+      });
 
     return () => {
       cancelled = true;

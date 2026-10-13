@@ -91,16 +91,25 @@ export function buildTimeAxisLabels(
   const showWeekdays = span <= DEFAULT_CHART_WINDOW_MS + DAY_MS;
   return Array.from({ length: count }, (_, index) => {
     const date = new Date(chartWindow.startMs + (span * index) / (count - 1));
-    return showWeekdays
-      ? strings(`social_leaderboard.position_sheet.weekdays.${date.getDay()}`)
-      : `${strings(`date.months.${date.getMonth()}`)} ${date.getDate()}`;
+    if (showWeekdays) {
+      return strings(
+        `social_leaderboard.position_sheet.weekdays.${date.getDay()}`,
+      );
+    }
+    return formatMonthDay(date);
   });
+}
+
+function formatMonthDay(date: Date): string {
+  const month = strings(`date.months.${date.getMonth()}`);
+  return `${month} ${date.getDate()}`;
 }
 
 /** `Oct 11, 5:17 am`, for the scrubbed point under the price header. */
 export function formatChartTimestamp(timestampMs: number): string {
   const date = new Date(timestampMs);
-  return `${strings(`date.months.${date.getMonth()}`)} ${date.getDate()}, ${formatTradeTime(timestampMs)}`;
+  const monthDay = formatMonthDay(date);
+  return `${monthDay}, ${formatTradeTime(timestampMs)}`;
 }
 
 /** Change over the last 24h, read from the point closest to a day ago. */

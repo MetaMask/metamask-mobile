@@ -52,7 +52,7 @@ export const useOpenPerpsOrder = ({
 
   const openPerpsOrder = useCallback(
     ({ direction, asset, leverage }: OpenPerpsOrderParams) => {
-      gate(async () => {
+      gate(() => {
         if (!isEligible) {
           setIsGeoBlockVisible(true);
           return;

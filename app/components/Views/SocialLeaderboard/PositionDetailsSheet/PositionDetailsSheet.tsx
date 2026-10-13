@@ -163,10 +163,12 @@ const PositionDetailsSheet = () => {
 
   const firstPrice = data.prices[0]?.[1];
   const headerValue = scrubPoint ? scrubPoint[1] : data.currentPrice;
-  const headerChange = scrubPoint
-    ? firstPrice
+  const scrubChangePercent =
+    firstPrice && scrubPoint
       ? ((scrubPoint[1] - firstPrice) / firstPrice) * 100
-      : undefined
+      : undefined;
+  const headerChange = scrubPoint
+    ? scrubChangePercent
     : data.dailyChangePercent;
   const headerCaption = scrubPoint
     ? formatChartTimestamp(Number(scrubPoint[0]))

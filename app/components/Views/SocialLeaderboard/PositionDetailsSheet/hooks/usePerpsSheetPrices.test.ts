@@ -49,6 +49,22 @@ describe('usePerpsSheetPrices', () => {
     });
   });
 
+  it('clears prices when the candle fetch rejects', async () => {
+    mockFetch.mockRejectedValue(new Error('network'));
+
+    const { result } = renderHook(() =>
+      usePerpsSheetPrices({
+        symbol: 'BTC',
+        earliestTradeMs: NOW_MS - DAY_MS,
+        nowMs: NOW_MS,
+        enabled: true,
+      }),
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.prices).toEqual([]);
+  });
+
   it('does nothing while disabled', () => {
     const { result } = renderHook(() =>
       usePerpsSheetPrices({
