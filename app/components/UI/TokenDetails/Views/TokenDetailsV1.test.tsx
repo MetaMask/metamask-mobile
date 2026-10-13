@@ -596,6 +596,18 @@ describe('TokenDetailsV1', () => {
       expect(getByTestId(TokenExplainerSheetSelectors.SHEET)).toBeOnTheScreen();
     });
 
+    // Shares the one `explainerCopy` slot with the row definitions, so the
+    // provenance disclaimer cannot be open alongside one of them.
+    it('opens the Blockaid disclaimer from the provenance line', () => {
+      const { getByTestId } = openSecurityTab();
+
+      fireEvent.press(getByTestId(SecurityTabSelectors.SCAN_META));
+
+      expect(getByTestId(TokenExplainerSheetSelectors.TITLE)).toHaveTextContent(
+        'Security verification',
+      );
+    });
+
     it('closes the sheet again', () => {
       const { getByTestId, queryByTestId } = openSecurityTab();
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { lightTheme, darkTheme } from '@metamask/design-tokens';
 
 import { strings } from '../../../../../../../locales/i18n';
@@ -21,12 +21,14 @@ const JUST_NOW = strings(
 const renderAttribution = (
   fetchedMinutesAgo: number | null,
   theme = lightTheme,
+  onPress?: () => void,
 ) =>
   render(
     <ThemeContext.Provider value={theme}>
       <SecurityAttribution
         fetchedMinutesAgo={fetchedMinutesAgo}
         testID={TEST_ID}
+        onPress={onPress}
       />
     </ThemeContext.Provider>,
   );
@@ -86,5 +88,49 @@ describe('SecurityAttribution', () => {
       'color',
       theme.colors.background.default,
     );
+  });
+
+  describe('the disclaimer affordance', () => {
+    it('reports a tap anywhere on the row', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = renderAttribution(5, lightTheme, onPress);
+
+      fireEvent.press(getByTestId(TEST_ID));
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('trails the clause with an info glyph', () => {
+      const { getByTestId } = renderAttribution(5, lightTheme, jest.fn());
+
+      expect(
+        getByTestId(SecurityAttributionSelectors.INFO_ICON),
+      ).toBeOnTheScreen();
+    });
+
+    // The row is one accessibility element, so the label alone would announce
+    // the provider and the age with no hint that anything sits behind them.
+    it('announces itself as a button naming what it opens', () => {
+      const { getByTestId } = renderAttribution(5, lightTheme, jest.fn());
+      const row = getByTestId(TEST_ID);
+
+      expect(row).toHaveProp('accessibilityRole', 'button');
+      expect(row).toHaveProp(
+        'accessibilityHint',
+        strings('token_details_v1.security_tab.checks_meta.explainer.title'),
+      );
+    });
+
+    // A surface with nowhere to mount the sheet renders the plain provenance
+    // line, so an info glyph never promises an action that does nothing.
+    it('stays a plain row without a handler', () => {
+      const { getByTestId, queryByTestId } = renderAttribution(5);
+
+      expect(queryByTestId(SecurityAttributionSelectors.INFO_ICON)).toBeNull();
+      expect(getByTestId(TEST_ID)).not.toHaveProp(
+        'accessibilityRole',
+        'button',
+      );
+    });
   });
 });

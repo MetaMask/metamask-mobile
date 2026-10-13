@@ -26,7 +26,10 @@ import { strings } from '../../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import type { AssetStackParamList } from '../../../../../Nav/Main/types/navigation';
 import { useSecurityFacts } from '../../../hooks/useSecurityFacts';
-import SecurityAttribution from '../SecurityAttribution/SecurityAttribution';
+import SecurityAttribution, {
+  SECURITY_ATTRIBUTION_EXPLAINER,
+} from '../SecurityAttribution/SecurityAttribution';
+import TokenExplainerSheet from '../TokenExplainerSheet/TokenExplainerSheet';
 import { useElapsedMinutes } from '../../../hooks/useElapsedMinutes';
 import { useTokenCaipAssetId } from '../../../hooks/useTokenCaipAssetId';
 import { useTokenSecurityQuery } from '../../../../Tokens/hooks/useTokenSecurityQuery';
@@ -219,6 +222,28 @@ export const ContractSecurityScreen: React.FC = () => {
 
   const handleBack = React.useCallback(() => navigation.goBack(), [navigation]);
 
+  /**
+   * Whether the provenance disclaimer is open.
+   *
+   * A boolean rather than the `ExplainerCopy | null` the detail page holds,
+   * because this screen prints every definition inline and so has exactly one
+   * sheet it can ever open. The sheet still has to mount as a sibling of the
+   * `ScrollView` below: the design system `BottomSheet` positions itself
+   * `absolute inset-0` against its nearest positioned ancestor rather than
+   * through a portal, so one mounted inside the scroll content would be
+   * clipped to the viewport and scroll away with the page.
+   */
+  const [isDisclaimerOpen, setIsDisclaimerOpen] = React.useState(false);
+
+  const handleOpenDisclaimer = React.useCallback(
+    () => setIsDisclaimerOpen(true),
+    [],
+  );
+  const handleCloseDisclaimer = React.useCallback(
+    () => setIsDisclaimerOpen(false),
+    [],
+  );
+
   return (
     <View
       style={tw.style('flex-1 bg-default')}
@@ -308,9 +333,18 @@ export const ContractSecurityScreen: React.FC = () => {
             fetchedMinutesAgo={fetchedMinutesAgo}
             testID={ContractSecuritySelectors.SCAN_META}
             twClassName="pt-6"
+            onPress={handleOpenDisclaimer}
           />
         </Box>
       </ScrollView>
+
+      {isDisclaimerOpen ? (
+        <TokenExplainerSheet
+          title={strings(SECURITY_ATTRIBUTION_EXPLAINER.title)}
+          description={strings(SECURITY_ATTRIBUTION_EXPLAINER.description)}
+          onClose={handleCloseDisclaimer}
+        />
+      ) : null}
     </View>
   );
 };

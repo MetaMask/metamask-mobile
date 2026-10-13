@@ -1,6 +1,11 @@
 import React from 'react';
+import { TouchableOpacity } from 'react-native';
 import {
   Box,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -10,6 +15,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import BlockaidLogo from '../../../../../../images/blockaid-logo.svg';
+import type { ExplainerCopy } from '../TokenExplainerSheet/TokenExplainerSheet.types';
 import { SecurityAttributionSelectors } from './SecurityAttribution.testIds';
 
 /**
@@ -18,6 +24,20 @@ import { SecurityAttributionSelectors } from './SecurityAttribution.testIds';
  */
 const LOGO_HEIGHT = 10;
 const LOGO_WIDTH = 48;
+
+/**
+ * Copy for the disclaimer behind the row.
+ *
+ * Exported as keys rather than resolved strings, and exported from here rather
+ * than from either caller, because both surfaces that show this row open the
+ * same sheet from it — and neither can own the sheet itself, since the design
+ * system `BottomSheet` has to mount outside the page `ScrollView`.
+ */
+export const SECURITY_ATTRIBUTION_EXPLAINER: ExplainerCopy = {
+  title: 'token_details_v1.security_tab.checks_meta.explainer.title',
+  description:
+    'token_details_v1.security_tab.checks_meta.explainer.description',
+};
 
 export interface SecurityAttributionProps {
   /**
@@ -29,6 +49,14 @@ export interface SecurityAttributionProps {
   testID: string;
   /** Spacing above, which differs between the tab and the pushed screen. */
   twClassName?: string;
+  /**
+   * Opens the disclaimer in `SECURITY_ATTRIBUTION_EXPLAINER`.
+   *
+   * Optional, and the info glyph appears only when it is supplied: the sheet
+   * cannot be mounted from in here, so a surface that has nowhere to put one
+   * renders the row as the plain provenance line it was before.
+   */
+  onPress?: () => void;
 }
 
 /**
@@ -43,11 +71,18 @@ export interface SecurityAttributionProps {
  * therefore has no on-screen text, so the row is one accessibility element
  * with a label naming both halves — otherwise a screen reader would announce
  * "dot updated 3 minutes ago" with nothing to attribute it to.
+ *
+ * Given an `onPress`, the whole row becomes the tap target for the disclaimer
+ * sheet and gains a trailing info glyph. The target is the row rather than the
+ * logo alone because the row is already one accessibility element: splitting
+ * the press onto the mark would mean either a 48x10 hit area or breaking the
+ * label back into pieces that do not stand alone.
  */
 export const SecurityAttribution: React.FC<SecurityAttributionProps> = ({
   fetchedMinutesAgo,
   testID,
   twClassName,
+  onPress,
 }) => {
   const tw = useTailwind();
 
@@ -79,12 +114,27 @@ export const SecurityAttribution: React.FC<SecurityAttributionProps> = ({
     );
   }
 
+  /**
+   * One element for the whole row either way.
+   *
+   * The row is already a single accessibility element because the brand is a
+   * logo with no text, so making it pressable means the label has to name the
+   * action too — otherwise a screen reader announces the provider and the age
+   * with no hint that there is anything behind them.
+   */
+  const Wrapper = onPress ? TouchableOpacity : Box;
+
   return (
-    <Box
+    <Wrapper
       style={tw.style('flex-row items-center gap-2', twClassName)}
       testID={testID}
       accessible
+      accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={[provider, ageClause].filter(Boolean).join(' ')}
+      accessibilityHint={
+        onPress ? strings(SECURITY_ATTRIBUTION_EXPLAINER.title) : undefined
+      }
+      onPress={onPress}
     >
       {/* `currentColor` in the asset, so one file serves both themes, resolved
           from the `color` prop. Reads at `text-default` rather than the
@@ -103,7 +153,19 @@ export const SecurityAttribution: React.FC<SecurityAttributionProps> = ({
           {ageClause}
         </Text>
       )}
-    </Box>
+
+      {/* Trails the clause, so the row reads "who, when, and there is more".
+          Muted to sit with the timestamp rather than compete with the brand,
+          and `Xs` to match the 12px line the clause sets. */}
+      {onPress ? (
+        <Icon
+          name={IconName.Info}
+          size={IconSize.Xs}
+          color={IconColor.IconAlternative}
+          testID={SecurityAttributionSelectors.INFO_ICON}
+        />
+      ) : null}
+    </Wrapper>
   );
 };
 

@@ -6138,7 +6138,11 @@
       "checks_meta": {
         "attribution": "Blockaid",
         "age_clause": "· updated {{count}} min ago",
-        "age_clause_just_now": "· updated just now"
+        "age_clause_just_now": "· updated just now",
+        "explainer": {
+          "title": "Security verification",
+          "description": "Security verification checks are completed by Blockaid based on onchain history. They are shared for your information only and are not financial, legal or investment advice. Verification is not an endorsement by MetaMask."
+        }
       },
       "stats": {
         "holders": "Holders",

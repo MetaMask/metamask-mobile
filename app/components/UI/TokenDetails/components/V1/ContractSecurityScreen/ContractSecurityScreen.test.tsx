@@ -11,6 +11,7 @@ import {
 } from '../../../utils/__fixtures__/securityData';
 import ContractSecurityScreen from './ContractSecurityScreen';
 import { ContractSecuritySelectors } from './ContractSecurityScreen.testIds';
+import { TokenExplainerSheetSelectors } from '../TokenExplainerSheet/TokenExplainerSheet.testIds';
 import { STAT_EMPTY_VALUE } from '../../../constants/tokenStats';
 import {
   CONTRACT_CHECK_KEYS,
@@ -228,6 +229,46 @@ describe('ContractSecurityScreen', () => {
 
       expect(
         queryByTestId(ContractSecuritySelectors.SECTION_ADDITIONAL),
+      ).toBeNull();
+    });
+  });
+
+  // This screen owns its own sheet, because the one on the detail page is a
+  // sibling of that page's ScrollView and does not travel with the route.
+  describe('the provenance disclaimer', () => {
+    it('opens from the Blockaid line and closes again', () => {
+      const { getByTestId, queryByTestId } = renderScreen(CBXRP_VERIFIED);
+
+      expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
+
+      fireEvent.press(getByTestId(ContractSecuritySelectors.SCAN_META));
+
+      expect(getByTestId(TokenExplainerSheetSelectors.TITLE)).toHaveTextContent(
+        strings('token_details_v1.security_tab.checks_meta.explainer.title'),
+      );
+
+      fireEvent.press(getByTestId(TokenExplainerSheetSelectors.GOT_IT_BUTTON));
+
+      expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
+    });
+
+    // Mounted as a sibling of the ScrollView: the design system BottomSheet
+    // positions against its nearest positioned ancestor rather than a portal,
+    // so one inside the scroll content would be clipped and scroll away.
+    it('mounts the sheet outside the scrolling content', () => {
+      const { getByTestId } = renderScreen(CBXRP_VERIFIED);
+
+      fireEvent.press(getByTestId(ContractSecuritySelectors.SCAN_META));
+
+      expect(
+        within(getByTestId(ContractSecuritySelectors.SCREEN)).getByTestId(
+          TokenExplainerSheetSelectors.SHEET,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(
+          getByTestId(ContractSecuritySelectors.SECTION_CONTRACT),
+        ).queryByTestId(TokenExplainerSheetSelectors.SHEET),
       ).toBeNull();
     });
   });

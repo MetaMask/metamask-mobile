@@ -53,6 +53,7 @@ import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
 import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
+import { SECURITY_ATTRIBUTION_EXPLAINER } from '../components/V1/SecurityAttribution/SecurityAttribution';
 import SecuritySocialSection from '../components/V1/SecuritySocialSection/SecuritySocialSection';
 import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
 import { EXPLAINER_KEYS_BY_ROW } from '../components/V1/SecurityTab/SecurityTab.constants';
@@ -294,6 +295,10 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     setExplainerCopy(AGE_EXPLAINER_COPY);
   }, []);
 
+  const handleAttributionPress = useCallback(() => {
+    setExplainerCopy(SECURITY_ATTRIBUTION_EXPLAINER);
+  }, []);
+
   const isNativeToken = Boolean(token.isETH || token.isNative);
   const hasBalanceValue = useMemo(() => {
     if (token.balance === undefined || token.balance === null) return false;
@@ -400,6 +405,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             stats={tokenStats}
             onExplain={handleRowExplain}
             onOpenContractDetails={handleOpenContractSecurity}
+            onExplainAttribution={handleAttributionPress}
             fetchedMinutesAgo={securityFetchedMinutesAgo}
           />
         );
@@ -420,6 +426,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       securityFetchedMinutesAgo,
       tokenStats,
       handleRowExplain,
+      handleAttributionPress,
       handleOpenContractSecurity,
       socialEnabled,
     ],

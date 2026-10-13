@@ -70,6 +70,19 @@ export interface SecurityTabProps {
    */
   onOpenContractDetails: () => void;
   /**
+   * Reports a tap on the Blockaid provenance line, so the screen can open the
+   * disclaimer in `SECURITY_ATTRIBUTION_EXPLAINER`.
+   *
+   * Separate from `onExplain` because that one takes a `SecurityRowKey` and
+   * resolves its copy through `EXPLAINER_KEYS_BY_ROW`, a full `Record` over
+   * the rows. The provenance line is not a row, so giving it a key there would
+   * mean widening the union that enforces every row has a definition.
+   *
+   * Reported rather than handled for the same reason as `onExplain`: the sheet
+   * has to mount outside the page `ScrollView`.
+   */
+  onExplainAttribution: () => void;
+  /**
    * Whole minutes since the security payload was fetched, or `null` before
    * anything has been fetched.
    *
@@ -253,6 +266,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
   stats,
   onExplain: handleExplain,
   onOpenContractDetails: handleOpenContractDetails,
+  onExplainAttribution: handleExplainAttribution,
   fetchedMinutesAgo,
 }) => {
   const { checks, risks } = facts;
@@ -337,6 +351,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
           fetchedMinutesAgo={fetchedMinutesAgo}
           testID={SecurityTabSelectors.SCAN_META}
           twClassName="pt-2"
+          onPress={handleExplainAttribution}
         />
       </Box>
 

@@ -82,6 +82,7 @@ const renderTab = (
       stats={EVM_STATS}
       onExplain={jest.fn()}
       onOpenContractDetails={jest.fn()}
+      onExplainAttribution={jest.fn()}
       fetchedMinutesAgo={null}
       {...props}
     />,
@@ -504,6 +505,17 @@ describe('SecurityTab', () => {
       const { queryByTestId } = renderTab();
 
       expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
+    });
+
+    // The provenance line reports separately from the rows, because it is not
+    // a row and so has no key in `EXPLAINER_KEYS_BY_ROW`.
+    it('reports a tap on the Blockaid provenance line', () => {
+      const onExplainAttribution = jest.fn();
+      const { getByTestId } = renderTab({ onExplainAttribution });
+
+      fireEvent.press(getByTestId(SecurityTabSelectors.SCAN_META));
+
+      expect(onExplainAttribution).toHaveBeenCalledTimes(1);
     });
 
     // A `Record` over every row key guarantees an entry exists, but not that
