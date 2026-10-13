@@ -163,14 +163,7 @@ export interface OpenVbaOnboardingRequest {
    * revealing the previous one.
    */
   retryRejectedKyc?: boolean;
-  /**
-   * Checked right before every navigation. Return false to skip it, for
-   * example when the caller unmounted while hydrate was in flight.
-   */
-  shouldNavigate?: (destinationId: VbaOnboardingDestinationId) => boolean;
 }
-
-const alwaysNavigate = (): boolean => true;
 
 /**
  * v27 hydrate only reads status. Main still opens a BRL to mUSD route, so
@@ -219,23 +212,14 @@ const provisionBrazilMusdAutoramp = async (
 const resolveOpenRequest = (
   request: string | OpenVbaOnboardingRequest | undefined,
   defaultSource: string,
-): {
-  source: string;
-  retryRejectedKyc: boolean;
-  shouldNavigate: (destinationId: VbaOnboardingDestinationId) => boolean;
-} => {
+): { source: string; retryRejectedKyc: boolean } => {
   if (typeof request === 'string') {
-    return {
-      source: request,
-      retryRejectedKyc: false,
-      shouldNavigate: alwaysNavigate,
-    };
+    return { source: request, retryRejectedKyc: false };
   }
 
   return {
     source: request?.source ?? defaultSource,
     retryRejectedKyc: request?.retryRejectedKyc === true,
-    shouldNavigate: request?.shouldNavigate ?? alwaysNavigate,
   };
 };
 
@@ -335,15 +319,13 @@ export const useOpenVbaOnboarding = (
 
   return useCallback(
     async (request?: string | OpenVbaOnboardingRequest): Promise<void> => {
-      const { source, retryRejectedKyc, shouldNavigate } = resolveOpenRequest(
+      const { source, retryRejectedKyc } = resolveOpenRequest(
         request,
         defaultSource,
       );
       const resolved = await resolveVbaOnboarding(source);
       if (resolved.status === 'error') {
-        if (shouldNavigate('error')) {
-          openRecoverableError(navigation);
-        }
+        openRecoverableError(navigation);
         return;
       }
 
@@ -357,9 +339,6 @@ export const useOpenVbaOnboarding = (
           snapshot: resolved.snapshot,
           destinationId,
         });
-        if (!shouldNavigate(destinationId)) {
-          return;
-        }
         if (retryRejectedKyc && destinationId === 'identityVerification') {
           navigation.dispatch(
             StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
@@ -381,9 +360,7 @@ export const useOpenVbaOnboarding = (
             data: { source, step: 'navigate' },
           },
         });
-        if (shouldNavigate('error')) {
-          openRecoverableError(navigation);
-        }
+        openRecoverableError(navigation);
       }
     },
     [navigation, defaultSource],

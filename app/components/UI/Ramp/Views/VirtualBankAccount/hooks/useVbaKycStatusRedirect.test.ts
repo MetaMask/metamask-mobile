@@ -4,15 +4,16 @@ import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { flushPromises } from '../../../../../../util/test/utils';
 import type { VbaOnboardingDestinationId } from '../vbaOnboardingFunnel';
+import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
 import {
-  type OpenVbaOnboardingRequest,
-  useOpenVbaOnboarding,
+  navigateToVbaOnboardingDestination,
+  resolveVbaOnboarding,
+  type ResolvedVbaOnboarding,
 } from './useVbaOnboardingRouting';
 import {
   isTerminalVbaKycStatus,
   useVbaKycStatusRedirect,
   VBA_ACCOUNT_SETUP_RECHECK_DELAYS_MS,
-  VBA_KYC_STATUS_REDIRECT_SOURCE,
 } from './useVbaKycStatusRedirect';
 
 interface MockSessionStatus {
@@ -21,14 +22,21 @@ interface MockSessionStatus {
 }
 
 let mockRootState: unknown;
+const mockNavigation = {};
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) =>
     selector(mockRootState),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNavigation,
+}));
+
 jest.mock('./useVbaOnboardingRouting', () => ({
-  useOpenVbaOnboarding: jest.fn(),
+  resolveVbaOnboarding: jest.fn(),
+  navigateToVbaOnboardingDestination: jest.fn(),
 }));
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -47,16 +55,19 @@ jest.mock('../../../../../../util/Logger', () => ({
   },
 }));
 
-const mockUseOpenVbaOnboarding = jest.mocked(useOpenVbaOnboarding);
-const mockOpenOnboarding = jest.fn<
-  Promise<void>,
-  [(string | OpenVbaOnboardingRequest)?]
->();
+const mockResolve = jest.mocked(resolveVbaOnboarding);
+const mockNavigate = jest.mocked(navigateToVbaOnboardingDestination);
 const mockRefreshSessionStatus = jest.mocked(
   Engine.context.KycController.refreshSessionStatus,
 );
 const mockRemoveAppStateListener = jest.fn();
 let appStateChangeHandler: ((state: AppStateStatus) => void) | undefined;
+
+const snapshot = { ...EMPTY_VBA_ONBOARDING_SNAPSHOT };
+
+const resolvedTo = (
+  destinationId: VbaOnboardingDestinationId,
+): ResolvedVbaOnboarding => ({ status: 'ready', destinationId, snapshot });
 
 const setSessionStatus = (sessionStatus: MockSessionStatus | null) => {
   mockRootState = {
@@ -79,20 +90,11 @@ const setSessionStatus = (sessionStatus: MockSessionStatus | null) => {
 };
 
 const createDeferred = () => {
-  let resolve: () => void = () => undefined;
-  const promise = new Promise<void>((resolvePromise) => {
+  let resolve: (value: ResolvedVbaOnboarding) => void = () => undefined;
+  const promise = new Promise<ResolvedVbaOnboarding>((resolvePromise) => {
     resolve = resolvePromise;
   });
   return { promise, resolve };
-};
-
-const getShouldNavigate = (callIndex = 0) => {
-  const request = mockOpenOnboarding.mock.calls[callIndex][0];
-  const shouldNavigate = (request as OpenVbaOnboardingRequest).shouldNavigate;
-  if (!shouldNavigate) {
-    throw new Error('shouldNavigate was not passed to the coordinator');
-  }
-  return shouldNavigate;
 };
 
 const renderRedirectHook = () => renderHook(() => useVbaKycStatusRedirect());
@@ -105,10 +107,10 @@ describe('useVbaKycStatusRedirect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRefreshSessionStatus.mockReset();
+    mockNavigate.mockReset();
     appStateChangeHandler = undefined;
     setSessionStatus(null);
-    mockOpenOnboarding.mockResolvedValue(undefined);
-    mockUseOpenVbaOnboarding.mockReturnValue(mockOpenOnboarding);
+    mockResolve.mockResolvedValue(resolvedTo('complete'));
     jest
       .spyOn(AppState, 'addEventListener')
       .mockImplementation((_event, handler) => {
@@ -123,36 +125,13 @@ describe('useVbaKycStatusRedirect', () => {
     jest.restoreAllMocks();
   });
 
-  it('opens the coordinator with the status change source', () => {
-    renderRedirectHook();
-
-    expect(mockUseOpenVbaOnboarding).toHaveBeenCalledWith(
-      VBA_KYC_STATUS_REDIRECT_SOURCE,
-    );
-  });
-
-  it('does not run the coordinator without a KYC session', () => {
-    setSessionStatus(null);
+  it('does not resolve while the status is pending', () => {
+    setSessionStatus(pending);
 
     renderRedirectHook();
 
-    expect(mockOpenOnboarding).not.toHaveBeenCalled();
+    expect(mockResolve).not.toHaveBeenCalled();
   });
-
-  it.each([
-    ['new', 'new'],
-    ['pending', 'pending'],
-    ['pending', 'new'],
-  ])(
-    'does not run the coordinator for finalStatus %s and kycStatus %s',
-    (finalStatus, kycStatus) => {
-      setSessionStatus({ finalStatus, kycStatus });
-
-      renderRedirectHook();
-
-      expect(mockOpenOnboarding).not.toHaveBeenCalled();
-    },
-  );
 
   it.each([
     ['approved', 'approved'],
@@ -160,7 +139,7 @@ describe('useVbaKycStatusRedirect', () => {
     ['retry', 'retry'],
     ['rejected', 'rejected'],
   ])(
-    'runs the coordinator once when finalStatus becomes %s with kycStatus %s',
+    'opens the next destination once when finalStatus becomes %s with kycStatus %s',
     async (finalStatus, kycStatus) => {
       setSessionStatus(pending);
       const { rerender } = renderRedirectHook();
@@ -169,23 +148,26 @@ describe('useVbaKycStatusRedirect', () => {
       rerender({});
       await act(flushPromises);
 
-      expect(mockOpenOnboarding).toHaveBeenCalledTimes(1);
-      expect(mockOpenOnboarding).toHaveBeenCalledWith({
-        shouldNavigate: expect.any(Function),
-      });
+      expect(mockResolve).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        mockNavigation,
+        'complete',
+        snapshot,
+      );
     },
   );
 
-  it('runs the coordinator on mount when the status is already terminal', async () => {
+  it('resolves on mount when the status is already terminal', async () => {
     setSessionStatus(approved);
 
     renderRedirectHook();
     await act(flushPromises);
 
-    expect(mockOpenOnboarding).toHaveBeenCalledTimes(1);
+    expect(mockResolve).toHaveBeenCalledTimes(1);
   });
 
-  it('does not run again for an identical status update', async () => {
+  it('does not resolve again for an identical status update', async () => {
+    mockResolve.mockResolvedValue(resolvedTo('kycPending'));
     setSessionStatus(approved);
     const { rerender } = renderRedirectHook();
     await act(flushPromises);
@@ -194,115 +176,93 @@ describe('useVbaKycStatusRedirect', () => {
     rerender({});
     await act(flushPromises);
 
-    expect(mockOpenOnboarding).toHaveBeenCalledTimes(1);
+    expect(mockResolve).toHaveBeenCalledTimes(1);
   });
 
-  it('does not start a second run while one is in flight', () => {
-    const deferred = createDeferred();
-    mockOpenOnboarding.mockReturnValue(deferred.promise);
+  it('does not start a second resolve while one is in flight', () => {
+    mockResolve.mockReturnValue(createDeferred().promise);
     setSessionStatus(relayApproved);
     const { rerender } = renderRedirectHook();
 
     setSessionStatus(approved);
     rerender({});
 
-    expect(mockOpenOnboarding).toHaveBeenCalledTimes(1);
+    expect(mockResolve).toHaveBeenCalledTimes(1);
   });
 
-  it('runs once more when a different terminal status arrived during a run that did not navigate', async () => {
+  it('resolves again when a different terminal status arrived while staying on this screen', async () => {
     const deferred = createDeferred();
-    mockOpenOnboarding.mockReturnValueOnce(deferred.promise);
-    setSessionStatus(relayApproved);
-    const { rerender } = renderRedirectHook();
-    setSessionStatus(approved);
-    rerender({});
-
-    await act(async () => {
-      deferred.resolve();
-      await deferred.promise;
-    });
-
-    expect(mockOpenOnboarding).toHaveBeenCalledTimes(2);
-  });
-
-  it('does not run again after a run that navigated', async () => {
-    const deferred = createDeferred();
-    mockOpenOnboarding.mockImplementationOnce(async (request) => {
-      (request as OpenVbaOnboardingRequest).shouldNavigate?.('complete');
-      await deferred.promise;
-    });
+    mockResolve.mockReturnValueOnce(deferred.promise);
     setSessionStatus(relayApproved);
     const { rerender } = renderRedirectHook();
     setSessionStatus(approved);
     rerender({});
 
     await act(async () => {
-      deferred.resolve();
-      await deferred.promise;
+      deferred.resolve(resolvedTo('kycPending'));
+      await flushPromises();
     });
 
-    expect(mockOpenOnboarding).toHaveBeenCalledTimes(1);
+    expect(mockResolve).toHaveBeenCalledTimes(2);
   });
 
-  it('runs once more for a different terminal status after a run that did not navigate', async () => {
-    setSessionStatus(relayApproved);
-    const { rerender } = renderRedirectHook();
+  it('stays on this screen when the next destination is the pending screen', async () => {
+    mockResolve.mockResolvedValue(resolvedTo('kycPending'));
+    setSessionStatus(approved);
+
+    renderRedirectHook();
     await act(flushPromises);
 
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('opens the error screen when resolving fails', async () => {
+    mockResolve.mockResolvedValue({ status: 'error' });
     setSessionStatus(approved);
-    rerender({});
+
+    renderRedirectHook();
     await act(flushPromises);
 
-    expect(mockOpenOnboarding).toHaveBeenCalledTimes(2);
+    expect(mockNavigate).toHaveBeenCalledWith(mockNavigation, 'error');
   });
 
-  it('allows navigation to a new destination while mounted', () => {
-    setSessionStatus(approved);
-    renderRedirectHook();
-
-    const shouldNavigate = getShouldNavigate();
-
-    expect(shouldNavigate('complete')).toBe(true);
-  });
-
-  it('blocks navigation back to the KYC pending screen', () => {
-    setSessionStatus(approved);
-    renderRedirectHook();
-
-    const shouldNavigate = getShouldNavigate();
-
-    expect(shouldNavigate('kycPending')).toBe(false);
-  });
-
-  it.each<VbaOnboardingDestinationId>(['complete', 'kycRejected', 'error'])(
-    'blocks navigation to %s after unmount',
-    (destinationId) => {
-      const deferred = createDeferred();
-      mockOpenOnboarding.mockReturnValue(deferred.promise);
-      setSessionStatus(approved);
-      const { unmount } = renderRedirectHook();
-
-      unmount();
-
-      expect(getShouldNavigate()(destinationId)).toBe(false);
-    },
-  );
-
-  it('does not run the coordinator after unmount when a run resolves late', async () => {
+  it('does not navigate when resolving finishes after unmount', async () => {
     const deferred = createDeferred();
-    mockOpenOnboarding.mockReturnValueOnce(deferred.promise);
-    setSessionStatus(relayApproved);
-    const { rerender, unmount } = renderRedirectHook();
+    mockResolve.mockReturnValueOnce(deferred.promise);
     setSessionStatus(approved);
-    rerender({});
+    const { unmount } = renderRedirectHook();
+
     unmount();
-
     await act(async () => {
-      deferred.resolve();
-      await deferred.promise;
+      deferred.resolve(resolvedTo('complete'));
+      await flushPromises();
     });
 
-    expect(mockOpenOnboarding).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('logs a navigation failure and still handles the next status', async () => {
+    mockNavigate.mockImplementationOnce(() => {
+      throw new Error('navigation failed');
+    });
+    setSessionStatus(relayApproved);
+    const { rerender } = renderRedirectHook();
+    await act(flushPromises);
+
+    setSessionStatus(approved);
+    rerender({});
+    await act(flushPromises);
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        context: expect.objectContaining({
+          name: 'useVbaKycStatusRedirect',
+          data: { step: 'redirect' },
+        }),
+      }),
+    );
+    expect(mockResolve).toHaveBeenCalledTimes(2);
   });
 
   it('starts the session poll on mount with a pending status', () => {
@@ -333,45 +293,21 @@ describe('useVbaKycStatusRedirect', () => {
     expect(mockRefreshSessionStatus).not.toHaveBeenCalled();
   });
 
-  it('does not refresh the session status on mount or foreground when the status is terminal', async () => {
-    setSessionStatus(approved);
-    renderRedirectHook();
-    await act(flushPromises);
-
-    act(() => appStateChangeHandler?.('active'));
-
-    expect(mockRefreshSessionStatus).not.toHaveBeenCalled();
-  });
-
-  it('does not refresh the session status on mount or foreground without a session', () => {
-    setSessionStatus(null);
-    renderRedirectHook();
-
-    act(() => appStateChangeHandler?.('active'));
-
-    expect(mockRefreshSessionStatus).not.toHaveBeenCalled();
-  });
-
-  it('logs and swallows refreshSessionStatus failures on mount and foreground', () => {
-    mockRefreshSessionStatus.mockImplementation(() => {
-      throw new Error('No session was found');
-    });
-    setSessionStatus(pending);
-
-    const mountAndForeground = () => {
+  it.each([
+    ['a terminal status', approved],
+    ['no session', null],
+  ])(
+    'does not refresh the session status on mount or foreground with %s',
+    async (_label, sessionStatus) => {
+      setSessionStatus(sessionStatus);
       renderRedirectHook();
-      act(() => appStateChangeHandler?.('active'));
-    };
+      await act(flushPromises);
 
-    expect(mountAndForeground).not.toThrow();
-    expect(Logger.error).toHaveBeenCalledTimes(2);
-    expect(Logger.error).toHaveBeenCalledWith(
-      expect.any(Error),
-      expect.objectContaining({
-        context: expect.objectContaining({ name: 'useVbaKycStatusRedirect' }),
-      }),
-    );
-  });
+      act(() => appStateChangeHandler?.('active'));
+
+      expect(mockRefreshSessionStatus).not.toHaveBeenCalled();
+    },
+  );
 
   it('removes the app state listener on unmount', () => {
     setSessionStatus(pending);
@@ -382,39 +318,9 @@ describe('useVbaKycStatusRedirect', () => {
     expect(mockRemoveAppStateListener).toHaveBeenCalled();
   });
 
-  it('logs a coordinator failure and still handles the next status', async () => {
-    mockOpenOnboarding.mockRejectedValueOnce(new Error('hydrate failed'));
-    setSessionStatus(relayApproved);
-    const { rerender } = renderRedirectHook();
-    await act(flushPromises);
-
-    setSessionStatus(approved);
-    rerender({});
-    await act(flushPromises);
-
-    expect(Logger.error).toHaveBeenCalledWith(
-      expect.any(Error),
-      expect.objectContaining({
-        context: expect.objectContaining({
-          name: 'useVbaKycStatusRedirect',
-          data: { step: 'redirect' },
-        }),
-      }),
-    );
-    expect(mockOpenOnboarding).toHaveBeenCalledTimes(2);
-  });
-
   describe('when a decided status still resolves to this screen', () => {
     const [firstDelay, secondDelay, lastDelay] =
       VBA_ACCOUNT_SETUP_RECHECK_DELAYS_MS;
-
-    const resolveRunsTo = (destinationId?: VbaOnboardingDestinationId) => {
-      mockOpenOnboarding.mockImplementation(async (request) => {
-        if (destinationId) {
-          (request as OpenVbaOnboardingRequest).shouldNavigate?.(destinationId);
-        }
-      });
-    };
 
     const advanceTimers = (ms: number) =>
       act(async () => {
@@ -424,7 +330,7 @@ describe('useVbaKycStatusRedirect', () => {
 
     beforeEach(() => {
       jest.useFakeTimers({ doNotFake: ['setImmediate'] });
-      resolveRunsTo('kycPending');
+      mockResolve.mockResolvedValue(resolvedTo('kycPending'));
     });
 
     afterEach(() => {
@@ -438,7 +344,7 @@ describe('useVbaKycStatusRedirect', () => {
 
       await advanceTimers(firstDelay - 1);
 
-      expect(mockOpenOnboarding).toHaveBeenCalledTimes(1);
+      expect(mockResolve).toHaveBeenCalledTimes(1);
     });
 
     it('checks again after each delay and repeats the last one', async () => {
@@ -451,7 +357,7 @@ describe('useVbaKycStatusRedirect', () => {
       await advanceTimers(lastDelay);
       await advanceTimers(lastDelay);
 
-      expect(mockOpenOnboarding).toHaveBeenCalledTimes(5);
+      expect(mockResolve).toHaveBeenCalledTimes(5);
     });
 
     it('checks again right away when the app returns to the foreground', async () => {
@@ -464,7 +370,7 @@ describe('useVbaKycStatusRedirect', () => {
         await flushPromises();
       });
 
-      expect(mockOpenOnboarding).toHaveBeenCalledTimes(2);
+      expect(mockResolve).toHaveBeenCalledTimes(2);
       expect(mockRefreshSessionStatus).not.toHaveBeenCalled();
     });
 
@@ -476,29 +382,18 @@ describe('useVbaKycStatusRedirect', () => {
       unmount();
       await advanceTimers(lastDelay);
 
-      expect(mockOpenOnboarding).toHaveBeenCalledTimes(1);
+      expect(mockResolve).toHaveBeenCalledTimes(1);
     });
 
-    it('does not check again after a run that navigated', async () => {
-      resolveRunsTo('complete');
+    it('does not check again after opening another destination', async () => {
+      mockResolve.mockResolvedValue(resolvedTo('complete'));
       setSessionStatus(approved);
       renderRedirectHook();
       await act(flushPromises);
 
       await advanceTimers(lastDelay);
 
-      expect(mockOpenOnboarding).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not check again after a run that did not reach a destination', async () => {
-      resolveRunsTo(undefined);
-      setSessionStatus(approved);
-      renderRedirectHook();
-      await act(flushPromises);
-
-      await advanceTimers(lastDelay);
-
-      expect(mockOpenOnboarding).toHaveBeenCalledTimes(1);
+      expect(mockResolve).toHaveBeenCalledTimes(1);
     });
   });
 });

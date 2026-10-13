@@ -3,8 +3,6 @@ import { RootState } from '../../reducers';
 import {
   selectKycControllerState,
   selectKycProviderFlowStatus,
-  selectKycSessionFinalStatus,
-  selectKycSessionKycStatus,
   selectKycSessionStatus,
   selectKycVendorDisclaimersAccepted,
 } from './index';
@@ -64,40 +62,6 @@ describe('kycController selectors', () => {
       } as unknown as RootState;
 
       expect(selectKycSessionStatus(state)).toBeNull();
-    });
-  });
-
-  describe('selectKycSessionFinalStatus', () => {
-    it('returns the session finalStatus', () => {
-      const state = createMockRootState({
-        sessionStatus: { ...MOCK_SESSION_STATUS, finalStatus: 'approved' },
-      });
-
-      expect(selectKycSessionFinalStatus(state)).toBe('approved');
-    });
-
-    it('returns null when no session has been fetched', () => {
-      const state = createMockRootState({ sessionStatus: null });
-
-      expect(selectKycSessionFinalStatus(state)).toBeNull();
-    });
-  });
-
-  describe('selectKycSessionKycStatus', () => {
-    it('returns the session kycStatus', () => {
-      const state = createMockRootState({
-        sessionStatus: { ...MOCK_SESSION_STATUS, kycStatus: 'approved' },
-      });
-
-      expect(selectKycSessionKycStatus(state)).toBe('approved');
-    });
-
-    it('returns null when the controller state is missing', () => {
-      const state = {
-        engine: { backgroundState: {} },
-      } as unknown as RootState;
-
-      expect(selectKycSessionKycStatus(state)).toBeNull();
     });
   });
 

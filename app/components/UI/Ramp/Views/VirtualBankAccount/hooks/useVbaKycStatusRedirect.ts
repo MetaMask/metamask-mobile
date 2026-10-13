@@ -1,20 +1,21 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   KYC_STATUSES,
   TERMINAL_SESSION_STATUSES,
 } from '@metamask/kyc-controller';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
+import { selectKycSessionStatus } from '../../../../../../selectors/kycController';
 import {
-  selectKycSessionFinalStatus,
-  selectKycSessionKycStatus,
-} from '../../../../../../selectors/kycController';
-import type { VbaOnboardingDestinationId } from '../vbaOnboardingFunnel';
-import { useOpenVbaOnboarding } from './useVbaOnboardingRouting';
+  navigateToVbaOnboardingDestination,
+  resolveVbaOnboarding,
+} from './useVbaOnboardingRouting';
 
-export const VBA_KYC_STATUS_REDIRECT_SOURCE = 'kyc_pending-status-change';
+const VBA_KYC_STATUS_REDIRECT_SOURCE = 'kyc_pending-status-change';
 
 /**
  * Delays between re-checks after a decided KYC status still resolves to this
@@ -38,7 +39,7 @@ const getStatusKey = ({ finalStatus, kycStatus }: KycStatusPair): string =>
  * `finalStatus` is still pending.
  *
  * @param status - The session's `finalStatus` and `kycStatus`.
- * @returns True when the coordinator should route away from the pending screen.
+ * @returns True when the pending screen should resolve the next destination.
  */
 export const isTerminalVbaKycStatus = ({
   finalStatus,
@@ -49,20 +50,21 @@ export const isTerminalVbaKycStatus = ({
 
 /**
  * Watches the KycController session status while the KYC pending screen is
- * mounted and re-runs the onboarding coordinator once the decision is terminal.
- * Hydrate only reads the session status, so mounting with a non-terminal
- * status calls `refreshSessionStatus` to start the controller poll. Returning
- * to the foreground does the same to get an immediate fetch. Any resulting
- * update flows through the same watcher.
+ * mounted and, once the decision is terminal, resolves and opens the next
+ * onboarding destination. Hydrate only reads the session status, so mounting
+ * with a non-terminal status calls `refreshSessionStatus` to start the
+ * controller poll. Returning to the foreground does the same to get an
+ * immediate fetch. Any resulting update flows through the same watcher.
  *
  * A terminal status can still resolve to this screen while the account is
  * being set up. The watcher then re-checks on
  * {@link VBA_ACCOUNT_SETUP_RECHECK_DELAYS_MS}, and right away on foreground.
  */
 export const useVbaKycStatusRedirect = (): void => {
-  const finalStatus = useSelector(selectKycSessionFinalStatus);
-  const kycStatus = useSelector(selectKycSessionKycStatus);
-  const openOnboarding = useOpenVbaOnboarding(VBA_KYC_STATUS_REDIRECT_SOURCE);
+  const navigation = useNavigation<AppNavigationProp>();
+  const sessionStatus = useSelector(selectKycSessionStatus);
+  const finalStatus = sessionStatus?.finalStatus ?? null;
+  const kycStatus = sessionStatus?.kycStatus ?? null;
 
   const isMountedRef = useRef(false);
   const isRunningRef = useRef(false);
@@ -104,36 +106,36 @@ export const useVbaKycStatusRedirect = (): void => {
       clearRecheckTimer();
       handledStatusKeyRef.current = statusKey;
       isRunningRef.current = true;
-      let didNavigate = false;
-      let resolvedToThisScreen = false;
-      const shouldNavigate = (
-        destinationId: VbaOnboardingDestinationId,
-      ): boolean => {
-        if (!isMountedRef.current) {
-          return false;
-        }
-        // Re-navigating to kycPending would mount a fresh copy of this screen
-        // that sees the same terminal status and runs again.
-        if (destinationId === 'kycPending') {
-          resolvedToThisScreen = true;
-          return false;
-        }
-        didNavigate = true;
-        return true;
-      };
 
-      openOnboarding({ shouldNavigate })
-        .finally(() => {
+      resolveVbaOnboarding(VBA_KYC_STATUS_REDIRECT_SOURCE)
+        .then((resolved) => {
           isRunningRef.current = false;
-          if (didNavigate || !isMountedRef.current) {
+          // Come back later or system back closed the screen while resolving.
+          if (!isMountedRef.current) {
+            return;
+          }
+          if (resolved.status === 'error') {
+            navigateToVbaOnboardingDestination(navigation, 'error');
+            return;
+          }
+          // Re-navigating to kycPending would mount a fresh copy of this screen
+          // that sees the same terminal status and runs again, so stay here.
+          if (resolved.destinationId !== 'kycPending') {
+            Logger.log('[vba-onboarding] resume', {
+              source: VBA_KYC_STATUS_REDIRECT_SOURCE,
+              snapshot: resolved.snapshot,
+              destinationId: resolved.destinationId,
+            });
+            navigateToVbaOnboardingDestination(
+              navigation,
+              resolved.destinationId,
+              resolved.snapshot,
+            );
             return;
           }
           // Pick up a different terminal status that arrived while in flight.
           if (getStatusKey(latestStatusRef.current) !== statusKey) {
             runRedirect();
-            return;
-          }
-          if (!resolvedToThisScreen) {
             return;
           }
           const delays = VBA_ACCOUNT_SETUP_RECHECK_DELAYS_MS;
@@ -147,6 +149,7 @@ export const useVbaKycStatusRedirect = (): void => {
           }, delay);
         })
         .catch((error: unknown) => {
+          isRunningRef.current = false;
           Logger.error(error as Error, {
             tags: { feature: 'vba-onboarding' },
             context: {
@@ -156,7 +159,7 @@ export const useVbaKycStatusRedirect = (): void => {
           });
         });
     },
-    [clearRecheckTimer, openOnboarding],
+    [clearRecheckTimer, navigation],
   );
 
   // Runs on mount too: the status can already be terminal when this screen

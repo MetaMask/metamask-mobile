@@ -13,8 +13,8 @@ import { sumsubLauncher } from './sumSubLauncher';
  * the injected {@link sumsubLauncher}.
  *
  * Money-account wallet registration and autoramp creation after KYC approval
- * are owned by `RampsController.hydrateVbaOnboarding`. Do not also subscribe
- * to `KycController:statusChanged` for that activation work.
+ * run in the VBA onboarding coordinator (`resolveVbaOnboarding`), not in
+ * response to KycController state changes.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger for the controller.

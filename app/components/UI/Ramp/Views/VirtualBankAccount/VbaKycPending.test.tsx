@@ -3,7 +3,6 @@ import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { useOpenVbaOnboarding } from './hooks/useVbaOnboardingRouting';
 import VbaKycPending, { VbaKycPendingSelectorsIDs } from './VbaKycPending';
 
 const mockGoBack = jest.fn();
@@ -18,10 +17,6 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
   }),
 }));
-
-jest.mock('./hooks/useVbaOnboardingRouting');
-
-const mockUseOpenVbaOnboarding = jest.mocked(useOpenVbaOnboarding);
 
 describe('VbaKycPending', () => {
   beforeEach(() => {
@@ -71,15 +66,5 @@ describe('VbaKycPending', () => {
       params: { screen: Routes.MONEY.HOME },
     });
     expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
-  it('does not run the onboarding coordinator from Come back later', () => {
-    const { getByTestId } = renderWithProvider(<VbaKycPending />);
-
-    fireEvent.press(
-      getByTestId(VbaKycPendingSelectorsIDs.COME_BACK_LATER_BUTTON),
-    );
-
-    expect(mockUseOpenVbaOnboarding).not.toHaveBeenCalled();
   });
 });
