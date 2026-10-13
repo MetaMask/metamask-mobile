@@ -1,11 +1,11 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import { Slider } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { BridgeToken } from '../../types';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
+import { BatchSellReviewSlider } from './BatchSellReviewSlider';
 import { BatchSellReviewTokenRow } from './BatchSellReviewTokenRow';
 
 const mockToken: BridgeToken = {
@@ -237,7 +237,7 @@ describe('BatchSellReviewTokenRow', () => {
       />,
     );
 
-    UNSAFE_getByType(Slider).props.onGrip();
+    UNSAFE_getByType(BatchSellReviewSlider).props.onGrip();
 
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SliderGrip);
   });
@@ -253,7 +253,7 @@ describe('BatchSellReviewTokenRow', () => {
       />,
     );
 
-    UNSAFE_getByType(Slider).props.onMark();
+    UNSAFE_getByType(BatchSellReviewSlider).props.onMark();
 
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SliderTick);
   });
