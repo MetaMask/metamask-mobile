@@ -229,7 +229,6 @@ const config = {
     '.github/workflows/rerun-ci-on-skipped-e2e-labels.yml',
 
     // Notification-only.
-    '.github/workflows/prod-build-env-notify.yml',
     '.github/workflows/slack-rc-notification.yml',
 
     // Builds a dev CI container image, not a shipped mobile binary.

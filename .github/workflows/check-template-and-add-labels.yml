@@ -3,6 +3,7 @@ name: Check template and add labels
 on:
   issues:
     types: [opened, edited, labeled, unlabeled, reopened]
+  # zizmor: ignore[dangerous-triggers] checks out the base branch only and skips fork PRs before minting a token
   pull_request_target:
     # `ready_for_review` / `converted_to_draft` flip the check between
     # "informational" (draft) and "blocking" (non-draft) the moment the author

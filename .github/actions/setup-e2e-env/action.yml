@@ -263,7 +263,7 @@ runs:
     - name: Set ANDROID_AVD_HOME for downstream steps
       if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
       shell: bash
-      run: |
+      run: | # zizmor: ignore[github-env] static runner paths only
         echo "ANDROID_AVD_HOME=$HOME/.android/avd" >> "$GITHUB_ENV"
         mkdir -p "$HOME/.android/avd"
 
@@ -381,7 +381,7 @@ runs:
     - name: Install Foundry
       if: ${{ inputs.install-foundry == 'true' }}
       shell: bash
-      run: |
+      run: | # zizmor: ignore[github-env] static runner paths only
         echo "Installing Foundry via yarn install:foundryup (matches local dev and tests/seeder)..."
         yarn install:foundryup
         echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
@@ -432,7 +432,7 @@ runs:
 
     - name: Add binstubs to PATH
       if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
-      run: echo "$(pwd)/ios/vendor/bundle/bin" >> "$GITHUB_PATH"
+      run: echo "$(pwd)/ios/vendor/bundle/bin" >> "$GITHUB_PATH" # zizmor: ignore[github-env] static runner paths only
       shell: bash
 
     - name: Verify CocoaPods

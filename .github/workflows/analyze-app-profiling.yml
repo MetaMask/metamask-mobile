@@ -35,7 +35,8 @@ on:
   schedule:
     # Monday after the previous UTC week has closed (Mon 00:00 → Mon 00:00).
     - cron: '0 9 * * 1'
-  workflow_run:
+  # zizmor: ignore[dangerous-triggers] the upstream only runs on schedule/workflow_dispatch, and every job re-checks workflow_run.event
+  workflow_run: # we should call workflow_call when the workflow that it's running finishes
     workflows: ['Run Performance E2E Tests Manually']
     types:
       - completed
