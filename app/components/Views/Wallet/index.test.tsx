@@ -412,7 +412,7 @@ const getAssetDetailsActionsProps = () => {
     goToSwaps: () => void;
     displayBuyButton: boolean;
     displaySwapsButton: boolean;
-    hasGlassButtons?: boolean;
+    isGlass?: boolean;
     buyButtonActionID: string;
     swapButtonActionID: string;
     sendButtonActionID: string;
@@ -2121,7 +2121,7 @@ describe('Header and Nav Bar refresh AB test', () => {
 
       render(Wallet);
 
-      expect(getAssetDetailsActionsProps().hasGlassButtons).toBe(expected);
+      expect(getAssetDetailsActionsProps().isGlass).toBe(expected);
     },
   );
 
@@ -2137,7 +2137,7 @@ describe('Header and Nav Bar refresh AB test', () => {
 
     render(Wallet);
 
-    expect(getAssetDetailsActionsProps().hasGlassButtons).toBe(false);
+    expect(getAssetDetailsActionsProps().isGlass).toBe(false);
   });
 
   it('hands the header to the native bar on iOS 26 when the interim flag is on', () => {

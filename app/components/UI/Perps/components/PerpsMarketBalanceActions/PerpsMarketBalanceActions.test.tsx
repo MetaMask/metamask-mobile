@@ -1,7 +1,9 @@
 import React, { ReactNode } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
+import { GlassView } from 'expo-glass-effect';
 import PerpsMarketBalanceActions from './PerpsMarketBalanceActions';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/GlassSurface';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
@@ -750,6 +752,37 @@ describe('PerpsMarketBalanceActions', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('glass', () => {
+    it('draws Withdraw with the sheen and Add funds tinted on glass', () => {
+      const { UNSAFE_getAllByType, getAllByTestId, getByTestId } =
+        renderWithProvider(
+          <PerpsMarketBalanceActions
+            hideBalanceSection
+            showActionButtons
+            isGlass
+          />,
+          { state: createMockState() },
+          false,
+        );
+
+      expect(UNSAFE_getAllByType(GlassView)).toHaveLength(2);
+      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(1);
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the original buttons by default', () => {
+      const { UNSAFE_queryAllByType } = renderWithProvider(
+        <PerpsMarketBalanceActions hideBalanceSection showActionButtons />,
+        { state: createMockState() },
+        false,
+      );
+
+      expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
     });
   });
 

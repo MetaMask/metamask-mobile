@@ -1,20 +1,18 @@
 import React, { useCallback } from 'react';
-import { Pressable } from 'react-native';
-import { GlassView } from 'expo-glass-effect';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import {
   Box,
   ButtonIcon,
-  FontWeight,
+  ButtonSize,
+  ButtonVariant,
   IconName,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useLiquidGlass } from '../../../../../component-library/hooks/useLiquidGlass';
 import { useNativeHeader } from '../../../../hooks/useNativeHeader';
+import ButtonGlass from '../../../../../component-library/components-temp/ButtonGlass';
 import type { MoneyHeaderProButton } from './MoneyHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 
@@ -36,8 +34,7 @@ export const useMoneyNativeHeader = ({
   onBack,
   isEnabled,
 }: MoneyNativeHeaderParams): boolean => {
-  const { glassColorScheme } = useLiquidGlass();
-  const tw = useTailwind();
+  const { isGlassEnabled } = useLiquidGlass();
 
   const leftItems = useCallback((): NativeStackHeaderItem[] => {
     const titleItem: NativeStackHeaderItem = {
@@ -87,34 +84,22 @@ export const useMoneyNativeHeader = ({
         hidesSharedBackground: true,
         element: (
           <Box twClassName="p-1">
-            <GlassView
-              glassEffectStyle="regular"
-              colorScheme={glassColorScheme}
-              isInteractive
-              style={tw.style('h-10 rounded-full')}
+            <ButtonGlass
+              isGlass={isGlassEnabled}
+              variant={ButtonVariant.Tertiary}
+              size={ButtonSize.Md}
+              onPress={proButton.onPress}
+              accessibilityLabel={proButton.label}
+              testID={MoneyHeaderTestIds.GET_PRO_BUTTON}
             >
-              <Pressable
-                onPress={proButton.onPress}
-                testID={MoneyHeaderTestIds.GET_PRO_BUTTON}
-                accessibilityRole="button"
-                accessibilityLabel={proButton.label}
-                style={tw.style('h-10 justify-center px-4')}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                >
-                  {proButton.label}
-                </Text>
-              </Pressable>
-            </GlassView>
+              {proButton.label}
+            </ButtonGlass>
           </Box>
         ),
       },
       menuItem,
     ];
-  }, [onMenuPress, proButton, glassColorScheme, tw]);
+  }, [onMenuPress, proButton, isGlassEnabled]);
 
   return useNativeHeader({ leftItems, rightItems, isEnabled });
 };

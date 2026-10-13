@@ -62,4 +62,6 @@ export interface PerpsModeToggleProps {
   enableHaptics?: boolean;
 
   testID?: string;
+  /** `'active'` variant only: draws the pill in a glass header capsule. */
+  isCapsule?: boolean;
 }

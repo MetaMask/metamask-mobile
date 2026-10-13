@@ -35,6 +35,7 @@ export enum FeatureFlagNames {
   homeInterimHeaderNavBar = 'homeInterimHeaderNavBar',
   homeBrandRefreshSurfaces = 'homeBrandRefreshSurfaces',
   moneyBrandRefresh = 'moneyBrandRefresh',
+  perpsBrandRefresh = 'perpsBrandRefresh',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */

@@ -3,6 +3,7 @@ import {
   PixelRatio,
   StyleSheet,
   View,
+  type ColorValue,
   type StyleProp,
   type ViewProps,
   type ViewStyle,
@@ -46,6 +47,8 @@ export interface GlassSurfaceProps extends ViewProps {
    * lighter than the sheen, so the sheen cannot sit behind it.
    */
   hasSheen?: boolean;
+  /** Fills the glass with a colour, e.g. a primary button's background. */
+  tintColor?: ColorValue;
   isGlass?: boolean;
 }
 
@@ -56,6 +59,7 @@ const OpaqueSurface = ({
   containerStyle,
   isInteractive: _isInteractive,
   hasSheen: _hasSheen,
+  tintColor: _tintColor,
   style,
   children,
   ...props
@@ -76,6 +80,7 @@ const LiquidGlassSurface = ({
   containerStyle,
   isInteractive = false,
   hasSheen = false,
+  tintColor,
   style,
   children,
   ...props
@@ -120,6 +125,7 @@ const LiquidGlassSurface = ({
         glassEffectStyle="regular"
         colorScheme={glassColorScheme}
         isInteractive={isInteractive}
+        tintColor={tintColor}
         // The native glass only takes the surface's corners when clipped.
         style={[tw.style('overflow-hidden', radiusClassName), style]}
         {...props}
