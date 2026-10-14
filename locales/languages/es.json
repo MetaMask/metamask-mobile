@@ -693,7 +693,6 @@
     "re_enter_password": "Vuelve a ingresar tu contraseña",
     "use_at_least_8_characters": "Utiliza al menos 8 caracteres",
     "unlock_with_face_id": "Desbloquear con Face ID?",
-    "learn_more": "Si olvidaste esta contraseña, MetaMask no podrá recuperarla.",
     "learn_more_social_login": "Si olvido esta contraseña, perderé el acceso a mi billetera de forma permanente. MetaMask no puede restablecerla para mí.",
     "seed_phrase_length_error": "La frase secreta de recuperación debe tener 12, 15, 18, 21 o 24 palabras",
     "continue": "Continuar",

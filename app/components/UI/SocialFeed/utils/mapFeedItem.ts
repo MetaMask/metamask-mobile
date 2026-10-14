@@ -121,10 +121,10 @@ function buildSubHeader(
 }
 
 function realizedPnlPercent(
-  realizedPnl: number,
+  realizedPnl: number | null | undefined,
   boughtUsd: number | null | undefined,
 ): number | null {
-  if (!boughtUsd) {
+  if (!isPresentNumber(realizedPnl) || !boughtUsd) {
     return null;
   }
   return (realizedPnl / boughtUsd) * 100;

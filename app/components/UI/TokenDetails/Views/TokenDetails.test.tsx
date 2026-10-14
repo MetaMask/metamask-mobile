@@ -730,11 +730,14 @@ describe('TokenDetails', () => {
     });
 
     it('shows sticky buttons when token is loaded', () => {
-      const { getByTestId, getByText } = render(<TokenDetails />);
+      const { getByTestId, getByText, queryByTestId } = render(
+        <TokenDetails />,
+      );
 
       expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
       expect(getByText('Swap')).toBeOnTheScreen();
       expect(getByText('Buy')).toBeOnTheScreen();
+      expect(queryByTestId('token-details-trader-position-pnl')).toBeNull();
     });
 
     it('does not show sticky buttons when RWA token is not tradable', () => {

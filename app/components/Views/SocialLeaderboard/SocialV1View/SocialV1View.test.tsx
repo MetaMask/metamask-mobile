@@ -22,6 +22,7 @@ import { LiveTradesViewSelectorsIDs } from '../LiveTradesView/LiveTradesView.tes
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
+const mockOpenComposer = jest.fn();
 const mockTrack = jest.fn();
 const mockNavigate = jest.fn();
 const mockOpenSystemSettings = jest.fn();
@@ -36,6 +37,10 @@ let mockRouteParams: { showNotificationsBanner?: boolean } = {};
 
 jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
+}));
+
+jest.mock('../hooks/useOpenSocialPostComposer', () => ({
+  useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
 }));
 
 // The feed pages fetch through `useSocialFeed`, which reads keyring state and
@@ -316,7 +321,7 @@ describe('SocialV1View', () => {
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POST_COMPOSER);
+    expect(mockOpenComposer).toHaveBeenCalledTimes(1);
   });
 
   it('opens Rewards from the gift button', () => {
