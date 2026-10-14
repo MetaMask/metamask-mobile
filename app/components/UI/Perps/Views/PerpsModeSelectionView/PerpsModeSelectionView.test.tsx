@@ -65,8 +65,24 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: () => unknown) => selector(),
 }));
 
+const mockWatchlistSymbols: string[] = [];
+const mockHeaderVariant: { destination: 'lastViewedMarket' | 'marketList' } = {
+  destination: 'lastViewedMarket',
+};
+
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: () => ({
+    variant: mockHeaderVariant,
+    variantName:
+      mockHeaderVariant.destination === 'marketList' ? 'treatment' : 'control',
+    isActive: mockHeaderVariant.destination === 'marketList',
+  }),
+}));
+
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsLastViewedMarketSymbol: () => 'BTC',
+  selectPerpsWatchlistMarkets: () => mockWatchlistSymbols,
+  selectPerpsMode: () => mockPerpsMode,
 }));
 
 jest.mock('../../selectors/featureFlags', () => ({
@@ -109,6 +125,9 @@ jest.mock('../../utils/perpsModeSwitch', () => ({
   ).dropPerpsHomeFromStackHistory,
   withHomeDroppedFromHistory: jest.requireActual('../../utils/perpsModeSwitch')
     .withHomeDroppedFromHistory,
+  useIsPerpsProModeActive: jest.requireActual('../../utils/perpsModeSwitch')
+    .useIsPerpsProModeActive,
+  PERPS_DEFAULT_PRO_MARKET_SYMBOL: 'BTC',
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -141,6 +160,8 @@ describe('PerpsModeSelectionView', () => {
     mockIsProModeEnabled = true;
     mockPerpsMode = PerpsMode.Lite;
     mockRouteParams = {};
+    mockHeaderVariant.destination = 'lastViewedMarket';
+    mockWatchlistSymbols.splice(0, mockWatchlistSymbols.length);
     jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
       cb(0);
       return 0;
@@ -332,7 +353,7 @@ describe('PerpsModeSelectionView', () => {
         {
           name: Routes.PERPS.MARKET_DETAILS,
           params: {
-            market: { symbol: 'BTC', name: 'Bitcoin' },
+            market: { symbol: 'BTC' },
             source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
             homeDroppedFromHistory: true,
           },
@@ -340,6 +361,37 @@ describe('PerpsModeSelectionView', () => {
       ],
     });
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('opens the market list on Watchlist when a treatment user selects Pro from home', async () => {
+    mockHeaderVariant.destination = 'marketList';
+    mockWatchlistSymbols.push('ETH');
+    mockRouteParams = {
+      entry: 'home',
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+    };
+
+    render(<PerpsModeSelectionView />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.PRO_OPTION),
+    );
+
+    await Promise.resolve();
+
+    expect(mockGetParentReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [
+        {
+          name: Routes.PERPS.MARKET_LIST,
+          params: {
+            source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+            homeDroppedFromHistory: true,
+            showWatchlistOnly: true,
+          },
+        },
+      ],
+    });
   });
 
   it('drops Perps Home from the parent stack when selecting Pro from a market', async () => {

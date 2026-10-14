@@ -83,10 +83,8 @@ import {
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
-import {
-  toPerpsNavigatorScreenParams,
-  useGetPerpsHomeNavigationTarget,
-} from '../../UI/Perps/utils/perpsModeSwitch';
+import { usePerpsHeaderEntryNavigation } from '../../UI/Perps/hooks/usePerpsHeaderEntryNavigation';
+import { toPerpsNavigatorScreenParams } from '../../UI/Perps/utils/perpsModeSwitch';
 import { openPerpsModeSelection } from '../../UI/Perps/utils/openPerpsModeSelection';
 import { hasCompletedPerpsModeSelection } from '../../UI/Perps/utils/perpsModeSelectionStorage';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
@@ -305,7 +303,7 @@ function TradeWalletActions() {
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
-  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+  const { getTarget } = usePerpsHeaderEntryNavigation();
 
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,
@@ -404,10 +402,7 @@ function TradeWalletActions() {
       if (isFirstTimePerpsUser) {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
-        navigate(
-          Routes.PERPS.ROOT,
-          toPerpsNavigatorScreenParams(getPerpsHomeNavigationTarget()),
-        );
+        navigate(Routes.PERPS.ROOT, toPerpsNavigatorScreenParams(getTarget()));
       }
     };
     handleNavigateBack();
@@ -417,7 +412,7 @@ function TradeWalletActions() {
     navigation,
     isFirstTimePerpsUser,
     isPerpsProModeEnabled,
-    getPerpsHomeNavigationTarget,
+    getTarget,
   ]);
 
   const onPredict = useCallback(() => {

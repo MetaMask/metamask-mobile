@@ -8,12 +8,19 @@ import {
   PERPS_EVENT_VALUE,
   PerpsMode,
 } from '@metamask/perps-controller';
-import React, { useCallback, useEffect, useEffectEvent, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from 'react';
 import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsModeSelectionBottomSheet from '../../components/PerpsModeSelectionBottomSheet';
+import { usePerpsHeaderEntryNavigation } from '../../hooks/usePerpsHeaderEntryNavigation';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMode } from '../../hooks/usePerpsMode';
 import { selectPerpsLastViewedMarketSymbol } from '../../selectors/perpsController';
@@ -27,7 +34,6 @@ import {
   PERPS_MODE_SELECTION_SCREEN_TYPE,
 } from '../../utils/openPerpsModeSelection';
 import {
-  buildDefaultProMarket,
   dropPerpsHomeFromStackHistory,
   resolvePerpsHomeNavigationTarget,
   toPerpsNavigatorScreenParams,
@@ -64,6 +70,10 @@ const PerpsModeSelectionView: React.FC = () => {
   const { mode: selectedMode, setMode } = usePerpsMode();
   const isProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
+  const [trackProEntryExposure, setTrackProEntryExposure] = useState(false);
+  const { getProSwitchTarget } = usePerpsHeaderEntryNavigation({
+    trackExposure: trackProEntryExposure,
+  });
 
   const hasSelectedRef = useRef(false);
   const dismissEmittedRef = useRef(false);
@@ -90,17 +100,12 @@ const PerpsModeSelectionView: React.FC = () => {
         // Modal is nested under the Perps stack when opened from home.
         // Reset that parent stack so Perps Home is discarded while Pro is
         // active (TAT-3612) — same behavior as the old direct header switch.
+        const target = getProSwitchTarget(
+          withHomeDroppedFromHistory({ source }),
+        );
         navigation.getParent()?.reset({
           index: 0,
-          routes: [
-            {
-              name: Routes.PERPS.MARKET_DETAILS,
-              params: withHomeDroppedFromHistory({
-                market: buildDefaultProMarket(lastViewedMarketSymbol),
-                source,
-              }),
-            },
-          ],
+          routes: [{ name: target.screen, params: target.params }],
         });
         return;
       }
@@ -110,14 +115,17 @@ const PerpsModeSelectionView: React.FC = () => {
         // Pro-mode selector: `setMode` has run but this closure still holds the
         // pre-selection render's value, so reading it back would send a user who
         // picked Pro to Lite Home.
+        const enteringPro = isProModeEnabled && mode === PerpsMode.Pro;
         navigation.navigate(
           Routes.PERPS.ROOT,
           toPerpsNavigatorScreenParams(
-            resolvePerpsHomeNavigationTarget(
-              isProModeEnabled && mode === PerpsMode.Pro,
-              { source },
-              lastViewedMarketSymbol,
-            ),
+            enteringPro
+              ? getProSwitchTarget({ source })
+              : resolvePerpsHomeNavigationTarget(
+                  false,
+                  { source },
+                  lastViewedMarketSymbol,
+                ),
           ),
         );
         return;
@@ -135,7 +143,14 @@ const PerpsModeSelectionView: React.FC = () => {
 
       // `home` + Lite: dismiss only — already on Perps Home.
     },
-    [entry, isProModeEnabled, lastViewedMarketSymbol, navigation, source],
+    [
+      entry,
+      getProSwitchTarget,
+      isProModeEnabled,
+      lastViewedMarketSymbol,
+      navigation,
+      source,
+    ],
   );
 
   const continueAsPreselectedIfNeeded = useCallback(() => {
@@ -178,6 +193,13 @@ const PerpsModeSelectionView: React.FC = () => {
   const handleSelect = useCallback(
     async (mode: PerpsMode) => {
       hasSelectedRef.current = true;
+      if (
+        mode === PerpsMode.Pro &&
+        isProModeEnabled &&
+        (entry === 'home' || entry === 'trade')
+      ) {
+        setTrackProEntryExposure(true);
+      }
       setMode(mode);
       await markPerpsModeSelectionCompleted();
 
@@ -208,7 +230,15 @@ const PerpsModeSelectionView: React.FC = () => {
         continueAfterSelection(mode);
       });
     },
-    [continueAfterSelection, entry, navigation, setMode, source, track],
+    [
+      continueAfterSelection,
+      entry,
+      isProModeEnabled,
+      navigation,
+      setMode,
+      source,
+      track,
+    ],
   );
 
   return (
