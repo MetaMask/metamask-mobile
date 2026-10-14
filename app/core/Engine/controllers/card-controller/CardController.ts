@@ -772,9 +772,14 @@ export class CardController extends BaseController<
       return;
     }
 
-    this.#cardLinksFetchPromise ??= this.#doFetchCardLinks().finally(() => {
-      this.#cardLinksFetchPromise = null;
-    });
+    if (!this.#cardLinksFetchPromise) {
+      const read = this.#doFetchCardLinks().finally(() => {
+        if (this.#cardLinksFetchPromise === read) {
+          this.#cardLinksFetchPromise = null;
+        }
+      });
+      this.#cardLinksFetchPromise = read;
+    }
     await this.#cardLinksFetchPromise;
   }
 
@@ -841,11 +846,16 @@ export class CardController extends BaseController<
       return;
     }
 
-    this.#cardLinkSeedPromise ??= this.#doSeedCardLink(
-      this.#preferSelectedCardholderAccount(cardholderAccounts),
-    ).finally(() => {
-      this.#cardLinkSeedPromise = null;
-    });
+    if (!this.#cardLinkSeedPromise) {
+      const seed = this.#doSeedCardLink(
+        this.#preferSelectedCardholderAccount(cardholderAccounts),
+      ).finally(() => {
+        if (this.#cardLinkSeedPromise === seed) {
+          this.#cardLinkSeedPromise = null;
+        }
+      });
+      this.#cardLinkSeedPromise = seed;
+    }
     await this.#cardLinkSeedPromise;
   }
 
@@ -1034,7 +1044,9 @@ export class CardController extends BaseController<
     fields: { address?: string; providerCardholderId?: string },
     method: string,
   ): Promise<'written' | 'rejected' | 'failed' | 'skipped'> {
-    const run = () => this.#doWriteCardLink(provider, status, fields, method);
+    const generation = this.#cardLinksGeneration;
+    const run = () =>
+      this.#doWriteCardLink(provider, status, fields, method, generation);
     const queued = (
       this.#cardLinkWriteQueues[provider] ?? Promise.resolve()
     ).then(run, run);
@@ -1050,9 +1062,10 @@ export class CardController extends BaseController<
       providerCardholderId,
     }: { address?: string; providerCardholderId?: string },
     method: string,
+    generation: number,
   ): Promise<'written' | 'rejected' | 'failed' | 'skipped'> {
-    const generation = this.#cardLinksGeneration;
     try {
+      if (generation !== this.#cardLinksGeneration) return 'skipped';
       if (!this.#isCardLinkApiEnabled()) return 'skipped';
 
       const body: CardLinkWriteBody = { status };
@@ -2107,6 +2120,9 @@ export class CardController extends BaseController<
       this.invalidateFetch();
       this.#invalidateRedeemWithdrawal();
       this.#cardLinksGeneration += 1;
+      this.#cardLinksFetchPromise = null;
+      this.#cardLinkSeedPromise = null;
+      this.#cardLinkWriteQueues = {};
       this.#cardLinkSeedAttempted = false;
       if (this.#cardholderCheckTimer !== undefined) {
         clearTimeout(this.#cardholderCheckTimer);

@@ -1001,6 +1001,55 @@ describe('CardController card links', () => {
     });
   });
 
+  it('drops a GET that was in flight when the wallet was reset and reads again afterwards', async () => {
+    const { controller, cardService } = setup();
+    jest.spyOn(CardTokenStore, 'get').mockResolvedValue(null);
+    let finishOldGet!: (links: CardLink[]) => void;
+    cardService.getCardLinks
+      .mockImplementationOnce(
+        () =>
+          new Promise<CardLink[]>((resolve) => {
+            finishOldGet = resolve;
+          }),
+      )
+      .mockResolvedValueOnce([]);
+
+    const oldFetch = controller.fetchCardLinks();
+    await flush();
+    await controller.resetAll();
+    const newFetch = controller.fetchCardLinks();
+    finishOldGet([link({ provider: 'immersve' })]);
+    await Promise.all([oldFetch, newFetch]);
+
+    expect(cardService.getCardLinks).toHaveBeenCalledTimes(2);
+    expect(controller.state.cardLinks).toStrictEqual([]);
+  });
+
+  it('does not run a write that was queued before the wallet was reset', async () => {
+    const { controller, cardService } = setup();
+    jest.spyOn(CardTokenStore, 'get').mockResolvedValue(null);
+    let finishFirstWrite!: (value: CardLink) => void;
+    cardService.putCardLink.mockImplementationOnce(
+      () =>
+        new Promise<CardLink>((resolve) => {
+          finishFirstWrite = resolve;
+        }),
+    );
+
+    const first = controller.recordCardActivated({ provider: 'immersve' });
+    const queued = controller.recordProviderOnboardingStarted({
+      provider: 'immersve',
+      address: SELECTED_ADDRESS,
+    });
+    await flush();
+    await controller.resetAll();
+    finishFirstWrite(link({ provider: 'immersve', status: 'active' }));
+    await Promise.all([first, queued]);
+
+    expect(cardService.putCardLink).toHaveBeenCalledTimes(1);
+    expect(controller.state.cardLinks).toBeNull();
+  });
+
   it('clears card links on resetAll', async () => {
     const { controller } = setup({
       state: {
