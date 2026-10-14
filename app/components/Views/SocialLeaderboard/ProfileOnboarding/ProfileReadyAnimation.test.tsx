@@ -5,6 +5,7 @@ import {
   RiveErrorType,
   RiveImages,
   type RiveError,
+  type RiveImage,
 } from '@rive-app/react-native';
 import {
   __getRivePropertySetter,
@@ -132,6 +133,71 @@ describe('ProfileReadyAnimation', () => {
       ).toHaveBeenCalledWith(uri);
     },
   );
+
+  it('stays on the animation without an avatar when the image fails to load', async () => {
+    jest.spyOn(Image, 'resolveAssetSource').mockReturnValue({
+      uri: 'http://x/a.png',
+      width: 1,
+      height: 1,
+      scale: 1,
+    });
+    jest
+      .mocked(RiveImages.loadFromURLAsync)
+      .mockRejectedValueOnce(new Error('404'));
+
+    renderReady('fox-photo');
+    await act(async () => undefined);
+
+    expect(RiveImages.loadFromURLAsync).toHaveBeenCalled();
+    expect(__mockRiveImagePropertySet).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_ANIMATION),
+    ).toBeOnTheScreen();
+  });
+
+  it('ignores an avatar that resolves after unmount', async () => {
+    jest.spyOn(Image, 'resolveAssetSource').mockReturnValue({
+      uri: 'http://x/a.png',
+      width: 1,
+      height: 1,
+      scale: 1,
+    });
+    let resolveImage: (image: RiveImage) => void = () => undefined;
+    jest.mocked(RiveImages.loadFromURLAsync).mockImplementationOnce(
+      () =>
+        new Promise<RiveImage>((resolve) => {
+          resolveImage = resolve;
+        }),
+    );
+
+    const { unmount } = renderReady('fox-photo');
+    unmount();
+    await act(async () => {
+      resolveImage({ byteSize: 1 } as RiveImage);
+    });
+
+    expect(__mockRiveImagePropertySet).not.toHaveBeenCalled();
+  });
+
+  it('supplies the bundled Inter font for the referenced font asset', () => {
+    renderReady();
+
+    expect(mockUseRiveFile).toHaveBeenCalledWith(expect.anything(), {
+      referencedAssets: { Inter: { source: expect.anything() } },
+    });
+  });
+
+  it('does not load the file when the animation is skipped', () => {
+    mockUseRiveEnabled.mockReturnValue(false);
+
+    renderReady();
+
+    expect(mockUseRiveFile).toHaveBeenCalledWith(undefined, expect.anything());
+    expect(mockUseRiveFile).not.toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+    );
+  });
 
   it('keeps the embedded avatar for emoji presets', async () => {
     renderReady('fox-emoji');

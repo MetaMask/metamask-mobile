@@ -22,6 +22,7 @@ const mockUseNetworkTier = jest.fn<NetworkTier | null, []>();
 const mockGetHardwareTier = jest.fn<HardwareTier | null, []>();
 const mockUseReducedMotion = jest.fn<boolean, []>();
 const mockFireContinue = jest.fn();
+const mockUseRive = jest.fn();
 const mockUseRiveFile = jest.fn();
 const mockUseViewModelInstance = jest.fn();
 const mockRiveViewProps: {
@@ -59,6 +60,7 @@ jest.mock('@rive-app/react-native', () => {
       mockRiveViewProps.current = props;
       return ReactActual.createElement(actual.RiveView, props);
     },
+    useRive: () => mockUseRive() ?? actual.useRive(),
     useRiveFile: (input: unknown, options: unknown) =>
       mockUseRiveFile(input, options) ?? actual.useRiveFile(input, options),
     useViewModelInstance: (source: unknown, params: unknown) =>
@@ -113,15 +115,35 @@ describe('ProfileOnboardingIntroAnimation', () => {
     });
   });
 
-  it('renders the animation when both tiers are unknown', () => {
-    mockUseNetworkTier.mockReturnValue(null);
-    mockGetHardwareTier.mockReturnValue(null);
+  it.each<[HardwareTier | null, NetworkTier | null]>([
+    [null, null],
+    ['LOW', 'WIFI'],
+    ['HIGH', 'SLOW_CELLULAR'],
+    [null, 'SLOW_CELLULAR'],
+  ])(
+    'renders the animation on %s hardware with %s network',
+    (hardware, network) => {
+      mockGetHardwareTier.mockReturnValue(hardware);
+      mockUseNetworkTier.mockReturnValue(network);
+
+      render(<ProfileOnboardingIntroAnimation fallback={fallback} />);
+
+      expect(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_ANIMATION),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  it('does not load the file when the animation is skipped', () => {
+    mockUseNetworkTier.mockReturnValue('NONE');
 
     render(<ProfileOnboardingIntroAnimation fallback={fallback} />);
 
-    expect(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_ANIMATION),
-    ).toBeOnTheScreen();
+    expect(mockUseRiveFile).toHaveBeenCalledWith(undefined, expect.anything());
+    expect(mockUseRiveFile).not.toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+    );
   });
 
   it.each<[string, () => void]>([
@@ -196,6 +218,22 @@ describe('ProfileOnboardingIntroAnimation', () => {
 
     it('does not advance while the fallback is shown', () => {
       mockUseNetworkTier.mockReturnValue('NONE');
+      render(<ProfileOnboardingIntroAnimation fallback={fallback} />);
+
+      setCurrentStep(1);
+      act(() => {
+        jest.advanceTimersByTime(60_000);
+      });
+
+      expect(mockFireContinue).not.toHaveBeenCalled();
+    });
+
+    it('waits for the Rive view to be ready before advancing', () => {
+      mockUseRive.mockReturnValue({
+        riveRef: { current: undefined },
+        riveViewRef: undefined,
+        setHybridRef: { f: jest.fn() },
+      });
       render(<ProfileOnboardingIntroAnimation fallback={fallback} />);
 
       setCurrentStep(1);
