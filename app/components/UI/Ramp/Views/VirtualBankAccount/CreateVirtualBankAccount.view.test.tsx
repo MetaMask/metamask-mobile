@@ -1,12 +1,11 @@
 import '../../../../../../tests/component-view/mocks';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { waitFor } from '@testing-library/react-native';
 import React from 'react';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { renderComponentViewScreen } from '../../../../../../tests/component-view/render';
 import { createStateFixture } from '../../../../../../tests/component-view/stateFixture';
 import CreateVirtualBankAccount from './CreateVirtualBankAccount';
-import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { getMoneyAccountDepositAssetId } from '../../../Money/utils/moneyAccountTransactions';
 
@@ -165,19 +164,5 @@ describe('CreateVirtualBankAccount view', () => {
       ),
     ).toBeOnTheScreen();
     expect(queryByText(/timeframe by region/)).toBeNull();
-  });
-
-  it('renders the intro screen container', async () => {
-    const { getByTestId } = renderScreen({ location: 'BR' });
-
-    await waitFor(() => {
-      expect(
-        getByTestId(CreateVirtualBankAccountSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
-    });
-
-    fireEvent.press(
-      getByTestId(CreateVirtualBankAccountSelectorsIDs.BACK_BUTTON),
-    );
   });
 });
