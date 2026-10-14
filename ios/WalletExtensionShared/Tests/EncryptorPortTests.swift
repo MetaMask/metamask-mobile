@@ -70,6 +70,74 @@ final class EncryptorPortTests: XCTestCase {
         XCTAssertEqual(bySuffix.map(\.cardId), ["series-1" == cards[0].entryId ? "card-1" : "card-1"])
     }
 
+    func testIdentifierMatchIgnoresADifferentCardsSuffix() {
+        let card = SnapshotCard(
+            entryId: "series-new",
+            cardId: "card-new",
+            lastFour: "1234",
+            cardholderName: "Ada",
+            primaryAccountIdentifier: "series-new",
+            title: "MetaMask Card",
+            localizedDescription: "MetaMask Card ending in 1234"
+        )
+        let installed = [
+            InstalledPass(
+                primaryAccountIdentifier: "series-old",
+                primaryAccountNumberSuffix: "1234"
+            ),
+        ]
+
+        let available = ProvisioningLogic.cardsAvailable(cards: [card], installed: installed)
+
+        XCTAssertEqual(available.map(\.cardId), ["card-new"])
+    }
+
+    func testDeactivatedPassDoesNotHideTheCard() {
+        let card = SnapshotCard(
+            entryId: "series-1",
+            cardId: "card-1",
+            lastFour: "1234",
+            cardholderName: "Ada",
+            primaryAccountIdentifier: "series-1",
+            title: "MetaMask Card",
+            localizedDescription: "MetaMask Card ending in 1234"
+        )
+        let installed = [
+            InstalledPass(
+                primaryAccountIdentifier: "series-1",
+                primaryAccountNumberSuffix: "1234",
+                activationState: .deactivated
+            ),
+        ]
+
+        let available = ProvisioningLogic.cardsAvailable(cards: [card], installed: installed)
+
+        XCTAssertEqual(available.map(\.cardId), ["card-1"])
+    }
+
+    func testRequiresActivationPassHidesTheCard() {
+        let card = SnapshotCard(
+            entryId: "series-1",
+            cardId: "card-1",
+            lastFour: "1234",
+            cardholderName: "Ada",
+            primaryAccountIdentifier: "series-1",
+            title: "MetaMask Card",
+            localizedDescription: "MetaMask Card ending in 1234"
+        )
+        let installed = [
+            InstalledPass(
+                primaryAccountIdentifier: "series-1",
+                primaryAccountNumberSuffix: "0000",
+                activationState: .requiresActivation
+            ),
+        ]
+
+        let available = ProvisioningLogic.cardsAvailable(cards: [card], installed: installed)
+
+        XCTAssertTrue(available.isEmpty)
+    }
+
     func testExpiredAccessTokenNeedsRefreshAndSessionGuard() {
         let stale = CardTokenSet(
             accessToken: "old",

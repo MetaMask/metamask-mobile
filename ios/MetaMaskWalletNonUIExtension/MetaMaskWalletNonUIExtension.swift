@@ -80,8 +80,28 @@ enum InstalledPasses {
     private static func installed(_ pass: PKSecureElementPass) -> InstalledPass {
         InstalledPass(
             primaryAccountIdentifier: pass.primaryAccountIdentifier,
-            primaryAccountNumberSuffix: pass.primaryAccountNumberSuffix
+            primaryAccountNumberSuffix: pass.primaryAccountNumberSuffix,
+            activationState: presence(pass.passActivationState)
         )
+    }
+
+    private static func presence(
+        _ state: PKSecureElementPass.PassActivationState
+    ) -> PassPresence {
+        switch state {
+        case .activated:
+            return .activated
+        case .requiresActivation:
+            return .requiresActivation
+        case .activating:
+            return .activating
+        case .suspended:
+            return .suspended
+        case .deactivated:
+            return .deactivated
+        @unknown default:
+            return .activated
+        }
     }
 }
 

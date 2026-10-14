@@ -7,12 +7,14 @@ enum ProvisioningLogic {
     ) -> [SnapshotCard] {
         cards.filter { card in
             !installed.contains { pass in
+                guard pass.activationState != .deactivated else {
+                    return false
+                }
                 if
                     let identifier = card.primaryAccountIdentifier,
-                    !identifier.isEmpty,
-                    pass.primaryAccountIdentifier == identifier
+                    !identifier.isEmpty
                 {
-                    return true
+                    return pass.primaryAccountIdentifier == identifier
                 }
                 return pass.primaryAccountNumberSuffix == card.lastFour
             }

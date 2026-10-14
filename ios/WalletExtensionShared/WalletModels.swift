@@ -54,9 +54,28 @@ struct ProvisioningSnapshot: Codable, Equatable {
     static let currentSchemaVersion = 1
 }
 
+enum PassPresence: Equatable {
+    case activated
+    case requiresActivation
+    case activating
+    case suspended
+    case deactivated
+}
+
 struct InstalledPass: Equatable {
     var primaryAccountIdentifier: String?
     var primaryAccountNumberSuffix: String
+    var activationState: PassPresence
+
+    init(
+        primaryAccountIdentifier: String?,
+        primaryAccountNumberSuffix: String,
+        activationState: PassPresence = .activated
+    ) {
+        self.primaryAccountIdentifier = primaryAccountIdentifier
+        self.primaryAccountNumberSuffix = primaryAccountNumberSuffix
+        self.activationState = activationState
+    }
 }
 
 enum SecureItemCodec {
