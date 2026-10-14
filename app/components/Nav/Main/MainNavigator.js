@@ -19,6 +19,8 @@ import AccountHub from '../../Views/AccountHub';
 import ProfileDrawer from '../../Views/SocialProfile/ProfileDrawer/ProfileDrawer';
 import ManageProfile from '../../Views/SocialProfile/ManageProfile/ManageProfile';
 import ManageProfileField from '../../Views/SocialProfile/ManageProfile/ManageProfileField';
+import ManageProfileXAccount from '../../Views/SocialProfile/ManageProfile/ManageProfileXAccount';
+import LinkedSocialAccount from '../../Views/SocialProfile/LinkedSocialAccount/LinkedSocialAccount';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
@@ -86,6 +88,7 @@ import TokenListRoutes from '../../UI/Ramp/routes';
 
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 import VbaOnboardingNavigator from '../../UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
+import VbaDetails from '../../UI/Ramp/Views/VirtualBankAccount/VbaDetails';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
 import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
@@ -150,6 +153,8 @@ import {
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
+import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
+import MusdRescueRecipientScreen from '../../UI/Money/components/MusdRescueSendSheet/MusdRescueRecipientSelector';
 import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
@@ -1033,6 +1038,14 @@ const MainNavigator = () => {
           name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD}
           component={ManageProfileField}
         />
+        <NativeStack.Screen
+          name={Routes.SOCIAL_PROFILE.X_ACCOUNT}
+          component={ManageProfileXAccount}
+        />
+        <NativeStack.Screen
+          name={Routes.SOCIAL_PROFILE.LINKED_SOCIAL_ACCOUNT}
+          component={LinkedSocialAccount}
+        />
       </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.ACCOUNT_HUB_VIEW}
@@ -1137,6 +1150,15 @@ const MainNavigator = () => {
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen
+        name={Routes.RAMP.VBA_DETAILS}
+        component={VbaDetails}
+        options={{
+          ...slideFromRightNativeOptions,
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+      <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
         options={{ ...slideFromRightNativeOptions, gestureEnabled: false }}
@@ -1175,6 +1197,14 @@ const MainNavigator = () => {
             <NativeStack.Screen
               name={Routes.MONEY.POTENTIAL_EARNINGS}
               component={MoneyPotentialEarningsView}
+            />
+            <NativeStack.Screen
+              name={Routes.MONEY.MUSD_RESCUE_SEND}
+              component={MusdRescueSendScreen}
+            />
+            <NativeStack.Screen
+              name={Routes.MONEY.MUSD_RESCUE_RECIPIENT}
+              component={MusdRescueRecipientScreen}
             />
             <NativeStack.Screen
               name={Routes.MONEY.TRANSACTION_DETAILS}

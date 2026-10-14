@@ -110,6 +110,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/polling-controller',
   '@metamask/preferences-controller',
   '@metamask/profile-metrics-controller',
+  '@metamask/profile-controller',
   '@metamask/profile-sync-controller',
   '@metamask/ramps-controller',
   '@metamask/sentinel-api-service',
@@ -163,7 +164,7 @@ const config = {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.cjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.mjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
-    '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4|riv)$':
+    '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4|riv|ttf|otf)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
   snapshotSerializers: [],

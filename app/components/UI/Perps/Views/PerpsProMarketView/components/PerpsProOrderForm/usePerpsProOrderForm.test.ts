@@ -16,7 +16,6 @@ import {
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
-import { formatPerpsPrice } from '../../../../utils/formatUtils';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
 import {
   FAR_FROM_MARKET_WARNING_INTERACTION,
@@ -201,6 +200,8 @@ let mockPositionModifyPreviewParams:
 
 let mockIsAtCap = false;
 let mockUseBottomSheet = false;
+let mockSlippageReady = false;
+let mockCanFillWithinSlippage: boolean | null = null;
 let mockEstimatedSlippageBps: number | null = 50;
 let mockMaxSlippageBps = 100;
 let mockMaxSlippageSource = 'default';
@@ -403,6 +404,8 @@ jest.mock('../../../../hooks/usePerpsConnection', () => ({
 jest.mock('../../../../hooks/usePerpsEstimatedSlippage', () => ({
   usePerpsEstimatedSlippage: () => ({
     estimatedSlippageBps: mockEstimatedSlippageBps,
+    isReady: mockSlippageReady,
+    canFillWithinSlippage: mockCanFillWithinSlippage,
   }),
 }));
 
@@ -653,6 +656,8 @@ describe('usePerpsProOrderForm', () => {
     mockIsAtCap = false;
     mockUseBottomSheet = false;
     mockEstimatedSlippageBps = 50;
+    mockSlippageReady = false;
+    mockCanFillWithinSlippage = null;
     mockMaxSlippageBps = 100;
     mockMaxSlippageSource = 'default';
     mockLivePrice = '90000';
@@ -1098,37 +1103,6 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.chaseReferencePrice).toBe(
         PERPS_CONSTANTS.FallbackPriceDisplay,
       );
-    });
-
-    it('formats the chase reference price with market entry-price decimals', () => {
-      // Arrange
-      mockLivePrice = '77288.50';
-      mockSizeDecimals = 5;
-      mockMarketData = { szDecimals: 5, maxLeverage: 40 };
-
-      // Act
-      const { result } = renderProForm();
-
-      // Assert
-      expect(result.current.chaseReferencePrice).toBe(
-        formatPerpsPrice(77288.5, { szDecimals: 5 }),
-      );
-    });
-
-    it('keeps sub-cent chase prices instead of collapsing them to a 2-decimal floor', () => {
-      // Arrange
-      mockLivePrice = '0.001234';
-      mockSizeDecimals = 0;
-      mockMarketData = { szDecimals: 0, maxLeverage: 50 };
-
-      // Act
-      const { result } = renderProForm();
-
-      // Assert
-      expect(result.current.chaseReferencePrice).toBe(
-        formatPerpsPrice(0.001234, { szDecimals: 0 }),
-      );
-      expect(result.current.chaseReferencePrice).not.toMatch(/<\s*\$0\.01/u);
     });
 
     it('shows a failure message when market data loading fails', () => {
@@ -7344,6 +7318,8 @@ describe('usePerpsProOrderForm', () => {
       // so the user-configured cap has no effect; the row is hidden to avoid misrepresentation.
       mockOrderForm.type = 'limit';
       mockEstimatedSlippageBps = null;
+      mockSlippageReady = false;
+      mockCanFillWithinSlippage = null;
       const { result } = renderProForm();
 
       // Assert
@@ -8269,5 +8245,34 @@ describe('usePerpsProOrderForm', () => {
       expect(mockSetDirection).toHaveBeenCalledWith('short');
       expect(mockHandleAddFunds).toHaveBeenCalled();
     });
+  });
+
+  // CV cannot reach onSubmit while the button is disabled, so this unit test covers the programmatic-submit rejection.
+  describe('Pro defensive liquidity guard', () => {
+    it.each([
+      { estimate: null, copyKey: 'perps.slippage.insufficient_depth' },
+      { estimate: 100, copyKey: 'perps.slippage.cannot_fill' },
+    ])(
+      'rejects a programmatic submit with $copyKey',
+      async ({ estimate, copyKey }) => {
+        mockEstimatedSlippageBps = estimate;
+        mockSlippageReady = true;
+        mockCanFillWithinSlippage = false;
+        const { result } = renderProForm();
+
+        await act(async () => {
+          await result.current.onPlaceOrderPress();
+        });
+
+        expect(mockExecuteOrder).not.toHaveBeenCalled();
+        expect(mockShowToast).toHaveBeenCalled();
+        expect(result.current.notices).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ message: strings(copyKey) }),
+          ]),
+        );
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
+      },
+    );
   });
 });

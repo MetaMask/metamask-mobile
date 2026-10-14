@@ -5,6 +5,8 @@ const underlineWrapper = (key: TokenStatKey) =>
 
 export const StatBarSelectors = {
   BAR: 'token-details-v1-stat-bar',
+  SCROLL: 'token-details-v1-stat-bar-scroll',
+  SCROLL_FADE: 'token-details-v1-stat-bar-scroll-fade',
   cell: (key: TokenStatKey) => `token-details-v1-stat-${key}`,
   value: (key: TokenStatKey) => `token-details-v1-stat-${key}-value`,
   skeleton: (key: TokenStatKey) => `token-details-v1-stat-${key}-skeleton`,

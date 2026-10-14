@@ -612,6 +612,20 @@
           "useTokenDetection": true,
           "useTransactionSimulations": true
         },
+        "ProfileController": {
+          "profile": {
+            "avatarUrl": "",
+            "bio": "",
+            "connectedToX": false,
+            "createdAt": "",
+            "displayName": "",
+            "linkedAddresses": [],
+            "profileId": "",
+            "tradingPrivacy": "public",
+            "updatedAt": "",
+            "username": ""
+          }
+        },
         "QrSyncController": {
           "connectionStatus": "disconnected",
           "error": null,

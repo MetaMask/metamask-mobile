@@ -67,6 +67,8 @@ const READY_PLUS_PRICING: MoneyAccountPlusPricingView = {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const mockOnSuccess = jest.fn();
+const mockOnCheckoutStart = jest.fn();
+const mockOnCheckoutError = jest.fn();
 
 const mockPricingState = ({
   isLoading = false,
@@ -100,7 +102,14 @@ const mockStartSubscriptionState = ({
 };
 
 const renderBenefits = (initialPlan?: PlanId) =>
-  render(<Benefits onSuccess={mockOnSuccess} initialPlan={initialPlan} />);
+  render(
+    <Benefits
+      onSuccess={mockOnSuccess}
+      onCheckoutStart={mockOnCheckoutStart}
+      onCheckoutError={mockOnCheckoutError}
+      initialPlan={initialPlan}
+    />,
+  );
 
 // ─── Suite ───────────────────────────────────────────────────────────────────
 
@@ -293,6 +302,29 @@ describe('Benefits', () => {
       unitDecimals: 2,
       amount: 4.99,
     };
+
+    it('calls onCheckoutStart before starting the subscription', () => {
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      expect(mockOnCheckoutStart).toHaveBeenCalledTimes(1);
+      expect(mockStartSubscription).toHaveBeenCalledTimes(1);
+      expect(mockOnCheckoutStart.mock.invocationCallOrder[0]).toBeLessThan(
+        mockStartSubscription.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('calls onCheckoutError when the subscription fails to start', async () => {
+      mockStartSubscription.mockRejectedValue(new Error('signing rejected'));
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+      await Promise.resolve();
+
+      expect(mockOnCheckoutError).toHaveBeenCalledTimes(1);
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+    });
 
     it('starts the subscription and calls onSuccess with the annual checkout plan by default', async () => {
       const { getByTestId } = renderBenefits();

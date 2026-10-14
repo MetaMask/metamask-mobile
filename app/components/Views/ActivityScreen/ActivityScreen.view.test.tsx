@@ -1246,7 +1246,7 @@ describeForPlatforms('ActivityScreen — prediction rows', () => {
     clearAccountsTransactionsApiMocks();
     (
       Engine.context.PredictController.getActivity as jest.Mock
-    ).mockResolvedValue([]);
+    ).mockResolvedValue({ activities: [], nextCursor: undefined });
   });
 
   it('shows deposit, withdrawal, claim, cash-out, and placed rows under Predictions after load', async () => {
@@ -1261,7 +1261,10 @@ describeForPlatforms('ActivityScreen — prediction rows', () => {
     setupAccountsTransactionsApiMock([]);
     (
       Engine.context.PredictController.getActivity as jest.Mock
-    ).mockResolvedValue([claim, sell, buy]);
+    ).mockResolvedValue({
+      activities: [claim, sell, buy],
+      nextCursor: undefined,
+    });
 
     const state = initialStateActivityWithLocalTransactions([deposit, withdraw])
       .withRemoteFeatureFlags(activityPredictTradingEnabledFlag)

@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import {
+  CommonActions,
   type RouteProp,
   useNavigation,
   useRoute,
@@ -33,7 +34,41 @@ import { strings } from '../../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import { PROFILE_FIELD_MAX_LENGTH } from './ManageProfile.constants';
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
-import { ManageProfileFieldName } from './ManageProfileField.types';
+import {
+  ManageProfileFieldName,
+  type ManageProfileFieldUpdate,
+} from './ManageProfileField.types';
+import ProfileToggleCard from './ProfileToggleCard';
+
+const commitFieldUpdate = (
+  navigation: AppNavigationProp,
+  fieldUpdate: ManageProfileFieldUpdate,
+  leaveScreen: boolean,
+) => {
+  if (leaveScreen) {
+    // `navigate` pushes in React Navigation 7. `pop` returns to the Manage
+    // profile already on the stack so its in-memory edits stay put.
+    navigation.navigate(
+      Routes.SOCIAL_PROFILE.MANAGE_PROFILE,
+      { fieldUpdate },
+      { pop: true },
+    );
+    return;
+  }
+
+  // The profile screen is still underneath. Update its params in place so a
+  // switch can commit without popping this screen off the stack.
+  const state = navigation.getState();
+  const previousRoute = state?.routes[state.index - 1];
+  if (!previousRoute) {
+    return;
+  }
+
+  navigation.dispatch({
+    ...CommonActions.setParams({ fieldUpdate }),
+    source: previousRoute.key,
+  });
+};
 
 const ManageProfileField = () => {
   const tw = useTailwind();
@@ -41,10 +76,25 @@ const ManageProfileField = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'ManageProfileField'>>();
   const { field, initialValue } = route.params;
   const [draft, setDraft] = useState(initialValue);
+  const isSwitch = field === ManageProfileFieldName.TradingActivity;
+  const textValue = typeof draft === 'string' ? draft : '';
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleToggle = useCallback(
+    (isOn: boolean) => {
+      setDraft(isOn);
+      // The footnote says changes apply immediately, so there is no Save.
+      commitFieldUpdate(
+        navigation,
+        { field: ManageProfileFieldName.TradingActivity, value: isOn },
+        false,
+      );
+    },
+    [navigation],
+  );
 
   const handleChangeText = useCallback(
     (value: string) => {
@@ -58,21 +108,28 @@ const ManageProfileField = () => {
   );
 
   const handleSave = useCallback(() => {
-    // `navigate` pushes in React Navigation 7. `pop` returns to the Manage
-    // profile already on the stack so its in-memory edits stay put.
-    navigation.navigate(
-      Routes.SOCIAL_PROFILE.MANAGE_PROFILE,
-      {
-        fieldUpdate: { field, value: draft },
-      },
-      { pop: true },
-    );
+    if (typeof draft !== 'string') {
+      return;
+    }
+    commitFieldUpdate(navigation, { field, value: draft }, true);
   }, [draft, field, navigation]);
 
   const title =
     field === ManageProfileFieldName.Bio
       ? strings('manage_profile.bio')
-      : strings('manage_profile.display_name');
+      : field === ManageProfileFieldName.TradingActivity
+        ? strings('manage_profile.trading_activity')
+        : strings('manage_profile.display_name');
+
+  const label =
+    field === ManageProfileFieldName.TradingActivity
+      ? strings('manage_profile.show_trading_activity')
+      : title;
+
+  const description =
+    draft === true
+      ? strings('manage_profile.trading_activity_public')
+      : strings('manage_profile.trading_activity_private');
 
   return (
     <SafeAreaView
@@ -94,69 +151,83 @@ const ManageProfileField = () => {
         style={tw.style('flex-1')}
       >
         <Box twClassName="flex-1">
-          <Box twClassName="gap-2 px-4 pt-2">
-            <Label>{title}</Label>
-            {field === ManageProfileFieldName.Bio ? (
-              <>
-                <TextArea
-                  value={draft}
+          {isSwitch ? (
+            <ProfileToggleCard
+              label={label}
+              description={description}
+              helperText={strings('manage_profile.trading_activity_footnote')}
+              isOn={draft === true}
+              onValueChange={handleToggle}
+            />
+          ) : (
+            <Box twClassName="gap-2 px-4 pt-2">
+              <Label>{title}</Label>
+              {field === ManageProfileFieldName.Bio ? (
+                <>
+                  <TextArea
+                    value={textValue}
+                    onChangeText={handleChangeText}
+                    placeholder={strings('manage_profile.bio_placeholder')}
+                    maxLength={PROFILE_FIELD_MAX_LENGTH.bio}
+                    autoFocus
+                    testID={ManageProfileSelectorsIDs.FIELD_INPUT}
+                  />
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Between}
+                  >
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                      testID={ManageProfileSelectorsIDs.BIO_HELPER}
+                    >
+                      {strings('manage_profile.bio_helper')}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                      testID={ManageProfileSelectorsIDs.BIO_CHARACTER_COUNT}
+                    >
+                      {strings('manage_profile.bio_character_count', {
+                        count: textValue.length,
+                        limit: PROFILE_FIELD_MAX_LENGTH.bio,
+                      })}
+                    </Text>
+                  </Box>
+                </>
+              ) : (
+                <TextField
+                  value={textValue}
                   onChangeText={handleChangeText}
-                  placeholder={strings('manage_profile.bio_placeholder')}
-                  maxLength={PROFILE_FIELD_MAX_LENGTH.bio}
+                  placeholder={strings(
+                    'manage_profile.display_name_placeholder',
+                  )}
                   autoFocus
-                  testID={ManageProfileSelectorsIDs.FIELD_INPUT}
+                  // TextField puts `testID` on the root Box, so target the inner
+                  // input to match TextArea.
+                  inputProps={{
+                    testID: ManageProfileSelectorsIDs.FIELD_INPUT,
+                    maxLength: PROFILE_FIELD_MAX_LENGTH.displayName,
+                  }}
                 />
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Between}
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    testID={ManageProfileSelectorsIDs.BIO_HELPER}
-                  >
-                    {strings('manage_profile.bio_helper')}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    testID={ManageProfileSelectorsIDs.BIO_CHARACTER_COUNT}
-                  >
-                    {strings('manage_profile.bio_character_count', {
-                      count: draft.length,
-                      limit: PROFILE_FIELD_MAX_LENGTH.bio,
-                    })}
-                  </Text>
-                </Box>
-              </>
-            ) : (
-              <TextField
-                value={draft}
-                onChangeText={handleChangeText}
-                placeholder={strings('manage_profile.display_name_placeholder')}
-                autoFocus
-                // TextField puts `testID` on the root Box, so target the inner
-                // input to match TextArea.
-                inputProps={{
-                  testID: ManageProfileSelectorsIDs.FIELD_INPUT,
-                  maxLength: PROFILE_FIELD_MAX_LENGTH.displayName,
-                }}
-              />
-            )}
+              )}
+            </Box>
+          )}
+        </Box>
+        {isSwitch ? null : (
+          <Box twClassName="px-4 pb-4">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={handleSave}
+              testID={ManageProfileSelectorsIDs.FIELD_SAVE}
+            >
+              {strings('manage_profile.save')}
+            </Button>
           </Box>
-        </Box>
-        <Box twClassName="px-4 pb-4">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleSave}
-            testID={ManageProfileSelectorsIDs.FIELD_SAVE}
-          >
-            {strings('manage_profile.save')}
-          </Button>
-        </Box>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

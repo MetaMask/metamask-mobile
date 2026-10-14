@@ -135,8 +135,8 @@ export const completeNewUserQrSyncSrp = async ({
   );
   await CreatePasswordView.enterPassword(password);
   await CreatePasswordView.reEnterPassword(password);
-  await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
+  await CreatePasswordView.tapPasswordWarningConfirmButton();
 
   await Assertions.expectElementToBeVisible(MetaMetricsOptInView.container, {
     description: 'MetaMetrics Opt-In should be visible',
