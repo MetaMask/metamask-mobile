@@ -21,7 +21,7 @@ import { ensureValidState } from './util';
 export const migrationVersion = 156;
 
 const TEMPO_CHAIN_ID: Hex = '0x1079'; // 4217
-const OLD_CURRENCIES = ['pathUSD', 'PATHUSD'];
+const OLD_CURRENCIES = new Set(['pathUSD', 'PATHUSD']);
 const NEW_CURRENCY = 'USD';
 
 interface RpcEndpoint {
@@ -63,7 +63,7 @@ const migration = (state: unknown): unknown => {
       return state;
     }
 
-    if (OLD_CURRENCIES.includes(tempoConfig.nativeCurrency)) {
+    if (OLD_CURRENCIES.has(tempoConfig.nativeCurrency)) {
       tempoConfig.nativeCurrency = NEW_CURRENCY;
     }
   } catch (error) {
