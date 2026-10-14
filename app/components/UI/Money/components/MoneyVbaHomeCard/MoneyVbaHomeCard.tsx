@@ -14,12 +14,14 @@ import moneyVbaIdentityHero from '../../../../../images/money-vba-identity-hero.
 import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
-  COMPONENT_NAMES,
-  MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
-import { MoneyVbaGetStartedCardTestIds } from './MoneyVbaGetStartedCard.testIds';
+import {
+  MONEY_VBA_HOME_CARD_CONFIG,
+  type MoneyVbaHomeCardVariant,
+} from './MoneyVbaHomeCardConfig';
+import { MONEY_VBA_HOME_CARD_TEST_IDS } from './MoneyVbaHomeCard.testIds';
 
 const styles = StyleSheet.create({
   hero: {
@@ -28,24 +30,23 @@ const styles = StyleSheet.create({
   },
 });
 
-/** Telemetry source passed when this card's CTA opens VBA onboarding. */
-export const VBA_GET_STARTED_CARD_SOURCE = 'vba-home-card-get-started';
-
 /**
- * GET_STARTED VBA identity-status card on Money home (Figma node 2267-17522).
- * Shown to a brand-new user who has started nothing: no vendor terms, no KYC
- * session, no autoramp, and no registration evidence. The CTA opens VBA
- * onboarding at the first incomplete module.
+ * VBA identity-status card on Money home. Renders every card variant
+ * (get_started, account_is_ready, kyc_pending, finish_verification,
+ * kyc_decision); all per-variant differences — copy, analytics names, CTA
+ * treatment — live in {@link MONEY_VBA_HOME_CARD_CONFIG}.
  *
  * The card variant is chosen by {@link useVbaHomeCard}; this component only
  * renders and reports.
  */
-const MoneyVbaGetStartedCard = () => {
+const MoneyVbaHomeCard = ({ variant }: { variant: MoneyVbaHomeCardVariant }) => {
+  const config = MONEY_VBA_HOME_CARD_CONFIG[variant];
+  const testIds = MONEY_VBA_HOME_CARD_TEST_IDS[variant];
   const { trackButtonClicked, trackComponentViewed } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
-    component_name: COMPONENT_NAMES.MONEY_VBA_GET_STARTED_CARD,
+    component_name: config.componentName,
   });
-  const openVbaOnboarding = useOpenVbaOnboarding(VBA_GET_STARTED_CARD_SOURCE);
+  const openVbaOnboarding = useOpenVbaOnboarding(config.source);
   const hasTrackedCardViewRef = useRef(false);
 
   useEffect(() => {
@@ -59,16 +60,16 @@ const MoneyVbaGetStartedCard = () => {
   const handleCtaPress = useCallback(() => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.GET_STARTED,
-      label_key: 'money.vba_home_card.get_started.cta',
+      button_intent: config.buttonIntent,
+      label_key: `${config.i18nPrefix}.cta`,
       redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
     });
     openVbaOnboarding();
-  }, [openVbaOnboarding, trackButtonClicked]);
+  }, [config, openVbaOnboarding, trackButtonClicked]);
 
   return (
     <Box
-      testID={MoneyVbaGetStartedCardTestIds.CONTAINER}
+      testID={testIds.CONTAINER}
       twClassName="mx-4 mt-2 rounded-2xl bg-muted p-4"
     >
       <Box twClassName="h-[185px] w-full overflow-hidden rounded-[14px]">
@@ -83,31 +84,32 @@ const MoneyVbaGetStartedCard = () => {
           variant={TextVariant.HeadingLg}
           fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
-          testID={MoneyVbaGetStartedCardTestIds.TITLE}
+          testID={testIds.TITLE}
         >
-          {strings('money.vba_home_card.get_started.title')}
+          {strings(`${config.i18nPrefix}.title`)}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
-          testID={MoneyVbaGetStartedCardTestIds.DESCRIPTION}
+          testID={testIds.DESCRIPTION}
         >
-          {strings('money.vba_home_card.get_started.description')}
+          {strings(`${config.i18nPrefix}.description`)}
         </Text>
       </Box>
       <ButtonBase
         size={ButtonBaseSize.Lg}
         isFullWidth
-        twClassName="bg-icon-default"
-        textProps={{ twClassName: 'text-primary-inverse' }}
+        startIconName={config.ctaStartIconName}
+        twClassName={config.ctaClassName}
+        textProps={{ twClassName: config.ctaTextClassName }}
         onPress={handleCtaPress}
-        testID={MoneyVbaGetStartedCardTestIds.CTA_BUTTON}
+        testID={testIds.CTA_BUTTON}
       >
-        {strings('money.vba_home_card.get_started.cta')}
+        {strings(`${config.i18nPrefix}.cta`)}
       </ButtonBase>
     </Box>
   );
 };
 
-export default MoneyVbaGetStartedCard;
+export default MoneyVbaHomeCard;

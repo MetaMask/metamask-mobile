@@ -35,11 +35,7 @@ import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
-import MoneyVbaGetStartedCard from '../../components/MoneyVbaGetStartedCard';
-import MoneyVbaAccountReadyCard from '../../components/MoneyVbaAccountReadyCard';
-import MoneyVbaKycPendingCard from '../../components/MoneyVbaKycPendingCard';
-import MoneyVbaFinishVerificationCard from '../../components/MoneyVbaFinishVerificationCard';
-import MoneyVbaKycDecisionCard from '../../components/MoneyVbaKycDecisionCard';
+import MoneyVbaHomeCard from '../../components/MoneyVbaHomeCard';
 import {
   useVbaHomeCard,
   useVbaHomeCardRefresh,
@@ -1078,15 +1074,9 @@ const MoneyHomeView = () => {
           }}
           card={{ onPress: handleActionButtonCardPress }}
         />
-        {vbaHomeCard.type === 'get_started' && <MoneyVbaGetStartedCard />}
-        {vbaHomeCard.type === 'account_is_ready' && (
-          <MoneyVbaAccountReadyCard />
+        {vbaHomeCard.type !== 'none' && (
+          <MoneyVbaHomeCard variant={vbaHomeCard.type} />
         )}
-        {vbaHomeCard.type === 'kyc_pending' && <MoneyVbaKycPendingCard />}
-        {vbaHomeCard.type === 'finish_verification' && (
-          <MoneyVbaFinishVerificationCard />
-        )}
-        {vbaHomeCard.type === 'kyc_decision' && <MoneyVbaKycDecisionCard />}
         <MoneyOnboardingCard />
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>

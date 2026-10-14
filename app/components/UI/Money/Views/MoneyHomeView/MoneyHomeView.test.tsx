@@ -19,11 +19,7 @@ import { MoneyBalanceSummaryTestIds } from '../../components/MoneyBalanceSummary
 import { MoneyActionButtonRowTestIds } from '../../components/MoneyActionButtonRow/MoneyActionButtonRow.testIds';
 import { MoneyEarningsTestIds } from '../../components/MoneyEarnings/MoneyEarnings.testIds';
 import { MoneyOnboardingCardTestIds } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard.testIds';
-import { MoneyVbaGetStartedCardTestIds } from '../../components/MoneyVbaGetStartedCard/MoneyVbaGetStartedCard.testIds';
-import { MoneyVbaAccountReadyCardTestIds } from '../../components/MoneyVbaAccountReadyCard/MoneyVbaAccountReadyCard.testIds';
-import { MoneyVbaKycPendingCardTestIds } from '../../components/MoneyVbaKycPendingCard/MoneyVbaKycPendingCard.testIds';
-import { MoneyVbaFinishVerificationCardTestIds } from '../../components/MoneyVbaFinishVerificationCard/MoneyVbaFinishVerificationCard.testIds';
-import { MoneyVbaKycDecisionCardTestIds } from '../../components/MoneyVbaKycDecisionCard/MoneyVbaKycDecisionCard.testIds';
+import { MONEY_VBA_HOME_CARD_TEST_IDS } from '../../components/MoneyVbaHomeCard/MoneyVbaHomeCard.testIds';
 import { MoneyHowItWorksTestIds } from '../../components/MoneyHowItWorks/MoneyHowItWorks.testIds';
 import { MoneyPotentialEarningsTestIds } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings.testIds';
 import { MoneyMetaMaskCardTestIds } from '../../components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
@@ -784,13 +780,9 @@ describe('MoneyHomeView', () => {
   });
 
   describe('VBA identity-status card', () => {
-    const VBA_CARD_CONTAINERS = [
-      MoneyVbaGetStartedCardTestIds.CONTAINER,
-      MoneyVbaAccountReadyCardTestIds.CONTAINER,
-      MoneyVbaKycPendingCardTestIds.CONTAINER,
-      MoneyVbaFinishVerificationCardTestIds.CONTAINER,
-      MoneyVbaKycDecisionCardTestIds.CONTAINER,
-    ];
+    const VBA_CARD_CONTAINERS = Object.values(
+      MONEY_VBA_HOME_CARD_TEST_IDS,
+    ).map((testIds) => testIds.CONTAINER);
 
     const expectOnlyVbaCard = (
       rendered: ReturnType<typeof renderWithProvider>,
@@ -811,7 +803,7 @@ describe('MoneyHomeView', () => {
 
       expectOnlyVbaCard(
         renderWithProvider(<MoneyHomeView />),
-        MoneyVbaGetStartedCardTestIds.CONTAINER,
+        MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER,
       );
     });
 
@@ -822,7 +814,7 @@ describe('MoneyHomeView', () => {
 
       expectOnlyVbaCard(
         renderWithProvider(<MoneyHomeView />),
-        MoneyVbaAccountReadyCardTestIds.CONTAINER,
+        MONEY_VBA_HOME_CARD_TEST_IDS.account_is_ready.CONTAINER,
       );
     });
 
@@ -833,7 +825,7 @@ describe('MoneyHomeView', () => {
 
       expectOnlyVbaCard(
         renderWithProvider(<MoneyHomeView />),
-        MoneyVbaKycPendingCardTestIds.CONTAINER,
+        MONEY_VBA_HOME_CARD_TEST_IDS.kyc_pending.CONTAINER,
       );
     });
 
@@ -844,7 +836,7 @@ describe('MoneyHomeView', () => {
 
       expectOnlyVbaCard(
         renderWithProvider(<MoneyHomeView />),
-        MoneyVbaFinishVerificationCardTestIds.CONTAINER,
+        MONEY_VBA_HOME_CARD_TEST_IDS.finish_verification.CONTAINER,
       );
     });
 
@@ -855,7 +847,7 @@ describe('MoneyHomeView', () => {
 
       expectOnlyVbaCard(
         renderWithProvider(<MoneyHomeView />),
-        MoneyVbaKycDecisionCardTestIds.CONTAINER,
+        MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CONTAINER,
       );
     });
 
@@ -868,7 +860,7 @@ describe('MoneyHomeView', () => {
 
       expectTestIdBefore(
         getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW),
-        MoneyVbaGetStartedCardTestIds.CONTAINER,
+        MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER,
         MoneyOnboardingCardTestIds.CONTAINER,
       );
     });
