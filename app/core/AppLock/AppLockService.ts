@@ -399,8 +399,9 @@ export class AppLockService {
         return;
       }
       await this.#promptUnlock();
+      // Face ID resolves while iOS is still `inactive`. A new background sets
+      // `#backgroundedAt` and keeps the hold. A failed unlock stays on Login.
       if (
-        this.#currentAppState !== 'active' ||
         this.#backgroundedAt !== undefined ||
         !KeyringController.isUnlocked()
       ) {

@@ -600,6 +600,23 @@ describe('AppLockService', () => {
       expect(mockTryBiometricUnlock).toHaveBeenCalledTimes(1);
     });
 
+    it('dispatches checkForDeeplink when biometric unlock resolves while the app is still inactive', async () => {
+      emitAppState('inactive');
+
+      mockIsUnlocked.mockReturnValue(true);
+      resolveUnlock();
+      await settle();
+
+      expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
+      expect(service.isAutoLockPending()).toBe(false);
+      expect(mockHidePrivacyCover).not.toHaveBeenCalled();
+
+      emitAppState('active');
+      await settle();
+
+      expectPrivacyCoverDismissed();
+    });
+
     it('does not prompt again when the biometric sheet bounces the app through inactive and active', async () => {
       emitAppState('inactive');
       emitAppState('active');
