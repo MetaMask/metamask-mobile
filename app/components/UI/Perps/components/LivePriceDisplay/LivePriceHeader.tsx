@@ -211,7 +211,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
         fontFamily={isLarge ? FontFamily.Grotzec : undefined}
         fontWeight={isLarge ? FontWeight.Regular : undefined}
         twClassName={
-          size === 'large' ? 'text-[60px] leading-[60px]' : undefined
+          size === 'large' ? 'text-[48px] leading-[52.8px]' : undefined
         }
         color={priceColor}
         style={styles.price}

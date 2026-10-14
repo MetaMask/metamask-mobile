@@ -61,7 +61,7 @@ import { useTrackBatchSellQuotePageReviewClicked } from '../../hooks/useTrackBat
 const DEFAULT_PERCENT = 100;
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
 const TOTAL_RECEIVED_SKELETON_WIDTH = 195;
-const TOTAL_RECEIVED_SKELETON_HEIGHT = 60;
+const TOTAL_RECEIVED_SKELETON_HEIGHT = 53;
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
 
@@ -91,7 +91,7 @@ function TotalReceivedValue({
       fontFamily={FontFamily.Grotzec}
       fontWeight={FontWeight.Regular}
       color={TextColor.SuccessDefault}
-      twClassName="min-w-0 flex-1 text-[60px] leading-[60px]"
+      twClassName="min-w-0 flex-1 text-[48px] leading-[52.8px]"
     >
       {totalReceived.formattedFiat}
     </Text>

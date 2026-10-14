@@ -105,7 +105,7 @@ const LeaderboardPositionHeader: React.FC<LeaderboardPositionHeaderProps> = ({
 
         {isLoading ? (
           <>
-            <Skeleton style={tw.style('h-[60px] w-28 rounded')} />
+            <Skeleton style={tw.style('h-[53px] w-28 rounded')} />
             {showSubtextRow && (
               <Skeleton style={tw.style('mt-1 h-4 w-full max-w-xs rounded')} />
             )}
@@ -116,7 +116,7 @@ const LeaderboardPositionHeader: React.FC<LeaderboardPositionHeaderProps> = ({
               variant={TextVariant.AmountDisplayLg}
               fontFamily={FontFamily.Grotzec}
               fontWeight={FontWeight.Regular}
-              twClassName="text-[60px] leading-[60px]"
+              twClassName="text-[48px] leading-[52.8px]"
               testID={LEADERBOARD_POSITION_HEADER_TEST_IDS.RANK_VALUE}
             >
               {rank}

@@ -401,7 +401,7 @@ const EarnMusdConversionEducationView = () => {
         <Text
           fontFamily={FontFamily.Grotzec}
           fontWeight={FontWeight.Regular}
-          twClassName="text-center py-4 text-[60px] leading-[60px] tracking-[-1.2px]"
+          twClassName="text-center pt-3 pb-4 text-[60px] leading-[54px] tracking-[-1.2px]"
         >
           {strings('earn.musd_conversion.education.heading', {
             percentage: MUSD_CONVERSION_APY,

@@ -102,7 +102,7 @@ const OrderCompleted: React.FC = () => {
           <Text
             fontFamily={FontFamily.Grotzec}
             fontWeight={FontWeight.Regular}
-            twClassName="text-default text-center mt-6 text-[60px] leading-[60px] tracking-[-1.2px]"
+            twClassName="text-default text-center mt-6 pt-3 text-[60px] leading-[54px] tracking-[-1.2px]"
             testID={OrderCompletedSelectors.TITLE}
           >
             {strings('card.order_completed.title')}

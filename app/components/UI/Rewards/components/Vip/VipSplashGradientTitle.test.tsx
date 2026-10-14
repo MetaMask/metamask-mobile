@@ -86,7 +86,7 @@ describe('VipSplashGradientTitle', () => {
     expect(title.props.fontFamily).toBe('grotzec');
     expect(title.props.fontWeight).toBe('regular');
     expect(title.props.twClassName).toContain('text-[60px]');
-    expect(title.props.twClassName).toContain('leading-[60px]');
+    expect(title.props.twClassName).toContain('leading-[54px]');
     expect(title.props.twClassName).toContain('tracking-[-1.2px]');
     expect(getAllByText('Welcome to Gold Fox Collective')).toHaveLength(2);
   });

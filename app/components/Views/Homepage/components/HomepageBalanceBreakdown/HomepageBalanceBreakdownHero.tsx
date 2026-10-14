@@ -75,7 +75,7 @@ const HomepageBalanceBreakdownHero = ({
             }
             fontFamily={FontFamily.Grotzec}
             fontWeight={FontWeight.Regular}
-            twClassName="text-[60px] leading-[60px]"
+            twClassName="text-[48px] leading-[52.8px]"
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}

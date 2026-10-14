@@ -26,7 +26,7 @@ const VipSplashGradientTitle: React.FC<VipSplashGradientTitleProps> = ({
         <Text
           fontFamily={FontFamily.Grotzec}
           fontWeight={FontWeight.Regular}
-          twClassName="text-center text-[60px] leading-[60px] tracking-[-1.2px] pt-3"
+          twClassName="text-center text-[60px] leading-[54px] tracking-[-1.2px] pt-3"
           testID={testID}
         >
           {title}
@@ -43,7 +43,7 @@ const VipSplashGradientTitle: React.FC<VipSplashGradientTitleProps> = ({
         <Text
           fontFamily={FontFamily.Grotzec}
           fontWeight={FontWeight.Regular}
-          twClassName="text-center text-[60px] leading-[60px] tracking-[-1.2px] pt-3"
+          twClassName="text-center text-[60px] leading-[54px] tracking-[-1.2px] pt-3"
         >
           {title}
         </Text>

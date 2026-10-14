@@ -101,7 +101,7 @@ describe('PredictPortfolioSummary', () => {
 
     expect(primarySkeleton).toBeOnTheScreen();
     expect(secondarySkeleton).toBeOnTheScreen();
-    expect(StyleSheet.flatten(primarySkeleton.props.style).height).toBe(60);
+    expect(StyleSheet.flatten(primarySkeleton.props.style).height).toBe(53);
     expect(StyleSheet.flatten(secondarySkeleton.props.style).height).toBe(
       typography.sBodySM.lineHeight,
     );

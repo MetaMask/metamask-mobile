@@ -109,7 +109,7 @@ const Earned = () => {
             variant={TextVariant.AmountDisplayLg}
             fontFamily={FontFamily.Grotzec}
             fontWeight={FontWeight.Regular}
-            twClassName="text-[60px] leading-[60px]"
+            twClassName="text-[48px] leading-[52.8px]"
             color={TextColor.TextDefault}
             testID={EarnedTestIds.TOTAL_VALUE}
           >
@@ -160,7 +160,7 @@ const Earned = () => {
             fontWeight={FontWeight.Regular}
             color={TextColor.SuccessDefault}
             testID={EarnedTestIds.PAID_FOR_ITSELF_VALUE}
-            twClassName="tabular-nums text-[60px] leading-[60px]"
+            twClassName="tabular-nums text-[48px] leading-[52.8px]"
           >
             {paidForItselfValue}
           </Text>

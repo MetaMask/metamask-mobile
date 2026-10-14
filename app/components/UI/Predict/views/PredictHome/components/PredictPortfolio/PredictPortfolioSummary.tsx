@@ -20,7 +20,7 @@ import {
 } from '../../../../utils/format';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
-const PRIMARY_SKELETON_HEIGHT = 60;
+const PRIMARY_SKELETON_HEIGHT = 53;
 const SECONDARY_SKELETON_HEIGHT = typography.sBodySM.lineHeight;
 
 export interface PredictPortfolioSummaryProps {
@@ -111,7 +111,7 @@ const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
         <SensitiveText
           fontFamily={FontFamily.Grotzec}
           fontWeight={FontWeight.Regular}
-          twClassName="text-[60px] leading-[60px]"
+          twClassName="text-[48px] leading-[52.8px]"
           isHidden={isHidden && !hasError}
           length={SensitiveTextLength.Long}
           testID={PREDICT_PORTFOLIO_TEST_IDS.PRIMARY_VALUE}

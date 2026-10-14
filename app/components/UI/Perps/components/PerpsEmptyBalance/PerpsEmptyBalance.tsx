@@ -25,7 +25,7 @@ const PerpsEmptyBalance: React.FC<PerpsEmptyBalanceProps> = ({
       variant={TextVariant.AmountDisplayLg}
       fontFamily={FontFamily.Grotzec}
       fontWeight={FontWeight.Regular}
-      twClassName="text-[60px] leading-[60px]"
+      twClassName="text-[48px] leading-[52.8px]"
       color={TextColor.TextDefault}
       testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
     >

@@ -605,8 +605,8 @@ describe('PredictSellPreview', () => {
 
       const amount = screen.getAllByText('$57.30')[0];
       expect(amount).toHaveStyle({
-        fontSize: 60,
-        lineHeight: 60,
+        fontSize: 48,
+        lineHeight: 52.8,
         fontFamily: 'GrotzecCond-Bold',
       });
       expect(screen.getByText('+$7.30 (14.6%)')).toBeOnTheScreen();
