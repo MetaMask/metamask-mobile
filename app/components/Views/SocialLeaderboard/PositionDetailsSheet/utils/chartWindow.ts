@@ -118,15 +118,17 @@ export function deriveDailyChangePercent(
   nowMs: number,
 ): number | undefined {
   if (prices.length < 2) return undefined;
+  const first = prices.at(0);
+  const end = prices.at(-1);
+  if (!first || !end || !first[1]) return undefined;
+
   const dayAgo = nowMs - DAY_MS;
   const start = prices.reduce(
     (best, point) =>
       Math.abs(Number(point[0]) - dayAgo) < Math.abs(Number(best[0]) - dayAgo)
         ? point
         : best,
-    prices[0],
+    first,
   );
-  const end = prices[prices.length - 1];
-  if (!start[1]) return undefined;
   return ((end[1] - start[1]) / start[1]) * 100;
 }

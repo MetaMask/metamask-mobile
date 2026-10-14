@@ -258,6 +258,13 @@ export function usePositionSheetData(
   const summaryValue = base.isClosed
     ? (position?.boughtUsd ?? position?.costBasis)
     : (base.positionValue ?? position?.costBasis);
+  const firstChartPrice = prices.at(0)?.[1];
+  const lastChartPrice = prices.at(-1)?.[1];
+  const isTrendPositive =
+    prices.length < 2 ||
+    (firstChartPrice !== undefined &&
+      lastChartPrice !== undefined &&
+      lastChartPrice >= firstChartPrice);
 
   return {
     isPerp,
@@ -273,8 +280,7 @@ export function usePositionSheetData(
     prices,
     isPricesLoading,
     timeAxisLabels: buildTimeAxisLabels(chartWindow, TIME_AXIS_LABEL_COUNT),
-    isTrendPositive:
-      prices.length < 2 || prices[prices.length - 1][1] >= prices[0][1],
+    isTrendPositive,
     markers,
     levels,
     isMarketCapMode,

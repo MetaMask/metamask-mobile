@@ -52,10 +52,10 @@ export const useOpenPerpsOrder = ({
 
   const openPerpsOrder = useCallback(
     ({ direction, asset, leverage }: OpenPerpsOrderParams) => {
-      const openOrder = () => {
+      const openOrder = (): Promise<void> => {
         if (!isEligible) {
           setIsGeoBlockVisible(true);
-          return;
+          return Promise.resolve();
         }
         // The modal stack is transparent, so the sheet opens over this page
         // rather than on top of a Perps screen. After submit we stay here;
@@ -77,8 +77,9 @@ export const useOpenPerpsOrder = ({
         } else {
           navigate();
         }
+        return Promise.resolve();
       };
-      gate(() => Promise.resolve(openOrder())).catch(() => undefined);
+      gate(openOrder).catch(() => undefined);
     },
     [gate, isEligible, navigation, runNavigation],
   );

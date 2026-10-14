@@ -113,9 +113,9 @@ export function layoutLevelPills(
   for (let i = 1; i < placed.length; i++) {
     placed[i] = Math.max(placed[i], placed[i - 1] + pillHeight);
   }
-  const overflow = placed.length
-    ? placed[placed.length - 1] - (chartHeight - half)
-    : 0;
+  const lastPlaced = placed.at(-1);
+  const overflow =
+    lastPlaced === undefined ? 0 : lastPlaced - (chartHeight - half);
   if (overflow > 0) {
     for (let i = placed.length - 1; i >= 0; i--) {
       const ceiling =

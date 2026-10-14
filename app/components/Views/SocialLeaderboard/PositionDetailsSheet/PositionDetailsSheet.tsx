@@ -46,8 +46,13 @@ const styles = StyleSheet.create({
 const addressesMatch = (
   left: string | null | undefined,
   right: string | null | undefined,
-): boolean =>
-  Boolean(left && right && left.toLowerCase() === right.toLowerCase());
+): boolean => {
+  const normalizedLeft = left?.toLowerCase();
+  const normalizedRight = right?.toLowerCase();
+  return Boolean(
+    normalizedLeft && normalizedRight && normalizedLeft === normalizedRight,
+  );
+};
 
 /**
  * Social V1 position / trade details. Opens in two steps: the header and the
