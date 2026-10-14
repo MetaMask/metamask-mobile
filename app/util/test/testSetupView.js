@@ -124,11 +124,14 @@ if (ReactNativeView.Platform.Version == null) {
 // gate their content on useScreenTransitionComplete (Explore search) then stay
 // on the loading skeleton until a 450ms fallback, and that fallback loses to
 // findBy/waitFor on a busy CI runner.
+//
+// native-stack 7 passes onAppear to ScreenStackItem, which forwards it to an
+// internal Screen. Wrapping the package Screen export does not intercept that.
 jest.mock('react-native-screens', () => {
   const React = require('react');
   const actual = jest.requireActual('react-native-screens');
 
-  const Screen = React.forwardRef((props, ref) => {
+  const ScreenStackItem = React.forwardRef((props, ref) => {
     const onAppearRef = React.useRef(props.onAppear);
     onAppearRef.current = props.onAppear;
 
@@ -136,13 +139,13 @@ jest.mock('react-native-screens', () => {
       onAppearRef.current?.({ nativeEvent: { target: null } });
     }, []);
 
-    return React.createElement(actual.Screen, { ...props, ref });
+    return React.createElement(actual.ScreenStackItem, { ...props, ref });
   });
-  Screen.displayName = 'Screen';
+  ScreenStackItem.displayName = 'ScreenStackItem';
 
   return {
     ...actual,
-    Screen,
+    ScreenStackItem,
   };
 });
 
