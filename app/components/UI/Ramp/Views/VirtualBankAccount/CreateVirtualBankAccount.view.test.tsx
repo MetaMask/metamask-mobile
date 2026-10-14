@@ -34,7 +34,7 @@ const disclaimer = {
  * mocked (per the component-view rules). The geolocation location drives
  * `useVbaEligibility`, and the payment-methods spy drives the arrival row.
  */
-const renderScreen = ({ location }: { location?: string | null } = {}) => {
+const renderScreen = ({ location }: { location?: string } = {}) => {
   const state = createStateFixture()
     .withMinimalAccounts()
     .withMinimalMainnetNetwork()
