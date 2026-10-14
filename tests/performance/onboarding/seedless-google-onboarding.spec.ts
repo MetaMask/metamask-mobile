@@ -42,7 +42,7 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
 test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
   test.setTimeout(360000);
 
-  test.skip(
+  test(
     'Seedless Onboarding: Google Login New User',
     { tag: '@metamask-onboarding-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
