@@ -160,21 +160,28 @@ jobs:
       collect_hermes_cpuprofiles: true
     secrets: inherit
 
-  # Analyzes the Hermes CPU profiles of this run. Runs after a failed suite
-  # too, so a manual run can report that there is nothing to analyze.
-  analyze-app-profiling:
-    name: Analyze App Profiling
+  # Starts the Hermes CPU-profile analysis of this run as its own run, so an
+  # analysis failure never fails the performance suite. Runs after a failed
+  # suite too, so a manual run can report that there is nothing to analyze.
+  dispatch-app-profiling-analysis:
+    name: Dispatch App Profiling analysis
     needs: [scheduled-e2e, manual]
     if: ${{ !cancelled() && (needs.scheduled-e2e.result != 'skipped' || needs.manual.result != 'skipped') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
     permissions:
-      contents: read
-      actions: read
-      pull-requests: read
-    uses: ./.github/workflows/analyze-app-profiling.yml
-    with:
-      run_id: ${{ github.run_id }}
-      performance_event: ${{ github.event_name }}
-      performance_conclusion: ${{ (needs.scheduled-e2e.result == 'success' || needs.manual.result == 'success') && 'success' || 'failure' }}
-    secrets:
-      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-      E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+      actions: write # dispatch analyze-app-profiling.yml
+    steps:
+      - name: Dispatch Analyze App Profiling
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PERFORMANCE_EVENT: ${{ github.event_name }}
+          PERFORMANCE_CONCLUSION: ${{ (needs.scheduled-e2e.result == 'success' || needs.manual.result == 'success') && 'success' || 'failure' }}
+        run: |
+          gh workflow run analyze-app-profiling.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "$GITHUB_REF_NAME" \
+            -f run_id="$GITHUB_RUN_ID" \
+            -f performance_event="$PERFORMANCE_EVENT" \
+            -f performance_conclusion="$PERFORMANCE_CONCLUSION"

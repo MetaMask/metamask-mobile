@@ -478,38 +478,21 @@ function tryReadCollectedReport(repo, analysisRunId) {
   }
 }
 
-/**
- * Chained analyses run inside the performance run itself, so their reports
- * live on `run-performance-e2e-manual.yml` runs. Weekly, manual, and older
- * chained analyses live on `analyze-app-profiling.yml` runs.
- */
-const ANALYSIS_WORKFLOWS = [DEFAULT_WORKFLOW, 'analyze-app-profiling.yml'];
-
 function listCompletedAnalysisRuns(repo) {
-  return mergeRunsNewestFirst(
-    ANALYSIS_WORKFLOWS.map((workflow) =>
-      JSON.parse(
-        runGh([
-          'run',
-          'list',
-          '--repo',
-          repo,
-          '--workflow',
-          workflow,
-          '--limit',
-          '80',
-          '--json',
-          'databaseId,conclusion,createdAt,status',
-        ]) || '[]',
-      ),
-    ),
+  return JSON.parse(
+    runGh([
+      'run',
+      'list',
+      '--repo',
+      repo,
+      '--workflow',
+      'analyze-app-profiling.yml',
+      '--limit',
+      '80',
+      '--json',
+      'databaseId,conclusion,createdAt,status',
+    ]) || '[]',
   );
-}
-
-function mergeRunsNewestFirst(runLists) {
-  return runLists
-    .flat()
-    .sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
 }
 
 function loadCollectedReports(
@@ -2983,7 +2966,6 @@ export {
   sampleRunsAcrossNewestDays,
   planWeeklyRuns,
   loadCollectedReports,
-  mergeRunsNewestFirst,
   runsToRetryWithLeftoverBudget,
   reportsForRuns,
   isReusableCollectedReport,

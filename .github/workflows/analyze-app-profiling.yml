@@ -35,33 +35,22 @@ on:
   schedule:
     # Monday after the previous UTC week has closed (Mon 00:00 → Mon 00:00).
     - cron: '0 9 * * 1'
-  # Called as the last job of `run-performance-e2e-manual.yml`, so the
-  # analysis runs inside the performance run (only schedule or dispatch).
-  # `github.event_name` is then the performance run's event, so jobs tell a
-  # chained run apart by `inputs.performance_event`.
-  workflow_call:
-    inputs:
-      run_id:
-        description: 'Performance workflow run id (the calling run)'
-        required: true
-        type: string
-      performance_event:
-        description: 'Event that started the performance run (schedule or workflow_dispatch)'
-        required: true
-        type: string
-      performance_conclusion:
-        description: 'success when the performance suite passed, failure otherwise'
-        required: true
-        type: string
-    secrets:
-      SLACK_BOT_TOKEN:
-        required: false
-      E2E_CLAUDE_API_KEY:
-        required: false
+  # Also dispatched by the last job of `run-performance-e2e-manual.yml`,
+  # which sets `performance_event` so jobs can tell a chained run apart.
   workflow_dispatch:
     inputs:
       run_id:
         description: 'Performance workflow run id (blank = latest successful scheduled run on main)'
+        required: false
+        type: string
+        default: ''
+      performance_event:
+        description: 'Set by the performance workflow (schedule or workflow_dispatch). Leave blank.'
+        required: false
+        type: string
+        default: ''
+      performance_conclusion:
+        description: 'Set by the performance workflow (success or failure). Leave blank.'
         required: false
         type: string
         default: ''
@@ -107,8 +96,8 @@ permissions:
   pull-requests: read
 
 env:
-  # A chained run inherits the performance run's ref, so this is the branch
-  # that produced the profiles.
+  # A chained run is dispatched on the performance run's ref, so this is the
+  # branch that produced the profiles.
   SLACK_TARGET: >-
     ${{ github.ref_name == 'main'
         && 'C0C3WSWNKS5'
@@ -143,7 +132,7 @@ jobs:
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          # A chained run shares the performance run's id.
+          # Link to the performance run that failed, not to this reporter.
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ inputs.run_id }}
           GITHUB_RUN_LABEL: 'Failed performance run'
           PERFORMANCE_RUN_ID: ${{ inputs.run_id }}
@@ -208,7 +197,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
-          # A chained run analyzes the performance run that called it.
+          # A chained run analyzes the performance run that dispatched it.
           RUN_ID: ${{ inputs.run_id }}
           LOOKBACK_HOURS: ${{ inputs.lookback_hours }}
           SCENARIO: ${{ inputs.scenario }}
