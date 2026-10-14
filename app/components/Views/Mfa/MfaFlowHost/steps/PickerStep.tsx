@@ -7,12 +7,15 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { getMethodLabel } from '../../labels';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
-import StepLayout, { type StepProps } from './StepLayout';
+import StepLayout, { MfaShield, type StepProps } from './StepLayout';
 
 const PickerStep = ({ step, state, reason, onAction }: StepProps<'picker'>) => (
   <StepLayout
+    top={<MfaShield />}
     title={strings('mfa.picker.title')}
-    description={reason.description ?? strings('mfa.picker.description')}
+    description={
+      step.purpose === 'verify' ? reason.verifyDescription : undefined
+    }
     error={state.error}
   >
     {step.options.map((method) => (

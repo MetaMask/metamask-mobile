@@ -48,8 +48,8 @@ export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
 
 /**
  * Maps controller facts onto the next onboarding module or status destination.
- * AutoRamp provisioning is performed by `hydrateVbaOnboarding`, so it is not a
- * client-owned module.
+ * AutoRamp provisioning stays in the coordinator. `hydrateVbaOnboarding` only
+ * reads status, and the coordinator opens the BRL route when one is missing.
  *
  * @param snapshot - Facts from hydrate.
  * @returns The next module or status destination.

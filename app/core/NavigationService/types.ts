@@ -75,6 +75,10 @@ import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/O
 import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../components/Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire.types.ts';
 import type { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher/QRTabSwitcher';
+import type {
+  ManageProfileFieldParams,
+  ManageProfileParams,
+} from '../../components/Views/SocialProfile/ManageProfile/ManageProfileField.types';
 
 // Perps navigation params
 import type {
@@ -576,6 +580,7 @@ export type RootStackParamList = {
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
   RampVbaOnboarding: NavigatorScreenParams<VbaOnboardingParamList> | undefined;
+  RampVbaDetails: undefined;
 
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
@@ -779,7 +784,10 @@ export type RootStackParamList = {
   BackupAndSyncSettings: undefined;
   SettingsRegionSelector: RegionSelectorParams | undefined;
   ProfileDrawer: undefined;
-  ManageProfile: undefined;
+  ManageProfile: ManageProfileParams | undefined;
+  ManageProfileField: ManageProfileFieldParams;
+  ManageProfileXAccount: undefined;
+  LinkedSocialAccount: undefined;
 
   // Sheet routes
   AccountSelector: AccountSelectorParams | undefined;
@@ -885,6 +893,8 @@ export type RootStackParamList = {
   MoneyAddMoneySheet: MoneyNavigationParamList['MoneyAddMoneySheet'];
   MoneyMoreSheet: MoneyNavigationParamList['MoneyMoreSheet'];
   MoneyTransferSheet: MoneyNavigationParamList['MoneyTransferSheet'];
+  MoneyMusdRescueSend: MoneyNavigationParamList['MoneyMusdRescueSend'];
+  MoneyMusdRescueRecipient: MoneyNavigationParamList['MoneyMusdRescueRecipient'];
   MoneyApyInfoSheet: MoneyNavigationParamList['MoneyApyInfoSheet'];
   MoneyEarningsInfoSheet: MoneyNavigationParamList['MoneyEarningsInfoSheet'];
   MoneyBalanceInfoSheet: MoneyNavigationParamList['MoneyBalanceInfoSheet'];
@@ -1033,7 +1043,11 @@ export type RootStackParamList = {
   SocialProfileOnboardingView: undefined;
   MyProfileView: SocialV1ProfileViewParams | undefined;
   SocialV1ProfileView: SocialV1ProfileViewParams | undefined;
-  FollowConnectionsView: { initialTab: 'followers' | 'following' };
+  FollowConnectionsView: {
+    initialTab: 'followers' | 'following' | 'mutuals';
+    /** When set, load that trader's lists instead of `/users/me`. */
+    addressOrId?: string;
+  };
   ProfilesToFollowView: undefined;
   ManageProfileView: undefined;
   ManageProfileTextEditorView: {

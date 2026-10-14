@@ -568,6 +568,7 @@ describe('addSocialBreadcrumb', () => {
     const endpoints: SocialEndpoint[] = [
       'leaderboard',
       'following',
+      'followers',
       'open_positions',
       'closed_positions',
       'position_by_id',
