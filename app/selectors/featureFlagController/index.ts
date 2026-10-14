@@ -1,4 +1,5 @@
 import { createSelector } from 'reselect';
+import type { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import { StateWithPartialEngine } from './types';
 
 // Access the controller state directly
@@ -21,12 +22,31 @@ export const selectRawFeatureFlags = createSelector(
     remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {},
 );
 
+// TEMP (TestFlight only, do not merge): forces every brand refresh flag on.
+const ON = { enabled: true, minimumVersion: '0.0.0' };
+const TEMP_FORCED_FLAGS: FeatureFlags = {
+  homeInterimHeaderNavBar: ON,
+  homeBrandRefreshSurfaces: ON,
+  homeTMCU1276AbtestHeaderNavBar: 'tradeFocused',
+  nativeTabBarEnabled: ON,
+  moneyBrandRefresh: ON,
+  perpsBrandRefresh: ON,
+  predictBrandRefresh: ON,
+  // Surfaces the refresh restyles, so they show up to test.
+  subscriptionMoneyAccountOrangeEnabled: true,
+  perpsProModeEnabled: ON,
+  perpsCompetitionBannerEnabled: ON,
+  predictHomeRedesign: ON,
+};
+
 const selectRemoteFeatureFlagsMerged = createSelector(
   selectRemoteFeatureFlagControllerState,
   // `remoteFeatureFlags` already has `localOverrides` applied, so consumers
   // receive the effective flag values with no app-side merge needed.
-  (remoteFeatureFlagControllerState) =>
-    remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {},
+  (remoteFeatureFlagControllerState): FeatureFlags => ({
+    ...(remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {}),
+    ...TEMP_FORCED_FLAGS,
+  }),
 );
 
 /**
