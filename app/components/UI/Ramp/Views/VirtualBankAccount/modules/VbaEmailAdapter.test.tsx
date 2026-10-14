@@ -38,6 +38,7 @@ jest.mock('../../../../../../core/Engine', () => ({
   context: {
     KycController: {
       state: { email: null as string | null },
+      getSessionStatusForVendor: jest.fn(),
       startSession: jest.fn(),
       recordVendorDisclaimers: jest.fn(),
     },
@@ -70,6 +71,7 @@ jest.mock('../../../../../../util/Logger', () => ({
 
 const mockKycController = Engine.context.KycController as unknown as {
   state: { email: string | null };
+  getSessionStatusForVendor: jest.Mock<Promise<unknown>, [unknown]>;
   startSession: jest.Mock<Promise<unknown>, [unknown]>;
   recordVendorDisclaimers: jest.Mock<Promise<unknown>, [unknown]>;
 };
@@ -103,6 +105,7 @@ describe('VbaEmailAdapter', () => {
     mockGetVbaVendorTermsAcceptance.mockResolvedValue({
       disclaimerIds: ['privacy', 'terms'],
     });
+    mockKycController.getSessionStatusForVendor.mockResolvedValue(null);
     mockKycController.startSession.mockResolvedValue({
       id: 'session-1',
       finalStatus: 'new',
@@ -113,6 +116,23 @@ describe('VbaEmailAdapter', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  it('reuses an existing session without prompting for email OTP', async () => {
+    mockKycController.getSessionStatusForVendor.mockResolvedValue({
+      id: 'session-1',
+      finalStatus: 'pending',
+    });
+
+    renderWithProvider(<VbaEmailAdapter />);
+
+    await waitFor(() => {
+      expect(mockKycController.startSession).toHaveBeenCalledWith({
+        vendor: VBA_KYC_VENDOR,
+      });
+      expect(mockAdvance).toHaveBeenCalled();
+    });
+    expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
   });
 
   it('verifies email, creates the session, records vendor terms, and advances', async () => {
@@ -235,9 +255,7 @@ describe('VbaEmailAdapter', () => {
   });
 
   it('shows the MFA message for the verification error code', async () => {
-    mockVerifyOrEnroll.mockRejectedValue(
-      new MfaFlowError('too_many_attempts'),
-    );
+    mockVerifyOrEnroll.mockRejectedValue(new MfaFlowError('too_many_attempts'));
 
     const screen = renderWithProvider(<VbaEmailAdapter />);
 

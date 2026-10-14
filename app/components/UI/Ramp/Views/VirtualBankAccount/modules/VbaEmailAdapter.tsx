@@ -72,8 +72,8 @@ const retryRecordVendorDisclaimers = async (
 };
 
 /**
- * Starts email verification with the MFA kit, then opens the KYC session
- * with the AAL2 token.
+ * Opens a KYC session. Email OTP runs only when no vendor session exists,
+ * because creating a session needs an AAL2 token.
  */
 const VbaEmailAdapter = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -94,9 +94,9 @@ const VbaEmailAdapter = () => {
 
     const verifyEmail = async () => {
       const existingSession =
-      await Engine.context.KycController.getSessionStatusForVendor(
-        VBA_KYC_VENDOR,
-      );
+        await Engine.context.KycController.getSessionStatusForVendor(
+          VBA_KYC_VENDOR,
+        );
 
       let aal2Token: string | undefined;
       if (!existingSession) {
@@ -125,10 +125,11 @@ const VbaEmailAdapter = () => {
         }
       }
 
-      await Engine.context.KycController.startSession({
-        vendor: VBA_KYC_VENDOR,
-        aal2Token,
-      });
+      await Engine.context.KycController.startSession(
+        aal2Token
+          ? { vendor: VBA_KYC_VENDOR, aal2Token }
+          : { vendor: VBA_KYC_VENDOR },
+      );
 
       const walletAddress = selectSelectedVbaWalletAddress(
         ReduxService.store.getState() as RootState,
