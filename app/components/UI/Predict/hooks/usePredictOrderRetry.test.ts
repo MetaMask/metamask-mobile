@@ -12,10 +12,6 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../providers/polymarket/constants', () => ({
-  SLIPPAGE_BEST_AVAILABLE: 0.99,
-}));
-
 jest.mock('../components/PredictOrderRetrySheet', () => ({}));
 
 const mockTrackEvent = Engine.context.PredictController
@@ -206,8 +202,8 @@ describe('usePredictOrderRetry', () => {
     });
   });
 
-  describe('handleRetryWithBestPrice', () => {
-    it('calls placeOrder with SLIPPAGE_BEST_AVAILABLE on retry', async () => {
+  describe('handleRetry', () => {
+    it('submits the current preview with its standard band slippage on retry', async () => {
       const mockPlaceOrder = jest
         .fn()
         .mockResolvedValue(createSuccessOutcome());
@@ -215,14 +211,49 @@ describe('usePredictOrderRetry', () => {
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
       await act(async () => {
-        await result.current.handleRetryWithBestPrice();
+        await result.current.handleRetry();
       });
 
       expect(mockPlaceOrder).toHaveBeenCalledWith(
         expect.objectContaining({
-          preview: expect.objectContaining({ slippage: 0.99 }),
+          preview: expect.objectContaining({ slippage: 0.03 }),
         }),
       );
+    });
+
+    it('never applies 99% slippage on a sell retry', async () => {
+      const mockPlaceOrder = jest
+        .fn()
+        .mockResolvedValue(createSuccessOutcome());
+      const params = createDefaultParams({
+        placeOrder: mockPlaceOrder,
+        preview: createMockPreview({ side: Side.SELL, slippage: 0.05 }),
+      });
+      const { result } = renderHook(() => usePredictOrderRetry(params));
+
+      await act(async () => {
+        await result.current.handleRetry();
+      });
+
+      const calledPreview = mockPlaceOrder.mock.calls[0][0].preview;
+      expect(calledPreview.slippage).toBe(0.05);
+      expect(calledPreview.slippage).not.toBe(0.99);
+    });
+
+    it('never applies 99% slippage on a buy retry', async () => {
+      const mockPlaceOrder = jest
+        .fn()
+        .mockResolvedValue(createSuccessOutcome());
+      const params = createDefaultParams({ placeOrder: mockPlaceOrder });
+      const { result } = renderHook(() => usePredictOrderRetry(params));
+
+      await act(async () => {
+        await result.current.handleRetry();
+      });
+
+      const calledPreview = mockPlaceOrder.mock.calls[0][0].preview;
+      expect(calledPreview.slippage).toBe(0.03);
+      expect(calledPreview.slippage).not.toBe(0.99);
     });
 
     it('passes the same attempt to a retry', async () => {
@@ -235,7 +266,7 @@ describe('usePredictOrderRetry', () => {
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
       await act(async () => {
-        await result.current.handleRetryWithBestPrice();
+        await result.current.handleRetry();
       });
 
       expect(params.placeOrder).toHaveBeenCalledWith(
@@ -255,7 +286,7 @@ describe('usePredictOrderRetry', () => {
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
       await act(async () => {
-        await result.current.handleRetryWithBestPrice();
+        await result.current.handleRetry();
       });
 
       expect(mockResetOrderNotFilled).toHaveBeenCalledTimes(1);
@@ -269,7 +300,7 @@ describe('usePredictOrderRetry', () => {
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
       await act(async () => {
-        await result.current.handleRetryWithBestPrice();
+        await result.current.handleRetry();
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -287,7 +318,7 @@ describe('usePredictOrderRetry', () => {
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
       await act(async () => {
-        await result.current.handleRetryWithBestPrice();
+        await result.current.handleRetry();
       });
 
       expect(result.current.retrySheetVariant).toBe('failed');
@@ -302,7 +333,7 @@ describe('usePredictOrderRetry', () => {
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
       await act(async () => {
-        await result.current.handleRetryWithBestPrice();
+        await result.current.handleRetry();
       });
 
       expect(result.current.retrySheetVariant).toBe('failed');
@@ -316,7 +347,7 @@ describe('usePredictOrderRetry', () => {
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
       await act(async () => {
-        await result.current.handleRetryWithBestPrice();
+        await result.current.handleRetry();
       });
 
       expect(result.current.retrySheetVariant).toBe('busy');
@@ -330,7 +361,7 @@ describe('usePredictOrderRetry', () => {
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
       await act(async () => {
-        await result.current.handleRetryWithBestPrice();
+        await result.current.handleRetry();
       });
 
       expect(result.current.isRetrying).toBe(false);
@@ -344,7 +375,7 @@ describe('usePredictOrderRetry', () => {
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
       await act(async () => {
-        await result.current.handleRetryWithBestPrice();
+        await result.current.handleRetry();
       });
 
       expect(result.current.isRetrying).toBe(false);
@@ -358,7 +389,7 @@ describe('usePredictOrderRetry', () => {
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
       await act(async () => {
-        await result.current.handleRetryWithBestPrice();
+        await result.current.handleRetry();
       });
 
       expect(result.current.retrySheetVariant).toBe('failed');
@@ -378,7 +409,7 @@ describe('usePredictOrderRetry', () => {
       ).current = { onOpenBottomSheet: onOpen };
 
       await act(async () => {
-        await result.current.handleRetryWithBestPrice();
+        await result.current.handleRetry();
       });
 
       expect(onOpen).toHaveBeenCalledTimes(1);
@@ -401,7 +432,7 @@ describe('usePredictOrderRetry', () => {
       ).current = { onOpenBottomSheet: onOpen };
 
       await act(async () => {
-        await result.current.handleRetryWithBestPrice();
+        await result.current.handleRetry();
       });
 
       expect(onOpen).not.toHaveBeenCalled();
@@ -417,7 +448,7 @@ describe('usePredictOrderRetry', () => {
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
       await act(async () => {
-        await result.current.handleRetryWithBestPrice();
+        await result.current.handleRetry();
       });
 
       expect(mockPlaceOrder).not.toHaveBeenCalled();
@@ -432,13 +463,13 @@ describe('usePredictOrderRetry', () => {
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
       await act(async () => {
-        await result.current.handleRetryWithBestPrice();
+        await result.current.handleRetry();
       });
 
       expect(mockPlaceOrder).not.toHaveBeenCalled();
     });
 
-    it('preserves original preview fields except slippage', async () => {
+    it('preserves the preview fields, keeping the standard band slippage', async () => {
       const mockPlaceOrder = jest
         .fn()
         .mockResolvedValue(createSuccessOutcome());
@@ -446,6 +477,7 @@ describe('usePredictOrderRetry', () => {
         sharePrice: 0.75,
         maxAmountSpent: 20,
         minAmountReceived: 26.67,
+        slippage: 0.05,
       });
       const params = createDefaultParams({
         placeOrder: mockPlaceOrder,
@@ -454,14 +486,15 @@ describe('usePredictOrderRetry', () => {
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
       await act(async () => {
-        await result.current.handleRetryWithBestPrice();
+        await result.current.handleRetry();
       });
 
       const calledPreview = mockPlaceOrder.mock.calls[0][0].preview;
       expect(calledPreview.sharePrice).toBe(0.75);
       expect(calledPreview.maxAmountSpent).toBe(20);
       expect(calledPreview.minAmountReceived).toBe(26.67);
-      expect(calledPreview.slippage).toBe(0.99);
+      expect(calledPreview.slippage).toBe(0.05);
+      expect(calledPreview.slippage).not.toBe(0.99);
     });
   });
 });

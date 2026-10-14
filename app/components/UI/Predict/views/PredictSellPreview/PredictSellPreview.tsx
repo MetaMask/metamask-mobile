@@ -140,7 +140,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     retrySheetRef,
     retrySheetVariant,
     isRetrying,
-    handleRetryWithBestPrice,
+    handleRetry,
   } = usePredictOrderRetry({
     preview,
     placeOrder,
@@ -482,7 +482,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
         variant={retrySheetVariant}
         sharePrice={preview?.sharePrice ?? position?.price ?? 0}
         side={Side.SELL}
-        onRetry={handleRetryWithBestPrice}
+        onRetry={handleRetry}
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />

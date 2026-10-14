@@ -151,7 +151,7 @@ const mockUsePredictOrderRetry = jest.fn((..._args: unknown[]) => ({
   retrySheetRef: { current: null },
   retrySheetVariant: 'busy',
   isRetrying: false,
-  handleRetryWithBestPrice: mockHandleRetryWithBestPrice,
+  handleRetry: mockHandleRetryWithBestPrice,
 }));
 
 jest.mock('../../hooks/usePredictOrderRetry', () => ({
@@ -763,7 +763,7 @@ describe('PredictBuyWithAnyToken', () => {
       );
     });
 
-    it('routes the action button to handleRetryWithBestPrice when banner is active', () => {
+    it('routes the action button to handleRetry when banner is active', () => {
       mockBuyErrorBanner = {
         variant: 'order_failed',
         title: 'Order failed',
@@ -987,7 +987,7 @@ describe('PredictBuyWithAnyToken', () => {
       expect(mockHandleConfirm).not.toHaveBeenCalled();
     });
 
-    it('does not call handleConfirm or handleRetryWithBestPrice in CTA mode', () => {
+    it('does not call handleConfirm or handleRetry in CTA mode', () => {
       mockIsCurrentTokenInsufficient = true;
       mockHasAlternativeBalance = true;
 
@@ -1014,7 +1014,7 @@ describe('PredictBuyWithAnyToken', () => {
       );
     });
 
-    it('calls handleRetryWithBestPrice when isBannerActive and isChangePaymentMode are both true (Retry takes priority)', () => {
+    it('calls handleRetry when isBannerActive and isChangePaymentMode are both true (Retry takes priority)', () => {
       mockIsCurrentTokenInsufficient = true;
       mockHasAlternativeBalance = true;
       mockBuyErrorBanner = {
@@ -1048,7 +1048,7 @@ describe('PredictBuyWithAnyToken', () => {
       );
     });
 
-    it('calls handleRetryWithBestPrice when isBannerActive and isAddFundsMode are both true (Retry takes priority)', () => {
+    it('calls handleRetry when isBannerActive and isAddFundsMode are both true (Retry takes priority)', () => {
       mockIsCurrentTokenInsufficient = true;
       mockHasAlternativeBalance = false;
       mockBuyErrorBanner = {

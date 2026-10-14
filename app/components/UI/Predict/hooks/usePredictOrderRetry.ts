@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { SLIPPAGE_BEST_AVAILABLE } from '../providers/polymarket/constants';
 import {
   PredictEventValues,
   PredictTradeStatus,
@@ -45,7 +44,7 @@ export function usePredictOrderRetry({
   const wasOrderNotFilledRef = useRef(false);
   const retrySheetRef = useRef<PredictOrderRetrySheetRef>(null);
 
-  const handleRetryWithBestPrice = useCallback(async () => {
+  const handleRetry = useCallback(async () => {
     if (!preview) return;
     setIsRetrying(true);
 
@@ -62,10 +61,9 @@ export function usePredictOrderRetry({
     }
 
     try {
-      const retryPreview = { ...preview, slippage: SLIPPAGE_BEST_AVAILABLE };
       const outcome = await placeOrder({
         analyticsProperties,
-        preview: retryPreview,
+        preview,
         attempt,
       });
 
@@ -134,6 +132,6 @@ export function usePredictOrderRetry({
     retrySheetRef,
     retrySheetVariant,
     isRetrying,
-    handleRetryWithBestPrice,
+    handleRetry,
   };
 }

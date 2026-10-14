@@ -66,7 +66,7 @@ jest.mock('../../hooks/usePredictOrderRetry', () => ({
     retrySheetRef: { current: null },
     retrySheetVariant: 'busy' as const,
     isRetrying: false,
-    handleRetryWithBestPrice: jest.fn(),
+    handleRetry: jest.fn(),
   }),
 }));
 

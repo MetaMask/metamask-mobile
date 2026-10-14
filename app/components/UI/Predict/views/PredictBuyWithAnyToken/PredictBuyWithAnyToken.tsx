@@ -391,7 +391,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     retrySheetRef,
     retrySheetVariant,
     isRetrying,
-    handleRetryWithBestPrice,
+    handleRetry,
   } = usePredictOrderRetry({
     preview,
     placeOrder,
@@ -442,7 +442,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     }
 
     if (isBannerActive) {
-      handleRetryWithBestPrice();
+      handleRetry();
       return;
     }
     if (isChangePaymentMode) {
@@ -459,7 +459,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isPaymentSelectorNavigationLocked,
     isChangePaymentMode,
     isAddFundsMode,
-    handleRetryWithBestPrice,
+    handleRetry,
     handleChangePaymentMethod,
     handleAddFunds,
     handleConfirm,
@@ -693,7 +693,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
         }
         side={Side.BUY}
-        onRetry={handleRetryWithBestPrice}
+        onRetry={handleRetry}
         onDismiss={handleRetryDismiss}
         isRetrying={isRetrying}
       />
