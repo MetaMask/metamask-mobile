@@ -10206,7 +10206,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-simple-keyring@npm:^13.0.0":
+"@metamask/eth-simple-keyring@npm:13.0.0, @metamask/eth-simple-keyring@npm:^13.0.0":
   version: 13.0.0
   resolution: "@metamask/eth-simple-keyring@npm:13.0.0"
   dependencies:
@@ -11241,7 +11241,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^20.0.0":
+"@metamask/perps-controller@npm:20.0.0":
   version: 20.0.0
   resolution: "@metamask/perps-controller@npm:20.0.0"
   dependencies:
@@ -39125,6 +39125,7 @@ __metadata:
     "@metamask/eth-qr-keyring": "npm:^2.1.0"
     "@metamask/eth-query": "npm:^4.0.0"
     "@metamask/eth-sig-util": "npm:^9.0.0"
+    "@metamask/eth-simple-keyring": "npm:13.0.0"
     "@metamask/eth-snap-keyring": "npm:^24.1.0"
     "@metamask/etherscan-link": "npm:^2.0.0"
     "@metamask/ethjs-contract": "npm:^0.4.1"
@@ -39170,7 +39171,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^29.0.1"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "npm:^20.0.0"
+    "@metamask/perps-controller": "npm:20.0.0"
     "@metamask/phishing-controller": "npm:^17.4.1"
     "@metamask/platform-api-docs": "npm:^0.2.1"
     "@metamask/post-message-stream": "npm:^10.0.0"
