@@ -52,6 +52,106 @@ const MAX_CONSUMED_ATTRIBUTIONS = 500;
 const consumedAttributions = new Set<string>();
 let contextSequence = 0;
 
+/**
+ * Focused route recorded from navigation container state.
+ *
+ * `name` is the value attached as `previous_screen`. `key` separates two
+ * mounts of the same route.
+ */
+export interface FocusedRouteIdentity {
+  /** Registered route name. */
+  name: string;
+  /** React Navigation key for this route instance. */
+  key?: string;
+}
+
+interface FocusedNavigationRoute {
+  name?: string;
+  key?: string;
+  state?: FocusedNavigationState;
+}
+
+interface FocusedNavigationState {
+  index?: number;
+  routes: FocusedNavigationRoute[];
+}
+
+/** Last focused route recorded from container state. */
+let recordedRoute: FocusedRouteIdentity | undefined;
+/** Route name focused before `recordedRoute`. */
+let previousRouteName: string | undefined;
+
+const isSameFocusedRoute = (
+  left: FocusedRouteIdentity,
+  right: FocusedRouteIdentity,
+): boolean => {
+  if (left.key && right.key) {
+    return left.key === right.key;
+  }
+  return left.name === right.name;
+};
+
+/**
+ * Leaf of the focused route chain. The source screen is that child, which is
+ * the same route deeplink performance treats as current.
+ */
+export const focusedRouteFromNavigationState = (
+  state: FocusedNavigationState | undefined,
+): FocusedRouteIdentity | undefined => {
+  let current = state;
+  let focused: FocusedRouteIdentity | undefined;
+  while (current?.routes?.length) {
+    const route = current.routes[current.index ?? current.routes.length - 1];
+    if (!route?.name) {
+      break;
+    }
+    focused = { name: route.name, key: route.key };
+    current = route.state;
+  }
+  return focused;
+};
+
+/**
+ * Records the focused route from a navigation commit.
+ *
+ * The first record keeps that route as the current screen. A later record
+ * with a different identity stores the prior name as the previous screen.
+ */
+export const recordFocusedRoute = (
+  route: FocusedRouteIdentity | undefined,
+): void => {
+  if (!route?.name) {
+    return;
+  }
+  const nextRoute = { name: route.name, key: route.key };
+  if (!recordedRoute) {
+    recordedRoute = nextRoute;
+    return;
+  }
+  if (isSameFocusedRoute(recordedRoute, nextRoute)) {
+    return;
+  }
+  previousRouteName = recordedRoute.name;
+  recordedRoute = nextRoute;
+};
+
+/**
+ * Screen views emit in the destination effect, before onStateChange records
+ * the new route. The navigation ref already points at the destination, so a
+ * different active route means the last recorded name is the screen just left.
+ */
+export const resolvePreviousScreenName = (
+  activeRoute: FocusedRouteIdentity | undefined,
+): string | undefined => {
+  if (!recordedRoute || !activeRoute?.name) {
+    return undefined;
+  }
+  if (!isSameFocusedRoute(recordedRoute, activeRoute)) {
+    return recordedRoute.name;
+  }
+  return previousRouteName;
+};
+
 export const createNavigationAnalyticsContext = (
   attribution: NavigationAnalyticsAttributionValue,
 ): NavigationAnalyticsContext => ({
@@ -117,14 +217,41 @@ export const consumeNavigationAnalyticsAttribution = (
   return mapping;
 };
 
-export const enrichWithNavigationAttribution = <
-  T extends {
-    name: string;
-    properties: Record<string, unknown>;
-  },
->(
+interface AttributableEvent {
+  name: string;
+  properties: Record<string, unknown>;
+}
+
+const cloneEvent = <T extends AttributableEvent>(event: T): T =>
+  Object.create(
+    Object.getPrototypeOf(event),
+    Object.getOwnPropertyDescriptors(event),
+  ) as T;
+
+const attachPreviousScreen = <T extends AttributableEvent>(
   event: T,
-  route: Route<string> | undefined = getCurrentRoute(),
+  route: Route<string> | undefined,
+): T => {
+  if (event.properties.previous_screen !== undefined) {
+    return event;
+  }
+
+  const previousScreen = resolvePreviousScreenName(route);
+  if (previousScreen === undefined) {
+    return event;
+  }
+
+  const clonedEvent = cloneEvent(event);
+  clonedEvent.properties = {
+    ...event.properties,
+    previous_screen: previousScreen,
+  };
+  return clonedEvent;
+};
+
+const attachDelegatedAttribution = <T extends AttributableEvent>(
+  event: T,
+  route: Route<string> | undefined,
 ): T => {
   const analyticsContext = (
     route?.params as NavigationAnalyticsRouteParams | undefined
@@ -153,10 +280,7 @@ export const enrichWithNavigationAttribution = <
     return event;
   }
 
-  const clonedEvent = Object.create(
-    Object.getPrototypeOf(event),
-    Object.getOwnPropertyDescriptors(event),
-  ) as T;
+  const clonedEvent = cloneEvent(event);
   clonedEvent.properties = {
     ...event.properties,
     [mapping.property]: analyticsContext.attribution,
@@ -164,7 +288,14 @@ export const enrichWithNavigationAttribution = <
   return clonedEvent;
 };
 
+export const enrichWithNavigationAttribution = <T extends AttributableEvent>(
+  event: T,
+  route: Route<string> | undefined = getCurrentRoute(),
+): T => attachDelegatedAttribution(attachPreviousScreen(event, route), route);
+
 export const resetNavigationAnalyticsAttributionForTests = () => {
   consumedAttributions.clear();
   contextSequence = 0;
+  recordedRoute = undefined;
+  previousRouteName = undefined;
 };

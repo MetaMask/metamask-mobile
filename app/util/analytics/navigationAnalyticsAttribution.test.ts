@@ -2,7 +2,9 @@ import { EVENT_NAME } from '../../core/Analytics/MetaMetrics.events';
 import {
   createNavigationAnalyticsContext,
   enrichWithNavigationAttribution,
+  focusedRouteFromNavigationState,
   NavigationAnalyticsAttribution,
+  recordFocusedRoute,
   resetNavigationAnalyticsAttributionForTests,
 } from './navigationAnalyticsAttribution';
 
@@ -22,6 +24,60 @@ const createEvent = (
 ) => ({
   name,
   properties,
+});
+
+const walletStackState = {
+  index: 0,
+  routes: [
+    {
+      key: 'root',
+      name: 'Root',
+      state: {
+        index: 0,
+        routes: [{ key: 'wallet', name: 'WalletView' }],
+      },
+    },
+  ],
+};
+
+const tokensStackState = {
+  index: 0,
+  routes: [
+    {
+      key: 'root',
+      name: 'Root',
+      state: {
+        index: 1,
+        routes: [
+          { key: 'wallet', name: 'WalletView' },
+          { key: 'tokens', name: 'TokensFullView' },
+        ],
+      },
+    },
+  ],
+};
+
+const tabState = (index: number) => ({
+  index: 0,
+  routes: [
+    {
+      key: 'tabs',
+      name: 'MainTabs',
+      state: {
+        index,
+        routes: [
+          { key: 'wallet', name: 'WalletView' },
+          { key: 'browser', name: 'BrowserView' },
+        ],
+      },
+    },
+  ],
+});
+
+const asRoute = (name: string, key: string) => ({
+  key,
+  name,
+  params: {},
 });
 
 describe('navigation analytics attribution', () => {
@@ -137,5 +193,189 @@ describe('navigation analytics attribution', () => {
     const result = enrichWithNavigationAttribution(event, createRoute());
 
     expect(result).toBe(event);
+  });
+
+  it('sets previous_screen to WalletView on a stack push before the destination is recorded', () => {
+    const origin = focusedRouteFromNavigationState(walletStackState);
+    const destination = focusedRouteFromNavigationState(tokensStackState);
+    recordFocusedRoute(origin);
+    const destinationRoute = asRoute('TokensFullView', 'tokens');
+
+    const duringPush = enrichWithNavigationAttribution(
+      createEvent(EVENT_NAME.HOME_VIEWED),
+      destinationRoute,
+    );
+    recordFocusedRoute(destination);
+    const afterPush = enrichWithNavigationAttribution(
+      createEvent(EVENT_NAME.HOME_VIEWED),
+      destinationRoute,
+    );
+
+    expect(origin?.name).toBe('WalletView');
+    expect(destination?.name).toBe('TokensFullView');
+    expect(duringPush.properties.previous_screen).toBe('WalletView');
+    expect(afterPush.properties.previous_screen).toBe('WalletView');
+  });
+
+  it('sets previous_screen to WalletView on a tab change before the destination is recorded', () => {
+    const origin = focusedRouteFromNavigationState(tabState(0));
+    const destination = focusedRouteFromNavigationState(tabState(1));
+    recordFocusedRoute(origin);
+    const destinationRoute = asRoute('BrowserView', 'browser');
+
+    const duringChange = enrichWithNavigationAttribution(
+      createEvent(EVENT_NAME.HOME_VIEWED),
+      destinationRoute,
+    );
+    recordFocusedRoute(destination);
+    const afterChange = enrichWithNavigationAttribution(
+      createEvent(EVENT_NAME.HOME_VIEWED),
+      destinationRoute,
+    );
+
+    expect(origin?.name).toBe('WalletView');
+    expect(destination?.name).toBe('BrowserView');
+    expect(duringChange.properties.previous_screen).toBe('WalletView');
+    expect(afterChange.properties.previous_screen).toBe('WalletView');
+  });
+
+  it('omits previous_screen for the first focused route', () => {
+    const route = asRoute('WalletView', 'wallet');
+    recordFocusedRoute(route);
+    const event = createEvent(EVENT_NAME.HOME_VIEWED);
+
+    const result = enrichWithNavigationAttribution(event, route);
+
+    expect(result).toBe(event);
+    expect(result.properties.previous_screen).toBeUndefined();
+  });
+
+  it('keeps an explicit source and still sets previous_screen', () => {
+    const route = createRoute();
+    recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+    recordFocusedRoute({ name: route.name, key: route.key });
+    const event = createEvent(EVENT_NAME.PERPS_SCREEN_VIEWED, {
+      source: 'explicit_source',
+    });
+
+    const result = enrichWithNavigationAttribution(event, route);
+    const followUp = enrichWithNavigationAttribution(
+      createEvent(EVENT_NAME.PERPS_SCREEN_VIEWED),
+      route,
+    );
+
+    expect(result.properties.source).toBe('explicit_source');
+    expect(result.properties.previous_screen).toBe('WalletView');
+    expect(followUp.properties.source).toBe('homescreen_balance_breakdown');
+    expect(followUp.properties.previous_screen).toBe('WalletView');
+  });
+
+  it('keeps an explicit entry_point and still sets previous_screen', () => {
+    const route = createRoute();
+    recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+    recordFocusedRoute({ name: route.name, key: route.key });
+    const event = createEvent(EVENT_NAME.MONEY_SURFACE_VIEWED, {
+      entry_point: 'explicit_entry',
+      screen_name: 'money_home',
+      surface_type: 'screen',
+    });
+
+    const result = enrichWithNavigationAttribution(event, route);
+    const followUp = enrichWithNavigationAttribution(
+      createEvent(EVENT_NAME.MONEY_SURFACE_VIEWED, {
+        screen_name: 'money_home',
+        surface_type: 'screen',
+      }),
+      route,
+    );
+
+    expect(result.properties.entry_point).toBe('explicit_entry');
+    expect(result.properties.previous_screen).toBe('WalletView');
+    expect(followUp.properties.entry_point).toBe(
+      'homescreen_balance_breakdown',
+    );
+    expect(followUp.properties.previous_screen).toBe('WalletView');
+  });
+
+  it('keeps an explicit previous_screen', () => {
+    recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+    const route = asRoute('TokensFullView', 'tokens');
+    const event = createEvent(EVENT_NAME.HOME_VIEWED, {
+      previous_screen: 'custom_screen',
+    });
+
+    const result = enrichWithNavigationAttribution(event, route);
+
+    expect(result).toBe(event);
+    expect(result.properties.previous_screen).toBe('custom_screen');
+  });
+
+  it('sets previous_screen on later events after balance breakdown attribution is consumed', () => {
+    const route = createRoute();
+    recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+    recordFocusedRoute({ name: route.name, key: route.key });
+
+    const first = enrichWithNavigationAttribution(
+      createEvent(EVENT_NAME.POSITION_SCREEN_VIEWED),
+      route,
+    );
+    const second = enrichWithNavigationAttribution(
+      createEvent(EVENT_NAME.POSITION_SCREEN_VIEWED),
+      route,
+    );
+
+    expect(first.properties.source).toBe('homescreen_balance_breakdown');
+    expect(second.properties.source).toBeUndefined();
+    expect(first.properties.previous_screen).toBe('WalletView');
+    expect(second.properties.previous_screen).toBe('WalletView');
+  });
+
+  it('leaves route params off the event', () => {
+    recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+    const route = {
+      key: 'tokens',
+      name: 'TokensFullView',
+      params: {
+        accountAddress: '0xabc',
+        analyticsContext: createNavigationAnalyticsContext(
+          NavigationAnalyticsAttribution.HomepageBalanceBreakdown,
+        ),
+      },
+    };
+    const event = createEvent(EVENT_NAME.HOME_VIEWED);
+
+    const result = enrichWithNavigationAttribution(event, route);
+
+    expect(result.properties).toEqual({ previous_screen: 'WalletView' });
+  });
+
+  it('keeps the Money home screen_name gate when previous_screen is set', () => {
+    const route = createRoute();
+    recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+    recordFocusedRoute({ name: route.name, key: route.key });
+    const intermediateEvent = createEvent(EVENT_NAME.MONEY_SURFACE_VIEWED, {
+      screen_name: 'money_onboarding',
+      surface_type: 'screen',
+    });
+    const moneyHomeEvent = createEvent(EVENT_NAME.MONEY_SURFACE_VIEWED, {
+      screen_name: 'money_home',
+      surface_type: 'screen',
+    });
+
+    const intermediateResult = enrichWithNavigationAttribution(
+      intermediateEvent,
+      route,
+    );
+    const moneyHomeResult = enrichWithNavigationAttribution(
+      moneyHomeEvent,
+      route,
+    );
+
+    expect(intermediateResult.properties.entry_point).toBeUndefined();
+    expect(intermediateResult.properties.previous_screen).toBe('WalletView');
+    expect(moneyHomeResult.properties.entry_point).toBe(
+      'homescreen_balance_breakdown',
+    );
+    expect(moneyHomeResult.properties.previous_screen).toBe('WalletView');
   });
 });

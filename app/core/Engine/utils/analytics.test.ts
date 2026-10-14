@@ -1,4 +1,8 @@
 import { trackEvent, buildAndTrackEvent } from './analytics';
+import {
+  recordFocusedRoute,
+  resetNavigationAnalyticsAttributionForTests,
+} from '../../../util/analytics/navigationAnalyticsAttribution';
 import Logger from '../../../util/Logger';
 import type { ControllerMessenger } from '../types';
 import {
@@ -42,6 +46,7 @@ describe('trackEvent', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetNavigationAnalyticsAttributionForTests();
 
     mockCall = jest.fn();
     mockInitMessenger = {
@@ -84,6 +89,24 @@ describe('trackEvent', () => {
         'AnalyticsController:trackEvent',
         event,
       );
+    });
+
+    it('leaves previous_screen unset when a previous route is recorded', () => {
+      recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+      recordFocusedRoute({ name: 'SettingsView', key: 'settings' });
+      const event = {
+        name: 'Settings Viewed',
+        properties: { screen: 'settings' },
+        sensitiveProperties: {},
+      } as unknown as AnalyticsTrackingEvent;
+
+      trackEvent(mockInitMessenger, event);
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        event,
+      );
+      expect(event.properties).toEqual({ screen: 'settings' });
     });
 
     it('enriches allowlisted events before calling the analytics controller', () => {
