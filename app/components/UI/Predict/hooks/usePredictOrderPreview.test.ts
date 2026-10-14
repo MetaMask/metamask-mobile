@@ -601,6 +601,65 @@ describe('usePredictOrderPreview', () => {
     });
   });
 
+  describe('refetchPreview', () => {
+    it('re-fetches the live book and resolves with the fresh preview', async () => {
+      const { Wrapper } = createWrapper();
+      const { result } = renderHook(
+        () => usePredictOrderPreview(defaultParams),
+        { wrapper: Wrapper },
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.preview).toEqual(mockPreview);
+      });
+
+      const refreshedPreview = { ...mockPreview, sharePrice: 0.62 };
+      mockPreviewOrder.mockResolvedValue(refreshedPreview);
+
+      let refetchResult: OrderPreview | null = null;
+      await act(async () => {
+        refetchResult = await result.current.refetchPreview();
+      });
+
+      expect(mockPreviewOrder).toHaveBeenCalledTimes(2);
+      expect(refetchResult).toEqual(refreshedPreview);
+    });
+
+    it('resolves with null when the re-fetch fails', async () => {
+      const { Wrapper } = createWrapper();
+      const { result } = renderHook(
+        () => usePredictOrderPreview(defaultParams),
+        { wrapper: Wrapper },
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.preview).toEqual(mockPreview);
+      });
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+      mockPreviewOrder.mockRejectedValue(new Error('API Error'));
+
+      let refetchResult: OrderPreview | null | undefined;
+      await act(async () => {
+        refetchResult = await result.current.refetchPreview();
+      });
+
+      expect(refetchResult).toBeNull();
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
+
   describe('cleanup', () => {
     it('cleans up on unmount', () => {
       const { Wrapper } = createWrapper();

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { OrderPreview, PreviewOrderParams } from '../types';
 import { predictQueries } from '../queries';
@@ -11,6 +11,8 @@ interface OrderPreviewResult {
   isCalculating: boolean;
   isLoading: boolean;
   error: string | null;
+  /** Re-fetches the live book and resolves with the fresh preview, or null when the fetch fails. */
+  refetchPreview: () => Promise<OrderPreview | null>;
 }
 
 /**
@@ -118,10 +120,28 @@ export function usePredictOrderPreview(
     debouncedParams.outcomeId,
   ]);
 
+  const { refetch } = query;
+
+  /**
+   * Explicitly re-fetches the live book and resolves with the fresh preview.
+   * Used by the retry flow to confirm a fresh quote before re-submitting an
+   * order. Resolves null when the re-fetch fails — a failed fetch keeps the
+   * previous data on the query result, which must never be mistaken for a
+   * fresh quote.
+   */
+  const refetchPreview = useCallback(async (): Promise<OrderPreview | null> => {
+    const result = await refetch();
+    if (result.isError) {
+      return null;
+    }
+    return result.data ?? null;
+  }, [refetch]);
+
   return {
     preview,
     isLoading,
     isCalculating,
     error: stickyError,
+    refetchPreview,
   };
 }

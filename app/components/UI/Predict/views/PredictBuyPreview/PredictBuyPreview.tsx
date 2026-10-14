@@ -185,6 +185,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     preview,
     error: previewError,
     isCalculating,
+    refetchPreview,
   } = usePredictOrderPreview({
     marketId: market.id,
     outcomeId: outcome.id,
@@ -207,10 +208,13 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const {
     retrySheetRef,
     retrySheetVariant,
+    retryQuote,
     isRetrying,
     handleRetry,
+    handleRetryConfirm,
   } = usePredictOrderRetry({
     preview,
+    refetchPreview,
     placeOrder,
     analyticsProperties,
     isOrderNotFilled,
@@ -693,11 +697,10 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}
-        sharePrice={
-          preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
-        }
+        preview={retryQuote}
         side={Side.BUY}
         onRetry={handleRetry}
+        onConfirm={handleRetryConfirm}
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />

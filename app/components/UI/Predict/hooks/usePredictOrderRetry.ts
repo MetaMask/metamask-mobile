@@ -17,13 +17,19 @@ import type {
 
 interface UsePredictOrderRetryParams {
   preview: OrderPreview | null | undefined;
+  /**
+   * Re-fetches the live order book and resolves with the fresh preview.
+   * Every retry must confirm a freshly fetched quote before submitting.
+   */
+  refetchPreview: () => Promise<OrderPreview | null>;
   placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
   isOrderNotFilled: boolean;
   resetOrderNotFilled: () => void;
   /**
-   * When true, suppresses the dedicated PredictOrderRetrySheet overlay so the
-   * inline buy-sheet error banner can handle the retry UX instead.
+   * When true, suppresses the dedicated PredictOrderRetrySheet overlay on the
+   * not-filled transition so the inline buy-sheet error banner can handle the
+   * retry UX instead. User-initiated retries always open the sheet.
    */
   isSheetMode?: boolean;
   attempt?: PredictBuyAttempt;
@@ -31,6 +37,7 @@ interface UsePredictOrderRetryParams {
 
 export function usePredictOrderRetry({
   preview,
+  refetchPreview,
   placeOrder,
   analyticsProperties,
   isOrderNotFilled,
@@ -39,13 +46,54 @@ export function usePredictOrderRetry({
   attempt,
 }: UsePredictOrderRetryParams) {
   const [isRetrying, setIsRetrying] = useState(false);
+  const [retryQuote, setRetryQuote] = useState<OrderPreview | null>(null);
   const [retrySheetVariant, setRetrySheetVariant] =
     useState<PredictOrderRetrySheetVariant>('busy');
   const wasOrderNotFilledRef = useRef(false);
   const retrySheetRef = useRef<PredictOrderRetrySheetRef>(null);
+  const isRetryingRef = useRef(false);
+  isRetryingRef.current = isRetrying;
+  const isOrderNotFilledRef = useRef(false);
+  isOrderNotFilledRef.current = isOrderNotFilled;
 
+  /**
+   * Fetches the fresh quote and moves the sheet to the confirm state.
+   * Nothing is submitted here — submission happens on explicit confirmation
+   * of the refreshed quote (handleRetryConfirm).
+   */
   const handleRetry = useCallback(async () => {
-    if (!preview) return;
+    setRetrySheetVariant('busy');
+    try {
+      const freshPreview = await refetchPreview();
+      // The user may have dismissed the error while the fetch was in flight;
+      // never surface a quote for an order that is no longer retryable.
+      if (!isOrderNotFilledRef.current) {
+        return;
+      }
+      if (!freshPreview) {
+        setRetryQuote(null);
+        setRetrySheetVariant('quote_unavailable');
+      } else {
+        setRetryQuote(freshPreview);
+        setRetrySheetVariant('confirm');
+      }
+    } catch {
+      if (!isOrderNotFilledRef.current) {
+        return;
+      }
+      setRetryQuote(null);
+      setRetrySheetVariant('quote_unavailable');
+    } finally {
+      // This is a user-initiated retry: always surface the refreshed quote
+      // sheet so the confirmation is tied to the fresh quote.
+      if (isOrderNotFilledRef.current) {
+        retrySheetRef.current?.onOpenBottomSheet();
+      }
+    }
+  }, [refetchPreview]);
+
+  const handleRetryConfirm = useCallback(async () => {
+    if (!retryQuote) return;
     setIsRetrying(true);
 
     const isPredictBuy =
@@ -56,14 +104,14 @@ export function usePredictOrderRetry({
       Engine.context.PredictController.trackPredictOrderEvent({
         status: PredictTradeStatus.RETRY_SUBMITTED,
         analyticsProperties,
-        sharePrice: preview.sharePrice,
+        sharePrice: retryQuote.sharePrice,
       });
     }
 
     try {
       const outcome = await placeOrder({
         analyticsProperties,
-        preview,
+        preview: retryQuote,
         attempt,
       });
 
@@ -86,16 +134,13 @@ export function usePredictOrderRetry({
       setIsRetrying(false);
     }
   }, [
-    preview,
+    retryQuote,
     placeOrder,
     analyticsProperties,
     attempt,
     resetOrderNotFilled,
     isSheetMode,
   ]);
-
-  const isRetryingRef = useRef(false);
-  isRetryingRef.current = isRetrying;
 
   useEffect(() => {
     if (isRetryingRef.current) {
@@ -108,9 +153,11 @@ export function usePredictOrderRetry({
     if (becameNotFilled) {
       setRetrySheetVariant('busy');
 
-      // Sheet mode renders an inline banner instead of opening the overlay.
+      // Sheet mode renders an inline banner instead of opening the overlay;
+      // the banner CTA drives the fetch + confirm flow.
       if (!isSheetMode) {
         retrySheetRef.current?.onOpenBottomSheet();
+        handleRetry();
       }
 
       if (
@@ -123,15 +170,25 @@ export function usePredictOrderRetry({
           sharePrice: preview?.sharePrice,
         });
       }
+    } else if (!isOrderNotFilled) {
+      setRetryQuote(null);
     }
 
     wasOrderNotFilledRef.current = isOrderNotFilled;
-  }, [isOrderNotFilled, analyticsProperties, preview?.sharePrice, isSheetMode]);
+  }, [
+    isOrderNotFilled,
+    analyticsProperties,
+    preview?.sharePrice,
+    isSheetMode,
+    handleRetry,
+  ]);
 
   return {
     retrySheetRef,
     retrySheetVariant,
+    retryQuote,
     isRetrying,
     handleRetry,
+    handleRetryConfirm,
   };
 }

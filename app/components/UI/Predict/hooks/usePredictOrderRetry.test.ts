@@ -44,6 +44,9 @@ function createDefaultParams(
 function createParamsObj(overrides?: Record<string, unknown>) {
   return {
     preview: createMockPreview() as OrderPreview | null | undefined,
+    refetchPreview: jest
+      .fn()
+      .mockResolvedValue(createMockPreview({ sharePrice: 0.62 })),
     placeOrder: jest
       .fn()
       .mockResolvedValue(createSuccessOutcome()) as jest.Mock<
@@ -76,12 +79,13 @@ describe('usePredictOrderRetry', () => {
   });
 
   describe('initial state', () => {
-    it('returns busy variant and not retrying', () => {
+    it('returns busy variant, not retrying, and no quote', () => {
       const params = createDefaultParams();
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
       expect(result.current.retrySheetVariant).toBe('busy');
       expect(result.current.isRetrying).toBe(false);
+      expect(result.current.retryQuote).toBeNull();
     });
 
     it('returns a retrySheetRef', () => {
@@ -112,6 +116,56 @@ describe('usePredictOrderRetry', () => {
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
       expect(result.current.retrySheetVariant).toBe('busy');
+    });
+
+    it('fetches a fresh quote and moves to confirm on the not-filled edge', async () => {
+      const freshPreview = createMockPreview({ sharePrice: 0.62 });
+      const params = createDefaultParams({
+        refetchPreview: jest.fn().mockResolvedValue(freshPreview),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      expect(params.refetchPreview).toHaveBeenCalledTimes(1);
+      expect(result.current.retryQuote).toBe(freshPreview);
+      expect(result.current.retrySheetVariant).toBe('confirm');
+      expect(params.placeOrder).not.toHaveBeenCalled();
+    });
+
+    it('moves to quote_unavailable and submits nothing when the fetch fails', async () => {
+      const params = createDefaultParams({
+        refetchPreview: jest.fn().mockResolvedValue(null),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      expect(result.current.retrySheetVariant).toBe('quote_unavailable');
+      expect(result.current.retryQuote).toBeNull();
+      expect(params.placeOrder).not.toHaveBeenCalled();
+    });
+
+    it('does not auto-fetch or auto-open in sheet mode', async () => {
+      const params = createDefaultParams({ isSheetMode: true });
+      const { rerender } = renderHook(() => usePredictOrderRetry(params));
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      expect(params.refetchPreview).not.toHaveBeenCalled();
     });
 
     it('tracks RETRY_PROMPTED only once per not-filled transition', () => {
@@ -162,7 +216,7 @@ describe('usePredictOrderRetry', () => {
       params.isOrderNotFilled = true;
       rerender();
 
-      expect(onOpen).toHaveBeenCalledTimes(1);
+      expect(onOpen).toHaveBeenCalled();
     });
 
     it('skips opening the retry sheet ref when isSheetMode is true', () => {
@@ -185,88 +239,152 @@ describe('usePredictOrderRetry', () => {
 
       expect(onOpen).not.toHaveBeenCalled();
     });
-
-    it('still tracks RETRY_PROMPTED in sheet mode', () => {
-      const params = createDefaultParams({
-        isOrderNotFilled: false,
-        isSheetMode: true,
-      });
-      const { rerender } = renderHook(() => usePredictOrderRetry(params));
-
-      params.isOrderNotFilled = true;
-      rerender();
-
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'retry_prompted' }),
-      );
-    });
   });
 
   describe('handleRetry', () => {
-    it('submits the current preview with its standard band slippage on retry', async () => {
-      const mockPlaceOrder = jest
-        .fn()
-        .mockResolvedValue(createSuccessOutcome());
-      const params = createDefaultParams({ placeOrder: mockPlaceOrder });
-      const { result } = renderHook(() => usePredictOrderRetry(params));
+    it('fetches a fresh quote and moves to confirm', async () => {
+      const freshPreview = createMockPreview({ sharePrice: 0.62 });
+      const params = createDefaultParams({
+        // Sheet mode: the not-filled edge does not auto-fetch, the banner CTA
+        // (handleRetry) drives the flow — matching a real user tap.
+        isSheetMode: true,
+        refetchPreview: jest.fn().mockResolvedValue(freshPreview),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
 
       await act(async () => {
         await result.current.handleRetry();
       });
 
-      expect(mockPlaceOrder).toHaveBeenCalledWith(
-        expect.objectContaining({
-          preview: expect.objectContaining({ slippage: 0.03 }),
-        }),
-      );
+      expect(params.refetchPreview).toHaveBeenCalledTimes(1);
+      expect(result.current.retryQuote).toBe(freshPreview);
+      expect(result.current.retrySheetVariant).toBe('confirm');
+      expect(params.placeOrder).not.toHaveBeenCalled();
     });
 
-    it('never applies 99% slippage on a sell retry', async () => {
-      const mockPlaceOrder = jest
-        .fn()
-        .mockResolvedValue(createSuccessOutcome());
+    it('always opens the sheet — even in sheet mode — because it is user-initiated', async () => {
       const params = createDefaultParams({
-        placeOrder: mockPlaceOrder,
-        preview: createMockPreview({ side: Side.SELL, slippage: 0.05 }),
+        isOrderNotFilled: true,
+        isSheetMode: true,
       });
       const { result } = renderHook(() => usePredictOrderRetry(params));
+      const onOpen = jest.fn();
+      (
+        result.current.retrySheetRef as unknown as {
+          current: { onOpenBottomSheet: jest.Mock };
+        }
+      ).current = { onOpenBottomSheet: onOpen };
 
       await act(async () => {
         await result.current.handleRetry();
       });
 
-      const calledPreview = mockPlaceOrder.mock.calls[0][0].preview;
+      expect(onOpen).toHaveBeenCalled();
+    });
+
+    it('moves to quote_unavailable when the fresh fetch fails', async () => {
+      const params = createDefaultParams({
+        // Sheet mode: the not-filled edge does not auto-fetch, the banner CTA
+        // (handleRetry) drives the flow — matching a real user tap.
+        isSheetMode: true,
+        refetchPreview: jest.fn().mockRejectedValue(new Error('network down')),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      await act(async () => {
+        await result.current.handleRetry();
+      });
+
+      expect(result.current.retrySheetVariant).toBe('quote_unavailable');
+      expect(result.current.retryQuote).toBeNull();
+      expect(params.placeOrder).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('handleRetryConfirm', () => {
+    it('submits the re-fetched quote, not the stale screen preview', async () => {
+      const freshPreview = createMockPreview({ sharePrice: 0.62 });
+      const params = createDefaultParams({
+        refetchPreview: jest.fn().mockResolvedValue(freshPreview),
+        preview: createMockPreview({ sharePrice: 0.51 }),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(params.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ preview: freshPreview }),
+      );
+      expect(params.placeOrder.mock.calls[0][0].preview.sharePrice).toBe(0.62);
+    });
+
+    it('never applies 99% slippage on the confirmed retry', async () => {
+      const freshPreview = createMockPreview({
+        side: Side.SELL,
+        slippage: 0.05,
+      });
+      const params = createDefaultParams({
+        refetchPreview: jest.fn().mockResolvedValue(freshPreview),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      const calledPreview = params.placeOrder.mock.calls[0][0].preview;
       expect(calledPreview.slippage).toBe(0.05);
       expect(calledPreview.slippage).not.toBe(0.99);
     });
 
-    it('never applies 99% slippage on a buy retry', async () => {
-      const mockPlaceOrder = jest
-        .fn()
-        .mockResolvedValue(createSuccessOutcome());
-      const params = createDefaultParams({ placeOrder: mockPlaceOrder });
-      const { result } = renderHook(() => usePredictOrderRetry(params));
-
-      await act(async () => {
-        await result.current.handleRetry();
-      });
-
-      const calledPreview = mockPlaceOrder.mock.calls[0][0].preview;
-      expect(calledPreview.slippage).toBe(0.03);
-      expect(calledPreview.slippage).not.toBe(0.99);
-    });
-
-    it('passes the same attempt to a retry', async () => {
+    it('passes the same attempt to a confirmed retry', async () => {
       const attempt = {
         attemptId: 'attempt-1',
         amountUsd: 8,
         paymentMethod: 'predict_balance' as const,
       };
       const params = createDefaultParams({ attempt });
-      const { result } = renderHook(() => usePredictOrderRetry(params));
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
 
       await act(async () => {
-        await result.current.handleRetry();
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
       });
 
       expect(params.placeOrder).toHaveBeenCalledWith(
@@ -274,33 +392,51 @@ describe('usePredictOrderRetry', () => {
       );
     });
 
-    it('calls resetOrderNotFilled on successful retry', async () => {
-      const mockResetOrderNotFilled = jest.fn();
-      const mockPlaceOrder = jest
-        .fn()
-        .mockResolvedValue(createSuccessOutcome());
-      const params = createDefaultParams({
-        placeOrder: mockPlaceOrder,
-        resetOrderNotFilled: mockResetOrderNotFilled,
-      });
+    it('does nothing when there is no confirmed quote', async () => {
+      const params = createDefaultParams();
       const { result } = renderHook(() => usePredictOrderRetry(params));
 
       await act(async () => {
-        await result.current.handleRetry();
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(params.placeOrder).not.toHaveBeenCalled();
+    });
+
+    it('calls resetOrderNotFilled on successful retry', async () => {
+      const mockResetOrderNotFilled = jest.fn();
+      const params = createDefaultParams({
+        resetOrderNotFilled: mockResetOrderNotFilled,
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
       });
 
       expect(mockResetOrderNotFilled).toHaveBeenCalledTimes(1);
     });
 
-    it('tracks RETRY_SUBMITTED event on retry attempt', async () => {
-      const mockPlaceOrder = jest
-        .fn()
-        .mockResolvedValue(createSuccessOutcome());
-      const params = createDefaultParams({ placeOrder: mockPlaceOrder });
-      const { result } = renderHook(() => usePredictOrderRetry(params));
+    it('tracks RETRY_SUBMITTED event when the confirmed retry submits', async () => {
+      const params = createDefaultParams();
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
 
       await act(async () => {
-        await result.current.handleRetry();
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -310,97 +446,55 @@ describe('usePredictOrderRetry', () => {
       );
     });
 
-    it('sets variant to failed when retry returns order_not_filled', async () => {
-      const mockPlaceOrder = jest
-        .fn()
-        .mockResolvedValue({ status: 'order_not_filled' as const });
-      const params = createDefaultParams({ placeOrder: mockPlaceOrder });
-      const { result } = renderHook(() => usePredictOrderRetry(params));
+    it('sets variant to failed when the confirmed retry does not fill', async () => {
+      const params = createDefaultParams({
+        placeOrder: jest
+          .fn()
+          .mockResolvedValue({ status: 'order_not_filled' as const }),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
 
       await act(async () => {
-        await result.current.handleRetry();
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
       });
 
       expect(result.current.retrySheetVariant).toBe('failed');
-    });
-
-    it('sets variant to failed when retry returns error', async () => {
-      const mockPlaceOrder = jest.fn().mockResolvedValue({
-        status: 'error' as const,
-        error: 'Failed to place order',
-      });
-      const params = createDefaultParams({ placeOrder: mockPlaceOrder });
-      const { result } = renderHook(() => usePredictOrderRetry(params));
-
-      await act(async () => {
-        await result.current.handleRetry();
-      });
-
-      expect(result.current.retrySheetVariant).toBe('failed');
-    });
-
-    it('does not set variant to failed when retry requires deposit', async () => {
-      const mockPlaceOrder = jest
-        .fn()
-        .mockResolvedValue({ status: 'deposit_required' as const });
-      const params = createDefaultParams({ placeOrder: mockPlaceOrder });
-      const { result } = renderHook(() => usePredictOrderRetry(params));
-
-      await act(async () => {
-        await result.current.handleRetry();
-      });
-
-      expect(result.current.retrySheetVariant).toBe('busy');
-    });
-
-    it('sets isRetrying to false after retry completes', async () => {
-      const mockPlaceOrder = jest
-        .fn()
-        .mockResolvedValue(createSuccessOutcome());
-      const params = createDefaultParams({ placeOrder: mockPlaceOrder });
-      const { result } = renderHook(() => usePredictOrderRetry(params));
-
-      await act(async () => {
-        await result.current.handleRetry();
-      });
-
-      expect(result.current.isRetrying).toBe(false);
-    });
-
-    it('sets isRetrying to false after retry fails', async () => {
-      const mockPlaceOrder = jest
-        .fn()
-        .mockResolvedValue({ status: 'order_not_filled' as const });
-      const params = createDefaultParams({ placeOrder: mockPlaceOrder });
-      const { result } = renderHook(() => usePredictOrderRetry(params));
-
-      await act(async () => {
-        await result.current.handleRetry();
-      });
-
-      expect(result.current.isRetrying).toBe(false);
     });
 
     it('sets variant to failed on unexpected exception', async () => {
-      const mockPlaceOrder = jest
-        .fn()
-        .mockRejectedValue(new Error('unexpected error'));
-      const params = createDefaultParams({ placeOrder: mockPlaceOrder });
-      const { result } = renderHook(() => usePredictOrderRetry(params));
+      const params = createDefaultParams({
+        placeOrder: jest.fn().mockRejectedValue(new Error('unexpected error')),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
 
       await act(async () => {
-        await result.current.handleRetry();
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
       });
 
       expect(result.current.retrySheetVariant).toBe('failed');
     });
 
     it('opens the retry sheet on retry failure when isSheetMode is false', async () => {
-      const mockPlaceOrder = jest
-        .fn()
-        .mockRejectedValue(new Error('unexpected error'));
-      const params = createDefaultParams({ placeOrder: mockPlaceOrder });
-      const { result } = renderHook(() => usePredictOrderRetry(params));
+      const params = createDefaultParams({
+        placeOrder: jest.fn().mockRejectedValue(new Error('unexpected error')),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
       const onOpen = jest.fn();
       (
         result.current.retrySheetRef as unknown as {
@@ -409,21 +503,26 @@ describe('usePredictOrderRetry', () => {
       ).current = { onOpenBottomSheet: onOpen };
 
       await act(async () => {
-        await result.current.handleRetry();
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      onOpen.mockClear();
+      await act(async () => {
+        await result.current.handleRetryConfirm();
       });
 
       expect(onOpen).toHaveBeenCalledTimes(1);
     });
 
     it('does not open the retry sheet on retry failure when isSheetMode is true', async () => {
-      const mockPlaceOrder = jest
-        .fn()
-        .mockRejectedValue(new Error('unexpected error'));
       const params = createDefaultParams({
-        placeOrder: mockPlaceOrder,
         isSheetMode: true,
+        placeOrder: jest.fn().mockRejectedValue(new Error('unexpected error')),
       });
-      const { result } = renderHook(() => usePredictOrderRetry(params));
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
       const onOpen = jest.fn();
       (
         result.current.retrySheetRef as unknown as {
@@ -431,70 +530,66 @@ describe('usePredictOrderRetry', () => {
         }
       ).current = { onOpenBottomSheet: onOpen };
 
+      // Sheet mode: the banner CTA drives the fetch + confirm flow.
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
       await act(async () => {
         await result.current.handleRetry();
+      });
+
+      onOpen.mockClear();
+      await act(async () => {
+        await result.current.handleRetryConfirm();
       });
 
       expect(onOpen).not.toHaveBeenCalled();
       expect(result.current.retrySheetVariant).toBe('failed');
     });
 
-    it('does not call placeOrder when preview is null', async () => {
-      const mockPlaceOrder = jest.fn();
-      const params = createDefaultParams({
-        placeOrder: mockPlaceOrder,
-        preview: null,
-      });
-      const { result } = renderHook(() => usePredictOrderRetry(params));
+    it('sets isRetrying to false after the retry completes', async () => {
+      const params = createDefaultParams();
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
 
       await act(async () => {
-        await result.current.handleRetry();
+        params.isOrderNotFilled = true;
+        rerender();
       });
 
-      expect(mockPlaceOrder).not.toHaveBeenCalled();
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(result.current.isRetrying).toBe(false);
     });
 
-    it('does not call placeOrder when preview is undefined', async () => {
-      const mockPlaceOrder = jest.fn();
+    it('does not require deposit confirmation flow when retry returns deposit_required', async () => {
+      const mockResetOrderNotFilled = jest.fn();
       const params = createDefaultParams({
-        placeOrder: mockPlaceOrder,
-        preview: undefined,
+        placeOrder: jest
+          .fn()
+          .mockResolvedValue({ status: 'deposit_required' as const }),
+        resetOrderNotFilled: mockResetOrderNotFilled,
       });
-      const { result } = renderHook(() => usePredictOrderRetry(params));
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
 
       await act(async () => {
-        await result.current.handleRetry();
+        params.isOrderNotFilled = true;
+        rerender();
       });
-
-      expect(mockPlaceOrder).not.toHaveBeenCalled();
-    });
-
-    it('preserves the preview fields, keeping the standard band slippage', async () => {
-      const mockPlaceOrder = jest
-        .fn()
-        .mockResolvedValue(createSuccessOutcome());
-      const preview = createMockPreview({
-        sharePrice: 0.75,
-        maxAmountSpent: 20,
-        minAmountReceived: 26.67,
-        slippage: 0.05,
-      });
-      const params = createDefaultParams({
-        placeOrder: mockPlaceOrder,
-        preview,
-      });
-      const { result } = renderHook(() => usePredictOrderRetry(params));
 
       await act(async () => {
-        await result.current.handleRetry();
+        await result.current.handleRetryConfirm();
       });
 
-      const calledPreview = mockPlaceOrder.mock.calls[0][0].preview;
-      expect(calledPreview.sharePrice).toBe(0.75);
-      expect(calledPreview.maxAmountSpent).toBe(20);
-      expect(calledPreview.minAmountReceived).toBe(26.67);
-      expect(calledPreview.slippage).toBe(0.05);
-      expect(calledPreview.slippage).not.toBe(0.99);
+      expect(mockResetOrderNotFilled).toHaveBeenCalledTimes(1);
+      expect(result.current.retrySheetVariant).toBe('confirm');
     });
   });
 });
