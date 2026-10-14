@@ -1,5 +1,7 @@
 import BigNumber from 'bignumber.js';
 
+export { formatSharesAmount } from '../../../utils/formatShares';
+
 /** Formats a non-negative decimal-string amount as USD, e.g. "1250.45" → "$1,250.45". */
 export const formatUsdAmount = (value: string): string => {
   const amount = new BigNumber(value);
@@ -28,10 +30,6 @@ export const formatSettlementProceeds = (value: string): string => {
   }
   return formatUsdAmount(value);
 };
-
-/** Formats a decimal-string share count for display, trimming trailing zeros: "10.00" → "10". */
-export const formatSharesAmount = (value: string): string =>
-  new BigNumber(value).toString();
 
 const timestampFormat = new Intl.DateTimeFormat(undefined, {
   month: 'short',

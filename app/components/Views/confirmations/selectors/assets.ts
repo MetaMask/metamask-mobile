@@ -261,9 +261,10 @@ const selectAssetsByAccountGroupId = createSelector(
  * Adds the confirmation-specific display fields to each joined asset and
  * sorts by fiat balance.
  *
- * `currencyOverride` is the currency that the display string
- * (`balanceInSelectedCurrency`) is denominated in; `fiat` always stays in the
- * user's preferred currency. Pay-flow confirmations price everything in USD,
+ * `currencyOverride` is the currency that the display amount
+ * (`balanceInSelectedCurrency` and `balanceInSelectedCurrencyAmount`) is
+ * denominated in; `fiat` always stays in the user's preferred currency.
+ * Pay-flow confirmations price everything in USD,
  * and taking that as an argument rather than reading the transaction keeps
  * this file free of any knowledge of transaction types.
  *
@@ -506,6 +507,7 @@ function decorateAsset({
     assetId: publicAssetId,
     balance: amount,
     balanceInSelectedCurrency: formatFiat(displayBalance, displayCurrency),
+    balanceInSelectedCurrencyAmount: displayBalance,
     chainId,
     decimals,
     fiat:

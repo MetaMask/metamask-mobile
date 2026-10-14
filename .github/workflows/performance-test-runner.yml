@@ -51,6 +51,15 @@ on:
         type: string
         default: ''
         description: 'Optional grep pattern to filter tests (e.g., "@PerformanceLogin|@PerformanceSwaps"). Empty runs all tests.'
+      collect_hermes_cpuprofiles:
+        required: false
+        type: boolean
+        default: false
+        description: >-
+          Harvest Hermes .cpuprofile artifacts after each performance spec.
+          Enable for schedule/manual runs (analyze-app-profiling). Leave false
+          on PR runs — those profiles are never analyzed and the pullFile wait
+          adds wall-clock per test.
     secrets:
       BROWSERSTACK_USERNAME:
         required: true
@@ -71,6 +80,9 @@ on:
       MM_SENTRY_DSN_TEST:
         required: false
       MM_SENTRY_DSN:
+        required: false
+      # Claude key for opt-in AI locator recovery on performance taps/scrolls.
+      E2E_CLAUDE_API_KEY:
         required: false
 
 jobs:
@@ -218,6 +230,11 @@ jobs:
             echo "E2E_PERFORMANCE_RELEASE_VERSION=$RELEASE_VERSION"
             echo "E2E_PERFORMANCE_GITHUB_REF_NAME=$BRANCH_NAME"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
+            # AI locator recovery for broken Page Object taps / wallet-home scrolls.
+            echo "AI_LOCATOR_RECOVERY_ENABLED=true"
+            echo "ANTHROPIC_API_KEY=${{ secrets.E2E_CLAUDE_API_KEY }}"
+            # Hermes harvest is opt-in (schedule/manual). PR runs skip pullFile waits.
+            echo "COLLECT_HERMES_CPUPROFILES=${{ inputs.collect_hermes_cpuprofiles == true && 'true' || 'false' }}"
           } >> "$GITHUB_ENV"
 
       - name: Run Tests
@@ -274,7 +291,7 @@ jobs:
 
       - name: Upload Hermes CPU profiles
         uses: actions/upload-artifact@v7
-        if: always()
+        if: ${{ always() && inputs.collect_hermes_cpuprofiles == true }}
         with:
           name: hermes-cpuprofiles-${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || inputs.build_type }}-${{ matrix.device.name }}-${{ matrix.device.os_version }}
           path: tests/reporters/reports/hermes-cpuprofiles/

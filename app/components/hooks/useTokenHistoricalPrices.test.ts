@@ -1,12 +1,35 @@
-import { waitFor } from '@testing-library/react-native';
+import React from 'react';
+import { renderHook, waitFor, act } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getAssetId } from '@metamask/assets-controllers';
-import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 import { TokenI } from '../UI/Tokens/types';
 import useTokenHistoricalPrices, {
   hasInsufficientTimeCoverage,
   type TimePeriod,
   type TokenPrice,
 } from './useTokenHistoricalPrices';
+
+const createQueryClient = () =>
+  new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+  });
+
+const renderHistoricalPrices = (
+  callback: () => ReturnType<typeof useTokenHistoricalPrices>,
+) => {
+  const queryClient = createQueryClient();
+  return {
+    ...renderHook(callback, {
+      wrapper: ({ children }) =>
+        React.createElement(
+          QueryClientProvider,
+          { client: queryClient },
+          children,
+        ),
+    }),
+    queryClient,
+  };
+};
 
 jest.mock('@metamask/assets-controllers', () => ({
   ...jest.requireActual('@metamask/assets-controllers'),
@@ -154,7 +177,7 @@ describe('useTokenHistoricalPrices fetch URL', () => {
     mockGetAssetId.mockImplementation(
       jest.requireActual('@metamask/assets-controllers').getAssetId,
     );
-    renderHookWithProvider(() =>
+    renderHistoricalPrices(() =>
       useTokenHistoricalPrices({
         asset: baseAsset,
         address: baseAsset.address,
@@ -172,7 +195,7 @@ describe('useTokenHistoricalPrices fetch URL', () => {
   it('falls back to legacy URL params when getAssetId returns undefined', async () => {
     mockGetAssetId.mockReturnValue(undefined);
 
-    renderHookWithProvider(() =>
+    renderHistoricalPrices(() =>
       useTokenHistoricalPrices({
         asset: baseAsset,
         address: baseAsset.address,
@@ -216,7 +239,7 @@ describe('useTokenHistoricalPrices apiDurationMs', () => {
   } as unknown as TokenI;
 
   const renderPrices = () =>
-    renderHookWithProvider(() =>
+    renderHistoricalPrices(() =>
       useTokenHistoricalPrices({
         asset: baseAsset,
         address: baseAsset.address,
@@ -288,5 +311,40 @@ describe('useTokenHistoricalPrices apiDurationMs', () => {
     );
 
     jest.useRealTimers();
+  });
+
+  it('keeps previously fetched prices when a refetch fails', async () => {
+    mockFetch.mockResolvedValue({
+      status: 200,
+      json: async () => ({
+        prices: [
+          ['1', 100],
+          ['2', 101],
+        ],
+      }),
+    });
+
+    const { result, queryClient } = renderPrices();
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([
+        ['1', 100],
+        ['2', 101],
+      ]);
+    });
+
+    mockFetch.mockRejectedValue(new Error('network error'));
+    await act(async () => {
+      await queryClient.refetchQueries({
+        queryKey: ['token-details', 'historical-prices'],
+      });
+    });
+
+    expect(result.current.data).toEqual([
+      ['1', 100],
+      ['2', 101],
+    ]);
+    expect(result.current.isLoading).toBe(false);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 });

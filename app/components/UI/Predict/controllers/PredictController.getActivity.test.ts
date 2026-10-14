@@ -108,7 +108,10 @@ describe('PredictController.getActivity', () => {
         entry: { type: 'claimWinnings', timestamp: 1, amount: 10 },
       },
     ];
-    mockPolymarketProvider.getActivity.mockResolvedValue(stubActivity);
+    mockPolymarketProvider.getActivity.mockResolvedValue({
+      activities: stubActivity,
+      nextCursor: undefined,
+    });
     const controller = createController();
 
     const result = await controller.getActivity({});
@@ -116,7 +119,7 @@ describe('PredictController.getActivity', () => {
     expect(mockPolymarketProvider.getActivity).toHaveBeenCalledWith({
       address: '0xselected',
     });
-    expect(result).toEqual(stubActivity);
+    expect(result).toEqual({ activities: stubActivity, nextCursor: undefined });
   });
 
   it('fetches activity with explicit address', async () => {
@@ -127,7 +130,10 @@ describe('PredictController.getActivity', () => {
         entry: { type: 'claimWinnings', timestamp: 2, amount: 2 },
       },
     ];
-    mockPolymarketProvider.getActivity.mockResolvedValue(stubActivity);
+    mockPolymarketProvider.getActivity.mockResolvedValue({
+      activities: stubActivity,
+      nextCursor: undefined,
+    });
     const controller = createController();
 
     const result = await controller.getActivity({ address: '0xcustom' });
@@ -135,7 +141,7 @@ describe('PredictController.getActivity', () => {
     expect(mockPolymarketProvider.getActivity).toHaveBeenCalledWith({
       address: '0xcustom',
     });
-    expect(result).toEqual(stubActivity);
+    expect(result).toEqual({ activities: stubActivity, nextCursor: undefined });
   });
 
   it('passes pagination params to provider', async () => {
@@ -146,19 +152,25 @@ describe('PredictController.getActivity', () => {
         entry: { type: 'claimWinnings', timestamp: 2, amount: 2 },
       },
     ];
-    mockPolymarketProvider.getActivity.mockResolvedValue(stubActivity);
+    mockPolymarketProvider.getActivity.mockResolvedValue({
+      activities: stubActivity,
+      nextCursor: 'next-cursor',
+    });
     const controller = createController();
 
     const result = await controller.getActivity({
       limit: 20,
-      offset: 40,
+      cursor: 'cursor-40',
     });
 
     expect(mockPolymarketProvider.getActivity).toHaveBeenCalledWith({
       address: '0xselected',
       limit: 20,
-      offset: 40,
+      cursor: 'cursor-40',
     });
-    expect(result).toEqual(stubActivity);
+    expect(result).toEqual({
+      activities: stubActivity,
+      nextCursor: 'next-cursor',
+    });
   });
 });

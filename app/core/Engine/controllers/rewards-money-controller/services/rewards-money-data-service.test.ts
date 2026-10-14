@@ -643,11 +643,15 @@ describe('RewardsMoneyDataService', () => {
         ),
       );
       mockFetch.mockResolvedValueOnce(
-        jsonError(503, {
-          statusCode: 503,
-          message: 'Too many rebate quotes in flight; show no rebate row',
-          error: 'Service Unavailable',
-        }),
+        jsonError(
+          503,
+          {
+            statusCode: 503,
+            reason: 'SERVER_BUSY',
+            message: 'Server busy, retry shortly',
+          },
+          { 'retry-after': '2' },
+        ),
       );
       mockFetch.mockResolvedValueOnce({
         ok: false,
@@ -677,7 +681,8 @@ describe('RewardsMoneyDataService', () => {
       ).rejects.toMatchObject({
         status: 503,
         failure: 'UNAVAILABLE',
-        detail: 'Too many rebate quotes in flight; show no rebate row',
+        detail: 'Server busy, retry shortly',
+        retryAfterSeconds: 2,
       });
       const failed = await service
         .getRebateQuote({ product: 'perps' })

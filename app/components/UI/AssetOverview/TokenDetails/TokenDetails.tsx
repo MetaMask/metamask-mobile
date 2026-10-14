@@ -32,6 +32,7 @@ import { selectTokenMarketData } from '../../../../selectors/tokenRatesControlle
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
 import { MarketDataDetails } from '@metamask/assets-controllers';
+import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { formatMarketDetails } from '../utils/marketDetails';
 import { getTokenDetails } from '../utils/getTokenDetails';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
@@ -58,11 +59,23 @@ export interface MarketDetails {
 interface TokenDetailsProps {
   asset: TokenI;
   onCopyAddress?: () => void;
+  /**
+   * Market data resolved by the caller, already in the user's selected
+   * currency. When supplied the component renders it directly and skips both
+   * its own cache lookup and its fetch.
+   *
+   * TODO: interim. Token Details V1 passes this so the screen does not fetch
+   * the same market data twice, once here and once in `useTokenMarketData`.
+   * Once V1 stops reusing this legacy component and renders its own list
+   * straight from that hook, this prop and the fetch below can both go.
+   */
+  marketData?: FungibleAssetPrice | null;
 }
 
 const TokenDetails: React.FC<TokenDetailsProps> = ({
   asset,
   onCopyAddress,
+  marketData: providedMarketData,
 }) => {
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
@@ -124,8 +137,14 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
     Record<string, unknown> | undefined
   >();
 
+  // Presence, not truthiness: the caller passes `null` while its own request is
+  // still in flight, and treating that as "nothing supplied" would fire the
+  // duplicate fetch this prop exists to avoid. Only `undefined` means no caller
+  // is driving this.
+  const isMarketDataProvided = providedMarketData !== undefined;
+
   useEffect(() => {
-    if (cachedMarketData) return;
+    if (isMarketDataProvided || cachedMarketData) return;
 
     const plainTokenAddress = isCaipAssetType(asset.address)
       ? parseCaipAssetType(asset.address).assetReference
@@ -164,15 +183,23 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
     };
 
     fetchData();
-  }, [asset.address, asset.chainId, cachedMarketData, currentCurrency]);
+  }, [
+    asset.address,
+    asset.chainId,
+    cachedMarketData,
+    currentCurrency,
+    isMarketDataProvided,
+  ]);
 
-  const marketData = cachedMarketData ?? fetchedMarketData;
+  const marketData =
+    providedMarketData ?? cachedMarketData ?? fetchedMarketData;
 
   // Determine if we're using cached data (which is in native units for ALL EVM assets)
-  const isUsingCachedData = Boolean(cachedMarketData);
+  const isUsingCachedData = !providedMarketData && Boolean(cachedMarketData);
 
   // ALL cached EVM data (native AND ERC20) is in native units and needs conversion
-  // API-fetched data (with vsCurrency param) is already in fiat
+  // API-fetched data (with vsCurrency param) is already in fiat, as is anything
+  // passed in via `marketData`
   const needsConversion = isUsingCachedData && !isNonEvmAsset;
 
   const tokenDetails = useMemo(
