@@ -178,6 +178,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
 
       {hasClaimableWinnings && (
         <PredictClaimButton
+          isGlass={isGlass}
           amount={claimableAmount}
           isHidden={Boolean(privacyMode)}
           isLoading={isClaimPending}

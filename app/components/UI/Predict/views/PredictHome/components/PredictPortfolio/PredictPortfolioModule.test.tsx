@@ -245,6 +245,22 @@ describe('PredictPortfolioModule', () => {
     expect(screen.getByText('Claim $46.35')).toBeOnTheScreen();
   });
 
+  it('draws the claim CTA on glass with the portfolio tiles', () => {
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        claimableAmount: 46.35,
+        hasClaimableWinnings: true,
+      }),
+    );
+
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <PredictPortfolioModule isGlass />,
+    );
+
+    // Three portfolio tiles plus the claim button.
+    expect(UNSAFE_getAllByType(GlassView)).toHaveLength(4);
+  });
+
   it('supports privacy mode with sensitive values hidden', () => {
     mockPrivacyMode = true;
     mockUsePredictPortfolio.mockReturnValue(
