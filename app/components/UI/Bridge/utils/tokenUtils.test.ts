@@ -126,7 +126,7 @@ describe('tokenUtils', () => {
   });
 
   describe('convertApiTokenToBridgeToken', () => {
-    it('marks a slip44 asset as native', () => {
+    it('converts an EVM slip44 asset to the zero address', () => {
       const result = convertApiTokenToBridgeToken({
         assetId: 'eip155:5042/slip44:5042',
         name: 'USDC',
@@ -137,7 +137,6 @@ describe('tokenUtils', () => {
       expect(result).toMatchObject({
         address: constants.AddressZero,
         chainId: '0x13b2',
-        isNative: true,
       });
     });
   });

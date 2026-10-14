@@ -71,7 +71,6 @@ export interface BridgeToken {
   metadata?: Record<string, unknown>;
   rwaData?: TokenRwaData;
   securityData?: SecurityData;
-  isNative?: boolean;
 }
 
 export enum BridgeViewMode {

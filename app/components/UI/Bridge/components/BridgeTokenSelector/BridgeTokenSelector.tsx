@@ -45,6 +45,7 @@ import {
 import {
   FeatureId,
   formatChainIdToCaip,
+  isNativeAddress,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import {
@@ -912,6 +913,7 @@ export const BridgeTokenSelectorContent: React.FC<
       navigation.dispatch(
         StackActions.push('Asset', {
           ...item,
+          isNative: isNativeAddress(item.address),
           source: tokenDetailsSource,
         }),
       );

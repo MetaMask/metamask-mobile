@@ -1751,6 +1751,7 @@ describe('BridgeTokenSelector', () => {
               chainId: '0x1',
               decimals: 18,
               image: 'https://example.com/token.png',
+              isNative: false,
             }),
           }),
         }),
@@ -2682,6 +2683,7 @@ describe('BridgeTokenSelector', () => {
           payload: expect.objectContaining({
             name: 'Asset',
             params: expect.objectContaining({
+              isNative: true,
               source: TokenDetailsSource.SwapWatchlistFilter,
             }),
           }),

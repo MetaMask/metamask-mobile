@@ -133,7 +133,6 @@ export const convertApiTokenToBridgeToken = <T extends ApiTokenForBridgeToken>(
     address,
     chainId: formattedChainId,
     image: image ?? iconUrl,
-    isNative,
   } as BridgeToken & { assetId: CaipAssetType };
 };
 
