@@ -27,8 +27,8 @@ const VbaKycPendingViewSelectorsIDs = {
   OPEN_PENDING: 'vba-kyc-pending-open-from-previous-screen',
 } as const;
 
-// The redirect resolves the next step through hydrate, the funnel, and a
-// stack reset. Allow more than the 1 s default on slower CI runners.
+// The redirect resumes the KYC session, hydrates, runs the funnel, and resets
+// the stack, so allow more than the 1 s default.
 const REDIRECT_TIMEOUT_MS = 5000;
 
 const OnboardingStack = createNativeStackNavigator();
@@ -158,6 +158,9 @@ interface KycSession {
 const engineContext = Engine.context as unknown as {
   RampsController: { hydrateVbaOnboarding?: jest.Mock };
   KycController?: {
+    state: { email: string | null };
+    readSessionStatus: jest.Mock;
+    startSession: jest.Mock;
     refreshSessionStatus: jest.Mock;
     recordVendorDisclaimers: jest.Mock;
   };
@@ -226,6 +229,9 @@ describeForPlatforms('VbaKycPending', () => {
     previousKycController = engineContext.KycController;
     previousHydrate = engineContext.RampsController.hydrateVbaOnboarding;
     engineContext.KycController = {
+      state: { email: 'user@example.com' },
+      readSessionStatus: jest.fn().mockReturnValue({ id: 'session-1' }),
+      startSession: jest.fn().mockResolvedValue(undefined),
       refreshSessionStatus: jest.fn(),
       recordVendorDisclaimers: jest.fn().mockResolvedValue([]),
     };
