@@ -17,6 +17,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
 import { BANNER_HEIGHT, BANNER_IMAGE_SIZE } from './BrazeBanner.constants';
+import GlassSurface from '../../../component-library/components-temp/GlassSurface';
 
 interface BrazeBannerCardProps {
   title: string | null;
@@ -24,6 +25,7 @@ interface BrazeBannerCardProps {
   imageUrl: string | null;
   ctaLabel: string | null;
   onDismiss: () => void;
+  isGlass?: boolean;
 }
 
 /** Shared dismiss control; callers only customize its placement. */
@@ -146,18 +148,11 @@ const BrazeBannerCard = ({
   imageUrl,
   ctaLabel,
   onDismiss,
+  isGlass = false,
 }: BrazeBannerCardProps) => {
   const tw = useTailwind();
-  return (
-    <Box
-      testID={BRAZE_BANNER_TEST_IDS.CARD}
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      backgroundColor={BoxBackgroundColor.BackgroundMuted}
-      gap={4}
-      twClassName="w-full rounded-xl pl-4 pr-3 py-3"
-      style={{ minHeight: BANNER_HEIGHT }}
-    >
+  const content = (
+    <>
       {imageUrl && (
         <Box
           twClassName="overflow-hidden rounded-xl"
@@ -177,6 +172,37 @@ const BrazeBannerCard = ({
       ) : (
         <BannerWithCta body={body} ctaLabel={ctaLabel} onDismiss={onDismiss} />
       )}
+    </>
+  );
+
+  if (isGlass) {
+    return (
+      <GlassSurface
+        testID={BRAZE_BANNER_TEST_IDS.CARD}
+        radiusClassName="rounded-xl"
+        isInteractive
+        hasSheen
+        style={[
+          tw.style('w-full flex-row items-center gap-4 pl-4 pr-3 py-3'),
+          { minHeight: BANNER_HEIGHT },
+        ]}
+      >
+        {content}
+      </GlassSurface>
+    );
+  }
+
+  return (
+    <Box
+      testID={BRAZE_BANNER_TEST_IDS.CARD}
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      backgroundColor={BoxBackgroundColor.BackgroundMuted}
+      gap={4}
+      twClassName="w-full rounded-xl pl-4 pr-3 py-3"
+      style={{ minHeight: BANNER_HEIGHT }}
+    >
+      {content}
     </Box>
   );
 };

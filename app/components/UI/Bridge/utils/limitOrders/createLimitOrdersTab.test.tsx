@@ -60,4 +60,17 @@ describe('getHistoryLimitOrderDate', () => {
 
     expect(date).toBe(order.timingData.expiresAt);
   });
+
+  it('resolves each order to its source asset chain', () => {
+    const tab = createLimitOrdersTab({
+      orders: [MOCK_LIMIT_OPEN_ORDER],
+      isLoading: false,
+      isError: false,
+      isFetchingNextPage: false,
+      onRetry: jest.fn(),
+      getItemDate: getOpenLimitOrderDate,
+    });
+
+    expect(tab.getItemChainId(MOCK_LIMIT_OPEN_ORDER)).toBe('eip155:1');
+  });
 });

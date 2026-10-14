@@ -25,6 +25,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'GeolocationApiService',
   'ProfileMetricsService',
   'ProofOfOwnershipService',
+  'ProfileService',
   'RampsService',
   'TransakService',
   'NeoBankService',
@@ -126,6 +127,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'ComplianceController:stateChange',
   'KycController:stateChange',
   'SocialController:stateChange',
+  'ProfileController:stateChange',
   'QrSyncController:stateChange',
 ] as const;
 

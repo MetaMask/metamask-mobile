@@ -26,6 +26,7 @@ jest.mock('react-native-gesture-handler', () => {
   const RN = jest.requireActual('react-native');
   return {
     GestureHandlerRootView: RN.View,
+    RectButton: RN.TouchableOpacity,
     GestureDetector: ({ children }: { children: React.ReactNode }) => children,
     Gesture: {
       Pan: jest.fn().mockReturnValue({
