@@ -7,6 +7,7 @@ import React, {
   useImperativeHandle,
 } from 'react';
 import {
+  Pressable,
   ScrollView,
   StyleSheet,
   View,
@@ -70,6 +71,7 @@ import TokenDetailsV1TabBar, {
   useTokenDetailsV1Tabs,
 } from '../components/TokenDetailsV1TabBar';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
+import TraderPositionPnlSection from '../TraderPositionPnl/TraderPositionPnlSection';
 import {
   TOKEN_DETAILS_V1_TABS,
   type TokenDetailsRouteParams,
@@ -111,6 +113,11 @@ export const TOKEN_DETAILS_TAB_BAR_STICKY_INDEX = 2;
  * exposes it. Change locally to preview other labels ("5h", "3w", …).
  */
 const MOCK_TOKEN_AGE_LABEL = '3d';
+
+const AGE_EXPLAINER_COPY: ExplainerCopy = {
+  title: 'token_details_v1.age.explainer.title',
+  description: 'token_details_v1.age.explainer.description',
+};
 
 interface ShareTokenBottomSheetControllerRef {
   open: () => void;
@@ -243,6 +250,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const selectedCurrency = useSelector(selectCurrentCurrency);
   const { marketData, isLoading: isMarketDataLoading } =
     useTokenMarketData(caip19AssetId);
+  const traderPositionTokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
 
   const statBarStats = useTokenStatBarStats({
     marketData,
@@ -273,6 +281,10 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   }, []);
 
   const handleExplainerClose = useCallback(() => setExplainerCopy(null), []);
+
+  const handleAgePress = useCallback(() => {
+    setExplainerCopy(AGE_EXPLAINER_COPY);
+  }, []);
 
   const isNativeToken = Boolean(token.isETH || token.isNative);
   const hasBalanceValue = useMemo(() => {
@@ -438,17 +450,24 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           }
           description={headerDescription}
           titleEndAccessory={
-            <Tag
-              severity={TagSeverity.Neutral}
-              twClassName="self-center shrink-0"
+            <Pressable
+              onPress={handleAgePress}
+              accessibilityRole="button"
+              accessibilityLabel={strings(
+                'token_details_v1.age.accessibility_label',
+                { age: MOCK_TOKEN_AGE_LABEL },
+              )}
               testID={TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID}
-              accessibilityLabel={`Token age ${MOCK_TOKEN_AGE_LABEL}`}
             >
-              {MOCK_TOKEN_AGE_LABEL}
-            </Tag>
+              <Tag
+                severity={TagSeverity.Neutral}
+                twClassName="self-center shrink-0"
+              >
+                {MOCK_TOKEN_AGE_LABEL}
+              </Tag>
+            </Pressable>
           }
         />
-
         {/* The tab bar is a direct ScrollView child registered in
             `stickyHeaderIndices`, so it docks right below the nav header
             while the price hero, chart and tab content scroll under it. */}
@@ -477,7 +496,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 isLoading={isPriceLoading}
                 hasInsufficientCoverage={hasInsufficientCoverage}
               >
-                <Price.Header />
+                <Price.Header showPeriodLabel={false} />
 
                 <Box twClassName="px-4">
                   <SecuritySocialSection
@@ -536,6 +555,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             </ScrollView>
           )}
         </PriceChartContext.Consumer>
+
+        <TraderPositionPnlSection
+          token={token}
+          tokenKey={traderPositionTokenKey}
+          securityData={securityData}
+        />
 
         {/* Both sheets sit outside the ScrollView on purpose: the design
             system `BottomSheet` is positioned `absolute inset-0` against its

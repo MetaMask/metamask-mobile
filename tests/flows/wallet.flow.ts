@@ -437,8 +437,8 @@ export const importWalletWithRecoveryPhrase = async ({
 
   await CreatePasswordView.enterPassword(password ?? validAccount.password);
   await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
-  await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
+  await CreatePasswordView.tapPasswordWarningConfirmButton();
 
   if (!fromResetWallet) {
     await Assertions.expectElementToBeVisible(MetaMetricsOptInView.container, {
@@ -1005,8 +1005,8 @@ export const onboardingFlowImportSRPPlaywright = async (
   await CreatePasswordView.reEnterPassword(
     getPasswordForScenario('onboarding') ?? '',
   );
-  await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
+  await CreatePasswordView.tapPasswordWarningConfirmButton();
   await Assertions.expectElementToBeVisible(MetaMetricsOptInView.iAgreeButton);
   await MetaMetricsOptInView.tapIAgreeButton();
   await dismissOnboardingInterestQuestionnaire();

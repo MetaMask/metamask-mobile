@@ -25,6 +25,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { typography } from '@metamask/design-tokens';
 import { InputSectionProps, InputSectionRef } from './types';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import {
@@ -37,6 +38,16 @@ import { getSwapsLimitOrderDefaultPriceComparisonDirection } from '../../../util
 import { formatAmountWithLocaleSeparators } from '../../../utils/formatAmountWithLocaleSeparators';
 import { useAutoSizingFont } from '../../../hooks/useAutoSizingFont';
 import { LimitOrderPriceAdjustInputSectionSelectorsIDs } from './testIds';
+
+/**
+ * Space between the price field's box and its digits, as a ratio of the font
+ * size, for a 1.25 line height in Inter on iOS: the extra leading sits above
+ * the digits and the descender space below them.
+ */
+const AMOUNT_TOP_INSET_RATIO = 0.3;
+// Leaves 12px of clear space under the price digits. The 8px row margin is
+// partly cancelled by this pull; the rest of the line box stays below the glyphs.
+const AMOUNT_BOTTOM_INSET_RATIO = 0.094;
 
 export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
   (
@@ -118,10 +129,17 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
     const { fontSize, onContainerLayout } = useAutoSizingFont({
       text: `${inputPrefix ?? ''}${inputDisplayValue || '0'}`,
     });
+    // A focused iOS TextInput clips glyphs whose line box is only `fontSize`
+    // tall, so the field keeps the full line height. Negative margins cancel
+    // the empty space around the digits so the row gaps are measured from the
+    // glyphs.
+    const amountLineHeight = Math.round(fontSize * 1.25);
     const amountTextStyle = tw.style({
       fontSize,
-      lineHeight: fontSize * 1.25,
-      height: fontSize * 1.25,
+      lineHeight: amountLineHeight,
+      height: amountLineHeight,
+      marginTop: -Math.round(fontSize * AMOUNT_TOP_INSET_RATIO),
+      marginBottom: -Math.round(fontSize * AMOUNT_BOTTOM_INSET_RATIO),
       paddingVertical: 0,
       includeFontPadding: false,
       textAlignVertical: 'center',
@@ -143,11 +161,12 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
     }));
 
     return (
-      <Box testID={testID} gap={1}>
+      <Box testID={testID}>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={1}
+          marginBottom={3}
           twClassName="flex-wrap"
         >
           <Text
@@ -189,7 +208,11 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
             {comparisonLabel}
           </Text>
         </Box>
-        <Box twClassName="w-full min-w-0" onLayout={onContainerLayout}>
+        <Box
+          twClassName="w-full min-w-0"
+          marginBottom={shouldShowSecondaryRow ? 2 : 3}
+          onLayout={onContainerLayout}
+        >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -229,6 +252,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={1}
+            marginBottom={3}
             twClassName="self-start"
           >
             {secondaryValue || onAmountTypeTogglePress ? (
@@ -241,7 +265,8 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                   onAmountTypeTogglePress?.();
                 }}
                 disabled={!onAmountTypeTogglePress}
-                style={tw.style('flex-row items-center self-start px-1 py-1')}
+                hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                style={tw.style('flex-row items-center self-start')}
               >
                 {secondaryValue ? (
                   <Text
@@ -250,6 +275,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                     }
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
+                    style={{ lineHeight: typography.sBodyMD.fontSize }}
                   >
                     ≈ {secondaryValue}
                   </Text>
@@ -271,6 +297,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                 variant={TextVariant.BodySm}
                 color={marketComparisonColor}
                 fontWeight={FontWeight.Medium}
+                style={{ lineHeight: typography.sBodySM.fontSize }}
               >
                 {marketComparison.label}
               </Text>

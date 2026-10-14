@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import {
   Box,
   BoxAlignItems,
@@ -32,6 +33,17 @@ import type {
  * like 24h high/low — do not shift the cells beside them on every update.
  */
 const TABULAR_NUMS = { fontVariant: ['tabular-nums' as const] };
+
+const STAT_SCROLL_FADE_REMAINING_PX = 1;
+
+const hasMoreStatsToScroll = (
+  contentWidth: number,
+  viewportWidth: number,
+  scrollX: number,
+) => contentWidth - viewportWidth - scrollX > STAT_SCROLL_FADE_REMAINING_PX;
+
+const transparentBackground = (color: string) =>
+  color.startsWith('#') && color.length === 7 ? `${color}00` : 'transparent';
 
 interface StatBarItemProps {
   statKey: TokenStatKey;
@@ -150,7 +162,16 @@ export const StatBar: React.FC<StatBarProps> = ({
   onStatPress,
 }) => {
   const tw = useTailwind();
+  const { colors } = useTheme();
   const statKeys = STAT_KEYS_BY_VARIANT[variant];
+  const [viewportWidth, setViewportWidth] = useState(0);
+  const [contentWidth, setContentWidth] = useState(0);
+  const [scrollX, setScrollX] = useState(0);
+  const showScrollFade = hasMoreStatsToScroll(
+    contentWidth,
+    viewportWidth,
+    scrollX,
+  );
 
   return (
     <Box
@@ -160,7 +181,18 @@ export const StatBar: React.FC<StatBarProps> = ({
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onLayout={(event) => {
+          setViewportWidth(event.nativeEvent.layout.width);
+        }}
+        onContentSizeChange={(width) => {
+          setContentWidth(width);
+        }}
+        onScroll={(event) => {
+          setScrollX(event.nativeEvent.contentOffset.x);
+        }}
         contentContainerStyle={tw.style('flex-row px-4 pt-3.5 pb-[18px]')}
+        testID={StatBarSelectors.SCROLL}
       >
         {statKeys.map((statKey, index) => (
           <StatBarItem
@@ -173,6 +205,22 @@ export const StatBar: React.FC<StatBarProps> = ({
           />
         ))}
       </ScrollView>
+      {showScrollFade ? (
+        <LinearGradient
+          pointerEvents="none"
+          colors={[
+            transparentBackground(colors.background.default),
+            colors.background.default,
+          ]}
+          locations={[0, 0.85]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={tw.style('absolute inset-y-0 right-0 w-20')}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          testID={StatBarSelectors.SCROLL_FADE}
+        />
+      ) : null}
     </Box>
   );
 };
