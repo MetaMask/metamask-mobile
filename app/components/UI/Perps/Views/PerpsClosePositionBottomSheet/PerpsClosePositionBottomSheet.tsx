@@ -9,9 +9,6 @@ import {
   ButtonSize,
   ButtonVariant,
   SectionDivider,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { type OrdinaryOrderType } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -24,6 +21,11 @@ import PerpsSlider from '../../components/PerpsSlider';
 import PerpsSwapIcon from '../../components/PerpsSwapIcon';
 import { PerpsInlineInfoScreen } from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 import PerpsValidationErrors from '../../components/PerpsValidationErrors';
+import {
+  getDisplayablePerpsRebateBips,
+  PerpsRebateFooterText,
+} from '../../components/PerpsRebate';
+import { usePerpsRebateQuote } from '../../hooks';
 import { usePerpsClosePositionForm } from '../../hooks/usePerpsClosePositionForm';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
 import { formatPositionSize } from '../../utils/formatUtils';
@@ -97,7 +99,9 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   );
   const isEditingLimitPrice =
     isLimitPriceKeypadOpen && effectiveOrderType === 'limit';
-  const [isMarginInfoVisible, setIsMarginInfoVisible] = useState(false);
+  const [infoContentKey, setInfoContentKey] = useState<
+    'margin' | 'rebate' | null
+  >(null);
 
   const handleDisplayToggle = useCallback(
     () => setShowTokenAmount((current) => !current),
@@ -156,8 +160,18 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   }, [effectiveOrderType, handleOrderTypeChange]);
 
   const handleMarginTooltipPress = useCallback(() => {
-    setIsMarginInfoVisible(true);
+    setInfoContentKey('margin');
   }, []);
+
+  const { data: rebateQuote } = usePerpsRebateQuote({
+    coin: position.symbol,
+    direction: isLong ? 'short' : 'long',
+    notionalUsd: closeAmountUSDString,
+  });
+  const rebateBips = getDisplayablePerpsRebateBips(
+    rebateQuote?.eligible,
+    rebateQuote?.rebateBips,
+  );
 
   const totalFeeRate =
     (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
@@ -195,7 +209,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     isEditingLimitPrice,
   ]);
 
-  if (isMarginInfoVisible) {
+  if (infoContentKey) {
     return (
       <BottomSheet
         ref={sheetRef}
@@ -203,8 +217,8 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
         testID={PerpsClosePositionBottomSheetSelectorsIDs.CONTAINER}
       >
         <PerpsInlineInfoScreen
-          contentKey="margin"
-          onBack={() => setIsMarginInfoVisible(false)}
+          contentKey={infoContentKey}
+          onBack={() => setInfoContentKey(null)}
         />
       </BottomSheet>
     );
@@ -313,14 +327,13 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
               {(feeResults.feeDiscountPercentage ?? 0) > 0 ? (
                 <RewardsVipBadge />
               ) : null}
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-              >
-                {strings('perps.trade_sheet.includes_fee', {
+              <PerpsRebateFooterText
+                feeText={strings('perps.trade_sheet.includes_fee', {
                   feePercentage,
                 })}
-              </Text>
+                rebateBips={rebateBips}
+                onInfoPress={() => setInfoContentKey('rebate')}
+              />
             </Box>
           ) : null}
         </>

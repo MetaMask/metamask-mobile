@@ -1745,6 +1745,15 @@
       "margin_info_accessibility_label": "About margin",
       "liquidation_price_info_accessibility_label": "About liquidation price"
     },
+    "rebate": {
+      "label": "Fee rebate",
+      "back": "{{percentage}}% back",
+      "earned": "{{percentage}}% rebate",
+      "earned_suffix": " earned",
+      "footer_separator": " • ",
+      "footer_accessibility": " • {{percentage}}% rebate earned",
+      "info_accessibility_label": "About fee rebates"
+    },
     "mode": {
       "lite": "Lite",
       "pro": "Pro",
@@ -2919,6 +2928,10 @@
         "bridge_fee": "Bridge fee",
         "total": "Total fees",
         "discount_message": "You're saving {{percentage}}% on fees as a VIP."
+      },
+      "rebate": {
+        "title": "Fee rebate",
+        "content": "Your rebate is an estimate of the MetaMask fee you'll earn back in mUSD. It accrues in your Money account after the trade completes and can be claimed there."
       },
       "size_skew": {
         "title": "Size skew",

@@ -4,6 +4,7 @@ import PerpsCloseSummary from './PerpsCloseSummary';
 import { strings } from '../../../../../../locales/i18n';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 const { mockTheme } = jest.requireActual('../../../../../util/theme');
+const mockNavigate = jest.fn();
 
 // Mock dependencies
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -12,7 +13,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
     goBack: jest.fn(),
   })),
 }));
@@ -125,6 +126,34 @@ describe('PerpsCloseSummary', () => {
     // Assert
     expect(getByText('perps.close_position.fees')).toBeOnTheScreen();
     expect(getByTestId('fees-tooltip-button')).toBeOnTheScreen();
+  });
+
+  it('renders an eligible rebate after fees and opens its tooltip', () => {
+    const testIDs = {
+      rebateRow: 'rebate-row',
+      rebateValue: 'rebate-value',
+      rebateTooltip: 'rebate-tooltip',
+    };
+
+    const { getByTestId } = render(
+      <PerpsCloseSummary
+        {...defaultProps}
+        rebateBips={500}
+        testIDs={testIDs}
+      />,
+    );
+
+    expect(getByTestId('rebate-row')).toBeOnTheScreen();
+    expect(getByTestId('rebate-value')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('rebate-tooltip'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        params: expect.objectContaining({ contentKey: 'rebate' }),
+      }),
+    );
   });
 
   it('renders receive amount with tooltip', () => {

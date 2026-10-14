@@ -341,6 +341,9 @@ export const PerpsCloseAllPositionsViewSelectorsIDs = {
   KEEP_BUTTON: 'perps-close-all-positions-keep-button',
   CLOSE_ALL_BUTTON: 'perps-close-all-positions-close-all-button',
   FEES_VALUE: 'perps-close-all-positions-fees-value',
+  REBATE_ROW: 'perps-close-all-positions-rebate-row',
+  REBATE_VALUE: 'perps-close-all-positions-rebate-value',
+  REBATE_INFO_BUTTON: 'perps-close-all-positions-rebate-info-button',
 } as const;
 
 export const PerpsCancelAllOrdersViewSelectorsIDs = {
@@ -790,6 +793,9 @@ export const PerpsProOrderFormSelectorsIDs = {
   SUMMARY_FEES: 'perps-pro-order-form-summary-fees',
   SUMMARY_FEES_BUTTON: 'perps-pro-order-form-summary-fees-button',
   SUMMARY_FEES_VALUE: 'perps-pro-order-form-summary-fees-value',
+  SUMMARY_REBATE: 'perps-pro-order-form-summary-rebate',
+  SUMMARY_REBATE_BUTTON: 'perps-pro-order-form-summary-rebate-button',
+  SUMMARY_REBATE_VALUE: 'perps-pro-order-form-summary-rebate-value',
   SUMMARY_TWAP_RUNTIME: 'perps-pro-order-form-summary-twap-runtime',
   SUMMARY_TWAP_RUNTIME_VALUE: 'perps-pro-order-form-summary-twap-runtime-value',
   SUMMARY_TWAP_SIZE_PER_SUBORDER:
@@ -809,6 +815,7 @@ export const PerpsProOrderFormSelectorsIDs = {
   SCALE_PREVIEW_LIQUIDATION_VALUE:
     'perps-pro-order-form-scale-preview-liquidation-value',
   SCALE_PREVIEW_FEES_VALUE: 'perps-pro-order-form-scale-preview-fees-value',
+  SCALE_PREVIEW_REBATE_VALUE: 'perps-pro-order-form-scale-preview-rebate-value',
   CHASE_FORM: 'perps-pro-chase-order-form',
   CHASE_MAX_DISTANCE_INPUT: 'perps-pro-chase-max-distance-field',
   CHASE_MAX_DISTANCE_PREFIX: 'perps-pro-chase-max-distance-prefix',
@@ -1077,6 +1084,14 @@ export const PerpsTradeSheetSelectorsIDs = {
   PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
 };
 
+export const PerpsRebateSelectorsIDs = {
+  ROW: 'perps-rebate-row',
+  VALUE: 'perps-rebate-value',
+  INFO_BUTTON: 'perps-rebate-info-button',
+  FOOTER: 'perps-rebate-footer',
+  FOOTER_INFO_BUTTON: 'perps-rebate-footer-info-button',
+} as const;
+
 // ========================================
 // PERPS SLIPPAGE CONFIG BOTTOM SHEET SELECTORS
 // ========================================
@@ -1138,6 +1153,9 @@ export const PerpsClosePositionViewSelectorsIDs = {
   YOU_RECEIVE_TOOLTIP_BUTTON: 'close-position-you-receive-tooltip-button',
   MARGIN_VALUE: 'close-position-margin-value',
   FEES_VALUE: 'close-position-fees-value',
+  REBATE_ROW: 'close-position-rebate-row',
+  REBATE_VALUE: 'close-position-rebate-value',
+  REBATE_TOOLTIP_BUTTON: 'close-position-rebate-tooltip-button',
   RECEIVE_VALUE: 'close-position-receive-value',
 };
 
@@ -1411,6 +1429,9 @@ export const PerpsFlipPositionConfirmSheetSelectorsIDs = {
   FLIP_BUTTON: 'perps-flip-position-flip-button',
   EST_SIZE_VALUE: 'perps-flip-position-est-size-value',
   FEES_VALUE: 'perps-flip-position-fees-value',
+  REBATE_ROW: 'perps-flip-position-rebate-row',
+  REBATE_VALUE: 'perps-flip-position-rebate-value',
+  REBATE_INFO_BUTTON: 'perps-flip-position-rebate-info-button',
   MINIMUM_ERROR: 'perps-flip-position-minimum-error',
 } as const;
 

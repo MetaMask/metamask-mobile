@@ -74,6 +74,11 @@ const mockUsePerpsOrderFees = jest.fn((_params: unknown) => ({
   feeDiscountPercentage: 10,
   estimatedPoints: 100,
 }));
+const mockUsePerpsRebateQuote = jest.fn(
+  (): {
+    data: { eligible: boolean; rebateBips: number } | undefined;
+  } => ({ data: undefined }),
+);
 const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
   action(),
 );
@@ -313,6 +318,7 @@ jest.mock('../../../../hooks', () => ({
     return { placeOrder: mockExecuteOrder, isPlacing: mockIsPlacing };
   },
   usePerpsOrderFees: (params: unknown) => mockUsePerpsOrderFees(params),
+  usePerpsRebateQuote: () => mockUsePerpsRebateQuote(),
   usePerpsOrderValidation: (params: typeof mockOrderValidationParams) => {
     mockOrderValidationParams = params;
     if (mockValidateCalculatedMargin && params) {
@@ -622,6 +628,7 @@ const renderMutableScaleForm = (initialProps: MutableScaleProps) => {
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePerpsRebateQuote.mockReturnValue({ data: undefined });
     mockExecutionOptions = {};
     mockOrderForm.type = 'market';
     mockOrderForm.direction = 'long';
@@ -730,6 +737,16 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.fee).toBe(5);
       expect(result.current.summary.originalFee).toBe(6);
       expect(result.current.summary.feeDiscountPercentage).toBe(10);
+    });
+
+    it('adds an eligible rebate to the order summary', () => {
+      mockUsePerpsRebateQuote.mockReturnValue({
+        data: { eligible: true, rebateBips: 500 },
+      });
+
+      const { result } = renderProForm();
+
+      expect(result.current.summary.rebateBips).toBe(500);
     });
 
     it('shows the fallback liquidation display when amount is empty', () => {

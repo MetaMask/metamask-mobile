@@ -7,8 +7,9 @@ import {
 } from '@testing-library/react-native';
 import PerpsFlipPositionConfirmSheet from './PerpsFlipPositionConfirmSheet';
 import { type Position } from '@metamask/perps-controller';
-import { usePerpsOrderFees } from '../../hooks';
+import { usePerpsOrderFees, usePerpsRebateQuote } from '../../hooks';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
+import { PerpsFlipPositionConfirmSheetSelectorsIDs } from '../../Perps.testIds';
 
 const mockHandleFlipPosition = jest.fn();
 let mockIsFlipping = false;
@@ -67,6 +68,7 @@ jest.mock('../../hooks', () => ({
     takerFee: 0.3,
     isLoadingMetamaskFee: false,
   })),
+  usePerpsRebateQuote: jest.fn(() => ({ data: undefined })),
   usePerpsRewards: () => ({
     shouldShowRewardsRow: false,
     estimatedPoints: undefined,
@@ -200,6 +202,7 @@ describe('PerpsFlipPositionConfirmSheet', () => {
       takerFee: 0.3,
       isLoadingMetamaskFee: false,
     });
+    (usePerpsRebateQuote as jest.Mock).mockReturnValue({ data: undefined });
   });
 
   it('renders the flip position title', () => {
@@ -234,6 +237,18 @@ describe('PerpsFlipPositionConfirmSheet', () => {
     render(<PerpsFlipPositionConfirmSheet position={mockLongPosition} />);
 
     expect(screen.getByText('Fees')).toBeOnTheScreen();
+  });
+
+  it('renders an eligible rebate after fees', () => {
+    (usePerpsRebateQuote as jest.Mock).mockReturnValue({
+      data: { eligible: true, rebateBips: 500 },
+    });
+
+    render(<PerpsFlipPositionConfirmSheet position={mockLongPosition} />);
+
+    expect(
+      screen.getByTestId(PerpsFlipPositionConfirmSheetSelectorsIDs.REBATE_ROW),
+    ).toBeOnTheScreen();
   });
 
   it('renders cancel button', () => {

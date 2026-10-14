@@ -1814,6 +1814,43 @@ describe('PerpsProOrderForm', () => {
         'Risk warning',
       );
     });
+
+    it('renders an eligible rebate in the standard summary', () => {
+      const onRebateInfoPress = jest.fn();
+      renderForm({
+        summary: {
+          margin: '$100',
+          liquidationPrice: '$80',
+          rebateBips: 500,
+          onRebateInfoPress,
+        },
+      });
+
+      expect(screen.getByTestId(ids.SUMMARY_REBATE)).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.SUMMARY_REBATE_VALUE)).toHaveTextContent(
+        '5% back',
+      );
+
+      fireEvent.press(screen.getByTestId(ids.SUMMARY_REBATE_BUTTON));
+
+      expect(onRebateInfoPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders an eligible rebate in the Scale preview', () => {
+      renderForm({
+        orderType: 'scale',
+        scaleOrder: createScaleOrder(),
+        summary: {
+          margin: '$100',
+          liquidationPrice: '$80',
+          rebateBips: 500,
+        },
+      });
+
+      expect(
+        screen.getByTestId(ids.SCALE_PREVIEW_REBATE_VALUE),
+      ).toHaveTextContent('5% back');
+    });
   });
 
   describe('TWAP summary', () => {

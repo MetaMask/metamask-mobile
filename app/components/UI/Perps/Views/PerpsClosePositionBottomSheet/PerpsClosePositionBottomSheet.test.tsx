@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsClosePositionBottomSheetSelectorsIDs,
+  PerpsRebateSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import {
@@ -27,6 +28,9 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockSheetClose = jest.fn();
 
+jest.mock('images/image-icons', () => ({ __esModule: true, default: {} }), {
+  virtual: true,
+});
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
@@ -54,6 +58,7 @@ jest.mock('../../hooks', () => ({
   usePerpsMarketData: jest.fn(),
   usePerpsToasts: jest.fn(),
   usePerpsRewards: jest.fn(),
+  usePerpsRebateQuote: jest.fn(() => ({ data: undefined })),
 }));
 
 jest.mock('../../hooks/usePerpsClosePosition', () => ({
@@ -203,6 +208,9 @@ describe('PerpsClosePositionBottomSheet', () => {
   const usePerpsRewardsMock = jest.mocked(
     jest.requireMock('../../hooks').usePerpsRewards,
   );
+  const usePerpsRebateQuoteMock = jest.mocked(
+    jest.requireMock('../../hooks').usePerpsRebateQuote,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -233,6 +241,7 @@ describe('PerpsClosePositionBottomSheet', () => {
     usePerpsLivePricesMock.mockReturnValue(defaultPerpsLivePricesMock);
     usePerpsTopOfBookMock.mockReturnValue(defaultPerpsTopOfBookMock);
     usePerpsOrderFeesMock.mockReturnValue(defaultPerpsOrderFeesMock);
+    usePerpsRebateQuoteMock.mockReturnValue({ data: undefined });
     usePerpsClosePositionValidationMock.mockReturnValue(
       defaultPerpsClosePositionValidationMock,
     );
@@ -1018,6 +1027,23 @@ describe('PerpsClosePositionBottomSheet', () => {
 
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.HEADER_TITLE),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders an eligible rebate in the fee footer and opens its tooltip', () => {
+      usePerpsRebateQuoteMock.mockReturnValue({
+        data: { eligible: true, rebateBips: 500 },
+      });
+      const { getByTestId } = renderSheet();
+
+      expect(getByTestId(PerpsRebateSelectorsIDs.FOOTER)).toHaveTextContent(
+        'Includes 0.045% fee • 5% rebate earned',
+      );
+
+      fireEvent.press(getByTestId(PerpsRebateSelectorsIDs.FOOTER_INFO_BUTTON));
+
+      expect(
+        getByTestId(PerpsTradeSheetSelectorsIDs.INFO_SCREEN),
       ).toBeOnTheScreen();
     });
   });

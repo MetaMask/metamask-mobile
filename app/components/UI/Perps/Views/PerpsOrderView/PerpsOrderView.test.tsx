@@ -39,9 +39,13 @@ jest.mock('react-native-gesture-handler', () => {
 
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+jest.mock('images/image-icons', () => ({ __esModule: true, default: {} }), {
+  virtual: true,
+});
 
 import {
   PerpsOrderViewSelectorsIDs,
+  PerpsRebateSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -55,6 +59,7 @@ import {
   usePerpsOrderForm,
   usePerpsOrderValidation,
   usePerpsPrices,
+  usePerpsRebateQuote,
   usePerpsRewards,
   usePerpsTrading,
   usePerpsToasts,
@@ -356,6 +361,7 @@ jest.mock('../../hooks', () => {
       isLoadingMetamaskFee: false,
       error: null,
     })),
+    usePerpsRebateQuote: jest.fn(() => ({ data: undefined })),
     formatFeeRate: jest.fn((rate) => `${(rate * 100).toFixed(3)}%`),
     usePerpsOrderForm: jest.fn(() => mockDefaultUsePerpsOrderForm()),
     usePerpsOrderValidation: jest.fn(() => ({
@@ -886,6 +892,7 @@ interface MockTradeScreenProps {
   isPayWithLoading: boolean;
   feePercentage?: string;
   bridgeFee?: string;
+  rebateBips?: number;
   isFeeLoading: boolean;
   isSubmitDisabled: boolean;
   hasAmountError: boolean;
@@ -935,6 +942,7 @@ let mockLeverageScreenProps: MockLeverageScreenProps | undefined;
 let mockTPSLScreenProps: MockTPSLScreenProps | undefined;
 let mockPayWithScreenProps: MockPayWithScreenProps | undefined;
 let mockMarginInfoScreenProps: MockInfoScreenProps | undefined;
+let mockRebateInfoScreenProps: MockInfoScreenProps | undefined;
 let mockLiquidationInfoScreenProps: MockInfoScreenProps | undefined;
 
 const getMockTradeScreenProps = (): MockTradeScreenProps => {
@@ -997,6 +1005,9 @@ jest.mock(
         ).props;
         mockMarginInfoScreenProps = (
           screens.marginInfo as React.ReactElement<MockInfoScreenProps>
+        ).props;
+        mockRebateInfoScreenProps = (
+          screens.rebateInfo as React.ReactElement<MockInfoScreenProps>
         ).props;
         mockLiquidationInfoScreenProps = (
           screens.liquidationInfo as React.ReactElement<MockInfoScreenProps>
@@ -1333,6 +1344,7 @@ describe('PerpsOrderView', () => {
     mockTPSLScreenProps = undefined;
     mockPayWithScreenProps = undefined;
     mockMarginInfoScreenProps = undefined;
+    mockRebateInfoScreenProps = undefined;
     mockLiquidationInfoScreenProps = undefined;
     mockTradeSheetContentSizedScreens = undefined;
     mockTradeWithAnyTokenEnabled = false;
@@ -1342,6 +1354,7 @@ describe('PerpsOrderView', () => {
     (usePerpsOrderDepositTracking as jest.Mock).mockReturnValue({
       handleDepositConfirm: jest.fn(),
     });
+    (usePerpsRebateQuote as jest.Mock).mockReturnValue({ data: undefined });
 
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -1454,6 +1467,19 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  it('renders an eligible fee rebate in the full-page summary', () => {
+    (usePerpsRebateQuote as jest.Mock).mockReturnValue({
+      data: { eligible: true, rebateBips: 500 },
+    });
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(screen.getByTestId(PerpsRebateSelectorsIDs.ROW)).toBeOnTheScreen();
+    expect(screen.getByTestId(PerpsRebateSelectorsIDs.VALUE)).toHaveTextContent(
+      'perps.rebate.back',
+    );
+  });
+
   it('renders the Trade bottom sheet for the treatment route', async () => {
     useTradeSheetRoute();
 
@@ -1502,6 +1528,7 @@ describe('PerpsOrderView', () => {
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     expect(mockMarginInfoScreenProps?.contentKey).toBe('margin');
+    expect(mockRebateInfoScreenProps?.contentKey).toBe('rebate');
     expect(mockLiquidationInfoScreenProps?.contentKey).toBe(
       'liquidation_price',
     );
@@ -1509,8 +1536,20 @@ describe('PerpsOrderView', () => {
       'leverage',
       'payWith',
       'marginInfo',
+      'rebateInfo',
       'liquidationInfo',
     ]);
+  });
+
+  it('passes an eligible fee rebate to the Trade sheet', () => {
+    (usePerpsRebateQuote as jest.Mock).mockReturnValue({
+      data: { eligible: true, rebateBips: 500 },
+    });
+    useTradeSheetRoute();
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(getMockTradeScreenProps().rebateBips).toBe(500);
   });
 
   it('shows the market maximum leverage and the liquidation price on the Trade sheet', () => {

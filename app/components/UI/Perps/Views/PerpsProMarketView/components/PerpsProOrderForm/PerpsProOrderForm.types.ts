@@ -57,8 +57,10 @@ export interface PerpsProOrderSummaryProps {
   fee?: number;
   originalFee?: number;
   feeDiscountPercentage?: number;
+  rebateBips?: number;
   onSlippagePress?: () => void;
   onFeesInfoPress?: () => void;
+  onRebateInfoPress?: () => void;
   /**
    * Present only for TWAP orders. The Figma TWAP summary lists Runtime and Size
    * per suborder in place of Est Liquidation and Slippage.

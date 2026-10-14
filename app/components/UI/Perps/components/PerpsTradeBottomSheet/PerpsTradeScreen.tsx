@@ -35,6 +35,7 @@ import PerpsServiceInterruptionBanner from '../PerpsServiceInterruptionBanner';
 import PerpsSlider from '../PerpsSlider';
 import PerpsSwapIcon from '../PerpsSwapIcon';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import { PerpsRebateFooterText } from '../PerpsRebate';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import { typography } from '@metamask/design-tokens';
 import {
@@ -105,6 +106,7 @@ interface PerpsTradeScreenProps {
   /** Formatted fiat bridge fee, shown when the user pays with a token. */
   bridgeFee?: string;
   feeDiscountPercentage?: number;
+  rebateBips?: number;
   isSubmitting: boolean;
   isSubmitDisabled: boolean;
   submitLabel?: string;
@@ -308,6 +310,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   feePercentage,
   bridgeFee,
   feeDiscountPercentage,
+  rebateBips,
   isSubmitting,
   isSubmitDisabled,
   submitLabel,
@@ -892,20 +895,21 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 gap={2}
               >
                 {(feeDiscountPercentage ?? 0) > 0 ? <RewardsVipBadge /> : null}
-                <Text
-                  variant={TextVariant.BodyXs}
-                  color={TextColor.TextAlternative}
+                <PerpsRebateFooterText
+                  feeText={
+                    bridgeFee
+                      ? strings('perps.trade_sheet.includes_fee_with_bridge', {
+                          feePercentage,
+                          bridgeFee,
+                        })
+                      : strings('perps.trade_sheet.includes_fee', {
+                          feePercentage,
+                        })
+                  }
+                  rebateBips={rebateBips}
+                  onInfoPress={() => navigateTo('rebateInfo')}
                   testID={PerpsTradeSheetSelectorsIDs.FEE_TEXT}
-                >
-                  {bridgeFee
-                    ? strings('perps.trade_sheet.includes_fee_with_bridge', {
-                        feePercentage,
-                        bridgeFee,
-                      })
-                    : strings('perps.trade_sheet.includes_fee', {
-                        feePercentage,
-                      })}
-                </Text>
+                />
               </Box>
             ) : null}
           </Box>

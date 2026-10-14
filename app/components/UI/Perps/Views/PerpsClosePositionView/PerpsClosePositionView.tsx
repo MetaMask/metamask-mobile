@@ -21,7 +21,7 @@ import {
   getPerpsDisplaySymbol,
   isStrategyOrderType,
 } from '@metamask/perps-controller';
-import { usePerpsToasts } from '../../hooks';
+import { usePerpsRebateQuote, usePerpsToasts } from '../../hooks';
 import { usePerpsClosePositionForm } from '../../hooks/usePerpsClosePositionForm';
 import {
   formatPositionSize,
@@ -36,6 +36,7 @@ import PerpsValidationErrors from '../../components/PerpsValidationErrors';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
+import { getDisplayablePerpsRebateBips } from '../../components/PerpsRebate';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -90,6 +91,16 @@ const PerpsClosePositionView: React.FC = () => {
     }
   }, [effectiveOrderType, limitPrice]);
 
+  const { data: rebateQuote } = usePerpsRebateQuote({
+    coin: position.symbol,
+    direction: isLong ? 'short' : 'long',
+    notionalUsd: closeAmountUSDString,
+  });
+  const rebateBips = getDisplayablePerpsRebateBips(
+    rebateQuote?.eligible,
+    rebateQuote?.rebateBips,
+  );
+
   const Summary = (
     <PerpsCloseSummary
       totalMargin={summaryMargin}
@@ -100,6 +111,7 @@ const PerpsClosePositionView: React.FC = () => {
       metamaskFeeRate={feeResults.metamaskFeeRate}
       protocolFeeRate={feeResults.protocolFeeRate}
       originalMetamaskFeeRate={feeResults.originalMetamaskFeeRate}
+      rebateBips={rebateBips}
       receiveAmount={receiveAmount}
       shouldShowRewards={rewardsState.shouldShowRewardsRow}
       estimatedPoints={rewardsState.estimatedPoints}
@@ -116,6 +128,9 @@ const PerpsClosePositionView: React.FC = () => {
         pointsTooltip: PerpsClosePositionViewSelectorsIDs.POINTS_TOOLTIP_BUTTON,
         marginValue: PerpsClosePositionViewSelectorsIDs.MARGIN_VALUE,
         feesValue: PerpsClosePositionViewSelectorsIDs.FEES_VALUE,
+        rebateRow: PerpsClosePositionViewSelectorsIDs.REBATE_ROW,
+        rebateValue: PerpsClosePositionViewSelectorsIDs.REBATE_VALUE,
+        rebateTooltip: PerpsClosePositionViewSelectorsIDs.REBATE_TOOLTIP_BUTTON,
         receiveValue: PerpsClosePositionViewSelectorsIDs.RECEIVE_VALUE,
       }}
     />

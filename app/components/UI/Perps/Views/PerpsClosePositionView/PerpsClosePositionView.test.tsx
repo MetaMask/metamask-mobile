@@ -72,6 +72,7 @@ jest.mock('../../hooks', () => ({
   usePerpsMarketData: jest.fn(),
   usePerpsToasts: jest.fn(),
   usePerpsRewards: jest.fn(),
+  usePerpsRebateQuote: jest.fn(() => ({ data: undefined })),
 }));
 
 jest.mock('../../hooks/usePerpsClosePosition', () => ({

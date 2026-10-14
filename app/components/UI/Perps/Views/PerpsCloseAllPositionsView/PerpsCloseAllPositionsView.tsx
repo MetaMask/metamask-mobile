@@ -27,6 +27,7 @@ import {
   usePerpsLivePositions,
   usePerpsCloseAllCalculations,
   usePerpsCloseAllPositions,
+  usePerpsRebateQuote,
   usePerpsRewardAccountOptedIn,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
@@ -34,6 +35,7 @@ import usePerpsToasts, {
   type PerpsToastOptions,
 } from '../../hooks/usePerpsToasts';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
+import { getDisplayablePerpsRebateBips } from '../../components/PerpsRebate';
 import { createStyles } from './PerpsCloseAllPositionsView.styles';
 import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -45,6 +47,7 @@ import {
   type Position,
 } from '@metamask/perps-controller';
 import { PerpsCloseAllPositionsViewSelectorsIDs } from '../../Perps.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
 
 interface PerpsCloseAllPositionsViewProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
@@ -93,6 +96,11 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     positions: positions || [],
     priceData,
   });
+  const { data: rebateQuote } = usePerpsRebateQuote();
+  const rebateBips = getDisplayablePerpsRebateBips(
+    rebateQuote?.eligible,
+    rebateQuote?.rebateBips,
+  );
 
   // Check opt-in status for rewards
   const { accountOptedIn, account: rewardsAccount } =
@@ -396,6 +404,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             metamaskFeeRate={calculations.avgMetamaskFeeRate}
             protocolFeeRate={calculations.avgProtocolFeeRate}
             originalMetamaskFeeRate={calculations.avgOriginalMetamaskFeeRate}
+            rebateBips={rebateBips}
             receiveAmount={calculations.receiveAmount}
             shouldShowRewards={calculations.shouldShowRewards}
             estimatedPoints={calculations.totalEstimatedPoints}
@@ -406,8 +415,18 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             accountOptedIn={accountOptedIn}
             rewardsAccount={rewardsAccount}
             enableTooltips={false}
+            onRebateInfoPress={() =>
+              navigation.navigate(Routes.PERPS.MODALS.CLOSE_POSITION_MODALS, {
+                screen: Routes.PERPS.MODALS.TOOLTIP,
+                params: { contentKey: 'rebate' },
+              })
+            }
             testIDs={{
               feesValue: PerpsCloseAllPositionsViewSelectorsIDs.FEES_VALUE,
+              rebateRow: PerpsCloseAllPositionsViewSelectorsIDs.REBATE_ROW,
+              rebateValue: PerpsCloseAllPositionsViewSelectorsIDs.REBATE_VALUE,
+              rebateTooltip:
+                PerpsCloseAllPositionsViewSelectorsIDs.REBATE_INFO_BUTTON,
             }}
           />
         )}
