@@ -102,6 +102,8 @@ interface PerpsTradeScreenProps {
   showPayWith: boolean;
   isPayWithDisabled: boolean;
   feePercentage?: string;
+  /** Formatted fiat bridge fee, shown when the user pays with a token. */
+  bridgeFee?: string;
   feeDiscountPercentage?: number;
   feeSource?: PerpsFeeSource;
   isSubmitting: boolean;
@@ -305,6 +307,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   showPayWith,
   isPayWithDisabled,
   feePercentage,
+  bridgeFee,
   feeDiscountPercentage,
   feeSource,
   isSubmitting,
@@ -900,7 +903,14 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   color={TextColor.TextAlternative}
                   testID={PerpsTradeSheetSelectorsIDs.FEE_TEXT}
                 >
-                  {strings('perps.trade_sheet.includes_fee', { feePercentage })}
+                  {bridgeFee
+                    ? strings('perps.trade_sheet.includes_fee_with_bridge', {
+                        feePercentage,
+                        bridgeFee,
+                      })
+                    : strings('perps.trade_sheet.includes_fee', {
+                        feePercentage,
+                      })}
                 </Text>
               </Box>
             ) : null}
