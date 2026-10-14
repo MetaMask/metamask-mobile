@@ -43,7 +43,6 @@ const identityProbe = RouteProbe(VbaOnboardingRoutes.IDENTITY_VERIFICATION);
 const provisioningProbe = RouteProbe(
   VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR,
 );
-const errorProbe = RouteProbe(VbaOnboardingRoutes.ERROR);
 const detailsProbe = RouteProbe(Routes.RAMP.VBA_DETAILS);
 const moneyHomeProbe = RouteProbe(Routes.MONEY.HOME);
 
@@ -89,10 +88,6 @@ const OnboardingNavigator = () => (
     <OnboardingStack.Screen
       name={VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR}
       component={provisioningProbe}
-    />
-    <OnboardingStack.Screen
-      name={VbaOnboardingRoutes.ERROR}
-      component={errorProbe}
     />
   </OnboardingStack.Navigator>
 );

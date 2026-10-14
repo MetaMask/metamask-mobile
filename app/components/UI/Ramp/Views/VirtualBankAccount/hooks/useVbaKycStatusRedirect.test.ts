@@ -216,6 +216,23 @@ describe('useVbaKycStatusRedirect', () => {
     expect(mockNavigate).toHaveBeenCalledWith(mockNavigation, 'error');
   });
 
+  it('does not navigate when the screen is left while resolving', async () => {
+    const deferred = createDeferred();
+    mockResolve.mockReturnValueOnce(deferred.promise);
+    setSessionStatus(approved);
+    const { result } = renderRedirectHook();
+
+    act(() => {
+      result.current();
+    });
+    await act(async () => {
+      deferred.resolve(resolvedTo('complete'));
+      await flushPromises();
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('does not navigate when resolving finishes after unmount', async () => {
     const deferred = createDeferred();
     mockResolve.mockReturnValueOnce(deferred.promise);

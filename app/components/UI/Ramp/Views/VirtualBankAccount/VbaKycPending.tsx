@@ -24,16 +24,12 @@ export const VbaKycPendingSelectorsIDs = {
   COME_BACK_LATER_BUTTON: 'vba-kyc-pending-come-back-later-button',
 } as const;
 
-/**
- * Shown while VBA KYC is still being reviewed. The adapter watches the KYC
- * session status and moves on once there is a decision, so this screen only
- * offers a way out.
- */
-const VbaKycPending = () => {
+const VbaKycPending = ({ onLeave }: { onLeave?: () => void }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
 
   const handleComeBackLater = useCallback(() => {
+    onLeave?.();
     if (navigation.canGoBack()) {
       navigation.goBack();
       return;
@@ -42,7 +38,7 @@ const VbaKycPending = () => {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
     });
-  }, [navigation]);
+  }, [navigation, onLeave]);
 
   return (
     <SafeAreaView

@@ -32,13 +32,14 @@ export const isTerminalVbaKycStatus = ({
   kycStatus === KYC_STATUSES.approved ||
   (finalStatus !== null && TERMINAL_SESSION_STATUSES.has(finalStatus));
 
-export const useVbaKycStatusRedirect = (): void => {
+export const useVbaKycStatusRedirect = (): (() => void) => {
   const navigation = useNavigation<AppNavigationProp>();
   const sessionStatus = useSelector(selectKycSessionStatus);
   const finalStatus = sessionStatus?.finalStatus ?? null;
   const kycStatus = sessionStatus?.kycStatus ?? null;
 
   const isMountedRef = useRef(false);
+  const hasLeftRef = useRef(false);
   const isRunningRef = useRef(false);
   const handledStatusKeyRef = useRef<string | null>(null);
   const latestStatusRef = useRef<KycStatusPair>({ finalStatus, kycStatus });
@@ -55,6 +56,7 @@ export const useVbaKycStatusRedirect = (): void => {
       const status = latestStatusRef.current;
       if (
         !isMountedRef.current ||
+        hasLeftRef.current ||
         isRunningRef.current ||
         !isTerminalVbaKycStatus(status)
       ) {
@@ -71,8 +73,10 @@ export const useVbaKycStatusRedirect = (): void => {
       resolveVbaOnboarding(VBA_KYC_STATUS_REDIRECT_SOURCE)
         .then((resolved) => {
           isRunningRef.current = false;
-          // Come back later or system back closed the screen while resolving.
-          if (!isMountedRef.current) {
+          if (!isMountedRef.current || hasLeftRef.current) {
+            if (hasLeftRef.current) {
+              handledStatusKeyRef.current = null;
+            }
             return;
           }
           if (resolved.status === 'error') {
@@ -113,9 +117,6 @@ export const useVbaKycStatusRedirect = (): void => {
     [navigation],
   );
 
-  // Runs on mount too: the status can already be terminal when this screen
-  // mounts (SumSub's poll or hydrate's single fetch can land first), and the
-  // poll stops after a terminal status.
   useEffect(() => {
     latestStatusRef.current = { finalStatus, kycStatus };
     redirectIfTerminal();
@@ -144,6 +145,11 @@ export const useVbaKycStatusRedirect = (): void => {
     refreshSessionStatusIfPending();
   }, [refreshSessionStatusIfPending]);
 
+  const leave = useCallback(() => {
+    hasLeftRef.current = true;
+    handledStatusKeyRef.current = null;
+  }, []);
+
   useEffect(() => {
     const subscription = AppState.addEventListener(
       'change',
@@ -155,4 +161,6 @@ export const useVbaKycStatusRedirect = (): void => {
     );
     return () => subscription.remove();
   }, [refreshSessionStatusIfPending]);
+
+  return leave;
 };

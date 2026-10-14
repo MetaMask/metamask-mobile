@@ -19,9 +19,9 @@ const VbaStatusAdapter = ({ variant }: VbaStatusAdapterProps) => {
 };
 
 export const VbaKycPendingAdapter = () => {
-  useVbaKycStatusRedirect();
+  const leave = useVbaKycStatusRedirect();
 
-  return <VbaKycPending />;
+  return <VbaKycPending onLeave={leave} />;
 };
 
 export const VbaKycRejectedAdapter = () => {
