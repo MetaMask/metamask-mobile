@@ -22,6 +22,8 @@ import { useFloatingTabBarInset } from '../../../../component-library/components
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../reducers';
+import { selectPrimaryHDKeyring } from '../../../../selectors/keyringController';
+import { selectSessionProfileId } from '../../../../selectors/identity';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import {
   moneyDashboardPersona,
@@ -37,7 +39,7 @@ import RefereeHeroCard from '../components/Money/RefereeHeroCard';
 import RewardsOptInSection from '../components/Money/RewardsOptInSection';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkeleton';
-import { useReferralMe, useSessionProfileId } from '../hooks/useReferralMe';
+import { useReferralMe } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
 
 export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
@@ -86,11 +88,8 @@ const RewardsMoneyDashboard: React.FC = () => {
     };
   });
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const {
-    profileId,
-    isResolved: isProfileResolved,
-    retry: retrySession,
-  } = useSessionProfileId();
+  const profileId = useSelector(selectSessionProfileId);
+  const identityReady = Boolean(useSelector(selectPrimaryHDKeyring));
   const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
   const referralMeEntry = useSelector((state: RootState) =>
     selectReferralMeEntry(state, profileId),
@@ -149,14 +148,14 @@ const RewardsMoneyDashboard: React.FC = () => {
     </Box>
   );
 
-  const sessionSettledWithoutProfile = isProfileResolved && !profileId;
+  const sessionSettledWithoutProfile = identityReady && !profileId;
   const referralSettledWithoutData =
     Boolean(profileId) &&
     Boolean(referralMeEntry?.error) &&
     !referralMe &&
     !referralMeEntry?.loading;
   const stillLoading =
-    !isProfileResolved ||
+    !identityReady ||
     (Boolean(profileId) && !referralMe && !referralSettledWithoutData);
 
   if (stillLoading) {
@@ -179,7 +178,6 @@ const RewardsMoneyDashboard: React.FC = () => {
             'rewards.referral_details_error.error_fetching_description',
           )}
           onConfirm={() => {
-            retrySession();
             void fetchReferralMe({ forceFresh: true });
           }}
           confirmButtonLabel={strings(
@@ -246,6 +244,10 @@ const RewardsMoneyDashboard: React.FC = () => {
               onScroll={onScroll}
               scrollEventThrottle={16}
             >
+              {/* Only the active tab is mounted. Earnings and Performance,
+                  when those screens land, fetch on open rather than with
+                  Ways to earn. Claim history reads its cached page on focus
+                  and refreshes behind it. */}
               {activeTab === 'waysToEarn' ? (
                 <Box
                   testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}

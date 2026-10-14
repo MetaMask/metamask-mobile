@@ -1,6 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { act, fireEvent, render } from '@testing-library/react-native';
+import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import configureStore from '../../../../../util/test/configureStore';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
@@ -15,13 +16,32 @@ import AcceptInviteSheet, {
 } from './AcceptInviteSheet';
 
 const PROFILE_ID = 'profile-1';
+const KEYRING_ID = 'entropy-source-1';
 const TEST_IDS = ACCEPT_INVITE_SHEET_TEST_IDS;
+
+const sessionBackgroundState = (profileId: string) => ({
+  AuthenticationController: {
+    isSignedIn: true,
+    srpSessionData: {
+      [KEYRING_ID]: { profile: { profileId } },
+    },
+  },
+  KeyringController: {
+    isUnlocked: true,
+    keyrings: [
+      {
+        type: ExtendedKeyringTypes.hd,
+        accounts: [],
+        metadata: { id: KEYRING_ID, name: '' },
+      },
+    ],
+  },
+});
 
 const mockGoBack = jest.fn();
 const mockOnCloseBottomSheet = jest.fn();
 const mockAcceptReferralCode = jest.fn();
 const mockUseAcceptMoneyReferralCode = jest.fn();
-const mockUseSessionProfileId = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -73,10 +93,6 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('../../hooks/useReferralMe', () => ({
-  useSessionProfileId: () => mockUseSessionProfileId(),
-}));
-
 jest.mock('../../hooks/useAcceptMoneyReferralCode', () => ({
   useAcceptMoneyReferralCode: () => mockUseAcceptMoneyReferralCode(),
 }));
@@ -126,8 +142,12 @@ const advanceDebounce = async () => {
   });
 };
 
-const renderSheetSync = (referralCode?: string) => {
+const renderSheetSync = (
+  referralCode?: string,
+  sessionProfileId: string = PROFILE_ID,
+) => {
   const store = configureStore({
+    engine: { backgroundState: sessionBackgroundState(sessionProfileId) },
     rewardsMoney: { referralMe: referralMeEntries },
   });
   const view = render(
@@ -139,8 +159,11 @@ const renderSheetSync = (referralCode?: string) => {
 };
 
 /** Renders and lets the prefilled code finish its debounced validation. */
-const renderSheet = async (referralCode?: string) => {
-  const view = renderSheetSync(referralCode);
+const renderSheet = async (
+  referralCode?: string,
+  sessionProfileId?: string,
+) => {
+  const view = renderSheetSync(referralCode, sessionProfileId);
   await advanceDebounce();
   return view;
 };
@@ -159,10 +182,6 @@ describe('AcceptInviteSheet', () => {
     referralMeEntries = {
       [PROFILE_ID]: { loading: false, error: false, data: buildReferralMe() },
     };
-    mockUseSessionProfileId.mockReturnValue({
-      profileId: PROFILE_ID,
-      isResolved: true,
-    });
     mockAcceptReferralCode.mockResolvedValue(true);
     mockUseAcceptMoneyReferralCode.mockReturnValue({
       acceptReferralCode: mockAcceptReferralCode,
@@ -299,12 +318,7 @@ describe('AcceptInviteSheet', () => {
   });
 
   it('reads no copy from another profile entry', async () => {
-    mockUseSessionProfileId.mockReturnValue({
-      profileId: 'other-profile',
-      isResolved: true,
-    });
-
-    const { queryByTestId } = await renderSheet('KOL1');
+    const { queryByTestId } = await renderSheet('KOL1', 'other-profile');
 
     expect(queryByTestId(TEST_IDS.BODY)).toBeNull();
   });

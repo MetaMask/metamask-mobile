@@ -8,7 +8,7 @@ import {
   setReferralMeLoading,
 } from '../../../../reducers/rewardsMoney';
 import type { ReferralMeDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
-import { useReferralMe, useSessionProfileId } from './useReferralMe';
+import { useReferralMe } from './useReferralMe';
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
@@ -517,136 +517,6 @@ describe('useReferralMe', () => {
         status: 'discarded',
         profileId: PROFILE_A,
       });
-    });
-  });
-});
-
-describe('useSessionProfileId', () => {
-  const mockEngineCall = Engine.controllerMessenger.call as jest.Mock;
-
-  const flushPromises = () =>
-    new Promise((resolve) => {
-      setTimeout(resolve, 0);
-    });
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('resolves the session profile id', async () => {
-    mockEngineCall.mockResolvedValue({ profileId: PROFILE_A });
-
-    const { result } = renderHook(() => useSessionProfileId());
-    await act(async () => {
-      await flushPromises();
-    });
-
-    expect(result.current).toMatchObject({
-      profileId: PROFILE_A,
-      isResolved: true,
-    });
-    expect(mockEngineCall).toHaveBeenCalledWith(
-      'AuthenticationController:getSessionProfile',
-    );
-  });
-
-  it('reports itself unresolved until the session read comes back', async () => {
-    let releaseProfile: () => void = () => undefined;
-    mockEngineCall.mockReturnValue(
-      new Promise((resolve) => {
-        releaseProfile = () => resolve({ profileId: PROFILE_A });
-      }),
-    );
-
-    const { result } = renderHook(() => useSessionProfileId());
-
-    // A caller cannot tell "no profile" from "not read yet" without this, and
-    // profile-keyed state is empty in both cases.
-    expect(result.current).toMatchObject({
-      profileId: undefined,
-      isResolved: false,
-    });
-
-    await act(async () => {
-      releaseProfile();
-      await flushPromises();
-    });
-
-    expect(result.current).toMatchObject({
-      profileId: PROFILE_A,
-      isResolved: true,
-    });
-  });
-
-  it('does not update after unmount while the session read is pending', async () => {
-    let releaseProfile: () => void = () => undefined;
-    mockEngineCall.mockReturnValue(
-      new Promise((resolve) => {
-        releaseProfile = () => resolve({ profileId: PROFILE_A });
-      }),
-    );
-
-    const { result, unmount } = renderHook(() => useSessionProfileId());
-    expect(result.current).toMatchObject({
-      profileId: undefined,
-      isResolved: false,
-    });
-
-    unmount();
-    await act(async () => {
-      releaseProfile();
-      await flushPromises();
-    });
-
-    expect(result.current).toMatchObject({
-      profileId: undefined,
-      isResolved: false,
-    });
-  });
-
-  it('does not read referral me', async () => {
-    mockEngineCall.mockResolvedValue({ profileId: PROFILE_A });
-
-    renderHook(() => useSessionProfileId());
-    await act(async () => {
-      await flushPromises();
-    });
-
-    expect(mockEngineCall).toHaveBeenCalledTimes(1);
-    expect(mockEngineCall).not.toHaveBeenCalledWith(
-      'RewardsMoneyController:getReferralMe',
-      expect.anything(),
-    );
-  });
-
-  it.each([
-    ['there is no session', undefined],
-    ['the session has no profile', {}],
-  ])('resolves to no profile id when %s', async (_name, sessionProfile) => {
-    mockEngineCall.mockResolvedValue(sessionProfile);
-
-    const { result } = renderHook(() => useSessionProfileId());
-    await act(async () => {
-      await flushPromises();
-    });
-
-    expect(result.current).toMatchObject({
-      profileId: undefined,
-      isResolved: true,
-    });
-  });
-
-  it('resolves to no profile id when the session read throws', async () => {
-    mockEngineCall.mockRejectedValue(new Error('no session'));
-
-    const { result } = renderHook(() => useSessionProfileId());
-    await act(async () => {
-      await flushPromises();
-    });
-
-    expect(result.current).toMatchObject({
-      profileId: undefined,
-      isResolved: true,
     });
   });
 });

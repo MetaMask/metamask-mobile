@@ -82,6 +82,7 @@ import useRewardsVersionGuard from '../../UI/Rewards/hooks/useRewardsVersionGuar
 import { useCandidateSubscriptionId } from '../../UI/Rewards/hooks/useCandidateSubscriptionId';
 import { useRewardsTabPerformance } from '../../UI/Rewards/hooks/useRewardsTabPerformance';
 import { useRewardsMoneyTabRouting } from '../../UI/Rewards/hooks/useRewardsMoneyTabRouting';
+import { usePrefetchRewardsIdentity } from '../../UI/Rewards/hooks/usePrefetchRewardsIdentity';
 import { getRewardsTabContentState } from '../../UI/Rewards/utils/rewardsTabContentState';
 import RewardsTabSkeleton from '../../UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
 import RewardsUpdateRequired from '../../UI/Rewards/components/RewardsUpdateRequired/RewardsUpdateRequired';
@@ -693,7 +694,6 @@ const SettingsFlow = () => {
 // Replaces `unmountOnBlur` (removed in React Navigation v7).
 const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
 const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
-const RewardsHomeUnmountOnTabBlur = withUnmountOnTabBlur(RewardsHome);
 
 // `satisfies` keeps each component's own type for `JsTab.Screen` while still
 // requiring an entry for every static tab. Social is chosen at runtime.
@@ -703,12 +703,18 @@ const HOME_TAB_COMPONENTS = {
   browser: BrowserFlowUnmountOnTabBlur,
   activity: TransactionsHomeUnmountOnTabBlur,
   money: MoneyTabScreenStack,
-  rewards: RewardsHomeUnmountOnTabBlur,
+  // Rewards stays mounted. Leaving the tab used to throw the tree away, so
+  // every return rebuilt the screen. Data refreshes on focus instead.
+  rewards: RewardsHome,
 } satisfies Record<Exclude<HomeTabKey, 'social'>, unknown>;
 
 const HomeTabs = () => {
   const { colors } = useTheme();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
+  // The Rewards tab is not mounted until it is opened. Start the candidate
+  // lookup, and referral me when Money is on, while Home is already up.
+  useCandidateSubscriptionId();
+  usePrefetchRewardsIdentity();
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);

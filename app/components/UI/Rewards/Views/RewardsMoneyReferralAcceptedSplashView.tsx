@@ -23,7 +23,7 @@ import type { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import RewardsThemeImageComponent from '../components/ThemeImageComponent/RewardsThemeImageComponent';
-import { useSessionProfileId } from '../hooks/useReferralMe';
+import { selectSessionProfileId } from '../../../../selectors/identity';
 import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
 import { formatRewardsDateLabel } from '../utils/formatUtils';
 
@@ -96,7 +96,7 @@ export function fillInviteAcceptedBodyDate(
 const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const { profileId } = useSessionProfileId();
+  const profileId = useSelector(selectSessionProfileId);
   const referralMeEntry = useSelector((state: RootState) =>
     selectReferralMeEntry(state, profileId),
   );

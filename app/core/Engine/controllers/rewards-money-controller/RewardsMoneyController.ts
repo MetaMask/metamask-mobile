@@ -48,6 +48,10 @@ export const CLAIM_BY_ID_CACHE_THRESHOLD_MS = 300_000;
 export const REFERRAL_FUNNEL_CACHE_THRESHOLD_MS = 60_000;
 export const EARNINGS_SUMMARY_CACHE_THRESHOLD_MS = 60_000;
 export const EARNINGS_LEDGER_CACHE_THRESHOLD_MS = 60_000;
+/**
+ * Claim history, when a screen reads it, uses this cache on focus and
+ * refreshes behind the cached page. A focus visit does not pass forceFresh.
+ */
 export const CLAIM_HISTORY_CACHE_THRESHOLD_MS = 60_000;
 export const COMMISSIONS_CACHE_THRESHOLD_MS = 60_000;
 
@@ -245,6 +249,9 @@ export class RewardsMoneyController extends BaseController<
   /**
    * Hydra profile id for the primary session — same identity the bearer token
    * authenticates as. Throws when no session profile is available.
+   *
+   * `getSessionProfile` returns the authentication controller's cached session
+   * and only logs in when none exists, so this call is not wrapped again.
    */
   async #getProfileId(): Promise<string> {
     const profile = await this.messenger.call(
