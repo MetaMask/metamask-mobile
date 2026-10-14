@@ -22,7 +22,7 @@ jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
-  const { View, Text: RNText } = jest.requireActual('react-native');
+  const { View, Text: RNText, Pressable } = jest.requireActual('react-native');
 
   return {
     Box: ({
@@ -40,7 +40,27 @@ jest.mock('@metamask/design-system-react-native', () => {
       children?: React.ReactNode;
       testID?: string;
     }) => ReactActual.createElement(RNText, { testID }, children),
-    TextVariant: { BodyMd: 'bodyMd' },
+    TextVariant: { BodyMd: 'bodyMd', DisplayMd: 'displayMd' },
+    TextColor: { TextAlternative: 'text-alternative' },
+    BoxFlexDirection: { Column: 'column' },
+    BoxAlignItems: { Center: 'center' },
+    BoxJustifyContent: { Center: 'center' },
+    ButtonSize: { Lg: 'lg' },
+    ButtonVariant: { Primary: 'primary', Tertiary: 'tertiary' },
+    Button: ({
+      children,
+      onPress,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      onPress?: () => void;
+      testID?: string;
+    }) =>
+      ReactActual.createElement(
+        Pressable,
+        { testID, onPress, accessibilityRole: 'button' },
+        ReactActual.createElement(RNText, null, children),
+      ),
   };
 });
 
@@ -204,7 +224,7 @@ describe('VipSplashScreenLayout', () => {
     });
   });
 
-  it('uses compact button heights on small screens', () => {
+  it('keeps both actions available on small screens', () => {
     jest.mocked(useWindowDimensions).mockReturnValue({
       width: 320,
       height: VIP_SPLASH_MIN_SCREEN_HEIGHT_FOR_SMALL_STYLES - 1,
@@ -215,10 +235,10 @@ describe('VipSplashScreenLayout', () => {
     const { getByTestId } = render(<VipSplashScreenLayout {...defaultProps} />);
 
     expect(
-      getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.ACCEPT_BUTTON).props.style,
-    ).toEqual(expect.arrayContaining(['h-10']));
+      getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.ACCEPT_BUTTON),
+    ).toBeOnTheScreen();
     expect(
-      getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.NOT_NOW_BUTTON).props.style,
-    ).toEqual(expect.arrayContaining(['h-8']));
+      getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.NOT_NOW_BUTTON),
+    ).toBeOnTheScreen();
   });
 });

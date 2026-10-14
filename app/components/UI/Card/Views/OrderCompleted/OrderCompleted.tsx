@@ -2,18 +2,9 @@ import React, { useCallback, useEffect } from 'react';
 import { Image } from 'react-native';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  Text,
-  TextVariant,
-  FontWeight,
-  Button,
-  ButtonVariant,
-  ButtonSize,
-  HeaderStandard,
-} from '@metamask/design-system-react-native';
+import { HeaderStandard } from '@metamask/design-system-react-native';
+import MarketingMoment from '../../../MarketingMoment';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -79,70 +70,40 @@ const OrderCompleted: React.FC = () => {
     : strings('card.order_completed.set_up_card_button');
 
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-background-default')}
-      edges={['bottom']}
+    <MarketingMoment
       testID={OrderCompletedSelectors.CONTAINER}
-    >
-      <HeaderStandard
-        includesTopInset
-        twClassName="bg-background-default"
-        {...headerHandlers}
-      />
-      <Box twClassName="flex-1 px-4">
-        <Box twClassName="flex-1 items-center ">
-          <Image
-            source={MM_METAL_CARD}
-            style={tw.style('w-96 h-96')}
-            resizeMode="contain"
-            testID={OrderCompletedSelectors.CARD_IMAGE}
-          />
-
-          <Text
-            style={tw.style('text-center mt-6', {
-              fontFamily: 'MMPoly-Regular',
-              fontWeight: '400',
-              fontSize: 24,
-              lineHeight: 36,
-              letterSpacing: 0,
-            })}
-            twClassName="text-default"
-            variant={TextVariant.HeadingLg}
-            testID={OrderCompletedSelectors.TITLE}
-          >
-            {strings('card.order_completed.title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Regular}
-            twClassName="text-alternative text-center mt-3"
-            testID={OrderCompletedSelectors.SUBTITLE}
-          >
-            {strings('card.order_completed.subtitle')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Regular}
-            twClassName="text-alternative text-center mt-2 px-4"
-            testID={OrderCompletedSelectors.DESCRIPTION}
-          >
-            {strings('card.order_completed.description')}
-          </Text>
-        </Box>
-
-        <Box twClassName="pb-4">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            onPress={handleSetUpCard}
-            isFullWidth
-            testID={OrderCompletedSelectors.SET_UP_CARD_BUTTON}
-          >
-            {buttonLabel}
-          </Button>
-        </Box>
-      </Box>
-    </SafeAreaView>
+      edges={['bottom']}
+      header={
+        <HeaderStandard
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
+        />
+      }
+      title={strings('card.order_completed.title')}
+      description={[
+        strings('card.order_completed.subtitle'),
+        strings('card.order_completed.description'),
+      ]}
+      titleTestID={OrderCompletedSelectors.TITLE}
+      descriptionTestIDs={[
+        OrderCompletedSelectors.SUBTITLE,
+        OrderCompletedSelectors.DESCRIPTION,
+      ]}
+      artwork={
+        <Image
+          source={MM_METAL_CARD}
+          style={tw.style('h-full w-full')}
+          resizeMode="contain"
+          testID={OrderCompletedSelectors.CARD_IMAGE}
+        />
+      }
+      primaryAction={{
+        label: buttonLabel,
+        onPress: handleSetUpCard,
+        testID: OrderCompletedSelectors.SET_UP_CARD_BUTTON,
+      }}
+    />
   );
 };
 

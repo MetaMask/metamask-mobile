@@ -2,24 +2,18 @@ import { useNavigation } from '@react-navigation/native';
 import NavigationService from '../../../../../core/NavigationService';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
-import React, { useState } from 'react';
-import { Image, View, useColorScheme } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React from 'react';
+import { Image, Platform } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Character from '../../../../../images/character_3x.png';
 import StorageWrapper from '../../../../../store/storage-wrapper';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
-import { useTheme } from '../../../../../util/theme';
 import generateDeviceAnalyticsMetaData from '../../../../../util/metrics';
-import createStyles from './PerpsGTMModal.styles';
+import MarketingMoment from '../../../MarketingMoment';
 
 import { PerpsGTMModalSelectorsIDs } from '../../Perps.testIds';
 import {
@@ -27,55 +21,20 @@ import {
   PERPS_GTM_MODAL_ENGAGE,
   PERPS_GTM_WHATS_NEW_MODAL,
 } from '../../constants/perpsConfig';
-import {
-  ButtonBase,
-  ButtonBaseSize,
-  FontWeight,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import {
-  createFontScaleHandler,
-  hasNonLatinCharacters,
-} from '../../utils/textUtils';
+import { hasNonLatinCharacters } from '../../utils/textUtils';
 
 const PerpsGTMModal = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { navigate } = useNavigation<AppNavigationProp>();
-  const theme = useTheme();
-
-  const isDarkMode = useColorScheme() === 'dark';
-  const [titleFontSize, setTitleFontSize] = useState<number | null>(null);
-  const [subtitleFontSize, setSubtitleFontSize] = useState<number | null>(null);
+  const tw = useTailwind();
 
   const titleText = strings('perps.gtm_content.title');
   const subtitleText = strings('perps.gtm_content.title_description');
   const useSystemFont =
     hasNonLatinCharacters(titleText) || hasNonLatinCharacters(subtitleText);
-
-  const styles = createStyles(
-    theme,
-    isDarkMode,
-    titleFontSize,
-    subtitleFontSize,
-    useSystemFont,
-  );
-
-  const handleTitleLayout = createFontScaleHandler({
-    maxHeight: useSystemFont ? 100 : 120, // System fonts typically render taller
-    currentFontSize: styles.title.fontSize,
-    setter: setTitleFontSize,
-    minFontSize: useSystemFont ? 28 : 32, // Slightly smaller min for system fonts
-    currentValue: titleFontSize,
-  });
-
-  const handleSubtitleLayout = createFontScaleHandler({
-    maxHeight: useSystemFont ? 70 : 80, // System fonts typically render taller
-    currentFontSize: styles.titleDescription.fontSize,
-    setter: setSubtitleFontSize,
-    minFontSize: useSystemFont ? 12 : 14, // Slightly smaller min for system fonts
-    currentValue: subtitleFontSize,
-  });
+  const systemFontStyle = useSystemFont
+    ? { fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto' }
+    : undefined;
 
   const handleClose = async () => {
     await StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true');
@@ -114,65 +73,30 @@ const PerpsGTMModal = () => {
   };
 
   return (
-    <SafeAreaView
-      style={styles.pageContainer}
+    <MarketingMoment
       testID={PerpsGTMModalSelectorsIDs.PERPS_GTM_MODAL}
-    >
-      {/* Header Section */}
-      <View style={styles.headerContainer}>
-        <Text
-          style={styles.title}
-          variant={TextVariant.HeadingLg}
-          onLayout={handleTitleLayout}
-        >
-          {titleText}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          style={styles.titleDescription}
-          onLayout={handleSubtitleLayout}
-        >
-          {subtitleText}
-        </Text>
-      </View>
-
-      {/* Content Section */}
-      <View style={styles.contentImageContainer}>
-        <Image source={Character} style={styles.image} />
-      </View>
-
-      {/* Footer Section */}
-      <View style={styles.footerContainer}>
-        <ButtonBase
-          onPress={() => tryPerpsNow()}
-          testID={PerpsGTMModalSelectorsIDs.PERPS_TRY_NOW_BUTTON}
-          size={ButtonBaseSize.Lg}
-          isFullWidth
-          style={styles.tryNowButton}
-          textProps={{ style: styles.tryNowButtonText }}
-        >
-          {strings('perps.gtm_content.try_now')}
-        </ButtonBase>
-        <Button
-          variant={ButtonVariants.Secondary}
-          onPress={() => handleClose()}
-          testID={PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON}
-          width={ButtonWidthTypes.Full}
-          size={ButtonSize.Lg}
-          style={styles.notNowButton}
-          activeOpacity={0.6}
-          label={
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              style={styles.notNowButtonText}
-            >
-              {strings('perps.gtm_content.not_now')}
-            </Text>
-          }
+      title={titleText}
+      description={subtitleText}
+      titleStyle={systemFontStyle}
+      descriptionStyle={systemFontStyle}
+      artwork={
+        <Image
+          source={Character}
+          style={tw.style('h-full w-full')}
+          resizeMode="contain"
         />
-      </View>
-    </SafeAreaView>
+      }
+      primaryAction={{
+        label: strings('perps.gtm_content.try_now'),
+        onPress: tryPerpsNow,
+        testID: PerpsGTMModalSelectorsIDs.PERPS_TRY_NOW_BUTTON,
+      }}
+      secondaryAction={{
+        label: strings('perps.gtm_content.not_now'),
+        onPress: handleClose,
+        testID: PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON,
+      }}
+    />
   );
 };
 
