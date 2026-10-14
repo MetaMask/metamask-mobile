@@ -260,6 +260,17 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     enabled: rateHistoryEnabled,
     staleTime: 5 * MINUTE,
     retry: false,
+    placeholderData: (previousData, previousQuery) => {
+      const previousQueryKey = previousQuery?.queryKey;
+      const previousScope = previousQueryKey?.[2] as
+        | { chainId?: number }
+        | undefined;
+      const sameVaultAndChain =
+        previousQueryKey?.[0] === rateQueryKey[0] &&
+        previousQueryKey?.[1] === rateQueryKey[1] &&
+        previousScope?.chainId === configuredChainId;
+      return sameVaultAndChain ? previousData : undefined;
+    },
   });
 
   const resolvedActivity = useMemo(() => {
@@ -278,13 +289,12 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
       return {
         ...row,
         isVaultShare: true,
-        ...(rateHistoryQuery.isError ? {} : { historicalRate }),
+        ...(rateHistoryQuery.data ? { historicalRate } : {}),
       };
     });
   }, [
     activity,
     rateHistoryQuery.data,
-    rateHistoryQuery.isError,
     isConfiguredVaultShare,
     vaultConfig?.chainId,
   ]);

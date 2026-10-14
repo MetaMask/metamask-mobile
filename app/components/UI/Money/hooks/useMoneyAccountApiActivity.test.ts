@@ -245,6 +245,42 @@ describe('useMoneyAccountApiActivity', () => {
     );
   });
 
+  it('keeps previous rate history while expanding the query for more activity pages', () => {
+    // Arrange
+    mockParse.mockReturnValueOnce([
+      {
+        ...CARD,
+        time: Date.parse('2026-06-04T11:53:51.000Z'),
+        token: { address: VMUSD_ADDRESS, symbol: 'vmUSD', decimals: 6 },
+        blockNumber: 10,
+      },
+    ]);
+
+    // Act
+    renderHook(() => useMoneyAccountApiActivity());
+    const options = mockUseQuery.mock.calls[0][0] as unknown as {
+      queryKey: unknown[];
+      placeholderData: (
+        previousData: unknown,
+        previousQuery?: { queryKey: unknown[] },
+      ) => unknown;
+    };
+    const previousRates = [{ block_number: 9, rate: '1.1' }];
+    const previousQuery = {
+      queryKey: options.queryKey,
+    };
+
+    // Assert: same vault/chain retains usable rates during a range change.
+    expect(options.placeholderData(previousRates, previousQuery)).toBe(
+      previousRates,
+    );
+    expect(
+      options.placeholderData(previousRates, {
+        queryKey: [options.queryKey[0], '0xother-vault', options.queryKey[2]],
+      }),
+    ).toBeUndefined();
+  });
+
   it('disables historical rates for vmUSD activity without a transaction block', () => {
     // Arrange
     mockParse.mockReturnValueOnce([
@@ -274,6 +310,7 @@ describe('useMoneyAccountApiActivity', () => {
         enabled: true,
         staleTime: 5 * MINUTE,
         retry: false,
+        placeholderData: expect.any(Function),
       }),
     );
   });
