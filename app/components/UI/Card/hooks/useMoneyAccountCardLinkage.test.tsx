@@ -18,6 +18,7 @@ import {
   selectIsCardResidencyBlocked,
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
+  selectCardSignInLink,
 } from '../../../../selectors/cardController';
 import {
   selectPendingMoneyAccountCardLink,
@@ -60,6 +61,7 @@ jest.mock('@react-navigation/native', () => {
 
 const mockLinkMoneyAccountCard = jest.fn();
 const mockIsLinkageInProgress = jest.fn<boolean, []>();
+const mockGetCapabilities = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
@@ -68,6 +70,7 @@ jest.mock('../../../../core/Engine', () => ({
         linkMoneyAccountCard: (...args: unknown[]) =>
           mockLinkMoneyAccountCard(...args),
         isLinkageInProgress: () => mockIsLinkageInProgress(),
+        getCapabilities: (...args: unknown[]) => mockGetCapabilities(...args),
       },
     },
   },
@@ -194,6 +197,10 @@ const buildSelectors = (
     cardFeatureFlag?: unknown;
     vedaConfig?: unknown;
     isResidencyBlocked?: boolean;
+    signInLink?: {
+      providerId: string;
+      status?: 'started' | 'completed' | 'linked';
+    } | null;
   } = {},
 ) => ({
   primaryMoneyAccount: { address: MONEY_ACCOUNT_ADDRESS },
@@ -231,6 +238,7 @@ const buildSelectors = (
     delegationContract: '0xdelegation',
   },
   isResidencyBlocked: false,
+  signInLink: null,
   ...overrides,
 });
 
@@ -261,6 +269,7 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
     if (selector === selectIsCardResidencyBlocked)
       return state.isResidencyBlocked;
     if (selector === selectCardActiveProviderId) return 'baanx';
+    if (selector === selectCardSignInLink) return state.signInLink;
     return undefined;
   });
 };
@@ -530,6 +539,7 @@ describe('useMoneyAccountCardLinkage', () => {
       const { result } = renderLinkageHook();
 
       expect(result.current.isMoneyAccountLinkingSupported).toBe(false);
+      expect(result.current.isMoneyCardSectionAvailable).toBe(false);
       expect(result.current.canLink).toBe(false);
       expect(result.current.getLinkFlowRedirectTarget()).toBeUndefined();
 
@@ -544,15 +554,68 @@ describe('useMoneyAccountCardLinkage', () => {
       });
     });
 
-    it('keeps linking supported for an unauthenticated session', () => {
+    it('keeps the card section for a signed-in Baanx user with a leftover Immersve sign-in record', () => {
+      applySelectorMocks(
+        buildSelectors({
+          isCardAuthenticated: true,
+          signInLink: { providerId: 'immersve', status: 'linked' },
+        }),
+      );
+      mockGetCapabilities.mockReturnValue({
+        supportsMoneyAccountLinking: false,
+      });
+      const { result } = renderLinkageHook();
+
+      expect(result.current.isMoneyAccountLinkingSupported).toBe(true);
+      expect(result.current.isMoneyCardSectionAvailable).toBe(true);
+      expect(mockGetCapabilities).not.toHaveBeenCalled();
+    });
+
+    it('keeps the card section and linking available for a logged-out user', () => {
       applySelectorMocks(buildSelectors({ isCardAuthenticated: false }));
       mockUseCardCapabilities.mockReturnValue(unsupportedCapabilities);
       const { result } = renderLinkageHook();
 
       expect(result.current.isMoneyAccountLinkingSupported).toBe(true);
+      expect(result.current.isMoneyCardSectionAvailable).toBe(true);
       expect(result.current.getLinkFlowRedirectTarget()).toBe(
         SCREEN_NAMES.CARD_HOME,
       );
+    });
+
+    it('brings the card section back after logout, even if the user is still a cardholder', () => {
+      applySelectorMocks(
+        buildSelectors({
+          isCardAuthenticated: false,
+          isCardholder: true,
+          signInLink: { providerId: 'immersve', status: 'linked' },
+        }),
+      );
+      mockUseCardCapabilities.mockReturnValue(unsupportedCapabilities);
+      mockGetCapabilities.mockReturnValue({
+        supportsMoneyAccountLinking: false,
+      });
+      const { result } = renderLinkageHook();
+
+      expect(result.current.isMoneyAccountLinkingSupported).toBe(true);
+      expect(result.current.isMoneyCardSectionAvailable).toBe(true);
+    });
+
+    it('hides the card section while an Immersve sign-in is in progress', () => {
+      applySelectorMocks(
+        buildSelectors({
+          isCardAuthenticated: false,
+          signInLink: { providerId: 'immersve', status: 'started' },
+        }),
+      );
+      mockGetCapabilities.mockReturnValue({
+        supportsMoneyAccountLinking: false,
+      });
+      const { result } = renderLinkageHook();
+
+      expect(mockGetCapabilities).toHaveBeenCalledWith('immersve');
+      expect(result.current.isMoneyAccountLinkingSupported).toBe(true);
+      expect(result.current.isMoneyCardSectionAvailable).toBe(false);
     });
 
     it('refuses linking when an authenticated session has no capabilities', () => {
@@ -560,6 +623,7 @@ describe('useMoneyAccountCardLinkage', () => {
       const { result } = renderLinkageHook();
 
       expect(result.current.isMoneyAccountLinkingSupported).toBe(false);
+      expect(result.current.isMoneyCardSectionAvailable).toBe(false);
       expect(result.current.canLink).toBe(false);
     });
 

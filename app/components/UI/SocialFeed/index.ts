@@ -23,6 +23,8 @@ export {
 } from './components/SocialFeedPositionCard';
 export { default as SocialFeedSkeleton } from './components/SocialFeedSkeleton';
 export { default as SocialFeedError } from './components/SocialFeedError';
+export { default as SocialFeed } from './components/SocialFeed';
+export type { SocialFeedProps } from './components/SocialFeed';
 export { default as SocialFeedEmpty } from './components/SocialFeedEmpty';
 export { SocialEntryOptionsProvider } from './components/SocialEntryOptionsBottomSheet';
 export {

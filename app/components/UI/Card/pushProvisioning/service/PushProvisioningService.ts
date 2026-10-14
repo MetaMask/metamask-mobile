@@ -13,8 +13,8 @@ import {
   CardDisplayInfo,
   CardActivationEvent,
   UserAddress,
-  CardDetails,
 } from '../types';
+import type { CardWalletProvisioningInfo } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { ICardProviderAdapter } from '../adapters/card/ICardProviderAdapter';
 import { IWalletProviderAdapter } from '../adapters/wallet/IWalletProviderAdapter';
 import { strings } from '../../../../../../locales/i18n';
@@ -24,9 +24,8 @@ import { getWalletName } from '../constants';
  * Options for initiating provisioning
  */
 export interface ProvisioningOptions {
-  /** Card details from CardHome (includes holderName, panLast4, status, etc.) */
-  cardDetails: CardDetails;
-  /** User address for Google Wallet provisioning (from user profile) */
+  cardId: string;
+  walletProvisioning: CardWalletProvisioningInfo;
   userAddress?: UserAddress;
 }
 
@@ -59,7 +58,7 @@ export class PushProvisioningService {
   async initiateProvisioning(
     options: ProvisioningOptions,
   ): Promise<ProvisioningResult> {
-    const { cardDetails, userAddress } = options;
+    const { cardId, walletProvisioning, userAddress } = options;
 
     try {
       // 1. Validate adapters are available
@@ -90,22 +89,26 @@ export class PushProvisioningService {
         );
       }
 
-      const { id: cardId, holderName, panLast4 } = cardDetails;
+      if (!this.cardAdapter.supportsWallet(this.walletAdapter.walletType)) {
+        throw new ProvisioningError(
+          ProvisioningErrorCode.CARD_NOT_ELIGIBLE,
+          strings('card.push_provisioning.error_card_not_eligible'),
+        );
+      }
 
-      // 3. Build CardDisplayInfo from card details
       const cardDisplayInfo: CardDisplayInfo = {
         cardId,
-        cardholderName: holderName,
-        lastFourDigits: panLast4,
-        cardNetwork: 'MASTERCARD',
-        cardDescription: `MetaMask Card ending in ${panLast4}`,
+        cardholderName: walletProvisioning.cardholderName,
+        lastFourDigits: walletProvisioning.lastFour,
+        cardNetwork: walletProvisioning.network,
+        cardDescription: `MetaMask Card ending in ${walletProvisioning.lastFour}`,
       };
 
-      // 4. Provision the card
       return await this.provisionCard(
         this.cardAdapter,
         this.walletAdapter,
         cardDisplayInfo,
+        walletProvisioning.primaryAccountIdentifier,
         userAddress,
       );
     } catch (error) {
@@ -149,14 +152,15 @@ export class PushProvisioningService {
     cardAdapter: ICardProviderAdapter,
     walletAdapter: IWalletProviderAdapter,
     cardDisplayInfo: CardDisplayInfo,
+    primaryAccountIdentifier?: string,
     userAddress?: UserAddress,
   ): Promise<ProvisioningResult> {
-    // Handle Apple Pay flow (iOS)
     if (walletAdapter.walletType === 'apple_wallet') {
       return this.provisionCardToAppleWallet(
         cardAdapter,
         walletAdapter,
         cardDisplayInfo,
+        primaryAccountIdentifier,
       );
     }
 
@@ -201,6 +205,7 @@ export class PushProvisioningService {
     cardAdapter: ICardProviderAdapter,
     walletAdapter: IWalletProviderAdapter,
     cardDisplayInfo: CardDisplayInfo,
+    primaryAccountIdentifier?: string,
   ): Promise<ProvisioningResult> {
     if (!cardAdapter.getApplePayEncryptedPayload) {
       throw new ProvisioningError(
@@ -217,7 +222,8 @@ export class PushProvisioningService {
       cardholderName: cardDisplayInfo.cardholderName,
       lastFourDigits: cardDisplayInfo.lastFourDigits,
       cardDescription: cardDisplayInfo.cardDescription,
-      encryptedPayload: {}, // Empty for Apple Pay - data comes via callback
+      primaryAccountIdentifier,
+      encryptedPayload: {},
       issuerEncryptCallback,
     });
   }

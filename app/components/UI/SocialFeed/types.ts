@@ -1,5 +1,8 @@
 import type { CaipChainId } from '@metamask/utils';
-import type { FeedItem as CoreFeedItem } from '@metamask/social-controllers';
+import type {
+  FeedItem as CoreFeedItem,
+  Position,
+} from '@metamask/social-controllers';
 import type { PositionTokenAvatarData } from './components/PositionTokenAvatar';
 import type { SocialV1MockedField } from './mockMarker';
 import type { TradeAction } from './utils/tradeAction';
@@ -74,6 +77,13 @@ interface SocialV1FeedItemBase {
 export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
   variant: 'perpsOpen';
   direction: SocialV1PerpDirection;
+  /**
+   * Tradable market id forwarded to the Perps order sheet. HIP-3 markets keep
+   * the `xyz:` prefix here; `asset.symbol` is the stripped display ticker.
+   */
+  tradeSymbol: string;
+  /** Numeric multiplier forwarded to the Perps order sheet on copy trade. */
+  leverage?: number;
   markPriceLabel?: string;
   leverageLabel?: string;
   autoCloseLabel?: string;
@@ -147,9 +157,19 @@ export interface SocialV1FeedPost {
   reactions: { emotion: string; count: number }[];
   /** Session/API viewer emotion when known. */
   userReaction?: string | null;
+  /**
+   * Triggering spot fill market cap in USD. Null for perps and for fills that
+   * omitted it. Following / Live market-cap filters pass those through.
+   */
+  marketCapUsd?: number | null;
   gifUri?: string;
   isPending?: boolean;
   item: SocialV1FeedItem;
+  /**
+   * The canonical position behind a live row, handed to the position details
+   * sheet so it opens without a fetch. Absent on pending and mocked posts.
+   */
+  position?: Position;
 }
 
 /**

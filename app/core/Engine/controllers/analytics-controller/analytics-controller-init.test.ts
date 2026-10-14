@@ -215,6 +215,45 @@ describe('analyticsControllerInit', () => {
       );
     });
 
+    it('keeps persisted marketing consent and eventsConfig while forcing the MMKV analyticsId', () => {
+      analyticsControllerInit(
+        getInitRequestMock({
+          analyticsId: 'mmkv-analytics-id',
+          persistedState: {
+            AnalyticsController: {
+              analyticsId: 'persisted-analytics-id',
+              optedIn: true,
+              consentDecisionMade: true,
+              optedInToMarketing: true,
+              marketingConsentDecisionMade: true,
+              marketingCampaignCookieId: 'cookie',
+              eventsConfig: {
+                schemaVersion: '1',
+                version: '2',
+                timestamp: 1,
+                events: { 'Swap Completed': ['marketing'] },
+              },
+            },
+          },
+        }),
+      );
+
+      expect(AnalyticsController).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isGeolocationEnabled: false,
+          state: expect.objectContaining({
+            analyticsId: 'mmkv-analytics-id',
+            optedIn: true,
+            consentDecisionMade: true,
+            optedInToMarketing: true,
+            marketingConsentDecisionMade: true,
+            marketingCampaignCookieId: 'cookie',
+            eventsConfig: expect.objectContaining({ version: '2' }),
+          }),
+        }),
+      );
+    });
+
     it('uses persisted optedIn state when available', () => {
       analyticsControllerInit(
         getInitRequestMock({

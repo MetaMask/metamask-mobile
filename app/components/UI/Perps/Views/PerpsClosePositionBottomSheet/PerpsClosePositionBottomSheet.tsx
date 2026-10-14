@@ -382,7 +382,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
                 testID={preset.testID}
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
-                twClassName="flex-1"
+                twClassName="flex-1 rounded-xl"
                 onPress={preset.onPress}
               >
                 {preset.label}
@@ -391,6 +391,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
+              twClassName="rounded-xl"
               onPress={handleLimitPriceDone}
             >
               {strings('perps.deposit.done_button')}

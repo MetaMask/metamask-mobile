@@ -5,17 +5,6 @@ import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -30,12 +19,14 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { RootState } from '../../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import AnnualRateRow from '../AnnualRateRow/AnnualRateRow';
 import {
-  FontWeight as DesignSystemFontWeight,
+  Text,
+  FontWeight,
   SensitiveText,
   SensitiveTextLength,
-  TextColor as DesignSystemTextColor,
-  TextVariant as DesignSystemTextVariant,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
 export interface EarningsProps {
@@ -44,6 +35,7 @@ export interface EarningsProps {
 }
 
 export const EARNINGS_TEST_IDS = {
+  ANNUAL_RATE_PRESSABLE: 'annual-rate-pressable',
   LIFETIME_EARNINGS_FIAT: 'lifetime-earnings-fiat',
   LIFETIME_EARNINGS_TOKEN: 'lifetime-earnings-token',
   ESTIMATED_ANNUAL_EARNINGS_FIAT: 'estimated-annual-earnings-fiat',
@@ -54,7 +46,7 @@ const EarningsContent = ({ asset, lendingAction }: EarningsProps) => {
   const { styles } = useStyles(styleSheet, {});
   const privacyMode = useSelector(selectPrivacyMode);
 
-  const { navigate } = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const { outputToken } = useSelector((state: RootState) =>
     earnSelectors.selectEarnTokenPair(state, asset),
@@ -78,75 +70,50 @@ const EarningsContent = ({ asset, lendingAction }: EarningsProps) => {
 
   const onDisplayAnnualRateTooltip = () => {
     if (isStablecoinLending) {
-      navigate('EarnModals', {
+      navigation.navigate('EarnModals', {
         screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
         params: { asset: outputToken },
       });
     } else if (isPooledStaking) {
-      navigate('StakeModals', {
+      navigation.navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
         params: { chainId: asset?.chainId },
       });
     }
   };
 
+  const annualRateTooltipLocation = isPooledStaking
+    ? EVENT_LOCATIONS.STAKING_EARNINGS
+    : EVENT_LOCATIONS.LENDING_EARNINGS;
+
   if (!hasEarnings) return <></>;
 
   return (
     <View style={styles.earningsContainer}>
-      <Text variant={TextVariant.HeadingMD} style={styles.title}>
-        {strings(
-          isStablecoinLending ? 'earn.lending_earnings' : 'stake.your_earnings',
-        )}
+      <Text variant={TextVariant.HeadingMd} style={styles.title}>
+        {strings(isStablecoinLending ? 'earn.lending' : 'stake.staking')}
       </Text>
       <View>
         {/* Annual Rate */}
-        <View style={styles.keyValueRow}>
-          <View style={styles.keyValuePrimaryTextWrapper}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              style={styles.keyValuePrimaryText}
-            >
-              {strings('stake.annual_rate')}
-            </Text>
-            <ButtonIcon
-              hitSlop={styles.hitSlop}
-              testID="annual-rate-tooltip"
-              size={ButtonIconSizes.Xs}
-              iconColor={IconColor.Muted}
-              iconName={IconName.Info}
-              accessibilityRole="button"
-              accessibilityLabel={strings(
-                'stake.accessibility_labels.stake_annual_rate_tooltip',
-              )}
-              onPress={withMetaMetrics(onDisplayAnnualRateTooltip, {
-                event: MetaMetricsEvents.TOOLTIP_OPENED,
-                properties: getTooltipMetricProperties(
-                  EVENT_LOCATIONS.LENDING_EARNINGS,
-                  'Annual Rate',
-                ),
-              })}
-            />
-          </View>
-          {isLoadingEarningsData ? (
-            <SkeletonPlaceholder>
-              <SkeletonPlaceholder.Item
-                width={100}
-                height={20}
-                borderRadius={6}
-              />
-            </SkeletonPlaceholder>
-          ) : (
-            <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
-              {annualRewardRate} APR
-            </Text>
-          )}
-        </View>
+        <AnnualRateRow
+          annualRewardRate={annualRewardRate}
+          isLoading={isLoadingEarningsData}
+          isPrivacyModeEnabled={privacyMode}
+          onPress={withMetaMetrics(onDisplayAnnualRateTooltip, {
+            event: MetaMetricsEvents.TOOLTIP_OPENED,
+            properties: getTooltipMetricProperties(
+              annualRateTooltipLocation,
+              'Annual Rate',
+            ),
+          })}
+          testID={EARNINGS_TEST_IDS.ANNUAL_RATE_PRESSABLE}
+        />
         {isPooledStaking && (
           <View style={styles.keyValueRow}>
             <View style={styles.keyValuePrimaryTextWrapperCentered}>
               <Text
-                variant={TextVariant.BodyMDMedium}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
                 style={styles.keyValuePrimaryText}
               >
                 {strings('stake.lifetime_rewards')}
@@ -170,7 +137,7 @@ const EarningsContent = ({ asset, lendingAction }: EarningsProps) => {
               ) : (
                 <>
                   <SensitiveText
-                    variant={DesignSystemTextVariant.BodyMd}
+                    variant={TextVariant.BodyMd}
                     isHidden={privacyMode}
                     length={SensitiveTextLength.Medium}
                     testID={EARNINGS_TEST_IDS.LIFETIME_EARNINGS_FIAT}
@@ -178,9 +145,9 @@ const EarningsContent = ({ asset, lendingAction }: EarningsProps) => {
                     {lifetimeRewardsFiat}
                   </SensitiveText>
                   <SensitiveText
-                    variant={DesignSystemTextVariant.BodySm}
-                    fontWeight={DesignSystemFontWeight.Medium}
-                    color={DesignSystemTextColor.TextAlternative}
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextAlternative}
                     isHidden={privacyMode}
                     length={SensitiveTextLength.Short}
                     testID={EARNINGS_TEST_IDS.LIFETIME_EARNINGS_TOKEN}
@@ -195,8 +162,9 @@ const EarningsContent = ({ asset, lendingAction }: EarningsProps) => {
         <View style={styles.keyValueRow}>
           <View style={styles.keyValuePrimaryTextWrapperCentered}>
             <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
             >
               {strings('stake.estimated_annual_earnings')}
             </Text>
@@ -219,7 +187,7 @@ const EarningsContent = ({ asset, lendingAction }: EarningsProps) => {
             ) : shouldMaskEarnings ? (
               <>
                 <SensitiveText
-                  variant={DesignSystemTextVariant.BodyMd}
+                  variant={TextVariant.BodyMd}
                   isHidden={privacyMode}
                   length={SensitiveTextLength.Medium}
                   testID={EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_FIAT}
@@ -227,9 +195,9 @@ const EarningsContent = ({ asset, lendingAction }: EarningsProps) => {
                   {estimatedAnnualEarningsFiat}
                 </SensitiveText>
                 <SensitiveText
-                  variant={DesignSystemTextVariant.BodySm}
-                  fontWeight={DesignSystemFontWeight.Medium}
-                  color={DesignSystemTextColor.TextAlternative}
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
                   isHidden={privacyMode}
                   length={SensitiveTextLength.Short}
                   testID={EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_TOKEN}
@@ -239,12 +207,13 @@ const EarningsContent = ({ asset, lendingAction }: EarningsProps) => {
               </>
             ) : (
               <>
-                <Text variant={TextVariant.BodyMD}>
+                <Text variant={TextVariant.BodyMd}>
                   {estimatedAnnualEarningsFiat}
                 </Text>
                 <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
                 >
                   {estimatedAnnualEarnings}
                 </Text>

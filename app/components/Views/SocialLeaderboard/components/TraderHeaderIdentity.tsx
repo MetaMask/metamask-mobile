@@ -24,6 +24,7 @@ export interface TraderHeaderIdentityProps {
   traderName: string;
   traderImageUrl?: string | null;
   traderAddress?: string;
+  avatar?: React.ReactNode;
   variant?: TraderHeaderIdentityVariant;
   onPress?: () => void;
   testID?: string;
@@ -43,6 +44,7 @@ const TraderHeaderIdentity: React.FC<TraderHeaderIdentityProps> = ({
   traderName,
   traderImageUrl,
   traderAddress,
+  avatar,
   variant = 'nav',
   onPress,
   testID,
@@ -65,11 +67,13 @@ const TraderHeaderIdentity: React.FC<TraderHeaderIdentityProps> = ({
       gap={2}
       twClassName="max-w-full"
     >
-      <TraderAvatar
-        imageUrl={traderImageUrl}
-        address={traderAddress}
-        size={avatarSize}
-      />
+      {avatar ?? (
+        <TraderAvatar
+          imageUrl={traderImageUrl}
+          address={traderAddress}
+          size={avatarSize}
+        />
+      )}
       <Text
         variant={textVariant}
         fontWeight={fontWeight}

@@ -8,7 +8,10 @@ import TrendingView from '../page-objects/Trending/TrendingView';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import WalletView from '../page-objects/wallet/WalletView';
 import { navigateToBrowserView, waitForTestSnapsToLoad } from './browser.flow';
-import { loginToAppPlaywright } from './wallet.flow';
+import {
+  loginToAppPlaywright,
+  waitForWalletHomePlaywright,
+} from './wallet.flow';
 import { TEST_SNAPS_URL } from '../selectors/Browser/TestSnaps.selectors';
 
 /**
@@ -17,6 +20,9 @@ import { TEST_SNAPS_URL } from '../selectors/Browser/TestSnaps.selectors';
  */
 export const loginAndOpenTestSnaps = async (): Promise<void> => {
   await loginToAppPlaywright({ scenarioType: 'e2e' });
+  // Explore/Trending tab taps flake when wallet chrome is still settling after
+  // login — wait for wallet-home readiness before leaving the Wallet tab.
+  await waitForWalletHomePlaywright();
   await navigateToBrowserView();
   await TestSnaps.navigateToTestSnap({ skipTabCleanup: true });
 };

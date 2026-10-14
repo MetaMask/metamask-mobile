@@ -2,6 +2,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import {
   type Position,
+  type MarginMode,
   type Order,
   type OrderType,
   type PerpsMarketData,
@@ -299,6 +300,8 @@ export type PerpsStackParamList = {
     initialTakeProfitPrice?: string;
     initialStopLossPrice?: string;
     leverage?: number;
+    /** Collateral mode for a new order; existing positions report their own liquidation price. */
+    marginMode?: MarginMode;
     orderType?: OrderType;
     limitPrice?: string;
     amount?: string; // For new orders - USD amount to calculate position size for P&L
@@ -319,6 +322,19 @@ export type PerpsStackParamList = {
      * backdrop in.
      */
     useBottomSheet?: boolean;
+    /**
+     * Claims the recovery owner's current reviewed action before dismissal.
+     * When supplied, must return true to submit. The owner must still fence
+     * forwarding in onConfirm after the editor has dismissed.
+     */
+    onBeforeConfirm?: () => boolean;
+    /**
+     * Validates the recovery owner's exact authoritative position review when
+     * ordinary position streams are unavailable. Without this callback, the
+     * view uses its existing live-position guard. The owner must also fence
+     * forwarding after dismissal; the provider rechecks size and entry price.
+     */
+    isPositionReviewCurrent?: (position: Position) => boolean;
     /**
      * Called when user confirms TP/SL. First arg is position when editing existing position (avoids "No position found" from stale ref).
      * Signature: (position?, takeProfitPrice?, stopLossPrice?, trackingData?) so both edit-flow and order-flow can use it.
@@ -371,8 +387,14 @@ export type PerpsStackParamList = {
   PerpsOrderRedirect: {
     direction: 'long' | 'short';
     asset: string;
+    leverage?: number;
     /** When true, the order was initiated from the token details screen */
     fromTokenDetails?: boolean;
+    /**
+     * Analytics source for the order. Token details omit this and the redirect
+     * defaults to the asset-detail screen. The Social feed passes `trader_feed`.
+     */
+    source?: string;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
     /**
      * Forces the trade bottom sheet and renders the redirect transparent.

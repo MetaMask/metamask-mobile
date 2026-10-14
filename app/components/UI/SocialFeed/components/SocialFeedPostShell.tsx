@@ -14,8 +14,10 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Image, Pressable, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
+import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
 import { useSocialEntryOptions } from './SocialEntryOptionsBottomSheet';
 import SocialTraderIdentityRow from './SocialTraderIdentityRow';
+import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
 import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
 import { mockCopyCount } from '../mocks/socialV1Enrichment';
 import { markMocked } from '../mockMarker';
@@ -32,12 +34,17 @@ import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
+  onCopyTrade?: (item: SocialV1FeedPost['item']) => void;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
+  /** Opens the position details. The card's own buttons keep their press. */
+  onPositionPress?: (post: SocialV1FeedPost) => void;
 }
 
 const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   post,
+  onCopyTrade: onSpotCopyTrade,
   onAuthorPress,
+  onPositionPress,
 }) => {
   const tw = useTailwind();
   const { showMockedFields } = useSocialFeedSurface();
@@ -64,6 +71,20 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     post.reactions,
     post.userReaction ?? null,
   );
+  const { onCopyTrade: onPerpsCopyTrade, geoBlockSheet } = useCopyTradeToPerps(
+    post.item,
+  );
+  // Perps opens the order sheet. Spot hands the item to the feed so QuickBuy
+  // can target that token. A closed position has nothing to copy.
+  const handleSpotCopyTrade = useCallback(() => {
+    onSpotCopyTrade?.(post.item);
+  }, [onSpotCopyTrade, post.item]);
+  const copyTradeHandler =
+    post.item.variant === 'perpsOpen'
+      ? onPerpsCopyTrade
+      : onSpotCopyTrade
+        ? handleSpotCopyTrade
+        : undefined;
 
   const chips = visibleReactions(reactions);
 
@@ -89,6 +110,10 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const handleIdentityPress = useCallback(() => {
     onAuthorPress?.(post);
   }, [onAuthorPress, post]);
+
+  const handlePositionPress = useCallback(() => {
+    onPositionPress?.(post);
+  }, [onPositionPress, post]);
 
   // Only a position that is still open can be copied, so only those can have
   // been. Zero copies say nothing worth the row space.
@@ -133,7 +158,17 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         </Text>
       ) : null}
 
-      <PositionCardBody item={post.item} />
+      {onPositionPress ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={handlePositionPress}
+          testID={`${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-${post.id}`}
+        >
+          <PositionCardBody item={post.item} onCopyTrade={copyTradeHandler} />
+        </Pressable>
+      ) : (
+        <PositionCardBody item={post.item} onCopyTrade={copyTradeHandler} />
+      )}
 
       {post.gifUri ? (
         <Box twClassName="rounded-2xl overflow-hidden">
@@ -210,8 +245,17 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         onPick={handlePick}
       />
       {optionsSheet}
+      {geoBlockSheet}
     </Box>
   );
 };
 
-export default SocialFeedPostShell;
+const SocialFeedPostShellWithCompliance: React.FC<
+  React.ComponentProps<typeof SocialFeedPostShell>
+> = (props) => (
+  <EnsureAccessRestricted>
+    <SocialFeedPostShell {...props} />
+  </EnsureAccessRestricted>
+);
+
+export default SocialFeedPostShellWithCompliance;

@@ -35,9 +35,11 @@ const QUICK_AMOUNT_PILL_TEXT_PROPS = {
 } as const;
 
 /**
- * Shared pill chrome.
- * ButtonSize.Md (40px) matches the Figma height; px-2 overrides the default
- * 16px horizontal padding so all four labels fit on one row without clipping.
+ * Shared quick-amount chrome.
+ * ButtonSize.Md (40px) matches the Figma height. `rounded-xl` is 12px, matching
+ * the keypad keys, and overrides ButtonBase's pill radius. px-2 overrides the
+ * default 16px horizontal padding so all four labels fit on one row without
+ * clipping.
  */
 const QUICK_AMOUNT_PILL_PROPS = {
   variant: ButtonVariant.Secondary,
@@ -45,7 +47,7 @@ const QUICK_AMOUNT_PILL_PROPS = {
   textProps: QUICK_AMOUNT_PILL_TEXT_PROPS,
 } as const;
 
-const QUICK_AMOUNT_PILL_TW_CLASS = 'min-w-0 flex-1 px-2';
+const QUICK_AMOUNT_PILL_TW_CLASS = 'min-w-0 flex-1 rounded-xl px-2';
 
 export interface QuickBuyQuickAmountsProps {
   /** When true, appends a primary Done pill (keyboard-open row above the keypad). */

@@ -290,6 +290,10 @@ export const PerpsHomeViewSelectorsIDs = {
   POSITION_CARD: 'perps-home-position-card',
   /** Per-order card; suffixed with the list index, e.g. `perps-home-order-card-0` */
   ORDER_CARD: 'perps-home-order-card',
+  ORDERS_ERROR: 'perps-orders-error',
+  ORDERS_RETRY: 'perps-orders-retry',
+  ACTIVITY_ERROR: 'perps-activity-error',
+  ACTIVITY_RETRY: 'perps-activity-retry',
   SERVICE_INTERRUPTION_BANNER: 'perps-service-interruption-banner',
   COMPETITION_BANNER: 'perps-home-competition-banner',
   PRODUCTS_SECTION: 'perps-products',
@@ -340,6 +344,7 @@ export const PerpsCloseAllPositionsViewSelectorsIDs = {
   CLOSING_STATE: 'perps-close-all-positions-closing-state',
   KEEP_BUTTON: 'perps-close-all-positions-keep-button',
   CLOSE_ALL_BUTTON: 'perps-close-all-positions-close-all-button',
+  FEES_VALUE: 'perps-close-all-positions-fees-value',
 } as const;
 
 export const PerpsCancelAllOrdersViewSelectorsIDs = {
@@ -375,6 +380,7 @@ export const PerpsTPSLViewSelectorsIDs = {
   CANCEL_BUTTON: 'perps-tpsl-cancel-button',
   DONE_BUTTON: 'perps-tpsl-done-button',
   SET_BUTTON: 'perps-tpsl-set-button',
+  RECOVERY_REVIEW_EXPIRED: 'perps-tpsl-recovery-review-expired',
   TAKE_PROFIT_CLEAR_BUTTON: 'perps-tpsl-tp-clear-button',
   STOP_LOSS_CLEAR_BUTTON: 'perps-tpsl-sl-clear-button',
   TAKE_PROFIT_PRICE_INPUT: 'perps-tpsl-tp-input',
@@ -566,6 +572,8 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITION_EDIT_MARGIN: 'perps-pro-market-position-edit-margin',
   POSITION_PNL_TEXT: 'perps-pro-market-position-pnl-text',
   POSITION_LIQ_PRICE: 'perps-pro-market-position-liq-price',
+  POSITION_LIQ_DISTANCE: 'perps-pro-market-position-liq-distance',
+  POSITION_LIQ_TREND: 'perps-pro-market-position-liq-trend',
   POSITION_ROW: 'perps-pro-market-position-row',
   ORDERS_LIST: 'perps-pro-market-orders-list',
   ORDERS_SUMMARY: 'perps-pro-market-orders-summary',
@@ -680,6 +688,12 @@ export const getPerpsProChaseTerminateSelector = (
 ) =>
   `perps-chase-terminate-${status}-${symbol}${isPrimary ? '' : `-${handle}`}`;
 
+/** Exact row identity, including the primary row's compatible market-only controls. */
+export const getPerpsProChaseHandleSelector = (
+  symbol: string,
+  handle: string,
+) => `perps-chase-handle-${symbol}-${handle}`;
+
 const getPerpsProTwapIdentitySelectorSuffix = (
   providerId: string,
   orderId: string,
@@ -734,6 +748,11 @@ export const getPerpsProTwapFillRowSelector = (
     orderId,
     fillId,
   );
+
+// Retired panel identifiers retained to guard the established layout.
+export const PerpsScaleOrderGroupsSelectorsIDs = {
+  PANEL: 'perps-scale-groups',
+} as const;
 
 export const PerpsProOrderFormSelectorsIDs = {
   CONTAINER: 'perps-pro-order-form',
@@ -812,6 +831,9 @@ export const PerpsProOrderFormSelectorsIDs = {
   CHASE_MAX_DISTANCE_UNIT: 'perps-pro-chase-max-distance-unit',
   CHASE_REFERENCE_PRICE: 'perps-pro-chase-reference-price',
 };
+
+export const getPerpsProOrderFormNoticeTestId = (noticeId: string): string =>
+  `${PerpsProOrderFormSelectorsIDs.NOTICE}-${noticeId}`;
 
 export const getPerpsProCompactInputLabelContainerTestId = (
   testID: string,
@@ -1042,6 +1064,7 @@ export const PerpsTradeSheetSelectorsIDs = {
   PAY_WITH_SKELETON: 'perps-trade-sheet-pay-with-skeleton',
   MARGIN_SKELETON: 'perps-trade-sheet-margin-skeleton',
   FEE_SKELETON: 'perps-trade-sheet-fee-skeleton',
+  FEE_TEXT: 'perps-trade-sheet-fee-text',
   ORDER_TYPE_BUTTON: 'perps-trade-sheet-order-type-button',
   MAX_LEVERAGE_TAG: 'perps-trade-sheet-max-leverage-tag',
   AMOUNT_TOGGLE: 'perps-trade-sheet-amount-toggle',
@@ -1202,6 +1225,9 @@ export const PerpsLeverageBottomSheetSelectorsIDs = {
   DESCRIPTION: 'perps-leverage-description',
   SET_BUTTON: 'perps-leverage-set-button',
 } as const;
+
+export const getPerpsLeveragePickerItemTestId = (leverage: number): string =>
+  `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-${leverage}`;
 
 export const PerpsAdjustMarginActionSheetSelectorsIDs = {
   ADD_MARGIN_OPTION: 'perps-adjust-margin-add-btn',
@@ -1401,6 +1427,7 @@ export const PerpsFlipPositionConfirmSheetSelectorsIDs = {
   FLIP_BUTTON: 'perps-flip-position-flip-button',
   EST_SIZE_VALUE: 'perps-flip-position-est-size-value',
   FEES_VALUE: 'perps-flip-position-fees-value',
+  MINIMUM_ERROR: 'perps-flip-position-minimum-error',
 } as const;
 
 // ========================================
@@ -1453,4 +1480,7 @@ export const PerpsMarketTradesListSelectorsIDs = {
 export const PerpsRecentActivityListSelectorsIDs = {
   LIST: 'perps-recent-activity-list',
   ROW: (index: number) => `perps-recent-activity-row-${index}`,
+} as const;
+export const PerpsRecoveryPanelTestIds = {
+  PANEL: 'perps-recovery-panel',
 } as const;

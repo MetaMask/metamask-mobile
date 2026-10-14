@@ -22,13 +22,7 @@ const EarnAssetIcon = ({ asset }: { asset: EarnAsset }) => {
   return (
     <BadgeWrapper
       position={BadgeWrapperPosition.BottomRight}
-      badge={
-        <BadgeNetwork
-          name={metadata.chainId}
-          src={networkImageSource}
-          twClassName="rounded-1"
-        />
-      }
+      badge={<BadgeNetwork name={metadata.chainId} src={networkImageSource} />}
     >
       <AssetLogo asset={metadata} />
     </BadgeWrapper>

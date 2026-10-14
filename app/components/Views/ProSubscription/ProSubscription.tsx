@@ -59,6 +59,7 @@ const ProSubscription = () => {
   const [checkoutPlan, setCheckoutPlan] = useState<
     SelectedPlusPlan | undefined
   >();
+  const [isCheckoutInProgress, setIsCheckoutInProgress] = useState(false);
 
   // Dismiss when the Pro flag is off, and send anyone already entitled to the
   // hub so an existing subscriber never lands on the upsell.
@@ -68,16 +69,17 @@ const ProSubscription = () => {
       return;
     }
 
-    // On the success screen the user has just subscribed, so becoming a
-    // subscriber is expected — let them read the confirmation instead of
-    // yanking them to the hub.
+    // Checkout refreshes subscriptions before it resolves, so the user can
+    // become a subscriber while Benefits is still mounted. Keep this screen
+    // up until Success is showing.
     if (
       proAccess === MoneyAccountPlusAccess.Subscriber &&
-      currentScreen !== ProSubscriptionScreen.Success
+      currentScreen !== ProSubscriptionScreen.Success &&
+      !isCheckoutInProgress
     ) {
       navigation.replace(Routes.PRO_HUB.ROOT);
     }
-  }, [proAccess, currentScreen, navigation]);
+  }, [proAccess, currentScreen, isCheckoutInProgress, navigation]);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
@@ -90,6 +92,14 @@ const ProSubscription = () => {
     },
     [navigation],
   );
+
+  const handleCheckoutStart = useCallback(() => {
+    setIsCheckoutInProgress(true);
+  }, []);
+
+  const handleCheckoutError = useCallback(() => {
+    setIsCheckoutInProgress(false);
+  }, []);
 
   const handleSuccess = useCallback((plan: SelectedPlusPlan) => {
     setCheckoutPlan(plan);
@@ -119,6 +129,8 @@ const ProSubscription = () => {
     screenContent = (
       <Benefits
         onSuccess={handleSuccess}
+        onCheckoutStart={handleCheckoutStart}
+        onCheckoutError={handleCheckoutError}
         onPlanChange={handlePlanChange}
         initialPlan={selectedPlan}
       />
@@ -143,7 +155,8 @@ const ProSubscription = () => {
       </Box>
 
       {(proAccess === MoneyAccountPlusAccess.Eligible ||
-        currentScreen === ProSubscriptionScreen.Success) &&
+        currentScreen === ProSubscriptionScreen.Success ||
+        isCheckoutInProgress) &&
         screenContent}
     </SafeAreaView>
   );

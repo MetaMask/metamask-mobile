@@ -16,11 +16,17 @@ import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AccountsMenu from '../../Views/AccountsMenu';
 import AccountHub from '../../Views/AccountHub';
+import ProfileDrawer from '../../Views/SocialProfile/ProfileDrawer/ProfileDrawer';
+import ManageProfile from '../../Views/SocialProfile/ManageProfile/ManageProfile';
+import ManageProfileField from '../../Views/SocialProfile/ManageProfile/ManageProfileField';
+import ManageProfileXAccount from '../../Views/SocialProfile/ManageProfile/ManageProfileXAccount';
+import LinkedSocialAccount from '../../Views/SocialProfile/LinkedSocialAccount/LinkedSocialAccount';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
+import { MfaSettings } from '../../Views/Mfa';
 import NetworksManagementView from '../../Views/NetworksManagement/NetworksManagementView';
 import NetworkDetailsView from '../../Views/NetworksManagement/NetworkDetailsView';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
@@ -82,6 +88,7 @@ import TokenListRoutes from '../../UI/Ramp/routes';
 
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 import VbaOnboardingNavigator from '../../UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
+import VbaDetails from '../../UI/Ramp/Views/VirtualBankAccount/VbaDetails';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
 import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
@@ -95,11 +102,7 @@ import TabBarFloating, {
 } from '../../../component-library/components/Navigation/TabBarFloating';
 import { TAB_BAR_FLOATING_HEIGHT } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 import { getTabBarFloatingBottomPadding } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
-import {
-  HEADER_NAV_BAR_AB_KEY,
-  HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
-  HEADER_NAV_BAR_VARIANTS,
-} from '../../Views/Homepage/abTestConfig';
+import { useHomeNavBarConfig } from '../../Views/Homepage/hooks/useHomeNavBarConfig';
 import {
   SOCIAL_V1_AB_KEY,
   SOCIAL_V1_VARIANTS,
@@ -126,6 +129,7 @@ import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalStackOptions,
   slideFromRightNativeOptions,
+  slideFromLeftNativeOptions,
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -187,6 +191,7 @@ import {
   ManageProfileLinkedAccountView,
   TraderProfileView,
   TraderPositionView,
+  PositionDetailsSheet,
   SocialLeaderboardOnboarding,
   SocialProfileOnboardingView,
   TradingSignalsSetupBottomSheet,
@@ -481,6 +486,7 @@ const SettingsFlow = () => {
         name="SecuritySettings"
         component={SecuritySettings}
       />
+      <NativeStack.Screen name={Routes.MFA.SETTINGS} component={MfaSettings} />
       <NativeStack.Screen
         name={Routes.RAMP.SETTINGS}
         component={RampSettings}
@@ -603,17 +609,13 @@ const HomeTabs = () => {
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
 
-  const { variant: headerNavBarVariant } = useABTest(
-    HEADER_NAV_BAR_AB_KEY,
-    HEADER_NAV_BAR_VARIANTS,
-    HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
-  );
+  const homeNavBarConfig = useHomeNavBarConfig({ trackExposure: true });
   const { variant: socialV1Variant } = useABTest(
     SOCIAL_V1_AB_KEY,
     SOCIAL_V1_VARIANTS,
     SOCIAL_V1_ASSIGNMENT_OPTIONS,
   );
-  const isFloatingTabBar = headerNavBarVariant.isCompactHeaderEnabled;
+  const isFloatingTabBar = homeNavBarConfig.isRefreshedNavBar;
   const isNativeTabBar = useIsNativeTabBar();
   const safeAreaInsets = useSafeAreaInsets();
   const nativeTabBarInset =
@@ -622,7 +624,8 @@ const HomeTabs = () => {
   const [floatingTabBarHeight, setFloatingTabBarHeight] = useState(0);
   const isSocialTabEnabled = useSelector(selectSocialLeaderboardEnabled);
 
-  const showSocialTab = isFloatingTabBar && isSocialTabEnabled;
+  const showSocialTab =
+    homeNavBarConfig.isSocialTabAllowed && isSocialTabEnabled;
   // Same TSA-1122 destination as the homepage Top Traders carousel: V1 for
   // treatment, legacy V0 for control. Exposure is recorded when the surface
   // itself mounts, not when the tab slot is registered.
@@ -646,7 +649,7 @@ const HomeTabs = () => {
       trackMoneyTabPress,
     });
   const systemSlotTab = useNativeSystemSlotTab(
-    headerNavBarVariant.trailingNavBarAction,
+    homeNavBarConfig.trailingNavBarAction,
   );
 
   // Control only: a modal trigger the bar handles itself.
@@ -698,7 +701,7 @@ const HomeTabs = () => {
           descriptors={descriptors}
           navigation={navigation}
           onHeightChange={setFloatingTabBarHeight}
-          trailingAction={headerNavBarVariant.trailingNavBarAction}
+          trailingAction={homeNavBarConfig.trailingNavBarAction}
         />
       ) : (
         <TabBar
@@ -1022,6 +1025,29 @@ const MainNavigator = () => {
         component={SettingsFlow}
         options={slideFromRightNativeOptions}
       />
+      <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
+        <NativeStack.Screen
+          name={Routes.SOCIAL_PROFILE.DRAWER}
+          component={ProfileDrawer}
+          options={slideFromLeftNativeOptions}
+        />
+        <NativeStack.Screen
+          name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE}
+          component={ManageProfile}
+        />
+        <NativeStack.Screen
+          name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD}
+          component={ManageProfileField}
+        />
+        <NativeStack.Screen
+          name={Routes.SOCIAL_PROFILE.X_ACCOUNT}
+          component={ManageProfileXAccount}
+        />
+        <NativeStack.Screen
+          name={Routes.SOCIAL_PROFILE.LINKED_SOCIAL_ACCOUNT}
+          component={LinkedSocialAccount}
+        />
+      </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.ACCOUNT_HUB_VIEW}
         component={AccountHub}
@@ -1123,6 +1149,15 @@ const MainNavigator = () => {
         name={Routes.RAMP.VBA_ONBOARDING}
         component={VbaOnboardingNavigator}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
+      <NativeStack.Screen
+        name={Routes.RAMP.VBA_DETAILS}
+        component={VbaDetails}
+        options={{
+          ...slideFromRightNativeOptions,
+          headerShown: false,
+          gestureEnabled: false,
+        }}
       />
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
@@ -1360,6 +1395,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.TRADING_SIGNALS_SETUP}
             component={TradingSignalsSetupBottomSheet}
+            options={transparentModalStackOptions}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.POSITION_SHEET}
+            component={PositionDetailsSheet}
             options={transparentModalStackOptions}
           />
         </>
