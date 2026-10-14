@@ -36,12 +36,15 @@ export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
   onCopyTrade?: (item: SocialV1FeedPost['item']) => void;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
+  /** Opens the position details. The card's own buttons keep their press. */
+  onPositionPress?: (post: SocialV1FeedPost) => void;
 }
 
 const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   post,
   onCopyTrade: onSpotCopyTrade,
   onAuthorPress,
+  onPositionPress,
 }) => {
   const tw = useTailwind();
   const { showMockedFields } = useSocialFeedSurface();
@@ -108,6 +111,10 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     onAuthorPress?.(post);
   }, [onAuthorPress, post]);
 
+  const handlePositionPress = useCallback(() => {
+    onPositionPress?.(post);
+  }, [onPositionPress, post]);
+
   // Only a position that is still open can be copied, so only those can have
   // been. Zero copies say nothing worth the row space.
   const copyCount = isCopyTradeable(post.item) ? mockCopyCount(post.id) : 0;
@@ -151,7 +158,17 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         </Text>
       ) : null}
 
-      <PositionCardBody item={post.item} onCopyTrade={copyTradeHandler} />
+      {onPositionPress ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={handlePositionPress}
+          testID={`${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-${post.id}`}
+        >
+          <PositionCardBody item={post.item} onCopyTrade={copyTradeHandler} />
+        </Pressable>
+      ) : (
+        <PositionCardBody item={post.item} onCopyTrade={copyTradeHandler} />
+      )}
 
       {post.gifUri ? (
         <Box twClassName="rounded-2xl overflow-hidden">

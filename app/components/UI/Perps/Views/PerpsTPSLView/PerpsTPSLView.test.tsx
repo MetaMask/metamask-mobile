@@ -24,6 +24,7 @@ jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
 
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: 'View',
+  RectButton: 'RectButton',
   GestureDetector: 'View',
   Gesture: {
     Pan: jest.fn().mockReturnValue({
