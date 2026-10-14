@@ -60,7 +60,7 @@ const renderTabBar = (
   );
 
 describe('TokenDetailsV1TabBar', () => {
-  it('renders the Overview, Security and Feed tabs in order', () => {
+  it('renders the Feed, Overview and Security tabs in order', () => {
     const { getAllByText, getByTestId } = renderTabBar('overview');
 
     expect(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).toBeTruthy();
@@ -68,11 +68,11 @@ describe('TokenDetailsV1TabBar', () => {
       getAllByText(/^(active|inactive):(overview|security|feed)$/).map(
         (node) => node.props.children,
       ),
-    ).toStrictEqual(['active:overview', 'inactive:security', 'inactive:feed']);
+    ).toStrictEqual(['inactive:feed', 'active:overview', 'inactive:security']);
     expect(TOKEN_DETAILS_V1_TABS).toStrictEqual([
+      'feed',
       'overview',
       'security',
-      'feed',
     ]);
   });
 
@@ -133,13 +133,13 @@ describe('TokenDetailsV1TabBar', () => {
 });
 
 describe('useTokenDetailsV1Tabs', () => {
-  it('initialises with overview as the active tab and only mounted tab', () => {
+  it('initialises with feed as the active tab and only mounted tab', () => {
     const { result } = renderHook(() => useTokenDetailsV1Tabs());
 
-    expect(result.current.activeTab).toBe('overview');
-    expect(result.current.mountedTabs.has('overview')).toBe(true);
+    expect(result.current.activeTab).toBe('feed');
+    expect(result.current.mountedTabs.has('feed')).toBe(true);
+    expect(result.current.mountedTabs.has('overview')).toBe(false);
     expect(result.current.mountedTabs.has('security')).toBe(false);
-    expect(result.current.mountedTabs.has('feed')).toBe(false);
     expect(result.current.swipeGesture).toBeDefined();
   });
 
@@ -151,7 +151,7 @@ describe('useTokenDetailsV1Tabs', () => {
     });
 
     expect(result.current.activeTab).toBe('security');
-    expect(result.current.mountedTabs.has('overview')).toBe(true);
+    expect(result.current.mountedTabs.has('feed')).toBe(true);
     expect(result.current.mountedTabs.has('security')).toBe(true);
 
     act(() => {
@@ -315,14 +315,14 @@ describe('useTokenDetailsV1ScrollStabilization', () => {
 
 describe('resolveSwipeTargetTab', () => {
   it('swipes to the neighbouring tab when translation exceeds threshold', () => {
+    expect(resolveSwipeTargetTab('feed', -120, 0)).toBe('overview');
     expect(resolveSwipeTargetTab('overview', -120, 0)).toBe('security');
-    expect(resolveSwipeTargetTab('security', -120, 0)).toBe('feed');
+    expect(resolveSwipeTargetTab('overview', 120, 0)).toBe('feed');
     expect(resolveSwipeTargetTab('security', 120, 0)).toBe('overview');
-    expect(resolveSwipeTargetTab('feed', 120, 0)).toBe('security');
   });
 
   it('swipes to the neighbouring tab on a fast fling even with small travel', () => {
-    expect(resolveSwipeTargetTab('overview', -10, -600)).toBe('security');
+    expect(resolveSwipeTargetTab('feed', -10, -600)).toBe('overview');
   });
 
   it('ignores indecisive gestures below the translation and velocity thresholds', () => {
@@ -331,7 +331,7 @@ describe('resolveSwipeTargetTab', () => {
   });
 
   it('refuses to swipe past the edges of the tab list', () => {
-    expect(resolveSwipeTargetTab('overview', 120, 0)).toBeNull();
-    expect(resolveSwipeTargetTab('feed', -120, 0)).toBeNull();
+    expect(resolveSwipeTargetTab('feed', 120, 0)).toBeNull();
+    expect(resolveSwipeTargetTab('security', -120, 0)).toBeNull();
   });
 });
