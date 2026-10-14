@@ -1036,7 +1036,7 @@ export type PolymarketTeamLookupFn = (
   abbreviation: string,
 ) => PolymarketApiTeam | undefined;
 
-const V2_MARKET_VERSION = 'v2';
+export const V2_MARKET_VERSION = 'v2';
 
 function isV2Market(market?: PolymarketApiMarket): boolean {
   return market?.version === V2_MARKET_VERSION;
@@ -2154,6 +2154,56 @@ export function encodeClaim(
     conditionId,
     amounts,
   });
+}
+
+const BYTES31_HEX_PATTERN = /^0x[a-fA-F0-9]{62}$/u;
+const BYTES32_HEX_PATTERN = /^0x[a-fA-F0-9]{64}$/u;
+
+/**
+ * Narrows a condition id to the `bytes31` shape the Protocol V2 Router
+ * expects. A padded `bytes32` value is accepted only when its final byte is
+ * zero; anything else is rejected rather than silently truncated.
+ */
+export function toBytes31ConditionId(conditionId: string): Hex {
+  if (BYTES31_HEX_PATTERN.test(conditionId)) {
+    return conditionId as Hex;
+  }
+
+  if (
+    BYTES32_HEX_PATTERN.test(conditionId) &&
+    conditionId.slice(-2).toLowerCase() === '00'
+  ) {
+    return conditionId.slice(0, -2) as Hex;
+  }
+
+  throw new Error(
+    `Cannot narrow condition id to bytes31 — expected a bytes31 value or a bytes32 value with a zero final byte, got: ${conditionId}`,
+  );
+}
+
+/**
+ * Encodes the Protocol V2 Router claim call:
+ * `redeem(bytes31 conditionId, uint256 outcomeIndex, uint256 amount)`.
+ * The Router pulls the position from the caller and returns pUSD in the same
+ * transaction, so no pre-transfer is needed. The amount is in 6-decimal base
+ * units and the outcome index is 0 for YES or 1 for NO.
+ */
+export function encodeRouterRedeem({
+  conditionId,
+  outcomeIndex,
+  amount,
+}: {
+  conditionId: string;
+  outcomeIndex: number;
+  amount: bigint | string | number;
+}): Hex {
+  return new Interface([
+    'function redeem(bytes31 conditionId, uint256 outcomeIndex, uint256 amount)',
+  ]).encodeFunctionData('redeem', [
+    toBytes31ConditionId(conditionId),
+    outcomeIndex,
+    amount,
+  ]) as Hex;
 }
 
 async function waiveFees({
