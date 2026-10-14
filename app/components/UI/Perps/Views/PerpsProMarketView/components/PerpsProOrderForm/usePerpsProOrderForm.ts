@@ -1749,12 +1749,29 @@ export const usePerpsProOrderForm = ({
     isTwapOrder &&
     orderUsdAmount > 0 &&
     orderUsdAmount < PERPS_TWAP_UI_CONFIG.MinimumNotionalUsd;
-  const { estimatedSlippageBps } = usePerpsEstimatedSlippage({
+  const {
+    estimatedSlippageBps,
+    isReady: isSlippageReady,
+    canFillWithinSlippage,
+  } = usePerpsEstimatedSlippage({
     symbol: orderForm.asset,
     sizeUsd: orderUsdAmount,
+    currentPrice: assetData.price,
+    maxSlippageBps: resolvedMaxSlippageBps,
+    szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
+    reduceOnly,
+    size: exactFullCloseSize,
     isBuy: orderForm.direction === 'long',
     enabled: isMarketOrder && hasValidAmount && isInitialized,
   });
+  const liquidityError =
+    isMarketOrder && hasValidAmount && isSlippageReady
+      ? estimatedSlippageBps === null
+        ? strings('perps.slippage.insufficient_depth')
+        : canFillWithinSlippage === false
+          ? strings('perps.slippage.cannot_fill')
+          : undefined
+      : undefined;
   const estimatedSlippagePct: number | null = useMemo(
     () =>
       typeof estimatedSlippageBps === 'number'
@@ -2654,6 +2671,15 @@ export const usePerpsProOrderForm = ({
     if (currentBlockingIssue) {
       reportValidationFailure(
         getOrderFormFieldIssueMessage(currentBlockingIssue),
+      );
+      return;
+    }
+
+    if (liquidityError) {
+      showToast(
+        PerpsToastOptions.formValidation.orderForm.validationError(
+          liquidityError,
+        ),
       );
       return;
     }
@@ -3747,6 +3773,15 @@ export const usePerpsProOrderForm = ({
 
   const notices = useMemo<PerpsProOrderNotice[]>(() => {
     const list = [
+      ...(liquidityError
+        ? [
+            {
+              id: 'liquidity',
+              variant: 'banner' as const,
+              message: liquidityError,
+            },
+          ]
+        : []),
       ...(scaleValidationNotice ? [scaleValidationNotice] : []),
       ...getBlockingNotices({
         reduceOnlyErrorCode: reduceOnly
@@ -3832,6 +3867,7 @@ export const usePerpsProOrderForm = ({
   }, [
     reduceOnly,
     scaleValidationNotice,
+    liquidityError,
     farFromMarketWarning,
     isScaleOrder,
     isReduceOnlyPositionLoading,
@@ -4138,6 +4174,7 @@ export const usePerpsProOrderForm = ({
   );
 
   const isPlaceOrderDisabled =
+    Boolean(liquidityError) ||
     !hasValidAmount ||
     !orderValidation.isValid ||
     isAtCap ||
