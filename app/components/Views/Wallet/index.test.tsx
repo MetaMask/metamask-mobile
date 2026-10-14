@@ -2188,7 +2188,9 @@ describe('Header and Nav Bar refresh AB test', () => {
       const scrollView = getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
       expect(
         StyleSheet.flatten(scrollView.props.contentContainerStyle),
-      ).toEqual(expect.objectContaining({ paddingTop: HEADER_MIN_HEIGHT }));
+      ).toEqual(
+        expect.objectContaining({ paddingTop: HEADER_MIN_HEIGHT + 16 }),
+      );
       expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(
         HEADER_MIN_HEIGHT,
       );
@@ -2209,7 +2211,7 @@ describe('Header and Nav Bar refresh AB test', () => {
       const scrollView = getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
       expect(
         StyleSheet.flatten(scrollView.props.contentContainerStyle),
-      ).toEqual(expect.objectContaining({ paddingTop: 72 }));
+      ).toEqual(expect.objectContaining({ paddingTop: 72 + 16 }));
       expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(72);
       expect(capturedContext.containerScreenY).toBe(72);
     });
@@ -2227,7 +2229,7 @@ describe('Header and Nav Bar refresh AB test', () => {
           getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW).props
             .contentContainerStyle,
         ),
-      ).toEqual(expect.objectContaining({ paddingTop: 0 }));
+      ).toEqual(expect.objectContaining({ paddingTop: 16 }));
     });
 
     it('insets the balance from the floating header capsule', () => {
