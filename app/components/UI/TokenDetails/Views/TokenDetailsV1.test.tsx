@@ -177,7 +177,7 @@ jest.mock('../components/tabs/OverviewTab', () => {
 jest.mock('../components/TokenDetailsV1TabBar', () => {
   const actual = jest.requireActual('../components/TokenDetailsV1TabBar');
   const { View, Pressable, Text } = jest.requireActual('react-native');
-  const tabs = ['overview', 'security', 'feed'];
+  const tabs = ['feed', 'overview', 'security'];
   return {
     ...actual,
     __esModule: true,
@@ -452,7 +452,7 @@ describe('TokenDetailsV1', () => {
     );
   });
 
-  it('renders the price hero, tab bar and Overview panel by default', () => {
+  it('renders the price hero, tab bar and Feed panel by default', () => {
     const { getByTestId, getByText } = render(
       <TokenDetailsV1
         token={baseToken}
@@ -462,19 +462,23 @@ describe('TokenDetailsV1', () => {
 
     expect(getByTestId('mock-price')).toBeTruthy();
     expect(getByTestId('mock-tab-bar')).toBeTruthy();
-    expect(getByTestId('mock-overview')).toBeTruthy();
-    expect(getByText('overview:true')).toBeTruthy();
+    // Feed is the default landing tab (index 0). Without the social
+    // leaderboard flag the Feed tab renders the placeholder panel.
+    expect(getByTestId('token-details-v1-tab-panel-feed')).toBeTruthy();
+    expect(getByText('feed:true')).toBeTruthy();
+    expect(getByText('overview:false')).toBeTruthy();
     expect(getByText('security:false')).toBeTruthy();
-    expect(getByText('feed:false')).toBeTruthy();
   });
 
   it('wires the Overview panel with the token, asset id and currency', () => {
-    render(
+    const { getByTestId } = render(
       <TokenDetailsV1
         token={baseToken}
         variant={TokenDetailsVariant.Memecoin}
       />,
     );
+
+    fireEvent.press(getByTestId('token-details-v1-tab-overview'));
 
     expect(mockOverviewProps[0]).toStrictEqual(
       expect.objectContaining({
@@ -510,23 +514,24 @@ describe('TokenDetailsV1', () => {
       />,
     );
 
-    // The active page flows at its natural height…
-    const overviewPage = getByTestId(
-      `${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-overview`,
+    // The active page (Feed is the default landing tab) flows at its natural
+    // height…
+    const feedPage = getByTestId(
+      `${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-feed`,
     );
-    expect(overviewPage).toBeOnTheScreen();
-    expect(overviewPage.props.style).toBeUndefined();
-    expect(overviewPage.props.pointerEvents).toBe('auto');
+    expect(feedPage).toBeOnTheScreen();
+    expect(feedPage.props.style).toBeUndefined();
+    expect(feedPage.props.pointerEvents).toBe('auto');
 
     // …while inactive pages are display:none — out of layout entirely, so
     // no page stretches to a tallest sibling and hits stay on the active one.
     // (Hidden elements need opt-in to be queryable.)
-    const securityPage = getByTestId(
-      `${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-security`,
+    const overviewPage = getByTestId(
+      `${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-overview`,
       { includeHiddenElements: true },
     );
-    expect(securityPage.props.style).toStrictEqual({ display: 'none' });
-    expect(securityPage.props.pointerEvents).toBe('none');
+    expect(overviewPage.props.style).toStrictEqual({ display: 'none' });
+    expect(overviewPage.props.pointerEvents).toBe('none');
   });
 
   it('re-stacks pages when the active tab changes so tabs keep their own heights', () => {
@@ -566,8 +571,9 @@ describe('TokenDetailsV1', () => {
       />,
     );
 
-    // Only the default tab is mounted initially.
-    expect(getByTestId('mock-overview')).toBeTruthy();
+    // Only the default tab (Feed) is mounted initially.
+    expect(getByTestId('token-details-v1-tab-panel-feed')).toBeTruthy();
+    expect(queryByTestId('mock-overview')).toBeNull();
     expect(queryByTestId(SecurityTabSelectors.TAB)).toBeNull();
 
     fireEvent.press(getByTestId('token-details-v1-tab-security'));
@@ -843,13 +849,13 @@ describe('TokenDetailsV1', () => {
 
   describe('resolveSwipeTargetTab', () => {
     it('targets the next tab on a left swipe', () => {
+      expect(resolveSwipeTargetTab('feed', -120, 0)).toBe('overview');
       expect(resolveSwipeTargetTab('overview', -120, 0)).toBe('security');
-      expect(resolveSwipeTargetTab('security', -120, 0)).toBe('feed');
     });
 
     it('targets the previous tab on a right swipe', () => {
       expect(resolveSwipeTargetTab('security', 120, 0)).toBe('overview');
-      expect(resolveSwipeTargetTab('feed', 120, 0)).toBe('security');
+      expect(resolveSwipeTargetTab('overview', 120, 0)).toBe('feed');
     });
 
     it('lets a fast fling switch tabs even with a short travel', () => {
@@ -861,8 +867,8 @@ describe('TokenDetailsV1', () => {
       expect(resolveSwipeTargetTab('overview', 30, 0)).toBeNull();
       expect(resolveSwipeTargetTab('overview', 40, 100)).toBeNull();
       // No neighbouring tab in the swipe direction.
-      expect(resolveSwipeTargetTab('overview', 120, 0)).toBeNull();
-      expect(resolveSwipeTargetTab('feed', -120, 0)).toBeNull();
+      expect(resolveSwipeTargetTab('feed', 120, 0)).toBeNull();
+      expect(resolveSwipeTargetTab('security', -120, 0)).toBeNull();
     });
   });
 
