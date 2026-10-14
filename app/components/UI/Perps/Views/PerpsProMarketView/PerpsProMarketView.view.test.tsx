@@ -2806,7 +2806,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       ).toHaveTextContent(
         strings('perps.order.validation.trigger_orders_unavailable'),
       );
-      expect(triggerInput).toHaveProp('value', '2600');
+      expect(triggerInput).toHaveProp('value', formatPerpsInput('2600'));
       expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
       expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
     },
@@ -2837,7 +2837,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         }),
       );
 
-      expect(triggerInput).toHaveProp('value', '3000');
+      expect(triggerInput).toHaveProp('value', formatPerpsInput('3000'));
       expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
         strings('perps.order.type.stop_market.title'),
       );
