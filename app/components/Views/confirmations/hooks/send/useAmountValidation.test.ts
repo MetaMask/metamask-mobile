@@ -565,9 +565,68 @@ describe('useAmountValidation', () => {
     } as unknown as SendContext.SendContextType);
     rerender();
 
-    await waitFor(() =>
-      expect(result.current.amountError).toEqual(undefined),
-    );
+    await waitFor(() => expect(result.current.amountError).toEqual(undefined));
     expect(mockValidateAmountMultichain).toHaveBeenCalledTimes(2);
+  });
+
+  it('discards stale snap responses that resolve after newer validation', async () => {
+    const pendingResolvers: ((result: unknown) => void)[] = [];
+    mockValidateAmountMultichain.mockImplementation(
+      (_fromAccount: unknown, params: { value: string }) => {
+        if (params.value === '0.5') {
+          return Promise.resolve({ errors: [] });
+        }
+        return new Promise((resolve) => {
+          pendingResolvers.push(resolve);
+        });
+      },
+    );
+
+    const mockUseSendContext = jest.spyOn(SendContext, 'useSendContext');
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        ...SOLANA_ASSET,
+        rawBalance: '0xde0b6b3a7640000',
+      },
+      from: MOCK_ADDRESS_1,
+      fromAccount: { id: 'solana-account-id' },
+      value: '1',
+    } as unknown as SendContext.SendContextType);
+
+    const { result, rerender } = renderHookWithProvider(
+      () => useAmountValidation(),
+      {
+        state: solanaSendStateMock,
+      },
+    );
+
+    let firstResult: Promise<string | undefined> | undefined;
+    act(() => {
+      firstResult = result.current.validateNonEvmAmountAsync();
+    });
+    expect(mockValidateAmountMultichain).toHaveBeenCalledTimes(1);
+
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        ...SOLANA_ASSET,
+        rawBalance: '0xde0b6b3a7640000',
+      },
+      from: MOCK_ADDRESS_1,
+      fromAccount: { id: 'solana-account-id' },
+      value: '0.5',
+    } as unknown as SendContext.SendContextType);
+    rerender();
+
+    await waitFor(() =>
+      expect(mockValidateAmountMultichain).toHaveBeenCalledTimes(2),
+    );
+    expect(result.current.amountError).toEqual(undefined);
+
+    await act(async () => {
+      pendingResolvers[0]({ errors: [{ code: 'InsufficientBalance' }] });
+      await firstResult;
+    });
+    expect(await firstResult).toEqual('Insufficient funds');
+    expect(result.current.amountError).toEqual(undefined);
   });
 });

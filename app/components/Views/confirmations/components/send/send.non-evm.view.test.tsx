@@ -362,8 +362,15 @@ describeForPlatforms('Send (Non-EVM)', () => {
       getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
     ).toBeOnTheScreen();
 
-    // One satoshi balance; keypad "1" is 1 BTC — far exceeds balance
+    // One satoshi balance; keypad "1" is 1 BTC — far exceeds balance.
+    // Non-EVM validation is deferred until the first Continue press.
     fireEvent.press(getByText('1'));
+
+    const continueButton = getByRole('button', { name: 'Continue' });
+    await waitFor(() => expect(continueButton).toBeEnabled(), {
+      timeout: 5000,
+    });
+    fireEvent.press(continueButton);
 
     expect(
       await findByRole(
