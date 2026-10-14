@@ -25,14 +25,6 @@ interface KycStatusPair {
 const getStatusKey = ({ finalStatus, kycStatus }: KycStatusPair): string =>
   `${finalStatus}:${kycStatus}`;
 
-/**
- * Whether the KYC session has a decision the onboarding funnel can act on.
- * Hydrate already treats `kycStatus: approved` as approved while the vendor
- * `finalStatus` is still pending.
- *
- * @param status - The session's `finalStatus` and `kycStatus`.
- * @returns True when the pending screen should resolve the next destination.
- */
 export const isTerminalVbaKycStatus = ({
   finalStatus,
   kycStatus,
@@ -40,18 +32,6 @@ export const isTerminalVbaKycStatus = ({
   kycStatus === KYC_STATUSES.approved ||
   (finalStatus !== null && TERMINAL_SESSION_STATUSES.has(finalStatus));
 
-/**
- * Watches the KycController session status while the KYC pending screen is
- * mounted and, once the decision is terminal, resolves and opens the next
- * onboarding destination. Hydrate only reads the session status, so mounting
- * with a non-terminal status calls `refreshSessionStatus` to start the
- * controller poll. Returning to the foreground does the same to get an
- * immediate fetch. Any resulting update flows through the same watcher.
- *
- * This screen only follows the KYC decision. An approved session whose account
- * is not ready yet still resolves here and stays until account setup has its
- * own screen.
- */
 export const useVbaKycStatusRedirect = (): void => {
   const navigation = useNavigation<AppNavigationProp>();
   const sessionStatus = useSelector(selectKycSessionStatus);

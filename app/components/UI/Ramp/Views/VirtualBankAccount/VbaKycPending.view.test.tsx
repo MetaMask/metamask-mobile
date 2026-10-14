@@ -287,65 +287,35 @@ describeForPlatforms('VbaKycPending', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens bank details when KYC is approved and the account is ready', async () => {
-    engineContext.RampsController.hydrateVbaOnboarding = jest
-      .fn()
-      .mockResolvedValue(hydratedSnapshot('approved', 'ready'));
-    const { findByTestId } = renderKycScreen(<RampNavigator />, {
-      finalStatus: 'approved',
-      kycStatus: 'approved',
-    });
+  it.each<
+    [
+      VbaOnboardingSnapshot['kycStatus'],
+      VbaOnboardingSnapshot['autorampStatus'],
+      string,
+    ]
+  >([
+    ['approved', 'ready', Routes.RAMP.VBA_DETAILS],
+    ['rejected', 'not_ready', VbaOnboardingRoutes.KYC_REJECTED],
+    ['retry', 'not_ready', VbaOnboardingRoutes.IDENTITY_VERIFICATION],
+    [
+      'approved',
+      'retryable_failure',
+      VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR,
+    ],
+  ])(
+    'opens the next screen when KYC is %s and the account is %s',
+    async (kycStatus, autorampStatus, route) => {
+      engineContext.RampsController.hydrateVbaOnboarding = jest
+        .fn()
+        .mockResolvedValue(hydratedSnapshot(kycStatus, autorampStatus));
+      const { findByTestId } = renderKycScreen(<RampNavigator />, {
+        finalStatus: kycStatus,
+        kycStatus,
+      });
 
-    expect(
-      await findByTestId(getRouteProbeTestId(Routes.RAMP.VBA_DETAILS)),
-    ).toBeOnTheScreen();
-  });
-
-  it('opens the verification failed screen when KYC is rejected', async () => {
-    engineContext.RampsController.hydrateVbaOnboarding = jest
-      .fn()
-      .mockResolvedValue(hydratedSnapshot('rejected'));
-    const { findByTestId } = renderKycScreen(<RampNavigator />, {
-      finalStatus: 'rejected',
-      kycStatus: 'rejected',
-    });
-
-    expect(
-      await findByTestId(getRouteProbeTestId(VbaOnboardingRoutes.KYC_REJECTED)),
-    ).toBeOnTheScreen();
-  });
-
-  it('reopens identity verification when KYC asks the customer to retry', async () => {
-    engineContext.RampsController.hydrateVbaOnboarding = jest
-      .fn()
-      .mockResolvedValue(hydratedSnapshot('retry'));
-    const { findByTestId } = renderKycScreen(<RampNavigator />, {
-      finalStatus: 'retry',
-      kycStatus: 'retry',
-    });
-
-    expect(
-      await findByTestId(
-        getRouteProbeTestId(VbaOnboardingRoutes.IDENTITY_VERIFICATION),
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('opens the account setup error when an approved account cannot be provisioned', async () => {
-    engineContext.RampsController.hydrateVbaOnboarding = jest
-      .fn()
-      .mockResolvedValue(hydratedSnapshot('approved', 'retryable_failure'));
-    const { findByTestId } = renderKycScreen(<RampNavigator />, {
-      finalStatus: 'approved',
-      kycStatus: 'approved',
-    });
-
-    expect(
-      await findByTestId(
-        getRouteProbeTestId(VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR),
-      ),
-    ).toBeOnTheScreen();
-  });
+      expect(await findByTestId(getRouteProbeTestId(route))).toBeOnTheScreen();
+    },
+  );
 
   it('stays on this screen when KYC is approved but the account is not ready', async () => {
     const hydrate = jest
@@ -360,7 +330,7 @@ describeForPlatforms('VbaKycPending', () => {
     expect(
       await findByText(strings('virtual_bank_account.kyc_taking_longer.title')),
     ).toBeOnTheScreen();
-    expect(hydrate).toHaveBeenCalled();
+    expect(hydrate).toHaveBeenCalledTimes(1);
     expect(
       queryByTestId(getRouteProbeTestId(Routes.RAMP.VBA_DETAILS)),
     ).not.toBeOnTheScreen();

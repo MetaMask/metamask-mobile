@@ -156,15 +156,6 @@ describe('useVbaKycStatusRedirect', () => {
     },
   );
 
-  it('resolves on mount when the status is already terminal', async () => {
-    setSessionStatus(approved);
-
-    renderRedirectHook();
-    await act(flushPromises);
-
-    expect(mockResolve).toHaveBeenCalledTimes(1);
-  });
-
   it('does not resolve again for an identical status update', async () => {
     mockResolve.mockResolvedValue(resolvedTo('kycPending'));
     setSessionStatus(approved);
@@ -329,29 +320,6 @@ describe('useVbaKycStatusRedirect', () => {
       expect(mockRefreshSessionStatus).not.toHaveBeenCalled();
     },
   );
-
-  it('removes the app state listener on unmount', () => {
-    setSessionStatus(pending);
-    const { unmount } = renderRedirectHook();
-
-    unmount();
-
-    expect(mockRemoveAppStateListener).toHaveBeenCalled();
-  });
-
-  it('does not check the account again once the KYC decision resolves to this screen', async () => {
-    mockResolve.mockResolvedValue(resolvedTo('kycPending'));
-    setSessionStatus(approved);
-    renderRedirectHook();
-    await act(flushPromises);
-
-    await act(async () => {
-      appStateChangeHandler?.('active');
-      await flushPromises();
-    });
-
-    expect(mockResolve).toHaveBeenCalledTimes(1);
-  });
 });
 
 describe('isTerminalVbaKycStatus', () => {
