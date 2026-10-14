@@ -198,6 +198,9 @@ describe('useMoneyAccountApiActivity', () => {
         blockNumber: 10,
       },
     ]);
+    mockQueryResult({
+      data: { pages: [PAGE_MOCK], pageParams: [] },
+    });
 
     // Act
     renderHook(() => useMoneyAccountApiActivity());
@@ -235,6 +238,9 @@ describe('useMoneyAccountApiActivity', () => {
         blockNumber: 10,
       },
     ]);
+    mockQueryResult({
+      data: { pages: [PAGE_MOCK], pageParams: [] },
+    });
 
     // Act
     renderHook(() => useMoneyAccountApiActivity());
@@ -255,6 +261,9 @@ describe('useMoneyAccountApiActivity', () => {
         blockNumber: 10,
       },
     ]);
+    mockQueryResult({
+      data: { pages: [PAGE_MOCK], pageParams: [] },
+    });
 
     // Act
     renderHook(() => useMoneyAccountApiActivity());
@@ -289,6 +298,9 @@ describe('useMoneyAccountApiActivity', () => {
         token: { address: VMUSD_ADDRESS, symbol: 'vmUSD', decimals: 6 },
       },
     ]);
+    mockQueryResult({
+      data: { pages: [PAGE_MOCK], pageParams: [] },
+    });
 
     // Act
     renderHook(() => useMoneyAccountApiActivity());
