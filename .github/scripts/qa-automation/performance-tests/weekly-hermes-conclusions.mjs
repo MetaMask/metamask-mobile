@@ -12,6 +12,7 @@ import {
   scenarioTeam,
   slackTeamOwnerLabel,
 } from './link-scenario-artifacts.mjs';
+import { weeklyIssueBrief } from './profiling-regression-issues.mjs';
 
 export const SPIKE_RATIO = 1.5;
 export const RELATIVE_WARN_RATIO = 1.1;
@@ -760,6 +761,54 @@ function sharedFrameParentLine(sharedFrame) {
   return `_Shared hot frame:_ ${sharedFrameLabel(sharedFrame)} became the top frame in ${sharedFrame.scenarios.length} scenarios that got slower (up to ${maxRatio}× last week's median JS work), reported once instead of per scenario.`;
 }
 
+/**
+ * GitHub issues the scheduled checks opened during the reported week. Absent
+ * (`report.issues` undefined) when the weekly run did not query GitHub, so
+ * the section is omitted rather than claiming "none".
+ */
+function weeklyIssuesSlackLines(report) {
+  const issues = report.issues;
+  if (!issues) {
+    return [];
+  }
+  if (issues.error) {
+    return ['', `_GitHub issues opened this week:_ could not be listed (${issues.error})`];
+  }
+  if (issues.items.length === 0) {
+    return ['', '_GitHub issues opened this week:_ none'];
+  }
+  const open = issues.items.filter((issue) => issue.state === 'open').length;
+  const lines = [
+    '',
+    `*GitHub issues opened this week:* ${issues.items.length} (${open} still open)`,
+  ];
+  for (const issue of issues.items) {
+    lines.push(`• <${issue.url}|#${issue.number}> ${weeklyIssueBrief(issue)}`);
+  }
+  return lines;
+}
+
+function weeklyIssuesMarkdownLines(report) {
+  const issues = report.issues;
+  if (!issues) {
+    return [];
+  }
+  const lines = ['## GitHub issues opened this week', ''];
+  if (issues.error) {
+    lines.push(`Could not be listed: ${issues.error}`, '');
+    return lines;
+  }
+  if (issues.items.length === 0) {
+    lines.push('None.', '');
+    return lines;
+  }
+  for (const issue of issues.items) {
+    lines.push(`- [#${issue.number}](${issue.url}) ${weeklyIssueBrief(issue)}`);
+  }
+  lines.push('');
+  return lines;
+}
+
 export function buildWeeklyParentSlack(report) {
   const counts = countByStatus(report.cards);
   const sharedSpikes = report.sharedSpikes || [];
@@ -821,6 +870,7 @@ export function buildWeeklyParentSlack(report) {
     );
     lines.push(...weeklyRecoveredLines(report));
   }
+  lines.push(...weeklyIssuesSlackLines(report));
   lines.push(
     '',
     '_Source:_ Hermes CPU sampling only; BrowserStack app-profiling data excluded.',
@@ -860,6 +910,7 @@ export function buildWeeklyMarkdown(report) {
       lines.push(
         'No Hermes JS regressions were detected versus the previous week.',
         '',
+        ...weeklyIssuesMarkdownLines(report),
       );
       return lines.join('\n');
     }
@@ -935,6 +986,7 @@ export function buildWeeklyMarkdown(report) {
     }
     lines.push('');
   }
+  lines.push(...weeklyIssuesMarkdownLines(report));
   return lines.join('\n');
 }
 
@@ -948,6 +1000,9 @@ export function buildWeeklyReport({
   lastWeekRunsAvailable = lastWeekRunCount,
   thisWeekDays = [],
   lastWeekDays = [],
+  // `{ items }` or `{ error }` from the GitHub issue lookup; undefined when
+  // the weekly run did not query GitHub.
+  issues = undefined,
 }) {
   const bySpike = collapseSharedSpikes(
     classifyWeeklyScenarios(thisWindow, lastWindow),
@@ -994,5 +1049,6 @@ export function buildWeeklyReport({
       peakRunId: card.current.peakRunId,
       peakRunUrl: card.current.peakRunUrl,
     })),
+    ...(issues ? { issues } : {}),
   };
 }

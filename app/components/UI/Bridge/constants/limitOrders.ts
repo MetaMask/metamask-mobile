@@ -47,6 +47,11 @@ export const SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES = [
   10, 60, 1440, 4320, 10080, 43200,
 ] as const;
 
+/**
+ * Delay before the expiration sheet closes after the user picks an option.
+ */
+export const SWAPS_LIMIT_ORDER_EXPIRATION_CLOSE_DELAY_MS = 250;
+
 export type SwapsLimitOrderExpirationMinutes =
   (typeof SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES)[number];
 

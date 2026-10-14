@@ -1,5 +1,5 @@
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
-import { PasswordResetWarningSheetSelectorsIDs } from '../../../app/components/Views/ChoosePassword/PasswordResetWarningSheet.testIds';
+import { PasswordResetWarningSheetSelectorsIDs } from '../../../app/components/Views/shared/PasswordResetWarningSheet/PasswordResetWarningSheet.testIds';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';

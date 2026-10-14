@@ -93,6 +93,7 @@ export enum COMPONENT_NAMES {
   MONEY_TRANSFER_MONEY_SHEET_BETWEEN_ACCOUNTS = 'money_transfer_money_sheet_between_accounts',
   MONEY_TRANSFER_MONEY_SHEET_PERPS_ACCOUNT = 'money_transfer_money_sheet_perps_account',
   MONEY_TRANSFER_MONEY_SHEET_PREDICTIONS_ACCOUNT = 'money_transfer_money_sheet_predictions_account',
+  MONEY_TRANSFER_MONEY_SHEET_SEND_EXTERNAL = 'money_transfer_money_sheet_send_external',
 
   // — More Sheet —
   MONEY_MORE_SHEET_HOW_IT_WORKS = 'money_more_sheet_how_it_works',
