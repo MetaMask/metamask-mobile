@@ -5,7 +5,6 @@ import { Theme } from '@metamask/design-tokens';
 export const GRADIENT_COLORS = ['#1D002E', '#360853'];
 
 // Platform-specific base dimensions
-const BASE_WIDTH = 375;
 const BASE_HEIGHT_IOS = 812; // iPhone X/11/12/13/14/15 Pro base
 const BASE_HEIGHT_ANDROID = 736; // Common Android base
 
@@ -24,27 +23,21 @@ export interface WindowDimensions {
 const createScalingFunctions = (dimensions: WindowDimensions) => {
   const { width: screenWidth, height: screenHeight } = dimensions;
 
-  const widthScale = screenWidth / BASE_WIDTH;
-
-  // For vertical spacing, use percentage of available height instead of pure scaling
   const scaleVertical = (size: number) => {
     // Use percentage of screen height for more consistent spacing
     const percentage = size / baseHeight;
     return Math.ceil(screenHeight * percentage);
   };
 
-  const scaleHorizontal = (size: number) => Math.ceil(size * widthScale);
-
   return {
     screenWidth,
     screenHeight,
     scaleVertical,
-    scaleHorizontal,
   };
 };
 
 const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
-  const { screenWidth, screenHeight, scaleVertical, scaleHorizontal } =
+  const { screenWidth, screenHeight, scaleVertical } =
     createScalingFunctions(dimensions);
 
   const isSmallScreen =
@@ -74,36 +67,10 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
       width: '100%',
       // Background is handled by LinearGradient wrapper
     },
-    headerContainer: {
-      alignItems: 'center',
-      paddingHorizontal: scaleHorizontal(16),
-      paddingVertical: scaleVertical(16),
-      zIndex: 2,
-    },
     hiddenText: {
       opacity: 0,
     },
-    title: {
-      fontFamily: 'MMPoly-Regular',
-      fontWeight: '400',
-      // make it smaller on smaller screens
-      fontSize: isSmallScreen ? 40 : 45,
-      lineHeight: isSmallScreen ? 40 : 45, // 100% of font size
-      letterSpacing: 0,
-      textAlign: 'center',
-      paddingTop: scaleVertical(isSmallScreen ? 8 : 12),
-      color: theme.colors.accent02.light,
-    },
-    titleDescription: {
-      // make it smaller on smaller screens
-      fontSize: isSmallScreen ? 14 : 16,
-      paddingTop: scaleVertical(10),
-      paddingHorizontal: scaleHorizontal(8),
-      textAlign: 'center',
-      fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto', // Default system font
-      fontWeight: '500',
-      lineHeight: 24, // Line Height BodyMd
-      letterSpacing: 0,
+    lightCopy: {
       color: theme.colors.accent02.light,
     },
     imageContainer: {
@@ -128,15 +95,6 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
       width: imageWidth,
       height: imageHeight,
       marginTop: animationMarginTop,
-    },
-    footerContainer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      paddingHorizontal: scaleHorizontal(30),
-      paddingBottom: scaleVertical(2),
-      zIndex: 3,
     },
     footerContent: {
       display: 'flex',

@@ -71,6 +71,21 @@ jest.mock('./useCardEducationAnimationState', () => ({
   useCardEducationAnimationState: () => mockUseCardEducationAnimationState(),
 }));
 
+const mockGetHardwareTier = jest.fn(
+  (): 'LOW' | 'MID' | 'HIGH' | null => 'HIGH',
+);
+const mockUseNetworkTier = jest.fn(
+  (): 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null => 'WIFI',
+);
+
+jest.mock('../../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockGetHardwareTier(),
+}));
+
+jest.mock('../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockUseNetworkTier(),
+}));
+
 // Mocks
 type TransitionEndHandler = (event?: { data?: { closing?: boolean } }) => void;
 
@@ -183,6 +198,8 @@ describe('CardWelcome', () => {
     mockViewReady = true;
     mockUseCardPostAuthRedirect.mockReturnValue(undefined);
     mockUseCardEducationAnimationState.mockReturnValue('static');
+    mockGetHardwareTier.mockReturnValue('HIGH');
+    mockUseNetworkTier.mockReturnValue('WIFI');
     mockNavigate.mockClear();
     mockGoBack.mockClear();
     mockAddListener.mockClear();
@@ -308,6 +325,23 @@ describe('CardWelcome', () => {
 
     it("renders the static image when the state is 'static'", () => {
       mockUseCardEducationAnimationState.mockReturnValue('static');
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeOnTheScreen();
+      expect(
+        queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the static image on low-memory hardware while animation is enabled', () => {
+      mockGetHardwareTier.mockReturnValue('LOW');
+      mockUseNetworkTier.mockReturnValue('WIFI');
+      mockUseCardEducationAnimationState.mockReturnValue('animate');
 
       const { getByTestId, queryByTestId } = render(
         <Provider store={store}>

@@ -58,7 +58,29 @@ jest.mock('@metamask/design-system-react-native', () => {
     FontWeight: { Bold: 'bold', Medium: 'medium' },
     Text: ({ children, ...props }: { children?: React.ReactNode }) =>
       ReactActual.createElement(Text, props, children),
-    TextVariant: { BodyMd: 'bodyMd' },
+    TextVariant: { BodyMd: 'bodyMd', DisplayMd: 'displayMd' },
+    TextColor: { TextAlternative: 'text-alternative' },
+    BoxFlexDirection: { Column: 'column' },
+    BoxAlignItems: { Center: 'center' },
+    BoxJustifyContent: { Center: 'center' },
+    ButtonSize: { Lg: 'lg' },
+    ButtonVariant: { Primary: 'primary', Tertiary: 'tertiary' },
+    Button: ({
+      children,
+      onPress,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      onPress?: () => void;
+      testID?: string;
+    }) => {
+      const { Pressable } = jest.requireActual('react-native');
+      return ReactActual.createElement(
+        Pressable,
+        { testID, onPress },
+        ReactActual.createElement(Text, null, children),
+      );
+    },
   };
 });
 

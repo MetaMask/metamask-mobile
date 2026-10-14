@@ -1,16 +1,11 @@
 import React, { type ReactNode, useMemo } from 'react';
-import { Image, Pressable, useWindowDimensions } from 'react-native';
+import { Image, useWindowDimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  Box,
-  FontWeight,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { FontWeight } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import VipSplashFox from '../../../../../images/rewards/vip_splash.png';
+import MarketingMoment from '../../../MarketingMoment';
 import {
   VIP_GOLD_BORDER_DEFAULT,
   VIP_GOLD_TEXT_DEFAULT,
@@ -60,9 +55,10 @@ interface VipSplashScreenLayoutProps {
 }
 
 const descriptionColorStyle = { color: VIP_GOLD_TEXT_MUTED };
-const primaryButtonBorderStyle = { borderColor: VIP_GOLD_BORDER_DEFAULT };
-const primaryButtonBackgroundStyle = {
+const primaryButtonStyle = {
   backgroundColor: VIP_SPLASH_ACCEPT_BUTTON_BACKGROUND,
+  borderColor: VIP_GOLD_BORDER_DEFAULT,
+  borderWidth: 1,
 };
 const primaryButtonTextStyle = { color: VIP_GOLD_TEXT_DEFAULT };
 const notNowButtonTextStyle = { color: VIP_GOLD_TEXT_MUTED };
@@ -100,20 +96,16 @@ const VipSplashScreenLayout: React.FC<VipSplashScreenLayoutProps> = ({
       style={tw.style('flex-1')}
       testID={testIDs.container}
     >
-      <SafeAreaView edges={['top', 'bottom']} style={tw.style('flex-1')}>
-        <Box twClassName="flex-1 items-center justify-center px-4 py-4 mt-24">
-          <VipSplashGradientTitle testID={testIDs.title} />
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            style={tw.style(
-              'mt-[18px] max-w-[326px] text-center leading-[22px]',
-              descriptionColorStyle,
-            )}
-            testID={testIDs.description}
-          >
-            {strings('rewards.vip.splash_description')}
-          </Text>
+      <MarketingMoment
+        twClassName="bg-transparent"
+        title={strings('rewards.vip.splash_title')}
+        description={strings('rewards.vip.splash_description')}
+        descriptionTestIDs={[testIDs.description]}
+        descriptionFontWeight={FontWeight.Medium}
+        descriptionStyle={descriptionColorStyle}
+        descriptionClassName="max-w-[326px]"
+        renderTitle={() => <VipSplashGradientTitle testID={testIDs.title} />}
+        artwork={
           <Image
             source={VipSplashFox}
             style={tw.style(isSmallScreen ? 'mt-6' : 'mt-[54px]')}
@@ -121,50 +113,22 @@ const VipSplashScreenLayout: React.FC<VipSplashScreenLayoutProps> = ({
             width={foxDimensions.width}
             height={foxDimensions.height}
           />
-        </Box>
-
-        <Box
-          twClassName={`px-4 ${isSmallScreen ? 'gap-3 pb-3' : 'gap-[18px] pb-[18px]'}`}
-        >
-          {footerContent}
-          <Pressable
-            accessibilityRole="button"
-            onPress={onPrimaryPress}
-            style={tw.style(
-              'items-center justify-center rounded-[10px] border',
-              isSmallScreen ? 'h-10' : 'h-12',
-              primaryButtonBorderStyle,
-              primaryButtonBackgroundStyle,
-            )}
-            testID={testIDs.primaryButton}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              style={primaryButtonTextStyle}
-            >
-              {primaryButtonLabel}
-            </Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            onPress={onNotNow}
-            style={tw.style(
-              'items-center justify-center',
-              isSmallScreen ? 'h-8' : 'h-9',
-            )}
-            testID={testIDs.notNowButton}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              style={notNowButtonTextStyle}
-            >
-              {strings('rewards.vip.splash_not_now')}
-            </Text>
-          </Pressable>
-        </Box>
-      </SafeAreaView>
+        }
+        footerContent={footerContent}
+        primaryAction={{
+          label: primaryButtonLabel,
+          onPress: onPrimaryPress,
+          testID: testIDs.primaryButton,
+          style: primaryButtonStyle,
+          textStyle: primaryButtonTextStyle,
+        }}
+        secondaryAction={{
+          label: strings('rewards.vip.splash_not_now'),
+          onPress: onNotNow,
+          testID: testIDs.notNowButton,
+          textStyle: notNowButtonTextStyle,
+        }}
+      />
     </LinearGradient>
   );
 };

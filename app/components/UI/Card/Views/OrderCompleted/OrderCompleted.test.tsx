@@ -108,13 +108,22 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextVariant: {
       HeadingLg: 'HeadingLg',
       BodyMd: 'BodyMd',
+      DisplayMd: 'DisplayMd',
+    },
+    TextColor: {
+      TextAlternative: 'text-alternative',
     },
     FontWeight: {
       Regular: 'Regular',
+      Bold: 'Bold',
     },
+    BoxFlexDirection: { Column: 'column' },
+    BoxAlignItems: { Center: 'center' },
+    BoxJustifyContent: { Center: 'center' },
     ButtonVariant: {
       Primary: 'Primary',
       Secondary: 'Secondary',
+      Tertiary: 'Tertiary',
       Link: 'Link',
     },
     ButtonSize: {
