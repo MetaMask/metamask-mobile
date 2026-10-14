@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { selectRewardsMoneyControllerEnabled } from '../../../../selectors/featureFlagController/rewardsMoneyController';
 import type { RootState } from '../../../../reducers';
 import type {
@@ -26,6 +27,7 @@ jest.mock('./useReferralMe', () => ({
 
 const PROFILE_A = 'profile-a';
 const PROFILE_B = 'profile-b';
+const SESSION_KEYRING_ID = 'entropy-source-1';
 
 describe('useRewardsMoneyTabRouting', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
@@ -53,6 +55,7 @@ describe('useRewardsMoneyTabRouting', () => {
       string,
       { roles: ReferralRole[]; ui_variant: ReferralVariant } | undefined
     > = {},
+    sessionProfileId?: string,
   ) =>
     ({
       rewardsMoney: {
@@ -71,6 +74,32 @@ describe('useRewardsMoneyTabRouting', () => {
             },
           ]),
         ),
+      },
+      engine: {
+        backgroundState: {
+          AuthenticationController: {
+            isSignedIn: Boolean(sessionProfileId),
+            srpSessionData: sessionProfileId
+              ? {
+                  [SESSION_KEYRING_ID]: {
+                    profile: { profileId: sessionProfileId },
+                  },
+                }
+              : {},
+          },
+          KeyringController: {
+            isUnlocked: Boolean(sessionProfileId),
+            keyrings: sessionProfileId
+              ? [
+                  {
+                    type: ExtendedKeyringTypes.hd,
+                    accounts: [],
+                    metadata: { id: SESSION_KEYRING_ID, name: '' },
+                  },
+                ]
+              : [],
+          },
+        },
       },
     }) as unknown as RootState;
 
@@ -159,6 +188,61 @@ describe('useRewardsMoneyTabRouting', () => {
     triggerFocus();
 
     expect(mockFetchReferralMe).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens from a saved referral-me entry and refreshes without waiting', () => {
+    profileId = undefined;
+    state = buildState(
+      { [PROFILE_A]: { roles: ['REFERRER'], ui_variant: 'REFERRER' } },
+      PROFILE_A,
+    );
+
+    const { result } = render();
+
+    expect(result.current.moneyReferralResolved).toBe(true);
+    expect(result.current.moneyPersona).toBe('referrer');
+    expect(result.current.profileId).toBe(PROFILE_A);
+    expect(result.current.navigatorKey).toContain(PROFILE_A);
+
+    triggerFocus();
+
+    expect(mockFetchReferralMe).toHaveBeenCalledTimes(1);
+    expect(result.current.moneyReferralResolved).toBe(true);
+  });
+
+  it('keeps the saved route when the refresh fails', async () => {
+    profileId = undefined;
+    state = buildState(
+      { [PROFILE_A]: { roles: ['REFEREE'], ui_variant: 'REFEREE' } },
+      PROFILE_A,
+    );
+
+    const { result } = render();
+    triggerFocus();
+
+    expect(result.current.moneyReferralResolved).toBe(true);
+
+    await act(async () => {
+      rejectFetch(new Error('Session unavailable'));
+    });
+
+    expect(result.current.moneyReferralResolved).toBe(true);
+    expect(result.current.moneyPersona).toBe('referee');
+    expect(result.current.profileId).toBe(PROFILE_A);
+  });
+
+  it('treats a saved entry with empty roles as a plain user', () => {
+    profileId = undefined;
+    state = buildState(
+      { [PROFILE_A]: { roles: [], ui_variant: 'NONE' } },
+      PROFILE_A,
+    );
+
+    const { result } = render();
+
+    expect(result.current.moneyReferralResolved).toBe(true);
+    expect(result.current.moneyPersona).toBe('plain');
+    expect(result.current.navigatorKey).not.toContain('rewards-money');
   });
 
   it('reports unresolved until the first fetch settles', async () => {

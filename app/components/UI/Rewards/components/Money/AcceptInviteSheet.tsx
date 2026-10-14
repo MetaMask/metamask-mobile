@@ -25,7 +25,7 @@ import {
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { RewardsMoneyInviteSheetParams } from '../../types/navigation';
-import { useSessionProfileId } from '../../hooks/useReferralMe';
+import { selectSessionProfileId } from '../../../../../selectors/identity';
 import { useAcceptMoneyReferralCode } from '../../hooks/useAcceptMoneyReferralCode';
 import {
   MONEY_REFERRAL_CODE_MAX_LENGTH,
@@ -98,7 +98,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const initialReferralCode = route.params?.referralCode ?? '';
 
-  const { profileId } = useSessionProfileId();
+  const profileId = useSelector(selectSessionProfileId);
   const referralMeEntry = useSelector((state: RootState) =>
     selectReferralMeEntry(state, profileId),
   );

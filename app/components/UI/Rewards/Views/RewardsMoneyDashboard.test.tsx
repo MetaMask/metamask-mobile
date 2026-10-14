@@ -4,19 +4,29 @@ import type {
   EarningsSummaryDto,
   ReferralMeDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { REFERER_HERO_CARD_TEST_IDS } from '../components/Money/RefererHeroCard';
 import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard';
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
-import { useReferralMe, useSessionProfileId } from '../hooks/useReferralMe';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
 import RewardsMoneyDashboard, {
   REWARDS_MONEY_DASHBOARD_TEST_IDS,
 } from './RewardsMoneyDashboard';
 
 const PROFILE_ID = 'profile-a';
+const KEYRING_ID = 'entropy-source-1';
+
+const mockFetchReferralMe = jest.fn();
+
+jest.mock('../hooks/useReferralMe', () => ({
+  useReferralMe: () => ({
+    profileId: undefined,
+    fetchReferralMe: mockFetchReferralMe,
+  }),
+}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -35,11 +45,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
-jest.mock('../hooks/useReferralMe', () => ({
-  useSessionProfileId: jest.fn(),
-  useReferralMe: jest.fn(),
-}));
 
 jest.mock('../hooks/useEarningsSummary', () => ({
   useEarningsSummary: jest.fn(),
@@ -89,17 +94,9 @@ jest.mock('../components/Benefits/BenefitsPreview', () => {
   };
 });
 
-const mockUseSessionProfileId = useSessionProfileId as jest.MockedFunction<
-  typeof useSessionProfileId
->;
-const mockUseReferralMe = useReferralMe as jest.MockedFunction<
-  typeof useReferralMe
->;
 const mockUseEarningsSummary = useEarningsSummary as jest.MockedFunction<
   typeof useEarningsSummary
 >;
-const mockFetchReferralMe = jest.fn();
-const mockRetrySession = jest.fn();
 
 const LOCALIZED_TEXT = {
   waysToEarn: 'Ways to earn',
@@ -184,14 +181,15 @@ const EARNINGS_SUMMARY = {
 const renderDashboard = ({
   profileId = PROFILE_ID,
   hasProfileId = true,
-  isResolved = true,
+  identityReady = true,
   subscriptionId = 'sub-123',
   referralMeEntry,
   earningsSummaryEntry,
 }: {
   profileId?: string;
   hasProfileId?: boolean;
-  isResolved?: boolean;
+  /** Primary HD keyring loaded. Locked or not-yet-loaded identity stays a skeleton. */
+  identityReady?: boolean;
   subscriptionId?: string | null;
   referralMeEntry?: {
     loading: boolean;
@@ -204,13 +202,8 @@ const renderDashboard = ({
     data: EarningsSummaryDto | null;
   };
 } = {}) => {
-  const sessionProfileId = hasProfileId ? profileId : undefined;
-
-  mockUseSessionProfileId.mockReturnValue({
-    profileId: sessionProfileId,
-    isResolved,
-    retry: mockRetrySession,
-  });
+  const sessionProfileId =
+    identityReady && hasProfileId ? profileId : undefined;
 
   return renderWithProvider(<RewardsMoneyDashboard />, {
     state: {
@@ -219,6 +212,28 @@ const renderDashboard = ({
       },
       engine: {
         backgroundState: {
+          AuthenticationController: {
+            isSignedIn: Boolean(sessionProfileId),
+            srpSessionData: sessionProfileId
+              ? {
+                  [KEYRING_ID]: {
+                    profile: { profileId: sessionProfileId },
+                  },
+                }
+              : {},
+          },
+          KeyringController: {
+            isUnlocked: identityReady,
+            keyrings: identityReady
+              ? [
+                  {
+                    type: ExtendedKeyringTypes.hd,
+                    accounts: [],
+                    metadata: { id: KEYRING_ID, name: '' },
+                  },
+                ]
+              : [],
+          },
           RewardsController: {
             activeAccount: subscriptionId
               ? { subscriptionId }
@@ -227,18 +242,18 @@ const renderDashboard = ({
         },
       },
       rewardsMoney: {
-        referralMe: sessionProfileId
+        referralMe: hasProfileId
           ? {
-              [sessionProfileId]: referralMeEntry ?? {
+              [profileId]: referralMeEntry ?? {
                 loading: false,
                 error: false,
                 data: createReferralMe(),
               },
             }
           : {},
-        earningsSummary: sessionProfileId
+        earningsSummary: hasProfileId
           ? {
-              [sessionProfileId]: earningsSummaryEntry ?? {
+              [profileId]: earningsSummaryEntry ?? {
                 loading: false,
                 error: false,
                 data: EARNINGS_SUMMARY,
@@ -257,15 +272,11 @@ describe('RewardsMoneyDashboard', () => {
     mockUseEarningsSummary.mockReturnValue({
       fetchEarningsSummary: jest.fn(),
     });
-    mockUseReferralMe.mockReturnValue({
-      profileId: PROFILE_ID,
-      fetchReferralMe: mockFetchReferralMe,
-    });
   });
 
-  it('renders the layout skeleton while the session profile is unresolved', () => {
+  it('renders the layout skeleton while wallet identity is not loaded', () => {
     const { getByTestId, queryByTestId } = renderDashboard({
-      isResolved: false,
+      identityReady: false,
       referralMeEntry: {
         loading: false,
         error: false,
@@ -315,7 +326,6 @@ describe('RewardsMoneyDashboard', () => {
       getByText(strings('rewards.referral_details_error.retry_button')),
     );
 
-    expect(mockRetrySession).toHaveBeenCalled();
     expect(mockFetchReferralMe).toHaveBeenCalledWith({ forceFresh: true });
   });
 

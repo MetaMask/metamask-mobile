@@ -1,6 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { fireEvent, render } from '@testing-library/react-native';
+import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import configureStore from '../../../../../util/test/configureStore';
 import Routes from '../../../../../constants/navigation/Routes';
 import type {
@@ -10,15 +11,30 @@ import type {
 import TermsSheet, { TERMS_SHEET_TEST_IDS } from './TermsSheet';
 
 const PROFILE_ID = 'profile-1';
+const KEYRING_ID = 'entropy-source-1';
 const TERMS_URL = 'https://link.metamask.io/rewards/terms';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockUseSessionProfileId = jest.fn();
 
-jest.mock('../../hooks/useReferralMe', () => ({
-  useSessionProfileId: () => mockUseSessionProfileId(),
-}));
+const sessionBackgroundState = (profileId: string) => ({
+  AuthenticationController: {
+    isSignedIn: true,
+    srpSessionData: {
+      [KEYRING_ID]: { profile: { profileId } },
+    },
+  },
+  KeyringController: {
+    isUnlocked: true,
+    keyrings: [
+      {
+        type: ExtendedKeyringTypes.hd,
+        accounts: [],
+        metadata: { id: KEYRING_ID, name: '' },
+      },
+    ],
+  },
+});
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -43,16 +59,13 @@ const LOCALIZED_TEXT = {
 describe('TermsSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSessionProfileId.mockReturnValue({
-      profileId: PROFILE_ID,
-      isResolved: true,
-    });
   });
 
   const renderSheet = (
     localizedText: ReferralLocalizedText = LOCALIZED_TEXT,
   ) => {
     const store = configureStore({
+      engine: { backgroundState: sessionBackgroundState(PROFILE_ID) },
       rewardsMoney: {
         referralMe: {
           [PROFILE_ID]: {

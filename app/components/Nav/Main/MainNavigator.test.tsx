@@ -109,6 +109,10 @@ jest.mock('../../UI/Rewards/hooks/useRewardsMoneyTabRouting', () => ({
   useRewardsMoneyTabRouting: () => mockUseRewardsMoneyTabRouting(),
 }));
 
+jest.mock('../../UI/Rewards/hooks/usePrefetchRewardsIdentity', () => ({
+  usePrefetchRewardsIdentity: () => undefined,
+}));
+
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectPredictEnabledFlag = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn();
@@ -324,28 +328,25 @@ describe('MainNavigator', () => {
       Routes.BROWSER.HOME,
       Routes.TRANSACTIONS_VIEW,
       Routes.REWARDS_VIEW,
-    ])(
-      'opts %s out of freeze-on-blur so its unmount-on-blur wrapper can commit',
-      (tabName) => {
-        // Given HomeTabs is rendered
-        const HomeTabs = getHomeTabsComponent();
+    ])('keeps freeze-on-blur off for %s', (tabName) => {
+      // Given HomeTabs is rendered
+      const HomeTabs = getHomeTabsComponent();
 
-        // When the tab screens are inspected
-        const { root: homeRoot } = renderWithProvider(
-          <HomeTabs route={{ params: {} }} />,
-          { state: initialRootState },
-        );
-        const tabScreen = homeRoot.findAll(
-          (node: ReactTestInstance) =>
-            node.type?.toString?.() === 'TabScreen' &&
-            node.props?.name === tabName,
-        )[0];
+      // When the tab screens are inspected
+      const { root: homeRoot } = renderWithProvider(
+        <HomeTabs route={{ params: {} }} />,
+        { state: initialRootState },
+      );
+      const tabScreen = homeRoot.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'TabScreen' &&
+          node.props?.name === tabName,
+      )[0];
 
-        // Then tabs wrapped with withUnmountOnTabBlur are never frozen, since a
-        // frozen subtree suspends the wrapper's unmount and keeps the tab alive
-        expect(tabScreen?.props?.options?.freezeOnBlur).toBe(false);
-      },
-    );
+      // Then tabs wrapped with withUnmountOnTabBlur are never frozen, since a
+      // frozen subtree suspends the wrapper's unmount and keeps the tab alive
+      expect(tabScreen?.props?.options?.freezeOnBlur).toBe(false);
+    });
 
     describe('Rewards tab bar visibility', () => {
       // Only the three Rewards home screens live under the tab; every sub-page

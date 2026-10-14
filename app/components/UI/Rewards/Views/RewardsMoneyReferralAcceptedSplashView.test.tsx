@@ -1,6 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { fireEvent, render } from '@testing-library/react-native';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import configureStore from '../../../../util/test/configureStore';
 import Routes from '../../../../constants/navigation/Routes';
 import type {
@@ -13,15 +14,30 @@ import RewardsMoneyReferralAcceptedSplashView, {
 } from './RewardsMoneyReferralAcceptedSplashView';
 
 const PROFILE_ID = 'profile-1';
+const KEYRING_ID = 'entropy-source-1';
 const TEST_IDS = REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS;
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockUseSessionProfileId = jest.fn();
 
-jest.mock('../hooks/useReferralMe', () => ({
-  useSessionProfileId: () => mockUseSessionProfileId(),
-}));
+const sessionBackgroundState = (profileId: string) => ({
+  AuthenticationController: {
+    isSignedIn: true,
+    srpSessionData: {
+      [KEYRING_ID]: { profile: { profileId } },
+    },
+  },
+  KeyringController: {
+    isUnlocked: true,
+    keyrings: [
+      {
+        type: ExtendedKeyringTypes.hd,
+        accounts: [],
+        metadata: { id: KEYRING_ID, name: '' },
+      },
+    ],
+  },
+});
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -161,14 +177,11 @@ describe('fillInviteAcceptedBodyDate', () => {
 describe('RewardsMoneyReferralAcceptedSplashView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSessionProfileId.mockReturnValue({
-      profileId: PROFILE_ID,
-      isResolved: true,
-    });
   });
 
   const renderSplash = (referralMe: ReferralMeDto = buildReferralMe()) => {
     const store = configureStore({
+      engine: { backgroundState: sessionBackgroundState(PROFILE_ID) },
       rewardsMoney: {
         referralMe: {
           [PROFILE_ID]: { loading: false, error: false, data: referralMe },

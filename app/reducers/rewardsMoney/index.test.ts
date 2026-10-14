@@ -77,7 +77,10 @@ describe('rewardsMoneyReducer', () => {
       type: 'unknown',
     } as Action);
 
-    expect(state).toEqual({ referralMe: {}, earningsSummary: {} });
+    expect(state).toEqual({
+      referralMe: {},
+      earningsSummary: {},
+    });
   });
 
   it('seeds initialRootState with empty rewardsMoney slice', () => {
@@ -273,6 +276,24 @@ describe('rewardsMoneyReducer', () => {
         data: mockEarningsSummary,
       });
     });
+
+    it('drops a last profile id left by an older persisted slice', () => {
+      const persisted = {
+        referralMe: {},
+        earningsSummary: {},
+        lastResolvedProfileId: PROFILE_A,
+      };
+
+      const state = rewardsMoneyReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewardsMoney: persisted },
+      } as Action);
+
+      expect(state).toEqual({
+        referralMe: {},
+        earningsSummary: {},
+      });
+    });
   });
 
   describe('resetRewardsMoneyState', () => {
@@ -291,7 +312,10 @@ describe('rewardsMoneyReducer', () => {
 
       const state = rewardsMoneyReducer(withSummary, resetRewardsMoneyState());
 
-      expect(state).toEqual({ referralMe: {}, earningsSummary: {} });
+      expect(state).toEqual({
+        referralMe: {},
+        earningsSummary: {},
+      });
     });
   });
 });

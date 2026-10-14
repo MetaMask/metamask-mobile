@@ -17,8 +17,8 @@ import {
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { RootState } from '../../../../../reducers';
 import { selectReferralMeLocalizedText } from '../../../../../reducers/rewardsMoney/selectors';
+import { selectSessionProfileId } from '../../../../../selectors/identity';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useSessionProfileId } from '../../hooks/useReferralMe';
 
 export const TERMS_SHEET_TEST_IDS = {
   CONTAINER: 'rewards-money-terms-sheet',
@@ -31,7 +31,7 @@ export const TERMS_SHEET_TEST_IDS = {
 const TermsSheet: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { profileId } = useSessionProfileId();
+  const profileId = useSelector(selectSessionProfileId);
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import { captureException } from '@sentry/react-native';
@@ -55,59 +55,6 @@ async function getCurrentSessionWhenChanged(
   setProfileId(currentProfileId);
   return currentProfileId;
 }
-
-export interface SessionProfileIdResult {
-  profileId: string | undefined;
-  /**
-   * The session read has come back. Until it has, an absent `profileId` means
-   * "not known yet" rather than "signed out" — and profile-keyed state reads
-   * empty either way, so a caller that cannot tell them apart will mistake a
-   * pending session for a settled empty one.
-   */
-  isResolved: boolean;
-}
-
-/**
- * The Hydra profile id of the current session, which is the key the
- * `rewardsMoney` slice is written under.
- *
- * It is resolved asynchronously, so there is no synchronous selector for it and
- * a screen that only reads referral me still needs it to pick its entry. This
- * resolves the session and nothing else: a screen opened over a Rewards Home
- * that already fetched referral me must not fetch it again.
- */
-export const useSessionProfileId = (): SessionProfileIdResult & {
-  retry: () => void;
-} => {
-  const [attempt, setAttempt] = useState(0);
-  const [result, setResult] = useState<SessionProfileIdResult>({
-    profileId: undefined,
-    isResolved: false,
-  });
-
-  useEffect(() => {
-    let active = true;
-
-    const resolve = async () => {
-      const sessionProfileId = await resolveSessionProfileId();
-      if (active) {
-        setResult({ profileId: sessionProfileId, isResolved: true });
-      }
-    };
-    void resolve();
-
-    return () => {
-      active = false;
-    };
-  }, [attempt]);
-
-  const retry = useCallback(() => {
-    setResult({ profileId: undefined, isResolved: false });
-    setAttempt((current) => current + 1);
-  }, []);
-
-  return { ...result, retry };
-};
 
 export type FetchReferralMeResult =
   | { status: 'settled'; profileId: string | undefined }
