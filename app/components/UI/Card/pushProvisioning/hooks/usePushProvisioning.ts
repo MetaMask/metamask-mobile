@@ -31,10 +31,16 @@ import { selectPushProvisioningEnabled } from '../../../../../selectors/featureF
 import { useCardCapabilities } from '../../hooks/useCardCapabilities';
 import { strings } from '../../../../../../locales/i18n';
 
-function wasCardRemoved(result: WalletEligibility): boolean {
-  // requires_activation also sets canAddCard so the wallet can resume a
-  // yellow-path pass. That pass is still in the wallet.
-  return result.existingCardStatus === 'not_found';
+function canAddAgain(result: WalletEligibility): boolean {
+  if (!result.canAddCard) {
+    return false;
+  }
+  // Google sets canAddCard to resume a yellow-path pass that is still in the
+  // wallet. Apple only reports add_card here when another device can take it.
+  return !(
+    result.existingCardStatus === 'requires_activation' &&
+    result.recommendedAction !== 'add_card'
+  );
 }
 
 /**
@@ -147,11 +153,7 @@ export function usePushProvisioning(
         }
         setEligibility(result);
         setIsEligibilityCheckLoading(false);
-        if (
-          silent &&
-          statusRef.current === 'success' &&
-          wasCardRemoved(result)
-        ) {
+        if (silent && statusRef.current === 'success' && canAddAgain(result)) {
           setStatus('idle');
         }
       } catch {
