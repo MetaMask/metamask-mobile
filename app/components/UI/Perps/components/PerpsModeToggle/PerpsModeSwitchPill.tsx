@@ -31,6 +31,7 @@ import {
   PERPS_PRO_GOLD,
 } from '../../constants/perpsModeColors';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
+import GlassCapsule from '../../../../../component-library/components-temp/GlassCapsule';
 
 export const GLOW_TOTAL_MS = 680;
 const GLOW_SWEEP_MS = 630;
@@ -132,6 +133,7 @@ interface PerpsModeSwitchPillProps {
   accessibilityLabel: string;
   accessibilityHint: string;
   testID: string;
+  isCapsule?: boolean;
 }
 
 const PerpsModeSwitchPill = ({
@@ -142,6 +144,7 @@ const PerpsModeSwitchPill = ({
   accessibilityLabel,
   accessibilityHint,
   testID,
+  isCapsule = false,
 }: PerpsModeSwitchPillProps) => {
   const tw = useTailwind();
   const isDark = useIsDarkTheme();
@@ -215,15 +218,37 @@ const PerpsModeSwitchPill = ({
   // Pro outlines in the accent gold; Lite follows `border/default`, which the
   // preset resolves per theme. `tw.color` is not usable here — it does not
   // resolve border token names.
-  const borderStyle = [
-    styles.border,
-    isPro ? styles.proBorder : tw.style('border-default'),
-  ];
+  // In a capsule the glass edge stands in for Lite's neutral outline.
+  const borderStyle = isPro
+    ? [styles.border, styles.proBorder]
+    : isCapsule
+      ? undefined
+      : [styles.border, tw.style('border-default')];
   const pillBorderRadius = (tw.style('rounded-full') as ViewStyle).borderRadius;
   const innerBorderRadius =
     typeof pillBorderRadius === 'number'
       ? Math.max(0, pillBorderRadius - BORDER_WIDTH)
       : pillBorderRadius;
+
+  const button = (
+    <ButtonBase
+      size={ButtonBaseSize.Sm}
+      twClassName={(pressed) =>
+        isCapsule
+          ? 'h-10 rounded-full bg-transparent px-3'
+          : `h-8 rounded-full border bg-default px-3 ${pressed ? 'bg-pressed' : ''}`
+      }
+      style={[borderStyle, { minWidth: MIN_WIDTH }]}
+      onPress={handlePress}
+      disabled={isShimmering}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityRole="button"
+      testID={testID}
+    >
+      <ModeLabel isPro={isPro}>{currentModeLabel}</ModeLabel>
+    </ButtonBase>
+  );
 
   // The sweep is identical in both directions — only the palette is theme-aware.
   const gradient = (
@@ -239,24 +264,10 @@ const PerpsModeSwitchPill = ({
   return (
     <Box
       accessible={false}
-      twClassName="relative h-8"
+      twClassName={isCapsule ? 'relative h-10' : 'relative h-8'}
       onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
     >
-      <ButtonBase
-        size={ButtonBaseSize.Sm}
-        twClassName={(pressed) =>
-          `h-8 rounded-full border bg-default px-3 ${pressed ? 'bg-pressed' : ''}`
-        }
-        style={[borderStyle, { minWidth: MIN_WIDTH }]}
-        onPress={handlePress}
-        disabled={isShimmering}
-        accessibilityLabel={accessibilityLabel}
-        accessibilityHint={accessibilityHint}
-        accessibilityRole="button"
-        testID={testID}
-      >
-        <ModeLabel isPro={isPro}>{currentModeLabel}</ModeLabel>
-      </ButtonBase>
+      {isCapsule ? <GlassCapsule>{button}</GlassCapsule> : button}
 
       {isShimmering && width > 0 ? (
         <Animated.View
@@ -278,17 +289,20 @@ const PerpsModeSwitchPill = ({
             {gradient}
           </Animated.View>
 
-          <Box
-            accessible={false}
-            twClassName="absolute bg-default"
-            style={{
-              top: BORDER_WIDTH,
-              right: BORDER_WIDTH,
-              bottom: BORDER_WIDTH,
-              left: BORDER_WIDTH,
-              borderRadius: innerBorderRadius,
-            }}
-          />
+          {/* Masks the sweep to the outline; on glass it sweeps the whole capsule. */}
+          {!isCapsule && (
+            <Box
+              accessible={false}
+              twClassName="absolute bg-default"
+              style={{
+                top: BORDER_WIDTH,
+                right: BORDER_WIDTH,
+                bottom: BORDER_WIDTH,
+                left: BORDER_WIDTH,
+                borderRadius: innerBorderRadius,
+              }}
+            />
+          )}
 
           <Box
             twClassName="absolute inset-0 items-center justify-center"

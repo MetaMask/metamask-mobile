@@ -21,7 +21,6 @@ import {
   FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxBackgroundColor,
 } from '@metamask/design-system-react-native';
 import {
   PERPS_EVENT_PROPERTY,
@@ -39,6 +38,7 @@ import { getLatestActiveOrUpcomingCampaignOfType } from '../../../Rewards/compon
 import { CampaignType } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import type { PerpsCompetitionBannerProps } from './PerpsCompetitionBanner.types';
+import GlassSurface from '../../../../../component-library/components-temp/GlassSurface';
 
 // Rewards campaigns are only in Redux once the Rewards tab has been opened, so
 // the banner can render before the campaign is known. Dismissals in that window
@@ -65,7 +65,8 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   banner: {
-    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 16,
@@ -89,6 +90,7 @@ const styles = StyleSheet.create({
 
 const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
   testID = 'perps-competition-banner',
+  isGlass = false,
 }) => {
   const isEnabled = useSelector(selectPerpsCompetitionBannerEnabledFlag);
   const navigation = useNavigation<AppNavigationProp>();
@@ -187,11 +189,13 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
 
   return (
     <Pressable style={styles.container} onPress={handlePress} testID={testID}>
-      <Box
+      <GlassSurface
+        isGlass={isGlass}
+        radiusClassName="rounded-xl"
+        isInteractive
+        hasSheen
         style={styles.banner}
-        backgroundColor={BoxBackgroundColor.BackgroundMuted}
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
+        testID={`${testID}-surface`}
       >
         <Image
           source={competitionImage}
@@ -227,7 +231,7 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
             {strings('perps.competition_banner.description')}
           </Text>
         </Box>
-      </Box>
+      </GlassSurface>
     </Pressable>
   );
 };
