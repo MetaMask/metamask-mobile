@@ -134,7 +134,10 @@ export interface PerpsToastOptionsConfig {
         amount: string,
         assetSymbol: string,
       ) => PerpsToastOptions;
-      creationFailed: (error?: string) => PerpsToastOptions;
+      creationFailed: (
+        error?: string,
+        fallbackMessage?: string,
+      ) => PerpsToastOptions;
       editSubmitting: () => PerpsToastOptions;
       editConfirmed: (
         direction: OrderDirection,
@@ -669,15 +672,15 @@ const usePerpsToasts = (): {
               }),
             ),
           }),
-          creationFailed: (error?: string) => ({
+          creationFailed: (error?: string, fallbackMessage?: string) => ({
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.order_failed'),
               handlePerpsError({
                 error,
-                fallbackMessage: strings(
-                  'perps.order.your_funds_have_been_returned_to_you',
-                ),
+                fallbackMessage:
+                  fallbackMessage ??
+                  strings('perps.order.your_funds_have_been_returned_to_you'),
               }),
             ),
           }),
