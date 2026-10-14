@@ -8,6 +8,12 @@ name: CI unit and CV coverage benchmark
 run-name: coverage=${{ inputs.coverage }} sha=${{ inputs.sha }}
 
 on:
+  # Temporary registration trigger. Removed after GitHub records the workflow
+  # so later dispatches can target this branch. The benchmark jobs do not run
+  # on push.
+  push:
+    branches:
+      - ci/unit-cv-coverage-benchmark
   workflow_dispatch:
     inputs:
       sha:
@@ -34,9 +40,16 @@ on:
         default: inherit
 
 jobs:
+  register-workflow:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Register benchmark workflow for workflow_dispatch"
+
   # Warms the Namespace cache volume before test shards run. On non-Namespace
   # runners uploads a ci-js-deps artifact so consumers can skip their own install.
   prepare-ci-js-deps:
+    if: github.event_name == 'workflow_dispatch'
     name: Prepare CI JS dependencies
     runs-on: >-
       ${{
@@ -78,6 +91,7 @@ jobs:
           if-no-files-found: error
 
   unit-tests:
+    if: github.event_name == 'workflow_dispatch'
     name: Unit benchmark (${{ matrix.shard }})
     runs-on: >-
       ${{
@@ -135,6 +149,7 @@ jobs:
         run: mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
 
   component-view-tests:
+    if: github.event_name == 'workflow_dispatch'
     name: CV benchmark (${{ matrix.shard }})
     runs-on: >-
       ${{
