@@ -1,24 +1,24 @@
 import React from 'react';
 import { Image, type ImageSourcePropType } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import vbaHazard from './assets/vba-hazard.png';
 import vbaScanner from './assets/vba-scanner.png';
 
 export const VbaIllustrationSource = {
+  hazard: vbaHazard,
   scanner: vbaScanner,
 } as const;
 
 /**
- * VBA header graphic. The default size is the 1x export (127 by 88).
+ * VBA header graphic at the 1x size of the exported PNG.
  * Density variants (`@2x`, `@3x`) resolve from the base filename.
  */
 const VbaIllustration = ({
   source,
-  width = 127,
-  height = 88,
+  twClassName = 'h-[88px] w-[127px]',
 }: {
   source: ImageSourcePropType;
-  width?: number;
-  height?: number;
+  twClassName?: string;
 }) => {
   const tw = useTailwind();
 
@@ -27,7 +27,7 @@ const VbaIllustration = ({
       source={source}
       resizeMode="contain"
       accessibilityIgnoresInvertColors
-      style={tw.style({ width, height })}
+      style={tw.style(twClassName)}
     />
   );
 };

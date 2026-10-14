@@ -60,8 +60,7 @@ const VbaKycPending = () => {
           >
             <VbaIllustration
               source={VbaIllustrationSource.scanner}
-              width={149}
-              height={104}
+              twClassName="h-[104px] w-[149px]"
             />
           </Box>
           <Text variant={TextVariant.HeadingLg} twClassName="text-center">

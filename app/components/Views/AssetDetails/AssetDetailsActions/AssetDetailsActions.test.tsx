@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { MAINACTIONBUTTON_GLASS_TEST_ID } from '../../../../component-library/components-temp/MainActionButton/MainActionButton.constants';
 import AssetDetailsActions from './AssetDetailsActions';
 import { strings } from '../../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from '../../../UI/AssetOverview/TokenOverview.testIds';
@@ -111,6 +112,24 @@ describe('AssetDetailsActions', () => {
       { state: initialRootState },
     );
     expect(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('keeps opaque buttons by default', () => {
+    const { queryAllByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state: initialRootState },
+    );
+
+    expect(queryAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toHaveLength(0);
+  });
+
+  it('renders every button on glass when hasGlassButtons is set', () => {
+    const { getAllByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} hasGlassButtons />,
+      { state: initialRootState },
+    );
+
+    expect(getAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toHaveLength(4);
   });
 
   it('renders correctly with all buttons displayed', () => {

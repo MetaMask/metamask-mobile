@@ -522,6 +522,36 @@ describe('PerpsTradeScreen errors', () => {
     expect(screen.getByTestId('rewards-vip-badge')).toBeOnTheScreen();
   });
 
+  it('shows the trade fee without a bridge fee', () => {
+    render(<PerpsTradeScreen {...defaultProps} />);
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
+    ).toHaveTextContent('Includes 0.143% fee');
+    expect(screen.queryByText(/bridge fee/)).not.toBeOnTheScreen();
+  });
+
+  it('appends the bridge fee to the trade fee', () => {
+    render(<PerpsTradeScreen {...defaultProps} bridgeFee="$0.15" />);
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
+    ).toHaveTextContent('Includes 0.143% fee + $0.15 bridge fee');
+  });
+
+  it('shows the fee skeleton instead of a partial fee line while fees are loading', () => {
+    render(
+      <PerpsTradeScreen {...defaultProps} isFeeLoading bridgeFee="$0.15" />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
+    ).not.toBeOnTheScreen();
+  });
+
   it('shows the limit price row for a limit order', () => {
     render(
       <PerpsTradeScreen
