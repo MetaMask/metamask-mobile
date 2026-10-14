@@ -5,7 +5,11 @@ jest.mock(
       getVideoURL: jest.fn(),
       getAppMetrics: jest.fn(),
       getNetworkLogs: jest.fn(),
+      createShareLink: jest.fn(),
     })),
+    extractTestIdFromRecordingUrl: jest.requireActual(
+      '../../../framework/services/providers/testmu/TestMuAIAPI.ts',
+    ).extractTestIdFromRecordingUrl,
     TestMuAIAPIError: class extends Error {
       status: number;
       body: string | null;
@@ -43,6 +47,7 @@ const getApiMock = (): {
   getVideoURL: jest.Mock;
   getAppMetrics: jest.Mock;
   getNetworkLogs: jest.Mock;
+  createShareLink: jest.Mock;
 } => (TestMuAIAPI as unknown as jest.Mock).mock.results[0].value;
 
 describe('TestMuAIEnricher', () => {
@@ -165,6 +170,51 @@ describe('TestMuAIEnricher', () => {
 
       expect(session.networkLogsEntries).toEqual([]);
       expect(session.networkLogsError).toBe('Not Found');
+    });
+  });
+
+  describe('share link', () => {
+    const TEST_ID = 'RMAA-AND-3245013-1791894232540457522DYM';
+    const videoUrl = `https://prod-mobile-artefacts.lambdatest.com/30d/orgId-1/2026/10/13/${TEST_ID}/video/video.mp4?verify=x`;
+
+    beforeEach(() => {
+      getApiMock().getVideoURL.mockResolvedValue(videoUrl);
+      getApiMock().getAppMetrics.mockResolvedValue(null);
+    });
+
+    it('creates a public share link from the test id in the recording URL', async () => {
+      getApiMock().createShareLink.mockResolvedValue(
+        'https://appautomation.lambdatest.com/share/US_ABC',
+      );
+      const session = makeSession();
+
+      await enricher.enrichSession(session);
+
+      expect(getApiMock().createShareLink).toHaveBeenCalledWith(TEST_ID);
+      expect(session.sessionShareUrl).toBe(
+        'https://appautomation.lambdatest.com/share/US_ABC',
+      );
+    });
+
+    it('keeps enriching when the share link request fails', async () => {
+      getApiMock().createShareLink.mockRejectedValue(
+        new TestMuAIAPIError('Forbidden', 403, 'nope'),
+      );
+      const session = makeSession();
+
+      await enricher.enrichSession(session);
+
+      expect(session.sessionShareUrl).toBeUndefined();
+      expect(session.videoURL).toBe(videoUrl);
+    });
+
+    it('skips the share link when the recording URL has no test id', async () => {
+      getApiMock().getVideoURL.mockResolvedValue('https://video/plain.mp4');
+      const session = makeSession();
+
+      await enricher.enrichSession(session);
+
+      expect(getApiMock().createShareLink).not.toHaveBeenCalled();
     });
   });
 });

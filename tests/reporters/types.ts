@@ -65,6 +65,7 @@ export interface MetricsEntry {
   apiCalls?: NetworkLogEntry[] | null;
   apiCallsError?: string | null;
   retryInfo?: RetryInfo;
+  sessionShareUrl?: string | null;
 }
 
 /** Set when a test only passed after one or more failed attempts. */
@@ -87,6 +88,7 @@ export interface SessionData {
   team?: TeamInfo;
   tags?: string[];
   videoURL?: string;
+  sessionShareUrl?: string;
   profilingData?: ProfilingData | null;
   profilingSummary?: ProfilingSummary | null;
   networkLogsEntries?: NetworkLogEntry[];

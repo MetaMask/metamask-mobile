@@ -786,6 +786,7 @@ class PerformanceReporter {
         ...metric,
         device: deviceInfo,
         videoURL: matchingSession?.videoURL || null,
+        sessionShareUrl: matchingSession?.sessionShareUrl || null,
         sessionId: matchingSession?.sessionId || null,
         profilingData: matchingSession?.profilingData || null,
         profilingSummary: matchingSession?.profilingSummary || null,

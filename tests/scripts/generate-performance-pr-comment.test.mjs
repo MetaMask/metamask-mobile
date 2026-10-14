@@ -241,3 +241,116 @@ test('flags a passed scenario that needed a retry after a session failure', () =
     /\| Asset View ⚠️ passed on attempt 2; attempt 1: Session creation failed after 420s \|/,
   );
 });
+
+const TESTMU_VIDEO = (testId) =>
+  `https://prod-mobile-artefacts.lambdatest.com/30d/orgId-3245013/2026/10/13/${testId}/video/video.mp4?verify=abc`;
+
+test('adds a TestMu test link, built from the recording URL, next to the recording', () => {
+  const [failedTest] = Object.values(
+    SUMMARY.failedTestsStats.failedTestsByTeam,
+  )[0].tests;
+  const md = generateComment({
+    summary: {
+      ...SUMMARY,
+      failedTestsStats: {
+        uniqueFailedTests: 1,
+        failedTestsByTeam: {
+          '@performance-team': {
+            team: { teamId: '@performance-team' },
+            tests: [
+              {
+                ...failedTest,
+                recordingLink: TESTMU_VIDEO('RMAA-AND-3245013-1791917903591921078WRR'),
+              },
+            ],
+          },
+        },
+      },
+    },
+    performanceResults: {
+      Android: {
+        'Google Pixel 8 Pro+14.0': [
+          {
+            testName: 'Cold Start Login',
+            sessionId: 'session-failed',
+            videoURL: TESTMU_VIDEO('RMAA-AND-3245013-1791917903591921078WRR'),
+            totalTime: 4.2,
+            device: { name: 'Google Pixel 8 Pro', osVersion: '14.0' },
+            team: { teamId: '@performance-team' },
+            qualityGates: { passed: false, hasThresholds: true },
+          },
+          {
+            testName: 'Asset View',
+            sessionId: 'session-passed',
+            videoURL: TESTMU_VIDEO('RMAA-AND-3245013-1791894232540457522DYM'),
+            totalTime: 2.5,
+            device: { name: 'Google Pixel 8 Pro', osVersion: '14.0' },
+            team: { teamId: '@assets-dev-team' },
+            qualityGates: { passed: true, hasThresholds: true },
+          },
+        ],
+      },
+    },
+  });
+
+  assert.match(
+    md,
+    /\[📹 Watch\]\([^)]*RMAA-AND-3245013-1791894232540457522DYM[^)]*\) · \[TestMu\]\(https:\/\/appautomation\.lambdatest\.com\/test\?testID=RMAA-AND-3245013-1791894232540457522DYM\)/,
+  );
+  assert.match(
+    md,
+    /\[TestMu\]\(https:\/\/appautomation\.lambdatest\.com\/test\?testID=RMAA-AND-3245013-1791917903591921078WRR\)/,
+  );
+});
+
+test('does not add a TestMu link when the recording is not a TestMu one', () => {
+  const md = generateComment({
+    performanceResults: {
+      Android: {
+        'Google Pixel 8 Pro+14.0': [
+          {
+            testName: 'Asset View',
+            sessionId: 'bs-session',
+            videoURL: 'https://video.test/bs.mp4',
+            totalTime: 2.5,
+            device: { name: 'Google Pixel 8 Pro', provider: 'browserstack' },
+            team: { teamId: '@assets-dev-team' },
+          },
+        ],
+      },
+    },
+  });
+
+  assert.match(md, /\[📹 Watch\]\(https:\/\/video\.test\/bs\.mp4\)/);
+  assert.doesNotMatch(md, /\[TestMu\]/);
+});
+
+test('prefers the public TestMu share link over the dashboard link', () => {
+  const md = generateComment({
+    summary: {
+      ...SUMMARY,
+      failedTestsStats: { uniqueFailedTests: 0, failedTestsByTeam: {} },
+    },
+    performanceResults: {
+      Android: {
+        'Google Pixel 8 Pro+14.0': [
+          {
+            testName: 'Asset View',
+            sessionId: 'session-passed',
+            videoURL: TESTMU_VIDEO('RMAA-AND-3245013-1791894232540457522DYM'),
+            sessionShareUrl: 'https://appautomation.lambdatest.com/share/US_ABC',
+            totalTime: 2.5,
+            device: { name: 'Google Pixel 8 Pro', osVersion: '14.0' },
+            team: { teamId: '@assets-dev-team' },
+          },
+        ],
+      },
+    },
+  });
+
+  assert.match(
+    md,
+    /\[TestMu\]\(https:\/\/appautomation\.lambdatest\.com\/share\/US_ABC\)/,
+  );
+  assert.doesNotMatch(md, /test\?testID=/);
+});

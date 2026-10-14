@@ -3,7 +3,31 @@ import { createLogger } from '../../../logger.ts';
 const logger = createLogger({ name: 'TestMuAIAPI' });
 const API_BASE_URL =
   'https://mobile-api.lambdatest.com/mobile-automation/api/v1';
+const SHARE_LINK_API_URL =
+  'https://api.lambdatest.com/lshs/api/v1.0/share-item/generate-sharable-link';
+const SHARE_URL_BASE = 'https://appautomation.lambdatest.com/share/';
 const DEFAULT_TIMEOUT_MS = 8000;
+
+/** TestMu test ids (e.g. RMAA-AND-3245013-17918...DYM) are embedded in recording URLs. */
+export function extractTestIdFromRecordingUrl(url: string): string | null {
+  return (
+    /\/([A-Z]{2,}-[A-Z]{2,}-\d+-[A-Za-z0-9]+)\/video\//.exec(url)?.[1] ?? null
+  );
+}
+
+/**
+ * The share-link response shape is not documented: accept a full share URL
+ * anywhere in the body, or a bare `US_...` token.
+ */
+export function parseShareLinkResponse(body: unknown): string | null {
+  const text = JSON.stringify(body) ?? '';
+  const fullUrl = /https?:\/\/[^"\s\\]+\/share\/[A-Za-z0-9_-]+/.exec(text)?.[0];
+  if (fullUrl) {
+    return fullUrl;
+  }
+  const token = /"(US_[A-Za-z0-9]+)"/.exec(text)?.[1];
+  return token ? `${SHARE_URL_BASE}${token}` : null;
+}
 
 export class TestMuAIAPIError extends Error {
   status: number;
@@ -164,6 +188,60 @@ export class TestMuAIAPI {
     }
 
     return await response.json();
+  }
+
+  /** Public, login-free link to the TestMu test page (valid for `expiresInDays`). */
+  async createShareLink(
+    testId: string,
+    expiresInDays: 7 | 15 | 30 = 30,
+  ): Promise<string | null> {
+    if (!this.hasCredentials()) {
+      logger.warn('Skipping createShareLink: missing TestMu AI credentials');
+      return null;
+    }
+
+    const response = await fetch(SHARE_LINK_API_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: this.getAuthHeader(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        entityIds: [testId],
+        entityType: 'App Automation Test',
+        expiresAt: expiresInDays,
+      }),
+      signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+    });
+
+    const responseText = await response.text();
+    if (!response.ok) {
+      throw new TestMuAIAPIError(
+        `Error creating TestMu AI share link: ${response.statusText}`,
+        response.status,
+        responseText,
+      );
+    }
+
+    logger.info(
+      `TestMu AI share link response for ${testId}: ${responseText.slice(0, 300)}`,
+    );
+
+    let parsed: unknown = responseText;
+    try {
+      parsed = JSON.parse(responseText);
+    } catch {
+      // keep the raw text; parseShareLinkResponse stringifies it
+    }
+    const shareUrl = parseShareLinkResponse(parsed);
+    if (!shareUrl) {
+      throw new TestMuAIAPIError(
+        'TestMu AI share link response had no link',
+        response.status,
+        responseText,
+      );
+    }
+    return shareUrl;
   }
 
   async getVideoURL(

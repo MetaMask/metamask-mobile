@@ -109,6 +109,29 @@ async function main() {
       .replaceAll('\n', ' ');
   }
 
+  const TESTMU_TEST_URL = 'https://appautomation.lambdatest.com/test?testID=';
+  // The dashboard is keyed by test id (RMAA-AND-<org>-<n>), which TestMu also
+  // embeds in the recording URL; the WebDriver session id does not work there.
+  const TESTMU_TEST_ID_IN_RECORDING = /\/([A-Z]{2,}-[A-Z]{2,}-\d+-[A-Za-z0-9]+)\/video\//;
+
+  /** Recording link plus, for TestMu recordings, a link to the test itself. */
+  function formatRecordingLinks({ recordingLink, sessionShareUrl }) {
+    const links = [];
+    if (recordingLink) {
+      links.push(`[📹 Watch](${recordingLink})`);
+    }
+    // Prefer the public share link; the dashboard link needs a TestMu login.
+    const testId = recordingLink
+      ? TESTMU_TEST_ID_IN_RECORDING.exec(recordingLink)?.[1]
+      : null;
+    const testMuLink =
+      sessionShareUrl ?? (testId ? `${TESTMU_TEST_URL}${testId}` : null);
+    if (testMuLink) {
+      links.push(`[TestMu](${testMuLink})`);
+    }
+    return links.length > 0 ? links.join(' · ') : '—';
+  }
+
   /** Explains why a passed test needed a retry, e.g. a session creation failure. */
   function formatRetryNote(retryInfo) {
     if (!retryInfo) {
@@ -204,6 +227,8 @@ async function main() {
               : '—',
             team: test.team?.teamId ?? 'Unknown Team',
             recordingLink: test.videoURL ?? failedTest?.recordingLink,
+            sessionShareUrl:
+              test.sessionShareUrl ?? failedTest?.sessionShareUrl ?? null,
             retryInfo: test.retryInfo ?? null,
           };
         }),
@@ -352,9 +377,10 @@ async function main() {
               : t.platform;
 
         const reason = formatReason(t.failureReason);
-        const recording = t.recordingLink
-          ? `[📹 Watch](${t.recordingLink})`
-          : '—';
+        const recording = formatRecordingLinks({
+          recordingLink: t.recordingLink,
+          sessionShareUrl: t.sessionShareUrl,
+        });
         const key = `${t.platform}|${getDeviceKey(t.device)}|${t.testName}`;
         const profilingSection = profilingByKey.get(key);
 
@@ -378,9 +404,10 @@ async function main() {
     md += `|------|----------|--------|----------|------|-----------|\n`;
 
     for (const test of passedTestRuns) {
-      const recording = test.recordingLink
-        ? `[📹 Watch](${test.recordingLink})`
-        : '—';
+      const recording = formatRecordingLinks({
+        recordingLink: test.recordingLink,
+        sessionShareUrl: test.sessionShareUrl,
+      });
 
       md += `| ${escapeMarkdownTable(test.testName)}${escapeMarkdownTable(
         formatRetryNote(test.retryInfo),
