@@ -32,6 +32,24 @@ export interface TraderPositionTrade {
 }
 
 /**
+ * One wallet's open position in one asset from
+ * `GET /api/v2/traders/{address}/{assetId}/open`.
+ * Money fields are USD. `in-progress` means the figures are not ready to show.
+ */
+export interface OpenPositionPnl {
+  positionAmount: number;
+  isOpen: boolean;
+  boughtUsd: number;
+  soldUsd: number;
+  realizedPnl: number;
+  costBasis: number;
+  currentValueUSD: number | null;
+  pnlValueUsd: number | null;
+  pnlPercent: number | null;
+  pnlStatus: 'ready' | 'in-progress';
+}
+
+/**
  * Unrealized spot PnL in USD. Percent is of cost basis.
  * Both stay null when the position is a perp; that formula is unconfirmed.
  */
