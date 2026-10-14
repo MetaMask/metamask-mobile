@@ -166,12 +166,24 @@ export async function setupSmartTransactionsMocks(
   let relayTxHash: string | undefined;
 
   // Mock POST eth_sendRelayTransaction – JSON-RPC to sentinel root URL.
+  // Transaction simulation (`infura_simulateTransactions`) uses the same root
+  // URL, so match on the JSON-RPC method to avoid sending a relay transaction
+  // to Anvil when a transaction is only being simulated.
   await mockServer
     .forPost('/proxy')
-    .matching((request) => {
+    .matching(async (request) => {
       const url = getDecodedProxiedURL(request.url);
       // Relay submit goes to the root sentinel URL (no path beyond /)
-      return /tx-sentinel[^/]*\.api\.cx\.metamask\.io\/?$/.test(url);
+      if (!/tx-sentinel[^/]*\.api\.cx\.metamask\.io\/?$/.test(url)) {
+        return false;
+      }
+
+      try {
+        const body = JSON.parse((await request.body.getText()) ?? '{}');
+        return body?.method === 'eth_sendRelayTransaction';
+      } catch {
+        return false;
+      }
     })
     .asPriority(1000)
     .thenCallback(async (request) => {
