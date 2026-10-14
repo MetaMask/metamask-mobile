@@ -1,4 +1,4 @@
-import { waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import BN from 'bnjs4';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
@@ -398,7 +398,7 @@ describe('useAmountValidation', () => {
     expect(error).toEqual(undefined);
   });
 
-  it('return error when non-EVM asset has zero balance', async () => {
+  it('defers non-EVM zero-balance error until Continue is pressed', async () => {
     jest.spyOn(SendContext, 'useSendContext').mockReturnValue({
       asset: {
         ...SOLANA_ASSET,
@@ -412,9 +412,16 @@ describe('useAmountValidation', () => {
       state: solanaSendStateMock,
     });
 
-    await waitFor(() =>
-      expect(result.current.amountError).toEqual('Insufficient funds'),
-    );
+    await waitFor(() => expect(mockDebounce).toHaveBeenCalled());
+    expect(result.current.amountError).toEqual(undefined);
+    expect(mockValidateAmountMultichain).not.toHaveBeenCalled();
+
+    let error: string | undefined;
+    await act(async () => {
+      error = await result.current.validateNonEvmAmountAsync();
+    });
+    expect(error).toEqual('Insufficient funds');
+    expect(result.current.amountError).toEqual('Insufficient funds');
   });
 
   it('snap validation is debounced with 300ms delay', async () => {
@@ -457,7 +464,7 @@ describe('useAmountValidation', () => {
     expect(mockValidateAmountMultichain).not.toHaveBeenCalled();
   });
 
-  it('returns insufficient balance to cover fees error when snap returns InsufficientBalanceToCoverFee', async () => {
+  it('surfaces insufficient-balance-to-cover-fees error on Continue press', async () => {
     mockValidateAmountMultichain.mockResolvedValue({
       errors: [{ code: 'InsufficientBalanceToCoverFee' }],
     });
@@ -476,10 +483,91 @@ describe('useAmountValidation', () => {
       state: solanaSendStateMock,
     });
 
+    await waitFor(() => expect(mockDebounce).toHaveBeenCalled());
+    expect(result.current.amountError).toEqual(undefined);
+    expect(mockValidateAmountMultichain).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await result.current.validateNonEvmAmountAsync();
+    });
     await waitFor(() =>
       expect(result.current.amountError).toEqual(
         'Insufficient balance to cover fees',
       ),
     );
+  });
+
+  it('does not call snap before first Continue press even for invalid non-EVM amount', async () => {
+    mockValidateAmountMultichain.mockResolvedValue({
+      errors: [{ code: 'InsufficientBalance' }],
+    });
+
+    jest.spyOn(SendContext, 'useSendContext').mockReturnValue({
+      asset: {
+        ...SOLANA_ASSET,
+        rawBalance: '0xde0b6b3a7640000',
+      },
+      from: MOCK_ADDRESS_1,
+      fromAccount: { id: 'solana-account-id' },
+      value: '1',
+    } as unknown as SendContext.SendContextType);
+
+    const { result } = renderHookWithProvider(() => useAmountValidation(), {
+      state: solanaSendStateMock,
+    });
+
+    await waitFor(() => expect(mockDebounce).toHaveBeenCalled());
+    expect(result.current.amountError).toEqual(undefined);
+    expect(mockValidateAmountMultichain).not.toHaveBeenCalled();
+  });
+
+  it('re-validates non-EVM amount on value change after Continue press', async () => {
+    mockValidateAmountMultichain.mockImplementation(
+      (_fromAccount: unknown, params: { value: string }) =>
+        Promise.resolve(
+          params.value === '1'
+            ? { errors: [{ code: 'InsufficientBalance' }] }
+            : { errors: [] },
+        ),
+    );
+
+    const mockUseSendContext = jest.spyOn(SendContext, 'useSendContext');
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        ...SOLANA_ASSET,
+        rawBalance: '0xde0b6b3a7640000',
+      },
+      from: MOCK_ADDRESS_1,
+      fromAccount: { id: 'solana-account-id' },
+      value: '1',
+    } as unknown as SendContext.SendContextType);
+
+    const { result, rerender } = renderHookWithProvider(
+      () => useAmountValidation(),
+      {
+        state: solanaSendStateMock,
+      },
+    );
+
+    await act(async () => {
+      await result.current.validateNonEvmAmountAsync();
+    });
+    expect(result.current.amountError).toEqual('Insufficient funds');
+
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        ...SOLANA_ASSET,
+        rawBalance: '0xde0b6b3a7640000',
+      },
+      from: MOCK_ADDRESS_1,
+      fromAccount: { id: 'solana-account-id' },
+      value: '0.5',
+    } as unknown as SendContext.SendContextType);
+    rerender();
+
+    await waitFor(() =>
+      expect(result.current.amountError).toEqual(undefined),
+    );
+    expect(mockValidateAmountMultichain).toHaveBeenCalledTimes(2);
   });
 });

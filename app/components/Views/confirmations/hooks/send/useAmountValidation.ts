@@ -26,6 +26,7 @@ export const useAmountValidation = () => {
   const { validateAmountWithSnap } = useSnapAmountOnInput();
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
   const unmountedRef = useRef(false);
+  const hasAttemptedContinueRef = useRef(false);
 
   const setAndReturnError = useCallback((errorMessage: string | undefined) => {
     if (!unmountedRef.current) {
@@ -96,6 +97,7 @@ export const useAmountValidation = () => {
 
   // This callback is needed for non-EVM validation when nothing is typed into amount
   const validateNonEvmAmountAsync = useCallback(async () => {
+    hasAttemptedContinueRef.current = true;
     const error = await validateNonEvmAmount(normalizeAmount(value));
     return setAndReturnError(error);
   }, [value, validateNonEvmAmount, setAndReturnError]);
@@ -111,6 +113,14 @@ export const useAmountValidation = () => {
     [],
   );
 
+  // Track mount state once so async validation can't set state after unmount.
+  useEffect(() => {
+    unmountedRef.current = false;
+    return () => {
+      unmountedRef.current = true;
+    };
+  }, []);
+
   // EVM: run immediately — no snap RPC, so amountError must never be stale.
   useEffect(() => {
     if (!isNonEvmSendType) {
@@ -119,17 +129,18 @@ export const useAmountValidation = () => {
   }, [isNonEvmSendType, validateAmountAsync]);
 
   // Non-EVM: debounce to avoid a snap RPC call on every keystroke.
-  // Also tracks mount state so async validation can't set state after unmount.
+  // Deferred until the first Continue press so errors never flash while the
+  // user is still typing; after that it re-runs on every value change so
+  // amountError never goes stale. Cancel on cleanup gives real debounce
+  // semantics across keystrokes.
   useEffect(() => {
-    unmountedRef.current = false;
-    if (isNonEvmSendType) {
+    if (isNonEvmSendType && hasAttemptedContinueRef.current) {
       debouncedSnapValidation();
     }
     return () => {
-      unmountedRef.current = true;
       debouncedSnapValidation.cancel();
     };
-  }, [isNonEvmSendType, debouncedSnapValidation]);
+  }, [isNonEvmSendType, value, debouncedSnapValidation]);
 
   return { amountError, validateNonEvmAmountAsync };
 };
