@@ -3382,7 +3382,9 @@ describe('Perps Feature Flag Selectors', () => {
       'returns false for malformed flag %p',
       (flag) => {
         expect(
-          selectPerpsPriceAlertsPercentChangeEnabledFlag(stateWithFlag(flag)),
+          selectPerpsPriceAlertsPercentChangeEnabledFlag(
+            stateWithFlag(flag as Json),
+          ),
         ).toBe(false);
       },
     );
