@@ -775,6 +775,28 @@ describe('PerpsMarketBalanceActions', () => {
       ).toBeOnTheScreen();
     });
 
+    it('passes glass to the empty-balance Add funds', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...defaultPerpsAccount,
+          totalBalance: '0',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
+        },
+        isInitialLoading: false,
+        isLoading: false,
+        error: null,
+      });
+
+      const { UNSAFE_getAllByType } = renderWithProvider(
+        <PerpsMarketBalanceActions hideBalanceSection isGlass />,
+        { state: createMockState() },
+        false,
+      );
+
+      expect(UNSAFE_getAllByType(GlassView)).toHaveLength(1);
+    });
+
     it('keeps the original buttons by default', () => {
       const { UNSAFE_queryAllByType } = renderWithProvider(
         <PerpsMarketBalanceActions hideBalanceSection showActionButtons />,

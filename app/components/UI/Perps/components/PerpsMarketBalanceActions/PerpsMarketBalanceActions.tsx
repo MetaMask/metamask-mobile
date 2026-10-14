@@ -257,7 +257,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         {/* Balance Section — defer until account data lands when balance is in TitleHub */}
         {!isInitialLoading &&
           (isBalanceEmpty ? (
-            <PerpsEmptyBalance onAddFunds={handleAddFunds} />
+            <PerpsEmptyBalance onAddFunds={handleAddFunds} isGlass={isGlass} />
           ) : hideBalanceSection ? (
             showActionButtons && (
               <Box
