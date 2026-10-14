@@ -17,14 +17,6 @@ import {
 
 const VBA_KYC_STATUS_REDIRECT_SOURCE = 'kyc_pending-status-change';
 
-/**
- * Delays between re-checks after a decided KYC status still resolves to this
- * screen, for example an approved session whose MoonPay customer is not Active
- * yet. The KYC poll has stopped by then, so nothing else updates the screen.
- * The last delay repeats.
- */
-export const VBA_ACCOUNT_SETUP_RECHECK_DELAYS_MS = [15_000, 30_000, 60_000];
-
 interface KycStatusPair {
   finalStatus: string | null;
   kycStatus: string | null;
@@ -56,9 +48,9 @@ export const isTerminalVbaKycStatus = ({
  * controller poll. Returning to the foreground does the same to get an
  * immediate fetch. Any resulting update flows through the same watcher.
  *
- * A terminal status can still resolve to this screen while the account is
- * being set up. The watcher then re-checks on
- * {@link VBA_ACCOUNT_SETUP_RECHECK_DELAYS_MS}, and right away on foreground.
+ * This screen only follows the KYC decision. An approved session whose account
+ * is not ready yet still resolves here and stays until account setup has its
+ * own screen.
  */
 export const useVbaKycStatusRedirect = (): void => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -70,23 +62,13 @@ export const useVbaKycStatusRedirect = (): void => {
   const isRunningRef = useRef(false);
   const handledStatusKeyRef = useRef<string | null>(null);
   const latestStatusRef = useRef<KycStatusPair>({ finalStatus, kycStatus });
-  const recheckTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const recheckCountRef = useRef(0);
-
-  const clearRecheckTimer = useCallback((): void => {
-    if (recheckTimerRef.current !== null) {
-      clearTimeout(recheckTimerRef.current);
-      recheckTimerRef.current = null;
-    }
-  }, []);
 
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
-      clearRecheckTimer();
     };
-  }, [clearRecheckTimer]);
+  }, []);
 
   const redirectIfTerminal = useCallback(
     function runRedirect(): void {
@@ -103,7 +85,6 @@ export const useVbaKycStatusRedirect = (): void => {
         return;
       }
 
-      clearRecheckTimer();
       handledStatusKeyRef.current = statusKey;
       isRunningRef.current = true;
 
@@ -136,17 +117,7 @@ export const useVbaKycStatusRedirect = (): void => {
           // Pick up a different terminal status that arrived while in flight.
           if (getStatusKey(latestStatusRef.current) !== statusKey) {
             runRedirect();
-            return;
           }
-          const delays = VBA_ACCOUNT_SETUP_RECHECK_DELAYS_MS;
-          const delay =
-            delays[Math.min(recheckCountRef.current, delays.length - 1)];
-          recheckCountRef.current += 1;
-          recheckTimerRef.current = setTimeout(() => {
-            recheckTimerRef.current = null;
-            handledStatusKeyRef.current = null;
-            runRedirect();
-          }, delay);
         })
         .catch((error: unknown) => {
           isRunningRef.current = false;
@@ -159,7 +130,7 @@ export const useVbaKycStatusRedirect = (): void => {
           });
         });
     },
-    [clearRecheckTimer, navigation],
+    [navigation],
   );
 
   // Runs on mount too: the status can already be terminal when this screen
@@ -197,19 +168,11 @@ export const useVbaKycStatusRedirect = (): void => {
     const subscription = AppState.addEventListener(
       'change',
       (nextAppState: AppStateStatus) => {
-        if (nextAppState !== 'active') {
-          return;
+        if (nextAppState === 'active') {
+          refreshSessionStatusIfPending();
         }
-        // Waiting on account setup: re-check now instead of at the next delay.
-        if (recheckTimerRef.current !== null) {
-          clearRecheckTimer();
-          handledStatusKeyRef.current = null;
-          redirectIfTerminal();
-          return;
-        }
-        refreshSessionStatusIfPending();
       },
     );
     return () => subscription.remove();
-  }, [clearRecheckTimer, redirectIfTerminal, refreshSessionStatusIfPending]);
+  }, [refreshSessionStatusIfPending]);
 };

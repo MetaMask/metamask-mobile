@@ -13,7 +13,6 @@ import {
 import {
   isTerminalVbaKycStatus,
   useVbaKycStatusRedirect,
-  VBA_ACCOUNT_SETUP_RECHECK_DELAYS_MS,
 } from './useVbaKycStatusRedirect';
 
 interface MockSessionStatus {
@@ -318,83 +317,18 @@ describe('useVbaKycStatusRedirect', () => {
     expect(mockRemoveAppStateListener).toHaveBeenCalled();
   });
 
-  describe('when a decided status still resolves to this screen', () => {
-    const [firstDelay, secondDelay, lastDelay] =
-      VBA_ACCOUNT_SETUP_RECHECK_DELAYS_MS;
+  it('does not check the account again once the KYC decision resolves to this screen', async () => {
+    mockResolve.mockResolvedValue(resolvedTo('kycPending'));
+    setSessionStatus(approved);
+    renderRedirectHook();
+    await act(flushPromises);
 
-    const advanceTimers = (ms: number) =>
-      act(async () => {
-        jest.advanceTimersByTime(ms);
-        await flushPromises();
-      });
-
-    beforeEach(() => {
-      jest.useFakeTimers({ doNotFake: ['setImmediate'] });
-      mockResolve.mockResolvedValue(resolvedTo('kycPending'));
+    await act(async () => {
+      appStateChangeHandler?.('active');
+      await flushPromises();
     });
 
-    afterEach(() => {
-      jest.useRealTimers();
-    });
-
-    it('does not check again before the first delay', async () => {
-      setSessionStatus(approved);
-      renderRedirectHook();
-      await act(flushPromises);
-
-      await advanceTimers(firstDelay - 1);
-
-      expect(mockResolve).toHaveBeenCalledTimes(1);
-    });
-
-    it('checks again after each delay and repeats the last one', async () => {
-      setSessionStatus(approved);
-      renderRedirectHook();
-      await act(flushPromises);
-
-      await advanceTimers(firstDelay);
-      await advanceTimers(secondDelay);
-      await advanceTimers(lastDelay);
-      await advanceTimers(lastDelay);
-
-      expect(mockResolve).toHaveBeenCalledTimes(5);
-    });
-
-    it('checks again right away when the app returns to the foreground', async () => {
-      setSessionStatus(approved);
-      renderRedirectHook();
-      await act(flushPromises);
-
-      await act(async () => {
-        appStateChangeHandler?.('active');
-        await flushPromises();
-      });
-
-      expect(mockResolve).toHaveBeenCalledTimes(2);
-      expect(mockRefreshSessionStatus).not.toHaveBeenCalled();
-    });
-
-    it('stops checking after unmount', async () => {
-      setSessionStatus(approved);
-      const { unmount } = renderRedirectHook();
-      await act(flushPromises);
-
-      unmount();
-      await advanceTimers(lastDelay);
-
-      expect(mockResolve).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not check again after opening another destination', async () => {
-      mockResolve.mockResolvedValue(resolvedTo('complete'));
-      setSessionStatus(approved);
-      renderRedirectHook();
-      await act(flushPromises);
-
-      await advanceTimers(lastDelay);
-
-      expect(mockResolve).toHaveBeenCalledTimes(1);
-    });
+    expect(mockResolve).toHaveBeenCalledTimes(1);
   });
 });
 
