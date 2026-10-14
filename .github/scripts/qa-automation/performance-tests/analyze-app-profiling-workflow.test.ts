@@ -6,6 +6,10 @@ const WORKFLOW_PATH = path.join(
   __dirname,
   '../../../workflows/analyze-app-profiling.yml',
 );
+const PERFORMANCE_WORKFLOW_PATH = path.join(
+  __dirname,
+  '../../../workflows/run-performance-e2e-manual.yml',
+);
 
 type WorkflowStep = {
   name?: string;
@@ -24,7 +28,11 @@ type Workflow = {
   on: {
     schedule?: { cron: string }[];
     pull_request?: unknown;
-    workflow_run?: { workflows: string[]; types: string[] };
+    workflow_run?: unknown;
+    workflow_call?: {
+      inputs: Record<string, { required?: boolean; type?: string }>;
+      secrets?: Record<string, { required?: boolean }>;
+    };
     workflow_dispatch: { inputs: Record<string, unknown> };
   };
   jobs: Record<
@@ -40,8 +48,26 @@ type Workflow = {
   };
 };
 
+type CallerJob = {
+  if?: string;
+  needs?: string[];
+  uses?: string;
+  permissions?: Record<string, string>;
+  with?: Record<string, string>;
+  secrets?: Record<string, string> | 'inherit';
+};
+
 const loadWorkflow = () =>
   yaml.load(fs.readFileSync(WORKFLOW_PATH, 'utf8')) as Workflow;
+
+const loadCallerJob = () => {
+  const workflow = yaml.load(
+    fs.readFileSync(PERFORMANCE_WORKFLOW_PATH, 'utf8'),
+  ) as { jobs: Record<string, CallerJob> };
+  return Object.values(workflow.jobs).find(
+    (job) => job.uses === './.github/workflows/analyze-app-profiling.yml',
+  );
+};
 
 describe('Analyze App Profiling triggers', () => {
   it('does not run on a pull request', () => {
@@ -53,55 +79,82 @@ describe('Analyze App Profiling triggers', () => {
 
   it('runs the weekly conclusions job on Monday', () => {
     const workflow = loadWorkflow();
+    const analysisStep = workflow.jobs.analyze.steps.find(
+      (step) => step.name === 'Analyze app profiling',
+    );
 
     expect(workflow.on.schedule).toStrictEqual([{ cron: '0 9 * * 1' }]);
-    expect(workflow.jobs.analyze.if).toContain(
-      "github.event_name == 'schedule'",
+    expect(workflow.jobs.analyze.if).toContain('!inputs.performance_event');
+    // A chained run inherits the 6-hour performance schedule event, so
+    // the Monday report is told apart by its cron.
+    expect(analysisStep?.env?.WEEKLY).toContain(
+      "github.event.schedule == '0 9 * * 1'",
     );
   });
 
-  it('chains from a finished performance suite', () => {
+  it('is called by the performance suite instead of listening for it', () => {
     const workflow = loadWorkflow();
 
-    expect(workflow.on.workflow_run?.workflows).toStrictEqual([
-      'Run Performance E2E Tests Manually',
-    ]);
-    expect(workflow.on.workflow_run?.types).toStrictEqual(['completed']);
+    expect(workflow.on).not.toHaveProperty('workflow_run');
+    expect(Object.keys(workflow.on.workflow_call?.inputs ?? {})).toStrictEqual(
+      ['run_id', 'performance_event', 'performance_conclusion'],
+    );
+    expect(Object.keys(workflow.on.workflow_call?.secrets ?? {})).toStrictEqual(
+      ['SLACK_BOT_TOKEN', 'E2E_CLAUDE_API_KEY'],
+    );
   });
 
-  it('chains successful scheduled and manually dispatched performance runs', () => {
+  it('is called after every scheduled and manual performance run', () => {
+    const caller = loadCallerJob();
+
+    expect(caller?.needs).toStrictEqual(['scheduled-e2e', 'manual']);
+    // A failed manual suite still reports that there is nothing to analyze.
+    expect(caller?.if).toContain('!cancelled()');
+    expect(caller?.with).toStrictEqual({
+      run_id: '${{ github.run_id }}',
+      performance_event: '${{ github.event_name }}',
+      performance_conclusion:
+        "${{ (needs.scheduled-e2e.result == 'success' || needs.manual.result == 'success') && 'success' || 'failure' }}",
+    });
+    expect(caller?.secrets).toStrictEqual({
+      SLACK_BOT_TOKEN: '${{ secrets.SLACK_BOT_TOKEN }}',
+      E2E_CLAUDE_API_KEY: '${{ secrets.E2E_CLAUDE_API_KEY }}',
+    });
+    expect(caller?.permissions).toStrictEqual({
+      contents: 'read',
+      actions: 'read',
+      'pull-requests': 'read',
+    });
+  });
+
+  it('analyzes successful scheduled and manually dispatched performance runs', () => {
     const workflow = loadWorkflow();
 
     const condition = workflow.jobs.analyze.if ?? '';
 
+    expect(condition).toContain("inputs.performance_conclusion == 'success'");
     expect(condition).toContain(
-      "github.event.workflow_run.conclusion == 'success'",
+      "inputs.performance_event == 'workflow_dispatch'",
     );
-    expect(condition).toContain(
-      "github.event.workflow_run.event == 'workflow_dispatch'",
-    );
-    expect(condition).toContain(
-      "github.event.workflow_run.event == 'schedule'",
-    );
+    expect(condition).toContain("inputs.performance_event == 'schedule'");
   });
 
   it('collapses a chain and a dispatch of the same performance run', () => {
     const workflow = loadWorkflow();
 
     expect(workflow.concurrency?.group).toContain('weekly');
-    expect(workflow.concurrency?.group).toContain(
-      'github.event.workflow_run.id',
-    );
+    expect(workflow.concurrency?.group).toContain('inputs.run_id');
   });
 
-  it('analyzes the performance run that triggered the chain', () => {
+  it('analyzes the performance run that called it', () => {
     const workflow = loadWorkflow();
     const analysisStep = workflow.jobs.analyze.steps.find(
       (step) => step.name === 'Analyze app profiling',
     );
 
-    expect(analysisStep?.env?.RUN_ID).toBe(
-      '${{ inputs.run_id || github.event.workflow_run.id }}',
+    expect(analysisStep?.env?.RUN_ID).toBe('${{ inputs.run_id }}');
+    expect(analysisStep?.env?.SCHEDULED_EXCEPTION).toBe(
+      "${{ inputs.performance_event == 'schedule' }}",
     );
   });
 
@@ -199,13 +252,11 @@ describe('Analyze App Profiling triggers', () => {
       (step) => step.name === 'Post Slack summary',
     );
     expect(slackStep?.if).toContain('inputs.post_to_slack');
-    expect(slackStep?.if).toContain("github.event_name == 'schedule'");
+    expect(slackStep?.if).toContain("github.event.schedule == '0 9 * * 1'");
     expect(slackStep?.if).toContain(
-      "github.event.workflow_run.event == 'workflow_dispatch'",
+      "inputs.performance_event == 'workflow_dispatch'",
     );
-    expect(slackStep?.if).toContain(
-      "github.event.workflow_run.event == 'schedule'",
-    );
+    expect(slackStep?.if).toContain("inputs.performance_event == 'schedule'");
     expect(notify.needs).toStrictEqual([
       'analyze',
       'upload-scenario-profiles',
@@ -233,10 +284,9 @@ describe('Analyze App Profiling triggers', () => {
 
     expect(target).toContain('C0C3WSWNKS5');
     expect(target).toContain('UEYQL2PEV');
-    // A workflow_run listener always runs from the default branch, so
-    // github.ref would send a chained branch run to the channel.
-    expect(target).toContain('github.event.workflow_run.head_branch');
+    // A called workflow inherits the performance run's ref.
     expect(target).toContain('github.ref_name');
+    expect(target).not.toContain('workflow_run');
     expect(target).not.toContain("github.ref == 'refs/heads/main'");
     for (const job of Object.values(workflow.jobs)) {
       for (const step of job.steps) {
@@ -308,12 +358,10 @@ describe('Analyze App Profiling triggers', () => {
 
     const condition = job.if ?? '';
 
-    expect(condition).toContain(
-      "github.event.workflow_run.conclusion != 'success'",
-    );
+    expect(condition).toContain("inputs.performance_conclusion != 'success'");
     // A failed scheduled suite must stay as silent as a successful one.
     expect(condition).toContain(
-      "github.event.workflow_run.event == 'workflow_dispatch'",
+      "inputs.performance_event == 'workflow_dispatch'",
     );
 
     const notice = job.steps.find(
@@ -321,7 +369,7 @@ describe('Analyze App Profiling triggers', () => {
     );
 
     expect(notice?.env?.GITHUB_RUN_URL).toBe(
-      '${{ github.event.workflow_run.html_url }}',
+      '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ inputs.run_id }}',
     );
     expect(notice?.env?.GITHUB_RUN_LABEL).toBe('Failed performance run');
     expect(notice?.run).toContain('did not run');
@@ -334,9 +382,7 @@ describe('Analyze App Profiling triggers', () => {
     );
 
     expect(failureStep?.if).toContain('failure()');
-    expect(failureStep?.if).toContain(
-      "github.event.workflow_run.event == 'schedule'",
-    );
+    expect(failureStep?.if).toContain("inputs.performance_event != 'schedule'");
     // A Slack outage must not turn a failed analysis into a failed workflow.
     expect(failureStep?.['continue-on-error']).toBe(true);
     expect(failureStep?.env?.GITHUB_RUN_URL).toContain(

@@ -12,6 +12,7 @@ import {
   sampleRunsAcrossNewestDays,
   planWeeklyRuns,
   loadCollectedReports,
+  mergeRunsNewestFirst,
   runsToRetryWithLeftoverBudget,
   reportsForRuns,
   isReusableCollectedReport,
@@ -278,6 +279,24 @@ test('the newest analysis of a run wins over an older one', () => {
   // A failed analysis and one outside the window are not history.
   assert.equal(collected.has('800'), false);
   assert.equal(collected.size, 1);
+});
+
+test('analysis runs from both workflows are merged newest first', () => {
+  const performanceRuns = [
+    { databaseId: 400, createdAt: '2026-09-19T18:00:00Z' },
+    { databaseId: 200, createdAt: '2026-09-19T06:00:00Z' },
+  ];
+  const standaloneRuns = [
+    { databaseId: 300, createdAt: '2026-09-19T12:30:00Z' },
+    { databaseId: 100, createdAt: '2026-09-18T12:30:00Z' },
+  ];
+
+  assert.deepEqual(
+    mergeRunsNewestFirst([performanceRuns, standaloneRuns]).map(
+      (run) => run.databaseId,
+    ),
+    [400, 300, 200, 100],
+  );
 });
 
 test('reportsForRuns keeps the week when one run lost its artifacts', async () => {
