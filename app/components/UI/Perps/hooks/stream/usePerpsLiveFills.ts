@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { type OrderFill } from '@metamask/perps-controller';
@@ -16,6 +16,8 @@ export interface UsePerpsLiveFillsReturn {
   fills: OrderFill[];
   /** Whether we're waiting for the first real WebSocket data (not cached) */
   isInitialLoading: boolean;
+  error?: Error | null;
+  retry: () => void;
 }
 
 /**
@@ -30,6 +32,7 @@ export function usePerpsLiveFills(
 ): UsePerpsLiveFillsReturn {
   const { throttleMs = 0 } = options;
   const stream = usePerpsStream();
+  const [error, setError] = useState<Error | null>(null);
   const [fills, setFills] = useState<OrderFill[]>(EMPTY_FILLS);
   const [isInitialLoading, setIsInitialLoading] = useState(
     () => stream.fills.getSnapshot() === null,
@@ -44,7 +47,12 @@ export function usePerpsLiveFills(
     DevLogger.log(logMessage);
 
     const unsubscribe = stream.fills.subscribe({
+      onError: (failure) => {
+        setError(failure);
+        setIsInitialLoading(false);
+      },
       callback: (newFills) => {
+        setError(stream.fills.getError());
         if (
           newFills === null ||
           newFills === undefined ||
@@ -92,7 +100,13 @@ export function usePerpsLiveFills(
     };
   }, [stream, throttleMs]);
 
+  const retry = useCallback(() => {
+    stream.retryOrderStreams();
+  }, [stream]);
+
   return {
+    error,
+    retry,
     fills,
     isInitialLoading,
   };
