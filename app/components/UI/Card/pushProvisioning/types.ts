@@ -184,4 +184,8 @@ export interface UsePushProvisioningReturn {
   isCardInWallet: boolean;
   /** Devices whose pass is waiting on issuer verification. */
   pendingVerificationDevices: WalletPassDevice[];
+  /** True when this iPhone has a pass for the card that can be opened. */
+  canOpenInWallet: boolean;
+  /** Open this card's iPhone pass in Apple Wallet. */
+  openInWallet: () => Promise<void>;
 }

@@ -248,8 +248,13 @@ const CardHome = () => {
     isCardInWallet,
     walletEntry,
     pendingVerificationDevices,
+    canOpenInWallet,
+    openInWallet,
   } = useCardWalletProvisioning(data, { platformWalletSupported });
   const pendingDevicesLabel = formatPendingDevices(pendingVerificationDevices);
+  const handleOpenInWallet = useCallback(() => {
+    openInWallet().catch(() => undefined);
+  }, [openInWallet]);
   useApplePaySplashPrompt({
     canAddToWallet,
     isPushProvisioningLoading,
@@ -875,6 +880,17 @@ const CardHome = () => {
                   { devices: pendingDevicesLabel },
                 )}
               </Text>
+              {canOpenInWallet && (
+                <Button
+                  variant={ButtonVariant.Tertiary}
+                  size={ButtonSize.Sm}
+                  isFullWidth
+                  onPress={handleOpenInWallet}
+                  testID={CardHomeSelectors.VERIFICATION_PENDING_OPEN_WALLET}
+                >
+                  {strings('card.push_provisioning.open_in_apple_wallet')}
+                </Button>
+              )}
             </Box>
           )}
 

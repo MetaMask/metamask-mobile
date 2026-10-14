@@ -170,6 +170,17 @@ export function usePushProvisioning(
     [walletAdapter, lastFourDigits, primaryAccountIdentifier],
   );
 
+  const openInWallet = useCallback(async () => {
+    if (!walletAdapter?.openCardInWallet || !lastFourDigits) {
+      return;
+    }
+
+    const opened = await walletAdapter.openCardInWallet(lastFourDigits);
+    if (!opened) {
+      await refreshEligibility({ silent: true });
+    }
+  }, [walletAdapter, lastFourDigits, refreshEligibility]);
+
   const checkedLastFourRef = useRef<string | undefined>(undefined);
 
   useFocusEffect(
@@ -549,5 +560,9 @@ export function usePushProvisioning(
     canAddToWallet,
     isCardInWallet,
     pendingVerificationDevices: eligibility?.pendingVerificationDevices ?? [],
+    canOpenInWallet:
+      Boolean(eligibility?.devices?.phone) &&
+      Boolean(walletAdapter?.openCardInWallet),
+    openInWallet,
   };
 }

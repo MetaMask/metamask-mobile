@@ -74,6 +74,7 @@ const mockWalletAdapter = {
   checkAvailability: jest.fn(),
   getEligibility: jest.fn(),
   provisionCard: jest.fn(),
+  openCardInWallet: jest.fn(),
   addActivationListener: jest.fn().mockReturnValue(() => undefined),
 };
 
@@ -739,6 +740,100 @@ describe('usePushProvisioning', () => {
 
       expect(result.current.isCardInWallet).toBe(true);
       expect(result.current.canAddToWallet).toBe(false);
+      unmount();
+    });
+  });
+
+  describe('openInWallet', () => {
+    it('can open the pass when the iPhone already has it', async () => {
+      mockWalletAdapter.getEligibility.mockResolvedValue({
+        isAvailable: true,
+        canAddCard: false,
+        existingCardStatus: 'requires_activation',
+        devices: { phone: 'requires_activation' },
+        pendingVerificationDevices: ['phone'],
+      });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.canOpenInWallet).toBe(true);
+      });
+
+      unmount();
+    });
+
+    it('cannot open the pass when only the Watch has it', async () => {
+      mockWalletAdapter.getEligibility.mockResolvedValue({
+        isAvailable: true,
+        canAddCard: true,
+        existingCardStatus: 'requires_activation',
+        devices: { watch: 'requires_activation' },
+        pendingVerificationDevices: ['watch'],
+      });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.canOpenInWallet).toBe(false);
+      unmount();
+    });
+
+    it('cannot open the pass when no device has it', async () => {
+      mockWalletAdapter.getEligibility.mockResolvedValue({
+        isAvailable: true,
+        canAddCard: true,
+        existingCardStatus: 'not_found',
+      });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.canOpenInWallet).toBe(false);
+      unmount();
+    });
+
+    it('rechecks eligibility when the pass is no longer installed', async () => {
+      mockWalletAdapter.getEligibility.mockResolvedValue({
+        isAvailable: true,
+        canAddCard: false,
+        existingCardStatus: 'requires_activation',
+        devices: { phone: 'requires_activation' },
+        pendingVerificationDevices: ['phone'],
+      });
+      mockWalletAdapter.openCardInWallet.mockResolvedValue(false);
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.canOpenInWallet).toBe(true);
+      });
+
+      mockWalletAdapter.getEligibility.mockClear();
+
+      await act(async () => {
+        await result.current.openInWallet();
+      });
+
+      expect(mockWalletAdapter.openCardInWallet).toHaveBeenCalledWith('1234');
+      expect(mockWalletAdapter.getEligibility).toHaveBeenCalledWith(
+        '1234',
+        undefined,
+      );
       unmount();
     });
   });

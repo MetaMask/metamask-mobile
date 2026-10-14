@@ -131,6 +131,8 @@ describe('useCardWalletProvisioning', () => {
       canAddToWallet: true,
       isCardInWallet: false,
       pendingVerificationDevices: [],
+      canOpenInWallet: true,
+      openInWallet: jest.fn(),
     });
   });
 
@@ -145,6 +147,10 @@ describe('useCardWalletProvisioning', () => {
     );
     expect(result.current.isCardInWallet).toBe(false);
     expect(result.current.pendingVerificationDevices).toEqual([]);
+    expect(result.current.canOpenInWallet).toBe(true);
+    expect(result.current.openInWallet).toBe(
+      mockUsePushProvisioning.mock.results[0]?.value.openInWallet,
+    );
   });
 
   it('runs the caller success callback after showing the toast', () => {

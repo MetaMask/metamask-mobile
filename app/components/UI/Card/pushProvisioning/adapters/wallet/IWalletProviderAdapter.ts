@@ -50,6 +50,12 @@ export interface IWalletProviderAdapter {
   /** List all tokenized cards in the wallet */
   listTokens?(): Promise<TokenInfo[]>;
 
+  /**
+   * Open this card's pass in Apple Wallet on the iPhone.
+   * Returns false when no matching iPhone pass is installed.
+   */
+  openCardInWallet?(lastFourDigits: string): Promise<boolean>;
+
   /** Add a listener for card activation events; returns unsubscribe function */
   addActivationListener(
     callback: (event: CardActivationEvent) => void,
