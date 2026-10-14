@@ -1397,7 +1397,10 @@ const AppFlow = () => {
         name={Routes.MFA.FLOW}
         component={MfaFlowHost}
         // A transparent modal, as the picker is a sheet over the app.
-        options={{ gestureEnabled: false }}
+        options={{
+          gestureEnabled: false,
+          contentStyle: { backgroundColor: 'transparent' },
+        }}
       />
       <NativeStack.Screen
         name={Routes.PRO_SUBSCRIPTION.ROOT}
