@@ -45,7 +45,11 @@ const getMessenger = (): CreateCopyTradeIntentMessenger =>
 export const createCopyTradeIntent = (
   options: CreateCopyTradeIntentOptions,
 ): Promise<unknown> =>
-  getMessenger().call('SocialService:createCopyTradeIntent', options);
+  new Promise((resolve) => {
+    resolve(
+      getMessenger().call('SocialService:createCopyTradeIntent', options),
+    );
+  });
 
 export const buildCopyTradeIntentOptions = (
   origin: CopyTradeOrigin,
@@ -97,10 +101,6 @@ export function postCopyTradeIntents(
   }
 
   for (const options of intents) {
-    try {
-      createCopyTradeIntent(options).catch(reportFailure);
-    } catch (error) {
-      reportFailure(error);
-    }
+    createCopyTradeIntent(options).catch(reportFailure);
   }
 }

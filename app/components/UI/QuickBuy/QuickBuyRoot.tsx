@@ -86,7 +86,7 @@ interface QuickBuyRootInnerProps {
   initialTradeMode?: QuickBuyRootProps['initialTradeMode'];
   analyticsContext: QuickBuyAnalyticsContext;
   postSwapShare?: boolean;
-  copyTradeOrigin?: QuickBuyRootProps['copyTradeOrigin'];
+  copyTradeOrigin: QuickBuyRootProps['copyTradeOrigin'];
   children?: React.ReactNode;
 }
 

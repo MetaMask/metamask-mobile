@@ -3700,7 +3700,7 @@ export const runQuickBuyControllerCases = ({
         it('posts a swaps intent for the submitted quote before submitTx', async () => {
           mockQuote();
           const callOrder: string[] = [];
-          mockMessengerCall().mockImplementation(async () => {
+          mockMessengerCall().mockImplementation(() => {
             callOrder.push('intent');
           });
           (

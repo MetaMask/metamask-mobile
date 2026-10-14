@@ -135,7 +135,7 @@ describe('copyTradeIntent', () => {
       );
     });
 
-    it('logs a synchronous messenger throw without rethrowing', () => {
+    it('logs a synchronous messenger throw without rethrowing', async () => {
       const error = new Error(
         'A handler for SocialService:createCopyTradeIntent has not been registered',
       );
@@ -146,6 +146,7 @@ describe('copyTradeIntent', () => {
       expect(() =>
         postCopyTradeIntents(() => [createIntent()], CONTEXT),
       ).not.toThrow();
+      await flushPromises();
 
       expect(mockLoggerError).toHaveBeenCalledWith(error, expect.any(Object));
     });
