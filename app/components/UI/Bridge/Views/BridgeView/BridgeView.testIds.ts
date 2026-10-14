@@ -35,6 +35,7 @@ export const BridgeViewSelectorsIDs = {
   LIMIT_FEE_TOKEN_RETRY_BUTTON: 'limit-fee-token-retry-button',
   RECURRING_BUY_CONTAINER: 'bridge-recurring-buy-container',
   RECURRING_BUY_SCROLL: 'bridge-recurring-buy-scroll',
+  RECURRING_BANNERS_WRAPPER: 'recurring-banners-wrapper',
   RECURRING_SOURCE_TOKEN_AREA: 'recurring-source-token-area',
   RECURRING_SOURCE_TOKEN_INPUT: 'recurring-source-token-area-input',
   RECURRING_SOURCE_AMOUNT_TYPE_TOGGLE:

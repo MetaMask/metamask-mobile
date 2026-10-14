@@ -1,10 +1,13 @@
 export { computeUnrealizedPnl } from './unrealizedPnl';
 export {
+  getOpenPositionForAsset,
   getTraderPosition,
+  openPositionUrl,
   TraderPositionHttpError,
   TraderPositionMalformedError,
 } from './traderPositionService';
 export type {
+  OpenPositionPnl,
   TraderPosition,
   TraderPositionTrade,
   UnrealizedPnl,
