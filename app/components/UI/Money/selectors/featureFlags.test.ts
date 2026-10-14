@@ -12,6 +12,7 @@ import {
   selectMoneyAccountGeoBlockedCountries,
   DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES,
   selectMoneyCardActivityCashbackMultisendContracts,
+  selectMoneyVbaActivityDepositFromAddresses,
   selectMoneyNoFeeDepositTokens,
   selectMoneyFirstTimeDepositAnimationEnabledFlag,
   selectMoneyCardFlipAnimationEnabledFlag,
@@ -25,7 +26,10 @@ import {
   selectIsMoneyTokenListItemCtaEnabledFlag,
   selectMoneyDepositCtaTokenAddresses,
 } from './featureFlags';
-import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
+import {
+  DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS,
+  DEFAULT_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES,
+} from '../utils/accountsApi';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {},
@@ -713,6 +717,63 @@ describe('selectMoneyCardActivityCashbackMultisendContracts', () => {
     expect(result).toEqual([
       ...DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS,
     ]);
+  });
+});
+
+describe('selectMoneyVbaActivityDepositFromAddresses', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+    delete process.env.MM_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES;
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns normalized remote addresses when valid', () => {
+    const state = createState({
+      moneyVbaActivityDepositFromAddresses: [
+        '0x1111111111111111111111111111111111111111',
+        '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+      ],
+    });
+
+    expect(selectMoneyVbaActivityDepositFromAddresses(state as never)).toEqual([
+      '0x1111111111111111111111111111111111111111',
+      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    ]);
+  });
+
+  it('falls back to the local env list when remote is absent', () => {
+    process.env.MM_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES =
+      '0x1111111111111111111111111111111111111111, not-an-address';
+
+    expect(
+      selectMoneyVbaActivityDepositFromAddresses(createState({}) as never),
+    ).toEqual(['0x1111111111111111111111111111111111111111']);
+  });
+
+  it('prefers the local env list over a valid remote list', () => {
+    process.env.MM_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES =
+      '0x798eEE80db111278B9730609E91430ed3f85f801';
+    const state = createState({
+      moneyVbaActivityDepositFromAddresses: [
+        '0x1111111111111111111111111111111111111111',
+      ],
+    });
+
+    expect(selectMoneyVbaActivityDepositFromAddresses(state as never)).toEqual([
+      '0x798eee80db111278b9730609e91430ed3f85f801',
+    ]);
+  });
+
+  it('returns an empty list when remote and env are unset (no hardcoded EOAs)', () => {
+    expect(
+      selectMoneyVbaActivityDepositFromAddresses(createState({}) as never),
+    ).toEqual([]);
+    expect(DEFAULT_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES).toEqual([]);
   });
 });
 

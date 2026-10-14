@@ -4,6 +4,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import type { V1AccountTransactionsResponse } from '@metamask/core-backend';
 import { apiClient } from '../../../../core/apiClient';
+import Logger from '../../../../util/Logger';
 import {
   annotateTrace,
   trace,
@@ -11,7 +12,10 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { selectMoneyCardActivityCashbackMultisendContracts } from '../selectors/featureFlags';
+import {
+  selectMoneyCardActivityCashbackMultisendContracts,
+  selectMoneyVbaActivityDepositFromAddresses,
+} from '../selectors/featureFlags';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectMoneyAccountVedaTokenConfig } from '../../../../selectors/cardController';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
@@ -84,6 +88,9 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   );
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const vedaTokenConfig = useSelector(selectMoneyAccountVedaTokenConfig);
+  const vbaDepositFromAddresses = useSelector(
+    selectMoneyVbaActivityDepositFromAddresses,
+  );
   const rawAddress = primaryMoneyAccount?.address;
   const moneyAddress = rawAddress ? toChecksumHexAddress(rawAddress) : '';
   const enabled = moneyAddress !== '';
@@ -116,18 +123,31 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
           tags: { is_initial_page: pageParam === undefined },
         },
         async (context) => {
-          const response = await apiClient.accounts.fetchV1AccountTransactions(
-            moneyAddress,
-            {
-              ...ACCOUNT_ACTIVITY_QUERY_OPTIONS,
-              cursor: pageParam,
-            },
-          );
-          annotateTrace(context, {
-            row_count: response.data?.length ?? 0,
-            has_next_page: response.pageInfo?.hasNextPage ?? false,
-          });
-          return response;
+          try {
+            const response = await apiClient.accounts.fetchV1AccountTransactions(
+              moneyAddress,
+              {
+                ...ACCOUNT_ACTIVITY_QUERY_OPTIONS,
+                cursor: pageParam,
+              },
+            );
+            annotateTrace(context, {
+              row_count: response.data?.length ?? 0,
+              has_next_page: response.pageInfo?.hasNextPage ?? false,
+            });
+            Logger.log('[MoneyActivity] accounts API page', {
+              address: moneyAddress,
+              rowCount: response.data?.length ?? 0,
+              hasNextPage: response.pageInfo?.hasNextPage ?? false,
+            });
+            return response;
+          } catch (error) {
+            Logger.error(
+              error as Error,
+              '[MoneyActivity] accounts API fetch failed',
+            );
+            throw error;
+          }
         },
       );
 
@@ -164,12 +184,13 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     // last row of one page repeated as the first of the next), the duplicate
     // would otherwise render twice and collide on the list's `id` key.
     const seen = new Set<string>();
-    return pages
+    const parsed = pages
       .flatMap((page) =>
         parseAccountsApiActivity(
           page,
           moneyAddress,
           cashbackMultisendContracts,
+          vbaDepositFromAddresses,
         ),
       )
       .filter((row) => {
@@ -180,7 +201,15 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
         seen.add(key);
         return true;
       });
-  }, [pages, moneyAddress, cashbackMultisendContracts]);
+    Logger.log('[MoneyActivity] parsed rows', {
+      address: moneyAddress,
+      rawPages: pages.length,
+      allowlist: vbaDepositFromAddresses,
+      parsedCount: parsed.length,
+      kinds: parsed.map((row) => row.kind),
+    });
+    return parsed;
+  }, [pages, moneyAddress, cashbackMultisendContracts, vbaDepositFromAddresses]);
 
   const configuredChainId = vaultConfig
     ? vaultConfig.chainId.startsWith('0x')
