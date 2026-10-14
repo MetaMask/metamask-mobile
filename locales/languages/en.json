@@ -6045,10 +6045,10 @@
           "title": "Market capitalization",
           "description": "Current market capitalization of the circulating token supply."
         },
-        "liquidity": {
-          "title": "Liquidity",
-          "description": "Value currently available in the token's trading pools."
-        },
+          "liquidity": {
+            "title": "Total liquidity",
+            "description": "Value currently available in the token's trading pools."
+          },
         "volume_24h": {
           "title": "24-hour trading volume",
           "description": "Value traded over the last 24 hours."
@@ -6065,18 +6065,38 @@
           "title": "Liquidity to market capitalization",
           "description": "Total liquidity divided by market cap. This is a standalone statistic, not part of the Blockaid verdict."
         },
-        "tax": {
-          "title": "Buy and sell tax",
-          "description": "Buy and sell fees reported by the provider when available."
-        },
-        "high_low_24h": {
-          "title": "24-hour high and low",
-          "description": "Highest and lowest traded prices in the past 24 hours, shown in that order."
-        },
-        "circulating_supply": {
-          "title": "Circulating supply",
-          "description": "Amount of this token currently circulating."
-        }
+          "tax": {
+            "title": "Buy and sell tax",
+            "description": "The buy and sell fees reported for EVM tokens. Missing data does not mean zero fees."
+          },
+          "high_low_24h": {
+            "title": "24-hour high and low",
+            "description": "Highest and lowest traded prices in the past 24 hours, shown in that order."
+          },
+          "circulating_supply": {
+            "title": "Circulating supply",
+            "description": "Amount of this token currently circulating."
+          },
+          "lp_burned_locked": {
+            "title": "Liquidity pool tokens burned or locked",
+            "description": "Share of the primary pool liquidity that is burned or locked."
+          },
+          "primary_pool": {
+            "title": "Primary pool",
+            "description": "The main trading pool reported for this token."
+          },
+          "volume_flags": {
+            "title": "Volume flags",
+            "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
+          },
+          "listed_on_exchange": {
+            "title": "Listed on exchange",
+            "description": "Whether Blockaid reports the token as listed on a leading centralized exchange."
+          },
+          "created": {
+            "title": "Created",
+            "description": "Date the token contract was created, when reported by its source."
+          }
       }
     },
     "tabs": {
@@ -6092,8 +6112,11 @@
     },
     "security_tab": {
       "explain": "What does {{term}} mean?",
+      "contract_details_link": "See all contract security checks",
       "sections": {
-        "checks": "Security checks",
+        "contract": "Contract",
+        "contract_checks": "Contract checks",
+        "additional_checks": "Additional checks",
         "holders": "Holders",
         "liquidity": "Liquidity",
         "trading": "Trading",
@@ -6104,15 +6127,111 @@
         "contract_verified": "Contract verified",
         "renounced": "Renounced",
         "no_blacklist": "No blacklist",
-        "no_mint": "Mint authority",
-        "burnt": "LP burnt",
-        "top_ten_concentration": "Top 10 concentration"
+        "is_mintable": "Is mintable"
+      },
+      "check_values": {
+        "no_honeypot": {
+          "pass": "Honeypot not detected",
+          "fail": "Honeypot detected"
+        },
+        "contract_verified": {
+          "pass": "Yes",
+          "fail": "No"
+        },
+        "renounced": {
+          "pass": "Renounced",
+          "fail": "Not renounced"
+        },
+        "no_blacklist": {
+          "pass": "No controls",
+          "fail": "Control detected"
+        },
+        "is_mintable": {
+          "pass": "Yes",
+          "fail": "No"
+        }
+      },
+      "values": {
+        "yes": "Yes",
+        "no": "No",
+        "none_detected": "None detected",
+        "detected": {
+          "one": "{{count}} detected",
+          "other": "{{count}} detected"
+        }
+      },
+      "risk_banner": {
+        "one": "We found {{count}} risk",
+        "other": "We found {{count}} risks"
+      },
+      "risks": {
+        "default": {
+          "title": "Risk detected"
+        },
+        "known_malicious": {
+          "title": "Known malicious",
+          "description": "Blockaid has identified known malicious activity or a compromised token contract."
+        },
+        "dangerous_contract_behavior": {
+          "title": "Dangerous contract behavior",
+          "description": "The contract contains suspicious code, privileged backdoors, or behavior that differs from its expected operation."
+        },
+        "impersonation_risk": {
+          "title": "Impersonation risk",
+          "description": "This token may imitate a legitimate token's name, symbol, branding, or identifying properties."
+        },
+        "rug_pull": {
+          "title": "Rug pull detected",
+          "description": "Blockaid has identified the token creators have a history of orchestrating malicious rug pull and honeypot schemes."
+        },
+        "exit_scam_risk": {
+          "title": "Exit scam risk",
+          "description": "Creator or insider behavior suggests a risk of withdrawing value at the expense of holders."
+        },
+        "high_token_fees": {
+          "title": "High token fees",
+          "description": "The token's transfer, buy, or sell fees are unusually high."
+        },
+        "low_liquidity_risk": {
+          "title": "Low liquidity risk",
+          "description": "Limited liquidity could make the token price volatile."
+        },
+        "concentrated_ownership": {
+          "title": "Concentrated ownership",
+          "description": "A small group of holders controls a large share of supply, increasing price-manipulation and sell-pressure risk."
+        },
+        "wash_trading": {
+          "title": "Wash trading activity",
+          "description": "Artificial trades or trading accounts may be inflating the token's activity or volume."
+        },
+        "sniped_at_launch": {
+          "title": "Sniped at launch",
+          "description": "One or more wallets acquired supply in the same block as the token's creation."
+        },
+        "suspicious_creator": {
+          "title": "Suspicious creator",
+          "description": "The creator's reputation or the token's funding trail raises additional risk concerns."
+        },
+        "sanctioned_creator": {
+          "title": "Sanctioned creator",
+          "description": "The token's creator is sanctioned by a government or financial institution."
+        },
+        "suspicious_airdrop": {
+          "title": "Suspicious airdrop",
+          "description": "The token's onchain airdrop activity or metadata may be deceptive or spam-like."
+        },
+        "liquidity_withdrawal_risk": {
+          "title": "Liquidity withdrawal risk",
+          "description": "Insufficient locked liquidity or a migration unlock could allow the operator to withdraw liquidity."
+        }
       },
       "checks_meta": {
-        "attribution": "Security data provided by Blockaid.",
-        "attribution_checked": {
-          "one": "Security data provided by Blockaid, checked {{count}} minute ago.",
-          "other": "Security data provided by Blockaid, checked {{count}} minutes ago."
+        "attribution": "Blockaid",
+        "age_clause": "· updated {{count}} min ago",
+        "age_clause_just_now": "· updated just now",
+        "explainer": {
+          "title": "Security verification",
+          "description": "Security verification checks are completed by Blockaid based on onchain history. They are shared for your information only and are not financial, legal or investment advice. Verification is not an endorsement by MetaMask."
         }
       },
       "stats": {
@@ -6124,14 +6243,12 @@
         "primary_pool": "Primary pool",
         "buy_sell_tax": "Buy/sell tax",
         "volume_flags": "Volume flags",
+        "listed_on_exchange": "Listed on exchange",
         "created": "Created"
       },
       "holders": {
         "top_ten": "Top 10",
         "remaining": "Remaining holders"
-      },
-      "footer": {
-        "disclaimer": "These checks look at the token contract and its market. They are not investment advice, and they cannot tell you whether a token will hold its value."
       },
       "explainers": {
         "no_honeypot": {
@@ -6150,55 +6267,14 @@
           "title": "No blacklist",
           "description": "Whether an address can be blocked from trading."
         },
-        "no_mint": {
-          "title": "Mint authority",
-          "description": "Whether new tokens can still be minted after launch."
-        },
-        "burnt": {
-          "title": "LP burnt",
-          "description": "Whether the liquidity pool tokens have been burned."
-        },
-        "top_ten_concentration": {
-          "title": "Top 10 concentration",
-          "description": "Whether the top 10 wallets hold an outsized share of supply."
-        },
-        "holders": {
-          "title": "Holders",
-          "description": "Number of unique addresses holding this token."
-        },
-        "top_ten": {
-          "title": "Top 10 holders",
-          "description": "Share held by the top 10 wallets, excluding pools, routers, and burn addresses."
-        },
-        "total_liquidity": {
-          "title": "Total liquidity",
-          "description": "Value currently available in the token’s trading pools."
-        },
-        "liquidity_to_market_cap": {
-          "title": "Liquidity to market capitalization",
-          "description": "Total liquidity divided by market cap. This is a standalone statistic, not part of the Blockaid verdict."
-        },
-        "lp_burned_locked": {
-          "title": "Liquidity pool tokens burned or locked",
-          "description": "Share of the primary pool liquidity that is burned or locked."
-        },
-        "primary_pool": {
-          "title": "Primary pool",
-          "description": "The main trading pool reported for this token."
-        },
-        "buy_sell_tax": {
-          "title": "Buy and sell tax",
-          "description": "The buy and sell fees reported for EVM tokens. Missing data does not mean zero fees."
-        },
-        "volume_flags": {
-          "title": "Volume flags",
-          "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
-        },
-        "created": {
-          "title": "Created",
-          "description": "Date the token contract was created, when reported by its source."
+        "is_mintable": {
+          "title": "Is mintable",
+          "description": "Whether a token can mint additional supply."
         }
       }
+    },
+    "contract_security": {
+      "title": "Contract security"
     },
     "tab_placeholder": "Coming soon"
   },
