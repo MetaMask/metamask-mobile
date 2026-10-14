@@ -167,6 +167,10 @@ function mockQueryResult(
   } as unknown as ReturnType<typeof useInfiniteQuery>);
 }
 
+afterEach(() => {
+  jest.restoreAllMocks();
+});
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockParse.mockReset();
@@ -191,6 +195,9 @@ describe('useMoneyAccountApiActivity', () => {
 
   it('caches rate history by configured vault, chain, and bounded time range', () => {
     // Arrange
+    jest
+      .spyOn(Date, 'now')
+      .mockReturnValue(Date.parse('2026-06-05T00:00:00.000Z'));
     mockParse.mockReturnValueOnce([
       {
         ...CARD,
