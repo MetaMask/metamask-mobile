@@ -27,6 +27,9 @@ export function getProfileControllerMessenger(
       'ProfileService:checkUsernameAvailability',
       'ProfileService:connectX',
       'ProfileService:getXAccount',
+      'ProfileService:getXAuthUrl',
+      'ProfileService:disconnectX',
+      'ProfileService:getProfile',
     ],
   });
   return controllerMessenger;
