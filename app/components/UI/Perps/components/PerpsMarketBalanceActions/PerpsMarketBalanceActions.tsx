@@ -24,6 +24,7 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
+import PerpsAccountUnsupportedModal from '../PerpsAccountUnsupportedModal';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { formatPerpsBalance } from '../../utils/formatUtils';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
@@ -118,6 +119,8 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     handleWithdraw,
     isEligibilityModalVisible,
     closeEligibilityModal,
+    isAccountUnsupportedModalVisible,
+    closeAccountUnsupportedModal,
   } = usePerpsHomeActions({
     buttonLocation,
   });
@@ -377,6 +380,10 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
           </Modal>
         </View>
       )}
+      <PerpsAccountUnsupportedModal
+        isVisible={isAccountUnsupportedModalVisible}
+        onClose={closeAccountUnsupportedModal}
+      />
     </>
   );
 };

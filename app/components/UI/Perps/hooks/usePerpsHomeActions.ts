@@ -31,6 +31,7 @@ import {
   type DepositConfirmationNavigation,
   type DepositPrepSession,
 } from '../utils/depositConfirmationGuard';
+import { usePerpsAccountSupport } from './usePerpsAccountSupport';
 
 export type PerpsHomeActionType = 'deposit' | 'withdraw';
 
@@ -50,6 +51,8 @@ export interface UsePerpsHomeActionsReturn {
   isEligible: boolean;
   /** Whether eligibility modal is visible */
   isEligibilityModalVisible: boolean;
+  /** Whether the unsupported-account modal is visible */
+  isAccountUnsupportedModalVisible: boolean;
   /** Whether an action is currently processing */
   isProcessing: boolean;
   /** Last error that occurred */
@@ -65,6 +68,10 @@ export interface UsePerpsHomeActionsReturn {
   showEligibilityModal: (source: string) => void;
   /** Close eligibility modal */
   closeEligibilityModal: () => void;
+  /** Close unsupported-account modal */
+  closeAccountUnsupportedModal: () => void;
+  /** Check whether the active account can submit provider actions */
+  checkAccountSupport: () => Promise<boolean>;
 }
 
 /**
@@ -94,6 +101,11 @@ export const usePerpsHomeActions = (
   );
   const { withdrawWithConfirmation } = usePerpsWithdrawConfirmation();
   const { gate } = useComplianceGate(selectedAddress);
+  const {
+    isAccountUnsupportedModalVisible,
+    checkAccountSupport,
+    closeAccountUnsupportedModal,
+  } = usePerpsAccountSupport();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
@@ -236,6 +248,10 @@ export const usePerpsHomeActions = (
     });
 
     try {
+      if (!(await checkAccountSupport())) {
+        return;
+      }
+
       if (perpsWithdrawConfig.enabled) {
         await withdrawWithConfirmation();
         DevLogger.log(
@@ -284,6 +300,7 @@ export const usePerpsHomeActions = (
     onError,
     track,
     buttonLocation,
+    checkAccountSupport,
   ]);
 
   const closeEligibilityModal = useCallback(() => {
@@ -294,11 +311,14 @@ export const usePerpsHomeActions = (
   return {
     isEligible,
     isEligibilityModalVisible,
+    isAccountUnsupportedModalVisible,
     isProcessing,
     error,
     handleAddFunds,
     handleWithdraw,
     showEligibilityModal,
     closeEligibilityModal,
+    closeAccountUnsupportedModal,
+    checkAccountSupport,
   };
 };
