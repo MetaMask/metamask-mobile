@@ -18,7 +18,7 @@ import {
 import { convertAssetAmountToUsd } from '../../utils/assetAmountInput';
 import configureStore from '../../../../../util/test/configureStore';
 
-let store = configureStore();
+let store = configureStore({});
 
 const render: typeof renderRoot = (ui, options) =>
   renderRoot(<Provider store={store}>{ui}</Provider>, options);
@@ -146,7 +146,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
 
 describe('PerpsTradeScreen errors', () => {
   beforeEach(() => {
-    store = configureStore();
+    store = configureStore({});
     jest.clearAllMocks();
     mockLivePriceHeaderProps = undefined;
     mockPerpsTokenLogoProps = undefined;

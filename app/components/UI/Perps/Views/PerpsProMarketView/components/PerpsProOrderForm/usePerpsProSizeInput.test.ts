@@ -12,7 +12,7 @@ import {
   type UsePerpsProSizeInputParams,
 } from './usePerpsProSizeInput';
 
-let store = configureStore();
+let store = configureStore({});
 
 const renderHook = <Result, Props>(
   hook: (props: Props) => Result,
@@ -21,7 +21,7 @@ const renderHook = <Result, Props>(
   renderHookWithStore(hook, {
     ...options,
     wrapper: ({ children }) =>
-      React.createElement(Provider, { store }, children),
+      React.createElement(Provider, { store } as never, children),
   });
 
 const setStoredSizeDenomination = (denomination: PerpsSizeDenomination) => {
@@ -48,7 +48,7 @@ const createParams = (
 describe('usePerpsProSizeInput', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    store = configureStore();
+    store = configureStore({});
   });
 
   it('starts in USD mode with the canonical amount', () => {
