@@ -6,30 +6,27 @@ import {
   type InfiniteData,
   type UseInfiniteQueryOptions,
 } from '@tanstack/react-query';
-import type {
-  FeedItem as CoreFeedItem,
-  FeedResponse,
-} from '@metamask/social-controllers';
+import type { FeedResponse } from '@metamask/social-controllers';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import {
   formatSocialQueryErrorMessage,
   useLogSocialQueryError,
 } from '../../../../../util/social/socialServiceTelemetry';
-import { formatTradeDayLabel } from '../../utils/formatters';
-import { FEED_CAIP2_CHAINS } from '../feed-constants';
-import { mapFeedItem } from '../utils/mapFeedItem';
+import { formatTradeDayLabel } from '../../../../UI/SocialFeed/utils/formatters';
+import { FEED_CAIP2_CHAINS } from '../../../../UI/SocialFeed/data/feed-constants';
+import { mapFeedItem } from '../../../../UI/SocialFeed/utils/mapFeedItem';
 import type {
   FeedAudience,
   FeedItem,
-  FeedSection,
-  FeedTypeFilter,
-} from '../types';
+  TraderFeedRow,
+} from '../../../../UI/SocialFeed/types';
+import type { FeedSection, FeedTypeFilter } from '../types';
 import {
   buildTraderFeedQueryKey,
   fetchTraderFeedPage,
   getTraderFeedNextPageParam,
-  toFeedScope,
 } from './traderFeedQueries';
+import { toFeedScope } from '../../../../UI/SocialFeed/data/socialFeedSource';
 
 export interface UseTraderFeedOptions {
   /**
@@ -44,20 +41,6 @@ export interface UseTraderFeedOptions {
   typeFilter?: FeedTypeFilter;
   /** Gate the query (defaults to enabled). Always additionally gated on unlock. */
   enabled?: boolean;
-}
-
-/**
- * A mapped feed item paired with the raw API row it came from.
- *
- * `FeedItem` deliberately drops the fill history, so consumers that need to
- * derive figures it does not carry -- an average entry from `costBasis`, an
- * exit from the closing fill, a hold time from the first and last timestamps --
- * would otherwise have to re-fetch the position. Pairing them here keeps that
- * derivation on the page the feed already loaded.
- */
-export interface TraderFeedRow {
-  item: FeedItem;
-  core: CoreFeedItem;
 }
 
 export interface UseTraderFeedResult {

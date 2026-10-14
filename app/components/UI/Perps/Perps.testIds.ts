@@ -260,7 +260,9 @@ export const PerpsTokenSelectorSelectorsIDs = {
 
 export const PerpsAmountDisplaySelectorsIDs = {
   CONTAINER: 'perps-amount-display',
+  AMOUNT_ROW: 'perps-amount-display-amount-row',
   AMOUNT_LABEL: 'perps-amount-display-amount',
+  AMOUNT_UNIT_LABEL: 'perps-amount-display-amount-unit',
   MAX_LABEL: 'perps-amount-display-max',
   TOUCHABLE: 'perps-amount-display-touchable',
 };
@@ -338,6 +340,7 @@ export const PerpsCloseAllPositionsViewSelectorsIDs = {
   CLOSING_STATE: 'perps-close-all-positions-closing-state',
   KEEP_BUTTON: 'perps-close-all-positions-keep-button',
   CLOSE_ALL_BUTTON: 'perps-close-all-positions-close-all-button',
+  FEES_VALUE: 'perps-close-all-positions-fees-value',
 } as const;
 
 export const PerpsCancelAllOrdersViewSelectorsIDs = {
@@ -517,8 +520,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   CHART_TOGGLE_BUTTON: 'perps-pro-market-chart-toggle-button',
   CHART_PRICE_DEVIATION_WARNING:
     'perps-pro-market-chart-price-deviation-warning',
-  CHART_SERVICE_INTERRUPTION_BANNER:
-    'perps-pro-market-chart-service-interruption-banner',
+  SERVICE_INTERRUPTION_BANNER: 'perps-pro-market-service-interruption-banner',
   STATS_BAR: 'perps-pro-market-stats-bar',
   STATS_BAR_SCROLL: 'perps-pro-market-stats-bar-scroll',
   STATS_BAR_FUNDING_RATE: 'perps-pro-market-stats-funding-rate',
@@ -551,6 +553,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITIONS_SIDE_FILTER_BUTTON: 'perps-pro-market-positions-side-filter-button',
   POSITIONS_SIDE_FILTER_SHEET: 'perps-pro-market-positions-side-filter-sheet',
   POSITIONS_FILTER_ROW: 'perps-pro-market-positions-filter-row',
+  HIDDEN_BY_FILTERS_CAPTION: 'perps-pro-market-hidden-by-filters-caption',
   POSITIONS_SORT_BUTTON: 'perps-pro-market-positions-sort-button',
   POSITIONS_SORT_SHEET: 'perps-pro-market-positions-sort-sheet',
   ORDERS_SORT_SHEET: 'perps-pro-market-orders-sort-sheet',
@@ -564,6 +567,8 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITION_EDIT_MARGIN: 'perps-pro-market-position-edit-margin',
   POSITION_PNL_TEXT: 'perps-pro-market-position-pnl-text',
   POSITION_LIQ_PRICE: 'perps-pro-market-position-liq-price',
+  POSITION_LIQ_DISTANCE: 'perps-pro-market-position-liq-distance',
+  POSITION_LIQ_TREND: 'perps-pro-market-position-liq-trend',
   POSITION_ROW: 'perps-pro-market-position-row',
   ORDERS_LIST: 'perps-pro-market-orders-list',
   ORDERS_SUMMARY: 'perps-pro-market-orders-summary',
@@ -811,6 +816,16 @@ export const PerpsProOrderFormSelectorsIDs = {
   CHASE_REFERENCE_PRICE: 'perps-pro-chase-reference-price',
 };
 
+export const getPerpsProOrderFormNoticeTestId = (noticeId: string): string =>
+  `${PerpsProOrderFormSelectorsIDs.NOTICE}-${noticeId}`;
+
+export const getPerpsProCompactInputLabelContainerTestId = (
+  testID: string,
+): string => `${testID}-label-container`;
+
+export const getPerpsProCompactInputRowTestId = (testID: string): string =>
+  `${testID}-input-row`;
+
 // ========================================
 // PERPS MARKET HEADER SELECTORS
 // ========================================
@@ -1033,6 +1048,7 @@ export const PerpsTradeSheetSelectorsIDs = {
   PAY_WITH_SKELETON: 'perps-trade-sheet-pay-with-skeleton',
   MARGIN_SKELETON: 'perps-trade-sheet-margin-skeleton',
   FEE_SKELETON: 'perps-trade-sheet-fee-skeleton',
+  FEE_TEXT: 'perps-trade-sheet-fee-text',
   ORDER_TYPE_BUTTON: 'perps-trade-sheet-order-type-button',
   MAX_LEVERAGE_TAG: 'perps-trade-sheet-max-leverage-tag',
   AMOUNT_TOGGLE: 'perps-trade-sheet-amount-toggle',
@@ -1049,6 +1065,8 @@ export const PerpsTradeSheetSelectorsIDs = {
   INFO_SCREEN: 'perps-trade-sheet-info-screen',
   INFO_BACK_BUTTON: 'perps-trade-sheet-info-back-button',
   INFO_GOT_IT_BUTTON: 'perps-trade-sheet-info-got-it-button',
+  PAY_WITH_SCREEN: 'perps-trade-sheet-pay-with-screen',
+  PAY_WITH_BACK_BUTTON: 'perps-trade-sheet-pay-with-back-button',
   LIMIT_PRICE_PRESET_MID: 'perps-trade-sheet-limit-price-preset-mid',
   LIMIT_PRICE_PRESET_BOOK: 'perps-trade-sheet-limit-price-preset-book',
   LIMIT_PRICE_PRESET_PERCENTAGE_1:
@@ -1192,6 +1210,9 @@ export const PerpsLeverageBottomSheetSelectorsIDs = {
   SET_BUTTON: 'perps-leverage-set-button',
 } as const;
 
+export const getPerpsLeveragePickerItemTestId = (leverage: number): string =>
+  `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-${leverage}`;
+
 export const PerpsAdjustMarginActionSheetSelectorsIDs = {
   ADD_MARGIN_OPTION: 'perps-adjust-margin-add-btn',
   REDUCE_MARGIN_OPTION: 'perps-adjust-margin-reduce-btn',
@@ -1204,10 +1225,14 @@ export const PerpsAdjustMarginViewSelectorsIDs = {
   AVAILABLE_VALUE: 'perps-adjust-margin-available-value',
   LIQUIDATION_PRICE_VALUE: 'perps-adjust-margin-liquidation-price-value',
   LIQUIDATION_DISTANCE_VALUE: 'perps-adjust-margin-liquidation-distance-value',
+  NO_REMOVABLE_MARGIN: 'perps-adjust-margin-no-removable-margin',
 } as const;
 
 export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
   CONTAINER: 'perps-adjust-margin-bottom-sheet',
+  HEADER_PRICE: 'perps-adjust-margin-bottom-sheet-header-price',
+  HEADER_CHANGE: 'perps-adjust-margin-bottom-sheet-header-change',
+  HEADER_SKELETON: 'perps-adjust-margin-bottom-sheet-header-skeleton',
   MODE_TOGGLE: 'perps-adjust-margin-bottom-sheet-mode-toggle',
   ADD_MODE_BUTTON: 'perps-adjust-margin-bottom-sheet-add-mode',
   REMOVE_MODE_BUTTON: 'perps-adjust-margin-bottom-sheet-remove-mode',
@@ -1225,6 +1250,7 @@ export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
     'perps-adjust-margin-bottom-sheet-liquidation-distance-value',
   LIQUIDATION_DISTANCE_INFO:
     'perps-adjust-margin-bottom-sheet-liquidation-distance-info',
+  NO_REMOVABLE_MARGIN: 'perps-adjust-margin-bottom-sheet-no-removable-margin',
 } as const;
 
 // ========================================
@@ -1385,6 +1411,7 @@ export const PerpsFlipPositionConfirmSheetSelectorsIDs = {
   FLIP_BUTTON: 'perps-flip-position-flip-button',
   EST_SIZE_VALUE: 'perps-flip-position-est-size-value',
   FEES_VALUE: 'perps-flip-position-fees-value',
+  MINIMUM_ERROR: 'perps-flip-position-minimum-error',
 } as const;
 
 // ========================================

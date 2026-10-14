@@ -47,6 +47,8 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
+  const [showTokenAmount, setShowTokenAmount] = useState(false);
+
   const {
     position,
     livePosition,
@@ -60,10 +62,18 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     setLimitPrice,
     displayClosePercentage,
     liveCloseAmount,
+    closeAmountUSDString,
     displayUSDString,
+    amountKeypadValue,
+    amountKeypadDecimals,
+    isInputFocused,
     handleSliderValueChange,
     handleSliderDragEnd,
     handleSliderDragCancel,
+    handleAmountPress,
+    handleKeypadChange,
+    handlePercentagePress,
+    handleMaxPress,
     handleDonePress,
     confirmButtonProps,
     feeResults,
@@ -76,6 +86,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     dismiss,
     confirmButtonTestID:
       PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+    amountInputUnit: showTokenAmount ? 'asset' : 'usd',
   });
 
   // The sheet has two modes: reviewing the close (slider, totals, CTA) and
@@ -86,7 +97,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   );
   const isEditingLimitPrice =
     isLimitPriceKeypadOpen && effectiveOrderType === 'limit';
-  const [showTokenAmount, setShowTokenAmount] = useState(false);
   const [isMarginInfoVisible, setIsMarginInfoVisible] = useState(false);
 
   const handleDisplayToggle = useCallback(
@@ -126,8 +136,13 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   );
 
   const handleCloseSizePress = useCallback(() => {
-    setIsLimitPriceKeypadOpen(false);
-  }, []);
+    if (isEditingLimitPrice) {
+      // Dismiss the limit price keypad and return to slider mode.
+      setIsLimitPriceKeypadOpen(false);
+    } else {
+      handleAmountPress();
+    }
+  }, [handleAmountPress, isEditingLimitPrice]);
 
   const handleLimitPriceRowPress = useCallback(() => {
     handleDonePress();
@@ -217,9 +232,14 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
         amount={displayUSDString}
         showWarning={false}
         onPress={handleCloseSizePress}
+        isActive={isInputFocused}
         accessibilityLabel={strings('perps.close_position.select_amount')}
         showTokenAmount={showTokenAmount}
-        tokenAmount={formatPositionSize(liveCloseAmount, szDecimals)}
+        tokenAmount={
+          showTokenAmount && isInputFocused
+            ? amountKeypadValue
+            : formatPositionSize(liveCloseAmount, szDecimals)
+        }
         hasError={displayedErrors.length > 0}
         tokenSymbol={position.symbol}
         onDisplayToggle={handleDisplayToggle}
@@ -232,7 +252,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
         displayToggleIcon={<PerpsSwapIcon direction="vertical" />}
       />
 
-      {!isEditingLimitPrice && (
+      {!isEditingLimitPrice && !isInputFocused && (
         <Box twClassName="px-4 py-4" onTouchCancel={handleSliderDragCancel}>
           <PerpsSlider
             value={displayClosePercentage}
@@ -253,7 +273,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
         />
       )}
 
-      {!isEditingLimitPrice && (
+      {!isEditingLimitPrice && !isInputFocused && (
         <PerpsCloseTotals
           margin={summaryMargin}
           marginMode={livePosition.leverage?.type}
@@ -268,7 +288,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           directly above it, matching the trade sheet. Errors about the limit
           price itself stay on that row, where they are still visible while the
           keypad is open. */}
-      {!isEditingLimitPrice && (
+      {!isEditingLimitPrice && !isInputFocused && (
         <>
           <SectionDivider marginVertical={1} twClassName="mx-4" />
 
@@ -306,6 +326,53 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
         </>
       )}
 
+      {isInputFocused && (
+        <>
+          <Box twClassName="flex-row gap-2 px-4 pt-3 mb-3">
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              twClassName="flex-1"
+              onPress={() => handlePercentagePress(0.25)}
+            >
+              25%
+            </Button>
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              twClassName="flex-1"
+              onPress={() => handlePercentagePress(0.5)}
+            >
+              50%
+            </Button>
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              twClassName="flex-1"
+              onPress={handleMaxPress}
+            >
+              {strings('perps.deposit.max_button')}
+            </Button>
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              onPress={handleDonePress}
+            >
+              {strings('perps.deposit.done_button')}
+            </Button>
+          </Box>
+
+          <Box twClassName="mb-4 px-4">
+            <Keypad
+              value={showTokenAmount ? amountKeypadValue : closeAmountUSDString}
+              onChange={handleKeypadChange}
+              currency={showTokenAmount ? 'ASSET' : 'USD'}
+              decimals={showTokenAmount ? amountKeypadDecimals : 2}
+            />
+          </Box>
+        </>
+      )}
+
       {isEditingLimitPrice && (
         <>
           <Box twClassName="flex-row gap-2 px-4 pt-3 mb-3">
@@ -315,7 +382,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
                 testID={preset.testID}
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
-                twClassName="flex-1"
+                twClassName="flex-1 rounded-xl"
                 onPress={preset.onPress}
               >
                 {preset.label}
@@ -324,6 +391,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
+              twClassName="rounded-xl"
               onPress={handleLimitPriceDone}
             >
               {strings('perps.deposit.done_button')}

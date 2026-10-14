@@ -39,10 +39,73 @@ import type {
   RampScreensStackParamList,
   RampTokenListRootParamList,
 } from './types/navigation';
+import { withRampScreenPerformance } from './hooks/useRampScreenPerformance';
+import { RAMP_V2_SCREEN_ID } from './constants/rampScreenPerformance';
 
 const RootStack = createNativeStackNavigator<RampTokenListRootParamList>();
 const Stack = createNativeStackNavigator<RampScreensStackParamList>();
 const ModalsStack = createNativeStackNavigator<RampModalsNavigationParamList>();
+
+const InstrumentedEnterEmail = withRampScreenPerformance(
+  V2EnterEmail,
+  RAMP_V2_SCREEN_ID.ENTER_EMAIL,
+);
+const InstrumentedOtpCode = withRampScreenPerformance(
+  V2OtpCode,
+  RAMP_V2_SCREEN_ID.OTP_CODE,
+);
+const InstrumentedBasicInfo = withRampScreenPerformance(
+  V2BasicInfo,
+  RAMP_V2_SCREEN_ID.BASIC_INFO,
+);
+const InstrumentedEnterAddress = withRampScreenPerformance(
+  V2EnterAddress,
+  RAMP_V2_SCREEN_ID.ENTER_ADDRESS,
+);
+const InstrumentedVerifyIdentity = withRampScreenPerformance(
+  V2VerifyIdentity,
+  RAMP_V2_SCREEN_ID.VERIFY_IDENTITY,
+);
+const InstrumentedAdditionalVerification = withRampScreenPerformance(
+  V2AdditionalVerification,
+  RAMP_V2_SCREEN_ID.ADDITIONAL_VERIFICATION,
+);
+const InstrumentedUnsupportedTokenModal = withRampScreenPerformance(
+  UnsupportedTokenModal,
+  RAMP_V2_SCREEN_ID.UNSUPPORTED_TOKEN_MODAL,
+);
+const InstrumentedSettingsModal = withRampScreenPerformance(
+  SettingsModal,
+  RAMP_V2_SCREEN_ID.SETTINGS_MODAL,
+);
+const InstrumentedTokenNotAvailableModal = withRampScreenPerformance(
+  TokenNotAvailableModal,
+  RAMP_V2_SCREEN_ID.TOKEN_NOT_AVAILABLE_MODAL,
+);
+const InstrumentedErrorDetailsModal = withRampScreenPerformance(
+  ErrorDetailsModal,
+  RAMP_V2_SCREEN_ID.ERROR_DETAILS_MODAL,
+);
+const InstrumentedProcessingInfoModal = withRampScreenPerformance(
+  ProcessingInfoModal,
+  RAMP_V2_SCREEN_ID.PROCESSING_INFO_MODAL,
+);
+const InstrumentedSsnInfoModal = withRampScreenPerformance(
+  SsnInfoModal,
+  RAMP_V2_SCREEN_ID.SSN_INFO_MODAL,
+);
+const InstrumentedPhoneCountrySelectorModal = withRampScreenPerformance(
+  PhoneCountrySelectorModal,
+  RAMP_V2_SCREEN_ID.PHONE_COUNTRY_SELECTOR_MODAL,
+);
+const InstrumentedStateSelectorModal = withRampScreenPerformance(
+  StateSelectorModal,
+  RAMP_V2_SCREEN_ID.STATE_SELECTOR_MODAL,
+);
+const InstrumentedUnsupportedStateModal = withRampScreenPerformance(
+  UnsupportedStateModal,
+  RAMP_V2_SCREEN_ID.UNSUPPORTED_STATE_MODAL,
+);
 
 const overlayScreenOptions = {
   ...clearNativeStackNavigatorOptions,
@@ -60,13 +123,22 @@ const MainRoutes = () => (
       component={TokenSelection}
     />
     <Stack.Screen name={Routes.RAMP.AMOUNT_INPUT} component={BuildQuote} />
-    <Stack.Screen name={Routes.RAMP.ENTER_EMAIL} component={V2EnterEmail} />
-    <Stack.Screen name={Routes.RAMP.OTP_CODE} component={V2OtpCode} />
-    <Stack.Screen name={Routes.RAMP.BASIC_INFO} component={V2BasicInfo} />
-    <Stack.Screen name={Routes.RAMP.ENTER_ADDRESS} component={V2EnterAddress} />
+    <Stack.Screen
+      name={Routes.RAMP.ENTER_EMAIL}
+      component={InstrumentedEnterEmail}
+    />
+    <Stack.Screen name={Routes.RAMP.OTP_CODE} component={InstrumentedOtpCode} />
+    <Stack.Screen
+      name={Routes.RAMP.BASIC_INFO}
+      component={InstrumentedBasicInfo}
+    />
+    <Stack.Screen
+      name={Routes.RAMP.ENTER_ADDRESS}
+      component={InstrumentedEnterAddress}
+    />
     <Stack.Screen
       name={Routes.RAMP.VERIFY_IDENTITY}
-      component={V2VerifyIdentity}
+      component={InstrumentedVerifyIdentity}
     />
     <Stack.Screen name={Routes.RAMP.BANK_DETAILS} component={V2BankDetails} />
     <Stack.Screen
@@ -79,7 +151,7 @@ const MainRoutes = () => (
     />
     <Stack.Screen
       name={Routes.RAMP.ADDITIONAL_VERIFICATION}
-      component={V2AdditionalVerification}
+      component={InstrumentedAdditionalVerification}
     />
     <Stack.Screen
       name={Routes.RAMP.CHECKOUT}
@@ -108,11 +180,11 @@ const TokenListModalsRoutes = () => (
   >
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.UNSUPPORTED_TOKEN}
-      component={UnsupportedTokenModal}
+      component={InstrumentedUnsupportedTokenModal}
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.BUILD_QUOTE_SETTINGS}
-      component={SettingsModal}
+      component={InstrumentedSettingsModal}
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.PAYMENT_SELECTION}
@@ -120,7 +192,7 @@ const TokenListModalsRoutes = () => (
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.TOKEN_NOT_AVAILABLE}
-      component={TokenNotAvailableModal}
+      component={InstrumentedTokenNotAvailableModal}
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.PROVIDER_SELECTION}
@@ -128,11 +200,11 @@ const TokenListModalsRoutes = () => (
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.ERROR_DETAILS}
-      component={ErrorDetailsModal}
+      component={InstrumentedErrorDetailsModal}
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.PROCESSING_INFO}
-      component={ProcessingInfoModal}
+      component={InstrumentedProcessingInfoModal}
       options={{
         ...clearNativeStackNavigatorOptions,
         ...transparentModalScreenOptions,
@@ -140,19 +212,19 @@ const TokenListModalsRoutes = () => (
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.SSN_INFO}
-      component={SsnInfoModal}
+      component={InstrumentedSsnInfoModal}
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.PHONE_COUNTRY_SELECTOR}
-      component={PhoneCountrySelectorModal}
+      component={InstrumentedPhoneCountrySelectorModal}
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.STATE_SELECTOR}
-      component={StateSelectorModal}
+      component={InstrumentedStateSelectorModal}
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.UNSUPPORTED_STATE}
-      component={UnsupportedStateModal}
+      component={InstrumentedUnsupportedStateModal}
     />
   </ModalsStack.Navigator>
 );

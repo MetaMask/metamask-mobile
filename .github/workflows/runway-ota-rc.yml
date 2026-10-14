@@ -2,8 +2,10 @@
 #
 # Runway OTA RC
 #
-# Triggered from Runway to push an OTA update to the RC channel (iOS + Android) and post a Slack
-# notification (matching the prior Runway RC behaviour on the OTA path).
+# Triggered from Runway to push an OTA update to the RC channel (iOS + Android).
+#
+# No Slack notification is posted: an OTA does not create a new build, so the RC build
+# notification (build numbers / download links) would be misleading. Runway already notifies.
 #
 # This workflow does not build binaries and does not bump the build version — the release PR is
 # expected to bump OTA_VERSION (app/constants/ota.ts) before dispatch.
@@ -22,7 +24,6 @@ on:
         type: string
 
 permissions:
-  actions: read # required by slack-rc-notification.yml
   contents: read
   pull-requests: read
   id-token: write # required by push-eas-update.yml
@@ -60,32 +61,4 @@ jobs:
       channel: rc
       platform: all
       build_attribution: official
-    secrets: inherit
-
-  derive-slack-semver:
-    name: Derive Slack channel semver
-    needs: push-ota
-    if: success()
-    runs-on: ubuntu-latest
-    outputs:
-      semver: ${{ steps.derive.outputs.semver }}
-    steps:
-      - name: Derive semver from source branch
-        id: derive
-        run: |
-          BRANCH="${{ inputs.source_branch || github.ref_name }}"
-          BRANCH="${BRANCH#refs/heads/}"
-          # release/7.76.3-ota -> 7.76.3-ota
-          SEMVER="${BRANCH#release/}"
-          echo "semver=${SEMVER}" >> "$GITHUB_OUTPUT"
-          echo "Branch: $BRANCH, semver: $SEMVER"
-
-  slack-notification:
-    name: Slack RC Notification
-    needs: [push-ota, derive-slack-semver]
-    if: success()
-    uses: ./.github/workflows/slack-rc-notification.yml
-    with:
-      source_branch: ${{ inputs.source_branch || github.ref_name }}
-      semver: ${{ needs.derive-slack-semver.outputs.semver }}
     secrets: inherit

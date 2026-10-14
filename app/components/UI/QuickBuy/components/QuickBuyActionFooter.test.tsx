@@ -8,6 +8,11 @@ import {
 import QuickBuyActionFooter from './QuickBuyActionFooter';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 
+const mockDispatch = jest.fn();
+jest.mock('react-redux', () => ({
+  useDispatch: () => mockDispatch,
+}));
+
 jest.mock('../useQuickBuyContext', () => ({
   useQuickBuyContext: jest.fn(),
 }));
@@ -73,8 +78,9 @@ const baseContext = {
   sourceBalanceFiat: undefined,
   destBalanceFiat: undefined,
   destToken: undefined,
-  selectedDestStable: undefined,
-  totalAmountFiat: '$123.75',
+  selectedReceiveToken: undefined,
+  estimatedReceiveFiat: '$123.75',
+  isBlockingQuoteLoad: false,
   isPriceImpactError: false,
   features: { payWithSheet: true, quoteDetails: true },
   setActiveScreen: jest.fn(),
@@ -85,6 +91,40 @@ describe('QuickBuyActionFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useQuickBuyContext as jest.Mock).mockReturnValue(baseContext);
+  });
+
+  it('opens Pay with on all networks', () => {
+    render(<QuickBuyActionFooter />);
+
+    fireEvent.press(screen.getByTestId('quick-buy-pay-with-button'));
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'bridge/setTokenSelectorNetworkFilter',
+      payload: undefined,
+    });
+    expect(baseContext.setActiveScreen).toHaveBeenCalledWith('payWith');
+  });
+
+  it("opens Receive filtered to the selected receive token's chain", () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      tradeMode: 'sell',
+      selectedReceiveToken: {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x89',
+        symbol: 'POL',
+        decimals: 18,
+      },
+    });
+    render(<QuickBuyActionFooter />);
+
+    fireEvent.press(screen.getByTestId('quick-buy-pay-with-button'));
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'bridge/setTokenSelectorNetworkFilter',
+      payload: 'eip155:137',
+    });
+    expect(baseContext.setActiveScreen).toHaveBeenCalledWith('payWith');
   });
 
   it('renders the confirm button in idle state when not loading', () => {
@@ -104,7 +144,7 @@ describe('QuickBuyActionFooter', () => {
     expect(screen.getByText('confirm-button:loading')).toBeOnTheScreen();
   });
 
-  it('renders quick-amount pills when the feature flag is enabled', () => {
+  it('renders quick-amount pills in place of the CTA while the amount is empty', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       features: {
@@ -115,6 +155,22 @@ describe('QuickBuyActionFooter', () => {
     });
     render(<QuickBuyActionFooter />);
     expect(screen.getByTestId('quick-buy-quick-amounts')).toBeOnTheScreen();
+    expect(screen.queryByTestId('quick-buy-confirm-button')).toBeNull();
+  });
+
+  it('replaces the quick-amount pills with the CTA once an amount is entered', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      hasValidAmount: true,
+      features: {
+        payWithSheet: true,
+        quickAmountPills: true,
+        quoteDetails: true,
+      },
+    });
+    render(<QuickBuyActionFooter />);
+    expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
+    expect(screen.queryByTestId('quick-buy-quick-amounts')).toBeNull();
   });
 
   it('hides quick-amount pills when the feature flag is disabled', () => {
@@ -130,21 +186,41 @@ describe('QuickBuyActionFooter', () => {
     expect(screen.queryByTestId('quick-buy-quick-amounts')).toBeNull();
   });
 
-  it('renders the total row and navigates to quote details when pressed', () => {
-    const setActiveScreen = jest.fn();
+  it('hides the Est. receive row until a quote value is available', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
-      setActiveScreen,
+      estimatedReceiveFiat: undefined,
     });
 
     render(<QuickBuyActionFooter />);
 
     expect(
-      screen.getByText('social_leaderboard.quick_buy.total'),
+      screen.queryByText('social_leaderboard.quick_buy.est_receive'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows a loading skeleton while the quote is loading', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      estimatedReceiveFiat: undefined,
+      hasValidAmount: true,
+      isBlockingQuoteLoad: true,
+      gasFeeDeductionLabel: '-$1.19 for gas',
+    });
+
+    render(<QuickBuyActionFooter />);
+
+    expect(
+      screen.queryByText('social_leaderboard.quick_buy.est_receive'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId('quick-buy-est-receive-label-loading'),
     ).toBeOnTheScreen();
-    expect(screen.getByText('$123.75')).toBeOnTheScreen();
-    fireEvent.press(screen.getByTestId('quick-buy-rate-tag-pressable'));
-    expect(setActiveScreen).toHaveBeenCalledWith('quoteDetails');
+    expect(
+      screen.getByTestId('quick-buy-est-receive-loading'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('-$1.19 for gas')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId('quick-buy-rate-tag')).not.toBeOnTheScreen();
   });
 
   it('keeps the footer interactive while the keypad is open', () => {
@@ -162,7 +238,6 @@ describe('QuickBuyActionFooter', () => {
 
     expect(screen.queryByTestId('quick-buy-footer-reveal')).toBeNull();
     expect(screen.getByTestId('quick-buy-pay-with-button')).toBeOnTheScreen();
-    expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
     expect(screen.getByTestId('quick-buy-quick-amounts')).toBeOnTheScreen();
   });
 
@@ -186,9 +261,7 @@ describe('QuickBuyActionFooter', () => {
 
       const disabled = screen.getByTestId('quick-buy-disabled-footer');
       expect(disabled.props.pointerEvents).toBe('none');
-      expect(
-        within(disabled).getByTestId('quick-buy-quick-amounts'),
-      ).toBeOnTheScreen();
+      expect(screen.queryByTestId('quick-buy-quick-amounts')).toBeNull();
       expect(
         within(disabled).getByTestId('quick-buy-pay-with-button'),
       ).toBeOnTheScreen();

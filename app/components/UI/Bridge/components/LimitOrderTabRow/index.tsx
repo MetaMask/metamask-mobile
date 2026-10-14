@@ -12,9 +12,15 @@ import {
   LimitOrderState,
   type LimitOrder,
 } from '../../api/limitOrders/getLimitOrders/types';
+import {
+  HISTORY_LIMIT_ORDER_STATES,
+  OPEN_LIMIT_ORDER_STATES,
+} from '../../constants/limitOrders';
 import OpenOrderRow from '../OpenOrderRow';
+import { getUsdTriggerPrice } from '../OpenLimitOrderDetailsModal/utils';
+import type { BridgeToken } from '../../types';
 import { getLimitOrderTokens } from '../../utils/limitOrders/getLimitOrderTokens';
-import { formatLimitOrderAmount } from '../../utils/limitOrders/formatLimitOrderAmount';
+import { formatLimitOrderRowAmount } from '../../utils/limitOrders/formatLimitOrderRowAmount';
 import { formatLimitOrderDate } from '../../utils/limitOrders/formatLimitOrderDate';
 import {
   formatLimitOrderExpiredDuration,
@@ -23,17 +29,20 @@ import {
 
 function getLimitOrderRowSlots(
   order: LimitOrder,
-  sourceSymbol: string,
-  destSymbol: string,
+  sourceToken: BridgeToken,
+  destinationToken: BridgeToken,
 ) {
-  const stakedAmount = `${formatLimitOrderAmount(
-    order.src.amount,
-    // src.asset.decimals is looked up by the caller via getLimitOrderTokens,
-    // but the raw asset is also available directly on the order.
-    order.src.asset.decimals,
-  )} ${sourceSymbol}`;
+  const sourceSymbol = sourceToken.symbol;
+  const destSymbol = destinationToken.symbol;
+  // `src_price` / `dest_price` were placed in fiat (USD). A `ratio` was placed
+  // as an amount of the counter token. The row shows that same denomination.
+  const { triggerPrice, triggerToken } = getUsdTriggerPrice(
+    order,
+    sourceToken,
+    destinationToken,
+  );
   const limitPriceLabel = strings('bridge.limit.limit_price', {
-    symbol: destSymbol,
+    symbol: triggerToken.symbol,
   });
 
   switch (order.state) {
@@ -44,11 +53,11 @@ function getLimitOrderRowSlots(
         }),
         // The orders list only carries the guaranteed minimum, not the amount
         // the fill actually delivered.
-        primaryValue: `+${formatLimitOrderAmount(
+        primaryValue: `+${formatLimitOrderRowAmount(
           order.dest.amount,
           order.dest.asset.decimals,
         )} ${destSymbol}`,
-        secondaryValue: `-${formatLimitOrderAmount(
+        secondaryValue: `-${formatLimitOrderRowAmount(
           order.src.amount,
           order.src.asset.decimals,
         )} ${sourceSymbol}`,
@@ -67,7 +76,7 @@ function getLimitOrderRowSlots(
             order.timingData.expiresAt,
           ),
         }),
-        primaryValue: stakedAmount,
+        primaryValue: triggerPrice,
         secondaryValue: limitPriceLabel,
         titleEndAccessory: (
           <Tag severity={TagSeverity.Neutral}>
@@ -80,7 +89,7 @@ function getLimitOrderRowSlots(
         subtitle: strings('bridge.limit.canceled_at', {
           date: formatLimitOrderDate(order.timingData.closedAt),
         }),
-        primaryValue: stakedAmount,
+        primaryValue: triggerPrice,
         secondaryValue: limitPriceLabel,
         titleEndAccessory: (
           <Tag severity={TagSeverity.Neutral}>
@@ -93,7 +102,7 @@ function getLimitOrderRowSlots(
         subtitle: strings('bridge.limit.failed_at', {
           date: formatLimitOrderDate(order.timingData.closedAt),
         }),
-        primaryValue: stakedAmount,
+        primaryValue: triggerPrice,
         secondaryValue: limitPriceLabel,
         titleEndAccessory: (
           <Tag severity={TagSeverity.Danger}>
@@ -107,10 +116,32 @@ function getLimitOrderRowSlots(
         subtitle: strings('bridge.limit.expiry', {
           timeLeft: formatLimitOrderTimeLeft(order.timingData.expiresAt),
         }),
-        primaryValue: stakedAmount,
+        primaryValue: triggerPrice,
         secondaryValue: limitPriceLabel,
       };
   }
+}
+
+/**
+ * Every order of the open orders tab opens the details sheet, including one
+ * being executed, which the sheet shows without the cancel button since the
+ * API no longer reports it as cancellable. A closed order opens its activity
+ * page. A state the client doesn't know opens nothing.
+ */
+function getRowPressHandler(
+  order: LimitOrder,
+  onOpenOrderPress: () => void,
+  onHistoryOrderPress: () => void,
+): (() => void) | undefined {
+  const state = order.state as LimitOrderState;
+
+  if (OPEN_LIMIT_ORDER_STATES.includes(state)) {
+    return onOpenOrderPress;
+  }
+
+  return HISTORY_LIMIT_ORDER_STATES.includes(state)
+    ? onHistoryOrderPress
+    : undefined;
 }
 
 interface LimitOrderTabRowProps {
@@ -120,17 +151,17 @@ interface LimitOrderTabRowProps {
 export function LimitOrderTabRow({ order }: LimitOrderTabRowProps) {
   const navigation = useNavigation<AppNavigationProp>();
   const { sourceToken, destinationToken } = getLimitOrderTokens(order);
-  const slots = getLimitOrderRowSlots(
-    order,
-    sourceToken.symbol,
-    destinationToken.symbol,
-  );
+  const slots = getLimitOrderRowSlots(order, sourceToken, destinationToken);
 
-  const handlePress = useCallback(() => {
+  const handleOpenOrderPress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.OPEN_LIMIT_ORDER_DETAILS_MODAL,
       params: { order },
     });
+  }, [navigation, order]);
+
+  const handleHistoryOrderPress = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY, { order });
   }, [navigation, order]);
 
   return (
@@ -140,9 +171,11 @@ export function LimitOrderTabRow({ order }: LimitOrderTabRowProps) {
         source: sourceToken.symbol,
         dest: destinationToken.symbol,
       })}
-      // Only an order that is still open can be cancelled, which is all the
-      // details sheet offers today.
-      onPress={order.state === LimitOrderState.Open ? handlePress : undefined}
+      onPress={getRowPressHandler(
+        order,
+        handleOpenOrderPress,
+        handleHistoryOrderPress,
+      )}
       {...slots}
     />
   );

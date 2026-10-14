@@ -6,6 +6,7 @@ import { FlatList, ScrollView } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import { navigateToSocialV1Profile } from '../../../navigation/navigateToSocialV1Profile';
 import { useFollowWithNotificationSetup } from '../../../hooks/useFollowWithNotificationSetup';
 import {
   POPULAR_TRADERS_DISPLAY_COUNT,
@@ -67,10 +68,11 @@ const PopularTradersCarousel: React.FC = () => {
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
       const trader = traders.find((t) => t.id === traderId);
-      navigation.navigate(Routes.SOCIAL.PROFILE, {
+      navigateToSocialV1Profile(navigation, {
         traderId,
         traderName,
         traderAddress: trader?.address,
+        traderAvatarUri: trader?.avatarUri,
         source: 'trending_carousel',
         traderRank: trader?.rank,
       });

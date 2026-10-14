@@ -107,6 +107,28 @@ describe('FeesTooltipContent', () => {
     expect(queryByTestId('rewards-vip-badge')).toBeFalsy();
   });
 
+  it('renders the full fee without a discount when the discount is 0', () => {
+    // Arrange
+    const dataWithZeroDiscount = {
+      metamaskFeeRate: 0.001,
+      protocolFeeRate: 0.00045,
+      originalMetamaskFeeRate: 0.001,
+      feeDiscountPercentage: 0,
+    };
+
+    // Act
+    const { getByTestId, getByText, queryByText, queryByTestId } = render(
+      <FeesTooltipContent testID="fees-tooltip" data={dataWithZeroDiscount} />,
+    );
+
+    // Assert
+    // A bare "0" child of a View throws on device: text must be inside <Text>
+    expect(getByTestId('fees-tooltip').children).not.toContain('0');
+    expect(getByText('0.100%')).toBeOnTheScreen();
+    expect(queryByText(/saving/i)).toBeNull();
+    expect(queryByTestId('rewards-vip-badge')).toBeNull();
+  });
+
   it('handles undefined data prop', () => {
     // Arrange & Act
     const { getByText } = render(<FeesTooltipContent testID="fees-tooltip" />);

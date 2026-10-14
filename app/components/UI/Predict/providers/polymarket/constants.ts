@@ -1,4 +1,8 @@
-import { ContractConfig, RoundConfig } from './types';
+import {
+  ContractConfig,
+  PositionsProtocolContractConfig,
+  RoundConfig,
+} from './types';
 import {
   isEsportsRoundHandicapMarketType,
   isEsportsRoundOverUnderMarketType,
@@ -91,6 +95,17 @@ export const MATIC_CONTRACTS_V2: ContractConfig = {
   collateral: '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
   conditionalTokens: '0x4D97DCd97eC945f40cF65F87097ACe5EA0476045',
 };
+
+/**
+ * Protocol V2 settles on a single ExchangeV3 — there is no separate neg-risk
+ * exchange. Both slots carry ExchangeV3 so the order verifying contract is
+ * ExchangeV3 regardless of negRisk.
+ */
+export const MATIC_POSITIONS_PROTOCOL_CONTRACTS: PositionsProtocolContractConfig =
+  {
+    exchange: '0xe3333700cA9d93003F00f0F71f8515005F6c00Aa',
+    negRiskExchange: '0xe3333700cA9d93003F00f0F71f8515005F6c00Aa',
+  };
 
 export const USDC_E_ADDRESS = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
 

@@ -19,7 +19,7 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => 'usd'),
 }));
 
-jest.mock('../utils/chainMapping', () => ({
+jest.mock('../../../UI/SocialFeed/utils/chainMapping', () => ({
   chainNameToId: jest.fn((chain: string) =>
     chain === 'hyperliquid' ? undefined : 'eip155:8453',
   ),
@@ -173,6 +173,22 @@ describe('useTraderPositionData — facade', () => {
     expect(result.current.isClosed).toBe(true);
     expect(result.current.pnlValue).toBe(200);
     expect(result.current.pnlPercent).toBe(20);
+  });
+
+  it('returns null closed PnL percent when realizedPnl is null', () => {
+    const closedSpot = {
+      ...baseSpotPosition,
+      positionAmount: 0,
+      soldUsd: 1200,
+      realizedPnl: null,
+      pnlValueUsd: null,
+      pnlPercent: null,
+    } as unknown as Position;
+
+    const { result } = renderHook(() => useTraderPositionData(closedSpot));
+
+    expect(result.current.isClosed).toBe(true);
+    expect(result.current.pnlPercent).toBeNull();
   });
 
   it('prefers pnlValueUsd for perp positions', () => {

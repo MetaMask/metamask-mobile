@@ -21,8 +21,7 @@
       "attribution": null
     },
     "banners": {
-      "dismissedBanners": [],
-      "lastDismissedBrazeBanner": null
+      "dismissedBanners": []
     },
     "bookmarks": [],
     "bridge": {
@@ -612,6 +611,20 @@
           "useSafeChainsListValidation": false,
           "useTokenDetection": true,
           "useTransactionSimulations": true
+        },
+        "ProfileController": {
+          "profile": {
+            "avatarUrl": "",
+            "bio": "",
+            "connectedToX": false,
+            "createdAt": "",
+            "displayName": "",
+            "linkedAddresses": [],
+            "profileId": "",
+            "tradingPrivacy": "public",
+            "updatedAt": "",
+            "username": ""
+          }
         },
         "QrSyncController": {
           "connectionStatus": "disconnected",

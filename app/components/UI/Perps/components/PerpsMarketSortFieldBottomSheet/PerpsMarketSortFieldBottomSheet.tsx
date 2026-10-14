@@ -163,6 +163,9 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
           <ListItemSelect
             key={option.id}
             title={strings(option.labelKey)}
+            // Long translations (e.g. el "Χρέωση χρηματοδότησης") otherwise wrap
+            // letter-by-letter next to the direction accessory.
+            titleProps={{ numberOfLines: 1, ellipsizeMode: 'tail' }}
             variant={ListItemVariant.OneLine}
             isSelected={isSelected}
             showSelectedIcon={false}

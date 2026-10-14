@@ -1,8 +1,10 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
+  RefreshControl,
+  ScrollView,
+  type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
-  ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -39,10 +41,7 @@ import {
 } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
-import {
-  formatPriceRangeBounds,
-  PRICE_RANGE_CURRENCY,
-} from '../../../utils/priceRange';
+import { formatPriceRangeBounds } from '../../../utils/priceRange';
 import { strings } from '../../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import {
@@ -66,6 +65,8 @@ const BridgeRecurringBuyViewContent = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const inputRef = useRef<TokenInputAreaRef>(null);
+  const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
+  const [hasVisibleBanner, setHasVisibleBanner] = useState(false);
   const {
     latestSourceBalance,
     recurringOrdersTab = OrdersTabKey.OpenOrders,
@@ -124,6 +125,13 @@ const BridgeRecurringBuyViewContent = () => {
     closeKeypad();
   }, [closeKeypad]);
 
+  const handleBannersLayout = useCallback((event: LayoutChangeEvent) => {
+    const nextHasVisibleBanner = event.nativeEvent.layout.height > 0;
+    setHasVisibleBanner((current) =>
+      current === nextHasVisibleBanner ? current : nextHasVisibleBanner,
+    );
+  }, []);
+
   const canPreviewOrder = Boolean(activeQuote) && scheduleValidation.isValid;
 
   const handlePreviewOrder = useCallback(() => {
@@ -178,13 +186,27 @@ const BridgeRecurringBuyViewContent = () => {
     [recurringOrdersTab, historyQuery, openOrdersQuery],
   );
 
+  const handleOrdersRefresh = useCallback(async () => {
+    const activeOrdersQuery =
+      recurringOrdersTab === OrdersTabKey.OpenOrders
+        ? openOrdersQuery
+        : historyQuery;
+
+    setIsRefreshingOrders(true);
+    try {
+      await activeOrdersQuery.refresh();
+    } finally {
+      setIsRefreshingOrders(false);
+    }
+  }, [recurringOrdersTab, historyQuery, openOrdersQuery]);
+
   const priceRangeToken =
     priceRange?.tokenSide === 'source' ? sourceToken : destToken;
   const { minLabel: priceRangeMinLabel, maxLabel: priceRangeMaxLabel } =
     formatPriceRangeBounds(
       priceRange?.min ?? '',
       priceRange?.max ?? '',
-      PRICE_RANGE_CURRENCY,
+      priceRange?.currency ?? '',
     );
 
   const handlePriceRangePress = useCallback(() => {
@@ -222,6 +244,12 @@ const BridgeRecurringBuyViewContent = () => {
           onScrollBeginDrag={dismissInputAndKeypad}
           onScroll={handleScroll}
           scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshingOrders}
+              onRefresh={handleOrdersRefresh}
+            />
+          }
         >
           <SwapsInputs
             inputRef={inputRef}
@@ -252,24 +280,34 @@ const BridgeRecurringBuyViewContent = () => {
             }
           />
 
-          <Box onTouchEnd={dismissInputAndKeypad}>
-            <SwapsBanners onAdjustSourceAmount={handleSourcePresetAmountSelect}>
-              <HardwareWalletUnsupportedBanner />
-              <QuoteErrorBanner />
-              <TokenWarningBanner />
-              <DestAssetRequireActivateBanner />
-              <InsufficientNativeReserveBanner />
-              <MissingQuoteAndAssetsPriceDataBanner />
-            </SwapsBanners>
-          </Box>
+          <Box twClassName="-mt-1">
+            <Box
+              testID={BridgeViewSelectorsIDs.RECURRING_BANNERS_WRAPPER}
+              onLayout={handleBannersLayout}
+              twClassName={hasVisibleBanner ? 'mb-2' : undefined}
+              onTouchEnd={dismissInputAndKeypad}
+            >
+              <SwapsBanners
+                gap={2}
+                onAdjustSourceAmount={handleSourcePresetAmountSelect}
+              >
+                <HardwareWalletUnsupportedBanner />
+                <QuoteErrorBanner />
+                <TokenWarningBanner />
+                <DestAssetRequireActivateBanner />
+                <InsufficientNativeReserveBanner />
+                <MissingQuoteAndAssetsPriceDataBanner />
+              </SwapsBanners>
+            </Box>
 
-          <RecurringScheduleFields
-            onEveryPress={focusEvery}
-            onRepeatPress={focusRepeat}
-            onDismissKeypad={dismissInputAndKeypad}
-            onUnitPress={handleUnitPress}
-            onRepeatInfoPress={handleRepeatInfoPress}
-          />
+            <RecurringScheduleFields
+              onEveryPress={focusEvery}
+              onRepeatPress={focusRepeat}
+              onDismissKeypad={dismissInputAndKeypad}
+              onUnitPress={handleUnitPress}
+              onRepeatInfoPress={handleRepeatInfoPress}
+            />
+          </Box>
 
           <PriceRangeRow
             token={priceRange ? priceRangeToken : undefined}

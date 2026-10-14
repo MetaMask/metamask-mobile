@@ -10,7 +10,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import type { TradeAllowanceItem } from '../../ProHub.constants';
+import {
+  TRADE_ALLOWANCE_KINDS,
+  type TradeAllowanceItem,
+} from '../../ProHub.constants';
 import { MemberPricingOnTradesTestIds } from './MemberPricingOnTrades.testIds';
 
 interface TradeAllowanceRowProps {
@@ -23,7 +26,7 @@ const formatCurrencyAmount = (amount: number): string =>
   });
 
 const formatAllowanceValue = (item: TradeAllowanceItem): string => {
-  if (item.kind === 'currency') {
+  if (item.kind === TRADE_ALLOWANCE_KINDS.CURRENCY) {
     return formatCurrencyAmount(item.allowance);
   }
 
@@ -36,7 +39,7 @@ const formatAllowanceValue = (item: TradeAllowanceItem): string => {
 };
 
 const formatUsedValue = (item: TradeAllowanceItem): string => {
-  if (item.kind === 'currency') {
+  if (item.kind === TRADE_ALLOWANCE_KINDS.CURRENCY) {
     return formatCurrencyAmount(item.used);
   }
 
@@ -44,6 +47,10 @@ const formatUsedValue = (item: TradeAllowanceItem): string => {
 };
 
 const calculateProgress = (item: TradeAllowanceItem): number => {
+  if (item.exhausted) {
+    return 1;
+  }
+
   if (item.allowance <= 0) {
     return 0;
   }

@@ -18,7 +18,6 @@ import { strings } from '../../../../../../locales/i18n';
 
 export type VbaOnboardingStubVariant =
   | 'kyc_pending'
-  | 'kyc_rejected'
   | 'account_provisioning_error'
   | 'error';
 

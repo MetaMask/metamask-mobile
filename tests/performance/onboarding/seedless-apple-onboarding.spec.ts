@@ -15,10 +15,9 @@ import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
 import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
-import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
-import { measureCreatePasswordToOnboardingSuccess } from './helpers/seedlessOnboardingTimers';
+import { measureCreatePasswordToWalletHome } from './helpers/seedlessOnboardingTimers';
 import {
   captureOnboardingTtc,
   trackTimer,
@@ -64,12 +63,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         platform,
       );
       const timer4 = new TimerHelper(
-        'Apple: Tap "Create Password" → Onboarding Success visible',
-        { ios: 5000, android: 4000 },
-        platform,
-      );
-      const timer5 = new TimerHelper(
-        'Apple: Tap "Done" → wallet main screen visible',
+        'Apple: Final onboarding action → wallet main screen visible',
         { ios: 30000, android: 5000 },
         platform,
       );
@@ -94,54 +88,19 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       let isNewUser = true;
       let postOauthScreen: OnboardingScreenId = 'choose_pw';
 
-      if (platform === 'ios') {
-        await timer2.measure(async () => {
-          const result = await waitForFirstSuccessful([
-            SocialLoginView.isIosNewUserScreenVisible().then(() => 'new_user'),
-            SocialLoginView.isAccountFoundScreenVisible().then(
-              () => 'existing_user',
-            ),
-          ]);
-          isNewUser = result === 'new_user';
-          postOauthScreen =
-            result === 'new_user'
-              ? 'social_login_success_new_user'
-              : 'account_already_exists';
-        });
-        trackTimer(performanceTracker, timer2);
-        await captureOnboardingTtc(
-          performanceTracker,
-          postOauthScreen,
-          platform,
-        );
-
-        if (isNewUser) {
-          await SocialLoginView.tapIosNewUserSetPinButton();
-          await timer3.measure(async () => {
-            await CreatePasswordView.isVisible();
-          });
-          trackTimer(performanceTracker, timer3);
-          await captureOnboardingTtc(performanceTracker, 'choose_pw', platform);
-        }
-      } else {
-        await timer2.measure(async () => {
-          const result = await waitForFirstSuccessful([
-            CreatePasswordView.isVisible().then(() => 'new_user'),
-            SocialLoginView.isAccountFoundScreenVisible().then(
-              () => 'existing_user',
-            ),
-          ]);
-          isNewUser = result === 'new_user';
-          postOauthScreen =
-            result === 'new_user' ? 'choose_pw' : 'account_already_exists';
-        });
-        trackTimer(performanceTracker, timer2);
-        await captureOnboardingTtc(
-          performanceTracker,
-          postOauthScreen,
-          platform,
-        );
-      }
+      await timer2.measure(async () => {
+        const result = await waitForFirstSuccessful([
+          CreatePasswordView.isVisible().then(() => 'new_user'),
+          SocialLoginView.isAccountFoundScreenVisible().then(
+            () => 'existing_user',
+          ),
+        ]);
+        isNewUser = result === 'new_user';
+        postOauthScreen =
+          result === 'new_user' ? 'choose_pw' : 'account_already_exists';
+      });
+      trackTimer(performanceTracker, timer2);
+      await captureOnboardingTtc(performanceTracker, postOauthScreen, platform);
 
       if (isNewUser) {
         await CreatePasswordView.enterPassword(password);
@@ -155,13 +114,8 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         }
         await AppiumGestures.hideKeyboard();
         await CreatePasswordView.tapCreatePasswordButton();
-        await measureCreatePasswordToOnboardingSuccess(timer4);
+        await measureCreatePasswordToWalletHome(timer4);
         trackTimer(performanceTracker, timer4);
-        await captureOnboardingTtc(
-          performanceTracker,
-          'onboarding_success',
-          platform,
-        );
         // Sheet probe was recorded in-app earlier; read it only after OAuth.
         await captureOnboardingTtc(
           performanceTracker,
@@ -169,18 +123,8 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           platform,
         );
 
-        await OnboardingSuccessView.tapDone();
         await dismissPushNotificationExistingUserSheet();
         await closePredictModal();
-        await timer5.measure(async () => {
-          await AppiumAssertions.expectElementToBeVisible(
-            WalletView.accountIcon, // Workaround until iOS nested component gets fixed
-            {
-              description: 'Wallet main screen should be visible',
-            },
-          );
-        });
-        trackTimer(performanceTracker, timer5);
       } else {
         await SocialLoginView.tapAccountFoundLoginButton();
         await timer3.measure(async () => {

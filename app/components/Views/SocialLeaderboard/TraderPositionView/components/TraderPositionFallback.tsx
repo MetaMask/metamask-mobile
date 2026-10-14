@@ -17,7 +17,11 @@ import { useAssetFromTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { getFollowTradingHomeRoute } from '../../Onboarding/socialLeaderboardOnboardingNavigation';
+import {
+  getFollowTradingHomeRoute,
+  isSocialV1Treatment,
+} from '../../Onboarding/socialLeaderboardOnboardingNavigation';
+import { navigateToSocialV1Profile } from '../../navigation/navigateToSocialV1Profile';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 import errorStateLight from '../../../../../images/error-state-no-connection-light.png';
 import errorStateDark from '../../../../../images/error-state-no-connection-dark.png';
@@ -42,10 +46,17 @@ const TraderPositionFallback: React.FC<TraderPositionFallbackProps> = ({
 
   const handlePrimaryAction = useCallback(() => {
     if (traderId) {
-      navigation.navigate(Routes.SOCIAL.PROFILE, {
-        traderId,
-        traderName: traderName ?? '',
-      });
+      if (isSocialV1Treatment()) {
+        navigateToSocialV1Profile(navigation, {
+          traderId,
+          traderName: traderName ?? '',
+        });
+      } else {
+        navigation.navigate(Routes.SOCIAL.PROFILE, {
+          traderId,
+          traderName: traderName ?? '',
+        });
+      }
     } else {
       navigation.navigate(getFollowTradingHomeRoute());
     }

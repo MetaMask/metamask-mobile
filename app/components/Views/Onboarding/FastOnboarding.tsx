@@ -1,5 +1,15 @@
-import { RouteProp, useRoute } from '@react-navigation/native';
-import { useCallback, useEffect } from 'react';
+import {
+  NavigationProp,
+  RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
+import { useCallback, useEffect, useRef } from 'react';
+
+interface FastOnboardingParamList {
+  params: { onboardingType?: string; existing?: string };
+  [key: string]: object | undefined;
+}
 
 export default function FastOnboarding(props: {
   onPressContinueWithGoogle: (createWallet: boolean) => void;
@@ -7,13 +17,10 @@ export default function FastOnboarding(props: {
   onPressImport: () => void;
   onPressCreate: () => void;
 }) {
-  const { params } =
-    useRoute<
-      RouteProp<
-        { params: { onboardingType?: string; existing?: string } },
-        'params'
-      >
-    >();
+  const navigation =
+    useNavigation<NavigationProp<FastOnboardingParamList, 'params'>>();
+  const { params } = useRoute<RouteProp<FastOnboardingParamList, 'params'>>();
+  const consumedOnboardingParamsRef = useRef<string | null>(null);
   const {
     onPressContinueWithGoogle,
     onPressContinueWithApple,
@@ -48,10 +55,23 @@ export default function FastOnboarding(props: {
     const onboardingType = params?.onboardingType;
     const existing = params?.existing;
 
-    if (onboardingType) {
-      handleFastOnboarding(onboardingType, existing === 'true');
+    if (!onboardingType) {
+      consumedOnboardingParamsRef.current = null;
+      return;
     }
-  }, [params, handleFastOnboarding]);
+
+    const onboardingParamsKey = `${onboardingType}:${existing ?? ''}`;
+    if (consumedOnboardingParamsRef.current === onboardingParamsKey) {
+      return;
+    }
+
+    consumedOnboardingParamsRef.current = onboardingParamsKey;
+    navigation.setParams({
+      onboardingType: undefined,
+      existing: undefined,
+    });
+    handleFastOnboarding(onboardingType, existing === 'true');
+  }, [params, handleFastOnboarding, navigation]);
 
   return null;
 }

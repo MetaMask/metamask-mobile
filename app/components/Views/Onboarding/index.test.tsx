@@ -41,6 +41,10 @@ jest.mock('../../../actions/user', () => {
 // Mock animation components - using existing mocks
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
+jest.mock('../../UI/OnboardingFoxLoader/OnboardingFoxLoader');
+jest.mock('../RevealPrivateCredential', () => ({
+  RevealPrivateCredential: () => null,
+}));
 
 jest.mock('react-native-elevated-view', () => ({
   __esModule: true,
@@ -74,6 +78,8 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import Device from '../../../util/device';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { OnboardingSelectorIDs } from './Onboarding.testIds';
+import { UserActionType } from '../../../actions/user';
+import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
@@ -360,6 +366,8 @@ jest.mock('@react-navigation/native-stack', () => ({
   }),
 }));
 
+// trackOnboarding still defers through InteractionManager, and testSetup mocks
+// it as a no-op, so it has to run synchronously here for analytics assertions.
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   cb();
   return {
@@ -372,6 +380,21 @@ const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
 jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation(mockRunAfterInteractions);
+
+const mockRequestIdleCallback = jest.fn((callback: () => void) => {
+  callback();
+  return 0;
+});
+interface IdleCallbackHost {
+  requestIdleCallback?: (callback: () => void) => number;
+}
+const idleHost = globalThis as unknown as IdleCallbackHost;
+const originalRequestIdleCallback = idleHost.requestIdleCallback;
+idleHost.requestIdleCallback = mockRequestIdleCallback;
+
+afterAll(() => {
+  idleHost.requestIdleCallback = originalRequestIdleCallback;
+});
 
 // Mock React Navigation hooks
 const mockRoute = {
@@ -491,21 +514,20 @@ describe('Onboarding', () => {
     expect(getByTestId(OnboardingSelectorIDs.CONTAINER_ID)).toBeOnTheScreen();
   });
 
-  it('renders loading overlay with loading message', async () => {
+  it('renders the onboarding fox loader while social login is loading', async () => {
     mockSkipLoadingUnset = true;
-    const loadingMessage = 'Creating your wallet...';
     const loadingState = {
       ...mockInitialState,
       user: {
         ...mockInitialState.user,
         loadingSet: true,
-        loadingMsg: loadingMessage,
+        loadingMsg: '',
       },
     };
     mockRoute.params = { delete: true };
 
     try {
-      const { getByText } = renderScreen(
+      const { getByTestId, queryByTestId } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -514,10 +536,61 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(getByText(loadingMessage)).toBeOnTheScreen();
+        expect(getByTestId('fox-rive-loader-animation')).toBeOnTheScreen();
       });
+      expect(
+        queryByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON),
+      ).toBeOnTheScreen();
     } finally {
       mockRoute.params = {};
+      mockSkipLoadingUnset = false;
+    }
+  });
+
+  it('keeps the landing content mounted when loading is unset after a failed social login', async () => {
+    mockSkipLoadingUnset = true;
+    const fadeOutOverlayMountSpy = jest.spyOn(
+      FadeOutOverlay.prototype,
+      'componentDidMount',
+    );
+    const loadingState = {
+      ...mockInitialState,
+      user: {
+        ...mockInitialState.user,
+        loadingSet: true,
+        loadingMsg: '',
+      },
+    };
+
+    try {
+      const { getByTestId, queryByTestId, store } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: loadingState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(getByTestId('fox-rive-loader-animation')).toBeOnTheScreen();
+      });
+      expect(fadeOutOverlayMountSpy).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        store.dispatch({ type: UserActionType.LOADING_UNSET });
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByTestId('fox-rive-loader-animation'),
+        ).not.toBeOnTheScreen();
+      });
+      expect(
+        getByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON),
+      ).toBeOnTheScreen();
+      expect(fadeOutOverlayMountSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      fadeOutOverlayMountSpy.mockRestore();
       mockSkipLoadingUnset = false;
     }
   });
@@ -528,15 +601,15 @@ describe('Onboarding', () => {
       ...mockInitialState,
       user: {
         ...mockInitialState.user,
-        loadingSet: true,
-        loadingMsg: 'Loading...',
+        loadingSet: false,
+        loadingMsg: '',
       },
     };
     mockRoute.params = { delete: true };
     (Device.isIphoneX as jest.Mock).mockReturnValue(true);
 
     try {
-      const { getByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -545,7 +618,9 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(getByText('Loading...')).toBeOnTheScreen();
+        expect(
+          getByTestId(OnboardingSelectorIDs.CONTAINER_ID),
+        ).toBeOnTheScreen();
       });
     } finally {
       mockRoute.params = {};
@@ -559,15 +634,15 @@ describe('Onboarding', () => {
       ...mockInitialState,
       user: {
         ...mockInitialState.user,
-        loadingSet: true,
-        loadingMsg: 'Loading...',
+        loadingSet: false,
+        loadingMsg: '',
       },
     };
     mockRoute.params = { delete: true };
     (Device.isIphoneX as jest.Mock).mockReturnValue(false);
 
     try {
-      const { getByText } = renderScreen(
+      const { getByTestId } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -576,7 +651,9 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(getByText('Loading...')).toBeOnTheScreen();
+        expect(
+          getByTestId(OnboardingSelectorIDs.CONTAINER_ID),
+        ).toBeOnTheScreen();
       });
     } finally {
       mockRoute.params = {};
@@ -1085,7 +1162,7 @@ describe('Onboarding', () => {
       });
     });
 
-    it('calls Google OAuth login for create wallet flow on iOS and navigates to SocialLoginSuccessNewUser', async () => {
+    it('calls Google OAuth login for create wallet flow on iOS and navigates to ChoosePassword', async () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -1140,9 +1217,9 @@ describe('Onboarding', () => {
         }),
       );
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+        Routes.ONBOARDING.CHOOSE_PASSWORD,
         expect.objectContaining({
-          accountName: 'test@example.com',
+          [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
         }),
       );
@@ -1195,9 +1272,8 @@ describe('Onboarding', () => {
         false,
         expect.anything(),
       );
-      // On Android, should navigate directly to ChoosePassword, not SocialLoginSuccessNewUser
       expect(mockNavigate).toHaveBeenCalledWith(
-        'ChoosePassword',
+        Routes.ONBOARDING.CHOOSE_PASSWORD,
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
@@ -1208,7 +1284,7 @@ describe('Onboarding', () => {
       Platform.OS = 'ios';
     });
 
-    it('calls Apple OAuth login for create wallet flow on iOS and navigates to SocialLoginSuccessNewUser', async () => {
+    it('calls Apple OAuth login for create wallet flow on iOS and navigates to ChoosePassword', async () => {
       mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -1254,11 +1330,10 @@ describe('Onboarding', () => {
         false,
         expect.anything(),
       );
-      // On iOS with Apple login, should navigate to SocialLoginSuccessNewUser
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+        Routes.ONBOARDING.CHOOSE_PASSWORD,
         expect.objectContaining({
-          accountName: 'test@icloud.com',
+          [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
         }),
       );
@@ -1598,7 +1673,7 @@ describe('Onboarding', () => {
         expect.anything(),
       );
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
+        Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
@@ -2287,11 +2362,7 @@ describe('Onboarding', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalledWith(
-        'ChoosePassword',
-        expect.anything(),
-      );
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+        Routes.ONBOARDING.CHOOSE_PASSWORD,
         expect.anything(),
       );
       expect(mockNavigate).not.toHaveBeenCalledWith(

@@ -119,7 +119,7 @@ function writeBuildEnvJson(buildName) {
     'METAMASK_BUILD_TYPE',
     'REWARDS_API_URL',
     'MM_PORTFOLIO_URL',
-    'RAMPS_ENVIRONMENT',
+    'MM_API_ENV',
     'HAS_TEST_OVERRIDES',
     // Additional env vars for full environment info
     'PORTFOLIO_API_URL',
@@ -133,6 +133,7 @@ function writeBuildEnvJson(buildName) {
     'AUTH_SERVICE_URL',
     'DIGEST_API_URL',
     'SOCIAL_API_URL',
+    'PROFILE_API_URL',
     'BAANX_API_URL',
     'RAMP_DEV_BUILD',
     'BRIDGE_USE_CUSTOM_BASE_URL',

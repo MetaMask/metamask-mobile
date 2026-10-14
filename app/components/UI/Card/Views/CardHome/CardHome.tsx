@@ -108,7 +108,8 @@ import { useCardArrivalAnimation } from './hooks/useCardArrivalAnimation';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardIntercomSupport } from './hooks/useCardIntercomSupport';
-import { useCardProvisioning } from './hooks/useCardProvisioning';
+import { useCardWalletProvisioning } from './hooks/useCardWalletProvisioning';
+import { getWalletTypeForPlatform } from '../../pushProvisioning/constants';
 import { useCardEnableCard } from './hooks/useCardEnableCard';
 import { useCardRevokeAllowance } from './hooks/useCardRevokeAllowance';
 import { useFundingAccountName } from '../../hooks/useFundingAccountName';
@@ -230,19 +231,13 @@ const CardHome = () => {
 
   const isBlocked = data?.card?.status === CardStatus.BLOCKED;
 
-  const {
-    initiateProvisioning,
-    isProvisioning,
-    isLoading: isPushProvisioningLoading,
-    canAddToWallet,
-  } = useCardProvisioning(data);
-  const isBaanxInternational =
-    activeProviderId === CardProviderIds.Baanx &&
-    userLocation === 'international';
-  const showDigitalWalletInstructions =
-    (isImmersve || isBaanxInternational) &&
-    !isPushProvisioningLoading &&
-    !canAddToWallet;
+  const platformWallet = getWalletTypeForPlatform();
+  const platformWalletSupported =
+    platformWallet === 'apple_wallet'
+      ? capabilities?.pushProvisioning?.applePay === true
+      : capabilities?.pushProvisioning?.googlePay === true;
+  const { initiateProvisioning, isProvisioning, walletEntry } =
+    useCardWalletProvisioning(data, platformWalletSupported);
 
   const { canEnableCard, enableCard, provisioningView } =
     useCardEnableCard(data);
@@ -845,7 +840,7 @@ const CardHome = () => {
             </Box>
           )}
 
-        {!isLoading && canAddToWallet && !isUkMigrationForced && (
+        {!isLoading && walletEntry === 'push' && !isUkMigrationForced && (
           <Box twClassName="w-full px-4 pt-4 items-center justify-center">
             {isProvisioning ? (
               <Box twClassName="py-3">
@@ -921,7 +916,7 @@ const CardHome = () => {
             onToggleFreeze={actions.handleToggleFreeze}
             onManageSpendingLimit={actions.manageSpendingLimitAction}
             onContactDetails={actions.contactDetailsAction}
-            showDigitalWalletInstructions={showDigitalWalletInstructions}
+            showDigitalWalletInstructions={walletEntry === 'instructions'}
             onDigitalWalletInstructions={
               actions.digitalWalletInstructionsAction
             }

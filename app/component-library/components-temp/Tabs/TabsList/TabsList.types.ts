@@ -26,6 +26,10 @@ export interface TabItem {
   content: React.ReactNode;
   isDisabled?: boolean;
   testID?: string;
+  /**
+   * Optional content rendered after the label (indicator, tag, icon, etc.)
+   */
+  endAccessory?: React.ReactNode;
 }
 
 /**
@@ -35,6 +39,10 @@ export interface TabViewProps {
   tabLabel: string;
   key?: string;
   isDisabled?: boolean;
+  /**
+   * Optional content rendered after the label (indicator, tag, icon, etc.)
+   */
+  endAccessory?: React.ReactNode;
 }
 
 /**

@@ -5,7 +5,7 @@ import type { TokenAmount } from '../../../../util/activity-adapters';
 
 const formatToken = (
   token: TokenAmount | undefined,
-  options?: { showPlus?: boolean },
+  options?: { showPlus?: boolean; signZero?: boolean },
 ) => {
   const { result } = renderHook(() => useFormatActivityTokenAmount());
   return result.current(token, options);
@@ -34,6 +34,32 @@ describe('useFormatActivityTokenAmount', () => {
         direction: 'out',
       } as TokenAmount),
     ).toBe('-0 ETH');
+  });
+
+  it.each(['out', 'in'] as const)(
+    'leaves a zero %s amount unsigned when signZero is off',
+    (direction) => {
+      expect(
+        formatToken(
+          { amount: '0', decimals: 18, symbol: 'ETH', direction },
+          { signZero: false },
+        ),
+      ).toBe('0 ETH');
+    },
+  );
+
+  it('still signs a non-zero amount when signZero is off', () => {
+    expect(
+      formatToken(
+        {
+          amount: '100000000000000000',
+          decimals: 18,
+          symbol: 'ETH',
+          direction: 'out',
+        },
+        { signZero: false },
+      ),
+    ).toBe('-0.1 ETH');
   });
 
   it('prefixes outgoing amounts with a minus sign', () => {
