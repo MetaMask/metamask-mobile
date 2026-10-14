@@ -48,6 +48,7 @@ import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
 import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
+import ContractSecurityScreen from '../../UI/TokenDetails/components/V1/ContractSecurityScreen/ContractSecurityScreen';
 import AddAsset from '../../Views/AddAsset/AddAsset';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
@@ -208,6 +209,7 @@ import {
   ManageProfileLinkedAccountView,
   TraderProfileView,
   TraderPositionView,
+  PositionDetailsSheet,
   SocialLeaderboardOnboarding,
   SocialProfileOnboardingView,
   TradingSignalsSetupBottomSheet,
@@ -322,6 +324,10 @@ const AssetStackFlow = (props: ForwardedParamsHostProps) => (
     <NativeStack.Screen
       name={Routes.SECURITY_TRUST}
       component={SecurityTrustScreen}
+    />
+    <NativeStack.Screen
+      name={Routes.CONTRACT_SECURITY}
+      component={ContractSecurityScreen}
     />
     <NativeStack.Screen
       name={Routes.CREATE_PRICE_ALERT}
@@ -1456,6 +1462,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.TRADING_SIGNALS_SETUP}
             component={TradingSignalsSetupBottomSheet}
+            options={transparentModalStackOptions}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.POSITION_SHEET}
+            component={PositionDetailsSheet}
             options={transparentModalStackOptions}
           />
         </>
