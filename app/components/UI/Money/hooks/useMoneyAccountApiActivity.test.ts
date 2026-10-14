@@ -169,6 +169,7 @@ function mockQueryResult(
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockParse.mockReset();
   setupSelectors();
   mockGetQueryOptions.mockReturnValue(
     QUERY_OPTIONS_MOCK as unknown as ReturnType<typeof mockGetQueryOptions>,
@@ -238,9 +239,6 @@ describe('useMoneyAccountApiActivity', () => {
         blockNumber: 10,
       },
     ]);
-    mockQueryResult({
-      data: { pages: [PAGE_MOCK], pageParams: [] },
-    });
 
     // Act
     renderHook(() => useMoneyAccountApiActivity());
