@@ -1040,10 +1040,10 @@ export type PolymarketTeamLookupFn = (
   abbreviation: string,
 ) => PolymarketApiTeam | undefined;
 
-const PROTOCOL_V2_MARKET_VERSION = 'v2';
+const V2_MARKET_VERSION = 'v2';
 
-function isProtocolV2Market(market?: PolymarketApiMarket): boolean {
-  return market?.version === PROTOCOL_V2_MARKET_VERSION;
+function isV2Market(market?: PolymarketApiMarket): boolean {
+  return market?.version === V2_MARKET_VERSION;
 }
 
 function isVisiblePolymarketMarket(market: PolymarketApiMarket): boolean {
@@ -1051,7 +1051,7 @@ function isVisiblePolymarketMarket(market: PolymarketApiMarket): boolean {
     return false;
   }
 
-  return !isProtocolV2Market(market);
+  return !isV2Market(market);
 }
 
 function isUnsupportedProtocolEvent(
@@ -1062,7 +1062,7 @@ function isUnsupportedProtocolEvent(
     return false;
   }
 
-  return event.markets?.some(isProtocolV2Market) === true;
+  return event.markets?.some(isV2Market) === true;
 }
 
 export interface ParsePolymarketEventsOptions {

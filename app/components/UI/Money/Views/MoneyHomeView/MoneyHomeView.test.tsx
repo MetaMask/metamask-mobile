@@ -290,8 +290,6 @@ jest.mock('../../selectors/visibility', () => ({
 
 const mockUseProSubscriptionEnabled = jest.fn(() => ({
   isProSubscriptionEnabled: false,
-  variantName: 'control',
-  isActive: false,
 }));
 jest.mock('../../../../../hooks/useProSubscriptionEnabled', () => ({
   useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
@@ -325,6 +323,7 @@ jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
     moneyAccountCardToken: null,
     canLink: false,
     isMoneyAccountLinkingSupported: true,
+    isMoneyCardSectionAvailable: true,
     status: 'idle' as const,
     isLinking: false,
     error: null,
@@ -446,6 +445,7 @@ const createLinkageMock = (
   moneyAccountCardToken: null,
   canLink: false,
   isMoneyAccountLinkingSupported: true,
+  isMoneyCardSectionAvailable: true,
   status: 'idle',
   isLinking: false,
   error: null,
@@ -590,8 +590,6 @@ describe('MoneyHomeView', () => {
     mockSelectPrivacyMode.mockReturnValue(false);
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
-      variantName: 'control',
-      isActive: false,
     });
     mockUsePlusAccess.mockReturnValue({
       isPlusSubscriber: false,
@@ -2899,8 +2897,6 @@ describe('MoneyHomeView', () => {
     beforeEach(() => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
-        variantName: 'treatment',
-        isActive: true,
       });
       mockUsePlusAccess.mockReturnValue({
         isPlusSubscriber: false,
@@ -2927,8 +2923,6 @@ describe('MoneyHomeView', () => {
     it('hides the Pro entry point while the Pro flow is disabled', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: false,
-        variantName: 'control',
-        isActive: false,
       });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
@@ -3407,6 +3401,7 @@ describe('MoneyHomeView', () => {
           isCardVerified: true,
           isCardLinkedToMoneyAccount: true,
           isMoneyAccountLinkingSupported: false,
+          isMoneyCardSectionAvailable: false,
           primaryMoneyAccount: MOCK_MONEY_ACCOUNT,
         }),
       );
@@ -3418,6 +3413,35 @@ describe('MoneyHomeView', () => {
       expect(
         queryByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
       ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the MetaMask Card section again for a logged-out cardholder', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockSelectIsCardStateResolved.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        createLinkageMock({
+          hasMoneyAccountRequirements: true,
+          hasMoneyAccountBaseRequirements: true,
+          isCardAuthenticated: false,
+          isCardVerified: false,
+          isCardLinkedToMoneyAccount: false,
+          isMoneyAccountLinkingSupported: true,
+          isMoneyCardSectionAvailable: true,
+          primaryMoneyAccount: MOCK_MONEY_ACCOUNT,
+        }),
+      );
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(getByTestId(MoneyMetaMaskCardTestIds.CONTAINER)).toBeOnTheScreen();
       expect(
         queryByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
       ).not.toBeOnTheScreen();

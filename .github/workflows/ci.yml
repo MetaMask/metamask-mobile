@@ -351,6 +351,8 @@ jobs:
             profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:depcheck
             profile: namespace-profile-metamask-ci-linux-small
+          - scripts: test:app-profiling
+            profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:tgz-check
             profile: namespace-profile-metamask-ci-linux-small
           - scripts: constraints

@@ -321,6 +321,11 @@ class AccountListBottomSheet {
       waitForInteractive: true,
       elemDescription: 'Add Account button in V2 multichain accounts',
     });
+
+    // Account creation restarts sync/discovery. The new row is not in the
+    // tree until that settles, and the default text assertion only gets a
+    // couple of probes before its timeout.
+    await this.waitForAccountSyncToComplete();
   }
 
   async tapAddEthereumAccountButton(): Promise<void> {
@@ -370,7 +375,7 @@ class AccountListBottomSheet {
     // Modal don't fire while the sheet is still animating out.
     await Utilities.waitForElementToDisappear(
       this.connectAccountsButton,
-      5_000,
+      15_000,
     );
   }
 

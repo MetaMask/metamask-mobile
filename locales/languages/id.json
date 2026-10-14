@@ -693,7 +693,6 @@
     "re_enter_password": "Masukkan kembali kata sandi",
     "use_at_least_8_characters": "Gunakan minimal 8 karakter",
     "unlock_with_face_id": "Buka dengan ID Wajah?",
-    "learn_more": "Jika saya lupa kata sandi ini, MetaMask tidak dapat memulihkannya untuk saya.",
     "learn_more_social_login": "Jika lupa kata sandi ini, saya akan kehilangan akses ke dompet secara permanen. MetaMask tidak dapat mereset kata sandi ini untuk saya.",
     "seed_phrase_length_error": "Frasa Pemulihan Rahasia harus terdiri dari 12, 15, 18, 21, atau 24 kata",
     "continue": "Lanjutkan",

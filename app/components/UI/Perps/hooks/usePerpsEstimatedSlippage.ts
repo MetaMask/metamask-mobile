@@ -1,9 +1,16 @@
 import { useMemo } from 'react';
 import { usePerpsLiveOrderBook } from './stream/usePerpsLiveOrderBook';
-import { calculateEstimatedSlippageBps } from '../utils/slippageCalculation';
+import {
+  calculateMarketOrderLiquidity,
+  type MarketOrderLiquidityParams,
+} from '../utils/slippageCalculation';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 
-export interface UsePerpsEstimatedSlippageOptions {
+export interface UsePerpsEstimatedSlippageOptions
+  extends Pick<
+    MarketOrderLiquidityParams,
+    'currentPrice' | 'maxSlippageBps' | 'szDecimals' | 'reduceOnly' | 'size'
+  > {
   /** Asset symbol (e.g. 'BTC'). */
   symbol: string;
   /** USD notional to fill. Pass undefined / 0 to disable the calc. */
@@ -22,6 +29,8 @@ export interface UsePerpsEstimatedSlippageReturn {
   estimatedSlippageBps: number | null;
   /** True once the underlying order book subscription has produced data. */
   isReady: boolean;
+  worstSlippageBps: number | null;
+  canFillWithinSlippage: boolean | null;
 }
 
 /**
@@ -38,31 +47,58 @@ export function usePerpsEstimatedSlippage({
   sizeUsd,
   isBuy,
   enabled = true,
+  currentPrice,
+  maxSlippageBps,
+  szDecimals,
+  reduceOnly,
+  size,
 }: UsePerpsEstimatedSlippageOptions): UsePerpsEstimatedSlippageReturn {
   // Throttle the L2 book at `SlippageEstimateThrottleMs`. The slippage row
   // needs sub-second updates while the user types, which is faster than the
   // generic order-form price guideline; the downstream `useMemo` keeps each
   // tick cheap (one VWAP walk).
-  const { orderBook } = usePerpsLiveOrderBook({
+  const { orderBook, dataSymbol, error } = usePerpsLiveOrderBook({
     symbol,
     enabled: enabled && Boolean(symbol),
     levels: PERFORMANCE_CONFIG.SlippageEstimateBookLevels,
     throttleMs: PERFORMANCE_CONFIG.SlippageEstimateThrottleMs,
   });
 
-  const estimatedSlippageBps = useMemo(() => {
-    if (!enabled || !sizeUsd || sizeUsd <= 0) {
+  const liquidity = useMemo(() => {
+    if (!enabled || !sizeUsd || sizeUsd <= 0 || dataSymbol !== symbol) {
       return null;
     }
-    return calculateEstimatedSlippageBps({
+    return calculateMarketOrderLiquidity({
       orderBook,
       sizeUsd,
       isBuy,
+      currentPrice,
+      maxSlippageBps,
+      szDecimals,
+      reduceOnly,
+      size,
     });
-  }, [orderBook, sizeUsd, isBuy, enabled]);
+  }, [
+    orderBook,
+    dataSymbol,
+    symbol,
+    sizeUsd,
+    isBuy,
+    enabled,
+    currentPrice,
+    maxSlippageBps,
+    szDecimals,
+    reduceOnly,
+    size,
+  ]);
 
   return {
-    estimatedSlippageBps,
-    isReady: orderBook !== null,
+    estimatedSlippageBps: liquidity?.estimatedSlippageBps ?? null,
+    worstSlippageBps: liquidity?.worstSlippageBps ?? null,
+    canFillWithinSlippage: liquidity?.canFillWithinSlippage ?? null,
+    isReady:
+      enabled &&
+      dataSymbol === symbol &&
+      (orderBook !== null || error !== null),
   };
 }

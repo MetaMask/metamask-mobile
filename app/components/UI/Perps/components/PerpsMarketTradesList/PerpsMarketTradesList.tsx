@@ -101,9 +101,12 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   const renderRightContent = useCallback((transaction: PerpsTransaction) => {
     if (!transaction.fill) return null;
 
-    const pnlColor = transaction.fill.isPositive
-      ? TextColor.SuccessDefault
-      : TextColor.ErrorDefault;
+    const pnlColor =
+      transaction.fill.isPositive === undefined
+        ? TextColor.TextDefault
+        : transaction.fill.isPositive
+          ? TextColor.SuccessDefault
+          : TextColor.ErrorDefault;
     return (
       <Text
         variant={TextVariant.BodyMd}

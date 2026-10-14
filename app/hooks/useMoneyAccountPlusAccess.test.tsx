@@ -48,8 +48,6 @@ describe('useMoneyAccountPlusAccess', () => {
     jest.clearAllMocks();
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: true,
-      variantName: 'treatment',
-      isActive: true,
     });
     mockUseSubscriptions.mockReturnValue({
       isLoading: false,
@@ -61,8 +59,6 @@ describe('useMoneyAccountPlusAccess', () => {
   it('is disabled when the Pro subscription flag is off', () => {
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
-      variantName: 'control',
-      isActive: false,
     });
     mockSubscriptionState({
       hasExistingSubscription: true,
@@ -141,8 +137,6 @@ describe('useMoneyAccountPlusAccessState', () => {
     jest.clearAllMocks();
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: true,
-      variantName: 'treatment',
-      isActive: true,
     });
     mockSubscriptionState({ hasExistingSubscription: true });
   });
