@@ -27,6 +27,34 @@ const SENTRY_FEATURE_TAG = 'money-account-upgrade';
  */
 const MAX_REPORTED_RETRIED_FAILURES = 3;
 
+export interface ForceUpgradeResult {
+  status: 'registered' | 'not_recorded' | 'unavailable' | 'failed';
+}
+
+export async function forceUpgradeMoneyAccount(
+  address: Hex,
+): Promise<ForceUpgradeResult> {
+  try {
+    const { MoneyAccountUpgradeController } = Engine.context;
+    await MoneyAccountUpgradeController.forceUpgradeAccount(address);
+    const recorded =
+      MoneyAccountUpgradeController.state.upgradedAccounts[
+        address.toLowerCase() as Hex
+      ];
+    return { status: recorded ? 'registered' : 'not_recorded' };
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes('is not bootstrapped')
+    ) {
+      Logger.log(LOG_PREFIX, 'force upgrade unavailable', { address });
+      return { status: 'unavailable' };
+    }
+    reportUpgradeError(error, { trigger: 'manual' });
+    return { status: 'failed' };
+  }
+}
+
 /**
  * Reports an upgrade failure to Sentry, tagged with the failing step when
  * the error carries one.

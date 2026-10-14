@@ -10,6 +10,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -40,6 +41,9 @@ const mockTrackOnboardingEvent = jest.fn();
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
+}));
+jest.mock('../../selectors/visibility', () => ({
+  selectIsMoneyAccountVisible: jest.fn(),
 }));
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
@@ -104,6 +108,20 @@ describe('MoneyMoreSheet', () => {
       trackScreenViewed: mockTrackScreenViewed,
       trackComponentViewed: mockTrackComponentViewed,
       trackOnboardingEvent: mockTrackOnboardingEvent,
+    });
+    jest.mocked(selectIsMoneyAccountVisible).mockReturnValue(false);
+  });
+
+  it('shows advanced settings only when Money is visible and navigates to it', () => {
+    jest.mocked(selectIsMoneyAccountVisible).mockReturnValue(true);
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+    fireEvent.press(
+      getByTestId(MoneyMoreSheetTestIds.ADVANCED_SETTINGS_OPTION),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ADVANCED_SETTINGS);
+    expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+      component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_ADVANCED_SETTINGS,
+      redirect_target: SCREEN_NAMES.MONEY_ADVANCED_SETTINGS,
     });
   });
 
