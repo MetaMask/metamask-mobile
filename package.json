@@ -195,11 +195,11 @@
   "resolutions": {
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
-    "@metamask/network-controller": "36.0.0",
+    "@metamask/network-controller": "37.0.0",
     "@metamask/analytics-controller": "^3.2.0",
     "@metamask/geolocation-controller": "^2.0.0",
     "@metamask/utils": "^12.0.0",
-    "@metamask/remote-feature-flag-controller": "^6.1.1",
+    "@metamask/remote-feature-flag-controller": "^7.0.0",
     "@metamask/seedless-onboarding-controller": "11.0.1",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
