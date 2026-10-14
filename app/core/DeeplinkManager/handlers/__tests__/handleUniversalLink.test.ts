@@ -22,6 +22,7 @@ import { handleSwapUrl } from '../intent/handleSwapUrl';
 import { handleBatchSellUrl } from '../legacy/handleBatchSellUrl';
 import { handleAssetUrl } from '../legacy/handleAssetUrl';
 import { handlePrivacyUrl } from '../legacy/handlePrivacyUrl';
+import { handleMoney } from '../legacy/handleMoney';
 import {
   createNotificationsSettingsDeeplinkIntent,
   handleNotificationsSettingsUrl,
@@ -60,6 +61,7 @@ jest.mock('../intent/handleSwapUrl');
 jest.mock('../legacy/handleBatchSellUrl');
 jest.mock('../legacy/handleAssetUrl');
 jest.mock('../legacy/handlePrivacyUrl');
+jest.mock('../legacy/handleMoney');
 jest.mock('../intent/handleNotificationsSettingsUrl');
 jest.mock('../intent/handleBrowserUrl');
 jest.mock('../intent/handleDappUrl', () => {
@@ -589,6 +591,30 @@ describe('handleUniversalLink', () => {
       });
 
       expect(handlePrivacyUrl).toHaveBeenCalledWith({ privacyPath });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.MONEY', () => {
+    it('calls handleMoney with the path after the action', async () => {
+      const moneyPath = '?screen=account';
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.MONEY}${moneyPath}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.MONEY}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(handleMoney).toHaveBeenCalledWith({ moneyPath });
       expect(handled).toHaveBeenCalled();
     });
   });
