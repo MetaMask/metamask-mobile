@@ -16,6 +16,26 @@ export interface SocialPostTradePreview {
 /** Where a pre-attached position was shared from. Kept for later analytics. */
 export type SocialPostComposerEntryPoint = 'token_details';
 
+interface SocialPostComposerTradeParams {
+  tradeInFlight: {
+    transactionHash: string;
+    /** Social-api chain slug (`base`), not CAIP. */
+    chain: string;
+    tokenAddress: string;
+  };
+  preview: SocialPostTradePreview;
+  position?: never;
+  entryPoint?: never;
+}
+
+interface SocialPostComposerPositionParams {
+  /** Fast path: position passed by the host screen. No fetch fires. */
+  position: Position;
+  entryPoint: SocialPostComposerEntryPoint;
+  tradeInFlight?: never;
+  preview?: never;
+}
+
 /**
  * Route params for the composer.
  * A swap share passes `tradeInFlight`. Token details passes the open
@@ -26,21 +46,5 @@ export type SocialPostComposerEntryPoint = 'token_details';
  * on either branch, matching `TraderPositionViewParams`.
  */
 export type SocialPostComposerViewParams =
-  | {
-      tradeInFlight: {
-        transactionHash: string;
-        /** Social-api chain slug (`base`), not CAIP. */
-        chain: string;
-        tokenAddress: string;
-      };
-      preview: SocialPostTradePreview;
-      position?: never;
-      entryPoint?: never;
-    }
-  | {
-      /** Fast path: position passed by the host screen. No fetch fires. */
-      position: Position;
-      entryPoint: SocialPostComposerEntryPoint;
-      tradeInFlight?: never;
-      preview?: never;
-    };
+  | SocialPostComposerTradeParams
+  | SocialPostComposerPositionParams;
