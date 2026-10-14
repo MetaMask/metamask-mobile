@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { captureException } from '@sentry/react-native';
 
 export interface CursorPage<T> {
   results: T[];
@@ -144,6 +145,12 @@ export const useCursorPaginatedList = <T>({
         if (request?.cancelled) {
           return { cancelled: true };
         }
+        captureException(err instanceof Error ? err : new Error(String(err)), {
+          tags: {
+            feature: 'rewards-money',
+            context: 'cursorPaginatedList.fetch_failed',
+          },
+        });
         setError(err instanceof Error ? err.message : errorMessage);
       } finally {
         if (!request?.cancelled) {

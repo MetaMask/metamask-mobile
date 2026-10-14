@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -35,7 +35,16 @@ const TermsSheet: React.FC = () => {
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );
+  const termsTitle = localizedText?.termsTitle?.trim() ?? '';
+  const termsDescription = localizedText?.termsDescription?.trim() ?? '';
   const termsUrl = localizedText?.termsUrl?.trim() ?? '';
+  const copyMissing = termsTitle.length === 0 && termsDescription.length === 0;
+
+  useEffect(() => {
+    if (copyMissing) {
+      navigation.goBack();
+    }
+  }, [copyMissing, navigation]);
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -57,6 +66,10 @@ const TermsSheet: React.FC = () => {
     [navigation],
   );
 
+  if (copyMissing) {
+    return null;
+  }
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -68,7 +81,7 @@ const TermsSheet: React.FC = () => {
         closeButtonProps={{ testID: TERMS_SHEET_TEST_IDS.CLOSE }}
         testID={TERMS_SHEET_TEST_IDS.TITLE}
       >
-        {localizedText?.termsTitle ?? ''}
+        {termsTitle}
       </BottomSheetHeader>
       <Box twClassName="px-4">
         <Text
@@ -76,7 +89,7 @@ const TermsSheet: React.FC = () => {
           color={TextColor.TextAlternative}
           testID={TERMS_SHEET_TEST_IDS.DESCRIPTION}
         >
-          {localizedText?.termsDescription ?? ''}
+          {termsDescription}
         </Text>
       </Box>
       <Box twClassName="px-4 pt-6">

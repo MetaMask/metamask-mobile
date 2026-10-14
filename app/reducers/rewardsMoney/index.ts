@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, type Action } from '@reduxjs/toolkit';
 import type {
   EarningsSummaryDto,
   ReferralMeDto,
@@ -23,6 +23,26 @@ export const initialState: RewardsMoneyState = {
   referralMe: {},
   earningsSummary: {},
 };
+
+interface RehydrateAction extends Action<'persist/REHYDRATE'> {
+  payload?: {
+    rewardsMoney?: RewardsMoneyState;
+  };
+}
+
+function settleEntries<TData>(
+  entries: Record<string, ProfileEntry<TData>> | undefined,
+): Record<string, ProfileEntry<TData>> {
+  if (!entries) {
+    return {};
+  }
+  return Object.fromEntries(
+    Object.entries(entries).map(([profileId, entry]) => [
+      profileId,
+      { data: entry?.data ?? null, loading: false, error: false },
+    ]),
+  );
+}
 
 function getOrCreateEntry<TData>(
   map: Record<string, ProfileEntry<TData>>,
@@ -106,6 +126,18 @@ const rewardsMoneySlice = createSlice({
       entry.data = action.payload.data;
     },
     resetRewardsMoneyState: () => initialState,
+  },
+  extraReducers: (builder) => {
+    builder.addCase(
+      'persist/REHYDRATE',
+      (state, action: RehydrateAction): RewardsMoneyState => {
+        const persisted = action.payload?.rewardsMoney ?? state;
+        return {
+          referralMe: settleEntries(persisted.referralMe),
+          earningsSummary: settleEntries(persisted.earningsSummary),
+        };
+      },
+    );
   },
 });
 

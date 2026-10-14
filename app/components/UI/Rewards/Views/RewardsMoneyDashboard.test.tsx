@@ -99,6 +99,7 @@ const mockUseEarningsSummary = useEarningsSummary as jest.MockedFunction<
   typeof useEarningsSummary
 >;
 const mockFetchReferralMe = jest.fn();
+const mockRetrySession = jest.fn();
 
 const LOCALIZED_TEXT = {
   waysToEarn: 'Ways to earn',
@@ -208,6 +209,7 @@ const renderDashboard = ({
   mockUseSessionProfileId.mockReturnValue({
     profileId: sessionProfileId,
     isResolved,
+    retry: mockRetrySession,
   });
 
   return renderWithProvider(<RewardsMoneyDashboard />, {
@@ -293,8 +295,8 @@ describe('RewardsMoneyDashboard', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the transient skeleton when mounted without a referral persona', () => {
-    const { getByTestId, queryByTestId } = renderDashboard({
+  it('renders an error with retry when referral me settles without data', () => {
+    const { getByTestId, getByText, queryByTestId } = renderDashboard({
       referralMeEntry: {
         loading: false,
         error: true,
@@ -303,20 +305,27 @@ describe('RewardsMoneyDashboard', () => {
     });
 
     expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING),
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.ERROR),
     ).toBeOnTheScreen();
     expect(
       queryByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER),
     ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      getByText(strings('rewards.referral_details_error.retry_button')),
+    );
+
+    expect(mockRetrySession).toHaveBeenCalled();
+    expect(mockFetchReferralMe).toHaveBeenCalledWith({ forceFresh: true });
   });
 
-  it('renders the transient skeleton when the session has no profile id', () => {
+  it('renders an error with retry when the session settles without a profile id', () => {
     const { getByTestId } = renderDashboard({
       hasProfileId: false,
     });
 
     expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING),
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.ERROR),
     ).toBeOnTheScreen();
   });
 
@@ -478,8 +487,8 @@ describe('RewardsMoneyDashboard', () => {
     });
   });
 
-  it('shows an inline error banner on Ways to earn when referral me is stale with an error', () => {
-    const { getByTestId, getByText } = renderDashboard({
+  it('keeps the hero and hides the banner when referral me refresh fails with cached data', () => {
+    const { getByTestId, queryByTestId, queryByText } = renderDashboard({
       referralMeEntry: {
         loading: false,
         error: true,
@@ -491,28 +500,12 @@ describe('RewardsMoneyDashboard', () => {
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(REFERER_HERO_CARD_TEST_IDS.REFERRAL_ERROR),
-    ).toBeOnTheScreen();
+      queryByTestId(REFERER_HERO_CARD_TEST_IDS.REFERRAL_ERROR),
+    ).not.toBeOnTheScreen();
     expect(
-      getByText(strings('rewards.referral_details_error.retry_button')),
-    ).toBeOnTheScreen();
+      queryByText(strings('rewards.referral_details_error.retry_button')),
+    ).not.toBeOnTheScreen();
     expect(getByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
-  });
-
-  it('retries referral me with a fresh fetch from the stale-data error banner', () => {
-    const { getByText } = renderDashboard({
-      referralMeEntry: {
-        loading: false,
-        error: true,
-        data: createReferralMe(),
-      },
-    });
-
-    fireEvent.press(
-      getByText(strings('rewards.referral_details_error.retry_button')),
-    );
-
-    expect(mockFetchReferralMe).toHaveBeenCalledWith({ forceFresh: true });
   });
 
   it('renders no earnings indicator when nothing is claimable', () => {

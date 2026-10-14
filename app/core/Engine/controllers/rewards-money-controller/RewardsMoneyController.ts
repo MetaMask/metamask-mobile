@@ -210,6 +210,10 @@ export class RewardsMoneyController extends BaseController<
 > {
   readonly #isDisabled: () => boolean;
   readonly #referralMeRequestGeneration = new Map<string, number>();
+  readonly #earningsSummaryInFlight = new Map<
+    string,
+    Promise<EarningsSummaryDto>
+  >();
 
   constructor({
     messenger,
@@ -319,7 +323,7 @@ export class RewardsMoneyController extends BaseController<
     params: GetReferralFunnelDto = {},
   ): Promise<ReferralFunnelDto> {
     if (this.#isDisabled()) {
-      return { enrolled: 0, earning_generating: 0 };
+      throw new Error('Rewards Money is disabled');
     }
 
     const profileId = await this.#getProfileId();
@@ -345,7 +349,7 @@ export class RewardsMoneyController extends BaseController<
     params: GetReferralCodesDto = {},
   ): Promise<OwnReferralCodesDto> {
     if (this.#isDisabled()) {
-      return { codes: [] };
+      throw new Error('Rewards Money is disabled');
     }
 
     const profileId = await this.#getProfileId();
@@ -391,19 +395,11 @@ export class RewardsMoneyController extends BaseController<
    * `RewardsMoneyAuthorizationError`. A timeout or a network failure rejects
    * with a plain `Error`. A `401` is not retried.
    *
-   * The confirm button may wait for this first request, for at most 2 to 3
-   * seconds. If the quote has not arrived by then, or the request fails,
-   * unblock the confirm button and let the user continue with no rebate tag.
-   * One quiet retry may run while the screen stays open. Wait
-   * `retryAfterSeconds` when the error has one, then add a small random
-   * delay: a `503` sends a fixed `Retry-After: 2`, and without that jitter
-   * every client retries in the same second. When the header is missing,
-   * `retryAfterSeconds` is `undefined` and the caller chooses the wait. Stop
-   * after that second attempt, or when the user leaves the screen. A success
-   * on the retry shows the rebate tag. The retry does not hold the confirm
-   * button. A `429` (`RATE_LIMITED`) shares the profile read budget, 60
-   * requests per 30 seconds, with the Earnings reads, so this screen sends
-   * the first quote plus that one retry. A `503` (`UNAVAILABLE`) means the
+   * A `503` or `429` whose `Retry-After` is at most 5 seconds is retried once
+   * inside the data service, after that delay plus up to a second of jitter.
+   * The promise includes that wait. Callers must not retry again. A `429`
+   * (`RATE_LIMITED`) shares the profile read budget, 60 requests per 30
+   * seconds, with the Earnings reads. A `503` (`UNAVAILABLE`) means the
    * server is unavailable, whether the body reason is `SERVER_BUSY` or
    * `JWKS_UNAVAILABLE`.
    *
@@ -429,19 +425,11 @@ export class RewardsMoneyController extends BaseController<
    * `RewardsMoneyAuthorizationError`. A timeout or a network failure rejects
    * with a plain `Error`. A `401` is not retried.
    *
-   * The confirm button may wait for this first request, for at most 2 to 3
-   * seconds. If the quote has not arrived by then, or the request fails,
-   * unblock the confirm button and let the user continue with no rebate tag.
-   * One quiet retry may run while the screen stays open. Wait
-   * `retryAfterSeconds` when the error has one, then add a small random
-   * delay: a `503` sends a fixed `Retry-After: 2`, and without that jitter
-   * every client retries in the same second. When the header is missing,
-   * `retryAfterSeconds` is `undefined` and the caller chooses the wait. Stop
-   * after that second attempt, or when the user leaves the screen. A success
-   * on the retry shows the rebate tag. The retry does not hold the confirm
-   * button. A `429` (`RATE_LIMITED`) shares the profile read budget, 60
-   * requests per 30 seconds, with the Earnings reads, so this screen sends
-   * the first quote plus that one retry. A `503` (`UNAVAILABLE`) means the
+   * A `503` or `429` whose `Retry-After` is at most 5 seconds is retried once
+   * inside the data service, after that delay plus up to a second of jitter.
+   * The promise includes that wait. Callers must not retry again. A `429`
+   * (`RATE_LIMITED`) shares the profile read budget, 60 requests per 30
+   * seconds, with the Earnings reads. A `503` (`UNAVAILABLE`) means the
    * server is unavailable, whether the body reason is `SERVER_BUSY` or
    * `JWKS_UNAVAILABLE`.
    *
@@ -496,11 +484,7 @@ export class RewardsMoneyController extends BaseController<
     const { originTypes, forceFresh } = params;
     const profileId = await this.#getProfileId();
     const key = profileCacheKey(profileId, originTypeScopeKey(originTypes));
-    const fetchFresh = () =>
-      this.messenger.call(
-        'RewardsMoneyDataService:getEarningsSummary',
-        originTypes,
-      );
+    const fetchFresh = () => this.#fetchEarningsSummary(key, originTypes);
 
     if (forceFresh) {
       const fresh = await fetchFresh();
@@ -522,7 +506,7 @@ export class RewardsMoneyController extends BaseController<
     params: GetEarningsLedgerDto = {},
   ): Promise<EarningsLedgerPageDto> {
     if (this.#isDisabled()) {
-      return { results: [], has_more: false, cursor: null, window: null };
+      throw new Error('Rewards Money is disabled');
     }
 
     const { originTypes, cursor, forceFresh } = params;
@@ -572,7 +556,7 @@ export class RewardsMoneyController extends BaseController<
     params: GetClaimHistoryDto = {},
   ): Promise<ClaimHistoryPageDto> {
     if (this.#isDisabled()) {
-      return { results: [], has_more: false, cursor: null };
+      throw new Error('Rewards Money is disabled');
     }
 
     const { cursor, forceFresh } = params;
@@ -608,15 +592,7 @@ export class RewardsMoneyController extends BaseController<
     params: GetCommissionsDto = {},
   ): Promise<CommissionsPageDto> {
     if (this.#isDisabled()) {
-      return {
-        results: [],
-        mechanisms: {
-          REFERRAL_REV_SHARE: { claim_open: false, reason: null },
-          SOCIAL_FOLLOW_TRADE: { claim_open: false, reason: null },
-        },
-        has_more: false,
-        cursor: null,
-      };
+      throw new Error('Rewards Money is disabled');
     }
 
     const { originType, cursor, fromDay, forceFresh } = params;
@@ -686,6 +662,30 @@ export class RewardsMoneyController extends BaseController<
       writeCache: (cacheKey, payload) =>
         this.#writeClaimById(cacheKey, payload),
     });
+  }
+
+  /**
+   * One network read per cache key. A focus fetch and a delayed refetch of
+   * the same profile share the promise already in flight.
+   */
+  #fetchEarningsSummary(
+    key: string,
+    originTypes: EarningOriginType[] | undefined,
+  ): Promise<EarningsSummaryDto> {
+    const inFlight = this.#earningsSummaryInFlight.get(key);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const pending = this.messenger
+      .call('RewardsMoneyDataService:getEarningsSummary', originTypes)
+      .finally(() => {
+        if (this.#earningsSummaryInFlight.get(key) === pending) {
+          this.#earningsSummaryInFlight.delete(key);
+        }
+      });
+    this.#earningsSummaryInFlight.set(key, pending);
+    return pending;
   }
 
   #writeReferralMe(profileId: string, payload: ReferralMeDto): void {

@@ -238,6 +238,43 @@ describe('rewardsMoneyReducer', () => {
     });
   });
 
+  describe('persist/REHYDRATE', () => {
+    it('keeps cached data and clears loading and error', () => {
+      const persisted: RewardsMoneyState = {
+        referralMe: {
+          [PROFILE_A]: {
+            loading: true,
+            error: true,
+            data: mockReferralMe,
+          },
+        },
+        earningsSummary: {
+          [PROFILE_A]: {
+            loading: true,
+            error: true,
+            data: mockEarningsSummary,
+          },
+        },
+      };
+
+      const state = rewardsMoneyReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewardsMoney: persisted },
+      } as Action);
+
+      expect(state.referralMe[PROFILE_A]).toEqual({
+        loading: false,
+        error: false,
+        data: mockReferralMe,
+      });
+      expect(state.earningsSummary[PROFILE_A]).toEqual({
+        loading: false,
+        error: false,
+        data: mockEarningsSummary,
+      });
+    });
+  });
+
   describe('resetRewardsMoneyState', () => {
     it('clears every profile-keyed cache so a new API host cannot read the old one', () => {
       const withData = rewardsMoneyReducer(

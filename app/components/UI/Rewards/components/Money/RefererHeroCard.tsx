@@ -129,11 +129,12 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
     (!earningsSummaryEntry || Boolean(earningsSummaryEntry.loading));
   const unavailableAmount =
     Boolean(earningsSummaryEntry?.error) && !earningsSummary ? '-' : null;
-  const errorSource = referralMeEntry?.error
-    ? 'referral'
-    : earningsSummaryEntry?.error
-      ? 'earnings'
-      : null;
+  const errorSource =
+    referralMeEntry?.error && !referralMeEntry.data
+      ? 'referral'
+      : earningsSummaryEntry?.error && !earningsSummaryEntry.data
+        ? 'earnings'
+        : null;
   const code = referralCode?.code?.trim() ?? '';
   const codeStatus =
     referralMeEntry?.data?.referral_code_status ?? referralCode?.status;

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
+import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import {
   setReferralMe,
@@ -8,6 +9,7 @@ import {
   setReferralMeLoading,
 } from '../../../../reducers/rewardsMoney';
 import type { ReferralMeDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import { useOneShotBusyRefetch } from './useOneShotBusyRefetch';
 
 const referralMeRequestGenerationByProfile = new Map<string, number>();
 
@@ -74,7 +76,10 @@ export interface SessionProfileIdResult {
  * resolves the session and nothing else: a screen opened over a Rewards Home
  * that already fetched referral me must not fetch it again.
  */
-export const useSessionProfileId = (): SessionProfileIdResult => {
+export const useSessionProfileId = (): SessionProfileIdResult & {
+  retry: () => void;
+} => {
+  const [attempt, setAttempt] = useState(0);
   const [result, setResult] = useState<SessionProfileIdResult>({
     profileId: undefined,
     isResolved: false,
@@ -94,9 +99,14 @@ export const useSessionProfileId = (): SessionProfileIdResult => {
     return () => {
       active = false;
     };
+  }, [attempt]);
+
+  const retry = useCallback(() => {
+    setResult({ profileId: undefined, isResolved: false });
+    setAttempt((current) => current + 1);
   }, []);
 
-  return result;
+  return { ...result, retry };
 };
 
 export type FetchReferralMeResult =
@@ -125,9 +135,21 @@ export const useReferralMe = ({
   const dispatch = useDispatch();
   const [profileId, setProfileId] = useState<string | undefined>(undefined);
   const inFlightRef = useRef<Promise<FetchReferralMeResult> | null>(null);
+  const { cancel: cancelBusyRefetch, arm: armBusyRefetch } =
+    useOneShotBusyRefetch();
+  const fetchRef = useRef<
+    (options?: {
+      forceFresh?: boolean;
+      followUp?: boolean;
+    }) => Promise<FetchReferralMeResult>
+  >(async () => ({ status: 'settled', profileId: undefined }));
 
   const runFetch = useCallback(
-    async (forceFresh: boolean | undefined): Promise<FetchReferralMeResult> => {
+    async (
+      forceFresh: boolean | undefined,
+      followUp: boolean,
+    ): Promise<FetchReferralMeResult> => {
+      cancelBusyRefetch();
       // No profile means no key to write under: there is nothing to settle,
       // and a signed-out session is not a referral error. Tracking it either
       // way clears a stale id so a previous session's variant cannot route.
@@ -178,9 +200,23 @@ export const useReferralMe = ({
           shouldSettleLoading = false;
           return { status: 'discarded', profileId: sessionProfileId };
         }
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            tags: {
+              feature: 'rewards-money',
+              context: 'referralMe.fetch_failed',
+            },
+          },
+        );
         dispatch(
           setReferralMeError({ profileId: sessionProfileId, error: true }),
         );
+        if (!followUp) {
+          armBusyRefetch(error, () => {
+            void fetchRef.current({ forceFresh: true, followUp: true });
+          });
+        }
         return { status: 'settled', profileId: sessionProfileId };
       } finally {
         // A session-change discard settles the old profile's loading state.
@@ -196,14 +232,16 @@ export const useReferralMe = ({
         }
       }
     },
-    [dispatch],
+    [armBusyRefetch, cancelBusyRefetch, dispatch],
   );
 
   const fetchReferralMe = useCallback(
     async ({
       forceFresh,
+      followUp = false,
     }: {
       forceFresh?: boolean;
+      followUp?: boolean;
     } = {}): Promise<FetchReferralMeResult> => {
       const inFlight = inFlightRef.current;
 
@@ -217,7 +255,7 @@ export const useReferralMe = ({
 
       const run = (inFlight ?? Promise.resolve())
         .catch(() => undefined)
-        .then(() => runFetch(forceFresh));
+        .then(() => runFetch(forceFresh, followUp));
       inFlightRef.current = run;
 
       try {
@@ -230,6 +268,7 @@ export const useReferralMe = ({
     },
     [runFetch],
   );
+  fetchRef.current = fetchReferralMe;
 
   useFocusEffect(
     useCallback(() => {

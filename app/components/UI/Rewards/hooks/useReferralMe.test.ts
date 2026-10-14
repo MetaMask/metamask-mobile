@@ -541,7 +541,7 @@ describe('useSessionProfileId', () => {
       await flushPromises();
     });
 
-    expect(result.current).toEqual({
+    expect(result.current).toMatchObject({
       profileId: PROFILE_A,
       isResolved: true,
     });
@@ -562,7 +562,7 @@ describe('useSessionProfileId', () => {
 
     // A caller cannot tell "no profile" from "not read yet" without this, and
     // profile-keyed state is empty in both cases.
-    expect(result.current).toEqual({
+    expect(result.current).toMatchObject({
       profileId: undefined,
       isResolved: false,
     });
@@ -572,7 +572,7 @@ describe('useSessionProfileId', () => {
       await flushPromises();
     });
 
-    expect(result.current).toEqual({
+    expect(result.current).toMatchObject({
       profileId: PROFILE_A,
       isResolved: true,
     });
@@ -587,7 +587,7 @@ describe('useSessionProfileId', () => {
     );
 
     const { result, unmount } = renderHook(() => useSessionProfileId());
-    expect(result.current).toEqual({
+    expect(result.current).toMatchObject({
       profileId: undefined,
       isResolved: false,
     });
@@ -598,7 +598,7 @@ describe('useSessionProfileId', () => {
       await flushPromises();
     });
 
-    expect(result.current).toEqual({
+    expect(result.current).toMatchObject({
       profileId: undefined,
       isResolved: false,
     });
@@ -630,7 +630,7 @@ describe('useSessionProfileId', () => {
       await flushPromises();
     });
 
-    expect(result.current).toEqual({
+    expect(result.current).toMatchObject({
       profileId: undefined,
       isResolved: true,
     });
@@ -644,7 +644,7 @@ describe('useSessionProfileId', () => {
       await flushPromises();
     });
 
-    expect(result.current).toEqual({
+    expect(result.current).toMatchObject({
       profileId: undefined,
       isResolved: true,
     });
