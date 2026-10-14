@@ -26,8 +26,8 @@ import type {
 } from './types';
 
 const mockReferralMe: ReferralMeDto = {
-  role: 'REFERRER',
-  variant: 'REFERRER',
+  roles: ['REFERRER'],
+  ui_variant: 'REFERRER',
   user_type: 'KOL',
   status: 'ACTIVE',
   referral_code: {
@@ -36,12 +36,15 @@ const mockReferralMe: ReferralMeDto = {
     status: 'ACTIVE',
     share_url: null,
   },
+  referral_code_status: 'ACTIVE',
   referred_by: null,
   earn_rates: {
-    revshare_rate_bps: 1000,
     cashback_rate_bps: null,
-    revshare_earning_term_minutes: 525600,
-    cashback_earning_term_minutes: null,
+    cashback_earning_start: null,
+    cashback_earning_end: null,
+    revshare_rate_bps: 1000,
+    revshare_earning_start: null,
+    revshare_earning_end: null,
   },
   // No assertion reads copy keys; the server always sends all of them.
   localized_text: {} as ReferralLocalizedText,
@@ -321,16 +324,20 @@ describe('RewardsMoneyController', () => {
         if (action === 'RewardsMoneyDataService:getReferralMe') {
           return Promise.resolve({
             ...mockReferralMe,
-            role: 'NONE',
-            variant: 'NONE',
+            roles: [],
+            ui_variant: 'NONE',
+            referral_code_status: null,
           });
         }
         return undefined;
       });
 
       const forB = await controller.getReferralMe();
-      expect(forB.role).toBe('NONE');
-      expect(controller.state.referralMe[PROFILE_B]?.payload.role).toBe('NONE');
+      expect(forB.roles).toEqual([]);
+      expect(forB.ui_variant).toBe('NONE');
+      expect(controller.state.referralMe[PROFILE_B]?.payload.ui_variant).toBe(
+        'NONE',
+      );
       expect(controller.state.referralMe[PROFILE_A]?.payload).toEqual(
         mockReferralMe,
       );
@@ -496,16 +503,18 @@ describe('RewardsMoneyController', () => {
         }
         return undefined;
       });
-      const none = {
+      const none: ReferralMeDto = {
         ...mockReferralMe,
-        role: 'NONE',
-        variant: 'NONE',
-      } as const;
-      const referee = {
+        roles: [],
+        ui_variant: 'NONE',
+        referral_code_status: null,
+      };
+      const referee: ReferralMeDto = {
         ...mockReferralMe,
-        role: 'REFEREE',
-        variant: 'REFEREE',
-      } as const;
+        roles: ['REFEREE'],
+        ui_variant: 'REFEREE',
+        referral_code_status: null,
+      };
 
       const normal = controller.getReferralMe();
       await Promise.resolve();

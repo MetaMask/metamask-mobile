@@ -108,7 +108,7 @@ export type FetchReferralMeResult =
  * `rewardsMoney` slice.
  *
  * The returned `profileId` is the Hydra profile the entry was written under —
- * pass it to `selectReferralMeEntry` / `selectReferralMeVariant` to read the
+ * pass it to `selectReferralMeEntry` / `selectMoneyDashboardPersona` to read the
  * result. Returning it instead of selecting inside the hook keeps the
  * selectors free of any dependency on this hook.
  */

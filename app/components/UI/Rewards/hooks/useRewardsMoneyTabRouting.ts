@@ -2,13 +2,16 @@ import { useCallback, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import { selectRewardsMoneyControllerEnabled } from '../../../../selectors/featureFlagController/rewardsMoneyController';
-import { selectReferralMeVariant } from '../../../../reducers/rewardsMoney/selectors';
+import {
+  selectMoneyDashboardPersona,
+  type MoneyDashboardPersona,
+} from '../../../../reducers/rewardsMoney/selectors';
 import type { RootState } from '../../../../reducers';
-import type { ReferralVariant } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { useReferralMe } from './useReferralMe';
 
-const isMoneyPersona = (variant: ReferralVariant | undefined): boolean =>
-  variant === 'REFERRER' || variant === 'REFEREE';
+const isMoneyDashboard = (
+  persona: MoneyDashboardPersona | undefined,
+): boolean => persona === 'referrer' || persona === 'referee';
 
 interface ReferralResolution {
   resolved: boolean;
@@ -23,7 +26,11 @@ export interface RewardsMoneyTabRouting {
    * will ever settle then, and the tab must not wait for it.
    */
   moneyReferralResolved: boolean;
-  moneyVariant: ReferralVariant | undefined;
+  /**
+   * `referrer` or `referee` opens the Money dashboard. `plain` keeps the
+   * points dashboard. `undefined` means the fetch has not resolved.
+   */
+  moneyPersona: MoneyDashboardPersona | undefined;
   /** Remounts the nested stack when its destination family or profile changes. */
   navigatorKey: string;
 }
@@ -54,8 +61,8 @@ export function useRewardsMoneyTabRouting(): RewardsMoneyTabRouting {
     setResolution(next);
   }, []);
 
-  const moneyVariant = useSelector((state: RootState) =>
-    selectReferralMeVariant(state, profileId),
+  const moneyPersona = useSelector((state: RootState) =>
+    selectMoneyDashboardPersona(state, profileId),
   );
 
   useFocusEffect(
@@ -122,7 +129,7 @@ export function useRewardsMoneyTabRouting(): RewardsMoneyTabRouting {
   const moneyReferralResolved =
     !moneyEnabled ||
     (resolution.resolved && resolution.profileId === profileId);
-  const destinationFamily = isMoneyPersona(moneyVariant)
+  const destinationFamily = isMoneyDashboard(moneyPersona)
     ? 'rewards-money'
     : 'rewards';
   const navigatorKey = `${profileId ?? 'unknown'}:${destinationFamily}`;
@@ -130,7 +137,7 @@ export function useRewardsMoneyTabRouting(): RewardsMoneyTabRouting {
   return {
     moneyEnabled,
     moneyReferralResolved,
-    moneyVariant,
+    moneyPersona,
     navigatorKey,
   };
 }

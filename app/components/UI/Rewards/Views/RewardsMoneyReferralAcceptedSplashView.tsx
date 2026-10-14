@@ -42,18 +42,18 @@ export const REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS = {
 const eyebrowTrackingStyle = { letterSpacing: 0.8 };
 
 /**
- * Formats `referred_by.cashback_earning_end` for the current locale.
+ * Formats a cashback window timestamp for the current locale.
  *
- * @param earningEnd - ISO end timestamp, or missing.
+ * @param earningAt - ISO timestamp, or missing.
  * @returns The locale date, or null when the timestamp is missing or invalid.
  */
-function formatCashbackEarningEnd(
-  earningEnd: string | null | undefined,
+function formatCashbackEarningDate(
+  earningAt: string | null | undefined,
 ): string | null {
-  if (!earningEnd) {
+  if (!earningAt) {
     return null;
   }
-  const parsed = new Date(earningEnd);
+  const parsed = new Date(earningAt);
   if (Number.isNaN(parsed.getTime())) {
     return null;
   }
@@ -61,29 +61,36 @@ function formatCashbackEarningEnd(
 }
 
 /**
- * Activated body copy. A usable end date fills `{date}` in the localized
- * `inviteAcceptedBody` as `through <locale date>`. Without a date, the whole
- * body is `fallback` (`inviteMessageBody`) so we do not inject English.
+ * Activated body copy. A usable cashback window fills `{date}` in the
+ * localized `inviteAcceptedBody` as `from <start> through <end>`. Without
+ * both dates, the whole body is `fallback` (`inviteMessageBody`) so we do
+ * not inject English.
  *
  * @param acceptedBody - `localized_text.inviteAcceptedBody`.
- * @param fallback - Copy used when the end date is missing or invalid.
- * @param earningEnd - `referred_by.cashback_earning_end`.
+ * @param fallback - Copy used when either date is missing or invalid.
+ * @param earningStart - `earn_rates.cashback_earning_start`.
+ * @param earningEnd - `earn_rates.cashback_earning_end`.
  * @returns The body to show.
  */
 export function fillInviteAcceptedBodyDate(
   acceptedBody: string | undefined,
   fallback: string | undefined,
+  earningStart: string | null | undefined,
   earningEnd: string | null | undefined,
 ): string {
-  const formattedEnd = formatCashbackEarningEnd(earningEnd);
-  if (!formattedEnd) {
+  const formattedStart = formatCashbackEarningDate(earningStart);
+  const formattedEnd = formatCashbackEarningDate(earningEnd);
+  if (!formattedStart || !formattedEnd) {
     return fallback ?? '';
   }
   const template = acceptedBody ?? '';
   if (!template.includes('{date}')) {
     return template;
   }
-  return template.replaceAll('{date}', `through ${formattedEnd}`);
+  return template.replaceAll(
+    '{date}',
+    `from ${formattedStart} through ${formattedEnd}`,
+  );
 }
 
 const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
@@ -102,12 +109,14 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
       fillInviteAcceptedBodyDate(
         localizedText?.inviteAcceptedBody,
         localizedText?.inviteMessageBody,
-        referralMe?.referred_by?.cashback_earning_end,
+        referralMe?.earn_rates.cashback_earning_start,
+        referralMe?.earn_rates.cashback_earning_end,
       ),
     [
       localizedText?.inviteAcceptedBody,
       localizedText?.inviteMessageBody,
-      referralMe?.referred_by?.cashback_earning_end,
+      referralMe?.earn_rates.cashback_earning_start,
+      referralMe?.earn_rates.cashback_earning_end,
     ],
   );
 

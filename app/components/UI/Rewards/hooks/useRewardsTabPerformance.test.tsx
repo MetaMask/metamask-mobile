@@ -3,7 +3,7 @@ import React, { type ReactNode } from 'react';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { TraceName, TraceOperation } from '../../../../util/trace';
-import type { ReferralVariant } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import type { MoneyDashboardPersona } from '../../../../reducers/rewardsMoney/selectors';
 import { useRewardsTabPerformance } from './useRewardsTabPerformance';
 
 jest.mock('../../../../util/trace', () => ({
@@ -56,13 +56,13 @@ const buildConfig = ({
   isVersionBlocked = false,
   moneyEnabled = false,
   moneyReferralResolved = false,
-  moneyVariant = undefined as ReferralVariant | undefined,
+  moneyPersona = undefined as MoneyDashboardPersona | undefined,
   navigatorKey = 'disabled',
 } = {}) => ({
   isVersionBlocked,
   moneyEnabled,
   moneyReferralResolved,
-  moneyVariant,
+  moneyPersona,
   navigatorKey,
 });
 

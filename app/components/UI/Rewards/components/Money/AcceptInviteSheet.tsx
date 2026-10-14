@@ -18,7 +18,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { RootState } from '../../../../../reducers';
-import { selectReferralMeEntry } from '../../../../../reducers/rewardsMoney/selectors';
+import {
+  canAcceptMoneyReferralInvite,
+  selectReferralMeEntry,
+} from '../../../../../reducers/rewardsMoney/selectors';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { RewardsMoneyInviteSheetParams } from '../../types/navigation';
@@ -83,9 +86,9 @@ export interface AcceptInviteSheetProps {
 /**
  * Root modal for accepting a Money referral invite.
  *
- * Opened for `variant: NONE` callers. Registration belongs to
- * `useAcceptMoneyReferralCode`: it keeps the sheet open on a refusal and
- * dismisses it itself once the role has been read back.
+ * Opened for a plain user or a cashback-experiment member. Registration
+ * belongs to `useAcceptMoneyReferralCode`: it keeps the sheet open on a
+ * refusal and dismisses it itself once the role has been read back.
  *
  * Header close / swipe / overlay dismiss without declining; the Decline CTA
  * is the explicit declined path.
@@ -101,16 +104,16 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   );
   const referralMe = referralMeEntry?.data;
   // Once this sheet has shown an eligible invite, accept's own refresh to
-  // REFEREE/REFERRER is not a reason to pop. Only a first settled variant
-  // that was already not NONE (stale deeplink, already referred) is.
+  // REFEREE is not a reason to pop. Only a first settled payload that already
+  // holds REFERRER or REFEREE (stale deeplink) is.
   const hasSeenEligibleInviteRef = useRef(false);
-  if (referralMe?.variant === 'NONE') {
+  if (referralMe && canAcceptMoneyReferralInvite(referralMe)) {
     hasSeenEligibleInviteRef.current = true;
   }
   const shouldDismissForReferralVariant =
     referralMe !== null &&
     referralMe !== undefined &&
-    referralMe.variant !== 'NONE' &&
+    !canAcceptMoneyReferralInvite(referralMe) &&
     !hasSeenEligibleInviteRef.current;
   const copy = useInviteCopy(referralMe?.localized_text);
 
@@ -179,8 +182,8 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     if (!canAccept) {
       return;
     }
-    // Accept is about to refresh me to a non-NONE variant. Record that this
-    // sheet was the invite, so that write cannot be read as a stale deeplink.
+    // Accept is about to refresh me to REFEREE. Record that this sheet was
+    // the invite, so that write cannot be read as a stale deeplink.
     hasSeenEligibleInviteRef.current = true;
     // The hook owns the outcome: it reports a refusal and dismisses the sheet
     // only once the registration has landed.
@@ -193,9 +196,9 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     }
   }, [navigation, shouldDismissForReferralVariant]);
 
-  // `variant` is the server's product decision for whether this profile may
-  // accept an invite. Do not flash an unusable invite while closing a stale
-  // deeplink for an existing referrer or referee.
+  // `roles` decides whether this profile may still accept an invite. Do not
+  // flash an unusable invite while closing a stale deeplink for an existing
+  // referrer or referee.
   if (shouldDismissForReferralVariant) {
     return null;
   }

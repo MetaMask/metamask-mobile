@@ -1,4 +1,4 @@
-import type { ReferralVariant } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import type { MoneyDashboardPersona } from '../../../../reducers/rewardsMoney/selectors';
 import {
   getRewardsTabContentState,
   type CandidateSubscriptionId,
@@ -10,14 +10,14 @@ const buildInput = ({
   candidateSubscriptionId = 'pending' as CandidateSubscriptionId,
   moneyEnabled = false,
   moneyReferralResolved = false,
-  moneyVariant = undefined as ReferralVariant | undefined,
+  moneyPersona = undefined as MoneyDashboardPersona | undefined,
 } = {}) => ({
   isVersionBlocked,
   subscriptionId,
   candidateSubscriptionId,
   moneyEnabled,
   moneyReferralResolved,
-  moneyVariant,
+  moneyPersona,
 });
 
 describe('getRewardsTabContentState', () => {
@@ -150,7 +150,7 @@ describe('getRewardsTabContentState', () => {
           isVersionBlocked: true,
           moneyEnabled: true,
           moneyReferralResolved: true,
-          moneyVariant: 'REFERRER',
+          moneyPersona: 'referrer',
         }),
       );
 
@@ -160,16 +160,16 @@ describe('getRewardsTabContentState', () => {
       });
     });
 
-    it.each<ReferralVariant>(['REFERRER', 'REFEREE'])(
+    it.each<MoneyDashboardPersona>(['referrer', 'referee'])(
       'routes %s to the money dashboard',
-      (moneyVariant) => {
+      (moneyPersona) => {
         const result = getRewardsTabContentState(
           buildInput({
             subscriptionId: null,
             candidateSubscriptionId: 'pending',
             moneyEnabled: true,
             moneyReferralResolved: true,
-            moneyVariant,
+            moneyPersona,
           }),
         );
 
@@ -180,28 +180,28 @@ describe('getRewardsTabContentState', () => {
       },
     );
 
-    it('routes NONE to the enrolled points dashboard', () => {
+    it('routes a plain user to the enrolled points dashboard', () => {
       const result = getRewardsTabContentState(
         buildInput({
           subscriptionId: 'sub-1',
           candidateSubscriptionId: null,
           moneyEnabled: true,
           moneyReferralResolved: true,
-          moneyVariant: 'NONE',
+          moneyPersona: 'plain',
         }),
       );
 
       expect(result).toEqual({ status: 'ready', variant: 'dashboard' });
     });
 
-    it('routes NONE without a subscription to onboarding', () => {
+    it('routes a plain user without a subscription to onboarding', () => {
       const result = getRewardsTabContentState(
         buildInput({
           subscriptionId: null,
           candidateSubscriptionId: 'error',
           moneyEnabled: true,
           moneyReferralResolved: true,
-          moneyVariant: 'NONE',
+          moneyPersona: 'plain',
         }),
       );
 
@@ -215,7 +215,7 @@ describe('getRewardsTabContentState', () => {
           candidateSubscriptionId: null,
           moneyEnabled: true,
           moneyReferralResolved: true,
-          moneyVariant: undefined,
+          moneyPersona: undefined,
         }),
       );
 
@@ -242,7 +242,7 @@ describe('getRewardsTabContentState', () => {
           candidateSubscriptionId: 'error',
           moneyEnabled: false,
           moneyReferralResolved: true,
-          moneyVariant: 'REFERRER',
+          moneyPersona: 'referrer',
         }),
       );
 

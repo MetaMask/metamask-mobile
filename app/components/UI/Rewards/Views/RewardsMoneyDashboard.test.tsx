@@ -120,17 +120,19 @@ const LOCALIZED_TEXT = {
 } as unknown as ReferralMeDto['localized_text'];
 
 const EARN_RATES = {
-  revshare_rate_bps: 2500,
   cashback_rate_bps: 500,
-  revshare_earning_term_minutes: null,
-  cashback_earning_term_minutes: null,
+  cashback_earning_start: null,
+  cashback_earning_end: null,
+  revshare_rate_bps: 2500,
+  revshare_earning_start: null,
+  revshare_earning_end: null,
 };
 
 const createReferralMe = (
   overrides: Partial<ReferralMeDto> = {},
 ): ReferralMeDto => ({
-  role: 'REFERRER',
-  variant: 'REFERRER',
+  roles: ['REFERRER'],
+  ui_variant: 'REFERRER',
   user_type: 'REGULAR',
   status: 'ACTIVE',
   referral_code: {
@@ -139,6 +141,7 @@ const createReferralMe = (
     status: 'ACTIVE',
     share_url: null,
   },
+  referral_code_status: 'ACTIVE',
   referred_by: null,
   earn_rates: EARN_RATES,
   localized_text: LOCALIZED_TEXT,
@@ -350,14 +353,12 @@ describe('RewardsMoneyDashboard', () => {
         loading: false,
         error: false,
         data: createReferralMe({
-          role: 'REFEREE',
-          variant: 'REFEREE',
+          roles: ['REFEREE'],
+          ui_variant: 'REFEREE',
           referral_code: null,
+          referral_code_status: null,
           referred_by: {
             referral_code: 'SOPHIE',
-            earning_start: null,
-            earning_end: null,
-            cashback_earning_end: null,
           },
         }),
       },
@@ -367,6 +368,26 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       queryByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER),
     ).not.toBeOnTheScreen();
+  });
+
+  it('renders the referee hero without a referrer for a cashback experiment', () => {
+    const { getByTestId, queryByTestId, queryByText } = renderDashboard({
+      referralMeEntry: {
+        loading: false,
+        error: false,
+        data: createReferralMe({
+          roles: ['CASHBACK_EXPERIMENT'],
+          ui_variant: 'REFEREE',
+          referral_code: null,
+          referral_code_status: null,
+          referred_by: null,
+        }),
+      },
+    });
+
+    expect(getByTestId(REFEREE_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
+    expect(queryByTestId(REFEREE_HERO_CARD_TEST_IDS.REFERRED_BY)).toBeNull();
+    expect(queryByText('Referred by')).toBeNull();
   });
 
   it('fetches the earnings summary for the resolved profile', () => {
@@ -390,14 +411,12 @@ describe('RewardsMoneyDashboard', () => {
         loading: false,
         error: false,
         data: createReferralMe({
-          role: 'REFEREE',
-          variant: 'REFEREE',
+          roles: ['REFEREE'],
+          ui_variant: 'REFEREE',
           referral_code: null,
+          referral_code_status: null,
           referred_by: {
             referral_code: 'SOPHIE',
-            earning_start: null,
-            earning_end: null,
-            cashback_earning_end: null,
           },
         }),
       },

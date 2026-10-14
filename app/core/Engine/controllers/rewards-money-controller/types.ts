@@ -11,13 +11,20 @@ export const REWARDS_MONEY_CONTROLLER_NAME = 'RewardsMoneyController' as const;
 /** mUSD is fixed at 6 decimals. A constant, never part of the payload. */
 export const MUSD_DECIMALS = 6;
 
-export type ReferralRole = 'REFERRER' | 'REFEREE' | 'BOTH' | 'NONE';
+/** A relationship the caller holds. Empty `roles` means none of these. */
+export type ReferralRole =
+  | 'REFERRER'
+  | 'REFEREE'
+  | 'CASHBACK_EXPERIMENT'
+  | 'COPY_TRADING';
 
 /**
- * Server-side product decision about which screen to render. Returned
- * alongside `role` so the `BOTH` policy can change without an app release.
+ * The screen `roles` maps to. A referrer wins over a referee. An empty role
+ * list is `NONE` unless the server flag forces `REFEREE`.
  */
 export type ReferralVariant = 'REFERRER' | 'REFEREE' | 'NONE';
+
+export type ReferralCodeStatus = 'ACTIVE' | 'PAUSED';
 
 export type ReferralUserType = 'KOL' | 'REGULAR';
 
@@ -67,25 +74,18 @@ export type ReferralCodeView = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ReferredByView = {
   referral_code: string | null;
-  earning_start: string | null;
-  /**
-   * End of the window in which the referrer earns revenue share on this user's
-   * trades. The referrer's term, not this user's bonus.
-   */
-  earning_end: string | null;
-  /**
-   * End of this user's own cashback window, snapshotted at registration from
-   * the program's cashback term. Drives "your bonus window ends in N days".
-   */
-  cashback_earning_end: string | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EarnRatesView = {
-  revshare_rate_bps: number | null;
   cashback_rate_bps: number | null;
-  revshare_earning_term_minutes: number | null;
-  cashback_earning_term_minutes: number | null;
+  /** Window of the cashback row that pays the caller now. Null when none does. */
+  cashback_earning_start: string | null;
+  cashback_earning_end: string | null;
+  revshare_rate_bps: number | null;
+  /** Window of the revenue-share row that pays the caller now. */
+  revshare_earning_start: string | null;
+  revshare_earning_end: string | null;
 };
 
 /**
@@ -154,6 +154,11 @@ export type ReferralLocalizedTextKey =
   | 'inviteAcceptedViewRewards'
   | 'inviteAcceptedStartTrading'
   | 'invitedBenefitTitle'
+  | 'offerEndsIn'
+  | 'offerDurationDay'
+  | 'offerDurationDays'
+  | 'offerDurationHour'
+  | 'offerDurationHours'
   | 'invitedReferredBy'
   | 'invitedOptInDescription'
   | 'invitedOptInAction'
@@ -179,11 +184,17 @@ export type ThemeImage = {
 /** `GET /referral/me` — the single call that decides which screen renders. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ReferralMeDto = {
-  role: ReferralRole;
-  variant: ReferralVariant;
+  /** Every relationship the caller holds, in server order. Empty for none. */
+  roles: ReferralRole[];
+  ui_variant: ReferralVariant;
   user_type: ReferralUserType;
   status: ReferralUserStatus;
   referral_code: ReferralCodeView | null;
+  /**
+   * Status of the referrer's own code. Unlike `referral_code`, a paused user
+   * still reports it. Null when the caller holds no non-revoked code.
+   */
+  referral_code_status: ReferralCodeStatus | null;
   referred_by: ReferredByView | null;
   earn_rates: EarnRatesView;
   localized_text: ReferralLocalizedText;

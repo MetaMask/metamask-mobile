@@ -5,6 +5,7 @@ import { selectRewardsMoneyControllerEnabled } from '../../../../selectors/featu
 import type { RootState } from '../../../../reducers';
 import type {
   ReferralMeDto,
+  ReferralRole,
   ReferralVariant,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { useReferralMe } from './useReferralMe';
@@ -48,7 +49,10 @@ describe('useRewardsMoneyTabRouting', () => {
   const mockFetchReferralMe = jest.fn();
 
   const buildState = (
-    referralMe: Record<string, { variant: ReferralVariant } | undefined> = {},
+    referralMe: Record<
+      string,
+      { roles: ReferralRole[]; ui_variant: ReferralVariant } | undefined
+    > = {},
   ) =>
     ({
       rewardsMoney: {
@@ -59,7 +63,10 @@ describe('useRewardsMoneyTabRouting', () => {
               loading: false,
               error: false,
               data: value
-                ? ({ variant: value.variant } as ReferralMeDto)
+                ? ({
+                    roles: value.roles,
+                    ui_variant: value.ui_variant,
+                  } as ReferralMeDto)
                 : null,
             },
           ]),
@@ -209,7 +216,7 @@ describe('useRewardsMoneyTabRouting', () => {
     await settleFetch();
 
     expect(result.current.moneyReferralResolved).toBe(true);
-    expect(result.current.moneyVariant).toBeUndefined();
+    expect(result.current.moneyPersona).toBeUndefined();
   });
 
   it('keeps routing unresolved after discarding profile A and fetches profile B', async () => {
@@ -247,35 +254,43 @@ describe('useRewardsMoneyTabRouting', () => {
   });
 
   it('reads the persona for the resolved profile id', async () => {
-    state = buildState({ [PROFILE_A]: { variant: 'REFERRER' } });
+    state = buildState({
+      [PROFILE_A]: { roles: ['REFERRER'], ui_variant: 'REFERRER' },
+    });
 
     const { result } = render();
     triggerFocus();
     await settleFetch();
 
-    expect(result.current.moneyVariant).toBe('REFERRER');
+    expect(result.current.moneyPersona).toBe('referrer');
   });
 
   it('ignores a persona stored under another profile id', async () => {
-    state = buildState({ [PROFILE_B]: { variant: 'REFERRER' } });
+    state = buildState({
+      [PROFILE_B]: { roles: ['REFERRER'], ui_variant: 'REFERRER' },
+    });
 
     const { result } = render();
     triggerFocus();
     await settleFetch();
 
-    expect(result.current.moneyVariant).toBeUndefined();
+    expect(result.current.moneyPersona).toBeUndefined();
   });
 
   describe('navigator remount key', () => {
     it('changes when the persona moves from rewards to Money', async () => {
-      state = buildState({ [PROFILE_A]: { variant: 'NONE' } });
+      state = buildState({
+        [PROFILE_A]: { roles: [], ui_variant: 'NONE' },
+      });
 
       const { result, rerender } = render();
       triggerFocus();
       await settleFetch();
       const rewardsKey = result.current.navigatorKey;
 
-      state = buildState({ [PROFILE_A]: { variant: 'REFEREE' } });
+      state = buildState({
+        [PROFILE_A]: { roles: ['REFEREE'], ui_variant: 'REFEREE' },
+      });
       await act(async () => {
         rerender();
       });
@@ -284,15 +299,19 @@ describe('useRewardsMoneyTabRouting', () => {
       expect(result.current.navigatorKey).toContain('rewards-money');
     });
 
-    it('does not change between REFERRER and REFEREE', async () => {
-      state = buildState({ [PROFILE_A]: { variant: 'REFERRER' } });
+    it('does not change between a referrer and a referee', async () => {
+      state = buildState({
+        [PROFILE_A]: { roles: ['REFERRER'], ui_variant: 'REFERRER' },
+      });
 
       const { result, rerender } = render();
       triggerFocus();
       await settleFetch();
       const referrerKey = result.current.navigatorKey;
 
-      state = buildState({ [PROFILE_A]: { variant: 'REFEREE' } });
+      state = buildState({
+        [PROFILE_A]: { roles: ['REFEREE'], ui_variant: 'REFEREE' },
+      });
       await act(async () => {
         rerender();
       });
@@ -301,7 +320,9 @@ describe('useRewardsMoneyTabRouting', () => {
     });
 
     it('changes when the resolved profile changes', async () => {
-      state = buildState({ [PROFILE_A]: { variant: 'NONE' } });
+      state = buildState({
+        [PROFILE_A]: { roles: [], ui_variant: 'NONE' },
+      });
 
       const { result, rerender } = render();
       triggerFocus();
@@ -309,7 +330,9 @@ describe('useRewardsMoneyTabRouting', () => {
       const profileAKey = result.current.navigatorKey;
 
       profileId = PROFILE_B;
-      state = buildState({ [PROFILE_B]: { variant: 'NONE' } });
+      state = buildState({
+        [PROFILE_B]: { roles: [], ui_variant: 'NONE' },
+      });
       await act(async () => {
         rerender();
       });

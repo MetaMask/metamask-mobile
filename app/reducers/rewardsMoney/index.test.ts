@@ -19,8 +19,8 @@ const PROFILE_A = 'profile-a';
 const PROFILE_B = 'profile-b';
 
 const mockReferralMe: ReferralMeDto = {
-  role: 'REFERRER',
-  variant: 'REFERRER',
+  roles: ['REFERRER'],
+  ui_variant: 'REFERRER',
   user_type: 'KOL',
   status: 'ACTIVE',
   referral_code: {
@@ -29,12 +29,15 @@ const mockReferralMe: ReferralMeDto = {
     status: 'ACTIVE',
     share_url: null,
   },
+  referral_code_status: 'ACTIVE',
   referred_by: null,
   earn_rates: {
-    revshare_rate_bps: 1000,
     cashback_rate_bps: null,
-    revshare_earning_term_minutes: 525600,
-    cashback_earning_term_minutes: null,
+    cashback_earning_start: null,
+    cashback_earning_end: null,
+    revshare_rate_bps: 1000,
+    revshare_earning_start: null,
+    revshare_earning_end: null,
   },
   localized_text: {} as ReferralMeDto['localized_text'],
   invite_hero: null,
@@ -222,7 +225,7 @@ describe('rewardsMoneyReducer', () => {
         afterError,
         setReferralMe({
           profileId: PROFILE_A,
-          data: { ...mockReferralMe, variant: 'NONE', role: 'NONE' },
+          data: { ...mockReferralMe, ui_variant: 'NONE', roles: [] },
         }),
       );
 
@@ -231,7 +234,7 @@ describe('rewardsMoneyReducer', () => {
         error: false,
         data: mockReferralMe,
       });
-      expect(afterData.referralMe[PROFILE_A]?.data?.variant).toBe('NONE');
+      expect(afterData.referralMe[PROFILE_A]?.data?.ui_variant).toBe('NONE');
     });
   });
 

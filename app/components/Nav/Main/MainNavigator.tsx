@@ -432,7 +432,7 @@ const RewardsHome = () => {
   // Same altitude, same reason: the Money referral persona decides which of the
   // three homes this stack opens on, so it is resolved once here rather than by
   // whichever screen happened to mount.
-  const { moneyEnabled, moneyReferralResolved, moneyVariant, navigatorKey } =
+  const { moneyEnabled, moneyReferralResolved, moneyPersona, navigatorKey } =
     useRewardsMoneyTabRouting();
   // Tab time-to-content: tap Rewards → onboarding content, dashboard shell, or
   // the Money dashboard.
@@ -440,7 +440,7 @@ const RewardsHome = () => {
     isVersionBlocked,
     moneyEnabled,
     moneyReferralResolved,
-    moneyVariant,
+    moneyPersona,
   });
 
   // Shared with the time-to-content trace above, so the screen the tab opens on
@@ -451,7 +451,7 @@ const RewardsHome = () => {
     candidateSubscriptionId,
     moneyEnabled,
     moneyReferralResolved,
-    moneyVariant,
+    moneyPersona,
   });
 
   if (

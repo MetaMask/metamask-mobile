@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import type {
   EarningsSummaryDto,
   ReferralLocalizedText,
+  ReferralMeDto,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -10,7 +11,10 @@ import { AppThemeKey } from '../../../../../util/theme/models';
 import { useEarningsSummary } from '../../hooks/useEarningsSummary';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import { SHARE_CODE_SHEET_TEST_IDS } from './ShareCodeSheet';
-import RefererHeroCard, { REFERER_HERO_CARD_TEST_IDS } from './RefererHeroCard';
+import RefererHeroCard, {
+  fillOfferEndsIn,
+  REFERER_HERO_CARD_TEST_IDS,
+} from './RefererHeroCard';
 import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useEarningsSummary');
@@ -97,18 +101,22 @@ describe('RefererHeroCard', () => {
     earningsError = false,
     referralError = false,
     referralCode = REFERRAL_CODE,
+    localizedText = LOCALIZED_TEXT,
+    referralData = null,
   }: {
     summary?: EarningsSummaryDto | null;
     earningsLoading?: boolean;
     earningsError?: boolean;
     referralError?: boolean;
     referralCode?: typeof REFERRAL_CODE | null;
+    localizedText?: ReferralLocalizedText;
+    referralData?: ReferralMeDto | null;
   } = {}) =>
     renderWithProvider(
       <RefererHeroCard
         profileId={PROFILE_ID}
         referralCode={referralCode}
-        localizedText={LOCALIZED_TEXT}
+        localizedText={localizedText}
       />,
       {
         state: {
@@ -118,7 +126,7 @@ describe('RefererHeroCard', () => {
               [PROFILE_ID]: {
                 loading: false,
                 error: referralError,
-                data: null,
+                data: referralData,
               },
             },
             earningsSummary: {
@@ -290,5 +298,70 @@ describe('RefererHeroCard', () => {
     fireEvent.press(getByTestId(REFERER_HERO_CARD_TEST_IDS.SHARE_BUTTON));
 
     expect(getByTestId(SHARE_CODE_SHEET_TEST_IDS.CONTAINER)).toBeOnTheScreen();
+  });
+
+  it('hides the code and share when the code is not active', () => {
+    const { getByTestId, queryByText, queryByTestId } = renderHero({
+      referralData: {
+        referral_code_status: 'PAUSED',
+      } as ReferralMeDto,
+    });
+
+    expect(
+      getByTestId(REFERER_HERO_CARD_TEST_IDS.REFERRAL_CODE),
+    ).toHaveTextContent('-');
+    expect(queryByText('SOPHIE')).toBeNull();
+    expect(queryByTestId(REFERER_HERO_CARD_TEST_IDS.SHARE_BUTTON)).toBeNull();
+  });
+
+  it('shows how long the revenue-share offer has left', () => {
+    const { getByTestId } = renderHero({
+      localizedText: {
+        ...LOCALIZED_TEXT,
+        offerEndsIn: 'Offer ends in {duration}',
+        offerDurationDay: '{count} day',
+        offerDurationDays: '{count} days',
+        offerDurationHour: '{count} hour',
+        offerDurationHours: '{count} hours',
+      },
+      referralData: {
+        referral_code_status: 'ACTIVE',
+        earn_rates: {
+          revshare_earning_end: '2099-01-01T00:00:00.000Z',
+        },
+      } as ReferralMeDto,
+    });
+
+    expect(
+      getByTestId(REFERER_HERO_CARD_TEST_IDS.OFFER_ENDS_IN),
+    ).toHaveTextContent(/^Offer ends in /);
+  });
+});
+
+describe('fillOfferEndsIn', () => {
+  const now = Date.parse('2026-10-01T00:00:00.000Z');
+  const copy = {
+    offerEndsIn: 'Offer ends in {duration}',
+    offerDurationDay: '{count} day',
+    offerDurationDays: '{count} days',
+    offerDurationHour: '{count} hour',
+    offerDurationHours: '{count} hours',
+  };
+
+  it('fills duration and leaves the surrounding copy', () => {
+    expect(fillOfferEndsIn(copy, '2026-10-04T00:00:00.000Z', now)).toBe(
+      'Offer ends in 3 days',
+    );
+  });
+
+  it('returns null when the template or a future end is missing', () => {
+    expect(
+      fillOfferEndsIn(
+        { ...copy, offerEndsIn: 'Offer ends soon' },
+        '2026-10-04T00:00:00.000Z',
+        now,
+      ),
+    ).toBeNull();
+    expect(fillOfferEndsIn(copy, null, now)).toBeNull();
   });
 });

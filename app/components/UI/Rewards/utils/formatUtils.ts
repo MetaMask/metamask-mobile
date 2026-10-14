@@ -150,6 +150,54 @@ export const formatTimeRemaining = (endDate: Date): string | null => {
   return `${dayString}${hourString}${minuteString}`?.trim();
 };
 
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
+
+/** `{count}` templates from referral `localized_text`, one per unit and plural. */
+export type DurationTemplates = {
+  day: string | undefined;
+  days: string | undefined;
+  hour: string | undefined;
+  hours: string | undefined;
+};
+
+/**
+ * Largest whole unit still ahead of now: days, otherwise hours.
+ * Missing, invalid, or past ends are null so the caller hides the line.
+ * The phrase is the matching `{count}` template with the number filled in.
+ */
+export const formatDuration = (
+  endIso: string | null | undefined,
+  templates: DurationTemplates,
+  nowMs: number = Date.now(),
+): string | null => {
+  if (!endIso) {
+    return null;
+  }
+  const endMs = new Date(endIso).getTime();
+  if (Number.isNaN(endMs) || endMs <= nowMs) {
+    return null;
+  }
+  const remainingMs = endMs - nowMs;
+  const unit = remainingMs >= DAY_MS ? 'day' : 'hour';
+  const value =
+    unit === 'day'
+      ? Math.floor(remainingMs / DAY_MS)
+      : Math.max(1, Math.floor(remainingMs / HOUR_MS));
+  const template =
+    unit === 'day'
+      ? value === 1
+        ? templates.day
+        : templates.days
+      : value === 1
+        ? templates.hour
+        : templates.hours;
+  if (!template?.includes('{count}')) {
+    return null;
+  }
+  return template.replaceAll('{count}', String(value));
+};
+
 /**
  * Resolves the date used for a benefit countdown, preferring a valid `validTo`
  * value and falling back to a valid `actionDate` value.
