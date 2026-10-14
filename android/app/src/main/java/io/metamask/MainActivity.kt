@@ -26,6 +26,11 @@ class MainActivity : ReactActivity() {
         PrivacyCover.markAuthenticationReady()
     }
 
+    override fun onDestroy() {
+        PrivacyCover.release(this)
+        super.onDestroy()
+    }
+
     /**
      * Predictive back calls this from React Native's dispatcher callback.
      * Swallow it while the cover is up so it cannot pop the screen underneath.

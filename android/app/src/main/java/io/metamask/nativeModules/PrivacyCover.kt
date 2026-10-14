@@ -1,9 +1,14 @@
 package io.metamask.nativeModules
 
 import android.app.Activity
+import android.app.Dialog
+import android.graphics.Color
+import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
@@ -21,9 +26,23 @@ import io.metamask.R
  * a blank card: Android 13+ uses `setRecentsScreenshotEnabled`, older versions
  * hold FLAG_SECURE from login until logout. The snapshot is taken before
  * `onPause`, so this view is what the user sees on the way back in.
+ *
+ * A decor-view child sits under React Native modals, which are their own
+ * windows. [coverDialog] is added while pausing so it is the top app window.
+ * It does not take focus, so the biometric prompt can still appear above it.
  */
 internal object PrivacyCover {
+    private const val TAG = "PrivacyCover"
+
+    /** Holds focus in the activity so a focused field cannot reopen the keyboard. */
     private var overlay: View? = null
+    /** App window above React Native modals. Null when the cover is hidden. */
+    private var coverDialog: Dialog? = null
+    /**
+     * Activity that owns [coverDialog]. The dialog context is a theme wrapper,
+     * so it cannot be compared to the activity directly.
+     */
+    private var coverDialogActivity: Activity? = null
     /** Consumes system back while the cover is visible so the screen underneath stays put. */
     private var backCallback: OnBackPressedCallback? = null
     private var backCallbackActivity: Activity? = null
@@ -66,6 +85,9 @@ internal object PrivacyCover {
         }
         cover.bringToFront()
         cover.visibility = View.VISIBLE
+        // Added after any modal dialog, so this is the top application window.
+        // Not focusable: the activity keeps window focus for BiometricPrompt.
+        showAboveDialogs(activity)
         // The IME is a separate window above this cover. Move focus to the
         // visible cover before hiding it so the input cannot immediately
         // reclaim focus and reopen the keyboard on resume.
@@ -77,7 +99,109 @@ internal object PrivacyCover {
         blockBack(activity)
     }
 
-    fun isShown(): Boolean = overlay?.visibility == View.VISIBLE
+    fun isShown(): Boolean =
+        coverDialog?.isShowing == true || overlay?.visibility == View.VISIBLE
+
+    /**
+     * Drops the cover when [activity] is going away. [hide] waits for a resume
+     * that will never arrive if the activity is destroyed while paused.
+     */
+    fun release(activity: Activity) {
+        if (coverDialogActivity === activity) {
+            dismissCoverDialog()
+        }
+        val sink = overlay
+        if (sink != null && sink.context === activity) {
+            (sink.parent as? ViewGroup)?.removeView(sink)
+            overlay = null
+        }
+        if (backCallbackActivity === activity) {
+            backCallback?.remove()
+            backCallback = null
+            backCallbackActivity = null
+        }
+        restoreAccessibility()
+    }
+
+    private fun showAboveDialogs(activity: Activity) {
+        if (coverDialog != null && coverDialogActivity !== activity) {
+            dismissCoverDialog()
+        }
+        val dialog = coverDialog ?: createCoverDialog(activity).also {
+            coverDialog = it
+            coverDialogActivity = activity
+        }
+        if (dialog.isShowing) {
+            return
+        }
+        try {
+            dialog.show()
+        } catch (error: RuntimeException) {
+            Log.w(TAG, "Unable to show privacy cover window", error)
+        }
+    }
+
+    private fun createCoverDialog(activity: Activity): Dialog {
+        val content = View(activity).apply {
+            setBackgroundResource(R.drawable.app_background)
+            isClickable = true
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+            contentDescription = activity.getString(R.string.app_name)
+            ViewCompat.setAccessibilityPaneTitle(this, contentDescription)
+        }
+        return Dialog(activity, android.R.style.Theme_Black_NoTitleBar_Fullscreen).apply {
+            setCancelable(false)
+            setCanceledOnTouchOutside(false)
+            setContentView(
+                content,
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                ),
+            )
+            window?.apply {
+                setBackgroundDrawableResource(android.R.color.transparent)
+                setWindowAnimations(0)
+                setLayout(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                )
+                // FLAG_NOT_FOCUSABLE keeps the activity focused. FLAG_SECURE
+                // blanks this window in the Android 12 Recents snapshot; the
+                // activity flag does not apply to a separate window.
+                addFlags(
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                        WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS or
+                        WindowManager.LayoutParams.FLAG_SECURE,
+                )
+                statusBarColor = Color.TRANSPARENT
+                navigationBarColor = Color.TRANSPARENT
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    attributes = attributes.apply {
+                        layoutInDisplayCutoutMode =
+                            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                    }
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    setDecorFitsSystemWindows(false)
+                }
+            }
+        }
+    }
+
+    private fun dismissCoverDialog() {
+        val dialog = coverDialog ?: return
+        coverDialog = null
+        coverDialogActivity = null
+        try {
+            if (dialog.isShowing) {
+                dialog.dismiss()
+            }
+        } catch (error: RuntimeException) {
+            Log.w(TAG, "Unable to dismiss privacy cover window", error)
+        }
+    }
 
     private fun dismissKeyboard(activity: Activity, windowToken: IBinder?) {
         if (windowToken == null) {
@@ -94,6 +218,7 @@ internal object PrivacyCover {
         if (resumedEpoch == null) {
             return
         }
+        dismissCoverDialog()
         overlay?.visibility = View.GONE
         restoreAccessibility()
         backCallback?.isEnabled = false
