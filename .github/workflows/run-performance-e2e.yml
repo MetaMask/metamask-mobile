@@ -39,7 +39,7 @@ on:
         type: string
         default: 'e2e'
       performance_tags:
-        description: 'JSON array of performance tags (e.g. ["@PerformanceLogin","@PerformanceSwaps"]). Omit/blank = run all. "[]" = skip all (PR with no relevant changes).'
+        description: 'JSON array of performance tags (e.g. ["@PerformanceLogin","@PerformanceSwaps"]). Omit/blank or ["ALL"] = run all. "[]" = skip all (no relevant changes, or selection failed).'
         required: false
         type: string
         default: ''
@@ -130,11 +130,22 @@ jobs:
             exit 0
           fi
 
-          # '[]' → no performance-relevant changes: skip tests and native builds.
+          # '[]' → no performance-relevant changes, or selection failed: skip tests and native builds.
           if [[ "$TAGS" == "[]" ]]; then
             echo "run_tests=false" >> "$GITHUB_OUTPUT"
             echo "grep_pattern="   >> "$GITHUB_OUTPUT"
             echo "⏭️  Skipping performance tests — no performance-relevant changes detected"
+            if [[ -n "$REASONING" ]]; then
+              echo "   Reasoning: $REASONING"
+            fi
+            exit 0
+          fi
+
+          # '["ALL"]' (or any list that includes ALL) → run the full suite.
+          if echo "$TAGS" | jq -e 'type == "array" and any(. == "ALL")' >/dev/null 2>&1; then
+            echo "run_tests=true" >> "$GITHUB_OUTPUT"
+            echo "grep_pattern="  >> "$GITHUB_OUTPUT"
+            echo "▶️  Running all performance tests (ALL tag)"
             if [[ -n "$REASONING" ]]; then
               echo "   Reasoning: $REASONING"
             fi

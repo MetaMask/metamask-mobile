@@ -7,9 +7,10 @@
  *   ids     → JSON.stringify(ids)
  *
  * Performance:
- *   ["ALL"] → ''   (empty string = run all; conservative fallback)
- *   []      → '[]' (skip)
+ *   ["ALL"] → '["ALL"]' (run every performance test)
+ *   []      → '[]'      (skip)
  *   ids     → JSON.stringify(ids)
+ *   missing → '[]'      (selector failed or omitted performance tags: skip)
  */
 
 export function mapSmartE2eOutputs(result) {
@@ -21,7 +22,7 @@ export function mapSmartE2eOutputs(result) {
   const performance = result?.performance_tests ?? {};
   const performanceTags = Array.isArray(performance.selected_tags)
     ? performance.selected_tags
-    : ['ALL'];
+    : [];
   const performanceReasoning =
     typeof performance.reasoning === 'string' ? performance.reasoning : '';
 
@@ -35,7 +36,7 @@ export function mapSmartE2eOutputs(result) {
 
 function mapPerformanceTags(tags) {
   if (tags.includes('ALL')) {
-    return '';
+    return '["ALL"]';
   }
   return JSON.stringify(tags);
 }

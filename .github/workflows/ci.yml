@@ -1514,10 +1514,13 @@ jobs:
     # Run when:
     # - run-performance-tests label is on the PR (forced run, all tests), OR
     # - the PR targets main and Smart E2E Selection chose performance tags.
+    # PRs do not run performance tests by default. A failed selection, a missing
+    # output, or an empty tag list must not launch the suite.
     # PRs targeting release/* or stable only run performance tests via the label.
-    # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
-    # ai_performance_test_tags == ''    → conservative fallback (AI failed) or run-performance-tests label: run all tests.
-    # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
+    # ai_performance_test_tags == '[]'      → no relevant changes, or selection failed: skip.
+    # ai_performance_test_tags == ''        → missing output (selection failed): skip.
+    # ai_performance_test_tags == '["ALL"]' → run all performance tests.
+    # ai_performance_test_tags == '[…]'     → specific tags selected: run those tests.
     if: >-
       ${{
         github.event_name == 'pull_request' &&
@@ -1527,7 +1530,8 @@ jobs:
           (
             github.event.pull_request.base.ref == 'main' &&
             needs.smart-e2e-selection.result == 'success' &&
-            needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
+            needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]' &&
+            needs.smart-e2e-selection.outputs.ai_performance_test_tags != ''
           )
         )
       }}
