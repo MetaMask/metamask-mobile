@@ -117,8 +117,9 @@ jest.mock('../../perpApi', () => ({
 jest.mock('../../../../../../util/deviceCapability', () => ({
   getHardwareTier: () => 'HIGH',
 }));
+let mockNetworkTier: 'WIFI' | 'NONE' = 'WIFI';
 jest.mock('../../../../../../hooks/useNetworkTier', () => ({
-  useNetworkTier: () => 'WIFI',
+  useNetworkTier: () => mockNetworkTier,
 }));
 
 const makeAlert = (
@@ -187,6 +188,7 @@ beforeEach(() => {
     currentCurrency: 'USD',
     assetId: 'eip155:1/slip44:60',
   };
+  mockNetworkTier = 'WIFI';
   mockDeleteAlert.mockResolvedValue(makeOkResponse(204));
   mockUpdateAlert.mockResolvedValue(makeOkResponse(200));
 });
@@ -887,6 +889,17 @@ describe('ManagePriceAlertsView', () => {
   });
 
   describe('redirect to CreatePriceAlert', () => {
+    it('does not redirect or fetch before the initial query can run offline', async () => {
+      mockNetworkTier = 'NONE';
+
+      renderView();
+
+      await act(async () => undefined);
+
+      expect(mockFetchAlerts).not.toHaveBeenCalled();
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
+
     it('replaces the screen when the API returns an empty list', async () => {
       mockFetchAlerts.mockResolvedValue(makeFetchResponse([]));
       renderView();

@@ -137,6 +137,7 @@ const ManagePriceAlertsView: React.FC = () => {
     data: alerts = [],
     isLoading,
     isError,
+    isFetched,
   } = useQuery({
     queryKey: effectiveQueryKey,
     enabled: networkTier !== 'NONE',
@@ -157,7 +158,7 @@ const ManagePriceAlertsView: React.FC = () => {
   });
 
   useEffect(() => {
-    if (isLoading || hasResolvedInitialFetch.current) {
+    if (!isFetched || isLoading || hasResolvedInitialFetch.current) {
       return;
     }
     hasResolvedInitialFetch.current = true;
@@ -185,6 +186,7 @@ const ManagePriceAlertsView: React.FC = () => {
       });
     }
   }, [
+    isFetched,
     isLoading,
     isError,
     alerts.length,
