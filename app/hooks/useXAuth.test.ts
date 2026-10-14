@@ -1,17 +1,16 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import type { Profile, XProfile } from '@metamask/profile-controller';
+import type { XProfile } from '@metamask/profile-controller';
 import { useXAuth } from './useXAuth';
 import {
   connectX,
+  disconnectXAccount,
   fetchAndUpdateXAccount,
   XAuthError,
   XAuthErrorType,
 } from '../core/XAuthService';
-import Engine from '../core/Engine';
 import {
   selectIsConnectedToX,
-  selectProfileControllerProfile,
   selectProfileControllerXProfile,
 } from '../selectors/profileController';
 
@@ -33,6 +32,7 @@ jest.mock('../core/XAuthService', () => {
   return {
     __esModule: true,
     connectX: jest.fn(),
+    disconnectXAccount: jest.fn(),
     fetchAndUpdateXAccount: jest.fn(),
     XAuthError: MockXAuthError,
     XAuthErrorType: {
@@ -47,34 +47,10 @@ jest.mock('../core/XAuthService', () => {
   };
 });
 
-jest.mock('../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      ProfileController: {
-        disconnectX: jest.fn(),
-      },
-    },
-  },
-}));
-
 const mockUseSelector = jest.mocked(useSelector);
 const mockConnectX = jest.mocked(connectX);
+const mockDisconnectXAccount = jest.mocked(disconnectXAccount);
 const mockFetchAndUpdateXAccount = jest.mocked(fetchAndUpdateXAccount);
-const mockDisconnectX = jest.mocked(Engine.context.ProfileController.disconnectX);
-
-const PROFILE: Profile = {
-  profileId: 'profile-1',
-  username: 'tester',
-  displayName: 'Tester',
-  bio: 'bio',
-  linkedAddresses: [],
-  avatarUrl: 'https://example.com/avatar.png',
-  tradingPrivacy: 'public',
-  connectedToX: false,
-  createdAt: '2026-01-01T00:00:00Z',
-  updatedAt: '2026-01-01T00:00:00Z',
-};
 
 const X_PROFILE: XProfile = {
   xUserId: 'x-user-1',
@@ -89,11 +65,9 @@ const X_PROFILE: XProfile = {
 const setSelectorState = ({
   isConnected = false,
   xProfile = undefined,
-  profileId = undefined,
 }: {
   isConnected?: boolean;
   xProfile?: XProfile;
-  profileId?: string;
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectIsConnectedToX) {
@@ -101,9 +75,6 @@ const setSelectorState = ({
     }
     if (selector === selectProfileControllerXProfile) {
       return xProfile;
-    }
-    if (selector === selectProfileControllerProfile) {
-      return profileId ? { ...PROFILE, profileId } : undefined;
     }
     throw new Error('Unexpected selector');
   });
@@ -119,7 +90,6 @@ describe('useXAuth', () => {
     setSelectorState({
       isConnected: true,
       xProfile: X_PROFILE,
-      profileId: PROFILE.profileId,
     });
 
     const { result } = renderHook(() => useXAuth());
@@ -127,9 +97,6 @@ describe('useXAuth', () => {
     expect(mockUseSelector).toHaveBeenCalledWith(selectIsConnectedToX);
     expect(mockUseSelector).toHaveBeenCalledWith(
       selectProfileControllerXProfile,
-    );
-    expect(mockUseSelector).toHaveBeenCalledWith(
-      selectProfileControllerProfile,
     );
     expect(result.current.isConnected).toBe(true);
     expect(result.current.xProfile).toStrictEqual(X_PROFILE);
@@ -209,9 +176,8 @@ describe('useXAuth', () => {
   });
 
   describe('disconnect', () => {
-    it('calls ProfileController.disconnectX with the current profile id', async () => {
-      mockDisconnectX.mockResolvedValue(undefined);
-      setSelectorState({ profileId: PROFILE.profileId });
+    it('delegates to disconnectXAccount and clears the connecting state', async () => {
+      mockDisconnectXAccount.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useXAuth());
 
@@ -219,7 +185,8 @@ describe('useXAuth', () => {
         await result.current.disconnect();
       });
 
-      expect(mockDisconnectX).toHaveBeenCalledWith(PROFILE.profileId);
+      expect(mockDisconnectXAccount).toHaveBeenCalledTimes(1);
+      expect(mockDisconnectXAccount).toHaveBeenCalledWith();
       expect(result.current.isConnecting).toBe(false);
       expect(result.current.error).toBeUndefined();
     });

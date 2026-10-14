@@ -14,6 +14,18 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+/** Gets the current profile id, throwing when no profile exists yet. */
+function requireProfileId(): string {
+  const { profileId } = Engine.context.ProfileController.state.profile;
+  if (!profileId) {
+    throw new XAuthError(
+      XAuthErrorType.NotSignedIn,
+      'No MetaMask profile exists yet',
+    );
+  }
+  return profileId;
+}
+
 const waitForRedirectUrl = (
   redirectUrlPromise: Promise<string>,
   timeoutMs: number,
@@ -134,6 +146,8 @@ async function openAuthorizationSession(
  * link, and relay the code + state to the backend.
  */
 export async function connectX(): Promise<XProfile> {
+  requireProfileId();
+
   const { ProfileService, ProfileController } = Engine.context;
 
   let session: XAuthUrlResponse;
@@ -194,7 +208,14 @@ export async function connectX(): Promise<XProfile> {
  * updates ProfileController state.
  */
 export async function fetchAndUpdateXAccount(): Promise<XProfile> {
+  requireProfileId();
   const xProfile =
     await Engine.context.ProfileController.fetchAndUpdateXAccount();
   return xProfile;
+}
+
+/** Disconnects the X account linked to the current profile. */
+export async function disconnectXAccount(): Promise<void> {
+  const profileId = requireProfileId();
+  await Engine.context.ProfileController.disconnectX(profileId);
 }

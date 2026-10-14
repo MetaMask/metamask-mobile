@@ -1,4 +1,8 @@
-import { connectX, fetchAndUpdateXAccount } from './XAuthService';
+import {
+  connectX,
+  disconnectXAccount,
+  fetchAndUpdateXAccount,
+} from './XAuthService';
 import { XAuthError, XAuthErrorType } from './XAuthError';
 import { X_REDIRECT_URI } from './XAuthConfig';
 import Engine from '../Engine';
@@ -28,6 +32,8 @@ jest.mock('../Engine', () => ({
       ProfileController: {
         connectX: jest.fn(),
         fetchAndUpdateXAccount: jest.fn(),
+        disconnectX: jest.fn(),
+        state: { profile: { profileId: 'profile-1' } },
       },
     },
   },
@@ -65,6 +71,7 @@ const flushPromises = () => new Promise(setImmediate);
 describe('XAuthService (app-relay flow)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    ProfileController.state.profile.profileId = 'profile-1';
     jest.mocked(ProfileService.getXAuthUrl).mockResolvedValue({
       url: AUTHORIZATION_URL,
       state: SESSION_STATE,
@@ -219,6 +226,16 @@ describe('XAuthService (app-relay flow)', () => {
         type: XAuthErrorType.NetworkFailure,
       });
     });
+
+    it('throws NotSignedIn before contacting the backend when no profile id exists', async () => {
+      ProfileController.state.profile.profileId = '';
+
+      await expect(connectX()).rejects.toMatchObject({
+        type: XAuthErrorType.NotSignedIn,
+      });
+      expect(ProfileService.getXAuthUrl).not.toHaveBeenCalled();
+      expect(openAuthSessionAsync).not.toHaveBeenCalled();
+    });
   });
 
   describe('fetchAndUpdateXAccount', () => {
@@ -229,6 +246,31 @@ describe('XAuthService (app-relay flow)', () => {
 
       await expect(fetchAndUpdateXAccount()).resolves.toEqual(X_PROFILE);
       expect(ProfileController.fetchAndUpdateXAccount).toHaveBeenCalledWith();
+    });
+
+    it('throws NotSignedIn when no profile id exists', async () => {
+      ProfileController.state.profile.profileId = '';
+      await expect(fetchAndUpdateXAccount()).rejects.toMatchObject({
+        type: XAuthErrorType.NotSignedIn,
+      });
+      expect(ProfileController.fetchAndUpdateXAccount).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('disconnectXAccount', () => {
+    it('disconnects with the current profile id', async () => {
+      jest.mocked(ProfileController.disconnectX).mockResolvedValue(undefined);
+
+      await expect(disconnectXAccount()).resolves.toBeUndefined();
+      expect(ProfileController.disconnectX).toHaveBeenCalledWith('profile-1');
+    });
+
+    it('throws NotSignedIn when no profile id exists', async () => {
+      ProfileController.state.profile.profileId = '';
+      await expect(disconnectXAccount()).rejects.toMatchObject({
+        type: XAuthErrorType.NotSignedIn,
+      });
+      expect(ProfileController.disconnectX).not.toHaveBeenCalled();
     });
   });
 });

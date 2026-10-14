@@ -1,16 +1,15 @@
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import type { XProfile } from '@metamask/profile-controller';
-import Engine from '../core/Engine';
 import {
   connectX,
+  disconnectXAccount,
   fetchAndUpdateXAccount,
   XAuthError,
   XAuthErrorType,
 } from '../core/XAuthService';
 import {
   selectIsConnectedToX,
-  selectProfileControllerProfile,
   selectProfileControllerXProfile,
 } from '../selectors/profileController';
 
@@ -40,7 +39,6 @@ const toXAuthError = (error: unknown): XAuthError =>
 export const useXAuth = (): UseXAuth => {
   const isConnected = useSelector(selectIsConnectedToX);
   const xProfile = useSelector(selectProfileControllerXProfile);
-  const profileId = useSelector(selectProfileControllerProfile)?.profileId;
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<XAuthError | undefined>(undefined);
 
@@ -60,13 +58,13 @@ export const useXAuth = (): UseXAuth => {
     setIsConnecting(true);
     setError(undefined);
     try {
-      await Engine.context.ProfileController.disconnectX(profileId ?? '');
+      await disconnectXAccount();
     } catch (caught) {
       setError(toXAuthError(caught));
     } finally {
       setIsConnecting(false);
     }
-  }, [profileId]);
+  }, []);
 
   const refresh = useCallback(async () => {
     setIsConnecting(true);
