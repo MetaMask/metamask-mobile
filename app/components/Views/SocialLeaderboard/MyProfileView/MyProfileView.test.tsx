@@ -595,6 +595,9 @@ describe('MyProfileView', () => {
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
     ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('renders the Posts empty state and trade CTA', () => {
@@ -840,6 +843,11 @@ describe('MyProfileView', () => {
     ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(
+        MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON,
+      ),
     ).toBeNull();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOW_BUTTON),
