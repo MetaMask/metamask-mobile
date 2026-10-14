@@ -93,28 +93,36 @@ const VbaEmailAdapter = () => {
     let active = true;
 
     const verifyEmail = async () => {
-      const result = await verifyOrEnroll({
-        methods: ['email_otp'],
-        verifyWith: 'email_otp',
-        reason: {
-          operation: 'vba.verifyEmail',
-          enrollDescription: strings(
-            'virtual_bank_account.kyc_email.enroll_description',
-          ),
-          verifyDescription: strings(
-            'virtual_bank_account.kyc_email.verify_description',
-          ),
-        },
-      });
-      if (!active) {
-        return;
-      }
+      const existingSession =
+      await Engine.context.KycController.getSessionStatusForVendor(
+        VBA_KYC_VENDOR,
+      );
 
-      const aal2Token = result.token?.accessToken;
-      if (!aal2Token) {
-        throw new Error(
-          strings('virtual_bank_account.kyc_email.error_description'),
-        );
+      let aal2Token: string | undefined;
+      if (!existingSession) {
+        const result = await verifyOrEnroll({
+          methods: ['email_otp'],
+          verifyWith: 'email_otp',
+          reason: {
+            operation: 'vba.verifyEmail',
+            enrollDescription: strings(
+              'virtual_bank_account.kyc_email.enroll_description',
+            ),
+            verifyDescription: strings(
+              'virtual_bank_account.kyc_email.verify_description',
+            ),
+          },
+        });
+        if (!active) {
+          return;
+        }
+
+        aal2Token = result.token?.accessToken;
+        if (!aal2Token) {
+          throw new Error(
+            strings('virtual_bank_account.kyc_email.error_description'),
+          );
+        }
       }
 
       await Engine.context.KycController.startSession({
