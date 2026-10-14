@@ -14,8 +14,6 @@ export interface QAMockTokenExchangeResult {
   accountName: string;
 }
 
-const DEFAULT_E2E_BYOA_AUTH_SECRET = '6SMBaAx6*TG8AEQ+7Ap#zEUAIZ42';
-
 const generateUniqueE2EEmail = (): string => {
   const rand = QuickCrypto.randomBytes(4).toString('hex').slice(0, 8);
   return `${rand}${Date.now()}+e2e@web3auth.io`;
@@ -27,7 +25,13 @@ export class QAMockOAuthService {
     fetchImpl: typeof fetch = global.fetch,
     emailOverride?: string,
   ): Promise<QAMockTokenExchangeResult> {
-    const byoaSecret = getE2EByoaAuthSecret() ?? DEFAULT_E2E_BYOA_AUTH_SECRET;
+    const byoaSecret = getE2EByoaAuthSecret();
+    if (!byoaSecret) {
+      throw new OAuthError(
+        'E2E QA mock: E2E_BYOA_AUTH_SECRET is not set',
+        OAuthErrorType.LoginError,
+      );
+    }
 
     const envEmail = getE2EMockOAuthEmailForQaMock();
     const emailForMock = emailOverride ?? envEmail ?? generateUniqueE2EEmail();
