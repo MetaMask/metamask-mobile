@@ -286,6 +286,11 @@ describe('useMoneyTransactionStatus', () => {
       failed: sendFailedFn,
     },
     claimSuccess: jest.fn(),
+    rescue: {
+      inProgress: jest.fn(() => baseInProgressToast),
+      success: jest.fn(() => baseSuccessToast),
+      failed: jest.fn(() => baseFailedToast),
+    },
   };
 
   beforeEach(() => {

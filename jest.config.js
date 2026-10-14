@@ -83,8 +83,11 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/client-utils',
   '@metamask/claims-controller',
   '@metamask/config-registry-controller',
+  // ESM-only; pulled in via network-controller → subscription-controller.
+  '@metamask/connectivity-controller',
   '@metamask/controller-utils',
   '@metamask/core-backend',
+  '@metamask/cryptography',
   '@metamask/delegation-controller',
   '@metamask/delegation-core',
   '@metamask/delegation-deployments',
@@ -95,6 +98,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/kyc-controller',
   '@metamask/logging-controller',
   '@metamask/money-account-balance-service',
+  // 5.x ships ESM-only under dist/*.js (3.x used CJS).
+  '@metamask/money-account-upgrade-controller',
   '@metamask/money-account-api-data-service',
   '@metamask/money-account-utils',
   '@metamask/multichain-account-service',
@@ -105,6 +110,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/polling-controller',
   '@metamask/preferences-controller',
   '@metamask/profile-metrics-controller',
+  '@metamask/profile-controller',
   '@metamask/profile-sync-controller',
   '@metamask/ramps-controller',
   '@metamask/sentinel-api-service',
@@ -158,7 +164,7 @@ const config = {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.cjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.mjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
-    '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4|riv)$':
+    '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4|riv|ttf|otf)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
   snapshotSerializers: [],

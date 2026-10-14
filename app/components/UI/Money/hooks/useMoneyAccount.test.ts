@@ -255,6 +255,11 @@ describe('useMoneyAccountDeposit', () => {
           failed: jest.fn(),
         },
         claimSuccess: jest.fn(),
+        rescue: {
+          inProgress: jest.fn(),
+          success: jest.fn(),
+          failed: jest.fn(),
+        },
       },
     });
     global.requestAnimationFrame = jest.fn((callback) => {
@@ -509,6 +514,21 @@ describe('useMoneyAccountDeposit', () => {
     expect(observedBatchId).toMatch(/^0x[0-9a-f]+$/);
     expect(intentAtCallTime).toBe('addMusd');
     clearMoneyAccountDepositIntent(observedBatchId);
+  });
+
+  it('forwards a caller-provided batchId to addTransactionBatch', async () => {
+    const batchId =
+      '0x1111111111111111111111111111111111111111111111111111111111111111' as Hex;
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({ batchId });
+    });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({ batchId }),
+    );
   });
 
   it('uses PrefillCustomAmount loader when deposit prefill is enabled', async () => {
@@ -906,6 +926,11 @@ describe('useMoneyAccountWithdrawal', () => {
           failed: jest.fn(),
         },
         claimSuccess: jest.fn(),
+        rescue: {
+          inProgress: jest.fn(),
+          success: jest.fn(),
+          failed: jest.fn(),
+        },
       },
     });
     global.requestAnimationFrame = jest.fn((callback) => {

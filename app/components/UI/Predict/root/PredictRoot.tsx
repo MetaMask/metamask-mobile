@@ -11,13 +11,9 @@ const PredictRoot = () => {
   const config = useSelector(selectPredictConfig);
   const route = useRoute<RouteProp<RootStackParamList, 'Predict'>>();
   const lane = resolvePredictRootLane(config, route.params);
-  const initialParams =
-    route.params?.screen === 'PredictMarketList'
-      ? { entryPoint: route.params.params?.entryPoint }
-      : undefined;
 
   return lane === 'kalshi' ? (
-    <PredictNextStack key="kalshi" initialParams={initialParams} />
+    <PredictNextStack key="kalshi" />
   ) : (
     <LegacyPredictScreenStack key="polymarket" />
   );

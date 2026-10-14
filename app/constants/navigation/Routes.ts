@@ -42,6 +42,7 @@ const Routes = {
     ENTER_ADDRESS: 'RampEnterAddress',
     // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
     VBA_ONBOARDING: 'RampVbaOnboarding',
+    VBA_DETAILS: 'RampVbaDetails',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
@@ -385,6 +386,8 @@ const Routes = {
         'SwapsLimitOrderCustomCostToleranceModal',
       LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
       LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL: 'LimitOrderCostToleranceInfoModal',
+      LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL:
+        'LimitOrderAccountUpgradeFeeInfoModal',
       OPEN_LIMIT_ORDER_DETAILS_MODAL: 'OpenLimitOrderDetailsModal',
       CANCEL_LIMIT_ORDER_MODAL: 'CancelLimitOrderModal',
       RECURRING_INTERVAL_MODAL: 'RecurringIntervalModal',
@@ -454,6 +457,7 @@ const Routes = {
     MANAGE_PROFILE_TRADING_ACTIVITY: 'ManageProfileTradingActivityView',
     MANAGE_PROFILE_LINKED_ACCOUNT: 'ManageProfileLinkedAccountView',
     POSITION: 'TraderPositionView',
+    POSITION_SHEET: 'SocialPositionDetailsSheet',
     ONBOARDING: 'SocialLeaderboardOnboarding',
     V1: 'SocialV1View',
     POST_COMPOSER: 'SocialPostComposerView',
@@ -522,6 +526,8 @@ const Routes = {
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
+    MUSD_RESCUE_SEND: 'MoneyMusdRescueSend',
+    MUSD_RESCUE_RECIPIENT: 'MoneyMusdRescueRecipient',
     ONBOARDING: 'MoneyOnboarding',
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
@@ -562,6 +568,10 @@ const Routes = {
   },
   SOCIAL_PROFILE: {
     DRAWER: 'ProfileDrawer',
+    MANAGE_PROFILE: 'ManageProfile',
+    MANAGE_PROFILE_FIELD: 'ManageProfileField',
+    X_ACCOUNT: 'ManageProfileXAccount',
+    LINKED_SOCIAL_ACCOUNT: 'LinkedSocialAccount',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {
@@ -655,9 +665,15 @@ const Routes = {
   CREATE_PRICE_ALERT: 'CreatePriceAlert',
   MANAGE_PRICE_ALERTS: 'ManagePriceAlerts',
   SECURITY_TRUST: 'SecurityTrust',
+  /** Token Details V1 equivalent of `SECURITY_TRUST`, pushed from the Security tab. */
+  CONTRACT_SECURITY: 'ContractSecurity',
   AGENTIC_CLI_APPROVAL: {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
+  },
+  MFA: {
+    FLOW: 'MfaFlow',
+    SETTINGS: 'MfaSettings',
   },
   PRO_SUBSCRIPTION: {
     /** Root screen for the MetaMask Pro subscription flow. */

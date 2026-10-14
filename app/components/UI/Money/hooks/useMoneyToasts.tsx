@@ -123,6 +123,16 @@ export interface MoneyToastOptionsConfig {
     failed: (params?: SendFailedParams) => MoneyToastOptions;
   };
   claimSuccess: () => MoneyToastOptions;
+  rescue: {
+    inProgress: () => MoneyToastOptions;
+    success: (params: RescueSuccessParams) => MoneyToastOptions;
+    failed: () => MoneyToastOptions;
+  };
+}
+
+export interface RescueSuccessParams {
+  amountFiat?: string;
+  destination: string;
 }
 
 interface MoneyToastLabelOptions {
@@ -418,6 +428,33 @@ const useMoneyToasts = (): {
         ],
         closeButtonOptions,
       }),
+      rescue: {
+        // The rescue send shows its pending toast immediately (before the
+        // controller reports `approved`), so it cannot reuse `send`, whose
+        // pending toast is scheduled by the monitor on that event.
+        inProgress: () =>
+          buildSendToast(
+            moneyBaseToastOptions.inProgress,
+            'money.toasts.send_in_progress_title',
+            'money.toasts.in_progress_body',
+          ),
+        success: ({
+          amountFiat,
+          destination,
+        }: Omit<SendSuccessParams, 'onPress'>) =>
+          buildSendToast(
+            moneyBaseToastOptions.success,
+            'money.toasts.send_success_title',
+            'money.musd_rescue_send.rescue_success_body',
+            { amount: amountFiat ?? '', destination },
+          ),
+        failed: () =>
+          buildSendToast(
+            moneyBaseToastOptions.error,
+            'money.toasts.send_failed_title',
+            'money.toasts.send_failed_body',
+          ),
+      },
     };
   }, [
     buildToastPress,

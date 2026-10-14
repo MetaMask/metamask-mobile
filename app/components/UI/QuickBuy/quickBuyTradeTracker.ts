@@ -28,6 +28,13 @@ export interface TrackedQuickBuyTrade {
    * trades; lookups fall back to the tracker key when absent.
    */
   txSignature?: string;
+  /**
+   * When true, terminal complete/failed toasts are skipped and the Social
+   * post-swap share sheet is updated instead.
+   */
+  postSwapShare?: boolean;
+  /** Identifies the share session created for this trade. */
+  postSwapShareSessionId?: string;
 }
 
 /**

@@ -221,6 +221,8 @@ export const useValidQuotes = ({
       needsNewQuote,
       validQuotes,
       willRefresh,
+      refreshRate,
+      quotesLastFetched,
     }),
     [
       activeQuote,
@@ -232,6 +234,8 @@ export const useValidQuotes = ({
       recommendedQuote,
       validQuotes,
       willRefresh,
+      refreshRate,
+      quotesLastFetched,
     ],
   );
 };
