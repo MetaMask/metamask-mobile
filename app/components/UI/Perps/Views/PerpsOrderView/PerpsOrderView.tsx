@@ -2305,6 +2305,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
     const feePercentage =
       totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
+    // Same formatter as the full-screen fees tooltip. Perps balance and the
+    // Money Account have no bridge, and a missing or zero quote stays on the
+    // trade-fee line.
+    const bridgeFee =
+      hasCustomTokenSelected && !isMoneyAccountSelected && depositFeeUsd > 0
+        ? formatPerpsFiat(depositFeeUsd, {
+            ranges: PRICE_RANGES_MINIMAL_VIEW,
+          })
+        : undefined;
     let payWithName = payToken?.symbol ?? '';
     if (isPayTokenPerpsBalance) {
       payWithName = strings('perps.adjust_margin.perps_balance');
@@ -2533,6 +2542,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 showPayWith={isPayRowVisible}
                 isPayWithDisabled={isPayWithDisabled}
                 feePercentage={feePercentage}
+                bridgeFee={bridgeFee}
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
                 isSubmitting={isPlacingOrder}
                 isSubmitDisabled={submitDisabled}
