@@ -17,8 +17,8 @@ describe('selectHomeBrandRefreshSurfacesEnabled', () => {
     jest.mocked(hasMinimumRequiredVersion).mockReturnValue(true);
   });
 
-  it('defaults to disabled when the flag is absent', () => {
-    expect(selectHomeBrandRefreshSurfacesEnabled.resultFunc({})).toBe(false);
+  it('is forced on for this preview branch even when the flag is absent', () => {
+    expect(selectHomeBrandRefreshSurfacesEnabled.resultFunc({})).toBe(true);
   });
 
   it('returns true when enabled and the minimum version is met', () => {
@@ -32,7 +32,7 @@ describe('selectHomeBrandRefreshSurfacesEnabled', () => {
     ).toBe(true);
   });
 
-  it('returns false when the minimum version is not met', () => {
+  it('stays on for this preview branch when the minimum version is not met', () => {
     jest.mocked(hasMinimumRequiredVersion).mockReturnValue(false);
 
     expect(
@@ -42,14 +42,14 @@ describe('selectHomeBrandRefreshSurfacesEnabled', () => {
           minimumVersion: '99.0.0',
         },
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 
-  it('returns false when the flag shape is invalid', () => {
+  it('stays on for this preview branch when the flag shape is invalid', () => {
     expect(
       selectHomeBrandRefreshSurfacesEnabled.resultFunc({
         [FeatureFlagNames.homeBrandRefreshSurfaces]: true,
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 });
