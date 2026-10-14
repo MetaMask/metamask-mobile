@@ -1,23 +1,16 @@
 import React, { createContext, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 
-import {
-  selectBridgeBalanceRefreshKey,
-  selectDestAddress,
-  selectDestToken,
-  selectSlippage,
-  selectSourceAmount,
-  selectSourceToken,
-} from '../../../../../core/redux/slices/bridge';
+import { selectBridgeBalanceRefreshKey } from '../../../../../core/redux/slices/bridge';
 import {
   BridgeTabKey,
   TAB_TO_FEATURE_ID,
 } from '../../Views/BridgeView/BridgeView.constants';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
-import type { buildGenericQuoteRequest } from '../SwapQuotesProvider/utils';
-import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import type { QuoteParams } from '../SwapQuotesProvider/utils';
 import { SwapsFeatureIdProvider } from '../SwapsFeatureIdProvider';
 import { OrdersTabKey } from '../../components/OrdersTabs/OrdersTabs.types';
+import type { FeatureId } from '@metamask/bridge-controller';
 
 export const BridgeSessionContext = createContext<{
   selectedTab: BridgeTabKey;
@@ -27,7 +20,8 @@ export const BridgeSessionContext = createContext<{
   recurringOrdersTab?: OrdersTabKey;
   setRecurringOrdersTab?: (tab: OrdersTabKey) => void;
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
-  quoteParams: Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams'];
+  quoteParams: QuoteParams;
+  setQuoteParams: (quoteParams: QuoteParams) => void;
 } | null>(null);
 
 /**
@@ -36,8 +30,10 @@ export const BridgeSessionContext = createContext<{
  */
 export const BridgeSessionProvider = ({
   children,
+  featureId,
 }: {
   children: React.ReactNode;
+  featureId?: FeatureId;
 }) => {
   // `selectedTab` drives the tabs bar and updates urgently so a press is
   // acknowledged on the same frame. `renderedTab` swaps the content, which is
@@ -48,43 +44,21 @@ export const BridgeSessionProvider = ({
   const [recurringOrdersTab, setRecurringOrdersTab] = useState(
     OrdersTabKey.OpenOrders,
   );
-  const featureId = TAB_TO_FEATURE_ID[renderedTab];
+  const featureIdToUse = featureId ?? TAB_TO_FEATURE_ID[renderedTab];
 
-  const sourceToken = useSelector(selectSourceToken);
   const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
+
+  const [quoteParams, setQuoteParams] = useState<QuoteParams>({});
+
   const latestSourceBalance = useLatestBalance(
     {
-      address: sourceToken?.address,
-      decimals: sourceToken?.decimals,
-      chainId: sourceToken?.chainId,
-      balance: sourceToken?.balance,
+      address: quoteParams.srcToken?.address,
+      decimals: quoteParams.srcToken?.decimals,
+      chainId: quoteParams.srcToken?.chainId,
+      balance: quoteParams.srcToken?.balance,
       refreshKey: balanceRefreshKey,
     },
-    featureId,
-  );
-
-  const destToken = useSelector(selectDestToken);
-  const sourceAmount = useSelector(selectSourceAmount);
-  const slippage = useSelector(selectSlippage);
-  const walletAddress = useSelector(selectSourceWalletAddress);
-  const destAddress = useSelector(selectDestAddress);
-  const quoteParams = useMemo(
-    (): Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams'] => ({
-      srcToken: sourceToken,
-      destToken,
-      srcAmount: sourceAmount,
-      slippage,
-      walletAddress,
-      destWalletAddress: destAddress,
-    }),
-    [
-      sourceToken,
-      destToken,
-      sourceAmount,
-      slippage,
-      walletAddress,
-      destAddress,
-    ],
+    featureIdToUse,
   );
 
   const value = useMemo(
@@ -97,6 +71,7 @@ export const BridgeSessionProvider = ({
       setRecurringOrdersTab,
       latestSourceBalance,
       quoteParams,
+      setQuoteParams,
     }),
     [
       selectedTab,
@@ -109,7 +84,7 @@ export const BridgeSessionProvider = ({
 
   return (
     <BridgeSessionContext.Provider value={value}>
-      <SwapsFeatureIdProvider featureId={featureId}>
+      <SwapsFeatureIdProvider featureId={featureIdToUse}>
         {children}
       </SwapsFeatureIdProvider>
     </BridgeSessionContext.Provider>

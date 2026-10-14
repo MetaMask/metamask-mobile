@@ -409,7 +409,7 @@ describe('useDepositPrefillAmount', () => {
       const { result } = runHook();
 
       expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
-      expect(result.current.prefillAmount).toBe('1000');
+      expect(result.current.prefillAmount).toBe('500');
     });
 
     it('does not apply the money-account A/B gate for non-deposit transaction types', () => {
@@ -431,6 +431,25 @@ describe('useDepositPrefillAmount', () => {
   });
 
   describe('prefillAmount computation', () => {
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
+    ])('computes 50% for stablecoin %s transactions', (transactionType) => {
+      setupMocks({
+        transactionMeta: makeTransactionMeta({ type: transactionType }),
+        stablecoin: true,
+        payToken: makePayToken({ balanceUsd: '1000' }),
+        prefilledAmountDefault: { enabled: true },
+        prefilledAmountOverrides: {},
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.prefillAmount).toBe('500');
+      expect(result.current.percentage).toBe(50);
+    });
+
     it('computes 100% for stablecoin', () => {
       setupMocks({
         stablecoin: true,

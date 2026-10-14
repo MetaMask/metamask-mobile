@@ -29,6 +29,7 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
 }));
 
 const mockTrack = jest.fn();
+const sheetAnalyticsContext = { source: 'profile_position' as const };
 
 jest.mock('../../Views/SocialLeaderboard/analytics', () => {
   const actual = jest.requireActual('../../Views/SocialLeaderboard/analytics');
@@ -38,7 +39,7 @@ jest.mock('../../Views/SocialLeaderboard/analytics', () => {
   };
 });
 
-// Captures the onOpenBottomSheet callback registered by QuickBuyRootInner.
+// Captures the onOpen prop passed to the sheet by QuickBuyRootInner.
 // Call storedOnOpenCallback() inside act() after render to simulate the sheet
 // finishing its open animation and make isContentReady become true.
 let storedOnOpenCallback: (() => void) | undefined;
@@ -56,16 +57,17 @@ jest.mock('@metamask/design-system-react-native', () => {
         {
           children,
           onClose,
+          onOpen,
         }: {
           children: unknown;
           onClose?: () => void;
+          onOpen?: () => void;
         },
         ref: unknown,
       ) => {
+        storedOnOpenCallback = onOpen;
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: (cb: () => void) => {
-            storedOnOpenCallback = cb;
-          },
+          onOpenBottomSheet: jest.fn(),
           onCloseBottomSheet: (cb?: () => void) => cb?.(),
         }));
         return ReactMock.createElement(
@@ -194,6 +196,15 @@ jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+jest.mock('../Bridge/providers/BridgeSessionProvider', () => ({
+  BridgeSessionProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+jest.mock('../Bridge/providers/SwapQuotesProvider', () => ({
+  SwapQuotesProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 const mockCreateRef = () => ({ current: null });
 
 const buildHookResult = (
@@ -238,9 +249,7 @@ const buildHookResult = (
   setSelectedQuoteRequestId: jest.fn(),
   handleSelectQuote: jest.fn(),
   quotesLastFetchedAt: null,
-  refreshCount: 0,
   quoteRefreshRateMs: 30000,
-  maxRefreshCount: 5,
   refetchQuotes: jest.fn(),
   isHardwareSolanaBlocked: false,
   priceImpactViewData: {
@@ -341,6 +350,7 @@ describe('QuickBuy.Root', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
 
@@ -356,6 +366,7 @@ describe('QuickBuy.Root', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
 
@@ -373,6 +384,7 @@ describe('QuickBuy.Root', () => {
           )}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
 
@@ -390,6 +402,7 @@ describe('QuickBuy.Root', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
 
@@ -407,6 +420,7 @@ describe('QuickBuy.Root', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
       act(() => {
@@ -432,6 +446,7 @@ describe('QuickBuy.Root', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
       act(() => {
@@ -451,6 +466,7 @@ describe('QuickBuy.Root', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
       act(() => {
@@ -470,6 +486,7 @@ describe('QuickBuy.Root', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
       act(() => {
@@ -491,6 +508,7 @@ describe('QuickBuy.Root', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         />,
       );
       act(() => {

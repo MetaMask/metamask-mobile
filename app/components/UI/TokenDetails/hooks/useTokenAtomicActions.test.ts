@@ -922,12 +922,12 @@ describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => 
       }),
     );
 
-    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
-      expect.objectContaining({
-        location: 'TrendingExplore',
-        skipLocationUpdate: false,
-      }),
-    );
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      location: 'TrendingExplore',
+      skipLocationUpdate: false,
+      sourcePage: 'MainView',
+      transactionActiveAbTests: undefined,
+    });
   });
 
   it('uses TrendingExplore location when token.source is ExploreSearch', () => {
@@ -941,12 +941,12 @@ describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => 
       }),
     );
 
-    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
-      expect.objectContaining({
-        location: 'TrendingExplore',
-        skipLocationUpdate: false,
-      }),
-    );
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      location: 'TrendingExplore',
+      skipLocationUpdate: false,
+      sourcePage: 'MainView',
+      transactionActiveAbTests: undefined,
+    });
   });
 
   it('uses TokenView location when token.source is not from Explore', () => {
@@ -960,12 +960,12 @@ describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => 
       }),
     );
 
-    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
-      expect.objectContaining({
-        location: 'TokenView',
-        skipLocationUpdate: false,
-      }),
-    );
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      location: 'TokenView',
+      skipLocationUpdate: false,
+      sourcePage: 'MainView',
+      transactionActiveAbTests: undefined,
+    });
   });
 
   it('skips location update when opened from the bridge asset picker', () => {
@@ -979,12 +979,12 @@ describe('useTokenAtomicActions - useHandleOnSwap explore swap location', () => 
       }),
     );
 
-    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
-      expect.objectContaining({
-        location: 'TokenView',
-        skipLocationUpdate: true,
-      }),
-    );
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      location: 'TokenView',
+      skipLocationUpdate: true,
+      sourcePage: 'MainView',
+      transactionActiveAbTests: undefined,
+    });
   });
 });
 

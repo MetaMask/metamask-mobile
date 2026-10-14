@@ -131,6 +131,7 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
         traderAddress: item.traderAddress,
         source: 'trader_feed',
         originalEntryPoint: 'trader_feed',
+        isSocialV1: true,
       });
     },
     [navigation],

@@ -1,5 +1,7 @@
 import { handleSwapUrl } from '../handleSwapUrl';
 import NavigationService from '../../../../NavigationService';
+import ReduxService from '../../../../redux/ReduxService';
+import { resetBridgeState } from '../../../../redux/slices/bridge';
 import { BridgeViewMode } from '../../../../../components/UI/Bridge/types';
 import { fetchAssetMetadata } from '../../../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -48,6 +50,9 @@ jest.mock('../../../../Engine', () => ({
         multichainNetworkConfigurationsByChainId: {},
       },
     },
+    BridgeController: {
+      resetState: jest.fn(),
+    },
   },
 }));
 
@@ -65,9 +70,20 @@ const mockEngine = jest.requireMock('../../../../Engine') as {
         multichainNetworkConfigurationsByChainId: Record<string, unknown>;
       };
     };
+    BridgeController: {
+      resetState: jest.Mock;
+    };
   };
 };
 const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
+const mockDispatch = jest.fn();
+const mockResetBridgeControllerState = mockEngine.context.BridgeController
+  .resetState as jest.Mock;
+// @ts-expect-error just for testing
+ReduxService.store = {
+  dispatch: mockDispatch,
+  getState: jest.fn(),
+};
 const mockFetchAssetMetadata = fetchAssetMetadata as jest.Mock;
 const mockGetNetworkConfigurationByChainId =
   mockEngine.context.NetworkController.getNetworkConfigurationByChainId;
@@ -146,6 +162,37 @@ describe('handleSwapUrl', () => {
       }
       return undefined;
     });
+  });
+
+  it('clears the bridge session before applying swap deeplink params', async () => {
+    const swapPath =
+      'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockDispatch).toHaveBeenCalledWith(resetBridgeState());
+    expect(mockResetBridgeControllerState).toHaveBeenCalledTimes(1);
+    expect(mockDispatch.mock.invocationCallOrder[0]).toBeLessThan(
+      mockNavigate.mock.invocationCallOrder[0],
+    );
+    expect(
+      mockResetBridgeControllerState.mock.invocationCallOrder[0],
+    ).toBeLessThan(mockNavigate.mock.invocationCallOrder[0]);
+  });
+
+  it('clears the bridge session before the fallback swap screen opens', async () => {
+    mockFetchAssetMetadata.mockRejectedValue(new Error('API Error'));
+
+    await handleSwapUrl({
+      swapPath:
+        'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(resetBridgeState());
+    expect(mockResetBridgeControllerState).toHaveBeenCalledTimes(1);
+    expect(mockDispatch.mock.invocationCallOrder[0]).toBeLessThan(
+      mockNavigate.mock.invocationCallOrder[0],
+    );
   });
 
   it('navigates to Bridge view with processed tokens from valid CAIP-19 parameters', async () => {

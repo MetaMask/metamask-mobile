@@ -138,7 +138,7 @@ describe('Engine', () => {
     await EngineClass.instance?.destroyEngineInstance();
   });
 
-  it('should expose an API', () => {
+  it('exposes an API', () => {
     const engine = Engine.init(TEST_ANALYTICS_ID, {});
     expect(engine.context).toHaveProperty('AccountTrackerController');
     expect(engine.context).toHaveProperty('AddressBookController');
@@ -180,6 +180,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('ConnectivityController');
     expect(engine.context).toHaveProperty('SubscriptionController');
     expect(engine.context).toHaveProperty('SubscriptionService');
+    expect(engine.context).toHaveProperty('SubscriptionDelegationService');
     expect(engine.context).toHaveProperty('ShieldController');
     expect(engine.context).toHaveProperty('ClaimsController');
     expect(engine.context).toHaveProperty('AiDigestController');

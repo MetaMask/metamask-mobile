@@ -576,6 +576,34 @@ describe('usePerpsHomeActions', () => {
       });
     });
 
+    it('does not report user-rejected withdrawals to Sentry', async () => {
+      mockWithdrawWithConfirmation.mockRejectedValueOnce(
+        new Error('MetaMask Tx Signature: User denied transaction signature.'),
+      );
+
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('does not report user-rejected withdrawals (code 4001) to Sentry', async () => {
+      mockWithdrawWithConfirmation.mockRejectedValueOnce(
+        Object.assign(new Error('Rejected'), { code: 4001 }),
+      );
+
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
     it('resets isProcessing after completion', async () => {
       const { result } = renderHook(() => usePerpsHomeActions());
 

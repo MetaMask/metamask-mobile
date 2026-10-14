@@ -47,12 +47,21 @@ jest.mock('../../../UI/SocialFeed/utils/formatters', () => ({
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+let mockRouteParams: unknown;
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockCreateSwapComment = jest.fn();
 const mockInvalidateQueries = jest.fn().mockResolvedValue(undefined);
 const mockShowToast = jest.fn();
 const mockToastRef = {
   current: { showToast: mockShowToast, closeToast: jest.fn() },
+};
+const mockUseMyProfile = jest.fn();
+const linkedProfile = {
+  profileId: 'current-user',
+  displayName: 'Giga Whale',
+  handle: 'giga-whale',
+  shareUrl: 'https://metamask.io/social/giga-whale',
+  linkedAccountAddress: '0x1111111111111111111111111111111111111111',
 };
 
 const openSpot: Position = {
@@ -83,21 +92,12 @@ jest.mock('@react-navigation/native', () => {
       isFocused: jest.fn(() => true),
       addListener: jest.fn(() => jest.fn()),
     }),
+    useRoute: () => ({ params: mockRouteParams }),
   };
 });
 
 jest.mock('../MyProfileView/hooks', () => ({
-  useMyProfile: () => ({
-    profile: {
-      profileId: 'current-user',
-      displayName: 'Giga Whale',
-      handle: 'giga-whale',
-      shareUrl: 'https://metamask.io/social/giga-whale',
-    },
-    isLoading: false,
-    error: null,
-    refresh: jest.fn(),
-  }),
+  useMyProfile: () => mockUseMyProfile(),
 }));
 
 const mockUseTraderPositions = jest.fn();
@@ -171,6 +171,13 @@ jest.mock('../../../../core/ReactQueryService', () => ({
 describe('SocialPostComposerView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = undefined;
+    mockUseMyProfile.mockReturnValue({
+      profile: linkedProfile,
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
     jest.useFakeTimers();
     resetSocialV1ComposedFeedStore();
     mockCreateSwapComment.mockResolvedValue({
@@ -184,6 +191,8 @@ describe('SocialPostComposerView', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetch,
     });
   });
@@ -455,5 +464,98 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.getByTestId(SharePositionBottomSheetSelectorsIDs.SHEET),
     ).toBeOnTheScreen();
+  });
+
+  it('closes when opened without a linked wallet or tradeInFlight', () => {
+    mockUseMyProfile.mockReturnValue({
+      profile: { ...linkedProfile, linkedAccountAddress: undefined },
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('stays open for tradeInFlight when the linked wallet is missing', () => {
+    mockUseMyProfile.mockReturnValue({
+      profile: { ...linkedProfile, linkedAccountAddress: undefined },
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    mockRouteParams = {
+      tradeInFlight: {
+        transactionHash: '0xabc',
+        chain: 'base',
+        tokenAddress: '0xpump',
+      },
+      preview: {
+        tokenSymbol: 'PUMP',
+        tokenAddress: '0xpump',
+        chain: 'base',
+        side: 'buy',
+      },
+    };
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeEnabled();
+  });
+
+  it('posts tradeInFlight without a position picker or trending overlay', async () => {
+    mockRouteParams = {
+      tradeInFlight: {
+        transactionHash: '0xabc',
+        chain: 'base',
+        tokenAddress: '0xpump',
+      },
+      preview: {
+        tokenSymbol: 'PUMP',
+        tokenAddress: '0xpump',
+        chain: 'base',
+        side: 'buy',
+        costLabel: '$329.47',
+      },
+    };
+
+    renderWithProvider(
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <SocialPostComposerView />
+      </ToastContext.Provider>,
+    );
+
+    expect(
+      screen.queryByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeEnabled();
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockCreateSwapComment).toHaveBeenCalledWith({
+        commentText: '',
+        tradeInFlight: {
+          transactionHash: '0xabc',
+          chain: 'base',
+          tokenAddress: '0xpump',
+        },
+        source: 'metamask-mobile',
+      });
+    });
+
+    expect(getSocialV1PendingPost()).toBeNull();
+    expect(getSocialV1ComposedPosts()).toHaveLength(0);
+    expect(mockShowToast).toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalled();
   });
 });

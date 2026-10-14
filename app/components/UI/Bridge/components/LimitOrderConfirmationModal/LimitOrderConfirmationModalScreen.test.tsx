@@ -10,8 +10,11 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { merge } from 'lodash';
 import { createBridgeTestState } from '../../testUtils';
 import { setLimitOrderMarketComparison } from '../../../../../core/redux/slices/bridge';
+import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
+import { useSentinelFeeTokenValidation } from '../../hooks/useSentinelFeeTokenValidation';
+import { evmAccountAddress } from '../../_mocks_/initialState';
 import {
   LimitOrderExecutionType,
   LimitOrderPriceComparisonDirection,
@@ -43,8 +46,16 @@ jest.mock('../../hooks/useEIP7702UpgradeFee', () => ({
   useEIP7702UpgradeFee: jest.fn(),
 }));
 
+jest.mock('../../hooks/useAutoUpgradeEIP7702Account', () => ({
+  useAutoUpgradeEIP7702Account: jest.fn(),
+}));
+
 jest.mock('../../hooks/useFiatToUsdRate', () => ({
   useFiatToUsdRate: jest.fn(),
+}));
+
+jest.mock('../../hooks/useSentinelFeeTokenValidation', () => ({
+  useSentinelFeeTokenValidation: jest.fn(),
 }));
 
 jest.mock('../../api/limitOrders/getDelegations', () => ({
@@ -89,8 +100,15 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
+const mockUseAutoUpgradeEIP7702Account = jest.mocked(
+  useAutoUpgradeEIP7702Account,
+);
+const mockAutoUpgradeEIP7702Account = jest.fn();
 const mockUseEIP7702UpgradeFee = jest.mocked(useEIP7702UpgradeFee);
 const mockUseFiatToUsdRate = jest.mocked(useFiatToUsdRate);
+const mockUseSentinelFeeTokenValidation = jest.mocked(
+  useSentinelFeeTokenValidation,
+);
 const mockUseFetchLimitOrdersDelegations = jest.mocked(
   useFetchLimitOrdersDelegations,
 );
@@ -214,8 +232,19 @@ describe('LimitOrderConfirmationModalScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue(mockParams);
+    mockAutoUpgradeEIP7702Account.mockResolvedValue(undefined);
+    mockUseAutoUpgradeEIP7702Account.mockReturnValue({
+      autoUpgradeEIP7702Account: mockAutoUpgradeEIP7702Account,
+      getUpgradeStatus: jest
+        .fn()
+        .mockResolvedValue({ isUpgradeRequired: false }),
+    });
     // The display currency is USD unless a test says otherwise.
     mockUseFiatToUsdRate.mockReturnValue(1);
+    mockUseSentinelFeeTokenValidation.mockReturnValue({
+      isValid: true,
+      retry: jest.fn(),
+    });
     mockUseEIP7702UpgradeFee.mockReturnValue({
       status: 'ready',
       displayFee: '$1.69',
@@ -233,6 +262,25 @@ describe('LimitOrderConfirmationModalScreen', () => {
       order: { id: '2421deda-7395-4ec9-82b8-3384aa7320e4' },
     });
     mockUseCreateLimitOrder.mockReturnValue(mockCreateLimitOrder);
+  });
+
+  it('blocks confirmation for an unSentinel fee-token pair', () => {
+    mockUseSentinelFeeTokenValidation.mockReturnValue({
+      isValid: false,
+      reason: 'unsupported-pair',
+      retry: jest.fn(),
+    });
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    expect(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+    expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
   });
 
   describe('USD price notice', () => {
@@ -450,6 +498,83 @@ describe('LimitOrderConfirmationModalScreen', () => {
     await waitFor(() => {
       expect(mockFetchLimitOrdersDelegations).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('configures account auto-upgrade for the source wallet and chain', () => {
+    renderScreen(createBridgeTestState({}));
+
+    expect(mockUseAutoUpgradeEIP7702Account).toHaveBeenCalledWith({
+      address: evmAccountAddress,
+      chainId: mockSourceToken.chainId,
+    });
+  });
+
+  it('waits for account auto-upgrade before fetching delegations', async () => {
+    let resolveUpgrade: () => void = () => undefined;
+    mockAutoUpgradeEIP7702Account.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveUpgrade = resolve;
+        }),
+    );
+    const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    expect(mockAutoUpgradeEIP7702Account).toHaveBeenCalledTimes(1);
+    expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
+
+    resolveUpgrade();
+
+    await waitFor(() => {
+      expect(mockFetchLimitOrdersDelegations).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('displays an error and stops order creation when account auto-upgrade fails', async () => {
+    mockAutoUpgradeEIP7702Account.mockRejectedValue(
+      new Error('Upgrade failed'),
+    );
+    const { getByTestId, getByText } = renderScreen(createBridgeTestState({}));
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        getByText(
+          "Could not create an order: the account couldn't be upgraded.",
+        ),
+      ).toBeOnTheScreen();
+    });
+    expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
+    expect(mockSignLimitOrderDelegations).not.toHaveBeenCalled();
+    expect(mockCreateLimitOrder).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockToast).not.toHaveBeenCalled();
+  });
+
+  it('retries account auto-upgrade before creating the order', async () => {
+    mockAutoUpgradeEIP7702Account.mockRejectedValueOnce(
+      new Error('Upgrade failed'),
+    );
+    const { getByTestId, getByText } = renderScreen(createBridgeTestState({}));
+    const primaryButton = getByTestId(
+      LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON,
+    );
+
+    fireEvent.press(primaryButton);
+    await waitFor(() => expect(getByText('Try again')).toBeOnTheScreen());
+
+    fireEvent.press(primaryButton);
+
+    await waitFor(() => {
+      expect(mockCreateLimitOrder).toHaveBeenCalledTimes(1);
+    });
+    expect(mockAutoUpgradeEIP7702Account).toHaveBeenCalledTimes(2);
   });
 
   it('creates the order from the delegations response, the trigger and the live cost tolerance', async () => {

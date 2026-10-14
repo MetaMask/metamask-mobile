@@ -23,6 +23,7 @@ export interface TraderPositionQuickBuyProps {
   originalEntryPoint?: QuickBuyOriginalEntryPoint;
   /** `true` when the trader has closed the position (sell); `false` when still open (buy). */
   isTraderPositionClosed?: boolean;
+  postSwapShare?: boolean;
 }
 
 /**
@@ -36,9 +37,10 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
   traderAddress,
   marketCap,
   tokenPriceFiat,
-  source,
+  source = 'profile_position',
   originalEntryPoint,
   isTraderPositionClosed,
+  postSwapShare,
 }) => {
   // Stabilise the derived `target` reference so it doesn't destabilise the
   // `destToken` memo inside `useQuickBuySetup` (which would in turn re-trigger
@@ -53,7 +55,7 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
     [position],
   ); // `null` when position is null OR when its chain name has no CAIP mapping
 
-  const analyticsContext = useMemo((): QuickBuyAnalyticsContext | undefined => {
+  const analyticsContext = useMemo((): QuickBuyAnalyticsContext => {
     const traderTradeType: QuickBuyAnalyticsContext['traderTradeType'] =
       isTraderPositionClosed === undefined
         ? undefined
@@ -76,7 +78,7 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
           originalEntryPoint,
           traderTradeType,
         }
-      : undefined;
+      : { source };
   }, [
     traderAddress,
     marketCap,
@@ -93,6 +95,7 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
       onClose={onClose}
       features={TOP_TRADERS_QUICK_BUY_FEATURES}
       analyticsContext={analyticsContext}
+      postSwapShare={postSwapShare}
     />
   );
 };

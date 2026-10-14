@@ -25,6 +25,7 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
 }));
 
 const mockTrack = jest.fn();
+const sheetAnalyticsContext = { source: 'market_insights' as const };
 
 jest.mock('../../Views/SocialLeaderboard/analytics', () => {
   const actual = jest.requireActual('../../Views/SocialLeaderboard/analytics');
@@ -34,8 +35,18 @@ jest.mock('../../Views/SocialLeaderboard/analytics', () => {
   };
 });
 
+jest.mock('../Bridge/providers/BridgeSessionProvider', () => ({
+  BridgeSessionProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+jest.mock('../Bridge/providers/SwapQuotesProvider', () => ({
+  SwapQuotesProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 let storedOnOpenCallback: (() => void) | undefined;
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
+const mockOnOpenBottomSheet = jest.fn();
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -49,16 +60,17 @@ jest.mock('@metamask/design-system-react-native', () => {
         {
           children,
           onClose,
+          onOpen,
         }: {
           children: unknown;
           onClose?: () => void;
+          onOpen?: () => void;
         },
         ref: unknown,
       ) => {
+        storedOnOpenCallback = onOpen;
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: (cb: () => void) => {
-            storedOnOpenCallback = cb;
-          },
+          onOpenBottomSheet: mockOnOpenBottomSheet,
           onCloseBottomSheet: mockOnCloseBottomSheet,
         }));
         return ReactMock.createElement(
@@ -207,9 +219,7 @@ const buildHookResult = (
   setSelectedQuoteRequestId: jest.fn(),
   handleSelectQuote: jest.fn(),
   quotesLastFetchedAt: null,
-  refreshCount: 0,
   quoteRefreshRateMs: 30000,
-  maxRefreshCount: 5,
   refetchQuotes: jest.fn(),
   isHardwareSolanaBlocked: false,
   priceImpactViewData: {
@@ -317,6 +327,7 @@ describe('QuickBuyRoot', () => {
         target={positionToQuickBuyTarget(createPosition())}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
         onClose={jest.fn()}
+        analyticsContext={sheetAnalyticsContext}
       />,
       { state: { bridge: { tokenSelectorNetworkFilter: 'eip155:137' } } },
     );
@@ -336,6 +347,7 @@ describe('QuickBuyRoot', () => {
         target={positionToQuickBuyTarget(createPosition())}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
         onClose={jest.fn()}
+        analyticsContext={sheetAnalyticsContext}
       />,
     );
 
@@ -346,6 +358,7 @@ describe('QuickBuyRoot', () => {
     expect(screen.getByTestId('mock-toolbar')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-amount-section')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-action-footer')).toBeOnTheScreen();
+    expect(mockOnOpenBottomSheet).not.toHaveBeenCalled();
   });
 
   it('fires SOCIAL_QUICK_BUY_SHEET_VIEWED when the sheet opens with a source', () => {
@@ -397,13 +410,14 @@ describe('QuickBuyRoot', () => {
     );
   });
 
-  it('does not fire SOCIAL_QUICK_BUY_SHEET_VIEWED when analytics source is absent', () => {
+  it('does not fire SOCIAL_QUICK_BUY_SHEET_VIEWED when the target token symbol is empty', () => {
     renderWithProvider(
       <QuickBuyRoot
         isVisible
-        target={positionToQuickBuyTarget(createPosition())}
+        target={positionToQuickBuyTarget(createPosition({ tokenSymbol: '' }))}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
         onClose={jest.fn()}
+        analyticsContext={sheetAnalyticsContext}
       />,
     );
 
@@ -463,6 +477,7 @@ describe('QuickBuyRoot', () => {
         target={positionToQuickBuyTarget(createPosition())}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
         onClose={jest.fn()}
+        analyticsContext={sheetAnalyticsContext}
       >
         <MockPriceImpactConfirmScreen />
       </QuickBuyRoot>,
@@ -487,6 +502,7 @@ describe('QuickBuyRoot', () => {
         target={positionToQuickBuyTarget(createPosition())}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
         onClose={jest.fn()}
+        analyticsContext={sheetAnalyticsContext}
       />,
     );
 
@@ -507,6 +523,7 @@ describe('QuickBuyRoot', () => {
         target={positionToQuickBuyTarget(createPosition())}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
         onClose={jest.fn()}
+        analyticsContext={sheetAnalyticsContext}
       />,
     );
     expect(toJSON()).toBeNull();
@@ -519,6 +536,7 @@ describe('QuickBuyRoot', () => {
         target={null}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
         onClose={jest.fn()}
+        analyticsContext={sheetAnalyticsContext}
       />,
     );
     expect(toJSON()).toBeNull();
@@ -538,6 +556,7 @@ describe('QuickBuyRoot', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={onClose}
+          analyticsContext={sheetAnalyticsContext}
         >
           <CloseProbe />
         </QuickBuyRoot>,
@@ -561,6 +580,7 @@ describe('QuickBuyRoot', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         >
           <CloseProbe />
         </QuickBuyRoot>,
@@ -595,6 +615,7 @@ describe('QuickBuyRoot', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         >
           <NavigationProbe />
         </QuickBuyRoot>,

@@ -41,13 +41,20 @@ export interface GetPositionsParams {
   marketId?: string;
   outcomeId?: string;
   limit?: number;
-  offset?: number;
 }
 
 export interface GetActivityParams {
   address?: string;
   limit?: number;
-  offset?: number;
+  /** Opaque Polymarket Data API v2 cursor from a previous page's `next_cursor`. */
+  cursor?: string;
+}
+
+/** One page of Predict activity, following the Polymarket Data API v2 envelope. */
+export interface PredictActivityPage {
+  activities: PredictActivity[];
+  /** Pass to the next `getActivity` call; absent or null when there are no more pages. */
+  nextCursor?: string;
 }
 
 export enum PredictMarketStatus {
@@ -622,8 +629,10 @@ export type Result<T = void> =
 
 export interface UnrealizedPnL {
   user: string;
-  cashUpnl: number;
-  percentUpnl: number;
+  /** Latest cumulative unrealized P&L from the Polymarket PnL series. Stays missing (not zero) when the series has no value. */
+  cashUpnl?: number;
+  /** Derived from open positions: (sum current value − sum entry cost) / sum entry cost. */
+  percentUpnl?: number;
 }
 
 export type PredictClaim = {

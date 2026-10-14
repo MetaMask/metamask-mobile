@@ -94,6 +94,18 @@ const waitForDeferredOrderData = async () => {
   });
 };
 
+const waitForEnabledPlaceOrderButton = async (
+  testId: string = PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+) => {
+  await waitFor(
+    () => {
+      expect(screen.getByTestId(testId)).not.toBeDisabled();
+    },
+    { timeout: TIMEOUT_MS },
+  );
+  return screen.getByTestId(testId);
+};
+
 describe('PerpsOrderView', () => {
   const originalRequestAnimationFrame = global.requestAnimationFrame;
 
@@ -177,12 +189,7 @@ describe('PerpsOrderView', () => {
       ).toHaveTextContent('$0.06');
     });
 
-    const placeOrderButton = await screen.findByTestId(
-      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-    );
-    await waitFor(() => {
-      expect(placeOrderButton).not.toBeDisabled();
-    });
+    const placeOrderButton = await waitForEnabledPlaceOrderButton();
     await act(async () => {
       fireEvent.press(placeOrderButton);
     });
@@ -604,6 +611,45 @@ describe('PerpsOrderView', () => {
         resolveOrder({ success: true });
       });
       placeOrder.mockResolvedValue({ success: true });
+    });
+
+    it('places the order and stays off the market page when stayOnCurrentScreen is set', async () => {
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      placeOrder.mockResolvedValue({ success: true });
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: {
+          ...tradeSheetParams,
+          stayOnCurrentScreen: true,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+      const submitButton = await findEnabledSubmitButton();
+
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      await waitFor(() => {
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            symbol: 'ETH',
+            isBuy: true,
+            orderType: 'market',
+          }),
+        );
+      });
+      expect(
+        screen.queryByTestId(`route-${Routes.PERPS.MARKET_DETAILS}`),
+      ).toBeNull();
     });
 
     // Dismissing the sheet runs its exit animation and `onClose` before the

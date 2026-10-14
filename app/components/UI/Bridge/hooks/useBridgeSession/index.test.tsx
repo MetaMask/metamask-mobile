@@ -4,10 +4,7 @@ import { act, render, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { FeatureId } from '@metamask/bridge-controller';
 
-import {
-  selectBridgeBalanceRefreshKey,
-  selectSourceToken,
-} from '../../../../../core/redux/slices/bridge';
+import { selectBridgeBalanceRefreshKey } from '../../../../../core/redux/slices/bridge';
 import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { BridgeSessionProvider } from '../../providers/BridgeSessionProvider';
 import { useLatestBalance } from '../useLatestBalance';
@@ -37,11 +34,8 @@ const mockLatestBalance = {
   atomicBalance: { toString: () => '1000000000000000000' },
 } as ReturnType<typeof useLatestBalance>;
 
-const mockSourceTokenSelectors = () => {
+const mockBalanceRefreshKey = () => {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectSourceToken) {
-      return mockSourceToken;
-    }
     if (selector === selectBridgeBalanceRefreshKey) {
       return 3;
     }
@@ -101,15 +95,19 @@ describe('useBridgeSession', () => {
     });
 
     it('calls useLatestBalance with source token fields and the rendered tab feature id', () => {
-      mockSourceTokenSelectors();
+      mockBalanceRefreshKey();
 
-      renderHook(() => useBridgeSession(), {
+      const { result } = renderHook(() => useBridgeSession(), {
         wrapper: ({ children }) => (
           <BridgeSessionProvider>{children}</BridgeSessionProvider>
         ),
       });
 
-      expect(mockUseLatestBalance).toHaveBeenCalledWith(
+      act(() => {
+        result.current.setQuoteParams({ srcToken: mockSourceToken });
+      });
+
+      expect(mockUseLatestBalance).toHaveBeenLastCalledWith(
         {
           address: mockSourceToken.address,
           decimals: mockSourceToken.decimals,
@@ -122,7 +120,7 @@ describe('useBridgeSession', () => {
     });
 
     it('exposes latestSourceBalance from useLatestBalance', () => {
-      mockSourceTokenSelectors();
+      mockBalanceRefreshKey();
       mockUseLatestBalance.mockReturnValue(mockLatestBalance);
 
       const { result } = renderHook(() => useBridgeSession(), {

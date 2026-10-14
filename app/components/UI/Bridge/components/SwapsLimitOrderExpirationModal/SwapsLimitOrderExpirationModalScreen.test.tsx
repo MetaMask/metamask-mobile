@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES } from '../../constants/limitOrders';
 import { SwapsLimitOrderExpirationModalScreen } from './SwapsLimitOrderExpirationModalScreen';
@@ -53,56 +54,63 @@ jest.mock('@metamask/design-system-react-native', () => {
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
 
 describe('SwapsLimitOrderExpirationModalScreen', () => {
-  const mockOnConfirm = jest.fn();
+  const mockOnSelect = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue({
       selectedMinutes: SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
-      onConfirm: mockOnConfirm,
+      onSelect: mockOnSelect,
     });
   });
 
-  it('confirms the initial selection when confirm is pressed without changing options', () => {
-    const { getByTestId } = render(<SwapsLimitOrderExpirationModalScreen />);
-
-    fireEvent.press(
-      getByTestId(SwapsLimitOrderExpirationModalSelectorsIDs.CONFIRM_BUTTON),
+  it('does not render a confirm button', () => {
+    const { getByTestId, queryByText } = render(
+      <SwapsLimitOrderExpirationModalScreen />,
     );
 
-    expect(mockOnConfirm).toHaveBeenCalledTimes(1);
-    expect(mockOnConfirm).toHaveBeenCalledWith(
-      SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
-    );
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(
+      getByTestId(SwapsLimitOrderExpirationModalSelectorsIDs.SHEET),
+    ).toBeOnTheScreen();
+    expect(queryByText(strings('bridge.confirm'))).not.toBeOnTheScreen();
   });
 
-  it('confirms the newly selected expiration minutes', () => {
-    const { getByTestId } = render(<SwapsLimitOrderExpirationModalScreen />);
+  describe('selecting an option', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
 
-    fireEvent.press(
-      getByTestId(SwapsLimitOrderExpirationModalSelectorsIDs.OPTION(10080)),
-    );
-    fireEvent.press(
-      getByTestId(SwapsLimitOrderExpirationModalSelectorsIDs.CONFIRM_BUTTON),
-    );
+    afterEach(() => {
+      jest.useRealTimers();
+    });
 
-    expect(mockOnConfirm).toHaveBeenCalledTimes(1);
-    expect(mockOnConfirm).toHaveBeenCalledWith(10080);
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    it('applies the selection immediately and closes the sheet after 250ms', () => {
+      const { getByTestId } = render(<SwapsLimitOrderExpirationModalScreen />);
+
+      fireEvent.press(
+        getByTestId(SwapsLimitOrderExpirationModalSelectorsIDs.OPTION(10080)),
+      );
+
+      expect(mockOnSelect).toHaveBeenCalledTimes(1);
+      expect(mockOnSelect).toHaveBeenCalledWith(10080);
+      expect(mockGoBack).not.toHaveBeenCalled();
+
+      act(() => {
+        jest.advanceTimersByTime(250);
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
   });
 
-  it('does not confirm when the sheet is closed', () => {
+  it('closes the sheet without changing the selection when close is pressed', () => {
     const { getByTestId } = render(<SwapsLimitOrderExpirationModalScreen />);
 
-    fireEvent.press(
-      getByTestId(SwapsLimitOrderExpirationModalSelectorsIDs.OPTION(10080)),
-    );
     fireEvent.press(
       getByTestId(SwapsLimitOrderExpirationModalSelectorsIDs.CLOSE_BUTTON),
     );
 
-    expect(mockOnConfirm).not.toHaveBeenCalled();
+    expect(mockOnSelect).not.toHaveBeenCalled();
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });

@@ -5,4 +5,5 @@ export interface TokenAmountValueProps {
   token?: BridgeToken;
   withNetworkBadge?: boolean;
   error?: boolean;
+  showTokenSymbol?: boolean;
 }
