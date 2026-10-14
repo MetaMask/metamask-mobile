@@ -9080,7 +9080,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/abi-utils@npm:^2.0.3":
+"@metamask/abi-utils@npm:^2.0.3, @metamask/abi-utils@npm:^2.0.4":
   version: 2.0.4
   resolution: "@metamask/abi-utils@npm:2.0.4"
   dependencies:
@@ -11231,11 +11231,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^19.0.0":
-  version: 19.0.0
-  resolution: "@metamask/perps-controller@npm:19.0.0"
+"@metamask/perps-controller@npm:^20.1.0":
+  version: 20.1.0
+  resolution: "@metamask/perps-controller@npm:20.1.0"
   dependencies:
-    "@metamask/abi-utils": "npm:^2.0.3"
+    "@metamask/abi-utils": "npm:^2.0.4"
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/messenger": "npm:^3.0.0"
@@ -11243,9 +11243,9 @@ __metadata:
     "@metamask/utils": "npm:^12.0.0"
     "@nktkas/hyperliquid": "npm:^0.33.3"
     bignumber.js: "npm:^9.1.2"
-    reselect: "npm:^5.1.1"
+    reselect: "npm:^5.3.0"
     uuid: "npm:^11.1.1"
-  checksum: 10/71450bb2a3d9398c732e3137b9564a3465a720e6a272d88dbc74f5e7fe67214fba11b0eec3ffbccce0273dbc9f7f0669b377cd8117c24198b6680bdf76f7ee3b
+  checksum: 10/6cb74549c34dd13847af4b28c5c1c08afcae415ac3bfdc91567630db0f971275f8be99dba6385bbc2e29eb12fb9da241c9dd4809106695f9fc6656f9608666bc
   languageName: node
   linkType: hard
 
@@ -39187,7 +39187,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^29.0.1"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "npm:^19.0.0"
+    "@metamask/perps-controller": "npm:^20.1.0"
     "@metamask/phishing-controller": "npm:^17.4.1"
     "@metamask/platform-api-docs": "npm:^0.2.1"
     "@metamask/post-message-stream": "npm:^10.0.0"
@@ -47204,6 +47204,13 @@ __metadata:
   version: 5.1.1
   resolution: "reselect@npm:5.1.1"
   checksum: 10/1fdae11a39ed9c8d85a24df19517c8372ee24fefea9cce3fae9eaad8e9cefbba5a3d4940c6fe31296b6addf76e035588c55798f7e6e147e1b7c0855f119e7fa5
+  languageName: node
+  linkType: hard
+
+"reselect@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "reselect@npm:5.3.0"
+  checksum: 10/743d82c7012133d035e13343cb33e6b45c26cd0b0f95868d692ac9736973b1b8050f28938c1d36f51105926a1a947a0f56c4f52d6c66a61db4995535efb3837b
   languageName: node
   linkType: hard
 

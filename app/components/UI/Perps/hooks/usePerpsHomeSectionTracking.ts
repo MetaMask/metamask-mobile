@@ -9,17 +9,10 @@ import {
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 
 /**
- * Stable home section name, derived from the upstream SECTION_NAME enum.
- *
- * 'recently_added' and 'explore' match SECTION_NAME.RECENTLY_ADDED and
- * SECTION_NAME.EXPLORE. Those members are not in the published
- * @metamask/perps-controller yet (MetaMask/core#10824). Use the constants
- * once this app depends on a release that includes them.
+ * Stable home section name from the controller SECTION_NAME enum.
  */
 export type PerpsHomeSectionName =
-  | (typeof PERPS_EVENT_VALUE.SECTION_NAME)[keyof typeof PERPS_EVENT_VALUE.SECTION_NAME]
-  | 'recently_added'
-  | 'explore';
+  (typeof PERPS_EVENT_VALUE.SECTION_NAME)[keyof typeof PERPS_EVENT_VALUE.SECTION_NAME];
 
 /**
  * Ordered master list of all Perps home sections.
@@ -31,11 +24,11 @@ export const PERPS_HOME_SECTION_ORDER: PerpsHomeSectionName[] = [
   PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS,
   PERPS_EVENT_VALUE.SECTION_NAME.ORDERS,
   PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING,
-  'explore',
+  PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE,
   PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST,
   PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS,
   PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS,
-  'recently_added',
+  PERPS_EVENT_VALUE.SECTION_NAME.RECENTLY_ADDED,
   PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_CRYPTO,
   PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_COMMODITIES,
   PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS,

@@ -496,7 +496,7 @@ const PerpsHomeView = () => {
     if (isWhatsHappeningVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING);
     if (isExploreVisible) {
-      sections.push('explore');
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE);
     } else if (!showExploreTable) {
       if (isWatchlistVisible) {
         sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST);
@@ -526,7 +526,8 @@ const PerpsHomeView = () => {
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_FOREX);
     // Recently Added self-hides when there are no markets listed in the last
     // 30 days, or when the feature flag is off.
-    if (isRecentlyAddedVisible) sections.push('recently_added');
+    if (isRecentlyAddedVisible)
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.RECENTLY_ADDED);
     // Recent activity shows a skeleton while loading, then self-hides when empty.
     if (isLoading.activity || recentActivity.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY);
@@ -849,7 +850,7 @@ const PerpsHomeView = () => {
       {
         key: 'explore',
         visible: isExploreVisible,
-        onLayout: handleSectionLayout('explore'),
+        onLayout: handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE),
         content: (
           <PerpsExploreSection
             transactionActiveAbTests={transactionActiveAbTests}
@@ -987,7 +988,9 @@ const PerpsHomeView = () => {
         // === 0 -> null) plus the feature flag, so PerpsHomeSectionList does
         // not render an orphan divider for an empty/disabled rail.
         visible: isRecentlyAddedVisible,
-        onLayout: handleSectionLayout('recently_added'),
+        onLayout: handleSectionLayout(
+          PERPS_EVENT_VALUE.SECTION_NAME.RECENTLY_ADDED,
+        ),
         content: (
           <PerpsRecentlyAddedSection
             markets={recentlyAddedMarkets}
