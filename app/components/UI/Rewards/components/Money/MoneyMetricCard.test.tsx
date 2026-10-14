@@ -34,6 +34,7 @@ describe('MoneyMetricCard', () => {
 
     expect(getByText('Referrals')).toBeOnTheScreen();
     expect(getByText('recorded claims')).toBeOnTheScreen();
+    expect(getByText('—')).toBeOnTheScreen();
     expect(queryByText('$41.75')).not.toBeOnTheScreen();
   });
 

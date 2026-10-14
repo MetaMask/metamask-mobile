@@ -249,10 +249,14 @@ function trimTrailingSlashes(url: string): string {
 }
 
 /**
- * A `503` whose `Retry-After` is at most this is waited out once. A busy pod
- * sends 2. A JWKS outage can send up to 30, which is left to the caller.
+ * A `503` or `429` whose `Retry-After` is at most this is waited out once. A
+ * busy pod sends 2. A JWKS outage can send up to 30, which is left to the
+ * caller.
  */
 const BUSY_READ_RETRY_MAX_SECONDS = 5;
+
+/** Spread retries so a shed wave does not return in the same instant. */
+const BUSY_RETRY_JITTER_MS = 1000;
 
 /** `Retry-After` is delta-seconds. An HTTP-date is accepted too. */
 function retryAfterSeconds(header: string | null): number | undefined {
@@ -268,6 +272,64 @@ function retryAfterSeconds(header: string | null): number | undefined {
     return undefined;
   }
   return Math.max(1, Math.ceil((at - Date.now()) / 1000));
+}
+
+/**
+ * Wait for a short busy refusal, plus up to a second of jitter. `undefined`
+ * means the header was missing: jitter alone, so a registration the server
+ * shed with no `Retry-After` still waits before its one retry.
+ */
+function busyRetryDelayMs(waitSeconds: number | undefined): number {
+  const baseMs = waitSeconds === undefined ? 0 : waitSeconds * 1000;
+  return baseMs + Math.floor(Math.random() * (BUSY_RETRY_JITTER_MS + 1));
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+/**
+ * A `503` or `429` with `Retry-After` of {@link BUSY_READ_RETRY_MAX_SECONDS}
+ * or less. Anything longer, or a missing header, is not retried here.
+ */
+function shortBusyRetrySeconds(response: Response): number | undefined {
+  if (response.ok || (response.status !== 503 && response.status !== 429)) {
+    return undefined;
+  }
+  const waitSeconds = retryAfterSeconds(
+    response.headers?.get('retry-after') ?? null,
+  );
+  if (waitSeconds === undefined || waitSeconds > BUSY_READ_RETRY_MAX_SECONDS) {
+    return undefined;
+  }
+  return waitSeconds;
+}
+
+function isServerBusyBody(bodyText: string | undefined): boolean {
+  if (!bodyText) {
+    return false;
+  }
+  try {
+    const parsed: unknown = JSON.parse(bodyText);
+    return (
+      typeof parsed === 'object' &&
+      parsed !== null &&
+      'reason' in parsed &&
+      parsed.reason === 'SERVER_BUSY'
+    );
+  } catch {
+    return false;
+  }
+}
+
+async function readBodyText(response: Response): Promise<string | undefined> {
+  try {
+    return await response.text();
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -484,7 +546,7 @@ export class RewardsMoneyDataService {
     const response = await this.#read('/referral/me');
 
     if (!response.ok) {
-      throw new Error(`Get referral me failed: ${response.status}`);
+      return this.#throwHttp(response, 'Get referral me failed');
     }
 
     return (await response.json()) as ReferralMeDto;
@@ -494,7 +556,7 @@ export class RewardsMoneyDataService {
     const response = await this.#read('/referral/me/funnel');
 
     if (!response.ok) {
-      throw new Error(`Get referral funnel failed: ${response.status}`);
+      return this.#throwHttp(response, 'Get referral funnel failed');
     }
 
     return (await response.json()) as ReferralFunnelDto;
@@ -504,7 +566,7 @@ export class RewardsMoneyDataService {
     const response = await this.#read('/referral/me/referral-code');
 
     if (!response.ok) {
-      throw new Error(`Get referral codes failed: ${response.status}`);
+      return this.#throwHttp(response, 'Get referral codes failed');
     }
 
     return (await response.json()) as OwnReferralCodesDto;
@@ -547,10 +609,34 @@ export class RewardsMoneyDataService {
    * the referee from the bearer token, so the body carries the code alone.
    */
   async registerReferee(params: RegisterRefereeDto): Promise<void> {
-    const response = await this.#makeRequest('/wr/referral/referee', {
-      method: 'POST',
-      body: JSON.stringify({ code: params.code }),
-    });
+    const send = () =>
+      this.#makeRequest('/wr/referral/referee', {
+        method: 'POST',
+        body: JSON.stringify({ code: params.code }),
+      });
+    let response = await send();
+
+    // The server sheds this before any write. One retry cannot double-enrol.
+    // 409 and 428 are left to the caller.
+    if (response.status === 503) {
+      const bodyText = await readBodyText(response);
+      const waitSeconds = retryAfterSeconds(
+        response.headers?.get('retry-after') ?? null,
+      );
+      const withinCap =
+        waitSeconds === undefined || waitSeconds <= BUSY_READ_RETRY_MAX_SECONDS;
+      if (isServerBusyBody(bodyText) && withinCap) {
+        await delay(busyRetryDelayMs(waitSeconds));
+        response = await send();
+      } else {
+        throw new RewardsMoneyHttpError(
+          `Register referee failed: ${response.status}`,
+          response.status,
+          bodyText,
+          waitSeconds,
+        );
+      }
+    }
 
     if (!response.ok) {
       let bodyText: string | undefined;
@@ -575,7 +661,7 @@ export class RewardsMoneyDataService {
     const response = await this.#read(`/earnings/summary${query}`);
 
     if (!response.ok) {
-      throw new Error(`Get earnings summary failed: ${response.status}`);
+      return this.#throwHttp(response, 'Get earnings summary failed');
     }
 
     return (await response.json()) as EarningsSummaryDto;
@@ -603,7 +689,7 @@ export class RewardsMoneyDataService {
     const response = await this.#read(`/earnings/ledger?${params.toString()}`);
 
     if (!response.ok) {
-      throw new Error(`Get earnings ledger failed: ${response.status}`);
+      return this.#throwHttp(response, 'Get earnings ledger failed');
     }
 
     return (await response.json()) as EarningsLedgerPageDto;
@@ -637,7 +723,7 @@ export class RewardsMoneyDataService {
     );
 
     if (!response.ok) {
-      throw new Error(`Get commissions failed: ${response.status}`);
+      return this.#throwHttp(response, 'Get commissions failed');
     }
 
     return (await response.json()) as CommissionsPageDto;
@@ -659,7 +745,7 @@ export class RewardsMoneyDataService {
     );
 
     if (!response.ok) {
-      throw new Error(`Get claim history failed: ${response.status}`);
+      return this.#throwHttp(response, 'Get claim history failed');
     }
 
     return (await response.json()) as ClaimHistoryPageDto;
@@ -678,10 +764,12 @@ export class RewardsMoneyDataService {
    * @returns The rebate quote.
    */
   async getRebateQuote(body: RebateQuoteBody): Promise<RebateQuoteResponse> {
-    const response = await this.#makeRequest('/earnings/rebate/quote', {
-      method: 'POST',
-      body: JSON.stringify(body),
-    });
+    const response = await this.#requestOnce(() =>
+      this.#makeRequest('/earnings/rebate/quote', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    );
 
     if (!response.ok) {
       let bodyText = '';
@@ -718,35 +806,45 @@ export class RewardsMoneyDataService {
     const response = await this.#read(`/earnings/claim/${claimId}`);
 
     if (!response.ok) {
-      throw new Error(`Get claim by id failed: ${response.status}`);
+      return this.#throwHttp(response, 'Get claim by id failed');
     }
 
     return (await response.json()) as ClaimDto;
   }
 
   /**
-   * One idempotent GET. A `503` whose `Retry-After` is
-   * {@link BUSY_READ_RETRY_MAX_SECONDS} or less is waited out and tried once
-   * more. A `429` is not retried: its window is 30 seconds.
+   * One idempotent GET. A `503` or `429` whose `Retry-After` is
+   * {@link BUSY_READ_RETRY_MAX_SECONDS} or less is waited out, with jitter,
+   * and tried once more.
    */
   async #read(endpoint: string): Promise<Response> {
-    const response = await this.#makeRequest(endpoint, { method: 'GET' });
-    if (response.status !== 503) {
-      return response;
-    }
-    const waitSeconds = retryAfterSeconds(
-      response.headers?.get('retry-after') ?? null,
+    return this.#requestOnce(() =>
+      this.#makeRequest(endpoint, { method: 'GET' }),
     );
-    if (
-      waitSeconds === undefined ||
-      waitSeconds > BUSY_READ_RETRY_MAX_SECONDS
-    ) {
+  }
+
+  /**
+   * Runs `request` once, and once more after a short busy wait when the first
+   * answer is a `503` or `429` inside {@link BUSY_READ_RETRY_MAX_SECONDS}.
+   */
+  async #requestOnce(request: () => Promise<Response>): Promise<Response> {
+    const response = await request();
+    const waitSeconds = shortBusyRetrySeconds(response);
+    if (waitSeconds === undefined) {
       return response;
     }
-    await new Promise((resolve) => {
-      setTimeout(resolve, waitSeconds * 1000);
-    });
-    return this.#makeRequest(endpoint, { method: 'GET' });
+    await delay(busyRetryDelayMs(waitSeconds));
+    return request();
+  }
+
+  async #throwHttp(response: Response, label: string): Promise<never> {
+    const bodyText = await readBodyText(response);
+    throw new RewardsMoneyHttpError(
+      `${label}: ${response.status}`,
+      response.status,
+      bodyText,
+      retryAfterSeconds(response.headers?.get('retry-after') ?? null),
+    );
   }
 
   async #makeRequest(

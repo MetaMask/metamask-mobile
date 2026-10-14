@@ -351,7 +351,7 @@ describe('RewardsMoneyDataService', () => {
           .mockResolvedValueOnce(okJson(referralMe));
 
         const pending = service.getReferralMe();
-        await jest.advanceTimersByTimeAsync(2000);
+        await jest.advanceTimersByTimeAsync(3000);
 
         await expect(pending).resolves.toEqual(referralMe);
         expect(mockFetch).toHaveBeenCalledTimes(2);
@@ -366,10 +366,12 @@ describe('RewardsMoneyDataService', () => {
         const busy = busyReferralMe('2');
         mockFetch.mockResolvedValueOnce(busy).mockResolvedValueOnce(busy);
 
-        const pending = expect(service.getReferralMe()).rejects.toThrow(
-          'Get referral me failed: 503',
-        );
-        await jest.advanceTimersByTimeAsync(2000);
+        const pending = expect(service.getReferralMe()).rejects.toMatchObject({
+          name: 'RewardsMoneyHttpError',
+          status: 503,
+          message: 'Get referral me failed: 503',
+        });
+        await jest.advanceTimersByTimeAsync(3000);
 
         await pending;
         expect(mockFetch).toHaveBeenCalledTimes(2);
@@ -396,7 +398,7 @@ describe('RewardsMoneyDataService', () => {
           .mockResolvedValueOnce(okJson(summary));
 
         const pending = service.getEarningsSummary();
-        await jest.advanceTimersByTimeAsync(2000);
+        await jest.advanceTimersByTimeAsync(3000);
 
         await expect(pending).resolves.toEqual(summary);
         expect(mockFetch).toHaveBeenCalledTimes(2);
@@ -408,18 +410,52 @@ describe('RewardsMoneyDataService', () => {
       }
     });
 
-    it('does not retry a 429 on the ledger', async () => {
+    it('retries a short 429 on the ledger once', async () => {
+      jest.useFakeTimers();
+      try {
+        const limited = httpError(
+          429,
+          { statusCode: 429, reason: 'RATE_LIMITED' },
+          { 'retry-after': '2' },
+        );
+        mockFetch.mockResolvedValueOnce(limited).mockResolvedValueOnce(
+          okJson({
+            results: [],
+            has_more: false,
+            cursor: null,
+            window: null,
+          }),
+        );
+
+        const pending = service.getEarningsLedger();
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await expect(pending).resolves.toEqual({
+          results: [],
+          has_more: false,
+          cursor: null,
+          window: null,
+        });
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('does not retry a 429 whose Retry-After is over 5 seconds', async () => {
       mockFetch.mockResolvedValueOnce(
         httpError(
           429,
           { statusCode: 429, reason: 'RATE_LIMITED' },
-          { 'retry-after': '2' },
+          { 'retry-after': '6' },
         ),
       );
 
-      await expect(service.getEarningsLedger()).rejects.toThrow(
-        'Get earnings ledger failed: 429',
-      );
+      await expect(service.getEarningsLedger()).rejects.toMatchObject({
+        name: 'RewardsMoneyHttpError',
+        status: 429,
+        retryAfterSeconds: 6,
+      });
       expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
@@ -727,6 +763,43 @@ describe('RewardsMoneyDataService', () => {
       );
     });
 
+    it('retries a 503 SERVER_BUSY once', async () => {
+      jest.useFakeTimers();
+      try {
+        mockFetch
+          .mockResolvedValueOnce(
+            httpError(
+              503,
+              { statusCode: 503, reason: 'SERVER_BUSY' },
+              { 'retry-after': '2' },
+            ),
+          )
+          .mockResolvedValueOnce(okJson({}));
+
+        const pending = service.registerReferee({ code: 'ABC123' });
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await expect(pending).resolves.toBeUndefined();
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('does not retry a 503 whose body is not SERVER_BUSY', async () => {
+      mockFetch.mockResolvedValueOnce(
+        httpError(503, { statusCode: 503, reason: 'JWKS_UNAVAILABLE' }),
+      );
+
+      await expect(
+        service.registerReferee({ code: 'ABC123' }),
+      ).rejects.toMatchObject({
+        name: 'RewardsMoneyHttpError',
+        status: 503,
+      });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
     it('still throws an authorization error on 401', async () => {
       mockFetch.mockResolvedValue(notOk(401));
 
@@ -863,17 +936,17 @@ describe('RewardsMoneyDataService', () => {
           { 'retry-after': '12' },
         ),
       );
-      mockFetch.mockResolvedValueOnce(
-        jsonError(
-          503,
-          {
-            statusCode: 503,
-            reason: 'SERVER_BUSY',
-            message: 'Server busy, retry shortly',
-          },
-          { 'retry-after': '2' },
-        ),
+      const busyQuote = jsonError(
+        503,
+        {
+          statusCode: 503,
+          reason: 'SERVER_BUSY',
+          message: 'Server busy, retry shortly',
+        },
+        { 'retry-after': '2' },
       );
+      mockFetch.mockResolvedValueOnce(busyQuote);
+      mockFetch.mockResolvedValueOnce(busyQuote);
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
@@ -897,14 +970,21 @@ describe('RewardsMoneyDataService', () => {
         detail: 'Too many requests',
         retryAfterSeconds: 12,
       });
-      await expect(
-        service.getRebateQuote({ product: 'perps' }),
-      ).rejects.toMatchObject({
-        status: 503,
-        failure: 'UNAVAILABLE',
-        detail: 'Server busy, retry shortly',
-        retryAfterSeconds: 2,
-      });
+      jest.useFakeTimers();
+      try {
+        const busyQuotePending = expect(
+          service.getRebateQuote({ product: 'perps' }),
+        ).rejects.toMatchObject({
+          status: 503,
+          failure: 'UNAVAILABLE',
+          detail: 'Server busy, retry shortly',
+          retryAfterSeconds: 2,
+        });
+        await jest.advanceTimersByTimeAsync(3000);
+        await busyQuotePending;
+      } finally {
+        jest.useRealTimers();
+      }
       const failed = await service
         .getRebateQuote({ product: 'perps' })
         .catch((thrown: unknown) => thrown);

@@ -58,8 +58,8 @@ const MoneyMetricCard: React.FC<MoneyMetricCardProps> = ({
       {isLoading ? (
         <Skeleton style={tw.style('mt-1 h-6 w-20 rounded-md')} />
       ) : null}
-      {!isLoading && amount ? (
-        <Text variant={TextVariant.HeadingMd}>{amount}</Text>
+      {!isLoading ? (
+        <Text variant={TextVariant.HeadingMd}>{amount || '—'}</Text>
       ) : null}
       <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
         {caption}

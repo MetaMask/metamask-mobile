@@ -1,4 +1,6 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
+import { captureException } from '@sentry/react-native';
+import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import Engine from '../../../../core/Engine';
@@ -22,6 +24,10 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
+}));
+
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
 }));
 
 const PROFILE_A = 'profile-a';
@@ -120,6 +126,48 @@ describe('useEarningsSummary', () => {
     expect(mockDispatch).not.toHaveBeenCalledWith(
       setEarningsSummary({ profileId: PROFILE_A, data: mockSummary }),
     );
+  });
+
+  it('refetches once after Retry-After and does not schedule another', async () => {
+    jest.useFakeTimers({ doNotFake: ['nextTick', 'queueMicrotask'] });
+    try {
+      mockEngineCall.mockRejectedValue(
+        new RewardsMoneyHttpError('busy', 503, undefined, 2),
+      );
+
+      renderHook(() => useEarningsSummary(PROFILE_A));
+      await flushPromises();
+      expect(mockEngineCall).toHaveBeenCalledTimes(1);
+
+      mockEngineCall.mockResolvedValue(mockSummary);
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
+      });
+      await flushPromises();
+
+      expect(mockEngineCall).toHaveBeenCalledTimes(2);
+      expect(mockEngineCall).toHaveBeenLastCalledWith(
+        'RewardsMoneyController:getEarningsSummary',
+        { forceFresh: true },
+      );
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
+      });
+      await flushPromises();
+      expect(mockEngineCall).toHaveBeenCalledTimes(2);
+      expect(captureException).toHaveBeenCalledWith(
+        expect.any(RewardsMoneyHttpError),
+        {
+          tags: {
+            feature: 'rewards-money',
+            context: 'earningsSummary.fetch_failed',
+          },
+        },
+      );
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('passes forceFresh through to the controller', async () => {

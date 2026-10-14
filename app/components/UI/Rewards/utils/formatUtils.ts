@@ -154,12 +154,12 @@ const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 
 /** `{count}` templates from referral `localized_text`, one per unit and plural. */
-export type DurationTemplates = {
+export interface DurationTemplates {
   day: string | undefined;
   days: string | undefined;
   hour: string | undefined;
   hours: string | undefined;
-};
+}
 
 /**
  * Largest whole unit still ahead of now: days, otherwise hours.

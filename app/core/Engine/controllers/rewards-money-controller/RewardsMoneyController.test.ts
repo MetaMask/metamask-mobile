@@ -397,25 +397,22 @@ describe('RewardsMoneyController', () => {
       );
     });
 
-    it('returns empty pages for list reads when disabled', async () => {
-      await expect(controller.getEarningsLedger()).resolves.toEqual({
-        results: [],
-        has_more: false,
-        cursor: null,
-        window: null,
-      });
-      await expect(controller.getClaimHistory()).resolves.toEqual({
-        results: [],
-        has_more: false,
-        cursor: null,
-      });
-      await expect(controller.getReferralCodes()).resolves.toEqual({
-        codes: [],
-      });
-      await expect(controller.getReferralFunnel()).resolves.toEqual({
-        enrolled: 0,
-        earning_generating: 0,
-      });
+    it('throws for list reads when disabled', async () => {
+      await expect(controller.getEarningsLedger()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
+      await expect(controller.getClaimHistory()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
+      await expect(controller.getReferralCodes()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
+      await expect(controller.getReferralFunnel()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
+      await expect(controller.getCommissions()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         expect.stringMatching(/^RewardsMoneyDataService:/),
       );
@@ -652,6 +649,36 @@ describe('RewardsMoneyController', () => {
       ).toBeLessThanOrEqual(20);
     });
 
+    it('shares one in-flight earnings summary per profile', async () => {
+      let resolveSummary: (value: typeof mockSummary) => void = () => undefined;
+      mockMessenger.call.mockImplementation((action): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getEarningsSummary') {
+          return new Promise((resolve) => {
+            resolveSummary = resolve;
+          });
+        }
+        return undefined;
+      });
+
+      const first = controller.getEarningsSummary({ forceFresh: true });
+      const second = controller.getEarningsSummary({ forceFresh: true });
+      await jest.advanceTimersByTimeAsync(0);
+      resolveSummary(mockSummary);
+      await jest.advanceTimersByTimeAsync(0);
+
+      await expect(first).resolves.toEqual(mockSummary);
+      await expect(second).resolves.toEqual(mockSummary);
+      expect(
+        dataServiceCalls(mockMessenger.call).filter(
+          (call: unknown[]) =>
+            call[0] === 'RewardsMoneyDataService:getEarningsSummary',
+        ),
+      ).toHaveLength(1);
+    });
+
     it('refetches earnings summary after money TTL', async () => {
       withProfileAndData(
         'RewardsMoneyDataService:getEarningsSummary',
@@ -863,14 +890,12 @@ describe('RewardsMoneyController', () => {
       );
     });
 
-    it('returns an empty page with both mechanisms closed when disabled', async () => {
+    it('throws when disabled instead of returning a closed empty page', async () => {
       isDisabled.mockReturnValue(true);
 
-      const page = await controller.getCommissions();
-
-      expect(page.results).toEqual([]);
-      expect(page.mechanisms.REFERRAL_REV_SHARE.claim_open).toBe(false);
-      expect(page.mechanisms.SOCIAL_FOLLOW_TRADE.claim_open).toBe(false);
+      await expect(controller.getCommissions()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
       expect(
         dataServiceCalls(mockMessenger.call).filter(
           (call: unknown[]) =>

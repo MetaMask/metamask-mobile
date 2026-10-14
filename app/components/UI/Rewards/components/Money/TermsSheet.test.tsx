@@ -90,6 +90,17 @@ describe('TermsSheet', () => {
     });
   });
 
+  it('closes when the title and description are both blank', () => {
+    const { queryByTestId } = renderSheet({
+      ...LOCALIZED_TEXT,
+      termsTitle: '   ',
+      termsDescription: '',
+    });
+
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(queryByTestId(TERMS_SHEET_TEST_IDS.CONTAINER)).toBeNull();
+  });
+
   it('leaves Learn more disabled when the terms URL is empty', () => {
     const { getByTestId } = renderSheet({
       ...LOCALIZED_TEXT,

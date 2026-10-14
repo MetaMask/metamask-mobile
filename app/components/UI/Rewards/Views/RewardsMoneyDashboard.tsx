@@ -35,13 +35,15 @@ import BenefitsPreview from '../components/Benefits/BenefitsPreview';
 import RefererHeroCard from '../components/Money/RefererHeroCard';
 import RefereeHeroCard from '../components/Money/RefereeHeroCard';
 import RewardsOptInSection from '../components/Money/RewardsOptInSection';
+import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkeleton';
-import { useSessionProfileId } from '../hooks/useReferralMe';
+import { useReferralMe, useSessionProfileId } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
 
 export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
   CONTAINER: 'rewards-money-dashboard',
   LOADING: 'rewards-money-dashboard-loading',
+  ERROR: 'rewards-money-dashboard-error',
   SETTINGS_BUTTON: 'rewards-money-dashboard-settings-button',
   TABS: 'rewards-money-dashboard-tabs',
   WAYS_TO_EARN_TAB: 'rewards-money-dashboard-ways-to-earn-tab',
@@ -84,7 +86,12 @@ const RewardsMoneyDashboard: React.FC = () => {
     };
   });
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const { profileId, isResolved: isProfileResolved } = useSessionProfileId();
+  const {
+    profileId,
+    isResolved: isProfileResolved,
+    retry: retrySession,
+  } = useSessionProfileId();
+  const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
   const referralMeEntry = useSelector((state: RootState) =>
     selectReferralMeEntry(state, profileId),
   );
@@ -142,9 +149,48 @@ const RewardsMoneyDashboard: React.FC = () => {
     </Box>
   );
 
-  if (!isProfileResolved || !profileId || !referralMe) {
+  const sessionSettledWithoutProfile = isProfileResolved && !profileId;
+  const referralSettledWithoutData =
+    Boolean(profileId) &&
+    Boolean(referralMeEntry?.error) &&
+    !referralMe &&
+    !referralMeEntry?.loading;
+  const stillLoading =
+    !isProfileResolved ||
+    (Boolean(profileId) && !referralMe && !referralSettledWithoutData);
+
+  if (stillLoading) {
     // The same surface the tab shows while the persona resolves, so the two
     // waits read as one screen rather than a skeleton swapping for another.
+    return (
+      <RewardsTabSkeleton testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING} />
+    );
+  }
+
+  if (sessionSettledWithoutProfile || referralSettledWithoutData) {
+    return (
+      <Box
+        twClassName="flex-1 bg-default p-4"
+        testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.ERROR}
+      >
+        <RewardsErrorBanner
+          title={strings('rewards.referral_details_error.error_fetching_title')}
+          description={strings(
+            'rewards.referral_details_error.error_fetching_description',
+          )}
+          onConfirm={() => {
+            retrySession();
+            void fetchReferralMe({ forceFresh: true });
+          }}
+          confirmButtonLabel={strings(
+            'rewards.referral_details_error.retry_button',
+          )}
+        />
+      </Box>
+    );
+  }
+
+  if (!profileId || !referralMe) {
     return (
       <RewardsTabSkeleton testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING} />
     );

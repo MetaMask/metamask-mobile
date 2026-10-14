@@ -183,20 +183,17 @@ describe('RefereeHeroCard', () => {
     expect(queryByText('$0.00')).not.toBeOnTheScreen();
   });
 
-  it('shows earnings error above stale totals and retries it force fresh', () => {
-    const { getByText } = renderHero({
+  it('keeps cached totals and hides the banner when the summary refresh fails', () => {
+    const { getByText, queryByText } = renderHero({
       summary: SUMMARY,
       earningsError: true,
     });
 
     expect(getByText('$7.65')).toBeOnTheScreen();
-    fireEvent.press(
-      getByText(strings('rewards.referral_details_error.retry_button')),
-    );
-
-    expect(mockFetchEarningsSummary).toHaveBeenCalledWith({
-      forceFresh: true,
-    });
+    expect(
+      queryByText(strings('rewards.referral_details_error.retry_button')),
+    ).not.toBeOnTheScreen();
+    expect(mockFetchEarningsSummary).not.toHaveBeenCalled();
   });
 
   it('shows only the referral error and retries referral me when both requests fail', () => {
