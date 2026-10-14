@@ -156,7 +156,7 @@ describe('RefereeHeroCard', () => {
     expect(queryByRole('button', { name: 'Share' })).not.toBeOnTheScreen();
   });
 
-  it('leaves voided cashback out of the rebates total', () => {
+  it('shows the rebates lifetime as sent, without subtracting voided again', () => {
     const { getByText, queryByText } = renderHero({
       summary: {
         ...SUMMARY,
@@ -164,7 +164,7 @@ describe('RefereeHeroCard', () => {
           ...SUMMARY.self_earned,
           by_claim_family: {
             REFERRAL_TRADE_FEE_CASHBACK: {
-              lifetime: '7650000',
+              lifetime: '6650000',
               voided: '1000000',
               pending: '0',
               claimed: '0',
@@ -176,7 +176,7 @@ describe('RefereeHeroCard', () => {
     });
 
     expect(getByText('$6.65')).toBeOnTheScreen();
-    expect(queryByText('$7.65')).not.toBeOnTheScreen();
+    expect(queryByText('$5.65')).not.toBeOnTheScreen();
   });
 
   it('renders without totals when the summary has not landed', () => {
