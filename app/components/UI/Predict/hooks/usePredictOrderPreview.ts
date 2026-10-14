@@ -2,17 +2,31 @@ import { useCallback, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { OrderPreview, PreviewOrderParams } from '../types';
 import { predictQueries } from '../queries';
-import { parseErrorMessage, ensureError } from '../utils/predictErrorHandler';
+import {
+  parseErrorMessage,
+  ensureError,
+  isPredictNoMatchError,
+} from '../utils/predictErrorHandler';
 import { PREDICT_ERROR_CODES, PREDICT_CONSTANTS } from '../constants/errors';
 import Logger from '../../../../util/Logger';
+
+/**
+ * Outcome of an explicit re-fetch for the retry flow. 'no_match' means the
+ * book cannot match the order at all (empty book / insufficient depth);
+ * 'unavailable' covers transient failures where trying again may succeed.
+ */
+export type RefetchPreviewResult =
+  | { status: 'ok'; preview: OrderPreview }
+  | { status: 'no_match' }
+  | { status: 'unavailable' };
 
 interface OrderPreviewResult {
   preview?: OrderPreview | null;
   isCalculating: boolean;
   isLoading: boolean;
   error: string | null;
-  /** Re-fetches the live book and resolves with the fresh preview, or null when the fetch fails. */
-  refetchPreview: () => Promise<OrderPreview | null>;
+  /** Re-fetches the live book and classifies the outcome for the retry flow. */
+  refetchPreview: () => Promise<RefetchPreviewResult>;
 }
 
 /**
@@ -123,19 +137,25 @@ export function usePredictOrderPreview(
   const { refetch } = query;
 
   /**
-   * Explicitly re-fetches the live book and resolves with the fresh preview.
-   * Used by the retry flow to confirm a fresh quote before re-submitting an
-   * order. Resolves null when the re-fetch fails — a failed fetch keeps the
-   * previous data on the query result, which must never be mistaken for a
-   * fresh quote.
+   * Explicitly re-fetches the live book and classifies the outcome for the
+   * retry flow. Used to confirm a fresh quote before re-submitting an order.
+   * A failed fetch keeps the previous data on the query result, which must
+   * never be mistaken for a fresh quote — failures resolve to a non-ok
+   * status instead.
    */
-  const refetchPreview = useCallback(async (): Promise<OrderPreview | null> => {
-    const result = await refetch();
-    if (result.isError) {
-      return null;
-    }
-    return result.data ?? null;
-  }, [refetch]);
+  const refetchPreview =
+    useCallback(async (): Promise<RefetchPreviewResult> => {
+      const result = await refetch();
+      if (result.isError) {
+        return isPredictNoMatchError(result.error)
+          ? { status: 'no_match' }
+          : { status: 'unavailable' };
+      }
+      if (!result.data) {
+        return { status: 'unavailable' };
+      }
+      return { status: 'ok', preview: result.data };
+    }, [refetch]);
 
   return {
     preview,

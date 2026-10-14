@@ -364,15 +364,16 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     activeOrder?.paymentTokenSymbol,
   ]);
 
-  const { handleConfirm, placeOrder } = usePredictBuyActions({
-    analyticsProperties,
-    preview,
-    amountUsd: currentValue,
-    setIsConfirming,
-    isSheetMode,
-    onClose,
-    transactionActiveAbTests,
-  });
+  const { handleConfirm, placeOrder, lastSubmittedPreview } =
+    usePredictBuyActions({
+      analyticsProperties,
+      preview,
+      amountUsd: currentValue,
+      setIsConfirming,
+      isSheetMode,
+      onClose,
+      transactionActiveAbTests,
+    });
 
   useEffect(() => {
     if (!isPreviewCalculating) {
@@ -392,12 +393,14 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     retrySheetRef,
     retrySheetVariant,
     retryQuote,
+    retryPreviousPrice,
     isRetrying,
     handleRetry,
     handleRetryConfirm,
   } = usePredictOrderRetry({
     preview,
     refetchPreview,
+    lastSubmittedPreview,
     placeOrder,
     analyticsProperties,
     isOrderNotFilled,
@@ -694,6 +697,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         ref={retrySheetRef}
         variant={retrySheetVariant}
         preview={retryQuote}
+        previousPrice={retryPreviousPrice}
         side={Side.BUY}
         onRetry={handleRetry}
         onConfirm={handleRetryConfirm}

@@ -17,7 +17,12 @@ import {
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { PredictEventValues } from '../constants/eventNames';
 import { predictQueries } from '../queries';
-import { PlaceOrderParams, Side, type Result } from '../types';
+import {
+  PlaceOrderParams,
+  Side,
+  type OrderPreview,
+  type Result,
+} from '../types';
 import { formatPrice } from '../utils/format';
 import {
   getPredictBuyAllInCost,
@@ -49,6 +54,12 @@ interface UsePredictPlaceOrderReturn {
   isLoading: boolean;
   result: Result | null;
   placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
+  /**
+   * The preview behind the most recent submit attempt (original order or
+   * retry). The retry flow uses its price as the baseline for the 1-tick
+   * honesty rule: the last price the user actually confirmed.
+   */
+  lastSubmittedPreview: OrderPreview | null;
   isOrderNotFilled: boolean;
   resetOrderNotFilled: () => void;
   showOrderPlacedToast: () => void;
@@ -88,6 +99,8 @@ export function usePredictPlaceOrder(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<Result | null>(null);
+  const [lastSubmittedPreview, setLastSubmittedPreview] =
+    useState<OrderPreview | null>(null);
   const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const { colors } = useTheme();
@@ -185,6 +198,7 @@ export function usePredictPlaceOrder(
       // Disable the CTA before the pre-submit balance refresh.
       setIsLoading(true);
       setError(undefined);
+      setLastSubmittedPreview(orderParams.preview);
 
       const { side } = orderParams.preview;
 
@@ -305,6 +319,7 @@ export function usePredictPlaceOrder(
   const resetOrderNotFilled = useCallback(() => {
     setIsOrderNotFilled(false);
     setError(undefined);
+    setLastSubmittedPreview(null);
   }, []);
 
   return {
@@ -312,6 +327,7 @@ export function usePredictPlaceOrder(
     isLoading,
     result,
     placeOrder,
+    lastSubmittedPreview,
     isOrderNotFilled,
     resetOrderNotFilled,
     showOrderPlacedToast,

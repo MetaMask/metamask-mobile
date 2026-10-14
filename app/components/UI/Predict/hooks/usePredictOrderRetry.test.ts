@@ -44,9 +44,11 @@ function createDefaultParams(
 function createParamsObj(overrides?: Record<string, unknown>) {
   return {
     preview: createMockPreview() as OrderPreview | null | undefined,
-    refetchPreview: jest
-      .fn()
-      .mockResolvedValue(createMockPreview({ sharePrice: 0.62 })),
+    refetchPreview: jest.fn().mockResolvedValue({
+      status: 'ok' as const,
+      preview: createMockPreview({ sharePrice: 0.62 }),
+    }),
+    lastSubmittedPreview: undefined as OrderPreview | null | undefined,
     placeOrder: jest
       .fn()
       .mockResolvedValue(createSuccessOutcome()) as jest.Mock<
@@ -121,7 +123,10 @@ describe('usePredictOrderRetry', () => {
     it('fetches a fresh quote and moves to confirm on the not-filled edge', async () => {
       const freshPreview = createMockPreview({ sharePrice: 0.62 });
       const params = createDefaultParams({
-        refetchPreview: jest.fn().mockResolvedValue(freshPreview),
+        refetchPreview: jest.fn().mockResolvedValue({
+          status: 'ok' as const,
+          preview: freshPreview,
+        }),
       });
       const { result, rerender } = renderHook(() =>
         usePredictOrderRetry(params),
@@ -140,7 +145,7 @@ describe('usePredictOrderRetry', () => {
 
     it('moves to quote_unavailable and submits nothing when the fetch fails', async () => {
       const params = createDefaultParams({
-        refetchPreview: jest.fn().mockResolvedValue(null),
+        refetchPreview: jest.fn().mockResolvedValue({ status: 'unavailable' }),
       });
       const { result, rerender } = renderHook(() =>
         usePredictOrderRetry(params),
@@ -248,7 +253,10 @@ describe('usePredictOrderRetry', () => {
         // Sheet mode: the not-filled edge does not auto-fetch, the banner CTA
         // (handleRetry) drives the flow — matching a real user tap.
         isSheetMode: true,
-        refetchPreview: jest.fn().mockResolvedValue(freshPreview),
+        refetchPreview: jest.fn().mockResolvedValue({
+          status: 'ok' as const,
+          preview: freshPreview,
+        }),
       });
       const { result, rerender } = renderHook(() =>
         usePredictOrderRetry(params),
@@ -315,11 +323,256 @@ describe('usePredictOrderRetry', () => {
     });
   });
 
+  describe('1-tick honesty', () => {
+    it('moves to confirm when the fresh price is at most 1 tick worse', async () => {
+      // SELL: 0.65 -> 0.64 is exactly 1 tick worse — single confirmation.
+      const params = createDefaultParams({
+        lastSubmittedPreview: createMockPreview({
+          side: Side.SELL,
+          sharePrice: 0.65,
+          slippage: 0.05,
+        }),
+        refetchPreview: jest.fn().mockResolvedValue({
+          status: 'ok' as const,
+          preview: createMockPreview({
+            side: Side.SELL,
+            sharePrice: 0.64,
+            slippage: 0.05,
+          }),
+        }),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      expect(result.current.retrySheetVariant).toBe('confirm');
+      expect(result.current.retryPreviousPrice).toBe(0.65);
+    });
+
+    it('moves to price_moved when the fresh price is more than 1 tick worse', async () => {
+      // SELL: 0.65 -> 0.62 is 3 ticks worse — explicit re-confirmation.
+      const params = createDefaultParams({
+        lastSubmittedPreview: createMockPreview({
+          side: Side.SELL,
+          sharePrice: 0.65,
+          slippage: 0.05,
+        }),
+        refetchPreview: jest.fn().mockResolvedValue({
+          status: 'ok' as const,
+          preview: createMockPreview({
+            side: Side.SELL,
+            sharePrice: 0.62,
+            slippage: 0.05,
+          }),
+        }),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      expect(result.current.retrySheetVariant).toBe('price_moved');
+      expect(result.current.retryPreviousPrice).toBe(0.65);
+      expect(params.placeOrder).not.toHaveBeenCalled();
+    });
+
+    it('moves to confirm when the fresh price is better', async () => {
+      // SELL: 0.65 -> 0.68 is a better price — no extra step.
+      const params = createDefaultParams({
+        lastSubmittedPreview: createMockPreview({
+          side: Side.SELL,
+          sharePrice: 0.65,
+          slippage: 0.05,
+        }),
+        refetchPreview: jest.fn().mockResolvedValue({
+          status: 'ok' as const,
+          preview: createMockPreview({
+            side: Side.SELL,
+            sharePrice: 0.68,
+            slippage: 0.05,
+          }),
+        }),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      expect(result.current.retrySheetVariant).toBe('confirm');
+    });
+
+    it('treats a higher price as worse for buys', async () => {
+      // BUY: 0.60 -> 0.63 pays more per share — 3 ticks worse.
+      const params = createDefaultParams({
+        lastSubmittedPreview: createMockPreview({
+          side: Side.BUY,
+          sharePrice: 0.6,
+          slippage: 0.03,
+        }),
+        refetchPreview: jest.fn().mockResolvedValue({
+          status: 'ok' as const,
+          preview: createMockPreview({
+            side: Side.BUY,
+            sharePrice: 0.63,
+            slippage: 0.03,
+          }),
+        }),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      expect(result.current.retrySheetVariant).toBe('price_moved');
+    });
+
+    it('measures ticks with the preview tick size, not a hardcoded cent', async () => {
+      // Finer book (tick 0.001): 0.100 -> 0.098 is 2 ticks worse — a
+      // hardcoded $0.01 would wrongly read this as an unmoved price.
+      const params = createDefaultParams({
+        lastSubmittedPreview: createMockPreview({
+          side: Side.SELL,
+          sharePrice: 0.1,
+          tickSize: 0.001,
+          slippage: 0.05,
+        }),
+        refetchPreview: jest.fn().mockResolvedValue({
+          status: 'ok' as const,
+          preview: createMockPreview({
+            side: Side.SELL,
+            sharePrice: 0.098,
+            tickSize: 0.001,
+            slippage: 0.05,
+          }),
+        }),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      expect(result.current.retrySheetVariant).toBe('price_moved');
+    });
+
+    it('moves to confirm when there is no baseline to compare against', async () => {
+      const params = createDefaultParams();
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      expect(result.current.retrySheetVariant).toBe('confirm');
+    });
+
+    it('submits the displayed quote after a price_moved confirmation', async () => {
+      const freshPreview = createMockPreview({
+        side: Side.SELL,
+        sharePrice: 0.62,
+        slippage: 0.05,
+      });
+      const params = createDefaultParams({
+        lastSubmittedPreview: createMockPreview({
+          side: Side.SELL,
+          sharePrice: 0.65,
+          slippage: 0.05,
+        }),
+        refetchPreview: jest.fn().mockResolvedValue({
+          status: 'ok' as const,
+          preview: freshPreview,
+        }),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(params.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ preview: freshPreview }),
+      );
+    });
+  });
+
+  describe('no-match guard', () => {
+    it('moves to no_match and submits nothing when the book cannot match', async () => {
+      const params = createDefaultParams({
+        refetchPreview: jest.fn().mockResolvedValue({ status: 'no_match' }),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      expect(result.current.retrySheetVariant).toBe('no_match');
+      expect(result.current.retryQuote).toBeNull();
+      expect(params.placeOrder).not.toHaveBeenCalled();
+    });
+
+    it('submits nothing when confirming from the no_match state', async () => {
+      const params = createDefaultParams({
+        refetchPreview: jest.fn().mockResolvedValue({ status: 'no_match' }),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(params.placeOrder).not.toHaveBeenCalled();
+    });
+  });
+
   describe('handleRetryConfirm', () => {
     it('submits the re-fetched quote, not the stale screen preview', async () => {
       const freshPreview = createMockPreview({ sharePrice: 0.62 });
       const params = createDefaultParams({
-        refetchPreview: jest.fn().mockResolvedValue(freshPreview),
+        refetchPreview: jest.fn().mockResolvedValue({
+          status: 'ok' as const,
+          preview: freshPreview,
+        }),
         preview: createMockPreview({ sharePrice: 0.51 }),
       });
       const { result, rerender } = renderHook(() =>
@@ -347,7 +600,10 @@ describe('usePredictOrderRetry', () => {
         slippage: 0.05,
       });
       const params = createDefaultParams({
-        refetchPreview: jest.fn().mockResolvedValue(freshPreview),
+        refetchPreview: jest.fn().mockResolvedValue({
+          status: 'ok' as const,
+          preview: freshPreview,
+        }),
       });
       const { result, rerender } = renderHook(() =>
         usePredictOrderRetry(params),

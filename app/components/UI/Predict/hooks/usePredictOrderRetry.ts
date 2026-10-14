@@ -9,6 +9,7 @@ import type {
   PlaceOrderParams,
   PredictBuyAttempt,
 } from '../types';
+import { getPredictTicksWorse } from '../utils/prices';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
 import type {
   PredictOrderRetrySheetRef,
@@ -18,10 +19,20 @@ import type {
 interface UsePredictOrderRetryParams {
   preview: OrderPreview | null | undefined;
   /**
-   * Re-fetches the live order book and resolves with the fresh preview.
+   * Re-fetches the live order book and classifies the outcome.
    * Every retry must confirm a freshly fetched quote before submitting.
    */
-  refetchPreview: () => Promise<OrderPreview | null>;
+  refetchPreview: () => Promise<
+    | { status: 'ok'; preview: OrderPreview }
+    | { status: 'no_match' }
+    | { status: 'unavailable' }
+  >;
+  /**
+   * The preview behind the most recent submit attempt (original order or
+   * previous retry). Its price is the 1-tick honesty baseline: a fresh quote
+   * more than one tick worse requires an explicit re-confirmation.
+   */
+  lastSubmittedPreview?: OrderPreview | null;
   placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
   isOrderNotFilled: boolean;
@@ -38,6 +49,7 @@ interface UsePredictOrderRetryParams {
 export function usePredictOrderRetry({
   preview,
   refetchPreview,
+  lastSubmittedPreview,
   placeOrder,
   analyticsProperties,
   isOrderNotFilled,
@@ -47,6 +59,9 @@ export function usePredictOrderRetry({
 }: UsePredictOrderRetryParams) {
   const [isRetrying, setIsRetrying] = useState(false);
   const [retryQuote, setRetryQuote] = useState<OrderPreview | null>(null);
+  const [retryPreviousPrice, setRetryPreviousPrice] = useState<number | null>(
+    null,
+  );
   const [retrySheetVariant, setRetrySheetVariant] =
     useState<PredictOrderRetrySheetVariant>('busy');
   const wasOrderNotFilledRef = useRef(false);
@@ -64,18 +79,36 @@ export function usePredictOrderRetry({
   const handleRetry = useCallback(async () => {
     setRetrySheetVariant('busy');
     try {
-      const freshPreview = await refetchPreview();
+      const fetchResult = await refetchPreview();
       // The user may have dismissed the error while the fetch was in flight;
       // never surface a quote for an order that is no longer retryable.
       if (!isOrderNotFilledRef.current) {
         return;
       }
-      if (!freshPreview) {
+      if (fetchResult.status === 'no_match') {
+        // Empty/unfillable book: never submit into it — offer try again / later.
+        setRetryQuote(null);
+        setRetrySheetVariant('no_match');
+      } else if (fetchResult.status === 'ok') {
+        const freshPreview = fetchResult.preview;
+        const referencePrice = lastSubmittedPreview?.sharePrice;
+        const ticksWorse =
+          referencePrice === undefined
+            ? 0
+            : getPredictTicksWorse({
+                side: freshPreview.side,
+                referencePrice,
+                freshPrice: freshPreview.sharePrice,
+                tickSize: freshPreview.tickSize,
+              });
+        setRetryQuote(freshPreview);
+        setRetryPreviousPrice(referencePrice ?? null);
+        // 1-tick honesty: a move beyond one tick re-confirms the new price
+        // explicitly; otherwise the single confirmation proceeds.
+        setRetrySheetVariant(ticksWorse > 1 ? 'price_moved' : 'confirm');
+      } else {
         setRetryQuote(null);
         setRetrySheetVariant('quote_unavailable');
-      } else {
-        setRetryQuote(freshPreview);
-        setRetrySheetVariant('confirm');
       }
     } catch {
       if (!isOrderNotFilledRef.current) {
@@ -90,7 +123,7 @@ export function usePredictOrderRetry({
         retrySheetRef.current?.onOpenBottomSheet();
       }
     }
-  }, [refetchPreview]);
+  }, [refetchPreview, lastSubmittedPreview]);
 
   const handleRetryConfirm = useCallback(async () => {
     if (!retryQuote) return;
@@ -187,6 +220,7 @@ export function usePredictOrderRetry({
     retrySheetRef,
     retrySheetVariant,
     retryQuote,
+    retryPreviousPrice,
     isRetrying,
     handleRetry,
     handleRetryConfirm,

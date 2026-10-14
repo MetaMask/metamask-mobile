@@ -47,8 +47,11 @@ jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter',
   () => {
     const ReactActual = jest.requireActual('react');
-    const { TouchableOpacity, Text: RNText } =
-      jest.requireActual('react-native');
+    const {
+      View,
+      TouchableOpacity,
+      Text: RNText,
+    } = jest.requireActual('react-native');
     return ({
       buttonPropsArray,
     }: {
@@ -58,18 +61,23 @@ jest.mock(
         testID?: string;
         isDisabled?: boolean;
       }[];
-    }) => {
-      const btn = buttonPropsArray[0];
-      return ReactActual.createElement(
-        TouchableOpacity,
-        {
-          testID: btn.testID ?? 'retry-button',
-          onPress: btn.onPress,
-          disabled: btn.isDisabled,
-        },
-        ReactActual.createElement(RNText, null, btn.label),
+    }) =>
+      ReactActual.createElement(
+        View,
+        null,
+        buttonPropsArray.map((btn, index) =>
+          ReactActual.createElement(
+            TouchableOpacity,
+            {
+              key: btn.testID ?? `footer-button-${index}`,
+              testID: btn.testID ?? `footer-button-${index}`,
+              onPress: btn.onPress,
+              disabled: btn.isDisabled,
+            },
+            ReactActual.createElement(RNText, null, btn.label),
+          ),
+        ),
       );
-    };
   },
 );
 
@@ -91,6 +99,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'predict.order.price_unavailable_title': 'Price unavailable',
       'predict.order.price_unavailable_body':
         "We couldn't get the latest price. Check your connection and try again.",
+      'predict.order.price_moved_title': 'Price moved',
+      'predict.order.price_moved_body': `Moved from ${params?.previousPrice ?? ''} to ${params?.currentPrice ?? ''}`,
+      'predict.order.no_match_title': 'No match',
+      'predict.order.no_match_body':
+        "There isn't enough liquidity to fill your order right now.",
+      'predict.order.try_later': 'Try later',
       'predict.order.order_failed_title': 'Order failed',
       'predict.order.order_failed_body':
         "Your order couldn't be filled. Try again?",
@@ -353,6 +367,104 @@ describe('PredictOrderRetrySheet', () => {
       );
 
       expect(onRetry).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('price_moved variant', () => {
+    const movedPreview = createMockPreview({
+      side: Side.SELL,
+      sharePrice: 0.62,
+      slippage: 0.05,
+    });
+
+    it('renders the move explicitly with both prices and the quote rows', () => {
+      const { getByText } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="price_moved"
+          side={Side.SELL}
+          preview={movedPreview}
+          previousPrice={0.65}
+        />,
+      );
+
+      expect(getByText('Price moved')).toBeTruthy();
+      expect(getByText('Moved from 65¢ to 62¢')).toBeTruthy();
+      expect(getByText('Price')).toBeTruthy();
+      expect(getByText('Yes, sell at 62¢')).toBeTruthy();
+    });
+
+    it('submits the displayed quote on confirm', () => {
+      const onConfirm = jest.fn();
+      const { getByTestId } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="price_moved"
+          side={Side.SELL}
+          preview={movedPreview}
+          previousPrice={0.65}
+          onConfirm={onConfirm}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON),
+      );
+
+      expect(onConfirm).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('no_match variant', () => {
+    it('renders the no-match copy without quote rows or a submit CTA', () => {
+      const { getByText, queryByText } = render(
+        <PredictOrderRetrySheet {...defaultProps} variant="no_match" />,
+      );
+
+      expect(getByText('No match')).toBeTruthy();
+      expect(
+        getByText("There isn't enough liquidity to fill your order right now."),
+      ).toBeTruthy();
+      expect(queryByText('Price')).toBeNull();
+      expect(queryByText(/Yes, (buy|sell) at/)).toBeNull();
+    });
+
+    it('offers Try again that re-fetches', () => {
+      const onRetry = jest.fn();
+      const { getByTestId } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="no_match"
+          onRetry={onRetry}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON),
+      );
+
+      expect(onRetry).toHaveBeenCalledTimes(1);
+    });
+
+    it('offers Try later that dismisses without submitting', () => {
+      const onRetry = jest.fn();
+      const onConfirm = jest.fn();
+      const { getByTestId } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="no_match"
+          onRetry={onRetry}
+          onConfirm={onConfirm}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(PredictOrderRetrySheetSelectorsIDs.TRY_LATER_BUTTON),
+      );
+
+      expect(mockCloseSheet).toHaveBeenCalledTimes(1);
+      expect(onConfirm).not.toHaveBeenCalled();
+      expect(onRetry).not.toHaveBeenCalled();
     });
   });
 

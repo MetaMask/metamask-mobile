@@ -165,6 +165,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     isLoading,
     error: placeOrderError,
     result,
+    lastSubmittedPreview,
     isOrderNotFilled,
     resetOrderNotFilled,
   } = usePredictPlaceOrder({ transactionActiveAbTests });
@@ -209,12 +210,14 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     retrySheetRef,
     retrySheetVariant,
     retryQuote,
+    retryPreviousPrice,
     isRetrying,
     handleRetry,
     handleRetryConfirm,
   } = usePredictOrderRetry({
     preview,
     refetchPreview,
+    lastSubmittedPreview,
     placeOrder,
     analyticsProperties,
     isOrderNotFilled,
@@ -698,6 +701,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         ref={retrySheetRef}
         variant={retrySheetVariant}
         preview={retryQuote}
+        previousPrice={retryPreviousPrice}
         side={Side.BUY}
         onRetry={handleRetry}
         onConfirm={handleRetryConfirm}

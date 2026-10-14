@@ -37,17 +37,25 @@ export type PredictOrderRetrySheetRef = PredictBottomSheetRef;
 export type PredictOrderRetrySheetVariant =
   | 'busy'
   | 'confirm'
+  | 'price_moved'
   | 'failed'
-  | 'quote_unavailable';
+  | 'quote_unavailable'
+  | 'no_match';
 
 interface PredictOrderRetrySheetProps {
   variant: PredictOrderRetrySheetVariant;
   side: Side;
   /**
    * The refreshed quote the user is asked to confirm. Rendered by the
-   * 'confirm' variant; must be the same preview that gets submitted.
+   * 'confirm' and 'price_moved' variants; must be the same preview that gets
+   * submitted.
    */
   preview?: OrderPreview | null;
+  /**
+   * The price the user last confirmed, shown by the 'price_moved' variant so
+   * the move from it to the fresh quote is explicit.
+   */
+  previousPrice?: number | null;
   /** Fetches a fresh quote (retry entry point or "Try again"). */
   onRetry: () => void;
   /** Submits the confirmed refreshed quote. */
@@ -64,19 +72,38 @@ function getTitleForVariant(variant: PredictOrderRetrySheetVariant): string {
       return strings('predict.order.order_failed_title');
     case 'quote_unavailable':
       return strings('predict.order.price_unavailable_title');
+    case 'price_moved':
+      return strings('predict.order.price_moved_title');
+    case 'no_match':
+      return strings('predict.order.no_match_title');
     default:
       return strings('predict.order.market_busy_title');
   }
 }
 
-function getBodyForVariant(variant: PredictOrderRetrySheetVariant): string {
+function getBodyForVariant({
+  variant,
+  previousPrice,
+  currentPrice,
+}: {
+  variant: PredictOrderRetrySheetVariant;
+  previousPrice: number | null | undefined;
+  currentPrice: number | null | undefined;
+}): string {
   switch (variant) {
     case 'failed':
       return strings('predict.order.order_failed_body');
     case 'quote_unavailable':
       return strings('predict.order.price_unavailable_body');
+    case 'no_match':
+      return strings('predict.order.no_match_body');
     case 'busy':
       return strings('predict.order.getting_price_body');
+    case 'price_moved':
+      return strings('predict.order.price_moved_body', {
+        previousPrice: formatCents(previousPrice ?? 0),
+        currentPrice: formatCents(currentPrice ?? 0),
+      });
     default:
       return strings('predict.order.price_updated_body');
   }
@@ -104,6 +131,7 @@ const PredictOrderRetrySheet = forwardRef<
       variant,
       side,
       preview,
+      previousPrice,
       onRetry,
       onConfirm,
       onDismiss,
@@ -180,8 +208,10 @@ const PredictOrderRetrySheet = forwardRef<
     }
 
     const isFailed = variant === 'failed';
-    const isConfirm = variant === 'confirm' && !!preview;
     const isBusy = variant === 'busy';
+    const isNoMatch = variant === 'no_match';
+    const isQuoteShown =
+      (variant === 'confirm' || variant === 'price_moved') && !!preview;
 
     const iconColor = isFailed
       ? IconColor.ErrorDefault
@@ -189,9 +219,13 @@ const PredictOrderRetrySheet = forwardRef<
     const iconBg = isFailed ? 'bg-error-muted' : 'bg-warning-muted';
 
     const title = getTitleForVariant(variant);
-    const body = getBodyForVariant(variant);
+    const body = getBodyForVariant({
+      variant,
+      previousPrice,
+      currentPrice: preview?.sharePrice,
+    });
 
-    const buttonLabel = isConfirm
+    const buttonLabel = isQuoteShown
       ? getConfirmLabelForSide(side, preview)
       : strings('predict.order.try_again');
 
@@ -244,7 +278,7 @@ const PredictOrderRetrySheet = forwardRef<
           >
             {body}
           </Text>
-          {isConfirm && (
+          {isQuoteShown && (
             <Box twClassName="w-full gap-2 rounded-lg bg-background-muted p-4">
               {quoteRows.map((row) => (
                 <Box
@@ -275,11 +309,22 @@ const PredictOrderRetrySheet = forwardRef<
               {
                 variant: ButtonVariants.Primary,
                 label: buttonLabel,
-                onPress: isConfirm ? onConfirm : onRetry,
+                onPress: isQuoteShown ? onConfirm : onRetry,
                 testID: PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON,
                 isDisabled: isRetrying,
                 loading: isRetrying,
               },
+              ...(isNoMatch
+                ? [
+                    {
+                      variant: ButtonVariants.Secondary,
+                      label: strings('predict.order.try_later'),
+                      onPress: closeSheet,
+                      testID:
+                        PredictOrderRetrySheetSelectorsIDs.TRY_LATER_BUTTON,
+                    },
+                  ]
+                : []),
             ]}
             style={tw.style('px-6')}
           />
