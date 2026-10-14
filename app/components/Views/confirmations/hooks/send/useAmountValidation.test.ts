@@ -563,7 +563,7 @@ describe('useAmountValidation', () => {
       fromAccount: { id: 'solana-account-id' },
       value: '0.5',
     } as unknown as SendContext.SendContextType);
-    rerender();
+    rerender({});
 
     await waitFor(() => expect(result.current.amountError).toEqual(undefined));
     expect(mockValidateAmountMultichain).toHaveBeenCalledTimes(2);
@@ -615,7 +615,7 @@ describe('useAmountValidation', () => {
       fromAccount: { id: 'solana-account-id' },
       value: '0.5',
     } as unknown as SendContext.SendContextType);
-    rerender();
+    rerender({});
 
     await waitFor(() =>
       expect(mockValidateAmountMultichain).toHaveBeenCalledTimes(2),

@@ -347,16 +347,17 @@ describeForPlatforms('Send (Non-EVM)', () => {
       .withOverrides(NON_EVM_NETWORK_OVERRIDE)
       .build();
 
-    const { getByTestId, getByText, findByRole } = renderScreenWithRoutes(
-      Send as unknown as React.ComponentType,
-      { name: Routes.SEND.DEFAULT },
-      [],
-      { state },
-      {
-        screen: Routes.SEND.AMOUNT,
-        params: { asset: MINIMAL_BTC_BALANCE_ASSET },
-      },
-    );
+    const { getByTestId, getByText, getByRole, findByRole } =
+      renderScreenWithRoutes(
+        Send as unknown as React.ComponentType,
+        { name: Routes.SEND.DEFAULT },
+        [],
+        { state },
+        {
+          screen: Routes.SEND.AMOUNT,
+          params: { asset: MINIMAL_BTC_BALANCE_ASSET },
+        },
+      );
 
     expect(
       getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
