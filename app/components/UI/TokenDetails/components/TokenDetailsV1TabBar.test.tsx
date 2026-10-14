@@ -98,6 +98,21 @@ describe('TokenDetailsV1TabBar', () => {
     expect(queryByTestId('token-details-v1-tab-feed')).toBeNull();
   });
 
+  // TabsBar draws only the active segment, so the unselected track the
+  // indicator rides on has to come from here. Asserted on every tab because
+  // the track is unselected state — it has to be there no matter which tab
+  // owns the indicator.
+  it.each(TOKEN_DETAILS_V1_TABS)(
+    'draws the track beneath the tabs on the %s tab',
+    (activeTab) => {
+      const { getByTestId } = renderTabBar(activeTab);
+
+      expect(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).toHaveStyle({
+        borderBottomWidth: 1,
+      });
+    },
+  );
+
   it('maps the pressed design-system tab index to its tab key', () => {
     const onTabPress = jest.fn();
     const { getByTestId } = renderTabBar('overview', onTabPress);
@@ -231,6 +246,50 @@ describe('useTokenDetailsV1ScrollStabilization', () => {
         nativeEvent: { contentOffset: { y: 200, x: 0 } },
       } as NativeSyntheticEvent<NativeScrollEvent>);
       result.current.clampScrollToTabBar();
+    });
+
+    expect(scrollToMock).not.toHaveBeenCalled();
+  });
+
+  it('scrolls down to the tab bar when scrollToTabBar is called from above it', () => {
+    const scrollToMock = jest.fn();
+    const mockScrollView = {
+      scrollTo: scrollToMock,
+    } as unknown as ScrollView;
+
+    const { result } = renderHook(() =>
+      useTokenDetailsV1ScrollStabilization({
+        scrollViewRef: { current: mockScrollView },
+      }),
+    );
+
+    act(() => {
+      result.current.handleTabBarLayout({
+        nativeEvent: { layout: { y: 400, x: 0, width: 375, height: 48 } },
+      } as LayoutChangeEvent);
+      result.current.handleScroll({
+        nativeEvent: { contentOffset: { y: 0, x: 0 } },
+      } as NativeSyntheticEvent<NativeScrollEvent>);
+      result.current.scrollToTabBar();
+    });
+
+    expect(scrollToMock).toHaveBeenCalledWith({ y: 400, animated: true });
+  });
+
+  it('does not scroll when scrollToTabBar runs before the tab bar has laid out', () => {
+    const scrollToMock = jest.fn();
+    const mockScrollView = {
+      scrollTo: scrollToMock,
+    } as unknown as ScrollView;
+
+    const { result } = renderHook(() =>
+      useTokenDetailsV1ScrollStabilization({
+        scrollViewRef: { current: mockScrollView },
+      }),
+    );
+
+    act(() => {
+      result.current.scrollToTabBar();
     });
 
     expect(scrollToMock).not.toHaveBeenCalled();
