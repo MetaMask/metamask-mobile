@@ -11,10 +11,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { useEarningsSummary } from '../../hooks/useEarningsSummary';
 import { useReferralMe } from '../../hooks/useReferralMe';
-import RefereeHeroCard, {
-  fillOfferEndsIn,
-  REFEREE_HERO_CARD_TEST_IDS,
-} from './RefereeHeroCard';
+import RefereeHeroCard, { REFEREE_HERO_CARD_TEST_IDS } from './RefereeHeroCard';
 import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useEarningsSummary');
@@ -274,33 +271,5 @@ describe('RefereeHeroCard', () => {
     expect(
       getByTestId(REFEREE_HERO_CARD_TEST_IDS.OFFER_ENDS_IN),
     ).toHaveTextContent(/^Offer ends in /);
-  });
-});
-
-describe('fillOfferEndsIn', () => {
-  const now = Date.parse('2026-10-01T00:00:00.000Z');
-  const copy = {
-    offerEndsIn: 'Offer ends in {duration}',
-    offerDurationDay: '{count} day',
-    offerDurationDays: '{count} days',
-    offerDurationHour: '{count} hour',
-    offerDurationHours: '{count} hours',
-  };
-
-  it('fills duration and leaves the surrounding copy', () => {
-    expect(fillOfferEndsIn(copy, '2026-10-04T00:00:00.000Z', now)).toBe(
-      'Offer ends in 3 days',
-    );
-  });
-
-  it('returns null when the template or a future end is missing', () => {
-    expect(
-      fillOfferEndsIn(
-        { ...copy, offerEndsIn: 'Offer ends soon' },
-        '2026-10-04T00:00:00.000Z',
-        now,
-      ),
-    ).toBeNull();
-    expect(fillOfferEndsIn(copy, null, now)).toBeNull();
   });
 });

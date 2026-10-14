@@ -1,40 +1,23 @@
 import React from 'react';
-import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import {
   Box,
-  BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
-  ButtonIcon,
-  ButtonIconSize,
-  FontWeight,
-  IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import type {
-  EarningsSummaryDto,
   ReferralLocalizedText,
   ReferredByView,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import type { RootState } from '../../../../../reducers';
-import {
-  selectEarningsSummaryEntry,
-  selectReferralMeEntry,
-} from '../../../../../reducers/rewardsMoney/selectors';
-import { strings } from '../../../../../../locales/i18n';
-import RewardsErrorBanner from '../RewardsErrorBanner';
-import { useEarningsSummary } from '../../hooks/useEarningsSummary';
-import { useReferralMe } from '../../hooks/useReferralMe';
+import { useMoneyHeroEntries } from '../../hooks/useMoneyHeroEntries';
+import MoneyHeroErrorBanner from './MoneyHeroErrorBanner';
+import MoneyHeroIdentityHeader from './MoneyHeroIdentityHeader';
 import MoneyMetricCard from './MoneyMetricCard';
 import { SHOW_TRADING_COMMISSIONS } from './constants';
-import { formatDuration, formatMusdBaseUnits } from '../../utils/formatUtils';
+import { fillOfferEndsIn } from './fillOfferEndsIn';
+import { formatMusdBaseUnits } from '../../utils/formatUtils';
 import {
   earnedByOthersLifetime,
   selfEarnedLifetime,
@@ -53,44 +36,6 @@ export const REFEREE_HERO_CARD_TEST_IDS = {
   EARNINGS_ERROR: 'referee-hero-card-earnings-error',
 } as const;
 
-type OfferEndsCopy = Pick<
-  ReferralLocalizedText,
-  | 'offerEndsIn'
-  | 'offerDurationDay'
-  | 'offerDurationDays'
-  | 'offerDurationHour'
-  | 'offerDurationHours'
->;
-
-/**
- * Fills `{duration}` in `offerEndsIn` from the localized unit templates.
- * Null when the template or a future end is missing, so the hero hides the
- * line instead of showing a placeholder.
- */
-export const fillOfferEndsIn = (
-  localizedText: OfferEndsCopy | undefined,
-  endIso: string | null | undefined,
-  nowMs: number = Date.now(),
-): string | null => {
-  if (!localizedText?.offerEndsIn?.includes('{duration}')) {
-    return null;
-  }
-  const duration = formatDuration(
-    endIso,
-    {
-      day: localizedText.offerDurationDay,
-      days: localizedText.offerDurationDays,
-      hour: localizedText.offerDurationHour,
-      hours: localizedText.offerDurationHours,
-    },
-    nowMs,
-  );
-  if (!duration) {
-    return null;
-  }
-  return localizedText.offerEndsIn.replaceAll('{duration}', duration);
-};
-
 export interface RefereeHeroCardProps {
   profileId: string;
   referredBy: ReferredByView | null;
@@ -108,28 +53,15 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
   referredBy,
   localizedText,
 }) => {
-  const navigation = useNavigation<AppNavigationProp>();
-  const referralMeEntry = useSelector((state: RootState) =>
-    selectReferralMeEntry(state, profileId),
-  );
-  const earningsSummaryEntry = useSelector((state: RootState) =>
-    selectEarningsSummaryEntry(state, profileId),
-  );
-  const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
-  const { fetchEarningsSummary } = useEarningsSummary(profileId);
-  const earningsSummary: EarningsSummaryDto | null =
-    earningsSummaryEntry?.data ?? null;
-  const isEarningsLoading =
-    !earningsSummary &&
-    (!earningsSummaryEntry || Boolean(earningsSummaryEntry.loading));
-  const unavailableAmount =
-    Boolean(earningsSummaryEntry?.error) && !earningsSummary ? '-' : null;
-  const errorSource =
-    referralMeEntry?.error && !referralMeEntry.data
-      ? 'referral'
-      : earningsSummaryEntry?.error && !earningsSummaryEntry.data
-        ? 'earnings'
-        : null;
+  const {
+    referralMeEntry,
+    earningsSummary,
+    isEarningsLoading,
+    unavailableAmount,
+    errorSource,
+    retry,
+    retryLoading,
+  } = useMoneyHeroEntries(profileId);
   const referralCode = referredBy?.referral_code?.trim() ?? '';
   const offerEndsIn = fillOfferEndsIn(
     localizedText,
@@ -142,24 +74,9 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
       testID={REFEREE_HERO_CARD_TEST_IDS.CONTAINER}
     >
       {errorSource ? (
-        <RewardsErrorBanner
-          title={strings('rewards.referral_details_error.error_fetching_title')}
-          description={strings(
-            'rewards.referral_details_error.error_fetching_description',
-          )}
-          onConfirm={() =>
-            errorSource === 'referral'
-              ? fetchReferralMe({ forceFresh: true })
-              : fetchEarningsSummary({ forceFresh: true })
-          }
-          confirmButtonLabel={strings(
-            'rewards.referral_details_error.retry_button',
-          )}
-          onConfirmLoading={
-            errorSource === 'referral'
-              ? Boolean(referralMeEntry?.loading)
-              : Boolean(earningsSummaryEntry?.loading)
-          }
+        <MoneyHeroErrorBanner
+          onRetry={retry}
+          isRetrying={retryLoading}
           testID={
             errorSource === 'referral'
               ? REFEREE_HERO_CARD_TEST_IDS.REFERRAL_ERROR
@@ -171,38 +88,14 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
         twClassName="rounded-2xl bg-muted py-4"
         testID={REFEREE_HERO_CARD_TEST_IDS.IDENTITY}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName={referralCode ? 'px-4 pb-4' : 'px-4'}
-        >
-          <Box twClassName="flex-1 pr-2">
-            <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-              {localizedText.invitedBenefitTitle}
-            </Text>
-            {offerEndsIn ? (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                testID={REFEREE_HERO_CARD_TEST_IDS.OFFER_ENDS_IN}
-              >
-                {offerEndsIn}
-              </Text>
-            ) : null}
-          </Box>
-          <ButtonIcon
-            iconName={IconName.Info}
-            size={ButtonIconSize.Md}
-            iconProps={{ color: IconColor.IconAlternative, size: IconSize.Md }}
-            twClassName="-mr-1.5"
-            onPress={() =>
-              navigation.navigate(Routes.MODAL.REWARDS_MONEY_TERMS_SHEET)
-            }
-            accessibilityLabel={localizedText.termsTitle}
-            testID={REFEREE_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON}
-          />
-        </Box>
+        <MoneyHeroIdentityHeader
+          title={localizedText.invitedBenefitTitle}
+          offerEndsIn={offerEndsIn}
+          offerEndsTestID={REFEREE_HERO_CARD_TEST_IDS.OFFER_ENDS_IN}
+          termsTitle={localizedText.termsTitle}
+          termsTestID={REFEREE_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON}
+          titleRowClassName={referralCode ? 'px-4 pb-4' : 'px-4'}
+        />
         {referralCode ? (
           <>
             <Box twClassName="h-px bg-border-muted" />
