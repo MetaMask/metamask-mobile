@@ -693,7 +693,6 @@
     "re_enter_password": "Veuillez saisir à nouveau votre mot de passe",
     "use_at_least_8_characters": "Saisissez au moins 8 caractères",
     "unlock_with_face_id": "Déverrouiller avec Face ID ?",
-    "learn_more": "Si j’oublie ce mot de passe, MetaMask ne pourra pas le récupérer pour moi.",
     "learn_more_social_login": "Si j’oublie ce mot de passe, je perdrai définitivement l’accès à mon portefeuille. MetaMask ne peut pas le réinitialiser pour moi.",
     "seed_phrase_length_error": "La phrase secrète de récupération doit comporter 12, 15, 18, 21 ou 24 mots",
     "continue": "Continuer",

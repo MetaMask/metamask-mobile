@@ -502,6 +502,112 @@ test('weekly Slack parent is an exception report', () => {
   assert.match(withCards, /Stable scenarios omitted/);
 });
 
+function weeklyWithIssues(issues) {
+  return buildWeeklyReport({
+    thisWindow: {
+      meta: { profileCount: 20, symbolicatedProfileCount: 20 },
+      scenarios: [],
+    },
+    lastWindow: { meta: {}, scenarios: [] },
+    bounds: weekBounds(new Date('2026-09-28T09:00:00.000Z')),
+    thisWeekRunCount: 20,
+    lastWeekRunCount: 19,
+    issues,
+  });
+}
+
+const WEEKLY_ISSUES = [
+  {
+    number: 700,
+    url: 'https://github.com/MetaMask/metamask-mobile/issues/700',
+    state: 'open',
+    kind: 'scenario',
+    scenario: 'Measure Warm Start: Warm Start to Login Screen',
+    owner: 'metamask-mobile-platform',
+    runId: '36676470722',
+    ratio: 1.68,
+    jsWorkMs: 20359,
+    baselineMedianJsWorkMs: 12152,
+    recurrences: 2,
+  },
+  {
+    number: 705,
+    url: 'https://github.com/MetaMask/metamask-mobile/issues/705',
+    state: 'closed',
+    kind: 'slow-run',
+    scenarios: ['a', 'b', 'c'],
+    runId: '36676470800',
+    ratio: 2.1,
+    recurrences: 0,
+  },
+];
+
+test('the Monday report lists the GitHub issues opened during the week', () => {
+  const report = weeklyWithIssues({ items: WEEKLY_ISSUES });
+  const slack = buildWeeklyParentSlack(report);
+  const markdown = buildWeeklyMarkdown(report);
+
+  assert.match(slack, /\*GitHub issues opened this week:\* 2 \(1 still open\)/);
+  assert.match(
+    slack,
+    /• <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/700\|#700> Measure Warm Start: Warm Start to Login Screen — JS work 20\.4 s vs 12\.2 s recent median \(1\.68×\) in run 36676470722 · owner metamask-mobile-platform · open, flagged 2 more times since/,
+  );
+  assert.match(
+    slack,
+    /• <.*\/705\|#705> slow run 36676470800: 3 scenarios over the threshold \(up to 2\.1×\) · closed, not flagged again/,
+  );
+  // Issues come after the week's findings and before the source footer.
+  assert.ok(slack.indexOf('Nothing to action this week') < slack.indexOf('GitHub issues opened this week'));
+  assert.ok(slack.indexOf('GitHub issues opened this week') < slack.indexOf('_Source:_'));
+  assert.match(markdown, /## GitHub issues opened this week\n\n- \[#700\]\(.*\/700\) Measure Warm Start/);
+  assert.match(markdown, /- \[#705\]\(.*\/705\) slow run 36676470800/);
+});
+
+test('the Monday report says when no issue was opened and when GitHub could not be read', () => {
+  const none = weeklyWithIssues({ items: [] });
+  assert.match(buildWeeklyParentSlack(none), /_GitHub issues opened this week:_ none/);
+  assert.match(buildWeeklyMarkdown(none), /## GitHub issues opened this week\n\nNone\./);
+
+  const failed = weeklyWithIssues({ error: 'gh: rate limited' });
+  assert.match(
+    buildWeeklyParentSlack(failed),
+    /_GitHub issues opened this week:_ could not be listed \(gh: rate limited\)/,
+  );
+  assert.match(buildWeeklyMarkdown(failed), /Could not be listed: gh: rate limited/);
+});
+
+test('a weekly run that did not query GitHub has no issue section', () => {
+  const report = weeklyWithIssues(undefined);
+
+  assert.equal(report.issues, undefined);
+  assert.doesNotMatch(buildWeeklyParentSlack(report), /GitHub issues/);
+  assert.doesNotMatch(buildWeeklyMarkdown(report), /GitHub issues/);
+});
+
+test('the issue section also follows real findings in the markdown record', () => {
+  const report = buildWeeklyReport({
+    thisWindow: {
+      meta: { profileCount: 20, symbolicatedProfileCount: 18 },
+      scenarios: [scenarioFixture('Perps add funds', { medianJsWorkMs: 5000 })],
+    },
+    lastWindow: {
+      meta: {},
+      scenarios: [scenarioFixture('Perps add funds', { medianJsWorkMs: 2000 })],
+    },
+    bounds: weekBounds(new Date('2026-09-28T09:00:00.000Z')),
+    thisWeekRunCount: 20,
+    lastWeekRunCount: 19,
+    issues: { items: WEEKLY_ISSUES.slice(0, 1) },
+  });
+
+  const markdown = buildWeeklyMarkdown(report);
+  const slack = buildWeeklyParentSlack(report);
+
+  assert.ok(markdown.indexOf('## Worse than last week') < markdown.indexOf('## GitHub issues opened this week'));
+  assert.match(slack, /_Scenario findings:_ 1 worse than last week/);
+  assert.match(slack, /\*GitHub issues opened this week:\* 1 \(1 still open\)/);
+});
+
 test('a card without a previous week says so instead of printing n/a', () => {
   const [card] = classifyWeeklyScenarios(
     {

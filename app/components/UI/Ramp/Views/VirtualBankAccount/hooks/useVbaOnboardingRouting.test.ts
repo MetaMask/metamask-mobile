@@ -169,7 +169,15 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expectResetTo({ name: VbaOnboardingRoutes.DETAILS });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NAVIGATE',
+        payload: expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+        }),
+      }),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('opens identity verification when a session exists without recorded vendor disclaimers', async () => {
@@ -303,7 +311,14 @@ describe('useOpenVbaOnboarding', () => {
         source_currencies: [{ type: 'Fiat', code: 'BRL' }],
       }),
     );
-    expectResetTo({ name: VbaOnboardingRoutes.DETAILS });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NAVIGATE',
+        payload: expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+        }),
+      }),
+    );
   });
 
   it('registers the wallet before creating the BRL autoramp', async () => {
@@ -322,7 +337,14 @@ describe('useOpenVbaOnboarding', () => {
 
     expect(mockRegisterWallet).toHaveBeenCalledWith({ address: '0xabc' });
     expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
-    expectResetTo({ name: VbaOnboardingRoutes.DETAILS });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NAVIGATE',
+        payload: expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+        }),
+      }),
+    );
   });
 
   it('opens a retryable status when wallet lookup is unavailable', async () => {
@@ -482,6 +504,48 @@ describe('useOpenVbaOnboarding', () => {
       name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
       params: { snapshot },
     });
+  });
+
+  it('pushes the completed account on the same stack as onboarding', () => {
+    const onboardingDispatch = jest.fn();
+    const parentDispatch = jest.fn();
+    const onboardingNavigation = {
+      navigate: jest.fn(),
+      dispatch: onboardingDispatch,
+      getState: () => ({
+        index: 0,
+        routeNames: [VbaOnboardingRoutes.KYC_PENDING],
+        routes: [{ name: VbaOnboardingRoutes.KYC_PENDING }],
+      }),
+      getParent: () => ({
+        navigate: jest.fn(),
+        dispatch: parentDispatch,
+        getState: () => ({
+          index: 1,
+          routeNames: [
+            'Home',
+            Routes.RAMP.VBA_ONBOARDING,
+            Routes.RAMP.VBA_DETAILS,
+          ],
+          routes: [
+            { key: 'home-1', name: 'Home' },
+            { key: 'vba-1', name: Routes.RAMP.VBA_ONBOARDING },
+          ],
+        }),
+      }),
+    } as unknown as AppNavigationProp;
+
+    navigateToVbaOnboardingDestination(onboardingNavigation, 'complete');
+
+    expect(parentDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NAVIGATE',
+        payload: expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+        }),
+      }),
+    );
+    expect(onboardingDispatch).not.toHaveBeenCalled();
   });
 
   it('replaces the onboarding stack in place so the root screen stays mounted', () => {

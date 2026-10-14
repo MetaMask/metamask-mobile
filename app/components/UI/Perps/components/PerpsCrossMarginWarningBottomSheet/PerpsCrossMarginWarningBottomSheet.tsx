@@ -1,26 +1,19 @@
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
-import React, { useCallback, useRef } from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import BottomSheetFooter, {
-  ButtonsAlignment,
-} from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
+  Box,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import { createStyles } from './PerpsCrossMarginWarningBottomSheet.styles';
-import { useTheme } from '../../../../../util/theme';
-import {
+  ButtonsAlignment,
   Text,
   TextColor,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 
 interface PerpsCrossMarginWarningBottomSheetProps {
@@ -31,8 +24,6 @@ interface PerpsCrossMarginWarningBottomSheetProps {
 const PerpsCrossMarginWarningBottomSheet: React.FC<
   PerpsCrossMarginWarningBottomSheetProps
 > = ({ sheetRef: externalSheetRef, onClose: onExternalClose }) => {
-  const theme = useTheme();
-  const styles = createStyles(theme);
   const navigation = useNavigation<AppNavigationProp>();
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
@@ -49,32 +40,31 @@ const PerpsCrossMarginWarningBottomSheet: React.FC<
     handleClose();
   }, [handleClose]);
 
+  const primaryButtonProps = useMemo(
+    () => ({
+      children: strings('perps.crossMargin.dismiss'),
+      onPress: handleDismiss,
+      size: ButtonSize.Lg,
+    }),
+    [handleDismiss],
+  );
+
   return (
-    <BottomSheet
-      ref={sheetRef}
-      shouldNavigateBack={false}
-      onClose={handleClose}
-    >
-      <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('perps.crossMargin.title')}
-        </Text>
+    <BottomSheet ref={sheetRef} onClose={handleClose}>
+      <BottomSheetHeader
+        onClose={handleClose}
+        closeButtonProps={{ testID: 'header-close-button' }}
+      >
+        {strings('perps.crossMargin.title')}
       </BottomSheetHeader>
-      <View style={styles.contentContainer}>
+      <Box twClassName="px-4 py-4">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('perps.crossMargin.message')}
         </Text>
-      </View>
+      </Box>
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
-        buttonPropsArray={[
-          {
-            label: strings('perps.crossMargin.dismiss'),
-            onPress: handleDismiss,
-            variant: ButtonVariants.Primary,
-            size: ButtonSize.Lg,
-          },
-        ]}
+        primaryButtonProps={primaryButtonProps}
       />
     </BottomSheet>
   );
