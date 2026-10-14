@@ -24,7 +24,8 @@ async function signEntropyMessageAndApprove(
 }
 
 appiumTest.describe(SmokeSnaps('Get Entropy Snap Tests'), () => {
-  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
+  // Android install allows 60s per sheet. Login plus three sheets exceeds 150s.
+  appiumTest.describe.configure({ mode: 'serial', timeout: 240_000 });
 
   appiumTest(
     'connects to the Get Entropy Snap',
