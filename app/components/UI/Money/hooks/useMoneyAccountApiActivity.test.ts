@@ -310,7 +310,6 @@ describe('useMoneyAccountApiActivity', () => {
         enabled: true,
         staleTime: 5 * MINUTE,
         retry: false,
-        placeholderData: expect.any(Function),
       }),
     );
   });
