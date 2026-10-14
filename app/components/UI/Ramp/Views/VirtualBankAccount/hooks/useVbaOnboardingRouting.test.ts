@@ -890,7 +890,6 @@ describe('resolveVbaOnboarding', () => {
 
     expect(mockStartSession).toHaveBeenCalledWith({
       vendor: VBA_KYC_VENDOR,
-      email: 'user@example.com',
     });
     expect(calls).toEqual(['start', 'hydrate']);
   });

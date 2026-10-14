@@ -252,7 +252,6 @@ const resumePersistedKycSession = async (): Promise<void> => {
 
   await kycController.startSession({
     vendor: VBA_KYC_VENDOR,
-    email: persistedEmail,
   });
 };
 
