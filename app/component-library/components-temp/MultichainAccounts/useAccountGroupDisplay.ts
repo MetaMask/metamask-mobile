@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useContext, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import type { RootState } from '../../../reducers';
@@ -7,6 +7,7 @@ import { selectAllAccountGroupIconSeedAddresses } from '../../../selectors/multi
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import { formatWithThreshold } from '../../../util/assets';
 import I18n from '../../../../locales/i18n';
+import { AccountListBalanceContext } from '../../../components/hooks/AccountListBalanceContext';
 
 /**
  * Icon seed for an account group, read from the shared address map.
@@ -40,13 +41,23 @@ interface AccountGroupBalance {
  */
 export const useAccountGroupBalance = (
   accountGroupId: string,
+  {
+    includeAccountListBalance = false,
+  }: { includeAccountListBalance?: boolean } = {},
 ): AccountGroupBalance => {
   const selectBalanceForGroup = useMemo(
     () => selectBalanceByAccountGroup(accountGroupId),
     [accountGroupId],
   );
   const groupBalance = useSelector(selectBalanceForGroup);
-  const totalBalance = groupBalance?.totalBalanceInUserCurrency;
+  const getAccountListBalance = useContext(AccountListBalanceContext);
+  const accountListBalance = includeAccountListBalance
+    ? getAccountListBalance?.(accountGroupId)
+    : undefined;
+  const totalBalance =
+    accountListBalance === null
+      ? undefined
+      : (accountListBalance ?? groupBalance?.totalBalanceInUserCurrency);
   const userCurrency = groupBalance?.userCurrency;
   const privacyMode = useSelector(selectPrivacyMode);
 
