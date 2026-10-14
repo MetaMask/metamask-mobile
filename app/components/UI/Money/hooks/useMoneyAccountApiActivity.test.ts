@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { apiClient } from '../../../../core/apiClient';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -17,16 +17,26 @@ import {
 } from '../utils/moneyActivityCache';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
+import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
+import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import { selectMoneyAccountVedaTokenConfig } from '../../../../selectors/cardController';
 import { MINUTE } from '../../../../constants/time';
 import type { AccountsApiActivity } from '../types/moneyActivity';
 
 jest.mock('@tanstack/react-query', () => ({
   useInfiniteQuery: jest.fn(),
+  useQuery: jest.fn(),
 }));
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    controllerMessenger: { call: jest.fn() },
+  },
+}));
 jest.mock('../../../../core/apiClient', () => ({
   apiClient: {
     accounts: {
@@ -38,6 +48,12 @@ jest.mock('../../../../core/apiClient', () => ({
 
 jest.mock('../../../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
+}));
+jest.mock('../../../../selectors/featureFlagController/moneyAccount', () => ({
+  selectMoneyAccountVaultConfig: jest.fn(),
+}));
+jest.mock('../../../../selectors/cardController', () => ({
+  selectMoneyAccountVedaTokenConfig: jest.fn(),
 }));
 jest.mock('../../../../util/trace', () => ({
   annotateTrace: jest.fn(),
@@ -63,6 +79,7 @@ jest.mock('../utils/accountsApi', () => ({
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseInfiniteQuery = jest.mocked(useInfiniteQuery);
+const mockUseQuery = jest.mocked(useQuery);
 const mockGetQueryOptions = jest.mocked(
   apiClient.accounts.getV1AccountTransactionsQueryOptions,
 );
@@ -76,6 +93,8 @@ const mockReadCachedFirstPage = jest.mocked(readCachedFirstPage);
 const mockWriteCachedFirstPage = jest.mocked(writeCachedFirstPage);
 
 const ADDR_A = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
+const VAULT_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678';
+const VMUSD_ADDRESS = '0xvedatoken';
 const CASHBACK_MULTISEND_CONTRACTS = [
   '0xC7f1b2228fbf28451c7bf791C4f610111f0f32cb',
 ];
@@ -110,6 +129,22 @@ function setupSelectors(
     if (selector === selectPrimaryMoneyAccount) {
       return account;
     }
+    if (selector === selectMoneyAccountVaultConfig) {
+      return {
+        boringVault: VAULT_ADDRESS,
+        chainId: '0x8f',
+        tellerAddress: '0x1',
+        accountantAddress: '0x2',
+        lensAddress: '0x3',
+      };
+    }
+    if (selector === selectMoneyAccountVedaTokenConfig) {
+      return {
+        address: VMUSD_ADDRESS,
+        caipChainId: 'eip155:143',
+        decimals: 6,
+      };
+    }
     if (selector === selectMoneyCardActivityCashbackMultisendContracts) {
       return CASHBACK_MULTISEND_CONTRACTS;
     }
@@ -139,6 +174,7 @@ beforeEach(() => {
     QUERY_OPTIONS_MOCK as unknown as ReturnType<typeof mockGetQueryOptions>,
   );
   mockQueryResult();
+  mockUseQuery.mockReturnValue({ data: undefined, isError: false } as never);
   mockParse.mockReturnValue([]);
 });
 
@@ -150,6 +186,81 @@ describe('useMoneyAccountApiActivity', () => {
       chainIds: MUSD_MONEY_ACCOUNT_CHAIN_IDS,
       sortDirection: 'DESC',
     });
+  });
+
+  it('caches rate history by configured vault, chain, and bounded time range', () => {
+    // Arrange
+    mockParse.mockReturnValueOnce([
+      {
+        ...CARD,
+        time: Date.parse('2026-06-04T11:53:51.000Z'),
+        token: { address: VMUSD_ADDRESS, symbol: 'vmUSD', decimals: 6 },
+        blockNumber: 10,
+      },
+    ]);
+
+    // Act
+    renderHook(() => useMoneyAccountApiActivity());
+
+    // Assert
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: [
+          MoneyAccountApiDataServiceQueryKeys.FETCH_RATE_HISTORY,
+          VAULT_ADDRESS,
+          {
+            chainId: 143,
+            from: new Date(
+              Date.parse('2026-06-04T11:53:51.000Z') -
+                365 * 24 * 60 * 60 * 1000,
+            ).toISOString(),
+            to: new Date(
+              Date.parse('2026-06-04T11:53:51.000Z') + 24 * 60 * 60 * 1000,
+            ).toISOString(),
+          },
+        ],
+        enabled: true,
+        staleTime: 5 * MINUTE,
+        retry: false,
+      }),
+    );
+  });
+
+  it('does not query historical rates for another token at the same chain', () => {
+    // Arrange
+    mockParse.mockReturnValueOnce([
+      {
+        ...CARD,
+        token: { address: '0xother', symbol: 'OTHER', decimals: 6 },
+        blockNumber: 10,
+      },
+    ]);
+
+    // Act
+    renderHook(() => useMoneyAccountApiActivity());
+
+    // Assert
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('disables historical rates for vmUSD activity without a transaction block', () => {
+    // Arrange
+    mockParse.mockReturnValueOnce([
+      {
+        ...CARD,
+        token: { address: VMUSD_ADDRESS, symbol: 'vmUSD', decimals: 6 },
+      },
+    ]);
+
+    // Act
+    renderHook(() => useMoneyAccountApiActivity());
+
+    // Assert
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
   });
 
   it('uses the cursor-free Accounts API query key for pagination', () => {

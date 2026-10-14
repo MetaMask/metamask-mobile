@@ -29,6 +29,17 @@ describe('parseRate18', () => {
     expect(result).toBe(1234567890123456789n);
   });
 
+  it('parses integer rate values to the 18-decimal scale', () => {
+    // Arrange
+    const rate = '2';
+
+    // Act
+    const result = parseRate18(rate);
+
+    // Assert
+    expect(result).toBe(2000000000000000000n);
+  });
+
   it('rejects rates with more than 18 decimal places', () => {
     // Arrange
     const rate = '1.0000000000000000001';
@@ -66,6 +77,26 @@ describe('selectHistoricalRateForBlock', () => {
 
     // Assert
     expect(result).toBe('1250000000000000000');
+  });
+
+  it('chooses the later time-sorted update within a matching block', () => {
+    // Arrange
+    const rates = [
+      {
+        ...createRate(101, '1.1'),
+        timestamp: '2026-06-04T11:00:00.000Z',
+      },
+      {
+        ...createRate(101, '1.2'),
+        timestamp: '2026-06-04T12:00:00.000Z',
+      },
+    ];
+
+    // Act
+    const result = selectHistoricalRateForBlock(rates, 101);
+
+    // Assert
+    expect(result).toBe('1200000000000000000');
   });
 
   it('returns no rate when no indexed point is at or before the block', () => {

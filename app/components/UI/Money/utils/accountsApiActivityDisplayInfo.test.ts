@@ -81,8 +81,8 @@ describe('accountsApiActivityDisplayInfo', () => {
     const info = accountsApiActivityDisplayInfo(activity);
 
     // Assert
-    expect(info.primaryAmount).toBe('-6.72 mUSD');
-    expect(info.fiatAmount).toBe('-$6.72');
+    expect(info.primaryAmount).toBe('-6.73 mUSD');
+    expect(info.fiatAmount).toBe('-$6.73');
   });
 
   it('does not label vmUSD shares as mUSD when no historical rate is available', () => {

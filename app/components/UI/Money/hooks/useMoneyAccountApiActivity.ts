@@ -263,7 +263,7 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   });
 
   const resolvedActivity = useMemo(() => {
-    const rates = rateHistoryQuery.data?.rates ?? [];
+    const rates = rateHistoryQuery.data ?? [];
     return activity.map((row) => {
       if (
         !isConfiguredVaultShare(row) ||
