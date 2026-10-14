@@ -39,7 +39,7 @@ on:
         type: string
         default: 'e2e'
       performance_tags:
-        description: 'JSON array of performance tags (e.g. ["@PerformanceLogin","@PerformanceSwaps"]). Omit/blank or ["ALL"] = run all. "[]" = skip all (no relevant changes, or selection failed).'
+        description: 'JSON array of performance tags (e.g. ["@PerformanceLogin","@PerformanceSwaps"]). ["ALL"] runs all. [] runs none. On a PR, a blank value runs none. Schedule and manual runs treat blank as run all.'
         required: false
         type: string
         default: ''
@@ -118,12 +118,20 @@ jobs:
         env:
           PERF_TAGS: ${{ inputs.performance_tags }}
           PERF_REASONING: ${{ inputs.performance_tags_reasoning }}
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           TAGS="$PERF_TAGS"
           REASONING="$PERF_REASONING"
 
-          # No input (blank) → schedule/dispatch or label override: run all tests.
-          if [[ -z "$TAGS" ]]; then
+          # Blank on a PR is a selector miss: run none.
+          # Blank without a PR (schedule/manual) still runs the full suite.
+          if [[ -z "${TAGS//[[:space:]]/}" ]]; then
+            if [[ -n "$PR_NUMBER" ]]; then
+              echo "run_tests=false" >> "$GITHUB_OUTPUT"
+              echo "grep_pattern="   >> "$GITHUB_OUTPUT"
+              echo "⏭️  Skipping performance tests — blank selection on a PR"
+              exit 0
+            fi
             echo "run_tests=true" >> "$GITHUB_OUTPUT"
             echo "grep_pattern="  >> "$GITHUB_OUTPUT"
             echo "▶️  Running all performance tests (no tag filter)"
@@ -141,8 +149,8 @@ jobs:
             exit 0
           fi
 
-          # '["ALL"]' (or any list that includes ALL) → run the full suite.
-          if echo "$TAGS" | jq -e 'type == "array" and any(. == "ALL")' >/dev/null 2>&1; then
+          # '["ALL"]' (any case, or mixed with other tags) → run the full suite.
+          if echo "$TAGS" | jq -e 'type == "array" and any(.[]; ascii_upcase == "ALL")' >/dev/null 2>&1; then
             echo "run_tests=true" >> "$GITHUB_OUTPUT"
             echo "grep_pattern="  >> "$GITHUB_OUTPUT"
             echo "▶️  Running all performance tests (ALL tag)"

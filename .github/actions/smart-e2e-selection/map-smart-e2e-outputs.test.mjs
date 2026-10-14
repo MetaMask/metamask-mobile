@@ -60,6 +60,30 @@ describe('mapSmartE2eOutputs', () => {
     assert.equal(out.ai_performance_test_tags, '[]');
   });
 
+  it('treats a blank performance tag list as run none', () => {
+    const out = mapSmartE2eOutputs({
+      selected_tags: ['SmokeAccounts'],
+      confidence: 90,
+      performance_tests: {
+        selected_tags: ['', '   '],
+        reasoning: 'blank',
+      },
+    });
+    assert.equal(out.ai_performance_test_tags, '[]');
+  });
+
+  it('maps lowercase all to the run-all token', () => {
+    const out = mapSmartE2eOutputs({
+      selected_tags: ['SmokeAccounts'],
+      confidence: 90,
+      performance_tests: {
+        selected_tags: ['all'],
+        reasoning: 'broad',
+      },
+    });
+    assert.equal(out.ai_performance_test_tags, '["ALL"]');
+  });
+
   it('stringifies specific performance tags', () => {
     const out = mapSmartE2eOutputs({
       selected_tags: ['SmokeAccounts'],
