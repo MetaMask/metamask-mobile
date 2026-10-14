@@ -156,7 +156,10 @@ const MultichainAddressRow = ({
             {networkName}
           </Text>
           {accountTypeLabel && (
-            <Tag testID={MULTICHAIN_ADDRESS_ROW_ACCOUNT_TYPE_LABEL_TEST_ID}>
+            <Tag
+              testID={MULTICHAIN_ADDRESS_ROW_ACCOUNT_TYPE_LABEL_TEST_ID}
+              twClassName="self-center"
+            >
               {accountTypeLabel}
             </Tag>
           )}
