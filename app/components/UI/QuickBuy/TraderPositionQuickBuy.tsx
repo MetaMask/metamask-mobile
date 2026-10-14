@@ -37,7 +37,7 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
   traderAddress,
   marketCap,
   tokenPriceFiat,
-  source,
+  source = 'profile_position',
   originalEntryPoint,
   isTraderPositionClosed,
   postSwapShare,
@@ -55,7 +55,7 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
     [position],
   ); // `null` when position is null OR when its chain name has no CAIP mapping
 
-  const analyticsContext = useMemo((): QuickBuyAnalyticsContext | undefined => {
+  const analyticsContext = useMemo((): QuickBuyAnalyticsContext => {
     const traderTradeType: QuickBuyAnalyticsContext['traderTradeType'] =
       isTraderPositionClosed === undefined
         ? undefined
@@ -78,7 +78,7 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
           originalEntryPoint,
           traderTradeType,
         }
-      : undefined;
+      : { source };
   }, [
     traderAddress,
     marketCap,

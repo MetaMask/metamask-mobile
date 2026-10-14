@@ -6,10 +6,14 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import Routes from '../../../../../constants/navigation/Routes';
 import { isHardwareAccount } from '../../../../../util/address';
-import { HardwareWalletsSwapsStatus } from '../../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
+import {
+  HardwareWalletsSwapsStatus,
+  HardwareWalletsSwapsStepKind,
+} from '../../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 import { PostTradeStatus } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
 import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 import type { RootState } from '../../../../../reducers';
+import { KnownCaipNamespace } from '@metamask/utils';
 
 const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
 
@@ -321,6 +325,60 @@ describe('useBridgeConfirm', () => {
           }
         ).bridge.hardwareWalletsSwaps.totalSteps,
       ).toBe(1);
+    });
+
+    it('shows NO recipient for same-chain swaps whose quote lacks an ultimate recipient (never the aggregator router)', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const ROUTER = '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE';
+      const activeQuote = {
+        ...mockQuoteWithMetadata,
+        namespace: KnownCaipNamespace.Eip155,
+        chainId: 'eip155:1' as const,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          src: { ...mockQuoteWithMetadata.quote.src, normalizedAmount: '10' },
+          dest: {
+            ...mockQuoteWithMetadata.quote.dest,
+            normalizedAmount: '9.9',
+          },
+        },
+        trade: {
+          chainId: 1,
+          from: WALLET_ADDRESS,
+          to: ROUTER,
+          value: '0x0',
+          data: '0x',
+          gasLimit: 21000,
+        } as const,
+      };
+      const { result, store } = renderHook(
+        {
+          ...defaultParams,
+          activeQuote,
+        } as unknown as Parameters<typeof useBridgeConfirm>[0],
+        {
+          bridge: {
+            ...mockBridgeReducerState,
+            sourceToken: {
+              ...mockBridgeReducerState.sourceToken,
+              chainId: '0x1',
+            },
+            destToken: { ...mockBridgeReducerState.destToken, chainId: '0x1' },
+          },
+        },
+      );
+
+      await act(async () => {
+        await result.current();
+      });
+
+      const steps = (store.getState() as RootState).bridge.hardwareWalletsSwaps
+        .steps;
+      const swapStep = steps.find(
+        (candidate) =>
+          candidate.kind === HardwareWalletsSwapsStepKind.Transaction,
+      );
+      expect(swapStep?.address).toBeUndefined();
     });
   });
 
