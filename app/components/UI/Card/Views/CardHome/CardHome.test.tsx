@@ -1015,6 +1015,11 @@ function setupLoadCardDataMock(
     delegationSettings: Record<string, unknown> | null;
     countryOfResidence: string | null;
     alerts: { type: string; dismissable: boolean }[];
+    homeActions: {
+      type: string;
+      enabled?: boolean;
+      reason?: 'card_cancelled';
+    }[];
   }>,
 ) {
   const defaults = {
@@ -1091,8 +1096,13 @@ function setupLoadCardDataMock(
   }
 
   // Map actions based on warning + kycStatus + hasExternalWallets
-  const actions: { type: string; enabled?: boolean }[] = [];
+  const actions: {
+    type: string;
+    enabled?: boolean;
+    reason?: 'card_cancelled';
+  }[] = config.homeActions ? [...config.homeActions] : [];
   if (
+    !config.homeActions &&
     !config.alerts &&
     (config.warning === CardStateWarning.NeedDelegation ||
       config.warning === CardStateWarning.NoCard)
@@ -1104,7 +1114,7 @@ function setupLoadCardDataMock(
         actions.push({ type: 'enable_card' });
       }
     }
-  } else if (!config.warning && primaryFundingAsset) {
+  } else if (!config.homeActions && !config.warning && primaryFundingAsset) {
     actions.push({ type: 'add_funds', enabled: true });
   }
 
@@ -2475,6 +2485,31 @@ describe('CardHome Component', () => {
       screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON));
+    expect(mockEnableCard).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows Enable card after an Immersve card is cancelled', () => {
+    mockCanEnableCard = true;
+    mockProvisioningView = 'hidden';
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      cardDetails: null,
+      priorityToken: null,
+      warning: null,
+      alerts: [],
+      homeActions: [{ type: 'enable_card', reason: 'card_cancelled' }],
+    });
+
+    render();
+
+    expect(
+      screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(CardHomeSelectors.PRIVACY_TOGGLE_BUTTON),
+    ).toBeNull();
     fireEvent.press(screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON));
     expect(mockEnableCard).toHaveBeenCalledTimes(1);
   });

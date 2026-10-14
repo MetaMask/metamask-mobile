@@ -263,7 +263,7 @@ const CardHome = () => {
     Linking.openURL(APPLE_PAY_LEARN_MORE_URL).catch(() => undefined);
   }, []);
 
-  const { canEnableCard, enableCard, provisioningView } =
+  const { canEnableCard, enableCard, provisioningView, isEnableCardLoading } =
     useCardEnableCard(data);
 
   const effectiveActions = useMemo<CardAction[]>(() => {
@@ -839,6 +839,7 @@ const CardHome = () => {
                   isMoneyAccountEntry={!!primaryToken?.isMoneyAccountEntry}
                   onAddFunds={actions.addFundsAction}
                   onEnableCard={enableCard ?? actions.enableCardAction}
+                  isEnableCardLoading={isEnableCardLoading}
                 />
               </Box>
             )}
@@ -993,6 +994,7 @@ const CardHome = () => {
             }
             showRevokeAllowance={canRevokeAllowance}
             onRevokeAllowance={actions.revokeAllowanceAction}
+            onCancelCard={actions.cancelCardAction}
             fundingAccountName={fundingAccountName}
             onOrderMetalCard={actions.orderMetalCardAction}
             onChangeAsset={actions.changeAssetAction}

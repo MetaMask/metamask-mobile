@@ -10609,6 +10609,7 @@
       "title": "Enter password",
       "description": "Enter your wallet password to view card details.",
       "description_unfreeze": "Enter your wallet password to resume spending on your card.",
+      "description_cancel_card": "Enter your wallet password to cancel your card.",
       "description_view_pin": "Enter your wallet password to view your card PIN.",
       "description_set_pin": "Enter your wallet password to set your card PIN.",
       "placeholder": "Password",
@@ -10960,6 +10961,8 @@
       "add_funds": "Add funds",
       "change_asset": "Change asset",
       "enable_card_button_label": "Enable card",
+      "recreate_card_error": "Couldn't create a new card. Try again.",
+      "recreate_card_max_cards_error": "You've reached the maximum number of cards. Contact support if you need a new one.",
       "enable_assets_button_label": "Enable assets",
       "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
       "spending_limit_available": "available",
@@ -11066,6 +11069,8 @@
         "freeze_error": "Failed to update card status. Try again.",
         "freeze_success": "Card successfully frozen",
         "unfreeze_success": "Card successfully unfrozen",
+        "cancel_card": "Cancel card",
+        "cancel_card_description": "Permanently cancel this card",
         "change_asset": "Change asset",
         "change_asset_description": "Select a different token",
         "contact_details": "Contact details",
@@ -11104,6 +11109,16 @@
           "enter_details": "Enter your MetaMask Card details manually and follow the prompts to finish adding your card."
         }
       }
+    },
+    "cancel_card_sheet": {
+      "title": "Cancel card?",
+      "description": "This can't be undone. The card will stop working, including in Apple Wallet. You can create a new card afterwards.",
+      "keep_button": "Keep card",
+      "confirm_button": "Cancel card",
+      "pending": "Cancelling your card",
+      "success": "Card cancelled",
+      "in_progress": "Cancellation is still in progress",
+      "error": "Couldn't cancel your card. Try again."
     },
     "revoke_allowance_sheet": {
       "title": "Unlink card",

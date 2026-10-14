@@ -35,6 +35,7 @@ import ImmersveKYCModal from '../components/ImmersveKYCModal/ImmersveKYCModal';
 import ForgotPasswordModal from '../components/ForgotPasswordModal/ForgotPasswordModal';
 import MoneyUnlinkCardSheet from '../components/MoneyUnlinkCardSheet';
 import ImmersveRevokeAllowanceSheet from '../components/ImmersveRevokeAllowanceSheet';
+import ImmersveCancelCardSheet from '../components/ImmersveCancelCardSheet';
 import UkMigrationBottomSheet from '../components/UkMigrationBottomSheet';
 import SignInHelpBottomSheet from '../components/SignInHelpBottomSheet/SignInHelpBottomSheet';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
@@ -231,6 +232,10 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.REVOKE_ALLOWANCE}
       component={ImmersveRevokeAllowanceSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.CANCEL_CARD}
+      component={ImmersveCancelCardSheet}
     />
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.UK_MIGRATION}

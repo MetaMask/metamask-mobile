@@ -73,6 +73,7 @@ const renderComponent = (
     showTransactionHistoryDuringSetup?: boolean;
     hasPriorityTokenBalance?: boolean;
     hasAlertOnlyState?: boolean;
+    onCancelCard?: () => void;
   } = {},
 ) =>
   render(
@@ -114,6 +115,7 @@ const renderComponent = (
       showTransactionHistoryDuringSetup={
         overrides.showTransactionHistoryDuringSetup
       }
+      onCancelCard={overrides.onCancelCard}
     />,
   );
 
@@ -518,5 +520,61 @@ describe('ManageCardOptions transaction history gating', () => {
     expect(
       queryByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
     ).toBeNull();
+  });
+});
+
+describe('ManageCardOptions cancel card gating', () => {
+  const onCancelCard = jest.fn();
+
+  it('shows cancel card for an Immersve card that can still be cancelled', () => {
+    const { getByTestId } = renderComponent(
+      buildCapabilities({
+        supportsFundingLimits: false,
+        supportsCancelCard: true,
+      }),
+      { onCancelCard },
+    );
+
+    fireEvent.press(getByTestId(CardHomeSelectors.CANCEL_CARD_ITEM));
+    expect(onCancelCard).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides cancel card when the provider cannot cancel', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({
+        supportsFundingLimits: false,
+        supportsCancelCard: false,
+      }),
+      { onCancelCard },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.CANCEL_CARD_ITEM)).toBeNull();
+  });
+
+  it('hides cancel card when the card is blocked', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({
+        supportsFundingLimits: false,
+        supportsCancelCard: true,
+      }),
+      {
+        onCancelCard,
+        card: { ...CARD, status: CardStatus.BLOCKED, isFreezable: false },
+      },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.CANCEL_CARD_ITEM)).toBeNull();
+  });
+
+  it('hides cancel card when there is no card', () => {
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({
+        supportsFundingLimits: false,
+        supportsCancelCard: true,
+      }),
+      { onCancelCard, card: null as unknown as CardDetails },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.CANCEL_CARD_ITEM)).toBeNull();
   });
 });

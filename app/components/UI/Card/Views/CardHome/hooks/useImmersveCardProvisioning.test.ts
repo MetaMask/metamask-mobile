@@ -165,6 +165,21 @@ describe('useImmersveCardProvisioning', () => {
       jest.useRealTimers();
     });
 
+    it('does not create a card when the account only has a cancelled card', async () => {
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning({
+          alerts: [],
+          actions: [{ type: 'enable_card', reason: 'card_cancelled' }],
+        } as never),
+      );
+
+      expect(result.current.isProvisioning).toBe(false);
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(controller.createCard).not.toHaveBeenCalled();
+    });
+
     it('does not poll while Card Home is not focused', async () => {
       mockIsFocused = false;
 

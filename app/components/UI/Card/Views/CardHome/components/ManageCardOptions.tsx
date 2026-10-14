@@ -52,6 +52,7 @@ interface ManageCardOptionsProps {
   onUnlinkMoneyAccount: () => void;
   showRevokeAllowance?: boolean;
   onRevokeAllowance?: () => void;
+  onCancelCard?: () => void;
   fundingAccountName?: string;
   onOrderMetalCard: () => void;
   isSpendingLimitActive: boolean;
@@ -92,6 +93,7 @@ const ManageCardOptions = ({
   onUnlinkMoneyAccount,
   showRevokeAllowance = false,
   onRevokeAllowance,
+  onCancelCard,
   fundingAccountName,
   onOrderMetalCard,
   isSpendingLimitActive,
@@ -354,6 +356,23 @@ const ManageCardOptions = ({
             testID={CardHomeSelectors.REVOKE_ALLOWANCE_ITEM}
           />
         )}
+        {isAuthenticated &&
+          !isLoading &&
+          card &&
+          card.status !== CardStatus.BLOCKED &&
+          capabilities?.supportsCancelCard &&
+          !hideManageOptions &&
+          onCancelCard && (
+            <ManageCardListItem
+              title={strings('card.card_home.manage_card_options.cancel_card')}
+              description={strings(
+                'card.card_home.manage_card_options.cancel_card_description',
+              )}
+              rightIcon={IconName.ArrowRight}
+              onPress={onCancelCard}
+              testID={CardHomeSelectors.CANCEL_CARD_ITEM}
+            />
+          )}
       </Box>
       {showTransactionHistory ? (
         <ManageCardListItem

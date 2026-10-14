@@ -17,6 +17,7 @@ interface CardActionsButtonsProps {
   isMoneyAccountEntry?: boolean;
   onAddFunds: () => void;
   onEnableCard: () => void;
+  isEnableCardLoading?: boolean;
 }
 
 const CardActionsButtons = ({
@@ -26,6 +27,7 @@ const CardActionsButtons = ({
   isMoneyAccountEntry = false,
   onAddFunds,
   onEnableCard,
+  isEnableCardLoading = false,
 }: CardActionsButtonsProps) => {
   const tw = useTailwind();
 
@@ -49,6 +51,8 @@ const CardActionsButtons = ({
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={onEnableCard}
+        isLoading={isEnableCardLoading}
+        isDisabled={isEnableCardLoading}
         isFullWidth
         testID={CardHomeSelectors.ENABLE_CARD_BUTTON}
       >
