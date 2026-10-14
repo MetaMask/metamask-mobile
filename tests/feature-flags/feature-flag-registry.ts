@@ -7939,6 +7939,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsPriceAlertsPercentChangeEnabled: {
+    name: 'perpsPriceAlertsPercentChangeEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictHomepageDiscoveryNbaChampionEnabled: {
     name: 'predictHomepageDiscoveryNbaChampionEnabled',
     type: FeatureFlagType.Remote,

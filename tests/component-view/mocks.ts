@@ -638,6 +638,7 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '99.0.0'),
   getBuildNumber: jest.fn(() => '999'),
   getBrand: jest.fn(() => 'Apple'),
+  getTotalMemorySync: jest.fn(() => 8 * 1024 ** 3),
   getApplicationName: jest.fn(() => Promise.resolve('MetaMask')),
 }));
 

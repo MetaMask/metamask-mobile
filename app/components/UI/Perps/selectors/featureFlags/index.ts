@@ -576,3 +576,22 @@ export const selectPerpsPriceAlertsEnabledFlag = createSelector(
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
+
+/**
+ * Client-config key for perps percent-change price alerts.
+ * Defaults to false so percent-change alerts can be rolled out independently
+ * from threshold price alerts.
+ */
+export const PERPS_PRICE_ALERTS_PERCENT_CHANGE_ENABLED_FLAG_KEY =
+  'perpsPriceAlertsPercentChangeEnabled' as const;
+
+export const selectPerpsPriceAlertsPercentChangeEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_PRICE_ALERTS_PERCENT_CHANGE_ENABLED_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);

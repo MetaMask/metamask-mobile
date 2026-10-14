@@ -10,6 +10,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -35,6 +36,7 @@ import PercentChangeAlertForm from './PercentChangeAlertForm';
 import { FeatureNotificationsGate } from '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
+import { selectPerpsPriceAlertsPercentChangeEnabledFlag } from '../../../../Perps/selectors/featureFlags';
 
 /**
  * Mounted only in perps mode (inside PerpsStreamProvider). Spot Create lives
@@ -84,6 +86,9 @@ const CreatePriceAlertView: React.FC = () => {
     szDecimals,
   } = route.params;
   const isPerpsMode = mode === 'perps';
+  const isPerpsPercentChangeEnabled = useSelector(
+    selectPerpsPriceAlertsPercentChangeEnabledFlag,
+  );
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const shouldUseLivePrice =
@@ -166,6 +171,8 @@ const CreatePriceAlertView: React.FC = () => {
     editingAlert?.type === 'absolute_price' ? editingAlert : undefined;
   const editingPercentAlert =
     editingAlert?.type === 'percent_change' ? editingAlert : undefined;
+  const canUsePercentChange =
+    !isPerpsMode || isPerpsPercentChangeEnabled || Boolean(editingPercentAlert);
 
   return (
     <SafeAreaView
@@ -198,13 +205,15 @@ const CreatePriceAlertView: React.FC = () => {
           </PerpsStreamProvider>
         ) : null}
 
-        <AlertTypeToggle
-          value={alertType}
-          onChange={setAlertType}
-          isDisabled={isEditing}
-        />
+        {(!isPerpsMode || isPerpsPercentChangeEnabled) && (
+          <AlertTypeToggle
+            value={alertType}
+            onChange={setAlertType}
+            isDisabled={isEditing}
+          />
+        )}
 
-        {alertType === 'percent_change' ? (
+        {alertType === 'percent_change' && canUsePercentChange ? (
           <PercentChangeAlertForm
             assetId={assetId}
             marketId={isPerpsMode ? marketId : undefined}
