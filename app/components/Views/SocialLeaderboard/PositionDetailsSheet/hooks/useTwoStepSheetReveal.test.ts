@@ -78,6 +78,32 @@ describe('useTwoStepSheetReveal', () => {
     expect(result.current.isExpanded).toBe(true);
   });
 
+  it('draws a line that arrives after expanding without chart data', () => {
+    const { result, rerender } = renderHook(
+      ({
+        isChartReady,
+        hasChartData,
+      }: {
+        isChartReady: boolean;
+        hasChartData: boolean;
+      }) => useTwoStepSheetReveal({ isChartReady, hasChartData }),
+      {
+        initialProps: { isChartReady: true, hasChartData: false },
+      },
+    );
+
+    expect(result.current.isExpanded).toBe(true);
+    expect(result.current.lineProgress.value).toBe(0);
+
+    rerender({ isChartReady: true, hasChartData: true });
+
+    act(() => {
+      jest.advanceTimersByTime(LINE_DRAW_DURATION_MS);
+    });
+
+    expect(result.current.lineProgress.value).toBe(1);
+  });
+
   it('draws the line, then expands the details', () => {
     const { result } = renderHook(() =>
       useTwoStepSheetReveal({ isChartReady: true, hasChartData: true }),

@@ -98,6 +98,33 @@ export function useTwoStepSheetReveal({
   ]);
 
   useEffect(() => {
+    if (
+      !isAnimated ||
+      !isChartReady ||
+      !isExpanded ||
+      !hasChartData ||
+      lineProgress.value !== 0
+    ) {
+      return;
+    }
+
+    lineProgress.value = withTiming(1, {
+      duration: LINE_DRAW_DURATION_MS,
+      easing: EASE_OUT,
+    });
+    overlayOpacity.value = withTiming(1, {
+      duration: OVERLAY_FADE_DURATION_MS,
+    });
+  }, [
+    isAnimated,
+    isChartReady,
+    isExpanded,
+    hasChartData,
+    lineProgress,
+    overlayOpacity,
+  ]);
+
+  useEffect(() => {
     if (!isAnimated || !isExpanded || detailsMeasuredHeight === 0) return;
     detailsHeight.value = withTiming(detailsMeasuredHeight, {
       duration: DETAILS_EXPAND_DURATION_MS,
