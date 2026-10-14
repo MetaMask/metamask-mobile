@@ -164,17 +164,30 @@ const MoneyBalanceSummary = ({
     return (
       <TitleHub
         testID={MoneyBalanceSummaryTestIds.CONTAINER}
-        twClassName="px-4 pb-3"
+        // TitleHub hardcodes gap-1. gap-0 is listed after it so the amount's
+        // 24px margin is the only space under the title.
+        twClassName="px-4 pb-3 gap-0"
         title={strings('money.title')}
         titleProps={{ testID: MoneyBalanceSummaryTestIds.TITLE }}
         amount={renderBalanceSlot()}
+        amountWrapperProps={{
+          marginTop: 6,
+          testID: MoneyBalanceSummaryTestIds.AMOUNT,
+        }}
         bottomLabel={apyLabel}
+        bottomLabelWrapperProps={{ marginTop: 1 }}
       />
     );
   }
 
+  // The tab title lives in HeaderRoot, which centers a 32px line in a 56px
+  // bar and leaves 12px under "Money". 12px here makes that gap 24px, matching
+  // the home balance gap under the account pill.
   return (
-    <Box twClassName="px-4 gap-1" testID={MoneyBalanceSummaryTestIds.CONTAINER}>
+    <Box
+      twClassName="px-4 pt-3 gap-1"
+      testID={MoneyBalanceSummaryTestIds.CONTAINER}
+    >
       {renderBalanceSlot()}
       {apyLabel}
     </Box>
