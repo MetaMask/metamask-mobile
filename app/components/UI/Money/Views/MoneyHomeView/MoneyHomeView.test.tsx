@@ -290,8 +290,6 @@ jest.mock('../../selectors/visibility', () => ({
 
 const mockUseProSubscriptionEnabled = jest.fn(() => ({
   isProSubscriptionEnabled: false,
-  variantName: 'control',
-  isActive: false,
 }));
 jest.mock('../../../../../hooks/useProSubscriptionEnabled', () => ({
   useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
@@ -592,8 +590,6 @@ describe('MoneyHomeView', () => {
     mockSelectPrivacyMode.mockReturnValue(false);
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
-      variantName: 'control',
-      isActive: false,
     });
     mockUsePlusAccess.mockReturnValue({
       isPlusSubscriber: false,
@@ -2901,8 +2897,6 @@ describe('MoneyHomeView', () => {
     beforeEach(() => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
-        variantName: 'treatment',
-        isActive: true,
       });
       mockUsePlusAccess.mockReturnValue({
         isPlusSubscriber: false,
@@ -2929,8 +2923,6 @@ describe('MoneyHomeView', () => {
     it('hides the Pro entry point while the Pro flow is disabled', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: false,
-        variantName: 'control',
-        isActive: false,
       });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
