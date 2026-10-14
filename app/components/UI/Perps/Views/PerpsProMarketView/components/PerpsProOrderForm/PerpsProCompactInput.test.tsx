@@ -6,11 +6,16 @@ import {
   getPerpsProCompactInputRowTestId,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
+import { usePerpsLocale } from '../../../../hooks/usePerpsLocale';
 import PerpsProCompactInput, {
   getPerpsProInputAccessoryID,
   PerpsProInputKeyboardAccessory,
   type PerpsProCompactInputRef,
 } from './PerpsProCompactInput';
+
+jest.mock('../../../../hooks/usePerpsLocale', () => ({
+  usePerpsLocale: jest.fn(() => 'en-US'),
+}));
 
 // Mock Input to expose a spyable `focus` via its forwarded ref, mirroring the
 // design system's real `forwardRef<TextInput>` contract.
@@ -60,6 +65,7 @@ describe('PerpsProCompactInput', () => {
     // constant — not just `mockInputFocus`, so stale call counts can't bleed
     // between tests.
     jest.clearAllMocks();
+    jest.mocked(usePerpsLocale).mockReturnValue('en-US');
   });
 
   afterEach(() => {
@@ -126,6 +132,29 @@ describe('PerpsProCompactInput', () => {
       ).toHaveStyle({ position: 'absolute', top: 0 });
     });
 
+    it('captures the current locale when an arrow focuses the field', () => {
+      const ref = React.createRef<PerpsProCompactInputRef>();
+      const onChangeText = jest.fn();
+      const props = {
+        ...defaultProps,
+        ref,
+        variant: 'inline-labeled' as const,
+        onChangeText,
+      };
+      const { rerender } = render(<PerpsProCompactInput {...props} />);
+      jest.mocked(usePerpsLocale).mockReturnValue('de-DE');
+      rerender(<PerpsProCompactInput {...props} />);
+
+      act(() => {
+        ref.current?.focus();
+      });
+      const input = screen.getByTestId(defaultProps.testID);
+      fireEvent(input, 'focus');
+      fireEvent.changeText(input, '1.200');
+
+      expect(onChangeText).toHaveBeenLastCalledWith('1200');
+    });
+
     it('does not expand a disabled field when an arrow moves to it', () => {
       const ref = React.createRef<PerpsProCompactInputRef>();
       const onFieldPress = jest.fn();
@@ -154,6 +183,119 @@ describe('PerpsProCompactInput', () => {
         justifyContent: 'center',
       });
     });
+  });
+
+  it('keeps the editing locale when the app locale changes while focused', () => {
+    const onChangeText = jest.fn();
+    const props = { ...defaultProps, value: '1200', onChangeText };
+    const { rerender } = render(<PerpsProCompactInput {...props} />);
+    const input = screen.getByTestId(defaultProps.testID);
+
+    expect(input).toHaveProp('value', '1,200');
+
+    fireEvent(input, 'focus');
+    jest.mocked(usePerpsLocale).mockReturnValue('de-DE');
+    rerender(<PerpsProCompactInput {...props} />);
+
+    expect(input).toHaveProp('value', '1,200');
+
+    fireEvent.changeText(input, '1,200');
+
+    expect(onChangeText).toHaveBeenLastCalledWith('1200');
+
+    fireEvent(input, 'blur');
+
+    expect(onChangeText).toHaveBeenCalledTimes(1);
+    expect(input).toHaveProp('value', '1.200');
+  });
+
+  it('preserves a German grouped integer that replaces the full decimal value', () => {
+    jest.mocked(usePerpsLocale).mockReturnValue('de-DE');
+    const onChangeText = jest.fn();
+    const ControlledInput = () => {
+      const [value, setValue] = React.useState('1234.50');
+      const handleChangeText = (nextValue: string) => {
+        onChangeText(nextValue);
+        setValue(nextValue);
+      };
+
+      return (
+        <PerpsProCompactInput
+          {...defaultProps}
+          value={value}
+          onChangeText={handleChangeText}
+        />
+      );
+    };
+    render(<ControlledInput />);
+    const input = screen.getByTestId(defaultProps.testID);
+
+    fireEvent(input, 'focus');
+    fireEvent(input, 'selectionChange', {
+      nativeEvent: { selection: { start: 0, end: 8 } },
+    });
+    fireEvent.changeText(input, '1.234.567');
+
+    expect(onChangeText).toHaveBeenLastCalledWith('1234567');
+    expect(input).toHaveProp('value', '1.234.567');
+  });
+
+  it('keeps an external value update when the field blurs', () => {
+    const onChangeText = jest.fn();
+    const initialProps = { ...defaultProps, value: '100', onChangeText };
+    const { rerender } = render(<PerpsProCompactInput {...initialProps} />);
+    const input = screen.getByTestId(defaultProps.testID);
+
+    fireEvent(input, 'focus');
+    rerender(<PerpsProCompactInput {...initialProps} value="200" />);
+    fireEvent(input, 'blur');
+
+    expect(input).toHaveProp('value', '200');
+    expect(onChangeText).not.toHaveBeenCalled();
+  });
+
+  it('applies focused external replacements in the editing locale', () => {
+    const onChangeText = jest.fn();
+    const initialProps = { ...defaultProps, value: '100', onChangeText };
+    const { rerender } = render(<PerpsProCompactInput {...initialProps} />);
+    const input = screen.getByTestId(defaultProps.testID);
+
+    fireEvent(input, 'focus');
+    jest.mocked(usePerpsLocale).mockReturnValue('de-DE');
+    rerender(<PerpsProCompactInput {...initialProps} value="1200.5" />);
+
+    expect(input).toHaveProp('value', '1,200.5');
+    expect(input).toHaveProp('selection', { start: 7, end: 7 });
+    expect(onChangeText).not.toHaveBeenCalled();
+  });
+
+  it('restores the controlled value when the parent rejects an edit', () => {
+    const onChangeText = jest.fn();
+    const RejectingInput = () => {
+      const [value, setValue] = React.useState('1.23');
+      const handleChangeText = (nextValue: string) => {
+        onChangeText(nextValue);
+        if ((nextValue.split('.')[1]?.length ?? 0) <= 2) {
+          setValue(nextValue);
+        }
+      };
+
+      return (
+        <PerpsProCompactInput
+          {...defaultProps}
+          value={value}
+          onChangeText={handleChangeText}
+        />
+      );
+    };
+    render(<RejectingInput />);
+    const input = screen.getByTestId(defaultProps.testID);
+
+    fireEvent(input, 'focus');
+    fireEvent.changeText(input, '1.234');
+
+    expect(onChangeText).toHaveBeenLastCalledWith('1.234');
+    expect(input).toHaveProp('value', '1.23');
   });
 
   describe('onFieldPress', () => {
