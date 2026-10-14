@@ -254,6 +254,11 @@ describe('useMoneyAccountDeposit', () => {
           success: jest.fn(),
           failed: jest.fn(),
         },
+        rescue: {
+          inProgress: jest.fn(),
+          success: jest.fn(),
+          failed: jest.fn(),
+        },
       },
     });
     global.requestAnimationFrame = jest.fn((callback) => {
@@ -900,6 +905,11 @@ describe('useMoneyAccountWithdrawal', () => {
           failed: mockWithdrawFailed,
         },
         send: {
+          inProgress: jest.fn(),
+          success: jest.fn(),
+          failed: jest.fn(),
+        },
+        rescue: {
           inProgress: jest.fn(),
           success: jest.fn(),
           failed: jest.fn(),

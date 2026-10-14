@@ -1983,6 +1983,49 @@ describe('PerpsOrderView', () => {
     );
   });
 
+  it('dismisses the Trade sheet back to the presenting screen when stayOnCurrentScreen is set', async () => {
+    const placeOrder = jest.fn().mockResolvedValue({ success: true });
+    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+      placeOrder,
+      isPlacing: false,
+      error: undefined,
+    });
+    useTradeSheetRoute({ stayOnCurrentScreen: true });
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    await act(async () => {
+      getMockTradeScreenProps().onSubmit();
+    });
+
+    expect(placeOrder).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.objectContaining({
+        screen: Routes.PERPS.MARKET_DETAILS,
+      }),
+    );
+  });
+
+  it('does not pop the presenting screen again when the Trade sheet closes after a stay-on-screen submit', async () => {
+    const placeOrder = jest.fn().mockResolvedValue({ success: true });
+    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+      placeOrder,
+      isPlacing: false,
+      error: undefined,
+    });
+    useTradeSheetRoute({ stayOnCurrentScreen: true });
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    await act(async () => {
+      getMockTradeScreenProps().onSubmit();
+    });
+    mockTradeSheetOnClose?.();
+
+    expect(placeOrder).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   it('leaves the Trade sheet as soon as the order is submitted, before execution settles', async () => {
     let resolveOrder: (result: { success: boolean }) => void = () => undefined;
     const placeOrder = jest.fn(

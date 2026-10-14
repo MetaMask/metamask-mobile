@@ -147,6 +147,8 @@ import {
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
+import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
+import MusdRescueRecipientScreen from '../../UI/Money/components/MusdRescueSendSheet/MusdRescueRecipientSelector';
 import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
@@ -1163,6 +1165,14 @@ const MainNavigator = () => {
             <NativeStack.Screen
               name={Routes.MONEY.POTENTIAL_EARNINGS}
               component={MoneyPotentialEarningsView}
+            />
+            <NativeStack.Screen
+              name={Routes.MONEY.MUSD_RESCUE_SEND}
+              component={MusdRescueSendScreen}
+            />
+            <NativeStack.Screen
+              name={Routes.MONEY.MUSD_RESCUE_RECIPIENT}
+              component={MusdRescueRecipientScreen}
             />
             <NativeStack.Screen
               name={Routes.MONEY.TRANSACTION_DETAILS}

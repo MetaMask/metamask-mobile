@@ -298,13 +298,11 @@ describe('PerpsProOrderForm', () => {
       );
       expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'placeholder',
-        '',
+        '0.00',
       );
       expect(
-        screen.getByRole('button', {
-          name: `${strings('perps.order.chase.max_distance')} (USD)`,
-        }),
-      ).toHaveProp('testID', `${ids.CHASE_MAX_DISTANCE_INPUT}-field`);
+        screen.getByTestId(`${ids.CHASE_MAX_DISTANCE_INPUT}-field`),
+      ).toHaveProp('accessible', false);
       expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_UNIT)).toHaveProp(
         'hitSlop',
         12,
@@ -336,7 +334,7 @@ describe('PerpsProOrderForm', () => {
       ).not.toBeOnTheScreen();
       expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'placeholder',
-        '',
+        '0%',
       );
 
       fireEvent.press(
@@ -428,9 +426,13 @@ describe('PerpsProOrderForm', () => {
       const onLimitPriceFieldPress = jest.fn();
       renderForm({ orderType: 'limit', onLimitPriceFieldPress });
 
-      // `pressIn` rather than `focus`: re-tapping a focused input fires no
-      // focus event, which is the case this callback exists to cover.
-      fireEvent(getMountedInput(ids.LIMIT_PRICE_INPUT), 'pressIn');
+      const input = getMountedInput(ids.LIMIT_PRICE_INPUT);
+      fireEvent(input, 'focus');
+      fireEvent(input, 'pressIn');
+
+      expect(onLimitPriceFieldPress).not.toHaveBeenCalled();
+
+      fireEvent(input, 'pressOut');
 
       expect(onLimitPriceFieldPress).toHaveBeenCalledTimes(1);
     });
@@ -506,6 +508,31 @@ describe('PerpsProOrderForm', () => {
       expect(scaleOrder.onSizeSkewBlur).toHaveBeenCalledTimes(1);
     });
 
+    it('realigns a Scale field on wrapper focus and a later wrapper re-tap', () => {
+      const scaleKeyboardScroll = createScaleKeyboardScroll();
+      renderForm({
+        orderType: 'scale',
+        scaleOrder: createScaleOrder(),
+        scaleKeyboardScroll,
+      });
+      const input = screen.getByTestId(ids.SCALE_START_PRICE);
+      const field = screen.getByTestId(`${ids.SCALE_START_PRICE}-field`);
+
+      fireEvent.press(field);
+
+      expect(scaleKeyboardScroll.startPrice.onFocus).not.toHaveBeenCalled();
+      expect(scaleKeyboardScroll.startPrice.realign).not.toHaveBeenCalled();
+
+      fireEvent(input, 'focus');
+      expect(scaleKeyboardScroll.startPrice.onFocus).toHaveBeenCalledTimes(1);
+      expect(scaleKeyboardScroll.startPrice.realign).not.toHaveBeenCalled();
+
+      fireEvent.press(field);
+
+      expect(scaleKeyboardScroll.startPrice.onFocus).toHaveBeenCalledTimes(1);
+      expect(scaleKeyboardScroll.startPrice.realign).toHaveBeenCalledTimes(1);
+    });
+
     it('renders blank default Scale prices and order count without zero placeholders', () => {
       const scaleOrder = createScaleOrder();
       scaleOrder.startPrice = '';
@@ -521,8 +548,8 @@ describe('PerpsProOrderForm', () => {
         expect(getMountedInput(inputTestID)).toHaveProp('value', '');
         expect(getMountedInput(inputTestID)).toHaveProp('placeholder', '');
         expect(screen.getByTestId(`${inputTestID}-field`)).toHaveProp(
-          'accessibilityRole',
-          'button',
+          'accessible',
+          false,
         );
       }
       expect(
@@ -1029,10 +1056,20 @@ describe('PerpsProOrderForm', () => {
         }),
       ).toHaveProp('inputAccessoryViewID', triggerAccessoryID);
       expect(
+        screen.getByTestId(ids.TRIGGER_PRICE_INPUT, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('isDisabled', true);
+      expect(
         screen.getByTestId(ids.LIMIT_PRICE_INPUT, {
           includeHiddenElements: true,
         }),
       ).toHaveProp('inputAccessoryViewID', limitPriceAccessoryID);
+      expect(
+        screen.getByTestId(ids.LIMIT_PRICE_INPUT, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('isDisabled', true);
       expect(
         screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),
       ).not.toBeOnTheScreen();
