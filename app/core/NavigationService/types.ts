@@ -401,6 +401,7 @@ export type RootModalFlowParamList = {
   MAPicker: MAPickerSheetParams | undefined;
   SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
   DeleteWalletModal: DeleteWalletModalParams | undefined;
+  WalletLockoutModal: undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
   OnboardingSheet: OnboardingSheetParams | undefined;
