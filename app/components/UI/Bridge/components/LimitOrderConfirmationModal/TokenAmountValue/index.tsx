@@ -16,24 +16,51 @@ export const TokenAmountValue = ({
   token,
   withNetworkBadge,
   error,
-}: TokenAmountValueProps) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    gap={1}
-    twClassName="shrink"
-    testID={TokenAmountValueSelectorsIDs.CONTAINER}
-  >
-    {token ? (
-      <TokenAvatar token={token} withNetworkBadge={withNetworkBadge} />
-    ) : null}
+  showTokenSymbol,
+}: TokenAmountValueProps) => {
+  const amountColor = error ? TextColor.ErrorDefault : TextColor.TextDefault;
+  const avatar = token ? (
+    <TokenAvatar token={token} withNetworkBadge={withNetworkBadge} />
+  ) : null;
+  const amountText = (
     <Text
       variant={TextVariant.BodyMd}
-      color={error ? TextColor.ErrorDefault : TextColor.TextDefault}
+      color={amountColor}
       twClassName="text-right"
       testID={TokenAmountValueSelectorsIDs.AMOUNT}
     >
       {amount}
     </Text>
-  </Box>
-);
+  );
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      gap={1}
+      twClassName="shrink"
+      testID={TokenAmountValueSelectorsIDs.CONTAINER}
+    >
+      {showTokenSymbol ? (
+        <>
+          {amountText}
+          {avatar}
+          {token ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              color={amountColor}
+              testID={TokenAmountValueSelectorsIDs.SYMBOL}
+            >
+              {token.symbol}
+            </Text>
+          ) : null}
+        </>
+      ) : (
+        <>
+          {avatar}
+          {amountText}
+        </>
+      )}
+    </Box>
+  );
+};

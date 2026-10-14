@@ -17,6 +17,8 @@ import {
   OPEN_LIMIT_ORDER_STATES,
 } from '../../constants/limitOrders';
 import OpenOrderRow from '../OpenOrderRow';
+import { getUsdTriggerPrice } from '../OpenLimitOrderDetailsModal/utils';
+import type { BridgeToken } from '../../types';
 import { getLimitOrderTokens } from '../../utils/limitOrders/getLimitOrderTokens';
 import { formatLimitOrderRowAmount } from '../../utils/limitOrders/formatLimitOrderRowAmount';
 import { formatLimitOrderDate } from '../../utils/limitOrders/formatLimitOrderDate';
@@ -27,17 +29,20 @@ import {
 
 function getLimitOrderRowSlots(
   order: LimitOrder,
-  sourceSymbol: string,
-  destSymbol: string,
+  sourceToken: BridgeToken,
+  destinationToken: BridgeToken,
 ) {
-  const stakedAmount = `${formatLimitOrderRowAmount(
-    order.src.amount,
-    // src.asset.decimals is looked up by the caller via getLimitOrderTokens,
-    // but the raw asset is also available directly on the order.
-    order.src.asset.decimals,
-  )} ${sourceSymbol}`;
+  const sourceSymbol = sourceToken.symbol;
+  const destSymbol = destinationToken.symbol;
+  // `src_price` / `dest_price` were placed in fiat (USD). A `ratio` was placed
+  // as an amount of the counter token. The row shows that same denomination.
+  const { triggerPrice, triggerToken } = getUsdTriggerPrice(
+    order,
+    sourceToken,
+    destinationToken,
+  );
   const limitPriceLabel = strings('bridge.limit.limit_price', {
-    symbol: destSymbol,
+    symbol: triggerToken.symbol,
   });
 
   switch (order.state) {
@@ -71,7 +76,7 @@ function getLimitOrderRowSlots(
             order.timingData.expiresAt,
           ),
         }),
-        primaryValue: stakedAmount,
+        primaryValue: triggerPrice,
         secondaryValue: limitPriceLabel,
         titleEndAccessory: (
           <Tag severity={TagSeverity.Neutral}>
@@ -84,7 +89,7 @@ function getLimitOrderRowSlots(
         subtitle: strings('bridge.limit.canceled_at', {
           date: formatLimitOrderDate(order.timingData.closedAt),
         }),
-        primaryValue: stakedAmount,
+        primaryValue: triggerPrice,
         secondaryValue: limitPriceLabel,
         titleEndAccessory: (
           <Tag severity={TagSeverity.Neutral}>
@@ -97,7 +102,7 @@ function getLimitOrderRowSlots(
         subtitle: strings('bridge.limit.failed_at', {
           date: formatLimitOrderDate(order.timingData.closedAt),
         }),
-        primaryValue: stakedAmount,
+        primaryValue: triggerPrice,
         secondaryValue: limitPriceLabel,
         titleEndAccessory: (
           <Tag severity={TagSeverity.Danger}>
@@ -111,7 +116,7 @@ function getLimitOrderRowSlots(
         subtitle: strings('bridge.limit.expiry', {
           timeLeft: formatLimitOrderTimeLeft(order.timingData.expiresAt),
         }),
-        primaryValue: stakedAmount,
+        primaryValue: triggerPrice,
         secondaryValue: limitPriceLabel,
       };
   }
@@ -146,11 +151,7 @@ interface LimitOrderTabRowProps {
 export function LimitOrderTabRow({ order }: LimitOrderTabRowProps) {
   const navigation = useNavigation<AppNavigationProp>();
   const { sourceToken, destinationToken } = getLimitOrderTokens(order);
-  const slots = getLimitOrderRowSlots(
-    order,
-    sourceToken.symbol,
-    destinationToken.symbol,
-  );
+  const slots = getLimitOrderRowSlots(order, sourceToken, destinationToken);
 
   const handleOpenOrderPress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
