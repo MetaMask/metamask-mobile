@@ -12,6 +12,12 @@ export interface PendingAppInstallAttribution {
   deeplinkPath?: string;
   /** Full referring link URL reported by Branch (`~referring_link`). */
   referringLink?: string;
+  /** Branch `~channel` analytics tag, emitted as `utm_source`. */
+  utmSource?: string;
+  /** Branch `~feature` analytics tag, emitted as `utm_medium`. */
+  utmMedium?: string;
+  /** Branch `~campaign` analytics tag, emitted as `utm_campaign`. */
+  utmCampaign?: string;
 }
 
 export interface PendingAppInstall {

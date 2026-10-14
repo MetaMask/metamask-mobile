@@ -2,10 +2,12 @@ import Engine from '../../../app/core/Engine';
 import {
   cancelRecurringOrder,
   getRecurringOrders,
+  getRecurringOrdersByAsset,
   getRecurringSwaps,
   resetRecurringOrdersMockState,
 } from '../../../app/components/UI/Bridge/api/recurringOrders';
 import type {
+  RecurringOrdersByAssetQueryParams,
   RecurringOrdersQueryParams,
   RecurringSwapsQueryParams,
 } from '../../../app/components/UI/Bridge/queries/recurringOrders';
@@ -18,12 +20,14 @@ const defaultImplementation = messengerCall.getMockImplementation();
 
 interface RecurringOrdersDataServiceMockOptions {
   recurringOrders?: typeof getRecurringOrders;
+  recurringOrdersByAsset?: typeof getRecurringOrdersByAsset;
   recurringSwaps?: typeof getRecurringSwaps;
   cancelRecurringOrder?: typeof cancelRecurringOrder;
 }
 
 export function setupRecurringOrdersDataServiceMock({
   recurringOrders = getRecurringOrders,
+  recurringOrdersByAsset = getRecurringOrdersByAsset,
   recurringSwaps = getRecurringSwaps,
   cancelRecurringOrder: cancelRecurringOrderRequest = cancelRecurringOrder,
 }: RecurringOrdersDataServiceMockOptions = {}) {
@@ -38,6 +42,14 @@ export function setupRecurringOrdersDataServiceMock({
           string | undefined,
         ];
         return recurringOrders({ ...params, cursor });
+      }
+
+      if (action === 'RecurringOrdersDataService:getRecurringOrdersByAsset') {
+        const [, params] = messengerArgs as [
+          string,
+          RecurringOrdersByAssetQueryParams,
+        ];
+        return recurringOrdersByAsset(params);
       }
 
       if (action === 'RecurringOrdersDataService:getRecurringSwaps') {

@@ -10,6 +10,7 @@ import {
   type PredictLiveDataServiceEvents,
   type PredictLiveDataServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictLiveDataService';
+import type { PredictMarketDataServiceGetEventAction } from '../../../components/UI/PredictNext/services/PredictMarketDataService';
 import type { RootMessenger } from '../types';
 
 /**
@@ -32,7 +33,8 @@ export const getPredictLiveDataServiceMessenger = (
 
 export type PredictLiveDataServiceInitMessenger = Messenger<
   'PredictLiveDataServiceInit',
-  AuthenticationController.AuthenticationControllerGetBearerTokenAction,
+  | AuthenticationController.AuthenticationControllerGetBearerTokenAction
+  | PredictMarketDataServiceGetEventAction,
   never
 >;
 
@@ -47,7 +49,10 @@ export const getPredictLiveDataServiceInitMessenger = (
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['AuthenticationController:getBearerToken'],
+    actions: [
+      'AuthenticationController:getBearerToken',
+      'PredictMarketDataService:getEvent',
+    ],
     events: [],
     messenger,
   });

@@ -12,7 +12,11 @@ import {
   createMockPopularToken,
   MOCK_CHAIN_IDS,
 } from '../../testUtils/fixtures';
-import { BridgeTokenSelector } from './BridgeTokenSelector';
+import {
+  BridgeTokenSelector,
+  BridgeTokenSelectorContent,
+} from './BridgeTokenSelector';
+import { TokenSelectorType, type PopularToken } from '../../types';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { tokenToIncludeAsset } from '../../utils/tokenUtils';
 import {
@@ -25,6 +29,11 @@ import {
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ARC_NATIVE_ASSET_ID } from '../../../../hooks/useArcDefaultTokens';
+import {
+  ARC_HEX_CHAIN_ID,
+  ARC_USDC_ERC20_ADDRESS,
+} from '../../../../../enablement/assets/arc';
+import { ZERO_ADDRESS } from '../../../../../constants/address';
 
 let mockBridgeFeatureFlags: {
   chainRanking?: { chainId: CaipChainId; name?: string }[];
@@ -175,6 +184,11 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => 'usd'),
 }));
 
+const mockSelectAsset = jest.fn();
+jest.mock('../../../../../selectors/assets/assets-list', () => ({
+  selectAsset: (...args: unknown[]) => mockSelectAsset(...args),
+}));
+
 jest.mock('../../../../../selectors/featureFlagController/rwa', () => ({
   selectRWAEnabledFlag: jest.fn(() => false),
 }));
@@ -275,6 +289,7 @@ let mockBalancesByAssetIdState = {
 
 const mockUseInitialBridgeTokens = jest.fn((_: unknown) => ({
   includeAssets: [],
+  tokensWithBalance: mockBalancesByAssetIdState.tokensWithBalance,
   fetchPopularTokens: jest.fn(),
   balancesByAssetId: mockBalancesByAssetIdState.balancesByAssetId,
   searchIncludeAssets: [],
@@ -760,6 +775,7 @@ const resetMocks = () => {
     resetSearch: mockResetSearch,
   };
   mockBalancesByAssetIdState = { tokensWithBalance: [], balancesByAssetId: {} };
+  mockSelectAsset.mockReturnValue(undefined);
   mockSelectedToken = null;
   mockFormatAddressToAssetId.mockReturnValue('eip155:1/erc20:0x1234');
   mockIsNonEvmChainId.mockReturnValue(false);
@@ -1754,6 +1770,66 @@ describe('BridgeTokenSelector', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
+    it('opens Arc USDC token details with the native asset from the token list', async () => {
+      const arcNativeAsset = {
+        address: ZERO_ADDRESS,
+        chainId: ARC_HEX_CHAIN_ID,
+        symbol: 'USDC',
+        name: 'USDC',
+        ticker: 'USDC',
+        decimals: 6,
+        balance: '12.34',
+        balanceFiat: '$12.34',
+        isNative: true,
+      };
+      mockSelectAsset.mockImplementation((_state, params) =>
+        params.address === ZERO_ADDRESS ? arcNativeAsset : undefined,
+      );
+      mockPopularTokensState = {
+        popularTokens: [
+          {
+            ...createMockPopularToken({
+              assetId: `eip155:5042/erc20:${ARC_USDC_ERC20_ADDRESS}`,
+              symbol: 'USDC',
+              name: 'USDC',
+              decimals: 6,
+            }),
+            address: ARC_USDC_ERC20_ADDRESS,
+            chainId: ARC_HEX_CHAIN_ID,
+          } as PopularToken & { address: string; chainId: string },
+        ],
+        isLoading: false,
+      };
+
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+
+      await act(async () => {
+        fireEvent.press(getByTestId('button-icon-info'));
+      });
+
+      expect(mockSelectAsset).toHaveBeenCalledWith(expect.any(Object), {
+        address: ZERO_ADDRESS,
+        chainId: ARC_HEX_CHAIN_ID,
+        isStaked: false,
+      });
+      expect(mockNavigationDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'PUSH',
+          payload: expect.objectContaining({
+            name: 'Asset',
+            params: expect.objectContaining({
+              ...arcNativeAsset,
+              address: ZERO_ADDRESS,
+              assetId: ARC_NATIVE_ASSET_ID,
+              caipAssetId: ARC_NATIVE_ASSET_ID,
+              source: TokenDetailsSource.Swap,
+            }),
+          }),
+        }),
+      );
+    });
+
     it('tracks the info button press with the feature id of the flow that opened the picker', async () => {
       mockUseSwapsFeatureId.mockReturnValue(FeatureId.LIMIT_ORDER);
       mockRouteParams = { type: 'source' };
@@ -2668,6 +2744,264 @@ describe('BridgeTokenSelector', () => {
           }),
         }),
       );
+    });
+  });
+});
+
+describe('BridgeTokenSelectorContent', () => {
+  const heldUsdt = createMockToken({
+    symbol: 'USDT',
+    name: 'Tether',
+    address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+    balance: '10',
+  });
+  const heldDai = createMockToken({
+    symbol: 'DAI',
+    name: 'Dai',
+    address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+    balance: '5',
+  });
+  const zeroBalanceWeth = createMockToken({
+    symbol: 'WETH',
+    name: 'Wrapped Ether',
+    address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+    balance: '0',
+  });
+
+  const renderContent = (
+    props: Partial<
+      React.ComponentProps<typeof BridgeTokenSelectorContent>
+    > = {},
+  ) =>
+    renderWithReduxProvider(
+      <BridgeTokenSelectorContent
+        type={TokenSelectorType.Source}
+        onTokenPress={jest.fn()}
+        onOpenNetworkList={jest.fn()}
+        {...props}
+      />,
+    );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetMocks();
+    mockUseSwapsFeatureId.mockReturnValue(FeatureId.UNIFIED_SWAP_BRIDGE);
+    mockBalancesByAssetIdState = {
+      tokensWithBalance: [heldUsdt, heldDai, zeroBalanceWeth],
+      balancesByAssetId: {},
+    };
+  });
+
+  describe('balanceOnly', () => {
+    it('disables the popular and search endpoints', () => {
+      renderContent({ balanceOnly: true });
+
+      expect(mockUsePopularTokens).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+      expect(mockUseSearchTokens).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it('renders only held tokens with a positive balance', async () => {
+      const { getByTestId, queryByTestId } = renderContent({
+        balanceOnly: true,
+      });
+
+      await waitFor(() => expect(getByTestId('token-USDT')).toBeOnTheScreen());
+      expect(getByTestId('token-DAI')).toBeOnTheScreen();
+      expect(queryByTestId('token-WETH')).not.toBeOnTheScreen();
+      expect(queryByTestId('token-USDC')).not.toBeOnTheScreen();
+    });
+
+    it('filters held tokens locally without a minimum query length', async () => {
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [createMockPopularToken({ symbol: 'DAX' })],
+      };
+      const { getByTestId, queryByTestId } = renderContent({
+        balanceOnly: true,
+      });
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'dai');
+
+      await waitFor(() => expect(getByTestId('token-DAI')).toBeOnTheScreen());
+      expect(queryByTestId('token-USDT')).not.toBeOnTheScreen();
+      expect(queryByTestId('token-DAX')).not.toBeOnTheScreen();
+      expect(queryByTestId('skeleton-item')).not.toBeOnTheScreen();
+    });
+
+    describe('watchlist mode', () => {
+      const watchlistToken = (
+        symbol: string,
+        address: string,
+        balance: string,
+      ) => ({
+        assetId: `eip155:1/erc20:${address}`,
+        name: symbol,
+        symbol,
+        decimals: 18,
+        balance,
+        balanceFiat: Number(balance) * 10,
+        fiatCurrency: 'usd',
+        isInWallet: balance !== '0',
+      });
+
+      beforeEach(() => {
+        mockIsWatchlistEnabled = true;
+        mockUseTokenWatchlistQuery.mockReturnValue({
+          data: [
+            watchlistToken(
+              'LINK',
+              '0x514910771af9ca656af840dff83e8264ecf986ca',
+              '3',
+            ),
+            watchlistToken(
+              'PEPE',
+              '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+              '0',
+            ),
+            watchlistToken(
+              'UNI',
+              '0x1f9840a85d5af5bf1d1762f925bdaaa4c3a4f8b5',
+              '2',
+            ),
+          ],
+          isLoading: false,
+        });
+      });
+
+      it('lists only held watchlist tokens', async () => {
+        const { getByTestId, queryByTestId } = renderContent({
+          balanceOnly: true,
+        });
+
+        fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+
+        await waitFor(() =>
+          expect(getByTestId('token-LINK')).toBeOnTheScreen(),
+        );
+        expect(getByTestId('token-UNI')).toBeOnTheScreen();
+        expect(queryByTestId('token-PEPE')).not.toBeOnTheScreen();
+      });
+
+      it('searches held watchlist tokens locally without a minimum query length', async () => {
+        const { getByTestId, queryByTestId } = renderContent({
+          balanceOnly: true,
+        });
+
+        fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+        fireEvent.changeText(getByTestId('bridge-token-search-input'), 'un');
+
+        await waitFor(() => expect(getByTestId('token-UNI')).toBeOnTheScreen());
+        expect(queryByTestId('token-LINK')).not.toBeOnTheScreen();
+        expect(queryByTestId('skeleton-item')).not.toBeOnTheScreen();
+      });
+
+      it('removes the excluded token from watchlist results', async () => {
+        const { getByTestId, queryByTestId } = renderContent({
+          type: TokenSelectorType.Dest,
+          excludeToken: createMockToken({
+            symbol: 'LINK',
+            address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+          }),
+        });
+
+        fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+
+        await waitFor(() => expect(getByTestId('token-UNI')).toBeOnTheScreen());
+        expect(queryByTestId('token-LINK')).not.toBeOnTheScreen();
+      });
+    });
+
+    it('scopes held tokens to the selected network pill', () => {
+      renderWithReduxProvider(
+        <BridgeTokenSelectorContent
+          type={TokenSelectorType.Source}
+          onTokenPress={jest.fn()}
+          onOpenNetworkList={jest.fn()}
+          balanceOnly
+        />,
+        createMockStore({ tokenSelectorNetworkFilter: MOCK_CHAIN_IDS.polygon }),
+      );
+
+      expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith(
+        expect.objectContaining({ chainIds: [MOCK_CHAIN_IDS.polygon] }),
+      );
+    });
+  });
+
+  describe('excludeToken', () => {
+    it('removes the excluded token from popular tokens', async () => {
+      mockPopularTokensState = {
+        popularTokens: [
+          createMockPopularToken({ symbol: 'USDC' }),
+          {
+            ...createMockPopularToken({ symbol: 'PEPE' }),
+            address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+          } as never,
+        ],
+        isLoading: false,
+      };
+      const { getByTestId, queryByTestId } = renderContent({
+        type: TokenSelectorType.Dest,
+        excludeToken: createMockToken({
+          symbol: 'PEPE',
+          address: '0x6982508145454CE325dDbE47a25d4ec3d2311933',
+        }),
+      });
+
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeOnTheScreen());
+      expect(queryByTestId('token-PEPE')).not.toBeOnTheScreen();
+    });
+
+    it('removes the excluded token from search results', async () => {
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        currentSearchQuery: 'pep',
+        searchResults: [
+          createMockPopularToken({ symbol: 'PEPE2' }),
+          {
+            ...createMockPopularToken({ symbol: 'PEPE' }),
+            address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+          } as never,
+        ],
+      };
+      const { getByTestId, queryByTestId } = renderContent({
+        type: TokenSelectorType.Dest,
+        excludeToken: createMockToken({
+          symbol: 'PEPE',
+          address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+        }),
+      });
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'pep');
+
+      await waitFor(() => expect(getByTestId('token-PEPE2')).toBeOnTheScreen());
+      expect(queryByTestId('token-PEPE')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('hostManagesNetworkFilter', () => {
+    it('clears the network filter on unmount by default', () => {
+      const { unmount } = renderContent();
+
+      unmount();
+
+      expect(setTokenSelectorNetworkFilter).toHaveBeenCalledWith(undefined);
+    });
+
+    it('neither seeds nor clears the network filter when the host manages it', () => {
+      const { unmount } = renderContent({
+        type: TokenSelectorType.Dest,
+        selectedToken: createMockToken({ chainId: '0x89' }),
+        hostManagesNetworkFilter: true,
+      });
+
+      unmount();
+
+      expect(setTokenSelectorNetworkFilter).not.toHaveBeenCalled();
     });
   });
 });

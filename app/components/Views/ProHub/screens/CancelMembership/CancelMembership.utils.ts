@@ -83,23 +83,6 @@ export const getCancellationTiming = (
   return undefined;
 };
 
-/**
- * Formats the subscription period end for cancellation confirmation copy.
- */
-export const formatCancellationEndDate = (currentPeriodEnd: string): string => {
-  const date = new Date(currentPeriodEnd);
-
-  if (Number.isNaN(date.getTime())) {
-    return currentPeriodEnd;
-  }
-
-  return date.toLocaleDateString(undefined, {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
-};
-
 export const POST_CANCELLATION_PRO_HUB_SOURCE =
   'pro_subscription_cancellation_success' as const;
 

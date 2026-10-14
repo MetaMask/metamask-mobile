@@ -22,6 +22,11 @@ jest.mock('./hooks/useSubscriptionPricing', () => ({
   useSubscriptionPricing: jest.fn(),
 }));
 
+const mockIsProduction = jest.fn();
+jest.mock('../../../../../util/environment', () => ({
+  isProduction: () => mockIsProduction(),
+}));
+
 const mockUseSubscriptionPricing = jest.mocked(useSubscriptionPricing);
 const mockRetry = jest.fn();
 
@@ -76,6 +81,7 @@ const renderBenefits = (initialPlan?: PlanId) =>
 describe('Benefits', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsProduction.mockReturnValue(false);
     mockPricingState();
   });
 
@@ -160,13 +166,48 @@ describe('Benefits', () => {
     });
   });
 
+  describe('Stripe test clocks checkbox', () => {
+    it('renders the checkbox unchecked in non-production', () => {
+      const { getByTestId } = renderBenefits();
+
+      expect(
+        getByTestId(BenefitsTestIds.TEST_CLOCKS_CHECKBOX),
+      ).toBeOnTheScreen();
+      expect(getByTestId(BenefitsTestIds.TEST_CLOCKS_CHECKBOX)).toHaveProp(
+        'accessibilityState',
+        expect.objectContaining({ checked: false }),
+      );
+    });
+
+    it('toggles selected state when pressed', () => {
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.TEST_CLOCKS_CHECKBOX));
+
+      expect(getByTestId(BenefitsTestIds.TEST_CLOCKS_CHECKBOX)).toHaveProp(
+        'accessibilityState',
+        expect.objectContaining({ checked: true }),
+      );
+    });
+
+    it('does not render the checkbox in production', () => {
+      mockIsProduction.mockReturnValue(true);
+
+      const { queryByTestId } = renderBenefits();
+
+      expect(
+        queryByTestId(BenefitsTestIds.TEST_CLOCKS_CHECKBOX),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   // ── Plan selection ─────────────────────────────────────────────────────────
 
   describe('Plan selection', () => {
     it('renders CTA button with join label by default', () => {
       const { getByTestId } = renderBenefits();
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
+        strings('pro_subscription.join_orange'),
       );
     });
 
@@ -176,7 +217,7 @@ describe('Benefits', () => {
       fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('annual')));
 
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
+        strings('pro_subscription.join_orange'),
       );
     });
 
@@ -186,7 +227,7 @@ describe('Benefits', () => {
       fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('monthly')));
 
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
+        strings('pro_subscription.join_orange'),
       );
     });
 
@@ -197,7 +238,7 @@ describe('Benefits', () => {
       fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('annual')));
 
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
+        strings('pro_subscription.join_orange'),
       );
     });
   });
@@ -420,7 +461,7 @@ describe('Benefits', () => {
         getByTestId(BenefitsTestIds.PLAN_CARD('monthly')),
       ).toBeOnTheScreen();
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
+        strings('pro_subscription.join_orange'),
       );
     });
   });

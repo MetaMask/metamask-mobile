@@ -38,6 +38,8 @@ import {
 import { calculatePositionAggregateTotals } from '../../../../UI/Perps/utils/pnlCalculations';
 import { usePerpsConnection } from '../../../../UI/Perps/hooks/usePerpsConnection';
 import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
+import PerpsServiceInterruptionBanner from '../../../../UI/Perps/components/PerpsServiceInterruptionBanner';
+import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
 import PerpsTrendingCarousel from './components/PerpsTrendingCarousel';
 import PerpsPillsRail from './components/PerpsPillsRail';
@@ -56,7 +58,10 @@ import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
 } from '../../components/HomepageSectionUnrealizedPnlRow';
-import { homepageSectionTitleTestId } from '../../Homepage.testIds';
+import {
+  HomepagePerpsSelectorsIDs,
+  homepageSectionTitleTestId,
+} from '../../Homepage.testIds';
 import { usePerpsNavigationHandlers } from './hooks/usePerpsNavigationHandlers';
 import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/useHomepagePerpsPillsEmptyTransactionActiveAbTests';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -124,6 +129,9 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       usePerpsConnection();
     const { track } = usePerpsEventTracking();
     const privacyMode = useSelector(selectPrivacyMode);
+    const isServiceInterruptionBannerEnabled = useSelector(
+      selectPerpsServiceInterruptionBannerEnabledFlag,
+    );
 
     const { positions, isInitialLoading: positionsLoading } =
       usePerpsLivePositions({
@@ -532,6 +540,15 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
               label={strings('perps.unrealized_pnl')}
               testID="homepage-perps-unrealized-pnl"
             />
+          )}
+          {/* Outer flag guard avoids mounting the padded wrapper (and banner
+              hooks) when disabled, so `gap` does not reserve space for it. */}
+          {isServiceInterruptionBannerEnabled && (
+            <SectionRow>
+              <PerpsServiceInterruptionBanner
+                testID={HomepagePerpsSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+              />
+            </SectionRow>
           )}
           {showSkeleton || pendingTrending || hasItems ? (
             showSkeleton || pendingTrending ? (

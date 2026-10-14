@@ -32,6 +32,8 @@ import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
 import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
+import type { QuickBuyFooterLayout } from '../../QuickBuy/abTestConfig';
+import type { QuickBuyTradeMode } from '../../QuickBuy/types';
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
@@ -74,6 +76,7 @@ type StickyButtonLayout =
   | 'swap'
   | 'money_swap'
   | 'money'
+  | 'buy_sell'
   | null;
 
 export interface MoneyDepositCtaConfig {
@@ -108,6 +111,10 @@ interface TokenStickyFooterProps {
   onQuickBuyPress?: () => void;
   /** Optional testID for the quick buy button. */
   quickBuyTestID?: string;
+  /** SWAPS-5094 footer layout. Non-control layouts need `onOpenQuickBuy` and are ignored while the Money CTA is active. */
+  quickBuyEntrypointLayout?: QuickBuyFooterLayout;
+  /** Opens the Quick Buy sheet in the given mode; used by the non-control layouts. */
+  onOpenQuickBuy?: (mode: QuickBuyTradeMode) => void;
   /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
   sourcePage?: string;
   /** Whether the ambient price color A/B test treatment is active. */
@@ -120,6 +127,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   balanceFiatUsd,
   networkName,
   currentTokenBalance,
+  hasTokenBalance = false,
   moneyDepositCta,
   onStickyButtonsResolved,
   skipBottomInset = false,
@@ -129,6 +137,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   onBuyPress,
   onQuickBuyPress,
   quickBuyTestID,
+  quickBuyEntrypointLayout = 'lightning_swap_buy',
+  onOpenQuickBuy,
   sourcePage,
   useAmbientColor = false,
 }) => {
@@ -195,6 +205,11 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const trackStickyFooterTapped = useStickyFooterTracking();
 
   const isMoneyDepositCtaActive = Boolean(moneyDepositCta);
+  const entrypointLayout =
+    !isMoneyDepositCtaActive && onOpenQuickBuy
+      ? quickBuyEntrypointLayout
+      : 'lightning_swap_buy';
+  const isBuySellLayout = entrypointLayout === 'buy_sell';
   const showSwapButton = hasEligibleSwapTokens;
   const showBuyButton =
     !isMoneyDepositCtaActive && (isBuyable || !hasEligibleSwapTokens);
@@ -207,6 +222,10 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     if (onStickyButtonsResolved) {
       if (!tradingOpen) {
         onStickyButtonsResolved(null);
+        return;
+      }
+      if (isBuySellLayout) {
+        onStickyButtonsResolved(hasTokenBalance ? 'buy_sell' : 'buy');
         return;
       }
       // Resolve visible CTA layout for TOKEN_DETAILS_OPENED analytics.
@@ -222,6 +241,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       onStickyButtonsResolved(shown);
     }
   }, [
+    hasTokenBalance,
+    isBuySellLayout,
     isMoneyDepositCtaActive,
     onStickyButtonsResolved,
     showBothButtons,
@@ -307,6 +328,25 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     ],
   );
 
+  const handleOpenQuickBuy = (mode: QuickBuyTradeMode) => {
+    if (!onOpenQuickBuy) return;
+    trackStickyFooterTapped({
+      ctaType: mode === 'sell' ? 'quick_sell' : 'quick_buy',
+      balanceFiatUsd,
+      tokenAddress: token.address ?? '',
+      chainId: token.chainId ?? '',
+      indicatorsActive,
+    });
+    handleFooterAction(
+      () => onOpenQuickBuy(mode),
+      strings(
+        mode === 'sell'
+          ? 'asset_overview.sell_button'
+          : 'asset_overview.buy_button',
+      ),
+    );
+  };
+
   const footerStyle = useMemo(
     () => ({
       backgroundColor: colors.background.default,
@@ -357,7 +397,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     <>
       <View style={footerStyle}>
         <View testID="bottomsheetfooter" style={styles.footer}>
-          {showSwapButton && (
+          {showSwapButton && !isBuySellLayout && (
             <Button
               testID={swapTestID}
               variant={
@@ -375,6 +415,10 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 swapIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
               }
               onPress={() => {
+                if (entrypointLayout === 'swap_buy') {
+                  handleOpenQuickBuy('buy');
+                  return;
+                }
                 trackStickyFooterTapped({
                   ctaType: 'swap',
                   balanceFiatUsd,
@@ -393,7 +437,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             </Button>
           )}
           {moneyDepositButton}
-          {showBuyButton && (
+          {showBuyButton && !isBuySellLayout && (
             <Button
               testID={buyTestID}
               variant={
@@ -426,7 +470,31 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               {strings('asset_overview.buy_button')}
             </Button>
           )}
-          {showQuickBuyButton && (
+          {isBuySellLayout && hasTokenBalance && (
+            <Button
+              testID="token-details-footer-quick-sell"
+              variant={ButtonVariant.Secondary}
+              style={styles.iconButton}
+              twClassName={`bg-transparent ${successBorder}`}
+              textProps={secondaryTextProps}
+              onPress={() => handleOpenQuickBuy('sell')}
+            >
+              {strings('asset_overview.sell_button')}
+            </Button>
+          )}
+          {isBuySellLayout && (
+            <Button
+              testID="token-details-footer-quick-buy"
+              variant={ButtonVariant.Primary}
+              style={styles.iconButton}
+              twClassName={successBg}
+              textProps={SUCCESS_TEXT_PROPS}
+              onPress={() => handleOpenQuickBuy('buy')}
+            >
+              {strings('asset_overview.buy_button')}
+            </Button>
+          )}
+          {showQuickBuyButton && entrypointLayout === 'lightning_swap_buy' && (
             <ButtonAnimated
               testID={quickBuyTestID}
               accessibilityRole="button"

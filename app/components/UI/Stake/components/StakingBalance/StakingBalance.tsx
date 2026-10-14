@@ -48,11 +48,16 @@ import UnstakingBanner from './StakingBanners/UnstakeBanner/UnstakeBanner';
 import StakingButtons from './StakingButtons/StakingButtons';
 import StakingCta from './StakingCta/StakingCta';
 import { filterExitRequests } from './utils';
-import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  selectPooledStakingEnabledFlag,
+  selectPooledStakingServiceInterruptionBannerEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import StakingEarnings from '../StakingEarnings';
+import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
 import { useTheme } from '../../../../../util/theme';
+import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -71,6 +76,9 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   );
 
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isPooledStakingServiceInterruptionBannerEnabled = useSelector(
+    selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  );
   const privacyMode = useSelector(selectPrivacyMode);
 
   const { styles } = useStyles(styleSheet, { theme });
@@ -257,7 +265,16 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           </View>
         </AssetElement>
       )}
-      <View style={styles.container}>{renderStakingContent()}</View>
+      <View style={styles.container}>
+        {isPooledStakingServiceInterruptionBannerEnabled && (
+          <View style={styles.maintenanceBanner}>
+            <EarnMaintenanceBanner
+              experienceName={EARN_EXPERIENCES.POOLED_STAKING}
+            />
+          </View>
+        )}
+        {renderStakingContent()}
+      </View>
       <View style={styles.stakingEarnings}>
         <StakingEarnings asset={asset} />
       </View>

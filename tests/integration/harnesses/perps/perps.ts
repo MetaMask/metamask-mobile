@@ -368,8 +368,8 @@ export function buildPerpsIntegrationHarness(
     getUserAddressWithDefault: jest
       .fn()
       .mockResolvedValue(DEFAULT_USER_ADDRESS),
-    isKeyringUnlocked: jest.fn().mockReturnValue(true),
-    isSelectedHardwareWallet: jest.fn().mockReturnValue(false),
+    isMainAccountSignerReady: jest.fn().mockReturnValue(true),
+    requiresSignatureConfirmation: jest.fn().mockReturnValue(false),
   } as unknown as jest.Mocked<HyperLiquidWalletService>;
 
   // Shared by every cached-position read on the mock subscription service so a

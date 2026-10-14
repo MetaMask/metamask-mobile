@@ -26,6 +26,11 @@ export const ExploreSearchScreenSelectorsIDs = {
   PILL_SITES: 'explore-search-pill-sites',
   /** Open-browser-tabs button, rendered only when at least one tab is open */
   BROWSER_TABS_BUTTON: 'explore-search-browser-tabs-button',
+  /**
+   * Clipboard action on the homepage-entry search field.
+   * Same id the wallet header passes into the button-mode search bar.
+   */
+  CLIPBOARD_BUTTON: 'homepage-search-clipboard-button',
 } as const;
 
 export type ExploreSearchScreenSelectorsIDsType =

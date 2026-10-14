@@ -2065,6 +2065,184 @@ describe('PerpsProPositionsPanel', () => {
     expect(screen.queryByText('No open SOL positions.')).toBeNull();
   });
 
+  it('shows the hidden positions count when the long filter hides a short', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC', size: '1' }),
+        makePosition({ symbol: 'SOL', size: '-1' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    applySideFilter('long');
+
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.HIDDEN_BY_FILTERS_CAPTION,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('perps.pro_positions_panel.positions_hidden_by_filters', {
+          count: 1,
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the combined hidden count when ticker-only hides other markets', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'SOL', size: '1' }),
+        makePosition({ symbol: 'BTC', size: '1' }),
+        makePosition({ symbol: 'ETH', size: '-1' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    expect(
+      screen.getByText(
+        strings('perps.pro_positions_panel.positions_hidden_by_filters', {
+          count: 2,
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the hidden caption when no filter is applied', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC', size: '1' }),
+        makePosition({ symbol: 'SOL', size: '-1' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.HIDDEN_BY_FILTERS_CAPTION,
+      ),
+    ).toBeNull();
+  });
+
+  it('omits the hidden caption when the side filter hides no positions', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC', size: '1' }),
+        makePosition({ symbol: 'SOL', size: '2' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    applySideFilter('long');
+
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.HIDDEN_BY_FILTERS_CAPTION,
+      ),
+    ).toBeNull();
+  });
+
+  it('keeps the hidden caption when filters hide every position', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ symbol: 'SOL', size: '-1' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    applySideFilter('long');
+
+    expect(screen.getByText('No long positions.')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('perps.pro_positions_panel.positions_hidden_by_filters', {
+          count: 1,
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the orders hidden count from the orders filter only', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC', size: '1' }),
+        makePosition({ symbol: 'SOL', size: '-1' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'long', symbol: 'BTC', side: 'buy' }),
+        makeOrder({ orderId: 'short', symbol: 'SOL', side: 'sell' }),
+        makeOrder({ orderId: 'short-2', symbol: 'ETH', side: 'sell' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    applySideFilter('long');
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.HIDDEN_BY_FILTERS_CAPTION,
+      ),
+    ).toBeNull();
+
+    applySideFilter('short');
+
+    expect(
+      screen.getByText(
+        strings('perps.pro_positions_panel.orders_hidden_by_filters', {
+          count: 1,
+        }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('perps.pro_positions_panel.positions_hidden_by_filters', {
+          count: 1,
+        }),
+      ),
+    ).toBeNull();
+  });
+
+  it('omits the hidden caption on the unfiltered empty positions state', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    expect(
+      screen.getByText('Your open positions will appear here.'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.HIDDEN_BY_FILTERS_CAPTION,
+      ),
+    ).toBeNull();
+  });
+
   it('wires the bulk cancel handler on the orders tab', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
       orders: [makeOrder({ orderId: 'sol-1', symbol: 'SOL' })],

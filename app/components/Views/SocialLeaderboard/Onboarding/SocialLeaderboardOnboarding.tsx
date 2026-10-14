@@ -56,8 +56,8 @@ import { usePushPermissionNotificationSetup } from '../../../../util/notificatio
 
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { hasRealAvatar } from '../../Homepage/Sections/TopTraders/utils/avatarFallback';
+
+import { hasRealAvatar } from '../../../UI/SocialFeed/utils/avatarFallback';
 import { ALL_CHAINS, SPOT_CHAINS } from '../../shared/top-traders-constants';
 
 import {
@@ -65,7 +65,7 @@ import {
   SocialLeaderboardEventValues,
   useSocialLeaderboardAnalytics,
 } from '../analytics';
-import { formatSignedFullUsdNoDecimals } from '../utils/formatters';
+import { formatSignedFullUsdNoDecimals } from '../../../UI/SocialFeed/utils/formatters';
 import createStyles, {
   ONBOARDING_GRADIENT_COLORS,
   OVERLAY_TOP_OFFSET,
@@ -92,7 +92,7 @@ import {
 } from './constants';
 import { getFollowTradingHomeRoute } from './socialLeaderboardOnboardingNavigation';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs
 const SocialLeaderboardNuxAnimation = require('../../../../animations/onboarding_nux_v7.riv');
 
 const ONBOARDING_SOURCE = 'nux';

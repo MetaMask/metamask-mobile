@@ -1,58 +1,59 @@
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnalytics.types';
 
-// --- Asset Details Quick Buy A/B Test (TSA-612) ---
+// --- Quick Buy Entrypoints A/B Test (SWAPS-5094) ---
 
-export const SOCIAL_AI_QUICK_BUY_AB_KEY = 'socialAiTSA612AbtestQuickBuy';
+export const SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY =
+  'swapsSWAPS5094AbtestQuickBuyEntrypoints';
 
-export enum SocialAiQuickBuyVariant {
+export enum QuickBuyEntrypointVariant {
   Control = 'control',
-  Treatment = 'treatment',
+  Treatment1 = 'treatment_1',
+  Treatment2 = 'treatment_2',
 }
 
-export const SOCIAL_AI_QUICK_BUY_VARIANTS: Record<
-  SocialAiQuickBuyVariant,
-  { showQuickBuy: boolean }
+export type QuickBuyFooterLayout =
+  | 'lightning_swap_buy'
+  | 'swap_buy'
+  | 'buy_sell';
+
+export const SWAPS5094_QUICK_BUY_ENTRYPOINTS_VARIANTS: Record<
+  QuickBuyEntrypointVariant,
+  { footerLayout: QuickBuyFooterLayout }
 > = {
-  [SocialAiQuickBuyVariant.Control]: { showQuickBuy: false },
-  [SocialAiQuickBuyVariant.Treatment]: { showQuickBuy: true },
+  [QuickBuyEntrypointVariant.Control]: { footerLayout: 'lightning_swap_buy' },
+  [QuickBuyEntrypointVariant.Treatment1]: { footerLayout: 'swap_buy' },
+  [QuickBuyEntrypointVariant.Treatment2]: { footerLayout: 'buy_sell' },
 };
 
-/**
- * Shared exposure metadata so both surfaces (Token Details and Market Insights)
- * emit identical `Experiment Viewed` properties for this experiment.
- */
-export const SOCIAL_AI_QUICK_BUY_EXPOSURE_METADATA: {
-  experimentName: string;
-  variationNames: Partial<Record<SocialAiQuickBuyVariant, string>>;
-} = {
-  experimentName: 'Asset Details Quick Buy',
+export const SWAPS5094_QUICK_BUY_ENTRYPOINTS_EXPOSURE_METADATA = {
+  experimentName: 'Quick Buy Entrypoints',
   variationNames: {
-    [SocialAiQuickBuyVariant.Control]: 'Quick Buy hidden',
-    [SocialAiQuickBuyVariant.Treatment]: 'Quick Buy shown',
+    [QuickBuyEntrypointVariant.Control]: 'Lightning, Swap, Buy',
+    [QuickBuyEntrypointVariant.Treatment1]: 'Swap, Buy',
+    [QuickBuyEntrypointVariant.Treatment2]: 'Sell, Buy',
   },
-};
+} as const;
 
-export const SOCIAL_AI_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+export const SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
   {
-    flagKey: SOCIAL_AI_QUICK_BUY_AB_KEY,
-    validVariants: Object.values(SocialAiQuickBuyVariant),
+    flagKey: SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
+    validVariants: Object.values(QuickBuyEntrypointVariant),
     eventNames: [
       EVENT_NAME.TOKEN_DETAILS_OPENED,
-      EVENT_NAME.MARKET_INSIGHTS_VIEWED,
-      EVENT_NAME.MARKET_INSIGHTS_INTERACTION,
+      EVENT_NAME.TOKEN_DETAILS_CTA_CLICKED,
+      EVENT_NAME.SOCIAL_QUICK_BUY_SHEET_VIEWED,
       EVENT_NAME.SOCIAL_QUICK_BUY_TRADE_SUBMITTED,
       EVENT_NAME.SOCIAL_QUICK_BUY_TRADE_COMPLETED,
     ],
-    // Only applies to Token Details / Market Insights flows — not Explore
-    excludeWhenPropertiesMatch: {
-      source: [
-        'explore_search',
-        'explore_crypto',
-        'explore_now',
-        'explore_rwas',
-        'explore_trending',
-        'explore_stocks',
-      ] as const,
+    // Quick Buy events fire from every host; only Token Details runs this test.
+    eventPropertyRequirements: {
+      [EVENT_NAME.SOCIAL_QUICK_BUY_SHEET_VIEWED]: { source: 'asset_details' },
+      [EVENT_NAME.SOCIAL_QUICK_BUY_TRADE_SUBMITTED]: {
+        source: 'asset_details',
+      },
+      [EVENT_NAME.SOCIAL_QUICK_BUY_TRADE_COMPLETED]: {
+        source: 'asset_details',
+      },
     },
   };

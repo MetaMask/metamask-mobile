@@ -53,6 +53,20 @@ describe('getTransactionPayControllerMessenger', () => {
     );
   });
 
+  it('delegates the AssetsController state action and event', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining(['AssetsController:getState']),
+        events: expect.arrayContaining(['AssetsController:stateChange']),
+      }),
+    );
+  });
+
   it('delegates the RampsController actions the fiat pay strategy needs', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');

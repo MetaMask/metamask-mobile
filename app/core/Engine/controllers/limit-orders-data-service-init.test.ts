@@ -7,14 +7,24 @@ import type {
   LimitOrdersDataServiceActions,
   LimitOrdersDataServiceEvents,
 } from '../../../components/UI/Bridge/services/LimitOrdersDataService';
-import { LimitOrderStatus } from '../../../components/UI/Bridge/api/limitOrders/getLimitOrders/types';
+import { getLimitOrders } from '../../../components/UI/Bridge/api/limitOrders/getLimitOrders';
+import { MOCK_LIMIT_FAILED_ORDER } from '../../../components/UI/Bridge/api/limitOrders/getLimitOrders/mock';
+import { LimitOrderState } from '../../../components/UI/Bridge/api/limitOrders/getLimitOrders/types';
 import type { RootExtendedMessenger } from '../types';
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { getLimitOrdersDataServiceMessenger } from '../messengers/limit-orders-data-service-messenger';
 import { limitOrdersDataServiceInit } from './limit-orders-data-service-init';
 
+jest.mock(
+  '../../../components/UI/Bridge/api/limitOrders/getLimitOrders',
+  () => ({ getLimitOrders: jest.fn() }),
+);
+
 describe('limitOrdersDataServiceInit', () => {
   it('registers limit-orders actions and rehydrates the persisted cache on init', async () => {
+    jest
+      .mocked(getLimitOrders)
+      .mockResolvedValue({ orders: [MOCK_LIMIT_FAILED_ORDER] });
     const rootMessenger = new Messenger<
       MockAnyNamespace,
       LimitOrdersDataServiceActions,
@@ -45,11 +55,11 @@ describe('limitOrdersDataServiceInit', () => {
       'LimitOrdersDataService:getLimitOrders',
       {
         walletAddress: '0x1234',
-        status: [LimitOrderStatus.Failed],
+        states: [LimitOrderState.Failed],
       },
     );
 
-    expect(result.orders).toHaveLength(1);
+    expect(result.orders).toStrictEqual([MOCK_LIMIT_FAILED_ORDER]);
     // init() rehydrates fire-and-forget; flush the microtask queue.
     await Promise.resolve();
     expect(getItem).toHaveBeenCalledWith('LimitOrdersDataService', 'cache');

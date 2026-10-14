@@ -17,11 +17,11 @@ import { TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { RankMedal, isTopRank } from '../topRank';
 import type { TraderRowProps } from '../types';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { formatSignedUsd } from '../../../../SocialLeaderboard/utils/formatters';
+
+import { formatSignedUsd } from '../../../../../UI/SocialFeed/utils/formatters';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderMuteChip from '../../../../SocialLeaderboard/components/TraderMuteChip';
-import TraderAvatar from './TraderAvatar';
+import TraderAvatar from '../../../../../UI/SocialFeed/components/TraderAvatar';
 
 const MUTE_CHIP_DIAMETER = 40;
 

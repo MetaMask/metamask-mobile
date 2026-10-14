@@ -149,19 +149,19 @@
           "pendingApprovals": {}
         },
         "CardController": {
+          "accountLookupCache": {},
           "activeProviderId": "baanx",
           "cardHomeData": null,
           "cardHomeDataAddress": null,
+          "cardHomeDataError": null,
           "cardHomeDataFetchedThisSession": false,
           "cardHomeDataStatus": "success",
-          "cardHomeDataError": null,
           "cardholderAccounts": [],
           "isAuthenticated": false,
           "lastUnauthenticatedReason": null,
           "moneyAccountCardLinkInProgress": false,
           "providerData": {},
           "providerUserId": null,
-          "accountLookupCache": {},
           "redeemWithdrawal": null,
           "selectedCountry": null,
           "signInLink": null
@@ -237,6 +237,7 @@
           "providerDisclaimersAccepted": {
             "sumsub": null
           },
+          "providerFlowStatus": "not_started",
           "sessionStatus": null,
           "vendor": null,
           "vendorDisclaimersAccepted": {
@@ -988,12 +989,12 @@
       "basicFunctionalityEnabled": true,
       "basicFunctionalityMigrationNotification": null,
       "basicFunctionalityMigrationNotificationDismissed": false,
-      "isBasicFunctionalityConsolidatedEnabled": false,
-      "hasLinkedSocialLoginProfile": false,
       "deepLinkModalDisabled": false,
       "deviceNotificationEnabled": false,
       "hapticsEnabled": true,
+      "hasLinkedSocialLoginProfile": false,
       "hideZeroBalanceTokens": false,
+      "isBasicFunctionalityConsolidatedEnabled": false,
       "lockTime": 30000,
       "perpsChartPreferences": {
         "preferredCandlePeriod": "15m"

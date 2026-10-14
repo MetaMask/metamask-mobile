@@ -1049,6 +1049,33 @@ describe('usePayWithCryptoSection', () => {
       expect(config.paymentOverride).toBeUndefined();
     });
 
+    it('does not clear paymentOverride when "Other assets" is pressed', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-money-1',
+        txParams: {},
+      } as never);
+
+      const setTransactionConfigMock = jest.mocked(
+        Engine.context.TransactionPayController.setTransactionConfig,
+      );
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      const otherAssetsRow = result.current?.rows.find(
+        (row) => row.id === 'crypto-other-assets',
+      );
+
+      act(() => {
+        otherAssetsRow?.onPress?.();
+      });
+
+      expect(navigateMock).toHaveBeenCalledWith(
+        Routes.CONFIRMATION_PAY_WITH_MODAL,
+        { dismissOnSelectCount: 2 },
+      );
+      expect(setTransactionConfigMock).not.toHaveBeenCalled();
+    });
+
     it('does not call setTransactionConfig when no paymentOverride is active', () => {
       useSelectorMock.mockReturnValue(undefined);
 

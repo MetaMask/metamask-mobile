@@ -99,7 +99,6 @@ import {
   normalizeEnabledSportsMarketTypes,
   sortGameMarkets,
 } from './outcomeGrouping';
-
 export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
 export { buildOutcomeGroups, sortGameMarkets } from './outcomeGrouping';
 
@@ -1035,6 +1034,31 @@ export type PolymarketTeamLookupFn = (
   abbreviation: string,
 ) => PolymarketApiTeam | undefined;
 
+const PROTOCOL_V2_MARKET_VERSION = 'v2';
+
+function isProtocolV2Market(market?: PolymarketApiMarket): boolean {
+  return market?.version === PROTOCOL_V2_MARKET_VERSION;
+}
+
+function isVisiblePolymarketMarket(market: PolymarketApiMarket): boolean {
+  if (market?.active === false) {
+    return false;
+  }
+
+  return !isProtocolV2Market(market);
+}
+
+function isUnsupportedProtocolEvent(
+  event: PolymarketApiEvent,
+  visibleMarkets: PolymarketApiMarket[],
+): boolean {
+  if (visibleMarkets.length > 0) {
+    return false;
+  }
+
+  return event.markets?.some(isProtocolV2Market) === true;
+}
+
 export interface ParsePolymarketEventsOptions {
   category: PredictCategory;
   sortMarketsBy?: 'price' | 'ascending' | 'descending';
@@ -1082,7 +1106,11 @@ export const parsePolymarketEvents = (
         event,
         sortBy,
         isGameEvent: !!game,
-      }).filter((market: PolymarketApiMarket) => market?.active !== false);
+      }).filter(isVisiblePolymarketMarket);
+
+      if (isUnsupportedProtocolEvent(event, markets)) {
+        return [];
+      }
 
       // As per Polymarket's team, we should use the first market's description
       // rather than the event's description. The event's description is not

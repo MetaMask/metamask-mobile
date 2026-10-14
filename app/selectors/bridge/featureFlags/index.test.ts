@@ -1,5 +1,6 @@
 import type { CaipChainId, Json } from '@metamask/utils';
 import {
+  selectBridgeLimitOrderBaseUrl,
   selectBridgeLimitOrderFeatureFlags,
   selectBridgeLimitOrderTabEnabledFlag,
   selectBridgeRecurringBuyFeatureFlags,
@@ -105,6 +106,38 @@ describe('selectBridgeRecurringBuyFeatureFlags', () => {
     const result = selectBridgeRecurringBuyFeatureFlags(
       mockedUndefinedFlagsState,
     );
+
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('selectBridgeLimitOrderBaseUrl', () => {
+  it('returns the baseUrl of the remote flag', () => {
+    const state = buildStateWithRemoteFlags({
+      swapsLimitOrder: {
+        enabled: true,
+        enabledChainIds: LIMIT_ORDER_CHAIN_IDS,
+        baseUrl: 'https://bridge.api.cx.metamask.io',
+      },
+    });
+
+    const result = selectBridgeLimitOrderBaseUrl(state);
+
+    expect(result).toBe('https://bridge.api.cx.metamask.io');
+  });
+
+  it('returns undefined when the remote flag has no baseUrl', () => {
+    const state = buildStateWithRemoteFlags({
+      swapsLimitOrder: { enabled: true, enabledChainIds: [] },
+    });
+
+    const result = selectBridgeLimitOrderBaseUrl(state);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the remote flag is missing', () => {
+    const result = selectBridgeLimitOrderBaseUrl(mockedEmptyFlagsState);
 
     expect(result).toBeUndefined();
   });

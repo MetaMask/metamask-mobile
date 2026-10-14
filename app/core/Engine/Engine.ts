@@ -482,6 +482,9 @@ export class Engine {
     const subscriptionController = this.#wallet.getInstance(
       'SubscriptionController',
     );
+    const subscriptionDelegationService = this.#wallet.getInstance(
+      'SubscriptionDelegationService',
+    );
     const subscriptionService = this.#wallet.getInstance('SubscriptionService');
     const shieldController = this.#wallet.getInstance('ShieldController');
     const claimsController = this.#wallet.getInstance('ClaimsController');
@@ -645,6 +648,7 @@ export class Engine {
       TransactionPayController: messengerClientsByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
       SubscriptionController: subscriptionController,
+      SubscriptionDelegationService: subscriptionDelegationService,
       SubscriptionService: subscriptionService,
       ShieldController: shieldController,
       ClaimsController: claimsController,

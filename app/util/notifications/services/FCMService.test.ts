@@ -439,7 +439,7 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
         });
       });
 
-      it('reports no open when there was no initial notification', async () => {
+      it('does not track a click when there was no initial notification', async () => {
         const { result, mocks } = await arrangeAct(null);
 
         expect(result).toEqual({
@@ -449,9 +449,7 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
           notificationSubtype: undefined,
         });
         assertMockInitialNotificationCalled(mocks);
-        expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({}), //Called with no additional properties
-        );
+        expect(mocks.mockTrackEvent).not.toHaveBeenCalled();
       });
     },
   );
@@ -501,22 +499,19 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
 
   const arrangeAct = async (
     // Remote Message Data prop only contains string entries
-    testData: Record<string, string> | null,
+    testData: Record<string, string>,
     overrideMocks?: (mocks: ReturnType<typeof arrangeMocks>) => void,
   ) => {
     const mocks = arrangeMocks();
     overrideMocks?.(mocks);
-    const mockNotification =
-      testData === null ? null : createMockRemoteMessage(testData);
+    const mockNotification = createMockRemoteMessage(testData);
 
     // Act - Setup listener & Call handler (simulate notification opened)
     FCMService.onClickPushNotificationWhenAppSuspended(mocks.deeplinkCallback);
 
     const notificationHandler =
       mocks.mockOnNotificationOpenedApp.mock.calls[0][0];
-    await notificationHandler(
-      mockNotification as FirebaseMessagingTypes.RemoteMessage,
-    );
+    await notificationHandler(mockNotification);
 
     return { mocks, deeplinkCallback: mocks.deeplinkCallback };
   };
@@ -598,17 +593,26 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
     });
   });
 
-  it('reports the tap with no classification when notification has null data', async () => {
-    const { mocks, deeplinkCallback } = await arrangeAct(null);
+  it('tracks a click with no classification when notification data is missing', async () => {
+    const mocks = arrangeMocks();
+    const mockNotification = createMockRemoteMessage();
 
-    expect(deeplinkCallback).toHaveBeenCalledWith({
-      opened: false,
+    FCMService.onClickPushNotificationWhenAppSuspended(mocks.deeplinkCallback);
+    const notificationHandler =
+      mocks.mockOnNotificationOpenedApp.mock.calls[0][0];
+    await notificationHandler(mockNotification);
+
+    expect(mocks.deeplinkCallback).toHaveBeenCalledWith({
+      opened: true,
       deeplink: null,
       notificationType: undefined,
       notificationSubtype: undefined,
     });
     expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({}), //Called with no additional properties
+      expect.objectContaining({
+        name: EVENT_NAME.PUSH_NOTIFICATION_CLICKED,
+        properties: {},
+      }),
     );
   });
 

@@ -16,6 +16,10 @@ import { type NotificationPreferenceSection } from './hooks/useNotificationStora
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import Routes from '../../../../constants/navigation/Routes';
 import { NotificationSettingsSectionContent } from './NotificationSettingsSectionContent';
+import {
+  getNotificationSettingsSectionRouteParams,
+  resolveNotificationSettingsSection,
+} from './notificationSettingsSections';
 
 export interface NotificationSettingsSectionProps {
   navigation: NavigationProp<ParamListBase>;
@@ -23,8 +27,8 @@ export interface NotificationSettingsSectionProps {
     {
       params: {
         type: NotificationPreferenceSection;
-        title: string;
-        description: string;
+        title?: string;
+        description?: string;
       };
     },
     'params'
@@ -37,7 +41,17 @@ const NotificationSettingsSection = ({
 }: NotificationSettingsSectionProps) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
-  const { type, title, description } = route.params;
+  const {
+    type,
+    title: titleParam,
+    description: descriptionParam,
+  } = route.params;
+  const catalogCopy = resolveNotificationSettingsSection(type);
+  const catalogParams = catalogCopy
+    ? getNotificationSettingsSectionRouteParams(catalogCopy)
+    : undefined;
+  const title = titleParam ?? catalogParams?.title;
+  const description = descriptionParam ?? catalogParams?.description;
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );

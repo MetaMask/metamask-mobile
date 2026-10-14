@@ -11,6 +11,11 @@ import { merge } from 'lodash';
 import { createBridgeTestState } from '../../testUtils';
 import { setLimitOrderMarketComparison } from '../../../../../core/redux/slices/bridge';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
+import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
+import {
+  LimitOrderExecutionType,
+  LimitOrderPriceComparisonDirection,
+} from '../../constants/limitOrders';
 import { useFetchLimitOrdersDelegations } from '../../api/limitOrders/getDelegations';
 import { useCreateLimitOrder } from '../../api/limitOrders/create';
 import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrderDelegations';
@@ -36,6 +41,10 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('../../hooks/useEIP7702UpgradeFee', () => ({
   useEIP7702UpgradeFee: jest.fn(),
+}));
+
+jest.mock('../../hooks/useFiatToUsdRate', () => ({
+  useFiatToUsdRate: jest.fn(),
 }));
 
 jest.mock('../../api/limitOrders/getDelegations', () => ({
@@ -81,6 +90,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
 const mockUseEIP7702UpgradeFee = jest.mocked(useEIP7702UpgradeFee);
+const mockUseFiatToUsdRate = jest.mocked(useFiatToUsdRate);
 const mockUseFetchLimitOrdersDelegations = jest.mocked(
   useFetchLimitOrdersDelegations,
 );
@@ -116,6 +126,15 @@ const mockOrder = {
   expiresInMinutes: 10080,
 };
 
+// A limit price entered in fiat on the limit order screen.
+const mockTriggerInput = {
+  executionType: LimitOrderExecutionType.BUY,
+  isLimitFiatMode: true,
+  limitPrice: '3412.2',
+  priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+};
+
+// The trigger the input above is sent as while the display currency is USD.
 const mockTrigger = {
   kind: 'dest_price' as const,
   threshold: 'above' as const,
@@ -130,7 +149,7 @@ const mockParams: LimitOrderConfirmationModalParams = {
   triggerToken: mockDestToken,
   expiry: '7 days',
   order: mockOrder,
-  trigger: mockTrigger,
+  triggerInput: mockTriggerInput,
 };
 
 const MOCK_DELEGATION = {
@@ -195,6 +214,8 @@ describe('LimitOrderConfirmationModalScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue(mockParams);
+    // The display currency is USD unless a test says otherwise.
+    mockUseFiatToUsdRate.mockReturnValue(1);
     mockUseEIP7702UpgradeFee.mockReturnValue({
       status: 'ready',
       displayFee: '$1.69',
@@ -222,14 +243,44 @@ describe('LimitOrderConfirmationModalScreen', () => {
         },
       });
 
-    it('displays the USD trigger price when the display currency is not USD', () => {
-      const { getByTestId } = renderScreen(withCurrency('EUR'));
+    it('displays the live USD exchange rate when the display currency is not USD', () => {
+      mockUseFiatToUsdRate.mockReturnValue(1 / 85.05);
+
+      const { getByTestId } = renderScreen(withCurrency('rub'));
 
       expect(
         getByTestId(LimitOrderConfirmationModalSelectorsIDs.USD_PRICE_NOTICE),
       ).toHaveTextContent(
-        'For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~$3,412.2)',
+        'Prices are shown in your selected currency, but your order is placed in USD based on the exchange rate at order creation. Current rate: 1 USD = 85.05 RUB.',
       );
+    });
+
+    // The order is not created until it is confirmed, so the rate it will be
+    // placed at is whatever the rates read by then.
+    it('updates the rate when the currency rates refresh while the sheet is open', () => {
+      mockUseFiatToUsdRate.mockReturnValue(1 / 85.05);
+      const { getByTestId, rerender } = renderScreen(withCurrency('rub'));
+
+      mockUseFiatToUsdRate.mockReturnValue(1 / 90);
+      rerender(<LimitOrderConfirmationModalScreen />);
+
+      expect(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.USD_PRICE_NOTICE),
+      ).toHaveTextContent(
+        'Prices are shown in your selected currency, but your order is placed in USD based on the exchange rate at order creation. Current rate: 1 USD = 90.00 RUB.',
+      );
+    });
+
+    // Without a rate the fiat price cannot be converted to a trigger, and the
+    // notice would have no rate to show.
+    it('does not display when no rate converts the display currency to USD', () => {
+      mockUseFiatToUsdRate.mockReturnValue(undefined);
+
+      const { queryByTestId } = renderScreen(withCurrency('rub'));
+
+      expect(
+        queryByTestId(LimitOrderConfirmationModalSelectorsIDs.USD_PRICE_NOTICE),
+      ).toBeNull();
     });
 
     it('does not display when the display currency is USD', () => {
@@ -243,10 +294,16 @@ describe('LimitOrderConfirmationModalScreen', () => {
     // A ratio trigger is priced in the counter token, so no exchange rate
     // takes part in placing the order.
     it('does not display for a limit price entered in token units', () => {
+      mockUseFiatToUsdRate.mockReturnValue(1 / 85.05);
       mockUseParams.mockReturnValue({
         ...mockParams,
-        trigger: { ...mockTrigger, kind: 'ratio', price: '2684.275413' },
+        triggerInput: {
+          ...mockTriggerInput,
+          isLimitFiatMode: false,
+          limitPrice: '2684.275413',
+        },
       });
+
       const { queryByTestId } = renderScreen(withCurrency('RUB'));
 
       expect(
@@ -254,8 +311,13 @@ describe('LimitOrderConfirmationModalScreen', () => {
       ).toBeNull();
     });
 
-    it('does not display without a trigger', () => {
-      mockUseParams.mockReturnValue({ ...mockParams, trigger: undefined });
+    it('does not display without a usable limit price', () => {
+      mockUseFiatToUsdRate.mockReturnValue(1 / 85.05);
+      mockUseParams.mockReturnValue({
+        ...mockParams,
+        triggerInput: { ...mockTriggerInput, limitPrice: undefined },
+      });
+
       const { queryByTestId } = renderScreen(withCurrency('EUR'));
 
       expect(
@@ -417,6 +479,33 @@ describe('LimitOrderConfirmationModalScreen', () => {
     });
   });
 
+  // The order is only created on confirm, so a fiat price is converted with
+  // the rate live at that moment rather than the one the sheet opened with.
+  it('converts a fiat limit price to USD with the rate live when the order is confirmed', async () => {
+    mockUseFiatToUsdRate.mockReturnValue(1.08);
+    const { getByTestId, rerender } = renderScreen(
+      merge({}, createBridgeTestState({}), {
+        engine: {
+          backgroundState: { AssetsController: { selectedCurrency: 'eur' } },
+        },
+      }),
+    );
+    mockUseFiatToUsdRate.mockReturnValue(0.5);
+    rerender(<LimitOrderConfirmationModalScreen />);
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockCreateLimitOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          trigger: { ...mockTrigger, price: '1706.1' },
+        }),
+      );
+    });
+  });
+
   it('signs the delegations the API issued before creating the order', async () => {
     const { getByTestId } = renderScreen(createBridgeTestState({}));
 
@@ -540,24 +629,42 @@ describe('LimitOrderConfirmationModalScreen', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('displays an error banner instead of creating an order when the trigger is missing', async () => {
-    mockUseParams.mockReturnValue({ ...mockParams, trigger: undefined });
-    const { getByTestId, getByText } = renderScreen(createBridgeTestState({}));
+  it.each([
+    [
+      'the limit price is unusable',
+      () =>
+        mockUseParams.mockReturnValue({
+          ...mockParams,
+          triggerInput: { ...mockTriggerInput, limitPrice: undefined },
+        }),
+    ],
+    [
+      'no rate converts a fiat limit price to USD',
+      () => mockUseFiatToUsdRate.mockReturnValue(undefined),
+    ],
+  ])(
+    'displays an error banner instead of creating an order when %s',
+    async (_, arrange) => {
+      arrange();
+      const { getByTestId, getByText } = renderScreen(
+        createBridgeTestState({}),
+      );
 
-    fireEvent.press(
-      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
-    );
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
 
-    await waitFor(() => {
-      expect(
-        getByText(
-          'Could not create an order: the trigger price is unavailable.',
-        ),
-      ).toBeOnTheScreen();
-    });
-    expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
-    expect(mockCreateLimitOrder).not.toHaveBeenCalled();
-  });
+      await waitFor(() => {
+        expect(
+          getByText(
+            'Could not create an order: the trigger price is unavailable.',
+          ),
+        ).toBeOnTheScreen();
+      });
+      expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
+      expect(mockCreateLimitOrder).not.toHaveBeenCalled();
+    },
+  );
 
   it('requests the delegations with the order params and the live cost tolerance', () => {
     renderScreen(

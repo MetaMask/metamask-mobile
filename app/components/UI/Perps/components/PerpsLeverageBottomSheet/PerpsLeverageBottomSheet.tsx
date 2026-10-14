@@ -478,7 +478,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
       <Box paddingTop={3} accessible={false}>
         {currentPrice ? (
-          <Box paddingHorizontal={4} accessible={false}>
+          // No horizontal padding here: KeyValueRow already insets itself by
+          // px-4, so adding it again doubled these rows to 32px and pushed
+          // them out of line with the description and footer button.
+          <>
             <KeyValueRow
               variant={KeyValueRowVariant.Summary}
               keyLabel={strings('perps.order.leverage_modal.current_price')}
@@ -553,7 +556,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 )
               }
             />
-          </Box>
+          </>
         ) : (
           <Text
             variant={TextVariant.BodyMd}
@@ -645,11 +648,13 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
         {isNestedScreen ? (
           <>
-            <SectionDivider />
+            {/* SectionDivider defaults to 20px vertical margin; drop the bottom
+                one so the explainer sits 16px below the rule. */}
+            <SectionDivider twClassName="mb-0" />
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              twClassName="px-4 py-3"
+              twClassName="px-4 pt-4 pb-3"
               testID={PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION}
             >
               {strings('perps.order.leverage_modal.description')}

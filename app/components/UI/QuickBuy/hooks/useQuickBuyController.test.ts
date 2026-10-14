@@ -66,6 +66,9 @@ jest.mock('../../Bridge/hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
 }));
 
+jest.mock('../../Bridge/hooks/useShouldRenderMaxOption', () => ({
+  useShouldRenderMaxOption: jest.fn(() => true),
+}));
 jest.mock('../../Bridge/hooks/useInsufficientBalance', () => ({
   __esModule: true,
   default: jest.fn(),
@@ -258,6 +261,7 @@ runQuickBuyControllerCases({
     onClose?: () => void,
     analyticsContext?: QuickBuyAnalyticsContext,
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
+    initialTradeMode?: 'buy' | 'sell',
   ) => {
     const utils = renderHook(
       () =>
@@ -265,6 +269,7 @@ runQuickBuyControllerCases({
           target ?? defaultTarget,
           onClose ?? jest.fn(),
           analyticsContext,
+          initialTradeMode,
         ),
       { initialProps },
     );

@@ -83,13 +83,13 @@ describe('chompApiServiceInit', () => {
     );
   });
 
-  describe('when MM_DEV_API_ENV=dev', () => {
+  describe('when MM_API_ENV=dev', () => {
     beforeEach(() => {
-      process.env.MM_DEV_API_ENV = 'dev';
+      process.env.MM_API_ENV = 'dev';
     });
 
     afterEach(() => {
-      delete process.env.MM_DEV_API_ENV;
+      delete process.env.MM_API_ENV;
     });
 
     it('uses the dev URL even when the remote feature flag points elsewhere', () => {
@@ -104,6 +104,31 @@ describe('chompApiServiceInit', () => {
       expect(jest.mocked(ChompApiService)).toHaveBeenCalledWith({
         messenger: expect.any(Object),
         baseUrl: 'https://chomp.dev-api.cx.metamask.io',
+      });
+    });
+  });
+
+  describe('when MM_API_ENV=uat', () => {
+    beforeEach(() => {
+      process.env.MM_API_ENV = 'uat';
+    });
+
+    afterEach(() => {
+      delete process.env.MM_API_ENV;
+    });
+
+    it('keeps the feature-flag URL because chomp has no uat host', () => {
+      chompApiServiceInit(
+        getInitRequestMock({
+          remoteFeatureFlags: {
+            moneyAccountChompConfig: { baseUrl: 'https://chomp.example.com' },
+          },
+        }),
+      );
+
+      expect(jest.mocked(ChompApiService)).toHaveBeenCalledWith({
+        messenger: expect.any(Object),
+        baseUrl: 'https://chomp.example.com',
       });
     });
   });

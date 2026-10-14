@@ -37,7 +37,7 @@ import MoneyActivityRow from '../../components/MoneyActivityRow/MoneyActivityRow
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { type MoneyActivityItem } from '../../types/moneyActivity';
-import { MoneyActivityFilter } from '../../constants/mockActivityData';
+import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import { getMoneyActivityStatus } from '../../utils/classifyMoneyActivity';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
@@ -164,7 +164,6 @@ const MoneyActivityView = () => {
     error,
     refetch,
     moneyAddress,
-    mockDataEnabled,
     cardEnrichmentByHash,
   } = useMoneyActivityItems({
     // Auto-fill the active tab's bucket to a screenful; switching tabs
@@ -230,7 +229,7 @@ const MoneyActivityView = () => {
     </Box>
   );
 
-  const isRowPressEnabled = !mockDataEnabled && activityDetailsEnabled;
+  const isRowPressEnabled = activityDetailsEnabled;
 
   const renderItem = useCallback(
     ({ item }: { item: MoneyActivityItem }) => (

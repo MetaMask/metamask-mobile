@@ -12,7 +12,8 @@ const ETHEREUM_ETH = {
   symbol: 'ETH',
   name: 'Ethereum',
   decimals: 18,
-  iconUrl: 'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x0.png',
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
 } satisfies BridgeAssetV2;
 
 const ETHEREUM_USDC = {
@@ -144,6 +145,12 @@ export const MOCK_RECURRING_COMPLETED_ORDER = createMockRecurringOrder({
   filledSwapsCount: 5,
   createdAt: '2026-08-27T12:00:00.000Z',
   endsAt: '2026-08-31T12:00:00.000Z',
+  priceRange: {
+    tokenSide: 'source',
+    currency: 'USD',
+    min: '1800',
+    max: '2200',
+  },
 });
 
 export const MOCK_RECURRING_CANCELLED_ORDER = createMockRecurringOrder({

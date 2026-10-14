@@ -325,6 +325,78 @@ describe('EarnLendingBalance', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('renders stablecoin maintenance banner without a lending position', () => {
+    const emptyReceiptToken = {
+      ...mockADAIMainnet,
+      balanceMinimalUnit: '0',
+    };
+    (
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingServiceInterruptionBannerEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      earnSelectors.selectEarnOutputToken as jest.MockedFunction<
+        typeof earnSelectors.selectEarnOutputToken
+      >
+    ).mockReturnValue(emptyReceiptToken);
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      outputToken: emptyReceiptToken,
+      earnToken: mockDaiMainnet,
+    });
+
+    const { getByText } = renderWithProvider(
+      <EarnLendingBalance asset={emptyReceiptToken} />,
+      { state: mockInitialState },
+    );
+
+    expect(
+      getByText(
+        strings('earn.service_interruption_banner.maintenance_message', {
+          experienceName: 'Stablecoin Lending',
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides stablecoin maintenance banner when only pooled-staking flag is enabled', () => {
+    (
+      selectPooledStakingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
+        typeof selectPooledStakingServiceInterruptionBannerEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      earnSelectors.selectEarnOutputToken as jest.MockedFunction<
+        typeof earnSelectors.selectEarnOutputToken
+      >
+    ).mockReturnValue(mockADAIMainnet);
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      outputToken: mockADAIMainnet,
+      earnToken: mockDaiMainnet,
+    });
+
+    const { queryByText } = renderWithProvider(
+      <EarnLendingBalance asset={mockADAIMainnet} />,
+      { state: mockInitialState },
+    );
+
+    expect(
+      queryByText(
+        strings('earn.service_interruption_banner.maintenance_message', {
+          experienceName: 'Stablecoin Lending',
+        }),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
   it('does not render when lending is disabled and token is not mUSD convertible', () => {
     (
       selectStablecoinLendingEnabledFlag as jest.MockedFunction<

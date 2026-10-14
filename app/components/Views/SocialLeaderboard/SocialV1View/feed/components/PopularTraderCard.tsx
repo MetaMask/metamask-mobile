@@ -15,9 +15,9 @@ import { Pressable } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../../../Homepage/Sections/TopTraders/types';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import TraderAvatar from '../../../../Homepage/Sections/TopTraders/components/TraderAvatar';
-import { formatFollowerCountLabel } from '../../../utils/formatters';
+
+import TraderAvatar from '../../../../../UI/SocialFeed/components/TraderAvatar';
+import { formatFollowerCountLabel } from '../../../../../UI/SocialFeed/utils/formatters';
 import {
   getPopularTraderCardAvatarTestId,
   getPopularTraderCardFollowTestId,

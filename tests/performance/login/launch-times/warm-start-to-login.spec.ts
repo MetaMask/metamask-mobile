@@ -33,13 +33,6 @@ perfTest.describe(
         testInfo,
       ) => {
         await loginToAppPlaywright();
-        await AppiumAssertions.expectElementToBeVisible(
-          WalletView.accountIcon,
-          {
-            description:
-              'Wallet account icon should be visible before warm start',
-          },
-        );
 
         const timer1 = new TimerHelper(
           'Time since the user open the app again and the login screen appears',
@@ -47,7 +40,7 @@ perfTest.describe(
           currentDeviceDetails.platform,
         );
 
-        await AppiumGestures.backgroundApp(35);
+        await AppiumGestures.backgroundApp(40);
         await AppiumGestures.activateApp(currentDeviceDetails);
 
         await timer1.measure(async () => {

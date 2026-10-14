@@ -8,11 +8,13 @@ import {
   MOCK_RECURRING_OPEN_ORDER_2,
 } from '../api/recurringOrders.mock';
 import {
+  type GetRecurringOrdersByAssetResponse,
   RecurringOrderStatus,
   type GetRecurringOrdersResponse,
   type RecurringOrder,
 } from '../api/recurringOrders.types';
 import {
+  RECURRING_ORDERS_BY_ASSET_QUERY_KEY,
   RECURRING_ORDERS_QUERY_KEY,
   recurringOrdersQueries,
 } from '../queries/recurringOrders';
@@ -60,6 +62,15 @@ function getQueryKey(
   }).queryKey;
 }
 
+function getByAssetQueryKey(
+  assetId = MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
+) {
+  return recurringOrdersQueries.getRecurringOrdersByAsset({
+    walletAddress: WALLET_ADDRESS,
+    assetId,
+  }).queryKey;
+}
+
 describe('useCancelRecurringOrder', () => {
   const messengerCall = Engine.controllerMessenger.call as jest.Mock;
   const queryClients = new Set<QueryClient>();
@@ -74,9 +85,10 @@ describe('useCancelRecurringOrder', () => {
     queryClients.clear();
   });
 
-  it('moves loaded data into matching History caches and invalidates without refetching', async () => {
+  it('updates loaded caches and actively refetches the by-asset query', async () => {
     const queryClient = new QueryClient();
     queryClients.add(queryClient);
+    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
     const openKey = getQueryKey();
     const historyKey = getQueryKey(WALLET_ADDRESS, [
       RecurringOrderStatus.Completed,
@@ -90,6 +102,10 @@ describe('useCancelRecurringOrder', () => {
       WALLET_ADDRESS,
       [RecurringOrderStatus.Completed, RecurringOrderStatus.Cancelled],
       'eip155:56',
+    );
+    const byAssetKey = getByAssetQueryKey();
+    const differentByAssetKey = getByAssetQueryKey(
+      MOCK_RECURRING_OPEN_ORDER_2.src.asset.assetId,
     );
     const existingCancelledOrder = {
       ...MOCK_RECURRING_OPEN_ORDER,
@@ -115,6 +131,10 @@ describe('useCancelRecurringOrder', () => {
       differentChainKey,
       createInfiniteData([MOCK_RECURRING_OPEN_ORDER]),
     );
+    queryClient.setQueryData(byAssetKey, [MOCK_RECURRING_OPEN_ORDER]);
+    queryClient.setQueryData(differentByAssetKey, [
+      MOCK_RECURRING_OPEN_ORDER_2,
+    ]);
 
     const { result } = renderHook(() => useCancelRecurringOrder(), {
       wrapper: createWrapper(queryClient),
@@ -160,6 +180,14 @@ describe('useCancelRecurringOrder', () => {
         getQueryKey(WALLET_ADDRESS, [RecurringOrderStatus.Cancelled]),
       ),
     ).toBeUndefined();
+    expect(
+      queryClient.getQueryData<GetRecurringOrdersByAssetResponse>(byAssetKey),
+    ).toStrictEqual([]);
+    expect(
+      queryClient.getQueryData<GetRecurringOrdersByAssetResponse>(
+        differentByAssetKey,
+      ),
+    ).toStrictEqual([MOCK_RECURRING_OPEN_ORDER_2]);
     expect(messengerCall).toHaveBeenCalledWith(
       'RecurringOrdersDataService:cancelRecurringOrder',
       MOCK_RECURRING_OPEN_ORDER.orderId,
@@ -168,17 +196,33 @@ describe('useCancelRecurringOrder', () => {
       'RecurringOrdersDataService:invalidateQueries',
       { queryKey: [RECURRING_ORDERS_QUERY_KEY] },
     );
+    expect(messengerCall).toHaveBeenCalledWith(
+      'RecurringOrdersDataService:invalidateQueries',
+      { queryKey: [RECURRING_ORDERS_BY_ASSET_QUERY_KEY] },
+    );
     expect(queryClient.getQueryState(openKey)?.isInvalidated).toBe(true);
     expect(queryClient.getQueryState(historyKey)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(byAssetKey)?.isInvalidated).toBe(true);
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [RECURRING_ORDERS_QUERY_KEY],
+      refetchType: 'none',
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [RECURRING_ORDERS_BY_ASSET_QUERY_KEY],
+      refetchType: 'active',
+    });
   });
 
   it('leaves all caches unchanged when cancellation fails', async () => {
     const queryClient = new QueryClient();
     queryClients.add(queryClient);
     const key = getQueryKey();
+    const byAssetKey = getByAssetQueryKey();
     const data = createInfiniteData([MOCK_RECURRING_OPEN_ORDER]);
     queryClient.setQueryData(key, data);
+    queryClient.setQueryData(byAssetKey, [MOCK_RECURRING_OPEN_ORDER]);
     const before = queryClient.getQueryData(key);
+    const byAssetBefore = queryClient.getQueryData(byAssetKey);
     messengerCall.mockRejectedValue(new Error('cancel failed'));
 
     const { result } = renderHook(() => useCancelRecurringOrder(), {
@@ -192,6 +236,7 @@ describe('useCancelRecurringOrder', () => {
     });
 
     expect(queryClient.getQueryData(key)).toBe(before);
+    expect(queryClient.getQueryData(byAssetKey)).toBe(byAssetBefore);
     expect(messengerCall).toHaveBeenCalledTimes(1);
     await waitFor(() =>
       expect(result.current.error).toHaveProperty('message', 'cancel failed'),

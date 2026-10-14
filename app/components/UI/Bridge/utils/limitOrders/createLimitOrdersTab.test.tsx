@@ -16,7 +16,7 @@ describe('createLimitOrdersTab', () => {
     expect(tab.isLoading).toBe(true);
     expect(tab.onRetry).toBe(onRetry);
     expect(tab.keyExtractor?.(MOCK_LIMIT_OPEN_ORDER, 0)).toBe(
-      MOCK_LIMIT_OPEN_ORDER.orderId,
+      MOCK_LIMIT_OPEN_ORDER.id,
     );
   });
 });

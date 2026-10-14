@@ -45,6 +45,15 @@ jest.mock('../../../../components/UI/Money/hooks/useMoneyNavigation', () => ({
   }),
 }));
 
+const mockNavigateToSocialTab = jest.fn();
+jest.mock(
+  '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  () => ({
+    navigateToSocialTab: (...args: unknown[]) =>
+      mockNavigateToSocialTab(...args),
+  }),
+);
+
 // The trade button reaches the root modal stack through the hook, not the
 // bar's tab-navigator prop.
 const mockRootNavigate = jest.fn();
@@ -357,12 +366,14 @@ describe('TabBarFloating', () => {
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
   });
 
-  it('navigates to the social tab route from the Social tab', () => {
+  it('selects the Social tab through the onboarding-aware tab helper', () => {
     const { getByTestId } = renderBar();
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Social}`));
 
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.SOCIAL.TAB);
+    expect(mockNavigateToSocialTab).toHaveBeenCalledWith(navigation.navigate, {
+      source: 'nav_tab',
+    });
   });
 
   it('routes Money through the money navigation hook', () => {

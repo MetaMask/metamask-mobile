@@ -321,7 +321,8 @@ extension AppDelegate: BrazeDelegate {
       host.contains("test-app.link") ||
       host.contains("link.metamask.io") ||
       host.contains("link.metamask.com") ||
-      host.contains("link-test.metamask.io")
+      host.contains("link-test.metamask.io") ||
+      host.contains("link-test.metamask.com")
   }
 
   private func isWebURL(_ url: URL) -> Bool {

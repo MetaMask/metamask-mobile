@@ -1,5 +1,4 @@
 import { BigNumber } from 'bignumber.js';
-import { LimitOrderExecutionType } from '../../constants/limitOrders';
 import { getSwapsLimitOrderPriceFromMarketPercent } from './getSwapsLimitOrderPriceFromMarketPercent';
 import { getSwapsLimitOrderPriceMarketComparison } from './getSwapsLimitOrderPriceMarketComparison';
 
@@ -101,8 +100,6 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
         getSwapsLimitOrderPriceMarketComparison({
           limitFiat: result,
           marketFiat,
-          executionType: LimitOrderExecutionType.BUY,
-          threshold: 0,
         }),
       ).toBeUndefined();
     });
@@ -155,8 +152,6 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
             .multipliedBy(counterFiatRate)
             .toString(),
           marketFiat,
-          executionType: LimitOrderExecutionType.BUY,
-          threshold: 0,
         }),
       ).toBeUndefined();
     });

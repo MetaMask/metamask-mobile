@@ -17,9 +17,10 @@ import type { LimitOrderDelegationsResponse } from '../../api/limitOrders/getDel
 import { useCreateLimitOrder } from '../../api/limitOrders/create';
 import type { SignedLimitOrderDelegation } from '../../api/limitOrders/create/schema';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
+import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
-import { getCurrencySymbol } from '../../utils/currencyUtils';
-import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
+import { getLimitOrderTriggerParams } from '../../utils/limitOrders/getLimitOrderTriggerParams';
+import { getLimitOrderUsdExchangeRate } from '../../utils/limitOrders/getLimitOrderUsdExchangeRate';
 import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrderDelegations';
 import { LimitOrderConfirmationModal } from './LimitOrderConfirmationModal';
 import type { LimitOrderConfirmationModalParams } from './types';
@@ -46,8 +47,6 @@ const CONFIRM_ERROR_MESSAGE_KEY: Record<LimitOrderConfirmError, string> = {
   [LimitOrderConfirmError.Create]: 'bridge.limit.error_creating_order',
 };
 
-const USD_CURRENCY = 'usd';
-
 export const LimitOrderConfirmationModalScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<LimitOrderConfirmationModalParams>();
@@ -62,23 +61,24 @@ export const LimitOrderConfirmationModalScreen = () => {
   );
 
   // A price entered in fiat is sent as its USD equivalent, which only matches
-  // what is on screen when the display currency is already USD. Reading it off
-  // the trigger shows exactly the price the order is placed at. A ratio trigger
-  // is priced in the counter token, so no exchange rate is involved.
-  const { trigger } = params;
-  const usdTriggerPrice = useMemo(() => {
-    if (
-      !trigger ||
-      trigger.kind === 'ratio' ||
-      currentCurrency?.toLowerCase() === USD_CURRENCY
-    ) {
+  // what is on screen when the display currency is already USD. The order is
+  // not created until it is confirmed, so the price is converted with the live
+  // rate, and the notice shows that same rate: whatever it reads when the
+  // order is confirmed is what the order is placed at. A ratio trigger is
+  // priced in the counter token, so no exchange rate is involved.
+  const { triggerInput } = params;
+  const fiatToUsdRate = useFiatToUsdRate(sourceChainId);
+  const trigger = useMemo(
+    () => getLimitOrderTriggerParams({ ...triggerInput, fiatToUsdRate }),
+    [triggerInput, fiatToUsdRate],
+  );
+  const usdExchangeRate = useMemo(() => {
+    if (!trigger || trigger.kind === 'ratio') {
       return undefined;
     }
 
-    return `${getCurrencySymbol(USD_CURRENCY)}${formatAmountWithLocaleSeparators(
-      trigger.price,
-    )}`;
-  }, [currentCurrency, trigger]);
+    return getLimitOrderUsdExchangeRate(currentCurrency, fiatToUsdRate);
+  }, [currentCurrency, fiatToUsdRate, trigger]);
 
   const [confirmError, setConfirmError] = useState<LimitOrderConfirmError>();
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
@@ -116,10 +116,10 @@ export const LimitOrderConfirmationModalScreen = () => {
 
     setConfirmError(undefined);
 
-    // Nothing here can reconstruct the trigger: the raw limit price lives on
-    // the limit order screen. Failing in the banner beats sending an order
-    // whose fill condition we would have had to guess.
-    if (!params.trigger) {
+    // An unusable price, or a fiat one with no rate to convert it to USD,
+    // leaves no trigger. Failing in the banner beats sending an order whose
+    // fill condition we would have had to guess.
+    if (!trigger) {
       setConfirmError(LimitOrderConfirmError.MissingTrigger);
       return;
     }
@@ -168,7 +168,7 @@ export const LimitOrderConfirmationModalScreen = () => {
         // The delegations response reports the chain as CAIP-2 (`eip155:56`);
         // the create request takes it in decimal (`56`).
         chainId: formatChainIdToDec(delegationsResponse.chainId),
-        trigger: params.trigger,
+        trigger,
         // Bookkeeping only, and explicitly the amount as requested rather than
         // the one the tolerance was applied to: the enforceable floor is the
         // one in the signed caveat.
@@ -207,7 +207,7 @@ export const LimitOrderConfirmationModalScreen = () => {
     fetchLimitOrdersDelegations,
     navigation,
     params.order.destAmount,
-    params.trigger,
+    trigger,
     costTolerancePercent,
   ]);
 
@@ -217,7 +217,7 @@ export const LimitOrderConfirmationModalScreen = () => {
       triggerComparison={triggerComparison}
       delegationFee={delegationFee}
       feeToken={feeToken}
-      usdTriggerPrice={usdTriggerPrice}
+      usdExchangeRate={usdExchangeRate}
       costTolerance={`${costTolerancePercent}%`}
       goBack={navigation.goBack}
       error={error?.bannerMessage}

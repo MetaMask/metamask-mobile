@@ -13,7 +13,7 @@ import {
   type TraderFollowInteractionSource,
 } from '../Views/SocialLeaderboard/analytics';
 import { MetaMetricsEvents } from '../../core/Analytics';
-import { hasRealAvatar } from '../Views/Homepage/Sections/TopTraders/utils/avatarFallback';
+import { hasRealAvatar } from '../UI/SocialFeed/utils/avatarFallback';
 
 /**
  * Analytics context attached to a follow/unfollow action so the

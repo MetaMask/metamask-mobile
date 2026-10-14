@@ -670,10 +670,33 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
   });
 
   describe('isTriggerPriceNearMarket', () => {
-    it('flags the seeded market price as near market', () => {
+    it('does not flag the seeded market price before the user edits it', () => {
       const { result } = renderPriceAdjustHook();
 
+      expect(result.current.isTriggerPriceNearMarket).toBe(false);
+    });
+
+    it('flags the market price once the user picks the Market preset', () => {
+      const { result } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.handleMarketPress();
+      });
+
       expect(result.current.isTriggerPriceNearMarket).toBe(true);
+    });
+
+    it('stops flagging after a side flip re-seeds the price from market', () => {
+      const { result } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.handleLimitPriceChange('0.995');
+      });
+      act(() => {
+        result.current.onQuoteUnitPress?.();
+      });
+
+      expect(result.current.isTriggerPriceNearMarket).toBe(false);
     });
 
     it('flags a limit price within 1% of market as near market', () => {

@@ -1,5 +1,5 @@
 // Core hooks (direct controller access)
-export { useBottomSafeAreaInset } from './useBottomSafeAreaInset';
+export { useBottomSafeAreaInset } from '../../../hooks/useBottomSafeAreaInset';
 export { usePerpsCategories } from './usePerpsCategories';
 export { useHasNewMarkets } from './useHasNewMarkets';
 export { usePerpsMarkets } from './usePerpsMarkets';

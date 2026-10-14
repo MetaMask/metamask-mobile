@@ -1,3 +1,4 @@
+import { getHostname } from 'tldts';
 import { SafeChain } from '../components/hooks/useSafeChains';
 import StorageWrapper from '../store/storage-wrapper';
 import Engine from '../core/Engine';
@@ -22,6 +23,74 @@ export function getModuleState() {
     },
   };
 }
+
+const extractHostnames = (chains: SafeChain[]): Set<string> => {
+  const hostnames = new Set<string>();
+  for (const chain of chains) {
+    if (chain.rpc && Array.isArray(chain.rpc)) {
+      for (const rpcUrl of chain.rpc) {
+        const hostname = getHostname(rpcUrl);
+        if (hostname) {
+          hostnames.add(hostname);
+        }
+      }
+    }
+  }
+  return hostnames;
+};
+
+const RPC_DOMAINS_HOSTNAMES = {
+  key: 'RPC_DOMAINS_HOSTNAMES_CACHE',
+
+  set: async (hostnames: string[]): Promise<void> => {
+    await StorageWrapper.setItem(
+      RPC_DOMAINS_HOSTNAMES.key,
+      JSON.stringify(hostnames),
+    );
+  },
+
+  get: async (): Promise<string[] | null> => {
+    try {
+      const cachedHostnames = await StorageWrapper.getItem(
+        RPC_DOMAINS_HOSTNAMES.key,
+      );
+      if (!cachedHostnames) {
+        return null;
+      }
+      return JSON.parse(cachedHostnames) as string[];
+    } catch (error) {
+      Logger.log('Error parsing cached hostnames:', error);
+      return null;
+    }
+  },
+
+  computeAndSet: async (inputChains?: SafeChain[]): Promise<void> => {
+    try {
+      const chainsList =
+        inputChains ?? (await getSafeChainsListFromCacheOnly());
+      const hostnames = extractHostnames(chainsList);
+      const state = getModuleState();
+      state.setKnownDomainsSet(hostnames);
+      await RPC_DOMAINS_HOSTNAMES.set([...hostnames]);
+    } catch (error) {
+      Logger.log('Error computing and setting known domains:', error);
+    }
+  },
+
+  unsubscribeSafeChainsCache: null as (() => void) | null,
+  subscribeToSafeChainsCache(): void {
+    // Replace any previous subscriptions
+    RPC_DOMAINS_HOSTNAMES.unsubscribeSafeChainsCache?.();
+    RPC_DOMAINS_HOSTNAMES.unsubscribeSafeChainsCache =
+      StorageWrapper.onKeyChange('SAFE_CHAINS_CACHE', async (event) => {
+        try {
+          await RPC_DOMAINS_HOSTNAMES.computeAndSet(JSON.parse(event.value));
+        } catch (error) {
+          Logger.log('Error computing and setting known domains:', error);
+        }
+      });
+  },
+};
 
 /**
  * Get the list of safe chains from cache only
@@ -55,24 +124,20 @@ export async function initializeRpcProviderDomains(): Promise<void> {
   }
   const promise = (async () => {
     try {
-      const chainsList = await getSafeChainsListFromCacheOnly();
-      const newKnownDomainsSet = new Set<string>();
-
-      for (const chain of chainsList) {
-        if (chain.rpc && Array.isArray(chain.rpc)) {
-          for (const rpcUrl of chain.rpc) {
-            try {
-              const url = new URL(rpcUrl);
-              newKnownDomainsSet.add(url.hostname.toLowerCase());
-            } catch (e) {
-              continue; // Skip invalid URLs
-            }
-          }
-        }
+      // Hydrate from the persisted derived cache when possible
+      const persistedHostnames = await RPC_DOMAINS_HOSTNAMES.get();
+      if (persistedHostnames) {
+        state.setKnownDomainsSet(new Set<string>(persistedHostnames));
+      } else {
+        // Otherwise derive from the safe chains list now
+        await RPC_DOMAINS_HOSTNAMES.computeAndSet();
       }
-      state.setKnownDomainsSet(newKnownDomainsSet);
     } catch (error) {
       state.setKnownDomainsSet(new Set<string>());
+    } finally {
+      // Stay in sync whenever the safe chains list is refreshed, even
+      // when initialization failed (a later fetch heals the cache)
+      RPC_DOMAINS_HOSTNAMES.subscribeToSafeChainsCache();
     }
   })();
 
@@ -119,13 +184,9 @@ export function isPublicRpcDomain(endpointUrl: string): boolean {
   return !Object.values(RpcDomainStatus).includes(rpcDomain as RpcDomainStatus);
 }
 
-function parseDomain(url: string): string | undefined {
-  try {
-    const normalizedUrl = url.includes('://') ? url : `https://${url}`;
-    return new URL(normalizedUrl).hostname.toLowerCase();
-  } catch {
-    return undefined;
-  }
+function parseDomain(url: string): string | null {
+  const normalizedUrl = url.includes('://') ? url : `https://${url}`;
+  return getHostname(normalizedUrl);
 }
 
 // Allowed provider domains for RPC endpoint validation

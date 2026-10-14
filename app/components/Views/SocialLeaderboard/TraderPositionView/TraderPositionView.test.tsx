@@ -14,10 +14,18 @@ import { CandlePeriodBottomSheetSelectorsIDs as PerpsCandlePeriodBottomSheetSele
 import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
-import type { TradeAction } from '../utils/tradeAction';
+import type { TradeAction } from '../../../UI/SocialFeed/utils/tradeAction';
 import { handleFetch } from '@metamask/controller-utils';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import Routes from '../../../../constants/navigation/Routes';
+import { isSocialV1Treatment } from '../Onboarding/socialLeaderboardOnboardingNavigation';
+
+jest.mock('../Onboarding/socialLeaderboardOnboardingNavigation', () => ({
+  ...jest.requireActual('../Onboarding/socialLeaderboardOnboardingNavigation'),
+  isSocialV1Treatment: jest.fn(() => false),
+}));
+
+const mockIsSocialV1Treatment = jest.mocked(isSocialV1Treatment);
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -325,7 +333,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../components/PositionTokenAvatar', () => ({
+jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -348,6 +356,7 @@ const makePerpAdapterBars = () =>
 describe('TraderPositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsSocialV1Treatment.mockReturnValue(false);
     mockUseSocialPerpsChartAdapter.mockReturnValue({
       ohlcvData: makePerpAdapterBars(),
       realtimeBar: undefined,
@@ -508,6 +517,26 @@ describe('TraderPositionView', () => {
       traderName: 'trader1',
     });
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('navigates to the V1 profile when Social V1 treatment is on', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.V1_PROFILE,
+      {
+        traderId: 'trader-1',
+        traderName: 'trader1',
+        traderAddress: '0xabc',
+      },
+      {},
+    );
   });
 
   it('renders the fallback when position is undefined and no positionId is provided', () => {

@@ -27,6 +27,7 @@ import type { OpenLimitOrderDetailsModalParams } from '../components/OpenLimitOr
 import type { CancelLimitOrderModalParams } from '../components/CancelLimitOrderModal/types';
 import type { RecurringOrderDetailsRouteParams } from '../Views/RecurringOrderDetailsView/RecurringOrderDetailsView.types';
 import type { RecurringSwapDetailsRouteParams } from '../Views/RecurringSwapDetailsView/RecurringSwapDetailsView.types';
+import type { SwapsLimitOrderActivityPageRouteParams } from '../Views/SwapsLimitOrderActivityPage/SwapsLimitOrderActivityPage.types';
 
 /**
  * Param list for screens inside the Bridge screen stack (`BridgeScreenStack`).
@@ -41,6 +42,7 @@ export type BridgeScreensStackParamList = {
   QuoteSelectorView: undefined;
   RecurringOrderDetails: RecurringOrderDetailsRouteParams;
   RecurringSwapDetails: RecurringSwapDetailsRouteParams;
+  SwapsLimitOrderActivity: SwapsLimitOrderActivityPageRouteParams;
   HardwareWalletsSwaps: HardwareWalletsSwapsRouteParams | undefined;
   HwQrScanner: HwQrScannerRouteParams | undefined;
   BridgeModals:

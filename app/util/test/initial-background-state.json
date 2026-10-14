@@ -809,6 +809,7 @@
     "providerDisclaimersAccepted": {
       "sumsub": null
     },
+    "providerFlowStatus": "not_started",
     "idosDisclaimersAccepted": null,
     "credentialReusabilityConsentGiven": null
   },

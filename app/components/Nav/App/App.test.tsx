@@ -151,9 +151,6 @@ jest.mock(
 jest.mock('../../Views/AccountStatus', () => () => (
   <MockView testID="mock-account-status" />
 ));
-jest.mock('../../Views/SocialLoginIosUser', () => () => (
-  <MockView testID="mock-social-login" />
-));
 jest.mock('../../Views/WalletCreationError', () => () => (
   <MockView testID="mock-wallet-error" />
 ));
@@ -904,10 +901,7 @@ describe('App', () => {
     });
 
     it('has social login routes defined', () => {
-      expect(Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER).toBeDefined();
-      expect(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
-      ).toBeDefined();
+      expect(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE).toBeDefined();
     });
 
     it('has wallet creation error route defined', () => {

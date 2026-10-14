@@ -41,34 +41,17 @@ export class ControllerCardAdapter implements ICardProviderAdapter {
     }
   }
 
-  private base64ToHex(base64: string): string {
-    return Buffer.from(base64, 'base64').toString('hex');
-  }
-
   async getApplePayEncryptedPayload(
     nonce: string,
     nonceSignature: string,
     certificates: string[],
   ): Promise<ApplePayEncryptedPayload> {
     try {
-      if (!certificates || certificates.length < 2) {
-        throw new ProvisioningError(
-          ProvisioningErrorCode.ENCRYPTION_FAILED,
-          strings('card.push_provisioning.error_encryption_failed'),
-        );
-      }
-
-      const leafCertificate = this.base64ToHex(certificates[0]);
-      const intermediateCertificate = this.base64ToHex(certificates[1]);
-      const nonceHex = this.base64ToHex(nonce);
-      const nonceSignatureHex = this.base64ToHex(nonceSignature);
-
       const response =
         await Engine.context.CardController.createApplePayProvisioningRequest({
-          leafCertificate,
-          intermediateCertificate,
-          nonce: nonceHex,
-          nonceSignature: nonceSignatureHex,
+          nonce,
+          nonceSignature,
+          certificates,
         });
 
       if (

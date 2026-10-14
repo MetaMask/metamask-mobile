@@ -5,6 +5,7 @@ import { selectRemoteFeatureFlags } from '../../featureFlagController';
 interface RawBridgeLimitOrderFeatureFlagValue extends Record<string, Json> {
   enabled: boolean;
   enabledChainIds: CaipChainId[];
+  baseUrl: string;
 }
 
 interface RawBridgeRecurringBuyFeatureFlagValue extends Record<string, Json> {
@@ -35,7 +36,7 @@ const createBridgeSwapFeatureFlagsSelector = <T extends Record<string, Json>>(
  * Provides both whether the "Limit" tab should be shown and which chains its
  * token selectors are restricted to.
  *
- * @returns `{ enabled, enabledChainIds }` for the Limit Order feature.
+ * @returns `{ enabled, enabledChainIds, baseUrl }` for the Limit Order feature.
  */
 export const selectBridgeLimitOrderFeatureFlags =
   createBridgeSwapFeatureFlagsSelector<RawBridgeLimitOrderFeatureFlagValue>(
@@ -63,6 +64,17 @@ export const selectBridgeRecurringBuyFeatureFlags =
 export const selectBridgeLimitOrderTabEnabledFlag = createSelector(
   selectBridgeLimitOrderFeatureFlags,
   (flags): boolean => flags?.enabled ?? false,
+);
+
+/**
+ * Selector for the base URL of the limit orders API.
+ *
+ * @returns string - the `baseUrl` of the Limit Order feature flag, or
+ * undefined if the flag is missing.
+ */
+export const selectBridgeLimitOrderBaseUrl = createSelector(
+  selectBridgeLimitOrderFeatureFlags,
+  (flags): string | undefined => flags?.baseUrl,
 );
 
 /**

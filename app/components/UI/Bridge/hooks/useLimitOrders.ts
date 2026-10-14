@@ -1,8 +1,9 @@
 import { useInfiniteQuery } from '@metamask/react-data-query';
+import { useQueryClient } from '@tanstack/react-query';
 import type { CaipChainId } from '@metamask/utils';
 import type {
   GetLimitOrdersResponse,
-  LimitOrderStatus,
+  LimitOrderState,
 } from '../api/limitOrders/getLimitOrders/types';
 import { limitOrdersQueries } from '../queries/limitOrders';
 import {
@@ -12,20 +13,21 @@ import {
 
 interface UseLimitOrdersParams {
   walletAddress?: string;
-  status: LimitOrderStatus[];
+  states: LimitOrderState[];
   chainId?: CaipChainId;
   enabled?: boolean;
 }
 
 export function useLimitOrders({
   walletAddress,
-  status,
+  states,
   chainId,
   enabled = true,
 }: UseLimitOrdersParams) {
+  const queryClient = useQueryClient();
   const descriptor = limitOrdersQueries.getLimitOrders({
     walletAddress: walletAddress ?? '',
-    status,
+    states,
     chainId,
     limit: LIMIT_ORDERS_PAGE_LIMIT,
   });
@@ -53,5 +55,10 @@ export function useLimitOrders({
     isFetchingNextPage: query.isFetchingNextPage,
     fetchNextPage,
     refetch: query.refetch,
+    refresh: () =>
+      queryClient.invalidateQueries({
+        queryKey: descriptor.queryKey,
+        exact: true,
+      }),
   };
 }

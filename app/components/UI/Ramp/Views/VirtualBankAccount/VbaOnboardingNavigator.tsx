@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import VbaEmailAdapter from './modules/VbaEmailAdapter';
-import VbaIdentityVerificationAdapter from './modules/VbaIdentityVerificationAdapter';
+import VbaIdentityVerificationModule from './modules/VbaIdentityVerificationModule';
 import {
   VbaAccountProvisioningErrorAdapter,
   VbaErrorAdapter,
@@ -9,6 +9,7 @@ import {
   VbaKycRejectedAdapter,
 } from './modules/VbaStatusAdapters';
 import VbaVendorTermsAdapter from './modules/VbaVendorTermsAdapter';
+import VbaDetails from './VbaDetails';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from './routes';
 
 const Stack = createNativeStackNavigator<VbaOnboardingParamList>();
@@ -25,7 +26,7 @@ const VbaOnboardingNavigator = () => (
     />
     <Stack.Screen
       name={VbaOnboardingRoutes.IDENTITY_VERIFICATION}
-      component={VbaIdentityVerificationAdapter}
+      component={VbaIdentityVerificationModule}
     />
     <Stack.Screen
       name={VbaOnboardingRoutes.KYC_PENDING}
@@ -43,6 +44,7 @@ const VbaOnboardingNavigator = () => (
       name={VbaOnboardingRoutes.ERROR}
       component={VbaErrorAdapter}
     />
+    <Stack.Screen name={VbaOnboardingRoutes.DETAILS} component={VbaDetails} />
   </Stack.Navigator>
 );
 

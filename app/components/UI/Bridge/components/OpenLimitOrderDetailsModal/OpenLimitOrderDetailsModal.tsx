@@ -102,14 +102,16 @@ export const OpenLimitOrderDetailsModal = ({
           </Text>
         </DetailRow>
       </Box>
-      <BottomSheetFooter
-        secondaryButtonProps={{
-          children: strings('bridge.limit.cancel_order'),
-          onPress: onCancelOrder,
-          isDanger: true,
-          testID: OpenLimitOrderDetailsModalSelectorsIDs.CANCEL_ORDER_BUTTON,
-        }}
-      />
+      {onCancelOrder && (
+        <BottomSheetFooter
+          secondaryButtonProps={{
+            children: strings('bridge.limit.cancel_order'),
+            onPress: onCancelOrder,
+            isDanger: true,
+            testID: OpenLimitOrderDetailsModalSelectorsIDs.CANCEL_ORDER_BUTTON,
+          }}
+        />
+      )}
     </BottomSheet>
   );
 };

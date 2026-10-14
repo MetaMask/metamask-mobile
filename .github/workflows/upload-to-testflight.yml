@@ -86,7 +86,7 @@ jobs:
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
          vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ios-build' || 'ghcr.io/cirruslabs/macos-runner:tahoe-xl'
+        'namespace-profile-metamask-ios-build-tahoe-slim' || 'ghcr.io/cirruslabs/macos-runner:tahoe-xl'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider

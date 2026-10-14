@@ -18,7 +18,8 @@ import { usePositions } from '../../hooks/usePositions';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import { PORTFOLIO_PAGE_LIMIT } from '../../queries/portfolioQueries';
-import type { PredictEntityId } from '../../types';
+import { usePredictOrderFlow } from '../PredictOrderFlow';
+import type { PredictEntityId, PredictPosition } from '../../types';
 import type {
   PredictNextStackParamList,
   PredictPortfolioTab,
@@ -51,6 +52,7 @@ export const PredictPortfolioScreen = () => {
   const activityQuery = useActivity(venueId, PAGE_PARAMS, {
     enabled: activityActive,
   });
+  const { openOrderFlow } = usePredictOrderFlow();
   const activeListQuery = positionsActive ? positionsQuery : activityQuery;
 
   useEffect(() => {
@@ -84,6 +86,24 @@ export const PredictPortfolioScreen = () => {
       });
     },
     [navigation, venueId],
+  );
+
+  /** Opens the shared Order flow as a Cash Out: a sell bounded by the
+   * Position's whole-contract size, labeled from its catalog context. */
+  const cashOut = useCallback(
+    (position: PredictPosition) => {
+      openOrderFlow({
+        action: 'sell',
+        venueId,
+        marketId: position.marketId,
+        side: position.side,
+        outcomeLabel: position.context?.outcomeLabel ?? position.side,
+        eventTitle: position.context?.eventTitle ?? position.marketId,
+        eventImageUrl: position.context?.eventImageUrl,
+        maxContracts: Math.floor(Number(position.shares)),
+      });
+    },
+    [openOrderFlow, venueId],
   );
 
   return (
@@ -123,6 +143,7 @@ export const PredictPortfolioScreen = () => {
               isPrivacyMode={Boolean(privacyMode)}
               onOpenEvent={openEvent}
               onBrowseMarkets={browseMarkets}
+              onCashOut={cashOut}
             />
           </Box>
           <Box

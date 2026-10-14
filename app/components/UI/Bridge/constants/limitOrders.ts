@@ -1,5 +1,6 @@
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
+import { LimitOrderState } from '../api/limitOrders/getLimitOrders/types';
 
 export enum LimitOrderExecutionType {
   BUY = 'buy',
@@ -72,3 +73,17 @@ export const LIMIT_ORDER_DEFAULT_METAMASK_FEE = 0.875;
 
 export const LIMIT_ORDERS_STALE_TIME = 60 * 60 * 1000;
 export const LIMIT_ORDERS_PAGE_LIMIT = 20;
+
+export const OPEN_LIMIT_ORDER_STATES = [
+  LimitOrderState.Open,
+  LimitOrderState.Executing,
+  LimitOrderState.Submitted,
+];
+export const HISTORY_LIMIT_ORDER_STATES = [
+  LimitOrderState.Filled,
+  LimitOrderState.Cancelled,
+  LimitOrderState.Expired,
+  LimitOrderState.Failed,
+];
+
+export const LOAD_MORE_LIMIT_ORDERSSCROLL_THRESHOLD = 200;

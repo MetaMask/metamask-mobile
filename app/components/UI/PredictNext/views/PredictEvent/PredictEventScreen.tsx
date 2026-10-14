@@ -364,6 +364,7 @@ export const PredictEventScreen = () => {
   const handleWinnerOrder = useCallback(
     (quote: GameSelectionQuote) => {
       openOrderFlow({
+        action: 'buy',
         venueId,
         marketId: quote.market.id,
         side: quote.outcome.side,
@@ -378,6 +379,7 @@ export const PredictEventScreen = () => {
   const handleMarketOrder = useCallback(
     (market: PredictMarket, outcome: (typeof market.outcomes)[number]) => {
       openOrderFlow({
+        action: 'buy',
         venueId,
         marketId: market.id,
         side: outcome.side,

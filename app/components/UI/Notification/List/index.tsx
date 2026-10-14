@@ -11,6 +11,7 @@ import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import AppConstants from '../../../../core/AppConstants';
 import SharedDeeplinkManager from '../../../../core/DeeplinkManager/DeeplinkManager';
+import { isMetaMaskUniversalLink } from '../../../../core/DeeplinkManager/util/deeplinks';
 import { NotificationsViewSelectorsIDs } from '../../../Views/Notifications/NotificationsView.testIds';
 import {
   hasNotificationComponents,
@@ -97,7 +98,7 @@ export function useNotificationOnClick(
 
       if (ctaLink) {
         try {
-          if (ctaLink.includes(AppConstants.MM_IO_UNIVERSAL_LINK_HOST)) {
+          if (isMetaMaskUniversalLink(ctaLink)) {
             SharedDeeplinkManager.parse(ctaLink, {
               origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
             });

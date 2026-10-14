@@ -25,6 +25,8 @@ interface OrderKeypadProps {
   onKeyPress: (key: string) => void;
   /** Removes the last character of the amount. */
   onDelete: () => void;
+  /** Hides the decimal-point key for integer-only entry, as in sell mode. */
+  showsDecimalKey?: boolean;
 }
 
 interface KeyProps {
@@ -68,7 +70,11 @@ const Key = ({
  * keypad overrides the variant's bold default with font-medium), a bare
  * period key and a bare backspace key.
  */
-export const OrderKeypad = ({ onKeyPress, onDelete }: OrderKeypadProps) => (
+export const OrderKeypad = ({
+  onKeyPress,
+  onDelete,
+  showsDecimalKey = true,
+}: OrderKeypadProps) => (
   <Box testID={PredictOrderFlowTestIds.KEYPAD} twClassName="gap-3 px-4 py-4">
     {DIGIT_ROWS.map((row) => (
       <Box key={row.join('')} twClassName="flex-row gap-3">
@@ -89,15 +95,20 @@ export const OrderKeypad = ({ onKeyPress, onDelete }: OrderKeypadProps) => (
       </Box>
     ))}
     <Box twClassName="flex-row gap-3">
-      <Key
-        isPlain
-        testID={PredictOrderFlowTestIds.KEYPAD_KEY('.')}
-        onPress={() => onKeyPress('.')}
-      >
-        <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Medium}>
-          .
-        </Text>
-      </Key>
+      {showsDecimalKey ? (
+        <Key
+          isPlain
+          testID={PredictOrderFlowTestIds.KEYPAD_KEY('.')}
+          onPress={() => onKeyPress('.')}
+        >
+          <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Medium}>
+            .
+          </Text>
+        </Key>
+      ) : (
+        // Keeps the grid positions of the remaining keys unchanged.
+        <Box twClassName="h-12 flex-1" />
+      )}
       <Key
         testID={PredictOrderFlowTestIds.KEYPAD_KEY('0')}
         onPress={() => onKeyPress('0')}

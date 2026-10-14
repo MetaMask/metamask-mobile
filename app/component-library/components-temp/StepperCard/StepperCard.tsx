@@ -51,7 +51,7 @@ const StepperCard = ({
 
   return (
     <Box
-      twClassName="rounded-2xl bg-muted overflow-hidden"
+      twClassName="rounded-3xl bg-muted overflow-hidden"
       testID={getTestId('container')}
     >
       {/* Image */}

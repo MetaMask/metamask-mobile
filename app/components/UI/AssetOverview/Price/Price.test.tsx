@@ -47,8 +47,7 @@ jest.mock('react-redux', () => {
 });
 
 jest.mock('../../Charts/AdvancedChart/AdvancedChart', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { View } = require('react-native');
+  const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: () => <View testID="mock-advanced-chart" />,
@@ -79,13 +78,28 @@ jest.mock('../../Charts/AdvancedChart/useOHLCVRealtime', () => ({
 }));
 
 jest.mock('../PriceChart/PriceChart', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { View } = require('react-native');
+  const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: () => <View testID="mock-legacy-price-chart" />,
   };
 });
+
+jest.mock('../NoDataOverlay/NoDataOverlay', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => (
+      <View testID="price-chart-no-data">
+        <Text>No chart data</Text>
+      </View>
+    ),
+  };
+});
+
+jest.mock('../../Charts/AdvancedChart/OHLCVBar/ohlcvBarVolumeFormat', () => ({
+  formatVolume: jest.fn(() => '0'),
+}));
 
 const mockUseSelector = jest.mocked(useSelector);
 
@@ -129,7 +143,7 @@ describe('Price Component', () => {
     jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectTokenOverviewChartType) {
-        return ChartType.Line;
+        return ChartType.Candles;
       }
       if (selector === selectTokenIndicators) {
         return [];
@@ -174,8 +188,8 @@ describe('Price Component', () => {
     expect(getByTestId('mock-advanced-chart')).toBeTruthy();
   });
 
-  describe('shouldFallbackToLegacy logic', () => {
-    it('falls back to legacy when OHLCV data length is below threshold (< 5)', () => {
+  describe('showCandleEmptyState logic', () => {
+    it('shows empty state when OHLCV data length is below threshold (< 5)', () => {
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [
           { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
@@ -188,12 +202,16 @@ describe('Price Component', () => {
         hasEmptyData: false,
       });
 
-      const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+      const { getByTestId, getByText } = renderWithProviders(
+        <Price {...unifiedProps} />,
+      );
 
-      expect(getByTestId('mock-legacy-price-chart')).toBeTruthy();
+      expect(getByText('No chart data')).toBeTruthy();
+      // Advanced chart is still mounted but hidden (opacity: 0)
+      expect(getByTestId('mock-advanced-chart')).toBeTruthy();
     });
 
-    it('falls back to legacy when hasEmptyData is true', () => {
+    it('shows empty state when hasEmptyData is true', () => {
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [
           { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
@@ -209,12 +227,15 @@ describe('Price Component', () => {
         hasEmptyData: true,
       });
 
-      const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+      const { getByTestId, getByText } = renderWithProviders(
+        <Price {...unifiedProps} />,
+      );
 
-      expect(getByTestId('mock-legacy-price-chart')).toBeTruthy();
+      expect(getByText('No chart data')).toBeTruthy();
+      expect(getByTestId('mock-advanced-chart')).toBeTruthy();
     });
 
-    it('falls back to legacy when chartError is present', () => {
+    it('shows empty state when chartError is present', () => {
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [
           { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
@@ -230,12 +251,15 @@ describe('Price Component', () => {
         hasEmptyData: false,
       });
 
-      const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+      const { getByTestId, getByText } = renderWithProviders(
+        <Price {...unifiedProps} />,
+      );
 
-      expect(getByTestId('mock-legacy-price-chart')).toBeTruthy();
+      expect(getByText('No chart data')).toBeTruthy();
+      expect(getByTestId('mock-advanced-chart')).toBeTruthy();
     });
 
-    it('does NOT fall back to legacy when chart is still loading', () => {
+    it('does NOT show empty state when chart is still loading', () => {
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [],
         isLoading: true,
@@ -245,22 +269,24 @@ describe('Price Component', () => {
         hasEmptyData: false,
       });
 
-      const { getByTestId, queryByTestId } = renderWithProviders(
+      const { getByTestId, queryByText } = renderWithProviders(
         <Price {...unifiedProps} isLoading={false} />,
       );
 
-      // Should show advanced chart loading state, not fallback to legacy
-      expect(queryByTestId('mock-legacy-price-chart')).toBeNull();
+      expect(queryByText('No chart data')).toBeNull();
       expect(getByTestId('token-price')).toBeTruthy();
     });
 
-    it('does NOT fall back to legacy when OHLCV data is sufficient (>= 5)', () => {
-      const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+    it('does NOT show empty state when OHLCV data is sufficient (>= 5)', () => {
+      const { getByTestId, queryByText } = renderWithProviders(
+        <Price {...unifiedProps} />,
+      );
 
       expect(getByTestId('mock-advanced-chart')).toBeTruthy();
+      expect(queryByText('No chart data')).toBeNull();
     });
 
-    it('falls back to legacy when OHLCV data is exactly at threshold (5) but hasEmptyData is true', () => {
+    it('shows empty state when OHLCV data is exactly at threshold (5) but hasEmptyData is true', () => {
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [
           { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
@@ -276,9 +302,12 @@ describe('Price Component', () => {
         hasEmptyData: true,
       });
 
-      const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
+      const { getByTestId, getByText } = renderWithProviders(
+        <Price {...unifiedProps} />,
+      );
 
-      expect(getByTestId('mock-legacy-price-chart')).toBeTruthy();
+      expect(getByText('No chart data')).toBeTruthy();
+      expect(getByTestId('mock-advanced-chart')).toBeTruthy();
     });
   });
 });

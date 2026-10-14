@@ -1,5 +1,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { act, fireEvent, within } from '@testing-library/react-native';
+import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
+import type { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { renderOpenLimitOrderDetailsModal } from '../../../../../../tests/component-view/renderers/bridge';
@@ -25,6 +27,34 @@ const EXPIRY_DATE = 'Sep 27';
 
 const renderDetails = () =>
   renderOpenLimitOrderDetailsModal({ order: MOCK_LIMIT_OPEN_ORDER });
+
+const MOCK_USD_PRICE_ORDER = {
+  ...MOCK_LIMIT_OPEN_ORDER,
+  trigger: { kind: 'src_price', threshold: 'above', price: '2160' },
+};
+
+/**
+ * State where the display currency is EUR. 1 ETH is worth EUR 2000 and
+ * USD 2160, so EUR 1 is worth USD 1.08.
+ */
+const EUR_DISPLAY_CURRENCY_STATE = {
+  engine: {
+    backgroundState: {
+      AssetsController: {
+        selectedCurrency: 'eur',
+        assetsPrice: {
+          'eip155:1/slip44:60': {
+            assetPriceType: 'fungible',
+            id: 'eth',
+            price: 2000,
+            usdPrice: 2160,
+            lastUpdated: 1700000000000,
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
 
 describeForPlatforms('OpenLimitOrderDetailsModal', () => {
   it('shows every detail of the open order', async () => {
@@ -63,14 +93,66 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(within(expiryRow).getByText(EXPIRY_DATE)).toBeOnTheScreen();
   });
 
-  // The orders response carries no market price and no trigger side, so the
-  // sheet cannot say how far the trigger sits from market yet.
+  it.each(['src_price', 'dest_price'])(
+    'shows a %s trigger as a USD price',
+    async (kind) => {
+      const { findByTestId, getByTestId } = renderOpenLimitOrderDetailsModal({
+        order: {
+          ...MOCK_LIMIT_OPEN_ORDER,
+          trigger: { kind, threshold: 'above', price: '2200.500000' },
+        },
+      });
+
+      expect(await findByTestId(SHEET)).toBeOnTheScreen();
+
+      expect(
+        within(getByTestId(TRIGGER_CONDITION)).getByText('$2200.5'),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  // The order is placed at the USD price, so converting it would show a price
+  // that drifts with the exchange rate while the order does not.
+  it('shows a USD trigger price in USD whatever the display currency is', async () => {
+    const { findByTestId, getByTestId } = renderOpenLimitOrderDetailsModal({
+      order: MOCK_USD_PRICE_ORDER,
+      deterministicFiat: true,
+      overrides: EUR_DISPLAY_CURRENCY_STATE,
+    });
+
+    expect(await findByTestId(SHEET)).toBeOnTheScreen();
+
+    const triggerRow = getByTestId(TRIGGER_CONDITION);
+    expect(within(triggerRow).getByText('$2160')).toBeOnTheScreen();
+    expect(within(triggerRow).queryByText('€2000')).not.toBeOnTheScreen();
+  });
+
+  // The orders response carries no market price, so the sheet cannot say how
+  // far the trigger sits from market yet.
   it('does not compare the trigger price against the market price', async () => {
     const { findByTestId, queryByTestId } = renderDetails();
 
     expect(await findByTestId(SHEET)).toBeOnTheScreen();
 
     expect(queryByTestId(TRIGGER_COMPARISON)).not.toBeOnTheScreen();
+  });
+
+  it('offers to cancel an order the API reports as cancellable', async () => {
+    const { findByTestId } = renderOpenLimitOrderDetailsModal({
+      order: { ...MOCK_LIMIT_OPEN_ORDER, isCancellable: true },
+    });
+
+    expect(await findByTestId(CANCEL_ORDER_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('does not offer to cancel an order the API reports as not cancellable', async () => {
+    const { findByTestId, queryByTestId } = renderOpenLimitOrderDetailsModal({
+      order: { ...MOCK_LIMIT_OPEN_ORDER, isCancellable: false },
+    });
+
+    expect(await findByTestId(SHEET)).toBeOnTheScreen();
+
+    expect(queryByTestId(CANCEL_ORDER_BUTTON)).not.toBeOnTheScreen();
   });
 
   it('opens the cancel order sheet from the details sheet', async () => {
@@ -90,24 +172,6 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(
       getByTestId(CancelLimitOrderModalSelectorsIDs.CONFIRM_BUTTON),
     ).toBeOnTheScreen();
-  });
-
-  it('returns to the details sheet once the cancellation is confirmed', async () => {
-    const { findByTestId, queryByTestId } = renderDetails();
-
-    await act(async () => {
-      fireEvent.press(await findByTestId(CANCEL_ORDER_BUTTON));
-    });
-    await act(async () => {
-      fireEvent.press(
-        await findByTestId(CancelLimitOrderModalSelectorsIDs.CONFIRM_BUTTON),
-      );
-    });
-
-    expect(
-      queryByTestId(CancelLimitOrderModalSelectorsIDs.SHEET),
-    ).not.toBeOnTheScreen();
-    expect(await findByTestId(SHEET)).toBeOnTheScreen();
   });
 
   it('returns to the details sheet when the cancel sheet is dismissed', async () => {

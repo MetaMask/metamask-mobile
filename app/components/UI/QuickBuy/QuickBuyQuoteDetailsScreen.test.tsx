@@ -118,6 +118,18 @@ describe('QuickBuyQuoteDetailsScreen', () => {
     expect(screen.getByTestId('mock-countdown')).toBeOnTheScreen();
   });
 
+  it('shows a loading state while the first quote is blocking', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({ isBlockingQuoteLoad: true }),
+    );
+
+    render(<QuickBuyQuoteDetailsScreen />);
+
+    expect(
+      screen.getByText('social_leaderboard.quick_buy.loading'),
+    ).toBeOnTheScreen();
+  });
+
   it('calls setActiveScreen("selectQuote") when the rate row is pressed', () => {
     const setActiveScreen = jest.fn();
     (useQuickBuyContext as jest.Mock).mockReturnValue(

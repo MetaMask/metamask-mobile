@@ -14,8 +14,7 @@ export enum SCREEN_NAMES {
   MONEY_ACTIVITY_DETAILS = 'money_activity_details',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
   MONEY_FIRST_TIME_DEPOSIT = 'money_first_time_deposit',
-  VBA_CREATE_VIRTUAL_BANK_ACCOUNT = 'vba_create_virtual_bank_account',
-  VBA_KYC_EMAIL = 'vba_kyc_email',
+  VBA_ONBOARDING = 'vba_onboarding',
   EARN_SECTION_LIST_VIEW = 'earn_section_list_view',
   PRO_SUBSCRIPTION = 'pro_subscription',
   PRO_HUB = 'pro_hub',
@@ -94,6 +93,7 @@ export enum COMPONENT_NAMES {
   MONEY_TRANSFER_MONEY_SHEET_BETWEEN_ACCOUNTS = 'money_transfer_money_sheet_between_accounts',
   MONEY_TRANSFER_MONEY_SHEET_PERPS_ACCOUNT = 'money_transfer_money_sheet_perps_account',
   MONEY_TRANSFER_MONEY_SHEET_PREDICTIONS_ACCOUNT = 'money_transfer_money_sheet_predictions_account',
+  MONEY_TRANSFER_MONEY_SHEET_SEND_EXTERNAL = 'money_transfer_money_sheet_send_external',
 
   // — More Sheet —
   MONEY_MORE_SHEET_HOW_IT_WORKS = 'money_more_sheet_how_it_works',

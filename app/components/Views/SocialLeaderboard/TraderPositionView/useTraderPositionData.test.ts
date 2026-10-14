@@ -19,7 +19,7 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => 'usd'),
 }));
 
-jest.mock('../utils/chainMapping', () => ({
+jest.mock('../../../UI/SocialFeed/utils/chainMapping', () => ({
   chainNameToId: jest.fn((chain: string) =>
     chain === 'hyperliquid' ? undefined : 'eip155:8453',
   ),

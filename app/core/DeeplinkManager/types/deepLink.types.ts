@@ -70,6 +70,11 @@ export interface DeeplinkUrlParams {
   // 'data-collection')
   setting?: string;
 
+  // Notification settings-specific parameters
+  // Which notification preference section to open (e.g. 'wallet-activity',
+  // 'price-alerts')
+  section?: string;
+
   // What's Happening-specific parameters
   // Id of a market overview front-page item to render as the first, "outdated"
   // card of the What's Happening expanded view.
@@ -155,6 +160,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.AGENTIC_CLI,
   ACTIONS.ON_RAMP,
   ACTIONS.PRIVACY,
+  ACTIONS.NOTIFICATIONS_SETTINGS,
   // MetaMask SDK deeplinks (`@metamask/sdk` / sdk-communication-layer, a.k.a.
   // "SDKv1"; the `connect`/`mmsdk`/`bind` actions). Listed here so they resolve
   // to a SupportedAction and get a DeepLinkRoute (SDK_CONNECT / SDK_MMSDK) for

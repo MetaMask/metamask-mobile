@@ -1,6 +1,6 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import { useTraderFeed } from '../../../FeedView/hooks/useTraderFeed';
-import { wrapLiveFeedPosts } from '../mocks/wrapLiveFeedPosts';
+import { toSocialFeedPosts } from '../../../../../UI/SocialFeed/utils/toSocialFeedPosts';
 import {
   getSocialV1ComposedFeedSnapshot,
   subscribeSocialV1ComposedFeed,
@@ -45,7 +45,7 @@ export const useSocialV1Feed = (
     refresh,
   } = useTraderFeed({ audience: TAB_AUDIENCE[tab] });
 
-  const livePosts = useMemo(() => wrapLiveFeedPosts(rows), [rows]);
+  const livePosts = useMemo(() => toSocialFeedPosts(rows), [rows]);
 
   const pagination = {
     isLoading,

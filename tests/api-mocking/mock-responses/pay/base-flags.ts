@@ -833,9 +833,6 @@ const BASE_MONEY_ACCOUNT_FLAGS = [
     },
   },
   {
-    moneyActivityMockDataEnabled: false,
-  },
-  {
     moneyEnableActivityDetails: {
       enabled: true,
       minimumVersion: '7.83.0',

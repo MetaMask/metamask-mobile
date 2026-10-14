@@ -82,12 +82,16 @@ jest.mock('@metamask/design-system-react-native', () => {
         onPress: () => void;
         testID: string;
         children: string;
+        style?: Record<string, unknown>;
       };
       secondaryButtonProps?: {
         onPress: () => void;
         testID: string;
         children: string;
+        style?: Record<string, unknown>;
       };
+      // The real footer applies `flex-1` first and merges the caller's style
+      // after it, so forwarding `style` mirrors what the button receives.
     }) =>
       ReactActual.createElement(
         View,
@@ -98,6 +102,10 @@ jest.mock('@metamask/design-system-react-native', () => {
               {
                 onPress: secondaryButtonProps.onPress,
                 testID: secondaryButtonProps.testID,
+                style: [
+                  { flexGrow: 1, flexBasis: '0%' },
+                  secondaryButtonProps.style,
+                ],
               },
               secondaryButtonProps.children,
             )
@@ -107,6 +115,7 @@ jest.mock('@metamask/design-system-react-native', () => {
           {
             onPress: primaryButtonProps.onPress,
             testID: primaryButtonProps.testID,
+            style: [{ flexGrow: 1, flexBasis: '0%' }, primaryButtonProps.style],
           },
           primaryButtonProps.children,
         ),
@@ -211,6 +220,7 @@ describe('SocialFiltersBottomSheet', () => {
 
     expect(screen.getByTestId('social-filters-type-all')).toBeOnTheScreen();
     expect(screen.getByTestId('social-filters-type-tokens')).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-type-predictions')).toBeNull();
   });
 
   it('hides the Time frame section on Following and Live trades', () => {
@@ -313,6 +323,32 @@ describe('SocialFiltersBottomSheet', () => {
     expect(
       screen.getByTestId('social-filters-cohort-verified'),
     ).toBeOnTheScreen();
+  });
+
+  it('sizes Reset by its label and lets Apply take the remaining width', () => {
+    render(
+      <SocialFiltersBottomSheet
+        tab="following"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onReset={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId('social-filters-bottom-sheet-reset')).toHaveStyle(
+      {
+        flexGrow: 0,
+        flexShrink: 1,
+        flexBasis: 'auto',
+      },
+    );
+    expect(screen.getByTestId('social-filters-bottom-sheet-apply')).toHaveStyle(
+      {
+        flexGrow: 1,
+      },
+    );
   });
 
   it('calls onApply when Apply is tapped', () => {
@@ -440,7 +476,7 @@ describe('SocialFiltersBottomSheet', () => {
     expect(screen.queryByTestId('social-filters-network-all')).toBeNull();
   });
 
-  it('omits Predictions on Following and shows Verification', () => {
+  it('omits Predictions on every tab and shows Verification on Following', () => {
     render(
       <SocialFiltersBottomSheet
         tab="following"

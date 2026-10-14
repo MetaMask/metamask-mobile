@@ -195,7 +195,7 @@ describe('LimitOrderConfirmationModal', () => {
     expect(getByText('Something went wrong')).toBeOnTheScreen();
   });
 
-  it('does not display the USD price notice without a USD trigger price', () => {
+  it('does not display the USD price notice without a USD exchange rate', () => {
     const { queryByTestId } = render(
       <LimitOrderConfirmationModal {...buildProps()} />,
     );
@@ -205,17 +205,19 @@ describe('LimitOrderConfirmationModal', () => {
     ).toBeNull();
   });
 
-  it('displays the USD price notice with the USD trigger price', () => {
+  it('displays the USD price notice with the USD exchange rate', () => {
     const { getByTestId } = render(
       <LimitOrderConfirmationModal
-        {...buildProps({ usdTriggerPrice: '$3,412.2' })}
+        {...buildProps({
+          usdExchangeRate: { rate: '85.05', currency: 'RUB' },
+        })}
       />,
     );
 
     expect(
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.USD_PRICE_NOTICE),
     ).toHaveTextContent(
-      'For display purposes you see the values in your selected currency but the actual order will be logged based on the USD exchange rate (~$3,412.2)',
+      'Prices are shown in your selected currency, but your order is placed in USD based on the exchange rate at order creation. Current rate: 1 USD = 85.05 RUB.',
     );
   });
 

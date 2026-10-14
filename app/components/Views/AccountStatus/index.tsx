@@ -39,25 +39,27 @@ import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
-import AccountStatusImg from '../../../images/account_status.png';
+import WalletExistsImg from '../../../images/wallet-exists.png';
 import type { AccountStatusParams } from './types';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import {
+  BottomSheetFooter,
   Box,
   BoxAlignItems,
   BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
-  Text,
+  HeaderStandard,
   TextColor,
   TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-const IMAGE_MAX_WIDTH = 343;
-const IMAGE_ASPECT_RATIO = 343 / 302;
-const HORIZONTAL_PADDING = 16;
+// wallet-exists.png is exported at 3x (1061×926px).
+const WALLET_EXISTS_IMAGE_WIDTH = 1061 / 3;
+const WALLET_EXISTS_IMAGE_HEIGHT = 926 / 3;
 
 const ACCOUNT_STATUS_PRIMARY_FLOW = {
   EXISTING_ACCOUNT_IMPORT: 'import',
@@ -115,15 +117,6 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
   });
 
   const isSmallScreen = windowWidth < 375;
-
-  const imageLayout = useMemo(() => {
-    const containerWidth = windowWidth - HORIZONTAL_PADDING * 2;
-    const walletImageWidth = Math.min(containerWidth, IMAGE_MAX_WIDTH);
-    return {
-      width: walletImageWidth,
-      height: Math.round(walletImageWidth / IMAGE_ASPECT_RATIO),
-    };
-  }, [windowWidth]);
 
   const accountType = useMemo(
     () =>
@@ -234,12 +227,28 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
     return 'account_status.account_not_found_description';
   }, [provider]);
 
-  const footerBottomClass =
-    Platform.OS === 'ios' ? 'mb-4 mt-auto gap-4' : 'mb-6 mt-auto gap-4';
+  const onPrimaryPress = () => {
+    if (type === 'found') {
+      navigateNextScreen(
+        Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
+        Routes.ONBOARDING.ONBOARDING,
+        ACCOUNT_STATUS_PRIMARY_FLOW.EXISTING_ACCOUNT_IMPORT,
+      );
+      return;
+    }
+    navigateNextScreen(
+      Routes.ONBOARDING.CHOOSE_PASSWORD,
+      Routes.ONBOARDING.ONBOARDING,
+      ACCOUNT_STATUS_PRIMARY_FLOW.NEW_ACCOUNT_CREATE,
+    );
+  };
+
+  const buttonSize = isSmallScreen ? ButtonSize.Md : ButtonSize.Lg;
+  const footerBottomClass = Platform.OS === 'ios' ? 'mb-4' : 'mb-6';
 
   return (
     <SafeAreaView
-      edges={['top', 'bottom']}
+      edges={['bottom']}
       style={tw.style('flex-1 bg-default')}
       testID={
         type === 'found'
@@ -247,98 +256,79 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
           : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CONTAINER
       }
     >
-      <Box twClassName="flex-1 px-4 pt-4">
-        <ScrollView
-          style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('grow')}
+      <HeaderStandard includesTopInset />
+      <ScrollView
+        style={tw.style('flex-1')}
+        contentContainerStyle={tw.style('grow px-4')}
+      >
+        <TitleStandard
+          title={
+            type === 'found'
+              ? strings('account_status.account_already_exists')
+              : strings('account_status.account_not_found')
+          }
+          titleProps={{
+            testID:
+              type === 'found'
+                ? AccountStatusSelectorIDs.ACCOUNT_FOUND_TITLE
+                : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_TITLE,
+          }}
+          bottomLabel={strings(
+            type === 'found'
+              ? descriptionForFoundTypeAccountStatus()
+              : descriptionForNotFoundTypeAccountStatus(),
+            { accountName },
+          )}
+          bottomLabelProps={{
+            variant: TextVariant.BodyMd,
+            color: TextColor.TextAlternative,
+          }}
+        />
+        <Box
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="w-full flex-1"
         >
-          <Box
-            alignItems={BoxAlignItems.Start}
-            justifyContent={BoxJustifyContent.Start}
-            twClassName="flex-1 pb-6"
-          >
-            <Text
-              variant={TextVariant.DisplayMd}
-              color={TextColor.TextDefault}
-              testID={
-                type === 'found'
-                  ? AccountStatusSelectorIDs.ACCOUNT_FOUND_TITLE
-                  : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_TITLE
-              }
-            >
-              {type === 'found'
-                ? strings('account_status.account_already_exists')
-                : strings('account_status.account_not_found')}
-            </Text>
-            <Image
-              source={AccountStatusImg}
-              resizeMode="contain"
-              style={tw.style('my-4 self-center', imageLayout)}
-            />
-            <Box twClassName="w-full gap-5">
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings(
-                  type === 'found'
-                    ? descriptionForFoundTypeAccountStatus()
-                    : descriptionForNotFoundTypeAccountStatus(),
-                  {
-                    accountName,
-                  },
-                )}
-              </Text>
-            </Box>
-          </Box>
-        </ScrollView>
+          <Image
+            source={WalletExistsImg}
+            resizeMode="contain"
+            style={tw.style('h-full w-full', {
+              maxWidth: WALLET_EXISTS_IMAGE_WIDTH,
+              maxHeight: WALLET_EXISTS_IMAGE_HEIGHT,
+            })}
+          />
+        </Box>
+      </ScrollView>
 
-        <Box twClassName={footerBottomClass}>
-          <Button
-            variant={ButtonVariant.Primary}
-            size={isSmallScreen ? ButtonSize.Md : ButtonSize.Lg}
-            isFullWidth
-            onPress={() => {
-              if (type === 'found') {
-                navigateNextScreen(
-                  Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
-                  Routes.ONBOARDING.ONBOARDING,
-                  ACCOUNT_STATUS_PRIMARY_FLOW.EXISTING_ACCOUNT_IMPORT,
-                );
-              } else {
-                navigateNextScreen(
-                  Routes.ONBOARDING.CHOOSE_PASSWORD,
-                  Routes.ONBOARDING.ONBOARDING,
-                  ACCOUNT_STATUS_PRIMARY_FLOW.NEW_ACCOUNT_CREATE,
-                );
-              }
-            }}
-            testID={
+      <Box twClassName={`gap-4 px-4 ${footerBottomClass}`}>
+        <BottomSheetFooter
+          twClassName="px-0"
+          primaryButtonProps={{
+            children:
+              type === 'found'
+                ? strings(buttonLabelForFoundTypeAccountStatus())
+                : strings('account_status.create_new_wallet'),
+            size: buttonSize,
+            onPress: onPrimaryPress,
+            testID:
               type === 'found'
                 ? AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON
-                : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CREATE_BUTTON
-            }
-          >
-            {type === 'found'
-              ? strings(buttonLabelForFoundTypeAccountStatus())
-              : strings('account_status.create_new_wallet')}
-          </Button>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={isSmallScreen ? ButtonSize.Md : ButtonSize.Lg}
-            isFullWidth
-            onPress={() => {
-              navigation.goBack();
-            }}
-            testID={
-              type === 'found'
-                ? AccountStatusSelectorIDs.ACCOUNT_FOUND_DIFFERENT_METHOD_BUTTON
-                : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_DIFFERENT_METHOD_BUTTON
-            }
-          >
-            {strings('account_status.use_different_login_method')}
-          </Button>
-        </Box>
+                : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CREATE_BUTTON,
+          }}
+        />
+        <Button
+          variant={ButtonVariant.Tertiary}
+          size={buttonSize}
+          isFullWidth
+          onPress={() => navigation.goBack()}
+          testID={
+            type === 'found'
+              ? AccountStatusSelectorIDs.ACCOUNT_FOUND_DIFFERENT_METHOD_BUTTON
+              : AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_DIFFERENT_METHOD_BUTTON
+          }
+        >
+          {strings('account_status.use_different_login_method')}
+        </Button>
       </Box>
     </SafeAreaView>
   );

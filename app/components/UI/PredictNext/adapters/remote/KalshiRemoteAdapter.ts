@@ -11,10 +11,11 @@ import {
   parsePredictEvent,
   parsePredictFeed,
   parsePredictMarketHistory,
+  parsePredictSearchResults,
   parsePredictVenueStatus,
 } from '../../contracts/v1/marketData';
 import { PredictError, PredictErrorCode } from '../../errors';
-import { KALSHI_VENUE_ID } from '../../types';
+import { KALSHI_VENUE_ID, type FetchOrderPreviewParams } from '../../types';
 import type {
   VenueMarketDataAdapter,
   VenuePortfolioAdapter,
@@ -33,8 +34,10 @@ const TRADING_ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode> = {
   quote_unavailable: PredictErrorCode.QUOTE_UNAVAILABLE,
   preview_expired: PredictErrorCode.PREVIEW_EXPIRED,
   balance_unavailable: PredictErrorCode.BALANCE_UNAVAILABLE,
-  insufficient_liquidity: PredictErrorCode.INSUFFICIENT_LIQUIDITY,
   insufficient_balance: PredictErrorCode.INSUFFICIENT_BALANCE,
+  insufficient_liquidity: PredictErrorCode.INSUFFICIENT_LIQUIDITY,
+  insufficient_position: PredictErrorCode.INSUFFICIENT_POSITION,
+  position_unavailable: PredictErrorCode.POSITION_UNAVAILABLE,
 };
 
 const isAbortError = (error: unknown): error is Error =>
@@ -98,18 +101,52 @@ export class KalshiRemoteAdapter {
     this.trading = {
       previewOrder: async (params, options) => {
         try {
+          // Version tolerance (ADR-0001): the deployed backend's strict
+          // request schema rejects unknown keys, so a buy keeps the exact
+          // PRED-1194 body without `action`; only a sell carries the
+          // discriminator.
+          const wireParams: FetchOrderPreviewParams =
+            params.action === 'buy'
+              ? {
+                  marketId: params.marketId,
+                  side: params.side,
+                  amount: params.amount,
+                }
+              : {
+                  marketId: params.marketId,
+                  side: params.side,
+                  action: 'sell',
+                  contracts: params.contracts,
+                };
           const value = await client.fetchOrderPreview(
             this.venueId,
-            params,
+            wireParams,
             options,
           );
           const result = parsePredictOrderPreview(value);
-          if (
-            result.venueId !== this.venueId ||
-            result.marketId !== params.marketId ||
-            result.side !== params.side ||
-            !isSameAmount(result.requestedAmount, params.amount)
-          ) {
+          const isQuotedForIntent = (() => {
+            if (
+              result.venueId !== this.venueId ||
+              result.marketId !== params.marketId ||
+              result.side !== params.side ||
+              result.action !== params.action
+            ) {
+              return false;
+            }
+            if (params.action === 'buy') {
+              // The backend echoes the requested amount normalized to two
+              // decimals, so '20' and '20.00' are the same amount.
+              return (
+                result.action === 'buy' &&
+                isSameAmount(result.requestedAmount, params.amount)
+              );
+            }
+            return (
+              result.action === 'sell' &&
+              result.requestedContracts === Number(params.contracts)
+            );
+          })();
+          if (!isQuotedForIntent) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
           return result;
@@ -253,6 +290,25 @@ export class KalshiRemoteAdapter {
             result.venueId !== this.venueId ||
             result.marketId !== marketId ||
             result.range !== range
+          ) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapError(error);
+        }
+      },
+      searchEvents: async (params, options) => {
+        try {
+          const value = await client.searchEvents(
+            this.venueId,
+            params,
+            options,
+          );
+          const result = parsePredictSearchResults(value);
+          if (
+            result.venueId !== this.venueId ||
+            result.events.some((event) => event.venueId !== this.venueId)
           ) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }

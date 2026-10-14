@@ -24,18 +24,18 @@ const buyTokenModeDefaults = {
 
 describe('getSwapsLimitOrderDestTokenAmount', () => {
   describe('limit price denominated in a token', () => {
-    it('multiplies the source amount by a sell price quoted in destination tokens, minus the quote fee', () => {
+    it('multiplies the source amount by a sell price quoted in destination tokens', () => {
       const result = getSwapsLimitOrderDestTokenAmount(sellTokenModeDefaults);
 
-      // 2 * 3000 = 6000, minus the 0.875% quote fee.
-      expect(result).toBe('5947.5');
+      // 2 * 3000 = 6000
+      expect(result).toBe('6000');
     });
 
-    it('divides the source amount by a buy price quoted in source tokens, minus the quote fee', () => {
+    it('divides the source amount by a buy price quoted in source tokens', () => {
       const result = getSwapsLimitOrderDestTokenAmount(buyTokenModeDefaults);
 
-      // 6000 / 3000 = 2, minus the 0.875% quote fee.
-      expect(result).toBe('1.9825');
+      // 6000 / 3000 = 2
+      expect(result).toBe('2');
     });
 
     it('ignores the counter token fiat rate', () => {
@@ -44,7 +44,7 @@ describe('getSwapsLimitOrderDestTokenAmount', () => {
         counterFiatRate: 4321,
       });
 
-      expect(result).toBe('5947.5');
+      expect(result).toBe('6000');
     });
   });
 
@@ -59,8 +59,8 @@ describe('getSwapsLimitOrderDestTokenAmount', () => {
         sourceAmount: '1',
       });
 
-      // 1 * 2400 / 80000 = 0.03, minus the 0.875% quote fee.
-      expect(result).toBe('0.0297375');
+      // 1 * 2400 / 80000 = 0.03
+      expect(result).toBe('0.03');
     });
 
     it('converts a buy price in fiat through the live source token price', () => {
@@ -73,8 +73,8 @@ describe('getSwapsLimitOrderDestTokenAmount', () => {
         sourceAmount: '40',
       });
 
-      // 40 / (80000 / 2000) = 1, minus the 0.875% quote fee.
-      expect(result).toBe('0.99125');
+      // 40 / (80000 / 2000) = 1
+      expect(result).toBe('1');
     });
 
     it.each([
@@ -104,8 +104,8 @@ describe('getSwapsLimitOrderDestTokenAmount', () => {
         sourceAmount: '1',
       });
 
-      // (1 / 3) * (1 - 0.00875) = 0.33041666..., rounded down to 6 decimals.
-      expect(result).toBe('0.330416');
+      // 1 / 3 = 0.33333..., rounded down to 6 decimals.
+      expect(result).toBe('0.333333');
     });
 
     it('returns zero when the amount rounds below the smallest destination unit', () => {
@@ -126,21 +126,8 @@ describe('getSwapsLimitOrderDestTokenAmount', () => {
         sourceAmount: '1',
       });
 
-      // 1 * 2.5 * (1 - 0.00875) = 2.478125
-      expect(result).toBe('2.478125');
-    });
-  });
-
-  describe('quote fee', () => {
-    it('reduces the destination amount by 0.875%', () => {
-      const result = getSwapsLimitOrderDestTokenAmount({
-        ...sellTokenModeDefaults,
-        destTokenDecimals: 18,
-        limitPrice: '1',
-        sourceAmount: '1',
-      });
-
-      expect(result).toBe('0.99125');
+      // 1 * 2.5 = 2.5
+      expect(result).toBe('2.5');
     });
   });
 

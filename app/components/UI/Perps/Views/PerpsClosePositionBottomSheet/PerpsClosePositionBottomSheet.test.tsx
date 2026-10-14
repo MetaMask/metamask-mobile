@@ -20,6 +20,7 @@ import {
 } from '../../__mocks__/perpsHooksMocks';
 import { createPerpsStateMock } from '../../__mocks__/perpsStateMock';
 import { resetLastCloseOrderType } from '../../hooks/usePerpsClosePositionForm';
+import { getLimitPriceTooFarMessage } from '../../utils/triggerOrderValidation';
 import PerpsClosePositionBottomSheet from './PerpsClosePositionBottomSheet';
 
 const mockGoBack = jest.fn();
@@ -86,11 +87,16 @@ jest.mock('../../../../Base/Keypad', () => {
     __esModule: true,
     default: ({
       onChange,
+      value,
+      currency,
     }: {
       onChange: (input: { value: string; valueAsNumber: number }) => void;
+      value?: string;
+      currency?: string;
     }) =>
       ReactActual.createElement(Touchable, {
         testID: 'mock-keypad',
+        accessibilityLabel: `keypad:${currency ?? ''}:${value ?? ''}`,
         onPress: () =>
           onChange({
             value: mockKeypadValue,
@@ -370,6 +376,85 @@ describe('PerpsClosePositionBottomSheet', () => {
 
       expect(toggle).toBeOnTheScreen();
       expect(within(toggle).getByTestId('perps-swap-icon')).toBeOnTheScreen();
+    });
+
+    it('submits the typed coin size on a market whose size step is one coin', async () => {
+      const cheapCoinPosition = {
+        ...defaultPerpsPositionMock,
+        size: '71',
+        entryPrice: String(1 / 71),
+      };
+      useRouteMock.mockReturnValue({
+        params: { position: cheapCoinPosition },
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [cheapCoinPosition],
+        isInitialLoading: false,
+      });
+      usePerpsLivePricesMock.mockReturnValue({
+        ETH: { price: String(1 / 71), change24h: 0 },
+      });
+      usePerpsMarketDataMock.mockReturnValue({
+        marketData: { szDecimals: 0 },
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByLabelText, getByTestId } = renderSheet();
+
+      fireEvent.press(
+        getByLabelText(strings('perps.close_position.select_amount')),
+      );
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
+        ),
+      );
+      mockKeypadValue = '1';
+      fireEvent.press(getByTestId('mock-keypad'));
+      fireEvent.press(getByLabelText(strings('perps.deposit.done_button')));
+      expect(
+        getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent(/^1$/);
+      fireEvent.press(
+        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          defaultPerpsClosePositionMock.handleClosePosition,
+        ).toHaveBeenCalledWith(expect.objectContaining({ size: '1' }));
+      });
+    });
+
+    it('applies a keypad entry to the coin amount after the display toggle', () => {
+      const { getByLabelText, getByTestId } = renderSheet();
+
+      fireEvent.press(
+        getByLabelText(strings('perps.close_position.select_amount')),
+      );
+      expect(getByTestId('mock-keypad').props.accessibilityLabel).toBe(
+        'keypad:USD:4500.00',
+      );
+
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
+        ),
+      );
+      expect(getByTestId('mock-keypad').props.accessibilityLabel).toBe(
+        'keypad:ASSET:1.5',
+      );
+
+      mockKeypadValue = '1';
+      fireEvent.press(getByTestId('mock-keypad'));
+
+      expect(
+        getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent(/^1$/);
+      expect(
+        getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
+      ).toHaveTextContent('ETH');
     });
 
     it('swaps the primary amount between fiat and token when toggled', () => {
@@ -698,6 +783,20 @@ describe('PerpsClosePositionBottomSheet', () => {
       ).toHaveLength(1);
     });
 
+    it('opens the size keypad when the amount display is pressed in market mode', () => {
+      const { getByLabelText, queryByTestId, UNSAFE_queryAllByType } =
+        renderSheet();
+
+      fireEvent.press(
+        getByLabelText(strings('perps.close_position.select_amount')),
+      );
+
+      expect(queryByTestId('mock-keypad')).toBeOnTheScreen();
+      expect(
+        UNSAFE_queryAllByType('Slider' as unknown as React.ComponentType),
+      ).toHaveLength(0);
+    });
+
     it('shows the slider when the close size is pressed on a limit view', () => {
       const utils = renderSheet();
       const { getByLabelText, queryByTestId, UNSAFE_queryAllByType } = utils;
@@ -732,19 +831,18 @@ describe('PerpsClosePositionBottomSheet', () => {
     };
 
     it('does not repeat a limit-price error already shown on the field', () => {
+      const tooFarError = getLimitPriceTooFarMessage(
+        Number.parseFloat(defaultPerpsLivePricesMock.ETH.price),
+      );
       usePerpsClosePositionValidationMock.mockReturnValue({
         ...defaultPerpsClosePositionValidationMock,
-        errors: [strings('perps.order.limit_price_modal.limit_price_too_far')],
+        errors: [tooFarError],
         isValid: false,
       });
 
       const { getAllByText } = selectLimitAndEnterPrice('6');
 
-      expect(
-        getAllByText(
-          strings('perps.order.limit_price_modal.limit_price_too_far'),
-        ),
-      ).toHaveLength(1);
+      expect(getAllByText(tooFarError)).toHaveLength(1);
     });
 
     it('does not warn when the limit price is a zero that renders as an empty field', () => {

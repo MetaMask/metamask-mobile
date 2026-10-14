@@ -1,5 +1,6 @@
 import {
   applyPercentToPrice,
+  convertPriceRangeToUsd,
   formatExchangeRate,
   formatPriceRangeLabel,
   formatTokenPrice,
@@ -10,6 +11,7 @@ import {
   PRICE_RANGE_MISSING_VALUE,
   sanitizePriceInput,
   tokenPairRateFromFiatRates,
+  USD_PRICE_RANGE_CURRENCY,
 } from './priceRange';
 import { formatCurrency } from './currencyUtils';
 
@@ -55,6 +57,79 @@ describe('applyPercentToPrice', () => {
     const result = applyPercentToPrice(1.234, -1);
 
     expect(result).toBe('1.22');
+  });
+});
+
+describe('convertPriceRangeToUsd', () => {
+  it('converts both populated EUR bounds to USD without losing precision', () => {
+    const result = convertPriceRangeToUsd(
+      {
+        tokenSide: 'dest',
+        currency: 'EUR',
+        min: '0.10',
+        max: '1234.56',
+      },
+      1.087654321,
+    );
+
+    expect(result).toEqual({
+      tokenSide: 'dest',
+      currency: USD_PRICE_RANGE_CURRENCY,
+      min: '0.1087654321',
+      max: '1342.77451853376',
+    });
+  });
+
+  it('keeps an empty one-sided bound absent', () => {
+    const result = convertPriceRangeToUsd(
+      {
+        tokenSide: 'source',
+        currency: 'EUR',
+        min: '100',
+        max: '',
+      },
+      1.08,
+    );
+
+    expect(result).toEqual({
+      tokenSide: 'source',
+      currency: USD_PRICE_RANGE_CURRENCY,
+      min: '108',
+      max: undefined,
+    });
+  });
+
+  it('returns the same bounds for a USD range without a conversion rate', () => {
+    const result = convertPriceRangeToUsd(
+      {
+        tokenSide: 'dest',
+        currency: 'USD',
+        min: '1800.25',
+        max: '2200.75',
+      },
+      undefined,
+    );
+
+    expect(result).toEqual({
+      tokenSide: 'dest',
+      currency: USD_PRICE_RANGE_CURRENCY,
+      min: '1800.25',
+      max: '2200.75',
+    });
+  });
+
+  it('returns undefined when a non-USD conversion rate is unavailable', () => {
+    const result = convertPriceRangeToUsd(
+      {
+        tokenSide: 'dest',
+        currency: 'EUR',
+        min: '1800',
+        max: '2200',
+      },
+      undefined,
+    );
+
+    expect(result).toBeUndefined();
   });
 });
 

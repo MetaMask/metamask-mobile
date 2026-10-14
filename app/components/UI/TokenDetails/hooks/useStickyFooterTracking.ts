@@ -9,6 +9,7 @@ export type StickyFooterButtonAction =
   | 'swap'
   | 'buy'
   | 'quick_buy'
+  | 'quick_sell'
   | 'money_deposit';
 
 interface TrackStickyBottomCtaClickedParams {

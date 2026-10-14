@@ -4,15 +4,27 @@ import type { InfiniteData } from '@tanstack/query-core';
 import Engine from '../../../../core/Engine';
 import {
   RecurringOrderStatus,
+  type GetRecurringOrdersByAssetResponse,
   type GetRecurringOrdersResponse,
   type RecurringOrder,
 } from '../api/recurringOrders.types';
 import {
+  RECURRING_ORDERS_BY_ASSET_QUERY_KEY,
   RECURRING_ORDERS_QUERY_KEY,
   type RecurringOrdersQueryKey,
 } from '../queries/recurringOrders';
 
 const log = createProjectLogger('bridge-recurring-cancellation-history');
+const RECURRING_ORDER_QUERY_INVALIDATIONS = [
+  {
+    queryKey: RECURRING_ORDERS_QUERY_KEY,
+    refetchType: 'none',
+  },
+  {
+    queryKey: RECURRING_ORDERS_BY_ASSET_QUERY_KEY,
+    refetchType: 'active',
+  },
+] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -44,9 +56,9 @@ function isRecurringOrdersQueryKey(
  *
  * This is a post-success UI cache update, not an optimistic update. The order
  * is removed from every loaded recurring-order query and reinserted as
- * cancelled into matching History queries. Subsequent invalidation marks the
- * UI and service caches stale so a future fetch can reconcile pagination with
- * the backend.
+ * cancelled into matching History queries. It is also removed from the
+ * open-only asset query. Subsequent invalidation marks the UI and service
+ * caches stale so a future fetch can reconcile with the backend.
  */
 function updateRecurringOrdersCaches(
   queryClient: ReturnType<typeof useQueryClient>,
@@ -117,6 +129,17 @@ function updateRecurringOrdersCaches(
         },
       );
     });
+
+  queryClient.setQueriesData<GetRecurringOrdersByAssetResponse>(
+    { queryKey: [RECURRING_ORDERS_BY_ASSET_QUERY_KEY] },
+    (data) => {
+      if (!data?.some(({ orderId }) => orderId === order.orderId)) {
+        return data;
+      }
+
+      return data.filter(({ orderId }) => orderId !== order.orderId);
+    },
+  );
 }
 
 export function useCancelRecurringOrder() {
@@ -130,23 +153,33 @@ export function useCancelRecurringOrder() {
     onSuccess: async (_data, order) => {
       updateRecurringOrdersCaches(queryClient, order);
 
-      try {
-        await Engine.controllerMessenger.call(
-          'RecurringOrdersDataService:invalidateQueries',
-          { queryKey: [RECURRING_ORDERS_QUERY_KEY] },
-        );
-      } catch (error) {
-        log('Recurring-order service cache invalidation failed', error);
-      }
+      await Promise.all(
+        RECURRING_ORDER_QUERY_INVALIDATIONS.map(async ({ queryKey }) => {
+          try {
+            await Engine.controllerMessenger.call(
+              'RecurringOrdersDataService:invalidateQueries',
+              { queryKey: [queryKey] },
+            );
+          } catch (error) {
+            log('Recurring-order service cache invalidation failed', error);
+          }
+        }),
+      );
 
-      try {
-        await queryClient.invalidateQueries({
-          queryKey: [RECURRING_ORDERS_QUERY_KEY],
-          refetchType: 'none',
-        });
-      } catch (error) {
-        log('Recurring-order UI cache invalidation failed', error);
-      }
+      await Promise.all(
+        RECURRING_ORDER_QUERY_INVALIDATIONS.map(
+          async ({ queryKey, refetchType }) => {
+            try {
+              await queryClient.invalidateQueries({
+                queryKey: [queryKey],
+                refetchType,
+              });
+            } catch (error) {
+              log('Recurring-order UI cache invalidation failed', error);
+            }
+          },
+        ),
+      );
     },
   });
 
