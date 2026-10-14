@@ -110,6 +110,7 @@ export function usePushProvisioning(
     useState(true);
 
   const lastFourDigits = walletProvisioning?.lastFour;
+  const primaryAccountIdentifier = walletProvisioning?.primaryAccountIdentifier;
   const eligibilityRequestIdRef = useRef(0);
 
   const refreshEligibility = useCallback(
@@ -137,7 +138,10 @@ export function usePushProvisioning(
       }
 
       try {
-        const result = await walletAdapter.getEligibility(lastFourDigits);
+        const result = await walletAdapter.getEligibility(
+          lastFourDigits,
+          primaryAccountIdentifier,
+        );
         if (!isCurrentRequest()) {
           return;
         }
@@ -162,7 +166,7 @@ export function usePushProvisioning(
         setIsEligibilityCheckLoading(false);
       }
     },
-    [walletAdapter, lastFourDigits],
+    [walletAdapter, lastFourDigits, primaryAccountIdentifier],
   );
 
   useEffect(() => {
@@ -211,11 +215,26 @@ export function usePushProvisioning(
       }
 
       try {
-        const result = await walletAdapter.getEligibility(lastFourDigits);
+        const result = await walletAdapter.getEligibility(
+          lastFourDigits,
+          primaryAccountIdentifier,
+        );
         if (requestId !== eligibilityRequestIdRef.current) {
           return;
         }
         setEligibility(result);
+        // The card is already on one device and another paired device can
+        // still take it. Drop the success gate so Add comes back.
+        const cardIsOnADevice =
+          result.existingCardStatus !== undefined &&
+          result.existingCardStatus !== 'not_found';
+        if (
+          result.canAddCard &&
+          cardIsOnADevice &&
+          statusRef.current === 'success'
+        ) {
+          setStatus('idle');
+        }
       } catch {
         if (requestId !== eligibilityRequestIdRef.current) {
           return;
@@ -229,7 +248,7 @@ export function usePushProvisioning(
     };
 
     recheckEligibility();
-  }, [status, walletAdapter, lastFourDigits]);
+  }, [status, walletAdapter, lastFourDigits, primaryAccountIdentifier]);
 
   // Create service with adapters
   const service = useMemo(
@@ -499,11 +518,17 @@ export function usePushProvisioning(
     status !== 'success';
 
   const existingCardStatus = eligibility?.existingCardStatus;
+  // Google Wallet resumes a yellow-path token, so that pass is not "in the
+  // wallet" for the Add button. On Apple the same status means the pass is
+  // already on the device and waiting for issuer verification.
+  const resumesYellowPath =
+    existingCardStatus === 'requires_activation' &&
+    eligibility?.recommendedAction === 'resume';
   const isCardInWallet =
     status === 'success' ||
     (existingCardStatus !== undefined &&
       existingCardStatus !== 'not_found' &&
-      existingCardStatus !== 'requires_activation');
+      !resumesYellowPath);
 
   return {
     status,
@@ -516,5 +541,6 @@ export function usePushProvisioning(
     isLoading,
     canAddToWallet,
     isCardInWallet,
+    pendingVerificationDevices: eligibility?.pendingVerificationDevices ?? [],
   };
 }
