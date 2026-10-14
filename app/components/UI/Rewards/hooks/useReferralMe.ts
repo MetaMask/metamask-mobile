@@ -28,32 +28,47 @@ function isLatestReferralMeRequest(
 }
 
 async function resolveSessionProfileId(): Promise<string | undefined> {
-  try {
-    const profile = await Engine.controllerMessenger.call(
-      'AuthenticationController:getSessionProfile',
-    );
-    return profile?.profileId;
-  } catch (error) {
-    return undefined;
+  const profile = await Engine.controllerMessenger.call(
+    'AuthenticationController:getSessionProfile',
+  );
+  return profile?.profileId;
+}
+
+class SessionProfileUnavailableError extends Error {
+  constructor() {
+    super('Session profile unavailable');
+    this.name = 'SessionProfileUnavailableError';
   }
 }
+
+type SessionRecheck =
+  | { status: 'unchanged' }
+  | { status: 'changed'; profileId: string | undefined }
+  | { status: 'unavailable' };
 
 /**
  * Whether the session moved off `expectedProfileId` while a request was in
  * flight. Re-reading the session is what makes this safe across hook
  * instances, which cannot see each other's refs. Adopts whatever profile is
  * current so the caller stops reading the superseded one.
+ *
+ * A failed re-read is `unavailable`, not a sign-out: it must not clear the
+ * profile the request started with.
  */
-async function getCurrentSessionWhenChanged(
+async function recheckSession(
   expectedProfileId: string,
   setProfileId: (profileId: string | undefined) => void,
-): Promise<string | undefined | null> {
-  const currentProfileId = await resolveSessionProfileId();
-  if (currentProfileId === expectedProfileId) {
-    return null;
+): Promise<SessionRecheck> {
+  try {
+    const currentProfileId = await resolveSessionProfileId();
+    if (currentProfileId === expectedProfileId) {
+      return { status: 'unchanged' };
+    }
+    setProfileId(currentProfileId);
+    return { status: 'changed', profileId: currentProfileId };
+  } catch {
+    return { status: 'unavailable' };
   }
-  setProfileId(currentProfileId);
-  return currentProfileId;
 }
 
 export type FetchReferralMeResult =
@@ -97,10 +112,25 @@ export const useReferralMe = ({
       followUp: boolean,
     ): Promise<FetchReferralMeResult> => {
       cancelBusyRefetch();
-      // No profile means no key to write under: there is nothing to settle,
-      // and a signed-out session is not a referral error. Tracking it either
-      // way clears a stale id so a previous session's variant cannot route.
-      const sessionProfileId = await resolveSessionProfileId();
+      // A thrown lookup is a transient miss, not a sign-out. Rejecting leaves
+      // the profile id already on screen in place. An answered lookup with no
+      // profile id is a sign-out: there is nothing to write, and clearing the
+      // id stops the previous session's variant from routing.
+      let sessionProfileId: string | undefined;
+      try {
+        sessionProfileId = await resolveSessionProfileId();
+      } catch (error) {
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            tags: {
+              feature: 'rewards-money',
+              context: 'referralMe.session_unavailable',
+            },
+          },
+        );
+        throw error;
+      }
       setProfileId(sessionProfileId);
       if (!sessionProfileId) {
         return { status: 'settled', profileId: undefined };
@@ -120,12 +150,12 @@ export const useReferralMe = ({
           'RewardsMoneyController:getReferralMe',
           { forceFresh },
         );
-        const changedProfileId = await getCurrentSessionWhenChanged(
-          sessionProfileId,
-          setProfileId,
-        );
-        if (changedProfileId !== null) {
-          return { status: 'discarded', profileId: changedProfileId };
+        const recheck = await recheckSession(sessionProfileId, setProfileId);
+        if (recheck.status === 'unavailable') {
+          throw new SessionProfileUnavailableError();
+        }
+        if (recheck.status === 'changed') {
+          return { status: 'discarded', profileId: recheck.profileId };
         }
         if (!isLatestReferralMeRequest(sessionProfileId, requestGeneration)) {
           shouldSettleLoading = false;
@@ -136,12 +166,21 @@ export const useReferralMe = ({
         );
         return { status: 'settled', profileId: sessionProfileId };
       } catch (error) {
-        const changedProfileId = await getCurrentSessionWhenChanged(
-          sessionProfileId,
-          setProfileId,
-        );
-        if (changedProfileId !== null) {
-          return { status: 'discarded', profileId: changedProfileId };
+        if (error instanceof SessionProfileUnavailableError) {
+          captureException(error, {
+            tags: {
+              feature: 'rewards-money',
+              context: 'referralMe.session_unavailable',
+            },
+          });
+          throw error;
+        }
+        const recheck = await recheckSession(sessionProfileId, setProfileId);
+        if (recheck.status === 'unavailable') {
+          throw error;
+        }
+        if (recheck.status === 'changed') {
+          return { status: 'discarded', profileId: recheck.profileId };
         }
         if (!isLatestReferralMeRequest(sessionProfileId, requestGeneration)) {
           shouldSettleLoading = false;
