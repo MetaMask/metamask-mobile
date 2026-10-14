@@ -1166,8 +1166,8 @@
     "kyc_email": {
       "verify_description": "placeholder for verify description",
       "enroll_description": "placeholder for enroll description",
-      "error_title": "Email verification",
-      "error_description": "We couldn't verify your email address."
+      "error_title": "Couldn't start verification",
+      "error_description": "Something went wrong opening email verification. Please try again."
     },
     "sumsub_kyc": {
       "more_info_title": "We need a little more info",
