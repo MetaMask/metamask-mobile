@@ -58,19 +58,19 @@ describe('CreateVirtualBankAccount', () => {
     mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 4.2,
     } as unknown as ReturnType<typeof useMoneyVaultApy>);
-    mockUseVbaArrivalTime.mockReturnValue({
-      arrivalTimeframe: '2 - 3 business days',
-    });
+    // Arrival-row behavior is covered by CreateVirtualBankAccount.view.test.tsx
+    // (real hooks); the stub keeps KYC/CTA/APY tests off the payment-methods query.
+    mockUseVbaArrivalTime.mockReturnValue({ arrivalTimeframe: undefined });
   });
 
   it('renders the intro design with feature rows and footer', () => {
-    const { getByText, getByTestId, queryByText } = renderWithProvider(
+    const { getByText, getByTestId } = renderWithProvider(
       <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
     );
 
     expect(getByText('Add funds right from your bank')).toBeOnTheScreen();
     expect(getByText('No fees to add funds')).toBeOnTheScreen();
-    expect(getByText('Arrives in 2 - 3 business days')).toBeOnTheScreen();
+    expect(getByText('Arrives in a few business days')).toBeOnTheScreen();
     expect(getByText('Set up once, use anytime')).toBeOnTheScreen();
     expect(getByText('Starts earning straight away')).toBeOnTheScreen();
     expect(getByText('Powered by')).toBeOnTheScreen();
@@ -81,19 +81,6 @@ describe('CreateVirtualBankAccount', () => {
     ).toBeOnTheScreen();
     expect(getByText('Get account details')).toBeOnTheScreen();
     expect(getByText('Deposits earn 4.2% APY as mUSD.')).toBeOnTheScreen();
-    // The design-spec placeholder must never reach the UI.
-    expect(queryByText(/timeframe by region/)).toBeNull();
-  });
-
-  it('falls back to static arrival copy when the region timeframe is unavailable', () => {
-    mockUseVbaArrivalTime.mockReturnValue({ arrivalTimeframe: undefined });
-
-    const { getByText, queryByText } = renderWithProvider(
-      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
-    );
-
-    expect(getByText('Arrives in a few business days')).toBeOnTheScreen();
-    expect(queryByText(/timeframe by region/)).toBeNull();
   });
 
   it('shows the earn copy without a number when APY is unavailable', () => {

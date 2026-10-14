@@ -87,6 +87,15 @@ describe('getVbaArrivalTimeframe', () => {
     expect(getVbaArrivalTimeframe(methods)).toBe('instant');
   });
 
+  it('stops at the manual bank-transfer entry even when it has no delay', () => {
+    const methods = [
+      buildMethod({ isManualBankTransfer: true }),
+      buildMethod({ delay: [2880, 4320] }),
+    ];
+
+    expect(getVbaArrivalTimeframe(methods)).toBeUndefined();
+  });
+
   it.each([
     [
       'no bank-transfer method at all',
