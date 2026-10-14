@@ -5,7 +5,7 @@ import type { CaipAssetType } from '@metamask/utils';
 import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';
 import SecurityTrustInlineBadge from '../../../SecurityTrust/components/SecurityTrustInlineBadge/SecurityTrustInlineBadge';
 import { getResultTypeConfig } from '../../../SecurityTrust/utils/securityUtils';
-import { useTokenListSecurityBadgeQuery } from '../../hooks/useTokenListSecurityBadgeQuery';
+import { useTokenSecurityQuery } from '../../hooks/useTokenSecurityQuery';
 
 export interface TokenListSecurityBadgeProps {
   caipAssetId: CaipAssetType;
@@ -28,7 +28,7 @@ const TokenListSecurityBadge = ({
     data: securityData,
     isLoading,
     isError,
-  } = useTokenListSecurityBadgeQuery(caipAssetId);
+  } = useTokenSecurityQuery(caipAssetId);
 
   const securityBadge = useMemo(
     () => getResultTypeConfig(securityData?.resultType).badge,

@@ -179,6 +179,12 @@ export interface SocialV1FeedPost {
 export type FeedAudience = 'all' | 'following';
 
 /**
+ * Asset class a social surface is narrowed to. Same values as the
+ * leaderboard's `SocialTypeFilter`, so filter state passes straight through.
+ */
+export type SocialAssetClass = 'all' | 'tokens' | 'perps';
+
+/**
  * Position-lifecycle stage of the trade a row announces, shown after the
  * trader username. Rendered as `opened / added / reduced / closed` for perps
  * and `bought / bought more / sold some / sold all` for spot when supplied.
