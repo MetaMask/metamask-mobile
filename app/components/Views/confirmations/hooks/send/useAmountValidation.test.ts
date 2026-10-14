@@ -385,7 +385,10 @@ describe('useAmountValidation', () => {
 
   it('validateNonEvmAmountAsync can be called manually', async () => {
     jest.spyOn(SendContext, 'useSendContext').mockReturnValue({
-      asset: EVM_NATIVE_ASSET,
+      asset: {
+        ...EVM_NATIVE_ASSET,
+        rawBalance: '0xde0b6b3a7640000',
+      },
       from: MOCK_ADDRESS_1,
       value: '1',
     } as unknown as SendContext.SendContextType);
