@@ -169,7 +169,7 @@ describe('API functions', () => {
     const params = {
       marketId: MARKET_ID,
       threshold: 5,
-      period: '24h' as const,
+      period: '5m' as const,
       direction: 'up' as const,
       recurring: false,
     };

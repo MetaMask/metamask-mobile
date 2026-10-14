@@ -248,7 +248,11 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
         />
 
         <Box twClassName="mt-4 w-full" alignItems={BoxAlignItems.Center}>
-          <AlertPeriodToggle value={period} onChange={setPeriod} />
+          <AlertPeriodToggle
+            value={period}
+            onChange={setPeriod}
+            includeFiveMinutes={isPerpsMode}
+          />
         </Box>
       </Box>
     </AlertFormShell>

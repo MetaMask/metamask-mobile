@@ -253,12 +253,12 @@ describe('PercentChangeAlertForm', () => {
     );
   });
 
-  it('submits a 1h perps percent alert with the market id', async () => {
+  it('submits a 5m perps percent alert with the market id', async () => {
     const screen = renderForm({
       marketId: 'btc-hyperliquid-mainnet',
     });
     fireEvent.press(
-      screen.getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_1H),
+      screen.getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_5M),
     );
     fireEvent.press(screen.getByTestId('keypad-key-5'));
 
@@ -271,7 +271,7 @@ describe('PercentChangeAlertForm', () => {
     expect(mockSubmitPerpPercent).toHaveBeenCalledWith({
       marketId: 'btc-hyperliquid-mainnet',
       threshold: 5,
-      period: '1h',
+      period: '5m',
       direction: 'up',
       recurring: true,
     });
@@ -280,7 +280,7 @@ describe('PercentChangeAlertForm', () => {
       expect.objectContaining({
         analyticsProperties: expect.objectContaining({
           alert_market_type: 'perps',
-          alert_period: '1h',
+          alert_period: '5m',
         }),
       }),
     );
