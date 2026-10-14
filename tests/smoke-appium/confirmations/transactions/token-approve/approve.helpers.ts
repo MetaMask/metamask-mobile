@@ -5,8 +5,7 @@ import {
   buildPermissions,
   getDappUrlForFixture,
 } from '../../../../framework/fixtures/FixtureUtils.js';
-import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations.js';
-import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers.js';
+import { setupSimulationEnabledNetworksMocks } from '../../../../api-mocking/mock-responses/simulations.js';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { confirmationFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks.js';
@@ -43,12 +42,7 @@ export function buildApproveFixture({
 }
 
 export const approveTestSpecificMock = async (mockServer: Mockttp) => {
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
-    response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
-    responseCode: 200,
-  });
+  await setupSimulationEnabledNetworksMocks(mockServer);
   await setupRemoteFeatureFlagsMock(
     mockServer,
     Object.assign({}, ...confirmationFeatureFlags),

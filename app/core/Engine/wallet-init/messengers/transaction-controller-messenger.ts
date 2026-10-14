@@ -51,6 +51,7 @@ import {
 } from '@metamask/bridge-status-controller';
 import type { GasFeeControllerFetchGasFeeEstimatesAction } from '@metamask/gas-fee-controller';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
+import { AssetsControllerGetStateAction } from '@metamask/assets-controller';
 import {
   AccountTrackerControllerGetStateAction,
   CurrencyRateControllerActions,
@@ -73,6 +74,7 @@ export type TransactionControllerInitMessengerActions =
   | AccountsControllerGetStateAction
   | AccountsControllerGetSelectedAccountAction
   | AccountTrackerControllerGetStateAction
+  | AssetsControllerGetStateAction
   | ApprovalControllerActions
   | BridgeStatusControllerActions
   | CurrencyRateControllerActions
@@ -186,6 +188,7 @@ export function getTransactionControllerInitMessenger(
       'PredictController:beforePublish',
       'PredictController:beforeSign',
       'PredictController:publish',
+      'AssetsController:getState',
       // Missing actions to use fiat payment hook from publish hook
       // Actions below are provided by patched controllers not yet in upstream types
       // @ts-expect-error See above

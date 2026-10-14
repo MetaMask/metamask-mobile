@@ -693,7 +693,6 @@
     "re_enter_password": "Ilagay muli ang iyong password",
     "use_at_least_8_characters": "Gumamit ng hindi bababa sa 8 character",
     "unlock_with_face_id": "I-unlock gamit ang Face ID?",
-    "learn_more": "Kapag nakalimutan ko ang password na ito, hindi ito mababawi ng MetaMask para sa akin.",
     "learn_more_social_login": "Kung makakalimutan ko ang password na ito, permanente akong mawawalan ng access sa aking wallet. Hindi ito maire-reset ng MetaMask para sa akin.",
     "seed_phrase_length_error": "Ang Secret Recovery Phrase ay dapat na 12, 15, 18, 21, o 24 na salita",
     "continue": "Magpatuloy",
@@ -9398,9 +9397,6 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Pag-expire: {{timeLeft}}",
-      "days_left": "{{count}}d left",
-      "hours_left": "{{count}}h left",
-      "minutes_left": "{{count}}m left",
       "limit_price": "{{symbol}} limit price",
       "not_enough_gas": "Hindi sapat ang gas",
       "filled": "Na-fill",

@@ -8,6 +8,7 @@ import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 import PredictDetailsPage from '../../../page-objects/Predict/PredictDetailsPage';
 import { Performance, PerformancePredict } from '../../../tags.performance.js';
 import ToastModal from '../../../page-objects/wallet/ToastModal.js';
+import WalletView from '../../../page-objects/wallet/WalletView.js';
 
 /*
  * Scenario: Predict Market Details Performance Test
@@ -41,8 +42,7 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
         currentDeviceDetails.platform,
       );
       await ToastModal.waitForToastToDismiss();
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapPredictButton();
+      await WalletView.scrollAndTapPredictionsSection();
       await timer1.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
           PredictMarketList.container,

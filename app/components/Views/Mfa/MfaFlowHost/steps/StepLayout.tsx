@@ -1,5 +1,10 @@
 import React, { type ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import {
   Box,
   Text,
@@ -14,6 +19,7 @@ import type {
   MfaFlowStep,
   MfaReason,
 } from '../../../../../util/identity/mfa/engine/types';
+import shieldImage from '../../../../../images/mfa-shield.png';
 import { getErrorMessage } from '../../labels';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 
@@ -35,6 +41,18 @@ interface StepLayoutProps {
   children?: ReactNode;
   footer?: ReactNode;
 }
+
+/** The 2-step verification shield, above the title of the intro and picker. */
+export const MfaShield = () => {
+  const tw = useTailwind();
+  return (
+    <Image
+      source={shieldImage}
+      style={tw.style('w-16 h-16 self-center')}
+      resizeMode="contain"
+    />
+  );
+};
 
 export const StepError = ({ code }: { code: MfaFlowErrorCode }) => (
   <Text
