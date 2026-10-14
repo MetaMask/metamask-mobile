@@ -11,10 +11,10 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 /**
  * Stable home section name, derived from the upstream SECTION_NAME enum.
  *
- * 'recently_added' and 'explore' are local additions: the upstream
- * @metamask/perps-controller SECTION_NAME enum does not yet have members for
- * the "Recently added" rail or the home Explore table. Remove these union
- * members once upstream adds them and use those instead.
+ * 'recently_added' and 'explore' match SECTION_NAME.RECENTLY_ADDED and
+ * SECTION_NAME.EXPLORE. Those members are not in the published
+ * @metamask/perps-controller yet (MetaMask/core#10824). Use the constants
+ * once this app depends on a release that includes them.
  */
 export type PerpsHomeSectionName =
   | (typeof PERPS_EVENT_VALUE.SECTION_NAME)[keyof typeof PERPS_EVENT_VALUE.SECTION_NAME]

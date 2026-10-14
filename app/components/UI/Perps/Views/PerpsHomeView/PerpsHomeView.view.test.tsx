@@ -15,6 +15,7 @@ import Engine from '../../../../../core/Engine';
 import {
   createEthMarketForViews,
   createFundedAccountForViews,
+  createHomeExploreAssignmentForViews,
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsHomeView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
@@ -24,6 +25,7 @@ import {
 } from '../../Perps.testIds';
 import { PerpsHomeSectionTestIds } from '../../components/PerpsHomeSection/PerpsHomeSection.testIds';
 import { PerpsOutreachBannerSelectorsIDs } from '../../components/PerpsOutreachBanner';
+import { PerpsHomeExploreVariant } from '../../abTestConfig';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import {
   clearPerpsOutreachApiMocks,
@@ -511,6 +513,61 @@ describe('PerpsHomeView', () => {
         },
         { timeout: TIMEOUT_MS },
       );
+    });
+  });
+
+  describe('home Explore table experiment', () => {
+    const streamOverrides = {
+      account: createFundedAccountForViews('100'),
+      positions: [],
+      orders: [],
+      marketData: [createEthMarketForViews()],
+    };
+
+    const overridesForVariant = (variant: PerpsHomeExploreVariant) => ({
+      engine: {
+        backgroundState: {
+          ...eligibleOverrides.engine.backgroundState,
+          ...createHomeExploreAssignmentForViews(variant).engine
+            .backgroundState,
+        },
+      },
+    });
+
+    it('keeps the stacked crypto section when the assignment is control', async () => {
+      renderPerpsHomeView({
+        overrides: overridesForVariant(PerpsHomeExploreVariant.Control),
+        streamOverrides,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsHomeViewSelectorsIDs.EXPLORE_CRYPTO_SECTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.EXPLORE_SECTION),
+      ).toBeNull();
+    });
+
+    it('replaces the stacked crypto section with Explore in treatment', async () => {
+      renderPerpsHomeView({
+        overrides: overridesForVariant(PerpsHomeExploreVariant.Treatment),
+        streamOverrides,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsHomeViewSelectorsIDs.EXPLORE_SECTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.EXPLORE_CRYPTO_SECTION),
+      ).toBeNull();
     });
   });
 });
