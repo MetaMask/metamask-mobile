@@ -177,7 +177,6 @@ jest.mock('../components/tabs/OverviewTab', () => {
 jest.mock('../components/TokenDetailsV1TabBar', () => {
   const actual = jest.requireActual('../components/TokenDetailsV1TabBar');
   const { View, Pressable, Text } = jest.requireActual('react-native');
-  const tabs = ['overview', 'security', 'feed'];
   return {
     ...actual,
     __esModule: true,
@@ -185,10 +184,12 @@ jest.mock('../components/TokenDetailsV1TabBar', () => {
       activeTab,
       onTabPress,
       onLayout,
+      tabs = ['overview', 'security', 'feed'],
     }: {
       activeTab: string;
       onTabPress: (tab: string) => void;
       onLayout?: (event: LayoutChangeEvent) => void;
+      tabs?: readonly string[];
     }) => (
       <View testID="mock-tab-bar" onLayout={onLayout}>
         {tabs.map((tab) => (
@@ -267,6 +268,13 @@ jest.mock('../TraderPositionPnl/useOpenPositionHeader', () => ({
   useOpenPositionHeader: () => ({ isLoading: false }),
 }));
 
+jest.mock(
+  '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: jest.fn() }),
+  }),
+);
+
 const mockStickyFooterProps: Record<string, unknown>[] = [];
 
 jest.mock('../components/TokenDetailsStickyFooter', () => {
@@ -332,6 +340,17 @@ describe('TokenDetailsV1', () => {
     mockCurrentPrice = 1;
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
     mockUseTokenBalance.mockReturnValue({ balance: undefined });
+    mockUseSocialFeed.mockImplementation(() => ({
+      posts: [],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: jest.fn(),
+      dataUpdatedAt: undefined,
+    }));
     mockOverviewProps.length = 0;
     mockPriceHeaderProps.length = 0;
     mockStickyFooterProps.length = 0;
@@ -453,7 +472,7 @@ describe('TokenDetailsV1', () => {
   });
 
   it('renders the price hero, tab bar and Overview panel by default', () => {
-    const { getByTestId, getByText } = render(
+    const { getByTestId, getByText, queryByTestId } = render(
       <TokenDetailsV1
         token={baseToken}
         variant={TokenDetailsVariant.Memecoin}
@@ -465,7 +484,7 @@ describe('TokenDetailsV1', () => {
     expect(getByTestId('mock-overview')).toBeTruthy();
     expect(getByText('overview:true')).toBeTruthy();
     expect(getByText('security:false')).toBeTruthy();
-    expect(getByText('feed:false')).toBeTruthy();
+    expect(queryByTestId('token-details-v1-tab-feed')).toBeNull();
   });
 
   it('wires the Overview panel with the token, asset id and currency', () => {
@@ -530,7 +549,7 @@ describe('TokenDetailsV1', () => {
   });
 
   it('re-stacks pages when the active tab changes so tabs keep their own heights', () => {
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <TokenDetailsV1
         token={baseToken}
         variant={TokenDetailsVariant.Memecoin}
@@ -552,10 +571,10 @@ describe('TokenDetailsV1', () => {
         .style,
     ).toBeUndefined();
     expect(
-      getByTestId(`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-feed`, {
+      queryByTestId(`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-feed`, {
         includeHiddenElements: true,
-      }).props.style,
-    ).toStrictEqual({ display: 'none' });
+      }),
+    ).toBeNull();
   });
 
   it('mounts tab pages lazily on first activation and keeps them mounted', () => {
@@ -728,6 +747,17 @@ describe('TokenDetailsV1', () => {
   });
 
   it('switches tab panels and back to the Overview tab', () => {
+    mockUseSocialFeed.mockReturnValue({
+      posts: [{ id: 'post-1' }],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: jest.fn(),
+      dataUpdatedAt: undefined,
+    });
     const { getByTestId, getByText } = render(
       <TokenDetailsV1
         token={baseToken}
@@ -751,6 +781,29 @@ describe('TokenDetailsV1', () => {
     expect(getByTestId('token-details-v1-tab-panel-feed')).toBeTruthy();
   });
 
+  it('hides the Feed tab when the token feed has no posts', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+
+    const { queryByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(queryByTestId('token-details-v1-tab-feed')).toBeNull();
+    expect(
+      queryByTestId(`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-feed`, {
+        includeHiddenElements: true,
+      }),
+    ).toBeNull();
+  });
+
   it('loads the social feed on the Feed tab', () => {
     const { useSelector } = jest.requireMock('react-redux') as {
       useSelector: jest.Mock;
@@ -758,6 +811,17 @@ describe('TokenDetailsV1', () => {
     useSelector.mockImplementation((selector: unknown) =>
       selector === selectSocialLeaderboardEnabled ? true : undefined,
     );
+    mockUseSocialFeed.mockReturnValue({
+      posts: [{ id: 'post-1' }],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: jest.fn(),
+      dataUpdatedAt: undefined,
+    });
 
     const { getByTestId } = render(
       <TokenDetailsV1

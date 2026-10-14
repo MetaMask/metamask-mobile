@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -46,6 +47,7 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Price from '../../AssetOverview/Price/Price';
+import { useSocialFeed } from '../../SocialFeed';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../AssetOverview/PriceChart/PriceChart.context';
@@ -343,9 +345,34 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     clampScrollToTabBar,
   } = useTokenDetailsV1ScrollStabilization({ onScroll: handleScroll });
 
-  const { activeTab, activateTab, mountedTabs, swipeGesture } =
-    useTokenDetailsV1Tabs({ onTabChange: clampScrollToTabBar });
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const feedSource = useMemo(
+    () =>
+      socialEnabled && caip19AssetId
+        ? { kind: 'token' as const, assetId: caip19AssetId }
+        : null,
+    [caip19AssetId, socialEnabled],
+  );
+  const { posts: feedPosts } = useSocialFeed(feedSource);
+  const showFeedTab = feedPosts.length > 0;
+  const visibleTabs = useMemo(
+    () =>
+      showFeedTab
+        ? TOKEN_DETAILS_V1_TABS
+        : TOKEN_DETAILS_V1_TABS.filter((tab) => tab !== 'feed'),
+    [showFeedTab],
+  );
+  const { activeTab, activateTab, mountedTabs, swipeGesture } =
+    useTokenDetailsV1Tabs({
+      onTabChange: clampScrollToTabBar,
+      tabs: visibleTabs,
+    });
+
+  useEffect(() => {
+    if (!visibleTabs.includes(activeTab)) {
+      activateTab(visibleTabs[0] ?? 'overview');
+    }
+  }, [activeTab, activateTab, visibleTabs]);
 
   const renderTabPage = useCallback(
     (tab: TokenDetailsV1TabKey) => {
@@ -528,6 +555,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 activeTab={activeTab}
                 onTabPress={activateTab}
                 onLayout={handleTabBarLayout}
+                tabs={visibleTabs}
               />
 
               <GestureDetector gesture={swipeGesture}>
@@ -536,7 +564,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                   style={tabContentContainerStyle}
                   testID={TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}
                 >
-                  {TOKEN_DETAILS_V1_TABS.map((tab) => {
+                  {visibleTabs.map((tab) => {
                     const isActive = tab === activeTab;
                     return (
                       <View

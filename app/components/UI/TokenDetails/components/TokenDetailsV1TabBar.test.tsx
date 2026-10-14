@@ -84,6 +84,20 @@ describe('TokenDetailsV1TabBar', () => {
     expect(queryByText('active:security')).toBeNull();
   });
 
+  it('omits Feed when it is not in the visible tabs', () => {
+    const { getByTestId, queryByTestId } = render(
+      <TokenDetailsV1TabBar
+        activeTab="overview"
+        onTabPress={jest.fn()}
+        tabs={['overview', 'security']}
+      />,
+    );
+
+    expect(getByTestId('token-details-v1-tab-overview')).toBeTruthy();
+    expect(getByTestId('token-details-v1-tab-security')).toBeTruthy();
+    expect(queryByTestId('token-details-v1-tab-feed')).toBeNull();
+  });
+
   it('maps the pressed design-system tab index to its tab key', () => {
     const onTabPress = jest.fn();
     const { getByTestId } = renderTabBar('overview', onTabPress);
@@ -274,5 +288,11 @@ describe('resolveSwipeTargetTab', () => {
   it('refuses to swipe past the edges of the tab list', () => {
     expect(resolveSwipeTargetTab('overview', 120, 0)).toBeNull();
     expect(resolveSwipeTargetTab('feed', -120, 0)).toBeNull();
+  });
+
+  it('stops at Security when Feed is hidden', () => {
+    expect(
+      resolveSwipeTargetTab('security', -120, 0, ['overview', 'security']),
+    ).toBeNull();
   });
 });

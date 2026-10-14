@@ -1,21 +1,34 @@
+import type { Position } from '@metamask/social-controllers';
+
 /**
- * Optional route params when opening the composer after a just-submitted swap.
- * Absent when the user opens the composer from `+` / Share first trade.
+ * Card shown while a just-submitted swap is still being indexed.
  */
-export interface SocialPostComposerViewParams {
-  tradeInFlight: {
-    transactionHash: string;
-    /** Social-api chain slug (`base`), not CAIP. */
-    chain: string;
-    tokenAddress: string;
-  };
-  preview: {
-    tokenSymbol: string;
-    tokenAddress: string;
-    chain: string;
-    tokenImageUrl?: string | null;
-    side: 'buy' | 'sell';
-    costLabel?: string;
-    entryPriceLabel?: string;
-  };
+export interface SocialPostTradePreview {
+  tokenSymbol: string;
+  tokenAddress: string;
+  chain: string;
+  tokenImageUrl?: string | null;
+  side: 'buy' | 'sell';
+  costLabel?: string;
+  entryPriceLabel?: string;
 }
+
+/**
+ * Route params for the composer.
+ * A swap share passes `tradeInFlight`. Token details passes the open
+ * `position` so the card is attached immediately. Both are absent when the
+ * user opens the composer from `+`.
+ */
+export type SocialPostComposerViewParams =
+  | {
+      tradeInFlight: {
+        transactionHash: string;
+        /** Social-api chain slug (`base`), not CAIP. */
+        chain: string;
+        tokenAddress: string;
+      };
+      preview: SocialPostTradePreview;
+    }
+  | {
+      position: Position;
+    };

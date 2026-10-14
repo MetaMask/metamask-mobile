@@ -14,9 +14,10 @@ import { selectSelectedAccountGroupInternalAccounts } from '../../../../selector
 import { useTheme } from '../../../../util/theme';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { resolveSocialPostComposerWallet } from '../navigation/resolveSocialPostComposerWallet';
+import type { SocialPostComposerViewParams } from '../SocialPostComposerView/SocialPostComposerView.types';
 
 export interface UseOpenSocialPostComposerResult {
-  openComposer: () => void;
+  openComposer: (params?: SocialPostComposerViewParams) => void;
 }
 
 /**
@@ -34,73 +35,80 @@ export const useOpenSocialPostComposer =
       selectSelectedAccountGroupInternalAccounts,
     );
 
-    const openComposer = useCallback(() => {
-      const result = resolveSocialPostComposerWallet({
-        linkedAccountId: profile?.linkedAccountId,
-        linkedAccountAddress: profile?.linkedAccountAddress,
-        internalAccounts: internalAccounts.map((account) => ({
-          id: account.id,
-          address: account.address,
-          name: account.metadata.name,
-        })),
-        selectedGroupAccountIds: selectedGroupAccounts.map(
-          (account) => account.id,
-        ),
-        selectedGroupAddresses: selectedGroupAccounts.map(
-          (account) => account.address,
-        ),
-      });
-
-      if (result.action === 'onboarding') {
-        navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
-        return;
-      }
-
-      if (result.action === 'blocked') {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: ComponentLibraryIconName.Danger,
-          iconColor: colors.error.default,
-          labelOptions: [
-            {
-              label: strings(
-                'social_leaderboard.composer.linked_account_missing',
-              ),
-            },
-          ],
-          hasNoTimeout: false,
+    const openComposer = useCallback(
+      (params?: SocialPostComposerViewParams) => {
+        const result = resolveSocialPostComposerWallet({
+          linkedAccountId: profile?.linkedAccountId,
+          linkedAccountAddress: profile?.linkedAccountAddress,
+          internalAccounts: internalAccounts.map((account) => ({
+            id: account.id,
+            address: account.address,
+            name: account.metadata.name,
+          })),
+          selectedGroupAccountIds: selectedGroupAccounts.map(
+            (account) => account.id,
+          ),
+          selectedGroupAddresses: selectedGroupAccounts.map(
+            (account) => account.address,
+          ),
         });
-        return;
-      }
 
-      if (result.showLinkedAccountToast) {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: ComponentLibraryIconName.Info,
-          iconColor: colors.primary.default,
-          labelOptions: [
-            {
-              label: strings(
-                'social_leaderboard.composer.showing_linked_account',
-                { account: result.accountLabel },
-              ),
-            },
-          ],
-          hasNoTimeout: false,
-        });
-      }
+        if (result.action === 'onboarding') {
+          navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+          return;
+        }
 
-      navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
-    }, [
-      colors.error.default,
-      colors.primary.default,
-      internalAccounts,
-      navigation,
-      profile?.linkedAccountAddress,
-      profile?.linkedAccountId,
-      selectedGroupAccounts,
-      toastRef,
-    ]);
+        if (result.action === 'blocked') {
+          toastRef?.current?.showToast({
+            variant: ToastVariants.Icon,
+            iconName: ComponentLibraryIconName.Danger,
+            iconColor: colors.error.default,
+            labelOptions: [
+              {
+                label: strings(
+                  'social_leaderboard.composer.linked_account_missing',
+                ),
+              },
+            ],
+            hasNoTimeout: false,
+          });
+          return;
+        }
+
+        if (result.showLinkedAccountToast) {
+          toastRef?.current?.showToast({
+            variant: ToastVariants.Icon,
+            iconName: ComponentLibraryIconName.Info,
+            iconColor: colors.primary.default,
+            labelOptions: [
+              {
+                label: strings(
+                  'social_leaderboard.composer.showing_linked_account',
+                  { account: result.accountLabel },
+                ),
+              },
+            ],
+            hasNoTimeout: false,
+          });
+        }
+
+        if (params) {
+          navigation.navigate(Routes.SOCIAL.POST_COMPOSER, params);
+          return;
+        }
+        navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
+      },
+      [
+        colors.error.default,
+        colors.primary.default,
+        internalAccounts,
+        navigation,
+        profile?.linkedAccountAddress,
+        profile?.linkedAccountId,
+        selectedGroupAccounts,
+        toastRef,
+      ],
+    );
 
     return { openComposer };
   };

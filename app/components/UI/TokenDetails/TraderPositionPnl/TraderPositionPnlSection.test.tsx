@@ -6,6 +6,26 @@ import { useTokenBalance } from '../hooks/useTokenBalance';
 import TraderPositionPnlSection from './TraderPositionPnlSection';
 import { useOpenPositionHeader } from './useOpenPositionHeader';
 
+const mockOpenComposer = jest.fn();
+const mockSocialLeaderboardEnabled = jest.fn(() => true);
+const mockUseSocialV1 = jest.fn(() => true);
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: () => mockSocialLeaderboardEnabled(),
+}));
+
+jest.mock('../../../../hooks', () => ({
+  useABTest: () => ({ variant: { useSocialV1: mockUseSocialV1() } }),
+}));
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
+  }),
+);
+
 const footerProps: Record<string, unknown>[] = [];
 
 jest.mock(
@@ -53,6 +73,8 @@ describe('TraderPositionPnlSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     footerProps.length = 0;
+    mockSocialLeaderboardEnabled.mockReturnValue(true);
+    mockUseSocialV1.mockReturnValue(true);
     mockUseStickyQuickBuy.mockReturnValue({
       onQuickBuyPress: jest.fn(),
       openQuickBuy: jest.fn(),
@@ -84,25 +106,94 @@ describe('TraderPositionPnlSection', () => {
     expect(positionProp()).not.toHaveProperty('expandedDetails');
   });
 
-  it('passes expanded position details through to the footer', () => {
+  describe('expanded position details', () => {
     const expandedDetails = {
       averageCost: '$0.0005',
       realizedPnl: '+$50.25',
       unrealizedPnl: '+$1,200.00',
       holdTime: '—',
     };
-    mockUseOpenPositionHeader.mockReturnValue({
-      positionValue: '$2,000.00',
-      pnl: { amount: '+$1,200.00', percentage: '+150.00%', isProfit: true },
-      expandedDetails,
-      isLoading: false,
+
+    beforeEach(() => {
+      mockUseOpenPositionHeader.mockReturnValue({
+        positionValue: '$2,000.00',
+        pnl: { amount: '+$1,200.00', percentage: '+150.00%', isProfit: true },
+        expandedDetails,
+        isLoading: false,
+      });
     });
 
-    renderSection();
+    it('wires Share to feed to the post composer when Social V1 is enabled', () => {
+      renderSection();
 
-    expect(positionProp()).toEqual(
-      expect.objectContaining({ expandedDetails }),
-    );
+      positionProp()?.expandedDetails?.onShare?.();
+
+      expect(mockOpenComposer).toHaveBeenCalledWith();
+    });
+
+    it('opens the share post with the open position already attached', () => {
+      const sharePosition = {
+        positionId: 'pos-1',
+        tokenSymbol: 'PEPE',
+        tokenName: 'Pepe',
+        tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+        chain: 'ethereum',
+        isOpen: true,
+        positionAmount: 100,
+        costBasis: 50,
+        currentValueUSD: 80,
+        realizedPnl: 0,
+        pnlValueUsd: 30,
+        pnlPercent: 60,
+        boughtUsd: 50,
+        soldUsd: 0,
+        perpPositionType: null,
+        perpLeverage: null,
+        positionAmountWithLeverage: null,
+        costBasisWithLeverage: null,
+        marginUsd: null,
+        trades: [{ timestamp: 1_700_000_000 }],
+        lastTradeAt: 1_700_000_100,
+      };
+      mockUseOpenPositionHeader.mockReturnValue({
+        positionValue: '$2,000.00',
+        pnl: { amount: '+$1,200.00', percentage: '+150.00%', isProfit: true },
+        expandedDetails,
+        sharePosition,
+        isLoading: false,
+      });
+
+      renderSection();
+      positionProp()?.expandedDetails?.onShare?.();
+
+      expect(mockOpenComposer).toHaveBeenCalledWith({
+        position: expect.objectContaining({
+          positionId: 'pos-1',
+          tokenSymbol: 'PEPE',
+          isOpen: true,
+        }),
+      });
+    });
+
+    it('leaves Share to feed disabled in the Social V1 control arm', () => {
+      mockUseSocialV1.mockReturnValue(false);
+
+      renderSection();
+
+      expect(positionProp()).toEqual(
+        expect.objectContaining({ expandedDetails }),
+      );
+    });
+
+    it('leaves Share to feed disabled when Social is off', () => {
+      mockSocialLeaderboardEnabled.mockReturnValue(false);
+
+      renderSection();
+
+      expect(positionProp()).toEqual(
+        expect.objectContaining({ expandedDetails }),
+      );
+    });
   });
 
   it('passes a loading header through before a value arrives', () => {

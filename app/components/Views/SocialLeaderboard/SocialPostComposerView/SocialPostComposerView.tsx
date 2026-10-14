@@ -136,12 +136,15 @@ const SocialPostComposerView: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route = useRoute();
-  const tradeInFlightParams = (
-    route.params as SocialPostComposerViewParams | undefined
-  )?.tradeInFlight;
-  const tradeInFlightPreview = (
-    route.params as SocialPostComposerViewParams | undefined
-  )?.preview;
+  const routeParams = route.params as SocialPostComposerViewParams | undefined;
+  const tradeInFlightParams =
+    routeParams && 'tradeInFlight' in routeParams
+      ? routeParams.tradeInFlight
+      : undefined;
+  const tradeInFlightPreview =
+    routeParams && 'preview' in routeParams ? routeParams.preview : undefined;
+  const routedPosition =
+    routeParams && 'position' in routeParams ? routeParams.position : undefined;
   const { toastRef } = useContext(ToastContext);
   const isScreenTransitionComplete = useScreenTransitionComplete();
   const { profile } = useMyProfile();
@@ -152,7 +155,11 @@ const SocialPostComposerView: React.FC = () => {
   const [selectedPosition, setSelectedPosition] = useState<{
     position: Position;
     isClosed: boolean;
-  } | null>(null);
+  } | null>(
+    routedPosition
+      ? { position: routedPosition, isClosed: routedPosition.isOpen === false }
+      : null,
+  );
   const [gifUri, setGifUri] = useState<string | null>(null);
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isGifSheetOpen, setIsGifSheetOpen] = useState(false);
