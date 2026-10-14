@@ -28,6 +28,7 @@ import { playSelection } from '../../../../util/haptics';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
 import { type QuickBuyTarget } from '../../../UI/QuickBuy';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
@@ -108,8 +109,12 @@ export interface EmptyShellTabPageProps {
   /**
    * Requests the spot QuickBuy sheet for a copy-traded post. The sheet is
    * hosted by the parent view, outside the pager — see `SocialV1View`.
+   * `copyTradeOrigin` is set when the post has a comment to attribute to.
    */
-  onQuickBuy?: (target: QuickBuyTarget) => void;
+  onQuickBuy?: (
+    target: QuickBuyTarget,
+    copyTradeOrigin?: CopyTradeOrigin,
+  ) => void;
 }
 
 /**
@@ -371,7 +376,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   }, [showPopularTraders, sortedPosts]);
 
   const handleCopyTrade = useCallback(
-    (item: SocialV1FeedItem) => {
+    (item: SocialV1FeedItem, commentId?: string) => {
       if (item.variant !== 'spotOpen' && item.variant !== 'spotShare') {
         return;
       }
@@ -382,12 +387,15 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         return;
       }
 
-      onQuickBuy?.({
-        tokenAddress,
-        tokenSymbol: item.asset.symbol,
-        tokenName: item.asset.name ?? item.asset.symbol,
-        chain,
-      });
+      onQuickBuy?.(
+        {
+          tokenAddress,
+          tokenSymbol: item.asset.symbol,
+          tokenName: item.asset.name ?? item.asset.symbol,
+          chain,
+        },
+        commentId ? { commentId } : undefined,
+      );
     },
     [onQuickBuy],
   );

@@ -26,9 +26,13 @@ export interface UseCopyTradeToPerpsResult {
  * gate, an ineligible region gets the geo block; otherwise the perps order
  * redirect in the transparent Perps modal stack brings the websocket up and
  * opens the trade bottom sheet over this page.
+ *
+ * With a `commentId`, the order view records a copy-trade intent for an order
+ * placed on this market.
  */
 export const useCopyTradeToPerps = (
   item: SocialV1FeedItem,
+  commentId?: string,
 ): UseCopyTradeToPerpsResult => {
   const navigation = useNavigation();
   const isEligible = useSelector(selectPerpsEligibility);
@@ -58,10 +62,13 @@ export const useCopyTradeToPerps = (
           source: 'trader_feed',
           useBottomSheet: true,
           stayOnCurrentScreen: true,
+          ...(commentId
+            ? { copyTradeOrigin: { commentId, asset: tradeSymbol } }
+            : {}),
         },
       });
     }).catch(() => undefined);
-  }, [gate, isEligible, item, navigation]);
+  }, [commentId, gate, isEligible, item, navigation]);
 
   const closeGeoBlock = useCallback(() => setIsGeoBlockVisible(false), []);
 
