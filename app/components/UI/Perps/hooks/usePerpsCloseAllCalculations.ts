@@ -1,8 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  BASIS_POINTS_DIVISOR,
-  BUILDER_FEE_CONFIG,
   formatAccountToCaipAccountId,
   type Position,
   type FeeCalculationResult,
@@ -378,6 +376,7 @@ export function usePerpsCloseAllCalculations({
     // Calculate weighted averages based on fee amounts
     let weightedMetamaskFeeRate = 0;
     let weightedOriginalMetamaskFeeRate = 0;
+    let weightedFeeDiscountBips = 0;
     let weightedProtocolFeeRate = 0;
     let totalWeight = 0;
 
@@ -389,11 +388,13 @@ export function usePerpsCloseAllCalculations({
         result.fees.protocolFeeRate !== undefined
       ) {
         weightedMetamaskFeeRate += result.fees.metamaskFeeRate * weight;
-        // The undiscounted rate is the default builder fee when one is charged
+        // calculateFees reports the discount and undiscounted rate of the fee
+        // resolution it priced from; a quote without one carries no discount
         weightedOriginalMetamaskFeeRate +=
-          (result.fees.chargesMetamaskBuilderFee
-            ? BUILDER_FEE_CONFIG.MaxFeeDecimal
-            : result.fees.metamaskFeeRate) * weight;
+          (result.fees.undiscountedMetamaskFeeRate ??
+            result.fees.metamaskFeeRate) * weight;
+        weightedFeeDiscountBips +=
+          (result.fees.metamaskFeeDiscountBips ?? 0) * weight;
         weightedProtocolFeeRate += result.fees.protocolFeeRate * weight;
         totalWeight += weight;
       }
@@ -409,15 +410,15 @@ export function usePerpsCloseAllCalculations({
         ? weightedOriginalMetamaskFeeRate / totalWeight
         : undefined;
 
-    // Discount the fee resolution applied, in whole percent (e.g. 65 for 65%)
+    // Fee-weighted discount the fee resolutions applied, rounded to whole bips
+    // and expressed in percent (e.g. 65 for 65%)
+    const avgFeeDiscountBips =
+      totalWeight > 0
+        ? Math.round(weightedFeeDiscountBips / totalWeight)
+        : undefined;
     const avgFeeDiscountPercentage =
-      avgMetamaskFeeRate !== undefined &&
-      avgOriginalMetamaskFeeRate !== undefined &&
-      avgOriginalMetamaskFeeRate > avgMetamaskFeeRate
-        ? Math.round(
-            (1 - avgMetamaskFeeRate / avgOriginalMetamaskFeeRate) *
-              BASIS_POINTS_DIVISOR,
-          ) / 100
+      avgFeeDiscountBips !== undefined && avgFeeDiscountBips > 0
+        ? avgFeeDiscountBips / 100
         : undefined;
 
     // Batch API returns average bonusBips already calculated by backend
