@@ -24,8 +24,9 @@ export interface IWalletProviderAdapter {
 
   /**
    * Get detailed wallet eligibility including existing card status.
-   * Apple matches an existing pass by primaryAccountIdentifier when one is
-   * provided, and by the PAN suffix otherwise.
+   * Apple matches Immersve passes by the last four digits on the iPhone and a
+   * paired Watch when a primary account identifier is provided, and by the
+   * iPhone PAN suffix otherwise.
    */
   getEligibility(
     lastFourDigits?: string,

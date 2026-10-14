@@ -488,20 +488,22 @@ describe('AppleWalletAdapter', () => {
     describe('per-device eligibility', () => {
       const identifier = 'series-1';
 
+      const passkitIdentifier = 'passkit-fpan';
+
       const pass = (
         activationState: string,
         isRemote: boolean,
-        primaryAccountIdentifier = identifier,
+        lastDigits = '1234',
       ) => ({
         passTypeIdentifier: 'paymentpass.com.apple',
         serialNumber: isRemote ? 'watch' : 'phone',
-        primaryAccountIdentifier,
-        lastDigits: '1234',
+        primaryAccountIdentifier: passkitIdentifier,
+        lastDigits,
         activationState,
         isRemote,
       });
 
-      it('offers Add when no pass matches the identifier', async () => {
+      it('offers Add when no pass matches the last four digits', async () => {
         mockListAppleWalletPasses.mockResolvedValue([]);
 
         const result = await adapter.getEligibility('1234', identifier);
@@ -518,7 +520,9 @@ describe('AppleWalletAdapter', () => {
 
         const result = await adapter.getEligibility('1234', identifier);
 
-        expect(mockCanAddCardToAppleWallet).toHaveBeenCalledWith(identifier);
+        expect(mockCanAddCardToAppleWallet).toHaveBeenCalledWith(
+          passkitIdentifier,
+        );
         expect(result.canAddCard).toBe(true);
         expect(result.existingCardStatus).toBe('active');
         expect(result.devices).toEqual({ phone: 'active' });
@@ -594,15 +598,38 @@ describe('AppleWalletAdapter', () => {
         expect(result.devices).toEqual({});
       });
 
-      it('ignores a pass with a different identifier', async () => {
+      it('ignores a pass with a different last four', async () => {
         mockListAppleWalletPasses.mockResolvedValue([
-          pass('active', false, 'other-series'),
+          pass('active', false, '9999'),
         ]);
 
         const result = await adapter.getEligibility('1234', identifier);
 
         expect(result.canAddCard).toBe(true);
         expect(result.devices).toEqual({});
+      });
+
+      it('asks PassKit with the identifier on the matched pass', async () => {
+        mockListAppleWalletPasses.mockResolvedValue([pass('active', false)]);
+        mockCanAddCardToAppleWallet.mockResolvedValue(true);
+
+        await adapter.getEligibility('1234', identifier);
+
+        expect(mockCanAddCardToAppleWallet).toHaveBeenCalledWith(
+          passkitIdentifier,
+        );
+        expect(mockCanAddCardToAppleWallet).not.toHaveBeenCalledWith(
+          identifier,
+        );
+      });
+
+      it('falls back to the PAN suffix when the card has no last four', async () => {
+        const result = await adapter.getEligibility(undefined, identifier);
+
+        expect(mockListAppleWalletPasses).not.toHaveBeenCalled();
+        expect(mockGetCardStatusBySuffix).not.toHaveBeenCalled();
+        expect(result.canAddCard).toBe(true);
+        expect(result.recommendedAction).toBe('add_card');
       });
 
       it('falls back to the PAN suffix when listing passes fails', async () => {
