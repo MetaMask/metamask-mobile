@@ -23,7 +23,6 @@ import type { AccountsApiActivity } from '../types/moneyActivity';
 jest.mock('@tanstack/react-query', () => ({
   useInfiniteQuery: jest.fn(),
 }));
-
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -153,7 +152,7 @@ describe('useMoneyAccountApiActivity', () => {
     });
   });
 
-  it('delegates to useInfiniteQuery reusing the cursor-free query key', () => {
+  it('uses the cursor-free Accounts API query key for pagination', () => {
     renderHook(() => useMoneyAccountApiActivity());
 
     expect(mockUseInfiniteQuery).toHaveBeenCalledWith(
