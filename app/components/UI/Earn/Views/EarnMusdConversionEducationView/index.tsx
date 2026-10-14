@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { useDispatch, useSelector } from 'react-redux';
-import { Image, StyleSheet, useColorScheme } from 'react-native';
+import { Image, useColorScheme } from 'react-native';
 import { setMusdConversionEducationSeen } from '../../../../../actions/user';
 import Logger from '../../../../../util/Logger';
 import musdEducationBackgroundV2Dark from '../../../../../images/musd-conversion-education-screen-v2-dark-3x.png';
 import musdEducationBackgroundV2Light from '../../../../../images/musd-conversion-education-screen-v2-light-3x.png';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import MarketingMoment from '../../../MarketingMoment';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigation } from '@react-navigation/native';
@@ -15,17 +16,10 @@ import {
   Box,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 // component-library TagBase: DSRN Tag has no startAccessory + Rectangle shape support
 import TagBase from '../../../../../component-library/base-components/TagBase';
@@ -54,25 +48,6 @@ import { toChecksumAddress } from '../../../../../util/address';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
 import { MONEY_HUB_EVENTS_CONSTANTS } from '../../../Money/constants/moneyHubEvents';
 import { selectMoneyHubEnabledFlag } from '../../../Money/selectors/featureFlags';
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 40,
-  },
-  heading: {
-    fontFamily: 'MMPoly-Regular',
-    fontSize: 40,
-    lineHeight: 40,
-    paddingVertical: 16,
-    textAlign: 'center',
-  },
-  backgroundImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'contain',
-  },
-});
 
 export interface EarnMusdConversionEducationViewRouteParams {
   /**
@@ -126,6 +101,7 @@ const EarnMusdConversionEducationView = () => {
   const navigation = useNavigation<AppNavigationProp>();
 
   const colorScheme = useColorScheme();
+  const tw = useTailwind();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -397,22 +373,19 @@ const EarnMusdConversionEducationView = () => {
   };
 
   return (
-    // Do not remove the top edge as this screen does not have a navbar set in the route options.
-    <SafeAreaView
-      style={styles.container}
-      edges={['top', 'bottom']}
+    <MarketingMoment
       testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.CONTAINER}
-    >
-      <Box twClassName="px-4 items-center">
-        <Text style={styles.heading} numberOfLines={2} adjustsFontSizeToFit>
-          {strings('earn.musd_conversion.education.heading', {
-            percentage: MUSD_CONVERSION_APY,
-          })}
-        </Text>
+      title={strings('earn.musd_conversion.education.heading', {
+        percentage: MUSD_CONVERSION_APY,
+      })}
+      description={strings('earn.musd_conversion.education.description', {
+        percentage: MUSD_CONVERSION_APY,
+      })}
+      supportingContent={
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-wrap gap-1 mt-4"
+          twClassName="flex-wrap gap-1"
         >
           {[
             'earn.musd_conversion.education.checklist.dollar_backed',
@@ -442,48 +415,26 @@ const EarnMusdConversionEducationView = () => {
             </TagBase>
           ))}
         </Box>
-      </Box>
-      <Box twClassName="flex-1 min-h-[100px]">
+      }
+      artwork={
         <Image
           source={backgroundImage}
-          style={styles.backgroundImage}
+          style={tw.style('h-full w-full')}
+          resizeMode="contain"
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.BACKGROUND_IMAGE}
         />
-      </Box>
-      <Box twClassName="px-4 items-center">
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="text-center mt-4 mb-6"
-        >
-          {strings('earn.musd_conversion.education.description', {
-            percentage: MUSD_CONVERSION_APY,
-          })}
-        </Text>
-      </Box>
-
-      <Box twClassName="mx-4 mb-4 gap-2">
-        <Button
-          variant={ButtonVariant.Primary}
-          onPress={handleContinue}
-          size={ButtonSize.Lg}
-          isFullWidth
-          testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON}
-        >
-          {primaryButtonText}
-        </Button>
-        <Button
-          variant={ButtonVariant.Tertiary}
-          isFullWidth
-          onPress={handleNotNow}
-          testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON}
-        >
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {strings('earn.musd_conversion.education.secondary_button')}
-          </Text>
-        </Button>
-      </Box>
-    </SafeAreaView>
+      }
+      primaryAction={{
+        label: primaryButtonText,
+        onPress: handleContinue,
+        testID: EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+      }}
+      secondaryAction={{
+        label: strings('earn.musd_conversion.education.secondary_button'),
+        onPress: handleNotNow,
+        testID: EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
+      }}
+    />
   );
 };
 

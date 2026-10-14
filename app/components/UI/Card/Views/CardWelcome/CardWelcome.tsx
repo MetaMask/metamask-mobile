@@ -1,15 +1,14 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useEffect, useState } from 'react';
-import { StatusBar, View, useWindowDimensions } from 'react-native';
+import { StatusBar, useWindowDimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Animated, {
+import {
   useAnimatedStyle,
   useSharedValue,
   withDelay,
   withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
@@ -32,14 +31,14 @@ import {
 } from '../../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
-import {
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  ButtonBase,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
+import MarketingMoment from '../../../MarketingMoment';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import type {
+  HardwareTier,
+  NetworkTier,
+} from '../../../../../util/deviceCapability/types';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 
 interface TransitionEndEvent {
   data?: { closing?: boolean };
@@ -67,6 +66,24 @@ const DESCRIPTION_REVEAL_DELAY_MS =
 const BUTTONS_REVEAL_DELAY_MS = 500;
 const BUTTONS_REVEAL_DURATION_MS = 300;
 
+/**
+ * Low-memory hardware uses the static card image. The Rive file is bundled,
+ * so network tier does not fetch or skip it. Unknown hardware keeps Rive.
+ */
+export function shouldUseStaticCardArtwork(
+  hardwareTier: HardwareTier | null,
+  networkTier: NetworkTier | null,
+): boolean {
+  const networkDoesNotGateArtwork =
+    networkTier === 'NONE' ||
+    networkTier === 'SLOW_CELLULAR' ||
+    networkTier === 'FAST_CELLULAR' ||
+    networkTier === 'WIFI' ||
+    networkTier === null;
+
+  return hardwareTier === 'LOW' && networkDoesNotGateArtwork;
+}
+
 const CardWelcome = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation<AppNavigationProp>();
@@ -77,14 +94,17 @@ const CardWelcome = () => {
   const theme = useTheme();
   const dimensions = useWindowDimensions();
   const styles = createStyles(theme, dimensions);
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
   const animationState = useCardEducationAnimationState();
   const [hasCardsAnimationError, setHasCardsAnimationError] = useState(false);
   const [hasCardsEntranceStarted, setHasCardsEntranceStarted] = useState(false);
-  // A Rive failure swaps in the static cards image, so there is no entrance
-  // left to sequence against: fall back to the static reveal rather than
-  // holding the copy hidden for the full CardsIn duration.
+  // A Rive failure, or low-memory hardware, swaps in the static cards image,
+  // so there is no entrance left to sequence against.
   const resolvedAnimationState =
-    animationState === 'animate' && hasCardsAnimationError
+    animationState === 'animate' &&
+    (hasCardsAnimationError ||
+      shouldUseStaticCardArtwork(hardwareTier, networkTier))
       ? 'static'
       : animationState;
   const isAnimating = resolvedAnimationState === 'animate';
@@ -273,89 +293,60 @@ const CardWelcome = () => {
       style={styles.pageContainer}
       testID="card-gtm-modal-container"
     >
-      {/* Header Section */}
-      <SafeAreaView style={styles.headerContainer} edges={['top']}>
-        <Animated.View
-          style={[
-            isChromeHiddenUntilRevealed && styles.hiddenText,
-            isTextRevealing && titleRevealStyle,
-          ]}
-        >
-          <Text
-            style={styles.title}
-            variant={TextVariant.HeadingLg}
-            testID={CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT}
-          >
-            {strings('card.card_onboarding.title')}
-          </Text>
-        </Animated.View>
-        <Animated.View
-          style={[
-            isChromeHiddenUntilRevealed && styles.hiddenText,
-            isTextRevealing && descriptionRevealStyle,
-          ]}
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            style={styles.titleDescription}
-            testID={CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT}
-          >
-            {strings('card.card_onboarding.description')}
-          </Text>
-        </Animated.View>
-      </SafeAreaView>
-
-      {/* Image Section - Positioned absolutely to extend behind footer */}
-      <View style={styles.imageContainer}>
-        {resolvedAnimationState !== 'pending' && (
-          <CardWelcomeCardsAnimation
-            animate={isAnimating}
-            style={styles.image}
-            animationStyle={styles.animation}
-            onEntranceStart={handleCardsEntranceStart}
-            onRiveError={handleCardsAnimationError}
-          />
-        )}
-      </View>
-
-      {/* Footer Section - Positioned absolutely at bottom */}
-      <SafeAreaView style={styles.footerContainer} edges={['bottom']}>
-        <Animated.View
-          style={[
-            styles.footerContent,
-            isChromeHiddenUntilRevealed && styles.hiddenText,
-            isButtonsRevealing && buttonsRevealStyle,
-          ]}
-        >
-          <ButtonBase
-            onPress={handleButtonPress}
-            testID={CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON}
-            size={ButtonSize.Lg}
-            isFullWidth
-            twClassName="bg-white"
-          >
-            <Text variant={TextVariant.BodyMd} twClassName="text-black">
-              {strings(
-                shouldGoToSignIn
-                  ? 'card.card_onboarding.login_button'
-                  : 'card.card_onboarding.apply_now_button',
-              )}
-            </Text>
-          </ButtonBase>
-          <Button
-            variant={ButtonVariant.Tertiary}
-            onPress={handleClose}
-            testID={CardWelcomeSelectors.NOT_NOW_BUTTON}
-            size={ButtonSize.Lg}
-            isFullWidth
-            textProps={{
-              twClassName: 'text-white',
-            }}
-          >
-            {strings('card.card_onboarding.not_now_button')}
-          </Button>
-        </Animated.View>
-      </SafeAreaView>
+      <MarketingMoment
+        twClassName="bg-transparent"
+        title={strings('card.card_onboarding.title')}
+        description={strings('card.card_onboarding.description')}
+        titleTestID={CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT}
+        descriptionTestIDs={[
+          CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT,
+        ]}
+        titleFrameStyle={[
+          isChromeHiddenUntilRevealed && styles.hiddenText,
+          isTextRevealing && titleRevealStyle,
+        ]}
+        descriptionFrameStyle={[
+          isChromeHiddenUntilRevealed && styles.hiddenText,
+          isTextRevealing && descriptionRevealStyle,
+        ]}
+        actionsFrameStyle={[
+          styles.footerContent,
+          isChromeHiddenUntilRevealed && styles.hiddenText,
+          isButtonsRevealing && buttonsRevealStyle,
+        ]}
+        titleStyle={styles.lightCopy}
+        descriptionStyle={styles.lightCopy}
+        backdrop={
+          <Box style={styles.imageContainer}>
+            {resolvedAnimationState !== 'pending' && (
+              <CardWelcomeCardsAnimation
+                animate={isAnimating}
+                style={styles.image}
+                animationStyle={styles.animation}
+                onEntranceStart={handleCardsEntranceStart}
+                onRiveError={handleCardsAnimationError}
+              />
+            )}
+          </Box>
+        }
+        primaryAction={{
+          label: strings(
+            shouldGoToSignIn
+              ? 'card.card_onboarding.login_button'
+              : 'card.card_onboarding.apply_now_button',
+          ),
+          onPress: handleButtonPress,
+          testID: CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON,
+          twClassName: 'bg-white',
+          textClassName: 'text-black',
+        }}
+        secondaryAction={{
+          label: strings('card.card_onboarding.not_now_button'),
+          onPress: handleClose,
+          testID: CardWelcomeSelectors.NOT_NOW_BUTTON,
+          textClassName: 'text-white',
+        }}
+      />
     </LinearGradient>
   );
 };
