@@ -11526,7 +11526,12 @@
       "error_unknown": "An unexpected error occurred. Try again or contact support.",
       "error_platform_not_supported": "This platform does not support mobile wallet provisioning.",
       "try_again": "Try again",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "verification_pending_title": "Verification pending",
+      "verification_pending_description": "Verification is pending on {{devices}}. Open the card in Apple Wallet and contact the card issuer using the details on the back of the card.",
+      "device_iphone": "iPhone",
+      "device_apple_watch": "Apple Watch",
+      "device_list_and": "{{first}} and {{second}}"
     }
   },
   "onboarding_error_fallback": {
