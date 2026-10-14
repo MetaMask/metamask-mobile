@@ -42,6 +42,7 @@ const mockUsePushProvisioning = jest.fn(
     isLoading: false,
     canAddToWallet: false,
     isCardInWallet: false,
+    pendingVerificationDevices: [] as ('phone' | 'watch')[],
   }),
 );
 
@@ -2178,6 +2179,7 @@ describe('CardHome Component', () => {
         isLoading: true,
         canAddToWallet: false,
         isCardInWallet: false,
+        pendingVerificationDevices: [],
       });
 
       render();
@@ -2201,6 +2203,7 @@ describe('CardHome Component', () => {
         isLoading: false,
         canAddToWallet: true,
         isCardInWallet: false,
+        pendingVerificationDevices: [],
       });
 
       render();
@@ -2224,10 +2227,53 @@ describe('CardHome Component', () => {
         isLoading: false,
         canAddToWallet: false,
         isCardInWallet: true,
+        pendingVerificationDevices: [],
       });
 
       render();
 
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows a pending verification notice that names the devices', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+        isCardInWallet: true,
+        pendingVerificationDevices: ['phone', 'watch'],
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('card.push_provisioning.verification_pending_title'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('card.push_provisioning.verification_pending_description', {
+            devices: strings('card.push_provisioning.device_list_and', {
+              first: strings('card.push_provisioning.device_iphone'),
+              second: strings('card.push_provisioning.device_apple_watch'),
+            }),
+          }),
+        ),
+      ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(
           CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
@@ -2247,6 +2293,7 @@ describe('CardHome Component', () => {
         isLoading: false,
         canAddToWallet: false,
         isCardInWallet: false,
+        pendingVerificationDevices: [],
       });
 
       render();
@@ -7249,6 +7296,7 @@ describe('CardHome Component', () => {
         isLoading: false,
         canAddToWallet: false,
         isCardInWallet: false,
+        pendingVerificationDevices: [],
       });
       render();
       expect(screen.queryByTestId('add-to-wallet-button')).toBeNull();
