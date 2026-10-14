@@ -64,6 +64,14 @@ export const NOTIFICATION_SETTINGS_SECTIONS: NotificationSettingsSectionConfig[]
       requiresSocialLeaderboard: true,
     },
     {
+      slug: NotificationSettingsSectionSlug.PriceAlerts,
+      type: 'priceAlerts',
+      titleKey: 'app_settings.notifications_opts.price_alerts_title',
+      descriptionKey: 'app_settings.notifications_opts.price_alerts_desc',
+      iconName: IconName.Notification,
+      showStatus: true,
+    },
+    {
       slug: NotificationSettingsSectionSlug.AgenticCli,
       type: 'agenticCli',
       titleKey: 'app_settings.notifications_opts.agentic_cli_title',
@@ -79,14 +87,8 @@ export const NOTIFICATION_SETTINGS_SECTIONS: NotificationSettingsSectionConfig[]
       iconName: IconName.Campaign,
       showStatus: true,
     },
-    {
-      slug: NotificationSettingsSectionSlug.PriceAlerts,
-      type: 'priceAlerts',
-      titleKey: 'app_settings.notifications_opts.price_alerts_title',
-      descriptionKey: 'app_settings.notifications_opts.price_alerts_desc',
-      iconName: IconName.Notification,
-      showStatus: true,
-    },
+    // WARNING: This marketing section must ALWAYS remain the very last item in the array.
+    // New sections must be added ABOVE this entry (never below).
   ];
 
 const NOTIFICATION_SETTINGS_SECTION_BY_PARAM: Record<

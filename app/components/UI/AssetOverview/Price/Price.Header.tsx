@@ -4,11 +4,15 @@ import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
 import { TokenPriceTitleHub } from './TokenPriceTitleHub';
 import { usePriceChartContext } from './Price.context';
 
+export interface PriceHeaderProps {
+  showPeriodLabel?: boolean;
+}
+
 /**
  * Price, change, and period label above the chart. Swaps between the line-mode
  * title, the candle crosshair readout, and the default candle title.
  */
-export const PriceHeader = () => {
+export const PriceHeader = ({ showPeriodLabel = true }: PriceHeaderProps) => {
   const {
     ambientColor,
     changePercent,
@@ -45,7 +49,7 @@ export const PriceHeader = () => {
         price={lineTitlePrice}
         displayDiff={lineTitleDiff}
         comparePrice={comparePrice}
-        periodLabel={lineTitleDate}
+        periodLabel={showPeriodLabel ? lineTitleDate : undefined}
         currentCurrency={currentCurrency}
         isLoading={isLoading}
         ambientColor={lineAmbientColor}
@@ -77,7 +81,7 @@ export const PriceHeader = () => {
         dynamicComparePrice ??
         (chartType === ChartType.Candles ? comparePrice : null)
       }
-      periodLabel={displayDate}
+      periodLabel={showPeriodLabel ? displayDate : undefined}
       currentCurrency={currentCurrency}
       isLoading={isLoading}
       isChangeLoading={isChangeLoadingValue}

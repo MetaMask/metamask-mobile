@@ -159,12 +159,19 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.isCustomActive).toBe(false);
   });
 
+  it('rounds the market price to two decimal places for a sub-dollar dest token', () => {
+    mockFiatRates({ destRate: 0.10298176120674981 });
+
+    const { result } = renderPriceAdjustHook();
+
+    expect(result.current.limitPrice).toBe('0.1');
+  });
+
   it('omits market comparison when market is applied to a sub-dollar dest token', () => {
     mockFiatRates({ destRate: 0.10298176120674981 });
 
     const { result } = renderPriceAdjustHook();
 
-    expect(result.current.limitPrice).not.toBe('0.1');
     expect(result.current.marketComparison).toBeUndefined();
   });
 
@@ -210,24 +217,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.isCustomActive).toBe(true);
   });
 
-  it('caps a custom percent above the maximum to 99% on commit', () => {
-    const { result } = renderPriceAdjustHook();
-
-    act(() => {
-      result.current.handleCustomPress();
-      result.current.handleCustomValueChange('150');
-    });
-
-    act(() => {
-      result.current.commitCustomPercent();
-    });
-
-    expect(result.current.limitPrice).toBe('0.01');
-    expect(result.current.isCustomActive).toBe(true);
-    expect(result.current.customValue).toBe('99');
-  });
-
-  it('caps a custom percent above the maximum to 99% on commit in sell mode', () => {
+  it('does not cap a custom percent at 99% on commit in sell mode', () => {
     const { result } = renderPriceAdjustHook();
 
     act(() => {
@@ -240,9 +230,42 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       result.current.commitCustomPercent();
     });
 
-    expect(result.current.limitPrice).toBe('3980');
+    expect(result.current.limitPrice).toBe('7000');
     expect(result.current.isCustomActive).toBe(true);
-    expect(result.current.customValue).toBe('99');
+    expect(result.current.customValue).toBe('250');
+  });
+
+  it('commits a custom percent of 99% or more without clamping in buy mode when the price stays positive', () => {
+    const { result } = renderPriceAdjustHook();
+
+    act(() => {
+      result.current.handleCustomPress();
+      result.current.handleCustomValueChange('99.5');
+    });
+
+    act(() => {
+      result.current.commitCustomPercent();
+    });
+
+    expect(result.current.isCustomActive).toBe(true);
+    expect(result.current.customValue).toBe('99.5');
+  });
+
+  it('keeps the typed custom percent and the current limit price when a buy offset would make the price non-positive', () => {
+    const { result } = renderPriceAdjustHook();
+    const initialLimitPrice = result.current.limitPrice;
+
+    act(() => {
+      result.current.handleCustomPress();
+      result.current.handleCustomValueChange('150');
+    });
+
+    act(() => {
+      result.current.commitCustomPercent();
+    });
+
+    expect(result.current.limitPrice).toBe(initialLimitPrice);
+    expect(result.current.customValue).toBe('150');
   });
 
   it('exits custom mode without changing the limit price when custom percent is empty', () => {
@@ -822,17 +845,17 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     });
 
     it('keeps the buy default for a market price seeded from a rate that does not round evenly', () => {
-      // A market-seeded price is rounded/truncated for display
-      // (formatLimitOrderFiatPrice, formatLimitOrderQuickPrice), so it lands
-      // a hair away from the raw live rate whenever that rate isn't a round
-      // number. It should still read as at-market rather than flipping to
-      // the opposite of the side's default.
+      // A market-seeded price is rounded to two decimal places for display
+      // (formatLimitOrderFiatInputPrice), so it lands a hair away from the raw
+      // live rate whenever that rate isn't a round number. It should still
+      // read as at-market rather than flipping to the opposite of the side's
+      // default.
       mockFiatRates({ destRate: 4321.987654321 });
 
       const { result } = renderPriceAdjustHook();
 
       expect(result.current.executionType).toBe(LimitOrderExecutionType.BUY);
-      expect(result.current.limitPrice).toBe('4321.9877');
+      expect(result.current.limitPrice).toBe('4321.99');
       expect(result.current.priceComparisonDirection).toBe(
         LimitOrderPriceComparisonDirection.AT_OR_BELOW,
       );

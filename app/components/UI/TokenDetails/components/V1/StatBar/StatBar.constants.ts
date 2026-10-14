@@ -1,4 +1,5 @@
 import { TokenDetailsVariant } from '../../../constants/constants';
+import type { ExplainerCopy } from '../TokenExplainerSheet/TokenExplainerSheet.types';
 import { TokenStatKey } from './StatBar.types';
 
 /**
@@ -49,10 +50,7 @@ export const STAT_LABEL_KEYS: Record<TokenStatKey, string> = {
  * abbreviates to fit a cell (`MCap`, `Liq/MC`) while the sheet spells the name
  * out. Six of the nine differ.
  */
-export const STAT_EXPLAINER_KEYS: Record<
-  TokenStatKey,
-  { title: string; description: string }
-> = {
+export const STAT_EXPLAINER_KEYS: Record<TokenStatKey, ExplainerCopy> = {
   [TokenStatKey.MarketCap]: {
     title: 'token_details_v1.stats.explainers.market_cap.title',
     description: 'token_details_v1.stats.explainers.market_cap.description',

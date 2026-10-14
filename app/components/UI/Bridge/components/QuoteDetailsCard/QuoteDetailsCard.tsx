@@ -30,7 +30,6 @@ import {
   selectSourceAmount,
   selectDestToken,
   selectSourceToken,
-  selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { formatMinimumReceived } from '../../utils/currencyUtils';
@@ -58,8 +57,6 @@ import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { formatPriceImpact } from '../../utils/formatPriceImpact';
 import KeyValueRowLabel from '../../../../../component-library/components-temp/KeyValueRow/KeyValueLabel/KeyValueLabel';
 import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
-import AppConstants from '../../../../../core/AppConstants';
-import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
 import formatFiat from '../../../../../util/formatFiat';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 
@@ -76,7 +73,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   isGaslessSwapRedesignTreatment = false,
   gaslessFeeAsset,
 }) => {
-  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const tw = useTailwind();
   const theme = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
@@ -86,6 +82,8 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     formattedQuoteData,
     activeQuote,
     isLoading: isQuoteLoading,
+    shouldShowPriceImpactWarning,
+    shouldShowPriceImpactError,
   } = useBridgeQuoteDataContext();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -105,9 +103,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
 
   const priceImpactIsSafe =
     !activeQuote?.quote.priceData?.priceImpact ||
-    parsePriceImpact(activeQuote.quote.priceData.priceImpact?.amount) <=
-      (bridgeFeatureFlags?.priceImpactThreshold?.warning ??
-        AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD);
+    (!shouldShowPriceImpactWarning && !shouldShowPriceImpactError);
 
   const nativeTokenName = useMemo(() => {
     const chainId = sourceToken?.chainId;

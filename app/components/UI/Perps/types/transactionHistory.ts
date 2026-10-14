@@ -56,7 +56,7 @@ export interface PerpsTransaction {
     size: string;
     entryPrice: string;
     points: string;
-    pnl: string;
+    pnl?: string; // Absent when the venue does not report realized PnL
     fee: string;
     action: string;
     feeToken: string;

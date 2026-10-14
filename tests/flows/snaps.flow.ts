@@ -8,7 +8,10 @@ import TrendingView from '../page-objects/Trending/TrendingView';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import WalletView from '../page-objects/wallet/WalletView';
 import { navigateToBrowserView } from './browser.flow';
-import { loginToAppPlaywright } from './wallet.flow';
+import {
+  loginToAppPlaywright,
+  waitForWalletHomePlaywright,
+} from './wallet.flow';
 
 /**
  * Logs in with the e2e wallet fixture and navigates to the test-snaps page.
@@ -16,6 +19,9 @@ import { loginToAppPlaywright } from './wallet.flow';
  */
 export const loginAndOpenTestSnaps = async (): Promise<void> => {
   await loginToAppPlaywright({ scenarioType: 'e2e' });
+  // Explore/Trending tab taps flake when wallet chrome is still settling after
+  // login — wait for wallet-home readiness before leaving the Wallet tab.
+  await waitForWalletHomePlaywright();
   await navigateToBrowserView();
   await TestSnaps.navigateToTestSnap({ skipTabCleanup: true });
 };

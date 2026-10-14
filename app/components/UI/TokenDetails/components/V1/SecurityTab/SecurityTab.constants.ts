@@ -1,3 +1,4 @@
+import type { ExplainerCopy } from '../TokenExplainerSheet/TokenExplainerSheet.types';
 import {
   SecurityCheckKey,
   SecurityStatKey,
@@ -106,10 +107,7 @@ export const SECURITY_STAT_LABEL_KEYS: Record<SecurityStatKey, string> = {
  * abbreviates to fit its line (`Liq/MC`, `Top 10`) while the sheet spells the
  * term out.
  */
-export const SECURITY_EXPLAINER_KEYS: Record<
-  SecurityRowKey,
-  { title: string; description: string }
-> = {
+export const SECURITY_EXPLAINER_KEYS: Record<SecurityRowKey, ExplainerCopy> = {
   [SecurityCheckKey.NoHoneypot]: {
     title: 'token_details_v1.security_tab.explainers.no_honeypot.title',
     description:

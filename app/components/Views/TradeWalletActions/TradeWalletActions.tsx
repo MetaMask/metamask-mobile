@@ -8,7 +8,6 @@ import React, {
 } from 'react';
 import {
   BackHandler,
-  Platform,
   Pressable,
   StyleSheet,
   View,
@@ -162,10 +161,9 @@ function TradeWalletActions() {
     undefined,
   );
   const [visible, setIsVisible] = useState(true);
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const { width: windowWidth } = useWindowDimensions();
   const { height: screenHeight } = useSafeAreaFrame();
   const insets = useSafeAreaInsets();
-  const insetsTop = Platform.OS === 'android' ? insets.top : 0;
 
   const tw = useTailwind();
   const surfaceClass = 'bg-elevated1';
@@ -214,8 +212,7 @@ function TradeWalletActions() {
       return undefined;
     }
     return getMorphRects({
-      // Same window-to-container correction the tray's bottom spacer makes.
-      buttonLayout: { ...buttonLayout, y: buttonLayout.y + insetsTop },
+      buttonLayout,
       containerHeight: screenHeight,
       containerWidth: windowWidth,
       horizontalInset: TRAY_HORIZONTAL_INSET,
@@ -223,7 +220,7 @@ function TradeWalletActions() {
       trayHeight,
       trayRadius: TRADE_TRAY_GLASS_RADIUS,
     });
-  }, [buttonLayout, insetsTop, screenHeight, trayHeight, windowWidth]);
+  }, [buttonLayout, screenHeight, trayHeight, windowWidth]);
 
   const backdropOpacity = useSharedValue(0);
   const backdropAnimatedStyle = useAnimatedStyle(() => ({
@@ -683,10 +680,10 @@ function TradeWalletActions() {
           {buttonLayout ? (
             <OverlayWithHole
               width={windowWidth}
-              height={windowHeight + insetsTop}
+              height={screenHeight}
               circleSize={buttonLayout.width - 1}
               circleX={buttonLayout.x + buttonLayout.width / 2}
-              circleY={buttonLayout.y + buttonLayout.height / 2 + insetsTop}
+              circleY={buttonLayout.y + buttonLayout.height / 2}
               fill={colors.overlay.default}
             />
           ) : (
@@ -717,7 +714,7 @@ function TradeWalletActions() {
           <View
             style={tw.style('pointer-events-none', {
               height: buttonLayout
-                ? screenHeight - buttonLayout.y - insetsTop
+                ? screenHeight - buttonLayout.y
                 : bottomSpacerHeight,
             })}
           />

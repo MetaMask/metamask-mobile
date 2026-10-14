@@ -15,10 +15,15 @@ import {
   renderPerpsTPSLView,
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { PerpsTPSLViewSelectorsIDs } from '../../Perps.testIds';
+import Engine from '../../../../../core/Engine';
 
 describe('PerpsTPSLView', () => {
   afterEach(() => {
     cleanup();
+    jest
+      .mocked(Engine.context.PerpsController.calculateLiquidationPrice)
+      .mockReset()
+      .mockResolvedValue('0.00');
   });
 
   it('renders back button, TPSL screen container, and Set button when params are provided', async () => {
@@ -90,6 +95,43 @@ describe('PerpsTPSLView', () => {
         expect.objectContaining({ direction: 'long' }),
       );
     });
+  });
+
+  it('keeps isolated stop validation against the liquidation estimate for new orders', async () => {
+    jest
+      .mocked(Engine.context.PerpsController.calculateLiquidationPrice)
+      .mockResolvedValue('2100');
+    const onConfirm = jest.fn().mockResolvedValue(undefined);
+    renderPerpsTPSLView({
+      initialParams: {
+        asset: 'ETH',
+        currentPrice: 2500,
+        direction: 'long',
+        position: undefined,
+        leverage: 3,
+        marginMode: 'isolated',
+        onConfirm,
+      },
+    });
+    await waitFor(() =>
+      expect(
+        Engine.context.PerpsController.calculateLiquidationPrice,
+      ).toHaveBeenCalled(),
+    );
+
+    fireEvent.changeText(
+      await screen.findByTestId(
+        PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
+      ),
+      '2000',
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).toBeDisabled(),
+    );
+    expect(onConfirm).not.toHaveBeenCalled();
   });
 
   it('sets a custom take profit for an existing long position', async () => {

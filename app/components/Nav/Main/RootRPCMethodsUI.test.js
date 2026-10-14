@@ -12,6 +12,10 @@ jest.mock(
   '../../Approvals/TemplateConfirmationModal',
   () => 'TemplateConfirmationModal',
 );
+jest.mock(
+  '../../Approvals/ConfirmMembershipApproval',
+  () => 'ConfirmMembershipApproval',
+);
 jest.mock('../../../components/Views/confirmations/components/confirm', () => ({
   ConfirmRoot: 'ConfirmRoot',
 }));
