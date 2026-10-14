@@ -33,6 +33,10 @@ import {
   BASELINE_WORKFLOW,
   COMMENT_MARKER as APP_PROFILING_MARKER,
 } from './diff-app-profiling.mjs';
+import {
+  buildProfilingSection,
+  buildApiRequestsSection,
+} from './perf-comment-details.mjs';
 
 const SUMMARY_FILE = process.argv[2] || 'aggregated-reports/summary.json';
 const OUTPUT_FILE = process.argv[3] || 'performance-pr-comment.md';
@@ -93,6 +97,8 @@ async function main() {
         return 'Quality gates exceeded';
       case 'session_creation_failed':
         return 'Session creation failed';
+      case 'no_performance_metrics':
+        return 'No performance metrics';
       case 'timedOut':
         return 'Timed out';
       case 'test_error':
@@ -186,6 +192,25 @@ async function main() {
     }
 
     return { bySessionId, byTestIdentity };
+  }
+
+  /** Per-scenario profiling and API calls, for every scenario (not only failed). */
+  function collectDetailRuns() {
+    if (!performanceResults) {
+      return [];
+    }
+
+    return Object.entries(performanceResults).flatMap(([platform, devices]) =>
+      Object.entries(devices ?? {}).flatMap(([deviceKey, tests]) =>
+        (tests ?? []).map((test) => ({
+          testName: test.testName,
+          device: getDeviceLabel(test.device ?? deviceKey, platform),
+          profilingSummary: test.profilingSummary ?? null,
+          apiCalls: test.apiCalls ?? null,
+          apiCallsError: test.apiCallsError ?? null,
+        })),
+      ),
+    );
   }
 
   function getAllTestRuns() {
@@ -420,6 +445,13 @@ async function main() {
 
     md += `\n</details>\n\n`;
   }
+
+  const detailRuns = collectDetailRuns();
+  md += buildProfilingSection(detailRuns);
+  md += buildApiRequestsSection(detailRuns, {
+    // GitHub rejects comments over 65,536 characters.
+    charBudget: Math.max(0, 60000 - md.length),
+  });
 
   // Footer
   md += `---\n`;

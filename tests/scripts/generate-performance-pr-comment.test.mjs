@@ -354,3 +354,38 @@ test('prefers the public TestMu share link over the dashboard link', () => {
   );
   assert.doesNotMatch(md, /test\?testID=/);
 });
+
+test('shows app profiling and API requests for passed scenarios too', () => {
+  const md = generateComment({
+    summary: {
+      ...SUMMARY,
+      failedTestsStats: { uniqueFailedTests: 0, failedTestsByTeam: {} },
+    },
+    performanceResults: {
+      Android: {
+        'Google Pixel 8 Pro+14.0': [
+          {
+            testName: 'Asset View',
+            sessionId: 'session-passed',
+            totalTime: 2.5,
+            device: { name: 'Google Pixel 8 Pro', osVersion: '14.0' },
+            team: { teamId: '@assets-dev-team' },
+            profilingSummary: {
+              cpu: { avg: 10, max: 20, unit: '%' },
+              memory: { avg: 500, max: 600, unit: 'MB' },
+            },
+            apiCalls: [
+              { method: 'GET', url: 'https://a.test/x?key=1', status: 200, time: 12 },
+            ],
+          },
+        ],
+      },
+    },
+  });
+
+  assert.match(md, /📊 App profiling \(1\)/);
+  assert.match(md, /\| Asset View \| Google Pixel 8 Pro \(v14\.0\) \| 10\.0 \/ 20\.0 %/);
+  assert.match(md, /🌐 API requests \(1 scenarios, 1 calls\)/);
+  assert.match(md, /\| GET \| `a\.test\/x` \| 1 \| 200 \| 12 ms \|/);
+  assert.ok(md.length < 65000);
+});
