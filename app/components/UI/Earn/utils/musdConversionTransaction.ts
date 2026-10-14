@@ -4,7 +4,8 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import type { Hex } from '@metamask/utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { isStrictHexString, type Hex } from '@metamask/utils';
 
 import Engine from '../../../../core/Engine';
 import EngineService from '../../../../core/EngineService';
@@ -12,8 +13,8 @@ import { generateTransferData } from '../../../../util/transactions';
 import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { MUSD_TOKEN, MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
-import { getTokensControllerAllTokens } from '../../../../selectors/assets/assets-migration';
-import { store } from '../../../../store';
+import { safeToChecksumAddress } from '../../../../util/address';
+import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
 
 interface PayTokenSelection {
   address: Hex;
@@ -149,41 +150,57 @@ function buildMusdConversionTx(params: {
 }
 
 /**
- * Ensures the mUSD token is registered in TokensController for the given chain.
+ * Ensures the mUSD token is registered in unified assets state for the given
+ * chain and account.
  *
  * The Pay controller discovers required tokens by looking up `txParams.to` in
- * TokensController synchronously when a transaction is added. If mUSD is not
- * in the registry (e.g. first-time users), the Pay controller cannot identify
- * it as a required token, which breaks the fee-handling flow.
+ * AssetsController. If mUSD is not registered (e.g. first-time users), the
+ * Pay controller cannot identify it as a required token, which breaks the
+ * fee-handling flow.
  *
  * This must be called BEFORE `createMusdConversionTransaction` so the token
  * is present when the Pay controller processes the new transaction.
  */
 export async function ensureMusdTokenRegistered({
   chainId,
-  networkClientId,
+  accountId,
 }: {
   chainId: Hex;
-  networkClientId: string;
+  accountId?: string;
 }): Promise<void> {
   const musdTokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
-  if (!musdTokenAddress) {
+  if (!musdTokenAddress || !accountId) {
     return;
   }
 
-  const allTokens = getTokensControllerAllTokens(store.getState());
-  const accountTokens = Object.values(allTokens[chainId] ?? {}).flat();
-  const hasMusdToken = accountTokens.some(
-    (t) => t.address.toLowerCase() === musdTokenAddress.toLowerCase(),
-  );
+  // toAssetId embeds the address verbatim, but customAssets stores the
+  // normalized (checksummed) id, so checksum first or the lookup misses.
+  // Guard on hex so a non-hex address can't make toChecksumAddress throw.
+  const checksummedAddress = isStrictHexString(musdTokenAddress)
+    ? (safeToChecksumAddress(musdTokenAddress) ?? musdTokenAddress)
+    : musdTokenAddress;
+  const caipChainId = toEvmCaipChainId(chainId);
+  const caipAssetType = toAssetId(checksummedAddress, caipChainId);
+
+  if (!caipAssetType) {
+    return;
+  }
+
+  // Scope the check to this account's custom assets. Read controller state
+  // directly (not the Redux-derived allTokens selector) so we don't get a
+  // cross-account false positive or a stale read within the Redux batch window.
+  const { AssetsController } = Engine.context;
+  const accountCustomAssets =
+    AssetsController.state.customAssets[accountId] ?? [];
+  const hasMusdToken = accountCustomAssets.includes(caipAssetType);
 
   if (!hasMusdToken) {
-    await Engine.context.TokensController.addToken({
-      address: musdTokenAddress,
+    await AssetsController.addCustomAsset(accountId, caipAssetType, {
+      address: checksummedAddress,
       decimals: MUSD_TOKEN.decimals,
       name: MUSD_TOKEN.name,
       symbol: MUSD_TOKEN.symbol,
-      networkClientId,
+      chainId,
     });
   }
 }

@@ -693,7 +693,6 @@
     "re_enter_password": "重新输入您的密码",
     "use_at_least_8_characters": "使用至少 8 个字符",
     "unlock_with_face_id": "使用 Face ID 登录？",
-    "learn_more": "如果我忘记该密码，MetaMask 无法为我找回密码。",
     "learn_more_social_login": "如果我忘记此密码，我将永久失去对该钱包的访问权限。MetaMask 无法为我重设密码。",
     "seed_phrase_length_error": "私钥助记词必须包含 12、15、18、21 或 24 个单词",
     "continue": "继续",

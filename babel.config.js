@@ -177,6 +177,10 @@ module.exports = {
       plugins: privateMethodsLoose,
     },
     {
+      test: pathIncludes('/node_modules/@metamask/profile-controller'),
+      plugins: privateMethodsLoose,
+    },
+    {
       test: pathIncludes(
         '/node_modules/@metamask/notification-services-controller',
       ),

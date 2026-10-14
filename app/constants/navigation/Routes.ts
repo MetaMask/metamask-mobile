@@ -42,6 +42,7 @@ const Routes = {
     ENTER_ADDRESS: 'RampEnterAddress',
     // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
     VBA_ONBOARDING: 'RampVbaOnboarding',
+    VBA_DETAILS: 'RampVbaDetails',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
@@ -519,6 +520,8 @@ const Routes = {
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
+    MUSD_RESCUE_SEND: 'MoneyMusdRescueSend',
+    MUSD_RESCUE_RECIPIENT: 'MoneyMusdRescueRecipient',
     ONBOARDING: 'MoneyOnboarding',
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
@@ -562,6 +565,7 @@ const Routes = {
     MANAGE_PROFILE: 'ManageProfile',
     MANAGE_PROFILE_FIELD: 'ManageProfileField',
     X_ACCOUNT: 'ManageProfileXAccount',
+    LINKED_SOCIAL_ACCOUNT: 'LinkedSocialAccount',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {

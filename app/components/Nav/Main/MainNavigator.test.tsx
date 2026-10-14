@@ -902,6 +902,8 @@ describe('MainNavigator', () => {
         Routes.MONEY.ROOT,
         Routes.MONEY.CONFIRMATIONS_ROOT,
         Routes.MONEY.POTENTIAL_EARNINGS,
+        Routes.MONEY.MUSD_RESCUE_SEND,
+        Routes.MONEY.MUSD_RESCUE_RECIPIENT,
         Routes.MONEY.TRANSACTION_DETAILS,
         Routes.MONEY.CARD_TRANSACTION_DETAILS,
       ]);
@@ -926,6 +928,21 @@ describe('MainNavigator', () => {
         expect.objectContaining({
           name: Routes.RAMP.VBA_ONBOARDING,
           options: expect.objectContaining({
+            headerShown: false,
+          }),
+        }),
+      );
+
+      const vbaDetailsScreen = getScreenProps(container).find(
+        ({ name }) => name === Routes.RAMP.VBA_DETAILS,
+      );
+
+      expect(vbaDetailsScreen).toEqual(
+        expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+          options: expect.objectContaining({
+            animation: 'ios_from_right',
+            gestureEnabled: false,
             headerShown: false,
           }),
         }),

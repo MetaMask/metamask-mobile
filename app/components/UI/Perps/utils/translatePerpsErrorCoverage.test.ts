@@ -27,6 +27,15 @@ const resolveTranslation = (i18nKey: string): string | undefined => {
 };
 
 describe('ERROR_CODE_TO_I18N_KEY', () => {
+  it('offers raising max slippage and a limit order for IOC cancellation', () => {
+    const key = ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.IOC_CANCEL];
+
+    const message = resolveTranslation(key);
+
+    expect(message).toContain('Increase max slippage');
+    expect(message).toContain('limit order');
+  });
+
   const errorCodes = Object.values(PERPS_ERROR_CODES);
 
   it('maps every error code the controller exports', () => {
