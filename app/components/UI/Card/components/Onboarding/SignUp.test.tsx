@@ -212,6 +212,8 @@ const mockGetFundingSources = jest.fn();
 const mockGetResumeCardInfo = jest.fn();
 const mockGetSpendingPrerequisites = jest.fn();
 const mockPatchContactDetails = jest.fn();
+const mockRecordProviderOnboardingStarted = jest.fn();
+const mockRecordCardActivated = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     CardController: {
@@ -232,8 +234,10 @@ jest.mock('../../../../../core/Engine', () => ({
         mockGetSpendingPrerequisites(...args),
       patchContactDetails: (...args: unknown[]) =>
         mockPatchContactDetails(...args),
-      recordProviderOnboardingStarted: jest.fn(),
-      recordCardActivated: jest.fn(),
+      recordProviderOnboardingStarted: (...args: unknown[]) =>
+        mockRecordProviderOnboardingStarted(...args),
+      recordCardActivated: (...args: unknown[]) =>
+        mockRecordCardActivated(...args),
     },
   },
 }));
@@ -367,6 +371,8 @@ describe('SignUp Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRecordProviderOnboardingStarted.mockResolvedValue(undefined);
+    mockRecordCardActivated.mockResolvedValue(undefined);
     capturedOnValueChange = null;
     mockUseRoute.mockReturnValue({ params: undefined });
     mockGetUserDetails.mockReset();

@@ -60,6 +60,7 @@ const getRoute = () => {
 describe('useImmersveOnboardingRouter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRecordCardActivated.mockResolvedValue(undefined);
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
       reset: mockReset,

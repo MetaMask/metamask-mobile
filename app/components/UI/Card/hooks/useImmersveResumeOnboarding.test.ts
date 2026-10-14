@@ -87,6 +87,8 @@ const contactPrereqs: CardSpendingPrerequisite[] = [
 describe('useImmersveResumeOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRecordProviderOnboardingStarted.mockResolvedValue(undefined);
+    mockRecordCardActivated.mockResolvedValue(undefined);
     mockImmersveConfig = { fundingChannelId: 'base-channel' };
     mockSignIn.mockResolvedValue({ done: true });
     mockGetResumeCardInfo.mockResolvedValue(null);
