@@ -119,6 +119,33 @@ if (ReactNativeView.Platform.Version == null) {
 // 3. Are not the focus of view tests and add unnecessary complexity.
 // --------------------------------------------------------------------------------
 
+// react-native-screens only emits onAppear from native code. Jest never does,
+// so @react-navigation/native-stack never emits transitionEnd. Screens that
+// gate their content on useScreenTransitionComplete (Explore search) then stay
+// on the loading skeleton until a 450ms fallback, and that fallback loses to
+// findBy/waitFor on a busy CI runner.
+jest.mock('react-native-screens', () => {
+  const React = require('react');
+  const actual = jest.requireActual('react-native-screens');
+
+  const Screen = React.forwardRef((props, ref) => {
+    const onAppearRef = React.useRef(props.onAppear);
+    onAppearRef.current = props.onAppear;
+
+    React.useEffect(() => {
+      onAppearRef.current?.({ nativeEvent: { target: null } });
+    }, []);
+
+    return React.createElement(actual.Screen, { ...props, ref });
+  });
+  Screen.displayName = 'Screen';
+
+  return {
+    ...actual,
+    Screen,
+  };
+});
+
 // Mock redux-devtools-expo-dev-plugin
 // eslint-disable-next-line no-empty-function
 jest.mock('redux-devtools-expo-dev-plugin', () => {});
