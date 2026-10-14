@@ -132,8 +132,6 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.orderValidation.twapDurationInvalid',
   [PERPS_ERROR_CODES.ORDER_TWAP_NOTIONAL_TOO_SMALL]:
     'perps.errors.orderValidation.twapNotionalTooSmall',
-  [PERPS_ERROR_CODES.ORDER_SCALE_PREVIEW_STALE]:
-    'perps.errors.orderValidation.scalePreviewStale',
   [PERPS_ERROR_CODES.ORDER_SCALE_RANGE_REQUIRED]:
     'perps.errors.orderValidation.scaleRangeRequired',
   [PERPS_ERROR_CODES.ORDER_SCALE_RANGE_INVALID]:
@@ -144,6 +142,8 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.orderValidation.scaleSizeTooSmall',
   [PERPS_ERROR_CODES.ORDER_SCALE_NOTIONAL_TOO_SMALL]:
     'perps.errors.orderValidation.scaleNotionalTooSmall',
+  [PERPS_ERROR_CODES.ORDER_SCALE_PREVIEW_STALE]:
+    'perps.errors.orderValidation.scalePreviewStale',
   [PERPS_ERROR_CODES.ORDER_CHASE_INTERVAL_INVALID]:
     'perps.errors.orderValidation.chaseIntervalInvalid',
   [PERPS_ERROR_CODES.ORDER_CHASE_DURATION_INVALID]:
