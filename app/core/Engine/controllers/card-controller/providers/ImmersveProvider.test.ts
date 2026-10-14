@@ -134,6 +134,7 @@ describe('ImmersveProvider', () => {
       expect(provider.capabilities.supportsCredit).toBe(false);
       expect(provider.capabilities.supportsTransactionHistory).toBe(true);
       expect(provider.capabilities.supportsMoneyAccountLinking).toBe(false);
+      expect(provider.capabilities.supportsCancelCard).toBe(true);
       expect(provider.capabilities.onboarding.type).toBe('webview');
       expect(provider.capabilities.pushProvisioning).toEqual({
         applePay: true,
@@ -1177,6 +1178,24 @@ describe('ImmersveProvider', () => {
       ]);
     });
 
+    it('offers Enable card without auto-provisioning when every card is cancelled', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [{ ...activeCard, status: 'cancelled' }] },
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(service.post).not.toHaveBeenCalled();
+      expect(data.card).toBeNull();
+      expect(data.alerts).toStrictEqual([]);
+      expect(data.actions).toStrictEqual([
+        { type: 'enable_card', reason: 'card_cancelled' },
+      ]);
+    });
+
     it('returns a provisioning alert for a card that is still being created', async () => {
       const { provider, service } = createProvider();
       service.get.mockImplementation(
@@ -1678,6 +1697,68 @@ describe('ImmersveProvider', () => {
         '/api/cards/card-1/unfreeze',
         {},
         TOKENS,
+      );
+    });
+  });
+
+  describe('cancelCard', () => {
+    it('posts cancel-async and polls until the card is cancelled', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({});
+      service.get
+        .mockResolvedValueOnce({ ...activeCard, status: 'active' })
+        .mockResolvedValueOnce({ ...activeCard, status: 'cancelled' });
+
+      const result = provider.cancelCard('card-1', TOKENS);
+      await jest.advanceTimersByTimeAsync(2000);
+      await jest.advanceTimersByTimeAsync(2000);
+
+      await expect(result).resolves.toBe('cancelled');
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/cards/card-1/cancel-async',
+        {},
+        TOKENS,
+      );
+      expect(service.get).toHaveBeenCalledTimes(2);
+      expect(service.get).toHaveBeenLastCalledWith('/api/cards/card-1', TOKENS);
+    });
+
+    it('returns pending when the card is still active after polling', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({});
+      service.get.mockResolvedValue({ ...activeCard, status: 'active' });
+
+      const result = provider.cancelCard('card-1', TOKENS);
+      await jest.advanceTimersByTimeAsync(20_000);
+
+      await expect(result).resolves.toBe('pending');
+      expect(service.get).toHaveBeenCalledTimes(10);
+    });
+
+    it('maps cancel failures and does not poll', async () => {
+      const { provider, service } = createProvider();
+      const apiError = new CardApiError(
+        500,
+        '/api/cards/card-1/cancel-async',
+        'down',
+      );
+      service.post.mockRejectedValue(apiError);
+
+      await expect(provider.cancelCard('card-1', TOKENS)).rejects.toMatchObject(
+        { code: CardProviderErrorCode.ServerError },
+      );
+      expect(service.get).not.toHaveBeenCalled();
+      expect(Logger.error).toHaveBeenCalledWith(
+        apiError,
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              method: 'cancelCard',
+              cardId: 'card-1',
+              httpStatus: 500,
+            }),
+          }),
+        }),
       );
     });
   });

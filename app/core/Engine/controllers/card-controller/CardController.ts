@@ -50,6 +50,7 @@ import {
   type CardAuthTokens,
   type CardCredentials,
   type CardContactDetails,
+  type CardCancelResult,
   type CardCreateResult,
   type CardDetails,
   type CardFundingAsset,
@@ -2154,6 +2155,33 @@ export class CardController extends BaseController<
     return this.#withAuthRetry((tokens) =>
       getSpendingPrerequisites(fundingSourceId, params, tokens),
     );
+  }
+
+  async cancelCard(cardId: string): Promise<CardCancelResult> {
+    const provider = this.getActiveProvider();
+    const cancelCard = provider.cancelCard?.bind(provider);
+    if (!cancelCard) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Card cancellation not supported',
+      );
+    }
+    const result = await this.#withAuthRetry((tokens) =>
+      cancelCard(cardId, tokens),
+    );
+    if (result === 'cancelled') {
+      const current = this.state.cardHomeData as unknown as CardHomeData | null;
+      if (current) {
+        this.update((s) => {
+          (s as unknown as CardControllerState).cardHomeData = {
+            ...current,
+            card: null,
+          } as unknown as Record<string, Json>;
+        });
+      }
+    }
+    await this.fetchCardHomeData({ force: true });
+    return result;
   }
 
   async createCard(fundingSourceId: string): Promise<CardCreateResult> {

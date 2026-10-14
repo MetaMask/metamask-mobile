@@ -23,6 +23,7 @@ import {
   CardAuthSession,
   CardAuthTokens,
   CardContactDetails,
+  CardCancelResult,
   CardCreateResult,
   CardCredentials,
   CardDetails,
@@ -98,6 +99,15 @@ const IMMERSVE_SETTLEMENT_CURRENCY = 'USDC';
 
 function isUsdStablecoin(symbol: string): boolean {
   return USD_STABLECOIN_SYMBOLS.has(symbol.toUpperCase());
+}
+
+const CANCEL_CARD_POLL_ATTEMPTS = 10;
+const CANCEL_CARD_POLL_INTERVAL_MS = 2000;
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 function getErrorContext(method: string, extra?: Record<string, unknown>) {
@@ -409,6 +419,7 @@ export class ImmersveProvider implements ICardProvider {
     supportsTransactionHistory: true,
     supportsContactDetails: true,
     supportsMoneyAccountLinking: false,
+    supportsCancelCard: true,
   };
 
   private readonly service: ImmersveService;
@@ -866,14 +877,14 @@ export class ImmersveProvider implements ICardProvider {
     }
   }
 
-  private async resolveCurrentCard(
+  private async listAccountCards(
     tokens: CardAuthTokens,
-  ): Promise<ImmersveCardListItem | null> {
+  ): Promise<ImmersveCardListItem[]> {
     const accountId = tokens.cardholderAccountId;
     if (!accountId) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
-        'resolveCurrentCard: missing cardholder account id',
+        'listAccountCards: missing cardholder account id',
       );
     }
 
@@ -882,7 +893,13 @@ export class ImmersveProvider implements ICardProvider {
       tokens,
     );
 
-    return this.pickCurrentCard(items ?? []);
+    return items ?? [];
+  }
+
+  private async resolveCurrentCard(
+    tokens: CardAuthTokens,
+  ): Promise<ImmersveCardListItem | null> {
+    return this.pickCurrentCard(await this.listAccountCards(tokens));
   }
 
   private pickCurrentCard(
@@ -927,9 +944,18 @@ export class ImmersveProvider implements ICardProvider {
     tokens: CardAuthTokens,
   ): Promise<CardHomeData> {
     try {
-      const card = await this.resolveCurrentCard(tokens);
+      const cards = await this.listAccountCards(tokens);
+      const card = this.pickCurrentCard(cards);
 
       if (!card) {
+        // A cancelled card is terminal. Do not emit card_provisioning, or the
+        // home screen would auto-issue a replacement.
+        if (cards.some((item) => item.status === 'cancelled')) {
+          return {
+            ...emptyCardHomeData(),
+            actions: [{ type: 'enable_card', reason: 'card_cancelled' }],
+          };
+        }
         return this.provisioningHomeData();
       }
 
@@ -1094,6 +1120,28 @@ export class ImmersveProvider implements ICardProvider {
       await this.service.post(`/api/cards/${cardId}/unfreeze`, {}, tokens);
     } catch (error) {
       reportAndMap(error, 'unfreezeCard');
+    }
+  }
+
+  async cancelCard(
+    cardId: string,
+    tokens: CardAuthTokens,
+  ): Promise<CardCancelResult> {
+    try {
+      await this.service.post(`/api/cards/${cardId}/cancel-async`, {}, tokens);
+      for (let attempt = 0; attempt < CANCEL_CARD_POLL_ATTEMPTS; attempt++) {
+        await delay(CANCEL_CARD_POLL_INTERVAL_MS);
+        const detail = await this.service.get<ImmersveCardDetail>(
+          `/api/cards/${cardId}`,
+          tokens,
+        );
+        if (detail.status === 'cancelled') {
+          return 'cancelled';
+        }
+      }
+      return 'pending';
+    } catch (error) {
+      reportAndMap(error, 'cancelCard', { cardId });
     }
   }
 

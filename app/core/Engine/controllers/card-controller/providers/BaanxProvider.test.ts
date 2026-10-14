@@ -2048,6 +2048,7 @@ describe('BaanxProvider push provisioning', () => {
       applePay: true,
       googlePay: true,
     });
+    expect(provider.capabilities.supportsCancelCard).toBe(false);
   });
 
   it('converts PassKit values to the Baanx hex wire format', async () => {

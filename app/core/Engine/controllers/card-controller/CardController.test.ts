@@ -2696,6 +2696,102 @@ describe('CardController — freezeCard', () => {
   });
 });
 
+describe('CardController — cancelCard', () => {
+  const freshTokenSet: CardAuthTokens = {
+    ...mockTokenSet,
+    accessToken: 'fresh-at',
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('throws when the active provider cannot cancel a card', async () => {
+    const { controller } =
+      buildControllerWithMockMessenger(buildMockProvider());
+
+    await expect(controller.cancelCard('card-1')).rejects.toMatchObject({
+      code: CardProviderErrorCode.Unknown,
+      message: 'Card cancellation not supported',
+    });
+  });
+
+  it('delegates to the provider, clears the cached card, and force-refreshes', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.cancelCard = jest.fn().mockResolvedValue('cancelled');
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      cardHomeData: mockCardHomeData as unknown as Record<string, null>,
+      cardHomeDataStatus: 'success',
+    });
+    const fetchSpy = jest
+      .spyOn(controller, 'fetchCardHomeData')
+      .mockResolvedValue();
+
+    await expect(controller.cancelCard('card-1')).resolves.toBe('cancelled');
+
+    expect(provider.cancelCard).toHaveBeenCalledWith('card-1', mockTokenSet);
+    const data = controller.state
+      .cardHomeData as unknown as typeof mockCardHomeData;
+    expect(data.card).toBeNull();
+    expect(fetchSpy).toHaveBeenCalledWith({ force: true });
+  });
+
+  it('keeps the cached card when cancellation is still pending', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.cancelCard = jest.fn().mockResolvedValue('pending');
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      cardHomeData: mockCardHomeData as unknown as Record<string, null>,
+      cardHomeDataStatus: 'success',
+    });
+    jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+
+    await expect(controller.cancelCard('card-1')).resolves.toBe('pending');
+
+    const data = controller.state
+      .cardHomeData as unknown as typeof mockCardHomeData;
+    expect(data.card?.id).toBe('card-1');
+  });
+
+  it('retries once after an auth error', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.cancelCard = jest
+      .fn()
+      .mockRejectedValueOnce(mockUnauthorizedError)
+      .mockResolvedValueOnce('cancelled');
+    provider.refreshTokens.mockResolvedValue(freshTokenSet);
+    mockTokenStore.set.mockResolvedValue(true);
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      isAuthenticated: true,
+      cardHomeData: mockCardHomeData as unknown as Record<string, null>,
+      cardHomeDataStatus: 'success',
+    });
+    jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+
+    await expect(controller.cancelCard('card-1')).resolves.toBe('cancelled');
+
+    expect(provider.cancelCard).toHaveBeenNthCalledWith(
+      1,
+      'card-1',
+      mockTokenSet,
+    );
+    expect(provider.cancelCard).toHaveBeenNthCalledWith(
+      2,
+      'card-1',
+      freshTokenSet,
+    );
+  });
+});
+
 describe('CardController — unfreezeCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -3199,6 +3295,7 @@ describe('CardController — getCapabilities', () => {
     supportsMoneyAccountLinking: true,
     supportsTransactionHistory: true,
     supportsContactDetails: false,
+    supportsCancelCard: false,
   };
 
   it('returns base capabilities', () => {
