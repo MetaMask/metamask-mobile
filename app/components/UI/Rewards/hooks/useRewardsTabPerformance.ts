@@ -35,7 +35,7 @@ export function useRewardsTabPerformance({
   isVersionBlocked,
   moneyEnabled,
   moneyReferralResolved,
-  moneyVariant,
+  moneyPersona,
 }: UseRewardsTabPerformanceConfig): void {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
@@ -46,7 +46,7 @@ export function useRewardsTabPerformance({
     candidateSubscriptionId,
     moneyEnabled,
     moneyReferralResolved,
-    moneyVariant,
+    moneyPersona,
   });
   const contentState =
     tabContent.status === 'ready' ? tabContent.variant : null;

@@ -155,17 +155,20 @@ describe('RewardsMoneyDataService', () => {
     it('attaches Authorization Bearer for authenticated reads', async () => {
       mockFetch.mockResolvedValue(
         okJson({
-          role: 'NONE',
-          variant: 'NONE',
+          roles: [],
+          ui_variant: 'NONE',
           user_type: 'REGULAR',
           status: 'ACTIVE',
           referral_code: null,
+          referral_code_status: null,
           referred_by: null,
           earn_rates: {
-            revshare_rate_bps: null,
             cashback_rate_bps: null,
-            revshare_earning_term_minutes: null,
-            cashback_earning_term_minutes: null,
+            cashback_earning_start: null,
+            cashback_earning_end: null,
+            revshare_rate_bps: null,
+            revshare_earning_start: null,
+            revshare_earning_end: null,
           },
         }),
       );
@@ -342,7 +345,7 @@ describe('RewardsMoneyDataService', () => {
     it('retries a busy referral me once and returns the next 200', async () => {
       jest.useFakeTimers();
       try {
-        const referralMe = { role: 'NONE', variant: 'NONE' };
+        const referralMe = { roles: [], ui_variant: 'NONE' };
         mockFetch
           .mockResolvedValueOnce(busyReferralMe('2'))
           .mockResolvedValueOnce(okJson(referralMe));

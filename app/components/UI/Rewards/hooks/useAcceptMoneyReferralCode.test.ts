@@ -41,22 +41,22 @@ const CODE = 'KOL1';
 const buildReferralMe = (
   localizedText: Partial<ReferralMeDto['localized_text']> = {},
 ): ReferralMeDto => ({
-  role: 'REFEREE',
-  variant: 'REFEREE',
+  roles: ['REFEREE'],
+  ui_variant: 'REFEREE',
   user_type: 'REGULAR',
   status: 'ACTIVE',
   referral_code: null,
+  referral_code_status: null,
   referred_by: {
     referral_code: CODE,
-    earning_start: null,
-    earning_end: null,
-    cashback_earning_end: null,
   },
   earn_rates: {
-    revshare_rate_bps: null,
     cashback_rate_bps: 500,
-    revshare_earning_term_minutes: null,
-    cashback_earning_term_minutes: 43200,
+    cashback_earning_start: null,
+    cashback_earning_end: null,
+    revshare_rate_bps: null,
+    revshare_earning_start: null,
+    revshare_earning_end: null,
   },
   localized_text: localizedText as ReferralMeDto['localized_text'],
   invite_hero: null,
@@ -540,8 +540,8 @@ describe('useAcceptMoneyReferralCode', () => {
       mockMessenger({
         referralMe: {
           ...buildReferralMe(),
-          role: 'NONE',
-          variant: 'NONE',
+          roles: [],
+          ui_variant: 'NONE',
         },
       });
 

@@ -3,13 +3,18 @@ import { fireEvent } from '@testing-library/react-native';
 import type {
   EarningsSummaryDto,
   ReferralLocalizedText,
+  ReferralMeDto,
+  ReferredByView,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { useEarningsSummary } from '../../hooks/useEarningsSummary';
 import { useReferralMe } from '../../hooks/useReferralMe';
-import RefereeHeroCard, { REFEREE_HERO_CARD_TEST_IDS } from './RefereeHeroCard';
+import RefereeHeroCard, {
+  fillOfferEndsIn,
+  REFEREE_HERO_CARD_TEST_IDS,
+} from './RefereeHeroCard';
 import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useEarningsSummary');
@@ -41,9 +46,6 @@ const LOCALIZED_TEXT = {
 
 const REFERRED_BY = {
   referral_code: 'INVITER',
-  earning_start: null,
-  earning_end: null,
-  cashback_earning_end: null,
 };
 
 const emptyBranch = {
@@ -97,17 +99,23 @@ describe('RefereeHeroCard', () => {
     earningsLoading = false,
     earningsError = false,
     referralError = false,
+    referredBy = REFERRED_BY,
+    localizedText = LOCALIZED_TEXT,
+    referralData = null,
   }: {
     summary?: EarningsSummaryDto | null;
     earningsLoading?: boolean;
     earningsError?: boolean;
     referralError?: boolean;
+    referredBy?: ReferredByView | null;
+    localizedText?: ReferralLocalizedText;
+    referralData?: ReferralMeDto | null;
   } = {}) =>
     renderWithProvider(
       <RefereeHeroCard
         profileId={PROFILE_ID}
-        referredBy={REFERRED_BY}
-        localizedText={LOCALIZED_TEXT}
+        referredBy={referredBy}
+        localizedText={localizedText}
       />,
       {
         state: {
@@ -117,7 +125,7 @@ describe('RefereeHeroCard', () => {
               [PROFILE_ID]: {
                 loading: false,
                 error: referralError,
-                data: null,
+                data: referralData,
               },
             },
             earningsSummary: {
@@ -230,5 +238,72 @@ describe('RefereeHeroCard', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
     );
+  });
+
+  it('hides referred by when the caller was not referred', () => {
+    const { queryByTestId, queryByText } = renderHero({ referredBy: null });
+
+    expect(queryByTestId(REFEREE_HERO_CARD_TEST_IDS.REFERRED_BY)).toBeNull();
+    expect(queryByText('Referred by')).toBeNull();
+    expect(queryByText('INVITER')).toBeNull();
+  });
+
+  it('hides referred by when the referral code is blank', () => {
+    const { queryByTestId, queryByText } = renderHero({
+      referredBy: { referral_code: '   ' },
+    });
+
+    expect(queryByTestId(REFEREE_HERO_CARD_TEST_IDS.REFERRED_BY)).toBeNull();
+    expect(queryByText('Referred by')).toBeNull();
+  });
+
+  it('shows how long the cashback offer has left', () => {
+    const { getByTestId } = renderHero({
+      localizedText: {
+        ...LOCALIZED_TEXT,
+        offerEndsIn: 'Offer ends in {duration}',
+        offerDurationDay: '{count} day',
+        offerDurationDays: '{count} days',
+        offerDurationHour: '{count} hour',
+        offerDurationHours: '{count} hours',
+      },
+      referralData: {
+        earn_rates: {
+          cashback_earning_end: '2099-01-01T00:00:00.000Z',
+        },
+      } as ReferralMeDto,
+    });
+
+    expect(
+      getByTestId(REFEREE_HERO_CARD_TEST_IDS.OFFER_ENDS_IN),
+    ).toHaveTextContent(/^Offer ends in /);
+  });
+});
+
+describe('fillOfferEndsIn', () => {
+  const now = Date.parse('2026-10-01T00:00:00.000Z');
+  const copy = {
+    offerEndsIn: 'Offer ends in {duration}',
+    offerDurationDay: '{count} day',
+    offerDurationDays: '{count} days',
+    offerDurationHour: '{count} hour',
+    offerDurationHours: '{count} hours',
+  };
+
+  it('fills duration and leaves the surrounding copy', () => {
+    expect(fillOfferEndsIn(copy, '2026-10-04T00:00:00.000Z', now)).toBe(
+      'Offer ends in 3 days',
+    );
+  });
+
+  it('returns null when the template or a future end is missing', () => {
+    expect(
+      fillOfferEndsIn(
+        { ...copy, offerEndsIn: 'Offer ends soon' },
+        '2026-10-04T00:00:00.000Z',
+        now,
+      ),
+    ).toBeNull();
+    expect(fillOfferEndsIn(copy, null, now)).toBeNull();
   });
 });

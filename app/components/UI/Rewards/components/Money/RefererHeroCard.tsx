@@ -38,7 +38,7 @@ import { useReferralMe } from '../../hooks/useReferralMe';
 import ShareCodeSheet from './ShareCodeSheet';
 import MoneyMetricCard from './MoneyMetricCard';
 import { SHOW_TRADING_COMMISSIONS } from './constants';
-import { formatMusdBaseUnits } from '../../utils/formatUtils';
+import { formatDuration, formatMusdBaseUnits } from '../../utils/formatUtils';
 import { earnedByOthersLifetime } from '../../utils/earningsSummaryTotals';
 
 export const REFERER_HERO_CARD_TEST_IDS = {
@@ -48,10 +48,49 @@ export const REFERER_HERO_CARD_TEST_IDS = {
   REFERRALS_TOTAL: 'referer-hero-card-referrals-total',
   TRADE_COMMISSIONS_TOTAL: 'referer-hero-card-trade-commissions-total',
   IDENTITY: 'referer-hero-card-identity',
+  OFFER_ENDS_IN: 'referer-hero-card-offer-ends-in',
   TERMS_INFO_BUTTON: 'referer-hero-card-terms-info',
   REFERRAL_ERROR: 'referer-hero-card-referral-error',
   EARNINGS_ERROR: 'referer-hero-card-earnings-error',
 } as const;
+
+type OfferEndsCopy = Pick<
+  ReferralLocalizedText,
+  | 'offerEndsIn'
+  | 'offerDurationDay'
+  | 'offerDurationDays'
+  | 'offerDurationHour'
+  | 'offerDurationHours'
+>;
+
+/**
+ * Fills `{duration}` in `offerEndsIn` from the localized unit templates.
+ * Null when the template or a future end is missing, so the hero hides the
+ * line instead of showing a placeholder.
+ */
+export const fillOfferEndsIn = (
+  localizedText: OfferEndsCopy | undefined,
+  endIso: string | null | undefined,
+  nowMs: number = Date.now(),
+): string | null => {
+  if (!localizedText?.offerEndsIn?.includes('{duration}')) {
+    return null;
+  }
+  const duration = formatDuration(
+    endIso,
+    {
+      day: localizedText.offerDurationDay,
+      days: localizedText.offerDurationDays,
+      hour: localizedText.offerDurationHour,
+      hours: localizedText.offerDurationHours,
+    },
+    nowMs,
+  );
+  if (!duration) {
+    return null;
+  }
+  return localizedText.offerEndsIn.replaceAll('{duration}', duration);
+};
 
 export interface RefererHeroCardProps {
   profileId: string;
@@ -96,6 +135,13 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
       ? 'earnings'
       : null;
   const code = referralCode?.code?.trim() ?? '';
+  const codeStatus =
+    referralMeEntry?.data?.referral_code_status ?? referralCode?.status;
+  const showShareableCode = codeStatus === 'ACTIVE' && code.length > 0;
+  const offerEndsIn = fillOfferEndsIn(
+    localizedText,
+    referralMeEntry?.data?.earn_rates?.revshare_earning_end,
+  );
 
   return (
     <Box
@@ -140,13 +186,20 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
           justifyContent={BoxJustifyContent.Between}
           twClassName="px-4 pb-4"
         >
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            twClassName="flex-1 pr-2"
-          >
-            {localizedText.earnEligibleFees}
-          </Text>
+          <Box twClassName="flex-1 pr-2">
+            <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+              {localizedText.earnEligibleFees}
+            </Text>
+            {offerEndsIn ? (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                testID={REFERER_HERO_CARD_TEST_IDS.OFFER_ENDS_IN}
+              >
+                {offerEndsIn}
+              </Text>
+            ) : null}
+          </Box>
           <ButtonIcon
             iconName={IconName.Info}
             size={ButtonIconSize.Md}
@@ -176,10 +229,10 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
               variant={TextVariant.HeadingLg}
               testID={REFERER_HERO_CARD_TEST_IDS.REFERRAL_CODE}
             >
-              {code || '-'}
+              {showShareableCode ? code : '-'}
             </Text>
           </Box>
-          {code && localizedText.share ? (
+          {showShareableCode && localizedText.share ? (
             // Button applies `self-start` unless it is full width, which would
             // override the row's centering, so it is wrapped to stay centered.
             <Box>

@@ -24,6 +24,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../reducers';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import {
+  moneyDashboardPersona,
   selectEarningsSummaryEntry,
   selectReferralMeEntry,
 } from '../../../../reducers/rewardsMoney/selectors';
@@ -203,14 +204,16 @@ const RewardsMoneyDashboard: React.FC = () => {
                 <Box
                   testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}
                 >
-                  {referralMe?.variant === 'REFERRER' ? (
+                  {referralMe &&
+                  moneyDashboardPersona(referralMe) === 'referrer' ? (
                     <RefererHeroCard
                       profileId={profileId}
                       referralCode={referralMe.referral_code}
                       localizedText={referralMe.localized_text}
                     />
                   ) : null}
-                  {referralMe?.variant === 'REFEREE' ? (
+                  {referralMe &&
+                  moneyDashboardPersona(referralMe) === 'referee' ? (
                     <RefereeHeroCard
                       profileId={profileId}
                       referredBy={referralMe.referred_by}

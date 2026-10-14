@@ -17,7 +17,7 @@ import {
   transparentModalStackOptions,
   fadeNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
-import type { ReferralVariant } from '../../../core/Engine/controllers/rewards-money-controller/types';
+import type { MoneyDashboardPersona } from '../../../reducers/rewardsMoney/selectors';
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
 import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 import { REWARDS_TAB_SKELETON_TEST_IDS } from '../../UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
@@ -102,7 +102,7 @@ jest.mock('../../UI/Rewards/hooks/useRewardsTabPerformance', () => ({
 const mockUseRewardsMoneyTabRouting = jest.fn(() => ({
   moneyEnabled: false,
   moneyReferralResolved: false,
-  moneyVariant: undefined as ReferralVariant | undefined,
+  moneyPersona: undefined as MoneyDashboardPersona | undefined,
   navigatorKey: 'disabled',
 }));
 jest.mock('../../UI/Rewards/hooks/useRewardsMoneyTabRouting', () => ({
@@ -2193,7 +2193,7 @@ describe('MainNavigator', () => {
         mockUseRewardsMoneyTabRouting.mockReturnValue({
           moneyEnabled: false,
           moneyReferralResolved: false,
-          moneyVariant: undefined,
+          moneyPersona: undefined,
           navigatorKey: 'disabled',
         });
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
@@ -2296,13 +2296,13 @@ describe('MainNavigator', () => {
         money: {
           moneyEnabled?: boolean;
           moneyReferralResolved?: boolean;
-          moneyVariant?: ReferralVariant;
+          moneyPersona?: MoneyDashboardPersona;
         } = {},
       ) => {
         mockUseRewardsMoneyTabRouting.mockReturnValue({
           moneyEnabled: money.moneyEnabled ?? false,
           moneyReferralResolved: money.moneyReferralResolved ?? false,
-          moneyVariant: money.moneyVariant,
+          moneyPersona: money.moneyPersona,
           navigatorKey: 'test',
         });
         const RewardsHome = getScreenComponent(
@@ -2332,7 +2332,7 @@ describe('MainNavigator', () => {
         money?: {
           moneyEnabled?: boolean;
           moneyReferralResolved?: boolean;
-          moneyVariant?: ReferralVariant;
+          moneyPersona?: MoneyDashboardPersona;
         },
       ): string[] =>
         renderRewardsHome(subscriptionId, money)
@@ -2348,7 +2348,7 @@ describe('MainNavigator', () => {
         money?: {
           moneyEnabled?: boolean;
           moneyReferralResolved?: boolean;
-          moneyVariant?: ReferralVariant;
+          moneyPersona?: MoneyDashboardPersona;
         },
       ): string | undefined =>
         renderRewardsHome(subscriptionId, money).findAll(
@@ -2405,7 +2405,7 @@ describe('MainNavigator', () => {
           const screenNames = findRewardsHomeScreenNames(null, {
             moneyEnabled: true,
             moneyReferralResolved: true,
-            moneyVariant: 'NONE',
+            moneyPersona: 'plain',
           });
 
           expect(screenNames).toContain(Routes.REWARDS_MONEY_DASHBOARD);
@@ -2413,35 +2413,35 @@ describe('MainNavigator', () => {
           expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
         });
 
-        it.each<ReferralVariant>(['REFERRER', 'REFEREE'])(
+        it.each<MoneyDashboardPersona>(['referrer', 'referee'])(
           'opens the Money dashboard for %s',
-          (moneyVariant) => {
+          (moneyPersona) => {
             expect(
               findRewardsHomeInitialRouteName(null, {
                 moneyEnabled: true,
                 moneyReferralResolved: true,
-                moneyVariant,
+                moneyPersona,
               }),
             ).toBe(Routes.REWARDS_MONEY_DASHBOARD);
           },
         );
 
-        it('opens the points dashboard for NONE with a subscription', () => {
+        it('opens the points dashboard for a plain user with a subscription', () => {
           expect(
             findRewardsHomeInitialRouteName('test-subscription-id', {
               moneyEnabled: true,
               moneyReferralResolved: true,
-              moneyVariant: 'NONE',
+              moneyPersona: 'plain',
             }),
           ).toBe(Routes.REWARDS_DASHBOARD);
         });
 
-        it('opens onboarding for NONE without a subscription', () => {
+        it('opens onboarding for a plain user without a subscription', () => {
           expect(
             findRewardsHomeInitialRouteName(null, {
               moneyEnabled: true,
               moneyReferralResolved: true,
-              moneyVariant: 'NONE',
+              moneyPersona: 'plain',
             }),
           ).toBe(Routes.REWARDS_ONBOARDING_FLOW);
         });
@@ -2451,7 +2451,7 @@ describe('MainNavigator', () => {
             findRewardsHomeInitialRouteName(null, {
               moneyEnabled: true,
               moneyReferralResolved: true,
-              moneyVariant: undefined,
+              moneyPersona: undefined,
             }),
           ).toBe(Routes.REWARDS_ONBOARDING_FLOW);
         });
@@ -2461,7 +2461,7 @@ describe('MainNavigator', () => {
             findRewardsHomeInitialRouteName('test-subscription-id', {
               moneyEnabled: false,
               moneyReferralResolved: false,
-              moneyVariant: 'REFERRER',
+              moneyPersona: 'referrer',
             }),
           ).toBe(Routes.REWARDS_DASHBOARD);
         });
@@ -2492,7 +2492,7 @@ describe('MainNavigator', () => {
           ).not.toHaveLength(0);
         });
 
-        it('remounts the nested stack when NONE becomes REFEREE', () => {
+        it('remounts the nested stack when a plain user becomes a referee', () => {
           const RewardsHome = getScreenComponent(
             homeTabsRoot,
             Routes.REWARDS_VIEW,
@@ -2501,7 +2501,7 @@ describe('MainNavigator', () => {
           mockUseRewardsMoneyTabRouting.mockReturnValue({
             moneyEnabled: true,
             moneyReferralResolved: true,
-            moneyVariant: 'NONE',
+            moneyPersona: 'plain',
             navigatorKey: 'profile-a:rewards',
           });
           const rendered = renderWithProvider(
@@ -2524,7 +2524,7 @@ describe('MainNavigator', () => {
           mockUseRewardsMoneyTabRouting.mockReturnValue({
             moneyEnabled: true,
             moneyReferralResolved: true,
-            moneyVariant: 'REFEREE',
+            moneyPersona: 'referee',
             navigatorKey: 'profile-a:rewards-money',
           });
           rendered.rerender(<RewardsHome route={{ params: {} }} />);

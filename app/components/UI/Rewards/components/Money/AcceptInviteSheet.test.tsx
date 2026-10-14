@@ -93,17 +93,20 @@ const LOCALIZED_TEXT = {
 const buildReferralMe = (
   overrides: Partial<ReferralMeDto> = {},
 ): ReferralMeDto => ({
-  role: 'NONE',
-  variant: 'NONE',
+  roles: [],
+  ui_variant: 'NONE',
   user_type: 'REGULAR',
   status: 'ACTIVE',
   referral_code: null,
+  referral_code_status: null,
   referred_by: null,
   earn_rates: {
-    revshare_rate_bps: null,
     cashback_rate_bps: null,
-    revshare_earning_term_minutes: null,
-    cashback_earning_term_minutes: null,
+    cashback_earning_start: null,
+    cashback_earning_end: null,
+    revshare_rate_bps: null,
+    revshare_earning_start: null,
+    revshare_earning_end: null,
   },
   localized_text: LOCALIZED_TEXT,
   invite_hero: null,
@@ -195,18 +198,17 @@ describe('AcceptInviteSheet', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it.each([
-    ['REFEREE', 'REFEREE'],
-    ['REFERRER', 'REFERRER'],
-    ['BOTH', 'REFERRER'],
-  ] as const)(
-    'closes without rendering the invite for role %s using variant %s',
-    (role, variant) => {
+  it.each([['REFEREE'], ['REFERRER']] as const)(
+    'closes without rendering the invite for role %s',
+    (role) => {
       referralMeEntries = {
         [PROFILE_ID]: {
           loading: false,
           error: false,
-          data: buildReferralMe({ role, variant }),
+          data: buildReferralMe({
+            roles: [role],
+            ui_variant: role,
+          }),
         },
       };
 
@@ -217,6 +219,24 @@ describe('AcceptInviteSheet', () => {
     },
   );
 
+  it('keeps the invite open for a cashback-experiment member', () => {
+    referralMeEntries = {
+      [PROFILE_ID]: {
+        loading: false,
+        error: false,
+        data: buildReferralMe({
+          roles: ['CASHBACK_EXPERIMENT'],
+          ui_variant: 'REFEREE',
+        }),
+      },
+    };
+
+    const { getByTestId } = renderSheetSync('KOL1');
+
+    expect(getByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
   it('does not pop again when accept refreshes referral me to a referee', async () => {
     const { getByTestId, queryByTestId, store } = await renderSheet('KOL1');
 
@@ -226,7 +246,10 @@ describe('AcceptInviteSheet', () => {
       store.dispatch(
         setReferralMe({
           profileId: PROFILE_ID,
-          data: buildReferralMe({ role: 'REFEREE', variant: 'REFEREE' }),
+          data: buildReferralMe({
+            roles: ['REFEREE'],
+            ui_variant: 'REFEREE',
+          }),
         }),
       );
     });
@@ -248,7 +271,10 @@ describe('AcceptInviteSheet', () => {
       store.dispatch(
         setReferralMe({
           profileId: PROFILE_ID,
-          data: buildReferralMe({ role: 'REFEREE', variant: 'REFEREE' }),
+          data: buildReferralMe({
+            roles: ['REFEREE'],
+            ui_variant: 'REFEREE',
+          }),
         }),
       );
     });

@@ -34,7 +34,7 @@ import { useEarningsSummary } from '../../hooks/useEarningsSummary';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import MoneyMetricCard from './MoneyMetricCard';
 import { SHOW_TRADING_COMMISSIONS } from './constants';
-import { formatMusdBaseUnits } from '../../utils/formatUtils';
+import { formatDuration, formatMusdBaseUnits } from '../../utils/formatUtils';
 import {
   earnedByOthersLifetime,
   selfEarnedLifetime,
@@ -46,10 +46,50 @@ export const REFEREE_HERO_CARD_TEST_IDS = {
   TRADING_COMMISSIONS_TOTAL: 'referee-hero-card-trading-commissions-total',
   TRADING_REBATES_TOTAL: 'referee-hero-card-trading-rebates-total',
   IDENTITY: 'referee-hero-card-identity',
+  OFFER_ENDS_IN: 'referee-hero-card-offer-ends-in',
+  REFERRED_BY: 'referee-hero-card-referred-by',
   TERMS_INFO_BUTTON: 'referee-hero-card-terms-info',
   REFERRAL_ERROR: 'referee-hero-card-referral-error',
   EARNINGS_ERROR: 'referee-hero-card-earnings-error',
 } as const;
+
+type OfferEndsCopy = Pick<
+  ReferralLocalizedText,
+  | 'offerEndsIn'
+  | 'offerDurationDay'
+  | 'offerDurationDays'
+  | 'offerDurationHour'
+  | 'offerDurationHours'
+>;
+
+/**
+ * Fills `{duration}` in `offerEndsIn` from the localized unit templates.
+ * Null when the template or a future end is missing, so the hero hides the
+ * line instead of showing a placeholder.
+ */
+export const fillOfferEndsIn = (
+  localizedText: OfferEndsCopy | undefined,
+  endIso: string | null | undefined,
+  nowMs: number = Date.now(),
+): string | null => {
+  if (!localizedText?.offerEndsIn?.includes('{duration}')) {
+    return null;
+  }
+  const duration = formatDuration(
+    endIso,
+    {
+      day: localizedText.offerDurationDay,
+      days: localizedText.offerDurationDays,
+      hour: localizedText.offerDurationHour,
+      hours: localizedText.offerDurationHours,
+    },
+    nowMs,
+  );
+  if (!duration) {
+    return null;
+  }
+  return localizedText.offerEndsIn.replaceAll('{duration}', duration);
+};
 
 export interface RefereeHeroCardProps {
   profileId: string;
@@ -90,6 +130,10 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
       ? 'earnings'
       : null;
   const referralCode = referredBy?.referral_code?.trim() ?? '';
+  const offerEndsIn = fillOfferEndsIn(
+    localizedText,
+    referralMeEntry?.data?.earn_rates?.cashback_earning_end,
+  );
 
   return (
     <Box
@@ -130,15 +174,22 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="px-4 pb-4"
+          twClassName={referralCode ? 'px-4 pb-4' : 'px-4'}
         >
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            twClassName="flex-1 pr-2"
-          >
-            {localizedText.invitedBenefitTitle}
-          </Text>
+          <Box twClassName="flex-1 pr-2">
+            <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+              {localizedText.invitedBenefitTitle}
+            </Text>
+            {offerEndsIn ? (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                testID={REFEREE_HERO_CARD_TEST_IDS.OFFER_ENDS_IN}
+              >
+                {offerEndsIn}
+              </Text>
+            ) : null}
+          </Box>
           <ButtonIcon
             iconName={IconName.Info}
             size={ButtonIconSize.Md}
@@ -151,20 +202,28 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
             testID={REFEREE_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON}
           />
         </Box>
-        <Box twClassName="h-px bg-border-muted" />
-        <Box twClassName="mt-4 px-4">
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {localizedText.invitedReferredBy}
-          </Text>
-          {referralCode ? (
-            <Text
-              variant={TextVariant.HeadingLg}
-              testID={REFEREE_HERO_CARD_TEST_IDS.REFERRAL_CODE}
+        {referralCode ? (
+          <>
+            <Box twClassName="h-px bg-border-muted" />
+            <Box
+              twClassName="mt-4 px-4"
+              testID={REFEREE_HERO_CARD_TEST_IDS.REFERRED_BY}
             >
-              {referralCode}
-            </Text>
-          ) : null}
-        </Box>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {localizedText.invitedReferredBy}
+              </Text>
+              <Text
+                variant={TextVariant.HeadingLg}
+                testID={REFEREE_HERO_CARD_TEST_IDS.REFERRAL_CODE}
+              >
+                {referralCode}
+              </Text>
+            </Box>
+          </>
+        ) : null}
       </Box>
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
         {SHOW_TRADING_COMMISSIONS ? (

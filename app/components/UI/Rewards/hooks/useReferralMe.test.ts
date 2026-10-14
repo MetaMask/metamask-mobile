@@ -31,8 +31,8 @@ const PROFILE_A = 'profile-a';
 const PROFILE_B = 'profile-b';
 
 const mockReferralMe: ReferralMeDto = {
-  role: 'REFERRER',
-  variant: 'REFERRER',
+  roles: ['REFERRER'],
+  ui_variant: 'REFERRER',
   user_type: 'KOL',
   status: 'ACTIVE',
   referral_code: {
@@ -41,12 +41,15 @@ const mockReferralMe: ReferralMeDto = {
     status: 'ACTIVE',
     share_url: null,
   },
+  referral_code_status: 'ACTIVE',
   referred_by: null,
   earn_rates: {
-    revshare_rate_bps: 1000,
     cashback_rate_bps: null,
-    revshare_earning_term_minutes: 525600,
-    cashback_earning_term_minutes: null,
+    cashback_earning_start: null,
+    cashback_earning_end: null,
+    revshare_rate_bps: 1000,
+    revshare_earning_start: null,
+    revshare_earning_end: null,
   },
   localized_text: {} as ReferralMeDto['localized_text'],
   invite_hero: null,
@@ -459,16 +462,18 @@ describe('useReferralMe', () => {
         }
         return undefined;
       });
-      const none = {
+      const none: ReferralMeDto = {
         ...mockReferralMe,
-        role: 'NONE',
-        variant: 'NONE',
-      } as const;
-      const referee = {
+        roles: [],
+        ui_variant: 'NONE',
+        referral_code_status: null,
+      };
+      const referee: ReferralMeDto = {
         ...mockReferralMe,
-        role: 'REFEREE',
-        variant: 'REFEREE',
-      } as const;
+        roles: ['REFEREE'],
+        ui_variant: 'REFEREE',
+        referral_code_status: null,
+      };
       const first = renderHook(() => useReferralMe({ fetchOnMount: false }));
       const second = renderHook(() => useReferralMe({ fetchOnMount: false }));
 

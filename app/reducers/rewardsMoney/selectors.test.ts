@@ -6,10 +6,12 @@ import type {
 import initialRootState from '../../util/test/initial-root-state';
 import type { EarningsSummaryEntry, ReferralMeEntry } from '.';
 import {
+  canAcceptMoneyReferralInvite,
+  moneyDashboardPersona,
   selectEarningsSummaryEntry,
+  selectMoneyDashboardPersona,
   selectReferralMeEntry,
   selectReferralMeLocalizedText,
-  selectReferralMeVariant,
 } from './selectors';
 
 const PROFILE_A = 'profile-a';
@@ -20,8 +22,8 @@ const mockLocalizedText = {
 } as ReferralMeDto['localized_text'];
 
 const mockReferralMe: ReferralMeDto = {
-  role: 'REFERRER',
-  variant: 'REFERRER',
+  roles: ['REFERRER'],
+  ui_variant: 'REFERRER',
   user_type: 'KOL',
   status: 'ACTIVE',
   referral_code: {
@@ -30,12 +32,15 @@ const mockReferralMe: ReferralMeDto = {
     status: 'ACTIVE',
     share_url: null,
   },
+  referral_code_status: 'ACTIVE',
   referred_by: null,
   earn_rates: {
-    revshare_rate_bps: 1000,
     cashback_rate_bps: null,
-    revshare_earning_term_minutes: 525600,
-    cashback_earning_term_minutes: null,
+    cashback_earning_start: null,
+    cashback_earning_end: null,
+    revshare_rate_bps: 1000,
+    revshare_earning_start: null,
+    revshare_earning_end: null,
   },
   localized_text: mockLocalizedText,
   invite_hero: null,
@@ -117,23 +122,69 @@ describe('rewardsMoney selectors', () => {
     });
   });
 
-  describe('selectReferralMeVariant', () => {
-    it('returns the variant of the entry data', () => {
+  describe('moneyDashboardPersona', () => {
+    it('treats a referrer as the referrer screen even when they are also a referee', () => {
+      expect(
+        moneyDashboardPersona({
+          roles: ['REFERRER', 'REFEREE'],
+          ui_variant: 'REFERRER',
+        }),
+      ).toBe('referrer');
+    });
+
+    it.each(['REFEREE', 'CASHBACK_EXPERIMENT', 'COPY_TRADING'] as const)(
+      'treats %s on the referee screen as a referee',
+      (role) => {
+        expect(
+          moneyDashboardPersona({
+            roles: [role],
+            ui_variant: 'REFEREE',
+          }),
+        ).toBe('referee');
+      },
+    );
+
+    it('keeps an empty role list on the points dashboard even when the screen is forced to referee', () => {
+      expect(moneyDashboardPersona({ roles: [], ui_variant: 'REFEREE' })).toBe(
+        'plain',
+      );
+      expect(moneyDashboardPersona({ roles: [], ui_variant: 'NONE' })).toBe(
+        'plain',
+      );
+    });
+  });
+
+  describe('canAcceptMoneyReferralInvite', () => {
+    it('stays open for a plain user and a cashback-experiment member', () => {
+      expect(canAcceptMoneyReferralInvite({ roles: [] })).toBe(true);
+      expect(
+        canAcceptMoneyReferralInvite({ roles: ['CASHBACK_EXPERIMENT'] }),
+      ).toBe(true);
+    });
+
+    it('closes for a referrer or an existing referee', () => {
+      expect(canAcceptMoneyReferralInvite({ roles: ['REFERRER'] })).toBe(false);
+      expect(canAcceptMoneyReferralInvite({ roles: ['REFEREE'] })).toBe(false);
+    });
+  });
+
+  describe('selectMoneyDashboardPersona', () => {
+    it('returns the persona of the entry data', () => {
       const state = buildState({ [PROFILE_A]: settledEntry });
 
-      expect(selectReferralMeVariant(state, PROFILE_A)).toBe('REFERRER');
+      expect(selectMoneyDashboardPersona(state, PROFILE_A)).toBe('referrer');
     });
 
     it('returns undefined when the entry has no data', () => {
       const state = buildState({ [PROFILE_A]: loadingEntry });
 
-      expect(selectReferralMeVariant(state, PROFILE_A)).toBeUndefined();
+      expect(selectMoneyDashboardPersona(state, PROFILE_A)).toBeUndefined();
     });
 
     it('returns undefined when there is no profile id', () => {
       const state = buildState({ [PROFILE_A]: settledEntry });
 
-      expect(selectReferralMeVariant(state, undefined)).toBeUndefined();
+      expect(selectMoneyDashboardPersona(state, undefined)).toBeUndefined();
     });
   });
 

@@ -85,24 +85,24 @@ const LOCALIZED_TEXT = {
 const buildReferralMe = (
   overrides: Partial<ReferralMeDto> = {},
 ): ReferralMeDto => ({
-  role: 'REFEREE',
-  variant: 'REFEREE',
+  roles: ['REFEREE'],
+  ui_variant: 'REFEREE',
   user_type: 'REGULAR',
   status: 'ACTIVE',
   referral_code: null,
+  referral_code_status: null,
   referred_by: {
     referral_code: 'KOL1',
-    earning_start: '2026-09-01T00:00:00.000Z',
-    // Revenue share runs six months. The splash must not date the cashback
-    // copy from this.
-    earning_end: '2027-04-01T00:00:00.000Z',
-    cashback_earning_end: '2026-10-24T00:00:00.000Z',
   },
   earn_rates: {
-    revshare_rate_bps: null,
     cashback_rate_bps: 1000,
-    revshare_earning_term_minutes: null,
-    cashback_earning_term_minutes: null,
+    cashback_earning_start: '2026-09-01T00:00:00.000Z',
+    cashback_earning_end: '2026-10-24T00:00:00.000Z',
+    // Revenue share runs six months. The splash must not date the cashback
+    // copy from this.
+    revshare_rate_bps: null,
+    revshare_earning_start: null,
+    revshare_earning_end: '2027-04-01T00:00:00.000Z',
   },
   localized_text: LOCALIZED_TEXT,
   invite_hero: null,
@@ -110,38 +110,51 @@ const buildReferralMe = (
 });
 
 describe('fillInviteAcceptedBodyDate', () => {
-  it('fills through a formatted earning_end when present', () => {
+  it('fills from the start through the end when both are present', () => {
     expect(
       fillInviteAcceptedBodyDate(
         'Earn rebates {date}.',
         INVITE_MESSAGE_BODY,
+        '2026-09-01T00:00:00.000Z',
         '2026-10-24T00:00:00.000Z',
       ),
-    ).toMatch(/^Earn rebates through /);
+    ).toMatch(/^Earn rebates from .+ through /);
   });
 
-  it('uses inviteMessageBody when earning_end is absent', () => {
+  it('uses inviteMessageBody when either date is absent', () => {
+    expect(
+      fillInviteAcceptedBodyDate(
+        'Earn rebates {date}.',
+        INVITE_MESSAGE_BODY,
+        '2026-09-01T00:00:00.000Z',
+        null,
+      ),
+    ).toBe(INVITE_MESSAGE_BODY);
     expect(
       fillInviteAcceptedBodyDate(
         'Earn rebates {date}.',
         INVITE_MESSAGE_BODY,
         null,
+        '2026-10-24T00:00:00.000Z',
       ),
     ).toBe(INVITE_MESSAGE_BODY);
   });
 
-  it('uses inviteMessageBody when earning_end is invalid', () => {
+  it('uses inviteMessageBody when a date is invalid', () => {
     expect(
       fillInviteAcceptedBodyDate(
         'Earn rebates {date}.',
         INVITE_MESSAGE_BODY,
+        '2026-09-01T00:00:00.000Z',
         'not-a-date',
       ),
     ).toBe(INVITE_MESSAGE_BODY);
   });
 
-  it('returns an empty string when the date and the fallback are both missing', () => {
-    expect(fillInviteAcceptedBodyDate(undefined, undefined, null)).toBe('');
+  it('returns an empty string when the dates and the fallback are missing', () => {
+    expect(fillInviteAcceptedBodyDate(undefined, undefined, null, null)).toBe(
+      '',
+    );
   });
 });
 
@@ -177,18 +190,22 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
     expect(getByTestId(TEST_IDS.TITLE)).toHaveTextContent(
       'Your rebate offer is active',
     );
-    expect(getByTestId(TEST_IDS.BODY).props.children).toMatch(/through .+2026/);
+    expect(getByTestId(TEST_IDS.BODY).props.children).toMatch(
+      /from .+ through .+2026/,
+    );
     expect(getByTestId(TEST_IDS.BODY).props.children).not.toMatch(/2027/);
   });
 
-  it('uses inviteMessageBody when cashback_earning_end is missing', () => {
+  it('uses inviteMessageBody when a cashback date is missing', () => {
     const { getByTestId } = renderSplash(
       buildReferralMe({
-        referred_by: {
-          referral_code: 'KOL1',
-          earning_start: null,
-          earning_end: '2027-04-01T00:00:00.000Z',
+        earn_rates: {
+          cashback_rate_bps: 1000,
+          cashback_earning_start: null,
           cashback_earning_end: null,
+          revshare_rate_bps: null,
+          revshare_earning_start: null,
+          revshare_earning_end: '2027-04-01T00:00:00.000Z',
         },
       }),
     );

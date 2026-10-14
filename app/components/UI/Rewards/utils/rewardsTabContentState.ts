@@ -1,4 +1,4 @@
-import type { ReferralVariant } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import type { MoneyDashboardPersona } from '../../../../reducers/rewardsMoney/selectors';
 
 /**
  * Shared readiness rules for Rewards tab time-to-content and RewardsHome routing.
@@ -6,7 +6,7 @@ import type { ReferralVariant } from '../../../../core/Engine/controllers/reward
  * Mirrors RewardsHome + OnboardingMainStep's skeleton gate:
  * - version blocked → update-required screen is content
  * - Money enabled but the referral persona unresolved → hold the tab (no home)
- * - REFERRER / REFEREE → the Money dashboard is content
+ * - referrer / referee → the Money dashboard is content
  * - subscriptionId → enrolled dashboard shell is content
  * - candidate still pending/retry → onboarding is mounted as the discovery
  * surface; enrollment is not known yet, so TTC stays open
@@ -39,7 +39,7 @@ export function getRewardsTabContentState({
   candidateSubscriptionId,
   moneyEnabled,
   moneyReferralResolved,
-  moneyVariant,
+  moneyPersona,
 }: {
   isVersionBlocked: boolean;
   subscriptionId: string | null;
@@ -49,14 +49,14 @@ export function getRewardsTabContentState({
   /**
    * Whether profile resolution plus the first referral-me fetch have settled.
    *
-   * Redux alone cannot tell an unresolved persona from `NONE` — a signed-out
-   * session never writes an entry at all — so the caller settles this once and
-   * leaves it settled. Later refetches must not re-open the gate, or the tab
-   * would tear down a home screen the user is already on.
+   * Redux alone cannot tell an unresolved persona from a plain user — a
+   * signed-out session never writes an entry at all — so the caller settles
+   * this once and leaves it settled. Later refetches must not re-open the
+   * gate, or the tab would tear down a home screen the user is already on.
    */
   moneyReferralResolved: boolean;
   /** `undefined` once resolved means no profile or a failed fetch. */
-  moneyVariant: ReferralVariant | undefined;
+  moneyPersona: MoneyDashboardPersona | undefined;
 }): RewardsTabContentState {
   if (isVersionBlocked) {
     return { status: 'ready', variant: 'update_required' };
@@ -68,7 +68,7 @@ export function getRewardsTabContentState({
 
   if (
     moneyEnabled &&
-    (moneyVariant === 'REFERRER' || moneyVariant === 'REFEREE')
+    (moneyPersona === 'referrer' || moneyPersona === 'referee')
   ) {
     return { status: 'ready', variant: 'money_dashboard' };
   }
