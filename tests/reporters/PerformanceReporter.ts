@@ -55,7 +55,8 @@ const isTestFailureStatus = (status: string): boolean =>
 
 export const SESSION_CREATION_FAILED = 'session_creation_failed';
 
-const ANSI_ESCAPE = /\u001b\[[0-9;]*m/g;
+// Built from the char code: a literal ESC in a regex trips no-control-regex.
+const ANSI_ESCAPE = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g');
 const MAX_FAILURE_MESSAGE_LENGTH = 300;
 
 /** First line of the Playwright error, without ANSI colors or the `Error:` prefix. */
