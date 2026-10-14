@@ -322,6 +322,23 @@ describe('MoneyBalanceSummary', () => {
       );
     });
 
+    it('leaves 24px between the title and the balance', () => {
+      const { getByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={balanceState('$123.45')}
+          showTitle
+        />,
+      );
+
+      const container = getByTestId(MoneyBalanceSummaryTestIds.CONTAINER);
+
+      expect(StyleSheet.flatten(container.props.style).gap).toBe(0);
+      expect(getByTestId(MoneyBalanceSummaryTestIds.AMOUNT)).toHaveStyle({
+        marginTop: 24,
+      });
+    });
+
     it('keeps the balance and the APY line under that title', () => {
       const { getByTestId } = render(
         <MoneyBalanceSummary
@@ -354,16 +371,18 @@ describe('MoneyBalanceSummary', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('sits flush under the header, matching the Home page balance', () => {
+  it('leaves 24px between the header title and the balance', () => {
     const { getByTestId } = render(
       <MoneyBalanceSummary apy={4} displayState={balanceState()} />,
     );
 
     const container = getByTestId(MoneyBalanceSummaryTestIds.CONTAINER);
 
-    expect(container).toHaveStyle({ paddingLeft: 16, paddingRight: 16 });
-    expect(
-      StyleSheet.flatten(container.props.style).paddingTop,
-    ).toBeUndefined();
+    // HeaderRoot leaves 12px under the title; 12px of padding completes 24px.
+    expect(container).toHaveStyle({
+      paddingLeft: 16,
+      paddingRight: 16,
+      paddingTop: 12,
+    });
   });
 });
