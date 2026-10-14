@@ -8,6 +8,8 @@ jest.mock('../../../logger.ts', () => ({
 }));
 
 import {
+  TestMuAIAPI,
+  TestMuAIAPIError,
   extractTestIdFromRecordingUrl,
   parseShareLinkResponse,
 } from './TestMuAIAPI';
@@ -45,5 +47,68 @@ describe('parseShareLinkResponse', () => {
   it('returns null when there is no link', () => {
     expect(parseShareLinkResponse({ status: 'ok' })).toBeNull();
     expect(parseShareLinkResponse(undefined)).toBeNull();
+  });
+});
+
+describe('session log retries', () => {
+  const fetchMock = jest.fn();
+  const originalFetch = global.fetch;
+
+  const response = (status: number, body: unknown = {}) => ({
+    ok: status >= 200 && status < 300,
+    status,
+    statusText: status === 404 ? 'Not Found' : 'OK',
+    json: async () => body,
+    text: async () => JSON.stringify(body),
+  });
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    global.fetch = fetchMock as unknown as typeof fetch;
+    process.env.LT_USERNAME = 'user';
+    process.env.LT_ACCESS_KEY = 'key';
+  });
+
+  afterAll(() => {
+    global.fetch = originalFetch;
+  });
+
+  it.each([
+    ['getNetworkLogs', 'network'],
+    ['getAppMetrics', 'appmetrics'],
+  ] as const)(
+    '%s retries 404s until the log is processed',
+    async (method, log) => {
+      fetchMock
+        .mockResolvedValueOnce(response(404))
+        .mockResolvedValueOnce(response(404))
+        .mockResolvedValueOnce(response(200, { ok: true }));
+
+      const result = await new TestMuAIAPI()[method]('sess-1', 5, 0);
+
+      expect(result).toEqual({ ok: true });
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect(fetchMock.mock.calls[0][0]).toContain(
+        `/sessions/sess-1/log/${log}`,
+      );
+    },
+  );
+
+  it('throws once retries are exhausted', async () => {
+    fetchMock.mockResolvedValue(response(404, { message: 'missing' }));
+
+    await expect(
+      new TestMuAIAPI().getNetworkLogs('sess-1', 3, 0),
+    ).rejects.toBeInstanceOf(TestMuAIAPIError);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not retry other errors', async () => {
+    fetchMock.mockResolvedValue(response(500));
+
+    await expect(
+      new TestMuAIAPI().getAppMetrics('sess-1', 5, 0),
+    ).rejects.toMatchObject({ status: 500 });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

@@ -61,12 +61,24 @@ describe('TestMuAIEnricher', () => {
   });
 
   describe('app metrics', () => {
-    it('summarises time series into avg/max for cpu, memory and network', async () => {
+    it('maps the meta aggregates and series of the real appmetrics payload', async () => {
       getApiMock().getAppMetrics.mockResolvedValue({
-        appCpu: [{ value: 10 }, { value: 30 }],
-        appMemory: [{ value: 100 }, { value: 300 }],
-        download: [{ value: 1 }, { value: 4 }],
-        upload: [{ value: 2 }, { value: 3 }],
+        cpu: [{ app: 10, sys: 20, time: 0 }],
+        mem: [{ app: 100, sys: 9000, time: 0 }],
+        network: [{ appIn: 1, appOut: 2, time: 0 }],
+        frames: [
+          { janky: 5, frozen: 1, time: 0 },
+          { janky: 7, frozen: 0, time: 1 },
+        ],
+        meta: {
+          avgCpu: 14.19,
+          maxCPUUtilization: 32.89,
+          avgMemory: 649.66,
+          maxMemoryUsage: 786.84,
+          networkDownload: 5166707,
+          networkUpload: 604812,
+          anrCount: 2,
+        },
       });
       const session = makeSession();
 
@@ -75,28 +87,34 @@ describe('TestMuAIEnricher', () => {
       expect(session.videoURL).toBe('https://video');
       expect(session.profilingSummary).toMatchObject({
         status: 'available',
-        cpu: { avg: 20, max: 30, unit: '%' },
-        memory: { avg: 200, max: 300, unit: 'MB' },
-        networkIO: { upload: 3, download: 4, unit: 'MB' },
+        cpu: { avg: 14.19, max: 32.89, unit: '%' },
+        memory: { avg: 649.66, max: 786.84, unit: 'MB' },
+        networkIO: { upload: 591, download: 5046, unit: 'KB' },
+        uiRendering: { slowFrames: 12, frozenFrames: 1, anrs: 2 },
       });
     });
 
-    it('ignores timestamp fields when samples are objects without a value key', async () => {
+    it('falls back to the series when meta is missing', async () => {
       getApiMock().getAppMetrics.mockResolvedValue({
-        appCpu: [
-          { timestamp: 1700000000, cpu: 5 },
-          { timestamp: 1700000001, cpu: 15 },
+        cpu: [
+          { app: 10, time: 0 },
+          { app: 30, time: 1 },
+        ],
+        mem: [
+          { app: 100, time: 0 },
+          { app: 300, time: 1 },
         ],
       });
       const session = makeSession();
 
       await enricher.enrichSession(session);
 
-      expect(session.profilingSummary?.cpu).toEqual({
-        avg: 10,
-        max: 15,
-        unit: '%',
+      expect(session.profilingSummary).toMatchObject({
+        cpu: { avg: 20, max: 30, unit: '%' },
+        memory: { avg: 200, max: 300, unit: 'MB' },
       });
+      expect(session.profilingSummary?.networkIO).toBeUndefined();
+      expect(session.profilingSummary?.uiRendering).toBeUndefined();
     });
 
     it('reports an error listing the keys when the shape is not recognised', async () => {

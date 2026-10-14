@@ -119,21 +119,18 @@ export class TestMuAIAPI {
     return data.data ?? data;
   }
 
-  // Metrics are processed after the session ends, so the endpoint can answer
-  // 404 for a while right after teardown (same as the video URL).
-  async getAppMetrics(
+  // Session logs are processed after the session ends, so these endpoints can
+  // answer 404 for a while right after teardown (same as the video URL).
+  private async getSessionLog(
     sessionId: string,
-    maxRetries = 10,
-    delayMs = 3000,
+    logName: string,
+    description: string,
+    maxRetries: number,
+    delayMs: number,
   ): Promise<unknown> {
-    if (!this.hasCredentials()) {
-      logger.warn('Skipping getAppMetrics: missing TestMu AI credentials');
-      return null;
-    }
-
     for (let attempt = 1; ; attempt++) {
       const response = await fetch(
-        `${API_BASE_URL}/sessions/${sessionId}/log/appmetrics`,
+        `${API_BASE_URL}/sessions/${sessionId}/log/${logName}`,
         {
           method: 'GET',
           headers: {
@@ -154,40 +151,47 @@ export class TestMuAIAPI {
 
       const errorBody = await response.text();
       throw new TestMuAIAPIError(
-        `Error fetching TestMu AI app metrics: ${response.statusText}`,
+        `Error fetching TestMu AI ${description}: ${response.statusText}`,
         response.status,
         errorBody,
       );
     }
   }
 
-  async getNetworkLogs(sessionId: string): Promise<unknown> {
+  async getAppMetrics(
+    sessionId: string,
+    maxRetries = 10,
+    delayMs = 3000,
+  ): Promise<unknown> {
+    if (!this.hasCredentials()) {
+      logger.warn('Skipping getAppMetrics: missing TestMu AI credentials');
+      return null;
+    }
+    return this.getSessionLog(
+      sessionId,
+      'appmetrics',
+      'app metrics',
+      maxRetries,
+      delayMs,
+    );
+  }
+
+  async getNetworkLogs(
+    sessionId: string,
+    maxRetries = 10,
+    delayMs = 3000,
+  ): Promise<unknown> {
     if (!this.hasCredentials()) {
       logger.warn('Skipping getNetworkLogs: missing TestMu AI credentials');
       return null;
     }
-
-    const response = await fetch(
-      `${API_BASE_URL}/sessions/${sessionId}/log/network`,
-      {
-        method: 'GET',
-        headers: {
-          Authorization: this.getAuthHeader(),
-        },
-        signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
-      },
+    return this.getSessionLog(
+      sessionId,
+      'network',
+      'network logs',
+      maxRetries,
+      delayMs,
     );
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw new TestMuAIAPIError(
-        `Error fetching TestMu AI network logs: ${response.statusText}`,
-        response.status,
-        errorBody,
-      );
-    }
-
-    return await response.json();
   }
 
   /** Public, login-free link to the TestMu test page (valid for `expiresInDays`). */

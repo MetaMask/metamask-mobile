@@ -7,6 +7,34 @@ import {
 import { parseHarToEntries } from '../parseHar';
 import type { SessionData, ProfilingData, ProfilingSummary } from '../../types';
 
+const finiteNumber = (value: unknown): number | null =>
+  typeof value === 'number' && Number.isFinite(value) ? value : null;
+
+const statsFromMeta = (
+  avg: unknown,
+  max: unknown,
+): { avg: number; max: number } | null => {
+  const avgValue = finiteNumber(avg);
+  const maxValue = finiteNumber(max);
+  return avgValue !== null && maxValue !== null
+    ? { avg: avgValue, max: maxValue }
+    : null;
+};
+
+const bytesToKb = (bytes: number | null): number =>
+  bytes === null ? 0 : Math.round(bytes / 1024);
+
+const sumField = (series: unknown, field: string): number =>
+  Array.isArray(series)
+    ? series.reduce<number>(
+        (total, sample) =>
+          total +
+          (finiteNumber((sample as Record<string, unknown> | null)?.[field]) ??
+            0),
+        0,
+      )
+    : 0;
+
 const TIMESTAMP_KEY = /time|date|^ts$|_at$/i;
 
 // Samples are numbers or objects; for objects prefer `value`, else the first
@@ -168,17 +196,25 @@ export class TestMuAIEnricher extends BaseSessionDataEnricher {
     }
   }
 
-  // The appmetrics API returns time series keyed by metric name (appCpu,
-  // appMemory, download, upload, ...), not pre-aggregated avg/max.
+  // appmetrics returns per-interval series (cpu, mem, network, frames, ...)
+  // plus a `meta` object with the session aggregates (avgCpu, maxMemoryUsage,
+  // networkDownload in bytes, anrCount, ...). Prefer `meta`, fall back to series.
   private extractProfilingSummary(
     metrics: Record<string, unknown>,
   ): ProfilingSummary {
     try {
       const data = (metrics.data ?? metrics) as Record<string, unknown>;
-      const cpu = seriesStats(data.appCpu);
-      const memory = seriesStats(data.appMemory);
-      const download = seriesStats(data.download);
-      const upload = seriesStats(data.upload);
+      const meta = (data.meta ?? {}) as Record<string, unknown>;
+
+      const cpu =
+        statsFromMeta(meta.avgCpu, meta.maxCPUUtilization) ??
+        seriesStats(data.cpu);
+      const memory =
+        statsFromMeta(meta.avgMemory, meta.maxMemoryUsage) ??
+        seriesStats(data.mem);
+      const download = finiteNumber(meta.networkDownload);
+      const upload = finiteNumber(meta.networkUpload);
+      const anrs = finiteNumber(meta.anrCount);
 
       if (!cpu && !memory) {
         return {
@@ -195,11 +231,18 @@ export class TestMuAIEnricher extends BaseSessionDataEnricher {
         ...(memory && {
           memory: { avg: memory.avg, max: memory.max, unit: 'MB' },
         }),
-        ...((download || upload) && {
+        ...((download !== null || upload !== null) && {
           networkIO: {
-            upload: upload?.max ?? 0,
-            download: download?.max ?? 0,
-            unit: 'MB',
+            upload: bytesToKb(upload),
+            download: bytesToKb(download),
+            unit: 'KB',
+          },
+        }),
+        ...((Array.isArray(data.frames) || anrs !== null) && {
+          uiRendering: {
+            slowFrames: sumField(data.frames, 'janky'),
+            frozenFrames: sumField(data.frames, 'frozen'),
+            anrs: anrs ?? 0,
           },
         }),
       };
