@@ -289,6 +289,7 @@ describe('LivePriceHeader', () => {
 
       expect(priceText?.props.variant).toBe(TextVariant.BodySm);
       expect(priceText?.props.fontFamily).toBeUndefined();
+      expect(priceText?.props.twClassName).toBeUndefined();
       expect(priceText?.props.color).toBe(TextColor.TextAlternative);
       expect(changeText?.props.variant).toBe(TextVariant.BodySm);
     });
@@ -318,7 +319,7 @@ describe('LivePriceHeader', () => {
       expect(changeText?.props.color).toBe(TextColor.SuccessDefault);
     });
 
-    it('renders a smaller prominent price for the prominent variant (Pro)', () => {
+    it('renders a prominent price for the prominent variant (Pro)', () => {
       const { UNSAFE_getAllByType } = render(
         <LivePriceHeader symbol="ETH" currentPrice={3000} size="prominent" />,
       );
@@ -331,6 +332,7 @@ describe('LivePriceHeader', () => {
       expect(priceText?.props.variant).toBe(TextVariant.HeadingLg);
       expect(priceText?.props.fontFamily).toBe(FontFamily.Grotzec);
       expect(priceText?.props.fontWeight).toBe(FontWeight.Regular);
+      expect(priceText?.props.twClassName).toBe('text-[48px] leading-[52.8px]');
       expect(priceText?.props.color).toBe(TextColor.TextDefault);
     });
 
