@@ -56,7 +56,7 @@ const ClaimsPausedSheet: React.FC<ClaimsPausedSheetProps> = ({
         color={TextColor.TextDefault}
         testID={KOL_DASHBOARD_SELECTORS.CLAIMS_PAUSED_BREAKDOWN_HEADER}
       >
-        {strings('rewards.kol.breakdown')}
+        {strings('rewards.kol.claims_breakdown_title')}
       </Text>
     </Box>
     {getClaimEarningsBreakdownRows().map((row) => (

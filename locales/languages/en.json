@@ -11700,6 +11700,7 @@
       "claims_paused_action": "Paused",
       "claims_paused_banner": "{{amount}} of rewards paused.",
       "claims_paused_learn_more": "Learn more",
+      "claims_breakdown_title": "Balance breakdown",
       "claims_breakdown_available": "Available to claim",
       "claims_breakdown_held": "Held",
       "claims_breakdown_blocked": "Blocked",

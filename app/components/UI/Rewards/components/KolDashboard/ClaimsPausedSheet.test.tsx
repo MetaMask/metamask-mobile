@@ -49,14 +49,14 @@ describe('ClaimsPausedSheet', () => {
     expect(divider).toBeOnTheScreen();
   });
 
-  it('renders a Breakdown header above the claim rows', () => {
+  it('renders a Balance breakdown header above the claim rows', () => {
     const { getByTestId } = render(
       <ClaimsPausedSheet isVisible onClose={jest.fn()} />,
     );
 
     expect(
       getByTestId(KOL_DASHBOARD_SELECTORS.CLAIMS_PAUSED_BREAKDOWN_HEADER),
-    ).toHaveTextContent('rewards.kol.breakdown');
+    ).toHaveTextContent('rewards.kol.claims_breakdown_title');
   });
 
   it('lists claim buckets under total earnings', () => {
