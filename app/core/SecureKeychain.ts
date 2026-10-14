@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import-x/no-namespace
+import performance from 'react-native-performance';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
 import { strings } from '../../locales/i18n';
 import { MetaMetricsEvents } from './Analytics/MetaMetrics.events';
@@ -31,6 +32,19 @@ enum SecureKeychainTypes {
   BIOMETRICS = 'BIOMETRICS',
   PASSCODE = 'PASSCODE',
   REMEMBER_ME = 'REMEMBER_ME',
+}
+
+/**
+ * `performance.now()` marks around a credential read, filled in by
+ * {@link SecureKeychain.getGenericPassword}. The native read can include an
+ * OS biometric or passcode prompt; the decrypt after `returnedAt` is app work.
+ */
+export interface CredentialReadTimings {
+  requestedAt?: number;
+  returnedAt?: number;
+  /** The keychain held no password, as for password-only users. */
+  empty?: boolean;
+  decryptedAt?: number;
 }
 
 /**
@@ -168,10 +182,17 @@ const SecureKeychain = {
     return Keychain.resetGenericPassword(options);
   },
 
-  async getGenericPassword() {
+  /**
+   * Reads and decrypts the stored wallet password.
+   * @param timings - Filled in with `performance.now()` marks as the read progresses.
+   */
+  async getGenericPassword(timings?: CredentialReadTimings) {
     if (instance) {
       try {
         instance.isAuthenticating = true;
+        if (timings) {
+          timings.requestedAt = performance.now();
+        }
         const keychainObject = await Keychain.getGenericPassword({
           ...defaultCredentialsOptions,
           // Access control is only used by Android when requesting device authentication
@@ -181,9 +202,16 @@ const SecureKeychain = {
               ? Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE
               : undefined,
         });
+        if (timings) {
+          timings.returnedAt = performance.now();
+          timings.empty = !keychainObject || !keychainObject.password;
+        }
         if (keychainObject && keychainObject.password) {
           const encryptedPassword = keychainObject.password;
           const decrypted = await instance.decryptPassword(encryptedPassword);
+          if (timings) {
+            timings.decryptedAt = performance.now();
+          }
           keychainObject.password = decrypted.password;
           instance.isAuthenticating = false;
           return keychainObject;

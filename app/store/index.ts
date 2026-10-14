@@ -10,6 +10,10 @@ import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
 import thunk from 'redux-thunk';
 import persistConfig from './persistConfig';
 import getUIStartupSpan from '../core/Performance/UIStartup';
+import {
+  markStartup,
+  timeStartupStep,
+} from '../core/Performance/startupStageSpans';
 import ReduxService, { ReduxStore } from '../core/redux';
 import { onPersistedDataLoaded } from '../actions/user';
 import { setBasicFunctionality } from '../actions/settings';
@@ -30,6 +34,7 @@ const pReducer = persistReducer<RootState, AnyAction>(
 let store: ReduxStore, persistor: Persistor, runSaga: SagaMiddleware['run'];
 /* istanbul ignore next -- store initialization; runs at module load with heavy deps (sagas, persistence, tracing) */
 const createStoreAndPersistor = async () => {
+  markStartup('storeInitStart');
   trace({
     name: TraceName.StoreInit,
     parentContext: getUIStartupSpan(),
@@ -47,6 +52,10 @@ const createStoreAndPersistor = async () => {
 
   const middlewares = [sagaMiddleware, thunk];
 
+  const stopConfigureStore = timeStartupStep(
+    'store_initialization',
+    'startup.store.configure_ms',
+  );
   store = configureStore({
     reducer: pReducer,
     middleware: middlewares,
@@ -57,10 +66,16 @@ const createStoreAndPersistor = async () => {
         ? getDefaultEnhancers.concat(devToolsEnhancer())
         : getDefaultEnhancers,
   });
+  stopConfigureStore();
   // Set the store in the Redux class
   ReduxService.store = store;
 
+  const stopRootSaga = timeStartupStep(
+    'store_initialization',
+    'startup.store.root_saga_ms',
+  );
   sagaMiddleware.run(rootSaga);
+  stopRootSaga();
 
   runSaga = sagaMiddleware.run.bind(sagaMiddleware);
 
@@ -68,6 +83,7 @@ const createStoreAndPersistor = async () => {
    * Initialize services after persist is completed
    */
   const onPersistComplete = () => {
+    markStartup('persistComplete');
     endTrace({ name: TraceName.StoreInit });
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
@@ -89,6 +105,7 @@ const createStoreAndPersistor = async () => {
     }
   };
 
+  markStartup('persistStart');
   persistor = persistStore(store, null, onPersistComplete);
 };
 

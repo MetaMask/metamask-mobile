@@ -14,6 +14,11 @@ import {
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
 import { getPersistentState } from '../../store/getPersistentState/getPersistentState';
 import { setExistingUser } from '../../actions/user';
+import {
+  markStartup,
+  setStartupPersistedStateStats,
+  timeStartupStep,
+} from '../Performance/startupStageSpans';
 
 // Mock NavigationService
 jest.mock('../NavigationService', () => ({
@@ -87,7 +92,21 @@ jest.mock('../../store/persistConfig', () => ({
     removeItem: jest.fn(),
   },
   createPersistController: jest.fn(() => jest.fn()),
+  createPersistedStateReadStats: () => ({
+    chars: 0,
+    parseMs: 0,
+    controllers: 0,
+    largestChars: 0,
+  }),
 }));
+
+jest.mock('../Performance/startupStageSpans', () => ({
+  markStartup: jest.fn(),
+  setStartupPersistedStateStats: jest.fn(),
+  timeStartupStep: jest.fn(),
+}));
+
+const mockStopStartupStep = jest.fn();
 
 // Unmock global Engine
 jest.unmock('../Engine');
@@ -200,6 +219,7 @@ describe('EngineService', () => {
     mockDispatch = jest.fn();
     jest.clearAllMocks();
     jest.resetAllMocks();
+    jest.mocked(timeStartupStep).mockReturnValue(mockStopStartupStep);
     // Use fake timers to prevent timeout issues after Jest teardown
     jest.useFakeTimers();
 
@@ -284,6 +304,40 @@ describe('EngineService', () => {
         },
       );
     });
+  });
+
+  it('marks the startup around the controller state read and the engine init', async () => {
+    jest.useRealTimers();
+
+    await engineService.start();
+
+    const mockGetAllPersistedState = jest.mocked(
+      ControllerStorage.getAllPersistedState,
+    );
+    const [stats] = mockGetAllPersistedState.mock.calls[0];
+    expect(stats).toEqual({
+      chars: 0,
+      parseMs: 0,
+      controllers: 0,
+      largestChars: 0,
+    });
+    expect(setStartupPersistedStateStats).toHaveBeenCalledWith(stats);
+    expect(jest.mocked(markStartup).mock.calls).toEqual([
+      ['engineStart'],
+      ['controllerStateLoaded'],
+      ['engineEnd'],
+    ]);
+    const [engineStartOrder, controllerStateLoadedOrder] =
+      jest.mocked(markStartup).mock.invocationCallOrder;
+    const [readOrder] = mockGetAllPersistedState.mock.invocationCallOrder;
+    expect(engineStartOrder).toBeLessThan(readOrder);
+    expect(readOrder).toBeLessThan(controllerStateLoadedOrder);
+    expect(jest.mocked(timeStartupStep).mock.calls).toEqual([
+      ['engine_initialization', 'startup.engine.analytics_id_ms'],
+      ['engine_initialization', 'startup.engine.init_ms'],
+      ['engine_initialization', 'startup.engine.redux_and_persistence_ms'],
+    ]);
+    expect(mockStopStartupStep).toHaveBeenCalledTimes(3);
   });
 
   it('recovers vault on redux store and logs initialization', async () => {

@@ -41,13 +41,27 @@ jest.mock('../getPersistentState/getPersistentState', () => ({
   getPersistentState: jest.fn((_state, _metadata) => ({ filtered: 'state' })),
 }));
 
+const mockStopStartupStep = jest.fn();
+jest.mock('../../core/Performance/startupStageSpans', () => ({
+  setStartupStageData: jest.fn(),
+  timeStartupStep: jest.fn(() => mockStopStartupStep),
+}));
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../util/device';
-import persistConfig, { ControllerStorage, createPersistController } from '.';
+import persistConfig, {
+  ControllerStorage,
+  createPersistController,
+  createPersistedStateReadStats,
+} from '.';
 import { version } from '../migrations';
 import { Transform } from 'redux-persist';
 import Logger from '../../util/Logger';
+import {
+  setStartupStageData,
+  timeStartupStep,
+} from '../../core/Performance/startupStageSpans';
 
 // Note: debounce is mocked to return the original function for testing simplicity
 
@@ -97,9 +111,14 @@ jest.mock('@metamask/base-controller', () => ({
   },
 }));
 
+const mockRunMigrations = jest.fn();
+
 // Mock redux-persist
 jest.mock('redux-persist', () => ({
-  createMigrate: () => () => Promise.resolve({}),
+  createMigrate:
+    () =>
+    (...args: unknown[]) =>
+      mockRunMigrations(...args),
   createTransform: (
     inbound: unknown,
     outbound: unknown,
@@ -168,6 +187,32 @@ describe('persistConfig', () => {
     });
   });
 
+  describe('migrate', () => {
+    it('runs the migrations and times them for the startup recorder', async () => {
+      const migratedState = { _persist: { version: 2, rehydrated: false } };
+      mockRunMigrations.mockResolvedValue(migratedState);
+
+      const result = await persistConfig.migrate(undefined, 2);
+
+      expect(result).toBe(migratedState);
+      expect(mockRunMigrations).toHaveBeenCalledWith(undefined, 2);
+      expect(timeStartupStep).toHaveBeenCalledWith(
+        'redux_persist_rehydration',
+        'startup.persist.migrate_ms',
+      );
+      expect(mockStopStartupStep).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops the migration timer when a migration fails', async () => {
+      mockRunMigrations.mockRejectedValue(new Error('Migration failed'));
+
+      await expect(persistConfig.migrate(undefined, 2)).rejects.toThrow(
+        'Migration failed',
+      );
+      expect(mockStopStartupStep).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('storage operations', () => {
     const mockKey = 'test-key';
     const mockValue = 'test-value';
@@ -203,6 +248,35 @@ describe('persistConfig', () => {
       expect(result).toBe(mockStorageValue);
       expect(FilesystemStorage.getItem).toHaveBeenCalledWith(mockKey);
       expect(AsyncStorage.getItem).toHaveBeenCalledWith(mockKey);
+    });
+
+    it('times the root state read and records its size for the startup recorder', async () => {
+      (FilesystemStorage.getItem as jest.Mock).mockResolvedValue(
+        'persisted-root',
+      );
+
+      await persistConfig.storage.getItem(mockKey);
+
+      expect(timeStartupStep).toHaveBeenCalledWith(
+        'redux_persist_rehydration',
+        'startup.persist.read_ms',
+      );
+      expect(mockStopStartupStep).toHaveBeenCalledTimes(1);
+      expect(setStartupStageData).toHaveBeenCalledWith(
+        'redux_persist_rehydration',
+        'startup.persist.chars',
+        'persisted-root'.length,
+      );
+    });
+
+    it('records a missing root state as zero characters', async () => {
+      await persistConfig.storage.getItem(mockKey);
+
+      expect(setStartupStageData).toHaveBeenCalledWith(
+        'redux_persist_rehydration',
+        'startup.persist.chars',
+        0,
+      );
     });
 
     it('set item using FilesystemStorage', async () => {
@@ -244,6 +318,42 @@ describe('persistConfig', () => {
       const result = await ControllerStorage.getAllPersistedState();
 
       expect(result).toEqual({ backgroundState: {} });
+    });
+
+    it('fills in the read stats for the startup recorder', async () => {
+      const keyringData = JSON.stringify({ vault: 'encrypted_data' });
+      const preferencesData = JSON.stringify({});
+      (FilesystemStorage.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === 'persist:KeyringController') {
+          return keyringData;
+        }
+        if (key === 'persist:PreferencesController') {
+          return preferencesData;
+        }
+        return null;
+      });
+      const stats = createPersistedStateReadStats();
+
+      await ControllerStorage.getAllPersistedState(stats);
+
+      expect(stats).toEqual({
+        chars: keyringData.length + preferencesData.length,
+        parseMs: expect.any(Number),
+        controllers: 2,
+        largestController: 'KeyringController',
+        largestChars: keyringData.length,
+      });
+    });
+
+    it('leaves unparseable controller state out of the read stats', async () => {
+      (FilesystemStorage.getItem as jest.Mock).mockImplementation((key) =>
+        key === 'persist:KeyringController' ? 'invalid-json{' : null,
+      );
+      const stats = createPersistedStateReadStats();
+
+      await ControllerStorage.getAllPersistedState(stats);
+
+      expect(stats).toEqual(createPersistedStateReadStats());
     });
 
     it('includes only controllers with meaningful state', async () => {

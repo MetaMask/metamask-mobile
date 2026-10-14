@@ -1,4 +1,9 @@
-import { createMigrate, createTransform } from 'redux-persist';
+import {
+  createMigrate,
+  createTransform,
+  type PersistMigrate,
+} from 'redux-persist';
+import performance from 'react-native-performance';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
@@ -11,6 +16,10 @@ import Device from '../../util/device';
 import { UserState } from '../../reducers/user';
 import { debounce } from 'lodash';
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants';
+import {
+  setStartupStageData,
+  timeStartupStep,
+} from '../../core/Performance/startupStageSpans';
 
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
@@ -73,11 +82,32 @@ const createStorage = (enableAsyncStorageFallback = false) => ({
   },
 });
 
+/** Filled in by {@link ControllerStorage.getAllPersistedState} as it reads. */
+export interface PersistedStateReadStats {
+  /** Characters of persisted controller JSON, about its size in bytes. */
+  chars: number;
+  /** Total `JSON.parse` time in ms. The reads themselves overlap. */
+  parseMs: number;
+  /** Controllers with persisted state. */
+  controllers: number;
+  largestController?: string;
+  largestChars: number;
+}
+
+export const createPersistedStateReadStats = (): PersistedStateReadStats => ({
+  chars: 0,
+  parseMs: 0,
+  controllers: 0,
+  largestChars: 0,
+});
+
 export const ControllerStorage = {
   // Use the consolidated storage without AsyncStorage fallback
   ...createStorage(false),
 
-  async getAllPersistedState(): Promise<Record<string, unknown>> {
+  async getAllPersistedState(
+    stats?: PersistedStateReadStats,
+  ): Promise<Record<string, unknown>> {
     try {
       const backgroundState: Record<string, unknown> = {};
 
@@ -94,7 +124,17 @@ export const ControllerStorage = {
           try {
             const data = await FilesystemStorage.getItem(key);
             if (data) {
+              const parseStartedAt = performance.now();
               const parsedData = JSON.parse(data);
+              if (stats) {
+                stats.parseMs += performance.now() - parseStartedAt;
+                stats.chars += data.length;
+                stats.controllers += 1;
+                if (data.length > stats.largestChars) {
+                  stats.largestChars = data.length;
+                  stats.largestController = controllerName;
+                }
+              }
 
               // Ensure parsedData is an object to prevent destructuring errors
               if (
@@ -134,7 +174,40 @@ export const ControllerStorage = {
 };
 
 // Use the consolidated storage WITH AsyncStorage fallback for migration scenarios
-const MigratedStorage = createStorage(true);
+const rootStorage = createStorage(true);
+const MigratedStorage = {
+  ...rootStorage,
+  async getItem(key: string) {
+    const stopRead = timeStartupStep(
+      'redux_persist_rehydration',
+      'startup.persist.read_ms',
+    );
+    const value = await rootStorage.getItem(key);
+    stopRead();
+    setStartupStageData(
+      'redux_persist_rehydration',
+      'startup.persist.chars',
+      value?.length ?? 0,
+    );
+    return value;
+  },
+};
+
+const runMigrations = createMigrate(migrations, {
+  debug: false,
+});
+
+const migrate: PersistMigrate = async (state, currentVersion) => {
+  const stopMigrate = timeStartupStep(
+    'redux_persist_rehydration',
+    'startup.persist.migrate_ms',
+  );
+  try {
+    return await runMigrations(state, currentVersion);
+  } finally {
+    stopMigrate();
+  }
+};
 /**
  * Creates a debounced controller persistence function.
  *
@@ -250,9 +323,7 @@ const persistConfig = {
     persistCardTransform,
   ],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
-  migrate: createMigrate(migrations, {
-    debug: false,
-  }),
+  migrate,
   timeout: TIMEOUT,
   throttle: STORAGE_THROTTLE_DELAY,
   writeFailHandler: (error: Error) =>

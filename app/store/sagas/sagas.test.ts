@@ -1,7 +1,11 @@
 import { AppState } from 'react-native';
 import { take, fork, cancel } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
-import { UserActionType, checkForDeeplink } from '../../actions/user';
+import {
+  UserActionType,
+  checkForDeeplink,
+  setAppServicesReady,
+} from '../../actions/user';
 import Routes from '../../constants/navigation/Routes';
 import {
   authStateMachine,
@@ -31,6 +35,12 @@ import {
 } from '../../core/DeeplinkManager/utils/startupDeeplinkNavigation';
 import { resetUnlockAppStartTypeForTesting } from '../../core/Performance/unlockTraces';
 import { resetLoginAppStartTypeForTesting } from '../../components/Views/Login/loginPerformanceTags';
+import {
+  markStartup,
+  noteStartupSeedlessPrecheck,
+  timeStartupStep,
+} from '../../core/Performance/startupStageSpans';
+import type { SeedlessPasswordCheckTimings } from '../../core/Authentication/Authentication';
 import Engine from '../../core/Engine';
 import LockManagerService from '../../core/LockManagerService';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
@@ -194,6 +204,13 @@ jest.mock('../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
   jest.fn(),
 );
 
+const mockStopStartupStep = jest.fn();
+jest.mock('../../core/Performance/startupStageSpans', () => ({
+  markStartup: jest.fn(),
+  noteStartupSeedlessPrecheck: jest.fn(),
+  timeStartupStep: jest.fn(() => mockStopStartupStep),
+}));
+
 const defaultMockState = {
   onboarding: {
     completedOnboarding: false,
@@ -254,6 +271,32 @@ describe('requestAuthOnAppStart', () => {
       ],
     });
     expect(Authentication.unlockWallet).not.toHaveBeenCalled();
+  });
+
+  it('gives the seedless check timings to the startup recorder', async () => {
+    (
+      Authentication.checkIsSeedlessPasswordOutdated as jest.Mock
+    ).mockImplementationOnce(
+      async ({ timings }: { timings: SeedlessPasswordCheckTimings }) => {
+        timings.startedAt = 10;
+        timings.endedAt = 25;
+        return false;
+      },
+    );
+
+    await expectSaga(requestAuthOnAppStart).run();
+
+    expect(Authentication.checkIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
+      {
+        skipCache: true,
+        captureSentryError: false,
+        timings: expect.any(Object),
+      },
+    );
+    expect(noteStartupSeedlessPrecheck).toHaveBeenCalledWith({
+      startedAt: 10,
+      endedAt: 25,
+    });
   });
 
   it('navigates to Login when Authentication.unlockWallet throws', async () => {
@@ -563,6 +606,25 @@ describe('startAppServices', () => {
 
     // Verify authentication is requested
     expect(Authentication.unlockWallet).toHaveBeenCalled();
+  });
+
+  it('marks services ready for the startup recorder and times the service starts', async () => {
+    await expectSaga(startAppServices)
+      .withState({
+        onboarding: { completedOnboarding: false },
+        user: { existingUser: true },
+      })
+      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+      .put(setAppServicesReady())
+      .run();
+
+    expect(markStartup).toHaveBeenCalledWith('servicesReady');
+    expect(jest.mocked(timeStartupStep).mock.calls).toEqual([
+      ['post_init_gap', 'startup.post_init.deeplink_manager_ms'],
+      ['post_init_gap', 'startup.post_init.app_state_processor_ms'],
+    ]);
+    expect(mockStopStartupStep).toHaveBeenCalledTimes(2);
   });
 
   // SDKConnect/WC2 initialization starts from the unlocked deeplink saga path.

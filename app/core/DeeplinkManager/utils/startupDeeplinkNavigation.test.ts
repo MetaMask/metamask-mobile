@@ -98,6 +98,12 @@ jest.mock('../../Performance/DeeplinkPerformance', () => ({
     mockCancelDeeplinkProcessedTrace(...args),
 }));
 
+const mockDropUnlockToHomepageReadyForDeeplink = jest.fn();
+jest.mock('../../Performance/unlockToHomepageReady', () => ({
+  dropUnlockToHomepageReadyForDeeplink: () =>
+    mockDropUnlockToHomepageReadyForDeeplink(),
+}));
+
 describe('startupDeeplinkNavigation', () => {
   const intent: DeeplinkIntent = {
     target: {
@@ -251,6 +257,18 @@ describe('startupDeeplinkNavigation', () => {
     expect(mockExecuteStartupDeeplinkIntent).toHaveBeenCalledWith(intent);
     expect(mockReset).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('lets Unlock To Homepage Ready drop the unlock before resolving the pending deeplink', async () => {
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
+
+    await navigateToPostUnlockHome();
+
+    expect(mockDropUnlockToHomepageReadyForDeeplink).toHaveBeenCalledTimes(1);
+    const [droppedOrder] =
+      mockDropUnlockToHomepageReadyForDeeplink.mock.invocationCallOrder;
+    const [resolvedOrder] = mockResolve.mock.invocationCallOrder;
+    expect(droppedOrder).toBeLessThan(resolvedOrder);
   });
 
   it('navigates home and retries pending deeplinks that need the legacy flow', async () => {

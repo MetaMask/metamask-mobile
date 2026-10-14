@@ -5,6 +5,7 @@ import { hideAsync } from 'expo-splash-screen';
 import { useStyles } from '../../../component-library/hooks';
 import Logger from '../../../util/Logger';
 import { hasTestOverrides } from '../../../util/test/utils';
+import { markStartup } from '../../../core/Performance/startupStageSpans';
 import styleSheet from './FoxLoader.styles';
 import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 
@@ -17,7 +18,9 @@ interface FoxLoaderProps {
 }
 
 const hideSplashScreen = (context: string) => {
-  hideAsync().catch((error: unknown) => Logger.error(error as Error, context));
+  hideAsync()
+    .then(() => markStartup('nativeSplashHidden'))
+    .catch((error: unknown) => Logger.error(error as Error, context));
 };
 
 const FoxLoaderE2E = ({
