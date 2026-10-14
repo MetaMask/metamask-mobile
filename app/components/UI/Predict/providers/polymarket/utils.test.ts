@@ -199,6 +199,14 @@ describe('polymarket utils', () => {
 
       expect(result).toBe('pRzrxeC2oeF_Dk2ipne3W7ErhC-B2Xee-DusSbPAkUE=');
     });
+
+    it('rejects an empty secret', async () => {
+      await expect(
+        buildPolyHmacSignature('', 1_700_000_000, 'GET', '/orders'),
+      ).rejects.toThrow(
+        'Unsafe key length: Key must not be zero bytes for HMAC-SHA-256.',
+      );
+    });
   });
 
   describe('getPredictPositionStatus', () => {
