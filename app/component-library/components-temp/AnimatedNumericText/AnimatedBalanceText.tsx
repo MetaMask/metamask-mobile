@@ -1,49 +1,94 @@
-import React, { memo, useLayoutEffect, useState } from 'react';
-import {
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import React, { memo, useLayoutEffect, useMemo, useState } from 'react';
+import { StyleSheet, Text, type TextStyle, View } from 'react-native';
+import { useReducedMotion } from 'react-native-reanimated';
+import { TextColor } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Laminar } from 'react-native-laminar';
 
-import AnimatedNumericText from './AnimatedNumericText';
+import { splitNumericString } from './splitNumericString';
 
 export interface AnimatedBalanceTextProps {
+  accessible?: boolean;
   color?: TextColor;
   isLoading: boolean;
   loadingValue: string;
   testID?: string;
   value: string;
   animated?: boolean;
-  accessible?: boolean;
 }
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  text: {
+    fontVariant: ['tabular-nums'],
+  },
+});
 
 /**
  * Primes a numeric renderer with a muted placeholder, then rolls to the first
  * complete balance and every subsequent formatted-value update.
  */
 const AnimatedBalanceText = ({
+  accessible = true,
   color = TextColor.TextDefault,
   isLoading,
   loadingValue,
   testID,
   value,
   animated,
-  accessible,
 }: AnimatedBalanceTextProps) => {
   const [animatedValue, setAnimatedValue] = useState(loadingValue);
+  const tw = useTailwind();
+  const reduceMotion = useReducedMotion();
+  const balanceColor = isLoading ? TextColor.TextMuted : color;
+  const textStyle = StyleSheet.flatten([
+    tw.style('text-display-lg', 'font-default-bold', balanceColor) as TextStyle,
+    styles.text,
+  ]) as TextStyle;
+  const motionEnabled = animated !== false && !reduceMotion;
+  const { prefix, numeric, suffix } = useMemo(
+    () => splitNumericString(animatedValue),
+    [animatedValue],
+  );
 
   useLayoutEffect(() => {
     setAnimatedValue(isLoading ? loadingValue : value);
   }, [isLoading, loadingValue, value]);
 
+  const renderStaticText = (content: string) => (
+    <Text style={textStyle}>{content}</Text>
+  );
+
   return (
-    <AnimatedNumericText
-      animated={animated}
+    <View
       accessible={accessible}
-      color={isLoading ? TextColor.TextMuted : color}
+      accessibilityRole={accessible ? 'text' : undefined}
+      accessibilityLabel={accessible ? animatedValue : undefined}
+      style={styles.container}
       testID={testID}
-      value={animatedValue}
-      variant={TextVariant.DisplayLg}
-    />
+    >
+      {!motionEnabled || !numeric ? (
+        renderStaticText(animatedValue)
+      ) : (
+        <>
+          {prefix ? renderStaticText(prefix) : null}
+          <Laminar
+            align="left"
+            animationDuration={400}
+            animationPreset="smooth"
+            autoSize
+            clipToBounds
+            style={textStyle}
+            text={numeric}
+            variant="slots"
+          />
+          {suffix ? renderStaticText(suffix) : null}
+        </>
+      )}
+    </View>
   );
 };
 

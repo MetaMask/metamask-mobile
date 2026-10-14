@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
+import { Laminar } from 'react-native-laminar';
 
 import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import AccountGroupBalance from './AccountGroupBalance';
@@ -166,39 +167,40 @@ describe('AccountGroupBalance', () => {
   });
 
   it('primes zero while loading and rolls each completed value update', () => {
-    const { rerender, getByTestId } = renderWithProvider(
-      <AnimatedBalanceText
-        isLoading
-        loadingValue="$0.00"
-        testID="animated-balance-text"
-        value="$123.45"
-      />,
+    const { rerender, UNSAFE_getByType } = renderWithProvider(
+      <AnimatedBalanceText isLoading loadingValue="$0.00" value="$123.45" />,
       { state: testState },
     );
 
-    expect(getByTestId('animated-balance-text')).toHaveTextContent('0.00');
+    expect(UNSAFE_getByType(Laminar).props.text).toBe('0.00');
+    expect(UNSAFE_getByType(Laminar).props).toEqual(
+      expect.objectContaining({
+        animationDuration: 400,
+        animationPreset: 'smooth',
+        clipToBounds: true,
+        variant: 'slots',
+      }),
+    );
 
     rerender(
       <AnimatedBalanceText
         isLoading={false}
         loadingValue="$0.00"
-        testID="animated-balance-text"
         value="$123.45"
       />,
     );
 
-    expect(getByTestId('animated-balance-text')).toHaveTextContent('123.45');
+    expect(UNSAFE_getByType(Laminar).props.text).toBe('123.45');
 
     rerender(
       <AnimatedBalanceText
         isLoading={false}
         loadingValue="$0.00"
-        testID="animated-balance-text"
         value="$456.78"
       />,
     );
 
-    expect(getByTestId('animated-balance-text')).toHaveTextContent('456.78');
+    expect(UNSAFE_getByType(Laminar).props.text).toBe('456.78');
   });
 
   it('renders empty state when fetched account group balance is zero', () => {

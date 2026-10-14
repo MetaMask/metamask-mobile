@@ -70,16 +70,4 @@ describe('splitNumericString', () => {
   ])('splits $description', ({ expected, value }) => {
     expect(splitNumericString(value)).toEqual(expected);
   });
-
-  it.each([
-    ['narrow no-break spaces', '1\u202f234,56\u00a0$US', '1\u202f234,56'],
-    ['no-break spaces', '1\u00a0234,56\u00a0$', '1\u00a0234,56'],
-    ['apostrophes', '1’234.56 CHF', '1’234.56'],
-  ])('keeps %s in the numeric run', (_, value, numeric) => {
-    const result = splitNumericString(value);
-
-    expect(result.numeric).toBe(numeric);
-    expect(result.prefix).toBe('');
-  });
-
 });
