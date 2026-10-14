@@ -332,9 +332,18 @@ generateIosBinary() {
 
 	echo "exportOptionsPlist: $exportOptionsPlist"
 	echo "Generating archive packages for $scheme in $configuration configuration"
+
+	# IOS_WALLET_EXTENSIONS is set in builds.yml for the builds that embed the
+	# Wallet extensions. Local Xcode builds keep the project default (YES).
+	local wallet_extensions="NO"
+	if [ "${IOS_WALLET_EXTENSIONS:-}" = "true" ]; then
+		wallet_extensions="YES"
+	fi
+	echo "MM_WALLET_EXTENSIONS: $wallet_extensions"
+
 	if [ "$IS_SIM_BUILD" = "true" ]; then
     	echo "Binary build type: Simulator"
-		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build
+		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build "MM_WALLET_EXTENSIONS=$wallet_extensions"
 	fi
 	
 	if [ "$IS_DEVICE_BUILD" = "true" ] || [ "$IS_SIM_BUILD" != "true" ]; then
@@ -343,9 +352,9 @@ generateIosBinary() {
 		# When PROFILE=development, override the signing settings so a Release
 		# archive can be signed with the development certificate and profile
 		# instead of the distribution identity hardcoded in the Xcode project.
-		local -a archiveOverrides=()
+		local -a archiveOverrides=("MM_WALLET_EXTENSIONS=$wallet_extensions")
 		if [ "$profile" = "development" ] && [ "$configuration" = "Release" ]; then
-			archiveOverrides=(
+			archiveOverrides+=(
 				CODE_SIGN_STYLE=Manual
 				"PROVISIONING_PROFILE_SPECIFIER=development-metamask"
 				"CODE_SIGN_IDENTITY=Apple Development"

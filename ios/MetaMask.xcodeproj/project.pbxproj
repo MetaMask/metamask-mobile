@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -14,6 +14,10 @@
 		153F84CA2319B8FD00C19B63 /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; };
 		153F84CB2319B8FD00C19B63 /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		158B063B211A72F500DF3C74 /* InpageBridgeWeb3.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */; };
+		1590C36A306C3FDC007E71BA /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1590C369306C3FDC007E71BA /* UniformTypeIdentifiers.framework */; };
+		1590C376306C3FDC007E71BA /* MetaMaskWalletUIExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1590C368306C3FDC007E71BA /* MetaMaskWalletUIExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1590C382306C4019007E71BA /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1590C369306C3FDC007E71BA /* UniformTypeIdentifiers.framework */; };
+		1590C38D306C4019007E71BA /* MetaMaskWalletNonUIExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1590C381306C4019007E71BA /* MetaMaskWalletNonUIExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		15AD28A921B7CFD9005DEB23 /* release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD86021B76461006B7C35 /* release.xcconfig */; };
 		15AD28AA21B7CFDC005DEB23 /* debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD82721B7642B006B7C35 /* debug.xcconfig */; };
 		15D158ED210BD912006982B5 /* Metamask.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 15D158EC210BD8C8006982B5 /* Metamask.ttf */; };
@@ -55,6 +59,8 @@
 		B4A2E0110100000100000C03 /* BrazePushModule.m in Sources */ = {isa = PBXBuildFile; fileRef = B4A2E0110100000100000C06 /* BrazePushModule.m */; };
 		B4A2E0110100000100000C04 /* BrazePushModule.m in Sources */ = {isa = PBXBuildFile; fileRef = B4A2E0110100000100000C06 /* BrazePushModule.m */; };
 		BAB8A7C7328F48B6AC38DCE9 /* Inter-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B848D40B87744D32949BDC25 /* Inter-Regular.ttf */; };
+		C4RD0003306C5001007E71B1 /* CardWalletExtensionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4RD0001306C5001007E71B1 /* CardWalletExtensionStore.swift */; };
+		C4RD0004306C5001007E71B1 /* CardWalletExtensionStore.m in Sources */ = {isa = PBXBuildFile; fileRef = C4RD0002306C5001007E71B1 /* CardWalletExtensionStore.m */; };
 		C7B6D2EC4EBB469F9E0658BE /* MMSans-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D3350113F0764105B1E60002 /* MMSans-Bold.otf */; };
 		C8424AE52CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
 		C8424AE62CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
@@ -87,6 +93,20 @@
 			remoteGlobalIDString = E298D0511C73D1B800589D22;
 			remoteInfo = Branch;
 		};
+		1590C374306C3FDC007E71BA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1590C367306C3FDC007E71BA;
+			remoteInfo = MetaMaskWalletUIExtension;
+		};
+		1590C38B306C4019007E71BA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1590C380306C4019007E71BA;
+			remoteInfo = MetaMaskWalletNonUIExtension;
+		};
 		2EF282562B0FF86900D7B4B1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 153F84C42319B8DA00C19B63 /* BranchSDK.xcodeproj */;
@@ -104,6 +124,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		1590C377306C3FDC007E71BA /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				1590C38D306C4019007E71BA /* MetaMaskWalletNonUIExtension.appex in Embed Foundation Extensions */,
+				1590C376306C3FDC007E71BA /* MetaMaskWalletUIExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		15ACCA0022655C3A0063978B /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -139,6 +171,9 @@
 		153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		153F84C42319B8DA00C19B63 /* BranchSDK.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = BranchSDK.xcodeproj; path = "branch-ios-sdk/carthage-files/BranchSDK.xcodeproj"; sourceTree = "<group>"; };
 		158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = InpageBridgeWeb3.js; path = ../app/core/InpageBridgeWeb3.js; sourceTree = "<group>"; };
+		1590C368306C3FDC007E71BA /* MetaMaskWalletUIExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MetaMaskWalletUIExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		1590C369306C3FDC007E71BA /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
+		1590C381306C4019007E71BA /* MetaMaskWalletNonUIExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MetaMaskWalletNonUIExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		159878012231DF67001748EC /* AntDesign.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = AntDesign.ttf; path = "../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf"; sourceTree = "<group>"; };
 		15D158EC210BD8C8006982B5 /* Metamask.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Metamask.ttf; path = ../app/fonts/Metamask.ttf; sourceTree = "<group>"; };
 		15FDD82721B7642B006B7C35 /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = debug.xcconfig; sourceTree = "<group>"; };
@@ -183,6 +218,8 @@
 		B4A2E0110100000100000C06 /* BrazePushModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = BrazePushModule.m; path = MetaMask/NativeModules/BrazePush/BrazePushModule.m; sourceTree = "<group>"; };
 		B848D40B87744D32949BDC25 /* Inter-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-Regular.ttf"; path = "../app/fonts/Inter-Regular.ttf"; sourceTree = "<group>"; };
 		BF485CDA047B4D52852B87F5 /* EvilIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = EvilIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf"; sourceTree = "<group>"; };
+		C4RD0001306C5001007E71B1 /* CardWalletExtensionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardWalletExtensionStore.swift; sourceTree = "<group>"; };
+		C4RD0002306C5001007E71B1 /* CardWalletExtensionStore.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CardWalletExtensionStore.m; sourceTree = "<group>"; };
 		C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		CF9895752A3B48F700B4C9B5 /* RCTMinimizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTMinimizer.h; path = MetaMask/NativeModules/RCTMinimizer/RCTMinimizer.h; sourceTree = "<group>"; };
 		CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTMinimizer.m; path = MetaMask/NativeModules/RCTMinimizer/RCTMinimizer.m; sourceTree = "<group>"; };
@@ -204,6 +241,103 @@
 		FE3C9A2458A1416290DEDAD4 /* branch.json */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = branch.json; path = ../branch.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1590C37A306C3FDC007E71BA /* Exceptions for "MetaMaskWalletUIExtension" folder in "MetaMaskWalletUIExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1590C367306C3FDC007E71BA /* MetaMaskWalletUIExtension */;
+		};
+		1590C38E306C4019007E71BA /* Exceptions for "MetaMaskWalletNonUIExtension" folder in "MetaMaskWalletNonUIExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1590C380306C4019007E71BA /* MetaMaskWalletNonUIExtension */;
+		};
+		WEXT0001306C5001007E71BA /* Exceptions for "WalletExtensionShared" folder in "MetaMask" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				.build,
+				Package.swift,
+				Tests/EncryptorPortTests.swift,
+				Tests/Fixtures,
+				Tests/MitigationsTests.swift,
+				Tests/SessionRefreshTests.swift,
+				lock-holder/main.swift,
+			);
+			target = 13B07F861A680F5B00A75B9A /* MetaMask */;
+		};
+		WEXT0002306C5001007E71BA /* Exceptions for "WalletExtensionShared" folder in "MetaMaskWalletUIExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				.build,
+				Package.swift,
+				Tests/EncryptorPortTests.swift,
+				Tests/Fixtures,
+				Tests/MitigationsTests.swift,
+				Tests/SessionRefreshTests.swift,
+				lock-holder/main.swift,
+			);
+			target = 1590C367306C3FDC007E71BA /* MetaMaskWalletUIExtension */;
+		};
+		WEXT0003306C5001007E71BA /* Exceptions for "WalletExtensionShared" folder in "MetaMaskWalletNonUIExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				.build,
+				Package.swift,
+				Tests/EncryptorPortTests.swift,
+				Tests/Fixtures,
+				Tests/MitigationsTests.swift,
+				Tests/SessionRefreshTests.swift,
+				lock-holder/main.swift,
+			);
+			target = 1590C380306C4019007E71BA /* MetaMaskWalletNonUIExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		1590C36B306C3FDC007E71BA /* MetaMaskWalletUIExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1590C37A306C3FDC007E71BA /* Exceptions for "MetaMaskWalletUIExtension" folder in "MetaMaskWalletUIExtension" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = MetaMaskWalletUIExtension;
+			sourceTree = "<group>";
+		};
+		1590C383306C4019007E71BA /* MetaMaskWalletNonUIExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1590C38E306C4019007E71BA /* Exceptions for "MetaMaskWalletNonUIExtension" folder in "MetaMaskWalletNonUIExtension" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = MetaMaskWalletNonUIExtension;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4306C5001007E71BA /* WalletExtensionShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				WEXT0001306C5001007E71BA /* Exceptions for "WalletExtensionShared" folder in "MetaMask" target */,
+				WEXT0002306C5001007E71BA /* Exceptions for "WalletExtensionShared" folder in "MetaMaskWalletUIExtension" target */,
+				WEXT0003306C5001007E71BA /* Exceptions for "WalletExtensionShared" folder in "MetaMaskWalletNonUIExtension" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = WalletExtensionShared;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		13B07F8C1A680F5B00A75B9A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -214,6 +348,22 @@
 				153C1ABB2217BCDC0088EFE0 /* JavaScriptCore.framework in Frameworks */,
 				153F84CA2319B8FD00C19B63 /* Branch.framework in Frameworks */,
 				ED2E8FE6D71BE9319F3B27D3 /* libPods-MetaMask.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1590C365306C3FDC007E71BA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1590C36A306C3FDC007E71BA /* UniformTypeIdentifiers.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1590C37E306C4019007E71BA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1590C382306C4019007E71BA /* UniformTypeIdentifiers.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -293,6 +443,7 @@
 				8E369AC13A2049B6B21E5120 /* libRCTSearchApi.a */,
 				D0CBAE789660472DB719C765 /* libLottie.a */,
 				178440FE3F1C4F4180D14622 /* libTcpSockets.a */,
+				AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -322,6 +473,7 @@
 				2D16E6891FA4F8E400B85C8A /* libReact.a */,
 				D2632307C64595BE1B8ABEAF /* libPods-MetaMask.a */,
 				9F02EB68A6ACEF113F4693A8 /* libPods-MetaMask-Flask.a */,
+				1590C369306C3FDC007E71BA /* UniformTypeIdentifiers.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -398,6 +550,11 @@
 				13B07FAE1A68108700A75B9A /* MetaMask */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* MetaMaskTests */,
+				1590C36B306C3FDC007E71BA /* MetaMaskWalletUIExtension */,
+				1590C383306C4019007E71BA /* MetaMaskWalletNonUIExtension */,
+				A1B2C3D4306C5001007E71BA /* WalletExtensionShared */,
+				C4RD0001306C5001007E71B1 /* CardWalletExtensionStore.swift */,
+				C4RD0002306C5001007E71B1 /* CardWalletExtensionStore.m */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				4A27949D046C4516B9653BBB /* Resources */,
@@ -416,6 +573,8 @@
 			children = (
 				13B07F961A680F5B00A75B9A /* MetaMask.app */,
 				2EF282922B0FF86900D7B4B1 /* MetaMask-Flask.app */,
+				1590C368306C3FDC007E71BA /* MetaMaskWalletUIExtension.appex */,
+				1590C381306C4019007E71BA /* MetaMaskWalletNonUIExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -476,16 +635,64 @@
 				FFED9AB1AACD0DA25EAA971D /* [CP] Copy Pods Resources */,
 				9F2FDF243A79F1A3A790828C /* [CP-User] [RNFB] Core Configuration */,
 				B04B18D52D8B340C00C5C2CE /* Strip Bitcode */,
+				1590C377306C3FDC007E71BA /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				153F84CD2319B8FD00C19B63 /* PBXTargetDependency */,
+				1590C375306C3FDC007E71BA /* PBXTargetDependency */,
+				1590C38C306C4019007E71BA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A1B2C3D4306C5001007E71BA /* WalletExtensionShared */,
 			);
 			name = MetaMask;
 			productName = "Hello World";
 			productReference = 13B07F961A680F5B00A75B9A /* MetaMask.app */;
 			productType = "com.apple.product-type.application";
+		};
+		1590C367306C3FDC007E71BA /* MetaMaskWalletUIExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1590C37B306C3FDC007E71BA /* Build configuration list for PBXNativeTarget "MetaMaskWalletUIExtension" */;
+			buildPhases = (
+				1590C364306C3FDC007E71BA /* Sources */,
+				1590C365306C3FDC007E71BA /* Frameworks */,
+				1590C366306C3FDC007E71BA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1590C36B306C3FDC007E71BA /* MetaMaskWalletUIExtension */,
+				A1B2C3D4306C5001007E71BA /* WalletExtensionShared */,
+			);
+			name = MetaMaskWalletUIExtension;
+			productName = MetaMaskWalletUIExtension;
+			productReference = 1590C368306C3FDC007E71BA /* MetaMaskWalletUIExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		1590C380306C4019007E71BA /* MetaMaskWalletNonUIExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1590C38F306C4019007E71BA /* Build configuration list for PBXNativeTarget "MetaMaskWalletNonUIExtension" */;
+			buildPhases = (
+				1590C37D306C4019007E71BA /* Sources */,
+				1590C37E306C4019007E71BA /* Frameworks */,
+				1590C37F306C4019007E71BA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1590C383306C4019007E71BA /* MetaMaskWalletNonUIExtension */,
+				A1B2C3D4306C5001007E71BA /* WalletExtensionShared */,
+			);
+			name = MetaMaskWalletNonUIExtension;
+			productName = MetaMaskWalletNonUIExtension;
+			productReference = 1590C381306C4019007E71BA /* MetaMaskWalletNonUIExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 		2EF282522B0FF86900D7B4B1 /* MetaMask-Flask */ = {
 			isa = PBXNativeTarget;
@@ -520,6 +727,7 @@
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 2700;
 				LastUpgradeCheck = 1010;
 				ORGANIZATIONNAME = MetaMask;
 				TargetAttributes = {
@@ -533,6 +741,12 @@
 								enabled = 1;
 							};
 						};
+					};
+					1590C367306C3FDC007E71BA = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					1590C380306C4019007E71BA = {
+						CreatedOnToolsVersion = 27.0;
 					};
 				};
 			};
@@ -562,6 +776,8 @@
 			targets = (
 				13B07F861A680F5B00A75B9A /* MetaMask */,
 				2EF282522B0FF86900D7B4B1 /* MetaMask-Flask */,
+				1590C367306C3FDC007E71BA /* MetaMaskWalletUIExtension */,
+				1590C380306C4019007E71BA /* MetaMaskWalletNonUIExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -610,6 +826,20 @@
 				124C1456DB6348928E0536A8 /* Inter-Medium.ttf in Resources */,
 				9D9E53F67A884FDEBE9A4D3C /* Inter-RegularItalic.ttf in Resources */,
 				BAB8A7C7328F48B6AC38DCE9 /* Inter-Regular.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1590C366306C3FDC007E71BA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1590C37F306C4019007E71BA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -939,9 +1169,25 @@
 				2EF283322B17EC1A00D7B4B1 /* RNTar.m in Sources */,
 				654378B0243E2ADC00571B9C /* File.swift in Sources */,
 				2EF2832A2B17EBD600D7B4B1 /* RnTar.swift in Sources */,
+				C4RD0003306C5001007E71B1 /* CardWalletExtensionStore.swift in Sources */,
+				C4RD0004306C5001007E71B1 /* CardWalletExtensionStore.m in Sources */,
 				2EF283372B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */,
 				CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */,
 				A1987088D4835E5FCCABC418 /* ExpoModulesProvider.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1590C364306C3FDC007E71BA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1590C37D306C4019007E71BA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -968,6 +1214,16 @@
 			isa = PBXTargetDependency;
 			name = Branch;
 			targetProxy = 153F84CC2319B8FD00C19B63 /* PBXContainerItemProxy */;
+		};
+		1590C375306C3FDC007E71BA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1590C367306C3FDC007E71BA /* MetaMaskWalletUIExtension */;
+			targetProxy = 1590C374306C3FDC007E71BA /* PBXContainerItemProxy */;
+		};
+		1590C38C306C4019007E71BA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1590C380306C4019007E71BA /* MetaMaskWalletNonUIExtension */;
+			targetProxy = 1590C38B306C4019007E71BA /* PBXContainerItemProxy */;
 		};
 		2EF282552B0FF86900D7B4B1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1036,9 +1292,11 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
+				EXCLUDED_SOURCE_FILE_NAMES = "$(MM_WALLET_EXTENSIONS_EXCLUDED_$(MM_WALLET_EXTENSIONS))";
 				PRODUCT_NAME = MetaMask;
 				PROVISIONING_PROFILE_SPECIFIER = "development-metamask";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "development-metamask";
+				REGISTER_APP_GROUPS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "MetaMask-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
@@ -1102,13 +1360,273 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
+				EXCLUDED_SOURCE_FILE_NAMES = "$(MM_WALLET_EXTENSIONS_EXCLUDED_$(MM_WALLET_EXTENSIONS))";
 				PRODUCT_NAME = MetaMask;
 				PROVISIONING_PROFILE_SPECIFIER = "Bitrise AppStore io.metamask.MetaMask";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Bitrise AppStore io.metamask.MetaMask";
+				REGISTER_APP_GROUPS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "MetaMask-Bridging-Header.h";
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+		1590C378306C3FDC007E71BA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = MetaMaskWalletUIExtension/MetaMaskWalletUIExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGNING_ALLOWED = "$(MM_WALLET_EXTENSIONS)";
+				CURRENT_PROJECT_VERSION = 4823;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MetaMaskWalletUIExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MetaMaskWalletUIExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 MetaMask. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 8.15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.MetaMaskWalletUIExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		1590C379306C3FDC007E71BA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = MetaMaskWalletUIExtension/MetaMaskWalletUIExtension.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGNING_ALLOWED = "$(MM_WALLET_EXTENSIONS)";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 4823;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MetaMaskWalletUIExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MetaMaskWalletUIExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 MetaMask. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 8.15.0;
+				MTL_FAST_MATH = YES;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.MetaMaskWalletUIExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "AppStore MetaMaskWalletUIExtension";
+				REGISTER_APP_GROUPS = YES;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		1590C390306C4019007E71BA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = MetaMaskWalletNonUIExtension/MetaMaskWalletNonUIExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGNING_ALLOWED = "$(MM_WALLET_EXTENSIONS)";
+				CURRENT_PROJECT_VERSION = 4823;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MetaMaskWalletNonUIExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MetaMaskWalletNonUIExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 MetaMask. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 8.15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.MetaMaskWalletNonUIExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		1590C391306C4019007E71BA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = MetaMaskWalletNonUIExtension/MetaMaskWalletNonUIExtension.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGNING_ALLOWED = "$(MM_WALLET_EXTENSIONS)";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 4823;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MetaMaskWalletNonUIExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = MetaMaskWalletNonUIExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 MetaMask. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 8.15.0;
+				MTL_FAST_MATH = YES;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.MetaMaskWalletNonUIExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "AppStore MetaMaskWalletNonUIExtension";
+				REGISTER_APP_GROUPS = YES;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -1284,6 +1802,9 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MM_WALLET_EXTENSIONS = YES;
+				MM_WALLET_EXTENSIONS_EXCLUDED_NO = "MetaMaskWalletUIExtension.appex MetaMaskWalletNonUIExtension.appex";
+				MM_WALLET_EXTENSIONS_EXCLUDED_YES = "";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
@@ -1339,6 +1860,9 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MM_WALLET_EXTENSIONS = YES;
+				MM_WALLET_EXTENSIONS_EXCLUDED_NO = "MetaMaskWalletUIExtension.appex MetaMaskWalletNonUIExtension.appex";
+				MM_WALLET_EXTENSIONS_EXCLUDED_YES = "";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -1366,6 +1890,24 @@
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
 				13B07F951A680F5B00A75B9A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		1590C37B306C3FDC007E71BA /* Build configuration list for PBXNativeTarget "MetaMaskWalletUIExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1590C378306C3FDC007E71BA /* Debug */,
+				1590C379306C3FDC007E71BA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		1590C38F306C4019007E71BA /* Build configuration list for PBXNativeTarget "MetaMaskWalletNonUIExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1590C390306C4019007E71BA /* Debug */,
+				1590C391306C4019007E71BA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

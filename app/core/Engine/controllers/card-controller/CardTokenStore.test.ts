@@ -1,3 +1,4 @@
+import { NativeModules, Platform } from 'react-native';
 import SecureKeychain from '../../../SecureKeychain';
 import { CardTokenStore } from './CardTokenStore';
 
@@ -5,10 +6,30 @@ jest.mock('../../../SecureKeychain');
 jest.mock('../../../../util/Logger');
 
 const mockSecureKeychain = SecureKeychain as jest.Mocked<typeof SecureKeychain>;
+const originalOS = Platform.OS;
+const CARD_GROUP = 'TEAM.io.metamask.MetaMask.card';
+const LEGACY_GROUP = 'TEAM.io.metamask.MetaMask';
+
+const baanxScope = {
+  service: 'com.metamask.CARD_BAANX_TOKENS',
+  accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+};
+
+function installKeychainGroups() {
+  NativeModules.CardWalletExtensionStore = {
+    cardKeychainAccessGroup: CARD_GROUP,
+    defaultKeychainAccessGroup: LEGACY_GROUP,
+  };
+}
 
 describe('CardTokenStore', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    Platform.OS = originalOS;
+    delete NativeModules.CardWalletExtensionStore;
   });
 
   describe('get', () => {
@@ -80,6 +101,98 @@ describe('CardTokenStore', () => {
       const result = await CardTokenStore.get('baanx');
 
       expect(result).toBeNull();
+    });
+
+    it('copies a legacy item into the card group and deletes only the legacy copy', async () => {
+      installKeychainGroups();
+      const tokenData = {
+        accessToken: 'access-123',
+        accessTokenExpiresAt: Date.now() + 3600000,
+        location: 'us',
+      };
+      (mockSecureKeychain.getSecureItem as jest.Mock)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({
+          key: 'CARD_BAANX_TOKENS',
+          value: JSON.stringify(tokenData),
+        });
+      (mockSecureKeychain.setSecureItem as jest.Mock).mockResolvedValue(true);
+      (mockSecureKeychain.clearSecureScope as jest.Mock).mockResolvedValue(
+        true,
+      );
+
+      const result = await CardTokenStore.get('baanx');
+
+      expect(result).toStrictEqual(tokenData);
+      expect(mockSecureKeychain.getSecureItem).toHaveBeenNthCalledWith(1, {
+        ...baanxScope,
+        accessGroup: CARD_GROUP,
+      });
+      expect(mockSecureKeychain.getSecureItem).toHaveBeenNthCalledWith(2, {
+        ...baanxScope,
+        accessGroup: LEGACY_GROUP,
+      });
+      expect(mockSecureKeychain.setSecureItem).toHaveBeenCalledWith(
+        'CARD_BAANX_TOKENS',
+        JSON.stringify(tokenData),
+        { ...baanxScope, accessGroup: CARD_GROUP },
+      );
+      expect(mockSecureKeychain.clearSecureScope).toHaveBeenCalledWith({
+        ...baanxScope,
+        accessGroup: LEGACY_GROUP,
+      });
+    });
+
+    it('returns null when neither the card group nor the legacy group has an item', async () => {
+      installKeychainGroups();
+      (mockSecureKeychain.getSecureItem as jest.Mock).mockResolvedValue(null);
+
+      const result = await CardTokenStore.get('baanx');
+
+      expect(result).toBeNull();
+      expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
+      expect(mockSecureKeychain.clearSecureScope).not.toHaveBeenCalled();
+    });
+
+    it('keeps the legacy item when writing the card group fails', async () => {
+      installKeychainGroups();
+      const tokenData = {
+        accessToken: 'access-123',
+        accessTokenExpiresAt: Date.now() + 3600000,
+        location: 'us',
+      };
+      (mockSecureKeychain.getSecureItem as jest.Mock)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({
+          key: 'CARD_BAANX_TOKENS',
+          value: JSON.stringify(tokenData),
+        });
+      (mockSecureKeychain.setSecureItem as jest.Mock).mockResolvedValue(false);
+
+      const result = await CardTokenStore.get('baanx');
+
+      expect(result).toStrictEqual(tokenData);
+      expect(mockSecureKeychain.clearSecureScope).not.toHaveBeenCalled();
+    });
+
+    it('does not pass an access group on Android', async () => {
+      Platform.OS = 'android';
+      installKeychainGroups();
+      const tokenData = {
+        accessToken: 'access-123',
+        accessTokenExpiresAt: Date.now() + 3600000,
+        location: 'us',
+      };
+      (mockSecureKeychain.getSecureItem as jest.Mock).mockResolvedValue({
+        key: 'CARD_BAANX_TOKENS',
+        value: JSON.stringify(tokenData),
+      });
+
+      const result = await CardTokenStore.get('baanx');
+
+      expect(result).toStrictEqual(tokenData);
+      expect(mockSecureKeychain.getSecureItem).toHaveBeenCalledTimes(1);
+      expect(mockSecureKeychain.getSecureItem).toHaveBeenCalledWith(baanxScope);
     });
 
     it('returns null on keychain error', async () => {

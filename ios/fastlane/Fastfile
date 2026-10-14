@@ -61,6 +61,32 @@ platform :ios do
       resign_options[:keychain_path] = keychain_path
     end
 
+    # A donor built with the Wallet extensions has PlugIns/*.appex. Resigning those
+    # with the app profile fails, because each extension has its own bundle ID.
+    wallet_ui_profile = options[:wallet_ui_extension_profile].to_s
+    wallet_nonui_profile = options[:wallet_nonui_extension_profile].to_s
+    require 'shellwords'
+    listing = `unzip -Z1 #{Shellwords.escape(ipa_path)}`
+    unless $?.success?
+      UI.user_error!("Could not list #{ipa_path} to check for app extensions")
+    end
+    has_extension = listing.lines.any? { |line| line.include?('PlugIns/') && line.include?('.appex/') }
+    if has_extension
+      if wallet_ui_profile.empty? || wallet_nonui_profile.empty?
+        UI.user_error!("IPA contains app extensions but extension provisioning profiles were not provided")
+      end
+      [wallet_ui_profile, wallet_nonui_profile].each do |profile_path|
+        unless File.exist?(profile_path)
+          UI.user_error!("Provisioning profile not found at: #{profile_path}")
+        end
+      end
+      resign_options[:provisioning_profile] = {
+        "io.metamask.MetaMask" => provisioning_profile,
+        "io.metamask.MetaMask.MetaMaskWalletUIExtension" => wallet_ui_profile,
+        "io.metamask.MetaMask.MetaMaskWalletNonUIExtension" => wallet_nonui_profile
+      }
+    end
+
     UI.message("Re-signing #{ipa_path} as '#{signing_identity}' with the app's own entitlements")
 
     resign(resign_options)

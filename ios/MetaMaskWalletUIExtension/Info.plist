@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AppIdentifierPrefix</key>
+	<string>$(AppIdentifierPrefix)</string>
+	<key>NSExtension</key>
+	<dict>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.PassKit.issuer-provisioning.authorization</string>
+		<key>NSExtensionPrincipalClass</key>
+		<string>$(PRODUCT_MODULE_NAME).MetaMaskWalletUIExtension</string>
+	</dict>
+	<key>NSFaceIDUsageDescription</key>
+	<string>MetaMask uses Face ID to confirm adding your card to Apple Wallet.</string>
+	<key>RCTNewArchEnabled</key>
+	<true/>
+</dict>
+</plist>

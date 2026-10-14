@@ -87,6 +87,12 @@ import {
   type UserResponse,
 } from './provider-types';
 import { CardTokenStore } from './CardTokenStore';
+import {
+  CARD_REFRESH_LOCK_TIMEOUT_MS,
+  clearCardWalletExtensionSnapshot,
+  createNativeCardRefreshLock,
+  type CardRefreshLock,
+} from './cardWalletExtensionLock';
 import { CardOnboardingStore } from './CardOnboardingStore';
 import { resetCardState } from '../../../redux/slices/card';
 import { isEthAccount } from '../../../Multichain/utils';
@@ -300,17 +306,20 @@ export class CardController extends BaseController<
   #lastFetchedAt = 0;
   /** In-flight fetch is a silent revalidation. Instance state, not a local, so a joined forced call can clear it. */
   #silentRevalidation = false;
+  readonly refreshLock: CardRefreshLock;
 
   constructor({
     messenger,
     state,
     providers,
     cardService,
+    refreshLock,
   }: {
     messenger: CardControllerMessenger;
     state?: Partial<CardControllerState>;
     providers: Partial<Record<CardProviderId, ICardProvider>>;
     cardService: CardService;
+    refreshLock?: CardRefreshLock;
   }) {
     super({
       name: CARD_CONTROLLER_NAME,
@@ -323,6 +332,7 @@ export class CardController extends BaseController<
     });
     this.providers = providers;
     this.cardService = cardService;
+    this.refreshLock = refreshLock ?? createNativeCardRefreshLock();
     try {
       this.previousEvmAddress = this.#getSelectedEvmAddress();
       this.#discardCardHomeDataFromOtherAccount(this.previousEvmAddress);
@@ -1031,6 +1041,7 @@ export class CardController extends BaseController<
       }
     }
     await CardTokenStore.remove(providerId);
+    await clearCardWalletExtensionSnapshot();
     this.update((s) => {
       (s.providerData as unknown as Record<string, Record<string, string>>)[
         providerId
@@ -1530,6 +1541,7 @@ export class CardController extends BaseController<
     }
 
     await this.#clearLocalSession();
+    await clearCardWalletExtensionSnapshot();
   }
 
   /**
@@ -1629,6 +1641,7 @@ export class CardController extends BaseController<
       this.update(() => ({ ...defaultCardControllerState }));
 
       ReduxService.store.dispatch(resetCardState());
+      await clearCardWalletExtensionSnapshot();
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'card' },
@@ -1711,38 +1724,89 @@ export class CardController extends BaseController<
     return tokens;
   }
 
+  getProvider(providerId: CardProviderId): ICardProvider | undefined {
+    return this.providers[providerId];
+  }
+
   async #doRefresh(
     pid: string,
     tokens: CardAuthTokens,
   ): Promise<CardAuthTokens | null> {
-    try {
-      const refreshed = await this.getActiveProvider().refreshTokens(tokens);
-      const fresh: CardAuthTokens = {
-        ...refreshed,
-        providerUserId:
-          refreshed.providerUserId ??
-          tokens.providerUserId ??
-          tokens.cardholderAccountId,
-      };
-      await CardTokenStore.set(pid, fresh);
-      this.#markAuthenticatedWithLocation(
-        pid,
-        fresh.location,
-        fresh.providerUserId ?? fresh.cardholderAccountId ?? null,
-      );
-      return fresh;
-    } catch (error) {
-      Logger.error(error as Error, {
+    const acquired = await this.refreshLock.acquire(
+      CARD_REFRESH_LOCK_TIMEOUT_MS,
+    );
+    if (!acquired) {
+      Logger.error(new Error('Card refresh lock timed out'), {
         tags: { feature: 'card', provider: pid },
         context: { name: 'CardController', data: { method: '#doRefresh' } },
       });
-      if (
-        error instanceof CardProviderError &&
-        error.code === CardProviderErrorCode.InvalidCredentials
-      ) {
-        await this.#handleSessionExpired();
-      }
       return null;
+    }
+
+    try {
+      const latest = (await CardTokenStore.get(pid)) ?? tokens;
+      const provider = this.getActiveProvider();
+      if (
+        latest.accessToken !== tokens.accessToken &&
+        provider.validateTokens(latest) === 'valid'
+      ) {
+        this.#markAuthenticatedWithLocation(
+          pid,
+          latest.location,
+          latest.providerUserId ?? latest.cardholderAccountId ?? null,
+        );
+        return latest;
+      }
+
+      if (provider.validateTokens(latest) === 'expired') {
+        await this.#handleSessionExpired();
+        return null;
+      }
+
+      try {
+        const refreshed = await provider.refreshTokens(latest);
+        const fresh: CardAuthTokens = {
+          ...refreshed,
+          providerUserId:
+            refreshed.providerUserId ??
+            latest.providerUserId ??
+            latest.cardholderAccountId,
+        };
+        await CardTokenStore.set(pid, fresh);
+        this.#markAuthenticatedWithLocation(
+          pid,
+          fresh.location,
+          fresh.providerUserId ?? fresh.cardholderAccountId ?? null,
+        );
+        return fresh;
+      } catch (error) {
+        const reread = await CardTokenStore.get(pid);
+        if (
+          reread &&
+          reread.accessToken !== latest.accessToken &&
+          provider.validateTokens(reread) === 'valid'
+        ) {
+          this.#markAuthenticatedWithLocation(
+            pid,
+            reread.location,
+            reread.providerUserId ?? reread.cardholderAccountId ?? null,
+          );
+          return reread;
+        }
+        Logger.error(error as Error, {
+          tags: { feature: 'card', provider: pid },
+          context: { name: 'CardController', data: { method: '#doRefresh' } },
+        });
+        if (
+          error instanceof CardProviderError &&
+          error.code === CardProviderErrorCode.InvalidCredentials
+        ) {
+          await this.#handleSessionExpired();
+        }
+        return null;
+      }
+    } finally {
+      await this.refreshLock.release();
     }
   }
 

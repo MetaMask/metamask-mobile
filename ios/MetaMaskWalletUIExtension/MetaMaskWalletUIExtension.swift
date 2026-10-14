@@ -1,0 +1,395 @@
+import Combine
+import CoreText
+import LocalAuthentication
+import os
+import PassKit
+import SwiftUI
+import UIKit
+
+private let authLog = Logger(subsystem: "io.metamask.MetaMask", category: "WalletExtension")
+
+class MetaMaskWalletUIExtension: UIViewController, PKIssuerProvisioningExtensionAuthorizationProviding {
+    var completionHandler: ((PKIssuerProvisioningExtensionAuthorizationResult) -> Void)?
+    private let model = AuthorizationModel()
+    private var didFinish = false
+    private var didStartAuthorization = false
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        FontRegistration.registerBundledFonts()
+        let root = AuthorizationView(model: model) { [weak self] result in
+            self?.finish(result)
+        }
+        let controller = UIHostingController(rootView: root)
+        addChild(controller)
+        controller.view.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(controller.view)
+        NSLayoutConstraint.activate([
+            controller.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            controller.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            controller.view.topAnchor.constraint(equalTo: view.topAnchor),
+            controller.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+        controller.didMove(toParent: self)
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        guard !didStartAuthorization else { return }
+        didStartAuthorization = true
+        model.start()
+    }
+
+    private func finish(_ result: PKIssuerProvisioningExtensionAuthorizationResult) {
+        guard !didFinish else { return }
+        didFinish = true
+        completionHandler?(result)
+    }
+}
+
+enum FontRegistration {
+    static func registerBundledFonts() {
+        let names = ["MMSans-Regular", "MMSans-Medium", "MMSans-Bold", "MMPoly-Regular"]
+        for name in names {
+            guard let url = Bundle.main.url(forResource: name, withExtension: "otf") else { continue }
+            CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+        }
+    }
+}
+
+enum AuthorizationPhase {
+    case checking
+    case verify
+    case signInRequired
+    case baanxCredentials
+    case baanxCode
+    case unavailable
+    case error
+    case verificationFailed
+}
+
+final class AuthorizationModel: ObservableObject {
+    @Published var phase: AuthorizationPhase = .checking
+    @Published var email = ""
+    @Published var password = ""
+    @Published var code = ""
+    @Published var statusMessage = ""
+    private var loginSession: BaanxLoginSession?
+    private var snapshot: ProvisioningSnapshot?
+    private var attempts = 0
+
+    var biometricTitle: String {
+        let context = LAContext()
+        _ = context.canEvaluatePolicy(.deviceOwnerAuthentication, error: nil)
+        switch context.biometryType {
+        case .faceID:
+            return NSLocalizedString("Continue with Face ID", comment: "")
+        case .touchID:
+            return NSLocalizedString("Continue with Touch ID", comment: "")
+        default:
+            return NSLocalizedString("Continue with passcode", comment: "")
+        }
+    }
+
+    func start() {
+        phase = .checking
+        Task { await authenticateAndRefresh() }
+    }
+
+    func retry() {
+        start()
+    }
+
+    func submitCredentials() {
+        guard attempts < 5 else {
+            clearSecrets()
+            phase = .error
+            return
+        }
+        attempts += 1
+        guard
+            let snapshot,
+            let clientKey = snapshot.baanxClientKey,
+            let base = URL(string: snapshot.apiBaseUrl),
+            ProviderHosts.isAllowed(base)
+        else {
+            clearSecrets()
+            phase = .error
+            return
+        }
+        let submittedEmail = email
+        let submittedPassword = password
+        let otp = phase == .baanxCode ? code : nil
+        clearSecrets()
+        phase = .checking
+        Task {
+            do {
+                var session: BaanxLoginSession
+                if let existing = loginSession, otp != nil {
+                    session = existing
+                } else {
+                    session = try await BaanxLoginClient.start(
+                        baseURL: base,
+                        clientKey: clientKey,
+                        http: ProviderHTTP(timeout: 15)
+                    )
+                }
+                let done = try await BaanxLoginClient.submit(
+                    session: &session,
+                    email: submittedEmail,
+                    password: submittedPassword,
+                    otpCode: otp,
+                    baseURL: base,
+                    clientKey: clientKey,
+                    http: ProviderHTTP(timeout: 15)
+                )
+                loginSession = session
+                if !done {
+                    if let userId = session.userId {
+                        try? await BaanxLoginClient.sendOTP(userId: userId, baseURL: base, clientKey: clientKey, http: ProviderHTTP(timeout: 15))
+                    }
+                    await MainActor.run { phase = .baanxCode }
+                    return
+                }
+                let tokens = try await BaanxLoginClient.exchange(session: session, baseURL: base, clientKey: clientKey, http: ProviderHTTP(timeout: 15))
+                guard let password = ContainingAppFoxCode.read() else {
+                    await MainActor.run { phase = .error }
+                    return
+                }
+                guard let directory = AppGroupLocator.containerURL() else {
+                    await MainActor.run { phase = .error }
+                    return
+                }
+                let refreshLock = AppGroupRefreshLock(directory: directory)
+                guard refreshLock.acquire(timeout: 4) else {
+                    await MainActor.run { phase = .error }
+                    return
+                }
+                defer { refreshLock.release() }
+                try CardTokenKeychain.save(providerId: "baanx", tokens: tokens, password: password)
+                await MainActor.run { finishAuthorized() }
+            } catch {
+                await MainActor.run { phase = .error }
+            }
+        }
+    }
+
+    func clearSecrets() {
+        password = ""
+        code = ""
+    }
+
+    private func authenticateAndRefresh() async {
+        let context = LAContext()
+        context.localizedCancelTitle = NSLocalizedString("Close", comment: "")
+        var error: NSError?
+        guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else {
+            logVerificationOutcome(error)
+            await MainActor.run { phase = .verificationFailed }
+            return
+        }
+        let success = await withCheckedContinuation { continuation in
+            context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: NSLocalizedString("Verify it's you", comment: "")) { ok, evalError in
+                if !ok {
+                    logVerificationOutcome(evalError)
+                }
+                continuation.resume(returning: ok)
+            }
+        }
+        guard success else {
+            await MainActor.run { phase = .verificationFailed }
+            return
+        }
+        guard let directory = AppGroupLocator.containerURL() else {
+            await MainActor.run { phase = .unavailable }
+            return
+        }
+        let deadline = Date().addingTimeInterval(18)
+        guard let snapshot = SnapshotStore.read(
+            directory: directory,
+            defaults: UserDefaults(suiteName: AppGroupLocator.identifier)
+        ) else {
+            await MainActor.run { phase = .unavailable }
+            return
+        }
+        self.snapshot = snapshot
+        guard await FlagsClient.isEnabled(snapshot: snapshot) else {
+            await MainActor.run { phase = .unavailable }
+            return
+        }
+        if await SessionRefresh.usableTokens(snapshot: snapshot, deadline: deadline) != nil {
+            await MainActor.run { finishAuthorized() }
+            return
+        }
+        await MainActor.run {
+            phase = snapshot.providerId == "baanx" ? .baanxCredentials : .signInRequired
+        }
+    }
+
+    private func finishAuthorized() {
+        clearSecrets()
+        phase = .checking
+        NotificationCenter.default.post(name: .walletExtensionAuthorized, object: nil)
+    }
+}
+
+extension Notification.Name {
+    static let walletExtensionAuthorized = Notification.Name("walletExtensionAuthorized")
+}
+
+private func logVerificationOutcome(_ error: Error?) {
+    if let code = (error as? LAError)?.code.rawValue {
+        authLog.error("Verification failed code=\(code, privacy: .public)")
+    } else {
+        authLog.error("Verification failed code=unknown")
+    }
+}
+
+struct AuthorizationView: View {
+    @ObservedObject var model: AuthorizationModel
+    var onFinish: (PKIssuerProvisioningExtensionAuthorizationResult) -> Void
+
+    var body: some View {
+        ZStack {
+            WalletColor.background.ignoresSafeArea()
+            VStack(spacing: 24) {
+                fox
+                content
+            }
+            .padding(24)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .walletExtensionAuthorized)) { _ in
+            onFinish(.authorized)
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch model.phase {
+        case .checking:
+            ProgressView()
+                .tint(WalletColor.primary)
+            Text("Checking your MetaMask Card")
+                .font(WalletFont.body)
+                .foregroundStyle(WalletColor.text)
+        case .verify:
+            Text("Verify it's you")
+                .font(WalletFont.title)
+                .foregroundStyle(WalletColor.text)
+            primaryButton(model.biometricTitle) { model.start() }
+        case .signInRequired:
+            Text("Open MetaMask and sign in to your MetaMask Card, then return to Wallet.")
+                .font(WalletFont.body)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(WalletColor.text)
+            primaryButton("Close") { cancel() }
+        case .baanxCredentials:
+            Text("Sign in to MetaMask Card")
+                .font(WalletFont.title)
+                .foregroundStyle(WalletColor.text)
+            field("Email", text: $model.email)
+            SecureField("Password", text: $model.password)
+                .textFieldStyle(.roundedBorder)
+            primaryButton("Continue") { model.submitCredentials() }
+            secondaryButton("Close") { cancel() }
+        case .baanxCode:
+            Text("Enter the code we sent you")
+                .font(WalletFont.title)
+                .foregroundStyle(WalletColor.text)
+            field("Code", text: $model.code)
+            primaryButton("Continue") { model.submitCredentials() }
+            secondaryButton("Close") { cancel() }
+        case .unavailable:
+            Text("There's no card available to add right now.")
+                .font(WalletFont.body)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(WalletColor.text)
+            primaryButton("Close") { cancel() }
+        case .error:
+            Text("Something went wrong.")
+                .font(WalletFont.body)
+                .foregroundStyle(WalletColor.error)
+            primaryButton("Try again") { model.retry() }
+            secondaryButton("Close") { cancel() }
+        case .verificationFailed:
+            Text("Verification failed or was canceled.")
+                .font(WalletFont.body)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(WalletColor.text)
+            primaryButton("Try again") { model.retry() }
+            secondaryButton("Close") { cancel() }
+        }
+    }
+
+    private var fox: some View {
+        Group {
+            if let url = Bundle.main.url(forResource: "fox", withExtension: "png"),
+               let data = try? Data(contentsOf: url),
+               let image = UIImage(data: data) {
+                Image(uiImage: image).resizable().frame(width: 72, height: 72)
+            }
+        }
+    }
+
+    private func cancel() {
+        model.clearSecrets()
+        onFinish(.canceled)
+    }
+
+    private func field(_ title: String, text: Binding<String>) -> some View {
+        TextField(title, text: text)
+            .textFieldStyle(.roundedBorder)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+    }
+
+    private func primaryButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(WalletFont.button)
+                .foregroundStyle(Color.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(WalletColor.primary)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .contentShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func secondaryButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(title, action: action)
+            .font(WalletFont.body)
+            .foregroundStyle(WalletColor.text)
+    }
+}
+
+enum WalletColor {
+    /// Light and dark values from `@metamask/design-tokens` 11.1.0
+    /// (`background`, `text`, `primary`, and `error` `.default`).
+    static let background = adaptive(light: 0xFFFFFF, dark: 0x000000)
+    static let text = adaptive(light: 0x131416, dark: 0xFFFFFF)
+    static let primary = adaptive(light: 0x4459FF, dark: 0x8B99FF)
+    static let error = adaptive(light: 0xCA3542, dark: 0xFF7584)
+
+    private static func adaptive(light: UInt32, dark: UInt32) -> Color {
+        Color(uiColor: UIColor { traits in
+            uiColor(traits.userInterfaceStyle == .dark ? dark : light)
+        })
+    }
+
+    private static func uiColor(_ hex: UInt32) -> UIColor {
+        UIColor(
+            red: CGFloat((hex >> 16) & 0xFF) / 255,
+            green: CGFloat((hex >> 8) & 0xFF) / 255,
+            blue: CGFloat(hex & 0xFF) / 255,
+            alpha: 1
+        )
+    }
+}
+
+enum WalletFont {
+    static let title = Font.custom("MM Sans", size: 22).weight(.bold)
+    static let body = Font.custom("MM Sans", size: 16)
+    static let button = Font.custom("MM Sans", size: 16).weight(.medium)
+}

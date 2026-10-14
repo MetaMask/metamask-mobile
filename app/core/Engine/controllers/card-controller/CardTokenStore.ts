@@ -1,3 +1,4 @@
+import { NativeModules, Platform } from 'react-native';
 import SecureKeychain from '../../../SecureKeychain';
 import Logger from '../../../../util/Logger';
 
@@ -25,14 +26,35 @@ function keychainKey(providerId: string): string {
     : `CARD_TOKENS_${providerId}`;
 }
 
-function scopeOptions(providerId: string) {
+interface CardKeychainGroups {
+  cardKeychainAccessGroup?: string;
+  defaultKeychainAccessGroup?: string;
+}
+
+function keychainGroups(): CardKeychainGroups {
+  if (Platform.OS !== 'ios') {
+    return {};
+  }
+  return (NativeModules.CardWalletExtensionStore ?? {}) as CardKeychainGroups;
+}
+
+function scopeOptions(providerId: string, accessGroup?: string) {
   return {
     service:
       providerId === 'baanx'
         ? `com.metamask.${LEGACY_BAANX_KEY}`
         : `${KEYCHAIN_PREFIX}_${providerId}`,
     accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+    ...(accessGroup ? { accessGroup } : {}),
   };
+}
+
+function parseTokenSet(value: string): CardTokenSet | null {
+  const data: Partial<CardTokenSet> = JSON.parse(value);
+  if (!data.accessToken || !data.accessTokenExpiresAt || !data.location) {
+    return null;
+  }
+  return data as CardTokenSet;
 }
 
 /**
@@ -41,15 +63,34 @@ function scopeOptions(providerId: string) {
 export const CardTokenStore = {
   async get(providerId: string): Promise<CardTokenSet | null> {
     try {
-      const item = await SecureKeychain.getSecureItem(scopeOptions(providerId));
-      if (!item) return null;
+      const groups = keychainGroups();
+      const item = await SecureKeychain.getSecureItem(
+        scopeOptions(providerId, groups.cardKeychainAccessGroup),
+      );
+      if (item) {
+        return parseTokenSet(item.value);
+      }
 
-      const data: Partial<CardTokenSet> = JSON.parse(item.value);
-      if (!data.accessToken || !data.accessTokenExpiresAt || !data.location) {
+      const legacyGroup = groups.defaultKeychainAccessGroup;
+      if (!legacyGroup || legacyGroup === groups.cardKeychainAccessGroup) {
         return null;
       }
 
-      return data as CardTokenSet;
+      const legacy = await SecureKeychain.getSecureItem(
+        scopeOptions(providerId, legacyGroup),
+      );
+      if (!legacy) return null;
+      const parsed = parseTokenSet(legacy.value);
+      if (!parsed) return null;
+
+      const stored = await CardTokenStore.set(providerId, parsed);
+      if (!stored) return parsed;
+
+      // A delete without an access group also removes the item just written to the card group.
+      await SecureKeychain.clearSecureScope(
+        scopeOptions(providerId, legacyGroup),
+      );
+      return parsed;
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'card', provider: providerId },
@@ -67,7 +108,7 @@ export const CardTokenStore = {
       const result = await SecureKeychain.setSecureItem(
         keychainKey(providerId),
         JSON.stringify(tokenSet),
-        scopeOptions(providerId),
+        scopeOptions(providerId, keychainGroups().cardKeychainAccessGroup),
       );
       return result !== false;
     } catch (error) {
@@ -84,9 +125,18 @@ export const CardTokenStore = {
 
   async remove(providerId: string): Promise<boolean> {
     try {
+      const groups = keychainGroups();
       const result = await SecureKeychain.clearSecureScope(
-        scopeOptions(providerId),
+        scopeOptions(providerId, groups.cardKeychainAccessGroup),
       );
+      if (
+        groups.defaultKeychainAccessGroup &&
+        groups.defaultKeychainAccessGroup !== groups.cardKeychainAccessGroup
+      ) {
+        await SecureKeychain.clearSecureScope(
+          scopeOptions(providerId, groups.defaultKeychainAccessGroup),
+        );
+      }
       return result !== false;
     } catch (error) {
       Logger.error(error as Error, {
