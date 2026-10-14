@@ -8937,6 +8937,9 @@
     "apy_info_label": "APY info",
     "balance_unavailable": "Balance unavailable",
     "balance_unavailable_value": "$—",
+    "api_activity_details": {
+      "amount_unavailable": "Amount unavailable"
+    },
     "balance_unavailable_banner_description": "We're temporarily unable to display your balance. Your funds are safe—try again shortly.",
     "balance_retry": "Retry",
     "balance_no_account": "Money account not found",
