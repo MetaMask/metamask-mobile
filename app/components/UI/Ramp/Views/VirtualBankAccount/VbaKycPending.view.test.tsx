@@ -3,7 +3,7 @@ import React from 'react';
 import { Pressable, Text } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CommonActions, useNavigation } from '@react-navigation/native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -26,6 +26,10 @@ import { VbaKycPendingSelectorsIDs } from './VbaKycPending';
 const VbaKycPendingViewSelectorsIDs = {
   OPEN_PENDING: 'vba-kyc-pending-open-from-previous-screen',
 } as const;
+
+// The redirect resolves the next step through hydrate, the funnel, and a
+// stack reset. Allow more than the 1 s default on slower CI runners.
+const REDIRECT_TIMEOUT_MS = 5000;
 
 const OnboardingStack = createNativeStackNavigator();
 const RampStack = createNativeStackNavigator();
@@ -308,7 +312,13 @@ describeForPlatforms('VbaKycPending', () => {
         kycStatus,
       });
 
-      expect(await findByTestId(getRouteProbeTestId(route))).toBeOnTheScreen();
+      expect(
+        await findByTestId(
+          getRouteProbeTestId(route),
+          {},
+          { timeout: REDIRECT_TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
     },
   );
 
@@ -317,17 +327,26 @@ describeForPlatforms('VbaKycPending', () => {
       .fn()
       .mockResolvedValue(hydratedSnapshot('approved', 'not_ready'));
     engineContext.RampsController.hydrateVbaOnboarding = hydrate;
-    const { findByText, queryByTestId } = renderKycScreen(<RampNavigator />, {
+    const { findByTestId, getByText } = renderKycScreen(<RampNavigator />, {
       finalStatus: 'approved',
       kycStatus: 'approved',
     });
 
+    await waitFor(() => expect(hydrate).toHaveBeenCalledTimes(1), {
+      timeout: REDIRECT_TIMEOUT_MS,
+    });
+    await expect(
+      findByTestId(
+        getRouteProbeTestId(Routes.RAMP.VBA_DETAILS),
+        {},
+        {
+          timeout: 500,
+        },
+      ),
+    ).rejects.toThrow();
     expect(
-      await findByText(strings('virtual_bank_account.kyc_taking_longer.title')),
+      getByText(strings('virtual_bank_account.kyc_taking_longer.title')),
     ).toBeOnTheScreen();
     expect(hydrate).toHaveBeenCalledTimes(1);
-    expect(
-      queryByTestId(getRouteProbeTestId(Routes.RAMP.VBA_DETAILS)),
-    ).not.toBeOnTheScreen();
   });
 });
