@@ -59,6 +59,18 @@ describe('getVbaArrivalTimeframe', () => {
     expect(getVbaArrivalTimeframe(methods)).toBe('2 - 3 business days');
   });
 
+  it('lowercases locale tokens so the value reads mid-sentence', () => {
+    const methods = [buildMethod({ delay: [0, 1440] })];
+
+    expect(getVbaArrivalTimeframe(methods)).toBe('less than 1 business day');
+  });
+
+  it('lowercases the instant token for a zero-to-zero delay', () => {
+    const methods = [buildMethod({ delay: [0, 0] })];
+
+    expect(getVbaArrivalTimeframe(methods)).toBe('instant');
+  });
+
   it.each([
     [
       'no bank-transfer method at all',
