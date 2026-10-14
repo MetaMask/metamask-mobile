@@ -341,9 +341,15 @@ generateIosBinary() {
 	fi
 	echo "MM_WALLET_EXTENSIONS: $wallet_extensions"
 
+	# E2E builds compile AppDelegate's `#elseif E2E` deeplink fallback (keyless Branch drops custom-scheme URLs)
+	local -a e2eOverrides=()
+	if [ "$METAMASK_ENVIRONMENT" = "e2e" ]; then
+		e2eOverrides=('SWIFT_ACTIVE_COMPILATION_CONDITIONS=$(inherited) E2E')
+	fi
+
 	if [ "$IS_SIM_BUILD" = "true" ]; then
     	echo "Binary build type: Simulator"
-		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build "MM_WALLET_EXTENSIONS=$wallet_extensions"
+		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build "MM_WALLET_EXTENSIONS=$wallet_extensions" "${e2eOverrides[@]}"
 	fi
 	
 	if [ "$IS_DEVICE_BUILD" = "true" ] || [ "$IS_SIM_BUILD" != "true" ]; then
@@ -362,7 +368,7 @@ generateIosBinary() {
 			echo "Overriding signing: using development certificate and profile for Release archive"
 		fi
 
-		xcodebuild -workspace MetaMask.xcworkspace -scheme "$scheme" -configuration "$configuration" archive -archivePath "build/$scheme.xcarchive" -destination generic/platform=ios "${archiveOverrides[@]}"
+		xcodebuild -workspace MetaMask.xcworkspace -scheme "$scheme" -configuration "$configuration" archive -archivePath "build/$scheme.xcarchive" -destination generic/platform=ios "${archiveOverrides[@]}" "${e2eOverrides[@]}"
 		echo "Generating ipa for $scheme"
 		xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
 	fi

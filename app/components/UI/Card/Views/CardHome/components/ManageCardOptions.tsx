@@ -1,8 +1,18 @@
 import React from 'react';
-import { Platform, Switch } from 'react-native';
+import { Image, Platform, StyleSheet, Switch } from 'react-native';
 import { Box, IconName } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ManageCardListItem from '../../../components/ManageCardListItem';
+import applePayMark from '../../../components/ApplePayUsageSheet/assets/apple-pay-mark.png';
+
+const APPLE_PAY_MARK_ASPECT_RATIO = 170 / 109;
+
+const styles = StyleSheet.create({
+  applePayMark: {
+    width: 38,
+    height: 38 / APPLE_PAY_MARK_ASPECT_RATIO,
+  },
+});
 import { strings } from '../../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../CardHome.testIds';
 import { CardType } from '../../../types';
@@ -36,6 +46,8 @@ interface ManageCardOptionsProps {
   onContactDetails: () => void;
   showDigitalWalletInstructions: boolean;
   onDigitalWalletInstructions: () => void;
+  showHowToUseApplePay?: boolean;
+  onHowToUseApplePay?: () => void;
   showUnlinkMoneyAccount: boolean;
   onUnlinkMoneyAccount: () => void;
   showRevokeAllowance?: boolean;
@@ -74,6 +86,8 @@ const ManageCardOptions = ({
   onContactDetails,
   showDigitalWalletInstructions,
   onDigitalWalletInstructions,
+  showHowToUseApplePay = false,
+  onHowToUseApplePay,
   showUnlinkMoneyAccount,
   onUnlinkMoneyAccount,
   showRevokeAllowance = false,
@@ -308,6 +322,22 @@ const ManageCardOptions = ({
             rightIcon={IconName.ArrowRight}
             onPress={onUnlinkMoneyAccount}
             testID={CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM}
+          />
+        )}
+        {isFullySetUp && showHowToUseApplePay && Platform.OS === 'ios' && (
+          <ManageCardListItem
+            title={strings('card.apple_pay_usage.row_title')}
+            startAccessory={
+              <Image
+                source={applePayMark}
+                resizeMode="contain"
+                accessible={false}
+                style={styles.applePayMark}
+              />
+            }
+            rightIcon={IconName.ArrowRight}
+            onPress={onHowToUseApplePay}
+            testID={CardHomeSelectors.APPLE_PAY_USAGE_ITEM}
           />
         )}
         {isFullySetUp && showRevokeAllowance && onRevokeAllowance && (

@@ -5,6 +5,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { AppState, type AppStateStatus } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -169,13 +170,19 @@ export function usePushProvisioning(
     [walletAdapter, lastFourDigits, primaryAccountIdentifier],
   );
 
-  useEffect(() => {
-    void refreshEligibility({ silent: false });
+  const checkedLastFourRef = useRef<string | undefined>(undefined);
 
-    return () => {
-      eligibilityRequestIdRef.current += 1;
-    };
-  }, [refreshEligibility]);
+  useFocusEffect(
+    useCallback(() => {
+      const shouldShowLoading = checkedLastFourRef.current !== lastFourDigits;
+      checkedLastFourRef.current = lastFourDigits;
+      void refreshEligibility({ silent: !shouldShowLoading });
+
+      return () => {
+        eligibilityRequestIdRef.current += 1;
+      };
+    }, [refreshEligibility, lastFourDigits]),
+  );
 
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
