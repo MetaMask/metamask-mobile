@@ -45,10 +45,14 @@ jest.mock('./screens/Benefits', () => {
   const { TouchableOpacity, Text } = require('react-native');
   return ({
     onSuccess,
+    onCheckoutStart,
+    onCheckoutError,
     onPlanChange,
     initialPlan,
   }: {
     onSuccess: (plan: { planId: string }) => void;
+    onCheckoutStart: () => void;
+    onCheckoutError: () => void;
     onPlanChange?: (planId: string) => void;
     initialPlan?: string;
   }) => (
@@ -59,6 +63,14 @@ jest.mock('./screens/Benefits', () => {
       >
         <Text testID="mock-benefits-plan">{initialPlan ?? 'none'}</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        testID="mock-checkout-start"
+        onPress={onCheckoutStart}
+      />
+      <TouchableOpacity
+        testID="mock-checkout-error"
+        onPress={onCheckoutError}
+      />
       <TouchableOpacity
         testID="mock-select-monthly"
         onPress={() => onPlanChange?.('monthly')}
@@ -112,6 +124,32 @@ describe('ProSubscription', () => {
       );
 
       render(<ProSubscription />);
+
+      expect(mockReplace).toHaveBeenCalledWith('ProHub');
+    });
+
+    it('keeps Benefits visible when the user becomes a subscriber during checkout', () => {
+      const { getByTestId, rerender } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId('mock-checkout-start'));
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Subscriber,
+      );
+      rerender(<ProSubscription />);
+
+      expect(mockReplace).not.toHaveBeenCalled();
+      expect(getByTestId('mock-benefits')).toBeOnTheScreen();
+    });
+
+    it('sends the user to the hub if they subscribe after a failed checkout', () => {
+      const { getByTestId, rerender } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId('mock-checkout-start'));
+      fireEvent.press(getByTestId('mock-checkout-error'));
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Subscriber,
+      );
+      rerender(<ProSubscription />);
 
       expect(mockReplace).toHaveBeenCalledWith('ProHub');
     });

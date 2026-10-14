@@ -47,7 +47,7 @@ const ExpirationRow: React.FC<ExpirationRowProps> = ({
         >
           <Text
             variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
+            color={TextColor.TextDefault}
             testID={ExpirationRowSelectorsIDs.VALUE}
           >
             {value}
@@ -56,12 +56,11 @@ const ExpirationRow: React.FC<ExpirationRowProps> = ({
             name={IconName.ArrowRight}
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
-            twClassName="mt-1"
           />
         </Box>
       </TouchableOpacity>
     }
-    twClassName="h-8"
+    twClassName="h-auto"
   />
 );
 

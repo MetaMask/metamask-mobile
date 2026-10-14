@@ -20,7 +20,8 @@ import {
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -37,12 +38,11 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
   () => ({
-    useOpenVbaOnboarding: jest.fn(),
+    openAsOnlyOnboardingRoute: jest.fn(),
   }),
 );
 
-const mockUseOpenVbaOnboarding = jest.mocked(useOpenVbaOnboarding);
-const mockOpenVbaOnboarding = jest.fn();
+const mockOpenAsOnlyOnboardingRoute = jest.mocked(openAsOnlyOnboardingRoute);
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
@@ -172,8 +172,6 @@ describe('MoneyAddMoneySheet', () => {
     ).mockReturnValue(true);
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('BR');
     delete process.env.MM_MONEY_VBA_GEO_BYPASS;
-    mockOpenVbaOnboarding.mockResolvedValue(undefined);
-    mockUseOpenVbaOnboarding.mockReturnValue(mockOpenVbaOnboarding);
   });
 
   it('renders all options', () => {
@@ -224,11 +222,13 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('New')).toBeOnTheScreen();
 
     // It is a standalone VBA screen, not part of the crypto deposit flow.
-    // Opening hydrates onboarding and lands on the first incomplete screen.
+    // Opening shows the loading screen before onboarding status is known.
     fireEvent.press(bankRow);
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
-    expect(mockUseOpenVbaOnboarding).toHaveBeenCalled();
-    expect(mockOpenVbaOnboarding).toHaveBeenCalled();
+    expect(mockOpenAsOnlyOnboardingRoute).toHaveBeenCalledWith(
+      expect.objectContaining({ navigate: mockNavigate }),
+      VbaOnboardingRoutes.LOADING,
+    );
   });
 
   it('keeps the Bank account row as a coming-soon, non-pressable option when the neobank flag is off', () => {
@@ -288,7 +288,10 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('New')).toBeOnTheScreen();
 
     fireEvent.press(bankRow);
-    expect(mockOpenVbaOnboarding).toHaveBeenCalled();
+    expect(mockOpenAsOnlyOnboardingRoute).toHaveBeenCalledWith(
+      expect.objectContaining({ navigate: mockNavigate }),
+      VbaOnboardingRoutes.LOADING,
+    );
   });
 
   it('keeps the coming-soon Bank account row when the flag is off even if the geo bypass is on', () => {

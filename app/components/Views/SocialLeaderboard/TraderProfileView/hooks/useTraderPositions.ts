@@ -25,7 +25,10 @@ export interface UseTraderPositionsResult {
   closedPositions: Position[];
   isLoadingOpen: boolean;
   isLoadingClosed: boolean;
+  /** First non-null open/closed fetch error (legacy combined signal). */
   error: string | null;
+  openError: string | null;
+  closedError: string | null;
   refetch: () => Promise<void>;
 }
 
@@ -77,7 +80,9 @@ export const useTraderPositions = (
 
   const openPositions = openData?.positions ?? EMPTY_POSITIONS;
   const closedPositions = closedData?.positions ?? EMPTY_POSITIONS;
-  const combinedError = openError ?? closedError;
+  const formattedOpenError = formatSocialQueryErrorMessage(openError);
+  const formattedClosedError = formatSocialQueryErrorMessage(closedError);
+  const combinedError = formattedOpenError ?? formattedClosedError;
 
   const refetch = useCallback(async () => {
     const results = await Promise.allSettled([refetchOpen(), refetchClosed()]);
@@ -107,7 +112,9 @@ export const useTraderPositions = (
     closedPositions,
     isLoadingOpen,
     isLoadingClosed,
-    error: formatSocialQueryErrorMessage(combinedError),
+    error: combinedError,
+    openError: formattedOpenError,
+    closedError: formattedClosedError,
     refetch,
   };
 };

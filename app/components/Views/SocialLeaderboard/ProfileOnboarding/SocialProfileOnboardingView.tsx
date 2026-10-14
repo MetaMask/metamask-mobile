@@ -54,6 +54,8 @@ import {
   type ProfileOnboardingDraft,
   type ProfileOnboardingStep,
 } from './profileOnboardingDraft';
+import ProfileOnboardingIntroAnimation from './ProfileOnboardingIntroAnimation';
+import ProfileReadyAnimation from './ProfileReadyAnimation';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { useSocialOnboardingAccounts } from './useSocialOnboardingAccounts';
 
@@ -133,6 +135,102 @@ const OnboardingProgress: React.FC<{ step: ProfileOnboardingStep }> = ({
       </Box>
     ))}
   </Box>
+);
+
+const LiveActivityFallback: React.FC = () => (
+  <Box
+    twClassName="flex-1 justify-center px-8"
+    gap={3}
+    testID={SocialProfileOnboardingSelectorsIDs.INTRO_FALLBACK}
+  >
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      gap={2}
+      twClassName="px-2"
+    >
+      <Box twClassName="w-2 h-2 rounded-full bg-error-default" />
+      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        {strings('social_leaderboard.profile_onboarding.live_activity')}
+      </Text>
+    </Box>
+    {LIVE_ACTIVITY.map((trade) => (
+      <Box
+        key={trade.id}
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+        twClassName="bg-muted rounded-full px-3 py-2"
+      >
+        <Text variant={TextVariant.BodyLg}>{trade.emoji}</Text>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {trade.name}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={
+            trade.action === 'bought'
+              ? TextColor.SuccessDefault
+              : TextColor.ErrorDefault
+          }
+        >
+          {strings(`social_leaderboard.profile_onboarding.${trade.action}`)}
+        </Text>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {trade.asset}
+        </Text>
+        <Box twClassName="flex-1" />
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {trade.seconds == null
+            ? strings('social_leaderboard.profile_onboarding.just_now')
+            : strings('social_leaderboard.profile_onboarding.seconds_ago', {
+                count: trade.seconds,
+              })}
+        </Text>
+      </Box>
+    ))}
+  </Box>
+);
+
+const ReadyCardFallback: React.FC<{
+  avatarPresetId: string | null | undefined;
+  handle: string;
+}> = ({ avatarPresetId, handle }) => (
+  <>
+    <Text twClassName="absolute left-6 top-6" variant={TextVariant.HeadingLg}>
+      🦊
+    </Text>
+    <Text twClassName="absolute right-8 top-10" variant={TextVariant.HeadingMd}>
+      ✨
+    </Text>
+    <Text
+      twClassName="absolute left-10 bottom-16"
+      variant={TextVariant.HeadingMd}
+    >
+      🐱
+    </Text>
+    <Box
+      alignItems={BoxAlignItems.Center}
+      twClassName="pt-10"
+      testID={SocialProfileOnboardingSelectorsIDs.READY_FALLBACK}
+    >
+      <Box twClassName="bg-success-muted rounded-full px-4 py-2 mb-2">
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {strings('social_leaderboard.profile_onboarding.hi')}
+        </Text>
+      </Box>
+      <Box twClassName="rounded-full border-4 border-success-default p-1">
+        <ProfileAvatar avatarPresetId={avatarPresetId} size="xl" />
+      </Box>
+      <Text
+        variant={TextVariant.BodyMd}
+        twClassName="pt-3"
+        testID={SocialProfileOnboardingSelectorsIDs.READY_HANDLE}
+      >
+        @{handle}
+      </Text>
+    </Box>
+  </>
 );
 
 const SocialProfileOnboardingView: React.FC = () => {
@@ -279,73 +377,9 @@ const SocialProfileOnboardingView: React.FC = () => {
               >
                 {strings('social_leaderboard.profile_onboarding.intro_title')}
               </Text>
-              <Box twClassName="flex-1 justify-center px-8" gap={3}>
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  gap={2}
-                  twClassName="px-2"
-                >
-                  <Box twClassName="w-2 h-2 rounded-full bg-error-default" />
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings(
-                      'social_leaderboard.profile_onboarding.live_activity',
-                    )}
-                  </Text>
-                </Box>
-                {LIVE_ACTIVITY.map((trade) => (
-                  <Box
-                    key={trade.id}
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    gap={2}
-                    twClassName="bg-muted rounded-full px-3 py-2"
-                  >
-                    <Text variant={TextVariant.BodyLg}>{trade.emoji}</Text>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {trade.name}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={
-                        trade.action === 'bought'
-                          ? TextColor.SuccessDefault
-                          : TextColor.ErrorDefault
-                      }
-                    >
-                      {strings(
-                        `social_leaderboard.profile_onboarding.${trade.action}`,
-                      )}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {trade.asset}
-                    </Text>
-                    <Box twClassName="flex-1" />
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {trade.seconds == null
-                        ? strings(
-                            'social_leaderboard.profile_onboarding.just_now',
-                          )
-                        : strings(
-                            'social_leaderboard.profile_onboarding.seconds_ago',
-                            { count: trade.seconds },
-                          )}
-                    </Text>
-                  </Box>
-                ))}
-              </Box>
+              <ProfileOnboardingIntroAnimation
+                fallback={<LiveActivityFallback />}
+              />
               <Box paddingHorizontal={4} paddingBottom={4} gap={3}>
                 <Button
                   variant={ButtonVariant.Primary}
@@ -750,24 +784,6 @@ const SocialProfileOnboardingView: React.FC = () => {
                   testID={SocialProfileOnboardingSelectorsIDs.READY_STEP}
                 >
                   <Text
-                    twClassName="absolute left-6 top-6"
-                    variant={TextVariant.HeadingLg}
-                  >
-                    🦊
-                  </Text>
-                  <Text
-                    twClassName="absolute right-8 top-10"
-                    variant={TextVariant.HeadingMd}
-                  >
-                    ✨
-                  </Text>
-                  <Text
-                    twClassName="absolute left-10 bottom-16"
-                    variant={TextVariant.HeadingMd}
-                  >
-                    🐱
-                  </Text>
-                  <Text
                     variant={TextVariant.HeadingLg}
                     fontWeight={FontWeight.Bold}
                     twClassName="text-center"
@@ -785,29 +801,17 @@ const SocialProfileOnboardingView: React.FC = () => {
                       'social_leaderboard.profile_onboarding.feed_awaits_description',
                     )}
                   </Text>
-                  <Box alignItems={BoxAlignItems.Center} twClassName="pt-10">
-                    <Box twClassName="bg-success-muted rounded-full px-4 py-2 mb-2">
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        fontWeight={FontWeight.Medium}
-                      >
-                        {strings('social_leaderboard.profile_onboarding.hi')}
-                      </Text>
-                    </Box>
-                    <Box twClassName="rounded-full border-4 border-success-default p-1">
-                      <ProfileAvatar
+                  <ProfileReadyAnimation
+                    displayName={draft.displayName}
+                    handle={username}
+                    avatarPresetId={draft.avatarPresetId}
+                    fallback={
+                      <ReadyCardFallback
                         avatarPresetId={draft.avatarPresetId}
-                        size="xl"
+                        handle={username}
                       />
-                    </Box>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      twClassName="pt-3"
-                      testID={SocialProfileOnboardingSelectorsIDs.READY_HANDLE}
-                    >
-                      @{username}
-                    </Text>
-                  </Box>
+                    }
+                  />
                 </Box>
               ) : null}
             </ScrollView>

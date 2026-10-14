@@ -86,7 +86,7 @@ export const applyQrSyncSrpReadyPayload = async ({
 };
 
 /**
- * New-user path: onboarding → Import SRP → extension link → inject sync-ready
+ * New-user path: onboarding → Import SRP → scan menu → extension option → inject sync-ready
  * → create password → MetaMetrics → wallet home.
  */
 export const completeNewUserQrSyncSrp = async ({
@@ -135,8 +135,8 @@ export const completeNewUserQrSyncSrp = async ({
   );
   await CreatePasswordView.enterPassword(password);
   await CreatePasswordView.reEnterPassword(password);
-  await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
+  await CreatePasswordView.tapPasswordWarningConfirmButton();
 
   await Assertions.expectElementToBeVisible(MetaMetricsOptInView.container, {
     description: 'MetaMetrics Opt-In should be visible',

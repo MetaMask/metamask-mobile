@@ -231,6 +231,11 @@ interface OrderRouteParams {
   hideTPSL?: boolean;
   /** When true, the order was initiated from the token details screen */
   fromTokenDetails?: boolean;
+  /**
+   * After submit, dismiss back to the presenting screen instead of opening
+   * market details. The order still places and the same toasts still fire.
+   */
+  stayOnCurrentScreen?: boolean;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
   /** Analytics: market-list discovery section forwarded from market details */
@@ -301,6 +306,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const chartLibrary =
     route.params?.chartLibrary ?? getPerpsChartLibrary(isAdvancedChartEnabled);
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
+  const stayOnCurrentScreen = route.params?.stayOnCurrentScreen ?? false;
   const { colors } = useTheme();
   const bottomSafeAreaInset = useBottomSafeAreaInset();
 
@@ -422,6 +428,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // screen without one (back swipe, hardware back, tab switch) is emitted as an
   // abandon interaction via the focus-effect cleanup below.
   const hasPlacedOrderRef = useRef(false);
+  // Survives the abandon-tracking focus reset of `hasPlacedOrderRef`, so a
+  // stay-on-screen submit that already `goBack`'d is not popped again.
+  const hasDismissedAfterSubmitRef = useRef(false);
   const latestAbandonPropsRef = useRef<Record<string, unknown>>({});
 
   const { isInitialized } = usePerpsConnection();
@@ -552,7 +561,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const szDecimals = marketData?.szDecimals ?? defaultSzDecimals ?? null;
   const maxLeverage = marketData?.maxLeverage ?? defaultMaxLeverage ?? null;
-  const isMarketDataUnavailable = szDecimals === null || maxLeverage === null;
+  // The first frame requests no asset (`isDataReady` is still false). Treat
+  // that as loading, not a failed market, so entries without route defaults
+  // (Social copy trade) do not flash the error.
+  const isMarketDataUnavailable =
+    isDataReady && (szDecimals === null || maxLeverage === null);
   const isLoadingMarketData = isMarketDataLoading && isMarketDataUnavailable;
 
   // Check if user has an existing position for this market
@@ -818,22 +831,35 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     () => parseFloat(orderForm.amount) || 0,
     [orderForm.amount],
   );
-  const { estimatedSlippageBps } = usePerpsEstimatedSlippage({
+  const {
+    estimatedSlippageBps,
+    isReady: isSlippageReady,
+    canFillWithinSlippage,
+  } = usePerpsEstimatedSlippage({
     symbol: orderForm.asset,
     sizeUsd: orderUsdAmount,
+    currentPrice: assetData.price,
+    maxSlippageBps,
+    szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
     isBuy: orderForm.direction === 'long',
     // Gate on `isInitialized` so the order-book subscription waits until the
     // perps providers are wired; otherwise the subscription becomes a no-op
     // and the estimate stays null until the screen remounts.
     enabled: isMarketOrder && hasValidAmount && isInitialized,
   });
-  // Keep the estimate nullable so the row can render a `--` placeholder when
-  // the L2 book has not produced data yet (per the perps anti-pattern doc:
-  // never default unavailable data to `0`). When the estimate is unknown the
-  // user-configured cap still flows through to HyperLiquid as the limit-price
-  // buffer, so we surface "estimate pending" without blocking the order.
-  // Numeric percent for analytics and comparisons; formatted string for UI so
-  // the row never shows `3.333333%` noise.
+  // Keep VWAP for display; submission eligibility uses the worst required level.
+  const liquidityError =
+    isMarketOrder && hasValidAmount && isSlippageReady
+      ? estimatedSlippageBps === null
+        ? strings('perps.slippage.insufficient_depth')
+        : canFillWithinSlippage === false
+          ? strings(
+              useBottomSheet
+                ? 'perps.slippage.cannot_fill_reduce_size'
+                : 'perps.slippage.cannot_fill',
+            )
+          : undefined
+      : undefined;
   const estimatedSlippagePct: number | null = useMemo(
     () =>
       typeof estimatedSlippageBps === 'number'
@@ -1170,8 +1196,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   });
 
   // Order execution hook. Shows standard "Order submitted" toast for all order flows.
-  // Execution failures surface through the `onError` toast on the market
-  // screen, which both surfaces navigate to as soon as the order is submitted.
+  // Execution failures surface through the `onError` toast after we leave the
+  // form — market details by default, or the presenting screen when
+  // `stayOnCurrentScreen` is set.
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
       onSuccess: (_position) => {
@@ -1321,11 +1348,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // only those messages here — any other blocking error stays visible.
   const footerErrors = useMemo(() => {
     if (insufficientBalanceErrors.length === 0) {
-      return filteredErrors;
+      return liquidityError
+        ? [...filteredErrors, liquidityError]
+        : filteredErrors;
     }
     const covered = new Set(insufficientBalanceErrors);
-    return filteredErrors.filter((error) => !covered.has(error));
-  }, [filteredErrors, insufficientBalanceErrors]);
+    const errors = filteredErrors.filter((error) => !covered.has(error));
+    return liquidityError ? [...errors, liquidityError] : errors;
+  }, [filteredErrors, insufficientBalanceErrors, liquidityError]);
 
   // Handlers
   const handleTPSLPress = useCallback(() => {
@@ -1383,12 +1413,23 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   };
 
   const handleKeypadChange = useCallback(
-    ({ value }: { value: string; valueAsNumber: number }) => {
+    ({
+      value,
+      isAssetAmount,
+    }: {
+      value: string;
+      valueAsNumber: number;
+      isAssetAmount?: boolean;
+    }) => {
       inputMethodRef.current = 'keypad';
-      // Enforce digit limit (ignoring non-digits like separators)
-      const digitCount = (value.match(/\d/g) || []).length;
-      if (digitCount > MAX_PERPS_INPUT_DIGITS) {
-        return; // Ignore input that would exceed the max digit limit
+      // The digit cap applies to what the user typed. A coin entry is already
+      // capped, then converted to USD — that USD string can be longer than
+      // the cap (1 cheap coin is a long decimal) and must still commit.
+      if (!isAssetAmount) {
+        const digitCount = (value.match(/\d/g) || []).length;
+        if (digitCount > MAX_PERPS_INPUT_DIGITS) {
+          return;
+        }
       }
       commitAmount(value || '0');
     },
@@ -1569,6 +1610,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { onConfirm: onDepositConfirm } = useTransactionConfirm();
   const validateOrderNow = orderValidation.validateNow;
   const navigateToMarketAfterOrder = useCallback(() => {
+    if (stayOnCurrentScreen) {
+      // A pay-token deposit already dismissed back to the presenting screen.
+      // Funds arriving later re-enter via `handlePlaceOrder(true)` so the
+      // order still places; do not goBack again or the feed (or whatever is
+      // now on top) gets popped.
+      if (hasDismissedAfterSubmitRef.current) {
+        return;
+      }
+      hasDismissedAfterSubmitRef.current = true;
+      navigation.goBack();
+      return;
+    }
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
@@ -1584,7 +1637,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       },
       pop: true,
     });
-  }, [navigation, navigationMarketData, orderForm.asset]);
+  }, [navigation, navigationMarketData, orderForm.asset, stayOnCurrentScreen]);
 
   const handlePlaceOrder = useCallback(
     async (forceTrade = false) => {
@@ -1624,6 +1677,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               ? PERPS_EVENT_VALUE.DIRECTION.LONG
               : PERPS_EVENT_VALUE.DIRECTION.SHORT,
         });
+      }
+
+      if (liquidityError) {
+        showToast(
+          PerpsToastOptions.formValidation.orderForm.validationError(
+            liquidityError,
+          ),
+        );
+        return;
       }
 
       // Bail out before the pay-with-any-token deposit branch so an
@@ -1788,6 +1850,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             }),
           );
         } else {
+          if (stayOnCurrentScreen) {
+            hasDismissedAfterSubmitRef.current = true;
+          }
           navigation.goBack();
         }
         return;
@@ -1838,8 +1903,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         }
 
         // Both the full-screen form and the Trade sheet leave as soon as the
-        // order is submitted; the "submitted" / "confirmed" / "failed" toasts
-        // then report the outcome on the market screen.
+        // order is submitted. Default is market details; `stayOnCurrentScreen`
+        // dismisses back to the presenting screen. The "submitted" /
+        // "confirmed" / "failed" toasts still report the outcome.
         navigateToMarketAfterOrder();
 
         // Execute order using the new hook
@@ -1988,10 +2054,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       onDepositConfirm,
       handleDepositConfirm,
       fromTokenDetails,
+      stayOnCurrentScreen,
       maxSlippageBps,
       maxSlippageSource,
       estimatedSlippageBps,
       exceedsMaxSlippage,
+      liquidityError,
       vipTier,
       useBottomSheet,
     ],
@@ -2160,6 +2228,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // presentation blocker: both surfaces allow the tap and handlePlaceOrder
   // awaits validateNow() before any deposit or order execution.
   const isOrderSubmissionBlocked =
+    Boolean(liquidityError) ||
     !orderValidation.isValid ||
     isPlacingOrder ||
     doesStopLossRiskLiquidation ||
@@ -2235,6 +2304,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     // that is still awaiting validation from placing an order.
     isDismissedRef.current = true;
     isClosedByUserRef.current = true;
+    // Submit already dismissed the presenting modal. A second goBack here
+    // would pop the feed (or whatever is now on top).
+    if (hasDismissedAfterSubmitRef.current) {
+      return;
+    }
     if (fromTokenDetails) {
       const parentNavigation = navigation.getParent();
       if (parentNavigation?.canGoBack()) {
@@ -2258,6 +2332,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
     const feePercentage =
       totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
+    // Same formatter as the full-screen fees tooltip. Perps balance and the
+    // Money Account have no bridge, and a missing or zero quote stays on the
+    // trade-fee line.
+    const bridgeFee =
+      hasCustomTokenSelected && !isMoneyAccountSelected && depositFeeUsd > 0
+        ? formatPerpsFiat(depositFeeUsd, {
+            ranges: PRICE_RANGES_MINIMAL_VIEW,
+          })
+        : undefined;
     let payWithName = payToken?.symbol ?? '';
     if (isPayTokenPerpsBalance) {
       payWithName = strings('perps.adjust_margin.perps_balance');
@@ -2457,6 +2540,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 liquidationDistance={tradeSheetLiquidationDistance}
                 amount={displayAmount}
                 tokenAmount={livePositionSize}
+                amountPrice={effectivePrice}
+                sizeDecimals={
+                  szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals
+                }
                 sliderMaximum={maxPossibleAmount}
                 isAmountDisabled={isAmountDisabled}
                 isAmountLoading={isLoadingAccount || isLoadingMarketData}
@@ -2482,6 +2569,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 showPayWith={isPayRowVisible}
                 isPayWithDisabled={isPayWithDisabled}
                 feePercentage={feePercentage}
+                bridgeFee={bridgeFee}
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
                 isSubmitting={isPlacingOrder}
                 isSubmitDisabled={submitDisabled}

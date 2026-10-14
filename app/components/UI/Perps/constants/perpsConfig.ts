@@ -18,6 +18,7 @@ import { TokenI } from '../../Tokens/types';
 import {
   PERPS_ADL_URL,
   PERPS_LEARN_MORE_URL,
+  PERPS_TROUBLESHOOT_URL,
   METAMASK_SUPPORT_URL,
 } from '../../../../constants/urls';
 import { DAY } from '../../../../constants/time';
@@ -332,9 +333,6 @@ export const PERPS_ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS = 500;
  * These constants are only active when __DEV__ is true
  */
 export const DEVELOPMENT_CONFIG = {
-  // Magic number to simulate fee discount state (20% discount)
-  SimulateFeeDiscountAmount: 41,
-
   // Magic number to simulate rewards error state (set order amount to this value)
   SimulateRewardsErrorAmount: 42,
 
@@ -391,11 +389,13 @@ export const SUPPORT_CONFIG = {
 /**
  * Service interruption (outage) banner configuration
  * The FAQ link points users at the Perps help-center hub while trading is
- * degraded; the support link reuses SUPPORT_CONFIG through the consent flow.
+ * degraded. The support link opens the Perps troubleshoot article through
+ * the consent flow, separate from the general contact-support button.
  */
 export const SERVICE_INTERRUPTION_CONFIG = {
   FaqUrl: PERPS_LEARN_MORE_URL,
   FaqTitleKey: 'perps.service_interruption.faq_title',
+  SupportUrl: PERPS_TROUBLESHOOT_URL,
 } as const;
 
 /**
@@ -451,6 +451,8 @@ export const PROVIDER_CONFIG = {
   DefaultProvider: 'hyperliquid' as const,
   /** Controller mode that aggregates reads across active providers. */
   AggregatedProvider: 'aggregated' as const,
+  /** Trades from its own balance, so it has no deposit-with-order route. */
+  LighterProvider: 'lighter' as const,
 } as const;
 
 /** Network mode for perps (testnet vs mainnet). */

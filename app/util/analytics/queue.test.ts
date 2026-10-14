@@ -217,12 +217,59 @@ describe('createAnalyticsQueueManager', () => {
       );
     });
 
+    it('calls the marketing consent controller actions', async () => {
+      await queueManager.queueOperation('optInToMarketing');
+      await queueManager.queueOperation('optOutOfMarketing');
+      await queueManager.queueOperation('resetMarketingConsentDecision');
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:optInToMarketing',
+      );
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:optOutOfMarketing',
+      );
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:resetMarketingConsentDecision',
+      );
+    });
+
     it('logs error for unknown action', async () => {
       await queueManager.queueOperation('unknownAction', 'arg1', 'arg2');
 
       expect(mockLoggerError).toHaveBeenCalledWith(
         expect.any(Error),
         'Analytics: Attempted to execute unknown action',
+      );
+    });
+
+    it('rejects a marketing opt-out and still sends the next event', async () => {
+      const error = new Error('opt-out failed');
+      mockMessenger.call.mockImplementation((method: string) => {
+        if (method === 'AnalyticsController:optOutOfMarketing') {
+          throw error;
+        }
+      });
+
+      const event: AnalyticsTrackingEvent = {
+        name: 'event_after_opt_out',
+        properties: {},
+        sensitiveProperties: {},
+        get isAnonymous(): boolean {
+          return false;
+        },
+        get hasProperties(): boolean {
+          return false;
+        },
+      };
+
+      const optOutPromise = queueManager.queueOperation('optOutOfMarketing');
+      const trackPromise = queueManager.queueOperation('trackEvent', event);
+
+      await expect(optOutPromise).rejects.toBe(error);
+      await expect(trackPromise).resolves.toBeUndefined();
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        event,
       );
     });
 

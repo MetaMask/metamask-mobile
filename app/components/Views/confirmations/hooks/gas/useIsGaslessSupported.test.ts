@@ -212,6 +212,32 @@ describe('useIsGaslessSupported', () => {
       });
     });
 
+    it('returns isSupported true when only the paying account is a hardware wallet', async () => {
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        chainId: '0x1',
+        txParams: { from: '0xMoneyAccount', to: '0xabc' },
+      } as unknown as TransactionMeta);
+      useTransactionPayingAccountMock.mockReturnValue('0xLedgerPayer');
+      isRelaySupportedMock.mockResolvedValue(true);
+      isHardwareAccountMock.mockImplementation(
+        (address) => address === '0xLedgerPayer',
+      );
+
+      const state = merge({}, transferTransactionStateMock);
+      const { result } = renderHookWithProvider(() => useIsGaslessSupported(), {
+        state,
+      });
+
+      await waitFor(() => {
+        expect(result.current).toEqual({
+          isSupported: true,
+          isSmartTransaction: false,
+          pending: false,
+        });
+      });
+      expect(isHardwareAccountMock).toHaveBeenCalledWith('0xMoneyAccount');
+    });
+
     it('returns isSupported false and isSmartTransaction: false when relay not supported', async () => {
       isRelaySupportedMock.mockResolvedValue(false);
 
