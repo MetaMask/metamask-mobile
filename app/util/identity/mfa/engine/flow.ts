@@ -13,6 +13,7 @@ import {
   getEnrollmentMaxSessionAgeMs,
   planEnroll,
   planVerifyOrEnroll,
+  toList,
 } from './planner';
 import type {
   MfaFlow,
@@ -26,7 +27,6 @@ import type {
   MfaPurpose,
   Plan,
   PlanContext,
-  VerifyOrEnrollRequest,
 } from './types';
 
 interface CurrentStep {
@@ -35,13 +35,6 @@ interface CurrentStep {
   flowId?: string;
   email?: string;
 }
-
-const toList = (verifyWith: VerifyOrEnrollRequest['verifyWith']) => {
-  if (verifyWith === undefined) {
-    return [];
-  }
-  return Array.isArray(verifyWith) ? verifyWith : [verifyWith];
-};
 
 export const createMfaFlow = ({
   request,

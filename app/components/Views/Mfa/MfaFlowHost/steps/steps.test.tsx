@@ -227,28 +227,51 @@ describe('EmailEntryStep', () => {
     });
   });
 
-  it.each(['nope', 'a@b', 'a@b..co', 'a@.co', 'a b@c.co'])(
-    'rejects %s without sending it',
-    (address) => {
-      const onAction = jest.fn();
-      const { getByTestId, getByText } = render(
-        <EmailEntryStep
-          {...buildState({ name: 'emailEntry' })}
-          reason={reason}
-          onAction={onAction}
-        />,
-      );
+  it.each([
+    'nope',
+    'a@b',
+    'a@b..co',
+    'a@.co',
+    'a b@c.co',
+    '.a@b.co',
+    'a.@b.co',
+    'a..b@c.co',
+    '@b.co',
+    'a@@b.co',
+    'a@b.co.',
+  ])('rejects %s without sending it', (address) => {
+    const onAction = jest.fn();
+    const { getByTestId, getByText } = render(
+      <EmailEntryStep
+        {...buildState({ name: 'emailEntry' })}
+        reason={reason}
+        onAction={onAction}
+      />,
+    );
 
-      fireEvent.changeText(
-        getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT),
-        address,
-      );
-      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    fireEvent.changeText(getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT), address);
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
 
-      expect(getByText('Enter a valid email address.')).toBeOnTheScreen();
-      expect(onAction).not.toHaveBeenCalled();
-    },
-  );
+    expect(getByText('Enter a valid email address.')).toBeOnTheScreen();
+    expect(onAction).not.toHaveBeenCalled();
+  });
+
+  it('accepts dots inside the local part', () => {
+    const onAction = jest.fn();
+    const { getByTestId } = render(
+      <EmailEntryStep
+        {...buildState({ name: 'emailEntry', prefillEmail: 'first.last@b.co' })}
+        reason={reason}
+        onAction={onAction}
+      />,
+    );
+
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    expect(onAction).toHaveBeenCalledWith({
+      type: 'submitEmail',
+      email: 'first.last@b.co',
+    });
+  });
 
   it('shows the error for an address already in use', () => {
     const { getByText } = render(
