@@ -2351,6 +2351,7 @@ describe('CardHome Component', () => {
         isLoading: false,
         canAddToWallet: true,
         isCardInWallet: false,
+        pendingVerificationDevices: [],
       });
 
       render();
@@ -2374,6 +2375,7 @@ describe('CardHome Component', () => {
         isLoading: false,
         canAddToWallet: false,
         isCardInWallet: false,
+        pendingVerificationDevices: [],
       });
 
       render();

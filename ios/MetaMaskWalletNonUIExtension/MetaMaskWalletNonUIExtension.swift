@@ -239,7 +239,11 @@ enum WalletExtensionPasses {
         configuration.localizedDescription = card.localizedDescription
         configuration.paymentNetwork = .masterCard
         configuration.style = .payment
-        if let identifier = card.primaryAccountIdentifier, !identifier.isEmpty {
+        let installed = InstalledPasses.load()
+        if let identifier = ProvisioningLogic.provisioningIdentifier(
+            for: card,
+            installed: installed.phone + installed.watch
+        ) {
             configuration.primaryAccountIdentifier = identifier
         }
         return configuration

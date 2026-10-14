@@ -70,7 +70,7 @@ final class EncryptorPortTests: XCTestCase {
         XCTAssertEqual(bySuffix.map(\.cardId), ["series-1" == cards[0].entryId ? "card-1" : "card-1"])
     }
 
-    func testIdentifierMatchIgnoresADifferentCardsSuffix() {
+    func testSuffixMatchHidesTheCardWhenIdentifiersDiffer() {
         let card = SnapshotCard(
             entryId: "series-new",
             cardId: "card-new",
@@ -82,14 +82,18 @@ final class EncryptorPortTests: XCTestCase {
         )
         let installed = [
             InstalledPass(
-                primaryAccountIdentifier: "series-old",
+                primaryAccountIdentifier: "passkit-fpan",
                 primaryAccountNumberSuffix: "1234"
             ),
         ]
 
         let available = ProvisioningLogic.cardsAvailable(cards: [card], installed: installed)
 
-        XCTAssertEqual(available.map(\.cardId), ["card-new"])
+        XCTAssertTrue(available.isEmpty)
+        XCTAssertEqual(
+            ProvisioningLogic.provisioningIdentifier(for: card, installed: installed),
+            "passkit-fpan"
+        )
     }
 
     func testDeactivatedPassDoesNotHideTheCard() {

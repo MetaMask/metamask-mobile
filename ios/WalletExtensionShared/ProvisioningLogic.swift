@@ -12,9 +12,10 @@ enum ProvisioningLogic {
                 }
                 if
                     let identifier = card.primaryAccountIdentifier,
-                    !identifier.isEmpty
+                    !identifier.isEmpty,
+                    pass.primaryAccountIdentifier == identifier
                 {
-                    return pass.primaryAccountIdentifier == identifier
+                    return true
                 }
                 return pass.primaryAccountNumberSuffix == card.lastFour
             }
@@ -30,6 +31,27 @@ enum ProvisioningLogic {
             return true
         }
         return tokens.sessionIdentity == expected
+    }
+
+    /// The pass PassKit installs does not carry Immersve's series id. When every
+    /// installed pass with this suffix shares one identifier, send that instead.
+    static func provisioningIdentifier(
+        for card: SnapshotCard,
+        installed: [InstalledPass]
+    ) -> String? {
+        let identifiers = Set(
+            installed
+                .filter { $0.primaryAccountNumberSuffix == card.lastFour }
+                .compactMap(\.primaryAccountIdentifier)
+                .filter { !$0.isEmpty }
+        )
+        if identifiers.count == 1, let resolved = identifiers.first {
+            return resolved
+        }
+        guard let identifier = card.primaryAccountIdentifier, !identifier.isEmpty else {
+            return nil
+        }
+        return identifier
     }
 
     static func card(matching identifier: String, in cards: [SnapshotCard]) -> SnapshotCard? {

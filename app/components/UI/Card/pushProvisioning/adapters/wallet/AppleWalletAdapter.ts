@@ -70,16 +70,18 @@ export class AppleWalletAdapter
   /**
    * Decide whether Add to Apple Wallet should stay visible.
    *
-   * With a primary account identifier, a pass on the iPhone or a paired Watch
-   * counts as present in every state except deactivated. Add stays available
-   * until every paired device already has the card. Without an identifier, or
-   * when the pass APIs fail, eligibility falls back to the PAN suffix.
+   * Immersve sends a series id that is not the identifier on the installed
+   * pass, so passes are matched by the last four digits on the iPhone and a
+   * paired Watch. A match counts as present in every state except
+   * deactivated. Add stays available until every paired device already has
+   * the card. Without an identifier or last four, or when the pass APIs
+   * fail, eligibility falls back to the iPhone PAN suffix check.
    */
   override async getEligibility(
     lastFourDigits?: string,
     primaryAccountIdentifier?: string,
   ): Promise<WalletEligibility> {
-    if (!primaryAccountIdentifier) {
+    if (!primaryAccountIdentifier || !lastFourDigits) {
       return super.getEligibility(lastFourDigits);
     }
 
@@ -93,7 +95,7 @@ export class AppleWalletAdapter
       const passes = await wallet.listAppleWalletPasses();
       const matching = passes.filter(
         (pass) =>
-          pass.primaryAccountIdentifier === primaryAccountIdentifier &&
+          this.suffixMatches(pass.lastDigits, lastFourDigits) &&
           pass.activationState !== 'deactivated',
       );
       const phonePass = matching.find((pass) => !pass.isRemote);
@@ -110,7 +112,7 @@ export class AppleWalletAdapter
 
       const canAddCard = await this.canAddToAnotherDevice(
         wallet,
-        primaryAccountIdentifier,
+        phonePass?.primaryAccountIdentifier || primaryAccountIdentifier,
         Boolean(phonePass),
         Boolean(watchPass),
       );
@@ -133,6 +135,13 @@ export class AppleWalletAdapter
       logAdapterError(this.getAdapterName(), 'getEligibility', error);
       return super.getEligibility(lastFourDigits);
     }
+  }
+
+  private suffixMatches(
+    lastDigits: string | undefined,
+    lastFourDigits: string,
+  ): boolean {
+    return Boolean(lastDigits?.endsWith(lastFourDigits));
   }
 
   private passStatus(
