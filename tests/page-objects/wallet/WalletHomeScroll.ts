@@ -173,9 +173,17 @@ export class WalletHomeScroll {
   async tapIfAlreadyVisible(
     target: Promise<AppiumElement>,
     description: string,
-    options: { tapTimeout?: number } = {},
+    options: {
+      tapTimeout?: number;
+      /**
+       * Applied only after a tap on an already-displayed target fails.
+       * Android reports a header behind the floating tab bar as displayed,
+       * so the first tap misses and this nudge clears it.
+       */
+      overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
+    } = {},
   ): Promise<boolean> {
-    const { tapTimeout = 30_000 } = options;
+    const { tapTimeout = 30_000, overshootSwipe } = options;
 
     try {
       const freshTarget = await this.resolveFreshWalletHomeTarget(target);
@@ -183,14 +191,53 @@ export class WalletHomeScroll {
         timeout: 2000,
         description,
       });
-      await Gestures.waitAndTap(freshTarget, {
-        elemDescription: description,
-        timeout: tapTimeout,
-      });
-      return true;
+      try {
+        await Gestures.waitAndTap(freshTarget, {
+          elemDescription: description,
+          timeout: tapTimeout,
+        });
+        return true;
+      } catch {
+        if (!overshootSwipe) {
+          return false;
+        }
+        await this.applySectionOvershoot(overshootSwipe, description);
+        const nudgedTarget = await this.resolveFreshWalletHomeTarget(target);
+        await Gestures.waitAndTap(nudgedTarget, {
+          elemDescription: description,
+          timeout: tapTimeout,
+        });
+        return true;
+      }
     } catch {
       return false;
     }
+  }
+
+  /**
+   * One short swipe after a section is already in the viewport.
+   * `scrollIntoView` stops on the first visible pixel, which often leaves
+   * the header under the tab bar.
+   */
+  async applySectionOvershoot(
+    overshootSwipe: { direction: 'up' | 'down'; percentage?: number },
+    description: string,
+  ): Promise<void> {
+    const overshootScrollDirection =
+      overshootSwipe.direction === 'up' ? 'down' : 'up';
+    if (this.isAndroidAppium()) {
+      await this.scrollWalletHomeAndroid(
+        overshootScrollDirection,
+        overshootSwipe.percentage ?? 0.15,
+      );
+      return;
+    }
+
+    await Gestures.swipe(this.walletScrollView, overshootSwipe.direction, {
+      percentage: overshootSwipe.percentage ?? 0.15,
+      speed: 'slow',
+      elemDescription: `Overshoot swipe for ${description}`,
+    });
   }
 
   async scrollAndTapSection(
@@ -200,12 +247,25 @@ export class WalletHomeScroll {
     options: {
       scrollAmount?: number;
       overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
+      /**
+       * Not a wall-clock cap. Values at or below 16s still resolve to 8
+       * `scrollIntoView` attempts; larger values only add attempts.
+       * Pass `maxAttempts` when the attempt count itself must change.
+       */
       timeout?: number;
+      /** Overrides the attempt count derived from `timeout`, including below 8. */
+      maxAttempts?: number;
       tapTimeout?: number;
     } = {},
   ): Promise<void> {
-    const { overshootSwipe, timeout = 15_000, tapTimeout = 30_000 } = options;
-    const maxAttempts = Math.max(8, Math.ceil(timeout / 2_000));
+    const {
+      overshootSwipe,
+      timeout = 15_000,
+      maxAttempts: maxAttemptsOverride,
+      tapTimeout = 30_000,
+    } = options;
+    const maxAttempts =
+      maxAttemptsOverride ?? Math.max(8, Math.ceil(timeout / 2_000));
     const recovery = getPerformanceLocatorRecovery();
 
     const scrollIntoViewWithOvershoot = async (
@@ -219,24 +279,7 @@ export class WalletHomeScroll {
         maxAttempts,
       );
       if (overshootSwipe) {
-        const overshootScrollDirection =
-          overshootSwipe.direction === 'up' ? 'down' : 'up';
-        if (this.isAndroidAppium()) {
-          await this.scrollWalletHomeAndroid(
-            overshootScrollDirection,
-            overshootSwipe.percentage ?? 0.15,
-          );
-        } else {
-          await Gestures.swipe(
-            this.walletScrollView,
-            overshootSwipe.direction,
-            {
-              percentage: overshootSwipe.percentage ?? 0.15,
-              speed: 'slow',
-              elemDescription: `Overshoot swipe for ${description}`,
-            },
-          );
-        }
+        await this.applySectionOvershoot(overshootSwipe, description);
       }
       return this.resolveFreshWalletHomeTarget(sectionTarget);
     };
