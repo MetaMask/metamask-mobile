@@ -91,14 +91,21 @@ const CreateVirtualBankAccount = ({
     }
 
     setIsAdvancing(true);
+    let didAdvance = false;
     try {
       // Persist vendor terms locally. Email creates the vendor session and
       // records these accepted ids before continuing.
       if (await acceptDisclaimers()) {
         await onSuccess();
+        didAdvance = true;
       }
     } finally {
-      setIsAdvancing(false);
+      // Leave the button loading after a successful advance. Clearing it is
+      // batched with the stack reset, and Android Fabric then re-parents the
+      // label while the screen's removal transition still owns that view.
+      if (!didAdvance) {
+        setIsAdvancing(false);
+      }
     }
   }, [acceptDisclaimers, isAdvancing, onSuccess]);
 

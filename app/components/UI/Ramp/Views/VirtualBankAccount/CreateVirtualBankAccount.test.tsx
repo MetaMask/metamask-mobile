@@ -118,7 +118,7 @@ describe('CreateVirtualBankAccount', () => {
     });
   });
 
-  it('keeps the CTA disabled while advancing', async () => {
+  it('keeps the CTA disabled after advancing', async () => {
     let resolveSuccess: (() => void) | undefined;
     mockOnSuccess.mockImplementation(
       () =>
@@ -148,8 +148,26 @@ describe('CreateVirtualBankAccount', () => {
     });
 
     await waitFor(() => {
+      expect(button).toBeDisabled();
+    });
+    expect(mockOnSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-enables the CTA when vendor terms are not accepted', async () => {
+    mockAcceptDisclaimers.mockResolvedValue(false);
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+    const button = getByTestId(
+      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    );
+
+    fireEvent.press(button);
+
+    await waitFor(() => {
       expect(button).toBeEnabled();
     });
+    expect(mockOnSuccess).not.toHaveBeenCalled();
   });
 
   it('shows a skeleton loader instead of any disclaimer links while the fetch is in flight, and disables the CTA', () => {
