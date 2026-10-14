@@ -349,6 +349,43 @@ describe('navigation analytics attribution', () => {
     expect(result.properties).toEqual({ previous_screen: 'WalletView' });
   });
 
+  it('leaves previous_screen unset on events outside the screen-view allowlist', () => {
+    recordFocusedRoute({ name: 'Login', key: 'login' });
+    recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+    const event = createEvent('Activity Clicked');
+
+    const result = enrichWithNavigationAttribution(
+      event,
+      asRoute('WalletView', 'wallet'),
+    );
+
+    expect(result).toBe(event);
+    expect(result.properties.previous_screen).toBeUndefined();
+  });
+
+  it('uses the route that opened a screen for a departure event', () => {
+    recordFocusedRoute({ name: 'Login', key: 'login' });
+    recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+    const departureEvent = createEvent(EVENT_NAME.HOME_VIEWED, {
+      interaction_type: 'session_summary',
+    });
+
+    const duringNavigation = enrichWithNavigationAttribution(
+      departureEvent,
+      asRoute('Activity', 'activity'),
+    );
+    recordFocusedRoute({ name: 'Activity', key: 'activity' });
+    const afterNavigation = enrichWithNavigationAttribution(
+      createEvent(EVENT_NAME.HOME_VIEWED, {
+        interaction_type: 'session_summary',
+      }),
+      asRoute('Activity', 'activity'),
+    );
+
+    expect(duringNavigation.properties.previous_screen).toBe('Login');
+    expect(afterNavigation.properties.previous_screen).toBe('Login');
+  });
+
   it('keeps the Money home screen_name gate when previous_screen is set', () => {
     const route = createRoute();
     recordFocusedRoute({ name: 'WalletView', key: 'wallet' });

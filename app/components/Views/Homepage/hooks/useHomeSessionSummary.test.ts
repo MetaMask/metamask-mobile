@@ -2,6 +2,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import { renderHook, act } from '@testing-library/react-hooks';
 import useHomeSessionSummary from './useHomeSessionSummary';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import NavigationService from '../../../../core/NavigationService';
+import {
+  recordFocusedRoute,
+  resetNavigationAnalyticsAttributionForTests,
+} from '../../../../util/analytics/navigationAnalyticsAttribution';
 
 // --- @react-navigation/native mock ---
 jest.mock('@react-navigation/native', () => ({
@@ -154,6 +159,30 @@ describe('useHomeSessionSummary', () => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.HOME_VIEWED,
       );
+    });
+
+    it('records the route that opened the visit as previous_screen', () => {
+      resetNavigationAnalyticsAttributionForTests();
+      recordFocusedRoute({ name: 'Login', key: 'login' });
+      recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+      const getCurrentRoute = jest
+        .spyOn(NavigationService, 'getCurrentRoute')
+        .mockReturnValue({
+          key: 'wallet',
+          name: 'WalletView',
+        });
+      const { simulateBlur } = setupFocusBlur();
+
+      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
+
+      act(() => {
+        simulateBlur();
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ previous_screen: 'Login' }),
+      );
+      getCurrentRoute.mockRestore();
     });
 
     it('fires with interaction_type: session_summary', () => {

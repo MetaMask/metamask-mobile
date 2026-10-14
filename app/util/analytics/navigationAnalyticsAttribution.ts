@@ -1,4 +1,6 @@
 import type { Route } from '@react-navigation/native';
+import { ACTIVITY_SCREEN_EVENTS } from '../../core/Analytics/events/activity/events';
+import { CONFIRMATION_EVENTS } from '../../core/Analytics/events/confirmations/events';
 import { EVENT_NAME } from '../../core/Analytics/MetaMetrics.events';
 import NavigationService from '../../core/NavigationService';
 
@@ -52,6 +54,30 @@ const MAX_CONSUMED_ATTRIBUTIONS = 500;
 const consumedAttributions = new Set<string>();
 let contextSequence = 0;
 
+/** Screen-view events that receive `previous_screen`. */
+const SCREEN_VIEW_EVENT_NAMES: ReadonlySet<string> = new Set([
+  EVENT_NAME.HOME_VIEWED,
+  EVENT_NAME.POSITION_SCREEN_VIEWED,
+  EVENT_NAME.PERPS_SCREEN_VIEWED,
+  EVENT_NAME.RAMPS_SCREEN_VIEWED,
+  EVENT_NAME.MONEY_SURFACE_VIEWED,
+  EVENT_NAME.MONEY_HUB_SCREEN_VIEWED,
+  EVENT_NAME.CARD_HOME_VIEWED,
+  EVENT_NAME.EARN_MODULE_SURFACE_VIEWED,
+  EVENT_NAME.PREDICT_HOME_VIEWED,
+  EVENT_NAME.LOGIN_SCREEN_VIEWED,
+  EVENT_NAME.WALLET_CREATION_ERROR_SCREEN_VIEWED,
+  EVENT_NAME.VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED,
+  EVENT_NAME.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_SCREEN_VIEWED,
+  EVENT_NAME.VAULT_CORRUPTION_WALLET_RESET_NEEDED_SCREEN_VIEWED,
+  EVENT_NAME.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED,
+  EVENT_NAME.SOCIAL_TRADER_PROFILE_SCREEN_VIEWED,
+  EVENT_NAME.SOCIAL_FOLLOW_TRADING_TOKEN_SCREEN_VIEWED,
+  EVENT_NAME.SOCIAL_TRADER_FEED_SCREEN_VIEWED,
+  ACTIVITY_SCREEN_EVENTS.VIEWED.category,
+  CONFIRMATION_EVENTS.SCREEN_VIEWED.category,
+]);
+
 /**
  * Focused route recorded from navigation container state.
  *
@@ -80,6 +106,8 @@ interface FocusedNavigationState {
 let recordedRoute: FocusedRouteIdentity | undefined;
 /** Route name focused before `recordedRoute`. */
 let previousRouteName: string | undefined;
+/** Screen that opened the route named by `previousRouteName`. */
+let earlierRouteName: string | undefined;
 
 const isSameFocusedRoute = (
   left: FocusedRouteIdentity,
@@ -131,23 +159,31 @@ export const recordFocusedRoute = (
   if (isSameFocusedRoute(recordedRoute, nextRoute)) {
     return;
   }
+  earlierRouteName = previousRouteName;
   previousRouteName = recordedRoute.name;
   recordedRoute = nextRoute;
 };
 
 /**
- * Screen views emit in the destination effect, before onStateChange records
- * the new route. The navigation ref already points at the destination, so a
- * different active route means the last recorded name is the screen just left.
+ * Previous screen for a screen-view event.
+ *
+ * Destination views emit before the new route is recorded, so a different
+ * active route means the last recorded name is the screen just left.
+ * A departure event describes that recorded route. Its previous screen is the
+ * route that opened it, including after the destination has been recorded.
  */
 export const resolvePreviousScreenName = (
   activeRoute: FocusedRouteIdentity | undefined,
+  options?: { departure?: boolean },
 ): string | undefined => {
   if (!recordedRoute || !activeRoute?.name) {
     return undefined;
   }
   if (!isSameFocusedRoute(recordedRoute, activeRoute)) {
-    return recordedRoute.name;
+    return options?.departure ? previousRouteName : recordedRoute.name;
+  }
+  if (options?.departure) {
+    return earlierRouteName;
   }
   return previousRouteName;
 };
@@ -228,15 +264,23 @@ const cloneEvent = <T extends AttributableEvent>(event: T): T =>
     Object.getOwnPropertyDescriptors(event),
   ) as T;
 
+const isDepartureScreenEvent = (properties: Record<string, unknown>): boolean =>
+  properties.interaction_type === 'session_summary';
+
 const attachPreviousScreen = <T extends AttributableEvent>(
   event: T,
   route: Route<string> | undefined,
 ): T => {
+  if (!SCREEN_VIEW_EVENT_NAMES.has(event.name)) {
+    return event;
+  }
   if (event.properties.previous_screen !== undefined) {
     return event;
   }
 
-  const previousScreen = resolvePreviousScreenName(route);
+  const previousScreen = resolvePreviousScreenName(route, {
+    departure: isDepartureScreenEvent(event.properties),
+  });
   if (previousScreen === undefined) {
     return event;
   }
@@ -298,4 +342,5 @@ export const resetNavigationAnalyticsAttributionForTests = () => {
   contextSequence = 0;
   recordedRoute = undefined;
   previousRouteName = undefined;
+  earlierRouteName = undefined;
 };
