@@ -3,9 +3,9 @@ import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   FilterButton,
+  FilterButtonGroup,
   IconName,
   SectionHeader,
-  SegmentedControl,
 } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -40,9 +40,10 @@ const PerpsSocialFeedSectionInner: React.FC = () => {
         testID={PerpsHomeViewSelectorsIDs.SOCIAL_FEED_HEADER}
       />
       <Box twClassName="px-4 mb-3">
-        <SegmentedControl
+        <FilterButtonGroup
           value={tab}
           onChange={(value) => setTab(value as SocialFeedTab)}
+          twClassName="gap-2"
         >
           <FilterButton
             value="trending"
@@ -58,7 +59,7 @@ const PerpsSocialFeedSectionInner: React.FC = () => {
           >
             {strings('perps.home.top_traders')}
           </FilterButton>
-        </SegmentedControl>
+        </FilterButtonGroup>
       </Box>
       {tab === 'trending' ? (
         <PerpsSocialTrending />
