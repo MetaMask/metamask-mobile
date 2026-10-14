@@ -278,6 +278,7 @@ jest.mock('../../app/core/Engine', () => {
       RampsController: {
         setSelectedToken: jest.fn(),
         setSelectedProvider: jest.fn(),
+        setSelectedProviderForAsset: jest.fn().mockReturnValue(false),
         setSelectedPaymentMethod: jest.fn(),
         setUserRegion: jest.fn().mockResolvedValue(null),
         // Default stubs — tests override via `.mockReset().mockResolvedValue(...)`.
@@ -290,6 +291,7 @@ jest.mock('../../app/core/Engine', () => {
           .mockResolvedValue({ methods: [], selected: null }),
         getQuotes: jest.fn().mockResolvedValue({ success: [], error: [] }),
         getBuyWidgetData: jest.fn().mockResolvedValue(null),
+        transakSetApiKey: jest.fn(),
       },
       AssetsContractController: {
         getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
