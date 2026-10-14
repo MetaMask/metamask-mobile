@@ -1,7 +1,5 @@
 import React, { useMemo } from 'react';
-import { View } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   TabsBar,
   type TabItem,
@@ -27,7 +25,6 @@ const RewardsDashboardTabs: React.FC<RewardsDashboardTabsProps> = ({
   showEarningsDot,
   onChangeTab,
 }) => {
-  const tw = useTailwind();
   // `content` is unused: the dashboard renders each tab's sections inside its
   // own scroll view, so TabsBar renders the bar only.
   const tabs = useMemo<TabItem[]>(
@@ -44,9 +41,11 @@ const RewardsDashboardTabs: React.FC<RewardsDashboardTabsProps> = ({
         content: null,
         testID: KOL_DASHBOARD_SELECTORS.TAB_EARNINGS,
         endAccessory: showEarningsDot ? (
-          <View
+          // Anchored to the label's top-right corner. Absolute so the dot
+          // does not sit beside the word or widen the tab underline.
+          <Box
             testID={KOL_DASHBOARD_SELECTORS.TAB_EARNINGS_DOT}
-            style={tw.style('h-1.5 w-1.5 rounded-full bg-success-default')}
+            twClassName="absolute top-0 -right-1 h-1.5 w-1.5 flex-none rounded-full bg-success-default"
           />
         ) : undefined,
       },
@@ -57,7 +56,7 @@ const RewardsDashboardTabs: React.FC<RewardsDashboardTabsProps> = ({
         testID: KOL_DASHBOARD_SELECTORS.TAB_PERFORMANCE,
       },
     ],
-    [showEarningsDot, tw],
+    [showEarningsDot],
   );
 
   return (

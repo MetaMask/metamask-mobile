@@ -45,7 +45,7 @@ const Tab: React.FC<TabProps> = ({
     >
       <Pressable
         style={tw.style(
-          'px-0 py-1 flex-row items-center justify-center gap-1 relative',
+          'px-0 py-1 flex-row items-center justify-center relative',
           isDisabled && 'opacity-50',
         )}
         onPress={isDisabled ? undefined : onPress}
@@ -53,7 +53,7 @@ const Tab: React.FC<TabProps> = ({
         testID={testID}
         {...pressableProps}
       >
-        {/* The label sizes itself, so endAccessory can sit beside it */}
+        {/* The label sizes itself. endAccessory overlays its top-right corner. */}
         <View>
           {/* Hidden bold text that determines layout size */}
           <Text
@@ -86,9 +86,9 @@ const Tab: React.FC<TabProps> = ({
           >
             {label}
           </Text>
-        </View>
 
-        {endAccessory}
+          {endAccessory}
+        </View>
       </Pressable>
     </View>
   );

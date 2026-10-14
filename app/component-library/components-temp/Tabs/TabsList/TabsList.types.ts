@@ -27,7 +27,8 @@ export interface TabItem {
   isDisabled?: boolean;
   testID?: string;
   /**
-   * Optional content rendered after the label (indicator, tag, icon, etc.)
+   * Optional content overlaid on the label's top-right corner
+   * (indicator, tag, icon, etc.)
    */
   endAccessory?: React.ReactNode;
 }
@@ -40,7 +41,8 @@ export interface TabViewProps {
   key?: string;
   isDisabled?: boolean;
   /**
-   * Optional content rendered after the label (indicator, tag, icon, etc.)
+   * Optional content overlaid on the label's top-right corner
+   * (indicator, tag, icon, etc.)
    */
   endAccessory?: React.ReactNode;
 }

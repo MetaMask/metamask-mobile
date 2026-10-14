@@ -49,9 +49,13 @@ describe('RewardsDashboardTabs', () => {
       />,
     );
 
-    expect(
-      getByTestId(KOL_DASHBOARD_SELECTORS.TAB_EARNINGS_DOT),
-    ).toBeOnTheScreen();
+    expect(getByTestId(KOL_DASHBOARD_SELECTORS.TAB_EARNINGS_DOT)).toHaveStyle({
+      position: 'absolute',
+      top: 0,
+      right: -4,
+      width: 6,
+      height: 6,
+    });
   });
 
   it('hides the earnings dot after claimable funds are gone', () => {

@@ -30,7 +30,7 @@ describe('Tab', () => {
       expect(getAllByText('My Tab')[0]).toBeOnTheScreen();
     });
 
-    it('renders endAccessory after the label', () => {
+    it('renders endAccessory on the label', () => {
       const { getByTestId } = render(
         <Tab
           {...defaultProps}
