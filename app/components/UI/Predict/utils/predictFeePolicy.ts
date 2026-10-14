@@ -22,7 +22,7 @@ export function resolvePredictFeePolicy({
   }
 
   const predictBenefits = benefits.products.predict;
-  const builderCode = predictBenefits.builderCode?.trim() ?? '';
+  const builderCode = predictBenefits.builderCode?.trim();
   const remainingTxCount = predictBenefits.remainingTxCount;
   const hasRemainingTransactions =
     remainingTxCount !== null &&
