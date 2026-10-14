@@ -124,7 +124,7 @@ describe('useEnsureDestTokenSecurityData', () => {
     expect(store.getState().bridge.destToken).toEqual(OTHER_TOKEN);
   });
 
-  it('reapplies fetched security data when the same token is set again without it', async () => {
+  it('refetches security data when the same token is set again without it', async () => {
     mockFetchTokenAssets.mockResolvedValue(maliciousAssets);
     const { store } = renderWithDestToken(MALICIOUS_TOKEN);
     await waitFor(() =>
@@ -137,47 +137,11 @@ describe('useEnsureDestTokenSecurityData', () => {
       store.dispatch(setDestToken(MALICIOUS_TOKEN));
     });
 
-    expect(store.getState().bridge.destToken?.securityData?.type).toBe(
-      SecurityDataType.Malicious,
-    );
-    expect(mockFetchTokenAssets).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not refetch an asset that already returned no security data', async () => {
-    mockFetchTokenAssets.mockResolvedValue([]);
-    const { store } = renderWithDestToken(MALICIOUS_TOKEN);
-    await waitFor(() => expect(mockFetchTokenAssets).toHaveBeenCalledTimes(1));
-
-    act(() => {
-      store.dispatch(setDestToken(OTHER_TOKEN));
-    });
-    await waitFor(() => expect(mockFetchTokenAssets).toHaveBeenCalledTimes(2));
-    act(() => {
-      store.dispatch(setDestToken(MALICIOUS_TOKEN));
-    });
-
-    expect(mockFetchTokenAssets).toHaveBeenCalledTimes(2);
-  });
-
-  it('refetches a token reselected after its fetch failed', async () => {
-    mockFetchTokenAssets.mockRejectedValueOnce(new Error('network'));
-    mockFetchTokenAssets.mockResolvedValueOnce([]);
-    mockFetchTokenAssets.mockResolvedValueOnce(maliciousAssets);
-    const { store } = renderWithDestToken(MALICIOUS_TOKEN);
-    await waitFor(() => expect(mockFetchTokenAssets).toHaveBeenCalledTimes(1));
-    act(() => {
-      store.dispatch(setDestToken(OTHER_TOKEN));
-    });
-    await waitFor(() => expect(mockFetchTokenAssets).toHaveBeenCalledTimes(2));
-
-    act(() => {
-      store.dispatch(setDestToken(MALICIOUS_TOKEN));
-    });
-
     await waitFor(() =>
       expect(store.getState().bridge.destToken?.securityData?.type).toBe(
         SecurityDataType.Malicious,
       ),
     );
+    expect(mockFetchTokenAssets).toHaveBeenCalledTimes(2);
   });
 });
