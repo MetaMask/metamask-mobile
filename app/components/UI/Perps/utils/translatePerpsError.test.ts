@@ -18,6 +18,7 @@ jest.mock('@metamask/perps-controller', () => {
       MARKETS_FAILED: 'MARKETS_FAILED',
       UNKNOWN_ERROR: 'UNKNOWN_ERROR',
       ORDER_LEVERAGE_REDUCTION_FAILED: 'ORDER_LEVERAGE_REDUCTION_FAILED',
+      ORDER_SCALE_PREVIEW_STALE: 'ORDER_SCALE_PREVIEW_STALE',
       IOC_CANCEL: 'IOC_CANCEL',
       CONNECTION_TIMEOUT: 'CONNECTION_TIMEOUT',
       WITHDRAW_INSUFFICIENT_BALANCE: 'WITHDRAW_INSUFFICIENT_BALANCE',
@@ -73,6 +74,14 @@ describe('translatePerpsError', () => {
   });
 
   describe('with error codes', () => {
+    it('translates a stale Scale preview refusal', () => {
+      const message = translatePerpsError(
+        PERPS_ERROR_CODES.ORDER_SCALE_PREVIEW_STALE,
+      );
+
+      expect(message).toBe('perps.errors.orderValidation.scalePreviewStale');
+    });
+
     it('translates CLIENT_NOT_INITIALIZED error code', () => {
       const result = translatePerpsError(
         PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED,

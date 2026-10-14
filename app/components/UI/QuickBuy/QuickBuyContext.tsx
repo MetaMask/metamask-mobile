@@ -18,7 +18,7 @@ import type {
 export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
   target: QuickBuyTarget;
   features: QuickBuyFeatures;
-  analyticsContext?: QuickBuyAnalyticsContext;
+  analyticsContext: QuickBuyAnalyticsContext;
   onClose: () => void;
   activeScreen: QuickBuyScreen;
   setActiveScreen: (screen: QuickBuyScreen) => void;
@@ -42,7 +42,7 @@ interface QuickBuyProviderProps {
   onClose: () => void;
   features: QuickBuyFeatures;
   initialTradeMode?: QuickBuyTradeMode;
-  analyticsContext?: QuickBuyAnalyticsContext;
+  analyticsContext: QuickBuyAnalyticsContext;
   postSwapShare?: boolean;
   activeScreen: QuickBuyScreen;
   setActiveScreen: (screen: QuickBuyScreen) => void;
