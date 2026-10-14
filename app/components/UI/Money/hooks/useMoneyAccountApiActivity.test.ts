@@ -106,7 +106,7 @@ const QUERY_OPTIONS_MOCK = {
 const CARD: AccountsApiActivity = {
   kind: 'card',
   hash: '0xabc',
-  time: 1,
+  time: Date.parse('2026-06-04T11:53:51.000Z'),
   chainId: '0x8f',
   token: { address: '0xtoken', symbol: 'mUSD', decimals: 6 },
   amount: '5381986',
