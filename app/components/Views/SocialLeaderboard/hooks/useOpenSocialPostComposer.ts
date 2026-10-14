@@ -1,4 +1,5 @@
 import { useCallback, useContext } from 'react';
+import type { Position } from '@metamask/social-controllers';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
@@ -14,10 +15,18 @@ import { selectSelectedAccountGroupInternalAccounts } from '../../../../selector
 import { useTheme } from '../../../../util/theme';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { resolveSocialPostComposerWallet } from '../navigation/resolveSocialPostComposerWallet';
-import type { SocialPostComposerViewParams } from '../SocialPostComposerView/SocialPostComposerView.types';
+import type { SocialPostComposerEntryPoint } from '../SocialPostComposerView/SocialPostComposerView.types';
+
+/** Optional share context when a host screen opens the composer. */
+export interface OpenComposerOptions {
+  /** Pre-attach this position instead of opening the position picker. */
+  position: Position;
+  /** Where the share was started from. */
+  entryPoint: SocialPostComposerEntryPoint;
+}
 
 export interface UseOpenSocialPostComposerResult {
-  openComposer: (params?: SocialPostComposerViewParams) => void;
+  openComposer: (options?: OpenComposerOptions) => void;
 }
 
 /**
@@ -36,7 +45,7 @@ export const useOpenSocialPostComposer =
     );
 
     const openComposer = useCallback(
-      (params?: SocialPostComposerViewParams) => {
+      (options?: OpenComposerOptions) => {
         const result = resolveSocialPostComposerWallet({
           linkedAccountId: profile?.linkedAccountId,
           linkedAccountAddress: profile?.linkedAccountAddress,
@@ -92,8 +101,8 @@ export const useOpenSocialPostComposer =
           });
         }
 
-        if (params) {
-          navigation.navigate(Routes.SOCIAL.POST_COMPOSER, params);
+        if (options) {
+          navigation.navigate(Routes.SOCIAL.POST_COMPOSER, options);
           return;
         }
         navigation.navigate(Routes.SOCIAL.POST_COMPOSER);

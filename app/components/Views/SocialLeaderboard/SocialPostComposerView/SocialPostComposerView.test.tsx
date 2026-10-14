@@ -455,7 +455,7 @@ describe('SocialPostComposerView', () => {
   });
 
   it('shows the position card when opened with an attached position', () => {
-    mockRouteParams = { position: openSpot };
+    mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
 
     renderWithProvider(<SocialPostComposerView />);
 

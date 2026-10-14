@@ -13,11 +13,17 @@ export interface SocialPostTradePreview {
   entryPriceLabel?: string;
 }
 
+/** Where a pre-attached position was shared from. Kept for later analytics. */
+export type SocialPostComposerEntryPoint = 'token_details';
+
 /**
  * Route params for the composer.
  * A swap share passes `tradeInFlight`. Token details passes the open
  * `position` so the card is attached immediately. Both are absent when the
  * user opens the composer from `+`.
+ *
+ * The `never` members keep plain property access (`params?.preview`) compiling
+ * on either branch, matching `TraderPositionViewParams`.
  */
 export type SocialPostComposerViewParams =
   | {
@@ -28,7 +34,13 @@ export type SocialPostComposerViewParams =
         tokenAddress: string;
       };
       preview: SocialPostTradePreview;
+      position?: never;
+      entryPoint?: never;
     }
   | {
+      /** Fast path: position passed by the host screen. No fetch fires. */
       position: Position;
+      entryPoint: SocialPostComposerEntryPoint;
+      tradeInFlight?: never;
+      preview?: never;
     };

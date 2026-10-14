@@ -63,7 +63,11 @@ const token = { address: '0xabc', chainId: '0x1' } as TokenDetailsRouteParams;
 /** The `traderPositionPnl` prop handed to the sticky footer on the last render. */
 const positionProp = () =>
   footerProps[footerProps.length - 1].traderPositionPnl as
-    | Record<string, unknown>
+    | {
+        positionValue?: string;
+        isLoading?: boolean;
+        expandedDetails?: Record<string, unknown> & { onShare?: () => void };
+      }
     | undefined;
 
 const renderSection = () =>
@@ -91,6 +95,7 @@ describe('TraderPositionPnlSection', () => {
     mockUseOpenPositionHeader.mockReturnValue({
       positionValue: '$150.00',
       pnl: { amount: '+$50.00', percentage: '+50.00%', isProfit: true },
+      sharePosition: null,
       isLoading: false,
     });
 
@@ -113,48 +118,31 @@ describe('TraderPositionPnlSection', () => {
       unrealizedPnl: '+$1,200.00',
       holdTime: '—',
     };
+    const sharePosition = {
+      positionId: 'pos-1',
+      tokenSymbol: 'PEPE',
+      tokenName: 'Pepe',
+      tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+      chain: 'ethereum',
+      isOpen: true,
+      positionAmount: 100,
+      costBasis: 50,
+      currentValueUSD: 80,
+      realizedPnl: 0,
+      pnlValueUsd: 30,
+      pnlPercent: 60,
+      boughtUsd: 50,
+      soldUsd: 0,
+      perpPositionType: null,
+      perpLeverage: null,
+      positionAmountWithLeverage: null,
+      costBasisWithLeverage: null,
+      marginUsd: null,
+      trades: [{ timestamp: 1_700_000_000 }],
+      lastTradeAt: 1_700_000_100,
+    };
 
     beforeEach(() => {
-      mockUseOpenPositionHeader.mockReturnValue({
-        positionValue: '$2,000.00',
-        pnl: { amount: '+$1,200.00', percentage: '+150.00%', isProfit: true },
-        expandedDetails,
-        isLoading: false,
-      });
-    });
-
-    it('wires Share to feed to the post composer when Social V1 is enabled', () => {
-      renderSection();
-
-      positionProp()?.expandedDetails?.onShare?.();
-
-      expect(mockOpenComposer).toHaveBeenCalledWith();
-    });
-
-    it('opens the share post with the open position already attached', () => {
-      const sharePosition = {
-        positionId: 'pos-1',
-        tokenSymbol: 'PEPE',
-        tokenName: 'Pepe',
-        tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
-        chain: 'ethereum',
-        isOpen: true,
-        positionAmount: 100,
-        costBasis: 50,
-        currentValueUSD: 80,
-        realizedPnl: 0,
-        pnlValueUsd: 30,
-        pnlPercent: 60,
-        boughtUsd: 50,
-        soldUsd: 0,
-        perpPositionType: null,
-        perpLeverage: null,
-        positionAmountWithLeverage: null,
-        costBasisWithLeverage: null,
-        marginUsd: null,
-        trades: [{ timestamp: 1_700_000_000 }],
-        lastTradeAt: 1_700_000_100,
-      };
       mockUseOpenPositionHeader.mockReturnValue({
         positionValue: '$2,000.00',
         pnl: { amount: '+$1,200.00', percentage: '+150.00%', isProfit: true },
@@ -162,8 +150,11 @@ describe('TraderPositionPnlSection', () => {
         sharePosition,
         isLoading: false,
       });
+    });
 
+    it('opens the composer with the open position attached and the token-details entry point', () => {
       renderSection();
+
       positionProp()?.expandedDetails?.onShare?.();
 
       expect(mockOpenComposer).toHaveBeenCalledWith({
@@ -172,7 +163,22 @@ describe('TraderPositionPnlSection', () => {
           tokenSymbol: 'PEPE',
           isOpen: true,
         }),
+        entryPoint: 'token_details',
       });
+    });
+
+    it('leaves Share to feed disabled until a sharable position loads', () => {
+      mockUseOpenPositionHeader.mockReturnValue({
+        positionValue: '$2,000.00',
+        pnl: { amount: '+$1,200.00', percentage: '+150.00%', isProfit: true },
+        expandedDetails,
+        sharePosition: null,
+        isLoading: false,
+      });
+
+      renderSection();
+
+      expect(positionProp()?.expandedDetails).not.toHaveProperty('onShare');
     });
 
     it('leaves Share to feed disabled in the Social V1 control arm', () => {
@@ -197,7 +203,10 @@ describe('TraderPositionPnlSection', () => {
   });
 
   it('passes a loading header through before a value arrives', () => {
-    mockUseOpenPositionHeader.mockReturnValue({ isLoading: true });
+    mockUseOpenPositionHeader.mockReturnValue({
+      sharePosition: null,
+      isLoading: true,
+    });
 
     renderSection();
 
@@ -207,7 +216,10 @@ describe('TraderPositionPnlSection', () => {
   });
 
   it('hides the position row when there is no value and no load in flight', () => {
-    mockUseOpenPositionHeader.mockReturnValue({ isLoading: false });
+    mockUseOpenPositionHeader.mockReturnValue({
+      sharePosition: null,
+      isLoading: false,
+    });
 
     renderSection();
 
@@ -215,7 +227,10 @@ describe('TraderPositionPnlSection', () => {
   });
 
   it('marks the footer as having a balance only when the token balance is positive', () => {
-    mockUseOpenPositionHeader.mockReturnValue({ isLoading: false });
+    mockUseOpenPositionHeader.mockReturnValue({
+      sharePosition: null,
+      isLoading: false,
+    });
     mockUseTokenBalance.mockReturnValue({
       balance: '0',
       fiatBalance: '$0.00',

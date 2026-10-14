@@ -29,6 +29,7 @@ import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
 import { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSocialFeed } from '../../SocialFeed';
+import type { SocialV1FeedPost } from '../../SocialFeed/types';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
 const mockGoBack = jest.fn();
@@ -748,7 +749,7 @@ describe('TokenDetailsV1', () => {
 
   it('switches tab panels and back to the Overview tab', () => {
     mockUseSocialFeed.mockReturnValue({
-      posts: [{ id: 'post-1' }],
+      posts: [{ id: 'post-1' } as SocialV1FeedPost],
       rows: [],
       isLoading: false,
       isFetchingNextPage: false,
@@ -812,7 +813,7 @@ describe('TokenDetailsV1', () => {
       selector === selectSocialLeaderboardEnabled ? true : undefined,
     );
     mockUseSocialFeed.mockReturnValue({
-      posts: [{ id: 'post-1' }],
+      posts: [{ id: 'post-1' } as SocialV1FeedPost],
       rows: [],
       isLoading: false,
       isFetchingNextPage: false,

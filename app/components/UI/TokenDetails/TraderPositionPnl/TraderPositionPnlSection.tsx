@@ -52,16 +52,22 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
     SOCIAL_V1_ASSIGNMENT_OPTIONS,
   );
   // The composer and profile onboarding are registered on MainNavigator only
-  // under this gate.
+  // under this gate. Without a position to attach the composer would open
+  // empty, so the button stays disabled until one loads.
+  const sharePosition = header.sharePosition;
   const canShareToFeed =
-    isSocialLeaderboardEnabled && socialV1Variant.useSocialV1;
+    isSocialLeaderboardEnabled &&
+    socialV1Variant.useSocialV1 &&
+    sharePosition != null;
   const shareToFeedPress = useCallback(() => {
-    if (!header.sharePosition) {
-      openComposer();
+    if (!sharePosition) {
       return;
     }
-    openComposer({ position: toComposerPosition(header.sharePosition) });
-  }, [header.sharePosition, openComposer]);
+    openComposer({
+      position: toComposerPosition(sharePosition),
+      entryPoint: 'token_details',
+    });
+  }, [sharePosition, openComposer]);
 
   useLayoutEffect(() => {
     setIsExpanded(false);

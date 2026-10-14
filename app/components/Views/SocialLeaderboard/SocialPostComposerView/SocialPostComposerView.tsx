@@ -137,14 +137,9 @@ const SocialPostComposerView: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const routeParams = route.params as SocialPostComposerViewParams | undefined;
-  const tradeInFlightParams =
-    routeParams && 'tradeInFlight' in routeParams
-      ? routeParams.tradeInFlight
-      : undefined;
-  const tradeInFlightPreview =
-    routeParams && 'preview' in routeParams ? routeParams.preview : undefined;
-  const routedPosition =
-    routeParams && 'position' in routeParams ? routeParams.position : undefined;
+  const tradeInFlightParams = routeParams?.tradeInFlight;
+  const tradeInFlightPreview = routeParams?.preview;
+  const routedPosition = routeParams?.position;
   const { toastRef } = useContext(ToastContext);
   const isScreenTransitionComplete = useScreenTransitionComplete();
   const { profile } = useMyProfile();

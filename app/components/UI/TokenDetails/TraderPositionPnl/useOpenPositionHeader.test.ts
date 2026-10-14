@@ -111,6 +111,7 @@ describe('useOpenPositionHeader', () => {
     } as ReturnType<typeof useTokenBalance>);
     mockUseOpenPositionForAsset.mockReturnValue({
       position: null,
+      sharePosition: null,
       isLoading: false,
       error: null,
       refetch: jest.fn(),
@@ -214,6 +215,7 @@ describe('useOpenPositionHeader', () => {
         pnlPercent: null,
         pnlStatus: 'ready',
       },
+      sharePosition: null,
       isLoading: false,
       error: null,
       refetch: jest.fn(),
