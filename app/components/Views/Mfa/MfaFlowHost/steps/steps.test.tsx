@@ -338,6 +338,31 @@ describe('CodeStep', () => {
     expect(onAction).not.toHaveBeenCalled();
   });
 
+  it('submits a code typed while it was sending once it is sent', () => {
+    const onAction = jest.fn();
+    const ui = (step: MfaFlowStep, state: MfaFlowState) => (
+      <CodeStep
+        step={step as Extract<MfaFlowStep, { name: 'otp' }>}
+        state={state}
+        reason={reason}
+        onAction={onAction}
+      />
+    );
+    const sending = buildState(otp(false), { busy: true });
+    const { getByTestId, rerender } = render(ui(sending.step, sending.state));
+    fireEvent.changeText(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT), '123456');
+    expect(onAction).not.toHaveBeenCalled();
+
+    const sent = buildState(otp(true));
+    rerender(ui(sent.step, sent.state));
+
+    expect(onAction).toHaveBeenCalledTimes(1);
+    expect(onAction).toHaveBeenCalledWith({
+      type: 'submitCode',
+      code: '123456',
+    });
+  });
+
   it('stays tappable after the code failed to send', () => {
     const { getByTestId } = renderCode(otp(false), { error: 'server_error' });
 

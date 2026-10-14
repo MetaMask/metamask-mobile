@@ -86,10 +86,13 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
     }
   }, [codeSent, resendAvailableAt, secondsLeft, onAction]);
 
-  const submit = useCallback(
-    (value: string) => onAction({ type: 'submitCode', code: value }),
-    [onAction],
-  );
+  // Submits a complete code once it was sent, so digits typed or pasted while
+  // it was still sending are not left on screen.
+  useEffect(() => {
+    if (codeSent && code.length === CELL_COUNT) {
+      onAction({ type: 'submitCode', code });
+    }
+  }, [codeSent, code, onAction]);
 
   useEffect(() => {
     if (codeSent) {
@@ -101,11 +104,7 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
     if (busy && codeSent) {
       return;
     }
-    const digits = text.replace(/\D/g, '').slice(0, CELL_COUNT);
-    setCode(digits);
-    if (codeSent && digits.length === CELL_COUNT) {
-      submit(digits);
-    }
+    setCode(text.replace(/\D/g, '').slice(0, CELL_COUNT));
   };
 
   const paste = async () => handleChange(await Clipboard.getString());
@@ -143,6 +142,8 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
           variant={canResend ? ButtonVariant.Primary : ButtonVariant.Secondary}
           size={ButtonSize.Lg}
           isFullWidth
+          // No submit button: this shows the code being checked.
+          isLoading={busy && codeSent}
           onPress={canResend ? () => onAction({ type: 'resend' }) : undefined}
           testID={MfaFlowSelectorsIDs.RESEND_BUTTON}
         >
