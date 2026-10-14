@@ -18,6 +18,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontFamily,
   FontWeight,
   IconName as DSIconName,
   Text,
@@ -265,7 +266,10 @@ const PerpsHeroCardView: React.FC = () => {
           >
             {/* P&L Percentage */}
             <Text
-              variant={TextVariant.DisplayLg}
+              variant={TextVariant.AmountDisplayLg}
+              fontFamily={FontFamily.Grotzec}
+              fontWeight={FontWeight.Regular}
+              twClassName="text-[48px] leading-[52.8px]"
               style={data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative}
               testID={getPerpsHeroCardViewSelector.pnlText(index)}
             >

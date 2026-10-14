@@ -37,6 +37,8 @@ import {
   ButtonSize,
   ButtonVariant,
   ButtonBase,
+  FontFamily,
+  FontWeight,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -76,7 +78,7 @@ const CardWelcome = () => {
   const postAuthRedirect = useCardPostAuthRedirect();
   const theme = useTheme();
   const dimensions = useWindowDimensions();
-  const styles = createStyles(theme, dimensions);
+  const styles = createStyles(dimensions);
   const animationState = useCardEducationAnimationState();
   const [hasCardsAnimationError, setHasCardsAnimationError] = useState(false);
   const [hasCardsEntranceStarted, setHasCardsEntranceStarted] = useState(false);
@@ -282,8 +284,9 @@ const CardWelcome = () => {
           ]}
         >
           <Text
-            style={styles.title}
-            variant={TextVariant.HeadingLg}
+            fontFamily={FontFamily.Grotzec}
+            fontWeight={FontWeight.Regular}
+            twClassName="text-center pt-3 text-accent02-light text-[60px] leading-[54px] tracking-[-1.2px]"
             testID={CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT}
           >
             {strings('card.card_onboarding.title')}
@@ -297,7 +300,7 @@ const CardWelcome = () => {
         >
           <Text
             variant={TextVariant.BodyMd}
-            style={styles.titleDescription}
+            twClassName="text-center pt-2 px-2 text-accent02-light"
             testID={CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT}
           >
             {strings('card.card_onboarding.description')}

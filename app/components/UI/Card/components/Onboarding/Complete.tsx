@@ -129,9 +129,9 @@ const Complete = () => {
         />
       </Box>
       <Text
-        fontFamily={FontFamily.Accent}
+        fontFamily={FontFamily.Grotzec}
         fontWeight={FontWeight.Regular}
-        twClassName="text-[36px] text-center leading-1"
+        twClassName="text-center pt-3 text-[60px] leading-[54px] tracking-[-1.2px]"
       >
         {strings('card.card_onboarding.complete.title')}
       </Text>

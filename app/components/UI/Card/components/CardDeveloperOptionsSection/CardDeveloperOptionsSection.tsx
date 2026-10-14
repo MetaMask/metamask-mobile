@@ -18,6 +18,8 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import NavigationService from '../../../../../core/NavigationService';
+import Routes from '../../../../../constants/navigation/Routes';
 import { selectIsMoneyAccountDelegatedForCard } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 
@@ -32,6 +34,27 @@ const CardDeveloperOptionsSection = () => {
   const handleResetOnboardingState = useCallback(() => {
     dispatch(resetOnboardingState());
   }, [dispatch]);
+
+  const handleOpenOnboardingComplete = useCallback(() => {
+    NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: {
+        screen: Routes.CARD.ONBOARDING.ROOT,
+        params: {
+          screen: Routes.CARD.ONBOARDING.COMPLETE,
+        },
+      },
+    });
+  }, []);
+
+  const handleOpenOrderCompleted = useCallback(() => {
+    NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: {
+        screen: Routes.CARD.ORDER_COMPLETED,
+      },
+    });
+  }, []);
 
   const handleUnlinkMoneyAccount = useCallback(async () => {
     if (!primaryMoneyAccount?.address) {
@@ -64,6 +87,23 @@ const CardDeveloperOptionsSection = () => {
       >
         {strings('app_settings.developer_options.card.title')}
       </Text>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        onPress={handleOpenOnboardingComplete}
+        isFullWidth
+        style={tw.style('mt-4')}
+      >
+        {'Open onboarding complete'}
+      </Button>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        onPress={handleOpenOrderCompleted}
+        isFullWidth
+      >
+        {'Open order completed'}
+      </Button>
       <Text
         color={TextColor.TextAlternative}
         variant={TextVariant.BodyMd}
