@@ -175,6 +175,22 @@ describe('useTraderPositionData — facade', () => {
     expect(result.current.pnlPercent).toBe(20);
   });
 
+  it('returns null closed PnL percent when realizedPnl is null', () => {
+    const closedSpot = {
+      ...baseSpotPosition,
+      positionAmount: 0,
+      soldUsd: 1200,
+      realizedPnl: null,
+      pnlValueUsd: null,
+      pnlPercent: null,
+    } as unknown as Position;
+
+    const { result } = renderHook(() => useTraderPositionData(closedSpot));
+
+    expect(result.current.isClosed).toBe(true);
+    expect(result.current.pnlPercent).toBeNull();
+  });
+
   it('prefers pnlValueUsd for perp positions', () => {
     const { result } = renderHook(() => useTraderPositionData(perpPosition));
     expect(result.current.pnlValue).toBe(300);

@@ -1,11 +1,10 @@
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
+import { ToastSeverity, toast } from '@metamask/design-system-react-native';
 import { PREDICT_ERROR_CODES } from '../constants/errors';
 import { Side } from '../types';
 import {
   ensureError,
   isNetworkError,
-  createDepositErrorToast,
+  showDepositErrorToast,
   parseErrorMessage,
   checkPlaceOrderError,
 } from './predictErrorHandler';
@@ -14,6 +13,13 @@ import Logger from '../../../../util/Logger';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
+}));
+
+jest.mock('@metamask/design-system-react-native', () => ({
+  toast: jest.fn(),
+  ToastSeverity: {
+    Danger: 'danger',
+  },
 }));
 
 jest.mock('../constants/errors', () => ({
@@ -38,13 +44,6 @@ jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
 }));
-
-const mockTheme = {
-  colors: {
-    error: { default: 'error-color' },
-    accent04: { normal: 'accent-color' },
-  },
-};
 
 describe('predictErrorHandler', () => {
   describe('ensureError', () => {
@@ -133,39 +132,48 @@ describe('predictErrorHandler', () => {
     });
   });
 
-  describe('createDepositErrorToast', () => {
-    it('returns base toast config without retry', () => {
-      const toast = createDepositErrorToast(mockTheme);
+  describe('showDepositErrorToast', () => {
+    beforeEach(() => {
+      jest.mocked(toast).mockClear();
+    });
 
-      expect(toast).toEqual({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          { label: 'predict.deposit.error_title', isBold: true },
-          { label: '\n', isBold: false },
-          { label: 'predict.deposit.error_description', isBold: false },
-        ],
-        iconName: IconName.Error,
-        iconColor: 'error-color',
-        backgroundColor: 'accent-color',
+    it('shows a danger toast without a retry action', () => {
+      showDepositErrorToast();
+
+      expect(toast).toHaveBeenCalledWith({
+        title: 'predict.deposit.error_title',
+        description: 'predict.deposit.error_description',
+        severity: ToastSeverity.Danger,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
     });
 
-    it('includes linkButtonOptions when onRetry is provided', () => {
+    it('includes a try again action when onRetry is provided', () => {
       const onRetry = jest.fn();
 
-      const toast = createDepositErrorToast(mockTheme, onRetry);
+      showDepositErrorToast(onRetry);
 
-      expect(toast.linkButtonOptions).toEqual({
-        label: 'predict.deposit.try_again',
-        onPress: onRetry,
-      });
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'predict.deposit.error_title',
+          description: 'predict.deposit.error_description',
+          severity: ToastSeverity.Danger,
+          actionButtonLabel: 'predict.deposit.try_again',
+          actionButtonOnPress: onRetry,
+        }),
+      );
     });
 
-    it('does not include linkButtonOptions when onRetry is undefined', () => {
-      const toast = createDepositErrorToast(mockTheme, undefined);
+    it('omits the try again action when onRetry is undefined', () => {
+      showDepositErrorToast(undefined);
 
-      expect(toast).not.toHaveProperty('linkButtonOptions');
+      expect(toast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          actionButtonLabel: expect.anything(),
+          actionButtonOnPress: expect.anything(),
+        }),
+      );
     });
   });
 

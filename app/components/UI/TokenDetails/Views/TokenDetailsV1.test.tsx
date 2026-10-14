@@ -22,11 +22,10 @@ import {
 import type { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import { SecurityPillSelectors } from '../components/V1/SecurityPill/SecurityPill.testIds';
 import { SecurityTabSelectors } from '../components/V1/SecurityTab/SecurityTab.testIds';
-import { SecurityStatKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import { TokenExplainerSheetSelectors } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.testIds';
 import { SecuritySocialSectionSelectors } from '../components/V1/SecuritySocialSection/SecuritySocialSection.testIds';
 import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
-import { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
+import { TokenStatKey } from '../constants/tokenStats';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSocialFeed } from '../../SocialFeed';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
@@ -109,14 +108,18 @@ jest.mock('../hooks/useTokenMarketData', () => ({
   useTokenMarketData: () => ({ marketData: null, isLoading: false }),
 }));
 
-// Echoes the prefetched security data so tests can supply security data at
-// navigation time, matching the real hook's pass-through of valid prefetched
-// data (no network fetch needed in tests).
-jest.mock('../hooks/useTokenSecurityData', () => ({
-  useTokenSecurityData: ({ prefetchedData }: { prefetchedData?: unknown }) => ({
-    securityData: prefetchedData ?? null,
-    isLoading: false,
-  }),
+// Stands in for the shared query entry so these tests need no QueryClient.
+// The entry itself, including the key normalization that lets the token list
+// and this page share it, is covered in `useTokenSecurityQuery.test.ts`.
+const mockSecurityQueryResult = {
+  data: null as unknown,
+  isPending: false,
+  error: null,
+  dataUpdatedAt: 0,
+};
+
+jest.mock('../../Tokens/hooks/useTokenSecurityQuery', () => ({
+  useTokenSecurityQuery: () => mockSecurityQueryResult,
 }));
 
 const mockUseIsPriceAlertsChainSupported = jest.fn(() => true);
@@ -263,6 +266,10 @@ jest.mock('../hooks/useTokenBalance', () => ({
   useTokenBalance: (...args: unknown[]) => mockUseTokenBalance(...args),
 }));
 
+jest.mock('../TraderPositionPnl/useOpenPositionHeader', () => ({
+  useOpenPositionHeader: () => ({ isLoading: false }),
+}));
+
 const mockStickyFooterProps: Record<string, unknown>[] = [];
 
 jest.mock('../components/TokenDetailsStickyFooter', () => {
@@ -330,6 +337,9 @@ describe('TokenDetailsV1', () => {
     mockUseTokenBalance.mockReturnValue({ balance: undefined });
     mockOverviewProps.length = 0;
     mockPriceHeaderProps.length = 0;
+    mockSecurityQueryResult.data = null;
+    mockSecurityQueryResult.isPending = false;
+    mockSecurityQueryResult.dataUpdatedAt = 0;
     mockStickyFooterProps.length = 0;
   });
 
@@ -434,9 +444,11 @@ describe('TokenDetailsV1', () => {
   });
 
   it('passes token security data to the sticky footer', () => {
+    mockSecurityQueryResult.data = securityDataWithLinks;
+
     render(
       <TokenDetailsV1
-        token={{ ...baseToken, securityData: securityDataWithLinks }}
+        token={baseToken}
         variant={TokenDetailsVariant.Memecoin}
       />,
     );
@@ -588,16 +600,18 @@ describe('TokenDetailsV1', () => {
     expect(
       priceHero.getByTestId(SecuritySocialSectionSelectors.SECTION),
     ).toBeOnTheScreen();
-    // Asserted by test ID, not label, so previewing a different verdict via
-    // MOCK_SECURITY_VERDICT does not fail this test. SecurityPill's own tests
-    // cover the label for each verdict.
+    // Asserted by test ID, not label, so a different verdict from the API does
+    // not fail this test. SecurityPill's own tests cover the label for each
+    // verdict.
     expect(getByTestId(SecurityPillSelectors.VERDICT)).toBeOnTheScreen();
   });
 
   it('renders the token social links from its security data', () => {
+    mockSecurityQueryResult.data = securityDataWithLinks;
+
     const { getByTestId } = render(
       <TokenDetailsV1
-        token={{ ...baseToken, securityData: securityDataWithLinks }}
+        token={baseToken}
         variant={TokenDetailsVariant.Memecoin}
       />,
     );
@@ -661,7 +675,7 @@ describe('TokenDetailsV1', () => {
       expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
 
       fireEvent.press(
-        getByTestId(SecurityTabSelectors.rowLabel(SecurityStatKey.TopTen)),
+        getByTestId(SecurityTabSelectors.rowLabel(TokenStatKey.Top10)),
       );
 
       expect(getByTestId(TokenExplainerSheetSelectors.TITLE)).toHaveTextContent(
@@ -673,7 +687,7 @@ describe('TokenDetailsV1', () => {
       const { getByTestId } = openSecurityTab();
 
       fireEvent.press(
-        getByTestId(SecurityTabSelectors.rowLabel(SecurityStatKey.TopTen)),
+        getByTestId(SecurityTabSelectors.rowLabel(TokenStatKey.Top10)),
       );
 
       expect(
@@ -684,15 +698,53 @@ describe('TokenDetailsV1', () => {
       expect(getByTestId(TokenExplainerSheetSelectors.SHEET)).toBeOnTheScreen();
     });
 
+    // Shares the one `explainerCopy` slot with the row definitions, so the
+    // provenance disclaimer cannot be open alongside one of them.
+    it('opens the Blockaid disclaimer from the provenance line', () => {
+      const { getByTestId } = openSecurityTab();
+
+      fireEvent.press(getByTestId(SecurityTabSelectors.SCAN_META));
+
+      expect(getByTestId(TokenExplainerSheetSelectors.TITLE)).toHaveTextContent(
+        'Security verification',
+      );
+    });
+
     it('closes the sheet again', () => {
       const { getByTestId, queryByTestId } = openSecurityTab();
 
       fireEvent.press(
-        getByTestId(SecurityTabSelectors.rowLabel(SecurityStatKey.Created)),
+        getByTestId(SecurityTabSelectors.rowLabel(TokenStatKey.Created)),
       );
       fireEvent.press(getByTestId(TokenExplainerSheetSelectors.GOT_IT_BUTTON));
 
       expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
+    });
+
+    // The Contract heading pushes a screen rather than opening a sheet: seven
+    // rows each carrying a sentence runs past the height a sheet can offer.
+    //
+    // Needs a payload with something detected in it, because the heading is
+    // only tappable when the Contract security screen has findings to list.
+    it('pushes the contract security screen from the Contract heading', () => {
+      mockSecurityQueryResult.data = {
+        resultType: 'Warning',
+        features: [
+          {
+            featureId: 'SNIPE_AT_MINT',
+            type: 'Warning',
+            description: 'Sniped at mint',
+          },
+        ],
+      } as unknown as TokenDetailsRouteParams['securityData'];
+
+      const { getByTestId } = openSecurityTab();
+
+      fireEvent.press(getByTestId(SecurityTabSelectors.CONTRACT_DETAILS_LINK));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CONTRACT_SECURITY, {
+        token: baseToken,
+      });
     });
   });
 

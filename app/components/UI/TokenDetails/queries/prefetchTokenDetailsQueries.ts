@@ -17,11 +17,15 @@ import { prefetchOhlcvChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { prefetchHistoricalPrices } from '../../../hooks/useTokenHistoricalPrices';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { prefetchSpotPrice } from '../hooks/useTokenPrice';
-import type { TokenI } from '../../Tokens/types';
+import {
+  resolveTokenCaipAssetId,
+  type TokenCaipAssetIdInput,
+} from '../hooks/useTokenCaipAssetId';
+import { prefetchTokenSecurity } from '../../Tokens/queries/prefetchTokenSecurity';
 
 export const prefetchTokenDetailsQueries = (
   queryClient: QueryClient,
-  token: Pick<TokenI, 'address' | 'chainId'>,
+  token: TokenCaipAssetIdInput,
   assetId: string | null,
   currentCurrency: string,
   marketDataMissing: boolean,
@@ -36,6 +40,9 @@ export const prefetchTokenDetailsQueries = (
     marketDataMissing,
     hasNativeConversionRate,
   );
+  // Resolved through the same helper the page uses rather than reusing
+  // `assetId` above, which is the chart's asset id and not always the same.
+  prefetchTokenSecurity(queryClient, resolveTokenCaipAssetId(token));
 };
 
 export const usePrefetchTokenDetails = (

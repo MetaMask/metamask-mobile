@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   BASELINE_PREVIOUS_RUNS,
   MIN_BASELINE_RUNS,
+  buildPerformanceChannelSlack,
   buildScheduledException,
   buildScheduledExceptionMarkdown,
   buildScheduledExceptionSlack,
@@ -119,7 +120,7 @@ test('a scenario at 1.5 times the recent median becomes a finding', () => {
   assert.doesNotMatch(slack, /subteam|<!/);
 });
 
-test('two scenarios crossing together become one run-level anomaly', () => {
+test('two scenarios crossing together are each named in the digest', () => {
   const current = report('4', [
     scenario('Perps add funds', 200),
     scenario('Money Home after importing SRP with funded balance', 350),
@@ -135,9 +136,149 @@ test('two scenarios crossing together become one run-level anomaly', () => {
   const slack = buildScheduledExceptionSlack(exception);
 
   assert.equal(exception.findings.length, 2);
-  assert.match(slack, /one run-level anomaly, not 2 regressions/);
+  assert.match(slack, /2 scenarios\* each exceeded 1\.5×/);
+  assert.doesNotMatch(slack, /tracked on its own bug/);
+  assert.doesNotMatch(buildScheduledExceptionMarkdown(exception), /tracked on its own bug/);
   assert.match(slack, /owner mm-perps-engineering-team/);
   assert.match(slack, /owner mm-earn-team/);
+
+  for (const [index, number] of [600, 601].entries()) {
+    exception.findings[index].issue = {
+      number,
+      url: `https://github.com/MetaMask/metamask-mobile/issues/${number}`,
+      created: true,
+    };
+  }
+  assert.match(buildScheduledExceptionSlack(exception), /tracked on its own bug/);
+  assert.match(buildScheduledExceptionMarkdown(exception), /tracked on its own bug/);
+
+  exception.findings[1].issue = { error: 'HTTP 403' };
+  assert.doesNotMatch(buildScheduledExceptionSlack(exception), /tracked on its own bug/);
+  assert.doesNotMatch(buildScheduledExceptionMarkdown(exception), /tracked on its own bug/);
+});
+
+test('a finding links the GitHub issue that tracks it', () => {
+  const current = report('4', [scenario('Perps add funds', 165)]);
+  const baseline = [
+    report('1', [scenario('Perps add funds', 100)]),
+    report('2', [scenario('Perps add funds', 120)]),
+  ];
+  const exception = buildScheduledException(current, baseline);
+
+  const withoutSync = buildScheduledExceptionSlack(exception);
+  assert.doesNotMatch(withoutSync, /GitHub issue|issues\//);
+
+  exception.findings[0].issue = {
+    number: 501,
+    url: 'https://github.com/MetaMask/metamask-mobile/issues/501',
+    created: true,
+  };
+  const opened = buildScheduledExceptionSlack(exception);
+  assert.match(opened, /Possible regression/);
+  assert.match(opened, /owner mm-perps-engineering-team/);
+  assert.match(opened, /#501> opened/);
+  assert.doesNotMatch(opened, /subteam|bug opened for review/);
+  const performance = buildPerformanceChannelSlack(exception);
+  assert.match(performance, /\*App profiling: bug opened for review\*/);
+  assert.match(performance, /A bug is open for the owning team/);
+  assert.match(
+    performance,
+    /Owner: <!subteam\^S094DMAQNCV\|mm-perps-engineering-team>/,
+  );
+  assert.match(
+    performance,
+    /Bug: <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/501\|#501>/,
+  );
+  assert.match(
+    buildScheduledExceptionMarkdown(exception),
+    /owner mm-perps-engineering-team — \[#501\]\(https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/501\) opened/,
+  );
+
+  exception.findings[0].issue.created = false;
+  const referenced = buildScheduledExceptionSlack(exception);
+  assert.match(referenced, /already open, referenced/);
+  assert.equal(buildPerformanceChannelSlack(exception), null);
+
+  exception.findings[0].issue = { error: 'HTTP 403' };
+  assert.match(
+    buildScheduledExceptionSlack(exception),
+    /GitHub issue not created \(HTTP 403\)/,
+  );
+  assert.equal(buildPerformanceChannelSlack(exception), null);
+});
+
+test('two newly opened bugs are each linked and mention their team', () => {
+  const current = report('4', [
+    scenario('Perps add funds', 200),
+    scenario('Money Home after importing SRP with funded balance', 350),
+  ]);
+  const baseline = [1, 2].map((runId) =>
+    report(String(runId), [
+      scenario('Perps add funds', 100),
+      scenario('Money Home after importing SRP with funded balance', 200),
+    ]),
+  );
+  const exception = buildScheduledException(current, baseline);
+  exception.findings[0].issue = {
+    number: 600,
+    url: 'https://github.com/MetaMask/metamask-mobile/issues/600',
+    created: true,
+  };
+  exception.findings[1].issue = {
+    number: 601,
+    url: 'https://github.com/MetaMask/metamask-mobile/issues/601',
+    created: true,
+  };
+
+  const slack = buildScheduledExceptionSlack(exception);
+  const performance = buildPerformanceChannelSlack(exception);
+
+  assert.match(slack, /#600> opened/);
+  assert.match(slack, /#601> opened/);
+  assert.doesNotMatch(slack, /subteam/);
+  assert.match(performance, /\*App profiling: bugs opened for review\*/);
+  assert.match(performance, /A bug is open for each owning team/);
+  assert.match(
+    performance,
+    /<!subteam\^S094DMAQNCV\|mm-perps-engineering-team> · Bug: <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/600\|#600>/,
+  );
+  assert.match(
+    performance,
+    /<!subteam\^S052NJFKX6Y\|mm-earn-team> · Bug: <https:\/\/github\.com\/MetaMask\/metamask-mobile\/issues\/601\|#601>/,
+  );
+  assert.match(
+    buildScheduledExceptionMarkdown(exception),
+    /\[#600\]\(.*\/600\) opened/,
+  );
+  assert.match(
+    buildScheduledExceptionMarkdown(exception),
+    /\[#601\]\(.*\/601\) opened/,
+  );
+});
+
+test('a team without a Slack group is named without a mention', () => {
+  const current = report('4', [
+    scenario('Rewards tab time-to-content: onboarding or dashboard', 300),
+  ]);
+  const baseline = [1, 2].map((runId) =>
+    report(String(runId), [
+      scenario('Rewards tab time-to-content: onboarding or dashboard', 100),
+    ]),
+  );
+  const exception = buildScheduledException(current, baseline);
+  exception.findings[0].issue = {
+    number: 700,
+    url: 'https://github.com/MetaMask/metamask-mobile/issues/700',
+    created: true,
+  };
+
+  const slack = buildScheduledExceptionSlack(exception);
+  const performance = buildPerformanceChannelSlack(exception);
+
+  assert.match(slack, /owner performance-team/);
+  assert.doesNotMatch(slack, /subteam|<!/);
+  assert.match(performance, /Owner: performance-team/);
+  assert.doesNotMatch(performance, /subteam/);
 });
 
 test('fewer than two observations only extends the baseline', () => {
