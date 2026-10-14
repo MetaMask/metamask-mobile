@@ -18,6 +18,7 @@ import createStyles from './PerpsFlipPositionConfirmSheet.styles';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import {
+  useMinimumOrderAmount,
   usePerpsOrderFees,
   usePerpsRewards,
   usePerpsMeasurement,
@@ -25,11 +26,14 @@ import {
 import { usePerpsFlipPosition } from '../../hooks/usePerpsFlipPosition';
 import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
 import {
+  BASIS_POINTS_DIVISOR,
   getPerpsDisplaySymbol,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import { PERPS_SLIPPAGE_DEFAULT_BPS } from '../../constants/slippageConfig';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import PerpsFeesDisplay from '../PerpsFeesDisplay';
+import PerpsValidationErrors from '../PerpsValidationErrors';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
@@ -105,6 +109,18 @@ const PerpsFlipPositionConfirmSheet: React.FC<
 
   const hasValidAmount = parseFloat(usdAmount) > 0;
 
+  // The flip is a market order filled up to the default slippage away from
+  // mid, so the exchange can value it below its mid-price notional.
+  const { minimumOrderAmount } = useMinimumOrderAmount({
+    asset: position.symbol,
+  });
+  const isBelowMinimum =
+    hasValidAmount &&
+    parseFloat(usdAmount) <
+      minimumOrderAmount *
+        (1 + PERPS_SLIPPAGE_DEFAULT_BPS / BASIS_POINTS_DIVISOR);
+  const canFlip = hasValidAmount && !isBelowMinimum;
+
   // Get rewards state
   const rewardsState = usePerpsRewards({
     feeResults,
@@ -143,7 +159,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
   const vipTier = useVipTier();
 
   const handleReverse = useCallback(async () => {
-    if (isFlipping || !hasValidAmount) {
+    if (isFlipping || !canFlip) {
       return;
     }
     if (enableHaptics) {
@@ -168,7 +184,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
     position,
     enableHaptics,
     handleFlipPosition,
-    hasValidAmount,
+    canFlip,
     isFlipping,
     playImpact,
     feeResults.totalFee,
@@ -198,12 +214,12 @@ const PerpsFlipPositionConfirmSheet: React.FC<
         onPress: handleReverse,
         variant: ButtonVariants.Primary,
         size: ButtonSize.Lg,
-        disabled: isFlipping || !hasValidAmount,
+        isDisabled: isFlipping || !canFlip,
         danger: true,
         testID: PerpsFlipPositionConfirmSheetSelectorsIDs.FLIP_BUTTON,
       },
     ],
-    [handleCloseInternal, handleReverse, isFlipping, hasValidAmount],
+    [handleCloseInternal, handleReverse, isFlipping, canFlip],
   );
 
   return (
@@ -343,6 +359,18 @@ const PerpsFlipPositionConfirmSheet: React.FC<
                   />
                 </View>
               )}
+
+            {isBelowMinimum && (
+              <PerpsValidationErrors
+                errors={[
+                  strings('perps.flip_position.below_minimum', {
+                    amount: minimumOrderAmount.toString(),
+                  }),
+                ]}
+                twClassName="pt-2"
+                testID={PerpsFlipPositionConfirmSheetSelectorsIDs.MINIMUM_ERROR}
+              />
+            )}
           </>
         )}
       </View>

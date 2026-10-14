@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
+import { LIVE_GAME_CACHE_TTL_MS } from '../constants/sports';
 import { predictQueries } from '../queries';
 import type { GameUpdate, PredictMarket, PredictMarketGame } from '../types';
 import { parseScore } from '../utils/gameParser';
@@ -43,7 +44,12 @@ const mergeCachedGame = (
     return incomingGame;
   }
 
-  if (!liveGameUpdateTimes.has(incomingGame.id)) {
+  // Only trust the cached live state while the last WebSocket update is
+  // fresh; once it ages past the TTL (e.g. the sports socket died), the
+  // incoming REST snapshot wins so the scoreboard recovers on the next
+  // market refetch instead of freezing forever.
+  const lastLiveUpdate = liveGameUpdateTimes.get(incomingGame.id);
+  if (!lastLiveUpdate || Date.now() - lastLiveUpdate > LIVE_GAME_CACHE_TTL_MS) {
     return incomingGame;
   }
 

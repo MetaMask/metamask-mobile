@@ -55,6 +55,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../hooks', () => ({
+  useMinimumOrderAmount: () => ({
+    minimumOrderAmount: 10,
+    isLoading: false,
+    error: null,
+  }),
   usePerpsOrderFees: jest.fn(() => ({
     totalFee: 0.5,
     undiscountedTotalFee: 0.5,

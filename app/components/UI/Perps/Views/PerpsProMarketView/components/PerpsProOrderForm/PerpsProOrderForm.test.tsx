@@ -1311,11 +1311,11 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.CHASE_REFERENCE_PRICE)).toBeOnTheScreen();
     });
 
-    it('renders the order type row at the Figma 54px height', () => {
+    it('renders the order type row at 48px', () => {
       renderForm();
 
       expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveStyle({
-        height: 54,
+        height: 48,
       });
     });
 
