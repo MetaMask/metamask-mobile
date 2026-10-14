@@ -287,7 +287,7 @@ describe('PerpsExploreSection', () => {
   it('forwards transactionActiveAbTests and opens market details', () => {
     const transactionActiveAbTests = [
       createActiveABTestAssignment(
-        'tatTAT3793AbtestPerpsHomeExplore',
+        'perpsTAT3793AbtestPerpsHomeExplore',
         'treatment',
       ),
     ];

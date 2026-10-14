@@ -35,7 +35,7 @@ export const mockedPerpsFeatureFlagsEnabledState: Record<
  * and treatment to 0% until the experiment moves to 50/50.
  */
 export const mockedPerpsHomeExploreAbTestFlag = {
-  tatTAT3793AbtestPerpsHomeExplore: {
+  perpsTAT3793AbtestPerpsHomeExplore: {
     versions: {
       '8.17.0': [
         {

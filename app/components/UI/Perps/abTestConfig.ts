@@ -115,7 +115,7 @@ export const SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMa
  * Consume via `usePerpsHomeExploreAbTest()` — do not read the raw flag.
  */
 export const PERPS_HOME_EXPLORE_AB_TEST_KEY =
-  'tatTAT3793AbtestPerpsHomeExplore';
+  'perpsTAT3793AbtestPerpsHomeExplore';
 
 export enum PerpsHomeExploreVariant {
   Control = 'control',

@@ -132,7 +132,7 @@ describe('Perps abTestConfig', () => {
   describe('PERPS_HOME_EXPLORE_AB_TEST_KEY', () => {
     it('follows the {team}{TICKET}Abtest{TestName} naming convention', () => {
       expect(PERPS_HOME_EXPLORE_AB_TEST_KEY).toBe(
-        'tatTAT3793AbtestPerpsHomeExplore',
+        'perpsTAT3793AbtestPerpsHomeExplore',
       );
       expect(PERPS_HOME_EXPLORE_AB_TEST_KEY).toMatch(
         /^[a-z][A-Za-z0-9]*[A-Z]{2,}[0-9]+Abtest[A-Z][A-Za-z0-9]*$/,

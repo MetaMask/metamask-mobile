@@ -4863,8 +4863,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  tatTAT3793AbtestPerpsHomeExplore: {
-    name: 'tatTAT3793AbtestPerpsHomeExplore',
+  perpsTAT3793AbtestPerpsHomeExplore: {
+    name: 'perpsTAT3793AbtestPerpsHomeExplore',
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: {
