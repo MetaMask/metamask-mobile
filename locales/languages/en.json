@@ -2686,6 +2686,7 @@
         "twapDurationRequired": "A duration is required for TWAP orders",
         "twapDurationInvalid": "TWAP duration must be between 5 and 1440 minutes",
         "twapNotionalTooSmall": "TWAP order value is below the exchange minimum",
+        "scalePreviewStale": "The scale order preview is out of date. Review the prices and try again.",
         "scaleRangeRequired": "Scale orders need a minimum and maximum price",
         "scaleRangeInvalid": "Scale order maximum price must be above the minimum",
         "scaleCountInvalid": "Scale order count is invalid",
@@ -5434,6 +5435,7 @@
         "raw_impacts_desc": "Direct expo-haptics impact styles for comparison with the mapped catalog moments above.",
         "impacts": {
           "quick_amount_selection": "Impact — Quick amount selection",
+          "keypad_key": "Impact — Keypad key",
           "slider_tick": "Impact — Slider tick",
           "edge_gesture_engage": "Impact — Edge gesture engage",
           "page_navigation": "Impact — Page navigation",
