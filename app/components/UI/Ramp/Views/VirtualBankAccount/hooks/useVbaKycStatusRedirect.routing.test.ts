@@ -1,6 +1,7 @@
 import { AppState } from 'react-native';
 import { act, renderHook } from '@testing-library/react-native';
 import type { VbaOnboardingSnapshot } from '@metamask/ramps-controller';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { flushPromises } from '../../../../../../util/test/utils';
 import { VbaOnboardingRoutes } from '../routes';
 import { useVbaKycStatusRedirect } from './useVbaKycStatusRedirect';
@@ -18,12 +19,23 @@ const mockOnboardingStackState = {
     VbaOnboardingRoutes.VENDOR_TERMS,
     VbaOnboardingRoutes.KYC_PENDING,
     VbaOnboardingRoutes.KYC_REJECTED,
-    VbaOnboardingRoutes.DETAILS,
+    VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+    VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR,
   ],
   routes: [
     {
       key: `${VbaOnboardingRoutes.KYC_PENDING}-1`,
       name: VbaOnboardingRoutes.KYC_PENDING,
+    },
+  ],
+};
+const mockRampStackState = {
+  index: 0,
+  routeNames: [Routes.RAMP.VBA_ONBOARDING, Routes.RAMP.VBA_DETAILS],
+  routes: [
+    {
+      key: 'vba-onboarding',
+      name: Routes.RAMP.VBA_ONBOARDING,
     },
   ],
 };
@@ -38,7 +50,11 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: jest.fn(),
     dispatch: mockDispatch,
-    getParent: () => undefined,
+    getParent: () => ({
+      dispatch: mockDispatch,
+      getParent: () => undefined,
+      getState: () => mockRampStackState,
+    }),
     getState: () => mockOnboardingStackState,
   }),
 }));
@@ -120,7 +136,9 @@ const expectResetTo = (name: string) =>
   expect(mockDispatch).toHaveBeenCalledWith(
     expect.objectContaining({
       type: 'RESET',
-      payload: expect.objectContaining({ routes: [{ name }] }),
+      payload: expect.objectContaining({
+        routes: [expect.objectContaining({ name })],
+      }),
     }),
   );
 
@@ -148,7 +166,14 @@ describe('useVbaKycStatusRedirect with the onboarding funnel', () => {
     renderHook(() => useVbaKycStatusRedirect());
     await act(flushPromises);
 
-    expectResetTo(VbaOnboardingRoutes.DETAILS);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NAVIGATE',
+        payload: expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+        }),
+      }),
+    );
   });
 
   it('opens the verification failed screen when KYC is rejected', async () => {
@@ -170,5 +195,41 @@ describe('useVbaKycStatusRedirect with the onboarding funnel', () => {
 
     expect(mockHydrate).toHaveBeenCalledTimes(1);
     expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('reopens identity verification when KYC asks the customer to retry', async () => {
+    setSession('retry', 'retry');
+    mockHydrate.mockResolvedValue(decidedSnapshot('retry'));
+
+    renderHook(() => useVbaKycStatusRedirect());
+    await act(flushPromises);
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          routes: [
+            expect.objectContaining({
+              name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+              params: expect.objectContaining({
+                snapshot: expect.objectContaining({ kycStatus: 'retry' }),
+              }),
+            }),
+          ],
+        }),
+      }),
+    );
+  });
+
+  it('opens the account setup error when an approved account cannot be provisioned', async () => {
+    setSession('approved', 'approved');
+    mockHydrate.mockResolvedValue(
+      decidedSnapshot('approved', 'retryable_failure'),
+    );
+
+    renderHook(() => useVbaKycStatusRedirect());
+    await act(flushPromises);
+
+    expectResetTo(VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR);
   });
 });

@@ -272,6 +272,28 @@ describe('useVbaKycStatusRedirect', () => {
     expect(mockRefreshSessionStatus).toHaveBeenCalledTimes(1);
   });
 
+  it('logs a refresh failure and stays on this screen', () => {
+    const error = new Error('refresh failed');
+    mockRefreshSessionStatus.mockImplementation(() => {
+      throw error;
+    });
+    setSessionStatus(pending);
+
+    expect(() => renderRedirectHook()).not.toThrow();
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      error,
+      expect.objectContaining({
+        context: expect.objectContaining({
+          name: 'useVbaKycStatusRedirect',
+          data: { step: 'refreshSessionStatus' },
+        }),
+      }),
+    );
+    expect(mockResolve).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('refreshes the session status when the app returns to the foreground with a pending status', () => {
     setSessionStatus(pending);
     renderRedirectHook();
