@@ -200,6 +200,8 @@ let mockPositionModifyPreviewParams:
 
 let mockIsAtCap = false;
 let mockUseBottomSheet = false;
+let mockSlippageReady = false;
+let mockCanFillWithinSlippage: boolean | null = null;
 let mockEstimatedSlippageBps: number | null = 50;
 let mockMaxSlippageBps = 100;
 let mockMaxSlippageSource = 'default';
@@ -402,6 +404,8 @@ jest.mock('../../../../hooks/usePerpsConnection', () => ({
 jest.mock('../../../../hooks/usePerpsEstimatedSlippage', () => ({
   usePerpsEstimatedSlippage: () => ({
     estimatedSlippageBps: mockEstimatedSlippageBps,
+    isReady: mockSlippageReady,
+    canFillWithinSlippage: mockCanFillWithinSlippage,
   }),
 }));
 
@@ -652,6 +656,8 @@ describe('usePerpsProOrderForm', () => {
     mockIsAtCap = false;
     mockUseBottomSheet = false;
     mockEstimatedSlippageBps = 50;
+    mockSlippageReady = false;
+    mockCanFillWithinSlippage = null;
     mockMaxSlippageBps = 100;
     mockMaxSlippageSource = 'default';
     mockLivePrice = '90000';
@@ -7312,6 +7318,8 @@ describe('usePerpsProOrderForm', () => {
       // so the user-configured cap has no effect; the row is hidden to avoid misrepresentation.
       mockOrderForm.type = 'limit';
       mockEstimatedSlippageBps = null;
+      mockSlippageReady = false;
+      mockCanFillWithinSlippage = null;
       const { result } = renderProForm();
 
       // Assert
@@ -8237,5 +8245,34 @@ describe('usePerpsProOrderForm', () => {
       expect(mockSetDirection).toHaveBeenCalledWith('short');
       expect(mockHandleAddFunds).toHaveBeenCalled();
     });
+  });
+
+  // CV cannot reach onSubmit while the button is disabled, so this unit test covers the programmatic-submit rejection.
+  describe('Pro defensive liquidity guard', () => {
+    it.each([
+      { estimate: null, copyKey: 'perps.slippage.insufficient_depth' },
+      { estimate: 100, copyKey: 'perps.slippage.cannot_fill' },
+    ])(
+      'rejects a programmatic submit with $copyKey',
+      async ({ estimate, copyKey }) => {
+        mockEstimatedSlippageBps = estimate;
+        mockSlippageReady = true;
+        mockCanFillWithinSlippage = false;
+        const { result } = renderProForm();
+
+        await act(async () => {
+          await result.current.onPlaceOrderPress();
+        });
+
+        expect(mockExecuteOrder).not.toHaveBeenCalled();
+        expect(mockShowToast).toHaveBeenCalled();
+        expect(result.current.notices).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ message: strings(copyKey) }),
+          ]),
+        );
+        expect(result.current.isPlaceOrderDisabled).toBe(true);
+      },
+    );
   });
 });
