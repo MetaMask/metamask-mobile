@@ -350,6 +350,52 @@ export const KOL_PERFORMANCE_FIXTURE = {
 export const KOL_PERFORMANCE_PREVIEW_COUNT = 5;
 export const KOL_EARNINGS_HISTORY_PREVIEW_COUNT = 5;
 
+/**
+ * Buckets that make up recorded claims. Detail rows sum to total earnings on
+ * the claims-paused sheet. Engineers replace these with controller data.
+ */
+export const KOL_CLAIM_EARNINGS_BREAKDOWN_ROWS = [
+  {
+    id: 'available-to-claim',
+    labelKey: 'claims_breakdown_available',
+    amount: 0,
+  },
+  { id: 'held', labelKey: 'claims_breakdown_held', amount: 100 },
+  { id: 'blocked', labelKey: 'claims_breakdown_blocked', amount: 12 },
+  { id: 'voided', labelKey: 'claims_breakdown_voided', amount: 6 },
+  { id: 'pending', labelKey: 'claims_breakdown_pending', amount: 4 },
+  { id: 'claimed', labelKey: 'claimed', amount: 10 },
+] as const;
+
+export type KolClaimEarningsBreakdownRow =
+  (typeof KOL_CLAIM_EARNINGS_BREAKDOWN_ROWS)[number];
+
+export interface ClaimEarningsBreakdownRow {
+  id: 'total' | KolClaimEarningsBreakdownRow['id'];
+  labelKey:
+    | 'recorded_earnings_label'
+    | KolClaimEarningsBreakdownRow['labelKey'];
+  amount: number;
+}
+
+/** Total earnings is the sum of the claim buckets, shown above them. */
+export const getClaimEarningsBreakdownRows =
+  (): ClaimEarningsBreakdownRow[] => {
+    const total = KOL_CLAIM_EARNINGS_BREAKDOWN_ROWS.reduce(
+      (sum, row) => sum + row.amount,
+      0,
+    );
+
+    return [
+      {
+        id: 'total',
+        labelKey: 'recorded_earnings_label',
+        amount: total,
+      },
+      ...KOL_CLAIM_EARNINGS_BREAKDOWN_ROWS,
+    ];
+  };
+
 export type KolEarningsHistoryItem =
   (typeof KOL_EARNINGS_FIXTURE.history)[number];
 

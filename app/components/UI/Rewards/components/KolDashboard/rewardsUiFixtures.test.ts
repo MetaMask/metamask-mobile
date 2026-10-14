@@ -1,6 +1,7 @@
 import {
   formatSignedUsd,
   formatUsd,
+  getClaimEarningsBreakdownRows,
   getEarningsHistory,
 } from './rewardsUiFixtures';
 
@@ -23,6 +24,30 @@ describe('rewardsUiFixtures', () => {
 
   it('formats a negative signed dollar amount with a leading minus', () => {
     expect(formatSignedUsd(-32.4)).toBe('-$32.40');
+  });
+
+  it('sums claim buckets to total earnings', () => {
+    const rows = getClaimEarningsBreakdownRows();
+    const total = rows.find((row) => row.id === 'total');
+    const buckets = rows.filter((row) => row.id !== 'total');
+
+    expect(total?.amount).toBe(
+      buckets.reduce((sum, row) => sum + row.amount, 0),
+    );
+  });
+
+  it('lists total earnings ahead of the claim buckets', () => {
+    const rows = getClaimEarningsBreakdownRows();
+
+    expect(rows.map((row) => row.id)).toEqual([
+      'total',
+      'available-to-claim',
+      'held',
+      'blocked',
+      'voided',
+      'pending',
+      'claimed',
+    ]);
   });
 
   it('drops referral history rows when asked', () => {
