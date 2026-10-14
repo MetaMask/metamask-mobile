@@ -10,6 +10,7 @@ import { useImmersveSpendingPrerequisites } from '../../hooks/useImmersveSpendin
 import { useImmersveFunding } from '../../hooks/useImmersveFunding';
 import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
 import type { ImmersveNextAction } from '../../util/immersvePrerequisites';
+import { selectCardImmersveConfig } from '../../../../../selectors/featureFlagController/card';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -27,6 +28,7 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
 
 jest.mock('../../../../../selectors/cardController', () => ({
   selectCardHomeData: 'select-card-home-data',
+  selectCardSelectedCountry: 'select-card-selected-country',
 }));
 
 jest.mock('../../../../../selectors/accountsController', () => ({
@@ -53,6 +55,15 @@ jest.mock('../../../../../selectors/settings', () => ({
 jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
   useAccountGroupName: jest.fn(() => null),
 }));
+
+const NZ_IMMERSVE_CONFIG = {
+  moneyAccountConfig: {
+    countries: ['NZ'],
+    network: 'monad-mainnet',
+    fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+    spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
+  },
+};
 
 const MOCK_ACCOUNT = {
   address: '0xAccount',
@@ -261,6 +272,10 @@ describe('ImmersveFundingApproval', () => {
         return null;
       case 'select-account-to-group-map':
         return {};
+      case 'select-card-selected-country':
+        return null;
+      case selectCardImmersveConfig:
+        return undefined;
       default:
         return undefined;
     }
@@ -297,6 +312,29 @@ describe('ImmersveFundingApproval', () => {
 
     fireEvent.press(getByTestId('immersve-funding-approval-retry-button'));
     expect(mockRefresh).toHaveBeenCalledTimes(2); // mount + retry
+  });
+
+  it('hides the token row and uses Money account copy for NZ', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectCardImmersveConfig) {
+        return NZ_IMMERSVE_CONFIG;
+      }
+      return mockUseSelectorImplementation(selector);
+    });
+    (useParams as jest.Mock).mockReturnValue({ countryKey: 'NZ' });
+    setNextAction({ type: 'funding', write: WRITE });
+    const { getByText, getByTestId, queryByTestId } = render(
+      <ImmersveFundingApproval />,
+    );
+
+    expect(
+      getByText(
+        'card.card_onboarding.immersve_funding_approval.money_account_description',
+      ),
+    ).toBeTruthy();
+    expect(getByTestId('immersve-funding-approval-account-row')).toBeTruthy();
+    expect(queryByTestId('immersve-funding-approval-token-row')).toBeNull();
   });
 
   it('renders the settings card and an enabled confirm button once funding is known', () => {

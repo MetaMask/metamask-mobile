@@ -32,12 +32,20 @@ import { useTheme } from '../../../../../util/theme';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { selectImmersveFundingSourceId } from '../../../../../core/redux/slices/card';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import { selectCardHomeData } from '../../../../../selectors/cardController';
+import {
+  selectCardHomeData,
+  selectCardSelectedCountry,
+} from '../../../../../selectors/cardController';
 import { selectCardImmersveConfig } from '../../../../../selectors/featureFlagController/card';
 import { getImmersveMoneyAccountConfig } from '../../util/immersveMoneyAccount';
 import { MoneyAccountRow } from '../MoneyAccountRow/MoneyAccountRow';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
-import { CardEntryPoint , CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import {
+  CardEntryPoint,
+  CardActions,
+  CardScreens,
+  withCardProvider,
+} from '../../util/metrics';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { getMemoizedInternalAccountByAddress } from '../../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
@@ -117,11 +125,7 @@ const ReadOnlyAccountRow = ({
   </Box>
 );
 
-const ReadOnlyTokenRow = ({
-  moneyAccount = false,
-}: {
-  moneyAccount?: boolean;
-}) => (
+const ReadOnlyTokenRow = () => (
   <Box
     twClassName="flex-row items-center p-4"
     testID="immersve-funding-approval-token-row"
@@ -150,7 +154,7 @@ const ReadOnlyTokenRow = ({
         twClassName="text-text-default font-medium self-center shrink"
         numberOfLines={1}
       >
-        {moneyAccount ? 'mUSD on Monad' : 'USDC on Base'}
+        USDC on Base
       </Text>
     </Box>
   </Box>
@@ -185,8 +189,12 @@ const ImmersveFundingApproval = () => {
   );
   const { trackEvent, createEventBuilder } = useAnalytics();
   const immersveConfig = useSelector(selectCardImmersveConfig);
+  const selectedCountry = useSelector(selectCardSelectedCountry);
   const isMoneyAccountMode = Boolean(
-    getImmersveMoneyAccountConfig(immersveConfig, countryKey),
+    getImmersveMoneyAccountConfig(
+      immersveConfig,
+      countryKey ?? selectedCountry,
+    ),
   );
   const { confirmLinkInBackground, isLinking } = useMoneyAccountCardLinkage();
   const fundingSourceId = useSelector(selectImmersveFundingSourceId);
@@ -440,9 +448,11 @@ const ImmersveFundingApproval = () => {
   const titleKey = isReapprove
     ? 'card.card_onboarding.immersve_funding_approval.reapprove.title'
     : 'card.card_onboarding.immersve_funding_approval.title';
-  const descriptionKey = isReapprove
-    ? 'card.card_onboarding.immersve_funding_approval.reapprove.description'
-    : 'card.card_onboarding.immersve_funding_approval.description';
+  const descriptionKey = isMoneyAccountMode
+    ? 'card.card_onboarding.immersve_funding_approval.money_account_description'
+    : isReapprove
+      ? 'card.card_onboarding.immersve_funding_approval.reapprove.description'
+      : 'card.card_onboarding.immersve_funding_approval.description';
   const confirmButtonKey = isReapprove
     ? 'card.card_onboarding.immersve_funding_approval.reapprove.confirm_button'
     : 'card.card_onboarding.immersve_funding_approval.confirm_button';
@@ -554,13 +564,15 @@ const ImmersveFundingApproval = () => {
           {isMoneyAccountMode ? (
             <MoneyAccountRow testID="immersve-funding-approval-account-row" />
           ) : (
-            <ReadOnlyAccountRow
-              selectedAccount={displayAccount}
-              avatarAccountType={avatarAccountType}
-              accountGroupName={accountGroupName}
-            />
+            <>
+              <ReadOnlyAccountRow
+                selectedAccount={displayAccount}
+                avatarAccountType={avatarAccountType}
+                accountGroupName={accountGroupName}
+              />
+              <ReadOnlyTokenRow />
+            </>
           )}
-          <ReadOnlyTokenRow moneyAccount={isMoneyAccountMode} />
         </Box>
 
         {displayError && (
