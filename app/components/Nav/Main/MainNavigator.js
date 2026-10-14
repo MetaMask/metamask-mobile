@@ -191,6 +191,7 @@ import {
   ManageProfileLinkedAccountView,
   TraderProfileView,
   TraderPositionView,
+  PositionDetailsSheet,
   SocialLeaderboardOnboarding,
   SocialProfileOnboardingView,
   TradingSignalsSetupBottomSheet,
@@ -1394,6 +1395,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.TRADING_SIGNALS_SETUP}
             component={TradingSignalsSetupBottomSheet}
+            options={transparentModalStackOptions}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.POSITION_SHEET}
+            component={PositionDetailsSheet}
             options={transparentModalStackOptions}
           />
         </>
