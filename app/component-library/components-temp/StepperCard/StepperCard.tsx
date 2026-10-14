@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import {
   Box,
-  Button,
   ButtonSize,
   ButtonVariant,
   FontWeight,
@@ -117,16 +116,17 @@ const StepperCard = ({
               {step.secondaryCta.text}
             </ButtonGlass>
           )}
-          <Button
+          <ButtonGlass
+            isGlass={isGlass}
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={step.primaryCta.onPress}
             isDisabled={step.primaryCta.disabled}
-            twClassName="flex-1"
+            containerStyle={tw.style('flex-1')}
             testID={getTestId('cta-button')}
           >
             {step.primaryCta.text}
-          </Button>
+          </ButtonGlass>
         </Box>
       </Box>
     </>
