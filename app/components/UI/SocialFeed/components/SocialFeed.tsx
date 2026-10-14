@@ -12,7 +12,7 @@ import { useSocialFeed } from '../data/useSocialFeed';
 import type { SocialFeedSource } from '../data/socialFeedSource';
 import {
   SocialFeedSurfaceProvider,
-  type SocialFeedLocation,
+  type SocialSurfaceLocation,
 } from '../SocialFeedSurface';
 import type { SocialV1FeedPost } from '../types';
 import SocialFeedEmpty from './SocialFeedEmpty';
@@ -43,7 +43,7 @@ export interface SocialFeedProps {
   /** Which slice to load. The component fetches it; the host does not. */
   source: SocialFeedSource;
   /** Where this feed is shown. Stored for later analytics. */
-  location: SocialFeedLocation;
+  location: SocialSurfaceLocation;
   /** Optional heading above the posts. */
   title?: string;
 }
