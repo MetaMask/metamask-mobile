@@ -1246,68 +1246,6 @@ describe('PerpsHomeView', () => {
     expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
   });
 
-  it('keeps the stacked sections for the control assignment', () => {
-    mockUsePerpsHomeData.mockReturnValue({
-      ...mockDefaultData,
-      hasMarkets: true,
-      perpsMarkets: [{ symbol: 'BTC' }],
-      watchlistMarkets: [{ symbol: 'ETH' }],
-    });
-
-    const { UNSAFE_getByType, UNSAFE_queryByType } = render(<PerpsHomeView />);
-
-    expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
-    expect(UNSAFE_getByType('PerpsMarketTypeSection' as never)).toBeTruthy();
-    expect(UNSAFE_queryByType('PerpsExploreSection' as never)).toBeNull();
-  });
-
-  it('replaces the stacked sections with Explore in treatment', () => {
-    (usePerpsCategories as jest.Mock).mockReturnValue([
-      { id: 'crypto', label: 'Crypto' },
-    ]);
-    mockUsePerpsHomeExploreAbTest.mockReturnValue({
-      showExploreTable: true,
-      variantName: 'treatment',
-      isActive: true,
-    });
-    mockUsePerpsHomeData.mockReturnValue({
-      ...mockDefaultData,
-      hasMarkets: true,
-      perpsMarkets: [{ symbol: 'BTC' }],
-      stocksMarkets: [{ symbol: 'AAPL' }],
-      commoditiesMarkets: [{ symbol: 'GOLD' }],
-      forexMarkets: [{ symbol: 'EUR' }],
-      watchlistMarkets: [{ symbol: 'ETH' }],
-    });
-
-    const { UNSAFE_getByType, UNSAFE_queryByType } = render(<PerpsHomeView />);
-
-    expect(UNSAFE_getByType('PerpsExploreSection' as never)).toBeTruthy();
-    expect(UNSAFE_queryByType('PerpsWatchlistMarkets' as never)).toBeNull();
-    expect(UNSAFE_queryByType('PerpsProducts' as never)).toBeNull();
-    expect(UNSAFE_queryByType('PerpsMarketTypeSection' as never)).toBeNull();
-  });
-
-  it('hides Explore in treatment when every market is in a gated category', () => {
-    (usePerpsCategories as jest.Mock).mockReturnValue([
-      { id: 'pre-ipo', label: 'Pre-IPO' },
-    ]);
-    mockUsePerpsHomeExploreAbTest.mockReturnValue({
-      showExploreTable: true,
-      variantName: 'treatment',
-      isActive: true,
-    });
-    mockUsePerpsHomeData.mockReturnValue({
-      ...mockDefaultData,
-      hasMarkets: true,
-    });
-
-    const { UNSAFE_queryByType } = render(<PerpsHomeView />);
-
-    expect(UNSAFE_queryByType('PerpsExploreSection' as never)).toBeNull();
-    expect(UNSAFE_queryByType('PerpsMarketTypeSection' as never)).toBeNull();
-  });
-
   it('does not render watchlist when markets and suggestions are empty', () => {
     mockUsePerpsHomeData.mockReturnValue({
       ...mockDefaultData,

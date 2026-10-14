@@ -306,6 +306,9 @@ export const PerpsHomeViewSelectorsIDs = {
    * `perps-home-explore-crypto-section-list-empty`
    */
   EXPLORE_CRYPTO_SECTION: 'perps-home-explore-crypto-section',
+  EXPLORE_COMMODITIES_SECTION: 'perps-home-explore-commodities-section',
+  EXPLORE_STOCKS_SECTION: 'perps-home-explore-stocks-section',
+  EXPLORE_FOREX_SECTION: 'perps-home-explore-forex-section',
   TOP_MOVERS_SECTION: 'perps-home-top-movers-section',
   TOP_MOVERS_HEADER: 'perps-home-top-movers-header',
   TOP_MOVERS_GAINERS_PILL: 'perps-home-top-movers-gainers',

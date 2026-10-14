@@ -932,6 +932,7 @@ const PerpsHomeView = () => {
         ),
         content: (
           <PerpsMarketTypeSection
+            testID={PerpsHomeViewSelectorsIDs.EXPLORE_COMMODITIES_SECTION}
             title={strings('perps.home.commodities')}
             markets={commoditiesMarkets}
             marketType="commodity"
@@ -952,6 +953,7 @@ const PerpsHomeView = () => {
         ),
         content: (
           <PerpsMarketTypeSection
+            testID={PerpsHomeViewSelectorsIDs.EXPLORE_STOCKS_SECTION}
             title={strings('perps.home.stocks')}
             markets={stocksMarkets}
             marketType="stock"
@@ -972,6 +974,7 @@ const PerpsHomeView = () => {
         ),
         content: (
           <PerpsMarketTypeSection
+            testID={PerpsHomeViewSelectorsIDs.EXPLORE_FOREX_SECTION}
             title={strings('perps.home.forex')}
             markets={forexMarkets}
             marketType="forex"
