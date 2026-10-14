@@ -5,12 +5,12 @@ import {
   type MainActionButtonProps,
 } from '@metamask/design-system-react-native';
 
-import GlassSurface from '../GlassSurface';
+import BoxGlass from '../BoxGlass';
 
 // Clears the button's own `bg-muted` so only the glass shows.
 const transparentStyle = { backgroundColor: 'transparent' };
 
-export type GlassMainActionButtonProps = MainActionButtonProps & {
+export type MainActionButtonGlassProps = MainActionButtonProps & {
   /** False renders the plain `MainActionButton`. */
   isGlass?: boolean;
   /** Layout for the button or its glass wrapper, e.g. `flex: 1` in a row. */
@@ -21,26 +21,26 @@ export type GlassMainActionButtonProps = MainActionButtonProps & {
  * The design-system `MainActionButton` on a brand refresh glass surface, kept
  * out of the package until the design system takes it.
  */
-const GlassMainActionButton = ({
+const MainActionButtonGlass = ({
   isGlass = true,
   containerStyle,
   style,
   ...props
-}: GlassMainActionButtonProps) => {
+}: MainActionButtonGlassProps) => {
   if (!isGlass) {
     return <MainActionButton {...props} style={style ?? containerStyle} />;
   }
 
   return (
-    <GlassSurface
+    <BoxGlass
       radiusClassName="rounded-2xl"
       isInteractive={!props.isDisabled}
       hasSheen
       containerStyle={containerStyle}
     >
       <MainActionButton {...props} style={transparentStyle} />
-    </GlassSurface>
+    </BoxGlass>
   );
 };
 
-export default GlassMainActionButton;
+export default MainActionButtonGlass;
