@@ -91,7 +91,7 @@ const CampaignLeaderboardStatsHeader: React.FC<
 
         {isLoading ? (
           <Box twClassName="gap-2 mt-2 mb-1">
-            <Skeleton style={tw.style('h-14 w-28 rounded')} />
+            <Skeleton style={tw.style('h-[60px] w-28 rounded')} />
             {showSubtextRow && (
               <Skeleton style={tw.style('h-4 w-full max-w-xs rounded')} />
             )}
@@ -102,6 +102,7 @@ const CampaignLeaderboardStatsHeader: React.FC<
               variant={TextVariant.AmountDisplayLg}
               fontFamily={FontFamily.Hero}
               fontWeight={FontWeight.Regular}
+              twClassName="text-[60px] leading-[60px]"
               testID={testIDs.RANK_VALUE}
             >
               {rankValue}

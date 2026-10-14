@@ -297,6 +297,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                   variant={TextVariant.AmountDisplayLg}
                   fontFamily={FontFamily.Hero}
                   fontWeight={FontWeight.Regular}
+                  twClassName="text-[60px] leading-[60px]"
                   color={TextColor.TextDefault}
                   testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
                   isHidden={privacyMode}

@@ -123,7 +123,7 @@ export const TokenPriceTitleHub = ({
       amount={
         isLoading ? (
           <Box twClassName="pt-2">
-            <Skeleton style={tw.style('h-10 w-[100px] rounded-md')} />
+            <Skeleton style={tw.style('h-[60px] w-[100px] rounded-md')} />
           </Box>
         ) : (
           <Text
@@ -131,6 +131,7 @@ export const TokenPriceTitleHub = ({
             variant={TextVariant.AmountDisplayLg}
             fontFamily={FontFamily.Hero}
             fontWeight={FontWeight.Regular}
+            twClassName="text-[60px] leading-[60px]"
             color={TextColor.TextDefault}
           >
             {formatPriceWithSubscriptNotation(price, currentCurrency)}

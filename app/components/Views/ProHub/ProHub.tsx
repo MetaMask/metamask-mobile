@@ -184,6 +184,7 @@ const ProHub = () => {
                   variant={TextVariant.AmountDisplayLg}
                   fontFamily={FontFamily.Hero}
                   fontWeight={FontWeight.Regular}
+                  twClassName="text-[60px] leading-[60px]"
                   color={TextColor.TextDefault}
                 >
                   {MOCK_PRO_HUB_STATS.lifetimeEarnings}

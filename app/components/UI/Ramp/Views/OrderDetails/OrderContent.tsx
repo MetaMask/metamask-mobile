@@ -362,6 +362,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
           variant={TextVariant.AmountDisplayLg}
           fontFamily={FontFamily.Hero}
           fontWeight={FontWeight.Regular}
+          twClassName="text-[60px] leading-[60px]"
           twClassName="mt-6 text-center"
         >
           {order.cryptoAmount != null && Number(order.cryptoAmount) > 0

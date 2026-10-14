@@ -269,6 +269,7 @@ const PerpsHeroCardView: React.FC = () => {
               variant={TextVariant.AmountDisplayLg}
               fontFamily={FontFamily.Hero}
               fontWeight={FontWeight.Regular}
+              twClassName="text-[60px] leading-[60px]"
               style={data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative}
               testID={getPerpsHeroCardViewSelector.pnlText(index)}
             >

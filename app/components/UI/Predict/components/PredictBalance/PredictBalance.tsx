@@ -270,6 +270,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
               variant={TextVariant.AmountDisplayLg}
               fontFamily={FontFamily.Hero}
               fontWeight={FontWeight.Regular}
+              twClassName="text-[60px] leading-[60px]"
               isHidden={privacyMode}
               length={SensitiveTextLength.Medium}
             >

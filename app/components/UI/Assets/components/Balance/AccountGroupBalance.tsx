@@ -183,6 +183,7 @@ const AccountGroupBalance = ({
           <SensitiveText
             fontFamily={FontFamily.Hero}
             fontWeight={FontWeight.Regular}
+            twClassName="text-[60px] leading-[60px]"
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}

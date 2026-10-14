@@ -159,6 +159,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           variant={TextVariantDs.AmountDisplayLg}
           fontFamily={FontFamily.Hero}
           fontWeight={FontWeight.Regular}
+          twClassName="text-[60px] leading-[60px]"
           style={styles.mainAmount}
         >
           {order.cryptoAmount} {order.cryptocurrency}

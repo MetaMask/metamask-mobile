@@ -7,6 +7,7 @@ import {
   Text,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { strings } from '../../../../../../locales/i18n';
 import { VIP_SPLASH_TITLE_GRADIENT_COLORS } from './Vip.constants';
 
 interface VipSplashGradientTitleProps {
@@ -17,6 +18,7 @@ const VipSplashGradientTitle: React.FC<VipSplashGradientTitleProps> = ({
   testID,
 }) => {
   const tw = useTailwind();
+  const title = strings('rewards.vip.splash_title');
 
   return (
     <MaskedView
@@ -24,10 +26,10 @@ const VipSplashGradientTitle: React.FC<VipSplashGradientTitleProps> = ({
         <Text
           fontFamily={FontFamily.Hero}
           fontWeight={FontWeight.Regular}
-          twClassName="text-center text-[40px] leading-[32px] tracking-[-1.2px] pt-3"
+          twClassName="text-center text-[60px] leading-[60px] tracking-[-1.2px] pt-3"
           testID={testID}
         >
-          Welcome to Gold Fox Collective and some extra text
+          {title}
         </Text>
       }
       style={tw.style('self-stretch')}
@@ -41,9 +43,9 @@ const VipSplashGradientTitle: React.FC<VipSplashGradientTitleProps> = ({
         <Text
           fontFamily={FontFamily.Hero}
           fontWeight={FontWeight.Regular}
-          twClassName="text-center text-[40px] leading-[32px] tracking-[-1.2px] pt-3"
+          twClassName="text-center text-[60px] leading-[60px] tracking-[-1.2px] pt-3"
         >
-          Welcome to Gold Fox Collective and some extra text
+          {title}
         </Text>
       </LinearGradient>
     </MaskedView>

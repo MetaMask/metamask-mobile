@@ -125,6 +125,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
                   variant={TextVariant.AmountDisplayLg}
                   fontFamily={FontFamily.Hero}
                   fontWeight={FontWeight.Regular}
+                  twClassName="text-[60px] leading-[60px]"
                   color={TextColor.TextDefault}
                   isHidden={privacyMode}
                   length={SensitiveTextLength.Medium}

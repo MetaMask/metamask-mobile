@@ -236,6 +236,7 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
               variant={TextVariant.AmountDisplayLg}
               fontFamily={FontFamily.Hero}
               fontWeight={FontWeight.Regular}
+              twClassName="text-[60px] leading-[60px]"
             >
               {balanceDisplay}
             </Text>
