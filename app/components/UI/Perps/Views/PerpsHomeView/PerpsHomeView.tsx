@@ -140,6 +140,8 @@ import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsOutreachBanner from '../../components/PerpsOutreachBanner';
 import PerpsProducts from '../../components/PerpsProducts';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
+import PerpsSocialFeedSection from '../../components/PerpsSocialFeedSection';
+import { usePerpsSocialEnabled } from '../../hooks/usePerpsSocialEnabled';
 import PerpsRecentlyAddedSection, {
   RECENTLY_ADDED_SOURCE_SECTION,
 } from '../../components/PerpsRecentlyAddedSection';
@@ -226,6 +228,7 @@ const PerpsHomeView = () => {
       isLoading: topMoversFeed.isLoading,
       data: topMoversFeed.data,
     });
+  const isSocialFeedVisible = usePerpsSocialEnabled();
   const whatsHappeningFeed = useWhatsHappening({
     telemetryContext: {
       source: WhatsHappeningSource.Perps,
@@ -496,6 +499,7 @@ const PerpsHomeView = () => {
     // PerpsHomeSectionList does not render an orphan divider.
     if (isTopMoversVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS);
+    if (isSocialFeedVisible) sections.push('social_feed');
     // Explore category lists render a skeleton while markets load, then self-hide
     // when their own market array is empty.
     if (isLoading.markets || perpsMarkets.length > 0)
@@ -521,6 +525,7 @@ const PerpsHomeView = () => {
     isWatchlistVisible,
     isProductsVisible,
     isTopMoversVisible,
+    isSocialFeedVisible,
     isRecentlyAddedVisible,
     perpsMarkets,
     commoditiesMarkets,
@@ -894,6 +899,12 @@ const PerpsHomeView = () => {
         ),
       },
       {
+        key: 'social-feed',
+        visible: isSocialFeedVisible,
+        onLayout: handleSectionLayout('social_feed'),
+        content: <PerpsSocialFeedSection />,
+      },
+      {
         key: 'crypto',
         visible: isLoading.markets || perpsMarkets.length > 0,
         onLayout: handleSectionLayout(
@@ -1055,6 +1066,7 @@ const PerpsHomeView = () => {
       transactionActiveAbTests,
       isProductsVisible,
       isTopMoversVisible,
+      isSocialFeedVisible,
       isRecentlyAddedVisible,
       recentlyAddedMarkets,
       handleRecentlyAddedMarketPress,

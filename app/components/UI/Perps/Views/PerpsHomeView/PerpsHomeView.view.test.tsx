@@ -4,6 +4,7 @@
  */
 import '../../../../../../tests/component-view/mocks';
 
+import type { ComponentType } from 'react';
 import {
   act,
   cleanup,
@@ -31,6 +32,21 @@ import {
   clearPerpsOutreachApiMocks,
   setupPerpsOutreachApiMock,
 } from '../../../../../../tests/component-view/api-mocking/perpsOutreach';
+import {
+  clearLeaderboardApiMock,
+  getLeaderboardMessengerSpy,
+  mockLeaderboardTraders,
+  setupLeaderboardApiMock,
+  type MockLeaderboardEntry,
+} from '../../../../../../tests/component-view/api-mocking/socialLeaderboard';
+import {
+  createRouteParamsProbe,
+  getRouteParamsProbeTestId,
+} from '../../../../../../tests/component-view/render';
+import Routes from '../../../../../constants/navigation/Routes';
+import { getTraderRowTestId } from '../../../../Views/Homepage/Sections/TopTraders/components/TraderRow.testIds';
+import { mockPerpFeedItem } from '../../../SocialFeed/mocks/coreFeed.mock';
+import { SocialFeedPostShellSelectorsIDs } from '../../../SocialFeed/components/SocialFeedPostShell.testIds';
 
 const TIMEOUT_MS = 5000;
 
@@ -584,6 +600,220 @@ describe('PerpsHomeView', () => {
         },
         { timeout: TIMEOUT_MS },
       );
+    });
+  });
+
+  describe('Social feed section', () => {
+    const socialOverrides = {
+      engine: {
+        backgroundState: {
+          ...eligibleOverrides.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              aiSocialLeaderboardEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+              aiSocialLeaderboardPerpsEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    };
+    const buildPerpsTrader = (
+      index: number,
+      pnl7d: number,
+    ): MockLeaderboardEntry => ({
+      ...mockLeaderboardTraders[2],
+      profileId: `trader-${index}`,
+      addresses: [`0x${String(index).padStart(40, '0')}`],
+      rank: index,
+      name: `trader${index}.eth`,
+      pnl7d,
+    });
+    const perpsTraders = [
+      ...mockLeaderboardTraders,
+      buildPerpsTrader(4, 300_000),
+      buildPerpsTrader(5, 200_000),
+      buildPerpsTrader(6, 1_000),
+    ];
+    const topFiveIds = [
+      'trader-1',
+      'trader-2',
+      'trader-3',
+      'trader-4',
+      'trader-5',
+    ];
+    const feedItems = ['a', 'b', 'c', 'd'].map((id, index) =>
+      mockPerpFeedItem({
+        positionId: `perp-post-${id}`,
+        timestamp: 1_700_000_500 - index,
+        lastTradeAt: 1_700_000_500 - index,
+      }),
+    );
+
+    const trendingPostIds = feedItems.map(
+      (item) => `${item.positionId}-${item.timestamp}`,
+    );
+
+    const findSection = () =>
+      screen.findByTestId(
+        PerpsHomeViewSelectorsIDs.SOCIAL_FEED_SECTION,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+
+    const openTopTraders = async () => {
+      await findSection();
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TOP_TRADERS_PILL,
+        ),
+      );
+    };
+
+    afterEach(() => {
+      clearLeaderboardApiMock();
+    });
+
+    it('shows 3 perps Trending posts by default when Perps social is on', async () => {
+      setupLeaderboardApiMock({ perpsTraders, feedItems });
+
+      renderPerpsHomeView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+
+      await findSection();
+      for (const id of trendingPostIds.slice(0, 3)) {
+        expect(
+          await screen.findByTestId(
+            `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${id}`,
+            {},
+            { timeout: TIMEOUT_MS },
+          ),
+        ).toBeOnTheScreen();
+      }
+      expect(
+        screen.queryByTestId(
+          `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${trendingPostIds[3]}`,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
+        'SocialService:fetchFeed',
+        expect.objectContaining({ chains: ['eip155:999'], limit: 3 }),
+      );
+      expect(getLeaderboardMessengerSpy()).not.toHaveBeenCalledWith(
+        'SocialService:fetchLeaderboard',
+        expect.anything(),
+      );
+    });
+
+    it('shows the top 5 perps traders after switching to Top traders', async () => {
+      setupLeaderboardApiMock({ perpsTraders, feedItems });
+
+      renderPerpsHomeView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+      await openTopTraders();
+
+      for (const id of topFiveIds) {
+        expect(
+          await screen.findByTestId(getTraderRowTestId(id)),
+        ).toBeOnTheScreen();
+      }
+      expect(
+        screen.queryByTestId(getTraderRowTestId('trader-6')),
+      ).not.toBeOnTheScreen();
+      expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
+        'SocialService:fetchLeaderboard',
+        { limit: 50, chains: ['hyperliquid'], sort: 'pnl' },
+      );
+    });
+
+    it('does not fetch or show the Social feed when Perps social is off', async () => {
+      setupLeaderboardApiMock({ perpsTraders, feedItems });
+
+      renderPerpsHomeView({
+        overrides: eligibleOverrides,
+        socialEnabled: false,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.CONTAINER,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.SOCIAL_FEED_SECTION),
+      ).not.toBeOnTheScreen();
+      expect(getLeaderboardMessengerSpy()).not.toHaveBeenCalledWith(
+        'SocialService:fetchFeed',
+        expect.anything(),
+      );
+    });
+
+    it('shows the Top traders error state and recovers on retry', async () => {
+      setupLeaderboardApiMock({
+        perpsTraders,
+        feedItems,
+        leaderboardFailuresBeforeSuccess: 1,
+      });
+
+      renderPerpsHomeView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+      await openTopTraders();
+
+      fireEvent.press(
+        await screen.findByText('Retry', {}, { timeout: TIMEOUT_MS }),
+      );
+
+      expect(
+        await screen.findByTestId(getTraderRowTestId(topFiveIds[0])),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the Social V1 trader profile when a trader row is pressed', async () => {
+      setupLeaderboardApiMock({ perpsTraders, feedItems });
+
+      renderPerpsHomeView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+        extraRoutes: [
+          {
+            name: Routes.SOCIAL.V1_PROFILE,
+            Component: createRouteParamsProbe(
+              Routes.SOCIAL.V1_PROFILE,
+            ) as ComponentType<unknown>,
+          },
+        ],
+      });
+      await openTopTraders();
+
+      const [alpha] = mockLeaderboardTraders;
+      fireEvent.press(
+        await screen.findByTestId(getTraderRowTestId(alpha.profileId)),
+      );
+
+      const probe = await screen.findByTestId(
+        getRouteParamsProbeTestId(Routes.SOCIAL.V1_PROFILE),
+      );
+      expect(JSON.parse(probe.props.children as string)).toEqual({
+        traderId: alpha.profileId,
+        traderName: alpha.name,
+        traderAddress: alpha.addresses[0],
+        traderAvatarUri: alpha.imageUrl,
+        source: 'perps_home',
+        traderRank: 1,
+      });
     });
   });
 });

@@ -149,6 +149,10 @@ jest.mock(
   '../../components/PerpsTopMoversSection',
   () => 'PerpsTopMoversSection',
 );
+jest.mock(
+  '../../components/PerpsSocialFeedSection',
+  () => 'PerpsSocialFeedSection',
+);
 
 // Mock hooks (consolidated to avoid conflicts)
 const mockNavigateBack = jest.fn();
@@ -218,6 +222,14 @@ jest.mock('../../hooks/usePerpsTopMovers', () => ({
 
 const mockUsePerpsTopMovers = jest.requireMock('../../hooks/usePerpsTopMovers')
   .usePerpsTopMovers as jest.Mock;
+
+jest.mock('../../hooks/usePerpsSocialEnabled', () => ({
+  usePerpsSocialEnabled: jest.fn(() => false),
+}));
+
+const mockUsePerpsSocialEnabled = jest.requireMock(
+  '../../hooks/usePerpsSocialEnabled',
+).usePerpsSocialEnabled as jest.Mock;
 
 // Mock direct import of usePerpsHomeActions (component imports it directly now)
 jest.mock('../../hooks/usePerpsHomeActions', () => ({
@@ -661,6 +673,7 @@ describe('PerpsHomeView', () => {
       data: [],
       isLoading: false,
     });
+    mockUsePerpsSocialEnabled.mockReturnValue(false);
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
         totalBalance: '0',
@@ -1289,6 +1302,44 @@ describe('PerpsHomeView', () => {
     expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
   });
 
+  it('does not render the Social feed section when Perps social is off', () => {
+    const { UNSAFE_queryByType } = render(<PerpsHomeView />);
+
+    expect(UNSAFE_queryByType('PerpsSocialFeedSection' as never)).toBeNull();
+  });
+
+  it('renders the Social feed section directly after Top movers', () => {
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
+    );
+    mockUsePerpsTopMovers.mockReturnValue({
+      data: [{ symbol: 'BTC' }],
+      isLoading: false,
+    });
+    mockUsePerpsSocialEnabled.mockReturnValue(true);
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      perpsMarkets: [{ symbol: 'BTC' }],
+    });
+
+    const { UNSAFE_root } = render(<PerpsHomeView />);
+
+    const sectionOrder = UNSAFE_root.findAll(
+      (node) =>
+        typeof node.type === 'string' &&
+        [
+          'PerpsTopMoversSection',
+          'PerpsSocialFeedSection',
+          'PerpsMarketTypeSection',
+        ].includes(node.type),
+    ).map((node) => node.type);
+    expect(sectionOrder.slice(0, 3)).toEqual([
+      'PerpsTopMoversSection',
+      'PerpsSocialFeedSection',
+      'PerpsMarketTypeSection',
+    ]);
+  });
+
   it('passes enabled: false to usePerpsTopMovers when top movers flag is off', () => {
     mockUseSelector.mockReturnValue(false);
 
@@ -1847,6 +1898,35 @@ describe('PerpsHomeView', () => {
         mockUsePerpsEventTracking.mock.calls,
       );
       expect(properties?.sections_displayed).not.toContain('top_movers');
+    });
+
+    it('includes social_feed after top_movers when Perps social is on', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
+      );
+      mockUsePerpsTopMovers.mockReturnValue({
+        data: [{ symbol: 'BTC' }],
+        isLoading: false,
+      });
+      mockUsePerpsSocialEnabled.mockReturnValue(true);
+
+      render(<PerpsHomeView />);
+
+      const sections = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      )?.sections_displayed as string[];
+      expect(sections.indexOf('social_feed')).toBe(
+        sections.indexOf('top_movers') + 1,
+      );
+    });
+
+    it('excludes social_feed when Perps social is off', () => {
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).not.toContain('social_feed');
     });
 
     it('excludes recently_added when the feature flag is off even though data is present', () => {
