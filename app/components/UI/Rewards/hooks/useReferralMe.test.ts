@@ -263,7 +263,7 @@ describe('useReferralMe', () => {
       expect(result.current.profileId).toBeUndefined();
     });
 
-    it('clears the profile id when getSessionProfile throws', async () => {
+    it('keeps the profile id when getSessionProfile throws', async () => {
       mockMessenger();
       const { result } = renderHook(() =>
         useReferralMe({ fetchOnMount: false }),
@@ -279,10 +279,56 @@ describe('useReferralMe', () => {
         return undefined;
       });
       await act(async () => {
-        await result.current.fetchReferralMe();
+        await expect(result.current.fetchReferralMe()).rejects.toThrow(
+          'Session unavailable',
+        );
       });
 
-      expect(result.current.profileId).toBeUndefined();
+      expect(result.current.profileId).toBe(PROFILE_A);
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        setReferralMeError({ profileId: PROFILE_A, error: true }),
+      );
+    });
+
+    it('does not treat a failed session recheck as a profile change', async () => {
+      let sessionReads = 0;
+      let releaseFetch: () => void = () => undefined;
+      mockEngineCall.mockImplementation(async (action: string) => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          sessionReads += 1;
+          if (sessionReads === 1) {
+            return { profileId: PROFILE_A };
+          }
+          throw new Error('Session unavailable');
+        }
+        if (action === 'RewardsMoneyController:getReferralMe') {
+          await new Promise<void>((resolve) => {
+            releaseFetch = resolve;
+          });
+          return mockReferralMe;
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() =>
+        useReferralMe({ fetchOnMount: false }),
+      );
+      await act(async () => {
+        const fetchPromise = result.current.fetchReferralMe();
+        await flushPromises();
+        releaseFetch();
+        await expect(fetchPromise).rejects.toThrow(
+          'Session profile unavailable',
+        );
+      });
+
+      expect(result.current.profileId).toBe(PROFILE_A);
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        setReferralMe({ profileId: PROFILE_A, data: mockReferralMe }),
+      );
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        setReferralMeError({ profileId: PROFILE_A, error: true }),
+      );
     });
 
     it('discards a response fetched under a session that changed mid-request', async () => {
