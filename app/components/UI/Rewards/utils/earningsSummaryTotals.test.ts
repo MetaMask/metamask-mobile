@@ -1,8 +1,6 @@
 import type { EarningsSummaryDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import {
   creditedBaseUnits,
-  creditedEarnedByOthersLifetime,
-  creditedSelfEarnedLifetime,
   earnedByOthersLifetime,
   selfEarnedLifetime,
 } from './earningsSummaryTotals';
@@ -62,7 +60,7 @@ describe('earningsSummaryTotals', () => {
     expect(earnedByOthersLifetime(SUMMARY, 'SOCIAL_FOLLOW_TRADE')).toBeNull();
   });
 
-  it('removes voided base units from a family lifetime', () => {
+  it('returns the family lifetime as-is when part of it was voided', () => {
     const summary = {
       ...SUMMARY,
       self_earned: {
@@ -70,18 +68,15 @@ describe('earningsSummaryTotals', () => {
         by_claim_family: {
           REFERRAL_TRADE_FEE_CASHBACK: {
             ...emptyBranch,
-            lifetime: '7650000',
+            lifetime: '6650000',
             voided: '1000000',
           },
         },
       },
     } as unknown as EarningsSummaryDto;
 
-    expect(
-      creditedSelfEarnedLifetime(summary, 'REFERRAL_TRADE_FEE_CASHBACK'),
-    ).toBe('6650000');
-    expect(creditedEarnedByOthersLifetime(SUMMARY, 'REFERRAL_REV_SHARE')).toBe(
-      '41750000',
+    expect(selfEarnedLifetime(summary, 'REFERRAL_TRADE_FEE_CASHBACK')).toBe(
+      '6650000',
     );
   });
 

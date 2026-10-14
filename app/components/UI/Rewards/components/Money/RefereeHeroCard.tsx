@@ -19,8 +19,8 @@ import { SHOW_TRADING_COMMISSIONS } from './constants';
 import { fillOfferEndsIn } from './fillOfferEndsIn';
 import { formatMusdBaseUnits } from '../../utils/formatUtils';
 import {
-  creditedEarnedByOthersLifetime,
-  creditedSelfEarnedLifetime,
+  earnedByOthersLifetime,
+  selfEarnedLifetime,
 } from '../../utils/earningsSummaryTotals';
 
 export const REFEREE_HERO_CARD_TEST_IDS = {
@@ -127,10 +127,7 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
             amount={
               unavailableAmount ??
               formatMusdBaseUnits(
-                creditedEarnedByOthersLifetime(
-                  earningsSummary,
-                  'SOCIAL_FOLLOW_TRADE',
-                ),
+                earnedByOthersLifetime(earningsSummary, 'SOCIAL_FOLLOW_TRADE'),
               )
             }
             caption={localizedText.recordedEarnings}
@@ -144,7 +141,7 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
           amount={
             unavailableAmount ??
             formatMusdBaseUnits(
-              creditedSelfEarnedLifetime(
+              selfEarnedLifetime(
                 earningsSummary,
                 'REFERRAL_TRADE_FEE_CASHBACK',
               ),
