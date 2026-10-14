@@ -156,13 +156,17 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   feeProtocolFeeRate: 0.02,
   feeOriginalMetamaskFeeRate: 0.01,
   feeDiscountPercentage: 10,
+  marginMode: 'isolated' as 'isolated' | 'cross',
+  isMarginModeLocked: false,
+  isCrossMarginAvailableForMarket: false,
+  refreshMarginModeLock: jest.fn(),
+  onMarginModeSelect: jest.fn(),
 };
 
 // Mutated in place by tests; fully restored in beforeEach via Object.assign so
 // no property mutation leaks across tests. The mock closure below captures this
 // reference, so it must never be reassigned.
 const mockHookResult = { ...DEFAULT_MOCK_HOOK_RESULT };
-
 jest.mock('./PerpsProOrderForm/usePerpsProOrderForm', () => ({
   usePerpsProOrderForm: (params: unknown) => {
     mockUsePerpsProOrderForm(params);

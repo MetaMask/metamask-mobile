@@ -68,12 +68,15 @@ can produce on demand (`mobile: backgroundApp`, already used by the warm-start
 specs) and that nothing on screen can swallow. Do **not** use deeplinks —
 unknown `metamask://e2e/profiler/*` URLs show MetaMask's unsupported-link UI.
 
-#### Every performance spec is profiled automatically
+#### Hermes profiles are opt-in
 
 `appProfiling.fixture.ts` is an `auto` fixture, so no spec needs profiling
-plumbing. Any Playwright test under `tests/performance/` is profiled from app
-startup; after the last assertion the fixture backgrounds the app, waits for the
-trace to land, pulls every segment into
+plumbing. Collection only runs when `COLLECT_HERMES_CPUPROFILES=true`
+(schedule/manual performance workflows). PR runs leave that unset to skip the
+background + `pullFile` harvest — `analyze-app-profiling` never consumes PR
+artifacts. When enabled, any Playwright test under `tests/performance/` is
+profiled from app startup; after the last assertion the fixture backgrounds the
+app, waits for the trace to land, pulls every segment into
 `tests/reporters/reports/hermes-cpuprofiles/` and attaches it to the Playwright
 report. On iOS collection is skipped (app-scoped export is Android-only).
 

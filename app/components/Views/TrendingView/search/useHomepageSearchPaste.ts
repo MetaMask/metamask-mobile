@@ -21,6 +21,12 @@ export type { SearchOrigin };
 const consumedClipboardRevisions = new Set<number>();
 const consumedClipboardListeners = new Set<() => void>();
 
+/** Clears module clipboard state so view tests do not leak across cases. */
+export const resetHomepageSearchPasteStateForTests = (): void => {
+  consumedClipboardRevisions.clear();
+  consumedClipboardListeners.clear();
+};
+
 export const isNewHomepageClipboardRevision = (
   hasClipboardString: boolean,
   clipboardRevision: number,

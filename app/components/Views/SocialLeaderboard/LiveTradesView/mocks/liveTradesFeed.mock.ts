@@ -2,7 +2,7 @@ import { MINUTE } from '../../../../../constants/time';
 import {
   mockPerpFeedItem,
   mockSpotFeedItem,
-} from '../../FeedView/mocks/coreFeed.mock';
+} from '../../../../UI/SocialFeed/mocks/coreFeed.mock';
 import type { LiveTradeRowModel } from '../types';
 import { toLiveTradeRow } from '../utils/toLiveTradeRow';
 

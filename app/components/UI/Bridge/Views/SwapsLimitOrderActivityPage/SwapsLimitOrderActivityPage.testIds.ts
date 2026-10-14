@@ -10,4 +10,6 @@ export const SwapsLimitOrderActivityPageSelectorsIDs = {
   NETWORK_ROW: 'swaps-limit-order-activity-page-network-row',
   TRANSACTION_ID_ROW: 'swaps-limit-order-activity-page-transaction-id-row',
   FEES_AND_TOTAL: 'swaps-limit-order-activity-page-fees-and-total',
+  NETWORK_FEE_ROW: 'swaps-limit-order-activity-page-network-fee-row',
+  TOTAL_ROW: 'swaps-limit-order-activity-page-total-row',
 } as const;

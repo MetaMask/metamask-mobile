@@ -693,7 +693,6 @@
     "re_enter_password": "Şifrenizi tekrar girin",
     "use_at_least_8_characters": "En az 8 karakter kullanın",
     "unlock_with_face_id": "Face ID ile kilidi aç?",
-    "learn_more": "Bu şifreyi unutursam MetaMask bunu benim için kurtaramaz.",
     "learn_more_social_login": "Bu şifreyi unutursam cüzdanıma erişimi kalıcı olarak kaybedeceğim. MetaMask bunu benim için sıfırlayamaz.",
     "seed_phrase_length_error": "Gizli Kurtarma İfadesi 12, 15, 18, 21 veya 24 sözcükten oluşmalıdır",
     "continue": "Devam et",
@@ -9398,9 +9397,6 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Süre sonu: {{timeLeft}}",
-      "days_left": "{{count}}d left",
-      "hours_left": "{{count}}h left",
-      "minutes_left": "{{count}}m left",
       "limit_price": "{{symbol}} limit fiyatı",
       "not_enough_gas": "Yeterli gaz yok",
       "filled": "Gerçekleşti",
@@ -12203,7 +12199,6 @@
     "membership": {
       "title": "Üyeliğiniz",
       "plan": "Üyelik",
-      "earned_this_month": "Bu ay kazanılan",
       "payment_details": "Ödeme bilgileri",
       "total": "Toplam",
       "paying_with": "Ödeme aracı",
@@ -12214,15 +12209,7 @@
       "manage": "Yönet",
       "invoices": "Faturalar",
       "contact_support": "Destek ile iletişime geç",
-      "cancel_membership": "Üyeliği iptal et",
-      "earned_info": {
-        "title": "Bu ay kazanılan",
-        "description": "Pro üye olarak APY ve mUSD iadesi olarak kazandığınız tutar."
-      },
-      "saved_info": {
-        "title": "Bu ay tasarruf edilen",
-        "description": "Bu ay Pro üye olarak takas, perps işlemleri ve tahminlerde MetaMask ücretlerinde ve ATM ve FX ücretlerinde tasarruf ettiğiniz tutar."
-      }
+      "cancel_membership": "Üyeliği iptal et"
     },
     "cancel_membership": {
       "title": "Neden iptal ediyorsunuz?",

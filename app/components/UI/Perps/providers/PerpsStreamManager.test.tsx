@@ -2257,6 +2257,32 @@ describe('PerpsStreamManager', () => {
       });
       expect(ethCb).not.toHaveBeenCalled();
     });
+
+    it('returns the cached update for one symbol without the rest of the map', () => {
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP', 'ETH-PERP'],
+        callback: jest.fn(),
+        throttleMs: 0,
+      });
+
+      expect(testStreamManager.prices.getSnapshotForSymbol('BTC-PERP')).toBe(
+        null,
+      );
+
+      act(() => {
+        priceCallback([
+          makePrice('BTC-PERP', '50000'),
+          makePrice('ETH-PERP', '3000'),
+        ]);
+      });
+
+      expect(testStreamManager.prices.getSnapshotForSymbol('BTC-PERP')).toEqual(
+        expect.objectContaining({ symbol: 'BTC-PERP', price: '50000' }),
+      );
+      expect(testStreamManager.prices.getSnapshotForSymbol('SOL-PERP')).toBe(
+        null,
+      );
+    });
   });
 
   describe('PriceStreamChannel isTradable propagation', () => {

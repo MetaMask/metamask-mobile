@@ -693,7 +693,6 @@
     "re_enter_password": "Повторно введите пароль",
     "use_at_least_8_characters": "Используйте минимум 8 символов",
     "unlock_with_face_id": "Разблокировать с помощью Face ID?",
-    "learn_more": "Если я забуду этот пароль, MetaMask не сможет восстановить его для меня.",
     "learn_more_social_login": "Если я забуду этот пароль, я потеряю доступ к своему кошельку навсегда. MetaMask не может сбросить его для меня.",
     "seed_phrase_length_error": "Секретная фраза для восстановления должна состоять из 12, 15, 18, 21 или 24 слов",
     "continue": "Продолжить",
@@ -9398,9 +9397,6 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Истекает: {{timeLeft}}",
-      "days_left": "{{count}}d left",
-      "hours_left": "{{count}}h left",
-      "minutes_left": "{{count}}m left",
       "limit_price": "Лимитная цена {{symbol}}",
       "not_enough_gas": "Недостаточно газа",
       "filled": "Выполнен",
@@ -12203,7 +12199,6 @@
     "membership": {
       "title": "Ваша подписка",
       "plan": "Подписка",
-      "earned_this_month": "Заработано в этом месяце",
       "payment_details": "Детали платежа",
       "total": "Итого",
       "paying_with": "Оплата с помощью",
@@ -12214,15 +12209,7 @@
       "manage": "Управление",
       "invoices": "Счета-фактуры",
       "contact_support": "Связаться с поддержкой",
-      "cancel_membership": "Отменить подписку",
-      "earned_info": {
-        "title": "Заработано в этом месяце",
-        "description": "Сумма, которую вы заработали в виде APY и кешбэка в mUSD как участник Pro."
-      },
-      "saved_info": {
-        "title": "Сэкономлено в этом месяце",
-        "description": "Сумма, которую вы сэкономили как участник Pro на комиссиях MetaMask при свопах, перпах и прогнозах в этом месяце, плюс комиссии банкоматов и конвертации."
-      }
+      "cancel_membership": "Отменить подписку"
     },
     "cancel_membership": {
       "title": "Почему вы отменяете подписку?",

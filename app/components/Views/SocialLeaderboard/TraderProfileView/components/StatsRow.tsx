@@ -15,7 +15,7 @@ import type { TraderStats } from '@metamask/social-controllers';
 import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 import { getTraderHeadlineStatsDisplay } from '../utils/getTraderHeadlineStatsDisplay';
 import { formatHoldTime } from '../utils/formatHoldTime';
-import { EM_DASH } from '../../utils/formatters';
+import { EM_DASH } from '../../../../UI/SocialFeed/utils/formatters';
 
 export interface StatsRowProps {
   stats: TraderStats;

@@ -1,9 +1,9 @@
-import type { PositionTokenAvatarData } from '../components/PositionTokenAvatar';
+import type { PositionTokenAvatarData } from '../../../UI/SocialFeed/components/PositionTokenAvatar';
 import type {
   SocialV1FeedAuthor,
   SocialV1PerpDirection,
   SocialV1SpotSide,
-} from '../SocialV1View/feed/types';
+} from '../../../UI/SocialFeed/types';
 
 export interface LiveTradeRowModel {
   id: string;

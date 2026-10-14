@@ -693,7 +693,6 @@
     "re_enter_password": "パスワードを再入力してください",
     "use_at_least_8_characters": "8文字以上使用してください",
     "unlock_with_face_id": "Face IDでロックを解除しますか？",
-    "learn_more": "このパスワードを忘れた場合、MetaMask側でパスワードを復元することはできません。",
     "learn_more_social_login": "このパスワードを忘れると、ウォレットに永久にアクセスできなくなります。MetaMask側ではウォレットをリセットできません。",
     "seed_phrase_length_error": "シークレットリカバリーフレーズは12、15、18、21、または24個の単語で構成されている必要があります",
     "continue": "続行",
@@ -9398,9 +9397,6 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "有効期限: {{timeLeft}}",
-      "days_left": "{{count}}d left",
-      "hours_left": "{{count}}h left",
-      "minutes_left": "{{count}}m left",
       "limit_price": "{{symbol}}のリミット価格",
       "not_enough_gas": "ガスが不足しています",
       "filled": "約定済",
@@ -12203,7 +12199,6 @@
     "membership": {
       "title": "メンバーシップ",
       "plan": "メンバーシップ",
-      "earned_this_month": "今月の収益",
       "payment_details": "支払いの詳細",
       "total": "合計",
       "paying_with": "支払方法",
@@ -12214,15 +12209,7 @@
       "manage": "管理",
       "invoices": "請求書",
       "contact_support": "サポートへのお問い合わせ",
-      "cancel_membership": "メンバーシップの解約",
-      "earned_info": {
-        "title": "今月の収益",
-        "description": "ProメンバーとしてAPYおよびmUSDの還元で得られた金額。"
-      },
-      "saved_info": {
-        "title": "今月の節約額",
-        "description": "Proメンバーとして、今月スワップ、パーペチュアル、予測のMetaMask手数料のほか、ATM手数料およびFX手数料で節約できた金額。"
-      }
+      "cancel_membership": "メンバーシップの解約"
     },
     "cancel_membership": {
       "title": "解約理由を教えていただけませんか？",

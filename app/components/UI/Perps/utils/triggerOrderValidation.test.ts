@@ -514,7 +514,7 @@ describe('getScalePriceCrossingWarning', () => {
   });
 });
 
-describe('scale partial crossing copy', () => {
+describe('scale crossing copy', () => {
   it('matches the long partial warning, with below in place of above', () => {
     const copy = enTranslations.perps.order.validation;
 
@@ -523,6 +523,15 @@ describe('scale partial crossing copy', () => {
     );
     expect(copy.scale_price_below_partial_warning).toBe(
       copy.scale_price_above_partial_warning.replace('above', 'below'),
+    );
+  });
+
+  it('omits taker fees from the full-range warnings in both directions', () => {
+    const copy = enTranslations.perps.order.validation;
+
+    expect(copy.scale_price_above_warning).not.toContain('incur taker fees');
+    expect(copy.scale_price_below_warning).toBe(
+      copy.scale_price_above_warning.replace('above', 'below'),
     );
   });
 });

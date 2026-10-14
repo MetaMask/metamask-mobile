@@ -140,7 +140,9 @@ import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsOutreachBanner from '../../components/PerpsOutreachBanner';
 import PerpsProducts from '../../components/PerpsProducts';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
-import PerpsRecentlyAddedSection from '../../components/PerpsRecentlyAddedSection';
+import PerpsRecentlyAddedSection, {
+  RECENTLY_ADDED_SOURCE_SECTION,
+} from '../../components/PerpsRecentlyAddedSection';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import {
   isPerpsTopMoversSectionVisible,
@@ -594,9 +596,11 @@ const PerpsHomeView = () => {
       perpsNavigation.navigateToMarketDetails(
         market,
         PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        transactionActiveAbTests,
+        RECENTLY_ADDED_SOURCE_SECTION,
       );
     },
-    [perpsNavigation],
+    [perpsNavigation, transactionActiveAbTests],
   );
 
   const handleRecentlyAddedHeaderPress = useCallback(() => {
@@ -1105,9 +1109,24 @@ const PerpsHomeView = () => {
       {/* Perps Outreach Banner */}
       <PerpsOutreachBanner includesTopInset location="perps_home" />
 
+      {/* Service Interruption Banner — pinned above the header; collapses to
+          its title row once the content is scrolled. Outer flag guard avoids
+          mounting the padded wrapper (and banner hooks) when disabled. */}
+      {isServiceInterruptionBannerEnabled && (
+        <Box twClassName="px-4 pb-2">
+          <PerpsServiceInterruptionBanner
+            includesTopInset={!outreachCampaign}
+            scrollY={headerScrollY}
+            testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+          />
+        </Box>
+      )}
+
       {/* Header — scroll-linked compact title; Lite pill stays in endAccessory */}
       <HeaderStandardAnimated
-        includesTopInset={!outreachCampaign}
+        includesTopInset={
+          !outreachCampaign && !isServiceInterruptionBannerEnabled
+        }
         // h-16 (64px) matches the Figma header when the Lite pill is shown
         // (HeaderBase defaults to 56px).
         twClassName={isPerpsProModeEnabled ? 'h-16' : undefined}
@@ -1164,13 +1183,6 @@ const PerpsHomeView = () => {
               setTitleSectionHeight(event.nativeEvent.layout.height)
             }
           >
-            {isServiceInterruptionBannerEnabled && (
-              <Box twClassName="px-4 mb-4">
-                <PerpsServiceInterruptionBanner
-                  testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
-                />
-              </Box>
-            )}
             <TitleHub
               testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
               title={perpsScreenTitle}

@@ -693,7 +693,6 @@
     "re_enter_password": "Veuillez saisir à nouveau votre mot de passe",
     "use_at_least_8_characters": "Saisissez au moins 8 caractères",
     "unlock_with_face_id": "Déverrouiller avec Face ID ?",
-    "learn_more": "Si j’oublie ce mot de passe, MetaMask ne pourra pas le récupérer pour moi.",
     "learn_more_social_login": "Si j’oublie ce mot de passe, je perdrai définitivement l’accès à mon portefeuille. MetaMask ne peut pas le réinitialiser pour moi.",
     "seed_phrase_length_error": "La phrase secrète de récupération doit comporter 12, 15, 18, 21 ou 24 mots",
     "continue": "Continuer",
@@ -9398,9 +9397,6 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Expiration : {{timeLeft}}",
-      "days_left": "{{count}}d left",
-      "hours_left": "{{count}}h left",
-      "minutes_left": "{{count}}m left",
       "limit_price": "Prix limite {{symbol}}",
       "not_enough_gas": "Pas assez de gaz",
       "filled": "Exécuté",
@@ -12203,7 +12199,6 @@
     "membership": {
       "title": "Votre abonnement",
       "plan": "Abonnement",
-      "earned_this_month": "Montant gagné ce mois-ci",
       "payment_details": "Détails du paiement",
       "total": "Total",
       "paying_with": "Payer avec",
@@ -12214,15 +12209,7 @@
       "manage": "Gérer",
       "invoices": "Factures",
       "contact_support": "Contacter le service d’assistance",
-      "cancel_membership": "Résilier l'abonnement",
-      "earned_info": {
-        "title": "Montant gagné ce mois-ci",
-        "description": "Le montant que vous avez gagné en taux de rendement annuel et en mUSD en tant que membre Pro."
-      },
-      "saved_info": {
-        "title": "Économies réalisées ce mois-ci",
-        "description": "Le montant que vous avez économisé ce mois-ci en tant que membre Pro sur les frais MetaMask liés aux swaps, aux contrats à terme perpétuels et aux prédictions, ainsi que sur les frais de retrait aux distributeurs automatiques et de change."
-      }
+      "cancel_membership": "Résilier l'abonnement"
     },
     "cancel_membership": {
       "title": "Pourquoi résiliez-vous votre abonnement ?",

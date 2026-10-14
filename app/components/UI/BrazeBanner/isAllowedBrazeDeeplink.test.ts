@@ -1,4 +1,7 @@
-import { isAllowedBrazeDeeplink } from './isAllowedBrazeDeeplink';
+import {
+  isAllowedBrazeDeeplink,
+  isAllowedBrazeExternalUrl,
+} from './isAllowedBrazeDeeplink';
 
 // ---------------------------------------------------------------------------
 // Mock: AppConstants — provide predictable MM host values for every test
@@ -14,6 +17,7 @@ jest.mock('../../../core/AppConstants', () => ({
     MM_IO_UNIVERSAL_LINK_HOST: 'link.metamask.io',
     MM_IO_UNIVERSAL_LINK_TEST_HOST: 'link-test.metamask.io',
     MM_COM_UNIVERSAL_LINK_HOST: 'link.metamask.com',
+    MM_COM_UNIVERSAL_LINK_TEST_HOST: 'link-test.metamask.com',
   },
 }));
 
@@ -112,6 +116,12 @@ describe('isAllowedBrazeDeeplink', () => {
       );
     });
 
+    it('allows link-test.metamask.com', () => {
+      expect(
+        isAllowedBrazeDeeplink('https://link-test.metamask.com/home'),
+      ).toBe(true);
+    });
+
     it('allows metamask.app.link', () => {
       expect(isAllowedBrazeDeeplink('https://metamask.app.link/home')).toBe(
         true,
@@ -205,5 +215,23 @@ describe('isAllowedBrazeDeeplink', () => {
     it('rejects about:blank', () => {
       expect(isAllowedBrazeDeeplink('about:blank')).toBe(false);
     });
+  });
+});
+
+describe('isAllowedBrazeExternalUrl', () => {
+  it.each(['https://example.com/article'])(
+    'allows external web URL %s',
+    (url) => {
+      expect(isAllowedBrazeExternalUrl(url)).toBe(true);
+    },
+  );
+
+  it.each([
+    'https://link.metamask.io/home',
+    'metamask://home',
+    `${'java'}${'script'}:alert(1)`,
+    'not a url',
+  ])('rejects URL not meant for the external browser: %s', (url) => {
+    expect(isAllowedBrazeExternalUrl(url)).toBe(false);
   });
 });

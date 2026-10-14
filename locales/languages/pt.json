@@ -693,7 +693,6 @@
     "re_enter_password": "Insira sua senha novamente",
     "use_at_least_8_characters": "Use pelo menos 8 caracteres",
     "unlock_with_face_id": "Desbloquear com Face ID?",
-    "learn_more": "Se eu esquecer essa senha, a MetaMask não poderá recuperá-la para mim.",
     "learn_more_social_login": "Se eu esquecer esta senha, perderei acesso à minha carteira permanentemente. A MetaMask não consegue redefini-la para mim.",
     "seed_phrase_length_error": "A Frase de Recuperação Secreta deve ter 12, 15, 18, 21 ou 24 palavras",
     "continue": "Continuar",
@@ -9398,9 +9397,6 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Expiração: {{timeLeft}}",
-      "days_left": "{{count}}d left",
-      "hours_left": "{{count}}h left",
-      "minutes_left": "{{count}}m left",
       "limit_price": "Preço limite de {{symbol}}",
       "not_enough_gas": "Gás insuficiente",
       "filled": "Executada",
@@ -12203,7 +12199,6 @@
     "membership": {
       "title": "Sua assinatura",
       "plan": "Assinatura",
-      "earned_this_month": "Ganhos este mês",
       "payment_details": "Detalhes do pagamento",
       "total": "Total",
       "paying_with": "Pagando com",
@@ -12214,15 +12209,7 @@
       "manage": "Gerenciar",
       "invoices": "Faturas",
       "contact_support": "Falar com o suporte",
-      "cancel_membership": "Cancelar assinatura",
-      "earned_info": {
-        "title": "Ganhos este mês",
-        "description": "O valor que você ganhou em APY e mUSD de volta como assinante Pro."
-      },
-      "saved_info": {
-        "title": "Economia neste mês",
-        "description": "O valor que você economizou como assinante Pro nas taxas da MetaMask em trocas, perps e previsões este mês, além de taxas de caixa eletrônico e de transações internacionais."
-      }
+      "cancel_membership": "Cancelar assinatura"
     },
     "cancel_membership": {
       "title": "Por que você está cancelando?",

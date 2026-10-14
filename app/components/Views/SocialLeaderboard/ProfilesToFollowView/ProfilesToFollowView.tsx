@@ -21,7 +21,7 @@ import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profi
 import ConnectionRow from '../FollowConnectionsView/components/ConnectionRow';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
-import { formatFollowerCountLabel } from '../utils/formatters';
+import { formatFollowerCountLabel } from '../../../UI/SocialFeed/utils/formatters';
 import { usePopularTraders } from '../SocialV1View/feed/hooks/usePopularTraders';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';

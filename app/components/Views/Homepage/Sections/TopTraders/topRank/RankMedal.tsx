@@ -3,6 +3,7 @@ import type { SvgProps } from 'react-native-svg';
 import RankBadge1 from './assets/rank-badge-1.svg';
 import RankBadge2 from './assets/rank-badge-2.svg';
 import RankBadge3 from './assets/rank-badge-3.svg';
+import { getRankMedalTestId } from './RankMedal.testIds';
 
 type SvgComponent = React.FC<SvgProps & { name: string }>;
 
@@ -56,8 +57,8 @@ const RankMedal: React.FC<RankMedalProps> = ({
 
   return (
     <Badge
-      name={`rank-medal-${rank}`}
-      testID={testID ?? `rank-medal-${rank}`}
+      name={getRankMedalTestId(rank)}
+      testID={testID ?? getRankMedalTestId(rank)}
       width={width}
       height={size}
     />

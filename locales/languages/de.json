@@ -693,7 +693,6 @@
     "re_enter_password": "Passwort erneut eingeben",
     "use_at_least_8_characters": "Verwenden Sie mindestens 8 Zeichen",
     "unlock_with_face_id": "Mit Face ID entsperren?",
-    "learn_more": "Wenn ich dieses Passwort vergesse, kann MetaMask es nicht für mich wiederherstellen.",
     "learn_more_social_login": "Wenn ich dieses Passwort vergesse, verliere ich dauerhaft den Zugang zu meiner Wallet. MetaMask kann es nicht für mich zurücksetzen.",
     "seed_phrase_length_error": "Geheime Wiederherstellungsphrase muss 12, 15, 18, 21 oder 24 Wörter umfassen",
     "continue": "Fortfahren",
@@ -9398,9 +9397,6 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Ablaufdatum: {{timeLeft}}",
-      "days_left": "{{count}}d left",
-      "hours_left": "{{count}}h left",
-      "minutes_left": "{{count}}m left",
       "limit_price": "{{symbol}} Limit-Preis",
       "not_enough_gas": "Nicht genügend Gas",
       "filled": "Ausgeführt",
@@ -12203,7 +12199,6 @@
     "membership": {
       "title": "Ihre Mitgliedschaft",
       "plan": "Mitgliedschaft",
-      "earned_this_month": "In diesem Monat verdient",
       "payment_details": "Zahlungsdetails",
       "total": "Insgesamt",
       "paying_with": "Bezahlen mit",
@@ -12214,15 +12209,7 @@
       "manage": "Verwalten",
       "invoices": "Rechnungen",
       "contact_support": "Support kontaktieren",
-      "cancel_membership": "Mitgliedschaft kündigen",
-      "earned_info": {
-        "title": "In diesem Monat verdient",
-        "description": "Der von Ihnen als Pro-Mitglied erzielte Betrag in Form von APY und mUSD."
-      },
-      "saved_info": {
-        "title": "In diesem Monat gespart",
-        "description": "Der von Ihnen als Pro-Mitglied in diesem Monat bei MetaMask-Gebühren für Swaps, Perps und Prognosen sowie bei Geldautomaten- und Devisengebühren eingesparte Betrag."
-      }
+      "cancel_membership": "Mitgliedschaft kündigen"
     },
     "cancel_membership": {
       "title": "Warum stornieren Sie?",

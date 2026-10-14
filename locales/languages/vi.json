@@ -693,7 +693,6 @@
     "re_enter_password": "Nhập lại mật khẩu của bạn",
     "use_at_least_8_characters": "Sử dụng ít nhất 8 ký tự",
     "unlock_with_face_id": "Mở khóa bằng Face ID?",
-    "learn_more": "Nếu tôi quên mật khẩu này, MetaMask không thể khôi phục mật khẩu cho tôi.",
     "learn_more_social_login": "Nếu tôi quên mật khẩu này, tôi sẽ vĩnh viễn mất quyền truy cập vào ví. MetaMask không thể đặt lại mật khẩu cho tôi.",
     "seed_phrase_length_error": "Cụm từ khôi phục bí mật phải gồm 12, 15, 18, 21 hoặc 24 từ",
     "continue": "Tiếp tục",
@@ -9398,9 +9397,6 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Hết hạn sau: {{timeLeft}}",
-      "days_left": "{{count}}d left",
-      "hours_left": "{{count}}h left",
-      "minutes_left": "{{count}}m left",
       "limit_price": "Giá giới hạn của {{symbol}}",
       "not_enough_gas": "Không đủ gas",
       "filled": "Đã khớp",
@@ -12203,7 +12199,6 @@
     "membership": {
       "title": "Gói thành viên của bạn",
       "plan": "Gói thành viên",
-      "earned_this_month": "Đã sinh lời trong tháng này",
       "payment_details": "Chi tiết thanh toán",
       "total": "Tổng cộng",
       "paying_with": "Thanh toán bằng",
@@ -12214,15 +12209,7 @@
       "manage": "Quản lý",
       "invoices": "Hóa đơn",
       "contact_support": "Liên hệ bộ phận hỗ trợ",
-      "cancel_membership": "Hủy gói thành viên",
-      "earned_info": {
-        "title": "Đã sinh lời trong tháng này",
-        "description": "Số tiền sinh lời từ APY và khoản hoàn lại bằng mUSD với tư cách thành viên Pro."
-      },
-      "saved_info": {
-        "title": "Đã tiết kiệm trong tháng này",
-        "description": "Số tiền bạn tiết kiệm được với tư cách thành viên Pro từ phí MetaMask khi thực hiện hoán đổi, giao dịch hợp đồng vĩnh cửu và dự đoán trong tháng này, cùng với phí ATM và phí ngoại hối."
-      }
+      "cancel_membership": "Hủy gói thành viên"
     },
     "cancel_membership": {
       "title": "Tại sao bạn muốn hủy?",
