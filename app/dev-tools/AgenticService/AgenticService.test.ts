@@ -16,6 +16,12 @@ import { emitStepHud } from './AgentStepHud';
 import { BottomSheet as DesignSystemBottomSheet } from '@metamask/design-system-react-native';
 import ComponentLibraryBottomSheet from '../../component-library/components/BottomSheets/BottomSheet';
 import { Platform } from 'react-native';
+import React, { act } from 'react';
+import {
+  create,
+  type ReactTestInstance,
+  type ReactTestRenderer,
+} from 'react-test-renderer';
 import type {
   NavigationContainerRef,
   ParamListBase,
@@ -1543,6 +1549,79 @@ describe('AgenticService.install', () => {
       expect(committedInput).toHaveBeenCalledWith('12');
       expect(alternateInput).not.toHaveBeenCalled();
     });
+  });
+
+  describe('native measurement across React commits', () => {
+    it.each(['press', 'scoped press', 'query'])(
+      'preserves an unchanged control after a sibling update during %s',
+      async (operation) => {
+        let updateSibling: (() => void) | undefined;
+        function LiveSibling() {
+          const [count, setCount] = React.useState(0);
+          updateSibling = () => setCount((value) => value + 1);
+          return React.createElement('Text', null, count);
+        }
+        const onPress = jest.fn();
+        const control = React.createElement(
+          'View',
+          { testID: 'action', onPress },
+          React.createElement('Text', null, 'Press'),
+        );
+        let renderer: ReactTestRenderer | undefined;
+        await act(() => {
+          renderer = create(
+            React.createElement(
+              'View',
+              { testID: 'scope' },
+              control,
+              React.createElement(LiveSibling),
+            ),
+          );
+        });
+        if (!renderer) throw new Error('Renderer was not created');
+        // The public test instance exposes its backing fiber only as a private field.
+        const target = (
+          renderer.root.findByProps({
+            testID: 'action',
+          }) as ReactTestInstance & { _fiber: FiberNode }
+        )._fiber;
+        let rootFiber = target;
+        while (rootFiber.return) rootFiber = rootFiber.return;
+        const root = rootFiber.stateNode as FiberRoot | null;
+        if (!root?.current || !target.stateNode || !updateSibling)
+          throw new Error('Mounted control or sibling is missing');
+        globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
+          renderers: new Map([[1, {}]]),
+          getFiberRoots: () => new Set([root]),
+        };
+        const held = holdNativeMeasurement();
+        target.stateNode.measureInWindow = held.stateNode.measureInWindow;
+
+        const pending =
+          operation === 'query'
+            ? bridge().queryUiTarget({
+                testId: 'action',
+                visibility: 'viewport',
+              })
+            : bridge().pressTestId(
+                'action',
+                operation === 'scoped press'
+                  ? { ancestorTestId: 'scope' }
+                  : undefined,
+              );
+        await act(updateSibling);
+        held.release();
+        const result = await pending;
+
+        expect(result).toMatchObject(
+          operation === 'query'
+            ? { present: true, visible: true }
+            : { ok: true },
+        );
+        expect(onPress).toHaveBeenCalledTimes(operation === 'query' ? 0 : 1);
+        await act(() => renderer?.unmount());
+      },
+    );
   });
 
   describe('unscoped press across native measurement', () => {

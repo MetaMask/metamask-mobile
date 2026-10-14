@@ -61,6 +61,7 @@ import { getStreamManagerInstance } from '../../components/UI/Perps/providers/Pe
  * via __REACT_DEVTOOLS_GLOBAL_HOOK__.
  */
 interface FiberNode {
+  alternate?: FiberNode | null;
   tag?: number;
   type?: unknown;
   memoizedState?: unknown;
@@ -409,10 +410,15 @@ function getFiberOwnerPath(
   return path;
 }
 
+/** React swaps a mounted fiber with its alternate on ordinary commits. */
+function sameFiber(left: FiberNode | null, right: FiberNode | null): boolean {
+  return left === right || Boolean(left && right && left.alternate === right);
+}
+
 function sameFiberOwnerPath(left: FiberNode[], right: FiberNode[]): boolean {
   return (
     left.length === right.length &&
-    left.every((fiber, index) => fiber === right[index])
+    left.every((fiber, index) => sameFiber(fiber, right[index]))
   );
 }
 
@@ -1175,14 +1181,21 @@ async function queryUiTarget(options: {
   const ownerPath = getFiberOwnerPath(target, tree);
   const rect = await measureStateNode(stateNode);
   const current = select();
+  const currentTarget = current.target;
   if (
-    current.target !== target ||
+    !currentTarget ||
+    !sameFiber(currentTarget, target) ||
     current.targets.length !== original.targets.length ||
-    !current.targets.every((fiber) => original.targets.includes(fiber)) ||
-    isFiberInactive(target, current.tree) ||
-    !sameFiberOwnerPath(ownerPath, getFiberOwnerPath(target, current.tree)) ||
-    findMeasurableStateNode(target, true, current.tree) !== stateNode ||
-    !targetMatches(target, options, current.tree)
+    !current.targets.every((fiber) =>
+      original.targets.some((originalFiber) => sameFiber(fiber, originalFiber)),
+    ) ||
+    isFiberInactive(currentTarget, current.tree) ||
+    !sameFiberOwnerPath(
+      ownerPath,
+      getFiberOwnerPath(currentTarget, current.tree),
+    ) ||
+    findMeasurableStateNode(currentTarget, true, current.tree) !== stateNode ||
+    !targetMatches(currentTarget, options, current.tree)
   ) {
     return {
       ...evidence(null, current.tree),
@@ -1190,7 +1203,7 @@ async function queryUiTarget(options: {
       error: 'Target changed during measurement; no current viewport evidence',
     };
   }
-  const currentBase = evidence(target, current.tree);
+  const currentBase = evidence(currentTarget, current.tree);
   const viewport = Dimensions.get('window');
   if (!rect) {
     return {
@@ -1507,19 +1520,27 @@ const AgenticService = {
           }
           const current = select();
           const selection = selections.get(candidate);
+          const currentCandidate = current.candidates.find((fiber) =>
+            sameFiber(fiber, candidate),
+          );
           if (
             !selection ||
-            isFiberInactive(candidate, current.tree) ||
+            !currentCandidate ||
+            isFiberInactive(currentCandidate, current.tree) ||
             !sameFiberOwnerPath(
               selection.ownerPath,
-              getFiberOwnerPath(candidate, current.tree),
+              getFiberOwnerPath(currentCandidate, current.tree),
             ) ||
             current.candidates.length !== distinctCandidates.length ||
-            !current.candidates.every((fiber) => selections.has(fiber)) ||
-            candidate.memoizedProps?.onPress !== selection.handler ||
-            findMeasurableStateNode(candidate, false, current.tree) !==
+            !current.candidates.every((fiber) =>
+              distinctCandidates.some((originalFiber) =>
+                sameFiber(fiber, originalFiber),
+              ),
+            ) ||
+            currentCandidate.memoizedProps?.onPress !== selection.handler ||
+            findMeasurableStateNode(currentCandidate, false, current.tree) !==
               selection.stateNode ||
-            current.ancestor !== original.ancestor
+            !sameFiber(current.ancestor, original.ancestor)
           ) {
             return {
               ok: false,
@@ -1527,7 +1548,7 @@ const AgenticService = {
               error: `Component with testID="${testId}" changed or became inactive; no press attempted`,
             };
           }
-          if (isFiberDisabled(candidate)) {
+          if (isFiberDisabled(currentCandidate)) {
             return {
               ok: false,
               testId,
@@ -1546,7 +1567,7 @@ const AgenticService = {
               error:
                 'Scoped control changed or is not visible; no press attempted',
             };
-          candidate.memoizedProps?.onPress?.();
+          currentCandidate.memoizedProps?.onPress?.();
           return { ok: true, testId };
         } catch (e) {
           return { ok: false, error: String(e) };
