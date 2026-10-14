@@ -20,6 +20,8 @@ import {
 } from './profileOnboardingRive';
 
 const mockUseRiveEnabled = jest.fn<boolean, []>();
+const mockUseRiveFile = jest.fn();
+const mockUseViewModelInstance = jest.fn();
 const mockRiveViewProps: {
   current?: {
     artboardName?: string;
@@ -45,6 +47,11 @@ jest.mock('@rive-app/react-native', () => {
       mockRiveViewProps.current = props;
       return ReactActual.createElement(actual.RiveView, props);
     },
+    useRiveFile: (input: unknown, options: unknown) =>
+      mockUseRiveFile(input, options) ?? actual.useRiveFile(input, options),
+    useViewModelInstance: (source: unknown, params: unknown) =>
+      mockUseViewModelInstance(source, params) ??
+      actual.useViewModelInstance(source, params),
   };
 });
 
@@ -136,6 +143,38 @@ describe('ProfileReadyAnimation', () => {
 
   it('renders the fallback when animations are disabled', () => {
     mockUseRiveEnabled.mockReturnValue(false);
+
+    renderReady();
+
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_FALLBACK),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.READY_ANIMATION),
+    ).not.toBeOnTheScreen();
+  });
+
+  it.each<[string, () => void]>([
+    [
+      'the file fails to load',
+      () =>
+        mockUseRiveFile.mockReturnValue({
+          riveFile: null,
+          isLoading: false,
+          error: new Error('file not found'),
+        }),
+    ],
+    [
+      'the view model instance fails to load',
+      () =>
+        mockUseViewModelInstance.mockReturnValue({
+          instance: null,
+          isLoading: false,
+          error: new Error('view model not found'),
+        }),
+    ],
+  ])('renders the fallback when %s', (_label, arrange) => {
+    arrange();
 
     renderReady();
 

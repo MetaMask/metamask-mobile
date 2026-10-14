@@ -55,16 +55,23 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
   const skipAnimation = !useProfileOnboardingRiveEnabled();
   const [hasRiveError, setHasRiveError] = useState(false);
 
-  const { riveFile } = useRiveFile(
+  const { riveFile, error: riveFileError } = useRiveFile(
     skipAnimation ? undefined : ProfileReadyRive,
     {
       referencedAssets: PROFILE_ONBOARDING_RIVE_ASSETS,
     },
   );
-  const { instance } = useViewModelInstance(riveFile, {
+  const { instance, error: instanceError } = useViewModelInstance(riveFile, {
     artboardName: PROFILE_READY_RIVE_ARTBOARD,
     async: true,
   });
+  const loadError = riveFileError ?? instanceError;
+
+  useEffect(() => {
+    if (loadError) {
+      Logger.error(loadError, 'ProfileReadyAnimation: Rive load failed');
+    }
+  }, [loadError]);
   const { setValue: setDisplayName } = useRiveString(
     PROFILE_READY_RIVE_PATHS.DISPLAY_NAME,
     instance,
@@ -114,7 +121,7 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
     setHasRiveError(true);
   }, []);
 
-  if (skipAnimation || hasRiveError) {
+  if (skipAnimation || hasRiveError || loadError) {
     return <>{fallback}</>;
   }
 

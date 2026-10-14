@@ -54,14 +54,24 @@ const ProfileOnboardingIntroAnimation: React.FC<
   const skipAnimation = !useProfileOnboardingRiveEnabled();
   const [hasRiveError, setHasRiveError] = useState(false);
 
-  const { riveFile } = useRiveFile(
+  const { riveFile, error: riveFileError } = useRiveFile(
     skipAnimation ? undefined : SocialOnboardingAnimation,
     { referencedAssets: PROFILE_ONBOARDING_RIVE_ASSETS },
   );
-  const { instance } = useViewModelInstance(riveFile, {
+  const { instance, error: instanceError } = useViewModelInstance(riveFile, {
     artboardName: PROFILE_ONBOARDING_RIVE_ARTBOARD,
     async: true,
   });
+  const loadError = riveFileError ?? instanceError;
+
+  useEffect(() => {
+    if (loadError) {
+      Logger.error(
+        loadError,
+        'ProfileOnboardingIntroAnimation: Rive load failed',
+      );
+    }
+  }, [loadError]);
   const { riveViewRef, setHybridRef } = useRive();
   const { value: currentStep } = useRiveNumber(
     PROFILE_ONBOARDING_RIVE_PATHS.CURRENT_STEP,
@@ -72,7 +82,8 @@ const ProfileOnboardingIntroAnimation: React.FC<
     instance,
   );
 
-  const isPlaying = !skipAnimation && !hasRiveError && Boolean(riveViewRef);
+  const isPlaying =
+    !skipAnimation && !hasRiveError && !loadError && Boolean(riveViewRef);
   useEffect(() => {
     const dwellMs =
       currentStep === undefined
@@ -93,7 +104,7 @@ const ProfileOnboardingIntroAnimation: React.FC<
     setHasRiveError(true);
   }, []);
 
-  if (skipAnimation || hasRiveError) {
+  if (skipAnimation || hasRiveError || loadError) {
     return <>{fallback}</>;
   }
 

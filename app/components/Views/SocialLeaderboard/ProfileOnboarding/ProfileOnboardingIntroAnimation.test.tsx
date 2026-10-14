@@ -23,6 +23,7 @@ const mockGetHardwareTier = jest.fn<HardwareTier | null, []>();
 const mockUseReducedMotion = jest.fn<boolean, []>();
 const mockFireContinue = jest.fn();
 const mockUseRiveFile = jest.fn();
+const mockUseViewModelInstance = jest.fn();
 const mockRiveViewProps: {
   current?: {
     artboardName?: string;
@@ -58,10 +59,11 @@ jest.mock('@rive-app/react-native', () => {
       mockRiveViewProps.current = props;
       return ReactActual.createElement(actual.RiveView, props);
     },
-    useRiveFile: (input: unknown, options: unknown) => {
-      mockUseRiveFile(input, options);
-      return actual.useRiveFile(input, options);
-    },
+    useRiveFile: (input: unknown, options: unknown) =>
+      mockUseRiveFile(input, options) ?? actual.useRiveFile(input, options),
+    useViewModelInstance: (source: unknown, params: unknown) =>
+      mockUseViewModelInstance(source, params) ??
+      actual.useViewModelInstance(source, params),
     useRiveTrigger: (path: string) => ({
       trigger: path === 'continue' ? mockFireContinue : jest.fn(),
       error: null,
@@ -217,6 +219,42 @@ describe('ProfileOnboardingIntroAnimation', () => {
 
       expect(mockFireContinue).not.toHaveBeenCalled();
     });
+  });
+
+  it.each<[string, () => void]>([
+    [
+      'the file fails to load',
+      () =>
+        mockUseRiveFile.mockReturnValue({
+          riveFile: null,
+          isLoading: false,
+          error: new Error('file not found'),
+        }),
+    ],
+    [
+      'the view model instance fails to load',
+      () =>
+        mockUseViewModelInstance.mockReturnValue({
+          instance: null,
+          isLoading: false,
+          error: new Error('view model not found'),
+        }),
+    ],
+  ])('renders the fallback and does not advance when %s', (_label, arrange) => {
+    jest.useFakeTimers();
+    arrange();
+
+    render(<ProfileOnboardingIntroAnimation fallback={fallback} />);
+    act(() => {
+      __setRivePropertyValue(PROFILE_ONBOARDING_RIVE_PATHS.CURRENT_STEP, 1);
+      jest.advanceTimersByTime(60_000);
+    });
+
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_FALLBACK),
+    ).toBeOnTheScreen();
+    expect(mockFireContinue).not.toHaveBeenCalled();
+    jest.useRealTimers();
   });
 
   it('switches to the fallback when Rive reports an error', () => {
