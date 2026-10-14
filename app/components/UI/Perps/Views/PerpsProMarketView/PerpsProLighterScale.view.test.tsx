@@ -660,7 +660,7 @@ describe('Lighter Scale through the Pro market screen', () => {
     expect(screen.getByTestId(FORM.SIZE_INPUT)).toHaveProp('value', '100');
     expect(screen.getByTestId(FORM.SCALE_START_PRICE)).toHaveProp(
       'value',
-      '2200',
+      '2,200',
     );
     expect(screen.queryByTestId(GROUP.PANEL)).not.toBeOnTheScreen();
     expect(controller.clearPendingTradeConfiguration).not.toHaveBeenCalled();
