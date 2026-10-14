@@ -36,6 +36,7 @@ import {
 import {
   buildProfilingSection,
   buildApiRequestsSection,
+  buildApiRequestsFullReport,
   describeFailure,
 } from './perf-comment-details.mjs';
 
@@ -457,9 +458,13 @@ async function main() {
 
   const detailRuns = collectDetailRuns();
   md += buildProfilingSection(detailRuns);
+  // GitHub caps a comment at 65,536 characters: the PR comment gets the most
+  // called endpoints per scenario, and CI appends the complete list to the
+  // workflow run summary (see the *-api-full.md file written below).
+  const runUrl = runId && repo ? `https://github.com/${repo}/actions/runs/${runId}` : null;
   md += buildApiRequestsSection(detailRuns, {
-    // GitHub rejects comments over 65,536 characters.
-    charBudget: Math.max(0, 60000 - md.length),
+    charBudget: Math.max(0, 60000 - md.length - 600),
+    fullListUrl: runUrl,
   });
 
   // Footer
@@ -477,6 +482,16 @@ async function main() {
 
   fs.writeFileSync(OUTPUT_FILE, md);
   console.log(`✅ PR comment written to ${OUTPUT_FILE}`);
+
+  // Complete API request list, for CI to append to the workflow run summary.
+  const fullReportFile = `${OUTPUT_FILE.replace(/\.md$/, '')}-api-full.md`;
+  const fullReport = buildApiRequestsFullReport(detailRuns);
+  if (fullReport) {
+    fs.writeFileSync(fullReportFile, fullReport);
+    console.log(`✅ Complete API request list written to ${fullReportFile}`);
+  } else if (fs.existsSync(fullReportFile)) {
+    fs.unlinkSync(fullReportFile);
+  }
 }
 
 main().catch((error) => {

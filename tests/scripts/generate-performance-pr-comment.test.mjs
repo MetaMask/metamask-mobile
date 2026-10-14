@@ -72,7 +72,7 @@ const PERFORMANCE_RESULTS = {
  * Run the generator against a temporary aggregated-reports directory and
  * return the comment markdown it produced.
  */
-function generateComment({ summary = SUMMARY, performanceResults } = {}) {
+function runGenerator({ summary = SUMMARY, performanceResults } = {}) {
   const workRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'perf-pr-comment-'));
   const reportsDir = path.join(workRoot, 'aggregated-reports');
   fs.mkdirSync(reportsDir);
@@ -107,7 +107,17 @@ function generateComment({ summary = SUMMARY, performanceResults } = {}) {
   );
 
   assert.equal(result.status, 0, result.stderr);
-  return fs.readFileSync(outputFile, 'utf8');
+  const fullFile = path.join(workRoot, 'comment-api-full.md');
+  return {
+    md: fs.readFileSync(outputFile, 'utf8'),
+    fullReport: fs.existsSync(fullFile)
+      ? fs.readFileSync(fullFile, 'utf8')
+      : null,
+  };
+}
+
+function generateComment(args) {
+  return runGenerator(args).md;
 }
 
 test('warns in the header and lists failed scenarios', () => {
@@ -355,8 +365,8 @@ test('prefers the public TestMu share link over the dashboard link', () => {
   assert.doesNotMatch(md, /test\?testID=/);
 });
 
-test('shows app profiling and API requests for passed scenarios too', () => {
-  const md = generateComment({
+test('shows app profiling and API requests in the single PR comment', () => {
+  const { md, fullReport } = runGenerator({
     summary: {
       ...SUMMARY,
       failedTestsStats: { uniqueFailedTests: 0, failedTestsByTeam: {} },
@@ -375,7 +385,12 @@ test('shows app profiling and API requests for passed scenarios too', () => {
               memory: { avg: 500, max: 600, unit: 'MB' },
             },
             apiCalls: [
-              { method: 'GET', url: 'https://a.test/x?key=1', status: 200, time: 12 },
+              {
+                method: 'GET',
+                url: 'https://a.test/x?key=1',
+                status: 200,
+                time: 12,
+              },
             ],
           },
         ],
@@ -384,10 +399,46 @@ test('shows app profiling and API requests for passed scenarios too', () => {
   });
 
   assert.match(md, /📊 App profiling \(1\)/);
-  assert.match(md, /\| Asset View \| Google Pixel 8 Pro \(v14\.0\) \| 10\.0 \/ 20\.0 %/);
-  assert.match(md, /🌐 API requests \(1 scenarios, 1 calls\)/);
+  assert.match(
+    md,
+    /\| Asset View \| Google Pixel 8 Pro \(v14\.0\) \| 10\.0 \/ 20\.0 %/,
+  );
+  assert.match(md, /<summary>🌐 API requests \(1 scenarios, 1 calls\)/);
   assert.match(md, /\| GET \| `a\.test\/x` \| 1 \| 200 \| 12 ms \|/);
-  assert.ok(md.length < 65000);
+  assert.doesNotMatch(md, /next \d* ?comment/);
+  assert.match(fullReport, /^## 🌐 API requests \(complete list\)/);
+});
+
+test('keeps one comment under the size limit and puts the complete list in a separate file', () => {
+  const { md, fullReport } = runGenerator({
+    summary: {
+      ...SUMMARY,
+      failedTestsStats: { uniqueFailedTests: 0, failedTestsByTeam: {} },
+    },
+    performanceResults: {
+      Android: {
+        'Google Pixel 8 Pro+14.0': Array.from({ length: 6 }, (_, s) => ({
+          testName: `Scenario ${s}`,
+          sessionId: `s-${s}`,
+          totalTime: 1,
+          device: { name: 'Google Pixel 8 Pro', osVersion: '14.0' },
+          team: { teamId: '@assets-dev-team' },
+          apiCalls: Array.from({ length: 400 }, (_, i) => ({
+            method: 'GET',
+            url: `https://host-${s}.example.com/api/v1/some/long/path/segment/${i}`,
+            status: 200,
+            time: 100,
+          })),
+        })),
+      },
+    },
+  });
+
+  assert.ok(md.length < 65000, `comment is ${md.length} chars`);
+  assert.match(md, /most called endpoints per scenario/);
+  assert.match(md, /\[run summary\]\(https:\/\/github\.com\/MetaMask\/metamask-mobile\/actions\/runs\/123\)/);
+  assert.ok(fullReport.length > 65000, 'complete list is larger than one comment');
+  assert.equal(fullReport.split('\n').filter((l) => l.startsWith('| GET')).length, 2400);
 });
 
 test('shows which element was not found instead of a generic reason', () => {

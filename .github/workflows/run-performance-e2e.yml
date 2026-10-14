@@ -634,6 +634,14 @@ jobs:
           gh pr comment "${PR_NUMBER}" --repo "${{ github.repository }}" --body "$FULL_COMMENT"
           echo "Performance results posted to PR #${PR_NUMBER}"
 
+      - name: Add complete API request list to the run summary
+        run: |
+          # The PR comment shows the most called endpoints per scenario (GitHub
+          # caps comments at 65,536 characters); the complete list goes here.
+          if [ -f performance-pr-comment-api-full.md ]; then
+            cat performance-pr-comment-api-full.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   slack-notification:
     name: Send Slack Notification
     runs-on: ubuntu-latest

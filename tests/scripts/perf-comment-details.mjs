@@ -5,7 +5,7 @@
 
 import { sanitizeApiCallUrl } from './diff-app-profiling.mjs';
 
-const MAX_ROWS_PER_SCENARIO = 25;
+
 
 const escapeCell = (value) =>
   String(value ?? '—')
@@ -123,9 +123,9 @@ export function buildProfilingSection(allRuns) {
   return md;
 }
 
-function buildScenarioApiBlock(run) {
+function buildScenarioApiBlock(run, maxRows = Infinity) {
   const groups = aggregateApiCalls(run.apiCalls);
-  const shown = groups.slice(0, MAX_ROWS_PER_SCENARIO);
+  const shown = groups.slice(0, maxRows);
 
   let md = `<details>\n<summary>${escapeCell(run.testName)} — ${
     run.apiCalls.length
@@ -142,51 +142,118 @@ function buildScenarioApiBlock(run) {
     )} | ${avg} |\n`;
   }
   if (groups.length > shown.length) {
-    md += `\n_…and ${groups.length - shown.length} more endpoints not shown._\n`;
+    md += `\n_…and ${groups.length - shown.length} more endpoints (fewest calls) not shown._\n`;
   }
   md += `\n</details>\n\n`;
   return md;
 }
 
-/**
- * @param runs Array of { testName, device, apiCalls, apiCallsError }.
- * @param options.charBudget Maximum characters this section may add, to stay
- *   under GitHub's comment size limit.
- */
-export function buildApiRequestsSection(runs, { charBudget = 40000 } = {}) {
+const intro = (withCalls) => {
+  const totalCalls = withCalls.reduce((sum, run) => sum + run.apiCalls.length, 0);
+  return `${withCalls.length} scenarios · ${totalCalls} calls · grouped by endpoint, most called first (query strings removed, key-like path segments masked)`;
+};
+
+function splitRuns(runs) {
   const withCalls = runs.filter(
     (run) => Array.isArray(run.apiCalls) && run.apiCalls.length > 0,
   );
   const unavailable = runs.filter(
     (run) => !run.apiCalls?.length && run.apiCallsError,
   ).length;
+  return { withCalls, unavailable };
+}
 
+const sumLength = (blocks) => blocks.reduce((sum, block) => sum + block.length, 0);
+
+/**
+ * Collapsed section for the PR comment. GitHub caps a comment at 65,536
+ * characters, so every scenario gets the same number of rows (its most called
+ * endpoints), as many as fit in `charBudget`.
+ *
+ * @param runs Array of { testName, device, apiCalls, apiCallsError }.
+ * @param options.charBudget Maximum characters this section may add.
+ * @param options.fullListUrl Where the complete list lives, linked when rows
+ *   had to be left out.
+ */
+export function buildApiRequestsSection(
+  runs,
+  { charBudget = 40000, fullListUrl = null } = {},
+) {
+  const { withCalls, unavailable } = splitRuns(runs);
   if (withCalls.length === 0 && unavailable === 0) {
     return '';
   }
 
-  const totalCalls = withCalls.reduce((sum, run) => sum + run.apiCalls.length, 0);
-  let md = `<details>\n<summary>🌐 API requests (${withCalls.length} scenarios, ${totalCalls} calls)</summary>\n\n`;
-  const footerReserve = 400;
-  let omitted = 0;
+  const maxGroups = Math.max(
+    1,
+    ...withCalls.map((run) => aggregateApiCalls(run.apiCalls).length),
+  );
+  const overhead = 700;
+  const build = (cap) => withCalls.map((run) => buildScenarioApiBlock(run, cap));
 
-  for (const run of withCalls) {
-    const block = buildScenarioApiBlock(run);
-    if (md.length + block.length + footerReserve > charBudget) {
-      omitted += 1;
-      continue;
+  // Largest rows-per-scenario cap that still fits the budget.
+  let low = 1;
+  let high = maxGroups;
+  let blocks = null;
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    const candidate = build(mid);
+    if (sumLength(candidate) + overhead <= charBudget) {
+      blocks = candidate;
+      low = mid + 1;
+    } else {
+      high = mid - 1;
     }
-    md += block;
   }
 
+  // Even one row per scenario is too much: keep as many scenarios as fit.
+  let omitted = 0;
+  if (!blocks) {
+    blocks = [];
+    let size = overhead;
+    for (const block of build(1)) {
+      if (size + block.length > charBudget) {
+        omitted += 1;
+        continue;
+      }
+      blocks.push(block);
+      size += block.length;
+    }
+  }
+
+  const truncated = omitted > 0 || blocks.some((block) => block.includes('not shown'));
+  const totalCalls = withCalls.reduce((sum, run) => sum + run.apiCalls.length, 0);
+
+  let md = `<details>\n<summary>🌐 API requests (${withCalls.length} scenarios, ${totalCalls} calls)</summary>\n\n`;
+  md += `${intro(withCalls)}\n\n`;
+  if (truncated) {
+    md += fullListUrl
+      ? `_Showing the most called endpoints per scenario; the complete list is in the [run summary](${fullListUrl})._\n\n`
+      : `_Showing the most called endpoints per scenario._\n\n`;
+  }
+  md += blocks.join('');
   if (omitted > 0) {
-    md += `_${omitted} scenario(s) omitted to stay within GitHub's comment size limit; see the \`app-profiling\` artifact for the full list._\n\n`;
+    md += `_${omitted} scenario(s) omitted to stay within GitHub's comment size limit._\n\n`;
   }
   if (unavailable > 0) {
     md += `_Network logs unavailable for ${unavailable} scenario(s)._\n\n`;
   }
-
   md += `</details>\n\n`;
+  return md;
+}
+
+/** Every endpoint of every scenario, for the workflow run summary (1 MiB limit). */
+export function buildApiRequestsFullReport(runs) {
+  const { withCalls, unavailable } = splitRuns(runs);
+  if (withCalls.length === 0) {
+    return '';
+  }
+
+  let md = `## 🌐 API requests (complete list)\n\n${intro(withCalls)}\n\n`;
+  md += withCalls.map((run) => buildScenarioApiBlock(run)).join('');
+  if (unavailable > 0) {
+    md += `_Network logs unavailable for ${unavailable} scenario(s)._\n`;
+  }
   return md;
 }
 

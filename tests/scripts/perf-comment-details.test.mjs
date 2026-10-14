@@ -4,6 +4,7 @@ import {
   aggregateApiCalls,
   buildProfilingSection,
   buildApiRequestsSection,
+  buildApiRequestsFullReport,
   describeFailure,
 } from './perf-comment-details.mjs';
 
@@ -53,7 +54,15 @@ test('buildProfilingSection reports errored scenarios and ignores ones without d
   assert.equal(buildProfilingSection([]), '');
 });
 
-test('buildApiRequestsSection nests a collapsed table per scenario', () => {
+const manyCalls = (prefix, count = 3, repeat = 1) =>
+  Array.from({ length: count * repeat }, (_, i) => ({
+    method: 'GET',
+    url: `https://a.test/${prefix}/${i % count}`,
+    status: 200,
+    time: 5,
+  }));
+
+test('buildApiRequestsSection renders one collapsed table per scenario', () => {
   const md = buildApiRequestsSection([
     {
       testName: 'Asset View',
@@ -65,10 +74,67 @@ test('buildApiRequestsSection nests a collapsed table per scenario', () => {
     },
   ]);
 
-  assert.match(md, /🌐 API requests \(1 scenarios, 2 calls\)/);
+  assert.match(md, /^<details>\n<summary>🌐 API requests \(1 scenarios, 2 calls\)/);
   assert.match(md, /Asset View — 2 calls, 1 unique/);
   assert.match(md, /\| GET \| `a\.test\/x` \| 2 \| 200 \| 20 ms \|/);
   assert.doesNotMatch(md, /<details open/);
+  assert.doesNotMatch(md, /not shown|run summary/);
+});
+
+test('buildApiRequestsSection gives every scenario the same number of rows within the budget', () => {
+  const runs = [
+    { testName: 'Big', device: 'D', apiCalls: manyCalls('big', 200) },
+    { testName: 'Medium', device: 'D', apiCalls: manyCalls('med', 80) },
+    { testName: 'Small', device: 'D', apiCalls: manyCalls('small', 5) },
+  ];
+
+  const md = buildApiRequestsSection(runs, {
+    charBudget: 6000,
+    fullListUrl: 'https://github.com/o/r/actions/runs/1',
+  });
+
+  assert.ok(md.length <= 6000, `section is ${md.length} chars`);
+  const rows = (name) => {
+    const block = md.split('<details>\n<summary>').find((b) => b.startsWith(name));
+    return block.split('\n').filter((l) => l.startsWith('| GET')).length;
+  };
+  assert.equal(rows('Small'), 5);
+  assert.equal(rows('Big'), rows('Medium'));
+  assert.ok(rows('Big') > 5);
+  assert.match(md, /\[run summary\]\(https:\/\/github\.com\/o\/r\/actions\/runs\/1\)/);
+  assert.match(md, /more endpoints \(fewest calls\) not shown/);
+});
+
+test('buildApiRequestsSection keeps the most called endpoints when truncating', () => {
+  const calls = [
+    ...manyCalls('hot', 1, 30),
+    ...Array.from({ length: 20 }, (_, i) => ({
+      method: 'GET',
+      url: `https://a.test/cold-${i}`,
+      status: 200,
+    })),
+  ];
+  const md = buildApiRequestsSection(
+    [{ testName: 'S', device: 'D', apiCalls: calls }],
+    { charBudget: 1500 },
+  );
+
+  assert.match(md, /a\.test\/hot\/0/);
+  assert.doesNotMatch(md, /cold-9\b/);
+  assert.match(md, /not shown/);
+});
+
+test('buildApiRequestsSection drops scenarios only when one row each does not fit', () => {
+  const runs = Array.from({ length: 10 }, (_, i) => ({
+    testName: `Scenario ${i}`,
+    device: 'D',
+    apiCalls: manyCalls(`s${i}`, 3),
+  }));
+
+  const md = buildApiRequestsSection(runs, { charBudget: 2500 });
+
+  assert.ok(md.length <= 2500, `section is ${md.length} chars`);
+  assert.match(md, /scenario\(s\) omitted/);
 });
 
 test('buildApiRequestsSection notes scenarios whose network logs failed', () => {
@@ -87,22 +153,16 @@ test('buildApiRequestsSection is empty when there is nothing to report', () => {
   );
 });
 
-test('buildApiRequestsSection stays within the character budget', () => {
-  const runs = Array.from({ length: 30 }, (_, i) => ({
-    testName: `Scenario ${i}`,
-    device: 'D',
-    apiCalls: Array.from({ length: 40 }, (_, j) => ({
-      method: 'GET',
-      url: `https://a.test/${j}`,
-      status: 200,
-      time: 5,
-    })),
-  }));
+test('buildApiRequestsFullReport lists every endpoint of every scenario', () => {
+  const md = buildApiRequestsFullReport([
+    { testName: 'Big', device: 'D', apiCalls: manyCalls('big', 300) },
+    { testName: 'Small', device: 'D', apiCalls: manyCalls('small', 2) },
+  ]);
 
-  const md = buildApiRequestsSection(runs, { charBudget: 8000 });
-
-  assert.ok(md.length <= 8000, `section is ${md.length} chars`);
-  assert.match(md, /scenario\(s\) omitted/);
+  assert.match(md, /^## 🌐 API requests \(complete list\)/);
+  assert.equal(md.split('\n').filter((l) => l.startsWith('| GET')).length, 302);
+  assert.doesNotMatch(md, /not shown/);
+  assert.equal(buildApiRequestsFullReport([]), '');
 });
 
 test('describeFailure names the element when it was not found', () => {
