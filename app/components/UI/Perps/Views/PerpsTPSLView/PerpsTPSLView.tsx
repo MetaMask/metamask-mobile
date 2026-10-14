@@ -299,6 +299,8 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     amount,
     szDecimals,
     enableHaptics = false,
+    onBeforeConfirm,
+    isPositionReviewCurrent,
     onConfirm,
   } = route.params;
 
@@ -479,10 +481,16 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     usePerpsLivePositions({
       throttleMs: TP_SL_VIEW_CONFIG.PositionThrottleMs,
     });
+  const isPositionReviewUnavailable =
+    position !== undefined &&
+    isPositionReviewCurrent !== undefined &&
+    isPositionReviewCurrent(position) !== true;
   const isPositionGone =
     isEditingExistingPosition &&
-    !isPositionsLoading &&
-    !livePositions.some((p) => p.symbol === position.symbol);
+    (isPositionReviewCurrent !== undefined
+      ? isPositionReviewUnavailable
+      : !isPositionsLoading &&
+        !livePositions.some((p) => p.symbol === position.symbol));
   const tpslScreenType = isEditingExistingPosition
     ? PERPS_EVENT_VALUE.SCREEN_TYPE.EDIT_TPSL
     : PERPS_EVENT_VALUE.SCREEN_TYPE.CREATE_TPSL;
@@ -693,6 +701,18 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
       return;
     }
 
+    if (
+      position !== undefined &&
+      isPositionReviewCurrent !== undefined &&
+      isPositionReviewCurrent(position) !== true
+    ) {
+      return;
+    }
+
+    if (onBeforeConfirm !== undefined && onBeforeConfirm() !== true) {
+      return;
+    }
+
     if (focusedInput) {
       dismissKeypad();
     }
@@ -757,6 +777,8 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     focusedInput,
     takeProfitPrice,
     stopLossPrice,
+    onBeforeConfirm,
+    isPositionReviewCurrent,
     onConfirm,
     dismissKeypad,
     dismiss,
@@ -1165,6 +1187,15 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
           twClassName={isSheet ? undefined : 'flex-1'}
           testID="scroll-content"
         >
+          {isPositionReviewUnavailable && (
+            <HelpText
+              severity={HelpTextSeverity.Warning}
+              showIcon
+              testID={PerpsTPSLViewSelectorsIDs.RECOVERY_REVIEW_EXPIRED}
+            >
+              {strings('perps.recovery.review_expired')}
+            </HelpText>
+          )}
           {/* Current price and liquidation price info */}
           <Box twClassName={isSheet ? undefined : 'mb-6 gap-2'}>
             {position && (
