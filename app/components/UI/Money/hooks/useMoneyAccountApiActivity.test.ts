@@ -194,7 +194,7 @@ describe('useMoneyAccountApiActivity', () => {
     mockParse.mockReturnValueOnce([
       {
         ...CARD,
-        time: Date.parse('2026-06-04T11:53:51.000Z'),
+        time: Date.parse('2026-06-04T00:00:00.000Z'),
         token: { address: VMUSD_ADDRESS, symbol: 'vmUSD', decimals: 6 },
         blockNumber: 10,
       },
@@ -215,11 +215,11 @@ describe('useMoneyAccountApiActivity', () => {
           {
             chainId: 143,
             from: new Date(
-              Date.parse('2026-06-04T11:53:51.000Z') -
+              Date.parse('2026-06-04T00:00:00.000Z') -
                 365 * 24 * 60 * 60 * 1000,
             ).toISOString(),
             to: new Date(
-              Date.parse('2026-06-04T11:53:51.000Z') + 24 * 60 * 60 * 1000,
+              Date.parse('2026-06-04T00:00:00.000Z') + 24 * 60 * 60 * 1000,
             ).toISOString(),
           },
         ],
