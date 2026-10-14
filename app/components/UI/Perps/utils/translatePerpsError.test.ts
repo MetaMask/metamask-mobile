@@ -36,6 +36,7 @@ jest.mock('@metamask/perps-controller', () => {
       TPSL_UPDATE_FAILED: 'TPSL_UPDATE_FAILED',
       ORDER_REJECTED: 'ORDER_REJECTED',
       SLIPPAGE_EXCEEDED: 'SLIPPAGE_EXCEEDED',
+      PRICE_MOVED: 'PRICE_MOVED',
       RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
       SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
       NETWORK_ERROR: 'NETWORK_ERROR',
@@ -159,6 +160,40 @@ describe('translatePerpsError', () => {
 
       expect(result).toBe('perps.errors.unknownError');
       expect(strings).toHaveBeenCalledWith('perps.errors.unknownError', {});
+    });
+
+    it('formats structured PRICE_MOVED details for localized copy', () => {
+      const result = translatePerpsError({
+        error: 'Price moved too much',
+        errorCode: PERPS_ERROR_CODES.PRICE_MOVED,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.PRICE_MOVED,
+          priceDeltaBps: 336,
+          maxSlippageBps: 300,
+          expectedPrice: 788.71,
+          currentPrice: 815.22,
+        },
+      });
+
+      expect(result).toBe(
+        'perps.errors.priceMoved [priceDelta:3.36] [maxSlippage:3]',
+      );
+    });
+
+    it('formats IOC_CANCEL copy with the submitted slippage tolerance', () => {
+      const result = translatePerpsError({
+        error: PERPS_ERROR_CODES.IOC_CANCEL,
+        errorCode: PERPS_ERROR_CODES.IOC_CANCEL,
+        maxSlippageBps: 500,
+      });
+
+      expect(result).toBe('perps.errors.iocCancel [maxSlippage:5]');
+    });
+
+    it('uses non-numeric IOC_CANCEL copy when tolerance is unavailable', () => {
+      const result = translatePerpsError(PERPS_ERROR_CODES.IOC_CANCEL);
+
+      expect(result).toBe('perps.errors.iocCancelUnknownTolerance');
     });
   });
 
@@ -672,7 +707,7 @@ describe('handlePerpsError', () => {
         error: 'Insufficient liquidity for this trade',
       });
 
-      expect(result).toBe('perps.errors.insufficientLiquidity');
+      expect(result).toBe('perps.errors.iocCancelUnknownTolerance');
     });
 
     it('translates transfer failed error pattern', () => {

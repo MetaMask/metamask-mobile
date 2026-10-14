@@ -13,6 +13,7 @@ import {
 } from '@metamask/perps-controller';
 import { derivePerpsTradeAction } from './deriveTradeAction';
 import { toPerpsEntryAttribution } from './perpsAnalyticsAttribution';
+import type { MaxSlippageSource } from '../constants/slippageConfig';
 
 type OrderTrackingData = OrderParams['trackingData'];
 
@@ -31,6 +32,8 @@ export interface BuildPerpsOrderTrackingDataInput {
   marketPrice: number;
   /** Input method that produced the amount ('default' for the Pro inline form). */
   inputMethod: InputMethod;
+  /** Order type determines whether slippage settings affect execution. */
+  orderType: OrderType;
   source?: string;
   sourceSection?: string;
   currentMarketPosition?: Position | null;
@@ -40,6 +43,9 @@ export interface BuildPerpsOrderTrackingDataInput {
   /** Pay-with-any-token context (lite only); omit for the direct Pro path. */
   hasCustomTokenSelected?: boolean;
   payToken?: { symbol?: string; chainId?: string | number } | null;
+  maxSlippageBps?: number;
+  maxSlippageSource?: MaxSlippageSource;
+  estimatedSlippageBps?: number;
 }
 
 /**
@@ -56,6 +62,7 @@ export const buildPerpsOrderTrackingData = ({
   feeResults,
   marketPrice,
   inputMethod,
+  orderType,
   source,
   sourceSection,
   currentMarketPosition,
@@ -64,6 +71,9 @@ export const buildPerpsOrderTrackingData = ({
   vipTier,
   hasCustomTokenSelected,
   payToken,
+  maxSlippageBps,
+  maxSlippageSource,
+  estimatedSlippageBps,
 }: BuildPerpsOrderTrackingDataInput): OrderTrackingData => ({
   marginUsed: Number(marginRequired),
   totalFee: feeResults.totalFee,
@@ -89,6 +99,13 @@ export const buildPerpsOrderTrackingData = ({
     : {}),
   vipTier: vipTier ?? undefined,
   vipDiscount: feeResults.feeDiscountPercentage,
+  ...(!isStrategyOrderType(orderType) && !isLimitExecutionOrderType(orderType)
+    ? {
+        ...(maxSlippageBps !== undefined ? { maxSlippageBps } : {}),
+        ...(maxSlippageSource !== undefined ? { maxSlippageSource } : {}),
+        ...(estimatedSlippageBps !== undefined ? { estimatedSlippageBps } : {}),
+      }
+    : {}),
 });
 
 export interface BuildPerpsOrderParamsInput {
