@@ -22,6 +22,8 @@ import {
   type PerpsControllerState,
   type GetMarketsParams,
   type MarketInfo,
+  type OrderBookData,
+  type OrderBookLevel,
   WebSocketConnectionState,
 } from '@metamask/perps-controller';
 
@@ -42,6 +44,11 @@ type AddTransactionMessengerResult =
   | undefined;
 
 const PERPS_DEPOSIT_ADD_TRANSACTION_TIMEOUT_MS = 1200;
+
+/** Deep mock book: 1 bp between levels, $10M per level. */
+const E2E_ORDER_BOOK_LEVELS = 10;
+const E2E_ORDER_BOOK_STEP = 0.0001;
+const E2E_ORDER_BOOK_LEVEL_NOTIONAL_USD = 10_000_000;
 
 /** Size decimals aligned with typical HyperLiquid main-DEX markets (used by order form). */
 const E2E_MARKET_SZ_DECIMALS: Record<string, number> = {
@@ -445,6 +452,57 @@ export class E2EControllerOverrides {
     setTimeout(() => params.callback(filteredPrices), 0);
     return () => undefined;
   }
+
+  // Mock L2 order book subscription. Market-order liquidity checks block
+  // submission on an empty book, so E2E needs depth that fills any test size
+  // well within the default slippage cap.
+  subscribeToOrderBook(params: {
+    symbol: string;
+    levels?: number;
+    callback: (data: OrderBookData) => void;
+  }): () => void {
+    console.log('E2E Mock: Intercepted subscribeToOrderBook:', params.symbol);
+    const midPrice = Number(
+      this.mockService.getMockPrices()[params.symbol]?.price,
+    );
+    if (!(midPrice > 0)) {
+      return () => undefined;
+    }
+
+    const levelCount = params.levels ?? E2E_ORDER_BOOK_LEVELS;
+    const sizePerLevel = E2E_ORDER_BOOK_LEVEL_NOTIONAL_USD / midPrice;
+    const buildSide = (direction: 1 | -1): OrderBookLevel[] => {
+      let totalNotional = 0;
+      return Array.from({ length: levelCount }, (_, index) => {
+        const price =
+          midPrice * (1 + direction * (index + 1) * E2E_ORDER_BOOK_STEP);
+        const notional = sizePerLevel * price;
+        totalNotional += notional;
+        return {
+          price: price.toPrecision(8),
+          size: sizePerLevel.toString(),
+          total: (sizePerLevel * (index + 1)).toString(),
+          notional: notional.toString(),
+          totalNotional: totalNotional.toString(),
+        };
+      });
+    };
+    const bids = buildSide(-1);
+    const asks = buildSide(1);
+    const spread = Number(asks[0].price) - Number(bids[0].price);
+    const orderBook: OrderBookData = {
+      bids,
+      asks,
+      spread: spread.toString(),
+      spreadPercentage: ((spread / midPrice) * 100).toString(),
+      midPrice: midPrice.toString(),
+      lastUpdated: Date.now(),
+      maxTotal: (sizePerLevel * levelCount).toString(),
+    };
+
+    setTimeout(() => params.callback(orderBook), 0);
+    return () => undefined;
+  }
 }
 
 /**
@@ -476,6 +534,7 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
     'subscribeToOrders',
     'subscribeToOrderFills',
     'subscribeToPrices',
+    'subscribeToOrderBook',
   ];
 
   methodsToOverride.forEach((method) => {

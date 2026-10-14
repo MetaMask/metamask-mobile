@@ -20,7 +20,7 @@ const styleSheet = (params: {
   vars: MainActionButtonStyleSheetVars;
 }) => {
   const { theme, vars } = params;
-  const { style, isDisabled } = vars;
+  const { style, isDisabled, isGlass } = vars;
 
   let backgroundColor = theme.colors.background.muted;
 
@@ -28,19 +28,24 @@ const styleSheet = (params: {
     backgroundColor = theme.colors.background.muted;
   }
 
+  const contentLayout = {
+    paddingHorizontal: 4,
+    paddingVertical: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  } as const;
+
   return StyleSheet.create({
     base: Object.assign(
       {
-        backgroundColor,
+        ...(isGlass ? {} : { backgroundColor, ...contentLayout }),
         borderRadius: 16,
-        paddingHorizontal: 4,
-        paddingVertical: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        opacity: isDisabled ? 0.5 : 1,
+        opacity: isDisabled && !isGlass ? 0.5 : 1,
       } as const,
       style,
     ),
+    glassContent: contentLayout,
+    disabledGlassContent: { opacity: 0.5 },
     pressed: {
       backgroundColor: theme.colors.background.mutedPressed,
     },

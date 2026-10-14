@@ -209,15 +209,21 @@ describe('TokenDetailsStickyFooter', () => {
     });
 
     it('renders the expanded trader position sheet with footer actions', () => {
-      const { getByTestId, getByText } = render(
+      const { getByTestId, getByText, getAllByText } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
           traderPositionPnl={{
-            positionValue: '$103.31',
+            positionValue: '$103.33',
             pnl: {
-              amount: '+$15.01',
-              percentage: '+16.99%',
+              amount: '+$15.03',
+              percentage: '+17.02%',
               isProfit: true,
+            },
+            expandedDetails: {
+              averageCost: '$0.0357',
+              realizedPnl: '+$8.42',
+              unrealizedPnl: '+$15.03',
+              holdTime: '12 days',
             },
             isExpanded: true,
             onToggleExpanded: jest.fn(),
@@ -226,8 +232,17 @@ describe('TokenDetailsStickyFooter', () => {
       );
 
       expect(
-        getByTestId('token-details-trader-position-pnl-expanded-placeholder'),
+        getByTestId('token-details-trader-position-pnl-expanded-details'),
       ).toBeOnTheScreen();
+      expect(getByText('Share to feed')).toBeOnTheScreen();
+      expect(getByText('Average cost')).toBeOnTheScreen();
+      expect(getByText('Realized P&L')).toBeOnTheScreen();
+      expect(getAllByText('Unrealized P&L')).toHaveLength(2);
+      expect(getByText('Hold time')).toBeOnTheScreen();
+      expect(getByText('$0.0357')).toBeOnTheScreen();
+      expect(getByText('+$8.42')).toBeOnTheScreen();
+      expect(getByText('+$15.03')).toBeOnTheScreen();
+      expect(getByText('12 days')).toBeOnTheScreen();
       expect(
         getByTestId('token-details-trader-position-pnl-overlay'),
       ).toBeOnTheScreen();

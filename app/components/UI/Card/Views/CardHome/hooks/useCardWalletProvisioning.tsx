@@ -16,10 +16,36 @@ import {
   type ProvisioningError,
 } from '../../../pushProvisioning';
 import { buildProvisioningUserAddress } from '../../../util/buildUserAddress';
-import type { CardHomeData } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  CardStatus,
+  type CardHomeData,
+} from '../../../../../../core/Engine/controllers/card-controller/provider-types';
+
+export type WalletEntry = 'push' | 'instructions' | 'none';
+
+export function resolveWalletEntry({
+  cardStatus,
+  isEligibilityLoading,
+  canAddToWallet,
+  isCardInWallet,
+  platformWalletSupported,
+}: {
+  cardStatus: CardStatus | undefined;
+  isEligibilityLoading: boolean;
+  canAddToWallet: boolean;
+  isCardInWallet: boolean;
+  platformWalletSupported: boolean;
+}): WalletEntry {
+  if (cardStatus !== CardStatus.ACTIVE) return 'none';
+  if (canAddToWallet) return 'push';
+  if (!platformWalletSupported) return 'instructions';
+  if (isEligibilityLoading || isCardInWallet) return 'none';
+  return 'instructions';
+}
 
 export function useCardWalletProvisioning(
   data: CardHomeData | null | undefined,
+  platformWalletSupported: boolean,
 ) {
   const { toastRef } = useContext(ToastContext);
   const walletProvisioning = data?.walletProvisioning ?? null;
@@ -95,11 +121,20 @@ export function useCardWalletProvisioning(
     },
   });
 
+  const walletEntry = resolveWalletEntry({
+    cardStatus: data?.card?.status,
+    isEligibilityLoading: isLoading,
+    canAddToWallet,
+    isCardInWallet,
+    platformWalletSupported,
+  });
+
   return {
     initiateProvisioning,
     isProvisioning,
     isLoading,
     canAddToWallet,
     isCardInWallet,
+    walletEntry,
   };
 }

@@ -48,6 +48,7 @@ import type { QuickBuyTradeMode } from '../../QuickBuy/types';
 import TraderPositionPnl, {
   type TraderPositionPnlProps,
 } from '../TraderPositionPnl/TraderPositionPnl';
+import TraderPositionPnlDetails from '../TraderPositionPnl/TraderPositionPnlDetails';
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
@@ -558,37 +559,31 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const positionContent = traderPositionPnl ? (
     <>
       <TraderPositionPnl {...traderPositionPnl} />
-      <View
-        pointerEvents="none"
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        style={styles.expandedDetailsMeasurement}
-        onLayout={handleExpandedDetailsLayout}
-      >
-        <Box twClassName="rounded-lg bg-muted p-3">
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('social_leaderboard.trader_position.expanded_placeholder')}
-          </Text>
-        </Box>
-      </View>
-      <Animated.View style={expandedDetailsStyle}>
-        <Box
-          testID="token-details-trader-position-pnl-expanded-placeholder"
-          twClassName="rounded-lg bg-muted p-3"
+      {traderPositionPnl.expandedDetails && (
+        <View
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={styles.expandedDetailsMeasurement}
+          onLayout={handleExpandedDetailsLayout}
         >
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('social_leaderboard.trader_position.expanded_placeholder')}
-          </Text>
-        </Box>
+          <TraderPositionPnlDetails {...traderPositionPnl.expandedDetails} />
+        </View>
+      )}
+      <Animated.View style={expandedDetailsStyle}>
+        {traderPositionPnl.expandedDetails && (
+          <TraderPositionPnlDetails {...traderPositionPnl.expandedDetails} />
+        )}
       </Animated.View>
     </>
   ) : null;
 
   const footerActions = (
     <>
-      <View
+      <Box
         testID="bottomsheetfooter"
         style={[styles.footer, isTokenDetailsV1 && styles.traderPositionFooter]}
+        twClassName={traderPositionPnl ? 'mt-2' : undefined}
       >
         {showSwapButton && !isBuySellLayout && (
           <Button
@@ -715,7 +710,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             />
           </ButtonAnimated>
         )}
-      </View>
+      </Box>
       {isMoneyDepositCtaActive && !moneyDepositCta?.isLoading && (
         <Text
           variant={TextVariant.BodyXs}
