@@ -254,4 +254,86 @@ describe('LockManagerService', () => {
       expect(mockDispatch).not.toHaveBeenCalledWith(checkForDeeplink());
     });
   });
+
+  describe('suppressAutoLock', () => {
+    const mockStore = (lockTime: number) => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({ settings: { lockTime } }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+      return mockDispatch;
+    };
+
+    it('skips background lock while suppression is held and locks again after release', async () => {
+      const mockDispatch = mockStore(0);
+      lockManagerService.startListening();
+      const releaseAutoLock = lockManagerService.suppressAutoLock();
+
+      await mockAppStateListener('background');
+      await Promise.resolve();
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(lockApp());
+
+      releaseAutoLock();
+      await mockAppStateListener('background');
+      await Promise.resolve();
+
+      expect(mockDispatch).toHaveBeenCalledWith(lockApp());
+    });
+
+    it('cancels a pending auto-lock timer when suppression starts', async () => {
+      const mockDispatch = mockStore(5);
+      lockManagerService.startListening();
+      await mockAppStateListener('background');
+      const scheduledLock = mockSetTimeout.mock.calls[0][0] as () => void;
+
+      lockManagerService.suppressAutoLock();
+      scheduledLock();
+      await Promise.resolve();
+
+      expect(mockClearTimeout).toHaveBeenCalledWith(1);
+      expect(mockDispatch).not.toHaveBeenCalledWith(lockApp());
+    });
+
+    it('keeps auto-lock suppressed until the last overlapping hold is released', async () => {
+      const mockDispatch = mockStore(0);
+      lockManagerService.startListening();
+      const releaseFirst = lockManagerService.suppressAutoLock();
+      const releaseSecond = lockManagerService.suppressAutoLock();
+
+      releaseFirst();
+      await mockAppStateListener('background');
+      await Promise.resolve();
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(lockApp());
+
+      releaseSecond();
+      await mockAppStateListener('background');
+      await Promise.resolve();
+
+      expect(mockDispatch).toHaveBeenCalledWith(lockApp());
+    });
+
+    it('ignores a repeated release while another suppression is still held', async () => {
+      const mockDispatch = mockStore(0);
+      lockManagerService.startListening();
+      const releaseFirst = lockManagerService.suppressAutoLock();
+      const releaseSecond = lockManagerService.suppressAutoLock();
+
+      releaseFirst();
+      releaseFirst();
+      await mockAppStateListener('background');
+      await Promise.resolve();
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(lockApp());
+
+      releaseSecond();
+      await mockAppStateListener('background');
+      await Promise.resolve();
+
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith(lockApp());
+    });
+  });
 });

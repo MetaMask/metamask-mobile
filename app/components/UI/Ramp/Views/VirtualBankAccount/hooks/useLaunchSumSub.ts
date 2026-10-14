@@ -5,6 +5,7 @@ import type {
   KycConsentRecord,
 } from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
+import LockManagerService from '../../../../../../core/LockManagerService';
 import Logger from '../../../../../../util/Logger';
 import type { VbaIdentityVerificationCompletion } from '../modules/types';
 
@@ -100,6 +101,7 @@ export const useLaunchSumSub = (
     let cancelled = false;
 
     const launch = async () => {
+      let releaseAutoLock: (() => void) | undefined;
       try {
         const { KycController } = Engine.context;
         if (!KycController) {
@@ -111,6 +113,9 @@ export const useLaunchSumSub = (
           return;
         }
 
+        // Sumsub's native screen pauses the React Native host on Android, so
+        // the auto-lock timer would otherwise fire while the user is in KYC.
+        releaseAutoLock = LockManagerService.suppressAutoLock();
         const outcome = await KycController.launchProviderFlow({});
         if (cancelled) {
           return;
@@ -133,6 +138,7 @@ export const useLaunchSumSub = (
         setHasError(true);
         setIsLaunching(false);
       } finally {
+        releaseAutoLock?.();
         if (attemptRef.current === attempt) {
           inFlightRef.current = false;
         }

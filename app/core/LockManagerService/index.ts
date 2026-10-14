@@ -15,6 +15,11 @@ export class LockManagerService {
   #appStateListener?: NativeEventSubscription;
   #lockTimer?: number;
   #lockAppPromise?: Promise<void>;
+  /**
+   * Callers currently holding auto-lock off. Background events schedule a lock
+   * again only after every hold is released.
+   */
+  #autoLockSuppressionCount = 0;
 
   /**
    * True while Auto-lock still has work: a timer is scheduled, or lock has
@@ -26,7 +31,7 @@ export class LockManagerService {
   }
 
   #startLock = () => {
-    if (this.#lockAppPromise) {
+    if (this.#autoLockSuppressionCount > 0 || this.#lockAppPromise) {
       return;
     }
     this.#lockAppPromise = this.#lockApp().finally(() => {
@@ -94,7 +99,11 @@ export class LockManagerService {
 
       // Handle lock logic on background.
       if (nextAppState === 'background') {
-        if (lockTime === 0) {
+        if (this.#autoLockSuppressionCount > 0) {
+          // A native screen such as Sumsub pauses the React Native host on
+          // Android. That background event is the user still in the app.
+          this.#clearBackgroundTimer();
+        } else if (lockTime === 0) {
           this.#startLock();
         } else {
           // Autolock after some time.
@@ -121,6 +130,30 @@ export class LockManagerService {
         'LockManagerService: Error handling app state change',
       );
     }
+  };
+
+  /**
+   * Pauses auto-lock until the returned function is called.
+   *
+   * Overlapping callers each hold a count, so a background event schedules a
+   * lock again only after every hold is released. Calling the same release
+   * function twice does nothing. Any timer already scheduled is cancelled.
+   *
+   * @returns Idempotent function that drops this hold.
+   */
+  suppressAutoLock = (): (() => void) => {
+    this.#autoLockSuppressionCount += 1;
+    this.#clearBackgroundTimer();
+
+    let released = false;
+    return () => {
+      if (released || this.#autoLockSuppressionCount === 0) {
+        released = true;
+        return;
+      }
+      released = true;
+      this.#autoLockSuppressionCount -= 1;
+    };
   };
 
   /**
