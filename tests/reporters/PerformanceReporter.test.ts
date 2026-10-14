@@ -273,17 +273,22 @@ describe('PerformanceReporter', () => {
           testName: string;
           testFailed?: boolean;
           failureReason?: string | null;
+          failureMessage?: string | null;
           sessionId?: string | null;
           steps: unknown[];
           total: number;
           retryInfo?: {
             attempts: number;
             firstFailureReason: string | null;
+            firstFailureMessage?: string | null;
             firstFailureDurationSec: number | null;
           };
         }[];
         sessions: { sessionId: string }[];
-        failedTestsByTeam: Record<string, unknown>;
+        failedTestsByTeam: Record<
+          string,
+          { tests: { failureMessage?: string | null }[] }
+        >;
       }
       const internals = (r: PerformanceReporter) =>
         r as unknown as ReporterInternals;
@@ -335,7 +340,96 @@ describe('PerformanceReporter', () => {
         expect(metrics[0]?.retryInfo).toEqual({
           attempts: 2,
           firstFailureReason: 'session_creation_failed',
+          firstFailureMessage: null,
           firstFailureDurationSec: 420.003,
+        });
+      });
+
+      describe('failure message', () => {
+        const elementError =
+          '\u001b[31mError: element ("android=new UiSelector().resourceId("navbar-hamburger-menu-button")") still not displayed after 936ms\u001b[39m\n    at framework/AppiumAssertions.ts:141';
+
+        it('keeps the first line of the error for tests that failed mid-way', () => {
+          reporter.onTestEnd(
+            makeTest() as never,
+            makeResult({
+              status: 'failed',
+              error: { message: elementError },
+              attachments: [makeMetricsAttachment({ steps: [], total: 0 })],
+            }) as never,
+          );
+
+          const { metrics, failedTestsByTeam } = internals(reporter);
+          expect(metrics[0]?.failureReason).toBe('no_performance_metrics');
+          expect(metrics[0]?.failureMessage).toBe(
+            'element ("android=new UiSelector().resourceId("navbar-hamburger-menu-button")") still not displayed after 936ms',
+          );
+          expect(
+            failedTestsByTeam['@performance-team']?.tests[0]?.failureMessage,
+          ).toBe(metrics[0]?.failureMessage);
+        });
+
+        it('keeps the error for failures without metrics', () => {
+          reporter.onTestEnd(
+            makeTest() as never,
+            makeResult({
+              status: 'failed',
+              annotations: [{ type: 'sessionId', description: 'sess-1' }],
+              errors: [
+                { message: 'Error: Expected element text "A" within 10000ms' },
+              ],
+            }) as never,
+          );
+
+          expect(internals(reporter).metrics[0]?.failureMessage).toBe(
+            'Expected element text "A" within 10000ms',
+          );
+        });
+
+        it('drops the error when quality gates are what failed', () => {
+          mockValidateMetrics.mockReturnValueOnce({
+            passed: false,
+            hasThresholds: true,
+            violations: [],
+          });
+          reporter.onTestEnd(
+            makeTest() as never,
+            makeResult({
+              status: 'failed',
+              error: { message: 'Error: Quality gates exceeded: Step 1 ...' },
+              attachments: [makeMetricsAttachment()],
+            }) as never,
+          );
+
+          const { metrics } = internals(reporter);
+          expect(metrics[0]?.failureReason).toBe('quality_gates_exceeded');
+          expect(metrics[0]?.failureMessage).toBeNull();
+        });
+
+        it('records why the first attempt failed when a retry passes', () => {
+          reporter.onTestEnd(
+            makeTest() as never,
+            makeResult({
+              status: 'failed',
+              error: {
+                message:
+                  'Error: element ("~login") still not displayed after 10ms',
+              },
+              attachments: [makeMetricsAttachment({ steps: [], total: 0 })],
+            }) as never,
+          );
+          reporter.onTestEnd(
+            makeTest() as never,
+            makeResult({
+              status: 'passed',
+              retry: 1,
+              attachments: [makeMetricsAttachment()],
+            }) as never,
+          );
+
+          expect(
+            internals(reporter).metrics[0]?.retryInfo?.firstFailureMessage,
+          ).toBe('element ("~login") still not displayed after 10ms');
         });
       });
 

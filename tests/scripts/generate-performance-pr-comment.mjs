@@ -36,6 +36,7 @@ import {
 import {
   buildProfilingSection,
   buildApiRequestsSection,
+  describeFailure,
 } from './perf-comment-details.mjs';
 
 const SUMMARY_FILE = process.argv[2] || 'aggregated-reports/summary.json';
@@ -143,7 +144,10 @@ async function main() {
     if (!retryInfo) {
       return '';
     }
-    const reason = formatReason(retryInfo.firstFailureReason);
+    const reason = describeFailure(
+      formatReason(retryInfo.firstFailureReason),
+      retryInfo.firstFailureMessage,
+    );
     const seconds =
       typeof retryInfo.firstFailureDurationSec === 'number'
         ? ` after ${retryInfo.firstFailureDurationSec.toFixed(0)}s`
@@ -401,7 +405,12 @@ async function main() {
               ? formatDevice(String(t.device))
               : t.platform;
 
-        const reason = formatReason(t.failureReason);
+        const reason = describeFailure(
+          formatReason(t.failureReason),
+          t.failureReason === 'quality_gates_exceeded'
+            ? null
+            : t.failureMessage,
+        );
         const recording = formatRecordingLinks({
           recordingLink: t.recordingLink,
           sessionShareUrl: t.sessionShareUrl,

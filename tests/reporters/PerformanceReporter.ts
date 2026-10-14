@@ -46,12 +46,38 @@ interface PlaywrightTestResult {
   attachments: { name: string; body?: Buffer }[];
   annotations?: { type: string; description?: string }[];
   retry?: number;
+  error?: { message?: string };
+  errors?: { message?: string }[];
 }
 
 const isTestFailureStatus = (status: string): boolean =>
   status === 'failed' || status === 'timedOut' || status === 'interrupted';
 
 export const SESSION_CREATION_FAILED = 'session_creation_failed';
+
+const ANSI_ESCAPE = /\u001b\[[0-9;]*m/g;
+const MAX_FAILURE_MESSAGE_LENGTH = 300;
+
+/** First line of the Playwright error, without ANSI colors or the `Error:` prefix. */
+export const summarizeFailureMessage = (
+  result: PlaywrightTestResult,
+): string | null => {
+  const raw = result.error?.message ?? result.errors?.[0]?.message;
+  if (!raw) {
+    return null;
+  }
+  const firstLine = raw
+    .replace(ANSI_ESCAPE, '')
+    .split('\n')
+    .map((line) => line.trim())
+    .find((line) => line.length > 0);
+  if (!firstLine) {
+    return null;
+  }
+  return firstLine
+    .replace(/^Error:\s*/, '')
+    .slice(0, MAX_FAILURE_MESSAGE_LENGTH);
+};
 
 const hasSessionId = (result: PlaywrightTestResult): boolean => {
   const sessionId = result.annotations?.find(
@@ -271,6 +297,7 @@ class PerformanceReporter {
       sessionId: sessionIdFromAnnotation || null,
       qualityGates: null,
       failureReason: null,
+      failureMessage: summarizeFailureMessage(result),
     });
   }
 
@@ -311,6 +338,7 @@ class PerformanceReporter {
         if (isTestFailureStatus(result.status)) {
           metricsEntry.testFailed = true;
           metricsEntry.failureReason = result.status;
+          metricsEntry.failureMessage = summarizeFailureMessage(result);
         }
 
         // Ensure consistent device info
@@ -325,6 +353,7 @@ class PerformanceReporter {
         if (!metricsEntry.steps || metricsEntry.steps.length === 0) {
           metricsEntry.testFailed = true;
           metricsEntry.failureReason = 'no_performance_metrics';
+          metricsEntry.failureMessage = summarizeFailureMessage(result);
 
           const teamId = teamInfo.teamId;
           if (!this.failedTestsByTeam[teamId]) {
@@ -346,6 +375,7 @@ class PerformanceReporter {
                   ?.description ?? null,
               qualityGates: null,
               failureReason: 'no_performance_metrics',
+              failureMessage: summarizeFailureMessage(result),
             });
           }
         }
@@ -386,6 +416,7 @@ class PerformanceReporter {
           if (qualityGatesResult.hasThresholds && !qualityGatesResult.passed) {
             metricsEntry.testFailed = true;
             metricsEntry.failureReason = 'quality_gates_exceeded';
+            metricsEntry.failureMessage = null;
 
             // Ensure the test is tracked in failedTestsByTeam even when
             // trackFailedTest() was skipped because result.status was not
@@ -411,6 +442,7 @@ class PerformanceReporter {
                 sessionId: sessionIdFromAnnotation,
                 qualityGates: qualityGatesResult,
                 failureReason: 'quality_gates_exceeded',
+                failureMessage: null,
               });
             }
           }
@@ -425,6 +457,7 @@ class PerformanceReporter {
               !qualityGatesResult.passed
             ) {
               updates.failureReason = 'quality_gates_exceeded';
+              updates.failureMessage = null;
               updates.qualityGatesViolations = qualityGatesResult.violations;
             } else {
               updates.failureReason =
@@ -452,6 +485,7 @@ class PerformanceReporter {
       const failureReason = hasSessionId(result)
         ? result.status
         : SESSION_CREATION_FAILED;
+      const failureMessage = summarizeFailureMessage(result);
 
       const basicEntry: MetricsEntry = {
         testName: test.title,
@@ -463,6 +497,7 @@ class PerformanceReporter {
         steps: [],
         testFailed: true,
         failureReason,
+        failureMessage,
         note: 'Test failed - no performance metrics collected',
         team: teamInfo,
       };
@@ -471,6 +506,7 @@ class PerformanceReporter {
 
       this.updateFailedTestEntry(teamInfo.teamId, test.title, projectName, {
         failureReason,
+        failureMessage,
       });
     }
   }
@@ -816,6 +852,7 @@ class PerformanceReporter {
     const retryInfo: RetryInfo = {
       attempts: (result.retry ?? 1) + 1,
       firstFailureReason: previous?.failureReason ?? null,
+      firstFailureMessage: previous?.failureMessage ?? null,
       firstFailureDurationSec: previous?.total ?? null,
     };
 

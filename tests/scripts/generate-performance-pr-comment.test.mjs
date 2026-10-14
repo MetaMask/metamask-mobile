@@ -389,3 +389,74 @@ test('shows app profiling and API requests for passed scenarios too', () => {
   assert.match(md, /\| GET \| `a\.test\/x` \| 1 \| 200 \| 12 ms \|/);
   assert.ok(md.length < 65000);
 });
+
+test('shows which element was not found instead of a generic reason', () => {
+  const md = generateComment({
+    summary: {
+      ...SUMMARY,
+      failedTestsStats: {
+        uniqueFailedTests: 2,
+        failedTestsByTeam: {
+          '@metamask-mobile-platform': {
+            team: { teamId: '@metamask-mobile-platform' },
+            tests: [
+              {
+                testName: 'Measure Warm Start: Login To Wallet Screen',
+                platform: 'Android',
+                device: 'Google Pixel 8 Pro+14.0',
+                failureReason: 'no_performance_metrics',
+                failureMessage:
+                  'element ("android=new UiSelector().resourceId("navbar-hamburger-menu-button")") still not displayed after 936ms',
+                sessionId: null,
+              },
+              {
+                testName: 'Other flow',
+                platform: 'Android',
+                device: 'Google Pixel 8 Pro+14.0',
+                failureReason: 'failed',
+                failureMessage: 'Expected element text "A" within 10000ms',
+                sessionId: null,
+              },
+            ],
+          },
+        },
+      },
+    },
+    performanceResults: null,
+  });
+
+  assert.match(md, /Element "navbar-hamburger-menu-button" not found/);
+  assert.doesNotMatch(md, /no_performance_metrics/);
+  assert.match(md, /Test error: Expected element text "A" within 10000ms/);
+});
+
+test('uses the failure message in the retry note too', () => {
+  const md = generateComment({
+    summary: {
+      ...SUMMARY,
+      failedTestsStats: { uniqueFailedTests: 0, failedTestsByTeam: {} },
+    },
+    performanceResults: {
+      Android: {
+        'Google Pixel 8 Pro+14.0': [
+          {
+            testName: 'Asset View',
+            sessionId: 's',
+            totalTime: 5,
+            device: { name: 'Google Pixel 8 Pro', osVersion: '14.0' },
+            team: { teamId: '@assets-dev-team' },
+            retryInfo: {
+              attempts: 2,
+              firstFailureReason: 'no_performance_metrics',
+              firstFailureMessage:
+                'element ("~account-picker") still not displayed after 5ms',
+              firstFailureDurationSec: 12,
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  assert.match(md, /attempt 1: Element "account-picker" not found after 12s/);
+});

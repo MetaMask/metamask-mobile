@@ -189,3 +189,41 @@ export function buildApiRequestsSection(runs, { charBudget = 40000 } = {}) {
   md += `</details>\n\n`;
   return md;
 }
+
+const MAX_FAILURE_TEXT_LENGTH = 160;
+
+/** Pull the element id out of a UiAutomator / accessibility-id / xpath selector. */
+function describeSelector(selector) {
+  const unquoted = selector.replace(/^"(.*)"$/, '$1');
+  return (
+    /resourceId\("([^"]+)"\)/.exec(unquoted)?.[1] ??
+    /^~(.+)$/.exec(unquoted)?.[1] ??
+    /^android=.*?(?:text|description)\("([^"]+)"\)/.exec(unquoted)?.[1] ??
+    unquoted
+  );
+}
+
+/**
+ * Turn a failure into what the reader needs: which element was missing when
+ * the Appium framework says so, otherwise the reason label plus the first
+ * line of the error. Falls back to the label alone.
+ */
+export function describeFailure(reasonLabel, message) {
+  if (!message) {
+    return reasonLabel;
+  }
+
+  // WebdriverIO: element ("<selector>") still not displayed after 936ms
+  const notDisplayed = /^element \((.+)\) still not displayed after \d+ms/.exec(
+    message,
+  );
+  if (notDisplayed) {
+    return `Element "${describeSelector(notDisplayed[1])}" not found`;
+  }
+
+  const text =
+    message.length > MAX_FAILURE_TEXT_LENGTH
+      ? `${message.slice(0, MAX_FAILURE_TEXT_LENGTH - 1)}…`
+      : message;
+  return `${reasonLabel}: ${text}`;
+}

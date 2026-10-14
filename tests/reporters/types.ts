@@ -51,6 +51,7 @@ export interface MetricsEntry {
   team?: TeamInfo;
   testFailed?: boolean;
   failureReason?: string | null;
+  failureMessage?: string | null;
   note?: string;
   thresholdMarginPercent?: number;
   timestamp?: string;
@@ -74,6 +75,7 @@ export interface RetryInfo {
   attempts: number;
   /** Why the first attempt failed, e.g. `session_creation_failed`. */
   firstFailureReason: string | null;
+  firstFailureMessage?: string | null;
   firstFailureDurationSec: number | null;
 }
 
@@ -187,6 +189,8 @@ export interface FailedTestEntry {
   sessionId: string | null;
   qualityGates: QualityGatesResult | null;
   failureReason: string | null;
+  /** First line of the Playwright error, e.g. which element was not found. */
+  failureMessage?: string | null;
   qualityGatesViolations?: {
     stepName: string;
     actual: number;

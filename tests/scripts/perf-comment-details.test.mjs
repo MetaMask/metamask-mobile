@@ -4,6 +4,7 @@ import {
   aggregateApiCalls,
   buildProfilingSection,
   buildApiRequestsSection,
+  describeFailure,
 } from './perf-comment-details.mjs';
 
 const profiling = {
@@ -102,4 +103,38 @@ test('buildApiRequestsSection stays within the character budget', () => {
 
   assert.ok(md.length <= 8000, `section is ${md.length} chars`);
   assert.match(md, /scenario\(s\) omitted/);
+});
+
+test('describeFailure names the element when it was not found', () => {
+  assert.equal(
+    describeFailure(
+      'Test error',
+      'element ("android=new UiSelector().resourceId("navbar-hamburger-menu-button")") still not displayed after 936ms',
+    ),
+    'Element "navbar-hamburger-menu-button" not found',
+  );
+  assert.equal(
+    describeFailure('Test error', 'element ("~login-button") still not displayed after 10ms'),
+    'Element "login-button" not found',
+  );
+  assert.equal(
+    describeFailure(
+      'Test error',
+      "element (\"//*[@name='x']\") still not displayed after 10ms",
+    ),
+    "Element \"//*[@name='x']\" not found",
+  );
+});
+
+test('describeFailure appends the first error line to the reason label', () => {
+  assert.equal(
+    describeFailure('Test error', 'Expected element text "A" within 10000ms'),
+    'Test error: Expected element text "A" within 10000ms',
+  );
+  assert.match(describeFailure('Test error', 'x'.repeat(400)), /…$/);
+});
+
+test('describeFailure falls back to the label without a message', () => {
+  assert.equal(describeFailure('Timed out', null), 'Timed out');
+  assert.equal(describeFailure('Timed out', undefined), 'Timed out');
 });

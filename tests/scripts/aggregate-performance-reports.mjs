@@ -407,6 +407,7 @@ function processTestReport(testReport) {
   if (testReport.testFailed) {
     cleanedReport.testFailed = true;
     cleanedReport.failureReason = testReport.failureReason;
+    cleanedReport.failureMessage = testReport.failureMessage ?? null;
     // Include quality gates violations for failed tests
     if (testReport.qualityGates && !testReport.qualityGates.passed) {
       cleanedReport.qualityGatesViolations = testReport.qualityGates.violations || null;
@@ -588,6 +589,7 @@ function createSummary(groupedResults) {
               videoURL: test.videoURL || null,
               sessionShareUrl: test.sessionShareUrl || null,
               failureReason: test.failureReason,
+              failureMessage: test.failureMessage ?? null,
               qualityGates: test.qualityGates || null,
               qualityGatesViolations: test.qualityGatesViolations || null,
             }
@@ -599,6 +601,7 @@ function createSummary(groupedResults) {
           testExecutions[uniqueKey].hasFailed = true;
           // Update failure reason and recording info with the latest execution
           testExecutions[uniqueKey].testInfo.failureReason = test.failureReason;
+          testExecutions[uniqueKey].testInfo.failureMessage = test.failureMessage ?? null;
           if (test.sessionId) testExecutions[uniqueKey].testInfo.sessionId = test.sessionId;
           if (test.videoURL) testExecutions[uniqueKey].testInfo.videoURL = test.videoURL;
           if (test.sessionShareUrl) testExecutions[uniqueKey].testInfo.sessionShareUrl = test.sessionShareUrl;
@@ -681,6 +684,10 @@ function createSummary(groupedResults) {
           recordingLink: testInfo.videoURL ?? null,
           sessionShareUrl: testInfo.sessionShareUrl ?? null,
           failureReason,
+          failureMessage:
+            failureReason === 'quality_gates_exceeded'
+              ? null
+              : (testInfo.failureMessage ?? null),
           qualityGates: testInfo.qualityGates,
           qualityGatesViolations: testInfo.qualityGatesViolations,
         });
