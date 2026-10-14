@@ -1,0 +1,191 @@
+# Manual coverage on/off benchmark for the full unit (10) and component-view (4)
+# matrices. Triggered only by workflow_dispatch. Not a required check: do not add
+# it to check-all-jobs-pass or branch protection. No coverage upload, merge, nyc,
+# or Sonar.
+
+name: CI unit and CV coverage benchmark
+
+run-name: coverage=${{ inputs.coverage }} sha=${{ inputs.sha }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit SHA to benchmark
+        required: true
+        type: string
+        default: 7f5022c2da035820f9e7aa07deedb0229cb0a69b
+      coverage:
+        description: Jest coverage instrumentation
+        required: true
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+        default: 'true'
+      runner_provider:
+        description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
+        required: true
+        type: choice
+        options:
+          - inherit
+          - current
+          - namespace
+        default: inherit
+
+jobs:
+  # Warms the Namespace cache volume before test shards run. On non-Namespace
+  # runners uploads a ci-js-deps artifact so consumers can skip their own install.
+  prepare-ci-js-deps:
+    name: Prepare CI JS dependencies
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          ref: ${{ inputs.sha }}
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        with:
+          ref: ${{ inputs.sha }}
+      - uses: ./.github/actions/setup-ci-js-deps
+        with:
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Pack CI JS deps
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        run: tar -czf ci-js-deps.tar.gz node_modules app/util/termsOfUse/termsOfUseContent.ts
+      - name: Upload CI JS deps artifact
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ci-js-deps
+          path: ci-js-deps.tar.gz
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+
+  unit-tests:
+    name: Unit benchmark (${{ matrix.shard }})
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    needs:
+      - prepare-ci-js-deps
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          ref: ${{ inputs.sha }}
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        with:
+          ref: ${{ inputs.sha }}
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Download CI JS deps artifact
+        id: download-ci-js-deps
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: ci-js-deps
+          path: .
+      - name: Extract CI JS deps
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
+        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
+      - uses: ./.github/actions/setup-ci-js-deps
+        with:
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+      - name: Prepare results directory
+        run: mkdir -p tests/results
+      # Namespace Linux: --maxWorkers=33% (~3 workers on 8 vCPU) + 12GiB heap.
+      - name: Run Jest benchmark
+        run: yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent ${{ inputs.coverage == 'true' && '--coverage --coverageReporters=json' || '--coverage=false' }}
+        env:
+          NODE_OPTIONS: --max_old_space_size=12288
+      - name: Rename coverage report
+        if: ${{ inputs.coverage == 'true' && !cancelled() }}
+        shell: bash
+        run: mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
+
+  component-view-tests:
+    name: CV benchmark (${{ matrix.shard }})
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    needs:
+      - prepare-ci-js-deps
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          ref: ${{ inputs.sha }}
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        with:
+          ref: ${{ inputs.sha }}
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Download CI JS deps artifact
+        id: download-ci-js-deps
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: ci-js-deps
+          path: .
+      - name: Extract CI JS deps
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
+        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
+      - uses: ./.github/actions/setup-ci-js-deps
+        with:
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+      - name: Prepare results directory
+        run: mkdir -p tests/results
+      - name: Run Jest benchmark
+        run: TEST_OS=ios yarn test:view:base --forceExit --silent --shard=${{ matrix.shard }}/4 ${{ inputs.coverage == 'true' && '--coverage --coverageReporters=json' || '--coverage=false' }}
+        env:
+          NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
+      - name: Rename coverage report
+        if: ${{ inputs.coverage == 'true' && !cancelled() }}
+        shell: bash
+        run: mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-${{ matrix.shard }}.json
