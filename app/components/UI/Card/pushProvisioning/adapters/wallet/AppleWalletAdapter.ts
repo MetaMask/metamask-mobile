@@ -159,6 +159,21 @@ export class AppleWalletAdapter
    * An iPhone pass without a Watch pass depends on whether a paired Watch
    * can still take the card.
    */
+  /**
+   * Open the iPhone pass for this card. Prefers a pass that still needs
+   * verification. Returns false when that pass is not installed.
+   */
+  async openCardInWallet(lastFourDigits: string): Promise<boolean> {
+    try {
+      const wallet = await this.getWalletModule();
+      const opened = await wallet.presentAppleWalletPass(lastFourDigits);
+      return opened;
+    } catch (error) {
+      logAdapterError(this.getAdapterName(), 'openCardInWallet', error);
+      return false;
+    }
+  }
+
   private async canAddToAnotherDevice(
     wallet: typeof import('@expensify/react-native-wallet'),
     primaryAccountIdentifier: string,

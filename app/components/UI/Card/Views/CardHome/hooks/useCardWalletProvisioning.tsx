@@ -76,6 +76,8 @@ export function useCardWalletProvisioning(
     canAddToWallet,
     isCardInWallet,
     pendingVerificationDevices,
+    canOpenInWallet,
+    openInWallet,
   } = usePushProvisioning({
     cardId: data?.card?.id,
     walletProvisioning,
@@ -137,6 +139,8 @@ export function useCardWalletProvisioning(
     canAddToWallet,
     isCardInWallet,
     pendingVerificationDevices,
+    canOpenInWallet,
+    openInWallet,
     walletEntry,
   };
 }

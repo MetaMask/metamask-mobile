@@ -29,6 +29,7 @@ jest.mock('../../sdk', () => ({
 // Mock push provisioning hook
 const mockInitiateProvisioning = jest.fn();
 const mockResetProvisioningStatus = jest.fn();
+const mockOpenInWallet = jest.fn();
 const mockUsePushProvisioning = jest.fn(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   (_options: unknown) => ({
@@ -43,6 +44,8 @@ const mockUsePushProvisioning = jest.fn(
     canAddToWallet: false,
     isCardInWallet: false,
     pendingVerificationDevices: [] as ('phone' | 'watch')[],
+    canOpenInWallet: false,
+    openInWallet: mockOpenInWallet,
   }),
 );
 
@@ -2180,6 +2183,8 @@ describe('CardHome Component', () => {
         canAddToWallet: false,
         isCardInWallet: false,
         pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
@@ -2204,6 +2209,8 @@ describe('CardHome Component', () => {
         canAddToWallet: true,
         isCardInWallet: false,
         pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
@@ -2228,6 +2235,8 @@ describe('CardHome Component', () => {
         canAddToWallet: false,
         isCardInWallet: true,
         pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
@@ -2252,6 +2261,8 @@ describe('CardHome Component', () => {
         canAddToWallet: true,
         isCardInWallet: true,
         pendingVerificationDevices: ['phone', 'watch'],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
@@ -2281,6 +2292,61 @@ describe('CardHome Component', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('opens the iPhone pass from the pending notice', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: false,
+        isCardInWallet: true,
+        pendingVerificationDevices: ['phone'],
+        canOpenInWallet: true,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_OPEN_WALLET),
+      );
+
+      expect(mockOpenInWallet).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the wallet link when only the Watch pass is pending', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+        isCardInWallet: true,
+        pendingVerificationDevices: ['watch'],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.VERIFICATION_PENDING_OPEN_WALLET,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
     it('shows the instructions when push provisioning is unavailable', () => {
       mockUsePushProvisioning.mockReturnValueOnce({
         initiateProvisioning: mockInitiateProvisioning,
@@ -2294,6 +2360,8 @@ describe('CardHome Component', () => {
         canAddToWallet: false,
         isCardInWallet: false,
         pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
@@ -7297,6 +7365,8 @@ describe('CardHome Component', () => {
         canAddToWallet: false,
         isCardInWallet: false,
         pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
       render();
       expect(screen.queryByTestId('add-to-wallet-button')).toBeNull();

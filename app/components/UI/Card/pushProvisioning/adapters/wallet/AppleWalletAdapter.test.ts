@@ -14,6 +14,7 @@ const mockCheckWalletAvailability = jest.fn();
 const mockAddListener = jest.fn();
 const mockListAppleWalletPasses = jest.fn();
 const mockCanAddCardToAppleWallet = jest.fn();
+const mockPresentAppleWalletPass = jest.fn();
 
 const mockWalletModule = {
   addCardToAppleWallet: mockAddCardToAppleWallet,
@@ -22,6 +23,7 @@ const mockWalletModule = {
   addListener: mockAddListener,
   listAppleWalletPasses: mockListAppleWalletPasses,
   canAddCardToAppleWallet: mockCanAddCardToAppleWallet,
+  presentAppleWalletPass: mockPresentAppleWalletPass,
 };
 
 // Mock the native wallet module so dynamic import() returns our mock
@@ -642,6 +644,25 @@ describe('AppleWalletAdapter', () => {
         expect(result.canAddCard).toBe(false);
         expect(result.existingCardStatus).toBe('active');
       });
+    });
+  });
+
+  describe('openCardInWallet', () => {
+    it('opens the pass that matches the last four digits', async () => {
+      mockPresentAppleWalletPass.mockResolvedValue(true);
+
+      const opened = await adapter.openCardInWallet('1234');
+
+      expect(mockPresentAppleWalletPass).toHaveBeenCalledWith('1234');
+      expect(opened).toBe(true);
+    });
+
+    it('returns false when the wallet cannot present the pass', async () => {
+      mockPresentAppleWalletPass.mockRejectedValue(new Error('passkit'));
+
+      const opened = await adapter.openCardInWallet('1234');
+
+      expect(opened).toBe(false);
     });
   });
 
