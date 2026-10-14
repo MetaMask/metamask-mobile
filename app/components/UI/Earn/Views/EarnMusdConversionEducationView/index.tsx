@@ -399,7 +399,7 @@ const EarnMusdConversionEducationView = () => {
     >
       <Box twClassName="px-4 items-center">
         <Text
-          fontFamily={FontFamily.Hero}
+          fontFamily={FontFamily.Grotzec}
           fontWeight={FontWeight.Regular}
           twClassName="text-center py-4 text-[60px] leading-[60px] tracking-[-1.2px]"
         >

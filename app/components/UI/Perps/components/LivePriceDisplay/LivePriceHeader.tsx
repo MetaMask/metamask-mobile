@@ -208,7 +208,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
     <View style={[styles.container, isLarge ? stackedLayout : inlineLayout]}>
       <Text
         variant={priceVariant}
-        fontFamily={isLarge ? FontFamily.Hero : undefined}
+        fontFamily={isLarge ? FontFamily.Grotzec : undefined}
         fontWeight={isLarge ? FontWeight.Regular : undefined}
         twClassName={
           size === 'large' ? 'text-[60px] leading-[60px]' : undefined

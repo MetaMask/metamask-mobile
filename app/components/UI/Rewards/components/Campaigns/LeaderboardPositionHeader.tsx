@@ -114,7 +114,7 @@ const LeaderboardPositionHeader: React.FC<LeaderboardPositionHeaderProps> = ({
           <>
             <Text
               variant={TextVariant.AmountDisplayLg}
-              fontFamily={FontFamily.Hero}
+              fontFamily={FontFamily.Grotzec}
               fontWeight={FontWeight.Regular}
               twClassName="text-[60px] leading-[60px]"
               testID={LEADERBOARD_POSITION_HEADER_TEST_IDS.RANK_VALUE}

@@ -267,7 +267,7 @@ const PerpsHeroCardView: React.FC = () => {
             {/* P&L Percentage */}
             <Text
               variant={TextVariant.AmountDisplayLg}
-              fontFamily={FontFamily.Hero}
+              fontFamily={FontFamily.Grotzec}
               fontWeight={FontWeight.Regular}
               twClassName="text-[60px] leading-[60px]"
               style={data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative}

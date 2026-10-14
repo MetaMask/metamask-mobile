@@ -309,7 +309,7 @@ describe('LivePriceHeader', () => {
       );
 
       expect(priceText?.props.variant).toBe(TextVariant.AmountDisplayLg);
-      expect(priceText?.props.fontFamily).toBe(FontFamily.Hero);
+      expect(priceText?.props.fontFamily).toBe(FontFamily.Grotzec);
       expect(priceText?.props.fontWeight).toBe(FontWeight.Regular);
       expect(priceText?.props.twClassName).toBe('text-[60px] leading-[60px]');
       expect(priceText?.props.color).toBe(TextColor.TextDefault);
@@ -329,7 +329,7 @@ describe('LivePriceHeader', () => {
       );
 
       expect(priceText?.props.variant).toBe(TextVariant.HeadingLg);
-      expect(priceText?.props.fontFamily).toBe(FontFamily.Hero);
+      expect(priceText?.props.fontFamily).toBe(FontFamily.Grotzec);
       expect(priceText?.props.fontWeight).toBe(FontWeight.Regular);
       expect(priceText?.props.color).toBe(TextColor.TextDefault);
     });

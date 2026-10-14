@@ -88,7 +88,7 @@ function TotalReceivedValue({
   return (
     <Text
       variant={TextVariant.AmountDisplayLg}
-      fontFamily={FontFamily.Hero}
+      fontFamily={FontFamily.Grotzec}
       fontWeight={FontWeight.Regular}
       color={TextColor.SuccessDefault}
       twClassName="min-w-0 flex-1 text-[60px] leading-[60px]"

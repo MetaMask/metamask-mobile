@@ -301,7 +301,7 @@ export function TransactionDetailsHero() {
     >
       <Text
         variant={TextVariant.AmountDisplayLg}
-        fontFamily={FontFamily.Hero}
+        fontFamily={FontFamily.Grotzec}
         fontWeight={FontWeight.Regular}
         twClassName="text-[60px] leading-[60px]"
       >

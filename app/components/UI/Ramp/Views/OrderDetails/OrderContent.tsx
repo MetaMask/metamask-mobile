@@ -360,7 +360,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
         <Text
           testID={RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT}
           variant={TextVariant.AmountDisplayLg}
-          fontFamily={FontFamily.Hero}
+          fontFamily={FontFamily.Grotzec}
           fontWeight={FontWeight.Regular}
           twClassName="text-[60px] leading-[60px]"
           twClassName="mt-6 text-center"

@@ -24,7 +24,7 @@ const VipSplashGradientTitle: React.FC<VipSplashGradientTitleProps> = ({
     <MaskedView
       maskElement={
         <Text
-          fontFamily={FontFamily.Hero}
+          fontFamily={FontFamily.Grotzec}
           fontWeight={FontWeight.Regular}
           twClassName="text-center text-[60px] leading-[60px] tracking-[-1.2px] pt-3"
           testID={testID}
@@ -41,7 +41,7 @@ const VipSplashGradientTitle: React.FC<VipSplashGradientTitleProps> = ({
         style={tw.style('items-center')}
       >
         <Text
-          fontFamily={FontFamily.Hero}
+          fontFamily={FontFamily.Grotzec}
           fontWeight={FontWeight.Regular}
           twClassName="text-center text-[60px] leading-[60px] tracking-[-1.2px] pt-3"
         >

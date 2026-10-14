@@ -29,7 +29,7 @@ jest.mock('@metamask/design-system-react-native', () => {
         { style, testID, variant, fontFamily, fontWeight, twClassName },
         children,
       ),
-    FontFamily: { Hero: 'hero' },
+    FontFamily: { Grotzec: 'grotzec' },
     FontWeight: { Regular: 'regular' },
   };
 });
@@ -83,7 +83,7 @@ describe('VipSplashGradientTitle', () => {
 
     expect(title).toBeOnTheScreen();
     expect(title.props.variant).toBeUndefined();
-    expect(title.props.fontFamily).toBe('hero');
+    expect(title.props.fontFamily).toBe('grotzec');
     expect(title.props.fontWeight).toBe('regular');
     expect(title.props.twClassName).toContain('text-[60px]');
     expect(title.props.twClassName).toContain('leading-[60px]');

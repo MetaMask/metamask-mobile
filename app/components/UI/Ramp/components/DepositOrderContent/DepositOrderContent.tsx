@@ -157,7 +157,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
 
         <TextDs
           variant={TextVariantDs.AmountDisplayLg}
-          fontFamily={FontFamily.Hero}
+          fontFamily={FontFamily.Grotzec}
           fontWeight={FontWeight.Regular}
           twClassName="text-[60px] leading-[60px]"
           style={styles.mainAmount}

@@ -284,7 +284,7 @@ const CardWelcome = () => {
           ]}
         >
           <Text
-            fontFamily={FontFamily.Hero}
+            fontFamily={FontFamily.Grotzec}
             fontWeight={FontWeight.Regular}
             twClassName="text-center pt-3 text-accent02-light text-[60px] leading-[60px] tracking-[-1.2px]"
             testID={CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT}

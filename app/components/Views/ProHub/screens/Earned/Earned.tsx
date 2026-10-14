@@ -107,7 +107,7 @@ const Earned = () => {
         <Box twClassName="gap-y-2">
           <Text
             variant={TextVariant.AmountDisplayLg}
-            fontFamily={FontFamily.Hero}
+            fontFamily={FontFamily.Grotzec}
             fontWeight={FontWeight.Regular}
             twClassName="text-[60px] leading-[60px]"
             color={TextColor.TextDefault}
@@ -156,7 +156,7 @@ const Earned = () => {
           </Text>
           <Text
             variant={TextVariant.AmountDisplayLg}
-            fontFamily={FontFamily.Hero}
+            fontFamily={FontFamily.Grotzec}
             fontWeight={FontWeight.Regular}
             color={TextColor.SuccessDefault}
             testID={EarnedTestIds.PAID_FOR_ITSELF_VALUE}
