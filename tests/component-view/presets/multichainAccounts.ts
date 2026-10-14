@@ -300,6 +300,9 @@ export function buildMultichainAccountsFixture(
               selectedAccount,
             },
           },
+          MoneyAccountController: {
+            moneyAccounts: {},
+          },
           KeyringController: {
             isUnlocked: true,
             keyrings: [
