@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -74,10 +75,12 @@ import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader
 import TraderPositionPnlSection from '../TraderPositionPnl/TraderPositionPnlSection';
 import {
   TOKEN_DETAILS_V1_TABS,
+  TokenDetailsSource,
   type TokenDetailsRouteParams,
   type TokenDetailsVariant,
   type TokenDetailsV1TabKey,
 } from '../constants/constants';
+import { getTdpAnalyticsBase } from '../analytics/getTdpAnalyticsBase';
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
@@ -184,6 +187,50 @@ const styleSheet = (params: { theme: Theme }) => {
 
 export { resolveSwipeTargetTab } from '../components/TokenDetailsV1TabBar';
 
+/**
+ * Fires TOKEN_DETAILS_OPENED once per Token Details V1 open.
+ *
+ * Mirrors the legacy `useTokenDetailsOpenedTracking`, deduping by
+ * `chainId:address:symbol:source` so a re-render never re-fires. The V1 page
+ * previously fired only TOKEN_DETAILS_SHARED and never TOKEN_DETAILS_OPENED.
+ */
+const useTokenDetailsV1OpenedTracking = (
+  token: TokenDetailsRouteParams,
+  variant: TokenDetailsVariant,
+) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const lastTrackedTokenKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const source = token.source ?? TokenDetailsSource.Unknown;
+    const tokenTrackingKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}:${source}`;
+
+    if (lastTrackedTokenKeyRef.current === tokenTrackingKey) {
+      return;
+    }
+
+    const hasBalance =
+      token.balance !== undefined &&
+      token.balance !== null &&
+      token.balance !== '0' &&
+      token.balance !== '';
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
+        .addProperties({
+          ...getTdpAnalyticsBase(token, variant),
+          source,
+          token_symbol: token.symbol,
+          token_address: token.address,
+          token_name: token.name,
+          has_balance: hasBalance,
+        })
+        .build(),
+    );
+    lastTrackedTokenKeyRef.current = tokenTrackingKey;
+  }, [createEventBuilder, token, trackEvent, variant]);
+};
+
 interface TokenDetailsV1Props {
   token: TokenDetailsRouteParams;
   /** Asset category this page renders for, which decides the stat bar's stats. */
@@ -198,6 +245,13 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
+
+  useTokenDetailsV1OpenedTracking(token, variant);
+
+  const analyticsBase = useMemo(
+    () => getTdpAnalyticsBase(token, variant),
+    [token, variant],
+  );
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -346,6 +400,42 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const { activeTab, activateTab, mountedTabs, swipeGesture } =
     useTokenDetailsV1Tabs({ onTabChange: clampScrollToTabBar });
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
+
+  // Explicit tab taps emit exactly one TOKEN_DETAILS_TAB_VIEWED. Swipe-driven
+  // tab changes call `activateTab` internally and the pill routes through
+  // `handleSecurityPress` (its own event), so neither double-fires here.
+  const handleTabPress = useCallback(
+    (tab: TokenDetailsV1TabKey) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_TAB_VIEWED)
+          .addProperties({
+            ...analyticsBase,
+            tab_name: tab,
+          })
+          .build(),
+      );
+      activateTab(tab);
+    },
+    [activateTab, analyticsBase, createEventBuilder, trackEvent],
+  );
+
+  // The security pill jumps to the Security tab. It emits its own verdict
+  // event rather than TOKEN_DETAILS_TAB_VIEWED, so `activateTab` is called
+  // directly instead of `handleTabPress`.
+  const handleSecurityPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_SECURITY_PILL_CLICKED)
+        .addProperties({
+          ...analyticsBase,
+          // The exact verdict feeding the SecurityPill below. Sourced from the
+          // ASSETS-4022 mock until real `TokenSecurityData` derivation lands;
+          // the analytics wiring itself is production.
+          verdict: MOCK_SECURITY_VERDICT,
+        })
+        .build(),
+    );
+    activateTab('security');
+  }, [activateTab, analyticsBase, createEventBuilder, trackEvent]);
 
   const renderTabPage = useCallback(
     (tab: TokenDetailsV1TabKey) => {
@@ -504,7 +594,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                     securityFlagCount={MOCK_SECURITY_FLAG_COUNT}
                     externalLinks={securityData?.metadata?.externalLinks}
                     contractAddress={token.isNative ? null : token.address}
-                    onSecurityPress={() => activateTab('security')}
+                    onSecurityPress={handleSecurityPress}
                   />
                 </Box>
                 <Box twClassName="py-4">
@@ -526,7 +616,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 
               <TokenDetailsV1TabBar
                 activeTab={activeTab}
-                onTabPress={activateTab}
+                onTabPress={handleTabPress}
                 onLayout={handleTabBarLayout}
               />
 

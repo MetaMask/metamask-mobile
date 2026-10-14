@@ -96,6 +96,8 @@ enum EVENT_NAME {
   WATCHLIST_TOKEN_REMOVED = 'Token Watchlist Token Removed',
   WATCHLIST_PAGE_VIEWED = 'Token Watchlist Page Viewed',
   TOKEN_DETAILS_CTA_CLICKED = 'Token Details CTA Clicked',
+  TOKEN_DETAILS_TAB_VIEWED = 'Token Details Tab Viewed',
+  TOKEN_DETAILS_SECURITY_PILL_CLICKED = 'Token Details Security Pill Clicked',
   TOKEN_DETAILS_ACTION_CLICKED = 'Token Details Action Clicked',
   /**
    * Token overview advanced chart: zoom, pan, tooltip, timeframe change, chart type
@@ -1800,6 +1802,10 @@ const events = {
   WATCHLIST_TOKEN_REMOVED: generateOpt(EVENT_NAME.WATCHLIST_TOKEN_REMOVED),
   WATCHLIST_PAGE_VIEWED: generateOpt(EVENT_NAME.WATCHLIST_PAGE_VIEWED),
   TOKEN_DETAILS_CTA_CLICKED: generateOpt(EVENT_NAME.TOKEN_DETAILS_CTA_CLICKED),
+  TOKEN_DETAILS_TAB_VIEWED: generateOpt(EVENT_NAME.TOKEN_DETAILS_TAB_VIEWED),
+  TOKEN_DETAILS_SECURITY_PILL_CLICKED: generateOpt(
+    EVENT_NAME.TOKEN_DETAILS_SECURITY_PILL_CLICKED,
+  ),
   TOKEN_DETAILS_ACTION_CLICKED: generateOpt(
     EVENT_NAME.TOKEN_DETAILS_ACTION_CLICKED,
   ),

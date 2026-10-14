@@ -41,6 +41,13 @@ import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../constants/constants';
+import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  trackActionButtonClick,
+  ActionButtonType,
+  ActionLocation,
+} from '../../../../util/analytics/actionButtonTracking';
 import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
 import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
 import type { QuickBuyFooterLayout } from '../../QuickBuy/abTestConfig';
@@ -150,6 +157,12 @@ interface TokenStickyFooterProps {
   useAmbientColor?: boolean;
   /** Enables the updated button treatment used by the feature-flagged V1 page. */
   isTokenDetailsV1?: boolean;
+  /**
+   * Token Details page analytics version. `'v3'` for the new (V1) page, `'v2'`
+   * for the legacy page. Threaded into the buy/sell `ACTION_BUTTON_CLICKED`
+   * event and the shared security warning bottom-sheet events.
+   */
+  tdpVersion?: TdpVersion;
   /** Optional trader position header rendered above the footer actions. */
   traderPositionPnl?: TraderPositionPnlProps;
 }
@@ -175,9 +188,11 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   sourcePage,
   useAmbientColor = false,
   isTokenDetailsV1 = false,
+  tdpVersion = 'v2',
   traderPositionPnl,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const insets = useSafeAreaInsets();
   const { colors, themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
@@ -454,6 +469,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           tokenSymbol: token.symbol || token.name,
           chainId: token.chainId,
           features: securityData?.features,
+          tdpVersion,
         },
       });
     },
@@ -465,6 +481,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       token.name,
       token.address,
       token.chainId,
+      tdpVersion,
     ],
   );
 
@@ -477,6 +494,22 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       chainId: token.chainId ?? '',
       indicatorsActive,
     });
+    // The V1 buy_sell footer routes Buy/Sell through here instead of the
+    // legacy action buttons (which fire ACTION_BUTTON_CLICKED via
+    // `useHandleOnBuy`), so emit the same event here for parity. Gated on the
+    // V1 flag so legacy behavior is unchanged.
+    if (isTokenDetailsV1) {
+      trackActionButtonClick(trackEvent, createEventBuilder, {
+        action_name:
+          mode === 'sell' ? ActionButtonType.SELL : ActionButtonType.BUY,
+        button_label:
+          mode === 'sell'
+            ? strings('asset_overview.sell_button')
+            : buyButtonLabel,
+        location: ActionLocation.ASSET_DETAILS,
+        tdp_version: tdpVersion,
+      });
+    }
     handleFooterAction(
       () => onOpenQuickBuy(mode),
       strings(
