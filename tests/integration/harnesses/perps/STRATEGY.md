@@ -80,6 +80,8 @@ When a harness is added or its public boundary changes, update this section. Fol
 - **Use when:** read authoritative wallet-owned positions/orders or validate Mobile preview/trading requests through the installed Core package. `lighterRecovery.integration.test.ts` checks retained-key matching, response identity and late-read expiry after account A-to-B-to-A transitions and real-controller network changes. Component-view tests cover the existing forms and absence of added recovery/status panels. Live recipes still own real native signing/storage and venue proof.
 - **Availability:** the recovery review tests require the strict Core recovery APIs in the installed package. A failure on their absence is an adoption failure, not a reason to replace the real controller with a shim.
 
+The Mobile key-recovery harness (`lighter-mobile-key-recovery.ts`) adds the real native bridge to this chain. Its keyring type selects software derivation or a healthy stored hardware/Snap key beside an unreadable slot; native storage and WASM remain mocked I/O.
+
 ## Coverage plan (summary)
 
 Driven by [`perps-use-cases.md`](perps-use-cases.md):

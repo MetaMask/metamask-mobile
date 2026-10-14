@@ -17,6 +17,7 @@ import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
 import { SEARCH_ENGINE_URLS, SearchEngine } from '../../../../../util/browser';
 import AppConstants from '../../../../../core/AppConstants';
 import isUrlFn from 'is-url';
+import { SitesSearchFooterSelectorsIDs } from './SitesSearchFooter.testIds';
 
 // TODO: @MetaMask/design-system-engineers
 // Use the concrete Box component props here instead of BoxProps.
@@ -108,7 +109,7 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
         <TouchableOpacity
           style={tw.style('flex-row items-center py-4')}
           onPress={() => handlePress(searchQuery, 'open_url')}
-          testID="trending-search-footer-url-link"
+          testID={SitesSearchFooterSelectorsIDs.URL_LINK}
         >
           <Box twClassName="flex-1">
             <Text
@@ -132,7 +133,7 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
       <TouchableOpacity
         style={tw.style('flex-row items-center py-4')}
         onPress={() => handlePress(searchUrl, 'engine_search')}
-        testID="trending-search-footer-search-link"
+        testID={SitesSearchFooterSelectorsIDs.SEARCH_LINK}
       >
         <Box twClassName="flex-1 flex-row items-center">
           <Text

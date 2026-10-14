@@ -352,16 +352,19 @@ const execute = (async (call: LighterWasmCall) => {
   );
 }) as LighterSignerBridge['execute'];
 
+type KeyDiscoveryMode = 'strict' | 'stored' | 'software';
+
 const getStoredKeyIndices = (
   params: Parameters<
     NonNullable<LighterSignerBridge['getStoredKeyIndices']>
   >[0],
-  allowSoftwareRecovery = false,
+  mode: KeyDiscoveryMode = 'strict',
   deadline = Date.now() + LIGHTER_SIGNER_TIMEOUT_MS,
 ): Promise<number[]> =>
   withOwnership(async (owner, retired) => {
     const { assertWallet } = captureWalletBinding(params, owner);
     const stored: number[] = [];
+    const decryptionErrors: Error[] = [];
     for (const apiKeyIndex of new Set(params.apiKeyIndices)) {
       const clientParams = { ...params, apiKeyIndex, nonce: 0 };
       assertLighterClientParameters(clientParams);
@@ -379,11 +382,10 @@ const getStoredKeyIndices = (
         Promise.race([
           SecureKeychain.getSecureItem(scope).catch((error: unknown) => {
             assertWallet();
-            if (
-              !allowSoftwareRecovery ||
-              !isSecureKeychainDecryptionError(error)
-            )
+            if (mode === 'strict' || !isSecureKeychainDecryptionError(error))
               throw error;
+            // Scan later slots without replacing an unreadable stored key.
+            decryptionErrors.push(error);
             return null;
           }),
           retired,
@@ -395,6 +397,8 @@ const getStoredKeyIndices = (
       if (item && PRIVATE_KEY_PATTERN.test(item.value))
         stored.push(apiKeyIndex);
     }
+    if (mode === 'stored' && stored.length === 0 && decryptionErrors.length > 0)
+      throw decryptionErrors[0];
     return stored;
   });
 
@@ -423,7 +427,11 @@ export const lighterSignerBridge = {
         'Lighter signer key discovery timed out',
       );
       assertWallet();
-      const stored = await getStoredKeyIndices(params, canDerive, deadline);
+      const stored = await getStoredKeyIndices(
+        params,
+        canDerive ? 'software' : 'stored',
+        deadline,
+      );
       assertWallet();
       return canDerive
         ? [...new Set([...stored, ...params.apiKeyIndices])]

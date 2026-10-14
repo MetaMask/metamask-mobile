@@ -2,6 +2,7 @@
 import { buildLighterRecoveryHarness } from './lighter-recovery';
 import Engine from '../../../../app/core/Engine';
 import SecureKeychain from '../../../../app/core/SecureKeychain';
+import type { KeyringEntry } from '@metamask/keyring-controller';
 class SecureKeychainDecryptionError extends Error {
   constructor() {
     super('Unable to decrypt secure item');
@@ -24,13 +25,28 @@ jest.mock('../../../../app/core/SecureKeychain', () => ({
   },
 }));
 
-/** Build a legacy unreadable slot beside a registered software-derived key. */
-export function buildLighterMobileKeyRecoveryHarness() {
+type RecoveryKeyringType = 'HD Key Tree' | 'Ledger Hardware' | 'Snap Keyring';
+
+/** Build an unreadable slot beside a registered derived or stored key. */
+export function buildLighterMobileKeyRecoveryHarness(
+  keyringType: RecoveryKeyringType = 'HD Key Tree',
+) {
   const perps = buildLighterRecoveryHarness({
     signerBridge: lighterSignerBridge,
   });
   const binding = perps.bindEngine();
   const exportAccount = jest.fn().mockResolvedValue('c'.repeat(64));
+  const entry: KeyringEntry = {
+    keyring: {
+      type: keyringType,
+      serialize: async () => ({}),
+      deserialize: async () => undefined,
+      getAccounts: async () => [],
+      addAccounts: async () => [],
+      exportAccount,
+    },
+    metadata: { id: 'recovery-keyring', name: 'Recovery keyring' },
+  };
   const keyringBinding = jest.replaceProperty(
     Engine.context,
     'KeyringController',
@@ -38,8 +54,8 @@ export function buildLighterMobileKeyRecoveryHarness() {
       isUnlocked: () => true,
       withKeyring: async (
         _selector: unknown,
-        operation: (value: unknown) => unknown,
-      ) => operation({ keyring: { type: 'HD Key Tree', exportAccount } }),
+        operation: (value: KeyringEntry) => unknown,
+      ) => operation(entry),
     } as never,
   );
   const getSecureItem = jest.mocked(SecureKeychain.getSecureItem);
@@ -49,6 +65,8 @@ export function buildLighterMobileKeyRecoveryHarness() {
   getSecureItem.mockImplementation(async (scope) => {
     if (scope.service?.endsWith('.2'))
       throw new SecureKeychainDecryptionError();
+    if (keyringType !== 'HD Key Tree' && scope.service?.endsWith('.3'))
+      return { key: 'LIGHTER_SIGNER_PRIVATE_KEY', value: 'c'.repeat(64) };
     return null;
   });
   perps.responses.set('/api/v1/apikeys', {

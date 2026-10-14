@@ -185,21 +185,24 @@ describe('venue-owned Scale form contract', () => {
     expect(result.isComplete).toBe(false);
   });
 
-  it('counts waiting accepted children without inventing exchange IDs', () => {
-    const result = getLighterScaleReceipt(
-      {
-        success: true,
-        acceptedSize: '1',
-        acceptedChildren: [
-          { state: 'waitingForFill' },
-          { state: 'filled', orderId: 'venue-child-10' },
-          { state: 'resting', orderId: 'venue-child-11' },
-        ],
-      },
-      3,
-    );
+  it.each([true, false])(
+    'counts fully accepted children with success=%s without inventing exchange IDs',
+    (success) => {
+      const result = getLighterScaleReceipt(
+        {
+          success,
+          acceptedSize: '1',
+          acceptedChildren: [
+            { state: 'waitingForFill' },
+            { state: 'filled', orderId: 'venue-child-10' },
+            { state: 'resting', orderId: 'venue-child-11' },
+          ],
+        },
+        3,
+      );
 
-    expect(result.acceptedCount).toBe(3);
-    expect(result.isComplete).toBe(true);
-  });
+      expect(result.acceptedCount).toBe(3);
+      expect(result.isComplete).toBe(true);
+    },
+  );
 });

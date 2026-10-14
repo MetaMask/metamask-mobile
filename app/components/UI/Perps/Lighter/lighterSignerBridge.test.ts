@@ -605,24 +605,36 @@ describe('lighterSignerBridge', () => {
       expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
     });
 
-    it.each(['Ledger Hardware', 'Snap Keyring'])(
-      'blocks %s recovery instead of generating a replacement',
-      async (type) => {
+    it.each([
+      { type: 'Ledger Hardware', healthySlot: false },
+      { type: 'Snap Keyring', healthySlot: false },
+      { type: 'Ledger Hardware', healthySlot: true },
+      { type: 'Snap Keyring', healthySlot: true },
+    ])(
+      'keeps $type recovery read-only with healthySlot=$healthySlot',
+      async ({ type, healthySlot }) => {
         const exportAccount = jest.fn();
         jest
           .spyOn(Engine.context.KeyringController, 'withKeyring')
           .mockImplementation(async (_selector, operation) =>
             operation({ keyring: { type, exportAccount } } as never),
           );
-        mockSecureKeychain.getSecureItem.mockRejectedValue(
-          new SecureKeychainDecryptionError(),
-        );
+        mockSecureKeychain.getSecureItem.mockImplementation(async (scope) => {
+          if (!healthySlot || scope.service?.endsWith('.7'))
+            throw new SecureKeychainDecryptionError();
+          return { key: 'LIGHTER_SIGNER_PRIVATE_KEY', value: 'a'.repeat(64) };
+        });
         const executor = jest.fn();
         connectLighterExecutor(executor);
 
-        await expect(
-          lighterSignerBridge.getRecoverableKeyIndices(discoveryParams),
-        ).rejects.toBeInstanceOf(SecureKeychainDecryptionError);
+        const discovery =
+          lighterSignerBridge.getRecoverableKeyIndices(discoveryParams);
+
+        if (healthySlot) await expect(discovery).resolves.toEqual([19]);
+        else
+          await expect(discovery).rejects.toBeInstanceOf(
+            SecureKeychainDecryptionError,
+          );
         await expect(
           lighterSignerBridge.createClient(params),
         ).rejects.toBeInstanceOf(SecureKeychainDecryptionError);

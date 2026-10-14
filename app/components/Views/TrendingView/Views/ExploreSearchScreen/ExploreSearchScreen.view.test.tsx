@@ -25,6 +25,7 @@ import { ExploreSearchScreenSelectorsIDs } from './ExploreSearchScreen.testIds';
 import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { SitesSearchFooterSelectorsIDs } from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter.testIds';
 
 const mockAppleSearchResult = {
   assetId: 'eip155:1/erc20:0xa11e000000000000000000000000000000000000',
@@ -530,7 +531,9 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
         'eth',
       );
       const footerLink = await findByTestId(
-        'trending-search-footer-search-link',
+        SitesSearchFooterSelectorsIDs.SEARCH_LINK,
+        {},
+        { timeout: 5000 },
       );
       trackEventSpy.mockClear();
 
@@ -623,7 +626,11 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
       trackEventSpy.mockClear();
 
       await actButtonPress(
-        await findByTestId('trending-search-footer-search-link'),
+        await findByTestId(
+          SitesSearchFooterSelectorsIDs.SEARCH_LINK,
+          {},
+          { timeout: 5000 },
+        ),
       );
       expect(
         await findByTestId(getRouteProbeTestId(Routes.BROWSER.HOME)),

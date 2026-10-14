@@ -100,9 +100,6 @@ export const getLighterScaleReceipt = (
     isRejected: !isUncertain && acceptedCount === 0,
     isPartial:
       !isUncertain && acceptedCount > 0 && acceptedCount < requestedCount,
-    isComplete:
-      !isUncertain &&
-      Boolean(result.success) &&
-      acceptedCount === requestedCount,
+    isComplete: !isUncertain && acceptedCount === requestedCount,
   };
 };

@@ -16,6 +16,7 @@ import type {
   PriceUpdate,
   TriggerOrderType,
   PerpsOrderCapabilities,
+  PerpsProviderType,
   TwapOrder,
   TwapOrderFill,
 } from '@metamask/perps-controller';
@@ -241,6 +242,10 @@ const openTwapManagementTab = async () => {
 };
 
 const resetPerpsControllerMocks = () => {
+  jest
+    .mocked(Engine.context.PerpsController.getScalePriceLadder)
+    .mockReset()
+    .mockResolvedValue({ status: 'unavailable', reason: 'not_implemented' });
   jest
     .mocked(Engine.context.PerpsController.getOrderCapabilities)
     .mockReset()
@@ -469,12 +474,19 @@ const renderProMarketWithTwapFlag = (
   });
 };
 
-const renderProMarketWithScaleFlag = (enabled: boolean) => {
+const renderProMarketWithScaleFlag = (
+  enabled: boolean,
+  providerId: PerpsProviderType = 'hyperliquid',
+) => {
+  const market =
+    providerId === 'lighter'
+      ? createEthMarketForViews({ providerId })
+      : undefined;
   jest
     .mocked(Engine.context.PerpsController.getOrderCapabilities)
     .mockResolvedValue({
       status: 'ready',
-      providerId: 'hyperliquid',
+      providerId,
       supportedStrategies: enabled ? ['scale'] : [],
       supportedTriggerOrderTypes: [
         'stop_market',
@@ -485,14 +497,16 @@ const renderProMarketWithScaleFlag = (enabled: boolean) => {
     });
 
   return renderPerpsProMarketView({
+    initialParams: market ? { market } : undefined,
     streamOverrides: {
+      ...(market ? { marketData: [market] } : {}),
       account: createFundedAccountForViews('1000'),
     },
     overrides: {
       engine: {
         backgroundState: {
           PerpsController: {
-            activeProvider: 'hyperliquid',
+            activeProvider: providerId,
           },
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
@@ -3195,6 +3209,66 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           'Size (USD)',
         );
       });
+    },
+  );
+
+  itForPlatforms(
+    'clears a fully accepted Lighter Scale draft despite an overall failed result',
+    async () => {
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+      placeOrder.mockResolvedValueOnce({
+        success: false,
+        acceptedSize: '0.03',
+        acceptedChildren: [
+          { state: 'resting', orderId: 'scale-child-1' },
+          { state: 'resting', orderId: 'scale-child-2' },
+          { state: 'resting', orderId: 'scale-child-3' },
+        ],
+      });
+      const getScalePriceLadder = jest.mocked(
+        Engine.context.PerpsController.getScalePriceLadder,
+      );
+      getScalePriceLadder.mockResolvedValue({
+        status: 'ready',
+        providerId: 'lighter',
+        prices: ['2000', '2100', '2200'],
+        sizingPreview: {
+          sizes: ['0.01', '0.01', '0.01'],
+          totalSize: '0.03',
+          totalNotional: '63',
+          minimumBaseSize: '0.001',
+          minimumQuoteAmount: '10',
+          sizeDecimals: 3,
+        },
+      });
+      renderProMarketWithScaleFlag(true, 'lighter');
+      const sizeInput = await openScaleOrderForm();
+      fireEvent.changeText(sizeInput, '100');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_START_PRICE}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_START_PRICE), '2000');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_END_PRICE}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_END_PRICE), '2200');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_TOTAL_ORDERS}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
+      await waitFor(
+        () => expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled(),
+        { timeout: TIMEOUT_MS },
+      );
+
+      fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
+
+      await waitFor(
+        () => {
+          expect(placeOrder).toHaveBeenCalledTimes(1);
+          expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '');
+          expect(screen.getByTestId(ids.SCALE_START_PRICE)).toHaveProp(
+            'value',
+            '',
+          );
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
     },
   );
 
