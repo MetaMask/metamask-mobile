@@ -120,17 +120,38 @@ describe('QAMockOAuthService', () => {
   });
 
   describe('exchangeTokens', () => {
-    it('throws OAuthError without calling fetch when env secret is unset', async () => {
+    it('sends an empty BYOA secret header when env secret is unset', async () => {
       mockGetE2EByoaAuthSecret.mockReturnValue(undefined);
-      const fetchImpl = jest.fn();
+      const fetchImpl = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: {
+              tokens: {
+                jwt_token: MOCK_JWT_TOKEN,
+                access_token: 'mock-access-token',
+                metadata_access_token: 'mock-metadata-access-token',
+              },
+            },
+          }),
+      });
 
-      await expect(
-        QAMockOAuthService.exchangeTokens(
-          createStubLoginHandler(),
-          fetchImpl as unknown as typeof fetch,
-        ),
-      ).rejects.toThrow(OAuthError);
-      expect(fetchImpl).not.toHaveBeenCalled();
+      await QAMockOAuthService.exchangeTokens(
+        createStubLoginHandler(),
+        fetchImpl as unknown as typeof fetch,
+      );
+
+      expect(fetchImpl).toHaveBeenCalledWith(
+        'https://test.qa.mock/oauth/token',
+        expect.objectContaining({
+          headers: {
+            'Content-Type': 'application/json',
+            'byoa-auth-secret': '',
+          },
+        }),
+      );
     });
 
     it('POSTs QA mock URL and returns data userId and accountName', async () => {
@@ -197,6 +218,7 @@ describe('QAMockOAuthService', () => {
           fetchImpl as unknown as typeof fetch,
         ),
       ).rejects.toMatchObject({ code: OAuthErrorType.LoginError });
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
     });
   });
 });

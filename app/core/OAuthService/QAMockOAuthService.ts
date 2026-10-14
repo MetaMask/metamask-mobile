@@ -25,13 +25,8 @@ export class QAMockOAuthService {
     fetchImpl: typeof fetch = global.fetch,
     emailOverride?: string,
   ): Promise<QAMockTokenExchangeResult> {
-    const byoaSecret = getE2EByoaAuthSecret();
-    if (!byoaSecret) {
-      throw new OAuthError(
-        'E2E QA mock: E2E_BYOA_AUTH_SECRET is not set',
-        OAuthErrorType.LoginError,
-      );
-    }
+    // Unset in smoke E2E builds, where Mockttp answers without checking the header.
+    const byoaSecret = getE2EByoaAuthSecret() ?? '';
 
     const envEmail = getE2EMockOAuthEmailForQaMock();
     const emailForMock = emailOverride ?? envEmail ?? generateUniqueE2EEmail();
