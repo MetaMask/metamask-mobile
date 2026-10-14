@@ -95,7 +95,7 @@ jest.mock('../../../../../images/rewards/vip_splash.png', () => 1);
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
-      'rewards.vip.splash_title': 'WELCOME\nTO GOLD FOX\nCOLLECTIVE',
+      'rewards.vip.splash_title': 'Welcome to Gold Fox Collective',
       'rewards.vip.splash_description': 'Exclusive perks by invitation only.',
       'rewards.vip.splash_not_now': 'Not now',
     };

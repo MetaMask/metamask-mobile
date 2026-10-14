@@ -21,6 +21,8 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import styleSheet from '../../../Views/Settings/DeveloperOptions/DeveloperOptions.styles';
+import NavigationService from '../../../../core/NavigationService';
+import Routes from '../../../../constants/navigation/Routes';
 
 export const MusdDeveloperOptionsSection = () => {
   const dispatch = useDispatch();
@@ -42,6 +44,12 @@ export const MusdDeveloperOptionsSection = () => {
     dispatch(setMusdConversionEducationSeen(false));
   }, [dispatch]);
 
+  const handleOpenEducationScreen = useCallback(() => {
+    NavigationService.navigation?.navigate(Routes.EARN.ROOT, {
+      screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+    });
+  }, []);
+
   const handleClearAssetDetailCtasSeen = useCallback(() => {
     dispatch(clearMusdConversionAssetDetailCtasSeen());
   }, [dispatch]);
@@ -62,6 +70,14 @@ export const MusdDeveloperOptionsSection = () => {
       >
         {`Education screen seen: ${String(hasSeenConversionEducationScreen)}`}
       </Text>
+      <Button
+        variant={ButtonVariants.Secondary}
+        size={ButtonSize.Lg}
+        label={'Open education screen'}
+        onPress={handleOpenEducationScreen}
+        width={ButtonWidthTypes.Full}
+        style={styles.accessory}
+      />
       <Button
         variant={ButtonVariants.Secondary}
         size={ButtonSize.Lg}

@@ -4,6 +4,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontFamily,
   FontWeight,
   SensitiveText,
   SensitiveTextLength,
@@ -115,8 +116,10 @@ const MoneyBalanceSummary = ({
       case 'balance':
         return wrapPressable(
           <SensitiveText
-            variant={TextVariant.DisplayLg}
-            fontWeight={FontWeight.Bold}
+            variant={TextVariant.AmountDisplayLg}
+            fontFamily={FontFamily.Grotzec}
+            fontWeight={FontWeight.Regular}
+            twClassName="text-[48px] leading-[52.8px]"
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
             testID={MoneyBalanceSummaryTestIds.BALANCE}
@@ -139,8 +142,10 @@ const MoneyBalanceSummary = ({
         // with no cache the slot shows a dash. Both pair with the BannerAlert.
         return wrapPressable(
           <SensitiveText
-            variant={TextVariant.DisplayLg}
-            fontWeight={FontWeight.Bold}
+            variant={TextVariant.AmountDisplayLg}
+            fontFamily={FontFamily.Grotzec}
+            fontWeight={FontWeight.Regular}
+            twClassName="text-[48px] leading-[52.8px]"
             color={TextColor.TextAlternative}
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}

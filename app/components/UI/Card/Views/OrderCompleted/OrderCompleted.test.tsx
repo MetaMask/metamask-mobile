@@ -51,7 +51,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
-      'card.order_completed.title': 'YOUR CARD\nIS ORDERED',
+      'card.order_completed.title': 'Your card is ordered',
       'card.order_completed.subtitle': 'It should arrive in 4 to 6 weeks.',
       'card.order_completed.description':
         'Set up your virtual card and add it to your digital wallet to start earning cashback.',
@@ -76,22 +76,21 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('@metamask/design-system-react-native', () => {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
-  const { View, Text: RNText } = jest.requireActual('react-native');
-
-  const { TouchableOpacity } = jest.requireActual('react-native');
+  const {
+    View,
+    Text: RNText,
+    TouchableOpacity,
+  } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
 
   return {
+    ...actual,
     HeaderStandard: () => null,
     Box: ({
       children,
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(View, props, children),
-    Text: ({
-      children,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) =>
-      React.createElement(RNText, props, children),
     Button: ({
       children,
       onPress,
@@ -105,23 +104,6 @@ jest.mock('@metamask/design-system-react-native', () => {
         { onPress, disabled: disabled || isDisabled, ...props },
         React.createElement(RNText, {}, children || label),
       ),
-    TextVariant: {
-      HeadingLg: 'HeadingLg',
-      BodyMd: 'BodyMd',
-    },
-    FontWeight: {
-      Regular: 'Regular',
-    },
-    ButtonVariant: {
-      Primary: 'Primary',
-      Secondary: 'Secondary',
-      Link: 'Link',
-    },
-    ButtonSize: {
-      Sm: 'Sm',
-      Md: 'Md',
-      Lg: 'Lg',
-    },
   };
 });
 

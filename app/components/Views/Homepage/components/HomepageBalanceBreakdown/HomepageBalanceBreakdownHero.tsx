@@ -5,6 +5,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   ButtonBase,
+  FontFamily,
   FontWeight,
   SensitiveText,
   SensitiveTextLength,
@@ -72,10 +73,13 @@ const HomepageBalanceBreakdownHero = ({
                 ? TextColor.TextMuted
                 : TextColor.TextDefault
             }
+            fontFamily={FontFamily.Grotzec}
+            fontWeight={FontWeight.Regular}
+            twClassName="text-[48px] leading-[52.8px]"
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-            variant={TextVariant.DisplayLg}
+            variant={TextVariant.AmountDisplayLg}
           >
             {displayBalance}
           </SensitiveText>

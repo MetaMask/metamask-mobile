@@ -53,9 +53,11 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { strings } from '../../../../../../../locales/i18n';
 import MoneyIcon from '../../../../../../images/money.png';
 import {
+  FontFamily,
+  FontWeight,
   Text,
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
 const iconStyles = StyleSheet.create({
@@ -297,7 +299,14 @@ export function TransactionDetailsHero() {
       gap={12}
       style={styles.container}
     >
-      <Text variant={TextVariant.DisplayLg}>{formattedAmount}</Text>
+      <Text
+        variant={TextVariant.AmountDisplayLg}
+        fontFamily={FontFamily.Grotzec}
+        fontWeight={FontWeight.Regular}
+        twClassName="text-[48px] leading-[52.8px]"
+      >
+        {formattedAmount}
+      </Text>
     </Box>
   );
 }

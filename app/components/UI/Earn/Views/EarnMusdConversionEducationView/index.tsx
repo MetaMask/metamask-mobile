@@ -18,6 +18,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontFamily,
   FontWeight,
   Icon,
   IconColor,
@@ -59,13 +60,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 40,
-  },
-  heading: {
-    fontFamily: 'MMPoly-Regular',
-    fontSize: 40,
-    lineHeight: 40,
-    paddingVertical: 16,
-    textAlign: 'center',
   },
   backgroundImage: {
     width: '100%',
@@ -404,7 +398,11 @@ const EarnMusdConversionEducationView = () => {
       testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.CONTAINER}
     >
       <Box twClassName="px-4 items-center">
-        <Text style={styles.heading} numberOfLines={2} adjustsFontSizeToFit>
+        <Text
+          fontFamily={FontFamily.Grotzec}
+          fontWeight={FontWeight.Regular}
+          twClassName="text-center pt-3 pb-4 text-[60px] leading-[54px] tracking-[-1.2px]"
+        >
           {strings('earn.musd_conversion.education.heading', {
             percentage: MUSD_CONVERSION_APY,
           })}

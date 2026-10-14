@@ -2,6 +2,12 @@ import React, { useCallback } from 'react';
 import { View, TouchableOpacity, Image } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useSelector } from 'react-redux';
+import {
+  FontFamily,
+  FontWeight,
+  Text as TextDs,
+  TextVariant as TextVariantDs,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
@@ -149,9 +155,15 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           ) : null}
         </View>
 
-        <Text variant={TextVariant.DisplayMD} style={styles.mainAmount}>
+        <TextDs
+          variant={TextVariantDs.AmountDisplayLg}
+          fontFamily={FontFamily.Grotzec}
+          fontWeight={FontWeight.Regular}
+          twClassName="text-[48px] leading-[52.8px]"
+          style={styles.mainAmount}
+        >
           {order.cryptoAmount} {order.cryptocurrency}
-        </Text>
+        </TextDs>
 
         {order?.data &&
         hasDepositOrderField(order.data, 'statusDescription') &&
