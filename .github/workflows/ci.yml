@@ -1519,6 +1519,7 @@ jobs:
           litellm-api-key: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
           langfuse-public-key: ${{ secrets.AI_ANALYZER_LANGFUSE_PUBLIC_KEY }}
           langfuse-secret-key: ${{ secrets.AI_ANALYZER_LANGFUSE_SECRET_KEY }}
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
 
   run-performance-tests-pr:
     name: 'Run Performance Tests (PR)'
