@@ -37,6 +37,14 @@ describe('toSocialFeedPosts', () => {
     expect(post.item.comment).toBe('this is alpha');
   });
 
+  it('keeps the core position for the details sheet', () => {
+    const row = buildRow();
+
+    const [post] = toSocialFeedPosts([row]);
+
+    expect(post.position).toBe(row.core);
+  });
+
   it('lifts a static.klipy.com gif url from the Call text onto gifUri', () => {
     const row = buildRow({
       authorComment: {

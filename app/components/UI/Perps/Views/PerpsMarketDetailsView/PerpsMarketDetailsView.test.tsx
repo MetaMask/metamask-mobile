@@ -141,31 +141,38 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
       subscribeToSymbols: jest.fn(() => jest.fn()),
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     positions: {
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     orders: {
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     fills: {
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     account: {
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     marketData: {
       subscribe: jest.fn(() => jest.fn()),
       getMarkets: jest.fn(),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     oiCaps: {
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
+      getError: jest.fn(() => null),
     },
     focusedPrice: {
       subscribeToSymbol: jest.fn(() => jest.fn()),
@@ -450,6 +457,7 @@ const mockUsePerpsLiveFillsImpl = jest.fn<
   >,
   []
 >(() => ({
+  retry: jest.fn(),
   fills: [],
   isInitialLoading: false,
 }));
@@ -1073,6 +1081,7 @@ describe('PerpsMarketDetailsView', () => {
 
     // Reset order fills mock to default
     mockUsePerpsLiveFillsImpl.mockReturnValue({
+      retry: jest.fn(),
       fills: [],
       isInitialLoading: false,
     });
