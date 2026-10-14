@@ -266,7 +266,7 @@
     "@metamask/multichain-account-service": "^14.1.0",
     "@metamask/accounts-controller": "^40.0.0",
     "@metamask/snap-account-service": "^4.0.0",
-    "@metamask/permission-controller": "^13.1.1",
+    "@metamask/permission-controller": "^14.0.0",
     "react-native-ble-plx@npm:3.4.0": "patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch",
     "@metamask/transaction-controller": "72.2.1",
     "@metamask/keyring-controller": "^28.1.0",
@@ -393,7 +393,7 @@
     "@metamask/network-controller": "^37.0.0",
     "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
     "@metamask/notification-services-controller": "^29.0.3",
-    "@metamask/permission-controller": "^13.1.1",
+    "@metamask/permission-controller": "^14.0.0",
     "@metamask/perps-controller": "^20.1.0",
     "@metamask/phishing-controller": "^17.4.1",
     "@metamask/post-message-stream": "^10.0.0",
@@ -416,7 +416,7 @@
     "@metamask/scure-bip39": "^2.1.1",
     "@metamask/sdk-communication-layer": "0.33.1",
     "@metamask/seedless-onboarding-controller": "12.0.0",
-    "@metamask/selected-network-controller": "^26.1.4",
+    "@metamask/selected-network-controller": "^27.0.0",
     "@metamask/sentinel-api-service": "^2.1.0",
     "@metamask/shield-controller": "^7.0.4",
     "@metamask/signature-controller": "^39.2.0",
@@ -941,5 +941,11 @@
       }
     },
     "version": "v0.3.0"
+  },
+  "previewBuilds": {
+    "@metamask/wallet": {
+      "type": "non-breaking",
+      "previewVersion": "17.0.0-preview-b59bc5b6f"
+    }
   }
 }
