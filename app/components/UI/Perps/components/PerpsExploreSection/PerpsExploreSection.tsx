@@ -35,6 +35,7 @@ import {
 import { selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
+import { useNowOnScreenFocus } from '../../hooks/useNowOnScreenFocus';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import {
   getCategoryIconName,
@@ -48,6 +49,7 @@ import { SectionPillsSkeleton } from '../../../Trending/components/SectionPillsS
 import PerpsMarketList from '../PerpsMarketList';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import { filterMarketsByCategory } from '../../utils/marketCategoryMapping';
+import { isRecentlyListed } from '../../utils/time';
 import { buildExploreTabs } from './buildExploreTabs';
 import {
   readExploreSessionTab,
@@ -95,7 +97,16 @@ function resolveDefaultExploreTab(
     return cryptoTab.id;
   }
 
-  return tabs.find((tab) => tab.id !== EXPLORE_WATCHLIST_TAB_ID)?.id ?? null;
+  const firstCategoryTab = tabs.find(
+    (tab) => tab.id !== EXPLORE_WATCHLIST_TAB_ID,
+  );
+  if (firstCategoryTab) {
+    return firstCategoryTab.id;
+  }
+
+  // Watchlist can be the only pill, and it may be empty. Select it so the
+  // section shows the empty list instead of treating a missing tab as loading.
+  return tabs.find((tab) => tab.id === EXPLORE_WATCHLIST_TAB_ID)?.id ?? null;
 }
 
 function isCategoryTab(
@@ -124,6 +135,9 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
     skipInitialFetch: false,
     showZeroVolume: __DEV__,
   });
+  // Same clock as the market list's "New" filter, so a mounted screen does
+  // not keep a stale 30-day window.
+  const now = useNowOnScreenFocus();
 
   const [userTab, setUserTab] = useState<ExploreTabId | null>(
     readExploreSessionTab,
@@ -167,12 +181,19 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
       return watchlistMarkets.slice(0, EXPLORE_MARKET_LIMIT);
     }
 
+    // The New pill and See more use listed-within-30-days. filterMarketsByCategory's
+    // 'new' bucket is market.isNewMarket, which is a different set.
+    const categoryMarkets =
+      activeTab === 'new'
+        ? markets.filter((market) => isRecentlyListed(market.listedAt, now))
+        : filterMarketsByCategory(markets, activeTab);
+
     return sortMarkets({
-      markets: filterMarketsByCategory(markets, activeTab),
+      markets: categoryMarkets,
       sortBy: MARKET_SORTING_CONFIG.SortFields.Volume,
       direction: MARKET_SORTING_CONFIG.DefaultDirection,
     }).slice(0, EXPLORE_MARKET_LIMIT);
-  }, [activeTab, markets, watchlistMarkets]);
+  }, [activeTab, markets, now, watchlistMarkets]);
 
   const openMarketList = useCallback(() => {
     if (!activeTab) {

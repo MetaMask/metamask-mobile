@@ -64,6 +64,14 @@ jest.mock('../../hooks/useHasNewMarkets', () => ({
   useHasNewMarkets: () => mockHasNewMarkets,
 }));
 
+/** Far from Date.now() so the New filter must use this clock, not a live read. */
+const EXPLORE_NOW = 1_700_000_000_000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+jest.mock('../../hooks/useNowOnScreenFocus', () => ({
+  useNowOnScreenFocus: () => 1_700_000_000_000,
+}));
+
 jest.mock('../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: () => ({
     markets: mockMarkets,
@@ -327,5 +335,51 @@ describe('PerpsExploreSection', () => {
     const { toJSON } = render(<PerpsExploreSection />);
 
     expect(toJSON()).toBeNull();
+  });
+
+  it('shows the empty Watchlist when it is the only tab', () => {
+    mockCategories = [];
+    mockHasNewMarkets = false;
+    mockMarkets = [];
+    watchlistEnabled = true;
+    watchlistSymbols = [];
+
+    const { getByTestId, queryByTestId } = render(<PerpsExploreSection />);
+
+    expect(
+      getByTestId(`${TEST_ID}-tab-watchlist`).props.accessibilityState,
+    ).toMatchObject({ selected: true });
+    expect(queryByTestId('explore-rows-skeleton')).toBeNull();
+    expect(getByTestId(`${TEST_ID}-see-more`)).toBeOnTheScreen();
+  });
+
+  it('lists New rows by listedAt, not isNewMarket', () => {
+    mockHasNewMarkets = true;
+    const recentUnflagged = {
+      symbol: 'NEW1',
+      name: 'Recent',
+      isHip3: true,
+      isNewMarket: false,
+      marketType: 'stock',
+      listedAt: EXPLORE_NOW - 5 * DAY_MS,
+      volume: '$10M',
+    } as PerpsMarketData;
+    const flaggedButOld = {
+      symbol: 'OLD1',
+      name: 'Old flag',
+      isHip3: true,
+      isNewMarket: true,
+      marketType: 'stock',
+      listedAt: EXPLORE_NOW - 40 * DAY_MS,
+      volume: '$9B',
+    } as PerpsMarketData;
+    mockMarkets = [cryptoMarket, recentUnflagged, flaggedButOld];
+
+    const { getByTestId, queryByTestId } = render(<PerpsExploreSection />);
+    fireEvent.press(getByTestId(`${TEST_ID}-tab-new`));
+
+    expect(getByTestId(`${TEST_ID}-list-NEW1`)).toBeOnTheScreen();
+    expect(queryByTestId(`${TEST_ID}-list-OLD1`)).toBeNull();
+    expect(queryByTestId(`${TEST_ID}-list-BTC`)).toBeNull();
   });
 });
