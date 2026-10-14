@@ -644,6 +644,29 @@ jest.mock('react-native-device-info', () => ({
   getTotalMemorySync: jest.fn(() => 6 * 1024 ** 3),
 }));
 
+jest.mock('@react-native-community/netinfo', () => {
+  const useNetInfo = jest.fn(() => ({
+    type: 'wifi',
+    isConnected: true,
+    isInternetReachable: true,
+    details: null,
+  }));
+  const fetch = jest.fn(() => Promise.resolve(useNetInfo()));
+  const addEventListener = jest.fn(() => jest.fn());
+
+  return {
+    __esModule: true,
+    fetch,
+    addEventListener,
+    useNetInfo,
+    default: {
+      fetch,
+      addEventListener,
+      useNetInfo,
+    },
+  };
+});
+
 jest.mock(
   '../../app/util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
   () => ({
