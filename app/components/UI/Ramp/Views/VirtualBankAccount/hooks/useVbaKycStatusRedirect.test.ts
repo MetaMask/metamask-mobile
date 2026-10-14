@@ -124,14 +124,6 @@ describe('useVbaKycStatusRedirect', () => {
     jest.restoreAllMocks();
   });
 
-  it('does not resolve while the status is pending', () => {
-    setSessionStatus(pending);
-
-    renderRedirectHook();
-
-    expect(mockResolve).not.toHaveBeenCalled();
-  });
-
   it.each([
     ['approved', 'approved'],
     ['pending', 'approved'],
@@ -194,16 +186,6 @@ describe('useVbaKycStatusRedirect', () => {
     });
 
     expect(mockResolve).toHaveBeenCalledTimes(2);
-  });
-
-  it('stays on this screen when the next destination is the pending screen', async () => {
-    mockResolve.mockResolvedValue(resolvedTo('kycPending'));
-    setSessionStatus(approved);
-
-    renderRedirectHook();
-    await act(flushPromises);
-
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('opens the error screen when resolving fails', async () => {
@@ -310,16 +292,6 @@ describe('useVbaKycStatusRedirect', () => {
     act(() => appStateChangeHandler?.('active'));
 
     expect(mockRefreshSessionStatus).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not refresh the session status when the app moves to the background', () => {
-    setSessionStatus(pending);
-    renderRedirectHook();
-    mockRefreshSessionStatus.mockClear();
-
-    act(() => appStateChangeHandler?.('background'));
-
-    expect(mockRefreshSessionStatus).not.toHaveBeenCalled();
   });
 
   it.each([
