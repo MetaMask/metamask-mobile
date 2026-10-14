@@ -119,6 +119,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     result,
     error: placeOrderError,
     lastSubmittedPreview,
+    retryOrderState,
     isOrderNotFilled,
     resetOrderNotFilled,
   } = usePredictPlaceOrder();
@@ -154,6 +155,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     analyticsProperties,
     isOrderNotFilled,
     resetOrderNotFilled,
+    orderState: retryOrderState,
   });
 
   // Track screen load performance (position data + preview)

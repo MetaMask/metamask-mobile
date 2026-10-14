@@ -21,6 +21,7 @@ import {
   PlaceOrderParams,
   Side,
   type OrderPreview,
+  type PredictRetryOrderState,
   type Result,
 } from '../types';
 import { formatPrice } from '../utils/format';
@@ -60,6 +61,8 @@ interface UsePredictPlaceOrderReturn {
    * honesty rule: the last price the user actually confirmed.
    */
   lastSubmittedPreview: OrderPreview | null;
+  /** Retry-guard state derived from the submit lifecycle. */
+  retryOrderState: PredictRetryOrderState;
   isOrderNotFilled: boolean;
   resetOrderNotFilled: () => void;
   showOrderPlacedToast: () => void;
@@ -84,6 +87,27 @@ export type PlaceOrderOutcome =
       status: 'error';
       error: string;
     };
+
+/**
+ * Authoritative order state for the retry guard, derived from this hook's
+ * submit lifecycle. A canceled order surfaces as a plain error here, never
+ * as not-filled, so the retry path is never entered for it.
+ */
+function getPlaceOrderRetryState({
+  isLoading,
+  result,
+}: {
+  isLoading: boolean;
+  result: Result | null;
+}): PredictRetryOrderState {
+  if (isLoading) {
+    return 'pending';
+  }
+  if (result?.success) {
+    return 'filled';
+  }
+  return 'unknown';
+}
 
 /**
  * Hook for placing Predict orders with loading states and error handling
@@ -328,6 +352,7 @@ export function usePredictPlaceOrder(
     result,
     placeOrder,
     lastSubmittedPreview,
+    retryOrderState: getPlaceOrderRetryState({ isLoading, result }),
     isOrderNotFilled,
     resetOrderNotFilled,
     showOrderPlacedToast,

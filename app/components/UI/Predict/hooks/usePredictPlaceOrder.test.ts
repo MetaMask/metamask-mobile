@@ -162,6 +162,62 @@ describe('usePredictPlaceOrder', () => {
       expect(typeof result.current.placeOrder).toBe('function');
       expect(typeof result.current.invalidateOrderQueries).toBe('function');
     });
+
+    it('starts in the unknown retry order state', () => {
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      expect(result.current.retryOrderState).toBe('unknown');
+    });
+  });
+
+  describe('retryOrderState', () => {
+    it("returns 'pending' while a submission is in flight", async () => {
+      type MockOrderResult = Result<{ transactionHash: string }>;
+      let resolvePlaceOrder!: (result: MockOrderResult) => void;
+      mockPlaceOrder.mockImplementation(
+        () =>
+          new Promise<MockOrderResult>((resolve) => {
+            resolvePlaceOrder = resolve;
+          }),
+      );
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      let placing!: Promise<PlaceOrderOutcome>;
+      await act(async () => {
+        placing = result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.retryOrderState).toBe('pending');
+
+      await act(async () => {
+        resolvePlaceOrder(mockSuccessResult);
+        await placing;
+      });
+
+      expect(result.current.retryOrderState).toBe('filled');
+    });
+
+    it("returns 'filled' after a successful submission", async () => {
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.retryOrderState).toBe('filled');
+    });
+
+    it("returns 'unknown' after a failed submission", async () => {
+      mockPlaceOrder.mockRejectedValue(new Error('Order not fully filled'));
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.retryOrderState).toBe('unknown');
+    });
   });
 
   describe('placeOrder - success scenario', () => {

@@ -166,6 +166,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     error: placeOrderError,
     result,
     lastSubmittedPreview,
+    retryOrderState,
     isOrderNotFilled,
     resetOrderNotFilled,
   } = usePredictPlaceOrder({ transactionActiveAbTests });
@@ -222,6 +223,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     analyticsProperties,
     isOrderNotFilled,
     resetOrderNotFilled,
+    orderState: retryOrderState,
   });
 
   // Track screen load performance (balance + initial preview)

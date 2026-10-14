@@ -2,7 +2,12 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { usePredictOrderRetry } from './usePredictOrderRetry';
 import Engine from '../../../../core/Engine';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
-import { type OrderPreview, type PlaceOrderParams, Side } from '../types';
+import {
+  type OrderPreview,
+  type PlaceOrderParams,
+  type PredictRetryOrderState,
+  Side,
+} from '../types';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -49,6 +54,7 @@ function createParamsObj(overrides?: Record<string, unknown>) {
       preview: createMockPreview({ sharePrice: 0.62 }),
     }),
     lastSubmittedPreview: undefined as OrderPreview | null | undefined,
+    orderState: undefined as PredictRetryOrderState | undefined,
     placeOrder: jest
       .fn()
       .mockResolvedValue(createSuccessOutcome()) as jest.Mock<
@@ -846,6 +852,275 @@ describe('usePredictOrderRetry', () => {
 
       expect(mockResetOrderNotFilled).toHaveBeenCalledTimes(1);
       expect(result.current.retrySheetVariant).toBe('confirm');
+    });
+  });
+
+  describe('state guard', () => {
+    it.each(['pending', 'filled', 'canceled'] as const)(
+      'does not fetch or submit when the order state is %s',
+      async (orderState) => {
+        const params = createDefaultParams({ orderState });
+        const { rerender } = renderHook(() => usePredictOrderRetry(params));
+
+        await act(async () => {
+          params.isOrderNotFilled = true;
+          rerender();
+        });
+
+        expect(params.refetchPreview).not.toHaveBeenCalled();
+        expect(params.placeOrder).not.toHaveBeenCalled();
+      },
+    );
+
+    it('ignores a user-initiated retry while the order is terminal or in flight', async () => {
+      const params = createDefaultParams({ orderState: 'filled' });
+      const { result } = renderHook(() => usePredictOrderRetry(params));
+
+      await act(async () => {
+        await result.current.handleRetry();
+      });
+
+      expect(params.refetchPreview).not.toHaveBeenCalled();
+      expect(params.placeOrder).not.toHaveBeenCalled();
+    });
+
+    it('does not submit a confirmed quote when the order becomes filled first', async () => {
+      const params = createDefaultParams();
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      // The order resolved (filled) between the quote and the confirmation.
+      params.orderState = 'filled';
+      await act(async () => {
+        rerender();
+      });
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(params.placeOrder).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('submit lock', () => {
+    it('collapses a double tap on confirm into one submission', async () => {
+      const params = createDefaultParams();
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      await act(async () => {
+        await Promise.all([
+          result.current.handleRetryConfirm(),
+          result.current.handleRetryConfirm(),
+        ]);
+      });
+
+      expect(params.placeOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('collapses a double tap on retry into one fetch', async () => {
+      const params = createDefaultParams({ isSheetMode: true });
+      const { result } = renderHook(() => usePredictOrderRetry(params));
+
+      await act(async () => {
+        await Promise.all([
+          result.current.handleRetry(),
+          result.current.handleRetry(),
+        ]);
+      });
+
+      expect(params.refetchPreview).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('no auto-chase', () => {
+    it('does not resubmit after a failed retry without user action', async () => {
+      const params = createDefaultParams({
+        placeOrder: jest
+          .fn()
+          .mockResolvedValue({ status: 'order_not_filled' as const }),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(params.placeOrder).toHaveBeenCalledTimes(1);
+
+      // The world keeps moving (polls, re-renders, timers) with no user tap:
+      // the failed state is terminal for this quote.
+      await act(async () => {
+        rerender();
+      });
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(params.placeOrder).toHaveBeenCalledTimes(1);
+      expect(result.current.retrySheetVariant).toBe('failed');
+    });
+  });
+
+  describe('retry analytics', () => {
+    it('includes reason, count, band, and 1-tick decision on retry events', async () => {
+      const params = createDefaultParams({
+        lastSubmittedPreview: createMockPreview({
+          side: Side.SELL,
+          sharePrice: 0.65,
+          slippage: 0.05,
+        }),
+        refetchPreview: jest.fn().mockResolvedValue({
+          status: 'ok' as const,
+          preview: createMockPreview({
+            side: Side.SELL,
+            sharePrice: 0.62,
+            slippage: 0.05,
+          }),
+        }),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      mockTrackEvent.mockClear();
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'retry_submitted',
+          retryReason: 'order_not_filled',
+          retryCount: 1,
+          oneTickDecision: 'beyond_one_tick',
+          slippageBand: '5%',
+          sharePrice: 0.62,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'retry_completed',
+          retryOutcome: 'success',
+          retryCount: 1,
+          oneTickDecision: 'beyond_one_tick',
+          slippageBand: '5%',
+        }),
+      );
+    });
+
+    it('reports a failed terminal outcome with a sanitized failure reason', async () => {
+      const params = createDefaultParams({
+        placeOrder: jest.fn().mockResolvedValue({
+          status: 'error' as const,
+          error:
+            'Swap failed https://secret.example.com/x 0x1234567890123456789012345678901234567890',
+        }),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      mockTrackEvent.mockClear();
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'retry_completed',
+          retryOutcome: 'failed',
+          failureReason: expect.not.stringContaining(
+            '0x1234567890123456789012345678901234567890',
+          ),
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'retry_completed',
+          failureReason: expect.not.stringContaining('https://'),
+        }),
+      );
+    });
+
+    it('increments the retry count across retries within one episode', async () => {
+      const params = createDefaultParams({
+        placeOrder: jest
+          .fn()
+          .mockResolvedValue({ status: 'order_not_filled' as const }),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'retry_completed', retryCount: 1 }),
+      );
+
+      // Second user-initiated retry in the same episode (Try again → confirm).
+      mockTrackEvent.mockClear();
+      await act(async () => {
+        await result.current.handleRetry();
+      });
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'retry_submitted',
+          retryCount: 2,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'retry_completed',
+          retryOutcome: 'not_filled',
+          retryCount: 2,
+        }),
+      );
     });
   });
 });

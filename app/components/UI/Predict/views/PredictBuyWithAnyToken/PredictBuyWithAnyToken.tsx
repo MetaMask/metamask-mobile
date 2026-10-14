@@ -279,6 +279,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     errorMessageSource,
     buyErrorBanner,
     isOrderNotFilled,
+    retryOrderState,
     resetOrderNotFilled,
     clearBuyErrorBanner,
   } = usePredictBuyError({
@@ -405,6 +406,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     analyticsProperties,
     isOrderNotFilled,
     resetOrderNotFilled,
+    orderState: retryOrderState,
     isSheetMode,
     attempt: Engine.context.PredictController.getRetryablePredictBuyAttempt(),
   });
