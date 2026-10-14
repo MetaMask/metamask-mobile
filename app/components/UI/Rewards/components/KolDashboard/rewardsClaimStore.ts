@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import type { RewardsDashboardTab } from './RewardsDashboardTabs.types';
 import { KOL_EARNINGS_FIXTURE } from './rewardsUiFixtures';
 
 /**
@@ -12,6 +13,7 @@ let claimableRewards = KOL_EARNINGS_FIXTURE.availableToClaim;
 let isTaxFormPending = false;
 let isClaimOnHold = false;
 let isClaimsPaused = false;
+let pendingDashboardTab: RewardsDashboardTab | null = null;
 
 const listeners = new Set<() => void>();
 
@@ -93,6 +95,25 @@ export const markClaimsPaused = (): void => setIsClaimsPaused(true);
 
 /** Clears the paused claim gate. */
 export const resetClaimsPaused = (): void => setIsClaimsPaused(false);
+
+export const getPendingRewardsDashboardTab = (): RewardsDashboardTab | null =>
+  pendingDashboardTab;
+
+/**
+ * Asks the Rewards dashboard to open this tab the next time it mounts.
+ * The dashboard unmounts while another tab is selected, so a navigation param
+ * set from Money would be gone by the time Rewards renders.
+ */
+export const requestRewardsDashboardTab = (tab: RewardsDashboardTab): void => {
+  pendingDashboardTab = tab;
+};
+
+/** Reads and clears the tab requested by another surface, such as Money. */
+export const consumeRewardsDashboardTab = (): RewardsDashboardTab | null => {
+  const tab = pendingDashboardTab;
+  pendingDashboardTab = null;
+  return tab;
+};
 
 export const useClaimableRewards = (): number =>
   useSyncExternalStore(subscribe, getClaimableRewards);

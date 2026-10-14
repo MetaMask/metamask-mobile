@@ -1,12 +1,15 @@
 import {
   claimAllRewards,
+  consumeRewardsDashboardTab,
   getClaimableRewards,
   getIsClaimOnHold,
   getIsClaimsPaused,
   getIsTaxFormPending,
+  getPendingRewardsDashboardTab,
   markClaimOnHold,
   markClaimsPaused,
   markTaxFormPending,
+  requestRewardsDashboardTab,
   resetClaimableRewards,
   resetClaimOnHold,
   resetClaimsPaused,
@@ -20,6 +23,7 @@ describe('rewardsClaimStore', () => {
     resetTaxFormPending();
     resetClaimOnHold();
     resetClaimsPaused();
+    consumeRewardsDashboardTab();
   });
 
   it('starts at the fixture balance', () => {
@@ -92,5 +96,15 @@ describe('rewardsClaimStore', () => {
     resetClaimsPaused();
 
     expect(getIsClaimsPaused()).toBe(false);
+  });
+
+  it('holds a dashboard tab until it is consumed', () => {
+    expect(getPendingRewardsDashboardTab()).toBeNull();
+
+    requestRewardsDashboardTab('earnings');
+
+    expect(getPendingRewardsDashboardTab()).toBe('earnings');
+    expect(consumeRewardsDashboardTab()).toBe('earnings');
+    expect(getPendingRewardsDashboardTab()).toBeNull();
   });
 });

@@ -1,6 +1,7 @@
 import React, {
   useEffect,
   useCallback,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -72,6 +73,8 @@ import RewardsPreviewSheet, {
 import EarningsTab from '../components/KolDashboard/EarningsTab';
 import PerformanceTab from '../components/KolDashboard/PerformanceTab';
 import {
+  consumeRewardsDashboardTab,
+  getPendingRewardsDashboardTab,
   markClaimOnHold,
   markClaimsPaused,
   resetClaimableRewards,
@@ -133,8 +136,22 @@ const RewardsDashboard: React.FC = () => {
   const activeTab = useSelector(selectActiveTab);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
-  const [dashboardTab, setDashboardTab] =
-    useState<RewardsDashboardTab>('waysToEarn');
+  const [dashboardTab, setDashboardTab] = useState<RewardsDashboardTab>(
+    () => getPendingRewardsDashboardTab() ?? 'waysToEarn',
+  );
+
+  // The Money claim button asks for the Claims tab before navigating here.
+  // Route params would be dropped: this screen unmounts while another tab is
+  // selected. Consume the request so the next Rewards visit starts on Ways to
+  // earn.
+  useLayoutEffect(() => {
+    const pendingTab = consumeRewardsDashboardTab();
+    if (!pendingTab) {
+      return;
+    }
+    setDashboardTab(pendingTab);
+  }, []);
+
   const claimableRewards = useClaimableRewards();
   const isClaimOnHold = useIsClaimOnHold();
   const isClaimsPaused = useIsClaimsPaused();

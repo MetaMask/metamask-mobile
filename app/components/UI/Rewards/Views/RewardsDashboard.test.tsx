@@ -10,6 +10,9 @@ import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradi
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
 import { handleDeeplink } from '../../../../core/DeeplinkManager';
 import {
+  consumeRewardsDashboardTab,
+  getPendingRewardsDashboardTab,
+  requestRewardsDashboardTab,
   resetClaimableRewards,
   resetClaimOnHold,
   resetClaimsPaused,
@@ -574,6 +577,7 @@ describe('RewardsDashboard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    consumeRewardsDashboardTab();
     resetClaimableRewards();
     resetTaxFormPending();
     resetClaimOnHold();
@@ -815,6 +819,15 @@ describe('RewardsDashboard', () => {
         screen: Routes.REWARDS_SETTINGS_VIEW,
         params: undefined,
       });
+    });
+
+    it('opens the Claims tab when Money requested it before this screen mounted', () => {
+      requestRewardsDashboardTab('earnings');
+
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      expect(getByTestId('earnings-tab')).toBeOnTheScreen();
+      expect(getPendingRewardsDashboardTab()).toBeNull();
     });
 
     it('shows the performance tab when that tab is selected', () => {

@@ -17,8 +17,8 @@ interface UseClaimEligibilityFlowResult {
 }
 
 /**
- * Shared claim gate used by the Claims tab and the Money card. Anyone with a
- * US connection is sent to the external tax provider, and claiming again while
+ * Claim gate for the Claims tab. Anyone with a US connection is sent to the
+ * external tax provider, and claiming again while
  * that form is under review reports pending review; everyone else claims
  * in-app.
  */
