@@ -51,7 +51,7 @@ export const TokenSearchRowItem: React.FC<TokenRowItemProps> = ({
     position={index}
     filterContext={SEARCH_TOKENS_FILTER_CONTEXT}
     tokenDetailsSource={tokenDetailsSource}
-    showSymbol
+    subtitle="search"
     endAction={
       onQuickTrade ? { type: 'quick-trade', onPress: onQuickTrade } : undefined
     }

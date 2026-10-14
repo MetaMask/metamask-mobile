@@ -3,6 +3,7 @@ import {
   caipChainIdToHex,
   formatCompactCurrency,
   formatMarketStats,
+  formatSearchStats,
   getCaipChainIdFromAssetId,
   getNetworkBadgeSource,
   getNetworkBadgeSrc,
@@ -461,6 +462,16 @@ describe('formatMarketStats', () => {
 
       expect(result).toBe('- cap • €1.0M vol');
     });
+  });
+});
+
+describe('formatSearchStats', () => {
+  it('formats the symbol and market cap', () => {
+    expect(formatSearchStats('USDC', 75641301011.76)).toBe('USDC · $76B cap');
+  });
+
+  it('omits the symbol when it is missing', () => {
+    expect(formatSearchStats(undefined, 75641301011.76)).toBe('$76B cap');
   });
 });
 

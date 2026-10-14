@@ -360,16 +360,16 @@ describe('TrendingTokenRowItem', () => {
     expect(getByText(/\$76B cap • \$974\.2M vol/)).toBeTruthy();
   });
 
-  it('renders the symbol, market cap, and volume subtitle when showSymbol is true', () => {
+  it('renders the symbol and market cap subtitle for search rows', () => {
     const token = createMockToken();
 
     const { getByText } = renderWithProvider(
-      <TrendingTokenRowItem token={token} showSymbol />,
+      <TrendingTokenRowItem token={token} subtitle="search" />,
       { state: mockState },
       false,
     );
 
-    expect(getByText('USDC · $76B cap • $974.2M vol')).toBeTruthy();
+    expect(getByText('USDC · $76B cap')).toBeTruthy();
   });
 
   it('renders formatted price', () => {
