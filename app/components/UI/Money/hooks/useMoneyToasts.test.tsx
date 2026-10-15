@@ -607,4 +607,24 @@ describe('useMoneyToasts', () => {
       expect(onPress).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('claimSuccess', () => {
+    it('uses Confirmation icon, Success haptics, and the default timeout', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.claimSuccess();
+
+      expect(toast.variant).toBe(ToastVariants.Icon);
+      expect(toast.iconName).toBe(IconName.Confirmation);
+      expect(toast.iconColor).toBeDefined();
+      expect(toast.hapticsType).toBe(NotificationMoment.Success);
+      expect(toast.hasNoTimeout).toBe(false);
+      expect(toast.labelOptions).toEqual([
+        {
+          label: 'mUSD successfully claimed to your Money account.',
+          isBold: true,
+        },
+      ]);
+    });
+  });
 });

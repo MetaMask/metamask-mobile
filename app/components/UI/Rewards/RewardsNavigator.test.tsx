@@ -66,6 +66,42 @@ jest.mock('./Views/RewardsSettingsView', () => {
   };
 });
 
+jest.mock('./Views/RewardsTradingCommissionsView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockRewardsTradingCommissionsView() {
+    return ReactActual.createElement(
+      View,
+      { testID: 'rewards-trading-commissions-view' },
+      ReactActual.createElement(Text, null, 'Rewards Trading Commissions View'),
+    );
+  };
+});
+
+jest.mock('./Views/RewardsTradingRebatesView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockRewardsTradingRebatesView() {
+    return ReactActual.createElement(
+      View,
+      { testID: 'rewards-trading-rebates-view' },
+      ReactActual.createElement(Text, null, 'Rewards Trading Rebates View'),
+    );
+  };
+});
+
+jest.mock('./Views/RewardsEarningsHistoryView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockRewardsEarningsHistoryView() {
+    return ReactActual.createElement(
+      View,
+      { testID: 'rewards-earnings-history-view' },
+      ReactActual.createElement(Text, null, 'Rewards Earnings History View'),
+    );
+  };
+});
+
 jest.mock('./Views/RewardsVipView', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');

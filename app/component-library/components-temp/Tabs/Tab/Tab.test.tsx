@@ -30,7 +30,7 @@ describe('Tab', () => {
       expect(getAllByText('My Tab')[0]).toBeOnTheScreen();
     });
 
-    it('renders endAccessory after the label', () => {
+    it('renders endAccessory on the label', () => {
       const { getByTestId } = render(
         <Tab
           {...defaultProps}
@@ -48,6 +48,24 @@ describe('Tab', () => {
       );
 
       expect(queryByTestId('tab-end-accessory')).toBeNull();
+    });
+
+    it('hugs its label by default', () => {
+      const { getByTestId } = render(
+        <Tab {...defaultProps} testID="hug-tab" />,
+      );
+
+      expect(getByTestId('hug-tab-container')).toHaveStyle({ flexShrink: 0 });
+    });
+
+    it('stretches to share the row when isFullWidth is true', () => {
+      const { getByTestId } = render(
+        <Tab {...defaultProps} isFullWidth testID="full-width-tab" />,
+      );
+
+      expect(getByTestId('full-width-tab-container')).toHaveStyle({
+        flexGrow: 1,
+      });
     });
 
     it('renders long labels without truncating the element', () => {

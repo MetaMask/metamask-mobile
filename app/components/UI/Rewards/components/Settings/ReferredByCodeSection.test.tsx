@@ -80,6 +80,8 @@ jest.mock('@metamask/design-system-react-native', () => {
       SuccessDefault: 'SuccessDefault',
       ErrorDefault: 'ErrorDefault',
     },
+    SectionDivider: (props: { [key: string]: unknown }) =>
+      ReactActual.createElement(View, props),
   };
 });
 

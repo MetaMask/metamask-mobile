@@ -122,6 +122,7 @@ export interface MoneyToastOptionsConfig {
     success: (params: SendSuccessParams) => MoneyToastOptions;
     failed: (params?: SendFailedParams) => MoneyToastOptions;
   };
+  claimSuccess: () => MoneyToastOptions;
   rescue: {
     inProgress: () => MoneyToastOptions;
     success: (params: RescueSuccessParams) => MoneyToastOptions;
@@ -416,6 +417,17 @@ const useMoneyToasts = (): {
             params?.onPress,
           ),
       },
+      claimSuccess: () => ({
+        ...moneyBaseToastOptions.success,
+        hasNoTimeout: false,
+        labelOptions: [
+          {
+            label: strings('money.claimable_rewards.success_toast'),
+            isBold: true,
+          },
+        ],
+        closeButtonOptions,
+      }),
       rescue: {
         // The rescue send shows its pending toast immediately (before the
         // controller reports `approved`), so it cannot reuse `send`, whose
