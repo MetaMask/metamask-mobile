@@ -44,6 +44,7 @@ export type AssetStackParamList = {
     isPricePositive?: boolean;
     useAmbientColor?: boolean;
   };
+  ContractSecurity: { token: TokenDetailsRouteParams };
   CreatePriceAlert: CreatePriceAlertRouteParams;
   ManagePriceAlerts: PriceAlertRouteParams;
 };
@@ -87,6 +88,7 @@ export type SettingsStackParamList = {
   NetworkDetails: NetworkDetailsViewParams | undefined;
   SDKSessionsManager: undefined;
   SecuritySettings: undefined;
+  MfaSettings: undefined;
   RampSettings: undefined;
   RampActivationKeyForm: undefined;
   RampHeadlessPlayground: undefined;

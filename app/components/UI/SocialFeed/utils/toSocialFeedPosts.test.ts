@@ -1,4 +1,4 @@
-import { mockPerpFeedItem } from '../mocks/coreFeed.mock';
+import { mockPerpFeedItem, mockSpotFeedItem } from '../mocks/coreFeed.mock';
 import { mapFeedItem } from './mapFeedItem';
 import type { TraderFeedRow } from '../types';
 import { KLIPY_STATIC_GIF_EXAMPLE } from './klipyGifComment';
@@ -37,6 +37,14 @@ describe('toSocialFeedPosts', () => {
     expect(post.item.comment).toBe('this is alpha');
   });
 
+  it('keeps the core position for the details sheet', () => {
+    const row = buildRow();
+
+    const [post] = toSocialFeedPosts([row]);
+
+    expect(post.position).toBe(row.core);
+  });
+
   it('lifts a static.klipy.com gif url from the Call text onto gifUri', () => {
     const row = buildRow({
       authorComment: {
@@ -61,5 +69,30 @@ describe('toSocialFeedPosts', () => {
 
     expect(post.commentId).toBeUndefined();
     expect(post.reactions).toStrictEqual([]);
+  });
+
+  it('copies triggering-trade market cap onto spot posts', () => {
+    const base = mockSpotFeedItem();
+    const trade = base.trades?.[0];
+    if (!trade) {
+      throw new Error('spot fixture has no trade');
+    }
+    const core = mockSpotFeedItem({
+      trades: [{ ...trade, marketCap: 5_200_000_000 }],
+    });
+    const item = mapFeedItem(core);
+    if (!item) {
+      throw new Error('fixture did not map to a FeedItem');
+    }
+
+    const [post] = toSocialFeedPosts([{ item, core }]);
+
+    expect(post.marketCapUsd).toBe(5_200_000_000);
+  });
+
+  it('sets marketCapUsd to null on perp posts', () => {
+    const [post] = toSocialFeedPosts([buildRow()]);
+
+    expect(post.marketCapUsd).toBeNull();
   });
 });

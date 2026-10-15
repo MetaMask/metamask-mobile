@@ -427,6 +427,22 @@ describe('SwapsKeypad', () => {
       );
     });
 
+    it('forwards onLayout to the BottomSheetDialog', () => {
+      const onLayout = jest.fn();
+
+      renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        onLayout,
+      });
+
+      expect(mockBottomSheetDialogProps).toHaveBeenCalledWith(
+        expect.objectContaining({ onLayout }),
+      );
+    });
+
     it('notifies onClose when the dialog closes', () => {
       const onClose = jest.fn();
       const { ref } = renderAndOpen({

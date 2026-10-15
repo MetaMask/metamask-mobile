@@ -35,10 +35,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import {
-  exceedsPriceImpactErrorThreshold,
-  parsePriceImpact,
-} from '../../utils/getPriceImpactViewData';
 import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 import type { TokenWarningModalParams } from '../TokenWarningModal';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
@@ -102,6 +98,7 @@ export const SwapsMarketOrderConfirmButton = ({
     quoteFetchError,
     isNoQuotesAvailable,
     isActiveQuoteForCurrentTokenPair,
+    shouldShowPriceImpactError,
   } = useBridgeQuoteDataContext();
 
   const insufficientNativeReserveError = useInsufficientNativeReserveError({
@@ -241,20 +238,7 @@ export const SwapsMarketOrderConfirmButton = ({
       return;
     }
 
-    // Default to zero to bypass swap friction.
-    // This callback is always called when active quote exists,
-    // thus this check is not expected to be used, but we introduce
-    // it regardless as a defensive mechanism.
-    const priceImpact = parsePriceImpact(
-      activeQuote?.quote.priceData?.priceImpact?.amount,
-    );
-
-    if (
-      exceedsPriceImpactErrorThreshold(
-        priceImpact,
-        bridgeFeatureFlags?.priceImpactThreshold?.error,
-      )
-    ) {
+    if (shouldShowPriceImpactError) {
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
         params: {

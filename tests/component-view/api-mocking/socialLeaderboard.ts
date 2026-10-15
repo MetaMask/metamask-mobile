@@ -152,9 +152,17 @@ export interface LeaderboardApiMockOptions {
   notificationPrefs?: NotificationPrefsOptions;
   /** Items returned by `SocialService:fetchFeed`. Default: none. */
   feedItems?: CoreFeedItem[];
+  /**
+   * Number of `SocialService:fetchLeaderboard` calls that reject with
+   * `LEADERBOARD_FETCH_ERROR_MESSAGE` before the fixture traders are served.
+   * Default: 0 (every fetch succeeds).
+   */
+  leaderboardFailuresBeforeSuccess?: number;
 }
 
 const PERP_CHAIN = 'hyperliquid';
+
+export const LEADERBOARD_FETCH_ERROR_MESSAGE = 'Leaderboard unavailable';
 
 /**
  * Spies on Engine.controllerMessenger.call to intercept Social Leaderboard
@@ -172,9 +180,11 @@ export function setupLeaderboardApiMock(
     allTraders = mockLeaderboardTraders,
     notificationPrefs = {},
     feedItems = [],
+    leaderboardFailuresBeforeSuccess = 0,
   } = options;
 
   const prefsResponse = buildNotificationPrefsResponse(notificationPrefs);
+  let remainingLeaderboardFailures = leaderboardFailuresBeforeSuccess;
 
   const originalCall = Engine.controllerMessenger.call.bind(
     Engine.controllerMessenger,
@@ -201,6 +211,12 @@ export function setupLeaderboardApiMock(
       }
 
       if (action === 'SocialService:fetchLeaderboard') {
+        if (remainingLeaderboardFailures > 0) {
+          remainingLeaderboardFailures -= 1;
+          return Promise.reject(
+            new Error(LEADERBOARD_FETCH_ERROR_MESSAGE),
+          ) as ReturnType<typeof Engine.controllerMessenger.call>;
+        }
         const chains = fetchOpts?.chains ?? [];
         const isPerpsOnly = chains.length === 1 && chains[0] === PERP_CHAIN;
         const isMixedWithPerps =

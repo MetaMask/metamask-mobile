@@ -9,6 +9,7 @@ import { mockCopyCount } from '../mocks/socialV1Enrichment';
 import {
   mockClosedPerpsFeedItem,
   mockOpenPerpsFeedItem,
+  mockOpenSpotFeedItem,
 } from '../mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../types';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
@@ -120,6 +121,8 @@ const renderShell = (
   post: SocialV1FeedPost,
   options?: {
     onAuthorPress?: (post: SocialV1FeedPost) => void;
+    onPositionPress?: (post: SocialV1FeedPost) => void;
+    onCopyTrade?: (item: SocialV1FeedPost['item']) => void;
     /** `null` renders with no surface provider, so invented values stay hidden. */
     showMockedFields?: boolean | null;
   },
@@ -130,7 +133,12 @@ const renderShell = (
   const showMockedFields =
     options && 'showMockedFields' in options ? options.showMockedFields : true;
   const shell = (
-    <SocialFeedPostShell post={post} onAuthorPress={options?.onAuthorPress} />
+    <SocialFeedPostShell
+      post={post}
+      onAuthorPress={options?.onAuthorPress}
+      onPositionPress={options?.onPositionPress}
+      onCopyTrade={options?.onCopyTrade}
+    />
   );
   return renderWithProvider(
     <QueryClientProvider client={queryClient}>
@@ -433,6 +441,53 @@ describe('SocialFeedPostShell', () => {
     });
   });
 
+  describe('position press', () => {
+    it('calls onPositionPress when the position card is pressed', () => {
+      const onPositionPress = jest.fn();
+      const post = basePost();
+      renderShell(post, { onPositionPress });
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-post-1`,
+        ),
+      );
+
+      expect(onPositionPress).toHaveBeenCalledWith(post);
+    });
+
+    it('keeps copy trade on its own press inside a pressable card', async () => {
+      mockGate.mockImplementation((action: () => Promise<void> | void) =>
+        Promise.resolve(action()),
+      );
+      mockSelectPerpsEligibility.mockReturnValue(true);
+      const onPositionPress = jest.fn();
+      renderShell(basePost(), { onPositionPress });
+
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.MODALS.ROOT,
+          expect.anything(),
+        );
+      });
+      expect(onPositionPress).not.toHaveBeenCalled();
+    });
+
+    it('does not wrap the card when onPositionPress is omitted', () => {
+      renderShell(basePost());
+
+      expect(
+        screen.queryByTestId(
+          `${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-post-1`,
+        ),
+      ).toBeNull();
+    });
+  });
+
   it('opens the report reason sheet from the post options', () => {
     renderShell(basePost());
 
@@ -498,6 +553,38 @@ describe('SocialFeedPostShell', () => {
           },
         });
       });
+    });
+
+    it('forwards an open spot item and does not open the perps order', () => {
+      const onCopyTrade = jest.fn();
+      const item = mockOpenSpotFeedItem({ id: 'item-spot' });
+
+      renderShell(basePost({ item }), { onCopyTrade });
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-spot'),
+      );
+
+      expect(onCopyTrade).toHaveBeenCalledWith(item);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('opens the perps order instead of the spot handler for an open perp', async () => {
+      const onCopyTrade = jest.fn();
+
+      renderShell(basePost(), { onCopyTrade });
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.MODALS.ROOT,
+          expect.objectContaining({
+            screen: Routes.PERPS.ORDER_REDIRECT,
+          }),
+        );
+      });
+      expect(onCopyTrade).not.toHaveBeenCalled();
     });
 
     it('does not wire copy trade for a closed position', () => {

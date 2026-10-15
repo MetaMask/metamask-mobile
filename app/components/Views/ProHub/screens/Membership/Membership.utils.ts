@@ -28,7 +28,11 @@ export interface MembershipDetails {
   renewsOn: string;
 }
 
-const formatRenewalDate = (date: string): string => {
+const formatRenewalDate = (date: string | undefined): string => {
+  if (!date) {
+    return MEMBERSHIP_UNAVAILABLE_VALUE;
+  }
+
   const renewalDate = new Date(date);
   if (Number.isNaN(renewalDate.getTime())) {
     return MEMBERSHIP_UNAVAILABLE_VALUE;
