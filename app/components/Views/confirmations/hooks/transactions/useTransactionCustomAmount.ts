@@ -145,11 +145,12 @@ export function useTransactionCustomAmount({
     isMoneyAccountDeposit || isMoneyAccountWithdraw;
   const { balanceUsd } = useTransactionPayBalance({ currency });
   const { paySource } = useTransactionPaySource();
-  const payTokenAddress = paySource
-    ? isSolanaPayAsset(paySource)
+  let payTokenAddress = '';
+  if (paySource) {
+    payTokenAddress = isSolanaPayAsset(paySource)
       ? paySource.address
-      : paySource.address.toLowerCase()
-    : '';
+      : paySource.address.toLowerCase();
+  }
   const payTokenKey = `${paySource?.chainId ?? ''}:${payTokenAddress}`;
 
   useEffect(() => {

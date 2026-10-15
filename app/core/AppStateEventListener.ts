@@ -229,7 +229,8 @@ export class AppStateEventListener {
 
   private processAppStateChange = (appOpenedType: AppOpenedType) => {
     try {
-      recoverSolanaPayTransactions();
+      // Recovery handles its own errors, so the promise never rejects.
+      void recoverSolanaPayTransactions();
 
       const attribution = processAttribution({
         currentDeeplink: this.currentDeeplink,

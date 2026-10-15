@@ -192,11 +192,11 @@ function SolanaTransactionFeeRow({
   feeUsd,
   hasAlert,
   reserveSol,
-}: {
+}: Readonly<{
   feeUsd: BigNumber;
   hasAlert: boolean;
   reserveSol: BigNumber;
-}) {
+}>) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
   return (

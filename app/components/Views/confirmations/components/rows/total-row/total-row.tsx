@@ -60,7 +60,7 @@ export function TotalRow() {
 /**
  * Displays the total cost for deposit/payment transactions.
  */
-function SolanaTotalRow({ totalUsd }: { totalUsd: BigNumber }) {
+function SolanaTotalRow({ totalUsd }: Readonly<{ totalUsd: BigNumber }>) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
   return (
