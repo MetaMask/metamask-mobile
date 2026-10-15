@@ -73,6 +73,8 @@ const renderComponent = (
     showTransactionHistoryDuringSetup?: boolean;
     hasPriorityTokenBalance?: boolean;
     hasAlertOnlyState?: boolean;
+    isAuthenticated?: boolean;
+    showHowToUseApplePay?: boolean;
   } = {},
 ) =>
   render(
@@ -81,7 +83,7 @@ const renderComponent = (
       account={{ verificationStatus: 'VERIFIED' } as never}
       capabilities={capabilities}
       isMetalCardCheckoutEnabled={false}
-      isAuthenticated
+      isAuthenticated={overrides.isAuthenticated ?? true}
       isLoading={false}
       hasSetupActions={overrides.hasSetupActions ?? false}
       hasAlertOnlyState={overrides.hasAlertOnlyState ?? false}
@@ -99,6 +101,7 @@ const renderComponent = (
       onContactDetails={jest.fn()}
       showDigitalWalletInstructions={false}
       onDigitalWalletInstructions={jest.fn()}
+      showHowToUseApplePay={overrides.showHowToUseApplePay}
       showUnlinkMoneyAccount={overrides.showUnlinkMoneyAccount ?? false}
       onUnlinkMoneyAccount={jest.fn()}
       showRevokeAllowance={overrides.showRevokeAllowance ?? false}
@@ -340,6 +343,57 @@ describe('ManageCardOptions digital wallet instructions gating', () => {
     fireEvent.press(getByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM));
 
     expect(onHowToUseApplePay).toHaveBeenCalledTimes(1);
+    Object.defineProperty(Platform, 'OS', {
+      value: originalPlatform,
+      writable: true,
+    });
+  });
+
+  it('hides how to use Apple Wallet when the card is not in the wallet', () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+      { showHowToUseApplePay: false },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM)).toBeNull();
+    Object.defineProperty(Platform, 'OS', {
+      value: originalPlatform,
+      writable: true,
+    });
+  });
+
+  it('hides how to use Apple Wallet on Android', () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { value: 'android', writable: true });
+
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+      { showHowToUseApplePay: true },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM)).toBeNull();
+    Object.defineProperty(Platform, 'OS', {
+      value: originalPlatform,
+      writable: true,
+    });
+  });
+
+  it.each([
+    ['setup is still in progress', { hasSetupActions: true }],
+    ['the user is unauthenticated', { isAuthenticated: false }],
+  ])('hides how to use Apple Wallet when %s', (_label, overrides) => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+
+    const { queryByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+      { showHowToUseApplePay: true, ...overrides },
+    );
+
+    expect(queryByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM)).toBeNull();
     Object.defineProperty(Platform, 'OS', {
       value: originalPlatform,
       writable: true,

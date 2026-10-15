@@ -2482,6 +2482,88 @@ describe('CardHome Component', () => {
     });
   });
 
+  describe('How to use Apple Wallet', () => {
+    const originalPlatform = Platform.OS;
+
+    const mockWalletState = ({
+      canAddToWallet,
+      isCardInWallet,
+    }: {
+      canAddToWallet: boolean;
+      isCardInWallet: boolean;
+    }) => {
+      mockUsePushProvisioning.mockReturnValue({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet,
+        isCardInWallet,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+    };
+
+    beforeEach(() => {
+      Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+      setupMockSelectors({
+        isAuthenticated: true,
+        activeProviderId: 'baanx',
+      });
+      setupLoadCardDataMock({ isAuthenticated: true });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(Platform, 'OS', {
+        value: originalPlatform,
+        writable: true,
+      });
+    });
+
+    it('opens the add sheet when the card is still missing from a device', () => {
+      mockWalletState({ canAddToWallet: true, isCardInWallet: true });
+
+      render();
+      mockNavigate.mockClear();
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.APPLE_PAY_ADD,
+      });
+    });
+
+    it('opens the usage sheet when the card is on every device', () => {
+      mockWalletState({ canAddToWallet: false, isCardInWallet: true });
+
+      render();
+      mockNavigate.mockClear();
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.APPLE_PAY_USAGE,
+      });
+    });
+
+    it('hides the row when the card is on no devices', () => {
+      mockWalletState({ canAddToWallet: true, isCardInWallet: false });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM),
+      ).toBeNull();
+    });
+  });
+
   it('shows the Enable card button for provider pending actions and resumes from it', () => {
     mockCanEnableCard = true;
     mockProvisioningView = 'hidden';
