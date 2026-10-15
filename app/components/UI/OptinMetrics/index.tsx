@@ -311,22 +311,12 @@ const OptinMetrics = () => {
   );
 
   const handleBasicUsageToggle = useCallback(() => {
-    setIsBasicUsageChecked((prevValue) => {
-      const newValue = !prevValue;
-      if (!newValue) {
-        setIsMarketingChecked(false);
-      }
-      return newValue;
-    });
+    setIsBasicUsageChecked((prev) => !prev);
   }, []);
 
   const handleMarketingToggle = useCallback(() => {
-    if (isBasicUsageChecked) {
-      setIsMarketingChecked((prev) => !prev);
-    }
-  }, [isBasicUsageChecked]);
-
-  const isMarketingDisabled = !isBasicUsageChecked;
+    setIsMarketingChecked((prev) => !prev);
+  }, []);
 
   /**
    * Content size change event for the ScrollView.
@@ -441,10 +431,7 @@ const OptinMetrics = () => {
               variant={ContentVariant.MultiLine}
               isSelected={isMarketingChecked}
               onPress={handleMarketingToggle}
-              disabled={isMarketingDisabled}
-              twClassName={`rounded-xl border border-muted ${
-                isMarketingDisabled ? 'opacity-50' : ''
-              }`}
+              twClassName="rounded-xl border border-muted"
               title={strings('privacy_policy.checkbox_marketing')}
               description={strings('privacy_policy.checkbox')}
               testID={

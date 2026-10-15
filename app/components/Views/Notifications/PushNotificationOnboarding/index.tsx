@@ -67,7 +67,7 @@ const PushNotificationOnboarding = ({
     identifyPushNotificationsEnabled,
   } = usePushPrePromptAnalytics();
 
-  // Opt the user into marketing consent (and MetaMetrics if needed) when they accept the prompt.
+  // Only the marketing consent prompt opts the user in; turning on notifications never changes consent.
   const { enableMarketingConsent } = useEnableMarketingConsent({
     metricsOptInLocation: METRICS_OPT_IN_LOCATION,
   });
@@ -184,9 +184,6 @@ const PushNotificationOnboarding = ({
     let didRouteToSystemSettings = false;
     trackPrePromptButtonClicked('push_permission', 'yes');
     try {
-      // Accepting push notifications also opts the user into marketing consent.
-      await enableMarketingConsent();
-
       if (!nativePermissionEnabled) {
         // iOS denied is not promptable. Android treats any not-granted state as
         // promptable; Android < 13 is handled below via canOsPromptForPushPermission.
@@ -220,7 +217,6 @@ const PushNotificationOnboarding = ({
     }
   }, [
     dismissPrePrompt,
-    enableMarketingConsent,
     enableNotificationsInBackground,
     identifyPushNotificationsEnabled,
     nativeOsPermissionEnabled,
