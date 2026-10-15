@@ -1,4 +1,7 @@
-import { DEFAULT_PROFILE_AVATAR_PRESET_ID } from '../MyProfileView/avatarPresets';
+import {
+  DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
+  DEFAULT_PROFILE_AVATAR_PRESET_ID,
+} from '../MyProfileView/avatarPresets';
 import type { MySocialProfile } from '../MyProfileView/hooks/useMyProfile';
 
 export type ProfileOnboardingStep =
@@ -13,6 +16,7 @@ export interface ProfileOnboardingDraft {
   displayName: string;
   displayNameEdited: boolean;
   avatarPresetId: string;
+  avatarBackgroundId: string;
   avatarGridIndex: number;
   linkedAccountId: string | null;
   linkedAccountAddress: string | null;
@@ -74,6 +78,7 @@ export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
     displayName: displayNameFromUsername(username),
     displayNameEdited: false,
     avatarPresetId: DEFAULT_PROFILE_AVATAR_PRESET_ID,
+    avatarBackgroundId: DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
     avatarGridIndex: 0,
     linkedAccountId: null,
     linkedAccountAddress: null,
@@ -95,6 +100,7 @@ export const buildOnboardedSocialProfile = (
     bio: null,
     imageUrl: null,
     avatarPresetId: draft.avatarPresetId,
+    avatarBackgroundId: draft.avatarBackgroundId,
     rankingTag: null,
     xHandle: null,
     followerCount: 0,

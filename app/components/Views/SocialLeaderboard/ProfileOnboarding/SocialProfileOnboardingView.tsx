@@ -39,8 +39,11 @@ import { getAvatarAccountVariant } from '../../../../component-library/component
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
+import { useHaptics } from '../../../../util/haptics';
 import { PROFILE_AVATAR_PRESETS } from '../MyProfileView/avatarPresets';
-import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
+import ProfileAvatar, {
+  ProfileAvatarArt,
+} from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
@@ -58,8 +61,9 @@ import ProfileOnboardingIntroAnimation from './ProfileOnboardingIntroAnimation';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { useSocialOnboardingAccounts } from './useSocialOnboardingAccounts';
+import AvatarBackgroundCarousel from './AvatarBackgroundCarousel';
 
-const AVATAR_GRID_COUNT = 24;
+const AVATAR_GRID_COUNT = 16;
 
 const LIVE_ACTIVITY = [
   {
@@ -194,8 +198,9 @@ const LiveActivityFallback: React.FC = () => (
 
 const ReadyCardFallback: React.FC<{
   avatarPresetId: string | null | undefined;
+  avatarBackgroundId: string | null | undefined;
   handle: string;
-}> = ({ avatarPresetId, handle }) => (
+}> = ({ avatarPresetId, avatarBackgroundId, handle }) => (
   <>
     <Text twClassName="absolute left-6 top-6" variant={TextVariant.HeadingLg}>
       🦊
@@ -220,7 +225,11 @@ const ReadyCardFallback: React.FC<{
         </Text>
       </Box>
       <Box twClassName="rounded-full border-4 border-success-default p-1">
-        <ProfileAvatar avatarPresetId={avatarPresetId} size="xl" />
+        <ProfileAvatar
+          avatarPresetId={avatarPresetId}
+          avatarBackgroundId={avatarBackgroundId}
+          size="xl"
+        />
       </Box>
       <Text
         variant={TextVariant.BodyMd}
@@ -239,6 +248,7 @@ const SocialProfileOnboardingView: React.FC = () => {
   const accounts = useSocialOnboardingAccounts();
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const avatarVariant = getAvatarAccountVariant(avatarAccountType);
+  const { playSelection } = useHaptics();
   const [step, setStep] = useState<ProfileOnboardingStep>('intro');
   const [draft, setDraft] = useState<ProfileOnboardingDraft>(
     createInitialOnboardingDraft,
@@ -311,6 +321,25 @@ const SocialProfileOnboardingView: React.FC = () => {
       displayName: value,
       displayNameEdited: true,
     }));
+  }, []);
+
+  const handleAvatarSelect = useCallback(
+    (presetId: string, gridIndex: number) => {
+      if (gridIndex === draft.avatarGridIndex) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setDraft((current) => ({
+        ...current,
+        avatarPresetId: presetId,
+        avatarGridIndex: gridIndex,
+      }));
+    },
+    [draft.avatarGridIndex, playSelection],
+  );
+
+  const handleAvatarBackgroundSelect = useCallback((backgroundId: string) => {
+    setDraft((current) => ({ ...current, avatarBackgroundId: backgroundId }));
   }, []);
 
   const handleContinue = useCallback(() => {
@@ -543,71 +572,18 @@ const SocialProfileOnboardingView: React.FC = () => {
                   <Text
                     variant={TextVariant.HeadingLg}
                     fontWeight={FontWeight.Bold}
-                    twClassName="text-center pt-2 pb-4"
+                    twClassName="text-center pt-2 pb-6"
                   >
-                    {strings('social_leaderboard.profile_onboarding.pick_look')}
+                    {strings(
+                      'social_leaderboard.profile_onboarding.choose_avatar',
+                    )}
                   </Text>
-                  <Box
-                    twClassName="rounded-full border-4 border-icon-default p-1 mb-4"
-                    testID={SocialProfileOnboardingSelectorsIDs.AVATAR_PREVIEW}
-                  >
-                    <ProfileAvatar
-                      avatarPresetId={draft.avatarPresetId}
-                      size="xl"
-                    />
-                  </Box>
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    justifyContent={BoxJustifyContent.Center}
-                    gap={8}
-                    twClassName="pb-4"
-                  >
-                    <Box alignItems={BoxAlignItems.Center} gap={2}>
-                      <ButtonIcon
-                        iconName={IconName.Camera}
-                        variant={ButtonIconVariant.Filled}
-                        size={ButtonIconSize.Lg}
-                        onPress={() => undefined}
-                        accessibilityLabel={strings(
-                          'social_leaderboard.profile_onboarding.camera',
-                        )}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.CAMERA_BUTTON
-                        }
-                      />
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.TextAlternative}
-                      >
-                        {strings(
-                          'social_leaderboard.profile_onboarding.camera',
-                        )}
-                      </Text>
-                    </Box>
-                    <Box alignItems={BoxAlignItems.Center} gap={2}>
-                      <ButtonIcon
-                        iconName={IconName.Image}
-                        variant={ButtonIconVariant.Filled}
-                        size={ButtonIconSize.Lg}
-                        onPress={() => undefined}
-                        accessibilityLabel={strings(
-                          'social_leaderboard.profile_onboarding.photos',
-                        )}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.PHOTOS_BUTTON
-                        }
-                      />
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.TextAlternative}
-                      >
-                        {strings(
-                          'social_leaderboard.profile_onboarding.photos',
-                        )}
-                      </Text>
-                    </Box>
-                  </Box>
-                  <Box twClassName="flex-row flex-wrap justify-center w-full">
+                  <AvatarBackgroundCarousel
+                    avatarPresetId={draft.avatarPresetId}
+                    selectedBackgroundId={draft.avatarBackgroundId}
+                    onSelect={handleAvatarBackgroundSelect}
+                  />
+                  <Box twClassName="flex-row flex-wrap w-full pt-8">
                     {Array.from({ length: AVATAR_GRID_COUNT }, (_, index) => {
                       const preset =
                         PROFILE_AVATAR_PRESETS[
@@ -615,33 +591,31 @@ const SocialProfileOnboardingView: React.FC = () => {
                         ];
                       const isSelected = draft.avatarGridIndex === index;
                       return (
-                        <Pressable
+                        <Box
                           key={`${preset.id}-${index}`}
-                          accessibilityRole="button"
-                          accessibilityState={{ selected: isSelected }}
-                          onPress={() =>
-                            setDraft((current) => ({
-                              ...current,
-                              avatarPresetId: preset.id,
-                              avatarGridIndex: index,
-                            }))
-                          }
-                          testID={`${SocialProfileOnboardingSelectorsIDs.AVATAR_OPTION}-${index}`}
-                          style={tw.style('m-1')}
+                          twClassName="w-1/4 items-center py-2"
                         >
-                          <Box
-                            twClassName={`rounded-full p-0.5 ${
+                          <Pressable
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: isSelected }}
+                            onPress={() => handleAvatarSelect(preset.id, index)}
+                            testID={`${SocialProfileOnboardingSelectorsIDs.AVATAR_OPTION}-${index}`}
+                            style={tw.style(
+                              'rounded-full p-1 border-2',
                               isSelected
-                                ? 'border-2 border-icon-default'
-                                : 'border-2 border-transparent'
-                            }`}
+                                ? 'border-icon-default'
+                                : 'border-transparent',
+                            )}
                           >
-                            <ProfileAvatar
-                              avatarPresetId={preset.id}
-                              size="md"
-                            />
-                          </Box>
-                        </Pressable>
+                            <Box
+                              alignItems={BoxAlignItems.Center}
+                              justifyContent={BoxJustifyContent.Center}
+                              twClassName="w-16 h-16 rounded-full bg-muted"
+                            >
+                              <ProfileAvatarArt preset={preset} sizePx={44} />
+                            </Box>
+                          </Pressable>
+                        </Box>
                       );
                     })}
                   </Box>
@@ -808,6 +782,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                     fallback={
                       <ReadyCardFallback
                         avatarPresetId={draft.avatarPresetId}
+                        avatarBackgroundId={draft.avatarBackgroundId}
                         handle={username}
                       />
                     }

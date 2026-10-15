@@ -42,6 +42,7 @@ describe('profileOnboardingDraft', () => {
     const draft = {
       ...createInitialOnboardingDraft(),
       avatarPresetId: 'fox-emoji',
+      avatarBackgroundId: 'lime',
       linkedAccountId: 'acc-1',
       linkedAccountAddress: '0xabc',
       shareTradingActivity: false,
@@ -52,6 +53,7 @@ describe('profileOnboardingDraft', () => {
     expect(profile.handle).toBe('wen-cat');
     expect(profile.displayName).toBe('Wen Cat');
     expect(profile.avatarPresetId).toBe('fox-emoji');
+    expect(profile.avatarBackgroundId).toBe('lime');
     expect(profile.linkedAccountId).toBe('acc-1');
     expect(profile.shareTradingActivity).toBe(false);
     expect(profile.xHandle).toBeNull();

@@ -48,6 +48,18 @@ describe('SocialProfileOnboardingView', () => {
         `${SocialProfileOnboardingSelectorsIDs.AVATAR_OPTION}-1`,
       ),
     );
+    fireEvent(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_CAROUSEL,
+      ),
+      'layout',
+      { nativeEvent: { layout: { width: 390, height: 136 } } },
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_OPTION}-3`,
+      ),
+    );
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
     );
@@ -81,10 +93,31 @@ describe('SocialProfileOnboardingView', () => {
         handle: 'wen-cat',
         displayName: 'Wen Cat',
         avatarPresetId: 'fox-emoji',
+        avatarBackgroundId: 'lime',
         shareTradingActivity: false,
         linkedAccountId: 'acc-1',
       }),
     );
+  });
+
+  it('defaults the avatar backdrop to the centered color', () => {
+    renderSocialProfileOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(screen.getByText('Choose an avatar')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_CAROUSEL,
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('shows the static live activity on the intro while offline', () => {
