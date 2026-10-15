@@ -19,8 +19,10 @@ jest.mock('react-redux', () => ({
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
+let runAfterInteractionsSpy: jest.SpyInstance;
+
 beforeAll(() => {
-  jest
+  runAfterInteractionsSpy = jest
     .spyOn(InteractionManager, 'runAfterInteractions')
     .mockImplementation((task) => {
       if (typeof task === 'function') {
@@ -32,6 +34,10 @@ beforeAll(() => {
         cancel: jest.fn(),
       } as ReturnType<typeof InteractionManager.runAfterInteractions>;
     });
+});
+
+afterAll(() => {
+  runAfterInteractionsSpy.mockRestore();
 });
 
 jest.mock('../../../../core/DeeplinkManager', () => ({
