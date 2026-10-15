@@ -123,7 +123,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   const sheetRef = useRef<BottomSheetRef>(null);
   const submittedEstimateRef = useRef<SubmittedEstimate | null>(null);
   const hasNavigatedBackRef = useRef(false);
-  const { playImpact: playHapticImpact } = useHaptics();
+  const { fireImpact: fireHapticImpact } = useHaptics();
   const [mode, setMode] = useState<PerpsAdjustMarginMode>(initialMode);
   const [marginAmountString, setMarginAmountString] = useState('0');
   const [freshMaxAmount, setFreshMaxAmount] = useState<number | null>(null);
@@ -346,6 +346,9 @@ const PerpsAdjustMarginBottomSheet: React.FC<
       if (isAdjusting || !isAdjustMarginMode(nextMode)) {
         return;
       }
+      if (enableHaptics) {
+        fireHapticImpact(ImpactMoment.TabChange);
+      }
       setMode(nextMode);
       setMarginAmountString('0');
       setFreshMaxAmount(null);
@@ -363,7 +366,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
         [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
       });
     },
-    [isAdjusting, routePosition.symbol, track],
+    [enableHaptics, isAdjusting, fireHapticImpact, routePosition.symbol, track],
   );
 
   const updateMarginAmount = useCallback((value: string) => {
@@ -404,7 +407,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     }
 
     if (enableHaptics) {
-      playHapticImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+      fireHapticImpact(ImpactMoment.PrimaryCTA);
     }
 
     setSubmissionError(null);
@@ -433,7 +436,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     newMargin,
     newLiquidationDistance,
     newLiquidationPrice,
-    playHapticImpact,
+    fireHapticImpact,
     position,
   ]);
 

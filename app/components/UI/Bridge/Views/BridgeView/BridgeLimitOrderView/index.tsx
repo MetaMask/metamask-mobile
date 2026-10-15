@@ -557,6 +557,7 @@ const BridgeLimitOrderViewContent = () => {
               onDismissKeypad={dismissInputAndKeypad}
               orderSide={executionType}
               quoteTokenSymbol={quotedSymbol}
+              quoteToken={quotedToken}
               isLimitFiatMode={isLimitFiatMode}
               priceUnitSymbol={
                 isLimitFiatMode ? undefined : counterToken?.symbol

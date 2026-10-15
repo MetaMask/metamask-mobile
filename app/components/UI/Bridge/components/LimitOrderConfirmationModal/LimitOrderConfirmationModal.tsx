@@ -124,7 +124,7 @@ export const LimitOrderConfirmationModal = ({
           />
         </Box>
       )}
-      <Box paddingBottom={2}>
+      <>
         <DetailRow label={strings('bridge.limit.paying')}>
           <TokenAmountValue amount={payingAmount} token={sourceToken} />
         </DetailRow>
@@ -217,8 +217,9 @@ export const LimitOrderConfirmationModal = ({
             </DetailRow>
           </>
         )}
-      </Box>
+      </>
       <BottomSheetFooter
+        twClassName="mt-4"
         primaryButtonProps={{
           children: primaryButton.label,
           onPress: primaryButton.onPress,
@@ -231,7 +232,7 @@ export const LimitOrderConfirmationModal = ({
         alignItems={BoxAlignItems.Center}
         paddingHorizontal={4}
         paddingBottom={4}
-        twClassName="pt-1"
+        twClassName="pt-3"
       >
         <Pressable
           onPress={handleAccountUpgradeFeeInfoPress}

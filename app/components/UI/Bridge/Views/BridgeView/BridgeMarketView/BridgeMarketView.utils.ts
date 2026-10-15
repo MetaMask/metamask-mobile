@@ -1,4 +1,4 @@
-import { isArcTokenUSDC } from '../../../../../../enablement/assets/arc';
+import { isArcUsdcForBridge } from '../../../../../../enablement/assets/arc';
 import type { BridgeToken } from '../../../types';
 
 /**
@@ -22,7 +22,7 @@ export const getQuoteEventWarningState = ({
   const hasArcInsufficientNativeReserveError = Boolean(
     hasInsufficientNativeReserveError &&
       sourceToken &&
-      isArcTokenUSDC(sourceToken),
+      isArcUsdcForBridge(sourceToken),
   );
 
   return {

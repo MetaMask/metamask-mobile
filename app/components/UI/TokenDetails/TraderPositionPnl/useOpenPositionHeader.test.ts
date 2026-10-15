@@ -54,7 +54,6 @@ const mockUseOpenPositionForAsset =
 const mockUseUsdToFiatRate = useUsdToFiatRate as jest.MockedFunction<
   typeof useUsdToFiatRate
 >;
-
 const EVM_ADDRESS = '0x1234567890AbcdEF1234567890aBcdef12345678';
 const SOLANA_ADDRESS = 'FhRg7Nt3EJ6xKXaLm2pQvYwZ9cD4bS1uT8nJkV5hXqGe';
 const SOLANA_SCOPE = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
@@ -77,7 +76,12 @@ const solanaAccount = createMockInternalAccount(
   SolAccountType.DataAccount,
 );
 
-const token = { address: '0xabc', chainId: '0x1' } as TokenDetailsRouteParams;
+const token = {
+  address: '0xabc',
+  chainId: '0x1',
+  symbol: 'USDC',
+  name: 'USD Coin',
+} as TokenDetailsRouteParams;
 
 /** Runs whatever inline selector the hook passes to `useSelector`. */
 const runSelectors = () => {
@@ -103,6 +107,7 @@ describe('useOpenPositionHeader', () => {
     } as ReturnType<typeof useTokenBalance>);
     mockUseOpenPositionForAsset.mockReturnValue({
       position: null,
+      sharePosition: null,
       isLoading: false,
       error: null,
       refetch: jest.fn(),
@@ -122,6 +127,17 @@ describe('useOpenPositionHeader', () => {
     expect(mockUseOpenPositionForAsset).toHaveBeenCalledWith(
       SOLANA_ADDRESS,
       SOLANA_TOKEN,
+      SOLANA_ADDRESS,
+    );
+  });
+
+  it('queries the wallet and the CAIP-19 asset id', () => {
+    renderHook(() => useOpenPositionHeader(token));
+
+    expect(mockUseOpenPositionForAsset).toHaveBeenCalledWith(
+      EVM_ADDRESS,
+      USDC_MAINNET,
+      EVM_ADDRESS,
     );
   });
 
@@ -147,6 +163,7 @@ describe('useOpenPositionHeader', () => {
     expect(mockUseOpenPositionForAsset).toHaveBeenCalledWith(
       undefined,
       undefined,
+      undefined,
     );
   });
 
@@ -156,6 +173,7 @@ describe('useOpenPositionHeader', () => {
     expect(result.current).toEqual({
       positionValue: '$90.00',
       isLoading: false,
+      sharePosition: null,
     });
   });
 
@@ -173,6 +191,7 @@ describe('useOpenPositionHeader', () => {
         pnlPercent: null,
         pnlStatus: 'ready',
       },
+      sharePosition: null,
       isLoading: false,
       error: null,
       refetch: jest.fn(),
@@ -180,9 +199,19 @@ describe('useOpenPositionHeader', () => {
 
     const { result } = renderHook(() => useOpenPositionHeader(token));
 
-    expect(result.current.positionValue).toBe('$150.00');
+    expect(result.current.positionValue).toBe('$90.00');
     expect(result.current.pnl).toEqual(
       expect.objectContaining({ amount: '+$50.00', isProfit: true }),
+    );
+    expect(result.current.sharePosition).toEqual(
+      expect.objectContaining({
+        positionId: USDC_MAINNET,
+        tokenSymbol: 'USDC',
+        chain: 'ethereum',
+        isOpen: true,
+        currentValueUSD: 150,
+        trades: [],
+      }),
     );
   });
 });
