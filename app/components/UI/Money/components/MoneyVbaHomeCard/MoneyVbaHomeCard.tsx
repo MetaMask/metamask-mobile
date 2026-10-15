@@ -10,13 +10,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Logger from '../../../../../util/Logger';
 import moneyVbaIdentityHero from '../../../../../images/money-vba-identity-hero.png';
 import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import {
-  MONEY_BUTTON_TYPES,
-  SCREEN_NAMES,
-} from '../../constants/moneyEvents';
+import { MONEY_BUTTON_TYPES, SCREEN_NAMES } from '../../constants/moneyEvents';
 import {
   MONEY_VBA_HOME_CARD_CONFIG,
   type MoneyVbaHomeCardVariant,
@@ -39,7 +37,11 @@ const styles = StyleSheet.create({
  * The card variant is chosen by {@link useVbaHomeCard}; this component only
  * renders and reports.
  */
-const MoneyVbaHomeCard = ({ variant }: { variant: MoneyVbaHomeCardVariant }) => {
+const MoneyVbaHomeCard = ({
+  variant,
+}: {
+  variant: MoneyVbaHomeCardVariant;
+}) => {
   const config = MONEY_VBA_HOME_CARD_CONFIG[variant];
   const testIds = MONEY_VBA_HOME_CARD_TEST_IDS[variant];
   const { trackButtonClicked, trackComponentViewed } = useMoneyAnalytics({
@@ -64,9 +66,18 @@ const MoneyVbaHomeCard = ({ variant }: { variant: MoneyVbaHomeCardVariant }) => 
       label_key: `${config.i18nPrefix}.cta`,
       redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
     });
-    openVbaOnboarding();
+    // Intentionally not awaited: openVbaOnboarding already routes internal
+    // failures to the recoverable-error screen. Log anything that escapes.
+    openVbaOnboarding().catch((error) => {
+      Logger.error(error as Error, {
+        tags: { feature: 'money-home' },
+        context: {
+          name: 'MoneyVbaHomeCard',
+          data: { variant, step: 'openVbaOnboarding' },
+        },
+      });
+    });
   }, [config, openVbaOnboarding, trackButtonClicked]);
-
   return (
     <Box
       testID={testIds.CONTAINER}

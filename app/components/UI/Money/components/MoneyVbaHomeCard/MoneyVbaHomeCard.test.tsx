@@ -80,6 +80,7 @@ const VARIANT_EXPECTATIONS: Record<
 describe('MoneyVbaHomeCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOpenVbaOnboarding.mockResolvedValue(undefined);
     mockUseMoneyAnalytics.mockReturnValue({
       trackButtonClicked: mockTrackButtonClicked,
       trackComponentViewed: mockTrackComponentViewed,
@@ -149,7 +150,9 @@ describe('MoneyVbaHomeCard', () => {
       (variant) => variant !== 'kyc_pending',
     );
     otherVariants.forEach((variant) => {
-      expect(MONEY_VBA_HOME_CARD_CONFIG[variant].ctaStartIconName).toBeUndefined();
+      expect(
+        MONEY_VBA_HOME_CARD_CONFIG[variant].ctaStartIconName,
+      ).toBeUndefined();
     });
   });
 });
