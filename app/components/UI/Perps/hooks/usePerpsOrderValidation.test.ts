@@ -529,6 +529,31 @@ describe('usePerpsOrderValidation', () => {
       });
 
       expect(result.current.errors).not.toContain(lighterTpSlError);
+      expect(result.current.isValid).toBe(true);
+    });
+
+    it('allows a Lighter limit order with only a stop loss attached', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          orderForm: {
+            ...defaultOrderForm,
+            type: 'limit',
+            limitPrice: '49500',
+            stopLossPrice: '48000',
+          },
+          providerId: 'lighter',
+        }),
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.errors).not.toContain(lighterTpSlError);
+      expect(result.current.isValid).toBe(true);
     });
 
     it('allows a Lighter market order with both TP and SL attached', async () => {
@@ -552,6 +577,7 @@ describe('usePerpsOrderValidation', () => {
       });
 
       expect(result.current.errors).not.toContain(lighterTpSlError);
+      expect(result.current.isValid).toBe(true);
     });
 
     it('allows a Hyperliquid limit order with both TP and SL attached', async () => {
@@ -576,6 +602,7 @@ describe('usePerpsOrderValidation', () => {
       });
 
       expect(result.current.errors).not.toContain(lighterTpSlError);
+      expect(result.current.isValid).toBe(true);
     });
   });
 

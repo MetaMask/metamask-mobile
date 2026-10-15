@@ -1358,7 +1358,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     existingPositionLeverage: existingPositionLeverageForValidation,
     skipValidation: isInputFocused || isLimitPriceFocused,
     originalUsdAmount: orderForm.amount,
-    providerId: navigationMarketData?.providerId,
   });
 
   // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)

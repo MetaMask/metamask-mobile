@@ -15,6 +15,7 @@ import {
   type PerpsProviderType,
   type PerpsProvider,
 } from '@metamask/perps-controller';
+import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { translatePerpsError } from '../utils/translatePerpsError';
 import {
@@ -103,13 +104,7 @@ const INSUFFICIENT_BALANCE_PROTOCOL_ERRORS = new Set<string>([
 
 type OrderFormValidationData = Pick<
   OrderFormState,
-  | 'asset'
-  | 'direction'
-  | 'leverage'
-  | 'limitPrice'
-  | 'type'
-  | 'takeProfitPrice'
-  | 'stopLossPrice'
+  'asset' | 'direction' | 'leverage' | 'limitPrice' | 'type'
 >;
 
 interface BuildOrderParamsInput {
@@ -365,15 +360,19 @@ const getProtocolValidationErrors = ({
  */
 const getLighterLimitTpSlErrors = ({
   providerId,
-  orderForm,
+  orderType,
+  takeProfitPrice,
+  stopLossPrice,
 }: {
   providerId?: PerpsProviderType;
-  orderForm: OrderFormValidationData;
+  orderType: OrderFormState['type'];
+  takeProfitPrice?: string;
+  stopLossPrice?: string;
 }): string[] =>
-  providerId === 'lighter' &&
-  orderForm.type === 'limit' &&
-  orderForm.takeProfitPrice &&
-  orderForm.stopLossPrice
+  providerId === PROVIDER_CONFIG.LighterProvider &&
+  orderType === 'limit' &&
+  takeProfitPrice &&
+  stopLossPrice
     ? [strings('perps.order.validation.lighter_limit_tpsl_unsupported')]
     : EMPTY_ERRORS;
 
@@ -466,8 +465,6 @@ export function usePerpsOrderValidation(
       leverage: orderForm.leverage,
       limitPrice: orderForm.limitPrice,
       type: orderForm.type,
-      takeProfitPrice: orderForm.takeProfitPrice,
-      stopLossPrice: orderForm.stopLossPrice,
     }),
     [
       orderForm.asset,
@@ -475,8 +472,6 @@ export function usePerpsOrderValidation(
       orderForm.leverage,
       orderForm.limitPrice,
       orderForm.type,
-      orderForm.takeProfitPrice,
-      orderForm.stopLossPrice,
     ],
   );
 
@@ -539,9 +534,16 @@ export function usePerpsOrderValidation(
     () =>
       getLighterLimitTpSlErrors({
         providerId,
-        orderForm: orderFormValidationData,
+        orderType: orderForm.type,
+        takeProfitPrice: orderForm.takeProfitPrice,
+        stopLossPrice: orderForm.stopLossPrice,
       }),
-    [providerId, orderFormValidationData],
+    [
+      providerId,
+      orderForm.type,
+      orderForm.takeProfitPrice,
+      orderForm.stopLossPrice,
+    ],
   );
   const localErrors = useMemo(
     () => [...immediateValidation.errors, ...lighterLimitTpSlErrors],
