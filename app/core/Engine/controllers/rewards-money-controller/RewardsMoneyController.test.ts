@@ -564,6 +564,48 @@ describe('RewardsMoneyController', () => {
       );
     });
 
+    it('fetches again after a shared in-flight referral me rejects', async () => {
+      let rejectReferral: (error: Error) => void = () => undefined;
+      let referralReads = 0;
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getReferralMe') {
+          referralReads += 1;
+          if (referralReads === 1) {
+            return new Promise<ReferralMeDto>((_resolve, reject) => {
+              rejectReferral = reject;
+            });
+          }
+          return Promise.resolve(mockReferralMe);
+        }
+        return undefined;
+      });
+
+      const first = controller.getReferralMe();
+      const second = controller.getReferralMe();
+      await jest.advanceTimersByTimeAsync(0);
+
+      const referralCalls = () =>
+        dataServiceCalls(mockMessenger.call).filter(
+          (call: unknown[]) =>
+            call[0] === 'RewardsMoneyDataService:getReferralMe',
+        );
+      expect(referralCalls()).toHaveLength(1);
+
+      const settled = Promise.all([
+        expect(first).rejects.toThrow('busy'),
+        expect(second).rejects.toThrow('busy'),
+      ]);
+      rejectReferral(new Error('busy'));
+      await jest.advanceTimersByTimeAsync(0);
+      await settled;
+
+      await expect(controller.getReferralMe()).resolves.toBeDefined();
+      expect(referralCalls()).toHaveLength(2);
+    });
+
     it('caches earnings summary by origin-type scope', async () => {
       withProfileAndData(
         'RewardsMoneyDataService:getEarningsSummary',

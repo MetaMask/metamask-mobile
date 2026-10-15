@@ -40,7 +40,7 @@ export const useCandidateSubscriptionId = ({
 
   useEffect(() => {
     if (candidateSubscriptionId === 'retry') {
-      fetchCandidateSubscriptionId();
+      void fetchCandidateSubscriptionId();
     }
   }, [candidateSubscriptionId, fetchCandidateSubscriptionId]);
 
@@ -48,7 +48,7 @@ export const useCandidateSubscriptionId = ({
     if (refreshOnFocus) {
       return;
     }
-    fetchCandidateSubscriptionId();
+    void fetchCandidateSubscriptionId();
   }, [fetchCandidateSubscriptionId, refreshOnFocus]);
 
   useFocusEffect(
@@ -56,7 +56,7 @@ export const useCandidateSubscriptionId = ({
       if (!refreshOnFocus) {
         return undefined;
       }
-      fetchCandidateSubscriptionId();
+      void fetchCandidateSubscriptionId();
       return undefined;
     }, [fetchCandidateSubscriptionId, refreshOnFocus]),
   );

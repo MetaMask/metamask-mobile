@@ -36,12 +36,19 @@ function retryAfterSeconds(error: unknown): number | undefined {
  * 30 has not, so this wait is its first. The timer adds up to a second of
  * jitter. A newer fetch, a blur, or unmount cancels it, and the follow-up
  * itself must not arm another.
+ *
+ * `arm` also refuses while the screen is not focused. Blur alone only clears a
+ * timer that already exists; a read that fails after the user left would
+ * otherwise schedule a refetch on a Rewards tab that stays mounted.
  */
 export function useOneShotBusyRefetch(): {
   cancel: () => void;
   arm: (error: unknown, refetch: () => void) => void;
 } {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // False until the first focus effect. A network failure cannot land before
+  // that effect has run, and starting false keeps a pre-focus arm from firing.
+  const focusedRef = useRef(false);
 
   const cancel = useCallback(() => {
     if (timerRef.current !== null) {
@@ -50,13 +57,22 @@ export function useOneShotBusyRefetch(): {
     }
   }, []);
 
-  // Focus does not cancel a timer armed on this screen. Blur and unmount do,
-  // so a Rewards tab that stays mounted does not refetch after the user leaves.
-  useFocusEffect(useCallback(() => cancel, [cancel]));
+  useFocusEffect(
+    useCallback(() => {
+      focusedRef.current = true;
+      return () => {
+        focusedRef.current = false;
+        cancel();
+      };
+    }, [cancel]),
+  );
 
   const arm = useCallback(
     (error: unknown, refetch: () => void) => {
       cancel();
+      if (!focusedRef.current) {
+        return;
+      }
       const waitSeconds = retryAfterSeconds(error);
       if (waitSeconds === undefined) {
         return;
