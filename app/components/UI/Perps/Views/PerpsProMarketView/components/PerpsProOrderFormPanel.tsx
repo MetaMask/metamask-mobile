@@ -4,6 +4,7 @@ import type {
   OrderType,
   PerpsMarketData,
   PerpsProviderType,
+  TriggerOrderType,
 } from '@metamask/perps-controller';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ScrollView } from 'react-native';
@@ -36,7 +37,7 @@ import { usePerpsProOrderForm } from './PerpsProOrderForm/usePerpsProOrderForm';
 import { usePerpsProKeyboardScroll } from './PerpsProOrderForm/usePerpsProKeyboardScroll';
 
 const BASIC_ORDER_TYPES: readonly OrderType[] = ['market', 'limit'];
-const TRIGGERED_ORDER_TYPES: readonly OrderType[] = [
+const TRIGGERED_ORDER_TYPES: readonly TriggerOrderType[] = [
   'stop_limit',
   'stop_market',
   'take_profit_limit',
@@ -45,8 +46,6 @@ const TRIGGERED_ORDER_TYPES: readonly OrderType[] = [
 const TWAP_ORDER_TYPES: readonly OrderType[] = ['twap'];
 const SCALE_ORDER_TYPES: readonly OrderType[] = ['scale'];
 const TWAP_SUPPORTED_PROVIDER: PerpsProviderType =
-  PROVIDER_CONFIG.DefaultProvider;
-const SCALE_SUPPORTED_PROVIDER: PerpsProviderType =
   PROVIDER_CONFIG.DefaultProvider;
 const CHASE_ORDER_TYPES: readonly OrderType[] = ['chase'];
 // Lighter rejects any explicit margin mode; only Hyperliquid places Cross.
@@ -103,6 +102,7 @@ const PerpsProOrderFormPanel = ({
   const isScaleBaseEnabled = isProModeActive && isScaleFlagEnabled;
   const isChaseBaseEnabled = isProModeActive && isChaseFlagEnabled;
   const isTwapRolloutEnabled = isProModeActive && isTwapFlagEnabled;
+  const areTriggeredOrdersEnabled = isProModeActive && isTriggeredOrdersEnabled;
   const {
     isLoadingOrderCapabilities,
     orderCapabilities,
@@ -110,8 +110,13 @@ const PerpsProOrderFormPanel = ({
     supportsScaleOrders,
     supportsChaseOrders,
     checkOrderCapability,
+    supportedTriggerOrderTypes,
+    checkTriggerOrderSupport,
   } = usePerpsProvider(
-    isScaleBaseEnabled || isTwapRolloutEnabled || isChaseBaseEnabled
+    isScaleBaseEnabled ||
+      isTwapRolloutEnabled ||
+      isChaseBaseEnabled ||
+      areTriggeredOrdersEnabled
       ? {
           symbol: market.symbol,
           providerId: selectedProviderId,
@@ -131,10 +136,7 @@ const PerpsProOrderFormPanel = ({
     resolvedProviderId === TWAP_SUPPORTED_PROVIDER;
   const isTwapAvailabilityPending =
     isTwapRolloutEnabled && isLoadingOrderCapabilities;
-  const resolvedScaleProviderId =
-    resolvedProviderId === SCALE_SUPPORTED_PROVIDER
-      ? resolvedProviderId
-      : undefined;
+  const resolvedScaleProviderId = resolvedProviderId;
   const isScaleOrdersEnabled =
     isScaleBaseEnabled &&
     supportsScaleOrders &&
@@ -152,7 +154,13 @@ const PerpsProOrderFormPanel = ({
     () => checkOrderCapability('twap', resolvedProviderId),
     [checkOrderCapability, resolvedProviderId],
   );
-  const areTriggeredOrdersEnabled = isProModeActive && isTriggeredOrdersEnabled;
+  const checkSelectedTriggerOrderSupport = useCallback(
+    (type: TriggerOrderType) =>
+      resolvedProviderId
+        ? checkTriggerOrderSupport(type, resolvedProviderId)
+        : Promise.resolve(false),
+    [checkTriggerOrderSupport, resolvedProviderId],
+  );
   const chaseProviderId =
     isChaseBaseEnabled && supportsChaseOrders
       ? (resolvedProviderId ?? null)
@@ -173,7 +181,11 @@ const PerpsProOrderFormPanel = ({
   const availableOrderTypes = useMemo<readonly OrderType[]>(
     () => [
       ...BASIC_ORDER_TYPES,
-      ...(areTriggeredOrdersEnabled ? TRIGGERED_ORDER_TYPES : []),
+      ...(areTriggeredOrdersEnabled
+        ? TRIGGERED_ORDER_TYPES.filter((type) =>
+            supportedTriggerOrderTypes.includes(type),
+          )
+        : []),
       ...(isTwapEnabled ? TWAP_ORDER_TYPES : []),
       ...(isScaleOrdersEnabled ? SCALE_ORDER_TYPES : []),
       ...(isChaseOrderEnabled ? CHASE_ORDER_TYPES : []),
@@ -183,6 +195,7 @@ const PerpsProOrderFormPanel = ({
       isChaseOrderEnabled,
       isScaleOrdersEnabled,
       isTwapEnabled,
+      supportedTriggerOrderTypes,
     ],
   );
   const {
@@ -250,6 +263,11 @@ const PerpsProOrderFormPanel = ({
   } = usePerpsProOrderForm({
     market,
     isTriggeredOrdersEnabled: areTriggeredOrdersEnabled,
+    isTriggerAvailabilityPending:
+      areTriggeredOrdersEnabled && isLoadingOrderCapabilities,
+    supportedTriggerOrderTypes,
+    resolvedTriggerProviderId: resolvedProviderId,
+    checkTriggerOrderSupport: checkSelectedTriggerOrderSupport,
     isTwapEnabled,
     isTwapAvailabilityPending,
     resolvedTwapProviderId: resolvedProviderId,

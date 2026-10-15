@@ -14,7 +14,8 @@ const BACKGROUND_EVENT_DATE_OFFSET_MS = 30_000;
 appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
   // Serial: later cases reuse the installed Snap / Appium session from the connect test.
   // this will allow the test to fail fast
-  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
+  // Android install allows 60s per sheet. Login plus three sheets exceeds 150s.
+  appiumTest.describe.configure({ mode: 'serial', timeout: 240_000 });
 
   appiumTest(
     'can connect to the background events Snap',
