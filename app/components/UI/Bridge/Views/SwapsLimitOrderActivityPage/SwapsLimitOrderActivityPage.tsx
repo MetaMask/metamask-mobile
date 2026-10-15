@@ -200,6 +200,10 @@ function SwapsLimitOrderActivityPage() {
           showsVerticalScrollIndicator={false}
         >
           <ActivityDetailsTemplateFrame
+            heroDividerMarginVertical={2}
+            heroDividerTestID={
+              SwapsLimitOrderActivityPageSelectorsIDs.AMOUNT_DIVIDER
+            }
             hero={
               <ActivityDetailsDualAmountHeader
                 sentToken={sentToken}
