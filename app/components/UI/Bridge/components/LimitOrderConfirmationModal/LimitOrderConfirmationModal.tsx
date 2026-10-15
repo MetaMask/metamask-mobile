@@ -11,6 +11,10 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
+  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -55,7 +59,7 @@ export const LimitOrderConfirmationModal = ({
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const handleFeeDisclaimerPress = useCallback(() => {
+  const handleAccountUpgradeFeeInfoPress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL,
     });
@@ -120,7 +124,7 @@ export const LimitOrderConfirmationModal = ({
           />
         </Box>
       )}
-      <Box paddingBottom={2}>
+      <>
         <DetailRow label={strings('bridge.limit.paying')}>
           <TokenAmountValue amount={payingAmount} token={sourceToken} />
         </DetailRow>
@@ -181,6 +185,21 @@ export const LimitOrderConfirmationModal = ({
             <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
             <DetailRow
               label={strings('bridge.limit.est_network_fee')}
+              labelAccessory={
+                <ButtonIcon
+                  iconName={IconName.Info}
+                  iconProps={{ color: IconColor.IconAlternative }}
+                  size={ButtonIconSize.Sm}
+                  onPress={handleAccountUpgradeFeeInfoPress}
+                  testID={
+                    LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE_TOOLTIP
+                  }
+                  accessibilityLabel={strings(
+                    'bridge.limit.account_upgrade_fee_info_title',
+                  )}
+                  accessibilityRole="button"
+                />
+              }
               testID={LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE}
               error={delegationFee.status === 'error'}
             >
@@ -193,12 +212,14 @@ export const LimitOrderConfirmationModal = ({
                 token={feeToken}
                 error={delegationFee.status === 'error'}
                 withNetworkBadge
+                showTokenSymbol={delegationFee.status === 'ready'}
               />
             </DetailRow>
           </>
         )}
-      </Box>
+      </>
       <BottomSheetFooter
+        twClassName="mt-4"
         primaryButtonProps={{
           children: primaryButton.label,
           onPress: primaryButton.onPress,
@@ -211,10 +232,10 @@ export const LimitOrderConfirmationModal = ({
         alignItems={BoxAlignItems.Center}
         paddingHorizontal={4}
         paddingBottom={4}
-        twClassName="pt-1"
+        twClassName="pt-3"
       >
         <Pressable
-          onPress={handleFeeDisclaimerPress}
+          onPress={handleAccountUpgradeFeeInfoPress}
           accessibilityRole="button"
           accessibilityLabel={strings('bridge.limit.includes_metamask_fee')}
           style={({ pressed }) => pressed && tw.style('opacity-50')}

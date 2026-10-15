@@ -28,12 +28,17 @@ import {
 } from '../vbaVendorTermsStorage';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
 import { applyVbaDevOverrides } from '../vbaDevOverrides';
+import { VBA_KYC_VENDOR } from '../constants';
 
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
 
+type StackNavigationAction =
+  | ReturnType<typeof CommonActions.reset>
+  | ReturnType<typeof CommonActions.navigate>;
+
 interface StackController {
-  dispatch: (action: ReturnType<typeof CommonActions.reset>) => void;
+  dispatch: (action: StackNavigationAction) => void;
   getParent: () => StackController | undefined;
   getState: () => NavigationState | undefined;
 }
@@ -118,13 +123,37 @@ export const openAsOnlyOnboardingRoute = (
   }
 };
 
+/**
+ * Pushes the completed account on the same stack as onboarding, with the same
+ * horizontal transition. The screen hides its back button, so this does not
+ * replace the route underneath.
+ */
+const openCompletedVbaAccount = (navigation: AppNavigationProp): void => {
+  let current: StackController | undefined =
+    navigation as unknown as StackController;
+
+  while (current) {
+    const state = current.getState();
+    if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
+      current.dispatch(CommonActions.navigate(Routes.RAMP.VBA_DETAILS));
+      return;
+    }
+
+    const parent = current.getParent();
+    if (!parent || parent === current) {
+      break;
+    }
+    current = parent;
+  }
+};
+
 export const navigateToVbaOnboardingDestination = (
   navigation: AppNavigationProp,
   destinationId: VbaOnboardingDestinationId,
   snapshot?: VbaOnboardingSnapshot,
 ): void => {
   if (destinationId === 'complete') {
-    openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.DETAILS);
+    openCompletedVbaAccount(navigation);
     return;
   }
   if (destinationId === 'identityVerification') {
@@ -209,6 +238,24 @@ const provisionBrazilMusdAutoramp = async (
   return { ...snapshot, autorampStatus: 'ready' };
 };
 
+/**
+ * Re-submits capability authorization for a KYC session that already exists.
+ * First-time creation stays on the email screen, which also has the signed-in
+ * token `startSession` needs when no session exists.
+ */
+const resumePersistedKycSession = async (): Promise<void> => {
+  const kycController = Engine.context.KycController;
+  const persistedEmail = kycController.state.email?.trim() ?? '';
+  if (!kycController.readSessionStatus() || persistedEmail.length === 0) {
+    return;
+  }
+
+  await kycController.startSession({
+    vendor: VBA_KYC_VENDOR,
+    email: persistedEmail,
+  });
+};
+
 const resolveOpenRequest = (
   request: string | OpenVbaOnboardingRequest | undefined,
   defaultSource: string,
@@ -232,8 +279,9 @@ export type ResolvedVbaOnboarding =
   | { status: 'error' };
 
 /**
- * Hydrates VBA onboarding facts and picks the next destination. Does not
- * navigate. A missing wallet or a thrown hydrate returns `{ status: 'error' }`.
+ * Resumes a persisted KYC session, hydrates VBA onboarding facts, and picks
+ * the next destination. Does not navigate. A missing wallet, a failed session
+ * resume, or a thrown hydrate returns `{ status: 'error' }`.
  *
  * @param source - Caller/entry point for error telemetry.
  */
@@ -247,6 +295,8 @@ export const resolveVbaOnboarding = async (
     if (!walletAddress) {
       return { status: 'error' };
     }
+
+    await resumePersistedKycSession();
 
     const hydratedSnapshot = applyVbaDevOverrides(
       await Engine.context.RampsController.hydrateVbaOnboarding({

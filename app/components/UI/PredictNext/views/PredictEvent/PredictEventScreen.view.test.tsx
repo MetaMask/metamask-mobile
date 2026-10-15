@@ -583,7 +583,13 @@ describe('PredictEventScreen', () => {
       if (action === 'PredictMarketDataService:getMarketHistory') {
         return Promise.reject(new Error('Market history refetch failed'));
       }
-      return Promise.resolve(createEvent());
+      if (action === 'PredictMarketDataService:getEvent') {
+        return Promise.resolve(createEvent());
+      }
+      if (action === 'PredictPortfolioService:getPositions') {
+        return Promise.resolve({ venueId, positions: [] });
+      }
+      return Promise.resolve(undefined);
     });
 
     await act(async () => {

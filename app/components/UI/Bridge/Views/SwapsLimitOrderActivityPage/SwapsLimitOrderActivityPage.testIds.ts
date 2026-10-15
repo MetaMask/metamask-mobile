@@ -1,5 +1,6 @@
 export const SwapsLimitOrderActivityPageSelectorsIDs = {
   SCREEN: 'swaps-limit-order-activity-page',
+  AMOUNT_DIVIDER: 'swaps-limit-order-activity-page-amount-divider',
   BACK_BUTTON: 'swaps-limit-order-activity-page-back-button',
   STATUS_ROW: 'swaps-limit-order-activity-page-status-row',
   DATE_CREATED_ROW: 'swaps-limit-order-activity-page-date-created-row',

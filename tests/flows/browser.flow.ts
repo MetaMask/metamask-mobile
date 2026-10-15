@@ -29,10 +29,12 @@ const TEST_DAPP_LOAD_TIMEOUT_MS = 30_000;
  * nest `waitForCdpTarget` (30s) inside the outer 30s budget, causing false
  * "Condition not met within 30000ms" timeouts on token-approve smokes.
  *
- * If the heading is still missing after the first session, reload once (keeps
- * `?contract=` / `scrollTo=` query params) and retry — same recovery shape as
- * `waitForTestDappButtonReady` / BitcoinTestDapp. Do not require
- * `navigation.type === 'reload'`.
+ * If the heading is still missing after the first session, re-navigate (not
+ * bare `location.reload()`). `net::ERR_CONNECTION_REFUSED` / the in-app
+ * "Something went wrong" interstitial has no `#logo-text`, and reload only
+ * re-fetches that failure. Assign `location.href` (keeps `?contract=` /
+ * `scrollTo=`) like `waitForTestDappButtonReady`, then fall back to a native
+ * URL-bar navigation if CDP recovery is still stuck.
  */
 const waitForAndroidTestDappHeadingViaCdp = async (
   pageUrl: string,
@@ -40,36 +42,49 @@ const waitForAndroidTestDappHeadingViaCdp = async (
   const headingId = TestDappSelectorsWebIDs.TEST_DAPP_HEADING_TITLE;
   const headingOptions = { includes: TEST_DAPP_LOAD_LABEL };
 
-  let text = await ChromeCdpHelpers.waitForElementTextInWebView(
-    pageUrl,
-    headingId,
-    TEST_DAPP_LOAD_TIMEOUT_MS,
-    headingOptions,
-  );
-  if (text?.trim().includes(TEST_DAPP_LOAD_LABEL)) {
+  const pollHeading = async (): Promise<string | null> =>
+    ChromeCdpHelpers.waitForElementTextInWebView(
+      pageUrl,
+      headingId,
+      TEST_DAPP_LOAD_TIMEOUT_MS,
+      headingOptions,
+    );
+
+  const headingReady = (text: string | null): boolean =>
+    Boolean(text?.trim().includes(TEST_DAPP_LOAD_LABEL));
+
+  let text = await pollHeading();
+  if (headingReady(text)) {
     return;
   }
 
   await ChromeCdpHelpers.evaluateInWebView(
     pageUrl,
-    '(() => { location.reload(); return true; })()',
+    `(() => { location.href = ${JSON.stringify(pageUrl)}; return true; })()`,
   );
-  // Drop stale webview_devtools_remote after reload so the next session
+  // Drop stale webview_devtools_remote after navigation so the next session
   // re-resolves the CDP endpoint instead of probing a dead forward.
   ChromeCdpHelpers.resetMetaMaskWebViewCache();
 
-  text = await ChromeCdpHelpers.waitForElementTextInWebView(
-    pageUrl,
-    headingId,
-    TEST_DAPP_LOAD_TIMEOUT_MS,
-    headingOptions,
-  );
-  if (text?.trim().includes(TEST_DAPP_LOAD_LABEL)) {
+  text = await pollHeading();
+  if (headingReady(text)) {
+    return;
+  }
+
+  // Native URL bar re-entry recovers when the WebView stays on the connection
+  // refused interstitial and CDP assign did not replace the document.
+  await BrowserView.navigateToURL(pageUrl, {
+    skipUrlEditorDismissal: true,
+  });
+  ChromeCdpHelpers.resetMetaMaskWebViewCache();
+
+  text = await pollHeading();
+  if (headingReady(text)) {
     return;
   }
 
   throw new Error(
-    `Android test dapp heading #${headingId} did not include "${TEST_DAPP_LOAD_LABEL}" within ${TEST_DAPP_LOAD_TIMEOUT_MS}ms after reload (last text=${JSON.stringify(text)})`,
+    `Android test dapp heading #${headingId} did not include "${TEST_DAPP_LOAD_LABEL}" within ${TEST_DAPP_LOAD_TIMEOUT_MS}ms after re-navigate (last text=${JSON.stringify(text)})`,
   );
 };
 
@@ -77,10 +92,14 @@ const waitForAndroidTestDappHeadingViaCdp = async (
  * Waits for the test dapp to load.
  * @async
  * @function waitForTestDappToLoad
+ * @param pageUrl - Optional full dapp URL (including `?contract=` / `scrollTo=`).
+ * Defaults to {@link getDappUrl}(0).
  * @returns {Promise<void>} A promise that resolves when the test dapp is loaded.
  * @throws {Error} Throws an error if the test dapp fails to load after a certain number of attempts.
  */
-export const waitForTestDappToLoad = async (): Promise<void> => {
+export const waitForTestDappToLoad = async (
+  pageUrl: string = getDappUrl(0),
+): Promise<void> => {
   if (PlatformDetector.isAndroid()) {
     await Assertions.expectElementToBeVisible(
       Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
@@ -89,7 +108,7 @@ export const waitForTestDappToLoad = async (): Promise<void> => {
         timeout: TEST_DAPP_LOAD_TIMEOUT_MS,
       },
     );
-    await waitForAndroidTestDappHeadingViaCdp(getDappUrl(0));
+    await waitForAndroidTestDappHeadingViaCdp(pageUrl);
     return;
   }
 

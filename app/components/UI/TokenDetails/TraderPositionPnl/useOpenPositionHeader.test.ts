@@ -8,6 +8,7 @@ import { selectSelectedInternalAccountByScope } from '../../../../selectors/mult
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
+import { useSessionProfileId } from '../../../../util/notifications/hooks/useSessionProfileId';
 import { useOpenPositionForAsset } from './useOpenPositionForAsset';
 import { useOpenPositionHeader } from './useOpenPositionHeader';
 import { useUsdToFiatRate } from './useUsdToFiatRate';
@@ -38,6 +39,10 @@ jest.mock('./useUsdToFiatRate', () => ({
   useUsdToFiatRate: jest.fn(),
 }));
 
+jest.mock('../../../../util/notifications/hooks/useSessionProfileId', () => ({
+  useSessionProfileId: jest.fn(),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockSelectByScope =
   selectSelectedInternalAccountByScope as unknown as jest.Mock;
@@ -53,6 +58,9 @@ const mockUseOpenPositionForAsset =
   >;
 const mockUseUsdToFiatRate = useUsdToFiatRate as jest.MockedFunction<
   typeof useUsdToFiatRate
+>;
+const mockUseSessionProfileId = useSessionProfileId as jest.MockedFunction<
+  typeof useSessionProfileId
 >;
 
 const EVM_ADDRESS = '0x1234567890AbcdEF1234567890aBcdef12345678';
@@ -103,11 +111,16 @@ describe('useOpenPositionHeader', () => {
     } as ReturnType<typeof useTokenBalance>);
     mockUseOpenPositionForAsset.mockReturnValue({
       position: null,
+      sharePosition: null,
       isLoading: false,
       error: null,
       refetch: jest.fn(),
     });
     mockUseUsdToFiatRate.mockReturnValue({ currency: 'USD', rate: 1 });
+    mockUseSessionProfileId.mockReturnValue({
+      profileId: undefined,
+      isLoading: false,
+    });
   });
 
   it('queries the selected group account on the asset chain', () => {
@@ -121,8 +134,35 @@ describe('useOpenPositionHeader', () => {
     expect(requestedAddress()).toBe(SOLANA_ADDRESS);
     expect(mockUseOpenPositionForAsset).toHaveBeenCalledWith(
       SOLANA_ADDRESS,
-      SOLANA_TOKEN,
+      'Es9vMFrzaCER',
+      SOLANA_ADDRESS,
     );
+  });
+
+  it('queries the signed-in profile id instead of the wallet', () => {
+    mockUseSessionProfileId.mockReturnValue({
+      profileId: 'bbda626e-5ef2-4652-8d07-4589318872e5',
+      isLoading: false,
+    });
+
+    renderHook(() => useOpenPositionHeader(token));
+
+    expect(mockUseOpenPositionForAsset).toHaveBeenCalledWith(
+      'bbda626e-5ef2-4652-8d07-4589318872e5',
+      '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      EVM_ADDRESS,
+    );
+  });
+
+  it('waits for the session profile id before querying the wallet', () => {
+    mockUseSessionProfileId.mockReturnValue({
+      profileId: undefined,
+      isLoading: true,
+    });
+
+    renderHook(() => useOpenPositionHeader(token));
+
+    expect(requestedAddress()).toBeUndefined();
   });
 
   it('does not query an EVM wallet for a Solana asset', () => {
@@ -147,6 +187,7 @@ describe('useOpenPositionHeader', () => {
     expect(mockUseOpenPositionForAsset).toHaveBeenCalledWith(
       undefined,
       undefined,
+      undefined,
     );
   });
 
@@ -156,6 +197,7 @@ describe('useOpenPositionHeader', () => {
     expect(result.current).toEqual({
       positionValue: '$90.00',
       isLoading: false,
+      sharePosition: null,
     });
   });
 
@@ -173,6 +215,7 @@ describe('useOpenPositionHeader', () => {
         pnlPercent: null,
         pnlStatus: 'ready',
       },
+      sharePosition: null,
       isLoading: false,
       error: null,
       refetch: jest.fn(),
@@ -180,7 +223,7 @@ describe('useOpenPositionHeader', () => {
 
     const { result } = renderHook(() => useOpenPositionHeader(token));
 
-    expect(result.current.positionValue).toBe('$150.00');
+    expect(result.current.positionValue).toBe('$90.00');
     expect(result.current.pnl).toEqual(
       expect.objectContaining({ amount: '+$50.00', isProfit: true }),
     );
