@@ -736,6 +736,7 @@ describe('useVbaHomeCardRefresh', () => {
     mockUseNetworkTier.mockReturnValue('NONE');
     setupRefreshSelectors({ sessionStatus: makeSession() });
     const { rerender } = renderHook(() => useVbaHomeCardRefresh());
+    const focusCallbackBefore = focusCallback;
     focusCallback();
 
     expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
@@ -745,6 +746,11 @@ describe('useVbaHomeCardRefresh', () => {
     mockUseNetworkTier.mockReturnValue(null);
     rerender();
 
+    // The tier is not a dependency: the focus callback identity is stable, so
+    // React Navigation's rerun-on-callback-change semantics cannot refire the
+    // GET mid-focus. If networkTier re-enters the dependency list, the new
+    // callback identity fails this assertion.
+    expect(focusCallback).toBe(focusCallbackBefore);
     expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
 
     focusCallback();
