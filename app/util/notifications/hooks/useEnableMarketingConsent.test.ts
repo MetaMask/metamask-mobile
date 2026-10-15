@@ -1,13 +1,11 @@
-import { act, waitFor } from '@testing-library/react-native';
+import { act } from '@testing-library/react-native';
 
-import OAuthService from '../../../core/OAuthService/OAuthService';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountType } from '../../../constants/onboarding';
 import { UserProfileProperty } from '../../metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
 import { analyticsControllerWithMarketingConsent } from '../../test/marketingConsentState';
 import { analytics } from '../../analytics/analytics';
-import Logger from '../../Logger';
 import { useEnableMarketingConsent } from './useEnableMarketingConsent';
 
 jest.mock('../../analytics/analytics', () => ({
@@ -19,25 +17,12 @@ jest.mock('../../analytics/analytics', () => ({
   },
 }));
 
-jest.mock('../../../core/OAuthService/OAuthService', () => ({
-  __esModule: true,
-  default: {
-    updateMarketingOptInStatus: jest.fn(),
-  },
-}));
-
-jest.mock('../../Logger', () => ({
-  error: jest.fn(),
-}));
-
 const renderUseEnableMarketingConsent = ({
   accountType = AccountType.MetamaskGoogle,
   hasMarketingConsent = false,
-  isSeedlessOnboardingLoginFlow = false,
 }: {
   accountType?: AccountType;
   hasMarketingConsent?: boolean;
-  isSeedlessOnboardingLoginFlow?: boolean;
 } = {}) =>
   renderHookWithProvider(
     () =>
@@ -50,9 +35,6 @@ const renderUseEnableMarketingConsent = ({
           backgroundState: {
             AnalyticsController:
               analyticsControllerWithMarketingConsent(hasMarketingConsent),
-            SeedlessOnboardingController: {
-              vault: isSeedlessOnboardingLoginFlow ? 'vault' : undefined,
-            },
           },
         },
         onboarding: {
@@ -67,9 +49,6 @@ describe('useEnableMarketingConsent', () => {
     jest.clearAllMocks();
     jest.mocked(analytics.isEnabled).mockReturnValue(false);
     jest.mocked(analytics.optIn).mockResolvedValue(undefined);
-    jest
-      .mocked(OAuthService.updateMarketingOptInStatus)
-      .mockResolvedValue(undefined);
   });
 
   it('records marketing consent when MetaMetrics is off, without turning MetaMetrics on', async () => {
@@ -136,39 +115,5 @@ describe('useEnableMarketingConsent', () => {
 
     expect(analytics.identify).not.toHaveBeenCalled();
     expect(analytics.trackEvent).not.toHaveBeenCalled();
-    expect(OAuthService.updateMarketingOptInStatus).not.toHaveBeenCalled();
-  });
-
-  it('syncs marketing consent to OAuth for seedless users', async () => {
-    jest.mocked(analytics.isEnabled).mockReturnValue(true);
-    const { result, store } = renderUseEnableMarketingConsent({
-      isSeedlessOnboardingLoginFlow: true,
-    });
-
-    await act(async () => {
-      await result.current.enableMarketingConsent();
-    });
-
-    expect(store.getState().security.dataCollectionForMarketing).toBe(true);
-    expect(OAuthService.updateMarketingOptInStatus).toHaveBeenCalledWith(true);
-  });
-
-  it('reverts Redux marketing consent when the seedless OAuth sync fails', async () => {
-    jest.mocked(analytics.isEnabled).mockReturnValue(true);
-    jest
-      .mocked(OAuthService.updateMarketingOptInStatus)
-      .mockRejectedValue(new Error('oauth failed'));
-    const { result, store } = renderUseEnableMarketingConsent({
-      isSeedlessOnboardingLoginFlow: true,
-    });
-
-    await act(async () => {
-      await result.current.enableMarketingConsent();
-    });
-
-    await waitFor(() => {
-      expect(store.getState().security.dataCollectionForMarketing).toBe(false);
-    });
-    expect(Logger.error).toHaveBeenCalled();
   });
 });

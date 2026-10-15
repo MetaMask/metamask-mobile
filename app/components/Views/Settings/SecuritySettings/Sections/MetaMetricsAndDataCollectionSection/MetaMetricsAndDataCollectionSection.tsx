@@ -34,10 +34,7 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import { UserProfileProperty } from '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { RootState } from '../../../../../../reducers';
 import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthentication';
-import OAuthService from '../../../../../../core/OAuthService/OAuthService';
-import Logger from '../../../../../../util/Logger';
 import { updateCachedConsent } from '../../../../../../util/trace';
-import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
 import { selectOnboardingAccountType } from '../../../../../../selectors/onboarding';
 import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
@@ -74,10 +71,6 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
 
-  const isSeedlessOnboardingLoginFlow = useSelector(
-    selectSeedlessOnboardingLoginFlow,
-  );
-
   const accountType = useSelector(selectOnboardingAccountType);
 
   const isPna25Acknowledged = useSelector(selectIsPna25Acknowledged);
@@ -95,27 +88,9 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     }
 
     autoSignIn();
-    const fetchMarketingStatus = async () => {
-      try {
-        const data = await OAuthService.getMarketingOptInStatus();
-        dispatch(setDataCollectionForMarketing(data.is_opt_in));
-      } catch (err) {
-        Logger.error(err as Error);
-      }
-    };
-
-    if (isSeedlessOnboardingLoginFlow) {
-      fetchMarketingStatus();
-    }
     setAnalyticsEnabled(analytics.isEnabled());
     updateCachedConsent(analytics.isEnabled());
-  }, [
-    setAnalyticsEnabled,
-    autoSignIn,
-    isBasicFunctionalityEnabled,
-    dispatch,
-    isSeedlessOnboardingLoginFlow,
-  ]);
+  }, [setAnalyticsEnabled, autoSignIn, isBasicFunctionalityEnabled]);
 
   const toggleMetricsOptIn = async (metricsEnabled: boolean) => {
     if (metricsEnabled) {
@@ -212,20 +187,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       addMarketingConsentToTraits(value);
     }
 
-    // Store the previous state to revert if API fails
-    const previousMarketingState = !value;
-
-    // Update client state optimistically
     dispatch(setDataCollectionForMarketing(value));
-
-    // Sync with server, revert client state if API fails
-    if (isSeedlessOnboardingLoginFlow) {
-      OAuthService.updateMarketingOptInStatus(value).catch((error) => {
-        Logger.error(error as Error);
-        // Revert client state back to previous value if API fails
-        dispatch(setDataCollectionForMarketing(previousMarketingState));
-      });
-    }
   };
 
   const renderMetaMetricsSection = () => (

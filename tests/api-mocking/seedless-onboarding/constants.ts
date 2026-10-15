@@ -21,7 +21,6 @@ export const AuthServer = {
   RequestToken: `${AUTH_SERVICE_BASE_URL}/api/v1/oauth/token`,
   RevokeToken: `${AUTH_SERVICE_BASE_URL}/api/v2/oauth/revoke`,
   RenewRefreshToken: `${AUTH_SERVICE_BASE_URL}/api/v2/oauth/renew_refresh_token`,
-  GetMarketingOptInStatus: `${AUTH_SERVICE_BASE_URL}/api/v1/oauth/marketing_opt_in_status`,
 };
 
 /**

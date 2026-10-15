@@ -50,7 +50,6 @@ import Authentication from '../../core/Authentication';
 import { AppState, AppStateStatus } from 'react-native';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { providerErrors } from '@metamask/rpc-errors';
-import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMarketingConsent';
 import { promptIosGoogleWarningSheetSaga } from './onboarding/legacyIosGoogleReminder';
 import {
   watchMarketingAttributionOnClearOnboarding,
@@ -572,7 +571,6 @@ export function* rootSaga() {
 
   // Send one-time analytics backfill for migrated social login users after
   // persisted state has been rehydrated and app services are available.
-  yield fork(backfillSocialLoginMarketingConsentSaga);
 
   yield fork(watchMarketingAttributionOnConsentChange);
   yield fork(watchMarketingAttributionOnControllerConsent);

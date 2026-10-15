@@ -5,7 +5,7 @@
  * - tests/smoke/seedless/apple-login-new-user.spec.ts
  * - tests/smoke/seedless/google-login-new-user.spec.ts (Android path skips iOS screen)
  *
- * CV covers password validation UX and marketing opt-in auth-server sync (nock).
+ * CV covers password validation UX and social wallet creation navigation.
  * Full wallet creation, MetaMetrics, and wallet home remain E2E.
  *
  * Run: yarn jest -c jest.config.view.js ChoosePassword.view.test.tsx --runInBand
@@ -200,8 +200,8 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
     },
   );
 
-  it('posts marketing opt-in to auth server and navigates to interest questionnaire after wallet creation', async () => {
-    setupSeedlessAuthServerMocks({ marketingOptIn: true });
+  it('navigates to interest questionnaire after social wallet creation', async () => {
+    setupSeedlessAuthServerMocks();
     mockAuthenticationForSocialWalletCreation();
 
     const { findByTestId } = renderChoosePasswordForSocialLogin({

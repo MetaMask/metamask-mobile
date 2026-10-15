@@ -2,14 +2,11 @@ import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
-import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { selectDataCollectionForMarketingEnabled } from '../../../selectors/engagement';
-import OAuthService from '../../../core/OAuthService/OAuthService';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
 import { analytics } from '../../analytics/analytics';
 import { UserProfileProperty } from '../../metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import Logger from '../../Logger';
 
 interface UseEnableMarketingConsentOptions {
   metricsOptInLocation: string;
@@ -21,9 +18,6 @@ export function useEnableMarketingConsent({
   const dispatch = useDispatch();
   const hasMarketingConsent = useSelector(
     selectDataCollectionForMarketingEnabled,
-  );
-  const isSeedlessOnboardingLoginFlow = useSelector(
-    selectSeedlessOnboardingLoginFlow,
   );
   const accountType = useSelector(selectOnboardingAccountType);
 
@@ -50,23 +44,7 @@ export function useEnableMarketingConsent({
         })
         .build(),
     );
-
-    if (isSeedlessOnboardingLoginFlow) {
-      // Social-login wallets also store marketing opt-in server-side so the
-      // setting survives OAuth rehydration. Match settings behavior and revert
-      // the optimistic Redux update if that sync fails.
-      OAuthService.updateMarketingOptInStatus(true).catch((error) => {
-        Logger.error(error as Error);
-        dispatch(setDataCollectionForMarketing(false));
-      });
-    }
-  }, [
-    accountType,
-    dispatch,
-    hasMarketingConsent,
-    isSeedlessOnboardingLoginFlow,
-    metricsOptInLocation,
-  ]);
+  }, [accountType, dispatch, hasMarketingConsent, metricsOptInLocation]);
 
   return { enableMarketingConsent };
 }

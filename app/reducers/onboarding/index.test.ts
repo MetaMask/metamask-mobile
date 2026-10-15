@@ -6,7 +6,6 @@ import {
   SET_COMPLETED_ONBOARDING,
   SET_ACCOUNT_TYPE,
   CLEAR_ACCOUNT_TYPE,
-  SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL,
   SET_SEEDLESS_ONBOARDING,
   CLEAR_SEEDLESS_ONBOARDING,
   SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
@@ -23,7 +22,6 @@ describe('onboardingReducer', () => {
   const initialState = {
     events: [],
     completedOnboarding: false,
-    pendingSocialLoginMarketingConsentBackfill: null as string | null,
     iosGoogleWarningSheetLastDismissedAt: null as number | null,
     walletHomeOnboardingStepsEligible: false,
     walletHomeOnboardingSkipInitialBalanceWait: false,
@@ -94,28 +92,6 @@ describe('onboardingReducer', () => {
 
     expect(state.accountType).toBeUndefined();
     expect(state.onboardingVersion).toBeUndefined();
-  });
-
-  it('handles the SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL action', () => {
-    const action = {
-      type: SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL,
-      authConnection: 'google',
-    } as const;
-    const state = onboardingReducer(initialState, action);
-    expect(state.pendingSocialLoginMarketingConsentBackfill).toBe('google');
-  });
-
-  it('handles clearing pending social login marketing consent backfill', () => {
-    const stateWithMarker = {
-      ...initialState,
-      pendingSocialLoginMarketingConsentBackfill: 'google',
-    };
-    const action = {
-      type: SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL,
-      authConnection: null,
-    } as const;
-    const state = onboardingReducer(stateWithMarker, action);
-    expect(state.pendingSocialLoginMarketingConsentBackfill).toBeNull();
   });
 
   it('handles the SET_SEEDLESS_ONBOARDING action', () => {
