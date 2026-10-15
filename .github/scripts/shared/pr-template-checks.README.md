@@ -134,8 +134,10 @@ immediately rather than silently skipping the check in CI.
 ### Trust model
 
 Directives are read from the **base-branch** copy of the template (the workflow
-checks out `pull_request.base.sha`, not the PR head). A PR author cannot weaken
-validation by modifying or removing directives in their branch.
+runs on `pull_request_target`, so its own definition comes from the base
+branch, and it checks out `pull_request.base.sha`, not the PR head). A PR
+author cannot weaken validation by modifying or removing directives, or the
+workflow itself, in their branch.
 
 HTML comments in the **PR body** — including any `mms-check` directives that
 GitHub copies from the template when the PR is opened — are entirely ignored by

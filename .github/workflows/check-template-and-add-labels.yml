@@ -3,7 +3,8 @@ name: Check template and add labels
 on:
   issues:
     types: [opened, edited, labeled, unlabeled, reopened]
-  pull_request:
+  # zizmor: ignore[dangerous-triggers] keeps this workflow file on the base branch; checks out base.sha only and skips forks before minting the label token
+  pull_request_target:
     # `ready_for_review` / `converted_to_draft` flip the check between
     # "informational" (draft) and "blocking" (non-draft) the moment the author
     # changes state. `synchronize` keeps the status fresh as new commits land.
@@ -15,11 +16,11 @@ permissions: {}
 jobs:
   check-template-and-add-labels:
     runs-on: ubuntu-latest
-    # Fork and Dependabot PRs get no OIDC token on `pull_request`, so they
-    # cannot mint the label token. The script skips Dependabot PRs anyway.
+    # `pull_request_target` hands fork PRs an OIDC token, so they are skipped
+    # before the label token is minted. The script skips Dependabot PRs anyway.
     if: >-
       github.event_name == 'issues' ||
-      (github.event_name == 'pull_request' &&
+      (github.event_name == 'pull_request_target' &&
        !github.event.pull_request.head.repo.fork &&
        github.event.pull_request.user.login != 'dependabot[bot]')
     permissions:
