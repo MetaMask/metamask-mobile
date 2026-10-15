@@ -204,6 +204,7 @@ describe('ClaimBanner', () => {
 
   it('claim button is disabled on subsequent presses', async () => {
     jest.setTimeout(15000);
+    mockAttemptPoolStakedClaimTransaction.mockResolvedValue(undefined);
     const { getByTestId } = renderWithProvider(
       <ClaimBanner
         claimableAmount={MOCK_CLAIM_AMOUNT}
