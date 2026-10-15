@@ -9,20 +9,27 @@ import type {
 /**
  * Two reads:
  * `GET /api/v1/traders/position/{id}` loads one position by id.
- * `GET /api/v2/traders/{address}/{assetId}/open` loads this wallet's open
- * position in one CAIP-19 asset. The bearer token identifies the profile;
- * `{address}` must be a wallet that profile owns.
- * Do not match a list row on `tokenAddress`.
+ * `GET /api/v2/traders/{addressOrId}/positions/open` loads every open position
+ * for a profile id or an owned wallet. Token details keeps the row whose
+ * `tokenAddress` matches the token on screen, until
+ * `GET /api/v1/accounts/{account}/assets/{asset}/open-position-pnl` exists.
  */
 
 /** Non-2xx response from the position endpoint. `status` is 401, 404, or other. */
 export class TraderPositionHttpError extends Error {
   readonly status: number;
 
-  constructor(status: number) {
-    super(`Social position request failed: ${status}`);
+  readonly body: string;
+
+  constructor(status: number, body = '') {
+    super(
+      body
+        ? `Social position request failed: ${status} ${body}`
+        : `Social position request failed: ${status}`,
+    );
     this.name = 'TraderPositionHttpError';
     this.status = status;
+    this.body = body;
   }
 }
 
@@ -112,8 +119,15 @@ export const toTraderPosition = (value: unknown): TraderPosition => {
     marginUsd: readNullableNumber(value.marginUsd),
     trades: readTrades(value.trades),
     lastTradeAt: requireNumber(value.lastTradeAt),
+    tokenImageUrl:
+      typeof value.tokenImageUrl === 'string' ? value.tokenImageUrl : null,
   };
 };
+
+export interface OpenPositionMatch {
+  pnl: OpenPositionPnl;
+  position: TraderPosition;
+}
 
 const socialUrl = (path: string): string => {
   const base = AppConstants.SOCIAL_API_URL.replace(/\/$/, '');
@@ -123,14 +137,51 @@ const socialUrl = (path: string): string => {
 const positionUrl = (positionId: string): string =>
   socialUrl(`/api/v1/traders/position/${encodeURIComponent(positionId)}`);
 
+/** Open-positions list. `{traderId}` is a profile id or an owned wallet. */
+export const openPositionsListUrl = (traderId: string): string =>
+  socialUrl(`/api/v2/traders/${encodeURIComponent(traderId)}/positions/open`);
+
 /**
- * Wallet address plus CAIP-19 asset id. The slash inside the asset id is
- * percent-encoded so it stays one path segment.
+ * EVM addresses compare case-insensitively. Other chains, including Solana,
+ * keep their original casing.
  */
-export const openPositionUrl = (address: string, assetId: string): string =>
-  socialUrl(
-    `/api/v2/traders/${encodeURIComponent(address)}/${encodeURIComponent(assetId)}/open`,
+export const tokenAddressesMatch = (left: string, right: string): boolean => {
+  if (left.startsWith('0x') || right.startsWith('0x')) {
+    return left.toLowerCase() === right.toLowerCase();
+  }
+  return left === right;
+};
+
+export const findPositionByTokenAddress = (
+  positions: TraderPosition[],
+  tokenAddress: string,
+): TraderPosition | undefined =>
+  positions.find((position) =>
+    tokenAddressesMatch(position.tokenAddress, tokenAddress),
   );
+
+const toOpenPositionFromListItem = (
+  position: TraderPosition,
+): OpenPositionPnl => ({
+  positionAmount: position.positionAmount,
+  isOpen: position.isOpen,
+  boughtUsd: position.boughtUsd,
+  soldUsd: position.soldUsd,
+  realizedPnl: position.realizedPnl,
+  costBasis: position.costBasis,
+  currentValueUSD: position.currentValueUSD,
+  pnlValueUsd: position.pnlValueUsd,
+  pnlPercent: position.pnlPercent,
+  // The list has no pnlStatus. A row in this response is a priced position.
+  pnlStatus: 'ready',
+});
+
+export const toOpenPositionsList = (value: unknown): TraderPosition[] => {
+  if (!isRecord(value) || !Array.isArray(value.positions)) {
+    throw new TraderPositionMalformedError();
+  }
+  return value.positions.map(toTraderPosition);
+};
 
 const fetchSocialJson = async (
   url: string,
@@ -146,7 +197,8 @@ const fetchSocialJson = async (
   });
 
   if (!response.ok) {
-    throw new TraderPositionHttpError(response.status);
+    const body = await response.text().catch(() => '');
+    throw new TraderPositionHttpError(response.status, body);
   }
 
   try {
@@ -196,15 +248,18 @@ export const getTraderPosition = async (
   toTraderPosition(await fetchSocialJson(positionUrl(positionId), signal));
 
 /**
- * Loads the selected wallet's open position in one CAIP-19 asset.
- * A 404 means no settled position. `pnlStatus: in-progress` is a 200 whose
- * figures are not ready to display.
+ * Loads the trader's open positions and returns the one for `tokenAddress`.
+ * No matching row is an empty result, not an error.
  */
 export const getOpenPositionForAsset = async (
-  address: string,
-  assetId: string,
+  traderId: string,
+  tokenAddress: string,
   signal?: AbortSignal,
-): Promise<OpenPositionPnl> =>
-  toOpenPositionPnl(
-    await fetchSocialJson(openPositionUrl(address, assetId), signal),
-  );
+): Promise<OpenPositionMatch | null> => {
+  const url = openPositionsListUrl(traderId);
+  const positions = toOpenPositionsList(await fetchSocialJson(url, signal));
+  const match = findPositionByTokenAddress(positions, tokenAddress);
+  return match
+    ? { pnl: toOpenPositionFromListItem(match), position: match }
+    : null;
+};

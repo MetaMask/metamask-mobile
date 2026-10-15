@@ -84,6 +84,20 @@ describe('TokenDetailsV1TabBar', () => {
     expect(queryByText('active:security')).toBeNull();
   });
 
+  it('omits Feed when it is not in the visible tabs', () => {
+    const { getByTestId, queryByTestId } = render(
+      <TokenDetailsV1TabBar
+        activeTab="overview"
+        onTabPress={jest.fn()}
+        tabs={['overview', 'security']}
+      />,
+    );
+
+    expect(getByTestId('token-details-v1-tab-overview')).toBeTruthy();
+    expect(getByTestId('token-details-v1-tab-security')).toBeTruthy();
+    expect(queryByTestId('token-details-v1-tab-feed')).toBeNull();
+  });
+
   // TabsBar draws only the active segment, so the unselected track the
   // indicator rides on has to come from here. Asserted on every tab because
   // the track is unselected state — it has to be there no matter which tab
@@ -333,5 +347,11 @@ describe('resolveSwipeTargetTab', () => {
   it('refuses to swipe past the edges of the tab list', () => {
     expect(resolveSwipeTargetTab('feed', 120, 0)).toBeNull();
     expect(resolveSwipeTargetTab('security', -120, 0)).toBeNull();
+  });
+
+  it('stops at Security when Feed is hidden', () => {
+    expect(
+      resolveSwipeTargetTab('security', -120, 0, ['overview', 'security']),
+    ).toBeNull();
   });
 });
