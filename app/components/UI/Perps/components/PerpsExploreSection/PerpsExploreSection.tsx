@@ -11,6 +11,7 @@ import {
   IconName,
   IconSize,
   SectionHeader,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import {
   MARKET_SORTING_CONFIG,
@@ -266,8 +267,11 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
         : IconColor.IconAlternative;
 
       const sharedProps = {
-        variant: isSelected ? ButtonVariant.Primary : ButtonVariant.Tertiary,
+        variant: isSelected ? ButtonVariant.Primary : ButtonVariant.Secondary,
         size: ButtonSize.Sm,
+        textProps: isSelected
+          ? undefined
+          : { twClassName: TextColor.TextAlternative },
         onPress: () => handleTabPress(tab, index),
         testID: `${TEST_ID}-tab-${tab.id}`,
         accessibilityLabel: tab.label,
