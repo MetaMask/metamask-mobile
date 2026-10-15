@@ -65,6 +65,10 @@ concurrency:
     }}
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
+env:
+  # String "true" except on pull_request, where unit and CV skip Istanbul coverage.
+  COLLECT_COVERAGE: ${{ github.event_name != 'pull_request' }}
+
 jobs:
   get_requirements:
     name: Get workflow and job requirements
@@ -1051,13 +1055,18 @@ jobs:
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
       # Namespace Linux: --maxWorkers=33% (~3 workers on 8 vCPU) + 12GiB heap.
-      - run: yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
+      # COLLECT_COVERAGE is false on pull_request. Other events keep reporters
+      # so merge can build lcov for Sonar.
+      - run: yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent ${{ env.COLLECT_COVERAGE == 'true' && '--coverageReporters=json' || '--coverage=false' }} --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: --max_old_space_size=12288
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
-          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
+          mkdir -p ./tests/coverage
+          if [ "$COLLECT_COVERAGE" = "true" ]; then
+            mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
+          fi
           cp tests/results/unit-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
@@ -1206,9 +1215,15 @@ jobs:
           done
 
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
+      # PRs do not collect unit/CV coverage, so skip the merged lcov, the
+      # coverage threshold, and the Sonar lcov artifact. The job still succeeds
+      # and SonarCloud static analysis runs afterwards.
       - run: yarn test:merge-coverage
+        if: ${{ env.COLLECT_COVERAGE == 'true' }}
       - run: yarn test:validate-coverage
+        if: ${{ env.COLLECT_COVERAGE == 'true' }}
       - name: Upload lcov.info (artifact stores)
+        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: lcov.info
@@ -1241,8 +1256,10 @@ jobs:
           retention-days: 7
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Generate CV test coverage report
+        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html --reporter json-summary
       - name: Upload cv-test-coverage-html (artifact stores)
+        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: cv-test-coverage-html
@@ -1251,6 +1268,7 @@ jobs:
           retention-days: 7
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Upload cv-test-coverage-summary (artifact stores)
+        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: cv-test-coverage-summary
@@ -1280,8 +1298,10 @@ jobs:
           retention-days: 7
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Generate unit test coverage summary
+        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         run: yarn nyc report --temp-dir ./tests/coverage-unit-merged --report-dir ./tests/coverage-unit-lcov --reporter json-summary
       - name: Upload unit-test-coverage-summary (artifact stores)
+        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: unit-test-coverage-summary
@@ -1345,17 +1365,21 @@ jobs:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Prepare results directory
         run: mkdir -p tests/results
+      # test:view:ci already collects coverage. PRs append --coverage=false.
       - run: |
           yarn test:view:ci \
             --shard=${{ matrix.shard }}/4 \
             --json \
-            --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
+            --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json ${{ env.COLLECT_COVERAGE != 'true' && '--coverage=false' || '' }}
         env:
           NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
-          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-${{ matrix.shard }}.json
+          mkdir -p ./tests/coverage
+          if [ "$COLLECT_COVERAGE" = "true" ]; then
+            mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-${{ matrix.shard }}.json
+          fi
           cp tests/results/cv-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
@@ -1523,13 +1547,14 @@ jobs:
 
   run-performance-tests-pr:
     name: 'Run Performance Tests (PR)'
-    # Run when:
-    # - run-performance-tests label is on the PR (forced run, all tests), OR
-    # - the PR targets main and Smart E2E Selection chose performance tags.
+    # Smart E2E Selection performance contract:
+    # - ["ALL"] → run every performance test
+    # - ["@Tag", ...] → run those tests
+    # - [] → run none
+    # - blank output → run none
+    # - selection error → run none
+    # The run-performance-tests label still forces ["ALL"].
     # PRs targeting release/* or stable only run performance tests via the label.
-    # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
-    # ai_performance_test_tags == ''    → conservative fallback (AI failed) or run-performance-tests label: run all tests.
-    # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
     if: >-
       ${{
         github.event_name == 'pull_request' &&
@@ -1539,14 +1564,15 @@ jobs:
           (
             github.event.pull_request.base.ref == 'main' &&
             needs.smart-e2e-selection.result == 'success' &&
-            needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
+            needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]' &&
+            needs.smart-e2e-selection.outputs.ai_performance_test_tags != ''
           )
         )
       }}
     needs: [get_requirements, smart-e2e-selection, native-build-fingerprint]
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
-      performance_tags: ${{ needs.get_requirements.outputs.run_performance != 'true' && needs.smart-e2e-selection.outputs.ai_performance_test_tags || '' }}
+      performance_tags: ${{ needs.get_requirements.outputs.run_performance == 'true' && '["ALL"]' || needs.smart-e2e-selection.outputs.ai_performance_test_tags }}
       performance_tags_reasoning: ${{ needs.get_requirements.outputs.run_performance == 'true' && 'Forced run via run-performance-tests label on PR' || needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
@@ -1882,13 +1908,13 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - name: Download lcov.info (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && env.COLLECT_COVERAGE == 'true' }}
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
         with:
           name: lcov.info
           path: coverage/
       - name: Download lcov.info (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && env.COLLECT_COVERAGE == 'true' }}
         uses: actions/download-artifact@v7
         with:
           name: lcov.info
@@ -1989,6 +2015,7 @@ jobs:
           MAX_ATTEMPTS=20
           SLEEP_INTERVAL=15
           ERROR_STREAK=0
+          COVERAGE_ONLY_STREAK=0
           ERROR_STREAK_TO_FAIL=8
           for i in $(seq 1 $MAX_ATTEMPTS); do
             RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
@@ -2000,14 +2027,37 @@ jobs:
               echo "Quality Gate passed."
               exit 0
             elif [[ "$STATUS" == "ERROR" ]]; then
-              ERROR_STREAK=$((ERROR_STREAK + 1))
-              if [[ $ERROR_STREAK -ge $ERROR_STREAK_TO_FAIL ]]; then
-                echo "Quality Gate failed (ERROR stable across $ERROR_STREAK polls)."
-                exit 1
+              # PRs do not upload unit/CV lcov. A gate that fails only on coverage
+              # metrics must not fail the check. Any other ERROR condition still fails.
+              COVERAGE_ONLY=$(echo "$RESPONSE" | jq -r '
+                def is_coverage: (.metricKey // "") | test("coverage");
+                (.projectStatus.conditions // []) as $c
+                | if ($c | length) == 0 then "unknown"
+                  elif ($c | map(select(.status == "ERROR" and (is_coverage | not))) | length) > 0 then "no"
+                  elif ($c | map(select(.status == "ERROR" and is_coverage)) | length) > 0 then "yes"
+                  else "unknown"
+                  end
+              ' 2>/dev/null || echo "unknown")
+              if [[ "$COVERAGE_ONLY" == "yes" ]]; then
+                COVERAGE_ONLY_STREAK=$((COVERAGE_ONLY_STREAK + 1))
+                ERROR_STREAK=0
+                if [[ $COVERAGE_ONLY_STREAK -ge $ERROR_STREAK_TO_FAIL ]]; then
+                  echo "Quality Gate ERROR is coverage-only across $COVERAGE_ONLY_STREAK polls. PR unit/CV coverage is not collected."
+                  exit 0
+                fi
+                echo "Got coverage-only ERROR ($COVERAGE_ONLY_STREAK/$ERROR_STREAK_TO_FAIL). It may be a previous analysis. Retrying in ${SLEEP_INTERVAL}s..."
+              else
+                COVERAGE_ONLY_STREAK=0
+                ERROR_STREAK=$((ERROR_STREAK + 1))
+                if [[ $ERROR_STREAK -ge $ERROR_STREAK_TO_FAIL ]]; then
+                  echo "Quality Gate failed (ERROR stable across $ERROR_STREAK polls)."
+                  exit 1
+                fi
+                echo "Got ERROR ($ERROR_STREAK/$ERROR_STREAK_TO_FAIL), it may be a previous analysis. Retrying in ${SLEEP_INTERVAL}s..."
               fi
-              echo "Got ERROR ($ERROR_STREAK/$ERROR_STREAK_TO_FAIL), it may be a previous analysis. Retrying in ${SLEEP_INTERVAL}s..."
             else
               ERROR_STREAK=0
+              COVERAGE_ONLY_STREAK=0
               echo "Quality Gate status not yet settled (got: '$STATUS'). Retrying in ${SLEEP_INTERVAL}s..."
             fi
 

@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useCallback,
   useImperativeHandle,
+  useMemo,
   useRef,
 } from 'react';
 import {
@@ -11,6 +12,8 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
+  AvatarToken,
+  AvatarTokenSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -33,6 +36,7 @@ import {
   LimitOrderPriceComparisonDirection,
 } from '../../../constants/limitOrders';
 import { strings } from '../../../../../../../locales/i18n';
+import { getTokenImageSource } from '../../../utils';
 import { getCurrencySymbol } from '../../../utils/currencyUtils';
 import { getSwapsLimitOrderDefaultPriceComparisonDirection } from '../../../utils/limitOrders/getSwapsLimitOrderPriceComparisonDirection';
 import { formatAmountWithLocaleSeparators } from '../../../utils/formatAmountWithLocaleSeparators';
@@ -54,6 +58,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
     {
       executionType,
       quotedSymbol,
+      quotedToken,
       isLimitFiatMode,
       unitSymbol,
       onQuoteUnitPress,
@@ -90,6 +95,24 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           symbol: quotedSymbol,
         })
       : strings('bridge.limit.quote_unit_fallback', { amount: 1 });
+    const quoteUnitTokenSymbol = quotedToken?.symbol ?? quotedSymbol;
+    const quoteUnitImageSource = useMemo(
+      () =>
+        quoteUnitTokenSymbol
+          ? getTokenImageSource(
+              quoteUnitTokenSymbol,
+              quotedToken?.image,
+              quotedToken?.address,
+              quotedToken?.chainId,
+            )
+          : undefined,
+      [
+        quoteUnitTokenSymbol,
+        quotedToken?.address,
+        quotedToken?.chainId,
+        quotedToken?.image,
+      ],
+    );
     const inputPrefix = isLimitFiatMode
       ? getCurrencySymbol(currentCurrency || 'usd')
       : undefined;
@@ -187,6 +210,19 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
               'flex-row items-center gap-0.5 rounded-2xl bg-muted px-2 py-0.5',
             )}
           >
+            {quoteUnitTokenSymbol ? (
+              <AvatarToken
+                key={`${quotedToken?.chainId ?? ''}:${quotedToken?.address ?? quoteUnitTokenSymbol}`}
+                name={quoteUnitTokenSymbol}
+                src={quoteUnitImageSource}
+                size={AvatarTokenSize.Xs}
+                twClassName="mr-0.5 h-3 w-3"
+                testID={
+                  LimitOrderPriceAdjustInputSectionSelectorsIDs.QUOTE_UNIT_AVATAR
+                }
+                accessible={false}
+              />
+            ) : null}
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
