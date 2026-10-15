@@ -5,8 +5,4 @@ export {
   MembershipAlertAction,
   MembershipStatusKind,
 } from './MembershipBanner.utils';
-export type {
-  MembershipAlertAction,
-  MembershipBannerModel,
-  MembershipStatusKind,
-} from './MembershipBanner.utils';
+export type { MembershipBannerModel } from './MembershipBanner.utils';
