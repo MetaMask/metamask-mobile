@@ -3,12 +3,12 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../reducers';
 import { selectReferralMeLocalizedText } from '../../../../reducers/rewardsMoney/selectors';
+import { selectSessionProfileId } from '../../../../selectors/identity';
 import type { LedgerEarningEntryDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import { PerformanceRebateRow } from '../components/Money/PerformanceActivityRows';
 import TradingActivityListView from '../components/Money/TradingActivityListView';
-import { useSessionProfileId } from '../hooks/useReferralMe';
 import { useCashbackLedger } from '../hooks/useCashbackLedger';
 
 export const REWARDS_TRADING_REBATES_VIEW_TEST_IDS = {
@@ -19,7 +19,7 @@ export const REWARDS_TRADING_REBATES_VIEW_TEST_IDS = {
 
 const RewardsTradingRebatesView: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const { profileId } = useSessionProfileId();
+  const profileId = useSelector(selectSessionProfileId);
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );

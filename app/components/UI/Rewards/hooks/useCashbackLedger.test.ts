@@ -1,6 +1,7 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import { setCashbackLedger } from '../../../../reducers/rewardsMoney';
 import {
@@ -17,6 +18,10 @@ jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
   },
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
 }));
 
 const PROFILE_A = 'profile-a';
@@ -58,12 +63,18 @@ describe('useCashbackLedger', () => {
     typeof useSelector
   >;
   const mockEngineCall = Engine.controllerMessenger.call as jest.Mock;
+  const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
+    typeof useFocusEffect
+  >;
   const flushPromises = () => new Promise(process.nextTick);
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseDispatch.mockReturnValue(mockDispatch);
     mockUseSelector.mockReturnValue(undefined);
+    mockUseFocusEffect.mockImplementation((effect) => {
+      effect();
+    });
     mockEngineCall.mockResolvedValue({
       results: [earning, claim],
       has_more: false,
@@ -90,6 +101,49 @@ describe('useCashbackLedger', () => {
     );
     expect(mockDispatch).toHaveBeenCalledWith(
       setCashbackLedger({ profileId: PROFILE_A, items: [earning] }),
+    );
+  });
+
+  it('sends the cursor and origin filter on the next page and drops claim rows', async () => {
+    const laterEarning = { ...earning, id: 'earn-2' };
+    mockEngineCall
+      .mockResolvedValueOnce({
+        results: [earning, claim],
+        has_more: true,
+        cursor: 'cursor-2',
+        window: null,
+      })
+      .mockResolvedValueOnce({
+        results: [laterEarning, claim],
+        has_more: false,
+        cursor: null,
+        window: null,
+      });
+
+    const { result } = renderHook(() => useCashbackLedger(PROFILE_A));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.items).toEqual([earning]);
+    });
+
+    await act(async () => {
+      result.current.loadMore();
+    });
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual([earning, laterEarning]);
+    });
+
+    expect(mockEngineCall).toHaveBeenNthCalledWith(
+      2,
+      'RewardsMoneyController:getEarningsLedger',
+      {
+        originTypes: CASHBACK_LEDGER_ORIGIN_TYPES,
+        cursor: 'cursor-2',
+        includeClaims: false,
+        forceFresh: undefined,
+      },
     );
   });
 

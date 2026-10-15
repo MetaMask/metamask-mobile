@@ -5,9 +5,9 @@ import type {
   ReferralLocalizedText,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import Routes from '../../../../constants/navigation/Routes';
 import { useCashbackLedger } from '../hooks/useCashbackLedger';
-import { useSessionProfileId } from '../hooks/useReferralMe';
 import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../components/Money/PerformanceActivityRows';
 import { TRADING_ACTIVITY_LIST_EMPTY_TEST_ID } from '../components/Money/TradingActivityListView';
 import RewardsTradingRebatesView, {
@@ -24,10 +24,20 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../Views/ErrorBoundary', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ children }: { children: React.ReactNode }) => (
+      <View>{children}</View>
+    ),
+  };
+});
+
 jest.mock('../hooks/useCashbackLedger');
-jest.mock('../hooks/useReferralMe');
 
 const PROFILE_ID = 'profile-a';
+const KEYRING_ID = 'entropy-source-1';
 const LOCALIZED_TEXT = {
   tradingRebates: 'Trading rebates',
   rebatePerpsVolume: 'Perps volume',
@@ -56,6 +66,28 @@ const REBATE: LedgerEarningEntryDto = {
 };
 
 const STATE = {
+  engine: {
+    backgroundState: {
+      AuthenticationController: {
+        isSignedIn: true,
+        srpSessionData: {
+          [KEYRING_ID]: {
+            profile: { profileId: PROFILE_ID },
+          },
+        },
+      },
+      KeyringController: {
+        isUnlocked: true,
+        keyrings: [
+          {
+            type: ExtendedKeyringTypes.hd,
+            accounts: [],
+            metadata: { id: KEYRING_ID, name: '' },
+          },
+        ],
+      },
+    },
+  },
   rewardsMoney: {
     referralMe: {
       [PROFILE_ID]: {
@@ -72,10 +104,6 @@ describe('RewardsTradingRebatesView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSessionProfileId as jest.Mock).mockReturnValue({
-      profileId: PROFILE_ID,
-      isResolved: true,
-    });
     (useCashbackLedger as jest.Mock).mockReturnValue({
       items: [REBATE],
       isLoading: false,
@@ -141,7 +169,19 @@ describe('RewardsTradingRebatesView', () => {
   });
 
   it('renders no rows until localized text is available', () => {
-    const { queryByTestId } = renderWithProvider(<RewardsTradingRebatesView />);
+    const { queryByTestId } = renderWithProvider(
+      <RewardsTradingRebatesView />,
+      {
+        state: {
+          ...STATE,
+          rewardsMoney: {
+            referralMe: {
+              [PROFILE_ID]: { loading: false, error: false, data: null },
+            },
+          },
+        },
+      },
+    );
 
     expect(
       queryByTestId(`${PERFORMANCE_ACTIVITY_TEST_IDS.REBATE_ROW}-${REBATE.id}`),

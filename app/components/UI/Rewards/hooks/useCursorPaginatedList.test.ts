@@ -276,6 +276,7 @@ describe('useCursorPaginatedList', () => {
       useCursorPaginatedList<Item>({
         enabled: true,
         resetKey: 'key',
+        feature: 'rewards',
         fetchPage,
       }),
     );
@@ -316,6 +317,7 @@ describe('useCursorPaginatedList', () => {
       useCursorPaginatedList<Item>({
         enabled: true,
         resetKey: 'key',
+        feature: 'rewards',
         fetchPage,
       }),
     );
@@ -363,6 +365,7 @@ describe('useCursorPaginatedList', () => {
       useCursorPaginatedList<Item>({
         enabled: true,
         resetKey: 'key',
+        feature: 'rewards',
         fetchPage,
       }),
     );
@@ -604,6 +607,7 @@ describe('useCursorPaginatedList', () => {
       useCursorPaginatedList<Item>({
         enabled: true,
         resetKey: 'key',
+        feature: 'rewards',
         fetchPage,
       }),
     );
