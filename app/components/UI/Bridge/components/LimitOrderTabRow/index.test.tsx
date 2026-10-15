@@ -121,6 +121,46 @@ describe('LimitOrderRow', () => {
     expect(queryByText('0.00122323 BNB')).not.toBeOnTheScreen();
   });
 
+  it.each([
+    ['2500', '250000000000000000000', '0.0004'],
+    ['12.5', '1250000000000000000', '0.08'],
+    ['1.25', '125000000000000000', '0.8'],
+  ])(
+    'renders a sell limit price of %s exactly when the API reports its exact reciprocal',
+    (limitPrice, destAmount, ratio) => {
+      const sellOrder: LimitOrder = {
+        ...MOCK_LIMIT_OPEN_ORDER,
+        src: {
+          asset: {
+            assetId: 'eip155:56/slip44:714',
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: 56,
+            symbol: 'BNB',
+            decimals: 18,
+          },
+          amount: '100000000000000000',
+        },
+        dest: {
+          asset: {
+            assetId:
+              'eip155:56/erc20:0x55d398326f99059ff775485246999027b3197955',
+            address: '0x55d398326f99059ff775485246999027b3197955',
+            chainId: 56,
+            symbol: 'USDT',
+            decimals: 18,
+          },
+          amount: destAmount,
+          minAmount: destAmount,
+        },
+        trigger: { kind: 'ratio', threshold: 'above', price: ratio },
+      };
+
+      const { getByText } = renderLimitOrderRow(sellOrder);
+
+      expect(getByText(`${limitPrice} USDT`)).toBeOnTheScreen();
+    },
+  );
+
   it('renders a USD limit price for an order placed in fiat', () => {
     const fiatBuyOrder: LimitOrder = {
       ...MOCK_LIMIT_OPEN_ORDER,

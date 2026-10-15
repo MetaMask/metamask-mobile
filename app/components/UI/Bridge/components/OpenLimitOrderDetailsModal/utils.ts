@@ -59,11 +59,13 @@ function isRatioQuotedPerSourceToken({ src, dest, trigger }: LimitOrder) {
 
 function invertPrice(price: string): string {
   const value = new BigNumber(price);
+  const reciprocal = new BigNumber(1).dividedBy(value);
 
-  return new BigNumber(1)
-    .dividedBy(value)
-    .precision(Math.max(value.sd() - 1, 1))
-    .toFixed();
+  if (reciprocal.multipliedBy(value).eq(1)) {
+    return reciprocal.toFixed();
+  }
+
+  return reciprocal.precision(Math.max(value.sd() - 1, 1)).toFixed();
 }
 
 /**
