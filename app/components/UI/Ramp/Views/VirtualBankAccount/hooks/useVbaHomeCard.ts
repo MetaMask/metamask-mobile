@@ -298,14 +298,19 @@ export const useVbaHomeCard = (): VbaHomeCard => {
   // can force the rejected state without vendor-side changes. No-op when the
   // env var is unset, in production builds, or without a stored session.
   const kycStatusOverride = getVbaKycStatusOverride();
-  const effectiveSessionStatus =
-    kycStatusOverride && sessionStatus
-      ? {
-          ...sessionStatus,
-          finalStatus: kycStatusOverride,
-          kycStatus: kycStatusOverride,
-        }
-      : sessionStatus;
+  // Memoized so the card memo below sees a stable reference: without it, the
+  // dev-override spread would build a new object every render.
+  const effectiveSessionStatus = useMemo(
+    () =>
+      kycStatusOverride && sessionStatus
+        ? {
+            ...sessionStatus,
+            finalStatus: kycStatusOverride,
+            kycStatus: kycStatusOverride,
+          }
+        : sessionStatus,
+    [kycStatusOverride, sessionStatus],
+  );
   const autoramps = useSelector((state: RootState) => {
     const rampsControllerState = selectRampsControllerState(state);
     return rampsControllerState?.autoramps ?? EMPTY_AUTORAMPS;
