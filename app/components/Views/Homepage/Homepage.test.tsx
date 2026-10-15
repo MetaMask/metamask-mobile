@@ -16,6 +16,11 @@ import {
   PERPS_SECTION_PRIORITY_VARIANTS,
   PerpsSectionPriorityVariant,
 } from './abTestConfig';
+import {
+  SOCIAL_V1_AB_KEY,
+  SOCIAL_V1_VARIANTS,
+  SocialV1Variant,
+} from '../../../constants/socialV1';
 
 interface MockABTestResult {
   variant: unknown;
@@ -39,6 +44,13 @@ const defaultUseABTestImplementation = (key: string): MockABTestResult => {
       variant:
         PERPS_SECTION_PRIORITY_VARIANTS[PerpsSectionPriorityVariant.Control],
       variantName: PerpsSectionPriorityVariant.Control,
+      isActive: true,
+    };
+  }
+  if (key === SOCIAL_V1_AB_KEY) {
+    return {
+      variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Control],
+      variantName: SocialV1Variant.Control,
       isActive: true,
     };
   }
@@ -762,6 +774,16 @@ describe('Homepage', () => {
 
     it('moves Top Traders before the Tokens and Perps sections for eligible users', () => {
       mockUseSocialTopTradersEligible.mockReturnValue(true);
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === SOCIAL_V1_AB_KEY) {
+          return {
+            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
+            variantName: SocialV1Variant.Treatment,
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
@@ -794,6 +816,13 @@ describe('Homepage', () => {
             isActive: true,
           };
         }
+        if (key === SOCIAL_V1_AB_KEY) {
+          return {
+            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
+            variantName: SocialV1Variant.Treatment,
+            isActive: true,
+          };
+        }
         return defaultUseABTestImplementation(key);
       });
 
@@ -808,6 +837,20 @@ describe('Homepage', () => {
       expect(callBySectionName('tokens')?.sectionIndex).toBe(2);
 
       perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(false);
+    });
+
+    it('keeps Top Traders in its default position for eligible control users', () => {
+      mockUseSocialTopTradersEligible.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
     });
   });
 

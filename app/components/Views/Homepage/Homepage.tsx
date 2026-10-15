@@ -46,6 +46,10 @@ import {
   PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
   PERPS_SECTION_PRIORITY_VARIANTS,
 } from './abTestConfig';
+import {
+  SOCIAL_V1_AB_KEY,
+  SOCIAL_V1_VARIANTS,
+} from '../../../constants/socialV1';
 import { selectIsHomepageEarnSectionVisible } from '../../UI/Earn/selectors/visibility';
 
 /**
@@ -95,6 +99,11 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       PERPS_SECTION_PRIORITY_VARIANTS,
       PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
     );
+    const { variant: socialV1Variant } = useABTest(
+      SOCIAL_V1_AB_KEY,
+      SOCIAL_V1_VARIANTS,
+      { trackExposure: false },
+    );
     const isActivePerpsTrader = useIsActivePerpsTrader();
     const showPerpsAboveTokens =
       isPerpsEnabled &&
@@ -102,7 +111,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       isActivePerpsTrader;
     const isSocialTopTradersEligible = useIsSocialTopTradersEligible();
     const showTopTradersAboveAllocation =
-      isTopTradersEnabled && isSocialTopTradersEligible;
+      isTopTradersEnabled &&
+      socialV1Variant.useSocialV1 &&
+      isSocialTopTradersEligible;
 
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
       useNetworkEnablement();

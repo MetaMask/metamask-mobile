@@ -3,7 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useMyProfile } from '../../SocialLeaderboard/MyProfileView/hooks';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedAccountWalletId } from '../../../../selectors/multichainAccounts/selectedWallet';
 import {
   hasRecentSocialTrade,
   isRecentSocialActivityTimestamp,
@@ -11,11 +11,11 @@ import {
 
 export const evaluateIsSocialTopTradersEligible = (
   profile: ReturnType<typeof useMyProfile>['profile'],
-  walletAddress?: string,
+  walletId?: string | null,
   now: number = Date.now(),
 ): boolean =>
   isRecentSocialActivityTimestamp(profile?.createdAt, now) ||
-  hasRecentSocialTrade(walletAddress, now);
+  hasRecentSocialTrade(walletId ?? undefined, now);
 
 /**
  * Resolves Top Traders priority without waiting for an asynchronous request.
@@ -25,17 +25,15 @@ export const evaluateIsSocialTopTradersEligible = (
  */
 export const useIsSocialTopTradersEligible = (): boolean => {
   const { profile } = useMyProfile();
-  const walletAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+  const walletId = useSelector(selectSelectedAccountWalletId);
   const [isEligible, setIsEligible] = useState(() =>
-    evaluateIsSocialTopTradersEligible(profile, walletAddress),
+    evaluateIsSocialTopTradersEligible(profile, walletId),
   );
 
   useFocusEffect(
     useCallback(() => {
-      setIsEligible(evaluateIsSocialTopTradersEligible(profile, walletAddress));
-    }, [profile, walletAddress]),
+      setIsEligible(evaluateIsSocialTopTradersEligible(profile, walletId));
+    }, [profile, walletId]),
   );
 
   return isEligible;

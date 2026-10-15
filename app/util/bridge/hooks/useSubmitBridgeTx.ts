@@ -36,6 +36,7 @@ import {
 } from '../../analytics/activeABTestAssignments';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../constants/bridge';
 import { useUnifiedSwapBridgeContext } from '../../../components/UI/Bridge/hooks/useUnifiedSwapBridgeContext';
+import { selectSelectedAccountWalletId } from '../../../selectors/multichainAccounts/selectedWallet';
 import {
   isSocialTradeSource,
   recordSocialTrade,
@@ -57,6 +58,7 @@ function mergeTransactionActiveAbTests(
 export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectIsGasIncludedSTXSendBundleSupported);
   const walletAddress = useSelector(selectSourceWalletAddress);
+  const walletId = useSelector(selectSelectedAccountWalletId);
   const destToken = useSelector(selectDestToken);
   const slippage = useSelector(selectSlippage);
   const isSlippageUserOverride =
@@ -177,8 +179,8 @@ export default function useSubmitBridgeTx() {
               BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
             );
 
-        if (isSocialTradeSource(location)) {
-          recordSocialTrade(walletAddress);
+        if (isSocialTradeSource(location) && walletId) {
+          recordSocialTrade(walletId);
         }
 
         return submittedTransaction;

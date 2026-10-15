@@ -15,8 +15,8 @@ jest.mock('../../store/storage-wrapper', () => ({
 
 const mockStorage = StorageWrapper as jest.Mocked<typeof StorageWrapper>;
 const NOW = 1_760_000_000_000;
-const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
-const OTHER_WALLET_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+const WALLET_ID = 'entropy:wallet-1';
+const OTHER_WALLET_ID = 'entropy:wallet-2';
 
 describe('socialActivityStorage', () => {
   beforeEach(() => {
@@ -43,10 +43,10 @@ describe('socialActivityStorage', () => {
 
   describe('recordSocialTrade', () => {
     it('writes the supplied timestamp as a string', () => {
-      recordSocialTrade(WALLET_ADDRESS, NOW);
+      recordSocialTrade(WALLET_ID, NOW);
 
       expect(mockStorage.setItem).toHaveBeenCalledWith(
-        getSocialLastTradeStorageKey(WALLET_ADDRESS),
+        getSocialLastTradeStorageKey(WALLET_ID),
         String(NOW),
       );
     });
@@ -60,7 +60,7 @@ describe('socialActivityStorage', () => {
     it('swallows storage failures', async () => {
       mockStorage.setItem.mockRejectedValue(new Error('storage unavailable'));
 
-      expect(() => recordSocialTrade(WALLET_ADDRESS, NOW)).not.toThrow();
+      expect(() => recordSocialTrade(WALLET_ID, NOW)).not.toThrow();
 
       await Promise.resolve();
     });
@@ -70,13 +70,13 @@ describe('socialActivityStorage', () => {
     it('returns false when no trade was recorded', () => {
       mockStorage.getItemSync.mockReturnValue(null);
 
-      expect(hasRecentSocialTrade(WALLET_ADDRESS, NOW)).toBe(false);
+      expect(hasRecentSocialTrade(WALLET_ID, NOW)).toBe(false);
     });
 
     it('returns true for a trade inside the recency window', () => {
       mockStorage.getItemSync.mockReturnValue(String(NOW - 1000));
 
-      expect(hasRecentSocialTrade(WALLET_ADDRESS, NOW)).toBe(true);
+      expect(hasRecentSocialTrade(WALLET_ID, NOW)).toBe(true);
     });
 
     it('returns false after the recency window', () => {
@@ -84,13 +84,13 @@ describe('socialActivityStorage', () => {
         String(NOW - SOCIAL_RECENT_ACTIVITY_WINDOW_MS),
       );
 
-      expect(hasRecentSocialTrade(WALLET_ADDRESS, NOW)).toBe(false);
+      expect(hasRecentSocialTrade(WALLET_ID, NOW)).toBe(false);
     });
 
     it('returns false for a future timestamp', () => {
       mockStorage.getItemSync.mockReturnValue(String(NOW + 60_000));
 
-      expect(hasRecentSocialTrade(WALLET_ADDRESS, NOW)).toBe(false);
+      expect(hasRecentSocialTrade(WALLET_ID, NOW)).toBe(false);
     });
 
     it.each([['not-a-number'], [''], ['0'], ['-1']])(
@@ -98,17 +98,17 @@ describe('socialActivityStorage', () => {
       (stored) => {
         mockStorage.getItemSync.mockReturnValue(stored);
 
-        expect(hasRecentSocialTrade(WALLET_ADDRESS, NOW)).toBe(false);
+        expect(hasRecentSocialTrade(WALLET_ID, NOW)).toBe(false);
       },
     );
 
     it('reads the timestamp synchronously', () => {
       mockStorage.getItemSync.mockReturnValue(String(NOW - 1000));
 
-      hasRecentSocialTrade(WALLET_ADDRESS, NOW);
+      hasRecentSocialTrade(WALLET_ID, NOW);
 
       expect(mockStorage.getItemSync).toHaveBeenCalledWith(
-        getSocialLastTradeStorageKey(WALLET_ADDRESS),
+        getSocialLastTradeStorageKey(WALLET_ID),
       );
     });
 
@@ -120,12 +120,12 @@ describe('socialActivityStorage', () => {
 
     it('does not reuse another wallet timestamp', () => {
       mockStorage.getItemSync.mockImplementation((key) =>
-        key === getSocialLastTradeStorageKey(WALLET_ADDRESS)
+        key === getSocialLastTradeStorageKey(WALLET_ID)
           ? String(NOW - 1000)
           : null,
       );
 
-      expect(hasRecentSocialTrade(OTHER_WALLET_ADDRESS, NOW)).toBe(false);
+      expect(hasRecentSocialTrade(OTHER_WALLET_ID, NOW)).toBe(false);
     });
   });
 
