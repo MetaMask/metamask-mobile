@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { Image, Linking } from 'react-native';
+import { Image, Linking, Platform, type ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
@@ -29,6 +29,17 @@ import { PerpsOutreachDetailsViewSelectorsIDs } from './PerpsOutreachDetailsView
 
 // eslint-disable-next-line import-x/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const outreachFoxImage = require('../../../../../images/perps-outreach-banner.png');
+
+/**
+ * Android draws the previous screen's footer above a transparent modal when
+ * that footer has any elevation. Lift the whole sheet above it.
+ */
+const ANDROID_SHEET_ELEVATION = 24;
+
+const getAndroidSheetLayerStyle = (): ViewStyle | undefined =>
+  Platform.OS === 'android'
+    ? { elevation: ANDROID_SHEET_ELEVATION, zIndex: ANDROID_SHEET_ELEVATION }
+    : undefined;
 
 interface FeatureRowProps {
   iconName: IconName;
@@ -205,6 +216,8 @@ const PerpsOutreachDetailsView = () => {
       // pop dismisses only the transparent modal and leaves the Perps page
       // the user opened the banner from underneath.
       goBack={handleGoBack}
+      collapsable={Platform.OS === 'android' ? false : undefined}
+      style={getAndroidSheetLayerStyle()}
       testID={PerpsOutreachDetailsViewSelectorsIDs.SHEET}
     >
       <BottomSheetHeader
