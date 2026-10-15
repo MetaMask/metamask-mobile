@@ -203,9 +203,6 @@ import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsVie
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import { withUnmountOnTabBlur } from '../../Views/UnmountOnBlur/UnmountOnTabBlur';
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
-///: END:ONLY_INCLUDE_IF
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
@@ -894,6 +891,15 @@ const SetPasswordFlow = () => (
   </NativeStack.Navigator>
 );
 
+// Only enabled when bundled with `INCLUDE_SAMPLE_FEATURE=true` (a local opt-in;
+// no build in builds.yml sets it); otherwise this is dead-code-eliminated.
+const SampleFeature =
+  process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the sample feature out of prod bundles
+      require('../../../features/SampleFeature/components/views/SampleFeature')
+        .default
+    : null;
+
 const MainNavigator = () => {
   const dispatch = useDispatch();
   // Announce to the saga layer (deeplink pipeline) that post-login screens
@@ -1448,16 +1454,12 @@ const MainNavigator = () => {
         component={DeFiProtocolPositionDetails}
         options={slideFromRightNativeOptions}
       />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      }
-      <NativeStack.Screen
-        name={Routes.SAMPLE_FEATURE}
-        component={SampleFeature}
-      />
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
+      {SampleFeature && (
+        <NativeStack.Screen
+          name={Routes.SAMPLE_FEATURE}
+          component={SampleFeature}
+        />
+      )}
       <NativeStack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}

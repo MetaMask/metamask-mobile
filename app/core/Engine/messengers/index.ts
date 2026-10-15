@@ -42,9 +42,7 @@ import { getSnapAccountServiceMessenger } from './snap-account-service-messenger
 import { getNotificationServicesControllerMessenger } from './notifications/notification-services-controller-messenger';
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFeature/controllers/sample-petnames-controller-messenger';
-///: END:ONLY_INCLUDE_IF
+import type { SamplePetnamesControllerMessenger } from '@metamask/sample-controllers';
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
 import {
@@ -346,12 +344,20 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getPermissionControllerMessenger,
     getInitMessenger: getPermissionControllerInitMessenger,
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SamplePetnamesController: {
-    getMessenger: getSamplePetnamesControllerMessenger,
+    // Only construct the (parented) messenger when the feature is actually
+    // enabled. `initMessengerClients` calls `getMessenger` unconditionally
+    // for every entry in `initFunctions`, so creating a real child messenger
+    // here even when `samplePetnamesControllerInit` is a no-op would
+    // register it with the root messenger without ever tearing it down.
+    getMessenger:
+      process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+        ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the sample feature out of prod bundles
+          require('../../../features/SampleFeature/controllers/sample-petnames-controller-messenger')
+            .getSamplePetnamesControllerMessenger
+        : (noop as () => SamplePetnamesControllerMessenger),
     getInitMessenger: noop,
   },
-  ///: END:ONLY_INCLUDE_IF
   SelectedNetworkController: {
     getMessenger: getSelectedNetworkControllerMessenger,
     getInitMessenger: noop,
