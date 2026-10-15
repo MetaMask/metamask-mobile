@@ -55,6 +55,7 @@ import { promptIosGoogleWarningSheetSaga } from './onboarding/legacyIosGoogleRem
 import {
   watchMarketingAttributionOnClearOnboarding,
   watchMarketingAttributionOnConsentChange,
+  watchMarketingAttributionOnControllerConsent,
 } from './marketingAttribution';
 import { getDevAutoUnlockPassword } from '../../util/environment';
 import { saveAttribution } from '../../core/redux/slices/attribution';
@@ -574,6 +575,7 @@ export function* rootSaga() {
   yield fork(backfillSocialLoginMarketingConsentSaga);
 
   yield fork(watchMarketingAttributionOnConsentChange);
+  yield fork(watchMarketingAttributionOnControllerConsent);
   yield fork(watchMarketingAttributionOnClearOnboarding);
 
   yield fork(promptIosGoogleWarningSheetSaga);
