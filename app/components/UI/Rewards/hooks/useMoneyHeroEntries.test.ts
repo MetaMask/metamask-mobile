@@ -34,8 +34,8 @@ const renderEntries = ({
     error: boolean;
     data: EarningsSummaryDto | null;
   } | null;
-} = {}) => {
-  return renderHookWithProvider(() => useMoneyHeroEntries(PROFILE_ID), {
+} = {}) =>
+  renderHookWithProvider(() => useMoneyHeroEntries(PROFILE_ID), {
     state: {
       rewardsMoney: {
         referralMe: { [PROFILE_ID]: referral },
@@ -43,7 +43,6 @@ const renderEntries = ({
       },
     },
   });
-};
 
 describe('useMoneyHeroEntries', () => {
   beforeEach(() => {
