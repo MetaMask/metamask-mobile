@@ -274,6 +274,21 @@ describe('VbaEmailAdapter', () => {
     ).toBeNull();
   });
 
+  it('shows the generic error when session lookup rejects with a non-Error', async () => {
+    mockKycController.getSessionStatusForVendor.mockRejectedValue('offline');
+
+    const screen = renderWithProvider(<VbaEmailAdapter />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+      ).toHaveTextContent(
+        'Something went wrong opening email verification. Please try again.',
+      );
+    });
+    expect(mockKycController.startSession).not.toHaveBeenCalled();
+  });
+
   it('shows the MFA message for the verification error code', async () => {
     mockVerifyOrEnroll.mockRejectedValue(new MfaFlowError('too_many_attempts'));
 
