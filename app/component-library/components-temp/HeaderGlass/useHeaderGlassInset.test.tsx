@@ -1,8 +1,8 @@
 import React from 'react';
 import { Text } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
-import FloatingHeader from './FloatingHeader';
-import { useFloatingHeaderInset } from './useFloatingHeaderInset';
+import HeaderGlass from './HeaderGlass';
+import { useHeaderGlassInset } from './useHeaderGlassInset';
 
 const Screen = ({
   isEnabled,
@@ -11,17 +11,17 @@ const Screen = ({
   isEnabled: boolean;
   topInset?: number;
 }) => {
-  const { inset, onLayout } = useFloatingHeaderInset(isEnabled, topInset);
+  const { inset, onLayout } = useHeaderGlassInset(isEnabled, topInset);
   return (
-    <FloatingHeader onLayout={onLayout} testID="header">
+    <HeaderGlass onLayout={onLayout} testID="header">
       <Text testID="inset">{inset}</Text>
-    </FloatingHeader>
+    </HeaderGlass>
   );
 };
 
 const layout = (height: number) => ({ nativeEvent: { layout: { height } } });
 
-describe('useFloatingHeaderInset', () => {
+describe('useHeaderGlassInset', () => {
   it('starts at the header min height plus the top inset', () => {
     const { getByTestId } = render(<Screen isEnabled topInset={47} />);
 
