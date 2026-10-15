@@ -410,6 +410,9 @@ jobs:
       ${{ needs.get_requirements.outputs.run_smart_e2e_contracts == 'true' && github.event.pull_request.head.repo.fork != true }}
     needs:
       - get_requirements
+    permissions:
+      contents: read
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -427,13 +430,21 @@ jobs:
         id: analyzer-ref
         shell: bash
         run: echo "ref=$(<.github/actions/smart-e2e-selection/analyzer-ref.txt)" >> "$GITHUB_OUTPUT"
+      - name: Get AI Analyzer token
+        id: get-ai-analyzer-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          target-repository: MetaMask/ai-analyzer
+          permissions: |
+            contents: read
       - name: Checkout AI Analyzer
         uses: actions/checkout@v6
         with:
           repository: MetaMask/ai-analyzer
           ref: ${{ steps.analyzer-ref.outputs.ref }}
           path: .ai-analyzer-action
-          token: ${{ secrets.AI_ANALYZER_TOKEN }}
+          token: ${{ steps.get-ai-analyzer-token.outputs.token }}
       - name: Install AI Analyzer dependencies
         working-directory: .ai-analyzer-action
         run: npm ci
@@ -1466,6 +1477,7 @@ jobs:
       contents: read
       issues: write
       pull-requests: write
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
     outputs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
@@ -1504,10 +1516,10 @@ jobs:
           post-comment: true
           base-ref: ${{ github.event.pull_request.base.ref }}
           analyzer-ref: ${{ steps.analyzer-ref.outputs.ref }}
-          analyzer-token: ${{ secrets.AI_ANALYZER_TOKEN }}
           litellm-api-key: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
           langfuse-public-key: ${{ secrets.AI_ANALYZER_LANGFUSE_PUBLIC_KEY }}
           langfuse-secret-key: ${{ secrets.AI_ANALYZER_LANGFUSE_SECRET_KEY }}
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
 
   run-performance-tests-pr:
     name: 'Run Performance Tests (PR)'

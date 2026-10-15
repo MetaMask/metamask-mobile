@@ -107,6 +107,10 @@ export type PolymarketProtocolDefinition = typeof POLYMARKET_V2_PROTOCOL;
 export interface BasePolymarketPositionsProtocolDefinition {
   key: 'positions';
   contracts: PositionsProtocolContractConfig;
+  collateral: {
+    /** pUSD — the same collateral token the CTF protocol trades against. */
+    tradingToken: string;
+  };
   order: {
     domainVersion: '3';
     metadata: string;
@@ -121,6 +125,9 @@ export interface BasePolymarketPositionsProtocolDefinition {
 export const POLYMARKET_POSITIONS_PROTOCOL = {
   key: 'positions',
   contracts: MATIC_POSITIONS_PROTOCOL_CONTRACTS,
+  collateral: {
+    tradingToken: MATIC_CONTRACTS_V2.collateral,
+  },
   order: {
     domainVersion: '3',
     metadata: HASH_ZERO_BYTES32,

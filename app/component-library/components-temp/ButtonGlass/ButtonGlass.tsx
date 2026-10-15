@@ -7,46 +7,61 @@ import {
 } from '@metamask/design-system-react-native';
 
 import GlassSurface from '../GlassSurface';
+import { useTheme } from '../../../util/theme';
+
+export type ButtonGlassVariant =
+  | typeof ButtonVariant.Primary
+  | typeof ButtonVariant.Secondary
+  | typeof ButtonVariant.Tertiary;
 
 export type ButtonGlassProps = ButtonBaseProps & {
-  isGlass: boolean;
+  /** False renders the plain `Button` in the same variant. */
+  isGlass?: boolean;
+  /** Primary: tinted with its fill. Secondary: brand sheen. Tertiary: clear glass. */
+  variant?: ButtonGlassVariant;
   containerStyle?: StyleProp<ViewStyle>;
 };
 
 /**
- * A secondary button drawn as brand refresh Liquid Glass. Kept out of the
- * design-system package on purpose: without `isGlass` it is the regular
- * secondary `Button`, so callers swap it in behind their screen flag.
+ * The design-system `Button` drawn on Liquid Glass, kept out of the package
+ * until the design system takes it. Callers gate `isGlass` on their screen flag.
  */
 const ButtonGlass = ({
-  isGlass,
+  isGlass = true,
+  variant = ButtonVariant.Secondary,
   containerStyle,
   twClassName,
   ...props
 }: ButtonGlassProps) => {
+  const { colors } = useTheme();
+
   if (!isGlass) {
     return (
       <Button
         {...props}
-        variant={ButtonVariant.Secondary}
+        variant={variant}
         twClassName={twClassName}
         style={props.style ?? containerStyle}
       />
     );
   }
 
+  const isPrimary = variant === ButtonVariant.Primary;
+
   return (
     <GlassSurface
       radiusClassName="rounded-full"
       isInteractive={!props.isDisabled}
-      hasSheen
+      hasSheen={variant === ButtonVariant.Secondary}
+      tintColor={isPrimary ? colors.icon.default : undefined}
       containerStyle={containerStyle}
     >
       <Button
         {...props}
-        variant={ButtonVariant.Secondary}
+        variant={variant}
         twClassName="bg-transparent border-transparent"
-        isFullWidth
+        // Fills a sized wrapper; otherwise hugs its label, as the plain Button does.
+        isFullWidth={props.isFullWidth ?? containerStyle !== undefined}
       />
     </GlassSurface>
   );
