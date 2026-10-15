@@ -259,6 +259,7 @@ function SwapsLimitOrderActivityPage() {
                     value={
                       <TokenAmountValue
                         amount={triggerPrice}
+                        prefix={strings('bridge.limit.trigger_condition_at')}
                         token={triggerToken}
                       />
                     }

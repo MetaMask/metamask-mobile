@@ -79,6 +79,48 @@ describe('LimitOrderRow', () => {
     expect(queryByText('2.00 USDT')).not.toBeOnTheScreen();
   });
 
+  it('renders the limit price of a sell as entered when the API reports it inverted', () => {
+    // Selling BNB at 817.501762 USDT per BNB, which the API reports as
+    // 1 / 817.501762 BNB per USDT.
+    const sellOrder: LimitOrder = {
+      ...MOCK_LIMIT_OPEN_ORDER,
+      src: {
+        asset: {
+          assetId: 'eip155:56/slip44:714',
+          address: '0x0000000000000000000000000000000000000000',
+          chainId: 56,
+          symbol: 'BNB',
+          decimals: 18,
+        },
+        amount: '100000000000000000',
+      },
+      dest: {
+        asset: {
+          assetId: 'eip155:56/erc20:0x55d398326f99059ff775485246999027b3197955',
+          address: '0x55d398326f99059ff775485246999027b3197955',
+          chainId: 56,
+          symbol: 'USDT',
+          decimals: 18,
+        },
+        amount: '81750176200000000000',
+        minAmount: '81750176200000000000',
+      },
+      trigger: {
+        kind: 'ratio',
+        threshold: 'above',
+        price: '0.00122323895370393098',
+      },
+    };
+
+    const { getByText, queryByText } = renderLimitOrderRow(sellOrder);
+
+    expect(getByText('817.501762 USDT')).toBeOnTheScreen();
+    expect(
+      getByText(strings('bridge.limit.limit_price', { symbol: 'BNB' })),
+    ).toBeOnTheScreen();
+    expect(queryByText('0.00122323 BNB')).not.toBeOnTheScreen();
+  });
+
   it('renders a USD limit price for an order placed in fiat', () => {
     const fiatBuyOrder: LimitOrder = {
       ...MOCK_LIMIT_OPEN_ORDER,

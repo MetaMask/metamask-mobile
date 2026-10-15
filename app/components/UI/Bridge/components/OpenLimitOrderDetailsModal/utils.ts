@@ -1,9 +1,11 @@
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
 import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
+import { LimitOrderExecutionType } from '../../constants/limitOrders';
 import type { BridgeToken } from '../../types';
 import { formatLimitOrderFiatValue } from '../../utils/limitOrders/formatLimitOrderFiatValue';
 import { formatLimitOrderQuickPrice } from '../../utils/limitOrders/formatLimitOrderQuickPrice';
+import { getSwapsLimitOrderDefaultPriceMode } from '../../utils/limitOrders/getSwapsLimitOrderDefaultPriceMode';
 import type { TriggerPriceDisplay } from './types';
 
 /**
@@ -31,14 +33,14 @@ function getFiatTriggerPrice(
 }
 
 /**
- * Whether a `ratio` price is quoted per unit of the source token, i.e. as an
- * amount of the destination token, as a sell is. A buy quotes it the other way
- * round, per unit of the destination token.
+ * Whether a `ratio` price reads per unit of the source token, i.e. as an
+ * amount of the destination token, rather than the other way round.
  *
- * The order doesn't record which side it was placed on, but its amounts were
- * derived from the price, so the price reads the way the order's own rate
- * does: both above 1, or both below it. At parity the two sides read alike,
- * and the order is taken as the buy a pair starts on.
+ * The API reports a `ratio` as source tokens per destination token whichever
+ * side the order was placed on, so it isn't necessarily the price as entered.
+ * The order's amounts were derived from the price, so the price reads the way
+ * the order's own rate does: both above 1, or both below it. At parity both
+ * readings are alike, and the price is taken the way the API reports it.
  */
 function isRatioQuotedPerSourceToken({ src, dest, trigger }: LimitOrder) {
   const price = new BigNumber(trigger.price);
@@ -53,6 +55,15 @@ function isRatioQuotedPerSourceToken({ src, dest, trigger }: LimitOrder) {
   return (
     (price.gt(1) && destPerSource.gt(1)) || (price.lt(1) && destPerSource.lt(1))
   );
+}
+
+function invertPrice(price: string): string {
+  const value = new BigNumber(price);
+
+  return new BigNumber(1)
+    .dividedBy(value)
+    .precision(Math.max(value.sd() - 1, 1))
+    .toFixed();
 }
 
 /**
@@ -90,16 +101,26 @@ export function getTriggerPrice(
         triggerToken: destinationToken,
       };
     default: {
-      // A `ratio` price is an amount of the counter token per unit of the
-      // quoted token, e.g. 2200 USDC per ETH on both ETH to USDC and USDC to
-      // ETH orders.
-      const [quotedToken, counterToken] = isRatioQuotedPerSourceToken(order)
+      // A `ratio` price shows as an amount of the counter token per unit of
+      // the quoted token, e.g. 2200 USDC per ETH on both ETH to USDC and USDC
+      // to ETH orders. The order doesn't record which side it was placed on,
+      // so it's quoted on the side its pair starts on.
+      const isSell =
+        getSwapsLimitOrderDefaultPriceMode({
+          sourceToken,
+          destToken: destinationToken,
+        }).executionType === LimitOrderExecutionType.SELL;
+      const [quotedToken, counterToken] = isSell
         ? [sourceToken, destinationToken]
         : [destinationToken, sourceToken];
+      const price =
+        isRatioQuotedPerSourceToken(order) === isSell
+          ? trigger.price
+          : invertPrice(trigger.price);
 
       return {
         triggerPrice: strings('bridge.limit.quote_unit', {
-          amount: formatLimitOrderQuickPrice(trigger.price) ?? trigger.price,
+          amount: formatLimitOrderQuickPrice(price) ?? price,
           symbol: counterToken.symbol,
         }),
         triggerToken: quotedToken,
