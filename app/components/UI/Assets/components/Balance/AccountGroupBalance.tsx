@@ -15,6 +15,7 @@ import {
   selectWalletHomeOnboardingSkipInitialBalanceWait,
   selectWalletHomeOnboardingSteps,
 } from '../../../../../selectors/onboarding';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useWalletHomeOnboardingFundStepBalanceGate } from '../../../WalletHomeOnboardingSteps/useWalletHomeOnboardingFundStepBalanceGate';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
@@ -114,6 +115,7 @@ const AccountGroupBalance = ({
   );
   const balanceChange1d = useSelector(balanceChange1dSelector);
   const selectedChainId = useSelector(selectEvmChainId);
+  const currentCurrency = useSelector(selectCurrentCurrency);
 
   const hasBalanceFetched = useAccountGroupBalanceFetchState({
     groupBalance,
@@ -128,7 +130,7 @@ const AccountGroupBalance = ({
   );
 
   const totalBalance = groupBalance?.totalBalanceInUserCurrency ?? 0;
-  const userCurrency = groupBalance?.userCurrency || 'USD';
+  const userCurrency = groupBalance?.userCurrency || currentCurrency;
   const displayBalance = formatCurrency(totalBalance, userCurrency);
   const zeroBalance = formatCurrency(0, userCurrency);
   const skipBalanceAnimation = previousPrivacyMode.current && !privacyMode;

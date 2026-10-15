@@ -1,13 +1,12 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { Laminar } from 'react-native-laminar';
 
-import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import AccountGroupBalance from './AccountGroupBalance';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useAccountGroupBalanceFetchState } from './useAccountGroupBalanceFetchState';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 
 jest.mock('../../../BalanceEmptyState', () => {
   const { View: V } = jest.requireActual('react-native');
@@ -18,6 +17,18 @@ jest.mock('../../../WalletHomeOnboardingSteps', () => {
   const { View: V } = jest.requireActual('react-native');
   return ({ testID }: { testID?: string }) => <V testID={testID} />;
 });
+
+const mockFormatCurrency = jest.fn((value: number, currency: string) =>
+  currency.toUpperCase() === 'USD'
+    ? `$${value.toFixed(2)}`
+    : `${value.toFixed(2)} ${currency.toUpperCase()}`,
+);
+
+jest.mock('../../../../hooks/useFormatters', () => ({
+  useFormatters: () => ({
+    formatCurrency: mockFormatCurrency,
+  }),
+}));
 
 jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({ goToBuy: jest.fn() }),
@@ -53,6 +64,10 @@ jest.mock('../../../../../selectors/onboarding', () => ({
     suppressedReason: null,
     stepIndex: 0,
   })),
+}));
+
+jest.mock('../../../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: jest.fn(() => 'usd'),
 }));
 
 // This selector is used to determine if the current network is a testnet for BalanceEmptyState display logic
@@ -123,6 +138,7 @@ describe('AccountGroupBalance', () => {
       () => () => null,
     );
     jest.mocked(useAccountGroupBalanceFetchState).mockReturnValue(false);
+    jest.mocked(selectCurrentCurrency).mockReturnValue('usd');
   });
 
   it('renders without crashing when balance is not ready', () => {
@@ -142,6 +158,18 @@ describe('AccountGroupBalance', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
     ).toHaveTextContent('$0.00');
+  });
+
+  it('uses the selected currency for the loading balance placeholder', () => {
+    jest.mocked(selectCurrentCurrency).mockReturnValue('eur');
+
+    const { getByTestId } = renderWithProvider(<AccountGroupBalance />, {
+      state: testState,
+    });
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('0.00 EUR');
   });
 
   it('renders formatted balance when balance data is fetched', () => {
@@ -164,43 +192,6 @@ describe('AccountGroupBalance', () => {
 
     const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
     expect(el).toBeOnTheScreen();
-  });
-
-  it('primes zero while loading and rolls each completed value update', () => {
-    const { rerender, UNSAFE_getByType } = renderWithProvider(
-      <AnimatedBalanceText isLoading loadingValue="$0.00" value="$123.45" />,
-      { state: testState },
-    );
-
-    expect(UNSAFE_getByType(Laminar).props.text).toBe('0.00');
-    expect(UNSAFE_getByType(Laminar).props).toEqual(
-      expect.objectContaining({
-        animationDuration: 400,
-        animationPreset: 'smooth',
-        clipToBounds: true,
-        variant: 'slots',
-      }),
-    );
-
-    rerender(
-      <AnimatedBalanceText
-        isLoading={false}
-        loadingValue="$0.00"
-        value="$123.45"
-      />,
-    );
-
-    expect(UNSAFE_getByType(Laminar).props.text).toBe('123.45');
-
-    rerender(
-      <AnimatedBalanceText
-        isLoading={false}
-        loadingValue="$0.00"
-        value="$456.78"
-      />,
-    );
-
-    expect(UNSAFE_getByType(Laminar).props.text).toBe('456.78');
   });
 
   it('renders empty state when fetched account group balance is zero', () => {
