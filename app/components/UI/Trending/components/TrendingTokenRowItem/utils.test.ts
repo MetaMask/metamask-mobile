@@ -473,6 +473,24 @@ describe('formatSearchStats', () => {
   it('omits the symbol when it is missing', () => {
     expect(formatSearchStats(undefined, 75641301011.76)).toBe('$76B cap');
   });
+
+  it('formats a zero market cap as a dash', () => {
+    const result = formatSearchStats('USDC', 0);
+
+    expect(result).toBe('USDC · - cap');
+  });
+
+  it('formats the market cap in the given currency', () => {
+    const result = formatSearchStats('USDC', 13000000000, 'EUR');
+
+    expect(result).toBe('USDC · €13B cap');
+  });
+
+  it('omits an empty symbol', () => {
+    const result = formatSearchStats('', 75641301011.76);
+
+    expect(result).toBe('$76B cap');
+  });
 });
 
 describe('getCaipChainIdFromAssetId', () => {
