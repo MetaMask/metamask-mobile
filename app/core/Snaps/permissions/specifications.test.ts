@@ -17,14 +17,6 @@ jest.mock('@metamask/snaps-rpc-methods', () => ({
   buildSnapRestrictedMethodSpecifications: jest.fn(() => ({})),
 }));
 
-jest.mock('../../../store', () => ({
-  store: { getState: () => ({}) },
-}));
-
-jest.mock('../../../selectors/assets/assets-migration', () => ({
-  getCurrencyRateControllerCurrentCurrency: jest.fn(() => 'eur'),
-}));
-
 const MOCK_SNAP_ID = 'npm:@metamask/test-snap' as SnapId;
 const MOCK_MESSAGE: SnapMessage = { method: 'keyring_createAccount' };
 
@@ -147,6 +139,16 @@ describe('getSnapPermissionSpecifications', () => {
             Extract<
               SnapPermissionSpecificationsActions,
               { type: 'PreferencesController:getState' }
+            >['handler']
+          >,
+      );
+      messenger.registerActionHandler(
+        'AssetsController:getState',
+        () =>
+          ({ selectedCurrency: 'eur' }) as ReturnType<
+            Extract<
+              SnapPermissionSpecificationsActions,
+              { type: 'AssetsController:getState' }
             >['handler']
           >,
       );

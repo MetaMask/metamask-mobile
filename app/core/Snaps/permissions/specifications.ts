@@ -29,8 +29,7 @@ import { HasPermission } from '@metamask/permission-controller';
 import { hmacSha512 } from '@metamask/native-utils';
 import { pbkdf2 } from '../../Encryptor';
 import I18n from '../../../../locales/i18n';
-import { store } from '../../../store';
-import { getCurrencyRateControllerCurrentCurrency } from '../../../selectors/assets/assets-migration';
+import { AssetsControllerGetStateAction } from '@metamask/assets-controller';
 import { ExcludedSnapEndowments, ExcludedSnapPermissions } from './permissions';
 import { SnapMessage } from '@metamask/eth-snap-keyring';
 import { SnapId } from '@metamask/snaps-sdk';
@@ -38,6 +37,7 @@ import { SnapAccountServiceHandleKeyringSnapMessageAction } from '@metamask/snap
 
 export type SnapPermissionSpecificationsActions =
   | ApprovalControllerAddRequestAction
+  | AssetsControllerGetStateAction
   | SnapControllerClearSnapStateAction
   | SnapInterfaceControllerCreateInterfaceAction
   | SnapInterfaceControllerGetInterfaceAction
@@ -99,8 +99,8 @@ export const getSnapPermissionSpecifications = (
           isMultiAccountBalancesEnabled,
           showTestNetworks,
         } = messenger.call('PreferencesController:getState');
-        const currentCurrency = getCurrencyRateControllerCurrentCurrency(
-          store.getState(),
+        const { selectedCurrency: currentCurrency } = messenger.call(
+          'AssetsController:getState',
         );
 
         const locale = I18n.locale;
