@@ -260,6 +260,7 @@ function SwapsLimitOrderActivityPage() {
                       <TokenAmountValue
                         amount={triggerPrice}
                         token={triggerToken}
+                        fontWeight={FontWeight.Medium}
                       />
                     }
                     testID={
