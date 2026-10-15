@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -26,14 +26,23 @@ export const evaluateIsSocialTopTradersEligible = (
 export const useIsSocialTopTradersEligible = (): boolean => {
   const { profile } = useMyProfile();
   const walletId = useSelector(selectSelectedAccountWalletId);
+  const profileRef = useRef(profile);
+  const walletIdRef = useRef(walletId);
+  profileRef.current = profile;
+  walletIdRef.current = walletId;
   const [isEligible, setIsEligible] = useState(() =>
     evaluateIsSocialTopTradersEligible(profile, walletId),
   );
 
   useFocusEffect(
     useCallback(() => {
-      setIsEligible(evaluateIsSocialTopTradersEligible(profile, walletId));
-    }, [profile, walletId]),
+      setIsEligible(
+        evaluateIsSocialTopTradersEligible(
+          profileRef.current,
+          walletIdRef.current,
+        ),
+      );
+    }, []),
   );
 
   return isEligible;
