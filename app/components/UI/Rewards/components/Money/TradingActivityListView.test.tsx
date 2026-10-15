@@ -21,6 +21,16 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../../Views/ErrorBoundary', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ children }: { children: React.ReactNode }) => (
+      <View>{children}</View>
+    ),
+  };
+});
+
 interface Row {
   id: string;
   label: string;
@@ -190,16 +200,13 @@ describe('TradingActivityListView', () => {
     expect(retry).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the error banner above cached rows after a failed refetch', () => {
-    const retry = jest.fn();
-    const { getByText } = renderView(listState({ error: 'failed', retry }));
+  it('keeps cached rows without an error banner after a failed refetch', () => {
+    const { getByText, queryByText } = renderView(
+      listState({ error: 'failed' }),
+    );
 
     expect(getByText('First row')).toBeOnTheScreen();
-    expect(getByText('Error loading your transactions')).toBeOnTheScreen();
-
-    fireEvent.press(getByText('Retry'));
-
-    expect(retry).toHaveBeenCalledTimes(1);
+    expect(queryByText('Error loading your transactions')).toBeNull();
   });
 
   it('navigates back from the header', () => {

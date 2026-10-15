@@ -1,4 +1,6 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
+import { captureException } from '@sentry/react-native';
+import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import Engine from '../../../../core/Engine';
@@ -21,6 +23,10 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
+}));
+
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
 }));
 
 const PROFILE_A = 'profile-a';
@@ -124,5 +130,85 @@ describe('useReferralFunnel', () => {
     await flushPromises();
 
     expect(mockEngineCall).toHaveBeenCalledTimes(2);
+  });
+
+  it('refetches once after Retry-After and does not schedule another', async () => {
+    jest.useFakeTimers({ doNotFake: ['nextTick', 'queueMicrotask'] });
+    jest
+      .spyOn(globalThis.crypto, 'getRandomValues')
+      .mockImplementation((array) => {
+        if (array instanceof Uint32Array) {
+          array[0] = 0;
+        }
+        return array;
+      });
+    try {
+      mockEngineCall.mockRejectedValue(
+        new RewardsMoneyHttpError('busy', 503, undefined, 2),
+      );
+
+      renderHook(() => useReferralFunnel(PROFILE_A));
+      await flushPromises();
+      expect(mockEngineCall).toHaveBeenCalledTimes(1);
+
+      mockEngineCall.mockResolvedValue(mockFunnel);
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
+      });
+      await flushPromises();
+
+      expect(mockEngineCall).toHaveBeenCalledTimes(2);
+      expect(mockEngineCall).toHaveBeenLastCalledWith(
+        'RewardsMoneyController:getReferralFunnel',
+        { forceFresh: true },
+      );
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
+      });
+      await flushPromises();
+      expect(mockEngineCall).toHaveBeenCalledTimes(2);
+      expect(captureException).not.toHaveBeenCalled();
+    } finally {
+      jest.restoreAllMocks();
+      jest.useRealTimers();
+    }
+  });
+
+  it('reports a short busy read only when the refetch fails', async () => {
+    jest.useFakeTimers({ doNotFake: ['nextTick', 'queueMicrotask'] });
+    jest
+      .spyOn(globalThis.crypto, 'getRandomValues')
+      .mockImplementation((array) => {
+        if (array instanceof Uint32Array) {
+          array[0] = 0;
+        }
+        return array;
+      });
+    try {
+      const busy = new RewardsMoneyHttpError('busy', 503, undefined, 2);
+      mockEngineCall.mockRejectedValue(busy);
+
+      renderHook(() => useReferralFunnel(PROFILE_A));
+      await flushPromises();
+
+      expect(captureException).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
+      });
+      await flushPromises();
+
+      expect(captureException).toHaveBeenCalledTimes(1);
+      expect(captureException).toHaveBeenCalledWith(busy, {
+        tags: {
+          feature: 'rewards-money',
+          context: 'referralFunnel.fetch_failed',
+        },
+      });
+    } finally {
+      jest.restoreAllMocks();
+      jest.useRealTimers();
+    }
   });
 });

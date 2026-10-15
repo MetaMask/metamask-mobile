@@ -88,15 +88,17 @@ function deriveFunnelSection(
   entry: ReferralFunnelEntry | undefined,
 ): FunnelSectionState {
   const data = entry?.data;
-  const error = enabled && Boolean(entry?.error);
+  const failed = enabled && Boolean(entry?.error);
   const loading = enabled && !data && (!entry || Boolean(entry.loading));
+  // A failed refresh keeps the last funnel. The banner is only for a failure
+  // that left nothing to show.
+  const error = failed && !data;
   return {
     data,
     loading,
     refreshing: Boolean(entry?.loading),
     error,
-    // Hidden only when the request failed with nothing cached to show.
-    show: enabled && !(error && !data),
+    show: enabled && !error,
   };
 }
 
@@ -114,13 +116,14 @@ function deriveActivitySection<T>(
 ): ActivitySectionState<T> {
   const items = (list.items ?? []).slice(0, PERFORMANCE_PREVIEW_COUNT);
   const loading = enabled && list.isLoading && !list.items;
-  const error = enabled && Boolean(list.error);
+  const failed = enabled && Boolean(list.error);
+  // Cached rows stay without a banner. The banner is the empty failure.
+  const error = failed && items.length === 0;
   return {
     items,
     loading,
     error,
-    // Hidden only when the request failed with nothing cached to show.
-    show: enabled && !(error && items.length === 0 && !loading),
+    show: enabled && !(error && !loading),
     listEmpty: !loading && items.length === 0,
   };
 }
@@ -396,11 +399,14 @@ function ActivitySection<T extends { id: string }>({
 interface PerformanceTabProps {
   profileId: string;
   persona: MoneyDashboardPersona;
+  /** False while another Money tab is selected. The panel stays mounted. */
+  active: boolean;
 }
 
 const PerformanceTab: React.FC<PerformanceTabProps> = ({
   profileId,
   persona,
+  active,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const isReferrer = persona === 'referrer';
@@ -413,12 +419,14 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
     selectReferralFunnelEntry(state, profileId),
   );
   const { fetchReferralFunnel } = useReferralFunnel(profileId, {
-    enabled: isReferrer,
+    enabled: active && isReferrer,
   });
   const commissionsList = useCommissions(profileId, {
-    enabled: showCommissions,
+    enabled: active && showCommissions,
   });
-  const rebatesList = useCashbackLedger(profileId, { enabled: isReferee });
+  const rebatesList = useCashbackLedger(profileId, {
+    enabled: active && isReferee,
+  });
   const openTradeActions = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,

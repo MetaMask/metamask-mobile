@@ -201,6 +201,9 @@ const rewardsMoneySlice = createSlice({
         return {
           referralMe: settleEntries(persisted.referralMe),
           earningsSummary: settleEntries(persisted.earningsSummary),
+          referralFunnel: settleEntries(persisted.referralFunnel),
+          commissions: persisted.commissions ?? {},
+          cashbackLedger: persisted.cashbackLedger ?? {},
         };
       },
     );

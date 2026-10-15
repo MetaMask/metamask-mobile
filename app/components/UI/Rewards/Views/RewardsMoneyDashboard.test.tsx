@@ -87,6 +87,8 @@ jest.mock('../components/Campaigns/CampaignsPreview', () => {
   };
 });
 
+const mockPerformanceTab = jest.fn();
+
 jest.mock('../components/Money/Tabs/PerformanceTab', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -94,7 +96,10 @@ jest.mock('../components/Money/Tabs/PerformanceTab', () => {
     PERFORMANCE_TAB_TEST_IDS: {
       CONTAINER: 'rewards-money-performance-tab',
     },
-    default: () => <View testID="rewards-money-performance-tab" />,
+    default: (props: { active: boolean }) => {
+      mockPerformanceTab(props);
+      return <View testID="rewards-money-performance-tab" />;
+    },
   };
 });
 
@@ -599,6 +604,9 @@ describe('RewardsMoneyDashboard', () => {
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY),
     ).toBeOnTheScreen();
     expect(getByTestId('rewards-money-performance-tab')).toBeOnTheScreen();
+    expect(mockPerformanceTab).toHaveBeenLastCalledWith(
+      expect.objectContaining({ active: true }),
+    );
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
     ).not.toBeOnTheScreen();
@@ -628,6 +636,9 @@ describe('RewardsMoneyDashboard', () => {
         includeHiddenElements: true,
       }),
     ).toBeTruthy();
+    expect(mockPerformanceTab).toHaveBeenLastCalledWith(
+      expect.objectContaining({ active: false }),
+    );
     expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
     ).toBeOnTheScreen();
