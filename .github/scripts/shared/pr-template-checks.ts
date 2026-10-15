@@ -42,9 +42,9 @@ type Validator = (section: string, ctx: ValidatorContext) => ValidatorResult;
 
 const TEMPLATE_PATH = path.join(__dirname, '../../pull-request-template.md');
 
-// Read once against the base-branch template (the workflow uses
-// pull_request_target without a ref override, so the checkout always reflects
-// the base branch, not the PR head — see check-template-and-add-labels.yml).
+// Read once against the base-branch template (the workflow checks out
+// `pull_request.base.sha`, not the PR head — see
+// check-template-and-add-labels.yml).
 const templateTokens = tokenize(fs.readFileSync(TEMPLATE_PATH, 'utf8'));
 
 // Every level-2 heading in the template (including the reviewer checklist) —
