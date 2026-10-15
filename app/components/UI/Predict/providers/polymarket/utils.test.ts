@@ -26,6 +26,7 @@ import {
   buildPolyHmacSignature,
   calculateConservativeBuyMarketFee,
   calculateConservativeSellMarketFee,
+  calculateFees,
   clearClobMarketInfoCache,
   clearClobMarketInfoSessionState,
   createApiKey,
@@ -4095,6 +4096,21 @@ describe('parsePolymarketMarket market version', () => {
     ]);
   });
 
+  it('uses native-array positionIds for outcome token ids on v2 markets', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version: 'v2',
+        positionIds: ['pos-yes', 'pos-no'],
+      }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'pos-yes',
+      'pos-no',
+    ]);
+  });
+
   it('yields no outcome token ids when a v2 market has no positionIds', () => {
     const parsed = parsePolymarketMarket(
       createVersionedMarket({ version: 'v2' }),
@@ -4123,5 +4139,29 @@ describe('parsePolymarketMarket market version', () => {
       'ctf-yes',
       'ctf-no',
     ]);
+  });
+});
+
+describe('calculateFees', () => {
+  it('degrades to standard fees when the waiver lookup fails', async () => {
+    mockFetch.mockRejectedValue(new Error('gamma unavailable'));
+
+    const fees = await calculateFees({
+      feeCollection: {
+        enabled: true,
+        collector: '0x9cNcwJegqX3hyKLM8jb9vpxUtqMVBetNhhF97k5Xy',
+        metamaskFee: 0.01,
+        providerFee: 0.02,
+        waiveList: ['some-waived-slug'],
+        executors: [],
+        permit2Enabled: false,
+      },
+      marketId: 'some-market',
+      userBetAmount: 10,
+    });
+
+    expect(fees.metamaskFee).toBeCloseTo(0.1);
+    expect(fees.providerFee).toBeCloseTo(0.2);
+    expect(fees.totalFee).toBeCloseTo(0.3);
   });
 });
