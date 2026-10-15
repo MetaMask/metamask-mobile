@@ -190,6 +190,38 @@ describe('useXAuth', () => {
       expect(result.current.isConnecting).toBe(false);
       expect(result.current.error).toBeUndefined();
     });
+
+    it('records the XAuthError and clears isConnecting when disconnectXAccount rejects', async () => {
+      const failure = new XAuthError(
+        XAuthErrorType.BackendError,
+        'Failed to disconnect the X account',
+      );
+      mockDisconnectXAccount.mockRejectedValue(failure);
+
+      const { result } = renderHook(() => useXAuth());
+
+      await act(async () => {
+        await result.current.disconnect();
+      });
+
+      expect(result.current.error).toBe(failure);
+      expect(result.current.isConnecting).toBe(false);
+    });
+
+    it('wraps unknown disconnectXAccount errors in a network-failure XAuthError', async () => {
+      mockDisconnectXAccount.mockRejectedValue(new Error('boom'));
+
+      const { result } = renderHook(() => useXAuth());
+
+      await act(async () => {
+        await result.current.disconnect();
+      });
+
+      expect(result.current.error).toBeInstanceOf(XAuthError);
+      expect(result.current.error?.type).toBe(XAuthErrorType.NetworkFailure);
+      expect(result.current.error?.message).toBe('boom');
+      expect(result.current.isConnecting).toBe(false);
+    });
   });
 
   describe('refresh', () => {
@@ -206,6 +238,38 @@ describe('useXAuth', () => {
       expect(mockFetchAndUpdateXAccount).toHaveBeenCalledWith();
       expect(result.current.isConnecting).toBe(false);
       expect(result.current.error).toBeUndefined();
+    });
+
+    it('records the XAuthError and clears isConnecting when fetchAndUpdateXAccount rejects', async () => {
+      const failure = new XAuthError(
+        XAuthErrorType.NetworkFailure,
+        'Failed to fetch the X profile',
+      );
+      mockFetchAndUpdateXAccount.mockRejectedValue(failure);
+
+      const { result } = renderHook(() => useXAuth());
+
+      await act(async () => {
+        await result.current.refresh();
+      });
+
+      expect(result.current.error).toBe(failure);
+      expect(result.current.isConnecting).toBe(false);
+    });
+
+    it('wraps unknown fetchAndUpdateXAccount errors in a network-failure XAuthError', async () => {
+      mockFetchAndUpdateXAccount.mockRejectedValue(new Error('boom'));
+
+      const { result } = renderHook(() => useXAuth());
+
+      await act(async () => {
+        await result.current.refresh();
+      });
+
+      expect(result.current.error).toBeInstanceOf(XAuthError);
+      expect(result.current.error?.type).toBe(XAuthErrorType.NetworkFailure);
+      expect(result.current.error?.message).toBe('boom');
+      expect(result.current.isConnecting).toBe(false);
     });
   });
 });
