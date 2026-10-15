@@ -9,7 +9,9 @@ import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock'
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(AnalyticsEventBuilder.createEventBuilder);
+const mockCreateEventBuilder = jest.fn(
+  AnalyticsEventBuilder.createEventBuilder,
+);
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
@@ -143,7 +145,9 @@ describe('SecurityBadgeBottomSheet', () => {
   });
 
   describe('tdp_version property', () => {
-    const builtEvents = (event: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents]) =>
+    const builtEvents = (
+      event: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents],
+    ) =>
       mockTrackEvent.mock.calls
         .map(([built]) => built)
         .filter((built) => built?.name === event.category);
@@ -183,7 +187,9 @@ describe('SecurityBadgeBottomSheet', () => {
         builtEvents(
           MetaMetricsEvents.SECURITY_TRUST_BOTTOM_SHEET_ACTION_TAKEN,
         )[0].properties,
-      ).toEqual(expect.objectContaining({ action: 'proceed', tdp_version: 'v3' }));
+      ).toEqual(
+        expect.objectContaining({ action: 'proceed', tdp_version: 'v3' }),
+      );
     });
   });
 
