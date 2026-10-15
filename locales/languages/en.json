@@ -9135,8 +9135,8 @@
         "cta": "Verifying"
       },
       "finish_verification": {
-        "title": "Finish verifying your identity",
-        "description": "We need a little more information. It only takes a minute.",
+        "title": "We need more info",
+        "description": "Provide more details to finish verifying your identity. It only takes a minute.",
         "cta": "Continue"
       },
       "kyc_decision": {
