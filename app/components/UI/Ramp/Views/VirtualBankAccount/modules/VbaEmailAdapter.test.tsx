@@ -302,4 +302,45 @@ describe('VbaEmailAdapter', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockKycController.startSession).not.toHaveBeenCalled();
   });
+
+  it('shows a spinner and leaves the step from the loading screen', async () => {
+    mockKycController.getSessionStatusForVendor.mockReturnValue(
+      new Promise(() => undefined),
+    );
+
+    const screen = renderWithProvider(<VbaEmailAdapter />);
+
+    expect(
+      screen.getByTestId(VbaEmailAdapterSelectorsIDs.SPINNER),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+    ).toBeNull();
+
+    fireEvent.press(
+      screen.getByTestId(VbaEmailAdapterSelectorsIDs.BACK_BUTTON),
+    );
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the step from the error screen', async () => {
+    mockKycController.startSession.mockRejectedValue(
+      new Error('Session creation failed.'),
+    );
+
+    const screen = renderWithProvider(<VbaEmailAdapter />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+      ).toBeOnTheScreen();
+    });
+
+    fireEvent.press(
+      screen.getByTestId(VbaEmailAdapterSelectorsIDs.BACK_BUTTON),
+    );
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
 });
