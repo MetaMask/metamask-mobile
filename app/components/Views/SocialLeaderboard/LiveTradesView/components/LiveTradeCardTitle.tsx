@@ -12,7 +12,7 @@ import { strings } from '../../../../../../locales/i18n';
 import type {
   SocialV1PerpDirection,
   SocialV1SpotSide,
-} from '../../SocialV1View/feed/types';
+} from '../../../../UI/SocialFeed/types';
 
 export interface LiveTradeCardTitleProps {
   symbol: string;

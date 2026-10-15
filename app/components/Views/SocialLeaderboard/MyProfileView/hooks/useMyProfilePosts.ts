@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
-import type { TraderFeedRow } from '../../FeedView/hooks/useTraderFeed';
-import type { SocialFeedSource } from '../../SocialFeed/socialFeedSource';
-import { useSocialFeed } from '../../SocialFeed/useSocialFeed';
-import type { SocialV1FeedPost } from '../../SocialV1View/feed/types';
+import type {
+  TraderFeedRow,
+  SocialV1FeedPost,
+} from '../../../../UI/SocialFeed/types';
+import type { SocialFeedSource } from '../../../../UI/SocialFeed/data/socialFeedSource';
+import { useSocialFeed } from '../../../../UI/SocialFeed/data/useSocialFeed';
 
 export interface UseMyProfilePostsResult {
   posts: SocialV1FeedPost[];

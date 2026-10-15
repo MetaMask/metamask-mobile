@@ -1,9 +1,10 @@
-import type { PositionTokenAvatarData } from '../components/PositionTokenAvatar';
+import type { Position } from '@metamask/social-controllers';
+import type { PositionTokenAvatarData } from '../../../UI/SocialFeed/components/PositionTokenAvatar';
 import type {
   SocialV1FeedAuthor,
   SocialV1PerpDirection,
   SocialV1SpotSide,
-} from '../SocialV1View/feed/types';
+} from '../../../UI/SocialFeed/types';
 
 export interface LiveTradeRowModel {
   id: string;
@@ -28,4 +29,6 @@ export interface LiveTradeRowModel {
    * omitted it (always for perps). Used by the market-cap filter.
    */
   marketCapUsd: number | null;
+  /** Handed to the position details sheet so it opens without a fetch. */
+  position?: Position;
 }

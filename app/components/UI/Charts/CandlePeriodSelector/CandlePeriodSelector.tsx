@@ -22,10 +22,11 @@ export interface CandlePeriodOption {
 }
 
 export const DEFAULT_CANDLE_PERIODS = [
-  { label: '1min', value: CandlePeriod.OneMinute },
-  { label: '3min', value: CandlePeriod.ThreeMinutes },
-  { label: '5min', value: CandlePeriod.FiveMinutes },
-  { label: '15min', value: CandlePeriod.FifteenMinutes },
+  { label: '1m', value: CandlePeriod.OneMinute },
+  { label: '5m', value: CandlePeriod.FiveMinutes },
+  { label: '15m', value: CandlePeriod.FifteenMinutes },
+  { label: '1h', value: CandlePeriod.OneHour },
+  { label: '1d', value: CandlePeriod.OneDay },
 ] as const satisfies readonly CandlePeriodOption[];
 
 /**
@@ -134,7 +135,22 @@ const CandlePeriodSelector: React.FC<CandlePeriodSelectorProps> = ({
           ? `min-w-0 flex-1 ${periodButtonTwClassName ?? ''}`.trim()
           : periodButtonTwClassName
       }
-      textProps={textVariant ? { variant: textVariant } : undefined}
+      textProps={
+        fillWidth || textVariant
+          ? {
+              ...(textVariant ? { variant: textVariant } : {}),
+              // Equal-width chips clip longer labels (`15min` → `15mi`).
+              // Scale the label down instead of cutting the unit off.
+              ...(fillWidth
+                ? {
+                    adjustsFontSizeToFit: true,
+                    minimumFontScale: 0.7,
+                    numberOfLines: 1,
+                  }
+                : {}),
+            }
+          : undefined
+      }
       testID={
         testID
           ? getCandlePeriodSelectorSelectors.periodButton(testID, period.value)

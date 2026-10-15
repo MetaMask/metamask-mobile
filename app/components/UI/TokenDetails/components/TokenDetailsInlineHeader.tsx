@@ -1,6 +1,8 @@
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { Hex } from '@metamask/utils';
+import { AnimationDuration } from '@metamask/design-tokens';
 import React, { useMemo, type ReactNode } from 'react';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import {
   BadgeNetwork,
   BadgeWrapper,
@@ -40,6 +42,8 @@ export const TokenDetailsInlineHeader = ({
   onSharePress,
   starButton,
   onCopyAddress,
+  titleEndAccessory,
+  description,
 }: {
   token: TokenDetailsRouteParams;
   securityData: TokenSecurityData | null | undefined;
@@ -49,6 +53,12 @@ export const TokenDetailsInlineHeader = ({
   /** Self-contained watchlist star button ReactNode (e.g. WatchlistStarButton). */
   starButton?: ReactNode;
   onCopyAddress?: () => void;
+  titleEndAccessory?: ReactNode;
+  /**
+   * Replaces the contract-address row. The meme token page passes the live
+   * price here once the page has scrolled.
+   */
+  description?: ReactNode;
 }) => {
   const { isStockToken } = useRWAToken();
   const { securityConfig, handleSecurityBadgePress } =
@@ -70,7 +80,7 @@ export const TokenDetailsInlineHeader = ({
     ? NetworkBadgeSource(token.chainId as Hex)
     : undefined;
 
-  const titleEndAccessory = useMemo(() => {
+  const defaultTitleEndAccessory = useMemo(() => {
     const verifiedBadgeConfig =
       securityData?.resultType === 'Verified'
         ? securityConfig.badge
@@ -188,6 +198,23 @@ export const TokenDetailsInlineHeader = ({
     );
   }, [contractAddress, handleCopyContractAddress]);
 
+  const headerDescription = useMemo(() => {
+    const content = description ?? inlineDescription;
+    if (!content) {
+      return undefined;
+    }
+
+    return (
+      <Animated.View
+        key={description ? 'live-price' : 'contract-address'}
+        entering={FadeIn.duration(AnimationDuration.Fast)}
+        exiting={FadeOut.duration(AnimationDuration.Fast)}
+      >
+        {content}
+      </Animated.View>
+    );
+  }, [description, inlineDescription]);
+
   return (
     <HeaderSubpage
       includesTopInset
@@ -215,8 +242,8 @@ export const TokenDetailsInlineHeader = ({
         </BadgeWrapper>
       }
       title={token.ticker || token.symbol}
-      titleEndAccessory={titleEndAccessory}
-      description={inlineDescription}
+      titleEndAccessory={titleEndAccessory ?? defaultTitleEndAccessory}
+      description={headerDescription}
     />
   );
 };

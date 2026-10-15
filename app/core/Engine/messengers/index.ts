@@ -61,6 +61,7 @@ import {
 } from './predict-portfolio-service-messenger';
 import { getRecurringOrdersDataServiceMessenger } from './recurring-orders-data-service-messenger';
 import { getLimitOrdersDataServiceMessenger } from './limit-orders-data-service-messenger';
+import { getSentinelFeeTokensDataServiceMessenger } from './sentinel-fee-tokens-data-service-messenger';
 import {
   getPredictOrderServiceInitMessenger,
   getPredictOrderServiceMessenger,
@@ -159,6 +160,8 @@ import {
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 import { getSocialServiceMessenger } from './social-service-messenger';
 import { getSocialControllerMessenger } from './social-controller-messenger';
+import { getProfileServiceMessenger } from './profile-service-messenger';
+import { getProfileControllerMessenger } from './profile-controller-messenger';
 import { getAuthenticatedUserStorageServiceMessenger } from './authenticated-user-storage-service-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
 import { getUiSlotsControllerMessenger } from './ui-slots-controller-messenger';
@@ -173,10 +176,7 @@ import {
   getChompApiServiceMessenger,
   getChompApiServiceInitMessenger,
 } from './chomp-api-service-messenger';
-import {
-  getMoneyAccountUpgradeControllerMessenger,
-  getMoneyAccountUpgradeControllerInitMessenger,
-} from './money-account-upgrade-controller-messenger';
+import { getMoneyAccountUpgradeControllerMessenger } from './money-account-upgrade-controller-messenger';
 
 /**
  * The messenger factories for the messenger clients that have been modularized.
@@ -396,6 +396,10 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getLimitOrdersDataServiceMessenger,
     getInitMessenger: noop,
   },
+  SentinelFeeTokensDataService: {
+    getMessenger: getSentinelFeeTokensDataServiceMessenger,
+    getInitMessenger: noop,
+  },
   BridgeController: {
     getMessenger: getBridgeControllerMessenger,
     getInitMessenger: getBridgeControllerInitMessenger,
@@ -516,6 +520,14 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getSocialControllerMessenger,
     getInitMessenger: noop,
   },
+  ProfileService: {
+    getMessenger: getProfileServiceMessenger,
+    getInitMessenger: noop,
+  },
+  ProfileController: {
+    getMessenger: getProfileControllerMessenger,
+    getInitMessenger: noop,
+  },
   AuthenticatedUserStorageService: {
     getMessenger: getAuthenticatedUserStorageServiceMessenger,
     getInitMessenger: noop,
@@ -562,6 +574,6 @@ export const MESSENGER_FACTORIES = {
   },
   MoneyAccountUpgradeController: {
     getMessenger: getMoneyAccountUpgradeControllerMessenger,
-    getInitMessenger: getMoneyAccountUpgradeControllerInitMessenger,
+    getInitMessenger: noop,
   },
 } as const;

@@ -1,5 +1,6 @@
 export const SwapsLimitOrderActivityPageSelectorsIDs = {
   SCREEN: 'swaps-limit-order-activity-page',
+  AMOUNT_DIVIDER: 'swaps-limit-order-activity-page-amount-divider',
   BACK_BUTTON: 'swaps-limit-order-activity-page-back-button',
   STATUS_ROW: 'swaps-limit-order-activity-page-status-row',
   DATE_CREATED_ROW: 'swaps-limit-order-activity-page-date-created-row',
@@ -10,4 +11,6 @@ export const SwapsLimitOrderActivityPageSelectorsIDs = {
   NETWORK_ROW: 'swaps-limit-order-activity-page-network-row',
   TRANSACTION_ID_ROW: 'swaps-limit-order-activity-page-transaction-id-row',
   FEES_AND_TOTAL: 'swaps-limit-order-activity-page-fees-and-total',
+  NETWORK_FEE_ROW: 'swaps-limit-order-activity-page-network-fee-row',
+  TOTAL_ROW: 'swaps-limit-order-activity-page-total-row',
 } as const;

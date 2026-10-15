@@ -6,6 +6,8 @@ import {
   getSearchQueryLength,
   getTotalSectionResultCount,
   trackExplorePredictTrendingAssetViewed,
+  trackExploreSearchAbandoned,
+  trackExploreSearchEvent,
   trackExploreSearchOpened,
   trackExploreSectionSeeAll,
   useInstrumentedSearchEffect,
@@ -295,6 +297,148 @@ describe('Explore search analytics', () => {
       trackExploreSearchOpened('explore');
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('trackExploreSearchAbandoned', () => {
+    const lastEventProperties = () =>
+      mockTrackEvent.mock.calls[mockTrackEvent.mock.calls.length - 1][0]
+        .properties;
+
+    it('fires abandoned with the session entry point and last settled search', () => {
+      trackExploreSearchOpened('home');
+      trackExploreSearchEvent({
+        interaction_type: 'searched',
+        search_query: 'eth',
+        tab_name: 'all',
+        result_count: 12,
+      });
+      mockTrackEvent.mockClear();
+
+      trackExploreSearchAbandoned('cancel', 'eth');
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent.mock.calls[0][0].name).toBe(
+        MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
+      );
+      expect(lastEventProperties()).toEqual({
+        interaction_type: 'abandoned',
+        search_query: 'eth',
+        query_length: 3,
+        abandon_reason: 'cancel',
+        entry_point: 'home',
+        tab_name: 'all',
+        result_count: 12,
+      });
+    });
+
+    it('redacts a clipboard query but keeps its length and result count', () => {
+      trackExploreSearchOpened('home');
+      trackExploreSearchEvent({
+        interaction_type: 'searched',
+        search_query: '',
+        tab_name: 'all',
+        result_count: 4,
+      });
+      mockTrackEvent.mockClear();
+
+      trackExploreSearchAbandoned('back', 'clipboard-secret', true);
+
+      expect(lastEventProperties()).toEqual({
+        interaction_type: 'abandoned',
+        search_query: '',
+        query_length: 16,
+        abandon_reason: 'back',
+        entry_point: 'home',
+        tab_name: 'all',
+        result_count: 4,
+      });
+    });
+
+    it('fires with an empty query when the user leaves without searching', () => {
+      trackExploreSearchOpened('explore');
+      mockTrackEvent.mockClear();
+
+      trackExploreSearchAbandoned('back', '');
+
+      expect(lastEventProperties()).toEqual({
+        interaction_type: 'abandoned',
+        search_query: '',
+        query_length: 0,
+        abandon_reason: 'back',
+        entry_point: 'explore',
+      });
+    });
+
+    it('omits result_count when the query changed after the last settled search', () => {
+      trackExploreSearchOpened('home');
+      trackExploreSearchEvent({
+        interaction_type: 'searched',
+        search_query: 'eth',
+        tab_name: 'all',
+        result_count: 12,
+      });
+
+      trackExploreSearchAbandoned('navigate_away', 'ethe');
+
+      expect(lastEventProperties()).not.toHaveProperty('result_count');
+      expect(lastEventProperties()).toMatchObject({ query_length: 4 });
+    });
+
+    it('uses the tab from the last tab switch', () => {
+      trackExploreSearchOpened('home');
+      trackExploreSearchEvent({
+        interaction_type: 'tab_switched',
+        search_query: 'eth',
+        tab_name: 'perps',
+        previous_tab: 'all',
+      });
+
+      trackExploreSearchAbandoned('back', 'eth');
+
+      expect(lastEventProperties()).toMatchObject({ tab_name: 'perps' });
+    });
+
+    it.each([
+      ['a row', undefined],
+      ['the footer', 'search_footer' as const],
+    ])('does not fire after a result click on %s', (_label, sectionName) => {
+      trackExploreSearchOpened('home');
+      trackExploreSearchEvent({
+        interaction_type: 'result_clicked',
+        search_query: 'eth',
+        tab_name: 'all',
+        ...(sectionName ? { section_name: sectionName } : {}),
+      });
+      mockTrackEvent.mockClear();
+
+      trackExploreSearchAbandoned('back', 'eth');
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('fires once per session', () => {
+      trackExploreSearchOpened('home');
+      mockTrackEvent.mockClear();
+
+      trackExploreSearchAbandoned('cancel', 'eth');
+      trackExploreSearchAbandoned('navigate_away', 'eth');
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('fires again after a new open', () => {
+      trackExploreSearchOpened('home');
+      trackExploreSearchAbandoned('cancel', '');
+      trackExploreSearchOpened('nav_bar');
+      mockTrackEvent.mockClear();
+
+      trackExploreSearchAbandoned('navigate_away', '');
+
+      expect(lastEventProperties()).toMatchObject({
+        entry_point: 'nav_bar',
+        abandon_reason: 'navigate_away',
+      });
     });
   });
 

@@ -1,8 +1,11 @@
 import React, { useCallback } from 'react';
+import VbaKycPending from '../VbaKycPending';
+import VbaKycRejected from '../VbaKycRejected';
 import VbaOnboardingStub, {
   type VbaOnboardingStubVariant,
 } from '../VbaOnboardingStub';
 import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
+import { useVbaKycStatusRedirect } from '../hooks/useVbaKycStatusRedirect';
 
 interface VbaStatusAdapterProps {
   variant: VbaOnboardingStubVariant;
@@ -15,13 +18,21 @@ const VbaStatusAdapter = ({ variant }: VbaStatusAdapterProps) => {
   return <VbaOnboardingStub variant={variant} onContinue={handleContinue} />;
 };
 
-export const VbaKycPendingAdapter = () => (
-  <VbaStatusAdapter variant="kyc_pending" />
-);
+export const VbaKycPendingAdapter = () => {
+  const leave = useVbaKycStatusRedirect();
 
-export const VbaKycRejectedAdapter = () => (
-  <VbaStatusAdapter variant="kyc_rejected" />
-);
+  return <VbaKycPending onLeave={leave} />;
+};
+
+export const VbaKycRejectedAdapter = () => {
+  const openOnboarding = useOpenVbaOnboarding('kyc_rejected-retry');
+  const handleRetry = useCallback(
+    () => openOnboarding({ retryRejectedKyc: true }),
+    [openOnboarding],
+  );
+
+  return <VbaKycRejected onRetry={handleRetry} />;
+};
 
 export const VbaAccountProvisioningErrorAdapter = () => (
   <VbaStatusAdapter variant="account_provisioning_error" />

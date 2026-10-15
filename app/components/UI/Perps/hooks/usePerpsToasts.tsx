@@ -69,6 +69,8 @@ export interface PerpsToastOptionsConfig {
       ) => PerpsToastOptions;
       takingLonger: PerpsToastOptions;
       tradeCanceled: PerpsToastOptions;
+      /** Deposit credited to Perps but the pay-with-token order was not sent. */
+      orderNotPlaced: PerpsToastOptions;
       error: PerpsToastOptions;
     };
     oneClickTrade: {
@@ -132,7 +134,10 @@ export interface PerpsToastOptionsConfig {
         amount: string,
         assetSymbol: string,
       ) => PerpsToastOptions;
-      creationFailed: (error?: string) => PerpsToastOptions;
+      creationFailed: (
+        error?: string,
+        fallbackMessage?: string,
+      ) => PerpsToastOptions;
       editSubmitting: () => PerpsToastOptions;
       editConfirmed: (
         direction: OrderDirection,
@@ -228,6 +233,7 @@ export interface PerpsToastOptionsConfig {
     margin: {
       addSuccess: (assetSymbol: string, amount: string) => PerpsToastOptions;
       removeSuccess: (assetSymbol: string, amount: string) => PerpsToastOptions;
+      removeAmountChanged: (maxAmount: string) => PerpsToastOptions;
       adjustmentFailed: (error?: string) => PerpsToastOptions;
     };
   };
@@ -518,6 +524,13 @@ const usePerpsToasts = (): {
               description: strings('perps.deposit.funds_returned_to_account'),
             },
           },
+          orderNotPlaced: {
+            ...perpsBaseToastOptions.warning,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.deposit.order_not_placed'),
+              strings('perps.deposit.order_not_placed_description'),
+            ),
+          },
           error: {
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
@@ -659,15 +672,15 @@ const usePerpsToasts = (): {
               }),
             ),
           }),
-          creationFailed: (error?: string) => ({
+          creationFailed: (error?: string, fallbackMessage?: string) => ({
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.order_failed'),
               handlePerpsError({
                 error,
-                fallbackMessage: strings(
-                  'perps.order.your_funds_have_been_returned_to_you',
-                ),
+                fallbackMessage:
+                  fallbackMessage ??
+                  strings('perps.order.your_funds_have_been_returned_to_you'),
               }),
             ),
           }),
@@ -1195,6 +1208,17 @@ const usePerpsToasts = (): {
                 amount,
                 asset: assetSymbol,
               }),
+            ),
+          }),
+          removeAmountChanged: (maxAmount: string) => ({
+            ...perpsBaseToastOptions.warning,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.margin.remove_amount_changed_title'),
+              Number(maxAmount) > 0
+                ? strings('perps.position.margin.remove_amount_changed', {
+                    amount: maxAmount,
+                  })
+                : strings('perps.adjust_margin.no_removable_margin'),
             ),
           }),
           adjustmentFailed: (error?: string) => ({

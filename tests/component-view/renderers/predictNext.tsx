@@ -6,13 +6,14 @@ import { PredictHome } from '../../../app/components/UI/PredictNext/views/Predic
 import { PredictEventScreen } from '../../../app/components/UI/PredictNext/views/PredictEvent/PredictEventScreen';
 import { PredictFeedScreen } from '../../../app/components/UI/PredictNext/views/PredictFeedScreen/PredictFeedScreen';
 import { PredictPortfolioScreen } from '../../../app/components/UI/PredictNext/views/PredictPortfolio/PredictPortfolioScreen';
+import { PredictSearchScreen } from '../../../app/components/UI/PredictNext/views/PredictSearch/PredictSearchScreen';
 import { PredictNextRoutes } from '../../../app/components/UI/PredictNext/navigation/routes';
 import { PredictOrderFlowProvider } from '../../../app/components/UI/PredictNext/views/PredictOrderFlow';
 import type {
   PredictNextEventParams,
   PredictNextFeedParams,
-  PredictNextHomeParams,
   PredictNextPortfolioParams,
+  PredictNextSearchParams,
 } from '../../../app/components/UI/PredictNext/navigation/types';
 
 /** Mirrors production wiring: the Order Flow provider wraps the stack. */
@@ -34,6 +35,9 @@ const HomeScreen = withOrderFlow(PredictHome as unknown as React.ComponentType);
 const PortfolioScreen = withOrderFlow(
   PredictPortfolioScreen as unknown as React.ComponentType<object>,
 );
+const SearchScreen = withOrderFlow(
+  PredictSearchScreen as unknown as React.ComponentType<object>,
+);
 
 export const renderPredictOrderFlow = (Component: React.ComponentType) =>
   renderComponentViewScreen(
@@ -42,10 +46,7 @@ export const renderPredictOrderFlow = (Component: React.ComponentType) =>
     { state: initialStatePredictNext().build() },
   );
 
-export const renderPredictNext = (
-  initialParams?: PredictNextHomeParams,
-  privacyMode = false,
-) =>
+export const renderPredictNext = (privacyMode = false) =>
   renderScreenWithRoutes(
     HomeScreen,
     { name: PredictNextRoutes.HOME },
@@ -53,9 +54,23 @@ export const renderPredictNext = (
       { name: PredictNextRoutes.FEED, Component: FeedScreen },
       { name: PredictNextRoutes.EVENT, Component: EventScreen },
       { name: PredictNextRoutes.PORTFOLIO, Component: PortfolioScreen },
+      { name: PredictNextRoutes.SEARCH, Component: SearchScreen },
     ],
     { state: initialStatePredictNext(privacyMode).build() },
-    initialParams ? { ...initialParams } : undefined,
+  );
+
+export const renderPredictSearchScreen = (
+  initialParams: PredictNextSearchParams,
+) =>
+  renderScreenWithRoutes(
+    SearchScreen,
+    { name: PredictNextRoutes.SEARCH },
+    [
+      { name: PredictNextRoutes.HOME, Component: HomeScreen },
+      { name: PredictNextRoutes.EVENT, Component: EventScreen },
+    ],
+    { state: initialStatePredictNext().build() },
+    { ...initialParams },
   );
 
 export const renderPredictEventScreen = (

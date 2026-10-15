@@ -13,10 +13,28 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { ActivityScreenSelectorsIDs } from '../../ActivityScreen.testIds';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { useMoneyAccountDeposit } from '../../../../UI/Money/hooks/useMoneyAccount';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
+
+const mockGoToSwaps = jest.fn();
+const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
+  goToSwaps: mockGoToSwaps,
+}));
+jest.mock('../../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => {
+  const { MetaMetricsSwapsEventSource: swapsEventSource } = jest.requireActual(
+    '@metamask/bridge-controller',
+  );
+  return {
+    SwapBridgeNavigationLocation: {
+      MainView: swapsEventSource.MainView,
+    },
+    useSwapBridgeNavigation: (args: unknown) =>
+      mockUseSwapBridgeNavigation(args),
+  };
+});
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => true),
@@ -93,6 +111,19 @@ describe('ActivityEmptyState', () => {
       screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
     ).toBeOnTheScreen();
     expect(screen.getByText('Swap tokens')).toBeOnTheScreen();
+  });
+
+  it('opens swaps from the funded transactions empty state', () => {
+    render(<ActivityEmptyState typeFilter={ActivityTypeFilter.Transactions} />);
+
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      sourcePage: 'ActivityEmptyState',
+      location: MetaMetricsSwapsEventSource.MainView,
+    });
+    fireEvent.press(screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE));
+
+    expect(mockGoToSwaps).toHaveBeenCalledWith();
+    expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
   });
 
   it('routes each CTA to the expected destination', async () => {

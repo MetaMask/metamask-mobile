@@ -5,7 +5,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SharePositionBottomSheet from './SharePositionBottomSheet';
 import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
 
-jest.mock('../utils/perp', () => ({
+jest.mock('../../../UI/SocialFeed/utils/perp', () => ({
   isPerpPosition: (position: { chain?: string; perpPositionType?: string }) =>
     position.perpPositionType != null || position.chain === 'hyperliquid',
 }));
@@ -124,13 +124,33 @@ describe('SharePositionBottomSheet', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetch,
     });
   });
 
+  it('loads positions for the linked social address', () => {
+    renderWithProvider(
+      <SharePositionBottomSheet
+        address="0x1111111111111111111111111111111111111111"
+        onSelect={onSelect}
+        onClose={onClose}
+      />,
+    );
+
+    expect(mockUseTraderPositions).toHaveBeenCalledWith(
+      '0x1111111111111111111111111111111111111111',
+    );
+  });
+
   it('groups open tokens and perps', () => {
     renderWithProvider(
-      <SharePositionBottomSheet onSelect={onSelect} onClose={onClose} />,
+      <SharePositionBottomSheet
+        address="0x1111111111111111111111111111111111111111"
+        onSelect={onSelect}
+        onClose={onClose}
+      />,
     );
 
     expect(
@@ -145,7 +165,11 @@ describe('SharePositionBottomSheet', () => {
 
   it('selects a closed position from the Closed tab', () => {
     renderWithProvider(
-      <SharePositionBottomSheet onSelect={onSelect} onClose={onClose} />,
+      <SharePositionBottomSheet
+        address="0x1111111111111111111111111111111111111111"
+        onSelect={onSelect}
+        onClose={onClose}
+      />,
     );
 
     fireEvent.press(
@@ -163,11 +187,17 @@ describe('SharePositionBottomSheet', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetch,
     });
 
     renderWithProvider(
-      <SharePositionBottomSheet onSelect={onSelect} onClose={onClose} />,
+      <SharePositionBottomSheet
+        address="0x1111111111111111111111111111111111111111"
+        onSelect={onSelect}
+        onClose={onClose}
+      />,
     );
 
     expect(
@@ -181,12 +211,18 @@ describe('SharePositionBottomSheet', () => {
       closedPositions: [],
       isLoadingOpen: false,
       isLoadingClosed: false,
-      error: new Error('network'),
+      error: 'network',
+      openError: 'network',
+      closedError: null,
       refetch: mockRefetch,
     });
 
     renderWithProvider(
-      <SharePositionBottomSheet onSelect={onSelect} onClose={onClose} />,
+      <SharePositionBottomSheet
+        address="0x1111111111111111111111111111111111111111"
+        onSelect={onSelect}
+        onClose={onClose}
+      />,
     );
 
     fireEvent.press(
@@ -202,12 +238,18 @@ describe('SharePositionBottomSheet', () => {
       closedPositions: [],
       isLoadingOpen: false,
       isLoadingClosed: false,
-      error: new Error('network'),
+      error: 'network',
+      openError: 'network',
+      closedError: null,
       refetch: mockRefetch,
     });
 
     renderWithProvider(
-      <SharePositionBottomSheet onSelect={onSelect} onClose={onClose} />,
+      <SharePositionBottomSheet
+        address="0x1111111111111111111111111111111111111111"
+        onSelect={onSelect}
+        onClose={onClose}
+      />,
     );
 
     expect(screen.getByTestId('position-row-BTC')).toBeOnTheScreen();

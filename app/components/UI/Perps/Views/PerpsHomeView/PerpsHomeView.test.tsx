@@ -1,5 +1,11 @@
 import React from 'react';
-import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  render,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE, PerpsMode } from '@metamask/perps-controller';
@@ -14,6 +20,7 @@ import {
   selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
   selectPerpsProModeEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
 import { selectIsFirstTimePerpsUser } from '../../selectors/perpsController';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
@@ -147,6 +154,7 @@ jest.mock(
 const mockNavigateBack = jest.fn();
 const mockNavigateToWallet = jest.fn();
 const mockNavigateToMarketList = jest.fn();
+const mockNavigateToMarketDetails = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
@@ -158,7 +166,7 @@ jest.mock('../../hooks', () => ({
   usePerpsMeasurement: jest.fn(),
   usePerpsNavigation: jest.fn(() => ({
     navigateTo: jest.fn(),
-    navigateToMarketDetails: jest.fn(),
+    navigateToMarketDetails: mockNavigateToMarketDetails,
     navigateToMarketList: mockNavigateToMarketList,
     navigateToWallet: mockNavigateToWallet,
     navigateBack: mockNavigateBack,
@@ -423,6 +431,14 @@ jest.mock(
   () => 'PerpsMarketBalanceActions',
 );
 jest.mock('../../components/PerpsProducts', () => 'PerpsProducts');
+jest.mock('../../components/PerpsExploreSection', () => 'PerpsExploreSection');
+jest.mock('../../hooks/usePerpsHomeExploreAbTest', () => ({
+  usePerpsHomeExploreAbTest: jest.fn(() => ({
+    showExploreTable: false,
+    variantName: 'control',
+    isActive: false,
+  })),
+}));
 jest.mock('../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView', () => {
   const { View } = jest.requireActual('react-native');
   return function PerpsCloseAllPositionsView() {
@@ -569,6 +585,10 @@ jest.mock(
   () => 'TabBarItem',
 );
 
+const mockUsePerpsHomeExploreAbTest = jest.requireMock(
+  '../../hooks/usePerpsHomeExploreAbTest',
+).usePerpsHomeExploreAbTest as jest.Mock;
+
 const mockUsePerpsHomeData = jest.requireMock('../../hooks')
   .usePerpsHomeData as jest.Mock;
 const mockUseAnimatedScrollHandler = jest.requireMock('react-native-reanimated')
@@ -648,6 +668,13 @@ describe('PerpsHomeView', () => {
     mockRouteParams = { source: 'main_action_button' };
     mockPerpsModeValue = PerpsMode.Lite;
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
+    mockUsePerpsHomeExploreAbTest.mockReturnValue({
+      showExploreTable: false,
+      variantName: 'control',
+      isActive: false,
+    });
+    (usePerpsCategories as jest.Mock).mockReturnValue([]);
+    (useHasNewMarkets as jest.Mock).mockReturnValue(false);
     mockUsePerpsHomeSectionTracking.mockReturnValue(mockScrollTracking());
     mockUsePerpsTopMovers.mockReturnValue({
       data: [],
@@ -719,6 +746,41 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Assert
+    expect(flattenStyle(getByTestId('perps-home'))).not.toHaveProperty(
+      'marginTop',
+    );
+  });
+
+  it('does not render the outage banner when the flag is off', () => {
+    // Arrange & Act
+    const { queryByTestId } = render(<PerpsHomeView />);
+
+    // Assert
+    expect(
+      queryByTestId(PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER),
+    ).toBeNull();
+  });
+
+  it('pins the outage banner above the header and hands it the status-bar inset', () => {
+    // Arrange
+    mockUseSelector.mockImplementation(
+      (selector: unknown) =>
+        selector === selectPerpsServiceInterruptionBannerEnabledFlag,
+    );
+
+    // Act
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Assert - the banner owns the inset, so the header no longer applies it
+    // and the banner does not scroll with the content.
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER),
+    ).toBeTruthy();
+    expect(
+      within(
+        getByTestId(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT),
+      ).queryByTestId(PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER),
+    ).toBeNull();
     expect(flattenStyle(getByTestId('perps-home'))).not.toHaveProperty(
       'marginTop',
     );
@@ -1560,6 +1622,40 @@ describe('PerpsHomeView', () => {
       );
     });
 
+    it('records the explore section instead of the stacked sections in treatment', () => {
+      (usePerpsCategories as jest.Mock).mockReturnValue([
+        { id: 'crypto', label: 'Crypto' },
+      ]);
+      mockUsePerpsHomeExploreAbTest.mockReturnValue({
+        showExploreTable: true,
+        variantName: 'treatment',
+        isActive: true,
+      });
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        hasMarkets: true,
+        perpsMarkets: [{ symbol: 'BTC' }],
+        stocksMarkets: [{ symbol: 'AAPL' }],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toEqual(
+        expect.arrayContaining(['balance', 'explore']),
+      );
+      expect(properties?.sections_displayed).not.toContain('watchlist');
+      expect(properties?.sections_displayed).not.toContain('products');
+      expect(properties?.sections_displayed).not.toContain('explore_crypto');
+      expect(properties?.sections_displayed).not.toContain('explore_stocks');
+      expect(properties?.sections_displayed).not.toContain(
+        'explore_commodities',
+      );
+      expect(properties?.sections_displayed).not.toContain('explore_forex');
+    });
+
     it('includes watchlist_count and watchlist_markets from raw selector', () => {
       const mockWatchlist = ['BTC', 'ETH', 'SOL'];
       mockUseSelector.mockImplementation(() => mockWatchlist);
@@ -1607,6 +1703,22 @@ describe('PerpsHomeView', () => {
         ...mockDefaultData,
         orders: [],
         isLoading: { ...mockDefaultData.isLoading, orders: true },
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('orders');
+    });
+
+    it('includes orders in sections_displayed when orders failed and the array is empty', () => {
+      mockUseSelector.mockReturnValue(false);
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        orders: [],
+        ordersError: new Error('Trading key unavailable'),
       });
 
       render(<PerpsHomeView />);
@@ -1863,6 +1975,36 @@ describe('PerpsHomeView', () => {
         defaultMarketTypeFilter: 'new',
         source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       });
+    });
+
+    it('navigates to market details with source_section=recently_added when a tile is pressed', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsRecentlyAddedEnabledFlag,
+      );
+      const recentlyAddedMarket = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        price: '$50000',
+        change24h: '+$1250',
+        change24hPercent: '+2.5%',
+        volume: '$1.2B',
+        listedAt: Date.now() - 3 * 60 * 60 * 1000,
+      };
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [recentlyAddedMarket],
+      });
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(getByTestId('perps-recently-added-tile-BTC'));
+
+      expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
+        recentlyAddedMarket,
+        PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        undefined,
+        'recently_added',
+      );
     });
   });
 });

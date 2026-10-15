@@ -84,6 +84,7 @@ import {
 } from '../../../../../component-library/components/Toast';
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
+import type { WalletPassDevice } from '../../pushProvisioning/types';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
@@ -108,7 +109,8 @@ import { useCardArrivalAnimation } from './hooks/useCardArrivalAnimation';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardIntercomSupport } from './hooks/useCardIntercomSupport';
-import { useCardProvisioning } from './hooks/useCardProvisioning';
+import { useCardWalletProvisioning } from './hooks/useCardWalletProvisioning';
+import { getWalletTypeForPlatform } from '../../pushProvisioning/constants';
 import { useCardEnableCard } from './hooks/useCardEnableCard';
 import { useCardRevokeAllowance } from './hooks/useCardRevokeAllowance';
 import { useFundingAccountName } from '../../hooks/useFundingAccountName';
@@ -230,19 +232,23 @@ const CardHome = () => {
 
   const isBlocked = data?.card?.status === CardStatus.BLOCKED;
 
+  const platformWallet = getWalletTypeForPlatform();
+  const platformWalletSupported =
+    platformWallet === 'apple_wallet'
+      ? capabilities?.pushProvisioning?.applePay === true
+      : capabilities?.pushProvisioning?.googlePay === true;
   const {
     initiateProvisioning,
     isProvisioning,
-    isLoading: isPushProvisioningLoading,
-    canAddToWallet,
-  } = useCardProvisioning(data);
-  const isBaanxInternational =
-    activeProviderId === CardProviderIds.Baanx &&
-    userLocation === 'international';
-  const showDigitalWalletInstructions =
-    (isImmersve || isBaanxInternational) &&
-    !isPushProvisioningLoading &&
-    !canAddToWallet;
+    walletEntry,
+    pendingVerificationDevices,
+    canOpenInWallet,
+    openInWallet,
+  } = useCardWalletProvisioning(data, platformWalletSupported);
+  const pendingDevicesLabel = formatPendingDevices(pendingVerificationDevices);
+  const handleOpenInWallet = useCallback(() => {
+    openInWallet().catch(() => undefined);
+  }, [openInWallet]);
 
   const { canEnableCard, enableCard, provisioningView } =
     useCardEnableCard(data);
@@ -845,7 +851,37 @@ const CardHome = () => {
             </Box>
           )}
 
-        {!isLoading && canAddToWallet && !isUkMigrationForced && (
+        {!isLoading &&
+          pendingDevicesLabel.length > 0 &&
+          !isUkMigrationForced && (
+            <Box
+              twClassName="w-full px-4 pt-4"
+              testID={CardHomeSelectors.VERIFICATION_PENDING_NOTICE}
+            >
+              <Text variant={TextVariant.BodyMd}>
+                {strings('card.push_provisioning.verification_pending_title')}
+              </Text>
+              <Text variant={TextVariant.BodySm} style={tw.style('mt-1')}>
+                {strings(
+                  'card.push_provisioning.verification_pending_description',
+                  { devices: pendingDevicesLabel },
+                )}
+              </Text>
+              {canOpenInWallet && (
+                <Button
+                  variant={ButtonVariant.Tertiary}
+                  size={ButtonSize.Sm}
+                  isFullWidth
+                  onPress={handleOpenInWallet}
+                  testID={CardHomeSelectors.VERIFICATION_PENDING_OPEN_WALLET}
+                >
+                  {strings('card.push_provisioning.open_in_apple_wallet')}
+                </Button>
+              )}
+            </Box>
+          )}
+
+        {!isLoading && walletEntry === 'push' && !isUkMigrationForced && (
           <Box twClassName="w-full px-4 pt-4 items-center justify-center">
             {isProvisioning ? (
               <Box twClassName="py-3">
@@ -921,7 +957,7 @@ const CardHome = () => {
             onToggleFreeze={actions.handleToggleFreeze}
             onManageSpendingLimit={actions.manageSpendingLimitAction}
             onContactDetails={actions.contactDetailsAction}
-            showDigitalWalletInstructions={showDigitalWalletInstructions}
+            showDigitalWalletInstructions={walletEntry === 'instructions'}
             onDigitalWalletInstructions={
               actions.digitalWalletInstructionsAction
             }
@@ -985,5 +1021,28 @@ const CardHome = () => {
     </Box>
   );
 };
+
+function formatPendingDevices(devices: WalletPassDevice[] | undefined): string {
+  if (!devices?.length) {
+    return '';
+  }
+
+  const names = devices.map((walletDevice) =>
+    strings(
+      walletDevice === 'phone'
+        ? 'card.push_provisioning.device_iphone'
+        : 'card.push_provisioning.device_apple_watch',
+    ),
+  );
+
+  if (names.length < 2) {
+    return names[0];
+  }
+
+  return strings('card.push_provisioning.device_list_and', {
+    first: names[0],
+    second: names[1],
+  });
+}
 
 export default CardHome;

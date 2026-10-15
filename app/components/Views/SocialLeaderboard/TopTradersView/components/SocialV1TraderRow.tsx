@@ -16,11 +16,12 @@ import { TouchableOpacity } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useRankChangeAnimation } from './useRankChangeAnimation';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
-import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
+import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import {
   RankMedal,
   isTopRank,
 } from '../../../Homepage/Sections/TopTraders/topRank';
+import { getTraderRowTestId } from '../../../Homepage/Sections/TopTraders/components/TraderRow.testIds';
 import type { TraderRowProps } from '../../../Homepage/Sections/TopTraders/types';
 /* eslint-enable import-x/no-restricted-paths */
 import SocialGradientCardSurface from '../../components/SocialGradientCardSurface';
@@ -28,8 +29,9 @@ import { SocialGradientCardSurfaceSelectorsIDs } from '../../components/SocialGr
 import {
   resolveTraderCohort,
   traderCohortEmoji,
-} from '../../SocialV1View/feed/utils/traderStats';
-import { formatSignedUsd } from '../../utils/formatters';
+} from '../../../../UI/SocialFeed/utils/traderStats';
+import { formatSignedUsd } from '../../../../UI/SocialFeed/utils/formatters';
+import { useSocialFeedSurface } from '../../../../UI/SocialFeed/SocialFeedSurface';
 import { SocialV1TraderRowSelectorsIDs } from './SocialV1TraderRow.testIds';
 
 const AVATAR_SIZE = 40;
@@ -61,6 +63,8 @@ const SocialV1TraderRow: React.FC<TraderRowProps> = ({
   const showMedal = !hideRank && isTopRank(trader.rank);
   const rankChangeStyle = useRankChangeAnimation(trader.rank);
   const cohortEmoji = traderCohortEmoji(resolveTraderCohort(trader.pnlValue));
+  // The verified badge is invented until the leaderboard carries the field.
+  const { showMockedFields } = useSocialFeedSurface();
 
   const rowBody = (
     <Box
@@ -110,12 +114,14 @@ const SocialV1TraderRow: React.FC<TraderRowProps> = ({
         >
           {trader.username}
         </Text>
-        <Icon
-          name={IconName.VerifiedFilled}
-          size={IconSize.Sm}
-          twClassName="text-info-default shrink-0"
-          testID={SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE}
-        />
+        {showMockedFields ? (
+          <Icon
+            name={IconName.VerifiedFilled}
+            size={IconSize.Sm}
+            twClassName="text-info-default shrink-0"
+            testID={SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE}
+          />
+        ) : null}
         {cohortEmoji ? (
           <Text
             variant={TextVariant.BodySm}
@@ -153,7 +159,7 @@ const SocialV1TraderRow: React.FC<TraderRowProps> = ({
             : undefined
         }
         disabled={!onTraderPress}
-        testID={testID ?? `trader-row-${trader.id}`}
+        testID={testID ?? getTraderRowTestId(trader.id)}
       >
         <Box twClassName="px-4">
           {highlighted ? (

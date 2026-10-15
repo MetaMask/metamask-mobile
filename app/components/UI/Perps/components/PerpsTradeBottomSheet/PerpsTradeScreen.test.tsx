@@ -7,9 +7,20 @@ import {
   within,
 } from '@testing-library/react-native';
 import { typography } from '@metamask/design-tokens';
+import {
+  Text as DSText,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import PerpsTradeScreen from './PerpsTradeScreen';
 import type PerpsSlider from '../PerpsSlider';
-import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
+import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
+import {
+  PerpsAmountDisplaySelectorsIDs,
+  PerpsTradeSheetSelectorsIDs,
+} from '../../Perps.testIds';
+import { convertAssetAmountToUsd } from '../../utils/assetAmountInput';
+
+jest.mock('../../../../../util/haptics');
 
 const mockNavigateTo = jest.fn();
 let mockLivePriceHeaderProps:
@@ -64,7 +75,7 @@ jest.mock('../LivePriceDisplay/LivePriceHeader', () => ({
   },
 }));
 
-jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
@@ -90,6 +101,8 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   liquidationDistance: '30.05%',
   amount: '10',
   tokenAmount: '0.11',
+  amountPrice: 98.5,
+  sizeDecimals: 2,
   sliderMaximum: 100,
   isAmountDisabled: false,
   isAmountLoading: false,
@@ -316,6 +329,58 @@ describe('PerpsTradeScreen errors', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('applies a keypad digit to the USD amount', () => {
+    const onKeypadChange = jest.fn();
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        amount="0"
+        isInputFocused
+        onKeypadChange={onKeypadChange}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_1));
+
+    expect(onKeypadChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: '1', valueAsNumber: 1 }),
+    );
+    expect(onKeypadChange.mock.calls[0][0].isAssetAmount).toBeUndefined();
+  });
+
+  it('applies a keypad digit to the coin amount after the display toggle', () => {
+    const onKeypadChange = jest.fn();
+    const peoplePrice = 1 / 121;
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        asset="PEOPLE"
+        amount="0"
+        tokenAmount="0"
+        amountPrice={peoplePrice}
+        sizeDecimals={0}
+        isInputFocused
+        onKeypadChange={onKeypadChange}
+      />,
+    );
+
+    fireEvent.press(screen.getByRole('button', { name: 'Show asset value' }));
+    fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_1));
+
+    expect(onKeypadChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        value: convertAssetAmountToUsd('1', peoplePrice),
+        isAssetAmount: true,
+      }),
+    );
+    expect(
+      screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+    ).toHaveTextContent(/^1$/);
+    expect(
+      screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
+    ).toHaveTextContent('PEOPLE');
+  });
+
   it('draws the Figma swap glyph in the fiat/token toggle', () => {
     render(<PerpsTradeScreen {...defaultProps} />);
 
@@ -463,6 +528,36 @@ describe('PerpsTradeScreen errors', () => {
     expect(screen.getByTestId('rewards-vip-badge')).toBeOnTheScreen();
   });
 
+  it('shows the trade fee without a bridge fee', () => {
+    render(<PerpsTradeScreen {...defaultProps} />);
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
+    ).toHaveTextContent('Includes 0.143% fee');
+    expect(screen.queryByText(/bridge fee/)).not.toBeOnTheScreen();
+  });
+
+  it('appends the bridge fee to the trade fee', () => {
+    render(<PerpsTradeScreen {...defaultProps} bridgeFee="$0.15" />);
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
+    ).toHaveTextContent('Includes 0.143% fee + $0.15 bridge fee');
+  });
+
+  it('shows the fee skeleton instead of a partial fee line while fees are loading', () => {
+    render(
+      <PerpsTradeScreen {...defaultProps} isFeeLoading bridgeFee="$0.15" />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
+    ).not.toBeOnTheScreen();
+  });
+
   it('shows the limit price row for a limit order', () => {
     render(
       <PerpsTradeScreen
@@ -483,6 +578,32 @@ describe('PerpsTradeScreen errors', () => {
 
     expect(screen.getByText('Set price')).toBeOnTheScreen();
     expect(screen.queryByText('$0.00')).not.toBeOnTheScreen();
+  });
+
+  it('colors Set price as an error when the limit price is unset', () => {
+    render(<PerpsTradeScreen {...defaultProps} orderType="limit" />);
+
+    const setPriceText = screen
+      .UNSAFE_getAllByType(DSText)
+      .find((text) => text.props.children === 'Set price');
+
+    expect(setPriceText?.props.color).toBe(TextColor.ErrorDefault);
+  });
+
+  it('colors the limit price as default once a price is entered', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        orderType="limit"
+        limitPrice="98.50"
+      />,
+    );
+
+    const priceText = screen
+      .UNSAFE_getAllByType(DSText)
+      .find((text) => text.props.children === '$98.5');
+
+    expect(priceText?.props.color).toBe(TextColor.TextDefault);
   });
 
   it('shows a limit-price crossing warning', () => {

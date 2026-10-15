@@ -5,7 +5,7 @@ import {
 } from './schema';
 
 /**
- * Validates and parses a `GET /v2/orders/limit?id={id}` response body.
+ * Validates and parses a `GET /v2/orders/limit/{id}` response body.
  *
  * @param value - The raw, unknown response payload to validate.
  * @returns The validated response, narrowed to `GetLimitOrderResponse`.

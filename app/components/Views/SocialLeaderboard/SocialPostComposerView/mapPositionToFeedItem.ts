@@ -5,17 +5,18 @@ import {
   formatSignedUsd,
   formatTradeUnitPrice,
   formatUsd,
-} from '../utils/formatters';
+} from '../../../UI/SocialFeed/utils/formatters';
 import {
   getPerpPositionDirection,
+  getSupportedXyzPerpMarketSymbol,
   isClosedPosition,
   isPerpPosition,
-} from '../utils/perp';
-import { tradeTimestampToMs } from '../utils/tradeTimestamp';
+} from '../../../UI/SocialFeed/utils/perp';
+import { tradeTimestampToMs } from '../../../UI/SocialFeed/utils/tradeTimestamp';
 import type {
   SocialV1FeedAuthor,
   SocialV1FeedItem,
-} from '../SocialV1View/feed/types';
+} from '../../../UI/SocialFeed/types';
 import { holdDurationFromTimestamps } from './formatHoldDuration';
 
 const leverageLabel = (position: Position): string | undefined => {
@@ -29,7 +30,7 @@ const entryPriceLabel = (position: Position): string | undefined => {
   const amount = Math.abs(
     position.positionAmountWithLeverage ?? position.positionAmount,
   );
-  if (amount <= 0 || position.costBasis <= 0) {
+  if (amount <= 0 || position.costBasis == null || position.costBasis <= 0) {
     return undefined;
   }
   return formatTradeUnitPrice(position.costBasis / amount);
@@ -159,6 +160,8 @@ export const mapPositionToFeedItem = (
       author,
       timestamp,
       variant: 'perpsOpen',
+      tradeSymbol: getSupportedXyzPerpMarketSymbol(position.tokenSymbol)
+        .targetSymbol,
       comment,
       asset: { symbol: displaySymbol, avatar },
       direction,

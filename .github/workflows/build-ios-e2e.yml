@@ -547,7 +547,7 @@ jobs:
         run: |
           echo "🏗 Building iOS E2E App..."
           export NODE_OPTIONS="--max-old-space-size=8192"
-          yarn build:ios:${{ inputs.build_type }}:e2e
+          yarn "build:ios:${METAMASK_BUILD_TYPE}:e2e"
         shell: bash
         env:
           PLATFORM: ios

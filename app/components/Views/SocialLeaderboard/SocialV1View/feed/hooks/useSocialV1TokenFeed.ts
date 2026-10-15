@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { socialFeedSourceFromAsset } from '../../../SocialFeed/socialFeedSource';
-import { useSocialFeed } from '../../../SocialFeed/useSocialFeed';
+import { socialFeedSourceFromAsset } from '../../../../../UI/SocialFeed/data/socialFeedSource';
+import { useSocialFeed } from '../../../../../UI/SocialFeed/data/useSocialFeed';
 import type { SocialV1TokenFeedState } from '../types';
 import {
   TOKEN_FEED_PAGE_LIMIT,

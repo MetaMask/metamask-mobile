@@ -4,11 +4,18 @@ import {
   getTriggerDirection,
   isLimitExecutionOrderType,
   isTriggerOrderType,
+  PRICE_RANGES_UNIVERSAL,
   type OrderType,
   type TriggerDirection,
   type TriggerOrderType,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
+import { LIMIT_PRICE_CONFIG } from '../constants/perpsConfig';
+import { formatPerpsFiat } from './formatUtils';
+import {
+  getPriceDeviationBand,
+  isPriceOutsideDeviationBand,
+} from './orderUtils';
 
 export type TriggerPriceValidationIssue =
   | { code: 'required' }
@@ -21,7 +28,8 @@ export type TriggerPriceValidationIssue =
 
 export type LimitPriceValidationIssue =
   | { code: 'required' }
-  | { code: 'positive' };
+  | { code: 'positive' }
+  | { code: 'too_far'; min: string; max: string };
 
 export type OrderFormFieldIssue =
   | {
@@ -182,18 +190,49 @@ export const getTriggerPriceValidationIssue = ({
 };
 
 /**
- * Validates the structural price input for limit and trigger-limit placements.
+ * Localized 95% band error, including the live acceptable range when the
+ * reference price is usable.
  *
- * @param input - Order type and candidate limit price.
+ * @param referencePrice - Live oracle/mark used for the band.
+ * @returns User-facing helper text.
+ */
+export const getLimitPriceTooFarMessage = (referencePrice: number): string => {
+  const constraint = strings(
+    'perps.order.limit_price_modal.limit_price_too_far',
+  );
+  const band = getPriceDeviationBand(
+    referencePrice,
+    LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+  );
+  if (!band) {
+    return constraint;
+  }
+  const range = strings(
+    'perps.order.limit_price_modal.limit_price_too_far_range',
+    {
+      min: formatPerpsFiat(band.min, { ranges: PRICE_RANGES_UNIVERSAL }),
+      max: formatPerpsFiat(band.max, { ranges: PRICE_RANGES_UNIVERSAL }),
+    },
+  );
+  return `${constraint} ${range}`;
+};
+
+/**
+ * Validates the structural price input for limit and trigger-limit placements,
+ * including HyperLiquid's live 95% reference-price band.
+ *
+ * @param input - Order type, candidate limit price, and live mid.
  * @returns A typed limit-price issue, or `undefined`.
  */
 export const getLimitPriceValidationIssue = ({
   orderType,
   limitPrice,
+  midPrice,
   szDecimals,
 }: {
   orderType: OrderType;
   limitPrice: string | undefined;
+  midPrice?: number;
   szDecimals?: number;
 }): LimitPriceValidationIssue | undefined => {
   if (!isLimitExecutionOrderType(orderType)) {
@@ -204,6 +243,27 @@ export const getLimitPriceValidationIssue = ({
   const parsedLimit = Number.parseFloat(canonicalLimit ?? '');
   if (!Number.isFinite(parsedLimit) || parsedLimit <= 0) {
     return limitPrice?.trim() ? { code: 'positive' } : { code: 'required' };
+  }
+
+  if (
+    midPrice !== undefined &&
+    isPriceOutsideDeviationBand(
+      parsedLimit,
+      midPrice,
+      LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+    )
+  ) {
+    const band = getPriceDeviationBand(
+      midPrice,
+      LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+    );
+    if (band) {
+      return {
+        code: 'too_far',
+        min: formatPerpsFiat(band.min, { ranges: PRICE_RANGES_UNIVERSAL }),
+        max: formatPerpsFiat(band.max, { ranges: PRICE_RANGES_UNIVERSAL }),
+      };
+    }
   }
 
   return undefined;
@@ -261,6 +321,7 @@ export const getOrderFormFieldIssues = ({
   const limitIssue = getLimitPriceValidationIssue({
     orderType,
     limitPrice,
+    midPrice,
     szDecimals,
   });
   if (limitIssue) {
@@ -296,10 +357,25 @@ export const getTriggerPriceValidationMessage = (
  */
 export const getLimitPriceValidationMessage = (
   issue: LimitPriceValidationIssue,
-): string =>
-  issue.code === 'required'
-    ? strings('perps.order.validation.limit_price_required')
-    : strings('perps.errors.orderValidation.pricePositive');
+): string => {
+  if (issue.code === 'required') {
+    return strings('perps.order.validation.limit_price_required');
+  }
+  if (issue.code === 'positive') {
+    return strings('perps.errors.orderValidation.pricePositive');
+  }
+  const constraint = strings(
+    'perps.order.limit_price_modal.limit_price_too_far',
+  );
+  const range = strings(
+    'perps.order.limit_price_modal.limit_price_too_far_range',
+    {
+      min: issue.min,
+      max: issue.max,
+    },
+  );
+  return `${constraint} ${range}`;
+};
 
 /**
  * Localizes any field-owned order-price issue.

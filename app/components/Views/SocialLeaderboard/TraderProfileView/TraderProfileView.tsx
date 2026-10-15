@@ -3,10 +3,8 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   Button,
   ButtonVariant,
-  FontWeight,
   HeaderStandardAnimated,
   Text,
   TextColor,
@@ -28,10 +26,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, TouchableOpacity } from 'react-native';
+import { RefreshControl } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import {
+  TabsBar,
+  type TabItem,
+} from '../../../../component-library/components-temp/Tabs';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -55,7 +57,10 @@ import TraderMuteChip from '../components/TraderMuteChip';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
-import { HYPERLIQUID_CHAIN_NAME, isPerpPosition } from '../utils/perp';
+import {
+  HYPERLIQUID_CHAIN_NAME,
+  isPerpPosition,
+} from '../../../UI/SocialFeed/utils/perp';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import PositionRow from './components/PositionRow';
 import ProfileHeader from './components/ProfileHeader';
@@ -101,31 +106,7 @@ const CLOSED_SORT_LABEL_KEYS: Record<ClosedSortKey, string> = {
 const getPositionListKey = (position: Position): string =>
   position.positionId ?? `${position.tokenAddress}-${position.chain}`;
 
-interface TabButtonProps {
-  label: string;
-  isActive: boolean;
-  onPress: () => void;
-  testID?: string;
-}
-
-const TabButton: React.FC<TabButtonProps> = ({
-  label,
-  isActive,
-  onPress,
-  testID,
-}) => (
-  <TouchableOpacity onPress={onPress} testID={testID}>
-    <Box twClassName={`pb-2 ${isActive ? 'border-b-2 border-default' : ''}`}>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={isActive ? TextColor.TextDefault : TextColor.TextAlternative}
-      >
-        {label}
-      </Text>
-    </Box>
-  </TouchableOpacity>
-);
+const POSITION_TABS = ['open', 'closed'] as const;
 
 // ---------------------------------------------------------------------------
 // Main screen
@@ -213,6 +194,19 @@ const TraderProfileView = () => {
   );
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
+  const positionTabs = useMemo<TabItem[]>(
+    () =>
+      POSITION_TABS.map((tab) => ({
+        key: tab,
+        label: strings(`social_leaderboard.trader_profile.${tab}`),
+        content: null,
+        testID:
+          tab === 'open'
+            ? TraderProfileViewSelectorsIDs.TAB_OPEN
+            : TraderProfileViewSelectorsIDs.TAB_CLOSED,
+      })),
+    [],
+  );
   const [openSort, setOpenSort] = useState<OpenSortKey>('value');
   const [closedSort, setClosedSort] = useState<ClosedSortKey>('value');
 
@@ -262,6 +256,15 @@ const TraderProfileView = () => {
       }
     },
     [activeTab, traderAddress, track],
+  );
+
+  const handlePositionTabPress = useCallback(
+    (index: number) => {
+      const tab = POSITION_TABS[index];
+      if (!tab) return;
+      handleTabChange(tab);
+    },
+    [handleTabChange],
   );
 
   const activeTabRef = useRef(activeTab);
@@ -472,41 +475,27 @@ const TraderProfileView = () => {
                   <Box
                     flexDirection={BoxFlexDirection.Row}
                     alignItems={BoxAlignItems.Center}
-                    justifyContent={BoxJustifyContent.Between}
-                    twClassName="px-4 mb-2"
+                    twClassName="mb-2"
                   >
-                    <Box
-                      flexDirection={BoxFlexDirection.Row}
-                      alignItems={BoxAlignItems.Center}
-                      gap={4}
-                    >
-                      <TabButton
-                        label={strings(
-                          'social_leaderboard.trader_profile.open',
-                        )}
-                        isActive={activeTab === 'open'}
-                        onPress={() => handleTabChange('open')}
-                        testID={TraderProfileViewSelectorsIDs.TAB_OPEN}
-                      />
-                      <TabButton
-                        label={strings(
-                          'social_leaderboard.trader_profile.closed',
-                        )}
-                        isActive={activeTab === 'closed'}
-                        onPress={() => handleTabChange('closed')}
-                        testID={TraderProfileViewSelectorsIDs.TAB_CLOSED}
+                    <Box twClassName="flex-1">
+                      <TabsBar
+                        tabs={positionTabs}
+                        activeIndex={activeTab === 'open' ? 0 : 1}
+                        onTabPress={handlePositionTabPress}
                       />
                     </Box>
                     {positions.length > 0 && (
-                      <SortButton
-                        label={strings(
-                          activeTab === 'open'
-                            ? OPEN_SORT_LABEL_KEYS[openSort]
-                            : CLOSED_SORT_LABEL_KEYS[closedSort],
-                        )}
-                        onPress={handleSortPress}
-                        testID={TraderProfileViewSelectorsIDs.SORT_BUTTON}
-                      />
+                      <Box twClassName="pr-4">
+                        <SortButton
+                          label={strings(
+                            activeTab === 'open'
+                              ? OPEN_SORT_LABEL_KEYS[openSort]
+                              : CLOSED_SORT_LABEL_KEYS[closedSort],
+                          )}
+                          onPress={handleSortPress}
+                          testID={TraderProfileViewSelectorsIDs.SORT_BUTTON}
+                        />
+                      </Box>
                     )}
                   </Box>
 

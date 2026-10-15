@@ -189,7 +189,7 @@ export function useDepositPrefillAmount({
       chainId: payToken.chainId,
       address: payToken.address,
     });
-    const nextPercentage = stable ? 100 : 50;
+    const nextPercentage = isMoneyAccountDeposit && stable ? 100 : 50;
 
     const raw = new BigNumber(nextPercentage)
       .dividedBy(100)

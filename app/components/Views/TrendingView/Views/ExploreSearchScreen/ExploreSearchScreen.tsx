@@ -52,6 +52,7 @@ import SearchFeedRow, {
 } from '../../search/SearchFeedRow';
 import {
   getExploreSearchResultCount,
+  trackExploreSearchAbandoned,
   trackExploreSearchEvent,
   trackExploreSearchOpened,
   useInstrumentedSearchEffect,
@@ -72,6 +73,8 @@ import { useExploreSearchFooterPress } from '../../search/useExploreSearchFooter
 import { selectBrowserTabCount } from '../../../../../reducers/browser/selectors';
 import { useIsExploreHeaderRefreshEnabled } from '../../hooks/useIsExploreHeaderRefreshEnabled';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
+import BasicFunctionalityEmptyState from '../../../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import { ExploreSearchScreenSelectorsIDs } from './ExploreSearchScreen.testIds';
 import {
   getTrimmedInitialQuery,
@@ -650,7 +653,45 @@ const ExploreSearchScreen: React.FC = () => {
   const isTransitionComplete = useScreenTransitionComplete();
   const isHeaderRefreshEnabled = useIsExploreHeaderRefreshEnabled();
   const browserTabsCount = useSelector(selectBrowserTabCount);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
   const showBrowserTabsButton = isHeaderRefreshEnabled && browserTabsCount > 0;
+  const searchQueryRef = useRef(searchQuery);
+  searchQueryRef.current = searchQuery;
+  const isClipboardQueryRef = useRef(isClipboardQuery);
+  isClipboardQueryRef.current = isClipboardQuery;
+  const isCancelPressedRef = useRef(false);
+
+  useEffect(() => {
+    // beforeRemove covers closing the screen (fires before blur); blur covers
+    // leaving it mounted, e.g. switching away from the nav-bar Search tab.
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      isCancelPressedRef.current = false;
+    });
+    const unsubscribeBeforeRemove = navigation.addListener(
+      'beforeRemove',
+      () => {
+        trackExploreSearchAbandoned(
+          isCancelPressedRef.current ? 'cancel' : 'back',
+          searchQueryRef.current,
+          isClipboardQueryRef.current,
+        );
+      },
+    );
+    const unsubscribeBlur = navigation.addListener('blur', () => {
+      trackExploreSearchAbandoned(
+        isCancelPressedRef.current ? 'cancel' : 'navigate_away',
+        searchQueryRef.current,
+        isClipboardQueryRef.current,
+      );
+    });
+    return () => {
+      unsubscribeFocus();
+      unsubscribeBeforeRemove();
+      unsubscribeBlur();
+    };
+  }, [navigation]);
 
   const goBack = useCallback(() => {
     navigation.goBack();
@@ -667,6 +708,7 @@ const ExploreSearchScreen: React.FC = () => {
   }, [routeParams]);
 
   const handleSearchCancel = useCallback(() => {
+    isCancelPressedRef.current = true;
     setSearchQuery('');
     Keyboard.dismiss();
 
@@ -707,13 +749,14 @@ const ExploreSearchScreen: React.FC = () => {
       onCancel={handleSearchCancel}
       placeholder={searchPlaceholder}
       autoFocus={
+        isBasicFunctionalityEnabled &&
         (isHomepageSearch || isTransitionComplete) &&
         isHomeSearchAnimationComplete
       }
       dismissVariant={dismissVariant}
       showPastePill={showPastePill}
       onPastePress={handlePastePress}
-      clipboardButtonTestID="homepage-search-clipboard-button"
+      clipboardButtonTestID={ExploreSearchScreenSelectorsIDs.CLIPBOARD_BUTTON}
       rowTwClassName={isHomepageSearch ? 'flex-1' : undefined}
     />
   );
@@ -744,16 +787,20 @@ const ExploreSearchScreen: React.FC = () => {
           showBrowserTabsButton={showBrowserTabsButton}
         />
 
-        <PerpsSectionProvider>
-          {shouldMountSearchContent ? (
-            <ExploreSearchContent
-              searchQuery={searchQuery}
-              redactSearchQuery={isClipboardQuery}
-            />
-          ) : (
-            <ExploreSearchLoadingContent />
-          )}
-        </PerpsSectionProvider>
+        {isBasicFunctionalityEnabled ? (
+          <PerpsSectionProvider>
+            {shouldMountSearchContent ? (
+              <ExploreSearchContent
+                searchQuery={searchQuery}
+                redactSearchQuery={isClipboardQuery}
+              />
+            ) : (
+              <ExploreSearchLoadingContent />
+            )}
+          </PerpsSectionProvider>
+        ) : (
+          <BasicFunctionalityEmptyState />
+        )}
       </Box>
     </Box>
   );

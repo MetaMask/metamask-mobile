@@ -2,16 +2,19 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { SocialEntryOptionsProvider } from '../components/SocialEntryOptionsBottomSheet';
+import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import {
   getSocialEntryOptionsTriggerTestId,
   SocialEntryOptionsBottomSheetSelectorsIDs,
-} from '../components/SocialEntryOptionsBottomSheet.testIds';
-import { SOCIAL_V1_FEED_ENTRY_DIVIDER_TEST_ID } from '../SocialV1View/feed/components/SocialV1FeedPostList.testIds';
+} from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet.testIds';
+import { SOCIAL_V1_FEED_ENTRY_DIVIDER_TEST_ID } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 import LiveTradesView from './LiveTradesView';
 import { MOCK_LIVE_TRADES_ITEMS } from './mocks/liveTradesFeed.mock';
-import { getLiveTradeRowTestId } from './components/LiveTradeRow.testIds';
+import {
+  getLiveTradeCardTestId,
+  getLiveTradeRowTestId,
+} from './components/LiveTradeRow.testIds';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -27,7 +30,7 @@ jest.mock('../../../../../locales/i18n', () => ({
     vars ? `${key}:${JSON.stringify(vars)}` : key,
 }));
 
-jest.mock('../../Homepage/Sections/TopTraders/components/TraderAvatar', () => {
+jest.mock('../../../UI/SocialFeed/components/TraderAvatar', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -35,7 +38,7 @@ jest.mock('../../Homepage/Sections/TopTraders/components/TraderAvatar', () => {
   };
 });
 
-jest.mock('../components/PositionTokenAvatar', () => ({
+jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -217,5 +220,18 @@ describe('LiveTradesView', () => {
       },
       {},
     );
+  });
+
+  it('opens the position details sheet from a trade card tap', () => {
+    renderWithProvider(<LiveTradesView />);
+
+    const firstItem = MOCK_LIVE_TRADES_ITEMS[0];
+    fireEvent.press(screen.getByTestId(getLiveTradeCardTestId(firstItem.id)));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+      positionId: firstItem.positionId,
+      position: firstItem.position,
+      author: firstItem.author,
+    });
   });
 });

@@ -397,9 +397,11 @@ runs:
 
     - name: Install bundler
       if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
-      run: gem install bundler -v ${{ inputs.bundler-version }}
+      run: gem install bundler -v "${BUNDLER_VERSION}"
       working-directory: ios
       shell: bash
+      env:
+        BUNDLER_VERSION: ${{ inputs.bundler-version }}
 
     - name: Restore Bundler cache
       if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' && inputs.runner_provider != 'namespace' }}

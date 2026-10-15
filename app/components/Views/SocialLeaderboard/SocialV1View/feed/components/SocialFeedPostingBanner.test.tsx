@@ -8,7 +8,7 @@ import {
   resetSocialV1ComposedFeedStore,
   submitSocialV1ComposedPost,
 } from '../store/socialV1ComposedFeedStore';
-import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
+import { mockOpenPerpsFeedItem } from '../../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import SocialFeedPostingBanner from './SocialFeedPostingBanner';
 import { SocialFeedPostingBannerSelectorsIDs } from './SocialFeedPostingBanner.testIds';
 

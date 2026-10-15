@@ -55,10 +55,12 @@ import {
   updateAlertByType,
 } from '../../api';
 import {
-  deletePerpAlert,
+  deletePerpAlertByType,
   fetchPerpAlerts,
+  normalizePerpAlerts,
+  type PerpAlertApiResponse,
   perpAlertsQueryKey,
-  updatePerpAlert,
+  updatePerpAlertByType,
 } from '../../perpApi';
 import {
   formatPercentAlertSubtitle,
@@ -68,6 +70,8 @@ import useInFlightIds from '../../hooks/useInFlightIds';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { FeatureNotificationsGate } from '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 
 const styles = StyleSheet.create({
   switchDisabled: { opacity: 0.5 },
@@ -83,23 +87,11 @@ const analyticsPropsForAlert = (priceAlert: Alert) =>
       }
     : { alert_type: PriceAlertAnalytics.TYPE.THRESHOLD };
 
-/**
- * Ensures every alert returned by the perp-alerts API carries
- * `type: 'absolute_price'`. The API only supports absolute-price alerts and
- * may omit the discriminator field; without it the duplicate-threshold filter
- * in `AbsolutePriceAlertForm` silently skips all perp alerts.
- *
- * Applied consistently in the query `queryFn` AND in the delete-failure
- * refetch path so the cache always contains normalised data.
- */
-function normalisePerpAlerts(data: Alert[], isPerps: boolean): Alert[] {
-  if (!isPerps) return data;
-  return data.map((a) => ({ ...a, type: 'absolute_price' as const }));
-}
-
 const ManagePriceAlertsView: React.FC = () => {
   const tw = useTailwind();
   const { colors, brandColors } = useTheme();
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
   const queryClient = useQueryClient();
   const navigation = useNavigation<AppStackNavigationProp>();
   const route =
@@ -145,23 +137,29 @@ const ManagePriceAlertsView: React.FC = () => {
     data: alerts = [],
     isLoading,
     isError,
+    isFetched,
   } = useQuery({
     queryKey: effectiveQueryKey,
+    enabled: networkTier !== 'NONE',
     queryFn: async (): Promise<Alert[]> => {
       const response = isPerpsMode
         ? await fetchPerpAlerts(marketId ?? '')
         : await fetchAlerts(assetId);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = (await response.json()) as Alert[];
-      return normalisePerpAlerts(data, isPerpsMode);
+      if (isPerpsMode) {
+        const data = (await response.json()) as PerpAlertApiResponse[];
+        return normalizePerpAlerts(data);
+      }
+      return (await response.json()) as Alert[];
     },
     retry: false,
     staleTime: 0,
     gcTime: 0,
   });
+  const isInitialFetchPending = isLoading || !isFetched;
 
   useEffect(() => {
-    if (isLoading || hasResolvedInitialFetch.current) {
+    if (!isFetched || isLoading || hasResolvedInitialFetch.current) {
       return;
     }
     hasResolvedInitialFetch.current = true;
@@ -189,6 +187,7 @@ const ManagePriceAlertsView: React.FC = () => {
       });
     }
   }, [
+    isFetched,
     isLoading,
     isError,
     alerts.length,
@@ -261,7 +260,7 @@ const ManagePriceAlertsView: React.FC = () => {
       try {
         if (!target) throw new Error('Alert not found');
         const response = isPerpsMode
-          ? await deletePerpAlert(id)
+          ? await deletePerpAlertByType(target)
           : await deleteAlertByType(target);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
@@ -305,10 +304,12 @@ const ManagePriceAlertsView: React.FC = () => {
           : () => fetchAlerts(assetId);
         const response = await refetchFn().catch(() => null);
         if (response?.ok) {
-          const body = (await response.json().catch(() => [])) as Alert[];
+          const body = await response.json().catch(() => []);
           queryClient.setQueryData(
             queryKey,
-            normalisePerpAlerts(body, isPerpsMode),
+            isPerpsMode
+              ? normalizePerpAlerts(body as PerpAlertApiResponse[])
+              : (body as Alert[]),
           );
         } else {
           queryClient.setQueryData(queryKey, previous);
@@ -349,7 +350,7 @@ const ManagePriceAlertsView: React.FC = () => {
       try {
         if (!toggled) throw new Error('Alert not found');
         const response = isPerpsMode
-          ? await updatePerpAlert(id, { active: newValue })
+          ? await updatePerpAlertByType(toggled, { active: newValue })
           : await updateAlertByType(toggled, { active: newValue });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
@@ -497,7 +498,7 @@ const ManagePriceAlertsView: React.FC = () => {
           onBack={handleBack}
         />
 
-        {isLoading ? (
+        {isInitialFetchPending ? (
           <Box
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
@@ -514,12 +515,13 @@ const ManagePriceAlertsView: React.FC = () => {
               data={alerts}
               keyExtractor={(item) => item.id}
               renderItem={renderItem}
+              windowSize={hardwareTier === 'LOW' ? 5 : 21}
               testID={ManagePriceAlertsTestIds.ALERT_LIST}
             />
           </Box>
         )}
 
-        {!isLoading && alerts.length > 0 && (
+        {!isInitialFetchPending && alerts.length > 0 && (
           <>
             <View style={tw.style('px-4 pb-4 pt-2')}>
               <Button

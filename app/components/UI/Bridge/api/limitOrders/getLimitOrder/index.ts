@@ -30,10 +30,12 @@ export async function getLimitOrder({
   const bearerToken =
     await Engine.context.AuthenticationController.getBearerToken();
 
-  const searchParams = new URLSearchParams({ id: orderId, accountAddress });
+  const searchParams = new URLSearchParams({ accountAddress });
 
   const response = await fetch(
-    `${getLimitOrdersBaseUrl()}/v2/orders/limit?${searchParams.toString()}`,
+    `${getLimitOrdersBaseUrl()}/v2/orders/limit/${encodeURIComponent(
+      orderId,
+    )}?${searchParams.toString()}`,
     {
       method: 'GET',
       headers: {

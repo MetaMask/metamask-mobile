@@ -4,7 +4,7 @@ import {
   formatCount,
   formatPercent,
   formatSignedFullUsdNoDecimals,
-} from '../../utils/formatters';
+} from '../../../../UI/SocialFeed/utils/formatters';
 import type { TraderProfileWithSheetStats } from '../../TraderProfileView/types/traderProfileStatsSheet';
 import {
   FAKE_STATS_PREFIX,

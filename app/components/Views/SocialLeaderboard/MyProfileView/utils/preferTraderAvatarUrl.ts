@@ -1,6 +1,4 @@
-/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
-import { hasRealAvatar } from '../../../Homepage/Sections/TopTraders/utils/avatarFallback';
-/* eslint-enable import-x/no-restricted-paths */
+import { hasRealAvatar } from '../../../../UI/SocialFeed/utils/avatarFallback';
 
 /**
  * Prefer a real remote profile photo, then a list/nav snapshot URL.

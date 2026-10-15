@@ -5,6 +5,8 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import CreateVirtualBankAccount from './CreateVirtualBankAccount';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
+import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
+import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
 const mockOnSuccess = jest.fn();
 const mockGoBack = jest.fn();
 
@@ -19,6 +21,15 @@ jest.mock('./hooks/useKycDisclaimers');
 const mockUseKycDisclaimers = jest.mocked(useKycDisclaimers);
 const mockRetry = jest.fn();
 const mockAcceptDisclaimers = jest.fn();
+
+jest.mock('../../../Money/hooks/useMoneyVaultApy', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
+
+jest.mock('./hooks/useVbaArrivalTime');
+const mockUseVbaArrivalTime = jest.mocked(useVbaArrivalTime);
 
 const privacyDisclaimer = {
   id: 'd-1',
@@ -44,22 +55,45 @@ describe('CreateVirtualBankAccount', () => {
       retry: mockRetry,
     });
     mockAcceptDisclaimers.mockResolvedValue(true);
+    mockUseMoneyVaultApy.mockReturnValue({
+      apyPercent: 4.2,
+    } as unknown as ReturnType<typeof useMoneyVaultApy>);
+    // Arrival-row behavior is covered by CreateVirtualBankAccount.view.test.tsx
+    // (real hooks); the stub keeps KYC/CTA/APY tests off the payment-methods query.
+    mockUseVbaArrivalTime.mockReturnValue({ arrivalTimeframe: undefined });
   });
 
-  it('renders the activation design', () => {
+  it('renders the intro design with feature rows and footer', () => {
     const { getByText, getByTestId } = renderWithProvider(
       <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
     );
 
-    expect(getByText('Activate your Virtual Bank Account')).toBeOnTheScreen();
-    expect(getByText('Receive money locally')).toBeOnTheScreen();
-    expect(getByText('Add money with ease')).toBeOnTheScreen();
-    expect(getByText('Manage multiple currencies')).toBeOnTheScreen();
+    expect(getByText('Add funds right from your bank')).toBeOnTheScreen();
+    expect(getByText('No fees to add funds')).toBeOnTheScreen();
+    expect(getByText('Arrives in a few business days')).toBeOnTheScreen();
+    expect(getByText('Set up once, use anytime')).toBeOnTheScreen();
+    expect(getByText('Starts earning straight away')).toBeOnTheScreen();
+    expect(getByText('Powered by')).toBeOnTheScreen();
     expect(
       getByTestId(
         CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
       ),
     ).toBeOnTheScreen();
+    expect(getByText('Get account details')).toBeOnTheScreen();
+    expect(getByText('Deposits earn 4.2% APY as mUSD.')).toBeOnTheScreen();
+  });
+
+  it('shows the earn copy without a number when APY is unavailable', () => {
+    mockUseMoneyVaultApy.mockReturnValue({
+      apyPercent: undefined,
+    } as unknown as ReturnType<typeof useMoneyVaultApy>);
+
+    const { getByText, queryByText } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+
+    expect(getByText('Deposits earn APY as mUSD.')).toBeOnTheScreen();
+    expect(queryByText('Deposits earn 4.2% APY as mUSD.')).toBeNull();
   });
 
   it('navigates back when the header back button is pressed', () => {
@@ -190,6 +224,18 @@ describe('CreateVirtualBankAccount', () => {
     fireEvent.press(getByText("MoonPay's Privacy Policy"));
 
     expect(spy).toHaveBeenCalledWith('https://moonpay.example/privacy');
+  });
+
+  it('renders the full agreement sentence with a closing period', () => {
+    const { getByText } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+
+    expect(
+      getByText(
+        "By continuing, you are acknowledging that you have read and agreed to MoonPay's Privacy Policy and MoonPay's Terms and Conditions.",
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('shows an error with a retry action and keeps the CTA disabled when the fetch fails', () => {

@@ -95,7 +95,10 @@ export const PRICE_API_MOCKS: MockEventsObject = {
           'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           'bip122:000000000019d6689c085ae165831e93',
         ],
-        partialSupport: [],
+        partialSupport: {
+          spotPricesV2: [],
+          spotPricesV3: [],
+        },
       },
     },
     {
@@ -299,6 +302,19 @@ export const PRICE_API_MOCKS: MockEventsObject = {
           pricePercentChange200d: 0,
           pricePercentChange1y: 0,
         },
+      },
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/price\.api\.cx\.metamask\.io\/v3\/ohlcv\/eip155:\d+\/[^/]+\/latest\?.*$/,
+      responseCode: 200,
+      response: {
+        timestamp: Date.now(),
+        open: 24.5,
+        high: 24.8,
+        low: 24.3,
+        close: 24.6,
+        volume: 1000000,
       },
     },
     {

@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { Keyboard } from 'react-native';
 import {
   Box,
   Label,
@@ -266,8 +267,9 @@ const SetPhoneNumber = () => {
                 'card.card_onboarding.set_phone_number.phone_number_label',
               ),
               testID: 'set-phone-number-phone-number-input',
-              onSubmitEditing: handleContinue,
+              onSubmitEditing: Keyboard.dismiss,
               returnKeyType: 'done',
+              blurOnSubmit: true,
             }}
           />
         </Box>

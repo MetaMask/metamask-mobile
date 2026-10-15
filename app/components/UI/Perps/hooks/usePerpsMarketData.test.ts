@@ -103,8 +103,9 @@ describe('usePerpsMarketData', () => {
   it('should handle empty asset', () => {
     const { result } = renderHook(() => usePerpsMarketData(''));
 
-    // Should immediately return without loading
-    expect(result.current.isLoading).toBe(false);
+    // Deferred fetches pass '' until the first frame. Stay loading so the
+    // trade sheet does not treat that as a failed market.
+    expect(result.current.isLoading).toBe(true);
     expect(result.current.marketData).toBe(null);
     expect(result.current.error).toBe(null);
     expect(mockGetMarkets).not.toHaveBeenCalled();
@@ -163,6 +164,50 @@ describe('usePerpsMarketData', () => {
 
     expect(mockGetMarkets).toHaveBeenCalledWith({ symbols: ['BTC'] });
     expect(mockGetMarkets).toHaveBeenCalledWith({ symbols: ['ETH'] });
+  });
+
+  describe('providerId parameter', () => {
+    const hyperliquidBtc: MarketInfo = {
+      ...mockMarketData,
+      providerId: 'hyperliquid',
+    };
+    const lighterBtc: MarketInfo = {
+      ...mockMarketData,
+      onlyIsolated: true,
+      providerId: 'lighter',
+    };
+
+    it.each([
+      ['hyperliquid', hyperliquidBtc],
+      ['lighter', lighterBtc],
+    ] as const)(
+      'returns the %s record when several providers list the asset',
+      async (providerId, expected) => {
+        mockGetMarkets.mockResolvedValue([lighterBtc, hyperliquidBtc]);
+
+        const { result } = renderHook(() =>
+          usePerpsMarketData({ asset: 'BTC', providerId }),
+        );
+
+        await waitFor(() => {
+          expect(result.current.isLoading).toBe(false);
+        });
+        expect(result.current.marketData).toEqual(expected);
+      },
+    );
+
+    it('matches an untagged record from a single provider', async () => {
+      mockGetMarkets.mockResolvedValue([mockMarketData]);
+
+      const { result } = renderHook(() =>
+        usePerpsMarketData({ asset: 'BTC', providerId: 'hyperliquid' }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+      expect(result.current.marketData).toEqual(mockMarketData);
+    });
   });
 
   describe('showErrorToast parameter', () => {
