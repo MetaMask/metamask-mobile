@@ -20,10 +20,7 @@ import { SecurityPillSelectors } from './SecurityPill.testIds';
 /**
  * Security screening outcome shown on the Token Details V1 security & social row.
  *
- * TODO(ASSETS-4018): derive from Blockaid once security data is wired up —
- * `Benign` -> screened, `Malicious` -> high_risk, no coverage -> unscreened,
- * scan still running -> pending. Liquidity and market cap do not feed the
- * verdict in V1.
+ * Resolved by `resolveVerdict` in `utils/securityFacts.ts`.
  */
 export type SecurityVerdict =
   | 'screened'
@@ -90,11 +87,14 @@ const VERDICT_CONFIG: Record<SecurityVerdict, VerdictConfig> = {
 export interface SecurityPillProps {
   verdict: SecurityVerdict;
   /**
-   * Number of security flags raised against the token. Only `medium_risk`
-   * renders it, as the flag count is its label ("1 flag", "3 flags"). The
-   * other verdicts have fixed labels and ignore it.
+   * Number of risks Blockaid found. Only `medium_risk` renders it, as the
+   * count is its label ("1 flag", "3 flags"). The other verdicts have fixed
+   * labels and ignore it.
+   *
+   * The same number the Security tab's banner shows, so the pill cannot
+   * promise more findings than the screen behind it lists.
    */
-  flagCount?: number;
+  riskCount?: number;
   /**
    * Opens the Security tab, where the individual flags are listed. The pill
    * renders as static text when omitted, which is how the tab's own header
@@ -108,14 +108,14 @@ export interface SecurityPillProps {
  */
 export const SecurityPill: React.FC<SecurityPillProps> = ({
   verdict,
-  flagCount = 0,
+  riskCount = 0,
   onPress,
 }) => {
   const { background, textColor, iconColor, labelKey } =
     VERDICT_CONFIG[verdict];
   // `count` drives i18n pluralization for the flag labels and is ignored by
   // the fixed ones, so every verdict resolves through the same call.
-  const label = strings(labelKey, { count: flagCount });
+  const label = strings(labelKey, { count: riskCount });
 
   const pill = (
     <Box

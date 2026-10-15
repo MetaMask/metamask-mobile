@@ -9,7 +9,9 @@
  */
 
 import '../../../../../tests/component-view/mocks';
+import NetInfo from '@react-native-community/netinfo';
 import { fireEvent, screen } from '@testing-library/react-native';
+import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import Routes from '../../../../constants/navigation/Routes';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
 import { renderSocialProfileOnboarding } from '../../../../../tests/component-view/renderers/socialLeaderboard';
@@ -19,9 +21,15 @@ import {
 } from '../MyProfileView/hooks/localSocialProfileStore';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+const goOnline = () =>
+  netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+
 describe('SocialProfileOnboardingView', () => {
   afterEach(() => {
     restoreDefaultLocalSocialProfile();
+    netInfoMock.__resetMockNetInfo();
   });
 
   it('writes a manual profile and opens the feed', async () => {
@@ -77,6 +85,58 @@ describe('SocialProfileOnboardingView', () => {
         linkedAccountId: 'acc-1',
       }),
     );
+  });
+
+  it('shows the static live activity on the intro while offline', () => {
+    renderSocialProfileOnboarding();
+
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_FALLBACK),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_ANIMATION),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('plays the intro animation while online', () => {
+    goOnline();
+
+    renderSocialProfileOnboarding();
+
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_ANIMATION),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_FALLBACK),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the animated profile card on the ready step while online', async () => {
+    goOnline();
+    renderSocialProfileOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_ANIMATION),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.READY_HANDLE),
+    ).not.toBeOnTheScreen();
   });
 
   it('stays on the username step when the handle cannot be claimed', () => {

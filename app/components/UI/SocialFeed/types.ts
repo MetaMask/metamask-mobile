@@ -1,5 +1,8 @@
 import type { CaipChainId } from '@metamask/utils';
-import type { FeedItem as CoreFeedItem } from '@metamask/social-controllers';
+import type {
+  FeedItem as CoreFeedItem,
+  Position,
+} from '@metamask/social-controllers';
 import type { PositionTokenAvatarData } from './components/PositionTokenAvatar';
 import type { SocialV1MockedField } from './mockMarker';
 import type { TradeAction } from './utils/tradeAction';
@@ -162,6 +165,11 @@ export interface SocialV1FeedPost {
   gifUri?: string;
   isPending?: boolean;
   item: SocialV1FeedItem;
+  /**
+   * The canonical position behind a live row, handed to the position details
+   * sheet so it opens without a fetch. Absent on pending and mocked posts.
+   */
+  position?: Position;
 }
 
 /**
@@ -169,6 +177,12 @@ export interface SocialV1FeedPost {
  * only the activity of traders the user follows.
  */
 export type FeedAudience = 'all' | 'following';
+
+/**
+ * Asset class a social surface is narrowed to. Same values as the
+ * leaderboard's `SocialTypeFilter`, so filter state passes straight through.
+ */
+export type SocialAssetClass = 'all' | 'tokens' | 'perps';
 
 /**
  * Position-lifecycle stage of the trade a row announces, shown after the
