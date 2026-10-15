@@ -12,11 +12,11 @@ Historical note: this doc previously described a Perps-local `usePerpsABTest` ho
 
 | Flag key (Redux / `useABTest`)           | Variants               | Purpose                                                                   |
 | ---------------------------------------- | ---------------------- | ------------------------------------------------------------------------- |
-| `perpsTAT1937AbtestButtonColor`          | `control`, `colors`    | Long/short button color (TAT-1937)                                        |
 | `perpsTAT3938AbtestScreenVsBottomSheet`  | `control`, `treatment` | Shared screen vs bottom-sheet experience                                  |
 | `perpsTAT3597AbtestPerpsSectionPriority` | `control`, `treatment` | Perps section above Tokens on wallet home for eligible traders (TAT-3597) |
 
-`perpsTAT1937AbtestButtonColor` is version-gated to app version `8.3.0` and above using the `versions` + `thresholdVersion: 2` LaunchDarkly composition. See [`docs/perps/perps-feature-flags.md`](./perps-feature-flags.md).
+The `perpsTAT1937AbtestButtonColor` experiment has concluded. Its color
+treatment is now the standard Long/Short presentation.
 
 ## Screen vs bottom sheet (`perpsTAT3938AbtestScreenVsBottomSheet`)
 
