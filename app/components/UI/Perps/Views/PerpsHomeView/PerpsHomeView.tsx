@@ -347,6 +347,10 @@ const PerpsHomeView = () => {
   const {
     positions,
     orders,
+    ordersError,
+    retryOrders,
+    activityError,
+    retryActivity,
     watchlistMarkets,
     suggestedWatchlistMarkets,
     perpsMarkets, // Crypto markets (renamed from trendingMarkets)
@@ -473,10 +477,11 @@ const PerpsHomeView = () => {
   // sees and stays consistent with per-section scroll impressions.
   const sectionsDisplayed = useMemo(() => {
     const sections: string[] = [PERPS_EVENT_VALUE.SECTION_NAME.BALANCE];
-    // Positions/orders render a skeleton while loading, then self-hide when empty.
+    // Positions render a skeleton while loading, then self-hide when empty.
+    // Orders do the same, and stay visible when the stream failed.
     if (isLoading.positions || positions.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS);
-    if (isLoading.orders || orders.length > 0)
+    if (ordersError || isLoading.orders || orders.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.ORDERS);
     if (isWhatsHappeningVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING);
@@ -505,7 +510,7 @@ const PerpsHomeView = () => {
     // 30 days, or when the feature flag is off.
     if (isRecentlyAddedVisible) sections.push('recently_added');
     // Recent activity shows a skeleton while loading, then self-hides when empty.
-    if (isLoading.activity || recentActivity.length > 0)
+    if (activityError || isLoading.activity || recentActivity.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY);
     return sections;
   }, [
@@ -522,6 +527,8 @@ const PerpsHomeView = () => {
     stocksMarkets,
     forexMarkets,
     recentActivity,
+    activityError,
+    ordersError,
   ]);
 
   usePerpsEventTracking({
@@ -782,18 +789,39 @@ const PerpsHomeView = () => {
       },
       {
         key: 'orders',
-        visible: isLoading.orders || orders.length > 0,
+        visible: Boolean(ordersError) || isLoading.orders || orders.length > 0,
         onLayout: handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.ORDERS),
         content: (
           <PerpsHomeSection
             title={strings('perps.home.orders')}
             isLoading={isLoading.orders}
-            isEmpty={orders.length === 0}
-            showWhenEmpty={false}
-            onActionPress={handleCancelAllPress}
+            isEmpty={orders.length === 0 && !ordersError}
+            showWhenEmpty={Boolean(ordersError)}
+            onActionPress={ordersError ? undefined : handleCancelAllPress}
             renderSkeleton={() => <PerpsRowSkeleton count={2} />}
           >
             <View>
+              {ordersError && (
+                <Box
+                  twClassName="px-4 py-3 gap-2"
+                  testID={PerpsHomeViewSelectorsIDs.ORDERS_ERROR}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.ErrorDefault}
+                  >
+                    {strings('perps.home.orders_load_error')}
+                  </Text>
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    size={ButtonSize.Md}
+                    onPress={retryOrders}
+                    testID={PerpsHomeViewSelectorsIDs.ORDERS_RETRY}
+                  >
+                    {strings('perps.errors.connectionFailed.retry')}
+                  </Button>
+                </Box>
+              )}
               {orders.map((order, index) => (
                 <PerpsCard
                   key={order.orderId}
@@ -958,7 +986,10 @@ const PerpsHomeView = () => {
       },
       {
         key: 'recent-activity',
-        visible: isLoading.activity || recentActivity.length > 0,
+        visible:
+          Boolean(activityError) ||
+          isLoading.activity ||
+          recentActivity.length > 0,
         onLayout: handleSectionLayout(
           PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY,
         ),
@@ -966,6 +997,31 @@ const PerpsHomeView = () => {
           <PerpsRecentActivityList
             transactions={recentActivity}
             isLoading={isLoading.activity}
+            errorContent={
+              activityError && (
+                <Box
+                  paddingHorizontal={4}
+                  paddingVertical={3}
+                  gap={2}
+                  testID={PerpsHomeViewSelectorsIDs.ACTIVITY_ERROR}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.ErrorDefault}
+                  >
+                    {strings('perps.home.activity_load_error')}
+                  </Text>
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    size={ButtonSize.Md}
+                    onPress={retryActivity}
+                    testID={PerpsHomeViewSelectorsIDs.ACTIVITY_RETRY}
+                  >
+                    {strings('perps.errors.connectionFailed.retry')}
+                  </Button>
+                </Box>
+              )
+            }
           />
         ),
       },
@@ -979,6 +1035,10 @@ const PerpsHomeView = () => {
       isLoading,
       positions,
       orders,
+      ordersError,
+      retryOrders,
+      retryActivity,
+      activityError,
       privacyMode,
       positionsSubtitle,
       positionsSubtitleColor,
