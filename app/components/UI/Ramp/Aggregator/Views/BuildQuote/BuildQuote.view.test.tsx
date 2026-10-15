@@ -25,13 +25,16 @@ import {
 import { MULTICHAIN_TEST_ACCOUNTS } from '../../../../../../../tests/component-view/presets/multichainAccounts';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { AccountGroupType } from '@metamask/account-api';
+import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import { RAMPS_OFF_RAMP_NON_EVM_FLAG_KEY } from '../../../../../../selectors/featureFlagController/offRampNonEvm';
+import type { RootState } from '../../../../../../reducers';
+import type { DeepPartial } from '../../../../../../util/test/renderWithProvider';
 
 const SOLANA_ONLY_ACCOUNT_NAME = 'Solana Account';
 const SOLANA_ONLY_ACCOUNT_ID = 'solana-only-account';
 const SOLANA_ONLY_GROUP_ID = 'snap:solana/0';
 
-const solanaOnlyAccountState = {
+const solanaOnlyAccountState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       AccountTreeController: {
@@ -60,8 +63,8 @@ const solanaOnlyAccountState = {
             [SOLANA_ONLY_ACCOUNT_ID]: {
               id: SOLANA_ONLY_ACCOUNT_ID,
               address: '7S3P4HxJpyyigGzodYwHtCxZyUQe9JiBMHyRWXArAaKv',
-              type: 'solana:data-account',
-              scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
+              type: SolAccountType.DataAccount,
+              scopes: [SolScope.Mainnet],
               options: {},
               methods: [],
               metadata: {
@@ -322,7 +325,7 @@ describe('Aggregator BuildQuote', () => {
           ...solanaOnlyAccountState,
           engine: {
             backgroundState: {
-              ...solanaOnlyAccountState.engine.backgroundState,
+              ...solanaOnlyAccountState.engine?.backgroundState,
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
                   [RAMPS_OFF_RAMP_NON_EVM_FLAG_KEY]: {

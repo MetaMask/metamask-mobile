@@ -844,10 +844,9 @@ describe('SendTransaction View', () => {
     });
 
     it('does not call the Snap when the asset id is missing', async () => {
-      const cryptoCurrency = {
-        ...(mockSolanaOrder.data as SellOrder).cryptoCurrency,
-      };
-      delete cryptoCurrency.assetId;
+      const { assetId: _assetId, ...cryptoCurrency } = (
+        mockSolanaOrder.data as SellOrder
+      ).cryptoCurrency;
       const orderWithoutAssetId = {
         ...mockSolanaOrder,
         data: {
