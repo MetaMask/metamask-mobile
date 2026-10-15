@@ -404,10 +404,13 @@ jest.mock(
 
 const mockUseVbaHomeCard = jest.mocked(useVbaHomeCard);
 const mockUseVbaHomeCardRefresh = jest.mocked(useVbaHomeCardRefresh);
-jest.mock('../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard', () => ({
-  useVbaHomeCard: jest.fn(),
-  useVbaHomeCardRefresh: jest.fn(),
-}));
+jest.mock(
+  '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard',
+  () => ({
+    useVbaHomeCard: jest.fn(),
+    useVbaHomeCardRefresh: jest.fn(),
+  }),
+);
 
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 const mockSelectHasMetalCard = jest.mocked(selectHasMetalCard);
@@ -780,9 +783,9 @@ describe('MoneyHomeView', () => {
   });
 
   describe('VBA identity-status card', () => {
-    const VBA_CARD_CONTAINERS = Object.values(
-      MONEY_VBA_HOME_CARD_TEST_IDS,
-    ).map((testIds) => testIds.CONTAINER);
+    const VBA_CARD_CONTAINERS = Object.values(MONEY_VBA_HOME_CARD_TEST_IDS).map(
+      (testIds) => testIds.CONTAINER,
+    );
 
     const expectOnlyVbaCard = (
       rendered: ReturnType<typeof renderWithProvider>,
