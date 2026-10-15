@@ -326,6 +326,25 @@ const mockUsePerpsTrading = usePerpsTrading as jest.Mock;
 const mockUsePerpsNetworkManagement = usePerpsNetworkManagement as jest.Mock;
 const mockUseConfirmNavigation = useConfirmNavigation as jest.Mock;
 
+interface ClassNameNode {
+  parent?: ClassNameNode | null;
+  props?: { twClassName?: string };
+}
+
+const findEmptyBalanceClassName = (
+  node: ClassNameNode | null,
+): string | undefined => {
+  let current = node;
+  while (current) {
+    const className = current.props?.twClassName;
+    if (typeof className === 'string' && className.includes('px-4')) {
+      return className;
+    }
+    current = current.parent ?? null;
+  }
+  return undefined;
+};
+
 describe('PerpsMarketBalanceActions', () => {
   const defaultPerpsAccount = {
     totalBalance: '10.57',
@@ -695,6 +714,45 @@ describe('PerpsMarketBalanceActions', () => {
       expect(
         getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
       ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.CONTAINER).props
+          .twClassName,
+      ).toBeUndefined();
+      expect(
+        findEmptyBalanceClassName(
+          getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
+        ),
+      ).toBe('px-4 pt-2');
+    });
+
+    it('keeps bottom spacing on the empty balance outside home', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...defaultPerpsAccount,
+          totalBalance: '0.00',
+          spendableBalance: '0.00',
+          withdrawableBalance: '0.00',
+        },
+        isInitialLoading: false,
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false,
+      );
+
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.CONTAINER).props
+          .twClassName,
+      ).toBe('mb-4 rounded-xl');
+      expect(
+        findEmptyBalanceClassName(
+          getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
+        ),
+      ).toBe('px-4 pt-2 pb-4');
     });
 
     it('shows action buttons without balance display when balance is hidden', () => {

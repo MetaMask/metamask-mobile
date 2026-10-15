@@ -60,7 +60,8 @@ const competitionImage = require('../../../../../images/perps-competition-banner
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 12,
+    // Same 20px the home section divider inserts below this banner.
+    marginTop: 20,
     marginHorizontal: 16,
     marginBottom: 0,
   },

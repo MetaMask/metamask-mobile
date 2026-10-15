@@ -5,7 +5,7 @@
 import '../../../../../../tests/component-view/mocks';
 
 import React from 'react';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import {
   act,
   cleanup,
@@ -142,6 +142,46 @@ describe('PerpsHomeView', () => {
         placeOrder: false,
       });
     });
+  });
+
+  it('leaves a single gap under Add funds when the balance is empty', async () => {
+    renderPerpsHomeView({
+      overrides: eligibleOverrides,
+      streamOverrides: {
+        account: createFundedAccountForViews('0'),
+        positions: [],
+        orders: [],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+
+    const container = await screen.findByTestId(
+      PerpsMarketBalanceActionsSelectorsIDs.CONTAINER,
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+    const containerStyle = StyleSheet.flatten(container.props.style);
+
+    expect(containerStyle?.marginBottom ?? 0).toBe(0);
+
+    let balanceBlock = screen.getByTestId(
+      PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
+    ).parent;
+    while (balanceBlock && balanceBlock !== container) {
+      const blockStyle = StyleSheet.flatten(balanceBlock.props?.style);
+      expect(blockStyle?.paddingBottom ?? 0).toBe(0);
+      balanceBlock = balanceBlock.parent;
+    }
+
+    let ancestor = container.parent;
+    while (
+      ancestor &&
+      ancestor.props?.testID !== PerpsHomeViewSelectorsIDs.SCROLL_CONTENT
+    ) {
+      const ancestorStyle = StyleSheet.flatten(ancestor.props?.style);
+      expect(ancestorStyle?.paddingBottom).not.toBe(12);
+      ancestor = ancestor.parent;
+    }
   });
 
   it('retries an order authentication failure and accepts an empty snapshot', async () => {

@@ -13,12 +13,18 @@ import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 
 export interface PerpsEmptyBalanceProps {
   onAddFunds: () => void;
+  /**
+   * Home already separates the next section, so its empty balance omits this
+   * padding. The market list keeps it.
+   */
+  includeBottomPadding?: boolean;
 }
 
 const PerpsEmptyBalance: React.FC<PerpsEmptyBalanceProps> = ({
   onAddFunds,
+  includeBottomPadding = true,
 }) => (
-  <Box twClassName="px-4 pt-2 pb-4">
+  <Box twClassName={includeBottomPadding ? 'px-4 pt-2 pb-4' : 'px-4 pt-2'}>
     <Text
       variant={TextVariant.DisplayLg}
       color={TextColor.TextDefault}
