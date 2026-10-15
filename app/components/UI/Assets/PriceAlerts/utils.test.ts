@@ -38,6 +38,8 @@ describe('price alert formatting', () => {
   });
 
   it.each([
+    ['5m', true, '5m • Recurring'],
+    ['5m', false, '5m • Once'],
     ['1h', true, '1h • Recurring'],
     ['1h', false, '1h • Once'],
     ['24h', true, '24h • Recurring'],

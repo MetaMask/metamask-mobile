@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type {
@@ -11,6 +11,10 @@ import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
+import {
+  clearReportedMoneyInterestError,
+  reportMoneyInterestError,
+} from '../utils/reportMoneyInterestError';
 import useMoneyAccountInfo from './useMoneyAccountInfo';
 
 const LAST_30_DAYS_WINDOW: InterestWindow = '30d';
@@ -66,6 +70,22 @@ const useMoneyAccountInterest = (): UseMoneyAccountInterestResult => {
     ],
     enabled: isEnabled,
   }) as UseQueryResult<InterestResponse>;
+
+  useEffect(() => {
+    if (!last30DaysQuery.isError) {
+      clearReportedMoneyInterestError(LAST_30_DAYS_WINDOW);
+      return;
+    }
+    reportMoneyInterestError(LAST_30_DAYS_WINDOW, last30DaysQuery.error);
+  }, [last30DaysQuery.error, last30DaysQuery.isError]);
+
+  useEffect(() => {
+    if (!sinceInceptionQuery.isError) {
+      clearReportedMoneyInterestError(SINCE_INCEPTION_WINDOW);
+      return;
+    }
+    reportMoneyInterestError(SINCE_INCEPTION_WINDOW, sinceInceptionQuery.error);
+  }, [sinceInceptionQuery.error, sinceInceptionQuery.isError]);
 
   const refetchInterest = useCallback(async () => {
     if (!isEnabled || !address || !vaultAddress) {
