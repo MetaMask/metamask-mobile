@@ -397,8 +397,22 @@ describe('assetsControllerInit', () => {
   });
 
   describe('tempMigrateAssetsInfoMetadataAssets3346', () => {
-    it('returns the persisted AccountsController state', () => {
+    it('returns the persisted TokensController and AccountsController state', () => {
       const requestMock = getInitRequestMock();
+      const mockTokensControllerState = {
+        allTokens: {
+          '0x64': {
+            '0x0000000000000000000000000000000000000001': [
+              {
+                address: '0x0000000000000000000000000000000000000002',
+                symbol: 'TST',
+                decimals: 18,
+              },
+            ],
+          },
+        },
+        allIgnoredTokens: {},
+      };
       const mockAccountsControllerState = {
         internalAccounts: {
           accounts: {
@@ -411,6 +425,7 @@ describe('assetsControllerInit', () => {
         },
       };
       requestMock.persistedState = {
+        TokensController: mockTokensControllerState,
         AccountsController: mockAccountsControllerState,
       } as typeof requestMock.persistedState;
 
@@ -423,11 +438,12 @@ describe('assetsControllerInit', () => {
 
       expect(getMigrationState).toBeDefined();
       expect(getMigrationState?.()).toStrictEqual({
+        TokensController: mockTokensControllerState,
         AccountsController: mockAccountsControllerState,
       });
     });
 
-    it('returns an undefined slice when no legacy state is persisted', () => {
+    it('returns undefined slices when no legacy state is persisted', () => {
       const requestMock = getInitRequestMock();
       requestMock.persistedState = {};
 
@@ -439,6 +455,7 @@ describe('assetsControllerInit', () => {
         constructorCall.tempMigrateAssetsInfoMetadataAssets3346;
 
       expect(getMigrationState?.()).toStrictEqual({
+        TokensController: undefined,
         AccountsController: undefined,
       });
     });

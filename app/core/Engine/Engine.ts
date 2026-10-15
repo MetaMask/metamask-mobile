@@ -7,7 +7,10 @@ import {
   AppStateStatus,
   NativeEventSubscription,
 } from 'react-native';
-import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
+import {
+  CodefiTokenPricesServiceV2,
+  TokenListService,
+} from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
 import {
   KeyringController,
@@ -142,6 +145,7 @@ import { GatorPermissionsControllerInit } from './controllers/gator-permissions-
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
 import { DelegationControllerInit } from './controllers/delegation/delegation-controller-init';
 import { selectedNetworkControllerInit } from './controllers/selected-network-controller-init';
+import { tokensControllerInit } from './controllers/tokens-controller-init';
 import { permissionControllerInit } from './controllers/permission-controller-init';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { subjectMetadataControllerInit } from './controllers/subject-metadata-controller-init';
@@ -265,6 +269,12 @@ export class Engine {
     CaveatSpecificationConstraint
   >;
 
+  /**
+   * Shared token list service. Stored so destroyEngineInstance can call
+   * destroy() to abort in-flight requests and clear the TanStack Query cache.
+   */
+  private tokenListService: TokenListService;
+
   #wallet: Wallet;
 
   /**
@@ -291,6 +301,8 @@ export class Engine {
     });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
+    const tokenListService = new TokenListService();
+    this.tokenListService = tokenListService;
 
     const initRequest = {
       getState: () => store.getState(),
@@ -300,6 +312,7 @@ export class Engine {
       ///: END:ONLY_INCLUDE_IF
       analyticsId,
       codefiTokenApiV2,
+      tokenListService,
     };
     const { messengerClientsByName } = initMessengerClients({
       wallet: this.#wallet,
@@ -325,6 +338,7 @@ export class Engine {
         GeolocationApiService: geolocationApiServiceInit,
         SentinelApiService: sentinelApiServiceInit,
         GeolocationController: geolocationControllerInit,
+        TokensController: tokensControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
         TokenSearchDiscoveryDataController:
@@ -506,6 +520,7 @@ export class Engine {
     const earnController = messengerClientsByName.EarnController;
     const moneyAccountController =
       messengerClientsByName.MoneyAccountController;
+    const tokensController = messengerClientsByName.TokensController;
     const tokenSearchDiscoveryDataController =
       messengerClientsByName.TokenSearchDiscoveryDataController;
     const bridgeController = messengerClientsByName.BridgeController;
@@ -596,6 +611,7 @@ export class Engine {
       AssetsContractController: assetsContractController,
       AssetsController: messengerClientsByName.AssetsController,
       NftController: nftController,
+      TokensController: tokensController,
       NftDetectionController: nftDetectionController,
       NetworkController: networkController,
       PhishingController: phishingController,
@@ -1334,6 +1350,7 @@ export class Engine {
     // get rid of the old data from state
     const {
       TransactionController,
+      TokensController,
       NftController,
       PermissionController,
       // SelectedNetworkController,
@@ -1359,6 +1376,7 @@ export class Engine {
     // SelectedNetworkController.unsetAllDomains()
 
     // Clear assets info
+    TokensController.resetState();
     NftController.resetState();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1408,6 +1426,7 @@ export class Engine {
         controller.destroy();
       }
     });
+    this.tokenListService.destroy();
     this.removeAllListeners();
     await this.resetState();
 
@@ -1567,6 +1586,7 @@ export default {
       SubscriptionController,
       ShieldController,
       ClaimsController,
+      TokensController,
       TokenSearchDiscoveryDataController,
       TransactionController,
       TransactionPayController,
@@ -1642,6 +1662,7 @@ export default {
       SubscriptionController: SubscriptionController.state,
       ShieldController: ShieldController.state,
       ClaimsController: ClaimsController.state,
+      TokensController: TokensController.state,
       TokenSearchDiscoveryDataController:
         TokenSearchDiscoveryDataController.state,
       TransactionController: TransactionController.state,

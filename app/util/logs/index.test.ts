@@ -134,6 +134,7 @@ describe('logs :: generateStateLogs', () => {
         backgroundState: {
           ...backgroundState,
           NftController: { nfts: [] },
+          TokensController: { tokens: [] },
           AssetsController: { assetsBalance: {} },
           NftDetectionController: { detectedNfts: [] },
           PhishingController: { whitelist: [] },
@@ -151,6 +152,7 @@ describe('logs :: generateStateLogs', () => {
     const logs = generateStateLogs(mockStateInput);
 
     expect(logs.includes('NftController')).toBe(false);
+    expect(logs.includes('TokensController')).toBe(false);
     expect(logs.includes('AssetsController')).toBe(false);
     expect(logs.includes('AssetsContractController')).toBe(false);
     expect(logs.includes('NftDetectionController')).toBe(false);

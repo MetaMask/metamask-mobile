@@ -45,6 +45,11 @@
     "allNfts": {},
     "ignoredNfts": []
   },
+  "TokensController": {
+    "allTokens": {},
+    "allIgnoredTokens": {},
+    "allDetectedTokens": {}
+  },
   "DelegationController": {},
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",

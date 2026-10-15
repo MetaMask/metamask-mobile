@@ -90,6 +90,10 @@ import {
 import { getNftControllerMessenger } from './nft-controller-messenger';
 import { getNftDetectionControllerMessenger } from './nft-detection-controller-messenger';
 import {
+  getTokensControllerInitMessenger,
+  getTokensControllerMessenger,
+} from './tokens-controller-messenger';
+import {
   getSmartTransactionsControllerMessenger,
   getSmartTransactionsControllerInitMessenger,
 } from './smart-transactions-controller-messenger';
@@ -211,6 +215,10 @@ export const MESSENGER_FACTORIES = {
   NftController: {
     getMessenger: getNftControllerMessenger,
     getInitMessenger: noop,
+  },
+  TokensController: {
+    getMessenger: getTokensControllerMessenger,
+    getInitMessenger: getTokensControllerInitMessenger,
   },
   NftDetectionController: {
     getMessenger: getNftDetectionControllerMessenger,

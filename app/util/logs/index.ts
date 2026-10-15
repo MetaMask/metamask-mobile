@@ -82,6 +82,7 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   const fullState = JSON.parse(JSON.stringify(state));
 
   delete fullState.engine.backgroundState.NftController;
+  delete fullState.engine.backgroundState.TokensController;
   delete fullState.engine.backgroundState.AssetsController;
   delete fullState.engine.backgroundState.NftDetectionController;
   delete fullState.engine.backgroundState.PhishingController;
