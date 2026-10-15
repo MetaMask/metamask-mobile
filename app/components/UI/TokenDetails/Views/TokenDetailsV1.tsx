@@ -378,17 +378,39 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
         : TOKEN_DETAILS_V1_TABS.filter((tab) => tab !== 'feed'),
     [showFeedTab],
   );
+  // Feed is first in TOKEN_DETAILS_V1_TABS, so it is the landing tab once it
+  // is visible. Until the token feed has posts the tab is omitted and the
+  // reader lands on the next tab. A later post response still moves them
+  // there, unless they already chose a tab.
+  const landingTab = visibleTabs[0] ?? 'overview';
+  const userPickedTabRef = useRef(false);
+  const applyingLandingTabRef = useRef(false);
+  const handleTabChange = useCallback(() => {
+    if (!applyingLandingTabRef.current) {
+      userPickedTabRef.current = true;
+    }
+    clampScrollToTabBar();
+  }, [clampScrollToTabBar]);
   const { activeTab, activateTab, mountedTabs, swipeGesture } =
     useTokenDetailsV1Tabs({
-      onTabChange: clampScrollToTabBar,
+      initialTab: landingTab,
+      onTabChange: handleTabChange,
       tabs: visibleTabs,
     });
 
   useEffect(() => {
     if (!visibleTabs.includes(activeTab)) {
+      applyingLandingTabRef.current = true;
       activateTab(visibleTabs[0] ?? 'overview');
+      applyingLandingTabRef.current = false;
+      return;
     }
-  }, [activeTab, activateTab, visibleTabs]);
+    if (!userPickedTabRef.current && activeTab !== landingTab) {
+      applyingLandingTabRef.current = true;
+      activateTab(landingTab);
+      applyingLandingTabRef.current = false;
+    }
+  }, [activeTab, activateTab, landingTab, visibleTabs]);
 
   /**
    * Selecting the tab alone would leave the reader looking at the price hero

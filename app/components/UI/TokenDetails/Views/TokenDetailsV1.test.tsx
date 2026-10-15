@@ -188,7 +188,7 @@ jest.mock('../components/TokenDetailsV1TabBar', () => {
       activeTab,
       onTabPress,
       onLayout,
-      tabs = ['overview', 'security', 'feed'],
+      tabs = ['feed', 'overview', 'security'],
     }: {
       activeTab: string;
       onTabPress: (tab: string) => void;
@@ -480,7 +480,7 @@ describe('TokenDetailsV1', () => {
     );
   });
 
-  it('renders the price hero, tab bar and Overview panel by default', () => {
+  it('renders the price hero, tab bar and Overview panel when the feed is empty', () => {
     const { getByTestId, getByText, queryByTestId } = render(
       <TokenDetailsV1
         token={baseToken}
@@ -538,7 +538,8 @@ describe('TokenDetailsV1', () => {
       />,
     );
 
-    // The active page flows at its natural height…
+    // The active page (Overview while Feed is hidden) flows at its natural
+    // height…
     const overviewPage = getByTestId(
       `${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-overview`,
     );
@@ -594,8 +595,9 @@ describe('TokenDetailsV1', () => {
       />,
     );
 
-    // Only the default tab is mounted initially.
+    // Feed is omitted until it has posts, so Overview is the only mounted tab.
     expect(getByTestId('mock-overview')).toBeTruthy();
+    expect(queryByTestId('token-details-v1-tab-panel-feed')).toBeNull();
     expect(queryByTestId(SecurityTabSelectors.TAB)).toBeNull();
 
     fireEvent.press(getByTestId('token-details-v1-tab-security'));
@@ -814,6 +816,8 @@ describe('TokenDetailsV1', () => {
       />,
     );
 
+    expect(getByText('feed:true')).toBeTruthy();
+
     fireEvent.press(getByTestId('token-details-v1-tab-security'));
 
     expect(getByText('security:true')).toBeTruthy();
@@ -956,13 +960,13 @@ describe('TokenDetailsV1', () => {
 
   describe('resolveSwipeTargetTab', () => {
     it('targets the next tab on a left swipe', () => {
+      expect(resolveSwipeTargetTab('feed', -120, 0)).toBe('overview');
       expect(resolveSwipeTargetTab('overview', -120, 0)).toBe('security');
-      expect(resolveSwipeTargetTab('security', -120, 0)).toBe('feed');
     });
 
     it('targets the previous tab on a right swipe', () => {
       expect(resolveSwipeTargetTab('security', 120, 0)).toBe('overview');
-      expect(resolveSwipeTargetTab('feed', 120, 0)).toBe('security');
+      expect(resolveSwipeTargetTab('overview', 120, 0)).toBe('feed');
     });
 
     it('lets a fast fling switch tabs even with a short travel', () => {
@@ -974,8 +978,8 @@ describe('TokenDetailsV1', () => {
       expect(resolveSwipeTargetTab('overview', 30, 0)).toBeNull();
       expect(resolveSwipeTargetTab('overview', 40, 100)).toBeNull();
       // No neighbouring tab in the swipe direction.
-      expect(resolveSwipeTargetTab('overview', 120, 0)).toBeNull();
-      expect(resolveSwipeTargetTab('feed', -120, 0)).toBeNull();
+      expect(resolveSwipeTargetTab('feed', 120, 0)).toBeNull();
+      expect(resolveSwipeTargetTab('security', -120, 0)).toBeNull();
     });
   });
 
