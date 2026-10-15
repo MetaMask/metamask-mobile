@@ -4,7 +4,7 @@ import type {
   LimitOrderExecutionType,
   LimitOrderPriceComparisonDirection,
 } from '../../constants/limitOrders';
-import type { InputSectionRef } from './InputSection/types';
+import type { InputSectionRef, QuoteUnitToken } from './InputSection/types';
 import type { ButtonPricePresetsSectionRef } from './ButtonPricePresetsSection/types';
 
 export type { InputSectionRef, ButtonPricePresetsSectionRef };
@@ -29,6 +29,11 @@ export interface LimitOrderPriceAdjustCardProps {
    * Quoted-token symbol for the unit chip, e.g. "WBTC".
    */
   quoteTokenSymbol?: string;
+  /**
+   * Quoted token for the unit-chip avatar. The parent replaces this when the
+   * quote unit is toggled.
+   */
+  quoteToken?: QuoteUnitToken;
   /**
    * When true the primary amount is fiat and a currency prefix is shown.
    */

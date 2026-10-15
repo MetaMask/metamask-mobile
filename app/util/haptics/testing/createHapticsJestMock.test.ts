@@ -31,6 +31,7 @@ describe('createHapticsJestMock', () => {
     expect(fromHook).not.toHaveProperty('playNotification');
     expect(Object.keys(fromHook).sort()).toEqual(
       [
+        'fireImpact',
         'playErrorNotification',
         'playImpact',
         'playSelection',
