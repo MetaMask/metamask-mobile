@@ -258,9 +258,6 @@ export class OAuthMockttpService {
     // Setup Auth Server proxy to backend QA mock
     await this.setupAuthServerProxy(server);
 
-    // Setup marketing opt-in mock
-    await this.setupMarketingOptInMock(server);
-
     // Setup TOPRF SSS node mocks (E2E CI only — perf bypasses Mockttp for live UAT)
     await this.setupToprfSssNodeMocks(server);
 
@@ -627,31 +624,6 @@ export class OAuthMockttpService {
         // Just return success for revocation
         ({ statusCode: 200, json: { success: true } }),
       );
-  }
-
-  /**
-   * Mock marketing opt-in status to avoid real API calls
-   */
-  private async setupMarketingOptInMock(server: Mockttp): Promise<void> {
-    // GET request
-    await server
-      .forGet('/proxy')
-      .matching((request) => {
-        const url = this.getDecodedProxiedURL(request.url);
-        return url.includes('/api/v1/oauth/marketing_opt_in_status');
-      })
-      .asPriority(1000)
-      .thenJson(200, { is_opt_in: true });
-
-    // POST request
-    await server
-      .forPost('/proxy')
-      .matching((request) => {
-        const url = this.getDecodedProxiedURL(request.url);
-        return url.includes('/api/v1/oauth/marketing_opt_in_status');
-      })
-      .asPriority(1000)
-      .thenJson(200, { is_opt_in: true });
   }
 
   /**

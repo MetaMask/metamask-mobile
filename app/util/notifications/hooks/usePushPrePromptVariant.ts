@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getIsNotificationEnabledByDefaultFeatureFlag } from '../../../selectors/notifications';
-import {
-  selectCompletedOnboarding,
-  selectPendingSocialLoginMarketingConsentBackfill,
-} from '../../../selectors/onboarding';
+import { selectCompletedOnboarding } from '../../../selectors/onboarding';
 import { selectDataCollectionForMarketingEnabled } from '../../../selectors/engagement';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import Logger from '../../Logger';
@@ -31,25 +28,17 @@ interface PushPrePromptEligibility {
   canShowPrePrompt: boolean;
   hasPrePromptBeenShown: boolean;
   hasMarketingConsent: boolean;
-  isMarketingConsentResolutionPending: boolean;
-  pendingSocialLoginMarketingConsentBackfill: string | null;
 }
 
 const getResolutionKey = ({
   canShowPrePrompt,
   hasPrePromptBeenShown,
   hasMarketingConsent,
-  isMarketingConsentResolutionPending,
-  pendingSocialLoginMarketingConsentBackfill,
 }: PushPrePromptEligibility) =>
   [
     `canShowPrePrompt:${canShowPrePrompt}`,
     `hasPrePromptBeenShown:${hasPrePromptBeenShown}`,
     `hasMarketingConsent:${hasMarketingConsent}`,
-    `isMarketingConsentResolutionPending:${isMarketingConsentResolutionPending}`,
-    `pendingSocialLoginMarketingConsentBackfill:${
-      pendingSocialLoginMarketingConsentBackfill ?? 'null'
-    }`,
   ].join('|');
 
 const getResolvingState = (key: string): PushPrePromptResolutionState => ({
@@ -99,16 +88,6 @@ const resolvePrePromptVariant = async (
     };
   }
 
-  if (
-    eligibility.isMarketingConsentResolutionPending ||
-    eligibility.pendingSocialLoginMarketingConsentBackfill
-  ) {
-    return {
-      nativeOsPermissionEnabled,
-      variant: null,
-    };
-  }
-
   return {
     nativeOsPermissionEnabled,
     variant: 'marketing_consent',
@@ -151,33 +130,9 @@ export function usePushPrePromptVariant(): {
   const hasMarketingConsent = useSelector(
     selectDataCollectionForMarketingEnabled,
   );
-  const pendingSocialLoginMarketingConsentBackfill = useSelector(
-    selectPendingSocialLoginMarketingConsentBackfill,
-  );
-
-  const [startupMarketingConsent, setStartupMarketingConsent] = useState<
-    boolean | null
-  >(() =>
-    pendingSocialLoginMarketingConsentBackfill ? null : hasMarketingConsent,
-  );
-
-  useEffect(() => {
-    if (
-      startupMarketingConsent !== null ||
-      pendingSocialLoginMarketingConsentBackfill
-    ) {
-      return;
-    }
-
-    setStartupMarketingConsent(hasMarketingConsent);
-  }, [
-    hasMarketingConsent,
-    pendingSocialLoginMarketingConsentBackfill,
-    startupMarketingConsent,
-  ]);
-
-  const isMarketingConsentResolutionPending = startupMarketingConsent === null;
-  const startupHasMarketingConsent = startupMarketingConsent === true;
+  // Latched at startup so a consent change later in the session does not
+  // re-resolve the prompt.
+  const [startupHasMarketingConsent] = useState(hasMarketingConsent);
 
   const canShowPrePrompt =
     Boolean(completedOnboarding) &&
@@ -198,16 +153,8 @@ export function usePushPrePromptVariant(): {
       canShowPrePrompt,
       hasPrePromptBeenShown,
       hasMarketingConsent: startupHasMarketingConsent,
-      isMarketingConsentResolutionPending,
-      pendingSocialLoginMarketingConsentBackfill,
     }),
-    [
-      canShowPrePrompt,
-      hasPrePromptBeenShown,
-      isMarketingConsentResolutionPending,
-      startupHasMarketingConsent,
-      pendingSocialLoginMarketingConsentBackfill,
-    ],
+    [canShowPrePrompt, hasPrePromptBeenShown, startupHasMarketingConsent],
   );
 
   // Fingerprint the eligibility inputs used for this resolution. Native

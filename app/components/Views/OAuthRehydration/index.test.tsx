@@ -11,7 +11,6 @@ import OAuthRehydration from './index';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import { strings } from '../../../../locales/i18n';
 import {
-  AuthConnection,
   SeedlessOnboardingControllerErrorMessage,
   RecoveryError as SeedlessOnboardingControllerRecoveryError,
 } from '@metamask/seedless-onboarding-controller';
@@ -27,8 +26,6 @@ import { captureExceptionForced } from '../../../util/sentry/utils';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { AccountType } from '../../../constants/onboarding';
-import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockEngine = jest.mocked(Engine) as any;
@@ -42,8 +39,6 @@ const mockRevealSRP = jest.fn();
 const mockRevealPrivateKey = jest.fn();
 const mockRequestBiometricsAccessControlForIOS = jest.fn();
 const mockUpdateAuthPreference = jest.fn();
-const mockAnalyticsIdentify = jest.fn();
-const mockAnalyticsTrackEvent = jest.fn();
 const UNLOCK_TRACE_TOKENS = {
   homepageReadyTraceToken: 1,
   deeplinkNavigatedTraceToken: 2,
@@ -89,8 +84,8 @@ jest.mock(
 
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
-    identify: (...args: unknown[]) => mockAnalyticsIdentify(...args),
-    trackEvent: (...args: unknown[]) => mockAnalyticsTrackEvent(...args),
+    identify: jest.fn(),
+    trackEvent: jest.fn(),
     trackView: jest.fn(),
     optIn: jest.fn().mockResolvedValue(undefined),
     optOut: jest.fn().mockResolvedValue(undefined),
@@ -177,14 +172,8 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-const mockGetMarketingOptInStatus = jest.fn().mockResolvedValue({
-  is_opt_in: false,
-});
-
 jest.mock('../../../core/OAuthService/OAuthService', () => ({
   resetOauthState: jest.fn(),
-  getMarketingOptInStatus: (...args: unknown[]) =>
-    mockGetMarketingOptInStatus(...args),
 }));
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
@@ -218,9 +207,6 @@ const enterPasswordAndSubmit = async (
 describe('OAuthRehydration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetMarketingOptInStatus.mockResolvedValue({
-      is_opt_in: false,
-    });
     mockRoute.mockReturnValue({
       params: { locked: false, oauthLoginSuccess: true },
     });
@@ -283,9 +269,6 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
       });
-      await waitFor(() => {
-        expect(mockGetMarketingOptInStatus).toHaveBeenCalled();
-      });
       expect(mockUnlockWallet.mock.invocationCallOrder[0]).toBeLessThan(
         mockRequestBiometricsAccessControlForIOS.mock.invocationCallOrder[0],
       );
@@ -300,43 +283,6 @@ describe('OAuthRehydration', () => {
 
       await waitFor(() => {
         expect(mockTrackOnboarding).toHaveBeenCalled();
-      });
-    });
-
-    it('syncs marketing consent into Redux and analytics after unlock', async () => {
-      mockGetMarketingOptInStatus.mockResolvedValueOnce({
-        is_opt_in: true,
-      });
-
-      const { getByTestId, store } = renderWithProvider(<OAuthRehydration />, {
-        state: {
-          engine: {
-            backgroundState: {
-              SeedlessOnboardingController: {
-                authConnection: AuthConnection.Google,
-              },
-            },
-          },
-        },
-      });
-      await enterPasswordAndSubmit(getByTestId);
-
-      await waitFor(() => {
-        expect(store.getState().security.dataCollectionForMarketing).toBe(true);
-        expect(mockAnalyticsIdentify).toHaveBeenCalledWith({
-          [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-        });
-        expect(mockAnalyticsTrackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({
-            name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
-            properties: expect.objectContaining({
-              [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-              updated_after_onboarding: true,
-              location: 'oauth_rehydration',
-              account_type: AccountType.ImportedGoogle,
-            }),
-          }),
-        );
       });
     });
 
@@ -1159,7 +1105,6 @@ describe('OAuthRehydration', () => {
           }),
         );
       });
-      expect(mockGetMarketingOptInStatus).not.toHaveBeenCalled();
       expect(mockUnlockWallet.mock.invocationCallOrder[0]).toBeLessThan(
         mockRequestBiometricsAccessControlForIOS.mock.invocationCallOrder[0],
       );

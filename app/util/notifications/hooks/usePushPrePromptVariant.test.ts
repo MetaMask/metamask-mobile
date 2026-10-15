@@ -7,10 +7,7 @@ import * as NotificationSelectors from '../../../selectors/notifications';
 import * as OnboardingSelectors from '../../../selectors/onboarding';
 // eslint-disable-next-line import-x/no-namespace
 import * as SettingsSelectors from '../../../selectors/settings';
-import {
-  setCompletedOnboarding,
-  setPendingSocialLoginMarketingConsentBackfill,
-} from '../../../actions/onboarding';
+import { setCompletedOnboarding } from '../../../actions/onboarding';
 import Engine from '../../../core/Engine';
 import { updateBgState } from '../../../core/redux/slices/engine';
 import { PUSH_PRE_PROMPT_SHOWN, TRUE } from '../../../constants/storage';
@@ -96,17 +93,14 @@ const arrangeSelectors = ({
 const renderUsePushPrePromptVariant = ({
   completedOnboarding = true,
   hasMarketingConsent = false,
-  pendingSocialLoginMarketingConsentBackfill = null,
 }: {
   completedOnboarding?: boolean;
   hasMarketingConsent?: boolean;
-  pendingSocialLoginMarketingConsentBackfill?: string | null;
 } = {}) =>
   renderHookWithProvider(() => usePushPrePromptVariant(), {
     state: {
       onboarding: {
         completedOnboarding,
-        pendingSocialLoginMarketingConsentBackfill,
       },
       engine: engineWithMarketingConsent(hasMarketingConsent),
     },
@@ -354,76 +348,6 @@ describe('usePushPrePromptVariant', () => {
     });
 
     expect(result.current.variant).toBeNull();
-  });
-
-  it('defers the marketing consent prompt while social login marketing consent backfill is pending', async () => {
-    const { result } = renderUsePushPrePromptVariant({
-      pendingSocialLoginMarketingConsentBackfill: 'google',
-    });
-
-    await waitFor(() => {
-      expect(result.current.isResolving).toBe(false);
-    });
-    expect(result.current.variant).toBeNull();
-    expect(result.current.nativeOsPermissionEnabled).toBe(true);
-    expect(mockResolveNativePushPermissionStatus).toHaveBeenCalledTimes(1);
-  });
-
-  it('returns the marketing consent prompt after social login marketing consent backfill clears without consent', async () => {
-    const { result, store } = renderUsePushPrePromptVariant({
-      pendingSocialLoginMarketingConsentBackfill: 'google',
-    });
-
-    await waitFor(() => {
-      expect(result.current.isResolving).toBe(false);
-    });
-    expect(result.current.variant).toBeNull();
-
-    await act(async () => {
-      store.dispatch(setPendingSocialLoginMarketingConsentBackfill(null));
-    });
-
-    await waitFor(() => {
-      expect(result.current.variant).toBe('marketing_consent');
-    });
-    expect(result.current.nativeOsPermissionEnabled).toBe(true);
-  });
-
-  it('does not return the marketing consent prompt after social login marketing consent backfill clears with consent', async () => {
-    const { result, store } = renderUsePushPrePromptVariant({
-      pendingSocialLoginMarketingConsentBackfill: 'google',
-    });
-
-    await waitFor(() => {
-      expect(result.current.isResolving).toBe(false);
-    });
-    expect(result.current.variant).toBeNull();
-
-    await act(async () => {
-      syncMarketingConsentToRedux(store, true);
-      store.dispatch(setPendingSocialLoginMarketingConsentBackfill(null));
-    });
-
-    await waitFor(() => {
-      expect(result.current.isResolving).toBe(false);
-    });
-    expect(result.current.variant).toBeNull();
-    expect(result.current.nativeOsPermissionEnabled).toBe(true);
-  });
-
-  it('does not defer the push permission prompt for social login marketing consent backfill', async () => {
-    mockNativePushPermissionStatus({
-      nativeOsPermissionEnabled: false,
-      nativeOsPermissionPromptable: true,
-    });
-    const { result } = renderUsePushPrePromptVariant({
-      pendingSocialLoginMarketingConsentBackfill: 'google',
-    });
-
-    await waitFor(() => {
-      expect(result.current.variant).toBe('push_permission');
-    });
-    expect(result.current.nativeOsPermissionEnabled).toBe(false);
   });
 
   it('waits for native push permission before showing marketing consent', async () => {

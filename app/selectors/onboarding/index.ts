@@ -14,12 +14,6 @@ export const selectOnboardingAccountType = createSelector(
   (onboardingState) => onboardingState?.accountType,
 );
 
-export const selectPendingSocialLoginMarketingConsentBackfill = createSelector(
-  selectOnboarding,
-  (onboardingState) =>
-    onboardingState?.pendingSocialLoginMarketingConsentBackfill ?? null,
-);
-
 export const selectOnboardingIosGoogleWarningSheetLastDismissedAt =
   createSelector(
     selectOnboarding,

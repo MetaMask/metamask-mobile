@@ -27,7 +27,6 @@ import {
   AuthServerUrl,
   web3AuthNetwork as currentWeb3AuthNetwork,
   SupportedPlatforms,
-  AUTH_SERVER_MARKETING_OPT_IN_PATH,
   GoogleWebGID,
 } from './OAuthLoginHandlers/constants';
 import { QAMockOAuthService } from './QAMockOAuthService';
@@ -57,14 +56,6 @@ import {
 import ReduxService from '../redux';
 import { setSeedlessOnboarding } from '../../actions/onboarding';
 import Device from '../../util/device';
-
-export interface MarketingOptInRequest {
-  opt_in_status: boolean;
-}
-
-export interface MarketingOptInResponse {
-  is_opt_in: boolean;
-}
 
 export interface OAuthServiceConfig {
   authConnectionConfig: {
@@ -596,70 +587,6 @@ export class OAuthService {
       oauthLoginSuccess: false,
       oauthLoginError: null,
     });
-  };
-
-  private async getValidAccessToken(): Promise<string> {
-    await whenEngineReady();
-    const accessToken =
-      await Engine.context.SeedlessOnboardingController.getAccessToken();
-
-    if (!accessToken) {
-      throw new Error('No access token found. User must be authenticated.');
-    }
-
-    return accessToken;
-  }
-
-  updateMarketingOptInStatus = async (
-    marketingOptIn: boolean,
-  ): Promise<void> => {
-    const accessToken = await this.getValidAccessToken();
-    const requestBody: MarketingOptInRequest = {
-      opt_in_status: marketingOptIn,
-    };
-
-    const url = `${this.config.authServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        `Failed to update marketing opt-in status: ${response.status} - ${
-          errorData.message || response.statusText
-        }`,
-      );
-    }
-  };
-
-  getMarketingOptInStatus = async (): Promise<MarketingOptInResponse> => {
-    const accessToken = await this.getValidAccessToken();
-    const url = `${this.config.authServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        `Failed to get marketing opt-in status: ${response.status} - ${
-          errorData.message || response.statusText
-        }`,
-      );
-    }
-
-    const data: MarketingOptInResponse = await response.json();
-    return data;
   };
 }
 
