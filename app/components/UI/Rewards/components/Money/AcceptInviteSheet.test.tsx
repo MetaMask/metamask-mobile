@@ -212,7 +212,7 @@ describe('AcceptInviteSheet', () => {
 
     const sheet = getByTestId(TEST_IDS.CONTAINER);
 
-    expect(sheet.props.isInteractable).toBeUndefined();
+    expect(sheet.props.isInteractable).toBe(true);
     sheet.props.goBack();
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
@@ -552,6 +552,7 @@ describe('AcceptInviteSheet', () => {
 
       fireEvent.press(getByTestId(testId));
 
+      expect(getByTestId(TEST_IDS.CONTAINER).props.isInteractable).toBe(false);
       expect(mockAcceptReferralCode).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
     },

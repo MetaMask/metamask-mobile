@@ -126,10 +126,12 @@ export interface UseAcceptMoneyReferralCodeResult {
  *
  * Validation runs first so a malformed or unknown code never reaches
  * `POST /wr/referral/referee`. A refusal keeps the sheet open and writes the
- * reason onto {@link UseAcceptMoneyReferralCodeResult.errorMessage}; only a
- * successful registration dismisses it and opens the accepted splash. The
- * `forceFresh` read back updates the persona when it succeeds; a failed read
- * does not block the splash.
+ * reason onto {@link UseAcceptMoneyReferralCodeResult.errorMessage}; a
+ * successful registration opens the accepted splash. When the sheet is still
+ * mounted it is dismissed first. When it has already closed, the splash is
+ * opened on its own so a mid-request dismiss does not drop a registration
+ * that already succeeded. The `forceFresh` read back updates the persona when
+ * it succeeds; a failed read does not block the splash.
  */
 export const useAcceptMoneyReferralCode =
   (): UseAcceptMoneyReferralCodeResult => {
@@ -261,14 +263,14 @@ export const useAcceptMoneyReferralCode =
             // A failed read does not block the splash.
           }
 
-          if (!isMountedRef.current) {
-            return true;
-          }
-
           // Registration already succeeded. Open the splash either way: a
           // failed read leaves the previous persona in place, and the Rewards
-          // tab refetches referral me the next time it is focused.
-          navigation.goBack();
+          // tab refetches referral me the next time it is focused. Skip
+          // goBack when the sheet has already left the stack, or that pop
+          // would dismiss the screen underneath it.
+          if (isMountedRef.current) {
+            navigation.goBack();
+          }
           navigation.navigate(
             Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
           );

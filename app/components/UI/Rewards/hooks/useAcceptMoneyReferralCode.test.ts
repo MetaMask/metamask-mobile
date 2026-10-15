@@ -739,7 +739,7 @@ describe('useAcceptMoneyReferralCode', () => {
       };
     };
 
-    it('does not navigate, toast or set state after unmount during register', async () => {
+    it('opens the splash without going back after unmount during register', async () => {
       const { releaseRegister } = mockDeferredRegister();
       const { result, unmount, store } = renderAcceptHook();
       let pending: Promise<boolean> | undefined;
@@ -772,11 +772,13 @@ describe('useAcceptMoneyReferralCode', () => {
         buildReferralMe(),
       );
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+      );
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('does not navigate, toast or set state after unmount during refresh', async () => {
+    it('opens the splash without going back after unmount during refresh', async () => {
       const { releaseRefresh } = mockDeferredRefresh();
       const { result, unmount } = renderAcceptHook();
       let pending: Promise<boolean> | undefined;
@@ -800,7 +802,9 @@ describe('useAcceptMoneyReferralCode', () => {
       await pending;
 
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+      );
       expect(mockShowToast).not.toHaveBeenCalled();
     });
   });
