@@ -22,7 +22,6 @@ import {
   AvatarNetworkSize,
   Tag,
 } from '@metamask/design-system-react-native';
-import { KeyringAccountType } from '@metamask/keyring-api';
 import { formatAddress } from '../../../../util/address';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
