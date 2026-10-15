@@ -252,6 +252,59 @@ describe('MoneyVbaHomeCard', () => {
     expect(cta.props.accessibilityState?.busy).toBeFalsy();
   });
 
+  it('re-enables the CTA after a rejected open and allows retry', async () => {
+    mockOpenVbaOnboarding.mockRejectedValueOnce(new Error('open failed'));
+
+    const { getByTestId } = render(<MoneyVbaHomeCard variant="get_started" />);
+    const cta = getByTestId(
+      MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CTA_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(cta);
+    });
+
+    expect(cta.props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: false }),
+    );
+    expect(cta.props.accessibilityState?.busy).toBeFalsy();
+
+    await act(async () => {
+      fireEvent.press(cta);
+    });
+
+    expect(mockOpenVbaOnboarding).toHaveBeenCalledTimes(2);
+  });
+
+  it('ignores Dismiss while an open is in flight', () => {
+    mockOpenVbaOnboarding.mockImplementation(
+      () =>
+        new Promise<void>(() => {
+          /* never settles: the hydrate is in flight */
+        }),
+    );
+
+    const { getByTestId } = render(<MoneyVbaHomeCard variant="kyc_decision" />);
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CTA_BUTTON),
+    );
+
+    const dismiss = getByTestId(
+      MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.DISMISS_BUTTON as string,
+    );
+    fireEvent.press(dismiss);
+
+    expect(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(mockTrackButtonClicked).not.toHaveBeenCalledWith(
+      expect.objectContaining({ button_intent: MONEY_BUTTON_INTENTS.DISMISS }),
+    );
+    expect(dismiss.props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true }),
+    );
+  });
+
   it('offers Dismiss only on the kyc_decision card', () => {
     expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_decision.isDismissible).toBe(true);
     const otherVariants = VARIANTS.filter(
