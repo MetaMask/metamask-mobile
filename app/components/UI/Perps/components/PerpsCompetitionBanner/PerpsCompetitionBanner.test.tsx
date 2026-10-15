@@ -27,6 +27,20 @@ const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 const mockTrack = jest.fn();
 
+// The glass tests need the OS to draw glass, which Jest can't.
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
