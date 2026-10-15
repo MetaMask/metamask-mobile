@@ -30,6 +30,20 @@ import {
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 
+let mockIsGlassEnabled = false;
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: mockIsGlassEnabled,
+    }),
+  };
+});
+
 const mockTrackButtonClicked = jest.fn();
 const mockTrackComponentViewed = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
@@ -1221,6 +1235,14 @@ describe('MoneyBalanceCard', () => {
   });
 
   describe('glass', () => {
+    beforeEach(() => {
+      mockIsGlassEnabled = true;
+    });
+
+    afterEach(() => {
+      mockIsGlassEnabled = false;
+    });
+
     it('keeps the opaque card by default', () => {
       const { getByTestId, queryByTestId } = renderWithProvider(
         <MoneyBalanceCard />,
