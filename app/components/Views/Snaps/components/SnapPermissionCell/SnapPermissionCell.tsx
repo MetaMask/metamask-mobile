@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -72,4 +71,3 @@ const SnapPermissionCell = ({ title, date }: SnapPermissionCellProps) => {
 };
 
 export default React.memo(SnapPermissionCell);
-///: END:ONLY_INCLUDE_IF

@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { View } from 'react-native';
 import Text, {
@@ -45,4 +44,3 @@ const SnapVersionTag: React.FC<SnapVersionTagProps> = ({
 };
 
 export default React.memo(SnapVersionTag);
-///: END:ONLY_INCLUDE_IF

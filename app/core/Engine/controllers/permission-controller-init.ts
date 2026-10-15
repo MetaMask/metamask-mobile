@@ -11,9 +11,7 @@ import {
   getPermissionSpecifications,
   unrestrictedMethods,
 } from '../../Permissions/specifications';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { getSnapPermissionSpecifications } from '../../Snaps/permissions/specifications';
-///: END:ONLY_INCLUDE_IF
 import { CaipChainId } from '@metamask/utils';
 
 /**
@@ -55,9 +53,7 @@ export const permissionControllerInit: MessengerClientInitFunction<
     }),
     permissionSpecifications: {
       ...getPermissionSpecifications(),
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       ...getSnapPermissionSpecifications(initMessenger),
-      ///: END:ONLY_INCLUDE_IF
     },
     unrestrictedMethods,
   });

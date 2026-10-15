@@ -73,7 +73,6 @@ export const getSnapPermissionSpecifications = (
   ...buildSnapRestrictedMethodSpecifications(
     Object.keys(ExcludedSnapPermissions),
     {
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       getUnlockPromise: async () => {
         if (messenger.call('KeyringController:getState').isUnlocked) {
           return;
@@ -122,8 +121,6 @@ export const getSnapPermissionSpecifications = (
           showTestnets: showTestNetworks,
         };
       },
-      ///: END:ONLY_INCLUDE_IF
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       getSnapKeyring: async () => ({
         // We only need a subset of the Snap keyring's functionality, and this message handling is now
         // owned by the Snap account service.
@@ -135,7 +132,6 @@ export const getSnapPermissionSpecifications = (
           );
         },
       }),
-      ///: END:ONLY_INCLUDE_IF
     },
     messenger as RestrictedMethodMessenger,
   ),

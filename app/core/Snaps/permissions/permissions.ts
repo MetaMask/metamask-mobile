@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // TODO: Figure out which permissions should be disabled at this point
 export const ExcludedSnapPermissions = Object.freeze({
   eth_accounts:
@@ -19,4 +18,3 @@ export const EndowmentPermissions = Object.freeze({
   'endowment:name-lookup': 'endowment:name-lookup',
   'endowment:keyring': 'endowment:keyring',
 } as const);
-///: END:ONLY_INCLUDE_IF

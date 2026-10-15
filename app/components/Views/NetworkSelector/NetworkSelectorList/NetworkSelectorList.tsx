@@ -69,9 +69,7 @@ const getItemType = (item: NetworkSelectorListItem) => item.type;
 
 const NetworkSelectorList = ({
   networkConfigurations,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   nonEvmNetworkConfigurations,
-  ///: END:ONLY_INCLUDE_IF
   searchString,
   showTestNetworks,
   isSendFlow,
@@ -88,9 +86,7 @@ const NetworkSelectorList = ({
   isNetworkSelected,
   onSetRpcTarget,
   onNetworkChange,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   onNonEvmNetworkChange,
-  ///: END:ONLY_INCLUDE_IF
   openModal,
   openRpcModal,
   onCancel,
@@ -402,7 +398,6 @@ const NetworkSelectorList = ({
     );
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const renderNonEvmNetwork = (network: NonEvmNetworkListConfiguration) => (
     <Cell
       variant={CellVariant.Select}
@@ -418,7 +413,6 @@ const NetworkSelectorList = ({
       style={styles.networkCell}
     />
   );
-  ///: END:ONLY_INCLUDE_IF
 
   const renderAdditionalNetworks = () => {
     const filteredNetworks =
@@ -495,7 +489,6 @@ const NetworkSelectorList = ({
       });
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     if (!isSendFlow) {
       Object.values(nonEvmNetworkConfigurations)
         .filter((network) => !network.isTestnet)
@@ -507,7 +500,6 @@ const NetworkSelectorList = ({
           });
         });
     }
-    ///: END:ONLY_INCLUDE_IF
 
     if (!isSendFlow && isRedesignEnabled && searchString.length === 0) {
       items.push({
@@ -545,7 +537,6 @@ const NetworkSelectorList = ({
         });
       });
 
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       Object.values(nonEvmNetworkConfigurations)
         .filter((network) => network.isTestnet)
         .forEach((networkConfiguration) => {
@@ -555,7 +546,6 @@ const NetworkSelectorList = ({
             networkConfiguration,
           });
         });
-      ///: END:ONLY_INCLUDE_IF
     }
 
     return items;
@@ -563,9 +553,7 @@ const NetworkSelectorList = ({
     isRedesignEnabled,
     isSendFlow,
     networkConfigurations,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     nonEvmNetworkConfigurations,
-    ///: END:ONLY_INCLUDE_IF
     isNoSearchResults,
     searchString,
     showTestNetworks,

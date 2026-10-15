@@ -46,11 +46,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { TextColor as ComponentLibraryTextColor } from '../../../../component-library/components/Texts/Text';
 import { SecurityBanner } from './SecurityBanner';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 import TronAssetOverviewSection from './TronAssetOverviewSection';
 import { isTronNativeToken } from '../utils/isTronNativeToken';
-///: END:ONLY_INCLUDE_IF
 import { AssetActivateCard } from '../../AssetActivation/AssetActivateCard';
 import { SpendableBalanceSection } from '../../SpendableBalance/SpendableBalanceSection';
 import { getIsAssetRequireActivate } from '../../../../selectors/stellar/stellar-assets';
@@ -455,11 +453,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             }
             containerStyle={styles.marketInsightsWrapper}
           />
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            tronNativeToken && <TronEnergyBandwidthDetail />
-            ///: END:ONLY_INCLUDE_IF
-          }
+          {tronNativeToken && <TronEnergyBandwidthDetail />}
           {balance != null && spendableBalanceData.hasSpendableBalance && (
             <SpendableBalanceSection
               minimumReserveBalance={spendableBalanceData.minimumReserveBalance}
@@ -483,18 +477,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               <EarnBalance asset={token} />
             </>
           )}
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            tronNativeToken && (
-              <TronAssetOverviewSection
-                token={tronNativeToken}
-                stakedTrxAsset={stakedTrxAsset}
-                inLockPeriodBalance={inLockPeriodBalance}
-                readyForWithdrawalBalance={readyForWithdrawalBalance}
-              />
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
+          {tronNativeToken && (
+            <TronAssetOverviewSection
+              token={tronNativeToken}
+              stakedTrxAsset={stakedTrxAsset}
+              inLockPeriodBalance={inLockPeriodBalance}
+              readyForWithdrawalBalance={readyForWithdrawalBalance}
+            />
+          )}
           {showPerpsSection && perpsPosition && (
             <View style={styles.perpsPositionCardContainer}>
               <Text variant={TextVariant.HeadingMd} twClassName="mb-2 px-4">

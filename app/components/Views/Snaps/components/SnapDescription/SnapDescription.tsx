@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { View } from 'react-native';
 import Text, {
@@ -55,4 +54,3 @@ const SnapDescription = ({
 };
 
 export default React.memo(SnapDescription);
-///: END:ONLY_INCLUDE_IF

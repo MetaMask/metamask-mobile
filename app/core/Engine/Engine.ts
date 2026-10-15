@@ -21,9 +21,7 @@ import {
   type CaveatSpecificationConstraint,
   PermissionController,
   type PermissionSpecificationConstraint,
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SubjectMetadataController,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import { isTestNet } from '../../util/networks';
 import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
@@ -50,10 +48,8 @@ import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
 import { initializeRpcProviderDomains } from '../../util/rpc-domain-utils';
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { notificationServicesControllerInit } from './controllers/notifications/notification-services-controller-init';
 import { notificationServicesPushControllerInit } from './controllers/notifications/notification-services-push-controller-init';
-///: END:ONLY_INCLUDE_IF
 import {
   backendWebSocketServiceInit,
   accountActivityServiceInit,
@@ -72,12 +68,7 @@ import {
 } from '../../core/redux/slices/inpageProvider';
 import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 import { zeroAddress } from 'ethereumjs-util';
-import {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  toHex,
-  ///: END:ONLY_INCLUDE_IF
-} from '@metamask/controller-utils';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { toHex } from '@metamask/controller-utils';
 import { removeAccountsFromPermissions } from '../Permissions';
 import { multichainBalancesControllerInit } from './controllers/multichain-balances-controller/multichain-balances-controller-init';
 import { multichainAssetsControllerInit } from './controllers/multichain-assets-controller/multichain-assets-controller-init';
@@ -86,8 +77,6 @@ import { multichainTransactionsControllerInit } from './controllers/multichain-t
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
 import { snapAccountServiceInit } from './controllers/snap-account-service/snap-account-service-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
-///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   cronjobControllerInit,
   executionServiceInit,
@@ -96,7 +85,6 @@ import {
   snapRegistryControllerInit,
 } from './controllers/snaps';
 import { RestrictedMethods } from '../Permissions/constants';
-///: END:ONLY_INCLUDE_IF
 import {
   RootExtendedMessenger,
   EngineState,
@@ -148,9 +136,7 @@ import type { GatorPermissionsController } from '@metamask/gator-permissions-con
 import { DelegationControllerInit } from './controllers/delegation/delegation-controller-init';
 import { selectedNetworkControllerInit } from './controllers/selected-network-controller-init';
 import { permissionControllerInit } from './controllers/permission-controller-init';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { subjectMetadataControllerInit } from './controllers/subject-metadata-controller-init';
-///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
 import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
@@ -265,9 +251,7 @@ export class Engine {
    */
   appStateListener: NativeEventSubscription;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   subjectMetadataController: SubjectMetadataController;
-  ///: END:ONLY_INCLUDE_IF
 
   /**
    * The app state WebSocket manager.
@@ -325,9 +309,7 @@ export class Engine {
     const initRequest = {
       getState: () => store.getState(),
       getGlobalChainId: () => currentChainId,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       removeAccount: this.removeAccount.bind(this),
-      ///: END:ONLY_INCLUDE_IF
       analyticsId,
       codefiTokenApiV2,
       tokenListService,
@@ -338,9 +320,7 @@ export class Engine {
         LoggingController: loggingControllerInit,
         PreferencesController: preferencesControllerInit,
         PermissionController: permissionControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         SubjectMetadataController: subjectMetadataControllerInit,
-        ///: END:ONLY_INCLUDE_IF
         AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
         AssetsContractController: assetsContractControllerInit,
@@ -374,7 +354,6 @@ export class Engine {
         BridgeStatusController: bridgeStatusControllerInit,
         NftController: nftControllerInit,
         NftDetectionController: nftDetectionControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
         SnapRegistryController: snapRegistryControllerInit,
@@ -386,11 +365,9 @@ export class Engine {
         WebSocketService: WebSocketServiceInit,
         AuthenticationController: authenticationControllerInit,
         UserStorageController: userStorageControllerInit,
-        ///: END:ONLY_INCLUDE_IF
         BackendWebSocketService: backendWebSocketServiceInit,
         AccountActivityService: accountActivityServiceInit,
         OHLCVService: ohlcvServiceInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
         SnapAccountService: snapAccountServiceInit,
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
@@ -398,7 +375,6 @@ export class Engine {
         MultichainRoutingService: multichainRoutingServiceInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
-        ///: END:ONLY_INCLUDE_IF
         SamplePetnamesController: samplePetnamesControllerInit,
         PerpsController: perpsControllerInit,
         // AssetsController must be initialized before ClientController so it
@@ -564,7 +540,6 @@ export class Engine {
       messengerClientsByName.NftDetectionController;
     const networkController = this.#wallet.getInstance('NetworkController');
 
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     const cronjobController = messengerClientsByName.CronjobController;
     const executionService = messengerClientsByName.ExecutionService;
     const snapController = messengerClientsByName.SnapController;
@@ -582,7 +557,6 @@ export class Engine {
     const authenticationController =
       messengerClientsByName.AuthenticationController;
     const userStorageController = messengerClientsByName.UserStorageController;
-    ///: END:ONLY_INCLUDE_IF
 
     // Initialize BackendWebSocketService lifecycle management
     const backendWebSocketService =
@@ -594,7 +568,6 @@ export class Engine {
       messengerClientsByName.AccountActivityService;
     const ohlcvService = messengerClientsByName.OHLCVService;
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainAssetsController =
       messengerClientsByName.MultichainAssetsController;
     const multichainAssetsRatesController =
@@ -606,7 +579,6 @@ export class Engine {
     const multichainAccountService =
       messengerClientsByName.MultichainAccountService;
     const snapAccountService = messengerClientsByName.SnapAccountService;
-    ///: END:ONLY_INCLUDE_IF
 
     const networkEnablementController =
       messengerClientsByName.NetworkEnablementController;
@@ -631,12 +603,10 @@ export class Engine {
       captureException(error);
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     snapController.init();
     cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
-    ///: END:ONLY_INCLUDE_IF
 
     this.context = {
       AnalyticsController: analyticsController,
@@ -678,7 +648,6 @@ export class Engine {
       SelectedNetworkController: selectedNetworkController,
       SignatureController: signatureController,
       LoggingController: loggingController,
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       CronjobController: cronjobController,
       ExecutionService: executionService,
       SnapController: snapController,
@@ -690,19 +659,16 @@ export class Engine {
       WebSocketService: webSocketService,
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
-      ///: END:ONLY_INCLUDE_IF
       BackendWebSocketService: backendWebSocketService,
       AccountActivityService: accountActivityService,
       OHLCVService: ohlcvService,
       AccountsController: accountsController,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController: multichainBalancesController,
       MultichainAssetsController: multichainAssetsController,
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,
       MultichainAccountService: multichainAccountService,
       SnapAccountService: snapAccountService,
-      ///: END:ONLY_INCLUDE_IF
       TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
       BridgeController: bridgeController,
@@ -808,7 +774,6 @@ export class Engine {
       },
     );
 
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     this.controllerMessenger.subscribe(
       `${snapController.name}:snapTerminated`,
       (truncatedSnap) => {
@@ -917,8 +882,6 @@ export class Engine {
       },
     );
 
-    ///: END:ONLY_INCLUDE_IF
-
     // Seed ClientController with the current foreground state; the listener
     // below only fires on changes and the app launches already active.
     this.controllerMessenger.call(
@@ -942,7 +905,6 @@ export class Engine {
           state === 'active',
         );
 
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         const { isUnlocked } = this.controllerMessenger.call(
           'KeyringController:getState',
         );
@@ -965,7 +927,6 @@ export class Engine {
               });
           }
         }
-        ///: END:ONLY_INCLUDE_IF
       },
     );
 
@@ -1390,7 +1351,6 @@ export class Engine {
     };
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   /**
    * Removes an account from state / storage.
    *
@@ -1403,7 +1363,6 @@ export class Engine {
     // Remove account from the keyring
     await this.keyringController.removeAccount(addressHex);
   };
-  ///: END:ONLY_INCLUDE_IF
 
   /**
    * Returns true or false whether the user has funds or not
@@ -1455,9 +1414,7 @@ export class Engine {
       TokenRatesController,
       PermissionController,
       // SelectedNetworkController,
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       SnapController,
-      ///: END:ONLY_INCLUDE_IF
       LoggingController,
       MoneyAccountController,
       SubscriptionController,
@@ -1468,9 +1425,7 @@ export class Engine {
 
     // Remove all permissions.
     PermissionController?.clearState?.();
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     await SnapController.clearState();
-    ///: END:ONLY_INCLUDE_IF
 
     // Clear selected network
     // TODO implement this method on SelectedNetworkController
@@ -1704,7 +1659,6 @@ export default {
       ProfileController,
       ComplianceController,
       KycController,
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       AuthenticationController,
       CronjobController,
       NotificationServicesController,
@@ -1714,13 +1668,10 @@ export default {
       SnapRegistryController,
       SubjectMetadataController,
       UserStorageController,
-      ///: END:ONLY_INCLUDE_IF
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainAssetsController,
       MultichainAssetsRatesController,
       MultichainBalancesController,
       MultichainTransactionsController,
-      ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController,
       MoneyAccountController,
       MoneyAccountUpgradeController,
@@ -1793,7 +1744,6 @@ export default {
       ClientController: ClientController.state,
       ComplianceController: ComplianceController.state,
       KycController: KycController.state,
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       AuthenticationController: AuthenticationController.state,
       CronjobController: CronjobController.state,
       NotificationServicesController: NotificationServicesController.state,
@@ -1804,13 +1754,10 @@ export default {
       SnapRegistryController: SnapRegistryController.state,
       SubjectMetadataController: SubjectMetadataController.state,
       UserStorageController: UserStorageController.state,
-      ///: END:ONLY_INCLUDE_IF
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainAssetsController: MultichainAssetsController.state,
       MultichainAssetsRatesController: MultichainAssetsRatesController.state,
       MultichainBalancesController: MultichainBalancesController.state,
       MultichainTransactionsController: MultichainTransactionsController.state,
-      ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,
       MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
@@ -1876,10 +1823,8 @@ export default {
   // TODO: Use the KeyringController to find the appropriate QR keyring bridge instead of using a global.
   getQrKeyringScanner: () => qrKeyringBridge,
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   removeAccount: async (address: string) => {
     assertEngineExists(instance);
     return await instance.removeAccount(address);
   },
-  ///: END:ONLY_INCLUDE_IF
 };
