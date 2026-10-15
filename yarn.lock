@@ -10659,10 +10659,10 @@ __metadata:
   linkType: hard
 
 "@metamask/keyring-snap-client@npm:^10.0.0":
-  version: 10.0.0
-  resolution: "@metamask/keyring-snap-client@npm:10.0.0"
+  version: 10.0.1
+  resolution: "@metamask/keyring-snap-client@npm:10.0.1"
   dependencies:
-    "@metamask/keyring-api": "npm:^24.0.0"
+    "@metamask/keyring-api": "npm:^24.2.0"
     "@metamask/keyring-utils": "npm:^5.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@types/uuid": "npm:^9.0.8"
@@ -10670,7 +10670,7 @@ __metadata:
     webextension-polyfill: "npm:^0.12.0"
   peerDependencies:
     "@metamask/providers": ^19.0.0
-  checksum: 10/f7df23dfdba2d844885b0683cfcee3bb37a923569be80cdbb6e6426b96258343c0b2efee03890ae09325bc1545be6bfd5c7cfb02d6c46dbe9e4f008d51ab265f
+  checksum: 10/5e8791200d284c22207300d28299c560dc6f3d4f9fc71c13ef447c9128d9cef03db61546067068248b6d4b726cf94c5e986c26a37a2a7ebfbe610ea3ecb387f0
   languageName: node
   linkType: hard
 
@@ -10726,10 +10726,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/kyc-controller@npm:^0.9.0":
-  version: 0.9.0
-  resolution: "@metamask/kyc-controller@npm:0.9.0"
+"@metamask/kyc-controller@npm:^0.10.0":
+  version: 0.10.0
+  resolution: "@metamask/kyc-controller@npm:0.10.0"
   dependencies:
+    "@metamask/authenticated-user-storage": "npm:^4.1.0"
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/base-data-service": "npm:^2.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
@@ -10744,7 +10745,7 @@ __metadata:
     "@scure/base": "npm:^1.2.6"
     "@tanstack/query-core": "npm:^5.103.2"
     tweetnacl: "npm:^1.0.3"
-  checksum: 10/b75c45c05facd3388bd0f937c15e0498912dc8b14a3a25d5220d35a69a31e95574e05dc05d809767b7e24c8d189bbcb78497cff82cc3376477d60eb66f445288
+  checksum: 10/03a2720728a373fd2f64926c719e0a59aa46a95a1384f7d9a50e659a4af3a410ec082b3f59a01de95b0a04349948010380bb02f5ec1c6ee18ffe6e6d7191575d
   languageName: node
   linkType: hard
 
@@ -12183,18 +12184,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/social-controllers@npm:^3.7.0":
-  version: 3.7.0
-  resolution: "@metamask/social-controllers@npm:3.7.0"
+"@metamask/social-controllers@npm:^3.8.0":
+  version: 3.8.0
+  resolution: "@metamask/social-controllers@npm:3.8.0"
   dependencies:
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/base-data-service": "npm:^2.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/core-backend": "npm:^12.0.1"
+    "@metamask/core-backend": "npm:^12.1.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/profile-sync-controller": "npm:^34.0.3"
     "@metamask/superstruct": "npm:^3.4.1"
-  checksum: 10/9b56bb917f0518d661940680d1261b4573454ae53b84ddf46a46c78cc39e80aae62d36961b189842a599a3fa845e63bb88821eccae399f791bf91cdc2f9238a0
+  checksum: 10/1c83af99f05d4a91e38ab06e254c2ed9cee0f58a331565fb76172bf736769cfd7c1268f9de4fc54b34f1bead7815ec1bab68ccebada7b29cab79f0f25acdd88f
   languageName: node
   linkType: hard
 
@@ -39215,7 +39216,7 @@ __metadata:
     "@metamask/keyring-sdk": "npm:^3.1.0"
     "@metamask/keyring-snap-client": "npm:^10.0.0"
     "@metamask/keyring-utils": "npm:^5.0.0"
-    "@metamask/kyc-controller": "npm:^0.9.0"
+    "@metamask/kyc-controller": "npm:^0.10.0"
     "@metamask/logging-controller": "npm:^9.0.0"
     "@metamask/message-signing-snap": "npm:^1.1.2"
     "@metamask/messenger": "npm:^3.0.0"
@@ -39278,7 +39279,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": "npm:^17.2.0"
     "@metamask/snaps-sdk": "npm:^12.1.0"
     "@metamask/snaps-utils": "npm:^12.6.1"
-    "@metamask/social-controllers": "npm:^3.7.0"
+    "@metamask/social-controllers": "npm:^3.8.0"
     "@metamask/solana-wallet-snap": "npm:^7.1.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
