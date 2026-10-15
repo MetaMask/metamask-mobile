@@ -103,7 +103,7 @@ const LiveTradeRow: React.FC<LiveTradeRowProps> = ({
             leverageLabel={item.leverageLabel}
             side={item.side}
             subtitleLabel={item.subtitleLabel}
-            closedAgeLabel={closedAgeLabel(item.closedAtMs)}
+            closedAgeLabel={closedAgeLabel(item.closedAtMs, now)}
             testID={getLiveTradeHeaderTestId(item.id)}
           />
         </PositionCardShell>

@@ -61,11 +61,14 @@ const priceOrMarketCapRow = (
   };
 };
 
-export const closedAgeLabel = (closedAtMs?: number): string | undefined =>
+export const closedAgeLabel = (
+  closedAtMs?: number,
+  now: number = Date.now(),
+): string | undefined =>
   closedAtMs == null
     ? undefined
     : strings('social_leaderboard.feed.position_card.closed_ago', {
-        age: formatFeedPostAge(closedAtMs),
+        age: formatFeedPostAge(closedAtMs, now),
       });
 
 /**
