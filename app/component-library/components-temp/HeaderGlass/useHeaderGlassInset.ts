@@ -2,8 +2,8 @@ import { useCallback, useState } from 'react';
 import type { LayoutChangeEvent } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-/** A `FloatingHeader`'s measured height, to pad content below it; 0 while disabled. */
-export const useFloatingHeaderInset = (isEnabled: boolean, topInset = 0) => {
+/** A `HeaderGlass`'s measured height, to pad content below it; 0 while disabled. */
+export const useHeaderGlassInset = (isEnabled: boolean, topInset = 0) => {
   const tw = useTailwind();
   // Seeded with the header's min height so the first frame already clears it.
   const [height, setHeight] = useState(
