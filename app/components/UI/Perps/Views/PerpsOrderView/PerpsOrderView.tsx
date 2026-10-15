@@ -215,10 +215,10 @@ import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/t
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectPerpsProvider } from '../../selectors/perpsController';
 import {
-  postCopyTradeIntents,
+  postCopyTradeIntent,
   type CopyTradeOrigin,
 } from '../../../../../util/social/copyTradeIntent';
-import { buildPerpsCopyTradeIntents } from '../../utils/copyTradeIntents';
+import { buildPerpsCopyTradeIntent } from '../../utils/copyTradeIntents';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -1224,9 +1224,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             getOrderManagementToastKey(orderForm.type)
           ].confirmed(orderForm.direction, positionSize, orderForm.asset),
         );
-        postCopyTradeIntents(
+        postCopyTradeIntent(
           () =>
-            buildPerpsCopyTradeIntents({
+            buildPerpsCopyTradeIntent({
               copyTradeOrigin,
               asset: orderForm.asset,
               orderType: orderForm.type,

@@ -95,7 +95,7 @@ import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import {
   buildCopyTradeIntentOptions,
-  postCopyTradeIntents,
+  postCopyTradeIntent,
   type CopyTradeOrigin,
 } from '../../../../util/social/copyTradeIntent';
 import { useTheme } from '../../../../util/theme';
@@ -1714,20 +1714,18 @@ export function useQuickBuyController(
       beginQuickBuySubmission();
       dispatch(setIsSubmittingTx(true));
       if (copyTradeOrigin) {
-        postCopyTradeIntents(
+        postCopyTradeIntent(
           () =>
             sourceToken
-              ? [
-                  buildCopyTradeIntentOptions(
-                    copyTradeOrigin,
-                    `${formatChainIdToCaip(sourceToken.chainId)}:${walletAddress}`,
-                    {
-                      product: 'swaps',
-                      quoteId: activeQuote.quote.requestId,
-                    },
-                  ),
-                ]
-              : [],
+              ? buildCopyTradeIntentOptions(
+                  copyTradeOrigin,
+                  `${formatChainIdToCaip(sourceToken.chainId)}:${walletAddress}`,
+                  {
+                    product: 'swaps',
+                    quoteId: activeQuote.quote.requestId,
+                  },
+                )
+              : undefined,
           { surface: 'quick_buy', source: 'useQuickBuyController' },
         );
       }

@@ -2,7 +2,7 @@ import Logger from '../Logger';
 import {
   buildCopyTradeIntentOptions,
   createCopyTradeIntent,
-  postCopyTradeIntents,
+  postCopyTradeIntent,
   type CreateCopyTradeIntentOptions,
 } from './copyTradeIntent';
 
@@ -78,36 +78,29 @@ describe('copyTradeIntent', () => {
     });
   });
 
-  describe('postCopyTradeIntents', () => {
-    it('sends every built intent', () => {
-      const first = createIntent({ product: 'perps', oid: '1' });
-      const second = createIntent({ product: 'perps', oid: '2' });
+  describe('postCopyTradeIntent', () => {
+    it('sends the built intent', () => {
+      const intent = createIntent({ product: 'perps', oid: '1' });
       mockCall.mockResolvedValue({});
 
-      postCopyTradeIntents(() => [first, second], CONTEXT);
+      postCopyTradeIntent(() => intent, CONTEXT);
 
-      expect(mockCall).toHaveBeenNthCalledWith(
-        1,
+      expect(mockCall).toHaveBeenCalledWith(
         'SocialService:createCopyTradeIntent',
-        first,
-      );
-      expect(mockCall).toHaveBeenNthCalledWith(
-        2,
-        'SocialService:createCopyTradeIntent',
-        second,
+        intent,
       );
     });
 
     it('returns without waiting for the request', () => {
       mockCall.mockReturnValue(new Promise(() => undefined));
 
-      const result = postCopyTradeIntents(() => [createIntent()], CONTEXT);
+      const result = postCopyTradeIntent(() => createIntent(), CONTEXT);
 
       expect(result).toBeUndefined();
     });
 
     it('sends nothing when no intent is built', () => {
-      postCopyTradeIntents(() => [], CONTEXT);
+      postCopyTradeIntent(() => undefined, CONTEXT);
 
       expect(mockCall).not.toHaveBeenCalled();
     });
@@ -119,7 +112,7 @@ describe('copyTradeIntent', () => {
       mockCall.mockRejectedValue(error);
 
       expect(() =>
-        postCopyTradeIntents(() => [createIntent()], CONTEXT),
+        postCopyTradeIntent(() => createIntent(), CONTEXT),
       ).not.toThrow();
       await flushPromises();
 
@@ -144,37 +137,18 @@ describe('copyTradeIntent', () => {
       });
 
       expect(() =>
-        postCopyTradeIntents(() => [createIntent()], CONTEXT),
+        postCopyTradeIntent(() => createIntent(), CONTEXT),
       ).not.toThrow();
       await flushPromises();
 
       expect(mockLoggerError).toHaveBeenCalledWith(error, expect.any(Object));
     });
 
-    it('still sends later intents after one throws synchronously', () => {
-      const second = createIntent({ product: 'perps', oid: '2' });
-      mockCall
-        .mockImplementationOnce(() => {
-          throw new Error('boom');
-        })
-        .mockResolvedValueOnce({});
-
-      postCopyTradeIntents(
-        () => [createIntent({ product: 'perps', oid: '1' }), second],
-        CONTEXT,
-      );
-
-      expect(mockCall).toHaveBeenLastCalledWith(
-        'SocialService:createCopyTradeIntent',
-        second,
-      );
-    });
-
-    it('logs a throw while building intents and sends nothing', () => {
+    it('logs a throw while building the intent and sends nothing', () => {
       const error = new Error('Invalid chain id');
 
       expect(() =>
-        postCopyTradeIntents(() => {
+        postCopyTradeIntent(() => {
           throw error;
         }, CONTEXT),
       ).not.toThrow();
@@ -186,7 +160,7 @@ describe('copyTradeIntent', () => {
     it('wraps a non-Error rejection before logging it', async () => {
       mockCall.mockRejectedValue('offline');
 
-      postCopyTradeIntents(() => [createIntent()], CONTEXT);
+      postCopyTradeIntent(() => createIntent(), CONTEXT);
       await flushPromises();
 
       expect(mockLoggerError).toHaveBeenCalledWith(
@@ -201,7 +175,7 @@ describe('copyTradeIntent', () => {
       });
 
       expect(() =>
-        postCopyTradeIntents(() => {
+        postCopyTradeIntent(() => {
           throw new Error('Invalid chain id');
         }, CONTEXT),
       ).not.toThrow();

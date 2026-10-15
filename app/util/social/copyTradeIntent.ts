@@ -61,13 +61,13 @@ export const buildCopyTradeIntentOptions = (
  * surface an error to the trade it rides along with, so building the intents
  * and every request are isolated: sync throws and rejections are only logged.
  *
- * @param buildIntents - Returns the intents to send; empty sends nothing.
+ * @param buildIntent - Returns the intent to send; undefined sends nothing.
  * @param context - Where the copy was placed, for Sentry.
  * @param context.surface - Social UI surface placing the trade.
  * @param context.source - Hook or component name.
  */
-export function postCopyTradeIntents(
-  buildIntents: () => CreateCopyTradeIntentOptions[],
+export function postCopyTradeIntent(
+  buildIntent: () => CreateCopyTradeIntentOptions | undefined,
   context: { surface: SocialSurface; source: string },
 ): void {
   const reportFailure = (error: unknown) => {
@@ -87,15 +87,15 @@ export function postCopyTradeIntents(
     }
   };
 
-  let intents: CreateCopyTradeIntentOptions[];
+  let intent: CreateCopyTradeIntentOptions | undefined;
   try {
-    intents = buildIntents();
+    intent = buildIntent();
   } catch (error) {
     reportFailure(error);
     return;
   }
 
-  for (const options of intents) {
-    createCopyTradeIntent(options).catch(reportFailure);
+  if (intent) {
+    createCopyTradeIntent(intent).catch(reportFailure);
   }
 }
