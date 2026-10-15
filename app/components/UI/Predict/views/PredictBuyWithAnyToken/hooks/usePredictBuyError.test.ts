@@ -493,6 +493,18 @@ describe('usePredictBuyError', () => {
       expect(result.current.retryOrderState).toBe('pending');
     });
 
+    it("returns 'pending' while the controller is placing the order", () => {
+      mockActiveOrder = { state: ActiveOrderState.PLACING_ORDER };
+
+      // isPlacingOrder is false — the active-order state alone must block
+      // the retry flow, or a not-filled error arriving while the controller
+      // is still placing is classified as retryable and can start a second
+      // order while the first is in flight.
+      const { result } = renderHook(() => usePredictBuyError(defaultParams));
+
+      expect(result.current.retryOrderState).toBe('pending');
+    });
+
     it("returns 'filled' when the active order succeeded", () => {
       mockActiveOrder = { state: ActiveOrderState.SUCCESS };
 

@@ -250,6 +250,79 @@ describe('usePredictOrderRetry', () => {
 
       expect(onOpen).not.toHaveBeenCalled();
     });
+
+    it('clears the quote and does not submit once the episode ends', async () => {
+      const params = createDefaultParams();
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      expect(result.current.retryQuote).not.toBeNull();
+
+      await act(async () => {
+        params.isOrderNotFilled = false;
+        rerender();
+      });
+
+      // A stale quote must not remain confirmable after the episode ends.
+      expect(result.current.retryQuote).toBeNull();
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(params.placeOrder).not.toHaveBeenCalled();
+    });
+
+    it('restarts the retry count on the next episode', async () => {
+      const params = createDefaultParams();
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'retry_completed', retryCount: 1 }),
+      );
+
+      // Episode over — the count resets so the next not-filled failure
+      // starts from one again.
+      await act(async () => {
+        params.isOrderNotFilled = false;
+        rerender();
+      });
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      mockTrackEvent.mockClear();
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'retry_submitted', retryCount: 1 }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'retry_completed', retryCount: 1 }),
+      );
+    });
   });
 
   describe('handleRetry', () => {
@@ -1017,6 +1090,42 @@ describe('usePredictOrderRetry', () => {
       });
 
       expect(params.placeOrder).not.toHaveBeenCalled();
+    });
+
+    it('runs the not-filled edge once a pending order becomes retryable', async () => {
+      const params = createDefaultParams({ orderState: 'pending' });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+      const onOpen = jest.fn();
+      (
+        result.current.retrySheetRef as unknown as {
+          current: { onOpenBottomSheet: jest.Mock };
+        }
+      ).current = { onOpenBottomSheet: onOpen };
+
+      // A not-filled failure arrives while the order is still in flight:
+      // blocked, and the transition must not be consumed.
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      expect(params.refetchPreview).not.toHaveBeenCalled();
+      expect(onOpen).not.toHaveBeenCalled();
+
+      // The order becomes retryable (still not filled): the edge fires now,
+      // so the user still gets the 1-tick confirmation on the fresh quote.
+      await act(async () => {
+        params.orderState = 'unknown';
+        rerender();
+      });
+
+      expect(params.refetchPreview).toHaveBeenCalledTimes(1);
+      // The sheet opens for the busy state and is re-opened once the fresh
+      // quote arrives.
+      expect(onOpen).toHaveBeenCalled();
+      expect(result.current.retrySheetVariant).toBe('confirm');
     });
   });
 
