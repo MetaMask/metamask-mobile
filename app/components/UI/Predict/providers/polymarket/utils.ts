@@ -1053,9 +1053,15 @@ function isV2Market(market?: PolymarketApiMarket): boolean {
  * `clobTokenIds`, so CTF ids can never leak into the Protocol V2 path.
  */
 function parseMarketOutcomeTokenIds(market: PolymarketApiMarket): string[] {
-  const rawTokenIds = isV2Market(market)
-    ? market.positionIds
-    : market.clobTokenIds;
+  if (isV2Market(market)) {
+    // The v2 wire returns `positionIds` as a native JSON array; the
+    // JSON-encoded string form is accepted for compatibility.
+    if (Array.isArray(market.positionIds)) {
+      return market.positionIds;
+    }
+    return market.positionIds ? JSON.parse(market.positionIds) : [];
+  }
+  const rawTokenIds = market.clobTokenIds;
   return rawTokenIds ? JSON.parse(rawTokenIds) : [];
 }
 
@@ -2180,10 +2186,23 @@ async function waiveFees({
   marketId: string;
   waiveList: string[];
 }): Promise<boolean> {
-  const market = await getMarketDetailsFromGammaApi({ marketId });
-  const { tags } = market;
-  const slugs = tags?.map((t) => t.slug);
-  return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
+  try {
+    const market = await getMarketDetailsFromGammaApi({ marketId });
+    const { tags } = market;
+    const slugs = tags?.map((t) => t.slug);
+    return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
+  } catch (error) {
+    // A fee-waiver lookup failure must never fail the preview — degrade
+    // to standard (non-waived) fees instead.
+    DevLogger.log(
+      'Polymarket: fee-waiver lookup failed, applying standard fees',
+      {
+        marketId,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    );
+    return false;
+  }
 }
 
 /**
