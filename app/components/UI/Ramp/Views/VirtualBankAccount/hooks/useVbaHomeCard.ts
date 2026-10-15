@@ -23,6 +23,7 @@ import {
 } from '../../../../../../selectors/rampsController';
 import { useVbaEligibility } from './useVbaEligibility';
 import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
+import { getVbaKycStatusOverride } from '../vbaDevOverrides';
 
 /**
  * Identity of the single VBA status card Money home renders, if any. The hook
@@ -292,6 +293,19 @@ export const useVbaHomeCard = (): VbaHomeCard => {
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
   const sessionStatus = useSelector(selectKycSessionStatus);
   const providerFlowStatus = useSelector(selectKycProviderFlowStatus);
+  // Dev-only demo override: honor MM_MONEY_VBA_KYC_STATUS_OVERRIDE for the
+  // home card the same way onboarding does (applyVbaDevOverrides), so demos
+  // can force the rejected state without vendor-side changes. No-op when the
+  // env var is unset, in production builds, or without a stored session.
+  const kycStatusOverride = getVbaKycStatusOverride();
+  const effectiveSessionStatus =
+    kycStatusOverride && sessionStatus
+      ? {
+          ...sessionStatus,
+          finalStatus: kycStatusOverride,
+          kycStatus: kycStatusOverride,
+        }
+      : sessionStatus;
   const autoramps = useSelector((state: RootState) => {
     const rampsControllerState = selectRampsControllerState(state);
     return rampsControllerState?.autoramps ?? EMPTY_AUTORAMPS;
@@ -330,7 +344,7 @@ export const useVbaHomeCard = (): VbaHomeCard => {
         isEligible,
         isEligibilityLoading,
         walletAddress,
-        sessionStatus,
+        sessionStatus: effectiveSessionStatus,
         providerFlowStatus,
         hasAcceptedVendorTerms,
         autoramps,
@@ -340,7 +354,7 @@ export const useVbaHomeCard = (): VbaHomeCard => {
       isEligible,
       isEligibilityLoading,
       walletAddress,
-      sessionStatus,
+      effectiveSessionStatus,
       providerFlowStatus,
       hasAcceptedVendorTerms,
       autoramps,

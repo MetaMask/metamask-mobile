@@ -25,6 +25,7 @@ import {
 } from '../../../../../../selectors/kycController';
 import { useVbaEligibility, type VbaEligibility } from './useVbaEligibility';
 import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
+import { getVbaKycStatusOverride } from '../vbaDevOverrides';
 import {
   getVbaHomeCard,
   shouldRefreshKycSessionOnFocus,
@@ -48,6 +49,10 @@ jest.mock('../../../../../../selectors/rampsController');
 jest.mock('../../../../../../selectors/kycController');
 jest.mock('./useVbaEligibility');
 jest.mock('../vbaVendorTermsStorage');
+jest.mock('../vbaDevOverrides', () => ({
+  ...jest.requireActual('../vbaDevOverrides'),
+  getVbaKycStatusOverride: jest.fn(),
+}));
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
@@ -63,6 +68,7 @@ const mockSelectKycProviderFlowStatus = jest.mocked(
   selectKycProviderFlowStatus,
 );
 const mockHasAcceptedVbaVendorTerms = jest.mocked(hasAcceptedVbaVendorTerms);
+const mockGetVbaKycStatusOverride = jest.mocked(getVbaKycStatusOverride);
 const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
   typeof useFocusEffect
 >;
@@ -444,6 +450,7 @@ describe('useVbaHomeCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetVbaKycStatusOverride.mockReset();
     mockUseSelector.mockImplementation((selector) =>
       selector(undefined as never),
     );
@@ -466,6 +473,20 @@ describe('useVbaHomeCard', () => {
     const { result } = renderHook(() => useVbaHomeCard());
 
     expect(result.current).toEqual({ type: 'kyc_pending' });
+  });
+
+  it('honors the dev KYC status override for the card decision', () => {
+    mockGetVbaKycStatusOverride.mockReturnValue('rejected');
+    setupSelectors({
+      sessionStatus: makeSession({
+        finalStatus: 'pending',
+        kycStatus: 'new',
+      }),
+    });
+
+    const { result } = renderHook(() => useVbaHomeCard());
+
+    expect(result.current).toEqual({ type: 'kyc_decision' });
   });
 
   it('treats local vendor terms as not accepted while loading, then flips once accepted', async () => {
