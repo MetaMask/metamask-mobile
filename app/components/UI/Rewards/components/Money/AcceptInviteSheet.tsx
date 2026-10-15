@@ -91,7 +91,9 @@ export interface AcceptInviteSheetProps {
  * refusal and dismisses it itself once the role has been read back.
  *
  * Header close / swipe / overlay dismiss without declining; the Decline CTA
- * is the explicit declined path.
+ * is the explicit declined path. While a registration is in flight the sheet
+ * is not interactable, so overlay, swipe, and hardware back cannot unmount it
+ * before the accepted splash opens.
  */
 const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -207,6 +209,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     <BottomSheet
       ref={sheetRef}
       goBack={navigation.goBack}
+      isInteractable={!isAccepting}
       testID={ACCEPT_INVITE_SHEET_TEST_IDS.CONTAINER}
     >
       <BottomSheetHeader
