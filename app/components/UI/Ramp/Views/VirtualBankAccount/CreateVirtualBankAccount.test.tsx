@@ -6,6 +6,7 @@ import CreateVirtualBankAccount from './CreateVirtualBankAccount';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
+import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
 const mockOnSuccess = jest.fn();
 const mockGoBack = jest.fn();
 
@@ -26,6 +27,9 @@ jest.mock('../../../Money/hooks/useMoneyVaultApy', () => ({
   default: jest.fn(),
 }));
 const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
+
+jest.mock('./hooks/useVbaArrivalTime');
+const mockUseVbaArrivalTime = jest.mocked(useVbaArrivalTime);
 
 const privacyDisclaimer = {
   id: 'd-1',
@@ -54,6 +58,9 @@ describe('CreateVirtualBankAccount', () => {
     mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 4.2,
     } as unknown as ReturnType<typeof useMoneyVaultApy>);
+    // Arrival-row behavior is covered by CreateVirtualBankAccount.view.test.tsx
+    // (real hooks); the stub keeps KYC/CTA/APY tests off the payment-methods query.
+    mockUseVbaArrivalTime.mockReturnValue({ arrivalTimeframe: undefined });
   });
 
   it('renders the intro design with feature rows and footer', () => {
@@ -63,6 +70,7 @@ describe('CreateVirtualBankAccount', () => {
 
     expect(getByText('Add funds right from your bank')).toBeOnTheScreen();
     expect(getByText('No fees to add funds')).toBeOnTheScreen();
+    expect(getByText('Arrives in a few business days')).toBeOnTheScreen();
     expect(getByText('Set up once, use anytime')).toBeOnTheScreen();
     expect(getByText('Starts earning straight away')).toBeOnTheScreen();
     expect(getByText('Powered by')).toBeOnTheScreen();

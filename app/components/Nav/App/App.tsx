@@ -1396,11 +1396,10 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.MFA.FLOW}
         component={MfaFlowHost}
+        // A transparent modal, as the picker is a sheet over the app.
         options={{
-          headerShown: false,
           gestureEnabled: false,
-          presentation: 'fullScreenModal',
-          animation: 'slide_from_bottom',
+          contentStyle: { backgroundColor: 'transparent' },
         }}
       />
       <NativeStack.Screen
