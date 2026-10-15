@@ -1344,7 +1344,7 @@ describe('BuildQuote View', () => {
         };
         mockUseBalanceValues = {
           balance: '1 SOL',
-          balanceFiat: null,
+          balanceFiat: undefined,
           balanceBN: toTokenMinimalUnit('1', 9),
         };
 
@@ -1374,10 +1374,10 @@ describe('BuildQuote View', () => {
         };
         jest.mocked(useBalance).mockImplementation((asset) =>
           asset?.address === NATIVE_ADDRESS
-            ? { balance: '0', balanceFiat: null, balanceBN: 0n }
+            ? { balance: '0', balanceFiat: undefined, balanceBN: 0n }
             : {
                 balance: '5 USDC',
-                balanceFiat: null,
+                balanceFiat: undefined,
                 balanceBN: toTokenMinimalUnit('5', 6),
               },
         );
