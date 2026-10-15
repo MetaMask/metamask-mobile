@@ -946,6 +946,53 @@ describe('CardController card links', () => {
       );
     });
 
+    it('ignores a newer row from another provider when deciding the login account', async () => {
+      const submitCredentials = jest.fn().mockResolvedValue({
+        done: true,
+        tokenSet: {
+          accessToken: 'at',
+          accessTokenExpiresAt: Date.now() + 60_000,
+          location: 'international',
+        },
+      });
+      const { controller, cardService } = setup({
+        provider: { submitCredentials },
+        state: {
+          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
+          cardLinks: [
+            link({
+              provider: 'immersve',
+              updatedAt: '2026-09-02T00:00:00.000Z',
+            }),
+            link({
+              updatedAt: '2026-09-01T00:00:00.000Z',
+              linkedAccountRef: refFor(CARDHOLDER_ADDRESS),
+            }),
+          ],
+          cardLinksFetchedAt: Date.now(),
+        },
+      });
+      jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
+      (controller as unknown as { currentSession: unknown }).currentSession = {
+        id: 's',
+        currentStep: { type: 'email_password' },
+        _metadata: {},
+      };
+
+      await controller.submitCredentials({
+        type: 'email_password',
+        email: 'e',
+        password: 'p',
+      });
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'baanx',
+        { status: 'active' },
+        'token-1',
+      );
+    });
+
     it('sends no linkedAccountRef on Baanx login while links are not loaded', async () => {
       const submitCredentials = jest.fn().mockResolvedValue({
         done: true,
