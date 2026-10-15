@@ -41,7 +41,7 @@ on:
         required: false
         type: string
       performance_tags:
-        description: 'JSON array of performance tags. Blank runs all; [] skips all.'
+        description: 'JSON array of performance tags. Blank or ["ALL"] runs all; [] skips all.'
         required: false
         type: string
         default: ''

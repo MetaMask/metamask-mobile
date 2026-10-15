@@ -63,6 +63,7 @@ on:
           - 'MetaMask BETA & Release Candidates'
           - 'MM Card Team'
           - 'Ramp Provider Testing'
+          - 'FIME Apple Pay Cert'
       distribute_external:
         description: 'Whether to distribute to external testers (default: true)'
         required: false

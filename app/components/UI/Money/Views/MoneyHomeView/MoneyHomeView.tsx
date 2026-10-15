@@ -6,9 +6,9 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl, type LayoutChangeEvent } from 'react-native';
-import FloatingHeader, {
-  useFloatingHeaderInset,
-} from '../../../../../component-library/components-temp/FloatingHeader';
+import HeaderGlass, {
+  useHeaderGlassInset,
+} from '../../../../../component-library/components-temp/HeaderGlass';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Animated from 'react-native-reanimated';
@@ -335,7 +335,8 @@ const MoneyHomeView = () => {
   const last30DaysInterest =
     formattedLast30DaysInterest ?? projectedMonthlyFallback;
   const sinceInceptionInterest =
-    formattedSinceInceptionInterest ?? formattedZero;
+    formattedSinceInceptionInterest ??
+    (sinceInceptionQuery.isError ? undefined : formattedZero);
 
   const isEarningsLoading =
     last30DaysQuery.isInitialLoading ||
@@ -343,9 +344,7 @@ const MoneyHomeView = () => {
     (formattedLast30DaysInterest === undefined &&
       (vaultApyQuery.isLoading || isBalanceLoading));
 
-  const hasEarningsContent = Boolean(
-    last30DaysInterest && sinceInceptionInterest,
-  );
+  const hasEarningsContent = Boolean(last30DaysInterest);
   const earningsFailed =
     (last30DaysQuery.isError || sinceInceptionQuery.isError) &&
     !hasEarningsContent;
@@ -468,7 +467,7 @@ const MoneyHomeView = () => {
 
   const isFloatingHeader = isBrandRefresh && !isNativeHeader;
   const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
-    useFloatingHeaderInset(isFloatingHeader, insets.top);
+    useHeaderGlassInset(isFloatingHeader, insets.top);
   const topInset = isNativeHeader || isFloatingHeader ? 0 : insets.top;
 
   const handleTitleSectionLayout = useCallback(
@@ -1032,13 +1031,13 @@ const MoneyHomeView = () => {
     >
       {isFloatingHeader ? (
         // Mounted before the content so assistive tech reads the header first.
-        <FloatingHeader
+        <HeaderGlass
           onLayout={handleFloatingHeaderLayout}
           topInset={insets.top}
           testID={MoneyHomeViewTestIds.FLOATING_HEADER}
         >
           <MoneyHeader {...headerProps} isCapsule />
-        </FloatingHeader>
+        </HeaderGlass>
       ) : (
         !isNativeHeader && <MoneyHeader {...headerProps} />
       )}

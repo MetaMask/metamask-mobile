@@ -46,6 +46,7 @@ interface AccountsApiTransaction {
   /** ISO-8601, e.g. "2026-06-04T11:53:51.000Z". */
   timestamp: string;
   chainId: number;
+  blockNumber?: number;
   from: string;
   to: string;
   isError?: boolean;
@@ -107,6 +108,7 @@ interface ParsedSettlement {
   hash: Hex;
   time: number;
   chainId: Hex;
+  blockNumber?: number;
   token: { address: Hex; symbol: string; decimals: number };
   amount: string;
 }
@@ -117,6 +119,10 @@ function parseSettlement(
 ): ParsedSettlement | undefined {
   const time = new Date(tx.timestamp).getTime();
   const chainId = parseChainId(tx.chainId);
+  const hasValidBlockNumber =
+    typeof tx.blockNumber === 'number' &&
+    Number.isSafeInteger(tx.blockNumber) &&
+    tx.blockNumber >= 0;
   if (
     !tx.hash ||
     !transfer ||
@@ -133,6 +139,7 @@ function parseSettlement(
     hash: tx.hash as Hex,
     time,
     chainId,
+    ...(hasValidBlockNumber ? { blockNumber: tx.blockNumber } : {}),
     token: {
       address: transfer.contractAddress as Hex,
       symbol: transfer.symbol,

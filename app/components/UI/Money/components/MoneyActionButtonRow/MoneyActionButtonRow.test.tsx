@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import MoneyActionButtonRow from './MoneyActionButtonRow';
 import { MoneyActionButtonRowTestIds } from './MoneyActionButtonRow.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/GlassSurface';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
 
 const noop = jest.fn();
 

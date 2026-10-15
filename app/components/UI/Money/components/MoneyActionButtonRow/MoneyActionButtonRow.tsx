@@ -6,7 +6,7 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import GlassMainActionButton from '../../../../../component-library/components-temp/GlassMainActionButton';
+import MainActionButtonGlass from '../../../../../component-library/components-temp/MainActionButtonGlass';
 import { MoneyActionButtonRowTestIds } from './MoneyActionButtonRow.testIds';
 
 interface ActionButtonConfig {
@@ -40,7 +40,7 @@ const MoneyActionButtonRow = ({
     twClassName="px-4 pt-4 pb-2 gap-2"
     testID={MoneyActionButtonRowTestIds.CONTAINER}
   >
-    <GlassMainActionButton
+    <MainActionButtonGlass
       iconName={IconName.Add}
       label={strings('money.action.add')}
       onPress={add.onPress}
@@ -50,7 +50,7 @@ const MoneyActionButtonRow = ({
       containerStyle={styles.buttonContainer}
       isGlass={isGlass}
     />
-    <GlassMainActionButton
+    <MainActionButtonGlass
       iconName={IconName.Arrow2UpRight}
       label={strings('money.action.transfer')}
       onPress={transfer.onPress}
@@ -60,7 +60,7 @@ const MoneyActionButtonRow = ({
       containerStyle={styles.buttonContainer}
       isGlass={isGlass}
     />
-    <GlassMainActionButton
+    <MainActionButtonGlass
       iconName={IconName.Card}
       label={strings('money.action.card')}
       onPress={card.onPress}
