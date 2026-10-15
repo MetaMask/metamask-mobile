@@ -66,6 +66,7 @@ import {
   getPerpsProChaseRepriceSelector,
   getPerpsProChaseStatusSelector,
   getPerpsProChaseTerminateSelector,
+  getPerpsProChaseHandleSelector,
   getPerpsProPositionRowSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
@@ -1133,7 +1134,10 @@ const PerpsProPositionsPanel = ({
           index === 0,
         )}
       >
-        <Box twClassName="gap-3 py-3">
+        <Box
+          twClassName="gap-3 py-3"
+          testID={getPerpsProChaseHandleSelector(order.symbol, order.handle)}
+        >
           <Pressable
             onPress={handlePress}
             disabled={!handlePress}

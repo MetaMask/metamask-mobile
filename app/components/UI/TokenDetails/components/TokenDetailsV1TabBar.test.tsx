@@ -60,7 +60,7 @@ const renderTabBar = (
   );
 
 describe('TokenDetailsV1TabBar', () => {
-  it('renders the Overview, Security and Feed tabs in order', () => {
+  it('renders the Feed, Overview and Security tabs in order', () => {
     const { getAllByText, getByTestId } = renderTabBar('overview');
 
     expect(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).toBeTruthy();
@@ -68,11 +68,11 @@ describe('TokenDetailsV1TabBar', () => {
       getAllByText(/^(active|inactive):(overview|security|feed)$/).map(
         (node) => node.props.children,
       ),
-    ).toStrictEqual(['active:overview', 'inactive:security', 'inactive:feed']);
+    ).toStrictEqual(['inactive:feed', 'active:overview', 'inactive:security']);
     expect(TOKEN_DETAILS_V1_TABS).toStrictEqual([
+      'feed',
       'overview',
       'security',
-      'feed',
     ]);
   });
 
@@ -83,6 +83,21 @@ describe('TokenDetailsV1TabBar', () => {
     expect(queryByText('active:overview')).toBeNull();
     expect(queryByText('active:security')).toBeNull();
   });
+
+  // TabsBar draws only the active segment, so the unselected track the
+  // indicator rides on has to come from here. Asserted on every tab because
+  // the track is unselected state — it has to be there no matter which tab
+  // owns the indicator.
+  it.each(TOKEN_DETAILS_V1_TABS)(
+    'draws the track beneath the tabs on the %s tab',
+    (activeTab) => {
+      const { getByTestId } = renderTabBar(activeTab);
+
+      expect(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).toHaveStyle({
+        borderBottomWidth: 1,
+      });
+    },
+  );
 
   it('maps the pressed design-system tab index to its tab key', () => {
     const onTabPress = jest.fn();
@@ -118,13 +133,13 @@ describe('TokenDetailsV1TabBar', () => {
 });
 
 describe('useTokenDetailsV1Tabs', () => {
-  it('initialises with overview as the active tab and only mounted tab', () => {
+  it('initialises with feed as the active tab and only mounted tab', () => {
     const { result } = renderHook(() => useTokenDetailsV1Tabs());
 
-    expect(result.current.activeTab).toBe('overview');
-    expect(result.current.mountedTabs.has('overview')).toBe(true);
+    expect(result.current.activeTab).toBe('feed');
+    expect(result.current.mountedTabs.has('feed')).toBe(true);
+    expect(result.current.mountedTabs.has('overview')).toBe(false);
     expect(result.current.mountedTabs.has('security')).toBe(false);
-    expect(result.current.mountedTabs.has('feed')).toBe(false);
     expect(result.current.swipeGesture).toBeDefined();
   });
 
@@ -136,7 +151,7 @@ describe('useTokenDetailsV1Tabs', () => {
     });
 
     expect(result.current.activeTab).toBe('security');
-    expect(result.current.mountedTabs.has('overview')).toBe(true);
+    expect(result.current.mountedTabs.has('feed')).toBe(true);
     expect(result.current.mountedTabs.has('security')).toBe(true);
 
     act(() => {
@@ -222,6 +237,50 @@ describe('useTokenDetailsV1ScrollStabilization', () => {
     expect(scrollToMock).not.toHaveBeenCalled();
   });
 
+  it('scrolls down to the tab bar when scrollToTabBar is called from above it', () => {
+    const scrollToMock = jest.fn();
+    const mockScrollView = {
+      scrollTo: scrollToMock,
+    } as unknown as ScrollView;
+
+    const { result } = renderHook(() =>
+      useTokenDetailsV1ScrollStabilization({
+        scrollViewRef: { current: mockScrollView },
+      }),
+    );
+
+    act(() => {
+      result.current.handleTabBarLayout({
+        nativeEvent: { layout: { y: 400, x: 0, width: 375, height: 48 } },
+      } as LayoutChangeEvent);
+      result.current.handleScroll({
+        nativeEvent: { contentOffset: { y: 0, x: 0 } },
+      } as NativeSyntheticEvent<NativeScrollEvent>);
+      result.current.scrollToTabBar();
+    });
+
+    expect(scrollToMock).toHaveBeenCalledWith({ y: 400, animated: true });
+  });
+
+  it('does not scroll when scrollToTabBar runs before the tab bar has laid out', () => {
+    const scrollToMock = jest.fn();
+    const mockScrollView = {
+      scrollTo: scrollToMock,
+    } as unknown as ScrollView;
+
+    const { result } = renderHook(() =>
+      useTokenDetailsV1ScrollStabilization({
+        scrollViewRef: { current: mockScrollView },
+      }),
+    );
+
+    act(() => {
+      result.current.scrollToTabBar();
+    });
+
+    expect(scrollToMock).not.toHaveBeenCalled();
+  });
+
   it('forwards scroll events to the onScroll option', () => {
     const onScroll = jest.fn();
     const { result } = renderHook(() =>
@@ -256,14 +315,14 @@ describe('useTokenDetailsV1ScrollStabilization', () => {
 
 describe('resolveSwipeTargetTab', () => {
   it('swipes to the neighbouring tab when translation exceeds threshold', () => {
+    expect(resolveSwipeTargetTab('feed', -120, 0)).toBe('overview');
     expect(resolveSwipeTargetTab('overview', -120, 0)).toBe('security');
-    expect(resolveSwipeTargetTab('security', -120, 0)).toBe('feed');
+    expect(resolveSwipeTargetTab('overview', 120, 0)).toBe('feed');
     expect(resolveSwipeTargetTab('security', 120, 0)).toBe('overview');
-    expect(resolveSwipeTargetTab('feed', 120, 0)).toBe('security');
   });
 
   it('swipes to the neighbouring tab on a fast fling even with small travel', () => {
-    expect(resolveSwipeTargetTab('overview', -10, -600)).toBe('security');
+    expect(resolveSwipeTargetTab('feed', -10, -600)).toBe('overview');
   });
 
   it('ignores indecisive gestures below the translation and velocity thresholds', () => {
@@ -272,7 +331,7 @@ describe('resolveSwipeTargetTab', () => {
   });
 
   it('refuses to swipe past the edges of the tab list', () => {
-    expect(resolveSwipeTargetTab('overview', 120, 0)).toBeNull();
-    expect(resolveSwipeTargetTab('feed', -120, 0)).toBeNull();
+    expect(resolveSwipeTargetTab('feed', 120, 0)).toBeNull();
+    expect(resolveSwipeTargetTab('security', -120, 0)).toBeNull();
   });
 });

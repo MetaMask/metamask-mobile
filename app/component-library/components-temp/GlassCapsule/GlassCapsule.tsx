@@ -5,6 +5,7 @@ import { BlurView } from 'expo-blur';
 import { GlassView } from 'expo-glass-effect';
 
 import { useLiquidGlass } from '../../hooks/useLiquidGlass';
+import { useTheme } from '../../../util/theme';
 import { BLUR_INTENSITY } from '../../hooks/useBlurMaterial';
 
 export interface GlassCapsuleProps {
@@ -29,21 +30,24 @@ const GlassCapsule = ({
   testID,
 }: GlassCapsuleProps) => {
   const tw = useTailwind();
+  const { shadows } = useTheme();
   const { isGlassEnabled, glassColorScheme, isBlurEnabled, blurTint } =
     useLiquidGlass();
 
   if (isGlassEnabled) {
     return (
-      <GlassView
-        glassEffectStyle="regular"
-        colorScheme={glassColorScheme}
-        isInteractive
-        // The native glass only takes the capsule's corners when clipped.
-        style={tw.style(CAPSULE_CLASS, twClassName)}
-        testID={testID}
-      >
-        {children}
-      </GlassView>
+      <View style={[tw.style('rounded-full'), shadows.size.md]}>
+        <GlassView
+          glassEffectStyle="regular"
+          colorScheme={glassColorScheme}
+          isInteractive
+          // The native glass only takes the capsule's corners when clipped.
+          style={tw.style(CAPSULE_CLASS, twClassName)}
+          testID={testID}
+        >
+          {children}
+        </GlassView>
+      </View>
     );
   }
 
