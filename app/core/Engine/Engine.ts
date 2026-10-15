@@ -362,8 +362,6 @@ export class Engine {
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         PerpsController: perpsControllerInit,
-        // AssetsController must be initialized before ClientController so it
-        // subscribes to ClientController:stateChange before ClientController can emit.
         AssetsController: assetsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
@@ -412,7 +410,7 @@ export class Engine {
     });
 
     const analyticsController = messengerClientsByName.AnalyticsController;
-    const loggingController = messengerClientsByName.LoggingController;
+    const loggingController = this.#wallet.getInstance('LoggingController');
     const remoteFeatureFlagController = this.#wallet.getInstance(
       'RemoteFeatureFlagController',
     );
