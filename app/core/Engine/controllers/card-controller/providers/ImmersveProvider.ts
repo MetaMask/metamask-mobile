@@ -1328,9 +1328,15 @@ export class ImmersveProvider implements ICardProvider {
     tokens: CardAuthTokens,
   ): Promise<CardReissueResult> {
     try {
+      // Virtual cards only. `standard-renewal` keeps the PAN and issues a
+      // new expiry and security code. Shipping fields are for physical cards.
       const { cardId: successorId } = await this.service.post<{
         cardId: string;
-      }>(`/api/cards/${cardId}/reissue`, {}, tokens);
+      }>(
+        `/api/cards/${cardId}/reissue`,
+        { reissuanceType: 'standard-renewal' },
+        tokens,
+      );
       for (let attempt = 0; attempt < CARD_STATUS_POLL_ATTEMPTS; attempt++) {
         await delay(CARD_STATUS_POLL_INTERVAL_MS);
         const detail = await this.service.get<ImmersveCardDetail>(

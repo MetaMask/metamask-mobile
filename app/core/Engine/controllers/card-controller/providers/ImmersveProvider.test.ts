@@ -1853,7 +1853,7 @@ describe('ImmersveProvider', () => {
   });
 
   describe('reissueCard', () => {
-    it('posts an empty reissue body and polls the successor until it is active', async () => {
+    it('posts a standard renewal and polls the successor until it is active', async () => {
       const { provider, service } = createProvider();
       service.post.mockResolvedValue({ cardId: 'card-2' });
       service.get
@@ -1875,7 +1875,7 @@ describe('ImmersveProvider', () => {
       await expect(result).resolves.toBe('reissued');
       expect(service.post).toHaveBeenCalledWith(
         '/api/cards/card-1/reissue',
-        {},
+        { reissuanceType: 'standard-renewal' },
         TOKENS,
       );
       expect(service.get).toHaveBeenCalledTimes(2);
