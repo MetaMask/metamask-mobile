@@ -2297,7 +2297,7 @@ interface CalculatedPredictFees {
 /**
  * Calculates effective and standard fees for a subscription policy.
  */
-const calculateFeesForSubscription = async ({
+export const calculateFeesForSubscription = async ({
   feeCollection,
   feePolicy,
   marketId,

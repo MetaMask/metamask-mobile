@@ -65,6 +65,7 @@ import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { calculateFeesForSubscription } from '../providers/polymarket/utils';
 import { isExpectedPolymarketRequestAbort } from '../providers/polymarket/fetchWithTimeout';
 import {
   COLLATERAL_TOKEN_DECIMALS,
@@ -703,6 +704,10 @@ export class PredictController extends BaseController<
    * when the policy is no longer available so standard submissions use the
    * correct Permit2 amount.
    *
+   * Preview calls stop here. `previewOrder` assigns the waived fees. Submit
+   * calls `priceSubmitPreviewWithFeePolicy` when the policy was not present
+   * while the preview was priced.
+   *
    * @param params - Provider parameters that may contain a previous policy.
    * @returns Provider parameters with the current waiver policy, if any.
    */
@@ -733,6 +738,58 @@ export class PredictController extends BaseController<
     }
 
     return { ...paramsWithFeePolicy, feePolicy };
+  }
+
+  /**
+   * Prices a submit preview with the same subscription fee assignment preview
+   * uses. Runs only when membership appears after the preview was priced at
+   * the standard rate, so the builder code and Permit2 amount match.
+   *
+   * @param preview - Order preview that may now carry a membership policy.
+   * @returns The preview with waived service fees when the policy is new.
+   */
+  private async priceSubmitPreviewWithFeePolicy(
+    preview: OrderPreview,
+  ): Promise<OrderPreview> {
+    const currentFees = preview.fees;
+    const feePolicy = preview.feePolicy;
+
+    if (!feePolicy || !currentFees || currentFees.metamaskFee <= 0) {
+      return preview;
+    }
+
+    const { feeCollection } = this.resolveFeatureFlags();
+    let userBetAmount = preview.minAmountReceived;
+
+    if (preview.side === Side.BUY) {
+      userBetAmount = preview.maxAmountSpent;
+    }
+
+    const subscriptionFees = await calculateFeesForSubscription({
+      feeCollection,
+      feePolicy,
+      marketId: preview.marketId,
+      userBetAmount,
+    });
+    const fees = { ...subscriptionFees.fees };
+    let originalFees = { ...fees };
+
+    if (subscriptionFees.originalFees) {
+      originalFees = { ...subscriptionFees.originalFees };
+    }
+
+    const { marketFee } = currentFees;
+
+    if (marketFee !== undefined) {
+      fees.marketFee = marketFee;
+      originalFees.marketFee = marketFee;
+    }
+
+    return {
+      ...preview,
+      fees,
+      originalFees,
+    };
   }
 
   private getEvmAccountAddress(): string | undefined {
@@ -1977,7 +2034,9 @@ export class PredictController extends BaseController<
     let previewWithFeePolicy: OrderPreview;
 
     try {
-      previewWithFeePolicy = await this.withPredictFeePolicy(params.preview);
+      previewWithFeePolicy = await this.priceSubmitPreviewWithFeePolicy(
+        await this.withPredictFeePolicy(params.preview),
+      );
       await validateMarketBettable({
         provider: this.provider,
         preview: previewWithFeePolicy,
