@@ -1,50 +1,56 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 
-import Foxicon, { FoxiconSelectorsIDs } from './Foxicon';
-import { assetByFoxiconVariant } from './Foxicon.assets';
-import { FoxiconVariant } from './Foxicon.types';
+import Foxicon from './Foxicon';
+import { AssetByFoxiconVariant, FoxiconVariant } from './Foxicon.types';
+
+jest.mock('./Foxicon.assets', () => {
+  const { createElement } = jest.requireActual<typeof import('react')>('react');
+  const { Text } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  const { FoxiconVariant: variants } =
+    jest.requireActual<typeof import('./Foxicon.types')>('./Foxicon.types');
+
+  return {
+    assetByFoxiconVariant: Object.fromEntries(
+      Object.values(variants).map((variant) => [
+        variant,
+        ({
+          width,
+          height,
+          testID,
+        }: {
+          width: number;
+          height: number;
+          testID?: string;
+        }) => createElement(Text, { testID }, `${variant} ${width}x${height}`),
+      ]),
+    ),
+  };
+});
 
 describe('Foxicon', () => {
-  it('renders the fox illustration', () => {
-    render(<Foxicon variant={FoxiconVariant.Base} size={48} />);
+  it('renders the asset for the given variant at the given size', () => {
+    render(<Foxicon variant={FoxiconVariant.Zombie} size={64} />);
 
-    expect(screen.getByTestId(FoxiconSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    expect(screen.getByText('zombie 64x64')).toBeOnTheScreen();
   });
 
-  it('applies size to width and height', () => {
-    render(<Foxicon variant={FoxiconVariant.Agent} size={64} />);
-
-    const foxicon = screen.getByTestId(FoxiconSelectorsIDs.CONTAINER);
-    expect(foxicon.props.width).toBe(64);
-    expect(foxicon.props.height).toBe(64);
-  });
-
-  it('renders the asset for the given variant', () => {
-    render(<Foxicon variant={FoxiconVariant.Zombie} size={32} />);
-
-    expect(screen.getByTestId(FoxiconSelectorsIDs.CONTAINER).props.name).toBe(
-      FoxiconVariant.Zombie,
-    );
-  });
-
-  it('uses a custom testID when provided', () => {
-    const customTestId = 'custom-foxicon';
-
+  it('applies the provided testID', () => {
     render(
-      <Foxicon
-        variant={FoxiconVariant.Pirate}
-        size={32}
-        testID={customTestId}
-      />,
+      <Foxicon variant={FoxiconVariant.Base} size={32} testID="custom-fox" />,
     );
 
-    expect(screen.getByTestId(customTestId)).toBeOnTheScreen();
+    expect(screen.getByTestId('custom-fox')).toBeOnTheScreen();
   });
 
   it.each(Object.values(FoxiconVariant))(
-    'has an asset for the %s variant',
+    'has an asset registered for the %s variant',
     (variant) => {
+      const { assetByFoxiconVariant } = jest.requireActual<{
+        assetByFoxiconVariant: AssetByFoxiconVariant;
+      }>('./Foxicon.assets');
+
       expect(assetByFoxiconVariant[variant]).toBeDefined();
     },
   );

@@ -3,13 +3,13 @@ import { AvatarBaseProps } from '@metamask/design-system-react-native';
 import { FoxiconProps } from '../Foxicon';
 
 export const AvatarSocialBackgroundColor = {
-  Orange: 'orange200',
-  Purple: 'purple100',
-  Purple2: 'purple300',
-  Blue: 'indigo200',
-  Blue2: 'indigo500',
-  Green: 'lime025',
-  Green2: 'lime100',
+  Background1: 'background1',
+  Background2: 'background2',
+  Background3: 'background3',
+  Background4: 'background4',
+  Background5: 'background5',
+  Background6: 'background6',
+  Background7: 'background7',
 } as const;
 
 export type AvatarSocialBackgroundColor =
@@ -19,10 +19,13 @@ export type AvatarSocialBackgroundColor =
  * AvatarSocial component props.
  */
 export interface AvatarSocialProps
-  extends Omit<AvatarBaseProps, 'children'>,
+  extends Omit<
+      AvatarBaseProps,
+      'children' | 'fallbackText' | 'fallbackTextProps'
+    >,
     Omit<FoxiconProps, 'size'> {
   /**
-   * The brand color token used as the avatar's background color.
+   * The background color slot for the avatar.
    */
   backgroundColor: AvatarSocialBackgroundColor;
 }

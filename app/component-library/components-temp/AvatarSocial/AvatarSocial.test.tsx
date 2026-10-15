@@ -4,95 +4,114 @@ import { AvatarBaseSize } from '@metamask/design-system-react-native';
 import { brandColor } from '@metamask/design-tokens';
 
 import { FoxiconVariant } from '../Foxicon';
-import AvatarSocial, { AvatarSocialSelectorsIDs } from './AvatarSocial';
-import { FOXICON_SIZE_BY_AVATARBASE_SIZE } from './AvatarSocial.constants';
+import AvatarSocial from './AvatarSocial';
+import {
+  BRAND_COLOR_BY_AVATARSOCIAL_BACKGROUND_COLOR,
+  FOXICON_SIZE_BY_AVATARBASE_SIZE,
+} from './AvatarSocial.constants';
 import { AvatarSocialBackgroundColor } from './AvatarSocial.types';
 
+jest.mock('../Foxicon', () => {
+  const { createElement } = jest.requireActual<typeof import('react')>('react');
+  const { Text } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+
+  return {
+    ...jest.requireActual('../Foxicon'),
+    __esModule: true,
+    default: ({ variant, size }: { variant: string; size: number }) =>
+      createElement(Text, null, `${variant} ${size}`),
+  };
+});
+
 describe('AvatarSocial', () => {
-  it('renders the avatar and the nested fox icon', () => {
+  it('renders the fox for the given variant', () => {
+    render(
+      <AvatarSocial
+        variant={FoxiconVariant.Zombie}
+        backgroundColor={AvatarSocialBackgroundColor.Background1}
+      />,
+    );
+
+    expect(screen.getByText(/^zombie /)).toBeOnTheScreen();
+  });
+
+  it('renders with the image accessibility role', () => {
     render(
       <AvatarSocial
         variant={FoxiconVariant.Base}
-        backgroundColor={AvatarSocialBackgroundColor.Orange}
+        backgroundColor={AvatarSocialBackgroundColor.Background1}
+        testID="avatar-social"
       />,
     );
 
-    expect(
-      screen.getByTestId(AvatarSocialSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(AvatarSocialSelectorsIDs.FOX_ICON),
-    ).toBeOnTheScreen();
-  });
-
-  it('forwards the variant to the nested fox icon', () => {
-    render(
-      <AvatarSocial
-        variant={FoxiconVariant.Pirate}
-        backgroundColor={AvatarSocialBackgroundColor.Blue}
-      />,
+    expect(screen.getByTestId('avatar-social')).toHaveProp(
+      'accessibilityRole',
+      'image',
     );
-
-    expect(
-      screen.getByTestId(AvatarSocialSelectorsIDs.FOX_ICON).props.name,
-    ).toBe(FoxiconVariant.Pirate);
   });
 
-  it('applies the background color style from the brand color map', () => {
-    render(
-      <AvatarSocial
-        variant={FoxiconVariant.Agent}
-        backgroundColor={AvatarSocialBackgroundColor.Green2}
-      />,
-    );
+  it.each(Object.values(AvatarSocialBackgroundColor))(
+    'applies the brand color for the %s background slot',
+    (backgroundColor) => {
+      render(
+        <AvatarSocial
+          variant={FoxiconVariant.Base}
+          backgroundColor={backgroundColor}
+          testID="avatar-social"
+        />,
+      );
 
-    expect(screen.getByTestId(AvatarSocialSelectorsIDs.CONTAINER)).toHaveStyle({
-      backgroundColor: brandColor.lime100,
-    });
-  });
+      expect(screen.getByTestId('avatar-social')).toHaveStyle({
+        backgroundColor:
+          brandColor[
+            BRAND_COLOR_BY_AVATARSOCIAL_BACKGROUND_COLOR[backgroundColor]
+          ],
+      });
+    },
+  );
 
   it.each(Object.values(AvatarBaseSize))(
-    'sizes the fox icon to match the %s avatar size',
+    'renders the fox at the matching pixel size for size %s',
     (size) => {
       render(
         <AvatarSocial
-          variant={FoxiconVariant.Zombie}
-          backgroundColor={AvatarSocialBackgroundColor.Purple}
+          variant={FoxiconVariant.Base}
+          backgroundColor={AvatarSocialBackgroundColor.Background1}
           size={size}
         />,
       );
 
-      const foxIcon = screen.getByTestId(AvatarSocialSelectorsIDs.FOX_ICON);
-      expect(foxIcon.props.width).toBe(FOXICON_SIZE_BY_AVATARBASE_SIZE[size]);
-      expect(foxIcon.props.height).toBe(FOXICON_SIZE_BY_AVATARBASE_SIZE[size]);
+      expect(
+        screen.getByText(`base ${FOXICON_SIZE_BY_AVATARBASE_SIZE[size]}`),
+      ).toBeOnTheScreen();
     },
   );
 
-  it('defaults to the medium avatar size when no size is provided', () => {
+  it('defaults to the medium size', () => {
     render(
       <AvatarSocial
-        variant={FoxiconVariant.Royal}
-        backgroundColor={AvatarSocialBackgroundColor.Purple2}
+        variant={FoxiconVariant.Base}
+        backgroundColor={AvatarSocialBackgroundColor.Background1}
       />,
     );
 
-    const foxIcon = screen.getByTestId(AvatarSocialSelectorsIDs.FOX_ICON);
-    expect(foxIcon.props.width).toBe(
-      FOXICON_SIZE_BY_AVATARBASE_SIZE[AvatarBaseSize.Md],
-    );
+    expect(
+      screen.getByText(
+        `base ${FOXICON_SIZE_BY_AVATARBASE_SIZE[AvatarBaseSize.Md]}`,
+      ),
+    ).toBeOnTheScreen();
   });
 
-  it('uses a custom testID when provided', () => {
-    const customTestId = 'custom-avatar-social';
-
+  it('applies the provided testID', () => {
     render(
       <AvatarSocial
-        variant={FoxiconVariant.Superhero}
-        backgroundColor={AvatarSocialBackgroundColor.Blue2}
-        testID={customTestId}
+        variant={FoxiconVariant.Base}
+        backgroundColor={AvatarSocialBackgroundColor.Background1}
+        testID="custom-avatar"
       />,
     );
 
-    expect(screen.getByTestId(customTestId)).toBeOnTheScreen();
+    expect(screen.getByTestId('custom-avatar')).toBeOnTheScreen();
   });
 });

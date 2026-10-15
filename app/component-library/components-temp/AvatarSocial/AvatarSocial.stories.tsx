@@ -40,7 +40,7 @@ const AvatarSocialMeta = {
   },
   args: {
     variant: FoxiconVariant.Base,
-    backgroundColor: AvatarSocialBackgroundColor.Orange,
+    backgroundColor: AvatarSocialBackgroundColor.Background1,
     size: AvatarBaseSize.Md,
     shape: AvatarBaseShape.Circle,
   },
