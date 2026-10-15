@@ -6,8 +6,16 @@ import { View } from 'react-native';
 import { EditAmountKeyboard } from './edit-amount-keyboard';
 import { strings } from '../../../../../../locales/i18n';
 import { Text } from '@metamask/design-system-react-native';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
+
+jest.mock('../../../../../util/haptics');
 
 describe('EditAmountKeyboard', () => {
+  beforeEach(() => {
+    jest.mocked(playImpact).mockReset();
+    jest.mocked(playImpact).mockResolvedValue(undefined);
+  });
+
   it('calls onChange when digit pressed', () => {
     const onChangeMock = jest.fn();
 
@@ -73,6 +81,29 @@ describe('EditAmountKeyboard', () => {
     fireEvent.press(percentageButton);
 
     expect(onPercentagePressMock).toHaveBeenCalled();
+  });
+
+  it.each([
+    { label: '50%', value: 50 },
+    { label: 'Max', value: 100 },
+  ])('plays quick amount haptics for $label', ({ label, value }) => {
+    const onPercentagePressMock = jest.fn();
+
+    const { getByText } = render(
+      <EditAmountKeyboard
+        additionalButtons={
+          label === 'Max' ? [{ value: 100, label: 'Max' }] : undefined
+        }
+        onChange={noop}
+        onPercentagePress={onPercentagePressMock}
+        value="0"
+      />,
+    );
+
+    fireEvent.press(getByText(label));
+
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.QuickAmountSelection);
+    expect(onPercentagePressMock).toHaveBeenCalledWith(value);
   });
 
   it('render additionalButtons pased in the props', () => {

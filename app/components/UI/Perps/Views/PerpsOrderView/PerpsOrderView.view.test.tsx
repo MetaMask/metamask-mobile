@@ -13,9 +13,12 @@ import {
 } from '@testing-library/react-native';
 import {
   CandlePeriod,
+  PERPS_ERROR_CODES,
   PERPS_EVENT_VALUE,
   type CandleData,
   type PriceUpdate,
+  type OrderBookData,
+  type OrderBookLevel,
 } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -122,6 +125,16 @@ describe('PerpsOrderView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .mocked(Engine.context.PerpsController.updatePositionTPSL)
+      .mockReset()
+      .mockResolvedValue({ success: true });
+    jest
+      .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+      .mockReset();
+    jest
+      .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+      .mockImplementation(() => () => undefined);
     (
       Engine.context.PerpsController.calculateFees as jest.Mock
     ).mockResolvedValue({});
@@ -215,6 +228,93 @@ describe('PerpsOrderView', () => {
     );
     await waitForDeferredOrderData();
   });
+
+  it.each([
+    [
+      PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+      'perps.errors.clientReinitializing',
+    ],
+    [undefined, 'perps.errors.unknownError'],
+  ])(
+    'shows the translated TP/SL failure %s after submitting a market order',
+    async (error, messageKey) => {
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      const updatePositionTPSL = Engine.context.PerpsController
+        .updatePositionTPSL as jest.Mock;
+      updatePositionTPSL.mockResolvedValueOnce({ success: false, error });
+      const { stream } = renderPerpsOrderView({
+        includeToasts: true,
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                ...eligibleOverrides.engine.backgroundState.PerpsController,
+                tradeConfigurations: {
+                  mainnet: {
+                    ETH: {
+                      pendingConfig: {
+                        takeProfitPrice: '3500',
+                        timestamp: Date.now(),
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+          useBottomSheet: true,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON);
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+        ).not.toBeDisabled();
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+        );
+      });
+
+      expect(
+        await screen.findByTestId(`route-${Routes.PERPS.MARKET_DETAILS}`),
+      ).toBeOnTheScreen();
+      expect(
+        await screen.findByText(
+          strings(messageKey),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(placeOrder).toHaveBeenCalledTimes(1);
+      expect(updatePositionTPSL).toHaveBeenCalledTimes(1);
+      expect(updatePositionTPSL).toHaveBeenCalledWith({
+        symbol: 'ETH',
+        takeProfitPrice: '3500',
+        stopLossPrice: undefined,
+      });
+      expect(
+        screen.getByText(strings('perps.position.tpsl.update_failed')),
+      ).toBeOnTheScreen();
+    },
+  );
 
   it('keeps the minimum-order error visible during protocol validation', async () => {
     const validateOrder = Engine.context.PerpsController
@@ -877,5 +977,233 @@ describe('PerpsOrderView', () => {
       await screen.findByTestId(`route-${Routes.PERPS.MODALS.ROOT}`),
     ).toBeOnTheScreen();
     expect(placeOrder).not.toHaveBeenCalled();
+  });
+  describe('market order liquidity', () => {
+    const bookLevel = (price: number, size: number): OrderBookLevel => ({
+      price: String(price),
+      size: String(size),
+      total: String(size),
+      notional: String(price * size),
+      totalNotional: String(price * size),
+    });
+    const book = (
+      levels: OrderBookLevel[],
+      direction: 'long' | 'short',
+    ): OrderBookData => ({
+      midPrice: '2500',
+      asks: direction === 'long' ? levels : [],
+      bids: direction === 'short' ? levels : [],
+      spread: '0',
+      spreadPercentage: '0',
+      lastUpdated: Date.now(),
+      maxTotal: '1',
+    });
+
+    it.each([
+      { useBottomSheet: false, direction: 'long' as const, shallow: null },
+      { useBottomSheet: true, direction: 'long' as const, shallow: null },
+      { useBottomSheet: false, direction: 'long' as const, shallow: true },
+      { useBottomSheet: false, direction: 'short' as const, shallow: true },
+      { useBottomSheet: true, direction: 'long' as const, shallow: true },
+      { useBottomSheet: true, direction: 'short' as const, shallow: true },
+      { useBottomSheet: false, direction: 'long' as const, shallow: false },
+      { useBottomSheet: false, direction: 'short' as const, shallow: false },
+      { useBottomSheet: true, direction: 'long' as const, shallow: false },
+      { useBottomSheet: true, direction: 'short' as const, shallow: false },
+    ])(
+      'blocks the $direction order with shallow=$shallow, sheet=$useBottomSheet, then submits after depth recovers',
+      async ({ useBottomSheet, direction, shallow }) => {
+        const placeOrder = jest.mocked(
+          Engine.context.PerpsController.placeOrder,
+        );
+        let deliver: ((value: OrderBookData) => void) | undefined;
+        const blockedBook = book(
+          shallow
+            ? [bookLevel(2500, 0.001)]
+            : [
+                bookLevel(2500, 0.049),
+                bookLevel(direction === 'long' ? 2600 : 2400, 1),
+              ],
+          direction,
+        );
+        jest
+          .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+          .mockImplementation(({ callback, onError }) => {
+            deliver = callback;
+            if (shallow === null) {
+              onError?.(new Error('order book unavailable'));
+            } else {
+              callback(blockedBook);
+            }
+            return () => undefined;
+          });
+        const { stream } = renderPerpsOrderView({
+          overrides: eligibleOverrides,
+          initialParams: {
+            asset: 'ETH',
+            direction,
+            amount: '120',
+            leverage: 4,
+            useBottomSheet,
+          },
+          streamOverrides: {
+            account,
+            positions: [],
+            orders: [],
+            marketData: [ethMarket],
+          },
+          extraRoutes: [marketDetailsRoute],
+        });
+
+        await waitForDeferredOrderData();
+        emitEthPrice(stream);
+        const message = strings(
+          shallow !== false
+            ? 'perps.slippage.insufficient_depth'
+            : useBottomSheet
+              ? 'perps.slippage.cannot_fill_reduce_size'
+              : 'perps.slippage.cannot_fill',
+        );
+        expect(await screen.findByText(message)).toBeOnTheScreen();
+        const submitId = useBottomSheet
+          ? PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON
+          : PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON;
+        const submit = await screen.findByTestId(submitId);
+        expect(submit).toBeDisabled();
+        fireEvent.press(submit);
+        expect(placeOrder).not.toHaveBeenCalled();
+
+        await act(async () => {
+          deliver?.(book([bookLevel(2500, 1)], direction));
+        });
+        await waitFor(() =>
+          expect(screen.getByTestId(submitId)).not.toBeDisabled(),
+        );
+        expect(screen.queryByText(message)).not.toBeOnTheScreen();
+        await act(async () => {
+          fireEvent.press(screen.getByTestId(submitId));
+        });
+        await waitFor(() =>
+          expect(placeOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              symbol: 'ETH',
+              isBuy: direction === 'long',
+              orderType: 'market',
+              usdAmount: '120',
+            }),
+          ),
+        );
+      },
+    );
+
+    it('keeps a limit order unblocked when the order book is unavailable', async () => {
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+      jest
+        .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+        .mockImplementation(({ onError }) => {
+          onError?.(new Error('order book unavailable'));
+          return () => undefined;
+        });
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+      const message = strings('perps.slippage.insufficient_depth');
+      expect(await screen.findByText(message)).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
+      );
+      await act(async () => {
+        fireEvent.press(
+          await screen.findByTestId(
+            PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
+          ),
+        );
+      });
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      );
+      expect(
+        await screen.findByTestId(PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW),
+      ).toBeOnTheScreen();
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+        ).not.toBeDisabled(),
+      );
+      expect(screen.queryByText(message)).not.toBeOnTheScreen();
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+        );
+      });
+      await waitFor(() =>
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({ symbol: 'ETH', orderType: 'limit' }),
+        ),
+      );
+    });
+
+    it('keeps a market order enabled while the order book subscription is pending', async () => {
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+        ).not.toBeDisabled(),
+      );
+      expect(
+        Engine.context.PerpsController.subscribeToOrderBook,
+      ).toHaveBeenCalled();
+      expect(
+        screen.queryByText(strings('perps.slippage.insufficient_depth')),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText(strings('perps.slippage.cannot_fill')),
+      ).not.toBeOnTheScreen();
+    });
   });
 });

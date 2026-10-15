@@ -3,10 +3,13 @@ import { useSelector } from 'react-redux';
 import { usePerpsCloseAllCalculations } from './usePerpsCloseAllCalculations';
 import Engine from '../../../../core/Engine';
 import {
+  BASIS_POINTS_DIVISOR,
   BUILDER_FEE_CONFIG,
   type Position,
   type FeeCalculationResult,
+  type PerpsFeeSource,
 } from '@metamask/perps-controller';
+import { applyFeeResolution } from '@metamask/perps-controller/utils/subscriptionFeeWaiver';
 import type { EstimatedPointsDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 /**
@@ -436,6 +439,9 @@ describe('usePerpsCloseAllCalculations', () => {
       metamaskFeeRate: 0.0008,
       metamaskFeeAmount: 20.4,
       chargesMetamaskBuilderFee: true,
+      feeSource: 'rewards',
+      metamaskFeeDiscountBips: 2000,
+      undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
     });
     const positions = [createMockPosition({ symbol: 'BTC' })];
     const priceData = { BTC: { price: '51000' } };
@@ -480,7 +486,7 @@ describe('usePerpsCloseAllCalculations', () => {
       );
     });
 
-    it('derives the discount across positions from their resolved rates', async () => {
+    it('averages the discount calculateFees reports across positions', async () => {
       mockCalculateFees.mockResolvedValue(resolvedFees);
       const twoPositions = [
         createMockPosition({ symbol: 'BTC' }),
@@ -512,6 +518,9 @@ describe('usePerpsCloseAllCalculations', () => {
           metamaskFeeRate: 0,
           metamaskFeeAmount: 0,
           chargesMetamaskBuilderFee: true,
+          feeSource: 'subscription',
+          metamaskFeeDiscountBips: 10000,
+          undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
         }),
       );
 
@@ -535,6 +544,9 @@ describe('usePerpsCloseAllCalculations', () => {
           metamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
           metamaskFeeAmount: 25.5,
           chargesMetamaskBuilderFee: true,
+          feeSource: 'default',
+          metamaskFeeDiscountBips: 0,
+          undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
         }),
       );
 
@@ -567,6 +579,212 @@ describe('usePerpsCloseAllCalculations', () => {
 
       expect(result.current.avgOriginalMetamaskFeeRate).toBe(0);
       expect(result.current.avgFeeDiscountPercentage).toBeUndefined();
+    });
+
+    it.each([
+      { label: 'an older controller', chargesMetamaskBuilderFee: undefined },
+      {
+        label: 'a quote no fee resolution priced',
+        chargesMetamaskBuilderFee: true,
+      },
+    ])(
+      'shows no discount when $label reports none',
+      async ({ chargesMetamaskBuilderFee }) => {
+        // A provider rate below the default builder fee, e.g. left behind by
+        // another submit's discount, with no discount fields alongside it
+        mockCalculateFees.mockResolvedValue(
+          createMockFeeResult({
+            feeRate: 0.00095,
+            feeAmount: 24.225,
+            protocolFeeRate: 0.00045,
+            protocolFeeAmount: 11.475,
+            metamaskFeeRate: 0.0005,
+            metamaskFeeAmount: 12.75,
+            chargesMetamaskBuilderFee,
+          }),
+        );
+
+        const { result } = renderHook(() =>
+          usePerpsCloseAllCalculations({ positions, priceData }),
+        );
+        await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+        expect(result.current.totalFees).toBeCloseTo(24.225, 6);
+        expect(result.current.avgMetamaskFeeRate).toBeCloseTo(0.0005, 10);
+        expect(result.current.avgOriginalMetamaskFeeRate).toBeCloseTo(
+          0.0005,
+          10,
+        );
+        expect(result.current.avgFeeDiscountPercentage).toBeUndefined();
+      },
+    );
+
+    describe('discount reported by calculateFees', () => {
+      // The rate-based derivation the hook used before perps-controller 20
+      // reported the discount (TAT-4055), kept to prove the two agree.
+      const deriveDiscountFromRates = (quotes: FeeCalculationResult[]) => {
+        let weightedRate = 0;
+        let weightedOriginalRate = 0;
+        let totalWeight = 0;
+        quotes.forEach((fees) => {
+          const weight = fees.feeAmount ?? 0;
+          if (weight > 0 && fees.metamaskFeeRate !== undefined) {
+            weightedRate += fees.metamaskFeeRate * weight;
+            weightedOriginalRate +=
+              (fees.chargesMetamaskBuilderFee
+                ? BUILDER_FEE_CONFIG.MaxFeeDecimal
+                : fees.metamaskFeeRate) * weight;
+            totalWeight += weight;
+          }
+        });
+        const avgRate = weightedRate / totalWeight;
+        const avgOriginalRate = weightedOriginalRate / totalWeight;
+        return {
+          avgOriginalMetamaskFeeRate: avgOriginalRate,
+          avgFeeDiscountPercentage:
+            avgOriginalRate > avgRate
+              ? Math.round(
+                  (1 - avgRate / avgOriginalRate) * BASIS_POINTS_DIVISOR,
+                ) / 100
+              : undefined,
+        };
+      };
+
+      // A 10 bip Hyperliquid close of 0.5 BTC at 51000, repriced by the
+      // controller's own resolver step
+      const quoteFrom = (
+        source: PerpsFeeSource,
+        discountBips: number | undefined,
+      ) =>
+        applyFeeResolution({
+          fees: {
+            protocolFeeRate: 0.00045,
+            protocolFeeAmount: 11.475,
+            metamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
+            chargesMetamaskBuilderFee: true,
+          },
+          resolution: {
+            source,
+            discountBips,
+            feeBips: 10 * (1 - (discountBips ?? 0) / BASIS_POINTS_DIVISOR),
+            subscription: {
+              eligible: source === 'subscription',
+              reason: source === 'subscription' ? 'eligible' : 'no-source',
+            },
+          },
+          amount: '25500',
+          chargesBuilderFee: true,
+        });
+
+      it.each([
+        {
+          label: 'default',
+          source: 'default',
+          discountBips: undefined,
+          badge: undefined,
+        },
+        {
+          label: 'rewards with no discount',
+          source: 'rewards',
+          discountBips: 0,
+          badge: undefined,
+        },
+        {
+          label: 'rewards partial',
+          source: 'rewards',
+          discountBips: 2000,
+          badge: 20,
+        },
+        {
+          label: 'rewards full',
+          source: 'rewards',
+          discountBips: 10000,
+          badge: 100,
+        },
+        {
+          label: 'subscription partial',
+          source: 'subscription',
+          discountBips: 6000,
+          badge: 60,
+        },
+        {
+          label: 'subscription full',
+          source: 'subscription',
+          discountBips: 10000,
+          badge: 100,
+        },
+      ] as const)(
+        'matches the rate-derived fee preview for $label',
+        async ({ source, discountBips, badge }) => {
+          const fees = quoteFrom(source, discountBips);
+          const derived = deriveDiscountFromRates([fees]);
+          mockCalculateFees.mockResolvedValue(fees);
+
+          const { result } = renderHook(() =>
+            usePerpsCloseAllCalculations({ positions, priceData }),
+          );
+          await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+          expect(fees.feeSource).toBe(source);
+          expect(result.current.avgFeeDiscountPercentage).toBe(badge);
+          expect(result.current.avgFeeDiscountPercentage).toBe(
+            derived.avgFeeDiscountPercentage,
+          );
+          expect(result.current.avgOriginalMetamaskFeeRate).toBeCloseTo(
+            fees.undiscountedMetamaskFeeRate ?? 0,
+            10,
+          );
+          expect(result.current.avgOriginalMetamaskFeeRate).toBeCloseTo(
+            derived.avgOriginalMetamaskFeeRate,
+            10,
+          );
+          expect(result.current.totalFees).toBeCloseTo(fees.feeAmount ?? 0, 6);
+          expect(mockEstimatePoints).toHaveBeenCalledWith(
+            expect.objectContaining({
+              activityContext: {
+                perpsContext: [
+                  expect.objectContaining({
+                    usdFeeValue: fees.feeAmount?.toString(),
+                  }),
+                ],
+              },
+            }),
+          );
+        },
+      );
+
+      it('matches the rate-derived discount across positions priced by different sources', async () => {
+        const rewardsFees = quoteFrom('rewards', 2000);
+        const subscriptionFees = quoteFrom('subscription', 10000);
+        const derived = deriveDiscountFromRates([
+          rewardsFees,
+          subscriptionFees,
+        ]);
+        mockCalculateFees.mockImplementation(async ({ symbol }) =>
+          symbol === 'BTC' ? rewardsFees : subscriptionFees,
+        );
+
+        const { result } = renderHook(() =>
+          usePerpsCloseAllCalculations({
+            positions: [
+              createMockPosition({ symbol: 'BTC' }),
+              createMockPosition({ symbol: 'ETH' }),
+            ],
+            priceData: { BTC: { price: '51000' }, ETH: { price: '51000' } },
+          }),
+        );
+        await waitFor(() => expect(result.current.totalFees).toBeDefined());
+
+        // Fee-weighted: (2000 x 31.875 + 10000 x 11.475) / 43.35 = 4117.6 bips
+        expect(result.current.avgFeeDiscountPercentage).toBe(41.18);
+        expect(result.current.avgFeeDiscountPercentage).toBe(
+          derived.avgFeeDiscountPercentage,
+        );
+        expect(result.current.avgOriginalMetamaskFeeRate).toBeCloseTo(
+          derived.avgOriginalMetamaskFeeRate,
+          10,
+        );
+      });
     });
   });
 
