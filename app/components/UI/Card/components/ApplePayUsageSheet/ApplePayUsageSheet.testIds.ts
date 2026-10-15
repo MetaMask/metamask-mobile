@@ -5,4 +5,5 @@ export const ApplePayUsageSheetSelectors = {
   MARKS_LIGHT: 'apple-pay-usage-marks-light',
   MARKS_DARK: 'apple-pay-usage-marks-dark',
   CONTINUE_BUTTON: 'apple-pay-usage-continue',
+  LEARN_MORE_BUTTON: 'apple-pay-usage-learn-more',
 };
