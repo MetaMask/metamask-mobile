@@ -3,9 +3,7 @@ import { Image } from 'react-native';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import MarketingMoment from '../../../MarketingMoment';
-import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -26,7 +24,9 @@ const OrderCompleted: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const headerHandlers = useCardHeaderHandlers('back');
+  const handleNotNow = useCallback(() => {
+    navigation.reset({ index: 0, routes: [{ name: Routes.CARD.HOME }] });
+  }, [navigation]);
   const { fromUpgrade } = useParams<OrderCompletedParams>();
 
   useEffect(() => {
@@ -72,14 +72,6 @@ const OrderCompleted: React.FC = () => {
   return (
     <MarketingMoment
       testID={OrderCompletedSelectors.CONTAINER}
-      edges={['bottom']}
-      header={
-        <HeaderStandard
-          includesTopInset
-          twClassName="bg-background-default"
-          {...headerHandlers}
-        />
-      }
       title={strings('card.order_completed.title')}
       description={[
         strings('card.order_completed.subtitle'),
@@ -102,6 +94,11 @@ const OrderCompleted: React.FC = () => {
         label: buttonLabel,
         onPress: handleSetUpCard,
         testID: OrderCompletedSelectors.SET_UP_CARD_BUTTON,
+      }}
+      secondaryAction={{
+        label: strings('card.card_onboarding.not_now_button'),
+        onPress: handleNotNow,
+        testID: OrderCompletedSelectors.NOT_NOW_BUTTON,
       }}
     />
   );

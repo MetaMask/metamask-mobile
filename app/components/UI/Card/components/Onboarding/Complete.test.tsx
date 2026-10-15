@@ -14,6 +14,7 @@ import { MarketingMomentSelectorsIDs } from '../../../MarketingMoment';
 
 // Mock dependencies
 const mockNavigationDispatch = jest.fn();
+const mockNavigate = jest.fn();
 const mockStackReplace = jest.fn((routeName: string) => ({
   type: 'REPLACE',
   routeName,
@@ -129,8 +130,6 @@ jest.mock('@metamask/design-system-react-native', () => {
     BoxFlexDirection: { Column: 'column' },
     BoxAlignItems: { Center: 'center' },
     BoxJustifyContent: { Center: 'center' },
-    HeaderStandard: () =>
-      React.createElement(View, { testID: 'complete-header' }),
     Button: ({
       children,
       testID,
@@ -255,6 +254,7 @@ describe('Complete Component', () => {
 
     (useNavigation as jest.Mock).mockReturnValue({
       dispatch: mockNavigationDispatch,
+      navigate: mockNavigate,
     });
 
     // Default: no route params
@@ -317,7 +317,16 @@ describe('Complete Component', () => {
       expect(
         getByTestId(MarketingMomentSelectorsIDs.DESCRIPTION),
       ).toHaveTextContent('Your card setup is complete!');
-      expect(getByTestId('complete-header')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Not Now Button', () => {
+    it('navigates to the wallet home when pressed', () => {
+      const { getByTestId } = render(<Complete />);
+
+      fireEvent.press(getByTestId('complete-not-now-button'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
   });
 

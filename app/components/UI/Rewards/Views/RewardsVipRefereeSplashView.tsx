@@ -3,11 +3,10 @@ import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
-  FontWeight,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../constants/navigation/Routes';
 import { exitRewardsFlow } from '../utils';
 import {
@@ -18,15 +17,14 @@ import {
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { strings } from '../../../../../locales/i18n';
+import { useParams } from '../../../../util/navigation/navUtils';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import { VIP_GOLD_TEXT_MUTED } from '../components/Vip/Vip.constants';
 import VipSplashScreenLayout, {
   VIP_REFEREE_SPLASH_SCREEN_TEST_IDS,
 } from '../components/Vip/VipSplashScreenLayout';
 
 const RewardsVipRefereeSplashViewContent: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const tw = useTailwind();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isVipReferee = useSelector(selectIsVipReferee);
@@ -37,8 +35,13 @@ const RewardsVipRefereeSplashViewContent: React.FC = () => {
   const canViewReferee = Boolean(
     subscriptionId && isVipProgramEnabled && isVipReferee,
   );
+  const { preview } = useParams<{ preview?: boolean }>();
 
   useEffect(() => {
+    if (preview) {
+      return;
+    }
+
     if (!canViewReferee) {
       exitRewardsFlow(navigation);
       return;
@@ -49,7 +52,7 @@ const RewardsVipRefereeSplashViewContent: React.FC = () => {
         StackActions.replace(Routes.REWARDS_VIP_REFEREE_VIEW),
       );
     }
-  }, [canViewReferee, hasAcceptedVipRefereeInvite, navigation]);
+  }, [preview, canViewReferee, hasAcceptedVipRefereeInvite, navigation]);
 
   const handleContinue = useCallback(() => {
     if (!subscriptionId) {
@@ -65,7 +68,7 @@ const RewardsVipRefereeSplashViewContent: React.FC = () => {
     exitRewardsFlow(navigation);
   }, [navigation]);
 
-  if (!canViewReferee || hasAcceptedVipRefereeInvite) {
+  if (!preview && (!canViewReferee || hasAcceptedVipRefereeInvite)) {
     return null;
   }
 
@@ -82,12 +85,12 @@ const RewardsVipRefereeSplashViewContent: React.FC = () => {
       onPrimaryPress={handleContinue}
       onNotNow={handleNotNow}
       primaryButtonLabel={strings('rewards.vip.referee_splash_continue')}
-      footerContent={
+      supportingContent={
         referredByVipCode ? (
           <Text
             variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            style={tw.style('text-center', { color: VIP_GOLD_TEXT_MUTED })}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
             testID={VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.REFERRED_BY}
           >
             {strings('rewards.vip.referee_referred_by', {
