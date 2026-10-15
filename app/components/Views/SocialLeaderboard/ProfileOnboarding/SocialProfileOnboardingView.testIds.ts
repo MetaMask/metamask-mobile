@@ -21,6 +21,7 @@ export const SocialProfileOnboardingSelectorsIDs = {
     'social-profile-onboarding-avatar-background-carousel',
   AVATAR_BACKGROUND_OPTION:
     'social-profile-onboarding-avatar-background-option',
+  AVATAR_BACKGROUND_GLOW: 'social-profile-onboarding-avatar-background-glow',
   ACCOUNT_STEP: 'social-profile-onboarding-account-step',
   ACCOUNT_ROW: 'social-profile-onboarding-account-row',
   SHARE_ACTIVITY_SWITCH: 'social-profile-onboarding-share-activity-switch',

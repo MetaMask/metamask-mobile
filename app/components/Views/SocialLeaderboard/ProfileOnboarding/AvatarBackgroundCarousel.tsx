@@ -188,6 +188,7 @@ const AvatarGlow: React.FC<{ scrollX: SharedValue<number> }> = ({
   <Box
     twClassName="absolute rounded-full overflow-hidden bg-default"
     style={{ width: SELECTED_SIZE, height: SELECTED_SIZE }}
+    testID={SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_GLOW}
   >
     <Svg width={SELECTED_SIZE} height={SELECTED_SIZE}>
       <Defs>

@@ -41,7 +41,7 @@ describe('profileOnboardingDraft', () => {
   it('writes onboarding choices onto a local profile', () => {
     const draft = {
       ...createInitialOnboardingDraft(),
-      avatarPresetId: 'fox-emoji',
+      avatarPresetId: 'zombie',
       avatarBackgroundId: 'lime',
       linkedAccountId: 'acc-1',
       linkedAccountAddress: '0xabc',
@@ -52,7 +52,7 @@ describe('profileOnboardingDraft', () => {
 
     expect(profile.handle).toBe('wen-cat');
     expect(profile.displayName).toBe('Wen Cat');
-    expect(profile.avatarPresetId).toBe('fox-emoji');
+    expect(profile.avatarPresetId).toBe('zombie');
     expect(profile.avatarBackgroundId).toBe('lime');
     expect(profile.linkedAccountId).toBe('acc-1');
     expect(profile.shareTradingActivity).toBe(false);

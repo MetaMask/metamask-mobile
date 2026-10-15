@@ -38,6 +38,7 @@ const ART_SCALE = 0.85;
 interface ProfileAvatarArtProps {
   preset: ProfileAvatarPreset | undefined;
   sizePx: number;
+  testID?: string;
 }
 
 /**
@@ -46,6 +47,7 @@ interface ProfileAvatarArtProps {
 export const ProfileAvatarArt: React.FC<ProfileAvatarArtProps> = ({
   preset,
   sizePx,
+  testID,
 }) => {
   const tw = useTailwind();
   return (
@@ -53,6 +55,7 @@ export const ProfileAvatarArt: React.FC<ProfileAvatarArtProps> = ({
       source={preset?.source ?? superheroAvatar}
       style={tw.style({ width: sizePx, height: sizePx })}
       resizeMode="contain"
+      testID={testID}
     />
   );
 };
@@ -117,7 +120,11 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       testID={testID}
       accessibilityLabel={accessibilityLabel}
     >
-      <ProfileAvatarArt preset={preset} sizePx={SIZE_PX[size] * ART_SCALE} />
+      <ProfileAvatarArt
+        preset={preset}
+        sizePx={SIZE_PX[size] * ART_SCALE}
+        testID={testID ? `${testID}-art` : undefined}
+      />
     </Box>
   );
 };

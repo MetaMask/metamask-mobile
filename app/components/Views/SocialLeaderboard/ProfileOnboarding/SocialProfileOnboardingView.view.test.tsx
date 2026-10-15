@@ -45,7 +45,7 @@ describe('SocialProfileOnboardingView', () => {
     );
     fireEvent.press(
       screen.getByTestId(
-        `${SocialProfileOnboardingSelectorsIDs.AVATAR_OPTION}-1`,
+        `${SocialProfileOnboardingSelectorsIDs.AVATAR_OPTION}-zombie`,
       ),
     );
     fireEvent(
@@ -92,7 +92,7 @@ describe('SocialProfileOnboardingView', () => {
       expect.objectContaining({
         handle: 'wen-cat',
         displayName: 'Wen Cat',
-        avatarPresetId: 'fox-emoji',
+        avatarPresetId: 'zombie',
         avatarBackgroundId: 'lime',
         shareTradingActivity: false,
         linkedAccountId: 'acc-1',
@@ -112,7 +112,7 @@ describe('SocialProfileOnboardingView', () => {
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
     );
 
-    expect(screen.getByText('Choose an avatar')).toBeOnTheScreen();
+    expect(screen.getByText('Customize your avatar')).toBeOnTheScreen();
     expect(
       screen.getByTestId(
         SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_CAROUSEL,
