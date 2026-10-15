@@ -942,7 +942,7 @@ const Wallet = ({
   const isFloatingJsHeader =
     isInterimHeader && !isNativeHeader && !isSearchHeaderEnabled;
   const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
-    useHeaderGlassInset(isFloatingJsHeader);
+    useHeaderGlassInset(isFloatingJsHeader, safeAreaInsets.top);
   const viewportTopInset = nativeHeaderInset + floatingHeaderInset;
 
   // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
@@ -1316,8 +1316,10 @@ const Wallet = ({
             baseStyles.flexGrow,
             { backgroundColor: colors.background.default },
           ]}
-          // The native bar owns the top inset; content scrolls under it.
-          edges={isNativeHeader ? [] : { top: 'additive' }}
+          // The native bar or the floating header owns the top inset; content scrolls under it.
+          edges={
+            isNativeHeader || isFloatingJsHeader ? [] : { top: 'additive' }
+          }
           testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
         >
           {selectedInternalAccount ? (
@@ -1362,6 +1364,7 @@ const Wallet = ({
                   // Mounted before the content so assistive tech reads the header first.
                   <HeaderGlass
                     onLayout={handleFloatingHeaderLayout}
+                    topInset={safeAreaInsets.top}
                     scrollDistance={homepageScrollY}
                     testID={WalletViewSelectorsIDs.WALLET_FLOATING_HEADER}
                   >

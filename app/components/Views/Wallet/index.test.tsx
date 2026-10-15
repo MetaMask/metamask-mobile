@@ -2158,8 +2158,12 @@ describe('Header and Nav Bar refresh AB test', () => {
   describe('floating JS header', () => {
     const HEADER_MIN_HEIGHT = 56;
 
+    let insetsSpy: jest.SpyInstance | undefined;
+
     afterEach(() => {
       jest.useRealTimers();
+      insetsSpy?.mockRestore();
+      insetsSpy = undefined;
     });
 
     beforeEach(() => {
@@ -2217,6 +2221,34 @@ describe('Header and Nav Bar refresh AB test', () => {
       ).toEqual(expect.objectContaining({ paddingTop: 72 }));
       expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(72);
       expect(capturedContext.containerScreenY).toBe(72);
+    });
+
+    it('lets the content scroll under the status bar, which the header pads', () => {
+      insetsSpy = jest
+        .spyOn(
+          jest.requireMock<typeof import('react-native-safe-area-context')>(
+            'react-native-safe-area-context',
+          ),
+          'useSafeAreaInsets',
+        )
+        .mockReturnValue({ top: 47, right: 0, bottom: 0, left: 0 });
+
+      const { getByTestId } = render(Wallet);
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_SAFE_AREA).props.edges,
+      ).toEqual([]);
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_FLOATING_HEADER),
+      ).toHaveStyle({ paddingTop: 47 });
+      expect(
+        StyleSheet.flatten(
+          getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW).props
+            .contentContainerStyle,
+        ),
+      ).toEqual(
+        expect.objectContaining({ paddingTop: 47 + HEADER_MIN_HEIGHT }),
+      );
     });
 
     it('fades the header backdrop in as the content scrolls under it', () => {
