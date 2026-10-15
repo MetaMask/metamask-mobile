@@ -732,7 +732,7 @@ describe('useVbaHomeCardRefresh', () => {
     expect(mockRefreshAutoramps).not.toHaveBeenCalled();
   });
 
-  it('fetches when the network recovers mid-focus from a known-offline tier', () => {
+  it('fetches on the next focus after the network recovers, not mid-focus', () => {
     mockUseNetworkTier.mockReturnValue('NONE');
     setupRefreshSelectors({ sessionStatus: makeSession() });
     const { rerender } = renderHook(() => useVbaHomeCardRefresh());
@@ -740,8 +740,13 @@ describe('useVbaHomeCardRefresh', () => {
 
     expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
 
+    // A tier change alone must not re-arm the refresh: the gate reads the
+    // latest tier at call time, and the GET waits for the next focus.
     mockUseNetworkTier.mockReturnValue(null);
     rerender();
+
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+
     focusCallback();
 
     expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);

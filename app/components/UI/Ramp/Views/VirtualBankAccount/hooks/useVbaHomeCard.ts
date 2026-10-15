@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
@@ -400,7 +400,10 @@ export const shouldRefreshKycSessionOnFocus = (
  * wallet, an ineligible user, a known-offline network, or a terminal status,
  * it does nothing. The gate reads only primitive state, so unrelated
  * KycController state writes never re-arm the refresh mid-focus, and no
- * request is made during initial render.
+ * request is made during initial render. The network tier gates at call
+ * time through a ref — tier changes (a startup `null` → `WIFI` resolution,
+ * a wifi/cellular handoff) never re-arm the refresh, so a focus still
+ * issues at most one session-status GET.
  */
 export const useVbaHomeCardRefresh = (): void => {
   const { isEligible } = useVbaEligibility();
@@ -411,10 +414,12 @@ export const useVbaHomeCardRefresh = (): void => {
   const sessionStatus = useSelector(selectKycSessionStatus);
   const sessionId = sessionStatus?.id;
   const sessionFinalStatus = sessionStatus?.finalStatus;
+  const networkTierRef = useRef(networkTier);
+  networkTierRef.current = networkTier;
 
   useFocusEffect(
     useCallback(() => {
-      if (!isEligible || !walletAddress || networkTier === 'NONE') {
+      if (!isEligible || !walletAddress || networkTierRef.current === 'NONE') {
         return undefined;
       }
       if (
@@ -445,6 +450,6 @@ export const useVbaHomeCardRefresh = (): void => {
           });
         });
       return undefined;
-    }, [isEligible, networkTier, walletAddress, sessionId, sessionFinalStatus]),
+    }, [isEligible, walletAddress, sessionId, sessionFinalStatus]),
   );
 };
