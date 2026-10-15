@@ -86,21 +86,6 @@ export const SOCIAL_API_MOCKS: MockEventsObject = {
     },
     {
       urlEndpoint: new RegExp(
-        `^${SOCIAL_HOST}\\/api\\/v2\\/traders\\/[^/]+\\/[^/]+\\/open(?:\\?.*)?$`,
-      ),
-      responseCode: 200,
-      response: {
-        pnlStatus: 'in-progress',
-        positionAmount: 0,
-        isOpen: false,
-        boughtUsd: 0,
-        soldUsd: 0,
-        realizedPnl: 0,
-        costBasis: 0,
-      },
-    },
-    {
-      urlEndpoint: new RegExp(
         `^${SOCIAL_HOST}\\/api\\/v1\\/traders\\/[^/]+\\/positions\\/closed(?:\\?.*)?$`,
       ),
       responseCode: 200,
