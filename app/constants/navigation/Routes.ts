@@ -643,6 +643,7 @@ const Routes = {
       UK_MIGRATION: 'CardUkMigrationModal',
       DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
       APPLE_PAY_USAGE: 'CardApplePayUsageSheet',
+      APPLE_PAY_ADD: 'CardApplePayAddSheet',
       SIGN_IN_HELP: 'CardSignInHelpModal',
     },
   },

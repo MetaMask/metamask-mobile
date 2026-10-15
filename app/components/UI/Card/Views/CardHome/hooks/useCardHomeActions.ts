@@ -455,11 +455,16 @@ export function useCardHomeActions({
     });
   }, [navigation]);
 
-  const howToUseApplePayAction = useCallback(() => {
-    navigation.navigate(Routes.CARD.MODALS.ID, {
-      screen: Routes.CARD.MODALS.APPLE_PAY_USAGE,
-    });
-  }, [navigation]);
+  const howToUseApplePayAction = useCallback(
+    (addedToAllDevices: boolean) => {
+      navigation.navigate(Routes.CARD.MODALS.ID, {
+        screen: addedToAllDevices
+          ? Routes.CARD.MODALS.APPLE_PAY_USAGE
+          : Routes.CARD.MODALS.APPLE_PAY_ADD,
+      });
+    },
+    [navigation],
+  );
 
   const unlinkMoneyAccountAction = useCallback(
     (fundingSource?: string) => {

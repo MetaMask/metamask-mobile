@@ -1222,6 +1222,7 @@ export type RootStackParamList = {
   CardUnlinkMoneyAccountSheet: CardModalsNavigationParamList['CardUnlinkMoneyAccountSheet'];
   CardDigitalWalletInstructionsModal: CardModalsNavigationParamList['CardDigitalWalletInstructionsModal'];
   CardApplePayUsageSheet: CardModalsNavigationParamList['CardApplePayUsageSheet'];
+  CardApplePayAddSheet: CardModalsNavigationParamList['CardApplePayAddSheet'];
   CardRevokeAllowanceSheet: CardModalsNavigationParamList['CardRevokeAllowanceSheet'];
 
   // Send routes
