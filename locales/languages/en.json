@@ -11516,7 +11516,8 @@
     "apple_pay_splash": {
       "title": "Your iPhone is now your MetaMask card.",
       "lockup_label": "MetaMask and Apple Pay",
-      "close": "Close"
+      "close": "Close",
+      "continue": "Continue"
     },
     "apple_pay_usage": {
       "learn_more": "Learn more about Apple Pay",

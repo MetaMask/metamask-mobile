@@ -4,54 +4,38 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
+  Button,
+  ButtonBaseSize,
+  ButtonVariant,
   HeaderStandard,
-  IconSize,
-  Spinner,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
-import { useCardHomeData } from '../../hooks/useCardHomeData';
-import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
-import { useCardWalletProvisioning } from '../CardHome/hooks/useCardWalletProvisioning';
 import lockupLight from './assets/lockup-light.png';
 import lockupDark from './assets/lockup-dark.png';
 import hero from './assets/hero.png';
 
 const LOCKUP_WIDTH = 175;
 const LOCKUP_ASPECT_RATIO = 525 / 170;
-const HERO_ASPECT_RATIO = 620 / 1283;
+const HERO_WIDTH = 874 / 3;
+const HERO_ASPECT_RATIO = 874 / 1209;
 
 const ApplePaySplash = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
   const { themeAppearance } = useTheme();
   const { width: screenWidth } = useWindowDimensions();
   const isDark = themeAppearance === AppThemeKey.dark;
-  const { data } = useCardHomeData();
-  const { initiateProvisioning, isProvisioning } = useCardWalletProvisioning(
-    data,
-    {
-      showSuccessToast: false,
-      onSuccess: () => {
-        navigation.replace(Routes.CARD.APPLE_PAY_CONFIRMATION);
-      },
-    },
-  );
 
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleAddToWallet = useCallback(() => {
-    void initiateProvisioning();
-  }, [initiateProvisioning]);
-
   const lockupWidth = Math.min(LOCKUP_WIDTH, screenWidth - 112);
-  const heroWidth = Math.min(207, screenWidth * 0.62);
+  const heroWidth = Math.min(HERO_WIDTH, screenWidth - 32);
 
   return (
     <Box twClassName="flex-1 bg-background-default">
@@ -93,23 +77,16 @@ const ApplePaySplash = () => {
         />
       </Box>
       <SafeAreaView edges={['bottom']}>
-        <Box twClassName="w-full items-center px-4 pb-4">
-          {isProvisioning ? (
-            <Box twClassName="py-3">
-              <Spinner
-                testID="apple-pay-splash-spinner"
-                spinnerIconProps={{ size: IconSize.Xl }}
-              />
-            </Box>
-          ) : (
-            <AddToWalletButton
-              onPress={handleAddToWallet}
-              buttonStyle={isDark ? 'blackOutline' : 'black'}
-              buttonType="basic"
-              borderRadius={12}
-              testID="apple-pay-splash-add-to-wallet"
-            />
-          )}
+        <Box twClassName="px-4 pb-4">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonBaseSize.Lg}
+            isFullWidth
+            onPress={handleClose}
+            testID="apple-pay-splash-continue"
+          >
+            {strings('card.apple_pay_splash.continue')}
+          </Button>
         </Box>
       </SafeAreaView>
     </Box>
