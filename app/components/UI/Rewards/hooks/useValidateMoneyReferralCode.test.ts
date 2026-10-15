@@ -94,6 +94,21 @@ describe('useValidateMoneyReferralCode', () => {
     });
   });
 
+  it('rethrows a 503 from validateCode so accept can ask to try again shortly', async () => {
+    const busy = new RewardsMoneyHttpError(
+      'Validate referral code failed: 503',
+      503,
+      'SERVER_BUSY',
+      2,
+    );
+    mockEngineCall.mockRejectedValueOnce(busy);
+    const { result } = renderHook(() => useValidateMoneyReferralCode());
+
+    await act(async () => {
+      await expect(result.current.validateCode('KOL1')).rejects.toBe(busy);
+    });
+  });
+
   it('rethrows a 429 from validateCode so accept can read Retry-After', async () => {
     const refusal = new RewardsMoneyHttpError(
       'Validate referral code failed: 429',

@@ -99,9 +99,13 @@ export const useValidateMoneyReferralCode = (
       }
       return '';
     } catch (error) {
-      // A miss-budget refusal has to reach accept with its Retry-After. Every
-      // other failure is still "validation could not run".
-      if (error instanceof RewardsMoneyHttpError && error.status === 429) {
+      // A 429 or a 503 that is still busy after the one retry is not an
+      // unknown failure. Accept reads the status. Every other failure is
+      // still "validation could not run".
+      if (
+        error instanceof RewardsMoneyHttpError &&
+        (error.status === 429 || error.status === 503)
+      ) {
         throw error;
       }
       return MONEY_REFERRAL_CODE_UNKNOWN_ERROR;

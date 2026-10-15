@@ -250,8 +250,8 @@ function trimTrailingSlashes(url: string): string {
 
 /**
  * A `503` or `429` whose `Retry-After` is at most this is waited out once. A
- * busy pod sends 2. A JWKS outage can send up to 30, which is left to the
- * caller.
+ * busy pod sends 2. A statement timeout sends 30, and a JWKS outage can send
+ * up to 30. Both are left to the caller.
  */
 const BUSY_READ_RETRY_MAX_SECONDS = 5;
 
@@ -580,17 +580,20 @@ export class RewardsMoneyDataService {
   }
 
   /**
-   * Public code check — never attaches Authorization.
+   * Public code check — never attaches Authorization. A short `503` or `429`
+   * is waited out once, like the other reads.
    */
   async validateReferralCode(code: string): Promise<{ success: boolean }> {
     const params = new URLSearchParams();
     params.append('code', code);
 
-    const response = await this.#makeRequest(
-      `/referral/validate?${params.toString()}`,
-      { method: 'GET' },
-      DEFAULT_REQUEST_TIMEOUT_MS,
-      false,
+    const response = await this.#requestOnce(() =>
+      this.#makeRequest(
+        `/referral/validate?${params.toString()}`,
+        { method: 'GET' },
+        DEFAULT_REQUEST_TIMEOUT_MS,
+        false,
+      ),
     );
 
     if (!response.ok) {

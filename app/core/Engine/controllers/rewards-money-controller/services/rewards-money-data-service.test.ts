@@ -319,6 +319,57 @@ describe('RewardsMoneyDataService', () => {
       );
     });
 
+    it('retries a short 503 from referral validate once without Authorization', async () => {
+      jest.useFakeTimers();
+      try {
+        mockFetch
+          .mockResolvedValueOnce(busyReferralMe('2'))
+          .mockResolvedValueOnce(okJson({ success: true }));
+
+        const pending = service.validateReferralCode('ABC123');
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await expect(pending).resolves.toEqual({ success: true });
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+        expect(getBearerToken).not.toHaveBeenCalled();
+        for (const [, options] of mockFetch.mock.calls) {
+          expect(
+            (options?.headers as Record<string, string>).Authorization,
+          ).toBeUndefined();
+          expect(options).toEqual(
+            expect.objectContaining({
+              method: 'GET',
+            }),
+          );
+        }
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('throws when the referral validate retry is still a 503', async () => {
+      jest.useFakeTimers();
+      try {
+        const busy = busyReferralMe('2');
+        mockFetch.mockResolvedValueOnce(busy).mockResolvedValueOnce(busy);
+
+        const pending = expect(
+          service.validateReferralCode('ABC123'),
+        ).rejects.toMatchObject({
+          name: 'RewardsMoneyHttpError',
+          status: 503,
+          message: 'Validate referral code failed: 503',
+        });
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await pending;
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+        expect(getBearerToken).not.toHaveBeenCalled();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
     it('copies Retry-After onto a 429 from referral validate', async () => {
       mockFetch.mockResolvedValue(
         httpError(

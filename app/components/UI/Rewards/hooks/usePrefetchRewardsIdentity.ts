@@ -14,6 +14,10 @@ import { selectRewardsMoneyControllerEnabled } from '../../../../selectors/featu
  * failed warm-up writes nothing, so the tab's own error and skeleton
  * behavior is unchanged. The candidate subscription is prefetched separately
  * by `useCandidateSubscriptionId` on the same screen.
+ *
+ * Points opt-in is not a gate. Someone who never opted into points can still
+ * be a money referee, and this payload is what opens their home. Gating on
+ * opt-in would put that first open back on the cold read.
  */
 export function usePrefetchRewardsIdentity(): void {
   const dispatch = useDispatch();

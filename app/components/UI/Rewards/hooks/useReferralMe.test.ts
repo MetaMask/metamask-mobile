@@ -1,7 +1,9 @@
 import { act, renderHook } from '@testing-library/react-hooks';
+import { captureException } from '@sentry/react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import {
   setReferralMe,
   setReferralMeError,
@@ -25,6 +27,10 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
+}));
+
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
 }));
 
 const PROFILE_A = 'profile-a';
@@ -96,7 +102,10 @@ describe('useReferralMe', () => {
     });
 
   const triggerFocus = async () => {
-    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    const focusCallback =
+      mockUseFocusEffect.mock.calls[
+        mockUseFocusEffect.mock.calls.length - 1
+      ][0];
     await act(async () => {
       focusCallback();
       await flushPromises();
@@ -105,6 +114,14 @@ describe('useReferralMe', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .spyOn(globalThis.crypto, 'getRandomValues')
+      .mockImplementation((array) => {
+        if (array instanceof Uint32Array) {
+          array[0] = 0;
+        }
+        return array;
+      });
     mockUseDispatch.mockReturnValue(mockDispatch);
   });
 
@@ -157,6 +174,43 @@ describe('useReferralMe', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       setReferralMeLoading({ profileId: PROFILE_A, loading: false }),
     );
+  });
+
+  it('reports a short busy read only when the refetch fails', async () => {
+    jest.useFakeTimers({ doNotFake: ['nextTick', 'queueMicrotask'] });
+    try {
+      const busy = new RewardsMoneyHttpError('busy', 503, undefined, 2);
+      mockMessenger({ referralMeError: busy });
+      renderHook(() => useReferralMe());
+      const focusCallback =
+        mockUseFocusEffect.mock.calls[
+          mockUseFocusEffect.mock.calls.length - 1
+        ][0];
+
+      await act(async () => {
+        focusCallback();
+        await new Promise(process.nextTick);
+      });
+
+      expect(captureException).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
+      });
+      await act(async () => {
+        await new Promise(process.nextTick);
+      });
+
+      expect(captureException).toHaveBeenCalledTimes(1);
+      expect(captureException).toHaveBeenCalledWith(busy, {
+        tags: {
+          feature: 'rewards-money',
+          context: 'referralMe.fetch_failed',
+        },
+      });
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('forwards forceFresh to the controller', async () => {

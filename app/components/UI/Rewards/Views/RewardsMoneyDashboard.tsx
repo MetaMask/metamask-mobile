@@ -83,13 +83,13 @@ function sessionHasNoProfile(
 function referralReadSettledEmpty(
   profileId: string | undefined,
   hasReferral: boolean,
-  entry: { error: boolean; loading: boolean } | undefined,
+  entry: { loading: boolean } | undefined,
 ): boolean {
+  // A session re-read settles loading and writes no error. A finished entry
+  // with no payload is the error state; an entry that has not been written
+  // yet is still the skeleton.
   return (
-    Boolean(profileId) &&
-    Boolean(entry?.error) &&
-    !hasReferral &&
-    !entry?.loading
+    Boolean(profileId) && entry !== undefined && !entry.loading && !hasReferral
   );
 }
 

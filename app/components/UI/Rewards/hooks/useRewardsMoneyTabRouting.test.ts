@@ -304,37 +304,70 @@ describe('useRewardsMoneyTabRouting', () => {
   });
 
   it('keeps routing unresolved after discarding profile A and fetches profile B', async () => {
-    const fetchResolvers: ((result: {
-      status: 'settled' | 'discarded';
-      profileId?: string;
-    }) => void)[] = [];
-    mockFetchReferralMe.mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          fetchResolvers.push(resolve);
-        }),
-    );
+    jest.useFakeTimers();
+    try {
+      const fetchResolvers: ((result: {
+        status: 'settled' | 'discarded';
+        profileId?: string;
+      }) => void)[] = [];
+      mockFetchReferralMe.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            fetchResolvers.push(resolve);
+          }),
+      );
 
-    const { result } = render();
-    triggerFocus();
+      const { result } = render();
+      triggerFocus();
 
-    await act(async () => {
-      profileId = PROFILE_B;
-      fetchResolvers[0]({
-        status: 'discarded',
-        profileId: PROFILE_B,
+      await act(async () => {
+        profileId = PROFILE_B;
+        fetchResolvers[0]({
+          status: 'discarded',
+          profileId: PROFILE_B,
+        });
+        await Promise.resolve();
       });
-      await Promise.resolve();
-    });
 
-    expect(mockFetchReferralMe).toHaveBeenCalledTimes(2);
-    expect(result.current.moneyReferralResolved).toBe(false);
+      expect(mockFetchReferralMe).toHaveBeenCalledTimes(1);
+      expect(result.current.moneyReferralResolved).toBe(false);
 
-    await act(async () => {
-      fetchResolvers[1]({ status: 'settled', profileId: PROFILE_B });
-    });
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(1_000);
+      });
 
-    expect(result.current.moneyReferralResolved).toBe(true);
+      expect(mockFetchReferralMe).toHaveBeenCalledTimes(2);
+
+      await act(async () => {
+        fetchResolvers[1]({ status: 'settled', profileId: PROFILE_B });
+      });
+
+      expect(result.current.moneyReferralResolved).toBe(true);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('stops after three discarded refreshes', async () => {
+    jest.useFakeTimers();
+    try {
+      mockFetchReferralMe.mockResolvedValue({
+        status: 'discarded',
+        profileId: PROFILE_A,
+      });
+
+      const { result } = render();
+      triggerFocus();
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(3_000);
+      });
+
+      expect(mockFetchReferralMe).toHaveBeenCalledTimes(3);
+      expect(result.current.moneyReferralResolved).toBe(true);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('reads the persona for the resolved profile id', async () => {

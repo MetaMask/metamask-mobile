@@ -672,8 +672,9 @@ const HomeTabs = () => {
   const { colors } = useTheme();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
   // The Rewards tab is not mounted until it is opened. Start the candidate
-  // lookup, and referral me when Money is on, while Home is already up.
-  useCandidateSubscriptionId();
+  // lookup once, and referral me when Money is on, while Home is already up.
+  // Focus would repeat the candidate scan every time the user returns here.
+  useCandidateSubscriptionId({ refreshOnFocus: false });
   usePrefetchRewardsIdentity();
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);

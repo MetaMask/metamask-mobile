@@ -72,6 +72,14 @@ describe('useEarningsSummary', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .spyOn(globalThis.crypto, 'getRandomValues')
+      .mockImplementation((array) => {
+        if (array instanceof Uint32Array) {
+          array[0] = 0;
+        }
+        return array;
+      });
     mockUseDispatch.mockReturnValue(mockDispatch);
     mockUseFocusEffect.mockImplementation((effect) => {
       effect();
@@ -156,18 +164,50 @@ describe('useEarningsSummary', () => {
       });
       await flushPromises();
       expect(mockEngineCall).toHaveBeenCalledTimes(2);
-      expect(captureException).toHaveBeenCalledWith(
-        expect.any(RewardsMoneyHttpError),
-        {
-          tags: {
-            feature: 'rewards-money',
-            context: 'earningsSummary.fetch_failed',
-          },
-        },
-      );
+      expect(captureException).not.toHaveBeenCalled();
     } finally {
       jest.useRealTimers();
     }
+  });
+
+  it('reports a short busy read only when the refetch fails', async () => {
+    jest.useFakeTimers({ doNotFake: ['nextTick', 'queueMicrotask'] });
+    try {
+      const busy = new RewardsMoneyHttpError('busy', 503, undefined, 2);
+      mockEngineCall.mockRejectedValue(busy);
+
+      renderHook(() => useEarningsSummary(PROFILE_A));
+      await flushPromises();
+
+      expect(captureException).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2000);
+      });
+      await flushPromises();
+
+      expect(captureException).toHaveBeenCalledTimes(1);
+      expect(captureException).toHaveBeenCalledWith(busy, {
+        tags: {
+          feature: 'rewards-money',
+          context: 'earningsSummary.fetch_failed',
+        },
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('reports one shared rejection once when two screens await it', async () => {
+    const failure = new Error('network');
+    mockEngineCall.mockRejectedValue(failure);
+
+    renderHook(() => useEarningsSummary(PROFILE_A));
+    renderHook(() => useEarningsSummary(PROFILE_A));
+    await flushPromises();
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(2);
+    expect(captureException).toHaveBeenCalledTimes(1);
   });
 
   it('passes forceFresh through to the controller', async () => {

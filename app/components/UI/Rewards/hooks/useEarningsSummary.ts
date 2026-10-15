@@ -1,7 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
-import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import {
   setEarningsSummary,
@@ -9,6 +8,7 @@ import {
   setEarningsSummaryLoading,
 } from '../../../../reducers/rewardsMoney';
 import type { EarningsSummaryDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import { reportRewardsMoneyReadFailure } from './reportRewardsMoneyReadFailure';
 import { useOneShotBusyRefetch } from './useOneShotBusyRefetch';
 
 /**
@@ -58,14 +58,11 @@ export const useEarningsSummary = (
           );
         dispatch(setEarningsSummary({ profileId, data: summary }));
       } catch (error) {
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            tags: {
-              feature: 'rewards-money',
-              context: 'earningsSummary.fetch_failed',
-            },
-          },
+        reportRewardsMoneyReadFailure(
+          error,
+          'earningsSummary.fetch_failed',
+          followUp,
+          'rewards-money',
         );
         dispatch(setEarningsSummaryError({ profileId, error: true }));
         if (!followUp) {
