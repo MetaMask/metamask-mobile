@@ -201,10 +201,11 @@ describe('toSocialV1FeedItem', () => {
       );
     });
 
-    it('derives an unmarked average entry price from the entry fills', () => {
+    it('averages the entry fills, unmarked, when the row has no cost basis', () => {
       // Two entry fills: $50,000 for 10 and $60,000 for 10 -> $5,500 average.
       const row = buildRow(
         mockPerpFeedItem({
+          costBasis: null,
           trades: [
             {
               direction: 'buy',
@@ -556,12 +557,12 @@ describe('toSocialV1FeedItem', () => {
   });
 
   describe('stored position stats', () => {
-    it('prefers the stored entry price over an average of the fills', () => {
+    it('prices an open entry off its cost basis over an average of the fills', () => {
       const row = buildRow(
         mockPerpFeedItem({
           isOpen: true,
           positionAmount: 5,
-          entryPriceUsd: 9_000,
+          costBasis: 45_000,
           trades: [
             {
               direction: 'buy',
@@ -583,6 +584,42 @@ describe('toSocialV1FeedItem', () => {
       expect(result.variant).toBe('perpsOpen');
       if (result.variant !== 'perpsOpen') return;
       expect(result.entryPriceLabel).toBe('$9,000');
+    });
+
+    // Most of this holding was transferred in. The API's `entryPriceUsd`
+    // leaves out the received half of the cost basis and reads ~8x cheap,
+    // against a P&L that is flat.
+    it('ignores an entryPriceUsd that leaves out received tokens', () => {
+      const row = buildRow(
+        mockSpotFeedItem({
+          isOpen: true,
+          positionAmount: 1_000,
+          costBasis: 50_000,
+          entryPriceUsd: 6.45,
+          currentValueUSD: 49_760,
+          trades: [
+            {
+              direction: 'buy',
+              intent: 'enter',
+              action: 'opened',
+              tokenAmount: 129,
+              usdCost: 6_450,
+              marketCap: 600_000,
+              timestamp: 1_700_000_000,
+              transactionHash: '0xb',
+              classification: 'spot',
+            },
+          ],
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.variant).toBe('spotOpen');
+      if (result.variant !== 'spotOpen') return;
+      expect(result.entryPriceLabel).toBe(formatTradeUnitPrice(50));
+      expect(result.entryMarketCapLabel).toBe(formatAbbreviatedUsd(600_000));
+      expect(result.marketCapLabel).toBe(formatAbbreviatedUsd(597_120));
     });
 
     // An open hold grows every second, so the API sends only the anchor and
@@ -789,8 +826,9 @@ describe('toSocialV1FeedItem', () => {
 
       expect(result.variant).toBe('spotOpen');
       if (result.variant !== 'spotOpen') return;
-      // $1.2M at $120 is $10,000 per dollar of price.
-      expect(result.entryMarketCapLabel).toBe(formatAbbreviatedUsd(1_200_000));
+      // $1.2M at $120 is $10,000 per dollar of price, and $100,000 of cost
+      // basis over 1,000 held is a $100 entry.
+      expect(result.entryMarketCapLabel).toBe(formatAbbreviatedUsd(1_000_000));
       expect(result.marketCapLabel).toBe(formatAbbreviatedUsd(1_230_005));
     });
 

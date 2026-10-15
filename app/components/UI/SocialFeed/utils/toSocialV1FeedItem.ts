@@ -21,11 +21,7 @@ import { markMocked, type SocialV1MockedField } from '../mockMarker';
 import { mockMarkPrice } from '../mocks/socialV1Enrichment';
 import { splitKlipyGifFromCommentText } from './klipyGifComment';
 import { readAuthorComment } from '../reactions';
-import {
-  asFeedCardItem,
-  toWholePercent,
-  type FeedCardItem,
-} from './feedCardStats';
+import { asFeedCardItem, toWholePercent } from './feedCardStats';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
@@ -40,18 +36,22 @@ export const toUnitPrice = (trade: Trade): number | null => {
 };
 
 /**
- * Average entry price across every fill that grew the position -- the honest
- * figure, since a position built over several fills has no single entry.
+ * Average entry price of the position.
  *
- * Prefers the fills because they survive a full close: once a position is
- * closed `positionAmount` is 0, so `costBasis / positionAmount` is unusable.
- * That ratio is the fallback for rows whose fill history did not come through.
+ * While it is open that is `costBasis / positionAmount`: the basis its P&L is
+ * measured against, which also prices tokens the trader received rather than
+ * bought. The API's `entryPriceUsd` drops that received half, so it is not
+ * read. Once closed `positionAmount` is 0, so the entry is averaged over the
+ * fills that grew the position instead.
  */
 export const deriveAverageEntryPrice = (core: Position): number | null => {
-  const storedEntry = (core as Pick<FeedCardItem, 'entryPriceUsd'>)
-    .entryPriceUsd;
-  if (isPresentNumber(storedEntry) && storedEntry > 0) {
-    return storedEntry;
+  if (
+    core.isOpen !== false &&
+    isPresentNumber(core.costBasis) &&
+    core.costBasis > 0 &&
+    core.positionAmount > 0
+  ) {
+    return core.costBasis / core.positionAmount;
   }
 
   const entryFills = (core.trades ?? []).filter(
@@ -68,10 +68,6 @@ export const deriveAverageEntryPrice = (core: Position): number | null => {
 
   if (totals.tokens > 0 && totals.usd > 0) {
     return totals.usd / totals.tokens;
-  }
-
-  if (isPresentNumber(core.costBasis) && core.positionAmount > 0) {
-    return Math.abs(core.costBasis) / core.positionAmount;
   }
 
   return null;
@@ -218,7 +214,7 @@ const toSpotSide = (core: CoreFeedItem, action?: string): SocialV1SpotSide => {
  * Maps one loaded feed row into the V1 card model.
  *
  * Identity, time, symbol, direction, leverage, value, P&L, the author's win
- * rate and caption, entry (when position metrics stored one), hold time and
+ * rate and caption, entry, hold time and
  * the spot price and market caps come from the row. A perp's mark price is
  * still invented, and is recorded in `mockedFields`.
  */
