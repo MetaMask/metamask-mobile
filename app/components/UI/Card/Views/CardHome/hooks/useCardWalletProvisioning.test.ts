@@ -6,10 +6,8 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../../component-library/components/Toast';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { ToastContext } from '../../../../../../component-library/components/Toast';
 import type { ToastRef } from '../../../../../../component-library/components/Toast/Toast.types';
 import {
   resolveWalletEntry,
@@ -26,8 +24,13 @@ import {
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 
 const mockUsePushProvisioning = jest.fn();
+const mockReplace = jest.fn();
 const showToast = jest.fn();
 const closeToast = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ replace: mockReplace }),
+}));
 
 jest.mock('../../../pushProvisioning', () => ({
   usePushProvisioning: (...args: unknown[]) => mockUsePushProvisioning(...args),
@@ -100,7 +103,6 @@ function renderProvisioning(
   },
   options?: {
     onSuccess?: () => void;
-    showSuccessToast?: boolean;
     platformWalletSupported?: boolean;
   },
 ) {
@@ -153,7 +155,21 @@ describe('useCardWalletProvisioning', () => {
     );
   });
 
-  it('runs the caller success callback after showing the toast', () => {
+  it('opens the Apple Pay confirmation screen without a success toast', () => {
+    renderProvisioning(homeData(walletProvisioning));
+
+    const { onSuccess } = mockUsePushProvisioning.mock.calls[0][0] as {
+      onSuccess: () => void;
+    };
+    onSuccess();
+
+    expect(mockReplace).toHaveBeenCalledWith(
+      Routes.CARD.APPLE_PAY_CONFIRMATION,
+    );
+    expect(showToast).not.toHaveBeenCalled();
+  });
+
+  it('runs the caller success callback after opening the confirmation screen', () => {
     const onSuccess = jest.fn();
 
     renderProvisioning(homeData(walletProvisioning), undefined, { onSuccess });
@@ -163,23 +179,9 @@ describe('useCardWalletProvisioning', () => {
     };
     passedOptions.onSuccess();
 
-    expect(showToast).toHaveBeenCalledTimes(1);
-    expect(onSuccess).toHaveBeenCalledTimes(1);
-  });
-
-  it('skips the success toast when the caller handles success', () => {
-    const onSuccess = jest.fn();
-
-    renderProvisioning(homeData(walletProvisioning), undefined, {
-      onSuccess,
-      showSuccessToast: false,
-    });
-
-    const passedOptions = mockUsePushProvisioning.mock.calls[0][0] as {
-      onSuccess: () => void;
-    };
-    passedOptions.onSuccess();
-
+    expect(mockReplace).toHaveBeenCalledWith(
+      Routes.CARD.APPLE_PAY_CONFIRMATION,
+    );
     expect(showToast).not.toHaveBeenCalled();
     expect(onSuccess).toHaveBeenCalledTimes(1);
   });
@@ -226,36 +228,6 @@ describe('useCardWalletProvisioning', () => {
         userAddress: expect.objectContaining({
           addressTwo: undefined,
           administrativeArea: '',
-        }),
-      }),
-    );
-  });
-
-  it('shows a confirmation toast after the card is added', () => {
-    renderProvisioning(homeData(walletProvisioning));
-
-    const { onSuccess } = mockUsePushProvisioning.mock.calls[0][0] as {
-      onSuccess: () => void;
-    };
-    onSuccess();
-
-    expect(showToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        variant: ToastVariants.Plain,
-        hasNoTimeout: false,
-        labelOptions: [
-          {
-            label: strings('card.push_provisioning.success_message', {
-              walletName: 'Apple Wallet',
-            }),
-          },
-        ],
-        startAccessory: expect.objectContaining({
-          props: {
-            name: IconName.Confirmation,
-            color: IconColor.SuccessDefault,
-            size: IconSize.Lg,
-          },
         }),
       }),
     );
@@ -310,6 +282,9 @@ describe('useCardWalletProvisioning', () => {
     onSuccess();
     onError({ message: 'Wallet rejected the card' });
 
+    expect(mockReplace).toHaveBeenCalledWith(
+      Routes.CARD.APPLE_PAY_CONFIRMATION,
+    );
     expect(showToast).not.toHaveBeenCalled();
   });
 });
