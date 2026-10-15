@@ -4,7 +4,7 @@ import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { GlassView } from 'expo-glass-effect';
 import PredictPortfolioAction from './PredictPortfolioAction';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../../../component-library/components-temp/GlassSurface';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../../../component-library/components-temp/BoxGlass';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
 describe('PredictPortfolioAction', () => {

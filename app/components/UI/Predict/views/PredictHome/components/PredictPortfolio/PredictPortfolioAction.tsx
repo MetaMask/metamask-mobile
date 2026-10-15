@@ -16,7 +16,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import GlassSurface from '../../../../../../../component-library/components-temp/GlassSurface';
+import BoxGlass from '../../../../../../../component-library/components-temp/BoxGlass';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
 export interface PredictPortfolioActionProps {
@@ -99,7 +99,7 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
   }
 
   return (
-    <GlassSurface
+    <BoxGlass
       radiusClassName="rounded-2xl"
       isInteractive={!disabled}
       hasSheen
@@ -107,7 +107,7 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
       style={tw.style('flex-1')}
     >
       {button}
-    </GlassSurface>
+    </BoxGlass>
   );
 };
 

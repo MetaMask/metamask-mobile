@@ -9,7 +9,7 @@ import {
   Box,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import GlassSurface from '../../../../../component-library/components-temp/GlassSurface';
+import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
 
 import SensitiveText, {
   SensitiveTextLength,
@@ -67,9 +67,9 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
 
   const withGlass = (button: React.ReactElement) =>
     isGlass ? (
-      <GlassSurface radiusClassName="rounded-full" isInteractive={!isDisabled}>
+      <BoxGlass radiusClassName="rounded-full" isInteractive={!isDisabled}>
         {button}
-      </GlassSurface>
+      </BoxGlass>
     ) : (
       button
     );

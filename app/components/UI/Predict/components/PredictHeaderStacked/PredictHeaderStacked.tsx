@@ -3,7 +3,7 @@ import {
   HeaderStandardAnimated,
   IconName,
 } from '@metamask/design-system-react-native';
-import ButtonIconCapsule from '../../../../../component-library/components-temp/ButtonIconCapsule';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
 import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -75,7 +75,7 @@ const PredictHeaderStacked: React.FC<PredictHeaderStackedProps> = ({
     ]}
     startAccessory={
       isCapsule ? (
-        <ButtonIconCapsule
+        <ButtonIconGlass
           isCapsule
           iconName={IconName.ArrowLeft}
           onPress={onBack}
@@ -86,7 +86,7 @@ const PredictHeaderStacked: React.FC<PredictHeaderStackedProps> = ({
     }
     endAccessory={
       isCapsule ? (
-        <ButtonIconCapsule
+        <ButtonIconGlass
           isCapsule
           iconName={IconName.Search}
           onPress={onSearchPress}

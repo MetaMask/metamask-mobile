@@ -39,9 +39,9 @@ import PredictFeedBanner from '../../components/PredictFeedBanner';
 import { PredictFeedBannerPosition } from '../../constants/feedBanner';
 import PredictOffline from '../../components/PredictOffline';
 import { usePredictTrendingSection } from './components/PredictTrendingSection/usePredictTrendingSection';
-import FloatingHeader, {
-  useFloatingHeaderInset,
-} from '../../../../../component-library/components-temp/FloatingHeader';
+import HeaderGlass, {
+  useHeaderGlassInset,
+} from '../../../../../component-library/components-temp/HeaderGlass';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 
@@ -76,7 +76,7 @@ const PredictHome: React.FC = () => {
   const isGlass = useIsGlassSurfaceEnabled(selectPredictBrandRefreshEnabled);
   const safeAreaInsets = useSafeAreaInsets();
   const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
-    useFloatingHeaderInset(isBrandRefresh, safeAreaInsets.top);
+    useHeaderGlassInset(isBrandRefresh, safeAreaInsets.top);
 
   const handleSectionViewed = useCallback(
     (sectionId: string) => {
@@ -180,9 +180,9 @@ const PredictHome: React.FC = () => {
       >
         {isBrandRefresh ? (
           // Mounted before the content so assistive tech reads the header first.
-          <FloatingHeader onLayout={handleFloatingHeaderLayout}>
+          <HeaderGlass onLayout={handleFloatingHeaderLayout}>
             {header}
-          </FloatingHeader>
+          </HeaderGlass>
         ) : (
           header
         )}

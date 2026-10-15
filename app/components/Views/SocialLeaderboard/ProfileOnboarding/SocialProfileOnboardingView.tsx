@@ -32,15 +32,21 @@ import {
   Pressable,
   ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
+import { useHaptics } from '../../../../util/haptics';
 import { PROFILE_AVATAR_PRESETS } from '../MyProfileView/avatarPresets';
-import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
+import ProfileAvatar, {
+  ProfileAvatarArt,
+} from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
@@ -58,8 +64,11 @@ import ProfileOnboardingIntroAnimation from './ProfileOnboardingIntroAnimation';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { useSocialOnboardingAccounts } from './useSocialOnboardingAccounts';
+import AvatarBackgroundCarousel from './AvatarBackgroundCarousel';
 
-const AVATAR_GRID_COUNT = 24;
+const AVATAR_TILE_SIZE = 60;
+/** Four 60pt tiles with 20pt gaps. */
+const AVATAR_GRID_WIDTH = 300;
 
 const LIVE_ACTIVITY = [
   {
@@ -116,14 +125,37 @@ const fillClassName = (fill: 0 | 0.5 | 1): string => {
   return 'w-0';
 };
 
-const OnboardingProgress: React.FC<{ step: ProfileOnboardingStep }> = ({
-  step,
-}) => (
+/**
+ * Step title: Display Md size on the 32px heading line height, medium weight,
+ * centered.
+ */
+const OnboardingTitle: React.FC<{
+  children: React.ReactNode;
+  twClassName?: string;
+}> = ({ children, twClassName }) => (
+  <Text
+    variant={TextVariant.DisplayMd}
+    fontWeight={FontWeight.Medium}
+    twClassName={`text-center leading-heading-lg ${twClassName ?? ''}`}
+  >
+    {children}
+  </Text>
+);
+
+/**
+ * Sits above the header, so it carries the top inset. A static inset rather
+ * than a safe-area edge, which recalculates mid push transition (TSA-970).
+ */
+const OnboardingProgress: React.FC<{
+  step: ProfileOnboardingStep;
+  topInset: number;
+}> = ({ step, topInset }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
-    gap={2}
+    gap={1}
     paddingHorizontal={4}
-    paddingBottom={2}
+    paddingBottom={4}
+    style={{ paddingTop: topInset + 8 }}
     testID={SocialProfileOnboardingSelectorsIDs.PROGRESS}
   >
     {progressFill(step).map((fill, index) => (
@@ -194,8 +226,9 @@ const LiveActivityFallback: React.FC = () => (
 
 const ReadyCardFallback: React.FC<{
   avatarPresetId: string | null | undefined;
+  avatarBackgroundId: string | null | undefined;
   handle: string;
-}> = ({ avatarPresetId, handle }) => (
+}> = ({ avatarPresetId, avatarBackgroundId, handle }) => (
   <>
     <Text twClassName="absolute left-6 top-6" variant={TextVariant.HeadingLg}>
       🦊
@@ -220,7 +253,11 @@ const ReadyCardFallback: React.FC<{
         </Text>
       </Box>
       <Box twClassName="rounded-full border-4 border-success-default p-1">
-        <ProfileAvatar avatarPresetId={avatarPresetId} size="xl" />
+        <ProfileAvatar
+          avatarPresetId={avatarPresetId}
+          avatarBackgroundId={avatarBackgroundId}
+          size="xl"
+        />
       </Box>
       <Text
         variant={TextVariant.BodyMd}
@@ -236,9 +273,11 @@ const ReadyCardFallback: React.FC<{
 const SocialProfileOnboardingView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
+  const insets = useSafeAreaInsets();
   const accounts = useSocialOnboardingAccounts();
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const avatarVariant = getAvatarAccountVariant(avatarAccountType);
+  const { playSelection } = useHaptics();
   const [step, setStep] = useState<ProfileOnboardingStep>('intro');
   const [draft, setDraft] = useState<ProfileOnboardingDraft>(
     createInitialOnboardingDraft,
@@ -313,6 +352,21 @@ const SocialProfileOnboardingView: React.FC = () => {
     }));
   }, []);
 
+  const handleAvatarSelect = useCallback(
+    (presetId: string) => {
+      if (presetId === draft.avatarPresetId) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setDraft((current) => ({ ...current, avatarPresetId: presetId }));
+    },
+    [draft.avatarPresetId, playSelection],
+  );
+
+  const handleAvatarBackgroundSelect = useCallback((backgroundId: string) => {
+    setDraft((current) => ({ ...current, avatarBackgroundId: backgroundId }));
+  }, []);
+
   const handleContinue = useCallback(() => {
     setStep((current) => {
       switch (current) {
@@ -345,8 +399,8 @@ const SocialProfileOnboardingView: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={SocialProfileOnboardingSelectorsIDs.CONTAINER}
     >
+      <OnboardingProgress step={step} topInset={insets.top} />
       <HeaderStandard
-        includesTopInset
         title=""
         onBack={step === 'intro' ? undefined : handleBack}
         onClose={handleClose}
@@ -358,7 +412,6 @@ const SocialProfileOnboardingView: React.FC = () => {
         }}
         testID={SocialProfileOnboardingSelectorsIDs.HEADER}
       />
-      <OnboardingProgress step={step} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -370,13 +423,9 @@ const SocialProfileOnboardingView: React.FC = () => {
               twClassName="flex-1"
               testID={SocialProfileOnboardingSelectorsIDs.INTRO}
             >
-              <Text
-                variant={TextVariant.HeadingLg}
-                fontWeight={FontWeight.Bold}
-                twClassName="text-center px-6 pt-4"
-              >
+              <OnboardingTitle twClassName="px-6 pt-4">
                 {strings('social_leaderboard.profile_onboarding.intro_title')}
-              </Text>
+              </OnboardingTitle>
               <ProfileOnboardingIntroAnimation
                 fallback={<LiveActivityFallback />}
               />
@@ -415,15 +464,11 @@ const SocialProfileOnboardingView: React.FC = () => {
                   gap={4}
                   testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STEP}
                 >
-                  <Text
-                    variant={TextVariant.HeadingLg}
-                    fontWeight={FontWeight.Bold}
-                    twClassName="text-center pt-2"
-                  >
+                  <OnboardingTitle twClassName="pt-2">
                     {strings(
                       'social_leaderboard.profile_onboarding.claim_username',
                     )}
-                  </Text>
+                  </OnboardingTitle>
                   <Box gap={2}>
                     <Text
                       variant={TextVariant.BodySm}
@@ -540,107 +585,42 @@ const SocialProfileOnboardingView: React.FC = () => {
                   alignItems={BoxAlignItems.Center}
                   testID={SocialProfileOnboardingSelectorsIDs.AVATAR_STEP}
                 >
-                  <Text
-                    variant={TextVariant.HeadingLg}
-                    fontWeight={FontWeight.Bold}
-                    twClassName="text-center pt-2 pb-4"
-                  >
-                    {strings('social_leaderboard.profile_onboarding.pick_look')}
-                  </Text>
+                  <OnboardingTitle twClassName="pb-14">
+                    {strings(
+                      'social_leaderboard.profile_onboarding.customize_avatar',
+                    )}
+                  </OnboardingTitle>
+                  <AvatarBackgroundCarousel
+                    avatarPresetId={draft.avatarPresetId}
+                    selectedBackgroundId={draft.avatarBackgroundId}
+                    onSelect={handleAvatarBackgroundSelect}
+                  />
                   <Box
-                    twClassName="rounded-full border-4 border-icon-default p-1 mb-4"
-                    testID={SocialProfileOnboardingSelectorsIDs.AVATAR_PREVIEW}
+                    twClassName="flex-row flex-wrap justify-center gap-5 mt-11"
+                    style={tw.style({ width: AVATAR_GRID_WIDTH })}
                   >
-                    <ProfileAvatar
-                      avatarPresetId={draft.avatarPresetId}
-                      size="xl"
-                    />
-                  </Box>
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    justifyContent={BoxJustifyContent.Center}
-                    gap={8}
-                    twClassName="pb-4"
-                  >
-                    <Box alignItems={BoxAlignItems.Center} gap={2}>
-                      <ButtonIcon
-                        iconName={IconName.Camera}
-                        variant={ButtonIconVariant.Filled}
-                        size={ButtonIconSize.Lg}
-                        onPress={() => undefined}
-                        accessibilityLabel={strings(
-                          'social_leaderboard.profile_onboarding.camera',
-                        )}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.CAMERA_BUTTON
-                        }
-                      />
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.TextAlternative}
-                      >
-                        {strings(
-                          'social_leaderboard.profile_onboarding.camera',
-                        )}
-                      </Text>
-                    </Box>
-                    <Box alignItems={BoxAlignItems.Center} gap={2}>
-                      <ButtonIcon
-                        iconName={IconName.Image}
-                        variant={ButtonIconVariant.Filled}
-                        size={ButtonIconSize.Lg}
-                        onPress={() => undefined}
-                        accessibilityLabel={strings(
-                          'social_leaderboard.profile_onboarding.photos',
-                        )}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.PHOTOS_BUTTON
-                        }
-                      />
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.TextAlternative}
-                      >
-                        {strings(
-                          'social_leaderboard.profile_onboarding.photos',
-                        )}
-                      </Text>
-                    </Box>
-                  </Box>
-                  <Box twClassName="flex-row flex-wrap justify-center w-full">
-                    {Array.from({ length: AVATAR_GRID_COUNT }, (_, index) => {
-                      const preset =
-                        PROFILE_AVATAR_PRESETS[
-                          index % PROFILE_AVATAR_PRESETS.length
-                        ];
-                      const isSelected = draft.avatarGridIndex === index;
+                    {PROFILE_AVATAR_PRESETS.map((preset) => {
+                      const isSelected = draft.avatarPresetId === preset.id;
                       return (
                         <Pressable
-                          key={`${preset.id}-${index}`}
+                          key={preset.id}
                           accessibilityRole="button"
                           accessibilityState={{ selected: isSelected }}
-                          onPress={() =>
-                            setDraft((current) => ({
-                              ...current,
-                              avatarPresetId: preset.id,
-                              avatarGridIndex: index,
-                            }))
-                          }
-                          testID={`${SocialProfileOnboardingSelectorsIDs.AVATAR_OPTION}-${index}`}
-                          style={tw.style('m-1')}
+                          onPress={() => handleAvatarSelect(preset.id)}
+                          testID={`${SocialProfileOnboardingSelectorsIDs.AVATAR_OPTION}-${preset.id}`}
+                          style={tw.style(
+                            'items-center justify-center rounded-full border',
+                            isSelected ? 'border-icon-default' : 'border-muted',
+                            {
+                              width: AVATAR_TILE_SIZE,
+                              height: AVATAR_TILE_SIZE,
+                            },
+                          )}
                         >
-                          <Box
-                            twClassName={`rounded-full p-0.5 ${
-                              isSelected
-                                ? 'border-2 border-icon-default'
-                                : 'border-2 border-transparent'
-                            }`}
-                          >
-                            <ProfileAvatar
-                              avatarPresetId={preset.id}
-                              size="md"
-                            />
-                          </Box>
+                          <ProfileAvatarArt
+                            preset={preset}
+                            sizePx={AVATAR_TILE_SIZE * 0.85}
+                          />
                         </Pressable>
                       );
                     })}
@@ -653,15 +633,11 @@ const SocialProfileOnboardingView: React.FC = () => {
                   gap={4}
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP}
                 >
-                  <Text
-                    variant={TextVariant.HeadingLg}
-                    fontWeight={FontWeight.Bold}
-                    twClassName="text-center pt-2"
-                  >
+                  <OnboardingTitle twClassName="pt-2">
                     {strings(
                       'social_leaderboard.profile_onboarding.link_account',
                     )}
-                  </Text>
+                  </OnboardingTitle>
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
@@ -783,15 +759,11 @@ const SocialProfileOnboardingView: React.FC = () => {
                   twClassName="relative flex-1 items-center justify-center py-8"
                   testID={SocialProfileOnboardingSelectorsIDs.READY_STEP}
                 >
-                  <Text
-                    variant={TextVariant.HeadingLg}
-                    fontWeight={FontWeight.Bold}
-                    twClassName="text-center"
-                  >
+                  <OnboardingTitle>
                     {strings(
                       'social_leaderboard.profile_onboarding.feed_awaits',
                     )}
-                  </Text>
+                  </OnboardingTitle>
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
@@ -808,6 +780,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                     fallback={
                       <ReadyCardFallback
                         avatarPresetId={draft.avatarPresetId}
+                        avatarBackgroundId={draft.avatarBackgroundId}
                         handle={username}
                       />
                     }

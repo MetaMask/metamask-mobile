@@ -24,7 +24,7 @@ import { PREDICT_HEADER_STACKED_TEST_IDS } from '../../components/PredictHeaderS
 import { MOCK_PREDICT_LIVE_SPORT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
 import { PredictEventValues } from '../../constants/eventNames';
 import { PredictFeedBannerSelectorsIDs } from '../../components/PredictFeedBanner';
-import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/FloatingHeader';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass';
 import {
   PredictFeedBannerPosition,
   PredictFeedBannerSeverity,

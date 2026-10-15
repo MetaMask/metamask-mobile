@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import PredictHeaderStacked from './PredictHeaderStacked';
-import GlassCapsule from '../../../../../component-library/components-temp/GlassCapsule';
+import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
 import { PREDICT_HEADER_STACKED_TEST_IDS } from './PredictHeaderStacked.testIds';
 import {
   PredictMarketListSelectorsIDs,
@@ -16,6 +16,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   const ReactNative = jest.requireActual('react-native');
   return {
     IconName: { Search: 'Search', ArrowLeft: 'ArrowLeft' },
+    ButtonIconSize: { Xs: 'xs', Sm: 'sm', Md: 'md', Lg: 'lg' },
     ButtonIcon: ({
       iconName,
       onPress,
@@ -146,7 +147,7 @@ describe('PredictHeaderStacked', () => {
         onSearchPress,
       });
 
-      expect(UNSAFE_getAllByType(GlassCapsule)).toHaveLength(2);
+      expect(UNSAFE_getAllByType(CapsuleGlass)).toHaveLength(2);
 
       fireEvent.press(
         screen.getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON),
@@ -162,7 +163,7 @@ describe('PredictHeaderStacked', () => {
     it('keeps the plain header icons by default', () => {
       const { UNSAFE_queryAllByType } = renderHeader();
 
-      expect(UNSAFE_queryAllByType(GlassCapsule)).toHaveLength(0);
+      expect(UNSAFE_queryAllByType(CapsuleGlass)).toHaveLength(0);
     });
   });
 });
