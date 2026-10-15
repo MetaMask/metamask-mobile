@@ -195,7 +195,15 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
   }
 
   return (
-    <PositionCardShell tone={item.isPnlPositive ? 'positive' : 'negative'}>
+    <PositionCardShell
+      tone={
+        item.valueLabel || item.pnlLabel
+          ? item.isPnlPositive
+            ? 'positive'
+            : 'negative'
+          : 'neutral'
+      }
+    >
       <PositionCardHeader
         layout="closed"
         avatar={item.asset.avatar}

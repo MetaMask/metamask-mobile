@@ -191,8 +191,7 @@ export function buildFeedItemPresentation(
   const pnlSignSource = isClosed
     ? pnlValue
     : (coreItem.pnlValueUsd ?? pnlPercent);
-  const isPnlPositive =
-    hasPnlData && isPresentNumber(pnlSignSource) && pnlSignSource >= 0;
+  const isPnlPositive = isPresentNumber(pnlSignSource) && pnlSignSource >= 0;
 
   return {
     valueLabel,

@@ -209,5 +209,23 @@ describe('LiveTradeRow', () => {
 
       expect(gradientTint()).toContain(lightTheme.colors.error.default);
     });
+
+    it('keeps a closed trade neutral when no PnL is available', () => {
+      renderWithProvider(
+        <LiveTradeRow
+          item={closedItem({
+            valueLabel: '',
+            pnlLabel: '',
+            pnlValueLabel: undefined,
+            isPnlPositive: false,
+          })}
+          onPositionPress={onPositionPress}
+          onTraderPress={onTraderPress}
+          now={now}
+        />,
+      );
+
+      expect(gradientTint()).toContain(lightTheme.colors.icon.default);
+    });
   });
 });

@@ -60,9 +60,11 @@ const LiveTradeRow: React.FC<LiveTradeRowProps> = ({
   }
 
   const tone = item.isClosed
-    ? item.isPnlPositive
-      ? 'positive'
-      : 'negative'
+    ? item.valueLabel || item.pnlLabel || item.pnlValueLabel
+      ? item.isPnlPositive
+        ? 'positive'
+        : 'negative'
+      : 'neutral'
     : 'neutral';
 
   return (

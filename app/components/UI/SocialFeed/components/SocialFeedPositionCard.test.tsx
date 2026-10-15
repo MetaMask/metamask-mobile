@@ -543,6 +543,18 @@ describe('SocialFeedPositionCard', () => {
         cardTintOf(mockClosedSpotFeedItem({ isPnlPositive: false })),
       ).toContain(lightTheme.colors.error.default);
     });
+
+    it('leaves a closed position neutral when no PnL is available', () => {
+      expect(
+        cardTintOf(
+          mockClosedSpotFeedItem({
+            valueLabel: '',
+            pnlLabel: '',
+            isPnlPositive: false,
+          }),
+        ),
+      ).toContain(lightTheme.colors.icon.default);
+    });
   });
 
   describe('copy trade', () => {
