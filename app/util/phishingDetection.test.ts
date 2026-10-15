@@ -104,11 +104,10 @@ describe('Phishing Detection', () => {
         hostname: 'example.com',
       });
 
-      const result: PhishingDetectorResult =
-        await getPhishingTestResultAsync(
-          'example.com',
-          RequestSourceFlow.Browser,
-        );
+      const result: PhishingDetectorResult = await getPhishingTestResultAsync(
+        'example.com',
+        RequestSourceFlow.Browser,
+      );
 
       expect(result).toEqual({
         result: false,
