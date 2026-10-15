@@ -4,6 +4,12 @@ import { fireEvent, render } from '@testing-library/react-native';
 import VipSplashScreenLayout, {
   VIP_SPLASH_SCREEN_TEST_IDS,
 } from './VipSplashScreenLayout';
+import {
+  VIP_GOLD_BORDER_DEFAULT,
+  VIP_GOLD_TEXT_DEFAULT,
+  VIP_GOLD_TEXT_MUTED,
+  VIP_SPLASH_ACCEPT_BUTTON_BACKGROUND,
+} from './Vip.constants';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -37,15 +43,19 @@ jest.mock('@metamask/design-system-react-native', () => {
       children,
       onPress,
       testID,
+      style,
+      textProps,
     }: {
       children?: React.ReactNode;
       onPress?: () => void;
       testID?: string;
+      style?: unknown;
+      textProps?: { style?: unknown };
     }) =>
       ReactActual.createElement(
         Pressable,
-        { testID, onPress, accessibilityRole: 'button' },
-        ReactActual.createElement(RNText, null, children),
+        { testID, onPress, style, accessibilityRole: 'button' },
+        ReactActual.createElement(RNText, { style: textProps?.style }, children),
       ),
   };
 });
@@ -67,6 +77,20 @@ jest.mock('react-native-linear-gradient', () => {
     testID?: string;
   }) {
     return ReactActual.createElement(View, { testID }, children);
+  };
+});
+
+jest.mock('@react-native-masked-view/masked-view', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockMaskedView({
+    children,
+    maskElement,
+  }: {
+    children?: React.ReactNode;
+    maskElement?: React.ReactNode;
+  }) {
+    return ReactActual.createElement(View, null, maskElement, children);
   };
 });
 
@@ -126,6 +150,21 @@ describe('VipSplashScreenLayout', () => {
     expect(getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.FOX)).toBeOnTheScreen();
     expect(getByText('Accept invite')).toBeOnTheScreen();
     expect(getByText('Not now')).toBeOnTheScreen();
+  });
+
+  it('styles both actions in VIP gold', () => {
+    const { getByTestId, getByText } = render(
+      <VipSplashScreenLayout {...defaultProps} />,
+    );
+
+    expect(getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.ACCEPT_BUTTON)).toHaveStyle({
+      backgroundColor: VIP_SPLASH_ACCEPT_BUTTON_BACKGROUND,
+      borderColor: VIP_GOLD_BORDER_DEFAULT,
+    });
+    expect(getByText('Accept invite')).toHaveStyle({
+      color: VIP_GOLD_TEXT_DEFAULT,
+    });
+    expect(getByText('Not now')).toHaveStyle({ color: VIP_GOLD_TEXT_MUTED });
   });
 
   it('invokes the primary and not-now callbacks when pressed', () => {

@@ -1,6 +1,7 @@
 import type { ComponentProps, ReactNode } from 'react';
 import type Animated from 'react-native-reanimated';
 import type {
+  BoxProps,
   ButtonProps,
   TextProps,
 } from '@metamask/design-system-react-native';
@@ -54,9 +55,18 @@ export interface MarketingMomentProps {
     ComponentProps<typeof Animated.View>
   >;
   /**
-   * Product artwork, centered in the flexible region.
+   * Product artwork. It is sized by the flexible box between the copy and the
+   * actions.
    */
   artwork?: ReactNode;
+  /**
+   * Props spread onto the box that sizes `artwork`. Defaults to centered with
+   * horizontal padding; callers override alignment and padding here.
+   * `className` is merged onto the box layout classes.
+   */
+  artworkWrapperProps?: Omit<BoxProps, 'children' | 'twClassName'> & {
+    className?: string;
+  };
   /**
    * Recommended action.
    */
