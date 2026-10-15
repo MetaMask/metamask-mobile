@@ -33,12 +33,17 @@ interface Props {
    * Dashboard carousel tile. Omit for the full-list row used by BenefitsFullView.
    */
   variant?: 'preview';
+  /**
+   * When true the card cannot be pressed. The carousel sets this while the
+   * row is being dragged so a swipe does not open the benefit.
+   */
+  disabled?: boolean;
 }
 
 /**
  * Benefit row for the full list, or a cover-image tile when `variant="preview"`.
  */
-const BenefitCard = ({ benefit, variant }: Props) => {
+const BenefitCard = ({ benefit, variant, disabled }: Props) => {
   const tw = useTailwind();
   const isPreview = variant === 'preview';
   const benefitImageTestId = `${REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}-${benefit.id}`;
@@ -135,6 +140,7 @@ const BenefitCard = ({ benefit, variant }: Props) => {
             })
           : tw.style('bg-section rounded-lg p-4 h-[154px]')
       }
+      disabled={disabled}
       onPress={() =>
         NavigationService.navigation.navigate(Routes.REWARD_BENEFIT_FULL_VIEW, {
           benefit,

@@ -1,5 +1,11 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { View } from 'react-native';
+import { fireEvent, render, within } from '@testing-library/react-native';
+import {
+  Icon,
+  IconName,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 import BenefitsPreview from './BenefitsPreview';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -61,7 +67,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
+  tw.style = jest.fn((...args: unknown[]) =>
+    args.reduce<Record<string, unknown>>((style, arg) => {
+      if (typeof arg === 'object' && arg !== null && !Array.isArray(arg)) {
+        return { ...style, ...(arg as Record<string, unknown>) };
+      }
+      return style;
+    }, {}),
+  );
   return { useTailwind: () => tw };
 });
 
@@ -71,8 +84,11 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { View } = jest.requireActual('react-native');
   return {
     ...actual,
-    Skeleton: () =>
-      ReactActual.createElement(View, { testID: 'benefits-preview-skeleton' }),
+    Skeleton: ({ style }: { style?: object }) =>
+      ReactActual.createElement(View, {
+        testID: 'benefits-preview-skeleton',
+        style,
+      }),
   };
 });
 
@@ -83,10 +99,22 @@ jest.mock('./BenefitCard', () => {
     __esModule: true,
     BENEFIT_PREVIEW_CARD_WIDTH: 210,
     BENEFIT_PREVIEW_CARD_HEIGHT: 248,
-    default: ({ benefit }: { benefit: TestBenefit }) =>
+    default: ({
+      benefit,
+      variant,
+      disabled,
+    }: {
+      benefit: TestBenefit;
+      variant?: 'preview';
+      disabled?: boolean;
+    }) =>
       ReactActual.createElement(
         Text,
-        { testID: `benefit-card-${benefit.id}` },
+        {
+          testID: `benefit-card-${benefit.id}`,
+          variant,
+          disabled,
+        },
         benefit.longTitle,
       ),
   };
@@ -166,6 +194,18 @@ describe('BenefitsPreview', () => {
         getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_SKELETON),
       ).toBeOnTheScreen();
       expect(queryByTestId('benefit-empty-list')).toBeNull();
+    });
+
+    it('renders two peek-sized skeletons while benefits are loading', () => {
+      mockLoading = true;
+
+      const { getAllByTestId } = render(<BenefitsPreview />);
+
+      const skeletons = getAllByTestId('benefits-preview-skeleton');
+
+      expect(skeletons).toHaveLength(2);
+      expect(skeletons[0].props.style).toEqual({ width: 210, height: 248 });
+      expect(skeletons[1].props.style).toEqual({ width: 210, height: 248 });
     });
 
     it('renders skeleton instead of benefit cards when benefits exist but loading is true', () => {
@@ -271,6 +311,65 @@ describe('BenefitsPreview', () => {
       expect(carousel.props.snapToOffsets).toEqual([0, 0]);
     });
 
+    it('clamps every snap offset when three tiles already fit', () => {
+      mockBenefits = [
+        { id: 1, longTitle: 'B1', shortDescription: 'a' },
+        { id: 2, longTitle: 'B2', shortDescription: 'b' },
+        { id: 3, longTitle: 'B3', shortDescription: 'c' },
+      ];
+      // Three 210pt tiles, two 12pt gaps and 32pt of padding are 686pt wide,
+      // so an 844pt viewport has nowhere to scroll.
+      mockWindowWidth = 844;
+
+      const { getByTestId } = render(<BenefitsPreview />);
+
+      const carousel = getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS);
+
+      expect(carousel.props.snapToOffsets).toEqual([0, 0, 0]);
+    });
+
+    it('clamps the middle snap offset to the end of the content', () => {
+      mockBenefits = [
+        { id: 1, longTitle: 'B1', shortDescription: 'a' },
+        { id: 2, longTitle: 'B2', shortDescription: 'b' },
+        { id: 3, longTitle: 'B3', shortDescription: 'c' },
+      ];
+      // The middle pitch is 222, but a 500pt viewport can only scroll 186
+      // before the row ends.
+      mockWindowWidth = 500;
+
+      const { getByTestId } = render(<BenefitsPreview />);
+
+      const carousel = getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS);
+
+      expect(carousel.props.snapToOffsets).toEqual([0, 186, 186]);
+    });
+
+    it('renders each carousel card as the preview variant', () => {
+      const { getByTestId } = render(<BenefitsPreview />);
+
+      expect(getByTestId('benefit-card-1').props.variant).toBe('preview');
+      expect(getByTestId('benefit-card-2').props.variant).toBe('preview');
+    });
+
+    it('disables benefit cards while the carousel is dragged', () => {
+      const { getByTestId } = render(<BenefitsPreview />);
+      const carousel = getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS);
+
+      expect(getByTestId('benefit-card-1').props.disabled).toBe(false);
+      expect(getByTestId('benefit-card-2').props.disabled).toBe(false);
+
+      fireEvent(carousel, 'scrollBeginDrag');
+
+      expect(getByTestId('benefit-card-1').props.disabled).toBe(true);
+      expect(getByTestId('benefit-card-2').props.disabled).toBe(true);
+
+      fireEvent(carousel, 'scrollEndDrag');
+
+      expect(getByTestId('benefit-card-1').props.disabled).toBe(false);
+      expect(getByTestId('benefit-card-2').props.disabled).toBe(false);
+    });
+
     it('limits preview to the first three benefits', () => {
       mockBenefits = [
         { id: 1, longTitle: 'B1', shortDescription: 'a' },
@@ -308,6 +407,35 @@ describe('BenefitsPreview', () => {
           count: '2',
         },
       );
+    });
+
+    it('places the benefits count in the header end accessory', () => {
+      const { UNSAFE_getByType } = render(<BenefitsPreview />);
+      const header = UNSAFE_getByType(SectionHeader);
+
+      const slots = render(
+        <>
+          <View testID="benefits-title-accessory">
+            {header.props.titleAccessory}
+          </View>
+          <View testID="benefits-end-accessory">
+            {header.props.endAccessory}
+          </View>
+        </>,
+      );
+
+      expect(
+        within(slots.getByTestId('benefits-end-accessory')).getByText(
+          '2 available',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(slots.getByTestId('benefits-title-accessory')).queryByText(
+          '2 available',
+        ),
+      ).toBeNull();
+      expect(header.props.titleAccessory.type).toBe(Icon);
+      expect(header.props.titleAccessory.props.name).toBe(IconName.ArrowRight);
     });
 
     it('caps displayed benefits count at 99+ in the header tag', () => {

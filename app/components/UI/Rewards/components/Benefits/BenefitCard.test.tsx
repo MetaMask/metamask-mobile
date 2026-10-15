@@ -124,6 +124,20 @@ describe('BenefitCard', () => {
       ).toBe(3);
     });
 
+    it('keeps the list-row style when variant is omitted', () => {
+      const benefit = createBenefit();
+
+      render(<BenefitCard benefit={benefit} />);
+
+      const { useTailwind } = jest.requireMock(
+        '@metamask/design-system-twrnc-preset',
+      );
+
+      expect(useTailwind().style).toHaveBeenCalledWith(
+        'bg-section rounded-lg p-4 h-[154px]',
+      );
+    });
+
     it('renders benefit image with expected source and format sizing', () => {
       const benefit = createBenefit({
         id: 123,
@@ -238,6 +252,16 @@ describe('BenefitCard', () => {
 
       const touchable = UNSAFE_getByType(TouchableOpacity);
       expect(touchable.props.activeOpacity).toBe(0.7);
+    });
+
+    it('disables the touchable when disabled is set', () => {
+      const benefit = createBenefit();
+
+      const { UNSAFE_getByType } = render(
+        <BenefitCard benefit={benefit} disabled />,
+      );
+
+      expect(UNSAFE_getByType(TouchableOpacity).props.disabled).toBe(true);
     });
 
     it('keeps navigation payload shape stable', () => {

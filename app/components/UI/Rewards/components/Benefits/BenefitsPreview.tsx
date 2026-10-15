@@ -14,7 +14,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, useWindowDimensions } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
@@ -74,6 +74,13 @@ const BenefitsPreview = () => {
     );
   }, [topBenefits.length, screenWidth]);
 
+  // Disable presses only while the user is actively dragging the carousel.
+  // Momentum is left out on purpose: a tap during deceleration still
+  // registers and stops the scroll. Same approach as EarnRewardsPreview.
+  const [isDragging, setIsDragging] = useState(false);
+  const handleScrollBeginDrag = useCallback(() => setIsDragging(true), []);
+  const handleScrollEndDrag = useCallback(() => setIsDragging(false), []);
+
   const benefitsCountLabel =
     benefits.length > 99 ? '99+' : String(benefits.length);
 
@@ -123,11 +130,18 @@ const BenefitsPreview = () => {
       showsHorizontalScrollIndicator={false}
       decelerationRate="fast"
       snapToOffsets={snapOffsets}
+      onScrollBeginDrag={handleScrollBeginDrag}
+      onScrollEndDrag={handleScrollEndDrag}
       contentContainerStyle={tw.style('gap-3 px-4')}
       testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS}
     >
       {topBenefits.map((benefit) => (
-        <BenefitCard key={benefit.id} benefit={benefit} variant="preview" />
+        <BenefitCard
+          key={benefit.id}
+          benefit={benefit}
+          variant="preview"
+          disabled={isDragging}
+        />
       ))}
     </ScrollView>
   ) : (
