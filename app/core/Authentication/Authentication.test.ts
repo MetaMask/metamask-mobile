@@ -6864,6 +6864,24 @@ describe('Authentication', () => {
       expect(unlockWalletSpy).not.toHaveBeenCalled();
     });
 
+    it('resets to the rehydrate screen without unlocking when resume finds an outdated seedless password', async () => {
+      checkIsSeedlessPasswordOutdatedSpy.mockResolvedValue(true);
+
+      await Authentication.tryBiometricUnlock({
+        navigationBehavior: 'preserve',
+      });
+
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [
+          {
+            name: Routes.ONBOARDING.REHYDRATE,
+            params: { isSeedlessPasswordOutdated: true },
+          },
+        ],
+      });
+      expect(unlockWalletSpy).not.toHaveBeenCalled();
+    });
+
     it('rejects with the unlock error when unlockWallet fails', async () => {
       const error = new Error('biometric cancelled');
       unlockWalletSpy.mockRejectedValue(error);
