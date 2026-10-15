@@ -22,6 +22,7 @@ import {
   type ScrollView,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
+import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Logger from '../../../../util/Logger';
 import { playSelection } from '../../../../util/haptics';
@@ -58,6 +59,9 @@ import type {
   SocialV1FeedItem,
   SocialV1FeedPost,
 } from '../../../UI/SocialFeed/types';
+import { DEFAULT_FILTERS } from './filters/filterDefaults';
+import { filterSocialV1FeedPosts } from './filters/filterSocialV1FeedPosts';
+import type { SocialShellFilters } from './filters/types';
 import type {
   SocialV1FeedTab,
   SocialV1HotToken,
@@ -101,6 +105,7 @@ export interface EmptyShellTabPageProps {
   scrollTestID: string;
   onOpenFilters?: () => void;
   isFilterActive?: boolean;
+  appliedFilters?: SocialShellFilters;
   /**
    * Requests the spot QuickBuy sheet for a copy-traded post. The sheet is
    * hosted by the parent view, outside the pager — see `SocialV1View`.
@@ -121,6 +126,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   scrollTestID,
   onOpenFilters,
   isFilterActive = false,
+  appliedFilters = DEFAULT_FILTERS,
   onQuickBuy,
 }) => {
   const tw = useTailwind();
@@ -150,6 +156,13 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           }),
       ),
     [isEntryHidden, posts],
+  );
+  const shellFilteredPosts = useMemo(
+    () =>
+      tab === 'following'
+        ? filterSocialV1FeedPosts(visiblePosts, appliedFilters)
+        : visiblePosts,
+    [appliedFilters, tab, visiblePosts],
   );
 
   const { colors } = useTheme();
@@ -181,9 +194,9 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   const filteredPosts = useMemo(() => {
     if (!selectedToken) {
-      return visiblePosts;
+      return shellFilteredPosts;
     }
-    const sourcePosts = showingAssetFeed ? assetFeed.posts : visiblePosts;
+    const sourcePosts = showingAssetFeed ? assetFeed.posts : shellFilteredPosts;
     return sourcePosts.filter((post) => {
       if (
         isEntryHidden({
@@ -204,7 +217,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     isEntryHidden,
     selectedToken,
     showingAssetFeed,
-    visiblePosts,
+    shellFilteredPosts,
   ]);
 
   const handleHotTokenPress = useCallback((token: SocialV1HotToken) => {
@@ -397,6 +410,25 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     [myProfile, navigation],
   );
 
+  const handlePositionPress = useCallback(
+    (post: SocialV1FeedPost) => {
+      if (!post.position) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
+        positionId: post.position.positionId,
+        position: post.position,
+        author: post.item.author,
+        comment: post.item.comment,
+        isClosed:
+          post.item.variant === 'perpsClosed' ||
+          post.item.variant === 'spotClosed',
+      });
+    },
+    [navigation],
+  );
+
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
       <SocialFeedPostEntrance animate={!seenPostIds.has(post.id)}>
@@ -404,10 +436,11 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           post={post}
           onCopyTrade={handleCopyTrade}
           onAuthorPress={handleAuthorPress}
+          onPositionPress={post.position ? handlePositionPress : undefined}
         />
       </SocialFeedPostEntrance>
     ),
-    [handleAuthorPress, handleCopyTrade, seenPostIds],
+    [handleAuthorPress, handleCopyTrade, handlePositionPress, seenPostIds],
   );
 
   const showInitialFeedSkeletons = visibleAssetFeed

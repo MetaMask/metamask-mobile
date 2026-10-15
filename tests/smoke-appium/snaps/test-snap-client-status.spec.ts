@@ -10,7 +10,8 @@ import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 // (the client must be unlocked to interact with the Snap).
 appiumTest.describe(SmokeSnaps('Client Status Snap Tests'), () => {
   // Serial: later cases reuse the installed Snap / Appium session from the connect test.
-  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
+  // Android install allows 60s per sheet. Login plus three sheets exceeds 150s.
+  appiumTest.describe.configure({ mode: 'serial', timeout: 240_000 });
 
   appiumTest(
     'connects to the Client Status Snap',

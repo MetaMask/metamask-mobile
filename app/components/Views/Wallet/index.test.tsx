@@ -140,6 +140,16 @@ jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
   }),
 }));
 
+let mockIsGlassEnabled = false;
+jest.mock('../../../component-library/hooks/useLiquidGlass', () => ({
+  useLiquidGlass: () => ({
+    isGlassEnabled: mockIsGlassEnabled,
+    glassColorScheme: 'dark',
+    isBlurEnabled: false,
+    blurTint: 'systemChromeMaterialDark',
+  }),
+}));
+
 const mockUseWalletHeaderNativeHeader = jest.fn(() => false);
 jest.mock('./components/WalletHeader/useWalletHeaderNativeHeader', () => ({
   ...jest.requireActual(
@@ -165,18 +175,11 @@ jest.mock('../../../hooks', () => ({
       };
     }
 
-    if (flagKey === 'homeTMCU1209AbtestHomepageBalanceBreakdown') {
+    if (flagKey === 'homeTMCU1209AbtestHomepageBalanceBreakdownV2') {
       return {
         variantName: mockBalanceBreakdownVariantName,
         variant: {
-          layout:
-            mockBalanceBreakdownVariantName === 'icons' ||
-            mockBalanceBreakdownVariantName === 'iconsWithArrows'
-              ? 'icons'
-              : mockBalanceBreakdownVariantName === 'allocation'
-                ? 'allocation'
-                : null,
-          showRowArrows: mockBalanceBreakdownVariantName === 'iconsWithArrows',
+          showBalanceBreakdown: mockBalanceBreakdownVariantName === 'treatment',
         },
         isActive: mockBalanceBreakdownVariantName !== 'unresolved',
       };
@@ -294,11 +297,37 @@ jest.mock('../Homepage', () => {
   );
   return {
     __esModule: true,
-    default: React.forwardRef((props: unknown, _ref: unknown) => {
-      mockHomepage(props);
-      capturedContext = React.useContext(HomepageCtx);
-      return null;
-    }),
+    default: React.forwardRef(
+      (
+        props: {
+          balanceBreakdownSectionProps?: {
+            accountGroupBalanceProps?: object;
+            children?: React.ReactNode;
+            hideRows?: boolean;
+          };
+        },
+        _ref: unknown,
+      ) => {
+        mockHomepage(props);
+        capturedContext = React.useContext(HomepageCtx);
+        const balanceBreakdownProps = props.balanceBreakdownSectionProps;
+        const AccountGroupBalance = jest.requireMock(
+          '../../UI/Assets/components/Balance/AccountGroupBalance',
+        ).default;
+
+        return React.createElement(
+          React.Fragment,
+          null,
+          balanceBreakdownProps?.hideRows
+            ? React.createElement(
+                AccountGroupBalance,
+                balanceBreakdownProps.accountGroupBalanceProps,
+              )
+            : null,
+          balanceBreakdownProps?.children,
+        );
+      },
+    ),
   };
 });
 
@@ -364,6 +393,7 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 import { selectInterimHeaderNavBarEnabled } from '../../../selectors/featureFlagController/interimHeaderNavBar';
+import { selectHomeBrandRefreshSurfacesEnabled } from '../../../selectors/featureFlagController/homeBrandRefreshSurfaces';
 import { TabsListProps } from '../../../component-library/components-temp/Tabs';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
@@ -382,6 +412,7 @@ const getAssetDetailsActionsProps = () => {
     goToSwaps: () => void;
     displayBuyButton: boolean;
     displaySwapsButton: boolean;
+    isGlass?: boolean;
     buyButtonActionID: string;
     swapButtonActionID: string;
     sendButtonActionID: string;
@@ -1918,7 +1949,7 @@ describe('MoneyBalanceCard slot', () => {
     mockBalanceBreakdownVariantName = 'unresolved';
   });
 
-  it('renders the MoneyBalanceCard when Money is enabled', () => {
+  it('shows the standalone MoneyBalanceCard when breakdown is disabled', () => {
     mockMoneyAccountEnabled = true;
     mockMoneyAccountVisible = true;
 
@@ -1927,7 +1958,7 @@ describe('MoneyBalanceCard slot', () => {
     expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
   });
 
-  it('mounts the MoneyBalanceCard when Money is enabled but geo-ineligible', () => {
+  it('shows the standalone MoneyBalanceCard when breakdown is disabled and Money is geo-ineligible', () => {
     mockMoneyAccountEnabled = true;
     mockMoneyAccountVisible = false;
 
@@ -1939,14 +1970,14 @@ describe('MoneyBalanceCard slot', () => {
   it('suppresses the standalone MoneyBalanceCard in breakdown treatment', () => {
     mockMoneyAccountEnabled = true;
     mockMoneyAccountVisible = true;
-    mockBalanceBreakdownVariantName = 'icons';
+    mockBalanceBreakdownVariantName = 'treatment';
 
     const { queryByTestId } = render(Wallet);
 
     expect(mockHomepage).toHaveBeenCalledWith(
       expect.objectContaining({
         balanceBreakdownSectionProps: expect.objectContaining({
-          layout: 'icons',
+          hideRows: false,
         }),
       }),
     );
@@ -1957,6 +1988,7 @@ describe('MoneyBalanceCard slot', () => {
 describe('Header and Nav Bar refresh AB test', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsGlassEnabled = false;
     mockUseWalletHeaderNativeHeader.mockReturnValue(false);
     mockMoneyAccountEnabled = true;
     mockMoneyAccountVisible = true;
@@ -2012,7 +2044,7 @@ describe('Header and Nav Bar refresh AB test', () => {
 
   it('renders the account name when the balance breakdown treatment is also active', () => {
     mockHeaderNavBarVariantName = 'searchFocused';
-    mockBalanceBreakdownVariantName = 'icons';
+    mockBalanceBreakdownVariantName = 'treatment';
 
     const { getByTestId } = render(Wallet);
 
@@ -2029,6 +2061,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
     ).toBeOnTheScreen();
+    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
     expect(
       getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
     ).toBeOnTheScreen();
@@ -2038,7 +2071,6 @@ describe('Header and Nav Bar refresh AB test', () => {
       WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON,
       WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
       WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON,
-      WalletViewSelectorsIDs.ACCOUNT_ICON,
     ]) {
       expect(queryByTestId(removed)).not.toBeOnTheScreen();
     }
@@ -2068,6 +2100,44 @@ describe('Header and Nav Bar refresh AB test', () => {
     ]) {
       expect(queryByTestId(removed)).not.toBeOnTheScreen();
     }
+  });
+
+  it.each([
+    [false, false, false],
+    [true, false, false],
+    [false, true, false],
+    [true, true, true],
+  ])(
+    'with the surfaces flag %s and glass available %s, glass buttons are %s',
+    (isSurfacesFlagOn, isGlassAvailable, expected) => {
+      mockIsGlassEnabled = isGlassAvailable;
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) =>
+          callback === selectHomeBrandRefreshSurfacesEnabled
+            ? isSurfacesFlagOn
+            : callback(mockInitialState),
+        );
+
+      render(Wallet);
+
+      expect(getAssetDetailsActionsProps().isGlass).toBe(expected);
+    },
+  );
+
+  it('keeps the surfaces opaque when only the interim flag is on', () => {
+    mockIsGlassEnabled = true;
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback === selectInterimHeaderNavBarEnabled
+          ? true
+          : callback(mockInitialState),
+      );
+
+    render(Wallet);
+
+    expect(getAssetDetailsActionsProps().isGlass).toBe(false);
   });
 
   it('hands the header to the native bar on iOS 26 when the interim flag is on', () => {
@@ -2159,6 +2229,30 @@ describe('Header and Nav Bar refresh AB test', () => {
         ),
       ).toEqual(expect.objectContaining({ paddingTop: 0 }));
     });
+
+    it('insets the balance from the floating header capsule', () => {
+      const { getByTestId } = render(Wallet);
+
+      expect(
+        StyleSheet.flatten(
+          getByTestId(WalletViewSelectorsIDs.WALLET_PORTFOLIO_HEADER_CLUSTER)
+            .props.style,
+        ),
+      ).toEqual(expect.objectContaining({ paddingTop: 14 }));
+    });
+
+    it('leaves the balance inset to the native bar when it owns the header', () => {
+      mockUseWalletHeaderNativeHeader.mockReturnValue(true);
+
+      const { getByTestId } = render(Wallet);
+
+      expect(
+        StyleSheet.flatten(
+          getByTestId(WalletViewSelectorsIDs.WALLET_PORTFOLIO_HEADER_CLUSTER)
+            .props.style,
+        ).paddingTop,
+      ).toBe(0);
+    });
   });
 
   const renderWithNavigationProp = () => {
@@ -2210,7 +2304,7 @@ describe('Header and Nav Bar refresh AB test', () => {
   });
 });
 
-describe('Homepage balance breakdown ABC test', () => {
+describe('Homepage balance breakdown A/B test', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockBalanceBreakdownVariantName = 'unresolved';
@@ -2225,7 +2319,9 @@ describe('Homepage balance breakdown ABC test', () => {
     mockBalanceBreakdownVariantName = 'unresolved';
   });
 
-  it('does not mount the aggregation UI while assignment is unresolved', () => {
+  it('does not enable the balance breakdown for the control variant', () => {
+    mockBalanceBreakdownVariantName = 'control';
+
     render(Wallet);
 
     expect(mockHomepage).toHaveBeenCalledWith(
@@ -2235,69 +2331,31 @@ describe('Homepage balance breakdown ABC test', () => {
     );
   });
 
-  it('keeps the current homepage for the control assignment', () => {
-    mockBalanceBreakdownVariantName = 'control';
+  it('mounts the single balance breakdown design for treatment', () => {
+    mockBalanceBreakdownVariantName = 'treatment';
 
-    const { queryByTestId } = render(Wallet);
+    render(Wallet);
 
     expect(mockHomepage).toHaveBeenCalledWith(
       expect.objectContaining({
-        balanceBreakdownSectionProps: undefined,
+        balanceBreakdownSectionProps: expect.objectContaining({
+          children: expect.anything(),
+          hideRows: false,
+          transactionActiveAbTests: [
+            {
+              key: 'homeTMCU1209AbtestHomepageBalanceBreakdownV2',
+              value: 'treatment',
+              key_value_pair:
+                'homeTMCU1209AbtestHomepageBalanceBreakdownV2=treatment',
+            },
+          ],
+        }),
       }),
     );
-    expect(
-      queryByTestId(WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTENT),
-    ).not.toBeOnTheScreen();
   });
-
-  it('renders control banner spacing when the network banner is visible', () => {
-    mockBalanceBreakdownVariantName = 'control';
-    mockNetworkConnectionBannerVisible = true;
-
-    const { getByTestId } = render(Wallet);
-
-    expect(
-      getByTestId(WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTENT),
-    ).toBeOnTheScreen();
-  });
-
-  it.each([
-    { variantName: 'icons', layout: 'icons', showRowArrows: false },
-    {
-      variantName: 'iconsWithArrows',
-      layout: 'icons',
-      showRowArrows: true,
-    },
-    { variantName: 'allocation', layout: 'allocation', showRowArrows: false },
-  ] as const)(
-    'maps $variantName assignment to the $layout layout',
-    ({ variantName, layout, showRowArrows }) => {
-      mockBalanceBreakdownVariantName = variantName;
-
-      render(Wallet);
-
-      expect(mockHomepage).toHaveBeenCalledWith(
-        expect.objectContaining({
-          balanceBreakdownSectionProps: expect.objectContaining({
-            children: expect.anything(),
-            hideRows: false,
-            layout,
-            showRowArrows,
-            transactionActiveAbTests: [
-              {
-                key: 'homeTMCU1209AbtestHomepageBalanceBreakdown',
-                value: variantName,
-                key_value_pair: `homeTMCU1209AbtestHomepageBalanceBreakdown=${variantName}`,
-              },
-            ],
-          }),
-        }),
-      );
-    },
-  );
 
   it('does not reserve banner spacing when treatment banners are hidden', () => {
-    mockBalanceBreakdownVariantName = 'icons';
+    mockBalanceBreakdownVariantName = 'treatment';
 
     const { queryByTestId } = render(Wallet);
 
@@ -2310,7 +2368,7 @@ describe('Homepage balance breakdown ABC test', () => {
   });
 
   it('keeps treatment banner spacing when the network banner is visible', () => {
-    mockBalanceBreakdownVariantName = 'icons';
+    mockBalanceBreakdownVariantName = 'treatment';
     mockNetworkConnectionBannerVisible = true;
 
     const { getByTestId } = render(Wallet);
@@ -2320,8 +2378,8 @@ describe('Homepage balance breakdown ABC test', () => {
     ).toHaveStyle({ paddingBottom: 16 });
   });
 
-  it('hides treatment rows during wallet-home post-onboarding', () => {
-    mockBalanceBreakdownVariantName = 'icons';
+  it('hides breakdown rows during wallet-home post-onboarding', () => {
+    mockBalanceBreakdownVariantName = 'treatment';
     const state = mockStateWalletHomePostOnboardingActive;
     jest.mocked(useSelector).mockImplementation((callback) => callback(state));
 
@@ -2332,7 +2390,6 @@ describe('Homepage balance breakdown ABC test', () => {
         balanceBreakdownSectionProps: expect.objectContaining({
           children: null,
           hideRows: true,
-          layout: 'icons',
         }),
       }),
     );

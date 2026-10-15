@@ -3,11 +3,13 @@ import {
   DEFAULT_CLOB_BASE_URL,
   HASH_ZERO_BYTES32,
   MATIC_CONTRACTS_V2,
+  MATIC_POSITIONS_PROTOCOL_CONTRACTS,
   NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS,
   USDC_E_ADDRESS,
 } from '../constants';
 import Logger from '../../../../../../util/Logger';
 import {
+  POLYMARKET_POSITIONS_PROTOCOL,
   POLYMARKET_V2_PROTOCOL,
   getClobV2BuilderCode,
   getProtocolDepositTokenAddress,
@@ -36,7 +38,7 @@ describe('polymarket protocol definitions', () => {
     process.env.MM_PREDICT_BUILDER_CODE = originalBuilderCode;
   });
 
-  it('defines CLOB v2 as the only protocol', () => {
+  it('defines the CTF protocol as the CLOB v2 path', () => {
     expect(POLYMARKET_V2_PROTOCOL).toEqual(
       expect.objectContaining({
         key: 'v2',
@@ -50,6 +52,33 @@ describe('polymarket protocol definitions', () => {
           withdrawMode: 'pusd-transfer',
         },
       }),
+    );
+  });
+
+  it('defines the positions protocol for Protocol V2 markets', () => {
+    expect(POLYMARKET_POSITIONS_PROTOCOL).toEqual(
+      expect.objectContaining({
+        key: 'positions',
+        contracts: MATIC_POSITIONS_PROTOCOL_CONTRACTS,
+        order: expect.objectContaining({
+          domainVersion: '3',
+          metadata: HASH_ZERO_BYTES32,
+          getBuilderCode: getClobV2BuilderCode,
+        }),
+        transport: {
+          clobBaseUrl: DEFAULT_CLOB_BASE_URL,
+          clobVersionHeader: '2',
+        },
+      }),
+    );
+  });
+
+  it('settles positions orders on ExchangeV3 for standard and negRisk markets', () => {
+    expect(MATIC_POSITIONS_PROTOCOL_CONTRACTS.exchange).toBe(
+      '0xe3333700cA9d93003F00f0F71f8515005F6c00Aa',
+    );
+    expect(MATIC_POSITIONS_PROTOCOL_CONTRACTS.negRiskExchange).toBe(
+      MATIC_POSITIONS_PROTOCOL_CONTRACTS.exchange,
     );
   });
 

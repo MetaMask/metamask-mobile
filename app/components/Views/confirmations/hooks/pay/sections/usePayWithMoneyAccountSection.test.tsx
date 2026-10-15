@@ -1,3 +1,5 @@
+import React from 'react';
+import { render } from '@testing-library/react-native';
 import { renderHook, act } from '@testing-library/react-hooks';
 import BigNumber from 'bignumber.js';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -6,7 +8,10 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../../../../core/Engine';
 import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
-import { selectMetaMaskPayFlags } from '../../../../../../selectors/featureFlagController/confirmations';
+import {
+  selectMetaMaskPayFlags,
+  selectPerpsMoneyAccountNoFeeRouteEnabled,
+} from '../../../../../../selectors/featureFlagController/confirmations';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import {
@@ -411,6 +416,77 @@ describe('usePayWithMoneyAccountSection', () => {
     rerender();
 
     expect(result.current).toBe(firstResult);
+  });
+
+  describe('perps deposit no-fee tag', () => {
+    function mockNoFeeRoute(enabled: boolean) {
+      useSelectorMock.mockImplementation((selector) => {
+        if (selector === selectPrimaryMoneyAccount) {
+          return moneyAccountMock;
+        }
+        if (selector === selectMetaMaskPayFlags) {
+          return {
+            enableMoneyAccountTransactions: {
+              perpsDeposit: true,
+              perpsDepositAndOrder: true,
+              perpsWithdraw: true,
+              predictDeposit: true,
+            },
+          };
+        }
+        if (selector === selectPerpsMoneyAccountNoFeeRouteEnabled) {
+          return enabled;
+        }
+        return undefined;
+      });
+    }
+
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.perpsDepositAndOrder,
+    ])(
+      'renders the no-fee tag on the money account row for %s when the fixed-spread route is listed',
+      (txType) => {
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: 'tx-1',
+          type: txType,
+          txParams: {},
+        } as never);
+        mockNoFeeRoute(true);
+
+        const { result } = renderHook(() => usePayWithMoneyAccountSection());
+        const tag = result.current?.rows[0].tagRenderers?.[0]?.();
+        const { getByTestId } = render(<>{tag}</>);
+
+        expect(
+          getByTestId(`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-no-fee-tag`),
+        ).toBeOnTheScreen();
+      },
+    );
+
+    it('omits the no-fee tag when the fixed-spread route is absent', () => {
+      mockNoFeeRoute(false);
+
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      expect(result.current?.rows[0].tagRenderers).toBeUndefined();
+    });
+
+    it.each([TransactionType.predictDeposit, TransactionType.perpsWithdraw])(
+      'omits the no-fee tag for %s even when the fixed-spread route is listed',
+      (txType) => {
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: 'tx-1',
+          type: txType,
+          txParams: {},
+        } as never);
+        mockNoFeeRoute(true);
+
+        const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+        expect(result.current?.rows[0].tagRenderers).toBeUndefined();
+      },
+    );
   });
 
   describe('handlePress', () => {

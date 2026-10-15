@@ -19,16 +19,21 @@ import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
 
 const Stack = createNativeStackNavigator<VbaIdentityVerificationParamList>();
 
+type IdentityVerificationNavigation =
+  NativeStackNavigationProp<VbaIdentityVerificationParamList>;
+
+export const replaceProviderTermsWithProvider = (
+  navigation: IdentityVerificationNavigation,
+): void => {
+  navigation.replace(VbaIdentityVerificationRoutes.PROVIDER, {
+    initialNeedsMoreInfo: false,
+  });
+};
+
 const ProviderTermsStep = () => {
-  const navigation =
-    useNavigation<
-      NativeStackNavigationProp<VbaIdentityVerificationParamList>
-    >();
+  const navigation = useNavigation<IdentityVerificationNavigation>();
   const handleSuccess = useCallback(
-    () =>
-      navigation.navigate(VbaIdentityVerificationRoutes.PROVIDER, {
-        initialNeedsMoreInfo: false,
-      }),
+    () => replaceProviderTermsWithProvider(navigation),
     [navigation],
   );
 

@@ -74,6 +74,9 @@ const MAX_INPUT_DIGITS = 9;
 export type PredictOrderFlowIntent =
   | {
       action: 'buy';
+      /** Canonical identity of the Event the Order sheet was opened from:
+       * every buy entry point renders within one Event. */
+      eventId: PredictEntityId;
       venueId: PredictVenueId;
       marketId: PredictEntityId;
       side: PredictOutcomeSide;
@@ -84,6 +87,9 @@ export type PredictOrderFlowIntent =
     }
   | {
       action: 'sell';
+      /** Canonical identity of the Position's Event, when the Position's
+       * catalog context is available. */
+      eventId?: PredictEntityId;
       venueId: PredictVenueId;
       marketId: PredictEntityId;
       side: PredictOutcomeSide;

@@ -15,7 +15,7 @@ export interface MoneyMetaMaskCardModeInput {
   hasMoneyAccountBaseRequirements: boolean;
   hasMoneyAccountRequirements: boolean;
   isCardStateResolved: boolean;
-  isMoneyAccountLinkingSupported: boolean;
+  isMoneyCardSectionAvailable?: boolean;
 }
 
 export const deriveMoneyMetaMaskCardMode = ({
@@ -28,9 +28,9 @@ export const deriveMoneyMetaMaskCardMode = ({
   hasMoneyAccountBaseRequirements,
   hasMoneyAccountRequirements,
   isCardStateResolved,
-  isMoneyAccountLinkingSupported = true,
+  isMoneyCardSectionAvailable = true,
 }: MoneyMetaMaskCardModeInput): MoneyMetaMaskCardMode | null => {
-  if (!isMoneyAccountLinkingSupported) {
+  if (!isMoneyCardSectionAvailable) {
     return null;
   }
 

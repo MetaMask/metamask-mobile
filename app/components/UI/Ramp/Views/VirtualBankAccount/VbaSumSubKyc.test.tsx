@@ -3,6 +3,7 @@ import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaSumSubKyc, { VbaSumSubKycSelectorsIDs } from './VbaSumSubKyc';
 import Engine from '../../../../../core/Engine';
+import Routes from '../../../../../constants/navigation/Routes';
 import type { KycProviderFlowStatus } from '@metamask/kyc-controller';
 const mockOnSubmitted = jest.fn();
 const mockGoBack = jest.fn();
@@ -112,13 +113,15 @@ describe('VbaSumSubKyc', () => {
   });
 
   it('shows more information needed on resume without launching SumSub', () => {
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, getByText } = renderWithProvider(
       <VbaSumSubKyc onSubmitted={mockOnSubmitted} initialNeedsMoreInfo />,
     );
 
     expect(
       getByTestId(VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED),
     ).toBeOnTheScreen();
+    expect(getByText('Proof of address')).toBeOnTheScreen();
+    expect(getByText('Need help verifying?')).toBeOnTheScreen();
     expect(mockKycController.launchProviderFlow).not.toHaveBeenCalled();
   });
 
@@ -179,6 +182,36 @@ describe('VbaSumSubKyc', () => {
     });
 
     expect(mockOnSubmitted).not.toHaveBeenCalled();
+  });
+
+  it('returns to the caller from a resumed need-info screen', () => {
+    const { getByTestId } = renderWithProvider(
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} initialNeedsMoreInfo />,
+    );
+
+    fireEvent.press(getByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockParentGoBack).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('returns to Money home when a resumed need-info screen has nothing to pop', () => {
+    mockCanGoBack.mockReturnValue(false);
+    mockParentCanGoBack.mockReturnValue(false);
+
+    const { getByTestId } = renderWithProvider(
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} initialNeedsMoreInfo />,
+    );
+
+    fireEvent.press(getByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON));
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockParentGoBack).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
   });
 
   it('leaves the more-info screen from the header', async () => {
