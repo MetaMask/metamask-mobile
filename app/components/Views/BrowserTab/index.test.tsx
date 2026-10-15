@@ -14,7 +14,10 @@ import {
 import { handleWebShare } from '../../../util/browser/handleWebShare';
 import { handleWebDownload } from '../../../util/browser/handleWebDownload';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
-import { PhishingDetectorResultType } from '@metamask/phishing-controller';
+import {
+  PhishingDetectorResultType,
+  RequestSourceFlow,
+} from '@metamask/phishing-controller';
 import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
 
 const mockInjectJavaScript = jest.fn();
@@ -497,7 +500,10 @@ describe('BrowserTab', () => {
       });
 
       // The full URL (with path) must be forwarded to the scanner, not the origin.
-      expect(getPhishingTestResultAsync).toHaveBeenCalledWith(fullUrl);
+      expect(getPhishingTestResultAsync).toHaveBeenCalledWith(
+        fullUrl,
+        RequestSourceFlow.Browser,
+      );
       expect(getPhishingTestResultAsync).not.toHaveBeenCalledWith(
         'https://shared-host.example',
       );
