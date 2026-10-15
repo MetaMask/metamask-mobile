@@ -110,9 +110,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/polling-controller',
   '@metamask/preferences-controller',
   '@metamask/profile-metrics-controller',
-  '@metamask/profile-sync-controller',
-  // Portaled from the core monorepo (ESM-only dist).
   '@metamask/profile-controller',
+  '@metamask/profile-sync-controller',
   '@metamask/ramps-controller',
   '@metamask/sentinel-api-service',
   '@metamask/seedless-onboarding-controller',
