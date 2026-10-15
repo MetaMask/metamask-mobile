@@ -30,6 +30,7 @@ import { SwapsLimitOrderActivityPageSelectorsIDs } from './SwapsLimitOrderActivi
 
 const {
   SCREEN,
+  AMOUNT_DIVIDER,
   BACK_BUTTON,
   STATUS_ROW,
   DATE_CREATED_ROW,
@@ -416,6 +417,12 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
         await openActivityPage(order);
 
       expect(getByText(title)).toBeOnTheScreen();
+      // The details frame already separates sections by 8px, so this 8px
+      // margin leaves 16px above and below the divider.
+      expect(getByTestId(AMOUNT_DIVIDER)).toHaveStyle({
+        marginTop: 8,
+        marginBottom: 8,
+      });
       expect(
         within(getByTestId(STATUS_ROW)).getByText(status),
       ).toBeOnTheScreen();
