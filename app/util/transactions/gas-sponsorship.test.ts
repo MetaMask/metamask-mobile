@@ -50,6 +50,24 @@ describe('isGasFeeSponsored', () => {
     );
   });
 
+  it('returns false for Transaction Pay legs of Money Account withdrawals that do not force sponsorship', async () => {
+    expect(
+      await runIsGasFeeSponsored({
+        forceIsGasFeeSponsored: undefined,
+        type: TransactionType.moneyAccountWithdraw,
+      }),
+    ).toBe(false);
+  });
+
+  it('returns false when a failed gas fee token refresh left sponsorship availability unknown', async () => {
+    expect(
+      await runIsGasFeeSponsored({
+        forceIsGasFeeSponsored: undefined,
+        isGasFeeSponsoredAvailable: undefined,
+      }),
+    ).toBe(false);
+  });
+
   it('ignores the published sponsorship record', async () => {
     expect(
       await runIsGasFeeSponsored({

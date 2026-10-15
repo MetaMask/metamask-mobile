@@ -320,6 +320,38 @@ describe('getTransactionControllerHooks', () => {
       ).resolves.toStrictEqual({ shouldSign: true });
     });
 
+    it('signs locally for Transaction Pay legs of Money Account withdrawals that do not force sponsorship', async () => {
+      enableDelegationRoute();
+      const hooks = getTransactionControllerHooks(buildRequest());
+
+      await expect(
+        hooks.shouldSign?.({
+          transactionMeta: {
+            ...DELEGATION_TRANSACTION_META,
+            type: TransactionType.moneyAccountWithdraw,
+          },
+        }),
+      ).resolves.toStrictEqual({ shouldSign: true });
+    });
+
+    it('skips local signing for Money Account withdrawals that force sponsorship', async () => {
+      enableDelegationRoute();
+      const hooks = getTransactionControllerHooks(buildRequest());
+
+      await expect(
+        hooks.shouldSign?.({
+          transactionMeta: {
+            ...DELEGATION_TRANSACTION_META,
+            forceIsGasFeeSponsored: true,
+            nestedTransactions: [
+              { type: TransactionType.moneyAccountWithdraw },
+            ],
+            type: TransactionType.batch,
+          },
+        }),
+      ).resolves.toStrictEqual({ shouldSign: false });
+    });
+
     it('signs locally for sponsored revoke delegation transactions', async () => {
       enableDelegationRoute();
       const hooks = getTransactionControllerHooks(buildRequest());
@@ -529,6 +561,42 @@ describe('getTransactionControllerHooks', () => {
 
     expect(Delegation7702PublishHook).not.toHaveBeenCalled();
     expect(result).toStrictEqual({ transactionHash: undefined });
+  });
+
+  it('does not sponsor Transaction Pay legs of Money Account withdrawals that do not force sponsorship', async () => {
+    jest.mocked(accountSupports7702).mockResolvedValue(true);
+    jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(false);
+    jest.mocked(isSendBundleSupported).mockResolvedValue(false);
+    jest.mocked(isRelaySupported).mockResolvedValue(true);
+
+    const delegationHookMock: jest.MockedFn<PublishHook> = jest
+      .fn()
+      .mockResolvedValue({ transactionHash: '0xde702' });
+    jest.mocked(Delegation7702PublishHook).mockImplementation(
+      () =>
+        ({
+          getHook: () => delegationHookMock,
+        }) as unknown as InstanceType<typeof Delegation7702PublishHook>,
+    );
+    const transactionMeta = {
+      ...MOCK_TRANSACTION_META,
+      txParams: {
+        ...MOCK_TRANSACTION_META.txParams,
+        to: '0x789',
+      },
+      type: TransactionType.moneyAccountWithdraw,
+    };
+
+    const hooks = getTransactionControllerHooks(buildRequest());
+    const result = await publish(hooks, transactionMeta);
+
+    const { isSponsored } = jest.mocked(Delegation7702PublishHook).mock
+      .calls[0][0];
+    expect(isSponsored(transactionMeta)).toBe(false);
+    expect(result).toStrictEqual({
+      isGasFeeSponsored: false,
+      transactionHash: '0xde702',
+    });
   });
 
   it('records sentinel_stx metrics when the batch hook publishes', async () => {
