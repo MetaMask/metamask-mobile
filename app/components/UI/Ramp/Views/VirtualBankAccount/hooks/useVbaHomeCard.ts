@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSelector, useStore } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   AutorampStatus,
@@ -355,68 +355,41 @@ export const shouldRefreshKycSessionOnFocus = (
   !TERMINAL_SESSION_STATUSES.has(sessionFinalStatus);
 
 /**
- * Focus refresh for Money home (TRAM-4125). Makes at most one VBA read per
- * focus, and only for an eligible user with a selected wallet. Wired on
- * MoneyHomeView via `useFocusEffect`.
- *
- * - Non-terminal stored KYC session: one `KycController.fetchSessionStatusOnce`
- * call, so the card follows the result. No timer.
- * - Approved session with no usable autoramp: one autoramp-list refresh via
- * `hydrateVbaOnboarding({ refreshAutoramps: true })`. No `refreshKyc`, so no
- * session GET.
- *
- * Never signs, never posts an autoramp, never starts the 15s poll. Ineligible
- * or wallet-less users make no VBA request.
+ * One-shot KYC session refresh for Money home. Wire it on the hosting screen
+ * (MoneyHomeView) so it runs on `useFocusEffect`: when a KYC session exists
+ * and is non-terminal, it calls
+ * `RampsController.hydrateVbaOnboarding({ walletAddress, refreshKyc: true })`
+ * — a single GET, never `refreshSessionStatus` and never the 15s poll. With
+ * no session or a terminal status it does nothing. The gate reads only
+ * primitive state (`walletAddress`, `finalStatus`), so unrelated
+ * KycController state writes never re-arm the refresh mid-focus, and
+ * `hydrateVbaOnboarding` is never called during initial render.
  */
 export const useVbaHomeCardRefresh = (): void => {
-  const { isEligible } = useVbaEligibility();
-  const store = useStore<RootState>();
+  const walletAddress = useSelector(selectSelectedVbaWalletAddress);
+  const sessionFinalStatus = useSelector(selectKycSessionStatus)?.finalStatus;
 
   useFocusEffect(
     useCallback(() => {
-      // Read at focus time, not from hook deps, so a session write while
-      // focused can't re-run this effect and send a second GET.
-      const state = store.getState();
-      const walletAddress = selectSelectedVbaWalletAddress(state);
-      if (!isEligible || !walletAddress) {
+      if (
+        !walletAddress ||
+        !shouldRefreshKycSessionOnFocus(sessionFinalStatus ?? null)
+      ) {
         return undefined;
       }
-
-      const sessionStatus = selectKycSessionStatus(state);
-      const logRefreshError = (error: unknown, step: string) => {
+      Engine.context.RampsController.hydrateVbaOnboarding({
+        walletAddress,
+        refreshKyc: true,
+      }).catch((error) => {
         Logger.error(error as Error, {
           tags: { feature: 'money-home' },
           context: {
             name: 'useVbaHomeCardRefresh',
-            data: { walletAddress, step },
+            data: { walletAddress },
           },
         });
-      };
-
-      if (
-        sessionStatus &&
-        shouldRefreshKycSessionOnFocus(sessionStatus.finalStatus)
-      ) {
-        Engine.context.KycController.fetchSessionStatusOnce(
-          sessionStatus.id,
-        ).catch((error) => logRefreshError(error, 'fetchSessionStatusOnce'));
-        return undefined;
-      }
-
-      const isApproved =
-        sessionStatus?.finalStatus === 'approved' ||
-        sessionStatus?.kycStatus === 'approved';
-      const autoramps =
-        selectRampsControllerState(state)?.autoramps ?? EMPTY_AUTORAMPS;
-      if (isApproved && !hasUsableAutorampForWallet(walletAddress, autoramps)) {
-        Engine.context.RampsController.hydrateVbaOnboarding({
-          walletAddress,
-          refreshAutoramps: true,
-        }).catch((error) =>
-          logRefreshError(error, 'hydrateVbaOnboarding:refreshAutoramps'),
-        );
-      }
+      });
       return undefined;
-    }, [isEligible, store]),
+    }, [walletAddress, sessionFinalStatus]),
   );
 };
