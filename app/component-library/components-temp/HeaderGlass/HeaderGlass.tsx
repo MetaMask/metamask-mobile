@@ -6,7 +6,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../util/theme';
 import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
 
-export interface FloatingHeaderProps {
+export interface HeaderGlassProps {
   children: React.ReactNode;
   onLayout: (event: LayoutChangeEvent) => void;
   /** Status bar space, when the screen doesn't already pad it. */
@@ -20,13 +20,13 @@ const FADE_LOCATIONS = [0, 0.3, 0.7, 1];
 
 export const FLOATING_HEADER_FADE_TEST_ID = 'floating-header-fade';
 
-/** A JS header over the content on an iOS 26-style scroll edge fade; pair with `useFloatingHeaderInset`. */
-const FloatingHeader = ({
+/** A JS header over the content on an iOS 26-style scroll edge fade; pair with `useHeaderGlassInset`. */
+const HeaderGlass = ({
   children,
   onLayout,
   topInset = 0,
   testID,
-}: FloatingHeaderProps) => {
+}: HeaderGlassProps) => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const fadeColors = useMemo(
@@ -59,4 +59,4 @@ const FloatingHeader = ({
   );
 };
 
-export default FloatingHeader;
+export default HeaderGlass;

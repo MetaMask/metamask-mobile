@@ -8,7 +8,7 @@ import { useLiquidGlass } from '../../hooks/useLiquidGlass';
 import { useTheme } from '../../../util/theme';
 import { BLUR_INTENSITY } from '../../hooks/useBlurMaterial';
 
-export interface GlassCapsuleProps {
+export interface CapsuleGlassProps {
   children?: React.ReactNode;
   twClassName?: string;
   nonGlassClassName?: string;
@@ -23,12 +23,12 @@ const CAPSULE_CLASS = 'h-10 flex-row items-center overflow-hidden rounded-full';
  * capsule everywhere else. Children must not paint their own background on
  * the glass path, or they cover the material.
  */
-const GlassCapsule = ({
+const CapsuleGlass = ({
   children,
   twClassName = '',
   nonGlassClassName = '',
   testID,
-}: GlassCapsuleProps) => {
+}: CapsuleGlassProps) => {
   const tw = useTailwind();
   const { shadows } = useTheme();
   const { isGlassEnabled, glassColorScheme, isBlurEnabled, blurTint } =
@@ -84,4 +84,4 @@ const GlassCapsule = ({
   );
 };
 
-export default GlassCapsule;
+export default CapsuleGlass;

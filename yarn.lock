@@ -9090,7 +9090,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/abi-utils@npm:^2.0.3":
+"@metamask/abi-utils@npm:^2.0.3, @metamask/abi-utils@npm:^2.0.4":
   version: 2.0.4
   resolution: "@metamask/abi-utils@npm:2.0.4"
   dependencies:
@@ -9344,7 +9344,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^112.0.2, @metamask/assets-controllers@npm:^112.0.4, @metamask/assets-controllers@npm:^112.1.2":
+"@metamask/assets-controllers@npm:^112.0.4, @metamask/assets-controllers@npm:^112.1.2":
   version: 112.1.2
   resolution: "@metamask/assets-controllers@npm:112.1.2"
   dependencies:
@@ -9520,9 +9520,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@npm:^81.1.0, @metamask/bridge-controller@npm:^81.4.0":
-  version: 81.4.0
-  resolution: "@metamask/bridge-controller@npm:81.4.0"
+"@metamask/bridge-controller@npm:^82.0.3":
+  version: 82.0.3
+  resolution: "@metamask/bridge-controller@npm:82.0.3"
   dependencies:
     "@ethersproject/address": "npm:^5.8.0"
     "@ethersproject/bignumber": "npm:^5.8.0"
@@ -9530,50 +9530,50 @@ __metadata:
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.8.0"
     "@metamask/accounts-controller": "npm:^40.0.0"
-    "@metamask/assets-controller": "npm:^17.0.0"
-    "@metamask/assets-controllers": "npm:^112.0.4"
+    "@metamask/assets-controller": "npm:^19.0.0"
+    "@metamask/assets-controllers": "npm:^112.1.2"
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/gas-fee-controller": "npm:^27.0.0"
-    "@metamask/keyring-api": "npm:^24.0.0"
+    "@metamask/keyring-api": "npm:^24.1.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
     "@metamask/multichain-network-controller": "npm:^4.0.0"
-    "@metamask/network-controller": "npm:^37.0.0"
+    "@metamask/network-controller": "npm:^37.0.1"
     "@metamask/polling-controller": "npm:^17.0.0"
-    "@metamask/profile-sync-controller": "npm:^33.0.0"
+    "@metamask/profile-sync-controller": "npm:^34.0.3"
     "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
-    "@metamask/snaps-controllers": "npm:^19.0.0"
-    "@metamask/transaction-controller": "npm:^72.0.1"
+    "@metamask/snaps-controllers": "npm:^19.0.1"
+    "@metamask/transaction-controller": "npm:^72.2.0"
     "@metamask/utils": "npm:^12.0.0"
     bignumber.js: "npm:^9.1.2"
-    reselect: "npm:^5.1.1"
+    reselect: "npm:^5.3.0"
     uuid: "npm:^11.1.1"
-  checksum: 10/c122bdd7c331801a65ab030ec0d7d0d0758fa026d1bc0ad78f4d978d15df6c9be44887c1ef6561166cdbfa64bf768c4a799f60a6d3ceeb9480e77afecc7bbb18
+  checksum: 10/3fff7642703b1a1ac3d55d179eda85bfd643888b56a851b67a926ab3cf0ee4b3fb7806f9403ad8909bdba32caee747476ec67c3a85e291105653d16246d1e7cd
   languageName: node
   linkType: hard
 
-"@metamask/bridge-status-controller@npm:^76.2.0":
-  version: 76.2.0
-  resolution: "@metamask/bridge-status-controller@npm:76.2.0"
+"@metamask/bridge-status-controller@npm:^76.4.0":
+  version: 76.4.0
+  resolution: "@metamask/bridge-status-controller@npm:76.4.0"
   dependencies:
     "@metamask/accounts-controller": "npm:^40.0.0"
     "@metamask/base-controller": "npm:^10.0.0"
-    "@metamask/bridge-controller": "npm:^81.1.0"
+    "@metamask/bridge-controller": "npm:^82.0.3"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/gas-fee-controller": "npm:^27.0.0"
-    "@metamask/keyring-controller": "npm:^28.0.0"
+    "@metamask/keyring-controller": "npm:^28.1.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/network-controller": "npm:^37.0.0"
+    "@metamask/network-controller": "npm:^37.0.1"
     "@metamask/polling-controller": "npm:^17.0.0"
-    "@metamask/profile-sync-controller": "npm:^32.1.0"
-    "@metamask/snaps-controllers": "npm:^19.0.0"
+    "@metamask/profile-sync-controller": "npm:^34.0.3"
+    "@metamask/snaps-controllers": "npm:^19.0.1"
     "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/transaction-controller": "npm:^70.0.0"
-    "@metamask/utils": "npm:^11.12.0"
+    "@metamask/transaction-controller": "npm:^72.2.1"
+    "@metamask/utils": "npm:^12.0.0"
     bignumber.js: "npm:^9.1.2"
-    uuid: "npm:^9.0.1"
-  checksum: 10/f3877f717693ac8a4f76170ee4f1fb4237c6bca5c240144b541638065dddeae6a9060fda5deb12640d59b3a935d7fa4ee5c1bd2cb43fe35218ab5e1a74b43b31
+    uuid: "npm:^11.1.1"
+  checksum: 10/525c1cd317173f7731781c645cc0d036615e80cb66aa40d4745a3bc9094208c215bbe1dcc2035a9461a5c87e436ec0b0b562e65148aa8abd51fd7c1c9ef263c2
   languageName: node
   linkType: hard
 
@@ -10659,10 +10659,10 @@ __metadata:
   linkType: hard
 
 "@metamask/keyring-snap-client@npm:^10.0.0":
-  version: 10.0.1
-  resolution: "@metamask/keyring-snap-client@npm:10.0.1"
+  version: 10.0.0
+  resolution: "@metamask/keyring-snap-client@npm:10.0.0"
   dependencies:
-    "@metamask/keyring-api": "npm:^24.2.0"
+    "@metamask/keyring-api": "npm:^24.0.0"
     "@metamask/keyring-utils": "npm:^5.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@types/uuid": "npm:^9.0.8"
@@ -10670,7 +10670,7 @@ __metadata:
     webextension-polyfill: "npm:^0.12.0"
   peerDependencies:
     "@metamask/providers": ^19.0.0
-  checksum: 10/5e8791200d284c22207300d28299c560dc6f3d4f9fc71c13ef447c9128d9cef03db61546067068248b6d4b726cf94c5e986c26a37a2a7ebfbe610ea3ecb387f0
+  checksum: 10/f7df23dfdba2d844885b0683cfcee3bb37a923569be80cdbb6e6426b96258343c0b2efee03890ae09325bc1545be6bfd5c7cfb02d6c46dbe9e4f008d51ab265f
   languageName: node
   linkType: hard
 
@@ -11317,11 +11317,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:20.0.0":
-  version: 20.0.0
-  resolution: "@metamask/perps-controller@npm:20.0.0"
+"@metamask/perps-controller@npm:^20.1.0":
+  version: 20.1.0
+  resolution: "@metamask/perps-controller@npm:20.1.0"
   dependencies:
-    "@metamask/abi-utils": "npm:^2.0.3"
+    "@metamask/abi-utils": "npm:^2.0.4"
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/messenger": "npm:^3.0.0"
@@ -11329,9 +11329,9 @@ __metadata:
     "@metamask/utils": "npm:^12.0.0"
     "@nktkas/hyperliquid": "npm:^0.33.3"
     bignumber.js: "npm:^9.1.2"
-    reselect: "npm:^5.1.1"
+    reselect: "npm:^5.3.0"
     uuid: "npm:^11.1.1"
-  checksum: 10/48984e855160d0573bfbe70d3c3b9723463ab7a271f037a5eb2942fbe9c9007fd43c460ffd8e1d1340dbd7ce3e1b7b9f9de447c21ff26ccc01cb66d84f13d161
+  checksum: 10/6cb74549c34dd13847af4b28c5c1c08afcae415ac3bfdc91567630db0f971275f8be99dba6385bbc2e29eb12fb9da241c9dd4809106695f9fc6656f9608666bc
   languageName: node
   linkType: hard
 
@@ -12198,10 +12198,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/solana-wallet-snap@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "@metamask/solana-wallet-snap@npm:7.0.0"
-  checksum: 10/57b0534954dbaf8fe9046053d7939ce914484fc9164f025e139f08ed95926b536f8ce830a9126d19fea42bae51fa2ec0ab6ac9b876116d229f633ae0b509b014
+"@metamask/solana-wallet-snap@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "@metamask/solana-wallet-snap@npm:7.1.0"
+  checksum: 10/2a48bdb0a41e553bbee86109d87f1522c6147a5e5ee915de08b88abae9825abfb979077c95567490a743c087e4c1b828ea8568ba0a840dd6c2b82ef4bea1cfe2
   languageName: node
   linkType: hard
 
@@ -12445,10 +12445,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "@metamask/tron-wallet-snap@npm:4.0.0"
-  checksum: 10/4c28a6bc4742e2cf2d1b07d1b5795838321a957da860942d5d09ca76d4c85bc98eec199846d948835ea602255875c6f466c2e9a1206851583ad649c946f99319
+"@metamask/tron-wallet-snap@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "@metamask/tron-wallet-snap@npm:4.1.0"
+  checksum: 10/b4ae2610dc248b4c9ae8c7818460555c040bdda3b1a543e4c2f971aa267da23fbffee26e6c8726cd66a0633b7edb17f7f4e246c0ac9e41750c8da3cd64be5b69
   languageName: node
   linkType: hard
 
@@ -39151,15 +39151,15 @@ __metadata:
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^10.0.0"
     "@metamask/assets-controller": "npm:^19.0.0"
-    "@metamask/assets-controllers": "npm:^112.0.2"
+    "@metamask/assets-controllers": "npm:^112.1.2"
     "@metamask/authenticated-user-storage": "npm:^4.1.0"
     "@metamask/auto-changelog": "npm:^6.2.0"
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/base-data-service": "npm:^2.1.0"
     "@metamask/bitcoin-wallet-snap": "npm:^3.2.0"
     "@metamask/bitcoin-wallet-standard": "npm:^1.0.0"
-    "@metamask/bridge-controller": "npm:^81.4.0"
-    "@metamask/bridge-status-controller": "npm:^76.2.0"
+    "@metamask/bridge-controller": "npm:^82.0.3"
+    "@metamask/bridge-status-controller": "npm:^76.4.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
     "@metamask/browser-playground": "npm:0.8.1"
     "@metamask/build-utils": "npm:^3.0.0"
@@ -39241,7 +39241,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^29.0.1"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "npm:20.0.0"
+    "@metamask/perps-controller": "npm:^20.1.0"
     "@metamask/phishing-controller": "npm:^17.4.1"
     "@metamask/platform-api-docs": "npm:^0.2.1"
     "@metamask/post-message-stream": "npm:^10.0.0"
@@ -39279,7 +39279,7 @@ __metadata:
     "@metamask/snaps-sdk": "npm:^12.1.0"
     "@metamask/snaps-utils": "npm:^12.6.1"
     "@metamask/social-controllers": "npm:^3.7.0"
-    "@metamask/solana-wallet-snap": "npm:^7.0.0"
+    "@metamask/solana-wallet-snap": "npm:^7.1.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
     "@metamask/stellar-wallet-snap": "npm:^1.2.0"
@@ -39294,7 +39294,7 @@ __metadata:
     "@metamask/tooling-insight": "npm:^1.0.1"
     "@metamask/transaction-controller": "npm:^72.2.1"
     "@metamask/transaction-pay-controller": "npm:^30.0.0"
-    "@metamask/tron-wallet-snap": "npm:^4.0.0"
+    "@metamask/tron-wallet-snap": "npm:^4.1.0"
     "@metamask/utils": "npm:^12.0.0"
     "@metamask/wallet": "npm:^17.1.0"
     "@ngraveio/bc-ur": "npm:^1.1.6"
@@ -47266,10 +47266,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"reselect@npm:^5.1.1":
-  version: 5.1.1
-  resolution: "reselect@npm:5.1.1"
-  checksum: 10/1fdae11a39ed9c8d85a24df19517c8372ee24fefea9cce3fae9eaad8e9cefbba5a3d4940c6fe31296b6addf76e035588c55798f7e6e147e1b7c0855f119e7fa5
+"reselect@npm:^5.1.1, reselect@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "reselect@npm:5.3.0"
+  checksum: 10/743d82c7012133d035e13343cb33e6b45c26cd0b0f95868d692ac9736973b1b8050f28938c1d36f51105926a1a947a0f56c4f52d6c66a61db4995535efb3837b
   languageName: node
   linkType: hard
 

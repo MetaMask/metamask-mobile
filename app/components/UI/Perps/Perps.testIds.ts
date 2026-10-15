@@ -298,6 +298,11 @@ export const PerpsHomeViewSelectorsIDs = {
   COMPETITION_BANNER: 'perps-home-competition-banner',
   PRODUCTS_SECTION: 'perps-products',
   /**
+   * Treatment Explore section. Header, tabs, list, and See more derive
+   * `perps-home-explore-section-header`, `-tab-{id}`, `-list`, and `-see-more`.
+   */
+  EXPLORE_SECTION: 'perps-home-explore-section',
+  /**
    * Explore crypto section container; PerpsMarketTypeSection derives `-header` and
    * `-list` from it, and PerpsMarketList derives `-list-empty` from the list ID, e.g.
    * `perps-home-explore-crypto-section-header`,
@@ -305,6 +310,9 @@ export const PerpsHomeViewSelectorsIDs = {
    * `perps-home-explore-crypto-section-list-empty`
    */
   EXPLORE_CRYPTO_SECTION: 'perps-home-explore-crypto-section',
+  EXPLORE_COMMODITIES_SECTION: 'perps-home-explore-commodities-section',
+  EXPLORE_STOCKS_SECTION: 'perps-home-explore-stocks-section',
+  EXPLORE_FOREX_SECTION: 'perps-home-explore-forex-section',
   TOP_MOVERS_SECTION: 'perps-home-top-movers-section',
   TOP_MOVERS_HEADER: 'perps-home-top-movers-header',
   TOP_MOVERS_GAINERS_PILL: 'perps-home-top-movers-gainers',

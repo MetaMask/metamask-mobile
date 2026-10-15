@@ -1,13 +1,13 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
-import GlassMainActionButton from './GlassMainActionButton';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../GlassSurface';
+import MainActionButtonGlass from './MainActionButtonGlass';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../BoxGlass';
 
-describe('GlassMainActionButton', () => {
+describe('MainActionButtonGlass', () => {
   it('renders the plain button without glass', () => {
     const { getByText, queryByTestId } = render(
-      <GlassMainActionButton
+      <MainActionButtonGlass
         iconName={IconName.Add}
         label="Add"
         onPress={jest.fn()}
@@ -22,7 +22,7 @@ describe('GlassMainActionButton', () => {
   it('draws the button on the glass sheen and keeps it pressable', () => {
     const onPress = jest.fn();
     const { getByTestId } = render(
-      <GlassMainActionButton
+      <MainActionButtonGlass
         iconName={IconName.Add}
         label="Add"
         onPress={onPress}

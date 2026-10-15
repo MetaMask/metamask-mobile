@@ -35,7 +35,7 @@ export const GLASS_SURFACE_SHEEN_TEST_ID = 'glass-surface-sheen';
 export const GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID =
   'glass-surface-sheen-gradient';
 
-export interface GlassSurfaceProps extends ViewProps {
+export interface BoxGlassProps extends ViewProps {
   radiusClassName: `rounded-${string}`;
   /** Layout for the bordered outer wrapper, e.g. margins or flex. */
   containerStyle?: StyleProp<ViewStyle>;
@@ -52,7 +52,7 @@ export interface GlassSurfaceProps extends ViewProps {
   isGlass?: boolean;
 }
 
-type SurfaceProps = Omit<GlassSurfaceProps, 'isGlass'>;
+type SurfaceProps = Omit<BoxGlassProps, 'isGlass'>;
 
 const OpaqueSurface = ({
   radiusClassName,
@@ -157,7 +157,7 @@ const LiquidGlassSurface = ({
  * An iOS 26 Liquid Glass surface with a hairline border, or the opaque muted
  * surface when `isGlass` is false. `style` lays out the content on it.
  */
-const GlassSurface = ({ isGlass = true, ...props }: GlassSurfaceProps) =>
+const BoxGlass = ({ isGlass = true, ...props }: BoxGlassProps) =>
   isGlass ? <LiquidGlassSurface {...props} /> : <OpaqueSurface {...props} />;
 
-export default GlassSurface;
+export default BoxGlass;
