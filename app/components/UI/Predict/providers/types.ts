@@ -135,6 +135,15 @@ export interface BeforeSignClaimResult {
   updateTransaction?: (transaction: TransactionMeta) => void;
 }
 
+export interface ShouldSignClaimParams {
+  transactionMeta: TransactionMeta;
+  signer: Signer;
+}
+
+export interface ShouldSignClaimResult {
+  shouldSign: boolean;
+}
+
 export interface PublishClaimParams {
   transactionMeta: TransactionMeta;
   signer: Signer;
@@ -223,6 +232,9 @@ export interface PredictProvider {
   beforeSignClaim?(
     params: BeforeSignClaimParams,
   ): Promise<BeforeSignClaimResult | undefined>;
+  shouldSignClaim?(
+    params: ShouldSignClaimParams,
+  ): Promise<ShouldSignClaimResult>;
   publishClaim?(params: PublishClaimParams): Promise<PublishClaimResult>;
   confirmClaim?(params: { positions: PredictPosition[]; signer: Signer }): void;
 

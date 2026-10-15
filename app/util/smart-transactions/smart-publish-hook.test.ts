@@ -252,6 +252,32 @@ describe('submitSmartTransactionHook', () => {
     });
   });
 
+  it('reserves a nonce when publishing an unsigned sponsored transaction', async () => {
+    withRequest(async ({ request }) => {
+      request.featureFlags.mobileReturnTxHashAsap = true;
+      request.transactionMeta = {
+        ...request.transactionMeta,
+        txParams: {
+          ...request.transactionMeta.txParams,
+          nonce: undefined,
+        },
+      };
+      request.transactionController.approveTransactionsWithSameNonce.mockImplementation(
+        async (transactions = []) => {
+          transactions[0].nonce = '0x4c';
+          return [createSignedTransaction()];
+        },
+      );
+
+      await submitSmartTransactionHook(request);
+
+      expect(
+        request.transactionController.approveTransactionsWithSameNonce,
+      ).toHaveBeenCalledWith(expect.anything(), { hasNonce: false });
+      expect(request.transactionMeta.txParams.nonce).toBe('0x4c');
+    });
+  });
+
   it('throws an error if there is no uuid', async () => {
     withRequest(async ({ request, submitSignedTransactionsSpy }) => {
       submitSignedTransactionsSpy.mockResolvedValue({

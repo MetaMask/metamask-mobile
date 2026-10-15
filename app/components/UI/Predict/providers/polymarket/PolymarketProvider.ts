@@ -86,6 +86,8 @@ import {
   PublishClaimParams,
   PublishClaimResult,
   SearchMarketsParams,
+  ShouldSignClaimParams,
+  ShouldSignClaimResult,
   Signer,
   SignWithdrawParams,
   SignWithdrawResponse,
@@ -2543,7 +2545,6 @@ export class PolymarketProvider implements PredictProvider {
 
       return {
         updateTransaction: (transaction: TransactionMeta) => {
-          transaction.isExternalSign = true;
           transaction.selectedGasFeeToken = undefined;
           transaction.isGasFeeTokenIgnoredIfBalance = false;
           delete transaction.txParams.nonce;
@@ -2555,6 +2556,18 @@ export class PolymarketProvider implements PredictProvider {
     // when Sentinel returns an empty or mismatched `gasFeeTokens` list.
     // Transaction-controller preflight rejects only when native is also short.
     return undefined;
+  }
+
+  public async shouldSignClaim({
+    signer,
+  }: ShouldSignClaimParams): Promise<ShouldSignClaimResult> {
+    const accountState = await this.getAccountState({
+      ownerAddress: signer.address,
+    });
+
+    // Deposit wallet claims are published by `publishClaim` through the
+    // deposit wallet relayer, so the transaction is never signed locally.
+    return { shouldSign: accountState.walletType !== 'deposit-wallet' };
   }
 
   public async publishClaim({
@@ -2573,12 +2586,6 @@ export class PolymarketProvider implements PredictProvider {
 
     if (accountState.walletType !== 'deposit-wallet') {
       return { transactionHash: undefined };
-    }
-
-    if (transactionMeta.isExternalSign !== true) {
-      throw new Error(
-        'Deposit wallet claim publish requires external-sign transaction',
-      );
     }
 
     try {

@@ -37,7 +37,10 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { resolveTransactionType } from '../../../utils/transaction';
+import {
+  isGasFeeSponsorshipRequested,
+  resolveTransactionType,
+} from '../../../utils/transaction';
 import {
   Text,
   TextVariant,
@@ -104,7 +107,7 @@ function TransactionFeeRow({
 
   const feeTotalUsd = useMemo(() => {
     if (
-      transactionMeta?.isGasFeeSponsored &&
+      isGasFeeSponsorshipRequested(transactionMeta) &&
       !hasSourceAmounts &&
       !isFiatPayment
     ) {
@@ -124,13 +127,7 @@ function TransactionFeeRow({
         .plus(sourceNetwork)
         .plus(targetNetwork),
     );
-  }, [
-    totals,
-    formatFiat,
-    transactionMeta?.isGasFeeSponsored,
-    hasSourceAmounts,
-    isFiatPayment,
-  ]);
+  }, [totals, formatFiat, transactionMeta, hasSourceAmounts, isFiatPayment]);
 
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
 

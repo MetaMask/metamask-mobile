@@ -245,7 +245,7 @@ export function useMoneyAccountMusdRescueSend() {
         disableSequential: true,
         disableUpgrade: true,
         from: prepared.moneyAccountAddress,
-        isGasFeeSponsored: prepared.isGasFeeSponsored,
+        forceIsGasFeeSponsored: prepared.isGasFeeSponsored,
         isInternal: true,
         networkClientId: prepared.networkClientId,
         origin: ORIGIN_METAMASK,

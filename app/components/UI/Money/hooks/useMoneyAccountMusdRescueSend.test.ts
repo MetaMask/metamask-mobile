@@ -214,7 +214,7 @@ describe('useMoneyAccountMusdRescueSend', () => {
     expect(mockRefreshMoneyAccountBalanceFresh).toHaveBeenCalledWith(
       MOCK_MONEY_ADDRESS,
     );
-    expect(batchArgs.isGasFeeSponsored).toBe(true);
+    expect(batchArgs.forceIsGasFeeSponsored).toBe(true);
     expect(batchArgs.isInternal).toBe(true);
     expect(batchArgs.origin).toBe(ORIGIN_METAMASK);
     expect(batchArgs.disableHook).toBe(true);
@@ -402,7 +402,7 @@ describe('useMoneyAccountMusdRescueSend', () => {
     await initiate(result, { amount: '100' });
 
     const batchArgs = mockAddTransactionBatch.mock.calls[0][0];
-    expect(batchArgs.isGasFeeSponsored).toBe(false);
+    expect(batchArgs.forceIsGasFeeSponsored).toBe(false);
   });
 
   it('keeps a second submission blocked while the first is still resolving', async () => {

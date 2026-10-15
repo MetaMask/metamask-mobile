@@ -5,6 +5,8 @@ import {
   type PublishBatchHookRequest,
   type PublishBatchHookResult,
   type PublishBatchHookTransaction,
+  type PublishHookResult,
+  type ShouldSignHook,
   type TransactionController,
   type TransactionControllerOptions,
   type TransactionMeta,
@@ -39,14 +41,23 @@ import {
   type SubmitSmartTransactionRequest,
 } from '../../smart-transactions/smart-publish-hook';
 import { getTransactionById } from '..';
-import { accountSupports7702 } from '../account-supports-7702';
 import { isSendBundleSupported } from '../sentinel-api';
+import {
+  type GasFeeSponsorshipRequest,
+  isDelegationRelaySupported,
+  isGasFeeSponsored,
+  isSenderEIP7702Supported,
+  isSmartTransactionBundleSupported,
+} from '../gas-sponsorship';
 import { Delegation7702PublishHook } from './delegation-7702-publish';
 import {
   PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
   QUOTE_REQUIRED_TRANSACTION_TYPES,
 } from '../../../components/Views/confirmations/constants/confirmations';
-import { getPostQuoteTransactionType } from '../../../components/Views/confirmations/utils/transaction';
+import {
+  getPostQuoteTransactionType,
+  isGasFeeSponsorshipRequested,
+} from '../../../components/Views/confirmations/utils/transaction';
 
 const STX_GET_FEES_ERROR_METRIC_NAME = 'stx_get_fees_error';
 
@@ -66,13 +77,14 @@ export interface TransactionControllerHookRequest {
 
 export function getTransactionControllerHooks(
   request: TransactionControllerHookRequest,
-): TransactionControllerOptions['hooks'] {
+): NonNullable<TransactionControllerOptions['hooks']> {
   return {
     beforePublish: beforePublishHook(request),
     beforeSign: beforeSignHook(request),
     // @ts-expect-error - TransactionController actually sends a signedTx as a second argument, but its type doesn't reflect that.
     publish: publishHook(request),
     publishBatch: publishBatchHook(request),
+    shouldSign: shouldSignHook(request),
   };
 }
 
@@ -89,6 +101,95 @@ async function getNextNonce(
   return toHex(nonceLock.nextNonce);
 }
 
+function getSponsorshipRequest(
+  { getState, initMessenger }: TransactionControllerHookRequest,
+  transaction: TransactionMeta,
+): GasFeeSponsorshipRequest {
+  return {
+    getKeyringForAccount: (address: string) =>
+      initMessenger.call('KeyringController:getKeyringForAccount', address),
+    getState,
+    transaction,
+  };
+}
+
+function hasExecutablePayQuotes(
+  transactionMeta: TransactionMeta,
+  initMessenger: TransactionControllerInitMessenger,
+): boolean {
+  const { transactionData } = initMessenger.call(
+    'TransactionPayController:getState',
+  );
+  const quotes = transactionData?.[transactionMeta.id]?.quotes ?? [];
+
+  return quotes.some((quote) => !isNoOpQuote(quote));
+}
+
+/**
+ * Whether a selected gas fee token is paid through the EIP-7702 relay rather
+ * than a Smart Transactions batch. Forced gas fee tokens (for example MetaMask
+ * Pay source transactions) always use the relay.
+ *
+ * @param transactionMeta - The transaction metadata.
+ * @param isSmartTransactionBundle - Whether Smart Transactions sendBundle is used.
+ * @returns Whether the gas fee token is paid through the EIP-7702 relay.
+ */
+function isGasFeeTokenPaidByDelegation(
+  transactionMeta: TransactionMeta,
+  isSmartTransactionBundle: boolean,
+): boolean {
+  if (!transactionMeta.selectedGasFeeToken) {
+    return false;
+  }
+
+  return (
+    !isSmartTransactionBundle ||
+    Boolean(transactionMeta.isGasFeeTokenIgnoredIfBalance) ||
+    Boolean(transactionMeta.excludeNativeTokenForFee)
+  );
+}
+
+function shouldSignHook(
+  request: TransactionControllerHookRequest,
+): ShouldSignHook {
+  const { getState, initMessenger } = request;
+
+  return async ({ transactionMeta }) => {
+    const { shouldSign: predictShouldSign } = await initMessenger.call(
+      'PredictController:shouldSign',
+      { transactionMeta },
+    );
+
+    if (!predictShouldSign) {
+      return { shouldSign: false };
+    }
+
+    if (hasExecutablePayQuotes(transactionMeta, initMessenger)) {
+      return { shouldSign: false };
+    }
+
+    const isSmartTransactionBundle = await isSmartTransactionBundleSupported(
+      getState(),
+      transactionMeta.chainId,
+    );
+
+    const isDelegationRequested =
+      (isGasFeeSponsorshipRequested(transactionMeta) &&
+        !isSmartTransactionBundle) ||
+      isGasFeeTokenPaidByDelegation(transactionMeta, isSmartTransactionBundle);
+
+    if (!isDelegationRequested) {
+      return { shouldSign: true };
+    }
+
+    const isDelegationSupported = await isDelegationRelaySupported(
+      getSponsorshipRequest(request, transactionMeta),
+    );
+
+    return { shouldSign: !isDelegationSupported };
+  };
+}
+
 function beforePublishHook({
   initMessenger,
 }: TransactionControllerHookRequest) {
@@ -103,15 +204,33 @@ function beforeSignHook({ initMessenger }: TransactionControllerHookRequest) {
     initMessenger.call('PredictController:beforeSign', hookRequest);
 }
 
-function publishHook({
-  getState,
-  getTransactionController,
-  initMessenger,
-}: TransactionControllerHookRequest) {
+function recordSubmissionMethod(
+  transactionId: string,
+  method: (typeof TRANSACTION_SUBMISSION_METHOD)[keyof typeof TRANSACTION_SUBMISSION_METHOD],
+) {
+  try {
+    store.dispatch(
+      updateConfirmationMetric({
+        id: transactionId,
+        params: {
+          properties: {
+            [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]: method,
+          },
+        },
+      }),
+    );
+  } catch (e) {
+    console.error(`Failed to record ${method} metrics fragment`, e);
+  }
+}
+
+function publishHook(request: TransactionControllerHookRequest) {
+  const { getState, getTransactionController, initMessenger } = request;
+
   return async (
     transactionMeta: TransactionMeta,
     signedTransactionInHex: Hex,
-  ): Promise<{ transactionHash?: string }> => {
+  ): Promise<PublishHookResult> => {
     const { transactionHash: predictTransactionHash } =
       await initMessenger.call('PredictController:publish', {
         transactionMeta,
@@ -123,11 +242,8 @@ function publishHook({
 
     const state = getState();
 
-    const { shouldUseSmartTransaction, featureFlags } =
+    const { featureFlags, shouldUseSmartTransaction } =
       getSmartTransactionCommonParams(state, transactionMeta.chainId);
-    const sendBundleSupport = await isSendBundleSupported(
-      transactionMeta.chainId,
-    );
 
     const { stxDisabled } = selectMetaMaskPayFlags(state);
 
@@ -142,16 +258,19 @@ function publishHook({
 
     validateRequiredQuote(transactionMeta, initMessenger, state);
 
-    const { isExternalSign } = transactionMeta;
+    const sponsorshipRequest = getSponsorshipRequest(request, transactionMeta);
+    const isSponsored = await isGasFeeSponsored(sponsorshipRequest);
+    const sendBundleSupport = await isSendBundleSupported(
+      transactionMeta.chainId,
+    );
+    const keyringSupports7702 =
+      await isSenderEIP7702Supported(sponsorshipRequest);
+
     const isRevokeDelegation =
       transactionMeta.type === TransactionType.revokeDelegation;
-
-    const keyringSupports7702 = await accountSupports7702(
-      transactionMeta.txParams?.from,
-      getKeyringController(initMessenger),
-    );
-
     const isSwapGasIncluded7702 = Boolean(transactionMeta.isGasFeeIncluded);
+    const isSignedExternally =
+      !signedTransactionInHex || signedTransactionInHex === '0x';
 
     if (
       keyringSupports7702 &&
@@ -159,7 +278,7 @@ function publishHook({
       (isSwapGasIncluded7702 ||
         !shouldUseSmartTransaction ||
         !sendBundleSupport ||
-        isExternalSign)
+        isSignedExternally)
     ) {
       const transactionController = getTransactionController();
       const hook = new Delegation7702PublishHook({
@@ -169,28 +288,19 @@ function publishHook({
           transactionController.isAtomicBatchSupported.bind(
             transactionController,
           ),
+        isSponsored: () => isSponsored,
         messenger: initMessenger,
       }).getHook();
 
       const result = await hook(transactionMeta, signedTransactionInHex);
 
       if (result?.transactionHash) {
-        try {
-          store.dispatch(
-            updateConfirmationMetric({
-              id: transactionMeta.id,
-              params: {
-                properties: {
-                  [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
-                    TRANSACTION_SUBMISSION_METHOD.SENTINEL_RELAY,
-                },
-              },
-            }),
-          );
-        } catch (e) {
-          console.error('Failed to record sentinel_relay metrics fragment', e);
-        }
-        return result;
+        recordSubmissionMethod(
+          transactionMeta.id,
+          TRANSACTION_SUBMISSION_METHOD.SENTINEL_RELAY,
+        );
+
+        return { ...result, isGasFeeSponsored: isSponsored };
       }
     }
 
@@ -203,7 +313,9 @@ function publishHook({
           initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
         featureFlags,
         shouldUseSmartTransaction,
-        signedTransactionInHex,
+        signedTransactionInHex: isSignedExternally
+          ? undefined
+          : signedTransactionInHex,
         smartTransactionsController:
           getSmartTransactionsController(initMessenger),
         transactionController: getTransactionController(),
@@ -231,22 +343,15 @@ function publishHook({
       }
 
       if (result?.transactionHash) {
-        try {
-          store.dispatch(
-            updateConfirmationMetric({
-              id: transactionMeta.id,
-              params: {
-                properties: {
-                  [TRANSACTION_SUBMISSION_METHOD_METRIC_NAME]:
-                    TRANSACTION_SUBMISSION_METHOD.SENTINEL_STX,
-                },
-              },
-            }),
-          );
-        } catch (e) {
-          console.error('Failed to record sentinel_stx metrics fragment', e);
-        }
-        return result;
+        recordSubmissionMethod(
+          transactionMeta.id,
+          TRANSACTION_SUBMISSION_METHOD.SENTINEL_STX,
+        );
+
+        return {
+          ...result,
+          isGasFeeSponsored: isSponsored && sendBundleSupport,
+        };
       }
     }
 
@@ -407,13 +512,6 @@ function publishBatchHook({
     }
 
     return result;
-  };
-}
-
-function getKeyringController(messenger: TransactionControllerInitMessenger) {
-  return {
-    getKeyringForAccount: (address: string) =>
-      messenger.call('KeyringController:getKeyringForAccount', address),
   };
 }
 

@@ -50,7 +50,7 @@ function createQuoteMock(
 }
 
 function render(
-  options: { type?: TransactionType; isGasFeeSponsored?: boolean } = {},
+  options: { type?: TransactionType; forceIsGasFeeSponsored?: boolean } = {},
 ) {
   const state = merge(
     {},
@@ -66,8 +66,8 @@ function render(
 
   tx.type = options.type ?? TransactionType.perpsDeposit;
 
-  if (options.isGasFeeSponsored !== undefined) {
-    tx.isGasFeeSponsored = options.isGasFeeSponsored;
+  if (options.forceIsGasFeeSponsored !== undefined) {
+    tx.forceIsGasFeeSponsored = options.forceIsGasFeeSponsored;
   }
 
   return renderWithProvider(<BridgeFeeRow />, { state });
@@ -262,7 +262,7 @@ describe('BridgeFeeRow', () => {
   });
 
   it('renders $0 fee when transaction is gas fee sponsored', () => {
-    const { getByText } = render({ isGasFeeSponsored: true });
+    const { getByText } = render({ forceIsGasFeeSponsored: true });
     expect(getByText('$0')).toBeOnTheScreen();
   });
 
@@ -271,7 +271,7 @@ describe('BridgeFeeRow', () => {
       selectedPaymentMethodId: 'pm-123',
     } as never);
 
-    const { getByText } = render({ isGasFeeSponsored: true });
+    const { getByText } = render({ forceIsGasFeeSponsored: true });
 
     expect(getByText('$1.23')).toBeOnTheScreen();
   });

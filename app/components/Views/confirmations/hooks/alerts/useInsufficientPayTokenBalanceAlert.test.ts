@@ -570,7 +570,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         useTransactionMetadataRequestMock.mockReturnValue({
           type: TransactionType.moneyAccountDeposit,
           chainId: CHAIN_IDS.MONAD,
-          isGasFeeSponsored: true,
+          forceIsGasFeeSponsored: true,
           txParams: { from: SIGNER_ADDRESS },
         } as unknown as TransactionMeta);
         useTransactionPayTokenMock.mockReturnValue({
@@ -598,7 +598,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       jest.mocked(isHardwareAccount).mockReturnValue(true);
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
-        isGasFeeSponsored: true,
+        forceIsGasFeeSponsored: true,
       } as unknown as TransactionMeta);
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
@@ -618,7 +618,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
         chainId: PAY_TOKEN_MOCK.chainId,
-        isGasFeeSponsored: true,
+        forceIsGasFeeSponsored: true,
       } as unknown as TransactionMeta);
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
@@ -640,7 +640,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
         chainId: CHAIN_IDS.MONAD,
-        isGasFeeSponsored: true,
+        forceIsGasFeeSponsored: true,
       } as unknown as TransactionMeta);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
@@ -669,7 +669,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
         chainId: CHAIN_IDS.MONAD,
-        isGasFeeSponsored: true,
+        forceIsGasFeeSponsored: true,
       } as unknown as TransactionMeta);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {

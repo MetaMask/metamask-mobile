@@ -11,6 +11,8 @@ import { getPaymentOverrideData } from './paymentoverride-callback';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
 import { getBalance } from './get-balance-callback';
 import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
+import { isGasFeeSponsored } from '../../../../util/transactions/gas-sponsorship';
+import { store } from '../../../../store';
 
 export const TransactionPayControllerInit: MessengerClientInitFunction<
   TransactionPayController,
@@ -28,6 +30,17 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
         getDelegationTransaction(initMessenger, transaction, isSubsidized),
       getPaymentOverrideData: (paymentOverrideRequest) =>
         getPaymentOverrideData(paymentOverrideRequest, initMessenger),
+      isGasFeeSponsored: async ({ transaction }) => ({
+        isGasFeeSponsored: await isGasFeeSponsored({
+          getKeyringForAccount: (address: string) =>
+            initMessenger.call(
+              'KeyringController:getKeyringForAccount',
+              address,
+            ),
+          getState: store.getState,
+          transaction,
+        }),
+      }),
       messenger: controllerMessenger,
       polymarket: createPolymarketCallbacks(initMessenger),
       state: persistedState.TransactionPayController,

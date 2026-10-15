@@ -68,6 +68,7 @@ import type {
   PredictControllerBeforeSignAction,
   PredictControllerBeforePublishAction,
   PredictControllerPublishAction,
+  PredictControllerShouldSignAction,
 } from '../../../../components/UI/Predict/controllers/PredictController-method-action-types';
 
 export type TransactionControllerInitMessengerActions =
@@ -107,7 +108,8 @@ export type TransactionControllerInitMessengerActions =
   | AnalyticsControllerActions
   | PredictControllerBeforePublishAction
   | PredictControllerBeforeSignAction
-  | PredictControllerPublishAction;
+  | PredictControllerPublishAction
+  | PredictControllerShouldSignAction;
 
 export type TransactionControllerInitMessengerEvents =
   | BridgeStatusControllerEvents
@@ -188,6 +190,7 @@ export function getTransactionControllerInitMessenger(
       'PredictController:beforePublish',
       'PredictController:beforeSign',
       'PredictController:publish',
+      'PredictController:shouldSign',
       'AssetsController:getState',
       // Missing actions to use fiat payment hook from publish hook
       // Actions below are provided by patched controllers not yet in upstream types

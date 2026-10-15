@@ -452,6 +452,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'searchMarkets',
   'selectPaymentToken',
   'setSelectedPaymentToken',
+  'shouldSign',
   'subscribeToConnectionStatus',
   'subscribeToCryptoPrices',
   'subscribeToGameUpdates',
@@ -4738,6 +4739,29 @@ export class PredictController extends BaseController<
       transactionMeta: request.transactionMeta,
       signer: claimContext.signer,
       positions: claimContext.positions,
+    });
+  }
+
+  /**
+   * Whether the transaction should be signed locally by the TransactionController.
+   * Predict claims from deposit wallets are published by the provider instead.
+   *
+   * @param request - The request object.
+   * @param request.transactionMeta - The transaction metadata.
+   * @returns Whether the transaction should be signed locally.
+   */
+  public async shouldSign(request: {
+    transactionMeta: TransactionMeta;
+  }): Promise<{ shouldSign: boolean }> {
+    const claimContext = this.getPendingClaimContext(request.transactionMeta);
+
+    if (!claimContext || !this.provider.shouldSignClaim) {
+      return { shouldSign: true };
+    }
+
+    return this.provider.shouldSignClaim({
+      transactionMeta: request.transactionMeta,
+      signer: claimContext.signer,
     });
   }
 
