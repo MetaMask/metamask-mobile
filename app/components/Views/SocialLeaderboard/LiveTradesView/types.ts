@@ -1,3 +1,4 @@
+import type { Position } from '@metamask/social-controllers';
 import type { PositionTokenAvatarData } from '../../../UI/SocialFeed/components/PositionTokenAvatar';
 import type {
   SocialV1FeedAuthor,
@@ -28,4 +29,6 @@ export interface LiveTradeRowModel {
    * omitted it (always for perps). Used by the market-cap filter.
    */
   marketCapUsd: number | null;
+  /** Handed to the position details sheet so it opens without a fetch. */
+  position?: Position;
 }

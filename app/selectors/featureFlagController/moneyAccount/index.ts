@@ -49,6 +49,32 @@ export function isVbaGeoBypassEnabled(): boolean {
   return process.env.MM_MONEY_VBA_GEO_BYPASS === 'true';
 }
 
+export const SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY =
+  'subscriptionMoneyAccountOrangeEnabled' as const;
+
+/**
+ * Gates the MetaMask Pro subscription flow (sign-up paywall, benefit sheets,
+ * success screen, Pro landing page, plan management, and cancel flow).
+ *
+ * Set `MM_PRO_SUBSCRIPTION_FLOW_ENABLED=true` to force it on locally.
+ */
+export const selectProSubscriptionEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): boolean => {
+    const localOverrideEnabled =
+      process.env.MM_PRO_SUBSCRIPTION_FLOW_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.[SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY];
+    if (localOverrideEnabled) {
+      return true;
+    }
+    if (typeof remoteFlag === 'boolean') {
+      return remoteFlag;
+    }
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
 export const MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY =
   'moneyEnableOnboardingStepperAnimation' as const;
 

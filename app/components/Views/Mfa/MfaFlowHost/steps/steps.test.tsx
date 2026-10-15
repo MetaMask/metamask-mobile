@@ -10,6 +10,7 @@ import CodeStep from './CodeStep';
 import EmailEntryStep from './EmailEntryStep';
 import FailureStep from './FailureStep';
 import IntroStep from './IntroStep';
+import PasskeyStep from './PasskeyStep';
 import PickerStep from './PickerStep';
 import SuccessStep, { SUCCESS_AUTO_CLOSE_MS } from './SuccessStep';
 
@@ -140,28 +141,51 @@ describe('EmailEntryStep', () => {
     });
   });
 
-  it.each(['nope', 'a@b', 'a@b..co', 'a@.co', 'a b@c.co'])(
-    'rejects %s without sending it',
-    (address) => {
-      const onAction = jest.fn();
-      const { getByTestId, getByText } = render(
-        <EmailEntryStep
-          {...buildState({ name: 'emailEntry' })}
-          reason={reason}
-          onAction={onAction}
-        />,
-      );
+  it.each([
+    'nope',
+    'a@b',
+    'a@b..co',
+    'a@.co',
+    'a b@c.co',
+    '.a@b.co',
+    'a.@b.co',
+    'a..b@c.co',
+    '@b.co',
+    'a@@b.co',
+    'a@b.co.',
+  ])('rejects %s without sending it', (address) => {
+    const onAction = jest.fn();
+    const { getByTestId, getByText } = render(
+      <EmailEntryStep
+        {...buildState({ name: 'emailEntry' })}
+        reason={reason}
+        onAction={onAction}
+      />,
+    );
 
-      fireEvent.changeText(
-        getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT),
-        address,
-      );
-      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    fireEvent.changeText(getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT), address);
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
 
-      expect(getByText('Enter a valid email address.')).toBeOnTheScreen();
-      expect(onAction).not.toHaveBeenCalled();
-    },
-  );
+    expect(getByText('Enter a valid email address.')).toBeOnTheScreen();
+    expect(onAction).not.toHaveBeenCalled();
+  });
+
+  it('accepts dots inside the local part', () => {
+    const onAction = jest.fn();
+    const { getByTestId } = render(
+      <EmailEntryStep
+        {...buildState({ name: 'emailEntry', prefillEmail: 'first.last@b.co' })}
+        reason={reason}
+        onAction={onAction}
+      />,
+    );
+
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    expect(onAction).toHaveBeenCalledWith({
+      type: 'submitEmail',
+      email: 'first.last@b.co',
+    });
+  });
 
   it('shows the error for an address already in use', () => {
     const { getByText } = render(
@@ -269,6 +293,10 @@ describe('CodeStep', () => {
     expect(getByText('Resend code in 30s')).toBeOnTheScreen();
     expect(queryByTestId(MfaFlowSelectorsIDs.ERROR)).toBeNull();
     expect(queryByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON)).toBeNull();
+    act(() => {
+      jest.advanceTimersByTime(1_000);
+    });
+    expect(getByText('Resend code in 29s')).toBeOnTheScreen();
   });
 
   it('sends the first code by itself once the cooldown ends', () => {
@@ -313,6 +341,27 @@ describe('CodeStep', () => {
     const { getByText } = renderCode(otp(true), { codeResent: true });
 
     expect(getByText('We sent you a new code.')).toBeOnTheScreen();
+  });
+});
+
+describe('PasskeyStep', () => {
+  it('shows why the passkey failed and tries again', () => {
+    const onAction = jest.fn();
+    const { getByText, getByTestId } = render(
+      <PasskeyStep
+        {...buildState(
+          { name: 'passkey', purpose: 'verify' },
+          { error: 'passkey_ceremony_cancelled' },
+        )}
+        reason={reason}
+        onAction={onAction}
+      />,
+    );
+
+    expect(getByText('Use your passkey')).toBeOnTheScreen();
+    expect(getByText('Passkey request was cancelled.')).toBeOnTheScreen();
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    expect(onAction).toHaveBeenCalledWith({ type: 'continue' });
   });
 });
 
