@@ -15,21 +15,18 @@ jest.mock('../../../../hooks/usePredictRewards', () => ({
   usePredictRewards: jest.fn(),
 }));
 
-jest.mock(
-  '../../../../../shared/MembershipVipBadge/MembershipVipBadge',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { Text } = jest.requireActual('react-native');
-    return ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>
-      hasProEntitlement
-        ? ReactActual.createElement(
-            Text,
-            { testID: 'rewards-member-badge' },
-            'Member',
-          )
-        : null;
-  },
-);
+jest.mock('../../../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>
+    hasProEntitlement
+      ? ReactActual.createElement(
+          Text,
+          { testID: 'rewards-member-badge' },
+          'Member',
+        )
+      : null;
+});
 
 jest.mock('../../../../utils/format', () => ({
   formatPrice: jest.fn(
