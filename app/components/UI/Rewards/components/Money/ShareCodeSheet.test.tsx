@@ -579,6 +579,65 @@ describe('ShareCodeSheet', () => {
       },
     );
 
+    it('tracks Rewards Money Referral Code Shared when the native share sheet is dismissed', async () => {
+      shareSpy.mockResolvedValue({
+        action: Share.dismissedAction,
+      } as Awaited<ReturnType<typeof Share.share>>);
+      const { getByTestId } = renderSheet();
+
+      fireEvent.press(getByTestId(TEST_IDS.SHARE_VIA));
+      await act(async () => undefined);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_CODE_SHARED,
+      );
+      const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        referral_code: CODE,
+        share_method: 'share_via',
+      });
+    });
+
+    it('tracks Rewards Money Referral Code Shared when the native share is refused', async () => {
+      shareSpy.mockRejectedValue(new Error('no share'));
+      const { getByTestId } = renderSheet();
+
+      fireEvent.press(getByTestId(TEST_IDS.SHARE_VIA));
+      await act(async () => undefined);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_CODE_SHARED,
+      );
+      const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        referral_code: CODE,
+        share_method: 'share_via',
+      });
+    });
+
+    it.each([
+      [TEST_IDS.MESSAGES, 'messages'],
+      [TEST_IDS.TELEGRAM, 'telegram'],
+    ] as const)(
+      'tracks Rewards Money Referral Code Shared for %s when the link cannot be opened',
+      async (testId, shareMethod) => {
+        openUrlSpy.mockRejectedValue(new Error('no handler'));
+        const { getByTestId } = renderSheet();
+
+        fireEvent.press(getByTestId(testId));
+        await act(async () => undefined);
+
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.REWARDS_MONEY_REFERRAL_CODE_SHARED,
+        );
+        const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+        expect(builder.addProperties).toHaveBeenCalledWith({
+          referral_code: CODE,
+          share_method: shareMethod,
+        });
+      },
+    );
+
     it('does not track a share when there is no resolved url', () => {
       const { queryByTestId } = renderSheet({ code: null, shareUrl: null });
 
